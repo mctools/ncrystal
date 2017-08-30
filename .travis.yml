@@ -36,6 +36,7 @@ before_script:
     - set -e
     - cmake --version
     - python --version
+    - python -c 'import numpy' 2>/dev/null || pip install numpy
     - python -c 'import numpy; print numpy.__version__'
     - mkdir build installdir rundir
     - cd build
