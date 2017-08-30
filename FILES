@@ -1,0 +1,36 @@
+**********************************************************************************
+*** The files in this distribution are:
+
+NOTICE              : Important notice concerning attribution and licensing.
+README              : Brief instructions.
+LICENSE             : License conditions (except for code in ./ncrystal_extra/)
+VERSION             : File containing the version of the distribution.
+CHANGELOG           : Release notes.
+INSTALL             : Build, installation and brief usage instructions.
+FILES               : This file.
+CMakeLists.txt......: Configuration file for building and installing via CMake
+                      (cf. the INSTALL file for instructions).
+data/...............: Crystallographic data files, either in NCrystals native
+                      format (.ncmat) or in .nxs format (reading the latter needs
+                      the optional code from ./ncrystal_extra/ enabled).
+examples/...........: Small standalone examples for using NCrystal, either from
+                      the commandline, C, C++ or python applications or through
+                      Geant4 simulations in C++.
+ncrystal_core/......: The core NCrystal code implemented in C++. Public header
+                      files for C++ and C are available in the
+                      ncrystal_core/include/NCrystal/ directory, and the
+                      implementation is in ncrystal_core/src/.
+ncrystal_geant4/....: NCrystal-Geant4 interface classes, with public header
+                      files for Geant4-dependent C++ code available in the
+                      ncrystal_geant4/include/G4NCrystal/ directory, and the
+                      implementation in ncrystal_geant4/src/.
+ncrystal_python/....: NCrystal python module and python-based
+                      ncrystal_inspectfile script.
+ncrystal_extra/.....: Contains optional code available under different licensing
+                      conditions than the rest of NCrystal. Currently this just
+                      includes a component for loading .nxs, .lau or .laz
+                      files. See the dedicated LICENSE file inside the
+                      ncrystal_extra/ directory for usage conditions. Inclusion
+                      of the optional components is controlled via the
+                      BUILD_EXTRA flag when building via CMake.
+

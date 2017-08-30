@@ -1,0 +1,15 @@
+#Crystal structure is taken from The Materials Project available at www.materialsproject.org, "A. Jain et. al., APL Materials, 2013".
+#Debye temperature is taken from C.Y. Ho et al., J. Phys. Chem. Ref. Data, volume 3, supplement 1, 1974
+# Xiao Xiao Cai, 13/05/2016
+
+space_group = 225
+lattice_a = 4.06020
+lattice_b = 4.06020
+lattice_c = 4.06020
+lattice_alpha = 90.000
+lattice_beta  = 90.000
+lattice_gamma = 90.000
+debye_temp = 221
+
+[atoms]
+add_atom = Ag 5.922 0.58 63.3 107.8682 0.0 0.0 0.0

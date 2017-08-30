@@ -1,0 +1,15 @@
+#Crystal structure is taken from The Materials Project available at www.materialsproject.org, "A. Jain et. al., APL Materials, 2013".
+#Debye temperature is taken from R. Passler, 2007. J. Appl. Phys. 101, 093513.
+# Xiao Xiao Cai, 13/05/2016
+
+space_group = 227
+lattice_a = 5.46873
+lattice_b = 5.46873
+lattice_c = 5.46873
+lattice_alpha = 90.000
+lattice_beta  = 90.000
+lattice_gamma = 90.000
+debye_temp = 485
+
+[atoms]
+add_atom = Si 4.15071 0.004 0.171 28.0855 0.0 0.0 0.0

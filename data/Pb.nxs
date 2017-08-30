@@ -1,0 +1,16 @@
+#converted from the cif file of the entry 0011154 in the AMCSD
+#reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+#comment: The Debye temperature is derived from the Debye-waller factor at 293K compiled in the supplement of Acta Cryst., A52, p. 456-470, 1996
+
+
+space_group = 225
+lattice_a = 5.05516
+lattice_b = 5.05516
+lattice_c = 5.05516
+lattice_alpha = 90.000
+lattice_beta  = 90.000
+lattice_gamma = 90.000
+debye_temp = 87.5182419824
+
+[atoms]
+add_atom = Pb 9.401 0.003 0.171 207.2 0.0 0.5 0.0

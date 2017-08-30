@@ -1,0 +1,120 @@
+NCrystal : A library for thermal neutron transport in crystals
+--------------------------------------------------------------
+
+This is a source distribution of NCrystal, a library and associated tools which
+enables calculations for Monte Carlo simulations of thermal neutrons in
+crystals. Initial releases focus on scattering in single-crystals or
+polycrystalline materials and powders, including both coherent elastic (Bragg)
+diffraction and various models for inelastic scattering on phonons. Written in
+C++, interfaces and infrastructure facilitate integration into existing
+simulation frameworks such as Geant4 (https://geant4.cern.ch/) or McStas
+(http://mcstas.org/), as well as allowing direct usage from C++, C or Python
+code or via command-line tools. While the C++ library is designed with a high
+degree of flexibility in mind for developers, typical end-user configuration is
+deliberately kept simple and uniform across various applications and APIs - this
+for instance allows tuning and validation of a particular crystal setup to be
+performed in one tool before it is then deployed in another.
+
+In addition to code and tools, the NCrystal distribution also includes a set of
+validated data files, covering many crystals important at neutron scattering
+facilities. For more information about the properties and validity of each file,
+users are referred to the dedicated page at
+https://github.com/mctools/ncrystal/wiki/Data-library.
+
+Supporting compilation with all C++ standards, the code has no third-party
+dependencies and is available under a highly liberal open source license (see
+NOTICE and LICENSE files for usage conditions and the INSTALL file for build and
+installation instructions). NCrystal was developed in close collaboration by
+Xiao Xiao Cai (DTU, ESS) and Thomas Kittelmann (ESS) and was supported in part
+by the European Union's Horizon 2020 research and innovation programme under
+grant agreement No 676548 (the BrightnESS project).
+
+A substantial effort went into developing NCrystal. If you use it for your work,
+we would appreciate it if you would use the following reference in your work
+(note, this reference will change once a proper peer-reviewed publication for
+NCrystal exists):
+
+  X. X. Cai and T. Kittelmann, NCrystal, https://doi.org/10.5281/zenodo.853186
+
+The rest of this file gives a brief overview of the manners in which NCrystal
+capabilities can be utilised. Further instructions and documentation, along with
+the latest version of NCrystal, can be found at https://mctools.github.io/ncrystal/
+
+
+
+Using the NCrystal installation from the command-line
+-----------------------------------------------------
+
+After installing NCrystal and having sourced the setup.sh script mentioned in
+the INSTALL file, you can run any of the commands from the $NCRYSTALDIR/bin
+directory, which includes example code as well as the ncrystal_inspectfile
+command. Start by reading the usage instructions:
+
+$> ncrystal_inspectfile --help
+
+Assuming you chose to install data files, you can try to let NCrystal load one
+of the data files found in $NCRYSTALDIR/data/ (or provide the absolute path to a
+data file downloaded from https://github.com/mctools/ncrystal/wiki/Data-library)
+and either dump the derived information to the terminal...:
+
+$> ncrystal_inspectfile --dump Al_sg225.ncmat
+
+... or plot polycrystalline cross-sections and sampled scatter angles with:
+
+$> ncrystal_inspectfile Al_sg225.ncmat
+
+
+
+Using the NCrystal installation from C++ (including Geant4), C or Python code
+-----------------------------------------------------------------------------
+
+If you wish to use NCrystal from Python code, there is no special setup needed,
+beyond sourcing the setup.sh script mentioned in the INSTALL file. If you on the
+other hand wish to use NCrystal from your compiled C++ or C code, you must put
+the $NCRYSTALDIR/include directory in your include path, usually by providing
+your compiler with an "-I$NCRYSTALDIR/include" flag, and make sure you link to
+the NCrystal library in $NCRYSTALDIR/lib, usually via "-L$NCRYSTALDIR/lib
+-lNCrystal" link flags. If using the NCrystal-Geant4 interfaces, you should also add
+"-lG4NCrystal" to the link flags. Then, in your code you can access the relevant
+APIs with with statements like:
+
+  #include "NCrystal.hh"   // C++ code, core NCrystal
+  #include "G4NCrystal.hh" // C++ code, for Geant4 users
+  #include "ncrystal.h"    // C code
+  import NCrystal          ## Python code
+
+In the ./examples/ directory of your NCrystal distribution that you got after
+downloading and unpacking the NCrystal source tar-ball, you will find small
+examples of such code. For C++/C and Geant4, there is currently no documentation
+beyond the header files and examples. In the case of Python, there is some
+integrated documentation via the usual "help" function, accessed with:
+
+  import NCrystal
+  help(NCrystal)
+
+
+
+Using the NCrystal installation from McStas
+-----------------------------------------------------------------------------
+
+A sample component is provided for McStas, which embeds NCrystal material
+simulations into simple shapes (currently boxes, cylinders and spheres),
+allowing for highly realistic components representing samples, filters or
+monochromators. The component is eventually intended to be contributed into the
+standard McStas component library, but for now one must make it available by
+running the following command in the directory from which McStas commands will
+later be invoked:
+
+$> ncrystal_preparemcstasdir
+
+This sets up a symlinks to NCrystal_sample.comp file, as well as creating
+necessary links to the NCrystal installation. It is then possible to use the
+component in an instrument file, for instance setting up an r=1cm sphere with
+powdered sapphire:
+
+COMPONENT mysample = NCrystal_sample(cfg="Al2O3_sg167_Corundum.ncmat",radius=0.01)
+AT (0, 0, 0) RELATIVE PREVIOUS
+
+For more documentation about the NCrystal_sample component, run:
+
+$> mcdoc NCrystal_sample

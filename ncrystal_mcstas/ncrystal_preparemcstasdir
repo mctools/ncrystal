@@ -1,0 +1,21 @@
+#!/bin/bash
+
+set -e
+set -u
+
+if [ -f ./NCrystalLink -o -d ./NCrystalLink ]; then
+    echo "Found ./NCrystalLink already (remove and rerun to force reinstallation)"
+    exit 1
+fi
+nccompfn="NCrystal_sample.comp"
+if [ -f ./$nccompfn ]; then
+    echo "Found ./$nccompfn (remove and rerun to force reinstallation)"
+    exit 1
+fi
+
+
+THISDIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+if [ "${NCRYSTALDIR+x}" == "x" -a -f "$THISDIR"/../mcstas/NCrystal_sample.comp ]; then
+    ln -s "$NCRYSTALDIR" ./NCrystalLink
+    ln -s "$THISDIR"/../mcstas/NCrystal_sample.comp .
+fi

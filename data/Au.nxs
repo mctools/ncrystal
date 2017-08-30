@@ -1,0 +1,15 @@
+#converted from the cif file of the entry 0011140 in the AMCSD
+#reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+#comment: The Debye temperature is derived from the Debye-waller factor at 293K compiled in the supplement
+
+space_group = 225
+lattice_a = 4.07825
+lattice_b = 4.07825
+lattice_c = 4.07825
+lattice_alpha = 90.000
+lattice_beta  = 90.000
+lattice_gamma = 90.000
+debye_temp = 166.808168538
+
+[atoms]
+add_atom = Au 7.9 0.43 98.65 196.96655 0.0 0.0 0.0

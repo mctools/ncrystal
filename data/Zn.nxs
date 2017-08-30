@@ -1,0 +1,15 @@
+#converted from the cif file of the entry 0011200 in the AMCSD
+#reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+#comment: The Debye temperature is derived from the Debye-waller factor at 293K compiled in the supplement of Acta Cryst., A52, p. 456-470, 1996
+
+space_group = 194
+lattice_a = 2.6648
+lattice_b = 2.6648
+lattice_c = 4.9467 
+lattice_alpha = 90.000
+lattice_beta  = 90.000
+lattice_gamma = 120.000
+debye_temp = 213.846024892
+
+[atoms]
+add_atom = Zn 5.68 0.077 1.11 65.409 0.666666666667 0.333333333333 0.75
