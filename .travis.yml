@@ -34,6 +34,9 @@ compiler:
 
 before_script:
     - set -e
+    - cmake --version
+    - python --version
+    - python -c 'import numpy; print numpy.__version__'
     - mkdir build installdir rundir
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=${BUILD} -DCMAKE_INSTALL_PREFIX=../installdir/
