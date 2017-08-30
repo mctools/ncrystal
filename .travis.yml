@@ -46,11 +46,11 @@ script:
     - find ../installdir
     - ../installdir/bin/ncrystal_example_c
     - ../installdir/bin/ncrystal_example_cpp
-    - ../installdir/bin/ncrystal_example_inspectfile --help
-    - ../installdir/bin/ncrystal_example_inspectfile --test
-    - ../installdir/bin/ncrystal_example_inspectfile --dump Al_sg225.ncmat
+    - ../installdir/bin/ncrystal_inspectfile --help
+    - ../installdir/bin/ncrystal_inspectfile --test
+    - ../installdir/bin/ncrystal_inspectfile --dump Al_sg225.ncmat
     - python -c 'import matplotlib' 2>/dev/null || pip install matplotlib
-    - ../installdir/bin/ncrystal_example_inspectfile --pdf Al_sg225.ncmat
+    - ../installdir/bin/ncrystal_inspectfile --pdf Al_sg225.ncmat
     - . ../installdir/setup.sh
     - ../installdir/bin/ncrystal_example_py
     - python -c 'import NCrystal; NCrystal.test()'
