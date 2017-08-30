@@ -1,3 +1,6 @@
+v0.9.1 2017-08-30
+      * Proper behaviour of python interface if Numpy is absent.
+
 v0.9.0 2017-08-30
       * First github based public release of NCrystal.
 

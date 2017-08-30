@@ -46,7 +46,7 @@ For detailed usage conditions and licensing of this open source project, see:
 
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
 __copyright__ = "Copyright 2017"
-__version__ = '0.9.0'
+__version__ = '0.9.1'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
 __copyright__ = "Copyright 2015-2017 %s"%__author__
@@ -124,8 +124,6 @@ try:
     import numpy as _np
 except ImportError:
     _np = None
-
-
 
 _globalstates = {}
 
@@ -244,6 +242,8 @@ def _load(nclib_filename):
 
 
     def _prepare_many(ekin,repeat):
+        if _np is None and not repeat is None:
+            raise NCBadInput('Can not use "repeat" parameter when Numpy is absent on the system')
         if repeat is None and not hasattr(ekin,'__len__'):
             return None#scalar case, array interface not triggered
         repeat = 1 if repeat is None else repeat
@@ -698,7 +698,14 @@ HKL planes (d_lower = 1.4 Aa, d_upper = inf Aa):
                  (2.0527318521221001, 0.0), (2.0527318521221001, 0.0), (2.0527318521221001, 0.0),
                  (2.8283092712311082, 0.0), (0.72997630752329012, 0.038570589541834406),
                  (2.0527318521221001, 0.0), (2.0527318521221001, 0.0)]
-    ang,de = alpc.generateScatteringNonOriented(wl2ekin(4.0),repeat=10)
+    if _np is None:
+        ang,de=[],[]
+        for i in range(10):
+            _ang,_de=alpc.generateScatteringNonOriented(wl2ekin(4.0))
+            ang += [_ang]
+            de += [_de]
+    else:
+        ang,de = alpc.generateScatteringNonOriented(wl2ekin(4.0),repeat=10)
     for i in range(10):
         require(flteq(ang[i],expected[i][0]))
         require(flteq(de[i],expected[i][1]))
