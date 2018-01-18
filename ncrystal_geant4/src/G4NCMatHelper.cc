@@ -179,8 +179,9 @@ namespace G4NCrystal {
 
     ChemicalFormula::const_iterator itCF, itCF_End(chemform.end());
     for ( itCF = chemform.begin(); itCF != itCF_End; ++itCF ) {
+      nc_assert( (unsigned long)itCF->second <= (unsigned long) std::numeric_limits<G4int>::max() );
       mat->AddElement( G4NistManager::Instance()->FindOrBuildElement(itCF->first,true),
-                       double(itCF->second) / chemform_ntot );
+                       G4int(itCF->second) );
     }
     mat->SetChemicalFormula(chemform_str);
 

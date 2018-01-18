@@ -1,3 +1,7 @@
+v0.9.2 2018-01-18
+      * Fix cross-section and material composition bugs in Geant4
+        interface. Only affects Geant4 users.
+
 v0.9.1 2017-08-30
       * Proper behaviour of python interface if Numpy is absent.
 

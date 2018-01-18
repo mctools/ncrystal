@@ -52,6 +52,13 @@ G4VParticleChange* G4NCrystal::ProcWrapper::PostStepDoIt(const G4Track& trk, con
 
   const NCrystal::Scatter* scat;
   const double ekin = trk.GetKineticEnergy();
+
+  //Important to always clear the interaction lengths here, even when we pass on
+  //the call to the wrapped process below (since G4 does not directly interact
+  //with the now disabled wrapped process):
+  ClearNumberOfInteractionLengthLeft();
+
+
   //TODO for NC2: Revisit the 5eV global threshold. Issue is perhaps tungsten
   //which has resonances below 5eV. If possible, auto-detect the threshold by
   //comparing G4 and NCrystal xsects around the threshold. Otherwise allow
@@ -59,7 +66,6 @@ G4VParticleChange* G4NCrystal::ProcWrapper::PostStepDoIt(const G4Track& trk, con
   if ( ekin > 5*CLHEP::eV || !(scat=m_mgr->getScatterProperty(trk.GetMaterial()) ) || !ekin )
     return m_wrappedProc->PostStepDoIt(trk,step);
 
-  ClearNumberOfInteractionLengthLeft();//Important, otherwise we will get immediately triggered again!
 
   //Let the NCrystal::Scatter instance do its work!
 

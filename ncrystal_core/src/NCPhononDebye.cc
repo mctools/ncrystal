@@ -369,7 +369,7 @@ void NCrystal::PhononDebye::getAlphaLimts(double kin, double beta, double &lower
 double  NCrystal::PhononDebye::interpolate(double a, double fa, double b, double fb, double x) const
 {
   nc_assert(a!=b);
-  if( ! (fa*fb) ) //when loglin interpolation is invalid, use linlin in the place
+  if( fa*fb == 0 ) //when loglin interpolation is invalid, use linlin in the place
     return  fa+(fb-fa)*(x-a)/(b-a);
   //Note from TK: The formula below was: "return exp(log(fa)+(log(fb/fa))*(x-a)/(b-a));",
   //but it was rewritten like this for efficiency:

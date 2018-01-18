@@ -2335,7 +2335,7 @@ static int IsSpecialSeitzMx(T_SgInfo *SgInfo, const T_RTMx *SMx, int ExpandLT)
         if (IsSMxTransl0(LI_S, SMx->s.T) == 1)
         { ExpLT = LI_S; break; }
         if (IsSMxTransl0(LI_T, SMx->s.T) == 1)
-        { ExpLT = LI_T; break; }
+        { ExpLT = LI_T; break; }/* FALLTHRU *//*FALLTHRU added by NCrystal developers for gcc 7.2.1 */
       case 'A':
       case 'B':
       case 'C':
@@ -6559,7 +6559,7 @@ int ParseSymXYZ(const char *SymXYZ, T_RTMx *SeitzMx, int FacTr)
         break;
       case ',':
       case ';':
-        if (Row == 2)                return -1;
+        if (Row == 2)                return -1;/* FALLTHRU *//*FALLTHRU added by NCrystal developers for gcc 7.2.1 */
       case '\0':
         if ((P_mode & P_Comma) == 0) return -1;
         if (GotXYZ == 0)             return -1;
