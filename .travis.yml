@@ -11,7 +11,7 @@ env:
 addons:
   apt:
     sources:
-      - george-edison55-precise-backports # cmake 3.2.3
+      - george-edison55-precise-backports # new cmake
     packages:
       - cmake
       - cmake-data
@@ -31,6 +31,9 @@ compiler:
 #    - if [[ "$TRAVIS_OS_NAME" == "osx" -a "$BUILD" == "RELEASE" ]]; then geant4-config --libs; fi
 #    - if [[ "$TRAVIS_OS_NAME" == "osx" -a "$BUILD" == "RELEASE" ]]; then geant4-config --cflags; fi
 #    - set +e
+
+install:
+    - rvm get head
 
 before_script:
     - set -e
