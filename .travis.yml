@@ -5,9 +5,11 @@ os:
   - osx
 
 env:
-    - BUILD='Release'
-    - BUILD='Debug'
+  global:
     - SHELL_SESSION_HISTORY=0
+  matrix:
+    - BUILD=Release
+    - BUILD=Debug
 
 addons:
   apt:
