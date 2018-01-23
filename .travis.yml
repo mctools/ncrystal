@@ -26,7 +26,7 @@ compiler:
     - clang
 
 before_install:
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then rvm get stable; rvm reload . ; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then rvm get stable --auto-dotfiles; fi
 
 before_script:
     - set -e
