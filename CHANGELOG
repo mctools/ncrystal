@@ -1,3 +1,6 @@
+v0.9.4 2018-01-31
+      * Correct version numbers.
+
 v0.9.3 2018-01-31
       * NCrystal_sample.comp (McStas interface): Fix link flags on OSX
         (github issue #3) and compilation warnings (github issue #4).
