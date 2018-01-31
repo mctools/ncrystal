@@ -226,7 +226,7 @@ TRACE
     double xsect_scat = 0.0;
     double xsect_abs = 0.0;
 
-    ncrystal_crosssection(params.proc_scat,ekin,&dir,&xsect_scat);
+    ncrystal_crosssection(params.proc_scat,ekin,(const double(*)[3])&dir,&xsect_scat);
     if (params.absmode)
       ncrystal_crosssection_nonoriented(params.proc_abs, ekin,&xsect_abs);
 
@@ -266,7 +266,7 @@ TRACE
 
       /* scattering */
       double delta_ekin;
-      ncrystal_genscatter( params.scat,ekin, &dir, &dirout, &delta_ekin);
+      ncrystal_genscatter( params.scat,ekin, (const double(*)[3])&dir, &dirout, &delta_ekin);
       if (delta_ekin) {
         ekin += delta_ekin;
         if (ekin<=0) {
@@ -292,7 +292,7 @@ TRACE
       if (delta_ekin&&params.absmode)
         ncrystal_crosssection_nonoriented(params.proc_abs, ekin,&xsect_abs);
       if (delta_ekin||params.proc_scat_isoriented)
-        ncrystal_crosssection(params.proc_scat,ekin,&dir,&xsect_scat);
+        ncrystal_crosssection(params.proc_scat,ekin,(const double(*)[3])&dir,&xsect_scat);
     }/*exited at a surface*/
 
     /* Exited the surface. We let the while condition below always be false for  *
