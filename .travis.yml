@@ -38,7 +38,7 @@ before_script:
     - python -c 'import numpy; print numpy.__version__'
     - python3 --version
     - python3 -c 'import numpy' 2>/dev/null || python3 -mpip install numpy
-    - python3 -c 'import numpy; print numpy.__version__'
+    - python3 -c 'import numpy; print(numpy.__version__)'
     - mkdir build installdir rundir
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=${BUILD} -DCMAKE_INSTALL_PREFIX=../installdir/
