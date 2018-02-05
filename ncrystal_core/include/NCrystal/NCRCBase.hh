@@ -22,6 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCException.hh"
+#include <cassert>
 
 namespace NCrystal {
 
@@ -44,7 +45,7 @@ namespace NCrystal {
 
     void unrefNoDelete() const throw()
     {
-      nc_assert(m_refCount>0);
+      assert(m_refCount>0);//not nc_assert, since it can throw.
       --m_refCount;
     }
 
