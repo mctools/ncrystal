@@ -100,7 +100,9 @@ namespace G4NCrystal {
       G4cout<<"G4NCrystal :: Wrapping and replacing existing "<<
         pHadElastic->GetProcessName()<<" process for neutrons"<<G4endl;
       pmanager->AddDiscreteProcess(s_proc = new G4NCrystal::ProcWrapper(pHadElastic));
-      pmanager->SetProcessActivation(pHadElastic,false);
+      if(!pmanager->SetProcessActivation(pHadElastic,false))
+        G4Exception("G4NCrystal::doInstall","Error",FatalException,
+                    "Encountered error when deactivating the neutron elastic hadronic process");
     }
   }
 }

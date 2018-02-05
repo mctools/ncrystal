@@ -26,6 +26,7 @@
 #include "NCrystal/NCFactory.hh"
 #include "G4NistManager.hh"
 #include <sstream>
+#include <stdint.h>//cstdint hdr only in C++11
 
 namespace G4NCrystal {
 
@@ -179,7 +180,7 @@ namespace G4NCrystal {
 
     ChemicalFormula::const_iterator itCF, itCF_End(chemform.end());
     for ( itCF = chemform.begin(); itCF != itCF_End; ++itCF ) {
-      nc_assert( (unsigned long)itCF->second <= (unsigned long) std::numeric_limits<G4int>::max() );
+      nc_assert( (uint64_t)(itCF->second) <= (uint64_t)std::numeric_limits<G4int>::max() );
       mat->AddElement( G4NistManager::Instance()->FindOrBuildElement(itCF->first,true),
                        G4int(itCF->second) );
     }
@@ -269,3 +270,4 @@ G4Material * G4NCrystal::createMaterial( const NCrystal::MatCfg&  cfg )
   }
   return 0;
 }
+

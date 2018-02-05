@@ -44,9 +44,12 @@ For detailed usage conditions and licensing of this open source project, see:
 ##                                                                            ##
 ################################################################################
 
+#enable py3 behaviour in py2.6+ (avoid unicode_literals on purpose!)
+from __future__ import division, print_function, absolute_import
+
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
 __copyright__ = "Copyright 2017"
-__version__ = '0.9.4'
+__version__ = '0.9.5'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
 __copyright__ = "Copyright 2015-2017 %s"%__author__
@@ -56,10 +59,39 @@ __all__ = ['NCException','NCFileNotFound','NCDataLoadError','NCCalcError','NCLog
            'RCBase','Info','CalcBase','Process','Absorption','Scatter',
            'createInfo','createScatter','createAbsorption',
            'test','setDefaultRandomGenerator','RandomCtxMgr','wl2ekin','ekin2wl',
-           'clearInfoCaches','disableCaching','enableCaching','clearFactoryRegistry','hasFactory']
+           'clearInfoCaches','disableCaching','enableCaching','clearFactoryRegistry','hasFactory',
+           'version_num']
 
-#TODO for NC2: python 3 support
+import sys
 
+###################################
+#For python2/python3 support:
+
+__metaclass__ = type  #classes are new-style in py2 without inheriting from "object"
+
+try:
+    xrange
+except NameError:
+    pass#in py3, range is py2's xrange and xrange is absent
+else:
+    range,xrange = xrange,None#emulate py3 range in py2
+
+def _str2cstr(s):
+    #converts any string (str,bytes,unicode) to bytes
+    try:
+        return s if isinstance(s,bytes) else s.encode('ascii')
+    except UnicodeEncodeError:
+        #Attempt with file-system encoding, in case of non-ASCII path names:
+        return s.encode(sys.getfilesystemencoding())
+
+def _cstr2str(s):
+    #converts bytes object to str (unicode in py3, bytes in py2)
+    try:
+        return s if isinstance(s,str) else s.decode('ascii')
+    except UnicodeDecodeError:
+        return s.decode(sys.getfilesystemencoding())
+
+###################################
 #Same as NCRYSTAL_VERSION macro:
 version_num = sum(int(i)*j for i,j in zip(__version__.split('.'),(1000000,1000,1)))
 
@@ -95,7 +127,7 @@ def _find_nclib():
     pathenvs=['LD_LIBRARY_PATH','DYLD_LIBRARY_PATH','SHLIB_PATH','LIBPATH']
     searchpaths = []
     for libpath in pathenvs:
-        for d in filter(None,os.environ.get(libpath,'').split(':')):
+        for d in [_f for _f in os.environ.get(libpath,'').split(':') if _f]:
             if os.path.isdir(d):
                 searchpaths += [d]
 
@@ -127,13 +159,13 @@ except ImportError:
 
 _globalstates = {}
 
-
 def _load(nclib_filename):
     import ctypes
 
     _nclib = ctypes.CDLL(nclib_filename)
-    _int,_uint,_uintp,_dbl,_dblp,_cstr,_voidp = (ctypes.c_int, ctypes.c_uint,ctypes.POINTER(ctypes.c_uint), ctypes.c_double,
-                                                 ctypes.POINTER(ctypes.c_double), ctypes.c_char_p, ctypes.c_void_p)
+    _int,_intp,_uint,_uintp,_dbl,_dblp,_cstr,_voidp = (ctypes.c_int, ctypes.POINTER(ctypes.c_int),
+                                                       ctypes.c_uint,ctypes.POINTER(ctypes.c_uint), ctypes.c_double,
+                                                       ctypes.POINTER(ctypes.c_double), ctypes.c_char_p, ctypes.c_void_p)
     ndarray_to_dblp = lambda a : a.ctypes.data_as(_dblp)
 
     _npempty = [None]
@@ -166,7 +198,7 @@ def _load(nclib_filename):
 
     def _raise_err():
         assert _ncerror()
-        tm=(_ncerror_type(),_ncerror_msg())
+        tm=(_cstr2str(_ncerror_type()),_cstr2str(_ncerror_msg()))
         _ncerror_clear()
         #TODO for NC2: Provide line number / file as well?
         e=_errmap.get(tm[0],NCException)(tm[1])
@@ -200,9 +232,9 @@ def _load(nclib_filename):
             functions[fct_name] = fct
         return fct
 
-    lib_version = _wrap('ncrystal_version_str',_cstr,tuple(),hide=True,error_check=False)()
+    lib_version = _cstr2str(_wrap('ncrystal_version_str',_cstr,tuple(),hide=True,error_check=False)())
     if lib_version != __version__:
-        print "WARNING: Version mismatch detected between NCrystal python code (v%s) and loaded binary library (v%s). Control which NCrystal library to load with the NCRYSTAL_LIB env var."%(__version__,lib_version)
+        print("WARNING: Version mismatch detected between NCrystal python code (v%s) and loaded binary library (v%s). Control which NCrystal library to load with the NCRYSTAL_LIB env var."%(__version__,lib_version))
 
     _wrap('ncrystal_sethaltonerror',_int,(_int,),hide=True,error_check=False)(False)
     _wrap('ncrystal_setquietonerror',_int,(_int,),hide=True,error_check=False)(True)
@@ -240,6 +272,11 @@ def _load(nclib_filename):
                     beta=beta.value,gamma=gamma.value,volume=vol.value,n_atoms=int(natom.value))
     functions['ncrystal_info_getstructure'] = ncrystal_info_getstructure
 
+    _wrap('ncrystal_info_nhkl',_int,(ncrystal_info_t,))
+    _wrap('ncrystal_info_hkl_dlower',_dbl,(ncrystal_info_t,))
+    _wrap('ncrystal_info_hkl_dupper',_dbl,(ncrystal_info_t,))
+    _wrap('ncrystal_info_gethkl',None,(ncrystal_info_t,_int,_intp,_intp,_intp,_intp,_dblp,_dblp))
+    functions['ncrystal_info_gethkl_setuppars'] = lambda : (_int(),_int(),_int(),_int(),_dbl(),_dbl())
 
     def _prepare_many(ekin,repeat):
         if _np is None and not repeat is None:
@@ -313,6 +350,7 @@ def _load(nclib_filename):
     _wrap('ncrystal_create_absorption',ncrystal_absorption_t,(_cstr,))
     _raw_save_rng = _wrap('ncrystal_save_randgen',None,tuple(),hide=True)
     _raw_restore_rng = _wrap('ncrystal_restore_randgen',None,tuple(),hide=True)
+    _wrap('ncrystal_setsimplerandgen',None,tuple())
 
     _RANDGENFCTTYPE = ctypes.CFUNCTYPE( _dbl )
     _raw_setrand    = _wrap('ncrystal_setrandgen',None,(_RANDGENFCTTYPE,),hide=True)
@@ -346,7 +384,7 @@ def _load(nclib_filename):
 
 _rawfct = _load(_find_nclib())
 
-class RCBase(object):
+class RCBase:
     """Base class for all NCrystal objects"""
     def __init__(self, rawobj):
         """internal usage only"""
@@ -369,10 +407,12 @@ class Info(RCBase):
     """Class representing information about a given crystal"""
     def __init__(self, cfgstr):
         """create Info object based on cfg-string (same as using createInfo(cfgstr))"""
-        rawobj = _rawfct['ncrystal_create_info'](cfgstr)
+        rawobj = _rawfct['ncrystal_create_info'](_str2cstr(cfgstr))
         super(Info, self).__init__(rawobj)
     def dump(self):
         """Dump contained information to standard output"""
+        sys.stdout.flush()
+        sys.stderr.flush()
         _rawfct['ncrystal_dump'](self._rawobj)
 
     def hasTemperature(self):
@@ -417,11 +457,29 @@ class Info(RCBase):
         nc_assert(d)
         return d
 
+    def hasHKLInfo(self):
+        return bool(_rawfct['ncrystal_info_nhkl'](self._rawobj)>-1)
+    def nHKL(self):
+        return int(_rawfct['ncrystal_info_nhkl'](self._rawobj))
+    def hklDLower(self):
+        return float(_rawfct['ncrystal_info_hkl_dlower'](self._rawobj))
+    def hklDUpper(self):
+        return float(_rawfct['ncrystal_info_hkl_dupper'](self._rawobj))
+    def hklList(self):
+        """Iterator over HKL info, yielding tuples in the format
+        (h,k,l,multiplicity,dspacing,fsquared)"""
+        nc_assert(self.hasHKLInfo())
+        h,k,l,mult,dsp,fsq = _rawfct['ncrystal_info_gethkl_setuppars']()
+        for idx in range(self.nHKL()):
+            _rawfct['ncrystal_info_gethkl'](self._rawobj,idx,h,k,l,mult,dsp,fsq)
+            yield h.value,k.value,l.value,mult.value,dsp.value,fsq.value
+
+
 class CalcBase(RCBase):
     """Base class for all calculators"""
     def getCalcName(self):
         """Calculator name"""
-        return _rawfct['ncrystal_name'](self._rawobj)
+        return _cstr2str(_rawfct['ncrystal_name'](self._rawobj))
     @property
     def name(self):
         """Calculator name as property"""
@@ -470,7 +528,7 @@ class Absorption(Process):
 
     def __init__(self, cfgstr):
         """create Absorption object based on cfg-string (same as using createAbsorption(cfgstr))"""
-        rawobj_abs = _rawfct['ncrystal_create_absorption'](cfgstr)
+        rawobj_abs = _rawfct['ncrystal_create_absorption'](_str2cstr(cfgstr))
         rawobj_proc = _rawfct['ncrystal_cast_abs2proc'](rawobj_abs)
         super(Absorption, self).__init__(rawobj_proc)
 
@@ -484,7 +542,7 @@ class Scatter(Process):
 
     def __init__(self, cfgstr):
         """create Scatter object based on cfg-string (same as using createScatter(cfgstr))"""
-        self._rawobj_scat = _rawfct['ncrystal_create_scatter'](cfgstr)
+        self._rawobj_scat = _rawfct['ncrystal_create_scatter'](_str2cstr(cfgstr))
         rawobj_proc = _rawfct['ncrystal_cast_scat2proc'](self._rawobj_scat)
         super(Scatter, self).__init__(rawobj_proc)
     def generateScattering( self, ekin, direction ):
@@ -561,7 +619,7 @@ def clearFactoryRegistry():
     _rawfct['ncrystal_clear_factory_registry']()
 def hasFactory(name):
     """Check if a factory of a given name exists"""
-    return bool(_rawfct['ncrystal_has_factory'](name))
+    return bool(_rawfct['ncrystal_has_factory'](_str2cstr(name)))
 
 #Accept custom random generator:
 def setDefaultRandomGenerator(rg):
@@ -583,10 +641,11 @@ try:
 except ImportError:
     pass
 
-class RandomCtxMgr(object):
+class RandomCtxMgr:
     """Context manager which can be used to temporarily change the random stream used by NCrystal.
 
-    This is mainly intended for internal usage in the test() function
+    This is mainly intended for internal usage in the test() function, and does
+    not support multiple instances:
 
     """
     def __init__(self,randfct):
@@ -601,71 +660,9 @@ def test():
     """Quick test that NCrystal works as expected in the current installation."""
     with RandomCtxMgr(None):
         _actualtest()
-    print "Tests completed succesfully"
+    print("Tests completed succesfully")
 
 def _actualtest():
-    import sys,os,tempfile
-    ref_aldump = """---------------------------------------------------------
-Space group number      : 225
-Lattice spacings   [Aa] : 4.04958 4.04958 4.04958
-Lattice angles    [deg] : 90 90 90
-Unit cell volume [Aa^3] : 66.4095
-Atoms / unit cell       : 4
----------------------------------------------------------
-Atoms per unit cell (total 4):
-     4 Z=13 atoms [T_Debye=410.347K]
----------------------------------------------------------
-   Density : 2.69865 g/cm3
----------------------------------------------------------
-   Temperature : 293.15 kelvin
----------------------------------------------------------
-Neutron cross-sections:
-   Absorption at 2200m/s : 0.231 barn
-   Free scattering       : 1.39667 barn
----------------------------------------------------------
-Provides non-bragg cross-section calculations. A few values are:
-   lambda[Aa]  sigma_scat[barn]
-          0.5           1.16245
-            1          0.655047
-        1.798          0.240183
-          2.5          0.161291
-            5          0.143807
-           10           0.21777
-           20          0.399157
----------------------------------------------------------
-HKL planes (d_lower = 1.4 Aa, d_upper = inf Aa):
-  H   K   L  d_hkl[Aa] Multiplicity FSquared[barn]
-  1  -1  -1    2.33803            8        1.77208
-  0   0   2    2.02479            6        1.73038
-  0   2  -2    1.43174           12        1.57317
----------------------------------------------------------
-"""
-    #context mgr which can capture output:
-    class RedirectStdout():
-        def __init__(self):
-            self._f = None
-        def __enter__(self):
-            if not self._f is None:
-                self._f.close()
-            self._f = tempfile.TemporaryFile(mode='w+b')
-            self._saved = os.dup(sys.stdout.fileno())
-            sys.stdout.flush()
-            os.dup2(self._f.fileno(), 1)
-            return self
-        def __exit__(self,*args):
-            sys.stdout.flush()
-            self._f.flush()
-            os.dup2(self._saved, 1)
-            sys.stdout.flush()
-            self._f.seek(0)
-            self._data = self._f.read()
-            self._f.close()
-            self._f = None
-        @property
-        def data(self):
-            return self._data
-    captureoutput = RedirectStdout()
-
     def require(b):
         if not b:
             raise RuntimeError('check failed')
@@ -673,27 +670,56 @@ HKL planes (d_lower = 1.4 Aa, d_upper = inf Aa):
         return abs(a-b) <= 0.5 * rtol * (abs(a) + abs(b)) + atol
 
     al = createInfo('Al_sg225.ncmat;dcutoff=1.4')
-    with captureoutput:
-        al.dump()
+    require(hasFactory('NCrystalNCMATFactory'))
+    require(al.hasTemperature() and flteq(al.getTemperature(),293.15))
+    require(al.hasXSectFree() and flteq(al.getXSectFree(),1.39667))
+    require(al.hasXSectAbsorption() and flteq(al.getXSectAbsorption(),0.231))
+    require(al.hasDensity() and flteq(al.getDensity(),2.69864547673))
+    require(not al.hasDebyeTemperature())
+    #TODO for NC2: expose and check hasPerElementDebyeTemperature()
 
-    if ref_aldump.strip()!=captureoutput.data.strip():
-        raise RuntimeError('Unable to reproduce expected dump')
+    require(al.hasStructureInfo())
+    si=al.getStructureInfo()
+    require( si['spacegroup'] == 225 )
+    require( flteq(si['a'],4.04958) )
+    require( flteq(si['b'],4.04958) )
+    require( flteq(si['c'],4.04958) )
+    require( si['alpha'] == 90.0 )
+    require( si['beta'] == 90.0 )
+    require( si['gamma'] == 90.0 )
+    require( si['n_atoms'] == 4 )
+    require( flteq(si['volume'],66.4094599932) )
+    require( al.hasHKLInfo() )
+    require( al.nHKL() == 3 )
+    require( flteq(al.hklDLower(),1.4) )
+    require( al.hklDUpper() > 1e36 )
+    expected_hkl = { 0  : (1, -1, -1, 8, 2.3380261031049243, 1.7720759166647517),
+                     1  : (0, 0, 2, 6, 2.02479, 1.730377956791613),
+                     2  : (0, 2, -2, 12, 1.4317427394787094, 1.5731697127736115) }
+    for idx,hkl in enumerate(al.hklList()):
+        h,k,l,mult,dsp,fsq = hkl
+        require(idx<len(expected_hkl))
+        e = expected_hkl[idx]
+        require( list(e)[0:4] == [h,k,l,mult] )
+        require( flteq(dsp, e[4]) )
+        require( flteq(fsq, e[5]) )
+    #TODO for NC2: Missing is atominfo, bkgd cross-sections, ...
 
     alpc = createScatter('Al_sg225.ncmat;dcutoff=1.4;braggonly=1')
+    require( alpc.name == 'PCBragg' )
+    require( isinstance(alpc.name,str) )
     require( alpc.refCount() in (1,2) and type(alpc.refCount()) == int )
     require( alpc.isNonOriented() )
     require( flteq(1.63130945209,alpc.crossSectionNonOriented(wl2ekin(4.0)) ) )
     require( flteq(1.63130945209,alpc.crossSection(wl2ekin(4.0),(1,0,0))))
     require( alpc.crossSectionNonOriented(wl2ekin(5.0)) == 0.0 )
 
-    with captureoutput:
-        #use simple fall-back rng for guaranteed reproducibility:
-        setDefaultRandomGenerator(None)
-        alpc.generateScatteringNonOriented(wl2ekin(4.0))
-    refwarn=('NCrystal WARNING: No default random generator supplied so will'+
-             ' use the scientifically unsound NCrystal::RandomSimple.')
-    require(captureoutput.data.startswith(refwarn))
+    #use simple fall-back rng for guaranteed reproducibility (set explicitly to avoid warning):
+    _rawfct['ncrystal_setsimplerandgen']()
+    alpc.generateScatteringNonOriented(wl2ekin(4.0))
+
     alpc = createScatter('Al_sg225.ncmat;dcutoff=1.4')
+    require( alpc.name == 'ScatterComp' )
     expected  = [(2.8283092712311082, 0.0), (2.8283092712311082, 0.0), (2.8283092712311082, 0.0),
                  (2.0527318521221001, 0.0), (2.0527318521221001, 0.0), (2.0527318521221001, 0.0),
                  (2.8283092712311082, 0.0), (0.72997630752329012, 0.038570589541834406),

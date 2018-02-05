@@ -1,8 +1,32 @@
 #!/usr/bin/env python
 
+################################################################################
+##                                                                            ##
+##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
+##                                                                            ##
+##  Copyright 2015-2017 NCrystal developers                                   ##
+##                                                                            ##
+##  Licensed under the Apache License, Version 2.0 (the "License");           ##
+##  you may not use this file except in compliance with the License.          ##
+##  You may obtain a copy of the License at                                   ##
+##                                                                            ##
+##      http://www.apache.org/licenses/LICENSE-2.0                            ##
+##                                                                            ##
+##  Unless required by applicable law or agreed to in writing, software       ##
+##  distributed under the License is distributed on an "AS IS" BASIS,         ##
+##  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  ##
+##  See the License for the specific language governing permissions and       ##
+##  limitations under the License.                                            ##
+##                                                                            ##
+################################################################################
+
 #########################################################################
 ########################### System setup ################################
 #########################################################################
+
+#enable py3 behaviour in py2.6+ (avoid unicode_literals on purpose!):
+from __future__ import division, print_function, absolute_import
+__metaclass__ = type  #classes are new-style without inheriting from "object"
 
 import sys
 import os
@@ -14,21 +38,22 @@ import os
 _unittest = bool(os.environ.get('NCRYSTAL_INSPECTFILE_UNITTESTS',0))
 
 pyversion = sys.version_info[0:3]
-if pyversion < (2,7,7) or pyversion >= (3,0,0):
+if pyversion < (2,7,5) or (pyversion >= (3,0,0) and pyversion < (3,4,0)):
     if not _unittest:
-        print 'WARNING: Unsupported python version %i.%i.%i detected (needs at least python 2.7.7 but not python 3).'%pyversion
+        print('WARNING: Unsupported python version %i.%i.%i detected (recommended is v2.7.5/v3.4.0 or latter).'%pyversion)
 
 
 #Function for importing required python modules which may be missing, to provide
 #a somewhat more helpful error to the user:
 def import_optpymod(name):
+    namespace={}
     try:
-        exec('import %s as mod'%name)
+        exec('import %s as mod'%name,namespace)
     except ImportError:
-        print 'ERROR: Could not import a required python module: %s'%name
-        print '       Please make sure it is installed on your system.'
+        print('ERROR: Could not import a required python module: %s'%name)
+        print('       Please make sure it is installed on your system.')
         sys.exit(1)
-    return mod
+    return namespace['mod']
 
 #We handle the NCrystal import separately, since we know where it might be, even
 #if the user did not set up PYTHONPATH correctly.
@@ -49,8 +74,8 @@ except ImportError:
         NCrystal = None
 
 if not NCrystal:
-    print "ERROR: Could not import the NCrystal python module."
-    print "       If it is installed, make sure your PYTHONPATH is setup correctly."
+    print("ERROR: Could not import the NCrystal python module.")
+    print("       If it is installed, make sure your PYTHONPATH is setup correctly.")
     sys.exit(1)
 
 #########################################################################
@@ -80,16 +105,6 @@ examples:
   effect of d-spacing cut-off on aluminium cross-sections
   $ %(prog)s "Al_sg225.ncmat;temp=20" "Al_sg225.ncmat;temp=293.15" "Al_sg225.ncmat;temp=600"
   effect of temperature on aluminium cross-sections"""
-
-    #(obsolete?) workaround for the fact we can't both use
-    #ArgumentDefaultsHelpFormatter and
-    #argparse.ArgumentParser._exit_orig = argparse.ArgumentParser.exit :
-    #
-    #def _exit(self,status=0,message=None):
-    #    if not status and not message:
-    #        print epilog % dict(prog=os.path.basename(sys.argv[0]))
-    #    argparse.ArgumentParser._exit_orig(self,status,message)
-    #argparse.ArgumentParser.exit = _exit
 
     parser = argparse.ArgumentParser(description=descr,
                                      epilog=epilog,
@@ -146,7 +161,7 @@ examples:
     return args
 
 def create_wavelengths(np,cfgs,npoints,logspace=False):
-    pcbraggs = filter(None,(c.get_scatter('bragg',allowfail=True) for c in cfgs))
+    pcbraggs = [_f for _f in (c.get_scatter('bragg',allowfail=True) for c in cfgs) if _f]
     bragg_thresholds = [NCrystal.ekin2wl(c.domain()[0]) for c in pcbraggs]
     max_bragg_threshold = max(bragg_thresholds) if bragg_thresholds else 10.0#fallback if cant create bragg component
     wls_max = float(int(max_bragg_threshold*1.01+1.0))
@@ -164,18 +179,18 @@ def import_npplt(pdf=False):
     np = import_optpymod('numpy')
     mpl = import_optpymod('matplotlib')
     if not mpl.compare_versions(mpl.__version__, '0.99.1.1'):
-        print "ERROR: Your version of matplotlib (%s) is too ancient to work - aborting plotting!"%mpl.__version__
+        print("ERROR: Your version of matplotlib (%s) is too ancient to work - aborting plotting!"%mpl.__version__)
         sys.exit(1)
     if not mpl.compare_versions(mpl.__version__, '1.3'):
         if not _unittest:
-            print "WARNING: Your version of matplotlib (%s) is unsupported - expect trouble! (needs at least version 1.3)."%mpl.__version__
+            print("WARNING: Your version of matplotlib (%s) is unsupported - expect trouble! (needs at least version 1.3)."%mpl.__version__)
     if _unittest or pdf:
         mpl.use('agg')
     if pdf:
         try:
             from matplotlib.backends.backend_pdf import PdfPages
         except ImportError:
-            print "ERROR: Your installation of matplotlib does not have required support for PDF output."
+            print("ERROR: Your installation of matplotlib does not have required support for PDF output.")
             sys.exit(1)
     plt = import_optpymod('matplotlib.pyplot')
 
@@ -187,7 +202,7 @@ def import_npplt(pdf=False):
     return _npplt
 
 def getfields(cfgstr):
-    return set(filter(None,[e.split('=',1)[0] for e in cfgstr.strip().split(';') if '=' in e]))
+    return set([_f for _f in [e.split('=',1)[0] for e in cfgstr.strip().split(';') if '=' in e] if _f])
 
 def combine_cfgs(cfg1,cfg2):
     #assumes cfg1 starts with "filename;" and possibly the ignorefilecfg
@@ -197,16 +212,16 @@ def combine_cfgs(cfg1,cfg2):
     filename = [c1.pop(0)]
     if c1 and c1[0].strip()=='ignorefilecfg':
         filename += [c1.pop(0).strip()]
-    return ';'.join(filter(None,(e.strip() for e in filename + cfg2.split(';')+c1)))
+    return ';'.join([_f for _f in (e.strip() for e in filename + cfg2.split(';')+c1) if _f])
 
 #functions for creating labels and title:
 
 def _remove_common_keyvals(dicts):
     """remove any key from the passed dicts which exists with identical value in all
     the dicts. Returns a single dictionary with entries thus removed."""
-    sets=[set((k,v) for k,v in d.items()) for d in dicts]
+    sets=[set((k,v) for k,v in list(d.items())) for d in dicts]
     common = dict(set.intersection(*sets))
-    for k in common.keys():
+    for k in list(common.keys()):
         for d in dicts:
             d.pop(k,None)
     return common
@@ -215,8 +230,8 @@ def _classify_differences(parts):
     l=[]
     for p in parts:
         cfg = 'FILENAME=%s;COMPNAME=%s' % (p._cfg.cfgstr,p._compname)
-        raw = map(lambda e : 'ignorefilecfg=1' if e.strip()=='ignorefilecfg' else e,cfg.split(';'))
-        l += [ dict(map(lambda s: s.strip(),e.split('=',1)) for e in raw if '=' in e) ]
+        raw = ['ignorefilecfg=1' if e.strip()=='ignorefilecfg' else e for e in cfg.split(';')]
+        l += [ dict([s.strip() for s in e.split('=',1)] for e in raw if '=' in e) ]
     common = _remove_common_keyvals(l)
     return common,l
 
@@ -263,7 +278,7 @@ def plot_xsect(cfgs,comp,absorption,pdf=False):
             parts=[c.get_scatter(comp) for c in cfgs]
     title,labels = create_title_and_labels(parts)
     if len(set(labels))!=len(labels):
-        print "WARNING: Comparing identical setups?"
+        print("WARNING: Comparing identical setups?")
 
     wavelengths = create_wavelengths(np,cfgs,3000)
     ekins = NCrystal.wl2ekin(wavelengths)
@@ -311,7 +326,6 @@ def plot_2d_scatangle(cfg,comp,pdf=False):
     #reproducible plots:
     import random
     random.seed(123456)
-
 
     #higher granularity wavelengths than for 1D plot to avoid artifacts:
     wavelengths = create_wavelengths(np,[cfg],100 if _unittest else 30000 )
@@ -369,10 +383,10 @@ def dump_info(info):
 def create_scatter(cfg):
     s=NCrystal.createScatter(cfg)
     if s.isOriented():
-        print "Error: Can not create plots for oriented crystals"
+        print("Error: Can not create plots for oriented crystals")
     return s
 
-class XSSum(object):
+class XSSum:
     def __init__(self,*processes):
         self._p = processes[:]
     def crossSectionNonOriented(self,ekin):
@@ -443,7 +457,6 @@ def main():
         assert len(cfgs)==1
         cfgs[0].get_info().dump()
         return
-    #calcs = [create_polycrystal_calc(f,args.bragg,False) for f in args.input_files]
     plot_xsect( cfgs, comp  = args.comp, absorption = args.absorption, pdf=args.pdf )
     if len(cfgs)==1 and not bool(os.environ.get('NCRYSTAL_INSPECTFILE_NO2DSCATTER',0)):
         plot_2d_scatangle( cfgs[0], comp = args.comp, pdf=args.pdf )
@@ -462,7 +475,7 @@ def main():
         d['CreationDate'] = datetime.datetime.today()
         d['ModDate'] = datetime.datetime.today()
         pdf.close()
-        print "created %s"%_pdffilename
+        print("created %s"%_pdffilename)
 
 if __name__=='__main__':
     main()

@@ -69,8 +69,5 @@ double NCrystal::RandomSimple::generate()
   m_w = 18000 * (m_w & 65535) + (m_w >> 16);
   m_z = 36969 * (m_z & 65535) + (m_z >> 16);
   double r = double((m_z << 16) + m_w)/double((std::numeric_limits<uint32_t>::max)());  /* 32-bit result */
-  if(r==1.0)  {
-    r = generate();
-  }
-  return r;
+  return r == 1.0 ? generate() : r;
 }

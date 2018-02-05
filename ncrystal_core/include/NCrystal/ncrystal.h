@@ -78,7 +78,7 @@ extern "C" {
   void ncrystal_disable_caching();
   void ncrystal_enable_caching();
   void ncrystal_clear_factory_registry();
-  int ncrystal_has_factory( const char* name );
+  int ncrystal_has_factory( const char * name );
 
   /*============================================================================== */
   /*============================================================================== */
@@ -141,7 +141,15 @@ extern "C" {
   double ncrystal_info_getdebyetemp( ncrystal_info_t );
   double ncrystal_info_getdensity( ncrystal_info_t );
 
-  /* TODO for NC2: provide access to AtomInfo and HKL lists here as well */
+  /*Access HKL info:                                                               */
+  int ncrystal_info_nhkl( ncrystal_info_t ); /* -1 when not available */
+  double ncrystal_info_hkl_dlower( ncrystal_info_t );
+  double ncrystal_info_hkl_dupper( ncrystal_info_t );
+  void ncrystal_info_gethkl( ncrystal_info_t, int idx,
+                             int* h, int* k, int* l, int* multiplicity,
+                             double * dspacing, double* fsquared );
+
+  /* TODO for NC2: more NCInfo data available here (including AtomInfo)            */
 
   /*============================================================================== */
   /*============================================================================== */
@@ -193,13 +201,14 @@ extern "C" {
   /* For special uses it is possible to trigger save/restore of the rng            */
   void ncrystal_save_randgen();    /* save & ref current randgen                   */
   void ncrystal_restore_randgen(); /* restore from and clear+unref last saved      */
+  void ncrystal_setsimplerandgen(); /* for reproducibility use non-scientific rng  */
 
   /* NCrystal version info:                                                        */
 #define NCRYSTAL_VERSION_MAJOR 0
 #define NCRYSTAL_VERSION_MINOR 9
-#define NCRYSTAL_VERSION_PATCH 4
-#define NCRYSTAL_VERSION   9004 /* (1000000*MAJOR+1000*MINOR+PATCH)                   */
-#define NCRYSTAL_VERSION_STR "0.9.4"
+#define NCRYSTAL_VERSION_PATCH 5
+#define NCRYSTAL_VERSION   9005 /* (1000000*MAJOR+1000*MINOR+PATCH)                */
+#define NCRYSTAL_VERSION_STR "0.9.5"
   int ncrystal_version(); /* returns NCRYSTAL_VERSION                              */
   const char * ncrystal_version_str(); /* returns NCRYSTAL_VERSION_STR             */
 

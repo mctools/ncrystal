@@ -38,12 +38,6 @@ namespace NCrystal {
 
     static RCHolder<RandomBase> saved_rng;
 
-    struct RCMatCfg : public RCBase {
-      //Ref-counted MatCfg holder (all objects in c-interface are refcounted).
-      RCMatCfg(const char* cfgstr) : cfg(cfgstr) { cfg.checkConsistency(); }
-      MatCfg cfg;
-    };
-
     static int quietonerror = 0;
     static int haltonerror = 1;
     static int waserror = 0;
@@ -350,6 +344,66 @@ double ncrystal_info_getdensity( ncrystal_info_t ci_t )
   return -1;
 }
 
+int ncrystal_info_nhkl( ncrystal_info_t ci_t )
+{
+  if (!ncrystal_valid(&ci_t)) {
+    ncc::setError("ncrystal_info_nhkl called with invalid crystal info object");
+    return -1;
+  }
+  try {
+    NCrystal::Info * ci = ncc::extract_info(ci_t);
+    return ci->hasHKLInfo() ? ci->nHKL() : -1;
+  } NCCATCH;
+  return -1;
+}
+
+double ncrystal_info_hkl_dlower( ncrystal_info_t ci_t )
+{
+  if (!ncrystal_valid(&ci_t)) {
+    ncc::setError("ncrystal_info_hkl_dlower called with invalid crystal info object");
+    return -1;
+  }
+  try {
+    NCrystal::Info * ci = ncc::extract_info(ci_t);
+    return ci->hklDLower();
+  } NCCATCH;
+  return -1;
+}
+
+double ncrystal_info_hkl_dupper( ncrystal_info_t ci_t )
+{
+  if (!ncrystal_valid(&ci_t)) {
+    ncc::setError("ncrystal_info_hkl_dupper called with invalid crystal info object");
+    return -1;
+  }
+  try {
+    NCrystal::Info * ci = ncc::extract_info(ci_t);
+    return ci->hklDUpper();
+  } NCCATCH;
+  return -1;
+}
+
+void ncrystal_info_gethkl( ncrystal_info_t ci_t, int idx,
+                           int* h, int* k, int* l, int* multiplicity,
+                           double * dspacing, double* fsquared )
+{
+  if (!ncrystal_valid(&ci_t)) {
+    ncc::setError("ncrystal_info_gethkl called with invalid crystal info object");
+    return;
+  }
+  try {
+    NCrystal::Info * ci = ncc::extract_info(ci_t);
+    NCrystal::HKLList::const_iterator it = ci->hklBegin() + idx;
+    nc_assert(it<ci->hklEnd());
+    *h = it->h;
+    *k = it->k;
+    *l = it->l;
+    *multiplicity = it->multiplicity;
+    *dspacing = it->dspacing;
+    *fsquared = it->fsquared;
+  } NCCATCH;
+}
+
 void ncrystal_setrandgen( double (*rg)() )
 {
   try {
@@ -377,6 +431,16 @@ void ncrystal_restore_randgen()
     NCrystal::setDefaultRandomGenerator( rng );
   } NCCATCH;
 }
+
+void ncrystal_setsimplerandgen()
+{
+  try {
+    NCrystal::RandomBase * rng = new NCrystal::RandomSimple();
+    NCrystal::RCGuard guard(rng);
+    NCrystal::setDefaultRandomGenerator( rng );
+  } NCCATCH;
+}
+
 
 double ncrystal_wl2ekin( double wl )
 {

@@ -166,8 +166,7 @@ namespace NCrystal {
     //
     // braggonly...........: [ bool, fallback value is false ]
     //                       If set, scatter factories should skip all
-    //                       components except everything except Bragg
-    //                       diffraction.
+    //                       components except Bragg diffraction.
     //
     // skipbragg...........: [ bool, fallback value is false ]
     //                       If set, scatter factories should skip Bragg

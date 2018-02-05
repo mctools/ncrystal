@@ -32,7 +32,7 @@ namespace NCrystal {
 
   //Generic interface for transforming user configuration (in the form of MatCfg
   //objects) into Info, Scatter or Absorption objects. The interface always
-  //returns valid objects with a reference count of zero or one (in cache
+  //returns valid objects with a reference count of zero or one (in case
   //caching is enabled), and might throw exceptions in case of errors:
 
   const Info * createInfo( const MatCfg& );
