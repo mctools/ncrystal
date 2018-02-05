@@ -20,6 +20,8 @@ addons:
       - cmake-data
       - python-numpy
       - python-matplotlib
+      - python3-numpy
+      - python3-matplotlib
 
 compiler:
     - gcc
@@ -34,6 +36,9 @@ before_script:
     - python --version
     - python -c 'import numpy' 2>/dev/null || pip install numpy
     - python -c 'import numpy; print numpy.__version__'
+    - python3 --version
+    - python3 -c 'import numpy' 2>/dev/null || python3 -mpip install numpy
+    - python3 -c 'import numpy; print numpy.__version__'
     - mkdir build installdir rundir
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=${BUILD} -DCMAKE_INSTALL_PREFIX=../installdir/
@@ -49,11 +54,16 @@ script:
     - ../installdir/bin/ncrystal_inspectfile --help
     - ../installdir/bin/ncrystal_inspectfile --test
     - ../installdir/bin/ncrystal_inspectfile --dump Al_sg225.ncmat
+    - python3 ../installdir/bin/ncrystal_inspectfile --dump Al_sg225.ncmat
     - python -c 'import matplotlib' 2>/dev/null || pip install matplotlib
+    - python3 -c 'import matplotlib' 2>/dev/null || python3 -mpip install matplotlib
     - ../installdir/bin/ncrystal_inspectfile --pdf Al_sg225.ncmat
+    - python3 ../installdir/bin/ncrystal_inspectfile --pdf Al_sg225.ncmat
     - . ../installdir/setup.sh
     - ../installdir/bin/ncrystal_example_py
+    - python3 ../installdir/bin/ncrystal_example_py
     - python -c 'import NCrystal; NCrystal.test()'
+    - python3 -c 'import NCrystal; NCrystal.test()'
     - set +e
 
 notifications:
