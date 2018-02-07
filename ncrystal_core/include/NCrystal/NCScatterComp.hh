@@ -44,6 +44,7 @@ namespace NCrystal {
     size_t nComponents() const { return m_calcs.size(); }
     const Scatter * component(size_t i) const { return m_calcs.at(i).scatter; }
     Scatter * component(size_t i) { return m_calcs.at(i).scatter; }
+    double scale(size_t i) const { return m_calcs.at(i).scale; }
 
     virtual double crossSection(double ekin, const double (&neutron_direction)[3] ) const;
 

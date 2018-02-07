@@ -25,7 +25,7 @@
 * %I
 *
 * Written by: NCrystal developers
-* Version: 0.9.5
+* Version: 0.9.6
 * Origin: NCrystal Developers (European Spallation Source ERIC and DTU Nutech)
 *
 * McStas sample component for the NCrystal scattering library. Find more
@@ -49,7 +49,7 @@
 * Input parameters:
 * cfg:            [str] NCrystal material configuration string (details <a href="https://github.com/mctools/ncrystal/wiki/Using-NCrystal">on this page</a>).
 * absorptionmode: [0|1|2] 0 : disable absorption. 1 : enable absorption via intensity reduction. 2 : enable absorption by terminating the tracking.
-* multscatt:      [0|1]   0 : disable multiple scattering. 1 : enable multiple scattering
+* multscat:       [0|1]   0 : disable multiple scattering. 1 : enable multiple scattering
 * xwidth:         [m]   x-dimension (width) of sample, if box shape is desired
 * yheight:        [m]  y-dimension (height) of sample, if box or cylinder shape is desired
 * zdepth:         [m]  z-dimension (depth) of sample, if box shape is desired
@@ -61,7 +61,7 @@
 *******************************************************************************/
 
 DEFINE COMPONENT NCrystal_sample
-SETTING PARAMETERS (string cfg = "" , absorptionmode = 1, multscatt=1, xwidth=0, yheight=0, zdepth=0, radius = 0 )
+SETTING PARAMETERS (string cfg = "" , absorptionmode = 1, multscat=1, xwidth=0, yheight=0, zdepth=0, radius = 0 )
 OUTPUT PARAMETERS (params, geoparams)/*not really intended for output, but here for multi-instance support*/
 DEPENDENCY "-Wl,-rpath,NCrystalLink/lib -LNCrystalLink/lib -lNCrystal -INCrystalLink/include"
 
@@ -285,7 +285,7 @@ TRACE
 
       SCATTER;/* update mcstas scatter counter and potentially enable trajectory visualisation */
 
-      if(!multscatt)
+      if(!multscat)
         break;
 
       //must update x-sects if energy changed or processes are oriented:
@@ -311,7 +311,8 @@ FINALLY
 
 MCDISPLAY
 %{
-  mcdis_magnify("xyz");
+  //NB: Future McStas (2.5?) is slated to introduce mcdis_cylinder and
+  //mcdis_sphere functions, which we at that point should likely use.
   switch (geoparams.shape) {
   case NC_CYLINDER:
     mcdis_circle("xz", 0,  geoparams.dy/2.0, 0, geoparams.radius);
@@ -322,9 +323,7 @@ MCDISPLAY
     mcdis_line(0, -geoparams.dy/2.0, +geoparams.radius, 0, +geoparams.dy/2.0, +geoparams.radius);
     break;
   case NC_BOX:
-    mcdis_rectangle("xy", 0., 0., 0., geoparams.dx, geoparams.dy);
-    mcdis_rectangle("xz", 0., 0., 0., geoparams.dx, geoparams.dz);
-    mcdis_rectangle("yz", 0., 0., 0., geoparams.dy, geoparams.dz);
+    mcdis_box(0., 0., 0., geoparams.dx, geoparams.dy, geoparams.dz);
     break;
   case NC_SPHERE:
     mcdis_circle("xy", 0., 0., 0., geoparams.radius);

@@ -41,11 +41,11 @@ bool NCrystal::ScatterComp::Component::operator<(const NCrystal::ScatterComp::Co
   return o.threshold_lower > threshold_lower;
 }
 
-void NCrystal::ScatterComp::addComponent(Scatter* scat, double frac )
+void NCrystal::ScatterComp::addComponent(Scatter* scat, double thescale )
 {
   if (!scat)
     NCRYSTAL_THROW(BadInput,"ScatterComp::addComponent Got NULL scatter.");
-  if (frac<0.0)
+  if (thescale<0.0)
     NCRYSTAL_THROW(BadInput,"ScatterComp::addComponent Component scale is negative.");
   std::vector<Component>::const_iterator it(m_calcs.begin()), itE(m_calcs.end());
   for (;it!=itE;++it) {
@@ -55,7 +55,7 @@ void NCrystal::ScatterComp::addComponent(Scatter* scat, double frac )
   m_calcs.reserve(m_calcs.size()+1);
   scat->validate();
   Component c;
-  c.scale = frac;
+  c.scale = thescale;
   c.scatter = scat;
   scat->domain(c.threshold_lower,c.threshold_upper);
   if (m_calcs.empty() || c.threshold_lower < m_threshold_lower)
