@@ -410,7 +410,7 @@ void NCrystal::NCMatLoader::fillHKL( NCrystal::Info &info,  const std::map<std::
   std::vector<double> whkl_thresholds;
   whkl_thresholds.reserve(csl.size());
   for (size_t i = 0; i<csl.size(); ++i)
-    whkl_thresholds.push_back(log(csl.at(i) / 1e-5 ) );
+    whkl_thresholds.push_back(std::log(ncabs(csl.at(i)) / 1e-5 ) );
 
   //We now conduct a brute-force loop over h,k,l indices, adding calculating
   //info in the following containers along the way:
