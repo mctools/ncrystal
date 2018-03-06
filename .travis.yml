@@ -35,11 +35,15 @@ before_script:
     - cmake --version
     - which python
     - python --version
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update || true; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew upgrade || true; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install python || true; fi
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install python@2; fi
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mkdir $PWD/fakepy3 && echo '/usr/local/bin/python "$@"' > $PWD/fakepy3/python3 && chmod +x $PWD/fakepy3/python3; fi
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/python@2/libexec/bin:/usr/local/bin:$PWD/fakepy3:$PATH"; fi
     - echo $PATH
     - echo $PWD/fakepy3
+    - ls -l /usr/local/bin|grep python
     - ls -l $PWD/fakepy3 || echo notfound
     - which python
     - python --version
