@@ -38,7 +38,8 @@ before_script:
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update || true; fi
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew upgrade || true; fi
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install python || true; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install python@2; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install python@2 || true; brew link
+    python@2 || true; fi
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/python@2/bin:$PATH"; fi
     - echo $PATH
     - ls -l /usr/local/bin|grep python
