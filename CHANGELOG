@@ -1,4 +1,4 @@
-v0.9.7 2018-03-05
+v0.9.7 2018-03-06
       * Don't produce floating point exception when loading .ncmat files with H,
         Li, Ti, V or Mn (github issue #8).
       * McStas component now actually applies requested packingfactor for powder
