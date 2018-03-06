@@ -36,8 +36,8 @@ before_script:
     - which python
     - python --version
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install python@2; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mkdir fakepy3 && export PATH="$PWD/fakepy3:$PATH" && ln -s /usr/local/bin/python fakepy3/python3; ls -l ./fakepy3/; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/python@2/libexec/bin:/usr/local/bin:$PATH"; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mkdir $PWD/fakepy3 && echo '/usr/local/bin/python "$@"' > $PWD/fakepy3/python3 && chmod +x $PWD/fakepy3/python3; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/python@2/libexec/bin:/usr/local/bin:$PWD/fakepy3:$PATH"; fi
     - echo $PATH
     - echo $PWD/fakepy3
     - ls -l $PWD/fakepy3 || echo notfound
@@ -45,7 +45,7 @@ before_script:
     - python --version
     - which python2
     - python2 --version
-    - which python3
+    - which python3 || echo "python3 not found"
     - python3 --version
     - python2 -c 'import numpy' 2>/dev/null || python2 -mpip install numpy
     - python3 -c 'import numpy' 2>/dev/null || python3 -mpip install numpy
