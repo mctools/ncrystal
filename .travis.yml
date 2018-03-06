@@ -33,11 +33,15 @@ before_install:
 before_script:
     - set -e
     - cmake --version
-    - python --version
     - which python
+    - python --version
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install python@2; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/python@2/libexec/bin:$PATH"; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/python@2/libexec/bin:/usr/local/bin:$PATH"; fi
+    - which python
+    - python --version
+    - which python2
     - python2 --version
+    - which python3
     - python3 --version
     - python2 -c 'import numpy' 2>/dev/null || python2 -mpip install numpy
     - python3 -c 'import numpy' 2>/dev/null || python3 -mpip install numpy
