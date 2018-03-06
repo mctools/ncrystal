@@ -40,9 +40,7 @@ before_script:
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install python || true; fi
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install python@2 || true; fi
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew link --force python@2 || true; fi
-    - echo $PATH
-    - ls -l /usr/local/bin|grep python ||true
-    - ls -l /usr/local/opt/ || true
+    - which python
     - python --version
     - which python2 || echo "python2 not found"
     - python2 --version
@@ -64,13 +62,15 @@ script:
     - find ../installdir
     - ../installdir/bin/ncrystal_example_c
     - ../installdir/bin/ncrystal_example_cpp
+    - python2 -c 'import NCrystal; NCrystal.test()'
+    - python3 -c 'import NCrystal; NCrystal.test()'
     - mkdir fakebin && touch fakebin/python && chmod +x fakebin/python
     - export PATH="$PWD/fakebin:$PATH"
     - echo 'python2 "$@"' > fakebin/python && python --version
     - ../installdir/bin/ncrystal_inspectfile --help
     - ../installdir/bin/ncrystal_inspectfile --test
     - ../installdir/bin/ncrystal_inspectfile --dump Al_sg225.ncmat
-    - python -c 'import matplotlib' 2>/dev/null || python -mpip install matplotlib
+    - python2 -c 'import matplotlib' 2>/dev/null || python2 -mpip install matplotlib
     - ../installdir/bin/ncrystal_inspectfile --pdf Al_sg225.ncmat
     - . ../installdir/setup.sh
     - ../installdir/bin/ncrystal_example_py
@@ -79,7 +79,7 @@ script:
     - ../installdir/bin/ncrystal_inspectfile --help
     - ../installdir/bin/ncrystal_inspectfile --test
     - ../installdir/bin/ncrystal_inspectfile --dump Al_sg225.ncmat
-    - python -c 'import matplotlib' 2>/dev/null || python -mpip install matplotlib
+    - python3 -c 'import matplotlib' 2>/dev/null || python3 -mpip install matplotlib
     - ../installdir/bin/ncrystal_inspectfile --pdf Al_sg225.ncmat
     - . ../installdir/setup.sh
     - ../installdir/bin/ncrystal_example_py
