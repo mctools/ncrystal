@@ -36,7 +36,7 @@ before_script:
     - which python
     - python --version
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install python@2; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mkdir fakepy3 && export PATH="$PWD/fakepy3:$PATH" && ln -s /usr/local/bin/python fakepy3/python3; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mkdir fakepy3 && export PATH="$PWD/fakepy3:$PATH" && ln -s /usr/local/bin/python fakepy3/python3; ls -l ./fakepy3/; fi
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/python@2/libexec/bin:/usr/local/bin:$PATH"; fi
     - which python
     - python --version
