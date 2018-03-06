@@ -374,6 +374,7 @@ def _load(nclib_filename):
     functions['ncrystal_save_randgen'] = ncrystal_save_randgen
     functions['ncrystal_restore_randgen'] = ncrystal_restore_randgen
 
+    _wrap('ncrystal_decodecfg_packingfactor',_dbl,(_cstr,))
     _wrap('ncrystal_clear_info_caches',None,tuple())
     _wrap('ncrystal_disable_caching',None,tuple())
     _wrap('ncrystal_enable_caching',None,tuple())
@@ -383,6 +384,9 @@ def _load(nclib_filename):
     return functions
 
 _rawfct = _load(_find_nclib())
+
+def decodecfg_packingfactor(cfgstr):
+    return _rawfct['ncrystal_decodecfg_packingfactor'](_str2cstr(cfgstr))
 
 class RCBase:
     """Base class for all NCrystal objects"""

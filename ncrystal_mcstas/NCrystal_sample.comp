@@ -170,6 +170,9 @@ INITIALIZE
   /* Make sure NCrystal use the McStas RNG (ok if more than one component instance does this): */
   ncrystal_setrandgen(rand01);
 
+  /* access powder packingfactor (nb: always 1.0 for non-powders): */
+  double packingfactor = ncrystal_decodecfg_packingfactor(cfg);
+
   /* access crystal structure to get number density (natoms/volume): */
   ncrystal_info_t info = ncrystal_create_info(cfg);
   unsigned cell_sg,cell_atnum;
@@ -181,9 +184,14 @@ INITIALIZE
   //cell_atnum/cell_volume is the atomic number density in units of
   //Aa^-3=1e30m^3, and given that we have cross-sections in barn (1e-28m^2) and
   //want to generate distances in meters with -log(R)/(numberdensity*xsect), we
-  //get the unit conversion factor of 0.01:
-  params.density_factor = - 0.01 * cell_volume / cell_atnum;
+  //get the unit conversion factor of 0.01. We also apply the powder packing
+  //factor here (it is guaranteed to be non-zero):
+  params.density_factor = - 0.01 * cell_volume / ( cell_atnum * packingfactor );
   params.inv_density_factor = 1.0/params.density_factor;
+
+  //TODO for NC2: The density used here is in principle different from the one
+  //used in the Geant4 interface, which is possibly inconsistent when not using
+  //.ncmat files (more info at https://github.com/mctools/ncrystal/issues/9).
 
   //Setup scattering:
   params.scat = ncrystal_create_scatter(cfg);

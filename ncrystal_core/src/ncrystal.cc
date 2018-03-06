@@ -601,6 +601,15 @@ ncrystal_info_t ncrystal_create_info( const char * cfgstr )
   return o;
 }
 
+double ncrystal_decodecfg_packingfactor( const char * cfgstr )
+{
+  try {
+    NCrystal::MatCfg cfg(cfgstr);
+    return cfg.get_packingfactor();
+  } NCCATCH;
+  return -1.0;
+}
+
 ncrystal_scatter_t ncrystal_create_scatter( const char * cfgstr )
 {
   ncrystal_scatter_t o;

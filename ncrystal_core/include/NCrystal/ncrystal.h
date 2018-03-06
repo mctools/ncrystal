@@ -193,6 +193,10 @@ extern "C" {
   double ncrystal_wl2ekin( double wl );
   double ncrystal_ekin2wl( double ekin );
 
+  /* Extract NCMatCfg variables which can not be inferred from an ncrystal_info_t  */
+  /* object and which might be needed in plugins (to be expanded as needed):       */
+  double ncrystal_decodecfg_packingfactor( const char * cfgstr );
+
   /* For serious scientific usage, users should register their own random          */
   /* generator function before using the genscatter functions. It must return      */
   /* numbers uniformly in [0,1):                                                   */
