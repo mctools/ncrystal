@@ -62,8 +62,8 @@ script:
     - find ../installdir
     - ../installdir/bin/ncrystal_example_c
     - ../installdir/bin/ncrystal_example_cpp
-    - python2 -c 'import NCrystal; NCrystal.test()'
-    - python3 -c 'import NCrystal; NCrystal.test()'
+    - python2 ../installdir/bin/ncrystal_inspectfile --test
+    - python3 ../installdir/bin/ncrystal_inspectfile --test
     - mkdir fakebin && touch fakebin/python && chmod +x fakebin/python
     - export PATH="$PWD/fakebin:$PATH"
     - echo 'python2 "$@"' > fakebin/python && python --version
