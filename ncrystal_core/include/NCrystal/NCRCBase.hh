@@ -100,6 +100,9 @@ namespace NCrystal {
     }
     bool operator()() const { return m_obj!=0; }
     bool operator!() const { return m_obj==0; }
+    //Release obj without triggering deletion:
+    T * releaseNoDelete() { T* obj = m_obj; if ( m_obj ) m_obj->unrefNoDelete(); m_obj = 0; return obj; }
+    const T * releaseNoDelete() const { const T* obj = m_obj; if ( m_obj ) m_obj->unrefNoDelete(); m_obj = 0; return obj; }
   private:
     T* m_obj;
   };

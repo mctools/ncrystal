@@ -18,13 +18,13 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCSimpleBkgd.hh"
+#include "NCrystal/NCScatterXSCurve.hh"
 #include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCException.hh"
 #include "NCMath.hh"
 
-NCrystal::SimpleBkgd::SimpleBkgd(const Info* ci, bool thermalise)
-  : NonOrientedScatter(thermalise?"SimpleBkgdT":"SimpleBkgdE"),
+NCrystal::ScatterXSCurve::ScatterXSCurve(const Info* ci, const char * calcname, bool thermalise )
+  : NonOrientedScatter(calcname),
     m_ci(ci),
     m_tempk(0)
 {
@@ -42,19 +42,12 @@ NCrystal::SimpleBkgd::SimpleBkgd(const Info* ci, bool thermalise)
   validate();
 }
 
-NCrystal::SimpleBkgd::~SimpleBkgd()
+NCrystal::ScatterXSCurve::~ScatterXSCurve()
 {
   m_ci->unref();
 }
 
-double NCrystal::SimpleBkgd::crossSectionNonOriented(double ekin) const
-{
-  if (!m_ci->providesNonBraggXSects())
-    NCRYSTAL_THROW(MissingInfo,"Passed Info object lacks NonBraggXSects needed for cross sections.");
-  return m_ci->xsectScatNonBragg(ekin2wl(ekin));
-}
-
-double NCrystal::SimpleBkgd::calcDeltaE(double ekin) const
+double NCrystal::ScatterXSCurve::calcDeltaE(double ekin) const
 {
   if (!m_tempk)
     return 0;//always elastic
@@ -64,17 +57,22 @@ double NCrystal::SimpleBkgd::calcDeltaE(double ekin) const
     NCRYSTAL_THROW(MissingInfo,"Passed Info object lacks Temperature information needed"
                    " to generate scatterings when thermalise flag is set.");
 
+  //TODO for NC2: From comment on DGSW-192: "According to XX, the thermalise=true option
+  //can generate impossible (p,E non-conserving) scenarios. So we should check
+  //that the result is OK and if not throw another (up to N times, then default
+  //to de=0).". Have to double-check equations to see if this is true.
+
   return genThermalNeutronEnergy(m_tempk, this->rand()) - ekin;
 }
 
-void NCrystal::SimpleBkgd::generateScatteringNonOriented( double ekin,
+void NCrystal::ScatterXSCurve::generateScatteringNonOriented( double ekin,
                                                           double& angle_radians, double& delta_ekin_eV ) const
 {
   angle_radians = randIsotropicScatterAngle();
   delta_ekin_eV = calcDeltaE(ekin);
 }
 
-void NCrystal::SimpleBkgd::generateScattering( double ekin, const double (&)[3],
+void NCrystal::ScatterXSCurve::generateScattering( double ekin, const double (&)[3],
                                                double (&resulting_neutron_direction)[3], double& delta_ekin_eV ) const
 {
   randIsotropicDirection(resulting_neutron_direction);

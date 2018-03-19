@@ -601,11 +601,11 @@ ncrystal_info_t ncrystal_create_info( const char * cfgstr )
   return o;
 }
 
-double ncrystal_decodecfg_packingfactor( const char * cfgstr )
+double ncrystal_decodecfg_packfact( const char * cfgstr )
 {
   try {
     NCrystal::MatCfg cfg(cfgstr);
-    return cfg.get_packingfactor();
+    return cfg.get_packfact();
   } NCCATCH;
   return -1.0;
 }

@@ -35,6 +35,8 @@ NCrystal::Info::Info()
     m_xsectprovider(0),
     m_lock(false)
 {
+  static uint64_t next_unique_id = 1;//safe to assume uint64_t never overflows
+  m_uniqueid = next_unique_id++;
   std::memset(&m_structinfo,0,sizeof(m_structinfo));
   m_structinfo.spacegroup = 999999;//unset
 }
@@ -282,6 +284,3 @@ NCrystal::HKLList::const_iterator NCrystal::Info::searchExpandedHKL(short h, sho
   }
   return itE;
 }
-    //TODO for NC2: nxs+ncmat scatnonbragg algs should go to NCSimpleBkgd and be
-    //decoupled from the .nxs and .ncmat files themselves, and then we can get
-    //rid of XSectProvider on NCInfo.

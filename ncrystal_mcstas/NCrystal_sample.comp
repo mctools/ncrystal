@@ -25,7 +25,7 @@
 * %I
 *
 * Written by: NCrystal developers
-* Version: 0.9.7
+* Version: 0.9.8
 * Origin: NCrystal Developers (European Spallation Source ERIC and DTU Nutech)
 *
 * McStas sample component for the NCrystal scattering library. Find more
@@ -171,7 +171,7 @@ INITIALIZE
   ncrystal_setrandgen(rand01);
 
   /* access powder packingfactor (nb: always 1.0 for non-powders): */
-  double packingfactor = ncrystal_decodecfg_packingfactor(cfg);
+  double packingfactor = ncrystal_decodecfg_packfact(cfg);
 
   /* access crystal structure to get number density (natoms/volume): */
   ncrystal_info_t info = ncrystal_create_info(cfg);

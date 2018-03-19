@@ -56,6 +56,19 @@ namespace NCrystal {
     virtual ~Scatter();
   };
 
+  class NullScatter : public Scatter {
+    //Special class, representing a scattering component with vanishing
+    //cross-section and which changes nothing in scattering methods.
+  public:
+    NullScatter();
+    virtual ~NullScatter();
+    virtual bool isOriented() const { return false; }
+    virtual double crossSection(double, const double (&)[3] ) const;
+    virtual double crossSectionNonOriented( double ) const;
+    virtual void domain(double& ekin_low, double& ekin_high) const;
+    virtual void generateScattering( double, const double (&in)[3], double (&out)[3], double& de ) const;
+    virtual void generateScatteringNonOriented( double, double& angle, double& de ) const;
+  };
 }
 
 #endif

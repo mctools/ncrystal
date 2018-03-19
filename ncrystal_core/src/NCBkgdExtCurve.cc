@@ -18,58 +18,28 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCRandom.hh"
-#include <cstdio>
-#include <limits>
+#include "NCrystal/NCBkgdExtCurve.hh"
+#include "NCrystal/NCInfo.hh"
+#include "NCrystal/NCException.hh"
 
-namespace NCrystal {
-  static RCHolder<RandomBase> s_default_randgen;
+NCrystal::BkgdExtCurve::BkgdExtCurve(const Info* ci, bool thermalise)
+  : ScatterXSCurve(ci,"BkgdExtCurve",thermalise),
+    m_ci(0)
+{
+  nc_assert_always(ci);
+  if (!ci->providesNonBraggXSects())
+    NCRYSTAL_THROW(MissingInfo,"Passed Info object lacks NonBraggXSects needed for cross sections.");
+  ci->ref();
+  m_ci = ci;
+  validate();
 }
 
-NCrystal::RandomBase::RandomBase()
+NCrystal::BkgdExtCurve::~BkgdExtCurve()
 {
+  m_ci->unref();
 }
 
-NCrystal::RandomBase::~RandomBase()
+double NCrystal::BkgdExtCurve::crossSectionNonOriented(double ekin) const
 {
-}
-
-void NCrystal::setDefaultRandomGenerator(RandomBase* rg)
-{
-  s_default_randgen = rg;
-}
-
-NCrystal::RandomBase * NCrystal::defaultRandomGenerator(bool trigger_default)
-{
-  if (!s_default_randgen.obj()) {
-    if (!trigger_default)
-      return 0;
-    printf("NCrystal WARNING: No default random generator supplied so will"
-           " use the scientifically unsound NCrystal::RandomSimple.\n");
-    s_default_randgen = new RandomSimple;
-  }
-  return s_default_randgen.obj();
-}
-
-//RandomSimple implements a very simple multiply-with-carry rand gen
-//(http://en.wikipedia.org/wiki/Random_number_generation)
-
-//TODO for C++11: use MT from standard lib and remove warning (but should we allow seeding from c interface?)
-
-NCrystal::RandomSimple::RandomSimple()
-  : m_w(117),/* must not be zero, nor 0x464fffff */
-    m_z(11713)/* must not be zero, nor 0x9068ffff */
-{
-}
-
-NCrystal::RandomSimple::~RandomSimple()
-{
-}
-
-double NCrystal::RandomSimple::generate()
-{
-  m_w = 18000 * (m_w & 65535) + (m_w >> 16);
-  m_z = 36969 * (m_z & 65535) + (m_z >> 16);
-  double r = double((m_z << 16) + m_w)/double((std::numeric_limits<uint32_t>::max)());  /* 32-bit result */
-  return r == 1.0 ? generate() : r;
+  return m_ci->xsectScatNonBragg(ekin2wl(ekin));
 }

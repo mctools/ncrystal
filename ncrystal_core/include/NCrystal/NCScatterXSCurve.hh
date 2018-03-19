@@ -1,3 +1,6 @@
+#ifndef NCrystal_ScatterXSCurve_hh
+#define NCrystal_ScatterXSCurve_hh
+
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
@@ -18,58 +21,43 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCRandom.hh"
-#include <cstdio>
-#include <limits>
+#include "NCrystal/NCNonOrientedScatter.hh"
 
 namespace NCrystal {
-  static RCHolder<RandomBase> s_default_randgen;
+
+  class Info;
+
+  class ScatterXSCurve : public NonOrientedScatter {
+  public:
+
+    //Scatter base class for models which provides only cross-sections and no
+    //specific ability to generate scatterings.
+    //
+    //Scatter angles will be modelled as isotropic. As accurate energy transfer
+    //information is unavailable, it will, depending on the value of the
+    //thermaise flag passed in the constructor, either be approximated as always
+    //0 (elastic), or as always completely thermalising immediately according to
+    //the temperature of the crystal (requires temperature info availability).
+    //
+    //Derived classes should always implement the crossSectionNonOriented(..)
+    //method, and possibly also the domain(..) and crossSection(..) methods if
+    //appropriate.
+
+    ScatterXSCurve(const Info*, const char * calcname, bool thermalise );
+
+
+    virtual void generateScatteringNonOriented( double ekin_wavelength_aangstrom,
+                                                double& angle_radians, double& delta_ekin_eV ) const;
+
+    virtual void generateScattering( double ekin, const double (&neutron_direction)[3],
+                                     double (&resulting_neutron_direction)[3], double& delta_ekin_eV ) const;
+
+  protected:
+    virtual ~ScatterXSCurve();
+    const Info* m_ci;
+    double m_tempk;
+    double calcDeltaE(double) const;
+  };
 }
 
-NCrystal::RandomBase::RandomBase()
-{
-}
-
-NCrystal::RandomBase::~RandomBase()
-{
-}
-
-void NCrystal::setDefaultRandomGenerator(RandomBase* rg)
-{
-  s_default_randgen = rg;
-}
-
-NCrystal::RandomBase * NCrystal::defaultRandomGenerator(bool trigger_default)
-{
-  if (!s_default_randgen.obj()) {
-    if (!trigger_default)
-      return 0;
-    printf("NCrystal WARNING: No default random generator supplied so will"
-           " use the scientifically unsound NCrystal::RandomSimple.\n");
-    s_default_randgen = new RandomSimple;
-  }
-  return s_default_randgen.obj();
-}
-
-//RandomSimple implements a very simple multiply-with-carry rand gen
-//(http://en.wikipedia.org/wiki/Random_number_generation)
-
-//TODO for C++11: use MT from standard lib and remove warning (but should we allow seeding from c interface?)
-
-NCrystal::RandomSimple::RandomSimple()
-  : m_w(117),/* must not be zero, nor 0x464fffff */
-    m_z(11713)/* must not be zero, nor 0x9068ffff */
-{
-}
-
-NCrystal::RandomSimple::~RandomSimple()
-{
-}
-
-double NCrystal::RandomSimple::generate()
-{
-  m_w = 18000 * (m_w & 65535) + (m_w >> 16);
-  m_z = 36969 * (m_z & 65535) + (m_z >> 16);
-  double r = double((m_z << 16) + m_w)/double((std::numeric_limits<uint32_t>::max)());  /* 32-bit result */
-  return r == 1.0 ? generate() : r;
-}
+#endif

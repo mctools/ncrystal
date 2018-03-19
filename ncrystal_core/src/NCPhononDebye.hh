@@ -34,11 +34,18 @@ namespace NCrystal {
   //Implementation of a highly efficient but less accurate Gaussian approximation [1]
   //to estimate the saturated expansion order in the class constructor
   //Sjolander, Arkiv for Fysik., Bd 14, nr 21, 1958
-  //automatic order determination is enabled by setting "unsigned phonon" of the constructor to zero
+  //automatic order determination is enabled by setting max_phonon_order in the constructor to zero
+  //
+  //If phonzeroinco is 1, incoherent contributions from the zero'th order phonon
+  //will be included (the coherent part is Bragg diffraction, which is handled
+  //by PCBragg or SCBragg). If it is 0, they will be excluded and if it is 2,
+  //*only* those contributions will be included (must be used with
+  //max_phonon_order=1).
 
   class PhononDebye  {
   public:
-    PhononDebye(double debye_energy, double kt, const std::string & ele_name,  unsigned max_phonon_order=0);
+    PhononDebye(double debye_energy, double kt, const std::string & ele_name,
+                unsigned max_phonon_order=0, int phonzeroinco = 1 );
     virtual ~PhononDebye();
     void doit(const std::vector<double> &ekin_vec, std::vector<double> &xs_vec,
               unsigned alpha_grid_size=50, unsigned beta_sym_grid_size=100);
@@ -49,23 +56,22 @@ namespace NCrystal {
     unsigned getMaxPhononNum() const { return m_max_phononnum; }
 
   private:
-    double getS(unsigned beta_index, double alpha);
+    double getS(unsigned beta_index, double alpha) const;
     double interpolate(double a, double fa, double b, double fb, double x) const;
     double integrateAlphaInterval(double a1, double s1, double a2, double s2 ) const;
-    void getSecondarySpectrum(double kin, double* spec);
-    void getAlphaLimts(double kin, double beta, double &lower, double& upper);
+    void getSecondarySpectrum(double kin, double* spec) const;
+    void getAlphaLimits(double kin, double beta, double &lower, double& upper) const;
     double g0knl(double eps) const;
     double g0barknl(double eps) const;
     double d0bar_power_knl(double eps) const;
-    void calcSymSab(const std::vector<double> &alpha, const std::vector<double> &beta, std::vector<double> &result) const;
-    PhononCalculator *m_cal;
-
+    void calcSymSab(const PhononCalculator&cal,const std::vector<double> &alpha,
+                    const std::vector<double> &beta, std::vector<double> &result) const;
     struct para{
       double x, z,factor, delta0_bar, kt;
     };
 
-    double sigma_1 (const para& p, double n);
-    double sigma_2 (const para& p, double n);
+    double sigma_1 (const para& p, double n) const;
+    double sigma_2 (const para& p, double n) const;
 
 
     //////////
@@ -77,6 +83,7 @@ namespace NCrystal {
     std::vector<double> m_sab;
     unsigned m_max_phononnum;
     double m_max_wl2ekin;
+    int m_phonzeroinco;
   };
 }
 

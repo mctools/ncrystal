@@ -38,7 +38,7 @@ namespace NCrystal {
       return loadNXSCrystal( cfg.getDataFile().c_str(),
                              cfg.get_temp(),
                              cfg.get_dcutoff(),
-                             cfg.get_dcutoffupper() );
+                             cfg.get_dcutoffup() );
     }
   };
 
@@ -55,7 +55,7 @@ namespace NCrystal {
       {
         LazLoader ld (cfg.getDataFile().c_str(),
                       cfg.get_dcutoff(),
-                      cfg.get_dcutoffupper(),
+                      cfg.get_dcutoffup(),
                       cfg.get_temp());
         ld.read();
         ci = ld.getCrystalInfo();

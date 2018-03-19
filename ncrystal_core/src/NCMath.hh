@@ -34,6 +34,8 @@ namespace NCrystal {
   const double const_neutron_mass = 1.674927471e-24; //gram
   const double const_neutron_atomic_mass = 1.00866491588; //atomic unit
   const double const_ekin_2200m_s = 0.02529886 ; //eV, neutron kinetic energy at 2200m/s.
+  const double constant_planck = 4.135667662e-15 ;//[eV*s]
+  const double constant_hbar = constant_planck/(M_PI*2.); //[eV*s]
 
   //Our own min/max/abs to make sure only double versions are used:
   double ncmin(double, double);
@@ -41,8 +43,12 @@ namespace NCrystal {
   double ncabs(double);
   bool ncisnan(double);
   bool ncisinf(double);
+
   //Error function (only in cmath from C++11 onwards):
   double ncerf(double);
+
+  //std::is_sorted (only in algorithm from C++11 onwards). Only support std::vector<double>
+  bool ncis_sorted(std::vector<double>::const_iterator itb, std::vector<double>::const_iterator ite);
 
   //Generate numbers from thermal (Maxwell) distributions, passing T[Kelvin] or sqrt(T[Kelvin]):
   //(nb. genThermalNeutronEnergy doesn't actually depend on the particle being a neutron)
@@ -59,12 +65,19 @@ namespace NCrystal {
 
   //numerical integration
   void gauleg_10_ord(const double x1, const double x2, std::vector<double>& x, std::vector<double>& w);
+  void gauloba_10_ord(const double x1, const double x2, std::vector<double>& x, std::vector<double>& w);
+  double gaulobatto_grid(unsigned bz,double lower_beta, double upper_beta, std::vector<double>& beta, std::vector<double>& totwgt);
+  double gaulobatto_grid(const std::vector<double>& old_beta, std::vector<double>& beta, std::vector<double>& totwgt);
+
 
   //vector operation
   double trapz(const std::vector<double> &y,const std::vector<double> &x);
   void flip(const std::vector<double> & arr, std::vector<double> & arr_dst, bool opposite_sign=false);
   std::vector<double> logspace(double start, double stop, unsigned num);
   std::vector<double> linspace(double start, double stop, unsigned num);
+  double simpsons_irregular(const std::vector<double> &y, const std::vector<double> &x); //odd number of points is preferred
+  void concatenate(std::vector<double>& arr_front,const std::vector<double>& arr_back, unsigned skip_pos=0);
+
 
 }
 

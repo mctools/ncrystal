@@ -122,10 +122,9 @@ examples:
     parser.add_argument('--common','-c', metavar='CFG', type=str, default=[],
                         help='Common configuration items that will be applied to all files',action='append')
     parser.add_argument('-b','--bragg', action='store_true',
-                        help="""Only generate Bragg diffraction component, even for input files where also a
-                        "background" component representing phonon-scattering is otherwise present""")
+                        help="""Only generate Bragg diffraction component""")
     parser.add_argument('--bkgd', action='store_true',
-                        help="""Only generate background (non-Bragg diffraction) component""")
+                        help="""Only generate background (non-Bragg diffr.) component""")
     parser.add_argument('-a','--absorption', action='store_true',
                         help="""Include absorption in cross-section plots""")
     parser.add_argument('-p','--pdf', action='store_true',
@@ -149,7 +148,7 @@ examples:
     else: args.comp = 'both'
 
     if args.absorption and (args.bkgd or args.bragg):
-        parser.error('Do not specify both --absorption with either of --bragg or --bkgd.')
+        parser.error('Do not specify --absorption with either of --bragg or --bkgd.')
 
     if args.dump and (args.bragg or args.bkgd or args.absorption):
         parser.error('Do not specify --dump with either of --bragg, --bkdg or --absorption.')
@@ -204,11 +203,13 @@ def import_npplt(pdf=False):
 def getfields(cfgstr):
     return set([_f for _f in [e.split('=',1)[0] for e in cfgstr.strip().split(';') if '=' in e] if _f])
 
-def combine_cfgs(cfg1,cfg2):
+def combine_cfgs(cfg1,cfg2,prefercfg1=True):
     #assumes cfg1 starts with "filename;" and possibly the ignorefilecfg
     #keyword. Will append cfg2 items after the filename (& ignorefilecfg kw) and
     #before other cfg1 items, in order to give preference to cfg1 items.
     c1=cfg1.split(';')
+    if not prefercfg1:
+        return ';'.join(c1+cfg2.split(';'))
     filename = [c1.pop(0)]
     if c1 and c1[0].strip()=='ignorefilecfg':
         filename += [c1.pop(0).strip()]
@@ -398,7 +399,11 @@ class Cfg:
         self._cfgstr_unique = cfgstr
         self._cfgstr = combine_cfgs(cfgstr,commoncfgstr)
         f=getfields(self._cfgstr)
-        assert not 'braggonly' in f and not 'skipbragg' in f
+        em="when using this script, use --bragg and --bkgd to enable/disable bragg components rather than bragg=0, bkgd=none, etc."
+        assert not 'bragg' in f,em
+        if 'bkgd' in f:
+            #only bkgd=none is currently supported, but attempt to be fwd compatible:
+            assert (not ';bkgd=none' in self._cfgstr and not 'bkgd=0' in self._cfgstr and not 'bkgd=false' in self._cfgstr),em
         self._sc = {}
         self._abs = None
         self._totxs = None
@@ -407,7 +412,7 @@ class Cfg:
     def get_scatter(self,comp = 'both', allowfail = False):
         assert comp in ('both','bragg','bkgd')
         if not comp in self._sc:
-            cfgstr = combine_cfgs(self._cfgstr,{'bragg':'braggonly=1','bkgd':'skipbragg=1'}.get(comp,''))
+            cfgstr = combine_cfgs(self._cfgstr,{'bragg':'bkgd=none','bkgd':'bragg=0'}.get(comp,''),False)
             try:
                 sc = NCrystal.createScatter(cfgstr)
             except NCrystal.NCException:

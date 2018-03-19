@@ -32,6 +32,7 @@
 #include <fstream>
 #include <algorithm>
 #include <cstring>
+#include <map>
 
 struct NCrystal::MatCfg::Impl : public NCrystal::RCBase {
   Impl() : RCBase() {
@@ -90,22 +91,20 @@ struct NCrystal::MatCfg::Impl : public NCrystal::RCBase {
   //Important!: Keep the following list in alphabetical order and synchronised
   //with parnames and partypes further down the file!
   enum PARAMETERS { PAR_FIRST = 0,
-                    PAR_absorptionfactory = 0,
-                    PAR_braggonly,
+                    PAR_absnfactory = 0,
+                    PAR_bkgd,
+                    PAR_bragg,
                     PAR_dcutoff,
-                    PAR_dcutoffupper,
+                    PAR_dcutoffup,
+                    PAR_dir1,
+                    PAR_dir2,
+                    PAR_dirtol,
                     PAR_expandhkl,
                     PAR_infofactory,
-                    PAR_mosaicity,
-                    PAR_nphonon,
-                    PAR_orientationprimary,
-                    PAR_orientationsecondary,
-                    PAR_orientationtolerance,
+                    PAR_mos,
                     PAR_overridefileext,
-                    PAR_packingfactor,
-                    PAR_scatterbkgdmodel,
-                    PAR_scatterfactory,
-                    PAR_skipbragg,
+                    PAR_packfact,
+                    PAR_scatfactory,
                     PAR_temp,
                     PAR_NMAX };
 
@@ -263,7 +262,7 @@ struct NCrystal::MatCfg::Impl : public NCrystal::RCBase {
     void set(const std::string& s) {
       if (!isSimpleASCII(s,false,false))
         NCRYSTAL_THROW(BadInput,"Non-ASCII characters or tab/newlines in string value!");
-      if (contains_any(s,NCMATCFG_FORBIDDEN_CHARS)||contains_any(s,"=;:@"))
+      if (contains_any(s,NCMATCFG_FORBIDDEN_CHARS)||contains_any(s,"=;"))
         NCRYSTAL_THROW(BadInput,"Forbidden characters in string value!");
       value = s;
     }
@@ -284,8 +283,8 @@ struct NCrystal::MatCfg::Impl : public NCrystal::RCBase {
       std::string& c = parts.at(1);
       std::string& l = parts.at(2);
       int c_is_hkl(-1);
-      if (startswith(c,"crystal:")) { c = c.substr(8); c_is_hkl = 0; }
-      else if (startswith(c,"crystal_hkl:")) { c = c.substr(12); c_is_hkl = 1; }
+      if (startswith(c,"crys:")) { c = c.substr(5); c_is_hkl = 0; }
+      else if (startswith(c,"crys_hkl:")) { c = c.substr(9); c_is_hkl = 1; }
       if (c_is_hkl==-1||!startswith(l,"lab:"))
         NCRYSTAL_THROW2(BadInput,"Bad syntax for orientation: \""<<s<<"\"");
       l = l.substr(4);
@@ -307,7 +306,7 @@ struct NCrystal::MatCfg::Impl : public NCrystal::RCBase {
         return origstrrep;
       std::stringstream s;
       s.precision(17);
-        s << (crystal_is_hkl?"@crystal_hkl:":"@crystal:")
+        s << (crystal_is_hkl?"@crys_hkl:":"@crys:")
           << crystal[0] << "," << crystal[1] << ","
           << crystal[2] << "@lab:" << lab[0] << ","
           << lab[1] << "," << lab[2];
@@ -435,52 +434,85 @@ struct NCrystal::MatCfg::Impl : public NCrystal::RCBase {
     }
   }
 
+  void decodebkgdopts(const std::string& optstr, std::map<std::string,std::string>& opts2val)
+  {
+    opts2val.clear();
+    std::vector<std::string> parts;
+    split(parts,optstr,0,':');
+    std::vector<std::string>::iterator it(parts.begin()), itE(parts.end());
+    nc_assert_always(it!=itE);
+    ++it;//skip main bkgd name
+    std::vector<std::string> subparts;
+    subparts.reserve(2);
+    static std::string alphalowercase = "abcdefghijklmnopqrstuvwxyz";
+    static std::string alphalowercasenumunderscore  = "abcdefghijklmnopqrstuvwxyz0123456789_";
+    for (;it!=itE;++it) {
+      trim(*it);
+      if (it->empty())
+        continue;
+      subparts.clear();
+      if (contains(*it,'@')) {
+        split(subparts,*it,0,'@');
+        for (std::size_t i = 0; i<subparts.size();++i)
+          trim(subparts.at(i));
+        if ( subparts.size()!=2||subparts.at(0).empty()||subparts.at(1).empty()||contains_any(subparts.at(1),"<>:=") ) {
+          NCRYSTAL_THROW2(BadInput,"Syntax error in bkgd options: \""<<optstr<<"\"");
+        }
+        if ( !contains_only(subparts.at(0),alphalowercasenumunderscore)||!contains(alphalowercase,subparts.at(0)[0]) ) {
+          NCRYSTAL_THROW2(BadInput,"Syntax error in bkgd options. Invalid option name: \""<<subparts.at(0)<<"\"");
+        }
+      } else {
+        subparts.push_back(*it);
+        subparts.push_back("<flag>");
+      }
+      if ( opts2val.find(subparts.at(0))!=opts2val.end() ) {
+        NCRYSTAL_THROW2(BadInput,"Syntax error in bkgd options. Option specified multiple times: \""<<subparts.at(0)<<"\"");
+      }
+      opts2val[subparts.at(0)]=subparts.at(1);
+    }
+  }
+
 private:
   Impl& operator=(const Impl& o);//forbid
 };
 
 namespace NCrystal {
-  //Need fallback string values here so we can return references to them (so
-  //far, all fallback to the same empty string):
+  //Need fallback string values here so we can return references to them:
   static const std::string s_matcfg_str_empty = std::string();
   static const std::string s_matcfg_str_best = std::string("best");
 
   //Important!: Keep the following two lists ordered (parnames sorted
   //alphabetically) and synchronised between themselves as well as the
   //PARAMETERS enum earlier in the file!
-  std::string MatCfg::Impl::parnames[PAR_NMAX] = { "absorptionfactory",
-                                                   "braggonly",
+  std::string MatCfg::Impl::parnames[PAR_NMAX] = { "absnfactory",
+                                                   "bkgd",
+                                                   "bragg",
                                                    "dcutoff",
-                                                   "dcutoffupper",
+                                                   "dcutoffup",
+                                                   "dir1",
+                                                   "dir2",
+                                                   "dirtol",
                                                    "expandhkl",
                                                    "infofactory",
-                                                   "mosaicity",
-                                                   "nphonon",
-                                                   "orientationprimary",
-                                                   "orientationsecondary",
-                                                   "orientationtolerance",
+                                                   "mos",
                                                    "overridefileext",
-                                                   "packingfactor",
-                                                   "scatterbkgdmodel",
-                                                   "scatterfactory",
-                                                   "skipbragg",
+                                                   "packfact",
+                                                   "scatfactory",
                                                    "temp" };
   MatCfg::Impl::VALTYPE MatCfg::Impl::partypes[PAR_NMAX] = { VALTYPE_STR,
-                                                             VALTYPE_BOOL,
-                                                             VALTYPE_DBL,
-                                                             VALTYPE_DBL,
-                                                             VALTYPE_BOOL,
                                                              VALTYPE_STR,
+                                                             VALTYPE_BOOL,
                                                              VALTYPE_DBL,
-                                                             VALTYPE_INT,
+                                                             VALTYPE_DBL,
                                                              VALTYPE_ORIENTDIR,
                                                              VALTYPE_ORIENTDIR,
                                                              VALTYPE_DBL,
+                                                             VALTYPE_BOOL,
                                                              VALTYPE_STR,
                                                              VALTYPE_DBL,
                                                              VALTYPE_STR,
+                                                             VALTYPE_DBL,
                                                              VALTYPE_STR,
-                                                             VALTYPE_BOOL,
                                                              VALTYPE_DBL };
   struct MatCfg::Impl::SpyDisabler {
     //swaps spies with empty list (disabling spying) and swaps back in destructor
@@ -502,15 +534,15 @@ namespace NCrystal {
   template<>
   void MatCfg::Impl::addUnitsForValType(ValDbl* vt, PARAMETERS par) {
     switch(par) {
-    case PAR_mosaicity:
-    case PAR_orientationtolerance:
+    case PAR_mos:
+    case PAR_dirtol:
       vt->setUnitType(ValDbl::UnitAngle);
       return;
     case PAR_temp:
       vt->setUnitType(ValDbl::UnitTemp);
       return;
     case PAR_dcutoff:
-    case PAR_dcutoffupper:
+    case PAR_dcutoffup:
       vt->setUnitType(ValDbl::UnitLength);
       return;
     default:
@@ -562,21 +594,19 @@ std::string NCrystal::MatCfg::toStrCfg( bool include_datafile, const std::set<st
 
 bool NCrystal::MatCfg::isSingleCrystal() const
 {
-  return m_impl->hasPar(Impl::PAR_mosaicity) || m_impl->hasPar(Impl::PAR_orientationprimary) ||
-    m_impl->hasPar(Impl::PAR_orientationsecondary) || m_impl->hasPar(Impl::PAR_orientationtolerance);
+  return m_impl->hasPar(Impl::PAR_mos) || m_impl->hasPar(Impl::PAR_dir1) ||
+    m_impl->hasPar(Impl::PAR_dir2) || m_impl->hasPar(Impl::PAR_dirtol);
 }
 
 void NCrystal::MatCfg::checkConsistency() const
 {
   Impl::SpyDisabler nospy(m_impl->m_spies);//disable any spies during invocation of this method
-  if (get_nphonon()<-1)
-    NCRYSTAL_THROW(BadInput,"nphonon must be a -1, 0 or a positive number");
 
   const double parval_temp = get_temp();
   const double parval_dcutoff = get_dcutoff();
-  const double parval_dcutoffupper = get_dcutoffupper();
-  const double parval_packingfactor = get_packingfactor();
-  const double parval_orientationtolerance = get_orientationtolerance();
+  const double parval_dcutoffup = get_dcutoffup();
+  const double parval_packfact = get_packfact();
+  const double parval_dirtol = get_dirtol();
   if (parval_temp<0.0||parval_temp>1e5)
     NCRYSTAL_THROW(BadInput,"temp must be in range (0.0,1e5]");
   if (parval_dcutoff==-1) {
@@ -584,45 +614,47 @@ void NCrystal::MatCfg::checkConsistency() const
     if (get_expandhkl())
       NCRYSTAL_THROW(BadInput,"expandhkl can not be set when hkl lists are disabled by dcutoff=-1");
   } else {
-    if (parval_dcutoff>=parval_dcutoffupper)
-      NCRYSTAL_THROW(BadInput,"dcutoff must be less than dcutoffupper");
+    if (parval_dcutoff>=parval_dcutoffup)
+      NCRYSTAL_THROW(BadInput,"dcutoff must be less than dcutoffup");
     if (!(parval_dcutoff>=1e-3&&parval_dcutoff<=1e5) && parval_dcutoff!=0 )
       NCRYSTAL_THROW(BadInput,"dcutoff must be -1 (hkl lists disabled), 0 (for automatic selection), or in range [1e-3,1e5]");
   }
-  if (parval_packingfactor<=0.0||parval_packingfactor>1.0)
-    NCRYSTAL_THROW(BadInput,"packingfactor must be in range (0.0,1.0]");
-  if (parval_orientationtolerance<=0.0||parval_orientationtolerance>M_PI)
-    NCRYSTAL_THROW(BadInput,"orientationtolerance must be in range (0.0,pi]");
-  if (get_braggonly()&&get_skipbragg())
-    NCRYSTAL_THROW(BadInput,"braggonly and skipbragg parameters should not both be true");
-  const std::string& parval_scatterbkgdmodel = get_scatterbkgdmodel();
-  //TODO for NC2: should registered factories provide scatterbkgdmodel extensions? If not, we should likely not check here...
-  if (parval_scatterbkgdmodel!="best"&&parval_scatterbkgdmodel!="simplethermalising"&&parval_scatterbkgdmodel!="simpleelastic")
-    NCRYSTAL_THROW(BadInput,"only supported values of the scatterbkgdmodel parameter are for now \"best\", \"simplethermalising\", and \"simpleelastic\"");
+  if (parval_packfact<=0.0||parval_packfact>1.0)
+    NCRYSTAL_THROW(BadInput,"packfact must be in range (0.0,1.0]");
+  if (parval_dirtol<=0.0||parval_dirtol>M_PI)
+    NCRYSTAL_THROW(BadInput,"dirtol must be in range (0.0,pi]");
+  std::string parval_bkgd = get_bkgd();
+  std::string parval_bkgd_name = get_bkgd_name();
+  if (parval_bkgd_name.empty()||!contains_only(parval_bkgd_name,"abcdefghijklmnopqrstuvwxyz_0123456789"))
+    NCRYSTAL_THROW2(BadInput,"invalid bkgd name specified: \""<<parval_bkgd_name<<"\"");
+  if ((parval_bkgd_name==s_matcfg_str_best||parval_bkgd_name=="none")&&contains(parval_bkgd,':'))
+    NCRYSTAL_THROW2(BadInput,"bkgd options not allowed when using a bkgd mode of \""<<parval_bkgd_name<<"\"")
+  std::map<std::string,std::string> opts2val;
+  m_impl->decodebkgdopts(parval_bkgd, opts2val);//decode to trigger any BadInput errors here
 
   //Now check the 4 SC parameters, only 1 of which has a code fallback value:
-  int nOrient = (m_impl->hasPar(Impl::PAR_orientationprimary)?1:0)
-    + (m_impl->hasPar(Impl::PAR_orientationsecondary)?1:0)
-    + (m_impl->hasPar(Impl::PAR_mosaicity)?1:0);
+  int nOrient = (m_impl->hasPar(Impl::PAR_dir1)?1:0)
+    + (m_impl->hasPar(Impl::PAR_dir2)?1:0)
+    + (m_impl->hasPar(Impl::PAR_mos)?1:0);
   if (nOrient!=0 && nOrient<3)
-    NCRYSTAL_THROW(BadInput,"Must set all or none of mosaicity, orientationprimary and orientationsecondary parameters");
-  if (nOrient==0&&m_impl->hasPar(Impl::PAR_orientationtolerance))
-    NCRYSTAL_THROW(BadInput,"mosaicity, orientationprimary and orientationsecondary parameters must all be set when orientationtolerance is set");
+    NCRYSTAL_THROW(BadInput,"Must set all or none of mos, dir1 and dir2 parameters");
+  if (nOrient==0&&m_impl->hasPar(Impl::PAR_dirtol))
+    NCRYSTAL_THROW(BadInput,"mos, dir1 and dir2 parameters must all be set when dirtol is set");
 
   if (nOrient) {
     //Check the validity of last SC parameters here!
-    const double parval_mosaicity = get_mosaicity();
+    const double parval_mos = get_mos();
 
-    if (parval_mosaicity<=0.0||parval_mosaicity>1.570796326794896558)// =pi/2
-      NCRYSTAL_THROW(BadInput,"mosaicity must be in range (0.0,pi/2]");
+    if (parval_mos<=0.0||parval_mos>1.570796326794896558)// =pi/2
+      NCRYSTAL_THROW(BadInput,"mos must be in range (0.0,pi/2]");
     //should be single crystal
-    if (parval_packingfactor!=1.0)
-      NCRYSTAL_THROW(BadInput,"Single crystal parameters are set, so packingfactor must be 1.0");
+    if (parval_packfact!=1.0)
+      NCRYSTAL_THROW(BadInput,"Single crystal parameters are set, so packfact must be 1.0");
 
     //validate orientations:
     const Impl::ValOrientDir * dirs[2];
-    dirs[0] = m_impl->getValTypeThrowIfNotAvail<Impl::ValOrientDir>(Impl::PAR_orientationprimary);
-    dirs[1] = m_impl->getValTypeThrowIfNotAvail<Impl::ValOrientDir>(Impl::PAR_orientationsecondary);
+    dirs[0] = m_impl->getValTypeThrowIfNotAvail<Impl::ValOrientDir>(Impl::PAR_dir1);
+    dirs[1] = m_impl->getValTypeThrowIfNotAvail<Impl::ValOrientDir>(Impl::PAR_dir2);
 
     for (int i = 0; i < 2; ++i) {
       if ( ! asVect(dirs[i]->crystal).mag2() )
@@ -645,7 +677,7 @@ void NCrystal::MatCfg::checkConsistency() const
       }
     }
   } else {
-    //should be polycrystal. No extra validation needed for now, packingfactor was already validated above.
+    //should be polycrystal. No extra validation needed for now, packfact was already validated above.
   }
 
 }
@@ -663,22 +695,22 @@ void NCrystal::MatCfg::getCacheSignature(std::string& out, const std::set<std::s
   out = s.str();
 }
 
-void NCrystal::MatCfg::set_orientationprimary( bool cishkl,
-                                               const double (&cdir)[3],
-                                               const double (&ldir)[3] )
+void NCrystal::MatCfg::set_dir1( bool cishkl,
+                                 const double (&cdir)[3],
+                                 const double (&ldir)[3] )
 {
   cow();
-  Impl::ValOrientDir * dir = m_impl->getValTypeForSet<Impl::ValOrientDir>(Impl::PAR_orientationprimary);
+  Impl::ValOrientDir * dir = m_impl->getValTypeForSet<Impl::ValOrientDir>(Impl::PAR_dir1);
   dir->set(cishkl,
            cdir[0],cdir[1],cdir[2],
            ldir[0],ldir[1],ldir[2]);
 }
 
-void NCrystal::MatCfg::get_orientationprimary( bool& cishkl,
-                                               double (&cdir)[3],
-                                               double (&ldir)[3] )
+void NCrystal::MatCfg::get_dir1( bool& cishkl,
+                                 double (&cdir)[3],
+                                 double (&ldir)[3] )
 {
-  const Impl::ValOrientDir * dir = m_impl->getValTypeThrowIfNotAvail<Impl::ValOrientDir>(Impl::PAR_orientationprimary);
+  const Impl::ValOrientDir * dir = m_impl->getValTypeThrowIfNotAvail<Impl::ValOrientDir>(Impl::PAR_dir1);
   cishkl = dir->crystal_is_hkl;
   for ( int i=0; i<3; ++i ) {
     cdir[i] = dir->crystal[i];
@@ -686,22 +718,22 @@ void NCrystal::MatCfg::get_orientationprimary( bool& cishkl,
   }
 }
 
-void NCrystal::MatCfg::set_orientationsecondary( bool cishkl,
-                                               const double (&cdir)[3],
-                                               const double (&ldir)[3] )
+void NCrystal::MatCfg::set_dir2( bool cishkl,
+                                 const double (&cdir)[3],
+                                 const double (&ldir)[3] )
 {
   cow();
-  Impl::ValOrientDir * dir = m_impl->getValTypeForSet<Impl::ValOrientDir>(Impl::PAR_orientationsecondary);
+  Impl::ValOrientDir * dir = m_impl->getValTypeForSet<Impl::ValOrientDir>(Impl::PAR_dir2);
   dir->set(cishkl,
            cdir[0],cdir[1],cdir[2],
            ldir[0],ldir[1],ldir[2]);
 }
 
-void NCrystal::MatCfg::get_orientationsecondary( bool& cishkl,
-                                               double (&cdir)[3],
-                                               double (&ldir)[3] )
+void NCrystal::MatCfg::get_dir2( bool& cishkl,
+                                 double (&cdir)[3],
+                                 double (&ldir)[3] )
 {
-  const Impl::ValOrientDir * dir = m_impl->getValTypeThrowIfNotAvail<Impl::ValOrientDir>(Impl::PAR_orientationsecondary);
+  const Impl::ValOrientDir * dir = m_impl->getValTypeThrowIfNotAvail<Impl::ValOrientDir>(Impl::PAR_dir2);
   cishkl = dir->crystal_is_hkl;
   for ( int i=0; i<3; ++i ) {
     cdir[i] = dir->crystal[i];
@@ -719,15 +751,15 @@ void NCrystal::MatCfg::setOrientation( const SCOrientation& sco )
 void NCrystal::MatCfg::Impl::setOrientation( const SCOrientation& sco )
 {
   ValOrientDir* p[2];
-  p[0] = getValTypeForSet<ValOrientDir>(PAR_orientationprimary);
-  p[1] = getValTypeForSet<ValOrientDir>(PAR_orientationsecondary);
+  p[0] = getValTypeForSet<ValOrientDir>(PAR_dir1);
+  p[1] = getValTypeForSet<ValOrientDir>(PAR_dir2);
   nc_assert(p[0]&&p[1]);
   for ( int i = 0; i < 2; ++i ) {
     p[i]->set(sco.m_crystal_is_hkl[i],
               sco.m_crystal[i][0],sco.m_crystal[i][1],sco.m_crystal[i][2],
               sco.m_lab[i][0],sco.m_lab[i][1],sco.m_lab[i][2]);
   }
-  setVal<ValDbl>(PAR_orientationtolerance,sco.m_tolerance);
+  setVal<ValDbl>(PAR_dirtol,sco.m_tolerance);
 }
 
 NCrystal::SCOrientation NCrystal::MatCfg::createSCOrientation() const
@@ -735,15 +767,15 @@ NCrystal::SCOrientation NCrystal::MatCfg::createSCOrientation() const
   checkConsistency();
   if (!isSingleCrystal())
     NCRYSTAL_THROW(MissingInfo,"Can not supply SCOrientation object for poly crystals");
-  if ( ! m_impl->hasPar(Impl::PAR_orientationprimary) )
-    NCRYSTAL_THROW(MissingInfo,"Can not supply SCOrientation object without the orientationprimary parameter set");
-  if ( ! m_impl->hasPar(Impl::PAR_orientationsecondary) )
-    NCRYSTAL_THROW(MissingInfo,"Can not supply SCOrientation object without the orientationsecondary parameter set");
-  double tolerance = get_orientationtolerance();
+  if ( ! m_impl->hasPar(Impl::PAR_dir1) )
+    NCRYSTAL_THROW(MissingInfo,"Can not supply SCOrientation object without the dir1 parameter set");
+  if ( ! m_impl->hasPar(Impl::PAR_dir2) )
+    NCRYSTAL_THROW(MissingInfo,"Can not supply SCOrientation object without the dir2 parameter set");
+  double tolerance = get_dirtol();
 
   SCOrientation out;
-  const Impl::ValOrientDir * dir1 = m_impl->getValType<Impl::ValOrientDir>(Impl::PAR_orientationprimary);
-  const Impl::ValOrientDir * dir2 = m_impl->getValType<Impl::ValOrientDir>(Impl::PAR_orientationsecondary);
+  const Impl::ValOrientDir * dir1 = m_impl->getValType<Impl::ValOrientDir>(Impl::PAR_dir1);
+  const Impl::ValOrientDir * dir2 = m_impl->getValType<Impl::ValOrientDir>(Impl::PAR_dir2);
   nc_assert(dir1&&dir2);
 
   if (dir1->crystal_is_hkl)
@@ -959,34 +991,30 @@ const std::string& NCrystal::MatCfg::getDataFileExtension() const
 
 double NCrystal::MatCfg::get_temp() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_temp,293.15); }
 double NCrystal::MatCfg::get_dcutoff() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_dcutoff,0.0); }
-double NCrystal::MatCfg::get_dcutoffupper() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_dcutoffupper,std::numeric_limits<double>::infinity()); }
-double NCrystal::MatCfg::get_packingfactor() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_packingfactor,1.0); }
-double NCrystal::MatCfg::get_mosaicity() const { return m_impl->getValNoFallback<Impl::ValDbl>(Impl::PAR_mosaicity); }
+double NCrystal::MatCfg::get_dcutoffup() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_dcutoffup,std::numeric_limits<double>::infinity()); }
+double NCrystal::MatCfg::get_packfact() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_packfact,1.0); }
+double NCrystal::MatCfg::get_mos() const { return m_impl->getValNoFallback<Impl::ValDbl>(Impl::PAR_mos); }
 bool NCrystal::MatCfg::get_expandhkl() const { return m_impl->getVal<Impl::ValBool>(Impl::PAR_expandhkl,false); }
-int NCrystal::MatCfg::get_nphonon() const { return m_impl->getVal<Impl::ValInt>(Impl::PAR_nphonon,0); }
-double NCrystal::MatCfg::get_orientationtolerance() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_orientationtolerance,1.0e-4); }
-bool NCrystal::MatCfg::get_braggonly() const { return m_impl->getVal<Impl::ValBool>(Impl::PAR_braggonly,false); }
-bool NCrystal::MatCfg::get_skipbragg() const { return m_impl->getVal<Impl::ValBool>(Impl::PAR_skipbragg,false); }
-const std::string& NCrystal::MatCfg::get_scatterbkgdmodel() const { return m_impl->getVal<Impl::ValStr>(Impl::PAR_scatterbkgdmodel,s_matcfg_str_best); }
+double NCrystal::MatCfg::get_dirtol() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_dirtol,M_PI); }
+bool NCrystal::MatCfg::get_bragg() const { return m_impl->getVal<Impl::ValBool>(Impl::PAR_bragg,true); }
+const std::string& NCrystal::MatCfg::get_bkgd() const { return m_impl->getVal<Impl::ValStr>(Impl::PAR_bkgd,s_matcfg_str_best); }
 const std::string& NCrystal::MatCfg::get_overridefileext() const { return m_impl->getVal<Impl::ValStr>(Impl::PAR_overridefileext,s_matcfg_str_empty); }
 const std::string& NCrystal::MatCfg::get_infofactory() const { return m_impl->getVal<Impl::ValStr>(Impl::PAR_infofactory,s_matcfg_str_empty); }
-const std::string& NCrystal::MatCfg::get_scatterfactory() const { return m_impl->getVal<Impl::ValStr>(Impl::PAR_scatterfactory,s_matcfg_str_empty); }
-const std::string& NCrystal::MatCfg::get_absorptionfactory() const { return m_impl->getVal<Impl::ValStr>(Impl::PAR_absorptionfactory,s_matcfg_str_empty); }
+const std::string& NCrystal::MatCfg::get_scatfactory() const { return m_impl->getVal<Impl::ValStr>(Impl::PAR_scatfactory,s_matcfg_str_empty); }
+const std::string& NCrystal::MatCfg::get_absnfactory() const { return m_impl->getVal<Impl::ValStr>(Impl::PAR_absnfactory,s_matcfg_str_empty); }
 void NCrystal::MatCfg::set_temp( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_temp,v); }
 void NCrystal::MatCfg::set_dcutoff( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_dcutoff,v); }
-void NCrystal::MatCfg::set_dcutoffupper( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_dcutoffupper,v); }
-void NCrystal::MatCfg::set_packingfactor( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_packingfactor,v); }
-void NCrystal::MatCfg::set_mosaicity( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_mosaicity,v); }
+void NCrystal::MatCfg::set_dcutoffup( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_dcutoffup,v); }
+void NCrystal::MatCfg::set_packfact( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_packfact,v); }
+void NCrystal::MatCfg::set_mos( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_mos,v); }
 void NCrystal::MatCfg::set_expandhkl( bool v ) { cow(); m_impl->setVal<Impl::ValBool>(Impl::PAR_expandhkl,v); }
-void NCrystal::MatCfg::set_nphonon( int v ) { cow(); m_impl->setVal<Impl::ValInt>(Impl::PAR_nphonon,v); }
-void NCrystal::MatCfg::set_orientationtolerance( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_orientationtolerance,v); }
-void NCrystal::MatCfg::set_braggonly( bool v ) { cow(); m_impl->setVal<Impl::ValBool>(Impl::PAR_braggonly,v); }
-void NCrystal::MatCfg::set_skipbragg( bool v ) { cow(); m_impl->setVal<Impl::ValBool>(Impl::PAR_skipbragg,v); }
-void NCrystal::MatCfg::set_scatterbkgdmodel( const std::string& v ) { cow(); m_impl->setVal<Impl::ValStr>(Impl::PAR_scatterbkgdmodel,v); }
+void NCrystal::MatCfg::set_dirtol( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_dirtol,v); }
+void NCrystal::MatCfg::set_bragg( bool v ) { cow(); m_impl->setVal<Impl::ValBool>(Impl::PAR_bragg,v); }
+void NCrystal::MatCfg::set_bkgd( const std::string& v ) { cow(); m_impl->setVal<Impl::ValStr>(Impl::PAR_bkgd,v); }
 void NCrystal::MatCfg::set_overridefileext( const std::string& v ) { cow(); m_impl->setVal<Impl::ValStr>(Impl::PAR_overridefileext,v); }
 void NCrystal::MatCfg::set_infofactory( const std::string& v ) { cow(); m_impl->setVal<Impl::ValStr>(Impl::PAR_infofactory,v); }
-void NCrystal::MatCfg::set_scatterfactory( const std::string& v ) { cow(); m_impl->setVal<Impl::ValStr>(Impl::PAR_scatterfactory,v); }
-void NCrystal::MatCfg::set_absorptionfactory( const std::string& v ) { cow(); m_impl->setVal<Impl::ValStr>(Impl::PAR_absorptionfactory,v); }
+void NCrystal::MatCfg::set_scatfactory( const std::string& v ) { cow(); m_impl->setVal<Impl::ValStr>(Impl::PAR_scatfactory,v); }
+void NCrystal::MatCfg::set_absnfactory( const std::string& v ) { cow(); m_impl->setVal<Impl::ValStr>(Impl::PAR_absnfactory,v); }
 bool NCrystal::MatCfg::isPolyCrystal() const { return !isSingleCrystal(); }
 
 bool NCrystal::MatCfg::hasAccessSpy(AccessSpy* spy) const
@@ -1013,9 +1041,80 @@ void NCrystal::MatCfg::removeAccessSpy(AccessSpy* spy) const
 
 }
 
-//TODO for NC2:
-//
-// We want to move the XSectProvider from NCInfo and into NCScatter as an
-// algorithm (there will then be two choices for the simple xsect-curves:
-// nxs-like and ncmat-phonon-like). Then we can obsolete the "nphonon" NCMatCfg
-// parameter, while we somehow absorb it into scatterbkgdmodel or similar.
+std::string NCrystal::MatCfg::get_bkgd_name() const
+{
+  std::string name;
+  const std::string& s = get_bkgd();
+  if (!contains(s,':')) {
+    name = s;
+  } else {
+    std::vector<std::string> parts;
+    split(parts,s,1,':');
+    nc_assert_always(!parts.empty());
+    trim(parts[0]);
+    name=parts[0];
+  }
+  if (name=="0"||name=="false") {
+    //map "0" and "false" to "none" to allow bkgd and bragg to be
+    //disabled in similar fashion, e.g. ";bragg=0", ";bkgd=0".
+    return "none";
+  }
+  return name;
+}
+
+bool NCrystal::MatCfg::get_bkgdopt_flag(const std::string& name) const
+{
+  const std::string& s = get_bkgd();
+  if (!contains(s,':'))
+    return false;
+  std::string bkgdname;
+  std::map<std::string,std::string> opts2val;
+  m_impl->decodebkgdopts(s, opts2val);
+  std::map<std::string,std::string>::const_iterator it=opts2val.find(name);
+  if (it==opts2val.end())
+    return false;
+  if (it->second!="<flag>")
+    NCRYSTAL_THROW2(BadInput,"Syntax error in bkgd flag: \""<<name<<"\" (takes no value)");
+  return true;
+}
+
+double NCrystal::MatCfg::get_bkgdopt_dbl(const std::string& name, double defval) const
+{
+  const std::string& s = get_bkgd();
+  if (!contains(s,':'))
+    return defval;
+  std::map<std::string,std::string> opts2val;
+  m_impl->decodebkgdopts(s, opts2val);
+  std::map<std::string,std::string>::const_iterator it=opts2val.find(name);
+  if (it==opts2val.end())
+    return defval;
+  return str2dbl(it->second);
+}
+
+int NCrystal::MatCfg::get_bkgdopt_int(const std::string& name, int defval) const
+{
+  const std::string& s = get_bkgd();
+  if (!contains(s,':'))
+    return defval;
+  std::map<std::string,std::string> opts2val;
+  m_impl->decodebkgdopts(s, opts2val);
+  std::map<std::string,std::string>::const_iterator it=opts2val.find(name);
+  if (it==opts2val.end())
+    return defval;
+  return str2int(it->second);
+}
+
+void NCrystal::MatCfg::bkgdopt_validate(const std::set<std::string>& recognised_opts) const
+{
+  const std::string& s = get_bkgd();
+  if (!contains(s,':'))
+    return;
+  std::map<std::string,std::string> opts2val;
+  m_impl->decodebkgdopts(s, opts2val);
+  std::map<std::string,std::string>::const_iterator it(opts2val.begin()),itE(opts2val.end());
+  for (;it!=itE;++it)
+    if (!recognised_opts.count(it->first)) {
+      NCRYSTAL_THROW2(BadInput,"The bkgd flag \""<<it->first<<"\" is not supported by the chosen"
+                      " scatter factory for a bkgd mode of \""<<get_bkgd_name()<<"\"");
+    }
+}

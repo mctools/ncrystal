@@ -43,6 +43,7 @@ bool NCrystal::ScatterComp::Component::operator<(const NCrystal::ScatterComp::Co
 
 void NCrystal::ScatterComp::addComponent(Scatter* scat, double thescale )
 {
+  RCGuard guard(scat);//ensure we always ref/unref scat even in case of exceptions.
   if (!scat)
     NCRYSTAL_THROW(BadInput,"ScatterComp::addComponent Got NULL scatter.");
   if (thescale<0.0)

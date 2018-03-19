@@ -37,9 +37,9 @@ for i in range(20):
 
 #Create and use single-crystal germanium
 
-sc = NCrystal.createScatter("""Ge_sg227.ncmat;dcutoff=0.5;mosaicity=40arcsec;
-                               orientationprimary=@crystal_hkl:5,1,1@lab:0,0,1;
-                               orientationsecondary=@crystal_hkl:0,-1,1@lab:0,1,0""")
+sc = NCrystal.createScatter("""Ge_sg227.ncmat;dcutoff=0.5;mos=40arcsec;
+                               dir1=@crys_hkl:5,1,1@lab:0,0,1;
+                               dir2=@crys_hkl:0,-1,1@lab:0,1,0""")
 
 wavelength = 1.540
 ekin = NCrystal.wl2ekin(wavelength)

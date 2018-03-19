@@ -114,7 +114,7 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
     std::cout<<"NCrystal::NCNXSFactory::invoked loadNXSCrystal("<< nxs_file
              <<", temp="<<temperature_kelvin
              <<", dcutoff="<<dcutoff_lower_aa
-             <<", dcutoffupper="<<dcutoff_upper_aa<<std::endl;
+             <<", dcutoffup="<<dcutoff_upper_aa<<std::endl;
 
   ///////////////////////////////
   // Create CrystalInfo object //
@@ -151,7 +151,7 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
       dcutoff_lower_aa = ncmax( 0.1, ncmin( 0.5, estimateDCutoff( 20, rec_lat ) ));
       std::string cmt;
       if (dcutoff_lower_aa>=dcutoff_upper_aa) {
-        cmt = " (lower than usual due to value of dcutoffupper)";
+        cmt = " (lower than usual due to value of dcutoffup)";
         dcutoff_lower_aa = 0.8*dcutoff_upper_aa;
       }
       if (verbose)

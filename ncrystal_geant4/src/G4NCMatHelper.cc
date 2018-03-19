@@ -234,7 +234,7 @@ namespace G4NCrystal {
 
     G4String matnameprefix("NCrystal::");
     G4Material * mat = new G4Material( matnameprefix+cache_key,
-                                       cfg.get_packingfactor()*info.obj()->getDensity()*(CLHEP::gram/CLHEP::cm3),
+                                       cfg.get_packfact()*info.obj()->getDensity()*(CLHEP::gram/CLHEP::cm3),
                                        matBase, kStateSolid, temp, 1.0 * CLHEP::atmosphere );
 
     G4NCrystal::Manager::getInstance()->addScatterProperty(mat,scatter.obj());

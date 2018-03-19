@@ -64,9 +64,9 @@ int main() {
   wl = 1.540;/*angstrom*/
   ekin = ncrystal_wl2ekin(wl);
 
-  sc = ncrystal_create_scatter("Ge_sg227.ncmat;dcutoff=0.5;mosaicity= 40.0 arcsec"
-                               ";orientationprimary=@crystal_hkl:5,1,1@lab:0,0,1"
-                               ";orientationsecondary=@crystal_hkl:0,-1,1@lab:0,1,0");
+  sc = ncrystal_create_scatter("Ge_sg227.ncmat;dcutoff=0.5;mos= 40.0 arcsec"
+                               ";dir1=@crys_hkl:5,1,1@lab:0,0,1"
+                               ";dir2=@crys_hkl:0,-1,1@lab:0,1,0");
   sc_proc = ncrystal_cast_scat2proc(sc);
 
   ncrystal_crosssection(sc_proc,ekin,&dir1,&xsect);

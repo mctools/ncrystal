@@ -34,53 +34,48 @@ namespace NCrystal {
   //[3] Atomic Data Nuclear Data Tables 49 (1991) 65
 
   class NeutronSCL {
-
-    public:
-
+  public:
     struct IsotopeData  {
-      unsigned atomic_num;
-      unsigned mass_num; //0 for natural element
-      double mass;
+      unsigned atomic_num; //Z
+      double mass;    //in atomic mass units (Dalton)
       double coh_sl;  //in (barn)^0.5
       double inc_xs;  //in barn
       double cap_xs;  //in barn
-      IsotopeData(unsigned z, unsigned a, double m, double csl, double ixs, double cxs)
-      :atomic_num(z), mass_num(a), mass(m), coh_sl(csl), inc_xs(ixs), cap_xs(cxs) {};
+      IsotopeData(unsigned z, double m, double csl, double ixs, double cxs)
+      :atomic_num(z), mass(m), coh_sl(csl), inc_xs(ixs), cap_xs(cxs) {};
     };
+    typedef std::map<const std::string, const IsotopeData> DataMap;
+    static const NeutronSCL *instance();
 
-    static NeutronSCL *instance();
+    DataMap::const_iterator begin() const { return m_natural_elements.begin(); };
+    DataMap::const_iterator end() const { return m_natural_elements.end(); };
 
-    std::map<const std::string, const IsotopeData>::const_iterator begin() { return m_natural_elements.begin(); };
-    std::map<const std::string, const IsotopeData>::const_iterator end() { return m_natural_elements.end(); };
-
-    double getNeutronWeightedMass(const std::string& element);
-    double getAtomicMass(const std::string& element);
-    unsigned getAtomicNumber(const std::string& element);
+    double getNeutronWeightedMass(const std::string& element) const;
+    double getAtomicMass(const std::string& element) const;
+    unsigned getAtomicNumber(const std::string& element) const;
 
     //in barn
-    double getFreeXS(const std::string& element);
-    double getBoundXS(const std::string& element);
-    double getCaptureXS(const std::string& element);
-    double getCaptureXS_eV(const std::string& element, double kieV);
-    double getCoherentXS(const std::string& element);
-    double getIncoherentXS(const std::string& element);
-
+    double getFreeXS(const std::string& element) const;
+    double getBoundXS(const std::string& element) const;
+    double getCaptureXS(const std::string& element) const;
+    double getCoherentXS(const std::string& element) const;
+    double getIncoherentXS(const std::string& element) const;
 
     //in sqrt(barn)
-    double getIncoherentSL(const std::string& element);
-    double getCoherentSL(const std::string& element);
+    double getIncoherentSL(const std::string& element) const;
+    double getCoherentSL(const std::string& element) const;
 
-    private:
+  private:
     NeutronSCL();
     ~NeutronSCL(){}
 
     NeutronSCL(NeutronSCL const&);
     void operator=(NeutronSCL const&);
     static NeutronSCL* m_instance;
-    void addData(std::string name, unsigned z, unsigned a, double m, double csl, double ixs, double cxs);
+    void addData(std::string name, unsigned z, double m, double csl, double ixs, double cxs);
 
-    //TODO for NC2: use pair<z,a> as key, so all the member functions will use pair instead of std::string
-    std::map<const std::string, const IsotopeData> m_natural_elements;
+    //TODO for NC2: use Z as key and argument in all member functions
+    DataMap m_natural_elements;
 
   };
 }

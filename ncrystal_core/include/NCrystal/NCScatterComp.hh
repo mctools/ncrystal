@@ -28,7 +28,6 @@
 /////////////////////////////////////////////////////////////////////
 // Composition class which combines a list of scatter calculators  //
 // into one, more complete picture.                                //
-//                                                                 //
 /////////////////////////////////////////////////////////////////////
 
 namespace NCrystal {
@@ -56,6 +55,11 @@ namespace NCrystal {
                                      double (&resulting_neutron_direction)[3], double& delta_ekin ) const;
 
     virtual bool isOriented() const;
+
+    //Note about exception safety: In case of errors, addComponent(scat,..)
+    //might throw exceptions, but in this case it will always ref+unref the
+    //passed scat object. Thus placing components directly sc->addComponent(new
+    //Something,..) is exception safe RAII.
 
   protected:
     virtual ~ScatterComp();

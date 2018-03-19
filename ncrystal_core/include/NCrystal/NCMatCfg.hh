@@ -53,13 +53,13 @@ namespace NCrystal {
     //
     // Thus the single line:
     //
-    //    MatCfg cfg("myfile.ncmat;temp=77.0;packingfactor=0.8");
+    //    MatCfg cfg("myfile.ncmat;temp=77.0;packfact=0.8");
     //
     // Has the same effect as the three lines:
     //
     //    MatCfg cfg("myfile.ncmat");
     //    cfg.set_temp(77.0);
-    //    cfg.set_packingfactor(0.8);
+    //    cfg.set_packfact(0.8);
     //
     // The supported variable names and the set methods which they invoke
     // are documented below.
@@ -88,117 +88,99 @@ namespace NCrystal {
     // Possible parameters and their meaning:                                  //
     /////////////////////////////////////////////////////////////////////////////
     //
-    // temp................: [ double, fallback value is 293.15 ]
-    //                       Temperature of material in Kelvin.
-    //                       [ Recognised units: "K", "C", "F" ]
+    // temp........: [ double, fallback value is 293.15 ]
+    //               Temperature of material in Kelvin.
+    //               [ Recognised units: "K", "C", "F" ]
     //
-    // dcutoff.............: [ double, fallback value is 0 ]
-    //                       D-spacing cutoff in Angstrom. Crystal planes with
-    //                       spacing below this value will not be created. The
-    //                       special setting dcutoff=0 causes the code to
-    //                       attempt to select an appropriate threshold
-    //                       automatically, and the special setting dcutoff=-1
-    //                       means that HKL lists should not be created at all
-    //                       (often used with skipbragg=true).
-    //                       [ Recognised units: "Aa", "nm", "mm", "cm", "m" ]
+    // dcutoff.....: [ double, fallback value is 0 ]
+    //               D-spacing cutoff in Angstrom. Crystal planes with spacing
+    //               below this value will not be created. The special setting
+    //               dcutoff=0 causes the code to attempt to select an
+    //               appropriate threshold automatically, and the special
+    //               setting dcutoff=-1 means that HKL lists should not be
+    //               created at all (often used with bragg=false).
+    //               [ Recognised units: "Aa", "nm", "mm", "cm", "m" ]
     //
-    // dcutoffupper........: [ double, fallback value is infinity ]
-    //                       Like dcutoff, but representing an upper cutoff
-    //                       instead (this is rarely desired).
-    //                       [ Recognised units: "Aa", "nm", "mm", "cm", "m" ]
+    // packfact....: [ double, fallback value is 1.0 ]
+    //               Packing factor which can be less than 1.0 for powders,
+    //               which can thus be modelled as polycrystals with reduced
+    //               density (not to be confused with the *atomic* packing
+    //               factor).
     //
-    // packingfactor.......: [ double, fallback value is 1.0 ]
-    //                       Packing factor which can be less than 1.0 for
-    //                       powders, which can thus be modelled as
-    //                       polycrystals with reduced density (not to be
-    //                       confused with the *atomic* packing factor).
+    // mos.........: [ double, no fallback value ]
+    //               Mosaic spread in mosaic single crystals, in radians.
+    //               [ Recognised units: "rad", "deg", "arcmin", "arcsec" ]
     //
-    // mosaicity...........: [ double, no fallback value ]
-    //                       Mosaic spread in mosaic single crystals, in
-    //                       radians.
-    //                       [ Recognised units: "rad", "deg", "arcmin", "arcsec" ]
+    // dir1........: [ special, no fallback value ]
+    //               Used to specify orientation of single crystals, by
+    //               providing both a vector in the crystal frame and the lab
+    //               frame, as explained in more detail in the file
+    //               NCSCOrientation.hh. If the six numbers in the two vectors
+    //               are respectively (c1,c2,c3) and (l1,l2,l3), this is
+    //               specified as: "dir1=@crys:c1,c2,c3@lab:l1,l2,l3" If
+    //               (c1,c2,c3) are points in hkl space, simply use "@crys_hkl:"
+    //               instead, as in: "dir1=@crys_hkl:c1,c2,c3@lab:l1,l2,l3"
     //
-    // nphonon.............: [ integer, fallback value is 0 ]
-    //                       Controls number of terms in phonon expansion when
-    //                       estimating the background cross-section curve
-    //                       (currently only used with .ncmat files). Higher
-    //                       numbers potentially provide increased precision at
-    //                       the cost of added initialisation time. If the value
-    //                       is 0, the code will attempt to automatically select
-    //                       a reasonable number of terms for the material in
-    //                       question. If the value is -1, the background
-    //                       cross-sections won't be provided at all.
+    // dir2........: [ special, no fallback value ]
+    //               Similar to dir1, but the direction might be modified
+    //               slightly in case of imprecise input, up to the value of
+    //               dirtol).  See the file NCSCOrientation.hh for more details.
     //
-    // expandhkl...........: [ bool, fallback value is false ]
-    //                       Request that lists of equivalent HKL planes be
-    //                       created in Info objects, if the information is
-    //                       available (normal users should not need this).
+    // dirtol......: [ double, fallback value is 0.0001 ]
+    //               Tolerance parameter for the secondary direction of the
+    //               single crystal orientation, here in radians. See the file
+    //               NCSCOrientation.hh for more details.
+    //               [ Recognised units: "rad", "deg", "arcmin", "arcsec" ]
     //
-    // orientationprimary..: [ special, no fallback value ]
-    //                       Used to specify orientation of single crystals, by
-    //                       providing both a vector in the crystal frame and
-    //                       the lab frame, as explained in more detail in the
-    //                       file NCSCOrientation.hh. If the six numbers in the
-    //                       two vectors are respectively (c1,c2,c3) and
-    //                       (l1,l2,l3), this is specified as:
-    //                       "orientationprimary=@crystal:c1,c2,c3@lab:l1,l2,l3"
-    //                       If (c1,c2,c3) are points in hkl space, simply
-    //                       append "_hkl" to "@crystal:", as in:
-    //                       "orientationprimary=@crystal_hkl:c1,c2,c3@lab:l1,l2,l3"
+    // bragg.......: [ bool, fallback value is true ]
+    //               If enabled, scatter factories will include Bragg
+    //               diffraction components.
     //
-    // orientationsecondary: [ special, no fallback value ]
-    //                       Similar to orientationprimary, but the direction
-    //                       might be modified slightly in case of imprecise
-    //                       input, up to the value of orientationtolerance).
-    //                       See the file NCSCOrientation.hh for more details.
+    // bkgd........: [ string, fallback value is "best" ]
+    //               Influence background model chosen by scatter factories. The
+    //               default value of "best" implies that they should pick the
+    //               most realistic one available, while a value of "none"
+    //               prevents background components from being added. Depending
+    //               on the model in question, it is possible to specify
+    //               additional options by appending them using ':' and with '@'
+    //               signs for assignments (see examples below).
     //
-    // orientationtolerance: [ double, fallback value is 0.0001 ]
-    //                       Tolerance parameter for the secondary direction of
-    //                       the single crystal orientation, here in radians. See the file
-    //                       NCSCOrientation.hh for more details.
-    //                       [ Recognised units: "rad", "deg", "arcmin", "arcsec" ]
+    //               The default NCrystal factories currently support "external"
+    //               and "phonondebye" models, both of which will model energy
+    //               transfers as fully thermalising if temperature is known and
+    //               otherwise elastic. This can be overridden using
+    //               "thermalise" or "elastic" flags, and the phonon expansion
+    //               order for the phonondebye model can be controlled with
+    //               "nphonon". Examples: "external:thermalising",
+    //               "phonondebye:elastic", "phonondebye:thermalising:nphonon@20"
     //
-    // overridefileext.....: [ string, fallback value is "" ]
-    //                       In case the filename contains a misleading
-    //                       extension, this can be used to override which
-    //                       extension will be returned by
-    //                       getDataFileExtension().
+    /////////////////////////////////////////////////////////////////////////////
+    // Options mainly of interests to experts and NCrystal developers:
     //
-    // braggonly...........: [ bool, fallback value is false ]
-    //                       If set, scatter factories should skip all
-    //                       components except Bragg diffraction.
+    // dcutoffup...: [ double, fallback value is infinity ]
+    //               Like dcutoff, but representing an upper cutoff instead
+    //               [ Recognised units: "Aa", "nm", "mm", "cm", "m" ]
     //
-    // skipbragg...........: [ bool, fallback value is false ]
-    //                       If set, scatter factories should skip Bragg
-    //                       diffraction and only create other components.
+    // expandhkl...: [ bool, fallback value is false ]
+    //               Request that lists of equivalent HKL planes be created in
+    //               Info objects, if the information is available (normal users
+    //               should not need this).
     //
-    // scatterbkgdmodel....: [ string, fallback value is "best" ]
-    //                       Influence background model chosen by scatter
-    //                       factories. The default value of "best" implies that
-    //                       they should pick the most realistic one they
-    //                       provide. The default NCrystal factories (for now!)
-    //                       only support "simplethermalising" and
-    //                       "simpleelastic" which both implies the model
-    //                       implemented NCSimpleBkgd.hh, but with different
-    //                       values of the "thermalise" parameter described in
-    //                       that file.
+    // infofactory.: [ string, fallback value is "" ]
+    //               By supplying the name of an NCrystal factory, this
+    //               parameter can be used by experts to circumvent the usual
+    //               factory selection algorithms and instead choose the factory
+    //               for creating NCrystal::Info instances directly.
     //
-    // infofactory.........: [ string, fallback value is "" ]
-    //                       By supplying the name of an NCrystal factory, this
-    //                       parameter can be used by experts to circumvent the
-    //                       usual factory selection algorithms and instead
-    //                       choose the factory for creating NCrystal::Info
-    //                       instances directly.
+    // scatfactory.: [ string, fallback value is "" ]
+    //               Similar to infofactory, this parameter can be used to
+    //               directly select factory with which to create
+    //               NCrystal::Scatter instances.
     //
-    // scatterfactory.....: [ string, fallback value is "" ]
-    //                       Similar to infofactory, this parameter can be used
-    //                       to directly select factory with which to create
-    //                       NCrystal::Scatter instances.
-    //
-    // absorptionfactory..: [ string, fallback value is "" ]
-    //                       Similar to infofactory, this parameter can be used
-    //                       to directly select factory with which to create
-    //                       NCrystal::Absorption instances.
+    // absnfactory.: [ string, fallback value is "" ]
+    //               Similar to infofactory, this parameter can be used to
+    //               directly select factory with which to create
+    //               NCrystal::Absorption instances.
 
     /////////////////////////////////////////////////////////////////////////////
     // Methods for setting parameters:                                         //
@@ -207,36 +189,34 @@ namespace NCrystal {
     //Directly set from C++ code:
     void set_temp( double );
     void set_dcutoff( double );
-    void set_dcutoffupper( double );
-    void set_packingfactor( double );
-    void set_mosaicity( double );
-    void set_nphonon( int );
+    void set_dcutoffup( double );
+    void set_packfact( double );
+    void set_mos( double );
     void set_expandhkl( bool );
-    void set_orientationtolerance( double );
+    void set_dirtol( double );
     void set_overridefileext( const std::string& );
-    void set_braggonly( bool );
-    void set_skipbragg( bool );
-    void set_scatterbkgdmodel( const std::string& );
+    void set_bragg( bool );
+    void set_bkgd( const std::string& );
     void set_infofactory( const std::string& );
-    void set_scatterfactory( const std::string& );
-    void set_absorptionfactory( const std::string& );
+    void set_scatfactory( const std::string& );
+    void set_absnfactory( const std::string& );
     //
-    //Special setter method, which will set mosaicity and all orientation
-    //parameters based on an SCOrientation object:
+    //Special setter method, which will set all orientation parameters based on
+    //an SCOrientation object:
     void setOrientation( const SCOrientation& );
 
-    void set_orientationprimary( bool crystal_dir_is_point_in_hkl_space,
-                                 const double (&crystal_direction)[3],
-                                 const double (&lab_direction)[3] );
-    void set_orientationsecondary( bool crystal_dir_is_point_in_hkl_space,
-                                   const double (&crystal_direction)[3],
-                                   const double (&lab_direction)[3] );
-    void get_orientationprimary( bool& crystal_dir_is_point_in_hkl_space,
-                                 double (&crystal_direction)[3],
-                                 double (&lab_direction)[3] );
-    void get_orientationsecondary( bool& crystal_dir_is_point_in_hkl_space,
-                                   double (&crystal_direction)[3],
-                                   double (&lab_direction)[3] );
+    void set_dir1( bool crystal_dir_is_point_in_hkl_space,
+                   const double (&crystal_direction)[3],
+                   const double (&lab_direction)[3] );
+    void set_dir2( bool crystal_dir_is_point_in_hkl_space,
+                   const double (&crystal_direction)[3],
+                   const double (&lab_direction)[3] );
+    void get_dir1( bool& crystal_dir_is_point_in_hkl_space,
+                   double (&crystal_direction)[3],
+                   double (&lab_direction)[3] );
+    void get_dir2( bool& crystal_dir_is_point_in_hkl_space,
+                   double (&crystal_direction)[3],
+                   double (&lab_direction)[3] );
     //
     // Set parameters from a string, using the same format as that supported by
     // the constructor, e.g. "par1=val1;...;parn=valn":
@@ -249,33 +229,46 @@ namespace NCrystal {
     // Directly access from C++
     double get_temp() const;
     double get_dcutoff() const;
-    double get_dcutoffupper() const;
-    double get_packingfactor() const;
-    double get_mosaicity() const;
-    int get_nphonon() const;
+    double get_dcutoffup() const;
+    double get_packfact() const;
+    double get_mos() const;
     bool get_expandhkl() const;
-    double get_orientationtolerance() const;
-    bool get_braggonly() const;
-    bool get_skipbragg() const;
+    double get_dirtol() const;
+    bool get_bragg() const;
     const std::string& get_overridefileext() const;
-    const std::string& get_scatterbkgdmodel() const;
     const std::string& get_infofactory() const;
-    const std::string& get_scatterfactory() const;
-    const std::string& get_absorptionfactory() const;
-    //
-    // Specialised getters for derived information and datafile:
+    const std::string& get_scatfactory() const;
+    const std::string& get_absnfactory() const;
+
+    //Bkgd option decoded:
+    std::string get_bkgd_name() const;
+    bool get_bkgdopt_flag(const std::string& name) const;
+    double get_bkgdopt_dbl(const std::string& name, double defval) const;
+    int get_bkgdopt_int(const std::string& name, int defval) const;
+
+    // Specialised getters for derived information:
     bool isSingleCrystal() const;//true if mosaicity or orientation parameters are set
     bool isPolyCrystal() const;//same as !isSingleCrystal()
-    SCOrientation createSCOrientation() const;//Create and return a new SCOrientation object based on parameters.
+    SCOrientation createSCOrientation() const;//Create and return a new SCOrientation object based cfg.
+
+    //Validate bkgd flags and options to prevent silently ignoring unused options. Call
+    //only from *selected* scatter factory, to throw BadInput in case of unknown options:
+    void bkgdopt_validate(const std::set<std::string>& allowed_opts) const;
+
+    //Datafile (never decode extension by hand):
     const std::string& getDataFile() const;//Resolved path to the datafile
     const std::string& getDataFileAsSpecified() const;//Path to the datafile as specified in the constructor
     const std::string& getDataFileExtension() const;//Extension of datafile (actual unless overridefileext is set)
-    //
+
+    //Serialise in various forms:
     std::string toStrCfg( bool include_datafile = true, const std::set<std::string> * only_parnames = 0 ) const;
-    std::string toEmbeddableCfg() const;//Produces a string like "NCRYSTALMATCFG[temp=500.0;dcutoff=0.2]" which can be embedded in data files.
+    std::string toEmbeddableCfg() const;//Produces a string like "NCRYSTALMATCFG[temp=500.0;dcutoff=0.2]"
+                                        //which can be embedded in data files.
     void dump( std::ostream &out, bool add_endl=true ) const;
 
-    bool ignoredEmbeddedConfig() const;//true if constructor received ";ignorefilecfg" keyword.
+    //Test if was constructed with ";ignorefilecfg" keyword:
+    bool ignoredEmbeddedConfig() const;
+
 
     /////////////////////////////////////////////////////////////////////////////
     // Copy/assign/clone/destruct                                              //
@@ -323,7 +316,7 @@ namespace NCrystal {
                             const std::set<std::string>& parameters ) const;
 
   private:
-
+    const std::string& get_bkgd() const;//undecoded, internal usage only
     struct Impl;
     Impl* m_impl;
     void cow();

@@ -30,22 +30,26 @@
 
 NCrystal::PhononDebye::PhononDebye( double debye_energy, double kt,
                                     const std::string& ele_name,
-                                    unsigned max_phonon_order)
+                                    unsigned max_phonon_order,
+                                    int phonzeroinco )
   : m_debye(debye_energy),
     m_kt(kt),m_ele_name(ele_name),
     m_max_phononnum(max_phonon_order),
-    m_max_wl2ekin(4.)
+    m_max_wl2ekin(4.),
+    m_phonzeroinco(phonzeroinco)
 {
-  if(max_phonon_order>1000)
-    NCRYSTAL_THROW(BadInput,"PhononDebye model phonon expansion above 1000 orders is numerically unstable");
+  if(max_phonon_order>100)
+    NCRYSTAL_THROW(BadInput,"PhononDebye model phonon expansion above 100 orders is numerically unstable");
+  if(phonzeroinco<0||phonzeroinco>2||(phonzeroinco==2&&max_phonon_order!=1))
+    NCRYSTAL_THROW(BadInput,"Invalid/inconsistent values of phonzeroinco/max_phonon_order parameters");
 
   m_dt = 0;
-  m_cal = 0;
 
   unsigned num=100;
   double diff = m_debye/num;
   std::vector<double> xvec(10);
   std::vector<double> w(10);
+  //TODO for NC2 (by TK): Comment should let us know what "ref. 1" is.
   m_gamma0=0;  // ref. 1, eq II.3
   m_gamma0_bar =0; // ref. 1, eq II.52'
   m_delta0_bar=0; // ref. 1, eq II.55
@@ -91,11 +95,8 @@ NCrystal::PhononDebye::PhononDebye( double debye_energy, double kt,
       else
       {
         sum_n1 +=contribution;
-        //printf("%u, %e\n",i ,contribution);
       }
     }
-    //printf ("sum for sig1 is %f\n",sum_n1);
-
 
     double sum_n2 = 0;
     for(unsigned i=1;i<100;i++)
@@ -108,11 +109,8 @@ NCrystal::PhononDebye::PhononDebye( double debye_energy, double kt,
       else
       {
         sum_n2 +=contribution;
-        //printf("%u, %e\n",i ,contribution);
       }
     }
-    //printf ("sum for sig2 is %f\n",sum_n2);
-
 
     double tot_xs = 0;
     unsigned breaking=100;
@@ -128,15 +126,12 @@ NCrystal::PhononDebye::PhononDebye( double debye_energy, double kt,
       else
       {
         tot_xs +=contribution;
-        //printf("%u, %e\n",i ,contribution);
       }
     }
     m_max_phononnum =breaking*4;
     if(m_max_phononnum>100)
       m_max_phononnum=100;
   }
-
-  //printf (" ord %u\n", m_max_phononnum);
 
 }
 
@@ -167,10 +162,10 @@ void NCrystal::PhononDebye::doit(const std::vector<double> &ekin_vec, std::vecto
     g1_arr[i] *= exp(-(g1_start_t+i*m_dt)/2/m_kt);
   }
   // m_phonon_spec_arr.clear();
-  // m_phonon_spec_arr[0]=std::make_pair(g1_arr,g1_start_t); 
+  // m_phonon_spec_arr[0]=std::make_pair(g1_arr,g1_start_t);
 
   //1.2 phonon expansion
-  m_cal = new PhononCalculator(g1_arr,g1_start_t,m_dt,m_max_phononnum,m_kt);
+  PhononCalculator cal(g1_arr,g1_start_t,m_dt,m_max_phononnum,m_kt);
   //2. fill a 2d table
   //make sym kernel
   //upper limits suggested in F.G. Bischoff and M.L. Yeater, Nucl. Sci. Eng. 48, 266-280, 1972
@@ -187,7 +182,7 @@ void NCrystal::PhononDebye::doit(const std::vector<double> &ekin_vec, std::vecto
   m_alpha = logspace(log10(lower_alpha),log10(upper_alpha),alpha_grid_size);
   m_beta = logspace(log10(lower_beta),log10(upper_beta),beta_sym_grid_size-1);
   m_beta.insert(m_beta.begin(),0.);
-  calcSymSab(m_alpha,m_beta,m_sab);
+  calcSymSab(cal,m_alpha,m_beta,m_sab);
 
   //kernel expansion
   std::vector<double> neg_beta;
@@ -264,10 +259,18 @@ void NCrystal::PhononDebye::doit(const std::vector<double> &ekin_vec, std::vecto
     xs_vec.at(i)=NCrystal::trapz(scatted_enp, beta )/ekin_vec.at(i);
   }
 
+  if (m_phonzeroinco==0)
+    return;
+
   //add incoherent zero order scattering cross section (zero order is a special
   //case, for the other orders we include both incoherent and coherent parts
   //above (this is the incoherent approximation), while the zero order coherent
   //contribution is provided by Bragg diffraction, treated elsewhere:
+
+  //TODO for NC2 (by TK): Are we not duplicating this in NCPhonZeroInco? Would it be
+  //better to simply add NCPhonZeroInco next to NCBkgdPhonDebye? In the sense
+  //that then (when NCBkgdPhonDebye has thermalise=true), one would at least get
+  //the elastic part with correct energy transfers?
 
   double inco_sca_xs = NCrystal::NeutronSCL::instance()->getIncoherentXS(m_ele_name);
   double dwB = m_msd*8*M_PI*M_PI;
@@ -276,14 +279,14 @@ void NCrystal::PhononDebye::doit(const std::vector<double> &ekin_vec, std::vecto
   {
     double wavelength_Aa = ekin2wl(ekin_vec.at(i));
     double temp=dwB/(wavelength_Aa*wavelength_Aa);
+    if (m_phonzeroinco==2)
+      xs_vec[i] = 0.0;
     xs_vec[i] += inco_sca_xs/2/temp*(1-exp(-2*temp));
   }
-
 }
 
 NCrystal::PhononDebye::~PhononDebye()
 {
-  delete m_cal;
 }
 
 double NCrystal::PhononDebye::getMSD() const
@@ -300,7 +303,7 @@ double NCrystal::PhononDebye::integrateAlphaInterval(double a1,double s1, double
 }
 
 
-void NCrystal::PhononDebye::getSecondarySpectrum(double kin, double* spec)
+void NCrystal::PhononDebye::getSecondarySpectrum(double kin, double* spec) const
 {
   if(kin<0.)
     NCRYSTAL_THROW(CalcError,"Incident neutron energy is negative.");
@@ -313,7 +316,7 @@ void NCrystal::PhononDebye::getSecondarySpectrum(double kin, double* spec)
     if (m_beta[b_idx] < lbeta) //lower than beta lower limit
       continue;
 
-    getAlphaLimts(kin, m_beta[b_idx], alpha_lower, alpha_upper);
+    getAlphaLimits(kin, m_beta[b_idx], alpha_lower, alpha_upper);
     if(alpha_lower >= alpha_upper )  //a singularity when kin==-kTB (scattered energy is zero). There is no scattered angle.
       continue;
     bool firstAlphaBin=true;
@@ -358,7 +361,7 @@ void NCrystal::PhononDebye::getSecondarySpectrum(double kin, double* spec)
 
 }
 
-void NCrystal::PhononDebye::getAlphaLimts(double kin, double beta, double &lower, double& upper)
+void NCrystal::PhononDebye::getAlphaLimits(double kin, double beta, double &lower, double& upper) const
 {
   double kTB=m_kt*beta;
   double dif = 2*sqrt(kin*(kin + kTB ));
@@ -376,15 +379,15 @@ double  NCrystal::PhononDebye::interpolate(double a, double fa, double b, double
   return fa*pow(fb/fa,(x-a)/(b-a));
 }
 
-double NCrystal::PhononDebye::getS(unsigned beta_index, double alpha)
+double NCrystal::PhononDebye::getS(unsigned beta_index, double alpha) const
 {
   std::vector<double>::const_iterator it_up = std::upper_bound(m_alpha.begin(), m_alpha.end(), alpha);
   size_t dis = it_up - m_alpha.begin();
   const size_t bm = beta_index*m_alpha.size();
   if (dis) {
     nc_assert(it_up!=m_alpha.end() && bm+dis<m_sab.size());
-    double * sab_bmdis_m1 = &m_sab[bm+(dis-1)];
-    double * sab_bmdis = sab_bmdis_m1; ++sab_bmdis;
+    const double * sab_bmdis_m1 = &m_sab[bm+(dis-1)];
+    const double * sab_bmdis = sab_bmdis_m1; ++sab_bmdis;
     return interpolate(*(it_up-1),  *sab_bmdis_m1,*it_up, *sab_bmdis, alpha);
   }
   //extrapolate
@@ -394,7 +397,8 @@ double NCrystal::PhononDebye::getS(unsigned beta_index, double alpha)
 }
 
 
-void NCrystal::PhononDebye::calcSymSab(const std::vector<double> &alpha,const std::vector<double> &beta, std::vector<double> & sab) const
+void NCrystal::PhononDebye::calcSymSab(const PhononCalculator& cal, const std::vector<double> &alpha,
+                                       const std::vector<double> &beta, std::vector<double> & sab) const
 {
   std::vector<double>::const_iterator itE = beta.end();
   for(std::vector<double>::const_iterator it = beta.begin();it!=itE;++it) {
@@ -433,17 +437,17 @@ void NCrystal::PhononDebye::calcSymSab(const std::vector<double> &alpha,const st
       double S=0.;
       for(unsigned n=1;n<=m_max_phononnum;++n)
       {
-        double weight = m_cal->interpolate(n-1,eps);
+        double weight = cal.interpolate(n-1,eps);
         S += ceo_arr[n] * weight;
       }
 #else
       //Sum using Neumaier's method, for increased numerical stability:
       //(disabled, the numerical issues are likely from NCFastConvolve::fftd, not here)
-      double S = (m_max_phononnum ? ceo_arr[1] * m_cal->interpolate(0,eps) : 0.0);
+      double S = (m_max_phononnum ? ceo_arr[1] * cal.interpolate(0,eps) : 0.0);
       double correction = 0.0;
       for(unsigned n=2;n<=m_max_phononnum;++n)
       {
-        double val = ceo_arr[n] * m_cal->interpolate(n-1,eps);
+        double val = ceo_arr[n] * cal.interpolate(n-1,eps);
         double t = S + val;
         if (ncabs(S)>=ncabs(val)) {
           correction += (S - t) + val;
@@ -481,14 +485,14 @@ double NCrystal::PhononDebye::d0bar_power_knl(double omega) const
   return g0barknl(omega)*omega*omega;
 }
 
-double NCrystal::PhononDebye::sigma_1 (const para& p, double n)
+double NCrystal::PhononDebye::sigma_1 (const para& p, double n) const
 {
   double h1=1./8*p.x*(p.factor+p.x)/(1+0.25*p.x*p.x) - 1./8;
   return sqrt(p.delta0_bar/M_PI) /2 * p.factor /( sqrt(p.factor+.5*p.x)) * pow(p.z,n) * (1.+1./n*h1 );
 }
 
 
-double NCrystal::PhononDebye::sigma_2 (const para& p, double n)
+double NCrystal::PhononDebye::sigma_2 (const para& p, double n) const
 {
   double p1 =  2./3 * p.factor*p.factor*p.factor  + 4/3.*p.factor*p.factor/2/p.kt*p.delta0_bar
       + 2./3/4/p.kt/p.kt*p.delta0_bar*p.delta0_bar*p.factor ;

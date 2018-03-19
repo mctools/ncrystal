@@ -31,43 +31,55 @@ namespace NCrystal {
 
   class Vector;
   class Info;
+
   class NCMatLoader {
   public:
-    struct Lattice{
-      //TODO for NC2 for XX (general comment): do not prefix public data members with "m_" (only if private/protected).
-      RotMatrix m_cell;
-      RotMatrix m_reciprocal;//2pi times m_cell.inv()
-      std::map<std::string, std::vector<Vector> > m_atomic_pos;
+    struct Lattice {
+      RotMatrix cell;
+      RotMatrix reciprocal;//2pi times cell.inv()
+      std::map<std::string, std::vector<Vector> > atomic_pos;
     };
-
 
     NCMatLoader(const char* fn);
     ~NCMatLoader();
     std::map<std::string, unsigned> getAtomMap();
-    unsigned getNumAtom() const;
-    unsigned getSpacegroupNum() const;
-    const Lattice& getLattice() const;
     void fillHKL(Info &info,  const std::map<std::string, double>& msdmap, double min_ds, double max_ds, bool expandhkl) const;
     void getWhkl(std::vector<double>& result, const double ksq, const std::vector<double> & msd) const;
 
-
-    //TODO for NC2: Most of these should be private and with accessor
-    //methods. In any case, the "m_" prefix should not be used for public data
-    //member (this should be fixed in a looot of files, not just here):
-
+    //get
+    double getDebyeTemp() const;
+    const std::map<std::string, double>& getDebyeMap() const;
+    unsigned getAtomPerCell () const;
+    unsigned getSpacegroupNum() const;
+    const Lattice& getLattice() const;
+    void getLatticeParameters(double &a, double &b, double &c, double &alpha, double &beta, double &gamma) const;
     std::string m_version;
-    Lattice m_lattice;
-    double m_a,m_b,m_c, m_alpha,m_beta,m_gamma;
-    double m_debye_temp;
-    std::map<std::string, double> m_debye_map;
-    unsigned m_atomnum;
-    unsigned m_sg;
-
 
   private:
-    std::ifstream& ignoreCharNTimes(std::ifstream& file, unsigned num, const char& c='\n');
+    double m_debye_temp;
+    std::map<std::string, double> m_debye_map;
+    double m_a,m_b,m_c, m_alpha,m_beta,m_gamma;
+    unsigned m_atomnum;
+    unsigned m_sg;
+    Lattice m_lattice;
+
 
   };
+}
+
+
+////////////////////////////
+// Inline implementations //
+////////////////////////////
+
+namespace NCrystal {
+  inline double NCMatLoader::getDebyeTemp() const {return m_debye_temp;}
+  inline const std::map<std::string, double>& NCMatLoader::getDebyeMap() const {return m_debye_map;}
+  inline unsigned NCMatLoader::getAtomPerCell () const  {return m_atomnum;}
+  inline unsigned NCMatLoader::getSpacegroupNum() const { return m_sg;}
+  inline const NCMatLoader::Lattice& NCMatLoader::getLattice() const { return m_lattice; }
+  inline void NCMatLoader::getLatticeParameters(double &a, double &b, double &c, double &alpha, double &beta, double &gamma) const
+  {a=m_a; b=m_b; c=m_c; alpha=m_alpha; beta=m_beta; gamma=m_gamma;  }
 }
 
 #endif

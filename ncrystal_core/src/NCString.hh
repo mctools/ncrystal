@@ -24,6 +24,7 @@
 #include "NCrystal/NCException.hh"
 #include <string>
 #include <vector>
+#include <fstream>
 
 //Utilities
 
@@ -56,11 +57,16 @@ namespace NCrystal {
   bool contains(const std::string& haystack, const std::string& needle);
   //Check if any of the chars in "needles" is present in the string (haystack):
   bool contains_any(const std::string& haystack, const std::string& needles);
+  //Check if "haystack" consists entirely of chars from string needles:
+  bool contains_only(const std::string& haystack, const std::string& needles);
 
   //Convert strings to numbers. In case of problems, a BadInput exception will
   //be thrown (provide err to modify the message in that exception):
   double str2dbl(const std::string&, const char * errmsg = 0);
   int str2int(const std::string&, const char * errmsg = 0);
+
+  std::ifstream& ignoreCharNTimes(std::ifstream& file, unsigned num, const char& c='\n');
+
 }
 
 #endif

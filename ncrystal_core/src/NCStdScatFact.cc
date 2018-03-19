@@ -21,13 +21,15 @@
 #include "NCrystal/NCFactoryRegistry.hh"
 #include "NCrystal/NCFactory.hh"
 #include "NCrystal/NCMatCfg.hh"
-#include "NCrystal/NCInfo.hh"
 
+#include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCSCOrientation.hh"
+#include "NCrystal/NCScatterComp.hh"
+
 #include "NCrystal/NCPCBragg.hh"
 #include "NCrystal/NCSCBragg.hh"
-#include "NCrystal/NCSimpleBkgd.hh"
-#include "NCrystal/NCScatterComp.hh"
+#include "NCrystal/NCBkgdPhonDebye.hh"
+#include "NCrystal/NCBkgdExtCurve.hh"
 
 namespace NCrystal {
 
@@ -36,89 +38,147 @@ namespace NCrystal {
     const char * getName() const { return "NCrystalStdScatFactory"; }
 
     virtual int canCreateScatter( const MatCfg& cfg ) const {
-      int priority;
       RCHolder<const Info> info;
       std::string bkgd;
-      return analyseCfg( cfg, priority, info, bkgd ) ? priority : 0;
+      return analyseCfg( cfg, info, bkgd ) ? 100 : 0;
     }
 
     virtual const Scatter * createScatter( const MatCfg& cfg ) const
     {
-      int priority;
+      //Analyse and extract info:
       RCHolder<const Info> info;
       std::string bkgd;
-      if ( !analyseCfg( cfg, priority, info, bkgd ) )
+      if ( !analyseCfg( cfg, info, bkgd ) )
         return 0;
       nc_assert(info);
-      Scatter *scatter_bragg(0), *scatter_bkgd(0);
-      if (!cfg.get_skipbragg()) {
+
+      //Collect components on ScatterComp:
+      RCHolder<ScatterComp> sc(new ScatterComp);
+
+      //Bragg component:
+      if (cfg.get_bragg()) {
         if (cfg.isSingleCrystal()) {
           SCOrientation sco = cfg.createSCOrientation();
-          scatter_bragg = new SCBragg(info.obj(),sco,cfg.get_mosaicity());
+          sc.obj()->addComponent(new SCBragg(info.obj(),sco,cfg.get_mos()));
         } else {
-          scatter_bragg = new PCBragg(info.obj());
+          sc.obj()->addComponent(new PCBragg(info.obj()));
         }
       }
-      if (!bkgd.empty()) {
-        nc_assert_always(bkgd=="simplethermalising"||bkgd=="simpleelastic");
-        scatter_bkgd = new SimpleBkgd(info.obj(),(bkgd=="simplethermalising"));
+
+      //Allowed bkgd options depends on main bkgd mode:
+      std::set<std::string> allowed_bkgdopts;
+
+      //Common options for cross-section-curve-only bkgd modes:
+      bool bkgdcurve_dothermalise = false;
+      if ( bkgd == "external" || bkgd=="phonondebye" ) {
+        allowed_bkgdopts.insert("elastic");
+        allowed_bkgdopts.insert("thermalise");
+        bool opt_elastic = cfg.get_bkgdopt_flag("elastic");
+        bool opt_therm = cfg.get_bkgdopt_flag("thermalise");
+        if (opt_elastic&&opt_therm)
+          NCRYSTAL_THROW2(BadInput,"Can not specify both elastic and thermalise flags to bkgd="<<bkgd);
+        //Use flags and temp availability to determine mode:
+        bkgdcurve_dothermalise = info.obj()->hasTemperature();//default depends on temp availability
+        if (opt_elastic) bkgdcurve_dothermalise = false;//user overrides to elastic
+        else if (opt_therm) bkgdcurve_dothermalise = true;//user overrides to thermalising
       }
-      if (scatter_bkgd && scatter_bragg) {
-        ScatterComp * sc = new ScatterComp("ScatterComp");
-        sc->addComponent(scatter_bragg);
-        sc->addComponent(scatter_bkgd);
-        return sc;
+      //Common options for modes needing phonzeroinco flags:
+      bool opt_no_pzi(false), opt_only_pzi(false);
+      if ( bkgd == "phonondebye"
+           ) {
+        opt_no_pzi = cfg.get_bkgdopt_flag("no_phonzeroinco");
+        opt_only_pzi = cfg.get_bkgdopt_flag("only_phonzeroinco");
+        allowed_bkgdopts.insert("no_phonzeroinco");
+        allowed_bkgdopts.insert("only_phonzeroinco");
+        if (opt_no_pzi&&opt_only_pzi)
+          NCRYSTAL_THROW2(BadInput,"Can not specify both no_phonzeroinco and only_phonzeroinco flags to bkgd="<<bkgd);
       }
-      if (scatter_bragg) return scatter_bragg;
-      if (scatter_bkgd) return scatter_bkgd;
-      return 0;
+
+
+      if ( bkgd == "external" ) {
+        sc.obj()->addComponent(new BkgdExtCurve(info.obj(),bkgdcurve_dothermalise));
+      } else if ( bkgd == "phonondebye" ) {
+        allowed_bkgdopts.insert("nphonon");
+        allowed_bkgdopts.insert("no_extrap");
+        sc.obj()->addComponent(new BkgdPhonDebye( info.obj(),
+                                                  bkgdcurve_dothermalise,
+                                                  cfg.get_bkgdopt_int("nphonon",0),
+                                                  !opt_no_pzi, opt_only_pzi,
+                                                  cfg.get_bkgdopt_flag("no_extrap") ) );
+      } else {
+        nc_assert_always(bkgd=="none");
+      }
+
+      //Complain if user specified options not supported by bkgd mode in question:
+      cfg.bkgdopt_validate(allowed_bkgdopts);
+
+      //Wrap it up and return:
+      if (sc.obj()->nComponents()==0) {
+        //No components available, represent this with a NullScatter instead:
+        return new NullScatter;
+      } else if ( sc.obj()->nComponents()==1 && sc.obj()->scale(0) == 1.0 ) {
+        //Single component with unit scale - no need to wrap in ScatterComp:
+        RCHolder<Scatter> comp(sc.obj()->component(0));
+        sc.clear();
+        return comp.releaseNoDelete();
+      } else {
+        //Usual case, return ScatterComp:
+        return sc.releaseNoDelete();
+      }
     }
 
   private:
     //Common analysis function shared between canCreateScatter and createScatter
     //methods. If succesful, info object will have already been reffed.
-    bool analyseCfg( const MatCfg& cfg, int& priority, RCHolder<const Info>& info, std::string& bkgd ) const {
+    bool analyseCfg( const MatCfg& cfg, RCHolder<const Info>& info, std::string& bkgd ) const {
       info = ::NCrystal::createInfo( cfg );
       if ( !info )
         return false;
       bkgd.clear();
-      bool can_do_genscatter = true;
-      bool can_do_xsects = true;
-      if (!cfg.get_skipbragg()) {
-        if ( !info.obj()->hasHKLInfo() )
-          return false;//both PCBragg and SCBragg needs this.
-        if (!info.obj()->hasStructureInfo()) {
-          if (cfg.isSingleCrystal())
-            return false;//SCBragg always needs this
-          can_do_xsects = false;//PCBragg can generate scatterings, but not xsects, without it.
+
+      //Bragg
+      if (cfg.get_bragg()) {
+        if ( !info.obj()->hasHKLInfo() || !info.obj()->hasStructureInfo() ) {
+          //in principle PCBragg can generate scatterings (but not xsects) without
+          //structure info, but we keeps things simple:
+          return false;
         }
       }
-      if (!cfg.get_braggonly()) {
-        //Background as well. For the initial NCrystal release, that means NCSimpleBkgd.
-        bkgd = cfg.get_scatterbkgdmodel();
-        if (bkgd=="best") {
-          //Pick the best available background model. For first NCrystal
-          //releasenow it really just means the simple background.
-          //todo for nc2: check for phonon dos / S(q,w) availability.
-          bkgd = "simpleelastic";
-          if (info.obj()->hasTemperature()) {
-            bkgd = "simplethermalising";
-          }
-        }
-        if (bkgd=="simpleelastic"||bkgd=="simplethermalising") {
-          if (!info.obj()->providesNonBraggXSects())
-            can_do_xsects = false;
-          if (bkgd=="simplethermalising"&&!info.obj()->hasTemperature())
-            can_do_genscatter = false;
+
+
+      //Bkgd
+
+      bkgd = cfg.get_bkgd_name();
+
+      if (bkgd=="none")
+        return true;
+
+      if (bkgd=="best") {
+        //Automatically select bkgd model. This will choose the most realistic
+        //model available:
+        if (false) {
+        } else if (BkgdPhonDebye::hasSufficientInfo(info.obj())) {
+          bkgd = "phonondebye";
+        } else if (info.obj()->providesNonBraggXSects()) {
+          bkgd="external";
         } else {
-          bkgd.clear();
-          return false;//unknown or unsupported choice
+          bkgd="none";
         }
+        return true;
       }
-      priority = (can_do_xsects?50:0) + (can_do_genscatter?50:0);
-      if (!priority)
-        return 0;
-      return priority;
+
+      //User specified bkgd explicitly:
+      if (bkgd=="phonondebye"||bkgd=="external") {
+        bool can_do = ( bkgd=="phonondebye"
+                        ? BkgdPhonDebye::hasSufficientInfo(info.obj())
+                        : info.obj()->providesNonBraggXSects() );
+        if (!can_do)
+          return false;
+        if (!info.obj()->hasTemperature()&&cfg.get_bkgdopt_flag("thermalise"))
+          return false;
+        return true;
+      }
+      return false;//bkgd mode which is not support by this factory
     }
 
   };

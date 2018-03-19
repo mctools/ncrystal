@@ -41,3 +41,37 @@ void NCrystal::Scatter::generateScatteringNonOriented( double ekin, double& angl
   angle = asVect(indir).angle(asVect(outdir));
 }
 
+NCrystal::NullScatter::NullScatter()
+  : Scatter("NullScatter")
+{
+  validate();
+}
+
+NCrystal::NullScatter::~NullScatter()
+{
+}
+
+double NCrystal::NullScatter::crossSection(double, const double (&)[3] ) const
+{
+  return 0.0;
+}
+
+double NCrystal::NullScatter::crossSectionNonOriented( double ) const
+{
+  return 0.0;
+}
+
+void NCrystal::NullScatter::domain(double& ekin_low, double& ekin_high) const
+{
+  ekin_low = ekin_high = infinity;
+}
+
+void NCrystal::NullScatter::generateScattering( double, const double (&in)[3], double (&out)[3], double& de ) const
+{
+  out[0]=in[0];out[1]=in[1];out[2]=in[2];de=0;
+}
+
+void NCrystal::NullScatter::generateScatteringNonOriented( double, double& angle, double& de ) const
+{
+  angle = de = 0.0;
+}

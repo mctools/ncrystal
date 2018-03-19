@@ -101,12 +101,8 @@ double NCrystal::PCBragg::crossSectionNonOriented(double ekin) const
   //to wl!  Meaning that m_2d should actually store the energy equivalent of
   //2*d, and genSinThetaBragg should use energy when looking up there.
 
-  //TODO for NC2: some factories (incl. ncmat) do not always merge all entries
-  //with similar (fsq,dspacing). We should merge here to get shorter list.
-
   if (m_xsectfact<0)
     NCRYSTAL_THROW(MissingInfo,"Passed Info object lacks Structure information needed for crossSection(..).");
-
 
   //Use binary search to find iterator to first hkl plane which has 2*dspacing <
   //neutron_wavelength, and use the resulting index of the iterator to look up

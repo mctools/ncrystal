@@ -189,17 +189,15 @@ const NCrystal::Info * NCrystal::createInfo( const NCrystal::MatCfg& cfg )
   //only access a limited subset of the MatCfg parameters during calls to
   //createInfo:
   static std::set<std::string> allowed_info_pars
-    //TODO for NC2: revisit if the nphonon parameter still exists and is allowed here:
 #if __cplusplus >= 201103L
-    = { "temp", "dcutoff", "dcutoffupper", "overridefileext", "nphonon", "expandhkl" };
+    = { "temp", "dcutoff", "dcutoffup", "overridefileext", "expandhkl" };
 #else
   ;
   if (allowed_info_pars.empty()) {
     allowed_info_pars.insert("temp");
     allowed_info_pars.insert("dcutoff");
-    allowed_info_pars.insert("dcutoffupper");
+    allowed_info_pars.insert("dcutoffup");
     allowed_info_pars.insert("overridefileext");
-    allowed_info_pars.insert("nphonon");
     allowed_info_pars.insert("expandhkl");
   }
 #endif
@@ -222,7 +220,7 @@ const NCrystal::Info * NCrystal::createInfo( const NCrystal::MatCfg& cfg )
       NCRYSTAL_THROW2(LogicError,"Factory \""<<chosen->getName()
                       <<"\" created HKL info even though dcutoff=-1");
     if ( info.obj()->hklDLower() < cfg.get_dcutoff() ||
-         info.obj()->hklDUpper() > cfg.get_dcutoffupper() )
+         info.obj()->hklDUpper() > cfg.get_dcutoffup() )
       NCRYSTAL_THROW2(LogicError,"Factory \""<<chosen->getName()
                       <<"\" did not respect dcutoff setting.");
 
@@ -272,9 +270,9 @@ const NCrystal::Scatter * NCrystal::createScatter( const NCrystal::MatCfg& cfg )
   FactoryList& facts = getFactories();//Access factories
   std::map<int,const FactoryBase*> avail;
   const FactoryBase* chosen = 0;
-  std::string specific = cfg.get_scatterfactory();
+  std::string specific = cfg.get_scatfactory();
   if (s_debug_factory && !specific.empty())
-    std::cout<<"NCrystal::Factory::createScatter - cfg.scatterfactory=\""<<specific<<"\" so will search for that."<<std::endl;
+    std::cout<<"NCrystal::Factory::createScatter - cfg.scatfactory=\""<<specific<<"\" so will search for that."<<std::endl;
 
   for (std::size_t i = 0; i < facts.size(); ++i) {
     const FactoryBase* f = facts.at(i);
@@ -284,7 +282,7 @@ const NCrystal::Scatter * NCrystal::createScatter( const NCrystal::MatCfg& cfg )
         if (s_debug_factory)
           std::cout<<"NCrystal::Factory::createScatter - about to invoke canCreateScatter on factory \""<<f->getName()<<"\""<<std::endl;
         if (!f->canCreateScatter(cfg))
-          NCRYSTAL_THROW2(BadInput,"Requested scatterfactory does not actually have capability to service request: \""<<specific<<"\"");
+          NCRYSTAL_THROW2(BadInput,"Requested scatfactory does not actually have capability to service request: \""<<specific<<"\"");
         break;
       } else {
         continue;
@@ -302,7 +300,7 @@ const NCrystal::Scatter * NCrystal::createScatter( const NCrystal::MatCfg& cfg )
       avail[priority] = f;
   }
   if (!specific.empty() && !chosen)
-    NCRYSTAL_THROW2(BadInput,"Specific scatterfactory requested which is unavailable: \""<<specific<<"\"");
+    NCRYSTAL_THROW2(BadInput,"Specific scatfactory requested which is unavailable: \""<<specific<<"\"");
   if (!chosen)
     chosen = avail.empty() ? 0 : avail.rbegin()->second;
   if (!chosen)
@@ -332,9 +330,9 @@ const NCrystal::Absorption * NCrystal::createAbsorption( const NCrystal::MatCfg&
   FactoryList& facts = getFactories();//Access factories
   std::map<int,const FactoryBase*> avail;
   const FactoryBase* chosen = 0;
-  std::string specific = cfg.get_absorptionfactory();
+  std::string specific = cfg.get_absnfactory();
   if (s_debug_factory && !specific.empty())
-    std::cout<<"NCrystal::Factory::createAbsorption - cfg.absorptionfactory=\""<<specific<<"\" so will search for that."<<std::endl;
+    std::cout<<"NCrystal::Factory::createAbsorption - cfg.absnfactory=\""<<specific<<"\" so will search for that."<<std::endl;
 
   for (std::size_t i = 0; i < facts.size(); ++i) {
     const FactoryBase* f = facts.at(i);
@@ -344,7 +342,7 @@ const NCrystal::Absorption * NCrystal::createAbsorption( const NCrystal::MatCfg&
         if (s_debug_factory)
           std::cout<<"NCrystal::Factory::createAbsorption - about to invoke canCreateAbsorption on factory \""<<f->getName()<<"\""<<std::endl;
         if (!f->canCreateAbsorption(cfg))
-          NCRYSTAL_THROW2(BadInput,"Requested absorptionfactory does not actually have capability to service request: \""<<specific<<"\"");
+          NCRYSTAL_THROW2(BadInput,"Requested absnfactory does not actually have capability to service request: \""<<specific<<"\"");
         break;
       } else {
         continue;
@@ -362,7 +360,7 @@ const NCrystal::Absorption * NCrystal::createAbsorption( const NCrystal::MatCfg&
       avail[priority] = f;
   }
   if (!specific.empty() && !chosen)
-    NCRYSTAL_THROW2(BadInput,"Specific absorptionfactory requested which is unavailable: \""<<specific<<"\"");
+    NCRYSTAL_THROW2(BadInput,"Specific absnfactory requested which is unavailable: \""<<specific<<"\"");
   if (!chosen)
     chosen = avail.empty() ? 0 : avail.rbegin()->second;
   if (!chosen)

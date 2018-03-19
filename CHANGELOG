@@ -1,3 +1,6 @@
+v0.9.8 2018-03-19
+      * <Still needs writing>
+
 v0.9.7 2018-03-06
       * Don't produce floating point exception when loading .ncmat files with H,
         Li, Ti, V or Mn (github issue #8).

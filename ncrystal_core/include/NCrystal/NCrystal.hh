@@ -79,11 +79,16 @@
 #ifndef NCrystal_NCScatterComp_hh
 #  include "NCrystal/NCScatterComp.hh"
 #endif
-#ifndef NCrystal_NCSimpleBkgd_hh
-#  include "NCrystal/NCSimpleBkgd.hh"
+#ifndef NCrystal_NCScatterXSCurve_hh
+#  include "NCrystal/NCScatterXSCurve.hh"
+#endif
+#ifndef NCrystal_BkgdPhonDebye_hh
+#  include "NCrystal/NCBkgdPhonDebye.hh"
+#endif
+#ifndef NCrystal_BkgdExtCurve_hh
+#  include "NCrystal/NCBkgdExtCurve.hh"
 #endif
 #ifndef NCrystal_NCVersion_hh
 #  include "NCrystal/NCVersion.hh"
 #endif
-
 #endif

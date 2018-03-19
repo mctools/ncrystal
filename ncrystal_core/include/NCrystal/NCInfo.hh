@@ -23,6 +23,8 @@
 
 #include "NCrystal/NCRCBase.hh"
 #include <vector>
+#include <stdint.h>//cstdint hdr only in C++11
+
 
 //////////////////////////////////////////////////////////////////////
 // Data class containing information (high level or derived) about  //
@@ -86,6 +88,7 @@ namespace NCrystal {
 
   struct AtomInfo {
     //TODO for NC2: More parameters capable of handling non-natural atoms
+    AtomInfo():atomic_number(0), number_per_unit_cell(0),debye_temp(0.) {}
     unsigned atomic_number;
     unsigned number_per_unit_cell;
     //per-element debye temperature (0.0 if not available, see hasPerElementDebyeTemperature() below):
@@ -110,6 +113,7 @@ namespace NCrystal {
 
     bool hasStructureInfo() const;
     const StructureInfo& getStructureInfo() const;
+
 
     /////////////////////////////////////////////
     // Information about cross-sections [barn] //
@@ -205,8 +209,13 @@ namespace NCrystal {
     void setXSectProvider(XSectProvider*xp) { ensureNoLock(); m_xsectprovider = xp; }//assumes ownership
     void objectDone();//Finish up (sorts hkl list (by dspacing first), and atom info list (by Z first)). This locks the instance.
     bool isLocked() const { return m_lock; }
+
+    //Unique ID for this Info instance, useful for downstream caching purposes:
+    uint64_t getUniqueID() const { nc_assert(m_lock); return m_uniqueid; }
+
   private:
     void ensureNoLock();
+    uint64_t m_uniqueid;
     StructureInfo m_structinfo;
     AtomList m_atomlist;
     HKLList m_hkllist;//sorted by dspacing first

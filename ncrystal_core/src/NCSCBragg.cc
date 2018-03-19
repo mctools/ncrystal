@@ -358,9 +358,16 @@ bool NCrystal::SCBragg::pimpl::channelXSInLab(unsigned index ,
   if(sin_perfect_theta >= 1.)// == 1.0 is backscattering.
     return false;
 
-  if (wavelength<hklInfo->wlthr) {
+  if (false && wavelength<hklInfo->wlthr) {
     //Q(wavelength)<=contribution_threshold, so no way that Q*W can ever exceed
     //the threshold.
+    //FIXME: X.X. reading the code and writing the paper. the integral of W(theta) over theta is unity,
+    //but W(theta) can be significantly greater than 1. Don't know why this line is not doing significant damage.
+    //keep it here for now, until I have time to investigate the reason.
+    //TK: max(W)=m_gauss_norm, which can indeed be more than 1. Perhaps we were
+    //"saved" by our low contrib. threshold? Disabling this test for now until
+    //we debug this (it unfortunately slows us greatly down, as the benchscp app
+    //shows).
     return true;
   }
 

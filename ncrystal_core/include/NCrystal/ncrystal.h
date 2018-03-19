@@ -195,7 +195,7 @@ extern "C" {
 
   /* Extract NCMatCfg variables which can not be inferred from an ncrystal_info_t  */
   /* object and which might be needed in plugins (to be expanded as needed):       */
-  double ncrystal_decodecfg_packingfactor( const char * cfgstr );
+  double ncrystal_decodecfg_packfact( const char * cfgstr );
 
   /* For serious scientific usage, users should register their own random          */
   /* generator function before using the genscatter functions. It must return      */
@@ -210,9 +210,9 @@ extern "C" {
   /* NCrystal version info:                                                        */
 #define NCRYSTAL_VERSION_MAJOR 0
 #define NCRYSTAL_VERSION_MINOR 9
-#define NCRYSTAL_VERSION_PATCH 7
-#define NCRYSTAL_VERSION   9007 /* (1000000*MAJOR+1000*MINOR+PATCH)                */
-#define NCRYSTAL_VERSION_STR "0.9.7"
+#define NCRYSTAL_VERSION_PATCH 8
+#define NCRYSTAL_VERSION   9008 /* (1000000*MAJOR+1000*MINOR+PATCH)                */
+#define NCRYSTAL_VERSION_STR "0.9.8"
   int ncrystal_version(); /* returns NCRYSTAL_VERSION                              */
   const char * ncrystal_version_str(); /* returns NCRYSTAL_VERSION_STR             */
 

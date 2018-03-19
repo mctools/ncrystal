@@ -58,13 +58,13 @@ int main() {
   //Create and use single-crystal germanium
   NCrystal::MatCfg cfg("Ge_sg227.ncmat;dcutoff=0.5");
 
-  cfg.set_mosaicity(40.0*M_PI/(180*60*60));//40 arcseconds in units of radians
+  cfg.set_mos(40.0*M_PI/(180*60*60));//40 arcseconds in units of radians
   double c1[] = {5,1,1};
   double l1[] = {0,0,1};
   double c2[] = {0,-1,1};
   double l2[] = {0,1,0};
-  cfg.set_orientationprimary(true,c1,l1);
-  cfg.set_orientationsecondary(true,c2,l2);
+  cfg.set_dir1(true,c1,l1);
+  cfg.set_dir2(true,c2,l2);
 
   const NCrystal::Scatter * sc =  NCrystal::createScatter( cfg );
   sc->ref();

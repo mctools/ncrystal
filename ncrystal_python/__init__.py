@@ -49,7 +49,7 @@ from __future__ import division, print_function, absolute_import
 
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
 __copyright__ = "Copyright 2017"
-__version__ = '0.9.7'
+__version__ = '0.9.8'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
 __copyright__ = "Copyright 2015-2017 %s"%__author__
@@ -374,7 +374,7 @@ def _load(nclib_filename):
     functions['ncrystal_save_randgen'] = ncrystal_save_randgen
     functions['ncrystal_restore_randgen'] = ncrystal_restore_randgen
 
-    _wrap('ncrystal_decodecfg_packingfactor',_dbl,(_cstr,))
+    _wrap('ncrystal_decodecfg_packfact',_dbl,(_cstr,))
     _wrap('ncrystal_clear_info_caches',None,tuple())
     _wrap('ncrystal_disable_caching',None,tuple())
     _wrap('ncrystal_enable_caching',None,tuple())
@@ -385,8 +385,8 @@ def _load(nclib_filename):
 
 _rawfct = _load(_find_nclib())
 
-def decodecfg_packingfactor(cfgstr):
-    return _rawfct['ncrystal_decodecfg_packingfactor'](_str2cstr(cfgstr))
+def decodecfg_packfact(cfgstr):
+    return _rawfct['ncrystal_decodecfg_packfact'](_str2cstr(cfgstr))
 
 class RCBase:
     """Base class for all NCrystal objects"""
@@ -709,7 +709,7 @@ def _actualtest():
         require( flteq(fsq, e[5]) )
     #TODO for NC2: Missing is atominfo, bkgd cross-sections, ...
 
-    alpc = createScatter('Al_sg225.ncmat;dcutoff=1.4;braggonly=1')
+    alpc = createScatter('Al_sg225.ncmat;dcutoff=1.4;bkgd=none')
     require( alpc.name == 'PCBragg' )
     require( isinstance(alpc.name,str) )
     require( alpc.refCount() in (1,2) and type(alpc.refCount()) == int )
@@ -758,8 +758,8 @@ def _actualtest():
         require(flteq(ang[1],expected[i][0][1]))
         require(flteq(ang[2],expected[i][0][2]))
 
-    gesc = createScatter("""Ge_sg227.ncmat;dcutoff=0.5;mosaicity=40.0arcsec
-                            ;orientationprimary=@crystal_hkl:5,1,1@lab:0,0,1
-                            ;orientationsecondary=@crystal_hkl:0,-1,1@lab:0,1,0""")
+    gesc = createScatter("""Ge_sg227.ncmat;dcutoff=0.5;mos=40.0arcsec
+                            ;dir1=@crys_hkl:5,1,1@lab:0,0,1
+                            ;dir2=@crys_hkl:0,-1,1@lab:0,1,0""")
     require(flteq(587.78062659,gesc.crossSection(wl2ekin(1.540),( 0., 1., 1. ))))
     require(flteq(1.76682279301,gesc.crossSection(wl2ekin(1.540),( 1., 1., 0. ))))

@@ -21,6 +21,7 @@
 #include "NCString.hh"
 #include <cstring>
 #include <limits>
+#include <istream>
 
 bool NCrystal::isSimpleASCII(const std::string& input, bool allow_tab, bool allow_newline)
 {
@@ -210,3 +211,24 @@ int NCrystal::str2int(const std::string& s,const char * errmsg)
   return val;
 }
 
+std::ifstream& NCrystal::ignoreCharNTimes(std::ifstream& file, unsigned num, const char& c)
+{
+  //TODO for NC2: we probably don't really want this function, since it is very
+  //accepting of errors in input rather than defensively sanitising (if
+  //removing, also remove #include <istream>)
+  for(unsigned i=0; i < num ; ++i){
+    file.ignore(std::numeric_limits<std::streamsize>::max(),c);
+  }
+  return file;
+}
+
+bool NCrystal::contains_only(const std::string& haystack, const std::string& needles)
+{
+  const char * c = &haystack[0];
+  const char * cE = c + haystack.size();
+  for (;c!=cE;++c) {
+    if (!contains(needles,*c))
+      return false;
+  }
+  return true;
+}

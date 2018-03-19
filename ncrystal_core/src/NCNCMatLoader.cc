@@ -19,13 +19,15 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCNCMatLoader.hh"
-#include "NCVector.hh"
-#include "NCrystal/NCInfo.hh"
 
+#include "NCrystal/NCInfo.hh"
+#include "NCVector.hh"
+#include "NCString.hh"
 #include "NCFile.hh"
 #include "NCLatticeUtils.hh"
 #include "NCrystal/NCException.hh"
 #include "NCNeutronSCL.hh"
+
 #include <string>
 #include <sstream>
 #include <iterator>
@@ -34,6 +36,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <cstdlib>
 
 namespace NCrystal {
   //map keys used during search for hkl families.
@@ -51,8 +54,8 @@ namespace NCrystal {
     const int exponent_dsp = std::ceil(std::log10(dsp));
     const double mantissa_dsp = dsp * pow(10,-exponent_dsp);
     return unsigned(mantissa_fsq*1000+0.5)*4000000
-         + unsigned(mantissa_dsp*1000+0.5)*4000
-         + ncmax(3000+exponent_fsq*30 + exponent_dsp,0) ;
+      + unsigned(mantissa_dsp*1000+0.5)*4000
+      + ncmax(3000+exponent_fsq*30 + exponent_dsp,0) ;
   }
 }
 
@@ -152,146 +155,150 @@ NCrystal::NCMatLoader::NCMatLoader(const char* fn)
   infile.seekg(-1, infile.cur);
 
   while(infile >> tmpstr)
+  {
+    if(tmpstr=="@CELL")
     {
-      if(tmpstr=="@CELL")
+      ignoreCharNTimes(infile,1,'\n');
+
+      double a=0., b=0.,c=0.,alpha=0.,beta=0.,gamma=0. ;
+      bool hasLen=false; bool hasAng=false;
+      std::streampos oldpos;
+      while(infile >> tmpstr)
+      {
+        if (tmpstr=="lengths")
         {
-          ignoreCharNTimes(infile,1,'\n');
-
-          double a=0., b=0.,c=0.,alpha=0.,beta=0.,gamma=0. ;
-          bool hasLen=false; bool hasAng=false;
-          std::streampos oldpos;
-          while(infile >> tmpstr)
-            {
-              if (tmpstr=="lengths")
-                {
-                  infile >> tmpstr;
-                  a =  atof(tmpstr.c_str());
-                  m_a=a;
-                  infile >> tmpstr;
-                  b =  atof(tmpstr.c_str());
-                  m_b=b;
-                  infile >> tmpstr;
-                  c =  atof(tmpstr.c_str());
-                  m_c=c;
-                  hasLen=true;
-                }
-              else if (tmpstr=="angles")
-                {
-                  infile >> tmpstr;
-                  alpha =  atof(tmpstr.c_str());
-                  m_alpha=alpha;
-                  infile >> tmpstr;
-                  beta =  atof(tmpstr.c_str());
-                  m_beta=beta;
-                  infile >> tmpstr;
-                  gamma =  atof(tmpstr.c_str());
-                  m_gamma=gamma;
-                  hasAng=true;
-                }
-              else if(tmpstr[0]=='@')
-                {
-                  infile.seekg(-tmpstr.size(), infile.cur);
-                  break;
-                }
-            }
-
-          if(!hasLen)
-            NCRYSTAL_THROW2(DataLoadError,"NCMatLoader::NCMatLoader data file does not contain unitcell lengths " << fn );
-
-          if(!hasAng)
-            NCRYSTAL_THROW2(DataLoadError,"NCMatLoader::NCMatLoader data file does not contain unitcell angles " << fn );
-
-          alpha *= M_PI/180.;
-          beta  *= M_PI/180.;
-          gamma *= M_PI/180.;
-
-          m_lattice.m_cell = getLatticeRot(a,b,c,alpha,beta,gamma);
-          m_lattice.m_reciprocal = getReciprocalLatticeRot(a,b,c,alpha,beta,gamma);
+          infile >> tmpstr;
+          a =  atof(tmpstr.c_str());
+          m_a=a;
+          infile >> tmpstr;
+          b =  atof(tmpstr.c_str());
+          m_b=b;
+          infile >> tmpstr;
+          c =  atof(tmpstr.c_str());
+          m_c=c;
+          hasLen=true;
         }
-      else if (tmpstr=="@ATOMPOSITIONS")
+        else if (tmpstr=="angles")
         {
-          m_atomnum=0;
-          ignoreCharNTimes(infile,1,'\n');
-          while(infile >> tmpstr)
-            {
-              if (tmpstr[0]!='#' && tmpstr[0]!='@')
-                {
-                  std::string ele = tmpstr;
-                  infile >> tmpstr;
-                  double px =  atof(tmpstr.c_str());
-                  infile >> tmpstr;
-                  double py =  atof(tmpstr.c_str());
-                  infile >> tmpstr;
-                  double pz =  atof(tmpstr.c_str());
-
-                  Vector pos(px,py,pz);
-                  //pos.print();
-                  std::map<std::string, std::vector<Vector> >::iterator it = m_lattice.m_atomic_pos.find(ele);
-                  if ( it == m_lattice.m_atomic_pos.end() )
-                    {
-                      std::vector<Vector> vv;
-                      vv.push_back(pos);
-                      m_lattice.m_atomic_pos[ele]=vv;
-                    }
-                  else
-                    {
-                      it->second.push_back(pos);
-                    }
-                  m_atomnum++;
-                  ignoreCharNTimes(infile,1,'\n');
-
-                }
-              if(tmpstr[0]=='@')
-                {
-                  infile.seekg(-tmpstr.size(), infile.cur);
-                  break;
-                }
-            }
+          infile >> tmpstr;
+          alpha =  atof(tmpstr.c_str());
+          m_alpha=alpha;
+          infile >> tmpstr;
+          beta =  atof(tmpstr.c_str());
+          m_beta=beta;
+          infile >> tmpstr;
+          gamma =  atof(tmpstr.c_str());
+          m_gamma=gamma;
+          hasAng=true;
         }
-      else if (tmpstr=="@SPACEGROUP")
+        else if(tmpstr[0]=='@')
         {
-          ignoreCharNTimes(infile,1,'\n');
-          while(infile >> tmpstr)
-            {
-              if (tmpstr[0]!='#' && tmpstr[0]!='@')
-                {
-                  m_sg = atoi(tmpstr.c_str());
-                }
-              if(tmpstr[0]=='@')
-                {
-                  infile.seekg(-tmpstr.size(), infile.cur);
-                  break;
-                }
-            }
+          infile.seekg(-tmpstr.size(), infile.cur);
+          break;
         }
-      else if (tmpstr=="@DEBYETEMPERATURE")
-        {
-          ignoreCharNTimes(infile,1,'\n');
-          while(infile >> tmpstr)
-            {
-              if (tmpstr[0]!='#' && tmpstr[0]!='@')
-                {
-                  if (std::isdigit (tmpstr[0]) )
-                    m_debye_temp = atof(tmpstr.c_str());
-                  else
-                    {
-                      std::string element = tmpstr;
-                      infile >> tmpstr ;
-                      m_debye_map[element] =  atof(tmpstr.c_str());
-                    }
-                }
-              if(tmpstr[0]=='@')
-                {
-                  infile.seekg(-tmpstr.size(), infile.cur);
-                  break;
-                }
-            }
-        }
+      }
 
+      if(!hasLen)
+        NCRYSTAL_THROW2(DataLoadError,"NCMatLoader::NCMatLoader data file does not contain unitcell lengths " << fn );
+
+      if(!hasAng)
+        NCRYSTAL_THROW2(DataLoadError,"NCMatLoader::NCMatLoader data file does not contain unitcell angles " << fn );
+
+      alpha *= M_PI/180.;
+      beta  *= M_PI/180.;
+      gamma *= M_PI/180.;
+
+      m_lattice.cell = getLatticeRot(a,b,c,alpha,beta,gamma);
+      m_lattice.reciprocal = getReciprocalLatticeRot(a,b,c,alpha,beta,gamma);
     }
+    else if (tmpstr=="@ATOMPOSITIONS")
+    {
+      m_atomnum=0;
+      ignoreCharNTimes(infile,1,'\n');
+      while(infile >> tmpstr)
+      {
+        if(tmpstr[0]=='@')
+        {
+          infile.seekg(-tmpstr.size(), infile.cur);
+          break;
+        }
+        else if (tmpstr[0]!='#')
+        {
+          std::string ele = tmpstr;
+          infile >> tmpstr;
+          double px =  atof(tmpstr.c_str());
+          infile >> tmpstr;
+          double py =  atof(tmpstr.c_str());
+          infile >> tmpstr;
+          double pz =  atof(tmpstr.c_str());
+
+          Vector pos(px,py,pz);
+          //pos.print();
+          std::map<std::string, std::vector<Vector> >::iterator it = m_lattice.atomic_pos.find(ele);
+          if ( it == m_lattice.atomic_pos.end() )
+          {
+            std::vector<Vector> vv;
+            vv.push_back(pos);
+            m_lattice.atomic_pos[ele]=vv;
+          }
+          else
+          {
+            it->second.push_back(pos);
+          }
+          m_atomnum++;
+          ignoreCharNTimes(infile,1,'\n');
+
+        }
+      }
+    }
+    else if (tmpstr=="@SPACEGROUP")
+    {
+      ignoreCharNTimes(infile,1,'\n');
+      while(infile >> tmpstr)
+      {
+        if(tmpstr[0]=='@')
+        {
+          infile.seekg(-tmpstr.size(), infile.cur);
+          break;
+        }
+        else if (tmpstr[0]!='#')
+        {
+          m_sg = atoi(tmpstr.c_str());
+        }
+      }
+    }
+    else if (tmpstr=="@DEBYETEMPERATURE")
+    {
+      ignoreCharNTimes(infile,1,'\n');
+      while(infile >> tmpstr)
+      {
+        if(tmpstr[0]=='@')
+        {
+          infile.seekg(-tmpstr.size(), infile.cur);
+          break;
+        }
+        else if (tmpstr[0]=='#')  {
+          ignoreCharNTimes(infile,1,'\n');
+        }
+        else
+        {
+          if (std::isdigit (tmpstr[0]) )
+            m_debye_temp = atof(tmpstr.c_str());
+          else
+          {
+            std::string element = tmpstr;
+            infile >> tmpstr ;
+            m_debye_map[element] =  atof(tmpstr.c_str());
+          }
+        }
+
+      }
+    }
+  }
   infile.close();
 
-  if(m_lattice.m_atomic_pos.size()==0)
+
+  if(m_lattice.atomic_pos.size()==0)
     NCRYSTAL_THROW2(DataLoadError,"failed to load lattice info from file " << fn);
 
   if(!m_sg)
@@ -301,101 +308,65 @@ NCrystal::NCMatLoader::NCMatLoader(const char* fn)
   if(m_debye_temp==-1. && m_debye_map.empty())
     NCRYSTAL_THROW2(DataLoadError,"Debye temperature is not provided in the file " << fn );
 
-  if (!m_debye_map.empty()) {
-    std::map<std::string, std::vector<Vector> >::const_iterator itAtom, itAtomE(m_lattice.m_atomic_pos.end());
-    for (itAtom=m_lattice.m_atomic_pos.begin();itAtom!=itAtomE;++itAtom) {
+  if (!m_debye_map.empty())
+    {
+      std::map<std::string, std::vector<Vector> >::const_iterator itAtom, itAtomE(m_lattice.atomic_pos.end());
+    for (itAtom=m_lattice.atomic_pos.begin();itAtom!=itAtomE;++itAtom) {
       if (m_debye_map.find(itAtom->first)==m_debye_map.end())
         NCRYSTAL_THROW2(DataLoadError,"Some per-elment Debye temperatures are specified but one is missing for \""<<itAtom->first<<"\" in the file: "<<fn);
     }
-    if (m_debye_map.size()!=m_lattice.m_atomic_pos.size())
+    if (m_debye_map.size()!=m_lattice.atomic_pos.size())
       NCRYSTAL_THROW2(DataLoadError,"Per-elment Debye temperatures for elements not in the lattice are specified in the file: "<<fn);
   }
+
+
 }
 
 NCrystal::NCMatLoader::~NCMatLoader()
 {
 }
 
-const NCrystal::NCMatLoader::Lattice& NCrystal::NCMatLoader::getLattice() const
-{
-  return m_lattice;
-}
 
 
 std::map<std::string, unsigned> NCrystal::NCMatLoader::getAtomMap()
 {
   std::map<std::string, unsigned> an;
-  for(std::map<std::string, std::vector<Vector> >::const_iterator it=m_lattice.m_atomic_pos.begin();it!=m_lattice.m_atomic_pos.end();++it)
-    {
-      an[it->first]=it->second.size();
-    }
+  std::map<std::string, std::vector<Vector> >::const_iterator it = m_lattice.atomic_pos.begin();
+  for( ; it!=m_lattice.atomic_pos.end() ; ++it )
+    an[it->first] = it->second.size();
   return an;
 }
 
-unsigned NCrystal::NCMatLoader::getSpacegroupNum() const
-{
-  return m_sg;
-}
-
-unsigned NCrystal::NCMatLoader::getNumAtom() const
-{
-  unsigned tot=0;
-  for(std::map<std::string, std::vector<Vector> >::const_iterator it=m_lattice.m_atomic_pos.begin();it!=m_lattice.m_atomic_pos.end();++it)
-    {
-      tot += it->second.size();
-    }
-  return tot;
-}
-
-
-std::ifstream& NCrystal::NCMatLoader::ignoreCharNTimes(std::ifstream& file, unsigned num, const char& c)
-{
-  for(unsigned i=0; i < num ; ++i){
-    file.ignore(std::numeric_limits<std::streamsize>::max(),c);
-  }
-  return file;
-}
 
 void NCrystal::NCMatLoader::fillHKL( NCrystal::Info &info,  const std::map<std::string, double>& msdmap,
                                      double min_ds, double max_ds, bool expandhkl ) const
 {
-  nc_assert_always( min_ds>=0.0 && max_ds > min_ds );
-  if (min_ds==0) {
-    //very simple heuristics here for now, can likely be improved.
-    if (m_lattice.m_atomic_pos.size()>40)
-      min_ds = 0.3;
-    else
-      min_ds = 0.2;
-    const bool verbose = (std::getenv("NCRYSTAL_DEBUGINFO") ? true : false);
-    if (verbose)
-      std::cout<<"NCrystal::NCMATFactory::automatically selected dcutoff level "<< min_ds<< " Aa"<<std::endl;
-  }
-
+  nc_assert_always( min_ds > 0.0 && max_ds > min_ds );
   nc_assert_always( !msdmap.empty() );
 
   const double min_ds_sq(min_ds*min_ds);
   const double max_ds_sq(max_ds*max_ds);
   //Reciprocal lattice
-  const RotMatrix& rec_lat = m_lattice.m_reciprocal;
+  const RotMatrix& rec_lat = m_lattice.reciprocal;
 
   //coherent scattering length
   std::vector<double> csl;//csl per element
   std::vector<double> msd;//msd per element
   std::vector<std::vector<Vector> > atomic_pos;//list of atom positions for each element
 
-  std::map<std::string, std::vector<Vector> >::const_iterator it, itE(m_lattice.m_atomic_pos.end());
-  for(it = m_lattice.m_atomic_pos.begin();it != itE; ++it)
+  std::map<std::string, std::vector<Vector> >::const_iterator it, itE(m_lattice.atomic_pos.end());
+  for(it = m_lattice.atomic_pos.begin();it != itE; ++it)
+  {
+    atomic_pos.push_back(it->second);
+    csl.push_back(NeutronSCL::instance()->getCoherentSL(it->first));
+    std::map<std::string,double>::const_iterator itmsd = msdmap.find(it->first);
+    if(itmsd == msdmap.end())
     {
-      atomic_pos.push_back(it->second);
-      csl.push_back(NeutronSCL::instance()->getCoherentSL(it->first));
-      std::map<std::string,double>::const_iterator itmsd = msdmap.find(it->first);
-      if(itmsd == msdmap.end())
-        {
-          NCRYSTAL_THROW2(BadInput,"Input mean squared displacement does not contain data for element " << it->first);
-        }
-      else
-        msd.push_back(itmsd->second);
+      NCRYSTAL_THROW2(BadInput,"Input mean squared displacement does not contain data for element " << it->first);
     }
+    else
+      msd.push_back(itmsd->second);
+  }
 
   const double tolerance=1e-6;//tolerance for Fsquare & dspacing comparisons when composing hkl families
 
@@ -409,8 +380,9 @@ void NCrystal::NCMatLoader::fillHKL( NCrystal::Info &info,  const std::map<std::
   //comments):
   std::vector<double> whkl_thresholds;
   whkl_thresholds.reserve(csl.size());
-  for (size_t i = 0; i<csl.size(); ++i)
+  for (size_t i = 0; i<csl.size(); ++i) {
     whkl_thresholds.push_back(std::log(ncabs(csl.at(i)) / 1e-5 ) );
+  }
 
   //We now conduct a brute-force loop over h,k,l indices, adding calculating
   //info in the following containers along the way:
@@ -456,23 +428,21 @@ void NCrystal::NCMatLoader::fillHKL( NCrystal::Info &info,  const std::map<std::
 
         //calculate |F|^2
         double real=0., img=0.;
-        for(unsigned i=0;i<whkl.size();i++)
-          {
-            if ( whkl[i] > whkl_thresholds[i])
-              continue;//This is the same as calculating the factor and
-                       //requiring factor>1e-5 [and note that O(1e-5) here
-                       //corresponds to O(1e-10) contributions to final FSquared
-                       //- for which we demand >1e-5 below]. Aborting early
-                       //saves expensive exp/cos/sin calls.
-            double factor = csl[i]*exp(-whkl[i]);
-            std::vector<Vector>::const_iterator itAtomPos(atomic_pos[i].begin()), itAtomPosEnd(atomic_pos[i].end());
-            for(;itAtomPos!=itAtomPosEnd;++itAtomPos)
-              {
-                double phase=hkl.dot(*itAtomPos)*(2.0*M_PI);
-                real += cos(phase)*factor;
-                img += sin(phase)*factor;
-              }
+        for(unsigned i=0;i<whkl.size();i++) {
+          if ( whkl[i] > whkl_thresholds[i])
+            continue;//This is the same as calculating the factor and
+                     //requiring factor>1e-5 [and note that O(1e-5) here
+                     //corresponds to O(1e-10) contributions to final FSquared
+                     //- for which we demand >1e-5 below]. Aborting early
+                     //saves expensive exp/cos/sin calls.
+          double factor = csl[i]*exp(-whkl[i]);
+          std::vector<Vector>::const_iterator itAtomPos(atomic_pos[i].begin()), itAtomPosEnd(atomic_pos[i].end());
+          for(;itAtomPos!=itAtomPosEnd;++itAtomPos) {
+            double phase=hkl.dot(*itAtomPos)*(2.0*M_PI);
+            real += cos(phase)*factor;
+            img += sin(phase)*factor;
           }
+        }
         double FSquared = (real*real+img*img);
 
         //skip weak or impossible reflections:
@@ -489,7 +459,7 @@ void NCrystal::NCMatLoader::fillHKL( NCrystal::Info &info,  const std::map<std::
           nc_assert(itSearch->second<hkllist.size());
           HKLInfo * hklinfo = &hkllist[itSearch->second];
           if ( ncabs(FSquared-hklinfo->fsquared) < tolerance*(FSquared+hklinfo->fsquared )
-               && ncabs(dspacing-hklinfo->dspacing) < tolerance*(dspacing+hklinfo->dspacing ) )
+              && ncabs(dspacing-hklinfo->dspacing) < tolerance*(dspacing+hklinfo->dspacing ) )
             {
               //Compatible with existing family, simply add normals to it.
               hklinfo->demi_normals.push_back(HKLInfo::Normal(waveVector.x(),waveVector.y(),waveVector.z()));
@@ -532,18 +502,16 @@ void NCrystal::NCMatLoader::fillHKL( NCrystal::Info &info,  const std::map<std::
 
   //update HKLlist and copy to info
   HKLList::iterator itHKL, itHKLB(hkllist.begin()), itHKLE(hkllist.end());
-  for(itHKL=itHKLB;itHKL!=itHKLE;++itHKL)
-    {
-      unsigned deminorm_size = itHKL->demi_normals.size();
-      itHKL->multiplicity=deminorm_size*2;
-      if(expandhkl)
-        {
-          std::vector<short>& eh = eqv_hkl_short.at(itHKL-itHKLB);
-          itHKL->eqv_hkl = new short[deminorm_size*3];
-          std::copy(eh.begin(), eh.end(), itHKL->eqv_hkl);
-        }
-      info.addHKL(*itHKL);
+  for(itHKL=itHKLB;itHKL!=itHKLE;++itHKL) {
+    unsigned deminorm_size = itHKL->demi_normals.size();
+    itHKL->multiplicity=deminorm_size*2;
+    if(expandhkl) {
+      std::vector<short>& eh = eqv_hkl_short.at(itHKL-itHKLB);
+      itHKL->eqv_hkl = new short[deminorm_size*3];
+      std::copy(eh.begin(), eh.end(), itHKL->eqv_hkl);
     }
+    info.addHKL(*itHKL);
+  }
 }
 
 void NCrystal::NCMatLoader::getWhkl(std::vector<double>& out_whkl, const double ksq, const std::vector<double> & msd) const

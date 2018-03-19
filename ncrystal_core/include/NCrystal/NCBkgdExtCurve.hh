@@ -1,5 +1,5 @@
-#ifndef NCrystal_SimpleBkgd_hh
-#define NCrystal_SimpleBkgd_hh
+#ifndef NCrystal_BkgdExtCurve_hh
+#define NCrystal_BkgdExtCurve_hh
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
@@ -21,41 +21,29 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCNonOrientedScatter.hh"
+#include "NCrystal/NCScatterXSCurve.hh"
 
 namespace NCrystal {
 
   class Info;
 
-  class SimpleBkgd : public NonOrientedScatter {
+  class BkgdExtCurve : public ScatterXSCurve {
   public:
 
-    //Calculates non-Bragg scattering in a crystal, based on the XSectProvider
-    //info (using xsectScatNonBragg()) info in the passed Info object.
+    //Calculates background (non-Bragg) scattering in a crystal, based on
+    //external functions for calculating cross-sections, using the XSectProvider
+    //section in the passed Info object.
     //
-    //Scatter angles will be isotropic.
-    //
-    //As accurate energy transfer information is unavailable, it will, depending
-    //on the flag passed in the constructor, either be approximated as always 0,
-    //or as always completely thermalising immediately according to the
-    //temperature of the crystal (requires temperature info availability).
+    //The parameter thermalise is passed on to the ScatterXSCurve base class and
+    //determines how energy transfers are modelled when generating scatterings.
 
-    //Constructor (getName() afterwards returns "SimpleBkgdT" if thermalise==true, else "SimpleBkgdE")
-    SimpleBkgd(const Info*, bool thermalise = true );
+    BkgdExtCurve(const Info*, bool thermalise = true );
 
     virtual double crossSectionNonOriented(double ekin) const;
 
-    virtual void generateScatteringNonOriented( double ekin_wavelength_aangstrom,
-                                                double& angle_radians, double& delta_ekin_eV ) const;
-
-    virtual void generateScattering( double ekin, const double (&neutron_direction)[3],
-                                     double (&resulting_neutron_direction)[3], double& delta_ekin_eV ) const;
-
   protected:
-    virtual ~SimpleBkgd();
+    virtual ~BkgdExtCurve();
     const Info* m_ci;
-    double m_tempk;
-    double calcDeltaE(double) const;
   };
 }
 
