@@ -1,5 +1,25 @@
 v0.9.8 2018-03-19
-      * <Still needs writing>
+      * Decouple PhononDebye background cross-section code from .ncmat format,
+        making it the new default also for .nxs files. For .nxs files, it is
+        still possible to select the old behaviour of using curves provided by
+        nxslib itself by configuring those files with "bkgd=external".  A side
+        benefit of this splitout can in some cases result in significant faster
+        initialisation times when working with .ncmat files.
+      * Major cleanup and renaming of configuration variables, in preparation of
+        the 1.0.0 release milestone. The renames are: "mosaicity"->"mos",
+        "orientationprimary"->"dir1, "orientationsecondary"->"dir2",
+        "orientationtolerance"->"dirtol", "packingfactor"->"packfact",
+        "dcutoffupper"->"dcutoffup", "scatterbkgdmodel"->"bkgd",
+        scatterfactory"->"scatfactory, absorptionfactory->absnfactory and
+        "skippbragg" becomes "bragg" but with opposite logic, e.g. bragg=0
+        disables Bragg diffraction). Removed entirely was the variables
+        braggonly (use "bkgd=none" or "bkgd=0" instead now) and
+        "nphonon". Experts can now instead tune parameters for specific
+        background models by embedding them in the "bkgd" parameter value
+        itself, e.g. "bkgd=phonondebye:nphonon@20".
+      * dirtol (old orientationtolerance) default changed to 180 degrees.
+      * Temporarily disable single-crystal speedup code while we investigate
+        further, due to concerns that it is too aggresive (see github issue #13).
 
 v0.9.7 2018-03-06
       * Don't produce floating point exception when loading .ncmat files with H,
