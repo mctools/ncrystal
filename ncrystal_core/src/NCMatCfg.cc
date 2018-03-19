@@ -995,7 +995,7 @@ double NCrystal::MatCfg::get_dcutoffup() const { return m_impl->getVal<Impl::Val
 double NCrystal::MatCfg::get_packfact() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_packfact,1.0); }
 double NCrystal::MatCfg::get_mos() const { return m_impl->getValNoFallback<Impl::ValDbl>(Impl::PAR_mos); }
 bool NCrystal::MatCfg::get_expandhkl() const { return m_impl->getVal<Impl::ValBool>(Impl::PAR_expandhkl,false); }
-double NCrystal::MatCfg::get_dirtol() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_dirtol,M_PI); }
+double NCrystal::MatCfg::get_dirtol() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_dirtol,1e-4); }
 bool NCrystal::MatCfg::get_bragg() const { return m_impl->getVal<Impl::ValBool>(Impl::PAR_bragg,true); }
 const std::string& NCrystal::MatCfg::get_bkgd() const { return m_impl->getVal<Impl::ValStr>(Impl::PAR_bkgd,s_matcfg_str_best); }
 const std::string& NCrystal::MatCfg::get_overridefileext() const { return m_impl->getVal<Impl::ValStr>(Impl::PAR_overridefileext,s_matcfg_str_empty); }

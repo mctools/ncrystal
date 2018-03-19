@@ -17,7 +17,6 @@ v0.9.8 2018-03-19
         "nphonon". Experts can now instead tune parameters for specific
         background models by embedding them in the "bkgd" parameter value
         itself, e.g. "bkgd=phonondebye:nphonon@20".
-      * dirtol (old orientationtolerance) default changed to 180 degrees.
       * Temporarily disable single-crystal speedup code while we investigate
         further, due to concerns that it is too aggresive (see github issue #13).
 
