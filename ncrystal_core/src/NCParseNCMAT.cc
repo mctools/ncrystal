@@ -55,29 +55,34 @@ NCrystal::NCMATParser::NCMATParser(const char* fn)
       std::streampos oldpos;
       while(infile >> tmpstr)
       {
+        //#TODO for NC2. The code was using atof instead of the safer str2dbl. After the migration, it now barfs on input data like:
+        //@CELL
+        //  lengths 4.06869 4.06869 4.06869#Some comment here
+        //When "4.06869#Some" is fed to str2dbl. We need to rewrite this whole class for much more sane parsing!
+
         if (tmpstr=="lengths")
         {
           infile >> tmpstr;
-          a =  atof(tmpstr.c_str());
+          a =  str2dbl(tmpstr.c_str());
           m_a=a;
           infile >> tmpstr;
-          b =  atof(tmpstr.c_str());
+          b =  str2dbl(tmpstr.c_str());
           m_b=b;
           infile >> tmpstr;
-          c =  atof(tmpstr.c_str());
+          c =  str2dbl(tmpstr.c_str());
           m_c=c;
           hasLen=true;
         }
         else if (tmpstr=="angles")
         {
           infile >> tmpstr;
-          alpha =  atof(tmpstr.c_str());
+          alpha =  str2dbl(tmpstr.c_str());
           m_alpha=alpha;
           infile >> tmpstr;
-          beta =  atof(tmpstr.c_str());
+          beta =  str2dbl(tmpstr.c_str());
           m_beta=beta;
           infile >> tmpstr;
-          gamma =  atof(tmpstr.c_str());
+          gamma =  str2dbl(tmpstr.c_str());
           m_gamma=gamma;
           hasAng=true;
         }
@@ -110,11 +115,11 @@ NCrystal::NCMATParser::NCMATParser(const char* fn)
         {
           std::string ele = tmpstr;
           infile >> tmpstr;
-          double px =  atof(tmpstr.c_str());
+          double px =  str2dbl(tmpstr.c_str());
           infile >> tmpstr;
-          double py =  atof(tmpstr.c_str());
+          double py =  str2dbl(tmpstr.c_str());
           infile >> tmpstr;
-          double pz =  atof(tmpstr.c_str());
+          double pz =  str2dbl(tmpstr.c_str());
 
           Vector pos(px,py,pz);
           //pos.print();
@@ -147,7 +152,7 @@ NCrystal::NCMATParser::NCMATParser(const char* fn)
         }
         else if (tmpstr[0]!='#')
         {
-          m_sg = atoi(tmpstr.c_str());
+          m_sg = str2int(tmpstr.c_str());
         }
       }
     }
@@ -167,12 +172,12 @@ NCrystal::NCMATParser::NCMATParser(const char* fn)
         else
         {
           if (std::isdigit (tmpstr[0]) )
-            m_debye_temp = atof(tmpstr.c_str());
+            m_debye_temp = str2dbl(tmpstr.c_str());
           else
           {
             std::string element = tmpstr;
             infile >> tmpstr ;
-            m_debye_map[element] =  atof(tmpstr.c_str());
+            m_debye_map[element] =  str2dbl(tmpstr.c_str());
           }
         }
 
