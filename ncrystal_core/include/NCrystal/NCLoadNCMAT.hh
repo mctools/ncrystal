@@ -1,3 +1,6 @@
+#ifndef NCrystal_LoadNCMAT_hh
+#define NCrystal_LoadNCMAT_hh
+
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
@@ -18,58 +21,26 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCRandom.hh"
-#include <cstdio>
+#include "NCrystal/NCInfo.hh"
 #include <limits>
 
 namespace NCrystal {
-  static RCHolder<RandomBase> s_default_randgen;
+
+  // Read .ncmat file and return a corresponding NCrystal::Info object from it
+  // (it will have a reference count of 0 when returned).
+  //
+  // Parameters "temp", "dcutoff" and "dcutoffup" have the same meaning as the
+  // corresponding parameters described in NCMatCfg.hh. The "expandhkl"
+  // parameter can be used to request  that lists of equivalent HKL planes be
+  // created.
+
+  const Info * loadNCMAT( const char * ncmat_file,
+                          double temp = 293.15,//kelvin
+                          double dcutoff = 0.0,//angstrom
+                          double dcutoffup = std::numeric_limits<double>::infinity(),//angstrom
+                          bool expandhkl = false );
+
+
 }
 
-NCrystal::RandomBase::RandomBase()
-{
-}
-
-NCrystal::RandomBase::~RandomBase()
-{
-}
-
-void NCrystal::setDefaultRandomGenerator(RandomBase* rg)
-{
-  s_default_randgen = rg;
-}
-
-NCrystal::RandomBase * NCrystal::defaultRandomGenerator(bool trigger_default)
-{
-  if (!s_default_randgen.obj()) {
-    if (!trigger_default)
-      return 0;
-    printf("NCrystal WARNING: No default random generator supplied so will"
-           " use the scientifically unsound NCrystal::RandomSimple.\n");
-    s_default_randgen = new RandomSimple;
-  }
-  return s_default_randgen.obj();
-}
-
-//RandomSimple implements a very simple multiply-with-carry rand gen
-//(http://en.wikipedia.org/wiki/Random_number_generation)
-
-//TODO for NC2 and C++11: use MT from standard lib and remove warning (but should we allow seeding from c interface?)
-
-NCrystal::RandomSimple::RandomSimple()
-  : m_w(117),/* must not be zero, nor 0x464fffff */
-    m_z(11713)/* must not be zero, nor 0x9068ffff */
-{
-}
-
-NCrystal::RandomSimple::~RandomSimple()
-{
-}
-
-double NCrystal::RandomSimple::generate()
-{
-  m_w = 18000 * (m_w & 65535) + (m_w >> 16);
-  m_z = 36969 * (m_z & 65535) + (m_z >> 16);
-  double r = double((m_z << 16) + m_w)/double((std::numeric_limits<uint32_t>::max)());  /* 32-bit result */
-  return r == 1.0 ? generate() : r;
-}
+#endif

@@ -21,13 +21,13 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCNonOrientedScatter.hh"
+#include "NCrystal/NCScatterIsotropic.hh"
 
 namespace NCrystal {
 
   class Info;
 
-  class ScatterXSCurve : public NonOrientedScatter {
+  class ScatterXSCurve : public ScatterIsotropic {
   public:
 
     //Scatter base class for models which provides only cross-sections and no

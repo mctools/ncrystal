@@ -1,3 +1,25 @@
+v0.9.9 2018-03-26
+      * Expose loadNCMAT function to client C++ code, making it possible to work
+        with .ncmat files completely independent from the factory
+        infrastructure.
+      * Cleanup internal .ncmat loading code, splitting out fillHKL to a new
+        utility file and renaming old loader code to be purely a parser.
+      * Allow Wyckoff positions and mean-squared-displacement parameters on
+        NCInfo.
+      * Rename standard factories to stdnxs, stdncmat, stdlaz, stdscat and
+        stdabs respectively.
+      * Allow factory-specific parameters to be passed along to info
+        factories. Thus, expandhkl which was until now a global NCMatCfg
+        parameter, is now a parameter specific to the stdncmat factory.  The
+        stdnxs factory gets two flags: mcstaslike and fixpolyatom. The former
+        makes nxs-provided bkgd curves use same composition as in the McStas nxs
+        component (the default is to compose as in NXSG4).
+      * Remove polyatom fix in wrapped nxslib code, so bkgd=external xs curves
+        for .nxs files are now completely as in NXSG4, apart from the fact that
+        our version contains fixes for crashes (reported upstream).
+      * Rename NonOrientedScatter to IsotropicScatter.
+      * Fix compilation error under some compilers in NCRCBase.hh.
+
 v0.9.8 2018-03-19
       * Decouple PhononDebye background cross-section code from .ncmat format,
         making it the new default also for .nxs files. For .nxs files, it is
@@ -7,12 +29,12 @@ v0.9.8 2018-03-19
         initialisation times when working with .ncmat files.
       * Major cleanup and renaming of configuration variables, in preparation of
         the 1.0.0 release milestone. The renames are: "mosaicity"->"mos",
-        "orientationprimary"->"dir1, "orientationsecondary"->"dir2",
+        "orientationprimary"->"dir1", "orientationsecondary"->"dir2",
         "orientationtolerance"->"dirtol", "packingfactor"->"packfact",
         "dcutoffupper"->"dcutoffup", "scatterbkgdmodel"->"bkgd",
-        scatterfactory"->"scatfactory, absorptionfactory->absnfactory and
-        "skippbragg" becomes "bragg" but with opposite logic, e.g. bragg=0
-        disables Bragg diffraction). Removed entirely was the variables
+        "scatterfactory"->"scatfactory, "absorptionfactory"->"absnfactory" and
+        "skippbragg" becomes "bragg" but with opposite logic, e.g. "bragg=0"
+        disables Bragg diffraction. Removed entirely was the variables
         braggonly (use "bkgd=none" or "bkgd=0" instead now) and
         "nphonon". Experts can now instead tune parameters for specific
         background models by embedding them in the "bkgd" parameter value

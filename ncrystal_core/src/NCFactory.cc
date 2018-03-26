@@ -122,7 +122,7 @@ const NCrystal::Info * NCrystal::createInfo( const NCrystal::MatCfg& cfg )
   FactoryList& facts = getFactories();//Access factories
   std::map<int,const FactoryBase*> avail;
   const FactoryBase* chosen = 0;
-  std::string specific = cfg.get_infofactory();
+  std::string specific = cfg.get_infofact_name();
   if (s_debug_factory && !specific.empty())
     std::cout<<"NCrystal::Factory::createInfo - cfg.infofactory=\""<<specific<<"\" so will search for that."<<std::endl;
 
@@ -190,7 +190,7 @@ const NCrystal::Info * NCrystal::createInfo( const NCrystal::MatCfg& cfg )
   //createInfo:
   static std::set<std::string> allowed_info_pars
 #if __cplusplus >= 201103L
-    = { "temp", "dcutoff", "dcutoffup", "overridefileext", "expandhkl" };
+    = { "temp", "dcutoff", "dcutoffup", "overridefileext", "infofactory" };
 #else
   ;
   if (allowed_info_pars.empty()) {
@@ -198,7 +198,7 @@ const NCrystal::Info * NCrystal::createInfo( const NCrystal::MatCfg& cfg )
     allowed_info_pars.insert("dcutoff");
     allowed_info_pars.insert("dcutoffup");
     allowed_info_pars.insert("overridefileext");
-    allowed_info_pars.insert("expandhkl");
+    allowed_info_pars.insert("infofactory");
   }
 #endif
   std::set<std::string>::const_iterator it = spy.parnames.begin();
@@ -223,10 +223,6 @@ const NCrystal::Info * NCrystal::createInfo( const NCrystal::MatCfg& cfg )
          info.obj()->hklDUpper() > cfg.get_dcutoffup() )
       NCRYSTAL_THROW2(LogicError,"Factory \""<<chosen->getName()
                       <<"\" did not respect dcutoff setting.");
-
-    if ( info.obj()->hasExpandedHKLInfo() && !cfg.get_expandhkl() )
-      NCRYSTAL_THROW2(LogicError,"Factory \""<<chosen->getName()
-                      <<"\" did not respect expandhkl setting.");
   }
 
   if (s_info_cache_enabled) {

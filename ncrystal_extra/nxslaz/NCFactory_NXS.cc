@@ -30,7 +30,8 @@
 #include <iostream>
 
 namespace NCrystal {
-  void initNXS(nxs::NXS_UnitCell* uc, const char * nxs_file, double temperature_kelvin, unsigned maxhkl)
+  void initNXS(nxs::NXS_UnitCell* uc, const char * nxs_file, double temperature_kelvin, unsigned maxhkl,
+               bool fixpolyatom )
   {
     const char * old_SgError = nxs::SgError;
     nxs::SgError = 0;
@@ -54,7 +55,7 @@ namespace NCrystal {
     free(atomInfoList);
     atomInfoList = 0;
     uc->maxHKL_index = maxhkl;
-    const int fix_incoh_xs = 1;
+    int fix_incoh_xs = ( fixpolyatom ? 1 : 0 );
     nxs::nxs_initHKL( uc, fix_incoh_xs );
     if (nxs::SgError) {
       nxs::SgError = old_SgError;
@@ -85,7 +86,9 @@ namespace NCrystal {
   }
 
   struct XSectProvider_NXS : public XSectProvider {
-    XSectProvider_NXS() {
+    XSectProvider_NXS(bool bkgdlikemcstas)
+      : m_bkgdlikemcstas(bkgdlikemcstas)
+    {
       std::memset(&nxs_uc,0,sizeof(nxs_uc));
     }
     virtual double xsectScatNonBragg(const double& lambda) const;
@@ -94,27 +97,43 @@ namespace NCrystal {
       deinitNXS(&nxs_uc);
     }
     nxs::NXS_UnitCell nxs_uc;
+  private:
+    bool m_bkgdlikemcstas;
   };
 }
 
 double NCrystal::XSectProvider_NXS::xsectScatNonBragg(const double& lambda) const
 {
-  return ( nxs::nxs_SinglePhonon(lambda, const_cast<nxs::NXS_UnitCell*>(&nxs_uc) )
-           + nxs::nxs_MultiPhonon_COMBINED(lambda, const_cast<nxs::NXS_UnitCell*>(&nxs_uc) )
-           + nxs::nxs_IncoherentElastic(lambda, const_cast<nxs::NXS_UnitCell*>(&nxs_uc) ) ) / nxs_uc.nAtoms;
+
+  nxs::NXS_UnitCell* ucpar = const_cast<nxs::NXS_UnitCell*>(&nxs_uc);
+  double xsect_cell;
+  if ( m_bkgdlikemcstas )
+    xsect_cell = ( nxs::nxs_IncoherentElastic(lambda, ucpar )
+                   + nxs::nxs_IncoherentInelastic(lambda, ucpar )
+                   + nxs::nxs_CoherentInelastic(lambda, ucpar ) );
+  else
+    xsect_cell = ( nxs::nxs_SinglePhonon(lambda, ucpar )
+                   + nxs::nxs_MultiPhonon_COMBINED(lambda, ucpar )
+                   + nxs::nxs_IncoherentElastic(lambda, ucpar ) );
+  return xsect_cell > 0.0 ? xsect_cell / nxs_uc.nAtoms : 0.0;//protect against negative numbers and NaNs propagating from nxslib code.
 }
 
 const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
                                                  double temperature_kelvin,
                                                  double dcutoff_lower_aa,
-                                                 double dcutoff_upper_aa )
+                                                 double dcutoff_upper_aa,
+                                                 bool bkgdlikemcstas,
+                                                 bool fixpolyatom )
 {
   const bool verbose = (std::getenv("NCRYSTAL_DEBUGINFO") ? true : false);
   if (verbose)
     std::cout<<"NCrystal::NCNXSFactory::invoked loadNXSCrystal("<< nxs_file
              <<", temp="<<temperature_kelvin
              <<", dcutoff="<<dcutoff_lower_aa
-             <<", dcutoffup="<<dcutoff_upper_aa<<std::endl;
+             <<", dcutoffup="<<dcutoff_upper_aa
+             <<", bkgdlikemcstas="<<bkgdlikemcstas
+             <<", fixpolyatom="<<fixpolyatom
+             <<")"<<std::endl;
 
   ///////////////////////////////
   // Create CrystalInfo object //
@@ -127,7 +146,7 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
   // Load and init NXS info (twice to figure out adequate maxhkl) //
   //////////////////////////////////////////////////////////////////
 
-  XSectProvider_NXS * xsect_provider = new XSectProvider_NXS;
+  XSectProvider_NXS * xsect_provider = new XSectProvider_NXS(bkgdlikemcstas);
   crystal->setXSectProvider(xsect_provider);//register immediately for proper memory cleanup in case of errors
   nxs::NXS_UnitCell& nxs_uc = xsect_provider->nxs_uc;
 
@@ -138,7 +157,7 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
   int maxhkl = 1;
   if (verbose)
     std::cout<<"NCrystal::NCNXSFactory::calling nxslib initHKL with maxhkl="<<maxhkl<<" (to init non-hkl info)"<<std::endl;
-  initNXS(&nxs_uc, nxs_file, temperature_kelvin, 1);
+  initNXS(&nxs_uc, nxs_file, temperature_kelvin, 1, fixpolyatom);
 
   const bool enable_hkl(dcutoff_lower_aa!=-1);
   if (enable_hkl) {
@@ -147,7 +166,7 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
 
     if (dcutoff_lower_aa==0) {
       //have to determine appropriate dcutoff for this crystal. Aim for
-      //maxhkl=12, but not outside [0.1,0.5].
+      //maxhkl=20, but not outside [0.1,0.5].
       dcutoff_lower_aa = ncmax( 0.1, ncmin( 0.5, estimateDCutoff( 20, rec_lat ) ));
       std::string cmt;
       if (dcutoff_lower_aa>=dcutoff_upper_aa) {
@@ -169,7 +188,7 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
     if (verbose)
       std::cout<<"NCrystal::NCNXSFactory::calling nxslib initHKL with maxhkl="<<maxhkl
                <<" (for all info including hkl)"<<std::endl;
-    initNXS(&nxs_uc, nxs_file, temperature_kelvin, maxhkl);
+    initNXS(&nxs_uc, nxs_file, temperature_kelvin, maxhkl, fixpolyatom );
   }
 
   //////////////////////

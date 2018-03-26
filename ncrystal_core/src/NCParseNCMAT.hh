@@ -1,5 +1,5 @@
-#ifndef NCrystal_NCMatLoader_hh
-#define NCrystal_NCMatLoader_hh
+#ifndef NCrystal_ParseNCMAT_hh
+#define NCrystal_ParseNCMAT_hh
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
@@ -21,49 +21,45 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+#include "NCVector.hh"
 #include <map>
 #include <string>
 #include <vector>
 #include <fstream>
-#include "NCRotMatrix.hh"
 
 namespace NCrystal {
 
   class Vector;
   class Info;
 
-  class NCMatLoader {
+  class NCMATParser {
   public:
-    struct Lattice {
-      RotMatrix cell;
-      RotMatrix reciprocal;//2pi times cell.inv()
-      std::map<std::string, std::vector<Vector> > atomic_pos;
-    };
 
-    NCMatLoader(const char* fn);
-    ~NCMatLoader();
-    std::map<std::string, unsigned> getAtomMap();
-    void fillHKL(Info &info,  const std::map<std::string, double>& msdmap, double min_ds, double max_ds, bool expandhkl) const;
-    void getWhkl(std::vector<double>& result, const double ksq, const std::vector<double> & msd) const;
+    //Parse .ncmat files.
 
-    //get
-    double getDebyeTemp() const;
-    const std::map<std::string, double>& getDebyeMap() const;
+    //TODO for NC2: Needs update to be more robust, to support new data fields
+    //and to optionally parse in-mem strings as well as files (to optionally
+    //hardcode .ncmat contents in data files).
+
+    NCMATParser(const char* fn);
+    ~NCMATParser();
+
+    std::map<std::string, unsigned> getAtomMap();//elementname -> number/cell
+    double getDebyeTemp() const;//global debye temp
+    const std::map<std::string, double>& getDebyeMap() const;//elementname -> per element debye temp
+    const std::map<std::string, std::vector<Vector>  >& getAtomicPosMap() const;//elementname -> wyckoff positions
     unsigned getAtomPerCell () const;
     unsigned getSpacegroupNum() const;
-    const Lattice& getLattice() const;
     void getLatticeParameters(double &a, double &b, double &c, double &alpha, double &beta, double &gamma) const;
-    std::string m_version;
 
   private:
+    std::string m_version;
     double m_debye_temp;
     std::map<std::string, double> m_debye_map;
     double m_a,m_b,m_c, m_alpha,m_beta,m_gamma;
     unsigned m_atomnum;
     unsigned m_sg;
-    Lattice m_lattice;
-
-
+    std::map<std::string, std::vector<Vector> > m_atomic_pos;
   };
 }
 
@@ -73,12 +69,12 @@ namespace NCrystal {
 ////////////////////////////
 
 namespace NCrystal {
-  inline double NCMatLoader::getDebyeTemp() const {return m_debye_temp;}
-  inline const std::map<std::string, double>& NCMatLoader::getDebyeMap() const {return m_debye_map;}
-  inline unsigned NCMatLoader::getAtomPerCell () const  {return m_atomnum;}
-  inline unsigned NCMatLoader::getSpacegroupNum() const { return m_sg;}
-  inline const NCMatLoader::Lattice& NCMatLoader::getLattice() const { return m_lattice; }
-  inline void NCMatLoader::getLatticeParameters(double &a, double &b, double &c, double &alpha, double &beta, double &gamma) const
+  inline double NCMATParser::getDebyeTemp() const {return m_debye_temp;}
+  inline const std::map<std::string, double>& NCMATParser::getDebyeMap() const {return m_debye_map;}
+  inline const std::map<std::string, std::vector<Vector>  >& NCMATParser::getAtomicPosMap() const { return m_atomic_pos; }
+  inline unsigned NCMATParser::getAtomPerCell () const  {return m_atomnum;}
+  inline unsigned NCMATParser::getSpacegroupNum() const { return m_sg;}
+  inline void NCMATParser::getLatticeParameters(double &a, double &b, double &c, double &alpha, double &beta, double &gamma) const
   {a=m_a; b=m_b; c=m_c; alpha=m_alpha; beta=m_beta; gamma=m_gamma;  }
 }
 

@@ -1,3 +1,6 @@
+#ifndef NCrystal_FillHKL_hh
+#define NCrystal_FillHKL_hh
+
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
@@ -18,58 +21,37 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCRandom.hh"
-#include <cstdio>
+#include "NCrystal/NCInfo.hh"
 #include <limits>
 
 namespace NCrystal {
-  static RCHolder<RandomBase> s_default_randgen;
+
+  //Helper function which finds all (h,k,l) planes and calculates their
+  //d-spacings and structure factors (fsquared). The first input must be an Info
+  //object which already has StructureInfo and AtomInfo (with
+  //mean-squared-displacement and wyckoff positions) added. This helper function
+  //will then calculate and add the HKL info, so HKL must not yet have been
+  //enabled on the passed Info object.
+  //
+  //Several parameters can be used to fine-tune the behaviour:
+  //
+  // dcutoff   : Same meaning as in NCMatCfg.hh, but must be specified as a finite
+  //             (non-zero) value, since it affects the hkl range searched.
+  // dcutoffup : Same meaning as in NCMatCfg.hh.
+  // expandhkl : Request that lists of equivalent HKL planes be created in Info
+  //             objects.
+  // fsquarecut : A cutoff value in barn. HKL reflections with contribution
+  //              below this will be skipped (used to skip weak and impossible
+  //              reflections).
+  // merge_tolerance : Tolerance for Fsquare & dspacing comparisons when
+  //                   composing hkl families.
+  void fillHKL( Info &info,
+                double dcutoff = 0.5,//angstrom
+                double dcutoffup = std::numeric_limits<double>::infinity(),//angstrom
+                bool expandhkl = false,
+                double fsquarecut = 1e-5,//barn
+                double merge_tolerance = 1e-6 );
+
 }
 
-NCrystal::RandomBase::RandomBase()
-{
-}
-
-NCrystal::RandomBase::~RandomBase()
-{
-}
-
-void NCrystal::setDefaultRandomGenerator(RandomBase* rg)
-{
-  s_default_randgen = rg;
-}
-
-NCrystal::RandomBase * NCrystal::defaultRandomGenerator(bool trigger_default)
-{
-  if (!s_default_randgen.obj()) {
-    if (!trigger_default)
-      return 0;
-    printf("NCrystal WARNING: No default random generator supplied so will"
-           " use the scientifically unsound NCrystal::RandomSimple.\n");
-    s_default_randgen = new RandomSimple;
-  }
-  return s_default_randgen.obj();
-}
-
-//RandomSimple implements a very simple multiply-with-carry rand gen
-//(http://en.wikipedia.org/wiki/Random_number_generation)
-
-//TODO for NC2 and C++11: use MT from standard lib and remove warning (but should we allow seeding from c interface?)
-
-NCrystal::RandomSimple::RandomSimple()
-  : m_w(117),/* must not be zero, nor 0x464fffff */
-    m_z(11713)/* must not be zero, nor 0x9068ffff */
-{
-}
-
-NCrystal::RandomSimple::~RandomSimple()
-{
-}
-
-double NCrystal::RandomSimple::generate()
-{
-  m_w = 18000 * (m_w & 65535) + (m_w >> 16);
-  m_z = 36969 * (m_z & 65535) + (m_z >> 16);
-  double r = double((m_z << 16) + m_w)/double((std::numeric_limits<uint32_t>::max)());  /* 32-bit result */
-  return r == 1.0 ? generate() : r;
-}
+#endif

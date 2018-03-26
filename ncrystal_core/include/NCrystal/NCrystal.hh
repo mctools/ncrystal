@@ -52,8 +52,8 @@
 #ifndef NCrystal_NCMatCfg_hh
 #  include "NCrystal/NCMatCfg.hh"
 #endif
-#ifndef NCrystal_NCNonOrientedScatter_hh
-#  include "NCrystal/NCNonOrientedScatter.hh"
+#ifndef NCrystal_NCScatterIsotropic_hh
+#  include "NCrystal/NCScatterIsotropic.hh"
 #endif
 #ifndef NCrystal_NCPCBragg_hh
 #  include "NCrystal/NCPCBragg.hh"
@@ -87,6 +87,9 @@
 #endif
 #ifndef NCrystal_BkgdExtCurve_hh
 #  include "NCrystal/NCBkgdExtCurve.hh"
+#endif
+#ifndef NCrystal_NCLoadNCMAT_hh
+#  include "NCrystal/NCLoadNCMAT.hh"
 #endif
 #ifndef NCrystal_NCVersion_hh
 #  include "NCrystal/NCVersion.hh"

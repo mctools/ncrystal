@@ -21,14 +21,14 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCNonOrientedScatter.hh"
+#include "NCrystal/NCScatterIsotropic.hh"
 #include <vector>
 
 namespace NCrystal {
 
   class Info;
 
-  class PCBragg : public NonOrientedScatter {
+  class PCBragg : public ScatterIsotropic {
   public:
 
     //Calculates Bragg diffraction in a polycrystalline/powdered material.

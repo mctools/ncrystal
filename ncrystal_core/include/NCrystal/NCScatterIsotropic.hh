@@ -1,5 +1,5 @@
-#ifndef NCrystal_NonOrientedScatter_hh
-#define NCrystal_NonOrientedScatter_hh
+#ifndef NCrystal_ScatterIsotropic_hh
+#define NCrystal_ScatterIsotropic_hh
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
@@ -35,10 +35,10 @@
 
 namespace NCrystal {
 
-  class NonOrientedScatter : public Scatter {
+  class ScatterIsotropic : public Scatter {
   public:
 
-    NonOrientedScatter(const char * calculator_type_name);
+    ScatterIsotropic(const char * calculator_type_name);
 
     //These two methods must be overriden in all derived classes:
     virtual double crossSectionNonOriented( double ekin ) const;
@@ -54,7 +54,7 @@ namespace NCrystal {
     virtual bool isOriented() const { return false; }
 
   protected:
-    virtual ~NonOrientedScatter();
+    virtual ~ScatterIsotropic();
   };
 
 }

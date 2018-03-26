@@ -22,6 +22,7 @@
 #include "NCrystal/NCException.hh"
 #include "NCMath.hh"
 #include <algorithm>//for std::stable_sort
+#include <set>//for std::stable_sort
 #include <cstring>//for memset, memcpy
 
 NCrystal::Info::Info()
@@ -140,7 +141,9 @@ void NCrystal::Info::objectDone()
   std::stable_sort(m_hkllist.begin(),m_hkllist.end(),dhkl_compare);
   std::stable_sort(m_atomlist.begin(),m_atomlist.end(),atominfo_compare);
 
-  //check that per-element debye temp is self-consistent (either all or none must have):
+  //check that per-element debye temp, positions and MSD's are consistently
+  //specified (either all or none must have):
+  std::set<unsigned> z_seen;
   AtomList::const_iterator itAtm(m_atomlist.begin()), itAtmE(m_atomlist.end());
   for (;itAtm!=itAtmE;++itAtm)
   {
@@ -149,6 +152,16 @@ void NCrystal::Info::objectDone()
       NCRYSTAL_THROW(LogicError,"Inconsistency: per-element Debye temperatures with invalid values encountered.");
     if ( bool(itAtm->debye_temp>0) != bool(m_atomlist.front().debye_temp>0) )
       NCRYSTAL_THROW(LogicError,"Inconsistency: per-element Debye temperatures specified for some but not all elements.");
+    if ( itAtm->positions.empty() != m_atomlist.front().positions.empty() )
+      NCRYSTAL_THROW(LogicError,"Inconsistency: positions specified for some but not all elements.");
+    if ( !itAtm->positions.empty() && itAtm->positions.size()!=itAtm->number_per_unit_cell)
+      NCRYSTAL_THROW(LogicError,"Inconsistency: inconsistency between length of positions vector and number_per_unit_cell");
+    if ( ! ( itAtm->mean_square_displacement >= 0.0 ) )//will catch NaN as well
+      NCRYSTAL_THROW(LogicError,"Inconsistency: mean_square_displacement must be >= 0.0 and not NaN");
+    if ( bool(itAtm->mean_square_displacement>0) != bool(m_atomlist.front().mean_square_displacement>0) )
+      NCRYSTAL_THROW(LogicError,"Inconsistency: mean_square_displacement specified for some but not all elements.");
+    if (z_seen.count(itAtm->atomic_number))
+      NCRYSTAL_THROW2(LogicError,"Inconsistency: AtomInfo for Z="<<itAtm->atomic_number<<" specified more than once");
   }
 
   //Check that hkl normal information is self-consistent:

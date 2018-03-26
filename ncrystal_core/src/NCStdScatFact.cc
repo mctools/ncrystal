@@ -35,7 +35,7 @@ namespace NCrystal {
 
   class NCStdScatFact : public FactoryBase {
   public:
-    const char * getName() const { return "NCrystalStdScatFactory"; }
+    const char * getName() const { return "stdscat"; }
 
     virtual int canCreateScatter( const MatCfg& cfg ) const {
       RCHolder<const Info> info;
@@ -190,6 +190,6 @@ namespace NCrystal {
 
 extern "C" void ncrystal_register_stdscat_factory()
 {
-  if (!NCrystal::hasFactory("NCrystalStdScatFactory"))
+  if (!NCrystal::hasFactory("stdscat"))
     NCrystal::registerFactory(new NCrystal::NCStdScatFact);
 }

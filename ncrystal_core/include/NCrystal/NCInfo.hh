@@ -42,9 +42,9 @@ namespace NCrystal {
 
   struct StructureInfo {
     unsigned spacegroup;//From 1-230 if provided, 0 if information not available
-    double lattice_a;//aangstrom
-    double lattice_b;//aangstrom
-    double lattice_c;//aangstrom
+    double lattice_a;//angstrom
+    double lattice_b;//angstrom
+    double lattice_c;//angstrom
     double alpha;//degree
     double beta;//degree
     double gamma;//degree
@@ -53,7 +53,7 @@ namespace NCrystal {
   };
 
   struct HKLInfo {
-    double dspacing;//aangstrom
+    double dspacing;//angstrom
     double fsquared;//barn
     int h;
     int k;
@@ -88,18 +88,24 @@ namespace NCrystal {
 
   struct AtomInfo {
     //TODO for NC2: More parameters capable of handling non-natural atoms
-    AtomInfo():atomic_number(0), number_per_unit_cell(0),debye_temp(0.) {}
+    AtomInfo() : atomic_number(0), number_per_unit_cell(0),debye_temp(0.),mean_square_displacement(0.) {}
     unsigned atomic_number;
     unsigned number_per_unit_cell;
     //per-element debye temperature (0.0 if not available, see hasPerElementDebyeTemperature() below):
     double debye_temp;
+    //Wyckoff positions (vector must be empty or have number_per_unit_cell
+    //entries):
+    struct Pos { Pos(double a, double b, double c) : x(a),y(b),z(c) {}; double x, y, z; };
+    std::vector<Pos> positions;
+    //Mean-square-displacements in angstrom (0.0 if not available):
+    double mean_square_displacement;
   };
 
   typedef std::vector<AtomInfo> AtomList;
 
   struct XSectProvider {
     //Provide non-Bragg scattering cross sections.
-    //Accept lambda in aangstrom and return x-sect in barn
+    //Accept lambda in angstrom and return x-sect in barn
     virtual double xsectScatNonBragg(const double& lambda) const = 0;
     virtual ~XSectProvider(){}
   };
@@ -145,19 +151,28 @@ namespace NCrystal {
     // Debye temperature [kelvin]  //
     /////////////////////////////////
 
+    //Global Debye temperature:
     bool hasDebyeTemperature() const;
     double getDebyeTemperature() const;
 
     //Whether AtomInfo objects have per-element Debye temperatures available:
     bool hasPerElementDebyeTemperature() const;
 
-    ///////////////////////
-    // Atoms Information //
-    ///////////////////////
+    //////////////////////
+    // Atom Information //
+    //////////////////////
 
     bool hasAtomInfo() const;
     AtomList::const_iterator atomInfoBegin() const;
     AtomList::const_iterator atomInfoEnd() const;
+
+    //Whether AtomInfo objects have Wyckoff positions available:
+    bool hasAtomPositions() const;
+
+    //Whether AtomInfo objects have mean-square-displacements available:
+    bool hasAtomMSD() const;
+
+    //See also hasPerElementDebyeTemperature() above.
 
     /////////////////////
     // HKL Information //
@@ -252,6 +267,8 @@ namespace NCrystal {
   inline double Info::getTemperature() const { nc_assert(hasTemperature()); return m_temp; }
   inline double Info::getDebyeTemperature() const { nc_assert(hasDebyeTemperature()); return m_debyetemp; }
   inline bool Info::hasPerElementDebyeTemperature() const { return hasAtomInfo() && m_atomlist.front().debye_temp > 0.0; }
+  inline bool Info::hasAtomPositions() const { return hasAtomInfo() && !m_atomlist.front().positions.empty(); }
+  inline bool Info::hasAtomMSD() const { return hasAtomInfo() && m_atomlist.front().mean_square_displacement>0.0; }
   inline bool Info::hasAtomInfo() const  { return !m_atomlist.empty(); }
   inline AtomList::const_iterator Info::atomInfoBegin() const { nc_assert(hasAtomInfo()); return m_atomlist.begin(); }
   inline AtomList::const_iterator Info::atomInfoEnd() const { nc_assert(hasAtomInfo()); return m_atomlist.end(); }

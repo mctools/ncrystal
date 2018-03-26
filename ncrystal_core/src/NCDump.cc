@@ -19,8 +19,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCDump.hh"
+#include "NCNeutronSCL.hh"
 #include "NCrystal/NCInfo.hh"
 #include <cstdio>
+#include <sstream>
 
 void NCrystal::dump(const NCrystal::Info*c)
 {
@@ -44,11 +46,31 @@ void NCrystal::dump(const NCrystal::Info*c)
       ntot += it->number_per_unit_cell;
     printf("Atoms per unit cell (total %i):\n",ntot);
     for (AtomList::const_iterator it = c->atomInfoBegin();it!=itE;++it) {
-      if (c->hasPerElementDebyeTemperature()) {
-        printf("     %i Z=%i atoms [T_Debye=%gK]\n",
-               it->number_per_unit_cell,it->atomic_number,it->debye_temp);
-      } else {
-        printf("     %i Z=%i atoms\n",it->number_per_unit_cell,it->atomic_number);
+      std::string elem_name = NeutronSCL::instance()->getAtomName(it->atomic_number);
+      std::ostringstream s;
+      s << "     "<<it->number_per_unit_cell<<" "<<elem_name<<" atoms";
+      if (c->hasPerElementDebyeTemperature()||c->hasAtomMSD()) {
+        s <<" [";
+        if (c->hasPerElementDebyeTemperature()) {
+          s <<"T_Debye="<<it->debye_temp<<"K";
+          if (c->hasAtomMSD())
+            s << ", ";
+        }
+        if (c->hasAtomMSD())
+          s <<"MSD="<<it->mean_square_displacement<<"Aa";
+        s<<"]";
+      }
+      printf("%s\n",s.str().c_str());
+    }
+    if (c->hasAtomPositions()) {
+      printf("%s", hr);
+      printf("Wyckoff positions:\n");
+      for (AtomList::const_iterator it = c->atomInfoBegin();it!=itE;++it) {
+        std::string elem_name = NeutronSCL::instance()->getAtomName(it->atomic_number);
+        std::vector<AtomInfo::Pos>::const_iterator itP(it->positions.begin()),itPE(it->positions.end());
+        for (;itP!=itPE;++itP) {
+          printf("     %3s   %10g   %10g   %10g\n",elem_name.c_str(),itP->x,itP->y,itP->z);
+        }
       }
     }
   }

@@ -26,7 +26,7 @@
 #include <algorithm>//std::upper_bound, std::lower_bound
 
 NCrystal::PCBragg::PCBragg(const Info*ci)
-  : NonOrientedScatter("PCBragg"),
+  : ScatterIsotropic("PCBragg"),
     m_threshold_wl(0.0),
     m_threshold_ekin(wl2ekin(0.0)),
     m_xsectfact(-1.0)

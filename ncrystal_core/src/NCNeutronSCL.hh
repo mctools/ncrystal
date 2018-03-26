@@ -65,6 +65,8 @@ namespace NCrystal {
     double getIncoherentSL(const std::string& element) const;
     double getCoherentSL(const std::string& element) const;
 
+    const std::string& getAtomName(unsigned z) const;
+
   private:
     NeutronSCL();
     ~NeutronSCL(){}
@@ -76,6 +78,7 @@ namespace NCrystal {
 
     //TODO for NC2: use Z as key and argument in all member functions
     DataMap m_natural_elements;
+    std::map<unsigned,std::string> m_z_to_elemname;
 
   };
 }

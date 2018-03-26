@@ -24,7 +24,7 @@
 #include "NCMath.hh"
 
 NCrystal::ScatterXSCurve::ScatterXSCurve(const Info* ci, const char * calcname, bool thermalise )
-  : NonOrientedScatter(calcname),
+  : ScatterIsotropic(calcname),
     m_ci(ci),
     m_tempk(0)
 {

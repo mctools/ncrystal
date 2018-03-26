@@ -161,11 +161,6 @@ namespace NCrystal {
     //               Like dcutoff, but representing an upper cutoff instead
     //               [ Recognised units: "Aa", "nm", "mm", "cm", "m" ]
     //
-    // expandhkl...: [ bool, fallback value is false ]
-    //               Request that lists of equivalent HKL planes be created in
-    //               Info objects, if the information is available (normal users
-    //               should not need this).
-    //
     // infofactory.: [ string, fallback value is "" ]
     //               By supplying the name of an NCrystal factory, this
     //               parameter can be used by experts to circumvent the usual
@@ -192,7 +187,6 @@ namespace NCrystal {
     void set_dcutoffup( double );
     void set_packfact( double );
     void set_mos( double );
-    void set_expandhkl( bool );
     void set_dirtol( double );
     void set_overridefileext( const std::string& );
     void set_bragg( bool );
@@ -232,11 +226,9 @@ namespace NCrystal {
     double get_dcutoffup() const;
     double get_packfact() const;
     double get_mos() const;
-    bool get_expandhkl() const;
     double get_dirtol() const;
     bool get_bragg() const;
     const std::string& get_overridefileext() const;
-    const std::string& get_infofactory() const;
     const std::string& get_scatfactory() const;
     const std::string& get_absnfactory() const;
 
@@ -246,14 +238,22 @@ namespace NCrystal {
     double get_bkgdopt_dbl(const std::string& name, double defval) const;
     int get_bkgdopt_int(const std::string& name, int defval) const;
 
+    //infofactory option decoded:
+    std::string get_infofact_name() const;
+    bool get_infofactopt_flag(const std::string& name) const;
+    double get_infofactopt_dbl(const std::string& name, double defval) const;
+    int get_infofactopt_int(const std::string& name, int defval) const;
+
     // Specialised getters for derived information:
     bool isSingleCrystal() const;//true if mosaicity or orientation parameters are set
     bool isPolyCrystal() const;//same as !isSingleCrystal()
     SCOrientation createSCOrientation() const;//Create and return a new SCOrientation object based cfg.
 
-    //Validate bkgd flags and options to prevent silently ignoring unused options. Call
-    //only from *selected* scatter factory, to throw BadInput in case of unknown options:
+    //Validate bkgd/infofactory flags and options to prevent silently ignoring
+    //unused options. Call only from *selected* factory, to throw BadInput in
+    //case of unknown options:
     void bkgdopt_validate(const std::set<std::string>& allowed_opts) const;
+    void infofactopt_validate(const std::set<std::string>& allowed_opts) const;
 
     //Datafile (never decode extension by hand):
     const std::string& getDataFile() const;//Resolved path to the datafile
@@ -317,6 +317,7 @@ namespace NCrystal {
 
   private:
     const std::string& get_bkgd() const;//undecoded, internal usage only
+    const std::string& get_infofactory() const;//undecoded, internal usage only
     struct Impl;
     Impl* m_impl;
     void cow();

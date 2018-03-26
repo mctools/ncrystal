@@ -123,9 +123,20 @@ NCrystal::NeutronSCL::NeutronSCL()
 
 void NCrystal::NeutronSCL::addData(std::string name, unsigned z, double m, double csl, double ixs, double cxs)
 {
+  nc_assert(m_natural_elements.find(name)==m_natural_elements.end());
+  nc_assert(m_z_to_elemname.find(z)==m_z_to_elemname.end());
   m_natural_elements.insert(std::pair<std::string, IsotopeData>(name,IsotopeData(z,m,csl,ixs,cxs)));
+  m_z_to_elemname[z] = name;
 }
 
+const std::string& NCrystal::NeutronSCL::getAtomName(unsigned z) const
+{
+  std::map<unsigned,std::string>::const_iterator it = m_z_to_elemname.find(z);
+  static std::string emptystr;
+  if (it==m_z_to_elemname.end())
+    return emptystr;
+  return it->second;
+}
 
 double NCrystal::NeutronSCL::getNeutronWeightedMass(const std::string& element) const
 {

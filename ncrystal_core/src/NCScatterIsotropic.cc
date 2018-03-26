@@ -18,25 +18,25 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCNonOrientedScatter.hh"
+#include "NCrystal/NCScatterIsotropic.hh"
 #include "NCrystal/NCException.hh"
 
-NCrystal::NonOrientedScatter::NonOrientedScatter(const char * calculator_type_name)
+NCrystal::ScatterIsotropic::ScatterIsotropic(const char * calculator_type_name)
   : Scatter(calculator_type_name)
 {
 }
 
-NCrystal::NonOrientedScatter::~NonOrientedScatter()
+NCrystal::ScatterIsotropic::~ScatterIsotropic()
 {
 }
 
-double NCrystal::NonOrientedScatter::crossSection( double ekin, const double (&)[3] ) const
+double NCrystal::ScatterIsotropic::crossSection( double ekin, const double (&)[3] ) const
 {
   return crossSectionNonOriented(ekin);
 }
 
-void NCrystal::NonOrientedScatter::generateScattering( double ekin, const double (&indir)[3],
-                                                       double (&outdir)[3], double& de ) const
+void NCrystal::ScatterIsotropic::generateScattering( double ekin, const double (&indir)[3],
+                                                     double (&outdir)[3], double& de ) const
 {
   //Find theta and energy transfer by the non-oriented scatter process:
   double theta;
@@ -46,14 +46,14 @@ void NCrystal::NonOrientedScatter::generateScattering( double ekin, const double
   randDirectionGivenScatterAngle(theta,indir,outdir);
 }
 
-double NCrystal::NonOrientedScatter::crossSectionNonOriented( double ) const
+double NCrystal::ScatterIsotropic::crossSectionNonOriented( double ) const
 {
-  NCRYSTAL_THROW(LogicError,"NonOrientedScatter::crossSectionNonOriented must be reimplemented in derived class.");
+  NCRYSTAL_THROW(LogicError,"ScatterIsotropic::crossSectionNonOriented must be reimplemented in derived class.");
   return 0.0;
 }
 
-void NCrystal::NonOrientedScatter::generateScatteringNonOriented( double, double& a, double& de ) const
+void NCrystal::ScatterIsotropic::generateScatteringNonOriented( double, double& a, double& de ) const
 {
-  NCRYSTAL_THROW(LogicError,"NonOrientedScatter::generateScatteringNonOriented must be reimplemented in derived class.");
+  NCRYSTAL_THROW(LogicError,"ScatterIsotropic::generateScatteringNonOriented must be reimplemented in derived class.");
   a = de = 0.0;
 }

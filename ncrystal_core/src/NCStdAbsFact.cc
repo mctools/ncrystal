@@ -28,7 +28,7 @@ namespace NCrystal {
 
   class NCStdAbsFact : public FactoryBase {
   public:
-    const char * getName() const { return "NCrystalStdAbsFactory"; }
+    const char * getName() const { return "stdabs"; }
 
     virtual int canCreateAbsorption( const MatCfg& cfg ) const {
       RCHolder<const Info> info(::NCrystal::createInfo( cfg ));
@@ -53,6 +53,6 @@ namespace NCrystal {
 
 extern "C" void ncrystal_register_stdabs_factory()
 {
-  if (!NCrystal::hasFactory("NCrystalStdAbsFactory"))
+  if (!NCrystal::hasFactory("stdabs"))
     NCrystal::registerFactory(new NCrystal::NCStdAbsFact);
 }

@@ -99,7 +99,6 @@ struct NCrystal::MatCfg::Impl : public NCrystal::RCBase {
                     PAR_dir1,
                     PAR_dir2,
                     PAR_dirtol,
-                    PAR_expandhkl,
                     PAR_infofactory,
                     PAR_mos,
                     PAR_overridefileext,
@@ -434,14 +433,14 @@ struct NCrystal::MatCfg::Impl : public NCrystal::RCBase {
     }
   }
 
-  void decodebkgdopts(const std::string& optstr, std::map<std::string,std::string>& opts2val)
+  static void decodeopts(const std::string& optstr, std::map<std::string,std::string>& opts2val)
   {
     opts2val.clear();
     std::vector<std::string> parts;
     split(parts,optstr,0,':');
     std::vector<std::string>::iterator it(parts.begin()), itE(parts.end());
     nc_assert_always(it!=itE);
-    ++it;//skip main bkgd name
+    ++it;//skip main opt name
     std::vector<std::string> subparts;
     subparts.reserve(2);
     static std::string alphalowercase = "abcdefghijklmnopqrstuvwxyz";
@@ -456,20 +455,89 @@ struct NCrystal::MatCfg::Impl : public NCrystal::RCBase {
         for (std::size_t i = 0; i<subparts.size();++i)
           trim(subparts.at(i));
         if ( subparts.size()!=2||subparts.at(0).empty()||subparts.at(1).empty()||contains_any(subparts.at(1),"<>:=") ) {
-          NCRYSTAL_THROW2(BadInput,"Syntax error in bkgd options: \""<<optstr<<"\"");
+          NCRYSTAL_THROW2(BadInput,"Syntax error in options: \""<<optstr<<"\"");
         }
         if ( !contains_only(subparts.at(0),alphalowercasenumunderscore)||!contains(alphalowercase,subparts.at(0)[0]) ) {
-          NCRYSTAL_THROW2(BadInput,"Syntax error in bkgd options. Invalid option name: \""<<subparts.at(0)<<"\"");
+          NCRYSTAL_THROW2(BadInput,"Syntax error in options. Invalid option name: \""<<subparts.at(0)<<"\"");
         }
       } else {
         subparts.push_back(*it);
         subparts.push_back("<flag>");
       }
       if ( opts2val.find(subparts.at(0))!=opts2val.end() ) {
-        NCRYSTAL_THROW2(BadInput,"Syntax error in bkgd options. Option specified multiple times: \""<<subparts.at(0)<<"\"");
+        NCRYSTAL_THROW2(BadInput,"Syntax error in options. Option specified multiple times: \""<<subparts.at(0)<<"\"");
       }
       opts2val[subparts.at(0)]=subparts.at(1);
     }
+  }
+
+  static std::string decodeopt_name(const std::string& optstr)
+  {
+    std::string name;
+    if (!contains(optstr,':')) {
+      name = optstr;
+    } else {
+      std::vector<std::string> parts;
+      split(parts,optstr,1,':');
+      nc_assert_always(!parts.empty());
+      trim(parts[0]);
+      name=parts[0];
+    }
+    return name;
+  }
+
+  static bool decodeopt_flag(const std::string& optstr, const std::string& flagname)
+  {
+    if (!contains(optstr,':'))
+      return false;
+    std::map<std::string,std::string> opts2val;
+    decodeopts(optstr, opts2val);
+    std::map<std::string,std::string>::const_iterator it=opts2val.find(flagname);
+    if (it==opts2val.end())
+      return false;
+    if (it->second!="<flag>")
+      NCRYSTAL_THROW2(BadInput,"Syntax error in flag: \""<<flagname<<"\" (takes no value)");
+    return true;
+  }
+
+  static double decodeopt_dbl(const std::string& optstr, const std::string& parname, double defval)
+  {
+    if (!contains(optstr,':'))
+      return defval;
+    std::map<std::string,std::string> opts2val;
+    decodeopts(optstr, opts2val);
+    std::map<std::string,std::string>::const_iterator it=opts2val.find(parname);
+    if (it==opts2val.end())
+      return defval;
+    return str2dbl(it->second);
+  }
+
+  static int decodeopt_int(const std::string& optstr, const std::string& parname, int defval)
+  {
+    if (!contains(optstr,':'))
+      return defval;
+    std::map<std::string,std::string> opts2val;
+    Impl::decodeopts(optstr, opts2val);
+    std::map<std::string,std::string>::const_iterator it=opts2val.find(parname);
+    if (it==opts2val.end())
+      return defval;
+    return str2int(it->second);
+  }
+
+  static void decodedopt_validate(const std::string& optstr,
+                                  const std::set<std::string>& recognised_opts)
+  {
+    if (!contains(optstr,':'))
+      return;
+    std::string name = decodeopt_name(optstr);
+    std::map<std::string,std::string> opts2val;
+    decodeopts(optstr, opts2val);
+    std::map<std::string,std::string>::const_iterator it(opts2val.begin()),itE(opts2val.end());
+    for (;it!=itE;++it)
+      if (!recognised_opts.count(it->first)) {
+        NCRYSTAL_THROW2(BadInput,"The flag \""<<it->first<<"\" is not supported by the chosen"
+                        " factory for a mode of \""<<name<<"\"");
+      }
   }
 
 private:
@@ -492,7 +560,6 @@ namespace NCrystal {
                                                    "dir1",
                                                    "dir2",
                                                    "dirtol",
-                                                   "expandhkl",
                                                    "infofactory",
                                                    "mos",
                                                    "overridefileext",
@@ -507,7 +574,6 @@ namespace NCrystal {
                                                              VALTYPE_ORIENTDIR,
                                                              VALTYPE_ORIENTDIR,
                                                              VALTYPE_DBL,
-                                                             VALTYPE_BOOL,
                                                              VALTYPE_STR,
                                                              VALTYPE_DBL,
                                                              VALTYPE_STR,
@@ -609,11 +675,9 @@ void NCrystal::MatCfg::checkConsistency() const
   const double parval_dirtol = get_dirtol();
   if (parval_temp<0.0||parval_temp>1e5)
     NCRYSTAL_THROW(BadInput,"temp must be in range (0.0,1e5]");
-  if (parval_dcutoff==-1) {
-    //special case
-    if (get_expandhkl())
-      NCRYSTAL_THROW(BadInput,"expandhkl can not be set when hkl lists are disabled by dcutoff=-1");
-  } else {
+  if (parval_dcutoff!=-1) {
+    if (parval_dcutoff<0.0)
+      NCRYSTAL_THROW(BadInput,"dcutoff must be -1.0 or >=0.0");
     if (parval_dcutoff>=parval_dcutoffup)
       NCRYSTAL_THROW(BadInput,"dcutoff must be less than dcutoffup");
     if (!(parval_dcutoff>=1e-3&&parval_dcutoff<=1e5) && parval_dcutoff!=0 )
@@ -623,6 +687,8 @@ void NCrystal::MatCfg::checkConsistency() const
     NCRYSTAL_THROW(BadInput,"packfact must be in range (0.0,1.0]");
   if (parval_dirtol<=0.0||parval_dirtol>M_PI)
     NCRYSTAL_THROW(BadInput,"dirtol must be in range (0.0,pi]");
+
+  //bkgd:
   std::string parval_bkgd = get_bkgd();
   std::string parval_bkgd_name = get_bkgd_name();
   if (parval_bkgd_name.empty()||!contains_only(parval_bkgd_name,"abcdefghijklmnopqrstuvwxyz_0123456789"))
@@ -630,7 +696,17 @@ void NCrystal::MatCfg::checkConsistency() const
   if ((parval_bkgd_name==s_matcfg_str_best||parval_bkgd_name=="none")&&contains(parval_bkgd,':'))
     NCRYSTAL_THROW2(BadInput,"bkgd options not allowed when using a bkgd mode of \""<<parval_bkgd_name<<"\"")
   std::map<std::string,std::string> opts2val;
-  m_impl->decodebkgdopts(parval_bkgd, opts2val);//decode to trigger any BadInput errors here
+  Impl::decodeopts(parval_bkgd, opts2val);//decode to trigger any BadInput errors here
+
+  //infofactory:
+  std::string parval_infofactory = get_infofactory();
+  std::string parval_infofact_name = get_infofact_name();
+  if (!contains_only(parval_infofact_name,"abcdefghijklmnopqrstuvwxyz_0123456789"))
+    NCRYSTAL_THROW2(BadInput,"invalid infofactory name specified: \""<<parval_infofact_name<<"\"");
+  if (parval_infofact_name.empty()&&contains(parval_infofactory,':'))
+    NCRYSTAL_THROW2(BadInput,"infofactory options not allowed when not specifying specific factory");
+  Impl::decodeopts(parval_infofactory, opts2val);//decode to trigger any BadInput errors here
+
 
   //Now check the 4 SC parameters, only 1 of which has a code fallback value:
   int nOrient = (m_impl->hasPar(Impl::PAR_dir1)?1:0)
@@ -994,7 +1070,6 @@ double NCrystal::MatCfg::get_dcutoff() const { return m_impl->getVal<Impl::ValDb
 double NCrystal::MatCfg::get_dcutoffup() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_dcutoffup,std::numeric_limits<double>::infinity()); }
 double NCrystal::MatCfg::get_packfact() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_packfact,1.0); }
 double NCrystal::MatCfg::get_mos() const { return m_impl->getValNoFallback<Impl::ValDbl>(Impl::PAR_mos); }
-bool NCrystal::MatCfg::get_expandhkl() const { return m_impl->getVal<Impl::ValBool>(Impl::PAR_expandhkl,false); }
 double NCrystal::MatCfg::get_dirtol() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_dirtol,1e-4); }
 bool NCrystal::MatCfg::get_bragg() const { return m_impl->getVal<Impl::ValBool>(Impl::PAR_bragg,true); }
 const std::string& NCrystal::MatCfg::get_bkgd() const { return m_impl->getVal<Impl::ValStr>(Impl::PAR_bkgd,s_matcfg_str_best); }
@@ -1007,7 +1082,6 @@ void NCrystal::MatCfg::set_dcutoff( double v ) { cow(); m_impl->setVal<Impl::Val
 void NCrystal::MatCfg::set_dcutoffup( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_dcutoffup,v); }
 void NCrystal::MatCfg::set_packfact( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_packfact,v); }
 void NCrystal::MatCfg::set_mos( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_mos,v); }
-void NCrystal::MatCfg::set_expandhkl( bool v ) { cow(); m_impl->setVal<Impl::ValBool>(Impl::PAR_expandhkl,v); }
 void NCrystal::MatCfg::set_dirtol( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_dirtol,v); }
 void NCrystal::MatCfg::set_bragg( bool v ) { cow(); m_impl->setVal<Impl::ValBool>(Impl::PAR_bragg,v); }
 void NCrystal::MatCfg::set_bkgd( const std::string& v ) { cow(); m_impl->setVal<Impl::ValStr>(Impl::PAR_bkgd,v); }
@@ -1043,18 +1117,8 @@ void NCrystal::MatCfg::removeAccessSpy(AccessSpy* spy) const
 
 std::string NCrystal::MatCfg::get_bkgd_name() const
 {
-  std::string name;
-  const std::string& s = get_bkgd();
-  if (!contains(s,':')) {
-    name = s;
-  } else {
-    std::vector<std::string> parts;
-    split(parts,s,1,':');
-    nc_assert_always(!parts.empty());
-    trim(parts[0]);
-    name=parts[0];
-  }
-  if (name=="0"||name=="false") {
+  std::string name = Impl::decodeopt_name( get_bkgd() );
+  if ( name == "0" || name == "false" ) {
     //map "0" and "false" to "none" to allow bkgd and bragg to be
     //disabled in similar fashion, e.g. ";bragg=0", ";bkgd=0".
     return "none";
@@ -1062,59 +1126,47 @@ std::string NCrystal::MatCfg::get_bkgd_name() const
   return name;
 }
 
-bool NCrystal::MatCfg::get_bkgdopt_flag(const std::string& name) const
+bool NCrystal::MatCfg::get_bkgdopt_flag(const std::string& flagname) const
 {
-  const std::string& s = get_bkgd();
-  if (!contains(s,':'))
-    return false;
-  std::string bkgdname;
-  std::map<std::string,std::string> opts2val;
-  m_impl->decodebkgdopts(s, opts2val);
-  std::map<std::string,std::string>::const_iterator it=opts2val.find(name);
-  if (it==opts2val.end())
-    return false;
-  if (it->second!="<flag>")
-    NCRYSTAL_THROW2(BadInput,"Syntax error in bkgd flag: \""<<name<<"\" (takes no value)");
-  return true;
+  return Impl::decodeopt_flag(get_bkgd(),flagname);
 }
 
-double NCrystal::MatCfg::get_bkgdopt_dbl(const std::string& name, double defval) const
+double NCrystal::MatCfg::get_bkgdopt_dbl(const std::string& flagname, double defval) const
 {
-  const std::string& s = get_bkgd();
-  if (!contains(s,':'))
-    return defval;
-  std::map<std::string,std::string> opts2val;
-  m_impl->decodebkgdopts(s, opts2val);
-  std::map<std::string,std::string>::const_iterator it=opts2val.find(name);
-  if (it==opts2val.end())
-    return defval;
-  return str2dbl(it->second);
+  return Impl::decodeopt_dbl(get_bkgd(),flagname,defval);
 }
 
-int NCrystal::MatCfg::get_bkgdopt_int(const std::string& name, int defval) const
+int NCrystal::MatCfg::get_bkgdopt_int(const std::string& flagname, int defval) const
 {
-  const std::string& s = get_bkgd();
-  if (!contains(s,':'))
-    return defval;
-  std::map<std::string,std::string> opts2val;
-  m_impl->decodebkgdopts(s, opts2val);
-  std::map<std::string,std::string>::const_iterator it=opts2val.find(name);
-  if (it==opts2val.end())
-    return defval;
-  return str2int(it->second);
+  return Impl::decodeopt_int(get_bkgd(),flagname,defval);
 }
 
 void NCrystal::MatCfg::bkgdopt_validate(const std::set<std::string>& recognised_opts) const
 {
-  const std::string& s = get_bkgd();
-  if (!contains(s,':'))
-    return;
-  std::map<std::string,std::string> opts2val;
-  m_impl->decodebkgdopts(s, opts2val);
-  std::map<std::string,std::string>::const_iterator it(opts2val.begin()),itE(opts2val.end());
-  for (;it!=itE;++it)
-    if (!recognised_opts.count(it->first)) {
-      NCRYSTAL_THROW2(BadInput,"The bkgd flag \""<<it->first<<"\" is not supported by the chosen"
-                      " scatter factory for a bkgd mode of \""<<get_bkgd_name()<<"\"");
-    }
+  Impl::decodedopt_validate(get_bkgd(),recognised_opts);
+}
+
+std::string NCrystal::MatCfg::get_infofact_name() const
+{
+  return Impl::decodeopt_name( get_infofactory() );
+}
+
+bool NCrystal::MatCfg::get_infofactopt_flag(const std::string& flagname) const
+{
+  return Impl::decodeopt_flag(get_infofactory(),flagname);
+}
+
+double NCrystal::MatCfg::get_infofactopt_dbl(const std::string& flagname, double defval) const
+{
+  return Impl::decodeopt_dbl(get_infofactory(),flagname,defval);
+}
+
+int NCrystal::MatCfg::get_infofactopt_int(const std::string& flagname, int defval) const
+{
+  return Impl::decodeopt_int(get_infofactory(),flagname,defval);
+}
+
+void NCrystal::MatCfg::infofactopt_validate(const std::set<std::string>& recognised_opts) const
+{
+  Impl::decodedopt_validate(get_infofactory(),recognised_opts);
 }

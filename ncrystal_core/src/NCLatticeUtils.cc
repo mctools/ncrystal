@@ -25,6 +25,10 @@
 NCrystal::RotMatrix NCrystal::getLatticeRot( double a, double b, double c,
                                              double alpha, double beta, double gamma )
 {
+  //sanity check that provided angles are in radians:
+  nc_assert_always(alpha<M_PI);
+  nc_assert_always(beta<M_PI);
+  nc_assert_always(gamma<M_PI);
   double cg = std::cos(gamma);
   double sg = std::sin(gamma);
   double ca = std::cos(alpha);

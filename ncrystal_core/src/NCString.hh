@@ -21,7 +21,6 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCException.hh"
 #include <string>
 #include <vector>
 #include <fstream>

@@ -49,7 +49,7 @@ from __future__ import division, print_function, absolute_import
 
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
 __copyright__ = "Copyright 2017"
-__version__ = '0.9.8'
+__version__ = '0.9.9'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
 __copyright__ = "Copyright 2015-2017 %s"%__author__
@@ -674,7 +674,7 @@ def _actualtest():
         return abs(a-b) <= 0.5 * rtol * (abs(a) + abs(b)) + atol
 
     al = createInfo('Al_sg225.ncmat;dcutoff=1.4')
-    require(hasFactory('NCrystalNCMATFactory'))
+    require(hasFactory('stdncmat'))
     require(al.hasTemperature() and flteq(al.getTemperature(),293.15))
     require(al.hasXSectFree() and flteq(al.getXSectFree(),1.39667))
     require(al.hasXSectAbsorption() and flteq(al.getXSectAbsorption(),0.231))

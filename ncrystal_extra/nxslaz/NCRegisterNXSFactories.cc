@@ -28,23 +28,37 @@ namespace NCrystal {
 
   class NXSFactory : public FactoryBase {
   public:
-    const char * getName() const { return "NCrystalNXSFactory"; }
+    const char * getName() const { return "stdnxs"; }
 
     virtual int canCreateInfo( const MatCfg& cfg ) const {
       return cfg.getDataFileExtension()=="nxs" ? 100 : 0;
     }
     virtual const Info * createInfo( const MatCfg& cfg ) const
     {
+      nc_assert_always(canCreateInfo(cfg));
+      const char * flag_bkgdlikemcstas = "mcstaslikebkgd";
+      const char * flag_fixpolyatom = "fixpolyatoms";
+#if __cplusplus >= 201103L
+      cfg.infofactopt_validate({flag_bkgdlikemcstas,flag_fixpolyatom});
+#else
+      std::set<std::string> allowed_infofactopts;
+      allowed_infofactopts.insert(flag_bkgdlikemcstas);
+      allowed_infofactopts.insert(flag_fixpolyatom);
+      cfg.infofactopt_validate(allowed_infofactopts);
+#endif
       return loadNXSCrystal( cfg.getDataFile().c_str(),
                              cfg.get_temp(),
                              cfg.get_dcutoff(),
-                             cfg.get_dcutoffup() );
+                             cfg.get_dcutoffup(),
+                             cfg.get_infofactopt_flag(flag_bkgdlikemcstas),
+                             cfg.get_infofactopt_flag(flag_fixpolyatom)
+                             );
     }
   };
 
   class LazFactory : public FactoryBase {
   public:
-    const char * getName() const { return "NCrystalLazFactory"; }
+    const char * getName() const { return "stdlaz"; }
     virtual int canCreateInfo( const MatCfg& cfg ) const {
       std::string ext = cfg.getDataFileExtension();
       return (ext=="laz"||ext=="lau") ? 100 : 0;
@@ -74,8 +88,8 @@ namespace NCrystal {
 
 extern "C" void ncrystal_register_nxslaz_factories()
 {
-  if (!NCrystal::hasFactory("NCrystalNXSFactory"))
+  if (!NCrystal::hasFactory("stdnxs"))
     NCrystal::registerFactory(new NCrystal::NXSFactory);
-  if (!NCrystal::hasFactory("NCrystalLazFactory"))
+  if (!NCrystal::hasFactory("stdlaz"))
     NCrystal::registerFactory(new NCrystal::LazFactory);
 }

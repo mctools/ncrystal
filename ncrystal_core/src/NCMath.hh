@@ -29,8 +29,10 @@
 
 namespace NCrystal {
 
-  const double constant_boltzmann = 8.6173303e-5;  //eV/K
-  const double const_hhm = 4.144249671718981e-3; //constant_hbar*constant_hbar/constant_neutron_mass
+
+  const double constant_dalton2kg =  1.660539040e-27; // amu to kg (source: NIST/CODATA 2018)
+  const double constant_boltzmann = 8.6173303e-5;  // eV/K
+  const double const_hhm = 4.144249671718981e-3; // hbar^2/neutron_mass
   const double const_neutron_mass = 1.674927471e-24; //gram
   const double const_neutron_atomic_mass = 1.00866491588; //atomic unit
   const double const_ekin_2200m_s = 0.02529886 ; //eV, neutron kinetic energy at 2200m/s.
