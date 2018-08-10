@@ -50,8 +50,6 @@ before_script:
     - python3 -c 'import numpy; print (numpy.__version__)' 2>/dev/null || python3 -mpip install --verbose numpy
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then python3 -mpip install numpy --user; fi
     - python2 -c 'import numpy; print numpy.__version__'
-    - python3 -c 'import numpy; print (numpy.__path__)'
-    - python3 -c 'import numpy; print (numpy.__file__)'
     - python3 -c 'import numpy; print (numpy.__version__)'
     - mkdir build installdir rundir
     - cd build
