@@ -46,18 +46,13 @@ before_script:
     - python2 --version
     - which python3 || echo "python3 not found"
     - python3 --version
-    - python2 -c 'import numpy' 2>/dev/null || python2 -mpip install --verbose  numpy
-    - python3 -c 'import numpy' 2>/dev/null || python3 -mpip install --verbose numpy
+    - python2 -c 'import numpy; print numpy.__version__' 2>/dev/null || python2 -mpip install --verbose  numpy
+    - python3 -c 'import numpy; print numpy.__version__' 2>/dev/null || python3 -mpip install --verbose numpy
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then python3 -mpip install numpy --user; fi
     - python2 -c 'import numpy; print numpy.__version__'
     - python3 -c 'import numpy; print (numpy.__path__)'
-    - python3 -c 'import numpy; print (numpy)'
-    - python3 -c 'import numpy; print (type(numpy))'
-    - python3 -c 'import numpy; print (dir(numpy))'
     - python3 -c 'import numpy; print (numpy.__file__)'
-    - python3 -c 'import numpy; print (numpy.lib.__version__)'
-    - python3 -c 'import numpy; print(numpy.__version__)' || python3 -c 'import numpy; print (numpy.version.version)'
-    - python3 -c 'import numpy; print(numpy.__version__)' || python3 -c 'import numpy; print (dir(numpy.version))'
-    - python3 -c 'import numpy; print(numpy.__version__)' || python3 -c 'import numpy; print (numpy.version.full_version)'
+    - python3 -c 'import numpy; print (numpy.__version__)'
     - mkdir build installdir rundir
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=${BUILD} -DCMAKE_INSTALL_PREFIX=../installdir/
