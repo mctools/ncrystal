@@ -21,7 +21,7 @@
 #include "G4NCProcWrapper.hh"
 #include "G4NCrystal/G4NCManager.hh"
 #include "NCrystal/NCScatter.hh"
-#include "NCrystal/NCException.hh"
+#include "NCrystal/NCDefs.hh"
 
 #include "G4Step.hh"
 #include "G4StepPoint.hh"

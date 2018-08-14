@@ -19,7 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCString.hh"
-#include "NCrystal/NCException.hh"
+#include "NCrystal/NCDefs.hh"
 #include <cstring>
 #include <limits>
 #include <istream>

@@ -21,10 +21,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace NCrystal {
+#include "NCrystal/NCDefs.hh"
 
-  class SCBragg;
-  class MatCfg;
+namespace NCrystal {
 
   class SCOrientation {
   public:
@@ -74,13 +73,18 @@ namespace NCrystal {
 
     ~SCOrientation();
   private:
-    friend class SCBragg;
-    friend class MatCfg;
     double m_crystal[2][3];
     double m_lab[2][3];
     double m_tolerance;
     bool m_crystal_is_hkl[2];
     void checkInput() const;
+  public:
+    //Access contents (idir=0: primary, idir=1: secondary):
+    bool getCrysIsHKL(unsigned idir) const { nc_assert(idir<2); return m_crystal_is_hkl[idir]; }
+    double getTolerance() const { return m_tolerance; }
+    typedef double dir_t[3];
+    const dir_t& getLabDir(unsigned idir) const { nc_assert(idir<2); return m_lab[idir]; }
+    const dir_t& getCrysDir(unsigned idir) const { nc_assert(idir<2); return m_crystal[idir]; }
   };
 }
 

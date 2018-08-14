@@ -20,7 +20,7 @@
 
 #include "G4NCrystal/G4NCMatHelper.hh"
 #include "G4NCrystal/G4NCManager.hh"
-#include "NCrystal/NCException.hh"
+#include "NCrystal/NCDefs.hh"
 #include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCScatter.hh"
 #include "NCrystal/NCFactory.hh"

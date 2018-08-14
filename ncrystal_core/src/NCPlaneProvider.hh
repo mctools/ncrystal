@@ -1,5 +1,5 @@
-#ifndef NCrystal_SCGeoComputation_hh
-#define NCrystal_SCGeoComputation_hh
+#ifndef NCrystal_PlaneProvider_hh
+#define NCrystal_PlaneProvider_hh
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
@@ -21,35 +21,43 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCReflections.hh"
+#include "NCVector.hh"
 
 namespace NCrystal {
 
-  class RotMatrix;
+  class Info;
 
-  class SCGeoComputation {
+  class PlaneProvider {
   public:
 
-    //Constructor needs lattice spacings a,b,c and angles alpha, beta, gamma in degrees:
-    SCGeoComputation( double a, double b, double c,
-                      double alpha, double beta, double gamma );
-    ~SCGeoComputation();
+    //Interface class providing loops over crystal (demi) planes, each loop
+    //giving dspacing, F-squared and a demi normal.
 
-    Vector getReciDir(const Vector& hkl) const;
-    Vector getReciDir(double h, double k, double l) const;
+    PlaneProvider();
+    virtual ~PlaneProvider();
 
-    //Calculates and caches transform:
-    RotMatrix * calcTransform( Vector lab1, Vector lab2,
-                               Vector crystal1, Vector crystal2 );
+    //Method used to loop over planes:
+    virtual bool getNextPlane(double& dspacing, double& fsq, Vector& demi_normal) = 0;
 
-    //calculate the reciprocal vector in the crystal that has been aligned with lab using calcTransform
-    //must only be called after calcTransform
-    Vector getReciVecInRotCry(const Vector& reci_vec) const;
+    //Rewind the looping to prepare for a new loop with getNextPlane (does not
+    //need to be called for the first loop):
+    virtual void prepareLoop() = 0;
 
-  protected:
-    RotMatrix * m_cry2lab;
-    RotMatrix * m_reci_lattice;
+    //Whether or not it is safe to call getNextPlane and prepareLoop. If calling
+    //anyway, exceptions will be thrown by conforming implementations. A false
+    //return value here usually indicates incomplete information for normals to
+    //be provided:
+    virtual bool canProvide() const = 0;
   };
 
+  //Creates standard plane provider from Info object, which will attempt various
+  //means of producing the HKL normals (preferring actual deminormals if
+  //available, then expanded hkl info and finally falling back to attempting
+  //their construction based on space group and multiplicity info). User owns
+  //returned object.
+  PlaneProvider* createStdPlaneProvider(const Info*);
+
 }
+
+
 #endif

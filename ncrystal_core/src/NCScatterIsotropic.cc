@@ -19,7 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCScatterIsotropic.hh"
-#include "NCrystal/NCException.hh"
+#include "NCRandUtils.hh"
 
 NCrystal::ScatterIsotropic::ScatterIsotropic(const char * calculator_type_name)
   : Scatter(calculator_type_name)
@@ -43,7 +43,7 @@ void NCrystal::ScatterIsotropic::generateScattering( double ekin, const double (
   generateScatteringNonOriented( ekin, theta, de );
 
   //Generate random azimuthal angle and pick outdir correspondingly:
-  randDirectionGivenScatterAngle(theta,indir,outdir);
+  randDirectionGivenScatterMu(getRNG(), std::cos(theta),indir,outdir);
 }
 
 double NCrystal::ScatterIsotropic::crossSectionNonOriented( double ) const

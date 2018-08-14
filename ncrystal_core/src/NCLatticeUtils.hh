@@ -43,6 +43,12 @@ namespace NCrystal {
   //Estimate what dcutoff is achievable with a given max_hkl value.
   double estimateDCutoff( int max_hkl, const NCrystal::RotMatrix& rec_lat );
 
+  //Validate that lattice lengths are compatible with given spacegroup. For
+  //space groups where a==b or a==c, it is allowed to provide b=0 or c=0, and
+  //the function will then update the values of b and/or c accordingly. Any
+  //inconsistencies or errors will result in BadInput exceptions thrown.
+  void checkAndCompleteLattice( unsigned spacegroup, double a, double& b, double & c );
+
 }
 
 #endif

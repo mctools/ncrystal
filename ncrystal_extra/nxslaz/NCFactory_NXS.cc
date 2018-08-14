@@ -20,13 +20,12 @@
 
 #include "NCFactory_NXS.hh"
 #include "NCrystal/NCInfo.hh"
-#include "NCrystal/NCException.hh"
+#include "NCrystal/NCDefs.hh"
 #include "NCMath.hh"
 #include "NCLatticeUtils.hh"
 #include "NCNXSLib.hh"
 #include <cstdlib>
 #include <cstring>
-#include <cmath>
 #include <iostream>
 
 namespace NCrystal {
@@ -64,6 +63,12 @@ namespace NCrystal {
                       <<"\" due to NXS errors: \""<<nxs::SgError<<"\"");
     }
     nxs::SgError = old_SgError;
+
+    //Validate input, and replace b=0 and c=0 entries with a, for crystals where
+    //it is allowed (this is needed since .nxs files allow b=0 or c=0 as
+    //shorthand in cases where those are equal to a).
+    checkAndCompleteLattice( uc->sgInfo.TabSgName->SgNumber, uc->a, uc->b, uc->c );
+
   }
   void deinitNXS_partly(nxs::NXS_UnitCell*uc)
   {
@@ -259,7 +264,9 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
   double sigma_free = 0;
   double sigma_abs = 0;
   unsigned ntot(0);
+
   std::vector<AtomInfo> aivec;
+  aivec.reserve(nxs_uc.nAtomInfo);//correct unless multiple entries for same element
   for( unsigned i=0; i<nxs_uc.nAtomInfo; i++ ) {
     nxs::NXS_AtomInfo & nxs_ai = nxs_uc.atomInfoList[i];
     if (!nxs_ai.nAtoms)
@@ -292,16 +299,23 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
 
 
     std::vector<AtomInfo>::iterator itai;
+    std::size_t idx_ai(std::numeric_limits<std::size_t>::max());
     for(itai=aivec.begin();itai!=aivec.end();++itai)
     {
       if(itai->atomic_number==ai.atomic_number)
       {
         itai->number_per_unit_cell+=ai.number_per_unit_cell;
+        idx_ai = itai - aivec.begin();
         break;
       }
     }
-    if(itai==aivec.end())
+    if(itai==aivec.end()) {
+      idx_ai = aivec.size();
       aivec.push_back(ai);
+    }
+    nc_assert_always(idx_ai<aivec.size());
+    for (unsigned ipos = 0; ipos <nxs_ai.nAtoms;++ipos)
+      aivec.at(idx_ai).positions.push_back(AtomInfo::Pos(nxs_ai.x[ipos],nxs_ai.y[ipos],nxs_ai.z[ipos]));
   }
 
   for(std::vector<AtomInfo>::iterator itai=aivec.begin();itai!=aivec.end();++itai)

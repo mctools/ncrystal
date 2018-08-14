@@ -37,6 +37,9 @@
 #ifndef NCrystal_NCDump_hh
 #  include "NCrystal/NCDump.hh"
 #endif
+#ifndef NCrystal_NCDefs_hh
+#  include "NCrystal/NCDefs.hh"
+#endif
 #ifndef NCrystal_NCException_hh
 #  include "NCrystal/NCException.hh"
 #endif
@@ -61,8 +64,8 @@
 #ifndef NCrystal_NCProcess_hh
 #  include "NCrystal/NCProcess.hh"
 #endif
-#ifndef NCrystal_NCRCBase_hh
-#  include "NCrystal/NCRCBase.hh"
+#ifndef NCrystal_NCMem_hh
+#  include "NCrystal/NCMem.hh"
 #endif
 #ifndef NCrystal_NCRandom_hh
 #  include "NCrystal/NCRandom.hh"
@@ -93,5 +96,8 @@
 #endif
 #ifndef NCrystal_NCVersion_hh
 #  include "NCrystal/NCVersion.hh"
+#endif
+#ifndef NCrystal_NCLCBragg_hh
+#  include "NCrystal/NCLCBragg.hh"
 #endif
 #endif

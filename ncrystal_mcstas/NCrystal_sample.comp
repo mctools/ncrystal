@@ -25,7 +25,7 @@
 * %I
 *
 * Written by: NCrystal developers
-* Version: 0.9.9
+* Version: 0.9.10
 * Origin: NCrystal Developers (European Spallation Source ERIC and DTU Nutech)
 *
 * McStas sample component for the NCrystal scattering library. Find more
@@ -152,10 +152,32 @@ DECLARE
 %{
   ncrystalsample_t params;
   ncrystalsamplegeom_t geoparams;
+  double ncrystal_convfact_vsq2ekin;
+  double ncrystal_convfact_ekin2vsq;
+
 %}
 
 INITIALIZE
 %{
+
+  //The following conversion factors might look slightly odd. They reflect the
+  //fact that the various conversion factors used in McStas and NCrystal are not
+  //completely consistent among each other (TODO: Follow up on this with McStas
+  //developers!). Also McStas's V2K*K2V is not exactly 1. All in all, this can
+  //give issues when a McStas user is trying to set up a narrow beam very
+  //precisely in an instrument file, attempting to carefully hit a certain
+  //narrow Bragg reflection in this NCrystal component. We can not completely
+  //work around all issues here, but for now, we assume that the user is
+  //carefully setting up things by specifying the wavelength to some source
+  //component. That wavelength is then converted to the McStas state pars
+  //(vx,vy,vz) via K2V. We thus here first use 1/K2V (and *not* V2K) to convert
+  //back to a wavelength, and then we use NCrystal's conversion constants to
+  //convert the resulting wavelength to kinetic energy needed for NCrystal's
+  //interfaces.
+
+  double ncrystal_convfact_vsq2ekin = ncrystal_wl2ekin(1.0) / (4*M_PI*M_PI*K2V*K2V);
+  double ncrystal_convfact_ekin2vsq = 1.0 / ncrystal_convfact_vsq2ekin;
+
   //for our sanity, zero-initialise all instance-specific data:
   memset(&params,0,sizeof(params));
   memset(&params,0,sizeof(geoparams));
@@ -225,12 +247,12 @@ TRACE
     double dir[3], dirout[3];
     double v2 = vx*vx+vy*vy+vz*vz;
     double absv = sqrt(v2);
-    dir[0] = vx;
-    dir[1] = vy;
-    dir[2] = vz;
+    double inv_absv = 1.0/absv;
+    dir[0] = vx*inv_absv;
+    dir[1] = vy*inv_absv;
+    dir[2] = vz*inv_absv;
 
-    double ekin = v2*(VS2E*0.001); /*in eV*/
-
+    double ekin = ncrystal_convfact_vsq2ekin * v2;
     double xsect_scat = 0.0;
     double xsect_abs = 0.0;
 
@@ -244,7 +266,7 @@ TRACE
       double xsect_step = xsect_scat;
       if (params.absmode==2) xsect_step += xsect_abs;
       double distance = xsect_step ? log( rand01() ) * params.density_factor / xsect_step : INFINITY; /* in m */
-      double timestep = distance / absv;
+      double timestep = distance * inv_absv;
       /* Test when the neutron would reach the outer surface in absence of interactions: */
 
       if (!ncrystalsample_surfintersect(&geoparams,&t0,&t1,x,y,z,vx,vy,vz))
@@ -253,7 +275,7 @@ TRACE
       if(timestep>t1)  {
         /* neutron reaches surface, move forward to surface and apply intensity reduction if absmode=1 */
         if (params.absmode==1)
-          p *=  exp( distance * (t1/timestep) * xsect_abs * params.inv_density_factor );
+          p *=  exp( absv * t1 * xsect_abs * params.inv_density_factor );
         PROP_DT(t1);
         break;//end stepping inside volume
       }
@@ -281,8 +303,9 @@ TRACE
           //not expected to happen much, but an interaction could in principle bring the neutron to rest.
           ABSORB;
         }
-        v2 = ekin * (1000.0/VS2E);
+        v2 = ncrystal_convfact_ekin2vsq * ekin;
         absv = sqrt(v2);
+        inv_absv = 1.0/absv;
       }
       vx=dirout[0]*absv;
       vy=dirout[1]*absv;
@@ -293,14 +316,21 @@ TRACE
 
       SCATTER;/* update mcstas scatter counter and potentially enable trajectory visualisation */
 
-      if(!multscat)
-        break;
-
-      //must update x-sects if energy changed or processes are oriented:
-      if (delta_ekin&&params.absmode)
-        ncrystal_crosssection_nonoriented(params.proc_abs, ekin,&xsect_abs);
-      if (delta_ekin||params.proc_scat_isoriented)
-        ncrystal_crosssection(params.proc_scat,ekin,(const double(*)[3])&dir,&xsect_scat);
+      if (multscat) {
+        //Must update x-sects if energy changed or processes are oriented:
+        if (delta_ekin&&params.absmode)
+          ncrystal_crosssection_nonoriented(params.proc_abs, ekin,&xsect_abs);
+        if (delta_ekin||params.proc_scat_isoriented)
+          ncrystal_crosssection(params.proc_scat,ekin,(const double(*)[3])&dir,&xsect_scat);
+      } else {
+        //Multiple scattering disabled, so we just need to propagate the neutron
+        //out of the sample and (if absmode==1) apply one more intensity
+        //reduction factor. We handle this by putting cross-sections to 0 here,
+        //which will result in an infinife step length of the next step.
+        xsect_scat = 0.0;
+        if (params.absmode!=1)
+          xsect_abs = 0.0;
+      }
     }/*exited at a surface*/
 
     /* Exited the surface. We let the while condition below always be false for  *

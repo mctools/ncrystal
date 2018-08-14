@@ -19,9 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCNeutronSCL.hh"
-#include "NCrystal/NCException.hh"
 #include "NCMath.hh"
-#include <cmath>
 
 NCrystal::NeutronSCL* NCrystal::NeutronSCL::m_instance = 0;
 

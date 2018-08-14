@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCException.hh"
+#include "NCrystal/NCDefs.hh"
 #include "NCMath.hh"
 #include <ostream>
 
@@ -33,9 +33,10 @@ namespace NCrystal {
   {
   public:
 
-    Vector();
     Vector(double x, double y, double z);
-    ~Vector(){};
+    Vector(const Vector&);
+    Vector();//default constructs null vector
+    ~Vector(){}
 
     Vector& operator=( const Vector&);
     Vector operator*(const Vector&) const;
@@ -67,10 +68,16 @@ namespace NCrystal {
     void set(double x, double y, double z);
     void setMag(double );//slow
     bool isParallel(const Vector&, double epsilon = 1e-10) const;
+    bool isOrthogonal(const Vector&, double epsilon = 1e-10) const;
+    bool isUnitVector(double tolerance = 1e-10) const;
+    bool isStrictNullVector() const { return m_x==0 && m_y==0 && m_z==0; }
 
-    inline const double& x() const {return m_x;}
-    inline const double& y() const {return m_y;}
-    inline const double& z() const {return m_z;}
+    inline const double& x() const { return m_x; }
+    inline const double& y() const { return m_y; }
+    inline const double& z() const { return m_z; }
+    inline double& x() { return m_x; }
+    inline double& y() { return m_y; }
+    inline double& z() { return m_z; }
 
   protected:
     //Keep data members exactly like this, so Vector objects can reliably be
@@ -88,6 +95,12 @@ namespace NCrystal {
 
 }
 
+//Convenience defines from NCProcess.hh repeated here:
+#ifndef NC_VECTOR_CAST
+#  define NC_VECTOR_CAST(v) (reinterpret_cast<double(&)[3]>(v))
+#  define NC_CVECTOR_CAST(v) (reinterpret_cast<const double(&)[3]>(v))
+#endif
+
 
 ////////////////////////////
 // Inline implementations //
@@ -100,6 +113,11 @@ inline NCrystal::Vector::Vector()
 
 inline NCrystal::Vector::Vector(double vx, double vy, double vz)
   : m_x(vx), m_y(vy), m_z(vz)
+{
+}
+
+inline NCrystal::Vector::Vector(const NCrystal::Vector& v)
+  : m_x(v.m_x), m_y(v.m_y), m_z(v.m_z)
 {
 }
 
@@ -254,10 +272,27 @@ inline bool NCrystal::Vector::isParallel(const NCrystal::Vector& vec2, double ep
   return dp*dp > mag2() * vec2.mag2() * ( 1.0 - epsilon);
 }
 
+inline bool NCrystal::Vector::isOrthogonal(const Vector& vec2, double epsilon) const
+{
+  //NB: using '<' rather than '<=' to have null-vectors never be orthogonal to
+  //anything.
+  double dp = dot(vec2);
+  return dp*dp < mag2() * vec2.mag2() * epsilon;
+}
+
 inline double NCrystal::Vector::angle(const NCrystal::Vector& vec2) const
 {
-  double result = dot(vec2) / std::sqrt( mag2()*vec2.mag2() );
-  return std::acos( result );
+  double norm = std::sqrt( mag2()*vec2.mag2() );
+  if (!norm)
+    NCRYSTAL_THROW(CalcError,"NCVector::angle(): Can't find angle to/from null-vector.");
+  double result = dot(vec2) / norm;
+  return std::acos( ncmin(1.,ncmax(-1.,result)) );
 }
+
+inline bool NCrystal::Vector::isUnitVector(double tolerance) const
+{
+  return ncabs( mag2() - 1.0 ) < tolerance;
+}
+
 
 #endif

@@ -19,7 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCEqRefl.hh"
-#include "NCrystal/NCException.hh"
+#include "NCrystal/NCDefs.hh"
 
 NCrystal::EqRefl::EqRefl(int sg)
 {

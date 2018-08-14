@@ -46,11 +46,11 @@ namespace NCrystal {
     ScatterXSCurve(const Info*, const char * calcname, bool thermalise );
 
 
-    virtual void generateScatteringNonOriented( double ekin_wavelength_aangstrom,
-                                                double& angle_radians, double& delta_ekin_eV ) const;
+    virtual void generateScatteringNonOriented( double ekin_wavelength,
+                                                double& angle, double& delta_ekin ) const;
 
     virtual void generateScattering( double ekin, const double (&neutron_direction)[3],
-                                     double (&resulting_neutron_direction)[3], double& delta_ekin_eV ) const;
+                                     double (&resulting_neutron_direction)[3], double& delta_ekin ) const;
 
   protected:
     virtual ~ScatterXSCurve();

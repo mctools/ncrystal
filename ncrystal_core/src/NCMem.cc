@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCRCBase.hh"
+#include "NCrystal/NCMem.hh"
 #include <cstdlib>
 #include <cstdio>
 #include <string>

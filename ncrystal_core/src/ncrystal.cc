@@ -19,7 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/ncrystal.h"
-#include "NCrystal/NCException.hh"
+#include "NCrystal/NCDefs.hh"
 #include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCScatter.hh"
 #include "NCrystal/NCAbsorption.hh"
@@ -432,10 +432,10 @@ void ncrystal_restore_randgen()
   } NCCATCH;
 }
 
-void ncrystal_setsimplerandgen()
+void ncrystal_setbuiltinrandgen()
 {
   try {
-    NCrystal::RandomBase * rng = new NCrystal::RandomSimple();
+    NCrystal::RandomBase * rng = new NCrystal::RandXRSR();
     NCrystal::RCGuard guard(rng);
     NCrystal::setDefaultRandomGenerator( rng );
   } NCCATCH;

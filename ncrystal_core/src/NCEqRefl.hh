@@ -23,9 +23,6 @@
 
 #include <set>
 
-//TODO for NC2: benchmark the effect of commenting out the next line.
-#define NCRYSTAL_EQREFL_SKIPHALF
-
 //Class EqRefl provides symmetry-equivalent reflections for a given space group
 //number, by providing a list of all (h,k,l) indices symmetry-equivalent to a
 //given (h,k,l) index.
@@ -79,15 +76,9 @@ namespace NCrystal {
     void add(int h,int k,int l) {
       HKL a(h,k,l);
       HKL am(-h,-k,-l);
-#ifndef NCRYSTAL_EQREFL_SKIPHALF
-      if (!m_planes.count(a))
-        m_planes.insert(a);
-      if (!m_planes.count(am))
-        m_planes.insert(am);
-#else
+      //only insert one deminormal, not both am and a:
       if (!m_planes.count(a)&&!m_planes.count(am))
         m_planes.insert(am<a?a:am);
-#endif
     }
 
     std::set<HKL> m_planes;

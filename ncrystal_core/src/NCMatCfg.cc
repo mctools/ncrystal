@@ -100,14 +100,18 @@ struct NCrystal::MatCfg::Impl : public NCrystal::RCBase {
                     PAR_dir2,
                     PAR_dirtol,
                     PAR_infofactory,
+                    PAR_lcaxis,
+                    PAR_lcmode,
                     PAR_mos,
+                    PAR_mosprec,
                     PAR_overridefileext,
                     PAR_packfact,
                     PAR_scatfactory,
+                    PAR_sccutoff,
                     PAR_temp,
                     PAR_NMAX };
 
-  enum VALTYPE { VALTYPE_DBL, VALTYPE_BOOL, VALTYPE_INT, VALTYPE_STR, VALTYPE_ORIENTDIR };
+  enum VALTYPE { VALTYPE_DBL, VALTYPE_BOOL, VALTYPE_INT, VALTYPE_STR, VALTYPE_ORIENTDIR, VALTYPE_VECTOR };
   static std::string parnames[PAR_NMAX];
   static VALTYPE partypes[PAR_NMAX];
 
@@ -254,7 +258,7 @@ struct NCrystal::MatCfg::Impl : public NCrystal::RCBase {
   struct ValStr : public ValBase {
     typedef std::string value_type;
     static const VALTYPE value_type_enum = VALTYPE_STR;
-    ValStr() : ValBase(){}
+    ValStr() : ValBase() {}
     virtual ~ValStr(){}
     virtual ValBase * clone() const { return new ValStr(*this); }
     void set_from_strrep(const std::string& s) { set(s); }
@@ -268,6 +272,7 @@ struct NCrystal::MatCfg::Impl : public NCrystal::RCBase {
     std::string to_strrep(bool) const { return value; }
     std::string value;
   };
+
   struct ValOrientDir : public ValBase {
     ValOrientDir() : ValBase(){}
     virtual ~ValOrientDir(){}
@@ -323,6 +328,44 @@ struct NCrystal::MatCfg::Impl : public NCrystal::RCBase {
     bool crystal_is_hkl;
     double crystal[3];
     double lab[3];
+  private:
+    std::string origstrrep;//original input (if available), for lossless reproduction.
+  };
+
+  struct ValVector : public ValBase {
+    ValVector() : ValBase(){}
+    virtual ~ValVector(){}
+    virtual ValBase * clone() const { return new ValVector(*this); }
+    void set_from_strrep(const std::string& s)
+    {
+      std::string st = s; trim(st);
+      std::vector<std::string> parts;
+      split(parts,st,0,',');
+      if (parts.size()!=3)
+        NCRYSTAL_THROW2(BadInput,"Bad syntax for vector value: \""<<s<<"\"");
+      trim(parts.at(0));
+      trim(parts.at(1));
+      trim(parts.at(2));
+      this->set(str2dbl(parts.at(0)),str2dbl(parts.at(1)),str2dbl(parts.at(2)));
+      origstrrep = s;
+      trim(origstrrep);
+    }
+    std::string to_strrep(bool) const {
+      if (!origstrrep.empty())
+        return origstrrep;
+      std::stringstream s;
+      s.precision(17);
+      s << val[0] << "," << val[1] << "," << val[2];
+      return s.str();
+    }
+    void set(double x, double y, double z)
+    {
+      if (ncisnan(x)||ncisnan(y)||ncisnan(z))
+        NCRYSTAL_THROW(BadInput,"Attempting to set number to NaN");
+      val[0] = x; val[1] = y; val[2] = z;
+      origstrrep.clear();
+    }
+    double val[3];
   private:
     std::string origstrrep;//original input (if available), for lossless reproduction.
   };
@@ -428,19 +471,21 @@ struct NCrystal::MatCfg::Impl : public NCrystal::RCBase {
     case VALTYPE_BOOL: getValTypeForSet<ValBool>((PARAMETERS)paridx)->set_from_strrep(value); return;
     case VALTYPE_STR: getValTypeForSet<ValStr>((PARAMETERS)paridx)->set_from_strrep(value); return;
     case VALTYPE_ORIENTDIR: getValTypeForSet<ValOrientDir>((PARAMETERS)paridx)->set_from_strrep(value); return;
+    case VALTYPE_VECTOR: getValTypeForSet<ValVector>((PARAMETERS)paridx)->set_from_strrep(value); return;
     default:
       nc_assert_always(false);
     }
   }
 
-  static void decodeopts(const std::string& optstr, std::map<std::string,std::string>& opts2val)
+  static void decodeopts(const std::string& optstr, std::map<std::string,std::string>& opts2val, bool skipname = true )
   {
     opts2val.clear();
     std::vector<std::string> parts;
     split(parts,optstr,0,':');
     std::vector<std::string>::iterator it(parts.begin()), itE(parts.end());
     nc_assert_always(it!=itE);
-    ++it;//skip main opt name
+    if (skipname)
+      ++it;//skip main opt name
     std::vector<std::string> subparts;
     subparts.reserve(2);
     static std::string alphalowercase = "abcdefghijklmnopqrstuvwxyz";
@@ -491,7 +536,7 @@ struct NCrystal::MatCfg::Impl : public NCrystal::RCBase {
     if (!contains(optstr,':'))
       return false;
     std::map<std::string,std::string> opts2val;
-    decodeopts(optstr, opts2val);
+    decodeopts(optstr, opts2val );
     std::map<std::string,std::string>::const_iterator it=opts2val.find(flagname);
     if (it==opts2val.end())
       return false;
@@ -561,10 +606,14 @@ namespace NCrystal {
                                                    "dir2",
                                                    "dirtol",
                                                    "infofactory",
+                                                   "lcaxis",
+                                                   "lcmode",
                                                    "mos",
+                                                   "mosprec",
                                                    "overridefileext",
                                                    "packfact",
                                                    "scatfactory",
+                                                   "sccutoff",
                                                    "temp" };
   MatCfg::Impl::VALTYPE MatCfg::Impl::partypes[PAR_NMAX] = { VALTYPE_STR,
                                                              VALTYPE_STR,
@@ -575,10 +624,14 @@ namespace NCrystal {
                                                              VALTYPE_ORIENTDIR,
                                                              VALTYPE_DBL,
                                                              VALTYPE_STR,
+                                                             VALTYPE_VECTOR,
+                                                             VALTYPE_INT,
+                                                             VALTYPE_DBL,
                                                              VALTYPE_DBL,
                                                              VALTYPE_STR,
                                                              VALTYPE_DBL,
                                                              VALTYPE_STR,
+                                                             VALTYPE_DBL,
                                                              VALTYPE_DBL };
   struct MatCfg::Impl::SpyDisabler {
     //swaps spies with empty list (disabling spying) and swaps back in destructor
@@ -664,6 +717,11 @@ bool NCrystal::MatCfg::isSingleCrystal() const
     m_impl->hasPar(Impl::PAR_dir2) || m_impl->hasPar(Impl::PAR_dirtol);
 }
 
+bool NCrystal::MatCfg::isLayeredCrystal() const
+{
+  return m_impl->hasPar(Impl::PAR_lcaxis);
+}
+
 void NCrystal::MatCfg::checkConsistency() const
 {
   Impl::SpyDisabler nospy(m_impl->m_spies);//disable any spies during invocation of this method
@@ -673,6 +731,7 @@ void NCrystal::MatCfg::checkConsistency() const
   const double parval_dcutoffup = get_dcutoffup();
   const double parval_packfact = get_packfact();
   const double parval_dirtol = get_dirtol();
+  const double parval_sccutoff = get_sccutoff();
   if (parval_temp<0.0||parval_temp>1e5)
     NCRYSTAL_THROW(BadInput,"temp must be in range (0.0,1e5]");
   if (parval_dcutoff!=-1) {
@@ -685,8 +744,13 @@ void NCrystal::MatCfg::checkConsistency() const
   }
   if (parval_packfact<=0.0||parval_packfact>1.0)
     NCRYSTAL_THROW(BadInput,"packfact must be in range (0.0,1.0]");
+  if (parval_sccutoff<0.0)
+    NCRYSTAL_THROW(BadInput,"sccutoff must be >=0.0");
   if (parval_dirtol<=0.0||parval_dirtol>M_PI)
     NCRYSTAL_THROW(BadInput,"dirtol must be in range (0.0,pi]");
+  const double parval_mosprec = get_mosprec();
+  if ( ! (valueInInterval(0.9999e-7,0.10000001,parval_mosprec) || valueInInterval(1.0,10000.0,parval_mosprec)) )
+    NCRYSTAL_THROW(BadInput,"mosprec must either be in the range [1e-7,1e-1] or in the range [1,10000].");
 
   //bkgd:
   std::string parval_bkgd = get_bkgd();
@@ -756,6 +820,17 @@ void NCrystal::MatCfg::checkConsistency() const
     //should be polycrystal. No extra validation needed for now, packfact was already validated above.
   }
 
+  if (m_impl->hasPar(Impl::PAR_lcaxis)) {
+    nc_assert(isLayeredCrystal());
+    double v[3];
+    get_lcaxis(v);
+    nc_assert_always(! ( ncisnan(v[0]) || ncisnan(v[1]) || ncisnan(v[2]) ) );//should have been caught
+    double mag = sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
+    if ( ncisinf(mag) || ncisinf(v[0]) || ncisinf(v[1]) || ncisinf(v[2]) )
+      NCRYSTAL_THROW(BadInput, "Infinities or too large values specified in lcaxis vector");
+    if (!mag)
+      NCRYSTAL_THROW(BadInput, "Null vector or too small values specified in lcaxis vector");
+  }
 }
 
 void NCrystal::MatCfg::getCacheSignature(std::string& out, const std::set<std::string>& pns) const
@@ -769,6 +844,21 @@ void NCrystal::MatCfg::getCacheSignature(std::string& out, const std::set<std::s
     s << *it << '=' << (m_impl->hasPar(paridx)?m_impl->m_parlist[paridx]->to_strrep(true):"<>");
   }
   out = s.str();
+}
+
+void NCrystal::MatCfg::set_lcaxis( const double (&axis)[3] )
+{
+  cow();
+  Impl::ValVector * vv = m_impl->getValTypeForSet<Impl::ValVector>(Impl::PAR_lcaxis);
+  vv->set(axis[0],axis[1],axis[2]);
+}
+
+void NCrystal::MatCfg::get_lcaxis( double (&axis)[3] ) const
+{
+  const Impl::ValVector * vv = m_impl->getValTypeThrowIfNotAvail<Impl::ValVector>(Impl::PAR_lcaxis);
+  axis[0] = vv->val[0];
+  axis[1] = vv->val[1];
+  axis[2] = vv->val[2];
 }
 
 void NCrystal::MatCfg::set_dir1( bool cishkl,
@@ -819,6 +909,8 @@ void NCrystal::MatCfg::get_dir2( bool& cishkl,
 
 void NCrystal::MatCfg::setOrientation( const SCOrientation& sco )
 {
+  if (!sco.isComplete())
+    NCRYSTAL_THROW(BadInput,"setOrientation called with incomplete SCOrientation object");
   cow();
   m_impl->setOrientation(sco);
   nc_assert(isSingleCrystal());
@@ -831,11 +923,11 @@ void NCrystal::MatCfg::Impl::setOrientation( const SCOrientation& sco )
   p[1] = getValTypeForSet<ValOrientDir>(PAR_dir2);
   nc_assert(p[0]&&p[1]);
   for ( int i = 0; i < 2; ++i ) {
-    p[i]->set(sco.m_crystal_is_hkl[i],
-              sco.m_crystal[i][0],sco.m_crystal[i][1],sco.m_crystal[i][2],
-              sco.m_lab[i][0],sco.m_lab[i][1],sco.m_lab[i][2]);
+    p[i]->set(sco.getCrysIsHKL(i),
+              sco.getCrysDir(i)[0],sco.getCrysDir(i)[1],sco.getCrysDir(i)[2],
+              sco.getLabDir(i)[0],sco.getLabDir(i)[1],sco.getLabDir(i)[2]);
   }
-  setVal<ValDbl>(PAR_dirtol,sco.m_tolerance);
+  setVal<ValDbl>(PAR_dirtol,sco.getTolerance());
 }
 
 NCrystal::SCOrientation NCrystal::MatCfg::createSCOrientation() const
@@ -1070,6 +1162,8 @@ double NCrystal::MatCfg::get_dcutoff() const { return m_impl->getVal<Impl::ValDb
 double NCrystal::MatCfg::get_dcutoffup() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_dcutoffup,std::numeric_limits<double>::infinity()); }
 double NCrystal::MatCfg::get_packfact() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_packfact,1.0); }
 double NCrystal::MatCfg::get_mos() const { return m_impl->getValNoFallback<Impl::ValDbl>(Impl::PAR_mos); }
+double NCrystal::MatCfg::get_mosprec() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_mosprec,1e-3); }
+double NCrystal::MatCfg::get_sccutoff() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_sccutoff,0.5); }
 double NCrystal::MatCfg::get_dirtol() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_dirtol,1e-4); }
 bool NCrystal::MatCfg::get_bragg() const { return m_impl->getVal<Impl::ValBool>(Impl::PAR_bragg,true); }
 const std::string& NCrystal::MatCfg::get_bkgd() const { return m_impl->getVal<Impl::ValStr>(Impl::PAR_bkgd,s_matcfg_str_best); }
@@ -1082,6 +1176,8 @@ void NCrystal::MatCfg::set_dcutoff( double v ) { cow(); m_impl->setVal<Impl::Val
 void NCrystal::MatCfg::set_dcutoffup( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_dcutoffup,v); }
 void NCrystal::MatCfg::set_packfact( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_packfact,v); }
 void NCrystal::MatCfg::set_mos( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_mos,v); }
+void NCrystal::MatCfg::set_mosprec( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_mosprec,v); }
+void NCrystal::MatCfg::set_sccutoff( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_sccutoff,v); }
 void NCrystal::MatCfg::set_dirtol( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_dirtol,v); }
 void NCrystal::MatCfg::set_bragg( bool v ) { cow(); m_impl->setVal<Impl::ValBool>(Impl::PAR_bragg,v); }
 void NCrystal::MatCfg::set_bkgd( const std::string& v ) { cow(); m_impl->setVal<Impl::ValStr>(Impl::PAR_bkgd,v); }
@@ -1089,6 +1185,8 @@ void NCrystal::MatCfg::set_overridefileext( const std::string& v ) { cow(); m_im
 void NCrystal::MatCfg::set_infofactory( const std::string& v ) { cow(); m_impl->setVal<Impl::ValStr>(Impl::PAR_infofactory,v); }
 void NCrystal::MatCfg::set_scatfactory( const std::string& v ) { cow(); m_impl->setVal<Impl::ValStr>(Impl::PAR_scatfactory,v); }
 void NCrystal::MatCfg::set_absnfactory( const std::string& v ) { cow(); m_impl->setVal<Impl::ValStr>(Impl::PAR_absnfactory,v); }
+void NCrystal::MatCfg::set_lcmode( int v ) { cow(); m_impl->setVal<Impl::ValInt>(Impl::PAR_lcmode,v); }
+int NCrystal::MatCfg::get_lcmode() const { return m_impl->getVal<Impl::ValInt>(Impl::PAR_lcmode,0); }
 bool NCrystal::MatCfg::isPolyCrystal() const { return !isSingleCrystal(); }
 
 bool NCrystal::MatCfg::hasAccessSpy(AccessSpy* spy) const

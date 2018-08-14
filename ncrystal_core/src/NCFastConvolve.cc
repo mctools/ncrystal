@@ -18,10 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCException.hh"
+#include "NCrystal/NCDefs.hh"
 #include "NCFastConvolve.hh"
 #include <cstdlib>
-#include <cmath>
 #include <algorithm>
 
 //Temporarily uncomment the following define to test with safer but slower code:

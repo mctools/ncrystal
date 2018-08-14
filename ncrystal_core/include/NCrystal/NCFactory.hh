@@ -47,11 +47,12 @@ namespace NCrystal {
   inline const Absorption * createAbsorption( const char * c ) { return createAbsorption(MatCfg(c)); }
 
   //To avoid expensive re-generation of Info objects, these are cached behind
-  //the scenes The following function can be used to clear the cache and
-  //potentially free up some memory:
+  //the scenes based on the *name* of the input file as well as the values of
+  //the MatCfg parameters affecting Info creation. The following function can be
+  //used to clear the cache and potentially free up some memory:
   void clearInfoCaches();
 
-  //disable and enable caching (default state upon startup is for caching to be
+  //Disable and enable caching (default state upon startup is for caching to be
   //enabled, unless the environment variable NCRYSTAL_NOCACHE is set):
   void disableCaching();
   void enableCaching();

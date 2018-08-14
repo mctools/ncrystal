@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCRCBase.hh"
+#include "NCrystal/NCDefs.hh"
 #include <vector>
 #include <stdint.h>//cstdint hdr only in C++11
 
@@ -61,9 +61,9 @@ namespace NCrystal {
     unsigned multiplicity;
 
     //If the HKLInfo source knows the plane normals, they will be provided in
-    //the following vector. Only half of the normals should be included in this
-    //vector, since if n is a normal, so is -n. If demi_normals is not empty, it
-    //will be true that multiplicity == 2*demi_normals.size().
+    //the following list as unit vectors. Only half of the normals should be
+    //included in this list, since if n is a normal, so is -n. If demi_normals
+    //is not empty, it will be true that multiplicity == 2*demi_normals.size().
     struct Normal {
       Normal(double a1, double a2, double a3) : x(a1), y(a2), z(a3) {}
       double x, y, z;
@@ -180,10 +180,15 @@ namespace NCrystal {
 
     bool hasHKLInfo() const;
     unsigned nHKL() const;
-    HKLList::const_iterator hklBegin() const;
+    HKLList::const_iterator hklBegin() const;//first (==end if empty)
+    HKLList::const_iterator hklLast() const;//last (==end if empty)
     HKLList::const_iterator hklEnd() const;
+    //The limits:
     double hklDLower() const;
     double hklDUpper() const;
+    //The largest/smallest (both returns inf if nHKL=0):
+    double hklDMinVal() const;
+    double hklDMaxVal() const;
 
     //////////////////////////////
     // Expanded HKL Information //
@@ -277,6 +282,7 @@ namespace NCrystal {
   inline bool Info::hasHKLDemiNormals() const { return hasHKLInfo() && !m_hkllist.empty() && ! m_hkllist.front().demi_normals.empty(); }
   inline unsigned Info::nHKL() const { nc_assert(hasHKLInfo()); return m_hkllist.size(); }
   inline HKLList::const_iterator Info::hklBegin() const { nc_assert(hasHKLInfo()); return m_hkllist.begin(); }
+  inline HKLList::const_iterator Info::hklLast() const { nc_assert(hasHKLInfo()); std::size_t nhkl = m_hkllist.size(); return nhkl ? m_hkllist.begin()+(nhkl-1) : m_hkllist.end(); }
   inline HKLList::const_iterator Info::hklEnd() const { nc_assert(hasHKLInfo()); return m_hkllist.end(); }
   inline double Info::hklDLower() const { nc_assert(hasHKLInfo()); return m_hkl_dlower; }
   inline double Info::hklDUpper() const { nc_assert(hasHKLInfo()); return m_hkl_dupper; }

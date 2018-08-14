@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCRCBase.hh"
+#include "NCrystal/NCDefs.hh"
 #include <vector>
 #include <utility>
 

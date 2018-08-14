@@ -21,18 +21,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCRCBase.hh"
-#include <stdint.h>//cstdint hdr only in C++11
+#include "NCrystal/NCDefs.hh"
 
 namespace NCrystal {
-
-  class RandomBase : public RCBase {
-  public:
-    virtual double generate() = 0;//generate numbers uniformly in [0,1[
-  protected:
-    RandomBase();
-    virtual ~RandomBase();
-  };
 
   //Set the default random generator which all CalcBase classes will use
   //for random number generation (unless overridden explicitly with
@@ -41,25 +32,32 @@ namespace NCrystal {
   void setDefaultRandomGenerator(RandomBase*);
 
   //Returns the global default random generator. If setDefaultRandomGenerator
-  //was never called, this will trigger the creation of a RandomSimple generator
-  //(see below) as the default unless trigger_default=false, and will result in
-  //a warning being printed to stdout.
+  //was never called, this will trigger the creation of a RandomKISS generator
+  //(see below) as the default unless trigger_default=false:
 
   RandomBase * defaultRandomGenerator(bool trigger_default = true);
 
-  //Very simple implementation which should not be used for important scientific
-  //work, but which produces a highly reproducible sequence of pseudo-random
-  //numbers which might be useful for validation work:
-  class RandomSimple : public RandomBase {
+  //Generator implementing the xoroshiro128+ (XOR/rotate/shift/rotate) due to
+  //David Blackman and Sebastiano Vigna (released into public domain / CC0
+  //1.0). It has a period of 2^128-1, is very fast and passes most statistical
+  //tests. The one exception is that the two lowest order bits of the
+  //generated integers are not of high quality. Thus, one should not simulate
+  //a coin toss with "genUInt64() % 2. We thus keep the genUInt64() method
+  //private and only provide callers with double precision floating points
+  //uniformly distributed in [0,1):
+
+  class RandXRSR : public RandomBase {
   public:
-    RandomSimple();
+    RandXRSR(uint64_t seed = 0);//NB: seed = 0 is not a special seed value.
     virtual double generate();
   protected:
-    virtual ~RandomSimple();
+    virtual ~RandXRSR();
   private:
-    uint32_t m_w;
-    uint32_t m_z;
+    uint64_t genUInt64();
+    static uint64_t splitmix64(uint64_t& state);
+    uint64_t m_s[2];
   };
+
 }
 
 #endif

@@ -22,16 +22,62 @@
 #include "NCrystal/NCFactory.hh"
 #include "NCrystal/NCMatCfg.hh"
 
+#include "NCPlaneProvider.hh"
+
 #include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCSCOrientation.hh"
 #include "NCrystal/NCScatterComp.hh"
 
 #include "NCrystal/NCPCBragg.hh"
 #include "NCrystal/NCSCBragg.hh"
+#include "NCrystal/NCLCBragg.hh"
 #include "NCrystal/NCBkgdPhonDebye.hh"
 #include "NCrystal/NCBkgdExtCurve.hh"
 
 namespace NCrystal {
+
+  class PlaneProviderWCutOff : public PlaneProvider {
+  public:
+
+    //Wraps plane provider and provides only those planes above or below a given
+    //threshold. Will assume ownership of wrapped plane provider; If
+    //select_above is true, only planes with dspacing >= cutoff will be
+    //returned, if above is false, only planes with dspacing<cutoff will be returned;
+    PlaneProviderWCutOff(double dcut, double fsqcut, PlaneProvider* pp)
+      : PlaneProvider(), m_pp(pp), m_dcut(dcut), m_fsqcut(fsqcut) { nc_assert(pp); pp->prepareLoop(); }
+    virtual ~PlaneProviderWCutOff() { delete m_pp; }
+
+    virtual bool getNextPlane(double& dspacing, double& fsq, Vector& demi_normal) {
+      while (m_pp->getNextPlane(dspacing,fsq,demi_normal)) {
+        if ( dspacing>=m_dcut||fsq>m_fsqcut ) {
+          return true;
+        } else {
+          fsq*=2;//getNextPlane provides demi-normals, e.g. only half of the normals.
+
+          if (m_withheldPlanes.empty()||m_withheldPlanes.back().first!=dspacing) {
+#if __cplusplus >= 201103L
+            m_withheldPlanes.emplace_back(dspacing,fsq);
+#else
+            m_withheldPlanes.push_back(std::make_pair(dspacing,fsq));
+#endif
+          } else {
+            m_withheldPlanes.back().second += fsq;
+          }
+        }
+      }
+      return false;
+    }
+
+    virtual void prepareLoop() { m_pp->prepareLoop(); m_withheldPlanes.clear(); }
+    virtual bool canProvide() const { return m_pp->canProvide(); }
+
+    std::vector<std::pair<double,double> >& planesWithheldInLastLoop() { return m_withheldPlanes; };
+
+  private:
+    PlaneProvider* m_pp;
+    double m_dcut, m_fsqcut;
+    std::vector<std::pair<double,double> > m_withheldPlanes;
+  };
 
   class NCStdScatFact : public FactoryBase {
   public:
@@ -58,10 +104,38 @@ namespace NCrystal {
       //Bragg component:
       if (cfg.get_bragg()) {
         if (cfg.isSingleCrystal()) {
+          //TODO for NC2: factory function somewhere for this, so can be easily created directly in test-code wo matcfg?
+          UniquePtr<PlaneProvider> sc_pp(createStdPlaneProvider(info.obj()));
+          PlaneProviderWCutOff* ppwcutoff(0);
+          nc_assert(info.obj()->hasHKLInfo());
+          if ( cfg.get_sccutoff() && cfg.get_sccutoff() > info.obj()->hklDMinVal() ) {
+            //Improve efficieny by treating planes with dspacing less than
+            //sccutoff and fsq<0.1*maxfsq as having isotropic mosaicity
+            //distribution.
+            double fsqmax(0.0);
+            HKLList::const_iterator it(info.obj()->hklBegin()), itE(info.obj()->hklEnd());
+            for (;it!=itE;++it)
+              if (fsqmax<it->fsquared)
+                fsqmax = it->fsquared;
+            sc_pp = ( ppwcutoff = new PlaneProviderWCutOff(cfg.get_sccutoff(),fsqmax*0.1,sc_pp.release()) );
+          }
           SCOrientation sco = cfg.createSCOrientation();
-          sc.obj()->addComponent(new SCBragg(info.obj(),sco,cfg.get_mos()));
+          if (cfg.isLayeredCrystal()) {
+            double lcdir[3];
+            cfg.get_lcaxis(lcdir);
+            sc.obj()->addComponent(new LCBragg(info.obj(), sco, cfg.get_mos(), lcdir, cfg.get_lcmode(),
+                                               0,sc_pp.obj(),cfg.get_mosprec(),0.0));
+          } else {
+            sc.obj()->addComponent(new SCBragg(info.obj(),sco,cfg.get_mos(),0.0,sc_pp.obj(),cfg.get_mosprec(),0.));
+          }
+          if ( ppwcutoff && !ppwcutoff->planesWithheldInLastLoop().empty() ) {
+            nc_assert_always(info.obj()->hasStructureInfo());
+            sc.obj()->addComponent(new PCBragg(info.obj()->getStructureInfo(),ppwcutoff->planesWithheldInLastLoop()));
+          }
         } else {
           sc.obj()->addComponent(new PCBragg(info.obj()));
+          //NB: Layered polycrystals get same treatment as unlayered
+          //polycrystals in our current modelling.
         }
       }
 
@@ -139,15 +213,14 @@ namespace NCrystal {
       //Bragg
       if (cfg.get_bragg()) {
         if ( !info.obj()->hasHKLInfo() || !info.obj()->hasStructureInfo() ) {
-          //in principle PCBragg can generate scatterings (but not xsects) without
-          //structure info, but we keeps things simple:
+          //in principle PCBragg could generate scatterings (but not xsects) without
+          //structure info, but we keeps things simple.
           return false;
         }
       }
 
 
       //Bkgd
-
       bkgd = cfg.get_bkgd_name();
 
       if (bkgd=="none")

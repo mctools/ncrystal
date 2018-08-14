@@ -22,11 +22,13 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCScatterIsotropic.hh"
+#include "NCrystal/NCInfo.hh"
 #include <vector>
+#include <utility>
 
 namespace NCrystal {
 
-  class Info;
+  class PlaneProvider;
 
   class PCBragg : public ScatterIsotropic {
   public:
@@ -34,33 +36,50 @@ namespace NCrystal {
     //Calculates Bragg diffraction in a polycrystalline/powdered material.
 
     //Constructor:
-    PCBragg(const Info*);
+    PCBragg( const Info* );
+
+    //Alternative constructor which use plane provider for source of
+    //planes. This is not particularly efficient in general for PCBragg, since
+    //it likely incurs the overhead of normal-creation, which is not actually
+    //needed. It exists mainly for specialised usage (such at putting some
+    //unimportant planes from a single crystal into a PCBragg instance as a
+    //tradeoff to gain faster simulations). Will *not* assume ownership of plane
+    //provider.
+    PCBragg( const StructureInfo& , PlaneProvider * );
+
+    //Specialised constructors taking (dspacing,fsquared*multiplicity) pairs
+    //(will sort passed vector, hence it is non-const). Either needs structure
+    //info, or just v0*n_atoms, unit cell volume in Aa^3 and number atoms per
+    //unit cell:
+    PCBragg( const StructureInfo&, std::vector<std::pair<double,double> >& );
+    PCBragg( double v0_times_natoms, std::vector<std::pair<double,double> >& );
 
     //The cross-section (in barns):
     virtual double crossSectionNonOriented(double ekin) const;
 
     //There is a maximum wavelength at which Bragg diffraction is possible,
     //so ekin_low will be set to reflect this (ekin_high will be set to infinity):
-    virtual void domain(double& ekin_low, double& ekin_high) const { ekin_low = m_threshold_ekin; ekin_high = infinity; }
+    virtual void domain(double& ekin_low, double& ekin_high) const;
 
-    //Generate scatter angle according to Bragg diffraction (defaulting to
-    //isotropic if the provided wavelength is above threshold()). This is
-    //elastic scattering and will always result in delta_ekin_eV=0:
+    //Generate scatterings according to Bragg diffraction. This is elastic
+    //scattering and will always result in delta_ekin=0:
     virtual void generateScatteringNonOriented( double ekin,
-                                                double& angle_radians, double& delta_ekin_eV ) const;
+                                                double& angle, double& delta_ekin ) const;
 
     virtual void generateScattering( double ekin, const double (&neutron_direction)[3],
-                                     double (&resulting_neutron_direction)[3], double& delta_ekin_eV ) const;
+                                     double (&resulting_neutron_direction)[3], double& delta_ekin ) const;
 
   protected:
     virtual ~PCBragg();
-    void genSinThetaBragg(double,double&) const;
-    double m_threshold_wl;
-    double m_threshold_ekin;
-    double m_xsectfact;
-    std::vector<double> m_2d;
+    double genScatterMu(RandomBase*, double ekin) const;
+    std::size_t findLastValidPlaneIdx(double ekin) const;
+    double m_threshold;
+    std::vector<double> m_2dE;
     std::vector<double> m_fdm_commul;
+    void init( const StructureInfo&, std::vector<std::pair<double,double> >& );
+    void init( double v0_times_natoms, std::vector<std::pair<double,double> >& );
   };
+
 }
 
 #endif

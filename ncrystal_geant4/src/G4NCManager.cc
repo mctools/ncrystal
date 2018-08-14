@@ -23,7 +23,7 @@
 #include "NCrystal/NCRandom.hh"
 #include "NCrystal/NCFactory.hh"
 #include "NCrystal/NCFactoryRegistry.hh"
-#include "NCrystal/NCException.hh"
+#include "NCrystal/NCDefs.hh"
 
 #include "G4Material.hh"
 #include "Randomize.hh"

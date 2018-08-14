@@ -49,7 +49,7 @@ from __future__ import division, print_function, absolute_import
 
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
 __copyright__ = "Copyright 2017"
-__version__ = '0.9.9'
+__version__ = '0.9.10'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
 __copyright__ = "Copyright 2015-2017 %s"%__author__
@@ -350,7 +350,7 @@ def _load(nclib_filename):
     _wrap('ncrystal_create_absorption',ncrystal_absorption_t,(_cstr,))
     _raw_save_rng = _wrap('ncrystal_save_randgen',None,tuple(),hide=True)
     _raw_restore_rng = _wrap('ncrystal_restore_randgen',None,tuple(),hide=True)
-    _wrap('ncrystal_setsimplerandgen',None,tuple())
+    _wrap('ncrystal_setbuiltinrandgen',None,tuple())
 
     _RANDGENFCTTYPE = ctypes.CFUNCTYPE( _dbl )
     _raw_setrand    = _wrap('ncrystal_setrandgen',None,(_RANDGENFCTTYPE,),hide=True)
@@ -718,16 +718,23 @@ def _actualtest():
     require( flteq(1.63130945209,alpc.crossSection(wl2ekin(4.0),(1,0,0))))
     require( alpc.crossSectionNonOriented(wl2ekin(5.0)) == 0.0 )
 
-    #use simple fall-back rng for guaranteed reproducibility (set explicitly to avoid warning):
-    _rawfct['ncrystal_setsimplerandgen']()
-    alpc.generateScatteringNonOriented(wl2ekin(4.0))
+    #use NCrystal's own builtin rng for guaranteed reproducibility (set explicitly to avoid warning):
+    _rawfct['ncrystal_setbuiltinrandgen']()
+    for i in range(60):
+        alpc.generateScatteringNonOriented(wl2ekin(4.0))
 
     alpc = createScatter('Al_sg225.ncmat;dcutoff=1.4')
     require( alpc.name == 'ScatterComp' )
-    expected  = [(2.8283092712311082, 0.0), (2.8283092712311082, 0.0), (2.8283092712311082, 0.0),
-                 (2.0527318521221001, 0.0), (2.0527318521221001, 0.0), (2.0527318521221001, 0.0),
-                 (2.8283092712311082, 0.0), (0.72997630752329012, 0.038570589541834406),
-                 (2.0527318521221001, 0.0), (2.0527318521221001, 0.0)]
+    expected = [(2.0527318521221005, 0.0),
+                (2.8283092712311073, 0.0),
+                (2.8283092712311073, 0.0),
+                (2.0527318521221001, 0.0),
+                (2.0527318521221001, 0.0),
+                (2.0527318521221005, 0.0),
+                (0.04453616562024728, -0.0030002491942324504),
+                (2.0527318521221001, 0.0),
+                (2.0527318521221005, 0.0),
+                (2.0527318521221005, 0.0)]
     if _np is None:
         ang,de=[],[]
         for i in range(10):
@@ -736,30 +743,31 @@ def _actualtest():
             de += [_de]
     else:
         ang,de = alpc.generateScatteringNonOriented(wl2ekin(4.0),repeat=10)
+
+
     for i in range(10):
         require(flteq(ang[i],expected[i][0]))
         require(flteq(de[i],expected[i][1]))
 
-    expected = [((0.6341262223410173, 0.13834601785989772, -0.7607524653143226), 0.0),
-                ((0.6341262223410173, -0.5926699932081182, 0.49661475339562755), 0.0),
-                ((0.2990135239748528, -0.13526863370357844, -0.9446127826872275), 0.01260216452284341),
-                ((0.5121682964546899, 0.25499685307902603, -0.8201586682017661), 0.0),
-                ((-0.6102623490574222, -0.4411233110504387, 0.6580198247551626), -0.00931496091586174),
-                ((0.6341262223410173, -0.6188438264965689, 0.46359060877739444), 0.0),
-                ((-0.3161005332440677, -0.8400696255604475, -0.440866733938438), -0.008399889907757894),
-                ((0.6341262223410173, 0.1298845525938583, -0.7622427022523759), 0.0),
-                ((0.6341262223410173, 0.5449549585211818, 0.5485508429696264), 0.0),
-                ((0.6341262223410173, 0.5391607731500441, -0.554246871741968), 0.0)]
+    expected = [((0.3369146087497534, 0.5914499600511176, -0.7325813887661439), 0.025900627790146815),
+                ((-0.12272231000891515, -0.28279050027676905, -0.9512984639845112), 0.01658262676194817),
+                ((0.5121682964546899, -0.7693958343708821, -0.38172462084523057), 0.0),
+                ((-0.7127470242256787, -0.439015335331022, 0.547044070255432), 0.06599215493571241),
+                ((0.02433659290937973, 0.6768242348981053, -0.7357422682571374), 0.0),
+                ((-0.8297512386195562, 0.20459918129257157, 0.5192803260510857), 0.09114370330097969),
+                ((0.6341262223410173, -0.7717155612149715, 0.04836348538073077), 0.0),
+                ((-0.0066149389611940106, 0.7436688017743517, 0.6685154866194498), -0.004773248758976008),
+                ((0.9107051856693015, -0.3323515299519934, -0.2452723493050375), -0.0181563110797026),
+                ((0.02433659290937973, -0.9886055037290901, 0.1485492788340462), 0.0)]
 
     for i in range(10):
-        ang,de = alpc.generateScattering(wl2ekin(2.0),(1.0,0.0,0.0))
+        outdir,de = alpc.generateScattering(wl2ekin(2.0),(1.0,0.0,0.0))
         require(flteq(de,expected[i][1]))
-        require(flteq(ang[0],expected[i][0][0]))
-        require(flteq(ang[1],expected[i][0][1]))
-        require(flteq(ang[2],expected[i][0][2]))
-
+        require(flteq(outdir[0],expected[i][0][0]))
+        require(flteq(outdir[1],expected[i][0][1]))
+        require(flteq(outdir[2],expected[i][0][2]))
     gesc = createScatter("""Ge_sg227.ncmat;dcutoff=0.5;mos=40.0arcsec
                             ;dir1=@crys_hkl:5,1,1@lab:0,0,1
                             ;dir2=@crys_hkl:0,-1,1@lab:0,1,0""")
-    require(flteq(587.78062659,gesc.crossSection(wl2ekin(1.540),( 0., 1., 1. ))))
+    require(flteq(587.853498014,gesc.crossSection(wl2ekin(1.540),( 0., 1., 1. ))))
     require(flteq(1.76682279301,gesc.crossSection(wl2ekin(1.540),( 1., 1., 0. ))))

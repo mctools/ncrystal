@@ -27,6 +27,7 @@
 namespace NCrystal {
 
   class Info;
+  class PlaneProvider;
 
   class SCBragg : public Scatter {
   public:
@@ -34,10 +35,21 @@ namespace NCrystal {
     //Calculates Bragg diffraction in a single crystals with given orientation
     //and mosaicity, assuming a Gaussian distribution of crystallite
     //orientations.
-
+    //
     //Parameter delta_d is the deviation of d-spacing in a non-ideal crystal.
-
-    SCBragg(const Info*, const SCOrientation&, double mosaicity, double delta_d = 0);
+    //
+    //plane_provider optional object which allows one to override the planes
+    //otherwise present in the Info object. It will only be used during
+    //initialisation in the constructor, and the SCBragg instance will *not*
+    //assume ownership of it.
+    //
+    //For a description of the prec and ntrunc parameters, see NCGaussMos.hh.
+    SCBragg(const Info*,
+            const SCOrientation&,
+            double mosaicity,
+            double delta_d = 0,
+            PlaneProvider * plane_provider = 0,
+            double prec = 1e-3, double ntrunc = 0.0 );
 
     //The cross-section (in barns):
     virtual double crossSection( double ekin,
@@ -50,8 +62,8 @@ namespace NCrystal {
     //Generate scatter angle according to Bragg diffraction (defaulting to
     //isotropic if Bragg diffraction is not possible for the provided wavelength
     //and direction). This is elastic scattering and will always result in
-    //delta_ekin_eV=0:
-    virtual void generateScattering( double ekin_eV,
+    //delta_ekin=0:
+    virtual void generateScattering( double ekin,
                                      const double (&neutron_direction)[3],
                                      double (&resulting_neutron_direction)[3],
                                      double& delta_ekin ) const ;

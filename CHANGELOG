@@ -1,3 +1,83 @@
+v0.9.10 2018-08-15
+      * This release represents a large amount of work in many areas, and in
+      particular focusing on aspects of Bragg diffraction in single crystals.
+      * The Gaussian mosaicity modelling code was completely reimplemented,
+      going back to the fundamental equations and making sure everything is
+      carried out in a consistent and precise manner. Cross-section evaluation
+      automatically selects between efficient numerical Romberg integrations and
+      evaluation of new improved closed-form expressions, which takes the
+      relevant spherically geometric into account. The code thus now gracefully
+      handles everything from backscattering to forward scattering scenarios,
+      and a large dynamic range of mosaicities, covering at least a range of
+      0.01arcseconds to tens of degrees.  Despite this, computational speed is
+      also improved, thanks to various enhancements and in particular faster
+      code for searching through the available plane normals. A new parameter,
+      mosprec, can be used to tune the tradeoff between precision and speed. The
+      default value of 1e-3 is likely adequate for almost all users.
+      * Introducing a completely new and precise modelling of layered crystals,
+      with the LCBragg class. This class, primarily intended to be used for
+      modelling of Pyrolythic Graphite, by default takes the rotational aspects
+      of such crystal into account using an from-first-principles approach to
+      figuring out which sets of normals will contribute to the scattering
+      cross-sections, and then finding the exact contribution through efficient
+      numerical integrals. A crystal is considered to be a layered crystal if it
+      has the lcaxis vector parameter set. Additionally, the lcmode parameter
+      can be used to select slower reference parameters, which simply sample an
+      SCBragg single-crystal instance many times, in different rotated systems.
+      * Huge speedup when modelling low-wavelength (<1Aa) neutrons in single
+      crystals: Approximate the very large number of very weak and uninteresting
+      scatter planes at 2*d-spacings < 1Aa with an isotropic mosaicity
+      distribution, which is a rather appropriate approximation due to the very
+      large number of very weak planes involved. The cutoff value of
+      dspacing=0.5Aa can be modified with the new sccutoff parameter.
+      * Bragg diffraction in powders and polycrystals was never slow, but the
+      PCbragg class was nonetheless rewritten to become even faster by working
+      on energies directly, avoiding internal conversions to wavelength at each
+      call.
+      * Calling generateScattering where cross-sections are vanishing now
+      generally leads to nothing happening (i.e. scatter_angle = 0 and
+      delta_ekin=0) rather than the previous fallback of isotropic elastic
+      scattering.
+      * Retire RandSimple and introduce instead RandXRSR implementing the
+      xoroshiro128+ generator. This means that the fall-back RNG option shipped
+      with NCrystal is now not only fast, but also fully suitable for scientific
+      work.
+      * Fix bug in the NCrystal McStas component which resulted in wrong
+      attenuation factors being calculated for the default absorption mode.
+      * Changed the conversion constants used in the McStas component in order
+      to make unit conversion issues in the NCrystal-McStas interface less
+      likely to produce undesired imprecision. Further discussions with McStas
+      devs will be needed in order to completely address the issue.
+      * Code creating lattice rotation matrices was updated in order to avoid
+      small rounding errors in the generated normals in most cases.
+      * More sanity checks and input pruning of atomic positions and lattice
+      structure loaded from input files. Also improved robustness of .nxs file
+      loading.
+      * Remove spurious ref-count increase in CalcBase::setRandomGenerator
+      (thanks to A. Morozov for the report).
+      * Fix windows builds (see github issue #17). Many thanks to A. Morozov for
+      a detailed report.
+      * Many general infrastructure improvements: Refactor random sampling
+      algorithms from CalcBase objects (a necessary step for future enhanced MT
+      support). Refactor orientation code from SCBragg (now used by both SCBragg
+      and LCBragg). Refactor .ncmat loading code to disentangle the parsing code
+      from the code. Lots of new utilities: Cubic splines, Romberg integration,
+      root finding, derivative estimation. Single header NCDefs.hh providing all
+      ubiquitous definitions and infrastructure related to memory handling and
+      error reporting, and also handles includes which must get special
+      treatment due to differences between platforms or C++ versions. Add
+      UniquePtr (similar to C++11's unique_ptr). Add PlaneProvider (supported in
+      PCBragg, SCBragg, LCBragg), for customizing which planes goes in which
+      process. Avoid bind1st usage as it is removed in C++17. Custom functions
+      for evaluating sine and cosine of angles in various ranges - between 5-10
+      times faster than the standard functions at 15 significant digits. Also
+      add fast approximations for atan and exp. Performed careful changes to
+      ncmin and ncmax functions with large performance implications
+      (surprisingly, std::fmax generates very inefficient machine code:
+      https://godbolt.org/g/Dxy52A ). Add helper class for efficiently
+      generating sine and cosine values for all grid-points in a grid. PCBragg
+      supports more custom constructors.
+
 v0.9.9 2018-03-26
       * Expose loadNCMAT function to client C++ code, making it possible to work
         with .ncmat files completely independent from the factory

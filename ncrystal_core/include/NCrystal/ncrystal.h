@@ -205,14 +205,14 @@ extern "C" {
   /* For special uses it is possible to trigger save/restore of the rng            */
   void ncrystal_save_randgen();    /* save & ref current randgen                   */
   void ncrystal_restore_randgen(); /* restore from and clear+unref last saved      */
-  void ncrystal_setsimplerandgen(); /* for reproducibility use non-scientific rng  */
+  void ncrystal_setbuiltinrandgen(); /* for reproducibility use NCrystals own rng   */
 
   /* NCrystal version info:                                                        */
 #define NCRYSTAL_VERSION_MAJOR 0
 #define NCRYSTAL_VERSION_MINOR 9
-#define NCRYSTAL_VERSION_PATCH 9
-#define NCRYSTAL_VERSION   9009 /* (1000000*MAJOR+1000*MINOR+PATCH)                */
-#define NCRYSTAL_VERSION_STR "0.9.9"
+#define NCRYSTAL_VERSION_PATCH 10
+#define NCRYSTAL_VERSION   9010 /* (1000000*MAJOR+1000*MINOR+PATCH)                */
+#define NCRYSTAL_VERSION_STR "0.9.10"
   int ncrystal_version(); /* returns NCRYSTAL_VERSION                              */
   const char * ncrystal_version_str(); /* returns NCRYSTAL_VERSION_STR             */
 

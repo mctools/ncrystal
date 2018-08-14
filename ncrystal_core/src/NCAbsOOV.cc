@@ -20,7 +20,7 @@
 
 #include "NCrystal/NCAbsOOV.hh"
 #include "NCrystal/NCInfo.hh"
-#include "NCrystal/NCException.hh"
+#include "NCrystal/NCDefs.hh"
 #include "NCMath.hh"
 
 NCrystal::AbsOOV::AbsOOV(const Info*ci)
@@ -41,10 +41,10 @@ NCrystal::AbsOOV::~AbsOOV()
 
 double NCrystal::AbsOOV::crossSection(double ekin, const double (&)[3] ) const
 {
-  return ekin ? m_c / sqrt(ekin) : std::numeric_limits<double>::infinity();
+  return ekin ? m_c / std::sqrt(ekin) : std::numeric_limits<double>::infinity();
 }
 
 double NCrystal::AbsOOV::crossSectionNonOriented( double ekin ) const
 {
-  return ekin ? m_c / sqrt(ekin) : std::numeric_limits<double>::infinity();
+  return ekin ? m_c / std::sqrt(ekin) : std::numeric_limits<double>::infinity();
 }

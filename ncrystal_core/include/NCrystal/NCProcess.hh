@@ -62,6 +62,8 @@ namespace NCrystal {
     virtual void validate();//call to perform a quick (incomplete) validation
                             //that cross sections are vanishing outside
                             //domain(..).
+
+    bool isNull() const;
   protected:
     virtual ~Process();
   };
@@ -72,8 +74,10 @@ namespace NCrystal {
 //virtual methods and whose first 24 bytes holds x, y and z coordinates in three
 //doubles) to be passed easily to the methods above by enclosing the variable
 //name in NC_VECTOR_CAST(..) in the call, without the need for first copying
-//values:
-#define NC_VECTOR_CAST(v) (reinterpret_cast<double(&)[3]>(v))
-#define NC_CVECTOR_CAST(v) (reinterpret_cast<const double(&)[3]>(v))
+//values (nb: repeated in NCVector.hh for convenience):
+#ifndef NC_VECTOR_CAST
+#  define NC_VECTOR_CAST(v) (reinterpret_cast<double(&)[3]>(v))
+#  define NC_CVECTOR_CAST(v) (reinterpret_cast<const double(&)[3]>(v))
+#endif
 
 #endif

@@ -20,6 +20,7 @@
 
 #include "NCMatrix.hh"
 #include <iostream>
+#include <algorithm>
 
 NCrystal::Matrix::~Matrix()
 {
@@ -54,7 +55,7 @@ void NCrystal::Matrix::rref(double epsilon)
     }
     if (ncabs((*this)[j][c]) < epsilon)
       continue;
-    swap_ranges(m_data.begin() + j*m_colcount,
+    std::swap_ranges(m_data.begin() + j*m_colcount,
         m_data.begin() + j*m_colcount + m_colcount,
         m_data.begin() + r*m_colcount);
     double s = 1.0 / (*this)[r][c];

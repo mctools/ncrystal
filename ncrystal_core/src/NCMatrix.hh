@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCException.hh"
+#include "NCrystal/NCDefs.hh"
 #include "NCMath.hh"
 #include <cstring>
 #include <ostream>
@@ -33,16 +33,24 @@ namespace NCrystal {
   public:
 
     Matrix() ;
-    Matrix(const Matrix &) ;
 
     Matrix(unsigned row, unsigned col, const double* data= 0);
     Matrix(unsigned row, unsigned col, const std::vector<double>& data);
 
     virtual ~Matrix();
 
+    //Copy semantics:
+    Matrix(const Matrix &) ;
     Matrix& operator=(const Matrix&);
+
+#if __cplusplus >= 201103L
+    //Move semantics:
+    Matrix(Matrix && o);
+    Matrix& operator=(Matrix&& o);
+#endif
+
     Matrix& operator*=(const double&);
-    const double* operator[](unsigned icol) const;
+    const double* operator[](unsigned irow) const;
     friend Matrix operator*(const Matrix&, const Matrix&);
     Matrix operator* (double );
     Matrix operator/ (double );
@@ -96,6 +104,22 @@ inline NCrystal::Matrix::Matrix(const NCrystal::Matrix & o)
   *this = o;
 }
 
+#if __cplusplus >= 201103L
+inline NCrystal::Matrix::Matrix(NCrystal::Matrix && o)
+  : m_data(std::move(o.m_data)),
+    m_rowcount(o.m_rowcount),
+    m_colcount(o.m_colcount)
+{
+}
+
+inline NCrystal::Matrix& NCrystal::Matrix::operator=(NCrystal::Matrix&& o)
+{
+  m_data = std::move(o.m_data);
+  m_rowcount = o.m_rowcount;
+  m_colcount = o.m_colcount;
+  return *this;
+}
+#endif
 
 inline void NCrystal::Matrix::set(unsigned row, unsigned col, const double* data)
 {
@@ -133,10 +157,10 @@ inline NCrystal::Matrix& NCrystal::Matrix::operator=(const NCrystal::Matrix& o)
   return *this;
 }
 
-inline const double* NCrystal::Matrix::operator[](unsigned index) const
+inline const double* NCrystal::Matrix::operator[](unsigned irow) const
 {
-  nc_assert( index < m_rowcount) ;
-  return &(m_data[0]) + index * m_colcount;
+  nc_assert( irow < m_rowcount) ;
+  return &(m_data[0]) + irow * m_colcount;
 }
 
 inline NCrystal::Matrix NCrystal::Matrix::operator* (double factor)

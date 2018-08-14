@@ -1,5 +1,5 @@
-#ifndef NCrystal_RCBase_hh
-#define NCrystal_RCBase_hh
+#ifndef NCrystal_Mem_hh
+#define NCrystal_Mem_hh
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
@@ -112,6 +112,40 @@ namespace NCrystal {
   //get_pointer specialisation for RCHolder allows easy integration with boost:
   template< class T >
   T* get_pointer(const RCHolder<T>& r) { return const_cast<T*>(r.obj()); }
+
+  //While waiting for full move to C++, being to create out own unique_ptr here (won't add more features than we need to bridge the time gap):
+  template<class T>
+  class UniquePtr {
+  public:
+    UniquePtr() : m_ptr(0) {}
+    UniquePtr(T*t) : m_ptr(t) {}
+    ~UniquePtr(){ delete m_ptr; }
+    UniquePtr & operator= ( T* t ) { set(t); return *this; }
+#if __cplusplus >= 201103L
+    //allow move:
+    UniquePtr & operator= ( UniquePtr && o ) { T* p(0); std::swap(p,m_ptr); UniquePtr tmp(p); std::swap(m_ptr,o.m_ptr); return *this; }
+    UniquePtr( UniquePtr && o ) { T* p(0); std::swap(p,m_ptr); UniquePtr tmp(p); std::swap(m_ptr,o.m_ptr); }
+    //disable copy/assignment:
+    UniquePtr & operator= ( const UniquePtr & ) = delete;
+    UniquePtr( const UniquePtr & ) = delete;
+#else
+    //disable copy/assignment the idiomatic C++98 way...:
+  private:
+    UniquePtr & operator= ( const UniquePtr & );
+    UniquePtr( const UniquePtr & );
+  public:
+#endif
+    T * obj() { return m_ptr; }
+    const T * obj() const { return m_ptr; }
+    void set(T * t) { T* p(0); std::swap(p,m_ptr); UniquePtr tmp(p); m_ptr = t; }
+    T * release() { T* p(0); std::swap(p,m_ptr); return p; }
+    void swap(UniquePtr& o) { std::swap(m_ptr,o.ptr); }
+    bool operator()() const { return m_ptr!=0; }
+    bool operator!() const { return m_ptr==0; }
+
+  private:
+    T * m_ptr;
+  };
 
 }
 

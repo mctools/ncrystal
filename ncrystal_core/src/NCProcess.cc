@@ -19,8 +19,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCProcess.hh"
-#include "NCrystal/NCException.hh"
+#include "NCrystal/NCDefs.hh"
 #include "NCVector.hh"
+#include "NCMath.hh"
 
 NCrystal::Process::Process(const char * calculator_type_name)
   : CalcBase(calculator_type_name)
@@ -63,4 +64,10 @@ void NCrystal::Process::validate()
 
   if ( xs_low!=xs_low || xs_high!=xs_high || xs_low!=0.0 || xs_high!=0.0 )
     NCRYSTAL_THROW2(LogicError,getCalcName()<<" returns invalid cross sections outside domain!")
+}
+
+bool NCrystal::Process::isNull() const {
+  double ekin_low, ekin_high;
+  domain(ekin_low, ekin_high);
+  return ncisinf(ekin_low) || !(ekin_low<ekin_high);
 }

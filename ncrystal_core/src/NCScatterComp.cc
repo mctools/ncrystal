@@ -19,7 +19,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCScatterComp.hh"
-#include "NCrystal/NCException.hh"
+#include "NCrystal/NCDefs.hh"
+#include "NCRandUtils.hh"
 #include <algorithm>
 #include <limits>
 
@@ -97,7 +98,7 @@ double NCrystal::ScatterComp::crossSection(double ekin, const double (&indir)[3]
 void NCrystal::ScatterComp::generateScattering( double ekin, const double (&indir)[3],
                                                 double (&outdir)[3], double& de ) const
 {
-  double rand_choice = this->rand() * crossSection(ekin,indir);
+  double rand_choice = getRNG()->generate() * crossSection(ekin,indir);
   double c(0);
   std::vector<Component>::const_iterator it = m_calcs.begin();
   std::vector<Component>::const_iterator itE = m_calcs.end();
@@ -115,8 +116,10 @@ void NCrystal::ScatterComp::generateScattering( double ekin, const double (&indi
     }
   }
   //Should get here only in case of rounding errors or if called outside
-  //domain(). Fall back to an isotropic elastic scattering:
-  randIsotropicDirection(outdir);
+  //domain(). No cross-section means no action:
+  outdir[0] = indir[0];
+  outdir[1] = indir[1];
+  outdir[2] = indir[2];
   de = 0;
 }
 

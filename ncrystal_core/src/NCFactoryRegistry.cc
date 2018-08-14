@@ -21,7 +21,7 @@
 #include "NCrystal/NCFactoryRegistry.hh"
 #include "NCrystal/NCFactory.hh"
 #include "NCString.hh"
-#include "NCrystal/NCException.hh"
+#include "NCrystal/NCDefs.hh"
 #include <iostream>
 #include <cstdlib>
 
@@ -137,15 +137,15 @@ NCrystal::FactoryBase::~FactoryBase()
 
 const NCrystal::Info * NCrystal::FactoryBase::createInfo( const MatCfg& ) const
 {
-  NCRYSTAL_THROW(LogicError,"Unsupported request");
+  NCRYSTAL_THROW(LogicError,"Unsupported createInfo request");
 }
 
 const NCrystal::Scatter * NCrystal::FactoryBase::createScatter( const MatCfg& ) const
 {
-  NCRYSTAL_THROW(LogicError,"Unsupported request");
+  NCRYSTAL_THROW(LogicError,"Unsupported createScatter request");
 }
 
 const NCrystal::Absorption * NCrystal::FactoryBase::createAbsorption( const MatCfg& ) const
 {
-  NCRYSTAL_THROW(LogicError,"Unsupported request");
+  NCRYSTAL_THROW(LogicError,"Unsupported createAbsorption request");
 }

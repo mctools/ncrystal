@@ -20,7 +20,6 @@
 
 #include "NCrystal/NCBkgdPhonDebye.hh"
 #include "NCrystal/NCInfo.hh"
-#include "NCrystal/NCException.hh"
 #include "NCBkgdPhonDebyeXS.hh"
 #include <map>
 #include <iostream>

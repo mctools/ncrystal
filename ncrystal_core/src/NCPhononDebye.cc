@@ -20,7 +20,7 @@
 
 #include "NCPhononDebye.hh"
 #include "NCPhononData.hh"
-#include "NCrystal/NCException.hh"
+#include "NCrystal/NCDefs.hh"
 #include "NCMath.hh"
 #include "NCNeutronSCL.hh"
 #include "NCrystal/NCCalcBase.hh"

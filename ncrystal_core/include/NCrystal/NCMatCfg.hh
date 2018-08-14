@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCException.hh"
+#include "NCrystal/NCDefs.hh"
 #include <set>
 #include <ostream>
 
@@ -154,6 +154,16 @@ namespace NCrystal {
     //               "nphonon". Examples: "external:thermalising",
     //               "phonondebye:elastic", "phonondebye:thermalising:nphonon@20"
     //
+    // lcaxis......: [ vector, no fallback value ]
+    //               Used to specify symmetry axis of anisotropic layered
+    //               crystals with a layout similar to pyrolythic graphite, by
+    //               providing the axis in lattice coordinates using a format
+    //               like "0,0,1" (does not need to be normalised). Specifying
+    //               this parameter along with an orientation (see dir1, dir2
+    //               and dirtol parameters) will result in a specialised single
+    //               crystal scatter model being used.
+    //
+    //
     /////////////////////////////////////////////////////////////////////////////
     // Options mainly of interests to experts and NCrystal developers:
     //
@@ -176,6 +186,39 @@ namespace NCrystal {
     //               Similar to infofactory, this parameter can be used to
     //               directly select factory with which to create
     //               NCrystal::Absorption instances.
+    //
+    // mosprec...: [ double, fallback value is 1.0e-3 ]
+    //               Approximate relative precision in implementation of mosaic
+    //               model in single crystals. Affects both approximations used
+    //               and truncation range of Gaussian.
+    //
+    // lcmode....: [ int, fallback value is 0 ]
+    //               Choose which modelling is used for layered crystals (has no
+    //               effect unless lcaxis is also set). The default value
+    //               indicates the recommended model, which is both fast and
+    //               accurate. A positive value triggers a very slow but simple
+    //               reference model, in which n=lcmode crystallite orientations
+    //               are sampled internally (the model is accurate only when n
+    //               is very high). A negative value triggers a different model
+    //               in which each crossSection call triggers a new selection of
+    //               n=-lcmode randomly oriented crystallites.
+    //
+    // sccutoff.....: [ double, fallback value is 0.5Aa ]
+    //               Single-crystal d-spacing cutoff in Angstrom. When creating
+    //               single-crystal scatterers, crystal planes with spacing
+    //               below this value and Fsquared less than 10% of the maximum
+    //               Fsquared in the crystal will be modelled as having a
+    //               isotropic mosaicity distribution. This usually results in
+    //               very great computational speedups for neutrons at
+    //               wavelengths below 2*sccutof. The tradeoff is in principle
+    //               incorrect angular dependency when calculating the
+    //               cross-section for scattering on *these* individual planes,
+    //               but in practice the net effect is usually not particularly
+    //               significant due to the very large number of very weak
+    //               planes affected. Setting sccutoff=0 naturally disables this
+    //               approximation.
+    //               [ Recognised units: "Aa", "nm", "mm", "cm", "m" ]
+
 
     /////////////////////////////////////////////////////////////////////////////
     // Methods for setting parameters:                                         //
@@ -187,6 +230,8 @@ namespace NCrystal {
     void set_dcutoffup( double );
     void set_packfact( double );
     void set_mos( double );
+    void set_mosprec( double );
+    void set_sccutoff( double );
     void set_dirtol( double );
     void set_overridefileext( const std::string& );
     void set_bragg( bool );
@@ -194,6 +239,7 @@ namespace NCrystal {
     void set_infofactory( const std::string& );
     void set_scatfactory( const std::string& );
     void set_absnfactory( const std::string& );
+    void set_lcmode( int );
     //
     //Special setter method, which will set all orientation parameters based on
     //an SCOrientation object:
@@ -211,6 +257,7 @@ namespace NCrystal {
     void get_dir2( bool& crystal_dir_is_point_in_hkl_space,
                    double (&crystal_direction)[3],
                    double (&lab_direction)[3] );
+    void set_lcaxis( const double (&axis)[3] );
     //
     // Set parameters from a string, using the same format as that supported by
     // the constructor, e.g. "par1=val1;...;parn=valn":
@@ -226,11 +273,15 @@ namespace NCrystal {
     double get_dcutoffup() const;
     double get_packfact() const;
     double get_mos() const;
+    double get_mosprec() const;
+    double get_sccutoff() const;
     double get_dirtol() const;
     bool get_bragg() const;
+    void get_lcaxis( double (&axis)[3] ) const;
     const std::string& get_overridefileext() const;
     const std::string& get_scatfactory() const;
     const std::string& get_absnfactory() const;
+    int  get_lcmode() const;
 
     //Bkgd option decoded:
     std::string get_bkgd_name() const;
@@ -245,9 +296,10 @@ namespace NCrystal {
     int get_infofactopt_int(const std::string& name, int defval) const;
 
     // Specialised getters for derived information:
-    bool isSingleCrystal() const;//true if mosaicity or orientation parameters are set
+    bool isSingleCrystal() const;//true if mos or orientation parameters are set
     bool isPolyCrystal() const;//same as !isSingleCrystal()
     SCOrientation createSCOrientation() const;//Create and return a new SCOrientation object based cfg.
+    bool isLayeredCrystal() const;//true if lcaxis parameter is set
 
     //Validate bkgd/infofactory flags and options to prevent silently ignoring
     //unused options. Call only from *selected* factory, to throw BadInput in

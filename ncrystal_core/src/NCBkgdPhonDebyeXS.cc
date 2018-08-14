@@ -20,13 +20,10 @@
 
 #include "NCBkgdPhonDebyeXS.hh"
 #include "NCrystal/NCInfo.hh"
-#include "NCrystal/NCCalcBase.hh"//ekin2wl
 #include "NCMath.hh"
 #include "NCPhononDebye.hh"
 #include "NCNeutronSCL.hh"
 #include <algorithm>
-#include <cmath>
-#include <limits>
 #include <cstdlib>
 #include <iostream>
 
@@ -183,22 +180,18 @@ NCrystal::RCHolder<const NCrystal::BkgdPhonDebyeXS> NCrystal::createBkgdPhonDeby
   nc_assert_always(ntotatoms>0);
 
   for (AtomList::const_iterator it = ci->atomInfoBegin(); it!=ci->atomInfoEnd(); ++it) {
-    //TODO for NC2: don't use this backwards code to get element_name from
-    //atomic number, we should be able to query directly with atomic numbers
-    //(and PhononDebye constructor should accept a number, not a string)!!
-    std::string element_name;
-    for (NeutronSCL::DataMap::const_iterator itEL = nscl->begin(); itEL!=nscl->end(); ++itEL) {
-      if (itEL->second.atomic_num==it->atomic_number) {
-        element_name = itEL->first;
-        break;
-      }
-    }
+    const std::string& element_name = nscl->getAtomName(it->atomic_number);
     if (element_name.empty())
       NCRYSTAL_THROW2(BadInput,"Does not have data for element number "<<it->atomic_number);
 
     double debye_temp = ci->hasPerElementDebyeTemperature() ? it->debye_temp : ci->getDebyeTemperature();
     bool auto_select(nphonon==0);
     //phonon inelastic:
+
+    //TODO for NC2: For consistency, do we want to be able to pass in MSD from
+    //AtomInfo if available, and use those rather than the ones calculated
+    //internally in PhononDebye? For .ncmat files it is anyway calculated in the
+    //same manner, but this is not the case for .nxs files.
     PhononDebye inel( debye_temp*constant_boltzmann, kT, element_name, nphonon, pzi_flag );
 
     const bool verbose = (std::getenv("NCRYSTAL_DEBUGSCATTER") ? true : false);

@@ -19,10 +19,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCLoadNCMAT.hh"
-
 #include "NCParseNCMAT.hh"
-
-#include "NCrystal/NCException.hh"
+#include "NCrystal/NCDefs.hh"
 #include "NCFillHKL.hh"
 #include "NCPhononDebye.hh"
 #include "NCFile.hh"
@@ -31,7 +29,6 @@
 #include "NCLatticeUtils.hh"
 
 #include <vector>
-#include <cmath>
 #include <iostream>
 #include <cstdlib>
 

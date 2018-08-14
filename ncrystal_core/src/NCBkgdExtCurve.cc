@@ -20,7 +20,7 @@
 
 #include "NCrystal/NCBkgdExtCurve.hh"
 #include "NCrystal/NCInfo.hh"
-#include "NCrystal/NCException.hh"
+#include "NCrystal/NCDefs.hh"
 
 NCrystal::BkgdExtCurve::BkgdExtCurve(const Info* ci, bool thermalise)
   : ScatterXSCurve(ci,"BkgdExtCurve",thermalise),

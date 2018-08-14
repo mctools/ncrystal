@@ -26,16 +26,12 @@
 // including random sampling of various of distributions.          //
 /////////////////////////////////////////////////////////////////////
 
+#include "NCrystal/NCDefs.hh"
 #include "NCrystal/NCRandom.hh"
 #include <string>
 #include <vector>
-#include <limits>
-#include <cmath>
 
 namespace NCrystal {
-
-
-  class RandomBase;
 
   //Base class for ref-counted objects, destructors of which should be protected
   //rather than public.
@@ -43,44 +39,33 @@ namespace NCrystal {
   class CalcBase  : public RCBase {
   public:
     CalcBase(const char * calculator_type_name);
-    const char * getCalcName() const { return m_name.c_str(); }
-    void setCalcName(const char * n) { m_name = n; }
+    const char * getCalcName() const;
+    void setCalcName(const char * n);
+
+    bool isSubCalc(const CalcBase*) const;
 
     //Can be used to control and access the random number stream (but note that
     //often the setDefaultRandomGenerator(..) in NCRandom.hh will be an easier
-    //way to do this globally):
+    //way to do this globally). Sub-calcs will have their RNG changed as well:
     void setRandomGenerator(RandomBase* rg);
-    RandomBase* getRandomGenerator() { return m_randgen.obj(); }
+
+    //Access current RNG (the first will init and return default RNG if none was
+    //set explicitly - this modifies a mutable data member):
+    RandomBase* getRNG() const;//always returns valid object
+    RandomBase* getRNGNoDefault() const;//returns null ptr if RNG was not set explicitly
 
   protected:
-    //Access random numbers in derived classes (uniformly distributed in
-    //(0,1]. Note that the method is const, although obviously the random stream
-    //will be changed as a result of calling this:
-    double rand() const { return m_randgen.obj() ? m_randgen.obj()->generate() : initDefaultRand(); }
-    //Convenience:
-    double randIsotropicScatterAngle() const;
-    double randIsotropicScatterMu() const;
-    void randIsotropicDirection(double (&)[3]) const;//result will be unit vector
-    void randDirectionGivenScatterAngle(double theta, const double(&in)[3], double(&out)[3]) const;//outdir will be unit vector
-    void randDirectionGivenScatterAngle(double costh, double sinth, const double(&in)[3], double(&out)[3]) const;//outdir will be unit vector
-    void randNorm(double&g1) const;//sample single value from unit Gaussian
-    void randNorm(double&g1, double&g2) const;//sample two independent values from unit Gaussian.
-    void registerSubCalc(CalcBase*);//when implementation owns other CalcBase instances, they must be registered
+    //Registering sub-calcs will result in their ref-counts being incremented
+    //for the mother calc's lifetime, and also means that future
+    //setRandomGenerator calls will propagate to them:
+    void registerSubCalc(CalcBase*);
+    virtual ~CalcBase();
   private:
     std::vector<CalcBase*> m_subcalcs;
     std::string m_name;
     mutable RCHolder<RandomBase> m_randgen;
     double initDefaultRand() const;
-  protected:
-    virtual ~CalcBase();
   };
-
-
-  //Utility functions for converting between neutron wavelength [Aa] and kinetic
-  //energy [eV], and for providing infinity:
-  double wl2ekin( double wl );
-  double ekin2wl( double ekin );
-  const double infinity = std::numeric_limits<double>::infinity();
 }
 
 
@@ -88,31 +73,29 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
-
-  //The constant 8.1804... in the functions wl2ekin and ekin2wl is based on the
-  //equation "h^2 * c^2 / (2.0*m)", using CODATA Internationally recommended
-  //2014 values of the fundamental physical constants
-  //(http://physics.nist.gov/cuu/Constants/Table/allascii.txt):
-  //
-  //  h = 4.135667662e-15 [Ev*s] <- Planck constant in
-  //  c = 299792458.0e10 [Aa/s]  <- speed of light in vacuum
-  //  m = 939.5654133e6 [eV]     <- neutron mass energy equivalent
-  //
-  //  h^2 * c^2 / (2.0*m) = 0.081804209605330899
-
-  inline double wl2ekin( double wl)
-  {
-    //Aangstrom to eV
-    return wl ? 0.081804209605330899 / ( wl * wl ) : std::numeric_limits<double>::infinity();
-  }
-
-  inline double ekin2wl( double ekin)
-  {
-    //eV to Aangstrom
-    return ekin ? sqrt( 0.081804209605330899 / ekin ) : std::numeric_limits<double>::infinity();
-  }
-
+inline const char * NCrystal::CalcBase::getCalcName() const
+{
+  return m_name.c_str();
 }
+
+inline void NCrystal::CalcBase::setCalcName(const char * n)
+{
+  m_name = n;
+}
+
+inline NCrystal::RandomBase* NCrystal::CalcBase::getRNG() const
+{
+  if (!m_randgen.obj()) {
+    m_randgen = defaultRandomGenerator();
+    nc_assert(m_randgen.obj());
+  }
+  return m_randgen.obj();
+}
+
+inline NCrystal::RandomBase* NCrystal::CalcBase::getRNGNoDefault() const
+{
+  return m_randgen.obj();
+}
+
 
 #endif

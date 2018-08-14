@@ -20,8 +20,8 @@
 
 #include "NCrystal/NCScatterXSCurve.hh"
 #include "NCrystal/NCInfo.hh"
-#include "NCrystal/NCException.hh"
 #include "NCMath.hh"
+#include "NCRandUtils.hh"
 
 NCrystal::ScatterXSCurve::ScatterXSCurve(const Info* ci, const char * calcname, bool thermalise )
   : ScatterIsotropic(calcname),
@@ -62,20 +62,19 @@ double NCrystal::ScatterXSCurve::calcDeltaE(double ekin) const
   //that the result is OK and if not throw another (up to N times, then default
   //to de=0).". Have to double-check equations to see if this is true.
 
-  return genThermalNeutronEnergy(m_tempk, this->rand()) - ekin;
+  return genThermalNeutronEnergy(m_tempk, getRNG()->generate()) - ekin;
 }
 
-void NCrystal::ScatterXSCurve::generateScatteringNonOriented( double ekin,
-                                                          double& angle_radians, double& delta_ekin_eV ) const
+void NCrystal::ScatterXSCurve::generateScatteringNonOriented( double ekin, double& angle, double& de ) const
 {
-  angle_radians = randIsotropicScatterAngle();
-  delta_ekin_eV = calcDeltaE(ekin);
+  angle = randIsotropicScatterAngle(getRNG());
+  de = calcDeltaE(ekin);
 }
 
 void NCrystal::ScatterXSCurve::generateScattering( double ekin, const double (&)[3],
-                                               double (&resulting_neutron_direction)[3], double& delta_ekin_eV ) const
+                                                   double (&outdir)[3], double& de ) const
 {
-  randIsotropicDirection(resulting_neutron_direction);
-  delta_ekin_eV = calcDeltaE(ekin);
+  randIsotropicDirection(getRNG(),outdir);
+  de = calcDeltaE(ekin);
 }
 

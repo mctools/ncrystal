@@ -18,14 +18,11 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <cmath>
-#include <numeric>
-#include <limits>
-#include <algorithm>
 #include "NCPhononData.hh"
-#include "NCrystal/NCException.hh"
 #include "NCMath.hh"
 #include "NCFastConvolve.hh"
+#include <numeric>
+#include <algorithm>
 
 //first element in m_phvec is the one-phonon data
 NCrystal::PhononNumDyns::PhononNumDyns(const std::vector<double> &spec, double btime, double dt,double kt)

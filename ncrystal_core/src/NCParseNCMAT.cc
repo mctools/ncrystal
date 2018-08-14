@@ -19,10 +19,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCParseNCMAT.hh"
-
 #include "NCString.hh"
 #include "NCFile.hh"
-#include "NCrystal/NCException.hh"
+#include "NCrystal/NCDefs.hh"
+#include <cctype>
 
 NCrystal::NCMATParser::NCMATParser(const char* fn)
   : m_debye_temp(-1.), m_sg(0)
@@ -88,7 +88,7 @@ NCrystal::NCMATParser::NCMATParser(const char* fn)
         }
         else if(tmpstr[0]=='@')
         {
-          infile.seekg(-tmpstr.size(), infile.cur);
+          infile.seekg(-((std::streamoff)tmpstr.size()), infile.cur);
           break;
         }
       }
@@ -108,7 +108,7 @@ NCrystal::NCMATParser::NCMATParser(const char* fn)
       {
         if(tmpstr[0]=='@')
         {
-          infile.seekg(-tmpstr.size(), infile.cur);
+          infile.seekg(-((std::streamoff)tmpstr.size()), infile.cur);
           break;
         }
         else if (tmpstr[0]!='#')
@@ -147,7 +147,7 @@ NCrystal::NCMATParser::NCMATParser(const char* fn)
       {
         if(tmpstr[0]=='@')
         {
-          infile.seekg(-tmpstr.size(), infile.cur);
+          infile.seekg(-((std::streamoff)tmpstr.size()), infile.cur);
           break;
         }
         else if (tmpstr[0]!='#')
@@ -163,7 +163,7 @@ NCrystal::NCMATParser::NCMATParser(const char* fn)
       {
         if(tmpstr[0]=='@')
         {
-          infile.seekg(-tmpstr.size(), infile.cur);
+          infile.seekg(-((std::streamoff)tmpstr.size()), infile.cur);
           break;
         }
         else if (tmpstr[0]=='#')  {

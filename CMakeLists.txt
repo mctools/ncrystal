@@ -58,11 +58,23 @@ if (BUILD_EXTRA)
   list(APPEND DATAFILES "${DATAFILES_NXS}")
 endif()
 
-#NCrystal library and header files, including optional build-in modules if enabled:
+#NCrystal library and header files, including optional built-in modules if enabled:
 add_library(NCrystal SHARED ${SRCS_NC})
 target_include_directories(NCrystal PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/ncrystal_core/include")
 target_include_directories(NCrystal PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ncrystal_core/src")
-target_link_libraries(NCrystal m)
+
+#Make sure we link in math functions correctly (typically the linker needs libm on unix, but nothing on Windows).
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/nctestlibm.c "#include <math.h>\nint main(int argc,char** argv) { (void)argv;double a=(exp)(argc+1.0); return (int)a; }\n")
+try_compile(ALWAYS_HAS_MATH "${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/nctestlibm.c")
+if (NOT ALWAYS_HAS_MATH)
+  try_compile(MATH_NEEDS_LIBM "${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/nctestlibm.c" LINK_LIBRARIES m)
+  if (MATH_NEEDS_LIBM)
+    target_link_libraries(NCrystal m)
+  else()
+    message(FATAL_ERROR "Could not figure out link flags needed to enable math functions")
+  endif()
+endif()
+
 if (INSTALL_DATA)
   target_compile_definitions(NCrystal PRIVATE "-DNCRYSTAL_DATADIR=${CMAKE_INSTALL_PREFIX}/data")
   install(FILES ${DATAFILES} DESTINATION data)

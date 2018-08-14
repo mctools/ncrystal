@@ -20,12 +20,11 @@
 
 #include "NCLazLoader.hh"
 #include "NCrystal/NCInfo.hh"
-#include "NCrystal/NCException.hh"
+#include "NCrystal/NCDefs.hh"
 #include "NCString.hh"
 #include "NCMath.hh"
 #include <sstream>
 #include <fstream>
-#include <cmath>
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
@@ -231,6 +230,16 @@ void NCrystal::LazLoader::read()
                                  //calculated.
           continue;
 
+        //TODO: .lau files should get multiplicity by counting number of lines
+        //(but warn if does not correspond to number of encountered lines!). This
+        //is inspired by mcstas's C_graphite.lau which has incorrect
+        //multiplicity (1) specified for 0,0,2/0,0,-2 but mcstas's
+        //single_crystal.comp simply ignores the multiplicity parameter.
+        //
+        //Probably the one true way to fix this loading would be to use our
+        //EqRefl calculator to check all lines, group them properly, and check
+        //if all multiplicities are correct (and allow all group members to
+        //specificy either 1 or the actual group multiplicity).
         bool repeated_line(false);
         if (f2_index&&ncabs(cache_d-info.dspacing)<1.0e-4&&ncabs(cache_f-info.fsquared)<1.0e-4&&cache_mult==info.multiplicity)
           repeated_line = true;//remove repeated planes in a lau file.

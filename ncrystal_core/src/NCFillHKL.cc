@@ -19,10 +19,11 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCFillHKL.hh"
+#include "NCOrientUtils.hh"
 #include "NCRotMatrix.hh"
 #include "NCLatticeUtils.hh"
 #include "NCNeutronSCL.hh"
-#include "NCrystal/NCException.hh"
+#include "NCrystal/NCDefs.hh"
 
 namespace NCrystal {
   //map keys used during search for hkl families.
@@ -120,7 +121,7 @@ namespace NCrystal {
 #endif
 
 namespace NCrystal {
-  void internal_fillHKL_getWhkl(std::vector<double>& out_whkl, const double ksq, const std::vector<double> & msd)
+  void fillHKL_getWhkl(std::vector<double>& out_whkl, const double ksq, const std::vector<double> & msd)
   {
     //Sears, Acta Cryst. (1997). A53, 35-45
 
@@ -147,14 +148,7 @@ void NCrystal::fillHKL( NCrystal::Info &info,
   nc_assert_always(!info.hasHKLInfo());
   nc_assert_always(dcutoff>0.0&&dcutoff<dcutoffup);
 
-  const StructureInfo& si = info.getStructureInfo();
-  //TODO for NC2: getReciprocalLatticeRot should accept structure info object directly.
-  const RotMatrix rec_lat = getReciprocalLatticeRot( si.lattice_a,
-                                                     si.lattice_b,
-                                                     si.lattice_c,
-                                                     si.alpha*M_PI/180,
-                                                     si.beta*M_PI/180,
-                                                     si.gamma*M_PI/180 );
+  const RotMatrix rec_lat = getReciprocalLatticeRot( info );
 
   const double min_ds_sq(dcutoff*dcutoff);
   const double max_ds_sq(dcutoffup*dcutoffup);
@@ -228,16 +222,17 @@ void NCrystal::fillHKL( NCrystal::Info &info,
         const Vector hkl(loop_h,loop_k,loop_l);
 
         //calculate waveVector, wave number and dspacing:
-        const Vector waveVector = rec_lat*hkl;
+        Vector waveVector = rec_lat*hkl;
         const double ksq = waveVector.mag2();
-        //const double k = sqrt(ksq);
-        //const double dspacing = (2*M_PI)/k;
         const double dspacingsq = (4*M_PI*M_PI)/ksq;
         if( dspacingsq<min_ds_sq || dspacingsq>max_ds_sq )
           continue;
 
-        internal_fillHKL_getWhkl(whkl, ksq, msd);
+        fillHKL_getWhkl(whkl, ksq, msd);
         nc_assert(msd.size()==whkl.size());
+
+        //normalise waveVector so we can use it below as a demi_normal:
+        waveVector *= 1.0/std::sqrt(ksq);
 
         //calculate |F|^2
         double real=0., img=0.;
@@ -248,12 +243,12 @@ void NCrystal::fillHKL( NCrystal::Info &info,
                      //contributions to final FSquared - for which we demand
                      //>fsquarecut below. We only do this when fsquarecut<1e-2
                      //(see calculations for whkl_thresholds above).
-          double factor = csl[i]*exp(-whkl[i]);
+          double factor = csl[i]*std::exp(-whkl[i]);
           std::vector<Vector>::const_iterator itAtomPos(atomic_pos[i].begin()), itAtomPosEnd(atomic_pos[i].end());
           for(;itAtomPos!=itAtomPosEnd;++itAtomPos) {
             double phase=hkl.dot(*itAtomPos)*(2.0*M_PI);
-            real += cos(phase)*factor;
-            img += sin(phase)*factor;
+            real += std::cos(phase)*factor;
+            img += std::sin(phase)*factor;
           }
         }
         double FSquared = (real*real+img*img);

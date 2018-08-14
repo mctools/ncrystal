@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCException.hh"
+#include "NCrystal/NCDefs.hh"
 #include <vector>
 
 namespace NCrystal {

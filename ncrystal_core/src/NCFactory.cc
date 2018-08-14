@@ -303,7 +303,7 @@ const NCrystal::Scatter * NCrystal::createScatter( const NCrystal::MatCfg& cfg )
     NCRYSTAL_THROW2(BadInput,"Could not find factory to service createScatter request ("<<facts.size()<<" factories registered)");
 
   if (s_debug_factory)
-    std::cout<<"NCrystal::Factory::createScatter - factory \""<<chosen->getName()<<"\" chosen to service createInfo request"<<std::endl;
+    std::cout<<"NCrystal::Factory::createScatter - factory \""<<chosen->getName()<<"\" chosen to service createScatter request"<<std::endl;
 
   const Scatter * scatter = chosen->createScatter(cfg);
   if (!scatter)
@@ -363,7 +363,7 @@ const NCrystal::Absorption * NCrystal::createAbsorption( const NCrystal::MatCfg&
     NCRYSTAL_THROW2(BadInput,"Could not find factory to service createAbsorption request ("<<facts.size()<<" factories registered)");
 
   if (s_debug_factory)
-    std::cout<<"NCrystal::Factory::createAbsorption - factory \""<<chosen->getName()<<"\" chosen to service createInfo request"<<std::endl;
+    std::cout<<"NCrystal::Factory::createAbsorption - factory \""<<chosen->getName()<<"\" chosen to service createAbsorption request"<<std::endl;
 
   const Absorption * absorption = chosen->createAbsorption(cfg);
   if (!absorption)
