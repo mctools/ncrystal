@@ -175,8 +175,8 @@ INITIALIZE
   //convert the resulting wavelength to kinetic energy needed for NCrystal's
   //interfaces.
 
-  double ncrystal_convfact_vsq2ekin = ncrystal_wl2ekin(1.0) / (4*M_PI*M_PI*K2V*K2V);
-  double ncrystal_convfact_ekin2vsq = 1.0 / ncrystal_convfact_vsq2ekin;
+  ncrystal_convfact_vsq2ekin = ncrystal_wl2ekin(1.0) / (4*M_PI*M_PI*K2V*K2V);
+  ncrystal_convfact_ekin2vsq = 1.0 / ncrystal_convfact_vsq2ekin;
 
   //for our sanity, zero-initialise all instance-specific data:
   memset(&params,0,sizeof(params));

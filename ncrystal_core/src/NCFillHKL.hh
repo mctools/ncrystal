@@ -29,7 +29,7 @@ namespace NCrystal {
   //Helper function which finds all (h,k,l) planes and calculates their
   //d-spacings and structure factors (fsquared). The first input must be an Info
   //object which already has StructureInfo and AtomInfo (with
-  //mean-squared-displacement and wyckoff positions) added. This helper function
+  //mean-squared-displacement and atomic coordinates) added. This helper function
   //will then calculate and add the HKL info, so HKL must not yet have been
   //enabled on the passed Info object.
   //

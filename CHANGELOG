@@ -34,6 +34,10 @@ v0.9.10 2018-08-15
       PCbragg class was nonetheless rewritten to become even faster by working
       on energies directly, avoiding internal conversions to wavelength at each
       call.
+      * Embedded an NCRYSTALMATCFG[lcaxis=0,0,1] statement in the data file
+      C_sg194_pyrolytic_graphite.ncmat, so that it will by default be modelled
+      as a layered crystal with the correct rotation axis, which is likely what
+      almost all users will want.
       * Calling generateScattering where cross-sections are vanishing now
       generally leads to nothing happening (i.e. scatter_angle = 0 and
       delta_ekin=0) rather than the previous fallback of isotropic elastic

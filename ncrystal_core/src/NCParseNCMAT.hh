@@ -47,7 +47,7 @@ namespace NCrystal {
     std::map<std::string, unsigned> getAtomMap();//elementname -> number/cell
     double getDebyeTemp() const;//global debye temp
     const std::map<std::string, double>& getDebyeMap() const;//elementname -> per element debye temp
-    const std::map<std::string, std::vector<Vector>  >& getAtomicPosMap() const;//elementname -> wyckoff positions
+    const std::map<std::string, std::vector<Vector>  >& getAtomicPosMap() const;//elementname -> atomic coordinates
     unsigned getAtomPerCell () const;
     unsigned getSpacegroupNum() const;
     void getLatticeParameters(double &a, double &b, double &c, double &alpha, double &beta, double &gamma) const;

@@ -93,7 +93,7 @@ namespace NCrystal {
     unsigned number_per_unit_cell;
     //per-element debye temperature (0.0 if not available, see hasPerElementDebyeTemperature() below):
     double debye_temp;
-    //Wyckoff positions (vector must be empty or have number_per_unit_cell
+    //Atomic coordinates (vector must be empty or have number_per_unit_cell
     //entries):
     struct Pos { Pos(double a, double b, double c) : x(a),y(b),z(c) {}; double x, y, z; };
     std::vector<Pos> positions;
@@ -166,7 +166,7 @@ namespace NCrystal {
     AtomList::const_iterator atomInfoBegin() const;
     AtomList::const_iterator atomInfoEnd() const;
 
-    //Whether AtomInfo objects have Wyckoff positions available:
+    //Whether AtomInfo objects have atomic coordinates available:
     bool hasAtomPositions() const;
 
     //Whether AtomInfo objects have mean-square-displacements available:

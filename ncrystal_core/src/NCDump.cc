@@ -64,7 +64,7 @@ void NCrystal::dump(const NCrystal::Info*c)
     }
     if (c->hasAtomPositions()) {
       printf("%s", hr);
-      printf("Wyckoff positions:\n");
+      printf("Atomic coordinates:\n");
       for (AtomList::const_iterator it = c->atomInfoBegin();it!=itE;++it) {
         std::string elem_name = NeutronSCL::instance()->getAtomName(it->atomic_number);
         std::vector<AtomInfo::Pos>::const_iterator itP(it->positions.begin()),itPE(it->positions.end());

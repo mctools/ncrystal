@@ -154,7 +154,7 @@ void NCrystal::fillHKL( NCrystal::Info &info,
   const double max_ds_sq(dcutoffup*dcutoffup);
 
   //Collect info for each atom in suitable format for use for calculations below:
-  std::vector<std::vector<Vector> > atomic_pos;//wyckoff positions
+  std::vector<std::vector<Vector> > atomic_pos;//atomic coordinates
   std::vector<double> csl;////coherent scattering length
   std::vector<double> msd;//mean squared displacement
 
