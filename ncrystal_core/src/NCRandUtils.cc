@@ -20,6 +20,7 @@
 
 #include "NCRandUtils.hh"
 #include "NCMath.hh"
+#include <algorithm>
 namespace NC=NCrystal;
 
 void NC::randIsotropicDirection( NC::RandomBase * rand, double (&dir)[3])
