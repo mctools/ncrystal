@@ -34,7 +34,7 @@ namespace NCrystal {
 
   class Info;
 
-  class Absorption : public Process {
+  class NCRYSTAL_API Absorption : public Process {
   public:
 
     Absorption(const char* calculator_type_name);

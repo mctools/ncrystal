@@ -21,6 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+#include "NCrystal/NCDefs.hh"
 #include <vector>
 
 namespace NCrystal {
@@ -37,7 +38,7 @@ namespace NCrystal {
   class Scatter;
   class Absorption;
 
-  class FactoryBase {
+  class NCRYSTAL_API FactoryBase {
   public:
     virtual const char * getName() const = 0;
     FactoryBase(){}
@@ -66,11 +67,11 @@ namespace NCrystal {
   //Methods used to actually register factories. The factories will subsequently
   //be owned by the NCrystal factory registry, and if it is required (for
   //valgrind studies for instance) clearFactoryRegistry() can be called.
-  void registerFactory(FactoryBase*);
+  NCRYSTAL_API void registerFactory(FactoryBase*);
   typedef std::vector<const FactoryBase*> FactoryList;
-  FactoryList& getFactories();//Access factories
-  void clearFactoryRegistry();//clears factories and info caches
-  bool hasFactory(const char*);
+  NCRYSTAL_API FactoryList& getFactories();//Access factories
+  NCRYSTAL_API void clearFactoryRegistry();//clears factories and info caches
+  NCRYSTAL_API bool hasFactory(const char*);
 
 }
 

@@ -21,6 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+#include "NCrystal/NCDefs.hh"
 #include <vector>
 #include <string>
 
@@ -42,7 +43,7 @@ namespace NCrystal {
   //*only* those contributions will be included (must be used with
   //max_phonon_order=1).
 
-  class PhononDebye  {
+  class NCRYSTAL_API PhononDebye  {
   public:
     PhononDebye(double debye_energy, double kt, const std::string & ele_name,
                 unsigned max_phonon_order=0, int phonzeroinco = 1 );

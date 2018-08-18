@@ -27,7 +27,7 @@ namespace NCrystal {
 
   class Info;
 
-  class ScatterXSCurve : public ScatterIsotropic {
+  class NCRYSTAL_API ScatterXSCurve : public ScatterIsotropic {
   public:
 
     //Scatter base class for models which provides only cross-sections and no

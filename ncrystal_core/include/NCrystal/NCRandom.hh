@@ -29,13 +29,13 @@ namespace NCrystal {
   //for random number generation (unless overridden explicitly with
   //setRandomGenerator on the instance):
 
-  void setDefaultRandomGenerator(RandomBase*);
+  NCRYSTAL_API void setDefaultRandomGenerator(RandomBase*);
 
   //Returns the global default random generator. If setDefaultRandomGenerator
   //was never called, this will trigger the creation of a RandomKISS generator
   //(see below) as the default unless trigger_default=false:
 
-  RandomBase * defaultRandomGenerator(bool trigger_default = true);
+  NCRYSTAL_API RandomBase * defaultRandomGenerator(bool trigger_default = true);
 
   //Generator implementing the xoroshiro128+ (XOR/rotate/shift/rotate) due to
   //David Blackman and Sebastiano Vigna (released into public domain / CC0
@@ -46,7 +46,7 @@ namespace NCrystal {
   //private and only provide callers with double precision floating points
   //uniformly distributed in [0,1):
 
-  class RandXRSR : public RandomBase {
+  class NCRYSTAL_API RandXRSR : public RandomBase {
   public:
     RandXRSR(uint64_t seed = 0);//NB: seed = 0 is not a special seed value.
     virtual double generate();

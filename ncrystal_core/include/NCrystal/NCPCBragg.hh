@@ -30,7 +30,7 @@ namespace NCrystal {
 
   class PlaneProvider;
 
-  class PCBragg : public ScatterIsotropic {
+  class NCRYSTAL_API PCBragg : public ScatterIsotropic {
   public:
 
     //Calculates Bragg diffraction in a polycrystalline/powdered material.

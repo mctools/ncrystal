@@ -27,7 +27,7 @@ namespace NCrystal {
 
   class Info;
 
-  class BkgdExtCurve : public ScatterXSCurve {
+  class NCRYSTAL_API BkgdExtCurve : public ScatterXSCurve {
   public:
 
     //Calculates background (non-Bragg) scattering in a crystal, based on

@@ -1,3 +1,8 @@
+v0.9.11 2018-08-18
+      * Mark API functions and classes in an attempt to support Windows DLL
+      builds and UNIX builds with -fvisibility=hidden (see github issue #17).
+      * Add missing include in NCPCBragg.cc.
+
 v0.9.10 2018-08-15
       * This release represents a large amount of work in many areas, and in
       particular focusing on aspects of Bragg diffraction in single crystals.

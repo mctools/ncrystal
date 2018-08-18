@@ -30,7 +30,7 @@ namespace NCrystal {
   class Info;
   class SCOrientation;
 
-  class MatCfg {
+  class NCRYSTAL_API MatCfg {
   public:
 
     /////////////////////////////////////////////////////////////////////////////

@@ -36,7 +36,7 @@ namespace NCrystal {
   //Base class for ref-counted objects, destructors of which should be protected
   //rather than public.
 
-  class CalcBase  : public RCBase {
+  class NCRYSTAL_API CalcBase : public RCBase {
   public:
     CalcBase(const char * calculator_type_name);
     const char * getCalcName() const;

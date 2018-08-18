@@ -34,7 +34,7 @@
 
 namespace NCrystal {
 
-  class Scatter : public Process {
+  class NCRYSTAL_API Scatter : public Process {
   public:
 
     Scatter(const char * calculator_type_name);
@@ -56,7 +56,7 @@ namespace NCrystal {
     virtual ~Scatter();
   };
 
-  class NullScatter : public Scatter {
+  class NCRYSTAL_API NullScatter : public Scatter {
     //Special class, representing a scattering component with vanishing
     //cross-section and which changes nothing in scattering methods.
   public:

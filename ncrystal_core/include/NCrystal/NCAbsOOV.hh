@@ -28,7 +28,7 @@ namespace NCrystal {
 
   class Info;
 
-  class AbsOOV : public Absorption {
+  class NCRYSTAL_API AbsOOV : public Absorption {
   public:
 
     // Provide absorption cross section based on simple 1/velocity

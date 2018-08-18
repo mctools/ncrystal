@@ -29,7 +29,7 @@ namespace NCrystal {
   class Info;
   class PlaneProvider;
 
-  class LCBragg : public Scatter {
+  class NCRYSTAL_API LCBragg : public Scatter {
   public:
 
     //This class models the Bragg diffraction in a layered crystal such as

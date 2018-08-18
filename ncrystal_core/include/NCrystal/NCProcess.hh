@@ -35,7 +35,7 @@
 
 namespace NCrystal {
 
-  class Process : public CalcBase {
+  class NCRYSTAL_API Process : public CalcBase {
   public:
 
     Process(const char * calculator_type_name);

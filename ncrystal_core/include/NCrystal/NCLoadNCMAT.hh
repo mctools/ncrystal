@@ -34,11 +34,11 @@ namespace NCrystal {
   // parameter can be used to request  that lists of equivalent HKL planes be
   // created.
 
-  const Info * loadNCMAT( const char * ncmat_file,
-                          double temp = 293.15,//kelvin
-                          double dcutoff = 0.0,//angstrom
-                          double dcutoffup = std::numeric_limits<double>::infinity(),//angstrom
-                          bool expandhkl = false );
+  NCRYSTAL_API const Info * loadNCMAT( const char * ncmat_file,
+                                       double temp = 293.15,//kelvin
+                                       double dcutoff = 0.0,//angstrom
+                                       double dcutoffup = std::numeric_limits<double>::infinity(),//angstrom
+                                       bool expandhkl = false );
 
 
 }

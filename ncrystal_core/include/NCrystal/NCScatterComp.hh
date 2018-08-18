@@ -32,7 +32,7 @@
 
 namespace NCrystal {
 
-  class ScatterComp : public Scatter {
+  class NCRYSTAL_API ScatterComp : public Scatter {
   public:
 
     ScatterComp(const char * calculator_type_name = "ScatterComp");

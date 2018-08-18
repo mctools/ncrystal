@@ -29,7 +29,7 @@ namespace NCrystal {
   //Base class for ref-counted objects, destructors of which should be protected
   //rather than public.
 
-  class RCBase {
+  class NCRYSTAL_API RCBase {
   public:
     unsigned refCount() const throw() { return m_refCount; }
 

@@ -35,27 +35,27 @@ namespace NCrystal {
   //returns valid objects with a reference count of zero or one (in case
   //caching is enabled), and might throw exceptions in case of errors:
 
-  const Info * createInfo( const MatCfg& );
-  const Scatter * createScatter( const MatCfg& );
-  const Absorption * createAbsorption( const MatCfg& );
+  NCRYSTAL_API const Info * createInfo( const MatCfg& );
+  NCRYSTAL_API const Scatter * createScatter( const MatCfg& );
+  NCRYSTAL_API const Absorption * createAbsorption( const MatCfg& );
 
   //For convenience, and when the OO interface of the MatCfg class is not
   //needed, factories can work on strings as well:
 
-  inline const Info * createInfo( const char * c ) { return createInfo(MatCfg(c)); }
-  inline const Scatter * createScatter( const char * c ) { return createScatter(MatCfg(c)); }
-  inline const Absorption * createAbsorption( const char * c ) { return createAbsorption(MatCfg(c)); }
+  NCRYSTAL_API inline const Info * createInfo( const char * c ) { return createInfo(MatCfg(c)); }
+  NCRYSTAL_API inline const Scatter * createScatter( const char * c ) { return createScatter(MatCfg(c)); }
+  NCRYSTAL_API inline const Absorption * createAbsorption( const char * c ) { return createAbsorption(MatCfg(c)); }
 
   //To avoid expensive re-generation of Info objects, these are cached behind
   //the scenes based on the *name* of the input file as well as the values of
   //the MatCfg parameters affecting Info creation. The following function can be
   //used to clear the cache and potentially free up some memory:
-  void clearInfoCaches();
+  NCRYSTAL_API void clearInfoCaches();
 
   //Disable and enable caching (default state upon startup is for caching to be
   //enabled, unless the environment variable NCRYSTAL_NOCACHE is set):
-  void disableCaching();
-  void enableCaching();
+  NCRYSTAL_API void disableCaching();
+  NCRYSTAL_API void enableCaching();
 
   //Note: If trying to debug factory availability and createInfo caching, it
   //might be useful to set the environment variable NCRYSTAL_DEBUGFACTORY=1 in

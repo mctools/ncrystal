@@ -21,6 +21,10 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+#ifndef ncrystal_api_h
+#  include "NCrystal/ncapi.h"
+#endif
+
 #include <stdexcept>
 #include <sstream>
 #include <string>
@@ -48,7 +52,7 @@ namespace NCrystal {
 
   namespace Error {
 
-    class Exception : public std::runtime_error {
+    class NCRYSTAL_API Exception : public std::runtime_error {
     public:
       explicit Exception(const std::string& msg, const char * f, unsigned l) throw();
       explicit Exception(const char * msg,  const char * f, unsigned l) throw();
@@ -64,7 +68,7 @@ namespace NCrystal {
     };
 
 #define NCRYSTAL_ADD_ERROR_TYPE(ErrType)                                                               \
-    struct ErrType : public Exception {                                                                \
+    struct NCRYSTAL_API ErrType : public Exception {                                                                \
       explicit ErrType(const std::string& m, const char * f, unsigned l) throw() : Exception(m,f,l) {} \
       explicit ErrType(const char * m,  const char * f, unsigned l) throw() : Exception(m,f,l) {}      \
       virtual const char * getTypeName() const throw() { return #ErrType; }                            \

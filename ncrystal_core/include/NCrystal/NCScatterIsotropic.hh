@@ -35,7 +35,7 @@
 
 namespace NCrystal {
 
-  class ScatterIsotropic : public Scatter {
+  class NCRYSTAL_API ScatterIsotropic : public Scatter {
   public:
 
     ScatterIsotropic(const char * calculator_type_name);

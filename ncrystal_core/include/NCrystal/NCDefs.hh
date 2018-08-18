@@ -34,6 +34,9 @@
 #include <cmath>
 #include <string>
 
+#ifndef ncrystal_api_h
+#  include "NCrystal/ncapi.h"
+#endif
 #ifndef NCrystal_NCException_hh
 #  include "NCrystal/NCException.hh"
 #endif
@@ -45,9 +48,9 @@ namespace NCrystal {
 
   //Utility functions for converting between neutron wavelength [Aa] and kinetic
   //energy [eV], and for providing infinity:
-  double wl2ekin( double wl );     //cost: 1 division
-  double ekin2wl( double ekin );   //cost: 1 division + 1 sqrt
-  double ekin2wlsq( double ekin ); //cost: 1 division
+  NCRYSTAL_API double wl2ekin( double wl );     //cost: 1 division
+  NCRYSTAL_API double ekin2wl( double ekin );   //cost: 1 division + 1 sqrt
+  NCRYSTAL_API double ekin2wlsq( double ekin ); //cost: 1 division
   const double infinity = std::numeric_limits<double>::infinity();
 
   //Math constants (avoid M_PI etc. for portability reasons). Note that these
@@ -72,7 +75,7 @@ namespace NCrystal {
   template<class T> inline void markused( const T& ) { }
 
   //Generic RNG interface:
-  class RandomBase : public RCBase {
+  class NCRYSTAL_API RandomBase : public RCBase {
   public:
     virtual double generate() = 0;//generate numbers uniformly in [0,1[
   protected:

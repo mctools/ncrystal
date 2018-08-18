@@ -29,7 +29,7 @@ namespace NCrystal {
   class Info;
   class PlaneProvider;
 
-  class SCBragg : public Scatter {
+  class NCRYSTAL_API SCBragg : public Scatter {
   public:
 
     //Calculates Bragg diffraction in a single crystals with given orientation

@@ -40,7 +40,7 @@ namespace NCrystal {
 
   //Data structures:
 
-  struct StructureInfo {
+  struct NCRYSTAL_API StructureInfo {
     unsigned spacegroup;//From 1-230 if provided, 0 if information not available
     double lattice_a;//angstrom
     double lattice_b;//angstrom
@@ -52,7 +52,7 @@ namespace NCrystal {
     unsigned n_atoms;//Number of atoms per unit cell
   };
 
-  struct HKLInfo {
+  struct NCRYSTAL_API HKLInfo {
     double dspacing;//angstrom
     double fsquared;//barn
     int h;
@@ -86,7 +86,7 @@ namespace NCrystal {
 
   typedef std::vector<HKLInfo> HKLList;
 
-  struct AtomInfo {
+  struct NCRYSTAL_API AtomInfo {
     //TODO for NC2: More parameters capable of handling non-natural atoms
     AtomInfo() : atomic_number(0), number_per_unit_cell(0),debye_temp(0.),mean_square_displacement(0.) {}
     unsigned atomic_number;
@@ -103,14 +103,14 @@ namespace NCrystal {
 
   typedef std::vector<AtomInfo> AtomList;
 
-  struct XSectProvider {
+  struct NCRYSTAL_API XSectProvider {
     //Provide non-Bragg scattering cross sections.
     //Accept lambda in angstrom and return x-sect in barn
     virtual double xsectScatNonBragg(const double& lambda) const = 0;
     virtual ~XSectProvider(){}
   };
 
-  class Info : public RCBase {
+  class NCRYSTAL_API Info : public RCBase {
   public:
 
     /////////////////////////////////////////

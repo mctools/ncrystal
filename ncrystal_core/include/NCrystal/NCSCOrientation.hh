@@ -25,7 +25,7 @@
 
 namespace NCrystal {
 
-  class SCOrientation {
+  class NCRYSTAL_API SCOrientation {
   public:
 
     //Class which defines the orientation of a given single-crystal in the

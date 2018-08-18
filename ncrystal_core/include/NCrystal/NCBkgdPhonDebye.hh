@@ -28,7 +28,7 @@ namespace NCrystal {
   class Info;
   class BkgdPhonDebyeXS;
 
-  class BkgdPhonDebye : public ScatterXSCurve {
+  class NCRYSTAL_API BkgdPhonDebye : public ScatterXSCurve {
   public:
 
     //Provides the total inelastic scattering cross section in the Debye

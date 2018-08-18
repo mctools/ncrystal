@@ -21,12 +21,14 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+#include "NCrystal/NCDefs.hh"
+
 namespace NCrystal {
 
   class Info;
 
   //Dumps info to stdout:
-  void dump(const Info*);
+  NCRYSTAL_API void dump(const Info*);
 }
 
 #endif

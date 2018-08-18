@@ -24,6 +24,7 @@
 #include "NCMath.hh"
 #include "NCRandUtils.hh"
 #include <algorithm>//std::upper_bound, std::lower_bound
+#include <functional>//std::greater
 
 void NCrystal::PCBragg::init( const StructureInfo& si,
                               std::vector<std::pair<double,double> >& data )//(dspacing,fsquared_sum)
