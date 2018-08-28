@@ -273,8 +273,11 @@ void NC::GaussOnSphere::set(double sigma, double trunc_angle, double prec ) {
     m_stat_genpointworst = m_stat_genpointtries = m_stat_genpointcalled = 0;
     m_stat_circleintworst = m_stat_circleintnumber = m_stat_circleintevals = 0;
   }
-  if (std::getenv("NCRYSTAL_DEBUG_GAUSSONSPHERE"))
+  if (std::getenv("NCRYSTAL_DEBUG_GAUSSONSPHERE")) {
     m_stat_genpointworst = 1;//enable stat collection
+    m_stat_genpointtries = m_stat_genpointcalled = 0;
+    m_stat_circleintworst = m_stat_circleintnumber = m_stat_circleintevals = 0;
+  }
 
   unsigned nlt = 0;
   m_truncangle=trunc_angle;
@@ -420,7 +423,6 @@ double NC::GaussOnSphere::circleIntegralSlow( double cg, double sg, double ca, d
   const double res = 2.0*sa*gosci.integrate(0,tmax);//sa is radius of curve, so comes from Jacobian.
   if (!statcollect)
     return res;
-
   m_stat_circleintworst = std::max<uint64_t>(m_stat_circleintworst,gosci.nEvals());
   ++m_stat_circleintnumber;
   m_stat_circleintevals += gosci.nEvals();

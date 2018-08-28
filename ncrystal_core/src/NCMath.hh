@@ -152,6 +152,18 @@ namespace NCrystal {
     double m_phimax, m_negdelta;
   };
 
+  class StableSum {
+  public:
+    //Numerically stable summation, based on Neumaier's
+    //algorithm (doi:10.1002/zamm.19740540106).
+    StableSum();
+    ~StableSum();
+    void add(double x);
+    double sum() const;
+  private:
+    double m_sum, m_correction;
+  };
+
 }
 
 
@@ -402,6 +414,27 @@ inline bool NCrystal::CosSinGridGen::step() {
     sincos(v,m_c,m_s);
   }
   return true;
+}
+
+inline NCrystal::StableSum::StableSum()
+  : m_sum(0.0), m_correction(0.0)
+{
+}
+
+inline NCrystal::StableSum::~StableSum()
+{
+}
+
+inline void NCrystal::StableSum::add( double x )
+{
+  double t = m_sum + x;
+  m_correction += ncabs(m_sum)>=ncabs(x)  ? (m_sum-t)+x : (x-t)+m_sum;
+  m_sum = t;
+}
+
+inline double NCrystal::StableSum::sum() const
+{
+  return m_sum + m_correction;
 }
 
 #endif

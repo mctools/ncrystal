@@ -43,7 +43,7 @@ namespace NCrystal {
     //truncation range from prec, otherwise the provided value will be used
     //directly.
     GaussMos( double mosaicity, bool mosaicity_is_fhwm = true, double prec = 1e-3, double ntrunc=0 );
-    ~GaussMos(){}
+    ~GaussMos();
 
     //Mosaicity can also be changed after construction:
     void setMosaicity( double mosaicity, bool mosaicity_is_fhwm = true );
@@ -101,7 +101,7 @@ namespace NCrystal {
                               const Vector& neutron_indir,
                               const std::vector<Vector>& deminormals,
                               std::vector<ScatCache>& cache,
-                              std::vector<double>& xs_commul) const;
+                              std::vector<double>& xs_commul ) const;
 
     //Scatterings can only be generated once appropriate info has been found via
     //previous calls to cross-section methods, and with relevant info embedded
@@ -148,17 +148,18 @@ namespace NCrystal {
     void set(double neutron_wavelength, double inv2dsp, double xsfact);
   private:
     friend class GaussMos;
-    void calcQSinAlpha();
+    //Frequently accessed members first:
+    double m_Q;//Once initialised, m_Q = m_Qprime * m_xsfact
+    double m_sin_perfect_theta;
+    double m_cos_perfect_theta;
+    //Less often accessed
     double m_wl;
     double m_wl3;
     double m_inv2dsp;
-    double m_sin_perfect_theta;
-    double m_cos_perfect_theta;
     double m_cos_perfect_theta_sq;
-    double m_xsfact;
-    //calculated on-demand only by calling calcQAlpha(). Until this happens, m_Q==-1.:
-    double m_Q;
     double m_alpha;
+    double m_Qprime;
+    double m_xsfact;
   };
 
 }
@@ -205,13 +206,11 @@ namespace NCrystal {
   {
     nc_assert(ip.isValid());
     nc_assert(ncabs(cos_angle_indir_normal)<=1.+1e-10);
-
-    if (ip.m_Q<=0.)
-      return calcRawCrossSectionValueInit(ip,cos_angle_indir_normal);
-
-    //ip.m_sin_perfect_theta = cosalpha, ip.m_cos_perfect_theta = sinalpha
-    double sin_angle_indir_normal = std::sqrt(1.0-cos_angle_indir_normal*cos_angle_indir_normal);//>0 since angle is in 0..pi.
-    return ip.m_Q * m_gos.circleIntegral( cos_angle_indir_normal, sin_angle_indir_normal, ip.m_sin_perfect_theta, ip.m_cos_perfect_theta );
+    if (ip.m_Q>0.) {
+      double sin_angle_indir_normal = std::sqrt(1.0-cos_angle_indir_normal*cos_angle_indir_normal);//>0 since angle is in 0..pi.
+      return ip.m_Q * m_gos.circleIntegral( cos_angle_indir_normal, sin_angle_indir_normal, ip.m_sin_perfect_theta, ip.m_cos_perfect_theta );
+    }
+    return calcRawCrossSectionValueInit(ip,cos_angle_indir_normal);
   }
 }
 

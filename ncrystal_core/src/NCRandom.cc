@@ -165,15 +165,9 @@ NCrystal::RandomBase * NCrystal::defaultRandomGenerator(bool trigger_default)
 //}
 //#endif
 
-NCrystal::RandXRSR::RandXRSR(uint64_t seed)
+NCrystal::RandXRSR::RandXRSR(uint64_t theseed)
 {
-  //Seed the state, using splitmix64 as recommended:
-  m_s[0] = splitmix64(seed);
-  m_s[1] = splitmix64(seed);
-
-  //Mix up the state a little bit more, probably not really needed:
-  for (unsigned i = 0; i<1000; i++)
-    genUInt64();
+  seed(theseed);
 
 #define NCrystal_Random_Uint64_to_dbl (5.4210108624275215e-20)
   //NCrystal_Random_Uint64_to_dbl constant is slightly smaller than 1.0/2**64
@@ -186,6 +180,18 @@ NCrystal::RandXRSR::RandXRSR(uint64_t seed)
   nc_assert_always(maxdblgen > 0.0);
   nc_assert_always( 1.0 - maxdblgen < 2e-16 );
 }
+
+void NCrystal::RandXRSR::seed(uint64_t theseed)
+{
+  //Seed the state, using splitmix64 as recommended:
+  m_s[0] = splitmix64(theseed);
+  m_s[1] = splitmix64(theseed);
+
+  //Mix up the state a little bit more, probably not really needed:
+  for (unsigned i = 0; i<1000; i++)
+    genUInt64();
+}
+
 
 uint64_t NCrystal::RandXRSR::genUInt64()
 {

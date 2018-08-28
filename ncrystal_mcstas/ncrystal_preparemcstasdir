@@ -27,15 +27,31 @@ if [ -f ./NCrystalLink -o -d ./NCrystalLink ]; then
     echo "Found ./NCrystalLink already (remove and rerun to force reinstallation)"
     exit 1
 fi
+
 nccompfn="NCrystal_sample.comp"
 if [ -f ./$nccompfn ]; then
     echo "Found ./$nccompfn (remove and rerun to force reinstallation)"
     exit 1
 fi
 
+if [ "${NCRYSTALDIR-none}" == "none" ]; then
+    echo "NCRYSTALDIR environment variable not set. Did you remember to source the setup.sh script from NCrystal?"
+    exit 1
+fi
 
 THISDIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-if [ "${NCRYSTALDIR+x}" == "x" -a -f "$THISDIR"/../mcstas/NCrystal_sample.comp ]; then
+NCMCSTASDIR="$( cd -P "$THISDIR"/../mcstas && pwd )"
+
+if [ "${NCRYSTALDIR+x}" == "x" -a -f "$NCMCSTASDIR/NCrystal_sample.comp" ]; then
     ln -s "$NCRYSTALDIR" ./NCrystalLink
-    ln -s "$THISDIR"/../mcstas/NCrystal_sample.comp .
+    ln -s "$NCMCSTASDIR/NCrystal_sample.comp" .
+    echo "Succesfully linked NCrystal_sample.comp to current directory and added NCrystalLink which is needed for instrument build."
+else
+    #A bit weird that the user has the current script but not the NCrystal_sample.comp file.
+    echo "ERROR: Did not find NCrystal_sample.comp in your installation."
+    exit 1
+fi
+
+if [ "${NCRYSTALDIR+x}" == "x" -a -f "$NCMCSTASDIR/NCrystal_example_mcstas.instr" ]; then
+    echo "Note that an example instrument file using NCrystal_sample.comp can be found here: $NCMCSTASDIR/NCrystal_example_mcstas.instr"
 fi

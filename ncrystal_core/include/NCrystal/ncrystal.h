@@ -212,9 +212,9 @@ extern "C" {
   /* NCrystal version info:                                                        */
 #define NCRYSTAL_VERSION_MAJOR 0
 #define NCRYSTAL_VERSION_MINOR 9
-#define NCRYSTAL_VERSION_PATCH 11
-#define NCRYSTAL_VERSION   9011 /* (1000000*MAJOR+1000*MINOR+PATCH)                */
-#define NCRYSTAL_VERSION_STR "0.9.11"
+#define NCRYSTAL_VERSION_PATCH 12
+#define NCRYSTAL_VERSION   9012 /* (1000000*MAJOR+1000*MINOR+PATCH)                */
+#define NCRYSTAL_VERSION_STR "0.9.12"
   NCRYSTAL_API int ncrystal_version(); /* returns NCRYSTAL_VERSION                              */
   NCRYSTAL_API const char * ncrystal_version_str(); /* returns NCRYSTAL_VERSION_STR             */
 

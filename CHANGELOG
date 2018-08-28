@@ -1,3 +1,13 @@
+v0.9.12 2018-08-28
+      * Fix GaussMos cache-polution bug, where planes with similar d-spacing but
+      different Fsquared could get wrong Q-factor in single crystals with large
+      mosaicity.
+      * Fix uninitialised variable in NCMatCfg.cc, affecting only floating point
+      parameters not supporting units.
+      * Allow re-seeding of the RandXRSR fallback RNG.
+      * Add McStas example instrument file.
+      * More checks for invalid geometry parameters in the McStas component.
+
 v0.9.11 2018-08-18
       * Mark API functions and classes in an attempt to support Windows DLL
       builds and UNIX builds with -fvisibility=hidden (see github issue #17).

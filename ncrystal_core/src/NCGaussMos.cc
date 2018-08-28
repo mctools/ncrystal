@@ -21,6 +21,7 @@
 #include "NCGaussMos.hh"
 #include "NCMath.hh"
 #include "NCRotMatrix.hh"
+
 namespace NC=NCrystal;
 
 namespace NCrystal {
@@ -47,6 +48,10 @@ NC::GaussMos::GaussMos( double mosaicity, bool mosaicity_is_fhwm, double prec, d
   setMosaicity(mosaicity,mosaicity_is_fhwm);
   nc_assert( m_mos_fwhm != -99 );
   nc_assert( m_mos_sigma != -99 );
+}
+
+NC::GaussMos::~GaussMos()
+{
 }
 
 void NC::GaussMos::updateDerivedValues()
@@ -99,16 +104,33 @@ void NC::GaussMos::setDSpacingSpread(double dd)
 
 double NC::GaussMos::calcRawCrossSectionValueInit(InteractionPars& ip, double cos_angle_indir_normal ) const
 {
-  if (ip.m_Q==-1)
-    ip.calcQSinAlpha();
-  if (ip.m_Q==0.)
-    return 0.0;//Q=0, W factor irrelevant
-  else if (ip.m_Q==-2)
+  nc_assert(ip.m_Q<=0.);
+  if ( ip.m_Qprime == -1 ) {
+    //First call after getting new wavelength or d-spacing.
+    ip.m_cos_perfect_theta = std::sqrt(ip.m_cos_perfect_theta_sq);// = sinalpha
+    double tmp2 = ip.m_cos_perfect_theta*ip.m_sin_perfect_theta;
+    if (tmp2>0) {
+      //usual case:
+      ip.m_Qprime = ip.m_wl3 / tmp2;
+    } else {
+      //Avoid a zero division when wavelength is 0 or 2*dspacing. The actual
+      //cross-section will be 0 or infinity at the two limits (special value -2.0
+      //designates infinity).
+      ip.m_Qprime = (ip.m_sin_perfect_theta>0.5&&ip.m_xsfact) ? -2.0/*wl~=2dsp*/ : 0.0/*wl~=0*/;
+    }
+  }
+  if (ip.m_Qprime>0.) {
+    ip.m_Q = ip.m_Qprime * ip.m_xsfact;
+    nc_assert(ip.m_Q>0.);
+    return calcRawCrossSectionValue(ip,cos_angle_indir_normal);
+  }
+
+  if (ip.m_Qprime) {
+    nc_assert(ip.m_Qprime==-2);
     return kInf;//Q=inf, W factor irrelevant (assuming called within truncation radius)
-
-  nc_assert(ip.m_Q>0.);
-
-  return calcRawCrossSectionValue(ip,cos_angle_indir_normal);
+  } else {
+    return 0.0;//Q=0, W factor irrelevant
+  }
 }
 
 double NC::GaussMos::calcCrossSections( InteractionPars& ip,
@@ -124,7 +146,6 @@ double NC::GaussMos::calcCrossSections( InteractionPars& ip,
   double xssum(0.0);
   const double cptsq = ip.m_cos_perfect_theta_sq;
   const double cta = m_gos.getCosTruncangle();
-
   for(;it!=itE;++it) {
     const Vector& normal = *it;
     const double dot = normal.dot(indir);
@@ -235,36 +256,22 @@ void NC::GaussMos::InteractionPars::set(double wl_raw, double inv2dsp_raw, doubl
   nc_assert(wl>0);
   nc_assert(inv2dsp>0);
   if (wl==m_wl) {
-    if (inv2dsp==m_inv2dsp)
-      return;//great, we don't have to invalidate the Q/alpha values.
+    if (inv2dsp==m_inv2dsp) {
+      //great, we don't have to invalidate the Qprime/alpha values, but m_Q might have changed:
+      m_Q = (m_Qprime > 0.0 ? m_Qprime * m_xsfact : -1/*will trigger recalc later*/);
+      return;
+    }
   } else {
     nc_assert(wl>0);
     m_wl = wl;
     m_wl3 = m_wl*m_wl*m_wl;
   }
-  //wl or inv2dsp changed => new thetabragg and invalid Q/alpha values:
+  //wl or inv2dsp changed => new thetabragg and invalid Q/Qprime/alpha/cos_perfect_theta values:
   nc_assert(inv2dsp>0.);
   m_inv2dsp = inv2dsp;
   m_sin_perfect_theta = wl * inv2dsp;
   nc_assert(valueInInterval(0.,1.,m_sin_perfect_theta));
   m_cos_perfect_theta_sq = 1 - m_sin_perfect_theta*m_sin_perfect_theta;
-  m_Q = -1;//invalidate
-  m_alpha = -99;//invalidate (pi/2-thetabragg)
-  m_cos_perfect_theta = -1;//invalidate
-}
-
-void NC::GaussMos::InteractionPars::calcQSinAlpha()
-{
-  nc_assert(m_Q==-1);
-  m_cos_perfect_theta = std::sqrt(m_cos_perfect_theta_sq);// = sinalpha
-  double tmp2 = m_cos_perfect_theta*m_sin_perfect_theta;
-  if (tmp2>0) {
-    //usual case:
-    m_Q = m_wl3*m_xsfact / tmp2;
-  } else {
-    //Avoid a zero division when wavelength is 0 or 2*dspacing. The actual
-    //cross-section will be 0 or infinity at the two limits (special value
-    //-2.0 designates infinity).
-    m_Q = (m_sin_perfect_theta>0.5&&m_xsfact) ? -2.0/*wl~=2dsp*/ : 0.0/*wl~=0*/;
-  }
+  m_Q = m_Qprime = m_cos_perfect_theta = -1;//invalidate
+  m_alpha = -99;//invalidate
 }

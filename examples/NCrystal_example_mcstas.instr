@@ -1,0 +1,84 @@
+/******************************************************************************/
+/*                                                                            */
+/*  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   */
+/*                                                                            */
+/*  Copyright 2015-2017 NCrystal developers                                   */
+/*                                                                            */
+/*  Licensed under the Apache License, Version 2.0 (the "License");           */
+/*  you may not use this file except in compliance with the License.          */
+/*  You may obtain a copy of the License at                                   */
+/*                                                                            */
+/*      http://www.apache.org/licenses/LICENSE-2.0                            */
+/*                                                                            */
+/*  Unless required by applicable law or agreed to in writing, software       */
+/*  distributed under the License is distributed on an "AS IS" BASIS,         */
+/*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  */
+/*  See the License for the specific language governing permissions and       */
+/*  limitations under the License.                                            */
+/*                                                                            */
+/******************************************************************************/
+
+DEFINE INSTRUMENT NCrystal_example()
+
+DECLARE
+%{
+%}
+
+INITIALIZE
+%{
+%}
+
+TRACE
+
+/* Example instrument in which two NCrystal_sample component instances are used
+ to model respectively a Ge-511 monochromator and secondly an Yttrium-Oxide
+ powder sample. Source and detectors are deliberately kept very simple.
+
+ The orientation of the monochromator and the value of the central wavelength
+ wavelength, lambda0, is set up in order for the neutrons at lambda0 to
+ experience a 90deg Bragg reflection (thetaBragg=45deg) on the Ge511 plane,
+ directing the reflected neutrons towards the sample (the d-spacing of Ge511 is
+ 1.08876Aa):
+
+           lambda = sin(45deg)*2*1.08876Aa = 1.539739Aa
+
+ Note that the d-spacing, 1.08876Aa, of Ge511 can be found by the command:
+
+    ncrystal_inspectfile --dump  "Ge_sg227.ncmat"
+
+ Or, even more more directly as:
+
+    ncrystal_inspectfile --dump  "Ge_sg227.ncmat;infofactory=stdncmat:expandhkl"|grep '\s5,1,1\s'
+
+*/
+
+COMPONENT origin = Progress_bar()
+  AT (0, 0, 0) RELATIVE ABSOLUTE
+
+COMPONENT source =   Source_div(lambda0=1.539739, dlambda=0.01, xwidth=0.001, yheight=0.001, focus_aw=1, focus_ah=1)
+  AT (0, 0, 0.3) RELATIVE origin
+
+COMPONENT mono_arm = Arm()
+  AT (0, 0, 0.5) RELATIVE source ROTATED (0, 45 , 0) RELATIVE source
+
+/* Make a 3mm thick Ge-511 monochromator box with 0.3deg mosaicity (FWHM) */
+COMPONENT monochromator = NCrystal_sample(xwidth=0.05,yheight=0.05,zdepth=0.003,
+                                          cfg="Ge_sg227.ncmat;mos=0.3deg;bkgd=0"
+                                          ";dir1=@crys_hkl:5,1,1@lab:0,0,1"
+                                          ";dir2=@crys_hkl:0,1,-1@lab:0,1,0")
+  AT (0, 0, 0) RELATIVE mono_arm
+
+COMPONENT mono_out = Arm()
+  AT (0, 0, 0) RELATIVE mono_arm ROTATED (0, -90, 0) RELATIVE source
+
+/* Make a cylindrical sample of loosely packed Y2O3 powder */
+COMPONENT powder_sample = NCrystal_sample(yheight=0.01, radius=0.005,
+                                          cfg="Y2O3_sg206_Yttrium_Oxide.ncmat;packfact=0.6")
+  AT (0, 0, 0.4) RELATIVE mono_out
+
+COMPONENT powder_pattern_detc = Monitor_nD(
+    options = "banana, angle limits=[10 170], bins=500",
+    radius = 0.05, yheight = 0.1)
+  AT (0, 0, 0) RELATIVE powder_sample
+
+END

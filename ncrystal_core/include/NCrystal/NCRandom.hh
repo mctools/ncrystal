@@ -50,6 +50,7 @@ namespace NCrystal {
   public:
     RandXRSR(uint64_t seed = 0);//NB: seed = 0 is not a special seed value.
     virtual double generate();
+    void seed(uint64_t seed);
   protected:
     virtual ~RandXRSR();
   private:

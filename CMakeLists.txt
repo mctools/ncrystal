@@ -116,6 +116,9 @@ endif()
 if (INSTALL_MCSTAS)
   install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/ncrystal_mcstas/NCrystal_sample.comp DESTINATION mcstas)
   install(PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/ncrystal_mcstas/ncrystal_preparemcstasdir DESTINATION bin)
+  if (BUILD_EXAMPLES)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/examples/NCrystal_example_mcstas.instr DESTINATION mcstas)
+  endif()
 endif()
 
 #G4NCrystal

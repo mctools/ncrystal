@@ -25,7 +25,7 @@
 * %I
 *
 * Written by: NCrystal developers
-* Version: 0.9.11
+* Version: 0.9.12
 * Origin: NCrystal Developers (European Spallation Source ERIC and DTU Nutech)
 *
 * McStas sample component for the NCrystal scattering library. Find more
@@ -102,7 +102,9 @@ SHARE
     int nshapes = (isbox?1:0)+(iscyl?1:0)+(issphere?1:0);
     if (nshapes==0)
       NCMCERR2(name_comp,"must specify more parameters to define shape");
-    if (nshapes>1)
+    if ( nshapes > 1
+         || ( iscyl && ( xwidth>0 || zdepth>0 ) )
+         || ( issphere && ( xwidth>0 || yheight > 0 || zdepth>0 ) ) )
       NCMCERR2(name_comp,"conflicting shape parameters specified (pick either parameters for box, cylinder or sphere, not more than one)");
 
     if (isbox) {

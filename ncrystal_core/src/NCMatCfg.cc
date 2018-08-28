@@ -134,7 +134,7 @@ struct NCrystal::MatCfg::Impl : public NCrystal::RCBase {
     enum UnitType { UnitNone, UnitAngle, UnitTemp, UnitLength };
     typedef double value_type;
     static const VALTYPE value_type_enum = VALTYPE_DBL;
-    ValDbl() : ValBase(){};
+    ValDbl() : ValBase(), unittype(UnitNone) {};
     virtual ~ValDbl(){}
     virtual ValBase * clone() const { return new ValDbl(*this); }
     void set_from_strrep(const std::string& s)
