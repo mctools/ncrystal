@@ -157,9 +157,9 @@ struct NCrystal::MatCfg::Impl : public NCrystal::RCBase {
         switch(unittype) {
         case UnitAngle:
           if (unit=="rad") { u = 1.0; }
-          else if (unit=="deg") { u = (M_PI/180.); }
-          else if (unit=="arcmin") { u = (M_PI/(180.*60.)); }
-          else if (unit=="arcsec") { u = (M_PI/(180.*3600)); }
+          else if (unit=="deg") { u = kDeg; }
+          else if (unit=="arcmin") { u = kArcMin; }
+          else if (unit=="arcsec") { u = kArcSec; }
           break;
         case UnitLength:
           if (unit=="Aa") { u = 1.0; }
@@ -746,7 +746,7 @@ void NCrystal::MatCfg::checkConsistency() const
     NCRYSTAL_THROW(BadInput,"packfact must be in range (0.0,1.0]");
   if (parval_sccutoff<0.0)
     NCRYSTAL_THROW(BadInput,"sccutoff must be >=0.0");
-  if (parval_dirtol<=0.0||parval_dirtol>M_PI)
+  if (parval_dirtol<=0.0||parval_dirtol>kPi)
     NCRYSTAL_THROW(BadInput,"dirtol must be in range (0.0,pi]");
   const double parval_mosprec = get_mosprec();
   if ( ! (valueInInterval(0.9999e-7,0.10000001,parval_mosprec) || valueInInterval(1.0,10000.0,parval_mosprec)) )

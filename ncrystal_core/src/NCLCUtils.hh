@@ -263,18 +263,18 @@ namespace NCrystal {
     nc_assert(ps);
     nc_assert(normsign==1.||normsign==-1.);
     nc_assert(rmax>rmin);
-    nc_assert(rmin>=0.0&&rmax<=M_PI);
+    nc_assert(rmin>=0.0&&rmax<=kPi);
   }
 
   inline LCROI::LCROI(const LCPlaneSet* ps, double normsign )
-    : rotmin(ps->isOnAxis()?0:M_PI), rotmax(ps->isOnAxis()?0:M_PI), planeset(ps), normal_sign(normsign)
+    : rotmin(ps->isOnAxis()?0:kPi), rotmax(ps->isOnAxis()?0:kPi), planeset(ps), normal_sign(normsign)
   {
     nc_assert(ps);
     nc_assert(normsign==1.||normsign==-1.);
     nc_assert(rotmin==rotmax);
   }
   inline bool LCROI::normalIsOnAxis() const { nc_assert(planeset->isOnAxis()==(rotmax==0.0)); return rotmax==0.0; }
-  inline bool LCROI::neutronIsOnAxis() const { nc_assert(!normalIsOnAxis());/*if both on axis, classify as normal-is-on-axis*/ return rotmin==M_PI; }
+  inline bool LCROI::neutronIsOnAxis() const { nc_assert(!normalIsOnAxis());/*if both on axis, classify as normal-is-on-axis*/ return rotmin==kPi; }
   inline bool LCROI::isDegenerate() const { return rotmin==rotmax; }
   inline double LCROI::length() const { nc_assert(!isDegenerate()); return rotmax-rotmin; }
   inline bool LCROI::contains(double t) const { nc_assert(!isDegenerate()); return t>=rotmin && t<= rotmax; }

@@ -286,7 +286,24 @@ def plot_xsect(cfgs,comp,absorption,pdf=False):
     need_tot = (len(cfgs)==1 and len(parts)>1)
     xsects_tot = None
     max_len_label = 0
-    partcols = ['green','blue','orange','yellow','black']
+
+    #colors inspired by http://www.mulinblog.com/a-color-palette-optimized-for-data-visualization/
+    col_red = "#F15854"
+    partcols = [
+        "#5DA5DA", # (blue)
+        "#FAA43A", # (orange)
+        "#60BD68", # (green)
+        #"#B2912F", # (brown)
+        "#B276B2", # (purple)
+        #"#DECF3F", # (yellow)
+        #"#F17CB0", # (pink)
+        "#4D4D4D", # (gray)
+        ]
+    if not need_tot:
+        partcols = [col_red]+partcols
+
+    linewidth = 2.0
+
     for ipart,part in enumerate(parts):
         cfg = part._cfg
         compname = part._compname
@@ -297,9 +314,10 @@ def plot_xsect(cfgs,comp,absorption,pdf=False):
             xsects_tot += xsects
         label=labels[ipart]
         max_len_label = max(max_len_label,len(label))
-        plt.plot(wavelengths,xsects,label=label,color=partcols[ipart%len(partcols)])
+        ls={0:'-',1:'--'}.get(ipart//len(partcols),'-.')
+        plt.plot(wavelengths,xsects,label=label,color=partcols[ipart%len(partcols)],lw=linewidth,ls=ls)
     if need_tot:
-        plt.plot(wavelengths,xsects_tot,label='Total',color='red')
+        plt.plot(wavelengths,xsects_tot,label='Total',color="#F15854",lw=linewidth)#red-ish colour (see above)
     leg_fsize = 'large'
     if max_len_label > 40: leg_fsize = 'medium'
     if max_len_label > 60: leg_fsize = 'small'

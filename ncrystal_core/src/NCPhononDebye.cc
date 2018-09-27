@@ -65,16 +65,16 @@ NCrystal::PhononDebye::PhononDebye( double debye_energy, double kt,
     }
   }
 
-  m_delta0_bar = sqrt(m_delta0_bar/m_gamma0_bar);
+  m_delta0_bar = std::sqrt(m_delta0_bar/m_gamma0_bar);
   double A = NeutronSCL::instance()->getNeutronWeightedMass(m_ele_name);
-  m_msd = const_hhm*m_gamma0/2./A;
+  m_msd = const_hhm*m_gamma0/(2.*A);
 
   if(m_max_phononnum==0)
   {
 
-    double x = (m_gamma0/A + 1/2./m_kt) * m_delta0_bar;
-    double factor = sqrt(1+0.25*x*x)-0.5*x; // III.22
-    double z = m_gamma0_bar/A * m_delta0_bar * factor * exp(0.5*factor*factor);  // III.22
+    double x = (m_gamma0/A + 1/(2.*m_kt)) * m_delta0_bar;
+    double factor = std::sqrt(1+0.25*x*x)-0.5*x; // III.22
+    double z = m_gamma0_bar/A * m_delta0_bar * factor * std::exp(0.5*factor*factor);  // III.22
     //printf("big three %f %f %f, x %f\n",m_gamma0,m_gamma0_bar,m_delta0_bar,x);
 
     para p;
@@ -88,7 +88,7 @@ NCrystal::PhononDebye::PhononDebye( double debye_energy, double kt,
     for(unsigned i=1;i<100;i++)
     {
       double contribution = sigma_1(p,i) ;
-      if(sum_n1!=0 && contribution/sum_n1<1e-5)
+      if(sum_n1!=0 && contribution <1e-5 * sum_n1)
       {
         break;
       }
@@ -102,13 +102,13 @@ NCrystal::PhononDebye::PhononDebye( double debye_energy, double kt,
     for(unsigned i=1;i<100;i++)
     {
       double contribution = sigma_2(p,i) ;
-      if(sum_n2!=0 && contribution/sum_n2<1e-5)
+      if( sum_n2!=0 && contribution < 1e-5 * sum_n2 )
       {
         break;
       }
       else
       {
-        sum_n2 +=contribution;
+        sum_n2 += contribution;
       }
     }
 
@@ -117,18 +117,18 @@ NCrystal::PhononDebye::PhononDebye( double debye_energy, double kt,
 
     for(unsigned i=1;i<100;i++)
     {
-      double contribution = pow(sum_n1,i) + pow(sum_n2,i) ;
-      if(tot_xs!=0 && contribution/tot_xs<1e-5)
+      double contribution = std::pow(sum_n1,i) + std::pow(sum_n2,i) ;//TODO for NC2: replace pow calls with 1 multiplication at each loop iteration
+      if( tot_xs!=0 && contribution < 1e-5*tot_xs )
       {
         breaking=i;
         break;
       }
       else
       {
-        tot_xs +=contribution;
+        tot_xs += contribution;
       }
     }
-    m_max_phononnum =breaking*4;
+    m_max_phononnum = breaking*4;
     if(m_max_phononnum>100)
       m_max_phononnum=100;
   }
@@ -146,10 +146,10 @@ void NCrystal::PhononDebye::doit(const std::vector<double> &ekin_vec, std::vecto
 
   std::vector<double> phonon_energy=linspace(0,m_debye,psize);
   std::vector<double> g1_arr(phonon_energy.size());
-  g1_arr[0]=3/pow(m_debye,3)*(2*m_kt)/(2.*m_gamma0);
+  g1_arr[0]=3/std::pow(m_debye,3)*(2*m_kt)/(2.*m_gamma0);
   for(unsigned i=1;i<g1_arr.size();i++)
   {
-    g1_arr[i]=phonon_energy[i]*3/pow(m_debye,3)/sinh(phonon_energy[i]/(2*m_kt))/(2.*m_gamma0);
+    g1_arr[i]=phonon_energy[i]*3/std::pow(m_debye,3)/sinh(phonon_energy[i]/(2*m_kt))/(2.*m_gamma0);
   }
   std::vector<double> g1_flip;
   flip(g1_arr,g1_flip);
@@ -159,7 +159,7 @@ void NCrystal::PhononDebye::doit(const std::vector<double> &ekin_vec, std::vecto
   double g1_start_t = -phonon_energy.back();
   for(unsigned i=0;i<g1_arr.size();i++)
   {
-    g1_arr[i] *= exp(-(g1_start_t+i*m_dt)/2/m_kt);
+    g1_arr[i] *= std::exp(-(g1_start_t+i*m_dt)/(2*m_kt));
   }
   // m_phonon_spec_arr.clear();
   // m_phonon_spec_arr[0]=std::make_pair(g1_arr,g1_start_t);
@@ -172,7 +172,7 @@ void NCrystal::PhononDebye::doit(const std::vector<double> &ekin_vec, std::vecto
   double lower_beta = 1e-3/m_kt;
   double lower_alpha =  4*lower_beta;
   double thoeredical_beta_uplim = m_max_wl2ekin/m_kt;
-  //limited by the representation of the factor exp(beta/2) in double
+  //limited by the representation of the factor std::exp(beta/2) in double
   //to be safe, multiply by 1.9 instead of 2.0
   double numerical_uplim = log(std::numeric_limits<double>::max())*1.9;
   double upper_beta = ncmin(thoeredical_beta_uplim,numerical_uplim);
@@ -218,7 +218,7 @@ void NCrystal::PhononDebye::doit(const std::vector<double> &ekin_vec, std::vecto
     double * rowIt = sab_begin + alpha_size*i;
     double * rowItEnd = rowIt + alpha_size;
     nc_assert( rowItEnd>sab_begin && rowItEnd <= sab_begin+m_sab.size() );
-    double c = exp(-0.5*m_beta.at(i)) * sigma_b * 0.25 * m_kt;
+    double c = std::exp(-0.5*m_beta.at(i)) * sigma_b * 0.25 * m_kt;
     for (;rowIt!=rowItEnd;++rowIt)
       *rowIt *= c;
   }
@@ -273,7 +273,7 @@ void NCrystal::PhononDebye::doit(const std::vector<double> &ekin_vec, std::vecto
   //the elastic part with correct energy transfers?
 
   double inco_sca_xs = NCrystal::NeutronSCL::instance()->getIncoherentXS(m_ele_name);
-  double dwB = m_msd*8*M_PI*M_PI;
+  double dwB = m_msd*8*kPiSq;
 
   for(unsigned i = 0;i<xs_vec.size();i++)
   {
@@ -281,7 +281,8 @@ void NCrystal::PhononDebye::doit(const std::vector<double> &ekin_vec, std::vecto
     double temp=dwB/(wavelength_Aa*wavelength_Aa);
     if (m_phonzeroinco==2)
       xs_vec[i] = 0.0;
-    xs_vec[i] += inco_sca_xs/2/temp*(1-exp(-2*temp));
+    double temp2 = temp+temp;
+    xs_vec[i] += inco_sca_xs*(1-std::exp(-temp2))/(temp2);
   }
 }
 
@@ -298,7 +299,7 @@ double NCrystal::PhononDebye::integrateAlphaInterval(double a1,double s1, double
   if (s1==s2)
     return (a2-a1)*s1;
   if (s1==0. || s2==0.)
-    return (a2-a1)*(s2+s1)/2.;
+    return (a2-a1)*(s2+s1)*0.5;
   return (a2-a1)/log(s2/s1)*(s2-s1);
 }
 
@@ -364,7 +365,7 @@ void NCrystal::PhononDebye::getSecondarySpectrum(double kin, double* spec) const
 void NCrystal::PhononDebye::getAlphaLimits(double kin, double beta, double &lower, double& upper) const
 {
   double kTB=m_kt*beta;
-  double dif = 2*sqrt(kin*(kin + kTB ));
+  double dif = 2*std::sqrt(kin*(kin + kTB ));
   lower=(2*kin + kTB - dif)/m_kt;
   upper=(2*kin + kTB + dif)/m_kt;
 }
@@ -376,7 +377,7 @@ double  NCrystal::PhononDebye::interpolate(double a, double fa, double b, double
     return  fa+(fb-fa)*(x-a)/(b-a);
   //Note from TK: The formula below was: "return exp(log(fa)+(log(fb/fa))*(x-a)/(b-a));",
   //but it was rewritten like this for efficiency:
-  return fa*pow(fb/fa,(x-a)/(b-a));
+  return fa*std::pow(fb/fa,(x-a)/(b-a));
 }
 
 double NCrystal::PhononDebye::getS(unsigned beta_index, double alpha) const
@@ -458,7 +459,7 @@ void NCrystal::PhononDebye::calcSymSab(const PhononCalculator& cal, const std::v
       }
       S += correction;
 #endif
-      sab[b_idx*n_alpha+a_idx] = exp_minus_doubleW * exp(-0.5*beta_b_idx) * S * m_kt;
+      sab[b_idx*n_alpha+a_idx] = exp_minus_doubleW * std::exp(-0.5*beta_b_idx) * S * m_kt;
     }
   }
 }
@@ -487,14 +488,16 @@ double NCrystal::PhononDebye::d0bar_power_knl(double omega) const
 
 double NCrystal::PhononDebye::sigma_1 (const para& p, double n) const
 {
+  //TODO for NC2: only called with integer n and in a loop where we could avoid the pow(..) call.
   double h1=1./8*p.x*(p.factor+p.x)/(1+0.25*p.x*p.x) - 1./8;
-  return sqrt(p.delta0_bar/M_PI) /2 * p.factor /( sqrt(p.factor+.5*p.x)) * pow(p.z,n) * (1.+1./n*h1 );
+  return 0.5 * p.factor * std::pow(p.z,n) * std::sqrt( p.delta0_bar*kInvPi / (p.factor + 0.5*p.x) ) * (1.+1./n*h1 );
 }
 
 
 double NCrystal::PhononDebye::sigma_2 (const para& p, double n) const
 {
-  double p1 =  2./3 * p.factor*p.factor*p.factor  + 4/3.*p.factor*p.factor/2/p.kt*p.delta0_bar
-      + 2./3/4/p.kt/p.kt*p.delta0_bar*p.delta0_bar*p.factor ;
-  return 0.5/sqrt(p.delta0_bar*M_PI) *p.factor /sqrt(p.factor+0.5*p.x) * pow(p.z,n) * (n*p1 );
+  //TODO for NC2: only called with integer n and in a loop where we could avoid the pow(..) call.
+  double p1 =  (2./3.) * p.factor * ( p.factor*p.factor  + p.factor*p.delta0_bar / p.kt
+                                      + p.delta0_bar*p.delta0_bar / (4*p.kt*p.kt) );
+  return 0.5 *p.factor * std::pow(p.z,n) * n * p1 / std::sqrt( (p.factor+0.5*p.x) * p.delta0_bar*kPi );
 }

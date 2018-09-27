@@ -167,7 +167,7 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
   const bool enable_hkl(dcutoff_lower_aa!=-1);
   if (enable_hkl) {
     RotMatrix rec_lat = getReciprocalLatticeRot( nxs_uc.a, nxs_uc.b, nxs_uc.c,
-                                                 nxs_uc.alpha * M_PI/180, nxs_uc.beta * M_PI/180, nxs_uc.gamma * M_PI/180 );
+                                                 nxs_uc.alpha * kDeg, nxs_uc.beta * kDeg, nxs_uc.gamma * kDeg );
 
     if (dcutoff_lower_aa==0) {
       //have to determine appropriate dcutoff for this crystal. Aim for
@@ -275,7 +275,7 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
     sigma_abs += nxs_ai.sigmaAbsorption * nxs_ai.nAtoms;
 
     double massceof = (1+nxs_ai.M_m)/nxs_ai.M_m;
-    sigma_free += (nxs_ai.b_coherent*nxs_ai.b_coherent*0.01*4*M_PI + nxs_ai.sigmaIncoherent)/(massceof*massceof) * nxs_ai.nAtoms;
+    sigma_free += (nxs_ai.b_coherent*nxs_ai.b_coherent*(0.01*4*kPi) + nxs_ai.sigmaIncoherent)/(massceof*massceof) * nxs_ai.nAtoms;
     ntot += nxs_ai.nAtoms;
 
     AtomInfo ai;

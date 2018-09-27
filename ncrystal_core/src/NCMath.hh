@@ -34,7 +34,7 @@ namespace NCrystal {
   const double const_neutron_atomic_mass = 1.00866491588; //atomic unit
   const double const_ekin_2200m_s = 0.02529886 ; //eV, neutron kinetic energy at 2200m/s.
   const double constant_planck = 4.135667662e-15 ;//[eV*s]
-  const double constant_hbar = constant_planck/(M_PI*2.); //[eV*s]
+  const double constant_hbar = constant_planck*kInv2Pi; //[eV*s]
 
   //Our own min/max/abs to make sure only double versions are used:
   double ncmin(double, double);
@@ -257,7 +257,7 @@ inline void NCrystal::sincos(double A,double&cosA, double& sinA)
 }
 
 inline void NCrystal::sincos_mpi8pi8_lowres(double A, double& cosA, double& sinA) {
-  nc_assert(ncabs(A)<=M_PI*0.12500001);
+  nc_assert(ncabs(A)<=kPi*0.12500001);
   double mx2 = -A*A;
   sinA = A*(1.0 + mx2 * ( 1.66666666666666666666666666666666666666666667e-1 // - x^3 / 3!
                 + mx2 * ( 8.33333333333333333333333333333333333333333333e-3 // + x^5 / 5!
@@ -270,52 +270,52 @@ inline void NCrystal::sincos_mpi8pi8_lowres(double A, double& cosA, double& sinA
 }
 
 inline void NCrystal::sincos_mpipi(double A, double& cosA, double& sinA) {
-  nc_assert(A>=-M_PI&&A<=M_PI);
+  nc_assert(A>=-kPi&&A<=kPi);
   //Use abs/min/copysign tricks to actually do the evaluation in [-pi/2,pi/2].
   double Aabs = ncabs(A);
-  nc_assert(Aabs<=M_PI);
-  sincos_mpi2pi2(ncmin(Aabs,M_PI-Aabs),cosA,sinA);
-  cosA = nccopysign(cosA,M_PI_2-Aabs);
+  nc_assert(Aabs<=kPi);
+  sincos_mpi2pi2(ncmin(Aabs,kPi-Aabs),cosA,sinA);
+  cosA = nccopysign(cosA,kPiHalf-Aabs);
   sinA = nccopysign(sinA,A);
 }
 
 inline void NCrystal::sincos_0pi32(double A, double& cosA, double& sinA) {
   //Like sincos_mpipi, but without need to deal with negative A's. Works until 3pi/2.
-  nc_assert(A>=0.0&&A<=1.5*M_PI);
-  sincos_mpi2pi2(ncmin(A,M_PI-A),cosA,sinA);
-  cosA = nccopysign(cosA,M_PI_2-A);
+  nc_assert(A>=0.0&&A<=1.5*kPi);
+  sincos_mpi2pi2(ncmin(A,kPi-A),cosA,sinA);
+  cosA = nccopysign(cosA,kPiHalf-A);
 }
 
 inline void NCrystal::sincos_0pi(double A, double& cosA, double& sinA) {
   //Like sincos_mpipi, but without need to deal with negative A's. Works until 3pi/2.
-  nc_assert(A>=0.0&&A<=M_PI);
-  sincos_mpi2pi2(ncmin(A,M_PI-A),cosA,sinA);
-  cosA = nccopysign(cosA,M_PI_2-A);
+  nc_assert(A>=0.0&&A<=kPi);
+  sincos_mpi2pi2(ncmin(A,kPi-A),cosA,sinA);
+  cosA = nccopysign(cosA,kPiHalf-A);
 }
 
 inline void NCrystal::sincos_02pi(double A, double& cosA, double& sinA) {
-  nc_assert(A>=0.0&&A<=2*M_PI);
-  //Inlining sincos_mpipi code for A->A-M_PI, with a final sign flip for both
+  nc_assert(A>=0.0&&A<=k2Pi);
+  //Inlining sincos_mpipi code for A->A-kPi, with a final sign flip for both
   //output values.
-  A -= M_PI;
+  A -= kPi;
   double Aabs = ncabs(A);
-  nc_assert(Aabs<=M_PI);
-  sincos_mpi2pi2(ncmin(Aabs,M_PI-Aabs),cosA,sinA);
-  cosA = nccopysign(cosA,Aabs-M_PI_2);
+  nc_assert(Aabs<=kPi);
+  sincos_mpi2pi2(ncmin(Aabs,kPi-Aabs),cosA,sinA);
+  cosA = nccopysign(cosA,Aabs-kPiHalf);
   sinA = nccopysign(sinA,-A);
 }
 
 inline double NCrystal::cos_02pi(double A) {
-  nc_assert(A>=0.0&&A<=2*M_PI);
-  A-=M_PI;
-  return nccopysign(cos_mpipi(A),ncabs(A)-M_PI_2);
+  nc_assert(A>=0.0&&A<=k2Pi);
+  A-=kPi;
+  return nccopysign(cos_mpipi(A),ncabs(A)-kPiHalf);
 }
 
 inline double NCrystal::sin_02pi(double A) {
-  nc_assert(A>=0.0&&A<=2*M_PI);
-  A -= M_PI;
+  nc_assert(A>=0.0&&A<=k2Pi);
+  A -= kPi;
   double Aabs = ncabs(A);
-  double Sabs = sin_mpi2pi2(ncmin(Aabs,M_PI-Aabs));
+  double Sabs = sin_mpi2pi2(ncmin(Aabs,kPi-Aabs));
   return nccopysign(Sabs,-A);
 }
 

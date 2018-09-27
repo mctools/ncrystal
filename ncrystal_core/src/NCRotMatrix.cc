@@ -85,11 +85,19 @@ void NCrystal::rotateToFrame( double sinab, double cosab, const Vector& a, const
     //a and b are essentially parallel, the rotation is not well defined! First,
     //we apply the rotation which takes (0,0,1) into b=(bx,by,bz), by rotating
     //around crossproduct((0,0,1),(bx,by,bz))=(by,-bx,0):
-    PhiRot phirot_ztob(b.z(),-std::sqrt(1-b.z()*b.z()));
+    PhiRot phirot_ztob(b.z(),-std::sqrt(1.0-b.z()*b.z()));
     Vector axis_ztob(b.y(),-b.x(),0.);
-    axis_ztob.normalise();
-    v = phirot_ztob.rotateVectorAroundAxis( v, axis_ztob );
-    nc_assert((phirot_ztob.rotateVectorAroundAxis( Vector(0,0,1), axis_ztob )-b).mag2()<1e-8);
+    double m2 = axis_ztob.mag2();
+    if (m2>1e-12) {
+      axis_ztob *= 1.0/std::sqrt(m2);
+      v = phirot_ztob.rotateVectorAroundAxis( v, axis_ztob );
+      nc_assert((phirot_ztob.rotateVectorAroundAxis( Vector(0,0,1), axis_ztob )-b).mag2()<1e-8);
+    } else {
+      //Doubly degenerate! vector b is parallel to z. If b=(0,0,1) leave v
+      //alone, otherwise b=(0,0,-1) reflect in zy plane.
+      if (b.z()<0.0)
+        v.z() *= -1.0;
+    }
 
     //Next, perform a random rotation around b:
     double rand_cosphi, rand_sinphi;

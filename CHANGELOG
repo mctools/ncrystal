@@ -1,3 +1,25 @@
+v0.9.13 2018-09-27
+      * Stop shipping hand-written .nxs files. Instead, attempt to auto-generate
+      .nxs files from all shipped .ncmat files, and where possible ship
+      those. This is done in order to ensure greater consistency and a lower
+      burden of maintenance moving forward. During this process a few issues
+      were found with Wyckoff positions in a few .nxs files, which should now be
+      fixed by the new procedure.
+      * Changed dcutoff for crystals with complex unit cells (like yttrium
+      oxide) from 0.4Aa to 0.25Aa when loading from .ncmat. For all other .ncmat
+      files in our data library, the value stays at 0.15Aa.
+      * Fix LCBragg error in case of the double degenerate case where both
+        neutron and lcaxis are parallel to (0,0,1).
+      * Faster fillHKL function, in particular for very small dcutoff values.
+      * The fillHKL function now supports the NCRYSTAL_FILLHKL_IGNOREFSQCUT
+      environment variable, which can be used to disable the fsquarecut entirely.
+      * Increased numerical stability in structure factor summation during
+        PCBragg initialisation.
+      * Phase out usage of non-standard constants like M_PI.
+      * Increase MC overlay safety factor slightly for LCBragg scatter generation.
+      * Improve colors and linestyles in ncrystal_inspectfile script.
+      * LCBraggRef models use numerically stable summation.
+
 v0.9.12 2018-08-28
       * Fix GaussMos cache-polution bug, where planes with similar d-spacing but
       different Fsquared could get wrong Q-factor in single crystals with large

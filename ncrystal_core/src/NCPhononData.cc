@@ -39,7 +39,7 @@ NCrystal::PhononNumDyns::PhononNumDyns(const std::vector<double> &spec, double b
 
   nc_assert_always(!m_spec.empty());
   std::vector<double>::const_iterator max_it = std::max_element(m_spec.begin(), m_spec.end());
-  m_asym_sigma = 1.0 / (*max_it * 2.0*M_PI);
+  m_asym_sigma = 1.0 / (*max_it * k2Pi);
 
   int center_asym_index = (int)(max_it-m_spec.begin());
   m_asym_centre = ( center_asym_index- (int)(m_spec.size())/2 )*m_dt;

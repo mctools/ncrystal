@@ -183,7 +183,7 @@ double NCrystal::NeutronSCL::getFreeXS(const std::string& element) const
 double NCrystal::NeutronSCL::getCoherentXS(const std::string& element) const
 {
   double tmp=getCoherentSL(element);
-  return 4*M_PI*tmp*tmp;
+  return k4Pi*tmp*tmp;
 }
 
 double NCrystal::NeutronSCL::getCaptureXS(const std::string& element) const
@@ -211,7 +211,7 @@ double NCrystal::NeutronSCL::getIncoherentXS(const std::string& element) const
 
 double NCrystal::NeutronSCL::getIncoherentSL(const std::string& element) const
 {
-  return sqrt(getIncoherentXS(element)/4/M_PI);
+  return kInv4Pi * std::sqrt( getIncoherentXS(element) );
 }
 
 

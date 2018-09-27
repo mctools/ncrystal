@@ -49,7 +49,7 @@ void NCrystal::PCBragg::init( double v0_times_natoms,
   v2dE.reserve(data.size());
   std::vector<double> fdm_commul;
   fdm_commul.reserve(data.size());
-  double fdmsum = 0.0;
+  StableSum fdmsum2;
   std::vector<std::pair<double,double> >::const_iterator it(data.begin()),itE(data.end());
   double prev_dsp = -kInf;
   for (;it!=itE;++it) {
@@ -57,11 +57,13 @@ void NCrystal::PCBragg::init( double v0_times_natoms,
       NCRYSTAL_THROW(CalcError,"Inconsistent plane data implies non-positive (or NaN) d_spacing.");
     if (ncabs(prev_dsp-it->first)<1e-11) {
       double c = it->first * it->second * xsectfact;
-      fdm_commul.back() = (fdmsum += c);
+      fdmsum2.add(c);
+      fdm_commul.back() = fdmsum2.sum();
     } else {
       prev_dsp = it->first;
       double c = it->first * it->second * xsectfact;
-      fdm_commul.push_back(fdmsum += c);
+      fdmsum2.add(c);
+      fdm_commul.push_back(fdmsum2.sum());
       v2dE.push_back(wl2ekin(2.0*it->first));
     }
   }

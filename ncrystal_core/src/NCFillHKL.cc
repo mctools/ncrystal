@@ -24,6 +24,7 @@
 #include "NCLatticeUtils.hh"
 #include "NCNeutronSCL.hh"
 #include "NCrystal/NCDefs.hh"
+#include <cstdlib>
 
 namespace NCrystal {
   //map keys used during search for hkl families.
@@ -58,8 +59,8 @@ namespace NCrystal {
 #include <scoped_allocator>
 namespace NCrystal {
   //We use a simple expanding-only memory pool for the temporary multimap used
-  //to detect hkl families. This results better cache locality and should
-  //prevent memory fragmentation. TODO for NC2: Consider moving this pool
+  //to detect hkl families. This results in better cache locality and should
+  //hopefully reduce memory fragmentation. TODO for NC2: Consider moving this pool
   //infrastructure to common utilities.
   class MemPool {
   public:
@@ -140,6 +141,10 @@ void NCrystal::fillHKL( NCrystal::Info &info,
                         double dcutoff, double dcutoffup, bool expandhkl,
                         double fsquarecut, double merge_tolerance )
 {
+
+  const bool env_ignorefsqcut = std::getenv("NCRYSTAL_FILLHKL_IGNOREFSQCUT");
+  if (env_ignorefsqcut)
+    fsquarecut = 0.0;
   nc_assert_always(!info.isLocked());
   nc_assert_always(info.hasAtomInfo());
   nc_assert_always(info.hasAtomPositions());
@@ -155,8 +160,9 @@ void NCrystal::fillHKL( NCrystal::Info &info,
 
   //Collect info for each atom in suitable format for use for calculations below:
   std::vector<std::vector<Vector> > atomic_pos;//atomic coordinates
-  std::vector<double> csl;////coherent scattering length
+  std::vector<double> csl;//coherent scattering length
   std::vector<double> msd;//mean squared displacement
+  std::vector<double> cache_factors;
 
   AtomList::const_iterator it (info.atomInfoBegin()), itE(info.atomInfoEnd());
   for (;it!=itE;++it) {
@@ -179,20 +185,21 @@ void NCrystal::fillHKL( NCrystal::Info &info,
 
   nc_assert_always(msd.size()==atomic_pos.size());
   nc_assert_always(msd.size()==csl.size());
+  cache_factors.resize(csl.size(),0.0);
 
   //cache some thresholds for efficiency (see below where it is used for more
   //comments):
   std::vector<double> whkl_thresholds;
   whkl_thresholds.reserve(csl.size());
   for (size_t i = 0; i<csl.size(); ++i) {
-    if (fsquarecut<0.01)
+    if ( fsquarecut < 0.01 && !env_ignorefsqcut )
       whkl_thresholds.push_back(std::log(ncabs(csl.at(i)) / fsquarecut ) );
     else
       whkl_thresholds.push_back(std::numeric_limits<double>::infinity());//use inf when not true that fsqcut^2 << fsq
   }
 
-  //We now conduct a brute-force loop over h,k,l indices, adding calculating
-  //info in the following containers along the way:
+  //We now conduct a brute-force loop over h,k,l indices, adding calculated info
+  //in the following containers along the way:
   NCrystal::HKLList hkllist;
   std::vector<std::vector<short> > eqv_hkl_short;
 
@@ -224,40 +231,64 @@ void NCrystal::fillHKL( NCrystal::Info &info,
         //calculate waveVector, wave number and dspacing:
         Vector waveVector = rec_lat*hkl;
         const double ksq = waveVector.mag2();
-        const double dspacingsq = (4*M_PI*M_PI)/ksq;
-        if( dspacingsq<min_ds_sq || dspacingsq>max_ds_sq )
+        const double dspacingsq = (k2Pi*k2Pi)/ksq;
+        if( dspacingsq < min_ds_sq || dspacingsq > max_ds_sq )
           continue;
 
         fillHKL_getWhkl(whkl, ksq, msd);
-        nc_assert(msd.size()==whkl.size());
-
-        //normalise waveVector so we can use it below as a demi_normal:
-        waveVector *= 1.0/std::sqrt(ksq);
+        nc_assert( msd.size() == whkl.size() );
 
         //calculate |F|^2
-        double real=0., img=0.;
-        for(unsigned i=0;i<whkl.size();i++) {
-          if ( whkl[i] > whkl_thresholds[i])
+        double real_or_imag_upper_limit(0.0);
+        for( unsigned i=0; i < whkl.size(); ++i ) {
+          if ( whkl[i] > whkl_thresholds[i]) {
+            cache_factors[i] = 0.0;
             continue;//Abort early to save exp/cos/sin calls. Note that
                      //O(fsquarecut) here corresponds to O(fsquarecut^2)
                      //contributions to final FSquared - for which we demand
                      //>fsquarecut below. We only do this when fsquarecut<1e-2
                      //(see calculations for whkl_thresholds above).
-          double factor = csl[i]*std::exp(-whkl[i]);
-          std::vector<Vector>::const_iterator itAtomPos(atomic_pos[i].begin()), itAtomPosEnd(atomic_pos[i].end());
-          for(;itAtomPos!=itAtomPosEnd;++itAtomPos) {
-            double phase=hkl.dot(*itAtomPos)*(2.0*M_PI);
-            real += std::cos(phase)*factor;
-            img += std::sin(phase)*factor;
+          } else {
+            double factor = csl[i]*std::exp(-whkl[i]);
+            cache_factors[i] = factor;
+            //Assuming cos(phase)=sin(phase)=1 gives us a cheap upper limit on
+            //fsquared:
+            real_or_imag_upper_limit += atomic_pos[i].size()*factor;
           }
         }
-        double FSquared = (real*real+img*img);
+
+        //If the upper limit on fsq is below fsquarecut, we can skip already and
+        //avoid needless calculations further down:
+        if(real_or_imag_upper_limit*real_or_imag_upper_limit*2.0<fsquarecut)
+          continue;
+
+        double real(0.0), imag(0.0);
+        for( unsigned i=0 ; i < whkl.size(); ++i ) {
+          double factor = cache_factors[i];
+          if (!factor)
+            continue;
+          std::vector<Vector>::const_iterator itAtomPos(atomic_pos[i].begin()), itAtomPosEnd(atomic_pos[i].end());
+          double cpsum(0.0), spsum(0.0);
+          for(;itAtomPos!=itAtomPosEnd;++itAtomPos) {
+            double phase = hkl.dot(*itAtomPos) * k2Pi;
+            double cp,sp;
+            sincos(phase,cp,sp);
+            cpsum += cp;
+            spsum += sp;
+          }
+          real += cpsum * factor;
+          imag += spsum * factor;
+        }
+        double FSquared = (real*real+imag*imag);
 
         //skip weak or impossible reflections:
         if(FSquared<fsquarecut)
           continue;
 
-        const double dspacing = sqrt(dspacingsq);
+        //normalise waveVector so we can use it below as a demi_normal:
+        waveVector *= 1.0 / std::sqrt(ksq);
+
+        const double dspacing = std::sqrt(dspacingsq);//TODO for NC2: store dspacingsquared in multimap and avoid some sqrt calls.
         FamKeyType searchkey(keygen(FSquared,dspacing));//key for our fsq2hklidx multimap
 
         FamMap::iterator itSearchLB = fsq2hklidx.lower_bound(searchkey);
@@ -270,7 +301,11 @@ void NCrystal::fillHKL( NCrystal::Info &info,
               && ncabs(dspacing-hklinfo->dspacing) < merge_tolerance*(dspacing+hklinfo->dspacing ) )
             {
               //Compatible with existing family, simply add normals to it.
+#if __cplusplus >= 201103L
+              hklinfo->demi_normals.emplace_back(waveVector.x(),waveVector.y(),waveVector.z());
+#else
               hklinfo->demi_normals.push_back(HKLInfo::Normal(waveVector.x(),waveVector.y(),waveVector.z()));
+#endif
               if (expandhkl) {
                 nc_assert(itSearch->second<eqv_hkl_short.size());
                 eqv_hkl_short[itSearch->second].push_back(loop_h);
@@ -283,7 +318,7 @@ void NCrystal::fillHKL( NCrystal::Info &info,
         }
         if (isnewfamily) {
 
-          if (hkllist.size()>1000000)//guard against crazy setups
+          if ( hkllist.size()>1000000 && !env_ignorefsqcut )//guard against crazy setups
             NCRYSTAL_THROW2(CalcError,"Combinatorics too great to reach requested dcutoff = "<<dcutoff<<" Aa");
 
           NCrystal::HKLInfo hi;
@@ -292,7 +327,11 @@ void NCrystal::fillHKL( NCrystal::Info &info,
           hi.l=loop_l;
           hi.fsquared = FSquared;
           hi.dspacing = dspacing;
+#if __cplusplus >= 201103L
+          hi.demi_normals.emplace_back(waveVector.x(),waveVector.y(),waveVector.z());
+#else
           hi.demi_normals.push_back(HKLInfo::Normal(waveVector.x(),waveVector.y(),waveVector.z()));
+#endif
           fsq2hklidx.insert(itSearchLB,FamMap::value_type(searchkey,hkllist.size()));
           hkllist.push_back(hi);
           if (expandhkl) {

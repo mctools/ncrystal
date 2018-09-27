@@ -65,7 +65,7 @@ public:
     double r = sqrt(pos.x()*pos.x()+pos.y()*pos.y());
     if (pos.z()>0&&r<0.001*mm)
       return true;//No scattering took place
-    printf("Hit detected at theta = %.0f deg!\n",atan2(r,pos.z())*180/M_PI);
+    printf("Hit detected at theta = %.0f deg!\n",atan2(r,pos.z())*NCrystal::kToDeg);
     return true;
   }
 };
@@ -90,13 +90,13 @@ public:
     G4LogicalVolume * world_log = new G4LogicalVolume(new G4Box("world",110*cm,110*cm,110*cm),
                                                       mat_vacuum,"world",0,0,0);
     G4PVPlacement * world_phys = new G4PVPlacement(0,G4ThreeVector(),world_log,"world",0,false,0);
-    G4LogicalVolume * det_log = new G4LogicalVolume(new G4Sphere("detector",0,100.1*cm,0,2*M_PI,0,M_PI),
+    G4LogicalVolume * det_log = new G4LogicalVolume(new G4Sphere("detector",0,100.1*cm,0,CLHEP::twopi,0,CLHEP::pi),
                                                       mat_vacuum,"detector",0,0,0);
     new G4PVPlacement(0,G4ThreeVector(),det_log,"detector",world_log,false,0);
-    G4LogicalVolume * vacuum_log = new G4LogicalVolume(new G4Sphere("vacuum",0,100.0*cm,0,2*M_PI,0,M_PI),
+    G4LogicalVolume * vacuum_log = new G4LogicalVolume(new G4Sphere("vacuum",0,100.0*cm,0,CLHEP::twopi,0,CLHEP::pi),
                                                        mat_vacuum,"vacuum",0,0,0);
     new G4PVPlacement(0,G4ThreeVector(),vacuum_log,"vacuum",det_log,false,0);
-    G4LogicalVolume * sample_log = new G4LogicalVolume(new G4Sphere("sample",0,0.1*cm,0,2*M_PI,0,M_PI),
+    G4LogicalVolume * sample_log = new G4LogicalVolume(new G4Sphere("sample",0,0.1*cm,0,CLHEP::twopi,0,CLHEP::pi),
                                                        mat_aluminium,"sample",0,0,0);
     new G4PVPlacement(0,G4ThreeVector(),sample_log,"sample",vacuum_log,false,0);
     MySD * sd = new MySD();

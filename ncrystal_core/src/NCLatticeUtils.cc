@@ -28,9 +28,9 @@ NCrystal::RotMatrix NCrystal::getLatticeRot( double a, double b, double c,
                                              double alpha, double beta, double gamma )
 {
   //sanity check angles in (0,pi) - also confirms that angles are not in degrees by mistake.
-  nc_assert_always(alpha<M_PI&&alpha>0);
-  nc_assert_always(beta<M_PI&&beta>0);
-  nc_assert_always(gamma<M_PI&&gamma>0);
+  nc_assert_always(alpha<kPi&&alpha>0);
+  nc_assert_always(beta<kPi&&beta>0);
+  nc_assert_always(gamma<kPi&&gamma>0);
   nc_assert_always(a>0);
   nc_assert_always(b>0);
   nc_assert_always(c>0);
@@ -40,16 +40,16 @@ NCrystal::RotMatrix NCrystal::getLatticeRot( double a, double b, double c,
   //Explicitly look for angles 90 and 120 that are very common in crystals, so
   //we can avoid some numerical imprecisions in those cases and instead use
   //exact values for the sines and cosines. This is needed because
-  //e.g. std::cos(M_PI_2)=6.1e-17 rather than 0.0 exactly, resulting in
+  //e.g. std::cos(kPiHalf)=6.1e-17 rather than 0.0 exactly, resulting in
   //incorrect tiny non-zero matrix elements where there should be zero. This
   //propagates further, for instance resulting in funny crystal normals like {
   //0, 1, -6.12323e-17 } instead of the correct { 0, 1, 0 }. This is mostly a
   //cosmetic issue of course.
   const double tol = 1e-14;
-  bool alpha90 = ncabs(alpha-M_PI_2)<tol;
-  bool beta90 = ncabs(beta-M_PI_2)<tol;
-  bool gamma90 = ncabs(gamma-M_PI_2)<tol;
-  bool gamma120 = ncabs(gamma-M_PI*(2/3.))<tol;
+  bool alpha90 = ncabs(alpha-kPiHalf)<tol;
+  bool beta90 = ncabs(beta-kPiHalf)<tol;
+  bool gamma90 = ncabs(gamma-kPiHalf)<tol;
+  bool gamma120 = ncabs(gamma-kPi*(2/3.))<tol;
 
   if (gamma90) { cg = 0.0; sg = 1.0; }
   else if (gamma120) { cg = -0.5; sg = 0.86602540378443864676372317075293618347140262690519; }
@@ -93,38 +93,36 @@ NCrystal::RotMatrix NCrystal::getReciprocalLatticeRot( double a, double b, doubl
                                                        double alpha, double beta, double gamma )
 {
   //sanity check angles in (0,pi) - also confirms that angles are not in degrees by mistake.
-  nc_assert_always(alpha<M_PI&&alpha>0);
-  nc_assert_always(beta<M_PI&&beta>0);
-  nc_assert_always(gamma<M_PI&&gamma>0);
+  nc_assert_always(alpha<kPi&&alpha>0);
+  nc_assert_always(beta<kPi&&beta>0);
+  nc_assert_always(gamma<kPi&&gamma>0);
   nc_assert_always(a>0);
   nc_assert_always(b>0);
   nc_assert_always(c>0);
 #ifdef NCRYSTAL_EXACT_LATTICEROTS_FOR_SPECIAL_CASES
   //Like in getLatticeRot we explicitly treat angles 90 and 120.
   const double tol = 1e-14;
-  bool alpha90 = ncabs(alpha-M_PI_2)<tol;
-  bool beta90 = ncabs(beta-M_PI_2)<tol;
-  bool gamma90 = ncabs(gamma-M_PI_2)<tol;
-  bool gamma120 = ncabs(gamma-M_PI*(2/3.))<tol;
+  bool alpha90 = ncabs(alpha-kPiHalf)<tol;
+  bool beta90 = ncabs(beta-kPiHalf)<tol;
+  bool gamma90 = ncabs(gamma-kPiHalf)<tol;
+  bool gamma120 = ncabs(gamma-kPi*(2/3.))<tol;
   if ( alpha90 && beta90 && gamma90 ) {
-    const double twopi = 2.0*M_PI;
-    double m[9] = { twopi/a, 0., 0.,
-                    0., twopi/b, 0.,
-                    0., 0., twopi/c };
+    double m[9] = { k2Pi/a, 0., 0.,
+                    0., k2Pi/b, 0.,
+                    0., 0., k2Pi/c };
     return RotMatrix(m);
   } else if (alpha90 && beta90 && gamma120 ) {
-    const double twopi = 2.0*M_PI;
     const double twopidivsqrt3 = 3.6275987284684357011881565152843114645681324961855;
     const double fourpidivsqrt3 = 7.255197456936871402376313030568622929136264992371;
-    double m[9] = { twopi/a, 0., 0.,
+    double m[9] = { k2Pi/a, 0., 0.,
                     twopidivsqrt3/a, fourpidivsqrt3/b, 0.,
-                    0., 0., twopi/c };
+                    0., 0., k2Pi/c };
     return RotMatrix(m);
   }
 #endif
   RotMatrix m = getLatticeRot(a,b,c,alpha,beta,gamma);
   m.inv();
-  m *= (2.0*M_PI);
+  m *= k2Pi;
   return m;
 }
 
@@ -135,7 +133,7 @@ void NCrystal::estimateHKLRange( double dcutoff, const NCrystal::RotMatrix& rec_
   //subsequent hkl loop is going to be slightly larger (say a small factor) than
   //it could be.
   nc_assert(dcutoff>0);
-  double max_wavelength = 2*M_PI / dcutoff;
+  double max_wavelength = k2Pi / dcutoff;
   double kh = ( rec_lat * Vector(1,0,0) ).mag();
   double kk = ( rec_lat * Vector(0,1,0) ).mag();
   double kl = ( rec_lat * Vector(0,0,1) ).mag();
@@ -151,7 +149,7 @@ double NCrystal::estimateDCutoff( int max_hkl, const NCrystal::RotMatrix& rec_la
   double kk = ( rec_lat * Vector(0,1,0) ).mag();
   double kl = ( rec_lat * Vector(0,0,1) ).mag();
   double kmin = ncmin( kh, ncmin(kk,kl) );
-  return 2*M_PI / ( max_hkl * kmin );
+  return k2Pi / ( max_hkl * kmin );
 }
 
 

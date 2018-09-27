@@ -25,7 +25,7 @@
 * %I
 *
 * Written by: NCrystal developers
-* Version: 0.9.12
+* Version: 0.9.13
 * Origin: NCrystal Developers (European Spallation Source ERIC and DTU Nutech)
 *
 * McStas sample component for the NCrystal scattering library. Find more
@@ -177,7 +177,8 @@ INITIALIZE
   //convert the resulting wavelength to kinetic energy needed for NCrystal's
   //interfaces.
 
-  ncrystal_convfact_vsq2ekin = ncrystal_wl2ekin(1.0) / (4*M_PI*M_PI*K2V*K2V);
+  // 0.0253302959105844428609698658024319097260896937 is 1/(4*pi^2)
+  ncrystal_convfact_vsq2ekin = ncrystal_wl2ekin(1.0) * 0.0253302959105844428609698658024319097260896937 / ( K2V*K2V );
   ncrystal_convfact_ekin2vsq = 1.0 / ncrystal_convfact_vsq2ekin;
 
   //for our sanity, zero-initialise all instance-specific data:

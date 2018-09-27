@@ -58,7 +58,7 @@ int main() {
   //Create and use single-crystal germanium
   NCrystal::MatCfg cfg("Ge_sg227.ncmat;dcutoff=0.5");
 
-  cfg.set_mos(40.0*M_PI/(180*60*60));//40 arcseconds in units of radians
+  cfg.set_mos(40.0*NCrystal::kArcSec);
   double c1[] = {5,1,1};
   double l1[] = {0,0,1};
   double c2[] = {0,-1,1};

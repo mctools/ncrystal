@@ -49,7 +49,7 @@ from __future__ import division, print_function, absolute_import
 
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
 __copyright__ = "Copyright 2017"
-__version__ = '0.9.12'
+__version__ = '0.9.13'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
 __copyright__ = "Copyright 2015-2017 %s"%__author__
@@ -497,7 +497,7 @@ class Process(CalcBase):
 
     """
     def domain(self):
-        """Domain of has non-vanishing cross-section.
+        """Domain where process has non-vanishing cross-section.
 
         Returns the domain as (ekin_low,ekin_high). Outside this range of
         neutron kinetic energy, the process can be assumed to have vanishing

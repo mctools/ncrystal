@@ -43,7 +43,7 @@ namespace NCrystal {
     //corresponding to a |x| smaller than roughly 81degrees.
     nc_assert_always(target_precision>0);
     CosExpansionRadiusFct f(ncmin(0.999999,target_precision));
-    return findRoot(&f,0.0,0.999999*M_PI/2,1e-13);
+    return findRoot(&f,0.0,0.999999*kPiHalf,1e-13);
   }
 }
 
@@ -84,8 +84,8 @@ namespace NCrystal {
     {
       if (m_nevals)
         m_nevals += n;
-      nc_assert(offset>=0&&offset<M_PI*1.00001);
-      nc_assert(delta>0&&delta*(n-1)<=M_PI*1.00001);
+      nc_assert(offset>=0&&offset<kPi*1.00001);
+      nc_assert(delta>0&&delta*(n-1)<=kPi*1.00001);
       CosSinGridGen grid(n,offset,delta);
       unsigned i=0;
       do {
@@ -99,8 +99,8 @@ namespace NCrystal {
     {
       if (m_nevals)
         m_nevals += n;
-      nc_assert(offset>=0&&offset<M_PI*1.00001);
-      nc_assert(delta>0&&delta*n<=M_PI*1.00001);
+      nc_assert(offset>=0&&offset<kPi*1.00001);
+      nc_assert(delta>0&&delta*n<=kPi*1.00001);
       CosSinGridGen grid(n,offset,delta);
       double sum(0.);
       do {
@@ -185,7 +185,7 @@ double NC::GaussOnSphere::calcNormFactor( double sigma, double trunc_angle )
   //stability (contributions outside will likely not affect the result
   //anyway):
   GOSNormInt normcalc(sigma);
-  double integral = 2*M_PI*normcalc.integrate(0.0,ncmin(trunc_angle,20.0*sigma));
+  double integral = k2Pi*normcalc.integrate(0.0,ncmin(trunc_angle,20.0*sigma));
   nc_assert(integral>0.0);
   return 1.0/integral;
 }
@@ -257,7 +257,7 @@ void NC::GaussOnSphere::produceStatReport(const char * callpt)
 void NC::GaussOnSphere::set(double sigma, double trunc_angle, double prec ) {
   nc_assert_always(sigma>0);
   nc_assert_always(trunc_angle>0);
-  nc_assert_always(trunc_angle<M_PI_2);
+  nc_assert_always(trunc_angle<kPiHalf);
   if ( ! (valueInInterval(0.9999e-7,0.10000001,prec) || valueInInterval(1.0,10000.0,prec)) )
     NCRYSTAL_THROW(BadInput,"prec must either be in the range [1e-7,1e-1] or in the range [1,10000].");
   if (prec<=1)
@@ -291,7 +291,7 @@ void NC::GaussOnSphere::set(double sigma, double trunc_angle, double prec ) {
   nc_assert(prec>0);
   if (prec<1.0) {
     double circleint_approx_maxangle = gos_cosexpansionradius(prec*0.5);//0.5 is safety
-    nc_assert_always(circleint_approx_maxangle<M_PI_2);
+    nc_assert_always(circleint_approx_maxangle<kPiHalf);
     if (m_truncangle>circleint_approx_maxangle||circleint_approx_maxangle<=1e-10) {
       //approximation formula never valid at requested precision:
       m_circleint_k1 = infinity;
@@ -318,14 +318,13 @@ void NC::GaussOnSphere::set(double sigma, double trunc_angle, double prec ) {
   //issues if we request extreme accuracy. Since such crystals are more of an
   //edge case, we simply reduce the requested accuracy in these scenarios a bit
   //(it will still be highly accurate of course):
-  const double arcsec = M_PI/(180.*3600.);
-  if ( m_sigma< 10*arcsec) {
+  if ( m_sigma< 10*kArcSec) {
     m_numint_accuracy = ncmax(m_numint_accuracy,1e-6);
     nlt = ncmin(nlt,1000);
-    if ( m_sigma< arcsec ) {
+    if ( m_sigma< kArcSec ) {
       nlt = ncmin(nlt,500);
       m_numint_accuracy = ncmax(m_numint_accuracy,1e-5);
-      if ( m_sigma< 0.1*arcsec ) {
+      if ( m_sigma< 0.1*kArcSec ) {
         nlt = ncmin(nlt,200);
         m_numint_accuracy = ncmax(m_numint_accuracy,1e-4);
       }
@@ -340,7 +339,7 @@ void NC::GaussOnSphere::set(double sigma, double trunc_angle, double prec ) {
   SplinedLookupTable lt_evalcosx;
   {
     double nltm1 = nlt-1.0;
-    ltmin = cos_mpi2pi2(ncmin(0.5*M_PI,trunc_angle));
+    ltmin = cos_mpi2pi2(ncmin(kPiHalf,trunc_angle));
     ltinvdelta = nltm1/(1.0-ltmin);
 
     SLTFct_EvalCosX sltfct(m_norm,m_expfact);
@@ -394,26 +393,24 @@ double NC::GaussOnSphere::circleIntegralSlow( double cg, double sg, double ca, d
     //roughly identical on all points of the circle and we can perform the
     //integral by evaluating the Gaussian at x=alpha and multiplying by the
     //circle's circumference.
-    return ((2*M_PI)*sa)*evalCosX(ca);
+    return k2Pi*sa*evalCosX(ca);
   }
 
   //full numerical integration required:
   nc_assert(sasg>0);
   double cos_tmax =  (m_cta-cacg)/sasg;
-  double tmax = ( cos_tmax<=-1.0 ? M_PI : std::acos(NC::ncmin(1.0,cos_tmax)) );
+  double tmax = ( cos_tmax<=-1.0 ? kPi : std::acos(NC::ncmin(1.0,cos_tmax)) );
   if ( tmax<=1e-12 )
     return 0.0;
-
-  const double arcsec = M_PI/(180.*3600.);
 
   //Increase target accuracy for edge cases (similar to what was done based on
   //m_sigma in ::set(..)):
   double intacc = m_numint_accuracy;
-  if ( tmax< 10*arcsec) {
+  if ( tmax< 10*kArcSec) {
     intacc = ncmax(intacc,1e-6);
-    if ( tmax< arcsec ) {
+    if ( tmax< kArcSec ) {
       intacc = ncmax(intacc,1e-5);
-    if ( tmax< 0.1*arcsec )
+    if ( tmax< 0.1*kArcSec )
       intacc = ncmax(intacc,1e-4);
     }
   }
@@ -460,7 +457,7 @@ bool NC::GaussOnSphere::genPointOnCircle( RandomBase*rand, double cg, double sg,
   double cos_tmax =  (m_cta-cacg)/sasg;
   if (cos_tmax>=1.0)//vanishing length of circle inside truncation zone
     return false;
-  double tmax = ( cos_tmax<=-1.0 ? M_PI : std::acos(cos_tmax) );
+  double tmax = ( cos_tmax<=-1.0 ? kPi : std::acos(cos_tmax) );
 
   //The highest contribution is at t=0, at which cos(delta) = cd. Generate t via MC-rejection.
   double densitymax = evalCosXInRange(cd)*1.00000001;//1.00000001 is overlay safety

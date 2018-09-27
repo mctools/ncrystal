@@ -435,7 +435,7 @@ bool NCrystal::isPrime(unsigned n) {
 
 
 void NCrystal::sincos_mpi2pi2(double A, double& cosA, double& sinA) {
-  nc_assert(ncabs(A)<=M_PI_2);
+  nc_assert(ncabs(A)<=kPiHalf);
   //Evaluate at A/2 via Taylor expansions and get final results via
   //double-angle formula.
   double x = 0.5*A;
@@ -463,7 +463,7 @@ void NCrystal::sincos_mpi2pi2(double A, double& cosA, double& sinA) {
 }
 
 void NCrystal::sincos_mpi8pi8(double A, double& cosA, double& sinA) {
-  nc_assert(ncabs(A)<=M_PI*0.12500001);
+  nc_assert(ncabs(A)<=kPi*0.12500001);
   //Evaluate at A/2 via two 6 terms Taylor expansions and get final
   //results via double-angle formula.
   double x = 0.5*A;
@@ -492,10 +492,10 @@ double NCrystal::cos_mpipi(double A)
 {
   //Use abs/min/copysign tricks to actually do the evaluation in [-pi/2,pi/2].
   double Aabs = ncabs(A);
-  nc_assert(Aabs<=M_PI);
+  nc_assert(Aabs<=kPi);
 
   //Taylor expansion to 22nd order
-  double x = ncmin(Aabs,M_PI-Aabs);
+  double x = ncmin(Aabs,kPi-Aabs);
   double mx2 = -x*x;
   double c = 1.0 + mx2 * ( 0.5 // - x^2 / 2!
              + mx2 * ( 4.16666666666666666666666666666666666666666667e-2 // + x^4 / 4!
@@ -509,12 +509,12 @@ double NCrystal::cos_mpipi(double A)
              + mx2 * ( 4.1103176233121648584779906184361403746103695e-19 // + x^20 / 20!
              + mx2 * ( 8.89679139245057328674889744250246834331248809e-22 // - x^22 / 22!
               )))))))))));
-  return nccopysign(c,M_PI_2-Aabs);
+  return nccopysign(c,kPiHalf-Aabs);
 }
 
 double NCrystal::cos_mpi2pi2(double x)
 {
-  nc_assert(ncabs(x)<=M_PI_2);
+  nc_assert(ncabs(x)<=kPiHalf);
   //Taylor expansion to 22nd order, precision better than 1.1e-16 over entire range
   double mx2 = -x*x;
   return 1.0 + mx2 * ( 0.5 // - x^2 / 2!
@@ -533,7 +533,7 @@ double NCrystal::cos_mpi2pi2(double x)
 
 double NCrystal::cos_mpi8pi8(double x)
 {
-  nc_assert(ncabs(x)<=0.125000000001*M_PI);
+  nc_assert(ncabs(x)<=0.125000000001*kPi);
   //Taylor expansion to 12th order, precision better than 3.3e-16 over entire range
   double mx2 = -x*x;
   return 1.0 + mx2 * ( 5.0e-1 // - x^2 / 2!
@@ -549,10 +549,10 @@ double NCrystal::sin_mpipi(double A)
 {
   //Use abs/min/copysign tricks to actually do the evaluation in [-pi/2,pi/2].
   double Aabs = ncabs(A);
-  nc_assert(Aabs<=M_PI);
+  nc_assert(Aabs<=kPi);
 
   //Taylor expansion to 19th order
-  double x = ncmin(Aabs,M_PI-Aabs);
+  double x = ncmin(Aabs,kPi-Aabs);
   double mx2 = -x*x;
   double s = x*(1.0 + mx2 * ( 1.66666666666666666666666666666666666666666667e-1 // - x^3 / 3!
                 + mx2 * ( 8.33333333333333333333333333333333333333333333e-3 // + x^5 / 5!
@@ -569,7 +569,7 @@ double NCrystal::sin_mpipi(double A)
 
 double NCrystal::sin_mpi2pi2(double x)
 {
-  nc_assert(ncabs(x)<=M_PI_2);
+  nc_assert(ncabs(x)<=kPiHalf);
   //Taylor expansion to 19th order, precision better than 6e-17 over entire range
   double mx2 = -x*x;
   return x*(1.0 + mx2 * ( 1.66666666666666666666666666666666666666666667e-1 // - x^3 / 3!
@@ -586,7 +586,7 @@ double NCrystal::sin_mpi2pi2(double x)
 
 double NCrystal::sin_mpi8pi8(double x)
 {
-  nc_assert(ncabs(x)<=0.125000000001*M_PI);
+  nc_assert(ncabs(x)<=0.125000000001*kPi);
   //Taylor expansion to 13th order, precision better than 6e-17 over entire range
   double mx2 = -x*x;
   return x*(1.0 + mx2 * ( 1.66666666666666666666666666666666666666666667e-1 // - x^3 / 3!

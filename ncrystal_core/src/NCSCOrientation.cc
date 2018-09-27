@@ -153,7 +153,7 @@ namespace NCrystal {
       nc_assert_always( asVect(m_lab[i]).mag2() );//should have been tested already
     }
 
-    if ( m_tolerance<=0.0 || m_tolerance>M_PI )
+    if ( m_tolerance <= 0.0 || m_tolerance > kPi )
       NCRYSTAL_THROW(BadInput, "Tolerance must be in interval (0.0,pi]");
 
     if ( asVect(m_lab[0]).isParallel( asVect(m_lab[1]), 1.0e-6 ) )

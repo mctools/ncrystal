@@ -98,7 +98,7 @@ NC::LCHelper::LCHelper( NC::Vector lcaxis,
         alpha = std::acos(cosalpha);
       }
 
-      nc_assert( alpha>=0.0 && alpha <= M_PI/2.0 );
+      nc_assert( alpha>=0.0 && alpha <= kPiHalf );
 
       //avoid floating point keys + merge entries withing 1/DISCRFACT ~= 1e-12:
       nc_assert_always(dspacing<1e7);//range limited by uint64_t bits
@@ -112,10 +112,10 @@ NC::LCHelper::LCHelper( NC::Vector lcaxis,
         double dsp_of_key = LCdediscretizeValue(ui_dsp);
         double alpha_of_key = LCdediscretizeValue(ui_alpha);
         //rounding can give alpha_of_key slightly above pi/2, but should not be much!
-        nc_assert(alpha_of_key<0.5*M_PI*(1.0+1e-10));
+        nc_assert(alpha_of_key<kPiHalf*(1.0+1e-10));
         nc_assert(alpha_of_key>=0);
         nc_assert(dsp_of_key>0);
-        LCPlaneSet ps( dsp_of_key, ncmin(alpha_of_key,0.5*M_PI), m_lcstdframe.gaussMos().mosaicityTruncationAngle(), fsquared );
+        LCPlaneSet ps( dsp_of_key, ncmin(alpha_of_key,kPiHalf), m_lcstdframe.gaussMos().mosaicityTruncationAngle(), fsquared );
         initmap.insert(std::make_pair(key,ps));
       } else {
         it->second.addFsq(fsquared);
@@ -144,13 +144,13 @@ NC::LCPlaneSet::LCPlaneSet(double dspacing, double thealpha,
     fsq(fsquared)
 {
   nc_assert(fsquared>=0.0);
-  nc_assert(thealpha<=0.5*M_PI);
+  nc_assert(thealpha<=kPiHalf);
   nc_assert(thealpha>=0.0);
   nc_assert(dspacing>0.0);
   nc_assert(truncangle>0.0);
-  nc_assert(truncangle<0.5*M_PI*0.999999);
-  nc_assert(thealpha + truncangle<M_PI);
-  nc_assert(ncmax(0.0,thealpha - truncangle)<0.5*M_PI);
+  nc_assert(truncangle<kPiHalf*0.999999);
+  nc_assert(thealpha + truncangle<kPi);
+  nc_assert(ncmax(0.0,thealpha - truncangle)<kPiHalf);
   nc_assert(cosalphaplus<cosalphaminus);
 }
 
@@ -438,7 +438,7 @@ void NC::LCHelper::forceUpdateCache( NC::LCHelper::Cache& cache, uint64_t discr_
       //Result of integration needs division by interval length (pi) to get the
       //average, which we calculated over [0,pi] rather than [-pi,pi]. Due to
       //the symmetry xs(phi)=xs(-phi), this gives the same result:
-      roi_xs = m_lcstdframe.calcXSIntegral(neutron,normal,itROI->rotmin,itROI->rotmax) * M_1_PI;
+      roi_xs = m_lcstdframe.calcXSIntegral(neutron,normal,itROI->rotmin,itROI->rotmax) * kInvPi;
     }
     nc_assert(roi_xs>0);//otherwise it should not have been a ROI!
     cache.m_roixs_commul.push_back(sumxs += roi_xs);
@@ -491,8 +491,8 @@ namespace NCrystal {
 
     virtual void evalFuncMany(double* fvals, unsigned n, double offset, double delta) const
     {
-      nc_assert(offset>=0&&offset<M_PI*1.00001);
-      nc_assert(delta>0&&delta*(n-1)<=M_PI*1.00001);
+      nc_assert(offset>=0&&offset<kPi*1.00001);
+      nc_assert(delta>0&&delta*(n-1)<=kPi*1.00001);
       CosSinGridGen grid(n,offset,delta);
       unsigned i = 0;
       do {
@@ -504,8 +504,8 @@ namespace NCrystal {
 
     virtual double evalFuncManySum(unsigned n, double offset, double delta) const
     {
-      nc_assert(offset>=0&&offset<M_PI*1.00001);
-      nc_assert(delta>0&&delta*n<=M_PI*1.00001);
+      nc_assert(offset>=0&&offset<kPi*1.00001);
+      nc_assert(delta>0&&delta*n<=kPi*1.00001);
       CosSinGridGen grid(n,offset,delta);
       double sum(0.);
       do {
@@ -567,7 +567,7 @@ void NC::LCHelper::genScatter( NC::LCHelper::Cache& cache, NC::RandomBase* rand,
     //neutron is on axis, in which case we just pick one at random):
     double phi,cosphi;
     if (roi.neutronIsOnAxis()) {
-      phi = rand->generate()*M_PI;
+      phi = rand->generate()*kPi;
       cosphi = cos_mpipi(phi);
     } else {
 
@@ -598,7 +598,7 @@ void NC::LCHelper::genScatter( NC::LCHelper::Cache& cache, NC::RandomBase* rand,
 
         //And a multiplicative factor ensures that the overlay function will
         //never be too small in central bins:
-        const double safety_factor = 1.5;
+        const double safety_factor = 1.7;
 
         //Finally, put into overlay.data as commulative array:
         overlay.prepareNullArray();
@@ -676,7 +676,7 @@ void NC::LCHelper::genScatter( NC::LCHelper::Cache& cache, NC::RandomBase* rand,
         }
       }
     }
-    nc_assert(phi>=0&&phi<=M_PI);
+    nc_assert(phi>=0&&phi<=kPi);
     double sinphisign = (rand->generate()>0.5?1.0:-1.0);//pick normals in [-pi,pi], not just in [0,pi]
     m_lcstdframe.genScat(rand,neutron,normal,cosphi,sinphisign*std::sqrt(1.0-cosphi*cosphi),outdir);
   }
@@ -756,8 +756,8 @@ double NC::LCStdFrame::calcXSIntegral( const NC::LCStdFrame::NeutronPars& neutro
                                        const NC::LCStdFrame::NormalPars& normal,
                                        double phimin, double phimax ) const
 {
-  nc_assert(phimin>=0.0&&phimin<M_PI);
-  nc_assert(phimax>0.0&&phimax<=M_PI);
+  nc_assert(phimin>=0.0&&phimin<kPi);
+  nc_assert(phimax>0.0&&phimax<=kPi);
   nc_assert(phimax>phimin);
   LCStdFrameIntegrator integrator(&m_gm, normal,neutron);
   return integrator.integrate(phimin,phimax);

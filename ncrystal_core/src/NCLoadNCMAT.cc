@@ -62,7 +62,7 @@ const NCrystal::Info * NCrystal::loadNCMAT( const char * ncmat_file,
   parser.getLatticeParameters( si.lattice_a, si.lattice_b, si.lattice_c,
                                si.alpha, si.beta, si.gamma );
   const RotMatrix cell = getLatticeRot( si.lattice_a, si.lattice_b, si.lattice_c,
-                                        si.alpha*M_PI/180, si.beta*M_PI/180, si.gamma*M_PI/180 );
+                                        si.alpha*kDeg, si.beta*kDeg, si.gamma*kDeg );
   si.volume = cell.colX().cross(cell.colY()).dot(cell.colZ());
   si.n_atoms = parser.getAtomPerCell();
   crystal->setStructInfo(si);
@@ -134,7 +134,7 @@ const NCrystal::Info * NCrystal::loadNCMAT( const char * ncmat_file,
     //Very simple heuristics here for now to select appropriate dcutoff value
     //(specifically we needed to raise the value to 0.4Aa for expensive Y2O3
     //with ~80 atoms/cell):
-    dcutoff = ( parser.getAtomPerCell()>40 ? 0.4 : 0.15 ) ;
+    dcutoff = ( parser.getAtomPerCell()>40 ? 0.25 : 0.15 ) ;
     std::string cmt;
     if (dcutoff>=dcutoffup) {
       //automatically selected conflicts with value of dcutoffup.

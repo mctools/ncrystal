@@ -38,7 +38,7 @@ NCrystal::FastConvolve::FastConvolve(unsigned n_size)
 
   m_w.resize(n_size_pow2);
   for( size_t i = 0; i < n_size_pow2; ++i )
-    m_w[i] = std::exp( std::complex<double>(0.,i*(M_PI*2.0/n_size_pow2)));
+    m_w[i] = std::exp( std::complex<double>(0.,i*(k2Pi/n_size_pow2)));
 }
 
 

@@ -49,13 +49,14 @@ double NC::LCBraggRef::crossSection( double ekin, const double (&indirraw)[3] ) 
   Vector indir = asVect(indirraw).unit();
   Vector lccross = m_lcaxislab.cross(indir);
   double lcdot = m_lcaxislab.dot(indir);
-  double sumxs = 0.0;
+  StableSum sumxs;
+  double dphi = k2Pi / m_nsampleprime;
   for (unsigned i = 0; i<m_nsampleprime; ++i) {
-    PhiRot phirot(i*((2.0*M_PI)/m_nsampleprime)-M_PI);
+    PhiRot phirot( i * dphi - kPi );
     Vector v = phirot.rotateVectorAroundAxis( indir, m_lcaxislab, lccross, lcdot );
-    sumxs += m_sc.obj()->crossSection(ekin,NC_CVECTOR_CAST(v));
+    sumxs.add(m_sc.obj()->crossSection(ekin,NC_CVECTOR_CAST(v)));
   }
-  return sumxs/m_nsampleprime;
+  return sumxs.sum()/m_nsampleprime;
 }
 
 void NC::LCBraggRef::generateScattering( double ekin,
@@ -134,7 +135,7 @@ double NC::LCBraggRndmRot::crossSection( double ekin, const double (&indirraw)[3
   Vector indir = asVect(indirraw).unit();
   Vector lccross = m_lcaxislab.cross(indir);
   double lcdot = m_lcaxislab.dot(indir);
-  double sumxs = 0.0;
+  StableSum sumxs;
   RandomBase * rand = getRNG();
   for (unsigned i = 0; i<m_nsample; ++i) {
     double cosphi, sinphi;
@@ -145,7 +146,8 @@ double NC::LCBraggRndmRot::crossSection( double ekin, const double (&indirraw)[3
     cache.rotations.push_back(PhiRot(cosphi, sinphi));
 #endif
     Vector v = cache.rotations.back().rotateVectorAroundAxis( indir, m_lcaxislab, lccross, lcdot );
-    cache.xscommul.push_back(sumxs += m_sc.obj()->crossSection(ekin,NC_CVECTOR_CAST(v)));
+    sumxs.add(m_sc.obj()->crossSection(ekin,NC_CVECTOR_CAST(v)));
+    cache.xscommul.push_back(sumxs.sum());
   }
   return cache.xscommul.back()/m_nsample;
 }
