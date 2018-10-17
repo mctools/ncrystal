@@ -24,6 +24,7 @@
 #include <map>
 #include <vector>
 #include "G4Material.hh"
+#include "G4Version.hh"
 #include "G4MaterialPropertiesTable.hh"
 
 //Manager class tracking indices of NCrystal::Scatter instances associated to
@@ -67,7 +68,9 @@ namespace G4NCrystal {
     std::vector<const NCrystal::Scatter*> m_scatters;
     std::map<const NCrystal::Scatter*,unsigned> m_scat2idx;
     G4String m_key;
+#if G4VERSION_NUMBER < 1040
     typedef std::map< G4String, G4double, std::less<G4String> > PropMap_T;
+#endif
   };
 
   ///////////////////////////////////////////////
@@ -82,8 +85,9 @@ namespace G4NCrystal {
     //Access property like this instead of via
     //ConstPropertyExists+GetConstProperty, to avoid needless string allocations
     //and double map lookup:
+#if G4VERSION_NUMBER < 1040
+    //Property maps pre-Geant4 10.4
     const PropMap_T* propcmap = matprop->GetPropertiesCMap();
-
     PropMap_T::size_type size = propcmap->size();
     if (size<=1) {
       //Optimise to quickly check in small maps, since we are likely the only
@@ -97,7 +101,18 @@ namespace G4NCrystal {
       PropMap_T::const_iterator it = propcmap->find(m_key);
       return it==propcmap->end() ? 0 : m_scatters.at(unsigned(it->second));
     }
+#else
+    //Property maps post Geant4 10.4. Here the internal keys are integers, but
+    //we can't be sure it is always the same in different materials. Unfortunately
+    //GetConstProperty triggers a G4 exception in case the key is not present,
+    //so for safety we have to trigger one extra map search via ConstPropertyExists:
+    if ( matprop->GetConstPropertyMap()->empty() || !matprop->ConstPropertyExists(m_key) )
+      return 0;
+    return m_scatters.at((unsigned)matprop->GetConstProperty(m_key));
+#endif
+
   }
+
 }
 
 #endif
