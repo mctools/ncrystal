@@ -59,18 +59,21 @@ before_script:
     - mkdir build installdir rundir
     - ls -l
     - set +e
-    - cd build
+    - cd ./build/
     - ls -l
+    - set -e
     - cmake .. -DCMAKE_BUILD_TYPE=${BUILD} -DCMAKE_INSTALL_PREFIX=../installdir/
-    - ls -l
     - set +e
+    - ls -l
 
 script:
     - set -e
     - make VERBOSE=1 install
-    - cd ../rundir
+    - set +e
+    - cd ../rundir/
     - ls -l
-    - find ../installdir
+    - set -e
+    - find ../installdir/
     - ../installdir/bin/ncrystal_example_c
     - ../installdir/bin/ncrystal_example_cpp
     - python2 ../installdir/bin/ncrystal_inspectfile --test
