@@ -28,6 +28,7 @@ compiler:
     - clang
 
 before_install:
+    - python -c "import fcntl; fcntl.fcntl(1, fcntl.F_SETFL, 0)"
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then (sleep 2;gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB||true); fi
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then (sleep 2;command curl -sSL https://rvm.io/mpapis.asc | gpg --import -)||(sleep 2;command curl -sSL https://rvm.io/mpapis.asc | gpg --import -)||(sleep 2;command curl -sSL https://rvm.io/mpapis.asc | gpg --import -)||true ; fi
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then (sleep 2;rvm get stable --auto-dotfiles; sleep 2)||true; fi
@@ -54,15 +55,20 @@ before_script:
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then python3 -mpip install numpy --user; fi
     - python2 -c 'import numpy; print numpy.__version__'
     - python3 -c 'import numpy; print (numpy.__version__)'
+    - ls -l
     - mkdir build installdir rundir
+    - ls -l
     - cd build
+    - ls -l
     - cmake .. -DCMAKE_BUILD_TYPE=${BUILD} -DCMAKE_INSTALL_PREFIX=../installdir/
+    - ls -l
     - set +e
 
 script:
     - set -e
     - make VERBOSE=1 install
     - cd ../rundir
+    - ls -l
     - find ../installdir
     - ../installdir/bin/ncrystal_example_c
     - ../installdir/bin/ncrystal_example_cpp
