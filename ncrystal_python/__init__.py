@@ -49,7 +49,7 @@ from __future__ import division, print_function, absolute_import
 
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
 __copyright__ = "Copyright 2017"
-__version__ = '0.9.15'
+__version__ = '0.9.16'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
 __copyright__ = "Copyright 2015-2017 %s"%__author__

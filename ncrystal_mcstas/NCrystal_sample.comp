@@ -25,7 +25,7 @@
 * %I
 *
 * Written by: NCrystal developers
-* Version: 0.9.15
+* Version: 0.9.16
 * Origin: NCrystal Developers (European Spallation Source ERIC and DTU Nutech)
 *
 * McStas sample component for the NCrystal scattering library. Find more
@@ -146,7 +146,7 @@ SHARE
   }
 
 #ifndef NCMCERR
-  /* more convenient form (only works in TRACE section, not in SHARE functions)
+  /* more convenient form (only works in TRACE section, not in SHARE functions) */
 #  define NCMCERR(msg) NCMCERR2(NAME_CURRENT_COMP,msg)
 #endif
 
