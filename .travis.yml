@@ -58,6 +58,7 @@ before_script:
     - ls -l
     - mkdir build installdir rundir
     - ls -l
+    - set +e
     - cd build
     - ls -l
     - cmake .. -DCMAKE_BUILD_TYPE=${BUILD} -DCMAKE_INSTALL_PREFIX=../installdir/
