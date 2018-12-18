@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2017 NCrystal developers                                   //
+//  Copyright 2015-2018 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,11 +22,11 @@
 #include "NCParseNCMAT.hh"
 #include "NCrystal/NCDefs.hh"
 #include "NCFillHKL.hh"
-#include "NCPhononDebye.hh"
 #include "NCFile.hh"
 #include "NCRotMatrix.hh"
 #include "NCNeutronSCL.hh"
 #include "NCLatticeUtils.hh"
+#include "NCDebyeMSD.hh"
 
 #include <vector>
 #include <iostream>
@@ -74,8 +74,6 @@ const NCrystal::Info * NCrystal::loadNCMAT( const char * ncmat_file,
     crystal->setDebyeTemperature(parser.getDebyeTemp());
 
   //3. atom info, cross sections and density:
-  std::map<std::string, double> msd_map;
-  std::vector<double> xs;
   double cell_mass_amu = 0.;
   double totalFreeScaXS = 0.;
   double totalAbsXS = 0.;
@@ -87,6 +85,7 @@ const NCrystal::Info * NCrystal::loadNCMAT( const char * ncmat_file,
       ++it )
     {
       const std::string& elem_name = it->first;
+      double elem_mass_amu = nscl->getAtomicMass(elem_name);
       size_t npos = it->second.size();
       //if per-element debye temps exists, they are preferable and should be
       //available for all elements. Otherwise a global debye temp should be
@@ -95,17 +94,14 @@ const NCrystal::Info * NCrystal::loadNCMAT( const char * ncmat_file,
       double debye_temp = ( debye_map.empty() ? parser.getDebyeTemp() : debye_map.at(elem_name) );
       nc_assert_always( debye_temp > 0.0 );
 
-      //phonon inelastic (create with nphonon=1 since we just need the MSD map -
-      //we are never going to invoke inel.doit here).
-      PhononDebye inel( constant_boltzmann * debye_temp, temperature*constant_boltzmann, elem_name, 1 );
-      const double msd = inel.getMSD();
-      msd_map[elem_name] = msd;
+      double msd = debyeIsotropicMSD(debye_temp, temperature, elem_mass_amu );
+
 
       //cross sections and mass:
       unsigned atnum = npos;
       totalAbsXS += atnum* nscl->getCaptureXS(elem_name);
       totalFreeScaXS += atnum* nscl->getFreeXS(elem_name);
-      cell_mass_amu += nscl->getAtomicMass(elem_name) * npos;
+      cell_mass_amu += elem_mass_amu * npos;
 
       //atominfo
       AtomInfo ai;
@@ -132,9 +128,9 @@ const NCrystal::Info * NCrystal::loadNCMAT( const char * ncmat_file,
   //4. HKL info
   if(dcutoff==0) {
     //Very simple heuristics here for now to select appropriate dcutoff value
-    //(specifically we needed to raise the value to 0.4Aa for expensive Y2O3
-    //with ~80 atoms/cell):
-    dcutoff = ( parser.getAtomPerCell()>40 ? 0.25 : 0.15 ) ;
+    //(specifically we needed to raise the value to 0.4Aa for expensive Y2O3/SiLu2O5
+    //with ~80/65 atoms/cell):
+    dcutoff = ( parser.getAtomPerCell()>40 ? 0.25 : 0.1 ) ;
     std::string cmt;
     if (dcutoff>=dcutoffup) {
       //automatically selected conflicts with value of dcutoffup.

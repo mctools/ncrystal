@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2017 NCrystal developers                                   //
+//  Copyright 2015-2018 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -143,13 +143,12 @@ void NCrystal::PhononDebye::doit(const std::vector<double> &ekin_vec, std::vecto
   unsigned psize=51;
   m_dt = m_debye/(psize-1);
 
-
   std::vector<double> phonon_energy=linspace(0,m_debye,psize);
   std::vector<double> g1_arr(phonon_energy.size());
   g1_arr[0]=3/std::pow(m_debye,3)*(2*m_kt)/(2.*m_gamma0);
   for(unsigned i=1;i<g1_arr.size();i++)
   {
-    g1_arr[i]=phonon_energy[i]*3/std::pow(m_debye,3)/sinh(phonon_energy[i]/(2*m_kt))/(2.*m_gamma0);
+    g1_arr[i]=phonon_energy[i]*3/std::pow(m_debye,3)/std::sinh(phonon_energy[i]/(2*m_kt))/(2.*m_gamma0);
   }
   std::vector<double> g1_flip;
   flip(g1_arr,g1_flip);
@@ -292,6 +291,7 @@ NCrystal::PhononDebye::~PhononDebye()
 
 double NCrystal::PhononDebye::getMSD() const
 {
+  //todo for NC2: if the same as provided by NCDebyeMSD.hh, we should avoid duplication
   return m_msd;
 }
 double NCrystal::PhononDebye::integrateAlphaInterval(double a1,double s1, double a2 , double s2 ) const

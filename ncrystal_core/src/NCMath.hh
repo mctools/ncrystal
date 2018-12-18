@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2017 NCrystal developers                                   //
+//  Copyright 2015-2018 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -26,7 +26,9 @@
 
 namespace NCrystal {
 
+  const double constant_c  = 299792458e10;// speed of light in Aa/s
   const double constant_dalton2kg =  1.660539040e-27; // amu to kg (source: NIST/CODATA 2018)
+  const double constant_dalton2eVc2 =  931494095.17; // amu to eV/c^2 (source: NIST/CODATA 2018)
   const double constant_avogadro = 6.022140857e23; // mol^-1 (source: NIST/CODATA 2018)
   const double constant_boltzmann = 8.6173303e-5;  // eV/K
   const double const_hhm = 4.144249671718981e-3; // hbar^2/neutron_mass

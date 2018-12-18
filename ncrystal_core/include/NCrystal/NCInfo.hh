@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2017 NCrystal developers                                   //
+//  Copyright 2015-2018 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -97,7 +97,9 @@ namespace NCrystal {
     //entries):
     struct Pos { Pos(double a, double b, double c) : x(a),y(b),z(c) {}; double x, y, z; };
     std::vector<Pos> positions;
-    //Mean-square-displacements in angstrom (0.0 if not available):
+    //Mean-square-displacements in angstrom^2 (0.0 if not available). Note that
+    //this is the displacement projected onto a linear axis, for direct usage in
+    //isotropic Debye-Waller factors:
     double mean_square_displacement;
   };
 
@@ -119,6 +121,11 @@ namespace NCrystal {
 
     bool hasStructureInfo() const;
     const StructureInfo& getStructureInfo() const;
+
+    //Convenience method, calculating the d-spacing of a given Miller
+    //index. Calling this incurs the overhead of creating a reciprocal lattice
+    //matrix from the structure info:
+    double dspacingFromHKL( int h, int k, int l ) const;
 
 
     /////////////////////////////////////////////

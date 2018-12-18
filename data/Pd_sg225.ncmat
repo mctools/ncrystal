@@ -8,9 +8,9 @@ NCMAT v1
 @SPACEGROUP
     225
 @ATOMPOSITIONS
-    Pd 0.5 0. 0.5
     Pd 0.5 0.5 0.
-    Pd 0. 0. 0.
+    Pd 0.5 0. 0.5
     Pd 0. 0.5 0.5
+    Pd 0. 0. 0.
 @DEBYETEMPERATURE
-    Pd 269.536974127
+    Pd   269.5374

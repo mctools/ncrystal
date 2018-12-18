@@ -8,9 +8,9 @@ NCMAT v1
 @SPACEGROUP
     225
 @ATOMPOSITIONS
-    Ca 0. 0. 0.
-    Ca 0. 0.5 0.5
-    Ca 0.5 0. 0.5
     Ca 0.5 0.5 0.
+    Ca 0.5 0. 0.5
+    Ca 0. 0.5 0.5
+    Ca 0. 0. 0.
 @DEBYETEMPERATURE
-    Ca 206.509605241
+    Ca   206.5097

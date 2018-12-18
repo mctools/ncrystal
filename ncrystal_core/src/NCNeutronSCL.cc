@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2017 NCrystal developers                                   //
+//  Copyright 2015-2018 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -211,7 +211,7 @@ double NCrystal::NeutronSCL::getIncoherentXS(const std::string& element) const
 
 double NCrystal::NeutronSCL::getIncoherentSL(const std::string& element) const
 {
-  return kInv4Pi * std::sqrt( getIncoherentXS(element) );
+  return std::sqrt( kInv4Pi * getIncoherentXS(element) );
 }
 
 

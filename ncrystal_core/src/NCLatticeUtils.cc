@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2017 NCrystal developers                                   //
+//  Copyright 2015-2018 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -184,4 +184,14 @@ void NCrystal::checkAndCompleteLattice( unsigned sg, double a, double& b, double
   }
   if ( !(a>0.0) || !(a>0.0) || !(a>0.0) )
     NCRYSTAL_THROW(BadInput,"lattice parameters must be positive numbers");
+}
+
+double NCrystal::dspacingFromHKL( int h, int k, int l, const NCrystal::RotMatrix& rec_lat )
+{
+  if (h==0&&k==0&&l==0)
+    NCRYSTAL_THROW(BadInput,"Can not calculate d-spacing for hkl=000");
+  double ksq = ( rec_lat * Vector(h,k,l) ).mag2();
+  if (!(ksq>0.0))
+    NCRYSTAL_THROW(CalcError,"Created invalid k-vector in d-spacing calculations (bad lattice rotation provided?)");
+  return k2Pi / std::sqrt(ksq);
 }

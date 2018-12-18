@@ -28,7 +28,7 @@ For detailed usage conditions and licensing of this open source project, see:
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2017 NCrystal developers                                   ##
+##  Copyright 2015-2018 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -49,7 +49,7 @@ from __future__ import division, print_function, absolute_import
 
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
 __copyright__ = "Copyright 2017"
-__version__ = '0.9.14'
+__version__ = '0.9.15'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
 __copyright__ = "Copyright 2015-2017 %s"%__author__
@@ -276,6 +276,7 @@ def _load(nclib_filename):
     _wrap('ncrystal_info_hkl_dlower',_dbl,(ncrystal_info_t,))
     _wrap('ncrystal_info_hkl_dupper',_dbl,(ncrystal_info_t,))
     _wrap('ncrystal_info_gethkl',None,(ncrystal_info_t,_int,_intp,_intp,_intp,_intp,_dblp,_dblp))
+    _wrap('ncrystal_info_dspacing_from_hkl',_dbl,(ncrystal_info_t,_int,_int,_int))
     functions['ncrystal_info_gethkl_setuppars'] = lambda : (_int(),_int(),_int(),_int(),_dbl(),_dbl())
 
     def _prepare_many(ekin,repeat):
@@ -477,6 +478,8 @@ class Info(RCBase):
         for idx in range(self.nHKL()):
             _rawfct['ncrystal_info_gethkl'](self._rawobj,idx,h,k,l,mult,dsp,fsq)
             yield h.value,k.value,l.value,mult.value,dsp.value,fsq.value
+    def dspacingFromHKL(self, h, k, l):
+        return float(_rawfct['ncrystal_info_dspacing_from_hkl'](self._rawobj,h,k,l))
 
 
 class CalcBase(RCBase):
@@ -697,9 +700,9 @@ def _actualtest():
     require( al.nHKL() == 3 )
     require( flteq(al.hklDLower(),1.4) )
     require( al.hklDUpper() > 1e36 )
-    expected_hkl = { 0  : (1, -1, -1, 8, 2.3380261031049243, 1.7720759166647517),
-                     1  : (0, 0, 2, 6, 2.02479, 1.730377956791613),
-                     2  : (0, 2, -2, 12, 1.4317427394787094, 1.5731697127736115) }
+    expected_hkl = { 0  : (1, -1, -1, 8, 2.3380261031049243, 1.7720800360606170),
+                     1  : (0, 0, 2, 6, 2.02479, 1.7303833200791909),
+                     2  : (0, 2, -2, 12, 1.4317427394787094, 1.5731794648334094) }
     for idx,hkl in enumerate(al.hklList()):
         h,k,l,mult,dsp,fsq = hkl
         require(idx<len(expected_hkl))
@@ -714,8 +717,8 @@ def _actualtest():
     require( isinstance(alpc.name,str) )
     require( alpc.refCount() in (1,2) and type(alpc.refCount()) == int )
     require( alpc.isNonOriented() )
-    require( flteq(1.63130945209,alpc.crossSectionNonOriented(wl2ekin(4.0)) ) )
-    require( flteq(1.63130945209,alpc.crossSection(wl2ekin(4.0),(1,0,0))))
+    require( flteq(1.6313137348306563,alpc.crossSectionNonOriented(wl2ekin(4.0)) ) )
+    require( flteq(1.6313137348306563,alpc.crossSection(wl2ekin(4.0),(1,0,0))))
     require( alpc.crossSectionNonOriented(wl2ekin(5.0)) == 0.0 )
 
     #use NCrystal's own builtin rng for guaranteed reproducibility (set explicitly to avoid warning):
@@ -770,4 +773,4 @@ def _actualtest():
                             ;dir1=@crys_hkl:5,1,1@lab:0,0,1
                             ;dir2=@crys_hkl:0,-1,1@lab:0,1,0""")
     require(flteq(587.853498014,gesc.crossSection(wl2ekin(1.540),( 0., 1., 1. ))))
-    require(flteq(1.76682279301,gesc.crossSection(wl2ekin(1.540),( 1., 1., 0. ))))
+    require(flteq(1.7668160017642742,gesc.crossSection(wl2ekin(1.540),( 1., 1., 0. ))))

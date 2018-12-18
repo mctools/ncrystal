@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2017 NCrystal developers                                   //
+//  Copyright 2015-2018 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -402,6 +402,19 @@ void ncrystal_info_gethkl( ncrystal_info_t ci_t, int idx,
     *dspacing = it->dspacing;
     *fsquared = it->fsquared;
   } NCCATCH;
+}
+
+double ncrystal_info_dspacing_from_hkl( ncrystal_info_t ci_t, int h, int k, int l )
+{
+  if (!ncrystal_valid(&ci_t)) {
+    ncc::setError("ncrystal_info_dspacing_from_hkl called with invalid crystal info object");
+    return 0.0;
+  }
+  try {
+    NCrystal::Info * ci = ncc::extract_info(ci_t);
+    return ci->dspacingFromHKL(h,k,l);
+  } NCCATCH;
+  return 0.0;
 }
 
 void ncrystal_setrandgen( double (*rg)() )

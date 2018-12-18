@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2017 NCrystal developers                                   //
+//  Copyright 2015-2018 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -39,8 +39,8 @@ namespace NCrystal {
   //
   //If phonzeroinco is 1, incoherent contributions from the zero'th order phonon
   //will be included (the coherent part is Bragg diffraction, which is handled
-  //by PCBragg or SCBragg). If it is 0, they will be excluded and if it is 2,
-  //*only* those contributions will be included (must be used with
+  //by PCBragg, SCBragg, or LCBragg). If it is 0, they will be excluded and if
+  //it is 2, *only* those contributions will be included (must be used with
   //max_phonon_order=1).
 
   class NCRYSTAL_API PhononDebye  {

@@ -9,8 +9,8 @@ NCMAT v1
     141
 @ATOMPOSITIONS
     Sn 0. 0. 0.
-    Sn 0. 0.5 0.25
-    Sn 0.5 0.5 0.5
     Sn 0.5 0. 0.75
+    Sn 0.5 0.5 0.5
+    Sn 0. 0.5 0.25
 @DEBYETEMPERATURE
-    Sn 158.883468895
+    Sn   158.8835

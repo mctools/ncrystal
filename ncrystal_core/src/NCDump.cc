@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2017 NCrystal developers                                   //
+//  Copyright 2015-2018 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -57,7 +57,7 @@ void NCrystal::dump(const NCrystal::Info*c)
             s << ", ";
         }
         if (c->hasAtomMSD())
-          s <<"MSD="<<it->mean_square_displacement<<"Aa";
+          s <<"MSD="<<it->mean_square_displacement<<"Aa^2";
         s<<"]";
       }
       printf("%s\n",s.str().c_str());

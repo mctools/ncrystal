@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2017 NCrystal developers                                   //
+//  Copyright 2015-2018 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -37,17 +37,21 @@ namespace NCrystal {
   //Based on a reciprocal lattice rotation matrix (like from
   //getReciprocalLatticeRot(..)), translate dcutoff into required maximum values
   //of |h|, |k| and |l|:
-  void estimateHKLRange( double dcutoff, const NCrystal::RotMatrix& rec_lat,
+  void estimateHKLRange( double dcutoff, const RotMatrix& rec_lat,
                          int& max_h, int& max_k, int& max_l );
 
   //Estimate what dcutoff is achievable with a given max_hkl value.
-  double estimateDCutoff( int max_hkl, const NCrystal::RotMatrix& rec_lat );
+  double estimateDCutoff( int max_hkl, const RotMatrix& rec_lat );
 
   //Validate that lattice lengths are compatible with given spacegroup. For
   //space groups where a==b or a==c, it is allowed to provide b=0 or c=0, and
   //the function will then update the values of b and/or c accordingly. Any
   //inconsistencies or errors will result in BadInput exceptions thrown.
   void checkAndCompleteLattice( unsigned spacegroup, double a, double& b, double & c );
+
+  //Calculate d-spacing from Miller index and reciprocal lattice rotation:
+  double dspacingFromHKL( int h, int k, int l, const RotMatrix& rec_lat );
+
 
 }
 

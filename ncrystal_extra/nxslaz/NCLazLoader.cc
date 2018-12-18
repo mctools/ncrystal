@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2017 NCrystal developers                                   //
+//  Copyright 2015-2018 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -23,6 +23,7 @@
 #include "NCrystal/NCDefs.hh"
 #include "NCString.hh"
 #include "NCMath.hh"
+#include "NCLatticeUtils.hh"
 #include <sstream>
 #include <fstream>
 #include <cstring>
@@ -99,7 +100,7 @@ void NCrystal::LazLoader::read()
   if (!infile.good())
     NCRYSTAL_THROW2(FileNotFound,"Could not find and open input file \""<<m_full_path<<"\"");
 
-  //copy ascii raw data into memory as vectors of string vector
+  //copy ascii raw data into memory as a vector of strings
   std::vector<std::string> strVec;
   while (std::getline(infile, line))
     {
@@ -136,11 +137,11 @@ void NCrystal::LazLoader::read()
   if(!search_parameter("lattice_a", structure_info.lattice_a ))
     NCRYSTAL_THROW2(DataLoadError,"The unit cell lattice_a is not defined in the input file \""<<m_full_path<<"\"");
 
-  if(!search_parameter("lattice_b", structure_info.lattice_a ))
-    structure_info.lattice_b = structure_info.lattice_a;
+  if(!search_parameter("lattice_b", structure_info.lattice_b ))
+    structure_info.lattice_b = 0;
 
   if(!search_parameter("lattice_c", structure_info.lattice_c ))
-    structure_info.lattice_c = structure_info.lattice_a;
+    structure_info.lattice_c = 0;
 
   if(!search_parameter("lattice_aa", structure_info.alpha ))
     structure_info.alpha = 90;
@@ -152,7 +153,7 @@ void NCrystal::LazLoader::read()
     structure_info.gamma = 90;
 
   if(!search_parameter("Vc", structure_info.volume ))
-    NCRYSTAL_THROW2(DataLoadError,"The unit cell volume is not defined in the input file \""<<m_full_path<<"\"");
+    NCRYSTAL_THROW2(DataLoadError,"The unit cell volume is not defined in the input file \""<<m_full_path<<"\"");//TODO for NC2: just calculate (after completing structure info below)
 
 
   //Delayed until after sanity check below: m_cinfo->setStructInfo(structure_info);
@@ -197,6 +198,8 @@ void NCrystal::LazLoader::read()
 
   // double lower_d = str2dbl_laz(m_raw_data.back().at(d_index-1));
   // double upper_d = str2dbl_laz(m_raw_data.begin()->at(d_index-1));
+
+  checkAndCompleteLattice( structure_info.spacegroup, structure_info.lattice_a, structure_info.lattice_b, structure_info.lattice_c );
 
   const bool enable_hkl(m_dcutlow!=-1);
   bool structure_info_is_sane(true);

@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2017 NCrystal developers                                   //
+//  Copyright 2015-2018 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -150,6 +150,8 @@ namespace NCrystal {
       x -= 1.0;
     if ( ! (x>=0 && x<1.0) )//must be in [0,1) and not NaN
       NCRYSTAL_THROW2(BadInput,"Invalid coordinate of atom position encountered (out of range or NaN): "<<xorig);
+    if (x==0.0)
+      x=0.0;//remaps -0 to 0
   }
   void detect_duplicate_positions(  std::vector<AtomInfo::Pos>& plist ) {
     const double pos_tolerance = 0.01;
@@ -371,10 +373,21 @@ double NCrystal::Info::hklDMinVal() const
     return kInf;
   return hklLast()->dspacing;
 }
+
 double NCrystal::Info::hklDMaxVal() const
 {
   nc_assert(hasHKLInfo());
   if (m_hkllist.empty())
     return kInf;
   return hklBegin()->dspacing;
+}
+
+double NCrystal::Info::dspacingFromHKL( int h, int k, int l ) const
+{
+  if (!hasStructureInfo())
+    NCRYSTAL_THROW(MissingInfo,"Info object lacks Structure information.");
+  const StructureInfo & si = getStructureInfo();
+  RotMatrix rec_lat = getReciprocalLatticeRot( si.lattice_a, si.lattice_b, si.lattice_c,
+                                               si.alpha*kDeg, si.beta*kDeg, si.gamma*kDeg );
+  return NCrystal::dspacingFromHKL( h,k,l, rec_lat );
 }

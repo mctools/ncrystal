@@ -8,9 +8,9 @@ NCMAT v1
 @SPACEGROUP
     225
 @ATOMPOSITIONS
-    Cu 0.5 0. 0.5
     Cu 0.5 0.5 0.
-    Cu 0. 0. 0.
+    Cu 0.5 0. 0.5
     Cu 0. 0.5 0.5
+    Cu 0. 0. 0.
 @DEBYETEMPERATURE
-    Cu 315.112261677
+    Cu   315.1134

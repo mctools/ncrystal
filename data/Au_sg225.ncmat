@@ -8,9 +8,9 @@ NCMAT v1
 @SPACEGROUP
     225
 @ATOMPOSITIONS
-    Au 0.5 0.5 0.
-    Au 0.5 0. 0.5
     Au 0. 0.5 0.5
     Au 0. 0. 0.
+    Au 0.5 0.5 0.
+    Au 0.5 0. 0.5
 @DEBYETEMPERATURE
-    Au 166.808168538
+    Au   166.8082

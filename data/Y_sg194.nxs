@@ -13,7 +13,7 @@ lattice_c = 5.7306
 lattice_alpha = 90
 lattice_beta  = 90
 lattice_gamma = 120
-debye_temp = 211.917067684
+debye_temp = 211.9171
 
 [atoms]
 # notation is "atom_number = name b_coh sigma_inc sigma_abs_2200 molar_mass x y z"

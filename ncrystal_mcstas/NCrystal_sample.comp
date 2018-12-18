@@ -3,7 +3,7 @@
 /*                                                                            */
 /*  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   */
 /*                                                                            */
-/*  Copyright 2015-2017 NCrystal developers                                   */
+/*  Copyright 2015-2018 NCrystal developers                                   */
 /*                                                                            */
 /*  Licensed under the Apache License, Version 2.0 (the "License");           */
 /*  you may not use this file except in compliance with the License.          */
@@ -25,7 +25,7 @@
 * %I
 *
 * Written by: NCrystal developers
-* Version: 0.9.14
+* Version: 0.9.15
 * Origin: NCrystal Developers (European Spallation Source ERIC and DTU Nutech)
 *
 * McStas sample component for the NCrystal scattering library. Find more
@@ -75,6 +75,8 @@ SHARE
   /* consistent/convenient error reporting */
 #  define NCMCERR2(compname,msg) do { fprintf(stderr, "\nNCrystal: %s: ERROR: %s\n\n", compname, msg); exit(1); } while (0)
 #endif
+
+  static int ncsample_reported_version = 0;
 
   //Keep all instance-specific parameters on a few structs:
   typedef struct {
@@ -144,8 +146,8 @@ SHARE
   }
 
 #ifndef NCMCERR
-  /* more convenient form (only works in TRACE section, not in SHARE functions) */
-#  define NCMCERR(msg) NCMCERR2(msg,NAME_CURRENT_COMP)
+  /* more convenient form (only works in TRACE section, not in SHARE functions)
+#  define NCMCERR(msg) NCMCERR2(NAME_CURRENT_COMP,msg)
 #endif
 
 %}
@@ -161,6 +163,17 @@ DECLARE
 
 INITIALIZE
 %{
+  //Print NCrystal version + sanity check setup.
+  if ( NCRYSTAL_VERSION != ncrystal_version() ) {
+    NCMCERR("Inconsistency detected between included ncrystal.h and linked NCrystal library!");
+  }
+  if (ncsample_reported_version != ncrystal_version()) {
+    if (ncsample_reported_version) {
+      NCMCERR("Inconsistent NCrystal library versions detected - this should normally not be possible!");
+    }
+    ncsample_reported_version = ncrystal_version();
+    printf( "NCrystal: McStas sample component(s) are using version %s of the NCrystal library.\n",ncrystal_version_str());
+  }
 
   //The following conversion factors might look slightly odd. They reflect the
   //fact that the various conversion factors used in McStas and NCrystal are not

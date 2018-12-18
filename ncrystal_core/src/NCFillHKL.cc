@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2017 NCrystal developers                                   //
+//  Copyright 2015-2018 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -262,24 +262,29 @@ void NCrystal::fillHKL( NCrystal::Info &info,
         if(real_or_imag_upper_limit*real_or_imag_upper_limit*2.0<fsquarecut)
           continue;
 
-        double real(0.0), imag(0.0);
+        //Time to calculate phases and sum up contributions. Use numerically
+        //stable summation, for better results on low-symmetry crystals (the
+        //main cost here is anyway the phase calculations, not the summation):
+        StableSum real, imag;
         for( unsigned i=0 ; i < whkl.size(); ++i ) {
           double factor = cache_factors[i];
           if (!factor)
             continue;
           std::vector<Vector>::const_iterator itAtomPos(atomic_pos[i].begin()), itAtomPosEnd(atomic_pos[i].end());
-          double cpsum(0.0), spsum(0.0);
+          StableSum cpsum, spsum;
           for(;itAtomPos!=itAtomPosEnd;++itAtomPos) {
             double phase = hkl.dot(*itAtomPos) * k2Pi;
             double cp,sp;
             sincos(phase,cp,sp);
-            cpsum += cp;
-            spsum += sp;
+            cpsum.add(cp);
+            spsum.add(sp);
           }
-          real += cpsum * factor;
-          imag += spsum * factor;
+          real.add(cpsum.sum() * factor);
+          imag.add(spsum.sum() * factor);
         }
-        double FSquared = (real*real+imag*imag);
+        double realsum = real.sum();
+        double imagsum = imag.sum();
+        double FSquared = (realsum*realsum+imagsum*imagsum);
 
         //skip weak or impossible reflections:
         if(FSquared<fsquarecut)

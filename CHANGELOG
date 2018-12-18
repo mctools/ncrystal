@@ -1,3 +1,23 @@
+v0.9.15 2018-12-18
+      * Add three new materials, expanding coverage of data library: Uraninite,
+        Aragonite and SiLu2O5.
+      * Lower default dcutoff value for most .ncmat files to 0.1Aa, in response
+      to validation plots of Uraninite.
+      * Updated year in copyright notice in all files.
+      * Laz/Lau file loader now deals correctly with missing lattice_b/lattice_c
+      parameters, and performs sanity checks in all cases.
+      * Provide convenience functions/methods to Info objects, providing
+      d-spacing of a given hkl value.
+      * FillHKL use numerically stable summation when calculating structure factors.
+      * Add NCrystal version printout from the NCrystal_sample component in
+      McStas. Also sanity check the header file and library versions
+      found.
+      * Add NCDebyeMSD utilities for getting mean squared atomic displacements
+      in the Debye model and use in .ncmat factory (to replace isotropic
+      Debye/Glauber model everywhere for consistency).
+      * For cosmetic reasons, avoid signed negative zero in atomic positions.
+      * Minor updates to .ncmat files (mostly cosmetic or rounding of numbers).
+
 v0.9.14 2018-10-17
       * Minor change in Geant4 interface to support Geant4 10.4 and later releases.
 
