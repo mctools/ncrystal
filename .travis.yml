@@ -28,8 +28,9 @@ compiler:
     - clang
 
 before_install:
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then (sleep 2;command curl -sSL https://rvm.io/mpapis.asc | gpg --import -)||(sleep 2;command curl -sSL https://rvm.io/mpapis.asc | gpg --import -)||(sleep 2;command curl -sSL https://rvm.io/mpapis.asc | gpg --import -) ; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sleep 2;rvm get stable --auto-dotfiles; sleep 2; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then (sleep 2;gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB||true); fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then (sleep 2;command curl -sSL https://rvm.io/mpapis.asc | gpg --import -)||(sleep 2;command curl -sSL https://rvm.io/mpapis.asc | gpg --import -)||(sleep 2;command curl -sSL https://rvm.io/mpapis.asc | gpg --import -)||true ; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then (sleep 2;rvm get stable --auto-dotfiles; sleep 2)||true; fi
 
 
 before_script:
