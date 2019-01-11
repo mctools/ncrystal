@@ -1,3 +1,8 @@
+v0.9.17 2019-01-11
+      * Change source for Quartz data file (results in small numerical changes only).
+      * Add new datafile for Sodalite.
+      * Updated year in copyright notice in all files.
+
 v0.9.16 2018-12-18
       * Fix small mistake preventing compilation of McStas component.
 

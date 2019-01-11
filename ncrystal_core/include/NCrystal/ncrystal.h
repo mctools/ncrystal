@@ -5,7 +5,7 @@
 /*                                                                            */
 /*  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   */
 /*                                                                            */
-/*  Copyright 2015-2018 NCrystal developers                                   */
+/*  Copyright 2015-2019 NCrystal developers                                   */
 /*                                                                            */
 /*  Licensed under the Apache License, Version 2.0 (the "License");           */
 /*  you may not use this file except in compliance with the License.          */
@@ -215,9 +215,9 @@ extern "C" {
   /* NCrystal version info:                                                        */
 #define NCRYSTAL_VERSION_MAJOR 0
 #define NCRYSTAL_VERSION_MINOR 9
-#define NCRYSTAL_VERSION_PATCH 16
-#define NCRYSTAL_VERSION   9016 /* (1000000*MAJOR+1000*MINOR+PATCH)                */
-#define NCRYSTAL_VERSION_STR "0.9.16"
+#define NCRYSTAL_VERSION_PATCH 17
+#define NCRYSTAL_VERSION   9017 /* (1000000*MAJOR+1000*MINOR+PATCH)                */
+#define NCRYSTAL_VERSION_STR "0.9.17"
   NCRYSTAL_API int ncrystal_version(); /* returns NCRYSTAL_VERSION                              */
   NCRYSTAL_API const char * ncrystal_version_str(); /* returns NCRYSTAL_VERSION_STR             */
 

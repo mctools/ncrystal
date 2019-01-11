@@ -3,7 +3,7 @@
 /*                                                                            */
 /*  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   */
 /*                                                                            */
-/*  Copyright 2015-2018 NCrystal developers                                   */
+/*  Copyright 2015-2019 NCrystal developers                                   */
 /*                                                                            */
 /*  Licensed under the Apache License, Version 2.0 (the "License");           */
 /*  you may not use this file except in compliance with the License.          */
@@ -25,7 +25,7 @@
 * %I
 *
 * Written by: NCrystal developers
-* Version: 0.9.16
+* Version: 0.9.17
 * Origin: NCrystal Developers (European Spallation Source ERIC and DTU Nutech)
 *
 * McStas sample component for the NCrystal scattering library. Find more
