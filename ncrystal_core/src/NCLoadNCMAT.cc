@@ -32,6 +32,14 @@
 #include <iostream>
 #include <cstdlib>
 
+const NCrystal::Info * NCrystal::loadNCMAT( const std::string& ncmat_file,
+                                            double temperature,
+                                            double dcutoff,
+                                            double dcutoffup,
+                                            bool expandhkl )
+{
+  return loadNCMAT(ncmat_file.c_str(),temperature,dcutoff,dcutoffup,expandhkl);
+}
 const NCrystal::Info * NCrystal::loadNCMAT( const char * ncmat_file,
                                             double temperature,
                                             double dcutoff,

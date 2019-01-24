@@ -23,6 +23,7 @@
 #include "NCFile.hh"
 #include "NCrystal/NCDefs.hh"
 #include <cctype>
+#include <cstdlib>
 
 NCrystal::NCMATParser::NCMATParser(const char* fn)
   : m_debye_temp(-1.), m_sg(0)
@@ -190,8 +191,10 @@ NCrystal::NCMATParser::NCMATParser(const char* fn)
   if(m_atomic_pos.size()==0)
     NCRYSTAL_THROW2(DataLoadError,"failed to load atomic positions info from file " << fn);
 
-  if(!m_sg)
-    NCRYSTAL_THROW2(DataLoadError,"unit cell space group is not provided in the file " << fn );
+  if(!m_sg) {
+    if (std::getenv("NCRYSTAL_NCMAT_REQUIRE_SPACEGROUP_FIELD"))
+      NCRYSTAL_THROW2(DataLoadError,"NCRYSTAL_NCMAT_REQUIRE_SPACEGROUP_FIELD env var was set and unit cell space group is not provided in the file " << fn );
+  }
 
   //TODO for NC2: Debye temperature will become optional when other inelastic models become available
   if(m_debye_temp==-1. && m_debye_map.empty())

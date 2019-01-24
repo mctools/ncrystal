@@ -40,6 +40,13 @@ namespace NCrystal {
                                        double dcutoffup = std::numeric_limits<double>::infinity(),//angstrom
                                        bool expandhkl = false );
 
+  //std::string version for convenience:
+  NCRYSTAL_API const Info * loadNCMAT( const std::string& ncmat_file,
+                                       double temp = 293.15,//kelvin
+                                       double dcutoff = 0.0,//angstrom
+                                       double dcutoffup = std::numeric_limits<double>::infinity(),//angstrom
+                                       bool expandhkl = false );
+
 
 }
 
