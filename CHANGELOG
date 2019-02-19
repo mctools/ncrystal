@@ -1,3 +1,10 @@
+v0.9.19 2019-02-19
+      * Default value of sccutoff parameter is moved slightly down, from 0.5Aa
+      to 0.4Aa and to make the effect less complicated, fsquared values are no
+      longer taken into account. The effect of the change is very small,
+      influencing the single crystal mosaicity distributions slightly for
+      neutrons with wavelengths below 1Aa.
+
 v0.9.18 2019-01-24
       * SPACEGROUP field is now optional in .ncmat files (but is always provided
       in all official ones).

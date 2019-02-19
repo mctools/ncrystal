@@ -43,13 +43,13 @@ namespace NCrystal {
     //threshold. Will assume ownership of wrapped plane provider; If
     //select_above is true, only planes with dspacing >= cutoff will be
     //returned, if above is false, only planes with dspacing<cutoff will be returned;
-    PlaneProviderWCutOff(double dcut, double fsqcut, PlaneProvider* pp)
-      : PlaneProvider(), m_pp(pp), m_dcut(dcut), m_fsqcut(fsqcut) { nc_assert(pp); pp->prepareLoop(); }
+    PlaneProviderWCutOff(double dcut, PlaneProvider* pp)
+      : PlaneProvider(), m_pp(pp), m_dcut(dcut) { nc_assert(pp); pp->prepareLoop(); }
     virtual ~PlaneProviderWCutOff() { delete m_pp; }
 
     virtual bool getNextPlane(double& dspacing, double& fsq, Vector& demi_normal) {
       while (m_pp->getNextPlane(dspacing,fsq,demi_normal)) {
-        if ( dspacing>=m_dcut||fsq>m_fsqcut ) {
+        if ( dspacing>=m_dcut ) {
           return true;
         } else {
           fsq*=2;//getNextPlane provides demi-normals, e.g. only half of the normals.
@@ -75,7 +75,7 @@ namespace NCrystal {
 
   private:
     PlaneProvider* m_pp;
-    double m_dcut, m_fsqcut;
+    double m_dcut;
     std::vector<std::pair<double,double> > m_withheldPlanes;
   };
 
@@ -110,14 +110,8 @@ namespace NCrystal {
           nc_assert(info.obj()->hasHKLInfo());
           if ( cfg.get_sccutoff() && cfg.get_sccutoff() > info.obj()->hklDMinVal() ) {
             //Improve efficieny by treating planes with dspacing less than
-            //sccutoff and fsq<0.1*maxfsq as having isotropic mosaicity
-            //distribution.
-            double fsqmax(0.0);
-            HKLList::const_iterator it(info.obj()->hklBegin()), itE(info.obj()->hklEnd());
-            for (;it!=itE;++it)
-              if (fsqmax<it->fsquared)
-                fsqmax = it->fsquared;
-            sc_pp = ( ppwcutoff = new PlaneProviderWCutOff(cfg.get_sccutoff(),fsqmax*0.1,sc_pp.release()) );
+            //sccutoff as having isotropic mosaicity distribution.
+            sc_pp = ( ppwcutoff = new PlaneProviderWCutOff(cfg.get_sccutoff(),sc_pp.release()) );
           }
           SCOrientation sco = cfg.createSCOrientation();
           if (cfg.isLayeredCrystal()) {

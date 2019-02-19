@@ -1163,7 +1163,7 @@ double NCrystal::MatCfg::get_dcutoffup() const { return m_impl->getVal<Impl::Val
 double NCrystal::MatCfg::get_packfact() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_packfact,1.0); }
 double NCrystal::MatCfg::get_mos() const { return m_impl->getValNoFallback<Impl::ValDbl>(Impl::PAR_mos); }
 double NCrystal::MatCfg::get_mosprec() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_mosprec,1e-3); }
-double NCrystal::MatCfg::get_sccutoff() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_sccutoff,0.5); }
+double NCrystal::MatCfg::get_sccutoff() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_sccutoff,0.4); }
 double NCrystal::MatCfg::get_dirtol() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_dirtol,1e-4); }
 bool NCrystal::MatCfg::get_bragg() const { return m_impl->getVal<Impl::ValBool>(Impl::PAR_bragg,true); }
 const std::string& NCrystal::MatCfg::get_bkgd() const { return m_impl->getVal<Impl::ValStr>(Impl::PAR_bkgd,s_matcfg_str_best); }

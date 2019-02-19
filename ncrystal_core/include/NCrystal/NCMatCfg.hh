@@ -203,20 +203,18 @@ namespace NCrystal {
     //               in which each crossSection call triggers a new selection of
     //               n=-lcmode randomly oriented crystallites.
     //
-    // sccutoff.....: [ double, fallback value is 0.5Aa ]
+    // sccutoff.....: [ double, fallback value is 0.4Aa ]
     //               Single-crystal d-spacing cutoff in Angstrom. When creating
     //               single-crystal scatterers, crystal planes with spacing
-    //               below this value and Fsquared less than 10% of the maximum
-    //               Fsquared in the crystal will be modelled as having a
-    //               isotropic mosaicity distribution. This usually results in
-    //               very great computational speedups for neutrons at
-    //               wavelengths below 2*sccutof. The tradeoff is in principle
-    //               incorrect angular dependency when calculating the
-    //               cross-section for scattering on *these* individual planes,
-    //               but in practice the net effect is usually not particularly
-    //               significant due to the very large number of very weak
-    //               planes affected. Setting sccutoff=0 naturally disables this
-    //               approximation.
+    //               below this value will be modelled as having an isotropic
+    //               mosaicity distribution. This usually results in very great
+    //               computational speedups for neutrons at wavelengths below
+    //               2*sccutof. The tradeoff is in principle an incorrect angular
+    //               dependency when calculating the cross-section for scattering
+    //               on *these* individual planes, but in practice the net effect
+    //               is usually not particularly significant due to the very large
+    //               number of very weak planes affected. Setting sccutoff=0
+    //               naturally disables this approximation.
     //               [ Recognised units: "Aa", "nm", "mm", "cm", "m" ]
 
 
