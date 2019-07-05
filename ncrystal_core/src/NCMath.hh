@@ -81,8 +81,10 @@ namespace NCrystal {
   //Approximations for exponential function (errors is 0.7e-10 or better):
   double exp_negarg_approx(double x);//error smaller than 0.7e-10, negative arguments only (slightly faster)
   double exp_approx(double x);//error smaller than 0.7e-10
-  double atan_smallarg_approx(double x);//9th order taylor expansion. Error smaller than 1e-5 for |x|<0.442, 1e-3 for |x|<0.68, 1e-2 for |x|<0.85.
+  double exp_smallarg_approx(double x);//7th order Taylor expansion
+  double atan_smallarg_approx(double x);//9th order Taylor expansion. Error smaller than 1e-5 for |x|<0.442, 1e-3 for |x|<0.68, 1e-2 for |x|<0.85.
   double atan_approx(double x);//calling atan_smallarg_approx when |x|<0.442 and falling back to std::atan and exact results otherwise.
+  double expm1_smallarg_approx(double x);//7th order Taylor expansion
 
   //numerical integration
   void gauleg_10_ord(const double x1, const double x2, std::vector<double>& x, std::vector<double>& w);
@@ -340,6 +342,22 @@ inline bool NCrystal::valueInInterval(double a, double b, double x)
   return (x-a)*(x-b) <= 0.0;
 }
 
+inline double NCrystal::exp_smallarg_approx( double x )
+{
+  //7th order taylor expansion
+  return 1.0+x*(1+x*(0.5+x*(0.16666666666666666666666666666666666667+x*(0.04166666666666666666666666666666666667
+           +x*(0.00833333333333333333333333333333333333+x*(0.00138888888888888888888888888888888889
+           +x*0.00019841269841269841269841269841269841))))));
+}
+
+inline double NCrystal::expm1_smallarg_approx( double x )
+{
+  //7th order taylor expansion
+  return x*(1+x*(0.5+x*(0.16666666666666666666666666666666666667+x*(0.04166666666666666666666666666666666667
+           +x*(0.00833333333333333333333333333333333333+x*(0.00138888888888888888888888888888888889
+           +x*0.00019841269841269841269841269841269841))))));
+}
+
 inline double NCrystal::exp_negarg_approx( double x )
 {
   nc_assert(x<=0.0);
@@ -352,9 +370,7 @@ inline double NCrystal::exp_negarg_approx( double x )
     return y;
   }
   //7th order taylor expansion:
-  return 1.0+x*(1+x*(0.5+x*(0.16666666666666666666666666666666666667+x*(0.04166666666666666666666666666666666667
-           +x*(0.00833333333333333333333333333333333333+x*(0.00138888888888888888888888888888888889
-           +x*0.00019841269841269841269841269841269841))))));
+  return exp_smallarg_approx(x);
 }
 
 inline double NCrystal::exp_approx(double x)

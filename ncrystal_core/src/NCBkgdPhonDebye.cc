@@ -21,10 +21,14 @@
 #include "NCrystal/NCBkgdPhonDebye.hh"
 #include "NCrystal/NCInfo.hh"
 #include "NCBkgdPhonDebyeXS.hh"
+#include "NCRandUtils.hh"
+
 #include <map>
 #include <iostream>
 #include <cassert>
 #include <cstdlib>
+#include <algorithm>
+#include <vector>
 #if __cplusplus >= 201103L
 #  include <mutex>
 #endif
@@ -81,13 +85,14 @@ bool NCrystal::BkgdPhonDebye::hasSufficientInfo(const Info* ci)
 }
 
 
-NCrystal::BkgdPhonDebye::BkgdPhonDebye(const Info* ci, bool thermalise,
+NCrystal::BkgdPhonDebye::BkgdPhonDebye(const Info* ci, NCrystal::BkgdPhonDebye::GenScatterMode gsm,
                                        unsigned nphonon, bool pzi, bool only_pzi, bool no_extrap )
-  : ScatterXSCurve(ci,"BkgdPhonDebye",thermalise), m_xs(0)
+  : ScatterXSCurve(ci,"BkgdPhonDebye",(gsm==thermalise)), m_debphonmodel(0), m_genscatmode(gsm)
 {
   nc_assert_always(ci);
   BkgdPhonDebye_checkinfo(ci,true);
 
+  bool do_modelde = (gsm==modeldeltae);
   RCHolder<const BkgdPhonDebyeXS> xs;
   const bool verbose = (std::getenv("NCRYSTAL_DEBUGSCATTER") ? true : false);
   //Construct unique cachekey for NCInfo instance and parameters above:
@@ -95,7 +100,8 @@ NCrystal::BkgdPhonDebye::BkgdPhonDebye(const Info* ci, bool thermalise,
   if (pzi) cachekey.second += 1;
   if (only_pzi) cachekey.second += 2;
   if (no_extrap) cachekey.second += 4;
-  cachekey.second += 8*nphonon;
+  if (do_modelde) cachekey.second += 8;
+  cachekey.second += 16*nphonon;
   {
 #if __cplusplus >= 201103L
     std::lock_guard<std::mutex> lock(BkgdPhonDebyeCache::cache_mutex);
@@ -107,7 +113,7 @@ NCrystal::BkgdPhonDebye::BkgdPhonDebye(const Info* ci, bool thermalise,
       if (verbose)
         std::cout<<"NCBkgdPhonDebye failed to find relevant BkgdPhonDebyeXS object in cache (cachelength="
                  <<BkgdPhonDebyeCache::cache.size()<<"). Creating from scratch."<<std::endl;
-      xs = createBkgdPhonDebyeXS(ci,nphonon,pzi,only_pzi,!no_extrap);
+      xs = createBkgdPhonDebyeXS(ci,nphonon,pzi,only_pzi,!no_extrap, do_modelde);
       BkgdPhonDebyeCache::cache[cachekey] = xs;
     } else {
       //found in cache!
@@ -118,15 +124,15 @@ NCrystal::BkgdPhonDebye::BkgdPhonDebye(const Info* ci, bool thermalise,
       xs = it->second;
     }
     nc_assert_always(xs.obj()&&xs.obj()->refCount()>1);
-    m_xs = xs.obj();
-    m_xs->ref();
+    m_debphonmodel = xs.obj();
+    m_debphonmodel->ref();
   }
   validate();
 }
 
 NCrystal::BkgdPhonDebye::~BkgdPhonDebye()
 {
-  if (m_xs && !std::getenv("NCRYSTAL_NEVERCLEARCACHES") ) {
+  if (m_debphonmodel && !std::getenv("NCRYSTAL_NEVERCLEARCACHES") ) {
 #if __cplusplus >= 201103L
     std::lock_guard<std::mutex> lock(BkgdPhonDebyeCache::cache_mutex);
 #endif
@@ -134,10 +140,10 @@ NCrystal::BkgdPhonDebye::~BkgdPhonDebye()
     BkgdPhonDebyeCache::Map::iterator it(BkgdPhonDebyeCache::cache.begin()),
                                       itE(BkgdPhonDebyeCache::cache.end());
     for (;it!=itE;++it) {
-      if (it->second.obj()==m_xs) {
+      if (it->second.obj()==m_debphonmodel) {
         assert(it->second.obj()->refCount()>=2);//normal assert, since we can't throw from destructors
         if (it->second.obj()->refCount()==2) {
-          //cache itself holds 1 ref, we hold one in m_xs, and noone else does.
+          //cache itself holds 1 ref, we hold one in m_debphonmodel, and noone else does.
           BkgdPhonDebyeCache::cache.erase(it);
           if (std::getenv("NCRYSTAL_DEBUGSCATTER"))
             std::cout<<"NCBkgdPhonDebye destructor removed BkgdPhonDebyeXS object from cache (cachelength="
@@ -146,11 +152,35 @@ NCrystal::BkgdPhonDebye::~BkgdPhonDebye()
         break;
       }
     }
-    m_xs->unref();
+    m_debphonmodel->unref();
   }
 }
 
 double NCrystal::BkgdPhonDebye::crossSectionNonOriented(double ekin) const
 {
-  return m_xs->getXS(ekin);
+  return m_debphonmodel->getXS(ekin);
+}
+
+
+void NCrystal::BkgdPhonDebye::generateScatteringNonOriented( double ekin, double& angle, double& de ) const
+{
+  if (m_genscatmode==modeldeltae) {
+    RandomBase * rand = getRNG();
+    angle = randIsotropicScatterAngle(rand);
+    de = m_debphonmodel->sampleEnergyTransfer(ekin,  rand ) ;
+  } else {
+    ScatterXSCurve::generateScatteringNonOriented(ekin,angle,de);
+  }
+}
+
+void NCrystal::BkgdPhonDebye::generateScattering( double ekin, const double (&indir)[3],
+                                    double (&outdir)[3], double& de ) const
+{
+  if (m_genscatmode==modeldeltae) {
+      RandomBase * rand = getRNG();
+      randIsotropicDirection(rand,outdir);
+      de = m_debphonmodel->sampleEnergyTransfer(ekin, rand ) ;
+    } else {
+      ScatterXSCurve::generateScattering(ekin,indir,outdir,de);
+    }
 }

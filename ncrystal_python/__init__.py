@@ -49,7 +49,7 @@ from __future__ import division, print_function, absolute_import
 
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
 __copyright__ = "Copyright 2017"
-__version__ = '0.9.19'
+__version__ = '1.0.0'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
 __copyright__ = "Copyright 2015-2017 %s"%__author__
@@ -773,4 +773,5 @@ def _actualtest():
                             ;dir1=@crys_hkl:5,1,1@lab:0,0,1
                             ;dir2=@crys_hkl:0,-1,1@lab:0,1,0""")
     require(flteq(587.853498014,gesc.crossSection(wl2ekin(1.540),( 0., 1., 1. ))))
-    require(flteq(1.7668160017642742,gesc.crossSection(wl2ekin(1.540),( 1., 1., 0. ))))
+    require(flteq(1.76681322749,gesc.crossSection(wl2ekin(1.540),( 1., 1., 0. ))))
+

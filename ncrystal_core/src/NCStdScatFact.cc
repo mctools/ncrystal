@@ -138,18 +138,34 @@ namespace NCrystal {
 
       //Common options for cross-section-curve-only bkgd modes:
       bool bkgdcurve_dothermalise = false;
+      bool bkgdphondebye_domodelde = false;
       if ( bkgd == "external" || bkgd=="phonondebye" ) {
         allowed_bkgdopts.insert("elastic");
         allowed_bkgdopts.insert("thermalise");
+        if (bkgd=="phonondebye")
+          allowed_bkgdopts.insert("modeldeltae");
         bool opt_elastic = cfg.get_bkgdopt_flag("elastic");
         bool opt_therm = cfg.get_bkgdopt_flag("thermalise");
-        if (opt_elastic&&opt_therm)
+        bool opt_modelde = (bkgd=="phonondebye" && cfg.get_bkgdopt_flag("modeldeltae"));
+        if ( opt_elastic && opt_therm )
           NCRYSTAL_THROW2(BadInput,"Can not specify both elastic and thermalise flags to bkgd="<<bkgd);
-        //Use flags and temp availability to determine mode:
-        bkgdcurve_dothermalise = info.obj()->hasTemperature();//default depends on temp availability
-        if (opt_elastic) bkgdcurve_dothermalise = false;//user overrides to elastic
-        else if (opt_therm) bkgdcurve_dothermalise = true;//user overrides to thermalising
+        if ( opt_modelde && (opt_elastic||opt_therm ) )
+          NCRYSTAL_THROW2(BadInput,"Can not specify modeldeltae with elastic or thermalise flags to bkgd="<<bkgd);
+        //Use flags and temp availability to determine mode (default is thermalise or elastic, depending on temp availability):
+        bkgdphondebye_domodelde = false;
+        bkgdcurve_dothermalise = info.obj()->hasTemperature();
+        if (opt_elastic) {
+          bkgdcurve_dothermalise = false;//user overrides to elastic
+        } else if (opt_therm) {
+          bkgdcurve_dothermalise = true;//user overrides to thermalising
+        } else if (opt_modelde) {
+          bkgdcurve_dothermalise = false; bkgdphondebye_domodelde = true;//user overrides to modeldeltae
+        }
       }
+
+      nc_assert_always( ! bkgdphondebye_domodelde || ( bkgd == "phonondebye" ) );
+      nc_assert_always( ! ( bkgdcurve_dothermalise && bkgdphondebye_domodelde ) );
+
       //Common options for modes needing phonzeroinco flags:
       bool opt_no_pzi(false), opt_only_pzi(false);
       if ( bkgd == "phonondebye"
@@ -168,10 +184,16 @@ namespace NCrystal {
       } else if ( bkgd == "phonondebye" ) {
         allowed_bkgdopts.insert("nphonon");
         allowed_bkgdopts.insert("no_extrap");
+        BkgdPhonDebye::GenScatterMode gsm(BkgdPhonDebye::elastic);
+        if (bkgdcurve_dothermalise)
+          gsm = BkgdPhonDebye::thermalise;
+        else if (bkgdphondebye_domodelde)
+          gsm = BkgdPhonDebye::modeldeltae;
         sc.obj()->addComponent(new BkgdPhonDebye( info.obj(),
-                                                  bkgdcurve_dothermalise,
+                                                  gsm,
                                                   cfg.get_bkgdopt_int("nphonon",0),
-                                                  !opt_no_pzi, opt_only_pzi,
+                                                  !opt_no_pzi,
+                                                  opt_only_pzi,
                                                   cfg.get_bkgdopt_flag("no_extrap") ) );
       } else {
         nc_assert_always(bkgd=="none");
@@ -241,7 +263,7 @@ namespace NCrystal {
                         : info.obj()->providesNonBraggXSects() );
         if (!can_do)
           return false;
-        if (!info.obj()->hasTemperature()&&cfg.get_bkgdopt_flag("thermalise"))
+        if (!info.obj()->hasTemperature()&&(cfg.get_bkgdopt_flag("thermalise")||cfg.get_bkgdopt_flag("modeldeltae")))
           return false;
         return true;
       }

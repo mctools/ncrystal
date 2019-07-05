@@ -46,14 +46,28 @@ if pyversion < (2,7,5) or (pyversion >= (3,0,0) and pyversion < (3,4,0)):
 #Function for importing required python modules which may be missing, to provide
 #a somewhat more helpful error to the user:
 def import_optpymod(name):
-    namespace={}
     try:
-        exec('import %s as mod'%name,namespace)
+        import importlib
     except ImportError:
+        importlib=None
+    if importlib:
+        try:
+            themod = importlib.import_module(name)
+        except ImportError:
+            themod = None
+    else:
+        #python 2.6 does not have importlib (not that we actually support 2.6...)
+        namespace={}
+        try:
+            exec('import %s as mod'%name,namespace)
+            themod=namespace['mod']
+        except ImportError:
+            themod=None
+    if not themod:
         print('ERROR: Could not import a required python module: %s'%name)
         print('       Please make sure it is installed on your system.')
         sys.exit(1)
-    return namespace['mod']
+    return themod
 
 #We handle the NCrystal import separately, since we know where it might be, even
 #if the user did not set up PYTHONPATH correctly.
@@ -252,7 +266,7 @@ def create_title_and_labels(parts):
 
 def _end_plot(plt,pdf):
     if _unittest:
-        plt.savefig(open(os.devnull,'w'),format='raw',dpi=10)
+        plt.savefig(open(os.devnull,'wb'),format='raw',dpi=10)
         plt.close()
     elif pdf:
         pdf.savefig()
@@ -324,7 +338,11 @@ def plot_xsect(cfgs,comp,absorption,pdf=False):
     if max_len_label > 80: leg_fsize = 'smaller'
     try:
         if len(parts)>1:
-            plt.legend(loc='best',fontsize=leg_fsize).draggable()
+            leg=plt.legend(loc='best',fontsize=leg_fsize)
+            if hasattr(leg,'set_draggable'):
+                leg.set_draggable(True)
+            else:
+                leg.draggable(True)
     except TypeError:
         plt.legend(loc='best')
     plt.grid()

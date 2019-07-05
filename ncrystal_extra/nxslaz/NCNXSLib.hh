@@ -1928,8 +1928,8 @@ void Set_uvw(const T_SgInfo *SgInfo, int h, int k, int l, int *uvw);
     software is not in the public domain.
 */
 
-#define MAX_CHARS_SPACEGROUP 40
-#define MAX_CHARS_ATOMLABEL 100
+#define MAX_CHARS_SPACEGROUP 41  /* 40->41 by NCrystal developers */
+#define MAX_CHARS_ATOMLABEL 101  /* 100->101 by NCrystal developers */
 
 
 // nxs error codes

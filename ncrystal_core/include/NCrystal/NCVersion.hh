@@ -21,10 +21,10 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#define NCRYSTAL_VERSION_MAJOR 0
-#define NCRYSTAL_VERSION_MINOR 9
-#define NCRYSTAL_VERSION_PATCH 19
-#define NCRYSTAL_VERSION   9019 /* (1000000*MAJOR+1000*MINOR+PATCH)   */
-#define NCRYSTAL_VERSION_STR "0.9.19"
+#define NCRYSTAL_VERSION_MAJOR 1
+#define NCRYSTAL_VERSION_MINOR 0
+#define NCRYSTAL_VERSION_PATCH 0
+#define NCRYSTAL_VERSION   1000000 /* (1000000*MAJOR+1000*MINOR+PATCH)   */
+#define NCRYSTAL_VERSION_STR "1.0.0"
 
 #endif

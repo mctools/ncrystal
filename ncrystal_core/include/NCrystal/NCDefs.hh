@@ -48,9 +48,10 @@ namespace NCrystal {
 
   //Utility functions for converting between neutron wavelength [Aa] and kinetic
   //energy [eV], and for providing infinity:
-  NCRYSTAL_API double wl2ekin( double wl );     //cost: 1 division
-  NCRYSTAL_API double ekin2wl( double ekin );   //cost: 1 division + 1 sqrt
-  NCRYSTAL_API double ekin2wlsq( double ekin ); //cost: 1 division
+  NCRYSTAL_API double wl2ekin( double wl );     //cost: 1 branch + 1 division
+  NCRYSTAL_API double ekin2wl( double ekin );   //cost: 1 branch + 1 division + 1 sqrt
+  NCRYSTAL_API double ekin2wlsq( double ekin ); //cost: 1 branch + 1 division
+  NCRYSTAL_API double ekin2wlsqinv( double ekin ); //cost: 1 multiplication
   const double infinity = std::numeric_limits<double>::infinity();
 
   //Math constants (avoid M_PI etc. for portability reasons). Note that these
@@ -220,6 +221,12 @@ namespace NCrystal {
   {
     //eV to Aangstrom^2
     return ekin ? 0.081804209605330899 / ekin : std::numeric_limits<double>::infinity();
+  }
+
+  inline double ekin2wlsqinv( double ekin)
+  {
+    //eV to 1/Aangstrom^2
+    return ekin * 12.22430978582345950656;//constant is 1/0.081804209605330899
   }
 
   //Some obscure compilers like to complain about unused constants defined

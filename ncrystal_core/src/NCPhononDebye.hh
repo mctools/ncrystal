@@ -24,6 +24,7 @@
 #include "NCrystal/NCDefs.hh"
 #include <vector>
 #include <string>
+#include "NCPointwiseDist.hh"
 
 namespace NCrystal {
 
@@ -36,20 +37,14 @@ namespace NCrystal {
   //to estimate the saturated expansion order in the class constructor
   //Sjolander, Arkiv for Fysik., Bd 14, nr 21, 1958
   //automatic order determination is enabled by setting max_phonon_order in the constructor to zero
-  //
-  //If phonzeroinco is 1, incoherent contributions from the zero'th order phonon
-  //will be included (the coherent part is Bragg diffraction, which is handled
-  //by PCBragg, SCBragg, or LCBragg). If it is 0, they will be excluded and if
-  //it is 2, *only* those contributions will be included (must be used with
-  //max_phonon_order=1).
 
   class NCRYSTAL_API PhononDebye  {
   public:
     PhononDebye(double debye_energy, double kt, const std::string & ele_name,
-                unsigned max_phonon_order=0, int phonzeroinco = 1 );
+                unsigned max_phonon_order=0, bool iniDeltaE=false);
     virtual ~PhononDebye();
     void doit(const std::vector<double> &ekin_vec, std::vector<double> &xs_vec,
-              unsigned alpha_grid_size=50, unsigned beta_sym_grid_size=100);
+              std::vector<PointwiseDist> &en_dist, unsigned alpha_grid_size=50, unsigned beta_sym_grid_size=100);
     double getMSD() const;
 
     //Get max_phonon_order from constructor, unless it was 0, in which case the
@@ -84,7 +79,7 @@ namespace NCrystal {
     std::vector<double> m_sab;
     unsigned m_max_phononnum;
     double m_max_wl2ekin;
-    int m_phonzeroinco;
+    bool m_iniDeltaE;
   };
 }
 

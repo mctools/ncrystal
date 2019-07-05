@@ -27,21 +27,18 @@
 
 #include <algorithm>
 
-
 NCrystal::PhononDebye::PhononDebye( double debye_energy, double kt,
                                     const std::string& ele_name,
                                     unsigned max_phonon_order,
-                                    int phonzeroinco )
+                                    bool iniDeltaE)
   : m_debye(debye_energy),
     m_kt(kt),m_ele_name(ele_name),
     m_max_phononnum(max_phonon_order),
     m_max_wl2ekin(4.),
-    m_phonzeroinco(phonzeroinco)
+    m_iniDeltaE(iniDeltaE)
 {
   if(max_phonon_order>100)
     NCRYSTAL_THROW(BadInput,"PhononDebye model phonon expansion above 100 orders is numerically unstable");
-  if(phonzeroinco<0||phonzeroinco>2||(phonzeroinco==2&&max_phonon_order!=1))
-    NCRYSTAL_THROW(BadInput,"Invalid/inconsistent values of phonzeroinco/max_phonon_order parameters");
 
   m_dt = 0;
 
@@ -135,8 +132,8 @@ NCrystal::PhononDebye::PhononDebye( double debye_energy, double kt,
 
 }
 
-
-void NCrystal::PhononDebye::doit(const std::vector<double> &ekin_vec, std::vector<double> &xs_vec, unsigned alpha_grid_size,  unsigned beta_sym_grid_size)
+void NCrystal::PhononDebye::doit(const std::vector<double> &ekin_vec, std::vector<double> &xs_vec,
+                                 std::vector<PointwiseDist> &en_dist, unsigned alpha_grid_size,  unsigned beta_sym_grid_size)
 {
   //1. phonon expansion
   //1.1 make asym g1 array
@@ -256,32 +253,13 @@ void NCrystal::PhononDebye::doit(const std::vector<double> &ekin_vec, std::vecto
       beta.at(distance)=beta_lower_limit;
     }
     xs_vec.at(i)=NCrystal::trapz(scatted_enp, beta )/ekin_vec.at(i);
-  }
-
-  if (m_phonzeroinco==0)
-    return;
-
-  //add incoherent zero order scattering cross section (zero order is a special
-  //case, for the other orders we include both incoherent and coherent parts
-  //above (this is the incoherent approximation), while the zero order coherent
-  //contribution is provided by Bragg diffraction, treated elsewhere:
-
-  //TODO for NC2 (by TK): Are we not duplicating this in NCPhonZeroInco? Would it be
-  //better to simply add NCPhonZeroInco next to NCBkgdPhonDebye? In the sense
-  //that then (when NCBkgdPhonDebye has thermalise=true), one would at least get
-  //the elastic part with correct energy transfers?
-
-  double inco_sca_xs = NCrystal::NeutronSCL::instance()->getIncoherentXS(m_ele_name);
-  double dwB = m_msd*8*kPiSq;
-
-  for(unsigned i = 0;i<xs_vec.size();i++)
-  {
-    double wavelength_Aa = ekin2wl(ekin_vec.at(i));
-    double temp=dwB/(wavelength_Aa*wavelength_Aa);
-    if (m_phonzeroinco==2)
-      xs_vec[i] = 0.0;
-    double temp2 = temp+temp;
-    xs_vec[i] += inco_sca_xs*(1-std::exp(-temp2))/(temp2);
+    if(m_iniDeltaE) {
+#if __cplusplus >= 201103L
+      en_dist.emplace_back(beta, scatted_enp);
+#else
+      en_dist.push_back(PointwiseDist(beta, scatted_enp));
+#endif
+    }
   }
 }
 

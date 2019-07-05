@@ -48,21 +48,27 @@ namespace NCrystal {
     //no_highe_extrapolation_from_peak flag is used to disable the high-energy
     //cropping and extrapolation to saturated XS.
 
+    enum GenScatterMode { elastic, thermalise, modeldeltae };
+
     BkgdPhonDebye( const Info*,
-                   bool thermalise = true,
+                   GenScatterMode genscattermode = thermalise,
                    unsigned nphonon = 0,
                    bool include_phonzeroinco = true,
                    bool only_phonzeroinco = false,
                    bool no_highe_extrapolation_from_peak = false );
 
     virtual double crossSectionNonOriented(double ekin) const;
+    virtual void generateScatteringNonOriented( double ekin, double& angle, double& de ) const;
+    virtual void generateScattering( double ekin, const double (&neutron_direction)[3],
+                                     double (&resulting_neutron_direction)[3], double& delta_ekin ) const;
 
     //Check if BkgdPhonDebye can be created from the info:
     static bool hasSufficientInfo(const Info*);
 
   protected:
     virtual ~BkgdPhonDebye();
-    const BkgdPhonDebyeXS * m_xs;
+    const BkgdPhonDebyeXS* m_debphonmodel;
+    GenScatterMode m_genscatmode;
   };
 }
 

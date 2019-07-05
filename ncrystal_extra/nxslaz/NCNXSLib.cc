@@ -587,7 +587,7 @@ int nxs_initUnitCell( NXS_UnitCell *uc )
     tsgn = FindTabSgNameEntry(uc->spaceGroup, 'A');
     if (tsgn == NULL)
       return free(SgInfo.ListSeitzMx),NXS_ERROR_NOMATCHINGSPACEGROUP; /* no matching table entry *//* "free(SgInfo.ListSeitzMx)," added by NCrystal developers to fix potential leak detected by static code analysis */
-    strncpy(uc->spaceGroup,tsgn->HallSymbol,MAX_CHARS_SPACEGROUP);
+    strncpy(uc->spaceGroup,tsgn->HallSymbol,MAX_CHARS_SPACEGROUP-1);  /* "-1" added by NCrystal developers */
   }
 
   /* initialize SgInfo struct */
@@ -1657,7 +1657,7 @@ int nxs_readParameterFile( const char* fileName, NXS_UnitCell *uc, NXS_AtomInfo 
         switch( i )
         {
           case 0:                                    /* space_group */
-            strncpy(uc->spaceGroup,par,MAX_CHARS_SPACEGROUP); break;
+            strncpy(uc->spaceGroup,par,MAX_CHARS_SPACEGROUP-1); break;  /* "-1" added by NCrystal developers */
           case 1:                                    /* lattice_a */
             uc->a = strtod(par, &endptr); break;
           case 2:                                    /* lattice_b */
@@ -1692,7 +1692,7 @@ int nxs_readParameterFile( const char* fileName, NXS_UnitCell *uc, NXS_AtomInfo 
               return NXS_ERROR_READINGFILE;
             else
             {
-              strncpy(ai.label,strtok(par, " \t"),MAX_CHARS_ATOMLABEL);     /* atom name or label */
+              strncpy(ai.label,strtok(par, " \t"),MAX_CHARS_ATOMLABEL-1);     /* atom name or label */  /* "-1" added by NCrystal developers */
               ai.b_coherent = strtod(strtok( NULL, " \t" ), &endptr);       /* b_coh */
               ai.sigmaIncoherent = strtod(strtok( NULL, " \t" ), &endptr);  /* sigma_inc */
               ai.sigmaAbsorption = strtod(strtok( NULL, " \t" ), &endptr);  /* sigma_abs_2200 */
@@ -7463,7 +7463,7 @@ static void PrintSeitzMx(const T_RTMx *SMx, FILE *fpout)
 void ListSgInfo(const T_SgInfo *SgInfo, int F_XYZ, int F_Verbose, FILE *fpout)
 {
   int           iList, i_si_v;
-  char          buf[8];
+  char          buf[16];    /* Changed from buf[8] by NCrystal developers to avoid bad snprintf usage */
   const char    *xyz;
   const T_RTMx  *lsmx;
   T_RotMxInfo   *rmxi, RotMxInfo;

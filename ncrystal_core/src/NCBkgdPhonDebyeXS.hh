@@ -24,6 +24,8 @@
 #include "NCrystal/NCDefs.hh"
 #include <vector>
 #include <utility>
+#include "NCPointwiseDist.hh"
+#include "NCElIncXS.hh"
 
 namespace NCrystal {
 
@@ -41,19 +43,27 @@ namespace NCrystal {
     //extrapolate_from_peak is set).
 
     double getXS(const double& ekin) const;
+    double sampleEnergyTransfer(const double& ekin, RandomBase*) const;
     virtual ~BkgdPhonDebyeXS(){}
 
     //data and methods used just by initialisation code:
     BkgdPhonDebyeXS(double kt, bool extrapolate_from_peak );
-    void accumInelastic(const std::vector<double> & xs, double frac);
+    void accumInelastic(const std::vector<double>& xs, double frac);
+    void accumInelastic(const std::vector<double>& xs, const std::vector<PointwiseDist>& dist, double frac);
     void setSaturatedXSAndInit(double xs);
     std::vector<double>& getEnergyVector() { return m_en_inel; }
+    const std::vector<PointwiseDist>& getDistVector() const {return m_en_dist;};
+    std::vector<PointwiseDist>& getDistVectorNC() {return m_en_dist;};
+    ElIncXS& getElIncXS() { return m_elincxs; }
   private:
     std::vector<double> m_en_inel, m_xs_inel;
+    std::vector<PointwiseDist> m_en_dist;
     std::vector<std::pair<double,double> > m_k3;
+    ElIncXS m_elincxs;//TODO for NC2: Split incoherent-elastic process in to its own Scatter class!
     double m_saturated_xs;
     double m_k;
     double m_k2;
+    double m_kt;
     bool m_extrapolate_from_peak;
     void cropIncompleteHighEBins();
   };
@@ -62,7 +72,8 @@ namespace NCrystal {
                                                          unsigned nphonon = 0,
                                                          bool include_phonzeroinco = true,
                                                          bool only_phonzeroinco = false,
-                                                         bool extrapolate_from_peak = true );
+                                                         bool extrapolate_from_peak = true,
+                                                         bool modeldeltae = false );
 }
 
 #endif

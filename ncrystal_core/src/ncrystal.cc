@@ -48,8 +48,8 @@ namespace NCrystal {
     void setError(const char *msg, const char * etype = 0) throw() {
       if (!etype)
         etype="ncrystal_c-interface";
-      strncpy(errmsg,msg,sizeof(errmsg));
-      strncpy(errtype,etype,sizeof(errtype));
+      strncpy(errmsg,msg,sizeof(errmsg)-1);
+      strncpy(errtype,etype,sizeof(errtype)-1);
       //Ensure final null-char in case of very long input strings:
       errmsg[sizeof(errmsg)-1]='\0';
       errtype[sizeof(errtype)-1]='\0';
