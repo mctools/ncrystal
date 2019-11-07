@@ -13,7 +13,7 @@
 #                                                                                #
 #  $> make install                                                               #
 #                                                                                #
-# Written 2016-2017 by T. Kittelmann.                                            #
+# Written 2016-2019 by T. Kittelmann.                                            #
 #                                                                                #
 ##################################################################################
 
@@ -134,6 +134,7 @@ endif()
 if (Geant4_FOUND)
   add_library(G4NCrystal SHARED ${SRCS_NCG4})
   target_include_directories(G4NCrystal PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/ncrystal_geant4/include")
+  target_compile_definitions(G4NCrystal PUBLIC ${Geant4_DEFINITIONS})
   target_link_libraries(G4NCrystal NCrystal ${Geant4_LIBRARIES})
   target_include_directories(G4NCrystal SYSTEM PUBLIC ${Geant4_INCLUDE_DIRS})
   #Recent G4 versions all requires C++11 (we enable it like this for simplicity,
