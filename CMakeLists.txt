@@ -132,16 +132,19 @@ else()
 endif()
 
 if (Geant4_FOUND)
+  #Build G4NCrystal library:
   add_library(G4NCrystal SHARED ${SRCS_NCG4})
   target_include_directories(G4NCrystal PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/ncrystal_geant4/include")
+  install(TARGETS G4NCrystal ${INSTDEST})
+  install(FILES ${HDRS_NCG4} DESTINATION include/G4NCrystal)
+  #Transfer G4 flags uncovered by find_package(Geant4) call:
   target_compile_definitions(G4NCrystal PUBLIC ${Geant4_DEFINITIONS})
   target_link_libraries(G4NCrystal NCrystal ${Geant4_LIBRARIES})
   target_include_directories(G4NCrystal SYSTEM PUBLIC ${Geant4_INCLUDE_DIRS})
-  #Recent G4 versions all requires C++11 (we enable it like this for simplicity,
-  #since there is not yet a standard way to enable C++11 with CMake - until CMake 3.1):
-  target_compile_options(G4NCrystal PUBLIC "-std=c++11")
-  install(TARGETS G4NCrystal ${INSTDEST})
-  install(FILES ${HDRS_NCG4} DESTINATION include/G4NCrystal)
+  set(Geant4_CXX_FLAGS_aslist ${Geant4_CXX_FLAGS})
+  separate_arguments(Geant4_CXX_FLAGS_aslist)
+  target_compile_options(G4NCrystal PUBLIC ${Geant4_CXX_FLAGS_aslist})
+  #examples if needed:
   if (BUILD_EXAMPLES AND EXAMPLES_NCG4)
     foreach(ex ${EXAMPLES_NCG4})
       get_filename_component(exbn "${ex}" NAME_WE)
