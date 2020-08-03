@@ -39,8 +39,8 @@ before_script:
     - cmake --version
     - which python
     - python --version
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update || true; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew upgrade || true; fi
+#    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update || true; fi
+#    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew upgrade || true; fi
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install python || true; fi
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install python@2 || true; fi
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew link --force python@2 || true; fi
