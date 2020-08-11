@@ -45,11 +45,11 @@ namespace NCrystal {
     VDOSDebyeKey getKey(unsigned reduced_vdoslux, double temperature, double debyeTemperature, SigmaBound boundXS, double elementMassAMU ) {
       nc_assert(reduced_vdoslux<=2);
       auto roundFct = [](double x) { nc_assert(x>0.0&&x<1.0e15); return static_cast<uint64_t>(1000.0*x+0.5); };
-      return { reduced_vdoslux,
-               roundFct(elementMassAMU),
-               roundFct(boundXS.val),
-               roundFct(temperature),
-               roundFct(debyeTemperature) };
+      return VDOSDebyeKey( reduced_vdoslux,
+                           roundFct(elementMassAMU),
+                           roundFct(boundXS.val),
+                           roundFct(temperature),
+                           roundFct(debyeTemperature) );
     }
     VDOSDebyeKey getKey(unsigned reduced_vdoslux, const DI_VDOSDebye& di) {
       return getKey(reduced_vdoslux,
