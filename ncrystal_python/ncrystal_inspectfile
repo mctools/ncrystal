@@ -4,7 +4,7 @@
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2019 NCrystal developers                                   ##
+##  Copyright 2015-2020 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -31,7 +31,7 @@ __metaclass__ = type  #classes are new-style without inheriting from "object"
 import sys
 import os
 
-#TODO for NC2: Prove a --list file option
+#TODO for NC2: Provide a --list file option
 
 #in unit test we dont display interactive images and we reduce cpu consumption
 #by watching for special env var:
@@ -41,7 +41,6 @@ pyversion = sys.version_info[0:3]
 if pyversion < (2,7,5) or (pyversion >= (3,0,0) and pyversion < (3,4,0)):
     if not _unittest:
         print('WARNING: Unsupported python version %i.%i.%i detected (recommended is v2.7.5/v3.4.0 or latter).'%pyversion)
-
 
 #Function for importing required python modules which may be missing, to provide
 #a somewhat more helpful error to the user:
@@ -71,6 +70,8 @@ def import_optpymod(name):
 
 #We handle the NCrystal import separately, since we know where it might be, even
 #if the user did not set up PYTHONPATH correctly.
+#NB: This NCrystal import code copied also used in other shipped scripts, be
+#sure to update everywhere if performing changes!!!
 try:
     import NCrystal
 except ImportError:
@@ -86,7 +87,6 @@ except ImportError:
         import NCrystal
     except ImportError:
         NCrystal = None
-
 if not NCrystal:
     print("ERROR: Could not import the NCrystal python module.")
     print("       If it is installed, make sure your PYTHONPATH is setup correctly.")
@@ -101,10 +101,10 @@ def parse_cmdline():
 
     descr="""
 Load input crystal files (usually .ncmat, .nxs, .laz or .lau) files with
-NCrystal (v%s) and plot resulting polycrystalline cross-sections for thermal
+NCrystal (v%s) and plot resulting isotropic cross sections for thermal
 neutrons. Specifying more than one file results in a single comparison plot of
-the total scattering cross- section based on the different materials, whereas
-specifying just a single file, results in a more detailed cross-section plot as
+the total scattering cross section based on the different materials, whereas
+specifying just a single file, results in a more detailed cross section plot as
 well as a 2D plot of generated scatter angles."""%NCrystal.__version__
 
     descr=descr.strip()
@@ -112,17 +112,17 @@ well as a 2D plot of generated scatter angles."""%NCrystal.__version__
     epilog="""
 examples:
   $ %(prog)s Al_sg225.ncmat
-  plot aluminium cross-sections and scatter-angles versus neutron wavelength.
+  plot aluminium cross sections and scatter-angles versus neutron wavelength.
   $ %(prog)s Al_sg225.ncmat Ge_sg227.ncmat --common temp=200
-  cross-sections for aluminium and germanium at T=200K
+  cross sections for aluminium and germanium at T=200K
   $ %(prog)s "Al_sg225.ncmat;dcutoff=0.1" "Al_sg225.ncmat;dcutoff=0.4" "Al_sg225.ncmat;dcutoff=0.8"
-  effect of d-spacing cut-off on aluminium cross-sections
+  effect of d-spacing cut-off on aluminium cross sections
   $ %(prog)s "Al_sg225.ncmat;temp=20" "Al_sg225.ncmat;temp=293.15" "Al_sg225.ncmat;temp=600"
-  effect of temperature on aluminium cross-sections"""
+  effect of temperature on aluminium cross sections"""
 
     parser = argparse.ArgumentParser(description=descr,
                                      epilog=epilog,
-                                     formatter_class=argparse.RawDescriptionHelpFormatter)#ArgumentDefaultsHelpFormatter
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
 
     default_temp=293.15
     default_dcut=0.4
@@ -135,37 +135,67 @@ examples:
                         help='Print derived crystallographic information rather than displaying plots')
     parser.add_argument('--common','-c', metavar='CFG', type=str, default=[],
                         help='Common configuration items that will be applied to all files',action='append')
-    parser.add_argument('-b','--bragg', action='store_true',
-                        help="""Only generate Bragg diffraction component""")
-    parser.add_argument('--bkgd', action='store_true',
-                        help="""Only generate background (non-Bragg diffr.) component""")
+    parser.add_argument('--coh_elas','--bragg', action='store_true',
+                        help="""Only generate coherent-elastic (Bragg diffraction) component""")
+    parser.add_argument('--incoh_elas', action='store_true',
+                        help="""Only generate incoherent-elastic component""")
+    parser.add_argument('--elastic', action='store_true',
+                        help="""Only generate elastic component""")
+    parser.add_argument('--inelastic', action='store_true',
+                        help="""Only generate inelastic components""")
     parser.add_argument('-a','--absorption', action='store_true',
-                        help="""Include absorption in cross-section plots""")
+                        help="""Include absorption in cross section plots""")
     parser.add_argument('-p','--pdf', action='store_true',
                         help="""Generate PDF file rather than launching an interactive plot viewer.""")
     parser.add_argument('--test', action='store_true',
                         help="""Perform quick validation of NCrystal installation.""")
+    dpi_default=200
+    parser.add_argument('--dpi', default=-1,type=int,
+                        help="""Change plot resolution. Set to 0 to leave matplotlib defaults alone.
+                        (default value is %i, or whatever the NCRYSTAL_DPI env var is set to)."""%dpi_default)
 
     args=parser.parse_args()
 
+    if args.dpi>3000:
+        parser.error('Too high DPI value requested.')
+
+    if args.dpi==-1:
+        _=os.environ.get('NCRYSTAL_DPI',None)
+        if _:
+            try:
+                _=int(_)
+                if _<0:
+                    raise ValueError
+            except ValueError:
+                print("ERROR: NCRYSTAL_DPI environment variable must be set to integer >=0")
+                raise SystemExit
+            if _>3000:
+                parser.error('Too high DPI value requested via NCRYSTAL_DPI environment variable.')
+            args.dpi=_
+        else:
+            args.dpi=dpi_default
+
     if args.test:
-        if any((args.input_files,args.dump,args.bragg,args.bkgd,args.absorption,args.pdf)):
+        if any((args.input_files,args.dump,args.coh_elas,args.incoh_elas,args.elastic,args.inelastic,args.absorption,args.pdf)):
             parser.error('Do not specify other arguments with --test.')
     elif not args.input_files:
         parser.error('Missing input file arguments')
 
-    if args.bragg and args.bkgd:
-        parser.error('Do not specify both --bragg and --bkgd.')
+    ncomp_select = sum((1 if _ else 0) for _ in (args.coh_elas,args.incoh_elas,args.elastic,args.inelastic))
+    if ncomp_select > 1:
+        parser.error('Do not specify more than one of: --coh_elas/--bragg, --incoh_elas, --elastic or --inelastic.')
 
-    if args.bragg: args.comp = 'bragg'
-    elif args.bkgd: args.comp = 'bkgd'
-    else: args.comp = 'both'
+    if args.coh_elas: args.comp = 'coh_elas'
+    elif args.incoh_elas: args.comp = 'incoh_elas'
+    elif args.elastic: args.comp = 'elastic'
+    elif args.inelastic: args.comp = 'inelastic'
+    else: args.comp = 'all'
 
-    if args.absorption and (args.bkgd or args.bragg):
-        parser.error('Do not specify --absorption with either of --bragg or --bkgd.')
+    if args.absorption and ncomp_select>0:
+        parser.error('Do not specify --absorption with either of: --coh_elas/--bragg, --incoh_elas, --elastic or --inelastic.')
 
-    if args.dump and (args.bragg or args.bkgd or args.absorption):
-        parser.error('Do not specify --dump with either of --bragg, --bkdg or --absorption.')
+    if args.dump and (ncomp_select>0 or args.absorption):
+        parser.error('Do not specify --dump with either of: --coh_elas/--bragg, --incoh_elas, --elastic, --inelastic or --absorption.')
 
     if args.dump and len(args.input_files)>1:
         parser.error('Do not specify more than one input file with --dump [-d].')
@@ -174,13 +204,17 @@ examples:
     return args
 
 def create_wavelengths(np,cfgs,npoints,logspace=False):
-    pcbraggs = [_f for _f in (c.get_scatter('bragg',allowfail=True) for c in cfgs) if _f]
-    bragg_thresholds = [NCrystal.ekin2wl(c.domain()[0]) for c in pcbraggs]
-    max_bragg_threshold = max(bragg_thresholds) if bragg_thresholds else 10.0#fallback if cant create bragg component
+    pcbraggs = [_f for _f in (c.get_scatter('coh_elas',allowfail=True) for c in cfgs) if _f]
+    fallback = 10.0#materials with no bragg threshold
+    bragg_thresholds = [(NCrystal.ekin2wl(c.domain()[0]) or fallback) for c in pcbraggs if not c._nullprocess]
+    max_bragg_threshold = max(bragg_thresholds) if bragg_thresholds else None
+    max_bragg_threshold = max_bragg_threshold or fallback
     wls_max = float(int(max_bragg_threshold*1.01+1.0))
     wls_min = 0.001
+    wls_max *= 1.2
     return (np.logspace if logspace else np.linspace)(wls_min,wls_max,npoints)
 
+_mpldpi=[None]
 _pdffilename='ncrystal.pdf'
 _npplt = None
 def import_npplt(pdf=False):
@@ -197,6 +231,14 @@ def import_npplt(pdf=False):
     if not mpl.compare_versions(mpl.__version__, '1.3'):
         if not _unittest:
             print("WARNING: Your version of matplotlib (%s) is unsupported - expect trouble! (needs at least version 1.3)."%mpl.__version__)
+
+    if _mpldpi[0]:
+        mpl.rcParams['figure.dpi']=_mpldpi[0]
+
+    #ability to quit plot windows with Q:
+    if 'keymap.quit' in mpl.rcParams and not 'q' in mpl.rcParams['keymap.quit']:
+        mpl.rcParams['keymap.quit'] = tuple(list(mpl.rcParams['keymap.quit'])+['q','Q'])
+
     if _unittest or pdf:
         mpl.use('agg')
     if pdf:
@@ -206,10 +248,6 @@ def import_npplt(pdf=False):
             print("ERROR: Your installation of matplotlib does not have required support for PDF output.")
             sys.exit(1)
     plt = import_optpymod('matplotlib.pyplot')
-
-    #ability to quit plot windows with Q:
-    if 'keymap.quit' in plt.rcParams and not 'q' in plt.rcParams['keymap.quit']:
-        plt.rcParams['keymap.quit'] = tuple(list(plt.rcParams['keymap.quit'])+['q','Q'])
 
     _npplt = (np,plt,PdfPages(_pdffilename) if pdf else None)
     return _npplt
@@ -257,7 +295,13 @@ def _cfgdict_to_str(cfgdict):
     if cfgdict:
         o += [', '.join(('%s=%s'%(k,v) if k!='ignorefilecfg' else k) for k,v in sorted(cfgdict.items()))]
     if cn:
-        o += ['Bragg+Bkgd' if cn=='both' else cn.capitalize()]
+        o += [ { 'coh_elas':'Coherent elastic',
+                 'incoh_elas':'Incoherent elastic',
+                 'elastic':'Elastic',
+                 'inelastic':'Inelastic',
+                 'absorption':'Absorption',
+                 'all':'Total scattering',
+                 'elastic+inelastic+absorption':'Total scattering+Absorption'}[cn] ]
     return ' '.join(b%a for a,b in zip(o,['%s','[%s]','(%s)']))
 
 def create_title_and_labels(parts):
@@ -275,22 +319,27 @@ def _end_plot(plt,pdf):
         plt.show()
 
 def plot_xsect(cfgs,comp,absorption,pdf=False):
-    assert comp in ('bragg','bkgd','both')
-    assert not absorption or comp=='both'
+    assert comp in ('coh_elas','incoh_elas','elastic','inelastic','all')
+    assert not absorption or comp=='all'
     np,plt,pdf = import_npplt(pdf)
     plt.xlabel('Neutron wavelength [angstrom]')
-    plt.ylabel('Cross-section [barn]')
+    plt.ylabel('Cross section [barn]')
 
-    if len(cfgs)==1 and comp=='both':
-        parts=[cfgs[0].get_scatter('bragg'),cfgs[0].get_scatter('bkgd')]
+    if len(cfgs)==1 and comp in ('all','elastic'):
+        if comp=='all':
+            parts=[cfgs[0].get_scatter('coh_elas'),cfgs[0].get_scatter('incoh_elas'),cfgs[0].get_scatter('inelastic')]
+        else:
+            parts=[cfgs[0].get_scatter('coh_elas'),cfgs[0].get_scatter('incoh_elas')]
         if absorption:
+            assert comp=='all'
             parts += [cfgs[0].get_absorption()]
     else:
         if absorption:
-            assert comp=='both'
+            assert comp=='all'
             parts=[c.get_totalxsect() for c in cfgs]
         else:
             parts=[c.get_scatter(comp) for c in cfgs]
+    parts = [p for p in parts if not p._nullprocess]
     title,labels = create_title_and_labels(parts)
     if len(set(labels))!=len(labels):
         print("WARNING: Comparing identical setups?")
@@ -328,10 +377,12 @@ def plot_xsect(cfgs,comp,absorption,pdf=False):
             xsects_tot += xsects
         label=labels[ipart]
         max_len_label = max(max_len_label,len(label))
-        ls={0:'-',1:'--'}.get(ipart//len(partcols),'-.')
+        ls={0:'-',1:'--',2:':'}.get(ipart//len(partcols),'-.')
         plt.plot(wavelengths,xsects,label=label,color=partcols[ipart%len(partcols)],lw=linewidth,ls=ls)
     if need_tot:
-        plt.plot(wavelengths,xsects_tot,label='Total',color="#F15854",lw=linewidth)#red-ish colour (see above)
+        plt.plot(wavelengths,xsects_tot,
+                 label={'all':'Total','elastic':'Total elastic'}[comp],
+                 color="#F15854",lw=linewidth)#red-ish colour (see above)
     leg_fsize = 'large'
     if max_len_label > 40: leg_fsize = 'medium'
     if max_len_label > 60: leg_fsize = 'small'
@@ -347,6 +398,7 @@ def plot_xsect(cfgs,comp,absorption,pdf=False):
         plt.legend(loc='best')
     plt.grid()
     plt.gca().set_xlim(0.0,wavelengths[-1])
+    plt.gca().set_ylim(0.0,None)
     if title:
         plt.title(title)
     try:
@@ -357,7 +409,7 @@ def plot_xsect(cfgs,comp,absorption,pdf=False):
     _end_plot(plt,pdf)
 
 def plot_2d_scatangle(cfg,comp,pdf=False):
-    assert comp in ('bragg','bkgd','both')
+    assert comp in ('coh_elas','incoh_elas','elastic','inelastic','all')
     np,plt,pdf = import_npplt(pdf)
 
     #reproducible plots:
@@ -432,23 +484,34 @@ class XSSum:
 class Cfg:
 
     def __init__(self,cfgstr, commoncfgstr):
-        self._cfgstr_unique = cfgstr
+        #very crude normalisation, we should really let the C++ code NCMatCfg.cc do this splitting (todo):
+        while '= ' in cfgstr:
+            cfgstr=cfgstr.replace('= ','=')
+        while ' ;' in cfgstr:
+            cfgstr=cfgstr.replace(' ;',';')
+        while cfgstr.endswith(' '):
+            cfgstr=cfgstr[0:-1]
         self._cfgstr = combine_cfgs(cfgstr,commoncfgstr)
         f=getfields(self._cfgstr)
-        em="when using this script, use --bragg and --bkgd to enable/disable bragg components rather than bragg=0, bkgd=none, etc."
-        assert not 'bragg' in f,em
-        if 'bkgd' in f:
-            #only bkgd=none is currently supported, but attempt to be fwd compatible:
-            assert (not ';bkgd=none' in self._cfgstr and not 'bkgd=0' in self._cfgstr and not 'bkgd=false' in self._cfgstr),em
+        forbidden=['bragg','coh_elas','incoh_elas','elas','bkgd']
+        em="when using this script, use --bragg and --inelastic to enable/disable components rather than putting these variables in the cfg string: %s, inelas. Only exception is that inelas can be used to select alternative inelastic models."%(', '.join(forbidden))
+        for _ in forbidden:
+            assert not _ in f,em
+        if 'inelas' in f:
+            for _ in ['none','0','sterile','false']:
+                assert not ';inelas=%s'%_ in self._cfgstr,em
         self._sc = {}
         self._abs = None
         self._totxs = None
         self._info = None
 
-    def get_scatter(self,comp = 'both', allowfail = False):
-        assert comp in ('both','bragg','bkgd')
+    def get_scatter(self,comp = 'all', allowfail = False):
+        assert comp in ('all','coh_elas','incoh_elas','elastic','inelastic')
         if not comp in self._sc:
-            cfgstr = combine_cfgs(self._cfgstr,{'bragg':'bkgd=none','bkgd':'bragg=0'}.get(comp,''),False)
+            cfgstr = combine_cfgs(self._cfgstr,{'coh_elas':'coh_elas=1;incoh_elas=0;inelas=0',
+                                                'incoh_elas':'incoh_elas=1;coh_elas=0;inelas=0',
+                                                'elastic':'elas=1;inelas=0',
+                                                'inelastic':'elas=0'}.get(comp,''),False)
             try:
                 sc = NCrystal.createScatter(cfgstr)
             except NCrystal.NCException:
@@ -456,6 +519,7 @@ class Cfg:
                     return None
                 else:
                     raise
+            sc._nullprocess = bool(sc.domain()[0]>1e99)
             sc._cfg = self
             sc._compname = comp
             self._sc[comp] = sc
@@ -464,6 +528,7 @@ class Cfg:
     def get_absorption(self):
         if not self._abs:
             a = NCrystal.createAbsorption(self._cfgstr)
+            a._nullprocess = bool(a.domain()[0]>1e99)
             a._cfg = self
             a._compname = 'absorption'
             self._abs = a
@@ -471,9 +536,9 @@ class Cfg:
 
     def get_totalxsect(self):
         if not self._totxs:
-            t = XSSum(self.get_absorption(),self.get_scatter('both'))
+            t = XSSum(self.get_absorption(),self.get_scatter('all'))
             t._cfg = self
-            t._compname = 'bragg+bkgd+absorption'
+            t._compname = 'elastic+inelastic+absorption'
             self._totxs = t
         return self._totxs
 
@@ -488,6 +553,7 @@ class Cfg:
 
 def main():
     args = parse_cmdline()
+    _mpldpi[0] = args.dpi
 
     if args.test:
         NCrystal.test()
@@ -525,3 +591,4 @@ if __name__=='__main__':
 #   - allow tuning of n2d and alpha pars for 2D plot?
 #   - show hkl values in 1d and 2d plot?
 #   - option to show energy & mfp rather than wavelength & xsect?
+#   - deltaE/wl_out plots as well (todo). Perhaps --wl=... option, resulting in plots for that wl.

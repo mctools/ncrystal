@@ -1,11 +1,11 @@
-#ifndef NCrystal_PhononData_hh
-#define NCrystal_PhononData_hh
+#ifndef NCrystal_SABXSProvider_hh
+#define NCrystal_SABXSProvider_hh
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,57 +22,31 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCDefs.hh"
-#include <vector>
+#include "NCSABExtender.hh"
 
 namespace NCrystal {
 
-  class PhononNumDyns {
+  class SABXSProvider final : private MoveOnly {
   public:
-    PhononNumDyns( const std::vector<double> &spec, double btime, double dt,
-                   double kt );
+    SABXSProvider( VectD&& egrid, VectD&& xsvals,
+                   std::shared_ptr<const SAB::SABExtender> );
+    void setData( VectD&& egrid, VectD&& xsvals,
+                  std::shared_ptr<const SAB::SABExtender> );
+    SABXSProvider() = default;//default constructs invalid instance
+    ~SABXSProvider();
+    double crossSection(double ekin) const;
 
-    virtual ~PhononNumDyns();
-    double getPhononDensity(double time) const;
-    const std::vector<double> &getSpectrum() const;
+    //Move ok:
+    SABXSProvider( SABXSProvider&& ) = default;
+    SABXSProvider& operator=( SABXSProvider&& ) = default;
 
-    double getBeginTime() const {return m_btime;}
-    double getEndTime() const {return m_etime;}
-    double getDeltaTime() const {return m_dt;}
-    double getSigma() const {return m_asym_sigma;}
-    double getAsymCentre() const {return m_asym_centre;}
-
+    //For reference:
+    const VectD & internalEGrid() const { return m_egrid; }
+    const VectD & internalXSGrid() const { return m_xs; }
   private:
-    std::vector<double> m_spec;
-    size_t m_spec_size_minus_1;
-    double m_btime;
-    double m_etime;
-    double m_dt;
-    double m_inv_dt;
-    double m_asym_centre;
-    double m_asym_sigma;
-    double m_kt;
-  };
-
-  typedef std::vector<PhononNumDyns > PhononVectorLow;
-
-  class FastConvolve;
-
-  class PhononCalculator {
-  public:
-    PhononCalculator(const std::vector<double> &spec, double btime, double dt, unsigned phnum, double kt);
-    ~PhononCalculator();
-    void calcfftconv(unsigned phnum);
-    double interpolate(unsigned phonnum, double energytime) const
-    {
-      //inlined for efficiency
-      nc_assert(phonnum<m_phvec.size());
-      return m_phvec[phonnum].getPhononDensity(energytime);
-    }
-  private:
-    double m_kt;
-    PhononVectorLow m_phvec;
-    unsigned m_fftnum;
-    void worker_conv(const FastConvolve& fc, unsigned order);
+    VectD m_egrid, m_xs;
+    std::shared_ptr<const SAB::SABExtender> m_extender;
+    double m_kExtension;
   };
 
 }

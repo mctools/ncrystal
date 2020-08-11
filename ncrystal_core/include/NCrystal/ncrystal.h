@@ -5,7 +5,7 @@
 /*                                                                            */
 /*  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   */
 /*                                                                            */
-/*  Copyright 2015-2019 NCrystal developers                                   */
+/*  Copyright 2015-2020 NCrystal developers                                   */
 /*                                                                            */
 /*  Licensed under the Apache License, Version 2.0 (the "License");           */
 /*  you may not use this file except in compliance with the License.          */
@@ -76,9 +76,9 @@ extern "C" {
   NCRYSTAL_API ncrystal_absorption_t ncrystal_create_absorption( const char * cfgstr );
 
   /* Fine tuning factory availability and caching                                  */
-  NCRYSTAL_API void ncrystal_clear_info_caches();
-  NCRYSTAL_API void ncrystal_disable_caching();
-  NCRYSTAL_API void ncrystal_enable_caching();
+  NCRYSTAL_API void ncrystal_clear_info_caches(); /*NB: ncrystal_clear_caches below clears more! */
+  NCRYSTAL_API void ncrystal_disable_caching(); /*NB: this concerns Info object caching only! */
+  NCRYSTAL_API void ncrystal_enable_caching();  /*NB: this concerns Info object caching only! */
   NCRYSTAL_API void ncrystal_clear_factory_registry();
   NCRYSTAL_API int ncrystal_has_factory( const char * name );
 
@@ -140,8 +140,9 @@ extern "C" {
   NCRYSTAL_API double ncrystal_info_gettemperature( ncrystal_info_t );
   NCRYSTAL_API double ncrystal_info_getxsectabsorption( ncrystal_info_t );
   NCRYSTAL_API double ncrystal_info_getxsectfree( ncrystal_info_t );
-  NCRYSTAL_API double ncrystal_info_getdebyetemp( ncrystal_info_t );
+  NCRYSTAL_API double ncrystal_info_getglobaldebyetemp( ncrystal_info_t );
   NCRYSTAL_API double ncrystal_info_getdensity( ncrystal_info_t );
+  NCRYSTAL_API double ncrystal_info_getnumberdensity( ncrystal_info_t );
 
   /*Access HKL info:                                                               */
   NCRYSTAL_API int ncrystal_info_nhkl( ncrystal_info_t ); /* -1 when not available */
@@ -151,7 +152,51 @@ extern "C" {
                                           int* h, int* k, int* l, int* multiplicity,
                                           double * dspacing, double* fsquared );
 
-  /* TODO for NC2: more NCInfo data available here (including AtomInfo)            */
+  /* todo: more NCInfo data available here (including AtomInfo & Composition)      */
+
+  /*Access dynamic info:                                                           */
+  /*ditypeid: 0->nonscat, 1:freegas, 2:scatknl 3:vdos, 4:vdosdebye, 99:unknown     */
+  NCRYSTAL_API unsigned ncrystal_info_ndyninfo( ncrystal_info_t );
+  NCRYSTAL_API void ncrystal_dyninfo_base( ncrystal_info_t,
+                                           unsigned idyninfo,
+                                           double* fraction,
+                                           const char** elementname,
+                                           double* temperature,
+                                           unsigned* ditypeid );
+
+  /* Extract scattering kernel for ditype 2,3,4 (vdoslux ignored for type 2).      */
+  NCRYSTAL_API void ncrystal_dyninfo_extract_scatknl( ncrystal_info_t,
+                                                      unsigned idyninfo,
+                                                      unsigned vdoslux,
+                                                      double* suggestedEmax,
+                                                      unsigned* negrid,
+                                                      unsigned* nalpha,
+                                                      unsigned* nbeta,
+                                                      const double** egrid,
+                                                      const double** alphagrid,
+                                                      const double** betagrid,
+                                                      const double** sab );
+
+  /* Access vdos data for ditype 3.                                                */
+  NCRYSTAL_API void ncrystal_dyninfo_extract_vdos( ncrystal_info_t,
+                                                   unsigned idyninfo,
+                                                   double * egridMin,
+                                                   double * egridMax,
+                                                   unsigned * vdos_ndensity,
+                                                   const double ** vdos_density );
+
+  /* Access vdos debye temperature for ditype 4.                                   */
+  NCRYSTAL_API void ncrystal_dyninfo_extract_vdosdebye( ncrystal_info_t,
+                                                        unsigned idyninfo,
+                                                        double * debye_temp );
+
+  /* Access input curve ditype 3 (returns vdos_negrid=0 if not available).         */
+  NCRYSTAL_API void ncrystal_dyninfo_extract_vdos_input( ncrystal_info_t,
+                                                         unsigned idyninfo,
+                                                         unsigned* vdos_negrid,
+                                                         const double ** vdos_egrid,
+                                                         unsigned* vdos_ndensity,
+                                                         const double ** vdos_density );
 
   /* Convenience: */
   NCRYSTAL_API double ncrystal_info_dspacing_from_hkl( ncrystal_info_t, int h, int k, int l );
@@ -198,9 +243,15 @@ extern "C" {
   NCRYSTAL_API double ncrystal_wl2ekin( double wl );
   NCRYSTAL_API double ncrystal_ekin2wl( double ekin );
 
+  /* Access internal DB for natural elements by Z value (mass_amu=0 if n/a):       */
+  NCRYSTAL_API void ncrystal_natelemdata( unsigned z, const char ** name,
+                                          double* mass_amu, double* sigma_inc,
+                                          double* sigma_coh, double* sigma_abs );
+
   /* Extract NCMatCfg variables which can not be inferred from an ncrystal_info_t  */
   /* object and which might be needed in plugins (to be expanded as needed):       */
   NCRYSTAL_API double ncrystal_decodecfg_packfact( const char * cfgstr );
+  NCRYSTAL_API unsigned ncrystal_decodecfg_vdoslux( const char * cfgstr );
 
   /* For serious scientific usage, users should register their own random          */
   /* generator function before using the genscatter functions. It must return      */
@@ -210,16 +261,19 @@ extern "C" {
   /* For special uses it is possible to trigger save/restore of the rng            */
   NCRYSTAL_API void ncrystal_save_randgen();    /* save & ref current randgen                   */
   NCRYSTAL_API void ncrystal_restore_randgen(); /* restore from and clear+unref last saved      */
-  NCRYSTAL_API void ncrystal_setbuiltinrandgen(); /* for reproducibility use NCrystals own rng   */
+  NCRYSTAL_API void ncrystal_setbuiltinrandgen(); /* for reproducibility use NCrystal's own rng */
+
+  /* Clear various caches employed inside NCrystal:                                */
+  NCRYSTAL_API void ncrystal_clear_caches();
 
   /* NCrystal version info:                                                        */
 #define NCRYSTAL_VERSION_MAJOR 1
-#define NCRYSTAL_VERSION_MINOR 0
-#define NCRYSTAL_VERSION_PATCH 0
-#define NCRYSTAL_VERSION   1000000 /* (1000000*MAJOR+1000*MINOR+PATCH)                */
-#define NCRYSTAL_VERSION_STR "1.0.0"
-  NCRYSTAL_API int ncrystal_version(); /* returns NCRYSTAL_VERSION                              */
-  NCRYSTAL_API const char * ncrystal_version_str(); /* returns NCRYSTAL_VERSION_STR             */
+#define NCRYSTAL_VERSION_MINOR 99
+#define NCRYSTAL_VERSION_PATCH 1
+#define NCRYSTAL_VERSION   1099001 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
+#define NCRYSTAL_VERSION_STR "1.99.1"
+  NCRYSTAL_API int ncrystal_version(); /* returns NCRYSTAL_VERSION                  */
+  NCRYSTAL_API const char * ncrystal_version_str(); /* returns NCRYSTAL_VERSION_STR */
 
   /*============================================================================== */
   /*============================================================================== */

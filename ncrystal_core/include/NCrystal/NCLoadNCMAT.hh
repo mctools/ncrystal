@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,9 +22,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCInfo.hh"
-#include <limits>
 
 namespace NCrystal {
+
+  class NCMATData;
 
   // Read .ncmat file and return a corresponding NCrystal::Info object from it
   // (it will have a reference count of 0 when returned).
@@ -33,20 +34,31 @@ namespace NCrystal {
   // corresponding parameters described in NCMatCfg.hh. The "expandhkl"
   // parameter can be used to request  that lists of equivalent HKL planes be
   // created.
+  //
+  // Setting "temp" to -1.0 will result in a temperature of 293.15K unless
+  // something in the input indicates another value (i.e. if a scatterkernel is
+  // valid at 200K, then temp=-1 and temp=200 will both result in 200K, while
+  // any other value results in an error)..
 
+  //Both const char* and std::string versions are provided, for convenience:
   NCRYSTAL_API const Info * loadNCMAT( const char * ncmat_file,
-                                       double temp = 293.15,//kelvin
+                                       double temp = -1.0,//kelvin
                                        double dcutoff = 0.0,//angstrom
-                                       double dcutoffup = std::numeric_limits<double>::infinity(),//angstrom
+                                       double dcutoffup = kInfinity,//angstrom
                                        bool expandhkl = false );
 
-  //std::string version for convenience:
   NCRYSTAL_API const Info * loadNCMAT( const std::string& ncmat_file,
-                                       double temp = 293.15,//kelvin
+                                       double temp = -1.0,//kelvin
                                        double dcutoff = 0.0,//angstrom
-                                       double dcutoffup = std::numeric_limits<double>::infinity(),//angstrom
+                                       double dcutoffup = kInfinity,//angstrom
                                        bool expandhkl = false );
 
+  //Can also load from parsed NCMAT data structure (which will be consumed):
+  NCRYSTAL_API const Info * loadNCMAT( NCMATData&& ncmat_data,
+                                       double temp = -1.0,//kelvin
+                                       double dcutoff = 0.0,//angstrom
+                                       double dcutoffup = kInfinity,//angstrom
+                                       bool expandhkl = false );
 
 }
 

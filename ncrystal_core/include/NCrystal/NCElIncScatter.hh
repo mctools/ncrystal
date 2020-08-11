@@ -1,11 +1,11 @@
-#ifndef NCrystal_ScatterXSCurve_hh
-#define NCrystal_ScatterXSCurve_hh
+#ifndef NCrystal_ElIncScatter_hh
+#define NCrystal_ElIncScatter_hh
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -25,38 +25,36 @@
 
 namespace NCrystal {
 
+  class ElIncXS;
   class Info;
 
-  class NCRYSTAL_API ScatterXSCurve : public ScatterIsotropic {
+  class ElIncScatter : public ScatterIsotropic {
   public:
 
-    //Scatter base class for models which provides only cross-sections and no
-    //specific ability to generate scatterings.
-    //
-    //Scatter angles will be modelled as isotropic. As accurate energy transfer
-    //information is unavailable, it will, depending on the value of the
-    //thermaise flag passed in the constructor, either be approximated as always
-    //0 (elastic), or as always completely thermalising immediately according to
-    //the temperature of the crystal (requires temperature info availability).
-    //
-    //Derived classes should always implement the crossSectionNonOriented(..)
-    //method, and possibly also the domain(..) and crossSection(..) methods if
-    //appropriate.
+    //Model elastic-incoherent scatterings based on the Debye model with
+    //isotropic atomic displacements. For each element in the crystalline
+    //material, the mean-squared-displacement must be provided, along with the
+    //corresponding bound incoherent scattering cross-section and the scale. The
+    //scale will often be the fraction of the element (by count). For more
+    //details, see section 2.3 of https://doi.org/10.1016/j.cpc.2019.07.015 and
+    //comments in the NCElIncXS.hh header file.
 
-    ScatterXSCurve(const Info*, const char * calcname, bool thermalise );
+    //Construct from Info:
+    ElIncScatter( const Info* );
 
+    //Constructor similar to the ElIncXS constructor:
+    ElIncScatter( const VectD& elements_meanSqDisp,
+                  const VectD& elements_boundincohxs,
+                  const VectD& elements_scale );
 
-    virtual void generateScatteringNonOriented( double ekin_wavelength,
-                                                double& angle, double& delta_ekin ) const;
-
-    virtual void generateScattering( double ekin, const double (&neutron_direction)[3],
-                                     double (&resulting_neutron_direction)[3], double& delta_ekin ) const;
+    double crossSectionNonOriented(double ekin) const override;
+    void generateScatteringNonOriented( double ekin, double& angle, double& delta_ekin ) const override;
+    void generateScattering( double ekin, const double (&neutron_direction)[3],
+                             double (&resulting_neutron_direction)[3], double& delta_ekin ) const override;
 
   protected:
-    virtual ~ScatterXSCurve();
-    const Info* m_ci;
-    double m_tempk;
-    double calcDeltaE(double) const;
+    virtual ~ElIncScatter();
+    std::unique_ptr<ElIncXS> m_elincxs;
   };
 }
 

@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -29,8 +29,11 @@
 #include <iostream>
 
 namespace NCrystal {
-  void initNXS(nxs::NXS_UnitCell* uc, const char * nxs_file, double temperature_kelvin, unsigned maxhkl,
-               bool fixpolyatom )
+  void initNXS( nxs::NXS_UnitCell* uc,
+                const char * nxs_file,
+                double temperature_kelvin,
+                unsigned maxhkl,
+                bool fixpolyatom )
   {
     const char * old_SgError = nxs::SgError;
     nxs::SgError = 0;
@@ -151,8 +154,7 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
   // Load and init NXS info (twice to figure out adequate maxhkl) //
   //////////////////////////////////////////////////////////////////
 
-  XSectProvider_NXS * xsect_provider = new XSectProvider_NXS(bkgdlikemcstas);
-  crystal->setXSectProvider(xsect_provider);//register immediately for proper memory cleanup in case of errors
+  auto xsect_provider = std::make_unique<XSectProvider_NXS>(bkgdlikemcstas);
   nxs::NXS_UnitCell& nxs_uc = xsect_provider->nxs_uc;
 
   const double fsquare_cut = 100.0 * 1e-5 ;//remove reflections with vanishing contribution
@@ -195,6 +197,8 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
                <<" (for all info including hkl)"<<std::endl;
     initNXS(&nxs_uc, nxs_file, temperature_kelvin, maxhkl, fixpolyatom );
   }
+
+  crystal->setXSectProvider(std::move(xsect_provider));
 
   //////////////////////
   // ... add HKL info //
@@ -267,6 +271,7 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
 
   std::vector<AtomInfo> aivec;
   aivec.reserve(nxs_uc.nAtomInfo);//correct unless multiple entries for same element
+  double average_atomic_mass_amu(0.0);
   for( unsigned i=0; i<nxs_uc.nAtomInfo; i++ ) {
     nxs::NXS_AtomInfo & nxs_ai = nxs_uc.atomInfoList[i];
     if (!nxs_ai.nAtoms)
@@ -286,7 +291,8 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
     //nxs_ai.elementNumber, since it is never filled by the NXS
     //code. Instead we look in the table above by brute-force:
     ai.atomic_number = 0;
-    std::string label(nxs_ai.label);
+    const std::string label(nxs_ai.label);
+    ai.element_name = label;
     for (unsigned ie = 0; ie < sizeof(s_elementsSymbols)/sizeof(char*); ++ie) {
       if ( label == s_elementsSymbols[ie] ) {
         ai.atomic_number = ie+1;
@@ -297,6 +303,7 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
       NCRYSTAL_THROW2(BadInput,"unknown element symbol specified in .nxs file: \""<<label
                       <<"\" (should be written like H, He, Li, ...)");
 
+    average_atomic_mass_amu += nxs_ai.nAtoms * nxs_ai.M_m * const_neutron_atomic_mass;
 
     std::vector<AtomInfo>::iterator itai;
     std::size_t idx_ai(std::numeric_limits<std::size_t>::max());
@@ -318,16 +325,17 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
       aivec.at(idx_ai).positions.push_back(AtomInfo::Pos(nxs_ai.x[ipos],nxs_ai.y[ipos],nxs_ai.z[ipos]));
   }
 
-  for(std::vector<AtomInfo>::iterator itai=aivec.begin();itai!=aivec.end();++itai)
-  {
-    crystal->addAtom(*itai);
-  }
-
   if (ntot) {
+    average_atomic_mass_amu /= ntot;
     sigma_abs /= ntot;
     sigma_free /= ntot;
     crystal->setXSectAbsorption(sigma_abs);
     crystal->setXSectFree(sigma_free);
+  }
+
+  for(std::vector<AtomInfo>::iterator itai=aivec.begin();itai!=aivec.end();++itai)
+  {
+    crystal->addAtom(*itai);
   }
 
   //////////////////////////////
@@ -337,12 +345,17 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
   if (nxs_uc.temperature>0.0)
     crystal->setTemperature(nxs_uc.temperature);
   if (nxs_uc.debyeTemp>0.0)
-    crystal->setDebyeTemperature(nxs_uc.debyeTemp);
+    crystal->setGlobalDebyeTemperature(nxs_uc.debyeTemp);
 
-  //////////////////////
-  // ... and density //
-  //////////////////////
+  /////////////////////
+  // ... add density //
+  /////////////////////
+
   crystal->setDensity(nxs_uc.density);
+
+  //1e27 in next line converts kg/Aa^3 to g/cm^3:
+  const double numberdensity_2_density = 1e27 * average_atomic_mass_amu * constant_dalton2kg;
+  crystal->setNumberDensity( nxs_uc.density / numberdensity_2_density );
 
 
   ///////////

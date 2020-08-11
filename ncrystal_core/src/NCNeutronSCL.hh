@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,9 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <map>
-#include <string>
-#include <vector>
+#include "NCrystal/NCDefs.hh"
 
 namespace NCrystal {
   // a data table class for neutron scattering length (SCL) and its power (i.e. cross section)
@@ -50,8 +48,8 @@ namespace NCrystal {
     DataMap::const_iterator begin() const { return m_natural_elements.begin(); };
     DataMap::const_iterator end() const { return m_natural_elements.end(); };
 
-    double getNeutronWeightedMass(const std::string& element) const;
-    double getAtomicMass(const std::string& element) const;
+    double getNeutronWeightedMass(const std::string& element) const;// mass divided by neutron mass
+    double getAtomicMass(const std::string& element) const;//amu
     unsigned getAtomicNumber(const std::string& element) const;
 
     //in barn

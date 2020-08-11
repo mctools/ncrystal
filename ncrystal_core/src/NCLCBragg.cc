@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -81,7 +81,7 @@ namespace NCrystal{
         nc_assert(m_scmodel.obj()->isSubCalc(scbragg.obj()));
         double ekin_high;
         m_scmodel.obj()->domain(m_ekin_low,ekin_high);
-        nc_assert(ekin_high==infinity);
+        nc_assert(ekin_high==kInfinity);
       }
 
       nc_assert(m_ekin_low>0);
@@ -121,7 +121,7 @@ void NCrystal::LCBragg::domain(double& ekin_low, double& ekin_high) const
 {
   nc_assert(m_pimpl->m_ekin_low>0);
   ekin_low = m_pimpl->m_ekin_low;
-  ekin_high = infinity;
+  ekin_high = kInfinity;
 }
 
 

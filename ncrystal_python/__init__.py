@@ -10,11 +10,11 @@ In particular, a small example using the NCrystal python module can be found at:
    https://github.com/mctools/ncrystal/blob/master/examples/ncrystal_example_py
 
 A substantial effort went into developing NCrystal. If you use it for your work,
-we would appreciate it if you would use the following reference in your work
-(note, this reference will change once a proper peer-reviewed publication for
-NCrystal exists):
+we would appreciate it if you would use the following reference in your work:
 
-  X. X. Cai and T. Kittelmann, NCrystal, https://doi.org/10.5281/zenodo.853186
+  X.-X. Cai and T. Kittelmann, NCrystal: A library for thermal neutron
+  transport, Computer Physics Communications 246 (2020) 106851,
+  https://doi.org/10.1016/j.cpc.2019.07.015
 
 For detailed usage conditions and licensing of this open source project, see:
 
@@ -28,7 +28,7 @@ For detailed usage conditions and licensing of this open source project, see:
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2019 NCrystal developers                                   ##
+##  Copyright 2015-2020 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -48,19 +48,22 @@ For detailed usage conditions and licensing of this open source project, see:
 from __future__ import division, print_function, absolute_import
 
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
-__copyright__ = "Copyright 2017"
-__version__ = '1.0.0'
+__version__ = '1.99.1'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
-__copyright__ = "Copyright 2015-2017 %s"%__author__
+__copyright__ = "Copyright 2015-2020 %s"%__author__
 __maintainer__ = __author__
 __email__ = "ncrystal-developers@cern.ch"
-__all__ = ['NCException','NCFileNotFound','NCDataLoadError','NCCalcError','NCLogicError','NCBadInput',
-           'RCBase','Info','CalcBase','Process','Absorption','Scatter',
-           'createInfo','createScatter','createAbsorption',
-           'test','setDefaultRandomGenerator','RandomCtxMgr','wl2ekin','ekin2wl',
-           'clearInfoCaches','disableCaching','enableCaching','clearFactoryRegistry','hasFactory',
-           'version_num']
+#Only put the few most important items in __all__, to prevent cluttering on
+#wildcard imports. Specifically this is the exceptions, the most important API
+#classes, the factory functions, and the constants:
+__all__ = [ 'NCException','NCFileNotFound','NCDataLoadError',
+            'NCCalcError','NCLogicError','NCBadInput',
+            'RCBase','Info','CalcBase','Process','Absorption','Scatter',
+            'createInfo','createScatter','createAbsorption',
+            'constant_c','constant_dalton2kg','constant_dalton2eVc2',
+            'constant_avogadro','constant_boltzmann',
+            'const_neutron_mass_amu','constant_planck']
 
 import sys
 
@@ -77,7 +80,9 @@ else:
     range,xrange = xrange,None#emulate py3 range in py2
 
 def _str2cstr(s):
-    #converts any string (str,bytes,unicode) to bytes
+    #converts any string (str,bytes,unicode,path) to bytes
+    if hasattr(s,'__fspath__'):
+        s=str(s)
     try:
         return s if isinstance(s,bytes) else s.encode('ascii')
     except UnicodeEncodeError:
@@ -111,6 +116,17 @@ class NCLogicError(NCException):
 class NCBadInput(NCException):
     pass
 
+
+#some constants (NB: Copied here from NCMath.hh - must keep synchronized!! Also,
+#remember to include in __all__ list above):
+constant_c  = 299792458e10#  speed of light in Aa/s
+constant_dalton2kg =  1.660539040e-27#  amu to kg
+constant_dalton2eVc2 =  931494095.17#  amu to eV/c^2
+constant_avogadro = 6.022140857e23#  mol^-1
+constant_boltzmann = 8.6173303e-5#  eV/K
+const_neutron_mass_amu = 1.00866491588#  [amu]
+constant_planck = 4.135667662e-15 # [eV*s]
+
 def _find_nclib():
 
     import glob, os
@@ -121,7 +137,6 @@ def _find_nclib():
         if not os.path.exists(override):
             raise NCFileNotFound('NCRYSTAL_LIB environment variable is set but does not point to an actual file.')
         return override
-
 
     #Try to locate the lib via various library paths:
     pathenvs=['LD_LIBRARY_PATH','DYLD_LIBRARY_PATH','SHLIB_PATH','LIBPATH']
@@ -139,16 +154,19 @@ def _find_nclib():
                      os.path.join(os.path.dirname(__file__),'../lib64'),
                      os.path.join(os.path.dirname(__file__),'../../lib'),
                      os.path.join(os.path.dirname(__file__),'../../lib64'),
+                     os.path.join(os.path.dirname(__file__),'../bin'),#on Windows, seems NCrystal.dll ends up here?
                      '/usr/lib' ]
 
     #Look inside searched directories for libNCrystal:
-    for d in searchpaths:
-        for f in sorted(glob.glob(os.path.join(d,'libNCrystal.*'))):
-            if os.path.exists(f) and not os.path.isdir(f):
-                #Note os.path.exists returns False for broken symlinks, True for
-                #both actual files and unbroken symlinks, so the check here is
-                #sufficient.
-                return f
+    libname_patterns = ['libNCrystal.so','libNCrystal.dylib','NCrystal.dll','libNCrystal.*']
+    for libnamepat in libname_patterns:
+        for d in searchpaths:
+            for f in sorted(glob.glob(os.path.join(d,libnamepat))):
+                if os.path.exists(f) and not os.path.isdir(f):
+                    #Note os.path.exists returns False for broken symlinks, True for
+                    #both actual files and unbroken symlinks, so the check here is
+                    #sufficient.
+                    return f
 
     raise NCFileNotFound('Could not find NCrystal shared library (specify its location with NCRYSTAL_LIB env var)')
 
@@ -156,6 +174,9 @@ try:
     import numpy as _np
 except ImportError:
     _np = None
+def _ensure_numpy():
+    if not _np:
+        raise NCException("Numpy not available - array based functionality is unavailable")
 
 _globalstates = {}
 
@@ -166,12 +187,13 @@ def _load(nclib_filename):
     _int,_intp,_uint,_uintp,_dbl,_dblp,_cstr,_voidp = (ctypes.c_int, ctypes.POINTER(ctypes.c_int),
                                                        ctypes.c_uint,ctypes.POINTER(ctypes.c_uint), ctypes.c_double,
                                                        ctypes.POINTER(ctypes.c_double), ctypes.c_char_p, ctypes.c_void_p)
+    _cstrp = ctypes.POINTER(_cstr)
+    _dblpp = ctypes.POINTER(_dblp)
     ndarray_to_dblp = lambda a : a.ctypes.data_as(_dblp)
 
     _npempty = [None]
     def _create_numpy_array(n):
-        if not _np:
-            raise NCException("numpy not available - array versions of crossSection/genScatter methods are unavailable")
+        _ensure_numpy()
         a=_np.empty(n)
         return a,ndarray_to_dblp(a)
 
@@ -180,8 +202,6 @@ def _load(nclib_filename):
     class ncrystal_process_t(ctypes.Structure):
         _fields_ = [('internal', _voidp)]
     class ncrystal_scatter_t(ctypes.Structure):
-        _fields_ = [('internal', _voidp)]
-    class ncrystal_absorption_t(ctypes.Structure):
         _fields_ = [('internal', _voidp)]
     class ncrystal_absorption_t(ctypes.Structure):
         _fields_ = [('internal', _voidp)]
@@ -197,7 +217,7 @@ def _load(nclib_filename):
                'BadInput':NCBadInput}
 
     def _raise_err():
-        assert _ncerror()
+        assert _ncerror()#checks there was an error
         tm=(_cstr2str(_ncerror_type()),_cstr2str(_ncerror_msg()))
         _ncerror_clear()
         #TODO for NC2: Provide line number / file as well?
@@ -234,7 +254,9 @@ def _load(nclib_filename):
 
     lib_version = _cstr2str(_wrap('ncrystal_version_str',_cstr,tuple(),hide=True,error_check=False)())
     if lib_version != __version__:
-        print("WARNING: Version mismatch detected between NCrystal python code (v%s) and loaded binary library (v%s). Control which NCrystal library to load with the NCRYSTAL_LIB env var."%(__version__,lib_version))
+        print("WARNING: Version mismatch detected between NCrystal python code (v%s)"
+              " and loaded binary"" library (v%s). Control which NCrystal library"
+              " to load with the NCRYSTAL_LIB env var."%(__version__,lib_version))
 
     _wrap('ncrystal_sethaltonerror',_int,(_int,),hide=True,error_check=False)(False)
     _wrap('ncrystal_setquietonerror',_int,(_int,),hide=True,error_check=False)(True)
@@ -244,11 +266,7 @@ def _load(nclib_filename):
     _ncerror_clear = _wrap('ncrystal_clearerror',None,tuple(),hide=True,error_check=False)
 
     _wrap('ncrystal_refcount',_int,(_voidp,),take_ref=True)
-    #_wrap('ncrystal_ref',None,(_voidp,),take_ref=True)
     _wrap('ncrystal_unref',None,(_voidp,),take_ref=True)
-    #_wrap('ncrystal_unrefnodelete',None,(_voidp,),take_ref=True)
-    #_wrap('ncrystal_valid',_int,(_voidp,),take_ref=True)
-    #_wrap('ncrystal_invalidate',None,(_voidp,),take_ref=True)
 
     _wrap('ncrystal_cast_scat2proc',ncrystal_process_t,(ncrystal_scatter_t,))
     _wrap('ncrystal_cast_abs2proc',ncrystal_process_t,(ncrystal_absorption_t,))
@@ -257,10 +275,24 @@ def _load(nclib_filename):
     _wrap('ncrystal_dump',None,(ncrystal_info_t,))
     _wrap('ncrystal_ekin2wl',_dbl,(_dbl,))
     _wrap('ncrystal_wl2ekin',_dbl,(_dbl,))
+    _raw_natelemdata=_wrap('ncrystal_natelemdata',None,( _uint, _cstrp,_dblp,_dblp,_dblp,_dblp),hide=True)
+    def ncrystal_natelemdata(z):
+        mass_amu,sigma_inc,sigma_coh,sigma_abs=_dbl(),_dbl(),_dbl(),_dbl()
+        name=_cstr()
+        _raw_natelemdata(z,ctypes.byref(name),mass_amu,sigma_inc,sigma_coh,sigma_abs)
+        if mass_amu.value==0.0:
+            return {}
+        return dict(name=_cstr2str(name.value),
+                    z=z,
+                    mass_amu=mass_amu.value,
+                    sigma_inc=sigma_inc.value,
+                    sigma_coh=sigma_coh.value,
+                    sigma_abs=sigma_abs.value)
+    functions['ncrystal_natelemdata'] = ncrystal_natelemdata
     _wrap('ncrystal_isnonoriented',_int,(ncrystal_process_t,))
     _wrap('ncrystal_name',_cstr,(ncrystal_process_t,))
 
-    for s in ('temperature','xsectabsorption','xsectfree','debyetemp','density'):
+    for s in ('temperature','xsectabsorption','xsectfree','globaldebyetemp','density','numberdensity'):
         _wrap('ncrystal_info_get%s'%s,_dbl,(ncrystal_info_t,))
     _raw_info_getstruct = _wrap('ncrystal_info_getstructure',_int,(ncrystal_info_t,_uintp,_dblp,_dblp,_dblp,_dblp,_dblp,_dblp,_dblp,_uintp))
     def ncrystal_info_getstructure(nfo):
@@ -278,6 +310,46 @@ def _load(nclib_filename):
     _wrap('ncrystal_info_gethkl',None,(ncrystal_info_t,_int,_intp,_intp,_intp,_intp,_dblp,_dblp))
     _wrap('ncrystal_info_dspacing_from_hkl',_dbl,(ncrystal_info_t,_int,_int,_int))
     functions['ncrystal_info_gethkl_setuppars'] = lambda : (_int(),_int(),_int(),_int(),_dbl(),_dbl())
+
+    _wrap('ncrystal_info_ndyninfo',_uint,(ncrystal_info_t,))
+    _raw_di_base = _wrap('ncrystal_dyninfo_base',None,(ncrystal_info_t,_uint,_dblp,_cstrp,_dblp,_uintp),hide=True)
+    _raw_di_scatknl = _wrap('ncrystal_dyninfo_extract_scatknl',None,(ncrystal_info_t,_uint,_uint,_dblp,_uintp,_uintp,_uintp,
+                                                                     _dblpp,_dblpp,_dblpp,_dblpp),hide=True)
+    _raw_di_vdos = _wrap('ncrystal_dyninfo_extract_vdos',None,(ncrystal_info_t,_uint,_dblp,_dblp,_uintp,_dblpp),hide=True)
+    _raw_di_vdosdebye = _wrap('ncrystal_dyninfo_extract_vdosdebye',None,(ncrystal_info_t,_uint,_dblp),hide=True)
+    _raw_di_vdos_input = _wrap('ncrystal_dyninfo_extract_vdos_input',None,(ncrystal_info_t,_uint,_uintp,_dblpp,_uintp,_dblpp),hide=True)
+
+    def ncrystal_dyninfo_base(key):
+        infoobj,dynidx = key
+        fr,tt,en,ditype=_dbl(),_dbl(),_cstr(),_uint()
+        _raw_di_base(infoobj,dynidx,fr,ctypes.byref(en),tt,ditype)
+        return (fr.value,tt.value,_cstr2str(en.value),ditype.value)
+    def ncrystal_dyninfo_extract_scatknl(key,vdoslux):
+        infoobj,dynidx = key
+        sugEmax,ne,na,nb,e,a,b,sab = _dbl(),_uint(),_uint(),_uint(),_dblp(),_dblp(),_dblp(),_dblp()
+        _raw_di_scatknl(infoobj,dynidx,vdoslux,sugEmax,ne,na,nb,
+                        ctypes.byref(e),ctypes.byref(a),ctypes.byref(b),ctypes.byref(sab))
+        return (sugEmax.value,ne.value,na.value,nb.value,e,a,b,sab)
+    def ncrystal_dyninfo_extract_vdos(key):
+        infoobj,dynidx = key
+        egrid_min,egrid_max,ndensity,densityptr = _dbl(),_dbl(),_uint(),_dblp()
+        _raw_di_vdos(infoobj,dynidx,egrid_min,egrid_max,ndensity,ctypes.byref(densityptr))
+        return (egrid_min.value,egrid_max.value,ndensity.value,densityptr)
+    def ncrystal_dyninfo_extract_vdosdebye(key):
+        infoobj,dynidx = key
+        td=_dbl()
+        _raw_di_vdosdebye(infoobj,dynidx,td)
+        return td.value
+    def ncrystal_dyninfo_extract_vdos_input(key):
+        infoobj,dynidx = key
+        negrid,egridptr,ndensity,densityptr = _uint(),_dblp(),_uint(),_dblp()
+        _raw_di_vdos_input(infoobj,dynidx,negrid,ctypes.byref(egridptr),ndensity,ctypes.byref(densityptr));
+        return (negrid.value,egridptr,ndensity.value,densityptr)
+    functions['ncrystal_dyninfo_base'] = ncrystal_dyninfo_base
+    functions['ncrystal_dyninfo_extract_scatknl'] = ncrystal_dyninfo_extract_scatknl
+    functions['ncrystal_dyninfo_extract_vdos'] = ncrystal_dyninfo_extract_vdos
+    functions['ncrystal_dyninfo_extract_vdosdebye'] = ncrystal_dyninfo_extract_vdosdebye
+    functions['ncrystal_dyninfo_extract_vdos_input'] = ncrystal_dyninfo_extract_vdos_input
 
     def _prepare_many(ekin,repeat):
         if _np is None and not repeat is None:
@@ -376,18 +448,35 @@ def _load(nclib_filename):
     functions['ncrystal_restore_randgen'] = ncrystal_restore_randgen
 
     _wrap('ncrystal_decodecfg_packfact',_dbl,(_cstr,))
+    _wrap('ncrystal_decodecfg_vdoslux',_uint,(_cstr,))
     _wrap('ncrystal_clear_info_caches',None,tuple())
     _wrap('ncrystal_disable_caching',None,tuple())
     _wrap('ncrystal_enable_caching',None,tuple())
     _wrap('ncrystal_clear_factory_registry',None,tuple())
     _wrap('ncrystal_has_factory',_int,(_cstr,))
+    _wrap('ncrystal_clear_caches',None,tuple())
 
     return functions
 
 _rawfct = _load(_find_nclib())
 
 def decodecfg_packfact(cfgstr):
-    return _rawfct['ncrystal_decodecfg_packfact'](_str2cstr(cfgstr))
+    return float(_rawfct['ncrystal_decodecfg_packfact'](_str2cstr(cfgstr)))
+
+def decodecfg_vdoslux(cfgstr):
+    return int(_rawfct['ncrystal_decodecfg_vdoslux'](_str2cstr(cfgstr)))
+
+def createVDOSDebye(debye_temperature):
+    _ensure_numpy()
+    #NB: Must keep function exactly synchronised with createVDOSDebye function
+    #in .cc src (although leaving out temperature,boundXS,elementMassAMU args
+    #here):
+    debye_energy = constant_boltzmann*debye_temperature;
+    vdos_egrid = _np.linspace(0.5*debye_energy,debye_energy,20);
+    scale = 1.0 / (debye_energy*debye_energy);
+    vdos_density = scale * (vdos_egrid**2)
+    #Actual returned egrid should contain only first and last value:
+    return (_np.asarray([vdos_egrid[0],vdos_egrid[-1]]) ,vdos_density)
 
 class RCBase:
     """Base class for all NCrystal objects"""
@@ -397,7 +486,7 @@ class RCBase:
         #do not ref here, since ncrystal_create_xxx functions in C-interface already did so.
         self._rawunref = _rawfct['ncrystal_unref']#keep fct reference
     def __del__(self):
-        if hasattr(self,'_rawunref'):
+        if hasattr(self,'_rawunref') and self._rawunref:
             self._rawunref(self._rawobj)
     def refCount(self):
         """Access reference count of wrapped C++ object"""
@@ -409,11 +498,13 @@ def nc_assert(b,msg=""):
         raise NCLogicError(msg if msg else 'assertion failed')
 
 class Info(RCBase):
-    """Class representing information about a given crystal"""
+    """Class representing information about a given material"""
     def __init__(self, cfgstr):
         """create Info object based on cfg-string (same as using createInfo(cfgstr))"""
         rawobj = _rawfct['ncrystal_create_info'](_str2cstr(cfgstr))
         super(Info, self).__init__(rawobj)
+        self.__dyninfo=None
+
     def dump(self):
         """Dump contained information to standard output"""
         sys.stdout.flush()
@@ -427,10 +518,10 @@ class Info(RCBase):
         nc_assert(t>-1)
         return t
 
-    def hasDebyeTemperature(self):
-        return _rawfct['ncrystal_info_getdebyetemp'](self._rawobj)>-1
-    def getDebyeTemperature(self):
-        t=_rawfct['ncrystal_info_getdebyetemp'](self._rawobj)
+    def hasGlobalDebyeTemperature(self):
+        return _rawfct['ncrystal_info_getglobaldebyetemp'](self._rawobj)>-1
+    def getGlobalDebyeTemperature(self):
+        t=_rawfct['ncrystal_info_getglobaldebyetemp'](self._rawobj)
         nc_assert(t>-1)
         return t
 
@@ -438,6 +529,13 @@ class Info(RCBase):
         return _rawfct['ncrystal_info_getdensity'](self._rawobj)>-1
     def getDensity(self):
         t=_rawfct['ncrystal_info_getdensity'](self._rawobj)
+        nc_assert(t>-1)
+        return t
+
+    def hasNumberDensity(self):
+        return _rawfct['ncrystal_info_getnumberdensity'](self._rawobj)>-1
+    def getNumberDensity(self):
+        t=_rawfct['ncrystal_info_getnumberdensity'](self._rawobj)
         nc_assert(t>-1)
         return t
 
@@ -481,6 +579,220 @@ class Info(RCBase):
     def dspacingFromHKL(self, h, k, l):
         return float(_rawfct['ncrystal_info_dspacing_from_hkl'](self._rawobj,h,k,l))
 
+    class DynamicInfo:
+        """Class representing dynamic information (related to inelastic scattering)
+           about a given element"""
+        def __init__(self,fr,en,tt,key):
+            self.__fraction, self.__elementName, self._key, self.__tt = fr,en,key,tt
+        @property
+        def fraction(self):
+            """Element fraction in material (all fractions must add up to unity)"""
+            return self.__fraction
+        @property
+        def temperature(self):
+            """Material temperature (same value as on associated Info object)"""
+            return self.__tt
+        @property
+        def elementName(self):
+            """Name of element"""
+            return self.__elementName
+        def _np(self):
+            _ensure_numpy()
+            return _np
+        def _copy_cptr_2_nparray(self,cptr,n):
+            np = self._np()
+            return np.copy(np.ctypeslib.as_array(cptr, shape=(n,)))
+
+    class DI_Sterile(DynamicInfo):
+        """Class indicating elements for which inelastic neutron scattering is absent
+           or disabled."""
+        pass
+
+    class DI_FreeGas(DynamicInfo):
+        """Class indicating elements for which inelastic neutron scattering should be
+           modelled as scattering on a free gas."""
+        pass
+
+    class DI_ScatKnl(DynamicInfo):
+        """Base class indicating elements for which inelastic neutron scattering will
+           be, directly or indirectly, described by a scattering kernel,
+           S(alpha,beta). This is an abstract class, and derived classes provide
+           actual access to the kernels.
+        """
+
+        def __init__(self,fr,en,tt,key):
+            super(Info.DI_ScatKnl, self).__init__(fr,en,tt,key)
+            self.__lastknl,self.__lastvdoslux = None,None
+
+        def _loadKernel( self, vdoslux = 3 ):
+            assert isinstance(vdoslux,int) and 0<=vdoslux<=5
+            if self.__lastvdoslux != vdoslux:
+                sugEmax,ne,na,nb,eptr,aptr,bptr,sabptr = _rawfct['ncrystal_dyninfo_extract_scatknl'](self._key,vdoslux)
+                self.__lastvdoslux = vdoslux
+                res={}
+                assert ne>=0
+                res['suggestedEmax'] = float(sugEmax)
+                res['egrid'] = self._copy_cptr_2_nparray(eptr,ne) if ne > 0 else self._np().zeros(0)
+                assert na>1 and nb>1
+                res['alpha'] = self._copy_cptr_2_nparray(aptr,na)
+                res['beta']  = self._copy_cptr_2_nparray(bptr,nb)
+                res['sab']   = self._copy_cptr_2_nparray(sabptr,na*nb)
+                self.__lastknl = res
+            assert self.__lastknl is not None
+            return self.__lastknl
+
+    class DI_ScatKnlDirect(DI_ScatKnl):
+        """Pre-calculated scattering kernel which at most needs a (hidden) conversion to
+           S(alpha,beta) format before it is available."""
+        def loadKernel( self ):
+            """Prepares and returns the scattering kernel in S(alpha,beta) format"""
+            return self._loadKernel(vdoslux=3)#vdoslux value not actually used
+
+    class DI_VDOS(DI_ScatKnl):
+        """Solid state material with a phonon spectrum in the form of a Vibrational
+        Density Of State (VDOS) parameterisation. This can be expanded into a
+        full scattering kernel. How luxurious this expansion will be is
+        controlled by an optional vdoslux parameter in the loadKernel call (must
+        be integer from 0 to 5)
+        """
+        def __init__(self,fr,en,tt,key):
+            super(Info.DI_VDOS, self).__init__(fr,en,tt,key)
+            self.__vdosdata = None
+            self.__vdosegrid_expanded = None
+            self.__vdosorig = None
+
+        def vdosData(self):
+            """Access the VDOS as ([egrid_min,egrid_max],vdos_density)"""
+            if self.__vdosdata is None:
+                emin,emax,nd,dptr = _rawfct['ncrystal_dyninfo_extract_vdos'](self._key)
+                vdos_egrid = (emin,emax)
+                vdos_density = self._copy_cptr_2_nparray(dptr,nd)
+                self.__vdosdata = (vdos_egrid,vdos_density)
+            return self.__vdosdata
+
+        def __loadVDOSOrig(self):
+            if self.__vdosorig is None:
+                neg,egptr,nds,dsptr = _rawfct['ncrystal_dyninfo_extract_vdos_input'](self._key)
+                self.__vdosorig = ( self._copy_cptr_2_nparray(egptr,neg),
+                                    self._copy_cptr_2_nparray(dsptr,nds) )
+            return self.__vdosorig
+
+        def vdosOrigEgrid(self):
+            """Access the original un-regularised VDOS energy grid"""
+            return self.__loadVDOSOrig()[0]
+
+        def vdosOrigDensity(self):
+            """Access the original un-regularised VDOS energy grid"""
+            return self.__loadVDOSOrig()[1]
+
+        @property
+        def vdos_egrid(self):
+            """Access the VDOS energy grid as [egrid_min,egrid_max]"""
+            return self.vdosData()[0]
+
+        @property
+        def vdos_egrid_expanded(self):
+            """Access the egrid expanded into all actual egrid points"""
+            if self.__vdosegrid_expanded is None:
+                _ = self.vdosData()
+                self.__vdosegrid_expanded = self._np().linspace(_[0][0],_[0][1],len(_[1]))
+            return self.__vdosegrid_expanded
+
+        @property
+        def vdos_density(self):
+            """Access the VDOS density array"""
+            return self.vdosData()[1]
+
+        def loadKernel( self, vdoslux = 3 ):
+            """Converts VDOS to S(alpha,beta) kernel with a luxury level given by the vdoslux parameter."""
+            return self._loadKernel(vdoslux=vdoslux)
+
+    class DI_VDOSDebye(DI_ScatKnl):
+        """Similarly to DI_VDOS, but instead of using a phonon VDOS spectrum provided
+           externally, an idealised spectrum is used for lack of better
+           options. This spectrum is based on the Debye Model, in which the
+           spectrum rises quadratically with phonon energy below a cutoff value,
+           kT, where T is the Debye temperature
+        """
+
+        def __init__(self,fr,en,tt,key):
+            super(Info.DI_VDOSDebye, self).__init__(fr,en,tt,key)
+            self.__vdosdata = None
+            self.__debyetemp = None
+            self.__vdosegrid_expanded = None
+
+        def vdosData(self):
+            """Access the idealised VDOS as ([egrid_min,egrid_max],vdos_density)"""
+            if self.__vdosdata is None:
+                self.__vdosdata = createVDOSDebye(self.debyeTemperature())
+            return self.__vdosdata
+
+        def debyeTemperature(self):
+            #The Debye temperature of the element.
+            if self.__debyetemp is None:
+                self.__debyetemp = _rawfct['ncrystal_dyninfo_extract_vdosdebye'](self._key)
+            return self.__debyetemp
+
+        @property
+        def vdos_egrid(self):
+            """Access the VDOS energy grid as [egrid_min,egrid_max]"""
+            return self.vdosData()[0]
+
+        @property
+        def vdos_egrid_expanded(self):
+            """Access the egrid expanded into all actual egrid points"""
+            if self.__vdosegrid_expanded is None:
+                _ = self.vdosData()
+                self.__vdosegrid_expanded = self._np().linspace(_[0][0],_[0][1],len(_[1]))
+            return self.__vdosegrid_expanded
+
+        @property
+        def vdos_density(self):
+            """Access the VDOS density array"""
+            return self.vdosData()[1]
+
+        def loadKernel( self, vdoslux = 3 ):
+            """Converts VDOS to S(alpha,beta) kernel with a luxury level given by the
+               vdoslux parameter, which is similar to the vdoslux parameter used
+               in DI_VDOS. Notice that the vdoslux parameter specified here on
+               DI_VDOSDebye will be reduced internally by 3 (but not less than
+               0), since the Debye model is anyway only a crude approximation
+               and it accordingly does not need the same level of precise
+               treatment as a full externally specified VDOS.
+            """
+            return self._loadKernel(vdoslux=vdoslux)
+
+    def hasDynamicInfo(self):
+        """Whether or not dynamic information for each element is present"""
+        return int(_rawfct['ncrystal_info_ndyninfo'](self._rawobj))>0 if self.__dyninfo is None else bool(self.__dyninfo)
+
+    def getDynamicInfoList(self):
+        """Get list of DynamicInfo objects (if available). One for each element"""
+        if self.__dyninfo is None:
+            self.__dyninfo = []
+            for idx in range(int(_rawfct['ncrystal_info_ndyninfo'](self._rawobj))):
+                key = (self._rawobj,idx)
+                fr,tt,en,ditype = _rawfct['ncrystal_dyninfo_base'](key)
+                args=(fr,en,tt,key)
+                if ditype==0:
+                    di = Info.DI_Sterile(*args)
+                elif ditype==1:
+                    di = Info.DI_FreeGas(*args)
+                elif ditype==2:
+                    di = Info.DI_ScatKnlDirect(*args)
+                elif ditype==3:
+                    di = Info.DI_VDOS(*args)
+                elif ditype==4:
+                    di = Info.DI_VDOSDebye(*args)
+                else:
+                    raise AssertionError('Unknown DynInfo type id (%i)'%ditype.value)
+                self.__dyninfo += [ di ]
+        return self.__dyninfo
+
+    @property
+    def dyninfos(self):
+        """List of DynamicInfo objects (empty if not available). One for each element"""
+        return self.getDynamicInfoList()
 
 class CalcBase(RCBase):
     """Base class for all calculators"""
@@ -613,8 +925,11 @@ def ekin2wl(ekin):
         return _rawfct['ncrystal_ekin2wl'](ekin)
 
 def clearInfoCaches():
-    """Clear all cached Info objects held by factory infrastructure"""
+    """Clear all cached Info objects held by factory infrastructure. NB: included in clearCaches()"""
     _rawfct['ncrystal_clear_info_caches']()
+def clearCaches():
+    """Clear various caches"""
+    _rawfct['ncrystal_clear_caches']()
 def disableCaching():
     """Disable caching of Info objects in factory infrastructure"""
     _rawfct['ncrystal_disable_caching']()
@@ -627,6 +942,43 @@ def clearFactoryRegistry():
 def hasFactory(name):
     """Check if a factory of a given name exists"""
     return bool(_rawfct['ncrystal_has_factory'](_str2cstr(name)))
+
+#Helper function, for scripts creating ncmat files:
+def formatVectorForNCMAT(name,values):
+    """Utility function for help in python scripts composing .ncmat files,
+       transforming an array of of values into a properly formatted text string,
+       with word-wrapping, usage of <val>r<n> syntax, etc. Returns list of lines
+       (strings) for .ncmat files.
+    """
+
+    v,res,l,indent,efmt_prev,efmt_nrepeat=values.flatten(),'  %s'%name,'','',None,0
+    if not len(v):
+        return res
+    ilast,nv=len(v)-1,len(v)
+    def _fmtnum(num):
+        _ = '%g'%num if num else '0'#avoid 0.0, -0, etc.
+        if _.startswith('0.'):
+            _=_[1:]
+        return _
+    i=0
+    while i<nv:
+        fmt_vi=_fmtnum(v[i])
+        #check if is repeated:
+        irepeat=i
+        while irepeat+1<nv:
+            if _fmtnum(v[irepeat+1])==fmt_vi:
+                irepeat+=1
+            else:
+                break
+        #Write:
+        s = ' %sr%i'%(fmt_vi,1+irepeat-i) if irepeat>i else ' %s'%fmt_vi
+        l+=(s if l else (indent+s))
+        i=irepeat+1#advance
+        if i>=nv or len(l)>80:
+            #Flush line
+            res += '%s\n'%l
+            l,indent='',' '
+    return res
 
 #Accept custom random generator:
 def setDefaultRandomGenerator(rg):
@@ -663,6 +1015,35 @@ class RandomCtxMgr:
     def __exit__(self,*args):
         _rawfct['ncrystal_restore_randgen']()
 
+__natelemdb={}
+def naturalElementDB(z):
+    """Access internal database with data for natural element with z
+       protons. Returns dictionary with data (empty dictionary if not available)."""
+    global __natelemdb
+    z=int(z)
+    _=__natelemdb.get(z,None)
+    if _ is not None:
+        return _
+    _=_rawfct['ncrystal_natelemdata'](z)
+    __natelemdb[z] = _
+    return _
+
+__natelemdb_n2z={}
+def naturalElementDBByName(atom_name):
+    """Same as naturalElementDB but access via name (H, He, Li, ...)."""
+    #First check if already loaded:
+    for e in __natelemdb:
+        _=e.get('name',None)
+        if _==atom_name:
+            return _
+    #The hard way, populate DB until found:
+    for z in range(1,121):
+        _=naturalElementDB(z)
+        if _.get('mass_amu',None)==atom_name:
+            return _
+    #Not found:
+    return {}
+
 def test():
     """Quick test that NCrystal works as expected in the current installation."""
     with RandomCtxMgr(None):
@@ -675,50 +1056,54 @@ def _actualtest():
             raise RuntimeError('check failed')
     def flteq(a,b,rtol=1.0e-6,atol=1.0e-6):
         return abs(a-b) <= 0.5 * rtol * (abs(a) + abs(b)) + atol
+    def require_flteq(a,b):
+        if not flteq(a,b):
+            raise RuntimeError('check failed (%.16g != %.16g, diff %g)'%(a,b,a-b))
+        return True
 
     al = createInfo('Al_sg225.ncmat;dcutoff=1.4')
     require(hasFactory('stdncmat'))
-    require(al.hasTemperature() and flteq(al.getTemperature(),293.15))
-    require(al.hasXSectFree() and flteq(al.getXSectFree(),1.39667))
-    require(al.hasXSectAbsorption() and flteq(al.getXSectAbsorption(),0.231))
-    require(al.hasDensity() and flteq(al.getDensity(),2.69864547673))
-    require(not al.hasDebyeTemperature())
-    #TODO for NC2: expose and check hasPerElementDebyeTemperature()
+    require(al.hasTemperature() and require_flteq(al.getTemperature(),293.15))
+    require(al.hasXSectFree() and require_flteq(al.getXSectFree(),1.39667))
+    require(al.hasXSectAbsorption() and require_flteq(al.getXSectAbsorption(),0.231))
+    require(al.hasDensity() and require_flteq(al.getDensity(),2.69864547673))
+    require(al.hasNumberDensity() and require_flteq(al.getNumberDensity(),0.06023238256131625))
+    require(not al.hasGlobalDebyeTemperature())
 
     require(al.hasStructureInfo())
     si=al.getStructureInfo()
     require( si['spacegroup'] == 225 )
-    require( flteq(si['a'],4.04958) )
-    require( flteq(si['b'],4.04958) )
-    require( flteq(si['c'],4.04958) )
+    require_flteq(si['a'],4.04958)
+    require_flteq(si['b'],4.04958)
+    require_flteq(si['c'],4.04958)
     require( si['alpha'] == 90.0 )
     require( si['beta'] == 90.0 )
     require( si['gamma'] == 90.0 )
     require( si['n_atoms'] == 4 )
-    require( flteq(si['volume'],66.4094599932) )
+    require_flteq(si['volume'],66.4094599932)
     require( al.hasHKLInfo() )
     require( al.nHKL() == 3 )
-    require( flteq(al.hklDLower(),1.4) )
+    require_flteq(al.hklDLower(),1.4)
     require( al.hklDUpper() > 1e36 )
-    expected_hkl = { 0  : (1, -1, -1, 8, 2.3380261031049243, 1.7720800360606170),
-                     1  : (0, 0, 2, 6, 2.02479, 1.7303833200791909),
-                     2  : (0, 2, -2, 12, 1.4317427394787094, 1.5731794648334094) }
+    expected_hkl = { 0  : (1, -1, -1, 8, 2.3380261031049243, 1.77210688280773),
+                     1  : (0, 0, 2, 6, 2.02479, 1.730418273564928),
+                     2  : (0, 2, -2, 12, 1.4317427394787094, 1.573243021457801) }
     for idx,hkl in enumerate(al.hklList()):
         h,k,l,mult,dsp,fsq = hkl
         require(idx<len(expected_hkl))
         e = expected_hkl[idx]
         require( list(e)[0:4] == [h,k,l,mult] )
-        require( flteq(dsp, e[4]) )
-        require( flteq(fsq, e[5]) )
+        require_flteq(dsp, e[4])
+        require_flteq(fsq, e[5])
     #TODO for NC2: Missing is atominfo, bkgd cross-sections, ...
 
-    alpc = createScatter('Al_sg225.ncmat;dcutoff=1.4;bkgd=none')
+    alpc = createScatter('Al_sg225.ncmat;dcutoff=1.4;incoh_elas=0;inelas=0')
     require( alpc.name == 'PCBragg' )
     require( isinstance(alpc.name,str) )
     require( alpc.refCount() in (1,2) and type(alpc.refCount()) == int )
     require( alpc.isNonOriented() )
-    require( flteq(1.6313137348306563,alpc.crossSectionNonOriented(wl2ekin(4.0)) ) )
-    require( flteq(1.6313137348306563,alpc.crossSection(wl2ekin(4.0),(1,0,0))))
+    require_flteq(1.631341646154576,alpc.crossSectionNonOriented(wl2ekin(4.0)) )
+    require_flteq(1.631341646154576,alpc.crossSection(wl2ekin(4.0),(1,0,0)))
     require( alpc.crossSectionNonOriented(wl2ekin(5.0)) == 0.0 )
 
     #use NCrystal's own builtin rng for guaranteed reproducibility (set explicitly to avoid warning):
@@ -728,16 +1113,17 @@ def _actualtest():
 
     alpc = createScatter('Al_sg225.ncmat;dcutoff=1.4')
     require( alpc.name == 'ScatterComp' )
-    expected = [(2.0527318521221005, 0.0),
-                (2.8283092712311073, 0.0),
-                (2.8283092712311073, 0.0),
-                (2.0527318521221001, 0.0),
-                (2.0527318521221001, 0.0),
-                (2.0527318521221005, 0.0),
-                (0.04453616562024728, -0.0030002491942324504),
-                (2.0527318521221001, 0.0),
-                (2.0527318521221005, 0.0),
-                (2.0527318521221005, 0.0)]
+    expected = [ ( 2.0527318521221005, 0.0 ),
+                 ( 2.8283092712311073, 0.0 ),
+                 ( 2.8283092712311073, 0.0 ),
+                 ( 2.0527318521221, 0.0 ),
+                 ( 2.0527318521221, 0.0 ),
+                 ( 2.0527318521221005, 0.0 ),
+                 ( 1.877750222153273, 0.02107623981594055 ),
+                 ( 2.8283092712311073, 0.0 ),
+                 ( 2.0527318521221, 0.0 ),
+                 ( 2.8283092712311073, 0.0 )]
+
     if _np is None:
         ang,de=[],[]
         for i in range(10):
@@ -747,31 +1133,31 @@ def _actualtest():
     else:
         ang,de = alpc.generateScatteringNonOriented(wl2ekin(4.0),repeat=10)
 
-
     for i in range(10):
-        require(flteq(ang[i],expected[i][0]))
-        require(flteq(de[i],expected[i][1]))
+        #print ( f'    ( {ang[i]}, {de[i]} ),');continue
+        require_flteq(ang[i],expected[i][0])
+        require_flteq(de[i],expected[i][1])
 
-    expected = [((0.3369146087497534, 0.5914499600511176, -0.7325813887661439), 0.025900627790146815),
-                ((-0.12272231000891515, -0.28279050027676905, -0.9512984639845112), 0.01658262676194817),
-                ((0.5121682964546899, -0.7693958343708821, -0.38172462084523057), 0.0),
-                ((-0.7127470242256787, -0.439015335331022, 0.547044070255432), 0.06599215493571241),
-                ((0.02433659290937973, 0.6768242348981053, -0.7357422682571374), 0.0),
-                ((-0.8297512386195562, 0.20459918129257157, 0.5192803260510857), 0.09114370330097969),
-                ((0.6341262223410173, -0.7717155612149715, 0.04836348538073077), 0.0),
-                ((-0.0066149389611940106, 0.7436688017743517, 0.6685154866194498), -0.004773248758976008),
-                ((0.9107051856693015, -0.3323515299519934, -0.2452723493050375), -0.0181563110797026),
-                ((0.02433659290937973, -0.9886055037290901, 0.1485492788340462), 0.0)]
+    expected = [ ( (0.6341262223410173, 0.42508486262350836, 0.6458999873880349), 0.0 ),
+                 ( (0.6341262223410173, 0.6030479945760753, 0.48395976111375677), 0.0 ),
+                 ( (0.6341262223410173, -0.5323426933952337, 0.5607987080300906), 0.0 ),
+                 ( (0.5121682964546899, -0.8208697888708928, 0.25269829011245154), 0.0 ),
+                 ( (0.6341262223410173, 0.5169272374773588, -0.5750392728271148), 0.0 ),
+                 ( (0.6341262223410173, -0.4591420535083147, 0.6221515159827856), 0.0 ),
+                 ( (-0.699307619791641, -0.7068851945247946, 0.10621758170375115), 0.0051568432579783925 ),
+                 ( (0.02433659290937973, 0.8727814258082862, 0.4875041671715413), 0.0 ),
+                 ( (0.6341262223410173, 0.3115365900742872, -0.7076926502263509), 0.0 ),
+                 ( (0.6341262223410173, 0.14449943153842737, -0.7596076937634202), 0.0 )]
 
     for i in range(10):
         outdir,de = alpc.generateScattering(wl2ekin(2.0),(1.0,0.0,0.0))
-        require(flteq(de,expected[i][1]))
-        require(flteq(outdir[0],expected[i][0][0]))
-        require(flteq(outdir[1],expected[i][0][1]))
-        require(flteq(outdir[2],expected[i][0][2]))
+        #print ( f'    ( {outdir}, {de} ),');continue
+        require_flteq(de,expected[i][1])
+        require_flteq(outdir[0],expected[i][0][0])
+        require_flteq(outdir[1],expected[i][0][1])
+        require_flteq(outdir[2],expected[i][0][2])
     gesc = createScatter("""Ge_sg227.ncmat;dcutoff=0.5;mos=40.0arcsec
                             ;dir1=@crys_hkl:5,1,1@lab:0,0,1
                             ;dir2=@crys_hkl:0,-1,1@lab:0,1,0""")
-    require(flteq(587.853498014,gesc.crossSection(wl2ekin(1.540),( 0., 1., 1. ))))
-    require(flteq(1.76681322749,gesc.crossSection(wl2ekin(1.540),( 1., 1., 0. ))))
-
+    require_flteq(587.7399848353572,gesc.crossSection(wl2ekin(1.540),( 0., 1., 1. )))
+    require_flteq(1.662542957156909,gesc.crossSection(wl2ekin(1.540),( 1., 1., 0. )))

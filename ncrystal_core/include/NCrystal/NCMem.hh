@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,7 +22,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCException.hh"
+#include <memory>
+#include <utility>//std::move
 #include <cassert>
+#include <functional>
 
 namespace NCrystal {
 
@@ -113,7 +116,7 @@ namespace NCrystal {
   template< class T >
   T* get_pointer(const RCHolder<T>& r) { return const_cast<T*>(r.obj()); }
 
-  //While waiting for full move to C++, being to create out own unique_ptr here (won't add more features than we need to bridge the time gap):
+  //Obsolete, use make_unique instead:
   template<class T>
   class UniquePtr {
   public:
@@ -139,15 +142,36 @@ namespace NCrystal {
     const T * obj() const { return m_ptr; }
     void set(T * t) { T* p(0); std::swap(p,m_ptr); UniquePtr tmp(p); m_ptr = t; }
     T * release() { T* p(0); std::swap(p,m_ptr); return p; }
-    void swap(UniquePtr& o) { std::swap(m_ptr,o.ptr); }
+    void swap(UniquePtr& o) { std::swap(m_ptr,o.m_ptr); }
     bool operator()() const { return m_ptr!=0; }
     bool operator!() const { return m_ptr==0; }
+    void clear() { set(0); }
 
   private:
     T * m_ptr;
   };
 
+  //Attempt to clear all NCrystal caches (should be safe to call as it will not
+  //clear data associated to active object for which client code has ownership):
+  void clearCaches();
+
+  //For internal NCrystal usage, registered functions will be invoked whenever
+  //clearCaches() is called:
+  void registerCacheCleanupFunction(std::function<void()>);
+
 }
+
+
+#if __cplusplus < 201402L
+//Make sure we can use std::make_unique from C++14 even in C++11 code
+namespace std {
+  template<typename T, typename ...Args>
+  inline std::unique_ptr<T> make_unique( Args&& ...args )
+  {
+    return std::unique_ptr<T>( new T( std::forward<Args>(args)... ) );
+  }
+}
+#endif
 
 
 #endif

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -37,6 +37,10 @@ namespace NCrystal {
 
   //Calculates 3*hbar^2/(M*kBoltzmann*debye_temp) (in Aa^2):
   double calcDebyeMSDScale( double debye_temperature, double atomic_mass );
+
+
+  //invert debyeIsotropicMSD to estimate Debye temperature from MSD (NB: Rather slow)
+  double debyeTempFromIsotropicMSD(double msd, double temperature, double atomic_mass);
 
 }
 

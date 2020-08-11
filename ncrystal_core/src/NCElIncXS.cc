@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -24,9 +24,9 @@
 
 namespace NC = NCrystal;
 
-NC::ElIncXS::ElIncXS( const std::vector<double>& elm_msd,
-                      const std::vector<double>& elm_bixs,
-                      const std::vector<double>& elm_scale )
+NC::ElIncXS::ElIncXS( const VectD& elm_msd,
+                      const VectD& elm_bixs,
+                      const VectD& elm_scale )
 {
   set( elm_msd, elm_bixs, elm_scale );
 }
@@ -38,7 +38,7 @@ double NC::ElIncXS::evaluate(double ekin) const
   const double kkk = 16 * kPiSq * ekin2wlsqinv(1.0);
   double e = kkk*ekin;
   double xs = 0.0;
-  std::vector<std::pair<double,double> >::const_iterator it(m_elm_data.begin()), itE(m_elm_data.end());
+  std::vector<PairDD >::const_iterator it(m_elm_data.begin()), itE(m_elm_data.end());
   for (;it!=itE;++it)
     xs += it->second * eval_1mexpmtdivt(it->first * e);
   return xs;
@@ -75,13 +75,11 @@ double NC::ElIncXS::evaluateMonoAtomic(double ekin, double meanSqDisp, double bo
   return bound_incoh_xs * eval_1mexpmtdivt(kkk * meanSqDisp * ekin);
 }
 
-NC::ElIncXS::ElIncXS()
-{
-}
+NC::ElIncXS::~ElIncXS() = default;
 
-void NC::ElIncXS::set( const std::vector<double>& elm_msd,
-                       const std::vector<double>& elm_bixs,
-                       const std::vector<double>& elm_scale )
+void NC::ElIncXS::set( const VectD& elm_msd,
+                       const VectD& elm_bixs,
+                       const VectD& elm_scale )
 {
   //sanity check element data:
   nc_assert_always(elm_msd.size()==elm_bixs.size());
@@ -95,12 +93,12 @@ void NC::ElIncXS::set( const std::vector<double>& elm_msd,
   //init:
   {
     //release old memory:
-    std::vector<std::pair<double,double> >().swap(m_elm_data);
+    std::vector<PairDD >().swap(m_elm_data);
   }
 
   m_elm_data.reserve(elm_bixs.size());
   for (std::size_t i = 0; i < elm_msd.size(); ++i) {
-    m_elm_data.push_back(std::pair<double,double>(elm_msd[i],elm_bixs[i]*elm_scale[i]));
+    m_elm_data.push_back(PairDD(elm_msd[i],elm_bixs[i]*elm_scale[i]));
   }
 }
 
@@ -112,8 +110,8 @@ double NC::ElIncXS::sampleMuMonoAtomic( RandomBase * rng, double ekin, double me
   double a = twoksq * meanSqDisp;
   //Must sample mu in [-1,1] according to exp(a*mu). This can either happen with
   //the rejection method which is always numerically stable but slow unless a is
-  //tiny, or with the rejection method which is potentially numerically unstable
-  //for tiny a.
+  //tiny, or with the transformation method which is potentially numerically
+  //unstable for tiny a.
 
   if (a<0.01) {
     //Rejection method:
@@ -155,7 +153,7 @@ double NC::ElIncXS::sampleMu( RandomBase * rng, double ekin )
   //avoiding a hard-coded limit on number of elements).
   double cache_stack[8];
   double * cache = &cache_stack[0];
-  std::vector<double> cache_heap;
+  VectD cache_heap;
   if ( nelem > sizeof(cache_stack)/sizeof(*cache_stack) ) {
     cache_heap.resize(nelem,0.);
     cache = &cache_heap[0];
@@ -167,7 +165,7 @@ double NC::ElIncXS::sampleMu( RandomBase * rng, double ekin )
   const double kkk = 16 * kPiSq * ekin2wlsqinv(1.0);
   double e = kkk*ekin;
   double xs = 0.0;
-  std::vector<std::pair<double,double> >::const_iterator it(m_elm_data.begin()), itE(m_elm_data.end());
+  std::vector<PairDD >::const_iterator it(m_elm_data.begin()), itE(m_elm_data.end());
   double * itXS = cache;
   for (;it!=itE;++it,++itXS)
     xs += (*itXS = it->second * eval_1mexpmtdivt(it->first * e));

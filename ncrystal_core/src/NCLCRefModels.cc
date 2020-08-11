@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -68,7 +68,7 @@ void NC::LCBraggRef::generateScattering( double ekin,
   Vector lccross = m_lcaxislab.cross(indir);
   double lcdot = m_lcaxislab.dot(indir);
 
-  std::vector<double> xs;
+  VectD xs;
   std::vector<PhiRot> pr;
   xs.reserve(m_nsample);
   pr.reserve(m_nsample);

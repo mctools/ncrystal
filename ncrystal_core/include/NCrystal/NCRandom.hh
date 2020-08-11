@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -32,7 +32,7 @@ namespace NCrystal {
   NCRYSTAL_API void setDefaultRandomGenerator(RandomBase*);
 
   //Returns the global default random generator. If setDefaultRandomGenerator
-  //was never called, this will trigger the creation of a RandomKISS generator
+  //was never called, this will trigger the creation of a RandXRSR generator
   //(see below) as the default unless trigger_default=false:
 
   NCRYSTAL_API RandomBase * defaultRandomGenerator(bool trigger_default = true);

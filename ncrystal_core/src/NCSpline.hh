@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -23,22 +23,17 @@
 
 #include "NCrystal/NCDefs.hh"
 #include "NCMath.hh"
-#include <vector>
-#include <utility>//std::pair and (from c++11) std::swap
-#if __cplusplus < 201103L
-#  include <algorithm>//std::swap (pre-c++11)
-#endif
 
 namespace NCrystal {
 
   class CubicSpline {
   public:
     CubicSpline();//default constructed instance is invalid until ::set() is called.
-    CubicSpline( const std::vector<double>& y,
+    CubicSpline( const VectD& y,
                  double derivative_y_left = 0.0,
                  double derivative_y_right = 0.0 );
     ~CubicSpline();
-    void set( const std::vector<double>& y,
+    void set( const VectD& y,
               double derivative_y_left = 0.0,
               double derivative_y_right = 0.0 );
     double evalWithAssert(double x) const;
@@ -47,7 +42,7 @@ namespace NCrystal {
   private:
     friend class SplinedLookupTable;
     std::size_t m_nm2;
-    std::vector<std::pair<double,double> > m_data;
+    std::vector<PairDD > m_data;
   };
 
   class SplinedLookupTable {
@@ -60,12 +55,12 @@ namespace NCrystal {
     //about the spline will be created (supposedly for later inspection by
     //NCrystal developers). Avoid spaces and special characters in name.
 
-    SplinedLookupTable( const std::vector<double>& fvals,double a,double b,double fprime_a, double fprime_b,
+    SplinedLookupTable( const VectD& fvals,double a,double b,double fprime_a, double fprime_b,
                         const std::string& name="", const std::string& description="" );
     SplinedLookupTable( const Fct1D* thefct,double a,double b,double fprime_a, double fprime_b,unsigned npts = 1000,
                         const std::string& name="", const std::string& description="" );
     ~SplinedLookupTable();
-    void set( const std::vector<double>& fvals,double a,double b,double fprime_a, double fprime_b,
+    void set( const VectD& fvals,double a,double b,double fprime_a, double fprime_b,
               const std::string& name="", const std::string& description="" );
     void set( const Fct1D* thefct,double a,double b,double fprime_a, double fprime_b,unsigned npts = 1000,
               const std::string& name="", const std::string& description="" );
@@ -93,7 +88,7 @@ namespace NCrystal {
 ////////////////////////////
 
 inline NCrystal::CubicSpline::CubicSpline() : m_nm2(0) {}
-inline NCrystal::CubicSpline::CubicSpline( const std::vector<double>& y, double ypa, double ypb ) { set(y,ypa,ypb); }
+inline NCrystal::CubicSpline::CubicSpline( const VectD& y, double ypa, double ypb ) { set(y,ypa,ypb); }
 inline NCrystal::CubicSpline::~CubicSpline(){}
 inline double NCrystal::CubicSpline::evalWithAssert(double x) const {
   nc_assert(x>=0.0&&x<=m_nm2+1);
@@ -105,7 +100,7 @@ inline double NCrystal::CubicSpline::evalUnbounded(double x) const {
   double b = x-idx;//fraction inside bin
   double a = 1.0-b;
   nc_assert(idx+1<m_data.size());
-  std::vector<std::pair<double,double> >::const_iterator it = m_data.begin()+idx;
+  std::vector<PairDD >::const_iterator it = m_data.begin()+idx;
   double tmp = a * (it->first);
   double tmp2 = (a*a*a-a) * (it->second);
   ++it;
@@ -116,7 +111,7 @@ inline double NCrystal::CubicSpline::evalUnbounded(double x) const {
 
 
 inline NCrystal::SplinedLookupTable::SplinedLookupTable() : m_a(0), m_invdelta(0), m_b(0) {}
-inline NCrystal::SplinedLookupTable::SplinedLookupTable( const std::vector<double>& fvals,
+inline NCrystal::SplinedLookupTable::SplinedLookupTable( const VectD& fvals,
                                                          double a,double b,
                                                          double fprime_a, double fprime_b,
                                                          const std::string& name,

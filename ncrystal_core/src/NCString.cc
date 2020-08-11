@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,7 +21,6 @@
 #include "NCString.hh"
 #include "NCrystal/NCDefs.hh"
 #include <cstring>
-#include <limits>
 #include <istream>
 
 bool NCrystal::isSimpleASCII(const std::string& input, bool allow_tab, bool allow_newline)
@@ -184,7 +183,7 @@ double NCrystal::str2dbl(const std::string& s,const char * errmsg)
         std::string tmp(s);
         trim(tmp);
         if (tmp=="inf"||tmp=="INF")
-          return std::numeric_limits<double>::infinity();
+          return kInfinity;
         //TODO for NC2: Should we add support for "nan"/"infinity"?
       }
     }
@@ -210,17 +209,6 @@ int NCrystal::str2int(const std::string& s,const char * errmsg)
   if (!ok||ss.fail()||!ss.eof())
     NCRYSTAL_THROW2(BadInput,(errmsg?errmsg:"Invalid number in string is not an integer")<<": \""<<s<<"\"");
   return val;
-}
-
-std::ifstream& NCrystal::ignoreCharNTimes(std::ifstream& file, unsigned num, const char& c)
-{
-  //TODO for NC2: we probably don't really want this function, since it is very
-  //accepting of errors in input rather than defensively sanitising (if
-  //removing, also remove #include <istream>)
-  for(unsigned i=0; i < num ; ++i){
-    file.ignore(std::numeric_limits<std::streamsize>::max(),c);
-  }
-  return file;
 }
 
 bool NCrystal::contains_only(const std::string& haystack, const std::string& needles)

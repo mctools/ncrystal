@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,11 +21,10 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+#include "NCrystal/NCDefs.hh"
 #include "NCGaussMos.hh"
 #include "NCVector.hh"
-#include <vector>
 #include <cstring>
-#include <stdint.h>//cstdint hdr only in C++11
 
 namespace NCrystal {
 
@@ -244,7 +243,7 @@ namespace NCrystal {
       double m_c3;//<-- dot(indir,lcaxis). Actually dediscretized m_signature.second.
       double m_s3;//sqrt(1-m_c3*m_c3)
       std::vector<LCROI> m_roilist;
-      std::vector<double> m_roixs_commul;//for selecting
+      VectD m_roixs_commul;//for selecting
       std::vector<Overlay> m_roi_overlays;//for selecting
     };
   };

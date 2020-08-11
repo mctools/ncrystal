@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,11 +21,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <string>
-#include <vector>
-#include <fstream>
-
 //Utilities
+
+#include "NCrystal/NCDefs.hh"
 
 namespace NCrystal {
 
@@ -63,8 +61,6 @@ namespace NCrystal {
   //be thrown (provide err to modify the message in that exception):
   double str2dbl(const std::string&, const char * errmsg = 0);
   int str2int(const std::string&, const char * errmsg = 0);
-
-  std::ifstream& ignoreCharNTimes(std::ifstream& file, unsigned num, const char& c='\n');
 
 }
 

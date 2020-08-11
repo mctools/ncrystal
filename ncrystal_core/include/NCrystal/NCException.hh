@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -69,8 +69,8 @@ namespace NCrystal {
 
 #define NCRYSTAL_ADD_ERROR_TYPE(ErrType)                                                               \
     struct NCRYSTAL_API ErrType : public Exception {                                                                \
-      explicit ErrType(const std::string& m, const char * f, unsigned l) throw() : Exception(m,f,l) {} \
-      explicit ErrType(const char * m,  const char * f, unsigned l) throw() : Exception(m,f,l) {}      \
+      explicit ErrType(const std::string& msg, const char * f, unsigned l) throw() : Exception(msg,f,l) {} \
+      explicit ErrType(const char * msg,  const char * f, unsigned l) throw() : Exception(msg,f,l) {}      \
       virtual const char * getTypeName() const throw() { return #ErrType; }                            \
       virtual ~ErrType() throw();                                                                      \
     }
@@ -125,4 +125,5 @@ namespace NCrystal {
 #  define nc_assert2(x) do { (void)sizeof(x); } while(0)//use but dont evaluate x
 #endif
 
+#define nc_not_implemented do { NCRYSTAL_THROW(LogicError, "NotImplemented") } while(0)
 #endif

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -23,7 +23,6 @@
 
 #include "NCGaussOnSphere.hh"
 #include "NCVector.hh"
-#include <vector>
 
 namespace NCrystal {
 
@@ -101,7 +100,7 @@ namespace NCrystal {
                               const Vector& neutron_indir,
                               const std::vector<Vector>& deminormals,
                               std::vector<ScatCache>& cache,
-                              std::vector<double>& xs_commul ) const;
+                              VectD& xs_commul ) const;
 
     //Scatterings can only be generated once appropriate info has been found via
     //previous calls to cross-section methods, and with relevant info embedded

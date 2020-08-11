@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -68,7 +68,8 @@ G4VParticleChange* G4NCrystal::ProcWrapper::PostStepDoIt(const G4Track& trk, con
 
   //Let the NCrystal::Scatter instance do its work!
 
-  double ekin_eV = ekin * (1.0/CLHEP::eV);//NCrystal unit is eV
+  constexpr double inv_eV = 1.0/CLHEP::eV;
+  double ekin_eV = ekin * inv_eV;//NCrystal unit is eV
   const G4ThreeVector& indir = trk.GetMomentumDirection();
   G4ThreeVector outdir;
   double delta_ekin_eV;
@@ -119,7 +120,7 @@ G4double G4NCrystal::ProcWrapper::GetMeanFreePath(const G4Track& trk, G4double p
 
   return xs
       ? 1.0 / ( trk.GetMaterial()->GetTotNbOfAtomsPerVolume() * xs )
-          : std::numeric_limits<double>::infinity() ;
+          : kInfinity ;
 }
 
 void G4NCrystal::ProcWrapper::BuildPhysicsTable(const G4ParticleDefinition&)

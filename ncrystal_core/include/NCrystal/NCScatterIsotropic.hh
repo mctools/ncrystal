@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -41,17 +41,17 @@ namespace NCrystal {
     ScatterIsotropic(const char * calculator_type_name);
 
     //These two methods must be overriden in all derived classes:
-    virtual double crossSectionNonOriented( double ekin ) const;
-    virtual void generateScatteringNonOriented( double ekin,
-                                                double& angle, double& delta_ekin ) const;
+    double crossSectionNonOriented( double ekin ) const override;
+    void generateScatteringNonOriented( double ekin,
+                                        double& angle, double& delta_ekin ) const override;
 
     //crossSection and generateScattering are here reimplemented in terms of
     //generateScatteringNonOriented and crossSectionNonOriented:
-    virtual double crossSection(double ekin, const double (&neutron_direction)[3] ) const;
-    virtual void generateScattering( double ekin, const double (&neutron_direction)[3],
-                                     double (&resulting_neutron_direction)[3], double& delta_ekin ) const;
+    double crossSection(double ekin, const double (&neutron_direction)[3] ) const override;
+    void generateScattering( double ekin, const double (&neutron_direction)[3],
+                             double (&resulting_neutron_direction)[3], double& delta_ekin ) const override;
 
-    virtual bool isOriented() const { return false; }
+    bool isOriented() const override { return false; }
 
   protected:
     virtual ~ScatterIsotropic();

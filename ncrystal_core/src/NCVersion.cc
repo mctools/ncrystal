@@ -1,11 +1,8 @@
-#ifndef NCrystal_File_hh
-#define NCrystal_File_hh
-
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,20 +18,10 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <string>
+#include "NCrystal/NCVersion.hh"
 
-namespace NCrystal {
-
-  //Check if file exists and is readable:
-  bool file_exists ( const std::string& filename );
-
-  //Search for the file. If filename does not exist relative to the current
-  //working directory, is not an absolute path to the file, first look
-  //relatively to the directory NCRYSTAL_DATADIR and secondly relatively to a
-  //directory (if any) given at compilation time by the preprocessor define
-  //-DNCRYSTAL_DATADIR=/some/dir. Returns empty string if not found:
-  std::string find_file( const std::string& filename );
-
+int NCrystal::getVersion()
+{
+  return NCRYSTAL_VERSION;
 }
 
-#endif

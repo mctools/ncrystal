@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -18,12 +18,15 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCFile.hh"
+#include "NCrystal/NCFile.hh"
 
 #include <fstream>
 #include <cstdlib>
+namespace NC = NCrystal;
 
 namespace NCrystal {
+
+  static UniquePtr<TextInputManager> s_textInputMgr;
 
   std::string path_join(const std::string p1, const std::string p2)
   {
@@ -32,16 +35,16 @@ namespace NCrystal {
 #else
     return p1+'/'+p2;
 #endif
-
   }
 }
-bool NCrystal::file_exists(const std::string& name) {
+
+bool NC::file_exists(const std::string& name) {
   //Only portable way in C++98 is to attempt to open the file.
   std::ifstream f(name.c_str());
   return f.good();
 }
 
-std::string NCrystal::find_file(const std::string& filename) {
+std::string NC::find_file(const std::string& filename) {
 
   if (filename.empty())
     return std::string();
@@ -73,4 +76,156 @@ std::string NCrystal::find_file(const std::string& filename) {
 
   //not found.
   return std::string();
+}
+
+namespace NCrystal {
+  TextInputStream::TextInputStream(const std::string& description)
+    : m_descr(description)
+  {
+  }
+
+  class FileTextInputStream : public TextInputStream {
+  public:
+
+    virtual ~FileTextInputStream(){}
+
+    FileTextInputStream(const std::string& filename)
+      : TextInputStream(filename),
+        m_file(filename)
+    {
+      if (!m_file.good())
+        NCRYSTAL_THROW2(FileNotFound,"Failure while trying to open file "<<filename);
+      tryReadNext();
+    }
+
+    virtual bool getLine(std::string& line) {
+      if (!moreLines()) {
+        line.clear();
+        return false;
+      }
+      line = std::move(m_nextLine);
+      tryReadNext();
+      return true;
+    }
+
+    virtual bool moreLines() const
+    {
+      return !m_nextLine.empty() || m_file.is_open();
+    }
+
+    virtual const char * streamType() const
+    {
+      return "file";
+    }
+
+  private:
+    void tryReadNext() {
+      if (m_file.is_open()) {
+        if (!std::getline(m_file,m_nextLine)) {
+          m_file.close();
+          m_nextLine.clear();
+        }
+      } else {
+        m_nextLine.clear();
+      }
+    }
+    std::fstream m_file;
+    std::string m_nextLine;
+  };
+
+  class MemBufTextInputStream : public TextInputStream {
+  public:
+
+    virtual ~MemBufTextInputStream(){}
+
+    MemBufTextInputStream(const std::string& buffername,
+                          const std::string& buffer)
+      : TextInputStream(buffername),
+        m_stream(buffer),
+        m_more(true)
+    {
+      tryReadNext();
+    }
+
+    virtual bool getLine(std::string& line) {
+      if (!m_more) {
+        line.clear();
+        return false;
+      }
+      line = std::move(m_nextLine);
+      tryReadNext();
+      return true;
+    }
+
+    virtual bool moreLines() const
+    {
+      return m_more;
+    }
+
+    virtual const char * streamType() const
+    {
+      return "memory-buffer";
+    }
+
+  private:
+    void tryReadNext() {
+      if (m_more && std::getline(m_stream,m_nextLine))
+        return;
+      m_more = false;
+      m_nextLine.clear();
+    }
+    std::stringstream m_stream;
+    std::string m_nextLine;
+    bool m_more;
+  };
+
+}
+
+void NC::createTextInputStream( const std::string& sourcename,
+                                NC::UniquePtr<NC::TextInputStream>& streamptr )
+{
+  streamptr.set(0);
+
+  TextInputManager * mgr = s_textInputMgr.obj();
+  if (mgr) {
+    mgr->createTextInputStream( sourcename, streamptr );
+    if (streamptr.obj())
+      return;
+    if (!mgr->allowFallbackToUsualDefaults())
+      NCRYSTAL_THROW2(FileNotFound,"Could not find input corresponding to name: "<<sourcename);
+  }
+
+  //For now only support on-disk sources, where sourcename are the filenames:
+  std::string resolved_name = find_file(sourcename);
+  if (resolved_name.empty())
+    NCRYSTAL_THROW2(FileNotFound,"Could not find input file: "<<sourcename);
+  createTextInputStreamFromFile(resolved_name,streamptr);
+}
+
+void NC::createTextInputStreamFromBuffer( const std::string& buffername,
+                                          const std::string& buffer,
+                                          NC::UniquePtr<NC::TextInputStream>& streamptr )
+{
+  streamptr.set(0);
+  streamptr.set(static_cast<TextInputStream*>(new MemBufTextInputStream(buffername,buffer)));
+}
+
+void NC::createTextInputStreamFromFile( const std::string& filepath,
+                                        NC::UniquePtr<NC::TextInputStream>& streamptr )
+{
+  streamptr.set(0);
+  streamptr.set(static_cast<TextInputStream*>(new FileTextInputStream(filepath)));
+}
+
+NC::TextInputManager::TextInputManager()
+{
+}
+
+NC::TextInputManager::~TextInputManager()
+{
+}
+
+void NC::registerTextInputManager( TextInputManager* mgr )
+{
+  s_textInputMgr.set(mgr);
 }

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,8 +22,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCDefs.hh"
-#include <vector>
-#include <utility>
 
 namespace NCrystal {
 
@@ -43,22 +41,22 @@ namespace NCrystal {
     //of elements (by count). E.g. for sapphire (Al2O3), Al should be added with
     //a scale of 0.4 and O with a fraction of 0.6.
 
-    ElIncXS( const std::vector<double>& elements_meanSqDisp,
-             const std::vector<double>& elements_boundincohxs,
-             const std::vector<double>& elements_scale );
+    ElIncXS( const VectD& elements_meanSqDisp,
+             const VectD& elements_boundincohxs,
+             const VectD& elements_scale );
 
     //Default constructor. Representing no elements added, so evaluate(..) will
     //always return 0.0. Usually this constructor is meant to be used with a
     //subsequent invocation of set(..):
-    ElIncXS();
+    ElIncXS() = default;
 
     //(re)initialise:
-    void set( const std::vector<double>& elements_meanSqDisp,
-              const std::vector<double>& elements_boundincohxs,
-              const std::vector<double>& elements_scale );
+    void set( const VectD& elements_meanSqDisp,
+              const VectD& elements_boundincohxs,
+              const VectD& elements_scale );
 
 
-    ~ElIncXS(){}
+    ~ElIncXS();
 
     //Empty if no elements added (evaluate() will always return zero).
     bool empty() const { return m_elm_data.empty(); }
@@ -75,9 +73,9 @@ namespace NCrystal {
     //
     // Theoretical background of implemented model:
     //
-    // As per the second equation in section 2.3 of arxiv 1901.08890 (equation
-    // #23), the per-atomic incoherent elastic cross section due to atoms of a
-    // given element is:
+    // As per the second equation in section 2.3 of
+    // https://doi.org/10.1016/j.cpc.2019.07.015 (equation #23), the per-atomic
+    // incoherent elastic cross section due to atoms of a given element is:
     //
     //    XS = sigma_inc/4pi * exp(-2*W)
     //
@@ -109,7 +107,7 @@ namespace NCrystal {
     ////////////////////////////////////////////////////////////////////////////////////
 
   private:
-    std::vector<std::pair<double,double> > m_elm_data;//for exact eval, (msd,boundincohxs*scale)
+    std::vector<PairDD > m_elm_data;//for exact eval, (msd,boundincohxs*scale)
     static double eval_1mexpmtdivt(double t);//safe/fast eval of (1-exp(-t))/t for t>=0.0 with >10 sign. digits
 
   };

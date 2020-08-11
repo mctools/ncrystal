@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -20,10 +20,8 @@
 
 #include "NCrystal/NCFactory.hh"
 #include "NCrystal/NCFactoryRegistry.hh"
-#include <map>
-#include <set>
 #include "NCrystal/NCInfo.hh"
-#include "NCrystal/NCScatter.hh"
+#include "NCrystal/NCScatterComp.hh"
 #include "NCrystal/NCAbsorption.hh"
 #include <iostream>
 #include <cstdlib>
@@ -118,6 +116,12 @@ const NCrystal::Info * NCrystal::createInfo( const NCrystal::MatCfg& cfg )
   if (s_debug_factory)
     std::cout<<"NCrystal::Factory::createInfo - createInfo( "<<cfg<<" ) called"<<std::endl;
 
+  static bool first = true;
+  if (first) {
+    registerCacheCleanupFunction( clearInfoCaches );
+    first = false;
+  }
+
   cfg.checkConsistency();
   FactoryList& facts = getFactories();//Access factories
   std::map<int,const FactoryBase*> avail;
@@ -188,19 +192,7 @@ const NCrystal::Info * NCrystal::createInfo( const NCrystal::MatCfg& cfg )
   //to ensure good caching + separation, we enforce dynamically that factories
   //only access a limited subset of the MatCfg parameters during calls to
   //createInfo:
-  static std::set<std::string> allowed_info_pars
-#if __cplusplus >= 201103L
-    = { "temp", "dcutoff", "dcutoffup", "overridefileext", "infofactory" };
-#else
-  ;
-  if (allowed_info_pars.empty()) {
-    allowed_info_pars.insert("temp");
-    allowed_info_pars.insert("dcutoff");
-    allowed_info_pars.insert("dcutoffup");
-    allowed_info_pars.insert("overridefileext");
-    allowed_info_pars.insert("infofactory");
-  }
-#endif
+  static std::set<std::string> allowed_info_pars = { "temp", "dcutoff", "dcutoffup", "overridefileext", "infofactory" };
   std::set<std::string>::const_iterator it = spy.parnames.begin();
   for (;it!=spy.parnames.end();++it) {
     if (!allowed_info_pars.count(*it))
@@ -212,8 +204,10 @@ const NCrystal::Info * NCrystal::createInfo( const NCrystal::MatCfg& cfg )
   if ( ! info.obj()->isLocked() )
     NCRYSTAL_THROW2(LogicError,"Factory \""<<chosen->getName()<<"\" did not lock created Info object");
 
-  if ( info.obj()->hasTemperature() && info.obj()->getTemperature() != cfg.get_temp() )
-    NCRYSTAL_THROW2(LogicError,"Factory \""<<chosen->getName()<<"\" did not set temp as required");
+  if ( cfg.get_temp()!=-1.0 ) {
+    if ( !info.obj()->hasTemperature() || info.obj()->getTemperature() != cfg.get_temp() )
+      NCRYSTAL_THROW2(LogicError,"Factory \""<<chosen->getName()<<"\" did not set temp as required");
+  }
 
   if (info.obj()->hasHKLInfo()) {
     if (cfg.get_dcutoff()==-1)
@@ -253,7 +247,7 @@ const NCrystal::Info * NCrystal::createInfo( const NCrystal::MatCfg& cfg )
   info.clear();
   o->unrefNoDelete();
   if (s_debug_factory)
-    std::cout<<"NCrystal::Factory::createInfo - createInfo was succesful"<<std::endl;
+    std::cout<<"NCrystal::Factory::createInfo - createInfo was successful"<<std::endl;
   return o;
 }
 
@@ -310,8 +304,21 @@ const NCrystal::Scatter * NCrystal::createScatter( const NCrystal::MatCfg& cfg )
     NCRYSTAL_THROW(BadInput,"Chosen factory could not service createScatter request");
   if (scatter->refCount()!=0)
     NCRYSTAL_THROW(BadInput,"Chosen factory returned object with non-zero reference count!");
-  if (s_debug_factory)
-    std::cout<<"NCrystal::Factory::createScatter - createScatter was succesful"<<std::endl;
+  if (s_debug_factory) {
+    const char * prefix = "NCrystal::Factory::createScatter::success ";
+    const ScatterComp * scatcomp = dynamic_cast<const ScatterComp*>(scatter);
+    std::cout<<prefix<<std::endl;
+    std::cout<<prefix<<" createScatter was successful and resulted in "<<scatter->getCalcName()<<" object";
+    if ( scatcomp ){
+      std::cout<<" with "<<scatcomp->nComponents()<<" components:"<<std::endl;
+      for (std::size_t i = 0; i < scatcomp->nComponents(); ++i )
+        std::cout<<prefix<<"     => "<<scatcomp->component(i)->getCalcName()<<" (with scale "<<scatcomp->scale(i)<<")"<<std::endl;
+    } else {
+      std::cout<<std::endl;
+    }
+    std::cout<<prefix<<std::endl;
+  }
+
   return scatter;
 }
 
@@ -371,6 +378,6 @@ const NCrystal::Absorption * NCrystal::createAbsorption( const NCrystal::MatCfg&
   if (absorption->refCount()!=0)
     NCRYSTAL_THROW(BadInput,"Chosen factory returned object with non-zero reference count!");
   if (s_debug_factory)
-    std::cout<<"NCrystal::Factory::createAbsorption - createAbsorption was succesful"<<std::endl;
+    std::cout<<"NCrystal::Factory::createAbsorption - createAbsorption was successful"<<std::endl;
   return absorption;
 }

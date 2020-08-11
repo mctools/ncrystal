@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,405 +22,64 @@
 #include "NCRotMatrix.hh"
 #include <sstream>
 #include <algorithm>
+#include <list>
 
-namespace NCrystal {
-  void evalY(double rand, double y, double& f_of_y, double& fprime_of_y)
-  {
-    // With a=sqrt(kT/m), the maxwell velocity distribution is:
-    //
-    //   f'(v) = sqrt(2/pi)/ * (1/a) * (v/a)^2 * exp[ - 0.5*(v/a)^2]
-    //
-    // And the commulative density function:
-    //
-    //   f(v) = erf[(v/a)*(1/sqrt(2))] - sqrt(2/pi) * (v/a) * exp[- 0.5*(v/a)^2]
-    //
-    // Making a variable change, y=v/a, we get (df/dv) / (1/a) = df/dy, and thus:
-    //
-    //   f'(y) = sqrt(2/pi)/ * y^2 * exp[ - 0.5*y^2]
-    //   f(y) = erf[y/sqrt(2)] - sqrt(2/pi) * y * exp[- 0.5*y^2]
-    const double y2 = y*y;
-    const double k = 0.79788456080286541 * exp( - 0.5 * y2 ) * y;// 0.79788... = sqrt(2/pi)
-    fprime_of_y =  k * y;
-    f_of_y = ncerf(0.70710678118654757*y) - k - rand;//0.707... = 1/sqrt(2)
-  }
-}
+namespace NC = NCrystal;
 
-double NCrystal::genThermalY(double rand)
+bool NC::nc_is_grid(span<const double> v)
 {
-  if (rand<=0.0)
-    return 0.0;
-  //First, bracket and estimate result using lookup table:
-  const double mwlookup_delta = 0.01;
-  const double mwlookup_maxr (1.0-1e-13);
-  const double mwlookup_maxres (7.97482162522363);
-  static const double mwlookup_table[] = {
-    0, 0.3388684138410028, 0.4299207124908707, 0.4950744476442889,
-    0.5478607658860285, 0.5931663491376359, 0.6333824737081255, 0.6698796170409779,
-    0.7035250967074413, 0.7349067919985254, 0.7644438332246415, 0.7924468910441906,
-    0.8191534750352306, 0.8447498018866729, 0.8693849737267244, 0.8931805216442653,
-    0.9162370345787935, 0.9386388886086633,  0.960457699785782, 0.9817548962985233,
-    1.002583668853801,   1.02299047305457,  1.043016203109471,   1.06269712050892,
-    1.08206559735863,  1.101150717679314,  1.119978768567496,   1.13857364502852,
-    1.156957186481244,  1.175149458698043,  1.193168991817706,  1.211032982734667,
-    1.228757468406866,  1.246357475282379,  1.263847149013001,   1.28123986782289,
-    1.298548342275297,  1.315784703688883,   1.33296058306604,  1.350087182014055,
-    1.367175337470917,   1.38423557982608,  1.401278187914843,  1.418313239178709,
-    1.435350657229599,  1.452400256951501,  1.469471787788336,  1.486574975746351,
-    1.503719564604272,  1.520915356800695,  1.538172254455052,  1.555500300975186,
-    1.572909723710827,  1.590410978128382,  1.608014794008489,  1.625732224204914,
-    1.643574696552397,  1.661554069573791,  1.679682692715337,  1.697973471935873,
-    1.716439941594798,   1.73509634372912,  1.753957715987648,  1.773039989707631,
-    1.792360099885219,  1.811936109117952,  1.831787348000512,  1.851934574954198,
-    1.872400159092117,  1.893208290500268,  1.914385223215159,  1.935959558060747,
-    1.957962571859416,  1.980428605961377,   2.00339552479314,   2.02690526064548,
-    2.051004468132225,  2.075745312458949,  2.101186428702039,  2.127394098201242,
-    2.15444370455286,  2.182421553645298,  2.211427173624066,   2.24157625625212,
-    2.273004468923244,  2.305872467704384,  2.340372599464152,  2.376738032044664,
-    2.41525545510403,  2.456283185097282,  2.500277710809408,  2.547833926268537,
-    2.599748568553671,   2.65712516969768,  2.721558385025618,  2.795483482915113,
-    2.882910146158972,  2.991201681411585,  3.136464460374558,  3.368214175143001 };
-
-  double xlow,xhigh,rts,f,df;
-
-  if (rand>=mwlookup_maxr) {
-    xlow = mwlookup_maxres-1.0e-13;
-    xhigh = 10*mwlookup_maxres;
-    evalY(rand,xhigh,f,df);
-    if (f<=0)
-      return xhigh;//we prefer not to return infinity, even when called with rand=1
-    rts = 0.5*(xlow+xhigh);
-  } else {
-    int ltidx = int(rand/mwlookup_delta);
-    const int nltm1 = sizeof(mwlookup_table)/sizeof(double)-1;
-    nc_assert(ltidx>=0);
-    if (ltidx<nltm1) {
-      xlow = mwlookup_table[ltidx];
-      xhigh = mwlookup_table[ltidx+1];
-      rts = xlow + (rand/mwlookup_delta-ltidx)*(xhigh-xlow);
-    } else {
-      xlow = mwlookup_table[nltm1];
-      xhigh = mwlookup_maxres;
-      rts = 0.5 * (xlow+xhigh);
-    }
-  }
-
-  //Push limits out slightly, to guard against rounding errors:
-  xlow -= 1.0e-9;
-  if (xlow<0)
-    xlow=0.0;
-  xhigh += 1.0e-9;
-  nc_assert(rts>xlow&&rts<xhigh);
-
-  //Now, apply Newton-Raphson root-finding to solve F(y)==rand for y
-  nc_assert(xhigh>xlow);
-  double dxold(ncabs(xhigh-xlow));
-  double dx(dxold), temp;
-  evalY(rand,rts,f,df);
-  for (int j=1;j<=100;++j) {
-    if ((((rts-xhigh)*df-f)*((rts-xlow)*df-f) >= 0.0) || (ncabs(2.0*f) > ncabs(dxold*df))) {
-      dxold=dx;
-      dx=0.5*(xhigh-xlow);
-      rts=xlow+dx;
-      if (xlow == rts)
-        return rts;
-    } else {
-      dxold=dx;
-      dx=f/df;
-      temp=rts;
-      rts -= dx;
-      if (temp == rts)
-        return rts;
-    }
-    if (ncabs(dx) < 1.0e-10 )
-      return rts;
-    evalY(rand,rts,f,df);
-    if (f < 0.0)
-      xlow=rts;
-    else
-      xhigh=rts;
-  }
-  NCRYSTAL_THROW(CalcError,"genThermalY: Max iterations exceeded");
-  return 1.0;
-}
-
-bool NCrystal::ncis_sorted(std::vector<double>::const_iterator itb, std::vector<double>::const_iterator ite)
-{
-#if __cplusplus >= 201103L
-  return std::is_sorted(itb,ite);
-#else
-  nc_assert_always(itb <= ite);
-  if ( itb==ite )
-    return true;
-  ++itb;
-  for(; itb != ite; ++itb )
-    if( *itb < *(itb-1) )
+  if ( v.empty() )
+    return false;
+  double last = v.front();
+  if ( ncisnan(last) || ncisinf(last) )
+    return false;
+  for ( auto e : span<const double>(std::next(v.begin()),v.end()) ) {
+    if ( !(e>last) || ncisnan(e) || ncisinf(e) )
       return false;
+    last = e;
+  }
   return true;
-#endif
 }
 
-double NCrystal::trapz(const std::vector<double> &y,const std::vector<double> &x)
-{
-  nc_assert( x.size()==y.size() );
-  double sum=0.;
-  for(unsigned i=1;i<x.size();i++) {
-    sum += (x[i]-x[i-1])*(y[i]+y[i-1])/2.;
-  }
-  return sum;
-}
-
-void NCrystal::flip(const std::vector<double> & arr, std::vector<double> & arr_dst, bool opposite_sign)
-{
-  arr_dst.resize(arr.size());
-  std::reverse_copy(arr.begin(),arr.end(),arr_dst.begin());
-
-  if(opposite_sign) {
-    std::vector<double>::iterator it(arr_dst.begin()), itE(arr_dst.end());
-    for (;it!=itE;++it)
-      *it = -(*it);
-  }
-}
-
-std::vector<double> NCrystal::logspace(double start, double stop, unsigned num)
-{
-  std::vector<double> vec(num) ;
-  double interval = (stop-start)/(num-1);
-  for(std::vector<double>::iterator it=vec.begin();it!=vec.end();++it)  {
-    *it =  pow(10,start);
-    start += interval;
-  }
-  return vec;
-}
-
-std::vector<double> NCrystal::linspace(double start, double stop, unsigned num)
+NC::VectD NC::logspace(double start, double stop, unsigned num)
 {
   nc_assert(num>1);
-  std::vector<double> vec(num) ;
+  nc_assert(stop>start);
+  VectD vec(num) ;
   double interval = (stop-start)/(num-1);
-  for(std::vector<double>::iterator it=vec.begin();it!=vec.end();++it)  {
-    *it =  start;
+  for(VectD::iterator it=vec.begin();it!=vec.end();++it)  {
+    *it = std::pow(10.0,start);
     start += interval;
   }
+  vec.back() = std::pow(10.0,stop);
   return vec;
 }
 
-void NCrystal::concatenate(std::vector<double> & arr,const std::vector<double> & arr_back, unsigned skip_pos)
+NC::VectD NC::geomspace(double start, double stop, unsigned num)
 {
-  arr.insert(arr.end(), arr_back.begin()+skip_pos, arr_back.end());
+  nc_assert(num>1);
+  nc_assert(stop>start);
+  auto v = logspace(std::log10(start),std::log10(stop),num);
+  v.front() = start;
+  v.back() = stop;
+  return v;
 }
 
-void NCrystal::gauleg_10_ord(const double x1, const double x2, std::vector<double>& x, std::vector<double>& w)
+NC::VectD NC::linspace(double start, double stop, unsigned num)
 {
-  static const double gau_legendre_x_10[] = { -9.73906528517171743431e-01,
-                                              -8.65063366688984536346e-01,
-                                              -6.79409568299024435589e-01,
-                                              -4.33395394129247157888e-01,
-                                              -1.48874338981631215706e-01,
-                                              1.48874338981631215706e-01,
-                                              4.33395394129247157888e-01,
-                                              6.79409568299024435589e-01,
-                                              8.65063366688984536346e-01,
-                                              9.73906528517171743431e-01 };
-
-  static const double gau_legendre_w_10[] = { 6.66713443086837109774e-02,
-                                              1.49451349150580531377e-01,
-                                              2.19086362515982180366e-01,
-                                              2.69266719309991742204e-01,
-                                              2.95524224714752925536e-01,
-                                              2.95524224714752925536e-01,
-                                              2.69266719309991742204e-01,
-                                              2.19086362515982180366e-01,
-                                              1.49451349150580531377e-01,
-                                              6.66713443086837109774e-02 };
-
-  nc_assert_always(x.size()==10 && w.size() == 10);
-
-  for(unsigned i=0;i<10;i++)
-    {
-      w[i] = gau_legendre_w_10[i]*((x2-x1)/2.);
-      x[i] = (gau_legendre_x_10[i]*(x2-x1) + (x2+x1)) /2.;
-    }
+  nc_assert(num>1);
+  nc_assert(stop>start);
+  VectD v;
+  v.reserve(num) ;
+  const double interval = (stop-start)/(num-1);
+  //Like this for highest numerical precision:
+  for (unsigned i = 0; i<num;++i)
+    v.push_back(start+i*interval);
+  v.back() = stop;
+  return v;
 }
 
-
-double NCrystal::gaulobatto_grid(const std::vector<double>& old_beta, std::vector<double>& grid, std::vector<double>& totwgt)
-{
-  grid=old_beta;
-  unsigned grid_size=grid.size();
-
-  std::vector<double> betavec;
-  betavec.reserve( grid.size()*10 );
-
-  totwgt.resize(0);
-  totwgt.reserve(grid.size()*10);
-
-  std::vector<double> x(10), w(10);
-  for(unsigned i=0;i<grid_size-1;i++)
-    {
-      gauloba_10_ord(grid[i], grid[i+1], x, w );
-      if(betavec.empty())
-        {
-          betavec.insert(betavec.end(), x.begin(), x.end());
-          totwgt.insert(totwgt.end(), w.begin(), w.end());
-        }
-      else
-        {
-          betavec.insert(betavec.end(), ++x.begin(), x.end());
-          *(--totwgt.end()) += *w.begin(); //the last edge is the same as the first one
-          totwgt.insert(totwgt.end(), ++w.begin(), w.end());
-        }
-    }
-
-  if(true) //reflect
-    {
-      std::vector<double> neg_beta;
-      flip(betavec,neg_beta,true);
-      concatenate(neg_beta,betavec,1);
-      std::swap(neg_beta,betavec);
-      grid=betavec;
-
-      totwgt[0]*=2;
-      std::vector<double> neg_w;
-      flip(totwgt,neg_w,false);
-      concatenate(neg_w,totwgt,1);
-      std::swap(neg_w,totwgt);
-    }
-
-  double bw =0.;
-  for(std::vector<double>::const_iterator it = totwgt.begin(); it!=totwgt.end();++it)
-    {
-      bw+=*it;
-    }
-  return bw;
-}
-
-double NCrystal::gaulobatto_grid( unsigned grid_size, double lower_limit, double upper_limit,
-                                  std::vector<double>& grid, std::vector<double>& totwgt)
-{
-
-  grid = logspace(log10(lower_limit),log10(upper_limit), grid_size-1);
-  grid.insert(grid.begin(),0.);
-
-  std::vector<double> betavec;
-  betavec.reserve( grid.size()*10 );
-
-  totwgt.resize(0);
-  totwgt.reserve(grid.size()*10);
-
-  std::vector<double> x(10), w(10);
-  for(unsigned i=0;i<grid_size-1;i++)
-    {
-      gauloba_10_ord(grid[i], grid[i+1], x, w );
-      if(betavec.empty())
-        {
-          betavec.insert(betavec.end(), x.begin(), x.end());
-          totwgt.insert(totwgt.end(), w.begin(), w.end());
-        }
-      else
-        {
-          betavec.insert(betavec.end(), ++x.begin(), x.end());
-          *(--totwgt.end()) += *w.begin(); //the last edge is the same as the first one
-          totwgt.insert(totwgt.end(), ++w.begin(), w.end());
-        }
-    }
-
-  if(true) //reflect
-    {
-      std::vector<double> neg_beta;
-      flip(betavec,neg_beta,true);
-      concatenate(neg_beta,betavec,1);
-      std::swap(neg_beta,betavec);
-      grid=betavec;
-
-      totwgt[0]*=2;
-      std::vector<double> neg_w;
-      flip(totwgt,neg_w,false);
-      concatenate(neg_w,totwgt,1);
-      std::swap(neg_w,totwgt);
-    }
-
-  double bw =0.;
-  for(std::vector<double>::const_iterator it = totwgt.begin(); it!=totwgt.end();++it)
-    {
-      bw += *it;
-    }
-  return bw;
-
-}
-
-void NCrystal::gauloba_10_ord(const double x1, const double x2, std::vector<double>& x, std::vector<double>& w)
-{
-  static const double gau_lobatto_x_10[] = { -1,
-                                             -0.919533908166458814,
-                                             -0.738773865105505075,
-                                             -0.477924949810444496,
-                                             -0.165278957666387025,
-                                             0.165278957666387025,
-                                             0.477924949810444496,
-                                             0.738773865105505075,
-                                             0.919533908166458814,
-                                             1 };
-
-  static const double gau_lobatto_w_10[] = { 0.0222222222222222222,
-                                             0.13330599085107011,
-                                             0.22488934206312645,
-                                             0.292042683679683758,
-                                             0.327539761183897457,
-                                             0.327539761183897457,
-                                             0.292042683679683758,
-                                             0.22488934206312645,
-                                             0.133305990851070111,
-                                             0.0222222222222222222 };
-
-  nc_assert_always(x.size()==10 && w.size() == 10);
-
-  for(unsigned i=0;i<10;i++)
-    {
-      w[i] = gau_lobatto_w_10[i]*((x2-x1)/2.);
-      x[i] = (gau_lobatto_x_10[i]*(x2-x1) + (x2+x1)) /2.;
-    }
-}
-
-double NCrystal::simpsons_irregular(const std::vector<double> &y, const std::vector<double> &x)
-{
-  nc_assert_always(x.size()==y.size());
-
-  double sum=0.;
-  double onethird = 1./3;
-  const int vecsize = x.size();
-
-  std::vector<double> matele (9.,0);
-
-  for(int i=0;i<vecsize-2;i+=2)
-    {
-      double x0 = x[i], x1=x[i+1], x2=x[i+2];
-      double xx0 = x0*x0, xx1 = x1*x1, xx2 = x2*x2;
-      matele[0]=xx0;
-      matele[1]=x0;
-      matele[2]=1.;
-
-      matele[3]=xx1;
-      matele[4]=x1;
-      matele[5]=1.;
-
-      matele[6]=xx2;
-      matele[7]=x2;
-      matele[8]=1.;
-
-      RotMatrix mat (matele);
-      Vector yvec (y[i],y[i+1],y[i+2]);
-      mat.inv();
-      Vector ceo = mat*yvec;
-      sum += ceo.x()*onethird*(xx2*x2-xx0*x0) +  ceo.y()*.5*(xx2-xx0) +  ceo.z()*(x2-x0);
-    }
-
-  if(!(vecsize%2))
-    sum += (y[vecsize-1]+y[vecsize-2])*.5*(x[vecsize-1]-x[vecsize-2]);
-
-  return sum;
-}
-
-bool NCrystal::isPrime(unsigned n) {
+bool NC::isPrime(unsigned n) {
   if (n>3) {
     if ( !(n%2) || !(n%3) )
       return false;//fast precheck for factors of 2 and 3
@@ -434,7 +93,7 @@ bool NCrystal::isPrime(unsigned n) {
 }
 
 
-void NCrystal::sincos_mpi2pi2(double A, double& cosA, double& sinA) {
+void NC::sincos_mpi2pi2(double A, double& cosA, double& sinA) {
   nc_assert(ncabs(A)<=kPiHalf);
   //Evaluate at A/2 via Taylor expansions and get final results via
   //double-angle formula.
@@ -462,7 +121,7 @@ void NCrystal::sincos_mpi2pi2(double A, double& cosA, double& sinA) {
   cosA = 1.0+k*(c2m1+2.0);
 }
 
-void NCrystal::sincos_mpi8pi8(double A, double& cosA, double& sinA) {
+void NC::sincos_mpi8pi8(double A, double& cosA, double& sinA) {
   nc_assert(ncabs(A)<=kPi*0.12500001);
   //Evaluate at A/2 via two 6 terms Taylor expansions and get final
   //results via double-angle formula.
@@ -488,7 +147,7 @@ void NCrystal::sincos_mpi8pi8(double A, double& cosA, double& sinA) {
 
 }
 
-double NCrystal::cos_mpipi(double A)
+double NC::cos_mpipi(double A)
 {
   //Use abs/min/copysign tricks to actually do the evaluation in [-pi/2,pi/2].
   double Aabs = ncabs(A);
@@ -509,10 +168,10 @@ double NCrystal::cos_mpipi(double A)
              + mx2 * ( 4.1103176233121648584779906184361403746103695e-19 // + x^20 / 20!
              + mx2 * ( 8.89679139245057328674889744250246834331248809e-22 // - x^22 / 22!
               )))))))))));
-  return nccopysign(c,kPiHalf-Aabs);
+  return std::copysign(c,kPiHalf-Aabs);
 }
 
-double NCrystal::cos_mpi2pi2(double x)
+double NC::cos_mpi2pi2(double x)
 {
   nc_assert(ncabs(x)<=kPiHalf);
   //Taylor expansion to 22nd order, precision better than 1.1e-16 over entire range
@@ -531,7 +190,7 @@ double NCrystal::cos_mpi2pi2(double x)
               )))))))))));
 }
 
-double NCrystal::cos_mpi8pi8(double x)
+double NC::cos_mpi8pi8(double x)
 {
   nc_assert(ncabs(x)<=0.125000000001*kPi);
   //Taylor expansion to 12th order, precision better than 3.3e-16 over entire range
@@ -545,7 +204,7 @@ double NCrystal::cos_mpi8pi8(double x)
               ))))));
 }
 
-double NCrystal::sin_mpipi(double A)
+double NC::sin_mpipi(double A)
 {
   //Use abs/min/copysign tricks to actually do the evaluation in [-pi/2,pi/2].
   double Aabs = ncabs(A);
@@ -564,10 +223,10 @@ double NCrystal::sin_mpipi(double A)
                 + mx2 * ( 2.81145725434552076319894558301032001623349274e-15 // + x^17 / 17!
                 + mx2 * ( 8.22063524662432971695598123687228074922073899e-18 // - x^19 / 19!
               ))))))))));
-  return nccopysign(s,A);
+  return std::copysign(s,A);
 }
 
-double NCrystal::sin_mpi2pi2(double x)
+double NC::sin_mpi2pi2(double x)
 {
   nc_assert(ncabs(x)<=kPiHalf);
   //Taylor expansion to 19th order, precision better than 6e-17 over entire range
@@ -584,7 +243,7 @@ double NCrystal::sin_mpi2pi2(double x)
               ))))))))));
 }
 
-double NCrystal::sin_mpi8pi8(double x)
+double NC::sin_mpi8pi8(double x)
 {
   nc_assert(ncabs(x)<=0.125000000001*kPi);
   //Taylor expansion to 13th order, precision better than 6e-17 over entire range
@@ -598,7 +257,7 @@ double NCrystal::sin_mpi8pi8(double x)
               )))))));
 }
 
-double NCrystal::estimateDerivative(const Fct1D* f, double x, double h, unsigned order)
+double NC::estimateDerivative(const Fct1D* f, double x, double h, unsigned order)
 {
   nc_assert(f);
   nc_assert(h>0);
@@ -609,7 +268,7 @@ double NCrystal::estimateDerivative(const Fct1D* f, double x, double h, unsigned
   return (-f->eval(x+h)+8*f->eval(x+0.5*h)-8*f->eval(x-0.5*h)+f->eval(x-h))/(6.0*h);
 }
 
-double NCrystal::estimateSingleSidedDerivative(const Fct1D* f, double x, double h, unsigned order)
+double NC::estimateSingleSidedDerivative(const Fct1D* f, double x, double h, unsigned order)
 {
   nc_assert(f);
   nc_assert(h!=0);
@@ -629,7 +288,7 @@ double NCrystal::estimateSingleSidedDerivative(const Fct1D* f, double x, double 
   }
 }
 
-double NCrystal::findRoot(const Fct1D*f,double a, double b, double acc)
+double NC::findRoot(const Fct1D*f,double a, double b, double acc)
 {
   //Basically a mix between a binary search (bisection) algorithm and a "false
   //position" algorithm, trying to get both the stability of binary search and
@@ -651,7 +310,9 @@ double NCrystal::findRoot(const Fct1D*f,double a, double b, double acc)
     //Our ad hoc combination here uses c from the false position method, but
     //constrained so that the next step will always split the interval at a
     //point which is at least 15% from the edges.
-    double c = (a*fb-b*fa)/(fb-fa);
+    double dfba = fb-fa;
+    nc_assert(dfba);
+    double c = (a*fb-b*fa)/dfba;
     if ( b-a<acc )
       return c;
     double k = 0.15*(b-a);
@@ -670,4 +331,196 @@ double NCrystal::findRoot(const Fct1D*f,double a, double b, double acc)
   NCRYSTAL_THROW(CalcError,"Root search failed to converge!");
 }
 
-NCrystal::Fct1D::~Fct1D(){}
+NC::Fct1D::~Fct1D(){}
+
+
+namespace NCrystal {
+  double erfcdiff_notaylor(double a, double b)
+  {
+    nc_assert(b>=a);
+    if (b<0) {
+      //both numbers are negative, more precise to evaluate with both numbers
+      //positive where erfc~=0 instead of erfc~=2:
+      //We use erfcdiff(a,b)=erfcdiff(-b,-a):
+      b=-b;
+      a=-a;
+      std::swap(a,b);
+      //NB: b>=a still holds now
+    }
+    //ok, b>a and at least one number is positive:
+    nc_assert( b>=a && b>=0 );
+    //evaluate (remembering std::erfc(x)=0 for x above ~27.3 or so:
+    const double erfca = a>27.3 ? 0.0 : std::erfc(a);
+    if ( b > a+4.0 && ( a>=4 || ( a < 0.0 && b > 6.0 ) ) ) {
+      //erfc(b) contribution negligible at double precision
+      return erfca;
+    }
+    const double erfcb = b>27.3 ? 0.0 : std::erfc(b);
+    return erfca - erfcb;
+  }
+}
+
+double NC::erfcdiff(double a, double b)
+{
+  if ( ncmax(ncabs(a),ncabs(b)) < 0.32 ) {
+    //Both arguments are small (which will happen in free gas scattering for
+    //neutrons at low energies). Evaluate via taylor expansions (important
+    //also for numerical stability since erfc(x)~=1+O(x) for tiny arguments,
+    //and the 1 cancels out in erfc(a)-erfc(b).
+    //
+    //Use expansion: erfc(x)-1 ~= c1*x+c3*x^3+...+c11*x^11+O(x^13)
+    //
+    constexpr double c1  = - 2.0 * kInvSqrtPi;
+    constexpr double c3  =   2.0 * kInvSqrtPi / 3.0;
+    constexpr double c5  = - 0.2 * kInvSqrtPi;
+    constexpr double c7  =   kInvSqrtPi / 21.0;
+    constexpr double c9  = - kInvSqrtPi / 108.0;
+    constexpr double c11 =   kInvSqrtPi / 660.0;
+    constexpr double c13 = - kInvSqrtPi / 4680.0;
+    constexpr double c15 =   kInvSqrtPi / 37800.0;
+    const double a2 = a*a;
+    const double b2 = b*b;
+    const double a3to11 = a * a2 * ( c3 + a2 * ( c5 + a2 * ( c7 + ( a2 * ( c9 + a2 * ( c11 + a2 * ( c13 + a2 * c15 ) ) ) ) ) ) );
+    const double b3to11 = b * b2 * ( c3 + b2 * ( c5 + b2 * ( c7 + ( b2 * ( c9 + b2 * ( c11 + b2 * ( c13 + b2 * c15 ) ) ) ) ) ) );
+    return c1*(a-b) + ( a3to11 - b3to11 );
+  }
+
+  //Use erfcdiff_notaylor, ordering arguments so b>=a.
+  return a>b ? -erfcdiff_notaylor(b,a) : erfcdiff_notaylor(a,b);
+}
+
+
+double NC::erfc_rescaled(double x, double b)
+{
+  //exp(b)*erfc(x), but faster and more precise.
+  nc_assert(x>=0.0);
+  if (b<-745.1)
+    return 0.0;//erfc <= 1, so exp(b) will always force strictly 0 here.
+  if ( ( x<23.0 && ncabs(b)<700 ) || x < 5 ) {
+    //standard functions provide full precision here (at least when |b|<700).
+    return std::exp(b)*std::erfc(x);
+  }
+  //large x, employ expansion and combine exp(b)*exp(-x^2)=exp(b-x^2). If the
+  //caller picked b appropriately, so |b-x^2|<700, this provides full precision.
+  const double bxx=b-x*x;
+  if (bxx<-745.1)
+    return 0.0;
+  const double c3  = -0.5         ;// = 1/2
+  const double c5  =  0.75        ;// = 3/4
+  const double c7  = -1.875       ;// = 15/8
+  const double c9  =  6.5625      ;// = 105/16
+  const double c11 = -29.53125    ;// = 945/32
+  //const double c13 = 162.421875 ;// = 10395/64
+  const double y = 1/x;
+  const double y2 = y*y;
+  return kInvSqrtPi*std::exp(bxx)*(y+y2*(c3+y2*(c5+y2*(c7+y2*(c9+y2*c11)))));
+}
+
+std::pair<NC::VectD,NC::VectD> NC::reducePtsInDistribution( const NC::VectD& x,
+                                                            const NC::VectD& y,
+                                                            std::size_t targetN )
+{
+  nc_assert_always(x.size()==y.size());
+  nc_assert_always(x.size()>=targetN);
+  nc_assert_always(targetN>=2);
+  if ( targetN >= x.size()  )
+    return { x, y };
+  const double ymax = *std::max_element(y.begin(),y.end());
+  nc_assert_always(ymax>0.0);
+  const double inv_ymax = 1.0/ymax;
+
+  //Put point-data (including caches of expensive std::log results) into
+  //doubly linked list:
+  struct PtData;
+  typedef std::multimap<double,std::list<PtData>::iterator> ImpMap_t;
+  struct PtData {
+    double x,y,lny;
+    ImpMap_t::iterator impMapIter;
+    PtData(double x_, double y_, double lny_, ImpMap_t::iterator it_)
+      :x(x_), y(y_), lny(lny_), impMapIter(it_) {}
+  };
+
+  std::list<PtData> pts;
+  ImpMap_t importanceMap;
+
+  for ( auto&& e: enumerate(x) ) {
+    double xval(e.val), yval(y.at(e.idx));
+    pts.emplace_back(xval, yval, std::log(std::max<double>(1e-20,yval*inv_ymax)), importanceMap.end() );
+  }
+
+  //Definition of importance score:
+  auto importanceCalc = [](const decltype(pts)::iterator it)
+                        {
+                          const auto& pt1 = *it;
+                          const auto& pt0 = *std::prev(it);//previous neighbour
+                          const auto& pt2 = *std::next(it);//next neighbour
+                          //Area of triangle with 3 points at the corners is
+                          //the area the curve integral will change if we
+                          //remove the point (x1,y1). Apart from a missing
+                          //factor of 0.5, the change in area is thus:
+                          double area_change = ncabs(pt0.x*(pt1.y-pt2.y)+pt1.x*(pt2.y-pt0.y)+pt2.x*(pt0.y-pt1.y));
+                          //To preserve also small features in the tails, we
+                          //find the equivalent change in the logy-curve, and
+                          //combine the two for the final importance (one can
+                          //change the power of each factor to change how much
+                          //focus should be on the features in tails and how
+                          //much focus should be on strong peaks):
+                          double logarea_change = ncabs(pt0.x*(pt1.lny-pt2.lny)+pt1.x*(pt2.lny-pt0.lny)+pt2.x*(pt0.lny-pt1.lny));
+                          return area_change * logarea_change * logarea_change;
+                        };
+
+  //We keep multimap of importance -> PtData-iterator. Once initialised, the
+  //first element corresponds to the least important remaining point on the
+  //curve. It can be removed while also updating the importance scores of its
+  //neighbours - repeat until done.
+  auto itLast = std::prev(pts.end());
+  for (auto it = std::next(pts.begin()); it!=itLast; ++it)
+    it->impMapIter = importanceMap.emplace(importanceCalc(it),it);
+
+  auto updateImportance = [&importanceMap,&importanceCalc](decltype(pts)::iterator it)
+                          {
+                            if (it->impMapIter == importanceMap.end())
+                              return;//first or last point, nothing to update
+                            importanceMap.erase(it->impMapIter);
+                            it->impMapIter = importanceMap.emplace(importanceCalc(it),it);
+                          };
+  while( pts.size() > targetN ) {
+    //Remove least important point and update importance scores of neighbours:
+    nc_assert(!importanceMap.empty());
+    auto impMapIter = importanceMap.begin();
+    auto itPt = impMapIter->second;
+    nc_assert(impMapIter==itPt->impMapIter);
+    //Remove point:
+    auto itPtN1 = std::prev(itPt);
+    auto itPtN2 = std::next(itPt);
+    pts.erase(itPt);
+    importanceMap.erase(impMapIter);
+    //Update neighbours:
+    nc_assert(itPtN2!=pts.end());
+    updateImportance(itPtN1);
+    updateImportance(itPtN2);
+  }
+  //Done, put in vectors and return:
+  VectD newx, newy;
+  newx.reserve(pts.size());
+  newy.reserve(pts.size());
+  for (auto& pt: pts) {
+    newx.emplace_back(pt.x);
+    newy.emplace_back(pt.y);
+  }
+  return { newx, newy };
+}
+
+NC::VectD::const_iterator NC::findClosestValInSortedVector(const NC::VectD& v, double value)
+{
+  nc_assert(!v.empty());
+  nc_assert(!ncisnan(value));
+  auto it = std::lower_bound(v.begin(),v.end(),value);
+  //it is the first element with *it >= value.
+  if (it == v.begin())
+    return it;
+  if (it == v.end())
+    return std::prev(v.end());
+  //either it or std::prev(it), depending on which is closer:
+  return ncabs(*it-value) < ncabs(*std::prev(it)-value) ? it : std::prev(it);
+}

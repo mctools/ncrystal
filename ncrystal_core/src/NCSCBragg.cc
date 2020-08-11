@@ -3,7 +3,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -28,8 +28,6 @@
 #include "NCOrientUtils.hh"
 #include "NCPlaneProvider.hh"
 #include <functional>//std::greater
-#include <map>
-#include <vector>
 namespace NC=NCrystal;
 
 //magic values:
@@ -99,7 +97,7 @@ struct NC::SCBragg::pimpl {
     Vector dir;
     //cache contents:
     double wl;
-    std::vector<double> xs_commul;
+    VectD xs_commul;
     std::vector<GaussMos::ScatCache> scatcache;
   };
 
@@ -115,7 +113,7 @@ struct NC::SCBragg::pimpl {
 NC::SCBragg::pimpl::pimpl(const NC::Info* cinfo, double mosaicity,
                           double dd, const SCOrientation& sco, PlaneProvider * plane_provider,
                           double prec, double ntrunc)
-  : m_threshold_ekin(std::numeric_limits<double>::infinity()),
+  : m_threshold_ekin(kInfinity),
     m_gm(mosaicity,true/*mos is FWHM*/,prec,ntrunc)
 {
   nc_assert_always(cinfo);
@@ -222,7 +220,7 @@ double NC::SCBragg::pimpl::setupFamilies( const NC::Info * cinfo,
     if ( it != planes.end() ) {
       it->second.push_back(demi_normal);
     } else {
-      std::pair<std::pair<double,double>,std::vector<Vector> > newentry;
+      std::pair<PairDD,std::vector<Vector> > newentry;
       newentry.first = key;
       newentry.second.push_back(demi_normal);
       planes.insert(it,newentry);
@@ -273,24 +271,18 @@ void NC::SCBragg::pimpl::updateCache(double ekin_raw, const NC::Vector& dir ) co
   //We check the cache validity on the rounded ekin value, but for simplicity we
   //keep the direction as it is. We could consider rounding the direction as
   //well...
-  double dot;
+  //NB: We used to check co-alignment of angles via a dot-product, but that is
+  //actually numerically imprecise for small angles, leading to occurances of
+  //cache validity where it should have been invalid.
   double ekin = SCBragg_cacheRound(ekin_raw);
-  if ( m_cache.ekin==ekin && (dot=dir.dot(m_cache.dir))>0 ) {
-    //ekin compatible and dot product is positive.
-    double dir_mag2 = dir.mag2();
-    if ( dot*dot > dir_mag2*( 1.0 - 1.0e-9 ) ) {//check that cos(angle[m_cache.dir,dir]) ~= 1
-      //cache already valid!
-      return;
-    }
-    //not valid!
-    m_cache.dir = dir;
-    if (dir_mag2!=1.0)
-      m_cache.dir *= 1.0/std::sqrt(dir_mag2);
-  } else {
-    //not valid!
-    m_cache.dir = dir;
-    m_cache.dir.normalise();
+  if ( m_cache.ekin==ekin && dir.angle_highres(m_cache.dir)<1.0e-12 ) {
+    //cache already valid!
+    return;
   }
+
+  //Cache not valid!
+  m_cache.dir = dir;
+  m_cache.dir.normalise();
 
   //Energy or direction is new, we must recalculate. Note that m_cache.dir was
   //normalised during the check above.
@@ -337,7 +329,7 @@ void NC::SCBragg::pimpl::genScat( const SCBragg* scb, NC::Vector& outdir ) const
 void NC::SCBragg::domain(double& ekin_low, double& ekin_high) const
 {
   ekin_low = m_pimpl->m_threshold_ekin;
-  ekin_high = infinity;
+  ekin_high = kInfinity;
 }
 
 double NC::SCBragg::crossSection(double ekin, const double (&indir)[3] ) const

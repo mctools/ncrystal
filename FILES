@@ -3,16 +3,17 @@
 
 NOTICE              : Important notice concerning attribution and licensing.
 README              : Brief instructions.
-LICENSE             : License conditions (except for code in ./ncrystal_extra/)
+LICENSE             : License conditions (except for the file NCSpan.hh and code
+                      in ./ncrystal_extra/)
 VERSION             : File containing the version of the distribution.
 CHANGELOG           : Release notes.
 INSTALL             : Build, installation and brief usage instructions.
 FILES               : This file.
 CMakeLists.txt......: Configuration file for building and installing via CMake
                       (cf. the INSTALL file for instructions).
-data/...............: Crystallographic data files, either in NCrystals native
-                      format (.ncmat) or in .nxs format (reading the latter needs
-                      the optional code from ./ncrystal_extra/ enabled).
+data/...............: Material data files, either in NCrystals native format
+                      (.ncmat) or in .nxs format (reading the latter needs the
+                      optional code from ./ncrystal_extra/ enabled).
 examples/...........: Small standalone examples for using NCrystal, either from
                       the commandline, C, C++ or python applications or through
                       Geant4 simulations in C++.
@@ -26,8 +27,9 @@ ncrystal_geant4/....: NCrystal-Geant4 interface classes, with public header
                       implementation in ncrystal_geant4/src/.
 ncrystal_mcstas/....: NCrystal-McStas interface files, with sample component
                       and a script to prepare a given McStas rundir for using it.
-ncrystal_python/....: NCrystal python module and python-based
-                      ncrystal_inspectfile script.
+ncrystal_python/....: NCrystal python module and python-based scripts, including
+                      the ncrystal_inspectfile script and tools for NCMAT file
+                      preparation.
 ncrystal_extra/.....: Contains optional code available under different licensing
                       conditions than the rest of NCrystal. Currently this just
                       includes a component for loading .nxs, .lau or .laz
@@ -35,4 +37,6 @@ ncrystal_extra/.....: Contains optional code available under different licensing
                       ncrystal_extra/ directory for usage conditions. Inclusion
                       of the optional components is controlled via the
                       BUILD_EXTRA flag when building via CMake.
+docs/...............: Extra documentation. Currently this is just ncmat_doc.md
+                      with a thorough description of the NCMAT format.
 

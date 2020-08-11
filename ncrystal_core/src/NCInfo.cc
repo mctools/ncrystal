@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,33 +22,28 @@
 #include "NCLatticeUtils.hh"
 #include "NCMath.hh"
 #include <algorithm>//for std::stable_sort
-#include <set>
 #include <cstring>//for memset, memcpy
+#include <cstdlib>
+namespace NC=NCrystal;
 
-NCrystal::Info::Info()
+NC::Info::Info()
   : m_hkl_dlower(-1.0),
     m_hkl_dupper(-2.0),
     m_density(-1.0),
+    m_numberdensity(-1.0),
     m_xsect_free(-1.0),
     m_xsect_absorption(-1.0),
     m_temp(-1.0),
     m_debyetemp(-1.0),
-    m_xsectprovider(0),
     m_lock(false)
 {
-  static uint64_t next_unique_id = 1;//safe to assume uint64_t never overflows
-  m_uniqueid = next_unique_id++;
   std::memset(&m_structinfo,0,sizeof(m_structinfo));
   m_structinfo.spacegroup = 999999;//unset
 }
 
-NCrystal::Info::~Info()
-{
-  delete m_xsectprovider;
-}
+NC::Info::~Info() = default;
 
-#if __cplusplus >= 201103L
-NCrystal::HKLInfo& NCrystal::HKLInfo::operator=(NCrystal::HKLInfo &&o)
+NC::HKLInfo& NC::HKLInfo::operator=(NC::HKLInfo &&o)
 {
   if (&o==this) {
     //guard against self-move-assignment (seen on GCC4.4.7 during sort
@@ -68,14 +63,14 @@ NCrystal::HKLInfo& NCrystal::HKLInfo::operator=(NCrystal::HKLInfo &&o)
   std::swap(eqv_hkl,o.eqv_hkl);
   return *this;
 }
-NCrystal::HKLInfo::HKLInfo(const NCrystal::HKLInfo &&o)
+
+NC::HKLInfo::HKLInfo(const NC::HKLInfo &&o)
   : eqv_hkl(0)
 {
   *this = o;
 }
-#endif
 
-NCrystal::HKLInfo& NCrystal::HKLInfo::operator=(const NCrystal::HKLInfo &o)
+NC::HKLInfo& NC::HKLInfo::operator=(const NC::HKLInfo &o)
 {
   if (&o==this) {
     //guard against self-assignment (seen on GCC4.4.7 during sort
@@ -102,7 +97,7 @@ NCrystal::HKLInfo& NCrystal::HKLInfo::operator=(const NCrystal::HKLInfo &o)
 }
 
 namespace NCrystal {
-  bool dhkl_compare( const NCrystal::HKLInfo& rh, const NCrystal::HKLInfo& lh )
+  bool dhkl_compare( const NC::HKLInfo& rh, const NC::HKLInfo& lh )
   {
     if( ncabs(lh.dspacing-rh.dspacing) > 1.0e-6 )
       return lh.dspacing < rh.dspacing;
@@ -116,7 +111,7 @@ namespace NCrystal {
       return rh.k < lh.k;
     return rh.l < lh.l;
   }
-  bool atominfo_compare( const NCrystal::AtomInfo& rh, const NCrystal::AtomInfo& lh )
+  bool atominfo_compare( const NC::AtomInfo& rh, const NC::AtomInfo& lh )
   {
     if(rh.atomic_number == lh.atomic_number)
       NCRYSTAL_THROW(LogicError,"Invalid AtomInfo: Same Z encountered more than once in list.");
@@ -124,19 +119,19 @@ namespace NCrystal {
       return rh.atomic_number < lh.atomic_number;
     return rh.number_per_unit_cell < lh.number_per_unit_cell;
   }
-  bool atominfo_pos_compare( const NCrystal::AtomInfo::Pos& rh, const NCrystal::AtomInfo::Pos& lh )
+  bool atominfo_pos_compare( const NC::AtomInfo::Pos& rh, const NC::AtomInfo::Pos& lh )
   {
     if (rh.x!=lh.x) return rh.x < lh.x;
     if (rh.y!=lh.y) return rh.y < lh.y;
     return rh.z < lh.z;
   }
-  bool atominfo_pos_compare_yfirst( const NCrystal::AtomInfo::Pos& rh, const NCrystal::AtomInfo::Pos& lh )
+  bool atominfo_pos_compare_yfirst( const NC::AtomInfo::Pos& rh, const NC::AtomInfo::Pos& lh )
   {
     if (rh.y!=lh.y) return rh.y < lh.y;
     if (rh.x!=lh.x) return rh.x < lh.x;
     return rh.z < lh.z;
   }
-  bool atominfo_pos_compare_zfirst( const NCrystal::AtomInfo::Pos& rh, const NCrystal::AtomInfo::Pos& lh )
+  bool atominfo_pos_compare_zfirst( const NC::AtomInfo::Pos& rh, const NC::AtomInfo::Pos& lh )
   {
     if (rh.z!=lh.z) return rh.z < lh.z;
     if (rh.y!=lh.y) return rh.y < lh.y;
@@ -164,7 +159,7 @@ namespace NCrystal {
   }
 }
 
-void NCrystal::Info::objectDone()
+void NC::Info::objectDone()
 {
   //TODO for NC2: Throw LogicErrors or BadInput here?
   ensureNoLock();
@@ -187,9 +182,13 @@ void NCrystal::Info::objectDone()
 
   unsigned ntotatoms_from_atominfo(0);
 
+  std::map<std::string,double> composition_fromatompos;
   AtomList::iterator itAtm(m_atomlist.begin()), itAtmE(m_atomlist.end());
   for (;itAtm!=itAtmE;++itAtm)
   {
+    if (itAtm->element_name.empty())
+      NCRYSTAL_THROW2(BadInput,"atominfo with Z="<<itAtm->atomic_number<<" missing name!");
+
     //Map all atom positions to interval [0,1) (e.g. 1.0 becomes 0.0, -0.3
     //becomes 0.7, etc.). However at most move 1.0:
     std::vector<AtomInfo::Pos>::iterator itPos(itAtm->positions.begin()), itPosE(itAtm->positions.end());
@@ -222,7 +221,15 @@ void NCrystal::Info::objectDone()
       NCRYSTAL_THROW(LogicError,"Inconsistency: mean_square_displacement specified for some but not all elements.");
     if (z_seen.count(itAtm->atomic_number))
       NCRYSTAL_THROW2(LogicError,"Inconsistency: AtomInfo for Z="<<itAtm->atomic_number<<" specified more than once");
+
+    if (composition_fromatompos.count(itAtm->element_name))
+      composition_fromatompos[itAtm->element_name] += itAtm->number_per_unit_cell;
+    else
+      composition_fromatompos[itAtm->element_name] = itAtm->number_per_unit_cell;
   }
+
+  for (auto& e: composition_fromatompos)
+    e.second /= ntotatoms_from_atominfo;
 
   //Ensure only one atom exists at a given position, within a tolerance. To make
   //sure this works we sort three times after x, y and z coordinates
@@ -312,8 +319,8 @@ void NCrystal::Info::objectDone()
     nc_assert_always(getTemperature()>0.0&&getTemperature()<1e6);
   }
 
-  if (hasDebyeTemperature()) {
-    nc_assert_always(getDebyeTemperature()>0.0&&getDebyeTemperature()<1e6);
+  if (hasGlobalDebyeTemperature()) {
+    nc_assert_always(getGlobalDebyeTemperature()>0.0&&getGlobalDebyeTemperature()<1e6);
   }
 
   if (hasHKLInfo()) {
@@ -324,10 +331,90 @@ void NCrystal::Info::objectDone()
 
   if ( hasDensity() ) {
     nc_assert_always(m_density>0.0);
+    //NB: If we knew masses, we could check consistency with atominfo and number density!
+  }
+  if ( hasNumberDensity() ) {
+    nc_assert_always(m_numberdensity>0.0);
+  }
+
+  if (hasDynamicInfo()) {
+    if ( !hasTemperature() )
+      NCRYSTAL_THROW(BadInput,"temperature info is required whenever dynamic info is supplied");
+
+    //Check consistency of temperature fields:
+    for (auto& di : getDynamicInfoList()) {
+      if ( di->temperature() != this->getTemperature() )
+        NCRYSTAL_THROW(BadInput,"temperature info on DynamicInfo (DI_VDOS) object"
+                       " is different than temperature on owning Info object!");
+
+      //NB: for DI_ScatKnlDirect we can't validate temperature field on SABData
+      //object here, since it is built on-demand. However, we do it above in
+      //the ensureBuildThenReturnSAB() method.
+
+      auto di_vdos = dynamic_cast<const DI_VDOS*>(di.get());
+      if ( di_vdos && di_vdos->vdosData().temperature() != di_vdos->temperature() )
+        NCRYSTAL_THROW(BadInput,"temperature info on VDOSData object provided by DI_VDOS object"
+                       " is different than temperature on DI_VDOS object itself!");
+
+      auto di_vdosdebye = dynamic_cast<const DI_VDOSDebye*>(di.get());
+      if ( di_vdosdebye ) {
+        if ( !hasAnyDebyeTemperature() )
+          NCRYSTAL_THROW(BadInput,"DI_VDOSDebye added to Info object without Debye temperatures!");
+        if ( di_vdosdebye->debyeTemperature() != getDebyeTemperatureByElementName(di_vdosdebye->elementName()) )
+          NCRYSTAL_THROW(BadInput,"Debye temperature on DI_VDOSDebye object different than the one provided on the owning Info object!");
+      }
+    }
+  }
+
+  if ( !isCrystalline() and !hasDynamicInfo() )
+    NCRYSTAL_THROW(BadInput,"Non-crystalline materials must have dynamic info present.");
+
+  std::map<std::string,double> composition_fromdyninfo;
+  if (hasDynamicInfo()) {
+    for (auto& di : getDynamicInfoList()) {
+      if (composition_fromdyninfo.count(di->elementName()))
+        NCRYSTAL_THROW2(BadInput,"Multiple dynamic info section for element "<<di->elementName());
+      composition_fromdyninfo[ di->elementName() ] = di->fraction();
+    }
+  }
+
+  if (!hasComposition() && !composition_fromdyninfo.empty())
+    setComposition(std::move(composition_fromdyninfo));
+  if (!hasComposition() && !composition_fromatompos.empty())
+    setComposition(std::move(composition_fromatompos));
+  if ( hasComposition() ) {
+    double ftot(0.0);
+    for (auto e : getComposition()) {
+      ftot += e.second;
+      if ( e.second<=0 || e.second>1.0)
+        NCRYSTAL_THROW2(BadInput,"invalid composition fraction for element "<<e.first<<": "<<e.second);
+    }
+    if (ftot >= 1.000000001 || ftot<0.999999999)
+      NCRYSTAL_THROW(BadInput,"invalid composition : fractions do not sum to unity");
+    //Check consistency with other sources:
+    auto checkComposition = []( const std::map<std::string,double>& comp1,
+                                const std::map<std::string,double>& comp2,
+                                std::string name2 )
+                            {
+                              if (comp2.empty())
+                                return;
+                              if (comp1.size()!=comp2.size())
+                                NCRYSTAL_THROW2(BadInput,"incompatible compositions specified in "<<name2<<" (different number of elements)");
+                              for (auto e : comp1) {
+                                if (!comp2.count(e.first))
+                                  NCRYSTAL_THROW2(BadInput,"incompatible compositions specified in "<<name2<<" (elements "<<e.first<<" not present everywhere)");
+                                if (!floateq(e.second,comp2.at(e.first)))
+                                  NCRYSTAL_THROW2(BadInput,"incompatible compositions specified in "<<name2<<" (fraction of element "<<e.first<<" not consistent)");
+                              }
+                            };
+    checkComposition(getComposition(),composition_fromdyninfo,"DynInfo");
+    checkComposition(getComposition(),composition_fromatompos,"Atomic Positions");
   }
 }
 
-void NCrystal::Info::enableHKLInfo(double dlower, double dupper)
+
+
+void NC::Info::enableHKLInfo(double dlower, double dupper)
 {
   ensureNoLock();
   m_hkl_dlower = dlower;
@@ -335,13 +422,13 @@ void NCrystal::Info::enableHKLInfo(double dlower, double dupper)
   nc_assert_always(hasHKLInfo());
 }
 
-void NCrystal::Info::ensureNoLock()
+void NC::Info::ensureNoLock()
 {
   if (m_lock)
     NCRYSTAL_THROW(LogicError,"Modification of Info object after it is locked is forbidden");
 }
 
-NCrystal::HKLList::const_iterator NCrystal::Info::searchExpandedHKL(short h, short k, short l) const
+NC::HKLList::const_iterator NC::Info::searchExpandedHKL(short h, short k, short l) const
 {
   nc_assert_always(hasHKLInfo());
   nc_assert_always(hasExpandedHKLInfo());
@@ -366,28 +453,77 @@ NCrystal::HKLList::const_iterator NCrystal::Info::searchExpandedHKL(short h, sho
 //added initialisation time is likely negligible.
 
 
-double NCrystal::Info::hklDMinVal() const
+double NC::Info::hklDMinVal() const
 {
   nc_assert(hasHKLInfo());
   if (m_hkllist.empty())
-    return kInf;
+    return kInfinity;
   return hklLast()->dspacing;
 }
 
-double NCrystal::Info::hklDMaxVal() const
+double NC::Info::hklDMaxVal() const
 {
   nc_assert(hasHKLInfo());
   if (m_hkllist.empty())
-    return kInf;
+    return kInfinity;
   return hklBegin()->dspacing;
 }
 
-double NCrystal::Info::dspacingFromHKL( int h, int k, int l ) const
+double NC::Info::dspacingFromHKL( int h, int k, int l ) const
 {
   if (!hasStructureInfo())
     NCRYSTAL_THROW(MissingInfo,"Info object lacks Structure information.");
   const StructureInfo & si = getStructureInfo();
   RotMatrix rec_lat = getReciprocalLatticeRot( si.lattice_a, si.lattice_b, si.lattice_c,
                                                si.alpha*kDeg, si.beta*kDeg, si.gamma*kDeg );
-  return NCrystal::dspacingFromHKL( h,k,l, rec_lat );
+  return NC::dspacingFromHKL( h,k,l, rec_lat );
 }
+
+
+NC::DynamicInfo::DynamicInfo(double fr, const std::string& en, double tt)
+  : m_fraction(fr),
+    m_elementName(en),
+    m_temperature(tt)
+{
+}
+
+bool NC::DI_ScatKnlDirect::hasBuiltSAB() const
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  return !! m_sabdata;
+}
+
+std::shared_ptr<const NC::SABData> NC::DI_ScatKnlDirect::ensureBuildThenReturnSAB() const
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  if ( ! m_sabdata ) {
+    m_sabdata = buildSAB();
+    nc_assert_always( !! m_sabdata );
+    if ( m_sabdata->temperature() != this->temperature() )
+        NCRYSTAL_THROW(BadInput,"temperature info on SABData object provided by DI_ScatKnlDirect object"
+                       " is different than temperature on DI_ScatKnlDirect object itself!");
+  }
+  return m_sabdata;
+}
+
+double NC::Info::getDebyeTemperatureByElementName(const std::string& elementName) const
+{
+  nc_assert_always( hasAnyDebyeTemperature() );
+  if ( hasGlobalDebyeTemperature() )
+    return getGlobalDebyeTemperature();
+  for ( const auto& atom : m_atomlist) {
+    if ( atom.element_name == elementName && atom.debye_temp > 0 )
+      return atom.debye_temp;
+  }
+  nc_assert_always(false);
+}
+
+
+NC::DynamicInfo::~DynamicInfo() = default;//virtual destructors must be implemented despite being abstract!
+NC::DI_Sterile::~DI_Sterile() = default;
+NC::DI_FreeGas::~DI_FreeGas() = default;
+NC::DI_ScatKnl::~DI_ScatKnl() = default;
+NC::DI_ScatKnlDirect::~DI_ScatKnlDirect() = default;
+NC::DI_VDOS::~DI_VDOS() = default;
+NC::DI_VDOSDebye::~DI_VDOSDebye() = default;
+

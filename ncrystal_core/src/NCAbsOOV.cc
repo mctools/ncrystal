@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -41,10 +41,10 @@ NCrystal::AbsOOV::~AbsOOV()
 
 double NCrystal::AbsOOV::crossSection(double ekin, const double (&)[3] ) const
 {
-  return ekin ? m_c / std::sqrt(ekin) : std::numeric_limits<double>::infinity();
+  return ekin ? m_c / std::sqrt(ekin) : kInfinity;
 }
 
 double NCrystal::AbsOOV::crossSectionNonOriented( double ekin ) const
 {
-  return ekin ? m_c / std::sqrt(ekin) : std::numeric_limits<double>::infinity();
+  return ekin ? m_c / std::sqrt(ekin) : kInfinity;
 }

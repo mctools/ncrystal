@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -31,6 +31,10 @@
 #include "G4RegionStore.hh"
 #include "G4Region.hh"
 #include "globals.hh"
+
+#ifdef G4MULTITHREADED
+#  include "G4MTRunManager.hh"
+#endif
 
 namespace G4NCrystal {
   class ProcWrapper;
@@ -68,6 +72,19 @@ namespace G4NCrystal {
         return;
       }
     }
+
+
+#ifdef G4MULTITHREADED
+    if (dynamic_cast<G4MTRunManager*>(G4RunManager::GetRunManager())) {
+      G4cout<<G4endl;
+      G4cout<<G4endl;
+      G4cout<<G4endl;
+      G4cout<<"G4NCrystal WARNING :: Detected usage of G4MTRunManager - but NCrystal code is not currently supporting multi-threaded mode!!"<<G4endl;
+      G4cout<<G4endl;
+      G4cout<<G4endl;
+      G4cout<<G4endl;
+    }
+#endif
 
     G4ProcessManager* pmanager = G4Neutron::Neutron()->GetProcessManager();
     if (!pmanager) {

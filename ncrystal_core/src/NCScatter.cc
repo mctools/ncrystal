@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -63,7 +63,7 @@ double NCrystal::NullScatter::crossSectionNonOriented( double ) const
 
 void NCrystal::NullScatter::domain(double& ekin_low, double& ekin_high) const
 {
-  ekin_low = ekin_high = infinity;
+  ekin_low = ekin_high = kInfinity;
 }
 
 void NCrystal::NullScatter::generateScattering( double, const double (&in)[3], double (&out)[3], double& de ) const

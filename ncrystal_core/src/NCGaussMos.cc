@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -127,7 +127,7 @@ double NC::GaussMos::calcRawCrossSectionValueInit(InteractionPars& ip, double co
 
   if (ip.m_Qprime) {
     nc_assert(ip.m_Qprime==-2);
-    return kInf;//Q=inf, W factor irrelevant (assuming called within truncation radius)
+    return kInfinity;//Q=inf, W factor irrelevant (assuming called within truncation radius)
   } else {
     return 0.0;//Q=0, W factor irrelevant
   }
@@ -137,7 +137,7 @@ double NC::GaussMos::calcCrossSections( InteractionPars& ip,
                                         const NC::Vector& indir,
                                         const std::vector<NC::Vector>& deminormals,
                                         std::vector<NC::GaussMos::ScatCache>& cache,
-                                        std::vector<double>& xs_commul ) const
+                                        VectD& xs_commul ) const
 {
   nc_assert(ip.isValid()&&ip.m_wl>0);
   nc_assert(indir.isUnitVector());

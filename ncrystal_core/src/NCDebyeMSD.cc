@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -70,4 +70,10 @@ double NCrystal::calcDebyeMSDShape( double x )
     return 0.25;
   DebyeMSDShapeIntegral integral;
   return 0.25 + x * x * integral.integrate( 0.0, 1.0 / x );
+}
+
+double NCrystal::debyeTempFromIsotropicMSD(double msd, double temperature, double atomic_mass)
+{
+  return findRoot2([msd,temperature,atomic_mass](double dt){ return debyeIsotropicMSD(dt,temperature,atomic_mass)-msd;},
+                   0.1,0.999e5,1e-7);
 }

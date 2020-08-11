@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -23,13 +23,13 @@
 #include <algorithm>
 #include <cstdio>
 
-NCrystal::PointwiseDist::PointwiseDist(const std::vector<double> &xvals, const std::vector<double> &yvals, double iw)
+NCrystal::PointwiseDist::PointwiseDist(const VectD &xvals, const VectD &yvals, double iw)
   : m_x(xvals), m_y(yvals), m_iweight(iw)
 {
   if(m_x.size()!=m_y.size() || m_y.size()<2 )
     NCRYSTAL_THROW(CalcError, "input vector size error.");
 
-  if(!ncis_sorted(m_x.begin(),m_x.end()))
+  if(!std::is_sorted(m_x.begin(),m_x.end()))
     NCRYSTAL_THROW(CalcError, "points of the distribution are not sorted.");
 
   for(std::size_t i=0;i<m_y.size();i++)
@@ -69,13 +69,14 @@ NCrystal::PointwiseDist::~PointwiseDist()
 {
 }
 
-double NCrystal::PointwiseDist::percentile(double p ) const
+std::pair<double,unsigned> NCrystal::PointwiseDist::percentileWithIndex(double p ) const
 {
   nc_assert(p>=0.&&p<=1.0);
   if(p==1.)
-    return m_x.back();
+    return std::pair<double,unsigned>(m_x.back(), m_x.size()-2);
 
   std::size_t i = std::max<std::size_t>(std::min<std::size_t>(std::lower_bound(m_cdf.begin(), m_cdf.end(), p)-m_cdf.begin(),m_cdf.size()-1),1);
+  nc_assert( i>0 && i < m_x.size() );
   double dx = m_x[i]-m_x[i-1];
   double c = (p-m_cdf[i-1]);
   double a = m_y[i-1];
@@ -93,7 +94,7 @@ double NCrystal::PointwiseDist::percentile(double p ) const
       zdx = ( 1 + 0.5 * e * ( e - 1.0 ) ) * c / a;
     }
   }
-  return ncclamp(m_x[i-1] + zdx,m_x[i-1],m_x[i]);
+  return std::pair<double,unsigned>( ncclamp(m_x[i-1] + zdx,m_x[i-1],m_x[i]), i-1 );
 }
 
 void NCrystal::PointwiseDist::setIntegralWeight(double iw)
@@ -111,7 +112,7 @@ NCrystal::PointwiseDist& NCrystal::PointwiseDist::operator+=(const NCrystal::Poi
     if(this->m_x[i]!=right.m_x[i])
       NCRYSTAL_THROW(CalcError,"Can not add distributions with different grid values.");
   }
-  
+
   double totweight =  this->m_iweight + right.m_iweight;
   double ratiothis = this->m_iweight /totweight;
   double ratioright = right.m_iweight /totweight;

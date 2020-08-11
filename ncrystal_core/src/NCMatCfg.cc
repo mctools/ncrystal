@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,17 +22,15 @@
 #include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCSCOrientation.hh"
 #include "NCString.hh"
-#include "NCFile.hh"
+#include "NCrystal/NCFile.hh"
 #include "NCMath.hh"
 #include "NCVector.hh"
 #include <sstream>
 #include <iomanip>
 #include <cassert>
-#include <limits>
 #include <fstream>
 #include <algorithm>
 #include <cstring>
-#include <map>
 
 struct NCrystal::MatCfg::Impl : public NCrystal::RCBase {
   Impl() : RCBase() {
@@ -49,7 +47,7 @@ struct NCrystal::MatCfg::Impl : public NCrystal::RCBase {
     }
 #endif
   }
-  //forbidden:
+  //clone:
   Impl( const Impl& o ) : RCBase() {
     //Make sure o.m_spies is empty! Otherwise it would either (if spies *are
     //not* transferred) be possible to cheat the spy by first causing cow() and
@@ -92,13 +90,14 @@ struct NCrystal::MatCfg::Impl : public NCrystal::RCBase {
   //with parnames and partypes further down the file!
   enum PARAMETERS { PAR_FIRST = 0,
                     PAR_absnfactory = 0,
-                    PAR_bkgd,
-                    PAR_bragg,
+                    PAR_coh_elas,
                     PAR_dcutoff,
                     PAR_dcutoffup,
                     PAR_dir1,
                     PAR_dir2,
                     PAR_dirtol,
+                    PAR_incoh_elas,
+                    PAR_inelas,
                     PAR_infofactory,
                     PAR_lcaxis,
                     PAR_lcmode,
@@ -109,6 +108,7 @@ struct NCrystal::MatCfg::Impl : public NCrystal::RCBase {
                     PAR_scatfactory,
                     PAR_sccutoff,
                     PAR_temp,
+                    PAR_vdoslux,
                     PAR_NMAX };
 
   enum VALTYPE { VALTYPE_DBL, VALTYPE_BOOL, VALTYPE_INT, VALTYPE_STR, VALTYPE_ORIENTDIR, VALTYPE_VECTOR };
@@ -450,7 +450,7 @@ struct NCrystal::MatCfg::Impl : public NCrystal::RCBase {
     return it-itB;
   }
 
-  void setValByStr( const std::string& name, const std::string& value )
+  void setValByStr( std::string name, const std::string& value )
   {
 #ifndef NDEBUG
     static bool first = true;
@@ -460,6 +460,27 @@ struct NCrystal::MatCfg::Impl : public NCrystal::RCBase {
       nc_assert(strNameToParIdx(parnames[PAR_NMAX-1])==PAR_NMAX-1);
     }
 #endif
+    //Handle pseudo-parameters (special aliases and backwards compat.):
+    if (name=="bragg") {
+      name="coh_elas";
+    } else if (name=="elas") {
+      ValBool tmp;
+      tmp.set_from_strrep(value);
+      setVal<Impl::ValBool>(Impl::PAR_coh_elas,tmp.value);
+      setVal<Impl::ValBool>(Impl::PAR_incoh_elas,tmp.value);
+      return;
+    } else if (name=="bkgd") {
+      if ( value=="none" || value == "0" ) {
+        setVal<Impl::ValBool>(Impl::PAR_incoh_elas,false);
+        setVal<Impl::ValStr>(Impl::PAR_inelas,"none");
+        return;
+      } else {
+        NCRYSTAL_THROW(BadInput,"The \"bkgd\" parameter is obsolete and is available for backwards compatibility "
+                       "only with the values \"0\" or \"none\". For control of inelastic or incoherent-elastic "
+                       "scattering, one must now instead use the parameters \"incoh_elas\" and \"inelas\".");
+      }
+    }
+
     int paridx = strNameToParIdx(name);
 
     if ( value.empty() && partypes[paridx] != VALTYPE_STR )//only string parameters can construct from empty strings
@@ -592,19 +613,21 @@ private:
 namespace NCrystal {
   //Need fallback string values here so we can return references to them:
   static const std::string s_matcfg_str_empty = std::string();
-  static const std::string s_matcfg_str_best = std::string("best");
+  static const std::string s_matcfg_str_auto = std::string("auto");
+  static const std::string s_matcfg_str_none = std::string("none");
 
   //Important!: Keep the following two lists ordered (parnames sorted
   //alphabetically) and synchronised between themselves as well as the
   //PARAMETERS enum earlier in the file!
   std::string MatCfg::Impl::parnames[PAR_NMAX] = { "absnfactory",
-                                                   "bkgd",
-                                                   "bragg",
+                                                   "coh_elas",
                                                    "dcutoff",
                                                    "dcutoffup",
                                                    "dir1",
                                                    "dir2",
                                                    "dirtol",
+                                                   "incoh_elas",
+                                                   "inelas",
                                                    "infofactory",
                                                    "lcaxis",
                                                    "lcmode",
@@ -614,15 +637,17 @@ namespace NCrystal {
                                                    "packfact",
                                                    "scatfactory",
                                                    "sccutoff",
-                                                   "temp" };
+                                                   "temp",
+                                                   "vdoslux" };
   MatCfg::Impl::VALTYPE MatCfg::Impl::partypes[PAR_NMAX] = { VALTYPE_STR,
-                                                             VALTYPE_STR,
                                                              VALTYPE_BOOL,
                                                              VALTYPE_DBL,
                                                              VALTYPE_DBL,
                                                              VALTYPE_ORIENTDIR,
                                                              VALTYPE_ORIENTDIR,
                                                              VALTYPE_DBL,
+                                                             VALTYPE_BOOL,
+                                                             VALTYPE_STR,
                                                              VALTYPE_STR,
                                                              VALTYPE_VECTOR,
                                                              VALTYPE_INT,
@@ -632,7 +657,8 @@ namespace NCrystal {
                                                              VALTYPE_DBL,
                                                              VALTYPE_STR,
                                                              VALTYPE_DBL,
-                                                             VALTYPE_DBL };
+                                                             VALTYPE_DBL,
+                                                             VALTYPE_INT };
   struct MatCfg::Impl::SpyDisabler {
     //swaps spies with empty list (disabling spying) and swaps back in destructor
     SpyDisabler(std::vector<AccessSpy*>& spies)
@@ -732,8 +758,8 @@ void NCrystal::MatCfg::checkConsistency() const
   const double parval_packfact = get_packfact();
   const double parval_dirtol = get_dirtol();
   const double parval_sccutoff = get_sccutoff();
-  if (parval_temp<0.0||parval_temp>1e5)
-    NCRYSTAL_THROW(BadInput,"temp must be in range (0.0,1e5]");
+  if ( parval_temp!=-1.0 && (parval_temp<0.0||parval_temp>1e5) )
+    NCRYSTAL_THROW(BadInput,"temp must be -1.0 or in the range (0.0,1e5]");
   if (parval_dcutoff!=-1) {
     if (parval_dcutoff<0.0)
       NCRYSTAL_THROW(BadInput,"dcutoff must be -1.0 or >=0.0");
@@ -752,15 +778,10 @@ void NCrystal::MatCfg::checkConsistency() const
   if ( ! (valueInInterval(0.9999e-7,0.10000001,parval_mosprec) || valueInInterval(1.0,10000.0,parval_mosprec)) )
     NCRYSTAL_THROW(BadInput,"mosprec must either be in the range [1e-7,1e-1] or in the range [1,10000].");
 
-  //bkgd:
-  std::string parval_bkgd = get_bkgd();
-  std::string parval_bkgd_name = get_bkgd_name();
-  if (parval_bkgd_name.empty()||!contains_only(parval_bkgd_name,"abcdefghijklmnopqrstuvwxyz_0123456789"))
-    NCRYSTAL_THROW2(BadInput,"invalid bkgd name specified: \""<<parval_bkgd_name<<"\"");
-  if ((parval_bkgd_name==s_matcfg_str_best||parval_bkgd_name=="none")&&contains(parval_bkgd,':'))
-    NCRYSTAL_THROW2(BadInput,"bkgd options not allowed when using a bkgd mode of \""<<parval_bkgd_name<<"\"")
-  std::map<std::string,std::string> opts2val;
-  Impl::decodeopts(parval_bkgd, opts2val);//decode to trigger any BadInput errors here
+  //inelas:
+  std::string parval_inelas = get_inelas();
+  if (parval_inelas.empty()||!contains_only(parval_inelas,"abcdefghijklmnopqrstuvwxyz_0123456789"))
+    NCRYSTAL_THROW2(BadInput,"invalid inelas name specified: \""<<parval_inelas<<"\"");
 
   //infofactory:
   std::string parval_infofactory = get_infofactory();
@@ -769,8 +790,8 @@ void NCrystal::MatCfg::checkConsistency() const
     NCRYSTAL_THROW2(BadInput,"invalid infofactory name specified: \""<<parval_infofact_name<<"\"");
   if (parval_infofact_name.empty()&&contains(parval_infofactory,':'))
     NCRYSTAL_THROW2(BadInput,"infofactory options not allowed when not specifying specific factory");
+  std::map<std::string,std::string> opts2val;
   Impl::decodeopts(parval_infofactory, opts2val);//decode to trigger any BadInput errors here
-
 
   //Now check the 4 SC parameters, only 1 of which has a code fallback value:
   int nOrient = (m_impl->hasPar(Impl::PAR_dir1)?1:0)
@@ -831,6 +852,13 @@ void NCrystal::MatCfg::checkConsistency() const
     if (!mag)
       NCRYSTAL_THROW(BadInput, "Null vector or too small values specified in lcaxis vector");
   }
+
+  const int parval_vdoslux = get_vdoslux();
+  if ( parval_vdoslux < 0 || parval_vdoslux > 5 ) {
+    NCRYSTAL_THROW2(BadInput, "Specified invalid vdoslux value of "
+                    <<parval_vdoslux<<" (must be integer from 0 to 5)");
+  }
+
 }
 
 void NCrystal::MatCfg::getCacheSignature(std::string& out, const std::set<std::string>& pns) const
@@ -1119,14 +1147,19 @@ NCrystal::MatCfg& NCrystal::MatCfg::operator=(const MatCfg& o)
   return *this;
 }
 
-//Move version for c++11:
-// NCrystal::MatCfg& NCrystal::MatCfg::operator=(const MatCfg&& o)
-// {
-//   if (m_impl)
-//     m_impl->unref();
-//   m_impl = 0;
-//   std::swap(m_impl,o.m_impl);
-// }
+NCrystal::MatCfg& NCrystal::MatCfg::operator=(MatCfg&& o)
+{
+  if (m_impl)
+    m_impl->unref();
+  m_impl = 0;
+  std::swap(m_impl,o.m_impl);
+  return *this;
+}
+NCrystal::MatCfg::MatCfg(MatCfg&& o)
+  : m_impl(0)
+{
+  std::swap(m_impl,o.m_impl);
+}
 
 void NCrystal::MatCfg::dump( std::ostream& out, bool add_endl ) const
 {
@@ -1157,16 +1190,22 @@ const std::string& NCrystal::MatCfg::getDataFileExtension() const
   return s.empty() ? m_impl->m_datafileext : s;
 }
 
-double NCrystal::MatCfg::get_temp() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_temp,293.15); }
+double NCrystal::MatCfg::get_temp() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_temp,-1.0); }
 double NCrystal::MatCfg::get_dcutoff() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_dcutoff,0.0); }
-double NCrystal::MatCfg::get_dcutoffup() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_dcutoffup,std::numeric_limits<double>::infinity()); }
+double NCrystal::MatCfg::get_dcutoffup() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_dcutoffup,kInfinity); }
 double NCrystal::MatCfg::get_packfact() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_packfact,1.0); }
 double NCrystal::MatCfg::get_mos() const { return m_impl->getValNoFallback<Impl::ValDbl>(Impl::PAR_mos); }
 double NCrystal::MatCfg::get_mosprec() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_mosprec,1e-3); }
 double NCrystal::MatCfg::get_sccutoff() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_sccutoff,0.4); }
 double NCrystal::MatCfg::get_dirtol() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_dirtol,1e-4); }
-bool NCrystal::MatCfg::get_bragg() const { return m_impl->getVal<Impl::ValBool>(Impl::PAR_bragg,true); }
-const std::string& NCrystal::MatCfg::get_bkgd() const { return m_impl->getVal<Impl::ValStr>(Impl::PAR_bkgd,s_matcfg_str_best); }
+bool NCrystal::MatCfg::get_coh_elas() const { return m_impl->getVal<Impl::ValBool>(Impl::PAR_coh_elas,true); }
+bool NCrystal::MatCfg::get_incoh_elas() const { return m_impl->getVal<Impl::ValBool>(Impl::PAR_incoh_elas,true); }
+const std::string& NCrystal::MatCfg::get_inelas() const {
+  const std::string& ss = m_impl->getVal<Impl::ValStr>(Impl::PAR_inelas,s_matcfg_str_auto);
+  if (isOneOf(ss,"none","0","sterile","false"))
+    return s_matcfg_str_none;
+  return ss;
+ }
 const std::string& NCrystal::MatCfg::get_overridefileext() const { return m_impl->getVal<Impl::ValStr>(Impl::PAR_overridefileext,s_matcfg_str_empty); }
 const std::string& NCrystal::MatCfg::get_infofactory() const { return m_impl->getVal<Impl::ValStr>(Impl::PAR_infofactory,s_matcfg_str_empty); }
 const std::string& NCrystal::MatCfg::get_scatfactory() const { return m_impl->getVal<Impl::ValStr>(Impl::PAR_scatfactory,s_matcfg_str_empty); }
@@ -1179,14 +1218,17 @@ void NCrystal::MatCfg::set_mos( double v ) { cow(); m_impl->setVal<Impl::ValDbl>
 void NCrystal::MatCfg::set_mosprec( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_mosprec,v); }
 void NCrystal::MatCfg::set_sccutoff( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_sccutoff,v); }
 void NCrystal::MatCfg::set_dirtol( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_dirtol,v); }
-void NCrystal::MatCfg::set_bragg( bool v ) { cow(); m_impl->setVal<Impl::ValBool>(Impl::PAR_bragg,v); }
-void NCrystal::MatCfg::set_bkgd( const std::string& v ) { cow(); m_impl->setVal<Impl::ValStr>(Impl::PAR_bkgd,v); }
+void NCrystal::MatCfg::set_coh_elas( bool v ) { cow(); m_impl->setVal<Impl::ValBool>(Impl::PAR_coh_elas,v); }
+void NCrystal::MatCfg::set_incoh_elas( bool v ) { cow(); m_impl->setVal<Impl::ValBool>(Impl::PAR_incoh_elas,v); }
+void NCrystal::MatCfg::set_inelas( const std::string& v ) { cow(); m_impl->setVal<Impl::ValStr>(Impl::PAR_inelas,v); }
 void NCrystal::MatCfg::set_overridefileext( const std::string& v ) { cow(); m_impl->setVal<Impl::ValStr>(Impl::PAR_overridefileext,v); }
 void NCrystal::MatCfg::set_infofactory( const std::string& v ) { cow(); m_impl->setVal<Impl::ValStr>(Impl::PAR_infofactory,v); }
 void NCrystal::MatCfg::set_scatfactory( const std::string& v ) { cow(); m_impl->setVal<Impl::ValStr>(Impl::PAR_scatfactory,v); }
 void NCrystal::MatCfg::set_absnfactory( const std::string& v ) { cow(); m_impl->setVal<Impl::ValStr>(Impl::PAR_absnfactory,v); }
 void NCrystal::MatCfg::set_lcmode( int v ) { cow(); m_impl->setVal<Impl::ValInt>(Impl::PAR_lcmode,v); }
 int NCrystal::MatCfg::get_lcmode() const { return m_impl->getVal<Impl::ValInt>(Impl::PAR_lcmode,0); }
+void NCrystal::MatCfg::set_vdoslux( int v ) { cow(); m_impl->setVal<Impl::ValInt>(Impl::PAR_vdoslux,v); }
+int NCrystal::MatCfg::get_vdoslux() const { return m_impl->getVal<Impl::ValInt>(Impl::PAR_vdoslux,3); }
 bool NCrystal::MatCfg::isPolyCrystal() const { return !isSingleCrystal(); }
 
 bool NCrystal::MatCfg::hasAccessSpy(AccessSpy* spy) const
@@ -1211,37 +1253,6 @@ void NCrystal::MatCfg::removeAccessSpy(AccessSpy* spy) const
   if (n==m_impl->m_spies.size())
     NCRYSTAL_THROW(BadInput,"Could not remove access spy which was never installed");
 
-}
-
-std::string NCrystal::MatCfg::get_bkgd_name() const
-{
-  std::string name = Impl::decodeopt_name( get_bkgd() );
-  if ( name == "0" || name == "false" ) {
-    //map "0" and "false" to "none" to allow bkgd and bragg to be
-    //disabled in similar fashion, e.g. ";bragg=0", ";bkgd=0".
-    return "none";
-  }
-  return name;
-}
-
-bool NCrystal::MatCfg::get_bkgdopt_flag(const std::string& flagname) const
-{
-  return Impl::decodeopt_flag(get_bkgd(),flagname);
-}
-
-double NCrystal::MatCfg::get_bkgdopt_dbl(const std::string& flagname, double defval) const
-{
-  return Impl::decodeopt_dbl(get_bkgd(),flagname,defval);
-}
-
-int NCrystal::MatCfg::get_bkgdopt_int(const std::string& flagname, int defval) const
-{
-  return Impl::decodeopt_int(get_bkgd(),flagname,defval);
-}
-
-void NCrystal::MatCfg::bkgdopt_validate(const std::set<std::string>& recognised_opts) const
-{
-  Impl::decodedopt_validate(get_bkgd(),recognised_opts);
 }
 
 std::string NCrystal::MatCfg::get_infofact_name() const

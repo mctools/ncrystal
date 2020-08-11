@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -28,7 +28,6 @@
 #include <algorithm>
 #include <cstring>
 #include <iostream>
-#include <map>
 #include <functional>//std::greater
 
 namespace NC = NCrystal;
@@ -620,7 +619,7 @@ void NC::LCHelper::genScatter( NC::LCHelper::Cache& cache, NC::RandomBase* rand,
           std::stringstream s; s<<"phi_overlay_roi"<<written.size()<<".txt";
           std::ofstream ofs (s.str(), std::ofstream::out);
           written_name = s.str();
-          std::vector<std::pair<double,double> > sampleoverlay;
+          std::vector<PairDD > sampleoverlay;
           unsigned n=1000;
           sampleoverlay.reserve(n);
           for (unsigned i=0; i<n; ++i) {
@@ -653,7 +652,7 @@ void NC::LCHelper::genScatter( NC::LCHelper::Cache& cache, NC::RandomBase* rand,
             first = false;
             std::cout<<"NCrystal WARNING: Problems sampling with rejection method during LCHelper::genScatter "
               "invocation. Overlay function was not larger than actual cross-section value at sampled point "
-              "(overshot by factor of "<<(overlay_at_phi?xsphi/overlay_at_phi:std::numeric_limits<double>::infinity())<<"). Further warnings"
+              "(overshot by factor of "<<(overlay_at_phi?xsphi/overlay_at_phi:kInfinity)<<"). Further warnings"
               " of this type will not be emitted."<<std::endl;
 #ifdef NCRYSTAL_LCHELPER_WRITE_OVERLAYS
             std::cout<<"The associated overlay file was written to: "<<written_name<<std::endl;

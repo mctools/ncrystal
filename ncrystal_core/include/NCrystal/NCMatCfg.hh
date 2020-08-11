@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,7 +22,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCDefs.hh"
-#include <set>
 #include <ostream>
 
 namespace NCrystal {
@@ -88,9 +87,48 @@ namespace NCrystal {
     // Possible parameters and their meaning:                                  //
     /////////////////////////////////////////////////////////////////////////////
     //
-    // temp........: [ double, fallback value is 293.15 ]
-    //               Temperature of material in Kelvin.
+    // temp........: [ double, fallback value is -1.0 ]
+    //               Temperature of material in Kelvin. The special value of
+    //               -1.0 implies that the info factory should determine an
+    //               appropriate value based on the input data, falling back to
+    //               293.15K when the input has not special preference (example:
+    //               an S(alpha,beta) scattering kernel might be valid at a
+    //               particular temperature value only).
     //               [ Recognised units: "K", "C", "F" ]
+    //
+    // coh_elas....: [ bool, fallback value is true ]
+    //               If enabled, scatter factories will include coherent elastic
+    //               (i.e. Bragg diffraction) components for crystalline
+    //               materials. See also pseudo-parameters "elas" and "bragg"
+    //               below which can both be used to change the value of the
+    //               coh_elas parameter.
+    //
+    // incoh_elas....: [ bool, fallback value is true ]
+    //               If enabled, scatter factories will include incoherent elastic
+    //               components for crystalline materials. See also pseudo-parameters
+    //               "elas" and "bkgd" below which can both be used to change the value
+    //               of the incoh_elas parameter.
+    //
+    // inelas........: [ string, fallback value is "auto" ]
+    //               Influence inelastic scattering models chosen by scatter
+    //               factories. The default value of "auto" leaves the choice up
+    //               to scatter factories, and a value of "none", "0", "false",
+    //               or "sterile", all disables inelastic scattering.  The
+    //               standard NCrystal scatter factory currently supports
+    //               additional values: "external", "dyninfo", "vdosdebye", and
+    //               "freegas", and internally the "auto" mode will simply
+    //               select the first possible of those in the listed order
+    //               (falling back to "none" when nothing is possible). Note
+    //               that "external" is not possible for .ncmat files (but is
+    //               for .nxs files), and when using .laz/.lau only "none" is
+    //               possible.  The "dyninfo" mode will simply base modelling on
+    //               whatever dynamic information is available for each element
+    //               in the input data. The "vdosdebye" and "freegas" modes
+    //               overrides this, and force those models for all elements if
+    //               possible.  The "external" mode implies usage of an
+    //               externally provided cross-section curve and an
+    //               isotropic-elastic scattering model. See also the parameter
+    //               "vdoslux" and pseudo-parameter "bkgd" below.
     //
     // dcutoff.....: [ double, fallback value is 0 ]
     //               D-spacing cutoff in Angstrom. Crystal planes with spacing
@@ -132,28 +170,6 @@ namespace NCrystal {
     //               NCSCOrientation.hh for more details.
     //               [ Recognised units: "rad", "deg", "arcmin", "arcsec" ]
     //
-    // bragg.......: [ bool, fallback value is true ]
-    //               If enabled, scatter factories will include Bragg
-    //               diffraction components.
-    //
-    // bkgd........: [ string, fallback value is "best" ]
-    //               Influence background model chosen by scatter factories. The
-    //               default value of "best" implies that they should pick the
-    //               most realistic one available, while a value of "none"
-    //               prevents background components from being added. Depending
-    //               on the model in question, it is possible to specify
-    //               additional options by appending them using ':' and with '@'
-    //               signs for assignments (see examples below).
-    //
-    //               The default NCrystal factories currently support "external"
-    //               and "phonondebye" models, both of which will model energy
-    //               transfers as fully thermalising if temperature is known and
-    //               otherwise elastic. This can be overridden using
-    //               "thermalise" or "elastic" flags, and the phonon expansion
-    //               order for the phonondebye model can be controlled with
-    //               "nphonon". Examples: "external:thermalising",
-    //               "phonondebye:elastic", "phonondebye:thermalising:nphonon@20"
-    //
     // lcaxis......: [ vector, no fallback value ]
     //               Used to specify symmetry axis of anisotropic layered
     //               crystals with a layout similar to pyrolythic graphite, by
@@ -187,12 +203,12 @@ namespace NCrystal {
     //               directly select factory with which to create
     //               NCrystal::Absorption instances.
     //
-    // mosprec...: [ double, fallback value is 1.0e-3 ]
+    // mosprec.....: [ double, fallback value is 1.0e-3 ]
     //               Approximate relative precision in implementation of mosaic
     //               model in single crystals. Affects both approximations used
     //               and truncation range of Gaussian.
     //
-    // lcmode....: [ int, fallback value is 0 ]
+    // lcmode......: [ int, fallback value is 0 ]
     //               Choose which modelling is used for layered crystals (has no
     //               effect unless lcaxis is also set). The default value
     //               indicates the recommended model, which is both fast and
@@ -203,7 +219,7 @@ namespace NCrystal {
     //               in which each crossSection call triggers a new selection of
     //               n=-lcmode randomly oriented crystallites.
     //
-    // sccutoff.....: [ double, fallback value is 0.4Aa ]
+    // sccutoff....: [ double, fallback value is 0.4Aa ]
     //               Single-crystal d-spacing cutoff in Angstrom. When creating
     //               single-crystal scatterers, crystal planes with spacing
     //               below this value will be modelled as having an isotropic
@@ -216,7 +232,50 @@ namespace NCrystal {
     //               number of very weak planes affected. Setting sccutoff=0
     //               naturally disables this approximation.
     //               [ Recognised units: "Aa", "nm", "mm", "cm", "m" ]
+    //
+    // vdoslux.....: [ int, fallback value is 3 ]
+    //               Setting affecting "luxury" level when expanding phonon
+    //               spectrums (VDOS) into scattering kernels, affecting things
+    //               like number of (alpha,beta) grid points in the resulting
+    //               kernel and what energy range is covered by the kernel. In
+    //               very rough terms, the levels have the following approximate
+    //               impact (exact impact depends on both the given VDOS as well
+    //               as values of other configuration parameters):
+    //                  0 : Extremely crude, 100x50 grid, Emax=0.5eV
+    //                      Costs 0.1MB mem, 0.02s init time
+    //                  1 : Crude, 200x100 grid, Emax=1eV
+    //                      Costs 0.5MB mem, 0.04s init time
+    //                  2 : Decent, 400x200 grid, Emax=3eV
+    //                      Costs 2MB mem, 0.08s init time
+    //                  3 : Good, 800x400 grid, Emax=5eV
+    //                      Costs 8MB mem, 0.2s init time
+    //                  4 : Very good, 1600x800 grid, Emax=8eV
+    //                      Costs 30MB mem, 0.8s init time
+    //                  5 : Extremely good, 3200x1600 grid, Emax=12eV
+    //                      Costs 125MB mem, 5s init time
+    //               Levels 2-4 are intended for normal usage, level 5 as a
+    //               validation reference, while levels 0 and 1 are intended for
+    //               the case where the input VDOS data is anyway just a crude
+    //               estimate. For cases where NCrystal has no actual VDOS input
+    //               data provided and instead generates an idealised Debye
+    //               spectrum on the fly based on the Debye temperature, the
+    //               vdoslux level actually used will be 3 less than the one
+    //               specified in this variable (but at least 0).
 
+    /////////////////////////////////////////////////////////////////////////////
+    // Special pseudo-parameters available for usage in configuration strings
+    // (and only there), for convenience and backwards compatiblity:
+    //
+    // bragg..: This is simply an alias for the "coh_elas" parameter.
+    // elas...: Assigning a boolean value to this pseudo-parameter will change
+    //          both the "coh_elas" and "incoh_elas" parameters at once.
+    // bkgd...: Assigning "0" or "none" to this pseudo-parameter will result in
+    //          coh_elas and inelas parameters being set to false and "none"
+    //          respectively. No other values are accepted as this parameter
+    //          exists purely for backwards compatiblity reasons. Users should
+    //          now use the "inelas" parameter to affect the choice of inelastic
+    //          model, and the "incoh_elas" parameter to toggle incoherent
+    //          elastic scattering.
 
     /////////////////////////////////////////////////////////////////////////////
     // Methods for setting parameters:                                         //
@@ -232,12 +291,14 @@ namespace NCrystal {
     void set_sccutoff( double );
     void set_dirtol( double );
     void set_overridefileext( const std::string& );
-    void set_bragg( bool );
-    void set_bkgd( const std::string& );
+    void set_coh_elas( bool );
+    void set_incoh_elas( bool );
+    void set_inelas( const std::string& );
     void set_infofactory( const std::string& );
     void set_scatfactory( const std::string& );
     void set_absnfactory( const std::string& );
     void set_lcmode( int );
+    void set_vdoslux( int );
     //
     //Special setter method, which will set all orientation parameters based on
     //an SCOrientation object:
@@ -274,18 +335,16 @@ namespace NCrystal {
     double get_mosprec() const;
     double get_sccutoff() const;
     double get_dirtol() const;
-    bool get_bragg() const;
     void get_lcaxis( double (&axis)[3] ) const;
     const std::string& get_overridefileext() const;
     const std::string& get_scatfactory() const;
     const std::string& get_absnfactory() const;
     int  get_lcmode() const;
+    int  get_vdoslux() const;
 
-    //Bkgd option decoded:
-    std::string get_bkgd_name() const;
-    bool get_bkgdopt_flag(const std::string& name) const;
-    double get_bkgdopt_dbl(const std::string& name, double defval) const;
-    int get_bkgdopt_int(const std::string& name, int defval) const;
+    bool get_coh_elas() const;
+    bool get_incoh_elas() const;
+    const std::string& get_inelas() const;
 
     //infofactory option decoded:
     std::string get_infofact_name() const;
@@ -299,10 +358,9 @@ namespace NCrystal {
     SCOrientation createSCOrientation() const;//Create and return a new SCOrientation object based cfg.
     bool isLayeredCrystal() const;//true if lcaxis parameter is set
 
-    //Validate bkgd/infofactory flags and options to prevent silently ignoring
+    //Validate infofactory flags and options to prevent silently ignoring
     //unused options. Call only from *selected* factory, to throw BadInput in
     //case of unknown options:
-    void bkgdopt_validate(const std::set<std::string>& allowed_opts) const;
     void infofactopt_validate(const std::set<std::string>& allowed_opts) const;
 
     //Datafile (never decode extension by hand):
@@ -324,15 +382,16 @@ namespace NCrystal {
     // Copy/assign/clone/destruct                                              //
     /////////////////////////////////////////////////////////////////////////////
     //
-    // Copy/assignment/cloning is allowed and is a priori cheap, since internal
+    // Copy/assignment/move/cloning is allowed and is a priori cheap, since internal
     // data structures are shared until modified (aka copy-on-write):
     MatCfg(const MatCfg&);
     MatCfg& operator=(const MatCfg&);
     MatCfg clone() const { return MatCfg(*this); }
-    //A completely "clean" clone, unconnected to the original and no internal caches set is obtainable with:
+    //A completely "clean" clone, unconnected to the original and no internal
+    //caches set is obtainable with:
     MatCfg cloneUnshared() const { MatCfg c(*this); c.cow(); return c; }
-    //
-    //Destructor:
+    MatCfg( MatCfg&& );
+    MatCfg& operator=(MatCfg&&);
     ~MatCfg();
 
 
@@ -366,7 +425,6 @@ namespace NCrystal {
                             const std::set<std::string>& parameters ) const;
 
   private:
-    const std::string& get_bkgd() const;//undecoded, internal usage only
     const std::string& get_infofactory() const;//undecoded, internal usage only
     struct Impl;
     Impl* m_impl;

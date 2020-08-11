@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -43,6 +43,18 @@
 #ifndef NCrystal_NCException_hh
 #  include "NCrystal/NCException.hh"
 #endif
+#ifndef NCrystal_NCMem_hh
+#  include "NCrystal/NCMem.hh"
+#endif
+#ifndef NCrystal_NCSpan_hh
+#  include "NCrystal/NCSpan.hh"
+#endif
+#ifndef NCrystal_NCIter_hh
+#  include "NCrystal/NCIter.hh"
+#endif
+#ifndef NCrystal_NCFile_hh
+#  include "NCrystal/NCFile.hh"
+#endif
 #ifndef NCrystal_NCFactory_hh
 #  include "NCrystal/NCFactory.hh"
 #endif
@@ -51,6 +63,9 @@
 #endif
 #ifndef NCrystal_NCInfo_hh
 #  include "NCrystal/NCInfo.hh"
+#endif
+#ifndef NCrystal_NCSABData_hh
+#  include "NCrystal/NCSABData.hh"
 #endif
 #ifndef NCrystal_NCMatCfg_hh
 #  include "NCrystal/NCMatCfg.hh"
@@ -63,9 +78,6 @@
 #endif
 #ifndef NCrystal_NCProcess_hh
 #  include "NCrystal/NCProcess.hh"
-#endif
-#ifndef NCrystal_NCMem_hh
-#  include "NCrystal/NCMem.hh"
 #endif
 #ifndef NCrystal_NCRandom_hh
 #  include "NCrystal/NCRandom.hh"
@@ -82,22 +94,31 @@
 #ifndef NCrystal_NCScatterComp_hh
 #  include "NCrystal/NCScatterComp.hh"
 #endif
-#ifndef NCrystal_NCScatterXSCurve_hh
-#  include "NCrystal/NCScatterXSCurve.hh"
-#endif
-#ifndef NCrystal_BkgdPhonDebye_hh
-#  include "NCrystal/NCBkgdPhonDebye.hh"
-#endif
 #ifndef NCrystal_BkgdExtCurve_hh
 #  include "NCrystal/NCBkgdExtCurve.hh"
 #endif
 #ifndef NCrystal_NCLoadNCMAT_hh
 #  include "NCrystal/NCLoadNCMAT.hh"
 #endif
+#ifndef NCrystal_NCNCMATData_hh
+#  include "NCrystal/NCNCMATData.hh"
+#endif
+#ifndef NCrystal_NCParseNCMAT_hh
+#  include "NCrystal/NCParseNCMAT.hh"
+#endif
 #ifndef NCrystal_NCVersion_hh
 #  include "NCrystal/NCVersion.hh"
 #endif
 #ifndef NCrystal_NCLCBragg_hh
 #  include "NCrystal/NCLCBragg.hh"
+#endif
+#ifndef NCrystal_NCFreeGas_hh
+#  include "NCrystal/NCFreeGas.hh"
+#endif
+#ifndef NCrystal_NCSABScatter_hh
+#  include "NCrystal/NCSABScatter.hh"
+#endif
+#ifndef NCrystal_NCElIncScatter_hh
+#  include "NCrystal/NCElIncScatter.hh"
 #endif
 #endif

@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -31,6 +31,15 @@ const NCrystal::NeutronSCL * NCrystal::NeutronSCL::instance()
 
 NCrystal::NeutronSCL::NeutronSCL()
 {
+  //Add data. Using quick hack with magic Z values > 1000 to add certain
+  //specific "elements" with non-natural composition (deuterium=1001, ...).
+  //This way of supporting such elements is considered a short-term hack, the
+  //implementation of which will change in the future.
+
+  //Deuterium (mass from doi:10.1088/1674-1137/41/3/030003):
+  addData("D", 1001, 2.01410177811, 0.6674, 2.05, 0.000519);
+
+  //Standard elements:
   addData("H", 1, 1.00794, -0.37409, 80.26, 0.3326);
   addData("He", 2, 4.002602, 0.326, 0.0, 0.00747);
   addData("Li", 3, 6.941, -0.19, 0.92, 70.5);
@@ -92,6 +101,7 @@ NCrystal::NeutronSCL::NeutronSCL()
   addData("Pr", 59, 140.90765, 0.458, 0.015, 11.5);
   addData("Nd", 60, 144.24, 0.769, 9.2, 50.5);
   addData("Pm", 61, 145, 1.26, 1.3, 168.4);
+  addData("Sm", 62, 150.36, 0.0,  39.0, 5922.0 );
   addData("Eu", 63, 151.964, 0.53, 2.5, 4530.0);
   addData("Gd", 64, 157.25, 0.95, 151.0, 49700.0);
   addData("Tb", 65, 158.92534, 0.734, 0.004, 23.4);
@@ -172,12 +182,13 @@ double NCrystal::NeutronSCL::getBoundXS(const std::string& element) const
 }
 
 
-double NCrystal::NeutronSCL::getFreeXS(const std::string& element) const
+double NCrystal::NeutronSCL::getFreeXS( const std::string& element ) const
 {
-  double bound_xs=getBoundXS(element);
-  double awr=getNeutronWeightedMass(element);
-  double tmp = (1+awr)/awr;
-  return bound_xs/tmp/tmp;
+  double bound_xs = getBoundXS( element );
+  double awr = getNeutronWeightedMass( element );
+  double tmp = awr / ( 1.0 + awr );
+  return bound_xs * tmp * tmp;
+
 }
 
 double NCrystal::NeutronSCL::getCoherentXS(const std::string& element) const

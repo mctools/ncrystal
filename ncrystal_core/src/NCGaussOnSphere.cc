@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,7 +22,6 @@
 #include "NCRomberg.hh"
 #include "NCRandUtils.hh"
 #include <iostream>
-#include <limits>
 #include <cstdlib>
 namespace NC = NCrystal;
 
@@ -171,7 +170,7 @@ namespace NCrystal {
       nc_assert(ncabs(cosd)<1.000001);
       double d = std::acos(ncmin(1.0,ncmax(-1.0,cosd)));
       double d2 = d*d;
-      return m_k * std::exp(m_expfact*d2) * NC::ncerf(std::sqrt(ncmax(0.0,-m_expfact*(m_tasq-d2))));
+      return m_k * std::exp(m_expfact*d2) * std::erf(std::sqrt(ncmax(0.0,-m_expfact*(m_tasq-d2))));
     }
   };
 
@@ -294,7 +293,7 @@ void NC::GaussOnSphere::set(double sigma, double trunc_angle, double prec ) {
     nc_assert_always(circleint_approx_maxangle<kPiHalf);
     if (m_truncangle>circleint_approx_maxangle||circleint_approx_maxangle<=1e-10) {
       //approximation formula never valid at requested precision:
-      m_circleint_k1 = infinity;
+      m_circleint_k1 = kInfinity;
       m_circleint_k2 = 0.0;
     } else {
       m_circleint_k1 = cos_mpi2pi2(circleint_approx_maxangle);
@@ -310,7 +309,7 @@ void NC::GaussOnSphere::set(double sigma, double trunc_angle, double prec ) {
     nlt = std::max<unsigned>(20,unsigned(prec+0.5));
     m_numint_accuracy = 1e-4;//won't actually be used
     m_circleint_k1 = 0.0;
-    m_circleint_k2 = infinity;
+    m_circleint_k2 = kInfinity;
   }
   nc_assert_always(nlt>=20&&nlt<=10000);
   //For extreme (sub-arcsecond mosaicity) crystals, the numerical integration
@@ -473,7 +472,7 @@ bool NC::GaussOnSphere::genPointOnCircle( RandomBase*rand, double cg, double sg,
         first = false;
         std::cout<<"NCrystal WARNING: Problems sampling with rejection method during GaussOnSphere::genPointOnCircle "
           "invocation. Overlay value was not larger than actual cross-section value at sampled point "
-          "(overshot by factor of "<<(densitymax?density_at_t/densitymax:std::numeric_limits<double>::infinity())<<"). Further warnings"
+          "(overshot by factor of "<<(densitymax?density_at_t/densitymax:kInfinity)<<"). Further warnings"
           " of this type will not be emitted."<<std::endl;
       }
     }
@@ -509,7 +508,7 @@ namespace NCrystal {
     virtual ~EstNTruncFct(){}
     virtual double eval(double x) const
     {
-      return (1.0-ncerf(x*std::sqrt(0.5))) - m_prec;
+      return std::erfc(x*std::sqrt(0.5)) - m_prec;
     }
   };
 }

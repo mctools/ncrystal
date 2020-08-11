@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,9 +22,30 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #define NCRYSTAL_VERSION_MAJOR 1
-#define NCRYSTAL_VERSION_MINOR 0
-#define NCRYSTAL_VERSION_PATCH 0
-#define NCRYSTAL_VERSION   1000000 /* (1000000*MAJOR+1000*MINOR+PATCH)   */
-#define NCRYSTAL_VERSION_STR "1.0.0"
+#define NCRYSTAL_VERSION_MINOR 99
+#define NCRYSTAL_VERSION_PATCH 1
+#define NCRYSTAL_VERSION   1099001 /* (1000000*MAJOR+1000*MINOR+PATCH)   */
+#define NCRYSTAL_VERSION_STR "1.99.1"
+#include <stdexcept>
+
+namespace NCrystal {
+
+  //Function which returns NCRYSTAL_VERSION. If it does not, it indicates symbol
+  //clashes from multiple installations of NCrystal.
+  int getVersion();
+
+  //Call in client code to detect broken installations where there is a mismatch
+  //in versions in NCrystal headers included and NCrystal library loaded. Raise
+  //generic exception rather than NCrystal exception in this case, since we
+  //can't trust custom exceptions to work in broken environments:
+  inline void libClashDetect() {
+    if ( getVersion() != NCRYSTAL_VERSION )
+      throw std::runtime_error( "Broken NCrystal installation detected "
+                                "(the NCrystal header files included when building your code "
+                                "are incompatible with the linked NCrystal library). "
+                                "Most likely you have multiple conflicting NCrystal installations." );
+  }
+
+}
 
 #endif

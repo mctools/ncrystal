@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -25,7 +25,6 @@
 #include "NCMath.hh"
 #include <cstring>
 #include <ostream>
-#include <vector>
 
 namespace NCrystal {
   class Matrix {
@@ -35,7 +34,7 @@ namespace NCrystal {
     Matrix() ;
 
     Matrix(unsigned row, unsigned col, const double* data= 0);
-    Matrix(unsigned row, unsigned col, const std::vector<double>& data);
+    Matrix(unsigned row, unsigned col, const VectD& data);
 
     virtual ~Matrix();
 
@@ -76,7 +75,7 @@ namespace NCrystal {
 
   protected:
 
-    std::vector<double> m_data;
+    VectD m_data;
     unsigned m_rowcount;
     unsigned m_colcount;
     //set(..) should not be public, otherwise NCRotMatrix won't be able to
@@ -145,7 +144,7 @@ inline NCrystal::Matrix::Matrix(unsigned row, unsigned col, const double* data)
   set( row, col, data );
 }
 
-inline NCrystal::Matrix::Matrix(unsigned row, unsigned col, const std::vector<double>& data) {
+inline NCrystal::Matrix::Matrix(unsigned row, unsigned col, const VectD& data) {
   if ( !row*col == data.size() )
     NCRYSTAL_THROW(BadInput,"NCMatrix constructor got inconsistent data length");
   set( row, col, data.empty() ? 0 : &data[0] );
@@ -212,7 +211,7 @@ inline NCrystal::Matrix NCrystal::Matrix::operator~() const
 inline void NCrystal::Matrix::transpose()
 {
   //TODO for NC2: Should be able to do this without malloc.
-  std::vector<double> v;
+  VectD v;
   std::swap(m_data, v);
   m_data.reserve(v.size());
   for (unsigned i = 0; i < m_colcount; i++)
@@ -234,8 +233,8 @@ inline unsigned NCrystal::Matrix::nCols() const
 inline double NCrystal::Matrix::mag2() const
 {
   double sum(0.0);
-  std::vector<double>::const_iterator it = m_data.begin();
-  std::vector<double>::const_iterator itE = m_data.end();
+  VectD::const_iterator it = m_data.begin();
+  VectD::const_iterator itE = m_data.end();
   for (;it!=itE;++it)
     sum += (*it) * (*it);
   return sum;
@@ -243,8 +242,8 @@ inline double NCrystal::Matrix::mag2() const
 
 inline NCrystal::Matrix& NCrystal::Matrix::operator*=(const double& f)
 {
-  std::vector<double>::iterator it = m_data.begin();
-  std::vector<double>::iterator itE = m_data.end();
+  VectD::iterator it = m_data.begin();
+  VectD::iterator itE = m_data.end();
   for (;it!=itE;++it)
     *it *= f;
   return *this;

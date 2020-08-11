@@ -13,11 +13,12 @@
 #                                                                                #
 #  $> make install                                                               #
 #                                                                                #
-# Written 2016-2019 by T. Kittelmann.                                            #
+# Written 2016-2020 by T. Kittelmann.                                            #
 #                                                                                #
 ##################################################################################
 
-cmake_minimum_required(VERSION 3.0.0)
+#Need CMake 3.1.0 to enable C++11
+cmake_minimum_required(VERSION 3.1.0)
 
 project(NCrystal CXX C)
 
@@ -25,11 +26,28 @@ set(BUILD_EXAMPLES ON CACHE STRING "Whether to build examples.")
 set(BUILD_G4HOOKS  ON CACHE STRING "Whether to build the G4 hooks if Geant4 is available.")
 set(BUILD_EXTRA    ON CACHE STRING "Whether to build optional modules for .nxs/.laz/.lau support (nb: different license!).")
 set(INSTALL_MCSTAS ON CACHE STRING "Whether to install the NCrystal mcstas component and related scripts.")
-set(INSTALL_PY     ON CACHE STRING "Whether to install the NCrystal python module and related scripts.")
+set(INSTALL_PY     ON CACHE STRING "Whether to install the NCrystal python module and various python scripts.")
 set(INSTALL_DATA   ON CACHE STRING "Whether to install the shipped data files (always .ncmat files, .nxs files when BUILD_EXTRA=ON).")
 
 if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
+endif()
+
+#Try to respect user/compilers choice of C++ standard, but needs at least C++11:
+if (DEFINED CMAKE_CXX_STANDARD AND CMAKE_CXX_STANDARD EQUAL 98)
+  message(FATAL_ERROR "CMAKE_CXX_STANDARD set to 98 which is unsupported since NCrystal release 1.1.0.")
+endif()
+if (NOT DEFINED CMAKE_CXX_EXTENSIONS)
+  set(CMAKE_CXX_EXTENSIONS OFF)#no unofficial extensions
+endif()
+if (NOT DEFINED CMAKE_CXX_STANDARD)
+  set(TMP_TESTDIR ${CMAKE_CURRENT_BINARY_DIR}/test_cxx11)
+  file(WRITE ${TMP_TESTDIR}/test.cpp "int main() { auto ll=[](){return 0;}; return ll(); }\n")
+  try_compile(SETUP_HANDLES_CXX11_BY_DEFAULT "${TMP_TESTDIR}" "${TMP_TESTDIR}/test.cpp")
+  if(NOT SETUP_HANDLES_CXX11_BY_DEFAULT)
+    set(CMAKE_CXX_STANDARD 11)
+    message(STATUS "Could not compile simple C++11 test program => Trying to proceed with CMAKE_CXX_STANDARD=11.")
+  endif()
 endif()
 
 get_filename_component(NCLIBDIR "${CMAKE_INSTALL_PREFIX}/lib" ABSOLUTE)
@@ -64,14 +82,31 @@ target_include_directories(NCrystal PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/ncrystal
 target_include_directories(NCrystal PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ncrystal_core/src")
 
 #Make sure we link in math functions correctly (typically the linker needs libm on unix, but nothing on Windows).
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/nctestlibm.c "#include <math.h>\nint main(int argc,char** argv) { (void)argv;double a=(exp)(argc+1.0); return (int)a; }\n")
-try_compile(ALWAYS_HAS_MATH "${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/nctestlibm.c")
+set(TMP_TESTLIBMSRC "#include <math.h>\nint main(int argc,char** argv) { (void)argv;double a=(exp)(argc+1.0); return (int)a; }\n")
+set(TMP_TESTDIR ${CMAKE_CURRENT_BINARY_DIR}/test_libm)
+file(WRITE ${TMP_TESTDIR}/test.c "${TMP_TESTLIBMSRC}")
+try_compile(ALWAYS_HAS_MATH "${TMP_TESTDIR}" "${TMP_TESTDIR}/test.c")
 if (NOT ALWAYS_HAS_MATH)
-  try_compile(MATH_NEEDS_LIBM "${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/nctestlibm.c" LINK_LIBRARIES m)
+  set(TMP_TESTDIR ${CMAKE_CURRENT_BINARY_DIR}/test_libm2)
+  file(WRITE ${TMP_TESTDIR}/test.c "${TMP_TESTLIBMSRC}")
+  try_compile(MATH_NEEDS_LIBM "${TMP_TESTDIR}" "${TMP_TESTDIR}/test.c" LINK_LIBRARIES m)
   if (MATH_NEEDS_LIBM)
     target_link_libraries(NCrystal m)
   else()
     message(FATAL_ERROR "Could not figure out link flags needed to enable math functions")
+  endif()
+endif()
+
+#Test if compiler supports -Wl,--disable-new-dtags. If it does, apply it
+#(otherwise RPATH sections in binaries become RUNPATH instead, which can be
+#overridden by users LD_LIBRARY_PATH (CMake>=3.14 is needed for LINK_OPTIONS on
+#try_compile):
+if(${CMAKE_VERSION} VERSION_GREATER "3.13.99")
+  set(TMP_TESTDIR ${CMAKE_CURRENT_BINARY_DIR}/test_dtagflags)
+  file(WRITE ${TMP_TESTDIR}/test.c "int main() { return 0; }\n")
+  try_compile(LINKER_HAS_DTAGS "${TMP_TESTDIR}" "${TMP_TESTDIR}/test.c" LINK_OPTIONS "-Wl,--disable-new-dtags")
+  if (LINKER_HAS_DTAGS)
+    target_link_options(NCrystal PUBLIC "-Wl,--disable-new-dtags")
   endif()
 endif()
 

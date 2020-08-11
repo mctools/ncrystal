@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -23,6 +23,7 @@
 #include "NCRotMatrix.hh"
 #include "NCLatticeUtils.hh"
 #include "NCNeutronSCL.hh"
+#include "NCString.hh"
 #include "NCrystal/NCDefs.hh"
 #include <cstdlib>
 
@@ -53,7 +54,6 @@ namespace NCrystal {
 #endif
 
 #ifdef NCRYSTAL_NCMAT_USE_MEMPOOL
-#include <cstddef>
 #include <stdexcept>
 #include <type_traits>
 #include <scoped_allocator>
@@ -122,7 +122,7 @@ namespace NCrystal {
 #endif
 
 namespace NCrystal {
-  void fillHKL_getWhkl(std::vector<double>& out_whkl, const double ksq, const std::vector<double> & msd)
+  void fillHKL_getWhkl(VectD& out_whkl, const double ksq, const VectD & msd)
   {
     //Sears, Acta Cryst. (1997). A53, 35-45
 
@@ -130,8 +130,8 @@ namespace NCrystal {
       out_whkl.resize(msd.size());//should only happen first time called
 
     double kk2 = 0.5*ksq;
-    std::vector<double>::const_iterator it, itE(msd.end());
-    std::vector<double>::iterator itOut(out_whkl.begin());
+    VectD::const_iterator it, itE(msd.end());
+    VectD::iterator itOut(out_whkl.begin());
     for(it=msd.begin();it!=itE;++it)
       *itOut++ = kk2*(*it);
   }
@@ -145,6 +145,23 @@ void NCrystal::fillHKL( NCrystal::Info &info,
   const bool env_ignorefsqcut = std::getenv("NCRYSTAL_FILLHKL_IGNOREFSQCUT");
   if (env_ignorefsqcut)
     fsquarecut = 0.0;
+
+  //For now we allow selection of a particular hkl value via an env var (a hacky
+  //workarond required for certain validation plots - we should support this in
+  //NCMatCfg instead).
+  bool do_select = false;
+  int select_h(0),select_k(0),select_l(0);
+  const char * selecthklcfg = std::getenv("NCRYSTAL_FILLHKL_SELECTHKL");
+  if (selecthklcfg) {
+    do_select = true;
+    std::vector<std::string> parts;
+    split(parts,selecthklcfg,0,',');
+    nc_assert_always(parts.size()==3);
+    select_h = str2int(parts.at(0));
+    select_k = str2int(parts.at(1));
+    select_l = str2int(parts.at(2));
+  }
+
   nc_assert_always(!info.isLocked());
   nc_assert_always(info.hasAtomInfo());
   nc_assert_always(info.hasAtomPositions());
@@ -160,9 +177,9 @@ void NCrystal::fillHKL( NCrystal::Info &info,
 
   //Collect info for each atom in suitable format for use for calculations below:
   std::vector<std::vector<Vector> > atomic_pos;//atomic coordinates
-  std::vector<double> csl;//coherent scattering length
-  std::vector<double> msd;//mean squared displacement
-  std::vector<double> cache_factors;
+  VectD csl;//coherent scattering length
+  VectD msd;//mean squared displacement
+  VectD cache_factors;
 
   AtomList::const_iterator it (info.atomInfoBegin()), itE(info.atomInfoEnd());
   for (;it!=itE;++it) {
@@ -189,13 +206,13 @@ void NCrystal::fillHKL( NCrystal::Info &info,
 
   //cache some thresholds for efficiency (see below where it is used for more
   //comments):
-  std::vector<double> whkl_thresholds;
+  VectD whkl_thresholds;
   whkl_thresholds.reserve(csl.size());
   for (size_t i = 0; i<csl.size(); ++i) {
     if ( fsquarecut < 0.01 && !env_ignorefsqcut )
       whkl_thresholds.push_back(std::log(ncabs(csl.at(i)) / fsquarecut ) );
     else
-      whkl_thresholds.push_back(std::numeric_limits<double>::infinity());//use inf when not true that fsqcut^2 << fsq
+      whkl_thresholds.push_back(kInfinity);//use inf when not true that fsqcut^2 << fsq
   }
 
   //We now conduct a brute-force loop over h,k,l indices, adding calculated info
@@ -215,7 +232,7 @@ void NCrystal::fillHKL( NCrystal::Info &info,
   FamMap fsq2hklidx;
 #endif
 
-  std::vector<double> whkl;//outside loop for reusage
+  VectD whkl;//outside loop for reusage
 
   //NB, for reasons of symmetry we ignore half of the hkl vectors (ignoring
   //h,k,l->-h,-k,-l and 000). This means, half a space, and half a plane and
@@ -226,6 +243,8 @@ void NCrystal::fillHKL( NCrystal::Info &info,
       for( int loop_l=-max_l;loop_l<=max_l;++loop_l ) {
         if(loop_h==0 && loop_k==0 && loop_l<=0)
           continue;
+        if ( do_select && (loop_h!=select_h||loop_k!=select_k||loop_l!=select_l) )
+            continue;
         const Vector hkl(loop_h,loop_k,loop_l);
 
         //calculate waveVector, wave number and dspacing:

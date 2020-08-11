@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,9 +22,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCDefs.hh"
-#include <vector>
-#include <stdexcept>
-#include <cstdio>
 
 namespace NCrystal {
   //Class which provides random sampling of a 1D piece-wise linear
@@ -34,18 +31,40 @@ namespace NCrystal {
   //merging two distributions.
   class PointwiseDist {
   public:
-    PointwiseDist(const std::vector<double> &x, const std::vector<double> &y, double integral_weight=1. );
+    PointwiseDist(const VectD &x, const VectD &y, double integral_weight=1.0 );
     ~PointwiseDist();
-    double percentile( double percentile_value ) const;//p in [0,1]
-    double sample(RandomBase* rng) const { return percentile(rng->generate()); }
+    //Percentile (argument must be in [0,1]):
+    double percentile( double percentile_value ) const { return percentileWithIndex(percentile_value).first; }
+
+    //Sample:
+    double sample(RandomBase& rng) const { return percentileWithIndex(rng.generate()).first; }
+
     PointwiseDist& operator+=(const PointwiseDist&);
     PointwiseDist& operator*=(double frac);
     void setIntegralWeight(double);
     void print() const;
+
+    const VectD& getXVals() const { return m_x; }
+    const VectD& getYVals() const { return m_y; }
+
+    //Convenience constructor (would not be needed if we had C++17's std::make_from_tuple):
+    PointwiseDist(const std::pair<VectD,VectD>& xy, double integral_weight=1.0 )
+      : PointwiseDist(xy.first,xy.second,integral_weight) {}
+
+    //versions which also returns index of bin in which returned value resides
+    //(i.e returns (value,idx) where value will lie in interval
+    //[getXVals().at(idx),getXVals().at(idx+1)]):
+    std::pair<double,unsigned> percentileWithIndex( double percentile_value ) const;
+    std::pair<double,unsigned> sampleWithIndex( RandomBase& rng ) const { return percentileWithIndex(rng.generate()); }
+
   private:
-    std::vector<double> m_cdf;
-    std::vector<double> m_x;
-    std::vector<double> m_y;
+    //todo: We have both m_cdf and m_y, although they essentially contain the
+    //same info. Could we implement more light-weight version? Could we
+    //implement as a non-owning view, i.e. which keeps m_x in span (but likely
+    //needs to be possible to be owning still). Or using shared ptrs?
+    VectD m_cdf;
+    VectD m_x;
+    VectD m_y;
     double m_iweight;
   };
 }

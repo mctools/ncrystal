@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -79,7 +79,7 @@ void NCrystal::Matrix::inv(double epsilon  )
     NCRYSTAL_THROW(CalcError,"inv: asking inverse matrix for a non-square matrix.");
 
   unsigned tmp_colcount = m_colcount*2;
-  std::vector<double> new_data(m_rowcount*tmp_colcount, 0.);
+  VectD new_data(m_rowcount*tmp_colcount, 0.);
 
   for (unsigned i = 0; i < m_rowcount; ++i) {
     for (unsigned j = 0; j < m_colcount ; ++j) {

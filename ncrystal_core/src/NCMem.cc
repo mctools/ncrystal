@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -23,6 +23,8 @@
 #include <cstdio>
 #include <string>
 #include <cassert>
+#include <vector>
+#include <mutex>
 
 namespace NCrystal {
   static long s_RCBase_nInstances = 0;
@@ -92,4 +94,23 @@ NCrystal::RCBase::~RCBase()
 long NCrystal::RCBase::nInstances()
 {
   return s_RCBase_nInstances;
+}
+
+namespace NCrystal {
+  static std::mutex s_cacheCleanerMutex;
+  static std::vector<std::function<void()>> s_cacheCleanerMutexFcts;
+}
+
+void NCrystal::clearCaches()
+{
+  std::lock_guard<std::mutex> lock(s_cacheCleanerMutex);
+  for (auto& f : s_cacheCleanerMutexFcts)
+    f();
+}
+
+
+void NCrystal::registerCacheCleanupFunction( std::function<void()> f )
+{
+  std::lock_guard<std::mutex> lock(s_cacheCleanerMutex);
+  s_cacheCleanerMutexFcts.emplace_back(f);
 }

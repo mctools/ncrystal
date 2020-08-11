@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -63,6 +63,7 @@ namespace NCrystal {
     void cross_inplace(const Vector&);
     double dot(const Vector&) const;
     double angle(const Vector&) const;//slow
+    double angle_highres(const Vector&) const;//very slow, but precise even for small angles
     double mag() const;//slow
     double mag2() const;//better
     void set(double x, double y, double z);
@@ -79,6 +80,10 @@ namespace NCrystal {
     inline double& y() { return m_y; }
     inline double& z() { return m_z; }
 
+    bool operator <(const Vector &o) const {
+      return ( m_x != o.m_x ? m_x < o.m_x :
+               ( m_y != o.m_y ? m_y < o.m_y : m_z < o.m_z ) );
+    }
   protected:
     //Keep data members exactly like this, so Vector objects can reliably be
     //reinterpreted as double[3] arrays and vice versa:
@@ -287,6 +292,24 @@ inline double NCrystal::Vector::angle(const NCrystal::Vector& vec2) const
     NCRYSTAL_THROW(CalcError,"NCVector::angle(): Can't find angle to/from null-vector.");
   double result = dot(vec2) / norm;
   return std::acos( ncmin(1.,ncmax(-1.,result)) );
+}
+
+inline double NCrystal::Vector::angle_highres(const NCrystal::Vector& vec2) const
+{
+  //Based on formula on page 47 of
+  //https://people.eecs.berkeley.edu/~wkahan/Mindless.pdf "How Futile are
+  //Mindless Assessments of Roundoff in Floating-Point Computation?" by W. Kahan
+  //(Jan 11, 2006):
+
+  NCrystal::Vector a(*this);
+  NCrystal::Vector b(vec2);
+  double mag2_a = a.mag2();
+  double mag2_b = b.mag2();
+  if (!mag2_a||!mag2_b)
+    NCRYSTAL_THROW(CalcError,"NCVector::angle_highres(): Can't find angle to/from null-vector.");
+  a *= 1.0/std::sqrt(mag2_a);
+  b *= 1.0/std::sqrt(mag2_b);
+  return 2*std::atan2((a-b).mag(),(a+b).mag());
 }
 
 inline bool NCrystal::Vector::isUnitVector(double tolerance) const

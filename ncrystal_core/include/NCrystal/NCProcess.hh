@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -47,7 +47,7 @@ namespace NCrystal {
     //cross-sections outside a given domain (the special case
     //ekin_low=ekin_high=infinity is used to indicate a somewhat unusual process
     //with vanishing cross-section everywhere):
-    virtual void domain(double& ekin_low, double& ekin_high) const { ekin_low = 0.0; ekin_high = infinity; }
+    virtual void domain(double& ekin_low, double& ekin_high) const { ekin_low = 0.0; ekin_high = kInfinity; }
 
     //Check if process is oriented. For non-oriented processes, the results do
     //not depend on the incident direction of the neutron, and outcomes such as

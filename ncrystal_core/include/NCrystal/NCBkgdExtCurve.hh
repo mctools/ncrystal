@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,29 +21,32 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCScatterXSCurve.hh"
+#include "NCrystal/NCScatterIsotropic.hh"
 
 namespace NCrystal {
 
   class Info;
 
-  class NCRYSTAL_API BkgdExtCurve : public ScatterXSCurve {
+  class NCRYSTAL_API BkgdExtCurve : public ScatterIsotropic {
   public:
 
     //Calculates background (non-Bragg) scattering in a crystal, based on
     //external functions for calculating cross-sections, using the XSectProvider
-    //section in the passed Info object.
-    //
-    //The parameter thermalise is passed on to the ScatterXSCurve base class and
-    //determines how energy transfers are modelled when generating scatterings.
+    //section in the passed Info object. Scatterings will be elastic and
+    //isotropic.
 
-    BkgdExtCurve(const Info*, bool thermalise = true );
+    BkgdExtCurve(const Info*);
 
-    virtual double crossSectionNonOriented(double ekin) const;
+    double crossSectionNonOriented(double ekin) const final;
+
+    void generateScatteringNonOriented( double ekin_wavelength,
+                                        double& angle, double& delta_ekin ) const final;
+    void generateScattering( double ekin, const double (&neutron_direction)[3],
+                             double (&resulting_neutron_direction)[3], double& delta_ekin ) const final;
 
   protected:
     virtual ~BkgdExtCurve();
-    const Info* m_ci;
+    RCHolder<const Info> m_ci;
   };
 }
 

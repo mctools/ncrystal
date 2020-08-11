@@ -1,3 +1,32 @@
+v1.99.1 2020-08-11
+      * Release candidate number 1 for planned new major release v2.0.0.
+      * The main feature of this release is that it finally brings proper
+        state-of-the-art inelastic physics to NCrystal. Additionally, also
+        incoherent-elastic scattering was cleaned up and made self-consistent,
+        so NCrystal v2.0.0 can truly be said to be the release in which NCrystal
+        finally moves beyond its former focus on Bragg diffraction. Additionally
+        and also for the first time, NCrystal can now support the modelling of
+        certain non-crystalline materials (e.g. liquids).
+      * The actual changes to NCrystal took place in ~500 commits touching many
+        hundreds of files, and are far too vast to list here. However, the
+        release announcement page for NCrystal 2.0.0 (which is work-in-progress
+        until the final version 2.0.0 is actually released) attempts to provide
+        a short summary of user-facing changes concerning physics capabilities,
+        the materials data library, and the syntax of NCrystal configuration
+        strings: https://github.com/mctools/ncrystal/wiki/Announcement-Release2.0.0
+      * A few technical details warrent highlighting here though as they
+        potentially impact deployment: Firstly, NCrystal now requires C++11 or
+        later for compilation, the older standards C++98 and C++03 are no longer
+        supported. Secondly, in order to support C++11, the standard NCrystal
+        CMakeLists.txt file now requires CMake 3.1.0 or later (as opposed to the
+        previous requirement of CMake 3.0.0). Finally, in order to backport
+        std::span from C++20 for internal usage in NCrystal code, a single file
+        (NCSpan.hh) is for now covered under the Boost Software License (the
+        license text is included in the file NCSpan.hh itself). This license is
+        even more permissive than the Apache 2.0 license which still covers the
+        rest of the core NCrystal code, and as such this should not add any new
+        licensing burdens to users.
+
 v1.0.0 2019-07-05
       * Milestone 1.0.0 release!
       * Introduce new optional modelling of more realistic energy transfers in

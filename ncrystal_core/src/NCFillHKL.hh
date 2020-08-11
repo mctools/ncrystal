@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,7 +22,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCInfo.hh"
-#include <limits>
 
 namespace NCrystal {
 
@@ -47,7 +46,7 @@ namespace NCrystal {
   //                   composing hkl families.
   void fillHKL( Info &info,
                 double dcutoff = 0.5,//angstrom
-                double dcutoffup = std::numeric_limits<double>::infinity(),//angstrom
+                double dcutoffup = kInfinity,//angstrom
                 bool expandhkl = false,
                 double fsquarecut = 1e-5,//barn
                 double merge_tolerance = 1e-6 );

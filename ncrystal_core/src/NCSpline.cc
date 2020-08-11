@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -27,15 +27,15 @@
 //either linearly from the edge points or using a numerical derivative
 //estimation.
 
-void NCrystal::CubicSpline::set( const std::vector<double>& y,
+void NCrystal::CubicSpline::set( const VectD& y,
                                  double derivative_y_left,
                                  double derivative_y_right )
 {
   const std::size_t n = y.size();
   nc_assert_always(n>3);
   const std::size_t nm1 = n-1;
-  std::vector<double> u(nm1,0.0);
-  std::vector<double> y2(n,0.0);
+  VectD u(nm1,0.0);
+  VectD y2(n,0.0);
   y2[0] = -0.5;
   double dy_left = y[1]-y[0];
   u[0] = 3.0*( dy_left-derivative_y_left );
@@ -56,7 +56,7 @@ void NCrystal::CubicSpline::set( const std::vector<double>& y,
     y2[km1] *= y2[k];
     y2[km1] += u[km1];
   }
-  std::vector<std::pair<double,double> > data;
+  std::vector<PairDD > data;
   data.reserve(y.size());
   for (std::size_t i = 0; i < y.size(); ++i) {
     data.push_back(std::make_pair(y[i],y2[i]));
@@ -68,7 +68,7 @@ void NCrystal::CubicSpline::set( const std::vector<double>& y,
   m_nm2 = n-2;
 }
 
-void NCrystal::SplinedLookupTable::set( const std::vector<double>& fvals,
+void NCrystal::SplinedLookupTable::set( const VectD& fvals,
                                         double a,double b,
                                         double fprime_a, double fprime_b,
                                         const std::string& name,
@@ -101,7 +101,7 @@ void NCrystal::SplinedLookupTable::set( const Fct1D* thefct,
   nc_assert(npts>3);
   m_a = a;
   m_b = b;
-  std::vector<double> fvals;
+  VectD fvals;
   fvals.reserve(npts);
   double delta = (b-a)/(npts-1);
   std::size_t nm1 = npts-1;
@@ -122,7 +122,7 @@ void NCrystal::SplinedLookupTable::set( const Fct1D* thefct,
 
 
 #include "NCString.hh"
-#include "NCFile.hh"
+#include "NCrystal/NCFile.hh"
 #include <fstream>
 #include <sstream>
 #include <iostream>

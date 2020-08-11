@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -27,7 +27,7 @@
 #include <functional>//std::greater
 
 void NCrystal::PCBragg::init( const StructureInfo& si,
-                              std::vector<std::pair<double,double> >& data )//(dspacing,fsquared_sum)
+                              std::vector<PairDD >& data )//(dspacing,fsquared_sum)
 {
   nc_assert_always(si.n_atoms>0);
   nc_assert_always(si.volume>0);
@@ -37,21 +37,21 @@ void NCrystal::PCBragg::init( const StructureInfo& si,
 }
 
 void NCrystal::PCBragg::init( double v0_times_natoms,
-                              std::vector<std::pair<double,double> >& data )//(dspacing,fsquared_sum)
+                              std::vector<PairDD >& data )//(dspacing,fsquared_sum)
 {
   if (!(v0_times_natoms>0) )
     NCRYSTAL_THROW(BadInput,"v0_times_natoms is not a positive number.");
   double xsectfact = 0.5/v0_times_natoms;
   xsectfact *= wl2ekin(1.0);//Adjust units so we can get cross sections through
                             //multiplication with 1/ekin instead of wl^2.
-  std::sort(data.begin(),data.end(),std::greater<std::pair<double,double> >());
-  std::vector<double> v2dE;
+  std::sort(data.begin(),data.end(),std::greater<PairDD >());
+  VectD v2dE;
   v2dE.reserve(data.size());
-  std::vector<double> fdm_commul;
+  VectD fdm_commul;
   fdm_commul.reserve(data.size());
   StableSum fdmsum2;
-  std::vector<std::pair<double,double> >::const_iterator it(data.begin()),itE(data.end());
-  double prev_dsp = -kInf;
+  std::vector<PairDD >::const_iterator it(data.begin()),itE(data.end());
+  double prev_dsp = -kInfinity;
   for (;it!=itE;++it) {
     if (!(it->first>0.0))
       NCRYSTAL_THROW(CalcError,"Inconsistent plane data implies non-positive (or NaN) d_spacing.");
@@ -68,22 +68,22 @@ void NCrystal::PCBragg::init( double v0_times_natoms,
     }
   }
   if (fdm_commul.empty()||fdm_commul.back()<=0.0) {
-    m_threshold = kInf;
+    m_threshold = kInfinity;
     fdm_commul.clear();
     v2dE.clear();
   } else {
     m_threshold = *(v2dE.begin());
   }
   //Transfer while squeezing memory:
-  std::vector<double>(fdm_commul.begin(),fdm_commul.end()).swap(m_fdm_commul);
-  std::vector<double>(v2dE.begin(),v2dE.end()).swap(m_2dE);
+  VectD(fdm_commul.begin(),fdm_commul.end()).swap(m_fdm_commul);
+  VectD(v2dE.begin(),v2dE.end()).swap(m_2dE);
   nc_assert(m_threshold>0);
   validate();
 }
 
 NCrystal::PCBragg::PCBragg(const StructureInfo& si, PlaneProvider * pp)
   : ScatterIsotropic("PCBragg"),
-    m_threshold(infinity)
+    m_threshold(kInfinity)
 {
 
   std::vector<std::pair<double, double> > data;
@@ -108,23 +108,23 @@ NCrystal::PCBragg::PCBragg(const StructureInfo& si, PlaneProvider * pp)
   init(si,data);
 }
 
-NCrystal::PCBragg::PCBragg( const StructureInfo& si, std::vector<std::pair<double,double> >&  data)
+NCrystal::PCBragg::PCBragg( const StructureInfo& si, std::vector<PairDD >&  data)
   : ScatterIsotropic("PCBragg"),
-    m_threshold(infinity)
+    m_threshold(kInfinity)
 {
   init(si,data);
 }
 
-NCrystal::PCBragg::PCBragg( double v0_times_natoms, std::vector<std::pair<double,double> >&  data)
+NCrystal::PCBragg::PCBragg( double v0_times_natoms, std::vector<PairDD >&  data)
   : ScatterIsotropic("PCBragg"),
-    m_threshold(infinity)
+    m_threshold(kInfinity)
 {
   init(v0_times_natoms,data);
 }
 
 NCrystal::PCBragg::PCBragg(const Info*ci)
   : ScatterIsotropic("PCBragg"),
-    m_threshold(infinity)
+    m_threshold(kInfinity)
 {
   nc_assert_always(ci);
   if (!ci->hasHKLInfo())
@@ -159,7 +159,7 @@ NCrystal::PCBragg::~PCBragg()
 void NCrystal::PCBragg::domain(double& ekin_low, double& ekin_high) const
 {
   ekin_low = m_threshold;
-  ekin_high = infinity;
+  ekin_high = kInfinity;
 }
 
 std::size_t NCrystal::PCBragg::findLastValidPlaneIdx(double ekin) const {
@@ -188,8 +188,8 @@ double NCrystal::PCBragg::genScatterMu(RandomBase* rng, double ekin) const
   nc_assert(idx<m_fdm_commul.size());
 
   //randomly select one plane by contribution:
-  std::vector<double>::const_iterator itFCUpper = m_fdm_commul.begin()+idx;
-  std::vector<double>::const_iterator itFC = std::lower_bound( m_fdm_commul.begin(),
+  VectD::const_iterator itFCUpper = m_fdm_commul.begin()+idx;
+  VectD::const_iterator itFC = std::lower_bound( m_fdm_commul.begin(),
                                                                itFCUpper,
                                                                rng->generate() * (*itFCUpper) );
   std::size_t idx_rand = (std::size_t)( itFC - m_fdm_commul.begin() );

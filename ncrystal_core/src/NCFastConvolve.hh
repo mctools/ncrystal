@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,13 +21,12 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
-#include <vector>
+#include "NCMath.hh"
 #include <complex>
 
 namespace NCrystal {
 
-  class FastConvolve {
+  class FastConvolve : private MoveOnly {
 
     // Class which, using the Fast-Fourier-Transform algorithm (FFT) and its
     // inverse (IFFT), transforms the input arrays a1 and a2 to the complex
@@ -38,34 +37,27 @@ namespace NCrystal {
     // And places |b| * constant in the output vector y (of length
     // a1.size()+a2.size()-1) where the constant is given by dt/N where N is
     // y.size() rounded up to the next power of 2.
-    //
-    // This is intended for convolving different parts of phonon spectra into a
-    // single part, thus merging all terms of a phonon expansion into one final
-    // spectrum.
 
   public:
-    FastConvolve(unsigned n_size);
+    FastConvolve();
     ~FastConvolve();
-    void fftconv( const std::vector<double>& a1,
-                  const std::vector<double>& a2,
-                  std::vector<double>& y,
-                  double dt) const;
+    void fftconv( const VectD& a1, const VectD& a2, VectD& y, double dt);
+
+    FastConvolve( FastConvolve&& ) = default;
+    FastConvolve& operator=( FastConvolve&& ) = default;
+
+    //Internal function for calculating exp(i*2pi*k/2^n), exposed for unit testing:
+    static PairDD calcPhase(unsigned k, unsigned n);
 
   private:
 
-    enum  caltype {FT_forward,FT_inverse};
+    enum caltype {FT_forward,FT_inverse};
     std::vector< std::complex<double> > m_w;
 
-    //The actual fast-fourier transform algorithm. It reads a vector that has
-    //less than m_size (i.e. 2^N) elements, and the output vector of FFT
-    //contains m_size elements
-
+    //The actual fast-fourier transform algorithm:
     void fftd( std::vector<std::complex<double> > &inout, caltype ct,
-               unsigned minimum_output_size ) const;
-
-    //auto-correlation function, may be useful for MD calculation results only
-    //void fft_auto(std::vector<std::complex<double> > &inout, caltype ct=forward) const;
-
+               unsigned minimum_output_size );
+    void initWTable( unsigned );
   };
 }
 

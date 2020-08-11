@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -47,7 +47,7 @@ namespace NCrystal {
       cfg.infofactopt_validate(allowed_infofactopts);
 #endif
       return loadNXSCrystal( cfg.getDataFile().c_str(),
-                             cfg.get_temp(),
+                             cfg.get_temp()==-1.0?293.15:cfg.get_temp(),
                              cfg.get_dcutoff(),
                              cfg.get_dcutoffup(),
                              cfg.get_infofactopt_flag(flag_bkgdlikemcstas),
@@ -70,7 +70,7 @@ namespace NCrystal {
         LazLoader ld (cfg.getDataFile().c_str(),
                       cfg.get_dcutoff(),
                       cfg.get_dcutoffup(),
-                      cfg.get_temp());
+                      cfg.get_temp()==-1.0?293.15:cfg.get_temp());
         ld.read();
         ci = ld.getCrystalInfo();
         ci->ref();//Avoid deletion when ld unrefs.

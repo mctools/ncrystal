@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -61,7 +61,7 @@ namespace NCrystal {
     RotMatrix& operator=(Matrix&& o);//must be dimension 3x3
 #endif
     RotMatrix( const double * );//must be length 9
-    RotMatrix( const std::vector<double>& );//must be length 9
+    RotMatrix( const VectD& );//must be length 9
 
     Vector operator*(const Vector&) const;
     const Vector& colX() const;
@@ -147,63 +147,63 @@ namespace NCrystal {
   {
   }
 
-  inline RotMatrix::RotMatrix(const std::vector<double>& data)
+  inline RotMatrix::RotMatrix(const VectD& data)
     : Matrix(3,3,data)
   {
     if (data.size()!=9)
       NCRYSTAL_THROW(BadInput,"Input vector to NCRotMatrix must have size 3*3=9");
   }
 
-  inline RotMatrix::RotMatrix(const Matrix &m)
-    : Matrix(m)
+  inline RotMatrix::RotMatrix(const Matrix &mtx)
+    : Matrix(mtx)
   {
-    if (m.nRows()!=3||m.nCols()!=3)
+    if (mtx.nRows()!=3||mtx.nCols()!=3)
       NCRYSTAL_THROW(BadInput,"Can only convert 3x3 Matrix to RotMatrix");
   }
 
-  inline RotMatrix::RotMatrix(const RotMatrix &m)
-    : Matrix(m)
+  inline RotMatrix::RotMatrix(const RotMatrix &mtx)
+    : Matrix(mtx)
   {
   }
 
     // RotMatrix& operator=(const RotMatrix&);
     // RotMatrix& operator=(const Matrix&);//must be dimension 3x3
 
-  inline RotMatrix& RotMatrix::operator=(const Matrix& m)
+  inline RotMatrix& RotMatrix::operator=(const Matrix& mtx)
   {
-    if (m.nRows()!=3||m.nCols()!=3)
+    if (mtx.nRows()!=3||mtx.nCols()!=3)
       NCRYSTAL_THROW(BadInput,"Can only convert 3x3 Matrix to RotMatrix");
-    Matrix::operator=(m);
+    Matrix::operator=(mtx);
     return *this;
   }
 
-  inline RotMatrix& RotMatrix::operator=(const RotMatrix& m)
+  inline RotMatrix& RotMatrix::operator=(const RotMatrix& mtx)
   {
-    Matrix::operator=(m);
+    Matrix::operator=(mtx);
     return *this;
   }
 #if __cplusplus >= 201103L
   //Move semantics:
-  inline RotMatrix::RotMatrix(RotMatrix && m)
-    : Matrix(std::move(m))
+  inline RotMatrix::RotMatrix(RotMatrix && mtx)
+    : Matrix(std::move(mtx))
   {
   }
-  inline RotMatrix& RotMatrix::operator=(RotMatrix&& m)
+  inline RotMatrix& RotMatrix::operator=(RotMatrix&& mtx)
   {
-    Matrix::operator=(std::move(m));
+    Matrix::operator=(std::move(mtx));
     return *this;
   }
-  inline RotMatrix::RotMatrix(Matrix && m)
-    : Matrix(std::move(m))
+  inline RotMatrix::RotMatrix(Matrix && mtx)
+    : Matrix(std::move(mtx))
   {
-    if (m.nRows()!=3||m.nCols()!=3)
+    if (mtx.nRows()!=3||mtx.nCols()!=3)
       NCRYSTAL_THROW(BadInput,"Can only convert 3x3 Matrix to RotMatrix");
   }
-  inline RotMatrix& RotMatrix::operator=(Matrix&& m)
+  inline RotMatrix& RotMatrix::operator=(Matrix&& mtx)
   {
-    if (m.nRows()!=3||m.nCols()!=3)
+    if (mtx.nRows()!=3||mtx.nCols()!=3)
       NCRYSTAL_THROW(BadInput,"Can only convert 3x3 Matrix to RotMatrix");
-    Matrix::operator=(std::move(m));
+    Matrix::operator=(std::move(mtx));
     return *this;
   }
 #endif

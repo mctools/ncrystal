@@ -1,0 +1,21 @@
+NCMAT v2
+
+#Natural Argon. Non-enriched noble gasses such as this one can be modelled
+#realistically using the freegas model of NCrystal. The density is the value at
+#STP (273.15K, 1atm) calculated with the ideal gas equation. The density value
+#must currently (NCrystal v2.0.0) be manually changed by the user if modelling
+#using different temperatures or pressures is desired (the formula is given
+#below).
+
+@DYNINFO
+  element  Ar
+  fraction 1
+  type     freegas
+@DENSITY
+  # Notice: We are hardcoding the STP values (273.15K, 1atm) here. For other
+  # values of pressure and temperature, it can be calculated as:
+  #
+  #      density [kg/m3] = 486.833 * ( P[atm] / T[K] )
+  #
+  # Which assumes an Ar mass of 39.948 amu.
+  1.78229 kg_per_m3

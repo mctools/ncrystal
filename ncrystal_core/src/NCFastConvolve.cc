@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -23,30 +23,38 @@
 #include <cstdlib>
 #include <algorithm>
 
+namespace NC = NCrystal;
+
 //Temporarily uncomment the following define to test with safer but slower code:
 //#define NCRYSTAL_FASTCONVOLVE_EXTRASAFEMATH
 
-NCrystal::FastConvolve::FastConvolve(unsigned n_size)
-{
-  if(!n_size)
-    NCRYSTAL_THROW(BadInput,"FastConvolve::FastConvolve size of the FFT can not be zero.");
+NC::FastConvolve::FastConvolve() = default;
+NC::FastConvolve::~FastConvolve() = default;
 
+
+void NC::FastConvolve::initWTable( unsigned n_size )
+{
   //round n_size up to next power of 2:
   unsigned n_size_pow2 = 1;
   while (n_size_pow2<n_size)
     n_size_pow2 *= 2;
+  unsigned n=0;
+  unsigned tmp = 1;
+  while ( tmp < n_size_pow2 ) {
+    n+=1;
+    tmp *= 2;
+  }
+  nc_assert(tmp==n_size_pow2);
 
-  m_w.resize(n_size_pow2);
-  for( size_t i = 0; i < n_size_pow2; ++i )
-    m_w[i] = std::exp( std::complex<double>(0.,i*(k2Pi/n_size_pow2)));
+  m_w.clear();
+  m_w.reserve(n_size_pow2);
+  for( unsigned i = 0; i < n_size_pow2; ++i ) {
+    NC::PairDD res = NC::FastConvolve::calcPhase(i, n);
+    m_w.emplace_back(std::complex<double>(res.first,res.second));
+  }
 }
 
-
-NCrystal::FastConvolve::~FastConvolve()
-{
-}
-
-void NCrystal::FastConvolve::fftconv(const std::vector<double>& a1, const std::vector<double>& a2, std::vector<double>& y, double dt) const
+void NC::FastConvolve::fftconv( const NC::VectD& a1, const NC::VectD& a2, NC::VectD& y, double dt )
 {
   const int minimum_out_size = a1.size() + a2.size() - 1;
 
@@ -67,7 +75,7 @@ void NCrystal::FastConvolve::fftconv(const std::vector<double>& a1, const std::v
   const double k = dt/b1.size();
   nc_assert(b1.size()==b2.size());
   nc_assert(y.size()<=b1.size());
-  std::vector<double>::iterator ity(y.begin()), ityE(y.end());
+  VectD::iterator ity(y.begin()), ityE(y.end());
   itb1 = b1.begin();
   for(;ity!=ityE;++ity,++itb1) {
 #ifdef NCRYSTAL_FASTCONVOLVE_EXTRASAFEMATH
@@ -82,19 +90,19 @@ void NCrystal::FastConvolve::fftconv(const std::vector<double>& a1, const std::v
   }
 }
 
-void NCrystal::FastConvolve::fftd(std::vector<std::complex< double> > &data, FastConvolve::caltype ct,
-                                  unsigned minimum_output_size ) const
+void NC::FastConvolve::fftd( std::vector<std::complex< double> > &data, FastConvolve::caltype ct,
+                             unsigned minimum_output_size )
 {
-  double output_log_size_fp = std::ceil(log2(minimum_output_size));//log2 not in std:: namespace until C++11
+  double output_log_size_fp = std::ceil(std::log2(minimum_output_size));
   nc_assert_always(output_log_size_fp<32);
   const int output_log_size = output_log_size_fp;
   const int output_size = ( 1 << output_log_size );//this is now minimum_output_size rounded up to next power of 2
 
-  if( (size_t)output_size > m_w.size() )
-    NCRYSTAL_THROW(BadInput,"output size is larger than the pre-computed w table.");
-  if( data.size() > m_w.size())
-    NCRYSTAL_THROW(BadInput,"input size is larger than the pre-computed w table");
+  const unsigned wTableSizeNeeded = std::max<unsigned>(output_size,data.size());
+  if ( m_w.size() < wTableSizeNeeded )
+    initWTable( wTableSizeNeeded );
 
+  nc_assert_always( data.size() <= (std::size_t)output_size );
   if( data.size() != (size_t)output_size )
     data.resize(output_size,std::complex<double>());
 
@@ -153,3 +161,97 @@ void NCrystal::FastConvolve::fftd(std::vector<std::complex< double> > &data, Fas
   }
 
 }
+
+NC::PairDD NC::FastConvolve::calcPhase(unsigned k, unsigned n)
+{
+  //Calculate exp(i*2*pi*k/n^2) where n must a nonzero number n=1,2,3,4,...
+  //and k must be a number in 0...n-1.
+  //
+  //NB: Using PairDD for (real,imag) parts, rather than std::complex<double> => for
+  //efficiency (we don't need the safety checks for obscure cases....
+  //
+  //Idea, use exp(a*b)=exp(a)*exp(b) and a small cache of
+  //exp(i2pi/2^N), N=0,1,2,. when k!=1, one can combine as in these examples:
+  //
+  // 13/32 = 1/32 + 12/32 = 1/32 + 3/8 = 1/32 + 1/8 + 1/4
+  //
+  // 17/32 = 1/32 + 1/2
+  //
+  // 11/32 = 1/32 + 5/16 = 1/32 + 1/16 + 1/4
+  //
+
+  //Trivial case:
+  if ( k == 0 )
+    return { 1.0, 0.0 };
+
+  //Eliminate common factors of 2 in fraction k/n^2:
+  while ( k%2==0 ) {
+    nc_assert( n>=1 );
+    n -= 1;
+    k /= 2;
+  }
+
+  if ( k == 1 ) {
+    //Fundamental form.
+    nc_assert(n>=1);//k>0, so it follows from k<=n-1 that n>1
+
+    //Cache high-precision numbers (from Python's mpmath module) (for
+    //efficiency, accuracy and reproducability):
+    static std::array<double, 20> cosvals = { -1.0, // cos(2pi/2^1)
+                                              0.0, // cos(2pi/2^2)
+                                              0.707106781186547524401, // cos(2pi/2^3)
+                                              0.923879532511286756128, // cos(2pi/2^4)
+                                              0.980785280403230449126, // cos(2pi/2^5)
+                                              0.995184726672196886245, // cos(2pi/2^6)
+                                              0.998795456205172392715, // cos(2pi/2^7)
+                                              0.999698818696204220116, // cos(2pi/2^8)
+                                              0.999924701839144540922, // cos(2pi/2^9)
+                                              0.999981175282601142657, // cos(2pi/2^10)
+                                              0.999995293809576171512, // cos(2pi/2^11)
+                                              0.999998823451701909929, // cos(2pi/2^12)
+                                              0.99999970586288221916, // cos(2pi/2^13)
+                                              0.999999926465717851145, // cos(2pi/2^14)
+                                              0.999999981616429293808, // cos(2pi/2^15)
+                                              0.999999995404107312891, // cos(2pi/2^16)
+                                              0.999999998851026827563, // cos(2pi/2^17)
+                                              0.999999999712756706849, // cos(2pi/2^18)
+                                              0.99999999992818917671, // cos(2pi/2^19)
+                                              0.999999999982047294177 }; // cos(2pi/2^20)
+
+    static std::array<double, 20> sinvals = { 0.0, // sin(2pi/2^1)
+                                              1.0, // sin(2pi/2^2)
+                                              0.707106781186547524401, // sin(2pi/2^3)
+                                              0.382683432365089771728, // sin(2pi/2^4)
+                                              0.195090322016128267848, // sin(2pi/2^5)
+                                              0.0980171403295606019942, // sin(2pi/2^6)
+                                              0.049067674327418014255, // sin(2pi/2^7)
+                                              0.0245412285229122880317, // sin(2pi/2^8)
+                                              0.0122715382857199260794, // sin(2pi/2^9)
+                                              0.00613588464915447535964, // sin(2pi/2^10)
+                                              0.00306795676296597627015, // sin(2pi/2^11)
+                                              0.0015339801862847656123, // sin(2pi/2^12)
+                                              0.000766990318742704526939, // sin(2pi/2^13)
+                                              0.000383495187571395589072, // sin(2pi/2^14)
+                                              0.00019174759731070330744, // sin(2pi/2^15)
+                                              0.0000958737990959773458705, // sin(2pi/2^16)
+                                              0.000047936899603066884549, // sin(2pi/2^17)
+                                              0.0000239684498084182187292, // sin(2pi/2^18)
+                                              0.0000119842249050697064215, // sin(2pi/2^19)
+                                              0.00000599211245264242784288 }; // sin(2pi/2^20)
+
+    double cosval = ( n < cosvals.size() ? cosvals.at(n-1) : std::cos(k2Pi / (double(n)*n)) );
+    double sinval = ( n < sinvals.size() ? sinvals.at(n-1) : std::sin(k2Pi / (double(n)*n)) );
+    return { cosval, sinval };
+  }
+
+  //Non-fundamental form, must combine results from several fundamental forms
+  //using multiplication of complex numbers.
+
+  nc_assert(k%2==1);//must be odd at this point
+  PairDD factor1 = calcPhase(1, n);
+  PairDD factor2 = calcPhase(k-1, n);
+  return { (factor1.first*factor2.first-factor1.second*factor2.second),
+           (factor1.first*factor2.second+factor1.second*factor2.first) };
+
+}
+

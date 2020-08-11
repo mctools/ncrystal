@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -148,7 +148,7 @@ double NCrystal::Romberg::integrate(double a, double b) const
   return row_prev[maxlevel-1];//convergenceError() did not throw or otherwise die, so return best estimate.
 }
 
-#include "NCFile.hh"
+#include "NCrystal/NCFile.hh"
 #include <fstream>
 #include <iomanip>
 void NCrystal::Romberg::writeFctToFile(const std::string& filename, double a, double b, unsigned n) const
@@ -162,7 +162,7 @@ void NCrystal::Romberg::writeFctToFile(const std::string& filename, double a, do
   ofs << std::setprecision(20);
   ofs << "#ncrystal_xycurve\n";
   ofs << "#colnames = evalFuncManySum(n=1)xN;evalFuncMany(n=N);reldiff\n";
-  std::vector<double> y;
+  VectD y;
   y.resize(n);
   double delta = (b-a)/(n-1);
   evalFuncMany(&y[0], n, a, delta);

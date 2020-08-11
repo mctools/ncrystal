@@ -30,11 +30,11 @@ by the European Union's Horizon 2020 research and innovation programme under
 grant agreement No 676548 (the BrightnESS project).
 
 A substantial effort went into developing NCrystal. If you use it for your work,
-we would appreciate it if you would use the following reference in your work
-(note, this reference will change once a proper peer-reviewed publication for
-NCrystal exists):
+we would appreciate it if you would use the following reference in your work:
 
-  X. X. Cai and T. Kittelmann, NCrystal, https://doi.org/10.5281/zenodo.853186
+  X.-X. Cai and T. Kittelmann, NCrystal: A library for thermal neutron
+  transport, Computer Physics Communications 246 (2020) 106851,
+  https://doi.org/10.1016/j.cpc.2019.07.015
 
 The rest of this file gives a brief overview of the manners in which NCrystal
 capabilities can be utilised. Further instructions and documentation, along with

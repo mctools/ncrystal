@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,21 +22,28 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCDefs.hh"
-#include <vector>
+#include "NCRomberg.hh"
+#include <functional>
 
 namespace NCrystal {
 
-  const double constant_c  = 299792458e10;// speed of light in Aa/s
-  const double constant_dalton2kg =  1.660539040e-27; // amu to kg (source: NIST/CODATA 2018)
-  const double constant_dalton2eVc2 =  931494095.17; // amu to eV/c^2 (source: NIST/CODATA 2018)
-  const double constant_avogadro = 6.022140857e23; // mol^-1 (source: NIST/CODATA 2018)
-  const double constant_boltzmann = 8.6173303e-5;  // eV/K
-  const double const_hhm = 4.144249671718981e-3; // hbar^2/neutron_mass
-  const double const_neutron_mass = 1.674927471e-24; //gram
-  const double const_neutron_atomic_mass = 1.00866491588; //atomic unit
-  const double const_ekin_2200m_s = 0.02529886 ; //eV, neutron kinetic energy at 2200m/s.
-  const double constant_planck = 4.135667662e-15 ;//[eV*s]
-  const double constant_hbar = constant_planck*kInv2Pi; //[eV*s]
+  //Primary constants [NB: Some replicated in Python interface!]:
+  constexpr double constant_c  = 299792458e10;// speed of light in Aa/s
+  constexpr double constant_dalton2kg =  1.660539040e-27; // amu to kg (source: NIST/CODATA 2018)
+  constexpr double constant_dalton2eVc2 =  931494095.17; // amu to eV/c^2 (source: NIST/CODATA 2018)
+  constexpr double constant_avogadro = 6.022140857e23; // mol^-1 (source: NIST/CODATA 2018)
+  constexpr double constant_boltzmann = 8.6173303e-5;  // eV/K
+  constexpr double const_neutron_mass_amu = 1.00866491588; // [amu] //preferred name
+  constexpr double const_neutron_atomic_mass = const_neutron_mass_amu; // [amu]//obsolete name
+  constexpr double constant_planck = 4.135667662e-15 ;//[eV*s]
+
+  //Derived values:
+  constexpr double const_neutron_mass_evc2 = const_neutron_mass_amu * constant_dalton2eVc2 / (constant_c*constant_c);// [ eV/(Aa/s)^2 ]
+  constexpr double const_ekin_2200m_s = 0.5 * const_neutron_mass_evc2 * 2200.0e10 * 2200.0e10; //neutron kinetic energy at 2200m/s [eV]
+  constexpr double constant_hbar = constant_planck*kInv2Pi; //[eV*s]
+  constexpr double const_hhm = constant_hbar*constant_hbar/const_neutron_mass_evc2;// hbar^2/neutron_mass [ eV*Aa^2 ]
+  //NB: For technical reasons, the following constant is defined below:
+  //  constant_ekin2v = sqrt(2.0/const_neutron_mass_evc2); //multiply this with sqrt(ekin[eV]) to get velocity in Aa/s
 
   //Our own min/max/abs to make sure only double versions are used:
   double ncmin(double, double);
@@ -45,20 +52,16 @@ namespace NCrystal {
   double ncabs(double);
   bool ncisnan(double);
   bool ncisinf(double);
-  double nccopysign(double,double);//std::copysign from C++11, with fallback code for c++98.
 
-  //Error function (only in cmath from C++11 onwards):
-  double ncerf(double);
+  //Versions with multiple parameters:
+  double ncmin(double, double, double);
+  double ncmax(double, double, double);
+  double ncmin(double, double, double, double);
+  double ncmax(double, double, double, double);
 
-  //std::is_sorted (only in algorithm from C++11 onwards). Only support std::vector<double>
-  bool ncis_sorted(std::vector<double>::const_iterator itb, std::vector<double>::const_iterator ite);
-
-  //Generate numbers from thermal (Maxwell) distributions, passing T[Kelvin] or sqrt(T[Kelvin]):
-  //(nb. genThermalNeutronEnergy doesn't actually depend on the particle being a neutron)
-  double genThermalNeutronVelocity(double sqrt_temp_kelvin, double rand);//neutron velocity [m/s]
-  double genThermalNeutronEnergy(double temp_kelvin, double rand);//neutron energy [eV]
-  double genThermalNeutronWavelength(double sqrt_temp_kelvin, double rand);//neutron wavelength [Aa]
-  double genThermalY(double rand);//Generate y=v/sqrt(kT/m) [dimensionless]
+  //Check that span contains values that could be a grid. I.e. is non-empty,
+  //sorted, no duplicated values, no NaN/inf's.
+  bool nc_is_grid(span<const double>);
 
   //sinus/cosine options (indicated approximate timings from 2014 thinkpad with gcc 6.3.1):
   void sincos(double A,double&cosA, double& sinA);//slow cos(A) and sin(A) for any A   [40ns/call]
@@ -86,25 +89,28 @@ namespace NCrystal {
   double atan_approx(double x);//calling atan_smallarg_approx when |x|<0.442 and falling back to std::atan and exact results otherwise.
   double expm1_smallarg_approx(double x);//7th order Taylor expansion
 
-  //numerical integration
-  void gauleg_10_ord(const double x1, const double x2, std::vector<double>& x, std::vector<double>& w);
-  void gauloba_10_ord(const double x1, const double x2, std::vector<double>& x, std::vector<double>& w);
-  double gaulobatto_grid(unsigned bz,double lower_beta, double upper_beta, std::vector<double>& beta, std::vector<double>& totwgt);
-  double gaulobatto_grid(const std::vector<double>& old_beta, std::vector<double>& beta, std::vector<double>& totwgt);
+  //Evaluate erfc(a)-erfc(b) in a relatively numerically safe
+  //manner and with as few actual calls to std::erfc as possible:
+  double erfcdiff(double a, double b);
 
-  //vector operation
-  double trapz(const std::vector<double> &y,const std::vector<double> &x);
-  void flip(const std::vector<double> & arr, std::vector<double> & arr_dst, bool opposite_sign=false);
-  std::vector<double> logspace(double start, double stop, unsigned num);
-  std::vector<double> linspace(double start, double stop, unsigned num);
-  double simpsons_irregular(const std::vector<double> &y, const std::vector<double> &x); //odd number of points is preferred
-  void concatenate(std::vector<double>& arr_front,const std::vector<double>& arr_back, unsigned skip_pos=0);
+  //Returns exp(b)*erfc(x), which has the advantage that when b ~= x^2, it
+  //cancels out the exp(-x^2) behaviour of erfc at high x, thus enabling
+  //meaningful (rescaled) evaluations of erfc tails (which would otherwise be
+  //loss due to numerical precision issues):
+  double erfc_rescaled(double x, double b);
+
+  //Evenly spaced points (like Numpy equivalent functions):
+  VectD linspace(double start, double stop, unsigned num);
+  VectD logspace(double start, double stop, unsigned num);
+  VectD geomspace(double start, double stop, unsigned num);
 
   //misc:
+  constexpr double constexpr_sqrt(double);//compile time sqrt
   bool isPrime(unsigned n);//simple O(n^0.5) implementation
   bool intervalsOverlap(double a0, double b0, double a1, double b1);
   bool intervalsDisjoint(double a0, double b0, double a1, double b1);
   bool valueInInterval(double a, double b, double x);
+  bool valueInInterval( const PairDD& ab, double x);
 
   class Fct1D {
   public:
@@ -125,6 +131,9 @@ namespace NCrystal {
 
   //Root finding:
   double findRoot(const Fct1D*f,double a, double b, double acc = 1e-13);
+
+  template <class Func>
+  double findRoot2(const Func& f,double a, double b, double acc = 1e-13);
 
   class CosSinGridGen {
   public:
@@ -168,6 +177,72 @@ namespace NCrystal {
     double m_sum, m_correction;
   };
 
+
+  //isOneOf: To test an argument against multiple values, e.g. write
+  //isOneOf(a,"foo","bar","foobar) instead of
+  //a=="foo"||a=="bar"||a=="foobar". The search is linear from left to right, so
+  //is not meant for very large number of test cases:
+
+  template <class T1>
+  inline constexpr bool isOneOf(T1) {
+    return false;
+  }
+
+  template <class T1, class T2, class... Ts>
+  inline constexpr bool isOneOf(T1 needle, T2 haystack0, Ts... haystack_rest) {
+    //linear search (so best for very small searches)
+    return needle == haystack0 || isOneOf(needle, haystack_rest...);
+  }
+
+  template<typename T, typename Container>
+  inline bool hasValue(const Container & c, const T & value)
+  {
+    using std::begin;
+    using std::end;
+    auto itE = end(c);
+    return std::find(begin(c), itE, value) != itE;
+  }
+
+  VectD::const_iterator findClosestValInSortedVector(const VectD& v, double value);
+
+  //Test equality of floating point numbers, within relative and absolute tolerances:
+  bool floateq(double a, double b, double rtol=1.0e-6, double atol=1.0e-6);
+
+  //Numerical integration (see NCRomberg.hh for more flexible Romberg integration):
+  template <class Func>
+  double integrateSimpsons(const Func& f, double a, double b, unsigned n);
+  template <class Func>
+  double integrateTrapezoidal(const Func& f, double a, double b, unsigned n);
+  template <class Func>
+  double integrateRomberg17(const Func& f, double a, double b);
+  template <class Func>
+  double integrateRomberg33(const Func& f, double a, double b);
+
+  //Reduce pts on curve by removing points that are least important for overall shape:
+  std::pair<VectD,VectD> reducePtsInDistribution( const VectD& x, const VectD& y, std::size_t targetN );
+
+  //Vector utilities:
+  inline void vectorAppend(VectD& v1, const VectD& v2);//appends contents of v2 to v1
+  template<class TVector, class Func>
+  inline TVector vectorTrf(const TVector&, const Func&);//create new vector of same type with function applied to all elements
+  //Access vector contents with .at() in debug builds and [] in optimised builds
+  //(NB: for spans, use the span_at functions from NCDefs.hh):
+  template <class TVector>
+  typename TVector::value_type& vectAt(TVector& v, typename TVector::size_type idx);
+  template <class TVector>
+  const typename TVector::value_type& vectAt(const TVector& v, typename TVector::size_type idx);
+
+
+
+  //Hashing utils (std::size_t is chosen for compatibility with std::hash):
+  typedef std::size_t HashValue;
+  template <class T>
+  HashValue calcHash(const T&);
+  template <class T>
+  void hash_combine(HashValue& seed, const T&);
+  template <class TContainer>
+  HashValue hashContainer(const TContainer& v);
+
 }
 
 
@@ -175,46 +250,20 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-#if __cplusplus >= 201103L
-
 //Notice that the usage of e.g. std::min rather than std::fmin, and the order
 //switching of parameters passed to those functions is rather important, as it
-//has to be just like this in order to end with one instruction. See
-//https://godbolt.org/g/v4dyuW).
+//has to be just like this in order to end with minimal set of instructions (in
+//any clang or gcc-trunk April-2020: just 1 per std::min/std::max call, no more):
 inline double NCrystal::ncmin(double a, double b) { return std::min(b,a); }
 inline double NCrystal::ncmax(double a, double b) { return std::max(b,a); }
+inline double NCrystal::ncmax(double a, double b, double c) { return std::max(c,std::max(b,a)); }
+inline double NCrystal::ncmin(double a, double b, double c) { return std::min(c,std::min(b,a)); }
+inline double NCrystal::ncmin(double a, double b, double c, double d) { return std::min(std::min(d,c),std::min(b,a)); }
+inline double NCrystal::ncmax(double a, double b, double c, double d) { return std::max(std::max(d,c),std::max(b,a)); }
+
 inline double NCrystal::ncabs(double a) { return std::abs(a); }
 inline bool NCrystal::ncisnan(double a) { return std::isnan(a); }
 inline bool NCrystal::ncisinf(double a) { return std::isinf(a); }
-#else
-inline double NCrystal::ncmin(double a, double b) { return a < b ? a : b; }
-inline double NCrystal::ncmax(double a, double b) { return a > b ? a : b; }
-inline double NCrystal::ncabs(double a) { return a < 0 ? -a : a; }
-inline bool NCrystal::ncisnan(double a) {
-#  if defined(__GNUC__) || defined(__clang__)
-  return __builtin_isnan(a);
-#  else
-  return a!=a;//in principle only guaranteed for IEEE numbers and might break with -fastmath
-#  endif
-}
-inline bool NCrystal::ncisinf(double a) {
-#  if defined(__GNUC__) || defined(__clang__)
-  return __builtin_isinf(a);
-#  else
-  return ncabs(a) > std::numeric_limits<double>::max();
-#  endif
-}
-#endif
-
-inline double NCrystal::nccopysign(double x,double y)
-{
-#if __cplusplus >= 201103L
-  return std::copysign(x,y);
-#else
-  return ncabs(x)*(y<0?-1.0:1.0);
-#endif
-}
-
 
 inline double NCrystal::ncclamp(double val, double low, double up)
 {
@@ -223,35 +272,6 @@ inline double NCrystal::ncclamp(double val, double low, double up)
   //was checked to produce just two instructions (do NOT change argument order
   //here, or it will generate more instructions).
   return ncmin(ncmax(val,low),up);
-}
-
-#if __cplusplus >= 201103L
-  inline double NCrystal::ncerf(double x) { return std::erf(x); }
-#elif defined(__GNUC__) || defined(__clang__)
-  //oups - no guarantee for erf in C++98, but clang and gcc seems to provide a
-  //builtin (not disabled by -fno-builtin):
-  inline double NCrystal::ncerf(double x) { return __builtin_erf(x); }
-#else
-  //double oups. Attempt fallback and hope it came from somewhere by e.g. the
-  //cmath header due to C99 support:
-  inline double NCrystal::ncerf(double x) { return erf(x); }
-#endif
-
-inline double NCrystal::genThermalNeutronVelocity(double sqrt_temp_kelvin, double rand)
-{
-  return (90.791228875348494 * sqrt_temp_kelvin) * genThermalY(rand);
-}
-
-inline double NCrystal::genThermalNeutronEnergy(double temp_kelvin, double rand)
-{
-  double tmp = genThermalY(rand);
-  return (4.3086714999999998e-5 * temp_kelvin) * tmp * tmp;
-}
-
-inline double NCrystal::genThermalNeutronWavelength(double sqrt_temp_kelvin, double rand)
-{
-  //ncmax essentially to avoid division by zero when rand=0:
-  return 43.572864563953402 / ( sqrt_temp_kelvin * ncmax(genThermalY(rand),1.0e-300) );
 }
 
 inline void NCrystal::sincos(double A,double&cosA, double& sinA)
@@ -279,22 +299,22 @@ inline void NCrystal::sincos_mpipi(double A, double& cosA, double& sinA) {
   double Aabs = ncabs(A);
   nc_assert(Aabs<=kPi);
   sincos_mpi2pi2(ncmin(Aabs,kPi-Aabs),cosA,sinA);
-  cosA = nccopysign(cosA,kPiHalf-Aabs);
-  sinA = nccopysign(sinA,A);
+  cosA = std::copysign(cosA,kPiHalf-Aabs);
+  sinA = std::copysign(sinA,A);
 }
 
 inline void NCrystal::sincos_0pi32(double A, double& cosA, double& sinA) {
   //Like sincos_mpipi, but without need to deal with negative A's. Works until 3pi/2.
   nc_assert(A>=0.0&&A<=1.5*kPi);
   sincos_mpi2pi2(ncmin(A,kPi-A),cosA,sinA);
-  cosA = nccopysign(cosA,kPiHalf-A);
+  cosA = std::copysign(cosA,kPiHalf-A);
 }
 
 inline void NCrystal::sincos_0pi(double A, double& cosA, double& sinA) {
   //Like sincos_mpipi, but without need to deal with negative A's. Works until 3pi/2.
   nc_assert(A>=0.0&&A<=kPi);
   sincos_mpi2pi2(ncmin(A,kPi-A),cosA,sinA);
-  cosA = nccopysign(cosA,kPiHalf-A);
+  cosA = std::copysign(cosA,kPiHalf-A);
 }
 
 inline void NCrystal::sincos_02pi(double A, double& cosA, double& sinA) {
@@ -305,14 +325,14 @@ inline void NCrystal::sincos_02pi(double A, double& cosA, double& sinA) {
   double Aabs = ncabs(A);
   nc_assert(Aabs<=kPi);
   sincos_mpi2pi2(ncmin(Aabs,kPi-Aabs),cosA,sinA);
-  cosA = nccopysign(cosA,Aabs-kPiHalf);
-  sinA = nccopysign(sinA,-A);
+  cosA = std::copysign(cosA,Aabs-kPiHalf);
+  sinA = std::copysign(sinA,-A);
 }
 
 inline double NCrystal::cos_02pi(double A) {
   nc_assert(A>=0.0&&A<=k2Pi);
   A-=kPi;
-  return nccopysign(cos_mpipi(A),ncabs(A)-kPiHalf);
+  return std::copysign(cos_mpipi(A),ncabs(A)-kPiHalf);
 }
 
 inline double NCrystal::sin_02pi(double A) {
@@ -320,7 +340,7 @@ inline double NCrystal::sin_02pi(double A) {
   A -= kPi;
   double Aabs = ncabs(A);
   double Sabs = sin_mpi2pi2(ncmin(Aabs,kPi-Aabs));
-  return nccopysign(Sabs,-A);
+  return std::copysign(Sabs,-A);
 }
 
 inline bool NCrystal::intervalsOverlap(double a0, double b0, double a1, double b1)
@@ -340,6 +360,11 @@ inline bool NCrystal::valueInInterval(double a, double b, double x)
   nc_assert(b>=a);
   nc_assert(bool((x-a)*(x-b) <= 0.0) == bool(x>=a&&x<=b));
   return (x-a)*(x-b) <= 0.0;
+}
+
+inline bool NCrystal::valueInInterval( const NCrystal::PairDD& ab, double x)
+{
+  return valueInInterval(ab.first,ab.second,x);
 }
 
 inline double NCrystal::exp_smallarg_approx( double x )
@@ -453,6 +478,155 @@ inline void NCrystal::StableSum::add( double x )
 inline double NCrystal::StableSum::sum() const
 {
   return m_sum + m_correction;
+}
+
+inline bool NCrystal::floateq(double a, double b, double rtol, double atol)
+{
+  return ncabs(a-b) <= 0.5 * rtol * (ncabs(a) + ncabs(b)) + atol;
+}
+
+template <class Func>
+inline double NCrystal::integrateSimpsons(const Func& f, double a, double b, unsigned n) {
+  nc_assert(b>a&&n>1);
+  if (n%2==0)
+    n+=1;//ensure odd
+  StableSum res;
+  const double dx = (b-a)/(n-1);
+  res.add(f(a)*0.5);
+  const unsigned nm1(n-1);
+  for (unsigned i = 1; i < nm1; i+=2)
+    res.add(f(a + i * dx)*2.0);
+  for (unsigned i = 2; i < nm1; i+=2)
+    res.add(f(a + i * dx));
+  res.add(f(b)*0.5);
+  return res.sum()*dx*(2.0/3.0);
+}
+
+template <class Func>
+inline double NCrystal::integrateTrapezoidal(const Func& f, double a, double b, unsigned n) {
+  nc_assert(b>a&&n>1);
+  StableSum res;
+  const double dx = (b-a)/(n-1);
+  res.add(f(a)*0.5);
+  const unsigned nm1(n-1);
+  for (unsigned i = 1; i < nm1; ++i)
+    res.add(f(a + i * dx));
+  res.add(f(b)*0.5);
+  return res.sum()*dx;
+}
+
+template <class Func>
+inline double NCrystal::integrateRomberg17(const Func& f, double a, double b) {
+  struct R17 : public Romberg {
+    const Func& m_f;
+    R17(const Func& f) : m_f(f) {}
+    virtual ~R17() = default;
+    double evalFunc(double x) const override { return m_f(x); }
+    bool accept(unsigned, double, double,double,double) const override { return true; }
+  };
+  return R17(f).integrate(a,b);
+}
+
+template <class Func>
+inline double NCrystal::integrateRomberg33(const Func& f, double a, double b) {
+  struct R33 : public Romberg {
+    const Func& m_f;
+    R33(const Func& f) : m_f(f) {}
+    virtual ~R33() = default;
+    double evalFunc(double x) const override { return m_f(x); }
+    bool accept(unsigned lvl, double, double,double,double) const override { return lvl>4; }
+  };
+  return R33(f).integrate(a,b);
+}
+
+template <class Func>
+inline double NCrystal::findRoot2(const Func& f,double a, double b, double acc)
+{
+
+  struct FctWrap : public Fct1D {
+    const Func& m_f;
+    FctWrap(const Func& f) : m_f(f) {};
+    virtual ~FctWrap() = default;
+    double eval(double x) const final { return m_f(x); }
+  } fwrap(f);
+  return findRoot(&fwrap,a,b,acc);
+}
+
+inline void NCrystal::vectorAppend( NCrystal::VectD& v1, const NCrystal::VectD& v2 )
+{
+  v1.reserve(v1.size()+v2.size());
+  v1.insert( v1.end(), v2.begin(), v2.end() );
+}
+
+template<class TVector, class Func>
+inline TVector NCrystal::vectorTrf(const TVector& input, const Func& f)
+{
+  TVector out;
+  out.reserve(input.size());
+  for ( auto e : input )
+    out.emplace_back( f(e) );
+  return out;
+}
+
+template <class TVector>
+inline typename TVector::value_type& NCrystal::vectAt(TVector& v, typename TVector::size_type idx)
+{
+#ifndef NDEBUG
+  return v.at(idx);
+#else
+  return v[idx];
+#endif
+}
+
+template <class TVector>
+inline const typename TVector::value_type& NCrystal::vectAt(const TVector& v, typename TVector::size_type idx)
+{
+#ifndef NDEBUG
+  return v.at(idx);
+#else
+  return v[idx];
+#endif
+}
+
+namespace NCrystal {
+
+  inline constexpr double detail_sqrtNR(double x, double xc, double xp)
+  {
+    return xc == xp ? xc : detail_sqrtNR(x, 0.5 * (xc + x / xc), xc);
+  }
+
+  inline constexpr double constexpr_sqrt(double x)
+  {
+    //TODO: Mark consteval in c++20.
+    return detail_sqrtNR(x, x, 0.);
+  }
+
+  //Define here (must be after *definition* of constexpr_sqrt):
+  constexpr double constant_ekin2v = constexpr_sqrt(2.0/const_neutron_mass_evc2);
+
+  template <class T>
+  inline HashValue calcHash(const T& t)
+  {
+    return std::hash<T>{}(t);
+  }
+
+  template <class T>
+  inline void hash_combine(HashValue& seed, const T& v)
+  {
+    //Based on boost::hash_combine and discussions at stackoverflow. We could
+    //easily pick another algorithm here:
+    seed ^= calcHash(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+  }
+
+  template <class TContainer>
+  inline HashValue hashContainer(const TContainer& v)
+  {
+    HashValue seed(0);
+    for ( auto e : v )
+      hash_combine(seed,e);
+    return seed;
+  }
+
 }
 
 #endif

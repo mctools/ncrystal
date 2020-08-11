@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -23,8 +23,6 @@
 
 #include "NCrystal/NCScatterIsotropic.hh"
 #include "NCrystal/NCInfo.hh"
-#include <vector>
-#include <utility>
 
 namespace NCrystal {
 
@@ -51,8 +49,8 @@ namespace NCrystal {
     //(will sort passed vector, hence it is non-const). Either needs structure
     //info, or just v0*n_atoms, unit cell volume in Aa^3 and number atoms per
     //unit cell:
-    PCBragg( const StructureInfo&, std::vector<std::pair<double,double> >& );
-    PCBragg( double v0_times_natoms, std::vector<std::pair<double,double> >& );
+    PCBragg( const StructureInfo&, std::vector<PairDD >& );
+    PCBragg( double v0_times_natoms, std::vector<PairDD >& );
 
     //The cross-section (in barns):
     virtual double crossSectionNonOriented(double ekin) const;
@@ -74,10 +72,10 @@ namespace NCrystal {
     double genScatterMu(RandomBase*, double ekin) const;
     std::size_t findLastValidPlaneIdx(double ekin) const;
     double m_threshold;
-    std::vector<double> m_2dE;
-    std::vector<double> m_fdm_commul;
-    void init( const StructureInfo&, std::vector<std::pair<double,double> >& );
-    void init( double v0_times_natoms, std::vector<std::pair<double,double> >& );
+    VectD m_2dE;
+    VectD m_fdm_commul;
+    void init( const StructureInfo&, std::vector<PairDD >& );
+    void init( double v0_times_natoms, std::vector<PairDD >& );
   };
 
 }

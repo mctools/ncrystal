@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2019 NCrystal developers                                   //
+//  Copyright 2015-2020 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -20,9 +20,11 @@
 
 #include "NCrystal/NCDump.hh"
 #include "NCNeutronSCL.hh"
+#include "NCMath.hh"
 #include "NCrystal/NCInfo.hh"
 #include <cstdio>
 #include <sstream>
+#include <algorithm>
 
 void NCrystal::dump(const NCrystal::Info*c)
 {
@@ -77,17 +79,67 @@ void NCrystal::dump(const NCrystal::Info*c)
 
   if (c->hasDensity()) {
     printf("%s", hr);
-    printf("   Density : %g g/cm3\n",c->getDensity());
+    printf("Density : %g g/cm3\n",c->getDensity());
+  }
+
+  if (c->hasNumberDensity()) {
+    printf("%s", hr);
+    printf("NumberDensity : %g atoms/Aa3\n",c->getNumberDensity());
+  }
+
+  if (c->hasComposition()) {
+    printf("%s", hr);
+    printf("Composition:\n");
+    for (auto& ef : c->getComposition())
+      printf(" %20g%% %s\n",ef.second*100.0,ef.first.c_str());
   }
 
   if (c->hasTemperature()) {
     printf("%s", hr);
-    printf("   Temperature : %g kelvin\n",c->getTemperature());
+    printf("Temperature : %g kelvin\n",c->getTemperature());
   }
 
-  if (c->hasDebyeTemperature()) {
+  if (c->hasGlobalDebyeTemperature()) {
     printf("%s", hr);
-    printf("   Debye temperature (global) : %g kelvin\n",c->getDebyeTemperature());
+    printf("Debye temperature (global) : %g kelvin\n",c->getGlobalDebyeTemperature());
+  }
+
+  if (c->hasDynamicInfo()) {
+    printf("%s", hr);
+    for (auto& di: c->getDynamicInfoList()) {
+      printf("Dynamic info for %s (%g%%):\n",di->elementName().c_str(),di->fraction()*100.0);
+      auto di_knl = dynamic_cast<const DI_ScatKnl*>(di.get());
+      if (di_knl) {
+        auto di_skd = dynamic_cast<const DI_ScatKnlDirect*>(di_knl);
+        auto di_vdos = dynamic_cast<const DI_VDOS*>(di_knl);
+        auto di_vdosdebye = dynamic_cast<const DI_VDOSDebye*>(di_knl);
+        printf("   type: S(alpha,beta)%s\n",(di_vdos?" [from VDOS]":(di_vdosdebye?" [from VDOSDebye]":"")));
+        auto sp_egrid = di_knl->energyGrid();
+        if (!!sp_egrid)
+          printf("   egrid: %g -> %g (%llu points)\n",sp_egrid->front(),sp_egrid->back(), (unsigned long long)sp_egrid->size());
+        if (di_skd) {
+          const auto& sabdata = *(di_skd->ensureBuildThenReturnSAB());
+          const auto& ag = sabdata.alphaGrid();
+          const auto& bg = sabdata.betaGrid();
+          const auto& sab = sabdata.sab();
+          printf("   alpha-grid   : %g -> %g (%llu points)\n",ag.front(),ag.back(), (unsigned long long)ag.size());
+          printf("   beta-grid    : %g -> %g (%llu points)\n",bg.front(),bg.back(), (unsigned long long)bg.size());
+          printf("   S(alpha,beta): %llu points, S_max = %g\n",(unsigned long long)sab.size(), *std::max_element(sab.begin(),sab.end()));
+        }
+        if (di_vdos) {
+          printf("   VDOS Source: %llu points\n",(unsigned long long)di_vdos->vdosData().vdos_density().size());
+          printf("   VDOS E_max: %g meV\n",di_vdos->vdosData().vdos_egrid().second*1000.0);
+        } else if (di_vdosdebye) {
+          printf("   VDOS E_max: %g meV\n",di_vdosdebye->debyeTemperature()*constant_boltzmann*1000.0);
+        }
+      } else if (dynamic_cast<const DI_Sterile*>(di.get())) {
+        printf("   type: sterile\n");
+      } else if (dynamic_cast<const DI_FreeGas*>(di.get())) {
+        printf("   type: freegas\n");
+      } else {
+        nc_assert_always(false);
+      }
+    }
   }
 
   if (c->hasXSectAbsorption()||c->hasXSectFree()) {
