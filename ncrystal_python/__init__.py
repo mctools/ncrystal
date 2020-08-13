@@ -16,6 +16,13 @@ we would appreciate it if you would use the following reference in your work:
   transport, Computer Physics Communications 246 (2020) 106851,
   https://doi.org/10.1016/j.cpc.2019.07.015
 
+For work benefitting from our inelastic physics, we furthermore request that you
+additionally also use the following reference in your work:
+
+  X.-X. Cai, T. Kittelmann, et. al., "Rejection-based sampling of inelastic
+  neutron scattering", Journal of Computational Physics 380 (2019) 400-407,
+  https://doi.org/10.1016/j.jcp.2018.11.043
+
 For detailed usage conditions and licensing of this open source project, see:
 
    https://github.com/mctools/ncrystal/blob/master/NOTICE
@@ -48,7 +55,7 @@ For detailed usage conditions and licensing of this open source project, see:
 from __future__ import division, print_function, absolute_import
 
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
-__version__ = '1.99.1'
+__version__ = '2.0.0'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
 __copyright__ = "Copyright 2015-2020 %s"%__author__

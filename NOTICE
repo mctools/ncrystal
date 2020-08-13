@@ -19,6 +19,13 @@ we would appreciate it if you would use the following reference in your work:
   transport, Computer Physics Communications 246 (2020) 106851,
   https://doi.org/10.1016/j.cpc.2019.07.015
 
+For work benefitting from our inelastic physics, we furthermore request that you
+additionally also use the following reference in your work:
+
+  X.-X. Cai, T. Kittelmann, et. al., "Rejection-based sampling of inelastic
+  neutron scattering", Journal of Computational Physics 380 (2019) 400-407,
+  https://doi.org/10.1016/j.jcp.2018.11.043
+
 The optional modules available in the ncrystal_extra/ directory contain open
 source code from third-parties, and usage of these must naturally oblige by
 their licenses as well, as detailed in the file ncrystal_extra/LICENSE. If

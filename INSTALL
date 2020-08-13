@@ -90,3 +90,13 @@ is a quick recipe (using an in-source build for simplicity):
 5. Use the installation.
 
    Refer to the README file for more information.
+
+Building on Windows
+-------------------
+
+The NCrystal developers do not themselves have access to Windows, but thanks to
+patches, debugging and feedback from Andrey Morozov (LIP-Coimbra), Matteo Busi
+(PSI), and Anders Kaestner (PSI), is has been confirmed to work in that
+environment. The GitHub issue at https://github.com/mctools/ncrystal/issues/38
+contains a specific recipe concerning Windows 10 with Visual Studio.
+

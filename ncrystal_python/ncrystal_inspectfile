@@ -494,7 +494,7 @@ class Cfg:
         self._cfgstr = combine_cfgs(cfgstr,commoncfgstr)
         f=getfields(self._cfgstr)
         forbidden=['bragg','coh_elas','incoh_elas','elas','bkgd']
-        em="when using this script, use --bragg and --inelastic to enable/disable components rather than putting these variables in the cfg string: %s, inelas. Only exception is that inelas can be used to select alternative inelastic models."%(', '.join(forbidden))
+        em="when using this script, use --coh_elas/--bragg/--incoh_elas/--elastic/--inelastic to enable/disable components rather than putting these variables in the cfg string: %s, inelas. Only exception is that inelas can be used to select alternative inelastic models."%(', '.join(forbidden))
         for _ in forbidden:
             assert not _ in f,em
         if 'inelas' in f:

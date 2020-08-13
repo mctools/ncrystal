@@ -1,5 +1,5 @@
-v1.99.1 2020-08-11
-      * Release candidate number 1 for planned new major release v2.0.0.
+v2.0.0 2020-08-13
+      * Milestone 2.0.0 release!
       * The main feature of this release is that it finally brings proper
         state-of-the-art inelastic physics to NCrystal. Additionally, also
         incoherent-elastic scattering was cleaned up and made self-consistent,
@@ -7,13 +7,13 @@ v1.99.1 2020-08-11
         finally moves beyond its former focus on Bragg diffraction. Additionally
         and also for the first time, NCrystal can now support the modelling of
         certain non-crystalline materials (e.g. liquids).
-      * The actual changes to NCrystal took place in ~500 commits touching many
-        hundreds of files, and are far too vast to list here. However, the
-        release announcement page for NCrystal 2.0.0 (which is work-in-progress
-        until the final version 2.0.0 is actually released) attempts to provide
-        a short summary of user-facing changes concerning physics capabilities,
-        the materials data library, and the syntax of NCrystal configuration
-        strings: https://github.com/mctools/ncrystal/wiki/Announcement-Release2.0.0
+      * The actual changes between NCrystal v1.0.0 and v2.0.0 took place in ~500
+        commits touching several hundreds of files, and are far too vast to list
+        here in detail. However, the release announcement page for NCrystal
+        2.0.0 attempts to provide a short summary of user-facing changes
+        concerning physics capabilities, the materials data library, and the
+        syntax of NCrystal configuration strings:
+        https://github.com/mctools/ncrystal/wiki/Announcement-Release2.0.0
       * A few technical details warrent highlighting here though as they
         potentially impact deployment: Firstly, NCrystal now requires C++11 or
         later for compilation, the older standards C++98 and C++03 are no longer
@@ -26,6 +26,12 @@ v1.99.1 2020-08-11
         even more permissive than the Apache 2.0 license which still covers the
         rest of the core NCrystal code, and as such this should not add any new
         licensing burdens to users.
+
+v1.99.1 2020-08-11
+      * Release candidate number 1 for the new major release v2.0.0. The only
+        difference between this release and the release v2.0.0 is in a few
+        pieces of documentation and changed wording in an error message. Thus,
+        for all practical purposes it is identical to release v2.0.0.
 
 v1.0.0 2019-07-05
       * Milestone 1.0.0 release!

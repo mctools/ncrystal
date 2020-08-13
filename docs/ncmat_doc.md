@@ -147,13 +147,13 @@ on the same line as the field name.
 
 ### Dynamic model: Sterile ###
 
-The @DYNINFO type *sterile*, declares a modelling where there is no
-scattering by thermal neutrons on that element at all (depending on the context,
-there can still be absorption or scattering by particles other than thermal
-neutrons).  This is of course does not represent a realistic model of
-scattering, but it can nonetheless occasionally be useful if other more detailed
-information is not available. For instance it might be used when an element of a
-polyatomic material is believed to only contribute significantly to absorption
+The @DYNINFO type *sterile*, declares a modelling where there is no scattering
+by thermal neutrons on that element at all (depending on the context, there can
+still be absorption or scattering by particles other than thermal neutrons).
+This of course does not represent a realistic model of scattering, but it can
+nonetheless occasionally be useful if other more detailed information is not
+available. For instance it might be used when an element of a polyatomic
+material is believed to only contribute significantly to absorption
 cross-sections or density calculations. Example section:
 
 ```
@@ -168,7 +168,7 @@ cross-sections or density calculations. Example section:
 The simplest dynamic model with actual scattering of thermal neutrons, indicates
 that a basic free-gas model should be chosen for that element. For instance, to
 enable free-gas modelling of the oxygen in water molecules (which is a typical
-strategy if one has detailed scatter kernels for the hydrogen but no specific
+strategy if one has detailed scattering kernels for the hydrogen but no specific
 knowledge about the contribution of the oxygen), one would add a section with:
 
 ```
@@ -180,12 +180,12 @@ knowledge about the contribution of the oxygen), one would add a section with:
 
 It will depend on the use case or material in question whether a *freegas* or
 *sterile* type represents a more suitable fall-back strategy for a given
-material.
+element.
 
 ### Dynamic model: Scattering kernel ###
 
 The most realistic modelling is in the form of 2D scattering kernels, in the
-form of either S(alpha,beta) or S(Q,omega) tables. For instance an S(alpha,beta)
+form of either S(alpha,beta) or S(Q,omega) tables. For instance, an S(alpha,beta)
 table is specified with the *alphagrid*, *betagrid*, and *sab* keywords like:
 
 ```
@@ -208,9 +208,9 @@ table is specified with the *alphagrid*, *betagrid*, and *sab* keywords like:
 
 Of course, the number of entries in the *sab* field must be equal to the product
 of the number of entries in the *alphagrid* and *betagrid* fields. To allow for
-more efficient processiong, the *alphagrid* and *betagrid* fields can have at
+more efficient processing, the *alphagrid* and *betagrid* fields can have at
 most 65534 entries, and must have at least 5.  In addition to requiring large
-amounts of space, scatter kernels are complicated by the fact that they describe
+amounts of space, scattering kernels are complicated by the fact that they describe
 the relevant dynamics at a certain material temperature only. Thus, a
 *temperature* field exists in which this value must be specified. Furthermore,
 all @DYNINFO sections of type *scatknl* in a given file must contain the same
@@ -218,7 +218,7 @@ value of the temperature field, and NCrystal will default the material
 temperature to that value as well when loading the input file (and might decide
 to raise an error on attempts to override it when loading the file). It is
 therefore recommended that *NCMAT* files with @DYNINFO sections of type
-*scatknl* should indicate the temperature in the file-name, to avoid user
+*scatknl* should indicate the temperature in the file name, to avoid user
 confusion.
 
 At initialisation time, NCrystal will typically integrate the scattering kernel
@@ -257,8 +257,8 @@ grid points:
 ```
 
 As a final alternative, a single value provided to *egrid* will be interpreted
-as Eupper, implying with automatic determination of Elow and number of
-points. Thus, Eupper=20eV can be requested with:
+as Eupper, implying automatic determination of Elow and number of points. Thus,
+Eupper=20eV can be requested with:
 
 ```
   egrid 20.0
@@ -279,7 +279,7 @@ various *XXXgrid* fields as well as *sab* and *sab_scaled*. It is also allowed
 to save space by specifying two or more consecutive identical values using the
 syntax `<value>r<count>` (i.e.  `0r2000` means the value 0 repeated 2000 times).
 
-Although not supported in the *NCMAT v2*, it might be interesting to note
+Although not supported in the *NCMAT v2* format, it might be interesting to note
 already that future versions of the NCMAT format are planned to support the
 optional specification of scattering kernels as S(Q,omega) tables. This is
 planned to simply use `qgrid`, `omegagrid` and `sqw` in place of `alphagrid`,
@@ -290,17 +290,18 @@ planned to simply use `qgrid`, `omegagrid` and `sqw` in place of `alphagrid`,
 As a more convenient alternative to providing a scattering kernel directly,
 modelling of solid materials might instead be based on a phonon spectrum, or
 more specifically a vibrational density of state (vdos) spectrum. This is done
-by specifying the density of phonon states as a function of energy. The density
-values themselves must be provided in the *vdos_density* field, while the range
-of the corresponding energy grid will be given as values in the *vdos_egrid*
-field (unit eV). As a convenient and efficient shorthand, when only two points
-are provided in the *vdos_egrid* field, these will be assumed to be the first
-and last points of the actual energy grid with the remaining points spaced
-evenly between those (the total number of points will then be inferred by the
-number of points in the *vdos_density* field (which must be at least 5).
+by specifying the density of phonon states as a function of energy (which is
+hbar times the phonon frequency). The density values themselves must be provided
+in the *vdos_density* field, while the corresponding energy grid will be given
+as values in the *vdos_egrid* field (unit eV). As a convenient and efficient
+shorthand, when only two points are provided in the *vdos_egrid* field, these
+will be assumed to be the first and last points of the actual energy grid with
+the remaining points spaced evenly between those (the total number of points
+will then be inferred by the number of points in the *vdos_density* field -
+which must always be at least 5).
 
 The overall normalisation or unit of the values in the *vdos_densiy* field does
-not matter, as NCrystal will renormalise them automatically. The density
+not matter, as NCrystal will renormalise them automatically. The actual density
 function will be formed by linear interpolation within the grid. For energies
 below the first grid point, the density values will be assumed to scale as the
 square of the energy - an approximation which should be suitable for solid
@@ -329,7 +330,7 @@ will use model-dependent assumptions (to be described elsewhere) to expand the
 provided density of states into a complete S(alpha,beta) scattering kernel, with
 subsequent treatment identical to that of any scattering kernel. For that
 reason, an optional *egrid* field can be specified as well, with the same
-meaning as when specifying scatter kernels directly.
+meaning as when specifying scattering kernels directly.
 
 As a final note, it should be mentioned that NCrystal calculations internally
 require the VDOS to be specified on an energy grid with equidistantly spaced
@@ -358,7 +359,7 @@ Boltzmann's constant times the Debye temperature. This is represented with a
 ### The @DENSITY section ###
 
 In order to support non-crystalline materials for which a vibrational density of
-state or scatter kernel is present (like water), it is now optionally allowed to
+state or scattering kernel is present (like water), it is now optionally allowed to
 not specify a unit cell at all via @CELL, @ATOMPOSITIONS and @SPACEGROUP
 sections, and instead configure non-crystalline materials exclusively via the
 new @DYNINFO sections. However, such materials lack the material densities
