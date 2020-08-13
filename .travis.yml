@@ -98,7 +98,8 @@ script:
     - . ../installdir/setup.sh
     - ../installdir/bin/ncrystal_example_py
     - python -c 'import NCrystal; NCrystal.test()'
-    - ../installdir/bin/ncrystal_vdos2ncmat --help
+#do not run vdos2ncmat with 3.5, (uses f-strings from py3.6):
+    - (python --version |grep -q " 3.5") || ../installdir/bin/ncrystal_vdos2ncmat --help
     - set +e
 
 notifications:
