@@ -98,6 +98,7 @@ script:
     - . ../installdir/setup.sh
     - ../installdir/bin/ncrystal_example_py
     - python -c 'import NCrystal; NCrystal.test()'
+    - ../installdir/bin/ncrystal_vdos2ncmat --help
     - set +e
 
 notifications:
