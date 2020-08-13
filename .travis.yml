@@ -99,7 +99,8 @@ script:
     - ../installdir/bin/ncrystal_example_py
     - python -c 'import NCrystal; NCrystal.test()'
 #do not run vdos2ncmat with 3.5, (uses f-strings from py3.6):
-    - (python3 --version |grep -q " 3.5") || ../installdir/bin/ncrystal_vdos2ncmat --help
+    - python3 --version
+    - python3 -c "import sys;sys.exit(1 if sys.version_info[0:2]>=(3,6) else 0)" || ../installdir/bin/ncrystal_vdos2ncmat --help
     - set +e
 
 notifications:
