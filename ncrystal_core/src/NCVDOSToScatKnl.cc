@@ -18,13 +18,13 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCVDOSToScatKnl.hh"
-#include "NCVDOSEval.hh"
-#include "NCVDOSGn.hh"
-#include "NCKinUtils.hh"
-#include "NCString.hh"
-#include "NCNeutronSCL.hh"
-#include "NCSABUtils.hh"
+#include "NCrystal/internal/NCVDOSToScatKnl.hh"
+#include "NCrystal/internal/NCVDOSEval.hh"
+#include "NCrystal/internal/NCVDOSGn.hh"
+#include "NCrystal/internal/NCKinUtils.hh"
+#include "NCrystal/internal/NCString.hh"
+#include "NCrystal/internal/NCIter.hh"
+#include "NCrystal/internal/NCSABUtils.hh"
 #include "NCrystal/NCInfo.hh"
 namespace NC=NCrystal;
 #include <iostream>

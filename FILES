@@ -20,7 +20,11 @@ examples/...........: Small standalone examples for using NCrystal, either from
 ncrystal_core/......: The core NCrystal code implemented in C++. Public header
                       files for C++ and C are available in the
                       ncrystal_core/include/NCrystal/ directory, and the
-                      implementation is in ncrystal_core/src/.
+                      implementation is in ncrystal_core/src/. Internal header
+                      files can also be accessed in the internal/ subdirectory,
+                      but are not guaranteed to present a stable API, and also
+                      do not contain NCRYSTAL_API statements needed for symbol
+                      visibility in certain builds.
 ncrystal_geant4/....: NCrystal-Geant4 interface classes, with public header
                       files for Geant4-dependent C++ code available in the
                       ncrystal_geant4/include/G4NCrystal/ directory, and the

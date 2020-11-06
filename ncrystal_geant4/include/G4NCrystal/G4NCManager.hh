@@ -51,7 +51,15 @@ namespace G4NCrystal {
     //Methods for framework implementers:
     const NCrystal::Scatter* getScatterProperty(G4Material*);//returns 0 when absent.
     static Manager * getInstanceNoInit();//get singleton if created, else 0
-    static void cleanup();//delete singleton, unref kept scatter instances (for valgrind).
+
+    //Thoroughly clear caches, manager singleton, and possibly NCrystal
+    //factories. It is NOT safe to use the Scatter properties of already created
+    //G4Materials after this.
+    static void cleanup(bool removeFactories = true);
+
+    //Safer cleanup which should only remove objects with no current usage:
+    static void clearCaches();
+
     unsigned nMaterialsWithProperties() const { return m_scatters.size(); }
 
     //Translate thrown NCrystal exceptions to G4Exception(..) calls (id should

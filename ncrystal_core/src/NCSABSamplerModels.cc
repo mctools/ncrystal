@@ -18,9 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCSABSamplerModels.hh"
-#include "NCSABUtils.hh"
-#include "NCString.hh"
+#include "NCrystal/internal/NCSABSamplerModels.hh"
+#include "NCrystal/internal/NCSABUtils.hh"
+#include "NCrystal/internal/NCString.hh"
 namespace NC = NCrystal;
 
 NC::SAB::SABSamplerAtE_Alg1::SABSamplerAtE_Alg1( std::shared_ptr<const CommonCache> common,

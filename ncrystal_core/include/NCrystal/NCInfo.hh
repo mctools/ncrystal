@@ -21,8 +21,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
 #include "NCrystal/NCSABData.hh"
+#include "NCrystal/NCAtomData.hh"
 
 /////////////////////////////////////////////////////////////////////////////////
 // Data class containing information (high level or derived) about a given     //
@@ -37,88 +37,105 @@
 namespace NCrystal {
 
   struct NCRYSTAL_API StructureInfo final {
-    unsigned spacegroup;//From 1-230 if provided, 0 if information not available
-    double lattice_a;//angstrom
-    double lattice_b;//angstrom
-    double lattice_c;//angstrom
-    double alpha;//degree
-    double beta;//degree
-    double gamma;//degree
-    double volume;//Aa^3
-    unsigned n_atoms;//Number of atoms per unit cell
+    unsigned spacegroup = 0;//From 1-230 if provided, 0 if information not available
+    double lattice_a = 0.0;//angstrom
+    double lattice_b = 0.0;//angstrom
+    double lattice_c = 0.0;//angstrom
+    double alpha = 0.0;//degree
+    double beta = 0.0;//degree
+    double gamma = 0.0;//degree
+    double volume = 0.0;//Aa^3
+    unsigned n_atoms = 0;//Number of atoms per unit cell
   };
 
-  struct NCRYSTAL_API HKLInfo final {
-    double dspacing;//angstrom
-    double fsquared;//barn
-    int h;
-    int k;
-    int l;
-    unsigned multiplicity;
+  struct NCRYSTAL_API HKLInfo final : public MoveOnly {
+    double dspacing = 0.0;//angstrom
+    double fsquared = 0.0;//barn
+    int h = 0;
+    int k = 0;
+    int l = 0;
+    unsigned multiplicity = 0;
 
     //If the HKLInfo source knows the plane normals, they will be provided in
     //the following list as unit vectors. Only half of the normals should be
     //included in this list, since if n is a normal, so is -n. If demi_normals
     //is not empty, it will be true that multiplicity == 2*demi_normals.size().
-    struct Normal {
+    struct NCRYSTAL_API Normal {
       Normal(double a1, double a2, double a3) : x(a1), y(a2), z(a3) {}
       double x, y, z;
     };
-    std::vector<Normal> demi_normals;//TODO for NC2: vector->pointer saves 16B
+    std::vector<Normal> demi_normals;//TODO: vector->pointer saves 16B when not used
 
     //If eqv_hkl is not a null pointer, it contains the corresponding Miller
     //indices of the demi_normals as three 2-byte integers (short). Thus,
     //eqv_hkl has demi_normal.size()*3 entries:
-    short * eqv_hkl;
-    HKLInfo();
-    ~HKLInfo();
-    HKLInfo(const HKLInfo &o);
-    HKLInfo& operator=(const HKLInfo &o);
-    HKLInfo(const HKLInfo &&o);
-    HKLInfo& operator=(HKLInfo &&o);
+    std::unique_ptr<short[]> eqv_hkl;
   };
 
   typedef std::vector<HKLInfo> HKLList;
 
+  struct NCRYSTAL_API AtomIndex {
+    unsigned value;
+    bool operator<(const AtomIndex& o) const { return value<o.value; }
+    bool operator==(const AtomIndex& o) const { return value==o.value; }
+  };
+
+  struct NCRYSTAL_API IndexedAtomData {
+    //AtomData and associated index. The index is *only* valid in association
+    //with a particular Info object. It exists since it is in principle possible
+    //to have the same fundamental atom playing more than one role in a given
+    //material (for instance, the same atom could have different displacements
+    //on different positions in the unit cell).
+    AtomDataSP atomDataSP;
+    AtomIndex index;
+
+    const AtomData& data() const;
+
+    //Sort by index (comparison should only be performed with objects associated
+    //with the same Info object):
+    bool operator<(const IndexedAtomData& o) const;
+    bool operator==(const IndexedAtomData& o) const;
+  };
+
   struct NCRYSTAL_API AtomInfo final {
-    //TODO for NC2: More parameters capable of handling non-natural atoms
-    AtomInfo() : atomic_number(0), number_per_unit_cell(0),debye_temp(0.),mean_square_displacement(0.) {}
-    std::string element_name;
-    unsigned atomic_number;
-    unsigned number_per_unit_cell;
-    //per-element debye temperature (0.0 if not available, see hasPerElementDebyeTemperature() below):
-    double debye_temp;
-    //Atomic coordinates (vector must be empty or have number_per_unit_cell
-    //entries):
-    struct Pos final { Pos(double a, double b, double c) : x(a),y(b),z(c) {}; double x, y, z; };
+
+    //Element type:
+    IndexedAtomData atom;
+    const AtomData& data() const;
+
+    //Number in unit cell:
+    unsigned number_per_unit_cell = 0;
+
+    //Per-element debye temperature (0.0 if not available, see hasPerElementDebyeTemperature() below):
+    double debye_temp = 0.0;
+
+    //Atomic coordinates (vector must be empty or have number_per_unit_cell entries):
+    struct NCRYSTAL_API Pos final { Pos(double a, double b, double c) : x(a),y(b),z(c) {}; double x, y, z; };
     std::vector<Pos> positions;
+
     //Mean-square-displacements in angstrom^2 (0.0 if not available). Note that
     //this is the displacement projected onto a linear axis, for direct usage in
     //isotropic Debye-Waller factors:
-    double mean_square_displacement;
+    double mean_square_displacement = 0.0;
   };
 
   typedef std::vector<AtomInfo> AtomList;
 
-  struct NCRYSTAL_API XSectProvider {
-    //Provide non-Bragg scattering cross sections.
-    //Accept lambda in angstrom and return x-sect in barn
-    virtual double xsectScatNonBragg(const double& lambda) const = 0;
-    virtual ~XSectProvider(){}
-  };
-
   class NCRYSTAL_API DynamicInfo : public UniqueID {
   public:
-    DynamicInfo(double fraction, const std::string& elementName, double temperature);
+    DynamicInfo(double fraction, IndexedAtomData, double temperature);
     virtual ~DynamicInfo() = 0;//Make abstract
     double fraction() const;
-    const std::string& elementName() const;
     void changeFraction(double f) { m_fraction = f; }
     double temperature() const;//same as on associated Info object
 
+    const IndexedAtomData& atom() const { return m_atom; }
+    AtomDataSP atomDataSP() const { return m_atom.atomDataSP; }
+    const AtomData& atomData() const { return m_atom.data(); }
+
   private:
     double m_fraction;
-    std::string m_elementName;
+    IndexedAtomData m_atom;
     double m_temperature;
   };
 
@@ -213,7 +230,7 @@ namespace NCrystal {
     //is the Debye temperature (which must be available on the associated Info
     //object).
     DI_VDOSDebye( double fraction,
-                  const std::string& elementName,
+                  IndexedAtomData,
                   double temperature,
                   double debyeTemperature );
     virtual ~DI_VDOSDebye();
@@ -292,12 +309,12 @@ namespace NCrystal {
     //Whether AtomInfo objects have per-element Debye temperatures available:
     bool hasPerElementDebyeTemperature() const;
 
-    //Convenience function for accessing Debye temperatures from AtomInfo:
-    double getDebyeTemperatureByElementName(const std::string&) const;
+    //Convenience function for accessing Debye temperatures, whether global or per-element:
+    double getDebyeTemperatureByElement(const AtomIndex&) const;
 
-    //////////////////////
-    // Atom Information //
-    //////////////////////
+    ///////////////////////////////////
+    // Atom Information in unit cell //
+    ///////////////////////////////////
 
     bool hasAtomInfo() const;
     AtomList::const_iterator atomInfoBegin() const;
@@ -354,24 +371,55 @@ namespace NCrystal {
     bool hasNumberDensity() const;
     double getNumberDensity() const;
 
-    ////////////////////////////////////////////////////////////////////
-    // Basic composition (always consistent with AtomInfo if present) //
-    ////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    // Basic composition (always consistent with AtomInfo/DynInfo if present) //
+    ////////////////////////////////////////////////////////////////////////////
 
     bool hasComposition() const;
-    const std::map<std::string,double>& getComposition() const;
+    struct NCRYSTAL_API CompositionEntry {
+      double fraction = -1.0;
+      IndexedAtomData atom;
+    };
+    typedef std::vector<CompositionEntry> Composition;
+    const Composition& getComposition() const;
 
     /////////////////////////////////////////////////////////////////////////////
-    // Advanced interface, allowing clients to cache derived data directly on  //
-    // the Info object. Keys should be rather verbose and start with unique    //
-    // string for client (e.g. class name of client), to prevent clashes:      //
+    // Display labels associated with atom data. Needs index, so that for      //
+    // instance an Al atom playing two different roles in the material will be //
+    // labelled "Al-a" and "Al-b" respectively.                                //
     /////////////////////////////////////////////////////////////////////////////
 
-    class CacheEntry {};//base class for cached data.
-    //The next two methods are MT-safe, protected by a mutex:
-    CacheEntry* accessCache(std::string key);//null if not present.
-    void setCache(std::string key, std::unique_ptr<CacheEntry>, bool allow_override=false);
+    const std::string& displayLabel(const AtomIndex& ai) const;
 
+    //////////////////////////////////////////////////////
+    // All AtomData instances connected to object, by   //
+    // index (allows efficient AtomDataSP<->index map.  //
+    // (this is used to build the C/Python interfaces). //
+    //////////////////////////////////////////////////////
+
+    AtomDataSP atomDataSP( const AtomIndex& ai ) const;
+    const AtomData& atomData( const AtomIndex& ai ) const;
+    IndexedAtomData indexedAtomData( const AtomIndex& ai ) const;
+
+    /////////////////////////////////////////////////////////////////////////////
+    // Custom information for which the core NCrystal code does not have any   //
+    // specific treatment. This is primarily intended as a place to put extra  //
+    // data needed while developing new physics models. The core NCrystal code //
+    // should never make use of such custom data.                              //
+    /////////////////////////////////////////////////////////////////////////////
+
+    //Data is stored as an ordered list of named "sections", with each section
+    //containing "lines" which can consist of 1 or more "words" (strings).
+    typedef VectS CustomLine;
+    typedef std::vector<CustomLine> CustomSectionData;
+    typedef std::string CustomSectionName;
+    typedef std::vector<std::pair<CustomSectionName,CustomSectionData>> CustomData;
+    const CustomData& getAllCustomSections() const;
+
+    //Convenience (count/access specific section):
+    unsigned countCustomSections(const CustomSectionName& sectionname ) const;
+    const CustomSectionData& getCustomSection( const CustomSectionName& name,
+                                               unsigned index=0 ) const;
 
     //////////////////////////////
     // Internals follow here... //
@@ -383,7 +431,8 @@ namespace NCrystal {
     void addAtom(const AtomInfo& ai) {ensureNoLock(); m_atomlist.push_back(ai); }
     void addAtom(AtomInfo&& ai) {ensureNoLock(); m_atomlist.push_back(std::move(ai)); }
     void enableHKLInfo(double dlower, double dupper);
-    void addHKL(const HKLInfo& hi) { ensureNoLock(); m_hkllist.push_back(hi); }
+    void addHKL(HKLInfo&& hi) { ensureNoLock(); m_hkllist.emplace_back(std::move(hi)); }
+    void setHKLList(HKLList&& hkllist) { ensureNoLock(); m_hkllist = std::move(hkllist); }
     void setStructInfo(const StructureInfo& si) { ensureNoLock(); nc_assert_always(si.spacegroup!=999999); m_structinfo = si; }
     void setXSectFree(double x) { ensureNoLock(); m_xsect_free = x; }
     void setXSectAbsorption(double x) { ensureNoLock(); m_xsect_absorption = x; }
@@ -391,9 +440,10 @@ namespace NCrystal {
     void setGlobalDebyeTemperature(double dt) { ensureNoLock(); m_debyetemp = dt; }
     void setDensity(double d) { ensureNoLock(); m_density = d; }
     void setNumberDensity(double d) { ensureNoLock(); m_numberdensity = d; }
-    void setXSectProvider(std::unique_ptr<XSectProvider> xsp) { ensureNoLock(); nc_assert(!!xsp); m_xsectprovider = std::move(xsp); }
+    void setXSectProvider(std::function<double(double)> xsp) { ensureNoLock(); nc_assert(!!xsp); m_xsectprovider = std::move(xsp); }
     void addDynInfo(std::unique_ptr<DynamicInfo> di) { ensureNoLock(); nc_assert(di); m_dyninfolist.push_back(std::move(di)); }
-    void setComposition(std::map<std::string,double>&& c) { m_composition = c; }
+    void setComposition(Composition&& c) { ensureNoLock(); m_composition = std::move(c); }
+    void setCustomData(CustomData&& cd) { ensureNoLock(); m_custom = std::move(cd); }
 
     void objectDone();//Finish up (sorts hkl list (by dspacing first), and atom info list (by Z first)). This locks the instance.
     bool isLocked() const { return m_lock; }
@@ -408,10 +458,12 @@ namespace NCrystal {
     HKLList m_hkllist;//sorted by dspacing first
     DynamicInfoList m_dyninfolist;
     double m_hkl_dlower, m_hkl_dupper, m_density, m_numberdensity, m_xsect_free, m_xsect_absorption, m_temp, m_debyetemp;
-    std::unique_ptr<XSectProvider> m_xsectprovider;
-    std::map<std::string,double> m_composition;
+    std::function<double(double)> m_xsectprovider;
+    Composition m_composition;
+    CustomData m_custom;
     bool m_lock;
-
+    std::vector<AtomDataSP> m_atomDataSPs;
+    VectS m_displayLabels;
   protected:
     virtual ~Info();
   };
@@ -431,12 +483,17 @@ namespace NCrystal {
   inline double Info::getXSectAbsorption() const { nc_assert(hasXSectAbsorption()); return m_xsect_absorption; }
   inline double Info::getXSectFree() const { nc_assert(hasXSectFree()); return m_xsect_free; }
   inline bool Info::providesNonBraggXSects() const { return !!m_xsectprovider; }
-  inline double Info::xsectScatNonBragg(double lambda) const  { return m_xsectprovider->xsectScatNonBragg(lambda); }
+  inline double Info::xsectScatNonBragg(double lambda) const  { nc_assert(!!m_xsectprovider); return m_xsectprovider(lambda); }
   inline bool Info::hasTemperature() const { return m_temp > 0.0; }
   inline bool Info::hasAnyDebyeTemperature() const { return hasGlobalDebyeTemperature() || hasPerElementDebyeTemperature(); }
   inline bool Info::hasGlobalDebyeTemperature() const { return m_debyetemp > 0.0; }
   inline double Info::getTemperature() const { nc_assert(hasTemperature()); return m_temp; }
-  inline double Info::getGlobalDebyeTemperature() const { nc_assert(hasGlobalDebyeTemperature()); return m_debyetemp; }
+  inline double Info::getGlobalDebyeTemperature() const
+  {
+    if (!hasGlobalDebyeTemperature())
+      NCRYSTAL_THROW(BadInput,"getGlobalDebyeTemperature called but no Debye temperature is available");
+    return m_debyetemp;
+  }
   inline bool Info::hasPerElementDebyeTemperature() const { return hasAtomInfo() && m_atomlist.front().debye_temp > 0.0; }
   inline bool Info::hasAtomPositions() const { return hasAtomInfo() && !m_atomlist.front().positions.empty(); }
   inline bool Info::hasAtomMSD() const { return hasAtomInfo() && m_atomlist.front().mean_square_displacement>0.0; }
@@ -460,19 +517,58 @@ namespace NCrystal {
   inline double Info::getDensity() const { nc_assert(hasDensity()); return m_density; }
   inline bool Info::hasNumberDensity() const { return m_numberdensity > 0.0; }
   inline double Info::getNumberDensity() const { nc_assert(hasNumberDensity()); return m_numberdensity; }
-  inline HKLInfo::HKLInfo() : dspacing(0.), fsquared(0.), h(0), k(0), l(0),  multiplicity(0), eqv_hkl(0) {}
-  inline HKLInfo::~HKLInfo() { delete[] eqv_hkl; }
-  inline HKLInfo::HKLInfo(const HKLInfo &o) : eqv_hkl(0) { *this = o; }
   inline bool Info::hasDynamicInfo() const { return !m_dyninfolist.empty(); }
   inline const DynamicInfoList& Info::getDynamicInfoList() const  { return m_dyninfolist; }
   inline double DynamicInfo::fraction() const { return m_fraction; }
   inline double DynamicInfo::temperature() const { return m_temperature; }
-  inline const std::string& DynamicInfo::elementName() const { return m_elementName; }
   inline bool Info::hasComposition() const { return !m_composition.empty(); }
-  inline const std::map<std::string,double>& Info::getComposition() const { return m_composition; }
-  inline DI_VDOSDebye::DI_VDOSDebye( double fr, const std::string& en, double tt,double dt )
-    : DI_ScatKnl(fr,en,tt),m_dt(dt) { nc_assert(m_dt>0.0); }
+  inline const Info::Composition& Info::getComposition() const { return m_composition; }
+  inline DI_VDOSDebye::DI_VDOSDebye( double fr, IndexedAtomData atom, double tt,double dt )
+    : DI_ScatKnl(fr,std::move(atom),tt),m_dt(dt) { nc_assert(m_dt>0.0); }
   inline double DI_VDOSDebye::debyeTemperature() const { return m_dt; }
+  inline const Info::CustomData& Info::getAllCustomSections() const { return m_custom; }
+  inline const AtomData& IndexedAtomData::data() const
+  {
+    nc_assert(atomDataSP!=nullptr); return *atomDataSP;
+  }
+  inline bool IndexedAtomData::operator<(const IndexedAtomData& o) const {
+    //Sanity check (same index means same AtomData instance):
+    nc_assert( atomDataSP == o.atomDataSP || index.value != o.index.value );
+    return index.value < o.index.value;
+  }
+  inline bool IndexedAtomData::operator==(const IndexedAtomData& o) const {
+    //Sanity check (same index means same AtomData instance):
+    nc_assert( atomDataSP == o.atomDataSP || index.value != o.index.value );
+    return index.value == o.index.value;
+  }
+  inline const std::string& Info::displayLabel(const AtomIndex& ai) const
+  {
+    nc_assert(ai.value<m_displayLabels.size());
+    return m_displayLabels[ai.value];
+  }
+
+  inline AtomDataSP Info::atomDataSP( const AtomIndex& ai ) const
+  {
+    nc_assert( ai.value < m_atomDataSPs.size());
+    return m_atomDataSPs[ai.value];
+  }
+
+  inline const AtomData& Info::atomData( const AtomIndex& ai ) const
+  {
+    nc_assert( ai.value < m_atomDataSPs.size());
+    return *m_atomDataSPs[ai.value];
+  }
+
+  inline IndexedAtomData Info::indexedAtomData( const AtomIndex& ai ) const
+  {
+    nc_assert( ai.value < m_atomDataSPs.size());
+    return IndexedAtomData{m_atomDataSPs[ai.value],{ai.value}};
+  }
+  inline const AtomData& AtomInfo::data() const
+  {
+    nc_assert(!!atom.atomDataSP);
+    return *atom.atomDataSP;
+  }
 }
 
 #endif

@@ -19,7 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCScatterIsotropic.hh"
-#include "NCRandUtils.hh"
+#include "NCrystal/internal/NCRandUtils.hh"
 
 NCrystal::ScatterIsotropic::ScatterIsotropic(const char * calculator_type_name)
   : Scatter(calculator_type_name)

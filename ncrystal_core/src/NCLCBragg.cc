@@ -18,16 +18,16 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCLCBragg.hh"
-#include "NCLCUtils.hh"
-#include "NCLCRefModels.hh"
-#include "NCrystal/NCSCBragg.hh"
+#include "NCrystal/internal/NCLCBragg.hh"
+#include "NCrystal/internal/NCLCUtils.hh"
+#include "NCrystal/internal/NCLCRefModels.hh"
+#include "NCrystal/internal/NCSCBragg.hh"
 #include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCDefs.hh"
-#include "NCVector.hh"
-#include "NCLatticeUtils.hh"
-#include "NCOrientUtils.hh"
-#include "NCPlaneProvider.hh"
+#include "NCrystal/internal/NCVector.hh"
+#include "NCrystal/internal/NCLatticeUtils.hh"
+#include "NCrystal/internal/NCOrientUtils.hh"
+#include "NCrystal/internal/NCPlaneProvider.hh"
 
 namespace NCrystal{
 
@@ -52,21 +52,20 @@ namespace NCrystal{
         nc_assert_always(cinfo&&cinfo->hasStructureInfo());
         const StructureInfo& si = cinfo->getStructureInfo();
 
-        UniquePtr<PlaneProvider> stdpp;
+        std::unique_ptr<PlaneProvider> stdpp;
         if (!plane_provider) {
           stdpp = createStdPlaneProvider(cinfo);
-          plane_provider = stdpp.obj();
+          plane_provider = stdpp.get();
         }
 
-        m_lchelper = new LCHelper( lcaxis.unit(),
-                                   lcaxis_labframe,
-                                   mosaicity,
-                                   si.volume * si.n_atoms,
-                                   plane_provider,
-                                   prec, ntrunc);
+        m_lchelper = std::make_unique<LCHelper>( lcaxis.unit(),
+                                                 lcaxis_labframe,
+                                                 mosaicity,
+                                                 si.volume * si.n_atoms,
+                                                 plane_provider,
+                                                 prec, ntrunc);
 
-
-        m_ekin_low = wl2ekin( m_lchelper.obj()->braggThreshold() );
+        m_ekin_low = wl2ekin( m_lchelper->braggThreshold() );
 
       } else {
         RCHolder<Scatter> scbragg(new SCBragg(cinfo,sco,mosaicity,delta_d,plane_provider,prec, ntrunc));
@@ -78,9 +77,9 @@ namespace NCrystal{
           m_scmodel = new LCBraggRndmRot(scbragg.obj(), lcaxis_labframe, nsample);
         }
         lcbragg->registerSubCalc(m_scmodel.obj());
-        nc_assert(m_scmodel.obj()->isSubCalc(scbragg.obj()));
+        nc_assert(m_scmodel->isSubCalc(scbragg.obj()));
         double ekin_high;
-        m_scmodel.obj()->domain(m_ekin_low,ekin_high);
+        m_scmodel->domain(m_ekin_low,ekin_high);
         nc_assert(ekin_high==kInfinity);
       }
 
@@ -92,8 +91,8 @@ namespace NCrystal{
     }
 
     double m_ekin_low;
-    UniquePtr<LCHelper> m_lchelper;
-    LCHelper::Cache m_lchcache;//TODO for NC2: do something more elaborate (or MT
+    std::unique_ptr<LCHelper> m_lchelper;
+    LCHelper::Cache m_lchcache;//TODO: do something more elaborate (or MT
                                //safe?) than this? Caching the last N calls,
                                //might speed up some scenarios.
     RCHolder<Scatter> m_scmodel;
@@ -108,7 +107,7 @@ NCrystal::LCBragg::LCBragg( const Info* ci, const SCOrientation& sco, double mos
     m_pimpl(new pimpl(this,asVect(lcaxis),mode,sco,ci,plane_provider,mosaicity,delta_d,prec,ntrunc))
 {
   nc_assert_always(ci);
-  nc_assert_always(bool(m_pimpl->m_lchelper())!=bool(m_pimpl->m_scmodel()));
+  nc_assert_always(bool(m_pimpl->m_lchelper)!=bool(m_pimpl->m_scmodel.obj()));
   validate();
 }
 
@@ -139,10 +138,10 @@ void NCrystal::LCBragg::generateScattering( double ekin,
   if (! m_pimpl->m_scmodel ) {
     RandomBase* rng = this->getRNG();
 
-    m_pimpl->m_lchelper.obj()->genScatter( m_pimpl->m_lchcache, rng, ekin2wl(ekin), asVect(indir), asVect(outdir) );
+    m_pimpl->m_lchelper->genScatter( m_pimpl->m_lchcache, rng, ekin2wl(ekin), asVect(indir), asVect(outdir) );
     return;
   } else {
-    m_pimpl->m_scmodel.obj()->generateScattering(ekin,indir,outdir,delta_ekin);
+    m_pimpl->m_scmodel->generateScattering(ekin,indir,outdir,delta_ekin);
   }
 }
 
@@ -153,8 +152,8 @@ double NCrystal::LCBragg::crossSection( double ekin,
     return 0.0;
 
   if (! m_pimpl->m_scmodel ) {
-    return m_pimpl->m_lchelper.obj()->crossSection( m_pimpl->m_lchcache, ekin2wl(ekin), asVect(indir) );
+    return m_pimpl->m_lchelper->crossSection( m_pimpl->m_lchcache, ekin2wl(ekin), asVect(indir) );
   } else {
-    return m_pimpl->m_scmodel.obj()->crossSection(ekin,indir);
+    return m_pimpl->m_scmodel->crossSection(ekin,indir);
   }
 }

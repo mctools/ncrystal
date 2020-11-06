@@ -19,7 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCSCOrientation.hh"
-#include "NCVector.hh"
+#include "NCrystal/internal/NCVector.hh"
 
 namespace NCrystal {
 

@@ -18,9 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCOrientUtils.hh"
+#include "NCrystal/internal/NCOrientUtils.hh"
 #include "NCrystal/NCInfo.hh"
-#include "NCLatticeUtils.hh"
+#include "NCrystal/internal/NCLatticeUtils.hh"
 #include <iomanip>
 
 NCrystal::RotMatrix NCrystal::getCrystal2LabRot( const NCrystal::SCOrientation& sco,

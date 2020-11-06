@@ -18,17 +18,11 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCRomberg.hh"
-#include "NCMath.hh"
+#include "NCrystal/internal/NCRomberg.hh"
+#include "NCrystal/internal/NCMath.hh"
 #include "NCrystal/NCDefs.hh"
 #include <iostream>
-
-//std::swap:
-#if __cplusplus >= 201103L
-#  include <utility>
-#else
-#  include <algorithm>
-#endif
+#include <utility>//std::swap
 
 void NCrystal::Romberg::evalFuncMany(double* fvals, unsigned n, double offset, double delta) const
 {

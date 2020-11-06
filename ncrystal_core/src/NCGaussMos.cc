@@ -18,9 +18,11 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCGaussMos.hh"
-#include "NCMath.hh"
-#include "NCRotMatrix.hh"
+#include "NCrystal/internal/NCGaussMos.hh"
+#include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/internal/NCRotMatrix.hh"
+#include "NCrystal/internal/NCString.hh"
+#include <cstdlib>
 
 namespace NC=NCrystal;
 
@@ -42,6 +44,10 @@ NC::GaussMos::GaussMos( double mosaicity, bool mosaicity_is_fhwm, double prec, d
     m_mos_sigma(-99),
     m_prec(prec)
 {
+  auto getEnvDbl = [](const char* name) { auto ev = getenv(name); return ev ? str2dbl(ev) : 0.0; };
+  double override_ntrunc = getEnvDbl("NCRYSTAL_GAUSSMOS_OVERRIDE_NTRUNC");
+  if (override_ntrunc)
+    ntrunc = m_mos_truncN = override_ntrunc;
   nc_assert(prec>=0);
   nc_assert(ntrunc>=0);
   //Set mosaicity and trigger one call to updateDerivedValues:
@@ -97,7 +103,7 @@ void NC::GaussMos::setDSpacingSpread(double dd)
 {
   if (dd==m_delta_d)
     return;
-  NCRYSTAL_THROW(LogicError,"GaussMos::setDSpacingSpread not actually implemented and debugged fully yet");//TODO for NC2: implement+test this?
+  NCRYSTAL_THROW(LogicError,"GaussMos::setDSpacingSpread not actually implemented and debugged fully yet");//TODO: implement+test this?
   nc_assert(dd>=0&&dd<0.99);
   m_delta_d = dd;
 }
@@ -165,11 +171,7 @@ double NC::GaussMos::calcCrossSections( InteractionPars& ip,
       double xs = calcRawCrossSectionValue(ip, dot );
       if (xs) {
         xs_commul.push_back(xsoffset + (xssum += xs));
-#if __cplusplus >= 201103L
         cache.emplace_back(-normal, ip.m_inv2dsp);
-#else
-        cache.push_back(ScatCache(-normal, ip.m_inv2dsp));
-#endif
       }
     }
     double Ap = ncmax( 0.0, cta + ds );
@@ -178,11 +180,7 @@ double NC::GaussMos::calcCrossSections( InteractionPars& ip,
       double xs = calcRawCrossSectionValue(ip, -dot );
       if (xs) {
         xs_commul.push_back(xsoffset + (xssum += xs));
-#if __cplusplus >= 201103L
         cache.emplace_back(normal, ip.m_inv2dsp);
-#else
-        cache.push_back(ScatCache(normal, ip.m_inv2dsp));
-#endif
       }
     }
 

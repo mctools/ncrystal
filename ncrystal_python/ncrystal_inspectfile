@@ -31,7 +31,7 @@ __metaclass__ = type  #classes are new-style without inheriting from "object"
 import sys
 import os
 
-#TODO for NC2: Provide a --list file option
+#TODO: Provide a --list file option
 
 #in unit test we dont display interactive images and we reduce cpu consumption
 #by watching for special env var:
@@ -88,7 +88,7 @@ except ImportError:
     except ImportError:
         NCrystal = None
 if not NCrystal:
-    print("ERROR: Could not import the NCrystal python module.")
+    print("ERROR: Could not import the NCrystal Python module.")
     print("       If it is installed, make sure your PYTHONPATH is setup correctly.")
     sys.exit(1)
 
@@ -447,9 +447,9 @@ def plot_2d_scatangle(cfg,comp,pdf=False):
         j+=n
 
     try:
-        plt.scatter(plot_wls,plot_angles*57,alpha=0.2,marker='.',edgecolor=None,color='black',s=2,zorder=1)
+        plt.scatter(plot_wls,plot_angles*(180./np.pi),alpha=0.2,marker='.',edgecolor=None,color='black',s=2,zorder=1)
     except ValueError:
-        plt.scatter(plot_wls,plot_angles*57,alpha=0.2,edgecolor=None,color='black',s=2,zorder=1)
+        plt.scatter(plot_wls,plot_angles*(180./np.pi),alpha=0.2,edgecolor=None,color='black',s=2,zorder=1)
 
     plt.gca().set_xlim(0.0,wavelengths[-1])
     plt.gca().set_ylim(0,180)
@@ -536,7 +536,9 @@ class Cfg:
 
     def get_totalxsect(self):
         if not self._totxs:
-            t = XSSum(self.get_absorption(),self.get_scatter('all'))
+            a,s = self.get_absorption(),self.get_scatter('all')
+            t = XSSum(a,s)
+            t._nullprocess = a._nullprocess and s._nullprocess
             t._cfg = self
             t._compname = 'elastic+inelastic+absorption'
             self._totxs = t
@@ -587,7 +589,7 @@ def main():
 if __name__=='__main__':
     main()
 
-# TODO for NC2:
+# TODO:
 #   - allow tuning of n2d and alpha pars for 2D plot?
 #   - show hkl values in 1d and 2d plot?
 #   - option to show energy & mfp rather than wavelength & xsect?

@@ -61,6 +61,28 @@ namespace NCrystal {
   //might be useful to set the environment variable NCRYSTAL_DEBUGFACTORY=1 in
   //order to get verbose printouts of what goes on behind the scenes.
 
+  ////////////////////////////////////////////////////////////////////////////
+  //Register in-memory file data. This needs a "filename" and the content of
+  //this virtual file. After registering such in-memory "files", they can be
+  //used as file names in cfg strings or MatCfg objects (for input types which
+  //support it, which certainly includes NCMAT file data, for which even the
+  //virtual "filename" should end with ".ncmat"). Registering the same filename
+  //more than once, will simply override the content:
+
+  NCRYSTAL_API void registerInMemoryFileData( const std::string& virtual_filename,
+                                              const std::string& data );
+  NCRYSTAL_API void registerInMemoryFileData( const std::string& virtual_filename,
+                                              std::string&& data );
+
+  //Version which just registers the data address but does not copy the data
+  //(intended for efficiently hard-coding a large database directly in C/C++
+  //code):
+  NCRYSTAL_API void registerInMemoryStaticFileData( const std::string& virtual_filename,
+                                                    const char* static_data );
+
+  //WARNING: Calling these functions will the first time result in a global
+  //being TextInputManager registered (see NCFile.hh). If your application needs
+  //its own custom TextInputManger, you should not call any of these functions.
 }
 
 

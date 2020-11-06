@@ -25,9 +25,6 @@
 // Convenience header for all NCrystal interfaces //
 ////////////////////////////////////////////////////
 
-#ifndef NCrystal_NCAbsOOV_hh
-#  include "NCrystal/NCAbsOOV.hh"
-#endif
 #ifndef NCrystal_NCAbsorption_hh
 #  include "NCrystal/NCAbsorption.hh"
 #endif
@@ -46,12 +43,6 @@
 #ifndef NCrystal_NCMem_hh
 #  include "NCrystal/NCMem.hh"
 #endif
-#ifndef NCrystal_NCSpan_hh
-#  include "NCrystal/NCSpan.hh"
-#endif
-#ifndef NCrystal_NCIter_hh
-#  include "NCrystal/NCIter.hh"
-#endif
 #ifndef NCrystal_NCFile_hh
 #  include "NCrystal/NCFile.hh"
 #endif
@@ -60,6 +51,9 @@
 #endif
 #ifndef NCrystal_NCFactoryRegistry_hh
 #  include "NCrystal/NCFactoryRegistry.hh"
+#endif
+#ifndef NCrystal_NCAtomData_hh
+#  include "NCrystal/NCAtomData.hh"
 #endif
 #ifndef NCrystal_NCInfo_hh
 #  include "NCrystal/NCInfo.hh"
@@ -73,17 +67,11 @@
 #ifndef NCrystal_NCScatterIsotropic_hh
 #  include "NCrystal/NCScatterIsotropic.hh"
 #endif
-#ifndef NCrystal_NCPCBragg_hh
-#  include "NCrystal/NCPCBragg.hh"
-#endif
 #ifndef NCrystal_NCProcess_hh
 #  include "NCrystal/NCProcess.hh"
 #endif
 #ifndef NCrystal_NCRandom_hh
 #  include "NCrystal/NCRandom.hh"
-#endif
-#ifndef NCrystal_NCSCBragg_hh
-#  include "NCrystal/NCSCBragg.hh"
 #endif
 #ifndef NCrystal_NCSCOrientation_hh
 #  include "NCrystal/NCSCOrientation.hh"
@@ -93,9 +81,6 @@
 #endif
 #ifndef NCrystal_NCScatterComp_hh
 #  include "NCrystal/NCScatterComp.hh"
-#endif
-#ifndef NCrystal_BkgdExtCurve_hh
-#  include "NCrystal/NCBkgdExtCurve.hh"
 #endif
 #ifndef NCrystal_NCLoadNCMAT_hh
 #  include "NCrystal/NCLoadNCMAT.hh"
@@ -109,16 +94,8 @@
 #ifndef NCrystal_NCVersion_hh
 #  include "NCrystal/NCVersion.hh"
 #endif
-#ifndef NCrystal_NCLCBragg_hh
-#  include "NCrystal/NCLCBragg.hh"
+#ifndef NCrystal_CompositionUtils_hh
+#  include "NCrystal/NCCompositionUtils.hh"
 #endif
-#ifndef NCrystal_NCFreeGas_hh
-#  include "NCrystal/NCFreeGas.hh"
-#endif
-#ifndef NCrystal_NCSABScatter_hh
-#  include "NCrystal/NCSABScatter.hh"
-#endif
-#ifndef NCrystal_NCElIncScatter_hh
-#  include "NCrystal/NCElIncScatter.hh"
-#endif
+
 #endif

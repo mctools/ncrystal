@@ -19,75 +19,17 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCNCMATData.hh"
-#include "NCMath.hh"
+#include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/internal/NCString.hh"
+#include "NCrystal/internal/NCAtomUtils.hh"
+#include "NCrystal/internal/NCIter.hh"
 namespace NC = NCrystal;
-
-NC::NCMATData::DynInfo::DynInfo()
-  : dyninfo_type(Undefined),
-    fraction(-1.0)
-{
-}
-
-NC::NCMATData::DynInfo::~DynInfo()
-{
-}
-
-NC::NCMATData::~NCMATData()
-{
-}
-
-void NC::NCMATData::clear()
-{
-  version = 0;
-  sourceDescription.clear();
-  sourceType.clear();
-  sourceFullDescr.clear();
-  spacegroup = 0;
-  cell.lengths.fill(0.0);
-  cell.angles.fill(0.0);
-  atompos.clear();
-  debyetemp_global = 0.0;
-  debyetemp_perelement.clear();
-  dyninfos.clear();
-  density = 0.0;
-  density_unit = ATOMS_PER_AA3;
-}
-
-void NC::NCMATData::swap(NCMATData& other)
-{
-  std::swap( version, other.version );
-  std::swap( sourceDescription, other.sourceDescription );
-  std::swap( sourceType, other.sourceType );
-  std::swap( sourceFullDescr, other.sourceFullDescr );
-  std::swap( spacegroup, other.spacegroup );
-  std::swap( cell.lengths[0], other.cell.lengths[0] );
-  std::swap( cell.lengths[1], other.cell.lengths[1] );
-  std::swap( cell.lengths[2], other.cell.lengths[2] );
-  std::swap( cell.angles[0], other.cell.angles[0] );
-  std::swap( cell.angles[1], other.cell.angles[1] );
-  std::swap( cell.angles[2], other.cell.angles[2] );
-  std::swap( atompos, other.atompos );
-  std::swap( debyetemp_global, other.debyetemp_global );
-  std::swap( debyetemp_perelement, other.debyetemp_perelement );
-  std::swap( dyninfos, other.dyninfos );
-  std::swap( density, other.density );
-  std::swap( density_unit, other.density_unit );
-}
-
-void NC::NCMATData::fillPerElementDebyeTempMap(std::map<std::string,double>& dm) const
-{
-  dm.clear();
-  for( const auto& e : debyetemp_perelement ) {
-    nc_assert_always(!dm.count(e.first));
-    dm.insert(e);
-  }
-}
 
 void NC::NCMATData::DynInfo::validate() const
 {
   //Check that required fields were present:
   if ( element_name.empty() )
-    NCRYSTAL_THROW(BadInput,"Element name missing");
+    NCRYSTAL_THROW(BadInput,"Element name missing");//NB: NCMATData::validate() validates element_name more carefully.
   if ( fraction==-1.0 )
     NCRYSTAL_THROW(BadInput,"Fraction not set");
   if ( dyninfo_type==Undefined )
@@ -108,8 +50,8 @@ void NC::NCMATData::DynInfo::validate() const
     if ( nsk != 1 )
       NCRYSTAL_THROW(BadInput,"Must always specify exactly one of fields: \"sab\", \"sab_scaled\", and \"sqw\"");
 
-    const auto sqw_grids = std::vector<std::string>{ "qgrid", "omegagrid"};
-    const auto sab_grids = std::vector<std::string>{ "alphagrid", "betagrid"};
+    const auto sqw_grids = VectS{ "qgrid", "omegagrid"};
+    const auto sab_grids = VectS{ "alphagrid", "betagrid"};
     const auto& grids = sk_sqw ? sqw_grids : sab_grids;
     for ( const auto& fn : grids ) {
       auto it = fields.find(fn);
@@ -222,6 +164,31 @@ void NC::NCMATData::DynInfo::validate() const
 
 }
 
+void NC::NCMATData::unaliasElementNames()
+{
+  //Unalias D and T markers in NCMAT versions >=3.
+  if (version<3)
+    return;
+
+  auto doUnalias = [](std::string& name)
+  {
+    if (name.size()==1) {
+      auto c = name[0];
+      if ( c == 'D' )
+        name = "H2";
+      else if ( c=='T' )
+        name = "H3";
+    }
+  };
+  for ( auto& e : atompos )
+    doUnalias( e.first );
+  for ( auto& e : debyetemp_perelement )
+    doUnalias( e.first );
+  for ( auto& e : dyninfos )
+    doUnalias( e.element_name );
+}
+
+
 bool NC::NCMATData::hasCell() const
 {
   return cell.lengths[0]!=0. || cell.lengths[1]!=0. || cell.lengths[2]!=0.
@@ -251,19 +218,62 @@ void NC::NCMATData::validateCell() const
   }
 }
 
-bool NC::NCMATData::couldBeElementName(const std::string& s)
+void NC::NCMATData::validateAtomDB() const
 {
-  //Accepts a single capital letter or a capital letter followed by a lowercase letter.
-  return ( !s.empty()
-           && s.size() <= 2
-           && ( s.at(0)>='A' && s.at(0) <= 'Z' )
-           && ( s.size()==1 || ( s.at(1)>='a' && s.at(1) <= 'z' ) ) );
+  //Not a complete validation, just a partial one (when used with an
+  //AtomDBExtender, the entries will be validated more carefully).
+  if (!hasAtomDB())
+    return;
+  for (auto&& e : enumerate(atomDBLines)) {
+    const AtomDBLine& line = e.val;
+    nc_assert(!line.empty());
+    try {
+      validateAtomDBLine( line );
+    } catch (Error::BadInput&err) {
+      NCRYSTAL_THROW2(BadInput,"Invalid entry in @ATOMDB section in the line: \""<<joinstr(line)<<"\". Error is: "<<err.what());
+    }
+    if (line.at(0)=="nodefaults") {
+      if (e.idx!=0||line.size()!=1)
+        NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" \"nodefaults\" keyword in @ATOMDB section can only appear in"
+                        " the first line (where it must be alone)");
+      continue;
+    }
+    //Not needed: validateElementName(line.at(0));
+  }
 }
 
-void NC::NCMATData::validateElementName( const std::string& s ) const
+void NC::NCMATData::validateElementNameByVersion(const std::string& s, unsigned version)
 {
-  if (!couldBeElementName(s))
-    NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" invalid element name \""<<s<<"\" (must be capitalised like Si, O, He, C, ...)");
+  nc_assert_always(version>0&&version<=3);
+  AtomSymbol atomsymbol(s);
+  if ( atomsymbol.isInvalid() )
+    NCRYSTAL_THROW2(BadInput,"Invalid element name \""<<s<<"\"");//invalid in any version
+  if (version==3)
+    return;//All is supported in the v3.
+
+  //Version-specific tests for older versions:
+  if (atomsymbol.isCustomMarker())
+    NCRYSTAL_THROW2(BadInput,"Invalid element name \""<<s
+                    <<"\" (custom markers X, X1, X2, ..., X99 are only supported from NCMAT v3).");
+  //"D" was introduced in v2 as the only new element over v1:
+  if (s=="D") {
+    if (version==1)
+      NCRYSTAL_THROW(BadInput,"Element \"D\" is not supported in NCMAT v1 files (requires NCMAT v2 or later)");
+    return;
+  }
+  if (atomsymbol.isIsotope())
+    NCRYSTAL_THROW2(BadInput,"Invalid element name \""<<s<<"\" (general isotope markers are only supported from NCMAT v3).");
+  //All ok for the older format:
+  return;
+}
+
+void NC::NCMATData::validateElementName(const std::string& s) const
+{
+  try{
+    validateElementNameByVersion(s,version);
+  } catch (Error::BadInput&e) {
+    NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" "<<e.what());
+  }
 }
 
 void NC::NCMATData::validateAtomPos() const
@@ -320,8 +330,10 @@ void NC::NCMATData::validateDensity() const
 
 void NC::NCMATData::validate() const
 {
-  if ( ! ( version==1 || version==2 ) )
+  if ( ! ( version==1 || version==2 || version==3 ) )
     NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" unsupported NCMAT format version "<<version);
+
+  std::set<std::string> allElementNames;
 
   ////////////////////////////////////////////////////////////////////////////////
   //validate individual sections:
@@ -330,6 +342,7 @@ void NC::NCMATData::validate() const
   validateSpaceGroup();
   validateDebyeTemperature();
   validateDensity();
+  validateAtomDB();
   const bool hasDebyeTemp = hasDebyeTemperature();
   for (std::size_t i = 0; i<dyninfos.size(); ++i) {
     if ( !hasDebyeTemp && dyninfos.at(i).dyninfo_type==DynInfo::VDOSDebye )
@@ -339,6 +352,14 @@ void NC::NCMATData::validate() const
     } catch (Error::BadInput&e) {
       NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" problem in dyninfos["<<i<<"]: "<<e.what());
     }
+    validateElementName(dyninfos.at(i).element_name);//more careful version-specific validation
+    allElementNames.insert(dyninfos.at(i).element_name);
+  }
+
+  for (const auto& e : customSections) {
+    if (e.first.empty() || ! contains_only(e.first,"ABCDEFGHIJKLMNOPQRSTUVXYZ"))
+      NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" invalid custom section name: \""<<e.first
+                      <<"\" (must be non-empty and contain only capitalised letters A-Z)");
   }
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -399,6 +420,9 @@ void NC::NCMATData::validate() const
       atompos_elems2count[it->first] += 1;
   }
 
+  for (auto& e : atompos_elems2count)
+    allElementNames.insert(e.first);
+
   // Fractions in DYNINFO sections should add up to unity and the same
   // element should not be in two different DYNINFO sections:
 
@@ -436,7 +460,7 @@ void NC::NCMATData::validate() const
       if (distf>1e-9) {
         std::ostringstream ss;
         ss << sourceFullDescr<<" the fraction for "<<itA->first<<" specified in the dyninfo section differs from the"
-           << " same fraction calculated from the number of each element appearing in the list of atompositions";
+           << " same fraction calculated from the number of each atom appearing in the list of atompositions";
         if (distf<1e-3)
           ss << " (they almost do, but more precision is required - note that it is possible to specify"
             " fractions like "<<itA->second<<"/"<<atompos.size()<<" in NCMAT files instead of numbers like "<<dyninfofraction<<")";
@@ -449,6 +473,9 @@ void NC::NCMATData::validate() const
   // temperatures:
 
   if ( !debyetemp_perelement.empty() ) {
+    for (auto& e : debyetemp_perelement)
+      allElementNames.insert(e.first);
+
     std::vector<std::pair<std::string,double> >::const_iterator itD(debyetemp_perelement.begin()), itDE(debyetemp_perelement.end());
     std::string refsec;
     if ( !atompos_elems2count.empty() ) {
@@ -484,5 +511,15 @@ void NC::NCMATData::validate() const
         NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" temperature values specified in different dynamic info sections are different")
     }
   }
-}
 
+  //Check that any custom markers used in atompos/debyetemp/dyninfo sections are defined in atomdb section:
+  std::set<std::string> atomdb_custommarkers;
+  for(auto& e : atomDBLines) {
+    if (AtomSymbol(e.at(0)).isCustomMarker())
+      atomdb_custommarkers.insert(e.at(0));
+  }
+  for (auto& e : allElementNames) {
+    if ( AtomSymbol(e).isCustomMarker() && !atomdb_custommarkers.count(e))
+      NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" custom marker \""<<e<<"\" is used but has no definition in the @ATOMDB section")
+  }
+}

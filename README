@@ -85,9 +85,9 @@ the NCrystal library in $NCRYSTALDIR/lib, usually via "-L$NCRYSTALDIR/lib
 "-lG4NCrystal" to the link flags. Then, in your code you can access the relevant
 APIs with with statements like:
 
-  #include "NCrystal.hh"   // C++ code, core NCrystal
-  #include "G4NCrystal.hh" // C++ code, for Geant4 users
-  #include "ncrystal.h"    // C code
+  #include "NCrystal/NCrystal.hh"     // C++ code, core NCrystal
+  #include "G4NCrystal/G4NCrystal.hh" // C++ code, for Geant4 users
+  #include "NCrystal/ncrystal.h"      // C code
   import NCrystal          ## Python code
 
 In the ./examples/ directory of your NCrystal distribution that you got after

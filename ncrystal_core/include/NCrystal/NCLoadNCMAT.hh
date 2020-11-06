@@ -30,35 +30,43 @@ namespace NCrystal {
   // Read .ncmat file and return a corresponding NCrystal::Info object from it
   // (it will have a reference count of 0 when returned).
   //
-  // Parameters "temp", "dcutoff" and "dcutoffup" have the same meaning as the
-  // corresponding parameters described in NCMatCfg.hh. The "expandhkl"
-  // parameter can be used to request  that lists of equivalent HKL planes be
+  // Parameters must be set via a NCMATCfgVars struct.  Parameters "temp",
+  // "dcutoff", "dcutoffup", and "atomdb" have the same meaning as the
+  // corresponding parameters described in NCMatCfg.hh (although atomdb must
+  // here be already be split into "lines" and "words"). The "expandhkl"
+  // parameter can be used to request that lists of equivalent HKL planes be
   // created.
   //
   // Setting "temp" to -1.0 will result in a temperature of 293.15K unless
   // something in the input indicates another value (i.e. if a scatterkernel is
   // valid at 200K, then temp=-1 and temp=200 will both result in 200K, while
-  // any other value results in an error)..
+  // any other value results in an error).
+
+  struct NCRYSTAL_API NCMATCfgVars : public MoveOnly {
+    double temp = -1.0;//kelvin
+    double dcutoff = 0.0;//angstrom
+    double dcutoffup = kInfinity;//angstrom
+    bool expandhkl = false;
+    std::vector<VectS> atomdb;
+  };
 
   //Both const char* and std::string versions are provided, for convenience:
   NCRYSTAL_API const Info * loadNCMAT( const char * ncmat_file,
-                                       double temp = -1.0,//kelvin
-                                       double dcutoff = 0.0,//angstrom
-                                       double dcutoffup = kInfinity,//angstrom
-                                       bool expandhkl = false );
+                                       NCMATCfgVars&& cfgvars = NCMATCfgVars() );
 
   NCRYSTAL_API const Info * loadNCMAT( const std::string& ncmat_file,
-                                       double temp = -1.0,//kelvin
-                                       double dcutoff = 0.0,//angstrom
-                                       double dcutoffup = kInfinity,//angstrom
-                                       bool expandhkl = false );
+                                       NCMATCfgVars&& cfgvars = NCMATCfgVars() );
 
   //Can also load from parsed NCMAT data structure (which will be consumed):
   NCRYSTAL_API const Info * loadNCMAT( NCMATData&& ncmat_data,
-                                       double temp = -1.0,//kelvin
-                                       double dcutoff = 0.0,//angstrom
-                                       double dcutoffup = kInfinity,//angstrom
-                                       bool expandhkl = false );
+                                       NCMATCfgVars&& cfgvars = NCMATCfgVars() );
+
+  //@CUSTOM_xxx sections in NCMAT input will produce warnings by default, unless
+  //the env var NCRYSTAL_NCMAT_NOWARNFORCUSTOM was set when NCrystal was
+  //loaded. In any case, the behaviour can be queried and modified with:
+
+  NCRYSTAL_API bool getNCMATWarnOnCustomSections();
+  NCRYSTAL_API void setNCMATWarnOnCustomSections(bool);
 
 }
 

@@ -48,11 +48,11 @@ extern "C" {
   typedef struct { void * internal; } ncrystal_process_t;
   typedef struct { void * internal; } ncrystal_scatter_t;
   typedef struct { void * internal; } ncrystal_absorption_t;
+  typedef struct { void * internal; } ncrystal_atomdata_t;
 
   NCRYSTAL_API int  ncrystal_refcount( void* object );
   NCRYSTAL_API void ncrystal_ref( void* object );
   NCRYSTAL_API void ncrystal_unref( void* object );/*unrefs and deletes if count reaches 0*/
-  NCRYSTAL_API void ncrystal_unrefnodelete( void* object ); /*unrefs but never deletes*/
   NCRYSTAL_API int  ncrystal_valid( void* object );
   NCRYSTAL_API void ncrystal_invalidate( void* object );/*invalidates handle (does not unref!)*/
 
@@ -140,7 +140,6 @@ extern "C" {
   NCRYSTAL_API double ncrystal_info_gettemperature( ncrystal_info_t );
   NCRYSTAL_API double ncrystal_info_getxsectabsorption( ncrystal_info_t );
   NCRYSTAL_API double ncrystal_info_getxsectfree( ncrystal_info_t );
-  NCRYSTAL_API double ncrystal_info_getglobaldebyetemp( ncrystal_info_t );
   NCRYSTAL_API double ncrystal_info_getdensity( ncrystal_info_t );
   NCRYSTAL_API double ncrystal_info_getnumberdensity( ncrystal_info_t );
 
@@ -152,7 +151,23 @@ extern "C" {
                                           int* h, int* k, int* l, int* multiplicity,
                                           double * dspacing, double* fsquared );
 
-  /* todo: more NCInfo data available here (including AtomInfo & Composition)      */
+  /*Access AtomInfo:                                                               */
+  NCRYSTAL_API unsigned ncrystal_info_natominfo( ncrystal_info_t );/* 0=unavail    */
+  NCRYSTAL_API int ncrystal_info_hasatompos( ncrystal_info_t );
+  NCRYSTAL_API int ncrystal_info_hasatommsd( ncrystal_info_t );
+  NCRYSTAL_API void ncrystal_info_getatominfo( ncrystal_info_t, unsigned iatom,
+                                               unsigned* atomdataindex,
+                                               unsigned* number_per_unit_cell,
+                                               double* debye_temp, double* msd );
+  NCRYSTAL_API void ncrystal_info_getatompos( ncrystal_info_t,
+                                              unsigned iatom, unsigned ipos,
+                                              double* x, double* y, double* z );
+
+  /*Debye temperatures (per-element also via atominfo):                            */
+  NCRYSTAL_API int ncrystal_info_hasanydebyetemp( ncrystal_info_t );
+  NCRYSTAL_API double ncrystal_info_getdebyetempbyelement( ncrystal_info_t,
+                                                           unsigned atomdataindex );
+  NCRYSTAL_API double ncrystal_info_getglobaldebyetemp( ncrystal_info_t );/* -1=unavail */
 
   /*Access dynamic info:                                                           */
   /*ditypeid: 0->nonscat, 1:freegas, 2:scatknl 3:vdos, 4:vdosdebye, 99:unknown     */
@@ -160,7 +175,7 @@ extern "C" {
   NCRYSTAL_API void ncrystal_dyninfo_base( ncrystal_info_t,
                                            unsigned idyninfo,
                                            double* fraction,
-                                           const char** elementname,
+                                           unsigned* atomdataindex,
                                            double* temperature,
                                            unsigned* ditypeid );
 
@@ -198,8 +213,49 @@ extern "C" {
                                                          unsigned* vdos_ndensity,
                                                          const double ** vdos_density );
 
-  /* Convenience: */
+  /* Convenience:                                                                  */
   NCRYSTAL_API double ncrystal_info_dspacing_from_hkl( ncrystal_info_t, int h, int k, int l );
+
+
+  /* Composition (ncomponents=0 means composition unavailable):                    */
+  NCRYSTAL_API unsigned ncrystal_info_ncomponents( ncrystal_info_t );
+  NCRYSTAL_API void ncrystal_info_getcomponent( ncrystal_info_t, unsigned icomponent,
+                                                unsigned* atomdataindex,
+                                                double* fraction );
+
+
+  /* Turn returned atomdata_idx's from calls above into actual ncrystal_atomdata_t */
+  /* objects. The returned objects are ref-counted and the calling code should     */
+  /* eventually unref them (with a call to ncrystal_unref) in order to prevent     */
+  /* resource leaks.                                                               */
+  NCRYSTAL_API ncrystal_atomdata_t ncrystal_create_atomdata( ncrystal_info_t,
+                                                             unsigned atomdataindex );
+
+  /* Get atom data fields. Each object falls in one of three categories:           */
+  /* 1) Natural elements (ncomponents=A=0,Z>0)                                     */
+  /* 2) Single isotope (ncomponents=0, Z>0, A>=Z)                                  */
+  /* 3) Composite (A=0,ncomponents>1,Z>0 if all components share Z, otherwise Z=0) */
+  /* Note that displaylabel=0 if atomdata object was sub-component.                */
+  NCRYSTAL_API void ncrystal_atomdata_getfields( ncrystal_atomdata_t,
+                                                 const char** displaylabel,
+                                                 const char** description,
+                                                 double* mass, double *incxs,
+                                                 double* cohsl_fm, double* absxs,
+                                                 unsigned* ncomponents,
+                                                 unsigned* zval, unsigned* aval );
+
+  /* Get atomdata and fraction of component:                                       */
+  /* NB: Returned object should eventually be unref'ed by calling code.            */
+  NCRYSTAL_API ncrystal_atomdata_t ncrystal_create_atomdata_subcomp( ncrystal_atomdata_t,
+                                                                     unsigned icomponent,
+                                                                     double* fraction );
+
+  /* Custom data section:                                                         */
+  NCRYSTAL_API unsigned ncrystal_info_ncustomsections( ncrystal_info_t );
+  NCRYSTAL_API const char* ncrystal_info_customsec_name( ncrystal_info_t, unsigned isection );
+  NCRYSTAL_API unsigned ncrystal_info_customsec_nlines( ncrystal_info_t, unsigned isection );
+  NCRYSTAL_API unsigned ncrystal_info_customline_nparts( ncrystal_info_t, unsigned isection, unsigned iline );
+  NCRYSTAL_API const char* ncrystal_info_customline_getpart( ncrystal_info_t, unsigned isection, unsigned iline, unsigned ipart );
 
   /*============================================================================== */
   /*============================================================================== */
@@ -220,7 +276,7 @@ extern "C" {
   NCRYSTAL_API int ncrystal_error();/* returns 1 if an error condition occurred. */
   NCRYSTAL_API const char * ncrystal_lasterror();/* returns description of last error (NULL if none) */
   NCRYSTAL_API const char * ncrystal_lasterrortype();/* returns description of last error (NULL if none) */
-  /* TODO for NC2: error file/line-no as well? */
+  /* TODO: error file/line-no as well? */
 
   NCRYSTAL_API void ncrystal_clearerror();/* clears previous error if any */
 
@@ -243,10 +299,21 @@ extern "C" {
   NCRYSTAL_API double ncrystal_wl2ekin( double wl );
   NCRYSTAL_API double ncrystal_ekin2wl( double ekin );
 
-  /* Access internal DB for natural elements by Z value (mass_amu=0 if n/a):       */
-  NCRYSTAL_API void ncrystal_natelemdata( unsigned z, const char ** name,
-                                          double* mass_amu, double* sigma_inc,
-                                          double* sigma_coh, double* sigma_abs );
+  /* Access internal DB for isotopes and natural elements.                         */
+  /* NB: Will return invalid handle in case lookup failed. Otherwise, the          */
+  /* returned object should eventually be unref'ed by calling code:                */
+  NCRYSTAL_API ncrystal_atomdata_t ncrystal_create_atomdata_fromdb( unsigned z,
+                                                                    unsigned a );
+  /* Version which accepts strings like "Al", "H2", "D" ...:                       */
+  NCRYSTAL_API ncrystal_atomdata_t ncrystal_create_atomdata_fromdbstr( const char* );
+
+  /* Get all (Z,A) values in internal DB (A=0 means natural element). The second   */
+  /* fct accepts two preallocated arrays with length given by the first fct:       */
+  NCRYSTAL_API unsigned ncrystal_atomdatadb_getnentries();
+  NCRYSTAL_API void ncrystal_atomdatadb_getallentries( unsigned* zvals,
+                                                       unsigned* avals );
+
+
 
   /* Extract NCMatCfg variables which can not be inferred from an ncrystal_info_t  */
   /* object and which might be needed in plugins (to be expanded as needed):       */
@@ -266,12 +333,16 @@ extern "C" {
   /* Clear various caches employed inside NCrystal:                                */
   NCRYSTAL_API void ncrystal_clear_caches();
 
+  /* Register in-memory file data:                                                 */
+  NCRYSTAL_API void ncrystal_register_in_mem_file_data(const char* virtual_filename,
+                                                       const char* data);
+
   /* NCrystal version info:                                                        */
 #define NCRYSTAL_VERSION_MAJOR 2
-#define NCRYSTAL_VERSION_MINOR 0
+#define NCRYSTAL_VERSION_MINOR 1
 #define NCRYSTAL_VERSION_PATCH 0
-#define NCRYSTAL_VERSION   2000000 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
-#define NCRYSTAL_VERSION_STR "2.0.0"
+#define NCRYSTAL_VERSION   2001000 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
+#define NCRYSTAL_VERSION_STR "2.1.0"
   NCRYSTAL_API int ncrystal_version(); /* returns NCRYSTAL_VERSION                  */
   NCRYSTAL_API const char * ncrystal_version_str(); /* returns NCRYSTAL_VERSION_STR */
 
@@ -289,6 +360,15 @@ extern "C" {
                                                           unsigned long repeat,
                                                           double* results_angle,
                                                           double* results_dekin );
+
+  NCRYSTAL_API void ncrystal_genscatter_many( ncrystal_scatter_t,
+                                              double ekin,
+                                              const double (*direction)[3],
+                                              unsigned long repeat,
+                                              double * results_dirx,
+                                              double * results_diry,
+                                              double * results_dirz,
+                                              double * results_dekin );
 
   NCRYSTAL_API void ncrystal_crosssection_nonoriented_many( ncrystal_process_t,
                                                             const double * ekin,

@@ -18,7 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCSABUtils.hh"
+#include "NCrystal/internal/NCSABUtils.hh"
+#include "NCrystal/internal/NCIter.hh"
 namespace NC = NCrystal;
 
 NC::SABData NC::SABUtils::transformKernelToStdFormat( NC::ScatKnlData&& input )

@@ -25,7 +25,7 @@
 
 namespace NCrystal {
 
-  class SABData : public UniqueID {
+  class NCRYSTAL_API SABData : public UniqueID {
   public:
 
     //Immutable data structure defining an S(alpha,beta) scattering kernel.
@@ -56,7 +56,7 @@ namespace NCrystal {
     SigmaBound m_bxs;
   };
 
-  class VDOSData : public UniqueID {
+  class NCRYSTAL_API VDOSData : public UniqueID {
   public:
 
     //Immutable data structure defining a VDOS (phonon density spectrum).

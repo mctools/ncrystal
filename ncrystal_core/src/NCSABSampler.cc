@@ -18,9 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCSABSampler.hh"
-#include "NCSABUtils.hh"
-#include "NCMath.hh"
+#include "NCrystal/internal/NCSABSampler.hh"
+#include "NCrystal/internal/NCSABUtils.hh"
+#include "NCrystal/internal/NCMath.hh"
 namespace NC = NCrystal;
 
 NC::SABSampler::~SABSampler() = default;

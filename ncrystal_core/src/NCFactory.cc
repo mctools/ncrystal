@@ -23,14 +23,17 @@
 #include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCScatterComp.hh"
 #include "NCrystal/NCAbsorption.hh"
+#include "NCrystal/NCFile.hh"
+#include "NCrystal/internal/NCString.hh"
 #include <iostream>
 #include <cstdlib>
+#include <atomic>
+namespace NC = NCrystal;
 
 namespace NCrystal {
 
-  static bool s_info_cache_enabled = (std::getenv("NCRYSTAL_NOCACHE") ? false : true);
-
-  static bool s_debug_factory = (std::getenv("NCRYSTAL_DEBUGFACTORY") ? true : false);
+  static std::atomic<bool> s_info_cache_enabled(std::getenv("NCRYSTAL_NOCACHE") ? false : true);
+  static std::atomic<bool> s_debug_factory(std::getenv("NCRYSTAL_DEBUGFACTORY") ? true : false);
 
   struct FactoryCfgSpy : public MatCfg::AccessSpy {
     std::set<std::string> parnames;
@@ -56,9 +59,10 @@ namespace NCrystal {
     }
   };
 
+  static std::mutex s_infocache_mutex;//For now, should move to FactoryBase implementation!
   static std::map<std::string, std::set<InfoCache> > s_infocache;
 
-  const Info * searchInfoCache(const std::string& key, const NCrystal::MatCfg& cfg) {
+  const Info * searchInfoCache(const std::string& key, const MatCfg& cfg) {
     std::map<std::string, std::set<InfoCache> >::const_iterator itKey = s_infocache.find(key);
     if (itKey==s_infocache.end())
       return 0;
@@ -86,7 +90,7 @@ namespace NCrystal {
 
 }
 
-void NCrystal::clearInfoCaches()
+void NC::clearInfoCaches()
 {
   s_infocache.clear();
   if (s_debug_factory)
@@ -94,7 +98,7 @@ void NCrystal::clearInfoCaches()
 }
 
 
-void NCrystal::disableCaching()
+void NC::disableCaching()
 {
   if (s_debug_factory)
     std::cout<<"NCrystal::Factory - disableCaching called."<<std::endl;
@@ -104,17 +108,20 @@ void NCrystal::disableCaching()
   clearInfoCaches();
 }
 
-void NCrystal::enableCaching()
+void NC::enableCaching()
 {
   if (s_debug_factory)
     std::cout<<"NCrystal::Factory - enableCaching called."<<std::endl;
   s_info_cache_enabled = true;
 }
 
-const NCrystal::Info * NCrystal::createInfo( const NCrystal::MatCfg& cfg )
+const NC::Info * NC::createInfo( const NC::MatCfg& cfg )
 {
+  std::lock_guard<std::mutex> guard(s_infocache_mutex);
+
   if (s_debug_factory)
     std::cout<<"NCrystal::Factory::createInfo - createInfo( "<<cfg<<" ) called"<<std::endl;
+
 
   static bool first = true;
   if (first) {
@@ -168,7 +175,7 @@ const NCrystal::Info * NCrystal::createInfo( const NCrystal::MatCfg& cfg )
   std::string cachekey;
   if (s_info_cache_enabled) {
     std::stringstream cachekey_stream;
-    cachekey_stream<<cfg.getDataFile()<<';'<<chosen->getName();
+    cachekey_stream<<cfg.getDataFileAsSpecified()<<';'<<chosen->getName();
     cachekey = cachekey_stream.str();
     const Info * cached_info = searchInfoCache(cachekey, cfg);
     if (s_debug_factory)
@@ -185,14 +192,14 @@ const NCrystal::Info * NCrystal::createInfo( const NCrystal::MatCfg& cfg )
   cfg.removeAccessSpy(&spy);
   if (!info.obj())
     NCRYSTAL_THROW(BadInput,"Chosen factory could not service createInfo request");
-  if (info.obj()->refCount()!=1)//1 here since RCHolder already incremented
+  if (info->refCount()!=1)//1 here since RCHolder already incremented
     NCRYSTAL_THROW(BadInput,"Chosen factory returned object with non-zero reference count!");
 
 
   //to ensure good caching + separation, we enforce dynamically that factories
   //only access a limited subset of the MatCfg parameters during calls to
   //createInfo:
-  static std::set<std::string> allowed_info_pars = { "temp", "dcutoff", "dcutoffup", "overridefileext", "infofactory" };
+  static std::set<std::string> allowed_info_pars = { "temp", "dcutoff", "dcutoffup", "atomdb", "overridefileext", "infofactory" };
   std::set<std::string>::const_iterator it = spy.parnames.begin();
   for (;it!=spy.parnames.end();++it) {
     if (!allowed_info_pars.count(*it))
@@ -201,20 +208,20 @@ const NCrystal::Info * NCrystal::createInfo( const NCrystal::MatCfg& cfg )
                       " violates caching policies.");
   }
 
-  if ( ! info.obj()->isLocked() )
+  if ( ! info->isLocked() )
     NCRYSTAL_THROW2(LogicError,"Factory \""<<chosen->getName()<<"\" did not lock created Info object");
 
   if ( cfg.get_temp()!=-1.0 ) {
-    if ( !info.obj()->hasTemperature() || info.obj()->getTemperature() != cfg.get_temp() )
+    if ( !info->hasTemperature() || info->getTemperature() != cfg.get_temp() )
       NCRYSTAL_THROW2(LogicError,"Factory \""<<chosen->getName()<<"\" did not set temp as required");
   }
 
-  if (info.obj()->hasHKLInfo()) {
+  if (info->hasHKLInfo()) {
     if (cfg.get_dcutoff()==-1)
       NCRYSTAL_THROW2(LogicError,"Factory \""<<chosen->getName()
                       <<"\" created HKL info even though dcutoff=-1");
-    if ( info.obj()->hklDLower() < cfg.get_dcutoff() ||
-         info.obj()->hklDUpper() > cfg.get_dcutoffup() )
+    if ( info->hklDLower() < cfg.get_dcutoff() ||
+         info->hklDUpper() > cfg.get_dcutoffup() )
       NCRYSTAL_THROW2(LogicError,"Factory \""<<chosen->getName()
                       <<"\" did not respect dcutoff setting.");
   }
@@ -251,7 +258,7 @@ const NCrystal::Info * NCrystal::createInfo( const NCrystal::MatCfg& cfg )
   return o;
 }
 
-const NCrystal::Scatter * NCrystal::createScatter( const NCrystal::MatCfg& cfg )
+const NC::Scatter * NC::createScatter( const NC::MatCfg& cfg )
 {
   if (s_debug_factory)
     std::cout<<"NCrystal::Factory::createScatter - createScatter( "<<cfg<<" ) called"<<std::endl;
@@ -323,8 +330,8 @@ const NCrystal::Scatter * NCrystal::createScatter( const NCrystal::MatCfg& cfg )
 }
 
 
-//TODO for NC2: this function is a cut'n'paste of the above, with scatter->absorption replacement.
-const NCrystal::Absorption * NCrystal::createAbsorption( const NCrystal::MatCfg& cfg )
+//TODO: this function is a cut'n'paste of the above, with scatter->absorption replacement.
+const NC::Absorption * NC::createAbsorption( const NC::MatCfg& cfg )
 {
   if (s_debug_factory)
     std::cout<<"NCrystal::Factory::createAbsorption - createAbsorption( "<<cfg<<" ) called"<<std::endl;
@@ -381,3 +388,159 @@ const NCrystal::Absorption * NCrystal::createAbsorption( const NCrystal::MatCfg&
     std::cout<<"NCrystal::Factory::createAbsorption - createAbsorption was successful"<<std::endl;
   return absorption;
 }
+
+namespace NCrystal {
+
+#ifdef NCRYSTAL_STDCMAKECFG_EMBED_DATA_ON
+  //If NCrystal is installed using the standard CMake with -DEMBED_DATA=ON, an
+  //autogenerated function NCrystal::AutoGenNCMAT::registerStdNCMAT will have
+  //been compiled in, and we have to call it at initialisation time (after all
+  //static objects everywhere have been initialised!)
+  namespace AutoGenNCMAT { void registerStdNCMAT(); }//fwd declared - linked in elsewhere
+#endif
+
+  namespace {
+    class InMemoryFileDB;
+    //Keep inmemdb mutex in shared pointer, so it wont be deleted before
+    //InMemoryFileDB objects gets deleted (destruction order between static
+    //objects in different compilation units is undefined):
+    static std::shared_ptr<std::mutex> s_inmemdb_mutex = std::make_shared<std::mutex>();
+    static InMemoryFileDB * s_inmemdb = nullptr;
+
+    class InMemoryFileDB : public TextInputManager {
+      struct Entry {
+        const char * staticData = nullptr;
+        std::string data;
+      };
+      std::map<std::string,Entry> m_db;
+      std::shared_ptr<std::mutex> m_mutex;
+    public:
+      InMemoryFileDB( std::shared_ptr<std::mutex> mm )
+        : m_mutex(std::move(mm))
+      {
+      }
+      virtual ~InMemoryFileDB()
+      {
+        //If deleted in NCFile.cc (which owns a TextInputManager once
+        //registered), make sure the non-owning static pointer here is updated
+        //as well.
+        assert(m_mutex!=nullptr);//NB: Only standard asserts in destructors (can't throw).
+        std::lock_guard<std::mutex> guard(*m_mutex);//NB: The mutex lock here is why we need to keep it in a shared pointer!
+        s_inmemdb = nullptr;
+        //TODO: How can we systematically check other files for this static-destructors-ordering-in-different-units issues??
+      }
+
+      void clearCaches(const std::string& name)
+      {
+        //Clear any existing info caches related to this name
+        std::lock_guard<std::mutex> guard(s_infocache_mutex);
+        std::string searchpattern(name+";");
+        auto itE = s_infocache.end();
+        for (auto it = s_infocache.begin(); it!=itE;) {
+          if (startswith(it->first,searchpattern)) {
+            auto itdel = it;
+            ++it;
+            s_infocache.erase(itdel);
+          } else {
+            ++it;
+          }
+        }
+      }
+
+      void addEntry(const std::string& name,
+                    std::string&& data)
+      {
+        Entry entry;
+        entry.data = std::move(data);
+        m_db[name] = std::move(entry);
+        clearCaches(name);
+      }
+
+      void addStaticEntry(const std::string& name,
+                          const char * staticData)
+      {
+        Entry entry;
+        entry.staticData = staticData;
+        m_db[name] = std::move(entry);
+        clearCaches(name);
+      }
+
+      //Reimplement this custom file searching in this function (can throw
+      //FileNotFound in case of problems, but one will in any case be thrown if it
+      //doesn't supply a result and if the fallback to the usual search patterns
+      //is disallowed or fails):
+      std::unique_ptr<TextInputStream> createTextInputStream( const std::string& name ) final
+      {
+        nc_assert(!!m_mutex);
+        std::lock_guard<std::mutex> guard(*m_mutex);
+        auto it = m_db.find(name);
+        if ( it == m_db.end() )
+          return nullptr;//Do not throw FileNotFound here (will prevent on-disk file usage).
+        return createTextInputStreamFromBuffer( name,
+                                                ( it->second.staticData
+                                                  ? it->second.staticData
+                                                  : it->second.data ) );
+      }
+    };
+    void ensureDBReady() {
+      //Assumes mutex is already locked by calling code.
+      if (!s_inmemdb) {
+        auto tmp = std::make_unique<InMemoryFileDB>(s_inmemdb_mutex);
+        s_inmemdb = tmp.get();
+        registerTextInputManager(std::move(tmp));
+#ifdef NCRYSTAL_STDCMAKECFG_EMBED_DATA_ON
+        AutoGenNCMAT::registerStdNCMAT();
+#endif
+      }
+    }
+  }
+
+#ifdef NCRYSTAL_STDCMAKECFG_EMBED_DATA_ON
+  namespace internal {
+    //Other functions needed for the embedding:
+    void registerEmbeddedNCMAT( const char* name, const char* static_data )
+    {
+      //Unsafe version which is intended to be called only when s_inmemdb_mutex
+      //is already locked and s_inmemdb is already setup.
+      nc_assert_always(s_inmemdb);
+      s_inmemdb->addStaticEntry(name,static_data);
+    }
+    //For NCMatCfg constructor, which needs to ensure virtual embedded files can
+    //be read:
+    void ensureInMemDBReadyMTSafe() {
+      nc_assert(!!s_inmemdb_mutex);
+      std::lock_guard<std::mutex> guard(*s_inmemdb_mutex);
+      ensureDBReady();
+    }
+  }
+#endif
+}
+
+void NC::registerInMemoryFileData( const std::string& name,
+                                   const std::string& data )
+{
+  nc_assert(!!s_inmemdb_mutex);
+  std::lock_guard<std::mutex> guard(*s_inmemdb_mutex);
+  ensureDBReady();
+  s_inmemdb->addEntry(name,std::string(data));
+}
+
+
+void NC::registerInMemoryFileData( const std::string& name,
+                                   std::string&& data )
+{
+  nc_assert(!!s_inmemdb_mutex);
+  std::lock_guard<std::mutex> guard(*s_inmemdb_mutex);
+  ensureDBReady();
+  s_inmemdb->addEntry(name,std::move(data));
+}
+
+void NC::registerInMemoryStaticFileData( const std::string& name,
+                                         const char* static_data )
+{
+  nc_assert(!!s_inmemdb_mutex);
+  std::lock_guard<std::mutex> guard(*s_inmemdb_mutex);
+  ensureDBReady();
+  s_inmemdb->addStaticEntry(name,static_data);
+}
+

@@ -27,11 +27,10 @@ import NCrystal
 
 pc = NCrystal.createScatter( "Al_sg225.ncmat;dcutoff=0.5;temp=25C" )
 wavelength = 2.5
-ekin = NCrystal.wl2ekin(wavelength)
-xsect = pc.crossSectionNonOriented(ekin)
+xsect = pc.xsect(wl=wavelength)
 
 for i in range(20):
-    scatter_angle,delta_ekin = pc.generateScatteringNonOriented(ekin)
+    scatter_angle,delta_ekin = pc.genscat(wl=wavelength)
     print( "polycrystal random angle/delta-e at %g Aa is %g degrees and %g meV"%(wavelength,
                                                                                  scatter_angle*57.2957795131,
                                                                                  delta_ekin*1e3) )
@@ -45,8 +44,8 @@ sc = NCrystal.createScatter("""Ge_sg227.ncmat;dcutoff=0.5;mos=40arcsec;
 wavelength = 1.540
 ekin = NCrystal.wl2ekin(wavelength)
 
-xsect = sc.crossSection( ekin, ( 0.0, 1.0, 1.0 ) )
+xsect = sc.xsect( wl=wavelength, direction = ( 0.0, 1.0, 1.0 ) )
 print( "singlecrystal Ge x-sect at  %g Aa is %g barn (orientation 1)"%(wavelength,xsect) )
 
-xsect = sc.crossSection( ekin, ( 1.0, 1.0, 0.0 ) )
+xsect = sc.xsect( wl=wavelength, direction = ( 1.0, 1.0, 0.0 ) )
 print( "singlecrystal Ge x-sect at  %g Aa is %g barn (orientation 2)"%(wavelength,xsect) )

@@ -36,4 +36,4 @@ debye_temp = 378.3
 #   sigma_abs_2200 - the absorption cross sect. at 2200 m/s [barns]
 #   molar_mass     - the Molar mass [g/mol]
 #   x y z          - the Wyckoff postion of the atom inside the unit cell
-add_atom = Ti -3.37 2.87 6.09 47.8669999876865 0.333333333333333 0.666666666666667 0.25
+add_atom = Ti -3.438 2.87 6.09 47.8684394371 0.333333333333333 0.666666666666667 0.25

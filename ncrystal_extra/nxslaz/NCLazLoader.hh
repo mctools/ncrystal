@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 
+#include "NCrystal/NCDefs.hh"
 #include "NCNXSLib.hh"
 
 namespace NCrystal {
@@ -44,10 +45,10 @@ namespace NCrystal {
     double m_dcutlow;
     double m_dcutup;
     double m_temp;
-    typedef std::vector<std::string>::const_iterator StrVecItr;
-    typedef std::vector<std::vector<std::string> >::const_iterator RawItr;
-    std::vector<std::vector<std::string> > m_raw_header;
-    std::vector<std::vector<std::string> > m_raw_data;
+    typedef VectS::const_iterator StrVecItr;
+    typedef std::vector<VectS >::const_iterator RawItr;
+    std::vector<VectS > m_raw_header;
+    std::vector<VectS > m_raw_data;
     bool search_parameter(std::string attr, double &result);
     bool search_index(std::string attr, unsigned &result);
     bool search_spacegroup(unsigned &result);

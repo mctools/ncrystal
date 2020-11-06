@@ -18,10 +18,11 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCVDOSGn.hh"
-#include "NCVDOSEval.hh"
-#include "NCFastConvolve.hh"
-#include "NCMath.hh"
+#include "NCrystal/internal/NCVDOSGn.hh"
+#include "NCrystal/internal/NCVDOSEval.hh"
+#include "NCrystal/internal/NCFastConvolve.hh"
+#include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/internal/NCIter.hh"
 #include <iostream>
 namespace NC=NCrystal;
 

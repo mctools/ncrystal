@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCPointwiseDist.hh"
-#include "NCMath.hh"
+#include "NCrystal/internal/NCPointwiseDist.hh"
+#include "NCrystal/internal/NCMath.hh"
 #include <algorithm>
 #include <cstdio>
 

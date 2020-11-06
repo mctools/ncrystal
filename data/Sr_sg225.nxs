@@ -23,4 +23,4 @@ debye_temp = 100.8802
 #   sigma_abs_2200 - the absorption cross sect. at 2200 m/s [barns]
 #   molar_mass     - the Molar mass [g/mol]
 #   x y z          - the Wyckoff postion of the atom inside the unit cell
-add_atom = Sr 7.02 0.06 1.28 87.6199999774603 0 0 0.5
+add_atom = Sr 7.02 0.06 1.28 87.6166442801 0 0 0.5

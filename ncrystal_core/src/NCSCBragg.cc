@@ -19,14 +19,14 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCSCBragg.hh"
-#include "NCGaussMos.hh"
-#include "NCRandUtils.hh"
+#include "NCrystal/internal/NCSCBragg.hh"
+#include "NCrystal/internal/NCGaussMos.hh"
+#include "NCrystal/internal/NCRandUtils.hh"
 #include "NCrystal/NCSCOrientation.hh"
 #include "NCrystal/NCInfo.hh"
-#include "NCVector.hh"
-#include "NCOrientUtils.hh"
-#include "NCPlaneProvider.hh"
+#include "NCrystal/internal/NCVector.hh"
+#include "NCrystal/internal/NCOrientUtils.hh"
+#include "NCrystal/internal/NCPlaneProvider.hh"
 #include <functional>//std::greater
 namespace NC=NCrystal;
 
@@ -48,23 +48,13 @@ struct NC::SCBragg::pimpl {
       : xsfact(xsfct), inv2d(0.5/dspacing) { nc_assert(xsfct>0&&dspacing>0); }
     ~ReflectionFamily() {}
 
-#if __cplusplus >= 201103L
     //enable move assignment/construction:
     ReflectionFamily & operator= ( ReflectionFamily && ) = default;
     ReflectionFamily( ReflectionFamily && ) = default;
     //disable expensive assignment/copy construction:
     ReflectionFamily & operator= ( const ReflectionFamily & ) = delete;
     ReflectionFamily( const ReflectionFamily & ) = delete;
-#else
-    //Old C++ - have to implement more expensive assignment/copy construction:
-    ReflectionFamily & operator= ( const ReflectionFamily & o )
-    {
-      deminormals = o.deminormals;//potentially expensive!
-      xsfact=o.xsfact; inv2d=o.inv2d;;
-      return *this;
-    }
-    ReflectionFamily( const ReflectionFamily & o ) { *this = o; }
-#endif
+
     bool operator < ( const ReflectionFamily & o ) const
     {
       //sort by d-spacing (secondarily by xsfact for reproducibility):
@@ -178,11 +168,11 @@ double NC::SCBragg::pimpl::setupFamilies( const NC::Info * cinfo,
   Vector demi_normal;
   const double two30 = 1073741824.0;//2^30 ~= 1.07e9
 
-  UniquePtr<PlaneProvider> ppguard;
+  std::unique_ptr<PlaneProvider> ppguard;
   if (!plane_provider) {
     //fall back to standard plane provider
-    ppguard.set(createStdPlaneProvider(cinfo));
-    plane_provider = ppguard.obj();
+    ppguard = createStdPlaneProvider(cinfo);
+    plane_provider = ppguard.get();
   } else {
     //use supplied plane provider - we must reset looping since we don't know
     //its current state:
@@ -239,11 +229,8 @@ double NC::SCBragg::pimpl::setupFamilies( const NC::Info * cinfo,
     nc_assert(itOrig!=origvals_fsq.end());
     fsq = (itOrig->second > 0 ? itOrig->second : it->first.second / two30);
 
-#if __cplusplus >= 201103L
     m_reflfamilies.emplace_back(fsq/V0numAtom,dsp);
-#else
-    m_reflfamilies.push_back(ReflectionFamily(fsq/V0numAtom,dsp));
-#endif
+
     //transfer it->second into final vector and put in the lab frame:
     ReflectionFamily& fam = m_reflfamilies.back();
     fam.deminormals.reserve(it->second.size());

@@ -32,12 +32,15 @@ namespace G4NCrystal {
   //(see NCMatCfg.hh for format). Note that for oriented crystals (single
   //crystals), any orientations specified will be interpreted in the local frame
   //of the G4LogicalVolume in which the material is installed).:
-  G4Material * createMaterial( const char * cfgstr );
-  G4Material * createMaterial( const G4String& cfgstr );
+  NCRYSTAL_API G4Material * createMaterial( const char * cfgstr );
+  NCRYSTAL_API G4Material * createMaterial( const G4String& cfgstr );
 
   //Alternatively create, configure and pass in an NCrystal MatCfg object:
-  G4Material * createMaterial( const MatCfg&  cfg );
+  NCRYSTAL_API G4Material * createMaterial( const MatCfg&  cfg );
 
+  //Set/disable debug output (off by default unless NCRYSTAL_DEBUG_G4MATERIALS
+  //was set when the library was loaded):
+  NCRYSTAL_API void enableCreateMaterialVerbosity(bool = true);
 }
 
 #endif

@@ -18,9 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCBkgdExtCurve.hh"
+#include "NCrystal/internal/NCBkgdExtCurve.hh"
 #include "NCrystal/NCInfo.hh"
-#include "NCRandUtils.hh"
+#include "NCrystal/internal/NCRandUtils.hh"
 
 namespace NC = NCrystal;
 
@@ -38,7 +38,7 @@ NC::BkgdExtCurve::~BkgdExtCurve() = default;
 
 double NC::BkgdExtCurve::crossSectionNonOriented(double ekin) const
 {
-  return m_ci.obj()->xsectScatNonBragg(ekin2wl(ekin));
+  return m_ci->xsectScatNonBragg(ekin2wl(ekin));
 }
 
 void NC::BkgdExtCurve::generateScatteringNonOriented( double, double& angle, double& de ) const

@@ -18,11 +18,11 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCPCBragg.hh"
+#include "NCrystal/internal/NCPCBragg.hh"
 #include "NCrystal/NCInfo.hh"
-#include "NCPlaneProvider.hh"
-#include "NCMath.hh"
-#include "NCRandUtils.hh"
+#include "NCrystal/internal/NCPlaneProvider.hh"
+#include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/internal/NCRandUtils.hh"
 #include <algorithm>//std::upper_bound, std::lower_bound
 #include <functional>//std::greater
 
@@ -96,11 +96,7 @@ NCrystal::PCBragg::PCBragg(const StructureInfo& si, PlaneProvider * pp)
       NCRYSTAL_THROW(CalcError,"Inconsistent data implies negative |F|^2.");
     f*=2;//getNextPlane provides demi-normals, e.g. only half of the normals.
     if (data.empty()||data.back().first!=d) {
-#if __cplusplus >= 201103L
       data.emplace_back(d,f);
-#else
-      data.push_back(std::make_pair(d,f));
-#endif
     } else {
       data.back().second += f;
     }
@@ -140,11 +136,7 @@ NCrystal::PCBragg::PCBragg(const Info*ci)
     if (f<0)
       NCRYSTAL_THROW(CalcError,"Inconsistent data implies negative |F|^2*multiplicity.");
     if (data.empty()||data.back().first!=it->dspacing) {
- #if __cplusplus >= 201103L
       data.emplace_back(it->dspacing,f);
-#else
-      data.push_back(std::make_pair(it->dspacing,f));
-#endif
     } else {
       data.back().second += f;
     }

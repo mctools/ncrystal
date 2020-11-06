@@ -18,11 +18,11 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCPlaneProvider.hh"
-#include "NCOrientUtils.hh"
+#include "NCrystal/internal/NCPlaneProvider.hh"
+#include "NCrystal/internal/NCOrientUtils.hh"
 #include "NCrystal/NCInfo.hh"
-#include "NCRotMatrix.hh"
-#include "NCEqRefl.hh"
+#include "NCrystal/internal/NCRotMatrix.hh"
+#include "NCrystal/internal/NCEqRefl.hh"
 
 namespace NCrystal {
 
@@ -120,8 +120,8 @@ namespace NCrystal {
                      " HKL normals, expanded HKL info, or spacegroup number is available.");
     m_ii = 0;
     nc_assert(m_info.obj());
-    m_it_hkl  = m_info.obj()->hklBegin();
-    m_it_hklE = m_info.obj()->hklEnd();
+    m_it_hkl  = m_info->hklBegin();
+    m_it_hklE = m_info->hklEnd();
     if ( m_sg ) {
       nc_assert(m_strategy == STRAT_SPACEGROUP);
       nc_assert(m_it_hkl!=m_it_hklE);
@@ -196,9 +196,9 @@ namespace NCrystal {
     return true;
   }
 
-  PlaneProvider* createStdPlaneProvider(const Info* info)
+  std::unique_ptr<PlaneProvider> createStdPlaneProvider(const Info* info)
   {
-    return new PlaneProviderStd(info);
+    return std::make_unique<PlaneProviderStd>(info);
   }
 
 }

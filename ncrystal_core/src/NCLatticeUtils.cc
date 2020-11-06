@@ -18,9 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCLatticeUtils.hh"
-#include "NCMath.hh"
-#include "NCVector.hh"
+#include "NCrystal/internal/NCLatticeUtils.hh"
+#include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/internal/NCVector.hh"
 
 #define NCRYSTAL_EXACT_LATTICEROTS_FOR_SPECIAL_CASES
 
@@ -84,7 +84,7 @@ NCrystal::RotMatrix NCrystal::getLatticeRot( double a, double b, double c,
   }
   return RotMatrix(m);
 
-  //TODO for NC2: Our data-library should include files which does not have
+  //TODO: Our data-library should include files which does not have
   //alpha=beta=90deg, so we actually validate more of the code above.
 }
 

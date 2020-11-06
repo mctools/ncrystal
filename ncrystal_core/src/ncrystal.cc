@@ -26,10 +26,11 @@
 #include "NCrystal/NCMatCfg.hh"
 #include "NCrystal/NCFactory.hh"
 #include "NCrystal/NCFactoryRegistry.hh"
-#include "NCDynInfoUtils.hh"
+#include "NCrystal/internal/NCDynInfoUtils.hh"
 #include "NCrystal/NCDump.hh"
-#include "NCMath.hh"
-#include "NCNeutronSCL.hh"
+#include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/internal/NCAtomUtils.hh"
+#include "NCrystal/internal/NCAtomDB.hh"
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
@@ -80,36 +81,79 @@ namespace NCrystal {
         setError("<unknown>","std::exception");
     }
 
-    class RandFctWrapper : public RandomBase {
+    struct AtomWrapper : public RCBase {
+
+      //Ref-counted instance of AtomDataSP. This allows C/Python side to
+      //par-take in life-time management. The wrapper is associated with a
+      //particular Info instance, and therefore also knows the displayLabel
+      //(unless a sub-component).
+      AtomDataSP atomDataSP;
+
+      //Cache display labels and descriptions (without values) here (note that
+      //the displayLabels are only valid in connection with a particular Info
+      //object, and only "top-level" atoms, the ones with an AtomIndex on the
+      //Info object, have a displayLabel.
+
+      const std::string& displayLabel() const
+      {
+        static std::string s_empty;
+        return !displayLabel_ptr ? s_empty : *displayLabel_ptr;
+      }
+      const std::string& description() const
+      {
+        nc_assert( description_ptr != nullptr || displayLabel_ptr != nullptr );
+        return description_ptr!=nullptr ? *description_ptr : *displayLabel_ptr;
+      }
+
+      std::unique_ptr<std::string> displayLabel_ptr;
+      std::unique_ptr<std::string> description_ptr;
+
+      //NB: Consider MT safety carefully, createInfo(..) is protected by mutex,
+      //but the C-interface code is not (but could be...)  We could have
+      //InfoWrapper with a mutex and caches?
+    };
+
+    class RandFctWrapper final : public RandomBase {
     public:
       RandFctWrapper(double (*rg)()) : m_rg(rg) {}
       virtual double generate() { return m_rg(); }
     protected:
-      virtual ~RandFctWrapper();
+      virtual ~RandFctWrapper() = default;
       double (*m_rg)();
     };
-    RandFctWrapper::~RandFctWrapper(){}
 
     void * & internal(void*o) {
       //object is here a pointer to a struct like ncrystal_xxx_t (which one is
       //not important since they all have the same layout):
       return ((ncrystal_info_t*)o)->internal;
     }
+    template <class T,class THandle>
+    T* doExtract(THandle o)
+    {
+      //Extract any of the handles (relying on the fact that they all wrap
+      //something derived from RCBase). In debug builds we can detect errors in
+      //user-code where the wrong kind of handle is provided to the function.
+#ifndef NDEBUG
+      if ( !o.internal || !dynamic_cast<T*>(reinterpret_cast<RCBase*>(o.internal)) )
+        return nullptr;
+#endif
+      return reinterpret_cast<T*>(o.internal);
+    }
     Scatter * extract_scatter(ncrystal_scatter_t o) {
-      nc_assert(o.internal);
-      return reinterpret_cast<Scatter*>(o.internal);
+      return doExtract<Scatter,ncrystal_scatter_t>(o);
     }
     Process * extract_process(ncrystal_process_t o) {
-      nc_assert(o.internal);
-      return reinterpret_cast<Process*>(o.internal);
+      return doExtract<Process,ncrystal_process_t>(o);
     }
     Info * extract_info(ncrystal_info_t o) {
-      nc_assert(o.internal);
-      return reinterpret_cast<Info*>(o.internal);
+      return doExtract<Info,ncrystal_info_t>(o);
     }
     RCBase * extract_rcbase(void* o) {
-      nc_assert(internal(o));
+      nc_assert(o!=nullptr);
       return reinterpret_cast<RCBase*>(internal(o));
+    }
+    AtomWrapper * extract_atomwrapper(ncrystal_atomdata_t o) {
+      return doExtract<AtomWrapper,ncrystal_atomdata_t>(o);
     }
   }
 }
@@ -222,18 +266,6 @@ void ncrystal_unref(void* o)
   } NCCATCH;
 }
 
-void ncrystal_unrefnodelete(void* o)
-{
-  if (!ncrystal_valid(o)) {
-    ncc::setError("ncrystal_unrefnodelete called with invalid object");
-    return;
-  }
-  try {
-    NC::RCBase* rcb = ncc::extract_rcbase(o);
-    rcb->unrefNoDelete();
-  } NCCATCH;
-}
-
 void ncrystal_invalidate(void* o)
 {
   if (!ncrystal_valid(o))
@@ -317,19 +349,6 @@ double ncrystal_info_getxsectfree( ncrystal_info_t ci_t )
   try {
     NC::Info * ci = ncc::extract_info(ci_t);
     return ci->hasXSectFree() ? ci->getXSectFree() : -1;
-  } NCCATCH;
-  return -1;
-}
-
-double ncrystal_info_getglobaldebyetemp( ncrystal_info_t ci_t )
-{
-  if (!ncrystal_valid(&ci_t)) {
-    ncc::setError("ncrystal_info_getglobaldebyetemp called with invalid info object");
-    return -1;
-  }
-  try {
-    NC::Info * ci = ncc::extract_info(ci_t);
-    return ci->hasGlobalDebyeTemperature() ? ci->getGlobalDebyeTemperature() : -1;
   } NCCATCH;
   return -1;
 }
@@ -438,7 +457,7 @@ unsigned ncrystal_info_ndyninfo( ncrystal_info_t ci_t )
 void ncrystal_dyninfo_base( ncrystal_info_t ci_t,
                             unsigned idyninfo,
                             double* fraction,
-                            const char** elementname,
+                            unsigned* atomdataindex,
                             double* temperature,
                             unsigned* ditypeid )
 {
@@ -451,7 +470,7 @@ void ncrystal_dyninfo_base( ncrystal_info_t ci_t,
     auto& di = ci->getDynamicInfoList().at(idyninfo);
     *fraction = di->fraction();
     *temperature = di->temperature();
-    *elementname = di->elementName().c_str();
+    *atomdataindex = di->atom().index.value;
     if (dynamic_cast<const NC::DI_Sterile*>(di.get()))
       *ditypeid = 0;
     else if (dynamic_cast<const NC::DI_FreeGas*>(di.get()))
@@ -680,37 +699,13 @@ void ncrystal_setbuiltinrandgen()
 
 double ncrystal_wl2ekin( double wl )
 {
-  return NC::wl2ekin(wl);//doesnt throw
+  return NC::wl2ekin(wl);//doesn't throw
 }
 
 double ncrystal_ekin2wl( double ekin )
 {
-  return NC::ekin2wl(ekin);//doesnt throw
+  return NC::ekin2wl(ekin);//doesn't throw
 }
-
-void ncrystal_natelemdata( unsigned z, const char ** name,
-                           double* mass_amu, double* sigma_inc,
-                           double* sigma_coh, double* sigma_abs )
-{
-  try {
-    auto db = NC::NeutronSCL::instance();
-    const std::string& name_str = db->getAtomName(z);
-    *name = name_str.c_str();
-    if ( name_str.empty() ) {
-      *mass_amu = 0.0;
-      *sigma_inc = 0.0;
-      *sigma_coh = 0.0;
-      *sigma_abs = 0.0;
-    } else {
-      *mass_amu  = db->getAtomicMass(name_str);
-      *sigma_inc = db->getIncoherentXS(name_str);
-      *sigma_coh = db->getCoherentXS(name_str);
-      *sigma_abs = db->getCaptureXS(name_str);
-    }
-  } NCCATCH;
-}
-
-
 
 int ncrystal_isnonoriented(ncrystal_process_t o)
 {
@@ -795,6 +790,33 @@ void ncrystal_genscatter_nonoriented_many( ncrystal_scatter_t o,
     }
   } NCCATCH;
 }
+
+void ncrystal_genscatter_many( ncrystal_scatter_t o,
+                               double ekin,
+                               const double (*indir)[3],
+                               unsigned long repeat,
+                               double * results_dirx,
+                               double * results_diry,
+                               double * results_dirz,
+                               double * results_dekin )
+{
+  NC::Scatter * scatter = ncc::extract_scatter(o);
+  if (!scatter) {
+    ncc::setError("ncrystal_genscatter_many called with invalid object");
+    return;
+  }
+  try {
+    double outdir[3];
+    while (repeat--) {
+      scatter->generateScattering(ekin,*indir,outdir,*results_dekin++);
+      *results_dirx++ = outdir[0];
+      *results_diry++ = outdir[1];
+      *results_dirz++ = outdir[2];
+    }
+  } NCCATCH;
+}
+
+
 
 void ncrystal_crosssection_nonoriented_many( ncrystal_process_t o,
                                              const double * ekin,
@@ -957,4 +979,394 @@ int ncrystal_version()
 const char * ncrystal_version_str()
 {
   return NCRYSTAL_VERSION_STR;
+}
+
+NCRYSTAL_API unsigned ncrystal_info_natominfo( ncrystal_info_t ci_t )
+{
+  if (!ncrystal_valid(&ci_t)) {
+    ncc::setError("ncrystal_info_natominfo called with invalid info object");
+    return 0;
+  }
+  try {
+    NC::Info * ci = ncc::extract_info(ci_t);
+    if (!ci->hasAtomInfo())
+      return 0;
+    return static_cast<unsigned>(std::distance(ci->atomInfoBegin(),ci->atomInfoEnd()));
+  } NCCATCH;
+  return 0;
+}
+
+NCRYSTAL_API int ncrystal_info_hasatompos( ncrystal_info_t ci_t )
+{
+  if (!ncrystal_valid(&ci_t)) {
+    ncc::setError("ncrystal_info_hasatompos called with invalid info object");
+    return -1;
+  }
+  try {
+    NC::Info * ci = ncc::extract_info(ci_t);
+    return ci->hasAtomPositions() ? 1 : 0;
+  } NCCATCH;
+  return 0;
+}
+
+NCRYSTAL_API int ncrystal_info_hasatommsd( ncrystal_info_t ci_t )
+{
+  if (!ncrystal_valid(&ci_t)) {
+    ncc::setError("ncrystal_info_hasatommsd called with invalid info object");
+    return -1;
+  }
+  try {
+    NC::Info * ci = ncc::extract_info(ci_t);
+    return ci->hasAtomMSD() ? 1 : 0;
+  } NCCATCH;
+  return 0;
+}
+
+NCRYSTAL_API void ncrystal_info_getatominfo( ncrystal_info_t ci_t, unsigned iatom,
+                                             unsigned* atomdataindex,
+                                             unsigned* number_per_unit_cell,
+                                             double* debye_temp, double* msd )
+{
+  if (!ncrystal_valid(&ci_t)) {
+    ncc::setError("ncrystal_info_getatominfo called with invalid info object");
+  }
+  try {
+    NC::Info * ci = ncc::extract_info(ci_t);
+    if (iatom >= std::distance(ci->atomInfoBegin(),ci->atomInfoEnd()))
+      NCRYSTAL_THROW(BadInput,"ncrystal_info_getatominfo iatom is out of bounds");
+    const NC::AtomInfo& ai = *std::next(ci->atomInfoBegin(),iatom);
+    *atomdataindex = ai.atom.index.value;
+    *number_per_unit_cell = ai.number_per_unit_cell;
+    *debye_temp = ai.debye_temp;
+    if ( *debye_temp == 0.0 && ci->hasGlobalDebyeTemperature() )
+      *debye_temp = ci->getGlobalDebyeTemperature();//convenience - not yet done in C++ [todo]
+    *msd = ai.mean_square_displacement;
+  } NCCATCH;
+}
+
+NCRYSTAL_API void ncrystal_info_getatompos( ncrystal_info_t ci_t,
+                                            unsigned iatom, unsigned ipos,
+                                            double* x, double* y, double* z )
+{
+  if (!ncrystal_valid(&ci_t)) {
+    ncc::setError("ncrystal_info_getatompos called with invalid info object");
+    *x = *y = *z = -999.0;
+    return;
+  }
+  try {
+    NC::Info * ci = ncc::extract_info(ci_t);
+    if (iatom >= std::distance(ci->atomInfoBegin(),ci->atomInfoEnd()))
+      NCRYSTAL_THROW(BadInput,"ncrystal_info_getatominfo iatom is out of bounds");
+    const NC::AtomInfo& ai = *std::next(ci->atomInfoBegin(),iatom);
+    if (ai.positions.empty())
+      NCRYSTAL_THROW(BadInput,"ncrystal_info_getatompos called but positions not available");
+    if ( ! (ipos<ai.positions.size()) )
+      NCRYSTAL_THROW(BadInput,"ncrystal_info_getatominfo ipos is out of bounds");
+    const auto& pos = ai.positions[ipos];
+    *x = pos.x;
+    *y = pos.y;
+    *z = pos.z;
+    return;
+  } NCCATCH;
+  *x = *y = *z = -999.0;
+}
+
+NCRYSTAL_API int ncrystal_info_hasanydebyetemp( ncrystal_info_t ci_t )
+{
+  if (!ncrystal_valid(&ci_t)) {
+    ncc::setError("ncrystal_info_hasanydebyetemp called with invalid info object");
+    return -1;
+  }
+  try {
+    NC::Info * ci = ncc::extract_info(ci_t);
+    return ci->hasAnyDebyeTemperature() ? 1 : 0;
+  } NCCATCH;
+  return -1;
+}
+
+NCRYSTAL_API double ncrystal_info_getdebyetempbyelement( ncrystal_info_t ci_t,
+                                                         unsigned atomdataindex )
+{
+  if (!ncrystal_valid(&ci_t)) {
+    ncc::setError("ncrystal_info_getdebyetempbyelemname called with invalid info object");
+    return -1;
+  }
+  try {
+    NC::Info * ci = ncc::extract_info(ci_t);
+    return ci->getDebyeTemperatureByElement(NC::AtomIndex{atomdataindex});
+  } NCCATCH;
+  return -1;
+}
+
+double ncrystal_info_getglobaldebyetemp( ncrystal_info_t ci_t )
+{
+  if (!ncrystal_valid(&ci_t)) {
+    ncc::setError("ncrystal_info_getglobaldebyetemp called with invalid info object");
+    return -1;
+  }
+  try {
+    NC::Info * ci = ncc::extract_info(ci_t);
+    return ci->hasGlobalDebyeTemperature() ? ci->getGlobalDebyeTemperature() : -1;
+  } NCCATCH;
+  return -1;
+}
+
+unsigned ncrystal_info_ncustomsections( ncrystal_info_t ci_t )
+{
+  if (!ncrystal_valid(&ci_t)) {
+    ncc::setError("ncrystal_info_ncustomsections called with invalid info object");
+    return 0;
+  }
+  try {
+    NC::Info * ci = ncc::extract_info(ci_t);
+    return static_cast<unsigned>( ci->getAllCustomSections().size() );
+  } NCCATCH;
+  return 0;
+}
+
+const char* ncrystal_info_customsec_name( ncrystal_info_t ci_t, unsigned isection )
+{
+  if (!ncrystal_valid(&ci_t)) {
+    ncc::setError("ncrystal_info_customsec_name called with invalid info object");
+    return "";
+  }
+  try {
+    NC::Info * ci = ncc::extract_info(ci_t);
+    const auto& cd = ci->getAllCustomSections();
+    return cd.at(isection).first.c_str();
+  } NCCATCH;
+  return "";
+}
+
+unsigned ncrystal_info_customsec_nlines( ncrystal_info_t ci_t, unsigned isection )
+{
+  if (!ncrystal_valid(&ci_t)) {
+    ncc::setError("ncrystal_info_customsec_nlines called with invalid info object");
+    return 0;
+  }
+  try {
+    NC::Info * ci = ncc::extract_info(ci_t);
+    const auto& cd = ci->getAllCustomSections();
+    return static_cast<unsigned>( cd.at(isection).second.size() );
+  } NCCATCH;
+  return 0;
+}
+
+unsigned ncrystal_info_customline_nparts( ncrystal_info_t ci_t, unsigned isection, unsigned iline )
+{
+  if (!ncrystal_valid(&ci_t)) {
+    ncc::setError("ncrystal_info_customline_nparts called with invalid info object");
+    return 0;
+  }
+  try {
+    NC::Info * ci = ncc::extract_info(ci_t);
+    const auto& cd = ci->getAllCustomSections();
+    return static_cast<unsigned>( cd.at(isection).second.at(iline).size() );
+  } NCCATCH;
+  return 0;
+}
+
+const char* ncrystal_info_customline_getpart( ncrystal_info_t ci_t, unsigned isection, unsigned iline, unsigned ipart )
+{
+  if (!ncrystal_valid(&ci_t)) {
+    ncc::setError("ncrystal_info_customline_getpart called with invalid info object");
+    return "";
+  }
+  try {
+    NC::Info * ci = ncc::extract_info(ci_t);
+    const auto& cd = ci->getAllCustomSections();
+    return cd.at(isection).second.at(iline).at(ipart).c_str();
+  } NCCATCH;
+  return "";
+}
+
+void ncrystal_register_in_mem_file_data(const char* virtual_filename, const char* cdata)
+{
+  try {
+    std::string name(virtual_filename);
+    NC::registerInMemoryFileData(name,std::string(cdata));
+  } NCCATCH;
+}
+
+
+ncrystal_atomdata_t ncrystal_create_atomdata( ncrystal_info_t ci_t,
+                                              unsigned atomdataindex )
+{
+  ncrystal_atomdata_t o;
+  o.internal = nullptr;
+  if (!ncrystal_valid(&ci_t)) {
+    ncc::setError("ncrystal_create_atomdata called with invalid info object");
+    return o;
+  }
+  try {
+    NC::Info * ci = ncc::extract_info(ci_t);
+    NC::RCHolder<ncc::AtomWrapper> wrapper_holder(new ncc::AtomWrapper);
+    auto& wrapper = *wrapper_holder.obj();
+    wrapper.atomDataSP = ci->atomDataSP(NC::AtomIndex{atomdataindex});
+    nc_assert(!!wrapper.atomDataSP);
+    auto dlbl = ci->displayLabel(NC::AtomIndex{atomdataindex});
+    auto descr = wrapper.atomDataSP->description(false);
+    wrapper.displayLabel_ptr = std::make_unique<std::string>(dlbl);
+    if ( dlbl!=descr )
+      wrapper.description_ptr = std::make_unique<std::string>(descr);
+    nc_assert(wrapper.displayLabel()==dlbl);
+    nc_assert(wrapper.description()==descr);
+    //return with ref count of 1:
+    wrapper.ref();
+    o.internal = (void*)wrapper_holder.obj();
+  } NCCATCH;
+  return o;
+}
+
+void ncrystal_atomdata_getfields( ncrystal_atomdata_t o,
+                                  const char** displaylabel,
+                                  const char** description,
+                                  double* mass, double *incxs,
+                                  double* cohsl_fm, double* absxs,
+                                  unsigned* ncomponents,
+                                  unsigned* zval, unsigned* aval )
+{
+  ncc::AtomWrapper * atomwrapper = ncc::extract_atomwrapper(o);
+  if (!atomwrapper) {
+    ncc::setError("ncrystal_atomdata_getfields called with invalid object");
+    *displaylabel = *description = nullptr;
+    *mass = *incxs = *cohsl_fm = *absxs = 0.0;
+    *ncomponents = *zval = *aval = 0;
+    return;
+  }
+  try {
+    *displaylabel = atomwrapper->displayLabel().c_str();
+    *description = atomwrapper->description().c_str();
+    nc_assert(!!atomwrapper->atomDataSP);
+    const NC::AtomData& data = *atomwrapper->atomDataSP;
+    *mass = data.averageMassAMU();
+    *cohsl_fm = data.coherentScatLenFM();
+    *incxs = data.incoherentXS().val;
+    *absxs = data.captureXS();
+    *zval = data.isElement() ? data.Z() : 0;
+    *aval = data.isSingleIsotope() ? data.A() : 0;
+    *ncomponents = data.nComponents();
+  } NCCATCH;
+}
+
+ncrystal_atomdata_t ncrystal_create_atomdata_subcomp( ncrystal_atomdata_t ad_t,
+                                                      unsigned icomponent,
+                                                      double* fraction )
+{
+  ncrystal_atomdata_t o;
+  o.internal = nullptr;
+  *fraction = -1.0;
+  ncc::AtomWrapper * atomwrapper_parent = ncc::extract_atomwrapper(ad_t);
+  if (!atomwrapper_parent) {
+    ncc::setError("ncrystal_create_atomdata_subcomp called with invalid object");
+    return o;
+  }
+  try {
+    nc_assert(!!atomwrapper_parent->atomDataSP);
+    const auto& comp = atomwrapper_parent->atomDataSP->getComponent(icomponent);
+    NC::RCHolder<ncc::AtomWrapper> wrapper_holder(new ncc::AtomWrapper);
+    auto& wrapper = *wrapper_holder.obj();
+    wrapper.atomDataSP = comp.data;
+    nc_assert(!!wrapper.atomDataSP);
+    auto descr = wrapper.atomDataSP->description(false);
+    wrapper.description_ptr = std::make_unique<std::string>(descr);
+    nc_assert(wrapper.displayLabel().empty());
+    nc_assert(wrapper.description()==descr);
+    //return with ref count of 1:
+    wrapper.ref();
+    o.internal = (void*)wrapper_holder.obj();
+    *fraction = comp.fraction;
+  } NCCATCH;
+  return o;
+}
+
+unsigned ncrystal_info_ncomponents( ncrystal_info_t ci_t )
+{
+  //0 means !hasComposition()
+  if (!ncrystal_valid(&ci_t)) {
+    ncc::setError("ncrystal_info_ncomponents called with invalid info object");
+    return 0;
+  }
+  try {
+    NC::Info * ci = ncc::extract_info(ci_t);
+    if (!ci->hasComposition())
+      return 0;
+    auto n = ci->getComposition().size();
+    nc_assert( n>0 && n < std::numeric_limits<unsigned>::max() );
+    return static_cast<unsigned>(n);
+  } NCCATCH;
+  return 0;
+}
+
+void ncrystal_info_getcomponent( ncrystal_info_t ci_t, unsigned icomponent,
+                                 unsigned* atomdataindex, double* fraction )
+{
+  *atomdataindex = 999999;
+  *fraction = -1.0;
+  if (!ncrystal_valid(&ci_t)) {
+    ncc::setError("ncrystal_info_getcomponent called with invalid info object");
+    return;
+  }
+  try {
+    NC::Info * ci = ncc::extract_info(ci_t);
+    auto n = ci->hasComposition() ? ci->getComposition().size() : 0;
+    if ( ! ( icomponent<n) )
+      NCRYSTAL_THROW(BadInput,"Requested component index is out of bounds");
+    const auto& comp = ci->getComposition().at(icomponent);
+    *atomdataindex = comp.atom.index.value;
+    *fraction = comp.fraction;
+  } NCCATCH;
+}
+
+ncrystal_atomdata_t ncrystal_create_atomdata_fromdb( unsigned z, unsigned a )
+{
+  ncrystal_atomdata_t o;
+  o.internal = nullptr;
+  try {
+    NC::RCHolder<ncc::AtomWrapper> wrapper_holder(new ncc::AtomWrapper);
+    auto& wrapper = *wrapper_holder.obj();
+    wrapper.atomDataSP = NC::AtomDB::getIsotopeOrNatElem(z,a);
+    if (!wrapper.atomDataSP)
+      return o;//return invalid.
+    auto descr = wrapper.atomDataSP->description(false);
+    wrapper.description_ptr = std::make_unique<std::string>(descr);
+    nc_assert(wrapper.displayLabel().empty());
+    nc_assert(wrapper.description()==descr);
+    //return with ref count of 1:
+    wrapper.ref();
+    o.internal = (void*)wrapper_holder.obj();
+  } NCCATCH;
+  return o;
+}
+
+ncrystal_atomdata_t ncrystal_create_atomdata_fromdbstr( const char* name )
+{
+  unsigned z(0),a(0);
+  try {
+    nc_assert(name);
+    NC::AtomSymbol symb(name);
+    if (symb.isElement()||symb.isIsotope()) {
+      z = symb.Z();
+      a = symb.A();
+    }
+  } NCCATCH;
+  if (z)
+    return ncrystal_create_atomdata_fromdb( z,a );
+  return ncrystal_atomdata_t{nullptr};
+}
+
+unsigned ncrystal_atomdatadb_getnentries()
+{
+  return NC::AtomDB::getAllEntriesCount();
+}
+
+void ncrystal_atomdatadb_getallentries( unsigned* zvals,
+                                        unsigned* avals )
+{
+  std::vector<std::pair<unsigned,unsigned>> all = NC::AtomDB::getAllEntries();
+  nc_assert( static_cast<unsigned>(all.size()) == ncrystal_atomdatadb_getnentries() );
+  for ( auto& e : all ) {
+    *zvals++ = e.first;
+    *avals++ = e.second;
+  }
 }

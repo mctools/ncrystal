@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCLCRefModels.hh"
-#include "NCRandUtils.hh"
+#include "NCrystal/internal/NCLCRefModels.hh"
+#include "NCrystal/internal/NCRandUtils.hh"
 
 namespace NC = NCrystal;
 
@@ -41,7 +41,7 @@ NC::LCBraggRef::~LCBraggRef()
 
 void NC::LCBraggRef::domain(double& ekin_low, double& ekin_high) const
 {
-  return m_sc.obj()->domain(ekin_low,ekin_high);
+  return m_sc->domain(ekin_low,ekin_high);
 }
 
 double NC::LCBraggRef::crossSection( double ekin, const double (&indirraw)[3] ) const
@@ -54,7 +54,7 @@ double NC::LCBraggRef::crossSection( double ekin, const double (&indirraw)[3] ) 
   for (unsigned i = 0; i<m_nsampleprime; ++i) {
     PhiRot phirot( i * dphi - kPi );
     Vector v = phirot.rotateVectorAroundAxis( indir, m_lcaxislab, lccross, lcdot );
-    sumxs.add(m_sc.obj()->crossSection(ekin,NC_CVECTOR_CAST(v)));
+    sumxs.add(m_sc->crossSection(ekin,NC_CVECTOR_CAST(v)));
   }
   return sumxs.sum()/m_nsampleprime;
 }
@@ -80,13 +80,9 @@ void NC::LCBraggRef::generateScattering( double ekin,
   for (unsigned i = 0; i<m_nsample; ++i) {
     double cosphi,sinphi;
     randPointOnUnitCircle( rand, cosphi, sinphi );
-#if __cplusplus >= 201103L
     pr.emplace_back(cosphi,sinphi);
-#else
-    pr.push_back(PhiRot(cosphi,sinphi));
-#endif
     Vector v = pr.back().rotateVectorAroundAxis( indir, m_lcaxislab, lccross, lcdot );
-    xs.push_back( sumxs += m_sc.obj()->crossSection(ekin,NC_CVECTOR_CAST(v)) );
+    xs.push_back( sumxs += m_sc->crossSection(ekin,NC_CVECTOR_CAST(v)) );
   }
 
   if (!sumxs) {
@@ -101,7 +97,7 @@ void NC::LCBraggRef::generateScattering( double ekin,
   //Scatter!
   Vector v = phirot.rotateVectorAroundAxis( indir, m_lcaxislab, lccross, lcdot );
   Vector outdir_rot;
-  m_sc.obj()->generateScattering(ekin, NC_CVECTOR_CAST(v),
+  m_sc->generateScattering(ekin, NC_CVECTOR_CAST(v),
                                  NC_VECTOR_CAST(outdir_rot), delta_ekin);
   asVect(outdir) = phirot.rotateVectorAroundAxis( outdir_rot, m_lcaxislab, true/*reverse*/);
 }
@@ -124,7 +120,7 @@ NC::LCBraggRndmRot::~LCBraggRndmRot()
 
 void NC::LCBraggRndmRot::domain(double& ekin_low, double& ekin_high) const
 {
-  return m_sc.obj()->domain(ekin_low,ekin_high);
+  return m_sc->domain(ekin_low,ekin_high);
 }
 
 double NC::LCBraggRndmRot::crossSection( double ekin, const double (&indirraw)[3] ) const
@@ -140,13 +136,9 @@ double NC::LCBraggRndmRot::crossSection( double ekin, const double (&indirraw)[3
   for (unsigned i = 0; i<m_nsample; ++i) {
     double cosphi, sinphi;
     randPointOnUnitCircle( rand, cosphi, sinphi );
-#if __cplusplus >= 201103L
     cache.rotations.emplace_back(cosphi, sinphi);
-#else
-    cache.rotations.push_back(PhiRot(cosphi, sinphi));
-#endif
     Vector v = cache.rotations.back().rotateVectorAroundAxis( indir, m_lcaxislab, lccross, lcdot );
-    sumxs.add(m_sc.obj()->crossSection(ekin,NC_CVECTOR_CAST(v)));
+    sumxs.add(m_sc->crossSection(ekin,NC_CVECTOR_CAST(v)));
     cache.xscommul.push_back(sumxs.sum());
   }
   return cache.xscommul.back()/m_nsample;
@@ -176,7 +168,7 @@ void NC::LCBraggRndmRot::generateScattering( double ekin,
   nc_assert(asVect(indirraw).isUnitVector());
   Vector v = phirot.rotateVectorAroundAxis( asVect(indirraw), m_lcaxislab);
   Vector outdir_rot;
-  m_sc.obj()->generateScattering(ekin, NC_CVECTOR_CAST(v),
+  m_sc->generateScattering(ekin, NC_CVECTOR_CAST(v),
                                  NC_VECTOR_CAST(outdir_rot), delta_ekin);
   asVect(outdir) = phirot.rotateVectorAroundAxis( outdir_rot, m_lcaxislab, true/*reverse*/);
 }

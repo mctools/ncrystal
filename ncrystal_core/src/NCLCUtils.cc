@@ -19,12 +19,12 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCDefs.hh"
-#include "NCLCUtils.hh"
-#include "NCPlaneProvider.hh"
-#include "NCGaussMos.hh"
-#include "NCRomberg.hh"
-#include "NCRandUtils.hh"
-#include "NCRotMatrix.hh"
+#include "NCrystal/internal/NCLCUtils.hh"
+#include "NCrystal/internal/NCPlaneProvider.hh"
+#include "NCrystal/internal/NCGaussMos.hh"
+#include "NCrystal/internal/NCRomberg.hh"
+#include "NCrystal/internal/NCRandUtils.hh"
+#include "NCrystal/internal/NCRotMatrix.hh"
 #include <algorithm>
 #include <cstring>
 #include <iostream>
@@ -39,6 +39,10 @@ namespace NC = NCrystal;
 #  include <fstream>
 #  include <sstream>
 #endif
+
+//uncomment for debugging purposes, to exclude anti-normals or include only anti-normals:
+//#define NCRYSTAL_LCUTILS_ANTINORMALS_EXCLUDED
+//#define NCRYSTAL_LCUTILS_ANTINORMALS_ONLY
 
 #define NCRYSTAL_LCUTILS_DISCRFACT (1099511627776.0) // 2^40 ~= 1.1e12
 namespace NCrystal {
@@ -173,9 +177,9 @@ NC::LCROIFinder::LCROIFinder(double wl, double c3, double cta, double sta)
 {
   //The following notation is used for angles in this class:
   //
-  //alpha1: angle between demi-normal and lcaxis [provided on the planesets]
-  //alpha2: pi/2-theta_Bragg where sin(theta_Bragg) = lambda/2*dspacing.
-  //alpha3: angle between neutron and lcaxis.
+  //alpha1: angle between demi-normal and lcaxis [provided on the planesets]  [NB: This is denoted theta_n in the paper!]
+  //alpha2: pi/2-theta_Bragg where sin(theta_Bragg) = lambda/2*dspacing.      [NB: This is denoted alpha in the paper!]
+  //alpha3: angle between neutron and lcaxis.                                 [NB: This is denoted theta_k in the paper!]
   //
   //We also shorten cos(alphai)=ci and sin(alphai)=si, e.g. c2 is cos(alpha2)
   nc_assert(m_c3<=1.0&&m_c3>=0);
@@ -186,26 +190,6 @@ NC::LCROIFinder::LCROIFinder(double wl, double c3, double cta, double sta)
 NC::LCROIFinder::~LCROIFinder()
 {
 }
-
-
-namespace NCrystal {
-  //work around absence of emplace_back until C++11:
-  void roi_emplace_back( std::vector<NC::LCROI>& roilist, double rmin, double rmax, const LCPlaneSet* ps, double normsign ) {
-#if __cplusplus >= 201103L
-    roilist.emplace_back(rmin,rmax,ps,normsign);
-#else
-    roilist.push_back(LCROI(rmin,rmax,ps,normsign));
-#endif
-  }
-  void roi_emplace_back( std::vector<NC::LCROI>& roilist, const LCPlaneSet* ps, double normsign ) {
-#if __cplusplus >= 201103L
-    roilist.emplace_back(ps,normsign);
-#else
-    roilist.push_back(LCROI(ps,normsign));
-#endif
-  }
-}
-
 
 void NC::LCROIFinder::findROIs(const LCPlaneSet * plane,std::vector<NC::LCROI>& roilist)
 {
@@ -279,18 +263,18 @@ void NC::LCROIFinder::findROIs(const LCPlaneSet * plane,std::vector<NC::LCROI>& 
   //Time to add ROI's. First handle the two degenerate cases:
   if (plane->isOnAxis()) {
     //normals are parallel to lcaxis, add special on-axis ROI(s):
-    roi_emplace_back(roilist,plane,1.0/*normal*/);
+    roilist.emplace_back(plane,1.0/*normal*/);
     if (antinormal_contributes)
-      roi_emplace_back(roilist,plane,-1.0/*anti-normal*/);
+      roilist.emplace_back(plane,-1.0/*anti-normal*/);
     return;
   }
 
   if (ncabs(m_s3)<1e-10) {
     //Neutron is aligned with lcaxis, all crystallite rotations give the same
     //result. Add special ROI(s) indicating this.
-    roi_emplace_back(roilist,plane,1.0/*normal*/);
+    roilist.emplace_back(plane,1.0/*normal*/);
     if (antinormal_contributes)
-      roi_emplace_back(roilist,plane,-1.0/*anti-normal*/);
+      roilist.emplace_back(plane,-1.0/*anti-normal*/);
     return;
   }
 
@@ -306,25 +290,25 @@ void NC::LCROIFinder::findROIs(const LCPlaneSet * plane,std::vector<NC::LCROI>& 
 
   const double c1 = plane->cosalpha;
   const double s1 = plane->sinalpha;
-  const double a = c1 * m_c3;//cosalpha*normsign*m_c3
+  const double a = c1 * m_c3;//cosalpha*normsign*m_c3 [NB: is this an obsolete comment?]
   const double invb = s1 * m_s3;
   nc_assert(invb>0.0);//s1~0,m_s3~=0 degenerate cases handled above
   const double b = 1.0 / invb;
   double mab = -a*b;
   double c2lowb = c2low*b;
   double c2highb = c2high*b;
-  //TODO for NC2: Can in principle avoid expensive acos calls when cos values
-  //are +-1. But might be good to approximate acos anyway?
+  //NB: Can in principle avoid expensive acos calls when cos values are +-1. But
+  //might be good to approximate acos anyway?
   double cosphi1 = ncmax(-1.0,ncmin(1.0, mab + c2lowb ));
   double cosphi2 = ncmax(-1.0,ncmin(1.0, mab + c2highb ));;
   const double mindist = 1e-10;//do not add ROIs with too short phi-range.
   if ( ncabs(cosphi1-cosphi2) > mindist )
-    roi_emplace_back(roilist,std::acos(ncmax(cosphi1,cosphi2)),std::acos(ncmin(cosphi1,cosphi2)),plane,1.0/*normal*/);
+    roilist.emplace_back(std::acos(ncmax(cosphi1,cosphi2)),std::acos(ncmin(cosphi1,cosphi2)),plane,1.0/*normal*/);
   if (antinormal_contributes) {
     cosphi1 = ncmax(-1.0,ncmin(1.0, mab - c2lowb ));
     cosphi2 = ncmax(-1.0,ncmin(1.0, mab - c2highb ));;
     if ( ncabs(cosphi1-cosphi2) > mindist )
-      roi_emplace_back(roilist,std::acos(ncmax(cosphi1,cosphi2)),std::acos(ncmin(cosphi1,cosphi2)),plane,-1.0/*anti-normal*/);
+      roilist.emplace_back(std::acos(ncmax(cosphi1,cosphi2)),std::acos(ncmin(cosphi1,cosphi2)),plane,-1.0/*anti-normal*/);
   }
 }
 
@@ -407,6 +391,22 @@ void NC::LCHelper::forceUpdateCache( NC::LCHelper::Cache& cache, uint64_t discr_
         nc_assert(ncabs(vneutron.angle(v1)-idealangle)<m_lcstdframe.gaussMos().mosaicityTruncationAngle()*1.0001);
         nc_assert(ncabs(vneutron.angle(v2)-idealangle)<m_lcstdframe.gaussMos().mosaicityTruncationAngle()*1.0001);
       }
+    }
+#endif
+#if defined(NCRYSTAL_LCUTILS_ANTINORMALS_ONLY) || defined(NCRYSTAL_LCUTILS_ANTINORMALS_EXCLUDED)
+    {
+      decltype(cache.m_roilist) modified_roilist;
+      //    double normal_sign;//1.0 for normal(s), -1.0 for anti-normal(s).
+#  ifdef NCRYSTAL_LCUTILS_ANTINORMALS_ONLY
+      constexpr double modify_target_normsign = -1.0;
+#  else
+      constexpr double modify_target_normsign = 1.0;
+#  endif
+      for (const auto& e: cache.m_roilist) {
+        if (e.normal_sign == modify_target_normsign)
+          modified_roilist.emplace_back(e);
+      }
+      cache.m_roilist.swap(modified_roilist);
     }
 #endif
   }

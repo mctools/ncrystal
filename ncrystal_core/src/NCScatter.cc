@@ -20,7 +20,7 @@
 
 #include "NCrystal/NCScatter.hh"
 #include "NCrystal/NCDefs.hh"
-#include "NCVector.hh"
+#include "NCrystal/internal/NCVector.hh"
 
 NCrystal::Scatter::Scatter(const char * calculator_type_name)
   : Process(calculator_type_name)

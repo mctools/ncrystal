@@ -35,4 +35,4 @@ debye_temp = 410.4
 #   sigma_abs_2200 - the absorption cross sect. at 2200 m/s [barns]
 #   molar_mass     - the Molar mass [g/mol]
 #   x y z          - the Wyckoff postion of the atom inside the unit cell
-add_atom = Al 3.449 0.0082 0.231 26.9815379930592 0 0 0
+add_atom = Al 3.449 0.0082 0.231 26.981538408 0 0 0

@@ -26,51 +26,21 @@
 
 namespace NCrystal {
 
-  class NCMATParser {
-  public:
+  //Parse NCMAT data. Will throw BadInput exceptions in case of problems.
+  //
+  //It will do some rudimentary syntax checking (including presence/absence of
+  //data sections and will call NCMATData::validate), but not a full validation
+  //of data (a more complete validation is typically carried out afterwards by
+  //the NCMAT Loader code).
+  //
+  //If doFinalValidation is false, the parser won't call NCMatData::validate()
+  //before returning (although some other validations will still take place
+  //during parsing). Calls with doFinalValidation=false should only happen if
+  //the calling code intends to call NCMatData::validate() on the returned data.
 
-    //Parse .ncmat files.
+  NCRYSTAL_API NCMATData parseNCMATData( std::unique_ptr<TextInputStream>,
+                                         bool doFinalValidation = true );
 
-    //Parse input. Will throw BadInput exceptions in case of problems. It will
-    //do some rudimentary syntax checking (including presence/absence of data
-    //sections and will call NCMATData::validate), but not a full validation of
-    //data (a more complete validation is typically carried out afterwards by
-    //the NCMAT Loader code). It will always clear the input pointer
-    //(i.e. release/close the resource).
-    NCMATParser(UniquePtr<TextInputStream>& input);
-    ~NCMATParser();
-
-    //Access parsed data (this transfers the contained data to the passed
-    //object, so can only be done once):
-    void getData(NCMATData&);
-
-  private:
-
-    typedef std::vector<std::string> Parts;
-    void parseFile( TextInputStream* );
-    void parseLine( const std::string&, Parts&, unsigned linenumber ) const;
-    void validateElementName(const std::string& s, unsigned lineno) const;
-    double str2dbl_withfractions(const std::string&) const;
-
-    //Section handling:
-    typedef void (NCMATParser::*handleSectionDataFn)(const Parts&,unsigned);
-    void handleSectionData_HEAD(const Parts&,unsigned);
-    void handleSectionData_CELL(const Parts&,unsigned);
-    void handleSectionData_ATOMPOSITIONS(const Parts&,unsigned);
-    void handleSectionData_SPACEGROUP(const Parts&,unsigned);
-    void handleSectionData_DEBYETEMPERATURE(const Parts&,unsigned);
-    void handleSectionData_DYNINFO(const Parts&,unsigned);
-    void handleSectionData_DENSITY(const Parts&,unsigned);
-
-    //Collected data:
-    NCMATData m_data;
-
-    //Long vectors of data in @DYNINFO sections are kept in:
-    NCMATData::DynInfo * m_active_dyninfo;
-    VectD * m_dyninfo_active_vector_field;
-    bool m_dyninfo_active_vector_field_allownegative;
-
-  };
 }
 
 #endif

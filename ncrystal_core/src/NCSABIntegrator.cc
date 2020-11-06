@@ -18,10 +18,11 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCSABIntegrator.hh"
-#include "NCSABSamplerModels.hh"
-#include "NCSABUtils.hh"
-#include "NCFactoryUtils.hh"
+#include "NCrystal/internal/NCSABIntegrator.hh"
+#include "NCrystal/internal/NCSABSamplerModels.hh"
+#include "NCrystal/internal/NCSABUtils.hh"
+#include "NCrystal/internal/NCFactoryUtils.hh"
+#include "NCrystal/internal/NCIter.hh"
 #include <algorithm>
 #include <iostream>
 

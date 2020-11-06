@@ -172,7 +172,7 @@ namespace NCrystal {
     //
     // lcaxis......: [ vector, no fallback value ]
     //               Used to specify symmetry axis of anisotropic layered
-    //               crystals with a layout similar to pyrolythic graphite, by
+    //               crystals with a layout similar to pyrolytic graphite, by
     //               providing the axis in lattice coordinates using a format
     //               like "0,0,1" (does not need to be normalised). Specifying
     //               this parameter along with an orientation (see dir1, dir2
@@ -206,7 +206,8 @@ namespace NCrystal {
     // mosprec.....: [ double, fallback value is 1.0e-3 ]
     //               Approximate relative precision in implementation of mosaic
     //               model in single crystals. Affects both approximations used
-    //               and truncation range of Gaussian.
+    //               and truncation range of Gaussian. Values must be in the
+    //               range [1e-7,1e-1].
     //
     // lcmode......: [ int, fallback value is 0 ]
     //               Choose which modelling is used for layered crystals (has no
@@ -261,6 +262,29 @@ namespace NCrystal {
     //               spectrum on the fly based on the Debye temperature, the
     //               vdoslux level actually used will be 3 less than the one
     //               specified in this variable (but at least 0).
+    //
+    // atomdb......: [ string, fallback value is "" ]
+    //               Modify atomic definitions if supported by the info factory
+    //               (in practice this is unlikely to be supported by anything
+    //               except NCMAT data). The string must follow a syntax
+    //               identical to that used in @ATOMDB sections of NCMAT file
+    //               (cf. ncmat_doc.md), with a few exceptions explained here:
+    //               First of all it is allowed to use semicolons (':') to
+    //               divide words (in fact all semicolons will simply be
+    //               replaced with spaces during evaluation), which makes it
+    //               possible to write cfg-strings without spaces (this might
+    //               occasionally be useful, e.g. on the command line). Next,
+    //               '@' characters play the role of line separators. Finally,
+    //               when used with an NCMAT file that already includes an
+    //               internal @ATOMDB section, the effect will essentially be to
+    //               combine the two sections by appending the atomdb lines from
+    //               the cfg parameter to the lines already present in the input
+    //               data. The exception is the case where the cfg parameter
+    //               contains an initial line with the single word "nodefaults",
+    //               the effect of which will always be the same as if it was
+    //               placed on the very first line in the @ATOMDB section
+    //               (i.e. NCrystal's internal database of elements and isotopes
+    //               will be ignored).
 
     /////////////////////////////////////////////////////////////////////////////
     // Special pseudo-parameters available for usage in configuration strings
@@ -299,6 +323,7 @@ namespace NCrystal {
     void set_absnfactory( const std::string& );
     void set_lcmode( int );
     void set_vdoslux( int );
+    void set_atomdb( const std::string& );
     //
     //Special setter method, which will set all orientation parameters based on
     //an SCOrientation object:
@@ -341,6 +366,8 @@ namespace NCrystal {
     const std::string& get_absnfactory() const;
     int  get_lcmode() const;
     int  get_vdoslux() const;
+    const std::string& get_atomdb() const;
+    const std::vector<VectS>& get_atomdb_parsed() const;
 
     bool get_coh_elas() const;
     bool get_incoh_elas() const;
@@ -364,7 +391,7 @@ namespace NCrystal {
     void infofactopt_validate(const std::set<std::string>& allowed_opts) const;
 
     //Datafile (never decode extension by hand):
-    const std::string& getDataFile() const;//Resolved path to the datafile
+    const std::string& getDataFile() const;//Resolved path to the datafile [NB: This is empty unless file is directly on-disk!]
     const std::string& getDataFileAsSpecified() const;//Path to the datafile as specified in the constructor
     const std::string& getDataFileExtension() const;//Extension of datafile (actual unless overridefileext is set)
 

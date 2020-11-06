@@ -38,14 +38,7 @@ namespace NCrystal {
       nc_assert_always(canCreateInfo(cfg));
       const char * flag_bkgdlikemcstas = "mcstaslikebkgd";
       const char * flag_fixpolyatom = "fixpolyatoms";
-#if __cplusplus >= 201103L
       cfg.infofactopt_validate({flag_bkgdlikemcstas,flag_fixpolyatom});
-#else
-      std::set<std::string> allowed_infofactopts;
-      allowed_infofactopts.insert(flag_bkgdlikemcstas);
-      allowed_infofactopts.insert(flag_fixpolyatom);
-      cfg.infofactopt_validate(allowed_infofactopts);
-#endif
       return loadNXSCrystal( cfg.getDataFile().c_str(),
                              cfg.get_temp()==-1.0?293.15:cfg.get_temp(),
                              cfg.get_dcutoff(),

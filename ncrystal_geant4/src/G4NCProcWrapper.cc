@@ -58,7 +58,7 @@ G4VParticleChange* G4NCrystal::ProcWrapper::PostStepDoIt(const G4Track& trk, con
   //with the now disabled wrapped process):
   ClearNumberOfInteractionLengthLeft();
 
-  //TODO for NC2: Revisit the 5eV global threshold. Issue is perhaps tungsten
+  //TODO: Revisit the 5eV global threshold. Issue is perhaps tungsten
   //which has resonances below 5eV. If possible, auto-detect the threshold by
   //comparing G4 and NCrystal xsects around the threshold. Otherwise allow
   //per-material specifications.

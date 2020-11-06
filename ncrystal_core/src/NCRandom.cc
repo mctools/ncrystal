@@ -19,8 +19,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCRandom.hh"
-#include "NCVector.hh"
-#include "NCMath.hh"
+#include "NCrystal/internal/NCVector.hh"
+#include "NCrystal/internal/NCMath.hh"
 #include <cstdio>
 #include <algorithm>
 

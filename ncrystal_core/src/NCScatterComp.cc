@@ -20,7 +20,7 @@
 
 #include "NCrystal/NCScatterComp.hh"
 #include "NCrystal/NCDefs.hh"
-#include "NCRandUtils.hh"
+#include "NCrystal/internal/NCRandUtils.hh"
 #include <algorithm>
 
 NCrystal::ScatterComp::ScatterComp(const char * calculator_type_name)

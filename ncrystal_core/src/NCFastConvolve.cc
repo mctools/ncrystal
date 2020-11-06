@@ -19,7 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCDefs.hh"
-#include "NCFastConvolve.hh"
+#include "NCrystal/internal/NCFastConvolve.hh"
 #include <cstdlib>
 #include <algorithm>
 

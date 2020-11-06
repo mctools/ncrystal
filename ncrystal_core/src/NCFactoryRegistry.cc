@@ -20,10 +20,13 @@
 
 #include "NCrystal/NCFactoryRegistry.hh"
 #include "NCrystal/NCFactory.hh"
-#include "NCString.hh"
+#include "NCrystal/internal/NCString.hh"
 #include "NCrystal/NCDefs.hh"
 #include <iostream>
 #include <cstdlib>
+
+namespace NC = NCrystal;
+
 
 namespace NCrystal {
 
@@ -47,7 +50,7 @@ namespace NCrystal {
 
 }
 
-bool NCrystal::hasFactory(const char* factoryname)
+bool NC::hasFactory(const char* factoryname)
 {
   if (!s_factory_registry)
     return false;
@@ -61,7 +64,7 @@ bool NCrystal::hasFactory(const char* factoryname)
   return false;
 }
 
-void NCrystal::registerFactory(FactoryBase*f)
+void NC::registerFactory(NC::FactoryBase*f)
 {
   nc_assert_always(f);
   if (s_debug_factoryreg)
@@ -101,7 +104,7 @@ extern "C" void ncrystal_register_ncmat_factory();
 extern "C" void ncrystal_register_nxslaz_factories();
 #endif
 
-NCrystal::FactoryList& NCrystal::getFactories()
+NC::FactoryList& NC::getFactories()
 {
   static bool first(true);
   if (first) {
@@ -122,7 +125,7 @@ NCrystal::FactoryList& NCrystal::getFactories()
   return getRegistry()->factories;
 }
 
-void NCrystal::clearFactoryRegistry()
+void NC::clearFactoryRegistry()
 {
   if (s_debug_factoryreg)
     std::cout<<"NCrystal::registerFactory clearFactoryRegistry called - removing all factories and cleaing all Info caches"<<std::endl;
@@ -131,21 +134,40 @@ void NCrystal::clearFactoryRegistry()
   s_factory_registry = 0;
 }
 
-NCrystal::FactoryBase::~FactoryBase()
+NC::FactoryBase::~FactoryBase()
 {
 }
 
-const NCrystal::Info * NCrystal::FactoryBase::createInfo( const MatCfg& ) const
+const NC::Info * NC::FactoryBase::createInfo( const MatCfg& ) const
 {
   NCRYSTAL_THROW(LogicError,"Unsupported createInfo request");
 }
 
-const NCrystal::Scatter * NCrystal::FactoryBase::createScatter( const MatCfg& ) const
+const NC::Scatter * NC::FactoryBase::createScatter( const MatCfg& ) const
 {
   NCRYSTAL_THROW(LogicError,"Unsupported createScatter request");
 }
 
-const NCrystal::Absorption * NCrystal::FactoryBase::createAbsorption( const MatCfg& ) const
+const NC::Absorption * NC::FactoryBase::createAbsorption( const MatCfg& ) const
 {
   NCRYSTAL_THROW(LogicError,"Unsupported createAbsorption request");
+}
+
+#include "NCrystal/NCInfo.hh"
+#include "NCrystal/NCScatter.hh"
+#include "NCrystal/NCAbsorption.hh"
+
+NC::RCHolder<const NC::Info> NC::FactoryBase::globalCreateInfo( const NC::MatCfg& cfg )
+{
+  return RCHolder<const Info>(::NC::createInfo(cfg));
+}
+
+NC::RCHolder<const NC::Scatter> NC::FactoryBase::globalCreateScatter( const NC::MatCfg& cfg )
+{
+  return RCHolder<const Scatter>(::NC::createScatter(cfg));
+}
+
+NC::RCHolder<const NC::Absorption> NC::FactoryBase::globalCreateAbsorption( const NC::MatCfg& cfg )
+{
+  return RCHolder<const Absorption>(::NC::createAbsorption(cfg));
 }

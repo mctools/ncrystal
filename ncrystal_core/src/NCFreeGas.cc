@@ -18,10 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCFreeGas.hh"
-#include "NCRandUtils.hh"
-#include "NCFreeGasUtils.hh"
-#include "NCNeutronSCL.hh"
+#include "NCrystal/internal/NCFreeGas.hh"
+#include "NCrystal/internal/NCRandUtils.hh"
+#include "NCrystal/internal/NCFreeGasUtils.hh"
 
 namespace NC = NCrystal;
 
@@ -82,12 +81,10 @@ void NC::FreeGas::generateScattering( double ekin, const double (&indir)[3],
   randDirectionGivenScatterMu( rng, mu, indir, outdir );
 }
 
-NC::FreeGas::FreeGas( double temp_kelvin,
-                      const std::string& element_name )
+NC::FreeGas::FreeGas( double temp_kelvin, const AtomData& ad )
   : FreeGas( temp_kelvin,
-             NeutronSCL::instance()->getAtomicMass(element_name),
-             NeutronSCL::instance()->getFreeXS(element_name),
-             SigmaType::FREE )
+             ad.averageMassAMU(),
+             ad.scatteringXS().val,
+             SigmaType::BOUND )
 {
 }
-

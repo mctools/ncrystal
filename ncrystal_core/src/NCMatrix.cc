@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCMatrix.hh"
+#include "NCrystal/internal/NCMatrix.hh"
 #include <iostream>
 #include <algorithm>
 

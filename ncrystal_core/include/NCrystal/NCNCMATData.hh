@@ -25,7 +25,7 @@
 
 namespace NCrystal {
 
-  class NCMATData {
+  class NCRYSTAL_API NCMATData : public MoveOnly {
 
     //Data structure which holds the parsed information equivalent to what is
     //specified in an .ncmat file (typically it will be filled out by using the
@@ -43,15 +43,15 @@ namespace NCrystal {
     //sourceFullDescr in error messages, all others do).
 
   public:
-    NCMATData() { clear(); }
-    ~NCMATData();
-
+    //Validate. NB: If the aim is to support T and D as aliases for H3 and H2
+    //(it usually is), you should call unaliasElementNames() before calling
+    //validate():
     void validate() const;
-    void clear();
-    void swap(NCMATData& other);
+
 
     //Metadata
-    int version;
+    int version = 0;
+    constexpr static int latest_version = 3;
     std::string sourceDescription;
     std::string sourceType;
     std::string sourceFullDescr;
@@ -61,8 +61,8 @@ namespace NCrystal {
 
     //@CELL
     struct Cell {
-      std::array<double,3> lengths;
-      std::array<double,3> angles;//in degrees
+      std::array<double,3> lengths = {0.,0.,0.};
+      std::array<double,3> angles = {0.,0.,0.};//in degrees
     } cell;
     bool hasCell() const;
     void validateCell() const;
@@ -74,25 +74,22 @@ namespace NCrystal {
     void validateAtomPos() const;
 
     //@SPACEGROUP
-    int spacegroup;
+    int spacegroup = 0;
     bool hasSpaceGroup() const { return spacegroup>0; }
     void validateSpaceGroup() const;
 
     //@DEBYETEMPERATURE
-    double debyetemp_global;
+    double debyetemp_global = 0.0;
     std::vector<std::pair<std::string,double> > debyetemp_perelement;
     bool hasDebyeTemperature() const { return debyetemp_global || !debyetemp_perelement.empty(); }
-    void fillPerElementDebyeTempMap(std::map<std::string,double>&) const;
     void validateDebyeTemperature() const;
 
     //@DYNINFO
-    struct DynInfo {
-      DynInfo();
-      ~DynInfo();
+    struct NCRYSTAL_API DynInfo {
       enum DynInfoType { Sterile, FreeGas, VDOSDebye, VDOS, ScatKnl, Undefined };
-      DynInfoType dyninfo_type;
+      DynInfoType dyninfo_type = Undefined;
       std::string element_name;
-      double fraction;
+      double fraction = -1.0;
       //For simplicity, keep all numerical entries (except the always present
       //"fraction") as key->vector<double>, even though some keys only
       //correspond to single numbers. The validate() method will take care of
@@ -106,13 +103,39 @@ namespace NCrystal {
     bool hasDynInfo() const { return !dyninfos.empty(); }
 
     //@DENSITY
-    double density;
-    enum DensityUnit { ATOMS_PER_AA3, KG_PER_M3 } density_unit;
-    bool hasDensity() const { return density!=0; }
+    enum DensityUnit { ATOMS_PER_AA3, KG_PER_M3 } density_unit = ATOMS_PER_AA3;
+    double density = 0.0;
+    bool hasDensity() const { return density!=0.0; }
     void validateDensity() const;
 
-    //Misc helpers;
-    static bool couldBeElementName(const std::string&);
+    //@ATOMDB
+    typedef VectS AtomDBLine;
+    typedef std::vector<AtomDBLine> AtomDBLines;
+    AtomDBLines atomDBLines;
+    bool hasAtomDB() const { return !atomDBLines.empty(); }
+    void validateAtomDB() const;
+
+    //@CUSTOM_xxx section contents. Kept in order of appearance in file.
+    typedef VectS CustomLine;
+    typedef std::vector<CustomLine> CustomSectionData;
+    typedef std::string CustomSectionName;
+    std::vector<std::pair<CustomSectionName,CustomSectionData>> customSections;
+
+    //Helper for validating "element" names (throws BadInput in case of problems):
+    static void validateElementNameByVersion(const std::string& s, unsigned version );
+
+    //Call this once after filling fields (and before calling validate()!) in
+    //order to unalias all element names (D->H2, T->H3).
+    void unaliasElementNames();
+
+    //Plumbing:
+    NCMATData() = default;
+    ~NCMATData() = default;
+    NCMATData( const NCMATData& ) = delete;
+    NCMATData& operator=( const NCMATData& ) = delete;
+    NCMATData( NCMATData&& ) = default;
+    NCMATData& operator=( NCMATData&& ) = default;
+
   private:
     void validateElementName( const std::string& s ) const;
   };

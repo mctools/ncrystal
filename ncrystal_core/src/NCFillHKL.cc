@@ -18,12 +18,11 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCFillHKL.hh"
-#include "NCOrientUtils.hh"
-#include "NCRotMatrix.hh"
-#include "NCLatticeUtils.hh"
-#include "NCNeutronSCL.hh"
-#include "NCString.hh"
+#include "NCrystal/internal/NCFillHKL.hh"
+#include "NCrystal/internal/NCOrientUtils.hh"
+#include "NCrystal/internal/NCRotMatrix.hh"
+#include "NCrystal/internal/NCLatticeUtils.hh"
+#include "NCrystal/internal/NCString.hh"
 #include "NCrystal/NCDefs.hh"
 #include <cstdlib>
 
@@ -48,7 +47,7 @@ namespace NCrystal {
   }
 }
 
-#if __cplusplus >= 201103L && ( defined(__clang__) || !defined(__GNUC__) || __GNUC__ >= 5 )
+#if ( defined(__clang__) || !defined(__GNUC__) || __GNUC__ >= 5 )
 //Use mempool in C++11 (but not gcc 4.x.y)
 #  define NCRYSTAL_NCMAT_USE_MEMPOOL
 #endif
@@ -60,7 +59,7 @@ namespace NCrystal {
 namespace NCrystal {
   //We use a simple expanding-only memory pool for the temporary multimap used
   //to detect hkl families. This results in better cache locality and should
-  //hopefully reduce memory fragmentation. TODO for NC2: Consider moving this pool
+  //hopefully reduce memory fragmentation. TODO: Consider moving this pool
   //infrastructure to common utilities.
   class MemPool {
   public:
@@ -122,13 +121,11 @@ namespace NCrystal {
 #endif
 
 namespace NCrystal {
+
   void fillHKL_getWhkl(VectD& out_whkl, const double ksq, const VectD & msd)
   {
+    nc_assert( msd.size() == out_whkl.size() );
     //Sears, Acta Cryst. (1997). A53, 35-45
-
-    if (out_whkl.size()!=msd.size())
-      out_whkl.resize(msd.size());//should only happen first time called
-
     double kk2 = 0.5*ksq;
     VectD::const_iterator it, itE(msd.end());
     VectD::iterator itOut(out_whkl.begin());
@@ -145,6 +142,8 @@ void NCrystal::fillHKL( NCrystal::Info &info,
   const bool env_ignorefsqcut = std::getenv("NCRYSTAL_FILLHKL_IGNOREFSQCUT");
   if (env_ignorefsqcut)
     fsquarecut = 0.0;
+  const bool no_forceunitdebyewallerfactor = !(std::getenv("NCRYSTAL_FILLHKL_FORCEUNITDEBYEWALLERFACTOR"));
+
 
   //For now we allow selection of a particular hkl value via an env var (a hacky
   //workarond required for certain validation plots - we should support this in
@@ -154,7 +153,7 @@ void NCrystal::fillHKL( NCrystal::Info &info,
   const char * selecthklcfg = std::getenv("NCRYSTAL_FILLHKL_SELECTHKL");
   if (selecthklcfg) {
     do_select = true;
-    std::vector<std::string> parts;
+    VectS parts;
     split(parts,selecthklcfg,0,',');
     nc_assert_always(parts.size()==3);
     select_h = str2int(parts.at(0));
@@ -183,9 +182,8 @@ void NCrystal::fillHKL( NCrystal::Info &info,
 
   AtomList::const_iterator it (info.atomInfoBegin()), itE(info.atomInfoEnd());
   for (;it!=itE;++it) {
-    const std::string& elem_name = NeutronSCL::instance()->getAtomName(it->atomic_number);//TODO for NC2: lookup directly with atomic_number
     msd.push_back(it->mean_square_displacement);
-    csl.push_back(NeutronSCL::instance()->getCoherentSL(elem_name));
+    csl.push_back(it->atom.data().coherentScatLen());
     std::vector<Vector> pos;
     pos.reserve(it->positions.size());
     for (size_t i = 0; i<it->positions.size();++i) {
@@ -233,6 +231,7 @@ void NCrystal::fillHKL( NCrystal::Info &info,
 #endif
 
   VectD whkl;//outside loop for reusage
+  whkl.resize(msd.size(),1.0);//init with unit factors in case of forceunitdebyewallerfactor
 
   //NB, for reasons of symmetry we ignore half of the hkl vectors (ignoring
   //h,k,l->-h,-k,-l and 000). This means, half a space, and half a plane and
@@ -254,8 +253,8 @@ void NCrystal::fillHKL( NCrystal::Info &info,
         if( dspacingsq < min_ds_sq || dspacingsq > max_ds_sq )
           continue;
 
-        fillHKL_getWhkl(whkl, ksq, msd);
-        nc_assert( msd.size() == whkl.size() );
+        if (no_forceunitdebyewallerfactor)
+          fillHKL_getWhkl(whkl, ksq, msd);
 
         //calculate |F|^2
         double real_or_imag_upper_limit(0.0);
@@ -312,7 +311,7 @@ void NCrystal::fillHKL( NCrystal::Info &info,
         //normalise waveVector so we can use it below as a demi_normal:
         waveVector *= 1.0 / std::sqrt(ksq);
 
-        const double dspacing = std::sqrt(dspacingsq);//TODO for NC2: store dspacingsquared in multimap and avoid some sqrt calls.
+        const double dspacing = std::sqrt(dspacingsq);//TODO: store dspacingsquared in multimap and avoid some sqrt calls.
         FamKeyType searchkey(keygen(FSquared,dspacing));//key for our fsq2hklidx multimap
 
         FamMap::iterator itSearchLB = fsq2hklidx.lower_bound(searchkey);
@@ -325,11 +324,7 @@ void NCrystal::fillHKL( NCrystal::Info &info,
               && ncabs(dspacing-hklinfo->dspacing) < merge_tolerance*(dspacing+hklinfo->dspacing ) )
             {
               //Compatible with existing family, simply add normals to it.
-#if __cplusplus >= 201103L
               hklinfo->demi_normals.emplace_back(waveVector.x(),waveVector.y(),waveVector.z());
-#else
-              hklinfo->demi_normals.push_back(HKLInfo::Normal(waveVector.x(),waveVector.y(),waveVector.z()));
-#endif
               if (expandhkl) {
                 nc_assert(itSearch->second<eqv_hkl_short.size());
                 eqv_hkl_short[itSearch->second].push_back(loop_h);
@@ -351,13 +346,9 @@ void NCrystal::fillHKL( NCrystal::Info &info,
           hi.l=loop_l;
           hi.fsquared = FSquared;
           hi.dspacing = dspacing;
-#if __cplusplus >= 201103L
           hi.demi_normals.emplace_back(waveVector.x(),waveVector.y(),waveVector.z());
-#else
-          hi.demi_normals.push_back(HKLInfo::Normal(waveVector.x(),waveVector.y(),waveVector.z()));
-#endif
           fsq2hklidx.insert(itSearchLB,FamMap::value_type(searchkey,hkllist.size()));
-          hkllist.push_back(hi);
+          hkllist.emplace_back(std::move(hi));
           if (expandhkl) {
             eqv_hkl_short.push_back(std::vector<short>());
             std::vector<short>& last = eqv_hkl_short.back();
@@ -380,10 +371,15 @@ void NCrystal::fillHKL( NCrystal::Info &info,
     itHKL->multiplicity=deminorm_size*2;
     if(expandhkl) {
       std::vector<short>& eh = eqv_hkl_short.at(itHKL-itHKLB);
-      itHKL->eqv_hkl = new short[deminorm_size*3];
-      std::copy(eh.begin(), eh.end(), itHKL->eqv_hkl);
+#if __cplusplus >= 201402L
+      //Our make_unique for c++11 seems to have problems with arrays
+      itHKL->eqv_hkl = std::make_unique<short[]>(deminorm_size*3);
+#else
+      itHKL->eqv_hkl = decltype(itHKL->eqv_hkl)(new short[deminorm_size*3]());
+#endif
+      std::copy(eh.begin(), eh.end(), &itHKL->eqv_hkl[0]);
     }
-    info.addHKL(*itHKL);
   }
+  info.setHKLList(std::move(hkllist));;
 
 }

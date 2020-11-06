@@ -1,3 +1,89 @@
+v2.1.0 2020-11-06
+      * Introduce the NCMAT v3 format, which supports @ATOMDB (github issue #21)
+        and @CUSTOM_ sections (github issue #42). As usual, the file
+        docs/ncmat_doc.md documents the new format in detail.
+      * With the @ATOMDB section (and the related configuration parameter named
+        atomdb, documented in NCMatCfg.hh), it is now possible to configure
+        atomic compositions in a highly flexible manner. Thus, both enriched
+        elements and impurities/dopants are now supported, and physics constants
+        such as neutron scattering lengths can be overridden from the data file
+        -- but most users will likely find plenty of materials in the internal
+        database. This internal database has now been expanded with 261 isotopes
+        in addition to the natural elements previously included (note that the
+        constants for some natural elements have received slight tweaks for
+        consistency).
+      * The @CUSTOM sections provides a way to embed custom data in NCMAT files
+        and having it end up on the Info object (accessible from
+        C/C++/Python). This is mainly intended for people working on extending
+        NCrystal with custom or experimental physics models, who need a
+        mechanism for providing the extra data.  Note that by default NCrystal
+        emits warnings when loading NCMAT files with @CUSTOM_ sections. This is
+        because files with such sections are by their very nature associated
+        with custom code development, and therefore can not be expected to
+        provide consistent physics if shared with a wider community.  It is
+        possible to silence these warnings, via the C++ API or an environment
+        variable.
+      * Support for using in-memory NCMAT data (github issue #20). This makes
+        it possible to initialise materials from dynamic string-data in
+        C++/Python/C, rather than needing on-disk files.
+      * Add script ncrystal_ncmat2cpp which can be used to convert NCMAT files
+        to C++ code which embeds the data directly in a binary, using the the
+        new feature for in-memory NCMAT data.
+      * Add CMake installation option for embedding the shipped .ncmat data
+        files into the NCrystal shared library. Enable via CMake configuration
+        flag -DEMBED_DATA=ON. The files are still accessible via their usual
+        names in NCrystal cfg strings, e.g. createScatter("Al_sg225.ncmat") will
+        still work, even if there will be no physical Al_sg225.ncmat file
+        installed.
+      * Added advanced C++ example which shows how it is possible to customize
+        NCrystal and add a new physics model. The example also use the new
+        features for in-memory files and @CUSTOM_ section in .ncmat files.
+        The example is in the file examples/ncrystal_example_customphysics.cc
+        (which compiles to the executable bin/ncrystal_example_customphysics
+        when installing via CMake).
+      * The internal database of elements and isotopes is now accessible also in
+        the C and Python interfaces. In Python, one can iterate through all
+        entries using the new module-level function named iterateAtomDB, or
+        extract specific entries using the new module-level function named
+        atomDB. The latter accepts either Z and A values, or strings such as
+        "Al", "He3", etc.
+      * The Python-API is made slightly more convenient, by equipping the
+        Process and Scatter classes with new methods named xsect and
+        genscat. These methods optionally accepts neutron wavelengths (by the wl
+        parameter), and will delegate the calls to oriented and non-oriented
+        functions depending on whether the parameter named direction was provided.
+      * Various other improvements were done for the Python interface as well:
+        AtomInfo, Compositions, and all Debye temperature methods are now
+        accessible as well, there are now functionality for efficiently
+        generating large amount of oriented scatterings, and finally all classes
+        and methods now have proper doc-strings.
+      * Various improvements were carried out in the C++ code: removed obsolete
+        __cplusplus >= 201103L precompiler checks, added more string utility
+        functions, made wl2ekin and ekin2wl constexpr, made createInfo(..)
+        multi-thread safe, added NCRYSTAL_API macro to new classes and functions
+        (including those introduced in v2.0.0). Remove custom UniquePtr class in
+        favour of std::unique_ptr from C++11. Improve RCHolder class (*,->
+        overloading, move semantics).
+      * Fix radian->degree conversion in the plot of scatter angles versus
+        wavelength provided by ncrystal_inspectfile (it was multiplying by 57
+        instead of 180/pi which is 0.5% off).
+      * Support the rare use-case of wanting HKL structure factors calculated
+        with Debye-Waller factors forced to unity (github issue #22). Setting
+        the NCRYSTAL_FILLHKL_FORCEUNITDEBYEWALLERFACTOR environment variable
+        will now result in just this.
+      * Parsing of NCMAT v1 files now more strictly adheres to the
+        specification, and does not allow comments except as full-line comments
+        before the first data section.
+      * Info dumps will now detect and display simple fractions in atomic
+        positions (e.g. "1/3" instead of "0.666667"). This only happens for
+        denominators <=64 and for exact matches at full double-precision.
+      * Internal NCrystal header files are now exposed in the internal sub-
+        directory (github issue #46) with include statements like #include
+        "NCrystal/internal/NCMath.hh" . These are meant to facilitate
+        experimental development of new features, and are not guaranteed to
+        present a stable API. They also do not in general contain NCRYSTAL_API
+        statements needed for symbol visibility in certain builds.
+
 v2.0.0 2020-08-13
       * Milestone 2.0.0 release!
       * The main feature of this release is that it finally brings proper

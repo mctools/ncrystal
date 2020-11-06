@@ -20,7 +20,6 @@
 
 #include "NCrystal/NCrystal.hh"
 #include <iostream>
-#include <cstdlib>
 
 class MyRandGen : public NCrystal::RandomBase {
 public:

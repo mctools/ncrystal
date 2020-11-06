@@ -18,9 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCDebyeMSD.hh"
-#include "NCMath.hh"
-#include "NCRomberg.hh"
+#include "NCrystal/internal/NCDebyeMSD.hh"
+#include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/internal/NCRomberg.hh"
 
 double NCrystal::debyeIsotropicMSD(double debye_temperature, double temperature, double atomic_mass)
 {
@@ -50,11 +50,7 @@ namespace NCrystal {
         double x2=x*x;
         return 1-x*0.5+x2*0.08333333333333333333333333333333-x2*x2*0.00138888888888888888888888888888888889;
       }
-#if __cplusplus >= 201103L
       return x / std::expm1(x);
-#else
-      return x / (std::exp(x)-1.0);
-#endif
     }
     virtual bool accept(unsigned lvl, double prev_estimate, double estimate,double,double) const
     {

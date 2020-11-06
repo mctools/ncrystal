@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCElIncXS.hh"
-#include "NCMath.hh"
+#include "NCrystal/internal/NCElIncXS.hh"
+#include "NCrystal/internal/NCMath.hh"
 #include <algorithm>
 
 namespace NC = NCrystal;
@@ -35,7 +35,7 @@ double NC::ElIncXS::evaluate(double ekin) const
 {
   //NB: The cross-section code here must be consistent with code in
   //evaluateMonoAtomic() and sampleMu(..)
-  const double kkk = 16 * kPiSq * ekin2wlsqinv(1.0);
+  constexpr double kkk = 16.0 * kPiSq * ekin2wlsqinv(1.0);
   double e = kkk*ekin;
   double xs = 0.0;
   std::vector<PairDD >::const_iterator it(m_elm_data.begin()), itE(m_elm_data.end());
@@ -59,19 +59,14 @@ double NC::ElIncXS::eval_1mexpmtdivt(double t)
   //evaluate at intermediate t using actual formula (in principle no need for
   //std::expm1 from C++11 for reasons of precision since t>0.01, but it seems to
   //be significantly faster):
-#if __cplusplus >= 201103L
   t = -t;
   return std::expm1(t) / t;
-#else
-  //no expm1, worst precision at t~=0.01 is 15 significant digits
-  return ( 1.0 - std::exp(-t) ) / t;
-#endif
 }
 
 double NC::ElIncXS::evaluateMonoAtomic(double ekin, double meanSqDisp, double bound_incoh_xs)
 {
   nc_assert(ekin>=0.0&&meanSqDisp>=0.0&&bound_incoh_xs>=0.0);
-  const double kkk = 16 * kPiSq * ekin2wlsqinv(1.0);
+  constexpr double kkk = 16.0 * kPiSq * ekin2wlsqinv(1.0);
   return bound_incoh_xs * eval_1mexpmtdivt(kkk * meanSqDisp * ekin);
 }
 
@@ -105,7 +100,7 @@ void NC::ElIncXS::set( const VectD& elm_msd,
 double NC::ElIncXS::sampleMuMonoAtomic( RandomBase * rng, double ekin, double meanSqDisp )
 {
   nc_assert(ekin>=0.0&&meanSqDisp>=0.0);
-  const double kkk = 8.0 * kPiSq * ekin2wlsqinv(1.0);
+  constexpr double kkk = 8.0 * kPiSq * ekin2wlsqinv(1.0);
   double twoksq = kkk * ekin;
   double a = twoksq * meanSqDisp;
   //Must sample mu in [-1,1] according to exp(a*mu). This can either happen with
@@ -134,11 +129,7 @@ double NC::ElIncXS::sampleMuMonoAtomic( RandomBase * rng, double ekin, double me
     // x(R) = log( 1 + R * ( exp(2*a)-1 ) ) / a - 1
     //
     // Which can preferably be evaluated with expm1/log1p functions.
-#if __cplusplus >= 201103L
     return ncclamp(std::log1p( rng->generate() * std::expm1(2.0*a) ) / a - 1.0,-1.0,1.0);
-#else
-    return ncclamp(std::log( rng->generate() * ( std::exp(2.0*a)-1.0 ) + 1.0 ) / a - 1.0,-1.0,1.0);
-#endif
   }
 }
 
@@ -162,7 +153,7 @@ double NC::ElIncXS::sampleMu( RandomBase * rng, double ekin )
 
   //NB: The cross-section code here must be consistent with code in
   //evaluateMonoAtomic() and evaluate(..):
-  const double kkk = 16 * kPiSq * ekin2wlsqinv(1.0);
+  constexpr double kkk = 16.0 * kPiSq * ekin2wlsqinv(1.0);
   double e = kkk*ekin;
   double xs = 0.0;
   std::vector<PairDD >::const_iterator it(m_elm_data.begin()), itE(m_elm_data.end());

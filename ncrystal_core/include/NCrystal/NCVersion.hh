@@ -22,17 +22,19 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #define NCRYSTAL_VERSION_MAJOR 2
-#define NCRYSTAL_VERSION_MINOR 0
+#define NCRYSTAL_VERSION_MINOR 1
 #define NCRYSTAL_VERSION_PATCH 0
-#define NCRYSTAL_VERSION   2000000 /* (1000000*MAJOR+1000*MINOR+PATCH)   */
-#define NCRYSTAL_VERSION_STR "2.0.0"
+#define NCRYSTAL_VERSION   2001000 /* (1000000*MAJOR+1000*MINOR+PATCH)   */
+#define NCRYSTAL_VERSION_STR "2.1.0"
+
+#include "NCrystal/ncapi.h"
 #include <stdexcept>
 
 namespace NCrystal {
 
   //Function which returns NCRYSTAL_VERSION. If it does not, it indicates symbol
   //clashes from multiple installations of NCrystal.
-  int getVersion();
+  NCRYSTAL_API int getVersion();
 
   //Call in client code to detect broken installations where there is a mismatch
   //in versions in NCrystal headers included and NCrystal library loaded. Raise

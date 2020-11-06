@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCRotMatrix.hh"
-#include "NCRandUtils.hh"
+#include "NCrystal/internal/NCRotMatrix.hh"
+#include "NCrystal/internal/NCRandUtils.hh"
 #include <iostream>
 
 NCrystal::RotMatrix::~RotMatrix()

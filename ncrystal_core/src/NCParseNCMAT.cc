@@ -20,8 +20,8 @@
 
 #include "NCrystal/NCParseNCMAT.hh"
 #include "NCrystal/NCException.hh"
-#include "NCString.hh"
-#include "NCMath.hh"
+#include "NCrystal/internal/NCString.hh"
+#include "NCrystal/internal/NCMath.hh"
 #include <iostream>
 #include <sstream>
 #if __cplusplus >= 201703L
@@ -31,6 +31,65 @@
 #endif
 namespace NC = NCrystal;
 
+namespace NCrystal {
+
+  class NCMATParser {
+  public:
+
+    //Parse .ncmat files.
+
+    //Parse input. Will throw BadInput exceptions in case of problems. It will
+    //do some rudimentary syntax checking (including presence/absence of data
+    //sections and will call NCMATData::validate), but not a full validation of
+    //data (a more complete validation is typically carried out afterwards by
+    //the NCMAT Loader code). It will always clear the input pointer
+    //(i.e. release/close the resource).
+    NCMATParser(std::unique_ptr<TextInputStream> input);
+    ~NCMATParser() = default;
+
+    NCMATData&& getData() { return std::move(m_data); }
+
+  private:
+
+    typedef VectS Parts;
+    void parseFile( TextInputStream& );
+    void parseLine( const std::string&, Parts&, unsigned linenumber ) const;
+    void validateElementName(const std::string& s, unsigned lineno) const;
+    double str2dbl_withfractions(const std::string&) const;
+
+    //Section handling:
+    typedef void (NCMATParser::*handleSectionDataFn)(const Parts&,unsigned);
+    void handleSectionData_HEAD(const Parts&,unsigned);
+    void handleSectionData_CELL(const Parts&,unsigned);
+    void handleSectionData_ATOMPOSITIONS(const Parts&,unsigned);
+    void handleSectionData_SPACEGROUP(const Parts&,unsigned);
+    void handleSectionData_DEBYETEMPERATURE(const Parts&,unsigned);
+    void handleSectionData_DYNINFO(const Parts&,unsigned);
+    void handleSectionData_DENSITY(const Parts&,unsigned);
+    void handleSectionData_ATOMDB(const Parts&,unsigned);
+    void handleSectionData_CUSTOM(const Parts&,unsigned);
+
+    //Collected data:
+    NCMATData m_data;
+
+    //Long vectors of data in @DYNINFO sections are kept in:
+    NCMATData::DynInfo * m_active_dyninfo;
+    VectD * m_dyninfo_active_vector_field;
+    bool m_dyninfo_active_vector_field_allownegative;
+  };
+
+  NCMATData parseNCMATData(std::unique_ptr<TextInputStream> input, bool doFinalValidation )
+  {
+    NCMATParser parser(std::move(input));
+    if (!doFinalValidation)
+      return parser.getData();
+    NCMATData data = parser.getData();
+    data.validate();
+    return data;
+  }
+
+}
+
 double NC::NCMATParser::str2dbl_withfractions(const std::string& ss) const
 {
 if (!contains(ss,'/'))
@@ -39,7 +98,7 @@ if (!contains(ss,'/'))
    NCRYSTAL_THROW2(BadInput,"specification with fractions not supported in"
                    " NCMAT v1 files (offending parameter is \""<<ss<<"\")");
 
- std::vector<std::string> parts;
+ VectS parts;
  split(parts,ss,0,'/');
  if (parts.size()!=2)
    NCRYSTAL_THROW2(BadInput,"multiple fractions in numbers are not supported so could not parse \""<<ss<<"\"");
@@ -55,31 +114,18 @@ if (!contains(ss,'/'))
  return a/b;
 }
 
-NC::NCMATParser::~NCMATParser()
-{
-}
-
-void NC::NCMATParser::getData(NCMATData& d)
-{
-  d.clear();
-  d.swap(m_data);
-}
-
-NC::NCMATParser::NCMATParser(UniquePtr<TextInputStream>& inputup)
+NC::NCMATParser::NCMATParser( std::unique_ptr<TextInputStream> inputup)
   : m_active_dyninfo(0),
     m_dyninfo_active_vector_field(0),
     m_dyninfo_active_vector_field_allownegative(false)
 {
-  //Extract input pointer, while ensuring that we always clear the inputup
-  //object as promised, even in case of errors:
-  UniquePtr<TextInputStream> inputup_ours(0);
-  inputup_ours.swap(inputup);
-  TextInputStream * input = inputup_ours.obj();
-  nc_assert_always(input);
+  if (inputup==nullptr)
+    NCRYSTAL_THROW2(BadInput,"NCMATParser ERROR: Invalid TextInputStream received (is nullptr)");
+  TextInputStream& input = *inputup;
 
   //Setup source description strings first, as they are also used in error messages:
-  m_data.sourceDescription = input->description();
-  m_data.sourceType = input->streamType();
+  m_data.sourceDescription = input.description();
+  m_data.sourceType = input.streamType();
   {
     std::stringstream ss;
     ss << m_data.sourceType << " \"" << m_data.sourceDescription << "\"";
@@ -88,7 +134,7 @@ NC::NCMATParser::NCMATParser(UniquePtr<TextInputStream>& inputup)
 
   //Inspect first line to ensure format is NCMAT and extract version:
   std::string line;
-  if ( !input->getLine(line) )
+  if ( !input.getLine(line) )
     NCRYSTAL_THROW2(BadInput,"Empty "<<m_data.sourceFullDescr);
 
   //First line is special, we want the file to start with "NCMAT" with no
@@ -103,8 +149,12 @@ NC::NCMATParser::NCMATParser(UniquePtr<TextInputStream>& inputup)
   if ( parts.size() == 2 ) {
     if ( parts.at(1) == "v1" ) {
       m_data.version = 1;
+      if (contains(line,'#'))
+        NCRYSTAL_THROW2(BadInput,m_data.sourceFullDescr<<" has comments in the first line, which is not allowed in the NCMAT v1 format");
     } else if ( parts.at(1) == "v2" ) {
       m_data.version = 2;
+    } else if ( parts.at(1) == "v3" ) {
+      m_data.version = 3;
     } else {
       NCRYSTAL_THROW2(BadInput,m_data.sourceFullDescr<<" is in an NCMAT format version, \""<<parts.at(1)<<"\", which is not recognised by this installation of NCrystal");
     }
@@ -115,11 +165,12 @@ NC::NCMATParser::NCMATParser(UniquePtr<TextInputStream>& inputup)
   //Initial song and dance to classify source and format is now done, so proceed to parse rest of file:
   parseFile(input);
 
-  //Basic validation of parsed data:
-  m_data.validate();
+  //Unalias element names:
+  m_data.unaliasElementNames();
+
 }
 
-void NC::NCMATParser::parseFile(TextInputStream* input)
+void NC::NCMATParser::parseFile( TextInputStream& input )
 {
   //Setup map which will be used to delegate parsing of individual sections (NB:
   //Must also update error reporting code below when adding/remove section names
@@ -134,6 +185,10 @@ void NC::NCMATParser::parseFile(TextInputStream* input)
     section2handler["DYNINFO"] = &NCMATParser::handleSectionData_DYNINFO;
     section2handler["DENSITY"] = &NCMATParser::handleSectionData_DENSITY;
   }
+  if (m_data.version>=3) {
+    section2handler["ATOMDB"] = &NCMATParser::handleSectionData_ATOMDB;
+    section2handler["CUSTOM"] = &NCMATParser::handleSectionData_CUSTOM;
+  }
 
   //Technically handle the part before the first section ("@SECTIONNAME") by the
   //same code as all other parts of the file, by putting it in a "HEAD" section:
@@ -147,9 +202,18 @@ void NC::NCMATParser::parseFile(TextInputStream* input)
   Parts parts;
   parts.reserve(16);
 
-  while ( input->getLine(line) ) {
+  bool sawAnySection = false;
+  while ( input.getLine(line) ) {
 
     parseLine(line,parts,++lineno);
+
+    if (m_data.version==1 && contains(line,'#')) {
+      if (sawAnySection||(!parts.empty()&&parts.at(0)[0]=='@')||line.at(0)!='#')
+        NCRYSTAL_THROW2(BadInput,m_data.sourceFullDescr<<" has comments in a place which "
+                        "is not allowed in the NCMAT v1 format"" (must only appear "
+                        "before the first data section and with the # marker at the"
+                        " beginning of the line).");
+    }
 
     //ignore lines which are empty or only whitespace and comments:
     if (parts.empty())
@@ -157,6 +221,7 @@ void NC::NCMATParser::parseFile(TextInputStream* input)
 
     if (parts.at(0)[0]=='@') {
       //New section marker! First check that the syntax of this line is valid:
+      sawAnySection = true;
       if (parts.size()>1)
         NCRYSTAL_THROW2(BadInput,m_data.sourceFullDescr<<" should not have non-comment entries after a section marker"
                         " (found \""<<parts.at(1)<<"\" after \""<<parts.at(0)<<"\" in line "<<lineno<<")");
@@ -168,6 +233,8 @@ void NC::NCMATParser::parseFile(TextInputStream* input)
       if (new_section.empty())
         NCRYSTAL_THROW2(BadInput,m_data.sourceFullDescr<<" has missing section name after '@' symbol in line "<<lineno<<")");
 
+      const bool is_custom_section = startswith(new_section,"CUSTOM_");
+
       //Close current section by sending it an empty parts list (and previous line number where that section ended).
       parts.clear();
 #if __cplusplus >= 201703L
@@ -176,16 +243,19 @@ void NC::NCMATParser::parseFile(TextInputStream* input)
       NCPARSENCMAT_CALL_MEMBER_FN(this,itSection->second)(parts,lineno);
 #endif
 
-      //Guard against repeating an existing section (unless DYNINFO, where it is allowed)
-      if ( new_section!="DYNINFO" && sections_seen.count(new_section) )
-        NCRYSTAL_THROW2(BadInput,m_data.sourceFullDescr<<" multiple @"<<new_section<<" sections are not allowed (line "<<lineno<<")");
-      sections_seen.insert(new_section);
+      //Guard against repeating an existing section (unless DYNINFO or custom sections, where it is allowed)
+      bool multiple_sections_allowed = ( is_custom_section || new_section=="DYNINFO" );
+      if ( !multiple_sections_allowed ) {
+        if (sections_seen.count(new_section) )
+          NCRYSTAL_THROW2(BadInput,m_data.sourceFullDescr<<" multiple @"<<new_section<<" sections are not allowed (line "<<lineno<<")");
+        sections_seen.insert(new_section);
+      }
 
       //Try to switch to new section
       std::swap(current_section,new_section);
-      itSection = section2handler.find(current_section);
+      itSection = section2handler.find( is_custom_section ? "CUSTOM"_s : current_section );
 
-      nc_assert(m_data.version==1||m_data.version==2);
+      nc_assert( m_data.version>=1 && m_data.version <= 3 );
       if ( itSection == section2handler.end() ) {
         //Unsupported section name. For better error messages, first check if it
         //is due to file version:
@@ -193,9 +263,21 @@ void NC::NCMATParser::parseFile(TextInputStream* input)
           NCRYSTAL_THROW2(BadInput,m_data.sourceFullDescr<<" has @"<<current_section<<" section which is not supported in the indicated"
                           " NCMAT format version, \"NCMAT v1\". It is only available starting with \"NCMAT v2\".");
         }
+        if ( m_data.version<3 && (is_custom_section||current_section=="ATOMDB") ) {
+          NCRYSTAL_THROW2(BadInput,m_data.sourceFullDescr<<" has @"<<current_section<<" section which is not supported in the indicated"
+                          " NCMAT format version, \"NCMAT v"<<m_data.version<<"\". It is only available starting with \"NCMAT v3\".");
+        }
+
         NCRYSTAL_THROW2(BadInput,m_data.sourceFullDescr<<" has @"<<current_section<<" section which is not a supported section name.");
       }
-      //Succesfully switched to the new section, proceed to next line:
+      //Succesfully switched to the new section, proceed to next line (after
+      //adding entry in customSections in case of a custom section):
+      if ( is_custom_section ) {
+        if ( current_section.size() <= 7 )
+          NCRYSTAL_THROW2(BadInput,m_data.sourceFullDescr<<" has @"<<current_section
+                          <<" section (needs additional characters after \"CUSTOM_\").");
+        m_data.customSections.emplace_back(current_section.substr(7),NCMATData::CustomSectionData());
+      }
       continue;
     }
 
@@ -260,11 +342,7 @@ void NC::NCMATParser::parseLine( const std::string& line,
       //A whitespace character (we don't support silly stuff like vertical tabs,
       //and we kind of only grudgingly and silent accept tabs as well)
       if (partbegin) {
-#if __cplusplus >= 201103L
         parts.emplace_back(partbegin,c-partbegin);
-#else
-        parts.push_back(std::string(partbegin,c-partbegin));
-#endif
         partbegin=0;
       }
       continue;
@@ -320,11 +398,7 @@ void NC::NCMATParser::parseLine( const std::string& line,
   }
   if (partbegin) {
     //still need to add last part
-#if __cplusplus >= 201103L
     parts.emplace_back(partbegin,c-partbegin);
-#else
-    parts.push_back(std::string(partbegin,c-partbegin));
-#endif
     partbegin=0;
   }
 
@@ -392,13 +466,11 @@ void NC::NCMATParser::handleSectionData_CELL(const Parts& parts, unsigned lineno
 
 void NC::NCMATParser::validateElementName(const std::string& s, unsigned lineno) const
 {
-  if (m_data.version==1) {
-    if (s=="D")
-      NCRYSTAL_THROW2(BadInput,m_data.sourceFullDescr<<" element name \""<<s<<"\" in line "
-                      <<lineno<<" is not supported in NCMAT v1 files (requires NCMAT v2 or later)");
+  try{
+    NCMATData::validateElementNameByVersion(s,m_data.version);
+  } catch (Error::BadInput&e) {
+    NCRYSTAL_THROW2(BadInput,m_data.sourceFullDescr<<" "<<e.what()<<" [in line "<<lineno<<"]");
   }
-  if (!NCMATData::couldBeElementName(s))
-    NCRYSTAL_THROW2(BadInput,m_data.sourceFullDescr<<" invalid element name \""<<s<<"\" in line "<<lineno<<" (must be capitalised like Si, O, He, C, ...)");
 }
 
 void NC::NCMATParser::handleSectionData_ATOMPOSITIONS(const Parts& parts, unsigned lineno)
@@ -424,11 +496,7 @@ void NC::NCMATParser::handleSectionData_ATOMPOSITIONS(const Parts& parts, unsign
       NCRYSTAL_THROW2(BadInput,m_data.sourceFullDescr<<" problem while decoding position parameter #"<<i+1<<" for element \""<<parts.at(0)<<"\" in line "<<lineno<<" : "<<e.what());
     }
   }
-#if __cplusplus >= 201103L
   m_data.atompos.emplace_back(parts.at(0),v);
-#else
-  m_data.atompos.push_back(std::make_pair(parts.at(0),v));
-#endif
 }
 
 void NC::NCMATParser::handleSectionData_SPACEGROUP(const Parts& parts, unsigned lineno)
@@ -486,11 +554,7 @@ void NC::NCMATParser::handleSectionData_DEBYETEMPERATURE(const Parts& parts, uns
     } catch (Error::BadInput&e) {
       NCRYSTAL_THROW2(BadInput,m_data.sourceFullDescr<<" problem while decoding temperature for element \""<<parts.at(0)<<"\" in line "<<lineno<<" : "<<e.what());
     }
-#if __cplusplus >= 201103L
     m_data.debyetemp_perelement.emplace_back(parts.at(0),dt);
-#else
-    m_data.debyetemp_perelement.push_back(std::make_pair(parts.at(0),dt));
-#endif
   } else {
     NCRYSTAL_THROW2(BadInput,m_data.sourceFullDescr<<" wrong number of data entries in line "<<lineno);
   }
@@ -689,4 +753,21 @@ void NC::NCMATParser::handleSectionData_DENSITY(const Parts& parts, unsigned lin
     NCRYSTAL_THROW2(BadInput,m_data.sourceFullDescr<<" invalid density unit in line "<<lineno);
   }
 
+}
+
+void NC::NCMATParser::handleSectionData_ATOMDB(const Parts& parts, unsigned lineno)
+{
+  if (parts.empty())
+    return;//end of section, nothing to do
+  if ( parts.at(0)!="nodefaults" )
+    validateElementName(parts.at(0),lineno);
+  m_data.atomDBLines.emplace_back(parts);
+}
+
+void NC::NCMATParser::handleSectionData_CUSTOM(const Parts& parts, unsigned)
+{
+  if (parts.empty())
+    return;//end of section, nothing to do
+  nc_assert(!m_data.customSections.empty());
+  m_data.customSections.back().second.push_back(parts);
 }

@@ -19,10 +19,12 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCInfo.hh"
-#include "NCLatticeUtils.hh"
-#include "NCMath.hh"
-#include <algorithm>//for std::stable_sort
-#include <cstring>//for memset, memcpy
+#include "NCrystal/internal/NCLatticeUtils.hh"
+#include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/internal/NCString.hh"
+#include "NCrystal/internal/NCIter.hh"
+#include <algorithm>
+#include <cstring>//for memcpy
 #include <cstdlib>
 namespace NC=NCrystal;
 
@@ -37,66 +39,13 @@ NC::Info::Info()
     m_debyetemp(-1.0),
     m_lock(false)
 {
-  std::memset(&m_structinfo,0,sizeof(m_structinfo));
   m_structinfo.spacegroup = 999999;//unset
 }
 
 NC::Info::~Info() = default;
 
-NC::HKLInfo& NC::HKLInfo::operator=(NC::HKLInfo &&o)
-{
-  if (&o==this) {
-    //guard against self-move-assignment (seen on GCC4.4.7 during sort
-    //where delete[] eqv_hkl gave problems).
-    return *this;
-  }
-  dspacing = o.dspacing;
-  fsquared = o.fsquared;
-  h = o.h;
-  k = o.k;
-  l = o.l;
-  multiplicity = o.multiplicity;
-  demi_normals.clear();
-  std::swap(demi_normals,o.demi_normals);
-  delete[] eqv_hkl;
-  eqv_hkl = 0;
-  std::swap(eqv_hkl,o.eqv_hkl);
-  return *this;
-}
-
-NC::HKLInfo::HKLInfo(const NC::HKLInfo &&o)
-  : eqv_hkl(0)
-{
-  *this = o;
-}
-
-NC::HKLInfo& NC::HKLInfo::operator=(const NC::HKLInfo &o)
-{
-  if (&o==this) {
-    //guard against self-assignment (seen on GCC4.4.7 during sort
-    //where delete[] eqv_hkl gave problems).
-    return *this;
-  }
-  dspacing = o.dspacing;
-  fsquared = o.fsquared;
-  h = o.h;
-  k = o.k;
-  l = o.l;
-  multiplicity = o.multiplicity;
-  demi_normals = o.demi_normals;
-  delete[] eqv_hkl;
-  eqv_hkl = 0;
-  if (o.eqv_hkl) {
-    nc_assert(!o.demi_normals.empty());
-    size_t n = o.demi_normals.size()*3;
-    nc_assert(n);
-    eqv_hkl = new short[n];
-    std::memcpy(eqv_hkl,o.eqv_hkl,n*sizeof(short));
-  }
-  return *this;
-}
-
 namespace NCrystal {
+
   bool dhkl_compare( const NC::HKLInfo& rh, const NC::HKLInfo& lh )
   {
     if( ncabs(lh.dspacing-rh.dspacing) > 1.0e-6 )
@@ -113,11 +62,7 @@ namespace NCrystal {
   }
   bool atominfo_compare( const NC::AtomInfo& rh, const NC::AtomInfo& lh )
   {
-    if(rh.atomic_number == lh.atomic_number)
-      NCRYSTAL_THROW(LogicError,"Invalid AtomInfo: Same Z encountered more than once in list.");
-    if (rh.atomic_number != lh.atomic_number)
-      return rh.atomic_number < lh.atomic_number;
-    return rh.number_per_unit_cell < lh.number_per_unit_cell;
+    return rh.atom < lh.atom;
   }
   bool atominfo_pos_compare( const NC::AtomInfo::Pos& rh, const NC::AtomInfo::Pos& lh )
   {
@@ -161,18 +106,43 @@ namespace NCrystal {
 
 void NC::Info::objectDone()
 {
-  //TODO for NC2: Throw LogicErrors or BadInput here?
+  //TODO: Throw LogicErrors or BadInput here?
   ensureNoLock();
   m_lock=true;
 
   //avoid excess memory usage in hkl list:
   nc_assert_always(m_hkllist.empty()||hasHKLInfo());
-  if (m_hkllist.size()!=m_hkllist.capacity())
-    HKLList(m_hkllist.begin(),m_hkllist.end()).swap(m_hkllist);
+  m_hkllist.shrink_to_fit();
 
-  //sort lists:
+  //Check that no nullptr AtomDataSP were provided:
+  for (const auto& e: m_composition) {
+    if (!e.atom.atomDataSP)
+      NCRYSTAL_THROW2(BadInput,"AtomData in provided composition is a nullptr!");
+  }
+  for (const auto& e : m_atomlist) {
+    if (!e.atom.atomDataSP)
+      NCRYSTAL_THROW2(BadInput,"AtomData in provided AtomInfo is a nullptr!");
+  }
+
+  //sort lists for reproducibility:
   std::stable_sort(m_hkllist.begin(),m_hkllist.end(),dhkl_compare);
   std::stable_sort(m_atomlist.begin(),m_atomlist.end(),atominfo_compare);
+  std::stable_sort(m_composition.begin(),m_composition.end(),
+                   [](const CompositionEntry& a,const CompositionEntry& b)
+                   {
+                     nc_assert(!!a.atom.atomDataSP && !!b.atom.atomDataSP);
+                     return ( a.atom==b.atom
+                              ? a.fraction > b.fraction
+                              : a.atom < b.atom );
+                   });
+  std::stable_sort(m_dyninfolist.begin(),m_dyninfolist.end(),
+                   [](const std::unique_ptr<const DynamicInfo>& a,const std::unique_ptr<const DynamicInfo>& b)
+                   {
+                     nc_assert( !!a && !!b );
+                     return ( a->atom() == b->atom()
+                              ? a->fraction() > b->fraction()
+                              : a->atom() < b->atom() );
+                   });
 
   //check that per-element debye temp, positions and MSD's are consistently
   //specified (either all or none must have):
@@ -182,12 +152,11 @@ void NC::Info::objectDone()
 
   unsigned ntotatoms_from_atominfo(0);
 
-  std::map<std::string,double> composition_fromatompos;
+  std::map<IndexedAtomData,double> composition_map_fromatompos;
   AtomList::iterator itAtm(m_atomlist.begin()), itAtmE(m_atomlist.end());
   for (;itAtm!=itAtmE;++itAtm)
   {
-    if (itAtm->element_name.empty())
-      NCRYSTAL_THROW2(BadInput,"atominfo with Z="<<itAtm->atomic_number<<" missing name!");
+    nc_assert(itAtm->atom.atomDataSP);
 
     //Map all atom positions to interval [0,1) (e.g. 1.0 becomes 0.0, -0.3
     //becomes 0.7, etc.). However at most move 1.0:
@@ -219,16 +188,11 @@ void NC::Info::objectDone()
       NCRYSTAL_THROW(LogicError,"Inconsistency: mean_square_displacement must be >= 0.0 and not NaN");
     if ( bool(itAtm->mean_square_displacement>0) != bool(m_atomlist.front().mean_square_displacement>0) )
       NCRYSTAL_THROW(LogicError,"Inconsistency: mean_square_displacement specified for some but not all elements.");
-    if (z_seen.count(itAtm->atomic_number))
-      NCRYSTAL_THROW2(LogicError,"Inconsistency: AtomInfo for Z="<<itAtm->atomic_number<<" specified more than once");
 
-    if (composition_fromatompos.count(itAtm->element_name))
-      composition_fromatompos[itAtm->element_name] += itAtm->number_per_unit_cell;
-    else
-      composition_fromatompos[itAtm->element_name] = itAtm->number_per_unit_cell;
+    composition_map_fromatompos[itAtm->atom] += itAtm->number_per_unit_cell;
   }
 
-  for (auto& e: composition_fromatompos)
+  for (auto& e: composition_map_fromatompos)
     e.second /= ntotatoms_from_atominfo;
 
   //Ensure only one atom exists at a given position, within a tolerance. To make
@@ -331,7 +295,7 @@ void NC::Info::objectDone()
 
   if ( hasDensity() ) {
     nc_assert_always(m_density>0.0);
-    //NB: If we knew masses, we could check consistency with atominfo and number density!
+    //TODO: Now that we know the masses, we can check consistency with atominfo/composition and number density!
   }
   if ( hasNumberDensity() ) {
     nc_assert_always(m_numberdensity>0.0);
@@ -360,7 +324,7 @@ void NC::Info::objectDone()
       if ( di_vdosdebye ) {
         if ( !hasAnyDebyeTemperature() )
           NCRYSTAL_THROW(BadInput,"DI_VDOSDebye added to Info object without Debye temperatures!");
-        if ( di_vdosdebye->debyeTemperature() != getDebyeTemperatureByElementName(di_vdosdebye->elementName()) )
+        if ( di_vdosdebye->debyeTemperature() != getDebyeTemperatureByElement(di_vdosdebye->atom().index) )
           NCRYSTAL_THROW(BadInput,"Debye temperature on DI_VDOSDebye object different than the one provided on the owning Info object!");
       }
     }
@@ -369,50 +333,145 @@ void NC::Info::objectDone()
   if ( !isCrystalline() and !hasDynamicInfo() )
     NCRYSTAL_THROW(BadInput,"Non-crystalline materials must have dynamic info present.");
 
-  std::map<std::string,double> composition_fromdyninfo;
+  std::map<IndexedAtomData,double> composition_map_fromdyninfo;
   if (hasDynamicInfo()) {
     for (auto& di : getDynamicInfoList()) {
-      if (composition_fromdyninfo.count(di->elementName()))
-        NCRYSTAL_THROW2(BadInput,"Multiple dynamic info section for element "<<di->elementName());
-      composition_fromdyninfo[ di->elementName() ] = di->fraction();
+      if (composition_map_fromdyninfo.count(di->atom()))
+        NCRYSTAL_THROW2(BadInput,"Multiple dynamic info sections for \""<<di->atomData().description(false)<<"\" (AtomIndex "<<di->atom().index.value<<")");
+      composition_map_fromdyninfo[ di->atom() ] = di->fraction();
     }
   }
 
-  if (!hasComposition() && !composition_fromdyninfo.empty())
-    setComposition(std::move(composition_fromdyninfo));
-  if (!hasComposition() && !composition_fromatompos.empty())
-    setComposition(std::move(composition_fromatompos));
+  if (m_composition.empty() && !composition_map_fromdyninfo.empty()) {
+    for ( auto& e : composition_map_fromdyninfo ) {
+      CompositionEntry entry;
+      entry.fraction = e.second;
+      entry.atom = e.first;
+      m_composition.push_back(std::move(entry));
+    }
+    composition_map_fromdyninfo.clear();
+  }
+  if (m_composition.empty() && !composition_map_fromatompos.empty()) {
+    for ( auto& e : composition_map_fromatompos ) {
+      CompositionEntry entry;
+      entry.fraction = e.second;
+      entry.atom = e.first;
+      m_composition.push_back(std::move(entry));
+    }
+    composition_map_fromatompos.clear();
+  }
   if ( hasComposition() ) {
     double ftot(0.0);
-    for (auto e : getComposition()) {
-      ftot += e.second;
-      if ( e.second<=0 || e.second>1.0)
-        NCRYSTAL_THROW2(BadInput,"invalid composition fraction for element "<<e.first<<": "<<e.second);
+    for (const auto& e : getComposition()) {
+      if (e.atom.atomDataSP==nullptr)
+        NCRYSTAL_THROW2(BadInput,"Nullptr atomData provided");
+      ftot += e.fraction;
+      if ( e.fraction<=0 || e.fraction>1.0)
+        NCRYSTAL_THROW2(BadInput,"invalid composition fraction for element \""<<e.atom.data().description()<<"\": "<<e.fraction);
     }
     if (ftot >= 1.000000001 || ftot<0.999999999)
       NCRYSTAL_THROW(BadInput,"invalid composition : fractions do not sum to unity");
-    //Check consistency with other sources:
-    auto checkComposition = []( const std::map<std::string,double>& comp1,
-                                const std::map<std::string,double>& comp2,
-                                std::string name2 )
+    //Check consistency between sources of composition:
+    auto checkComposition = [this](const std::map<IndexedAtomData,double>& comp2,const char* name2 )
                             {
                               if (comp2.empty())
                                 return;
-                              if (comp1.size()!=comp2.size())
+                              if (m_composition.size()!=comp2.size())
                                 NCRYSTAL_THROW2(BadInput,"incompatible compositions specified in "<<name2<<" (different number of elements)");
-                              for (auto e : comp1) {
-                                if (!comp2.count(e.first))
-                                  NCRYSTAL_THROW2(BadInput,"incompatible compositions specified in "<<name2<<" (elements "<<e.first<<" not present everywhere)");
-                                if (!floateq(e.second,comp2.at(e.first)))
-                                  NCRYSTAL_THROW2(BadInput,"incompatible compositions specified in "<<name2<<" (fraction of element "<<e.first<<" not consistent)");
+                              for (const auto& e : m_composition) {
+                                auto it = comp2.find(e.atom);
+                                if (it==comp2.end())
+                                  NCRYSTAL_THROW2(BadInput,"incompatible compositions specified in "<<name2<<" (element \""<<e.atom.data().description()
+                                                  <<"\" not present everywhere [or specified via different AtomData instances!])");
+                                if (!floateq(e.fraction,it->second))
+                                  NCRYSTAL_THROW2(BadInput,"incompatible compositions specified in "<<name2<<" (fraction of element "<<e.atom.data().description()<<" not consistent)");
                               }
                             };
-    checkComposition(getComposition(),composition_fromdyninfo,"DynInfo");
-    checkComposition(getComposition(),composition_fromatompos,"Atomic Positions");
+    checkComposition(composition_map_fromdyninfo,"DynInfo");
+    checkComposition(composition_map_fromatompos,"Atomic Positions");
+  }
+
+  for (const auto& e : m_custom) {
+    if (e.first.empty() || !contains_only(e.first,"ABCDEFGHIJKLMNOPQRSTUVXYZ"))
+      NCRYSTAL_THROW2(BadInput,"invalid custom section name: \""<<e.first
+                      <<"\" (must be non-empty and contain only capitalised letters A-Z)");
+  }
+
+  //Setup display labels and m_atomDataSPs:
+  if (!m_composition.empty()) {
+    //TODO: We could combine the next two vectors into just:
+    //std::vector<std::pair<IndexedAtomData,std::string>> That would be more
+    //efficient, and we could even return const refs to IndexAtomData objects.
+    m_displayLabels.clear();
+    m_displayLabels.resize(m_composition.size());
+    m_atomDataSPs.clear();
+    m_atomDataSPs.resize(m_composition.size());
+
+    //Order by atomdata, then index (so display labels won't depend on whether
+    //or not the info factory did sensible sorting):
+    std::vector<const IndexedAtomData*> v;
+    v.reserve(m_composition.size());
+    for ( const auto& e : m_composition )
+      v.push_back( &e.atom );
+    std::stable_sort(v.begin(),v.end(),
+                     [](const IndexedAtomData* a,const IndexedAtomData* b)
+                     {
+                       if ( a->atomDataSP->getUniqueID() == b->atomDataSP->getUniqueID() )
+                         return a->index.value < b->index.value;
+                       return *a->atomDataSP < *b->atomDataSP;
+                     });
+
+    std::map<std::string,std::vector<AtomIndex>> lbl2indices;
+    for ( const auto& e : v ) {
+      const IndexedAtomData& iad = *e;
+      const AtomData& ad = *iad.atomDataSP;
+      std::string lbl;
+      if ( ad.isElement() ) {
+        lbl = ad.elementName();
+        if ( ad.isSingleIsotope() ) {
+          unsigned A = ad.A();
+          if (ad.Z()==1&&(A==2||A==3))
+            lbl = ( A==2 ? "D" : "T" );
+          else
+            lbl += std::to_string(A);
+        }
+      } else {
+        lbl = "Mix";
+      }
+      lbl2indices[lbl].push_back(iad.index);
+    }
+    auto idx_to_alphalbl = [](unsigned i) {
+      static const std::string lc="abcdefghijklmnopqrstuvwxyz"_s;// a=0, b=1, c=2
+      const unsigned nlc = static_cast<unsigned>(lc.size());
+      std::string lbl;
+      while (true) {
+        lbl = lc.at(i%nlc)+lbl;
+        if (i<nlc)
+          break;
+        i /= nlc;
+        --i;
+      }
+      return lbl;
+    };
+    for (auto& e : lbl2indices ) {
+      if (e.second.size()==1) {
+        m_displayLabels.at(e.second.front().value) = e.first;
+      } else {
+        for (auto&& ee: enumerate(e.second)) {
+          m_displayLabels.at(ee.val.value) = e.first + "("_s + idx_to_alphalbl(static_cast<unsigned>(ee.idx)) + ")"_s;
+        }
+      }
+    }
+    for (const auto& dl : m_displayLabels)
+      nc_assert_always(!dl.empty());
+
+    for ( const auto& e : v ) {
+      const IndexedAtomData& iad = *e;
+      m_atomDataSPs.at(iad.index.value) = std::move(iad.atomDataSP);
+    }
+
   }
 }
-
-
 
 void NC::Info::enableHKLInfo(double dlower, double dupper)
 {
@@ -448,10 +507,10 @@ NC::HKLList::const_iterator NC::Info::searchExpandedHKL(short h, short k, short 
   }
   return itE;
 }
-//TODO for NC2: why not always provide eqv_hkl from .ncmat factories and remove
+
+//TODO: why not always provide eqv_hkl from .ncmat factories and remove
 //demi_normals from the interface? The memory usage is 4 times lower and the
 //added initialisation time is likely negligible.
-
 
 double NC::Info::hklDMinVal() const
 {
@@ -479,12 +538,12 @@ double NC::Info::dspacingFromHKL( int h, int k, int l ) const
   return NC::dspacingFromHKL( h,k,l, rec_lat );
 }
 
-
-NC::DynamicInfo::DynamicInfo(double fr, const std::string& en, double tt)
+NC::DynamicInfo::DynamicInfo(double fr, NC::IndexedAtomData atom, double tt)
   : m_fraction(fr),
-    m_elementName(en),
+    m_atom(atom),
     m_temperature(tt)
 {
+  nc_assert_always(!!m_atom.atomDataSP);
 }
 
 bool NC::DI_ScatKnlDirect::hasBuiltSAB() const
@@ -506,18 +565,21 @@ std::shared_ptr<const NC::SABData> NC::DI_ScatKnlDirect::ensureBuildThenReturnSA
   return m_sabdata;
 }
 
-double NC::Info::getDebyeTemperatureByElementName(const std::string& elementName) const
+double NC::Info::getDebyeTemperatureByElement( const AtomIndex& atomindex ) const
 {
-  nc_assert_always( hasAnyDebyeTemperature() );
-  if ( hasGlobalDebyeTemperature() )
-    return getGlobalDebyeTemperature();
-  for ( const auto& atom : m_atomlist) {
-    if ( atom.element_name == elementName && atom.debye_temp > 0 )
-      return atom.debye_temp;
+  if (m_debyetemp > 0.0)
+    return m_debyetemp;//global
+  if (!hasAnyDebyeTemperature() )
+    NCRYSTAL_THROW2(BadInput,"getDebyeTemperatureByElement called but no Debye temperature is available");
+  for ( const auto& ai : m_atomlist ) {
+    if ( ai.atom.index == atomindex ) {
+      nc_assert_always(ai.debye_temp > 0 );
+      return ai.debye_temp;
+    }
   }
-  nc_assert_always(false);
+  NCRYSTAL_THROW2(BadInput,"getDebyeTemperatureByElement called for AtomIndex \""
+                  <<atomindex.value<<"\" which was not found in this material");
 }
-
 
 NC::DynamicInfo::~DynamicInfo() = default;//virtual destructors must be implemented despite being abstract!
 NC::DI_Sterile::~DI_Sterile() = default;
@@ -527,3 +589,28 @@ NC::DI_ScatKnlDirect::~DI_ScatKnlDirect() = default;
 NC::DI_VDOS::~DI_VDOS() = default;
 NC::DI_VDOSDebye::~DI_VDOSDebye() = default;
 
+unsigned NC::Info::countCustomSections(const NC::Info::CustomSectionName& sectionname ) const
+{
+  unsigned i = 0;
+  for (const auto& e: m_custom) {
+    if (e.first==sectionname)
+      ++i;
+  }
+  return i;
+}
+
+const NC::Info::CustomSectionData& NC::Info::getCustomSection( const NC::Info::CustomSectionName& name,
+                                                               unsigned index ) const
+{
+  unsigned i = 0;
+  for (const auto& e: m_custom) {
+    if (e.first!=name)
+      continue;
+    if (index==i)
+      return e.second;
+    ++i;
+  }
+  NCRYSTAL_THROW2(MissingInfo,"Call to Info::getCustomSectionData requested the section "<<name
+                  <<" with index="<<index<<" but info does not have at least "<<index+1
+                  <<" such entries. Check with countCustomSections(..) before calling this method.");
+}

@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCRandUtils.hh"
-#include "NCMath.hh"
+#include "NCrystal/internal/NCRandUtils.hh"
+#include "NCrystal/internal/NCMath.hh"
 #include <algorithm>
 namespace NC=NCrystal;
 
@@ -104,7 +104,7 @@ double NC::randNorm( NC::RandomBase * rand )
   //sample a single value from a unit normal distribution via the ratio method.
   //
   //This method is ~30% faster than the randNorm(g1,g2) (using a decent Mersenne
-  //Twister RNG), but only provides a single number. TODO for NC2: re-benchmark using our new rng.
+  //Twister RNG), but only provides a single number. TODO: re-benchmark using our new rng.
   //
   //The loop runs on average ~1.37 times, and log(..) is invoked on average
   //0.167 times per call (hence the speedup).

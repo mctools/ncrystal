@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCVector.hh"
+#include "NCrystal/internal/NCVector.hh"
 #include <iostream>
 
 std::ostream& NCrystal::operator << (std::ostream &o, const NCrystal::Vector& vec)

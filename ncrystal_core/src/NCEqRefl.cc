@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCEqRefl.hh"
+#include "NCrystal/internal/NCEqRefl.hh"
 #include "NCrystal/NCDefs.hh"
 
 NCrystal::EqRefl::EqRefl(int sg)

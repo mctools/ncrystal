@@ -18,9 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCGaussOnSphere.hh"
-#include "NCRomberg.hh"
-#include "NCRandUtils.hh"
+#include "NCrystal/internal/NCGaussOnSphere.hh"
+#include "NCrystal/internal/NCRomberg.hh"
+#include "NCrystal/internal/NCRandUtils.hh"
 #include <iostream>
 #include <cstdlib>
 namespace NC = NCrystal;
@@ -500,19 +500,6 @@ bool NC::GaussOnSphere::genPointOnCircle( RandomBase*rand, double cg, double sg,
   return true;
 }
 
-namespace NCrystal {
-  class EstNTruncFct : public Fct1D {
-    double m_prec;
-  public:
-    EstNTruncFct(double prec) : m_prec(prec) {};
-    virtual ~EstNTruncFct(){}
-    virtual double eval(double x) const
-    {
-      return std::erfc(x*std::sqrt(0.5)) - m_prec;
-    }
-  };
-}
-
 double NC::GaussOnSphere::estimateNTruncFromPrec( double prec, double minval, double maxval )
 {
   nc_assert(minval>0&&maxval>minval&&prec>=0.0);
@@ -526,6 +513,16 @@ double NC::GaussOnSphere::estimateNTruncFromPrec( double prec, double minval, do
   //Volume within a radius of N*sigma from the center of a 1D Gaussian in the
   //plane is 1-erf(N/sqrt(2)), which can not be inverted easily, so we use
   //resort to root-finding:
+  class EstNTruncFct : public Fct1D {
+    double m_prec;
+  public:
+    EstNTruncFct(double prec) : m_prec(prec) {};
+    virtual ~EstNTruncFct(){}
+    virtual double eval(double x) const
+    {
+      return std::erfc(x*kInvSqrt2) - m_prec;
+    }
+  };
   EstNTruncFct f(prec);
   if (f.eval(maxval)>=0)
     return maxval;

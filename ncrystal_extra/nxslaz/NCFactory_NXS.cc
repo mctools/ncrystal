@@ -21,8 +21,9 @@
 #include "NCFactory_NXS.hh"
 #include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCDefs.hh"
-#include "NCMath.hh"
-#include "NCLatticeUtils.hh"
+#include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/internal/NCAtomUtils.hh"
+#include "NCrystal/internal/NCLatticeUtils.hh"
 #include "NCNXSLib.hh"
 #include <cstdlib>
 #include <cstring>
@@ -93,14 +94,14 @@ namespace NCrystal {
     uc->atomInfoList = 0;
   }
 
-  struct XSectProvider_NXS : public XSectProvider {
+  struct XSectProvider_NXS final : public MoveOnly {
     XSectProvider_NXS(bool bkgdlikemcstas)
       : m_bkgdlikemcstas(bkgdlikemcstas)
     {
       std::memset(&nxs_uc,0,sizeof(nxs_uc));
     }
-    virtual double xsectScatNonBragg(const double& lambda) const;
-    virtual ~XSectProvider_NXS()
+    double xsectScatNonBragg(const double& lambda) const;
+    ~XSectProvider_NXS()
     {
       deinitNXS(&nxs_uc);
     }
@@ -154,8 +155,15 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
   // Load and init NXS info (twice to figure out adequate maxhkl) //
   //////////////////////////////////////////////////////////////////
 
-  auto xsect_provider = std::make_unique<XSectProvider_NXS>(bkgdlikemcstas);
-  nxs::NXS_UnitCell& nxs_uc = xsect_provider->nxs_uc;
+  struct NXSXSectProviderWrapper {
+    //Dummy struct needed since std::function can only accept copy-able function
+    //objects.
+    std::shared_ptr<XSectProvider_NXS> shptr_xsprov_nxs;
+    double operator()(double wl) const { nc_assert(!!shptr_xsprov_nxs); return shptr_xsprov_nxs->xsectScatNonBragg(wl); }
+  };
+
+  NXSXSectProviderWrapper xsect_provider{std::make_shared<XSectProvider_NXS>(bkgdlikemcstas)};
+  nxs::NXS_UnitCell& nxs_uc = xsect_provider.shptr_xsprov_nxs->nxs_uc;
 
   const double fsquare_cut = 100.0 * 1e-5 ;//remove reflections with vanishing contribution
                                            //(NB: Hardcoded to same value as in .ncmat factory).
@@ -198,7 +206,7 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
     initNXS(&nxs_uc, nxs_file, temperature_kelvin, maxhkl, fixpolyatom );
   }
 
-  crystal->setXSectProvider(std::move(xsect_provider));
+  crystal->setXSectProvider(xsect_provider);
 
   //////////////////////
   // ... add HKL info //
@@ -206,7 +214,6 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
 
   if (enable_hkl) {
     crystal->enableHKLInfo(dcutoff_lower_aa,dcutoff_upper_aa);
-    NCrystal::HKLInfo hi;
     nxs::NXS_HKL *it = &(nxs_uc.hklList[0]);
     nxs::NXS_HKL *itE = it + nxs_uc.nHKL;
     for (;it!=itE;++it) {
@@ -214,13 +221,14 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
         continue;
       if(it->FSquare < fsquare_cut) //remove reflections with vanishing contribution (left due to rounding errors?)
         continue;
+      NCrystal::HKLInfo hi;
       hi.h = it->h;
       hi.k = it->k;
       hi.l = it->l;
       hi.multiplicity = it->multiplicity;
       hi.dspacing = it->dhkl;
       hi.fsquared = 0.01 * it->FSquare;
-      crystal->addHKL(hi);
+      crystal->addHKL(std::move(hi));
     }
     //We used to emit a warning here, but decided not to (user should be allowed
     //to deliberately exclude all bragg edges via the dcutoff parameter without
@@ -250,21 +258,6 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
   // ... add cross section info and atom info//
   /////////////////////////////////////////////
 
-  //TODO for NC2: Some duplication with NCNeutronSCL in the following table,
-  //which should likely exist somewhere else in a light weight form like this
-  //(can then also be used in G4NCMatHelper in place of GetNistElementNames()):
-  static const char* s_elementsSymbols[] = {"H",  "He", "Li", "Be", "B",  "C",  "N",  "O",  "F",  "Ne",
-                                            "Na", "Mg", "Al", "Si", "P" , "S",  "Cl", "Ar", "K",  "Ca", "Sc",
-                                            "Ti", "V",  "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge",
-                                            "As", "Se", "Br", "Kr", "Rb", "Sr", "Y",  "Zr", "Nb", "Mo", "Tc",
-                                            "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb", "Te", "I",  "Xe",
-                                            "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd", "Tb",
-                                            "Dy", "Ho", "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W",  "Re", "Os",
-                                            "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr",
-                                            "Ra", "Ac", "Th", "Pa", "U",  "Np", "Pu", "Am", "Cm", "Bk", "Cf",
-                                            "Es", "Fm", "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt",
-                                            "Ds", "Rg"};
-
   double sigma_free = 0;
   double sigma_abs = 0;
   unsigned ntot(0);
@@ -272,57 +265,55 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
   std::vector<AtomInfo> aivec;
   aivec.reserve(nxs_uc.nAtomInfo);//correct unless multiple entries for same element
   double average_atomic_mass_amu(0.0);
+
+  std::map<unsigned,AtomInfo> zval_2_atominfo;
+
   for( unsigned i=0; i<nxs_uc.nAtomInfo; i++ ) {
     nxs::NXS_AtomInfo & nxs_ai = nxs_uc.atomInfoList[i];
     if (!nxs_ai.nAtoms)
       NCRYSTAL_THROW(BadInput,"Encountered NXS atom data with unit cell count of 0");
 
-    sigma_abs += nxs_ai.sigmaAbsorption * nxs_ai.nAtoms;
-
-    double massceof = (1+nxs_ai.M_m)/nxs_ai.M_m;
-    sigma_free += (nxs_ai.b_coherent*nxs_ai.b_coherent*(0.01*4*kPi) + nxs_ai.sigmaIncoherent)/(massceof*massceof) * nxs_ai.nAtoms;
-    ntot += nxs_ai.nAtoms;
-
-    AtomInfo ai;
-    ai.number_per_unit_cell = nxs_ai.nAtoms;
-    ai.debye_temp = 0;//not available
-
     //We can not just get the atomic number from
     //nxs_ai.elementNumber, since it is never filled by the NXS
-    //code. Instead we look in the table above by brute-force:
-    ai.atomic_number = 0;
+    //code, so we use NCrystal's elementNameToZ:
     const std::string label(nxs_ai.label);
-    ai.element_name = label;
-    for (unsigned ie = 0; ie < sizeof(s_elementsSymbols)/sizeof(char*); ++ie) {
-      if ( label == s_elementsSymbols[ie] ) {
-        ai.atomic_number = ie+1;
-        break;
-      }
-    }
-    if (!ai.atomic_number)
-      NCRYSTAL_THROW2(BadInput,"unknown element symbol specified in .nxs file: \""<<label
+    unsigned Zval = elementNameToZ(label);
+    if (Zval==0)
+      NCRYSTAL_THROW2(BadInput,"unknown or unsupported element symbol specified in .nxs file: \""<<label
                       <<"\" (should be written like H, He, Li, ...)");
+    const double nxsatom_capturexs = nxs_ai.sigmaAbsorption;
+    const double nxsatom_cohscatlen = nxs_ai.b_coherent*0.1;//unit fm-> 10fm=sqrt(barn) [c.f. note about coherentScatLen unit in NCAtomData.hh]
+    const double nxsatom_incxs = nxs_ai.sigmaIncoherent;
+    const double nxsatom_massamu = nxs_ai.M_m * const_neutron_atomic_mass;
+    AtomData newatomdata( SigmaBound{nxsatom_incxs}, nxsatom_cohscatlen,
+                          nxsatom_capturexs, nxsatom_massamu, Zval );
 
-    average_atomic_mass_amu += nxs_ai.nAtoms * nxs_ai.M_m * const_neutron_atomic_mass;
-
-    std::vector<AtomInfo>::iterator itai;
-    std::size_t idx_ai(std::numeric_limits<std::size_t>::max());
-    for(itai=aivec.begin();itai!=aivec.end();++itai)
-    {
-      if(itai->atomic_number==ai.atomic_number)
-      {
-        itai->number_per_unit_cell+=ai.number_per_unit_cell;
-        idx_ai = itai - aivec.begin();
-        break;
+    AtomInfo& ai = zval_2_atominfo[Zval];
+    if (!ai.atom.atomDataSP) {
+      //first time we saw this Z-value:
+      ai.atom.atomDataSP = std::make_shared<const AtomData>(std::move(newatomdata));
+      ai.atom.index.value = zval_2_atominfo.size()-1;
+    } else {
+      //We saw this Z-value before, demand that it was specified with identical parameters;
+      if ( ! ai.atom.atomDataSP->sameValuesAs(newatomdata,1e-15,1e-15) ) {
+        //NB: NCrystal can in principle support this, but not really sure how consistently NXS handles that internally...
+        NCRYSTAL_THROW2(DataLoadError,"Inconsistent parameters specified in "<<nxs_file
+                        <<" (multiple entries for same element have different values of physical constants)");
       }
     }
-    if(itai==aivec.end()) {
-      idx_ai = aivec.size();
-      aivec.push_back(ai);
-    }
-    nc_assert_always(idx_ai<aivec.size());
-    for (unsigned ipos = 0; ipos <nxs_ai.nAtoms;++ipos)
-      aivec.at(idx_ai).positions.push_back(AtomInfo::Pos(nxs_ai.x[ipos],nxs_ai.y[ipos],nxs_ai.z[ipos]));
+
+    nc_assert(ai.atom.atomDataSP!=nullptr);
+    const unsigned multiplicity = nxs_ai.nAtoms;
+
+    ai.number_per_unit_cell += multiplicity;
+    sigma_abs += ai.atom.atomDataSP->captureXS() * multiplicity;
+    sigma_free += ai.atom.atomDataSP->freeScatteringXS().val  * multiplicity;
+    average_atomic_mass_amu += ai.atom.atomDataSP->averageMassAMU() * multiplicity;
+    ntot += multiplicity;
+
+    for (unsigned ipos = 0; ipos <multiplicity;++ipos)
+      ai.positions.emplace_back(nxs_ai.x[ipos],nxs_ai.y[ipos],nxs_ai.z[ipos]);
+
   }
 
   if (ntot) {
@@ -333,10 +324,8 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
     crystal->setXSectFree(sigma_free);
   }
 
-  for(std::vector<AtomInfo>::iterator itai=aivec.begin();itai!=aivec.end();++itai)
-  {
-    crystal->addAtom(*itai);
-  }
+  for (auto& e : zval_2_atominfo)
+    crystal->addAtom(std::move(e.second));
 
   //////////////////////////////
   // ... add temperature info //

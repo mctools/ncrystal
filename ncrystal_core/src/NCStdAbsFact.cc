@@ -22,7 +22,7 @@
 #include "NCrystal/NCFactory.hh"
 #include "NCrystal/NCMatCfg.hh"
 #include "NCrystal/NCInfo.hh"
-#include "NCrystal/NCAbsOOV.hh"
+#include "NCrystal/internal/NCAbsOOV.hh"
 
 namespace NCrystal {
 
@@ -32,7 +32,7 @@ namespace NCrystal {
 
     virtual int canCreateAbsorption( const MatCfg& cfg ) const {
       RCHolder<const Info> info(::NCrystal::createInfo( cfg ));
-      if ( !info || !info.obj()->hasXSectAbsorption() )
+      if ( !info || !info->hasXSectAbsorption() )
         return false;
       return 100;
     }
@@ -40,7 +40,7 @@ namespace NCrystal {
     virtual const Absorption * createAbsorption( const MatCfg& cfg ) const
     {
       RCHolder<const Info> info(::NCrystal::createInfo( cfg ));
-      if ( !info || !info.obj()->hasXSectAbsorption() )
+      if ( !info || !info->hasXSectAbsorption() )
         return 0;
       return new AbsOOV(info.obj());
     }

@@ -18,10 +18,10 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCAbsOOV.hh"
+#include "NCrystal/internal/NCAbsOOV.hh"
 #include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCDefs.hh"
-#include "NCMath.hh"
+#include "NCrystal/internal/NCMath.hh"
 
 NCrystal::AbsOOV::AbsOOV(const Info*ci)
   : Absorption("NCAbsOOV")

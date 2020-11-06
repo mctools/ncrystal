@@ -61,6 +61,15 @@ namespace NCrystal {
     virtual const Scatter * createScatter( const MatCfg& ) const;
     virtual const Absorption * createAbsorption( const MatCfg& ) const;
 
+    //TODO: We should rename the above methods or split the factory base into
+    //three parts. The name conflicts with the global NCrystal::createInfo
+    //etc. functions. For now, we provide these convenience functions which
+    //redirects to the global functions:
+
+    static RCHolder<const Info> globalCreateInfo( const MatCfg& cfg );
+    static RCHolder<const Scatter> globalCreateScatter( const MatCfg& cfg );
+    static RCHolder<const Absorption> globalCreateAbsorption( const MatCfg& cfg );
+
   };
 
   //Methods used to actually register factories. The factories will subsequently

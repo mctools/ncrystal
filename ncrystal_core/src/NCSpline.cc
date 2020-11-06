@@ -18,11 +18,11 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCSpline.hh"
+#include "NCrystal/internal/NCSpline.hh"
 #include "NCrystal/NCDefs.hh"
 #include <cstdlib>
 
-//TODO for NC2: For convenience, CubicSpline derivatives should default to
+//TODO: For convenience, CubicSpline derivatives should default to
 //special values (e.g. inf), in which case derivatives will be approximated,
 //either linearly from the edge points or using a numerical derivative
 //estimation.
@@ -121,7 +121,7 @@ void NCrystal::SplinedLookupTable::set( const Fct1D* thefct,
 }
 
 
-#include "NCString.hh"
+#include "NCrystal/internal/NCString.hh"
 #include "NCrystal/NCFile.hh"
 #include <fstream>
 #include <sstream>

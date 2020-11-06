@@ -19,8 +19,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCCalcBase.hh"
-#include "NCVector.hh"
-#include "NCMath.hh"
+#include "NCrystal/internal/NCVector.hh"
+#include "NCrystal/internal/NCMath.hh"
 
 NCrystal::CalcBase::CalcBase(const char * calculator_type_name)
   : m_name(calculator_type_name)
@@ -61,5 +61,5 @@ double NCrystal::CalcBase::initDefaultRand() const
   nc_assert_always(!m_randgen);
   m_randgen = defaultRandomGenerator();
   nc_assert_always(m_randgen.obj());
-  return m_randgen.obj()->generate();
+  return m_randgen->generate();
 }

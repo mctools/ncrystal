@@ -18,12 +18,11 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCDynInfoUtils.hh"
-#include "NCFactoryUtils.hh"
-#include "NCNeutronSCL.hh"
-#include "NCMath.hh"
-#include "NCVDOSToScatKnl.hh"
-#include "NCSABUtils.hh"
+#include "NCrystal/internal/NCDynInfoUtils.hh"
+#include "NCrystal/internal/NCFactoryUtils.hh"
+#include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/internal/NCVDOSToScatKnl.hh"
+#include "NCrystal/internal/NCSABUtils.hh"
 namespace NC = NCrystal;
 
 namespace NCrystal {
@@ -55,8 +54,8 @@ namespace NCrystal {
       return getKey(reduced_vdoslux,
                     di.temperature(),
                     di.debyeTemperature(),
-                    SigmaBound{NeutronSCL::instance()->getBoundXS(di.elementName())},
-                    NeutronSCL::instance()->getAtomicMass(di.elementName()));
+                    di.atomData().scatteringXS(),
+                    di.atomData().averageMassAMU());
     }
 
     VDOSDebyePars debyekey2params( const VDOSDebyeKey& key ) {

@@ -7,17 +7,18 @@ with NCrystal and the extension `.ncmat`. Note documented here is merely the
 format itself, and that different versions of NCrystal might choose to do
 slightly different things with the same input file - ideally because newer
 versions of the code will introduce improved modelling capabilities, but also
-because bugs might get fixed (usually) or introduced (hopefully
-rarely). Currently the two versions of the format are *NCMAT v1* which is
-supported by all NCrystal releases, and *NCMAT v2* which can be read with
-NCrystal releases 2.0.0 and beyond.
+because bugs might get fixed (usually) or introduced (hopefully rarely).
+Currently the three versions of the format are *NCMAT v1* which is supported by
+all NCrystal releases, *NCMAT v2* which can be read with NCrystal releases 2.0.0
+and beyond, and *NCMAT v3* which can be read with NCrystal releases 2.1.0 and
+beyond.
 
 # The NCMAT v1 format #
 
 The *NCMAT v1* format is the original supported format, in which crystal unit
-cells are defined in @CELL, @SPACEGROUP and @ATOMPOSITIONS sections, while a
+cells are defined in @CELL, @SPACEGROUP, and @ATOMPOSITIONS sections, while a
 @DEBYETEMPERATURE section must provide global or per-element Debye
-temperatues.
+temperatures.
 
 The publication associated with NCrystal release v1.0.0 describes this format in
 more detail, including how both elastic and inelastic physics is modelled based
@@ -84,7 +85,7 @@ but the order of `length` and `angles` can be reversed if desired.
 
 Atomic unit cell positions in relative lattice coordinates. Each element
 appearing must be on separate line, as shown in the example above, and the name
-must be Capitalized and use the standard chemical element notation.
+must be Capitalised and use the standard chemical element notation.
 
 ## The @SPACEGROUP section ##
 
@@ -152,7 +153,7 @@ by thermal neutrons on that element at all (depending on the context, there can
 still be absorption or scattering by particles other than thermal neutrons).
 This of course does not represent a realistic model of scattering, but it can
 nonetheless occasionally be useful if other more detailed information is not
-available. For instance it might be used when an element of a polyatomic
+available. For instance it might be used when an element of a poly-atomic
 material is believed to only contribute significantly to absorption
 cross-sections or density calculations. Example section:
 
@@ -344,7 +345,7 @@ is unlikely to introduce significant numerical errors).
 For crystalline materials with a @DEBYETEMPERATURE section, it is allowed to
 substitute a realistic VDOS spectrum with an idealised one, in which the density
 of states increases quadratically up to a cutoff energy, after which it
-becomes 0. In this model due to Debye, phonons states are considered uniformly
+becomes 0. In this model due to Debye, phonon states are considered uniformly
 distributed in momentum space, up to the cutoff - which is the Debye energy, or
 Boltzmann's constant times the Debye temperature. This is represented with a
 @DYNINFO type of *vdosdebye*, e.g.:
@@ -391,7 +392,7 @@ type is present).
 ### The @ATOMPOSITIONS section supports fractions ###
 
 Positions like 0.666667 can now be more precisely described via fractions like
-"2/3" (no spaces are allowed on either side of the fraction).
+"2/3" (no spaces are allowed on either side of the division symbol).
 
 ## Other changes for NCMAT v2 ##
 
@@ -399,7 +400,7 @@ Comments can now appear anywhere in the file, even at the end of other lines
 (except the first). Any parts of the line after the `#` should simply be ignored
 by the parser.
 
-# Effects of @DYNINFO sections on inelastic NCrystal physics modelling #
+## Effects of @DYNINFO sections on inelastic NCrystal physics modelling #
 
 Modelling of inelastic scattering with `.ncmat` files will depend on the
 NCrystal material configuration parameter, `inelas`. By default, modelling will
@@ -412,6 +413,220 @@ elements. Of course, `inelas=vdosdebye` can only be used for crystalline
 materials with Debye temperatures. Setting `inelas=freegas;elas=0` can be used
 to enable a pure freegas model for any input file.
 
+# The NCMAT v3 format #
+
+The *NCMAT v3* format is similar to the *NCMAT v2* format, but introduces two
+new features. The first new feature is the introduction of more flexibility in
+how atoms can be defined, which both concerns how atoms can be specified in
+existing sections and also adds a new optional @ATOMDB section.  Although not
+pertaining to the NCMAT format as such, it should nonetheless be noted here that
+starting with NCrystal v2.1.0 it is also possible to modify atomic definitions
+for any ncmat file (even those in NCMAT v1 or NCMAT v2 formats), through the
+usage of the atomdb configuration parameter, using a syntax similar to the one
+used in @ATOMDB sections (which will be described below). For details about the
+atomdb configuration parameter see elsewhere (e.g. the NCMatCfg.hh header file).
+
+The other new feature in *NCMAT v3* is that it is now possible to add custom
+sections to NCMAT files. The content of these custom sections will be loaded
+into the internal material Info objects, but the core NCrystal code will
+otherwise ignore them. This is primarily intended as a way to facilitate the
+development of new experimental physics models which might need additional
+data. Of course, if a such an experimental model matures (and is deemed to be of
+interest to a wider community), and makes its way into the core NCrystal code,
+the NCMAT format should evolve further in order to include proper well defined
+sections for the new data.
+
+## Changes in existing sections ##
+
+In addition to specifying atoms via their element names (H, He, Li, ...) in
+@DYNINFO, @DEBYETEMPERATURE, and @ATOMPOSITIONS sections, it is now also
+possible to specify atoms as specific isotopes by postfixing the nucleon number
+to the element name (H1, H2, He3, Li6, Gd157, ...). Two special aliases are
+provided: The name D is shorthand for H2 and T is shorthand for H3. This is not
+only handy, it also provides backwards compatibility with NCMAT content
+originally written for the NCMAT v2 format, in which D was made available to
+describe deuterium.
+
+For more complicated atomic setups, one must use an @ATOMDB section (or `atomdb`
+configuration parameter as noted above), which might redefine the meaning of
+element names throughout the files (e.g. define particular isotopic abundances
+in "B", or define "Al" as actually being a mixture of 99% Al and 1% Cr), or
+provide/override physics constants associated with a given isotope or
+element. It can also define any of the generic markers: X, X1, X2, ..., X99. If
+such are defined, they may be used in place of element names throughout the
+existing sections.
+
+## The @ATOMDB section ##
+
+The simplest usage of the @ATOMDB section is to provide physics constants
+associated with certain natural elements or isotopes. The four constants which
+must be provided after the atom symbol are respectively: mass, coherent
+scattering length, incoherent cross section, and absorption cross
+section. Masses and cross sections must be non-negative. For readability, units
+must be indicated by postfixes: Daltons (postfix `u`), femtometres (postfix
+`fm`), and barns (postfix `b`). There should be no space between the number and
+the unit. An example of this would be:
+
+```
+@ATOMDB
+  Si    28.09u 0.41491fm 0.004b 0.171b
+  Si29  28.97649466525u 0.47fm 0.001b  0.101b
+  Rn222 222.018u -1.23fm 4.56b 7.89b
+```
+
+The first line provides data for silicon in natural abundance, the second line
+provides data for the silicon isotope with 29 nucleons, and the last line
+provides (nonsense) data for the radon isotope with 222 nucleons. More
+accurately, the first two lines *override* the values for Si and Si29 which
+would otherwise be taken from the internal database shipped with NCrystal. On
+the contrary, Rn222 is an example of an isotope which is not available in the
+internal database (at least not in NCrystal release v2.1.0), so NCMAT files
+referring to that isotope *must* provide values for it in the @ATOMDB
+section. It is possible (perhaps for validation purposes) to disable the inbuilt
+database, which is done by placing the keyword `nodefaults` on the first line of
+the @ATOMDB section:
+
+```
+@ATOMDB
+  nodefaults
+  Si29 28.97649466525u 0.47fm 0.001b  0.101b
+```
+
+In this example, only `Si29` will be available for usage in the file. Concerning
+isotope labels (as was already mentioned) the labels, D and T are simply taken
+to be aliases for the isotope labels H2 and H3 respectively, wherever they are
+encountered.
+
+In addition to specifying physics constants associated with elements and
+isotopes, the @ATOMDB section also allows the definition of mixtures of elements
+and isotopes. This allows both flexible isotopic compositions, but can also be
+used to model impurities where for instance a contaminant replaces a primary
+element on certain positions in a crystal lattice. Here is an example which
+specifies a particular enrichment of boron (95% B10):
+
+```
+@ATOMDB
+  B is 0.95 B10 0.05 B11
+```
+
+Obviously, the specified fractions must add up to 1. Next is an example which
+introduces trace amounts of chromium into the positions otherwise occupied by
+aluminium atoms (assuming the other sections of the NCMAT file define a crystal
+involving aluminium atoms):
+
+```
+@ATOMDB
+  Al is 0.99 Al 0.01 Cr
+```
+
+Lines in the @ATOMDB section are evaluated in order, and in essence can be
+thought of as defining or redefining the variable which is named at the
+beginning of the line. This can be used to build up more complicated
+scenarios. If for instance one would like to model boron carbide (B4C) in which
+the boron is enriched to 90% boron-10, and where 1 permille of boron atoms are
+replaced by carbon atoms, one can write (assuming the other sections of the
+NCMAT file defines a B4C lattice in the obvious manner, putting a B or a C atom
+at each lattice position):
+
+```
+@ATOMDB
+  B is 0.9 B10 0.1 B11
+  B is 0.999 B 0.001 C
+```
+
+As the lines are evaluated in order, a mathematically equivalent but less handy
+version would be:
+
+```
+@ATOMDB
+  B is 0.8991 B10 0.0999 B11 0.001 C
+```
+
+To avoid confusion, it is not allowed to use isotope labels to define mixtures:
+
+```
+@ATOMDB
+  B10 is 0.999 B10 0.001 B11 # This is invalid syntax!
+```
+
+On the other hand, a number of "generic labels" are available, in case one would
+like to avoid using a standard chemical symbol to denote a mixture. Exactly 100
+of such generic markers are available and they are: X, X1, X2, X3, ..., X98, and
+X99. Apart from Xe (xenon), no standard element starts with X, which should make
+it easy to identify such custom mixtures in a given NCMAT file. It makes no
+difference which of the markers X, X1, ..., X99 are used, and the data loaded
+from a given NCMAT file will contain no indication of the name used in the input.
+
+With generic labels, one can thus define:
+
+```
+@ATOMDB
+  X is 0.666666666666666666667 H 0.333333333333333333333 O
+```
+
+and then use X in place of an atom name in the other sections of the NCMAT
+file. Again, to avoid confusion, generic labels (X, X1, ..., X99) can only be
+used to denote mixtures, and it is not allowed to assign physical properties
+directly to such a label:
+
+```
+@ATOMDB
+  X is 12.5u 0.5fm 3b 0.6b # This is invalid syntax!
+```
+
+A mixture consisting of only a single component can be better thought of as an
+alias:
+
+```
+@ATOMDB
+  X5 is 1.0 Al
+```
+
+And in fact, for readability, it is allowed to leave out the redundant 1.0 from
+such a single-component definition, making it more clear that it is essentially
+just an alias definition:
+
+```
+@ATOMDB
+  X5 is Al
+```
+
+Finally, it should be noted that some lines in the @ATOMDB section might have no
+effect. For instance:
+
+```
+#(assume that the rest of the file refers to Al and O only)
+@ATOMDB
+  B is 0.9 B10 0.1 B11  #<---- has no effect, B is not used in file
+  Al is 0.99 Al 0.01 Cr #<---- has no effect, next line redefines Al.
+  Al 26.98u 0.3449fm 0.0082b 0.231b
+```
+
+It is syntactically OK to include lines which have no effect, but it is possible
+that a future version of NCrystal could emit warnings when encountering such
+lines.
+
+## Custom sections (@CUSTOM_*) ##
+
+Any number of custom sections can be added. They must have a name of the form
+@CUSTOM_<name> where `<name>` must consist of 1 or more upper case characters,
+A-Z. Multiple custom sections with the same name are allowed. The contents will
+be parsed like in all other sections, meaning that comments, superfluous
+white-space and empty lines will all be stripped away. The remaining lines and
+their contents will be available after loading as lists of lists of strings.
+Example of how a custom section might look:
+
+```
+@CUSTOM_MYNEWPHYSICSDATA
+  #This section is needed for my great new physics model
+  6.789 Xe 0.95 0x0003450 true
+```
+
+Note that NCrystal might produce warning messages when loading NCMAT files with
+custom sections, serving as a reminder that such files are likely only intended
+for a particular development setup and might not be sensible to share with a
+wider community.
+
 # EMACS Syntax highlighting #
 
 If using EMACS, add the following to your ~/.emacs configuration file to enable
@@ -420,7 +635,8 @@ a basic syntax highlighting of .ncmat files:
 ```
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Major mode for .ncmat files:
-(setq ncmat-sections '("CELL" "ATOMPOSITIONS" "SPACEGROUP" "DEBYETEMPERATURE" "DYNINFO" "DENSITY"))
+(setq ncmat-sections '("CELL" "ATOMPOSITIONS" "SPACEGROUP" "DEBYETEMPERATURE"
+                       "DYNINFO" "DENSITY" "ATOMDB" "CUSTOM_[A-Z]+"))
 (setq ncmat-fields '("lengths" "angles" "element" "fraction" "type" "temperature"
                      "sab_scaled" "sab" "alphagrid" "betagrid" "egrid" "vdos_egrid" "vdos_density"))
 (setq ncmat-highlights

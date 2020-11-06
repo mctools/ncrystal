@@ -20,8 +20,8 @@
 
 #include "NCrystal/NCProcess.hh"
 #include "NCrystal/NCDefs.hh"
-#include "NCVector.hh"
-#include "NCMath.hh"
+#include "NCrystal/internal/NCVector.hh"
+#include "NCrystal/internal/NCMath.hh"
 
 NCrystal::Process::Process(const char * calculator_type_name)
   : CalcBase(calculator_type_name)

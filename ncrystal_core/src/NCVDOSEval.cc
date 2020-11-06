@@ -18,8 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCVDOSEval.hh"
-#include "NCMath.hh"
+#include "NCrystal/internal/NCVDOSEval.hh"
+#include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/internal/NCIter.hh"
 #include <iostream>
 namespace NC=NCrystal;
 

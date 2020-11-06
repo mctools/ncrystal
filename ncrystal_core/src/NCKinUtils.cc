@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCKinUtils.hh"
-#include "NCMath.hh"
+#include "NCrystal/internal/NCKinUtils.hh"
+#include "NCrystal/internal/NCMath.hh"
 namespace NC = NCrystal;
 
 NC::PairDD NC::getAlphaLimits( double ekin_div_kT, double beta )

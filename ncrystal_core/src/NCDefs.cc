@@ -20,11 +20,13 @@
 
 #include "NCrystal/NCDefs.hh"
 
-//TODO for NC2: Rename RandomBase class to RNG which is more handy.
+//TODO: Rename RandomBase class to RNG which is more handy.
 NCrystal::RandomBase::~RandomBase() = default;
 
 namespace NCrystal {
-  static std::atomic<uint64_t> s_global_uid_counter(1);
+  namespace {
+    static std::atomic<uint64_t> s_global_uid_counter(1);
+  }
 }
 
 NCrystal::UniqueID::UniqueID()

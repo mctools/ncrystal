@@ -23,4 +23,4 @@ debye_temp = 287.6381
 #   sigma_abs_2200 - the absorption cross sect. at 2200 m/s [barns]
 #   molar_mass     - the Molar mass [g/mol]
 #   x y z          - the Wyckoff postion of the atom inside the unit cell
-add_atom = Nb 7.054 0.0024 1.15 92.9063799761004 0 0 0
+add_atom = Nb 7.054 0.0024 1.15 92.906373161 0 0 0

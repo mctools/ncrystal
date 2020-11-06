@@ -36,16 +36,17 @@ namespace NCrystal {
     virtual const Info * createInfo( const MatCfg& cfg ) const
     {
       nc_assert_always(canCreateInfo(cfg));
-#if __cplusplus >= 201103L
       cfg.infofactopt_validate({"expandhkl"});
-#else
-      std::set<std::string> allowed_infofactopts;
-      allowed_infofactopts.insert("expandhkl");
-      cfg.infofactopt_validate(allowed_infofactopts);
-#endif
-      return loadNCMAT( cfg.getDataFile().c_str(), cfg.get_temp(),
-                        cfg.get_dcutoff(), cfg.get_dcutoffup(),
-                        cfg.get_infofactopt_flag("expandhkl") );
+      //Use cfg.getDataFileAsSpecified() not cfg.getDataFile(), since we support
+      //custom TextInputManager's (i.e. in-memory files):
+
+      NCMATCfgVars ncmatcfgvars;
+      ncmatcfgvars.temp      = cfg.get_temp();
+      ncmatcfgvars.dcutoff   = cfg.get_dcutoff();
+      ncmatcfgvars.dcutoffup = cfg.get_dcutoffup();
+      ncmatcfgvars.expandhkl = cfg.get_infofactopt_flag("expandhkl");
+      ncmatcfgvars.atomdb    = cfg.get_atomdb_parsed();
+      return loadNCMAT( cfg.getDataFileAsSpecified(), std::move(ncmatcfgvars) );
     }
   };
 

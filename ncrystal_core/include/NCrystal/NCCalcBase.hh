@@ -52,6 +52,8 @@ namespace NCrystal {
     RandomBase* getRNG() const;//always returns valid object
     RandomBase* getRNGNoDefault() const;//returns null ptr if RNG was not set explicitly
 
+    UniqueIDValue getUniqueID() const  { return m_uid.getUniqueID(); }
+
   protected:
     //Registering sub-calcs will result in their ref-counts being incremented
     //for the mother calc's lifetime, and also means that future
@@ -62,6 +64,7 @@ namespace NCrystal {
     std::vector<CalcBase*> m_subcalcs;
     std::string m_name;
     mutable RCHolder<RandomBase> m_randgen;
+    UniqueID m_uid;
     double initDefaultRand() const;
   };
 }

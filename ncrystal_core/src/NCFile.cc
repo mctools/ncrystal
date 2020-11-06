@@ -26,7 +26,8 @@ namespace NC = NCrystal;
 
 namespace NCrystal {
 
-  static UniquePtr<TextInputManager> s_textInputMgr;
+  static std::unique_ptr<TextInputManager> s_textInputMgr;
+  static std::mutex s_textInputMgr_mutex;
 
   std::string path_join(const std::string p1, const std::string p2)
   {
@@ -84,6 +85,13 @@ namespace NCrystal {
   {
   }
 
+  const std::string& TextInputStream::onDiskResolvedPath() const
+  {
+    static std::string str_empty;
+    return str_empty;
+  }
+
+
   class FileTextInputStream : public TextInputStream {
   public:
 
@@ -96,6 +104,11 @@ namespace NCrystal {
       if (!m_file.good())
         NCRYSTAL_THROW2(FileNotFound,"Failure while trying to open file "<<filename);
       tryReadNext();
+    }
+
+    const std::string& onDiskResolvedPath() const final
+    {
+      return description();
     }
 
     virtual bool getLine(std::string& line) {
@@ -181,40 +194,38 @@ namespace NCrystal {
 
 }
 
-void NC::createTextInputStream( const std::string& sourcename,
-                                NC::UniquePtr<NC::TextInputStream>& streamptr )
+std::unique_ptr<NC::TextInputStream> NC::createTextInputStream( const std::string& sourcename )
 {
-  streamptr.set(0);
 
-  TextInputManager * mgr = s_textInputMgr.obj();
-  if (mgr) {
-    mgr->createTextInputStream( sourcename, streamptr );
-    if (streamptr.obj())
-      return;
-    if (!mgr->allowFallbackToUsualDefaults())
-      NCRYSTAL_THROW2(FileNotFound,"Could not find input corresponding to name: "<<sourcename);
+  {
+    std::lock_guard<std::mutex> guard(s_textInputMgr_mutex);
+    TextInputManager * mgr = s_textInputMgr.get();
+    if (mgr) {
+      auto stream = mgr->createTextInputStream( sourcename );
+      if (stream!=nullptr)
+        return stream;
+      if (!mgr->allowFallbackToUsualDefaults())
+        NCRYSTAL_THROW2(FileNotFound,"Could not find input corresponding to name: "<<sourcename);
+    }
   }
 
-  //For now only support on-disk sources, where sourcename are the filenames:
+  //Fall back to looking for on-disk sources, where sourcename are the filenames
+  //passed to find_file:
   std::string resolved_name = find_file(sourcename);
   if (resolved_name.empty())
     NCRYSTAL_THROW2(FileNotFound,"Could not find input file: "<<sourcename);
-  createTextInputStreamFromFile(resolved_name,streamptr);
+  return createTextInputStreamFromFile(resolved_name);
 }
 
-void NC::createTextInputStreamFromBuffer( const std::string& buffername,
-                                          const std::string& buffer,
-                                          NC::UniquePtr<NC::TextInputStream>& streamptr )
+std::unique_ptr<NC::TextInputStream> NC::createTextInputStreamFromBuffer( const std::string& buffername,
+                                                                      const std::string& buffer )
 {
-  streamptr.set(0);
-  streamptr.set(static_cast<TextInputStream*>(new MemBufTextInputStream(buffername,buffer)));
+  return std::make_unique<MemBufTextInputStream>(buffername,buffer);
 }
 
-void NC::createTextInputStreamFromFile( const std::string& filepath,
-                                        NC::UniquePtr<NC::TextInputStream>& streamptr )
+std::unique_ptr<NC::TextInputStream> NC::createTextInputStreamFromFile( const std::string& filepath )
 {
-  streamptr.set(0);
-  streamptr.set(static_cast<TextInputStream*>(new FileTextInputStream(filepath)));
+  return std::make_unique<FileTextInputStream>(filepath);
 }
 
 NC::TextInputManager::TextInputManager()
@@ -225,7 +236,9 @@ NC::TextInputManager::~TextInputManager()
 {
 }
 
-void NC::registerTextInputManager( TextInputManager* mgr )
+void NC::registerTextInputManager( std::unique_ptr<TextInputManager> mgr )
 {
-  s_textInputMgr.set(mgr);
+  std::lock_guard<std::mutex> guard(s_textInputMgr_mutex);
+  s_textInputMgr = std::move(mgr);
 }
+

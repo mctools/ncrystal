@@ -20,328 +20,309 @@
 
 #include "G4NCrystal/G4NCMatHelper.hh"
 #include "G4NCrystal/G4NCManager.hh"
-#include "NCrystal/NCDefs.hh"
 #include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCScatter.hh"
 #include "NCrystal/NCVersion.hh"
+#include "NCrystal/NCCompositionUtils.hh"
 #include "NCrystal/NCFactory.hh"
 #include "G4NistManager.hh"
-#include <sstream>
-#include <iomanip>
+#include "G4ios.hh"
+#include <atomic>
+
+namespace NC = NCrystal;
+namespace NCCU = NCrystal::CompositionUtils;
 
 namespace G4NCrystal {
 
-  //NB: We support special Z=1001 from the NCrystal side to indicate Deuterium,
-  //but must be careful not to pass this special value onto Geant4.
-  constexpr unsigned specialZValueDeuterium = 1001;
-  bool zIsDeuterium( unsigned z ) {
-    return z == specialZValueDeuterium;
-  }
-
-  bool validNCrystalZValue( unsigned z )
+  static std::atomic<bool> s_verbose( getenv("NCRYSTAL_DEBUG_G4MATERIALS")!=nullptr );
+  void enableCreateMaterialVerbosity(bool flag)
   {
-    return ( z > 0 && z < 120 ) || zIsDeuterium(z);
+    s_verbose = flag;
   }
 
-  unsigned greatestCommonDivisor(unsigned a, unsigned b) {
-    while (b) {
-      unsigned tmp = a % b;
-      a = b;
-      b = tmp;
+  //Function which lets NCrystal::CompositionUtils use Geant4's knowledge of
+  //natural abundances:
+  std::vector<std::pair<unsigned,double>> g4NaturalAbundanceProvider(unsigned zz)
+  {
+    std::vector<std::pair<unsigned,double>> result;
+    if ( zz<1 || zz>150 )
+      return result;
+    G4int z = static_cast<G4int>(zz);
+    auto mgr = G4NistManager::Instance();
+    G4int A0 = mgr->GetNistFirstIsotopeN(z);
+    G4int Alim = A0 + mgr->GetNumberOfNistIsotopes(z);
+    if ( ! (A0<1000 && Alim<1000 && A0>= z && Alim >= A0) )
+      NCRYSTAL_THROW2(CalcError,"G4NistManager provided unexpexted A values (A="<<A0
+                      <<" Alim="<<Alim<<") for natural element with Z="<<z);
+    result.reserve(Alim-A0);
+    for (G4int a = A0; a < Alim; ++a) {
+      double val = mgr->GetIsotopeAbundance(z,a);
+      nc_assert( 0.0<=val && val <= 1.0 );
+      if (val>0.0)
+        result.emplace_back(a,val);
     }
-    return a;
+    return result;
   }
 
-  G4Element * getDeuteriumG4Element() {
-    static std::mutex s_mutex;
-    static G4Element* s_deuterium = nullptr;
-    std::lock_guard<std::mutex> guard(s_mutex);
-    if (!s_deuterium) {
-      s_deuterium = new G4Element("Deuterium", "Deuterium", 1);
-      s_deuterium->AddIsotope(new G4Isotope("Deuteron", 1, 2 ), 1);
-    }
-    return s_deuterium;
-  }
+  void ensureCacheClearFctRegistered();
 
-  typedef std::vector<std::pair<unsigned,unsigned> > ChemicalFormula;//(atomic_number,count) pairs
 
-  void getChemicalFormula(const NCrystal::Info* info, ChemicalFormula& cf) {
+  //Class which contains all factory code and caches for creating G4Material's
+  //based on NCrystal cfg objects. It is instantiated only as a global
+  //singleton, access to which is protected by a mutex. It does not cache
+  //pointers to Geant4 objects directly, but rather keep their indices into
+  //Geant4's global database. The advantage is that this will let us know if the
+  //objects were deleted and have to be recreated.
 
-    //TODO for NC2: In principle the chemical formula derivation is not specific
-    //to Geant4, and could move into NCrystal itself, if useful for some
-    //reason. Info could for instance be added in NCInfo::objectDone().
-    //
-    cf.clear();
+  class G4ObjectProvider final : public NC::MoveOnly {
+  public:
 
-    //Special case: monoatomic materials are easy:
-    if (info->hasComposition() && info->getComposition().size()==1 ) {
-      G4int z = G4NistManager::Instance()->GetZ(info->getComposition().begin()->first);
-      if ( validNCrystalZValue(z) ) {
-        cf.emplace_back(z,1);
-        return;
+    //////////////////////////////////////////////////////////////////////
+    // Basic isotopes (masses provided completely by Geant4):           //
+    //////////////////////////////////////////////////////////////////////
+
+    G4Isotope * getIsotope(std::pair<unsigned,unsigned> key) {
+      //Key is (Z,A)
+      auto it = m_g4isotopes.find(key);
+      if ( it != m_g4isotopes.end() ) {
+        auto isotope = G4Isotope::GetIsotopeTable()->at(it->second);
+        if (isotope!=nullptr)
+          return isotope;//was created and still alive
       }
+      //Must create:
+      auto name = NC::AtomData::elementZToName(key.first);
+      std::stringstream isoname;
+      isoname << NC::AtomData::elementZToName(key.first) << key.second;
+      auto isotope = new G4Isotope(isoname.str(), key.first, key.second );
+      m_g4isotopes[key] = isotope->GetIndex();
+      return isotope;
     }
 
-    if (!info->hasAtomInfo())
-      return;//Don't have integer counts of elements, so can't make nice chemical formula
+    //////////////////////////////////////////////////////////////////////
+    // Elements (natural abundances directly from G4's nist manager):   //
+    //////////////////////////////////////////////////////////////////////
 
-    NCrystal::AtomList::const_iterator it = info->atomInfoBegin();
-    NCrystal::AtomList::const_iterator itE = info->atomInfoEnd();
-    nc_assert(it!=itE);
-    cf.reserve(itE-it);
-
-    for ( ; it!=itE; ++it ) {
-      if ( ! validNCrystalZValue( it->atomic_number ) )
-        NCRYSTAL_THROW2(BadInput,"invalid atomic number ("<<it->atomic_number<<")");
-      if (it->number_per_unit_cell)
-        cf.emplace_back(it->atomic_number,it->number_per_unit_cell);
-    }
-    if (cf.empty())
-      NCRYSTAL_THROW(BadInput,"Atomic composition info indicates an empty unit cell.");
-
-    //reduce chemical formula by getting rid of greatest common divisor in
-    //counts (e.g. Al2O3 instead of Al6O9):
-    unsigned thegcd = cf.at(0).second;
-    for (size_t i = 1; i<cf.size(); ++i)
-      thegcd = greatestCommonDivisor(thegcd,cf.at(i).second);
-    for (size_t i = 0; i<cf.size(); ++i)
-      cf.at(i).second /= thegcd;
-
-    //sort by atomic number:
-    std::sort(cf.begin(),cf.end());
-
-    //sanity check that each element only appears once:
-    for (size_t i = 0; i+1<cf.size(); ++i)
-      if (cf.at(i).first == cf.at(i+1).first)
-        NCRYSTAL_THROW(BadInput,"Atomic composition info has duplicate entries for same atomic number.");
-  }
-
-
-  G4String getChemicalFormulaInHillSystemString( const ChemicalFormula& chemform ) {
-
-    //Convert chemical formula to a string with element symbols and counts,
-    //using the Hill System for providing the element order (and placing
-    //Deuterium right after Hydrogran):
-    //
-    //  https://en.wikipedia.org/wiki/Chemical_formula#Hill_system
-    //
-    //Note that we do not implement any exceptions to the Hill system (e.g. O2
-    //last in oxides, positive ion first in ionic compounds, etc.).
-    //
-    //This is done by constructing the following string keys to sort by:
-    //
-    // 1) Default to the element symbol ("Al","H","B","Be",...)
-    // 2) If there is carbon anywhere in the entire formula, the sort key for
-    //    carbon becomes "1" (i.e. it comes first) and for hydrogen it becomes
-    //    "2" (i.e. it comes second), and for deuterium it becomes "3" (comes
-    //    third).
-
-    const std::vector<G4String>& symbol_db = G4NistManager::Instance()->GetNistElementNames();
-
-    //sort key:
-    std::vector<std::pair<std::string,std::string> > hillsystem_sort;
-    ChemicalFormula::const_iterator itCF, itCF_End(chemform.end());
-
-    bool any_carbon(false);
-    for ( itCF = chemform.begin(); itCF != itCF_End; ++itCF ) {
-      if (itCF->first==6) {
-        any_carbon = true;
-        break;
+    G4Element * getElement(NCCU::ElementBreakdownLW&& key) {
+      auto it = m_g4elements.find(key);
+      if ( it != m_g4elements.end() ) {
+        G4Element * elem0 = G4Element::GetElementTable()->at(it->second);
+        if (elem0!=nullptr)
+          return elem0;//was created and still alive
       }
-    }
-    for ( itCF = chemform.begin(); itCF != itCF_End; ++itCF ) {
-      std::ostringstream symbandcount;
-      std::string sortkey;
-      if (any_carbon && (itCF->first==1||zIsDeuterium(itCF->first)||itCF->first==6) ) {
-        sortkey = ( itCF->first==6 ? "1" : (itCF->first==1?"2":"3") );
-      }
-      if ( zIsDeuterium(itCF->first) ) {
-        symbandcount << "D";
-      } else if ( itCF->first < symbol_db.size() ) {
-        symbandcount << symbol_db.at(itCF->first);
+      //Must create:
+      G4Element * elem;
+      if ( key.isNaturalElement() ) {
+        //Natural element:
+        elem = G4NistManager::Instance()->FindOrBuildElement(key.Z(),true);
+        if (!elem)
+          NCRYSTAL_THROW2(BadInput,"G4NistManager could not provide natural element for Z="<<key.Z());
       } else {
-        //Fall-back, unlikely to ever happen. Name as "Elem<xxx>" and put at end
-        //of formula:
-        symbandcount << "Elem<"<<itCF->first<<">";
-        sortkey = "{"+symbandcount.str();
-      }
-      if (sortkey.empty())
-        sortkey = symbandcount.str();
-      if (itCF->second!=1)
-        symbandcount << itCF->second;
-      hillsystem_sort.push_back(std::pair<std::string,std::string>(sortkey,symbandcount.str()));
-    }
-
-    std::sort(hillsystem_sort.begin(),hillsystem_sort.end());
-    std::vector<std::pair<std::string,std::string> >::const_iterator itHS;
-    std::ostringstream ss;
-    for ( itHS = hillsystem_sort.begin(); itHS != hillsystem_sort.end(); ++itHS )
-      ss << itHS->second;
-    return ss.str();
-  }
-
-  G4Material * getBaseG4MaterialWithCache( const NCrystal::Info* info ) {
-    //Construct base material for a given relative atomic composition.
-
-    //Figure out the (reduced) chemical formula, based on the atoms in the unit cell:
-    ChemicalFormula chemform;
-    getChemicalFormula(info, chemform);
-    G4String chemform_str;
-
-    if (chemform.empty()) {
-      //No AtomInfo and polyatomic (likely a material with no unit cell info and
-      //only dynamic info specified). Fall-back to basing element purely on
-      //fractional composition.
-      if (!info->hasComposition())
-        NCRYSTAL_THROW(MissingInfo,"Selected crystal info source lacks info about atomic composition.");
-      std::stringstream ss;
-      bool first(true);
-      ss << std::setprecision(16);
-      for (auto&ef : info->getComposition()) {
-        ss << (first?"_":"") << ef.first<<"_"<<ef.second;
-        first = false;
-      }
-      //Key is composed of fractions and element names
-      chemform_str = ss.str();
-    } else {
-      //Key is string representation of (reduced) chemical formula:
-      chemform_str = getChemicalFormulaInHillSystemString(chemform);
-    }
-
-    //Using chemform_str as key, check if we already have this material
-    //available: NOTE: The present function is only called from
-    //getG4MaterialWithCache which is already protected by a mutex lock. Thus we
-    //should *not* add a cache-mutex here in this function.
-    static std::map<std::string,size_t> cache;
-    std::map<std::string,size_t>::iterator itCache = cache.find(chemform_str);
-    if ( itCache != cache.end() ) {
-      G4Material * cachedmat = G4Material::GetMaterialTable()->at(itCache->second);
-      if (cachedmat)//might be NULL if material was deleted
-        return cachedmat;
-    }
-
-    //Finally, create the base material based purely on the reduced chemical
-    //formula - or composition if not available. For the base material we put
-    //parameters 1atm, 293.15K, solid, 1g/cm3 (note 293.15K is the NCrystal
-    //default!):
-    G4String matnameprefix("NCrystalBaseMat::");
-    G4Material * mat = new G4Material( matnameprefix+chemform_str,
-                                       1.0*CLHEP::gram/CLHEP::cm3,
-                                       (chemform.empty()?info->getComposition().size():chemform.size()),
-                                       kStateSolid,
-                                       293.15 * CLHEP::kelvin,
-                                       1.0 * CLHEP::atmosphere);
-
-    if (!chemform.empty()) {
-      //We can use the mat->AddElement form which counts integral occurances in "molecules".
-      ChemicalFormula::const_iterator itCF, itCF_End(chemform.end());
-      for ( itCF = chemform.begin(); itCF != itCF_End; ++itCF ) {
-        G4Element * elem(nullptr);
-        if ( zIsDeuterium(itCF->first) ) {
-          elem = getDeuteriumG4Element();
-        } else {
-          elem = G4NistManager::Instance()->FindOrBuildElement(itCF->first,true);
+        //Custom element:
+        unsigned Z = key.Z();
+        auto name = NC::AtomData::elementZToName(Z);
+        unsigned nIsotopes = key.nIsotopes();
+        nc_assert( nIsotopes > 0 );
+        elem = new G4Element(name,name,nIsotopes);
+        for (unsigned i = 0; i < nIsotopes; ++i) {
+          elem->AddIsotope( this->getIsotope( std::make_pair(Z,key.A(i) ) ),
+                            key.fraction(i) );
         }
-        nc_assert( (uint64_t)(itCF->second) <= (uint64_t)std::numeric_limits<G4int>::max() );
-        mat->AddElement( elem, G4int(itCF->second) );
       }
-    } else {
-      //We must use the mat->AddElement form which use *mass* fractions. Thus we
-      //must first construct the elements, then use their masses and their
-      //(number) fractions to calculate mass fractions.
-      std::vector<std::pair<double,G4Element*> > elements;
-      elements.reserve(info->getComposition().size());
-      double tot_mass(0.0);
+      m_g4elements[ std::move(key) ] = elem->GetIndex();
+      return elem;
+    }
 
-      for (auto&ef : info->getComposition()) {
-        //Find element, handling special cases:
-        G4Element * elem = nullptr;
-        if (ef.first=="D") {
-          elem = getDeuteriumG4Element();
-        } else {
-          elem = G4NistManager::Instance()->FindOrBuildElement(ef.first,true);
+    //////////////////////////////////////////////////////////////////////
+    // Base materials, corresponding to a given composition (monoatomic //
+    // natural elements directly from G4's nist manager):               //
+    //////////////////////////////////////////////////////////////////////
+
+    G4Material * getBaseMaterial( const NC::Info::Composition& cmp ) {
+      auto key = NCCU::createLWBreakdown( cmp, g4NaturalAbundanceProvider );
+      nc_assert(!key.empty());
+      NCRYSTAL_DEBUGONLY(for (auto& e: key) { nc_assert_always(e.second.valid()); });
+      auto it = m_g4basematerials.find(key);
+      if ( it != m_g4basematerials.end() ) {
+        G4Material* mat = G4Material::GetMaterialTable()->at(it->second);
+        if (mat)
+          return mat;//was created and still alive
+      }
+      //Must create:
+      if (key.size()==1 && key.front().second.isNaturalElement()) {
+        //Monoatomic with natural element:
+        G4Material* mat = G4NistManager::Instance()->FindOrBuildSimpleMaterial(key.front().second.Z());
+        if (!mat)
+          NCRYSTAL_THROW2(BadInput,"G4NistManager could not provide simple material for Z="<<key.front().second.Z());
+        m_g4basematerials[ std::move(key) ] = mat->GetIndex();
+        return mat;
+      } else {
+        //Must create the material the hard way.
+
+        //Put dummy parameters for density/temperature/etc. on base
+        //material. Top-level materials will anyway override.
+
+        //Make sure all base material names are unique by adding unique ID to
+        //the name. Note that this means that G4 material names will depend on
+        //the order in which materials are created, which is unfortunate but
+        //better than the alternative of possibly getting warnings from Geant4
+        //about duplicate material names.
+
+        static std::atomic<uint64_t> s_global_uid_counter(1);
+        uint64_t uidval = s_global_uid_counter++;
+        std::stringstream ss;
+        ss << "NCrystalBase[uid=" << uidval << "]::" << breakdownToStr(key,15);
+
+        G4Material * mat = new G4Material( ss.str(),
+                                           1.0*CLHEP::gram/CLHEP::cm3,
+                                           key.size(),//number of elements
+                                           kStateSolid,
+                                           293.15 * CLHEP::kelvin,
+                                           1.0 * CLHEP::atmosphere );
+        //Add Elements! Here we use the mat->AddElement form which use *mass*
+        //fractions. Thus we must first construct the elements, then use their
+        //masses and their (number) fractions to calculate mass fractions:
+        std::vector<std::pair<double,G4Element*> > elements;
+        elements.reserve(key.size());
+        double tot_mass(0.0);//NB: StableSum would be better (but is in private interface)
+        for ( auto& frac_elembd : key ) {
+          G4Element * elem = getElement(std::move(frac_elembd.second));
+          nc_assert(elem);
+          double mass_contrib = frac_elembd.first * elem->GetAtomicMassAmu();
+          tot_mass += mass_contrib;
+          elements.emplace_back(mass_contrib,elem);
         }
-        double mass_contrib = ef.second * elem->GetAtomicMassAmu();
-        assert(mass_contrib>0.0);
-        tot_mass += mass_contrib;
-        elements.emplace_back(mass_contrib,elem);
+        for (auto& e : elements)
+          mat->AddElement( e.second, e.first / tot_mass );
+        m_g4basematerials[ std::move(key) ] = mat->GetIndex();
+        return mat;
       }
-      for (auto& e : elements)
-        mat->AddElement( e.second, e.first / tot_mass );
     }
-    if (!chemform.empty())
-      mat->SetChemicalFormula(chemform_str);
 
-    //Add to cache and return:
-    cache[chemform_str] = mat->GetIndex();
-    return mat;
+    ///////////////////////////////////////////////////////////
+    // Final materials, corresponding to a given cfg string. //
+    // Cached also based on unique id's of Info objects      //
+    ///////////////////////////////////////////////////////////
+
+    G4Material * getFinalMaterial( const NC::MatCfg& cfg ) {
+      G4Material * mat = getFinalMaterialImpl(cfg);
+      if (s_verbose) {
+        auto mgr = ::G4NCrystal::Manager::getInstance();
+        const NCrystal::Scatter* sc = mgr->getScatterProperty(mat);
+        nc_assert_always(sc&&mat);
+        G4cout<<"G4NCrystal: Created NCrystal-enabled G4Material (G4Material index: "<<mat->GetIndex()
+              <<", NCrystal Scatter \""<<sc->getCalcName()<<"\" with unique id: "<<sc->getUniqueID().value<<")"<<G4endl;
+        G4cout<<"G4NCrystal::The material: ---------------------------------------------------------------------"<<G4endl<<G4endl;
+        G4cout<<" Material index in table: "<<mat->GetIndex()<<G4endl;
+        G4cout<<*mat<<G4endl;
+        G4cout<<"G4NCrystal::The base material: ----------------------------------------------------------------"<<G4endl<<G4endl;
+        auto bm = mat->GetBaseMaterial();
+        if (bm) {
+          G4cout<<" Material index in table: "<<bm->GetIndex()<<G4endl;
+          G4cout<<*bm<<G4endl;
+        }
+        G4cout<<"-----------------------------------------------------------------------------------------------"<<G4endl;
+      }
+      return mat;
+    }
+
+    G4Material * getFinalMaterialImpl( const NC::MatCfg& cfg ) {
+
+      //Construct key. NB: Uses file name as specified in key, to avoid absolute
+      //paths in material names. We include the info objects unique id in the
+      //cache key, to safe-guard against problems where input data was changed
+      //and required reload.
+      NC::RCHolder<const NC::Info> info(NC::createInfo(cfg));
+      nc_assert_always(info.obj());
+      const std::string cfg_as_str = cfg.toStrCfg(true,0);
+      auto cache_key = std::make_pair( info.obj()->getUniqueID().value, cfg_as_str );
+
+      //check if we already have this material available:
+      auto it = m_g4finalmaterials.find(cache_key);
+      if ( it != m_g4finalmaterials.end() ) {
+        G4Material * mat = G4Material::GetMaterialTable()->at(it->second);
+        if (mat)
+          return mat;//was created and still alive
+      }
+      //Must create:
+
+      ensureCacheClearFctRegistered();//good place to put this
+
+      //Check that input has density and composition (for temperature we simply
+      //wall back to room temperature below):
+      if (!info.obj()->hasDensity())
+        NCRYSTAL_THROW(MissingInfo,"Selected crystal info source lacks info about material density.");
+      if (!info.obj()->hasComposition())
+        NCRYSTAL_THROW(MissingInfo,"Selected crystal info source lacks info about material composition.");
+
+      //Make sure that we are at all able to initialise an NCrystal scatter object
+      //for the given configuration:
+      NC::RCHolder<const NC::Scatter> scatter(NC::createScatter(cfg));
+
+      //Base G4 material for the given chemical composition:
+      G4Material * matBase = getBaseMaterial( info.obj()->getComposition() );
+
+      //Create derived material with specific density, temperature and NCrystal scatter physics:
+
+      //NB: Default temperature is same as NC::MatCfg's default (293.15) rather
+      //than G4's STP (273.15). It will anyway always be overridden in the derived
+      //material, but we do it like this to avoid two different temperatures even
+      //when the user didn't specify anything.
+
+      double temp = info.obj()->hasTemperature()
+        ? info.obj()->getTemperature()*CLHEP::kelvin
+        : 293.15*CLHEP::kelvin;
+
+      G4String matnameprefix("NCrystal::");
+      G4Material * mat = new G4Material( matnameprefix+cache_key.second,
+                                         cfg.get_packfact()*info.obj()->getDensity()*(CLHEP::gram/CLHEP::cm3),
+                                         matBase, kStateSolid, temp, 1.0 * CLHEP::atmosphere );
+
+      G4NCrystal::Manager::getInstance()->addScatterProperty(mat,scatter.obj());
+
+      //Add to cache and return:
+      m_g4finalmaterials[cache_key] = mat->GetIndex();
+      return mat;
+    }
+
+  private:
+    //Maps of G4 objects (actually to their indices into G4's global tables -
+    //that way we can detect if deleted and recreate):
+    typedef std::size_t G4Index;
+    typedef std::pair<unsigned,unsigned> IsotopeZA;
+    std::map<IsotopeZA,G4Index> m_g4isotopes;
+    std::map<NCCU::ElementBreakdownLW,G4Index> m_g4elements;
+    std::map<NCCU::LWBreakdown,G4Index> m_g4basematerials;
+    std::map<std::pair<uint64_t,std::string>,G4Index> m_g4finalmaterials;
+  };
+
+  static std::mutex s_objectdbmutex;//Mutex
+  static G4ObjectProvider s_objectdb;//NB: Only access this after locking mutex!!
+  //Cache-clearing in accordance with NCrystal's global clearCaches function
+  //(also detects compatibility between libG4NCrystal.so and libNCrystal.so):
+  void clearG4ObjCache() {
+    std::lock_guard<std::mutex> guard(s_objectdbmutex);
+    s_objectdb = G4ObjectProvider();
   }
-
-  G4Material * getG4MaterialWithCache( const NCrystal::MatCfg& cfg ) {
-
-    //check if we already have this material available:
-
-    std::string cache_key = cfg.toStrCfg(true,0);//NB: uses file name as
-                                                 //specified, which is the
-                                                 //correct thing to do (to avoid
-                                                 //absolute paths in material
-                                                 //names).
-    static std::map<std::string,std::size_t> cache;
-    static std::mutex cache_mutex;
-    std::lock_guard<std::mutex> guard(cache_mutex);
-    std::map<std::string,size_t>::iterator itCache = cache.find(cache_key);
-    if ( itCache != cache.end() ) {
-      G4Material * cachedmat = G4Material::GetMaterialTable()->at(itCache->second);
-      if (cachedmat)//might be NULL if material was deleted
-        return cachedmat;
-    }
-
+  void ensureCacheClearFctRegistered() {
+    static bool first = false;
+    if (first)
+      return;
+    first = true;
     //Most client code will call this function, this is a good place to detect
     //mis-paired libNCrystal.so/libG4NCrystal.so:
-    NCrystal::libClashDetect();//Detect broken installation
-
-    //First see if we are at all able to initialise an NCrystal scatter object
-    //for the given configuration:
-    NCrystal::RCHolder<const NCrystal::Scatter> scatter(NCrystal::createScatter(cfg));
-
-    //Get NCrystal info object + G4 base material for the given chemical composition:
-    NCrystal::RCHolder<const NCrystal::Info> info(NCrystal::createInfo(cfg));
-
-    if (!info.obj()->hasDensity())
-      NCRYSTAL_THROW(MissingInfo,"Selected crystal info source lacks info about material density.");
-
-    G4Material * matBase = getBaseG4MaterialWithCache( info.obj() );
-
-    //Create derived material with specific density, temperature and NCrystal scatter physics:
-
-    //NB: Default temperature is same as NC::MatCfg's default (293.15) rather
-    //than G4's STP (273.15). It will anyway always be overridden in the derived
-    //material, but we do it like this to avoid two different temperatures even
-    //when the user didn't specify anything.
-
-    double temp = info.obj()->hasTemperature()
-      ? info.obj()->getTemperature()*CLHEP::kelvin
-      : 293.15*CLHEP::kelvin;
-
-    G4String matnameprefix("NCrystal::");
-    G4Material * mat = new G4Material( matnameprefix+cache_key,
-                                       cfg.get_packfact()*info.obj()->getDensity()*(CLHEP::gram/CLHEP::cm3),
-                                       matBase, kStateSolid, temp, 1.0 * CLHEP::atmosphere );
-
-    G4NCrystal::Manager::getInstance()->addScatterProperty(mat,scatter.obj());
-
-    //Add to cache and return:
-    cache[cache_key] = mat->GetIndex();
-    return mat;
+    NC::libClashDetect();//Detect broken installation
+    //Register:
+    NC::registerCacheCleanupFunction(clearG4ObjCache);
   }
 }
 
 G4Material * G4NCrystal::createMaterial( const char * cfgstr )
 {
   try {
-    NCrystal::MatCfg cfg(cfgstr);
-    return getG4MaterialWithCache(cfg);
-  } catch ( NCrystal::Error::Exception& e ) {
+    NC::MatCfg cfg(cfgstr);
+    std::lock_guard<std::mutex> guard(s_objectdbmutex);
+    return s_objectdb.getFinalMaterial(cfg);
+  } catch ( NC::Error::Exception& e ) {
     Manager::handleError("G4NCrystal::createMaterial",101,e);
   }
   return 0;
@@ -349,16 +330,17 @@ G4Material * G4NCrystal::createMaterial( const char * cfgstr )
 
 G4Material * G4NCrystal::createMaterial( const G4String& cfgstr )
 {
+  //Just delegate to const char * version:
   return createMaterial(cfgstr.c_str());
 }
 
-G4Material * G4NCrystal::createMaterial( const NCrystal::MatCfg&  cfg )
+G4Material * G4NCrystal::createMaterial( const NC::MatCfg&  cfg )
 {
   try {
-    return getG4MaterialWithCache(cfg);
-  } catch ( NCrystal::Error::Exception& e ) {
+    std::lock_guard<std::mutex> guard(s_objectdbmutex);
+    return s_objectdb.getFinalMaterial(cfg);
+  } catch ( NC::Error::Exception& e ) {
     Manager::handleError("G4NCrystal::createMaterial",101,e);
   }
   return 0;
 }
-

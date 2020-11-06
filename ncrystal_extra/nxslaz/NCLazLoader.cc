@@ -21,9 +21,9 @@
 #include "NCLazLoader.hh"
 #include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCDefs.hh"
-#include "NCString.hh"
-#include "NCMath.hh"
-#include "NCLatticeUtils.hh"
+#include "NCrystal/internal/NCString.hh"
+#include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/internal/NCLatticeUtils.hh"
 #include <sstream>
 #include <fstream>
 #include <cstring>
@@ -32,7 +32,7 @@
 #include <stdint.h>
 #include <iostream>
 
-//TODO for NC2: lower priority version without sginfo dep could go to dist/
+//TODO: lower priority version without sginfo dep could go to dist/
 
 namespace NCrystal {
   double str2dbl_laz(const std::string& s) { return str2dbl(s,"Invalid number in .laz/.lau file"); }
@@ -101,7 +101,7 @@ void NCrystal::LazLoader::read()
     NCRYSTAL_THROW2(FileNotFound,"Could not find and open input file \""<<m_full_path<<"\"");
 
   //copy ascii raw data into memory as a vector of strings
-  std::vector<std::string> strVec;
+  VectS strVec;
   while (std::getline(infile, line))
     {
       if (line.empty())
@@ -153,7 +153,7 @@ void NCrystal::LazLoader::read()
     structure_info.gamma = 90;
 
   if(!search_parameter("Vc", structure_info.volume ))
-    NCRYSTAL_THROW2(DataLoadError,"The unit cell volume is not defined in the input file \""<<m_full_path<<"\"");//TODO for NC2: just calculate (after completing structure info below)
+    NCRYSTAL_THROW2(DataLoadError,"The unit cell volume is not defined in the input file \""<<m_full_path<<"\"");//TODO: just calculate (after completing structure info below)
 
 
   //Delayed until after sanity check below: m_cinfo->setStructInfo(structure_info);
@@ -246,7 +246,7 @@ void NCrystal::LazLoader::read()
         bool repeated_line(false);
         if (f2_index&&ncabs(cache_d-info.dspacing)<1.0e-4&&ncabs(cache_f-info.fsquared)<1.0e-4&&cache_mult==info.multiplicity)
           repeated_line = true;//remove repeated planes in a lau file.
-        //TODO for NC2: Check globally against repeated lines.
+        //TODO: Check globally against repeated lines.
 #if 0
         //debug what to do with repeated lines in .lau
         repeated_line=false;
@@ -263,7 +263,7 @@ void NCrystal::LazLoader::read()
             else
               info.fsquared *= 15.0;
 #endif
-            m_cinfo->addHKL(info);
+            m_cinfo->addHKL(std::move(info));
           }
       }
 

@@ -67,9 +67,9 @@ namespace NCrystal {
   };
 
   template< class T >
-  struct RCHolder {
+  struct NCRYSTAL_API RCHolder {
     typedef T element_type;
-    RCHolder() : m_obj( 0 ) {}
+    RCHolder() = default;
     explicit RCHolder( T* t, bool ref = true ) : m_obj( t ) { if ( m_obj && ref ) m_obj->ref(); }
     ~RCHolder() { if ( m_obj ) m_obj->unref(); }
     RCHolder( const RCHolder & o ) : m_obj(o.m_obj) { if (m_obj) m_obj->ref(); }
@@ -101,13 +101,29 @@ namespace NCrystal {
       }
       return *this;
     }
+    RCHolder( RCHolder&& o ) { std::swap(m_obj,o.m_obj); }
+    RCHolder& operator=( RCHolder&& o ) { clear(); std::swap(m_obj,o.m_obj); return *this; }
+    bool operator==( decltype(nullptr) ) { return m_obj==nullptr; }
+    bool operator!=( decltype(nullptr) ) { return m_obj!=nullptr; }
     bool operator()() const { return m_obj!=0; }
     bool operator!() const { return m_obj==0; }
     //Release obj without triggering deletion:
     T * releaseNoDelete() { T* old = m_obj; if ( m_obj ) m_obj->unrefNoDelete(); m_obj = 0; return old; }
     const T * releaseNoDelete() const { const T* old = m_obj; if ( m_obj ) m_obj->unrefNoDelete(); m_obj = 0; return old; }
+
+    template<class TOther>
+    RCHolder<TOther> dyncast() const
+    {
+      return RCHolder<TOther>(dynamic_cast<TOther*>(m_obj));
+    }
+
+    T* operator->() { return m_obj; }
+    const T* operator->() const { return m_obj; }
+    T& operator*() { nc_assert(m_obj); return *m_obj; }
+    const T& operator*() const { nc_assert(m_obj); return *m_obj; }
+
   private:
-    T* m_obj;
+    T* m_obj = nullptr;
   };
 
   typedef RCHolder<const RCBase> RCGuard;
@@ -116,48 +132,13 @@ namespace NCrystal {
   template< class T >
   T* get_pointer(const RCHolder<T>& r) { return const_cast<T*>(r.obj()); }
 
-  //Obsolete, use make_unique instead:
-  template<class T>
-  class UniquePtr {
-  public:
-    UniquePtr() : m_ptr(0) {}
-    UniquePtr(T*t) : m_ptr(t) {}
-    ~UniquePtr(){ delete m_ptr; }
-    UniquePtr & operator= ( T* t ) { set(t); return *this; }
-#if __cplusplus >= 201103L
-    //allow move:
-    UniquePtr & operator= ( UniquePtr && o ) { T* p(0); std::swap(p,m_ptr); UniquePtr tmp(p); std::swap(m_ptr,o.m_ptr); return *this; }
-    UniquePtr( UniquePtr && o ) { T* p(0); std::swap(p,m_ptr); UniquePtr tmp(p); std::swap(m_ptr,o.m_ptr); }
-    //disable copy/assignment:
-    UniquePtr & operator= ( const UniquePtr & ) = delete;
-    UniquePtr( const UniquePtr & ) = delete;
-#else
-    //disable copy/assignment the idiomatic C++98 way...:
-  private:
-    UniquePtr & operator= ( const UniquePtr & );
-    UniquePtr( const UniquePtr & );
-  public:
-#endif
-    T * obj() { return m_ptr; }
-    const T * obj() const { return m_ptr; }
-    void set(T * t) { T* p(0); std::swap(p,m_ptr); UniquePtr tmp(p); m_ptr = t; }
-    T * release() { T* p(0); std::swap(p,m_ptr); return p; }
-    void swap(UniquePtr& o) { std::swap(m_ptr,o.m_ptr); }
-    bool operator()() const { return m_ptr!=0; }
-    bool operator!() const { return m_ptr==0; }
-    void clear() { set(0); }
-
-  private:
-    T * m_ptr;
-  };
-
   //Attempt to clear all NCrystal caches (should be safe to call as it will not
   //clear data associated to active object for which client code has ownership):
-  void clearCaches();
+  NCRYSTAL_API void clearCaches();
 
   //For internal NCrystal usage, registered functions will be invoked whenever
   //clearCaches() is called:
-  void registerCacheCleanupFunction(std::function<void()>);
+  NCRYSTAL_API void registerCacheCleanupFunction(std::function<void()>);
 
 }
 

@@ -19,12 +19,12 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCElIncScatter.hh"
+#include "NCrystal/internal/NCElIncScatter.hh"
 #include "NCrystal/NCInfo.hh"
-#include "NCElIncXS.hh"
-#include "NCRandUtils.hh"
-#include "NCDebyeMSD.hh"
-#include "NCNeutronSCL.hh"
+#include "NCrystal/internal/NCElIncXS.hh"
+#include "NCrystal/internal/NCRandUtils.hh"
+#include "NCrystal/internal/NCDebyeMSD.hh"
+#include "NCrystal/internal/NCSpan.hh"
 namespace NC = NCrystal;
 
 NC::ElIncScatter::~ElIncScatter() = default;
@@ -52,16 +52,14 @@ NC::ElIncScatter::ElIncScatter( const Info* ci )
   msd.reserve(atominfos.size());
   bixs.reserve(atominfos.size());
   scale.reserve(atominfos.size());
-  auto neutrondb = NeutronSCL::instance();
 
   unsigned ntot(0);
   for ( const auto& ai : atominfos )
     ntot += ai.number_per_unit_cell;
 
   for ( const auto& ai : atominfos ) {
-    auto atomName = neutrondb->getAtomName(ai.atomic_number);
     scale.push_back(double(ai.number_per_unit_cell)/ntot);
-    bixs.push_back(neutrondb->getIncoherentXS(atomName));
+    bixs.push_back(ai.atom.data().incoherentXS().val);
     if (ai.mean_square_displacement) {
       msd.push_back(ai.mean_square_displacement);
     } else {
@@ -70,7 +68,7 @@ NC::ElIncScatter::ElIncScatter( const Info* ci )
       //object itself.
       double debyeTemp = ai.debye_temp ? ai.debye_temp : ci->getGlobalDebyeTemperature();
       double temperature = ci->getTemperature();
-      double atomMass = neutrondb->getAtomicMass(atomName);
+      double atomMass = ai.atom.data().averageMassAMU();
       nc_assert(debyeTemp>0.0&&temperature>0.0&&atomMass>0.0);
       msd.push_back( debyeIsotropicMSD( debyeTemp, temperature, atomMass ) );
     }

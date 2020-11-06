@@ -18,9 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCFreeGasUtils.hh"
-#include "NCMath.hh"
-#include "NCRandUtils.hh"
+#include "NCrystal/internal/NCFreeGasUtils.hh"
+#include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/internal/NCRandUtils.hh"
 namespace NC=NCrystal;
 
 #define NCRYSTAL_FREEGASUTILS_ENABLEEXTRADEBUGGING 0

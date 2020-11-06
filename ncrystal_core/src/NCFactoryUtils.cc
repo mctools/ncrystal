@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCFactoryUtils.hh"
+#include "NCrystal/internal/NCFactoryUtils.hh"
 namespace NC = NCrystal;
 
 namespace NCrystal {
