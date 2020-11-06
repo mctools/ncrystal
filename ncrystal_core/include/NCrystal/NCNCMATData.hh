@@ -61,8 +61,8 @@ namespace NCrystal {
 
     //@CELL
     struct Cell {
-      std::array<double,3> lengths = {{0.,0.,0.}};
-      std::array<double,3> angles = {{0.,0.,0.}};//in degrees
+      std::array<double,3> lengths = std::array<double,3>{};
+      std::array<double,3> angles = std::array<double,3>{};//in degrees
     } cell;
     bool hasCell() const;
     void validateCell() const;
