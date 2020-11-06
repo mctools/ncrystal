@@ -272,7 +272,7 @@ bool NC::AtomData::sameValuesAs(const AtomData& o, double rtol, double atol) con
 
 std::size_t NC::AtomData::hash() const
 {
-  static_assert(std::is_same<NC::HashValue,std::size_t>::value);
+  static_assert(std::is_same<NC::HashValue,std::size_t>::value,"HashValue type changed");
   NC::HashValue tmp = calcHash(m_classify);
   hash_combine(tmp,m_z);
   hash_combine(tmp,m_m);

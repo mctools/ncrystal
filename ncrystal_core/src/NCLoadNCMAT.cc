@@ -242,7 +242,7 @@ const NC::Info * NC::loadNCMAT( NCMATData&& data,
       atomdb.addData(cfgvars.atomdb.at(i),NCMATData::latest_version);
   }
 
-  static_assert(AtomDBExtender::latest_version==NCMATData::latest_version);//consistency check (putting in this file as it is convenient)
+  static_assert(AtomDBExtender::latest_version==NCMATData::latest_version,"inconsistent latest_version");//consistency check (putting in this file as it is convenient)
 
   ////////////////////////////////////
   // Create IndexedAtomData objects //
