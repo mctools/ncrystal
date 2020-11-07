@@ -1,3 +1,10 @@
+v2.1.1 2020-11-07
+      * Reverse minor change in NCDefs.hh, which meant that client code which
+        was including public NCrystal C++ headers was prevented from using constants
+        like M_PI and friends (of course, usage of such constants is not
+        portable, and thus not really recommended). Release 2.1.1 is otherwise
+        completely identical to release 2.1.0.
+
 v2.1.0 2020-11-06
       * Introduce the NCMAT v3 format, which supports @ATOMDB (github issue #21)
         and @CUSTOM_ sections (github issue #42). As usual, the file

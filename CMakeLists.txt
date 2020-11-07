@@ -20,7 +20,7 @@
 #Need CMake 3.1.0 to enable C++11
 cmake_minimum_required(VERSION 3.1.0)
 
-project(NCrystal VERSION 2.1.0 LANGUAGES CXX C)
+project(NCrystal VERSION 2.1.1 LANGUAGES CXX C)
 
 set(BUILD_EXAMPLES ON CACHE BOOL "Whether to build examples.")
 set(BUILD_G4HOOKS  ON CACHE BOOL "Whether to build the G4 hooks if Geant4 is available.")
