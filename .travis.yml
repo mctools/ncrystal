@@ -98,9 +98,10 @@ script:
     - . ../installdir/setup.sh
     - ../installdir/bin/ncrystal_example_py
     - python -c 'import NCrystal; NCrystal.test()'
-#do not run vdos2ncmat with 3.5, (uses f-strings from py3.6):
+#do not run vdos2ncmat/endf2ncmat with 3.5, (uses f-strings from py3.6):
     - python3 --version
     - python3 -c "import sys;sys.exit(1 if sys.version_info[0:2]>=(3,6) else 0)" || ../installdir/bin/ncrystal_vdos2ncmat --help
+    - python3 -c "import sys;sys.exit(1 if sys.version_info[0:2]>=(3,6) else 0)" || ../installdir/bin/ncrystal_endf2ncmat --help
     - ../installdir/bin/ncrystal_ncmat2cpp --help
     - ../installdir/bin/ncrystal_ncmat2cpp ../installdir/data/Al_sg225.ncmat -o test.cpp
     - cat test.cpp
