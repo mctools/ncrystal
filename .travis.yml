@@ -89,7 +89,7 @@ script:
     - python3 -c "import sys;sys.exit(1 if sys.version_info[0:2]>=(3,6) else 0)" || ../installdir/bin/ncrystal_vdos2ncmat --help
 #requires pyne!    - python3 -c "import sys;sys.exit(1 if sys.version_info[0:2]>=(3,6) else 0)" || ../installdir/bin/ncrystal_endf2ncmat --help
     - ../installdir/bin/ncrystal_ncmat2cpp --help
-    - ../installdir/bin/ncrystal_ncmat2cpp ../installdir/data/Al_sg225.ncmat -o test.cpp
+    - ../installdir/bin/ncrystal_ncmat2cpp $(../installdir/bin/ncrystal-config --show=data)/Al_sg225.ncmat -o test.cpp
     - cat test.cpp
     - set +e
 
