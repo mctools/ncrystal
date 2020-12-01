@@ -18,10 +18,10 @@ addons:
     packages:
       - cmake
       - cmake-data
-      - python-numpy
-      - python-matplotlib
       - python3-numpy
       - python3-matplotlib
+#      - python-numpy
+#      - python-matplotlib
 
 compiler:
     - gcc
@@ -38,22 +38,14 @@ before_script:
     - set -e
     - cmake --version
     - which python
-    - python --version
+    - python3 --version
 #    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update || true; fi
 #    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew upgrade || true; fi
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install python || true; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install python@2 || true; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew link --force python@2 || true; fi
-    - which python
-    - python --version
-    - which python2 || echo "python2 not found"
-    - python2 --version
     - which python3 || echo "python3 not found"
     - python3 --version
-    - python2 -c 'import numpy; print numpy.__version__' 2>/dev/null || python2 -mpip install --verbose  numpy
     - python3 -c 'import numpy; print (numpy.__version__)' 2>/dev/null || python3 -mpip install --verbose numpy
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then python3 -mpip install numpy --user; fi
-    - python2 -c 'import numpy; print numpy.__version__'
     - python3 -c 'import numpy; print (numpy.__version__)'
     - ls -l
     - mkdir build installdir rundir
@@ -76,20 +68,7 @@ script:
     - find ../installdir/
     - ../installdir/bin/ncrystal_example_c
     - ../installdir/bin/ncrystal_example_cpp
-    - python2 ../installdir/bin/ncrystal_inspectfile --test
     - python3 ../installdir/bin/ncrystal_inspectfile --test
-    - mkdir fakebin && touch fakebin/python && chmod +x fakebin/python
-    - export PATH="$PWD/fakebin:$PATH"
-    - echo 'python2 "$@"' > fakebin/python && python --version
-    - ../installdir/bin/ncrystal_inspectfile --help
-    - ../installdir/bin/ncrystal_inspectfile --test
-    - ../installdir/bin/ncrystal_inspectfile --dump Al_sg225.ncmat
-    - python2 -c 'import matplotlib' 2>/dev/null || python2 -mpip install matplotlib
-    - ../installdir/bin/ncrystal_inspectfile --pdf Al_sg225.ncmat
-    - . ../installdir/setup.sh
-    - ../installdir/bin/ncrystal_example_py
-    - python -c 'import NCrystal; NCrystal.test()'
-    - echo 'python3 "$@"' > fakebin/python && python --version
     - ../installdir/bin/ncrystal_inspectfile --help
     - ../installdir/bin/ncrystal_inspectfile --test
     - ../installdir/bin/ncrystal_inspectfile --dump Al_sg225.ncmat
@@ -97,7 +76,14 @@ script:
     - ../installdir/bin/ncrystal_inspectfile --pdf Al_sg225.ncmat
     - . ../installdir/setup.sh
     - ../installdir/bin/ncrystal_example_py
-    - python -c 'import NCrystal; NCrystal.test()'
+    - python3 -c 'import NCrystal; NCrystal.test()'
+    - ../installdir/bin/ncrystal_inspectfile --help
+    - ../installdir/bin/ncrystal_inspectfile --test
+    - ../installdir/bin/ncrystal_inspectfile --dump Al_sg225.ncmat
+    - ../installdir/bin/ncrystal_inspectfile --pdf Al_sg225.ncmat
+    - . ../installdir/setup.sh
+    - ../installdir/bin/ncrystal_example_py
+    - python3 -c 'import NCrystal; NCrystal.test()'
 #do not run vdos2ncmat/endf2ncmat with 3.5, (uses f-strings from py3.6):
     - python3 --version
     - python3 -c "import sys;sys.exit(1 if sys.version_info[0:2]>=(3,6) else 0)" || ../installdir/bin/ncrystal_vdos2ncmat --help
