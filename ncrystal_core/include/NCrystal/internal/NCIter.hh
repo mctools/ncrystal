@@ -78,41 +78,6 @@ namespace NCrystal {
   template <typename T>
   enumerate_wrapper_t<std::initializer_list<T>> enumerate(std::initializer_list<T>&& container) { return {container}; }
 
-  //Utility for reverse-order iteration with range-based for loops, e.g.:
-  //
-  // for (auto&e : reverse_view(myvect) )
-  //    ...
-  //
-  //The current implementation does not work with initializer lists and does not
-  //take ownership of temporaries, so it can lead to issues if used in advanced
-  //scenarios.
-
-  template <typename RangeT>
-  class ReverseView {
-  public:
-    typedef typename RangeT::value_type value_type;
-    typedef typename RangeT::reverse_iterator iterator;
-    typedef typename RangeT::iterator reverse_iterator;
-    explicit ReverseView(RangeT& rng) : m_rng{rng} {}
-    typename RangeT::reverse_iterator begin() { return m_rng.rbegin(); }
-    typename RangeT::reverse_iterator end() { return m_rng.rend(); }
-    typename RangeT::iterator rbegin() { return m_rng.begin(); }
-    typename RangeT::iterator rend() { return m_rng.end(); }
-  private:
-    RangeT&  m_rng;
-  };
-
-  template<typename RangeT>
-  ReverseView<RangeT> reverse_view(RangeT& rng)
-  {
-    return ReverseView<RangeT>(rng);
-  }
-
-  template<typename RangeT>
-  ReverseView<const RangeT> reverse_view(const RangeT& rng)
-  {
-    return ReverseView<const RangeT>(rng);
-  }
 }
 
 

@@ -34,29 +34,16 @@ import numpy as np
 import argparse
 import pathlib
 
-#We handle the NCrystal import separately, since we know where it might be, even
-#if the user did not set up PYTHONPATH correctly.
-#NB: This NCrystal import code copied from inspectfile script. Be
-#sure to update everywhere if performing changes!!!
 try:
     import NCrystal
 except ImportError:
-    NCrystal = None
-    #Perhaps PYTHONPATH was not setup correctly. If we are running out of a
-    #standard NCrystal installation, we can try to amend the search path
-    #manually for the current script:
-    op=os.path
-    test=op.abspath(op.realpath(op.join(op.dirname(__file__),'../python')))
-    if op.exists(op.join(test,'NCrystal/__init__.py')):
-        sys.path += [test]
-    try:
-        import NCrystal
-    except ImportError:
-        NCrystal = None
-if not NCrystal:
-    print("ERROR: Could not import the NCrystal python module.")
-    print("       If it is installed, make sure your PYTHONPATH is setup correctly.")
-    sys.exit(1)
+    _ = pathlib.Path( __file__ ).parent / '../share/NCrystal/python/NCrystal/__init__.py'
+    if _.exists():
+        sys.path.append(str(_.parent.parent.absolute().resolve()))
+        try:
+            import NCrystal
+        except ImportError:
+            raise SystemExit("ERROR: Could not import the NCrystal Python module (perhaps your PYTHONPATH is misconfigured).")
 
 NC = NCrystal
 

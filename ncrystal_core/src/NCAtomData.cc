@@ -145,7 +145,8 @@ NC::AtomData::AtomData( const NC::AtomData::ComponentList& components )
 
     } else {
       m_z = commonZ;
-      nc_assert_always(components.size()<-std::numeric_limits<decltype(m_classify)>::lowest());
+      nc_assert_always(static_cast<uint64_t>(components.size())<static_cast<uint64_t>(-std::numeric_limits<decltype(m_classify)>::lowest()));
+      const unsigned ncomps = static_cast<unsigned>(components.size());
       //Time to calculate new values.
       const double w_correction_factor = 1.0/sumw_val;//"snap" to unity.
       //Some vars are just straight-forward averages:
@@ -163,17 +164,17 @@ NC::AtomData::AtomData( const NC::AtomData::ComponentList& components )
         sum_w_newixs.add( w * (c.m_ixs+k4Pi*tmp*tmp) );
       }
       m_ixs = sum_w_newixs.sum()*w_correction_factor;
-      m_classify = -components.size();
+      m_classify = -ncomps;
 #if __cplusplus >= 201402L
       //Our make_unique for c++11 seems to have problems with arrays
-      m_components = std::make_unique<Component[]>(components.size());
+      m_components = std::make_unique<Component[]>(ncomps);
 #else
-      m_components = decltype(m_components)(new Component[components.size()]());
+      m_components = decltype(m_components)(new Component[ncomps]());
 #endif
 
+      for (unsigned icomp = 0; icomp < ncomps; ++icomp)
+        m_components[icomp] = components.at(icomp);
 
-      for ( const auto& cf : enumerate(components) )
-        m_components[cf.idx] = cf.val;
     }
   }
 }

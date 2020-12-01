@@ -19,6 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCMatCfg.hh"
+#include "NCrystal/NCFactory.hh"
 #include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCSCOrientation.hh"
 #include "NCrystal/internal/NCString.hh"
@@ -77,7 +78,7 @@ struct NC::MatCfg::Impl : public NC::RCBase {
   mutable std::vector<AccessSpy*> m_spies;
   struct SpyDisabler;
   std::string m_datafile_resolved;//resolved via NCFile
-  std::string m_datafile_orig;//as passed to MatCfg constructor (empty if identical to m_datafile_resolved)
+  std::string m_datafile_orig;//as passed to MatCfg constructor (empty means identical to m_datafile_resolved)
   std::string m_datafileext;
   bool m_ignoredfilecfg;
 
@@ -115,7 +116,7 @@ struct NC::MatCfg::Impl : public NC::RCBase {
   struct ValBase {
     ValBase(){}
     virtual ~ValBase(){}
-    virtual ValBase * clone() const = 0;
+    virtual std::unique_ptr<ValBase> clone() const = 0;
     virtual void set_from_strrep(const std::string& s) = 0;
     virtual std::string to_strrep(bool forcache) const = 0;
   };
@@ -133,7 +134,7 @@ struct NC::MatCfg::Impl : public NC::RCBase {
     static const VALTYPE value_type_enum = VALTYPE_DBL;
     ValDbl() : ValBase(), unittype(UnitNone) {};
     virtual ~ValDbl(){}
-    virtual ValBase * clone() const { return new ValDbl(*this); }
+    std::unique_ptr<ValBase> clone() const final { return std::make_unique<ValDbl>(*this); }
     void set_from_strrep(const std::string& s) final
     {
       static std::string alpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -213,7 +214,7 @@ struct NC::MatCfg::Impl : public NC::RCBase {
     static const VALTYPE value_type_enum = VALTYPE_INT;
     ValInt() : ValBase(){};
     virtual ~ValInt(){}
-    virtual ValBase * clone() const { return new ValInt(*this); }
+    std::unique_ptr<ValBase> clone() const final { return std::make_unique<ValInt>(*this); }
     void set_from_strrep(const std::string& s) final
     {
       set(str2int(s));//checks nan
@@ -235,7 +236,7 @@ struct NC::MatCfg::Impl : public NC::RCBase {
     static const VALTYPE value_type_enum = VALTYPE_BOOL;
     ValBool() : ValBase(){}
     virtual ~ValBool(){}
-    virtual ValBase * clone() const { return new ValBool(*this); }
+    std::unique_ptr<ValBase> clone() const final { return std::make_unique<ValBool>(*this); }
     void set_from_strrep(const std::string& s) final
     {
       if (s=="true"||s=="1") { value = true; }
@@ -257,7 +258,7 @@ struct NC::MatCfg::Impl : public NC::RCBase {
     static const VALTYPE value_type_enum = VALTYPE_STR;
     ValStr() : ValBase() {}
     virtual ~ValStr(){}
-    virtual ValBase * clone() const { return new ValStr(*this); }
+    std::unique_ptr<ValBase> clone() const final { return std::make_unique<ValStr>(*this); }
     void set_from_strrep(const std::string& s) final { set(s); }
     void set(const std::string& s) {
       if (!isSimpleASCII(s,false,false))
@@ -275,7 +276,7 @@ struct NC::MatCfg::Impl : public NC::RCBase {
     static const VALTYPE value_type_enum = VALTYPE_ATOMDB;
     ValAtomDB() : ValBase() {}
     virtual ~ValAtomDB(){}
-    virtual ValBase * clone() const { return new ValAtomDB(*this); }
+    std::unique_ptr<ValBase> clone() const final { return std::make_unique<ValAtomDB>(*this); }
     void set_from_strrep(const std::string& s) final {
       value_type v;
       VectS lines;
@@ -336,7 +337,7 @@ struct NC::MatCfg::Impl : public NC::RCBase {
   struct ValOrientDir : public ValBase {
     ValOrientDir() : ValBase(){}
     virtual ~ValOrientDir(){}
-    virtual ValBase * clone() const { return new ValOrientDir(*this); }
+    std::unique_ptr<ValBase> clone() const final { return std::make_unique<ValOrientDir>(*this); }
     void set_from_strrep(const std::string& s) final
     {
       std::string st = s; trim(st);
@@ -399,7 +400,7 @@ struct NC::MatCfg::Impl : public NC::RCBase {
   struct ValVector : public ValBase {
     ValVector() : ValBase(){}
     virtual ~ValVector(){}
-    virtual ValBase * clone() const { return new ValVector(*this); }
+    std::unique_ptr<ValBase> clone() const final { return std::make_unique<ValVector>(*this); }
     void set_from_strrep(const std::string& s) final
     {
       std::string st = s; trim(st);
@@ -1088,21 +1089,9 @@ void NC::MatCfg::applyStrCfg( const std::string& str )
   }
 }
 
-#ifdef NCRYSTAL_STDCMAKECFG_EMBED_DATA_ON
-namespace NCrystal {
-  namespace internal {
-    void ensureInMemDBReadyMTSafe();//fwd declare NCFactory.cc function
-  }
-}
-#endif
-
 NC::MatCfg::MatCfg( const std::string& datafile_and_parameters )
-  : m_impl(0)
+  : m_impl(makeRC<Impl>())
 {
-  RCHolder<Impl> guard(new Impl());//refs now and releases in destructor, ensuring memory
-                                   //cleanup in case of bad input leading to exceptions.
-  m_impl = guard.obj();//set now, but only ref at end of constructor
-
   //Trim and split on ';', throwing away empty parts:
   std::string input(datafile_and_parameters);
   trim( input );
@@ -1116,10 +1105,9 @@ NC::MatCfg::MatCfg( const std::string& datafile_and_parameters )
   if (contains(parts.at(0),'='))
     NCRYSTAL_THROW2(BadInput,"Filename contains a forbidden character ('='): "<<parts.at(0));//catch typical user error
 
-#ifdef NCRYSTAL_STDCMAKECFG_EMBED_DATA_ON
-  //make sure embedded data files are ready by calling this NCFactory.cc function:
-  internal::ensureInMemDBReadyMTSafe();
-#endif
+  //make sure embedded data files are ready by calling this NCFactory.hh
+  //function:
+  ensureEmbeddedDataIsRegistered();
 
   //Don't just open files, use input streams -- we support e.g. in-memory files.
   auto inputstream = createTextInputStream( parts.at(0) );
@@ -1160,20 +1148,16 @@ NC::MatCfg::MatCfg( const std::string& datafile_and_parameters )
 
   if (getDataFileExtension().empty())
     NCRYSTAL_THROW2(BadInput,"Unsupported data file (can not determine extension): "<<getDataFileAsSpecified());
-
-  //Done - no more exceptions can be thrown, time to actually increase the
-  //refcount of m_impl (just before it is released by the guard):
-  m_impl->ref();
 }
 
 void NC::MatCfg::Impl::extractFileCfgStr( TextInputStream& input,
                                           std::string&res )
 {
-
-
   res.clear();
   std::string line;
   std::string pattern="NCRYSTALMATCFG";
+  const std::string& filename = m_datafile_resolved.empty() ? m_datafile_orig : m_datafile_resolved;
+
   while (input.getLine(line)) {
     std::size_t pos = line.find(pattern);
     if ( pos == std::string::npos )
@@ -1181,16 +1165,16 @@ void NC::MatCfg::Impl::extractFileCfgStr( TextInputStream& input,
     if (!contains(line,pattern))
       continue;
     if (!res.empty())
-      NCRYSTAL_THROW2(BadInput,"Input file contains more than one "<<pattern<<" specification: "<<m_datafile_resolved);
+      NCRYSTAL_THROW2(BadInput,"Input file contains more than one "<<pattern<<" specification: "<<filename);
     line = line.substr(pos+pattern.size());
     if (line.empty()||line.at(0)!='[')
-      NCRYSTAL_THROW2(BadInput,"Input file contains "<<pattern<<" which is not followed by a '[' character: "<<m_datafile_resolved);
+      NCRYSTAL_THROW2(BadInput,"Input file contains "<<pattern<<" which is not followed by a '[' character: "<<filename);
     if (line.find(pattern)!=std::string::npos)
-      NCRYSTAL_THROW2(BadInput,"Input file contains more than one "<<pattern<<" specification on a single line: "<<m_datafile_resolved);
+      NCRYSTAL_THROW2(BadInput,"Input file contains more than one "<<pattern<<" specification on a single line: "<<filename);
     line = line.substr(1);
     pos = line.find(']');
     if ( pos == std::string::npos )
-      NCRYSTAL_THROW2(BadInput,"Input file contains "<<pattern<<" without a closing ']' character: "<<m_datafile_resolved);
+      NCRYSTAL_THROW2(BadInput,"Input file contains "<<pattern<<" without a closing ']' character: "<<filename);
     res = line.substr(0,pos);
     if (res.empty())
       res = " ";//for detection of multiple occurances
@@ -1200,55 +1184,44 @@ void NC::MatCfg::Impl::extractFileCfgStr( TextInputStream& input,
 
 void NC::MatCfg::cow()
 {
-  if (m_impl->refCount()==1)
-    return;
-  Impl * newimpl = new Impl(*m_impl);
-  newimpl->ref();//ref new
-  std::swap(newimpl,m_impl);
-  newimpl->unref();//unref old
-  nc_assert(m_impl->refCount()==1);
+  nc_assert(m_impl!=nullptr);
+  if (m_impl->refCount()!=1)
+    m_impl = makeRC<Impl>(*m_impl);
 }
 
-NC::MatCfg::~MatCfg()
-{
-  if (m_impl)
-    m_impl->unref();
-}
+NC::MatCfg::~MatCfg() = default;
 
 
 NC::MatCfg::MatCfg(const MatCfg& o)
-  : m_impl(0)
+  : m_impl(o.m_impl)
 {
-  *this = o;
 }
 
 NC::MatCfg& NC::MatCfg::operator=(const MatCfg& o)
 {
-  o.m_impl->ref();
-  if (m_impl)
-    m_impl->unref();
   m_impl = o.m_impl;
   return *this;
 }
 
 NC::MatCfg& NC::MatCfg::operator=(MatCfg&& o)
 {
-  if (m_impl)
-    m_impl->unref();
-  m_impl = 0;
-  std::swap(m_impl,o.m_impl);
+  m_impl = std::move(o.m_impl);
   return *this;
 }
+
 NC::MatCfg::MatCfg(MatCfg&& o)
-  : m_impl(0)
+  : m_impl(std::move(o.m_impl))
 {
-  std::swap(m_impl,o.m_impl);
 }
 
 void NC::MatCfg::dump( std::ostream& out, bool add_endl ) const
 {
   std::string strcfg = toStrCfg( false );
-  out << "MatCfg(\""<<basename(m_impl->m_datafile_resolved);
+  out << "MatCfg(\"";
+  if ( m_impl->m_datafile_resolved.empty() )
+    out << m_impl->m_datafile_orig;//in-mem file most likely
+  else
+    out << basename(m_impl->m_datafile_resolved);
   if (m_impl->m_ignoredfilecfg)
     out << ";ignorefilecfg";
   if (!strcfg.empty())

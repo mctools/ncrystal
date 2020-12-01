@@ -21,10 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <string>
-#include <vector>
-
-#include "NCrystal/NCDefs.hh"
+#include "NCrystal/NCInfo.hh"
 #include "NCNXSLib.hh"
 
 namespace NCrystal {
@@ -34,14 +31,13 @@ namespace NCrystal {
   class LazLoader{
   public:
     LazLoader(std::string laz_file, double dcutlow, double dcutup, double temp);
-
-    ~LazLoader();
+    ~LazLoader() = default;
     void read();
-    Info* getCrystalInfo();
+    RCHolder<const Info> getCrystalInfo();
   protected:
     std::string m_full_path;
 
-    Info *m_cinfo;
+    RCHolder<Info> m_cinfo;
     double m_dcutlow;
     double m_dcutup;
     double m_temp;

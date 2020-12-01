@@ -100,15 +100,13 @@ void G4NCrystal::Manager::addScatterProperty(G4Material* mat,const NCrystal::Sca
   matprop->AddConstProperty(m_key.c_str(), idx);
 }
 
-void G4NCrystal::Manager::cleanup(bool removeFactories)
+void G4NCrystal::Manager::cleanup()
 {
   if (s_mgr) {
     delete s_mgr;
     s_mgr=0;
   }
   NCrystal::clearCaches();
-  if (removeFactories)
-    NCrystal::clearFactoryRegistry();
 }
 
 void G4NCrystal::Manager::clearCaches()

@@ -37,6 +37,9 @@ namespace NCrystal {
 
   NCRYSTAL_API RandomBase * defaultRandomGenerator(bool trigger_default = true);
 
+  //Safer version:
+  NCRYSTAL_API RCHolder<RandomBase> defaultRNG(bool trigger_default = true);
+
   //Generator implementing the xoroshiro128+ (XOR/rotate/shift/rotate) due to
   //David Blackman and Sebastiano Vigna (released into public domain / CC0
   //1.0). It has a period of 2^128-1, is very fast and passes most statistical

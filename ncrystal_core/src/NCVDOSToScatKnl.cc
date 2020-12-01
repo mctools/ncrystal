@@ -28,6 +28,7 @@
 #include "NCrystal/NCInfo.hh"
 namespace NC=NCrystal;
 #include <iostream>
+#include <algorithm>
 
 namespace NCrystal {
 
@@ -596,7 +597,8 @@ NC::VectD NC::setupBetaGrid( const NC::VDOSGn& Gn, double betaMax, unsigned vdos
     nc_assert( n1_near0 > 0 );
     nc_assert( grid.back() < 0.0 );
     auto v = geomspace(ncmin(1e-50,-0.001*grid.back()),-grid.back()*0.1,n1_near0);
-    for (auto e: reverse_view(v))
+    std::reverse(v.begin(),v.end());
+    for (auto e: v)
       grid.push_back( -e );
   }
   const auto idx_R1Back = grid.size()-1;
@@ -622,7 +624,7 @@ NC::ScatKnlData NC::createScatteringKernel( const VDOSData& vdosdata,
                                             VDOSGn::TruncAndThinningParams ttpars )
 {
   //Hidden unofficial env-vars used for special debugging purposes:
-  auto getEnvInt = [](const char* name, int defval = 0) { auto ev = getenv(name); return ev ? str2int(ev) : defval; };
+  auto getEnvInt = [](const char* name) { auto ev = getenv(name); return ev ? str2int(ev) :   0; };
   auto getEnvDbl = [](const char* name) { auto ev = getenv(name); return ev ? str2dbl(ev) : 0.0; };
   const unsigned override_max_order = getEnvInt("NCRYSTAL_HACK_MAXORDER");
   const double override_alphamax = getEnvDbl("NCRYSTAL_HACK_ALPHAMAX");

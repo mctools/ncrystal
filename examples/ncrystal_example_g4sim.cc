@@ -45,6 +45,7 @@
 #include "G4VSensitiveDetector.hh"
 #include "G4SDManager.hh"
 #include "G4StepPoint.hh"
+#include "G4ios.hh"
 
 class MySD : public G4VSensitiveDetector {
   //////////////////////////////////////////////////////////////////////////////
@@ -55,7 +56,7 @@ public:
   MySD() : G4VSensitiveDetector("MySD") {}
   virtual ~MySD(){}
 
-  virtual G4bool ProcessHits(G4Step* step, G4TouchableHistory*)
+  G4bool ProcessHits(G4Step* step, G4TouchableHistory*) final
   {
     if (step->GetPreStepPoint()->GetStepStatus() != fGeomBoundary)
       return true;//must have just entered the volume
@@ -65,7 +66,7 @@ public:
     double r = sqrt(pos.x()*pos.x()+pos.y()*pos.y());
     if (pos.z()>0&&r<0.001*mm)
       return true;//No scattering took place
-    printf("Hit detected at theta = %.0f deg!\n",atan2(r,pos.z())*NCrystal::kToDeg);
+    G4cout << "Hit detected at theta = "<<atan2(r,pos.z())*NCrystal::kToDeg<<" deg"<<G4endl;
     return true;
   }
 };
@@ -80,9 +81,9 @@ class MyGeo : public G4VUserDetectorConstruction {
   // negligible.
   //////////////////////////////////////////////////////////////////////////////
 public:
-  MyGeo(){}
-  virtual ~MyGeo(){}
-  virtual G4VPhysicalVolume* Construct()
+  MyGeo() = default;
+  virtual ~MyGeo() = default;
+  G4VPhysicalVolume* Construct() final
   {
     G4Material * mat_vacuum = G4NistManager::Instance()->FindOrBuildMaterial("G4_Galactic",true);
     G4Material * mat_aluminium = G4NCrystal::createMaterial("Al_sg225.ncmat");
@@ -120,12 +121,9 @@ public:
     m_particleGun->SetParticleMomentumDirection(G4ThreeVector(0.0, 0.0, 1.0));
   }
 
-  virtual ~MyGun()
-  {
-    delete m_particleGun;
-  }
+  virtual ~MyGun() = default;
 
-  void GeneratePrimaries(G4Event* evt)
+  void GeneratePrimaries(G4Event* evt) final
   {
     m_particleGun->GeneratePrimaryVertex(evt);
   }
@@ -135,19 +133,18 @@ public:
   }
 
 private:
-  G4ParticleGun* m_particleGun;
+  std::unique_ptr<G4ParticleGun> m_particleGun;
 };
 
 int main(int,char**) {
 
   NCrystal::libClashDetect();//Detect broken installation
 
-
   //Set seed:
   CLHEP::HepRandom::setTheSeed(123);
 
   //G4 Run manager:
-  G4RunManager* runManager = new G4RunManager;
+  std::unique_ptr<G4RunManager> runManager(new G4RunManager);
 
   //Setup geometry and physics-list:
   runManager->SetUserInitialization(new MyGeo);
@@ -169,8 +166,6 @@ int main(int,char**) {
   runManager->BeamOn(1000);
 
   //Cleanup:
-  delete runManager;
-
   G4NCrystal::Manager::cleanup();//delete manager singleton, unref cached ncrystal objects (for valgrind).
 
   return 0;

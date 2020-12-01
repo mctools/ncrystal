@@ -42,6 +42,11 @@ NC::SABScatter::SABScatter( std::shared_ptr<const NC::SAB::SABScatterHelper> sh 
   nc_assert_always(m_sh);
 }
 
+NC::SABScatter::SABScatter( std::unique_ptr<const NC::SAB::SABScatterHelper> upsh )
+  : SABScatter(std::shared_ptr<const NC::SAB::SABScatterHelper>{std::move(upsh)})
+{
+}
+
 NC::SABScatter::SABScatter( NC::SAB::SABScatterHelper&& sh )
   : SABScatter( std::make_shared<SAB::SABScatterHelper>(std::move(sh)) )
 {

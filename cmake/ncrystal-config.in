@@ -1,0 +1,216 @@
+#!/usr/bin/env python3
+
+################################################################################
+##                                                                            ##
+##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
+##                                                                            ##
+##  Copyright 2015-2020 NCrystal developers                                   ##
+##                                                                            ##
+##  Licensed under the Apache License, Version 2.0 (the "License");           ##
+##  you may not use this file except in compliance with the License.          ##
+##  You may obtain a copy of the License at                                   ##
+##                                                                            ##
+##      http://www.apache.org/licenses/LICENSE-2.0                            ##
+##                                                                            ##
+##  Unless required by applicable law or agreed to in writing, software       ##
+##  distributed under the License is distributed on an "AS IS" BASIS,         ##
+##  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  ##
+##  See the License for the specific language governing permissions and       ##
+##  limitations under the License.                                            ##
+##                                                                            ##
+################################################################################
+
+import sys
+
+pyversion = sys.version_info[0:3]
+_minpyversion = (3,5,0)
+if pyversion < (3,0,0):
+    raise SystemExit('NCrystal does not support Python2.')
+if pyversion < (3,5,0):
+    raise SystemExit('ERROR: Unsupported python version %i.%i.%i detected (needs %i.%i.%i or later).'%(pyversion+_minpyversion))
+
+import pathlib
+import argparse
+import os
+import shlex
+import shutil
+
+cmakebool = lambda s : bool(s.lower() in ['1','on','yes','y'] or (s.isdigit() and int(s)>1))
+#Information filled out by CMake (todo: put all logic below on cmake-side?):
+installation_info = dict( libdir = '@NCrystal_relpath_BINDIR2LIBDIR@',
+                          datadir = '@NCrystal_relpath_BINDIR2DATAROOT@/data' if cmakebool('@INSTALL_DATA@') else None,
+                          mcstasdir = '@NCrystal_relpath_BINDIR2DATAROOT@/mcstas' if cmakebool('@INSTALL_MCSTAS@') else None,
+                          pythonpath = '@NCrystal_relpath_BINDIR2DATAROOT@/python',
+                          cmakedir = '@NCrystal_relpath_BINDIR2CMAKEDIR@',
+                          includedir = '@NCrystal_relpath_BINDIR2INCDIR@',
+                          prefix = '@NCrystal_relpath_BINDIR2ROOT@',
+                          bindir = '.',
+                          libname = '@NCrystal_LIBNAME@',
+                          libnameg4 = '@G4NCrystal_LIBNAME@',
+                          libpath = '@NCrystal_relpath_BINDIR2LIBDIR@/@NCrystal_LIBNAME@',
+                          libpathg4 = '@NCrystal_relpath_BINDIR2LIBDIR@/@G4NCrystal_LIBNAME@' if cmakebool('@BUILD_G4HOOKS@') else None,
+                          version = '@NCrystal_VERSION@',
+                          build_type = '@CMAKE_BUILD_TYPE@',
+                          opt_examples = cmakebool('@BUILD_EXAMPLES@'),
+                          opt_g4hooks = cmakebool('@BUILD_G4HOOKS@'),
+                          opt_nxslaz = cmakebool('@BUILD_EXTRA@'),
+                          opt_mcstas = cmakebool('@INSTALL_MCSTAS@'),
+                          opt_data=(cmakebool('@INSTALL_DATA@') or cmakebool('@EMBED_DATA@')),
+                          opt_install_setupsh = cmakebool('@INSTALL_SETUPSH@'),
+                          opt_embed_data = cmakebool('@EMBED_DATA@'),
+                          opt_modify_rpath = cmakebool('@MODIFY_RPATH@'),
+                          opt_dynamic_plugins = not cmakebool('@DISABLE_DYNLOAD@'),
+                          builtin_plugins='@NCrystal_builtin_plugin_names@',
+                         )
+
+__version__ = installation_info['version']
+
+def hasopt(optname):
+    return installation_info['opt_%s'%optname]
+
+####Remove some directories if nothing was installed there due configuration options:
+###if not ( hasopt('data') and not hasopt('embed_data') ):
+###    installation_info['datadir']=None
+###if not ( hasopt('mcstas') and not hasopt('embed_data') ):
+###    installation_info['mcstasdir']=None
+###
+
+_options = list(sorted(e[4:] for e in installation_info.keys() if e.startswith('opt_')))
+_infos_nonoptions = list(sorted(e for e in installation_info.keys() if not e.startswith('opt_')))
+
+def lookup_choice(name):
+    info=installation_info[name]
+    if info is None:
+        #represent missing info with empty string.
+        return ''
+    if name in ['libname','libnameg4','build_type','version','builtin_plugins']:
+        #not a resolvable path
+        return info
+    _=pathlib.Path(__file__).parent.joinpath(info).absolute()
+    if not _.exists():
+        raise SystemExit('Could not find path to %s (expected it in %s)'%(name,_))
+    return _.resolve()
+
+def unique_list(seq):
+    seen = set()
+    return [x for x in seq if not (x in seen or seen.add(x))]
+
+def modify_path_var(varname,apath,remove=False):
+    """Create new value suitable for an environment path variable (varname can for
+    instance be "PATH", "LD_LIBRARY_PATH", etc.). If remove is False, it will add
+    apath to the front of the list. If remove is True, all references to apath will
+    be removed. In any case, duplicate entries are removed (keeping the first entry).
+    """
+    apath = str(apath.absolute().resolve())
+    others = list(e for e in os.environ.get(varname,'').split(':') if (e and e!=apath))
+    return ':'.join(unique_list(others if remove else ([apath]+others)))
+
+#fs-path aware quote:
+shell_quote = lambda s : shlex.quote(str(s) if hasattr(s,'__fspath__') else s)
+
+def print_shell_setup(remove=False):
+    out=[]
+
+    # problematic... #  #Unset other ncrystal installation, if present (only if NCRYSTALDIR is set,
+    # problematic... #  #since then we hopefully avoid triggering --unsetup on systemwide NCrystal
+    # problematic... #  #installations):
+    # problematic... #  if os.environ.get('NCRYSTALDIR',None):
+    # problematic... #      existing_nccfg=shutil.which('ncrystal-config')
+    # problematic... #      _ = pathlib.Path(existing_nccfg) if existing_nccfg is not None else None
+    # problematic... #      if _ is not None and _.exists() and not _.samefile(__file__):
+    # problematic... #          out.append('eval %s --unsetup'%shell_quote(_.absolute().resolve()))
+    # problematic... #          out.append('eval %s --%s'%( shell_quote(pathlib.Path(__file__).absolute().resolve()),
+    # problematic... #                                      'unsetup' if remove else 'setup' ) )
+    # problematic... #          print('\n'.join(out))
+    # problematic... #          return
+
+    def export_quoted(varname,value):
+        return 'export %s'%shell_quote('%s=%s'%(varname,value))
+
+    #Handle path-like variables:
+    def handle_var(varname,dirname):
+        return export_quoted(varname,modify_path_var(varname,lookup_choice(dirname),remove=remove))
+    out.append(handle_var('PATH', 'bindir'))
+    out.append(handle_var('LD_LIBRARY_PATH', 'libdir'))
+    if sys.platform=='darwin' or lookup_choice('libname').endswith('.dylib'):
+        out.append(handle_var('DYLD_LIBRARY_PATH', 'libdir'))
+    out.append(handle_var('PYTHONPATH','pythonpath'))
+    out.append(handle_var('CMAKE_PREFIX_PATH','cmakedir'))
+    out.append(handle_var('PYTHONPATH','pythonpath'))
+
+    #Handle non-path variables (nb: "unset VARNAME" seems to not work in some
+    #contexts, so we also "export VARNAME=" for good measure).
+    has_datadir = hasopt('data') and not hasopt('embed_data')
+    if remove or not has_datadir:
+        out.append('export NCRYSTAL_DATADIR=')
+        out.append('unset NCRYSTAL_DATADIR')
+    else:
+        out.append(export_quoted('NCRYSTAL_DATADIR',lookup_choice('datadir')))
+    if remove:
+        out.append('export NCRYSTALDIR=')
+        out.append('unset NCRYSTALDIR')
+    else:
+        out.append(export_quoted('NCRYSTALDIR',lookup_choice('prefix')))
+
+    print('\n'.join(out))
+
+def print_summary():
+    print('==> NCrystal v%s with configuration:\n'%__version__)
+    for opt in _options:
+        print('  %20s : %s'%(opt,'ON' if installation_info['opt_%s'%opt] else 'OFF'))
+    for info in [e for e in _infos_nonoptions if not e=='version']:
+        print('  %20s : %s'%(info,lookup_choice(info)))
+    print()
+
+def parse_cmdline():
+    parser = argparse.ArgumentParser()
+    #TODO: show builtin plugins
+
+    parser.add_argument('-v','--version', action='version', version=__version__,help='show the NCrystal version number and exit')
+    parser.add_argument('--intversion', action='store_true',
+                        help='show ncrystal version encoded into single integral number (e.g. v2.1.3 is 2001003) and exit')
+    parser.add_argument('-s','--summary', action='store_true',
+                        help='print summary information about installation and exit')
+    parser.add_argument('--show',type=str,choices=[e for e in _infos_nonoptions if not e in ['version']],
+                        help='print requested information about NCrystal installation and exit')
+    parser.add_argument('--option',type=str,choices=_options,
+                       help='print value of build option used in current installation and exit (prints "on" or "off")')
+
+    parser.add_argument('--setup', action='store_true',
+                        help="""emit shell code which can be used to setup environment for NCrystal usage and exit
+                        (type "$(%(prog)s --setup)" in a shell to apply to current environment).""")
+
+    parser.add_argument('--unsetup', action='store_true',
+                        help="""emit shell code which can be used to undo the effect of --setup and exit (type
+                        "$(%(prog)s --unsetup)" in a shell to apply to current environment). This might
+                        have unwanted side-effects if the directories of the NCrystal installation are mixed
+                        up with files from other software packages.""")
+
+    args=parser.parse_args()
+
+    nargs=sum(int(bool(e)) for e in (args.show,args.summary,args.option,args.setup,args.unsetup,args.intversion))
+    if nargs == 0:
+        parser.error('Missing arguments. Run with --help for usage instructions.')
+    if nargs > 1:
+        parser.error('Too many options specified.')
+    return args
+
+def main():
+    args = parse_cmdline()
+    if args.summary:
+        print_summary()
+    elif args.show:
+        print(lookup_choice(args.show))
+    elif args.intversion:
+        print(sum(a*b for a,b in zip((int(e) for e in __version__.split('.')), (1000000, 1000, 1))))
+    elif args.option:
+        print('1' if installation_info['opt_%s'%args.option] else '0')
+    elif args.setup:
+        print_shell_setup()
+    elif args.unsetup:
+        print_shell_setup(remove=True)
+    else:
+        raise SystemExit('ERROR: Missing choice (should not happen).')
+
+if __name__ == '__main__':
+    main()

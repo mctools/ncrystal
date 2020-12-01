@@ -37,7 +37,6 @@ int main() {
 
   NCrystal::libClashDetect();//Detect broken installation
 
-
   //Setup random generator:
   NCrystal::setDefaultRandomGenerator(new MyRandGen);
 

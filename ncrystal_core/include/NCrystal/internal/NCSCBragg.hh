@@ -71,7 +71,7 @@ namespace NCrystal {
   private:
     virtual ~SCBragg();
     struct pimpl;
-    pimpl * m_pimpl;
+    std::unique_ptr<pimpl> m_pimpl;
   };
 
 }

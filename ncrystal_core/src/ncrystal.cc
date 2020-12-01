@@ -20,12 +20,14 @@
 
 #include "NCrystal/ncrystal.h"
 #include "NCrystal/NCDefs.hh"
+#include "NCrystal/NCFile.hh"
 #include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCScatter.hh"
 #include "NCrystal/NCAbsorption.hh"
 #include "NCrystal/NCMatCfg.hh"
 #include "NCrystal/NCFactory.hh"
 #include "NCrystal/NCFactoryRegistry.hh"
+#include "NCrystal/NCPluginMgmt.hh"
 #include "NCrystal/internal/NCDynInfoUtils.hh"
 #include "NCrystal/NCDump.hh"
 #include "NCrystal/internal/NCMath.hh"
@@ -662,7 +664,10 @@ double ncrystal_info_dspacing_from_hkl( ncrystal_info_t ci_t, int h, int k, int 
 void ncrystal_setrandgen( double (*rg)() )
 {
   try {
-    NC::setDefaultRandomGenerator( rg ? new ncc::RandFctWrapper(rg) : 0);
+    NC::RCHolder<NC::RandomBase> newrng;
+    if (rg)
+      newrng = NC::makeRC<ncc::RandFctWrapper>(rg);
+    NC::setDefaultRandomGenerator( newrng.obj() );
   } NCCATCH;
 }
 
@@ -682,7 +687,7 @@ void ncrystal_restore_randgen()
   try {
     NC::RandomBase * rng = ncc::saved_rng.obj();
     NC::RCGuard guard(rng);
-    ncc::saved_rng = 0;
+    ncc::saved_rng = nullptr;
     NC::setDefaultRandomGenerator( rng );
   } NCCATCH;
 }
@@ -690,9 +695,8 @@ void ncrystal_restore_randgen()
 void ncrystal_setbuiltinrandgen()
 {
   try {
-    NC::RandomBase * rng = new NC::RandXRSR();
-    NC::RCGuard guard(rng);
-    NC::setDefaultRandomGenerator( rng );
+    auto rng = NC::makeRC<NC::RandXRSR>();
+    NC::setDefaultRandomGenerator( rng.obj() );
   } NCCATCH;
 }
 
@@ -873,7 +877,7 @@ void ncrystal_genscatter( ncrystal_scatter_t o, double ekin, const double (*dire
 ncrystal_info_t ncrystal_create_info( const char * cfgstr )
 {
   ncrystal_info_t o;
-  o.internal = 0;
+  o.internal = nullptr;
   try {
     const NC::Info * info = NC::createInfo(cfgstr);
     nc_assert(info);
@@ -904,7 +908,7 @@ unsigned ncrystal_decodecfg_vdoslux( const char * cfgstr )
 ncrystal_scatter_t ncrystal_create_scatter( const char * cfgstr )
 {
   ncrystal_scatter_t o;
-  o.internal = 0;
+  o.internal = nullptr;
   try {
     const NC::Scatter * scatter = NC::createScatter(cfgstr);
     nc_assert(scatter);
@@ -917,7 +921,7 @@ ncrystal_scatter_t ncrystal_create_scatter( const char * cfgstr )
 ncrystal_absorption_t ncrystal_create_absorption( const char * cfgstr )
 {
   ncrystal_absorption_t o;
-  o.internal = 0;
+  o.internal = nullptr;
   try {
     const NC::Absorption * absorption = NC::createAbsorption(cfgstr);
     nc_assert(absorption);
@@ -952,13 +956,6 @@ void ncrystal_enable_caching()
 {
   try {
     NC::enableCaching();
-  } NCCATCH;
-}
-
-void ncrystal_clear_factory_registry()
-{
-  try {
-    NC::clearFactoryRegistry();
   } NCCATCH;
 }
 
@@ -1200,7 +1197,7 @@ ncrystal_atomdata_t ncrystal_create_atomdata( ncrystal_info_t ci_t,
   }
   try {
     NC::Info * ci = ncc::extract_info(ci_t);
-    NC::RCHolder<ncc::AtomWrapper> wrapper_holder(new ncc::AtomWrapper);
+    auto wrapper_holder = NC::makeRC<ncc::AtomWrapper>();
     auto& wrapper = *wrapper_holder.obj();
     wrapper.atomDataSP = ci->atomDataSP(NC::AtomIndex{atomdataindex});
     nc_assert(!!wrapper.atomDataSP);
@@ -1264,7 +1261,7 @@ ncrystal_atomdata_t ncrystal_create_atomdata_subcomp( ncrystal_atomdata_t ad_t,
   try {
     nc_assert(!!atomwrapper_parent->atomDataSP);
     const auto& comp = atomwrapper_parent->atomDataSP->getComponent(icomponent);
-    NC::RCHolder<ncc::AtomWrapper> wrapper_holder(new ncc::AtomWrapper);
+    auto wrapper_holder = NC::makeRC<ncc::AtomWrapper>();
     auto& wrapper = *wrapper_holder.obj();
     wrapper.atomDataSP = comp.data;
     nc_assert(!!wrapper.atomDataSP);
@@ -1323,7 +1320,7 @@ ncrystal_atomdata_t ncrystal_create_atomdata_fromdb( unsigned z, unsigned a )
   ncrystal_atomdata_t o;
   o.internal = nullptr;
   try {
-    NC::RCHolder<ncc::AtomWrapper> wrapper_holder(new ncc::AtomWrapper);
+    auto wrapper_holder = NC::makeRC<ncc::AtomWrapper>();
     auto& wrapper = *wrapper_holder.obj();
     wrapper.atomDataSP = NC::AtomDB::getIsotopeOrNatElem(z,a);
     if (!wrapper.atomDataSP)
@@ -1363,10 +1360,122 @@ unsigned ncrystal_atomdatadb_getnentries()
 void ncrystal_atomdatadb_getallentries( unsigned* zvals,
                                         unsigned* avals )
 {
-  std::vector<std::pair<unsigned,unsigned>> all = NC::AtomDB::getAllEntries();
-  nc_assert( static_cast<unsigned>(all.size()) == ncrystal_atomdatadb_getnentries() );
-  for ( auto& e : all ) {
-    *zvals++ = e.first;
-    *avals++ = e.second;
+  try {
+    std::vector<std::pair<unsigned,unsigned>> all = NC::AtomDB::getAllEntries();
+    nc_assert( static_cast<unsigned>(all.size()) == ncrystal_atomdatadb_getnentries() );
+    for ( auto& e : all ) {
+      *zvals++ = e.first;
+      *avals++ = e.second;
+    }
+  } NCCATCH;
+}
+
+
+namespace NCrystal {
+
+  namespace NCCInterface {
+    char * createString(const std::string& ss)
+    {
+      auto nn = ss.size() + 1;
+      char * cs = new char[nn];
+      std::memcpy(cs,&ss[0],nn);
+      return cs;
+    }
+
+    void createStringList(const NC::VectS& l, char*** tgt, unsigned* tgtlen)
+    {
+      if (l.empty()) {
+        *tgt = nullptr;
+        *tgtlen = 0;
+        return;
+      }
+      nc_assert_always( l.size() < std::numeric_limits<unsigned>::max() );
+      unsigned len = static_cast<unsigned>(l.size());
+      char ** out = new char*[len];
+      char ** it = out;
+      for ( auto& e : l ) {
+        nc_assert(it<(out + len));
+        *it = new char[e.size()+1];
+        std::memcpy(*it,&e[0],e.size()+1);
+        ++it;
+      }
+      *tgtlen = len;
+      *tgt = out;
+    }
   }
 }
+void ncrystal_dealloc_stringlist( unsigned length, char** sl )
+{
+  if (sl) {
+    nc_assert(length>0);
+    for (unsigned i = 0; i < length; ++i)
+      delete[] const_cast<char*>(sl[i]);
+    delete[] sl;
+  }
+}
+
+void ncrystal_dealloc_string( char* ss )
+{
+  if (ss)
+    delete[] ss;
+}
+
+void ncrystal_get_file_list( const char* extension,
+                             unsigned* nstrs,
+                             char*** strs )
+{
+  try {
+    //make sure embedded data files are ready by calling this NCFactory.hh function:
+    NC::ensureEmbeddedDataIsRegistered();
+    auto fl = NC::listAvailableFiles(extension);
+    NC::VectS strlist;
+    strlist.reserve(3*fl.size());
+    for ( auto& e : fl ) {
+      strlist.emplace_back(e.basename);
+      strlist.emplace_back(e.source);
+      strlist.emplace_back(e.hidden?"1":"0");
+    }
+    ncc::createStringList(strlist,strs,nstrs);
+  } NCCATCH;
+}
+
+void ncrystal_get_plugin_list( unsigned* nstrs,
+                               char*** strs )
+{
+  try {
+    auto plugins = NC::Plugins::loadedPlugins();
+    NC::VectS strlist;
+    strlist.reserve( 3 * plugins.size() );
+    for ( auto& e : plugins ) {
+      nc_assert_always( e.pluginType==NC::Plugins::PluginType::Dynamic
+                        || e.pluginType==NC::Plugins::PluginType::Builtin);
+      std::string ptypestr( e.pluginType==NC::Plugins::PluginType::Dynamic
+                            ? "dynamic" : "builtin" );
+      strlist.emplace_back(e.pluginName);
+      strlist.emplace_back(e.fileName);
+      strlist.emplace_back(ptypestr);
+    }
+    ncc::createStringList(strlist,strs,nstrs);
+  } NCCATCH;
+}
+
+char* ncrystal_get_file_contents( const char * name )
+{
+  try {
+    //make sure embedded data files are ready by calling this NCFactory.hh
+    //function:
+    NC::ensureEmbeddedDataIsRegistered();
+    auto textstream = NC::createTextInputStream( name );
+    if (!textstream)
+      return nullptr;
+    std::ostringstream sstream;
+    std::string ss;
+    while (textstream->getLine(ss))
+      sstream << ss << "\n";
+    return ncc::createString(sstream.str());
+  } catch ( NC::Error::FileNotFound& e ) {
+    return nullptr;
+  } NCCATCH;
+  return nullptr;
+}
+

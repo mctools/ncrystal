@@ -79,7 +79,6 @@ extern "C" {
   NCRYSTAL_API void ncrystal_clear_info_caches(); /*NB: ncrystal_clear_caches below clears more! */
   NCRYSTAL_API void ncrystal_disable_caching(); /*NB: this concerns Info object caching only! */
   NCRYSTAL_API void ncrystal_enable_caching();  /*NB: this concerns Info object caching only! */
-  NCRYSTAL_API void ncrystal_clear_factory_registry();
   NCRYSTAL_API int ncrystal_has_factory( const char * name );
 
   /*============================================================================== */
@@ -337,12 +336,30 @@ extern "C" {
   NCRYSTAL_API void ncrystal_register_in_mem_file_data(const char* virtual_filename,
                                                        const char* data);
 
+  /* Browse (some) available files. Resulting string list must be deallocated by a */
+  /* call to ncrystal_dealloc_stringlist by, and contains entries in the format    */
+  /* name0,src0,hid0,name1,src1,hid1...:                                           */
+  NCRYSTAL_API void ncrystal_get_file_list( const char* extension,
+                                            unsigned* nstrs, char*** strs );
+
+  /* Get list of plugins. Resulting string list must be deallocated by a call to   */
+  /* ncrystal_dealloc_stringlist by, and contains entries in the format            */
+  /* pluginname0,filename0,plugintype0,pluginname1,filename1,plugintype1,...:      */
+  NCRYSTAL_API void ncrystal_get_plugin_list( unsigned* nstrs, char*** strs );
+
+  /* Access file contents (must free afterwards with ncrystal_dealloc_string)      */
+  NCRYSTAL_API char* ncrystal_get_file_contents( const char * name );
+
+  /* Deallocate strings:                                                           */
+  NCRYSTAL_API void ncrystal_dealloc_stringlist( unsigned len, char** );
+  NCRYSTAL_API void ncrystal_dealloc_string( char* );
+
   /* NCrystal version info:                                                        */
 #define NCRYSTAL_VERSION_MAJOR 2
-#define NCRYSTAL_VERSION_MINOR 1
-#define NCRYSTAL_VERSION_PATCH 1
-#define NCRYSTAL_VERSION   2001001 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
-#define NCRYSTAL_VERSION_STR "2.1.1"
+#define NCRYSTAL_VERSION_MINOR 2
+#define NCRYSTAL_VERSION_PATCH 0
+#define NCRYSTAL_VERSION   2002000 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
+#define NCRYSTAL_VERSION_STR "2.2.0"
   NCRYSTAL_API int ncrystal_version(); /* returns NCRYSTAL_VERSION                  */
   NCRYSTAL_API const char * ncrystal_version_str(); /* returns NCRYSTAL_VERSION_STR */
 

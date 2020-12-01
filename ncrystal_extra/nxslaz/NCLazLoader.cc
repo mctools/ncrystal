@@ -32,22 +32,23 @@
 #include <stdint.h>
 #include <iostream>
 
-//TODO: lower priority version without sginfo dep could go to dist/
+namespace NC = NCrystal;
+
+//NB: lower priority version without sginfo dep could go to ncrystal core code with...
 
 namespace NCrystal {
   double str2dbl_laz(const std::string& s) { return str2dbl(s,"Invalid number in .laz/.lau file"); }
   double str2int_laz(const std::string& s) { return str2int(s,"Invalid integer in .laz/.lau file"); }
 }
 
-NCrystal::LazLoader::LazLoader(std::string laz_file,double dcutlow, double dcutup, double temp)
+NC::LazLoader::LazLoader(std::string laz_file,double dcutlow, double dcutup, double temp)
   : m_full_path(laz_file), m_dcutlow(dcutlow), m_dcutup(dcutup), m_temp(temp)
 {
   nc_assert_always( dcutlow==-1 || ( dcutlow>=0 && dcutlow < dcutup ) );
-  m_cinfo = new NCrystal::Info();
-  m_cinfo->ref();
+  m_cinfo = makeRC<Info>();
 }
 
-bool NCrystal::LazLoader::setupSgInfo(unsigned spaceGroupNbr, nxs::T_SgInfo& sgInfo) {
+bool NC::LazLoader::setupSgInfo(unsigned spaceGroupNbr, nxs::T_SgInfo& sgInfo) {
   nc_assert_always(!nxs::SgError);
   sgInfo.MaxList = 1024;
   sgInfo.ListSeitzMx = (nxs::T_RTMx*)malloc( sgInfo.MaxList * sizeof(*sgInfo.ListSeitzMx) );
@@ -81,17 +82,12 @@ bool NCrystal::LazLoader::setupSgInfo(unsigned spaceGroupNbr, nxs::T_SgInfo& sgI
   return true;
 }
 
-NCrystal::LazLoader::~LazLoader()
-{
-  m_cinfo->unref();
-}
-
-NCrystal::Info* NCrystal::LazLoader::getCrystalInfo()
+NC::RCHolder<const NC::Info> NC::LazLoader::getCrystalInfo()
 {
   return m_cinfo;
 }
 
-void NCrystal::LazLoader::read()
+void NC::LazLoader::read()
 {
   std::ifstream infile;
   std::string line="";
@@ -124,7 +120,7 @@ void NCrystal::LazLoader::read()
     m_cinfo->setDensity(density);
 
   //set structure info
-  NCrystal::StructureInfo structure_info;
+  StructureInfo structure_info;
   if(!search_spacegroup(structure_info.spacegroup))
     NCRYSTAL_THROW2(DataLoadError,"Can not find space group definition in the input file \""<<m_full_path<<"\"");
 
@@ -317,7 +313,7 @@ void NCrystal::LazLoader::read()
   m_cinfo->objectDone();
 }
 
-bool NCrystal::LazLoader::search_parameter(std::string attr, double &result )
+bool NC::LazLoader::search_parameter(std::string attr, double &result )
 {
   for (RawItr it = m_raw_header.begin() ; it != m_raw_header.end(); ++it)
     {
@@ -333,7 +329,7 @@ bool NCrystal::LazLoader::search_parameter(std::string attr, double &result )
   return false;
 }
 
-bool NCrystal::LazLoader::search_index(std::string attr, unsigned &result)
+bool NC::LazLoader::search_index(std::string attr, unsigned &result)
 {
   for (RawItr it = m_raw_header.begin() ; it != m_raw_header.end(); ++it)
     {
@@ -349,7 +345,7 @@ bool NCrystal::LazLoader::search_index(std::string attr, unsigned &result)
   return false;
 }
 
-unsigned NCrystal::LazLoader::countAtom(std::string formula)
+unsigned NC::LazLoader::countAtom(std::string formula)
 {
   const char * sp = formula.c_str();
   unsigned nCap =0;
@@ -381,7 +377,7 @@ unsigned NCrystal::LazLoader::countAtom(std::string formula)
 }
 
 
-bool NCrystal::LazLoader::search_spacegroup(unsigned &result)
+bool NC::LazLoader::search_spacegroup(unsigned &result)
 {
   for (RawItr it = m_raw_header.begin() ; it != m_raw_header.end(); ++it)
     {
@@ -401,8 +397,8 @@ bool NCrystal::LazLoader::search_spacegroup(unsigned &result)
               nxs::SgError = 0;
               const nxs::T_TabSgName * tsgn = nxs::FindTabSgNameEntry(sg_name.c_str(), 'A');
               if (nxs::SgError) {
-                printf("NCrystal::loadLazCrystal ERROR: Problems using SgInfo to decode space group symbol\n");
-                printf("NCrystal::loadLazCrystal ERROR: Problem was \"%s\".\n",nxs::SgError);
+                NCRYSTAL_THROW2(BadInput,"loadLazCrystal ERROR: Problems using SgInfo to decode"
+                                " space group symbol. Problem was: \""<<nxs::SgError<<"\".");
                 nxs::SgError = old_SgError;
                 return false;
               }
@@ -415,7 +411,7 @@ bool NCrystal::LazLoader::search_spacegroup(unsigned &result)
   return false;
 }
 
-bool NCrystal::LazLoader::search_multiplicity(unsigned &result )
+bool NC::LazLoader::search_multiplicity(unsigned &result )
 {
   for (RawItr it = m_raw_header.begin() ; it != m_raw_header.end(); ++it)
     {

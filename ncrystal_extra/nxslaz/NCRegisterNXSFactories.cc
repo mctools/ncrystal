@@ -24,16 +24,18 @@
 #include "NCFactory_NXS.hh"
 #include "NCLazLoader.hh"
 
+namespace NC = NCrystal;
+
 namespace NCrystal {
 
-  class NXSFactory : public FactoryBase {
+  class NXSFactory final : public FactoryBase {
   public:
-    const char * getName() const { return "stdnxs"; }
+    const char * getName() const final { return "stdnxs"; }
 
-    virtual int canCreateInfo( const MatCfg& cfg ) const {
+    int canCreateInfo( const MatCfg& cfg ) const final {
       return cfg.getDataFileExtension()=="nxs" ? 100 : 0;
     }
-    virtual const Info * createInfo( const MatCfg& cfg ) const
+    RCHolder<const Info> createInfo( const MatCfg& cfg ) const final
     {
       nc_assert_always(canCreateInfo(cfg));
       const char * flag_bkgdlikemcstas = "mcstaslikebkgd";
@@ -49,27 +51,21 @@ namespace NCrystal {
     }
   };
 
-  class LazFactory : public FactoryBase {
+  class LazFactory final : public FactoryBase {
   public:
-    const char * getName() const { return "stdlaz"; }
-    virtual int canCreateInfo( const MatCfg& cfg ) const {
+    const char * getName() const final { return "stdlaz"; }
+    int canCreateInfo( const MatCfg& cfg ) const final {
       std::string ext = cfg.getDataFileExtension();
       return (ext=="laz"||ext=="lau") ? 100 : 0;
     }
-    virtual const Info * createInfo( const MatCfg& cfg ) const
+    RCHolder<const Info> createInfo( const MatCfg& cfg ) const final
     {
-      const Info *ci(0);
-      {
-        LazLoader ld (cfg.getDataFile().c_str(),
-                      cfg.get_dcutoff(),
-                      cfg.get_dcutoffup(),
-                      cfg.get_temp()==-1.0?293.15:cfg.get_temp());
-        ld.read();
-        ci = ld.getCrystalInfo();
-        ci->ref();//Avoid deletion when ld unrefs.
-      }
-      ci->unrefNoDelete();
-      return ci;
+      LazLoader ld (cfg.getDataFile().c_str(),
+                    cfg.get_dcutoff(),
+                    cfg.get_dcutoffup(),
+                    cfg.get_temp()==-1.0?293.15:cfg.get_temp());
+      ld.read();
+      return ld.getCrystalInfo();
     }
   };
 
@@ -81,8 +77,8 @@ namespace NCrystal {
 
 extern "C" void ncrystal_register_nxslaz_factories()
 {
-  if (!NCrystal::hasFactory("stdnxs"))
-    NCrystal::registerFactory(new NCrystal::NXSFactory);
-  if (!NCrystal::hasFactory("stdlaz"))
-    NCrystal::registerFactory(new NCrystal::LazFactory);
+  if (!NC::hasFactory("stdnxs"))
+    NC::registerFactory( std::make_unique<NC::NXSFactory>() );
+  if (!NC::hasFactory("stdlaz"))
+    NC::registerFactory( std::make_unique<NC::LazFactory>() );
 }

@@ -29,6 +29,8 @@
 #include <cstring>
 #include <iostream>
 
+namespace NC = NCrystal;
+
 namespace NCrystal {
   void initNXS( nxs::NXS_UnitCell* uc,
                 const char * nxs_file,
@@ -111,7 +113,7 @@ namespace NCrystal {
   };
 }
 
-double NCrystal::XSectProvider_NXS::xsectScatNonBragg(const double& lambda) const
+double NC::XSectProvider_NXS::xsectScatNonBragg(const double& lambda) const
 {
 
   nxs::NXS_UnitCell* ucpar = const_cast<nxs::NXS_UnitCell*>(&nxs_uc);
@@ -127,7 +129,7 @@ double NCrystal::XSectProvider_NXS::xsectScatNonBragg(const double& lambda) cons
   return xsect_cell > 0.0 ? xsect_cell / nxs_uc.nAtoms : 0.0;//protect against negative numbers and NaNs propagating from nxslib code.
 }
 
-const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
+NC::RCHolder<const NC::Info> NC::loadNXSCrystal( const char * nxs_file,
                                                  double temperature_kelvin,
                                                  double dcutoff_lower_aa,
                                                  double dcutoff_upper_aa,
@@ -148,8 +150,7 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
   // Create CrystalInfo object //
   ///////////////////////////////
 
-  Info * crystal = new Info();
-  RCGuard guard(crystal);//prevent leaks in case of exceptions thrown
+  auto crystal = makeRC<Info>();
 
   //////////////////////////////////////////////////////////////////
   // Load and init NXS info (twice to figure out adequate maxhkl) //
@@ -221,7 +222,7 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
         continue;
       if(it->FSquare < fsquare_cut) //remove reflections with vanishing contribution (left due to rounding errors?)
         continue;
-      NCrystal::HKLInfo hi;
+      HKLInfo hi;
       hi.h = it->h;
       hi.k = it->k;
       hi.l = it->l;
@@ -241,7 +242,7 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
   // ... add structure info //
   ////////////////////////////
 
-  NCrystal::StructureInfo si;
+  StructureInfo si;
   si.spacegroup = nxs_uc.sgInfo.TabSgName->SgNumber;
   si.lattice_a = nxs_uc.a;
   si.lattice_b = nxs_uc.b;
@@ -356,9 +357,5 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
   deinitNXS_partly(&nxs_uc);
 
   crystal->objectDone();
-
-  crystal->ref();
-  guard.clear();
-  crystal->unrefNoDelete();
   return crystal;
 }

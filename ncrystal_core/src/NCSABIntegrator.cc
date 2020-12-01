@@ -76,7 +76,7 @@ NS::SABIntegrator::Impl::Impl( std::shared_ptr<const SABData> data,
                                std::shared_ptr<const SABExtender> sabextender )
   : m_data(std::move(data)),
     m_egrid((egrid&&!egrid->empty())?*egrid:VectD()),
-    m_extender(!sabextender?std::make_unique<SABFGExtender>(m_data->temperature(),m_data->elementMassAMU(),SigmaBound{m_data->boundXS()}):std::move(sabextender))
+    m_extender(!sabextender?std::make_unique<SABFGExtender>(m_data->temperature(),m_data->elementMassAMU(),m_data->boundXS()):std::move(sabextender))
 {
 }
 

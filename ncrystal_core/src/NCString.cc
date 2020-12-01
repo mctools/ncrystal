@@ -23,6 +23,7 @@
 #include <cstring>
 #include <istream>
 #include <iomanip>
+#include <cstdlib>
 namespace NC = NCrystal;
 
 bool NC::isSimpleASCII(const std::string& input, bool allow_tab, bool allow_newline)
@@ -68,6 +69,13 @@ void NC::trim( std::string& input )
     input.resize(len);
 }
 
+NC::VectS NC::split2( const std::string& input, std::size_t maxsplit,  char sep )
+{
+  VectS output;
+  split(output,input,maxsplit,sep);
+  return output;
+}
+
 void NC::split(NC::VectS& output, const std::string& input, std::size_t maxsplit, char sep )
 {
   bool keep_empty = (sep!=0);
@@ -107,19 +115,6 @@ void NC::split(NC::VectS& output, const std::string& input, std::size_t maxsplit
     }
     ++c;
   }
-}
-
-std::string NC::basename(const std::string& filename)
-{
-  std::size_t p = filename.rfind('/');
-  return p+1>filename.size() ? filename : filename.substr(p+1);
-}
-
-std::string NC::getfileext(const std::string& filename)
-{
-  std::string bn = basename(filename);
-  std::size_t p = bn.rfind('.');
-  return p == std::string::npos ? std::string() : bn.substr(p+1);
 }
 
 bool NC::startswith(const std::string& str, const std::string& substr)
@@ -272,7 +267,7 @@ std::string NC::joinstr(const NC::VectS& parts, std::string separator)
 unsigned NC::countTrailingDigits( const std::string& ss )
 {
   auto nn = ss.size();
-  nc_assert_always(nn<std::numeric_limits<int>::max());
+  nc_assert_always(static_cast<uint64_t>(nn)<static_cast<uint64_t>(std::numeric_limits<int>::max()));
   int n = static_cast<int>(nn);
 
   int nTrailingDigits(0);
@@ -287,7 +282,7 @@ unsigned NC::countTrailingDigits( const std::string& ss )
   return static_cast<unsigned>(nTrailingDigits);
 }
 
-std::pair<std::string,std::string> NC::decomposeStrWithTrailingDigits( const std::string& ss )
+NC::PairSS NC::decomposeStrWithTrailingDigits( const std::string& ss )
 {
   unsigned nTrailingDigits = countTrailingDigits(ss);
   if (nTrailingDigits==0)
@@ -323,4 +318,64 @@ std::string NC::prettyPrintValue2Str(double value, unsigned prec )
   std::ostringstream ss;
   prettyPrintValue(ss,value,prec);
   return ss.str();
+}
+
+//Common access to environment variables (unset and empty vars both return
+//empty strings / 0.0 / 0, depending on which function is used):
+std::string NC::ncgetenv(std::string v, std::string defval)
+{
+  nc_assert(!v.empty());
+  const char * ev = std::getenv(("NCRYSTAL_"_s+v).c_str());
+  return ev ? std::string(ev) : defval;
+}
+
+double NC::ncgetenv_dbl(std::string v, double defval )
+{
+  nc_assert(!v.empty());
+  std::string varname("NCRYSTAL_");
+  varname += v;
+  const char * ev = std::getenv(varname.c_str());
+  if (!ev)
+    return defval;
+  double result;
+  if ( !safe_str2dbl(ev, result ) )
+    NCRYSTAL_THROW2(BadInput,"Invalid value of environment variable "<<varname
+                    <<" (expected a floating point number but got \""<<ev<<"\").");
+  return result;
+}
+
+int NC::ncgetenv_int(std::string v, int defval )
+{
+  nc_assert(!v.empty());
+  std::string varname("NCRYSTAL_");
+  varname += v;
+  const char * ev = std::getenv(varname.c_str());
+  if (!ev)
+    return defval;
+  int result;
+  if ( !safe_str2int(ev, result ) )
+    NCRYSTAL_THROW2(BadInput,"Invalid value of environment variable "<<varname
+                    <<" (expected an integral number but got \""<<ev<<"\").");
+  return result;
+}
+
+bool NC::ncgetenv_bool(std::string v)
+{
+  nc_assert(!v.empty());
+  std::string varname("NCRYSTAL_");
+  varname += v;
+  const char * ev = std::getenv(varname.c_str());
+  if (!ev)
+    return false;
+  std::string evs(ev);
+  if (evs.size()==1) {
+    if (evs[0]=='0')
+      return false;
+    if (evs[0]=='1')
+      return true;
+  }
+  NCRYSTAL_THROW2(BadInput,"Invalid value of environment variable "<<varname
+                  <<" (expected a Boolean value, \"0\" or \"1\", but got \""<<evs<<"\").");
+
+
 }

@@ -57,9 +57,9 @@ namespace NCrystal {
     //unable to service the request, since it should only ever be called if the
     //corresponding canCreate method returned a non-zero value):
 
-    virtual const Info * createInfo( const MatCfg& ) const;
-    virtual const Scatter * createScatter( const MatCfg& ) const;
-    virtual const Absorption * createAbsorption( const MatCfg& ) const;
+    virtual RCHolder<const Info> createInfo( const MatCfg& ) const;
+    virtual RCHolder<const Scatter> createScatter( const MatCfg& ) const;
+    virtual RCHolder<const Absorption> createAbsorption( const MatCfg& ) const;
 
     //TODO: We should rename the above methods or split the factory base into
     //three parts. The name conflicts with the global NCrystal::createInfo
@@ -70,15 +70,19 @@ namespace NCrystal {
     static RCHolder<const Scatter> globalCreateScatter( const MatCfg& cfg );
     static RCHolder<const Absorption> globalCreateAbsorption( const MatCfg& cfg );
 
+  protected:
+    //Combine two Scatter objects into one. This should only be used with
+    //freshly created Scatter objects in a factory's createScatter method.
+    //(this is due to a design flaw which is planned to be fixed in a future
+    //release):
+    static RCHolder<const Scatter> combineScatterObjects( RCHolder<const Scatter> sc1,
+                                                          RCHolder<const Scatter> sc2 );
   };
 
-  //Methods used to actually register factories. The factories will subsequently
-  //be owned by the NCrystal factory registry, and if it is required (for
-  //valgrind studies for instance) clearFactoryRegistry() can be called.
-  NCRYSTAL_API void registerFactory(FactoryBase*);
-  typedef std::vector<const FactoryBase*> FactoryList;
-  NCRYSTAL_API FactoryList& getFactories();//Access factories
-  NCRYSTAL_API void clearFactoryRegistry();//clears factories and info caches
+  //Methods used to register factories and query available factories:
+  NCRYSTAL_API void registerFactory(std::unique_ptr<FactoryBase>);
+  typedef std::vector<std::shared_ptr<const FactoryBase>> FactoryList;
+  NCRYSTAL_API const FactoryList& getFactories();//Access factories
   NCRYSTAL_API bool hasFactory(const char*);
 
 }

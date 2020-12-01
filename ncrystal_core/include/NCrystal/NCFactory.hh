@@ -80,8 +80,14 @@ namespace NCrystal {
   NCRYSTAL_API void registerInMemoryStaticFileData( const std::string& virtual_filename,
                                                     const char* static_data );
 
+  //Call this function ensures that any embedded data (via the standard
+  //EMBED_DATA option in NCrystal's CMake) is registered. Calling the usual
+  //high-level API with createXXX(..) and/or NCMatCfg objects, will
+  //automatically call this function.
+  NCRYSTAL_API void ensureEmbeddedDataIsRegistered();
+
   //WARNING: Calling these functions will the first time result in a global
-  //being TextInputManager registered (see NCFile.hh). If your application needs
+  //TextInputManager being registered (see NCFile.hh). If your application needs
   //its own custom TextInputManger, you should not call any of these functions.
 }
 

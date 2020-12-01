@@ -34,6 +34,7 @@
 #include "NCrystal/internal/NCScatKnlData.hh"
 #include "NCrystal/internal/NCVDOSEval.hh"
 
+
 #include <algorithm>
 #include <iostream>
 #include <cstdlib>
@@ -129,16 +130,19 @@ void NC::setNCMATWarnOnCustomSections(bool bb)
   s_NCMATWarnOnCustomSections = bb;
 }
 
-const NC::Info * NC::loadNCMAT( const char * ncmat_file,
-                                NC::NCMATCfgVars&& cfgvars )
+NC::RCHolder<const NC::Info> NC::loadNCMAT( const char * ncmat_file,
+                                            NC::NCMATCfgVars&& cfgvars )
 {
   nc_assert_always(ncmat_file);
   return loadNCMAT( std::string(ncmat_file), std::move(cfgvars) );
 }
 
-const NC::Info * NC::loadNCMAT( const std::string& ncmat_file,
-                                NC::NCMATCfgVars&& cfgvars )
+NC::RCHolder<const NC::Info> NC::loadNCMAT( const std::string& ncmat_file,
+                                            NC::NCMATCfgVars&& cfgvars )
 {
+  //In principle we might want to call NC::ensureEmbeddedDataIsRegistered() here
+  //(todo: find a better dependency graph for the embedded stuff - it should be
+  //actually reside in NCCore).
   auto inputstream = createTextInputStream( ncmat_file );
   const bool doFinalValidation = false;
   //don't validate at end of the parseNCMATData call, since the loadNCMAT call
@@ -147,8 +151,8 @@ const NC::Info * NC::loadNCMAT( const std::string& ncmat_file,
   return loadNCMAT( std::move(data), std::move(cfgvars) );
 }
 
-const NC::Info * NC::loadNCMAT( NCMATData&& data,
-                                NC::NCMATCfgVars&& cfgvars )
+NC::RCHolder<const NC::Info> NC::loadNCMAT( NCMATData&& data,
+                                            NC::NCMATCfgVars&& cfgvars )
 {
   const bool verbose = (std::getenv("NCRYSTAL_DEBUGINFO") ? true : false);
   if (verbose) {
@@ -290,7 +294,7 @@ const NC::Info * NC::loadNCMAT( NCMATData&& data,
   // Create Info object //
   ////////////////////////
 
-  Info * info = new Info();
+  auto info = makeRC<Info>();
 
   //Cache all the hasXXX results, before we start messing them up by
   //std::move'ing stuff out of the data object:

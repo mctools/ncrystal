@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 ################################################################################
 ##                                                                            ##
@@ -24,81 +24,49 @@
 ########################### System setup ################################
 #########################################################################
 
-#enable py3 behaviour in py2.6+ (avoid unicode_literals on purpose!):
-from __future__ import division, print_function, absolute_import
-__metaclass__ = type  #classes are new-style without inheriting from "object"
-
 import sys
-import os
+pyversion = sys.version_info[0:3]
+_minpyversion=(3,5,0)
+if pyversion < (3,0,0):
+    raise SystemExit('NCrystal no longer supports Python2.')
+if pyversion < (3,5,0):
+    if not _unittest:
+        print('WARNING: Unsupported python version %i.%i.%i detected (recommended is %i.%i.%i or later).'%(pyversion+_minpyversion))
 
-#TODO: Provide a --list file option
+import os
+import pathlib
+import argparse
 
 #in unit test we dont display interactive images and we reduce cpu consumption
 #by watching for special env var:
 _unittest = bool(os.environ.get('NCRYSTAL_INSPECTFILE_UNITTESTS',0))
 
-pyversion = sys.version_info[0:3]
-if pyversion < (2,7,5) or (pyversion >= (3,0,0) and pyversion < (3,4,0)):
-    if not _unittest:
-        print('WARNING: Unsupported python version %i.%i.%i detected (recommended is v2.7.5/v3.4.0 or latter).'%pyversion)
-
 #Function for importing required python modules which may be missing, to provide
 #a somewhat more helpful error to the user:
 def import_optpymod(name):
+    import importlib
     try:
-        import importlib
+        themod = importlib.import_module(name)
     except ImportError:
-        importlib=None
-    if importlib:
-        try:
-            themod = importlib.import_module(name)
-        except ImportError:
-            themod = None
-    else:
-        #python 2.6 does not have importlib (not that we actually support 2.6...)
-        namespace={}
-        try:
-            exec('import %s as mod'%name,namespace)
-            themod=namespace['mod']
-        except ImportError:
-            themod=None
-    if not themod:
-        print('ERROR: Could not import a required python module: %s'%name)
-        print('       Please make sure it is installed on your system.')
-        sys.exit(1)
+        raise SystemExit('ERROR: Could not import a required python module: %s'%name)
     return themod
 
-#We handle the NCrystal import separately, since we know where it might be, even
-#if the user did not set up PYTHONPATH correctly.
-#NB: This NCrystal import code copied also used in other shipped scripts, be
-#sure to update everywhere if performing changes!!!
+#import NCrystal. Prefer the one from our own installation (ok to modify
+#sys.path since we are in a script!):
+_ = pathlib.Path( __file__ ).parent / '../share/NCrystal/python/NCrystal/__init__.py'
+if _.exists():
+    sys.path.insert(0,str(_.parent.parent.absolute().resolve()))
+
 try:
     import NCrystal
 except ImportError:
-    NCrystal = None
-    #Perhaps PYTHONPATH was not setup correctly. If we are running out of a
-    #standard NCrystal installation, we can try to amend the search path
-    #manually for the current script:
-    op=os.path
-    test=op.abspath(op.realpath(op.join(op.dirname(__file__),'../python')))
-    if op.exists(op.join(test,'NCrystal/__init__.py')):
-        sys.path += [test]
-    try:
-        import NCrystal
-    except ImportError:
-        NCrystal = None
-if not NCrystal:
-    print("ERROR: Could not import the NCrystal Python module.")
-    print("       If it is installed, make sure your PYTHONPATH is setup correctly.")
-    sys.exit(1)
+    raise SystemExit("ERROR: Could not import the NCrystal Python module (perhaps your PYTHONPATH is misconfigured).")
 
 #########################################################################
 #########################################################################
 #########################################################################
 
 def parse_cmdline():
-    argparse = import_optpymod('argparse')
-
     descr="""
 Load input crystal files (usually .ncmat, .nxs, .laz or .lau) files with
 NCrystal (v%s) and plot resulting isotropic cross sections for thermal
@@ -154,7 +122,25 @@ examples:
                         help="""Change plot resolution. Set to 0 to leave matplotlib defaults alone.
                         (default value is %i, or whatever the NCRYSTAL_DPI env var is set to)."""%dpi_default)
 
+    parser.add_argument('--plugins', action='store_true',
+                        help='List currently enabled loaded plugins.')
+    parser.add_argument('-b','--browse', action='store_true',
+                        help='List .ncmat files available in standard locations (current directory, compiled-in, or in NCrystal search path)')
+    parser.add_argument('--extract', type=str, default=None, metavar="FILE",
+                        help='''Extract contents of FILE using the same lookup mechanism as used for files
+                        specified in NCrystal cfg strings, and thus can even be used to inspect
+                        in-memory files''')
+
     args=parser.parse_args()
+
+    if args.extract:
+        return args
+
+    if args.plugins:
+        return args
+
+    if args.browse:
+        return args
 
     if args.dpi>3000:
         parser.error('Too high DPI value requested.')
@@ -225,12 +211,12 @@ def import_npplt(pdf=False):
         return _npplt
     np = import_optpymod('numpy')
     mpl = import_optpymod('matplotlib')
-    if not mpl.compare_versions(mpl.__version__, '0.99.1.1'):
-        print("ERROR: Your version of matplotlib (%s) is too ancient to work - aborting plotting!"%mpl.__version__)
-        sys.exit(1)
-    if not mpl.compare_versions(mpl.__version__, '1.3'):
-        if not _unittest:
-            print("WARNING: Your version of matplotlib (%s) is unsupported - expect trouble! (needs at least version 1.3)."%mpl.__version__)
+    ##Commenting checks below since mpl.compare_versions is deprecated, and I am anyway not sure exactly which versions we support:
+    ##if not mpl.compare_versions(mpl.__version__, '0.99.1.1'):
+    ##    raise SystemExit("ERROR: Your version of matplotlib (%s) is too ancient to work - aborting plotting!"%mpl.__version__)
+    ##if not mpl.compare_versions(mpl.__version__, '1.3'):
+    ##    if not _unittest:
+    ##        print("WARNING: Your version of matplotlib (%s) is unsupported - expect trouble! (needs at least version 1.3)."%mpl.__version__)
 
     if _mpldpi[0]:
         mpl.rcParams['figure.dpi']=_mpldpi[0]
@@ -245,8 +231,7 @@ def import_npplt(pdf=False):
         try:
             from matplotlib.backends.backend_pdf import PdfPages
         except ImportError:
-            print("ERROR: Your installation of matplotlib does not have required support for PDF output.")
-            sys.exit(1)
+            raise SystemExit("ERROR: Your installation of matplotlib does not have required support for PDF output.")
     plt = import_optpymod('matplotlib.pyplot')
 
     _npplt = (np,plt,PdfPages(_pdffilename) if pdf else None)
@@ -555,11 +540,24 @@ class Cfg:
 
 def main():
     args = parse_cmdline()
-    _mpldpi[0] = args.dpi
-
+    if args.extract:
+        s=NCrystal.getFileContents(args.extract)
+        if s is None:
+            raise SystemExit('Error: unknown file "%s"'%args.extract)
+        print(s,end='')
+        sys.exit(0)
+    if args.plugins:
+        NCrystal.browsePlugins(dump=True)
+        sys.exit(0)
+    if args.browse:
+        NCrystal.browseFiles(extension='ncmat',dump=True)
+        sys.exit(0)
     if args.test:
         NCrystal.test()
         sys.exit(0)
+
+
+    _mpldpi[0] = args.dpi
 
     cfgs=[Cfg(e,args.common) for e in args.input_files]
     if args.dump:

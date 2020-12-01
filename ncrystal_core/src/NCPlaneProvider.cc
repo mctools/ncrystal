@@ -33,7 +33,7 @@ namespace NCrystal {
   public:
 
     PlaneProviderStd(const Info*);
-    virtual ~PlaneProviderStd();
+    virtual ~PlaneProviderStd() = default;
 
     virtual bool canProvide() const;
     virtual void prepareLoop();
@@ -50,7 +50,7 @@ namespace NCrystal {
     RotMatrix m_reci_lattice;
     //needed just for STRAT_SPACEGROUP:
     struct StrSG;
-    StrSG * m_sg;
+    std::unique_ptr<StrSG> m_sg;
     bool gnp_de(double& dspacing, double& fsq, Vector& normal);
     bool gnp_eh(double& dspacing, double& fsq, Vector& normal);
     bool gnp_sg(double& dspacing, double& fsq, Vector& normal);
@@ -80,8 +80,7 @@ namespace NCrystal {
     : PlaneProvider(),
       m_info(cinfo),
       m_strategy(STRAT_MISSING),
-      m_ii(0),
-      m_sg(0)
+      m_ii(0)
   {
     nc_assert(cinfo);
     if (cinfo->hasHKLInfo()) {
@@ -94,18 +93,13 @@ namespace NCrystal {
       } else if ( cinfo->hasStructureInfo() && cinfo->getStructureInfo().spacegroup ) {
         m_strategy = STRAT_SPACEGROUP;
         if (m_it_hkl!=m_it_hklE)
-          m_sg = new StrSG(cinfo->getStructureInfo().spacegroup);
+          m_sg = std::make_unique<StrSG>(cinfo->getStructureInfo().spacegroup);
       }
     }
     if ( m_strategy == STRAT_EXPHKL || m_strategy == STRAT_SPACEGROUP )
       m_reci_lattice = getReciprocalLatticeRot( *cinfo );
     if (canProvide())
       prepareLoop();
-  }
-
-  PlaneProviderStd::~PlaneProviderStd()
-  {
-    delete m_sg;
   }
 
   bool PlaneProviderStd::canProvide() const
@@ -181,7 +175,7 @@ namespace NCrystal {
   {
     if (m_it_hkl == m_it_hklE)
       return false;
-    nc_assert(m_sg);
+    nc_assert(!!m_sg);
     if (m_sg->it == m_sg->itE) {
       if (++m_it_hkl != m_it_hklE) {
         m_sg->prepareLoop(m_it_hkl->h, m_it_hkl->k, m_it_hkl->l,m_it_hkl->multiplicity);

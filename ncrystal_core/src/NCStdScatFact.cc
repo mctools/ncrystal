@@ -38,6 +38,8 @@
 #include "NCrystal/internal/NCSABScatter.hh"
 #include "NCrystal/internal/NCSABFactory.hh"
 
+namespace NC = NCrystal;
+
 ///////////////////////////////////////////////////////////////////////////////////
 // The standard Scatter factory. Will accept with priority 100 any request for   //
 // which the inelas parameter has a known value ("auto","external","dyninfo",    //
@@ -89,16 +91,16 @@ namespace NCrystal {
 
   class NCStdScatFact : public FactoryBase {
   public:
-    const char * getName() const { return "stdscat"; }
+    const char * getName() const final { return "stdscat"; }
 
-    virtual int canCreateScatter( const MatCfg& cfg ) const {
+    int canCreateScatter( const MatCfg& cfg ) const final {
 
       RCHolder<const Info> info;
       std::string inelas;
       return analyseCfg( cfg, info, inelas ) ? 100 : 0;
     }
 
-    virtual const Scatter * createScatter( const MatCfg& cfg ) const
+    RCHolder<const Scatter> createScatter( const MatCfg& cfg ) const final
     {
       //Analyse and extract info:
       RCHolder<const Info> info;
@@ -109,7 +111,7 @@ namespace NCrystal {
       nc_assert_always(isOneOf(inelas,"none","external","dyninfo","vdosdebye","freegas"));
 
       //Collect components on ScatterComp:
-      RCHolder<ScatterComp> sc(new ScatterComp);
+      auto sc = makeRC<ScatterComp>();
 
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////
       //Incoherent-elastic component:
@@ -232,15 +234,13 @@ namespace NCrystal {
       //Wrap it up and return:
       if (sc->nComponents()==0) {
         //No components available, represent this with a NullScatter instead:
-        return new NullScatter;
+        return makeRC<NullScatter>();
       } else if ( sc->nComponents()==1 && sc->scale(0) == 1.0 ) {
         //Single component with unit scale - no need to wrap in ScatterComp:
-        RCHolder<Scatter> comp(sc->component(0));
-        sc.clear();
-        return comp.releaseNoDelete();
+        return RCHolder<Scatter>(sc->component(0));
       } else {
         //Usual case, return ScatterComp:
-        return sc.releaseNoDelete();
+        return sc;
       }
     }
 
@@ -299,6 +299,6 @@ namespace NCrystal {
 
 extern "C" void ncrystal_register_stdscat_factory()
 {
-  if (!NCrystal::hasFactory("stdscat"))
-    NCrystal::registerFactory(new NCrystal::NCStdScatFact);
+  if (!NC::hasFactory("stdscat"))
+    NC::registerFactory(std::make_unique<NC::NCStdScatFact>());
 }

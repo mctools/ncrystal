@@ -51,15 +51,15 @@ namespace NCrystal {
   };
 
   //Both const char* and std::string versions are provided, for convenience:
-  NCRYSTAL_API const Info * loadNCMAT( const char * ncmat_file,
-                                       NCMATCfgVars&& cfgvars = NCMATCfgVars() );
+  NCRYSTAL_API RCHolder<const Info> loadNCMAT( const char * ncmat_file,
+                                               NCMATCfgVars&& cfgvars = NCMATCfgVars() );
 
-  NCRYSTAL_API const Info * loadNCMAT( const std::string& ncmat_file,
-                                       NCMATCfgVars&& cfgvars = NCMATCfgVars() );
+  NCRYSTAL_API RCHolder<const Info> loadNCMAT( const std::string& ncmat_file,
+                                               NCMATCfgVars&& cfgvars = NCMATCfgVars() );
 
   //Can also load from parsed NCMAT data structure (which will be consumed):
-  NCRYSTAL_API const Info * loadNCMAT( NCMATData&& ncmat_data,
-                                       NCMATCfgVars&& cfgvars = NCMATCfgVars() );
+  NCRYSTAL_API RCHolder<const Info> loadNCMAT( NCMATData&& ncmat_data,
+                                               NCMATCfgVars&& cfgvars = NCMATCfgVars() );
 
   //@CUSTOM_xxx sections in NCMAT input will produce warnings by default, unless
   //the env var NCRYSTAL_NCMAT_NOWARNFORCUSTOM was set when NCrystal was

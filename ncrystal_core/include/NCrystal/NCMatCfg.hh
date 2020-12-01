@@ -454,7 +454,7 @@ namespace NCrystal {
   private:
     const std::string& get_infofactory() const;//undecoded, internal usage only
     struct Impl;
-    Impl* m_impl;
+    RCHolder <Impl> m_impl;
     void cow();
 
   };

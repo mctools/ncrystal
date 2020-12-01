@@ -43,4 +43,5 @@ ncrystal_extra/.....: Contains optional code available under different licensing
                       BUILD_EXTRA flag when building via CMake.
 docs/...............: Extra documentation. Currently this is just ncmat_doc.md
                       with a thorough description of the NCMAT format.
+cmake/..............: Other files needed for CMake configuration.
 

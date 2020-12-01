@@ -55,7 +55,7 @@ namespace G4NCrystal {
     //Thoroughly clear caches, manager singleton, and possibly NCrystal
     //factories. It is NOT safe to use the Scatter properties of already created
     //G4Materials after this.
-    static void cleanup(bool removeFactories = true);
+    static void cleanup();
 
     //Safer cleanup which should only remove objects with no current usage:
     static void clearCaches();

@@ -88,8 +88,14 @@ private:
 //Then we implement a factory which can provide this model (along with other physics):
 
 class SimpleIncElasScatterFactory : public NC::FactoryBase {
-  const char * getName() const final { return "SimpleIncElasScatterFactory"; }
-  int canCreateScatter( const NC::MatCfg& cfg ) const final {
+
+  const char * getName() const final
+  {
+    return "SimpleIncElasScatterFactory";
+  }
+
+  int canCreateScatter( const NC::MatCfg& cfg ) const final
+  {
     //Must return value >0 if we should do something, and a value higher than
     //100 means that we take precedence over the standard NCrystal factory:
     if (!cfg.get_incoh_elas())
@@ -107,7 +113,7 @@ class SimpleIncElasScatterFactory : public NC::FactoryBase {
     return 999;
   }
 
-  virtual const NC::Scatter * createScatter( const NC::MatCfg& cfg ) const
+  NC::RCHolder<const NC::Scatter> createScatter( const NC::MatCfg& cfg ) const final
   {
     nc_assert(canCreateScatter(cfg));//should only be called when possible
 
@@ -124,13 +130,10 @@ class SimpleIncElasScatterFactory : public NC::FactoryBase {
     cfg2.set_incoh_elas(false);
     auto sc_std = globalCreateScatter(cfg2);
 
-    //Combine in a NCScatterComp (the const_cast's are needed for now due to a
-    //design flaw which will be fixed! See NCrystal github issue #18!!).
-    auto sc_comp = new NC::ScatterComp;
-    sc_comp->addComponent(const_cast<NC::Scatter*>(sc_std.obj()));
-    sc_comp->addComponent(const_cast<NC::Scatter*>(sc_simpleincelas.obj()));
-    return sc_comp;
+    //Combine:
+    return combineScatterObjects(sc_std,sc_simpleincelas);
   }
+
 private:
   double parseFileDataForSigma( const NC::MatCfg& cfg ) const
   {
@@ -180,7 +183,7 @@ int main() {
 
   //Register our custom factory with NCrystal, thus ensuring it gets invoked
   //when users call createScatter(..).
-  NC::registerFactory(new SimpleIncElasScatterFactory);
+  NC::registerFactory(std::make_unique<SimpleIncElasScatterFactory>());
 
   //Add a the Al_sg225_simpleincelas100barn.ncmat (virtual) file which has
   //@CUSTOM_SIMPLEINCELAS section:

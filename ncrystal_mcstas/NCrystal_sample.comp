@@ -25,7 +25,7 @@
 * %I
 *
 * Written by: NCrystal developers
-* Version: 2.1.1
+* Version: 2.2.0
 * Origin: NCrystal Developers (European Spallation Source ERIC and DTU Nutech)
 *
 * McStas sample component for the NCrystal scattering library. Find more
@@ -203,7 +203,6 @@ INITIALIZE
   if (!(absorptionmode==0||absorptionmode==1||absorptionmode==2))
     NCMCERR("Invalid value of absorptionmode");
   params.absmode = absorptionmode;
-
 
   /* Make sure NCrystal use the McStas RNG (ok if more than one component instance does this): */
   ncrystal_setrandgen(rand01);

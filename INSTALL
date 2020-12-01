@@ -8,24 +8,27 @@ supported is for Geant4 and McStas).
 Depending on the use-case it might of course be more appropriate to simply
 integrate NCrystal directly into the existing build system of a given project,
 by at minimum integrating the source files from the ncrystal_core/ folder, which
-are written in C++ (compatible with any version of the C++ standard, including
-C++98, C++03 or C++11 and later). Such custom integration is of course mainly
-intended for users comfortable with setting up their own build systems, and the
-remainder of the present file will focus on a standard CMake installation of
-NCrystal.
+are written in C++ (compatible with modern version of the C++ standard,
+including C++11, C++14, C++17, and later). Such custom integration is of course
+mainly intended for users comfortable with setting up their own build systems
+and might make it difficult to support builtin plugins, and the remainder of the
+present file will focus on a standard CMake installation of NCrystal.
 
 
 
 Building via CMake
 ------------------
 
-The NCrystal distribution requires CMake version 3.0.0 or later. If you do not have
-CMake installed, or if your platform has an older version installed, you have to
-visit http://cmake.org/ and acquire a recent version. CMake is a very powerful
-cross-platform configuration and build tool and a complete discussion of it is
-beyond the scope of the present instructions. Further in-depth instructions and
-tutorials are available at http://cmake.org/ and elsewhere online. The following
-is a quick recipe (using an in-source build for simplicity):
+The NCrystal distribution requires CMake version 3.10.0 or later. If you do not
+have CMake installed, or if your platform has an older version installed, you
+have to visit http://cmake.org/ and acquire a recent version (note that on
+CentOS7 you can install the "cmake3" package and use the "cmake3" command to get
+this easily). CMake is a very powerful cross-platform configuration and build
+tool and a complete discussion of it is beyond the scope of the present
+instructions. Further in-depth instructions and tutorials are available at
+http://cmake.org/ and elsewhere online. The following is a quick recipe using
+the command-line cmake tool (and using an in-source build for simplicity
+although that is not really best practice):
 
 1. Since you are reading this INSTALL file, it is assumed you have already
    unpacked the NCrystal source distribution somewhere. Assuming this is in a
@@ -40,23 +43,29 @@ is a quick recipe (using an in-source build for simplicity):
 
    This will fail if your system is missing basic build tools, such as a C/C++
    capable compiler. In addition to generic CMake options, you can fine-tune
-   what will be build by adding one or more of the following flags to the
-   command (all default to ON):
+   what will be built by adding one or more of the following flags to the
+   command (look inside the file CMakeLists.txt to see the list of available
+   options - or use cmake gui or ccmake to get the list presented):
 
-   * -DBUILD_EXAMPLES=OFF [Whether to build examples]
-   * -DINSTALL_PY=OFF     [Whether to install the NCrystal python module and related scripts.]
-   * -DBUILD_EXTRA=OFF    [Whether to build optional modules for .nxs/.laz/.lau support (Note the license!).]
-   * -DBUILD_G4HOOKS=OFF  [Whether to build the G4 hooks if Geant4 is available]
-   * -DINSTALL_DATA=OFF   [Whether to install data files (always .ncmat files, .nxs files only if BUILD_EXTRA=ON).]
+   * -DBUILD_EXAMPLES=OFF  [do not build+install examples]
+   * -DBUILD_EXTRA=OFF     [do not build optional modules for .nxs/.laz/.lau support (Note the license!).]
+   * -DBUILD_G4HOOKS=ON    [build+install the G4 hooks (requires Geant4)]
+   * -DINSTALL_DATA=OFF    [do not install data files.]
+   * -DEMBED_DATA=ON       [embed data files inside the compiled NCrystal library.]
+   * -DMODIFY_RPATH=OFF    [refrain from fiddling with rpath in binaries]
+   * -DINSTALL_SETUPSH=OFF [do not install setup.sh/unsetup.sh files]
+   * -DDISABLE_DYNLOAD=ON  [do not enabled dynamic plugin support]
+   * -DBUILTIN_PLUGIN_LIST [special, see https://github.com/mctools/ncrystal/wiki/Plugins]
 
   Note that if BUILD_EXTRA=ON, optional components from ./ncrystal_extra/ will
   be built, which are available under different open source licenses than the
   rest of NCrystal. Refer to the file ./ncrystal_extra/LICENSE for details.
 
 3. Perform the build and install in one step with (assuming you are on a
-   platform where CMake generates makefiles):
+   platform where CMake generates makefiles and want to use 4 processes for the
+   build):
 
-   $> make install
+   $> make -j4 install
 
 4. Setup runtime environment:
 
@@ -65,21 +74,20 @@ is a quick recipe (using an in-source build for simplicity):
 
    $> . /path/to/ncrystalinstall/setup.sh
 
+   Or alternatively use the ncrystal-config command to do the same:
+
+   $> $(/path/to/ncrystalinstall/bin/ncrystal-config --setup)
+
    This is mainly needed in order to modify environment variables like PATH,
-   LD_LIBRARY_PATH and PYTHONPATH, but also sets up a variable NCRYSTALDIR,
-   pointing to /path/to/ncrystalinstall. It is recommended to place the above
-   line in your login files (like .bashrc), so your environment will always be
-   prepared for you.
+   LD_LIBRARY_PATH, PYTHONPATH and CMAKE_PREFIX_PATH, but also sets up a
+   variable NCRYSTALDIR, pointing to /path/to/ncrystalinstall. It is recommended
+   to place one of the lines above in your login files (like .bashrc), so your
+   environment will always be prepared for you.
 
    For reference, it is possible to completely undo the effects of the above
    setup by:
 
    $> . /path/to/ncrystalinstall/unsetup.sh
-
-   For power users having multiple installations of NCrystal available, sourcing
-   setup.sh in one, completely undoes the effect of sourcing setup.sh in any
-   other NCrystal installation, thus minimising the risk of having multiple
-   installations interfere with each other.
 
    After sourcing setup.sh, you can quickly verify that your NCrystal
    installation is sound, by running the following unit test (will fail if
@@ -98,5 +106,7 @@ The NCrystal developers do not themselves have access to Windows, but thanks to
 patches, debugging and feedback from Andrey Morozov (LIP-Coimbra), Matteo Busi
 (PSI), and Anders Kaestner (PSI), is has been confirmed to work in that
 environment. The GitHub issue at https://github.com/mctools/ncrystal/issues/38
-contains a specific recipe concerning Windows 10 with Visual Studio.
-
+contains a specific recipe concerning Windows 10 with Visual Studio. Note that
+NCrystal release v2.2.0 contains many CMake-code changes, and it is unclear if
+the recipes still work for windows (feedback/fixes/recipes will be
+appreciated!).

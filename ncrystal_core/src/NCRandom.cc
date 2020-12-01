@@ -24,24 +24,39 @@
 #include <cstdio>
 #include <algorithm>
 
+namespace NC = NCrystal;
+
 namespace NCrystal {
-  static RCHolder<RandomBase> s_default_randgen;
-}
-
-void NCrystal::setDefaultRandomGenerator(RandomBase* rg)
-{
-  s_default_randgen = rg;
-}
-
-NCrystal::RandomBase * NCrystal::defaultRandomGenerator(bool trigger_default)
-{
-  if (!s_default_randgen.obj()) {
-    if (!trigger_default)
-      return 0;
-    s_default_randgen = new RandXRSR;
+  namespace {
+    RCHolder<RandomBase>& theDefaultRNG() {
+      static RCHolder<RandomBase> s_default_randgen;
+      return s_default_randgen;
+    }
   }
-  return s_default_randgen.obj();
 }
+
+void NC::setDefaultRandomGenerator(RandomBase* rg)
+{
+  theDefaultRNG() = rg;
+}
+
+NC::RandomBase * NC::defaultRandomGenerator(bool trigger_default)
+{
+  if (!theDefaultRNG()) {
+    if (!trigger_default)
+      return nullptr;
+    theDefaultRNG() = makeRC<RandXRSR>();
+  }
+  return theDefaultRNG().obj();
+}
+
+NC::RCHolder<NC::RandomBase> NC::defaultRNG(bool trigger_default)
+{
+  if (!theDefaultRNG()&&trigger_default)
+    defaultRandomGenerator(true);//trigger default
+  return theDefaultRNG();
+}
+
 
 //For reference we include here the code with comments which was found on
 //2018-03-28 at http://xoroshiro.di.unimi.it/xoroshiro128plus.c (tabs changed to
@@ -164,7 +179,7 @@ NCrystal::RandomBase * NCrystal::defaultRandomGenerator(bool trigger_default)
 //}
 //#endif
 
-NCrystal::RandXRSR::RandXRSR(uint64_t theseed)
+NC::RandXRSR::RandXRSR(uint64_t theseed)
 {
   seed(theseed);
 
@@ -180,7 +195,7 @@ NCrystal::RandXRSR::RandXRSR(uint64_t theseed)
   nc_assert_always( 1.0 - maxdblgen < 2e-16 );
 }
 
-void NCrystal::RandXRSR::seed(uint64_t theseed)
+void NC::RandXRSR::seed(uint64_t theseed)
 {
   //Seed the state, using splitmix64 as recommended:
   m_s[0] = splitmix64(theseed);
@@ -192,7 +207,7 @@ void NCrystal::RandXRSR::seed(uint64_t theseed)
 }
 
 
-uint64_t NCrystal::RandXRSR::genUInt64()
+uint64_t NC::RandXRSR::genUInt64()
 {
   uint64_t s0 = m_s[0];
   uint64_t s1 = m_s[1];
@@ -203,17 +218,17 @@ uint64_t NCrystal::RandXRSR::genUInt64()
   return result;
 }
 
-NCrystal::RandXRSR::~RandXRSR()
+NC::RandXRSR::~RandXRSR()
 {
 }
 
-double NCrystal::RandXRSR::generate()
+double NC::RandXRSR::generate()
 {
   //Convert to double prec. floating point uniformly distributed in [0,1).
   return genUInt64() * NCrystal_Random_Uint64_to_dbl;
 }
 
-uint64_t NCrystal::RandXRSR::splitmix64(uint64_t& x)
+uint64_t NC::RandXRSR::splitmix64(uint64_t& x)
 {
   uint64_t z = (x += 0x9e3779b97f4a7c15);
   z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;

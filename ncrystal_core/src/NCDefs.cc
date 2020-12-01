@@ -20,7 +20,7 @@
 
 #include "NCrystal/NCDefs.hh"
 
-//TODO: Rename RandomBase class to RNG which is more handy.
+//MT TODO: Rename RandomBase class to RNG which is more handy.
 NCrystal::RandomBase::~RandomBase() = default;
 
 namespace NCrystal {

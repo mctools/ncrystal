@@ -1,3 +1,61 @@
+v2.2.0 2020-12-01
+      * Support plugins (github issue #50)! Such plugins can be externally
+        developed (for instance on GitHub), and either loaded dynamically at
+        run-time by NCrystal or statically compiled into the NCrystal library
+        (see the next item). How to use or develop plugins is described in
+        more detail at https://github.com/mctools/ncrystal/wiki/Plugins .
+      * Major revamp and modernisation of CMake configuration code. Client code
+        can now find NCrystal via find_package statements (github issue #45),
+        which makes an NCrystal::NCrystal library target available. Geant4-code
+        needing the Geant4-NCrystal hooks must instead search for G4NCrystal
+        with find_package and add a dependency on the G4NCrystal::G4NCrystal
+        target. The new CMake code also facilitates static inclusion of
+        externally developed plugins (if for some reason this is preferred to
+        dynamic loading of the plugins). NCrystal now requires CMake 3.10.
+        A side-effect of the modernised CMake code is that installation
+        directories are affected somewhat.
+      * Add ncrystal-config script which can be queried for details about a
+        given installationn, or even used to setup the user environment by
+        typing $(./path/to/ncrystal/installation/bin/ncrystal-config --setup) in
+        a shell. The installed setup.sh file now simply wraps such a call.
+        A side-effect of the work on ncrystal-config and CMake is that NCrystal
+        installations are in general more relocatable and should continue to
+        function even if the installation directory is moved.
+      * Officially stop support of Python2 (github issue #48). Python2 (and many
+        major Python projects) had EOL January 2020, and PyPI (aka pip install)
+        has announced end of support for Python2 by January 2021. Users needing
+        to use NCrystal with Python2 will have to stick with NCrystal release
+        v2.1.1.
+      * Add support for NCRYSTAL_DATA_PATH variable, checked after
+        NCRYSTAL_DATADIR env. var and NCRYSTAL_DATADIR preprocessor definition
+        (github issue #49).
+      * Add ability to browse a list of available .ncmat files (of course only
+        those in the current working directory or search path). Can for instance
+        be accessed via "ncrystal_inspectfile --browse" (github issue #5). The
+        same tool can also --extract content of available files, and display
+        available plugins with --plugins.
+      * Fix Python interface cleanup-order bug where __del__ method could refer
+        to an already removed ctypes module at programme shutdown.
+      * Fix silly bug where W was left out of the alphabet in a few places.
+      * Fix big affecting printing of MatCfg objects with in-memory datafiles.
+      * Remove obsolete functions naturalElementDB and naturalElementDBByName
+        from Python interface (use the atomDB function instead), and update the
+        ncrystal_endf2ncmat script to work with new atomDB interface.
+      * Modernise C++ code, preventing raw new/delete usage and associated
+        memory management woes. RCHolder objects can be automatically converted
+        when possible (to const ptr or base class ptr), and add makeRC / castRC
+        / static_castRC functions, similar to std::make_unique and
+        std::make_shared, but for instantiating classes derived from RCBase
+        directly into an RCHolder object. Apply new features throughout
+        codebase, and fix a slew of compilation warnings (mostly for clang12 or
+        gcc 4.8).
+      * Add DynLoader utility class for dynamic loading of shared libraries and
+        access to contained functions (used for dynamic plugin loading).
+      * Add common utilities for reading environment variables.
+      * Add ncglob function for file globbing.
+      * Add FactoryBase::combineScatterObjects helper method to encapsulate
+        the workarounds still needed in custom scatter factories.
+
 v2.1.1 2020-11-07
       * Reverse minor change in NCDefs.hh, which meant that client code which
         was including public NCrystal C++ headers was prevented from using constants

@@ -140,4 +140,3 @@ void NCrystal::ScatterComp::checkIsOriented() const
     }
   }
 }
-

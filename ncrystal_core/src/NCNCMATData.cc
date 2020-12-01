@@ -357,7 +357,7 @@ void NC::NCMATData::validate() const
   }
 
   for (const auto& e : customSections) {
-    if (e.first.empty() || ! contains_only(e.first,"ABCDEFGHIJKLMNOPQRSTUVXYZ"))
+    if (e.first.empty() || ! contains_only(e.first,"ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
       NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" invalid custom section name: \""<<e.first
                       <<"\" (must be non-empty and contain only capitalised letters A-Z)");
   }

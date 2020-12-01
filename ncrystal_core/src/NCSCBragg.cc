@@ -46,7 +46,7 @@ struct NC::SCBragg::pimpl {
 
     ReflectionFamily(double xsfct, double dspacing)
       : xsfact(xsfct), inv2d(0.5/dspacing) { nc_assert(xsfct>0&&dspacing>0); }
-    ~ReflectionFamily() {}
+    ~ReflectionFamily() = default;
 
     //enable move assignment/construction:
     ReflectionFamily & operator= ( ReflectionFamily && ) = default;
@@ -70,7 +70,7 @@ struct NC::SCBragg::pimpl {
   pimpl( const NC::Info* cinfo, double mosaicity, double dd,
          const SCOrientation& sco, PlaneProvider * plane_provider,
          double prec, double ntrunc );
-  ~pimpl(){}
+  ~pimpl() = default;
 
   double setupFamilies( const Info * cinfo,
                         const RotMatrix& cry2lab,
@@ -81,7 +81,7 @@ struct NC::SCBragg::pimpl {
 
   struct Cache {
     Cache() : ekin(NCSCBragg_LACKSORIENTATION) {}
-    ~Cache(){}
+    ~Cache() = default;
     //cache signature:
     double ekin;
     Vector dir;
@@ -134,15 +134,12 @@ NC::SCBragg::SCBragg( const NC::Info* cinfo,
                       PlaneProvider * plane_provider,
                       double prec, double ntrunc)
   : Scatter("SCBragg"),
-    m_pimpl(new pimpl(cinfo,mosaicity,dd,sco,plane_provider,prec,ntrunc))
+    m_pimpl(std::make_unique<pimpl>(cinfo,mosaicity,dd,sco,plane_provider,prec,ntrunc))
 {
   validate();
 }
 
-NC::SCBragg::~SCBragg()
-{
-  delete m_pimpl;
-}
+NC::SCBragg::~SCBragg() = default;
 
 double NC::SCBragg::pimpl::setupFamilies( const NC::Info * cinfo,
                                           const NC::RotMatrix& cry2lab,

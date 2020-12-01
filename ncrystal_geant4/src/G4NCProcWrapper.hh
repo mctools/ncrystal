@@ -43,15 +43,13 @@ namespace G4NCrystal {
 
     //Intercepted methods in which NCrystal scatter physics is supplied when
     //appropriate, passing the call through to the wrapped process when not:
-    virtual G4VParticleChange* PostStepDoIt(const G4Track&, const G4Step& );
-    virtual G4double GetMeanFreePath(const G4Track&, G4double, G4ForceCondition*);
+    G4VParticleChange* PostStepDoIt(const G4Track&, const G4Step& ) final;
+    G4double GetMeanFreePath(const G4Track&, G4double, G4ForceCondition*) final;
 
-    virtual void BuildPhysicsTable(const G4ParticleDefinition&);
-    virtual G4bool IsApplicable(const G4ParticleDefinition& pd);
+    void BuildPhysicsTable(const G4ParticleDefinition&) final;
+    G4bool IsApplicable(const G4ParticleDefinition& pd) final;
 
   private:
-    ProcWrapper(ProcWrapper&);
-    ProcWrapper& operator=(const ProcWrapper&);
     G4ParticleChange m_particleChange;
     G4HadronElasticProcess * m_wrappedProc;
     Manager * m_mgr;

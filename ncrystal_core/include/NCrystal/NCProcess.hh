@@ -63,6 +63,7 @@ namespace NCrystal {
                             //that cross sections are vanishing outside
                             //domain(..).
 
+    //Check (via domain(..)) if cross section is 0 everywhere:
     bool isNull() const;
   protected:
     virtual ~Process();

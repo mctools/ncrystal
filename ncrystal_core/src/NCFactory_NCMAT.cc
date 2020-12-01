@@ -22,18 +22,20 @@
 #include "NCrystal/NCMatCfg.hh"
 #include "NCrystal/NCLoadNCMAT.hh"
 
+namespace NC = NCrystal;
+
 namespace NCrystal {
 
   //Factory component which can load .ncmat files
 
   class NCMATFactory : public FactoryBase {
   public:
-    const char * getName() const { return "stdncmat"; }
+    const char * getName() const final { return "stdncmat"; }
 
-    virtual int canCreateInfo( const MatCfg& cfg ) const {
+    int canCreateInfo( const MatCfg& cfg ) const final {
       return cfg.getDataFileExtension()=="ncmat" ? 100 : 0;
     }
-    virtual const Info * createInfo( const MatCfg& cfg ) const
+    RCHolder<const Info> createInfo( const MatCfg& cfg ) const final
     {
       nc_assert_always(canCreateInfo(cfg));
       cfg.infofactopt_validate({"expandhkl"});
@@ -58,6 +60,6 @@ namespace NCrystal {
 
 extern "C" void ncrystal_register_ncmat_factory()
 {
-  if (!NCrystal::hasFactory("stdncmat"))
-    registerFactory(new NCrystal::NCMATFactory);
+  if (!NC::hasFactory("stdncmat"))
+    registerFactory(std::make_unique<NC::NCMATFactory>());
 }

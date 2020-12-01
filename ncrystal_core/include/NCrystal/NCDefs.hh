@@ -180,6 +180,7 @@ namespace NCrystal {
   typedef std::vector<double> VectD;
   typedef std::vector<std::string> VectS;
   typedef std::pair<double,double> PairDD;
+  typedef std::pair<std::string,std::string> PairSS;
 
   //Structs which can be used in interfaces accepting cross-section values, to
   //make sure one does not accidentally mix up bound and free cross sections.

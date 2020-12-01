@@ -21,19 +21,27 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <limits>
+#include "NCrystal/NCInfo.hh"
 
 namespace NCrystal {
 
-  class Info;
-
-  const Info * loadNXSCrystal( const char * nxs_file,
-                               double temperature_kelvin,
-                               double dcutoff_low_aa,
-                               double dcutoff_upper_aa,
-                               bool bkgdlikemcstas,//compose background curve as done in McStas Sample_nxs.comp rather than as in NXSG4
-                               bool fixpolyatom//upstream nxslib overestimates incoherent xsect of polyatomic crystals at long wavelengths. Set to exclude this contribution (warning: this might instead underestimate at short wavelengths).
-                               );
+  RCHolder<const Info> loadNXSCrystal( const char * nxs_file,
+                                       double temperature_kelvin,
+                                       double dcutoff_low_aa,
+                                       double dcutoff_upper_aa,
+                                       bool bkgdlikemcstas,//compose background curve as done in McStas
+                                                           //Sample_nxs.comp rather than as in NXSG4.
+                                       bool fixpolyatom//upstream nxslib
+                                                       //overestimates
+                                                       //incoherent xsect of
+                                                       //polyatomic crystals at
+                                                       //long wavelengths. Set
+                                                       //to exclude this
+                                                       //contribution (warning:
+                                                       //this might instead
+                                                       //underestimate at short
+                                                       //wavelengths).
+                                       );
 
 }
 

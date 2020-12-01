@@ -26,14 +26,13 @@
 #include "NCrystal/NCFile.hh"
 #include "NCrystal/internal/NCString.hh"
 #include <iostream>
-#include <cstdlib>
 #include <atomic>
 namespace NC = NCrystal;
 
 namespace NCrystal {
 
-  static std::atomic<bool> s_info_cache_enabled(std::getenv("NCRYSTAL_NOCACHE") ? false : true);
-  static std::atomic<bool> s_debug_factory(std::getenv("NCRYSTAL_DEBUGFACTORY") ? true : false);
+  static std::atomic<bool> s_info_cache_enabled( ! ncgetenv_bool("NOCACHE") );
+  static std::atomic<bool> s_debug_factory( ncgetenv_bool("DEBUGFACTORY") );
 
   struct FactoryCfgSpy : public MatCfg::AccessSpy {
     std::set<std::string> parnames;
@@ -59,7 +58,7 @@ namespace NCrystal {
     }
   };
 
-  static std::mutex s_infocache_mutex;//For now, should move to FactoryBase implementation!
+  static std::mutex s_infocache_mutex;//For now, should move to CachedFactoryBase implementation!
   static std::map<std::string, std::set<InfoCache> > s_infocache;
 
   const Info * searchInfoCache(const std::string& key, const MatCfg& cfg) {
@@ -92,6 +91,7 @@ namespace NCrystal {
 
 void NC::clearInfoCaches()
 {
+  //MT TODO: mutex lock (check this entire file... perhaps migrate to new infrastructure?)
   s_infocache.clear();
   if (s_debug_factory)
     std::cout<<"NCrystal::Factory - clearInfoCaches called."<<std::endl;
@@ -115,7 +115,7 @@ void NC::enableCaching()
   s_info_cache_enabled = true;
 }
 
-const NC::Info * NC::createInfo( const NC::MatCfg& cfg )
+const NC::Info* NC::createInfo( const NC::MatCfg& cfg )
 {
   std::lock_guard<std::mutex> guard(s_infocache_mutex);
 
@@ -130,21 +130,21 @@ const NC::Info * NC::createInfo( const NC::MatCfg& cfg )
   }
 
   cfg.checkConsistency();
-  FactoryList& facts = getFactories();//Access factories
-  std::map<int,const FactoryBase*> avail;
-  const FactoryBase* chosen = 0;
+  const FactoryList& facts = getFactories();//Access factories
+  std::map<int,std::shared_ptr<const FactoryBase>> avail;
+  std::shared_ptr<const FactoryBase> chosen;
   std::string specific = cfg.get_infofact_name();
   if (s_debug_factory && !specific.empty())
     std::cout<<"NCrystal::Factory::createInfo - cfg.infofactory=\""<<specific<<"\" so will search for that."<<std::endl;
 
   for (std::size_t i = 0; i < facts.size(); ++i) {
-    const FactoryBase* f = facts.at(i);
+    auto& f = facts.at(i);
     if (!specific.empty()) {
       if (specific == f->getName()) {
-        chosen = f;
+        chosen = std::move(f);
         if (s_debug_factory)
-          std::cout<<"NCrystal::Factory::createInfo - about to invoke canCreateInfo on factory \""<<f->getName()<<"\""<<std::endl;
-        if (!f->canCreateInfo(cfg))
+          std::cout<<"NCrystal::Factory::createInfo - about to invoke canCreateInfo on factory \""<<chosen->getName()<<"\""<<std::endl;
+        if (!chosen->canCreateInfo(cfg))
           NCRYSTAL_THROW2(BadInput,"Requested infofactory does not actually have capability to service request: \""<<specific<<"\"");
         break;
       } else {
@@ -160,7 +160,7 @@ const NC::Info * NC::createInfo( const NC::MatCfg& cfg )
       else std::cout<<"NO"<<std::endl;
     }
     if (priority && avail.find(priority)==avail.end())
-      avail[priority] = f;
+      avail[priority] = std::move(f);
   }
   if (!specific.empty() && !chosen)
     NCRYSTAL_THROW2(BadInput,"Specific infofactory requested which is unavailable: \""<<specific<<"\"");
@@ -188,12 +188,10 @@ const NC::Info * NC::createInfo( const NC::MatCfg& cfg )
   cfg.addAccessSpy(&spy);
   if (s_debug_factory)
     std::cout<<"NCrystal::Factory::createInfo - invoking createInfo on factory \""<<chosen->getName()<<"\""<<std::endl;
-  RCHolder<const Info> info(chosen->createInfo(cfg));
+  auto info = chosen->createInfo(cfg);
   cfg.removeAccessSpy(&spy);
   if (!info.obj())
     NCRYSTAL_THROW(BadInput,"Chosen factory could not service createInfo request");
-  if (info->refCount()!=1)//1 here since RCHolder already incremented
-    NCRYSTAL_THROW(BadInput,"Chosen factory returned object with non-zero reference count!");
 
 
   //to ensure good caching + separation, we enforce dynamically that factories
@@ -247,38 +245,32 @@ const NC::Info * NC::createInfo( const NC::MatCfg& cfg )
     }
   }
 
-  //careful when getting the object out that its refcount doesn't drop to zero
-  //and trigger cleanup, since the caching above might be disabled.
-  const Info * o = info.obj();
-  o->ref();
-  info.clear();
-  o->unrefNoDelete();
   if (s_debug_factory)
     std::cout<<"NCrystal::Factory::createInfo - createInfo was successful"<<std::endl;
-  return o;
+  return info.releaseNoDelete();
 }
 
-const NC::Scatter * NC::createScatter( const NC::MatCfg& cfg )
+const NC::Scatter* NC::createScatter( const NC::MatCfg& cfg )
 {
   if (s_debug_factory)
     std::cout<<"NCrystal::Factory::createScatter - createScatter( "<<cfg<<" ) called"<<std::endl;
 
   cfg.checkConsistency();
-  FactoryList& facts = getFactories();//Access factories
-  std::map<int,const FactoryBase*> avail;
-  const FactoryBase* chosen = 0;
+  const FactoryList& facts = getFactories();//Access factories
+  std::map<int,std::shared_ptr<const FactoryBase>> avail;
+  std::shared_ptr<const FactoryBase> chosen;
   std::string specific = cfg.get_scatfactory();
   if (s_debug_factory && !specific.empty())
     std::cout<<"NCrystal::Factory::createScatter - cfg.scatfactory=\""<<specific<<"\" so will search for that."<<std::endl;
 
   for (std::size_t i = 0; i < facts.size(); ++i) {
-    const FactoryBase* f = facts.at(i);
+    auto& f = facts.at(i);
     if (!specific.empty()) {
       if (specific == f->getName()) {
-        chosen = f;
+        chosen = std::move(f);
         if (s_debug_factory)
-          std::cout<<"NCrystal::Factory::createScatter - about to invoke canCreateScatter on factory \""<<f->getName()<<"\""<<std::endl;
-        if (!f->canCreateScatter(cfg))
+          std::cout<<"NCrystal::Factory::createScatter - about to invoke canCreateScatter on factory \""<<chosen->getName()<<"\""<<std::endl;
+        if (!chosen->canCreateScatter(cfg))
           NCRYSTAL_THROW2(BadInput,"Requested scatfactory does not actually have capability to service request: \""<<specific<<"\"");
         break;
       } else {
@@ -294,7 +286,7 @@ const NC::Scatter * NC::createScatter( const NC::MatCfg& cfg )
       else std::cout<<"NO"<<std::endl;
     }
     if (priority && avail.find(priority)==avail.end())
-      avail[priority] = f;
+      avail[priority] = std::move(f);
   }
   if (!specific.empty() && !chosen)
     NCRYSTAL_THROW2(BadInput,"Specific scatfactory requested which is unavailable: \""<<specific<<"\"");
@@ -306,14 +298,12 @@ const NC::Scatter * NC::createScatter( const NC::MatCfg& cfg )
   if (s_debug_factory)
     std::cout<<"NCrystal::Factory::createScatter - factory \""<<chosen->getName()<<"\" chosen to service createScatter request"<<std::endl;
 
-  const Scatter * scatter = chosen->createScatter(cfg);
+  auto scatter = chosen->createScatter(cfg);
   if (!scatter)
     NCRYSTAL_THROW(BadInput,"Chosen factory could not service createScatter request");
-  if (scatter->refCount()!=0)
-    NCRYSTAL_THROW(BadInput,"Chosen factory returned object with non-zero reference count!");
   if (s_debug_factory) {
     const char * prefix = "NCrystal::Factory::createScatter::success ";
-    const ScatterComp * scatcomp = dynamic_cast<const ScatterComp*>(scatter);
+    const ScatterComp * scatcomp = dynamic_cast<const ScatterComp*>(scatter.obj());
     std::cout<<prefix<<std::endl;
     std::cout<<prefix<<" createScatter was successful and resulted in "<<scatter->getCalcName()<<" object";
     if ( scatcomp ){
@@ -326,32 +316,32 @@ const NC::Scatter * NC::createScatter( const NC::MatCfg& cfg )
     std::cout<<prefix<<std::endl;
   }
 
-  return scatter;
+  return scatter.releaseNoDelete();
 }
 
 
 //TODO: this function is a cut'n'paste of the above, with scatter->absorption replacement.
-const NC::Absorption * NC::createAbsorption( const NC::MatCfg& cfg )
+const NC::Absorption* NC::createAbsorption( const NC::MatCfg& cfg )
 {
   if (s_debug_factory)
     std::cout<<"NCrystal::Factory::createAbsorption - createAbsorption( "<<cfg<<" ) called"<<std::endl;
 
   cfg.checkConsistency();
-  FactoryList& facts = getFactories();//Access factories
-  std::map<int,const FactoryBase*> avail;
-  const FactoryBase* chosen = 0;
+  const FactoryList& facts = getFactories();//Access factories
+  std::map<int,std::shared_ptr<const FactoryBase>> avail;
+  std::shared_ptr<const FactoryBase> chosen;
   std::string specific = cfg.get_absnfactory();
   if (s_debug_factory && !specific.empty())
     std::cout<<"NCrystal::Factory::createAbsorption - cfg.absnfactory=\""<<specific<<"\" so will search for that."<<std::endl;
 
   for (std::size_t i = 0; i < facts.size(); ++i) {
-    const FactoryBase* f = facts.at(i);
+    auto& f = facts.at(i);
     if (!specific.empty()) {
       if (specific == f->getName()) {
-        chosen = f;
+        chosen = std::move(f);
         if (s_debug_factory)
-          std::cout<<"NCrystal::Factory::createAbsorption - about to invoke canCreateAbsorption on factory \""<<f->getName()<<"\""<<std::endl;
-        if (!f->canCreateAbsorption(cfg))
+          std::cout<<"NCrystal::Factory::createAbsorption - about to invoke canCreateAbsorption on factory \""<<chosen->getName()<<"\""<<std::endl;
+        if (!chosen->canCreateAbsorption(cfg))
           NCRYSTAL_THROW2(BadInput,"Requested absnfactory does not actually have capability to service request: \""<<specific<<"\"");
         break;
       } else {
@@ -367,7 +357,7 @@ const NC::Absorption * NC::createAbsorption( const NC::MatCfg& cfg )
       else std::cout<<"NO"<<std::endl;
     }
     if (priority && avail.find(priority)==avail.end())
-      avail[priority] = f;
+      avail[priority] = std::move(f);
   }
   if (!specific.empty() && !chosen)
     NCRYSTAL_THROW2(BadInput,"Specific absnfactory requested which is unavailable: \""<<specific<<"\"");
@@ -379,14 +369,12 @@ const NC::Absorption * NC::createAbsorption( const NC::MatCfg& cfg )
   if (s_debug_factory)
     std::cout<<"NCrystal::Factory::createAbsorption - factory \""<<chosen->getName()<<"\" chosen to service createAbsorption request"<<std::endl;
 
-  const Absorption * absorption = chosen->createAbsorption(cfg);
+  auto absorption = chosen->createAbsorption(cfg);
   if (!absorption)
     NCRYSTAL_THROW(BadInput,"Chosen factory could not service createAbsorption request");
-  if (absorption->refCount()!=0)
-    NCRYSTAL_THROW(BadInput,"Chosen factory returned object with non-zero reference count!");
   if (s_debug_factory)
     std::cout<<"NCrystal::Factory::createAbsorption - createAbsorption was successful"<<std::endl;
-  return absorption;
+  return absorption.releaseNoDelete();
 }
 
 namespace NCrystal {
@@ -414,6 +402,7 @@ namespace NCrystal {
       };
       std::map<std::string,Entry> m_db;
       std::shared_ptr<std::mutex> m_mutex;
+
     public:
       InMemoryFileDB( std::shared_ptr<std::mutex> mm )
         : m_mutex(std::move(mm))
@@ -481,6 +470,17 @@ namespace NCrystal {
                                                   ? it->second.staticData
                                                   : it->second.data ) );
       }
+
+      std::vector<PairSS> getList() const final {
+        nc_assert( m_mutex != nullptr );
+        std::lock_guard<std::mutex> guard(*m_mutex);//NB: The mutex lock here is why we need to keep it in a shared pointer!
+        std::vector<PairSS> list;
+        list.reserve(m_db.size());
+        for (const auto& e : m_db)
+          list.emplace_back(e.first,"<embedded>");
+        return list;
+      }
+
     };
     void ensureDBReady() {
       //Assumes mutex is already locked by calling code.
@@ -505,8 +505,6 @@ namespace NCrystal {
       nc_assert_always(s_inmemdb);
       s_inmemdb->addStaticEntry(name,static_data);
     }
-    //For NCMatCfg constructor, which needs to ensure virtual embedded files can
-    //be read:
     void ensureInMemDBReadyMTSafe() {
       nc_assert(!!s_inmemdb_mutex);
       std::lock_guard<std::mutex> guard(*s_inmemdb_mutex);
@@ -544,3 +542,9 @@ void NC::registerInMemoryStaticFileData( const std::string& name,
   s_inmemdb->addStaticEntry(name,static_data);
 }
 
+void NC::ensureEmbeddedDataIsRegistered()
+{
+#ifdef NCRYSTAL_STDCMAKECFG_EMBED_DATA_ON
+  internal::ensureInMemDBReadyMTSafe();
+#endif
+}

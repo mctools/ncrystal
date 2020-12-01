@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Auto-generated file for NCrystal v@NCrystal_VERSION@.
+
+##########################################################################
+# Source this file to undo effect of sourcing setup.sh in same directory #
+##########################################################################
+
+export tmpnccfg="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/@NCrystal_BINDIR@/ncrystal-config"
+if [ -f "$tmpnccfg" ]; then
+    $( "$tmpnccfg" --unsetup )
+    unset tmpnccfg
+    return 0
+else
+    echo "ERROR: Could not find ncrystal-config script"
+    unset tmpnccfg
+    return 1
+fi

@@ -24,25 +24,27 @@
 #include "NCrystal/NCInfo.hh"
 #include "NCrystal/internal/NCAbsOOV.hh"
 
+namespace NC = NCrystal;
+
 namespace NCrystal {
 
   class NCStdAbsFact : public FactoryBase {
   public:
-    const char * getName() const { return "stdabs"; }
+    const char * getName() const final { return "stdabs"; }
 
-    virtual int canCreateAbsorption( const MatCfg& cfg ) const {
-      RCHolder<const Info> info(::NCrystal::createInfo( cfg ));
+    int canCreateAbsorption( const MatCfg& cfg ) const final {
+      RCHolder<const Info> info(::NC::createInfo( cfg ));
       if ( !info || !info->hasXSectAbsorption() )
         return false;
       return 100;
     }
 
-    virtual const Absorption * createAbsorption( const MatCfg& cfg ) const
+    RCHolder<const Absorption> createAbsorption( const MatCfg& cfg ) const final
     {
-      RCHolder<const Info> info(::NCrystal::createInfo( cfg ));
+      RCHolder<const Info> info(::NC::createInfo( cfg ));
       if ( !info || !info->hasXSectAbsorption() )
-        return 0;
-      return new AbsOOV(info.obj());
+        return nullptr;
+      return makeRC<AbsOOV>(info.obj());
     }
   };
 }
@@ -53,6 +55,6 @@ namespace NCrystal {
 
 extern "C" void ncrystal_register_stdabs_factory()
 {
-  if (!NCrystal::hasFactory("stdabs"))
-    NCrystal::registerFactory(new NCrystal::NCStdAbsFact);
+  if (!NC::hasFactory("stdabs"))
+    NC::registerFactory(std::make_unique<NC::NCStdAbsFact>());
 }

@@ -51,7 +51,8 @@ namespace NCrystal {
                 const VectD& energyGrid = VectD() );
     SABScatter( std::shared_ptr<const SABData>,
                 std::shared_ptr<const VectD> energyGrid = nullptr );
-    SABScatter( std::shared_ptr<const SAB::SABScatterHelper> );
+    explicit SABScatter( std::shared_ptr<const SAB::SABScatterHelper> );
+    explicit SABScatter( std::unique_ptr<const SAB::SABScatterHelper> );
     SABScatter( SAB::SABScatterHelper&& );
 
     virtual ~SABScatter();

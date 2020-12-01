@@ -20,6 +20,7 @@
 
 #include "NCrystal/internal/NCSABUtils.hh"
 #include "NCrystal/internal/NCIter.hh"
+
 namespace NC = NCrystal;
 
 NC::SABData NC::SABUtils::transformKernelToStdFormat( NC::ScatKnlData&& input )
@@ -176,8 +177,9 @@ void NC::SABUtils::expandBetaAndSABToAllBetas( NC::span<const double> halfbetagr
   //Step 1. Create complete beta-grid:
   // -> the negative values and zero:
   complete_betagrid.reserve( nbeta_new );
-  for (auto e: reverse_view(halfbetagrid) )
-    complete_betagrid.emplace_back(-e);
+  for (auto it = halfbetagrid.rbegin(); it != halfbetagrid.rend(); ++it)
+    complete_betagrid.emplace_back( - (*it) );
+
   // -> avoid signed negative zero, for aesthetic reasons :
   nc_assert(complete_betagrid.back()==0.0);
   complete_betagrid.back() = 0.0;

@@ -45,72 +45,61 @@ import pathlib
 import warnings
 import argparse
 
-#We handle the NCrystal import separately, since we know where it might be, even
-#if the user did not set up PYTHONPATH correctly.
-#NB: This NCrystal import code copied from inspectfile script. Be
-#sure to update everywhere if performing changes!!!
 try:
     import NCrystal
 except ImportError:
-    NCrystal = None
-    #Perhaps PYTHONPATH was not setup correctly. If we are running out of a
-    #standard NCrystal installation, we can try to amend the search path
-    #manually for the current script:
-    op=os.path
-    test=op.abspath(op.realpath(op.join(op.dirname(__file__),'../python')))
-    if op.exists(op.join(test,'NCrystal/__init__.py')):
-        sys.path += [test]
+    _ = pathlib.Path( __file__ ).parent / '../share/NCrystal/python/NCrystal/__init__.py'
+    if _.exists():
+        sys.path.append(str(_.parent.parent.absolute().resolve()))
+        try:
+            import NCrystal
+        except ImportError:
+            raise SystemExit("ERROR: Could not import the NCrystal Python module (perhaps your PYTHONPATH is misconfigured).")
+
+__pynecache=[None]
+def import_pyne():
+    global __pynecache
+    if __pynecache[0] is not None:
+        return __pynecache[0]
+
     try:
-        import NCrystal
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")#silence annoying pyne.endf QAWarning's.
+            import pyne.endf
     except ImportError:
-        NCrystal = None
-if not NCrystal:
-    print("ERROR: Could not import the NCrystal python module.")
-    print("       If it is installed, make sure your PYTHONPATH is setup correctly.")
-    sys.exit(1)
+        raise SystemExit('ERROR: Could not "import pyne.endf". You probably need to install PyNE (see http://pyne.io/)')
 
-try:
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")#silence annoying pyne.endf QAWarning's.
-        import pyne.endf
-except ImportError:
-    raise SystemExit('ERROR: Could not "import pyne.endf". You probably need to install PyNE (see http://pyne.io/)')
+    #Monkey-patch pyne.endf reader, which was ignoring optional sections with teff
+    #curves of non-principal atoms (see
+    #https://github.com/pyne/pyne/issues/1209). The fix was accepted upstream, so
+    #eventually we can remove this monkey-patching once we think all users will have
+    #recent enough PyNE installations:
+    _orig_rti = pyne.endf.Evaluation._read_thermal_inelastic
+    def _fix_rti(_self):
+        _orig_rti(_self)
+        inel=_self.thermal_inelastic
+        B=inel['B']
+        for ii in range(len(B)//6-1):
+            if B[6*(ii+1)]==0.0:
+                if 'teff_%i'%(ii+1) in inel:
+                    #If upstream already includes fix, do nothing.
+                    continue
+                _, teff = _self._get_tab1_record()
+                inel['teff_%i'%(ii+1)] = teff#Store as teff_1, teff_2, etc. for now.
+    pyne.endf.Evaluation._read_thermal_inelastic=_fix_rti
+    __pynecache[0] = pyne
+    return pyne
 
-#Monkey-patch pyne.endf reader, which was ignoring optional sections with teff
-#curves of non-principal atoms (see
-#https://github.com/pyne/pyne/issues/1209). The fix was accepted upstream, so
-#eventually we can remove this monkey-patching once we think all users will have
-#recent enough PyNE installations:
-_orig_rti = pyne.endf.Evaluation._read_thermal_inelastic
-def _fix_rti(_self):
-    _orig_rti(_self)
-    inel=_self.thermal_inelastic
-    B=inel['B']
-    for ii in range(len(B)//6-1):
-        if B[6*(ii+1)]==0.0:
-            if 'teff_%i'%(ii+1) in inel:
-                #If upstream already includes fix, do nothing.
-                continue
-            _, teff = _self._get_tab1_record()
-            inel['teff_%i'%(ii+1)] = teff#Store as teff_1, teff_2, etc. for now.
-pyne.endf.Evaluation._read_thermal_inelastic=_fix_rti
+def elementZToName(z):
+    d = NCrystal.atomDB(z,throwOnErrors=False)
+    return d.elementName() if d else None
 
 def guessElementFromMass(mass_amu):
-    elem_data=[ (abs(d['mass_amu']-mass_amu),d) for d in [NCrystal.naturalElementDB(z) for z in range(1,100)] if d ]
+    elem_data=[ (abs(d.averageMassAMU()-mass_amu),d) for d in [NCrystal.atomDB(z,throwOnErrors=False) for z in range(1,120)] if d ]
     elem_data.sort()
-    print (f'Guessing mass={mass_amu:.8}u is element {elem_data[0][1]["name"]}')
-    return elem_data[0][1]['name']
-_db_elem = ['H',  'He', 'Li', 'Be', 'B',  'C',  'N',  'O',  'F',  'Ne',
-            'Na', 'Mg', 'Al', 'Si', 'P' , 'S',  'Cl', 'Ar', 'K',  'Ca', 'Sc',
-            'Ti', 'V',  'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge',
-            'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y',  'Zr', 'Nb', 'Mo', 'Tc',
-            'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te', 'I',  'Xe',
-            'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb',
-            'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W',  'Re', 'Os',
-            'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr',
-            'Ra', 'Ac', 'Th', 'Pa', 'U',  'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf',
-            'Es', 'Fm', 'Md', 'No', 'Lr', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt',
-            'Ds', 'Rg']
+    print (f'Guessing mass={mass_amu:.8}u is element {elem_data[0][1].elementName()}')
+    return elem_data[0][1].elementName()
+
 def guessElementName(ZA,mass_amu):
     Z=ZA//1000
     if ZA==155:
@@ -123,13 +112,14 @@ def guessElementName(ZA,mass_amu):
         return 'H'#solid or liquid methane (CH4 happens to have mass 12+1*4=16 close to oxygen, so can't guess from mass)
     if ZA in (112,113):
         return 'D'#ortho-D or para-D
-    gm = guessElementFromMass(mass_amu)
-    if Z>0 and Z<=len(_db_elem):
-        gz=_db_elem[Z-1]
-        assert gz==gm,f"Mass and Z guess gives different element name (Z={Z}=>'{gz}', mass={mass_amu}amu=>'{gm}')"
-        return gz
+    guess_by_mass = guessElementFromMass(mass_amu)
+    guess_by_z = elementZToName(z) if (z>0 and z<120) else None
+    if guess_by_z:
+        if guess_by_z!=guess_by_mass:
+            raise SystemExit(f"ERROR: Mass and Z guess gives different element name (Z={Z}=>'{guess_by_z}', mass={mass_amu}amu=>'{guess_by_mass}')")
+        return guess_by_z
     if Z==0:
-        return gm
+        return guess_by_mass
     raise ValueError(f'Could not determine element name from ZA={ZA}, mass={mass_amu}amu')
 
 #Custom bare-bones reader, so we can extract the data header as-is in the file:
@@ -199,6 +189,7 @@ def parse_endf_file(filename):
     print(f"Attempting to load ENDF file {filename}...")
     result={}
     warnings_=[]
+    pyne = import_pyne()
     data=pyne.endf.Evaluation(filename)
     data.read()
     result['input_file']=pathlib.Path(filename)
@@ -613,7 +604,7 @@ if __name__=='__main__':
     if p2 and (p1['non_principal_data'] or p2['non_principal_data']):
         raise SystemExit("ERROR: When providing two ENDF files as input both must files must be without non-principal"
                          +" elements! If you know how to handle this, You can try to convert separately and combine the"
-                         +" resulting .ncmat files manually.""")
+                         +" resulting .ncmat files manually.")
 
     for t in temperatures_combined:
         fn=pathlib.Path(f'{args.outbn}_T{t}K.ncmat')

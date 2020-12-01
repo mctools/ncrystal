@@ -52,6 +52,9 @@
 #ifndef NCrystal_NCFactoryRegistry_hh
 #  include "NCrystal/NCFactoryRegistry.hh"
 #endif
+#ifndef NCrystal_NCPluginMgmt_hh
+#  include "NCrystal/NCPluginMgmt.hh"
+#endif
 #ifndef NCrystal_NCAtomData_hh
 #  include "NCrystal/NCAtomData.hh"
 #endif

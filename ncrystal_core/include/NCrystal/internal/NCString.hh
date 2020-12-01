@@ -39,15 +39,19 @@ namespace NCrystal {
   //cleared of existing contents. Empty parts are only kept when sep!=0 (similar
   //to pythons str.split()). Finally, maxsplit can be used to limit the number
   //of splittings performed:
+  VectS split2( const std::string& input,
+                std::size_t maxsplit = 0,
+                char sep = 0);
+
+  //Backwards compatible version (eventually we will remove this and rename
+  //split2->split):
   void split(VectS& output,
              const std::string& input,
              std::size_t maxsplit = 0,
              char sep = 0 );
 
-  //Get basename and extension from filename:
-  std::string basename(const std::string& filename);
-  std::string getfileext(const std::string& filename);
 
+  //Substrings at edges:
   bool startswith(const std::string& str, const std::string& substr);
   bool endswith(const std::string& str, const std::string& substr);
 
@@ -76,7 +80,7 @@ namespace NCrystal {
   unsigned countTrailingDigits( const std::string& ss );
 
   //"Bla123" => ("Bla","123"). Special cases: "Bla" -> ("Bla","") "Bla012" -> ("Bla","012")
-  std::pair<std::string,std::string> decomposeStrWithTrailingDigits( const std::string& ss );
+  PairSS decomposeStrWithTrailingDigits( const std::string& ss );
 
   //Replace all occurances of oldtxt in str with newtxt:
   void strreplace(std::string& str, const std::string& oldtxt, const std::string& newtxt);
@@ -90,6 +94,17 @@ namespace NCrystal {
   //case prec!=0):
   void prettyPrintValue(std::ostream& os, double value, unsigned prec=0 );
   std::string prettyPrintValue2Str(double value, unsigned prec=0 );
+
+  //Common access to environment variables - will always be prefixed with
+  //NCRYSTAL_. Unset variables means that the default values will be
+  //returned. The _dbl/_int versions throws BadInput exceptions in case of
+  //problems:
+  //NB: Assuming no-one calls setenv/putenv/unsetenv, concurrent calls to these
+  //functions are safe (since C++11).
+  std::string ncgetenv(std::string, std::string defval = std::string() );
+  double ncgetenv_dbl(std::string, double defval = 0.0);
+  int ncgetenv_int(std::string, int defval = 0 );
+  bool ncgetenv_bool(std::string);//if set to 1 -> true, 0/unset -> false (otherwise exception).
 
 }
 

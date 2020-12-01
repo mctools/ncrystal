@@ -68,13 +68,13 @@ namespace NCrystal{
         m_ekin_low = wl2ekin( m_lchelper->braggThreshold() );
 
       } else {
-        RCHolder<Scatter> scbragg(new SCBragg(cinfo,sco,mosaicity,delta_d,plane_provider,prec, ntrunc));
+        auto scbragg = makeRC<SCBragg>(cinfo,sco,mosaicity,delta_d,plane_provider,prec, ntrunc);
         if (mode>0) {
-          m_scmodel = new LCBraggRef(scbragg.obj(), lcaxis_labframe, mode);
+          m_scmodel = makeRC<LCBraggRef>(scbragg.obj(), lcaxis_labframe, mode);
         } else {
           int nsample = -mode;
           nc_assert(nsample>0);
-          m_scmodel = new LCBraggRndmRot(scbragg.obj(), lcaxis_labframe, nsample);
+          m_scmodel = makeRC<LCBraggRndmRot>(scbragg.obj(), lcaxis_labframe, nsample);
         }
         lcbragg->registerSubCalc(m_scmodel.obj());
         nc_assert(m_scmodel->isSubCalc(scbragg.obj()));
@@ -86,9 +86,7 @@ namespace NCrystal{
       nc_assert(m_ekin_low>0);
     }
 
-    ~pimpl()
-    {
-    }
+    ~pimpl() = default;
 
     double m_ekin_low;
     std::unique_ptr<LCHelper> m_lchelper;
@@ -104,17 +102,14 @@ NCrystal::LCBragg::LCBragg( const Info* ci, const SCOrientation& sco, double mos
                             const double (&lcaxis)[3], int mode, double delta_d, PlaneProvider * plane_provider,
                             double prec, double ntrunc)
   : Scatter("LCBragg"),
-    m_pimpl(new pimpl(this,asVect(lcaxis),mode,sco,ci,plane_provider,mosaicity,delta_d,prec,ntrunc))
+    m_pimpl(std::make_unique<pimpl>(this,asVect(lcaxis),mode,sco,ci,plane_provider,mosaicity,delta_d,prec,ntrunc))
 {
   nc_assert_always(ci);
   nc_assert_always(bool(m_pimpl->m_lchelper)!=bool(m_pimpl->m_scmodel.obj()));
   validate();
 }
 
-NCrystal::LCBragg::~LCBragg()
-{
-  delete m_pimpl;
-}
+NCrystal::LCBragg::~LCBragg() = default;
 
 void NCrystal::LCBragg::domain(double& ekin_low, double& ekin_high) const
 {

@@ -392,7 +392,7 @@ void NC::Info::objectDone()
   }
 
   for (const auto& e : m_custom) {
-    if (e.first.empty() || !contains_only(e.first,"ABCDEFGHIJKLMNOPQRSTUVXYZ"))
+    if (e.first.empty() || !contains_only(e.first,"ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
       NCRYSTAL_THROW2(BadInput,"invalid custom section name: \""<<e.first
                       <<"\" (must be non-empty and contain only capitalised letters A-Z)");
   }

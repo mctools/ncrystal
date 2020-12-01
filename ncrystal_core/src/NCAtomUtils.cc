@@ -140,8 +140,8 @@ void NC::validateAtomDBLine(const VectS& words, unsigned ncmat_version )
   const unsigned nwords = static_cast<unsigned>(words.size());
 
   static std::string allowed_special_chars="+-."_s;
-  static std::string s_lowerabc = "abcdefghijklmnopqrstuvxyz";
-  static std::string s_upperabc = "ABCDEFGHIJKLMNOPQRSTUVXYZ";
+  static std::string s_lowerabc = "abcdefghijklmnopqrstuvwxyz";
+  static std::string s_upperabc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   static std::string allowed_chars = s_upperabc+s_lowerabc+"0123456789+-%*"_s+allowed_special_chars;
   for ( auto w : words ) {
     if (w.empty())

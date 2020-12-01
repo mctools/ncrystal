@@ -103,10 +103,40 @@ namespace NCrystal {
     }
     RCHolder( RCHolder&& o ) { std::swap(m_obj,o.m_obj); }
     RCHolder& operator=( RCHolder&& o ) { clear(); std::swap(m_obj,o.m_obj); return *this; }
-    bool operator==( decltype(nullptr) ) { return m_obj==nullptr; }
-    bool operator!=( decltype(nullptr) ) { return m_obj!=nullptr; }
     bool operator()() const { return m_obj!=0; }
     bool operator!() const { return m_obj==0; }
+
+    //Assign, construct and compare with nullptr:
+    RCHolder & operator= ( decltype(nullptr) ) { m_obj = nullptr; return *this; }
+    RCHolder( decltype(nullptr) ) {}
+    bool operator==( decltype(nullptr) ) { return m_obj==nullptr; }
+    bool operator!=( decltype(nullptr) ) { return m_obj!=nullptr; }
+
+    //Move/copy/assign to base class pointer should be ok (only compiles if T* can be assigned from TOther*):
+    template<class TOther>
+    RCHolder& operator=( RCHolder<TOther>&& o ) {
+      RCHolder<TOther> o_taken = std::move(o);
+      m_obj = o_taken.obj();
+      if (m_obj)
+        m_obj->ref();
+      return *this;
+    }
+    template<class TOther>
+    RCHolder( RCHolder<TOther>&& o ) {
+      *this = std::move(o);
+    }
+    template<class TOther>
+    RCHolder& operator=( const RCHolder<TOther>& o ) {
+      m_obj = o.obj();
+      if (m_obj)
+        m_obj->ref();
+      return *this;
+    }
+    template<class TOther>
+    RCHolder( const RCHolder<TOther>& o ) {
+      *this = o;
+    }
+
     //Release obj without triggering deletion:
     T * releaseNoDelete() { T* old = m_obj; if ( m_obj ) m_obj->unrefNoDelete(); m_obj = 0; return old; }
     const T * releaseNoDelete() const { const T* old = m_obj; if ( m_obj ) m_obj->unrefNoDelete(); m_obj = 0; return old; }
@@ -139,6 +169,27 @@ namespace NCrystal {
   //For internal NCrystal usage, registered functions will be invoked whenever
   //clearCaches() is called:
   NCRYSTAL_API void registerCacheCleanupFunction(std::function<void()>);
+
+  //makeRC can be used for RCBase-derived objects, similarly to how one would
+  //use make_unique/make_shared for std smart pointers:
+  template<typename T, typename ...Args>
+  inline RCHolder<T> makeRC( Args&& ...args )
+  {
+    return RCHolder<T>( new T( std::forward<Args>(args)... ) );
+  }
+
+  template<typename T, typename Tauto>
+  inline RCHolder<T> castRC( RCHolder<Tauto> tin )
+  {
+    return RCHolder<T>(dynamic_cast<T*>(tin.obj()));
+  }
+
+  template<typename T, typename Tauto>
+  inline RCHolder<T> static_castRC( RCHolder<Tauto> tin )
+  {
+    nc_assert(dynamic_cast<T*>(tin.obj()));
+    return RCHolder<T>(static_cast<T*>(tin.obj()));
+  }
 
 }
 

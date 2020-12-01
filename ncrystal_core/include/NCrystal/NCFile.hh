@@ -28,12 +28,37 @@ namespace NCrystal {
   //Check if file exists and is readable:
   NCRYSTAL_API bool file_exists( const std::string& filename );
 
+  //Simple file globbing:
+  NCRYSTAL_API VectS ncglob( const std::string&);
+
+  //Current working directory:
+  NCRYSTAL_API std::string ncgetcwd();
+
+  //Get basename and extension from filename:
+  NCRYSTAL_API std::string basename(const std::string& filename);
+  NCRYSTAL_API std::string getfileext(const std::string& filename);
+
   //Search for the file. If filename does not exist relative to the current
-  //working directory, is not an absolute path to the file, first look
-  //relatively to the directory NCRYSTAL_DATADIR and secondly relatively to a
-  //directory (if any) given at compilation time by the preprocessor define
-  //-DNCRYSTAL_DATADIR=/some/dir. Returns empty string if not found:
+  //working directory, is not an absolute path to the file, fall back to
+  //searching NCRYSTAL_DATADIR given either as environment variable of
+  //compile-time definition (the second is ignored if the environment variable
+  //is set). Returns empty string if not found:
   NCRYSTAL_API std::string find_file( const std::string& filename );
+
+  //NB: To be sure any embedded files (via the standard EMBED_DATA option in
+  //NCrystal's CMake) are ready one should call ensureEmbeddedDataIsRegistered()
+  //from NCFactory.hh before calling listAvailableFiles or
+  //createTextInputStream.
+
+  struct NCRYSTAL_API FileListEntry {
+    std::string basename;
+    std::string source;//directory path or description
+    bool hidden;//true means not selectable due to other files in path
+  };
+
+  //Browse files available (all in-memory files and files with a certain extension
+  //in the current working directory or in NCrystal's search path).
+  NCRYSTAL_API std::vector<FileListEntry> listAvailableFiles(std::string extension="ncmat");
 
   //Interface which abstracts text sources, allowing common interface for
   //reading data from on-disk files and from e.g. in-memory databases. The
@@ -82,6 +107,9 @@ namespace NCrystal {
     //Override and return false to disable attempts to fall back to the usual
     //search for input files (if the method above supplies a null ptr).
     virtual bool allowFallbackToUsualDefaults() { return true; }
+
+    //For "browsing" (pairs of file name and source, in searched order)
+    virtual std::vector<PairSS> getList() const = 0;
   };
 
   //Call to register a custom manager (call with nullptr to delete the custom

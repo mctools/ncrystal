@@ -19,15 +19,15 @@ In addition to code and tools, the NCrystal distribution also includes a set of
 validated data files, covering many crystals important at neutron scattering
 facilities. For more information about the properties and validity of each file,
 users are referred to the dedicated page at
-https://github.com/mctools/ncrystal/wiki/Data-library.
+https://github.com/mctools/ncrystal/wiki/Data-library .
 
-Supporting compilation with all C++ standards, the code has no third-party
-dependencies and is available under a highly liberal open source license (see
-NOTICE and LICENSE files for usage conditions and the INSTALL file for build and
-installation instructions). NCrystal was developed in close collaboration by
-Xiao Xiao Cai (DTU, ESS) and Thomas Kittelmann (ESS) and was supported in part
-by the European Union's Horizon 2020 research and innovation programme under
-grant agreement No 676548 (the BrightnESS project).
+Supporting compilation with all modern C++ standards (C++11 and later), the code
+has no third-party dependencies and is available under a highly liberal open
+source license (see NOTICE and LICENSE files for usage conditions and the
+INSTALL file for build and installation instructions). NCrystal was developed in
+close collaboration by Xiao Xiao Cai (DTU, ESS) and Thomas Kittelmann (ESS) and
+was supported in part by the European Union's Horizon 2020 research and
+innovation programme under grant agreement No 676548 (the BrightnESS project).
 
 A substantial effort went into developing NCrystal. If you use it for your work,
 we would appreciate it if you would use the following reference in your work:
@@ -90,11 +90,17 @@ APIs with with statements like:
   #include "NCrystal/ncrystal.h"      // C code
   import NCrystal          ## Python code
 
+Since NCrystal release v2.2.0, the recommended way for C/C++ projects to build
+against NCrystal or G4NCrystal is to use CMake's find_package(NCrystal) or
+find_package(G4NCrystal) as appropriate. This respectively provides CMake
+targets NCrystal::NCrystal and G4NCrystal::G4NCrystal, which can be added as a
+dependency to your own targets.
+
 In the ./examples/ directory of your NCrystal distribution that you got after
 downloading and unpacking the NCrystal source tar-ball, you will find small
-examples of such code. For C++/C and Geant4, there is currently no documentation
-beyond the header files and examples. In the case of Python, there is some
-integrated documentation via the usual "help" function, accessed with:
+examples of code using NCrystal. For C++/C and Geant4, there is currently no
+documentation beyond the header files and examples. In the case of Python, there
+is some integrated documentation via the usual "help" function, accessed with:
 
   import NCrystal
   help(NCrystal)
