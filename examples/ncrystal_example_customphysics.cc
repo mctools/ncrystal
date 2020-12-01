@@ -27,7 +27,8 @@
 //                                                                              //
 // For simplicity everything is done in a single file here. In a more realistic //
 // scenario, one should of course split the various classes into separate       //
-// .hh/.cc files as usual in C++.                                               //
+// .hh/.cc files as usual in C++ and develop the model as an actual plugin for  //
+// NCrystal. See: https://github.com/mctools/ncrystal/wiki/PluginsDevelopment   //
 //                                                                              //
 // As a silly example, the new physics model "SimpleIncElas", replaces the      //
 // incoherent elastic physics from NCrystal with a model which is completely    //
@@ -185,7 +186,7 @@ int main() {
   //when users call createScatter(..).
   NC::registerFactory(std::make_unique<SimpleIncElasScatterFactory>());
 
-  //Add a the Al_sg225_simpleincelas100barn.ncmat (virtual) file which has
+  //Add the Al_sg225_simpleincelas100barn.ncmat (virtual) file which has a
   //@CUSTOM_SIMPLEINCELAS section:
   setupCustomDataLibrary();
 
