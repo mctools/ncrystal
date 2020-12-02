@@ -38,6 +38,9 @@
 #include <set>
 #include <mutex>
 #include <atomic>
+#if __cplusplus >= 202002L
+#  include <compare>
+#endif
 
 #ifndef ncrystal_api_h
 #  include "NCrystal/ncapi.h"
