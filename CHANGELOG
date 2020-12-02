@@ -1,4 +1,10 @@
-v2.2.0 2020-12-01
+v2.2.1 2020-12-02
+      * Bugfix restoring support for .nxs/.laz/.lau files which was accidentally
+        disabled in v2.2.0.
+      * Modify CMake code slightly to avoid warnings or unset CMAKE_BUILD_TYPE
+        under certain conditions where NCrystal is included as a sub-project.
+
+v2.2.0 2020-12-02
       * Support plugins (github issue #50)! Such plugins can be externally
         developed (for instance on GitHub), and either loaded dynamically at
         run-time by NCrystal or statically compiled into the NCrystal library

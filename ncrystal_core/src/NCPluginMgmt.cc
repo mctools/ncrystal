@@ -196,7 +196,7 @@ void NCP::ensurePluginsLoaded()
   loadBuiltinPlugin("stdncmat",ncrystal_register_ncmat_factory);
 #endif
 #ifdef NCRYSTAL_ENABLE_NXSLAZ
-  loadBuiltinPlugin("nxslaz",ncrystal_register_ncmat_factory);//TODO: As external plugin?
+  loadBuiltinPlugin("nxslaz",ncrystal_register_nxslaz_factories);//TODO: As external plugin?
 #endif
 
   //Static custom (builtin) plugins:

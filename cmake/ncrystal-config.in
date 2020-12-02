@@ -35,7 +35,7 @@ import os
 import shlex
 import shutil
 
-cmakebool = lambda s : bool(s.lower() in ['1','on','yes','y'] or (s.isdigit() and int(s)>1))
+cmakebool = lambda s : bool(s.lower() in ['1','on','yes','y','true'] or (s.isdigit() and int(s)>1))
 #Information filled out by CMake (todo: put all logic below on cmake-side?):
 installation_info = dict( libdir = '@NCrystal_relpath_BINDIR2LIBDIR@',
                           datadir = '@NCrystal_relpath_BINDIR2DATAROOT@/data' if cmakebool('@INSTALL_DATA@') else None,

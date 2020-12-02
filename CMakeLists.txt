@@ -38,32 +38,46 @@
 #                                                                                #
 ##################################################################################
 
-# We require cmake 3.10.0. This is intended to strike a balance between features
+# We require cmake 3.10. This is intended to strike a balance between features
 # and availability. Of popular platforms, a lower number would only have helped
 # NCrystal usage on a few slightly older distributions such as Ubuntu 16.04 (has
 # 3.5.1), Debian oldstable (has 3.7.2 as of Nov2020). CentOS6 and CentOS7 have
 # CMake 2.8.12 which is clearly below any sensible threshold, so users on these
 # platforms can already be expected to be used to install custom versions of
 # tools like CMake (for instance CentOS7 provides cmake3 as a separate package,
-# providing CMake 3.11). In any case, on platforms lacking CMake 3.10.0+, one
+# providing CMake 3.11). In any case, on platforms lacking CMake 3.10, one
 # must install a newer cmake somehow (this is usually rather simple). See also:
 # https://cliutils.gitlab.io/modern-cmake/chapters/intro/installing.html
+#
+# The maximum value is the maximum value with which we have tested. The reason
+# for specifying this maximum value is that it affects the default values of
+# cmake policies, depending on which version introduced them.
 
-cmake_minimum_required(VERSION 3.10.0)
+cmake_minimum_required(VERSION 3.10...3.19)
 
 # Respect value of CMAKE_BUILD_TYPE if already defined, otherwise fall back to
 # Release. In any case, expose CMAKE_BUILD_TYPE as an explicit cache variable
 # (gives drop-down list in gui). This must come before the call to project(..).
-if(DEFINED CMAKE_BUILD_TYPE)
-  set(_def_cbt ${CMAKE_BUILD_TYPE})
-else()
-  set(_def_cbt Release)
+if(NOT DEFINED NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE)
+  if(DEFINED CMAKE_BUILD_TYPE)
+    set(_def_cbt ${CMAKE_BUILD_TYPE})
+  else()
+    set(_def_cbt Release)
+  endif()
+  set(CMAKE_BUILD_TYPE ${_def_cbt}  CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel and None (None means that CMAKE_CXX_FLAGS or CMAKE_C_FLAGS are used)." )
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release RelWithDebInfo MinSizeRel None )
 endif()
-set(CMAKE_BUILD_TYPE ${_def_cbt}  CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel and None (None means that CMAKE_CXX_FLAGS or CMAKE_C_FLAGS are used)." )
-set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release RelWithDebInfo MinSizeRel None )
 
 #Setup project:
-project(NCrystal VERSION 2.2.0 LANGUAGES CXX C)
+project(NCrystal VERSION 2.2.1 LANGUAGES CXX C)
+
+if(NOT DEFINED NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE)
+  if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
+    #This can happen if parent project called the project(..) function before
+    #doing the song and dance we did above.
+    set(CMAKE_BUILD_TYPE Release)
+  endif()
+endif()
 
 #Options:
 option( BUILD_EXAMPLES  "Whether to build examples." ON )
@@ -388,7 +402,11 @@ foreach(pluginentry ${BUILTIN_PLUGIN_LIST})
       include(FetchContent)
     endif()
     message("---- Trying to install plugin via remote git repo: ${pluginentry_remoteurl} (gitref ${pluginentry_remoteref})")
-    FetchContent_Declare( ${pluginid} GIT_REPOSITORY "${pluginentry_remoteurl}" GIT_TAG "${pluginentry_remoteref}" GIT_SHALLOW TRUE )
+    FetchContent_Declare( ${pluginid}
+      GIT_REPOSITORY "${pluginentry_remoteurl}"
+      GIT_TAG        "${pluginentry_remoteref}"
+      GIT_SHALLOW ON
+      )
     FetchContent_GetProperties(${pluginid})
     if(NOT ${pluginid}_POPULATED)
       FetchContent_Populate(${pluginid})
