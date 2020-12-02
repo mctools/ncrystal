@@ -72,6 +72,7 @@ script:
     - ../installdir/bin/ncrystal_inspectfile --help
     - ../installdir/bin/ncrystal_inspectfile --test
     - ../installdir/bin/ncrystal_inspectfile --dump Al_sg225.ncmat
+    - ../installdir/bin/ncrystal_inspectfile --dump Al_sg225.nxs
     - python3 -c 'import matplotlib' 2>/dev/null || python3 -mpip install matplotlib
     - ../installdir/bin/ncrystal_inspectfile --pdf Al_sg225.ncmat
     - . ../installdir/setup.sh
