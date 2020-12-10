@@ -250,7 +250,7 @@ namespace NCrystal {
         m_nextLine.clear();
       }
     }
-    std::fstream m_file;
+    std::ifstream m_file;
     std::string m_nextLine;
   };
 
