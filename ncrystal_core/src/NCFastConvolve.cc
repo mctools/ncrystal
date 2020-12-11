@@ -20,6 +20,7 @@
 
 #include "NCrystal/NCDefs.hh"
 #include "NCrystal/internal/NCFastConvolve.hh"
+#include <array>
 #include <cstdlib>
 
 namespace NC = NCrystal;
