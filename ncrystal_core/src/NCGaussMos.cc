@@ -47,9 +47,9 @@ NC::GaussMos::GaussMos( double mosaicity, bool mosaicity_is_fhwm, double prec, d
   auto getEnvDbl = [](const char* name) { auto ev = getenv(name); return ev ? str2dbl(ev) : 0.0; };
   double override_ntrunc = getEnvDbl("NCRYSTAL_GAUSSMOS_OVERRIDE_NTRUNC");
   if (override_ntrunc)
-    ntrunc = m_mos_truncN = override_ntrunc;
+    m_mos_truncN = override_ntrunc;
   nc_assert(prec>=0);
-  nc_assert(ntrunc>=0);
+  nc_assert(m_mos_truncN>=0);
   //Set mosaicity and trigger one call to updateDerivedValues:
   setMosaicity(mosaicity,mosaicity_is_fhwm);
   nc_assert( m_mos_fwhm != -99 );

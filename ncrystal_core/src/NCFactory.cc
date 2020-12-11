@@ -259,19 +259,26 @@ const NC::Scatter* NC::createScatter( const NC::MatCfg& cfg )
   const FactoryList& facts = getFactories();//Access factories
   std::map<int,std::shared_ptr<const FactoryBase>> avail;
   std::shared_ptr<const FactoryBase> chosen;
-  std::string specific = cfg.get_scatfactory();
-  if (s_debug_factory && !specific.empty())
-    std::cout<<"NCrystal::Factory::createScatter - cfg.scatfactory=\""<<specific<<"\" so will search for that."<<std::endl;
+  auto request = cfg.get_scatfactory_parsed();
+
+  if (s_debug_factory && !request.specific.empty())
+    std::cout<<"NCrystal::Factory::createScatter - cfg.scatfactory=\""<<request.specific<<"\" so will search for that."<<std::endl;
 
   for (std::size_t i = 0; i < facts.size(); ++i) {
     auto& f = facts.at(i);
-    if (!specific.empty()) {
-      if (specific == f->getName()) {
+    if (!request.excluded.empty() && request.excluded.count(f->getName())) {
+      if (s_debug_factory)
+        std::cout<<"NCrystal::Factory::createScatter - skipping excluded factory \""<<f->getName()<<"\""<<std::endl;
+      continue;
+    }
+
+    if (!request.specific.empty()) {
+      if (request.specific == f->getName()) {
         chosen = std::move(f);
         if (s_debug_factory)
           std::cout<<"NCrystal::Factory::createScatter - about to invoke canCreateScatter on factory \""<<chosen->getName()<<"\""<<std::endl;
         if (!chosen->canCreateScatter(cfg))
-          NCRYSTAL_THROW2(BadInput,"Requested scatfactory does not actually have capability to service request: \""<<specific<<"\"");
+          NCRYSTAL_THROW2(BadInput,"Requested scatfactory does not actually have capability to service request: \""<<request.specific<<"\"");
         break;
       } else {
         continue;
@@ -288,8 +295,8 @@ const NC::Scatter* NC::createScatter( const NC::MatCfg& cfg )
     if (priority && avail.find(priority)==avail.end())
       avail[priority] = std::move(f);
   }
-  if (!specific.empty() && !chosen)
-    NCRYSTAL_THROW2(BadInput,"Specific scatfactory requested which is unavailable: \""<<specific<<"\"");
+  if (!request.specific.empty() && !chosen)
+    NCRYSTAL_THROW2(BadInput,"Specific scatfactory requested which is unavailable: \""<<request.specific<<"\"");
   if (!chosen)
     chosen = avail.empty() ? 0 : avail.rbegin()->second;
   if (!chosen)
@@ -330,19 +337,26 @@ const NC::Absorption* NC::createAbsorption( const NC::MatCfg& cfg )
   const FactoryList& facts = getFactories();//Access factories
   std::map<int,std::shared_ptr<const FactoryBase>> avail;
   std::shared_ptr<const FactoryBase> chosen;
-  std::string specific = cfg.get_absnfactory();
-  if (s_debug_factory && !specific.empty())
-    std::cout<<"NCrystal::Factory::createAbsorption - cfg.absnfactory=\""<<specific<<"\" so will search for that."<<std::endl;
+  auto request = cfg.get_absnfactory_parsed();
+
+  if (s_debug_factory && !request.specific.empty())
+    std::cout<<"NCrystal::Factory::createAbsorption - cfg.absnfactory=\""<<request.specific<<"\" so will search for that."<<std::endl;
 
   for (std::size_t i = 0; i < facts.size(); ++i) {
     auto& f = facts.at(i);
-    if (!specific.empty()) {
-      if (specific == f->getName()) {
+    if (!request.excluded.empty() && request.excluded.count(f->getName())) {
+      if (s_debug_factory)
+        std::cout<<"NCrystal::Factory::createAbsorption - skipping excluded factory \""<<f->getName()<<"\""<<std::endl;
+      continue;
+    }
+
+    if (!request.specific.empty()) {
+      if (request.specific == f->getName()) {
         chosen = std::move(f);
         if (s_debug_factory)
           std::cout<<"NCrystal::Factory::createAbsorption - about to invoke canCreateAbsorption on factory \""<<chosen->getName()<<"\""<<std::endl;
         if (!chosen->canCreateAbsorption(cfg))
-          NCRYSTAL_THROW2(BadInput,"Requested absnfactory does not actually have capability to service request: \""<<specific<<"\"");
+          NCRYSTAL_THROW2(BadInput,"Requested absnfactory does not actually have capability to service request: \""<<request.specific<<"\"");
         break;
       } else {
         continue;
@@ -359,8 +373,8 @@ const NC::Absorption* NC::createAbsorption( const NC::MatCfg& cfg )
     if (priority && avail.find(priority)==avail.end())
       avail[priority] = std::move(f);
   }
-  if (!specific.empty() && !chosen)
-    NCRYSTAL_THROW2(BadInput,"Specific absnfactory requested which is unavailable: \""<<specific<<"\"");
+  if (!request.specific.empty() && !chosen)
+    NCRYSTAL_THROW2(BadInput,"Specific absnfactory requested which is unavailable: \""<<request.specific<<"\"");
   if (!chosen)
     chosen = avail.empty() ? 0 : avail.rbegin()->second;
   if (!chosen)

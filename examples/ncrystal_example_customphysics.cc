@@ -101,7 +101,7 @@ class SimpleIncElasScatterFactory : public NC::FactoryBase {
     //100 means that we take precedence over the standard NCrystal factory:
     if (!cfg.get_incoh_elas())
       return 0;//incoherent-elastic disabled, do nothing
-    auto info =globalCreateInfo(cfg);
+    auto info = globalCreateInfo(cfg);
     unsigned n_simpleincelas = info->countCustomSections("SIMPLEINCELAS");
     if (n_simpleincelas==0)
       return 0;//input file did not have @CUSTOM_SIMPLEINCELAS section, do nothing

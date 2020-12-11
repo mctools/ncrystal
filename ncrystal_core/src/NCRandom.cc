@@ -22,7 +22,6 @@
 #include "NCrystal/internal/NCVector.hh"
 #include "NCrystal/internal/NCMath.hh"
 #include <cstdio>
-#include <algorithm>
 
 namespace NC = NCrystal;
 

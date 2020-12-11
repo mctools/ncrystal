@@ -23,7 +23,6 @@
 #include "NCrystal/internal/NCSABUtils.hh"
 #include "NCrystal/internal/NCFactoryUtils.hh"
 #include "NCrystal/internal/NCIter.hh"
-#include <algorithm>
 #include <iostream>
 
 namespace NC = NCrystal;
@@ -323,7 +322,7 @@ std::pair<NS::SABIntegrator::Impl::SamplerAtE_uptr,double> NS::SABIntegrator::Im
   //cross section.
 
   const auto& betaGrid = m_data->betaGrid();
-  auto alphaGrid_span = span<const double>(m_data->alphaGrid());
+  auto alphaGrid_span = Span<const double>(m_data->alphaGrid());
   nc_assert(!!m_derivedData);
   const VectD& logsab = m_derivedData->logsab;
   const VectD& alphaintegrals_cumul = m_derivedData->alphaintegrals_cumul;
@@ -368,7 +367,7 @@ std::pair<NS::SABIntegrator::Impl::SamplerAtE_uptr,double> NS::SABIntegrator::Im
   nc_assert( ibeta_low==0 || beta_lower_limit >= betaGrid.at(ibeta_low-1) );
 
   //Zoom in on the kinematically allowed part of the beta grid:
-  auto relevant_betaGrid = span<const double>(&betaGrid[0]+ibeta_low,&betaGrid[0] + betaGrid.size());
+  auto relevant_betaGrid = Span<const double>(&betaGrid[0]+ibeta_low,&betaGrid[0] + betaGrid.size());
   nc_assert( alpharanges.size() == (std::size_t)relevant_betaGrid.size() );
 
   //We know (when beta_lower_limit=-E/kT, otherwise it is just something we
@@ -409,9 +408,9 @@ std::pair<NS::SABIntegrator::Impl::SamplerAtE_uptr,double> NS::SABIntegrator::Im
       //reasons, including numerical ones).
       const auto nalpha = m_data->alphaGrid().size();
       auto slice_idx = nalpha*(beta.idx + ibeta_low);
-      auto sab_slice = span<const double>(&m_data->sab()[0]+slice_idx,&m_data->sab()[0]+slice_idx+nalpha);
-      auto logsab_slice = span<const double>(&logsab[0]+slice_idx,&logsab[0]+slice_idx+nalpha);
-      auto alphaIntegrals_cumul_slice = span<const double>(&alphaintegrals_cumul[0]+slice_idx,&alphaintegrals_cumul[0]+slice_idx+nalpha);
+      auto sab_slice = Span<const double>(&m_data->sab()[0]+slice_idx,&m_data->sab()[0]+slice_idx+nalpha);
+      auto logsab_slice = Span<const double>(&logsab[0]+slice_idx,&logsab[0]+slice_idx+nalpha);
+      auto alphaIntegrals_cumul_slice = Span<const double>(&alphaintegrals_cumul[0]+slice_idx,&alphaintegrals_cumul[0]+slice_idx+nalpha);
       tb = SABUtils::createTailedBreakdown( alphaGrid_span, sab_slice, logsab_slice, alphaIntegrals_cumul_slice,
                                             alow, aupp, aidx_low, aidx_upp );
       xs_at_this_beta = tb.xs_front + tb.xs_back + tb.xs_middle;

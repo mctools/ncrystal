@@ -34,8 +34,6 @@
 #include "NCrystal/internal/NCScatKnlData.hh"
 #include "NCrystal/internal/NCVDOSEval.hh"
 
-
-#include <algorithm>
 #include <iostream>
 #include <cstdlib>
 #include <atomic>

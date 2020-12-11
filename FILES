@@ -3,8 +3,7 @@
 
 NOTICE              : Important notice concerning attribution and licensing.
 README              : Brief instructions.
-LICENSE             : License conditions (except for the file NCSpan.hh and code
-                      in ./ncrystal_extra/)
+LICENSE             : License conditions (except for code in ./ncrystal_extra/)
 VERSION             : File containing the version of the distribution.
 CHANGELOG           : Release notes.
 INSTALL             : Build, installation and brief usage instructions.

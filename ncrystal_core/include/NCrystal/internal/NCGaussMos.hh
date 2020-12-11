@@ -148,17 +148,17 @@ namespace NCrystal {
   private:
     friend class GaussMos;
     //Frequently accessed members first:
-    double m_Q;//Once initialised, m_Q = m_Qprime * m_xsfact
-    double m_sin_perfect_theta;
-    double m_cos_perfect_theta;
+    double m_Q = 0.0;//Once initialised, m_Q = m_Qprime * m_xsfact
+    double m_sin_perfect_theta = 0.0;
+    double m_cos_perfect_theta = 0.0;
     //Less often accessed
-    double m_wl;
-    double m_wl3;
-    double m_inv2dsp;
-    double m_cos_perfect_theta_sq;
-    double m_alpha;
-    double m_Qprime;
-    double m_xsfact;
+    double m_wl = -1.0;
+    double m_wl3 = 0.0;
+    double m_inv2dsp = -1.0;
+    double m_cos_perfect_theta_sq = 0.0;
+    double m_alpha = 0.0;
+    double m_Qprime = 0.0;
+    double m_xsfact = 0.0;
   };
 
 }
@@ -179,12 +179,11 @@ namespace NCrystal {
   inline double GaussMos::precision() const { return m_gos.getPrecisionParameter(); }
 
   inline GaussMos::InteractionPars::InteractionPars(double wl, double inv2dsp, double xsfact)
-    : m_wl(-1), m_inv2dsp(-1)
   {
     set(wl, inv2dsp, xsfact);
   }
 
-  inline GaussMos::InteractionPars::InteractionPars() : m_wl(-1), m_inv2dsp(-1)
+  inline GaussMos::InteractionPars::InteractionPars()
   {
   }
 

@@ -157,9 +157,9 @@ NC::SABData NC::SABUtils::transformKernelToStdFormat( NC::ScatKnlData&& input )
   return out;
 }
 
-void NC::SABUtils::expandBetaAndSABToAllBetas( NC::span<const double> halfbetagrid,
-                                               NC::span<const double> alphagrid,
-                                               NC::span<const double> sab_for_halfbetagrid,
+void NC::SABUtils::expandBetaAndSABToAllBetas( NC::Span<const double> halfbetagrid,
+                                               NC::Span<const double> alphagrid,
+                                               NC::Span<const double> sab_for_halfbetagrid,
                                                VectD& complete_betagrid,
                                                VectD& complete_sab )
 {
@@ -184,7 +184,7 @@ void NC::SABUtils::expandBetaAndSABToAllBetas( NC::span<const double> halfbetagr
   nc_assert(complete_betagrid.back()==0.0);
   complete_betagrid.back() = 0.0;
   // -> add the positive values (the +1 below avoids adding the zero again):
-  for (auto e: span<const double>(halfbetagrid.begin()+1,halfbetagrid.end()) )
+  for (auto e: Span<const double>(halfbetagrid.begin()+1,halfbetagrid.end()) )
     complete_betagrid.emplace_back(e);
   nc_assert_always( complete_betagrid.size() == nbeta_new );
 
@@ -358,10 +358,10 @@ void NC::SABUtils::activeGridRanges( const NC::SABData& data,
 
 }
 
-NC::SABUtils::TailedBreakdown NC::SABUtils::createTailedBreakdown( const span<const double>& alphaGrid,
-                                                                   const span<const double>& sab,
-                                                                   const span<const double>& logsab,
-                                                                   const span<const double>& alphaIntegrals_cumul,
+NC::SABUtils::TailedBreakdown NC::SABUtils::createTailedBreakdown( const NC::Span<const double>& alphaGrid,
+                                                                   const NC::Span<const double>& sab,
+                                                                   const NC::Span<const double>& logsab,
+                                                                   const NC::Span<const double>& alphaIntegrals_cumul,
                                                                    double alpha_low, double alpha_upp,
                                                                    const unsigned aidx_low, const unsigned aidx_upp )
 {
@@ -380,20 +380,20 @@ NC::SABUtils::TailedBreakdown NC::SABUtils::createTailedBreakdown( const span<co
     return tb;
   }
 
-  nc_assert( aidx_upp+1==alphaGrid.size() || alpha_upp <= span_at(alphaGrid,aidx_upp) );
-  nc_assert( aidx_low==0 || alpha_low >= span_at(alphaGrid,aidx_low) );
-  nc_assert( aidx_low+1==alphaGrid.size() || alpha_low < span_at(alphaGrid,aidx_low+1) );
-  nc_assert( aidx_upp==0 || alpha_upp > span_at(alphaGrid,aidx_upp-1) );
+  nc_assert( aidx_upp+1==alphaGrid.size() || alpha_upp <= alphaGrid[aidx_upp] );
+  nc_assert( aidx_low==0 || alpha_low >= alphaGrid[aidx_low] );
+  nc_assert( aidx_low+1==alphaGrid.size() || alpha_low < alphaGrid[aidx_low+1] );
+  nc_assert( aidx_upp==0 || alpha_upp > alphaGrid[aidx_upp-1] );
 
   auto interpSVal = [&alphaGrid,&sab,&logsab](const std::size_t alphaidx_lowedge, const double alpha)
                     {
                       nc_assert( alphaidx_lowedge + 1 < (unsigned)alphaGrid.size() );
-                      const double alpha0(span_at(alphaGrid,alphaidx_lowedge));
-                      const double alpha1(span_at(alphaGrid,alphaidx_lowedge+1));
+                      const double alpha0(alphaGrid[alphaidx_lowedge]);
+                      const double alpha1(alphaGrid[alphaidx_lowedge+1]);
                       nc_assert( valueInInterval(alpha0,alpha1,alpha) );
                       auto i0(alphaidx_lowedge), i1(alphaidx_lowedge+1);
-                      return interpolate_loglin_fallbacklinlin_fast(alpha0,span_at(sab,i0),alpha1,span_at(sab,i1),alpha,
-                                                                    span_at(logsab,i0),span_at(logsab,i1));
+                      return interpolate_loglin_fallbacklinlin_fast(alpha0,sab[i0],alpha1,sab[i1],alpha,
+                                                                    logsab[i0],logsab[i1]);
                     };
   auto setTailPoint = [&interpSVal](TailedBreakdown::TailPoint& tp,unsigned aidx,double alpha)
                       {
@@ -420,26 +420,26 @@ NC::SABUtils::TailedBreakdown NC::SABUtils::createTailedBreakdown( const span<co
   tb.imiddle_upp = aidx_upp;
 
   //Front (not there if alpha_low is outside the grid range):
-  if ( alpha_low >= span_at(alphaGrid,aidx_low) ) {
-    nc_assert( alpha_low <= span_at(alphaGrid, aidx_low + 1 ) );
+  if ( alpha_low >= alphaGrid[aidx_low] ) {
+    nc_assert( alpha_low <= alphaGrid[aidx_low + 1] );
     setTailPoint(tb.front,aidx_low,alpha_low);
     tb.xs_front = integrateAlphaInterval_fast( tb.front.alpha, tb.front.sval,
-                                               span_at(alphaGrid,aidx_low+1), span_at(sab,aidx_low+1),
-                                               tb.front.logsval, span_at(logsab,aidx_low+1) );
+                                               alphaGrid[aidx_low+1], sab[aidx_low+1],
+                                               tb.front.logsval, logsab[aidx_low+1] );
     ++tb.imiddle_low;
   }
   //Back (not there if alpha_upp is outside the grid range):
-  if ( alpha_upp <= span_at(alphaGrid,aidx_upp) ) {
+  if ( alpha_upp <= alphaGrid[aidx_upp] ) {
     nc_assert( aidx_upp != 0 );
-    nc_assert( alpha_upp >= span_at(alphaGrid,aidx_upp-1) );
+    nc_assert( alpha_upp >= alphaGrid[aidx_upp-1] );
     setTailPoint(tb.back,aidx_upp-1,alpha_upp);
-    tb.xs_back = integrateAlphaInterval_fast( span_at(alphaGrid,aidx_upp-1), span_at(sab,aidx_upp-1),
+    tb.xs_back = integrateAlphaInterval_fast( alphaGrid[aidx_upp-1], sab[aidx_upp-1],
                                               tb.back.alpha, tb.back.sval,
-                                              span_at(logsab,aidx_upp-1), tb.back.logsval );
+                                              logsab[aidx_upp-1], tb.back.logsval );
     --tb.imiddle_upp;
   }
   tb.xs_middle = ( tb.imiddle_upp > tb.imiddle_low ?
-                   span_at(alphaIntegrals_cumul,tb.imiddle_upp) - span_at(alphaIntegrals_cumul,tb.imiddle_low)
+                   alphaIntegrals_cumul[tb.imiddle_upp] - alphaIntegrals_cumul[tb.imiddle_low]
                    : 0.0 );
   return tb;
 }

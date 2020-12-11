@@ -29,15 +29,15 @@ namespace NCrystal {
   PlaneProvider::PlaneProvider(){}
   PlaneProvider::~PlaneProvider(){}
 
-  class PlaneProviderStd : public PlaneProvider {
+  class PlaneProviderStd final : public PlaneProvider {
   public:
 
     PlaneProviderStd(const Info*);
     virtual ~PlaneProviderStd() = default;
 
-    virtual bool canProvide() const;
-    virtual void prepareLoop();
-    virtual bool getNextPlane(double& dspacing, double& fsq, Vector& demi_normal);
+    bool canProvide() const final;
+    void prepareLoop() final;
+    bool getNextPlane(double& dspacing, double& fsq, Vector& demi_normal) final;
 
   private:
     RCHolder<const Info> m_info;

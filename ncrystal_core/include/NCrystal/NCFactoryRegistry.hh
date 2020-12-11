@@ -61,16 +61,19 @@ namespace NCrystal {
     virtual RCHolder<const Scatter> createScatter( const MatCfg& ) const;
     virtual RCHolder<const Absorption> createAbsorption( const MatCfg& ) const;
 
+  protected:
+
     //TODO: We should rename the above methods or split the factory base into
     //three parts. The name conflicts with the global NCrystal::createInfo
     //etc. functions. For now, we provide these convenience functions which
-    //redirects to the global functions:
+    //redirects to the global functions (after inserting the current factory
+    //into the exclusion list of the relevant xxxfactory cfg parameter, unless
+    //allowself=true - MT TODO: support this for info facts as well!):
 
-    static RCHolder<const Info> globalCreateInfo( const MatCfg& cfg );
-    static RCHolder<const Scatter> globalCreateScatter( const MatCfg& cfg );
-    static RCHolder<const Absorption> globalCreateAbsorption( const MatCfg& cfg );
+    RCHolder<const Info> globalCreateInfo( const MatCfg& cfg ) const;
+    RCHolder<const Scatter> globalCreateScatter( const MatCfg& cfg, bool allowself=false ) const;
+    RCHolder<const Absorption> globalCreateAbsorption( const MatCfg& cfg, bool allowself=false ) const;
 
-  protected:
     //Combine two Scatter objects into one. This should only be used with
     //freshly created Scatter objects in a factory's createScatter method.
     //(this is due to a design flaw which is planned to be fixed in a future

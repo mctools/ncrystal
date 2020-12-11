@@ -61,7 +61,7 @@ namespace NCrystal {
     //using the same functions.
     ScatKnlDataView(const ScatKnlData&);
     ScatKnlDataView(const SABData&);
-    const span<const double> alphaGrid, betaGrid, sab;
+    const Span<const double> alphaGrid, betaGrid, sab;
     const double temperature;
     const SigmaBound boundXS;
     const double elementMassAMU;

@@ -22,19 +22,18 @@
 #include "NCrystal/internal/NCRotMatrix.hh"
 #include "NCrystal/internal/NCIter.hh"
 #include <sstream>
-#include <algorithm>
 #include <list>
 
 namespace NC = NCrystal;
 
-bool NC::nc_is_grid(span<const double> v)
+bool NC::nc_is_grid(NC::Span<const double> v)
 {
   if ( v.empty() )
     return false;
   double last = v.front();
   if ( ncisnan(last) || ncisinf(last) )
     return false;
-  for ( auto e : span<const double>(std::next(v.begin()),v.end()) ) {
+  for ( auto e : Span<const double>(std::next(v.begin()),v.end()) ) {
     if ( !(e>last) || ncisnan(e) || ncisinf(e) )
       return false;
     last = e;

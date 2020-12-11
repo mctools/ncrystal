@@ -20,7 +20,6 @@
 
 #include "NCrystal/internal/NCPointwiseDist.hh"
 #include "NCrystal/internal/NCMath.hh"
-#include <algorithm>
 #include <cstdio>
 
 NCrystal::PointwiseDist::PointwiseDist(const VectD &xvals, const VectD &yvals, double iw)

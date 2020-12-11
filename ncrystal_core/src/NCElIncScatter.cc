@@ -37,7 +37,7 @@ NC::ElIncScatter::ElIncScatter( const Info* ci )
     NCRYSTAL_THROW(MissingInfo,"Passed Info object lacks AtomInfo information"
                    " (elastic-incoherent model only works with crystalline materials).");
 
-  auto atominfos = span<const AtomInfo>(&*ci->atomInfoBegin(),&*ci->atomInfoEnd());
+  auto atominfos = Span<const AtomInfo>(&*ci->atomInfoBegin(),&*ci->atomInfoEnd());
 
   if ( !ci->hasAtomMSD() ) {
     if ( !ci->hasTemperature() )

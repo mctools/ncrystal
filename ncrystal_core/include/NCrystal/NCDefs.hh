@@ -34,6 +34,7 @@
 //so many places:
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <map>
 #include <set>
 #include <mutex>

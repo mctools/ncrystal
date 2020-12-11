@@ -25,7 +25,6 @@
 #include "NCrystal/internal/NCRomberg.hh"
 #include "NCrystal/internal/NCRandUtils.hh"
 #include "NCrystal/internal/NCRotMatrix.hh"
-#include <algorithm>
 #include <cstring>
 #include <iostream>
 #include <functional>//std::greater
@@ -91,16 +90,16 @@ NC::LCHelper::LCHelper( NC::Vector lcaxis,
       //The only thing that matters is the angle between lcaxis (in crystal frame)
       //and that of the normals. By using the absolute value, we pick the one of the
       //two normals pointing into the same hemisphere as lcaxis:
-      double cosalpha = ncabs ( lcaxis.dot(deminormal) );
       double alpha;
-      if (ncabs(cosalpha)>0.9999999) {
-        //deminormal is parallel to lcaxis!
-        alpha = 0;
-        cosalpha = 1.0;
-      } else {
-        alpha = std::acos(cosalpha);
+      {
+        double cosalpha = ncabs ( lcaxis.dot(deminormal) );
+        if (ncabs(cosalpha)>0.9999999) {
+          //deminormal is parallel to lcaxis!
+          alpha = 0;
+        } else {
+          alpha = std::acos(cosalpha);
+        }
       }
-
       nc_assert( alpha>=0.0 && alpha <= kPiHalf );
 
       //avoid floating point keys + merge entries withing 1/DISCRFACT ~= 1e-12:

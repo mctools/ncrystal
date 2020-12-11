@@ -20,7 +20,6 @@
 
 #include "NCrystal/internal/NCRandUtils.hh"
 #include "NCrystal/internal/NCMath.hh"
-#include <algorithm>
 namespace NC=NCrystal;
 
 void NC::randIsotropicDirection( NC::RandomBase * rand, double (&dir)[3])
@@ -184,15 +183,14 @@ double NC::randNormTail(double tail, NC::RandomBase& rng)
   }
 }
 
-std::size_t NC::pickRandIdxByWeight( NC::RandomBase * rand, const VectD& commulvals)
+std::size_t NC::pickRandIdxByWeight( NC::RandomBase * rand, Span<const double>  commulvals)
 {
   nc_assert(!commulvals.empty());
   std::size_t n = commulvals.size();
   if (n==1)
     return 0;
-  VectD::const_iterator itB = commulvals.begin();
-  VectD::const_iterator it = std::lower_bound( itB,commulvals.end(),
-                                                             commulvals.back() * rand->generate() );
+  auto itB = commulvals.begin();
+  auto it = std::lower_bound( itB,commulvals.end(), commulvals.back() * rand->generate() );
   return std::min<std::size_t>((std::size_t)(it-itB),n-1);
 }
 

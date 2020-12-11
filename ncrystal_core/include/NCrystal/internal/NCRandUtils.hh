@@ -22,6 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCDefs.hh"
+#include "NCrystal/internal/NCSpan.hh"
 
 namespace NCrystal {
 
@@ -34,7 +35,7 @@ namespace NCrystal {
   double randNorm( RandomBase * );//sample single value from unit Gaussian
   void randNorm( RandomBase *, double&g1, double&g2);//sample two independent values from unit Gaussian.
   double randNormTail(double tail, RandomBase& rng);//sample gaussian tail (tail>=0!), like sampling randNorm until result is >=tail (but more efficient).
-  std::size_t pickRandIdxByWeight( RandomBase *, const VectD& commulvals);//pick index according to weights (values must be commulative)
+  std::size_t pickRandIdxByWeight( RandomBase *, Span<const double> commulvals);//pick index according to weights (values must be commulative)
 
   double randExp( RandomBase& rng );//sample single positive value from exp(-x)
   double randExpInterval( RandomBase& rng, double a, double b, double c );//Samples value in [a,b] from exp(-c*x)

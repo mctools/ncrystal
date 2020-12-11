@@ -23,7 +23,6 @@
 #include "NCrystal/internal/NCMath.hh"
 #include "NCrystal/internal/NCString.hh"
 #include "NCrystal/internal/NCIter.hh"
-#include <algorithm>
 #include <cstring>//for memcpy
 #include <cstdlib>
 namespace NC=NCrystal;

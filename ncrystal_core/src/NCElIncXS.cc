@@ -20,7 +20,7 @@
 
 #include "NCrystal/internal/NCElIncXS.hh"
 #include "NCrystal/internal/NCMath.hh"
-#include <algorithm>
+#include "NCrystal/internal/NCRandUtils.hh"
 
 namespace NC = NCrystal;
 
@@ -135,46 +135,41 @@ double NC::ElIncXS::sampleMuMonoAtomic( RandomBase * rng, double ekin, double me
 
 double NC::ElIncXS::sampleMu( RandomBase * rng, double ekin )
 {
+  nc_assert(rng!=nullptr);
+
   const std::size_t nelem = m_elm_data.size();
+  nc_assert(nelem!=0);
   if ( nelem == 1 )
     return sampleMuMonoAtomic( rng, ekin, m_elm_data.front().first );
+
+  //Calculate per-element contribution and select accordingly.
 
   //First a little trick to provide us with an array for caching element-wise
   //cross-sections, without a memory allocation for normal use-cases (but
   //avoiding a hard-coded limit on number of elements).
-  double cache_stack[8];
-  double * cache = &cache_stack[0];
-  VectD cache_heap;
-  if ( nelem > sizeof(cache_stack)/sizeof(*cache_stack) ) {
-    cache_heap.resize(nelem,0.);
-    cache = &cache_heap[0];
+  constexpr auto nfixed = 8;
+  double cache_fixed[nfixed];
+  VectD cache_dynamic;
+  Span<double> elem_xs;
+  if ( nelem > nfixed ) {
+    cache_dynamic.resize(nelem);
+    elem_xs = cache_dynamic;
+  } else {
+    elem_xs = Span<double>(cache_fixed).subspan(0,nelem);
   }
-  //The cache pointer now refers to an array of at least nelem length.
 
   //NB: The cross-section code here must be consistent with code in
   //evaluateMonoAtomic() and evaluate(..):
   constexpr double kkk = 16.0 * kPiSq * ekin2wlsqinv(1.0);
   double e = kkk*ekin;
   double xs = 0.0;
+  auto itXS = elem_xs.begin();
+
   std::vector<PairDD >::const_iterator it(m_elm_data.begin()), itE(m_elm_data.end());
-  double * itXS = cache;
   for (;it!=itE;++it,++itXS)
-    xs += (*itXS = it->second * eval_1mexpmtdivt(it->first * e));
+    *itXS = (xs += it->second * eval_1mexpmtdivt(it->first * e));
 
-  if (!(xs>0.0))//should not usually happen, fallback to mu=1 (i.e. no actual scattering)
-    return 1.0;
-
-  //Pick element according to cross section:
-  double choice = rng->generate() * xs;
-
-  //select element with simple linear search (nelem is usually very small so
-  //this is likely the most efficient anyway):
-  itXS = cache;
-  while ( ( choice -= *itXS ) > 0 )
-    ++itXS;
-
-  std::size_t choiceidx = itXS - cache;
+  auto choiceidx = pickRandIdxByWeight( rng, elem_xs );//pick index according to weights (values must be commulative)
   nc_assert(choiceidx<nelem);
-
   return sampleMuMonoAtomic( rng, ekin, m_elm_data[choiceidx].first );
 }

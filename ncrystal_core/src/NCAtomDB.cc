@@ -22,7 +22,6 @@
 #include "NCrystal/internal/NCFactoryUtils.hh"
 #include "NCrystal/internal/NCAtomUtils.hh"
 #include "NCrystal/internal/NCString.hh"
-#include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <iomanip>

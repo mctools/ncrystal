@@ -30,7 +30,6 @@
 #include <sstream>
 #include <iomanip>
 #include <cassert>
-#include <algorithm>
 #include <cstring>
 namespace NC = NCrystal;
 
@@ -1353,4 +1352,66 @@ int NC::MatCfg::get_infofactopt_int(const std::string& flagname, int defval) con
 void NC::MatCfg::infofactopt_validate(const std::set<std::string>& recognised_opts) const
 {
   Impl::decodedopt_validate(get_infofactory(),recognised_opts);
+}
+
+
+namespace NCrystal {
+  namespace {
+    std::string factRequestsToString(const NC::MatCfg::FactRequested& req) {
+      VectS parts;
+      if (!req.specific.empty())
+        parts.push_back(req.specific);
+      for ( auto& e: req.excluded ) {
+        parts.emplace_back("!");
+        parts.back() += e;
+      }
+      return joinstr(parts,"@");
+    }
+    NC::MatCfg::FactRequested parseFactRequests( const std::string& requests, const char* parname ) {
+      NC::MatCfg::FactRequested res;
+      for (auto& e : split2(requests,0,'@') ) {
+        trim(e);
+        if (e.empty())
+          continue;
+        if (startswith(e,"!")) {
+          auto exlname = e.substr(1);
+          trim(exlname);
+          if (!exlname.empty())
+            res.excluded.insert(exlname);
+          continue;
+        }
+        if (!res.specific.empty()) {
+          NCRYSTAL_THROW2(BadInput,parname<<" parameter contains more than one entry (both \""
+                          <<res.specific<<"\" and \""<<e<<"\") which is not supported (only negated "
+                          "entries starting with \"!\" can appear in any number).");
+        }
+        res.specific = e;
+      }
+      if (!res.specific.empty()&&res.excluded.count(res.specific))
+        NCRYSTAL_THROW2(BadInput,parname<<" parameter contains the name \""
+                        <<res.specific<<"\" both as a required and as an excluded entry.");
+
+      return res;
+    }
+  }
+}
+
+NC::MatCfg::FactRequested NC::MatCfg::get_scatfactory_parsed() const
+{
+  return parseFactRequests( get_scatfactory(), "scatfactory" );
+}
+
+NC::MatCfg::FactRequested NC::MatCfg::get_absnfactory_parsed() const
+{
+  return parseFactRequests( get_absnfactory(), "absnfactory");
+}
+
+void NC::MatCfg::set_scatfactory(const NC::MatCfg::FactRequested& req )
+{
+  set_scatfactory(factRequestsToString(req));
+}
+
+void NC::MatCfg::set_absnfactory(const NC::MatCfg::FactRequested& req )
+{
+  set_absnfactory(factRequestsToString(req));
 }

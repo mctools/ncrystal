@@ -21,7 +21,6 @@
 #include "NCrystal/NCDefs.hh"
 #include "NCrystal/internal/NCFastConvolve.hh"
 #include <cstdlib>
-#include <algorithm>
 
 namespace NC = NCrystal;
 

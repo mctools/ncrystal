@@ -1248,7 +1248,7 @@ double nxs_MultiPhonon_CASSELS( double lambda, NXS_UnitCell* uc )
     double A = uc->atomInfoList[i].M_m;
     mph += A/(A+1.0)*A/(A+1.0) * (1 - s_el_inc) * uc->atomInfoList[i].nAtoms;
   }
-  return mph *= (uc->avgSigmaCoherent+uc->avgSigmaIncoherent);
+  return mph * (uc->avgSigmaCoherent+uc->avgSigmaIncoherent);//TK *= -> * (to avoid clang-tidy report)
 }
 
 
@@ -3795,9 +3795,10 @@ static int BuildHSym(T_SgInfo *SgInfo)
 
   struct
   {
-    T_RotMxInfo         RMxI_Buf;
+    //TK reordered fields (to avoid clang-tidy report about padding)
     const T_RotMxInfo  *RMxI;
     int                Transl[3];
+    T_RotMxInfo         RMxI_Buf;
   }
   GRT[sizeof SgInfo->Generator_iList / sizeof (*SgInfo->Generator_iList) + 1];
 

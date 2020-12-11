@@ -20,7 +20,6 @@
 
 #include "NCrystal/internal/NCMatrix.hh"
 #include <iostream>
-#include <algorithm>
 
 NCrystal::Matrix::~Matrix()
 {

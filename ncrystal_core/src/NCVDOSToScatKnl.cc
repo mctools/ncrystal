@@ -28,7 +28,6 @@
 #include "NCrystal/NCInfo.hh"
 namespace NC=NCrystal;
 #include <iostream>
-#include <algorithm>
 
 namespace NCrystal {
 

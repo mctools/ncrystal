@@ -65,6 +65,9 @@ installation_info = dict( libdir = '@NCrystal_relpath_BINDIR2LIBDIR@',
 
 __version__ = installation_info['version']
 
+if installation_info.get('libdir','@').startswith('@'):
+    raise SystemExit('ERROR: ncrystal-config script can only be used after installation via CMake')
+
 def hasopt(optname):
     return installation_info['opt_%s'%optname]
 
@@ -178,11 +181,11 @@ def parse_cmdline():
 
     parser.add_argument('--setup', action='store_true',
                         help="""emit shell code which can be used to setup environment for NCrystal usage and exit
-                        (type "$(%(prog)s --setup)" in a shell to apply to current environment).""")
+                        (type "eval $(%(prog)s --setup)" in a shell to apply to current environment).""")
 
     parser.add_argument('--unsetup', action='store_true',
                         help="""emit shell code which can be used to undo the effect of --setup and exit (type
-                        "$(%(prog)s --unsetup)" in a shell to apply to current environment). This might
+                        "eval $(%(prog)s --unsetup)" in a shell to apply to current environment). This might
                         have unwanted side-effects if the directories of the NCrystal installation are mixed
                         up with files from other software packages.""")
 

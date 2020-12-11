@@ -111,19 +111,37 @@ NC::RCHolder<const NC::Absorption> NC::FactoryBase::createAbsorption( const MatC
 #include "NCrystal/NCScatter.hh"
 #include "NCrystal/NCAbsorption.hh"
 
-NC::RCHolder<const NC::Info> NC::FactoryBase::globalCreateInfo( const NC::MatCfg& cfg )
+NC::RCHolder<const NC::Info> NC::FactoryBase::globalCreateInfo( const NC::MatCfg& cfg ) const
 {
   return RCHolder<const Info>(::NC::createInfo(cfg));
 }
 
-NC::RCHolder<const NC::Scatter> NC::FactoryBase::globalCreateScatter( const NC::MatCfg& cfg )
+NC::RCHolder<const NC::Scatter> NC::FactoryBase::globalCreateScatter( const NC::MatCfg& cfg, bool allowself ) const
 {
-  return RCHolder<const Scatter>(::NC::createScatter(cfg));
+  auto cfg2 = cfg.clone();
+  if ( ! allowself ) {
+    std::string ourname=getName();
+    auto factrequest = cfg2.get_scatfactory_parsed();
+    factrequest.excluded.insert(ourname);
+    if (factrequest.specific==ourname)
+      factrequest.specific.clear();
+    cfg2.set_scatfactory(factrequest);
+  }
+  return RCHolder<const Scatter>(::NC::createScatter(cfg2));
 }
 
-NC::RCHolder<const NC::Absorption> NC::FactoryBase::globalCreateAbsorption( const NC::MatCfg& cfg )
+NC::RCHolder<const NC::Absorption> NC::FactoryBase::globalCreateAbsorption( const NC::MatCfg& cfg, bool allowself ) const
 {
-  return RCHolder<const Absorption>(::NC::createAbsorption(cfg));
+  auto cfg2 = cfg.clone();
+  if ( ! allowself ) {
+    std::string ourname=getName();
+    auto factrequest = cfg2.get_absnfactory_parsed();
+    factrequest.excluded.insert(ourname);
+    if (factrequest.specific==ourname)
+      factrequest.specific.clear();
+    cfg2.set_absnfactory(factrequest);
+  }
+  return RCHolder<const Absorption>(::NC::createAbsorption(cfg2));
 }
 
 //Temporary workaround function, until we redesign the interfaces:

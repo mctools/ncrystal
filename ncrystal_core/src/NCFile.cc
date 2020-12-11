@@ -22,7 +22,6 @@
 
 #include <fstream>
 #include <cstdlib>
-#include <algorithm>
 
 namespace NC = NCrystal;
 

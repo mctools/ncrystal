@@ -65,7 +65,7 @@ namespace NCrystal {
 
   //Check that span contains values that could be a grid. I.e. is non-empty,
   //sorted, no duplicated values, no NaN/inf's.
-  bool nc_is_grid(span<const double>);
+  bool nc_is_grid(Span<const double>);
 
   //sinus/cosine options (indicated approximate timings from 2014 thinkpad with gcc 6.3.1):
   void sincos(double A,double&cosA, double& sinA);//slow cos(A) and sin(A) for any A   [40ns/call]
@@ -237,7 +237,6 @@ namespace NCrystal {
   template<class TVector, class Func>
   inline TVector vectorTrf(const TVector&, const Func&);//create new vector of same type with function applied to all elements
   //Access vector contents with .at() in debug builds and [] in optimised builds
-  //(NB: for spans, use the span_at functions from NCDefs.hh):
   template <class TVector>
   typename TVector::value_type& vectAt(TVector& v, typename TVector::size_type idx);
   template <class TVector>

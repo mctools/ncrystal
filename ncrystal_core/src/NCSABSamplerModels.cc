@@ -156,9 +156,9 @@ double NC::SAB::SABSamplerAtE_Alg1::sampleAlpha(std::size_t ibeta, double rand_p
       //Sample front tail
       double percentile2 = clampRandNum( rand_percentile / info.prob_front );
       return SABUtils::sampleLogLinDist_fast( info.pt_front.alpha, info.pt_front.sval,
-                                              vectAt(cd->alphaGrid(),info.pt_front.alpha_idx), span_at(sab,info.pt_front.alpha_idx),
+                                              vectAt(cd->alphaGrid(),info.pt_front.alpha_idx), sab[info.pt_front.alpha_idx],
                                               percentile2,
-                                              info.pt_front.logsval, span_at(logsab,info.pt_front.alpha_idx) );
+                                              info.pt_front.logsval, logsab[info.pt_front.alpha_idx] );
     }
   } else if ( rand_percentile <= info.prob_notback ) {
     //Middle section - sample over entire alpha bins.
@@ -188,18 +188,18 @@ double NC::SAB::SABSamplerAtE_Alg1::sampleAlpha(std::size_t ibeta, double rand_p
     auto a0 = itCumul_selected_edgelow - cumul.begin();
     auto a1 = a0 + 1;
     //Interpolate in selected bin for alpha value:
-    return SABUtils::sampleLogLinDist_fast( vectAt(cd->alphaGrid(),a0), span_at(sab,a0),
-                                            vectAt(cd->alphaGrid(),a1), span_at(sab,a1),
+    return SABUtils::sampleLogLinDist_fast( vectAt(cd->alphaGrid(),a0), sab[a0],
+                                            vectAt(cd->alphaGrid(),a1), sab[a1],
                                             rand_rescaled,
-                                            span_at(logsab,a0), span_at(logsab,a1) );
+                                            logsab[a0], logsab[a1] );
   } else {
     //Sample back tail
     nc_assert( 1.0 - info.prob_notback > 0.0 );
     double percentile2 = clampRandNum ( ( rand_percentile - info.prob_notback ) / ( 1.0 - info.prob_notback ) );
-    return SABUtils::sampleLogLinDist_fast( vectAt(cd->alphaGrid(),info.pt_back.alpha_idx), span_at(sab,info.pt_back.alpha_idx),
+    return SABUtils::sampleLogLinDist_fast( vectAt(cd->alphaGrid(),info.pt_back.alpha_idx), sab[info.pt_back.alpha_idx],
                                             info.pt_back.alpha, info.pt_back.sval,
                                             percentile2,
-                                            span_at(logsab,info.pt_back.alpha_idx), info.pt_back.logsval );
+                                            logsab[info.pt_back.alpha_idx], info.pt_back.logsval );
 
   }
 

@@ -41,15 +41,15 @@ namespace NCrystal {
     //If beta grid is defined as [0,b1,b2,..,bn] it is assumed that it is a
     //space-saving shorthand for [-bn,...,-b2,-b1,0,b1,b2,..,bn]. Expand, using
     //S(alpha,-beta)=S(alpha,beta):
-    void expandBetaAndSABToAllBetas( span<const double> halfbetagrid,
-                                     span<const double> alphagrid,
-                                     span<const double> sab_for_halfbetagrid,
+    void expandBetaAndSABToAllBetas( Span<const double> halfbetagrid,
+                                     Span<const double> alphagrid,
+                                     Span<const double> sab_for_halfbetagrid,
                                      VectD& complete_betagrid,
                                      VectD& complete_sab );
 
     //Access S(alpha|beta_i) slice (const and non-const version):
-    span<const double> sliceSABAtBetaIdx_const( span<const double> sab, std::size_t nalpha, std::size_t beta_idx);
-    span<double> sliceSABAtBetaIdx( span<double> sab, std::size_t nalpha, std::size_t beta_idx);
+    Span<const double> sliceSABAtBetaIdx_const( Span<const double> sab, std::size_t nalpha, std::size_t beta_idx);
+    Span<double> sliceSABAtBetaIdx( Span<double> sab, std::size_t nalpha, std::size_t beta_idx);
 
     //interpolate "loglin" (linear in log(f), fallback to linear when undefined)
     double interpolate_loglin_fallbacklinlin(double a, double fa, double b, double fb, double x);
@@ -109,10 +109,10 @@ namespace NCrystal {
       } front, back;
       bool narrow = false;//if range inside single grid bin
     };
-    TailedBreakdown createTailedBreakdown( const span<const double>& alphaGrid,
-                                           const span<const double>& sab,
-                                           const span<const double>& logsab,
-                                           const span<const double>& alphaIntegrals_cumul,
+    TailedBreakdown createTailedBreakdown( const Span<const double>& alphaGrid,
+                                           const Span<const double>& sab,
+                                           const Span<const double>& logsab,
+                                           const Span<const double>& alphaIntegrals_cumul,
                                            double alpha_low, double alpha_upp,
                                            const unsigned aidx_low, const unsigned aidx_upp );
 
@@ -124,13 +124,13 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-inline NCrystal::span<const double> NCrystal::SABUtils::sliceSABAtBetaIdx_const( span<const double> sab, std::size_t nalpha, std::size_t beta_idx)
+inline NCrystal::Span<const double> NCrystal::SABUtils::sliceSABAtBetaIdx_const( NCrystal::Span<const double> sab, std::size_t nalpha, std::size_t beta_idx)
 {
   nc_assert( (beta_idx+1) * nalpha <= static_cast<std::size_t>(sab.size()) );
   return {sab.begin() + beta_idx*nalpha, sab.begin() + (beta_idx+1)*nalpha};
 }
 
-inline NCrystal::span<double> NCrystal::SABUtils::sliceSABAtBetaIdx( span<double> sab, std::size_t nalpha, std::size_t beta_idx)
+inline NCrystal::Span<double> NCrystal::SABUtils::sliceSABAtBetaIdx( NCrystal::Span<double> sab, std::size_t nalpha, std::size_t beta_idx)
 {
   nc_assert( (beta_idx+1) * nalpha <= static_cast<std::size_t>(sab.size()) );
   return {sab.begin() + beta_idx*nalpha, sab.begin() + (beta_idx+1)*nalpha};

@@ -70,7 +70,7 @@ namespace NCrystal {
   struct NCRYSTAL_API RCHolder {
     typedef T element_type;
     RCHolder() = default;
-    explicit RCHolder( T* t, bool ref = true ) : m_obj( t ) { if ( m_obj && ref ) m_obj->ref(); }
+    explicit RCHolder( T* t ) : m_obj( t ) { if ( m_obj ) m_obj->ref(); }
     ~RCHolder() { if ( m_obj ) m_obj->unref(); }
     RCHolder( const RCHolder & o ) : m_obj(o.m_obj) { if (m_obj) m_obj->ref(); }
     T* obj() { return m_obj; }

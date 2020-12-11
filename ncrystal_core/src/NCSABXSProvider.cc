@@ -19,7 +19,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/NCSABXSProvider.hh"
-#include <algorithm>
 
 namespace NC = NCrystal;
 

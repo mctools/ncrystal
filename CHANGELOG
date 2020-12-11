@@ -1,3 +1,17 @@
+v2.3.0 2020-12-11
+      * Replace span class with a fully home-grown solution. This means that all
+        core NCrystal code is once more fully available under the primary
+        license (the Apache 2.0 license).
+      * Cfg parameters scatfactory and absnfactory now supports exclusion of
+        specific named factories. This is used to (by default) exclude current
+        factory from consideration when globalCreateScatter/Absorption is
+        invoked from a factory (github issue #51).
+      * Replace the '$(ncrystal-config --setup)' idiom with one which works also
+        when entries in PATH contains spaces: 'eval $(ncrystal-config --setup)'
+        (github isse #52).
+      * Rename internal radius variable in McStas sample, to avoid clashes with
+        component parameter (apparently this gave issues for McStas 3.0).
+
 v2.2.2 2020-12-11
       * Bugfix for system-wide installations. Input files were
         accidentally opened in RW mode rather than just readonly, causing

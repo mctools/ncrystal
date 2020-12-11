@@ -192,16 +192,25 @@ namespace NCrystal {
     //               parameter can be used by experts to circumvent the usual
     //               factory selection algorithms and instead choose the factory
     //               for creating NCrystal::Info instances directly.
+    //               (TODO: Mention how to set flags like expandhkl)
     //
     // scatfactory.: [ string, fallback value is "" ]
     //               Similar to infofactory, this parameter can be used to
     //               directly select factory with which to create
-    //               NCrystal::Scatter instances.
+    //               NCrystal::Scatter instances. As a special feature (needed
+    //               for plugin development), factories can be excluded by
+    //               adding them with a "!" in front of their name. Multiple
+    //               entries can be added by separating them with an "@" sign
+    //               (but at most one non-excluded entry can appear).
     //
     // absnfactory.: [ string, fallback value is "" ]
     //               Similar to infofactory, this parameter can be used to
     //               directly select factory with which to create
-    //               NCrystal::Absorption instances.
+    //               NCrystal::Absorption instances. As a special feature (needed
+    //               for plugin development), factories can be excluded by
+    //               adding them with a "!" in front of their name. Multiple
+    //               entries can be added by separating them with an "@" sign
+    //               (but at most one non-excluded entry can appear).
     //
     // mosprec.....: [ double, fallback value is 1.0e-3 ]
     //               Approximate relative precision in implementation of mosaic
@@ -451,10 +460,20 @@ namespace NCrystal {
     void getCacheSignature( std::string& signature,
                             const std::set<std::string>& parameters ) const;
 
+    //Convenience interface for setting/decoding scatfactory+absnfactory parameters:
+    struct FactRequested {
+      std::string specific;
+      std::set<std::string> excluded;
+    };
+    FactRequested get_scatfactory_parsed() const;
+    FactRequested get_absnfactory_parsed() const;
+    void set_scatfactory(const FactRequested& );
+    void set_absnfactory(const FactRequested& );
+
   private:
     const std::string& get_infofactory() const;//undecoded, internal usage only
     struct Impl;
-    RCHolder <Impl> m_impl;
+    RCHolder<Impl> m_impl;
     void cow();
 
   };

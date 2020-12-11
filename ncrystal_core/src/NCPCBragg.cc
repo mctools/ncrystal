@@ -23,7 +23,6 @@
 #include "NCrystal/internal/NCPlaneProvider.hh"
 #include "NCrystal/internal/NCMath.hh"
 #include "NCrystal/internal/NCRandUtils.hh"
-#include <algorithm>//std::upper_bound, std::lower_bound
 #include <functional>//std::greater
 
 void NCrystal::PCBragg::init( const StructureInfo& si,

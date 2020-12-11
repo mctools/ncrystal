@@ -314,7 +314,7 @@ void NC::VDOSGn::Impl::produceNewOrderByConvolution( Order order )
       thinFactor1 *= thinFactor;
     }
   }
-  nc_assert(thinFactor1==thinFactor2);
+  nc_assert_always(thinFactor1==thinFactor2);
 
   VectD phonon_spe;
   double start_energy = p1.getEGridLower() + p2.getEGridLower();

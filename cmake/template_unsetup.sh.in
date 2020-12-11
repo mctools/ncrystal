@@ -8,7 +8,7 @@
 
 export tmpnccfg="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/@NCrystal_BINDIR@/ncrystal-config"
 if [ -f "$tmpnccfg" ]; then
-    $( "$tmpnccfg" --unsetup )
+    eval $( "$tmpnccfg" --unsetup )
     unset tmpnccfg
     return 0
 else

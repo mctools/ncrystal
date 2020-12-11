@@ -443,9 +443,9 @@ namespace NCrystal {
 
           //low fval, record this knowledge for cheap rejection of future values:
           if (xgen < xmax)
-            xthr_low = xgen;
+            xthr_low = xgen;//Fixme: Never read, modifying a local loop varibale which was not intended!
           else
-            xthr_up = xgen;
+            xthr_up = xgen;//Fixme: Never read, modifying a local loop varibale which was not intended!
 
           if (fval < fcutoff_limit) {
             //generated value is in negligible region. Make sure we don't generate here again.

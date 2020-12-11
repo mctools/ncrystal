@@ -21,7 +21,6 @@
 #include "NCrystal/NCScatterComp.hh"
 #include "NCrystal/NCDefs.hh"
 #include "NCrystal/internal/NCRandUtils.hh"
-#include <algorithm>
 
 NCrystal::ScatterComp::ScatterComp(const char * calculator_type_name)
   : Scatter(calculator_type_name), m_threshold_lower(0.0), m_threshold_upper(kInfinity), m_isOriented(-1)

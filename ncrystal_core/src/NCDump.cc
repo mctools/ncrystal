@@ -24,7 +24,6 @@
 #include "NCrystal/NCInfo.hh"
 #include <cstdio>
 #include <sstream>
-#include <algorithm>
 #include <iostream>
 #include <iomanip>
 
