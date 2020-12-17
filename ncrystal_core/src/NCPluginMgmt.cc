@@ -111,7 +111,7 @@ namespace NCrystal {
 
 NCP::PluginInfo NCP::loadDynamicPlugin( std::string path_to_shared_lib )
 {
-  return loadDynamicPluginImpl( path_to_shared_lib, "", "ncrystal_register" );
+  return loadDynamicPluginImpl( path_to_shared_lib, "", "ncplugin_register" );
 }
 
 NCP::PluginInfo NCP::loadBuiltinPlugin( std::string pluginName,

@@ -1,3 +1,6 @@
+v2.3.1 2020-12-17
+      * Small bugfix fixing the loading of dynamic plugins.
+
 v2.3.0 2020-12-11
       * Replace span class with a fully home-grown solution. This means that all
         core NCrystal code is once more fully available under the primary
