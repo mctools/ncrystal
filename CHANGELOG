@@ -1,5 +1,7 @@
 v2.3.1 2020-12-17
       * Small bugfix fixing the loading of dynamic plugins.
+      * Ensure plugins are loaded before file searching is carried out. This
+        allows plugins to register in-memory files.
 
 v2.3.0 2020-12-11
       * Replace span class with a fully home-grown solution. This means that all

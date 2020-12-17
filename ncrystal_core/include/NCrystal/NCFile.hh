@@ -125,6 +125,10 @@ namespace NCrystal {
                                                                                  const std::string& buffer );
   NCRYSTAL_API std::unique_ptr<TextInputStream> createTextInputStreamFromFile( const std::string& filepath );//NB: will NOT use the find_file(..) function
 
+  //Get a callback before anyone calls listAvailableFiles or
+  //createTextInputStream (this gives a chance to register any in-memory
+  //files). Each callback will only be called once.
+  NCRYSTAL_API void addPreFileAccessCallback(std::function<void()>);
 }
 
 #endif

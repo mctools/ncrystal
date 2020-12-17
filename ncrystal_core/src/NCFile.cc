@@ -28,7 +28,7 @@ namespace NC = NCrystal;
 namespace NCrystal {
   namespace {
     static std::unique_ptr<TextInputManager> s_textInputMgr;
-    static std::mutex s_textInputMgr_mutex;
+    static std::mutex s_textInputMgr_mutex;//call pfacbFireCallbacks() just before locking this
 
     std::string path_join(const std::string p1, const std::string p2)
     {
@@ -104,7 +104,37 @@ namespace NCrystal {
       static VectS thePath = initDataPathList();
       return thePath;
     }
+
+
+    struct PreFileAccessCallbackCache {
+      std::mutex mtx;
+      std::vector<std::function<void()>> callbacks;
+      std::atomic<bool> duringFire = false;
+    };
+    PreFileAccessCallbackCache& pfacbCache() {
+      static PreFileAccessCallbackCache s_cache;
+      return s_cache;
+    }
+    void pfacbFireCallbacks() {
+      auto& cache =pfacbCache();
+      if (cache.duringFire)
+        return;//already firing
+      std::lock_guard<std::mutex> guard(cache.mtx);
+      cache.duringFire = true;
+      while (!cache.callbacks.empty()) {
+        cache.callbacks.back()();
+        cache.callbacks.pop_back();
+      }
+      cache.duringFire = false;
+    }
   }
+}
+
+void NC::addPreFileAccessCallback(std::function<void()> callback)
+{
+  auto& cache =pfacbCache();
+  std::lock_guard<std::mutex> guard(cache.mtx);
+  cache.callbacks.push_back(callback);
 }
 
 std::string NC::basename(const std::string& filename)
@@ -159,6 +189,7 @@ std::vector<NC::FileListEntry> NC::listAvailableFiles(std::string extension)
   };
 
   {
+    pfacbFireCallbacks();
     std::lock_guard<std::mutex> guard(s_textInputMgr_mutex);
     if (!!s_textInputMgr) {
       for ( auto& e : s_textInputMgr->getList() ) {
@@ -305,6 +336,7 @@ std::unique_ptr<NC::TextInputStream> NC::createTextInputStream( const std::strin
 {
 
   {
+    pfacbFireCallbacks();
     std::lock_guard<std::mutex> guard(s_textInputMgr_mutex);
     if (!!s_textInputMgr) {
       auto stream = s_textInputMgr->createTextInputStream( sourcename );
@@ -344,6 +376,7 @@ NC::TextInputManager::~TextInputManager()
 
 void NC::registerTextInputManager( std::unique_ptr<TextInputManager> mgr )
 {
+  pfacbFireCallbacks();
   std::lock_guard<std::mutex> guard(s_textInputMgr_mutex);
   s_textInputMgr = std::move(mgr);
 }

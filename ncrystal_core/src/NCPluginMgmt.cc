@@ -30,9 +30,15 @@ namespace NCP = NCrystal::Plugins;
 
 namespace NCrystal {
   namespace Plugins {
+
+    //Make sure plugins are loaded before anyone looks up files (this gives
+    //plugins a chance to register in-memory files).
+    static bool pfacb_dummy = [](){addPreFileAccessCallback(ensurePluginsLoaded); return true; }();
+
     namespace {
       std::mutex& getPluginMgmtMutex()
       {
+        markused(pfacb_dummy);//avoid issues with certain compilers...
         static std::mutex mtx;
         return mtx;
       }
