@@ -21,6 +21,7 @@
 #include "NCrystal/NCPluginMgmt.hh"
 #include "NCrystal/internal/NCDynLoader.hh"
 #include "NCrystal/internal/NCString.hh"
+#include "NCrystal/NCFile.hh"
 #include <iostream>
 
 //MT TODO: Do we need to make these thread-safe?

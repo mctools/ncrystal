@@ -109,7 +109,7 @@ namespace NCrystal {
     struct PreFileAccessCallbackCache {
       std::mutex mtx;
       std::vector<std::function<void()>> callbacks;
-      std::atomic<bool> duringFire = false;
+      std::atomic<bool> duringFire{false};
     };
     PreFileAccessCallbackCache& pfacbCache() {
       static PreFileAccessCallbackCache s_cache;
