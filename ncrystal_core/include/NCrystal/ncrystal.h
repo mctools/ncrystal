@@ -356,10 +356,10 @@ extern "C" {
 
   /* NCrystal version info:                                                        */
 #define NCRYSTAL_VERSION_MAJOR 2
-#define NCRYSTAL_VERSION_MINOR 3
-#define NCRYSTAL_VERSION_PATCH 1
-#define NCRYSTAL_VERSION   2003001 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
-#define NCRYSTAL_VERSION_STR "2.3.1"
+#define NCRYSTAL_VERSION_MINOR 4
+#define NCRYSTAL_VERSION_PATCH 0
+#define NCRYSTAL_VERSION   2004000 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
+#define NCRYSTAL_VERSION_STR "2.4.0"
   NCRYSTAL_API int ncrystal_version(); /* returns NCRYSTAL_VERSION                  */
   NCRYSTAL_API const char * ncrystal_version_str(); /* returns NCRYSTAL_VERSION_STR */
 

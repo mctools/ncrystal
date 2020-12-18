@@ -19,6 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/NCDynLoader.hh"
+#include "NCrystal/internal/NCString.hh"
 #include "NCrystal/NCFile.hh"
 #include <functional>
 #include <iostream>
@@ -109,6 +110,12 @@ NC::DynLoader::DynLoader( const std::string& filename,
   int flag = ( scopeflag==ScopeFlag::global ? RTLD_GLOBAL : RTLD_LOCAL );
   flag |= ( lazyflag==LazyFlag::lazy ? RTLD_LAZY : RTLD_NOW );
   m_handle = dlopen( filename.c_str(), flag );
+  if (!m_handle && !startswith(filename,"/")) {
+    //Perhaps it failed because library path was relative. Let us try absolute:
+    std::string abspathfilename = ncgetcwd()+"/"+filename;
+    if (file_exists(abspathfilename))
+      m_handle = dlopen( abspathfilename.c_str(), flag );
+  }
 #  endif
 #endif
   if ( !m_handle ) {

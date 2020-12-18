@@ -71,9 +71,23 @@ namespace NCPluginNamespace {
 #  else
 #    define ncpluginhh_export
 #  endif
+#  ifdef NCPLUGIN_DO_REGISTERDATAFILES
+namespace NCPluginNamespace {
+  void registerDataFiles();//implementation provided elsewhere (by ncmat2cpp)
+}
+#  endif
 extern "C" {
-  ncpluginhh_export void ncplugin_register() { NCP::registerPlugin(); }
-  ncpluginhh_export const char * ncplugin_getname() { return NCPLUGIN_NAME_CSTR; }
+  ncpluginhh_export void ncplugin_register()
+  {
+    NCP::registerPlugin();
+#  ifdef NCPLUGIN_DO_REGISTERDATAFILES
+    NCP::registerDataFiles();
+#  endif
+  }
+  ncpluginhh_export const char * ncplugin_getname()
+  {
+    return NCPLUGIN_NAME_CSTR;
+  }
 }
 #endif
 

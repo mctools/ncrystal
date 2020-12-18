@@ -176,6 +176,7 @@ namespace NCrystal {
 }
 #endif
 
+
 void NCP::ensurePluginsLoaded()
 {
   static std::atomic<bool> first(true);

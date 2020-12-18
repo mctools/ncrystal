@@ -1,3 +1,24 @@
+v2.4.0 2020-12-17
+      * Properly support delivery of NCMAT data files from plugins. For clarity,
+        and to avoid name clashes, such data files must follow a clear naming
+        scheme "ncplugin-<PLUGINNAME>_*.ncmat". The mechanism for making the
+        data files available will depend on how the plugin is used, and is of
+        course automatic. For a static plugin, built into a given NCrystal
+        installation, the data file will be installed along with all of
+        NCrystal's own data files (either as physical files or compiled into the
+        NCrystal library, depending on the NCrystal configuration). For a
+        dynamic plugin, built separately and later loaded by adding the plugin's
+        shared library to NCRYSTAL_PLUGIN_LIST, the data file will be compiled
+        into the plugin library. Finally, for plugin developers, the data files
+        will be made available via a symlink, ensuring that it is possible to
+        directly edit the data file during development.
+      * Support (on unix) relative paths in NCRYSTAL_PLUGIN_LIST.
+      * Add option to ncrystal_ncmat2cpp for injecting include statements in
+        generated code.
+      * Plugin developers can now also see their test .ncmat files in the list
+        provided by ncrystal_inspectfile --browse.
+      * Export more information to client cmake projects.
+
 v2.3.1 2020-12-17
       * Small bugfix fixing the loading of dynamic plugins.
       * Ensure plugins are loaded before file searching is carried out. This

@@ -203,9 +203,14 @@ std::vector<NC::FileListEntry> NC::listAvailableFiles(std::string extension)
   {
     if ( d.empty() || !seend.insert(d).second )
       return;
-    for ( auto& fn : ncglob(path_join(d,globpattern))) {
+    for ( auto& fn : ncglob(path_join(d,globpattern)))
       addentry(basename(fn),name);
-    }
+    //Special case, look in ncplugin/ subdir if it is there (to support plugin development):
+    std::string subdir("ncplugin");
+    auto d2 = path_join(d,subdir);
+    if (file_exists(d2))
+      for ( auto& fn : ncglob(path_join(d2,globpattern)))
+        addentry(path_join(subdir,basename(fn)),name);
   };
 
   addfromdir(ncgetcwd(),"<current-working-directory>");

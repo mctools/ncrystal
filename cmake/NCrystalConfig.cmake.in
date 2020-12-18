@@ -36,7 +36,13 @@ set( NCrystal_CMAKEDIR "${CMAKE_CURRENT_LIST_DIR}" )
 get_filename_component( NCrystal_DIR "${NCrystal_CMAKEDIR}/@NCrystal_relpath_CMAKEDIR2ROOT@" ABSOLUTE )
 get_filename_component( NCrystal_DATAROOT "${NCrystal_DIR}/@NCrystal_DATAROOT@" ABSOLUTE )
 
-#The NCrystal targets (not including the G4NCrystal targets):
+get_filename_component( NCrystal_BINDIR "${NCrystal_CMAKEDIR}/@NCrystal_relpath_CMAKEDIR2BINDIR@" ABSOLUTE )
+get_filename_component( NCrystal_LIBDIR "${NCrystal_CMAKEDIR}/@NCrystal_relpath_CMAKEDIR2LIBDIR@" ABSOLUTE )
+get_filename_component( NCrystal_INCDIR "${NCrystal_CMAKEDIR}/@NCrystal_relpath_CMAKEDIR2INCDIR@" ABSOLUTE )
+get_filename_component( NCrystal_PYPATH "${NCrystal_CMAKEDIR}/@NCrystal_relpath_CMAKEDIR2PYPATH@" ABSOLUTE )#FIXME: Only if appropriate
+get_filename_component( NCrystal_DATAFILESDIR "${NCrystal_CMAKEDIR}/@NCrystal_relpath_CMAKEDIR2DATAFILESDIR@" ABSOLUTE )#FIXME: Only if appropriate
+
+#The NCrystal targets (not including the G4NCrystal targets!):
 if(NOT TARGET NCrystal::NCrystal)
   include( "${NCrystal_CMAKEDIR}/NCrystalTargets.cmake" )
 endif()
@@ -51,4 +57,20 @@ set( NCrystal_OPTION_INSTALL_DATA    @INSTALL_DATA@ )
 set( NCrystal_OPTION_EMBED_DATA      @EMBED_DATA@ )
 set( NCrystal_OPTION_INSTALL_SETUPSH @INSTALL_SETUPSH@ )
 set( NCrystal_OPTION_MODIFY_RPATH    @MODIFY_RPATH@ )
+
+#Libname:
 set( NCrystal_LIBNAME @NCrystal_libname@ )
+
+#Various scripts:
+set( NCrystal_CMD_NCMAT2CPP ${NCrystal_BINDIR}/ncrystal_ncmat2cpp )
+if ( NOT EXISTS NCrystal_NCMAT2CPP )
+  set( NCrystal_NCMAT2CPP "")
+endif()
+set( NCrystal_CMD_NCRYSTALCONFIG ${NCrystal_BINDIR}/ncrystal-config )
+if ( NOT EXISTS NCrystal_CMD_NCRYSTALCONFIG )
+  set( NCrystal_CMD_NCRYSTALCONFIG "")
+endif()
+set( NCrystal_CMD_NCRYSTALINSPECTFILE ${NCrystal_BINDIR}/ncrystal_inspectfile )
+if ( NOT EXISTS NCrystal_CMD_NCRYSTALINSPECTFILE )
+  set( NCrystal_CMD_NCRYSTALINSPECTFILE "")
+endif()
