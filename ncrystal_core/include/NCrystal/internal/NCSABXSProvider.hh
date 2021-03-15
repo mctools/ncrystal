@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -34,7 +34,7 @@ namespace NCrystal {
                   std::shared_ptr<const SAB::SABExtender> );
     SABXSProvider() = default;//default constructs invalid instance
     ~SABXSProvider();
-    double crossSection(double ekin) const;
+    CrossSect crossSection(NeutronEnergy) const;
 
     //Move ok:
     SABXSProvider( SABXSProvider&& ) = default;

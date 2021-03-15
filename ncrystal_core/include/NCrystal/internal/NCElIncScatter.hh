@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,14 +21,14 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCScatterIsotropic.hh"
+#include "NCrystal/NCProcImpl.hh"
 
 namespace NCrystal {
 
   class ElIncXS;
-  class Info;
+  class MatInfo;
 
-  class ElIncScatter : public ScatterIsotropic {
+  class ElIncScatter final : public ProcImpl::ScatterIsotropicMat {
   public:
 
     //Model elastic-incoherent scatterings based on the Debye model with
@@ -39,21 +39,27 @@ namespace NCrystal {
     //details, see section 2.3 of https://doi.org/10.1016/j.cpc.2019.07.015 and
     //comments in the NCElIncXS.hh header file.
 
-    //Construct from Info:
-    ElIncScatter( const Info* );
+    const char * name() const noexcept final { return "ElIncScatter"; }
+    virtual ~ElIncScatter();
+
+    //Construct from MatInfo:
+    ElIncScatter( const MatInfo& );
 
     //Constructor similar to the ElIncXS constructor:
     ElIncScatter( const VectD& elements_meanSqDisp,
                   const VectD& elements_boundincohxs,
                   const VectD& elements_scale );
 
-    double crossSectionNonOriented(double ekin) const override;
-    void generateScatteringNonOriented( double ekin, double& angle, double& delta_ekin ) const override;
-    void generateScattering( double ekin, const double (&neutron_direction)[3],
-                             double (&resulting_neutron_direction)[3], double& delta_ekin ) const override;
+    CrossSect crossSectionIsotropic(CachePtr&, NeutronEnergy ) const final;
+    ScatterOutcomeIsotropic sampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const final;
+
+    //Simple additive merge:
+    std::shared_ptr<Process> createMerged( const Process& ) const override;
+
+    //Specialised constructor providing internal state directly:
+    ElIncScatter( std::unique_ptr<ElIncXS> );
 
   protected:
-    virtual ~ElIncScatter();
     std::unique_ptr<ElIncXS> m_elincxs;
   };
 }

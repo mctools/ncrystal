@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -18,34 +18,31 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCFactoryRegistry.hh"
-#include "NCrystal/NCFactory.hh"
-#include "NCrystal/NCMatCfg.hh"
-#include "NCrystal/NCInfo.hh"
+#include "NCrystal/NCFactImpl.hh"
 #include "NCrystal/internal/NCAbsOOV.hh"
 
 namespace NC = NCrystal;
 
 namespace NCrystal {
 
-  class NCStdAbsFact : public FactoryBase {
+  class NCStdAbsFact final : public FactImpl::AbsorptionFactory {
   public:
-    const char * getName() const final { return "stdabs"; }
+    const char * name() const noexcept override { return "stdabs"; }
 
-    int canCreateAbsorption( const MatCfg& cfg ) const final {
-      RCHolder<const Info> info(::NC::createInfo( cfg ));
-      if ( !info || !info->hasXSectAbsorption() )
-        return false;
-      return 100;
-    }
-
-    RCHolder<const Absorption> createAbsorption( const MatCfg& cfg ) const final
+    Priority query( const MatCfg& cfg ) const override
     {
-      RCHolder<const Info> info(::NC::createInfo( cfg ));
-      if ( !info || !info->hasXSectAbsorption() )
-        return nullptr;
-      return makeRC<AbsOOV>(info.obj());
+      auto info = FactImpl::createInfo( cfg );
+      if ( ! info->hasXSectAbsorption() )
+        return Priority::Unable;
+      return Priority{100};
     }
+
+    ProcImpl::ProcPtr produce( const MatCfg& cfg ) const override
+    {
+      auto info = FactImpl::createInfo( cfg );
+      return makeSO<AbsOOV>( info );
+    }
+
   };
 }
 
@@ -55,6 +52,6 @@ namespace NCrystal {
 
 extern "C" void ncrystal_register_stdabs_factory()
 {
-  if (!NC::hasFactory("stdabs"))
-    NC::registerFactory(std::make_unique<NC::NCStdAbsFact>());
+  NC::FactImpl::registerFactory( std::make_unique<NC::NCStdAbsFact>(),
+                                 NC::FactImpl::RegPolicy::IGNORE_IF_EXISTS );
 }

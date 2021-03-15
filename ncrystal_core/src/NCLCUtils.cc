@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -56,23 +56,23 @@ namespace NCrystal {
   typedef std::map<LCInitKey,LCPlaneSet,std::greater<LCInitKey> > LCInitMap;
 }
 
-NC::LCHelper::LCHelper( NC::Vector lcaxis,
-                        NC::Vector lcaxis_labframe,
-                        double mosaicity_fwhm,
+NC::LCHelper::LCHelper( NC::LCAxis lcaxis,
+                        NC::LCAxis lcaxis_labframe,
+                        MosaicityFWHM mosaicity_fwhm,
                         double unitcell_volume_times_natoms,
                         PlaneProvider* pp,
                         double prec,
                         double ntrunc )
-  : m_lcaxislab(lcaxis_labframe.unit()),
-    m_lcstdframe(mosaicity_fwhm,true,prec,ntrunc),
+  : m_lcaxislab(lcaxis_labframe.as<Vector>().unit()),
+    m_lcstdframe(mosaicity_fwhm,prec,ntrunc),
     m_xsfact( 1.0 / unitcell_volume_times_natoms )
 {
   nc_assert(pp);
   nc_assert_always(unitcell_volume_times_natoms>0);
   nc_assert_always(m_xsfact>0);
-  nc_assert_always(lcaxis.isUnitVector());
-  nc_assert_always(lcaxis_labframe.isUnitVector());
-  lcaxis.normalise();//clear tiny errors
+  nc_assert_always(lcaxis.as<Vector>().isUnitVector());
+  nc_assert_always(lcaxis_labframe.as<Vector>().isUnitVector());
+  lcaxis.as<Vector>().normalise();//clear tiny errors
 
   //Collect planes into temporary map, in order to merge those with similar
   //(angle2lcaxis,dspacing) values:
@@ -92,7 +92,7 @@ NC::LCHelper::LCHelper( NC::Vector lcaxis,
       //two normals pointing into the same hemisphere as lcaxis:
       double alpha;
       {
-        double cosalpha = ncabs ( lcaxis.dot(deminormal) );
+        double cosalpha = ncabs ( lcaxis.as<Vector>().dot(deminormal) );
         if (ncabs(cosalpha)>0.9999999) {
           //deminormal is parallel to lcaxis!
           alpha = 0;
@@ -129,10 +129,6 @@ NC::LCHelper::LCHelper( NC::Vector lcaxis,
   LCInitMap::iterator it(initmap.begin()),itE(initmap.end());
   for (;it!=itE;++it)
     m_planes.push_back(it->second);
-}
-
-NC::LCHelper::~LCHelper()
-{
 }
 
 NC::LCPlaneSet::LCPlaneSet(double dspacing, double thealpha,
@@ -184,10 +180,6 @@ NC::LCROIFinder::LCROIFinder(double wl, double c3, double cta, double sta)
   nc_assert(m_c3<=1.0&&m_c3>=0);
   nc_assert(wl>0.0);
   nc_assert(ncabs(cta*cta+sta*sta-1.0)<1e-6);
-}
-
-NC::LCROIFinder::~LCROIFinder()
-{
 }
 
 void NC::LCROIFinder::findROIs(const LCPlaneSet * plane,std::vector<NC::LCROI>& roilist)
@@ -317,10 +309,10 @@ double NC::LCHelper::crossSectionNoCache( double wl, const Vector& indir ) const
   return crossSection( cache, wl, indir );
 }
 
-void NC::LCHelper::genScatterNoCache( RandomBase* rand, double wl, const Vector& indir, Vector& outdir ) const
+void NC::LCHelper::genScatterNoCache( RNG& rng, double wl, const Vector& indir, Vector& outdir ) const
 {
   Cache cache;
-  genScatter( cache, rand, wl, indir, outdir );
+  genScatter( cache, rng, wl, indir, outdir );
 }
 
 bool NC::LCHelper::isValid(NC::LCHelper::Cache& cache, double wl, double c3 ) const
@@ -333,13 +325,15 @@ bool NC::LCHelper::isValid(NC::LCHelper::Cache& cache, double wl, double c3 ) co
 
 bool NC::LCHelper::isValid(NC::LCHelper::Cache& cache, double wl, const NC::Vector& indir) const
 {
-  nc_assert(indir.isUnitVector()&&wl>0.0);
+  nc_assert(wl>0.0);
+  nc_assert(indir.isUnitVector());
   return isValid(cache,wl,m_lcaxislab.dot(indir));
 }
 
 void NC::LCHelper::ensureValid(NC::LCHelper::Cache& cache, double wl, const NC::Vector& indir) const
 {
-  nc_assert(indir.isUnitVector()&&wl>0.0);
+  nc_assert(wl>0.0);
+  nc_assert(indir.isUnitVector());
   double c3 = m_lcaxislab.dot(indir);
   nc_assert(wl>=0&&wl<1e7&&c3>=-1.0&&c3<=1.0);
   uint64_t discrwl = LCdiscretizeValue(wl);
@@ -474,7 +468,6 @@ namespace NCrystal {
       nc_assert(normal.planeset&&!normal.planeset->isOnAxis());
       nc_assert(gm&&neutron.wl>0);
     }
-    virtual ~LCStdFrameIntegrator(){}
 
     virtual bool accept(unsigned /*level*/, double prev_estimate, double estimate,double,double) const
     {
@@ -515,7 +508,7 @@ namespace NCrystal {
     }
 
   private:
-    mutable GaussMos::InteractionPars m_ip;
+    mutable GaussMos::InteractionPars m_ip;//NB: Mutable here is OK, since we use local per-thread LCStdFrameIntegrator objects.
     const GaussMos * m_gm;
     const double m_sinnormalmults3;
     const double m_cosnormalmultc3;
@@ -523,16 +516,16 @@ namespace NCrystal {
   };
 }
 
-void NC::LCHelper::genPhiVal(RandomBase* rand, const LCROI& roi, const Overlay& overlay, double& phi, double& overlay_at_phi)
+void NC::LCHelper::genPhiVal(RNG& rng, const LCROI& roi, const Overlay& overlay, double& phi, double& overlay_at_phi)
 {
-  const float* it = std::lower_bound( overlay.data, overlay.data+Overlay::ndata, overlay.data[Overlay::ndata-1] * rand->generate() );
+  const float* it = std::lower_bound( overlay.data, overlay.data+Overlay::ndata, overlay.data[Overlay::ndata-1] * rng.generate() );
   unsigned ichoice = std::min<unsigned>((unsigned)(it - overlay.data),Overlay::ndata-1);
   overlay_at_phi = overlay.nonCommulVal(ichoice);
-  double rel_phi_pos = (ichoice + rand->generate())/Overlay::ndata;
+  double rel_phi_pos = (ichoice + rng.generate())/Overlay::ndata;
   phi = roi.rotmin + rel_phi_pos*roi.length();
 }
 
-void NC::LCHelper::genScatter( NC::LCHelper::Cache& cache, NC::RandomBase* rand, double wl, const NC::Vector& indir, NC::Vector& outdir ) const
+void NC::LCHelper::genScatter( LCHelper::Cache& cache, RNG& rng, double wl, const Vector& indir, Vector& outdir ) const
 {
 
   ensureValid(cache,wl,indir);
@@ -545,7 +538,7 @@ void NC::LCHelper::genScatter( NC::LCHelper::Cache& cache, NC::RandomBase* rand,
   }
 
   //Choose ROI, according to cross-section of each ROI:
-  std::size_t idx = pickRandIdxByWeight(rand,cache.m_roixs_commul);
+  std::size_t idx = pickRandIdxByWeight(rng,cache.m_roixs_commul);
   nc_assert(idx<cache.m_roilist.size());
   const LCROI& roi = cache.m_roilist[idx];
 
@@ -559,13 +552,13 @@ void NC::LCHelper::genScatter( NC::LCHelper::Cache& cache, NC::RandomBase* rand,
 
   if ( roi.normalIsOnAxis() ) {
     //Normal parallel to lcaxis.
-    m_lcstdframe.genScat_OnAxis(rand,neutron,normal,outdir);
+    m_lcstdframe.genScat_OnAxis(rng,neutron,normal,outdir);
   } else {
     //Off-axis normal. Use rejection-method to pick phi-value in ROI (unless
     //neutron is on axis, in which case we just pick one at random):
     double phi,cosphi;
     if (roi.neutronIsOnAxis()) {
-      phi = rand->generate()*kPi;
+      phi = rng.generate()*kPi;
       cosphi = cos_mpipi(phi);
     } else {
 
@@ -623,7 +616,7 @@ void NC::LCHelper::genScatter( NC::LCHelper::Cache& cache, NC::RandomBase* rand,
           sampleoverlay.reserve(n);
           for (unsigned i=0; i<n; ++i) {
             double ph,overlay_at_phi;
-            genPhiVal(rand,roi,overlay,ph,overlay_at_phi);
+            genPhiVal(rng,roi,overlay,ph,overlay_at_phi);
             sampleoverlay.push_back(std::make_pair(ph,overlay_at_phi));
           }
           std::sort(sampleoverlay.begin(),sampleoverlay.end());
@@ -642,7 +635,7 @@ void NC::LCHelper::genScatter( NC::LCHelper::Cache& cache, NC::RandomBase* rand,
 #endif
       while(triesleft--) {
         double overlay_at_phi;
-        genPhiVal(rand,roi,overlay,phi,overlay_at_phi);
+        genPhiVal(rng,roi,overlay,phi,overlay_at_phi);
         cosphi = cos_mpipi(phi);
         double xsphi = m_lcstdframe.calcXS(neutron,normal,cosphi);
         if ( xsphi > overlay_at_phi ) {
@@ -658,7 +651,7 @@ void NC::LCHelper::genScatter( NC::LCHelper::Cache& cache, NC::RandomBase* rand,
 #endif
           }
         }
-        if ( xsphi > overlay_at_phi * rand->generate() )
+        if ( xsphi > overlay_at_phi * rng.generate() )
           break;
       }
       if (triesleft<=0) {
@@ -675,15 +668,15 @@ void NC::LCHelper::genScatter( NC::LCHelper::Cache& cache, NC::RandomBase* rand,
       }
     }
     nc_assert(phi>=0&&phi<=kPi);
-    double sinphisign = (rand->generate()>0.5?1.0:-1.0);//pick normals in [-pi,pi], not just in [0,pi]
-    m_lcstdframe.genScat(rand,neutron,normal,cosphi,sinphisign*std::sqrt(1.0-cosphi*cosphi),outdir);
+    double sinphisign = (rng.coinflip()?1.0:-1.0);//pick normals in [-pi,pi], not just in [0,pi]
+    m_lcstdframe.genScat(rng,neutron,normal,cosphi,sinphisign*std::sqrt(1.0-cosphi*cosphi),outdir);
   }
 
   //The scattering captured in outdir took place in the standard frame (see
   //description of LCStdFrame). Here, the lcaxis was aligned with the z-axis
   //while indir=(s3,0,c3). We rotate outdir from this frame to the lab frame:
   double indirsign = m_lcaxislab.dot(indir) >= 0.0 ? 1.0 : -1.0;
-  rotateToFrame( cache.m_s3, cache.m_c3, indir, m_lcaxislab*indirsign, outdir, rand );
+  rotateToFrame( cache.m_s3, cache.m_c3, indir, m_lcaxislab*indirsign, outdir, &rng );
 
   //Throughout LCUtils internals we have for (misguided attempts at?) clarity,
   //employed a sign convention for the neutron direction vector which is
@@ -692,12 +685,8 @@ void NC::LCHelper::genScatter( NC::LCHelper::Cache& cache, NC::RandomBase* rand,
   outdir *= -1.0;
 }
 
-NC::LCStdFrame::LCStdFrame(double mosaicity, bool mosaicity_is_fhwm, double prec, double ntrunc)
-  : m_gm(mosaicity,mosaicity_is_fhwm,prec,ntrunc)
-{
-}
-
-NC::LCStdFrame::~LCStdFrame()
+NC::LCStdFrame::LCStdFrame(MosaicityFWHM mosaicity, double prec, double ntrunc)
+  : m_gm(mosaicity,prec,ntrunc)
 {
 }
 
@@ -710,12 +699,11 @@ double NC::LCStdFrame::calcXS_OnAxis( const NC::LCStdFrame::NeutronPars& neutron
   return m_gm.calcRawCrossSectionValue( ip, cosval );
 }
 
-void NC::LCStdFrame::genScat_OnAxis( RandomBase * rand,
+void NC::LCStdFrame::genScat_OnAxis( RNG& rng,
                                      const NC::LCStdFrame::NeutronPars& neutron,
                                      const NC::LCStdFrame::NormalPars& normal,
                                      NC::Vector& outdir ) const
 {
-  nc_assert(rand);
   GaussMos::ScatCache scatcache(Vector(0.,0.,normal.sign), normal.planeset->inv_twodsp );
 
   //Invoke GaussMos helper to carry out the actual  scattering. Note that the
@@ -723,7 +711,7 @@ void NC::LCStdFrame::genScat_OnAxis( RandomBase * rand,
   //from the one used throughout LCUtils, hence the minus signs in the
   //definition of indir_stdframe:
   Vector indir_stdframe(-neutron.s3,0.,-neutron.c3);
-  m_gm.genScat( rand, scatcache, neutron.wl, indir_stdframe, outdir );
+  m_gm.genScat( rng, scatcache, neutron.wl, indir_stdframe, outdir );
 }
 
 NC::Vector NC::LCStdFrame::normalInStdFrame( const NC::LCStdFrame::NormalPars& normal, double cosphi, double sinphi )
@@ -761,16 +749,14 @@ double NC::LCStdFrame::calcXSIntegral( const NC::LCStdFrame::NeutronPars& neutro
   return integrator.integrate(phimin,phimax);
 }
 
-void NC::LCStdFrame::genScat( RandomBase * rand,
+void NC::LCStdFrame::genScat( RNG& rng,
                               const NC::LCStdFrame::NeutronPars& neutron,
                               const NC::LCStdFrame::NormalPars& normal,
                               double cosphi,
                               double sinphi,
                               NC::Vector& outdir ) const
 {
-  nc_assert(rand);
   nc_assert(ncabs(cosphi*cosphi+sinphi*sinphi-1.0)<=1e-10);
-  nc_assert(rand);
 
   GaussMos::ScatCache scatcache(normalInStdFrame( normal, cosphi, sinphi ), normal.planeset->inv_twodsp);
 
@@ -779,5 +765,5 @@ void NC::LCStdFrame::genScat( RandomBase * rand,
   //from the one used throughout LCUtils, hence the minus signs in the
   //definition of indir_stdframe:
   Vector indir_stdframe(-neutron.s3,0.,-neutron.c3);
-  m_gm.genScat( rand, scatcache, neutron.wl, indir_stdframe, outdir );
+  m_gm.genScat( rng, scatcache, neutron.wl, indir_stdframe, outdir );
 }

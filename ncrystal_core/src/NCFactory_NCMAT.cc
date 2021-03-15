@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -18,37 +18,26 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCFactoryRegistry.hh"
-#include "NCrystal/NCMatCfg.hh"
+#include "NCrystal/NCFactImpl.hh"
+#include "NCrystal/NCDataSources.hh"
 #include "NCrystal/NCLoadNCMAT.hh"
 
 namespace NC = NCrystal;
 
 namespace NCrystal {
 
-  //Factory component which can load .ncmat files
-
-  class NCMATFactory : public FactoryBase {
+  class NCMATFactory final : public FactImpl::InfoFactory {
   public:
-    const char * getName() const final { return "stdncmat"; }
+    const char * name() const noexcept final { return "stdncmat"; }
 
-    int canCreateInfo( const MatCfg& cfg ) const final {
-      return cfg.getDataFileExtension()=="ncmat" ? 100 : 0;
-    }
-    RCHolder<const Info> createInfo( const MatCfg& cfg ) const final
+    Priority query( const MatInfoCfg& cfg ) const final
     {
-      nc_assert_always(canCreateInfo(cfg));
-      cfg.infofactopt_validate({"expandhkl"});
-      //Use cfg.getDataFileAsSpecified() not cfg.getDataFile(), since we support
-      //custom TextInputManager's (i.e. in-memory files):
+      return cfg.getDataType()=="ncmat" ? Priority{100} : Priority{Priority::Unable};
+    }
 
-      NCMATCfgVars ncmatcfgvars;
-      ncmatcfgvars.temp      = cfg.get_temp();
-      ncmatcfgvars.dcutoff   = cfg.get_dcutoff();
-      ncmatcfgvars.dcutoffup = cfg.get_dcutoffup();
-      ncmatcfgvars.expandhkl = cfg.get_infofactopt_flag("expandhkl");
-      ncmatcfgvars.atomdb    = cfg.get_atomdb_parsed();
-      return loadNCMAT( cfg.getDataFileAsSpecified(), std::move(ncmatcfgvars) );
+    shared_obj<const MatInfo> produce( const MatInfoCfg& cfg ) const final
+    {
+      return NC::makeSO<const MatInfo>( loadNCMAT(cfg) );
     }
   };
 
@@ -60,6 +49,7 @@ namespace NCrystal {
 
 extern "C" void ncrystal_register_ncmat_factory()
 {
-  if (!NC::hasFactory("stdncmat"))
-    registerFactory(std::make_unique<NC::NCMATFactory>());
+  NC::FactImpl::registerFactory( std::make_unique<NC::NCMATFactory>(),
+                                 NC::FactImpl::RegPolicy::IGNORE_IF_EXISTS );
+  NC::DataSources::addRecognisedFileExtensions("ncmat");
 }

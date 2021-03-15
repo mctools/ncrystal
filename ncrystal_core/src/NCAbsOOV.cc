@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -19,32 +19,43 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/NCAbsOOV.hh"
-#include "NCrystal/NCInfo.hh"
-#include "NCrystal/NCDefs.hh"
 #include "NCrystal/internal/NCMath.hh"
 
-NCrystal::AbsOOV::AbsOOV(const Info*ci)
-  : Absorption("NCAbsOOV")
-{
-  nc_assert_always(ci);
+namespace NC = NCrystal;
 
-  if ( ! ci->hasXSectAbsorption() )
-    NCRYSTAL_THROW(MissingInfo,"Info object does not contain absorption cross-section.");
-
-  m_c = sqrt(const_ekin_2200m_s) * ci->getXSectAbsorption();
-  validate();
-}
-
-NCrystal::AbsOOV::~AbsOOV()
+NC::AbsOOV::AbsOOV( const NC::MatInfo& info )
+  : AbsOOV( [&info]()
+  {
+    if ( ! info.hasXSectAbsorption() )
+      NCRYSTAL_THROW(MissingInfo,"Info object does not contain absorption cross-section.");
+    return info.getXSectAbsorption();
+  }() )
 {
 }
 
-double NCrystal::AbsOOV::crossSection(double ekin, const double (&)[3] ) const
-{
-  return ekin ? m_c / std::sqrt(ekin) : kInfinity;
+namespace NCrystal {
+  namespace {
+    constexpr double sqrt_const_ekin_2200m_s = constexpr_sqrt(const_ekin_2200m_s.dbl());
+  }
 }
 
-double NCrystal::AbsOOV::crossSectionNonOriented( double ekin ) const
+NC::AbsOOV::AbsOOV( SigmaAbsorption sigabs)
+  : m_c( sqrt_const_ekin_2200m_s * sigabs.dbl() )
 {
-  return ekin ? m_c / std::sqrt(ekin) : kInfinity;
+}
+
+
+NC::CrossSect NC::AbsOOV::crossSectionIsotropic(CachePtr&, NeutronEnergy ekin ) const
+{
+  return CrossSect{ ekin.dbl() ? m_c / std::sqrt(ekin.dbl()) : kInfinity };
+}
+
+std::shared_ptr<NC::ProcImpl::Process> NC::AbsOOV::createMerged( const Process& oraw ) const
+{
+  auto o = dynamic_cast<const AbsOOV*>(&oraw);
+  if (!o)
+    return nullptr;
+  auto result = std::make_shared<AbsOOV>( SigmaAbsorption{1.0} );
+  result->m_c = this->m_c + o->m_c;
+  return result;
 }

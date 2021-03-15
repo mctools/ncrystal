@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -19,37 +19,34 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/NCBkgdExtCurve.hh"
-#include "NCrystal/NCInfo.hh"
 #include "NCrystal/internal/NCRandUtils.hh"
 
 namespace NC = NCrystal;
 
-NC::BkgdExtCurve::BkgdExtCurve( const Info* ci )
-  : ScatterIsotropic("BkgdExtCurve"),
-    m_ci(ci)
+NC::BkgdExtCurve::BkgdExtCurve( shared_obj<const MatInfo> ci )
+  : m_ci(std::move(ci))
 {
-  nc_assert_always(ci);
-  if (!ci->providesNonBraggXSects())
+  if (!m_ci->providesNonBraggXSects())
     NCRYSTAL_THROW(MissingInfo,"BkgdExtCurve: Passed Info object lacks NonBraggXSects needed for cross sections.");
-  validate();
 }
 
 NC::BkgdExtCurve::~BkgdExtCurve() = default;
 
-double NC::BkgdExtCurve::crossSectionNonOriented(double ekin) const
+NC::CrossSect NC::BkgdExtCurve::crossSectionIsotropic(NC::CachePtr&, NC::NeutronEnergy ekin ) const
 {
-  return m_ci->xsectScatNonBragg(ekin2wl(ekin));
+  return m_ci->xsectScatNonBragg(ekin);
 }
 
-void NC::BkgdExtCurve::generateScatteringNonOriented( double, double& angle, double& de ) const
+NC::ScatterOutcomeIsotropic NC::BkgdExtCurve::sampleScatterIsotropic( CachePtr&,
+                                                                      RNG& rng,
+                                                                      NeutronEnergy ekin ) const
 {
-  angle = randIsotropicScatterAngle(getRNG());
-  de = 0.0;
+  //Elastic, isotropic.
+  return { ekin, randIsotropicScatterMu( rng ) };
 }
 
-void NC::BkgdExtCurve::generateScattering( double, const double (&)[3],
-                                           double (&outdir)[3], double& de ) const
+NC::ScatterOutcome NC::BkgdExtCurve::sampleScatter( CachePtr&, RNG& rng, NeutronEnergy ekin, const NeutronDirection& ) const
 {
-  randIsotropicDirection(getRNG(),outdir);
-  de = 0.0;
+  //Elastic, isotropic.
+  return { ekin, randIsotropicNeutronDirection(rng) };
 }

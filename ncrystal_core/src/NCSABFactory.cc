@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -29,7 +29,7 @@ namespace NCrystal {
   namespace SAB {
 
     //Cache key is (sabdata uid, egrid uid, sabdata ptr):
-    typedef std::tuple<UniqueIDValue,UniqueIDValue,std::shared_ptr<const NC::SABData>*> ScatHelperCacheKey;
+    typedef std::tuple<UniqueIDValue,UniqueIDValue,shared_obj<const NC::SABData>*> ScatHelperCacheKey;
 
     class ScatterHelperFactory : public NC::CachedFactoryBase<ScatHelperCacheKey,SABScatterHelper> {
     public:
@@ -41,7 +41,7 @@ namespace NCrystal {
         return ss.str();
       }
     protected:
-      virtual ShPtr actualCreate( const ScatHelperCacheKey& key ) final
+      virtual ShPtr actualCreate( const ScatHelperCacheKey& key ) const final
       {
         auto sabdata_shptr = *std::get<2>(key);
         nc_assert( sabdata_shptr->getUniqueID() == std::get<0>(key) );
@@ -54,7 +54,7 @@ namespace NCrystal {
   }
 }
 
-std::unique_ptr<const NC::SAB::SABScatterHelper> NC::SAB::createScatterHelper( std::shared_ptr<const NC::SABData> data,
+std::unique_ptr<const NC::SAB::SABScatterHelper> NC::SAB::createScatterHelper( shared_obj<const NC::SABData> data,
                                                                                std::shared_ptr<const VectD> energyGrid )
 {
   nc_assert(!!data);
@@ -67,8 +67,8 @@ void NC::SAB::clearScatterHelperCache() {
   s_scathelperfact.cleanup();
 }
 
-std::shared_ptr<const NC::SAB::SABScatterHelper> NC::SAB::createScatterHelperWithCache( std::shared_ptr<const NC::SABData> dataptr,
-                                                                                        std::shared_ptr<const VectD> egrid )
+NC::shared_obj<const NC::SAB::SABScatterHelper> NC::SAB::createScatterHelperWithCache( shared_obj<const NC::SABData> dataptr,
+                                                                                       std::shared_ptr<const VectD> egrid )
 {
   nc_assert_always(!!dataptr);
 
@@ -94,7 +94,7 @@ NC::UniqueIDValue NC::SAB::egridToUniqueID(const NC::VectD& egrid)
 {
   //NB: code duplicated from here to following function
   auto hash = hashContainer(egrid);
-  std::lock_guard<std::mutex> guard(s_egrid2uid_mutex);
+  NCRYSTAL_LOCK_GUARD(s_egrid2uid_mutex);
   auto& v = s_egridHashCache[hash];//In absence of hash collisions, v will have length 0 or 1.
   for (auto& e : v) {
     if ( *e.first == egrid )
@@ -114,7 +114,7 @@ NC::UniqueIDValue NC::SAB::egridToUniqueID(const std::shared_ptr<const NC::VectD
 
   //code duplicated here from preceding function
   auto hash = hashContainer(*egrid);
-  std::lock_guard<std::mutex> guard(s_egrid2uid_mutex);
+  NCRYSTAL_LOCK_GUARD(s_egrid2uid_mutex);
   auto& v = s_egridHashCache[hash];//In absence of hash collisions, v will have length 0 or 1.
   for (auto& e : v) {
     if ( *e.first == *egrid )
@@ -130,7 +130,7 @@ NC::UniqueIDValue NC::SAB::egridToUniqueID(const std::shared_ptr<const NC::VectD
 
 std::shared_ptr<const NC::VectD> NC::SAB::egridFromUniqueID( NC::UniqueIDValue uidval )
 {
-  std::lock_guard<std::mutex> guard(s_egrid2uid_mutex);
+  NCRYSTAL_LOCK_GUARD(s_egrid2uid_mutex);
   auto it = s_uid2egrid.find(uidval.value);
   if ( it == s_uid2egrid.end() )
     NCRYSTAL_THROW(LogicError,"egridFromUniqueID passed uid which was not created by call to egridToUniqueID");

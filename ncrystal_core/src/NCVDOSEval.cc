@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -45,7 +45,7 @@ NC::VDOSEval::VDOSEval(const VDOSData& vd)
   : m_density(vd.vdos_density()),
     m_emin(vd.vdos_egrid().first),
     m_emax(vd.vdos_egrid().second),
-    m_kT(constant_boltzmann*vd.temperature()),
+    m_kT(constant_boltzmann*vd.temperature().get()),
     m_temperature(vd.temperature()),
     m_elementMassAMU(vd.elementMassAMU())
 {
@@ -53,7 +53,7 @@ NC::VDOSEval::VDOSEval(const VDOSData& vd)
     std::cout << "NCrystal::VDOSEval constructed ("<<m_density.size()<<" density pts on egrid spanning ["<<m_emin<<", "<<m_emax<<"]"<<std::endl;
 
   nc_assert( m_elementMassAMU>0.5 && m_elementMassAMU<2000.0 );
-  nc_assert( m_temperature>=1.0&&m_temperature<1e5 );
+  nc_assert( m_temperature.get()>=1.0&&m_temperature.get()<1e5 );
   nc_assert_always(m_density.size()<static_cast<std::size_t>(std::numeric_limits<int>::max()-2));
   nc_assert(m_emin>=0.0&&m_emax>m_emin);
 
@@ -125,7 +125,7 @@ NC::VDOSEval::GridInfo NC::VDOSEval::getGridInfo() const
 double NC::VDOSEval::calcGamma0() const
 {
   //Evaluate Sjolander1958 eq. II.3 with t=0 (NB: Sjolander is missing a factor
-  //of emax, since he use unit-less energies).
+  //of emax, since he uses unit-less energies).
 
   //We integrate the density with the function coth(E/2kT)/E = 1/E*tanh(E/2kT)
   //

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,26 +21,29 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
+#include "NCrystal/NCSmallVector.hh"
 #include "NCrystal/internal/NCMath.hh"
 #include <cstring>
 #include <ostream>
 
 namespace NCrystal {
-  class Matrix {
 
+
+  struct MatrixAllowCopy_t {};
+  constexpr MatrixAllowCopy_t MatrixAllowCopy = MatrixAllowCopy_t{};
+
+  class Matrix : private MoveOnly {
   public:
 
     Matrix() ;
 
-    Matrix(unsigned row, unsigned col, const double* data= 0);
-    Matrix(unsigned row, unsigned col, const VectD& data);
+    // Matrix(unsigned row, unsigned col, const double* data= 0);
+    Matrix(unsigned nrows, unsigned ncols, Span<const double> );
 
     virtual ~Matrix();
 
-    //Copy semantics:
-    Matrix(const Matrix &) ;
-    Matrix& operator=(const Matrix&);
+    //Protected copy semantics:
+    Matrix( MatrixAllowCopy_t, const Matrix &);
 
     //Move semantics:
     Matrix(Matrix && o);
@@ -51,8 +54,8 @@ namespace NCrystal {
     friend Matrix operator*(const Matrix&, const Matrix&);
     Matrix operator* (double );
     Matrix operator/ (double );
-    bool operator== (const Matrix& );
-    bool operator!= (const Matrix& );
+
+    bool isEqual(const Matrix&) const;
     friend std::ostream& operator << (std::ostream &, const Matrix&);
 
     //Matrix transposition:
@@ -65,20 +68,20 @@ namespace NCrystal {
     void inv(double epsilon = 1e-5);
     Matrix getInv(double epsilon = 1e-5);
 
-
     unsigned nRows() const;
     unsigned nCols() const;
     double mag2() const;//sum of elements squared
     double mag() const { return sqrt(mag2()); }
 
+    const SmallVector<double,9>& rawData() const { return m_data; }
+
   protected:
 
-    VectD m_data;
+    //Use small vector optimisation for data (NSMALL=9 is optimised for usage as
+    //3x3 RotMatrix):
+    SmallVector<double,9> m_data;
     unsigned m_rowcount;
     unsigned m_colcount;
-    //set(..) should not be public, otherwise NCRotMatrix won't be able to
-    //guarantee it is always 3x3 (unless we make set(..) virtual):
-    void set(unsigned row, unsigned col, const double* data);
   };
 
   std::ostream& operator << (std::ostream &, const Matrix&);
@@ -96,9 +99,9 @@ inline NCrystal::Matrix::Matrix()
 {
 }
 
-inline NCrystal::Matrix::Matrix(const NCrystal::Matrix & o)
+inline NCrystal::Matrix::Matrix(MatrixAllowCopy_t, const NCrystal::Matrix & o)
+  : m_data(SVAllowCopy,o.m_data), m_rowcount(o.m_rowcount), m_colcount(o.m_colcount)
 {
-  *this = o;
 }
 
 inline NCrystal::Matrix::Matrix(NCrystal::Matrix && o)
@@ -116,40 +119,24 @@ inline NCrystal::Matrix& NCrystal::Matrix::operator=(NCrystal::Matrix&& o)
   return *this;
 }
 
-inline void NCrystal::Matrix::set(unsigned row, unsigned col, const double* data)
+inline NCrystal::Matrix::Matrix(unsigned row, unsigned col, Span<const double> data)
 {
-  unsigned n = row*col;
+  const auto n = row*col;
+  if ( data.size() != n )
+    NCRYSTAL_THROW(BadInput,
+                   "NCMatrix number of rows and columns not consistent with data length");
+
   if ( !n ) {
     //must allow this, since the default constructor also gives row=col=0.
     if ( row || col )
       NCRYSTAL_THROW(BadInput,
                      "NCMatrix number of rows and columns must both be positive or both zero");
     m_rowcount = m_colcount = 0;
-    m_data.clear();
   } else {
-    nc_assert(data);
-    m_data.resize(n);
-    std::memcpy(&m_data[0],data,n*sizeof(double));
+    m_data.setByCopy(data.begin(),data.end());
     m_rowcount = row;
     m_colcount = col;
   }
-}
-
-inline NCrystal::Matrix::Matrix(unsigned row, unsigned col, const double* data)
-{
-  set( row, col, data );
-}
-
-inline NCrystal::Matrix::Matrix(unsigned row, unsigned col, const VectD& data) {
-  if ( !row*col == data.size() )
-    NCRYSTAL_THROW(BadInput,"NCMatrix constructor got inconsistent data length");
-  set( row, col, data.empty() ? 0 : &data[0] );
-}
-
-inline NCrystal::Matrix& NCrystal::Matrix::operator=(const NCrystal::Matrix& o)
-{
-  set(o.m_rowcount,o.m_colcount,o.m_data.empty() ? 0 : &(o.m_data[0]));
-  return *this;
 }
 
 inline const double* NCrystal::Matrix::operator[](unsigned irow) const
@@ -165,12 +152,9 @@ inline NCrystal::Matrix NCrystal::Matrix::operator* (double factor)
   res.m_rowcount = m_rowcount;
   if (m_data.empty())
     return res;
-  res.m_data.resize(m_data.size(),factor);
-  double * itres = &res.m_data[0];
-  double * it = &m_data[0];
-  double * itresE = itres + res.m_data.size();
-  for (;itres!=itresE;++it,++itres)
-    *itres *= *it;
+  res.m_data.reserve_hint(m_data.size());
+  for ( auto e : m_data )
+    res.m_data.push_back( e * factor );
   return res;
 }
 
@@ -179,15 +163,22 @@ inline NCrystal::Matrix NCrystal::Matrix::operator/ (double factor)
   return *this * ( 1.0 / factor );
 }
 
-inline bool NCrystal::Matrix::operator== (const NCrystal::Matrix& o)
+inline bool NCrystal::Matrix::isEqual(const NCrystal::Matrix& o) const
 {
-  nc_assert(m_data.size()==o.m_data.size());
-  return m_data == o.m_data;
-}
-
-inline bool NCrystal::Matrix::operator!= (const NCrystal::Matrix& o)
-{
-  return !( *this == o );
+  if ( m_rowcount != o.m_rowcount )
+    return false;
+  if ( m_colcount != o.m_colcount )
+    return false;
+  nc_assert( m_data.size() == o.m_data.size() );
+  auto it = m_data.begin();
+  auto it2 = o.m_data.begin();
+  auto itE = it + m_data.size();
+  nc_assert(itE == m_data.end());
+  for ( ; it!=itE; ++it, ++it2 ) {
+    if ( *it != *it2 )
+      return false;
+  }
+  return true;
 }
 
 inline NCrystal::Matrix NCrystal::Matrix::operator~() const
@@ -197,7 +188,7 @@ inline NCrystal::Matrix NCrystal::Matrix::operator~() const
   res.m_rowcount = m_rowcount;
   if (m_data.empty())
     return res;
-  res.m_data.reserve(m_data.size());
+  res.m_data.reserve_hint(m_data.size());
   for (unsigned i = 0; i < m_colcount; i++)
     for (unsigned j = 0; j < m_rowcount; j++)
       res.m_data.push_back(m_data[j * m_colcount + i]);
@@ -206,10 +197,11 @@ inline NCrystal::Matrix NCrystal::Matrix::operator~() const
 
 inline void NCrystal::Matrix::transpose()
 {
-  //TODO: Should be able to do this without malloc.
-  VectD v;
+  //TODO: Should be able to do this without malloc and/or extra copies of all
+  //elements state..
+  decltype(m_data) v;
   std::swap(m_data, v);
-  m_data.reserve(v.size());
+  m_data.reserve_hint(v.size());
   for (unsigned i = 0; i < m_colcount; i++)
     for (unsigned j = 0; j < m_rowcount; j++)
       m_data.push_back(v[j * m_colcount + i]);
@@ -229,19 +221,15 @@ inline unsigned NCrystal::Matrix::nCols() const
 inline double NCrystal::Matrix::mag2() const
 {
   double sum(0.0);
-  VectD::const_iterator it = m_data.begin();
-  VectD::const_iterator itE = m_data.end();
-  for (;it!=itE;++it)
-    sum += (*it) * (*it);
+  for ( auto e : m_data )
+    sum += e*e;
   return sum;
 }
 
 inline NCrystal::Matrix& NCrystal::Matrix::operator*=(const double& f)
 {
-  VectD::iterator it = m_data.begin();
-  VectD::iterator itE = m_data.end();
-  for (;it!=itE;++it)
-    *it *= f;
+  for (auto& e : m_data)
+    e *= f;
   return *this;
 }
 

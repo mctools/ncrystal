@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -27,28 +27,25 @@
 namespace NC = NCrystal;
 
 struct NC::SABScatter::Impl {
-  std::shared_ptr<const SAB::SABScatterHelper> m_scathelper_shptr;
+  Impl(shared_obj<const SAB::SABScatterHelper> sp) : m_scathelper_shptr(std::move(sp)) {}
+  shared_obj<const SAB::SABScatterHelper> m_scathelper_shptr;
 };
 
 NC::SABScatter::~SABScatter() = default;
 
-NC::SABScatter::SABScatter( std::shared_ptr<const NC::SAB::SABScatterHelper> sh )
-  : ScatterIsotropic("SABScatter"), m_sh(nullptr)
+NC::SABScatter::SABScatter( shared_obj<const NC::SAB::SABScatterHelper> sh )
+  : m_impl(std::move(sh)), m_sh(m_impl->m_scathelper_shptr.get())
 {
   //All other constructors delegate to this one.
-  nc_assert_always(!!sh);
-  m_impl->m_scathelper_shptr = std::move(sh);
-  m_sh = m_impl->m_scathelper_shptr.get();
-  nc_assert_always(m_sh);
 }
 
 NC::SABScatter::SABScatter( std::unique_ptr<const NC::SAB::SABScatterHelper> upsh )
-  : SABScatter(std::shared_ptr<const NC::SAB::SABScatterHelper>{std::move(upsh)})
+  : SABScatter(shared_obj<const NC::SAB::SABScatterHelper>{std::move(upsh)})
 {
 }
 
 NC::SABScatter::SABScatter( NC::SAB::SABScatterHelper&& sh )
-  : SABScatter( std::make_shared<SAB::SABScatterHelper>(std::move(sh)) )
+  : SABScatter( makeSO<const SAB::SABScatterHelper>(std::move(sh)) )
 {
 }
 
@@ -70,7 +67,7 @@ NC::SABScatter::SABScatter( NC::SABData && sabdata_,
                             const VectD& energyGrid )
   : SABScatter( [&energyGrid](NC::SABData&& sabdata)
                 {
-                  auto sabdata_shptr = std::make_shared<const SABData>(std::move(sabdata));
+                  auto sabdata_shptr = makeSO<const SABData>(std::move(sabdata));
                   std::shared_ptr<const VectD> egrid_shptr;
                   if (!energyGrid.empty())
                     egrid_shptr = std::make_shared<const VectD>(energyGrid);
@@ -79,32 +76,22 @@ NC::SABScatter::SABScatter( NC::SABData && sabdata_,
                 }(std::move(sabdata_)) )
 {
 }
-NC::SABScatter::SABScatter( std::shared_ptr<const SABData> sabdata_shptr,
+NC::SABScatter::SABScatter( shared_obj<const SABData> sabdata_shptr,
                             std::shared_ptr<const VectD> egrid_shptr )
   : SABScatter( SAB::createScatterHelper( std::move(sabdata_shptr),
                                           std::move(egrid_shptr) ) )
 {
 }
 
-double NC::SABScatter::crossSectionNonOriented(double ekin) const
+NC::CrossSect NC::SABScatter::crossSectionIsotropic( CachePtr&, NeutronEnergy ekin ) const
 {
-  return m_sh->xsprovider.crossSection(ekin);
+  return CrossSect{ m_sh->xsprovider.crossSection(ekin) };
 }
 
-void NC::SABScatter::generateScatteringNonOriented( double ekin, double& angle, double& delta_e ) const
+NC::ScatterOutcomeIsotropic NC::SABScatter::sampleScatterIsotropic( CachePtr&, RNG& rng, NeutronEnergy ekin ) const
 {
-  double mu;
-  std::tie(delta_e,mu) = m_sh->sampler.sampleDeltaEMu(ekin, *getRNG());
-  nc_assert( mu >= -1.0 && mu <= 1.0 );
-  angle = std::acos(mu);
-}
-
-void NC::SABScatter::generateScattering( double ekin, const double (&indir)[3],
-                                         double (&outdir)[3], double& delta_e ) const
-{
-  double mu;
-  RandomBase& rng = *getRNG();
+  double delta_e, mu;
   std::tie(delta_e,mu) = m_sh->sampler.sampleDeltaEMu(ekin, rng);
   nc_assert( mu >= -1.0 && mu <= 1.0 );
-  randDirectionGivenScatterMu( &rng, mu, indir, outdir );
+  return { NeutronEnergy{ncmax(0.0,ekin.get()+delta_e)}, CosineScatAngle{mu} };
 }

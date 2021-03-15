@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -18,8 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCInfo.hh"
-#include "NCrystal/NCFactoryRegistry.hh"
+#include "NCrystal/NCMatInfo.hh"
+#include "NCrystal/NCFactImpl.hh"
+#include "NCrystal/NCDataSources.hh"
 #include "NCrystal/NCMatCfg.hh"
 #include "NCFactory_NXS.hh"
 #include "NCLazLoader.hh"
@@ -28,42 +29,46 @@ namespace NC = NCrystal;
 
 namespace NCrystal {
 
-  class NXSFactory final : public FactoryBase {
+  class NXSFactory final : public FactImpl::InfoFactory {
   public:
-    const char * getName() const final { return "stdnxs"; }
+    const char * name() const noexcept final { return "stdnxs"; }
 
-    int canCreateInfo( const MatCfg& cfg ) const final {
-      return cfg.getDataFileExtension()=="nxs" ? 100 : 0;
-    }
-    RCHolder<const Info> createInfo( const MatCfg& cfg ) const final
+    Priority query( const MatInfoCfg& cfg ) const final
     {
-      nc_assert_always(canCreateInfo(cfg));
+      return cfg.getDataType()=="nxs" ? Priority{100} : Priority::Unable;
+    }
+
+    shared_obj<const MatInfo> produce( const MatInfoCfg& cfg ) const final
+    {
+      nc_assert_always(cfg.getDataType()=="nxs");
       const char * flag_bkgdlikemcstas = "mcstaslikebkgd";
       const char * flag_fixpolyatom = "fixpolyatoms";
       cfg.infofactopt_validate({flag_bkgdlikemcstas,flag_fixpolyatom});
-      return loadNXSCrystal( cfg.getDataFile().c_str(),
-                             cfg.get_temp()==-1.0?293.15:cfg.get_temp(),
-                             cfg.get_dcutoff(),
-                             cfg.get_dcutoffup(),
-                             cfg.get_infofactopt_flag(flag_bkgdlikemcstas),
-                             cfg.get_infofactopt_flag(flag_fixpolyatom)
-                             );
+      return makeSO<const MatInfo>(loadNXSCrystal( cfg.textData(),
+                                                   cfg.get_temp().dbl()==-1.0?Temperature{293.15}:cfg.get_temp(),
+                                                   cfg.get_dcutoff(),
+                                                   cfg.get_dcutoffup(),
+                                                   cfg.get_infofactopt_flag(flag_bkgdlikemcstas),
+                                                   cfg.get_infofactopt_flag(flag_fixpolyatom)
+                                                   ));
     }
   };
 
-  class LazFactory final : public FactoryBase {
+  class LazFactory final : public FactImpl::InfoFactory {
   public:
-    const char * getName() const final { return "stdlaz"; }
-    int canCreateInfo( const MatCfg& cfg ) const final {
-      std::string ext = cfg.getDataFileExtension();
-      return (ext=="laz"||ext=="lau") ? 100 : 0;
-    }
-    RCHolder<const Info> createInfo( const MatCfg& cfg ) const final
+    const char * name() const noexcept final { return "stdlaz"; }
+    Priority query( const MatInfoCfg& cfg ) const final
     {
-      LazLoader ld (cfg.getDataFile().c_str(),
+      std::string ext = cfg.getDataType();
+      return (ext=="laz"||ext=="lau") ? Priority{100} : Priority::Unable;
+    }
+
+    shared_obj<const MatInfo> produce( const MatInfoCfg& cfg ) const final
+    {
+      LazLoader ld (cfg.textData(),
                     cfg.get_dcutoff(),
                     cfg.get_dcutoffup(),
-                    cfg.get_temp()==-1.0?293.15:cfg.get_temp());
+                    cfg.get_temp().dbl()==-1.0?Temperature{293.15}:cfg.get_temp());
       ld.read();
       return ld.getCrystalInfo();
     }
@@ -77,8 +82,11 @@ namespace NCrystal {
 
 extern "C" void ncrystal_register_nxslaz_factories()
 {
-  if (!NC::hasFactory("stdnxs"))
-    NC::registerFactory( std::make_unique<NC::NXSFactory>() );
-  if (!NC::hasFactory("stdlaz"))
-    NC::registerFactory( std::make_unique<NC::LazFactory>() );
+  NC::FactImpl::registerFactory( std::make_unique<NC::NXSFactory>(),
+                                 NC::FactImpl::RegPolicy::IGNORE_IF_EXISTS );
+  NC::FactImpl::registerFactory( std::make_unique<NC::LazFactory>(),
+                                 NC::FactImpl::RegPolicy::IGNORE_IF_EXISTS );
+  NC::DataSources::addRecognisedFileExtensions("nxs");
+  NC::DataSources::addRecognisedFileExtensions("laz");
+  NC::DataSources::addRecognisedFileExtensions("lau");
 }

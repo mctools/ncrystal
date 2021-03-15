@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,6 +21,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+#include "NCrystal/NCTypes.hh"
+
 namespace NCrystal {
 
   //Estimate (isotropic, harmonic) atomic mean-square-displacement using the
@@ -28,7 +30,7 @@ namespace NCrystal {
   //of returned MSD value is Aa^2. Input temperatures should be in Kelvin, and
   //input atomic mass should be in amu.
 
-  double debyeIsotropicMSD(double debye_temperature, double temperature, double atomic_mass);
+  double debyeIsotropicMSD( DebyeTemperature, Temperature, AtomMass );
 
   //For debugging purposes, access the two factors in the above:
 
@@ -36,11 +38,11 @@ namespace NCrystal {
   double calcDebyeMSDShape( double x );
 
   //Calculates 3*hbar^2/(M*kBoltzmann*debye_temp) (in Aa^2):
-  double calcDebyeMSDScale( double debye_temperature, double atomic_mass );
+  double calcDebyeMSDScale( DebyeTemperature, AtomMass );
 
 
   //invert debyeIsotropicMSD to estimate Debye temperature from MSD (NB: Rather slow)
-  double debyeTempFromIsotropicMSD(double msd, double temperature, double atomic_mass);
+  DebyeTemperature debyeTempFromIsotropicMSD(double msd, Temperature, AtomMass );
 
 }
 

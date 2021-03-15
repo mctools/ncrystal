@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,7 +21,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCInfo.hh"
+#include "NCrystal/NCMatInfo.hh"
+#include "NCrystal/NCTextData.hh"
+#include "NCrystal/NCMatCfg.hh"
 
 namespace NCrystal {
 
@@ -42,24 +44,36 @@ namespace NCrystal {
   // valid at 200K, then temp=-1 and temp=200 will both result in 200K, while
   // any other value results in an error).
 
-  struct NCRYSTAL_API NCMATCfgVars : public MoveOnly {
-    double temp = -1.0;//kelvin
+  struct NCRYSTAL_API NCMATCfgVars : private MoveOnly {
+    Temperature temp = Temperature{-1.0};//kelvin
     double dcutoff = 0.0;//angstrom
     double dcutoffup = kInfinity;//angstrom
     bool expandhkl = false;
     std::vector<VectS> atomdb;
   };
 
-  //Both const char* and std::string versions are provided, for convenience:
-  NCRYSTAL_API RCHolder<const Info> loadNCMAT( const char * ncmat_file,
-                                               NCMATCfgVars&& cfgvars = NCMATCfgVars() );
+  //The core feature is to load from parsed NCMAT data structure (which will be
+  //consumed):
+  NCRYSTAL_API MatInfo loadNCMAT( NCMATData&& ncmat_data,
+                                  NCMATCfgVars&& cfgvars = NCMATCfgVars() );
 
-  NCRYSTAL_API RCHolder<const Info> loadNCMAT( const std::string& ncmat_file,
-                                               NCMATCfgVars&& cfgvars = NCMATCfgVars() );
+  //For conveniece, can also parse TextData and load result:
+  NCRYSTAL_API MatInfo loadNCMAT( const TextData&,
+                                  NCMATCfgVars&& cfgvars = NCMATCfgVars() );
 
-  //Can also load from parsed NCMAT data structure (which will be consumed):
-  NCRYSTAL_API RCHolder<const Info> loadNCMAT( NCMATData&& ncmat_data,
-                                               NCMATCfgVars&& cfgvars = NCMATCfgVars() );
+  //For additional convenience can also load TextData from filename, parse it,
+  //and then load it:
+  NCRYSTAL_API MatInfo loadNCMAT( const char * ncmat_file,
+                                  NCMATCfgVars&& cfgvars = NCMATCfgVars() );
+
+  NCRYSTAL_API MatInfo loadNCMAT( const std::string& ncmat_file,
+                                  NCMATCfgVars&& cfgvars = NCMATCfgVars() );
+
+  //Finally, it is of course possible to load directly from MatCfg objects, as
+  //they, contain both configuration and TextData (will only use data available
+  //on MatInfoCfg):
+  NCRYSTAL_API MatInfo loadNCMAT( const MatInfoCfg& );
+  NCRYSTAL_API MatInfo loadNCMAT( const MatCfg& );
 
   //@CUSTOM_xxx sections in NCMAT input will produce warnings by default, unless
   //the env var NCRYSTAL_NCMAT_NOWARNFORCUSTOM was set when NCrystal was

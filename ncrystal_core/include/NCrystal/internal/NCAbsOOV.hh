@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,26 +21,25 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCAbsorption.hh"
-
+#include "NCrystal/NCProcImpl.hh"
+#include "NCrystal/NCMatInfo.hh"
 
 namespace NCrystal {
 
-  class Info;
-
-  class AbsOOV : public Absorption {
+  class AbsOOV : public ProcImpl::AbsorptionIsotropicMat {
   public:
 
     // Provide absorption cross section based on simple 1/velocity
     // (=OneOverVelocity=OOV) scaling. This is non-oriented.
 
-    //Constructor:
-    AbsOOV(const Info*);
-    virtual ~AbsOOV();
 
-    bool isOriented() const { return false; };
-    double crossSection(double ekin, const double (&neutron_direction)[3] ) const;
-    double crossSectionNonOriented( double ekin ) const;
+    AbsOOV( SigmaAbsorption );
+    AbsOOV( const MatInfo& );
+
+    const char * name() const noexcept final { return "AbsOOV"; }
+    CrossSect crossSectionIsotropic(CachePtr&, NeutronEnergy ) const final;
+
+    std::shared_ptr<Process> createMerged( const Process& ) const override;
 
   private:
     double m_c;

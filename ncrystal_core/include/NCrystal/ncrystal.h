@@ -5,7 +5,7 @@
 /*                                                                            */
 /*  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   */
 /*                                                                            */
-/*  Copyright 2015-2020 NCrystal developers                                   */
+/*  Copyright 2015-2021 NCrystal developers                                   */
 /*                                                                            */
 /*  Licensed under the Apache License, Version 2.0 (the "License");           */
 /*  you may not use this file except in compliance with the License.          */
@@ -61,6 +61,11 @@ extern "C" {
   NCRYSTAL_API ncrystal_process_t ncrystal_cast_scat2proc(ncrystal_scatter_t);
   NCRYSTAL_API ncrystal_process_t ncrystal_cast_abs2proc(ncrystal_absorption_t);
 
+  /*Can down-cast as well (returns invalid object with .internal null ptr in case  */
+  /*object is not of that type:                                                    */
+  NCRYSTAL_API ncrystal_scatter_t ncrystal_cast_proc2scat(ncrystal_process_t);
+  NCRYSTAL_API ncrystal_absorption_t ncrystal_cast_proc2abs(ncrystal_process_t);
+
   /*============================================================================== */
   /*============================================================================== */
   /*==                                                                          == */
@@ -75,8 +80,50 @@ extern "C" {
   NCRYSTAL_API ncrystal_scatter_t ncrystal_create_scatter( const char * cfgstr );
   NCRYSTAL_API ncrystal_absorption_t ncrystal_create_absorption( const char * cfgstr );
 
+  /* Notice: ncrystal_scatter_t objects contain RNG streams, which a lot of other  */
+  /* functions in this file are dedicated to handling.                             */
+
+  /* Alternative creation method with new RNG stream (WARNING: Using this is       */
+  /* intended for unit-tests only, as it is hard to guarantee two RNG streams are  */
+  /* truly independent solely based on the seed value).                            */
+  NCRYSTAL_API ncrystal_scatter_t ncrystal_create_scatter_builtinrng( const char * cfgstr,
+                                                                      unsigned long seed );
+
+  /* Cheaply clone scatter and absorption instances. The cloned objects will be    */
+  /* using the same physics models and sharing any read-only data, but will be     */
+  /* using their own copy of caches. For the case of scatter handles they will     */
+  /* also get their own independent RNG stream. All in all, this means that        */
+  /* the objects are safe to use concurrently in multi-threaded programming, as    */
+  /* long as each thread gets its own clone. Cloned objects must still be cleaned  */
+  /* up by calling ncrystal_unref. */
+  NCRYSTAL_API ncrystal_scatter_t ncrystal_clone_scatter( ncrystal_scatter_t );
+  NCRYSTAL_API ncrystal_absorption_t ncrystal_clone_absorption( ncrystal_absorption_t );
+
+  /* Clone function where resulting object will use a specific rngstream index.    */
+  /* All objects with the same indeed will share the same RNG state, so a sensible */
+  /* strategy is to use the same index for all scatter objects which are to be     */
+  /* used in the same thread:                                                      */
+  NCRYSTAL_API ncrystal_scatter_t ncrystal_clone_scatter_rngbyidx( ncrystal_scatter_t,
+                                                                   unsigned long rngstreamidx );
+
+  /* Clone function where resulting object will use specific rngstream which has   */
+  /* been set aside for the current thread. Thus, this function can be called      */
+  /* from a given work-thread, in order to get a thread-safe scatter handle.       */
+  NCRYSTAL_API ncrystal_scatter_t ncrystal_clone_scatter_rngforcurrentthread( ncrystal_scatter_t );
+
+  /* Convenience function which creates objects directly from a data string        */
+  /* rather than an on-disk or in-memory file. Such usage obviously precludes      */
+  /* proper caching behind the scenes, and is intended for scenarios where the     */
+  /* same data should not be used repeatedly. The ncrystal_xxx_t* arguments will   */
+  /* be overriden with new handles (nullptrs results in no such object created).   */
+  NCRYSTAL_API void ncrystal_multicreate_direct( const char* data,
+                                                 const char* dataType,/*NULL => determine from data */
+                                                 const char* cfg_params,/*e.g. "temp=300K;dcutoff=1"*/
+                                                 ncrystal_info_t*,
+                                                 ncrystal_scatter_t*,
+                                                 ncrystal_absorption_t* );
+
   /* Fine tuning factory availability and caching                                  */
-  NCRYSTAL_API void ncrystal_clear_info_caches(); /*NB: ncrystal_clear_caches below clears more! */
   NCRYSTAL_API void ncrystal_disable_caching(); /*NB: this concerns Info object caching only! */
   NCRYSTAL_API void ncrystal_enable_caching();  /*NB: this concerns Info object caching only! */
   NCRYSTAL_API int ncrystal_has_factory( const char * name );
@@ -86,6 +133,7 @@ extern "C" {
   /*==                                                                          == */
   /*== Query ncrystal process handles (see previous section for casting         == */
   /*== scatter and absorption handles to ncrystal_process_t                     == */
+  /*== NB: Also notice the "_many" versions of functions further below.         == */
   /*==                                                                          == */
   /*============================================================================== */
   /*============================================================================== */
@@ -96,7 +144,7 @@ extern "C" {
   /*Determine if process is non-oriented (normally) or not (single-crystal):       */
   NCRYSTAL_API int ncrystal_isnonoriented(ncrystal_process_t);
 
-  /*Access cross-sections [barn] by neutron kinetic energy [eV]:                   */
+  /*Access cross sections [barn] by neutron kinetic energy [eV]:                   */
   NCRYSTAL_API void ncrystal_crosssection_nonoriented( ncrystal_process_t,
                                                        double ekin,
                                                        double* result);
@@ -107,17 +155,18 @@ extern "C" {
   NCRYSTAL_API void ncrystal_domain( ncrystal_process_t,
                                      double* ekin_low, double* ekin_high);
 
-  /*Generate random scatterings (radians, eV) by neutron kinetic energy [eV].      */
-  NCRYSTAL_API void ncrystal_genscatter_nonoriented( ncrystal_scatter_t,
+  /*Generate random scatterings (neutron kinetic energy is in eV). The isotropic   */
+  /*functions can only be called whe ncrystal_isnonoriented returns true (1).      */
+  NCRYSTAL_API void ncrystal_samplescatterisotropic( ncrystal_scatter_t,
                                                      double ekin,
-                                                     double* result_angle,
-                                                     double* result_dekin );
+                                                     double* ekin_final,
+                                                     double* cos_scat_angle );
 
-  NCRYSTAL_API void ncrystal_genscatter( ncrystal_scatter_t,
-                                         double ekin,
-                                         const double (*direction)[3],
-                                         double (*result_direction)[3],
-                                         double* result_deltaekin );
+  NCRYSTAL_API void ncrystal_samplescatter( ncrystal_scatter_t,
+                                            double ekin,
+                                            const double (*direction)[3],
+                                            double* ekin_final,
+                                            double (*direction_final)[3] );
 
   /*============================================================================== */
   /*============================================================================== */
@@ -152,8 +201,9 @@ extern "C" {
 
   /*Access AtomInfo:                                                               */
   NCRYSTAL_API unsigned ncrystal_info_natominfo( ncrystal_info_t );/* 0=unavail    */
-  NCRYSTAL_API int ncrystal_info_hasatompos( ncrystal_info_t );
   NCRYSTAL_API int ncrystal_info_hasatommsd( ncrystal_info_t );
+  NCRYSTAL_API int ncrystal_info_hasatomdebyetemp( ncrystal_info_t );
+  NCRYSTAL_API int ncrystal_info_hasdebyetemp( ncrystal_info_t );/* alias of hasatomdebyetemp */
   NCRYSTAL_API void ncrystal_info_getatominfo( ncrystal_info_t, unsigned iatom,
                                                unsigned* atomdataindex,
                                                unsigned* number_per_unit_cell,
@@ -161,12 +211,6 @@ extern "C" {
   NCRYSTAL_API void ncrystal_info_getatompos( ncrystal_info_t,
                                               unsigned iatom, unsigned ipos,
                                               double* x, double* y, double* z );
-
-  /*Debye temperatures (per-element also via atominfo):                            */
-  NCRYSTAL_API int ncrystal_info_hasanydebyetemp( ncrystal_info_t );
-  NCRYSTAL_API double ncrystal_info_getdebyetempbyelement( ncrystal_info_t,
-                                                           unsigned atomdataindex );
-  NCRYSTAL_API double ncrystal_info_getglobaldebyetemp( ncrystal_info_t );/* -1=unavail */
 
   /*Access dynamic info:                                                           */
   /*ditypeid: 0->nonscat, 1:freegas, 2:scatknl 3:vdos, 4:vdosdebye, 99:unknown     */
@@ -286,6 +330,84 @@ extern "C" {
   /*============================================================================== */
   /*============================================================================== */
   /*==                                                                          == */
+  /*== Random number stream handling                                            == */
+  /*==                                                                          == */
+  /*============================================================================== */
+  /*============================================================================== */
+
+  /* Register custom RNG stream (it must return numbers uniformly in [0,1)). This  */
+  /* RNG will be used for any subsequent calls to ncrystal_create_scatter, and it  */
+  /* will NOT be changed when cloning ncrystal_scatter_t objects. Thus, for multi- */
+  /* threaded usage, the caller should ensure that the function is thread-safe and */
+  /* returns numbers from different streams in each thread (through suitable usage */
+  /* of thread_local objects perhaps).                                             */
+  NCRYSTAL_API void ncrystal_setrandgen( double (*rg)() );
+
+  /* It is also possible to (re) set the RNG to the builtin generator (optionally  */
+  /* by state or integer seed) */
+  NCRYSTAL_API void ncrystal_setbuiltinrandgen();
+  NCRYSTAL_API void ncrystal_setbuiltinrandgen_withseed(unsigned long seed);
+  NCRYSTAL_API void ncrystal_setbuiltinrandgen_withstate(const char*);
+
+  /* If supported (which it will NOT be if the RNG was set using the C API and the */
+  /* ncrystal_setrandgen function), the state of the RNG stream can be accessed    */
+  /* and manipulated via the following functions (returned strings must be free'd  */
+  /* by calling ncrystal_dealloc_string). Note that setting the rng state will     */
+  /* affect all objects sharing the RNG stream with the given scatter object (and  */
+  /* those subsequently cloned from any of those). Note that if the provided state */
+  /* originates in (the current version of) NCrystal's builtin RNG algorithm, it   */
+  /* can always be used in the ncrystal_setrngstate_ofscatter function, even if    */
+  /* the current RNG uses a different algorithm (it will simply be replaced).      */
+  /* Finally note that getrngstate returns NULL if state manip. is not supported.  */
+  NCRYSTAL_API int ncrystal_rngsupportsstatemanip_ofscatter( ncrystal_scatter_t );
+  NCRYSTAL_API char* ncrystal_getrngstate_ofscatter( ncrystal_scatter_t );
+  NCRYSTAL_API void ncrystal_setrngstate_ofscatter( ncrystal_scatter_t, const char* );
+
+  /*============================================================================== */
+  /*============================================================================== */
+  /*==                                                                          == */
+  /*== Data sources                                                             == */
+  /*==                                                                          == */
+  /*============================================================================== */
+  /*============================================================================== */
+
+  /* Access TextData. Returns a string list of length 5:                           */
+  /* [contents, uid(as string), description, datatype, resolvedphyspath].          */
+  /* The last entry is optional and will be an empty str if absent.                */
+  /* Must free list with call to ncrystal_dealloc_stringlist.                      */
+  NCRYSTAL_API char** ncrystal_get_text_data( const char * name );
+
+  /* Register in-memory file data (as a special case data can be "ondisk://<path>" */
+  /* to instead create a virtual alias for an on-disk file).:                      */
+  NCRYSTAL_API void ncrystal_register_in_mem_file_data(const char* virtual_filename,
+                                                       const char* data);
+
+  /* Browse (some) available files. Resulting string list must be deallocated by a */
+  /* call to ncrystal_dealloc_stringlist by, and contains entries in the format    */
+  /* name0,src0,fact0,priority0,name1,src1,fact1,priority1,..:                     */
+  NCRYSTAL_API void ncrystal_get_file_list( unsigned* nstrs, char*** strs );
+
+  /* Add directory to custom search path or clear custom search path:              */
+  NCRYSTAL_API void ncrystal_add_custom_search_dir( const char * dir );
+  NCRYSTAL_API void ncrystal_remove_custom_search_dirs();
+
+  /* Enable/disable standard search mechanisms (all enabled by default). For the   */
+  /* case of ncrystal_enable_stddatalib, provide dir=NULL if you wish to use the   */
+  /* usual stddatalib path (determined by NCRYSTAL_DATA_DIR environment and        */
+  /* compile-time variables: */
+  NCRYSTAL_API void ncrystal_enable_abspaths( int doEnable );
+  NCRYSTAL_API void ncrystal_enable_relpaths( int doEnable );
+  NCRYSTAL_API void ncrystal_enable_stddatalib( int doEnable, const char * dir );
+  NCRYSTAL_API void ncrystal_enable_stdsearchpath( int doEnable );
+
+  /* Remove all current data sources (supposedly in order to subsequently enable   */
+  /* sources selectively). This also removes virtual files and caches.             */
+  NCRYSTAL_API void ncrystal_remove_all_data_sources();
+
+
+  /*============================================================================== */
+  /*============================================================================== */
+  /*==                                                                          == */
   /*== Miscellaneous                                                            == */
   /*==                                                                          == */
   /*============================================================================== */
@@ -312,43 +434,18 @@ extern "C" {
   NCRYSTAL_API void ncrystal_atomdatadb_getallentries( unsigned* zvals,
                                                        unsigned* avals );
 
-
-
   /* Extract NCMatCfg variables which can not be inferred from an ncrystal_info_t  */
   /* object and which might be needed in plugins (to be expanded as needed):       */
   NCRYSTAL_API double ncrystal_decodecfg_packfact( const char * cfgstr );
   NCRYSTAL_API unsigned ncrystal_decodecfg_vdoslux( const char * cfgstr );
 
-  /* For serious scientific usage, users should register their own random          */
-  /* generator function before using the genscatter functions. It must return      */
-  /* numbers uniformly in [0,1):                                                   */
-  NCRYSTAL_API void ncrystal_setrandgen( double (*rg)() );
-
-  /* For special uses it is possible to trigger save/restore of the rng            */
-  NCRYSTAL_API void ncrystal_save_randgen();    /* save & ref current randgen                   */
-  NCRYSTAL_API void ncrystal_restore_randgen(); /* restore from and clear+unref last saved      */
-  NCRYSTAL_API void ncrystal_setbuiltinrandgen(); /* for reproducibility use NCrystal's own rng */
-
   /* Clear various caches employed inside NCrystal:                                */
   NCRYSTAL_API void ncrystal_clear_caches();
-
-  /* Register in-memory file data:                                                 */
-  NCRYSTAL_API void ncrystal_register_in_mem_file_data(const char* virtual_filename,
-                                                       const char* data);
-
-  /* Browse (some) available files. Resulting string list must be deallocated by a */
-  /* call to ncrystal_dealloc_stringlist by, and contains entries in the format    */
-  /* name0,src0,hid0,name1,src1,hid1...:                                           */
-  NCRYSTAL_API void ncrystal_get_file_list( const char* extension,
-                                            unsigned* nstrs, char*** strs );
 
   /* Get list of plugins. Resulting string list must be deallocated by a call to   */
   /* ncrystal_dealloc_stringlist by, and contains entries in the format            */
   /* pluginname0,filename0,plugintype0,pluginname1,filename1,plugintype1,...:      */
   NCRYSTAL_API void ncrystal_get_plugin_list( unsigned* nstrs, char*** strs );
-
-  /* Access file contents (must free afterwards with ncrystal_dealloc_string)      */
-  NCRYSTAL_API char* ncrystal_get_file_contents( const char * name );
 
   /* Deallocate strings:                                                           */
   NCRYSTAL_API void ncrystal_dealloc_stringlist( unsigned len, char** );
@@ -357,9 +454,9 @@ extern "C" {
   /* NCrystal version info:                                                        */
 #define NCRYSTAL_VERSION_MAJOR 2
 #define NCRYSTAL_VERSION_MINOR 4
-#define NCRYSTAL_VERSION_PATCH 0
-#define NCRYSTAL_VERSION   2004000 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
-#define NCRYSTAL_VERSION_STR "2.4.0"
+#define NCRYSTAL_VERSION_PATCH 80
+#define NCRYSTAL_VERSION   2004080 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
+#define NCRYSTAL_VERSION_STR "2.4.80"
   NCRYSTAL_API int ncrystal_version(); /* returns NCRYSTAL_VERSION                  */
   NCRYSTAL_API const char * ncrystal_version_str(); /* returns NCRYSTAL_VERSION_STR */
 
@@ -371,13 +468,72 @@ extern "C" {
   /*============================================================================== */
   /*============================================================================== */
 
+  NCRYSTAL_API void ncrystal_samplescatterisotropic_many( ncrystal_scatter_t,
+                                                          const double * ekin,
+                                                          unsigned long n_ekin,
+                                                          unsigned long repeat,
+                                                          double* results_ekin,
+                                                          double* results_cos_scat_angle );
+
+  NCRYSTAL_API void ncrystal_samplescatter_many( ncrystal_scatter_t,
+                                                 double ekin,
+                                                 const double (*direction)[3],
+                                                 unsigned long repeat,
+                                                 double* results_ekin,
+                                                 double * results_dirx,
+                                                 double * results_diry,
+                                                 double * results_dirz );
+
+  NCRYSTAL_API void ncrystal_crosssection_nonoriented_many( ncrystal_process_t,
+                                                            const double * ekin,
+                                                            unsigned long n_ekin,
+                                                            unsigned long repeat,
+                                                            double* results );
+
+  /*============================================================================== */
+  /*============================================================================== */
+  /*==                                                                          == */
+  /*== Various obsolete functions which are bound to be removed in future       == */
+  /*== releases of NCrystal.                                                    == */
+  /*==                                                                          == */
+  /*============================================================================== */
+  /*============================================================================== */
+
+  /*Obsolete function which now just is an alias for ncrystal_clear_caches above:  */
+  NCRYSTAL_API void ncrystal_clear_info_caches();
+
+  /*Obsolete function. Atom positions are now always available when                */
+  /*ncrystal_info_natominfo returns a value greater than 0:                        */
+  NCRYSTAL_API int ncrystal_info_hasatompos( ncrystal_info_t );
+
+  /*Obsolete functions. Debye temperatures are now always available via the        */
+  /*AtomInfo objects, and there is no longer a concept of a "global" Debye temp.:  */
+  NCRYSTAL_API int ncrystal_info_hasanydebyetemp( ncrystal_info_t );
+  NCRYSTAL_API double ncrystal_info_getdebyetempbyelement( ncrystal_info_t,
+                                                           unsigned atomdataindex );
+  NCRYSTAL_API double ncrystal_info_getglobaldebyetemp( ncrystal_info_t );/* -1=unavail */
+
+  /* Obsolete function, the ncrystal_get_text_data function should be used instead */
+  /* The returned content should be deallocated with ncrystal_dealloc_string.      */
+  NCRYSTAL_API char* ncrystal_get_file_contents( const char * name );
+
+  /*Obsolete genscatter functions. Users should use the ncrystal_samplescatter     */
+  /*functions above instead:                                                       */
+  NCRYSTAL_API void ncrystal_genscatter_nonoriented( ncrystal_scatter_t,
+                                                     double ekin,
+                                                     double* result_angle,
+                                                     double* result_dekin );
+  NCRYSTAL_API void ncrystal_genscatter( ncrystal_scatter_t,
+                                         double ekin,
+                                         const double (*direction)[3],
+                                         double (*result_direction)[3],
+                                         double* result_deltaekin );
   NCRYSTAL_API void ncrystal_genscatter_nonoriented_many( ncrystal_scatter_t,
                                                           const double * ekin,
                                                           unsigned long n_ekin,
                                                           unsigned long repeat,
                                                           double* results_angle,
                                                           double* results_dekin );
-
   NCRYSTAL_API void ncrystal_genscatter_many( ncrystal_scatter_t,
                                               double ekin,
                                               const double (*direction)[3],
@@ -386,12 +542,6 @@ extern "C" {
                                               double * results_diry,
                                               double * results_dirz,
                                               double * results_dekin );
-
-  NCRYSTAL_API void ncrystal_crosssection_nonoriented_many( ncrystal_process_t,
-                                                            const double * ekin,
-                                                            unsigned long n_ekin,
-                                                            unsigned long repeat,
-                                                            double* results );
 
 #ifdef __cplusplus
 }

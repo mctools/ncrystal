@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -205,16 +205,16 @@ void NC::NCMATData::validateCell() const
   if (!hasCell())
     return;
   if (cell.lengths[0]==0. && cell.lengths[1]==0. && cell.lengths[2]!=0.)
-    NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" cell section is missing \"lengths\" data");
+    NCRYSTAL_THROW2(BadInput,sourceDescription<<" cell section is missing \"lengths\" data");
   if (cell.angles[0]==0. && cell.angles[1]==0. && cell.angles[2]!=0.)
-    NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" cell section is missing \"angles\" data");
+    NCRYSTAL_THROW2(BadInput,sourceDescription<<" cell section is missing \"angles\" data");
   for (int i = 0; i<3; ++i) {
     if ( !(cell.lengths[i]>0.0) || cell.lengths[i]> 1.0e4 )
-      NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" invalid lattice length specified");
+      NCRYSTAL_THROW2(BadInput,sourceDescription<<" invalid lattice length specified");
     if ( !(cell.angles[i]>0.0) || cell.angles[i]>=180. )
-      NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" invalid lattice angle specified");
+      NCRYSTAL_THROW2(BadInput,sourceDescription<<" invalid lattice angle specified");
     if (ncmax(cell.angles[0],ncmax(cell.angles[1],cell.angles[2]))<=k2Pi)
-      NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" invalid lattice angles specified (perhaps they are in radians instead of the expected degrees?)");
+      NCRYSTAL_THROW2(BadInput,sourceDescription<<" invalid lattice angles specified (perhaps they are in radians instead of the expected degrees?)");
   }
 }
 
@@ -234,7 +234,7 @@ void NC::NCMATData::validateAtomDB() const
     }
     if (line.at(0)=="nodefaults") {
       if (e.idx!=0||line.size()!=1)
-        NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" \"nodefaults\" keyword in @ATOMDB section can only appear in"
+        NCRYSTAL_THROW2(BadInput,sourceDescription<<" \"nodefaults\" keyword in @ATOMDB section can only appear in"
                         " the first line (where it must be alone)");
       continue;
     }
@@ -272,7 +272,7 @@ void NC::NCMATData::validateElementName(const std::string& s) const
   try{
     validateElementNameByVersion(s,version);
   } catch (Error::BadInput&e) {
-    NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" "<<e.what());
+    NCRYSTAL_THROW2(BadInput,sourceDescription<<" "<<e.what());
   }
 }
 
@@ -286,7 +286,7 @@ void NC::NCMATData::validateAtomPos() const
     if ( !(it->second[0]>=-1.0) || !(it->second[0]<=1.0)
          || !(it->second[1]>=-1.0) || !(it->second[1]<=1.0)
          || !(it->second[2]>=-1.0) || !(it->second[2]<=1.0) )
-      NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" invalid atomic position detected for element \""<<it->first<<"\" (all position coordinates must be in [-1.0,1.0]");
+      NCRYSTAL_THROW2(BadInput,sourceDescription<<" invalid atomic position detected for element \""<<it->first<<"\" (all position coordinates must be in [-1.0,1.0]");
   }
 }
 
@@ -295,27 +295,28 @@ void NC::NCMATData::validateSpaceGroup() const
   if (!hasSpaceGroup())
     return;
   if (spacegroup<1||spacegroup>230)
-    NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" invalid spacegroup number (expects a number from 1 to 230)");
+    NCRYSTAL_THROW2(BadInput,sourceDescription<<" invalid spacegroup number (expects a number from 1 to 230)");
 }
 
 void NC::NCMATData::validateDebyeTemperature() const
 {
   if (!hasDebyeTemperature())
     return;
-  if ( debyetemp_global && !debyetemp_perelement.empty() )
-    NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" specifies both global and per-element Debye temperatures");
-  if ( !(debyetemp_global>=0.0) )
-    NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" specifies invalid value of global Debye temperature");
+  if ( debyetemp_global.has_value() && !debyetemp_perelement.empty() )
+    NCRYSTAL_THROW2(BadInput,sourceDescription<<" specifies both global and per-element Debye temperatures");
+  if ( debyetemp_global.has_value() && !( debyetemp_global.value().get() >= 0.0 ) )
+    NCRYSTAL_THROW2(BadInput,sourceDescription<<" specifies invalid value of global Debye temperature");
   if ( !debyetemp_perelement.empty() ) {
     std::set<std::string> seen;
-    std::vector<std::pair<std::string,double> >::const_iterator it, itE(debyetemp_perelement.end());
+    auto it = debyetemp_perelement.begin();
+    auto itE = debyetemp_perelement.end();
     for (it=debyetemp_perelement.begin();it!=itE;++it) {
       validateElementName(it->first);
       if (seen.count(it->first))
-        NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" specifies multiple per-element Debye temperatures for element "<<it->first);
+        NCRYSTAL_THROW2(BadInput,sourceDescription<<" specifies multiple per-element Debye temperatures for element "<<it->first);
       seen.insert(it->first);
-      if ( !(it->second>=0.0) )
-        NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" specifies invalid value of per-element Debye temperature for element "<<it->first);
+      if ( !(it->second.get()>=0.0) )
+        NCRYSTAL_THROW2(BadInput,sourceDescription<<" specifies invalid value of per-element Debye temperature for element "<<it->first);
     }
   }
 }
@@ -325,13 +326,13 @@ void NC::NCMATData::validateDensity() const
   if ( density == 0 )
     return;
   if ( !(density>0.0) || ncisinf(density) )
-    NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" specifies invalid material density in the density section (negative, nan or inf)");
+    NCRYSTAL_THROW2(BadInput,sourceDescription<<" specifies invalid material density in the density section (negative, nan or inf)");
 }
 
 void NC::NCMATData::validate() const
 {
   if ( ! ( version==1 || version==2 || version==3 ) )
-    NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" unsupported NCMAT format version "<<version);
+    NCRYSTAL_THROW2(BadInput,sourceDescription<<" unsupported NCMAT format version "<<version);
 
   std::set<std::string> allElementNames;
 
@@ -350,7 +351,7 @@ void NC::NCMATData::validate() const
     try {
       dyninfos.at(i).validate();
     } catch (Error::BadInput&e) {
-      NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" problem in dyninfos["<<i<<"]: "<<e.what());
+      NCRYSTAL_THROW2(BadInput,sourceDescription<<" problem in dyninfos["<<i<<"]: "<<e.what());
     }
     validateElementName(dyninfos.at(i).element_name);//more careful version-specific validation
     allElementNames.insert(dyninfos.at(i).element_name);
@@ -358,7 +359,7 @@ void NC::NCMATData::validate() const
 
   for (const auto& e : customSections) {
     if (e.first.empty() || ! contains_only(e.first,"ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
-      NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" invalid custom section name: \""<<e.first
+      NCRYSTAL_THROW2(BadInput,sourceDescription<<" invalid custom section name: \""<<e.first
                       <<"\" (must be non-empty and contain only capitalised letters A-Z)");
   }
 
@@ -368,46 +369,46 @@ void NC::NCMATData::validate() const
   if ( version==1 ) {
     std::string missing=(hasCell()?(hasAtomPos()?(hasDebyeTemperature()?"":"Debye temperatures"):"atom positions"):"cell");
     if (!missing.empty())
-      NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" invalid section configuration for data claiming to be in legacy NCMAT version 1 (missing section with "<<missing<<" info)");
+      NCRYSTAL_THROW2(BadInput,sourceDescription<<" invalid section configuration for data claiming to be in legacy NCMAT version 1 (missing section with "<<missing<<" info)");
     std::string toomuch=(hasDynInfo()?"dynamic":(hasDensity()?"density":""));
     if (!toomuch.empty())
-      NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" invalid section configuration for data claiming to be in legacy NCMAT version 1 (can not have section with "<<toomuch<<" info)");
+      NCRYSTAL_THROW2(BadInput,sourceDescription<<" invalid section configuration for data claiming to be in legacy NCMAT version 1 (can not have section with "<<toomuch<<" info)");
   }
 
   if (hasSpaceGroup()) {
     if (!hasCell())
-      NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" missing Cell information (always required when specifying space group)");
+      NCRYSTAL_THROW2(BadInput,sourceDescription<<" missing Cell information (always required when specifying space group)");
   }
 
   if ( hasCell() != hasAtomPos() )
-    NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" either specify both Cell and Atom Position information, or specify none of them");
+    NCRYSTAL_THROW2(BadInput,sourceDescription<<" either specify both Cell and Atom Position information, or specify none of them");
 
   bool hasunitcellinfo = hasCell();
   nc_assert(hasunitcellinfo==hasAtomPos());
 
   if (!hasunitcellinfo&&!hasDynInfo())
-    NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" missing information about both unit cell and material dynamics so can not provide any interesting physics and can not even deduce the basic material composition");
+    NCRYSTAL_THROW2(BadInput,sourceDescription<<" missing information about both unit cell and material dynamics so can not provide any interesting physics and can not even deduce the basic material composition");
 
   if ( hasDensity() && hasunitcellinfo )
-    NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" density should never be explicitly specified when unit cell information is present");
+    NCRYSTAL_THROW2(BadInput,sourceDescription<<" density should never be explicitly specified when unit cell information is present");
 
   if ( hasDynInfo() || hasDensity() ) {
     //dynamic information is (should be) present. The material is non-crystalline if Cell info is also absent.
     if ( hasDensity() && !hasDynInfo() )
-      NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" direct density specification should never be needed except for files with dynamic information and no unit cell");
+      NCRYSTAL_THROW2(BadInput,sourceDescription<<" direct density specification should never be needed except for files with dynamic information and no unit cell");
     if ( !hasunitcellinfo && !( hasDynInfo() && hasDensity() ) )
-      NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" when not specifying unit cells, dynamic info sections must be present and density must be explicitly specified");
+      NCRYSTAL_THROW2(BadInput,sourceDescription<<" when not specifying unit cells, dynamic info sections must be present and density must be explicitly specified");
   } else {
     // Crystalline material with no special dynamic info => must provide unit cell as well as Debye temps
     nc_assert(hasunitcellinfo);
     if (!hasDebyeTemperature())
-      NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" missing Debye temperature information for crystalline material");
+      NCRYSTAL_THROW2(BadInput,sourceDescription<<" missing Debye temperature information for crystalline material");
   }
 
   if ( !hasunitcellinfo && hasDebyeTemperature() )
-    NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" Debye temperature information is only relevant for crystalline materials with a unit cell defined");
+    NCRYSTAL_THROW2(BadInput,sourceDescription<<" Debye temperature information is only relevant for crystalline materials with a unit cell defined");
   if ( hasunitcellinfo && !hasDebyeTemperature() )
-    NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" Debye temperature information is currently required for all crystalline materials with a unit cell defined");
+    NCRYSTAL_THROW2(BadInput,sourceDescription<<" Debye temperature information is currently required for all crystalline materials with a unit cell defined");
 
   ////////////////////////////////////////////////////////////////////////////////
   //More detailed checks involving multiple sections.
@@ -432,16 +433,16 @@ void NC::NCMATData::validate() const
     double dyninfo_totfrac = 0.0;
     for (;it!=itE;++it) {
       if (dyninfo_elems2frac.count(it->element_name))
-        NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" same element ("<<it->element_name<<") specified in two different dynamic info sections");
+        NCRYSTAL_THROW2(BadInput,sourceDescription<<" same element ("<<it->element_name<<") specified in two different dynamic info sections");
       dyninfo_elems2frac[it->element_name] = it->fraction;
       dyninfo_totfrac += it->fraction;
       //Check that all elements in dyninfo sections appear in atompos section:
       if ( !atompos.empty() && !atompos_elems2count.count(it->element_name) )
-        NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" element ("<<it->element_name<<") specified in dynamic info sections does not appear in the list of atom positions");
+        NCRYSTAL_THROW2(BadInput,sourceDescription<<" element ("<<it->element_name<<") specified in dynamic info sections does not appear in the list of atom positions");
     }
     double dist = ncabs(1.0-dyninfo_totfrac);
     if (dist>1e-9)
-      NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" the fractions specified in the dyninfo sections do not add up to unity"
+      NCRYSTAL_THROW2(BadInput,sourceDescription<<" the fractions specified in the dyninfo sections do not add up to unity"
                       <<(dist<1e-3?" (they almost do, but more precision is required - note that it is possible"
                          " to specify fractions like 2/3 in NCMAT files instead of numbers like 0.666667)":""));
 
@@ -449,7 +450,7 @@ void NC::NCMATData::validate() const
     std::map<std::string,unsigned>::const_iterator itA(atompos_elems2count.begin()), itAE(atompos_elems2count.end());
     for (;itA!=itAE;++itA) {
       if (!dyninfo_elems2frac.count(itA->first))
-        NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" element ("<<itA->first<<") appearing in list of atom"
+        NCRYSTAL_THROW2(BadInput,sourceDescription<<" element ("<<itA->first<<") appearing in list of atom"
                         " positions is not specified in dynamic info sections (either remove all dynamic info"
                         " sections or make sure there is a complete set of them)");
       // Check that fractions in DYNINFO sections are be consistent with
@@ -459,7 +460,7 @@ void NC::NCMATData::validate() const
       double distf = ncabs(calcfraction-dyninfofraction);
       if (distf>1e-9) {
         std::ostringstream ss;
-        ss << sourceFullDescr<<" the fraction for "<<itA->first<<" specified in the dyninfo section differs from the"
+        ss << sourceDescription<<" the fraction for "<<itA->first<<" specified in the dyninfo section differs from the"
            << " same fraction calculated from the number of each atom appearing in the list of atompositions";
         if (distf<1e-3)
           ss << " (they almost do, but more precision is required - note that it is possible to specify"
@@ -476,7 +477,8 @@ void NC::NCMATData::validate() const
     for (auto& e : debyetemp_perelement)
       allElementNames.insert(e.first);
 
-    std::vector<std::pair<std::string,double> >::const_iterator itD(debyetemp_perelement.begin()), itDE(debyetemp_perelement.end());
+    auto itD = debyetemp_perelement.begin();
+    auto itDE = debyetemp_perelement.end();
     std::string refsec;
     if ( !atompos_elems2count.empty() ) {
       for (;itD!=itDE;++itD)
@@ -484,8 +486,8 @@ void NC::NCMATData::validate() const
           break;
       for (const auto& e : atompos_elems2count) {
         if (!std::any_of(debyetemp_perelement.cbegin(), debyetemp_perelement.cend(),
-                         [&e](const std::pair<std::string,double>& e2){ return e.first==e2.first; })) {
-          NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" Per-element Debye temperature specified for some elements"
+                         [&e](const std::pair<std::string,DebyeTemperature>& e2){ return e.first==e2.first; })) {
+          NCRYSTAL_THROW2(BadInput,sourceDescription<<" Per-element Debye temperature specified for some elements"
                           " but missing for element "<<e.first<<" which occurs in @ATOMPOSITIONS");
         }
       }
@@ -495,7 +497,7 @@ void NC::NCMATData::validate() const
           break;
     }
     if (itD!=itDE)
-      NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" element ("<<itD->first
+      NCRYSTAL_THROW2(BadInput,sourceDescription<<" element ("<<itD->first
                       <<") appearing in list of per-element Debye temperatures is not present in "
                       <<((!atompos_elems2count.empty())?"the list of atom positions":"any of the dynamic info sections"));
   }
@@ -508,7 +510,7 @@ void NC::NCMATData::validate() const
       double tt = di.fields.at("temperature").at(0);
       nc_assert(tt>0.0);//already checked
       if ( di_temp>0.0 && di_temp != tt )
-        NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" temperature values specified in different dynamic info sections are different")
+        NCRYSTAL_THROW2(BadInput,sourceDescription<<" temperature values specified in different dynamic info sections are different")
     }
   }
 
@@ -520,6 +522,6 @@ void NC::NCMATData::validate() const
   }
   for (auto& e : allElementNames) {
     if ( AtomSymbol(e).isCustomMarker() && !atomdb_custommarkers.count(e))
-      NCRYSTAL_THROW2(BadInput,sourceFullDescr<<" custom marker \""<<e<<"\" is used but has no definition in the @ATOMDB section")
+      NCRYSTAL_THROW2(BadInput,sourceDescription<<" custom marker \""<<e<<"\" is used but has no definition in the @ATOMDB section")
   }
 }

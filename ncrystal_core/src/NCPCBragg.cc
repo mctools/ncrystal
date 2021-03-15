@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -19,42 +19,47 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/NCPCBragg.hh"
-#include "NCrystal/NCInfo.hh"
-#include "NCrystal/internal/NCPlaneProvider.hh"
 #include "NCrystal/internal/NCMath.hh"
 #include "NCrystal/internal/NCRandUtils.hh"
 #include <functional>//std::greater
 
-void NCrystal::PCBragg::init( const StructureInfo& si,
-                              std::vector<PairDD >& data )//(dspacing,fsquared_sum)
+namespace NC = NCrystal;
+namespace NCrystal
+{
+  namespace {
+    constexpr double dspacing_merge_tolerance = 1e-11;
+  }
+}
+
+void NC::PCBragg::init( const StructureInfo& si, VectDFM&& data )
 {
   nc_assert_always(si.n_atoms>0);
   nc_assert_always(si.volume>0);
   if (!(si.volume>0) || !(si.n_atoms>=1) )
     NCRYSTAL_THROW(BadInput,"Passed structure info object has invalid volume or n_atoms fields.");
-  init(si.volume * si.n_atoms, data);
+  init(si.volume * si.n_atoms, std::move(data));
 }
 
-void NCrystal::PCBragg::init( double v0_times_natoms,
-                              std::vector<PairDD >& data )//(dspacing,fsquared_sum)
+void NC::PCBragg::init( double v0_times_natoms, VectDFM&& origdata )
 {
   if (!(v0_times_natoms>0) )
     NCRYSTAL_THROW(BadInput,"v0_times_natoms is not a positive number.");
   double xsectfact = 0.5/v0_times_natoms;
   xsectfact *= wl2ekin(1.0);//Adjust units so we can get cross sections through
                             //multiplication with 1/ekin instead of wl^2.
-  std::sort(data.begin(),data.end(),std::greater<PairDD >());
+  VectDFM data = std::move(origdata);
+  std::sort(data.begin(),data.end(),std::greater<PairDD>());
   VectD v2dE;
   v2dE.reserve(data.size());
   VectD fdm_commul;
   fdm_commul.reserve(data.size());
   StableSum fdmsum2;
-  std::vector<PairDD >::const_iterator it(data.begin()),itE(data.end());
+  VectDFM::const_iterator it(data.begin()),itE(data.end());
   double prev_dsp = -kInfinity;
   for (;it!=itE;++it) {
     if (!(it->first>0.0))
       NCRYSTAL_THROW(CalcError,"Inconsistent plane data implies non-positive (or NaN) d_spacing.");
-    if (ncabs(prev_dsp-it->first)<1e-11) {
+    if ( ncabs(prev_dsp-it->first) < dspacing_merge_tolerance ) {
       double c = it->first * it->second * xsectfact;
       fdmsum2.add(c);
       fdm_commul.back() = fdmsum2.sum();
@@ -67,69 +72,37 @@ void NCrystal::PCBragg::init( double v0_times_natoms,
     }
   }
   if (fdm_commul.empty()||fdm_commul.back()<=0.0) {
-    m_threshold = kInfinity;
     fdm_commul.clear();
     v2dE.clear();
   } else {
-    m_threshold = *(v2dE.begin());
+    m_threshold = NeutronEnergy{ *(v2dE.begin()) };
   }
   //Transfer while squeezing memory:
   VectD(fdm_commul.begin(),fdm_commul.end()).swap(m_fdm_commul);
   VectD(v2dE.begin(),v2dE.end()).swap(m_2dE);
-  nc_assert(m_threshold>0);
-  validate();
+  nc_assert( m_threshold.get() > 0.0 );
 }
 
-NCrystal::PCBragg::PCBragg(const StructureInfo& si, PlaneProvider * pp)
-  : ScatterIsotropic("PCBragg"),
-    m_threshold(kInfinity)
+NC::PCBragg::PCBragg( const StructureInfo& si, VectDFM&&  data)
 {
-
-  std::vector<std::pair<double, double> > data;
-  data.reserve(4096);
-  double d,f;
-  Vector demi_normal;
-  pp->prepareLoop();
-  while (pp->getNextPlane(d,f,demi_normal)) {
-    if (f<0)
-      NCRYSTAL_THROW(CalcError,"Inconsistent data implies negative |F|^2.");
-    f*=2;//getNextPlane provides demi-normals, e.g. only half of the normals.
-    if (data.empty()||data.back().first!=d) {
-      data.emplace_back(d,f);
-    } else {
-      data.back().second += f;
-    }
-  }
-  init(si,data);
+  init(si,std::move(data));
 }
 
-NCrystal::PCBragg::PCBragg( const StructureInfo& si, std::vector<PairDD >&  data)
-  : ScatterIsotropic("PCBragg"),
-    m_threshold(kInfinity)
+NC::PCBragg::PCBragg( double v0_times_natoms, VectDFM&&  data)
 {
-  init(si,data);
+  init(v0_times_natoms,std::move(data));
 }
 
-NCrystal::PCBragg::PCBragg( double v0_times_natoms, std::vector<PairDD >&  data)
-  : ScatterIsotropic("PCBragg"),
-    m_threshold(kInfinity)
+NC::PCBragg::PCBragg(const MatInfo&ci)
 {
-  init(v0_times_natoms,data);
-}
-
-NCrystal::PCBragg::PCBragg(const Info*ci)
-  : ScatterIsotropic("PCBragg"),
-    m_threshold(kInfinity)
-{
-  nc_assert_always(ci);
-  if (!ci->hasHKLInfo())
+  if (!ci.hasHKLInfo())
     NCRYSTAL_THROW(MissingInfo,"Passed Info object lacks HKL information.");
-  if (!ci->hasStructureInfo())
+  if (!ci.hasStructureInfo())
     NCRYSTAL_THROW(MissingInfo,"Passed Info object lacks Structure information.");
-  std::vector<std::pair<double, double> > data;
-  data.reserve(ci->nHKL());
-  HKLList::const_iterator it = ci->hklBegin();
-  HKLList::const_iterator itE = ci->hklEnd();
+  VectDFM data;
+  data.reserve(ci.nHKL());
+  HKLList::const_iterator it = ci.hklBegin();
+  HKLList::const_iterator itE = ci.hklEnd();
   for (;it!=itE;++it) {
     double f = it->fsquared * it->multiplicity;
     if (f<0)
@@ -140,87 +113,167 @@ NCrystal::PCBragg::PCBragg(const Info*ci)
       data.back().second += f;
     }
   }
-  init(ci->getStructureInfo(),data);
+  init(ci.getStructureInfo(),std::move(data));
 }
 
-NCrystal::PCBragg::~PCBragg()
+NC::EnergyDomain NC::PCBragg::domain() const noexcept
 {
+  return { m_threshold, NeutronEnergy{kInfinity} };
 }
 
-void NCrystal::PCBragg::domain(double& ekin_low, double& ekin_high) const
-{
-  ekin_low = m_threshold;
-  ekin_high = kInfinity;
-}
-
-std::size_t NCrystal::PCBragg::findLastValidPlaneIdx(double ekin) const {
+std::size_t NC::PCBragg::findLastValidPlaneIdx( NC::NeutronEnergy ekin) const {
   //Quick binary search to find index of the plane with the smallest d-spacing
   //satisfying wl<=2d, but in energy-space: Finding the index of the plane with
   //the largest value of ekin2wl(2d) satisfying ekin>=ekin2wl(2d).  We already
   //know that ekin>=m_2dE[0], so we search from one past this entry:
   nc_assert( ekin >= m_threshold );
-  return (std::upper_bound(m_2dE.begin() + 1,m_2dE.end(),ekin) - m_2dE.begin()) - 1;
+  return (std::upper_bound(m_2dE.begin() + 1,m_2dE.end(),ekin.get()) - m_2dE.begin()) - 1;
 }
 
-double NCrystal::PCBragg::crossSectionNonOriented(double ekin) const
+
+NC::CrossSect NC::PCBragg::crossSectionIsotropic( NC::CachePtr&, NC::NeutronEnergy ekin ) const
 {
-  if (ekin<m_threshold)
-    return 0.0;
+  if ( ekin < m_threshold)
+    return CrossSect{0.0};
   std::size_t idx = findLastValidPlaneIdx(ekin);
   nc_assert(idx<m_fdm_commul.size());
-  return m_fdm_commul[idx] / ekin;
+  return CrossSect{ m_fdm_commul[idx] / ekin.get() };
 }
 
-double NCrystal::PCBragg::genScatterMu(RandomBase* rng, double ekin) const
+NC::CosineScatAngle NC::PCBragg::genScatterMu( RNG& rng, NeutronEnergy ekin) const
 {
-  nc_assert(ekin>=m_threshold);
+  nc_assert( ekin >= m_threshold );
 
   std::size_t idx = findLastValidPlaneIdx(ekin);
   nc_assert(idx<m_fdm_commul.size());
 
   //randomly select one plane by contribution:
-  VectD::const_iterator itFCUpper = m_fdm_commul.begin()+idx;
+  VectD::const_iterator itFCUpper = std::next( m_fdm_commul.begin(), idx );
   VectD::const_iterator itFC = std::lower_bound( m_fdm_commul.begin(),
-                                                               itFCUpper,
-                                                               rng->generate() * (*itFCUpper) );
+                                                 itFCUpper,
+                                                 rng.generate() * (*itFCUpper) );
   std::size_t idx_rand = (std::size_t)( itFC - m_fdm_commul.begin() );
   nc_assert(idx_rand<m_2dE.size());
-  double sin_theta_bragg_squared = m_2dE[idx_rand] / ekin;
+  double sin_theta_bragg_squared = m_2dE[idx_rand] / ekin.get();
 
   //scatter angle A=2*theta_bragg, so with x=sin^2(theta_bragg), we have:
   //   x = sin^2(A/2)= (1-cosA)/2 => 1-2x = cosA = mu
   const double mu = 1.0 - 2.0 * sin_theta_bragg_squared;
   nc_assert(ncabs(mu)<=1.0);
-  return mu;
+  return CosineScatAngle{mu};
 }
 
-void NCrystal::PCBragg::generateScatteringNonOriented( double ekin, double& angle, double& dekin ) const
+NC::ScatterOutcomeIsotropic NC::PCBragg::sampleScatterIsotropic( NC::CachePtr&,
+                                                                 NC::RNG& rng,
+                                                                 NC::NeutronEnergy ekin ) const
 {
-  dekin = 0;//strictly elastic
-
-  if (ekin<m_threshold) {
+  //elastic: ekin unchanged
+  if ( ekin < m_threshold ) {
     //scatterings not possible here
-    angle = 0.0;
+    return { ekin, CosineScatAngle{1.0} };
   } else {
-    angle = std::acos(genScatterMu(getRNG(),ekin));
+    return { ekin, genScatterMu(rng,ekin) };
   }
 }
 
-void NCrystal::PCBragg::generateScattering( double ekin, const double (&indir)[3],
-                                            double (&outdir)[3], double& dekin ) const
+std::shared_ptr<NC::ProcImpl::Process> NC::PCBragg::createMerged( const Process& oraw ) const
 {
-  //Reimplement generateScattering to avoid expensive trigonometric function
-  //calls.
+  auto optr = dynamic_cast<const PCBragg*>(&oraw);
+  if (!optr)
+    return nullptr;
+  auto& o = *optr;
 
-  dekin = 0;//strictly elastic
+  auto result = std::make_shared<PCBragg>( no_init );//empty instance
+  auto fixThreshold = [&result]() { result->m_threshold = NeutronEnergy{ result->m_2dE.front() }; };
 
-  if (ekin<m_threshold) {
-    //scatterings not possible here
-    outdir[0] = indir[0];
-    outdir[1] = indir[1];
-    outdir[2] = indir[2];
-  } else {
-    RandomBase * rng = getRNG();
-    randDirectionGivenScatterMu(rng,genScatterMu(rng,ekin),indir,outdir);
+  //transfer "a" (2dE) and "b" (fdm_commul) vectors, sorted by a:
+  VectD& new_a = result->m_2dE;
+  VectD& new_b = result->m_fdm_commul;
+  nc_assert( new_a.empty() && new_b.empty() );
+
+  const auto& old1_a = this->m_2dE;
+  const auto& old1_b = this->m_fdm_commul;
+  const auto& old2_a = o.m_2dE;
+  const auto& old2_b = o.m_fdm_commul;
+  nc_assert(old1_a.size()==old1_b.size());
+  nc_assert(old2_a.size()==old2_b.size());
+  new_a.reserve(old1_a.size()+old2_a.size());
+  new_b.reserve(old1_b.size()+old2_b.size());
+
+  //Special case empty vectors:
+  if ( old1_a.empty() ) {
+    new_a = old2_a;
+    new_b = old2_b;
+    return fixThreshold(), result;
   }
+  if ( old2_a.empty() ) {
+    new_a = old1_a;
+    new_b = old1_b;
+    return fixThreshold(), result;
+  }
+
+  //Merge lists, sort so m_2dE is ordered by increasing magnitude. And keep in
+  //mind that the fdm (_b) vectors are commulative! Try to do it without
+  //numerical issues related to subtraction.
+  std::size_t i1(0), i1E(old1_a.size());
+  std::size_t i2(0), i2E(old2_a.size());
+
+  auto can_merge = []( double a_2dE, double b_2dE ) {
+    //NB: could use ekin2wlsq here and save some sqrt's.
+    double a_d = 0.5*ekin2wl(a_2dE);
+    double b_d = 0.5*ekin2wl(b_2dE);
+    return ncabs(a_d-b_d)<dspacing_merge_tolerance;
+  };
+
+  auto extractFDM = [](const VectD& commulFDM, std::size_t idx)
+  {
+    nc_assert(idx<commulFDM.size());
+    return idx ? commulFDM.at(idx)-commulFDM.at(idx-1) : commulFDM.front();
+  };
+
+  StableSum commulFDMSum;
+  auto appendFDMPoint = [&commulFDMSum,&extractFDM,&new_b]( const VectD& commulFDM, std::size_t idx )
+  {
+    commulFDMSum.add( extractFDM(commulFDM,idx) );
+    new_b.push_back(commulFDMSum.sum());
+  };
+
+  nc_assert(old1_a.back() >= old1_a.front());
+  while ( i1 < i1E && i2 < i2E ) {
+    if ( can_merge( old1_a.at(i1), old2_a.at(i2) ) ) {
+      //Same d-spacing point present in both lists:
+      new_a.push_back( 0.5 * ( old1_a.at(i1)+old2_a.at(i2) ) );
+      commulFDMSum.add(extractFDM(old1_b,i1));
+      commulFDMSum.add(extractFDM(old2_b,i2));
+      new_b.push_back(commulFDMSum.sum());
+      ++i1;
+      ++i2;
+      continue;
+    }
+    if ( old1_a.at(i1) < old2_a.at(i2) ) {
+      new_a.push_back(old1_a.at(i1));
+      appendFDMPoint(old1_b,i1);
+      ++i1;
+    } else {
+      new_a.push_back(old2_a.at(i2));
+      appendFDMPoint(old2_b,i2);
+      ++i2;
+    }
+  }
+  //Transfer any remaining entries:
+  while ( i1 < i1E ) {
+    new_a.push_back(old1_a.at(i1));
+    appendFDMPoint(old1_b,i1);
+    ++i1;
+  }
+  while ( i2 < i2E ) {
+    new_a.push_back(old2_a.at(i2));
+    appendFDMPoint(old2_b,i2);
+    ++i2;
+  }
+
+  new_a.shrink_to_fit();
+  new_b.shrink_to_fit();
+
+  return fixThreshold(), result;
 }

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -41,7 +41,7 @@ namespace NCrystal {
   //be cleared by a call to the global clearCaches() function from NCMem.hh);
 
 
-  class AtomDBExtender final : public MoveOnly {
+  class AtomDBExtender final : private MoveOnly {
   public:
     //Constructor. If allowInbuiltDB=false, queries to the DB will not fall back
     //to the in-built database of natural elements and isotopes (from
@@ -61,7 +61,10 @@ namespace NCrystal {
     void addData( const VectS& words, unsigned format_version = latest_version );
     void addData( const std::string& line, unsigned format_version = latest_version );
 
-    //Query DB:
+    //Query DB (returns nullptr if not available):
+    OptionalAtomDataSP lookupAtomDataAllowMissing(const std::string&);
+
+    //Query DB (throws error if not available):
     AtomDataSP lookupAtomData(const std::string&);
 
     //Clear global cache as explained above:

@@ -5,7 +5,7 @@
 /*                                                                            */
 /*  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   */
 /*                                                                            */
-/*  Copyright 2015-2020 NCrystal developers                                   */
+/*  Copyright 2015-2021 NCrystal developers                                   */
 /*                                                                            */
 /*  Licensed under the Apache License, Version 2.0 (the "License");           */
 /*  you may not use this file except in compliance with the License.          */
@@ -48,6 +48,51 @@
 #  else
 #    define NCRYSTAL_API
 #    define NCRYSTAL_LOCAL
+#  endif
+#endif
+
+#ifdef __cplusplus
+/* For decorating with constexpr only in C++17 and later, or noexcept only in */
+/* non-dbg builds:                                                            */
+#  ifdef ncconstexpr17
+#    undef ncconstexpr17
+#  endif
+#  if __cplusplus >= 201703L
+#    define ncconstexpr17 constexpr
+#  else
+#    define ncconstexpr17
+#  endif
+#  ifdef ncnoexceptndebug
+#    undef ncnoexceptndebug
+#  endif
+#  ifndef NDEBUG
+#    define ncnoexceptndebug
+#  else
+#    define ncnoexceptndebug noexcept
+#  endif
+#  ifdef ncnodiscard17
+#    undef ncnodiscard17
+#  endif
+#  if __cplusplus >= 201703L
+#    define ncnodiscard17 [[nodiscard]]
+#  else
+#    define ncnodiscard17
+#  endif
+#  ifdef nclikely
+#    undef nclikely
+#  endif
+#  if __cplusplus >= 202002L
+#    define nclikely [[likely]]
+#  else
+#    define nclikely
+#  endif
+#  ifdef ncunlikely
+#    undef ncunlikely
+#  endif
+#  if __cplusplus >= 202002L
+#    define ncunlikely [[unlikely]]
+#  else
+#    define ncunlikely
 #  endif
 #endif
 

@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -19,7 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/NCOrientUtils.hh"
-#include "NCrystal/NCInfo.hh"
+#include "NCrystal/NCMatInfo.hh"
 #include "NCrystal/internal/NCLatticeUtils.hh"
 #include <iomanip>
 
@@ -31,16 +31,15 @@ NCrystal::RotMatrix NCrystal::getCrystal2LabRot( const NCrystal::SCOrientation& 
 
   Vector dirc[2];
   for (size_t i=0; i < 2; ++i) {
-    if (sco.getCrysIsHKL(i)) {
-      dirc[i] = reci_lattice * asVect(sco.getCrysDir(i));
+    auto cd = sco.getCrysDir(i);
+    if ( cd.has_value<HKLPoint>() ) {
+      dirc[i] = reci_lattice * cd.get<HKLPoint>().as<Vector>();
     } else {
-      dirc[i] = asVect(sco.getCrysDir(i));
+      dirc[i] = cd.get<CrystalAxis>().as<Vector>();
     }
   }
 
-  Vector dirl[2];
-  dirl[0] = asVect(sco.getLabDir(0));
-  dirl[1] = asVect(sco.getLabDir(1));
+  Vector dirl[2] = { sco.getLabDir(0).value().as<Vector>(), sco.getLabDir(1).value().as<Vector>() };
 
   if (dirc[0].isParallel(dirc[1],1.0e-6))
     NCRYSTAL_THROW(BadInput,"Chosen SCOrientation directions in the crystal reference frame are too parallel.");
@@ -71,7 +70,7 @@ NCrystal::RotMatrix NCrystal::getCrystal2LabRot( const NCrystal::SCOrientation& 
   return RotMatrix(dirl[0],dirc[0],dirl[1],dirc[1]);
 }
 
-NCrystal::RotMatrix NCrystal::getReciprocalLatticeRot( const NCrystal::Info& cinfo )
+NCrystal::RotMatrix NCrystal::getReciprocalLatticeRot( const NCrystal::MatInfo& cinfo )
 {
   if (!cinfo.hasStructureInfo())
     NCRYSTAL_THROW(MissingInfo,"Passed Info object lacks Structure information.");

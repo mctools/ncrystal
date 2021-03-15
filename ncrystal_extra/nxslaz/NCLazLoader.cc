@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -19,7 +19,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCLazLoader.hh"
-#include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCDefs.hh"
 #include "NCrystal/internal/NCString.hh"
 #include "NCrystal/internal/NCMath.hh"
@@ -37,15 +36,8 @@ namespace NC = NCrystal;
 //NB: lower priority version without sginfo dep could go to ncrystal core code with...
 
 namespace NCrystal {
-  double str2dbl_laz(const std::string& s) { return str2dbl(s,"Invalid number in .laz/.lau file"); }
-  double str2int_laz(const std::string& s) { return str2int(s,"Invalid integer in .laz/.lau file"); }
-}
-
-NC::LazLoader::LazLoader(std::string laz_file,double dcutlow, double dcutup, double temp)
-  : m_full_path(laz_file), m_dcutlow(dcutlow), m_dcutup(dcutup), m_temp(temp)
-{
-  nc_assert_always( dcutlow==-1 || ( dcutlow>=0 && dcutlow < dcutup ) );
-  m_cinfo = makeRC<Info>();
+  double str2dbl_laz(const std::string& s) { return str2dbl(s,"Invalid number in .laz/.lau data"); }
+  double str2int_laz(const std::string& s) { return str2int(s,"Invalid integer in .laz/.lau data"); }
 }
 
 bool NC::LazLoader::setupSgInfo(unsigned spaceGroupNbr, nxs::T_SgInfo& sgInfo) {
@@ -82,56 +74,60 @@ bool NC::LazLoader::setupSgInfo(unsigned spaceGroupNbr, nxs::T_SgInfo& sgInfo) {
   return true;
 }
 
-NC::RCHolder<const NC::Info> NC::LazLoader::getCrystalInfo()
+NC::shared_obj<const NC::MatInfo> NC::LazLoader::getCrystalInfo()
 {
   return m_cinfo;
 }
 
+NC::LazLoader::LazLoader(const TextData& data,double dcutlow, double dcutup, Temperature temp)
+  : m_inputDescription(data.description()),
+    m_cinfo(makeSO<MatInfo>()),
+    m_dcutlow(dcutlow),
+    m_dcutup(dcutup),
+    m_temp(temp)
+{
+  nc_assert_always( dcutlow==-1 || ( dcutlow>=0 && dcutlow < dcutup ) );
+  preParse(data);//copies all data - pretty obsolete but I don't feel like
+                 //rewriting the Laz loader without some sort of reason...
+}
+
+void NC::LazLoader::preParse(const TextData& data)
+{
+  //copy ascii raw data into memory as a vector of strings
+  for ( const auto& line : data )    {
+    if (line.empty())
+      continue;
+    auto parts = split2( line );
+    if ( parts.empty() )
+      continue;
+    if (parts.front().at(0)=='#')
+      m_raw_header.push_back(std::move(parts));
+    else
+      m_raw_data.push_back(std::move(parts));
+  }
+}
+
+
 void NC::LazLoader::read()
 {
-  std::ifstream infile;
-  std::string line="";
-  std::string line2;
-  infile.open(m_full_path.c_str());
-  if (!infile.good())
-    NCRYSTAL_THROW2(FileNotFound,"Could not find and open input file \""<<m_full_path<<"\"");
-
-  //copy ascii raw data into memory as a vector of strings
-  VectS strVec;
-  while (std::getline(infile, line))
-    {
-      if (line.empty())
-        continue;
-      split(strVec,line);
-      if (strVec.empty())
-        continue;
-      if (line[0]=='#')
-        m_raw_header.push_back(strVec);
-      else
-        m_raw_data.push_back(strVec);
-    }
-
-  infile.close();
-
-
   //set density
   double density=0.;
   if(search_parameter("density", density ))
-    m_cinfo->setDensity(density);
+    m_cinfo->setDensity( Density{ density } );
 
   //set structure info
   StructureInfo structure_info;
   if(!search_spacegroup(structure_info.spacegroup))
-    NCRYSTAL_THROW2(DataLoadError,"Can not find space group definition in the input file \""<<m_full_path<<"\"");
+    NCRYSTAL_THROW2(DataLoadError,"Can not find space group definition in the input data \""<<m_inputDescription<<"\"");
 
   if(!search_multiplicity(structure_info.n_atoms))
-    NCRYSTAL_THROW2(DataLoadError,"Can not find multiplicity in the input file \""<<m_full_path<<"\"");
+    NCRYSTAL_THROW2(DataLoadError,"Can not find multiplicity in the input data \""<<m_inputDescription<<"\"");
   double n = 0.;
   search_parameter("multiplicity", n );
   structure_info.n_atoms *= n;
 
   if(!search_parameter("lattice_a", structure_info.lattice_a ))
-    NCRYSTAL_THROW2(DataLoadError,"The unit cell lattice_a is not defined in the input file \""<<m_full_path<<"\"");
+    NCRYSTAL_THROW2(DataLoadError,"The unit cell lattice_a is not defined in the input data \""<<m_inputDescription<<"\"");
 
   if(!search_parameter("lattice_b", structure_info.lattice_b ))
     structure_info.lattice_b = 0;
@@ -149,48 +145,48 @@ void NC::LazLoader::read()
     structure_info.gamma = 90;
 
   if(!search_parameter("Vc", structure_info.volume ))
-    NCRYSTAL_THROW2(DataLoadError,"The unit cell volume is not defined in the input file \""<<m_full_path<<"\"");//TODO: just calculate (after completing structure info below)
+    NCRYSTAL_THROW2(DataLoadError,"The unit cell volume is not defined in the input data \""<<m_inputDescription<<"\"");//TODO: just calculate (after completing structure info below)
 
 
   //Delayed until after sanity check below: m_cinfo->setStructInfo(structure_info);
 
   //simply pass along requested temperature (there is anyway no material
-  //temperature info given in the lazy file):
+  //temperature info given in the lazy data):
   m_cinfo->setTemperature(m_temp);
 
   //set cross section info
   double sigma_abs(-1.0);
   if(search_parameter("sigma_abs", sigma_abs ))
-    m_cinfo->setXSectAbsorption(sigma_abs);
+    m_cinfo->setXSectAbsorption( SigmaAbsorption{ sigma_abs } );
 
   //structure factors
   unsigned d_index = 0;
   if(!search_index("column_d", d_index) )
-    NCRYSTAL_THROW2(DataLoadError,"The index for d-spacing in the table is not defined in the input file \""<<m_full_path<<"\"");
+    NCRYSTAL_THROW2(DataLoadError,"The index for d-spacing in the table is not defined in the input data \""<<m_inputDescription<<"\"");
 
   unsigned mul_index = 0;
   if(!search_index("column_j", mul_index) )
-    NCRYSTAL_THROW2(DataLoadError,"The index for multiplicity in the table is not defined in the input file \""<<m_full_path<<"\"");
+    NCRYSTAL_THROW2(DataLoadError,"The index for multiplicity in the table is not defined in the input data \""<<m_inputDescription<<"\"");
 
   unsigned f_index = 0;
   unsigned f2_index = 0;
   if(! (search_index("column_F", f_index) || search_index("column_F2", f2_index) ))
-    NCRYSTAL_THROW2(DataLoadError,"The index for structure factor in the table is not defined in the input file \""<<m_full_path<<"\"");
+    NCRYSTAL_THROW2(DataLoadError,"The index for structure factor in the table is not defined in the input data \""<<m_inputDescription<<"\"");
 
   unsigned h_index = 0;
   if(!search_index("column_h", h_index) )
-    NCRYSTAL_THROW2(DataLoadError,"The index for h in the table is not defined in the input file \""<<m_full_path<<"\"");
+    NCRYSTAL_THROW2(DataLoadError,"The index for h in the table is not defined in the input data \""<<m_inputDescription<<"\"");
 
   unsigned k_index = 0;
   if(!search_index("column_k", k_index) )
-    NCRYSTAL_THROW2(DataLoadError,"The index for k in the table is not defined in the input file \""<<m_full_path<<"\"");
+    NCRYSTAL_THROW2(DataLoadError,"The index for k in the table is not defined in the input data \""<<m_inputDescription<<"\"");
 
   unsigned l_index = 0;
   if(!search_index("column_l", l_index) )
-    NCRYSTAL_THROW2(DataLoadError,"The index for l in the table is not defined in the input file \""<<m_full_path<<"\"");
+    NCRYSTAL_THROW2(DataLoadError,"The index for l in the table is not defined in the input data \""<<m_inputDescription<<"\"");
 
   if (m_raw_data.empty())
-    NCRYSTAL_THROW2(DataLoadError,"No data lines found in input file \""<<m_full_path<<"\"");
+    NCRYSTAL_THROW2(DataLoadError,"No data lines found in input data \""<<m_inputDescription<<"\"");
 
   // double lower_d = str2dbl_laz(m_raw_data.back().at(d_index-1));
   // double upper_d = str2dbl_laz(m_raw_data.begin()->at(d_index-1));
@@ -278,7 +274,7 @@ void NC::LazLoader::read()
         const char * old_SgError = nxs::SgError;
         nxs::SgError = 0;
         if (!setupSgInfo(structure_info.spacegroup,sgInfo)||nxs::SgError) {
-          printf("NCrystal::loadLazCrystal WARNING: Problems setting up space-group info for sanity checking file.\n");
+          printf("NCrystal::loadLazCrystal WARNING: Problems setting up space-group info for sanity checking data.\n");
           if (nxs::SgError)
             printf("NCrystal::loadLazCrystal WARNING: Problem was \"%s\".\n",nxs::SgError);
           nxs::SgError = old_SgError;
@@ -291,10 +287,10 @@ void NC::LazLoader::read()
           for (;it!=itE;++it) {
             int dummy(0);
             if (IsSysAbsent_hkl(&sgInfo,it->h,it->k,it->l,&dummy)!=0) {
-              printf("NCrystal::loadLazCrystal WARNING: Forbidden hkl=(%i,%i,%i) for spacegroup found in file.\n",it->h,it->k,it->l);
+              printf("NCrystal::loadLazCrystal WARNING: Forbidden hkl=(%i,%i,%i) for spacegroup found in data.\n",it->h,it->k,it->l);
               ++warn;
               if (warn==5) {
-                printf("NCrystal::loadLazCrystal WARNING: Suppressing further warnings about forbidden hkl for this file.\n");
+                printf("NCrystal::loadLazCrystal WARNING: Suppressing further warnings about forbidden hkl for this data.\n");
                 break;
               }
               structure_info_is_sane=false;
@@ -308,7 +304,7 @@ void NC::LazLoader::read()
   if (structure_info_is_sane)
     m_cinfo->setStructInfo(structure_info);
   else
-    printf("NCrystal::loadLazCrystal WARNING: Apparently forbidden hkl values found indicating malformed header in .laz file \"%s\"\n",m_full_path.c_str());
+    printf("NCrystal::loadLazCrystal WARNING: Apparently forbidden hkl values found indicating malformed header in .laz data \"%s\"\n",m_inputDescription.c_str());
 
   m_cinfo->objectDone();
 }

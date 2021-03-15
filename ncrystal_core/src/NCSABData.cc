@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -25,17 +25,17 @@ namespace NC = NCrystal;
 NC::SABData::SABData( VectD&& alphaGrid,
                       VectD&& betaGrid,
                       VectD&& sab,
-                      double temperature,
+                      Temperature temperature,
                       SigmaBound boundXS,
-                      double elementMassAMU,
+                      AtomMass elementMassAMU,
                       double suggestedEmax )
   : m_a(std::move(alphaGrid)),
     m_b(std::move(betaGrid)),
     m_sab(std::move(sab)),
-    m_t(temperature),
-    m_m(elementMassAMU),
+    m_t(DoValidate,temperature),
+    m_m(DoValidate,elementMassAMU),
     m_sem(suggestedEmax),
-    m_bxs(boundXS)
+    m_bxs(DoValidate,boundXS)
 {
   nc_assert_always( m_a.size() < std::numeric_limits<std::uint16_t>::max() );
   nc_assert_always( m_b.size() < std::numeric_limits<std::uint16_t>::max() );
@@ -43,9 +43,6 @@ NC::SABData::SABData( VectD&& alphaGrid,
   nc_assert(std::is_sorted(m_b.begin(),m_b.end()));//nc_is_grid not available here
   nc_assert(m_a.size()*m_b.size()==m_sab.size());
   nc_assert(m_sab.size()>=4);
-  nc_assert(m_t>0.0);
-  nc_assert(m_bxs.val>0.0);
-  nc_assert(m_m>0.0);
   nc_assert(m_sem>=0.0);
   nc_assert(*std::min_element(m_sab.begin(),m_sab.end())>=0.0);
   nc_assert(m_a.front()>=0.0);
@@ -54,20 +51,17 @@ NC::SABData::SABData( VectD&& alphaGrid,
 
 NC::VDOSData::VDOSData( PairDD egrid,
                         VectD&& density,
-                        double temperature,
+                        Temperature temperature,
                         SigmaBound boundXS,
-                        double elementMassAMU )
+                        AtomMass elementMassAMU )
   : m_e(egrid),
     m_d(std::move(density)),
-    m_t(temperature),
-    m_m(elementMassAMU),
-    m_bxs(boundXS)
+    m_t(DoValidate,temperature),
+    m_m(DoValidate,elementMassAMU),
+    m_bxs(DoValidate,boundXS)
 {
   nc_assert( m_e.first>=0.0);
   nc_assert( m_e.first < m_e.second );
   nc_assert( m_d.size()>=2 );
-  nc_assert( m_t>0.0 );
-  nc_assert( m_bxs.val>0.0 );
-  nc_assert( m_m>0.0 );
   nc_assert( *std::min_element(m_d.begin(),m_d.end())>=0.0);
 }

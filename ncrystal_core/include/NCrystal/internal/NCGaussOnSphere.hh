@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,14 +21,12 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
 #include "NCrystal/internal/NCMath.hh"
 #include "NCrystal/internal/NCSpline.hh"
 #include <cstring>
 
 namespace NCrystal {
 
-  class RandomBase;
   class GaussOnSphere {
   public:
 
@@ -111,7 +109,7 @@ namespace NCrystal {
     //point on the circle, in a frame where the center of the circle is at
     //(0,0,1) and the center of the Gaussian density is at
     //(singamma,0,cosgamma), as (x,y,z)=(sinalpha*ct,sinalpha*st,cosalpha);
-    bool genPointOnCircle( RandomBase*rand, double cosgamma, double singamma, double cosalpha, double sinalpha,
+    bool genPointOnCircle( RNG&, double cosgamma, double singamma, double cosalpha, double sinalpha,
                            double& cost, double& sint ) const;
 
     static double calcNormFactor( double sigma, double trunc_angle );
@@ -139,14 +137,18 @@ namespace NCrystal {
     SplinedLookupTable m_lt_evalcosx;
     double m_prec;//for reference
     double m_sta;//for reference
-    //Enable sampling efficiency report when NCRYSTAL_DEBUG_GAUSSONSPHERE is set:
+    //Enable sampling efficiency report when NCRYSTAL_DEBUG_GAUSSONSPHERE is set (only in debug builds):
     void produceStatReport(const char *);
-    mutable uint64_t m_stat_genpointworst;
-    mutable uint64_t m_stat_genpointcalled;
-    mutable uint64_t m_stat_genpointtries;
-    mutable uint64_t m_stat_circleintworst;
-    mutable uint64_t m_stat_circleintnumber;
-    mutable uint64_t m_stat_circleintevals;
+#ifndef NDEBUG
+    mutable struct Stats {
+      std::atomic<uint64_t> genpointworst = {0};
+      std::atomic<uint64_t> genpointcalled = {0};
+      std::atomic<uint64_t> genpointtries = {0};
+      std::atomic<uint64_t> circleintworst = {0};
+      std::atomic<uint64_t> circleintnumber = {0};
+      std::atomic<uint64_t> circleintevals = {0};
+    } m_stats;
+#endif
   };
 
 }

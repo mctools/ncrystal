@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,10 +21,6 @@
 #include "NCrystal/internal/NCRotMatrix.hh"
 #include "NCrystal/internal/NCRandUtils.hh"
 #include <iostream>
-
-NCrystal::RotMatrix::~RotMatrix()
-{
-}
 
 NCrystal::RotMatrix::RotMatrix(const NCrystal::Vector v, const NCrystal::Vector& v_trf,
                                const NCrystal::Vector u, const NCrystal::Vector& u_trf,
@@ -73,14 +69,14 @@ double NCrystal::RotMatrix::determinant() const
   return m[0]*(m[4]*m[8]-m[5]*m[7]) + m[1]*(m[5]*m[6]-m[3]*m[8]) + m[2]*(m[3]*m[7]-m[4]*m[6]);
 }
 
-void NCrystal::rotateToFrame( double sinab, double cosab, const Vector& a, const Vector& b, Vector&v, RandomBase *  rand )
+void NCrystal::rotateToFrame( double sinab, double cosab, const Vector& a, const Vector& b, Vector&v, RNG * rng )
 {
   nc_assert(v.isUnitVector(1e-3));
   nc_assert( a.isUnitVector() && b.isUnitVector() );
   nc_assert(ncabs(cosab-a.dot(b))<1e-6);
 
   if (ncabs(sinab)<1e-10) {
-    if (!rand)
+    if (!rng)
       NCRYSTAL_THROW(CalcError,"rotateToFrame called with parallel vectors so rotation is not fully specified.")
     //a and b are essentially parallel, the rotation is not well defined! First,
     //we apply the rotation which takes (0,0,1) into b=(bx,by,bz), by rotating
@@ -101,7 +97,7 @@ void NCrystal::rotateToFrame( double sinab, double cosab, const Vector& a, const
 
     //Next, perform a random rotation around b:
     double rand_cosphi, rand_sinphi;
-    randPointOnUnitCircle( rand, rand_cosphi, rand_sinphi );
+    std::tie(rand_cosphi, rand_sinphi) = randPointOnUnitCircle( *rng );
     PhiRot phirot_random(rand_cosphi,rand_sinphi);
     v = phirot_random.rotateVectorAroundAxis( v, b );
 

@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,7 +22,7 @@
 #include "NCrystal/internal/NCMath.hh"
 namespace NC=NCrystal;
 
-void NC::randIsotropicDirection( NC::RandomBase * rand, double (&dir)[3])
+NC::Vector NC::randIsotropicDirection( RNG& rng )
 {
   //Very fast method (Marsaglia 1972) for generating points uniformly on the
   //unit sphere, costing approximately ~2.54 calls to rand->generate() and 1
@@ -34,32 +34,28 @@ void NC::randIsotropicDirection( NC::RandomBase * rand, double (&dir)[3])
 
   double x0,x1,s;
   do {
-    x0 = 2.0*rand->generate()-1.0;
-    x1 = 2.0*rand->generate()-1.0;
+    x0 = 2.0*rng.generate()-1.0;
+    x1 = 2.0*rng.generate()-1.0;
     s = x0*x0 + x1*x1;
   } while (!s||s>=1);
   double t = 2.0*std::sqrt(1-s);
-  dir[0] = x0*t;
-  dir[1] = x1*t;
-  dir[2] = 1.0-2.0*s;
+  return { x0*t, x1*t, 1.0-2.0*s };
 }
 
-void NC::randDirectionGivenScatterMu( NC::RandomBase * rand, double mu, const double(&indir)[3], double(&outdir)[3])
+NC::Vector NC::randDirectionGivenScatterMu( RNG& rng, double mu, const Vector& indir )
 {
   nc_assert(ncabs(mu)<=1.);
 
-  double m2 = indir[0]*indir[0]+indir[1]*indir[1]+indir[2]*indir[2];
+  double m2 = indir.mag2();
   double invm = ( ncabs(m2-1.0)<1e-12 ? 1.0 : 1.0/std::sqrt(m2) );
-  double ux = indir[0]*invm;
-  double uy = indir[1]*invm;
-  double uz = indir[2]*invm;
+  Vector u = indir * invm;
 
   //1) Create random unit-vector which is not parallel to indir:
-  double tmpdir[3];
+  Vector tmpdir{ no_init };
 
   while (true) {
-    randIsotropicDirection(rand,tmpdir);
-    double dotp = tmpdir[0]*ux+tmpdir[1]*uy+tmpdir[2]*uz;
+    tmpdir = randIsotropicDirection(rng);
+    double dotp = tmpdir.dot(u);
     double costh2 = dotp*dotp;//tmpdir is normalised vector
     //This cut is symmetric in the parallel plane => does not ruin final
     //phi-angle-flatness:
@@ -68,37 +64,34 @@ void NC::randDirectionGivenScatterMu( NC::RandomBase * rand, double mu, const do
   }
   //2) Find ortogonal vector (the randomness thus tracing a circle on the
   //unit-sphere, once normalised)
-  double xx = tmpdir[1]*uz - tmpdir[2]*uy;
-  double yy = tmpdir[2]*ux - tmpdir[0]*uz;
-  double zz = tmpdir[0]*uy - tmpdir[1]*ux;
+  double xx = tmpdir[1]*u.z() - tmpdir[2]*u.y();
+  double yy = tmpdir[2]*u.x() - tmpdir[0]*u.z();
+  double zz = tmpdir[0]*u.y() - tmpdir[1]*u.x();
   double rm2 = xx*xx+yy*yy+zz*zz;
 
   //3) Use these two vectors to easily find the final direction (the
   //randomness above provides uniformly distributed azimuthal angle):
   double k = std::sqrt((1-mu*mu)/rm2);
-  outdir[0] = ux*mu+k*xx;
-  outdir[1] = uy*mu+k*yy;
-  outdir[2] = uz*mu+k*zz;
+  u *= mu;
+  return { u.x()+k*xx, u.y()+k*yy, u.z()+k*zz };
 }
 
-void NC::randPointOnUnitCircle( NC::RandomBase * rand,  double & x, double& y )
+NC::PairDD NC::randPointOnUnitCircle( RNG& rng )
 {
   //Sample a random point on the unit circle. This is equivalent to sampling phi
   //randomly in [0,2pi) and letting (x,y)=(cosphi,sinphi).
   double a,b,m2;
   do {
-    a = -1.0+rand->generate()*2.0;
-    b = -1.0+rand->generate()*2.0;
+    a = -1.0+rng.generate()*2.0;
+    b = -1.0+rng.generate()*2.0;
     m2 = a*a + b*b;
   } while ( !valueInInterval(0.001,1.0,m2) );
 
   double m = 1.0/std::sqrt(m2);
-  x = a * m;
-  y = b * m;
+  return { a * m, b * m };
 }
 
-
-double NC::randNorm( NC::RandomBase * rand )
+double NC::randNorm( NC::RNG& rng )
 {
   //sample a single value from a unit normal distribution via the ratio method.
   //
@@ -110,10 +103,10 @@ double NC::randNorm( NC::RandomBase * rand )
 
   double g, g2(0),u,v,invu;
   do {
-    u = rand->generate();
+    u = rng.generate();
     nc_assert(u);
     invu = 1.0/u;
-    v = rand->generate();
+    v = rng.generate();
     g = 1.71552776992141354 * (v-0.5)*invu;
     g2 = g*g;
     if ( g2 <= 5.0 - 5.13610166675096558 * u )
@@ -124,7 +117,7 @@ double NC::randNorm( NC::RandomBase * rand )
   return g;
 }
 
-void NC::randNorm( NC::RandomBase * rand, double&g1, double&g2)
+void NC::randNorm( NC::RNG& rng, double&g1, double&g2)
 {
   //sample two independent values from a unit normal distribution via the polar method.
   //
@@ -132,8 +125,8 @@ void NC::randNorm( NC::RandomBase * rand, double&g1, double&g2)
 
   double t;
   do {
-    g1 = 2.0 * rand->generate() - 1.0;
-    g2 = 2.0 * rand->generate() - 1.0;
+    g1 = 2.0 * rng.generate() - 1.0;
+    g2 = 2.0 * rng.generate() - 1.0;
     t = g1 * g1 + g2 * g2;
   } while ( t >= 1.0 || !t );
   t = std::sqrt( (-2.0 * std::log( t ) ) / t );
@@ -141,7 +134,7 @@ void NC::randNorm( NC::RandomBase * rand, double&g1, double&g2)
   g2 *= t;
 }
 
-double NC::randNormTail(double tail, NC::RandomBase& rng)
+double NC::randNormTail(double tail, NC::RNG& rng)
 {
   nc_assert(tail>=0.0);
   if (tail > 0.8) {
@@ -153,12 +146,12 @@ double NC::randNormTail(double tail, NC::RandomBase& rng)
     //
     //NB: The threshold value 0.8 came out of benchmarks. If e.g. -log(R)
     //would be replaced by something faster, this should be retuned.
-    double minvtail = -1.0/tail;
+    const double minvtail = 1.0/tail;
     while (true) {
       //NB: If we ever implement a faster alternative to -log(R) exponential
       //sampling, we can use it here instead!
-      double x = minvtail * std::log(rng.generate());
-      double y = - std::log(rng.generate());
+      double x = minvtail * randExp(rng);
+      double y = randExp(rng);
       if (2*y > x*x)
         return x + tail;
     }
@@ -168,7 +161,7 @@ double NC::randNormTail(double tail, NC::RandomBase& rng)
   while (true) {
 #if 1
     double g1, g2;
-    randNorm(&rng,g1,g2);//use version providing two numbers at once,
+    randNorm(rng,g1,g2);//use version providing two numbers at once,
     //i.e. optimize "worst case" performance (tail~=1)
     //rather than "best case" performance (tail~=0).
     if (std::abs(g1)>tail)
@@ -176,25 +169,40 @@ double NC::randNormTail(double tail, NC::RandomBase& rng)
     if (std::abs(g2)>tail)
       return std::abs(g2);
 #else
-    double g1 = randNorm(&rng);
+    double g1 = randNorm(rng);
     if (std::abs(g1)>tail)
       return std::abs(g1);
 #endif
   }
 }
 
-std::size_t NC::pickRandIdxByWeight( NC::RandomBase * rand, Span<const double>  commulvals)
+std::size_t NC::pickRandIdxByWeight( RNG& rng, Span<const double> commulvals)
 {
   nc_assert(!commulvals.empty());
-  std::size_t n = commulvals.size();
-  if (n==1)
-    return 0;
+  const auto n = commulvals.size();
+  constexpr decltype(n) binary_search_threshold = 5;//NB: Not tuned, just assumed!
+  static_assert( binary_search_threshold > 1,"" );
+  if ( n < binary_search_threshold ) {
+    if ( n==1 ) {
+      //No real choice, no need to consume RNG!
+      return 0;
+    }
+    //Small number of values => linear search:
+    const double rand_choice = commulvals.back() * rng.generate();
+    auto itB = commulvals.begin();
+    auto itE = commulvals.end();
+    for (auto it = itB; it!=itE; ++it )
+      if ( *it > rand_choice )
+        return std::distance(itB,it);
+    return n-1;
+  }
+  //Binary search:
   auto itB = commulvals.begin();
-  auto it = std::lower_bound( itB,commulvals.end(), commulvals.back() * rand->generate() );
+  auto it = std::lower_bound( itB,commulvals.end(), commulvals.back() * rng.generate() );
   return std::min<std::size_t>((std::size_t)(it-itB),n-1);
 }
 
-double NC::randExpDivSqrt( RandomBase& rng, double c, double a, double b )
+double NC::randExpDivSqrt( RNG& rng, double c, double a, double b )
 {
   //Sample f(x) = exp(-c*x)/sqrt(x) on [a,b], a>=0 b>a, c>0:
 
@@ -357,4 +365,174 @@ double NC::randExpDivSqrt( RandomBase& rng, double c, double a, double b )
     return ncclamp( (ugen+A)/c, a, b );//accepted, return corresponding x.
   }
 
+}
+
+////////////////
+
+//For reference we include here the code with comments which was found on
+//2018-03-28 at http://xoroshiro.di.unimi.it/xoroshiro128plus.c (tabs changed to
+//2 spaces), for verification and to make it clear the the code is in the public
+//domain.  Further down the file we could copy this code directly into the
+//member functions of RandXRSRImpl, but we actually instead copy a slightly
+//modified version found at https://github.com/skeeto/prng64-shootout (also
+//public domain, CC0 1.0), simply because it is slightly more convenient.
+
+//#if 0
+///*  Written in 2016 by David Blackman and Sebastiano Vigna (vigna@acm.org)
+//
+//To the extent possible under law, the author has dedicated all copyright
+//and related and neighboring rights to this software to the public domain
+//worldwide. This software is distributed without any warranty.
+//
+//See <http://creativecommons.org/publicdomain/zero/1.0/>. */
+//
+//#include <stdint.h>
+//
+///* This is the successor to xorshift128+. It is the fastest full-period
+//   generator passing BigCrush without systematic failures, but due to the
+//   relatively short period it is acceptable only for applications with a
+//   mild amount of parallelism; otherwise, use a xorshift1024* generator.
+//
+//   Beside passing BigCrush, this generator passes the PractRand test suite
+//   up to (and included) 16TB, with the exception of binary rank tests, as
+//   the lowest bit of this generator is an LFSR of degree 128. The next bit
+//   can be described by an LFSR of degree 8256, but in the long run it will
+//   fail linearity tests, too. The other bits needs a much higher degree to
+//   be represented as LFSRs.
+//
+//   We suggest to use a sign test to extract a random Boolean value, and
+//   right shifts to extract subsets of bits.
+//
+//   Note that the generator uses a simulated rotate operation, which most C
+//   compilers will turn into a single instruction. In Java, you can use
+//   Long.rotateLeft(). In languages that do not make low-level rotation
+//   instructions accessible xorshift128+ could be faster.
+//
+//   The state must be seeded so that it is not everywhere zero. If you have
+//   a 64-bit seed, we suggest to seed a splitmix64 generator and use its
+//   output to fill s. */
+//
+//uint64_t s[2];
+//
+//static inline uint64_t rotl(const uint64_t x, int k) {
+//  return (x << k) | (x >> (64 - k));
+//}
+//
+//uint64_t next(void) {
+//  const uint64_t s0 = s[0];
+//  uint64_t s1 = s[1];
+//  const uint64_t result = s0 + s1;
+//
+//  s1 ^= s0;
+//  s[0] = rotl(s0, 55) ^ s1 ^ (s1 << 14); // a, b
+//  s[1] = rotl(s1, 36); // c
+//
+//  return result;
+//}
+//
+//
+///* This is the jump function for the generator. It is equivalent
+//   to 2^64 calls to next(); it can be used to generate 2^64
+//   non-overlapping subsequences for parallel computations. */
+//
+//void jump(void) {
+//  static const uint64_t JUMP[] = { 0xbeac0467eba5facb, 0xd86b048b86aa9922 };
+//
+//  uint64_t s0 = 0;
+//  uint64_t s1 = 0;
+//  for(int i = 0; i < sizeof JUMP / sizeof *JUMP; i++)
+//    for(int b = 0; b < 64; b++) {
+//      if (JUMP[i] & UINT64_C(1) << b) {
+//        s0 ^= s[0];
+//        s1 ^= s[1];
+//      }
+//      next();
+//    }
+//
+//  s[0] = s0;
+//  s[1] = s1;
+//}
+//#endif
+
+//For reference we include here the code which was found on 2018-03-28 at
+//http://xoroshiro.di.unimi.it/xorshift/splitmix64.c (tabs changed to 2 spaces), for
+//verification and to make it clear the the code is in the public domain.
+//Further down the file we use this code in a member function of RandXRSRImpl.
+
+//#if 0
+///*  Written in 2015 by Sebastiano Vigna (vigna@acm.org)
+//
+//To the extent possible under law, the author has dedicated all copyright
+//and related and neighboring rights to this software to the public domain
+//worldwide. This software is distributed without any warranty.
+//
+//See <http://creativecommons.org/publicdomain/zero/1.0/>. */
+//
+//#include <stdint.h>
+//
+///* This is a fixed-increment version of Java 8's SplittableRandom generator
+//   See http://dx.doi.org/10.1145/2714064.2660195 and
+//   http://docs.oracle.com/javase/8/docs/api/java/util/SplittableRandom.html
+//
+//   It is a very fast generator passing BigCrush, and it can be useful if
+//   for some reason you absolutely want 64 bits of state; otherwise, we
+//   rather suggest to use a xoroshiro128+ (for moderately parallel
+//   computations) or xorshift1024* (for massively parallel computations)
+//   generator. */
+//
+//uint64_t x; /* The state can be seeded with any value. */
+//
+//uint64_t next() {
+//  uint64_t z = (x += 0x9e3779b97f4a7c15);
+//  z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
+//  z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
+//  return z ^ (z >> 31);
+//}
+//#endif
+
+NC::RandXRSRImpl::RandXRSRImpl(uint64_t theseed)
+{
+  seed(theseed);
+}
+
+void NC::RandXRSRImpl::seed(uint64_t theseed)
+{
+  //Seed the state, using splitmix64 as recommended (note that the call to
+  //splitmix64 actually changes the "theseed" variable, so m_s[0] and m_s[1]
+  //will not be identical):
+  m_s[0] = splitmix64(theseed);
+  m_s[1] = splitmix64(theseed);
+
+  //Mix up the state a little bit more, probably not really needed (NB: until
+  //NCrystal v2.5 we loop 1000 times here, now only 10):
+  for (unsigned i = 0; i<10; i++)
+    genUInt64WithBadLowerBits();
+}
+
+void NC::RandXRSRImpl::jump()
+{
+  static const uint64_t JUMP[] = { 0xbeac0467eba5facb, 0xd86b048b86aa9922 };
+  constexpr const int njump = static_cast<int>(sizeof(JUMP)/ sizeof(*JUMP));
+
+  uint64_t s0 = 0;
+  uint64_t s1 = 0;
+  for(int i = 0; i < njump; i++)
+    for(int b = 0; b < 64; b++) {
+      if (JUMP[i] & UINT64_C(1) << b) {
+        s0 ^= m_s[0];
+        s1 ^= m_s[1];
+      }
+      genUInt64WithBadLowerBits();
+    }
+
+  m_s[0] = s0;
+  m_s[1] = s1;
+}
+
+uint64_t NC::RandXRSRImpl::splitmix64(uint64_t& x)
+{
+  uint64_t z = (x += 0x9e3779b97f4a7c15);
+  z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
+  z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
+  return z ^ (z >> 31);
 }

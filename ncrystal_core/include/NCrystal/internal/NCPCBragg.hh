@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,61 +21,54 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCScatterIsotropic.hh"
-#include "NCrystal/NCInfo.hh"
+#include "NCrystal/NCMatInfo.hh"
+#include "NCrystal/NCProcImpl.hh"
 
 namespace NCrystal {
 
   class PlaneProvider;
 
-  class PCBragg : public ScatterIsotropic {
+  class PCBragg final : public ProcImpl::ScatterIsotropicMat {
   public:
 
-    //Calculates Bragg diffraction in a polycrystalline/powdered material.
+    //Calculates Bragg diffraction in a powdered (or non-textured
+    //polycrystalline) material. Does not account for texture, grain size,
+    //dspacing-deviations and other similar effects.
+
+    const char * name() const noexcept final { return "PCBragg"; }
 
     //Constructor:
-    PCBragg( const Info* );
+    PCBragg( const MatInfo& );
 
-    //Alternative constructor which use plane provider for source of
-    //planes. This is not particularly efficient in general for PCBragg, since
-    //it likely incurs the overhead of normal-creation, which is not actually
-    //needed. It exists mainly for specialised usage (such at putting some
-    //unimportant planes from a single crystal into a PCBragg instance as a
-    //tradeoff to gain faster simulations). Will *not* assume ownership of plane
-    //provider.
-    PCBragg( const StructureInfo& , PlaneProvider * );
+    //Specialised constructors taking (dspacing,fsquared*multiplicity) pairs.
+    //Either needs structure info, or just v0*n_atoms, unit cell volume in Aa^3
+    //and number atoms per unit cell:
 
-    //Specialised constructors taking (dspacing,fsquared*multiplicity) pairs
-    //(will sort passed vector, hence it is non-const). Either needs structure
-    //info, or just v0*n_atoms, unit cell volume in Aa^3 and number atoms per
-    //unit cell:
-    PCBragg( const StructureInfo&, std::vector<PairDD >& );
-    PCBragg( double v0_times_natoms, std::vector<PairDD >& );
+    using VectDFM = std::vector<PairDD>;
+    PCBragg( const StructureInfo&, VectDFM&& );
+    PCBragg( double v0_times_natoms, VectDFM&& );
 
-    //The cross-section (in barns):
-    virtual double crossSectionNonOriented(double ekin) const;
+    //There is a maximum wavelength at which Bragg diffraction is possible, so
+    //lower energy bound will reflect this (upper bound is infinity):
+    EnergyDomain domain() const noexcept final;
 
-    //There is a maximum wavelength at which Bragg diffraction is possible,
-    //so ekin_low will be set to reflect this (ekin_high will be set to infinity):
-    virtual void domain(double& ekin_low, double& ekin_high) const;
+    CrossSect crossSectionIsotropic(CachePtr&, NeutronEnergy ) const final;
+    ScatterOutcomeIsotropic sampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const final;
 
-    //Generate scatterings according to Bragg diffraction. This is elastic
-    //scattering and will always result in delta_ekin=0:
-    virtual void generateScatteringNonOriented( double ekin,
-                                                double& angle, double& delta_ekin ) const;
+    //Two PCBragg instances can be merged by merging the plane lists:
+    std::shared_ptr<Process> createMerged( const Process& ) const override;
 
-    virtual void generateScattering( double ekin, const double (&neutron_direction)[3],
-                                     double (&resulting_neutron_direction)[3], double& delta_ekin ) const;
+    //Empty, no planes:
+    PCBragg( no_init_t ) {}
 
   protected:
-    virtual ~PCBragg();
-    double genScatterMu(RandomBase*, double ekin) const;
-    std::size_t findLastValidPlaneIdx(double ekin) const;
-    double m_threshold;
+    CosineScatAngle genScatterMu(RNG&, NeutronEnergy ekin) const;
+    std::size_t findLastValidPlaneIdx( NeutronEnergy ekin) const;
+    NeutronEnergy m_threshold = NeutronEnergy{kInfinity};
     VectD m_2dE;
     VectD m_fdm_commul;
-    void init( const StructureInfo&, std::vector<PairDD >& );
-    void init( double v0_times_natoms, std::vector<PairDD >& );
+    void init( const StructureInfo&, VectDFM&& );
+    void init( double v0_times_natoms, VectDFM&& );
   };
 
 }

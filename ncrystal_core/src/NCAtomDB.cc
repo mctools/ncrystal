@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -35,7 +35,7 @@ namespace NCrystal {
     //We keep the database in two internal layers. One is essentially a static
     //and memory efficient list containing all the raw numbers for elements and
     //isotopes known to NCrystal, and the other is a standard CachedFactoryBase
-    //which delivers the actual AtomDataSP objects, with on-demand
+    //which delivers the actual OptionalAtomDataSP objects, with on-demand
     //initialisation and cache-clearance as usual.
 
     namespace internal {
@@ -57,7 +57,7 @@ namespace NCrystal {
       };
 
       //Entry in internal list of raw numbers (MoveOnly to make sure that vector<Entry> is newer copied).
-      struct Entry : public MoveOnly {
+      struct Entry : private MoveOnly {
         unsigned Z() const { return m_key.Z(); }
         unsigned A() const { return m_key.A(); }
         AtomDBKey key() const { return m_key; }
@@ -74,7 +74,7 @@ namespace NCrystal {
           return std::make_shared<AtomData>( SigmaBound{m_inc_xs},
                                              m_coh_sl,
                                              m_abs_xs,
-                                             m_mass_amu,
+                                             AtomMass{m_mass_amu},
                                              this->Z(),
                                              this->A() );
         }
@@ -114,7 +114,7 @@ namespace NCrystal {
 
     //This template argument of base class is true, i.e. factory keeps strong
     //not weak references.
-    class StdAtomDataFactory : public NC::CachedFactoryBase<AtomDBKey,AtomData,true> {
+    class StdAtomDataFactory : public NC::CachedFactoryBase<AtomDBKey,AtomData,CachedFactory_KeepAllStrongRefs> {
     public:
       const char* factoryName() const final { return "StdAtomDataFactory"; }
       std::string keyToString( const AtomDBKey& key ) const final
@@ -132,7 +132,7 @@ namespace NCrystal {
       }
 
     protected:
-      virtual AtomDataSP actualCreate( const AtomDBKey& key ) final
+      virtual OptionalAtomDataSP actualCreate( const AtomDBKey& key ) const final
       {
         auto entry = lookupEntry(key);
         if ( !entry )
@@ -148,14 +148,14 @@ namespace NCrystal {
   }
 }
 
-NC::AtomDataSP NC::AtomDB::getNaturalElement( unsigned Z )
+NC::OptionalAtomDataSP NC::AtomDB::getNaturalElement( unsigned Z )
 {
   if (!internal::AtomDBKey::isZAValid(Z,0))
     return nullptr;
   return internal::s_stdAtomDBFact.create(internal::AtomDBKey(Z,0));
 }
 
-NC::AtomDataSP NC::AtomDB::getNaturalElement( const std::string& name )
+NC::OptionalAtomDataSP NC::AtomDB::getNaturalElement( const std::string& name )
 {
   //Could use AtomSymbol class, but too simple:
   unsigned Z = elementNameToZ(name);
@@ -164,14 +164,14 @@ NC::AtomDataSP NC::AtomDB::getNaturalElement( const std::string& name )
   return internal::s_stdAtomDBFact.create(internal::AtomDBKey(Z,0));
 }
 
-NC::AtomDataSP NC::AtomDB::getIsotope( unsigned Z, unsigned A )
+NC::OptionalAtomDataSP NC::AtomDB::getIsotope( unsigned Z, unsigned A )
 {
   if (!internal::AtomDBKey::isZAValid(Z,A))
     return nullptr;
   return A>=Z ? internal::s_stdAtomDBFact.create(internal::AtomDBKey(Z,A)) : nullptr;
 }
 
-NC::AtomDataSP NC::AtomDB::getIsotope( const std::string& name )
+NC::OptionalAtomDataSP NC::AtomDB::getIsotope( const std::string& name )
 {
   AtomSymbol atomsymbol(name);
   if ( !atomsymbol.isIsotope() )
@@ -179,14 +179,14 @@ NC::AtomDataSP NC::AtomDB::getIsotope( const std::string& name )
   return getIsotope(atomsymbol.Z(),atomsymbol.A());
 }
 
-NC::AtomDataSP NC::AtomDB::getIsotopeOrNatElem( unsigned Z, unsigned A )
+NC::OptionalAtomDataSP NC::AtomDB::getIsotopeOrNatElem( unsigned Z, unsigned A )
 {
   if (!internal::AtomDBKey::isZAValid(Z,A))
     return nullptr;
   return internal::s_stdAtomDBFact.create(internal::AtomDBKey(Z,A));
 }
 
-NC::AtomDataSP NC::AtomDB::getIsotopeOrNatElem( const std::string& name )
+NC::OptionalAtomDataSP NC::AtomDB::getIsotopeOrNatElem( const std::string& name )
 {
   AtomSymbol atomsymbol(name);
   if ( ! (atomsymbol.isIsotope() || atomsymbol.isElement() ) )

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,30 +21,32 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCInfo.hh"
+#include "NCrystal/NCMatInfo.hh"
+#include "NCrystal/NCTextData.hh"
 #include "NCNXSLib.hh"
 
 namespace NCrystal {
 
-  class Info;
-
   class LazLoader{
   public:
-    LazLoader(std::string laz_file, double dcutlow, double dcutup, double temp);
+    LazLoader(const TextData& laz_file, double dcutlow, double dcutup, Temperature);
     ~LazLoader() = default;
     void read();
-    RCHolder<const Info> getCrystalInfo();
+    shared_obj<const MatInfo> getCrystalInfo();
   protected:
-    std::string m_full_path;
 
-    RCHolder<Info> m_cinfo;
+    void preParse(const TextData&);
+    std::string m_inputDescription;
+    std::vector<VectS> m_raw_header;
+    std::vector<VectS> m_raw_data;
+
+
+    shared_obj<MatInfo> m_cinfo;
     double m_dcutlow;
     double m_dcutup;
-    double m_temp;
+    Temperature m_temp;
     typedef VectS::const_iterator StrVecItr;
     typedef std::vector<VectS >::const_iterator RawItr;
-    std::vector<VectS > m_raw_header;
-    std::vector<VectS > m_raw_data;
     bool search_parameter(std::string attr, double &result);
     bool search_index(std::string attr, unsigned &result);
     bool search_spacegroup(unsigned &result);

@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -31,16 +31,15 @@ NC::ElIncXS::ElIncXS( const VectD& elm_msd,
   set( elm_msd, elm_bixs, elm_scale );
 }
 
-double NC::ElIncXS::evaluate(double ekin) const
+double NC::ElIncXS::evaluate(NeutronEnergy ekin) const
 {
   //NB: The cross-section code here must be consistent with code in
   //evaluateMonoAtomic() and sampleMu(..)
   constexpr double kkk = 16.0 * kPiSq * ekin2wlsqinv(1.0);
-  double e = kkk*ekin;
+  double e = kkk*ekin.dbl();
   double xs = 0.0;
-  std::vector<PairDD >::const_iterator it(m_elm_data.begin()), itE(m_elm_data.end());
-  for (;it!=itE;++it)
-    xs += it->second * eval_1mexpmtdivt(it->first * e);
+  for ( auto& elmdata : m_elm_data )
+    xs += elmdata.second * eval_1mexpmtdivt( elmdata.first * e );
   return xs;
 }
 
@@ -63,11 +62,11 @@ double NC::ElIncXS::eval_1mexpmtdivt(double t)
   return std::expm1(t) / t;
 }
 
-double NC::ElIncXS::evaluateMonoAtomic(double ekin, double meanSqDisp, double bound_incoh_xs)
+double NC::ElIncXS::evaluateMonoAtomic(NeutronEnergy ekin, double meanSqDisp, SigmaBound bound_incoh_xs)
 {
-  nc_assert(ekin>=0.0&&meanSqDisp>=0.0&&bound_incoh_xs>=0.0);
+  nc_assert(ekin.get()>=0.0&&meanSqDisp>=0.0&&bound_incoh_xs.get()>=0.0);
   constexpr double kkk = 16.0 * kPiSq * ekin2wlsqinv(1.0);
-  return bound_incoh_xs * eval_1mexpmtdivt(kkk * meanSqDisp * ekin);
+  return bound_incoh_xs.dbl() * eval_1mexpmtdivt(kkk * meanSqDisp * ekin.dbl());
 }
 
 NC::ElIncXS::~ElIncXS() = default;
@@ -79,29 +78,23 @@ void NC::ElIncXS::set( const VectD& elm_msd,
   //sanity check element data:
   nc_assert_always(elm_msd.size()==elm_bixs.size());
   nc_assert_always(elm_msd.size()==elm_scale.size());
-  for (std::size_t i = 0; i < elm_msd.size(); ++i) {
-    nc_assert(elm_msd.at(i)>=0.0&&elm_msd.at(i)<1e6);
-    nc_assert(elm_bixs.at(i)>=0.0&&elm_bixs.at(i)<1e6);
-    nc_assert(elm_scale.at(i)>=0.0&&elm_scale.at(i)<=1e6);
+  for ( auto i : ncrange( elm_msd.size() ) ) {
+    nc_assert_always(elm_msd.at(i)>=0.0&&elm_msd.at(i)<1e6);
+    nc_assert_always(elm_bixs.at(i)>=0.0&&elm_bixs.at(i)<1e6);
+    nc_assert_always(elm_scale.at(i)>=0.0&&elm_scale.at(i)<=1e6);
   }
 
-  //init:
-  {
-    //release old memory:
-    std::vector<PairDD >().swap(m_elm_data);
-  }
-
-  m_elm_data.reserve(elm_bixs.size());
-  for (std::size_t i = 0; i < elm_msd.size(); ++i) {
-    m_elm_data.push_back(PairDD(elm_msd[i],elm_bixs[i]*elm_scale[i]));
-  }
+  m_elm_data.clear();//releases all memory since it is SmallVector
+  m_elm_data.reserve_hint(elm_bixs.size());
+  for ( auto i : ncrange( elm_msd.size() ) )
+    m_elm_data.emplace_back( elm_msd[i], elm_bixs[i]*elm_scale[i] );
 }
 
-double NC::ElIncXS::sampleMuMonoAtomic( RandomBase * rng, double ekin, double meanSqDisp )
+double NC::ElIncXS::sampleMuMonoAtomic( RNG& rng, NeutronEnergy ekin, double meanSqDisp )
 {
-  nc_assert(ekin>=0.0&&meanSqDisp>=0.0);
+  nc_assert(ekin.dbl()>=0.0&&meanSqDisp>=0.0);
   constexpr double kkk = 8.0 * kPiSq * ekin2wlsqinv(1.0);
-  double twoksq = kkk * ekin;
+  double twoksq = kkk * ekin.dbl();
   double a = twoksq * meanSqDisp;
   //Must sample mu in [-1,1] according to exp(a*mu). This can either happen with
   //the rejection method which is always numerically stable but slow unless a is
@@ -113,8 +106,8 @@ double NC::ElIncXS::sampleMuMonoAtomic( RandomBase * rng, double ekin, double me
 
      double maxval = exp_smallarg_approx(a);
      while (true) {
-       double mu = rng->generate()*2.0-1.0;
-       if (rng->generate()*maxval < exp_smallarg_approx(a*mu))
+       double mu = rng.generate()*2.0-1.0;
+       if (rng.generate()*maxval < exp_smallarg_approx(a*mu))
          return mu;
      }
 
@@ -129,14 +122,12 @@ double NC::ElIncXS::sampleMuMonoAtomic( RandomBase * rng, double ekin, double me
     // x(R) = log( 1 + R * ( exp(2*a)-1 ) ) / a - 1
     //
     // Which can preferably be evaluated with expm1/log1p functions.
-    return ncclamp(std::log1p( rng->generate() * std::expm1(2.0*a) ) / a - 1.0,-1.0,1.0);
+    return ncclamp(std::log1p( rng.generate() * std::expm1(2.0*a) ) / a - 1.0,-1.0,1.0);
   }
 }
 
-double NC::ElIncXS::sampleMu( RandomBase * rng, double ekin )
+double NC::ElIncXS::sampleMu( RNG& rng, NeutronEnergy ekin )
 {
-  nc_assert(rng!=nullptr);
-
   const std::size_t nelem = m_elm_data.size();
   nc_assert(nelem!=0);
   if ( nelem == 1 )
@@ -161,15 +152,46 @@ double NC::ElIncXS::sampleMu( RandomBase * rng, double ekin )
   //NB: The cross-section code here must be consistent with code in
   //evaluateMonoAtomic() and evaluate(..):
   constexpr double kkk = 16.0 * kPiSq * ekin2wlsqinv(1.0);
-  double e = kkk*ekin;
+  double e = kkk*ekin.dbl();
   double xs = 0.0;
   auto itXS = elem_xs.begin();
-
-  std::vector<PairDD >::const_iterator it(m_elm_data.begin()), itE(m_elm_data.end());
+  auto it = m_elm_data.begin();
+  auto itE = m_elm_data.end();
   for (;it!=itE;++it,++itXS)
     *itXS = (xs += it->second * eval_1mexpmtdivt(it->first * e));
 
   auto choiceidx = pickRandIdxByWeight( rng, elem_xs );//pick index according to weights (values must be commulative)
   nc_assert(choiceidx<nelem);
   return sampleMuMonoAtomic( rng, ekin, m_elm_data[choiceidx].first );
+}
+
+NC::ElIncXS::ElIncXS( const ElIncXS& a, double scale_a, const ElIncXS& b, double scale_b )
+{
+  //m_elm_data is (msd,boundincohxs*scale)
+  nc_assert(scale_a>=0.0);
+  using ElmDataVector = decltype(m_elm_data);
+  ElmDataVector tmp;
+  tmp.reserve_hint( a.m_elm_data.size() + b.m_elm_data.size() );
+  auto addData = [&tmp](const ElmDataVector& data, double scale )
+  {
+    for ( auto& e : data ) {
+      double strength = e.second * scale;
+      if (strength)
+        tmp.emplace_back( e.first, strength );
+    }
+  };
+  addData(a.m_elm_data,scale_a);
+  addData(b.m_elm_data,scale_b);
+  std::sort(tmp.begin(),tmp.end());
+  ElmDataVector result;
+  result.reserve_hint(tmp.size());
+
+  for ( const auto& e : tmp ) {
+    if ( result.empty() || !floateq(result.back().first,e.first,1e-15) )
+      result.emplace_back( e );
+    else
+      result.back().second += e.second;
+  }
+  result.shrink_to_fit();
+  std::swap(m_elm_data,result);
 }

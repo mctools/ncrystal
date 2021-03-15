@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -63,9 +63,17 @@ namespace NCrystal {
   //Check if "haystack" consists entirely of chars from string needles:
   bool contains_only(const std::string& haystack, const std::string& needles);
 
+  //Change string casing:
+  std::string lowerCase( std::string );
+  std::string upperCase( std::string );
+
+  //Check if alphanumeric (defined as containing only a-zA-Z0-9):
+  bool isAlphaNumeric( const char );
+  bool isAlphaNumeric( const std::string& );
+
   //Convert strings to numbers. In case of problems, a BadInput exception will
   //be thrown (provide err to modify the message in that exception):
-  double str2dbl(const std::string&, const char * errmsg = 0);
+  NCRYSTAL_API double str2dbl(const std::string&, const char * errmsg = 0);//marked NCRYSTAL_API since used in custom physics example
   int str2int(const std::string&, const char * errmsg = 0);
 
   //Versions which don't throw:
@@ -95,6 +103,10 @@ namespace NCrystal {
   void prettyPrintValue(std::ostream& os, double value, unsigned prec=0 );
   std::string prettyPrintValue2Str(double value, unsigned prec=0 );
 
+  //Convert values to/from hex strings:
+  std::string bytes2hexstr(const std::vector<uint8_t>& v);
+  std::vector<uint8_t> hexstr2bytes(const std::string& v);
+
   //Common access to environment variables - will always be prefixed with
   //NCRYSTAL_. Unset variables means that the default values will be
   //returned. The _dbl/_int versions throws BadInput exceptions in case of
@@ -105,6 +117,46 @@ namespace NCrystal {
   double ncgetenv_dbl(std::string, double defval = 0.0);
   int ncgetenv_int(std::string, int defval = 0 );
   bool ncgetenv_bool(std::string);//if set to 1 -> true, 0/unset -> false (otherwise exception).
+
+}
+
+
+////////////////////////////
+// Inline implementations //
+////////////////////////////
+
+namespace NCrystal {
+
+  inline std::string lowerCase( std::string s )
+  {
+    static_assert('A'+32 == 'a',"");
+    for (auto& c : s)
+      if ( c >= 'A' && c <= 'Z' )
+        c += 32;
+    return s;
+  }
+
+  inline std::string upperCase( std::string s )
+  {
+    static_assert('A'+32 == 'a',"");
+    for (auto& c : s)
+      if ( c >= 'a' && c <= 'z' )
+        c -= 32;
+    return s;
+  }
+
+  inline bool isAlphaNumeric( const char c )
+  {
+    return ( c>='a' && c<='z' ) || ( c>='A' && c<='Z' ) || ( c>='0' && c<='9' );
+  }
+
+  inline bool isAlphaNumeric( const std::string& s )
+  {
+    for ( auto c : s )
+      if (!isAlphaNumeric(c))
+        return false;
+    return true;
+  }
 
 }
 

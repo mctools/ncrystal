@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -20,19 +20,20 @@
 
 #include "NCrystal/internal/NCPlaneProvider.hh"
 #include "NCrystal/internal/NCOrientUtils.hh"
-#include "NCrystal/NCInfo.hh"
+#include "NCrystal/NCMatInfo.hh"
 #include "NCrystal/internal/NCRotMatrix.hh"
 #include "NCrystal/internal/NCEqRefl.hh"
 
 namespace NCrystal {
 
-  PlaneProvider::PlaneProvider(){}
-  PlaneProvider::~PlaneProvider(){}
+  PlaneProvider::PlaneProvider() = default;
+  PlaneProvider::~PlaneProvider() = default;
 
   class PlaneProviderStd final : public PlaneProvider {
   public:
 
-    PlaneProviderStd(const Info*);
+    PlaneProviderStd(shared_obj<const MatInfo>);
+    PlaneProviderStd( const MatInfo * );
     virtual ~PlaneProviderStd() = default;
 
     bool canProvide() const final;
@@ -40,7 +41,8 @@ namespace NCrystal {
     bool getNextPlane(double& dspacing, double& fsq, Vector& demi_normal) final;
 
   private:
-    RCHolder<const Info> m_info;
+    optional_shared_obj<const MatInfo> m_info_strongref;
+    const MatInfo* m_info;
     enum{ STRAT_MISSING, STRAT_DEMINORMAL, STRAT_EXPHKL, STRAT_SPACEGROUP } m_strategy;
     //outer loop:
     HKLList::const_iterator m_it_hklE;
@@ -76,28 +78,34 @@ namespace NCrystal {
     EqRefl m_eqreflcalc;
   };
 
-  PlaneProviderStd::PlaneProviderStd(const Info* cinfo)
+  PlaneProviderStd::PlaneProviderStd(shared_obj<const MatInfo> cinfo)
+    : PlaneProviderStd(cinfo.get())
+  {
+    m_info_strongref = std::move(cinfo);
+  }
+
+  PlaneProviderStd::PlaneProviderStd(const MatInfo* cinfo)
     : PlaneProvider(),
       m_info(cinfo),
       m_strategy(STRAT_MISSING),
       m_ii(0)
   {
-    nc_assert(cinfo);
-    if (cinfo->hasHKLInfo()) {
-      m_it_hkl  = cinfo->hklBegin();
-      m_it_hklE = cinfo->hklEnd();
-      if ( cinfo->hasHKLDemiNormals() ) {
+    nc_assert(m_info);
+    if (m_info->hasHKLInfo()) {
+      m_it_hkl  = m_info->hklBegin();
+      m_it_hklE = m_info->hklEnd();
+      if ( m_info->hasHKLDemiNormals() ) {
         m_strategy = STRAT_DEMINORMAL;
-      } else if ( cinfo->hasExpandedHKLInfo() ) {
+      } else if ( m_info->hasExpandedHKLInfo() ) {
         m_strategy = STRAT_EXPHKL;
-      } else if ( cinfo->hasStructureInfo() && cinfo->getStructureInfo().spacegroup ) {
+      } else if ( m_info->hasStructureInfo() && m_info->getStructureInfo().spacegroup ) {
         m_strategy = STRAT_SPACEGROUP;
         if (m_it_hkl!=m_it_hklE)
-          m_sg = std::make_unique<StrSG>(cinfo->getStructureInfo().spacegroup);
+          m_sg = std::make_unique<StrSG>(m_info->getStructureInfo().spacegroup);
       }
     }
     if ( m_strategy == STRAT_EXPHKL || m_strategy == STRAT_SPACEGROUP )
-      m_reci_lattice = getReciprocalLatticeRot( *cinfo );
+      m_reci_lattice = getReciprocalLatticeRot( *m_info );
     if (canProvide())
       prepareLoop();
   }
@@ -112,8 +120,8 @@ namespace NCrystal {
     if (!canProvide())
       NCRYSTAL_THROW(MissingInfo,"Insufficient information for plane normals: Neither"
                      " HKL normals, expanded HKL info, or spacegroup number is available.");
+    nc_assert(m_info);
     m_ii = 0;
-    nc_assert(m_info.obj());
     m_it_hkl  = m_info->hklBegin();
     m_it_hklE = m_info->hklEnd();
     if ( m_sg ) {
@@ -148,7 +156,7 @@ namespace NCrystal {
     const HKLInfo::Normal & nn = m_it_hkl->demi_normals.at(m_ii++);
     dspacing = m_it_hkl->dspacing;
     fsq = m_it_hkl->fsquared;
-    demi_normal.set(nn.x, nn.y, nn.z);
+    demi_normal = nn.as<Vector>();
     return true;
   }
 
@@ -190,7 +198,11 @@ namespace NCrystal {
     return true;
   }
 
-  std::unique_ptr<PlaneProvider> createStdPlaneProvider(const Info* info)
+  std::unique_ptr<PlaneProvider> createStdPlaneProvider(shared_obj<const MatInfo> info)
+  {
+    return std::make_unique<PlaneProviderStd>(std::move(info));
+  }
+  std::unique_ptr<PlaneProvider> createStdPlaneProvider(const MatInfo* info)
   {
     return std::make_unique<PlaneProviderStd>(info);
   }

@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -25,8 +25,8 @@ namespace NC=NCrystal;
 
 #define NCRYSTAL_FREEGASUTILS_ENABLEEXTRADEBUGGING 0
 
-NC::FreeGasXSProvider::FreeGasXSProvider( double temp_kelvin,
-                                          double target_mass_amu,
+NC::FreeGasXSProvider::FreeGasXSProvider( Temperature temp_kelvin,
+                                          AtomMass target_mass_amu,
                                           SigmaFree sigma )
 {
   //Evaluate cross-sections via sampling paper (10.1016/j.jcp.2018.11.043)
@@ -38,24 +38,24 @@ NC::FreeGasXSProvider::FreeGasXSProvider( double temp_kelvin,
   //Sampling paper eq. 20 does not include A=M/mn in "a", but here we scale a by
   //sqrt(A). Not sure where we got this from, but it was heavily validated using
   //numerical integration of sampling paper eq. 19.
+  temp_kelvin.validate();
+  target_mass_amu.validate();
+  sigma.validate();
 
-
-  double A = target_mass_amu / const_neutron_atomic_mass;//mass_nuclide / mass_neutron
-  m_sigmaFree = sigma.val;
-  nc_assert_always( temp_kelvin > 0.0);
-  nc_assert_always( target_mass_amu > 0.0);
+  double A = target_mass_amu.relativeToNeutronMass();//mass_nuclide / mass_neutron
+  m_sigmaFree = sigma.get();
+  nc_assert_always( temp_kelvin.get() > 0.0);
+  nc_assert_always( target_mass_amu.get() > 0.0);
   nc_assert_always( m_sigmaFree > 0.0);
 
-  const double kT = constant_boltzmann * temp_kelvin;
-  nc_assert(kT>0.0);
-  m_ca = A/kT;//a^2 = A*E/kT = ca*E with ca = A/kT [units 1/eV]:
+  nc_assert( temp_kelvin.kT() > 0.0 );
+  m_ca = A / temp_kelvin.kT();//a^2 = A*E/kT = ca*E with ca = A/kT [units 1/eV]:
 }
 
-NC::FreeGasXSProvider::FreeGasXSProvider( double temp_kelvin,
-                                          double target_mass_amu,
-                                          SigmaBound sigma )
-  : FreeGasXSProvider(temp_kelvin,target_mass_amu,
-                      SigmaFree{std::pow(target_mass_amu/(const_neutron_atomic_mass+target_mass_amu),2)*sigma.val})
+NC::FreeGasXSProvider::FreeGasXSProvider( Temperature temp_kelvin,
+                                          AtomMass target_mass_amu,
+                                          SigmaBound sb )
+  : FreeGasXSProvider( temp_kelvin, target_mass_amu, sb.free(target_mass_amu) )
 {
 }
 
@@ -234,7 +234,7 @@ namespace NCrystal {
   // (could go to NCRandUtils if useful outside free gas sampling) //
   ///////////////////////////////////////////////////////////////////
 
-  double randExpMInvXMCXDivSqrtX( RandomBase& rng, double c, double xm, double xp )
+  double randExpMInvXMCXDivSqrtX( RNG& rng, double c, double xm, double xp )
   {
     //sample f(x)=exp(-1/x-c*x)/sqrt(x) over [xm,xp]
     //
@@ -489,24 +489,29 @@ namespace NCrystal {
 
 }
 
-NC::FreeGasSampler::FreeGasSampler(double ekin, double temp_kelvin, double target_mass_amu)
-  : m_c(ncmin(1e14,ncmax(1e-10,ekin/(constant_boltzmann*temp_kelvin)))),
+NC::FreeGasSampler::FreeGasSampler(NeutronEnergy ekin, Temperature temp_kelvin, AtomMass target_mass_amu)
+  : m_c(ncmin(1e14,ncmax(1e-10,ekin.get()/(temp_kelvin.kT())))),
     //nb: we constrain m_c for numerical safety (1.16e13 is 1GeV neutron on 1Kelvin material)
-    m_kT(constant_boltzmann*temp_kelvin),
-    m_sqrtAc(std::sqrt(target_mass_amu*m_c/const_neutron_atomic_mass)),
-    m_invA(const_neutron_atomic_mass/target_mass_amu),
-    m_Adiv4(0.25*target_mass_amu/const_neutron_atomic_mass),
+    m_kT(temp_kelvin.kT()),
+    m_sqrtAc(std::sqrt(target_mass_amu.get()*m_c/const_neutron_atomic_mass)),
+    m_invA(1.0/target_mass_amu.relativeToNeutronMass()),
+    m_Adiv4(0.25*target_mass_amu.relativeToNeutronMass()),
     m_normfact(0.5/std::erf(std::sqrt(m_c*m_invA))),
-    m_c_real(ekin/(constant_boltzmann*temp_kelvin))//unconstrainted version of m_c
+    m_c_real(ekin.get()/(temp_kelvin.kT()))//unconstrainted version of m_c
 {
+#ifndef NDEBUG
   nc_assert(m_c>0);
   nc_assert(m_c_real>=0);
-  nc_assert(ekin>=0);
-  nc_assert(temp_kelvin>0);
+  nc_assert(ekin.get()>=0);
+  nc_assert(temp_kelvin.get()>0);
   nc_assert(m_kT>0);
-  nc_assert(target_mass_amu>0);
+  nc_assert(target_mass_amu.get()>0);
   nc_assert(m_invA>0);
   nc_assert(m_sqrtAc>0.0);
+  ekin.validate();
+  temp_kelvin.validate();
+  target_mass_amu.validate();
+#endif
 }
 
 NC::FreeGasSampler::~FreeGasSampler() = default;
@@ -522,7 +527,7 @@ void NC::FreeGasSampler::testBetaDistEval (double beta, double & f_exact, double
   f_exact = eval_helper.evalExact();
 }
 
-double NC::FreeGasSampler::sampleBeta( RandomBase& rng ) const
+double NC::FreeGasSampler::sampleBeta( RNG& rng ) const
 {
   if (m_c_real>1e4) {
     //At extremely high energy the neutron will to a very good approximation
@@ -843,7 +848,7 @@ double NC::FreeGasSampler::sampleBeta( RandomBase& rng ) const
   }
 }
 
-double NC::FreeGasSampler::sampleAlpha( double beta, RandomBase& rng ) const
+double NC::FreeGasSampler::sampleAlpha( double beta, RNG& rng ) const
 {
   // We must sample alpha in [alpha-,alpha+] from the free-gas S(alpha,beta),
   // which is proportional to (A=M/m_neutron):

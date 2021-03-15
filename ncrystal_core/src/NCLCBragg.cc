@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,43 +22,44 @@
 #include "NCrystal/internal/NCLCUtils.hh"
 #include "NCrystal/internal/NCLCRefModels.hh"
 #include "NCrystal/internal/NCSCBragg.hh"
-#include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCDefs.hh"
 #include "NCrystal/internal/NCVector.hh"
 #include "NCrystal/internal/NCLatticeUtils.hh"
 #include "NCrystal/internal/NCOrientUtils.hh"
 #include "NCrystal/internal/NCPlaneProvider.hh"
 
+namespace NC = NCrystal;
+
 namespace NCrystal{
 
   struct LCBragg::pimpl {
 
-    pimpl(LCBragg * lcbragg, Vector lcaxis, int mode,
-          SCOrientation sco, const Info* cinfo, PlaneProvider * plane_provider,
-          double mosaicity, double delta_d, double prec,double ntrunc)
+    pimpl(LCBragg * lcbragg, LCAxis lcaxis, int mode,
+          SCOrientation sco, const MatInfo& cinfo, PlaneProvider * plane_provider,
+          MosaicityFWHM mosaicity, double delta_d, double prec,double ntrunc)
       : m_ekin_low(-1)
     {
-      nc_assert_always(lcbragg&&cinfo);
+      nc_assert_always(lcbragg);
 
       //Convert lcaxis to lab frame:
-      RotMatrix reci_lattice = getReciprocalLatticeRot( *cinfo );
+      RotMatrix reci_lattice = getReciprocalLatticeRot( cinfo );
       RotMatrix cry2lab = getCrystal2LabRot( sco, reci_lattice );
-      Vector lcaxis_labframe = (cry2lab * lcaxis).unit();
+      LCAxis lcaxis_labframe = (cry2lab * lcaxis.as<Vector>()).unit().as<LCAxis>();
 
       if (mode==0) {
         nc_assert_always(delta_d==0);//mode=0 does not currently support delta_d!=0
-        if (!cinfo->hasStructureInfo())
+        if (!cinfo.hasStructureInfo())
           NCRYSTAL_THROW(MissingInfo,"Passed Info object lacks structure information.");
-        nc_assert_always(cinfo&&cinfo->hasStructureInfo());
-        const StructureInfo& si = cinfo->getStructureInfo();
+        nc_assert_always(cinfo.hasStructureInfo());
+        const StructureInfo& si = cinfo.getStructureInfo();
 
         std::unique_ptr<PlaneProvider> stdpp;
         if (!plane_provider) {
-          stdpp = createStdPlaneProvider(cinfo);
+          stdpp = createStdPlaneProvider(&cinfo);
           plane_provider = stdpp.get();
         }
 
-        m_lchelper = std::make_unique<LCHelper>( lcaxis.unit(),
+        m_lchelper = std::make_unique<LCHelper>( lcaxis.as<Vector>().unit().as<LCAxis>(),
                                                  lcaxis_labframe,
                                                  mosaicity,
                                                  si.volume * si.n_atoms,
@@ -68,19 +69,16 @@ namespace NCrystal{
         m_ekin_low = wl2ekin( m_lchelper->braggThreshold() );
 
       } else {
-        auto scbragg = makeRC<SCBragg>(cinfo,sco,mosaicity,delta_d,plane_provider,prec, ntrunc);
+        auto scbragg = makeSO<SCBragg>(cinfo,sco,mosaicity,delta_d,plane_provider,prec, ntrunc);
         if (mode>0) {
-          m_scmodel = makeRC<LCBraggRef>(scbragg.obj(), lcaxis_labframe, mode);
+          m_scmodel = std::make_shared<LCBraggRef>(scbragg, lcaxis_labframe, mode);
         } else {
           int nsample = -mode;
           nc_assert(nsample>0);
-          m_scmodel = makeRC<LCBraggRndmRot>(scbragg.obj(), lcaxis_labframe, nsample);
+          m_scmodel = std::make_shared<LCBraggRndmRot>(scbragg, lcaxis_labframe, nsample);
         }
-        lcbragg->registerSubCalc(m_scmodel.obj());
-        nc_assert(m_scmodel->isSubCalc(scbragg.obj()));
-        double ekin_high;
-        m_scmodel->domain(m_ekin_low,ekin_high);
-        nc_assert(ekin_high==kInfinity);
+        m_ekin_low = m_scmodel->domain().elow.get();
+        nc_assert(ncisinf(m_scmodel->domain().ehigh.get()));
       }
 
       nc_assert(m_ekin_low>0);
@@ -90,65 +88,57 @@ namespace NCrystal{
 
     double m_ekin_low;
     std::unique_ptr<LCHelper> m_lchelper;
-    LCHelper::Cache m_lchcache;//TODO: do something more elaborate (or MT
-                               //safe?) than this? Caching the last N calls,
-                               //might speed up some scenarios.
-    RCHolder<Scatter> m_scmodel;
+    ProcImpl::OptionalProcPtr m_scmodel;
   };
 
 }
 
-NCrystal::LCBragg::LCBragg( const Info* ci, const SCOrientation& sco, double mosaicity,
-                            const double (&lcaxis)[3], int mode, double delta_d, PlaneProvider * plane_provider,
-                            double prec, double ntrunc)
-  : Scatter("LCBragg"),
-    m_pimpl(std::make_unique<pimpl>(this,asVect(lcaxis),mode,sco,ci,plane_provider,mosaicity,delta_d,prec,ntrunc))
+NC::LCBragg::LCBragg( const MatInfo& ci, const SCOrientation& sco, MosaicityFWHM mosaicity,
+                      const LCAxis& lcaxis, int mode, double delta_d, PlaneProvider * plane_provider,
+                      double prec, double ntrunc)
+  : m_pimpl(std::make_unique<pimpl>(this,lcaxis,mode,sco,ci,plane_provider,mosaicity,delta_d,prec,ntrunc))
 {
-  nc_assert_always(ci);
-  nc_assert_always(bool(m_pimpl->m_lchelper)!=bool(m_pimpl->m_scmodel.obj()));
-  validate();
+  nc_assert_always(bool(m_pimpl->m_lchelper)!=bool(m_pimpl->m_scmodel!=nullptr));
 }
 
-NCrystal::LCBragg::~LCBragg() = default;
+NC::LCBragg::~LCBragg() = default;
 
-void NCrystal::LCBragg::domain(double& ekin_low, double& ekin_high) const
+NC::EnergyDomain NC::LCBragg::domain() const noexcept
 {
-  nc_assert(m_pimpl->m_ekin_low>0);
-  ekin_low = m_pimpl->m_ekin_low;
-  ekin_high = kInfinity;
+  return { NeutronEnergy{m_pimpl->m_ekin_low}, NeutronEnergy{kInfinity} };
 }
 
-
-void NCrystal::LCBragg::generateScattering( double ekin,
-                                            const double (&indir)[3],
-                                            double (&outdir)[3],
-                                            double& delta_ekin ) const
+NC::CrossSect NC::LCBragg::crossSection(NC::CachePtr& cp, NC::NeutronEnergy ekin, const NC::NeutronDirection& indir ) const
 {
-  delta_ekin = 0;
-  if ( ekin < m_pimpl->m_ekin_low ) {
-    asVect(outdir) = asVect(indir);
-    return;
-  }
+  if ( ekin.get() < m_pimpl->m_ekin_low )
+    return CrossSect{ 0.0 };
 
   if (! m_pimpl->m_scmodel ) {
-    RandomBase* rng = this->getRNG();
-
-    m_pimpl->m_lchelper->genScatter( m_pimpl->m_lchcache, rng, ekin2wl(ekin), asVect(indir), asVect(outdir) );
-    return;
+    NeutronWavelength wl{ekin};
+    if (!(wl.get()>0.0))
+      return CrossSect{ 0.0 };
+    const Vector& indirv = indir.as<Vector>().unit();
+    return CrossSect{ m_pimpl->m_lchelper->crossSection( accessCache<LCHelper::Cache>(cp), wl.get(), indirv ) };
   } else {
-    m_pimpl->m_scmodel->generateScattering(ekin,indir,outdir,delta_ekin);
+    return CrossSect{ m_pimpl->m_scmodel->crossSection( cp, ekin, indir ) };
   }
 }
 
-double NCrystal::LCBragg::crossSection( double ekin,
-                                        const double (&indir)[3] ) const
+NC::ScatterOutcome NC::LCBragg::sampleScatter(NC::CachePtr& cp, NC::RNG& rng, NC::NeutronEnergy ekin, const NC::NeutronDirection& indir ) const
 {
-  if ( ekin < m_pimpl->m_ekin_low )
-    return 0.0;
+  if ( ekin.get() < m_pimpl->m_ekin_low )
+    return { ekin, indir };
 
   if (! m_pimpl->m_scmodel ) {
-    return m_pimpl->m_lchelper->crossSection( m_pimpl->m_lchcache, ekin2wl(ekin), asVect(indir) );
+    NeutronWavelength wl{ekin};
+    if (!(wl.get()>0.0))
+      return { ekin, indir };
+
+    const Vector& indirv = indir.as<Vector>().unit();
+    Vector outdir;
+    m_pimpl->m_lchelper->genScatter( accessCache<LCHelper::Cache>(cp), rng, wl.get(), indirv, outdir );
+    return { ekin, outdir.as<NeutronDirection>() };
   } else {
-    return m_pimpl->m_scmodel->crossSection(ekin,indir);
+    return m_pimpl->m_scmodel->sampleScatter( cp, rng, ekin, indir );
   }
 }

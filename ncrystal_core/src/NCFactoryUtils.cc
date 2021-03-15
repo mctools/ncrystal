@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -19,12 +19,14 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/NCFactoryUtils.hh"
+#include "NCrystal/internal/NCString.hh"
 namespace NC = NCrystal;
 
 namespace NCrystal {
   namespace {
-    static std::atomic<bool> s_factoryVerbosity(bool(getenv("NCRYSTAL_DEBUG_FACTORY")));
-    static std::atomic<bool> s_factoriesKeepStrongRefs(bool(getenv("NCRYSTAL_FACTORIES_KEEPS_STRONG_REFS")));
+    static std::atomic<bool> s_factoryVerbosity( ncgetenv_bool("DEBUG_FACTORY")
+                                                 || ncgetenv_bool("DEBUGFACTORY")
+                                                 || ncgetenv_bool("DEBUG_FACT") );
   }
 }
 
@@ -36,14 +38,4 @@ void NC::enableFactoryVerbosity( bool status )
 bool NC::getFactoryVerbosity()
 {
   return s_factoryVerbosity;
-}
-
-void NC::enableAllFactoriesKeepStrongRefs( bool status )
-{
-  s_factoriesKeepStrongRefs = status;
-}
-
-bool NC::getAllFactoriesKeepStrongRefs()
-{
-  return s_factoriesKeepStrongRefs;
 }

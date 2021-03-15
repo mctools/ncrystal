@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -25,7 +25,6 @@
 #include "NCrystal/internal/NCString.hh"
 #include "NCrystal/internal/NCIter.hh"
 #include "NCrystal/internal/NCSABUtils.hh"
-#include "NCrystal/NCInfo.hh"
 namespace NC=NCrystal;
 #include <iostream>
 
@@ -639,7 +638,7 @@ NC::ScatKnlData NC::createScatteringKernel( const VDOSData& vdosdata,
   double targetEmax = targetEmax_requested>0.0 ? targetEmax_requested : lux2emax[vdoslux];
 
   if (V2SKDetail::s_verbose)
-    std::cout<<"NCrystal::VDOS2SK initiating with T="<<vdosdata.temperature()<<"K, vdoslux="<<vdoslux
+    std::cout<<"NCrystal::VDOS2SK initialising with T="<<vdosdata.temperature()<<", vdoslux="<<vdoslux
              <<", aiming for Emax="<<targetEmax<<"eV"<<(targetEmax_requested>0.0?" (as requested)":"")<<", ..."<<std::endl;
 
   //Initialise evaluators:

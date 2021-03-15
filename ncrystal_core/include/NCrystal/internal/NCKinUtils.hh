@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
+#include "NCrystal/NCTypes.hh"
 
 //Various utilities related to kinematics, including those related to the
 //S(alpha,beta) formalism.
@@ -31,8 +31,8 @@ namespace NCrystal {
   //Get deltaE and mu=cos(scattering_angle) from (alpha,beta). It is recommended
   //to check muIsotropicAtBeta before calling this (for numerical safety, but it
   //might also save the effort of sampling alpha).
-  PairDD convertAlphaBetaToDeltaEMu(double alpha, double beta, double ekin, double kT );
-  inline PairDD convertAlphaBetaToDeltaEMu(PairDD alphabeta, double ekin, double kT )
+  PairDD convertAlphaBetaToDeltaEMu(double alpha, double beta, NeutronEnergy ekin, double kT );
+  inline PairDD convertAlphaBetaToDeltaEMu(PairDD alphabeta, NeutronEnergy ekin, double kT )
   {
     return convertAlphaBetaToDeltaEMu(alphabeta.first,alphabeta.second,ekin,kT);
   }

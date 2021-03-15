@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -19,7 +19,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/NCSpline.hh"
-#include "NCrystal/NCDefs.hh"
 #include <cstdlib>
 
 //TODO: For convenience, CubicSpline derivatives should default to
@@ -122,7 +121,7 @@ void NCrystal::SplinedLookupTable::set( const Fct1D* thefct,
 
 
 #include "NCrystal/internal/NCString.hh"
-#include "NCrystal/NCFile.hh"
+#include "NCrystal/internal/NCFileUtils.hh"
 #include <fstream>
 #include <sstream>
 #include <iostream>

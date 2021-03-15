@@ -3,7 +3,7 @@
 /*                                                                            */
 /*  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   */
 /*                                                                            */
-/*  Copyright 2015-2020 NCrystal developers                                   */
+/*  Copyright 2015-2021 NCrystal developers                                   */
 /*                                                                            */
 /*  Licensed under the Apache License, Version 2.0 (the "License");           */
 /*  you may not use this file except in compliance with the License.          */
@@ -26,9 +26,9 @@
 #include <stdlib.h>
 
 double my_randgen() {
-  /*using rand from stdlib.h for this small example (note, this is not really */
-  /*recommended for scientific work).                                         */
-  return rand() / (RAND_MAX + 1.);
+  /* Using rand from stdlib.h for this small example to generate numbers     */
+  /* uniformly in (0,1] (note, this is NOT recommended for scientific work). */
+  return 1.0-rand() / (RAND_MAX + 1.);
 }
 
 int main() {

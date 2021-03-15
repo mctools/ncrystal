@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
+#include "NCrystal/NCTypes.hh"
 
 namespace NCrystal {
 
@@ -34,14 +34,14 @@ namespace NCrystal {
     const VectD& alphaGrid() const { return m_a; }
     const VectD& betaGrid() const { return m_b; }
     const VectD& sab() const { return m_sab; }
-    double temperature() const { return m_t; }
+    Temperature temperature() const { return m_t; }
     SigmaBound boundXS() const { return m_bxs; }
-    double elementMassAMU() const { return m_m; }
+    AtomMass elementMassAMU() const { return m_m; }
     double suggestedEmax() const { return m_sem; }
 
     //Constructors etc. (all expensive operations forbidden):
     SABData( VectD&& alphaGrid, VectD&& betaGrid, VectD&& sab,
-             double temperature, SigmaBound boundXS, double elementMassAMU,
+             Temperature temperature, SigmaBound boundXS, AtomMass elementMassAMU,
              double suggestedEmax = 0 );
     SABData ( SABData && ) = default;
     SABData & operator= ( SABData && ) = default;
@@ -52,7 +52,9 @@ namespace NCrystal {
 
   private:
     VectD m_a, m_b, m_sab;
-    double m_t, m_m, m_sem;
+    Temperature m_t;
+    AtomMass m_m;
+    double m_sem;
     SigmaBound m_bxs;
   };
 
@@ -64,13 +66,13 @@ namespace NCrystal {
     //Access data:
     const PairDD& vdos_egrid() const { return m_e; }
     const VectD& vdos_density() const { return m_d; }
-    double temperature() const { return m_t; }
+    Temperature temperature() const { return m_t; }
     SigmaBound boundXS() const { return m_bxs; }
-    double elementMassAMU() const { return m_m; }
+    AtomMass elementMassAMU() const { return m_m; }
 
     //Constructors etc. (all expensive operations forbidden):
     VDOSData( PairDD egrid, VectD&& density,
-              double temperature, SigmaBound boundXS, double elementMassAMU );
+              Temperature temperature, SigmaBound boundXS, AtomMass elementMassAMU );
     VDOSData ( VDOSData && ) = default;
     VDOSData & operator= ( VDOSData && ) = default;
     VDOSData ( const VDOSData & ) = delete;
@@ -81,7 +83,8 @@ namespace NCrystal {
   private:
     PairDD m_e;
     VectD m_d;
-    double m_t, m_m;
+    Temperature m_t;
+    AtomMass m_m;
     SigmaBound m_bxs;
   };
 

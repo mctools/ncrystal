@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -37,18 +37,24 @@ namespace NCrystal {
     //only base calculations on values derived from those rounded values:
     struct VDOSDebyePars {
       unsigned reduced_vdoslux;
-      double elementMass, temperature, debyeTemperature;
+      AtomMass elementMass;
+      Temperature temperature;
+      DebyeTemperature debyeTemperature;
       SigmaBound boundXS;
     };
 
-    VDOSDebyeKey getKey(unsigned reduced_vdoslux, double temperature, double debyeTemperature, SigmaBound boundXS, double elementMassAMU ) {
+    VDOSDebyeKey getKey(unsigned reduced_vdoslux, Temperature t, DebyeTemperature dt, SigmaBound sb, AtomMass mass ) {
+      dt.validate();
+      t.validate();
+      sb.validate();
+      mass.validate();
       nc_assert(reduced_vdoslux<=2);
       auto roundFct = [](double x) { nc_assert(x>0.0&&x<1.0e15); return static_cast<uint64_t>(1000.0*x+0.5); };
       return VDOSDebyeKey( reduced_vdoslux,
-                           roundFct(elementMassAMU),
-                           roundFct(boundXS.val),
-                           roundFct(temperature),
-                           roundFct(debyeTemperature) );
+                           roundFct(mass.get()),
+                           roundFct(sb.get()),
+                           roundFct(t.get()),
+                           roundFct(dt.get()) );
     }
     VDOSDebyeKey getKey(unsigned reduced_vdoslux, const DI_VDOSDebye& di) {
       return getKey(reduced_vdoslux,
@@ -62,9 +68,9 @@ namespace NCrystal {
       //always base calculations only on what can be extracted using the key
       //(this is important due to rounding):
       return { std::get<0>(key),
-               std::get<1>(key)*0.001,
-               std::get<3>(key)*0.001,
-               std::get<4>(key)*0.001,
+               AtomMass{std::get<1>(key)*0.001},
+               Temperature{std::get<3>(key)*0.001},
+               DebyeTemperature{std::get<4>(key)*0.001},
                SigmaBound{std::get<2>(key)*0.001} };
     }
 
@@ -73,7 +79,7 @@ namespace NCrystal {
     std::shared_ptr<const SABData> extractFromDIVDOSDebyeNoCache( const VDOSDebyeKey& );
 
     //Factories:
-    class VDOS2SABFactory : public NC::CachedFactoryBase<VDOSKey,SABData> {
+    class VDOS2SABFactory : public NC::CachedFactoryBase<VDOSKey,SABData,10> {
     public:
       const char* factoryName() const final { return "VDOS2SABFactory"; }
       std::string keyToString( const VDOSKey& key ) const final
@@ -83,7 +89,7 @@ namespace NCrystal {
         return ss.str();
       }
     protected:
-      virtual ShPtr actualCreate( const VDOSKey& key ) final
+      virtual ShPtr actualCreate( const VDOSKey& key ) const final
       {
         unsigned vdoslux = std::get<1>(key);
         const DI_VDOS* di_vdos = std::get<2>(key);
@@ -92,7 +98,7 @@ namespace NCrystal {
       }
     };
 
-    class VDOSDebye2SABFactory : public NC::CachedFactoryBase<VDOSDebyeKey,SABData> {
+    class VDOSDebye2SABFactory : public NC::CachedFactoryBase<VDOSDebyeKey,SABData,10> {
     public:
       const char* factoryName() const final { return "VDOSDebye2SABFactory"; }
       std::string keyToString( const VDOSDebyeKey& key ) const final
@@ -103,11 +109,11 @@ namespace NCrystal {
           <<";M="<<p.elementMass
           <<";T="<<p.temperature
           <<";TDebye="<<p.debyeTemperature
-          <<";boundXS="<<p.boundXS.val<<")";
+          <<";boundXS="<<p.boundXS<<")";
         return ss.str();
       }
     protected:
-      virtual ShPtr actualCreate( const VDOSDebyeKey& key ) final
+      virtual ShPtr actualCreate( const VDOSDebyeKey& key ) const final
       {
         return extractFromDIVDOSDebyeNoCache(key);
       }
@@ -130,17 +136,17 @@ namespace NCrystal {
   }
 }
 
-std::shared_ptr<const NC::SABData> NC::extractSABDataFromVDOSDebyeModel( double debyeTemperature,
-                                                                         double temperature,
+std::shared_ptr<const NC::SABData> NC::extractSABDataFromVDOSDebyeModel( DebyeTemperature debyeTemperature,
+                                                                         Temperature temperature,
                                                                          SigmaBound boundXS,
-                                                                         double elementMassAMU,
+                                                                         AtomMass elementMassAMU,
                                                                          unsigned vdoslux, bool useCache )
 {
   nc_assert( vdoslux <= 5 );
-  nc_assert( temperature > 0.0 && temperature < 1.0e5 );
-  nc_assert( boundXS.val > 0.0 && boundXS.val < 1.0e6 );
-  nc_assert( debyeTemperature > 0.0 && debyeTemperature < 1.0e5 );
-  nc_assert( elementMassAMU > 0.0 && elementMassAMU < 1.0e5 );
+  nc_assert( temperature.get() > 0.0 && temperature.get() < 1.0e5 );
+  nc_assert( boundXS.get() > 0.0 && boundXS.get() < 1.0e6 );
+  nc_assert( debyeTemperature.get() > 0.0 && debyeTemperature.get() < 1.0e5 );
+  nc_assert( elementMassAMU.get() > 0.0 && elementMassAMU.get() < 1.0e5 );
   unsigned reduced_vdoslux = static_cast<unsigned>(std::max<int>(0,static_cast<int>(vdoslux)-3));//nb: replicated below
   auto key = DICache::getKey(reduced_vdoslux,temperature,debyeTemperature,boundXS,elementMassAMU);
   if (!useCache)
@@ -221,10 +227,10 @@ std::shared_ptr<const NC::SABData> NC::DICache::extractFromDIVDOSDebyeNoCache( c
 
 
 //Idealised VDOS based only on Debye temperature:
-NC::VDOSData NC::createVDOSDebye(double debyeTemperature, double temperature, SigmaBound boundXS, double elementMassAMU)
+NC::VDOSData NC::createVDOSDebye(DebyeTemperature debyeTemperature, Temperature temperature, SigmaBound boundXS, AtomMass elementMassAMU)
 {
   //NB: Must keep function exactly synchronised with createVDOSDebye function in Python interface:
-  const double debye_energy = constant_boltzmann*debyeTemperature;
+  const double debye_energy = constant_boltzmann*debyeTemperature.get();
   auto vdos_egrid = linspace(0.5*debye_energy,debye_energy,20);
   double scale = 1.0 / (debye_energy*debye_energy);
   auto vdos_density = vectorTrf(vdos_egrid,[scale](double e){ return e*e*scale; });

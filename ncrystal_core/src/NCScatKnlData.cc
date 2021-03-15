@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -28,13 +28,13 @@ void NC::validateScatKnlData( const NC::ScatKnlDataView& data )
   auto xlabel = (data.knltype == ScatKnlData::KnlType::SQW?"Q":"alpha");
   auto ylabel = (data.knltype == ScatKnlData::KnlType::SQW?"omega":"beta");
 
-  if ( !(data.temperature>0.0) )
+  if ( !(data.temperature.get()>0.0) )
     NCRYSTAL_THROW(BadInput,"Scatter kernel data has invalid temperature");
 
-  if ( !(data.elementMassAMU>0.0) )
+  if ( !(data.elementMassAMU.get()>0.0) )
     NCRYSTAL_THROW(BadInput,"Scatter kernel data has invalid elementMass");
 
-  if ( !(data.boundXS.val>0.0) )
+  if ( !(data.boundXS.get()>0.0) )
     NCRYSTAL_THROW(BadInput,"Scatter kernel data has invalid boundXS");
 
   for (const auto& e : {std::make_pair(&data.alphaGrid,xlabel),std::make_pair(&data.betaGrid,ylabel)}) {
@@ -73,11 +73,14 @@ void NC::validateScatKnlData( const NC::ScatKnlDataView& data )
     //gives us an upper bound on the upper energy value of the table:
     const double bmin = data.betaGrid.front();
     const double amax = data.alphaGrid.back();
-    const double EmaxUpperBound = constant_boltzmann*data.temperature*(bmin-amax)*(bmin-amax)/(4*amax);
+    const double EmaxUpperBound = constant_boltzmann*data.temperature.get()*(bmin-amax)*(bmin-amax)/(4*amax);
     if ( data.suggestedEmax > EmaxUpperBound*1.000001 )
       NCRYSTAL_THROW2(BadInput,"Scatter kernel data has suggestedEmax ("<<data.suggestedEmax
                       <<" eV) which is clearly too high (grid ranges implies Emax must be less than "
                       <<EmaxUpperBound<<" eV)");
   }
 
+  data.temperature.validate();
+  data.boundXS.validate();
+  data.elementMassAMU.validate();
 }

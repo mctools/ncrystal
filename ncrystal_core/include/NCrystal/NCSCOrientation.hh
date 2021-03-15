@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,7 +21,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
+#include "NCrystal/NCVariant.hh"
+#include "NCrystal/NCTypes.hh"
 
 namespace NCrystal {
 
@@ -32,9 +33,11 @@ namespace NCrystal {
     //laboratory frame, and which is needed to construct an SCBragg
     //instance.
 
+    static constexpr const double default_tolerance = 1e-4;
+
     //Construct unspecified orientation, which must subsequently be completed
     //with calls to both setPrimaryDirection and setSecondaryDirection:
-    SCOrientation();
+    SCOrientation() = default;
 
     //Provide vectors in the crystal frame and specify their desired direction
     //in the laboratory frame. This is well-formed as long as the opening angle
@@ -42,11 +45,9 @@ namespace NCrystal {
     //the stated tolerance in radians, because only the component of each
     //secondary direction ortogonal to the corresponding primary direction will
     //be used. The vectors do not need to be normalised:
-    void setPrimaryDirection( const double (&crystal_direction)[3],
-                              const double (&direction)[3] );
-    void setSecondaryDirection( const double (&crystal_direction)[3],
-                                const double (&direction)[3],
-                                double tolerance = 1e-4 );
+    void setPrimaryDirection( const CrystalAxis&, const LabAxis& );
+    void setSecondaryDirection( const CrystalAxis&, const LabAxis&,
+                                double tolerance = default_tolerance );
 
     //Often, however, it is more convenient and useful to specify the directions
     //in the crystal frame by simply indicating a point in hkl space, and
@@ -58,33 +59,25 @@ namespace NCrystal {
     //with (a_reci, b_reci, c_reci) being the reciprocal lattice indices. To
     //define directions in this fashion, use the following methods:
 
-    void setPrimaryDirection( double h, double k, double l,
-                              const double (&direction)[3] );
-    void setSecondaryDirection( double h, double k, double l,
-                                const double (&direction)[3],
-                                double tolerance = 1e-4 );
+    void setPrimaryDirection( const HKLPoint&, const LabAxis& );
+    void setSecondaryDirection( const HKLPoint&, const LabAxis&,
+                                double tolerance = default_tolerance );
 
     //Complete when both primary and secondary directions have been set:
     bool isComplete() const;
 
-    //Copy/assignment is allowed:
-    SCOrientation(const SCOrientation&);
-    SCOrientation& operator=(const SCOrientation&);
-
-    ~SCOrientation();
+    void clear();
   private:
-    double m_crystal[2][3];
-    double m_lab[2][3];
-    double m_tolerance;
-    bool m_crystal_is_hkl[2];
-    void checkInput() const;
+    Variant<CrystalAxis,HKLPoint> m_crystal[2];
+    Optional<LabAxis> m_lab[2];
+    double m_tolerance = default_tolerance;
+    struct Impl;
+    friend struct Impl;
   public:
     //Access contents (idir=0: primary, idir=1: secondary):
-    bool getCrysIsHKL(unsigned idir) const { nc_assert(idir<2); return m_crystal_is_hkl[idir]; }
+    const Variant<CrystalAxis,HKLPoint>& getCrysDir(unsigned idir) const { nc_assert(idir<2); return m_crystal[idir]; }
+    const Optional<LabAxis>& getLabDir(unsigned idir) const { nc_assert(idir<2); return m_lab[idir]; }
     double getTolerance() const { return m_tolerance; }
-    typedef double dir_t[3];
-    const dir_t& getLabDir(unsigned idir) const { nc_assert(idir<2); return m_lab[idir]; }
-    const dir_t& getCrysDir(unsigned idir) const { nc_assert(idir<2); return m_crystal[idir]; }
   };
 }
 

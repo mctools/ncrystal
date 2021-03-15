@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -20,7 +20,7 @@
 
 #include "NCrystal/internal/NCDynLoader.hh"
 #include "NCrystal/internal/NCString.hh"
-#include "NCrystal/NCFile.hh"
+#include "NCrystal/internal/NCFileUtils.hh"
 #include <functional>
 #include <iostream>
 #include <stdexcept>
@@ -64,7 +64,7 @@ namespace NCrystal {
     (void)symbol;
     return {std::string("NCrystal dynamic loading is disabled"),nullptr};
 #else
-    std::lock_guard<std::mutex> guard( getMutex() );
+    NCRYSTAL_LOCK_GUARD( getMutex() );
     const char* errMsg(nullptr);
     void* result;
 #  ifdef NCRYSTAL_WIN_LOADLIB
@@ -102,7 +102,7 @@ NC::DynLoader::DynLoader( const std::string& filename,
   (void)lazyflag;
   (void)scopeflag;
 #ifndef NCRYSTAL_DISABLE_DYNLOADER
-  std::lock_guard<std::mutex> guard( getMutex() );
+  NCRYSTAL_LOCK_GUARD( getMutex() );
 #  ifdef NCRYSTAL_WIN_LOADLIB
   m_handle = (void*)LoadLibrary(filename.c_str());
 #  else
@@ -142,7 +142,7 @@ NC::DynLoader::~DynLoader()
 #ifdef NCRYSTAL_DISABLE_DYNLOADER
   errMsg = "NCrystal dynamic loading is disabled";
 #else
-  std::lock_guard<std::mutex> guard( getMutex() );
+  NCRYSTAL_LOCK_GUARD( getMutex() );
 #  ifdef NCRYSTAL_WIN_LOADLIB
   if (!FreeLibrary((HINSTANCE)m_handle))
     errMsg = GetLastError();

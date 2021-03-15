@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,20 +22,27 @@
 #include "NCrystal/internal/NCMath.hh"
 #include "NCrystal/internal/NCRomberg.hh"
 
-double NCrystal::debyeIsotropicMSD(double debye_temperature, double temperature, double atomic_mass)
+namespace NC = NCrystal;
+
+double NC::debyeIsotropicMSD( DebyeTemperature dt, Temperature t, AtomMass am )
 {
-  nc_assert_always(debye_temperature>0.0&&debye_temperature<1e5);
-  nc_assert_always(temperature>=0.0&&temperature<1e5);
-  nc_assert_always(atomic_mass>=1.007&&atomic_mass<500);
-  return calcDebyeMSDScale( debye_temperature, atomic_mass )*calcDebyeMSDShape(temperature/debye_temperature);
+  dt.validate();
+  //Don't do this since we want to allow t=0: t.validate();
+  am.validate();
+  nc_assert_always(dt.get()>0.0&&dt.get()<1e5);
+  nc_assert_always(t.get()>=0.0&&t.get()<1e5);
+  nc_assert_always(am.get()>=1.007&&am.get()<500);
+  return calcDebyeMSDScale( dt, am )*calcDebyeMSDShape(t.get()/dt.get());
 }
 
-double NCrystal::calcDebyeMSDScale( double debye_temperature, double atomic_mass )
+double NC::calcDebyeMSDScale( DebyeTemperature dt, AtomMass am )
 {
-  nc_assert_always(debye_temperature>0.0);
-  nc_assert_always(atomic_mass>=1.007&&atomic_mass<500);
+  dt.validate();
+  am.validate();
+  nc_assert_always(dt.get()>0.0);
+  nc_assert_always(am.get()>=1.007&&am.get()<500);
   const double kk = 3.0*constant_hbar*constant_hbar*constant_c*constant_c / ( constant_dalton2eVc2*constant_boltzmann );
-  return kk/(atomic_mass*debye_temperature);
+  return kk/(am.get()*dt.get());
 }
 
 namespace NCrystal {
@@ -59,7 +66,7 @@ namespace NCrystal {
   };
 }
 
-double NCrystal::calcDebyeMSDShape( double x )
+double NC::calcDebyeMSDShape( double x )
 {
   nc_assert_always(x>=0.0);
   if (x<1e-50)
@@ -68,8 +75,10 @@ double NCrystal::calcDebyeMSDShape( double x )
   return 0.25 + x * x * integral.integrate( 0.0, 1.0 / x );
 }
 
-double NCrystal::debyeTempFromIsotropicMSD(double msd, double temperature, double atomic_mass)
+NC::DebyeTemperature NC::debyeTempFromIsotropicMSD( double msd, Temperature t, AtomMass am )
 {
-  return findRoot2([msd,temperature,atomic_mass](double dt){ return debyeIsotropicMSD(dt,temperature,atomic_mass)-msd;},
-                   0.1,0.999e5,1e-7);
+  return DebyeTemperature{
+    findRoot2( [msd,t,am](double dt) {
+      return debyeIsotropicMSD(DebyeTemperature{dt},t,am)-msd;
+    }, 0.1,0.999e5,1e-7) };
 }

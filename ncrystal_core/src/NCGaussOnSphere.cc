@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -143,7 +143,7 @@ namespace NCrystal {
     const double m_sasg;
     const double m_cacg;
     const double m_acc;
-    mutable unsigned m_nevals;
+    mutable unsigned m_nevals;//mutable here is MT-safe, since we are only using local GOSCircleInt instances.
   };
 
   class SLTFct_EvalCosX : public Fct1D {
@@ -200,13 +200,7 @@ NC::GaussOnSphere::GaussOnSphere()
     m_sigma(-1.0),
     m_numint_accuracy(-1.0),
     m_prec(-1),
-    m_sta(-1.0),
-    m_stat_genpointworst(0),
-    m_stat_genpointcalled(0),
-    m_stat_genpointtries(0),
-    m_stat_circleintworst(0),
-    m_stat_circleintnumber(0),
-    m_stat_circleintevals(0)
+    m_sta(-1.0)
 {
   nc_assert(!isValid());
 }
@@ -221,13 +215,7 @@ NC::GaussOnSphere::GaussOnSphere( double sigma, double trunc_angle, double prec 
     m_sigma(-1.0),
     m_numint_accuracy(-1.0),
     m_prec(-1),
-    m_sta(-1.0),
-    m_stat_genpointworst(0),
-    m_stat_genpointcalled(0),
-    m_stat_genpointtries(0),
-    m_stat_circleintworst(0),
-    m_stat_circleintnumber(0),
-    m_stat_circleintevals(0)
+    m_sta(-1.0)
 {
   nc_assert(!isValid());
   set(sigma,trunc_angle,prec);
@@ -236,21 +224,28 @@ NC::GaussOnSphere::GaussOnSphere( double sigma, double trunc_angle, double prec 
 
 NC::GaussOnSphere::~GaussOnSphere()
 {
-  if (m_stat_genpointworst)
+#ifndef NDEBUG
+  if (m_stats.genpointworst)
     produceStatReport("destructed");
+#endif
 }
 
 void NC::GaussOnSphere::produceStatReport(const char * callpt)
 {
-  uint64_t worst = (m_stat_genpointcalled?m_stat_genpointworst:0);
+  markused(callpt);
+#ifndef NDEBUG
+  uint64_t worst = (m_stats.genpointcalled?(uint64_t)m_stats.genpointworst:0);
   std::cout<<"NCrystal GaussOnSphere(sigma="<<m_sigma<<", truncangle="<<m_truncangle/m_sigma<<"sigma, prec="<<m_prec<<") "
-           <<callpt<<". Used "<<m_stat_genpointtries
-           <<" tries to generate "<<m_stat_genpointcalled <<" pts on circles (acceptance rate: "
-           <<(m_stat_genpointtries?m_stat_genpointcalled*100.0/m_stat_genpointtries:0.0)
+           <<callpt<<". Used "<<m_stats.genpointtries
+           <<" tries to generate "<<m_stats.genpointcalled <<" pts on circles (acceptance rate: "
+           <<(m_stats.genpointtries?m_stats.genpointcalled*100.0/m_stats.genpointtries:0.0)
            <<"%). Worst case used "<<worst<<" tries."
-           << " Performed "<<m_stat_circleintnumber<<" numerical circle integrations using an average of "
-           <<(m_stat_circleintnumber?double(m_stat_circleintevals)/m_stat_circleintnumber:0.0)<< " function evaluations each time (worst case used "
-           <<m_stat_circleintworst<<" evaluations)."<<std::endl;
+           << " Performed "<<m_stats.circleintnumber<<" numerical circle integrations using an average of "
+           <<(m_stats.circleintnumber?double(m_stats.circleintevals)/m_stats.circleintnumber:0.0)<< " function evaluations each time (worst case used "
+           <<m_stats.circleintworst<<" evaluations)."<<std::endl;
+#else
+  markused(callpt);
+#endif
 }
 
 void NC::GaussOnSphere::set(double sigma, double trunc_angle, double prec ) {
@@ -267,17 +262,18 @@ void NC::GaussOnSphere::set(double sigma, double trunc_angle, double prec ) {
   if (m_truncangle==trunc_angle&&m_sigma==sigma&&m_prec == prec)
     return;
 
-  if (m_stat_genpointworst) {
+#ifndef NDEBUG
+  if (m_stats.genpointworst) {
     produceStatReport("settings changed.");
-    m_stat_genpointworst = m_stat_genpointtries = m_stat_genpointcalled = 0;
-    m_stat_circleintworst = m_stat_circleintnumber = m_stat_circleintevals = 0;
+    m_stats.genpointworst = m_stats.genpointtries = m_stats.genpointcalled = 0;
+    m_stats.circleintworst = m_stats.circleintnumber = m_stats.circleintevals = 0;
   }
   if (std::getenv("NCRYSTAL_DEBUG_GAUSSONSPHERE")) {
-    m_stat_genpointworst = 1;//enable stat collection
-    m_stat_genpointtries = m_stat_genpointcalled = 0;
-    m_stat_circleintworst = m_stat_circleintnumber = m_stat_circleintevals = 0;
+    m_stats.genpointworst = 1;//enable stat collection
+    m_stats.genpointtries = m_stats.genpointcalled = 0;
+    m_stats.circleintworst = m_stats.circleintnumber = m_stats.circleintevals = 0;
   }
-
+#endif
   unsigned nlt = 0;
   m_truncangle=trunc_angle;
   m_sigma=sigma;
@@ -414,23 +410,28 @@ double NC::GaussOnSphere::circleIntegralSlow( double cg, double sg, double ca, d
     }
   }
 
-  const bool statcollect = (m_stat_genpointworst>0);
+#ifndef NDEBUG
+  const bool statcollect = (m_stats.genpointworst>0);
+#else
+  const bool statcollect = false;
+#endif
   GOSCircleInt gosci(this,sasg,cacg,intacc,statcollect);
   const double res = 2.0*sa*gosci.integrate(0,tmax);//sa is radius of curve, so comes from Jacobian.
   if (!statcollect)
     return res;
-  m_stat_circleintworst = std::max<uint64_t>(m_stat_circleintworst,gosci.nEvals());
-  ++m_stat_circleintnumber;
-  m_stat_circleintevals += gosci.nEvals();
+#ifndef NDEBUG
+  m_stats.circleintworst = std::max<uint64_t>(m_stats.circleintworst,gosci.nEvals());
+  ++m_stats.circleintnumber;
+  m_stats.circleintevals += gosci.nEvals();
+#endif
   return res;
 
 }
 
-bool NC::GaussOnSphere::genPointOnCircle( RandomBase*rand, double cg, double sg, double ca, double sa,
+bool NC::GaussOnSphere::genPointOnCircle( RNG& rng, double cg, double sg, double ca, double sa,
                                           double& ct, double& st ) const
 {
   nc_assert(isValid());
-  nc_assert(rand);
   nc_assert(ncabs(cg*cg+sg*sg-1.0)<1e-6);
   nc_assert(ncabs(ca*ca+sa*sa-1.0)<1e-6);
   const double sasg = sa*sg; nc_assert(sasg>=0.0);
@@ -447,7 +448,7 @@ bool NC::GaussOnSphere::genPointOnCircle( RandomBase*rand, double cg, double sg,
     //of the circle, so pick random t:
     if (sa<1e-7)
       return false;
-    randPointOnUnitCircle(rand,ct,st);
+    std::tie(ct,st) = randPointOnUnitCircle(rng);
     return true;
   }
 
@@ -463,7 +464,7 @@ bool NC::GaussOnSphere::genPointOnCircle( RandomBase*rand, double cg, double sg,
   const int maxtriesplus1(1001);//we should usually use *much* fewer tries than this (averaging around 3-6 depending on parameters).
   int triesleft = maxtriesplus1;
   while (--triesleft) {
-    ct = cos_mpipi( rand->generate()*tmax );//generate t uniformly in allowed range
+    ct = cos_mpipi( rng.generate()*tmax );//generate t uniformly in allowed range
     double cd_at_t = sasg*ct+cacg;
     double density_at_t = evalCosXInRange(cd_at_t);
     if ( density_at_t > densitymax ) {
@@ -476,15 +477,17 @@ bool NC::GaussOnSphere::genPointOnCircle( RandomBase*rand, double cg, double sg,
           " of this type will not be emitted."<<std::endl;
       }
     }
-    if ( density_at_t > densitymax * rand->generate())
+    if ( density_at_t > densitymax * rng.generate())
       break;
   }
-  if (m_stat_genpointworst) {
-    ++m_stat_genpointcalled;
+#ifndef NDEBUG
+  if (m_stats.genpointworst) {
+    ++m_stats.genpointcalled;
     uint64_t triesused = maxtriesplus1-triesleft;
-    m_stat_genpointtries += triesused;;
-    m_stat_genpointworst = std::max<uint64_t>(m_stat_genpointworst,triesused);
+    m_stats.genpointtries += triesused;;
+    m_stats.genpointworst = std::max<uint64_t>(m_stats.genpointworst,triesused);
   }
+#endif
   if (triesleft<=0) {
     static bool first = true;
     if (first) {
@@ -496,7 +499,7 @@ bool NC::GaussOnSphere::genPointOnCircle( RandomBase*rand, double cg, double sg,
     return false;
   }
   st = std::sqrt(1.0-ct*ct);
-  st = (rand->generate()>0.5?st:-st);//pick t in [-pi,pi], not just in [0,pi]
+  st = (rng.coinflip()?st:-st);//pick t in [-pi,pi], not just in [0,pi]
   return true;
 }
 

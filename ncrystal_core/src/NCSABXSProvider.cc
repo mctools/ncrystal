@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -44,25 +44,25 @@ void NC::SABXSProvider::setData( VectD&& egrid,
   nc_assert_always(!m_xs.empty());
 
   const double emax = m_egrid.back();
-  const double extenderXS_emax = m_extender->crossSection(emax);
+  const double extenderXS_emax = m_extender->crossSection(NeutronEnergy{emax}).dbl();
   const double tableXS_emax = m_xs.back();
   //constant needed for high-E extrapolation (see comments below where it is
   //being used):
   m_kExtension = ( tableXS_emax - extenderXS_emax ) * emax;
 }
 
-double NC::SABXSProvider::crossSection( double ekin ) const
+NC::CrossSect NC::SABXSProvider::crossSection( NeutronEnergy ekin ) const
 {
   nc_assert( ! m_xs.empty() && m_xs.size() == m_egrid.size() );
 
-  auto itEkinUpper = std::upper_bound ( m_egrid.begin(), m_egrid.end(), ekin );
+  auto itEkinUpper = std::upper_bound ( m_egrid.begin(), m_egrid.end(), ekin.dbl() );
   if ( itEkinUpper == m_egrid.end()) {
     //  integral_E(S) = (tableintegral_Emax(S)-extenderintegral_Emax(S))+extenderintegral_E(S)
     //  Now, in general XS(E) = [C/E] * integral_E(S),   C=sigmaB*kT/4. So:
     //    XS_E = [C/E] * integral_E(S)
     //            = [Emax/E]*([C/Emax]*tableintegral_Emax(S)-[C/Emax]*extenderintegral_Emax(S))+[C/E]*extenderintegral_E(S)
     //            = [Emax/E] *(tableXS_Emax-extenderXS_Emax) + extenderXS_E = k / E + extenderXS_E
-    return m_kExtension / ekin + m_extender->crossSection( ekin );
+    return CrossSect{ m_kExtension / ekin.dbl() + m_extender->crossSection( ekin ).dbl() };
   } else if ( itEkinUpper == m_egrid.begin() ) {
 
     //Energy is below lowest tabulated energy. At very small energies, the
@@ -77,7 +77,7 @@ double NC::SABXSProvider::crossSection( double ekin ) const
     //will decrease as 1/sqrt(E) for small energies (we have thus essentially
     //derived, or at least argued for, the "1/v law").
 
-    return ekin > 0.0 ? std::sqrt( m_egrid.front() / ekin ) * m_xs.front() : kInfinity;
+    return CrossSect { ekin.dbl() > 0.0 ? std::sqrt( m_egrid.front() / ekin.dbl() ) * m_xs.front() : kInfinity };
   } else {
     //linear interpolation in grid
     auto itEkinLower = std::prev(itEkinUpper);
@@ -86,10 +86,10 @@ double NC::SABXSProvider::crossSection( double ekin ) const
     const double dXS = *itXSUpper - *itXSLower;
     const double dEkin = *itEkinUpper - *itEkinLower;
     nc_assert(dEkin>0.0);
-    double xs = *itXSLower + dXS * ( ekin - *itEkinLower ) / dEkin;
+    double xs = *itXSLower + dXS * ( ekin.dbl() - *itEkinLower ) / dEkin;
     nc_assert(xs>=std::min<double>(*itXSLower,*itXSUpper));
     nc_assert(xs<=std::max<double>(*itXSLower,*itXSUpper));
-    return xs;
+    return CrossSect{ xs };
   }
 }
 

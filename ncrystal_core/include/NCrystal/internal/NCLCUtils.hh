@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -24,13 +24,13 @@
 #include "NCrystal/NCDefs.hh"
 #include "NCrystal/internal/NCGaussMos.hh"
 #include "NCrystal/internal/NCVector.hh"
+#include "NCrystal/NCTypes.hh"
 #include <cstring>
 
 namespace NCrystal {
 
   //Utilities used to implement layered crystals, intended for internal usage in the LCBragg class.
 
-  class RandomBase;
   class PlaneProvider;
 
   struct LCPlaneSet {
@@ -48,8 +48,6 @@ namespace NCrystal {
     double cosalphaplus;//cos(alpha+truncangle)
     double fsq;//Total FSquared of all normals in planeset.
     bool isOnAxis() const { return !sinalpha; }
-
-    ~LCPlaneSet(){}
   };
 
   class LCROI {
@@ -66,7 +64,6 @@ namespace NCrystal {
 
     //Standard non-degenerate cases:
     LCROI(double rmin, double rmax,const LCPlaneSet* ps, double normsign);
-    ~LCROI(){}
     bool contains(double t) const;
     double length() const;
 
@@ -90,7 +87,6 @@ namespace NCrystal {
     //NB: Results are symmetric between neutron_angle_to_lcaxis -> pi - neutron_angle_to_lcaxis.
     LCROIFinder(double wavelength, double cos_neutron_angle_to_lcaxis,
                 double cos_truncation_angle, double sin_truncation_angle);
-    ~LCROIFinder();
     void findROIs(const LCPlaneSet * planeset,std::vector<LCROI>& roilist);
   private:
     const double m_wl;
@@ -114,29 +110,26 @@ namespace NCrystal {
     //cut, which is assumed to take place in the calling code.
   public:
     //Constructor takes same parameters as GaussMos.
-    LCStdFrame(double mosaicity, bool mosaicity_is_fhwm = true, double prec = 1e-3, double ntrunc = 0.0 );
-    ~LCStdFrame();
+    LCStdFrame(MosaicityFWHM, double prec = 1e-3, double ntrunc = 0.0 );
 
     //For reference, we provide const access to underlying GaussMos object
     const GaussMos& gaussMos() const { return m_gm; }
 
     struct NeutronPars {
       NeutronPars(double wl, double c3, double s3);
-      ~NeutronPars(){}
       const double wl;
       const double c3;
       const double s3;
     };
     struct NormalPars {
       NormalPars( const LCPlaneSet* ps, double normal_sign );
-      ~NormalPars(){}
       const LCPlaneSet* planeset;
       const double sign;
     };
 
     //When the normal is on-axis (e.g. parallel to lcaxis), the following two special methods can be used:
     double calcXS_OnAxis( const NeutronPars&, const NormalPars&) const;
-    void genScat_OnAxis(RandomBase * rand, const NeutronPars&, const NormalPars&, Vector& outdir ) const;
+    void genScat_OnAxis(RNG& rand, const NeutronPars&, const NormalPars&, Vector& outdir ) const;
 
     //For off-axis normals, one must consider the particular rotation of the
     //crystallite. We define phi so that at phi=0, the normal is given by
@@ -155,21 +148,21 @@ namespace NCrystal {
 
     //Scatterings (sinphi parameter required as well as cosphi, to allow calling
     //code to select phi values in all of [-pi,pi] range):
-    void genScat( RandomBase * rand, const NeutronPars&, const NormalPars&,
+    void genScat( RNG& rand, const NeutronPars&, const NormalPars&,
                   double cosphi, double sinphi, Vector& outdir ) const;
 
   private:
     const GaussMos m_gm;
   };
 
-  class LCHelper {
+  class LCHelper : private MoveOnly {
     //Class which can provide cross-sections and scatterings for planes with
     //normals not parallel to the lcaxis. Prec and ntrunc parameters will be
     //passed on directly to the internal GaussMos object.
   public:
-    LCHelper( Vector lcaxis_crystalframe,
-              Vector lcaxis_labframe,
-              double mosaicity_fwhm,
+    LCHelper( LCAxis lcaxis_crystalframe,
+              LCAxis lcaxis_labframe,
+              MosaicityFWHM mosaicity_fwhm,
               double unitcell_volume_times_natoms,
               PlaneProvider * pp,
               double prec = 1e-3,
@@ -186,30 +179,23 @@ namespace NCrystal {
 
     //Valid caches can be used to get cross-sections or generate scatterings:
     double crossSection( Cache&, double wavelength, const Vector& indir ) const;
-    void genScatter( Cache&, RandomBase*, double wavelength, const Vector& indir, Vector& outdir ) const;
+    void genScatter( Cache&, RNG&, double wavelength, const Vector& indir, Vector& outdir ) const;
 
     //Access without cache.
-    void genScatterNoCache( RandomBase*, double wavelength, const Vector& indir, Vector& outdir ) const;
+    void genScatterNoCache( RNG&, double wavelength, const Vector& indir, Vector& outdir ) const;
     double crossSectionNoCache( double wavelength, const Vector& indir ) const;
 
     double braggThreshold() const;//max wavelength, beyond which all cross-sections will be 0.
 
-
-    //Mechanics:
-    ~LCHelper();
-    LCHelper(const LCHelper&) = delete;
-    void operator=(const LCHelper&) = delete;
-
     const GaussMos& gaussMos() { return m_lcstdframe.gaussMos(); }
 
   private:
-    friend class Cache;
     Vector m_lcaxislab;
     std::vector<LCPlaneSet> m_planes;//sorted by dspacing, largest first.
     LCStdFrame m_lcstdframe;
     double m_xsfact;
     void forceUpdateCache( Cache&, uint64_t discr_wl, uint64_t discr_c3 ) const;
-    struct Overlay {
+    struct Overlay : private MoveOnly {
       static const unsigned ndata = 8;
       Overlay();
       ~Overlay();
@@ -219,17 +205,15 @@ namespace NCrystal {
       double nonCommulVal(unsigned i) const;
       Overlay(Overlay&& o);
       Overlay& operator=(Overlay&& o);
-      Overlay(const Overlay& o) = delete;
-      Overlay& operator=(const Overlay& o) = delete;
     };
-  static void genPhiVal(RandomBase* rand, const LCROI& roi, const Overlay& overlay, double& phi, double& overlay_at_phi);
+  static void genPhiVal(RNG& rand, const LCROI& roi, const Overlay& overlay, double& phi, double& overlay_at_phi);
 
   public:
-    class Cache {
+    class Cache : public CacheBase {
     public:
       Cache();//default constructs invalid cache object
-      ~Cache();
       void reset();//invalidates cache, but retains dynamically acquired memory for later reuse.
+      void invalidateCache() override { reset(); }
     private:
       friend class LCHelper;
       std::pair<uint64_t,uint64_t> m_signature;//discretised (wavelength,c3)
@@ -287,8 +271,6 @@ namespace NCrystal {
   {
     //Starts in same state as after calling Cache::reset()
   }
-  inline LCHelper::Cache::~Cache(){}
-
   inline LCHelper::Overlay::Overlay() : data(0) {}
   inline LCHelper::Overlay::~Overlay() { delete[] data; }
   inline void LCHelper::Overlay::clear() { delete[] data; data = 0; }

@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -42,18 +42,25 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-//Include entire public NCrystal C++ API:
-#include "NCrystal/NCrystal.hh"
+//Include all NCrystal public headers (note that this is NCrystalModern.hh only
+//during the migration around NCrystal release 2.5, later it will become
+//NCrystal.hh again):
 
-//This example uses the randIsotropicScatterAngle function which is only
-//available in an internal NCrystal header file (this is mainly intended as an
-//example of how such an internal file can be used, not because it was really
-//needed). Note that these internal files provide a lot of useful utilities for
-//math, numerical integration, vectors, matrices, random sampling of
-//distributions, etc. But it is important to note that the NCrystal developers
-//do not really guarantee any form of long-term API stability for these internal
-//files (we simply do not have the manpower to do so):
+#include "NCrystal/NCrystalModern.hh"
+
+//This example uses the randIsotropicScatterMu function which is only available
+//in an internal NCrystal header file (this is mainly intended as an example of
+//how such an internal file can be used, not because it was really needed). Note
+//that these internal files provide a lot of useful utilities for math,
+//numerical integration, vectors, matrices, random sampling of distributions,
+//etc. But it is important to note that the NCrystal developers do not really
+//guarantee any form of long-term API stability for these internal files (we
+//simply do not have the manpower to do so):
+
 #include "NCrystal/internal/NCRandUtils.hh"
+
+//We also use NCrystal::str2dbl from:
+#include "NCrystal/internal/NCString.hh"
 
 #include <iostream>
 
@@ -62,95 +69,113 @@ namespace NC = NCrystal;
 //////////////////////////////////////////////////////////////////////////////////
 //First we implement the "great" physics model:
 
-class SimpleIncElasScatter : public NC::ScatterIsotropic {
-  public:
+class SimpleIncElasScatter final : public NC::ProcImpl::ScatterIsotropicMat {
+public:
 
-  SimpleIncElasScatter( double sigma )
-    : ScatterIsotropic("SimpleIncElasScatter"),
-      m_sigma(sigma)
-  {
-  }
-  double crossSectionNonOriented( double /*ekin*/ ) const final
+  SimpleIncElasScatter( NC::CrossSect sigma ) : m_sigma(sigma) {}
+
+  const char * name() const noexcept override { return "SimpleIncElasScatter"; }
+
+  NC::CrossSect crossSectionIsotropic( NC::CachePtr&, NC::NeutronEnergy ) const override
   {
     return m_sigma;
   }
-  void generateScatteringNonOriented( double /*ekin*/, double& angle, double& delta_ekin ) const final
+
+  NC::ScatterOutcomeIsotropic sampleScatterIsotropic( NC::CachePtr&,
+                                                      NC::RNG& rng,
+                                                      NC::NeutronEnergy ekin ) const override
   {
-    delta_ekin = 0;
-    angle = randIsotropicScatterAngle(getRNG());
+    auto ekin_final = ekin; // elastic
+    auto mu = randIsotropicScatterMu( rng ); //isotropic
+    return { ekin_final, mu };
   }
-protected:
-  virtual ~SimpleIncElasScatter() = default;
+
 private:
-  double m_sigma;
+  NC::CrossSect m_sigma;
 };
 
 //////////////////////////////////////////////////////////////////////////////////
 //Then we implement a factory which can provide this model (along with other physics):
 
-class SimpleIncElasScatterFactory : public NC::FactoryBase {
+class SimpleIncElasScatterFactory final : public NC::FactImpl::ScatterFactory {
+public:
 
-  const char * getName() const final
-  {
-    return "SimpleIncElasScatterFactory";
-  }
+  const char * name() const noexcept override { return "SimpleIncElasScatterFactory"; }
 
-  int canCreateScatter( const NC::MatCfg& cfg ) const final
+  //Analyse cfg and determine if, and if so with what priority, the factory
+  //can service the request:
+  Priority query( const NC::MatCfg& cfg ) const override
   {
-    //Must return value >0 if we should do something, and a value higher than
-    //100 means that we take precedence over the standard NCrystal factory:
-    if (!cfg.get_incoh_elas())
-      return 0;//incoherent-elastic disabled, do nothing
-    auto info = globalCreateInfo(cfg);
-    unsigned n_simpleincelas = info->countCustomSections("SIMPLEINCELAS");
-    if (n_simpleincelas==0)
-      return 0;//input file did not have @CUSTOM_SIMPLEINCELAS section, do nothing
-    if (n_simpleincelas>1) {
-      //File had multiple @CUSTOM_SIMPLEINCELAS sections, which we (and therefore no-one) supports.
-      NCRYSTAL_THROW(BadInput,"Multiple @CUSTOM_SIMPLEINCELAS sections not supported")
+    //Must return Priority{value} if we can do something, and a value higher
+    //than 100 means that we take precedence over the standard NCrystal
+    //factory. If the request is not relevant, we return Priority{Unable}:
+
+    if (!cfg.get_incoh_elas()) {
+      //This factory is not relevant when incoherent-elastic is disabled.
+      return Priority::Unable;
     }
+
+    auto info = createInfo(cfg);
+    unsigned n_simpleincelas = info->countCustomSections("SIMPLEINCELAS");
+    if (n_simpleincelas==0) {
+      //This factory is only relevant if input file has @CUSTOM_SIMPLEINCELAS
+      //section.
+      return Priority::Unable;
+    }
+
+    if (n_simpleincelas>1) {
+      //File had multiple @CUSTOM_SIMPLEINCELAS sections, which we do not support.
+      NCRYSTAL_THROW(BadInput,"Multiple @CUSTOM_SIMPLEINCELAS sections not supported");
+    }
+
     //Ok, all good. Tell the framework that we want to deal with this, with a
     //higher priority than the standard factory gives (which is 100):
-    return 999;
+    return Priority{999};
   }
 
-  NC::RCHolder<const NC::Scatter> createScatter( const NC::MatCfg& cfg ) const final
+  ProcPtr produce( const NC::MatCfg& cfg ) const override
   {
-    nc_assert(canCreateScatter(cfg));//should only be called when possible
+    //Service the request and produce the requested object (the framework will
+    //only call this method after a previous call to query(..) indicated that
+    //the production is possible - i.e. did not return Priority::Unable):
 
-    //Let us dig out the cross section parameter:
-    double sigma = parseFileDataForSigma(cfg);
+    //Let us dig out the cross section parameter (see the parseFileDataForSigma
+    //method below for how it is done):
+    NC::CrossSect sigma = parseFileDataForSigma(cfg);
 
-    //Ok, time to instantiate our new model:
-    NC::RCHolder<const NC::Scatter> sc_simpleincelas(new SimpleIncElasScatter(sigma));
+    //Ok, time to instantiate our new model. We always use the makeSO function
+    //instead of "new SimpleIncElasScatter" to do this (makeSO is similar to
+    //std::make_shared):
+    auto sc_simpleincelas = NC::makeSO<SimpleIncElasScatter>(sigma);
+
     //Now we just need to combine this with all the other physics
     //(i.e. Bragg+inelastic).  So ask the framework to set this up, except for
     //incoherent-elastic physics of course since we are now dealing with that
-    //ourselves:
+    //ourselves in sc_simpleincelas:
     auto cfg2 = cfg.clone();
     cfg2.set_incoh_elas(false);
     auto sc_std = globalCreateScatter(cfg2);
 
-    //Combine:
-    return combineScatterObjects(sc_std,sc_simpleincelas);
+    //Combine and return:
+    return combineProcs( sc_std, sc_simpleincelas );
   }
 
 private:
-  double parseFileDataForSigma( const NC::MatCfg& cfg ) const
+  NC::CrossSect parseFileDataForSigma( const NC::MatCfg& cfg ) const
   {
     //Parse the @CUSTOM_SIMPLEINCELAS section to extract the cross section value
     //specified by the user. Throw BadInput exception in case of issues:
-    auto info = globalCreateInfo(cfg);
+    auto info = createInfo(cfg);
     auto data = info->getCustomSection( "SIMPLEINCELAS" );
-    if (data.size()!=1||data.at(0).size()!=1) {
+    if ( data.size() != 1 || data.at(0).size() != 1 ) {
       NCRYSTAL_THROW(BadInput,"Bad format of @CUSTOM_SIMPLEINCELAS section"
                      " (must consist of just one line with a single parameter");
     }
-    double sigma = std::atof(data.at(0).at(0).c_str());
+    double sigma = NC::str2dbl(data.at(0).at(0));
     if (!(sigma>0.0&&sigma<1e9))
       NCRYSTAL_THROW(BadInput,"Invalid sigma value specified in @CUSTOM_SIMPLEINCELAS section"
                      " (must be >0 barn and <1e9 barn");
-    return sigma;
+    return NC::CrossSect{ sigma };
   }
 };
 
@@ -184,7 +209,7 @@ int main() {
 
   //Register our custom factory with NCrystal, thus ensuring it gets invoked
   //when users call createScatter(..).
-  NC::registerFactory(std::make_unique<SimpleIncElasScatterFactory>());
+  NC::FactImpl::registerFactory(std::make_unique<SimpleIncElasScatterFactory>());
 
   //Add the Al_sg225_simpleincelas100barn.ncmat (virtual) file which has a
   //@CUSTOM_SIMPLEINCELAS section:
@@ -194,16 +219,16 @@ int main() {
   //createScatter(..). First, with a standard aluminium file (which has no
   //@CUSTOM_SIMPLEINCELAS section):
 
-  NC::RCHolder<const NC::Scatter> scatter_std_Al(NC::createScatter("Al_sg225.ncmat;dcutoff=0.5"));
+  auto scatter_std_Al = NC::createScatter("Al_sg225.ncmat;dcutoff=0.5");
   std::cout<<"Scatter created from Al_sg225.ncmat has crossSection(5.0Aa) = "
-           <<scatter_std_Al->crossSectionNonOriented(NC::wl2ekin(5.0))<<"barn"<<std::endl;
+           <<scatter_std_Al.crossSectionIsotropic(NC::NeutronWavelength{5.0})<<std::endl;
 
   //That should have printed out something around 0.1-0.15 barn.
 
   //Now let's see what happens with our file which has a @CUSTOM_SIMPLEINCELAS section:
-  NC::RCHolder<const NC::Scatter> scatter_custom_Al(NC::createScatter("Al_simpleincelas100barn.ncmat;dcutoff=0.5"));
+  auto scatter_custom_Al = NC::createScatter("Al_simpleincelas100barn.ncmat;dcutoff=0.5");
   std::cout<<"Scatter created from Al_simpleincelas100barn.ncmat.ncmat has crossSection(5.0Aa) = "
-           <<scatter_custom_Al->crossSectionNonOriented(NC::wl2ekin(5.0))<<"barn"<<std::endl;
+           <<scatter_custom_Al.crossSectionIsotropic(NC::NeutronWavelength{5.0})<<std::endl;
 
   //That should have printed out something around 100.1-100.15 barn, clearly the
   //effect of our silly 100barn model :-)

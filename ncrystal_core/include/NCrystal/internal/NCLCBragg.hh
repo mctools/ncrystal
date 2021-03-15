@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,15 +21,16 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCScatter.hh"
+#include "NCrystal/NCProcImpl.hh"
 #include "NCrystal/NCSCOrientation.hh"
+#include "NCrystal/internal/NCVector.hh"
 
 namespace NCrystal {
 
-  class Info;
   class PlaneProvider;
+  class MatInfo;
 
-  class LCBragg : public Scatter {
+  class LCBragg final : public ProcImpl::ScatterAnisotropicMat {
   public:
 
     //This class models the Bragg diffraction in a layered crystal such as
@@ -43,30 +44,28 @@ namespace NCrystal {
     //     mode<0: LCBraggRndmRef(nsample=-mode)
     //
     //For a description of the prec and ntrunc parameters, see NCGaussMos.hh.
-    LCBragg( const Info*,
+    LCBragg( const MatInfo&,
              const SCOrientation&,
-             double mosaicity,
-             const double (&lcaxis)[3],
+             MosaicityFWHM,
+             const LCAxis& lcaxis,
              int mode = 0,
              double delta_d = 0,
              PlaneProvider * plane_provider = 0,
              double prec=1e-3,
              double ntrunc=0.0 );
 
-    //The cross-section (in barns):
-    virtual double crossSection( double ekin, const double (&neutron_direction)[3] ) const;
+    const char * name() const noexcept final { return "LCBragg"; }
 
-    //There is a maximum wavelength at which Bragg diffraction is possible,
-    //so ekin_low will be set to reflect this (ekin_high will be set to infinity):
-    virtual void domain(double& ekin_low, double& ekin_high) const;
+    virtual ~LCBragg();
 
-    virtual void generateScattering( double ekin,
-                                     const double (&neutron_direction)[3],
-                                     double (&resulting_neutron_direction)[3],
-                                     double& delta_ekin ) const ;
+    //There is a maximum wavelength at which Bragg diffraction is possible, so
+    //lower bound will reflect this (upper bound is infinity):
+    EnergyDomain domain() const noexcept final;
+
+    CrossSect crossSection(CachePtr&, NeutronEnergy, const NeutronDirection& ) const final;
+    ScatterOutcome sampleScatter(CachePtr&, RNG&, NeutronEnergy, const NeutronDirection& ) const final;
 
   private:
-    virtual ~LCBragg();
     struct pimpl;
     std::unique_ptr<pimpl> m_pimpl;
   };

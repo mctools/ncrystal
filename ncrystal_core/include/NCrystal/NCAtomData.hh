@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,13 +21,15 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
+#include "NCrystal/NCTypes.hh"
 #include <ostream>
 
 namespace NCrystal {
 
   class AtomData;
-  typedef std::shared_ptr<const AtomData> AtomDataSP;
+
+  using AtomDataSP = shared_obj<const AtomData>;
+  using OptionalAtomDataSP = std::shared_ptr<const AtomData>;
 
   class NCRYSTAL_API AtomData : public UniqueID {
   public:
@@ -50,7 +52,7 @@ namespace NCrystal {
     //scattering lengths, which is 10 times higher than the unit of fm often
     //used in the field. With these units xs=4pi*(scatlen)^2.
 
-    double averageMassAMU() const;//in Daltons
+    AtomMass averageMassAMU() const;//in Daltons
     double coherentScatLen() const;//units of sqrt(barn)=10fm
     double coherentScatLenFM() const;//same in fm
     SigmaBound coherentXS() const;//barn
@@ -90,6 +92,7 @@ namespace NCrystal {
     struct NCRYSTAL_API Component {
       double fraction = -1.0;
       AtomDataSP data;
+      Component(double fr,AtomDataSP);//constructor needed for C++11
     };
     unsigned nComponents() const;
     const Component& getComponent(unsigned iComponent) const;
@@ -99,7 +102,7 @@ namespace NCrystal {
     ////////////////////////////////
 
     //For human consumption only, do NOT use to determine values or behaviour of
-    //algorithms!! The only guarantee is description(False) will return exactly
+    //algorithms!! The only guarantee is description(false) will return exactly
     //the element name for a natural element and a symbol like "H2" or "Al26"
     //for a single isotope (not aliases like "D" or "T"). However, in general
     //code should not rely on this!!:
@@ -111,10 +114,10 @@ namespace NCrystal {
     ///////////////////////////////
 
     //Natural elements (provide just Z) or single isotopes (provide both Z and A):
-    AtomData( SigmaBound incXS, double cohSL, double captureXS, double avrMassAMU, unsigned Z, unsigned A=0 );
+    AtomData( SigmaBound incXS, double cohSL, double captureXS, AtomMass avrMassAMU, unsigned Z, unsigned A=0 );
 
     //Composite:
-    typedef std::vector<Component> ComponentList;
+    using ComponentList = std::vector<Component>;
     AtomData( const ComponentList& components );
 
     AtomData ( AtomData && ) = default;
@@ -122,7 +125,7 @@ namespace NCrystal {
     AtomData ( const AtomData & ) = delete;
     AtomData & operator= ( const AtomData & ) = delete;
     AtomData() = delete;
-    ~AtomData() = default;
+    ~AtomData();
     bool operator <(const AtomData &) const;//Sorts roughly by (Z,A,description,uniqueid)
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -144,11 +147,13 @@ namespace NCrystal {
 
 
   private:
-    double m_m, m_ixs, m_csl, m_axs;
-    std::unique_ptr<Component[]> m_components;
+    AtomMass m_m;
+    double m_ixs, m_csl, m_axs;
+    Component * m_components = nullptr;
     int16_t m_classify;//>=1: 1 isotope with that A, 0: nat. elem., <0: composite with -m_classify parts.
     uint16_t m_z;//0 if not element
-    SigmaFree boundToFreeXS( SigmaBound ) const;
+    struct Impl;
+    friend struct Impl;
   };
 
   inline std::ostream& operator<< (std::ostream& os, const AtomData& data)
@@ -202,7 +207,7 @@ inline bool NCrystal::AtomData::isComposite() const
   return m_classify<0;
 }
 
-inline double NCrystal::AtomData::averageMassAMU() const
+inline NCrystal::AtomMass NCrystal::AtomData::averageMassAMU() const
 {
   return m_m;
 }
@@ -229,7 +234,7 @@ inline NCrystal::SigmaBound NCrystal::AtomData::coherentXS() const
 
 inline NCrystal::SigmaBound NCrystal::AtomData::scatteringXS() const
 {
-  return NCrystal::SigmaBound{m_ixs + coherentXS().val};
+  return NCrystal::SigmaBound{m_ixs + coherentXS().get()};
 }
 
 inline double NCrystal::AtomData::captureXS() const
@@ -238,17 +243,22 @@ inline double NCrystal::AtomData::captureXS() const
 }
 inline NCrystal::SigmaFree NCrystal::AtomData::freeScatteringXS() const
 {
-  return boundToFreeXS(scatteringXS());
+  return scatteringXS().free(m_m);
 }
 
 inline NCrystal::SigmaFree NCrystal::AtomData::freeCoherentXS() const
 {
-  return boundToFreeXS(coherentXS());
+  return coherentXS().free(m_m);
 }
 
 inline NCrystal::SigmaFree NCrystal::AtomData::freeIncoherentXS() const
 {
-  return boundToFreeXS(incoherentXS());
+  return incoherentXS().free(m_m);
+}
+
+inline NCrystal::AtomData::Component::Component(double fr,AtomDataSP sp)
+  : fraction(fr), data(std::move(sp))
+{
 }
 
 inline unsigned NCrystal::AtomData::nComponents() const

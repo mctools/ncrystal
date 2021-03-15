@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,12 +21,11 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
-#include <array>
+#include "NCrystal/NCTypes.hh"
 
 namespace NCrystal {
 
-  class NCRYSTAL_API NCMATData : public MoveOnly {
+  class NCRYSTAL_API NCMATData : private MoveOnly {
 
     //Data structure which holds the parsed information equivalent to what is
     //specified in an .ncmat file (typically it will be filled out by using the
@@ -54,8 +53,6 @@ namespace NCrystal {
     int version = 0;
     constexpr static int latest_version = 3;
     std::string sourceDescription;
-    std::string sourceType;
-    std::string sourceFullDescr;
 
     //convenience (for a validated instance, this is the same as hasCell or hasAtomPos):
     bool hasUnitCell() const;
@@ -80,9 +77,9 @@ namespace NCrystal {
     void validateSpaceGroup() const;
 
     //@DEBYETEMPERATURE
-    double debyetemp_global = 0.0;
-    std::vector<std::pair<std::string,double> > debyetemp_perelement;
-    bool hasDebyeTemperature() const { return debyetemp_global || !debyetemp_perelement.empty(); }
+    Optional<DebyeTemperature> debyetemp_global;
+    std::vector<std::pair<std::string,DebyeTemperature> > debyetemp_perelement;
+    bool hasDebyeTemperature() const { return debyetemp_global.has_value() || !debyetemp_perelement.empty(); }
     void validateDebyeTemperature() const;
 
     //@DYNINFO

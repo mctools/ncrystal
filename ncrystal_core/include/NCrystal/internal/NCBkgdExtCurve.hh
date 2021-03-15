@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,32 +21,30 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCScatterIsotropic.hh"
+#include "NCrystal/NCProcImpl.hh"
+#include "NCrystal/NCMatInfo.hh"
 
 namespace NCrystal {
 
-  class Info;
-
-  class BkgdExtCurve : public ScatterIsotropic {
+  class BkgdExtCurve final : public ProcImpl::ScatterIsotropicMat {
   public:
 
     //Calculates background (non-Bragg) scattering in a crystal, based on
     //external functions for calculating cross-sections, using the XSectProvider
-    //section in the passed Info object. Scatterings will be elastic and
+    //section in the passed <MatInfo object. Scatterings will be elastic and
     //isotropic.
 
-    BkgdExtCurve(const Info*);
+    const char * name() const noexcept final { return "BkgdExtCurve"; }
 
-    double crossSectionNonOriented(double ekin) const final;
+    BkgdExtCurve( shared_obj<const MatInfo> );
+    virtual ~BkgdExtCurve();
 
-    void generateScatteringNonOriented( double ekin_wavelength,
-                                        double& angle, double& delta_ekin ) const final;
-    void generateScattering( double ekin, const double (&neutron_direction)[3],
-                             double (&resulting_neutron_direction)[3], double& delta_ekin ) const final;
+    CrossSect crossSectionIsotropic(CachePtr&, NeutronEnergy ) const final;
+    ScatterOutcomeIsotropic sampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const final;
+    ScatterOutcome sampleScatter(CachePtr&, RNG&, NeutronEnergy, const NeutronDirection& ) const final;
 
   protected:
-    virtual ~BkgdExtCurve();
-    RCHolder<const Info> m_ci;
+    shared_obj<const MatInfo> m_ci;
   };
 }
 

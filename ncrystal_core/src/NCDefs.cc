@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -20,9 +20,6 @@
 
 #include "NCrystal/NCDefs.hh"
 
-//MT TODO: Rename RandomBase class to RNG which is more handy.
-NCrystal::RandomBase::~RandomBase() = default;
-
 namespace NCrystal {
   namespace {
     static std::atomic<uint64_t> s_global_uid_counter(1);
@@ -33,3 +30,6 @@ NCrystal::UniqueID::UniqueID()
   : m_uid(s_global_uid_counter++)
 {
 }
+
+NCrystal::RNG::~RNG() = default;
+

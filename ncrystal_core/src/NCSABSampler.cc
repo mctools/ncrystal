@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -25,7 +25,7 @@ namespace NC = NCrystal;
 
 NC::SABSampler::~SABSampler() = default;
 
-NC::SABSampler::SABSampler( double temperature,
+NC::SABSampler::SABSampler( Temperature temperature,
                             VectD&& egrid,
                             std::vector<std::unique_ptr<SABSamplerAtE>>&& samplers,
                             std::shared_ptr<const SAB::SABExtender> extender,
@@ -35,7 +35,7 @@ NC::SABSampler::SABSampler( double temperature,
 }
 
 
-void NC::SABSampler::setData( double temperature,
+void NC::SABSampler::setData( Temperature temperature,
                               VectD&& egrid,
                               std::vector<std::unique_ptr<SABSamplerAtE>>&& samplers,
                               std::shared_ptr<const SAB::SABExtender> extender,
@@ -43,18 +43,18 @@ void NC::SABSampler::setData( double temperature,
 {
   m_egrid = std::move(egrid);
   m_samplers = std::move(samplers);
-  m_kT = constant_boltzmann * temperature;
+  m_kT = temperature.kT();
   m_extender = std::move(extender);
   m_xsAtEmax = xsAtEmax;
   m_k1 = m_xsAtEmax * m_egrid.back();
-  m_k2 = m_extender->crossSection( m_egrid.back() ) * m_egrid.back();
+  m_k2 = m_extender->crossSection( NeutronEnergy{m_egrid.back()} ).dbl() * m_egrid.back();
 
 }
 
-NC::PairDD NC::SABSampler::sampleHighE(double ekin, RandomBase& rng) const
+NC::PairDD NC::SABSampler::sampleHighE(NeutronEnergy ekin, RNG& rng) const
 {
   const double emax = m_egrid.back();
-  nc_assert( ekin >= emax );
+  nc_assert( ekin.get() >= emax );
   //Sample (alpha,beta) using provided SABExtender. A returned alpha value of
   //-1.0 indicates that the usual code should sample (alpha,beta) from the
   //tabulated kernel with ekin=m_egrid.back().
@@ -87,7 +87,7 @@ NC::PairDD NC::SABSampler::sampleHighE(double ekin, RandomBase& rng) const
   //  P_inside = table_XS(Emax)*Emax / ( table_XS(Emax) * Emax + extenderXS(E)*E-extenderXS(Emax)*Emax)
   //           = table_XS(Emax)*Emax / ( [table_XS(Emax)-extenderXS(Emax)]*Emax + extenderXS(E)*E)
 
-  const double extenderXSMultE = ekin * m_extender->crossSection(ekin);
+  const double extenderXSMultE = ekin.get() * m_extender->crossSection(ekin).dbl();
   const double P_inside = m_k1 / ( (m_k1-m_k2) + extenderXSMultE );
 
   // But sampling from extender only will give (alpha,beta) values inside the
@@ -150,14 +150,14 @@ NC::PairDD NC::SABSampler::sampleHighE(double ekin, RandomBase& rng) const
   }
 }
 
-NC::PairDD NC::SABSampler::sampleAlphaBeta(double ekin, RandomBase& rng) const
+NC::PairDD NC::SABSampler::sampleAlphaBeta(NeutronEnergy ekin, RNG& rng) const
 {
   nc_assert( m_egrid.size()>1 && m_egrid.size()==m_samplers.size() );
   double alpha,beta;
 
   decltype(m_samplers.begin()) itSampler;
 
-  auto itEkinUpper = std::upper_bound ( m_egrid.begin(), m_egrid.end(), ekin );
+  auto itEkinUpper = std::upper_bound ( m_egrid.begin(), m_egrid.end(), ekin.dbl() );
   bool ultra_small_ekin_mode = false;
   const double ultra_small_ekin = m_egrid.front();
 
@@ -168,7 +168,7 @@ NC::PairDD NC::SABSampler::sampleAlphaBeta(double ekin, RandomBase& rng) const
     if (alphabeta.first>=0.0)
       return alphabeta;
     //HighE code decided that we must sample the kernel with ekin=emax:
-    ekin = m_egrid.back();
+    ekin = NeutronEnergy{m_egrid.back()};
     itSampler = std::prev(m_samplers.end());
 
   } else if ( itEkinUpper == m_egrid.begin() ) {
@@ -176,7 +176,7 @@ NC::PairDD NC::SABSampler::sampleAlphaBeta(double ekin, RandomBase& rng) const
     //Low-E extrapolation. Beta-distribution is essentially unchanged at this
     //energy, but must treat alpha-sampling specially.
     itSampler = m_samplers.begin();
-    ultra_small_ekin_mode = (ekin<ultra_small_ekin);
+    ultra_small_ekin_mode = (ekin.get()<ultra_small_ekin);
 
   } else {
 
@@ -187,7 +187,7 @@ NC::PairDD NC::SABSampler::sampleAlphaBeta(double ekin, RandomBase& rng) const
 
   //Sample with *itSampler, using the rejection method to make the results
   //correct at the given ekin value:
-  const double ekin_div_kT = ekin/m_kT;
+  const double ekin_div_kT = ekin.get()/m_kT;
   const double sampling_ekin_div_kT = (ultra_small_ekin_mode ? ultra_small_ekin/m_kT : ekin_div_kT);
   int loopmax(100);
   while (loopmax--) {
@@ -214,10 +214,10 @@ NC::PairDD NC::SABSampler::sampleAlphaBeta(double ekin, RandomBase& rng) const
   NCRYSTAL_THROW2(CalcError,"Infinite looping in sampleAlphaBeta(ekin="<<ekin<<")");
 }
 
-NC::PairDD NC::SABSampler::sampleDeltaEMu(double ekin, RandomBase& rng) const
+NC::PairDD NC::SABSampler::sampleDeltaEMu(NeutronEnergy ekin, RNG& rng) const
 {
   auto alphabeta = sampleAlphaBeta(ekin,rng);
-  if ( NC::muIsotropicAtBeta(alphabeta.second,ekin/m_kT) )
+  if ( NC::muIsotropicAtBeta(alphabeta.second,ekin.get()/m_kT) )
     return std::make_pair( alphabeta.second*m_kT, rng.generate()*2.0 - 1.0 );
   return convertAlphaBetaToDeltaEMu(alphabeta,ekin,m_kT);
 }

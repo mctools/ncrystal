@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCScatterIsotropic.hh"
+#include "NCrystal/NCProcImpl.hh"
 
 namespace NCrystal {
 
@@ -31,11 +31,13 @@ namespace NCrystal {
     class SABScatterHelper;
   }
 
-  class SABScatter : public ScatterIsotropic {
+  class SABScatter final : public ProcImpl::ScatterIsotropicMat {
   public:
 
     //Provides cross-sections and samplings based on an S(alpha,beta) scattering
     //kernel.
+
+    const char * name() const noexcept final { return "SABScatter"; }
 
     //Construct from SABData and (optionally) an energy grid. The first
     //constructor takes a DI_ScatKnl object from the DynamicInfo list on an an
@@ -49,18 +51,16 @@ namespace NCrystal {
     SABScatter( const DI_ScatKnl&, unsigned vdoslux = 3, bool useCache = true );
     SABScatter( SABData &&,
                 const VectD& energyGrid = VectD() );
-    SABScatter( std::shared_ptr<const SABData>,
+    SABScatter( shared_obj<const SABData>,
                 std::shared_ptr<const VectD> energyGrid = nullptr );
-    explicit SABScatter( std::shared_ptr<const SAB::SABScatterHelper> );
+    explicit SABScatter( shared_obj<const SAB::SABScatterHelper> );
     explicit SABScatter( std::unique_ptr<const SAB::SABScatterHelper> );
     SABScatter( SAB::SABScatterHelper&& );
 
     virtual ~SABScatter();
 
-    double crossSectionNonOriented(double ekin) const final;
-    void generateScatteringNonOriented( double ekin, double& angle, double& delta_ekin ) const final;
-    void generateScattering( double ekin, const double (&neutron_direction)[3],
-                             double (&resulting_neutron_direction)[3], double& delta_ekin ) const final;
+    CrossSect crossSectionIsotropic(CachePtr&, NeutronEnergy ) const final;
+    ScatterOutcomeIsotropic sampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const final;
 
   protected:
     struct Impl;

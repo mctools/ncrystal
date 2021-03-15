@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -20,9 +20,7 @@
 
 #include "NCrystal/internal/NCRomberg.hh"
 #include "NCrystal/internal/NCMath.hh"
-#include "NCrystal/NCDefs.hh"
 #include <iostream>
-#include <utility>//std::swap
 
 void NCrystal::Romberg::evalFuncMany(double* fvals, unsigned n, double offset, double delta) const
 {
@@ -142,7 +140,7 @@ double NCrystal::Romberg::integrate(double a, double b) const
   return row_prev[maxlevel-1];//convergenceError() did not throw or otherwise die, so return best estimate.
 }
 
-#include "NCrystal/NCFile.hh"
+#include "NCrystal/internal/NCFileUtils.hh"
 #include <fstream>
 #include <iomanip>
 void NCrystal::Romberg::writeFctToFile(const std::string& filename, double a, double b, unsigned n) const

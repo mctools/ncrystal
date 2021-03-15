@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -32,7 +32,7 @@ namespace NCrystal {
       //A sampler which implements Algorithm1 of the Algorithm 1. of the
       //sampling paper (https://doi.org/10.1016/j.jcp.2018.11.043).
     public:
-      PairDD sampleAlphaBeta(double ekin_div_kT, RandomBase&) const final;
+      PairDD sampleAlphaBeta(double ekin_div_kT, RNG&) const final;
 
       struct CommonCache {
         const std::shared_ptr<const SABData> data;
@@ -58,7 +58,7 @@ namespace NCrystal {
 
     private:
       //Sample beta from P(beta|Ei) (line 4 of Alg. 1 in the sampling paper):
-      double sampleBeta(RandomBase&) const;
+      double sampleBeta(RNG&) const;
       // Sample alpha from F(alpha|beta_j,Ei) (line 7-8 of Alg. 1 in the sampling
       // paper). NB: this needs to work with a single random number, the
       // percentile, for purposes of interpolating between two beta-rows:
@@ -75,7 +75,7 @@ namespace NCrystal {
       //Special technical sampler which doesn't actually scatter (i.e. returns
       //alpha=beta=0). For usage of edge-cases with vanishing cross-section.
     public:
-      PairDD sampleAlphaBeta(double, RandomBase&) const final { return {0.0,0.0}; }
+      PairDD sampleAlphaBeta(double, RNG&) const final { return {0.0,0.0}; }
     };
 
 #if 0

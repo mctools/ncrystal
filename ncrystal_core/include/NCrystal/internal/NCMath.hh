@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,12 +21,14 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
+#include "NCrystal/NCTypes.hh"
 #include "NCrystal/internal/NCSpan.hh"
 #include "NCrystal/internal/NCRomberg.hh"
 #include <functional>
 
 namespace NCrystal {
+
+  //NB: For physics constants, also see NCDefs.hh.
 
   //Primary constants [NB: Some replicated in Python interface!]:
   constexpr double constant_c  = 299792458e10;// speed of light in Aa/s
@@ -36,18 +38,16 @@ namespace NCrystal {
   constexpr double constant_dalton2gpermol = constant_dalton2kg*constant_avogadro*1000.0; // dalton to gram/mol
   //NB: constant_dalton2gmol is almost but not quite unity (cf. https://doi.org/10.1007/s00769-013-1004-9)
 
-  constexpr double constant_boltzmann = 8.6173303e-5;  // eV/K
-  constexpr double const_neutron_mass_amu = 1.00866491588; // [amu] //preferred name
   constexpr double const_neutron_atomic_mass = const_neutron_mass_amu; // [amu]//obsolete name
   constexpr double constant_planck = 4.135667662e-15 ;//[eV*s]
 
   //Derived values:
   constexpr double const_neutron_mass_evc2 = const_neutron_mass_amu * constant_dalton2eVc2 / (constant_c*constant_c);// [ eV/(Aa/s)^2 ]
-  constexpr double const_ekin_2200m_s = 0.5 * const_neutron_mass_evc2 * 2200.0e10 * 2200.0e10; //neutron kinetic energy at 2200m/s [eV]
+  constexpr NeutronEnergy const_ekin_2200m_s = NeutronEnergy{0.5 * const_neutron_mass_evc2 * 2200.0e10 * 2200.0e10}; //neutron kinetic energy at 2200m/s [eV]
   constexpr double constant_hbar = constant_planck*kInv2Pi; //[eV*s]
   constexpr double const_hhm = constant_hbar*constant_hbar/const_neutron_mass_evc2;// hbar^2/neutron_mass [ eV*Aa^2 ]
-  //NB: For technical reasons, the following constant is defined below:
-  //  constant_ekin2v = sqrt(2.0/const_neutron_mass_evc2); //multiply this with sqrt(ekin[eV]) to get velocity in Aa/s
+  constexpr double constant_ekin2v = constexpr_sqrt(2.0/const_neutron_mass_evc2);//multiply this with sqrt(ekin[eV]) to get velocity in Aa/s
+
 
   //Our own min/max/abs to make sure only double versions are used:
   double ncmin(double, double);
@@ -490,7 +490,7 @@ inline double NCrystal::StableSum::sum() const
 
 inline bool NCrystal::floateq(double a, double b, double rtol, double atol)
 {
-  return ncabs(a-b) <= 0.5 * rtol * (ncabs(a) + ncabs(b)) + atol;
+  return ncabs(a-b) <= (0.5 * rtol) * ( ncabs(a) + ncabs(b) ) + atol;
 }
 
 template <class Func>
@@ -597,20 +597,6 @@ inline const typename TVector::value_type& NCrystal::vectAt(const TVector& v, ty
 }
 
 namespace NCrystal {
-
-  inline constexpr double detail_sqrtNR(double x, double xc, double xp)
-  {
-    return xc == xp ? xc : detail_sqrtNR(x, 0.5 * (xc + x / xc), xc);
-  }
-
-  inline constexpr double constexpr_sqrt(double x)
-  {
-    //TODO: Mark consteval in c++20.
-    return detail_sqrtNR(x, x, 0.);
-  }
-
-  //Define here (must be after *definition* of constexpr_sqrt):
-  constexpr double constant_ekin2v = constexpr_sqrt(2.0/const_neutron_mass_evc2);
 
   template <class T>
   inline HashValue calcHash(const T& t)

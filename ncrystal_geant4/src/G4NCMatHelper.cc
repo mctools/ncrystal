@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -20,11 +20,9 @@
 
 #include "G4NCrystal/G4NCMatHelper.hh"
 #include "G4NCrystal/G4NCManager.hh"
-#include "NCrystal/NCInfo.hh"
-#include "NCrystal/NCScatter.hh"
 #include "NCrystal/NCVersion.hh"
+#include "NCrystal/NCFactImpl.hh"
 #include "NCrystal/NCCompositionUtils.hh"
-#include "NCrystal/NCFactory.hh"
 #include "G4NistManager.hh"
 #include "G4ios.hh"
 #include <atomic>
@@ -33,6 +31,8 @@ namespace NC = NCrystal;
 namespace NCCU = NCrystal::CompositionUtils;
 
 namespace G4NCrystal {
+
+  //TODO: Move to CachedFactoryBase implementation!
 
   static std::atomic<bool> s_verbose( getenv("NCRYSTAL_DEBUG_G4MATERIALS")!=nullptr );
   void enableCreateMaterialVerbosity(bool flag)
@@ -137,7 +137,7 @@ namespace G4NCrystal {
     // natural elements directly from G4's nist manager):               //
     //////////////////////////////////////////////////////////////////////
 
-    G4Material * getBaseMaterial( const NC::Info::Composition& cmp ) {
+    G4Material * getBaseMaterial( const NC::MatInfo::Composition& cmp ) {
       auto key = NCCU::createLWBreakdown( cmp, g4NaturalAbundanceProvider );
       nc_assert(!key.empty());
       NCRYSTAL_DEBUGONLY(for (auto& e: key) { nc_assert_always(e.second.valid()); });
@@ -207,10 +207,10 @@ namespace G4NCrystal {
       G4Material * mat = getFinalMaterialImpl(cfg);
       if (s_verbose) {
         auto mgr = ::G4NCrystal::Manager::getInstance();
-        const NCrystal::Scatter* sc = mgr->getScatterProperty(mat);
+        auto sc = mgr->getScatterProperty(mat);
         nc_assert_always(sc&&mat);
         G4cout<<"G4NCrystal: Created NCrystal-enabled G4Material (G4Material index: "<<mat->GetIndex()
-              <<", NCrystal Scatter \""<<sc->getCalcName()<<"\" with unique id: "<<sc->getUniqueID().value<<")"<<G4endl;
+              <<", NCrystal Scatter \""<<sc->name()<<"\" with unique id: "<<sc->getUniqueID().value<<")"<<G4endl;
         G4cout<<"G4NCrystal::The material: ---------------------------------------------------------------------"<<G4endl<<G4endl;
         G4cout<<" Material index in table: "<<mat->GetIndex()<<G4endl;
         G4cout<<*mat<<G4endl;
@@ -231,10 +231,9 @@ namespace G4NCrystal {
       //paths in material names. We include the info objects unique id in the
       //cache key, to safe-guard against problems where input data was changed
       //and required reload.
-      NC::RCHolder<const NC::Info> info(NC::createInfo(cfg));
-      nc_assert_always(info.obj());
-      const std::string cfg_as_str = cfg.toStrCfg(true,0);
-      auto cache_key = std::make_pair( info.obj()->getUniqueID().value, cfg_as_str );
+      auto info = NC::FactImpl::createInfo(cfg);
+      const std::string cfg_as_str = cfg.toStrCfg(true);
+      auto cache_key = std::make_pair( info->getUniqueID().value, cfg_as_str );
 
       //check if we already have this material available:
       auto it = m_g4finalmaterials.find(cache_key);
@@ -249,17 +248,17 @@ namespace G4NCrystal {
 
       //Check that input has density and composition (for temperature we simply
       //wall back to room temperature below):
-      if (!info.obj()->hasDensity())
+      if (!info->hasDensity())
         NCRYSTAL_THROW(MissingInfo,"Selected crystal info source lacks info about material density.");
-      if (!info.obj()->hasComposition())
+      if (!info->hasComposition())
         NCRYSTAL_THROW(MissingInfo,"Selected crystal info source lacks info about material composition.");
 
       //Make sure that we are at all able to initialise an NCrystal scatter object
       //for the given configuration:
-      NC::RCHolder<const NC::Scatter> scatter(NC::createScatter(cfg));
+      auto scatter = NC::FactImpl::createScatter(cfg);
 
       //Base G4 material for the given chemical composition:
-      G4Material * matBase = getBaseMaterial( info.obj()->getComposition() );
+      G4Material * matBase = getBaseMaterial( info->getComposition() );
 
       //Create derived material with specific density, temperature and NCrystal scatter physics:
 
@@ -268,16 +267,16 @@ namespace G4NCrystal {
       //material, but we do it like this to avoid two different temperatures even
       //when the user didn't specify anything.
 
-      double temp = info.obj()->hasTemperature()
-        ? info.obj()->getTemperature()*CLHEP::kelvin
+      double temp = info->hasTemperature()
+        ? info->getTemperature().get()*CLHEP::kelvin
         : 293.15*CLHEP::kelvin;
 
       G4String matnameprefix("NCrystal::");
       G4Material * mat = new G4Material( matnameprefix+cache_key.second,
-                                         cfg.get_packfact()*info.obj()->getDensity()*(CLHEP::gram/CLHEP::cm3),
+                                         cfg.get_packfact()*info->getDensity().dbl()*(CLHEP::gram/CLHEP::cm3),
                                          matBase, kStateSolid, temp, 1.0 * CLHEP::atmosphere );
 
-      G4NCrystal::Manager::getInstance()->addScatterProperty(mat,scatter.obj());
+      G4NCrystal::Manager::getInstance()->addScatterProperty(mat,std::move(scatter));
 
       //Add to cache and return:
       m_g4finalmaterials[cache_key] = mat->GetIndex();
@@ -295,17 +294,22 @@ namespace G4NCrystal {
     std::map<std::pair<uint64_t,std::string>,G4Index> m_g4finalmaterials;
   };
 
-  static std::mutex s_objectdbmutex;//Mutex
-  static G4ObjectProvider s_objectdb;//NB: Only access this after locking mutex!!
+  struct NCG4ObjectDB {
+    std::mutex mtx;
+    G4ObjectProvider db;//NB: Only access this after locking mutex!!
+  };
+  NCG4ObjectDB& objDB() { static NCG4ObjectDB db; return db; }
+
   //Cache-clearing in accordance with NCrystal's global clearCaches function
   //(also detects compatibility between libG4NCrystal.so and libNCrystal.so):
   void clearG4ObjCache() {
-    std::lock_guard<std::mutex> guard(s_objectdbmutex);
-    s_objectdb = G4ObjectProvider();
+    auto& db = objDB();
+    NCRYSTAL_LOCK_GUARD(db.mtx);
+    db.db = G4ObjectProvider();
   }
   void ensureCacheClearFctRegistered() {
     static bool first = false;
-    if (first)
+    if (first)//todo: not MT-safe
       return;
     first = true;
     //Most client code will call this function, this is a good place to detect
@@ -320,8 +324,9 @@ G4Material * G4NCrystal::createMaterial( const char * cfgstr )
 {
   try {
     NC::MatCfg cfg(cfgstr);
-    std::lock_guard<std::mutex> guard(s_objectdbmutex);
-    return s_objectdb.getFinalMaterial(cfg);
+    auto& db = objDB();
+    NCRYSTAL_LOCK_GUARD(db.mtx);
+    return db.db.getFinalMaterial(cfg);
   } catch ( NC::Error::Exception& e ) {
     Manager::handleError("G4NCrystal::createMaterial",101,e);
   }
@@ -337,8 +342,9 @@ G4Material * G4NCrystal::createMaterial( const G4String& cfgstr )
 G4Material * G4NCrystal::createMaterial( const NC::MatCfg&  cfg )
 {
   try {
-    std::lock_guard<std::mutex> guard(s_objectdbmutex);
-    return s_objectdb.getFinalMaterial(cfg);
+    auto& db = objDB();
+    NCRYSTAL_LOCK_GUARD(db.mtx);
+    return db.db.getFinalMaterial(cfg);
   } catch ( NC::Error::Exception& e ) {
     Manager::handleError("G4NCrystal::createMaterial",101,e);
   }

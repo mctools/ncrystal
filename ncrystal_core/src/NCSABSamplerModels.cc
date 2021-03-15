@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -42,7 +42,7 @@ NC::SAB::SABSamplerAtE_Alg1::SABSamplerAtE_Alg1( std::shared_ptr<const CommonCac
   nc_assert( ibetaOffset+betaVals.size() == m_common->data->betaGrid().size()+1 );
 }
 
-NC::PairDD NC::SAB::SABSamplerAtE_Alg1::sampleAlphaBeta(double ekin_div_kT, RandomBase&rng) const
+NC::PairDD NC::SAB::SABSamplerAtE_Alg1::sampleAlphaBeta(double ekin_div_kT, RNG&rng) const
 {
   nc_assert(!!m_common);
   const auto& betaGrid = m_common->data->betaGrid();
@@ -121,7 +121,7 @@ NC::PairDD NC::SAB::SABSamplerAtE_Alg1::sampleAlphaBeta(double ekin_div_kT, Rand
                   " (but please consider reporting the issue to the NCrystal developers nonetheless).");
 }
 
-double NC::SAB::SABSamplerAtE_Alg1::sampleBeta(RandomBase& rng) const
+double NC::SAB::SABSamplerAtE_Alg1::sampleBeta(RNG& rng) const
 {
   return m_betaSampler.sample(rng);
 }

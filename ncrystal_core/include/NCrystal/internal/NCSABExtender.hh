@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -44,21 +44,22 @@ namespace NCrystal {
 
       //Get cross-section or sample S(alpha,beta) over allowed kinematic region
       //at given incident neutron energy:
-      virtual double crossSection(double ekin) const = 0;
-      virtual PairDD sampleAlphaBeta(RandomBase&, double ekin) const = 0;
+      virtual CrossSect crossSection(NeutronEnergy) const = 0;
+      virtual PairDD sampleAlphaBeta(RNG&, NeutronEnergy) const = 0;
     };
 
     class SABFGExtender : public SABExtender {
     public:
       //Extend with single target type FreeGas model.
-      SABFGExtender( double temp_kelvin, double target_mass_amu, SigmaBound );
-      SABFGExtender( double temp_kelvin, double target_mass_amu, SigmaFree );
+      SABFGExtender( Temperature, AtomMass, SigmaBound );
+      SABFGExtender( Temperature, AtomMass, SigmaFree );
       virtual ~SABFGExtender();
-      double crossSection(double ekin) const override;
-      PairDD sampleAlphaBeta(RandomBase&, double ekin) const override;
+      CrossSect crossSection(NeutronEnergy) const override;
+      PairDD sampleAlphaBeta(RNG&, NeutronEnergy) const override;
     private:
       FreeGasXSProvider m_xsprovider;
-      double m_t, m_m;
+      Temperature m_t;
+      AtomMass m_m;
     };
 
   }

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,7 +21,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
+#include "NCrystal/NCTypes.hh"
+#include "NCrystal/NCSmallVector.hh"
 
 namespace NCrystal {
 
@@ -62,12 +63,15 @@ namespace NCrystal {
     bool empty() const { return m_elm_data.empty(); }
 
     //Evaluate the incoherent elastic cross section:
-    static double evaluateMonoAtomic(double ekin, double meanSqDisp, double bound_incoh_xs);
-    double evaluate(double ekin) const;
+    static double evaluateMonoAtomic( NeutronEnergy, double meanSqDisp, SigmaBound bound_incoh_xs);
+    double evaluate(NeutronEnergy ekin) const;
 
     //Sample cosine of scatter angle:
-    static double sampleMuMonoAtomic( RandomBase *, double ekin, double meanSqDisp );
-    double sampleMu( RandomBase *, double ekin );
+    static double sampleMuMonoAtomic( RNG&, NeutronEnergy, double meanSqDisp );
+    double sampleMu( RNG&, NeutronEnergy );
+
+    //Constructor merging two existing instances with associated scales:
+    ElIncXS( const ElIncXS&, double, const ElIncXS&,  double );
 
     ////////////////////////////////////////////////////////////////////////////////////
     //
@@ -107,7 +111,7 @@ namespace NCrystal {
     ////////////////////////////////////////////////////////////////////////////////////
 
   private:
-    std::vector<PairDD > m_elm_data;//for exact eval, (msd,boundincohxs*scale)
+    SmallVector<PairDD,16> m_elm_data;//for exact eval, (msd,boundincohxs*scale)
     static double eval_1mexpmtdivt(double t);//safe/fast eval of (1-exp(-t))/t for t>=0.0 with >10 sign. digits
 
   };

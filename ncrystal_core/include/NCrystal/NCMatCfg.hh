@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,13 +21,16 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
+#include "NCrystal/NCTypes.hh"
+#include "NCrystal/NCVariant.hh"
+#include "NCrystal/NCTextData.hh"
 #include <ostream>
 
 namespace NCrystal {
 
-  class Info;
   class SCOrientation;
+
+  class MatInfoCfg;
 
   class NCRYSTAL_API MatCfg {
   public:
@@ -63,12 +66,15 @@ namespace NCrystal {
     // The supported variable names and the set methods which they invoke
     // are documented below.
     //
+
     MatCfg( const std::string& datafile_and_parameters );
+    MatCfg( const char* datafile_and_parameters );
     //
     // Note that it is also possible to set the (initial) values of parameters,
     // by embedding a statement like NCRYSTALMATCFG[temp=500.0;dcutoff=0.2] into
-    // the datafile itself. These parameters can of course still be overridden,
-    // and such embedded configuration can be ignored entirely by appending
+    // the data itself (in a suitable location in the file of course, i.e. in a
+    // comment). These parameters can of course still be overridden, and such
+    // embedded configuration can be ignored entirely by appending
     // ";ignorefilecfg" to the filename:
     //
     //    MatCfg cfg("myfile.ncmat;ignorefilecfg").
@@ -82,6 +88,45 @@ namespace NCrystal {
     //
     // No matter how the temperature was set, get_temp() will return the value
     // in kelvin (273.15) afterwards.
+    //
+    // Important notice: The MatCfg constructor immediately opens the specified
+    // input file and caches the content in memory (without needless copies in
+    // case of in-memory files), and makes it available via the textData and
+    // textDataSP methods. Thus, keeping a very large number of MatCfg objects
+    // around can potentially incur a sizeable overhead. However, the usage
+    // should be rather extreme before this can become a problem (e.g. keeping
+    // 1000 MatCfg objects around which all refer to unusually large 1MB files
+    // could potentially mean 1GB of memory retained). As most input files are
+    // typically 100 times smaller than this and since users typically only keep
+    // a few MatCfg alive at once, this is not expected to be a problem in
+    // practice. Notice also the cloneThinned() method below.
+
+    ////////////////////////////////////////////////////////////////////////////
+    // For additional flexiblity, it is also possible to instantiate MatCfg
+    // objects by providing the bulk text data directly instead of a filename -
+    // in the form of either a TextData object or a string with the content. In
+    // either case, there should be enough information available that the
+    // framework can figure out the type of data provided. In order of
+    // preference, this will be done by looking at #1 the explicit dataType
+    // string provided as a parameter to the constructor (if non-empty), #2 the
+    // dataType from the TextData object, #3 if the TextData content starts with
+    // the 5 characters "NCMAT", the type will be inferred to be "ncmat", and
+    // finally as a last resort, #4 the file extension of the filename provided,
+    // if any. If all these options fail to determine the data format, a
+    // BadInput exception will be thrown.
+    //
+    // Note that providing data manually as a string will result in a new
+    // TextData object being constructed internally with a new dataUID(), with
+    // implications for downstream-caching.
+
+    explicit MatCfg( TextDataSP, std::string parameters = {} );
+
+    //To avoid overload ambiguities, the constructor accepting raw data directly
+    //is encapsulated in a static creation method:
+    static MatCfg createFromRawData( std::string&& data,
+                                     std::string parameters = {},
+                                     std::string dataType = {} );
+
 
     /////////////////////////////////////////////////////////////////////////////
     // Possible parameters and their meaning:                                  //
@@ -146,7 +191,7 @@ namespace NCrystal {
     //               factor).
     //
     // mos.........: [ double, no fallback value ]
-    //               Mosaic spread in mosaic single crystals, in radians.
+    //               Mosaic FWHM spread in mosaic single crystals, in radians.
     //               [ Recognised units: "rad", "deg", "arcmin", "arcsec" ]
     //
     // dir1........: [ special, no fallback value ]
@@ -191,7 +236,7 @@ namespace NCrystal {
     //               By supplying the name of an NCrystal factory, this
     //               parameter can be used by experts to circumvent the usual
     //               factory selection algorithms and instead choose the factory
-    //               for creating NCrystal::Info instances directly.
+    //               for creating NCrystal::MatInfo instances directly.
     //               (TODO: Mention how to set flags like expandhkl)
     //
     // scatfactory.: [ string, fallback value is "" ]
@@ -225,9 +270,10 @@ namespace NCrystal {
     //               accurate. A positive value triggers a very slow but simple
     //               reference model, in which n=lcmode crystallite orientations
     //               are sampled internally (the model is accurate only when n
-    //               is very high). A negative value triggers a different model
-    //               in which each crossSection call triggers a new selection of
-    //               n=-lcmode randomly oriented crystallites.
+    //               is very high). A negative value triggers a different (and
+    //               multi-thread unsafe!) model in which each crossSection call
+    //               triggers a new selection of n=-lcmode randomly oriented
+    //               crystallites.
     //
     // sccutoff....: [ double, fallback value is 0.4Aa ]
     //               Single-crystal d-spacing cutoff in Angstrom. When creating
@@ -295,6 +341,7 @@ namespace NCrystal {
     //               (i.e. NCrystal's internal database of elements and isotopes
     //               will be ignored).
 
+
     /////////////////////////////////////////////////////////////////////////////
     // Special pseudo-parameters available for usage in configuration strings
     // (and only there), for convenience and backwards compatiblity:
@@ -315,15 +362,15 @@ namespace NCrystal {
     /////////////////////////////////////////////////////////////////////////////
     //
     //Directly set from C++ code:
+    void set_temp( Temperature );
     void set_temp( double );
     void set_dcutoff( double );
     void set_dcutoffup( double );
     void set_packfact( double );
-    void set_mos( double );
+    void set_mos( MosaicityFWHM );
     void set_mosprec( double );
     void set_sccutoff( double );
     void set_dirtol( double );
-    void set_overridefileext( const std::string& );
     void set_coh_elas( bool );
     void set_incoh_elas( bool );
     void set_inelas( const std::string& );
@@ -333,24 +380,17 @@ namespace NCrystal {
     void set_lcmode( int );
     void set_vdoslux( int );
     void set_atomdb( const std::string& );
+    void set_lcaxis( const LCAxis& );
     //
     //Special setter method, which will set all orientation parameters based on
     //an SCOrientation object:
     void setOrientation( const SCOrientation& );
-
-    void set_dir1( bool crystal_dir_is_point_in_hkl_space,
-                   const double (&crystal_direction)[3],
-                   const double (&lab_direction)[3] );
-    void set_dir2( bool crystal_dir_is_point_in_hkl_space,
-                   const double (&crystal_direction)[3],
-                   const double (&lab_direction)[3] );
-    void get_dir1( bool& crystal_dir_is_point_in_hkl_space,
-                   double (&crystal_direction)[3],
-                   double (&lab_direction)[3] );
-    void get_dir2( bool& crystal_dir_is_point_in_hkl_space,
-                   double (&crystal_direction)[3],
-                   double (&lab_direction)[3] );
-    void set_lcaxis( const double (&axis)[3] );
+    void set_dir1( const HKLPoint&, const LabAxis& );
+    void set_dir1( const CrystalAxis&, const LabAxis& );
+    void set_dir2( const HKLPoint&, const LabAxis& );
+    void set_dir2( const CrystalAxis&, const LabAxis& );
+    std::pair<Variant<CrystalAxis,HKLPoint>,LabAxis> get_dir1() const;
+    std::pair<Variant<CrystalAxis,HKLPoint>,LabAxis> get_dir2() const;
     //
     // Set parameters from a string, using the same format as that supported by
     // the constructor, e.g. "par1=val1;...;parn=valn":
@@ -361,16 +401,15 @@ namespace NCrystal {
     /////////////////////////////////////////////////////////////////////////////
     //
     // Directly access from C++
-    double get_temp() const;
+    Temperature get_temp() const;
     double get_dcutoff() const;
     double get_dcutoffup() const;
     double get_packfact() const;
-    double get_mos() const;
+    MosaicityFWHM get_mos() const;
     double get_mosprec() const;
     double get_sccutoff() const;
     double get_dirtol() const;
-    void get_lcaxis( double (&axis)[3] ) const;
-    const std::string& get_overridefileext() const;
+    LCAxis get_lcaxis() const;
     const std::string& get_scatfactory() const;
     const std::string& get_absnfactory() const;
     int  get_lcmode() const;
@@ -394,71 +433,83 @@ namespace NCrystal {
     SCOrientation createSCOrientation() const;//Create and return a new SCOrientation object based cfg.
     bool isLayeredCrystal() const;//true if lcaxis parameter is set
 
+    //Test if was constructed with ";ignorefilecfg" keyword:
+    bool ignoredEmbeddedConfig() const;
+
     //Validate infofactory flags and options to prevent silently ignoring
     //unused options. Call only from *selected* factory, to throw BadInput in
     //case of unknown options:
     void infofactopt_validate(const std::set<std::string>& allowed_opts) const;
 
-    //Datafile (never decode extension by hand):
-    const std::string& getDataFile() const;//Resolved path to the datafile [NB: This is empty unless file is directly on-disk!]
-    const std::string& getDataFileAsSpecified() const;//Path to the datafile as specified in the constructor
-    const std::string& getDataFileExtension() const;//Extension of datafile (actual unless overridefileext is set)
-
-    //Serialise in various forms:
-    std::string toStrCfg( bool include_datafile = true, const std::set<std::string> * only_parnames = 0 ) const;
+    //Serialise in various forms (note that if the MatCfg object was not
+    //constructed from a text string, the string returned by toStrCfg(true) will
+    //of course not be useful for creating a new equivalent MatCfg object).
+    std::string toStrCfg( bool include_datafile = true ) const;
     std::string toEmbeddableCfg() const;//Produces a string like "NCRYSTALMATCFG[temp=500.0;dcutoff=0.2]"
                                         //which can be embedded in data files.
     void dump( std::ostream &out, bool add_endl=true ) const;
 
-    //Test if was constructed with ";ignorefilecfg" keyword:
-    bool ignoredEmbeddedConfig() const;
-
-
     /////////////////////////////////////////////////////////////////////////////
-    // Copy/assign/clone/destruct                                              //
+    // Associated text data (content and meta data of data file)               //
     /////////////////////////////////////////////////////////////////////////////
     //
-    // Copy/assignment/move/cloning is allowed and is a priori cheap, since internal
+    // Both content and meta data are available, unless the MatCfg object was
+    // "thinned" (see below), in which case the textData()/textDataSP() methods
+    // should not be used (but the textDataUID()/getDataType methods are always
+    // OK). However, normally MatCfg objects are not thinned and most code
+    // should simply use the methods.
+
+    const TextData& textData() const;
+    TextDataSP textDataSP() const;
+
+    //UID of text data:
+    const TextDataUID textDataUID() const;
+
+    //Data type of text data (usually the extension of the data file). Calling
+    //this method should be the only manner of determining the format of the
+    //associated textData:
+    const std::string& getDataType() const;
+
+    /////////////////////////////////////////////////////////////////////////////
+    // Copy/assign/move/clone/destruct                                         //
+    /////////////////////////////////////////////////////////////////////////////
+    //
+    // Copy/assignment/cloning is allowed and is a priori cheap, since internal
     // data structures are shared until modified (aka copy-on-write):
+    //
     MatCfg(const MatCfg&);
     MatCfg& operator=(const MatCfg&);
-    MatCfg clone() const { return MatCfg(*this); }
-    //A completely "clean" clone, unconnected to the original and no internal
-    //caches set is obtainable with:
-    MatCfg cloneUnshared() const { MatCfg c(*this); c.cow(); return c; }
     MatCfg( MatCfg&& );
     MatCfg& operator=(MatCfg&&);
     ~MatCfg();
+    MatCfg clone() const;
 
+    //Create a "thinned" clone which does not keep a strong reference to the
+    //associated TextData object, but which still retains all other information
+    //(including the textDataUID) needed for comparisons. Thus, such a clone is
+    //suitable for e.g. cache keys which must be kept around for comparison but
+    //which should not retain strong references to potentially large text
+    //data. Accessing the textData()/textDataSP() methods on a thinned object
+    //will result in an exception.
+    MatCfg cloneThinned() const;
+    bool isThinned() const;
 
     /////////////////////////////////////////////////////////////////////////////
     // Interface for NCrystal factory infrastructure:                          //
     /////////////////////////////////////////////////////////////////////////////
     //
     // Advanced interface, which is intended solely for use by the NCrystal
-    // factory infrastructure, in order to avoid unnecessarily re-initialising
-    // expensive objects.
-    //
-    // Monitor parameter accesses (does not take ownership of the spy and
-    // parameter modifications will be forbidden while such monitoring is in
-    // place):
-    struct AccessSpy {
-      virtual ~AccessSpy(){};
-      virtual void parAccessed(const std::string& parname) = 0;
-    };
-    bool hasAccessSpy(AccessSpy*) const;
-    void addAccessSpy(AccessSpy*) const;
-    void removeAccessSpy(AccessSpy*) const;
-    //
+    // factory infrastructure, for validation, factory selection, and to avoid
+    // unnecessarily re-initialisation of expensive objects.
+
+    //Create const-view wrapper of MatCfg with access to the restricted set of
+    //parameters which is allowed to use in info factories:
+    MatInfoCfg createInfoCfg() const;
+
     //Verify that the parameter values are not inconsistent or
     //incomplete. Throws BadInput exception if they are. This will automatically
     //be invoked by the factory infrastructure:
     void checkConsistency() const;
-    //
-    //returns a string like "par1=val1;...;parn=valn" for the specified
-    //parameters only (using "<>" as value for unset parameters):
-    void getCacheSignature( std::string& signature,
-                            const std::set<std::string>& parameters ) const;
 
     //Convenience interface for setting/decoding scatfactory+absnfactory parameters:
     struct FactRequested {
@@ -470,16 +521,96 @@ namespace NCrystal {
     void set_scatfactory(const FactRequested& );
     void set_absnfactory(const FactRequested& );
 
+    //Unspecified ordering (for usage as map keys):
+    bool operator<(const MatCfg&) const;
+
   private:
+    struct constructor_args : private MoveOnly {
+      OptionalTextDataSP td; std::string pars, origfn;
+    };
+    explicit MatCfg( constructor_args&& );
+    struct from_raw_t {};
+    explicit MatCfg( from_raw_t, std::string&& data, std::string pars, std::string ext );
     const std::string& get_infofactory() const;//undecoded, internal usage only
     struct Impl;
-    RCHolder<Impl> m_impl;
-    void cow();
-
+    COWPimpl<Impl> m_impl;
+    OptionalTextDataSP m_textDataSP;
+    friend class MatInfoCfg;
   };
 
-  inline std::ostream& operator<< (std::ostream& s, const MatCfg& cfg) { cfg.dump(s,false); return s; }
+  class MatInfoCfg {
+  public:
+    //Reduced const-view wrapper of MatCfg, restricting access to the parameters
+    //that are allowed only in Info-factories. The comparison operator likewise
+    //ignores all other parameters.
+    const TextDataUID textDataUID() const;
+    const std::string& getDataType() const;
+    const TextData& textData() const;
+    TextDataSP textDataSP() const;
+    Temperature get_temp() const;
+    double get_dcutoff() const;
+    double get_dcutoffup() const;
+    const std::string& get_atomdb() const;
+    const std::vector<VectS>& get_atomdb_parsed() const;
+    std::string get_infofact_name() const;
+    bool get_infofactopt_flag(const std::string& name) const;
+    double get_infofactopt_dbl(const std::string& name, double defval) const;
+    int get_infofactopt_int(const std::string& name, int defval) const;
+    void checkConsistency() const;
+    void dump( std::ostream &out, bool add_endl=true ) const;
+    void infofactopt_validate(const std::set<std::string>& ao) const;
+    std::string toStrCfg( bool include_datafile = true ) const;
+    MatInfoCfg clone() const;
+    MatInfoCfg cloneThinned() const;
+    bool isThinned() const;
+    MatInfoCfg(const MatCfg&);
+    MatInfoCfg(MatCfg&&);
+    MatInfoCfg(const MatInfoCfg&) = default;
+    MatInfoCfg& operator=(const MatInfoCfg&) = default;
+    MatInfoCfg( MatInfoCfg&& ) = default;
+    MatInfoCfg& operator=(MatInfoCfg&&) = default;
+    bool operator<(const MatInfoCfg&) const;
+  private:
+    MatCfg m_cfg;
+  };
 
+  inline std::ostream& operator<< (std::ostream&, const MatCfg&);
+  inline std::ostream& operator<< (std::ostream&, const MatInfoCfg&);
+
+}
+
+
+////////////////////////////
+// Inline implementations //
+////////////////////////////
+
+namespace NCrystal {
+  inline void MatCfg::set_temp( double t ) { set_temp(Temperature{t}); }
+  inline MatCfg MatCfg::clone() const { return MatCfg(*this); }
+  inline bool MatCfg::isThinned() const { return m_textDataSP == nullptr; }
+  inline const TextData& MatCfg::textData() const { return textDataSP(); }
+  inline const TextDataUID MatInfoCfg::textDataUID() const { return m_cfg.textDataUID(); }
+  inline const std::string& MatInfoCfg::getDataType() const { return m_cfg.getDataType(); }
+  inline const TextData& MatInfoCfg::textData() const { return m_cfg.textData(); }
+  inline TextDataSP MatInfoCfg::textDataSP() const { return m_cfg.textDataSP(); }
+  inline Temperature MatInfoCfg::get_temp() const { return m_cfg.get_temp(); }
+  inline double MatInfoCfg::get_dcutoff() const { return m_cfg.get_dcutoff(); }
+  inline double MatInfoCfg::get_dcutoffup() const { return m_cfg.get_dcutoffup(); }
+  inline const std::string& MatInfoCfg::get_atomdb() const { return m_cfg.get_atomdb(); }
+  inline const std::vector<VectS>& MatInfoCfg::get_atomdb_parsed() const { return m_cfg.get_atomdb_parsed(); }
+  inline std::string MatInfoCfg::get_infofact_name() const { return m_cfg.get_infofact_name(); }
+  inline bool MatInfoCfg::get_infofactopt_flag(const std::string& name) const { return m_cfg.get_infofactopt_flag(name); }
+  inline double MatInfoCfg::get_infofactopt_dbl(const std::string& name, double defval) const { return m_cfg.get_infofactopt_dbl(name,defval); }
+  inline int MatInfoCfg::get_infofactopt_int(const std::string& name, int defval) const { return m_cfg.get_infofactopt_int(name,defval); }
+  inline void MatInfoCfg::checkConsistency() const { m_cfg.checkConsistency(); }
+  inline void MatInfoCfg::infofactopt_validate(const std::set<std::string>& ao) const { m_cfg.infofactopt_validate(ao); }
+  inline MatInfoCfg MatInfoCfg::clone() const { return m_cfg.clone(); }
+  inline MatInfoCfg MatInfoCfg::cloneThinned() const { return m_cfg.cloneThinned(); }
+  inline MatInfoCfg::MatInfoCfg(const MatCfg& cfg) : m_cfg(cfg) {}
+  inline MatInfoCfg::MatInfoCfg(MatCfg&& cfg) : m_cfg(std::move(cfg)) {}
+  inline bool MatInfoCfg::isThinned() const { return m_cfg.isThinned(); }
+  inline std::ostream& operator<< (std::ostream& s, const MatCfg& cfg) { cfg.dump(s,false); return s; }
+  inline std::ostream& operator<< (std::ostream& s, const MatInfoCfg& cfg) { cfg.dump(s,false); return s; }
 }
 
 #endif

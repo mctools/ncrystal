@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -26,8 +26,6 @@
 
 namespace NCrystal {
 
-  class RandomBase;
-
   class SABSamplerAtE : private NoCopyMove {
     //For sampling (alpha,beta) values at a given energy, Ei, or lower. This
     //is intended to be implemented with the rejection method, taking
@@ -38,20 +36,20 @@ namespace NCrystal {
     //too much lower than Ei (which is why we need a whole grid of Ei values,
     //rather than just one with Ei=Emax).
   public:
-    virtual PairDD sampleAlphaBeta(double ekin_div_kT, RandomBase&) const = 0;
+    virtual PairDD sampleAlphaBeta(double ekin_div_kT, RNG&) const = 0;
     virtual ~SABSamplerAtE() = default;
   };
 
   class SABSampler final : private MoveOnly {
   public:
 
-    void setData( double temperature,
+    void setData( Temperature temperature,
                   VectD&& egrid,
                   std::vector<std::unique_ptr<SABSamplerAtE>>&&,
                   std::shared_ptr<const SAB::SABExtender>,
                   double xsAtEmax );
 
-    SABSampler( double temperature,
+    SABSampler( Temperature temperature,
                 VectD&& egrid,
                 std::vector<std::unique_ptr<SABSamplerAtE>>&&,
                 std::shared_ptr<const SAB::SABExtender>,
@@ -61,10 +59,10 @@ namespace NCrystal {
     ~SABSampler();
 
     //Sample (alpha,beta) values directly:
-    PairDD sampleAlphaBeta(double ekin, RandomBase&) const;
+    PairDD sampleAlphaBeta( NeutronEnergy, RNG&) const;
 
     //Convenience (calls sampleAlphaBeta, then converts):
-    PairDD sampleDeltaEMu(double ekin, RandomBase& rng) const;
+    PairDD sampleDeltaEMu( NeutronEnergy, RNG& rng) const;
 
     //Move ok:
     SABSampler( SABSampler&& ) = default;
@@ -76,7 +74,7 @@ namespace NCrystal {
     double m_kT = 0.0;
     std::shared_ptr<const SAB::SABExtender> m_extender;
     double m_xsAtEmax = 0.0, m_k1 = 0.0, m_k2 = 0.0;
-    PairDD sampleHighE(double, RandomBase&) const;
+    PairDD sampleHighE(NeutronEnergy, RNG&) const;
   };
 }
 

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -41,9 +41,9 @@ namespace NCrystal {
 
   struct ScatKnlData : private MoveOnly {
     VectD alphaGrid, betaGrid, sab;
-    double temperature = -1.0;
+    Temperature temperature = Temperature{-1.0};
     SigmaBound boundXS = SigmaBound{-1.0};
-    double elementMassAMU = -1.0;
+    AtomMass elementMassAMU = AtomMass{-1.0};
     enum class KnlType { SAB,        //Standard S(alpha,beta), fields have same meaning as on SABData.
                          SCALED_SAB, //Values in sab table are actually S'(alpha,beta)=S(alpha,beta)*exp(beta/2)
                          SCALED_SYM_SAB,//Same + S'(alpha,beta) is an even function in beta, and the kernel is
@@ -62,9 +62,9 @@ namespace NCrystal {
     ScatKnlDataView(const ScatKnlData&);
     ScatKnlDataView(const SABData&);
     const Span<const double> alphaGrid, betaGrid, sab;
-    const double temperature;
+    const Temperature temperature;
     const SigmaBound boundXS;
-    const double elementMassAMU;
+    const AtomMass elementMassAMU;
     const ScatKnlData::KnlType knltype;
     double suggestedEmax;
   };

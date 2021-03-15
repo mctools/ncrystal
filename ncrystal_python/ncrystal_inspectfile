@@ -4,7 +4,7 @@
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2020 NCrystal developers                                   ##
+##  Copyright 2015-2021 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -36,6 +36,7 @@ if pyversion < (3,5,0):
 import os
 import pathlib
 import argparse
+import math
 
 #in unit test we dont display interactive images and we reduce cpu consumption
 #by watching for special env var:
@@ -195,7 +196,7 @@ def create_wavelengths(np,cfgs,npoints,logspace=False):
     bragg_thresholds = [(NCrystal.ekin2wl(c.domain()[0]) or fallback) for c in pcbraggs if not c._nullprocess]
     max_bragg_threshold = max(bragg_thresholds) if bragg_thresholds else None
     max_bragg_threshold = max_bragg_threshold or fallback
-    wls_max = float(int(max_bragg_threshold*1.01+1.0))
+    wls_max = float(int(max_bragg_threshold*1.01+1.0)) if not math.isinf(max_bragg_threshold) else 10.0
     wls_min = 0.001
     wls_max *= 1.2
     return (np.logspace if logspace else np.linspace)(wls_min,wls_max,npoints)
@@ -258,7 +259,7 @@ def _remove_common_keyvals(dicts):
     """remove any key from the passed dicts which exists with identical value in all
     the dicts. Returns a single dictionary with entries thus removed."""
     sets=[set((k,v) for k,v in list(d.items())) for d in dicts]
-    common = dict(set.intersection(*sets))
+    common = dict(set.intersection(*sets)) if sets else {}
     for k in list(common.keys()):
         for d in dicts:
             d.pop(k,None)
@@ -395,6 +396,8 @@ def plot_xsect(cfgs,comp,absorption,pdf=False):
 
 def plot_2d_scatangle(cfg,comp,pdf=False):
     assert comp in ('coh_elas','incoh_elas','elastic','inelastic','all')
+    part=cfg.get_scatter(comp)
+
     np,plt,pdf = import_npplt(pdf)
 
     #reproducible plots:
@@ -404,37 +407,42 @@ def plot_2d_scatangle(cfg,comp,pdf=False):
     #higher granularity wavelengths than for 1D plot to avoid artifacts:
     wavelengths = create_wavelengths(np,[cfg],100 if _unittest else 30000 )
 
-    part=cfg.get_scatter(comp)
-
     #get title (label should be uninteresting for a single part):
     title,labels = create_title_and_labels([part])
 
     #First figure out how many points to put at each wavelength
-    xsects = part.crossSectionNonOriented(NCrystal.wl2ekin(wavelengths))
-
-    n2d = 100 if _unittest else 25000
-    sumxs = np.sum(xsects)
-    if sumxs:
-        n_at_wavelength = np.random.poisson(xsects*n2d/np.sum(xsects))
+    if not part._nullprocess:
+        xsects = part.crossSectionNonOriented(NCrystal.wl2ekin(wavelengths))
+        n2d = 100 if _unittest else 25000
+        sumxs = np.sum(xsects)
+        if sumxs:
+            n_at_wavelength = np.random.poisson(xsects*n2d/np.sum(xsects))
+        else:
+            n_at_wavelength = np.zeros(len(xsects))
     else:
-        n_at_wavelength = np.zeros(len(xsects))
+        n_at_wavelength = np.zeros(len(wavelengths))
 
     n2d=int(np.sum(n_at_wavelength))#correction for random fluctuations
-    plot_angles = np.zeros(n2d)
-    plot_wls = np.zeros(n2d)
+    if n2d>0:
+        plot_angles = np.zeros(n2d)
+        plot_wls = np.zeros(n2d)
+        j = 0
+        for i,n in enumerate(n_at_wavelength):
+            i,n = int(i),int(n)
+            ang,de = part.generateScatteringNonOriented(NCrystal.wl2ekin(wavelengths[i]),repeat=int(n))
+            plot_angles[j:j+n] = ang
+            plot_wls[j:j+n].fill(wavelengths[i])
+            j+=n
+        plot_angles *= (180./np.pi)
+    else:
+        plot_angles = None
+        plot_wls = None
 
-    j = 0
-    for i,n in enumerate(n_at_wavelength):
-        i,n = int(i),int(n)
-        ang,de = part.generateScatteringNonOriented(NCrystal.wl2ekin(wavelengths[i]),repeat=int(n))
-        plot_angles[j:j+n] = ang
-        plot_wls[j:j+n].fill(wavelengths[i])
-        j+=n
-
-    try:
-        plt.scatter(plot_wls,plot_angles*(180./np.pi),alpha=0.2,marker='.',edgecolor=None,color='black',s=2,zorder=1)
-    except ValueError:
-        plt.scatter(plot_wls,plot_angles*(180./np.pi),alpha=0.2,edgecolor=None,color='black',s=2,zorder=1)
+    if plot_wls is not None:
+        try:
+            plt.scatter(plot_wls,plot_angles,alpha=0.2,marker='.',edgecolor=None,color='black',s=2,zorder=1)
+        except ValueError:
+            plt.scatter(plot_wls,plot_angles,alpha=0.2,edgecolor=None,color='black',s=2,zorder=1)
 
     plt.gca().set_xlim(0.0,wavelengths[-1])
     plt.gca().set_ylim(0,180)
@@ -452,13 +460,6 @@ def plot_2d_scatangle(cfg,comp,pdf=False):
 
 def dump_info(info):
     NCrystal.dump(info)
-
-
-def create_scatter(cfg):
-    s=NCrystal.createScatter(cfg)
-    if s.isOriented():
-        print("Error: Can not create plots for oriented crystals")
-    return s
 
 class XSSum:
     def __init__(self,*processes):
@@ -550,7 +551,7 @@ def main():
         NCrystal.browsePlugins(dump=True)
         sys.exit(0)
     if args.browse:
-        NCrystal.browseFiles(extension='ncmat',dump=True)
+        NCrystal.browseFiles(dump=True)
         sys.exit(0)
     if args.test:
         NCrystal.test()

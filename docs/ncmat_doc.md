@@ -61,8 +61,8 @@ The file must always begin with the format designation, `NCMAT v1`, on a single
 line, with no space added before the initial `N`. All NCMAT files thus begin
 with 5 bytes spelling out `NCMAT` in ASCII. The entire file must be encoded in
 ASCII or UTF-8 encodings, with non-ASCII parts of UTF-8 only allowed in
-comments. Line endings can be Unix (LF) or DOS (CFLF), but not the ancient
-Macintosh endings (CF).
+comments. Line endings can be Unix (LF) or DOS (CRLF), but not the ancient
+Macintosh endings (CR).
 
 The four sections appearing in the example file above, @CELL, @SPACEGROUP,
 @ATOMPOSITIONS, and @DEBYETEMPERATURE must all be present exactly once in all v1

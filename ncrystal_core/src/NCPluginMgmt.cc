@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,7 +21,6 @@
 #include "NCrystal/NCPluginMgmt.hh"
 #include "NCrystal/internal/NCDynLoader.hh"
 #include "NCrystal/internal/NCString.hh"
-#include "NCrystal/NCFile.hh"
 #include <iostream>
 
 //MT TODO: Do we need to make these thread-safe?
@@ -32,14 +31,9 @@ namespace NCP = NCrystal::Plugins;
 namespace NCrystal {
   namespace Plugins {
 
-    //Make sure plugins are loaded before anyone looks up files (this gives
-    //plugins a chance to register in-memory files).
-    static bool pfacb_dummy = [](){addPreFileAccessCallback(ensurePluginsLoaded); return true; }();
-
     namespace {
       std::mutex& getPluginMgmtMutex()
       {
-        markused(pfacb_dummy);//avoid issues with certain compilers...
         static std::mutex mtx;
         return mtx;
       }
@@ -92,7 +86,7 @@ namespace NCrystal {
         pinfo.fileName = path_to_shared_lib;
         pinfo.pluginName = pluginName;
 
-        std::lock_guard<std::mutex> guard(getPluginMgmtMutex());
+        NCRYSTAL_LOCK_GUARD(getPluginMgmtMutex());
 
         if (ncgetenv_bool("DEBUG_PLUGIN"))
           std::cout<<"NCrystal: Attempting to loading dynamic library with plugin: "<<pinfo.fileName<<std::endl;
@@ -127,7 +121,7 @@ NCP::PluginInfo NCP::loadBuiltinPlugin( std::string pluginName,
   PluginInfo pinfo;
   pinfo.pluginType = PluginType::Builtin;
   pinfo.pluginName = pluginName;
-  std::lock_guard<std::mutex> guard(getPluginMgmtMutex());
+  NCRYSTAL_LOCK_GUARD(getPluginMgmtMutex());
   actualLoadPlugin( pinfo, std::move(regfct) );
   return pinfo;
 }
@@ -137,7 +131,7 @@ std::vector<NCP::PluginInfo> NCP::loadedPlugins()
   NCP::ensurePluginsLoaded();
   std::vector<NCP::PluginInfo> result;
   {
-    std::lock_guard<std::mutex> guard(getPluginMgmtMutex());
+    NCRYSTAL_LOCK_GUARD(getPluginMgmtMutex());
     result = getPLList();
   }
   return result;
@@ -151,6 +145,9 @@ std::vector<NCP::PluginInfo> NCP::loadedPlugins()
 //are always enabled, unless respectively NCRYSTAL_DISABLE_STDSCAT and
 //NCRYSTAL_DISABLE_STDABS is defined.
 
+#ifndef NCRYSTAL_DISABLE_STDDATASOURCES
+extern "C" void ncrystal_register_stddatasrc_factory();
+#endif
 #ifndef NCRYSTAL_DISABLE_STDSCAT
 extern "C" void ncrystal_register_stdscat_factory();
 #endif
@@ -193,6 +190,9 @@ void NCP::ensurePluginsLoaded()
     return;
   done = true;
 
+#ifndef NCRYSTAL_DISABLE_STDDATASOURCES
+  loadBuiltinPlugin("stddatasrc",ncrystal_register_stddatasrc_factory);
+#endif
   //Standard plugins, always as builtin plugins:
 #ifndef NCRYSTAL_DISABLE_STDSCAT
   loadBuiltinPlugin("stdscat",ncrystal_register_stdscat_factory);

@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -54,8 +54,9 @@ void NC::AtomDBExtender::addData( const NC::VectS& words, unsigned format_versio
   const unsigned nwords = static_cast<unsigned>(words.size());
   nc_assert(nwords>=3);
 
-  auto lookupWithErrorMsg = [this](const std::string& n){
-    auto data = lookupAtomData(n);
+  auto lookupWithErrorMsg = [this](const std::string& n) -> AtomDataSP
+  {
+    auto data = lookupAtomDataAllowMissing(n);
     if (!data)
       NCRYSTAL_THROW2(BadInput,"Invalid AtomDB specification (component \""
                       <<n<<"\" is not a known element, isotope, or mixture)");
@@ -63,8 +64,6 @@ void NC::AtomDBExtender::addData( const NC::VectS& words, unsigned format_versio
   };
 
   std::string label = words.at(0);
-
-  //const double totfrac_tolerance = 1e-6;
 
   if (words.at(1)=="is") {
     if (nwords==3 || nwords == 4) {
@@ -77,15 +76,15 @@ void NC::AtomDBExtender::addData( const NC::VectS& words, unsigned format_versio
     unsigned ncomponents = (nwords - 2) / 2;
     nc_assert(ncomponents>=2);
     AtomData::ComponentList components;
-    components.resize(ncomponents);
+    components.reserve(ncomponents);
     StableSum totalfraction;
-    for (unsigned i = 0; i<ncomponents;++i) {
+    for ( auto i : ncrange(ncomponents) ) {
       std::size_t ifirstword = 2+2*i;
-      auto& c = components.at(i);
+      double fraction = -1.0;
       //important that next line is nc_assert_always, not just nc_assert!!!:
-      nc_assert_always( safe_str2dbl(words.at(ifirstword),c.fraction) && !(c.fraction<=0) && !(c.fraction>1.0) );
-      totalfraction.add(c.fraction);
-      c.data = lookupWithErrorMsg(words.at(ifirstword+1));
+      nc_assert_always( safe_str2dbl(words.at(ifirstword),fraction) && !(fraction<=0) && !(fraction>1.0) );
+      totalfraction.add(fraction);
+      components.emplace_back( fraction, lookupWithErrorMsg(words.at(ifirstword+1)) );
     }
     //1e-9 here, 1e-10 in NCAtomUtils.cc (so safe to assert here):
     nc_assert(valueInInterval(1.0-1e-9,1.0+1e-9,totalfraction.sum()));
@@ -95,7 +94,6 @@ void NC::AtomDBExtender::addData( const NC::VectS& words, unsigned format_versio
     //Sort component list:
     std::stable_sort(components.begin(),components.end(),[](const AtomData::Component&a,const AtomData::Component&b)->bool
     {
-      nc_assert(!!a.data  && !!b.data );
       if (a.fraction!=b.fraction)
         return a.fraction>b.fraction;
       return *a.data < *b.data;
@@ -126,31 +124,39 @@ void NC::AtomDBExtender::addData( const NC::VectS& words, unsigned format_versio
     //we are not updating a specific isotope, which is as it should be for the
     //AtomData constructor):
     populateDB(label,
-               std::make_shared<const AtomData>(SigmaBound{incxs},csl,absxs,mass,
+               std::make_shared<const AtomData>(SigmaBound{incxs},csl,absxs,AtomMass{mass},
                                                 sbl.Z(),sbl.A()));
     return;
   }
   nc_assert(false);//should not get here
 }
 
-NC::AtomDataSP NC::AtomDBExtender::lookupAtomData(const std::string& lbl)
+NC::OptionalAtomDataSP NC::AtomDBExtender::lookupAtomDataAllowMissing(const std::string& lbl)
 {
   auto it = m_db.find(lbl);
   if (it!=m_db.end())
     return it->second;
   if (m_allowInbuiltDB) {
-    AtomDataSP ad = AtomDB::getIsotopeOrNatElem(lbl);
-    if (!!ad)
+    OptionalAtomDataSP ad = AtomDB::getIsotopeOrNatElem(lbl);
+    if ( ad != nullptr )
       return ad;
   }
-  AtomSymbol atomsymbol(lbl);
-  NCRYSTAL_THROW2(BadInput,"Atom with label \""<<lbl<<"\" is unknown"
-                  <<((atomsymbol.isIsotope()&&m_allowInbuiltDB)
-                     ?". If it is a valid isotope which is simply missing in NCrystal's"
-                     " internal database you must define it yourself":"")
-                  <<(m_allowInbuiltDB?".":" (note that access to the inbuilt"
-                     " database was disabled)."));
   return nullptr;
+}
+
+NC::AtomDataSP NC::AtomDBExtender::lookupAtomData(const std::string& lbl)
+{
+  auto ad = lookupAtomDataAllowMissing(lbl);
+  if ( ad == nullptr ) {
+    AtomSymbol atomsymbol(lbl);
+    NCRYSTAL_THROW2(BadInput,"Atom with label \""<<lbl<<"\" is unknown"
+                    <<((atomsymbol.isIsotope()&&m_allowInbuiltDB)
+                       ?". If it is a valid isotope which is simply missing in NCrystal's"
+                       " internal database you must define it yourself":"")
+                    <<(m_allowInbuiltDB?".":" (note that access to the inbuilt"
+                       " database was disabled)."));
+  }
+  return ad;
 }
 
 namespace NCrystal {
@@ -168,14 +174,13 @@ namespace NCrystal {
 
 void NC::AtomDBExtender::clearGlobalCache()
 {
-  std::lock_guard<std::mutex> guard(s_hash2atomdatas_mutex);
+  NCRYSTAL_LOCK_GUARD(s_hash2atomdatas_mutex);
   s_hash2atomdatas.clear();
 }
 
 void NC::AtomDBExtender::populateDB(const std::string& lbl, NC::AtomDataSP ad)
 {
-  nc_assert(!!ad);
-  std::lock_guard<std::mutex> guard(s_hash2atomdatas_mutex);
+  NCRYSTAL_LOCK_GUARD(s_hash2atomdatas_mutex);
   static bool first = true;
   if (first) {
     first = false;
@@ -190,10 +195,10 @@ void NC::AtomDBExtender::populateDB(const std::string& lbl, NC::AtomDataSP ad)
     //operator==).
     if (ad->sameValuesAs(*existing_ad,1e-15,1e-15)) {
       //Found existing instance with exact same values, prefer that one:
-      m_db[lbl] = existing_ad;
+      nc_map_force_emplace( m_db, lbl, existing_ad );
       return;
     }
   }
   v.push_back(ad);
-  m_db[lbl] = std::move(ad);
+  nc_map_force_emplace( m_db, lbl, std::move(ad) );
 }

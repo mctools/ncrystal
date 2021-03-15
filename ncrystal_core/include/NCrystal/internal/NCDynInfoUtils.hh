@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCInfo.hh"
+#include "NCrystal/NCMatInfo.hh"
 #include "NCrystal/NCSABData.hh"
 
 namespace NCrystal {
@@ -41,13 +41,12 @@ namespace NCrystal {
   //clearSABDataFromDynInfoCaches function (automatically invoked by the global
   //clearCaches function):
   std::shared_ptr<const SABData> extractSABDataFromDynInfo( const DI_ScatKnl*, unsigned vdoslux = 3, bool useCache = true );
-  std::shared_ptr<const SABData> extractSABDataFromVDOSDebyeModel( double debyeTemperature,
-                                                                   double temperature, SigmaBound boundXS, double elementMassAMU,
+  std::shared_ptr<const SABData> extractSABDataFromVDOSDebyeModel( DebyeTemperature, Temperature, SigmaBound, AtomMass,
                                                                    unsigned vdoslux = 3, bool useCache = true );
   void clearSABDataFromDynInfoCaches();
 
   //Idealised VDOS based only on Debye temperature:
-  VDOSData createVDOSDebye(double debyeTemperature, double temperature, SigmaBound boundXS, double elementMassAMU);
+  VDOSData createVDOSDebye( DebyeTemperature, Temperature, SigmaBound, AtomMass);
 }
 
 

@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -19,7 +19,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCFactory_NXS.hh"
-#include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCDefs.hh"
 #include "NCrystal/internal/NCMath.hh"
 #include "NCrystal/internal/NCAtomUtils.hh"
@@ -32,8 +31,50 @@
 namespace NC = NCrystal;
 
 namespace NCrystal {
+  struct FakeFileForNXSLoader {
+    //Trying to mimic the behaviour of the fgets C-function, so we can load in-memory .nxs files
+    FakeFileForNXSLoader( const TextData& td ) : m_it(td.begin()), m_itE(td.end()), m_dataDescr(td.description()) {}
+    TextData::Iterator m_it;
+    TextData::Iterator m_itE;
+    std::string m_dataDescr;
+  };
+  //Need to pass function pointer to C doe. Thus we use a global function with
+  //static data, and protect usage with a mutex:
+  static FakeFileForNXSLoader * s_fakeFileForNXSLoader = nullptr;
+  static std::mutex s_fakeFileForNXSLoader_mtx;
+  char* fake_fgets_for_nxs( char* str,int count )
+  {
+    nc_assert(s_fakeFileForNXSLoader);
+    auto& FF = *s_fakeFileForNXSLoader;
+    nc_assert(count>=3);
+    nc_assert(count<=1000000000);
+    if ( FF.m_it == FF.m_itE ) {
+      str[0] = '\0';
+      return nullptr;
+    }
+    const std::string& nextLine = *FF.m_it;
+    //std::fgets expected behaviour:
+    //   Reads at most count - 1 characters from the given file stream and
+    //   stores them in the character array pointed to by str. Parsing stops if
+    //   a newline character is found, in which case str will contain that
+    //   newline character, or if end-of-file occurs. If bytes are read and no
+    //   errors occur, writes a null character at the position immediately after
+    //   the last character written to str.
+    //
+    //Note that nextLine does NOT contain a newline character.
+    const std::size_t n = FF.m_it->size();
+    if  ( n+2 >= static_cast<std::size_t>(count) )
+      NCRYSTAL_THROW2(DataLoadError,"Too long line encountered in .nxs input data: "<<FF.m_dataDescr);
+    std::memcpy( str, &nextLine[0], n );
+    str[n]='\n';
+    str[n+1]='\0';
+    ++FF.m_it;//advance to next line
+    return str;
+  }
+
   void initNXS( nxs::NXS_UnitCell* uc,
-                const char * nxs_file,
+                const TextData& textData,
+                //const std::string& nxs_file,
                 double temperature_kelvin,
                 unsigned maxhkl,
                 bool fixpolyatom )
@@ -42,17 +83,32 @@ namespace NCrystal {
     nxs::SgError = 0;
 
     nxs::NXS_AtomInfo *atomInfoList;
-    int numAtomInfos = nxs::nxs_readParameterFile( nxs_file, uc, &atomInfoList);
+    std::string dataDescr = textData.description();
+    int numAtomInfos = 0;
+    {
+      FakeFileForNXSLoader fake( textData );
+      NCRYSTAL_LOCK_GUARD(s_fakeFileForNXSLoader_mtx);
+      s_fakeFileForNXSLoader = &fake;
+      numAtomInfos = nxs::nxs_readParameterFile( fake_fgets_for_nxs, uc, &atomInfoList);
+      s_fakeFileForNXSLoader = nullptr;
+    }
 
-    if (numAtomInfos==NXS_ERROR_READINGFILE)
-      NCRYSTAL_THROW2(FileNotFound,"Could not find and open input file \""<<nxs_file<<"\"");
+    // Alternatively, we could work with on-disk files like this:
+    // textData.verifyOnDiskFileUnchanged();
+    // int numAtomInfos = nxs::nxs_readParameterFile( nxs_file.c_str(), uc, &atomInfoList);
+    // textData.verifyOnDiskFileUnchanged();
 
+    if (numAtomInfos==NXS_ERROR_READINGFILE) {
+      NCRYSTAL_THROW2(DataLoadError,"Problems parsing input data: "<<dataDescr);
+      //Was (but now we provide the content in-memory, so actual errors are pure syntax errors now):
+      //NCRYSTAL_THROW2(FileNotFound,"Could not find and open input data: "<<dataDescr);
+    }
     if (numAtomInfos<=0)
       NCRYSTAL_THROW2(DataLoadError,
-                     "Could not read crystal information from file \""<<nxs_file<<"\"");
+                     "Could not read crystal information from data: "<<dataDescr);
     if( NXS_ERROR_OK != nxs::nxs_initUnitCell(uc) )
       NCRYSTAL_THROW2(DataLoadError,
-                     "Could not initialise unit cell based on parameters in file \""<<nxs_file<<"\"");
+                     "Could not initialise unit cell based on parameters in data: "<<dataDescr);
 
     uc->temperature = temperature_kelvin;
     for( int i=0; i< numAtomInfos; i++ )
@@ -65,7 +121,7 @@ namespace NCrystal {
     if (nxs::SgError) {
       nxs::SgError = old_SgError;
       NCRYSTAL_THROW2(DataLoadError,
-                      "Could not initialise unit cell from file \""<<nxs_file
+                      "Could not initialise unit cell from data \""<<dataDescr
                       <<"\" due to NXS errors: \""<<nxs::SgError<<"\"");
     }
     nxs::SgError = old_SgError;
@@ -96,7 +152,7 @@ namespace NCrystal {
     uc->atomInfoList = 0;
   }
 
-  struct XSectProvider_NXS final : public MoveOnly {
+  struct XSectProvider_NXS final : private MoveOnly {
     XSectProvider_NXS(bool bkgdlikemcstas)
       : m_bkgdlikemcstas(bkgdlikemcstas)
     {
@@ -129,17 +185,19 @@ double NC::XSectProvider_NXS::xsectScatNonBragg(const double& lambda) const
   return xsect_cell > 0.0 ? xsect_cell / nxs_uc.nAtoms : 0.0;//protect against negative numbers and NaNs propagating from nxslib code.
 }
 
-NC::RCHolder<const NC::Info> NC::loadNXSCrystal( const char * nxs_file,
-                                                 double temperature_kelvin,
-                                                 double dcutoff_lower_aa,
-                                                 double dcutoff_upper_aa,
-                                                 bool bkgdlikemcstas,
-                                                 bool fixpolyatom )
+NC::MatInfo NC::loadNXSCrystal( const TextData& textData,
+                                Temperature temperature,
+                                double dcutoff_lower_aa,
+                                double dcutoff_upper_aa,
+                                bool bkgdlikemcstas,
+                                bool fixpolyatom )
 {
+  std::string dataDescr = textData.description();
+
   const bool verbose = (std::getenv("NCRYSTAL_DEBUGINFO") ? true : false);
   if (verbose)
-    std::cout<<"NCrystal::NCNXSFactory::invoked loadNXSCrystal("<< nxs_file
-             <<", temp="<<temperature_kelvin
+    std::cout<<"NCrystal::NCNXSFactory::invoked loadNXSCrystal("<< dataDescr
+             <<", temp="<<temperature
              <<", dcutoff="<<dcutoff_lower_aa
              <<", dcutoffup="<<dcutoff_upper_aa
              <<", bkgdlikemcstas="<<bkgdlikemcstas
@@ -150,7 +208,7 @@ NC::RCHolder<const NC::Info> NC::loadNXSCrystal( const char * nxs_file,
   // Create CrystalInfo object //
   ///////////////////////////////
 
-  auto crystal = makeRC<Info>();
+  MatInfo crystal;
 
   //////////////////////////////////////////////////////////////////
   // Load and init NXS info (twice to figure out adequate maxhkl) //
@@ -160,7 +218,7 @@ NC::RCHolder<const NC::Info> NC::loadNXSCrystal( const char * nxs_file,
     //Dummy struct needed since std::function can only accept copy-able function
     //objects.
     std::shared_ptr<XSectProvider_NXS> shptr_xsprov_nxs;
-    double operator()(double wl) const { nc_assert(!!shptr_xsprov_nxs); return shptr_xsprov_nxs->xsectScatNonBragg(wl); }
+    CrossSect operator()(NeutronEnergy ekin) const { nc_assert(!!shptr_xsprov_nxs); return CrossSect{ shptr_xsprov_nxs->xsectScatNonBragg(ekin.wavelength().dbl()) }; }
   };
 
   NXSXSectProviderWrapper xsect_provider{std::make_shared<XSectProvider_NXS>(bkgdlikemcstas)};
@@ -173,7 +231,7 @@ NC::RCHolder<const NC::Info> NC::loadNXSCrystal( const char * nxs_file,
   int maxhkl = 1;
   if (verbose)
     std::cout<<"NCrystal::NCNXSFactory::calling nxslib initHKL with maxhkl="<<maxhkl<<" (to init non-hkl info)"<<std::endl;
-  initNXS(&nxs_uc, nxs_file, temperature_kelvin, 1, fixpolyatom);
+  initNXS(&nxs_uc, textData, temperature.get(), maxhkl, fixpolyatom);
 
   const bool enable_hkl(dcutoff_lower_aa!=-1);
   if (enable_hkl) {
@@ -204,17 +262,17 @@ NC::RCHolder<const NC::Info> NC::loadNXSCrystal( const char * nxs_file,
     if (verbose)
       std::cout<<"NCrystal::NCNXSFactory::calling nxslib initHKL with maxhkl="<<maxhkl
                <<" (for all info including hkl)"<<std::endl;
-    initNXS(&nxs_uc, nxs_file, temperature_kelvin, maxhkl, fixpolyatom );
+    initNXS(&nxs_uc, textData, temperature.get(), maxhkl, fixpolyatom );
   }
 
-  crystal->setXSectProvider(xsect_provider);
+  crystal.setXSectProvider(xsect_provider);
 
   //////////////////////
   // ... add HKL info //
   //////////////////////
 
   if (enable_hkl) {
-    crystal->enableHKLInfo(dcutoff_lower_aa,dcutoff_upper_aa);
+    crystal.enableHKLInfo(dcutoff_lower_aa,dcutoff_upper_aa);
     nxs::NXS_HKL *it = &(nxs_uc.hklList[0]);
     nxs::NXS_HKL *itE = it + nxs_uc.nHKL;
     for (;it!=itE;++it) {
@@ -229,12 +287,12 @@ NC::RCHolder<const NC::Info> NC::loadNXSCrystal( const char * nxs_file,
       hi.multiplicity = it->multiplicity;
       hi.dspacing = it->dhkl;
       hi.fsquared = 0.01 * it->FSquare;
-      crystal->addHKL(std::move(hi));
+      crystal.addHKL(std::move(hi));
     }
     //We used to emit a warning here, but decided not to (user should be allowed
     //to deliberately exclude all bragg edges via the dcutoff parameter without
     //getting warnings):
-    // if (!crystal->nHKL())
+    // if (!crystal.nHKL())
     //   printf("NCrystal::loadNXSCrystal WARNING: No HKL planes selected from file \"%s\"\n",nxs_file);
   }
 
@@ -253,7 +311,7 @@ NC::RCHolder<const NC::Info> NC::loadNXSCrystal( const char * nxs_file,
   si.volume = nxs_uc.volume;
   si.n_atoms = nxs_uc.nAtoms;
 
-  crystal->setStructInfo(si);
+  crystal.setStructInfo(si);
 
   /////////////////////////////////////////////
   // ... add cross section info and atom info//
@@ -267,7 +325,26 @@ NC::RCHolder<const NC::Info> NC::loadNXSCrystal( const char * nxs_file,
   aivec.reserve(nxs_uc.nAtomInfo);//correct unless multiple entries for same element
   double average_atomic_mass_amu(0.0);
 
-  std::map<unsigned,AtomInfo> zval_2_atominfo;
+  struct AtomInfoCollector {
+    //Helper class collecting info needed for AtomInfo constructor
+    OptionalAtomDataSP atomDataSP;
+    Optional<AtomIndex> index;
+    AtomInfo::AtomPositions positions;
+    AtomInfo moveToAtomInfo( double raw_debyetemp_value )
+    {
+      nc_assert_always( index.has_value() );
+      nc_assert_always( atomDataSP != nullptr );
+      nc_assert_always( !positions.empty() );
+      Optional<DebyeTemperature> dt;
+      if ( raw_debyetemp_value > 0.0 )
+        dt = DebyeTemperature{ raw_debyetemp_value };
+      return AtomInfo( IndexedAtomData{ std::move(atomDataSP),index.value() },
+                       std::move(positions), dt, NullOpt );
+    }
+
+  };
+
+  std::map<unsigned,AtomInfoCollector> zval_2_atominfo;
 
   for( unsigned i=0; i<nxs_uc.nAtomInfo; i++ ) {
     nxs::NXS_AtomInfo & nxs_ai = nxs_uc.atomInfoList[i];
@@ -287,32 +364,34 @@ NC::RCHolder<const NC::Info> NC::loadNXSCrystal( const char * nxs_file,
     const double nxsatom_incxs = nxs_ai.sigmaIncoherent;
     const double nxsatom_massamu = nxs_ai.M_m * const_neutron_atomic_mass;
     AtomData newatomdata( SigmaBound{nxsatom_incxs}, nxsatom_cohscatlen,
-                          nxsatom_capturexs, nxsatom_massamu, Zval );
+                          nxsatom_capturexs, AtomMass{nxsatom_massamu}, Zval );
 
-    AtomInfo& ai = zval_2_atominfo[Zval];
-    if (!ai.atom.atomDataSP) {
+    auto& ai = zval_2_atominfo[Zval];
+    if ( ai.atomDataSP == nullptr ) {
       //first time we saw this Z-value:
-      ai.atom.atomDataSP = std::make_shared<const AtomData>(std::move(newatomdata));
-      ai.atom.index.value = zval_2_atominfo.size()-1;
+      ai.atomDataSP = std::make_shared<const AtomData>(std::move(newatomdata));
+      nc_assert_always( zval_2_atominfo.size() > 0 );
+      nc_assert_always( zval_2_atominfo.size() < std::numeric_limits<AtomIndex::value_type>::max() );
+      ai.index = AtomIndex{ static_cast<AtomIndex::value_type>( zval_2_atominfo.size()-1 ) };
     } else {
       //We saw this Z-value before, demand that it was specified with identical parameters;
-      if ( ! ai.atom.atomDataSP->sameValuesAs(newatomdata,1e-15,1e-15) ) {
+      if ( ! ai.atomDataSP->sameValuesAs(newatomdata,1e-15,1e-15) ) {
         //NB: NCrystal can in principle support this, but not really sure how consistently NXS handles that internally...
-        NCRYSTAL_THROW2(DataLoadError,"Inconsistent parameters specified in "<<nxs_file
+        NCRYSTAL_THROW2(DataLoadError,"Inconsistent parameters specified in data\""<<dataDescr
                         <<" (multiple entries for same element have different values of physical constants)");
       }
     }
 
-    nc_assert(ai.atom.atomDataSP!=nullptr);
+    nc_assert( ai.atomDataSP != nullptr );
     const unsigned multiplicity = nxs_ai.nAtoms;
 
-    ai.number_per_unit_cell += multiplicity;
-    sigma_abs += ai.atom.atomDataSP->captureXS() * multiplicity;
-    sigma_free += ai.atom.atomDataSP->freeScatteringXS().val  * multiplicity;
-    average_atomic_mass_amu += ai.atom.atomDataSP->averageMassAMU() * multiplicity;
+    sigma_abs += ai.atomDataSP->captureXS() * multiplicity;
+    sigma_free += ai.atomDataSP->freeScatteringXS().get()  * multiplicity;
+    average_atomic_mass_amu += ai.atomDataSP->averageMassAMU().dbl() * multiplicity;
     ntot += multiplicity;
 
-    for (unsigned ipos = 0; ipos <multiplicity;++ipos)
+    ai.positions.reserve(ai.positions.size()+multiplicity);
+    for ( auto ipos : ncrange(multiplicity) )
       ai.positions.emplace_back(nxs_ai.x[ipos],nxs_ai.y[ipos],nxs_ai.z[ipos]);
 
   }
@@ -321,31 +400,29 @@ NC::RCHolder<const NC::Info> NC::loadNXSCrystal( const char * nxs_file,
     average_atomic_mass_amu /= ntot;
     sigma_abs /= ntot;
     sigma_free /= ntot;
-    crystal->setXSectAbsorption(sigma_abs);
-    crystal->setXSectFree(sigma_free);
+    crystal.setXSectAbsorption( SigmaAbsorption{ sigma_abs } );
+    crystal.setXSectFree( SigmaFree{ sigma_free } );
   }
 
   for (auto& e : zval_2_atominfo)
-    crystal->addAtom(std::move(e.second));
+    crystal.addAtom( e.second.moveToAtomInfo( nxs_uc.debyeTemp ) );//same Debye temp for all atoms
 
   //////////////////////////////
   // ... add temperature info //
   //////////////////////////////
 
   if (nxs_uc.temperature>0.0)
-    crystal->setTemperature(nxs_uc.temperature);
-  if (nxs_uc.debyeTemp>0.0)
-    crystal->setGlobalDebyeTemperature(nxs_uc.debyeTemp);
+    crystal.setTemperature(Temperature{nxs_uc.temperature});
 
   /////////////////////
   // ... add density //
   /////////////////////
 
-  crystal->setDensity(nxs_uc.density);
+  crystal.setDensity( Density{ nxs_uc.density } );
 
   //1e27 in next line converts kg/Aa^3 to g/cm^3:
   const double numberdensity_2_density = 1e27 * average_atomic_mass_amu * constant_dalton2kg;
-  crystal->setNumberDensity( nxs_uc.density / numberdensity_2_density );
+  crystal.setNumberDensity( NumberDensity{ nxs_uc.density / numberdensity_2_density } );
 
 
   ///////////
@@ -356,6 +433,6 @@ NC::RCHolder<const NC::Info> NC::loadNXSCrystal( const char * nxs_file,
   //point on, so might as well save some memory:
   deinitNXS_partly(&nxs_uc);
 
-  crystal->objectDone();
+  crystal.objectDone();
   return crystal;
 }

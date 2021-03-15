@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -51,7 +51,7 @@ namespace NCrystal {
     GridInfo getGridInfo() const;
     GridInfo getExtendedGridInfo() const;//same, but add bins to reach 0.
 
-    double temperature() const { return m_temperature; }
+    Temperature temperature() const { return m_temperature; }
     double kT() const { return m_kT; }
     double elementMassAMU() const { return m_elementMassAMU; }
 
@@ -77,6 +77,8 @@ namespace NCrystal {
     //Estimate mean-squared-displacement for atoms of a given mass. The gamma0
     //value passed in must be the result of a call to calcGamma0() above:
     double getMSD( double gamma0 ) const;
+    double getMSD() const { return getMSD( calcGamma0() ); }
+
 
     ///////////////////////////////////////////////////////////
     // Enable verbose output (default is disabled unless the //
@@ -89,7 +91,9 @@ namespace NCrystal {
   private:
     VectD m_density;
     double m_emin, m_emax, m_k, m_binwidth, m_invbinwidth;
-    double m_kT, m_temperature, m_elementMassAMU, m_originalIntegral;
+    double m_kT;
+    Temperature m_temperature;
+    double m_elementMassAMU, m_originalIntegral;
     unsigned m_nptsExtended;
     template <class Fct, class FctEsqTaylor>
     double integrateWithFunction(Fct,FctEsqTaylor) const;

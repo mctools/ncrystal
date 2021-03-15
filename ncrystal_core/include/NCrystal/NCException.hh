@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -54,14 +54,14 @@ namespace NCrystal {
 
     class NCRYSTAL_API Exception : public std::runtime_error {
     public:
-      explicit Exception(const std::string& msg, const char * f, unsigned l) throw();
-      explicit Exception(const char * msg,  const char * f, unsigned l) throw();
-      virtual const char * getTypeName() const throw() = 0;
-      const char * getFile() const throw() { return m_file; }
-      unsigned getLineNo() const throw() { return m_lineno; }
-      Exception( const Exception & o ) throw();
-      Exception & operator= ( const Exception & o ) throw();
-      virtual ~Exception() throw();
+      explicit Exception(const std::string& msg, const char * f, unsigned l) noexcept;
+      explicit Exception(const char * msg,  const char * f, unsigned l) noexcept;
+      virtual const char * getTypeName() const noexcept = 0;
+      const char * getFile() const noexcept { return m_file; }
+      unsigned getLineNo() const noexcept { return m_lineno; }
+      Exception( const Exception & o ) noexcept;
+      Exception & operator= ( const Exception & o ) noexcept;
+      virtual ~Exception() noexcept;
     private:
       const char * m_file;
       unsigned m_lineno;
@@ -69,10 +69,10 @@ namespace NCrystal {
 
 #define NCRYSTAL_ADD_ERROR_TYPE(ErrType)                                                               \
     struct NCRYSTAL_API ErrType : public Exception {                                                                \
-      explicit ErrType(const std::string& msg, const char * f, unsigned l) throw() : Exception(msg,f,l) {} \
-      explicit ErrType(const char * msg,  const char * f, unsigned l) throw() : Exception(msg,f,l) {}      \
-      virtual const char * getTypeName() const throw() { return #ErrType; }                            \
-      virtual ~ErrType() throw();                                                                      \
+      explicit ErrType(const std::string& msg, const char * f, unsigned l) noexcept : Exception(msg,f,l) {} \
+      explicit ErrType(const char * msg,  const char * f, unsigned l) noexcept : Exception(msg,f,l) {}      \
+      virtual const char * getTypeName() const noexcept { return #ErrType; }                            \
+      virtual ~ErrType() noexcept;                                                                      \
     }
     //List of error types (destructors implemented in .cc):
     NCRYSTAL_ADD_ERROR_TYPE(FileNotFound);
@@ -87,7 +87,7 @@ namespace NCrystal {
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                         //
-// Macro's for easy and consistent throwing from within Crystal code (don't use THROW2     //
+// Macro's for easy and consistent throwing from within NCrystal code (don't use THROW2    //
 // in tight CPU-critical code):                                                            //
 //                                                                                         //
 //   NNCRYSTAL_THROW(ErrType,"some hardcoded message")                                     //

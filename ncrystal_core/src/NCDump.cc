@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -19,31 +19,30 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCDump.hh"
+#include "NCrystal/NCMatInfo.hh"
 #include "NCrystal/internal/NCMath.hh"
 #include "NCrystal/internal/NCString.hh"
-#include "NCrystal/NCInfo.hh"
 #include <cstdio>
 #include <sstream>
 #include <iostream>
 #include <iomanip>
 
-void NCrystal::dump(const NCrystal::Info*c)
+void NCrystal::dump(const MatInfo&c)
 {
   //Figure out max display label width for column alignment:
-  nc_assert_always(c);
   unsigned longestDisplayLabel(0);
-  if (c->hasComposition()) {
-    nc_assert_always(c->getComposition().size()<std::numeric_limits<unsigned>::max());
-    auto ncomps = static_cast<unsigned>(c->getComposition().size());
+  if (c.hasComposition()) {
+    nc_assert_always(c.getComposition().size()<std::numeric_limits<unsigned>::max());
+    auto ncomps = static_cast<unsigned>(c.getComposition().size());
     for ( unsigned i = 0; i < ncomps; ++i )
       longestDisplayLabel = std::max<unsigned>(longestDisplayLabel,
-                                               static_cast<unsigned>(c->displayLabel(AtomIndex{i}).size()));
+                                               static_cast<unsigned>(c.displayLabel(AtomIndex{i}).size()));
     nc_assert_always(longestDisplayLabel<1000);
   }
 
   const char * hr = "---------------------------------------------------------\n";
-  if (c->hasStructureInfo()) {
-    const StructureInfo& si = c->getStructureInfo();
+  if (c.hasStructureInfo()) {
+    const StructureInfo& si = c.getStructureInfo();
     printf("%s", hr);
     if (si.spacegroup!=0)
       printf("Space group number      : %i\n",si.spacegroup);
@@ -53,94 +52,87 @@ void NCrystal::dump(const NCrystal::Info*c)
     printf("Atoms / unit cell       : %i\n",si.n_atoms);
   };
 
-  if (c->hasAtomInfo()) {
+  if (c.hasAtomInfo()) {
     printf("%s", hr);
-    AtomList::const_iterator itE = c->atomInfoEnd();
     unsigned ntot = 0;
-    for (AtomList::const_iterator it = c->atomInfoBegin();it!=itE;++it)
-      ntot += it->number_per_unit_cell;
+    for ( auto& ai : c.getAtomInfos() )
+      ntot += ai.numberPerUnitCell();
     printf("Atoms in unit cell (total %i):\n",ntot);
-    for (AtomList::const_iterator it = c->atomInfoBegin();it!=itE;++it) {
-      auto lbl = c->displayLabel(it->atom.index);
+    for ( auto& ai : c.getAtomInfos() ) {
+      auto lbl = c.displayLabel( ai.atom().index );
       std::ostringstream s;
       nc_assert(longestDisplayLabel>0);
-      s << "     "<<it->number_per_unit_cell<<" "
+      s << "     "<< ai.numberPerUnitCell() <<" "
         << std::left << std::setw(longestDisplayLabel)
         <<lbl
-        <<" atom"<<(it->number_per_unit_cell==1?"":"s");
-      if (c->hasPerElementDebyeTemperature()||c->hasAtomMSD()) {
+        <<" atom"<<(ai.numberPerUnitCell()==1?"":"s");
+      if ( ai.debyeTemp().has_value() || ai.msd().has_value() ) {
         s <<" [";
-        if (c->hasPerElementDebyeTemperature()) {
-          s <<"T_Debye="<<it->debye_temp<<"K";
-          if (c->hasAtomMSD())
+        if ( ai.debyeTemp().has_value() ) {
+          s <<"T_Debye="<<ai.debyeTemp().value();
+          if ( ai.msd().has_value() )
             s << ", ";
         }
-        if (c->hasAtomMSD())
-          s <<"MSD="<<it->mean_square_displacement<<"Aa^2";
+        if ( ai.msd().has_value() )
+          s <<"MSD="<<ai.msd().value()<<"Aa^2";
         s<<"]";
       }
       printf("%s\n",s.str().c_str());
     }
-    if (c->hasAtomPositions()) {
+    {
       printf("%s", hr);
       printf("Atomic coordinates:\n");
-      for (AtomList::const_iterator it = c->atomInfoBegin();it!=itE;++it) {
-        auto lbl = c->displayLabel(it->atom.index);
-        std::vector<AtomInfo::Pos>::const_iterator itP(it->positions.begin()),itPE(it->positions.end());
-        for (;itP!=itPE;++itP) {
+      for ( auto& ai : c.getAtomInfos() ) {
+        auto lbl = c.displayLabel(ai.atom().index);
+        for ( auto& pos : ai.unitCellPositions() ) {
           std::ostringstream ss;
           nc_assert(longestDisplayLabel>0);
           ss << std::left << std::setw(longestDisplayLabel) << lbl;
           printf("     %s   %10s   %10s   %10s\n",
                  ss.str().c_str(),
-                 prettyPrintValue2Str(itP->x).c_str(),
-                 prettyPrintValue2Str(itP->y).c_str(),
-                 prettyPrintValue2Str(itP->z).c_str());
+                 prettyPrintValue2Str(pos[0]).c_str(),
+                 prettyPrintValue2Str(pos[1]).c_str(),
+                 prettyPrintValue2Str(pos[2]).c_str());
         }
       }
     }
   }
 
-  if (c->hasDensity()) {
+  if (c.hasDensity()) {
     printf("%s", hr);
-    printf("Density : %g g/cm3\n",c->getDensity());
+    printf("Density : %g g/cm3\n",c.getDensity().dbl());
   }
 
-  if (c->hasNumberDensity()) {
+  if (c.hasNumberDensity()) {
     printf("%s", hr);
-    printf("NumberDensity : %g atoms/Aa3\n",c->getNumberDensity());
+    printf("NumberDensity : %g atoms/Aa3\n",c.getNumberDensity().dbl());
   }
 
-  if (c->hasComposition()) {
+  if (c.hasComposition()) {
     printf("%s", hr);
     printf("Composition:\n");
-    for (auto& e : c->getComposition()) {
-      auto lbl = c->displayLabel(e.atom.index);
+    for (auto& e : c.getComposition()) {
+      auto lbl = c.displayLabel(e.atom.index);
       printf(" %20g%% %s\n",e.fraction*100.0,lbl.c_str());
     }
     printf("%s", hr);
     printf("Atom data:\n");
-    for (auto& e : c->getComposition()) {
-      auto lbl = c->displayLabel(e.atom.index);
+    for (auto& e : c.getComposition()) {
+      auto lbl = c.displayLabel(e.atom.index);
       nc_assert(longestDisplayLabel>0);
       std::cout<<"   "<<std::left << std::setw(longestDisplayLabel) << lbl<<" = "<<*e.atom.atomDataSP<<std::endl;
     }
   }
 
-  if (c->hasTemperature()) {
+  if (c.hasTemperature()) {
     printf("%s", hr);
-    printf("Temperature : %g kelvin\n",c->getTemperature());
+    printf("Temperature : %g kelvin\n",c.getTemperature().dbl());
   }
 
-  if (c->hasGlobalDebyeTemperature()) {
+  if (c.hasDynamicInfo()) {
     printf("%s", hr);
-    printf("Debye temperature (global) : %g kelvin\n",c->getGlobalDebyeTemperature());
-  }
-
-  if (c->hasDynamicInfo()) {
-    printf("%s", hr);
-    for (auto& di: c->getDynamicInfoList()) {
-      auto lbl = c->displayLabel(di->atom().index);
+    for (auto& di: c.getDynamicInfoList()) {
+      auto lbl = c.displayLabel(di->atom().index);
       printf("Dynamic info for %s (%g%%):\n",lbl.c_str(),di->fraction()*100.0);
       auto di_knl = dynamic_cast<const DI_ScatKnl*>(di.get());
       if (di_knl) {
@@ -164,7 +156,7 @@ void NCrystal::dump(const NCrystal::Info*c)
           printf("   VDOS Source: %llu points\n",(unsigned long long)di_vdos->vdosData().vdos_density().size());
           printf("   VDOS E_max: %g meV\n",di_vdos->vdosData().vdos_egrid().second*1000.0);
         } else if (di_vdosdebye) {
-          printf("   VDOS E_max: %g meV\n",di_vdosdebye->debyeTemperature()*constant_boltzmann*1000.0);
+          printf("   VDOS E_max: %g meV\n",di_vdosdebye->debyeTemperature().kT()*1000.0);
         }
       } else if (dynamic_cast<const DI_Sterile*>(di.get())) {
         printf("   type: sterile\n");
@@ -176,25 +168,25 @@ void NCrystal::dump(const NCrystal::Info*c)
     }
   }
 
-  if (c->hasXSectAbsorption()||c->hasXSectFree()) {
+  if (c.hasXSectAbsorption()||c.hasXSectFree()) {
     printf("%s", hr);
     printf("Neutron cross-sections:\n");
-    if (c->hasXSectAbsorption())
-      printf("   Absorption at 2200m/s : %g barn\n", c->getXSectAbsorption());
-    if (c->hasXSectFree())
-      printf("   Free scattering       : %g barn\n", c->getXSectFree());
+    if (c.hasXSectAbsorption())
+      printf("   Absorption at 2200m/s : %g barn\n", c.getXSectAbsorption().dbl());
+    if (c.hasXSectFree())
+      printf("   Free scattering       : %g barn\n", c.getXSectFree().dbl());
   }
 
-  if (c->providesNonBraggXSects()) {
+  if (c.providesNonBraggXSects()) {
     printf("%s", hr);
     printf("Provides non-bragg cross-section calculations. A few values are:\n");
     printf("   lambda[Aa]  sigma_scat[barn]\n");
     double ll[] = {0.5, 1.0, 1.798, 2.5, 5, 10, 20 };
     for (unsigned i = 0; i < sizeof(ll)/sizeof(ll[0]); ++i)
-      printf("%13g %17g\n",ll[i],c->xsectScatNonBragg(ll[i]));
+      printf("%13g %17g\n",ll[i],c.xsectScatNonBragg(NeutronWavelength{ll[i]}).dbl());
   }
 
-  const auto& customsections = c->getAllCustomSections();
+  const auto& customsections = c.getAllCustomSections();
   if (!customsections.empty()) {
     printf("%s", hr);
     printf("Custom data sections:\n");
@@ -212,13 +204,13 @@ void NCrystal::dump(const NCrystal::Info*c)
     }
   }
 
-  if (c->hasHKLInfo()) {
+  if (c.hasHKLInfo()) {
     printf("%s", hr);
-    printf("HKL planes (d_lower = %g Aa, d_upper = %g Aa):\n",c->hklDLower(),c->hklDUpper());
+    printf("HKL planes (d_lower = %g Aa, d_upper = %g Aa):\n",c.hklDLower(),c.hklDUpper());
     printf("  H   K   L  d_hkl[Aa] Multiplicity FSquared[barn]%s\n",
-           (c->hasExpandedHKLInfo()?" Expanded-HKL-list":""));
-    HKLList::const_iterator itE = c->hklEnd();
-    for (HKLList::const_iterator it = c->hklBegin();it!=itE;++it) {
+           (c.hasExpandedHKLInfo()?" Expanded-HKL-list":""));
+    HKLList::const_iterator itE = c.hklEnd();
+    for (HKLList::const_iterator it = c.hklBegin();it!=itE;++it) {
       printf("%3i %3i %3i %10g %12i %14g%s",it->h,it->k,it->l,it->dspacing,
              it->multiplicity,it->fsquared,(it->eqv_hkl?"":"\n"));
       if (it->eqv_hkl!=nullptr) {
@@ -236,4 +228,11 @@ void NCrystal::dump(const NCrystal::Info*c)
     }
   }
   printf("%s", hr);
+}
+
+#include "NCrystal/NCLegacyProcs.hh"
+void NCrystal::dump(const NCrystal::Legacy::Info*c)
+{
+  nc_assert_always(c);
+  dump(c->wrapped());
 }

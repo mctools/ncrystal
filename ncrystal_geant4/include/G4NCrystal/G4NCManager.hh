@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -26,7 +26,7 @@
 #include "G4Material.hh"
 #include "G4Version.hh"
 #include "G4MaterialPropertiesTable.hh"
-
+#include "NCrystal/NCProc.hh"
 //Manager class tracking indices of NCrystal::Scatter instances associated to
 //G4Materials, via entries in the G4MaterialPropertiesTable's on the materials.
 
@@ -35,7 +35,6 @@ namespace NCrystal {
   namespace Error {
     class Exception;
   }
-  class Scatter;
 }
 
 namespace G4NCrystal {
@@ -46,11 +45,15 @@ namespace G4NCrystal {
     //Methods needed to add NCrystal::Scatter* properties to G4Materials (via
     //the property tables):
     static Manager * getInstance();//Get the singleton
-    void addScatterProperty(G4Material*,const NCrystal::Scatter*);
+    void addScatterProperty(G4Material*, NCrystal::ProcImpl::ProcPtr&&);
 
     //Methods for framework implementers:
-    const NCrystal::Scatter* getScatterProperty(G4Material*);//returns 0 when absent.
-    static Manager * getInstanceNoInit();//get singleton if created, else 0
+    const NCrystal::ProcImpl::Process* getScatterProperty(G4Material*) const;//returns nullptr when absent.
+    NCrystal::ProcImpl::OptionalProcPtr getScatterPropertyPtr(G4Material*) const;//returns nullptr when absent.
+
+    //Same but with per-thread per-scatter CachePtr:
+    using ProcAndCache = std::pair<const NCrystal::ProcImpl::Process*,NCrystal::CachePtr*>;
+    ProcAndCache getScatterPropertyWithThreadSafeCache(G4Material*) const;
 
     //Thoroughly clear caches, manager singleton, and possibly NCrystal
     //factories. It is NOT safe to use the Scatter properties of already created
@@ -73,41 +76,55 @@ namespace G4NCrystal {
     Manager();
     ~Manager();
     static Manager * s_mgr;
-    std::vector<const NCrystal::Scatter*> m_scatters;
-    std::map<const NCrystal::Scatter*,unsigned> m_scat2idx;
+    std::vector<NCrystal::ProcImpl::ProcPtr> m_scatters;
+    std::map<uint64_t,unsigned> m_scat2idx;
     G4String m_key;
-#if G4VERSION_NUMBER < 1040
-    typedef std::map< G4String, G4double, std::less<G4String> > PropMap_T;
-#endif
+    NCrystal::CachePtr& getCachePtrForCurrentThreadAndProcess( unsigned scatter_idx ) const;
+    //Returns numeric_limits<unsigned>::max() if not available:
+    unsigned lookupScatterPropertyIndex(G4Material*) const;
+
   };
 
   ///////////////////////////////////////////////
   // Inline for fast access during event loop: //
   ///////////////////////////////////////////////
 
-  inline const NCrystal::Scatter* Manager::getScatterProperty(G4Material*mat)
+  inline std::pair<const NCrystal::ProcImpl::Process*, NCrystal::CachePtr*>
+  Manager::getScatterPropertyWithThreadSafeCache(G4Material* mat) const
+  {
+    //Returns numeric_limits<unsigned>::max() if not available:
+    unsigned scatidx = lookupScatterPropertyIndex(mat);
+    if ( scatidx == std::numeric_limits<unsigned>::max() )
+      return {nullptr,nullptr};
+    assert(scatidx<m_scatters.size());
+    const NCrystal::ProcImpl::Process* sp = m_scatters[scatidx].get();
+    return { sp, &getCachePtrForCurrentThreadAndProcess( scatidx ) };
+  }
+
+  inline unsigned Manager::lookupScatterPropertyIndex(G4Material*mat) const
   {
     G4MaterialPropertiesTable* matprop = mat->GetMaterialPropertiesTable();
+    constexpr unsigned not_found = std::numeric_limits<unsigned>::max();
     if (!matprop)
-      return 0;
+      return not_found;
+#if G4VERSION_NUMBER < 1040
+    //Property maps pre-Geant4 10.4
+    using PropMap_T = std::map< G4String, G4double, std::less<G4String> > ;
+    const PropMap_T* propcmap = matprop->GetPropertiesCMap();
+    PropMap_T::size_type size = propcmap->size();
     //Access property like this instead of via
     //ConstPropertyExists+GetConstProperty, to avoid needless string allocations
     //and double map lookup:
-#if G4VERSION_NUMBER < 1040
-    //Property maps pre-Geant4 10.4
-    const PropMap_T* propcmap = matprop->GetPropertiesCMap();
-    PropMap_T::size_type size = propcmap->size();
     if (size<=1) {
       //Optimise to quickly check in small maps, since we are likely the only
       //user of constant material properties (this check can be removed if the
       //situation changes drastically):
       PropMap_T::const_iterator it;
-      return (size && (it=propcmap->begin())->first == m_key) ?
-        m_scatters.at(unsigned(it->second)) : 0;
+      return (size && (it=propcmap->begin())->first == m_key) ? static_cast<unsigned>(it->second) : not_found;
     } else {
       //Full map search:
       PropMap_T::const_iterator it = propcmap->find(m_key);
-      return it==propcmap->end() ? 0 : m_scatters.at(unsigned(it->second));
+      return it==propcmap->end() ? not_found : static_cast<unsigned>(it->second);
     }
 #else
     //Property maps post Geant4 10.4. Here the internal keys are integers, but
@@ -115,10 +132,18 @@ namespace G4NCrystal {
     //GetConstProperty triggers a G4 exception in case the key is not present,
     //so for safety we have to trigger one extra map search via ConstPropertyExists:
     if ( matprop->GetConstPropertyMap()->empty() || !matprop->ConstPropertyExists(m_key) )
-      return 0;
-    return m_scatters.at((unsigned)matprop->GetConstProperty(m_key));
+      return not_found;
+    return static_cast<unsigned>(matprop->GetConstProperty(m_key));
 #endif
+  }
 
+  inline const NCrystal::ProcImpl::Process* Manager::getScatterProperty(G4Material*mat) const
+  {
+    //Returns numeric_limits<unsigned>::max() if not available:
+    unsigned scatidx = lookupScatterPropertyIndex(mat);
+    if ( scatidx == std::numeric_limits<unsigned>::max() )
+      return nullptr;
+    return m_scatters.at(scatidx).get();
   }
 
 }

@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -107,16 +107,16 @@ NCrystal::RotMatrix NCrystal::getReciprocalLatticeRot( double a, double b, doubl
   bool gamma90 = ncabs(gamma-kPiHalf)<tol;
   bool gamma120 = ncabs(gamma-kPi*(2/3.))<tol;
   if ( alpha90 && beta90 && gamma90 ) {
-    double m[9] = { k2Pi/a, 0., 0.,
-                    0., k2Pi/b, 0.,
-                    0., 0., k2Pi/c };
+    std::array<double,9> m{ k2Pi/a, 0., 0.,
+                            0., k2Pi/b, 0.,
+                            0., 0., k2Pi/c };
     return RotMatrix(m);
   } else if (alpha90 && beta90 && gamma120 ) {
     const double twopidivsqrt3 = 3.6275987284684357011881565152843114645681324961855;
     const double fourpidivsqrt3 = 7.255197456936871402376313030568622929136264992371;
-    double m[9] = { k2Pi/a, 0., 0.,
-                    twopidivsqrt3/a, fourpidivsqrt3/b, 0.,
-                    0., 0., k2Pi/c };
+    std::array<double,9> m{ k2Pi/a, 0., 0.,
+                            twopidivsqrt3/a, fourpidivsqrt3/b, 0.,
+                            0., 0., k2Pi/c };
     return RotMatrix(m);
   }
 #endif

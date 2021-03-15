@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -25,80 +25,110 @@
 // Convenience header for all NCrystal interfaces //
 ////////////////////////////////////////////////////
 
-#ifndef NCrystal_NCAbsorption_hh
-#  include "NCrystal/NCAbsorption.hh"
+#ifndef NCrystal_LegacyProcs_hh
+#  include "NCrystal/NCLegacyProcs.hh"
 #endif
-#ifndef NCrystal_NCCalcBase_hh
-#  include "NCrystal/NCCalcBase.hh"
+#ifndef NCrystal_LegacyMem_hh
+#  include "NCrystal/NCLegacyMem.hh"
 #endif
-#ifndef NCrystal_NCDump_hh
+#ifndef NCrystal_Dump_hh
 #  include "NCrystal/NCDump.hh"
 #endif
-#ifndef NCrystal_NCDefs_hh
+#ifndef NCrystal_Defs_hh
 #  include "NCrystal/NCDefs.hh"
 #endif
-#ifndef NCrystal_NCException_hh
+#ifndef NCrystal_Exception_hh
 #  include "NCrystal/NCException.hh"
 #endif
-#ifndef NCrystal_NCMem_hh
+#ifndef NCrystal_Mem_hh
 #  include "NCrystal/NCMem.hh"
 #endif
-#ifndef NCrystal_NCFile_hh
-#  include "NCrystal/NCFile.hh"
+#ifndef NCrystal_SmallVector_hh
+#  include "NCrystal/NCSmallVector.hh"
 #endif
-#ifndef NCrystal_NCFactory_hh
-#  include "NCrystal/NCFactory.hh"
+#ifndef NCrystal_Variant_hh
+#  include "NCrystal/NCVariant.hh"
 #endif
-#ifndef NCrystal_NCFactoryRegistry_hh
-#  include "NCrystal/NCFactoryRegistry.hh"
+#ifndef NCrystal_LegacyFactory_hh
+#  include "NCrystal/NCLegacyFactory.hh"
 #endif
-#ifndef NCrystal_NCPluginMgmt_hh
+#ifndef NCrystal_PluginMgmt_hh
 #  include "NCrystal/NCPluginMgmt.hh"
 #endif
-#ifndef NCrystal_NCAtomData_hh
+#ifndef NCrystal_AtomData_hh
 #  include "NCrystal/NCAtomData.hh"
 #endif
-#ifndef NCrystal_NCInfo_hh
-#  include "NCrystal/NCInfo.hh"
+#ifndef NCrystal_TextData_hh
+#  include "NCrystal/NCTextData.hh"
 #endif
-#ifndef NCrystal_NCSABData_hh
+#ifndef NCrystal_MatInfo_hh
+#  include "NCrystal/NCMatInfo.hh"
+#endif
+#ifndef NCrystal_SABData_hh
 #  include "NCrystal/NCSABData.hh"
 #endif
-#ifndef NCrystal_NCMatCfg_hh
+#ifndef NCrystal_MatCfg_hh
 #  include "NCrystal/NCMatCfg.hh"
 #endif
-#ifndef NCrystal_NCScatterIsotropic_hh
-#  include "NCrystal/NCScatterIsotropic.hh"
+#ifndef NCrystal_RNG_hh
+#  include "NCrystal/NCRNG.hh"
 #endif
-#ifndef NCrystal_NCProcess_hh
-#  include "NCrystal/NCProcess.hh"
-#endif
-#ifndef NCrystal_NCRandom_hh
-#  include "NCrystal/NCRandom.hh"
-#endif
-#ifndef NCrystal_NCSCOrientation_hh
+#ifndef NCrystal_SCOrientation_hh
 #  include "NCrystal/NCSCOrientation.hh"
 #endif
-#ifndef NCrystal_NCScatter_hh
-#  include "NCrystal/NCScatter.hh"
-#endif
-#ifndef NCrystal_NCScatterComp_hh
-#  include "NCrystal/NCScatterComp.hh"
-#endif
-#ifndef NCrystal_NCLoadNCMAT_hh
+#ifndef NCrystal_LoadNCMAT_hh
 #  include "NCrystal/NCLoadNCMAT.hh"
 #endif
-#ifndef NCrystal_NCNCMATData_hh
+#ifndef NCrystal_NCMATData_hh
 #  include "NCrystal/NCNCMATData.hh"
 #endif
-#ifndef NCrystal_NCParseNCMAT_hh
+#ifndef NCrystal_ParseNCMAT_hh
 #  include "NCrystal/NCParseNCMAT.hh"
 #endif
-#ifndef NCrystal_NCVersion_hh
+#ifndef NCrystal_Version_hh
 #  include "NCrystal/NCVersion.hh"
 #endif
 #ifndef NCrystal_CompositionUtils_hh
 #  include "NCrystal/NCCompositionUtils.hh"
+#endif
+#ifndef NCrystal_ProcImpl_hh
+#  include "NCrystal/NCProcImpl.hh"
+#endif
+#ifndef NCrystal_Proc_hh
+#  include "NCrystal/NCProc.hh"
+#endif
+#ifndef NCrystal_FactTypes_hh
+#  include "NCrystal/NCFactTypes.hh"
+#endif
+#ifndef NCrystal_FactImpl_hh
+#  include "NCrystal/NCFactImpl.hh"
+#endif
+#ifndef NCrystal_DataSources_hh
+#  include "NCrystal/NCDataSources.hh"
+#endif
+#ifndef NCrystal_Fact_hh
+#  include "NCrystal/NCFact.hh"
+#endif
+#ifndef NCrystal_Types_hh
+#  include "NCrystal/NCTypes.hh"
+#endif
+
+//During migration we support both Modern and Legacy interfaces:
+
+#if !defined(NCRYSTAL_USE_LEGACY_INTERFACES) && !defined(NCRYSTAL_USE_MODERN_INTERFACES)
+#  define NCRYSTAL_USE_MODERN_INTERFACES//Default if nothing else is indicated.
+#endif
+
+#if defined(NCRYSTAL_USE_LEGACY_INTERFACES) && defined(NCRYSTAL_USE_MODERN_INTERFACES)
+#  error Do not define both NCRYSTAL_USE_LEGACY_INTERFACES and NCRYSTAL_USE_MODERN_INTERFACES
+#endif
+
+#ifdef NCRYSTAL_USE_MODERN_INTERFACES
+  namespace NCrystal { using namespace Modern; }
+#endif
+
+#ifdef NCRYSTAL_USE_LEGACY_INTERFACES
+  namespace NCrystal { using namespace Legacy; }
 #endif
 
 #endif

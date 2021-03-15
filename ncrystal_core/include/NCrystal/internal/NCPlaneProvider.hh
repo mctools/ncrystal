@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -25,7 +25,7 @@
 
 namespace NCrystal {
 
-  class Info;
+  class MatInfo;
 
   class PlaneProvider {
   public:
@@ -54,7 +54,13 @@ namespace NCrystal {
   //means of producing the HKL normals (preferring actual deminormals if
   //available, then expanded hkl info and finally falling back to attempting
   //their construction based on space group and multiplicity info):
-  std::unique_ptr<PlaneProvider> createStdPlaneProvider(const Info*);
+
+  //Version partaking in lifetime management of MatInfo:
+  std::unique_ptr<PlaneProvider> createStdPlaneProvider(shared_obj<const MatInfo>);
+
+  //Version in which caller guarantees MatInfo object will remain alive as long
+  //as any plane provider methods are called:
+  std::unique_ptr<PlaneProvider> createStdPlaneProvider(const MatInfo*);
 
 }
 

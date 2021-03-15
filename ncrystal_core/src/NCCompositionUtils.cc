@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -57,7 +57,6 @@ namespace NCrystal {
         unsigned nc = data.nComponents();
         for ( unsigned i = 0; i < nc; ++i ) {
           const auto& comp = data.getComponent(i);
-          nc_assert(comp.data!=nullptr);
           collect_ZAfrac(out,*comp.data,weight*comp.fraction,natabprov,forceiso);
         }
       }
@@ -65,7 +64,7 @@ namespace NCrystal {
   }
 }
 
-NC::CU::FullBreakdown NC::CU::createFullBreakdown( const Info::Composition& composition,
+NC::CU::FullBreakdown NC::CU::createFullBreakdown( const MatInfo::Composition& composition,
                                                    const NC::CU::NaturalAbundanceProvider& natabprov_raw,
                                                    NC::CU::ForceIsotopesChoice forceiso )
 {
@@ -283,7 +282,7 @@ NC::CU::ElementBreakdownLW::ElementBreakdownLW(const NC::CU::FullElementBreakdow
   nc_assert(valid());
 }
 
-NC::CU::LWBreakdown NC::CU::createLWBreakdown( const Info::Composition& a,
+NC::CU::LWBreakdown NC::CU::createLWBreakdown( const MatInfo::Composition& a,
                                                const NaturalAbundanceProvider& b,
                                                ForceIsotopesChoice c )
 {

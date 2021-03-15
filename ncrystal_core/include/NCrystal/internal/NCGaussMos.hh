@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,12 +21,11 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+#include "NCrystal/NCTypes.hh"
 #include "NCrystal/internal/NCGaussOnSphere.hh"
 #include "NCrystal/internal/NCVector.hh"
 
 namespace NCrystal {
-
-  class RandomBase;
 
   class GaussMos {
   public:
@@ -41,11 +40,13 @@ namespace NCrystal {
     //GaussOnSphere::estimateNTruncFromPrec will be used to estimate the
     //truncation range from prec, otherwise the provided value will be used
     //directly.
-    GaussMos( double mosaicity, bool mosaicity_is_fhwm = true, double prec = 1e-3, double ntrunc=0 );
+    GaussMos( MosaicityFWHM, double prec = 1e-3, double ntrunc=0 );
+    GaussMos( MosaicitySigma, double prec = 1e-3, double ntrunc=0 );
     ~GaussMos();
 
     //Mosaicity can also be changed after construction:
-    void setMosaicity( double mosaicity, bool mosaicity_is_fhwm = true );
+    void setMosaicity( MosaicityFWHM );
+    void setMosaicity( MosaicitySigma );
 
     //Modify certain aspects:
     void setTruncationN(double);
@@ -54,8 +55,8 @@ namespace NCrystal {
     void setDSpacingSpread(double);//Enable dspacing deviation in non-ideal crystal [default value of 0.0 means no deviation]
 
     //Access parameters of Gaussian mosaicity distribution:
-    double mosaicityFWHM() const;
-    double mosaicityGaussSigma() const;
+    MosaicityFWHM mosaicityFWHM() const;
+    MosaicitySigma mosaicityGaussSigma() const;
     double mosaicityGaussNormFact() const;//gauss(x)=normfact*exp(-k*x*x)
     double mosaicityTruncationN() const;
     double mosaicityTruncationAngle() const;
@@ -124,17 +125,17 @@ namespace NCrystal {
     //Generate scatterings. Needs a valid ScatCache object, a source of random
     //numbers, and the neutron state parameters (must be consistent with the
     //ones used when the ScatCache object was set up):
-    void genScat( RandomBase* rand, const ScatCache&,
+    void genScat( RNG&, const ScatCache&,
                   double neutron_wavelength, const Vector& neutron_indir,
                   Vector& neutron_outdir ) const;
 
   private:
     GaussOnSphere m_gos;
-    double m_delta_d;
-    double m_mos_fwhm;
+    MosaicityFWHM m_mos_fwhm = MosaicityFWHM{-99.0};
     double m_mos_truncN;
-    double m_mos_sigma;
+    MosaicitySigma m_mos_sigma = MosaicitySigma{-99};
     double m_prec;
+    double m_delta_d = 0.0;
     void updateDerivedValues();
     double calcRawCrossSectionValueInit( InteractionPars&, double ) const;
   };
@@ -169,8 +170,8 @@ namespace NCrystal {
 ////////////////////////////
 
 namespace NCrystal {
-  inline double GaussMos::mosaicityFWHM() const { return m_mos_fwhm; }
-  inline double GaussMos::mosaicityGaussSigma() const { return m_gos.getSigma(); }
+  inline MosaicityFWHM GaussMos::mosaicityFWHM() const { return m_mos_fwhm; }
+  inline MosaicitySigma GaussMos::mosaicityGaussSigma() const { nc_assert(m_mos_sigma.dbl()==m_gos.getSigma()); return MosaicitySigma{ m_gos.getSigma() }; }
   inline double GaussMos::mosaicityGaussNormFact() const { return m_gos.getNormFactor(); }
   inline double GaussMos::mosaicityTruncationN() const { return m_mos_truncN; }
   inline double GaussMos::mosaicityTruncationAngle() const { return m_gos.getTruncangle(); }

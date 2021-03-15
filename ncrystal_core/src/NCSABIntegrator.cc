@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -30,7 +30,7 @@ namespace NS = NCrystal::SAB;
 
 struct NC::SAB::SABIntegrator::Impl : private NoCopyMove {
 
-  Impl( std::shared_ptr<const SABData>,
+  Impl( shared_obj<const SABData>,
         const VectD* egrid,
         std::shared_ptr<const SABExtender> );
   void doit(SABXSProvider *, SABSampler*);
@@ -39,7 +39,7 @@ struct NC::SAB::SABIntegrator::Impl : private NoCopyMove {
   void setupEnergyGrid();
 
   //Input data:
-  std::shared_ptr<const SABData> m_data;
+  shared_obj<const SABData> m_data;
   VectD m_egrid;
   std::shared_ptr<const SABExtender> m_extender;
 
@@ -58,7 +58,7 @@ struct NC::SAB::SABIntegrator::Impl : private NoCopyMove {
 
 NS::SABIntegrator::~SABIntegrator() = default;
 
-NS::SABIntegrator::SABIntegrator( std::shared_ptr<const SABData> data,
+NS::SABIntegrator::SABIntegrator( shared_obj<const SABData> data,
                                   const VectD* egrid,
                                   std::shared_ptr<const SABExtender> sabextender )
   : m_impl(std::move(data),egrid,std::move(sabextender))
@@ -70,7 +70,7 @@ void NS::SABIntegrator::doit(SABXSProvider * out_xs, SABSampler* out_sampler)
   m_impl->doit(out_xs,out_sampler);
 }
 
-NS::SABIntegrator::Impl::Impl( std::shared_ptr<const SABData> data,
+NS::SABIntegrator::Impl::Impl( shared_obj<const SABData> data,
                                const VectD* egrid,
                                std::shared_ptr<const SABExtender> sabextender )
   : m_data(std::move(data)),
@@ -82,7 +82,7 @@ NS::SABIntegrator::Impl::Impl( std::shared_ptr<const SABData> data,
 namespace NCrystal {
   namespace {
     //Derived data factory:
-    typedef std::pair<UniqueIDValue, std::shared_ptr<const SABData>* > D2DDKey;
+    typedef std::pair<UniqueIDValue, shared_obj<const SABData>* > D2DDKey;
     typedef SAB::SABSamplerAtE_Alg1::CommonCache DerivedData;
     class SABData2DerivedDataFactory : public NC::CachedFactoryBase<D2DDKey,DerivedData> {
     public:
@@ -94,9 +94,9 @@ namespace NCrystal {
         return ss.str();
       }
     protected:
-      virtual ShPtr actualCreate( const D2DDKey& key ) final
+      virtual ShPtr actualCreate( const D2DDKey& key ) const final
       {
-        std::shared_ptr<const SABData> data = *key.second;
+        shared_obj<const SABData> data = *key.second;
         nc_assert( !!data && data->getUniqueID()==key.first );
 
         const auto& alphaGrid = data->alphaGrid();
@@ -171,7 +171,7 @@ double NS::SABIntegrator::Impl::determineEMax(const double eUpperLimit) const
   const double stepsize = 0.95;//NB: changing this to e.g. 0.999 might actually give less precise results! Not so simple to just change it.
   auto xs_dist_to_freeXS = [this,&freeXS](double ekin)
                            {
-                             return ncabs( this->analyseEnergyPointForXS(ekin) - freeXS.crossSection(ekin) );
+                             return ncabs( this->analyseEnergyPointForXS(ekin) - freeXS.crossSection(NeutronEnergy{ekin}).dbl() );
                            };
   double prevDist = kInfinity;
   double ekin = eUpperLimit;
@@ -220,7 +220,7 @@ void NS::SABIntegrator::Impl::setupEnergyGrid()
     if ( npts==0 )
       npts = 300;
 
-    const double kT = constant_boltzmann * m_data->temperature();
+    const double kT = m_data->temperature().kT();
 
     if ( emax == 0.0 && m_data->suggestedEmax() > 0.0 ) {
       if ( emin != 0.0 && m_data->suggestedEmax() <= emin )
@@ -328,7 +328,7 @@ std::pair<NS::SABIntegrator::Impl::SamplerAtE_uptr,double> NS::SABIntegrator::Im
   const VectD& alphaintegrals_cumul = m_derivedData->alphaintegrals_cumul;
 
   nc_assert(ekin>=0.);
-  const double kT = constant_boltzmann * m_data->temperature();
+  const double kT = m_data->temperature().kT();
   const double ekin_div_kT = ekin / kT;
   double beta_lower_limit = -ekin_div_kT;
   if (beta_lower_limit<betaGrid.front()) {
@@ -462,7 +462,7 @@ std::pair<NS::SABIntegrator::Impl::SamplerAtE_uptr,double> NS::SABIntegrator::Im
   nc_assert( !doSampler || sampler_infos.size()+1 ==  nsamplervals );
 
   //Apply factor C/E, with C=boundXS*kT/4 (cf. eq. 4 in sampling paper):
-  double xs_total = xs_total_stable.sum() * m_data->boundXS().val / (4*ekin_div_kT);
+  double xs_total = xs_total_stable.sum() * m_data->boundXS().get() / (4*ekin_div_kT);
 
   if (!(xs_total>=0.0))
     xs_total = 0.0;

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,12 +21,12 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCScatterIsotropic.hh"
+#include "NCrystal/NCProcImpl.hh"
 #include "NCrystal/NCAtomData.hh"
 
 namespace NCrystal {
 
-  class FreeGas final : public ScatterIsotropic {
+  class FreeGas final : public ProcImpl::ScatterIsotropicMat {
   public:
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -40,26 +40,19 @@ namespace NCrystal {
     //                                                                            //
     ////////////////////////////////////////////////////////////////////////////////
 
-    //Explicitly provide parameters:
-    enum class SigmaType { FREE, BOUND };
-    FreeGas( double temp_kelvin,
-             double target_mass_amu,
-             double sigma_barn,
-             SigmaType sigma_type = SigmaType::FREE );
+    const char * name() const noexcept final { return "FreeGas"; }
 
-    //Take parameters from AtomData object:
-    FreeGas( double temp_kelvin, const AtomData& );
+    //Explicitly provide target parameters or take parameters from AtomData object:
+    FreeGas( Temperature, AtomMass, SigmaFree );
+    FreeGas( Temperature, AtomMass, SigmaBound );
+    FreeGas( Temperature, const AtomData& );
 
-    double crossSectionNonOriented(double ekin) const override;
-    double crossSection(double ekin, const double (&neutron_direction)[3] ) const override;
+    CrossSect crossSectionIsotropic(CachePtr&, NeutronEnergy ) const override;
+    ScatterOutcomeIsotropic sampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const override;
 
-    void generateScatteringNonOriented( double ekin, double& angle, double& delta_ekin ) const override;
-
-    void generateScattering( double ekin, const double (&neutron_direction)[3],
-                             double (&resulting_neutron_direction)[3], double& delta_ekin ) const override;
+    virtual ~FreeGas();
 
   protected:
-    virtual ~FreeGas();
     struct Impl;
     Pimpl<Impl> m_impl;
   };

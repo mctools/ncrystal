@@ -2,7 +2,7 @@
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2020 NCrystal developers                                   ##
+##  Copyright 2015-2021 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -34,7 +34,7 @@
 #                                                                                #
 #  $> make install -j8                                                           #
 #                                                                                #
-# Written 2016-2020 by T. Kittelmann.                                            #
+# Written 2016-2021 by T. Kittelmann.                                            #
 #                                                                                #
 ##################################################################################
 
@@ -69,7 +69,7 @@ if(NOT DEFINED NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE)
 endif()
 
 #Setup project:
-project(NCrystal VERSION 2.4.0 LANGUAGES CXX C)
+project(NCrystal VERSION 2.4.80 LANGUAGES CXX C)
 
 if(NOT DEFINED NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE)
   if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
@@ -208,11 +208,7 @@ if (BUILD_EXTRA)
   file_globsrc( SRCS_EXTRA "ncrystal_extra/*/*.cc")
   list(APPEND SRCS_NC "${SRCS_EXTRA}")
   file_globsrc( DATAFILES_NXS "data/*.nxs")
-  if ( EMBED_DATA )
-    message(WARNING "EMBED_DATA=ON so .nxs files are ignored despite normally being installed when BUILD_EXTRA=ON.")
-  else()
-    list(APPEND DATAFILES "${DATAFILES_NXS}")
-  endif()
+  list(APPEND DATAFILES "${DATAFILES_NXS}")
 endif()
 
 if (INSTALL_SETUPSH AND NOT INSTALL_PY)

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCInfo.hh"
+#include "NCrystal/NCMatInfo.hh"
 
 namespace NCrystal {
 
@@ -33,23 +33,34 @@ namespace NCrystal {
   //enabled on the passed Info object.
   //
   //Several parameters can be used to fine-tune the behaviour:
-  //
-  // dcutoff   : Same meaning as in NCMatCfg.hh, but must be specified as a finite
-  //             (non-zero) value, since it affects the hkl range searched.
-  // dcutoffup : Same meaning as in NCMatCfg.hh.
-  // expandhkl : Request that lists of equivalent HKL planes be created in Info
-  //             objects.
-  // fsquarecut : A cutoff value in barn. HKL reflections with contribution
-  //              below this will be skipped (used to skip weak and impossible
-  //              reflections).
-  // merge_tolerance : Tolerance for Fsquare & dspacing comparisons when
-  //                   composing hkl families.
-  void fillHKL( Info &info,
-                double dcutoff = 0.5,//angstrom
-                double dcutoffup = kInfinity,//angstrom
-                bool expandhkl = false,
-                double fsquarecut = 1e-5,//barn
-                double merge_tolerance = 1e-6 );
+
+  struct FillHKLCfg {
+
+    double dcutoff = 0.5; // Angstrom. Same meaning as in NCMatCfg.hh, but must be
+                          // specified as a finite (non-zero) value, since it
+                          // affects the hkl range searched.
+
+    double dcutoffup = kInfinity; //Angstrom. Same meaning as in NCMatCfg.hh.
+
+    bool expandhkl = false;// Request that lists of equivalent HKL planes be
+                           // created in Info objects.
+
+    double fsquarecut = 1e-5;// Barn. A cutoff value in barn. HKL reflections
+                             // with contribution below this will be skipped
+                             // (used to skip weak and impossible
+                             // reflections). NB: The value of 1e-5 is also used
+                             // (hardcoded) in the .nxs factory.
+
+    double merge_tolerance = 1e-6;// Relative tolerance for Fsquare & dspacing
+                                  // comparisons when composing hkl families.
+
+    //For specialised expert usage only, all Debye Waller factors can be forced
+    //to be unity. If not set, the default is false unless overriden by an
+    //environment variables:
+    Optional<bool> use_unit_debye_waller_factor = NullOpt;
+  };
+
+  void fillHKL( MatInfo &info, FillHKLCfg = {} );
 
 }
 

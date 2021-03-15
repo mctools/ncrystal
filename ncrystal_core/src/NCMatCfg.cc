@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -19,68 +19,80 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCMatCfg.hh"
-#include "NCrystal/NCFactory.hh"
-#include "NCrystal/NCInfo.hh"
+#include "NCrystal/NCFactImpl.hh"
 #include "NCrystal/NCSCOrientation.hh"
 #include "NCrystal/internal/NCString.hh"
-#include "NCrystal/NCFile.hh"
 #include "NCrystal/internal/NCMath.hh"
 #include "NCrystal/internal/NCVector.hh"
 #include "NCrystal/internal/NCAtomUtils.hh"
+#include "NCrystal/internal/NCFileUtils.hh"
+#include "NCrystal/internal/NCString.hh"
 #include <sstream>
 #include <iomanip>
-#include <cassert>
-#include <cstring>
+
 namespace NC = NCrystal;
 
-struct NC::MatCfg::Impl : public NC::RCBase {
-  Impl() : RCBase() {
+struct NC::MatCfg::Impl {
+  Impl()
+  {
 #ifndef NDEBUG
     //Verify that parnames is sorted correctly (NB: when changing order, also
     //update partypes and PARAMETERS enum)!
-    static bool first = true;
-    if (first) {
-      first = false;
+    //From C++20 std::string's are constexpr-compatible, and we can do the check
+    //with static_asserts instead:
+    static std::atomic<unsigned> first = {0};
+    if (first.fetch_add(1)==1) {
       for (int i = 1; i<PAR_NMAX; ++i) {
         nc_assert(parnames[i-1]<parnames[i]);
       }
     }
 #endif
   }
+
   //clone:
-  Impl( const Impl& o ) : RCBase() {
-    //Make sure o.m_spies is empty! Otherwise it would either (if spies *are
-    //not* transferred) be possible to cheat the spy by first causing cow() and
-    //then access variables, or it would (if spies *are* transferred), become
-    //technically difficult to uninstall the spies later. The intended usage is
-    //anyway in factories, which should not be modifying MatCfg objects anyway:
-    o.ensureNoSpy();
+  Impl( const Impl& o )
+    : m_textDataUID( o.m_textDataUID ),
+      m_textDataType( o.m_textDataType ),
+      m_datafile_orig( o.m_datafile_orig ),
+      m_ignoredfilecfg( o.m_ignoredfilecfg )
+  {
     //clone parlist:
     for (int i = PAR_FIRST; i < PAR_NMAX; ++i) {
       if (o.m_parlist[i])
         m_parlist[i] = std::unique_ptr<ValBase>(o.m_parlist[i]->clone());
     }
-    //easy stuff:
-    m_datafile_resolved = o.m_datafile_resolved;
-    m_datafile_orig = o.m_datafile_orig;
-    m_datafileext = o.m_datafileext;
-    m_ignoredfilecfg = o.m_ignoredfilecfg;
-  }
-
-  ~Impl() {
-    //NB: We don't own anything in m_spies.
   }
 
   void setOrientation( const SCOrientation& sco );
-  void extractFileCfgStr(TextInputStream& input,std::string&);
+  std::string extractFileCfgStr( const TextData& input ) const;
 
-  mutable std::vector<AccessSpy*> m_spies;
-  struct SpyDisabler;
-  std::string m_datafile_resolved;//resolved via NCFile
-  std::string m_datafile_orig;//as passed to MatCfg constructor (empty means identical to m_datafile_resolved)
-  std::string m_datafileext;
+  static std::pair<bool,std::string> parseIgnoreFileCfg( std::string s )
+  {
+    //String like "<whitespace>ignorefilecfg<whitespace>;<whatever>" should
+    //return (true,"<whatever>"), otherwise return (false,s) (possibly trimmed).
+    trim(s);
+    constexpr const char s_ignorefilecfg[] = "ignorefilecfg";
+    constexpr const unsigned n_ignorefilecfg = 13;
+    static_assert(sizeof(s_ignorefilecfg)==n_ignorefilecfg+1,"");//+1 for the null char
+    auto isws = [](char c) { return c==' ' || c=='\t'|| c=='\r'|| c=='\n' ; };
+    if ( startswith( s, s_ignorefilecfg ) ) {
+      std::string::size_type i = n_ignorefilecfg;
+      while ( i < s.size() && isws( s[i] ) )
+        ++i;//skip whitespace
+      if ( i == s.size() )
+        return { true, {} };
+      if ( s[i] == ';' )
+        return { true, s.substr(i+1) };
+    }
+    return { false, s };
+  }
+
+  void applyStrCfg( const std::string& str );
+
+  TextDataUID m_textDataUID;
+  std::string m_textDataType;
+  std::string m_datafile_orig;//as passed to MatCfg constructor
   bool m_ignoredfilecfg;
-
 
   //Important!: Keep the following list in alphabetical order and synchronised
   //with parnames and partypes further down the file!
@@ -100,39 +112,36 @@ struct NC::MatCfg::Impl : public NC::RCBase {
                     PAR_lcmode,
                     PAR_mos,
                     PAR_mosprec,
-                    PAR_overridefileext,
                     PAR_packfact,
                     PAR_scatfactory,
                     PAR_sccutoff,
                     PAR_temp,
                     PAR_vdoslux,
                     PAR_NMAX };
+  using ParametersSet = std::set<PARAMETERS>;
 
   enum VALTYPE { VALTYPE_DBL, VALTYPE_BOOL, VALTYPE_INT, VALTYPE_STR, VALTYPE_ORIENTDIR, VALTYPE_VECTOR, VALTYPE_ATOMDB };
-  static std::string parnames[PAR_NMAX];
-  static VALTYPE partypes[PAR_NMAX];
+  static std::array<std::string,PAR_NMAX> parnames;
+  static std::array<VALTYPE,PAR_NMAX> partypes;
 
   struct ValBase {
-    ValBase(){}
-    virtual ~ValBase(){}
+    virtual ~ValBase() = default;
     virtual std::unique_ptr<ValBase> clone() const = 0;
     virtual void set_from_strrep(const std::string& s) = 0;
     virtual std::string to_strrep(bool forcache) const = 0;
   };
 
-  //Array where we keep the actual configuration. Notice: Make sure this is
-  //never accessed without triggerSpy() or ensureNoSpy() (except in output which
-  //is not expected to be parsed, like dump() or toStrCfg())!
-  std::unique_ptr<ValBase> m_parlist[PAR_NMAX];
+  //Array where we keep the actual configuration:
+  std::array<std::unique_ptr<ValBase>,PAR_NMAX> m_parlist;
 
-  bool hasPar(PARAMETERS par) const { triggerSpy(par); return m_parlist[par]!=nullptr; }
+  bool hasPar(PARAMETERS par) const { return m_parlist[par]!=nullptr; }
 
   struct ValDbl : public ValBase {
     enum UnitType { UnitNone, UnitAngle, UnitTemp, UnitLength };
     typedef double value_type;
     static const VALTYPE value_type_enum = VALTYPE_DBL;
     ValDbl() : ValBase(), unittype(UnitNone) {};
-    virtual ~ValDbl(){}
+    virtual ~ValDbl() = default;
     std::unique_ptr<ValBase> clone() const final { return std::make_unique<ValDbl>(*this); }
     void set_from_strrep(const std::string& s) final
     {
@@ -278,12 +287,9 @@ struct NC::MatCfg::Impl : public NC::RCBase {
     std::unique_ptr<ValBase> clone() const final { return std::make_unique<ValAtomDB>(*this); }
     void set_from_strrep(const std::string& s) final {
       value_type v;
-      VectS lines;
-      split(lines,s,0,'@');
-      for (auto& line: lines) {
+      for (auto& line: split2(s,0,'@') ) {
         strreplace(line,":"," ");
-        v.emplace_back();
-        split(v.back(),line);
+        v.emplace_back( split2(line) );
       }
       set(v);
     }
@@ -340,8 +346,7 @@ struct NC::MatCfg::Impl : public NC::RCBase {
     void set_from_strrep(const std::string& s) final
     {
       std::string st = s; trim(st);
-      VectS parts;
-      split(parts,st,0,'@');
+      VectS parts = split2(st,0,'@');
       if (parts.size()!=3||!parts.at(0).empty())
         NCRYSTAL_THROW2(BadInput,"Bad syntax for orientation: \""<<s<<"\"");
       std::string& c = parts.at(1);
@@ -354,9 +359,8 @@ struct NC::MatCfg::Impl : public NC::RCBase {
       l = l.substr(4);
       trim(c);
       trim(l);
-      VectS partsc, partsl;
-      split(partsc,c,0,',');
-      split(partsl,l,0,',');
+      VectS partsc = split2(c,0,',');
+      VectS partsl = split2(l,0,',');
       if (partsc.size()!=3||partsl.size()!=3)
         NCRYSTAL_THROW2(BadInput,"Bad syntax for orientation: \""<<s<<"\"");
       set(c_is_hkl,
@@ -402,15 +406,17 @@ struct NC::MatCfg::Impl : public NC::RCBase {
     std::unique_ptr<ValBase> clone() const final { return std::make_unique<ValVector>(*this); }
     void set_from_strrep(const std::string& s) final
     {
-      std::string st = s; trim(st);
-      VectS parts;
-      split(parts,st,0,',');
+      std::string st = s;
+      trim(st);
+      VectS parts = split2(st,0,',');
       if (parts.size()!=3)
         NCRYSTAL_THROW2(BadInput,"Bad syntax for vector value: \""<<s<<"\"");
       trim(parts.at(0));
       trim(parts.at(1));
       trim(parts.at(2));
-      this->set(str2dbl(parts.at(0)),str2dbl(parts.at(1)),str2dbl(parts.at(2)));
+      this->set( Vector{ str2dbl(parts.at(0)),
+                        str2dbl(parts.at(1)),
+                        str2dbl(parts.at(2)) } );
       origstrrep = s;
       trim(origstrrep);
     }
@@ -422,36 +428,20 @@ struct NC::MatCfg::Impl : public NC::RCBase {
       s << val[0] << "," << val[1] << "," << val[2];
       return s.str();
     }
-    void set(double x, double y, double z)
+    void set( const Vector& v )
     {
-      if (ncisnan(x)||ncisnan(y)||ncisnan(z))
+      if (ncisnan(v[0])||ncisnan(v[1])||ncisnan(v[2]))
         NCRYSTAL_THROW(BadInput,"Attempting to set number to NaN");
-      val[0] = x; val[1] = y; val[2] = z;
+      val = v;
       origstrrep.clear();
     }
-    double val[3];
+    Vector val;
   private:
     std::string origstrrep;//original input (if available), for lossless reproduction.
   };
 
-  void ensureNoSpy() const
-  {
-    if (!m_spies.empty())
-      NCRYSTAL_THROW(LogicError,"Modification of configuration object whose access is being monitored is forbidden!");
-  }
-
-  void triggerSpy(PARAMETERS par) const
-  {
-    std::vector<AccessSpy*>::const_iterator it(m_spies.begin()), itE(m_spies.end());
-    const std::string& pn = parnames[par];
-    for (;it!=itE;++it) {
-      (*it)->parAccessed(pn);
-    }
-  }
-
   template <class ValType>
   const ValType* getValType(PARAMETERS par) const {
-    triggerSpy(par);
     const ValBase * vb = m_parlist[par].get();
     nc_assert( vb==nullptr || dynamic_cast<const ValType*>(vb) );
     return static_cast<const ValType*>(vb);
@@ -470,7 +460,6 @@ struct NC::MatCfg::Impl : public NC::RCBase {
 
   template <class ValType>
   ValType* getValTypeForSet(PARAMETERS par) {
-    ensureNoSpy();
     ValBase * vb = m_parlist[par].get();
     if (vb) {
       nc_assert( dynamic_cast<ValType*>(vb) );
@@ -567,8 +556,7 @@ struct NC::MatCfg::Impl : public NC::RCBase {
   static void decodeopts(const std::string& optstr, std::map<std::string,std::string>& opts2val, bool skipname = true )
   {
     opts2val.clear();
-    VectS parts;
-    split(parts,optstr,0,':');
+    VectS parts = split2(optstr,0,':');
     VectS::iterator it(parts.begin()), itE(parts.end());
     nc_assert_always(it!=itE);
     if (skipname)
@@ -609,8 +597,7 @@ struct NC::MatCfg::Impl : public NC::RCBase {
     if (!contains(optstr,':')) {
       name = optstr;
     } else {
-      VectS parts;
-      split(parts,optstr,1,':');
+      VectS parts = split2(optstr,1,':');
       nc_assert_always(!parts.empty());
       trim(parts[0]);
       name=parts[0];
@@ -672,8 +659,43 @@ struct NC::MatCfg::Impl : public NC::RCBase {
       }
   }
 
-private:
-  Impl& operator=(const Impl& o);//forbid
+  void dump( const MatCfg *, std::ostream& out, bool add_endl, const MatCfg::Impl::ParametersSet * only_pars ) const;
+  bool compareIgnoringTextDataUID(const MatCfg&, const MatCfg::Impl::ParametersSet * only_pars ) const;
+  std::string toStrCfg( bool include_datafile, const MatCfg::Impl::ParametersSet * only_pars ) const;
+
+  static const MatCfg::Impl::ParametersSet * onlyInfoPars() {
+    static MatCfg::Impl::ParametersSet info_pars = {
+      MatCfg::Impl::PAR_atomdb,
+      MatCfg::Impl::PAR_dcutoff,
+      MatCfg::Impl::PAR_dcutoffup,
+      MatCfg::Impl::PAR_infofactory,
+      MatCfg::Impl::PAR_temp
+    };
+    return &info_pars;
+  }
+
+  SCOrientation createSCOrientation( const MatCfg& cfg ) const
+  {
+    auto dir1 = getValTypeThrowIfNotAvail<ValOrientDir>(PAR_dir1);
+    auto dir2 = getValTypeThrowIfNotAvail<ValOrientDir>(PAR_dir2);
+    SCOrientation orient;
+    double tol = cfg.get_dirtol();
+    if ( dir1->crystal_is_hkl )
+      orient.setPrimaryDirection( CrystalAxis{dir1->crystal[0],dir1->crystal[1],dir1->crystal[2]},
+                                  LabAxis{dir1->lab[0],dir1->lab[1],dir1->lab[2]} );
+    else
+      orient.setPrimaryDirection( HKLPoint{dir1->crystal[0],dir1->crystal[1],dir1->crystal[2]},
+                                  LabAxis{dir1->lab[0],dir1->lab[1],dir1->lab[2]} );
+    if ( dir2->crystal_is_hkl )
+      orient.setSecondaryDirection( CrystalAxis{dir2->crystal[0],dir2->crystal[1],dir2->crystal[2]},
+                                    LabAxis{dir2->lab[0],dir2->lab[1],dir2->lab[2]}, tol );
+    else
+      orient.setSecondaryDirection( HKLPoint{dir2->crystal[0],dir2->crystal[1],dir2->crystal[2]},
+                                    LabAxis{dir2->lab[0],dir2->lab[1],dir2->lab[2]}, tol );
+    nc_assert_always(orient.isComplete());//should not be called otherwise
+    return orient;
+  }
+
 };
 
 namespace NCrystal {
@@ -685,7 +707,7 @@ namespace NCrystal {
   //Important!: Keep the following two lists ordered (parnames sorted
   //alphabetically) and synchronised between themselves as well as the
   //PARAMETERS enum earlier in the file!
-  std::string MatCfg::Impl::parnames[PAR_NMAX] = { "absnfactory",
+  std::array<std::string,MatCfg::Impl::PAR_NMAX> MatCfg::Impl::parnames = { "absnfactory",
                                                    "atomdb",
                                                    "coh_elas",
                                                    "dcutoff",
@@ -700,13 +722,12 @@ namespace NCrystal {
                                                    "lcmode",
                                                    "mos",
                                                    "mosprec",
-                                                   "overridefileext",
                                                    "packfact",
                                                    "scatfactory",
                                                    "sccutoff",
                                                    "temp",
                                                    "vdoslux" };
-  MatCfg::Impl::VALTYPE MatCfg::Impl::partypes[PAR_NMAX] = { VALTYPE_STR,
+  std::array<MatCfg::Impl::VALTYPE,MatCfg::Impl::PAR_NMAX> MatCfg::Impl::partypes = { VALTYPE_STR,
                                                              VALTYPE_ATOMDB,
                                                              VALTYPE_BOOL,
                                                              VALTYPE_DBL,
@@ -721,29 +742,11 @@ namespace NCrystal {
                                                              VALTYPE_INT,
                                                              VALTYPE_DBL,
                                                              VALTYPE_DBL,
-                                                             VALTYPE_STR,
                                                              VALTYPE_DBL,
                                                              VALTYPE_STR,
                                                              VALTYPE_DBL,
                                                              VALTYPE_DBL,
                                                              VALTYPE_INT };
-  struct MatCfg::Impl::SpyDisabler {
-    //swaps spies with empty list (disabling spying) and swaps back in destructor
-    SpyDisabler(std::vector<AccessSpy*>& spies)
-      : m_spies_ptr(spies.empty()?0:&spies)
-    {
-      if (m_spies_ptr)
-        std::swap(*m_spies_ptr,m_stashed_spies);
-    }
-    ~SpyDisabler() {
-      if (m_spies_ptr)
-        std::swap(*m_spies_ptr,m_stashed_spies);
-    }
-  private:
-    std::vector<AccessSpy*>* m_spies_ptr;
-    std::vector<AccessSpy*> m_stashed_spies;
-  };
-
   template<>
   void MatCfg::Impl::addUnitsForValType(ValDbl* vt, PARAMETERS par) {
     switch(par) {
@@ -773,36 +776,41 @@ bool NC::MatCfg::ignoredEmbeddedConfig() const
 std::string NC::MatCfg::toEmbeddableCfg() const
 {
   std::stringstream out;
-  out << "NCRYSTALMATCFG[" << toStrCfg(false,0) << ']';
+  out << "NCRYSTALMATCFG[" << m_impl->toStrCfg(false,nullptr) << ']';
   return out.str();
 }
 
-std::string NC::MatCfg::toStrCfg( bool include_datafile, const std::set<std::string> * only_parnames ) const
+std::string NC::MatCfg::Impl::toStrCfg( bool include_datafile, const MatCfg::Impl::ParametersSet * only_pars ) const
 {
-  //disable any spies during invocation of this method (because we assume
-  //toStrCfg will be used for things like debug output, not to actually access
-  //the parameters):
-  Impl::SpyDisabler nospy(m_impl->m_spies);
-
   std::stringstream out;
   if (include_datafile) {
-    out << getDataFileAsSpecified();
-    if (m_impl->m_ignoredfilecfg)
+    out << m_datafile_orig;
+    if ( m_ignoredfilecfg )
       out << ";ignorefilecfg";
   }
-  Impl::ValBase* vb;
+  ValBase* vb;
   bool empty(out.str().empty());
-  for (int i = Impl::PAR_FIRST; i<Impl::PAR_NMAX; ++i) {
-    if ( ( vb = m_impl->m_parlist[i].get() ) ) {
-      if (only_parnames&&!only_parnames->count(m_impl->parnames[i]))
+  for (int i = PAR_FIRST; i<PAR_NMAX; ++i) {
+    if ( ( vb = this->m_parlist[i].get() ) ) {
+      if ( only_pars && only_pars->count(static_cast<decltype(PAR_FIRST)>(i))==0 )
         continue;
       if (!empty)
         out<<';';
-      out << Impl::parnames[i]<<"="<<vb->to_strrep(false);
+      out << parnames[i]<<"="<<vb->to_strrep(false);
       empty = false;
     }
   }
   return out.str();
+}
+
+std::string NC::MatCfg::toStrCfg( bool include_datafile ) const
+{
+  return m_impl->toStrCfg( include_datafile, nullptr );
+}
+
+std::string NC::MatInfoCfg::toStrCfg( bool include_datafile ) const
+{
+  return m_cfg.m_impl->toStrCfg( include_datafile, MatCfg::Impl::onlyInfoPars() );
 }
 
 bool NC::MatCfg::isSingleCrystal() const
@@ -818,9 +826,7 @@ bool NC::MatCfg::isLayeredCrystal() const
 
 void NC::MatCfg::checkConsistency() const
 {
-  Impl::SpyDisabler nospy(m_impl->m_spies);//disable any spies during invocation of this method
-
-  const double parval_temp = get_temp();
+  const double parval_temp = get_temp().get();
   const double parval_dcutoff = get_dcutoff();
   const double parval_dcutoffup = get_dcutoffup();
   const double parval_packfact = get_packfact();
@@ -872,47 +878,24 @@ void NC::MatCfg::checkConsistency() const
 
   if (nOrient) {
     //Check the validity of last SC parameters here!
-    const double parval_mos = get_mos();
+    const double parval_mos = get_mos().dbl();
 
-    if (parval_mos<=0.0||parval_mos>1.570796326794896558)// =pi/2
+    if ( !( parval_mos > 0.0) || parval_mos > kPiHalf )
       NCRYSTAL_THROW(BadInput,"mos must be in range (0.0,pi/2]");
     //should be single crystal
     if (parval_packfact!=1.0)
       NCRYSTAL_THROW(BadInput,"Single crystal parameters are set, so packfact must be 1.0");
 
-    //validate orientations:
-    const Impl::ValOrientDir * dirs[2];
-    dirs[0] = m_impl->getValTypeThrowIfNotAvail<Impl::ValOrientDir>(Impl::PAR_dir1);
-    dirs[1] = m_impl->getValTypeThrowIfNotAvail<Impl::ValOrientDir>(Impl::PAR_dir2);
+    //validate orientations by constructing SCOrientation object:
+    (void)m_impl->createSCOrientation(*this);
 
-    for (int i = 0; i < 2; ++i) {
-      if ( ! asVect(dirs[i]->crystal).mag2() )
-        NCRYSTAL_THROW(BadInput, dirs[i]->crystal_is_hkl
-                       ? "Specified point in hkl space is a null-vector"
-                       : "Specified direction in crystal frame is a null-vector");
-      if ( ! asVect(dirs[i]->lab).mag2() )
-        NCRYSTAL_THROW(BadInput, "Specified direction in laboratory frame is a null-vector");
-    }
-
-    if ( asVect(dirs[0]->lab).isParallel( asVect(dirs[1]->lab), 1.0e-6 ) )
-      NCRYSTAL_THROW(BadInput, "Specified primary and secondary lab directions are parallel");
-
-    if ( dirs[0]->crystal_is_hkl == dirs[1]->crystal_is_hkl ) {
-      //can only check crystal directions at this point if both are in the same frame:
-      if ( asVect(dirs[0]->crystal).isParallel( asVect(dirs[1]->crystal), 1.0e-6 ) ) {
-        NCRYSTAL_THROW(BadInput, dirs[0]->crystal_is_hkl
-                       ? "Specified primary and secondary hkl points have planes with parallel normals"
-                       : "Specified primary and secondary directions in the crystal frame are parallel" );
-      }
-    }
   } else {
     //should be polycrystal. No extra validation needed for now, packfact was already validated above.
   }
 
   if (m_impl->hasPar(Impl::PAR_lcaxis)) {
     nc_assert(isLayeredCrystal());
-    double v[3];
-    get_lcaxis(v);
+    auto v = get_lcaxis();
     nc_assert_always(! ( ncisnan(v[0]) || ncisnan(v[1]) || ncisnan(v[2]) ) );//should have been caught
     double mag = sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
     if ( ncisinf(mag) || ncisinf(v[0]) || ncisinf(v[1]) || ncisinf(v[2]) )
@@ -929,131 +912,98 @@ void NC::MatCfg::checkConsistency() const
 
 }
 
-void NC::MatCfg::getCacheSignature(std::string& out, const std::set<std::string>& pns) const
+void NC::MatCfg::set_lcaxis( const LCAxis& axis )
 {
-  std::stringstream s;
-  std::set<std::string>::const_iterator itB(pns.begin()), itE(pns.end());
-  for (std::set<std::string>::const_iterator it = itB;it!=itE;++it) {
-    Impl::PARAMETERS paridx = (Impl::PARAMETERS)m_impl->strNameToParIdx(*it);
-    if (it!=itB)
-      s << ';';
-    s << *it << '=' << (m_impl->hasPar(paridx)?m_impl->m_parlist[paridx]->to_strrep(true):"<>");
-  }
-  out = s.str();
+  m_impl.modify()->getValTypeForSet<Impl::ValVector>(Impl::PAR_lcaxis)->set(axis.as<Vector>());
 }
 
-void NC::MatCfg::set_lcaxis( const double (&axis)[3] )
+NC::LCAxis NC::MatCfg::get_lcaxis() const
 {
-  cow();
-  Impl::ValVector * vv = m_impl->getValTypeForSet<Impl::ValVector>(Impl::PAR_lcaxis);
-  vv->set(axis[0],axis[1],axis[2]);
+  return m_impl->getValTypeThrowIfNotAvail<Impl::ValVector>(Impl::PAR_lcaxis)->val.as<LCAxis>();
 }
 
-void NC::MatCfg::get_lcaxis( double (&axis)[3] ) const
+void NC::MatCfg::set_dir1( const HKLPoint& c, const LabAxis& l )
 {
-  const Impl::ValVector * vv = m_impl->getValTypeThrowIfNotAvail<Impl::ValVector>(Impl::PAR_lcaxis);
-  axis[0] = vv->val[0];
-  axis[1] = vv->val[1];
-  axis[2] = vv->val[2];
+  m_impl.modify()->getValTypeForSet<Impl::ValOrientDir>(Impl::PAR_dir1)->set(true,c[0],c[1],c[2],l[0],l[1],l[2]);
 }
 
-void NC::MatCfg::set_dir1( bool cishkl,
-                                 const double (&cdir)[3],
-                                 const double (&ldir)[3] )
+void NC::MatCfg::set_dir1( const CrystalAxis& c, const LabAxis& l )
 {
-  cow();
-  Impl::ValOrientDir * dir = m_impl->getValTypeForSet<Impl::ValOrientDir>(Impl::PAR_dir1);
-  dir->set(cishkl,
-           cdir[0],cdir[1],cdir[2],
-           ldir[0],ldir[1],ldir[2]);
+  m_impl.modify()->getValTypeForSet<Impl::ValOrientDir>(Impl::PAR_dir1)->set(false,c[0],c[1],c[2],l[0],l[1],l[2]);
 }
 
-void NC::MatCfg::get_dir1( bool& cishkl,
-                                 double (&cdir)[3],
-                                 double (&ldir)[3] )
+void NC::MatCfg::set_dir2( const HKLPoint& c, const LabAxis& l )
 {
-  const Impl::ValOrientDir * dir = m_impl->getValTypeThrowIfNotAvail<Impl::ValOrientDir>(Impl::PAR_dir1);
-  cishkl = dir->crystal_is_hkl;
-  for ( int i=0; i<3; ++i ) {
-    cdir[i] = dir->crystal[i];
-    ldir[i] = dir->lab[i];
-  }
+  m_impl.modify()->getValTypeForSet<Impl::ValOrientDir>(Impl::PAR_dir2)->set(true,c[0],c[1],c[2],l[0],l[1],l[2]);
 }
 
-void NC::MatCfg::set_dir2( bool cishkl,
-                                 const double (&cdir)[3],
-                                 const double (&ldir)[3] )
+void NC::MatCfg::set_dir2( const CrystalAxis& c, const LabAxis& l )
 {
-  cow();
-  Impl::ValOrientDir * dir = m_impl->getValTypeForSet<Impl::ValOrientDir>(Impl::PAR_dir2);
-  dir->set(cishkl,
-           cdir[0],cdir[1],cdir[2],
-           ldir[0],ldir[1],ldir[2]);
+  m_impl.modify()->getValTypeForSet<Impl::ValOrientDir>(Impl::PAR_dir2)->set(false,c[0],c[1],c[2],l[0],l[1],l[2]);
 }
 
-void NC::MatCfg::get_dir2( bool& cishkl,
-                                 double (&cdir)[3],
-                                 double (&ldir)[3] )
+std::pair<NC::Variant<NC::CrystalAxis,NC::HKLPoint>,NC::LabAxis> NC::MatCfg::get_dir1() const
 {
-  const Impl::ValOrientDir * dir = m_impl->getValTypeThrowIfNotAvail<Impl::ValOrientDir>(Impl::PAR_dir2);
-  cishkl = dir->crystal_is_hkl;
-  for ( int i=0; i<3; ++i ) {
-    cdir[i] = dir->crystal[i];
-    ldir[i] = dir->lab[i];
-  }
+  SCOrientation sco = createSCOrientation();
+  nc_assert_always(sco.getLabDir(0).has_value());
+  return { sco.getCrysDir(0), sco.getLabDir(0).value() };
+}
+
+std::pair<NC::Variant<NC::CrystalAxis,NC::HKLPoint>,NC::LabAxis> NC::MatCfg::get_dir2() const
+{
+  SCOrientation sco = createSCOrientation();
+  nc_assert_always(sco.getLabDir(1).has_value());
+  return { sco.getCrysDir(1), sco.getLabDir(1).value() };
 }
 
 void NC::MatCfg::setOrientation( const SCOrientation& sco )
 {
   if (!sco.isComplete())
     NCRYSTAL_THROW(BadInput,"setOrientation called with incomplete SCOrientation object");
-  cow();
-  m_impl->setOrientation(sco);
+  auto mod = m_impl.modify();
+  mod->setOrientation(sco);
   nc_assert(isSingleCrystal());
 }
 
 void NC::MatCfg::Impl::setOrientation( const SCOrientation& sco )
 {
+  if (!sco.isComplete())
+    NCRYSTAL_THROW(BadInput,"Incomplete SCOrientation object - must set both primary and secondary directions.");
   ValOrientDir* p[2];
   p[0] = getValTypeForSet<ValOrientDir>(PAR_dir1);
   p[1] = getValTypeForSet<ValOrientDir>(PAR_dir2);
   nc_assert(p[0]&&p[1]);
   for ( int i = 0; i < 2; ++i ) {
-    p[i]->set(sco.getCrysIsHKL(i),
-              sco.getCrysDir(i)[0],sco.getCrysDir(i)[1],sco.getCrysDir(i)[2],
-              sco.getLabDir(i)[0],sco.getLabDir(i)[1],sco.getLabDir(i)[2]);
+    auto crysdir = sco.getCrysDir(i);
+    nc_assert_always(!crysdir.empty());
+    auto opt_labdir = sco.getLabDir(i);
+    nc_assert_always(opt_labdir.has_value());
+    auto labdir = opt_labdir.value();
+    bool is_hkl(crysdir.has_value<HKLPoint>());
+    Vector& cv( is_hkl? crysdir.get<HKLPoint>().as<Vector>() : crysdir.get<CrystalAxis>().as<Vector>() );
+    p[i]->set( is_hkl, cv[0],cv[1],cv[2], labdir[0],labdir[1],labdir[2] );
   }
   setVal<ValDbl>(PAR_dirtol,sco.getTolerance());
 }
 
 NC::SCOrientation NC::MatCfg::createSCOrientation() const
 {
-  checkConsistency();
+  checkConsistency();//TODO: creates scorientation twice!
   if (!isSingleCrystal())
-    NCRYSTAL_THROW(MissingInfo,"Can not supply SCOrientation object for poly crystals");
+    NCRYSTAL_THROW(MissingInfo,"Can only create SCOrientation object for single crystals");
   if ( ! m_impl->hasPar(Impl::PAR_dir1) )
-    NCRYSTAL_THROW(MissingInfo,"Can not supply SCOrientation object without the dir1 parameter set");
+    NCRYSTAL_THROW(MissingInfo,"Can not create SCOrientation object without the dir1 parameter set");
   if ( ! m_impl->hasPar(Impl::PAR_dir2) )
-    NCRYSTAL_THROW(MissingInfo,"Can not supply SCOrientation object without the dir2 parameter set");
-  double tolerance = get_dirtol();
-
-  SCOrientation out;
-  const Impl::ValOrientDir * dir1 = m_impl->getValType<Impl::ValOrientDir>(Impl::PAR_dir1);
-  const Impl::ValOrientDir * dir2 = m_impl->getValType<Impl::ValOrientDir>(Impl::PAR_dir2);
-  nc_assert(dir1&&dir2);
-
-  if (dir1->crystal_is_hkl)
-    out.setPrimaryDirection( dir1->crystal[0],dir1->crystal[1],dir1->crystal[2],dir1->lab);
-  else
-    out.setPrimaryDirection( dir1->crystal,dir1->lab);
-  if (dir2->crystal_is_hkl)
-    out.setSecondaryDirection( dir2->crystal[0],dir2->crystal[1],dir2->crystal[2],dir2->lab,tolerance);
-  else
-    out.setSecondaryDirection( dir2->crystal,dir2->lab,tolerance);
-  return out;
+    NCRYSTAL_THROW(MissingInfo,"Can not create SCOrientation object without the dir2 parameter set");
+  return m_impl->createSCOrientation(*this);
 }
 
 void NC::MatCfg::applyStrCfg( const std::string& str )
+{
+  m_impl.modify()->applyStrCfg(str);
+}
+
+void NC::MatCfg::Impl::applyStrCfg( const std::string& str )
 {
   if (!isSimpleASCII(str,true,true))
     NCRYSTAL_THROW(BadInput,"Non-ASCII characters in parameter specification!");
@@ -1061,9 +1011,9 @@ void NC::MatCfg::applyStrCfg( const std::string& str )
   if (contains_any(str,NCMATCFG_FORBIDDEN_CHARS))
     NCRYSTAL_THROW(BadInput,"Forbidden characters in parameter specification!");
 
-  VectS parts;
   VectS par_and_val;
-  split(parts,str,0,';');
+  VectS parts = split2(str,0,';');
+
   for (size_t i = 0; i<parts.size();++i) {
     trim(parts.at(i));
     if (parts.at(i).empty()) {
@@ -1083,174 +1033,148 @@ void NC::MatCfg::applyStrCfg( const std::string& str )
     trim(par_and_val.at(1));
     if (par_and_val.at(0).empty())
       NCRYSTAL_THROW(BadInput,"Missing parameter name");
-    cow();
-    m_impl->setValByStr(par_and_val.at(0),par_and_val.at(1));
+    this->setValByStr(par_and_val.at(0),par_and_val.at(1));
   }
+}
+
+NC::MatCfg::MatCfg( const char* datafile_and_parameters )
+  : MatCfg(std::string(datafile_and_parameters))
+{
+}
+
+NC::MatCfg NC::MatCfg::createFromRawData( std::string&& data, std::string pars, std::string ext )
+{
+  return MatCfg( from_raw_t(), std::move(data), std::move(pars), std::move(ext) );
 }
 
 NC::MatCfg::MatCfg( const std::string& datafile_and_parameters )
-  : m_impl(makeRC<Impl>())
+  : MatCfg( [&datafile_and_parameters]() -> constructor_args
+            {
+              //Trim and split (once) on ';', throwing away empty parts:
+              std::string input(datafile_and_parameters);
+              trim( input );
+              VectS parts = split2(input,1,';');
+              for ( auto& e : parts )
+                trim(e);
+              //First and only required parameter is the datafile:
+              if ( parts.empty() || parts.at(0).empty() )
+                NCRYSTAL_THROW(MissingInfo,"Please supply name of data file");
+              if (contains(parts.at(0),'=')) {
+                //catch typical user error
+                NCRYSTAL_THROW2(BadInput,"Filename contains a forbidden character ('='): "<<parts.at(0));
+              }
+              constructor_args args;
+              if ( parts.size()>1 )
+                args.pars = std::move(parts.at(1));
+              args.origfn = std::move(parts.at(0));
+              nc_assert( ! args.origfn.empty() );
+              args.td = FactImpl::createTextData( args.origfn );
+              return args;
+            }())
 {
-  //Trim and split on ';', throwing away empty parts:
-  std::string input(datafile_and_parameters);
-  trim( input );
-  VectS parts;
-  split(parts,input,1,';');
-  for (std::size_t i = 0; i<parts.size(); ++i)
-    trim(parts.at(i));
-  //First and only required parameter is the datafile:
-  if ( parts.empty() || parts.at(0).empty() )
-    NCRYSTAL_THROW(MissingInfo,"Please supply name of data file");
-  if (contains(parts.at(0),'='))
-    NCRYSTAL_THROW2(BadInput,"Filename contains a forbidden character ('='): "<<parts.at(0));//catch typical user error
-
-  //make sure embedded data files are ready by calling this NCFactory.hh
-  //function:
-  ensureEmbeddedDataIsRegistered();
-
-  //Don't just open files, use input streams -- we support e.g. in-memory files.
-  auto inputstream = createTextInputStream( parts.at(0) );
-  if (!inputstream)
-    NCRYSTAL_THROW2(FileNotFound,"Could not find specified datafile: "<<parts.at(0));
-  m_impl->m_datafile_resolved = inputstream->onDiskResolvedPath();//empty in case of e.g. in-mem files.
-  if (parts.at(0)!=m_impl->m_datafile_resolved)
-    m_impl->m_datafile_orig = parts.at(0);
-  m_impl->m_datafileext = getfileext(parts.at(0));
-
-  nc_assert_always(parts.size()<=2);
-  m_impl->m_ignoredfilecfg = false;
-  std::string extracfgstr;
-  if (parts.size()==2) {
-    //First check if there is actually an "ignorefilecfg" part (can contain spaces)
-    VectS parts2;
-    split(parts2,parts.at(1),1,';');
-    for (std::size_t i = 0; i<parts2.size(); ++i)
-      trim(parts2.at(i));
-    for (std::size_t i = 0; i<parts2.size(); ++i)
-    if (!parts2.empty() && parts2.at(0)=="ignorefilecfg") {
-      m_impl->m_ignoredfilecfg = true;
-      if (parts2.size()==2)
-        extracfgstr = parts2.at(1);
-    } else {
-      extracfgstr = parts.at(1);
-    }
-  }
-  if (!m_impl->m_ignoredfilecfg) {
-    std::string filecfgstr;
-    nc_assert(inputstream!=nullptr);
-    m_impl->extractFileCfgStr(*inputstream,filecfgstr);
-    if (!filecfgstr.empty())
-      applyStrCfg( filecfgstr );
-  }
-  if (!extracfgstr.empty())
-    applyStrCfg( extracfgstr );
-
-  if (getDataFileExtension().empty())
-    NCRYSTAL_THROW2(BadInput,"Unsupported data file (can not determine extension): "<<getDataFileAsSpecified());
 }
 
-void NC::MatCfg::Impl::extractFileCfgStr( TextInputStream& input,
-                                          std::string&res )
+NC::MatCfg::MatCfg( TextDataSP sp, std::string pars )
+  : MatCfg( [&sp,&pars]() -> constructor_args
+  {
+    constructor_args args;
+    args.td = std::move(sp);
+    args.pars = std::move(pars);
+    return args;
+  }())
 {
-  res.clear();
-  std::string line;
-  std::string pattern="NCRYSTALMATCFG";
-  const std::string& filename = m_datafile_resolved.empty() ? m_datafile_orig : m_datafile_resolved;
+}
 
-  while (input.getLine(line)) {
+NC::MatCfg::MatCfg( from_raw_t, std::string&& data, std::string pars, std::string dataType )
+  : MatCfg( [&data,&pars,&dataType]() -> constructor_args
+  {
+    constructor_args args;
+    RawStrData rawdata(std::move(data));
+    if ( dataType.empty() )
+      dataType = FactImpl::guessDataType(rawdata);
+    if ( dataType.empty() )
+      NCRYSTAL_THROW2(BadInput,"Can not determine format of anonymous data (must be specified explicitly in this case):");
+    args.td = makeSO<const TextData>( std::move(rawdata), TextData::DataType{std::move(dataType)} );
+    args.pars = std::move(pars);
+    return args;
+  }())
+{
+}
+
+NC::MatCfg::MatCfg( constructor_args&& args )
+{
+  auto mod = m_impl.modifyWithoutLocking();//we just constructed m_impl from
+                                           //scratch, no need to lock as no one
+                                           //else can refer to it.
+
+  const TextData& textData = *args.td;
+  m_textDataSP = std::move(args.td);
+
+  //Cache TextData meta data which should remain even if thinned:
+  mod->m_textDataUID = textData.dataUID();
+  mod->m_textDataType = textData.dataType();
+
+  //Original file name is needed for serialisation:
+  mod->m_datafile_orig = args.origfn;
+
+  //Apply parameter config "parname1=val1;...", combining the parts embedded in
+  //the input data (if any) with the ones in args.pars, taking into account (and
+  //noting down) the presence of an "ignorefilecfg" keyword.
+
+  std::tie(mod->m_ignoredfilecfg,args.pars) = Impl::parseIgnoreFileCfg(args.pars);
+  std::string cfgstr = ( mod->m_ignoredfilecfg
+                         ? std::string()
+                         : m_impl->extractFileCfgStr(textData) );
+  if ( cfgstr.empty() )
+    cfgstr = args.pars;
+  else if ( !args.pars.empty() ) {
+    cfgstr += ';';
+    cfgstr += args.pars;
+  }
+
+  if (!cfgstr.empty())
+    mod->applyStrCfg( cfgstr );
+}
+
+std::string NC::MatCfg::Impl::extractFileCfgStr( const TextData& input ) const
+{
+  std::string res;
+  std::string pattern="NCRYSTALMATCFG";
+  for ( const std::string& line : input ) {
     std::size_t pos = line.find(pattern);
     if ( pos == std::string::npos )
       continue;
-    if (!contains(line,pattern))
-      continue;
     if (!res.empty())
-      NCRYSTAL_THROW2(BadInput,"Input file contains more than one "<<pattern<<" specification: "<<filename);
-    line = line.substr(pos+pattern.size());
-    if (line.empty()||line.at(0)!='[')
-      NCRYSTAL_THROW2(BadInput,"Input file contains "<<pattern<<" which is not followed by a '[' character: "<<filename);
-    if (line.find(pattern)!=std::string::npos)
-      NCRYSTAL_THROW2(BadInput,"Input file contains more than one "<<pattern<<" specification on a single line: "<<filename);
-    line = line.substr(1);
-    pos = line.find(']');
+      NCRYSTAL_THROW2(BadInput,"Input file contains more than one "<<pattern<<" specification: "<<m_datafile_orig);
+    std::string s = line.substr(pos+pattern.size());
+    if (s.empty()||s.at(0)!='[')
+      NCRYSTAL_THROW2(BadInput,"Input file contains "<<pattern<<" which is not followed by a '[' character: "<<m_datafile_orig);
+    if (s.find(pattern)!=std::string::npos)
+      NCRYSTAL_THROW2(BadInput,"Input file contains more than one "<<pattern<<" specification on a single line: "<<m_datafile_orig);
+    s = s.substr(1);
+    pos = s.find(']');
     if ( pos == std::string::npos )
-      NCRYSTAL_THROW2(BadInput,"Input file contains "<<pattern<<" without a closing ']' character: "<<filename);
-    res = line.substr(0,pos);
+      NCRYSTAL_THROW2(BadInput,"Input file contains "<<pattern<<" without a closing ']' character: "<<m_datafile_orig);
+    res = s.substr(0,pos);
     if (res.empty())
       res = " ";//for detection of multiple occurances
   }
   trim(res);
+  return res;
 }
 
-void NC::MatCfg::cow()
-{
-  nc_assert(m_impl!=nullptr);
-  if (m_impl->refCount()!=1)
-    m_impl = makeRC<Impl>(*m_impl);
-}
-
+//All this nice stuff is generated by the COWPimpl helper:
+NC::MatCfg::MatCfg(const MatCfg&) = default;
+NC::MatCfg& NC::MatCfg::operator=(const MatCfg&) = default;
+NC::MatCfg::MatCfg( MatCfg&& ) = default;
+NC::MatCfg& NC::MatCfg::operator=(MatCfg&&) = default;
 NC::MatCfg::~MatCfg() = default;
 
-
-NC::MatCfg::MatCfg(const MatCfg& o)
-  : m_impl(o.m_impl)
-{
-}
-
-NC::MatCfg& NC::MatCfg::operator=(const MatCfg& o)
-{
-  m_impl = o.m_impl;
-  return *this;
-}
-
-NC::MatCfg& NC::MatCfg::operator=(MatCfg&& o)
-{
-  m_impl = std::move(o.m_impl);
-  return *this;
-}
-
-NC::MatCfg::MatCfg(MatCfg&& o)
-  : m_impl(std::move(o.m_impl))
-{
-}
-
-void NC::MatCfg::dump( std::ostream& out, bool add_endl ) const
-{
-  std::string strcfg = toStrCfg( false );
-  out << "MatCfg(\"";
-  if ( m_impl->m_datafile_resolved.empty() )
-    out << m_impl->m_datafile_orig;//in-mem file most likely
-  else
-    out << basename(m_impl->m_datafile_resolved);
-  if (m_impl->m_ignoredfilecfg)
-    out << ";ignorefilecfg";
-  if (!strcfg.empty())
-    out << (strcfg[0]==';'?"":";") << strcfg;
-  out<<"\")";
-  if (add_endl)
-    out<<std::endl;
-}
-
-const std::string& NC::MatCfg::getDataFileAsSpecified() const
-{
-  return m_impl->m_datafile_orig.empty() ? m_impl->m_datafile_resolved : m_impl->m_datafile_orig;
-}
-
-const std::string& NC::MatCfg::getDataFile() const
-{
-  return m_impl->m_datafile_resolved;
-}
-
-const std::string& NC::MatCfg::getDataFileExtension() const
-{
-  const std::string& s=get_overridefileext();
-  return s.empty() ? m_impl->m_datafileext : s;
-}
-
-double NC::MatCfg::get_temp() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_temp,-1.0); }
+NC::Temperature NC::MatCfg::get_temp() const { return Temperature{ m_impl->getVal<Impl::ValDbl>(Impl::PAR_temp,-1.0) }; }
 double NC::MatCfg::get_dcutoff() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_dcutoff,0.0); }
 double NC::MatCfg::get_dcutoffup() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_dcutoffup,kInfinity); }
 double NC::MatCfg::get_packfact() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_packfact,1.0); }
-double NC::MatCfg::get_mos() const { return m_impl->getValNoFallback<Impl::ValDbl>(Impl::PAR_mos); }
+NC::MosaicityFWHM NC::MatCfg::get_mos() const { return MosaicityFWHM{ m_impl->getValNoFallback<Impl::ValDbl>(Impl::PAR_mos) }; }
 double NC::MatCfg::get_mosprec() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_mosprec,1e-3); }
 double NC::MatCfg::get_sccutoff() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_sccutoff,0.4); }
 double NC::MatCfg::get_dirtol() const { return m_impl->getVal<Impl::ValDbl>(Impl::PAR_dirtol,1e-4); }
@@ -1262,28 +1186,26 @@ const std::string& NC::MatCfg::get_inelas() const {
     return s_matcfg_str_none;
   return ss;
  }
-const std::string& NC::MatCfg::get_overridefileext() const { return m_impl->getVal<Impl::ValStr>(Impl::PAR_overridefileext,s_matcfg_str_empty); }
 const std::string& NC::MatCfg::get_infofactory() const { return m_impl->getVal<Impl::ValStr>(Impl::PAR_infofactory,s_matcfg_str_empty); }
 const std::string& NC::MatCfg::get_scatfactory() const { return m_impl->getVal<Impl::ValStr>(Impl::PAR_scatfactory,s_matcfg_str_empty); }
 const std::string& NC::MatCfg::get_absnfactory() const { return m_impl->getVal<Impl::ValStr>(Impl::PAR_absnfactory,s_matcfg_str_empty); }
-void NC::MatCfg::set_temp( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_temp,v); }
-void NC::MatCfg::set_dcutoff( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_dcutoff,v); }
-void NC::MatCfg::set_dcutoffup( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_dcutoffup,v); }
-void NC::MatCfg::set_packfact( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_packfact,v); }
-void NC::MatCfg::set_mos( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_mos,v); }
-void NC::MatCfg::set_mosprec( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_mosprec,v); }
-void NC::MatCfg::set_sccutoff( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_sccutoff,v); }
-void NC::MatCfg::set_dirtol( double v ) { cow(); m_impl->setVal<Impl::ValDbl>(Impl::PAR_dirtol,v); }
-void NC::MatCfg::set_coh_elas( bool v ) { cow(); m_impl->setVal<Impl::ValBool>(Impl::PAR_coh_elas,v); }
-void NC::MatCfg::set_incoh_elas( bool v ) { cow(); m_impl->setVal<Impl::ValBool>(Impl::PAR_incoh_elas,v); }
-void NC::MatCfg::set_inelas( const std::string& v ) { cow(); m_impl->setVal<Impl::ValStr>(Impl::PAR_inelas,v); }
-void NC::MatCfg::set_overridefileext( const std::string& v ) { cow(); m_impl->setVal<Impl::ValStr>(Impl::PAR_overridefileext,v); }
-void NC::MatCfg::set_infofactory( const std::string& v ) { cow(); m_impl->setVal<Impl::ValStr>(Impl::PAR_infofactory,v); }
-void NC::MatCfg::set_scatfactory( const std::string& v ) { cow(); m_impl->setVal<Impl::ValStr>(Impl::PAR_scatfactory,v); }
-void NC::MatCfg::set_absnfactory( const std::string& v ) { cow(); m_impl->setVal<Impl::ValStr>(Impl::PAR_absnfactory,v); }
-void NC::MatCfg::set_lcmode( int v ) { cow(); m_impl->setVal<Impl::ValInt>(Impl::PAR_lcmode,v); }
+void NC::MatCfg::set_temp( Temperature v ) { auto mod = m_impl.modify(); mod->setVal<Impl::ValDbl>(Impl::PAR_temp,v.get()); }
+void NC::MatCfg::set_dcutoff( double v ) { auto mod = m_impl.modify(); mod->setVal<Impl::ValDbl>(Impl::PAR_dcutoff,v); }
+void NC::MatCfg::set_dcutoffup( double v ) { auto mod = m_impl.modify(); mod->setVal<Impl::ValDbl>(Impl::PAR_dcutoffup,v); }
+void NC::MatCfg::set_packfact( double v ) { auto mod = m_impl.modify(); mod->setVal<Impl::ValDbl>(Impl::PAR_packfact,v); }
+void NC::MatCfg::set_mos( MosaicityFWHM v ) { auto mod = m_impl.modify(); mod->setVal<Impl::ValDbl>(Impl::PAR_mos,v.dbl()); }
+void NC::MatCfg::set_mosprec( double v ) { auto mod = m_impl.modify(); mod->setVal<Impl::ValDbl>(Impl::PAR_mosprec,v); }
+void NC::MatCfg::set_sccutoff( double v ) { auto mod = m_impl.modify(); mod->setVal<Impl::ValDbl>(Impl::PAR_sccutoff,v); }
+void NC::MatCfg::set_dirtol( double v ) { auto mod = m_impl.modify(); mod->setVal<Impl::ValDbl>(Impl::PAR_dirtol,v); }
+void NC::MatCfg::set_coh_elas( bool v ) { auto mod = m_impl.modify(); mod->setVal<Impl::ValBool>(Impl::PAR_coh_elas,v); }
+void NC::MatCfg::set_incoh_elas( bool v ) { auto mod = m_impl.modify(); mod->setVal<Impl::ValBool>(Impl::PAR_incoh_elas,v); }
+void NC::MatCfg::set_inelas( const std::string& v ) { auto mod = m_impl.modify(); mod->setVal<Impl::ValStr>(Impl::PAR_inelas,v); }
+void NC::MatCfg::set_infofactory( const std::string& v ) { auto mod = m_impl.modify(); mod->setVal<Impl::ValStr>(Impl::PAR_infofactory,v); }
+void NC::MatCfg::set_scatfactory( const std::string& v ) { auto mod = m_impl.modify(); mod->setVal<Impl::ValStr>(Impl::PAR_scatfactory,v); }
+void NC::MatCfg::set_absnfactory( const std::string& v ) { auto mod = m_impl.modify(); mod->setVal<Impl::ValStr>(Impl::PAR_absnfactory,v); }
+void NC::MatCfg::set_lcmode( int v ) { auto mod = m_impl.modify(); mod->setVal<Impl::ValInt>(Impl::PAR_lcmode,v); }
 int NC::MatCfg::get_lcmode() const { return m_impl->getVal<Impl::ValInt>(Impl::PAR_lcmode,0); }
-void NC::MatCfg::set_vdoslux( int v ) { cow(); m_impl->setVal<Impl::ValInt>(Impl::PAR_vdoslux,v); }
+void NC::MatCfg::set_vdoslux( int v ) { auto mod = m_impl.modify(); mod->setVal<Impl::ValInt>(Impl::PAR_vdoslux,v); }
 int NC::MatCfg::get_vdoslux() const { return m_impl->getVal<Impl::ValInt>(Impl::PAR_vdoslux,3); }
 
 const std::string& NC::MatCfg::get_atomdb() const {
@@ -1299,35 +1221,10 @@ const std::vector<NC::VectS>& NC::MatCfg::get_atomdb_parsed() const
 }
 
 void NC::MatCfg::set_atomdb( const std::string& v ) {
-  cow();
-  m_impl->getValTypeForSet<Impl::ValAtomDB>(Impl::PAR_atomdb)->set_from_strrep(v);
+  m_impl.modify()->getValTypeForSet<Impl::ValAtomDB>(Impl::PAR_atomdb)->set_from_strrep(v);
 }
 
 bool NC::MatCfg::isPolyCrystal() const { return !isSingleCrystal(); }
-
-bool NC::MatCfg::hasAccessSpy(AccessSpy* spy) const
-{
-  return std::find(m_impl->m_spies.begin(), m_impl->m_spies.end(),spy) != m_impl->m_spies.end();
-}
-
-void NC::MatCfg::addAccessSpy(AccessSpy* spy) const
-{
-  if (!spy)
-    NCRYSTAL_THROW(BadInput,"NULL access spy provided");
-  if (hasAccessSpy(spy))
-    NCRYSTAL_THROW(BadInput,"Attempt to install the same access spy more than once");
-  m_impl->m_spies.push_back(spy);
-}
-
-void NC::MatCfg::removeAccessSpy(AccessSpy* spy) const
-{
-  size_t n = m_impl->m_spies.size();
-  m_impl->m_spies.erase(std::remove(m_impl->m_spies.begin(), m_impl->m_spies.end(), spy), m_impl->m_spies.end());
-  std::vector<AccessSpy*>(m_impl->m_spies).swap(m_impl->m_spies);//shrink to fit
-  if (n==m_impl->m_spies.size())
-    NCRYSTAL_THROW(BadInput,"Could not remove access spy which was never installed");
-
-}
 
 std::string NC::MatCfg::get_infofact_name() const
 {
@@ -1414,4 +1311,122 @@ void NC::MatCfg::set_scatfactory(const NC::MatCfg::FactRequested& req )
 void NC::MatCfg::set_absnfactory(const NC::MatCfg::FactRequested& req )
 {
   set_absnfactory(factRequestsToString(req));
+}
+
+NC::MatInfoCfg NC::MatCfg::createInfoCfg() const
+{
+  return { *this };
+}
+
+void NC::MatCfg::Impl::dump( const MatCfg * self,
+                             std::ostream& out,
+                             bool add_endl,
+                             const MatCfg::Impl::ParametersSet * only_pars ) const
+{
+  std::string strcfg = self->m_impl->toStrCfg( false, only_pars );
+  out << "MatCfg(\"";
+  if ( !m_datafile_orig.empty() ) {
+    out << m_datafile_orig;
+  } else {
+    auto dt = self->getDataType();
+    if ( dt.empty() )
+      out << "<anonymous-data>";
+    else
+      out << "<anonymous-"<<dt<<"-data>";
+  }
+  if (this->m_ignoredfilecfg)
+    out << ";ignorefilecfg";
+  if (!strcfg.empty())
+    out << (strcfg[0]==';'?"":";") << strcfg;
+  out<<"\")";
+  if (add_endl)
+    out<<std::endl;
+}
+
+void NC::MatInfoCfg::dump( std::ostream &out, bool add_endl ) const
+{
+  m_cfg.m_impl->dump(&m_cfg,out,add_endl,MatCfg::Impl::onlyInfoPars());
+}
+
+void NC::MatCfg::dump( std::ostream& out, bool add_endl ) const
+{
+  m_impl->dump(this,out,add_endl,nullptr);
+}
+
+const NC::TextDataUID NC::MatCfg::textDataUID() const
+{
+  return m_impl->m_textDataUID;
+}
+
+const std::string& NC::MatCfg::getDataType() const
+{
+  return m_impl->m_textDataType;
+}
+
+NC::MatCfg NC::MatCfg::cloneThinned() const
+{
+  MatCfg cfg(*this);
+  cfg.m_textDataSP.reset();
+  return cfg;
+}
+
+NC::TextDataSP NC::MatCfg::textDataSP() const
+{
+  if ( m_textDataSP == nullptr )
+    NCRYSTAL_THROW(LogicError,"MatCfg::textDataSP/textData methods should not be"
+                   " used in a MatCfg object which was thinned or moved-from.");
+  return m_textDataSP;
+}
+
+bool NC::MatCfg::Impl::compareIgnoringTextDataUID(const MatCfg& o, const MatCfg::Impl::ParametersSet * only_pars ) const
+{
+  const Impl * oimpl = &*o.m_impl;
+  if ( this == oimpl )
+    return false;//same internal data instance, must be equal
+
+  if ( this->m_datafile_orig != oimpl->m_datafile_orig )
+    return this->m_datafile_orig < oimpl->m_datafile_orig;
+  if ( this->m_textDataType != oimpl->m_textDataType )
+    return this->m_textDataType < oimpl->m_textDataType;
+
+  //To keep things simple we also compare "ignoredfilecfg", although for the
+  //purposes of e.g. creating Info objects from MatCfg objects, it should not
+  //play a role:
+  if ( this->m_ignoredfilecfg != oimpl->m_ignoredfilecfg )
+    return this->m_ignoredfilecfg;
+
+  //Ok, just the actual parameters left:
+
+  for (int i = Impl::PAR_FIRST; i<Impl::PAR_NMAX; ++i) {
+    Impl::ValBase * v = this->m_parlist[i].get();
+    Impl::ValBase * vo = oimpl->m_parlist[i].get();
+    if ( !v && !vo )
+      continue;//neither is set
+    if ( only_pars && only_pars->count(static_cast<decltype(Impl::PAR_FIRST)>(i))==0 )
+      continue;
+    if ( bool(v) != bool(vo) )
+      return int(bool(v)) < int(bool(vo));//one has set
+    nc_assert( v && vo );
+    //both set (rare, we only get here for the same input file after all).
+    std::string vs = v->to_strrep(true);
+    std::string vos = vo->to_strrep(true);
+    if ( vs != vos )
+      return vs < vos;
+  }
+  //identical:
+  return false;
+}
+
+bool NC::MatCfg::operator<( const MatCfg& o ) const
+{
+  if ( m_impl->m_textDataUID != o.m_impl->m_textDataUID )
+    return m_impl->m_textDataUID < o.m_impl->m_textDataUID;
+  return m_impl->compareIgnoringTextDataUID(o,nullptr);
+}
+
+bool NC::MatInfoCfg::operator<( const MatInfoCfg& o ) const
+{
+  if ( m_cfg.m_impl->m_textDataUID != o.m_cfg.m_impl->m_textDataUID )
+    return m_cfg.m_impl->m_textDataUID < o.m_cfg.m_impl->m_textDataUID;
+  return m_cfg.m_impl->compareIgnoringTextDataUID( o.m_cfg, MatCfg::Impl::onlyInfoPars() );
 }

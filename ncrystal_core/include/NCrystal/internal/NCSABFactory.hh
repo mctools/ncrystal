@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -29,13 +29,13 @@ namespace NCrystal {
   namespace SAB {
 
     //Direct factory function with no caching:
-    std::unique_ptr<const SABScatterHelper> createScatterHelper( std::shared_ptr<const SABData>,
+    std::unique_ptr<const SABScatterHelper> createScatterHelper( shared_obj<const SABData>,
                                                                  std::shared_ptr<const VectD> energyGrid = nullptr );
 
     //Same with caching:
     void clearScatterHelperCache();
-    std::shared_ptr<const SABScatterHelper> createScatterHelperWithCache( std::shared_ptr<const SABData>,
-                                                                          std::shared_ptr<const VectD> energyGrid = nullptr );
+    shared_obj<const SABScatterHelper> createScatterHelperWithCache( shared_obj<const SABData>,
+                                                                     std::shared_ptr<const VectD> energyGrid = nullptr );
 
     //For caching reasons, we keep a database of energy grid's and an associated
     //unique id. Note that it is expected that most energy grids specified will

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -25,7 +25,6 @@
 //everywhere - including to NCrystal users.
 
 #include <cstdint>
-#include <cstddef>//for std::size_t
 #include <limits>
 #include <cmath>
 #include <utility>//std::move, std::forward
@@ -34,6 +33,7 @@
 //so many places:
 #include <string>
 #include <vector>
+#include <array>
 #include <algorithm>
 #include <map>
 #include <set>
@@ -62,6 +62,14 @@ namespace NCrystal {
   NCRYSTAL_API constexpr double ekin2wlsq( double ekin ); //cost: 1 branch + 1 division
   NCRYSTAL_API constexpr double ekin2wlsqinv( double ekin ); //cost: 1 multiplication
   NCRYSTAL_API constexpr double wlsq2ekin( double wl );   //cost: 1 branch + 1 division
+
+  //Physics constants (more are in internal NCMath.hh header):
+  constexpr double constant_boltzmann = 8.6173303e-5;  // eV/K
+  constexpr double const_neutron_mass_amu = 1.00866491588; // [amu]
+  constexpr double const_inv_neutron_mass_amu = 1.0/const_neutron_mass_amu; // [amu]
+
+  //Constexpr sqrt for derived constants (do NOT use for run-time code!!):
+  constexpr double constexpr_sqrt(double);
 
   //Math constants (avoid M_PI etc. for portability reasons).
   constexpr double kInfinity    = std::numeric_limits<double>::infinity()           ; // = infinity
@@ -103,15 +111,6 @@ namespace NCrystal {
   //when a variable is otherwise used only in an assert:
   template<class T> inline void markused( const T& ) { }
 
-  //Generic RNG interface:
-  class NCRYSTAL_API RandomBase : public RCBase {
-  public:
-    virtual double generate() = 0;//generate numbers uniformly in [0,1[
-  protected:
-    RandomBase(){}
-    virtual ~RandomBase();
-  };
-
   //Disable copy/move semantics, by private inheritance from this class:
   class NCRYSTAL_API NoCopyMove {
   protected:
@@ -126,12 +125,38 @@ namespace NCrystal {
   //Disable copy semantics, retain move semantics:
   class NCRYSTAL_API MoveOnly {
   protected:
-    constexpr MoveOnly() = default;
+    MoveOnly() = default;
     ~MoveOnly() = default;
     MoveOnly( const MoveOnly& ) = delete;
     MoveOnly& operator=( const MoveOnly& ) = delete;
     MoveOnly( MoveOnly&& ) = default;
     MoveOnly& operator=( MoveOnly&& ) = default;
+  };
+
+  class NCRYSTAL_API RNG : private MoveOnly  {
+  public:
+    //Random number stream base class with interfaces for generating
+    //numbers. Actual implementations of specific streams should derive from RNG
+    //which adds additional features concerning for instance state manipulation
+    //and jumping. Code merely needing random numbers and not advanced stream
+    //control should simply use the RNG interface to make this clear.
+    virtual ~RNG();
+
+    //Generate random number uniformly in interval (0.0,1.0].
+    double operator()();
+    double generate();
+
+    //Generate integer uniformly in { 0, 1, ..., N-1 }:
+    uint32_t generateInt( uint32_t N );
+    uint64_t generateInt64( uint64_t N );
+
+    //Coin flips (50% true, 50% false) and completely randomised bit patterns:
+    virtual bool coinflip() = 0;
+    virtual uint64_t generate64RndmBits() = 0;
+    virtual uint32_t generate32RndmBits() = 0;
+
+  protected:
+    virtual double actualGenerate() = 0;//uniformly in (0,1]
   };
 
   struct NCRYSTAL_API UniqueIDValue {
@@ -140,8 +165,9 @@ namespace NCrystal {
 #if __cplusplus >= 202002L
     auto operator<=>(const UniqueIDValue&) const = default;
 #else
-    bool operator<(UniqueIDValue const& o) const { return value < o.value; }
-    bool operator==(UniqueIDValue const& o) const { return value == o.value; }
+    constexpr bool operator<(UniqueIDValue const& o) const noexcept { return value < o.value; }
+    constexpr bool operator==(UniqueIDValue const& o) const noexcept { return value == o.value; }
+    constexpr bool operator!=(UniqueIDValue const& o) const noexcept { return value != o.value; }
 #endif
   };
 
@@ -151,7 +177,7 @@ namespace NCrystal {
     //Move-only to avoid two objects with same ID (another option would be to
     //generate a new ID for the copied-to object).
 
-    UniqueIDValue getUniqueID() const  { return {m_uid}; }
+    ncconstexpr17 UniqueIDValue getUniqueID() const noexcept { return {m_uid}; }
 
     UniqueID();
     ~UniqueID() = default;
@@ -161,6 +187,65 @@ namespace NCrystal {
     UniqueID& operator=( UniqueID&& ) = default;
   private:
     uint64_t m_uid;
+  };
+
+  //Very simply optional class for C++11, similar to std::optional from C++17,
+  //but with less features:
+
+  struct NCRYSTAL_API NullOptType {};
+  constexpr const NullOptType NullOpt;
+
+  template<class T>
+  class NCRYSTAL_API Optional {
+    static_assert(std::is_nothrow_destructible<T>::value,
+                  "Optional can only keep objects with noexcept destructors");
+  public:
+
+    //Construct with value:
+    ncconstexpr17 Optional( const T& ) noexcept(std::is_nothrow_copy_constructible<T>::value);
+    ncconstexpr17 Optional( T&& ) noexcept(std::is_nothrow_move_constructible<T>::value);
+
+    //Assign/construct value-less:
+    constexpr Optional() noexcept;
+    constexpr Optional( NullOptType ) noexcept;
+    ncconstexpr17 Optional& operator=( NullOptType ) noexcept;
+
+    //Clear value:
+    void reset() noexcept;
+
+    //Set value:
+    template<class TOther>
+    Optional& operator=( TOther&& ) noexcept(std::is_nothrow_move_constructible<T>::value);
+
+    template<typename... Args>
+    void emplace( Args&& ... );
+
+    //Access value:
+    constexpr bool has_value() const noexcept { return m_hasValue; }
+    ncconstexpr17 T& value() ncnoexceptndebug { nc_assert(m_hasValue); return m_value; }
+    ncconstexpr17 const T& value() const ncnoexceptndebug { nc_assert(m_hasValue); return m_value; }
+
+    template<class U>
+    constexpr T value_or(U&& u) const;
+
+    //Copy/assign/move/destruct (moved-from Optional is always without value):
+    Optional( const Optional& ) noexcept(std::is_nothrow_copy_constructible<T>::value);
+    Optional& operator=( const Optional& ) noexcept(std::is_nothrow_copy_constructible<T>::value);
+    Optional( Optional&& ) noexcept(std::is_nothrow_move_constructible<T>::value);
+    Optional& operator=( Optional&& ) noexcept(std::is_nothrow_move_constructible<T>::value);
+    ~Optional() noexcept;
+
+    //Argh, operator= overloads gets swallowed by TOther. Provide set methods as workaround:
+    Optional& set( const Optional& o );
+    Optional& set( Optional&& o );//leaves o without value
+
+    bool operator<( const Optional& o) const;
+    bool operator==( const Optional& o) const;
+    bool operator!=( const Optional& o) const;
+
+  private:
+    union { char m_dummy; T m_value; };
+    bool m_hasValue;
   };
 
   //Pimpl idiom helper (move-only, automatic lifetime mgmt, const-correctness, flexible constructor):
@@ -180,6 +265,58 @@ namespace NCrystal {
     T& operator*() { return *m_ptr.get(); }
   };
 
+  template<class T>
+  class NCRYSTAL_API COWPimpl {
+  public:
+
+    // Helper class implementing both pimpl and copy-on-write mechanics. This is
+    // supposed to be both multi-thread safe and light-weight, but is best
+    // suited for classes which potentially keep a large internal structure
+    // which is modified seldomly and copied often.
+
+    //Arguments of COWPimpl constructor will be passed along to constructor of T:
+    template<typename ...Args> COWPimpl( Args&& ... );
+
+    //Access internal T object through * or -> dereferencing. For modifications,
+    //one must first retrieve a modification object through modify() (which
+    //takes care of the MT-safe detaching as needed).
+
+    class Modifier;
+    ncnodiscard17 Modifier modify() { return Modifier{*this,true}; }
+    constexpr const T* operator->() const noexcept { return &m_data->t; }
+    constexpr const T& operator*() const noexcept { return m_data->t; }
+
+    //If completely sure there is only one thread accessing the instance
+    //(e.g. in the constructor of the class having a COWPimpl data member),
+    //modifications can be done without locking first:
+    ncnodiscard17 Modifier modifyWithoutLocking() { return Modifier{*this,false}; }
+
+    //Fully supports copy and move operations, through cheap multi-thread safe
+    //shallow copying (the overhead is a mutex lock).
+    ~COWPimpl();
+    COWPimpl( const COWPimpl& );
+    COWPimpl& operator=( const COWPimpl& );
+    COWPimpl( COWPimpl&& );
+    COWPimpl& operator=( COWPimpl&& );
+  private:
+    struct Data;
+    Data * m_data = nullptr;
+    void releaseData();
+  public:
+    class NCRYSTAL_API Modifier : private MoveOnly {
+      Data * m_data = nullptr;
+      std::mutex * m_mtx = nullptr;
+      void reset();
+    public:
+      Modifier( COWPimpl& c, bool lock );
+      ~Modifier();
+      Modifier(Modifier&&o);
+      Modifier& operator=(Modifier&&o);
+      ncconstexpr17 T* operator->() noexcept { return &m_data->t; }
+      ncconstexpr17 T& operator*() noexcept { return m_data->t; }
+    };
+  };
+
   //A few typedefs for very common types:
   typedef std::vector<double> VectD;
   typedef std::vector<std::string> VectS;
@@ -188,9 +325,218 @@ namespace NCrystal {
 
   //Structs which can be used in interfaces accepting cross-section values, to
   //make sure one does not accidentally mix up bound and free cross sections.
-  struct NCRYSTAL_API SigmaBound { double val; };
-  struct NCRYSTAL_API SigmaFree  { double val; };
 
+  //Convert uniformly randomised uint64_t (i.e. 64 independently randomised
+  //bits) to a double precision floating point uniformly distributed over
+  //(0,1]. This will map uniformly from 1.0 at input 0x0 to epsilon~=5.42e-20 at
+  //uint64_max. The least significant bits in the input integer will also be
+  //least significant for the output value, and due to precision issues the
+  //lowest bits will only affect the result when the generated values are low
+  //(e.g. the lowest 3 bits will only matter when the generated value is below
+  //0.004):
+  NCRYSTAL_API ncconstexpr17 double randUInt64ToFP01( uint64_t );
+
+  struct NCRYSTAL_API no_init_t {};
+  constexpr no_init_t no_init = no_init_t{};
+
+  template <class TValue, std::size_t N>
+  class NCRYSTAL_API FixedVector {
+    //Base class for N-vectors (such as NeutronDirection or the internal Vector
+    //class, which are implemented via the StronglyTypedFixedVector class and
+    //CRTP, see below). This common base class provides some generic methods for
+    //accessing data, printing, and interoperability with various types. This
+    //interoperability includes std::array's and C arrays.
+  public:
+    using stdarray_type = std::array<TValue, N>;
+    using carray_type = TValue[N];
+    using value_type = TValue;
+    using size_type = typename stdarray_type::size_type;
+
+    static constexpr size_type size() noexcept { return N; }
+    ncconstexpr17 TValue* data() noexcept { return m_data.data(); }
+    constexpr TValue* data() const noexcept { return m_data.data(); }
+
+    //Default construct (will zero-initialise):
+    explicit ncconstexpr17 FixedVector() noexcept;
+
+    //Constructor which will NOT zero-initialise:
+    explicit ncconstexpr17 FixedVector( no_init_t ) noexcept;
+
+    //For convenience we provide special constructors and setters for 2-vectors
+    //and 3-vectors (using one of these with a wrong length vector type will
+    //result in a compile-time error):
+    ncconstexpr17 FixedVector(double, double) noexcept;
+    ncconstexpr17 FixedVector(double, double, double) noexcept;
+    ncconstexpr17 void set(double, double) noexcept;
+    ncconstexpr17 void set(double, double, double) noexcept;
+
+    //Interoperability with std::array:
+    explicit constexpr FixedVector(const stdarray_type& o) noexcept;
+    explicit ncconstexpr17 operator stdarray_type&() noexcept { return m_data; }
+    explicit constexpr operator const stdarray_type&() const noexcept { return m_data; }
+    ncconstexpr17 stdarray_type& array() noexcept { return m_data; }
+    constexpr const stdarray_type& array() const noexcept { return m_data; }
+
+   //Interoperability with C arrays:
+    explicit constexpr FixedVector(const carray_type& xyz) noexcept;
+    explicit ncconstexpr17 operator carray_type&() noexcept { return rawArray(); }
+    explicit ncconstexpr17 operator const carray_type&() const noexcept { return rawArray(); }
+    ncconstexpr17 carray_type& rawArray() noexcept;
+    ncconstexpr17 const carray_type& rawArray() const noexcept;
+    ncconstexpr17 void applyTo( carray_type& ) const noexcept;
+
+    //Access:
+    ncconstexpr17 value_type operator[]( size_type i ) const ncnoexceptndebug { nc_assert(i<N); return m_data[i]; }
+    ncconstexpr17 value_type& operator[]( size_type i ) ncnoexceptndebug { nc_assert(i<N); return m_data[i]; }
+    ncconstexpr17 value_type at( size_type i ) const  { return m_data.at(i); }
+    ncconstexpr17 value_type& at( size_type i ) { return m_data.at(i); }
+
+    //Comparisons:
+#if __cplusplus >= 202002L
+    auto operator<=>(const FixedVector&) const = default;
+#else
+    //Can't be constexpr pre-C++20 due to lack of constexpr on std::array:
+    bool operator<( const FixedVector& o ) const noexcept { return m_data < o.m_data; }
+    bool operator>( const FixedVector& o ) const noexcept { return m_data > o.m_data; }
+    bool operator<=( const FixedVector& o ) const noexcept { return m_data <= o.m_data; }
+    bool operator>=( const FixedVector& o ) const noexcept { return m_data >= o.m_data; }
+    bool operator==( const FixedVector& o ) const noexcept { return m_data == o.m_data; }
+    bool operator!=( const FixedVector& o ) const noexcept { return m_data != o.m_data; }
+#endif
+
+  protected:
+    stdarray_type m_data;
+  };
+
+  //Functions which do not care about the type of vector and which do not want
+  //to be strongly type (for instance vector-math functions), can simply accept
+  //FixedVector references as arguments. We typedef the most important one for
+  //convenience:
+  using ThreeVector = FixedVector<double,3>;
+
+  //Strongly typed vectors (such as NeutronDirection or CrystalAxis) should be
+  //implemented via the following CRTP base class. In addition to the
+  //FixedVector interfaces, it also provides a mechanism for explitly (not
+  //implicitly!) interpreting a vector as a diffent kind of strongly typed
+  //vector:
+
+  template <class Derived, class TValue, std::size_t N>
+  class NCRYSTAL_API StronglyTypedFixedVector : public FixedVector<TValue,N> {
+
+  public:
+    using FixedVector<TValue,N>::FixedVector;
+
+    //Interoperability with other compatible classes (those also implemented via
+    //StronglyTypedFixedVector and not adding neither data members nor vtables):
+    template<class TOther> ncconstexpr17 TOther& as() noexcept;
+    template<class TOther> ncconstexpr17 const TOther& as() const noexcept;
+
+  private:
+    template<class TOther>
+    static ncconstexpr17 void ensureCompatible() noexcept;
+  };
+
+  template <class TValue, std::size_t N>
+  NCRYSTAL_API ncconstexpr17 std::ostream& operator<<(std::ostream& os,
+                                                      const FixedVector<TValue,N>& dir) noexcept;
+
+
+  //std::as_const is only available in C++17 and std::add_const_t only in C++14:
+  template< class T >
+  using nc_add_const_t = typename std::add_const<T>::type;
+  template <class T>
+  NCRYSTAL_API constexpr nc_add_const_t<T>& nc_as_const(T& t) noexcept { return t; }
+
+  //Substitute for std::map::try_emplace which only available in C++17. For
+  //simplicity we only implement the version which copies the key:
+  template <class TMap, class ... Args>
+  NCRYSTAL_API std::pair<typename TMap::iterator, bool> nc_map_try_emplace( TMap&, const typename TMap::key_type&, Args&&... );
+
+  //For overriding existing keys (like m[k]=v but without default constructed value):
+  template <class TMap, class ... Args>
+  NCRYSTAL_API void nc_map_force_emplace( TMap&, const typename TMap::key_type&, Args&&... );
+
+
+  template<class T>
+  class NCRYSTAL_API ValRange {
+  public:
+    // Small helper class which allows python-like iteration over
+    // integer range (with ncrange helper functions below):
+    //
+    //   for ( auto i : ncrange(i) )
+    //         std::cout<<i<<std::endl;
+    //
+    using value_type = T;
+    static_assert(std::is_integral<T>::value,
+                  "ValRange and ncrange only works with integral types");
+    class Iterator {
+      value_type m_v;
+      constexpr Iterator(value_type v) noexcept : m_v(v) {}
+      friend class ValRange;
+    public:
+      constexpr const value_type* operator->() const noexcept { return &m_v; }
+      constexpr const value_type& operator*() const noexcept { return m_v; }
+      ncconstexpr17 Iterator operator++() noexcept { ++m_v; return Iterator(m_v); }
+      ncconstexpr17 Iterator operator++(int) noexcept { Iterator r(m_v); ++m_v; return r; }
+      constexpr bool operator==(const Iterator& o) const noexcept { return m_v == o.m_v; }
+      constexpr bool operator!=(const Iterator& o) const noexcept { return m_v != o.m_v; }
+      constexpr bool operator<(const Iterator& o) const noexcept { return m_v < o.m_v; }
+    };
+    constexpr ValRange(value_type n) noexcept : m_begin(0), m_end(n) {}
+    constexpr ValRange(value_type l, value_type n) noexcept : m_begin(l), m_end(n)
+    {
+#if __cplusplus >= 201703L
+      assert( l<=n );
+#endif
+    }
+    constexpr Iterator begin() const noexcept { return m_begin; }
+    constexpr Iterator end() const noexcept { return m_end; }
+  private:
+    Iterator m_begin, m_end;
+  };
+
+  template<class T> inline ValRange<T> ncrange(T n) { return ValRange<T>(n); }
+  template<class T> inline ValRange<T> ncrange(T l, T n) { return ValRange<T>(l,n); }
+
+}
+
+//We perform all mutex locking/unlocking with the following defines. This
+//allows for easy dead-lock debugging by simply compiling with
+//NCRYSTAL_DEBUG_LOCKS defined. Unique variable names are generated based on
+//__LINE__, so do not put more than one of these statements on the same line.
+
+//#define NCRYSTAL_DEBUG_LOCKS
+
+#define ncrystal_join( symbol1, symbol2 ) ncrystal_xjoin( symbol1, symbol2 )
+#define ncrystal_xjoin( symbol1, symbol2 ) symbol1##symbol2
+#ifdef NCRYSTAL_DEBUG_LOCKS
+#  define NCRYSTAL_LOCK_GUARD(MtxVariable) ::NCrystal::LockGuard ncrystal_join(nc_lock_guard_instance_line,__LINE__)(MtxVariable,__FILE__,__LINE__)
+#  define NCRYSTAL_LOCK_MUTEX(MtxVariable) do { std::cout<<"NCrystal::Will lock mtx "<<(void*)&MtxVariable<<" ("<<__FILE__<<" : "<<__LINE__<<")"<<std::endl; MtxVariable.lock(); } while (0)
+#  define NCRYSTAL_UNLOCK_MUTEX(MtxVariable) do { std::cout<<"NCrystal::Will unlock mtx "<<(void*)&MtxVariable<<" ("<<__FILE__<<" : "<<__LINE__<<")"<<std::endl; MtxVariable.unlock(); } while (0)
+#  include <iostream>
+#else
+#  define NCRYSTAL_LOCK_GUARD(MtxVariable) ::NCrystal::LockGuard ncrystal_join(nc_lock_guard_instance_line,__LINE__)(MtxVariable)
+#  define NCRYSTAL_LOCK_MUTEX(MtxVariable) do { MtxVariable.lock(); } while (0)
+#  define NCRYSTAL_UNLOCK_MUTEX(MtxVariable) do { MtxVariable.unlock(); } while (0)
+#endif
+
+namespace NCrystal {
+  class NCRYSTAL_API LockGuard {
+    using mutex_t = std::mutex;
+    std::lock_guard<mutex_t> m_lg;
+#ifdef NCRYSTAL_DEBUG_LOCKS
+    std::string m_file; unsigned m_lineno; void * m_mtxaddr;
+  public:
+    LockGuard(mutex_t& mtx,const char * file, unsigned lineno)
+      : m_lg([this,&mtx,&file,&lineno]()->mutex_t& {
+        std::cout<<"NCrystal::LockGuard("<<(void*)this<<") Will lock mtx "<<(void*)&mtx<<" ("<<file<<" : "<<lineno<<")"<<std::endl; return mtx; }()),
+        m_file(file), m_lineno(lineno), m_mtxaddr(&mtx) {}
+    ~LockGuard() { std::cout<<"NCrystal::LockGuard("<<(void*)this<<") Will unlock mtx "<<m_mtxaddr<<" ("<<m_file<<" : "<<m_lineno<<")"<<std::endl; }
+#else
+  public:
+    LockGuard(mutex_t& mtx) : m_lg(mtx) {}
+#endif
+  };
 }
 
 //For inserting code only in DEBUG builds:
@@ -199,7 +545,6 @@ namespace NCrystal {
 #else
 #  define NCRYSTAL_DEBUGONLY(x) do {} while(0)
 #endif
-
 
 //Technically constants like M_PI from cmath/math.h are not dictated by the
 //standards, and they are thus absent on some platforms (like windows with
@@ -288,13 +633,22 @@ namespace NCrystal {
 #endif
 
 
-
-
 ////////////////////////////
 // Inline implementations //
 ////////////////////////////
 
 namespace NCrystal {
+
+  inline constexpr double detail_sqrtNR(double x, double xc, double xp)
+  {
+    return xc == xp ? xc : detail_sqrtNR(x, 0.5 * (xc + x / xc), xc);
+  }
+
+  inline constexpr double constexpr_sqrt(double x)
+  {
+    //TODO: Mark consteval in c++20.
+    return detail_sqrtNR(x, x, 0.);
+  }
 
   //The constant 8.1804... in the functions wl2ekin and ekin2wl is based on the
   //equation "h^2 * c^2 / (2.0*m)", using CODATA Internationally recommended
@@ -342,6 +696,526 @@ namespace NCrystal {
   //them as used in a global dummy function:
   inline void dummy_markused_global_constants() { markused(kInfinity);  }
 
+  template <class TValue, std::size_t N>
+  inline ncconstexpr17 FixedVector<TValue,N>::FixedVector() noexcept
+  {
+    m_data.fill(0.0);
+  }
+
+  template <class TValue, std::size_t N>
+  inline ncconstexpr17 FixedVector<TValue,N>::FixedVector( no_init_t ) noexcept
+  {
+  }
+
+  template <class TValue, std::size_t N>
+  inline constexpr FixedVector<TValue,N>::FixedVector(const stdarray_type& o) noexcept
+    : m_data{o}
+  {
+  }
+
+  template <class TValue, std::size_t N>
+  inline constexpr FixedVector<TValue,N>::FixedVector(const carray_type& xyz) noexcept
+    : m_data{xyz[0],xyz[1],xyz[2]}
+  {
+  }
+
+  template <class TValue, std::size_t N>
+  inline ncconstexpr17 void FixedVector<TValue,N>::applyTo( carray_type& a ) const noexcept
+  {
+    static_assert(sizeof(a)==N*sizeof(TValue),"");
+    std::copy(std::begin(m_data), std::end(m_data), std::begin(a));
+  }
+
+  template <class TValue, std::size_t N>
+  inline ncconstexpr17 FixedVector<TValue,N>::FixedVector(double xx, double yy) noexcept
+  {
+    static_assert(N==2,"Wrong number of arguments provided");
+    m_data = { xx, yy };
+  }
+
+  template <class TValue, std::size_t N>
+  inline ncconstexpr17 FixedVector<TValue,N>::FixedVector(double xx, double yy, double zz) noexcept
+  {
+    static_assert(N==3,"Wrong number of arguments provided");
+    m_data = { xx, yy, zz };
+  }
+
+  template <class TValue, std::size_t N>
+  inline ncconstexpr17 void FixedVector<TValue,N>::set(double xx, double yy) noexcept
+  {
+    static_assert(N==2,"Wrong number of arguments provided");
+    m_data = { xx, yy };
+  }
+
+  template <class TValue, std::size_t N>
+  inline ncconstexpr17 void FixedVector<TValue,N>::set(double xx, double yy, double zz) noexcept
+  {
+    static_assert(N==3,"Wrong number of arguments provided");
+    m_data = { xx, yy, zz };
+  }
+
+  template <class Derived, class TValue, std::size_t N>
+  template<class TOther>
+  inline ncconstexpr17 void StronglyTypedFixedVector<Derived,TValue,N>::ensureCompatible() noexcept
+  {
+    //Verify our class and TOther are safe for the reinterpret_casts used in the as<..>() methods.
+    static_assert( N == TOther::size(), "incompatible types (incompatible size)" );
+    static_assert( std::is_same<TValue,typename TOther::value_type>::value,
+                   "incompatible types (incompatible value type)" );
+    //value_type
+    using OurExpectedCRTPBase = StronglyTypedFixedVector<Derived,TValue,N>;
+    using OtherExpectedCRTPBase = StronglyTypedFixedVector<TOther,TValue,N>;
+    static_assert(std::is_base_of<OurExpectedCRTPBase, Derived>::value,
+                  "incompatible types (source class not correctly CRTP derived)");
+    static_assert(std::is_base_of<OtherExpectedCRTPBase, TOther>::value,
+                  "incompatible types (target class not derived from StronglyTypedFixedVector or not correctly CRTP derived)");
+    //Both this and the other class must be compatible with a simple
+    //implementation. We want to make sure that neither class added vtables or
+    //data members, which could make the reinterpret casts problematic.  The
+    //checks might in principle fail to catch some wrong usage on machines with
+    //extreme alignments, but in practice this is not really an issue.
+    class Simple : public StronglyTypedFixedVector<Simple,TValue,N> {};
+    static_assert(sizeof(Derived)==sizeof(Simple), "incompatible types (source class adds data-members or virtual functions)");
+    static_assert(sizeof(TOther)==sizeof(Simple), "incompatible types (target class adds data-members or virtual functions)");
+  }
+
+  template <class Derived, class TValue, std::size_t N>
+  template<class TOther>
+  ncconstexpr17 TOther& StronglyTypedFixedVector<Derived,TValue,N>::as() noexcept
+  {
+    //Due to the common base FixedVector<TValue,N> class keeping all
+    //data, and the various checks in ensureCompatible, this should be
+    //safe. There is a small loophole in the standard for making the cast UB,
+    //but unless compilers will go out of their way to make life miserable for
+    //us of no reason at all, we should be safe. In any case, compilation or the
+    //very first usage of NCrystal should break down horribly and visibly if we
+    //ever encounter such a compiler.
+    ensureCompatible<TOther>();
+    return *reinterpret_cast<TOther*>(this);
+  }
+
+  template <class Derived, class TValue, std::size_t N>
+  template<class TOther>
+  ncconstexpr17 const TOther& StronglyTypedFixedVector<Derived,TValue,N>::as() const noexcept
+  {
+    return ensureCompatible<TOther>(), *reinterpret_cast<const TOther*>(this);
+  }
+
+  template <class TValue, std::size_t N>
+  inline ncconstexpr17 std::ostream& operator<< (std::ostream& os, const FixedVector<TValue,N>& dir) noexcept
+  {
+    if ( N==0 )
+      return os << "{}";
+    os << "{ " << dir[0];
+    for (std::size_t i = 1; i < N; ++i)
+      os << ", " << dir[i];
+    return os << " }";
+  }
+
+  template <class TValue, std::size_t N>
+  inline ncconstexpr17 typename FixedVector<TValue,N>::carray_type& FixedVector<TValue,N>::rawArray() noexcept
+  {
+    return *reinterpret_cast<carray_type*>(m_data.data());
+  }
+
+  template <class TValue, std::size_t N>
+  inline ncconstexpr17 const typename FixedVector<TValue,N>::carray_type& FixedVector<TValue,N>::rawArray() const noexcept
+  {
+    return *reinterpret_cast<const carray_type*>(m_data.data());
+  }
+
+  //NB: using placement new in most places to add new values to m_value, this
+  //ensures that no existing object is assumed to exist in m_value which would
+  //be UB.
+
+  template<class T>
+  inline ncconstexpr17 Optional<T>::Optional(const T& t) noexcept(std::is_nothrow_copy_constructible<T>::value)
+    : m_hasValue(true) { new(&m_value)T(t); }
+
+  template<class T>
+  inline ncconstexpr17 Optional<T>::Optional(T&& t) noexcept(std::is_nothrow_move_constructible<T>::value)
+    : m_hasValue(true) { new(&m_value)T(std::move(t)); }
+
+  template<class T>
+  inline Optional<T>::~Optional() noexcept
+  {
+    if (m_hasValue)
+      m_value.~T();
+  }
+
+  template<class T>
+  inline ncconstexpr17 Optional<T>& Optional<T>::operator=( NullOptType ) noexcept
+  {
+    reset();
+    return *this;
+  }
+
+  template<class T>
+  inline Optional<T>::Optional( const Optional& o ) noexcept(std::is_nothrow_copy_constructible<T>::value)
+  {
+    if ( o.m_hasValue ) {
+      new(&m_value) T(o.m_value);
+      m_hasValue = true;
+    } else {
+      m_dummy = 0;
+      m_hasValue = false;
+    }
+  }
+
+  template<class T>
+  inline Optional<T>& Optional<T>::operator=( const Optional& o ) noexcept(std::is_nothrow_copy_constructible<T>::value)
+  {
+    if ( &o == this )
+      return *this;
+    reset();
+    if ( o.m_hasValue ) {
+      new(&m_value) T(o.m_value);
+      m_hasValue = true;
+    }
+    return *this;
+  }
+
+  template<class T>
+  inline Optional<T>::Optional( Optional&& o ) noexcept(std::is_nothrow_move_constructible<T>::value)
+  {
+    if ( o.m_hasValue ) {
+      new(&m_value)T(std::move(o.m_value));
+      m_hasValue = true;
+      o.reset();
+    } else {
+      m_dummy = 0;
+      m_hasValue = false;
+    }
+  }
+
+  template<class T>
+  inline Optional<T>& Optional<T>::set( const Optional& o )
+  {
+    if ( &o == this )
+      return *this;
+    reset();
+    if ( o.m_hasValue ) {
+      new(&m_value) T(o.m_value);
+      m_hasValue = true;
+    }
+    return *this;
+  }
+
+  template<class T>
+  inline Optional<T>& Optional<T>::set( Optional&& o )
+  {
+    if ( &o == this )
+      return *this;
+    reset();
+    if ( o.m_hasValue ) {
+      new(&m_value)T(std::move(o.m_value));
+      m_hasValue = true;
+      o.reset();
+    }
+    return *this;
+  }
+
+  template<class T>
+  inline Optional<T>& Optional<T>::operator=( Optional&& o ) noexcept(std::is_nothrow_move_constructible<T>::value)
+  {
+    if ( &o == this )
+      return *this;
+    reset();
+    if ( o.m_hasValue ) {
+      new(&m_value)T(std::move(o.m_value));
+      m_hasValue = true;
+      o.reset();
+    }
+    return *this;
+  }
+
+  template<class T>
+  template<class TOther>
+  inline Optional<T>& Optional<T>::operator=( TOther&& to ) noexcept(std::is_nothrow_move_constructible<T>::value)
+  {
+    reset();
+    new(&m_value)T(std::forward<TOther>(to));
+    m_hasValue = true;
+    return *this;
+  }
+
+  template<class T>
+  template<typename... Args>
+  inline void Optional<T>::emplace( Args&& ...args ) {
+    reset();
+    new(&m_value) T(std::forward<Args>(args)...);//wanted to use curly braces, but got unexpected narrowing errors with Optional<std::string>(5,'c')
+    m_hasValue = true;
+  }
+
+  template<class T>
+  inline void Optional<T>::reset() noexcept {
+    if (m_hasValue) {
+      m_value.~T();
+      m_hasValue = false;
+      m_dummy = 0;
+    }
+  }
+
+  template<class T>
+  template<class U>
+  inline constexpr T Optional<T>::value_or(U&& u) const
+  {
+    return m_hasValue ? m_value : std::forward<U>(u);
+  }
+
+  template<class T>
+  inline constexpr Optional<T>::Optional() noexcept : m_dummy(0), m_hasValue(false) {}
+
+  template<class T>
+  inline constexpr Optional<T>::Optional( NullOptType ) noexcept : m_dummy(0), m_hasValue(false) {}
+
+  template<class T>
+  inline bool Optional<T>::operator<( const Optional& o) const
+  {
+    if ( has_value() && o.has_value() )
+      return value() < o.value();
+    //std::optional: lhs is considered less than rhs if, and only if, rhs contains a value and lhs does not.
+    return !has_value() && o.has_value();
+  }
+
+  template<class T>
+  inline bool Optional<T>::operator==( const Optional& o) const
+  {
+    if ( has_value() && o.has_value() )
+      return value() == o.value();
+    return has_value() == o.has_value();
+  }
+
+  template<class T>
+  inline bool Optional<T>::operator!=( const Optional& o) const
+  {
+    if ( has_value() && o.has_value() )
+      return value() != o.value();
+    return has_value() != o.has_value();
+  }
+
+
+  inline double RNG::operator()()
+  {
+    return generate();
+  }
+
+  inline double RNG::generate() {
+    double r = actualGenerate();
+#ifndef NDEBUG
+    if ( ! ( r > 0.0 && r <= 1.0 ) )
+      NCRYSTAL_THROW2(CalcError,"Random number stream generated number "<<r<<" which is outside (0.0,1.0]");
+#endif
+    return r;
+  }
+
+  inline uint32_t RNG::generateInt( uint32_t N )
+  {
+    constexpr uint32_t nmax = std::numeric_limits<uint32_t>::max();
+    const uint32_t lim = nmax - nmax % N;//remove bias
+    do {
+      uint32_t r = generate32RndmBits();
+      if ( r < lim )
+        return r % N;
+    } while(true);
+  }
+
+  inline uint64_t RNG::generateInt64( uint64_t N )
+  {
+    constexpr uint64_t nmax = std::numeric_limits<uint64_t>::max();
+    const uint64_t lim = nmax - nmax % N;//remove bias
+    do {
+      uint64_t r = generate64RndmBits();
+      if ( r < lim )
+        return r % N;
+    } while(true);
+  }
+
+  inline ncconstexpr17 double randUInt64ToFP01( uint64_t x )
+  {
+    //A note about the implementation: xoroshiro authors recommend: "(x >> 11) *
+    //0x1.0p-53".  This selects all k*(2^53) for k=0..(2^53-1) with equal
+    //probability. Here we invert r->1.0-r to get numbers in the interval
+    //(0,1]. The lowest possible value selected by this is 1.1e-16 and the next
+    //one is 2.2e-16. To smooth this out a bit further, and also reach values
+    //closer to 0, we use the remaining 11 bits to pick a value uniformly inside
+    //each "1.1e-16-width bin". The lowest achievable value is then 2^-53 -
+    //0x7FF*2^-64 ~= 5.42e-20. Even though the 3 lowest bits in xoroshiro
+    //generated 64bit integers supposedly have some statistical issues, this
+    //should be acceptable (whenever the primary term generates numbers greater
+    //than 0.004 the lowest three bits have no effect at all).
+#if __cplusplus >= 201703L
+    const double r1 = ( x >> 11 ) * 0x1.0p-53;
+    const double r2 = ( x & 0x7FF ) * 0x1.0p-64;
+#else
+    const double r1 = ( x >> 11 ) * 1.1102230246251565404236316680908203125e-16;
+    const double r2 = ( x & 0x7FF ) * 5.42101086242752217003726400434970855712890625e-20;
+#endif
+    return ( 1.0 - r1 ) - r2;
+  }
+
+  template<class T>
+  struct COWPimpl<T>::Data : private NoCopyMove {
+    template<typename ...Args> Data( Args&& ...args ) : t(std::forward<Args>(args)... ) {}
+    T t;
+    std::mutex mtx;
+    uint_fast64_t refcount = 1;
+  };
+
+  template<class T>
+  inline COWPimpl<T>::Modifier::Modifier(Modifier&&o)
+  {
+    std::swap(m_data,o.m_data);
+    std::swap(m_mtx,o.m_mtx);
+  }
+
+  template<class T>
+  inline typename COWPimpl<T>::Modifier& COWPimpl<T>::Modifier::operator=(Modifier&&o)
+  {
+    reset();
+    std::swap(m_data,o.m_data);
+    std::swap(m_mtx,o.m_mtx);
+  }
+
+  template<class T>
+  inline void COWPimpl<T>::Modifier::reset()
+  {
+    if (m_mtx) {
+      NCRYSTAL_UNLOCK_MUTEX((*m_mtx));
+    }
+    m_mtx = nullptr;
+    m_data = nullptr;
+  }
+
+  template<class T>
+  inline COWPimpl<T>::Modifier::~Modifier()
+  {
+    reset();
+  }
+
+  template<class T>
+  inline COWPimpl<T>::Modifier::Modifier( COWPimpl& c, bool lock )
+    : m_data( c.m_data )
+  {
+    nc_assert( m_data != nullptr );
+    if (!lock)
+      return;
+    NCRYSTAL_LOCK_MUTEX(m_data->mtx);
+    if ( m_data->refcount > 1 ) {
+      //Detach:
+      auto newdata = new Data( m_data->t );
+      --( m_data->refcount );
+      NCRYSTAL_UNLOCK_MUTEX(m_data->mtx);
+      c.m_data = m_data = newdata;
+      NCRYSTAL_LOCK_MUTEX(m_data->mtx);
+    }
+    m_mtx = & m_data->mtx;//the mutex we have locked
+  }
+
+  template<class T>
+  inline void COWPimpl<T>::releaseData()
+  {
+    if (!m_data)
+      return;//was moved-from
+
+    //Check refcount while holding lock, but release lock before deleting
+    //m_impl!
+    bool dodelete(false);
+    {
+      NCRYSTAL_LOCK_GUARD(m_data->mtx);
+      if ( m_data->refcount==1 ) {
+        //we are the only object referring to m_data, and should remain so even
+        //after releasing the lock, since we are the only remaining source of
+        //m_data.
+        dodelete = true;
+      } else {
+        --( m_data->refcount );
+      }
+    }
+    if (dodelete)
+      delete m_data;
+    m_data = nullptr;
+  }
+
+  template<class T>
+  inline COWPimpl<T>::~COWPimpl()
+  {
+    releaseData();
+  }
+
+  template<class T>
+  inline COWPimpl<T>::COWPimpl( const COWPimpl& o )
+  {
+    m_data = o.m_data;
+    if ( m_data ) {
+      NCRYSTAL_LOCK_GUARD(m_data->mtx);
+      ++( m_data->refcount );
+    }
+  }
+
+  template<class T>
+  template<typename ...Args>
+  inline COWPimpl<T>::COWPimpl( Args&& ...args )
+    : m_data(new Data(std::forward<Args>(args)... ))
+  {
+  }
+
+  template<class T>
+  inline COWPimpl<T>& COWPimpl<T>::operator=( const COWPimpl& o )
+  {
+    if ( m_data == o.m_data )
+      return *this;
+    releaseData();
+    if ( !o.m_data)
+      return *this;//caller assigned moved-from object!
+    NCRYSTAL_LOCK_GUARD(o.m_data->mtx);
+    m_data = o.m_data;
+    ++( m_data->refcount );
+    return *this;
+  }
+
+  template<class T>
+  COWPimpl<T>::COWPimpl( COWPimpl&& o )
+  {
+    std::swap(m_data,o.m_data);
+  }
+
+  template<class T>
+  COWPimpl<T>& COWPimpl<T>::operator=( COWPimpl&& o )
+  {
+    if ( m_data == o.m_data )
+      return *this;
+    releaseData();
+    std::swap(m_data,o.m_data);
+    return *this;
+  }
+
+  template <class TMap, class ... Args>
+  inline std::pair<typename TMap::iterator, bool> nc_map_try_emplace( TMap& themap, const typename TMap::key_type& key, Args&&... args )
+  {
+#if __cplusplus >= 201703L
+    return themap.try_emplace(key, std::forward<Args>(args)... );
+#else
+    //slower workaround
+    auto it = themap.find(key);
+    if ( it != themap.end() )
+      return std::pair<typename TMap::iterator, bool>( it, false );
+    auto res = themap.emplace( typename TMap::value_type( key, typename TMap::mapped_type(std::forward<Args>(args)...) ) );
+    nc_assert(res.second==true);
+    return res;
+#endif
+  }
+
+  template <class TMap, class ... Args>
+  inline void nc_map_force_emplace( TMap& themap, const typename TMap::key_type& key, Args&&... args )
+  {
+    auto res = nc_map_try_emplace( themap, key, std::forward<Args>(args)... );
+    if ( !res.second ) {
+      //was not inserted, must override existing (note that try_emplace
+      //crucially guarantees that args were not moved from already!):
+      res.first->second = typename TMap::mapped_type( std::forward<Args>(args)... );
+    }
+  }
 
 }
 

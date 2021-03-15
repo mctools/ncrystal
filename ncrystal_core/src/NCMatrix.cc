@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -31,7 +31,7 @@ NCrystal::Matrix NCrystal::operator*(const NCrystal::Matrix& m1, const NCrystal:
   Matrix res;
   res.m_rowcount = m1.m_rowcount;
   res.m_colcount = m2.m_rowcount;
-  res.m_data.reserve(res.m_rowcount*res.m_colcount);
+  res.m_data.reserve_hint(res.m_rowcount*res.m_colcount);
   for (unsigned i = 0; i < m1.m_rowcount; ++i) {
     for (unsigned j = 0; j < m2.m_colcount; ++j) {
       double temp = 0.0;
@@ -78,7 +78,11 @@ void NCrystal::Matrix::inv(double epsilon  )
     NCRYSTAL_THROW(CalcError,"inv: asking inverse matrix for a non-square matrix.");
 
   unsigned tmp_colcount = m_colcount*2;
-  VectD new_data(m_rowcount*tmp_colcount, 0.);
+  decltype(m_data) new_data;
+  const auto newsize = m_rowcount*tmp_colcount;
+  new_data.reserve_hint(newsize);
+  for ( unsigned i = 0; i < newsize; ++i )
+    new_data.emplace_back();
 
   for (unsigned i = 0; i < m_rowcount; ++i) {
     for (unsigned j = 0; j < m_colcount ; ++j) {
@@ -91,11 +95,11 @@ void NCrystal::Matrix::inv(double epsilon  )
     new_data[(m_rowcount-j) * tmp_colcount + tmp_colcount-j] = 1.;
   }
 
-  std::swap(new_data,m_data);
+  new_data.swap(m_data);
   m_colcount *=2;
   rref(epsilon);
   m_colcount /=2;
-  std::swap(new_data,m_data);
+  new_data.swap(m_data);
 
   for (unsigned i = 0; i < m_rowcount; ++i) {
     for (unsigned j = 0; j < m_colcount ; ++j) {
@@ -108,11 +112,10 @@ void NCrystal::Matrix::inv(double epsilon  )
 
 NCrystal::Matrix NCrystal::Matrix::getInv(double epsilon)
 {
-  Matrix mat(*this);
+  Matrix mat( MatrixAllowCopy, *this );
   mat.inv(epsilon);
   return mat;
 }
-
 
 
 std::ostream& NCrystal::operator << (std::ostream & o, const NCrystal::Matrix& matrix)

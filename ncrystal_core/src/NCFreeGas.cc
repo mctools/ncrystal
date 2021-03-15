@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -26,65 +26,50 @@ namespace NC = NCrystal;
 
 struct NC::FreeGas::Impl {
 
-  Impl( double temp_kelvin,
-        double target_mass_amu,
-        double sigma,
-        SigmaType sigma_type )
-    : m_xsprovider(temp_kelvin, target_mass_amu,
-                  SigmaFree{sigma_type==SigmaType::FREE
-                            ? sigma
-                            : std::pow(target_mass_amu/(const_neutron_atomic_mass+target_mass_amu),2)*sigma}),
-      m_temperature(temp_kelvin),
-      m_target_mass_amu(target_mass_amu)
+  Impl( Temperature t,
+        AtomMass target_mass_amu,
+        SigmaFree sigma )
+    : m_xsprovider(t, target_mass_amu, sigma),
+      m_temperature(DoValidate,t),
+      m_target_mass_amu(DoValidate,target_mass_amu)
   {
   }
 
   FreeGasXSProvider m_xsprovider;
-  double m_temperature, m_target_mass_amu;
+  Temperature m_temperature;
+  AtomMass m_target_mass_amu;
 
 };
 
-NC::FreeGas::FreeGas( double temp_kelvin,
-                      double target_mass_amu,
-                      double sigma,
-                      SigmaType sigma_type )
-  : ScatterIsotropic("FreeGas"), m_impl(temp_kelvin,target_mass_amu,sigma,sigma_type)
+NC::FreeGas::FreeGas( Temperature t,
+                      AtomMass target_mass_amu,
+                      SigmaFree sigma )
+  : m_impl(t,target_mass_amu,sigma)
 {
-  validate();
+}
+
+NC::FreeGas::FreeGas( Temperature t,
+                      AtomMass target_mass_amu,
+                      SigmaBound sb )
+  : FreeGas( t, target_mass_amu, sb.free(target_mass_amu) )
+{
+}
+
+NC::FreeGas::FreeGas( Temperature t, const AtomData& ad )
+  : FreeGas( t, ad.averageMassAMU(), ad.freeScatteringXS() )
+{
 }
 
 NC::FreeGas::~FreeGas() = default;
 
-double NC::FreeGas::crossSection(double ekin, const double (&)[3] ) const
+NC::CrossSect NC::FreeGas::crossSectionIsotropic(CachePtr&, NeutronEnergy ekin ) const
 {
-  return m_impl->m_xsprovider.crossSection(ekin);
+  return CrossSect{ m_impl->m_xsprovider.crossSection(ekin) };
 }
 
-double NC::FreeGas::crossSectionNonOriented(double ekin) const
+NC::ScatterOutcomeIsotropic NC::FreeGas::sampleScatterIsotropic(CachePtr&, RNG& rng, NeutronEnergy ekin ) const
 {
-  return m_impl->m_xsprovider.crossSection(ekin);
-}
-
-void NC::FreeGas::generateScatteringNonOriented( double ekin, double& angle, double& delta_ekin ) const
-{
-  double mu;
-  std::tie(delta_ekin,mu) = FreeGasSampler(ekin,m_impl->m_temperature,m_impl->m_target_mass_amu).sampleDeltaEMu(*getRNG());
-  angle = std::acos(mu);
-}
-
-void NC::FreeGas::generateScattering( double ekin, const double (&indir)[3],
-                                      double (&outdir)[3], double& delta_ekin ) const
-{
-  RandomBase * rng = getRNG();
-  double mu;
-  std::tie(delta_ekin,mu) = FreeGasSampler(ekin,m_impl->m_temperature,m_impl->m_target_mass_amu).sampleDeltaEMu(*rng);
-  randDirectionGivenScatterMu( rng, mu, indir, outdir );
-}
-
-NC::FreeGas::FreeGas( double temp_kelvin, const AtomData& ad )
-  : FreeGas( temp_kelvin,
-             ad.averageMassAMU(),
-             ad.scatteringXS().val,
-             SigmaType::BOUND )
-{
+  double delta_ekin, mu;
+  std::tie(delta_ekin,mu) = FreeGasSampler(ekin,m_impl->m_temperature,m_impl->m_target_mass_amu).sampleDeltaEMu(rng);
+  return { NeutronEnergy{ncmax(0.0,ekin.get()+delta_ekin)}, CosineScatAngle{mu} };
 }

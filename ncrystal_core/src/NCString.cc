@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -362,6 +362,7 @@ int NC::ncgetenv_int(std::string v, int defval )
 bool NC::ncgetenv_bool(std::string v)
 {
   nc_assert(!v.empty());
+  nc_assert(!startswith(v,"NCRYSTAL_"));
   std::string varname("NCRYSTAL_");
   varname += v;
   const char * ev = std::getenv(varname.c_str());
@@ -378,4 +379,48 @@ bool NC::ncgetenv_bool(std::string v)
                   <<" (expected a Boolean value, \"0\" or \"1\", but got \""<<evs<<"\").");
 
 
+}
+
+std::string NC::bytes2hexstr(const std::vector<uint8_t>& v) {
+  const char hexchars[] = "0123456789abcdef";
+  std::ostringstream ss;
+  for (auto e : v)
+    ss << hexchars[ e >> 4 ] << hexchars[ e & 0x0F ];
+  return ss.str();
+}
+
+std::vector<uint8_t> NC::hexstr2bytes(const std::string& v) {
+  std::vector<uint8_t> res;
+  auto hex2val = [](unsigned c) {
+    unsigned val(99);
+    constexpr unsigned val_a = static_cast<unsigned>('a');
+    constexpr unsigned val_A = static_cast<unsigned>('A');
+    constexpr unsigned val_0 = static_cast<unsigned>('0');
+    static_assert( val_0 < val_A && val_A < val_a,"" );
+    if ( c >= val_a )
+      val = 10 + ( c - val_a );
+    else if ( c >= val_A)
+      val = 10 + ( c - val_A );
+    else if ( c >= val_0)
+      val = ( c - val_0 );
+    if ( val > 15 )
+      NCRYSTAL_THROW2(BadInput, "Invalid character encountered in hex string: "<<c<<" (numeric value)");
+    return val;
+  };
+
+  auto it = v.begin();
+  auto itE = v.end();
+  const auto vlen = v.size();
+  if ( vlen%2 != 0 ) {
+    //0 pad, e.g. interpret (0x)"A" as (0x)"0A".
+    res.reserve((vlen+1)/2);
+    res.push_back(hex2val(*it++));
+  } else {
+    res.reserve( vlen/2 );
+  }
+  while ( it != itE ) {
+    auto c = *it++;
+    res.push_back ( hex2val(*it++) + 16* hex2val(c) );
+  }
+  return res;
 }

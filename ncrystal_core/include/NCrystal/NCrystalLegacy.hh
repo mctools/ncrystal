@@ -1,8 +1,11 @@
+#ifndef NCrystal_NCrystalLegacy_hh
+#define NCrystal_NCrystalLegacy_hh
+
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -18,42 +21,26 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCScatterIsotropic.hh"
-#include "NCrystal/internal/NCRandUtils.hh"
+//Special migration header which will ensure that the Legacy namespace is
+//injected into the NCrystal namespace and the Modern namespace is NOT injected
+//into the NCrystal namespace.
 
-NCrystal::ScatterIsotropic::ScatterIsotropic(const char * calculator_type_name)
-  : Scatter(calculator_type_name)
-{
-}
+#ifdef NCrystal_NCrystalModern_hh
+#  error Do not include both NCrystalModern.hh and NCrystalLegacy.hh in the same file.
+#endif
 
-NCrystal::ScatterIsotropic::~ScatterIsotropic()
-{
-}
+#ifdef NCrystal_hh
+#  error NCrystalLegacy.hh must be included BEFORE NCrystal.hh
+#endif
 
-double NCrystal::ScatterIsotropic::crossSection( double ekin, const double (&)[3] ) const
-{
-  return crossSectionNonOriented(ekin);
-}
+#ifndef NCRYSTAL_USE_LEGACY_INTERFACES
+#  define NCRYSTAL_USE_LEGACY_INTERFACES
+#endif
 
-void NCrystal::ScatterIsotropic::generateScattering( double ekin, const double (&indir)[3],
-                                                     double (&outdir)[3], double& de ) const
-{
-  //Find theta and energy transfer by the non-oriented scatter process:
-  double theta;
-  generateScatteringNonOriented( ekin, theta, de );
+#ifdef NCRYSTAL_USE_MODERN_INTERFACES
+#  undef NCRYSTAL_USE_MODERN_INTERFACES
+#endif
 
-  //Generate random azimuthal angle and pick outdir correspondingly:
-  randDirectionGivenScatterMu(getRNG(), std::cos(theta),indir,outdir);
-}
+#include "NCrystal/NCrystal.hh"
 
-double NCrystal::ScatterIsotropic::crossSectionNonOriented( double ) const
-{
-  NCRYSTAL_THROW(LogicError,"ScatterIsotropic::crossSectionNonOriented must be reimplemented in derived class.");
-  return 0.0;
-}
-
-void NCrystal::ScatterIsotropic::generateScatteringNonOriented( double, double& a, double& de ) const
-{
-  NCRYSTAL_THROW(LogicError,"ScatterIsotropic::generateScatteringNonOriented must be reimplemented in derived class.");
-  a = de = 0.0;
-}
+#endif

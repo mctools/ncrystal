@@ -3,7 +3,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -20,7 +20,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/NCElIncScatter.hh"
-#include "NCrystal/NCInfo.hh"
+#include "NCrystal/NCMatInfo.hh"
 #include "NCrystal/internal/NCElIncXS.hh"
 #include "NCrystal/internal/NCRandUtils.hh"
 #include "NCrystal/internal/NCDebyeMSD.hh"
@@ -29,21 +29,19 @@ namespace NC = NCrystal;
 
 NC::ElIncScatter::~ElIncScatter() = default;
 
-NC::ElIncScatter::ElIncScatter( const Info* ci )
-  : ScatterIsotropic("ElIncScatter")
+NC::ElIncScatter::ElIncScatter( const MatInfo& ci )
 {
-  nc_assert_always(ci);
-  if ( !ci->hasAtomInfo() )
+  if ( !ci.hasAtomInfo() )
     NCRYSTAL_THROW(MissingInfo,"Passed Info object lacks AtomInfo information"
                    " (elastic-incoherent model only works with crystalline materials).");
 
-  auto atominfos = Span<const AtomInfo>(&*ci->atomInfoBegin(),&*ci->atomInfoEnd());
+  auto atominfos = Span<const AtomInfo>(&*ci.atomInfoBegin(),&*ci.atomInfoEnd());
 
-  if ( !ci->hasAtomMSD() ) {
-    if ( !ci->hasTemperature() )
+  if ( !ci.hasAtomMSD() ) {
+    if ( !ci.hasTemperature() )
       NCRYSTAL_THROW(MissingInfo,"Passed Info object contains neither atomic mean-square-displacements"
                      " (MSD), nor material temperature which is needed for determination of MSDs.");
-    if ( !ci->hasAnyDebyeTemperature() )
+    if ( !ci.hasDebyeTemperature() )
       NCRYSTAL_THROW(MissingInfo,"Passed Info object contains neither atomic mean-square-displacements"
                      " (MSD), nor Debye temperature info which is needed for determination of MSDs.");
   }
@@ -55,21 +53,22 @@ NC::ElIncScatter::ElIncScatter( const Info* ci )
 
   unsigned ntot(0);
   for ( const auto& ai : atominfos )
-    ntot += ai.number_per_unit_cell;
+    ntot += ai.numberPerUnitCell();
 
   for ( const auto& ai : atominfos ) {
-    scale.push_back(double(ai.number_per_unit_cell)/ntot);
-    bixs.push_back(ai.atom.data().incoherentXS().val);
-    if (ai.mean_square_displacement) {
-      msd.push_back(ai.mean_square_displacement);
+    scale.push_back(double(ai.numberPerUnitCell())/ntot);
+    bixs.push_back(ai.atomData().incoherentXS().get());
+    if ( ai.msd().has_value() ) {
+      msd.push_back( ai.msd().value() );
     } else {
       //Fall-back to calculating MSDs from the isotropic Debye model. Eventually
       //we would like to avoid this here, and make sure this is done on the Info
       //object itself.
-      double debyeTemp = ai.debye_temp ? ai.debye_temp : ci->getGlobalDebyeTemperature();
-      double temperature = ci->getTemperature();
-      double atomMass = ai.atom.data().averageMassAMU();
-      nc_assert(debyeTemp>0.0&&temperature>0.0&&atomMass>0.0);
+      nc_assert_always( ai.debyeTemp().has_value() );
+      auto debyeTemp = ai.debyeTemp().value();
+      auto temperature = ci.getTemperature();
+      auto atomMass = ai.atomData().averageMassAMU();
+      nc_assert(debyeTemp.get()>0.0&&temperature.get()>0.0&&atomMass.get()>0.0);
       msd.push_back( debyeIsotropicMSD( debyeTemp, temperature, atomMass ) );
     }
   }
@@ -80,32 +79,37 @@ NC::ElIncScatter::ElIncScatter( const Info* ci )
 NC::ElIncScatter::ElIncScatter( const VectD& elements_meanSqDisp,
                                 const VectD& elements_boundincohxs,
                                 const VectD& elements_scale )
-  : ScatterIsotropic("ElIncScatter")
 {
   m_elincxs = std::make_unique<ElIncXS>( elements_meanSqDisp,
                                          elements_boundincohxs,
                                          elements_scale );
 }
 
-double NC::ElIncScatter::crossSectionNonOriented(double ekin) const
+NC::CrossSect NC::ElIncScatter::crossSectionIsotropic( CachePtr&, NeutronEnergy ekin ) const
 {
-  return m_elincxs->evaluate(ekin);
+  return CrossSect{ m_elincxs->evaluate( ekin ) };
 }
 
-void NC::ElIncScatter::generateScatteringNonOriented( double ekin, double& angle, double& delta_ekin ) const
+NC::ScatterOutcomeIsotropic NC::ElIncScatter::sampleScatterIsotropic( CachePtr&, RNG& rng, NeutronEnergy ekin ) const
 {
-  delta_ekin = 0.0;
-  double mu = m_elincxs->sampleMu( getRNG(), ekin );
-  nc_assert( mu >= -1.0 && mu <= 1.0 );
-  angle = std::acos(mu);
-}
-
-void NC::ElIncScatter::generateScattering( double ekin, const double (&indir)[3],
-                                           double (&outdir)[3], double& delta_ekin ) const
-{
-  delta_ekin = 0.0;
-  RandomBase* rng = getRNG();
   double mu = m_elincxs->sampleMu( rng, ekin );
   nc_assert( mu >= -1.0 && mu <= 1.0 );
-  randDirectionGivenScatterMu( rng, mu, indir, outdir );
+  return { ekin, CosineScatAngle{mu} };
+}
+
+NC::ElIncScatter::ElIncScatter( std::unique_ptr<ElIncXS> p )
+  : m_elincxs(std::move(p))
+{
+}
+
+std::shared_ptr<NC::ProcImpl::Process> NC::ElIncScatter::createMerged( const Process& oraw ) const
+{
+  auto optr = dynamic_cast<const ElIncScatter*>(&oraw);
+  if (!optr)
+    return nullptr;
+  auto& o = *optr;
+  nc_assert( m_elincxs != nullptr );
+  nc_assert( o.m_elincxs != nullptr );
+  return std::make_shared<ElIncScatter>(std::make_unique<ElIncXS>( *m_elincxs, 1.0,
+                                                                   *o.m_elincxs, 1.0 ));
 }

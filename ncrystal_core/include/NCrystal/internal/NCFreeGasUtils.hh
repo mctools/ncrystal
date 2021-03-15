@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
+#include "NCrystal/NCTypes.hh"
 #include "NCrystal/internal/NCKinUtils.hh"
 #include "NCrystal/internal/NCVector.hh"
 
@@ -61,17 +61,17 @@
 // anyway), and allows beta+alpha sampling at a rate roughly around 1MHz.         //
 //                                                                                //
 ////////////////////////////////////////////////////////////////////////////////////
+
 namespace NCrystal {
 
   class FreeGasXSProvider final {
   public:
-    //Constructor must get bound or free cross-sections:
-    FreeGasXSProvider( double temp_kelvin, double target_mass_amu, SigmaFree sigma );
-    FreeGasXSProvider( double temp_kelvin, double target_mass_amu, SigmaBound sigma );
+    FreeGasXSProvider( Temperature, AtomMass, SigmaFree );
+    FreeGasXSProvider( Temperature, AtomMass, SigmaBound );
     ~FreeGasXSProvider();
 
     //Get the cross-section:
-    double crossSection( double ekin ) const;
+    CrossSect crossSection( NeutronEnergy ekin ) const;
 
     //Evaluate (1+1/(2a^2))*erf(a)+exp(-a^2)/(sqrt(pi)*a) (used internally, but
     //exposed here for testing):
@@ -86,19 +86,19 @@ namespace NCrystal {
 
     //Evaluate quantum mechanical Free Gas model.
 
-    FreeGasSampler(double ekin, double temp_kelvin, double target_mass_amu);
+    FreeGasSampler(NeutronEnergy, Temperature, AtomMass );
     ~FreeGasSampler();
 
     //Beta/energy-transfer sampling:
-    double sampleDeltaE(RandomBase&) const;
-    double sampleBeta(RandomBase&) const;
+    double sampleDeltaE(RNG&) const;
+    double sampleBeta(RNG&) const;
 
     //Sample alpha (equivalent to sampling q^2 or scattering angle) for a given beta :
-    double sampleAlpha(double beta, RandomBase&) const;
+    double sampleAlpha(double beta, RNG&) const;
 
     //Combined sampling of (alpha,beta) or (delta_ekin,mu=cos(theta_scat)):
-    PairDD sampleAlphaBeta( RandomBase& ) const;
-    PairDD sampleDeltaEMu( RandomBase& ) const;
+    PairDD sampleAlphaBeta( RNG& ) const;
+    PairDD sampleDeltaEMu( RNG& ) const;
 
     //Exposed for testing purposes only:
     void testBetaDistEval ( double beta, double & f_exact, double & f_lb, double & f_ub );
@@ -117,17 +117,17 @@ namespace NCrystal {
 
 namespace NCrystal {
 
-  inline double FreeGasXSProvider::crossSection( double ekin ) const
+  inline CrossSect FreeGasXSProvider::crossSection( NeutronEnergy ekin ) const
   {
-    return m_sigmaFree * evalXSShapeASq( m_ca * ekin );
+    return CrossSect{ m_sigmaFree * evalXSShapeASq( m_ca * ekin.dbl() ) };
   }
 
-  inline double FreeGasSampler::sampleDeltaE( RandomBase& rng ) const
+  inline double FreeGasSampler::sampleDeltaE( RNG& rng ) const
   {
     return sampleBeta(rng)*m_kT;
   }
 
-  inline PairDD FreeGasSampler::sampleAlphaBeta( RandomBase& rng ) const
+  inline PairDD FreeGasSampler::sampleAlphaBeta( RNG& rng ) const
   {
     double beta = sampleBeta(rng);
     if ( beta < -m_c || muIsotropicAtBeta(beta,m_c) ) {
@@ -141,7 +141,7 @@ namespace NCrystal {
     return std::make_pair(sampleAlpha(beta,rng),beta);
   }
 
-  inline PairDD FreeGasSampler::sampleDeltaEMu( RandomBase& rng ) const
+  inline PairDD FreeGasSampler::sampleDeltaEMu( RNG& rng ) const
   {
     double beta = sampleBeta(rng);
     if ( beta <= -m_c || muIsotropicAtBeta(beta,m_c) ) {
@@ -150,7 +150,7 @@ namespace NCrystal {
       //that it triggered various code-paths resulting in -m_c_real<beta<-m_c.
       return std::make_pair(beta*m_kT,rng.generate()*2.0-1.0);
     }
-    return convertAlphaBetaToDeltaEMu(sampleAlpha(beta,rng),beta,m_c*m_kT,m_kT);
+    return convertAlphaBetaToDeltaEMu(sampleAlpha(beta,rng),beta,NeutronEnergy{m_c*m_kT},m_kT);
   }
 
 }

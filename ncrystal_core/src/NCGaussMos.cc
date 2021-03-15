@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -37,11 +37,8 @@ namespace NCrystal {
   }
 }
 
-NC::GaussMos::GaussMos( double mosaicity, bool mosaicity_is_fhwm, double prec, double ntrunc )
-  : m_delta_d(0.0),
-    m_mos_fwhm(-99),
-    m_mos_truncN( ntrunc==0 ? GaussOnSphere::estimateNTruncFromPrec(prec) : ntrunc),
-    m_mos_sigma(-99),
+NC::GaussMos::GaussMos( MosaicityFWHM mosaicity, double prec, double ntrunc )
+  : m_mos_truncN( ntrunc==0 ? GaussOnSphere::estimateNTruncFromPrec(prec) : ntrunc),
     m_prec(prec)
 {
   auto getEnvDbl = [](const char* name) { auto ev = getenv(name); return ev ? str2dbl(ev) : 0.0; };
@@ -51,34 +48,44 @@ NC::GaussMos::GaussMos( double mosaicity, bool mosaicity_is_fhwm, double prec, d
   nc_assert(prec>=0);
   nc_assert(m_mos_truncN>=0);
   //Set mosaicity and trigger one call to updateDerivedValues:
-  setMosaicity(mosaicity,mosaicity_is_fhwm);
-  nc_assert( m_mos_fwhm != -99 );
-  nc_assert( m_mos_sigma != -99 );
+  setMosaicity(mosaicity);
+  nc_assert( m_mos_fwhm.dbl() != -99 );
+  nc_assert( m_mos_sigma.dbl() != -99 );
 }
 
-NC::GaussMos::~GaussMos()
+NC::GaussMos::GaussMos( MosaicitySigma mosaicity, double prec, double ntrunc )
+  : GaussMos( mosaicity.fwhm(), prec, ntrunc )
 {
+  //Same, but keeping exact MosaicitySigma value:
+  m_mos_sigma = mosaicity;
+  m_mos_sigma.validate();
 }
+
+NC::GaussMos::~GaussMos() = default;
 
 void NC::GaussMos::updateDerivedValues()
 {
-  double truncangle = m_mos_truncN*m_mos_sigma;
+  double truncangle = m_mos_truncN*m_mos_sigma.dbl();
   if ( ! (truncangle < kPiHalf) )
     NCRYSTAL_THROW(BadInput,"Mosaicity too large, truncation angle (sigma*Ntrunc) must be less than pi/2");
-  m_gos.set(m_mos_sigma, truncangle, m_prec );
+  m_gos.set(m_mos_sigma.dbl(), truncangle, m_prec );
 }
 
-void NC::GaussMos::setMosaicity( double mosaicity, bool mosaicity_is_fhwm )
+void NC::GaussMos::setMosaicity( MosaicityFWHM mosaicity )
 {
-  nc_assert_always(mosaicity>0);
-  if (mosaicity_is_fhwm) {
-    m_mos_fwhm = mosaicity;
-    m_mos_sigma = mosaicity*kFWHM2Sigma;
-  } else {
-    m_mos_fwhm = mosaicity*kSigma2FWHM;
-    m_mos_sigma = mosaicity;
-  }
+  mosaicity.validate();
+  nc_assert_always(mosaicity.get()>0);
+  m_mos_fwhm = mosaicity;
+  m_mos_sigma = mosaicity.sigma();
   updateDerivedValues();
+}
+
+void NC::GaussMos::setMosaicity( MosaicitySigma mosaicity )
+{
+  //Same, but keeping exact MosaicitySigma value:
+  auto mf = mosaicity.fwhm();
+  setMosaicity(mf);
+  m_mos_sigma = mosaicity;
 }
 
 void NC::GaussMos::setTruncationN(double N)
@@ -188,7 +195,7 @@ double NC::GaussMos::calcCrossSections( InteractionPars& ip,
   return xssum;
 }
 
-void NC::GaussMos::genScat( RandomBase* rand, const ScatCache& cache, double wl_raw, const NC::Vector& indir, NC::Vector& outdir) const
+void NC::GaussMos::genScat( RNG& rng, const ScatCache& cache, double wl_raw, const NC::Vector& indir, NC::Vector& outdir) const
 {
   nc_assert(wl_raw>0.);
   nc_assert(cache.plane_inv2d()>0.);
@@ -218,7 +225,7 @@ void NC::GaussMos::genScat( RandomBase* rand, const ScatCache& cache, double wl_
   double cg = ncclamp(-(indir.dot(cache.plane_normal())),-1.0,1.0);
   double sg = std::sqrt(1.0-cg*cg);
   double ct,st;
-  if (!m_gos.genPointOnCircle( rand, cg,sg,ca,sa,ct,st) ) {
+  if (!m_gos.genPointOnCircle( rng, cg,sg,ca,sa,ct,st) ) {
     //something went wrong, or numerical imprecision caused us to be called at
     //vanishing cross-section. Assume the latter.
     outdir = indir;
@@ -237,7 +244,7 @@ void NC::GaussMos::genScat( RandomBase* rand, const ScatCache& cache, double wl_
   outdir.set(s2a*ct,s2a*st,c2a);
 
   //Now rotate back to the lab frame:
-  rotateToFrame( sg, cg, cache.plane_normal(), -indir, outdir, rand );
+  rotateToFrame( sg, cg, cache.plane_normal(), -indir, outdir, &rng );
 
   //For numerical safety:
   outdir.normalise();

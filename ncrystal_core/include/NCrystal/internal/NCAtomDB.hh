@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -34,16 +34,16 @@ namespace NCrystal {
   namespace AtomDB {
 
     //Natural element lookup requires Z value or string like "Al", "H", ...:
-    AtomDataSP getNaturalElement( unsigned Z );
-    AtomDataSP getNaturalElement( const std::string& );
+    OptionalAtomDataSP getNaturalElement( unsigned Z );
+    OptionalAtomDataSP getNaturalElement( const std::string& );
 
     //Isotope lookup requires Z+A value or string like "Al26", "He3", "D", ...:
-    AtomDataSP getIsotope( unsigned Z, unsigned A );
-    AtomDataSP getIsotope( const std::string& );
+    OptionalAtomDataSP getIsotope( unsigned Z, unsigned A );
+    OptionalAtomDataSP getIsotope( const std::string& );
 
     //Lookup either Element or Isotope (A=0 means natural element).
-    AtomDataSP getIsotopeOrNatElem( unsigned Z, unsigned A );
-    AtomDataSP getIsotopeOrNatElem( const std::string& );
+    OptionalAtomDataSP getIsotopeOrNatElem( unsigned Z, unsigned A );
+    OptionalAtomDataSP getIsotopeOrNatElem( const std::string& );
 
     //Note that the getIsotope functions can also provide natural elements if
     //called with A=0 or a chemical symbol without trailing digits.

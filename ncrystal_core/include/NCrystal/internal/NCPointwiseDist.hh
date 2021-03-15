@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -37,7 +37,7 @@ namespace NCrystal {
     double percentile( double percentile_value ) const { return percentileWithIndex(percentile_value).first; }
 
     //Sample:
-    double sample(RandomBase& rng) const { return percentileWithIndex(rng.generate()).first; }
+    double sample(RNG& rng) const { return percentileWithIndex(rng()).first; }
 
     PointwiseDist& operator+=(const PointwiseDist&);
     PointwiseDist& operator*=(double frac);
@@ -55,7 +55,7 @@ namespace NCrystal {
     //(i.e returns (value,idx) where value will lie in interval
     //[getXVals().at(idx),getXVals().at(idx+1)]):
     std::pair<double,unsigned> percentileWithIndex( double percentile_value ) const;
-    std::pair<double,unsigned> sampleWithIndex( RandomBase& rng ) const { return percentileWithIndex(rng.generate()); }
+    std::pair<double,unsigned> sampleWithIndex( RNG& rng ) const { return percentileWithIndex(rng()); }
 
   private:
     //todo: We have both m_cdf and m_y, although they essentially contain the

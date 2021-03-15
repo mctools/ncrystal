@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -23,144 +23,15 @@
 
 #include "NCrystal/NCException.hh"
 #include <memory>
+#include <type_traits>
 #include <utility>//std::move
 #include <cassert>
 #include <functional>
+#include <atomic>
+#include <cstddef>
+#include <new>
 
 namespace NCrystal {
-
-  //Base class for ref-counted objects, destructors of which should be protected
-  //rather than public.
-
-  class NCRYSTAL_API RCBase {
-  public:
-    unsigned refCount() const throw() { return m_refCount; }
-
-    void ref() const throw() { ++m_refCount; }
-
-    void unref() const
-    {
-      nc_assert(m_refCount>0);
-      --m_refCount;
-      if (m_refCount==0)
-        delete this;
-    }
-
-    void unrefNoDelete() const throw()
-    {
-      assert(m_refCount>0);//not nc_assert, since it can throw.
-      --m_refCount;
-    }
-
-    //Monitor number of RCBase instances or enable dbg printouts. The lvl
-    //parameter should be 0, 1 or 2. Default will be 0, or the value set in the
-    //NCRYSTAL_DEBUGMEM env var:
-    static long nInstances();
-    static void enableMemDbg(int lvl);
-  protected:
-    RCBase() throw();
-    virtual ~RCBase();
-  private:
-    RCBase( const RCBase & );
-    RCBase & operator= ( const RCBase & );
-    mutable unsigned m_refCount;
-  };
-
-  template< class T >
-  struct NCRYSTAL_API RCHolder {
-    typedef T element_type;
-    RCHolder() = default;
-    explicit RCHolder( T* t ) : m_obj( t ) { if ( m_obj ) m_obj->ref(); }
-    ~RCHolder() { if ( m_obj ) m_obj->unref(); }
-    RCHolder( const RCHolder & o ) : m_obj(o.m_obj) { if (m_obj) m_obj->ref(); }
-    T* obj() { return m_obj; }
-    const T* obj() const { return m_obj; }
-    void clear() {
-      const T* old = m_obj;
-      m_obj = 0;//clear first in case unref throws
-      if (old)
-        old->unref();
-    }
-    RCHolder & operator= ( const RCHolder & o)
-    {
-      if (o.m_obj!=m_obj) {
-        clear();
-        m_obj = o.m_obj;
-        if (m_obj)
-          m_obj->ref();
-      }
-      return *this;
-    }
-    RCHolder & operator= ( T* newobj )
-    {
-      if (newobj!=m_obj) {
-        clear();
-        m_obj = newobj;
-        if (m_obj)
-          m_obj->ref();
-      }
-      return *this;
-    }
-    RCHolder( RCHolder&& o ) { std::swap(m_obj,o.m_obj); }
-    RCHolder& operator=( RCHolder&& o ) { clear(); std::swap(m_obj,o.m_obj); return *this; }
-    bool operator()() const { return m_obj!=0; }
-    bool operator!() const { return m_obj==0; }
-
-    //Assign, construct and compare with nullptr:
-    RCHolder & operator= ( decltype(nullptr) ) { m_obj = nullptr; return *this; }
-    RCHolder( decltype(nullptr) ) {}
-    bool operator==( decltype(nullptr) ) { return m_obj==nullptr; }
-    bool operator!=( decltype(nullptr) ) { return m_obj!=nullptr; }
-
-    //Move/copy/assign to base class pointer should be ok (only compiles if T* can be assigned from TOther*):
-    template<class TOther>
-    RCHolder& operator=( RCHolder<TOther>&& o ) {
-      RCHolder<TOther> o_taken = std::move(o);
-      m_obj = o_taken.obj();
-      if (m_obj)
-        m_obj->ref();
-      return *this;
-    }
-    template<class TOther>
-    RCHolder( RCHolder<TOther>&& o ) {
-      *this = std::move(o);
-    }
-    template<class TOther>
-    RCHolder& operator=( const RCHolder<TOther>& o ) {
-      m_obj = o.obj();
-      if (m_obj)
-        m_obj->ref();
-      return *this;
-    }
-    template<class TOther>
-    RCHolder( const RCHolder<TOther>& o ) {
-      *this = o;
-    }
-
-    //Release obj without triggering deletion:
-    T * releaseNoDelete() { T* old = m_obj; if ( m_obj ) m_obj->unrefNoDelete(); m_obj = 0; return old; }
-    const T * releaseNoDelete() const { const T* old = m_obj; if ( m_obj ) m_obj->unrefNoDelete(); m_obj = 0; return old; }
-
-    template<class TOther>
-    RCHolder<TOther> dyncast() const
-    {
-      return RCHolder<TOther>(dynamic_cast<TOther*>(m_obj));
-    }
-
-    T* operator->() { return m_obj; }
-    const T* operator->() const { return m_obj; }
-    T& operator*() { nc_assert(m_obj); return *m_obj; }
-    const T& operator*() const { nc_assert(m_obj); return *m_obj; }
-
-  private:
-    T* m_obj = nullptr;
-  };
-
-  typedef RCHolder<const RCBase> RCGuard;
-
-  //get_pointer specialisation for RCHolder allows easy integration with boost:
-  template< class T >
-  T* get_pointer(const RCHolder<T>& r) { return const_cast<T*>(r.obj()); }
 
   //Attempt to clear all NCrystal caches (should be safe to call as it will not
   //clear data associated to active object for which client code has ownership):
@@ -170,29 +41,236 @@ namespace NCrystal {
   //clearCaches() is called:
   NCRYSTAL_API void registerCacheCleanupFunction(std::function<void()>);
 
-  //makeRC can be used for RCBase-derived objects, similarly to how one would
-  //use make_unique/make_shared for std smart pointers:
+  //Type alias for std::shared_ptr which makes it clear when to use shared_obj
+  //and when to use the nullable alternative:
+  template <class T>
+  using optional_shared_obj = std::shared_ptr<T>;
+
+  template <class T>
+  class shared_obj {
+
+    // This thin wrapper around std::shared_ptr can never be initialised with a
+    // null-ptr (constructors will throw if this is attempted), and it can be
+    // passed directly to functions taking a reference or pointer to the
+    // contained object type. It can also easily be converted to/from
+    // std::shared_ptr as needed.
+    //
+    // Note that a moved-from shared_obj will still contain a nullptr (however,
+    // one should never use a moved-from object for anything else than being
+    // destructed).
+
+    //For simplicity, explicitly disallow esoteric types:
+    static_assert(!std::is_volatile<T>::value,"shared_obj class does not support volative types");
+    static_assert(!std::is_reference<T>::value,"shared_obj class does not support reference types");
+    static_assert(!std::is_member_pointer<T>::value,"shared_obj class does not support pointer types");
+    static_assert(!std::is_member_object_pointer<T>::value,"shared_obj class does not support pointer types");
+    static_assert(!std::is_member_function_pointer<T>::value,"shared_obj class does not support pointer types");
+    static_assert(!std::is_pointer<T>::value,"shared_obj class does not support pointer types");
+    static_assert(!std::is_array<T>::value,"shared_obj class does not support array types");
+
+  public:
+
+    using element_type = T;
+    using element_type_nocv = typename std::remove_cv<T>::type;
+    using shared_ptr_type = std::shared_ptr<T>;
+
+    constexpr shared_obj() = delete;//Can not be default constructed
+    explicit ncconstexpr17 shared_obj( T* t ) : m_shptr(t) { check_nonnull(); }//unsafe if not explict
+    ncconstexpr17 shared_obj( std::shared_ptr<T> sp ) : m_shptr(std::move(sp)) { check_nonnull(); }
+    ncconstexpr17 shared_obj( std::unique_ptr<T> up ) : m_shptr(std::move(up)) { check_nonnull(); }
+
+    //If T is const, we can construct from non-const objects:
+    template<typename U = T>
+    ncconstexpr17 shared_obj( std::shared_ptr<element_type_nocv> sp, typename std::enable_if<std::is_const<U>::value>::type* = nullptr ) : m_shptr(std::move(sp)) { check_nonnull(); }
+    template<typename U = T>
+    ncconstexpr17 shared_obj( std::unique_ptr<element_type_nocv> up, typename std::enable_if<std::is_const<U>::value>::type* = nullptr ) : m_shptr(std::move(up)) { check_nonnull(); }
+    template<typename U = T>
+    ncconstexpr17 shared_obj( element_type_nocv* t, typename std::enable_if<std::is_const<U>::value>::type* = nullptr ) : m_shptr(t) { check_nonnull(); }
+    template<typename U = T>
+    constexpr shared_obj( const shared_obj<element_type_nocv>& so, typename std::enable_if<std::is_const<U>::value>::type* = nullptr ) noexcept : m_shptr(so) { }
+
+    ncconstexpr17 shared_obj( const shared_obj& ) = default;
+    ncconstexpr17 shared_obj& operator=( const shared_obj& ) = default;
+    ncconstexpr17 shared_obj( shared_obj&& ) = default;
+    ncconstexpr17 shared_obj& operator=( shared_obj&& ) = default;
+
+    //Disallow initialisation/assignment from nullptr:
+    shared_obj & operator= ( decltype(nullptr) ) = delete;
+    shared_obj( decltype(nullptr) ) = delete;
+
+    //Explicit getters:
+    ncconstexpr17 T* get() noexcept { return m_shptr.get(); }
+    constexpr const T* get() const noexcept { return m_shptr.get(); }
+    constexpr const std::shared_ptr<T>& getsp() const noexcept { return m_shptr; }
+    constexpr const optional_shared_obj<T>& optional() const noexcept { return m_shptr; }//same, different names
+
+    //Object is always true in boolean contexts and not equal to nullptr:
+    constexpr bool operator()() const noexcept { return true; }
+    constexpr bool operator!() const noexcept { return false; }
+    constexpr bool operator==( decltype(nullptr) ) const noexcept { return false; }
+    constexpr bool operator!=( decltype(nullptr) ) const noexcept { return true; }
+
+    //comparisons:
+    constexpr bool operator==( const shared_obj& o ) const noexcept { return m_shptr == o.m_shptr; }
+    constexpr bool operator!=( const shared_obj& o ) const noexcept { return m_shptr != o.m_shptr; }
+    constexpr bool operator<( const shared_obj& o ) const noexcept { return m_shptr < o.m_shptr; }
+
+    //deref:
+    ncconstexpr17 T* operator->() noexcept { return m_shptr.get(); }
+    constexpr const T* operator->() const noexcept { return m_shptr.get(); }
+    ncconstexpr17 T& operator*() noexcept { return *m_shptr; }
+    constexpr const T& operator*() const noexcept { return *m_shptr; }
+
+    //Automatic conversions:
+    constexpr operator const T&() const noexcept { return *m_shptr; }
+    ncconstexpr17 operator T&() noexcept { return *m_shptr; }
+    constexpr operator const T*() const noexcept { return m_shptr.get(); }
+    ncconstexpr17 operator T*() noexcept { return m_shptr.get(); }
+    constexpr operator std::shared_ptr<const T>() const noexcept { return m_shptr; }
+    ncconstexpr17 operator std::shared_ptr<T>() noexcept { return m_shptr; }
+    constexpr operator std::weak_ptr<const T>() const noexcept { return m_shptr; }
+    ncconstexpr17 operator std::weak_ptr<T>() noexcept { return m_shptr; }
+
+    //If T is non-const, we can convert to const object:
+    template<class U = T>
+    constexpr operator typename std::enable_if<std::negate<std::is_const<U>>::value, shared_obj<const T>>::type() const noexcept
+    {
+      return shared_obj<const T>(m_shptr);
+    }
+
+    //Move/copy/assign to base class pointer (in shared_obj or std::shared_ptr)
+    //should be ok (only compiles if T* can be assigned from TOther*):
+    template<class TOther>
+    ncconstexpr17 shared_obj& operator=( shared_obj<TOther>&& o ) noexcept {
+      m_shptr = std::move(o).detail_consume_shptr();
+      check_nonnull();
+      return *this;
+    }
+
+    template<class TOther>
+    ncconstexpr17 shared_obj( shared_obj<TOther>&& o ) noexcept : m_shptr(std::move(o).detail_consume_shptr()) {}
+
+    template<class TOther>
+    ncconstexpr17 shared_obj& operator=( const shared_obj<TOther>& o ) noexcept
+    {
+      m_shptr = o.m_shptr;
+      return *this;
+    }
+
+    template<class TOther>
+    ncconstexpr17 shared_obj( std::shared_ptr<TOther>&& sp ) noexcept : m_shptr(std::move(sp)) { check_nonnull(); }
+
+    template<class TOther>
+    ncconstexpr17 shared_obj( const std::shared_ptr<TOther>& sp ) noexcept : m_shptr(sp) { check_nonnull(); }
+
+    template<class TOther>
+    ncconstexpr17 shared_obj& operator=( std::shared_ptr<TOther>&& sp ) noexcept
+    {
+      m_shptr = std::move(sp);
+      check_nonnull();
+      return *this;
+    }
+
+    template<class TOther>
+    ncconstexpr17 shared_obj& operator=( const std::shared_ptr<TOther>& sp ) noexcept
+    {
+      m_shptr = sp;
+      check_nonnull();
+      return *this;
+    }
+
+    template<class TOther>
+    ncconstexpr17 shared_obj( const shared_obj<TOther>& o ) noexcept : m_shptr(o.getsp()) {}
+
+    template<class TOther>
+    ncconstexpr17 operator std::shared_ptr<TOther>() noexcept { return m_shptr; }
+
+    template<class TOther>
+    constexpr operator std::shared_ptr<const TOther>() const noexcept { return m_shptr; }
+
+    template<class TDerived>
+    std::shared_ptr<TDerived> tryDynCast() { return std::dynamic_pointer_cast<TDerived>(this->m_shptr); }
+
+    template<class TDerived>
+    shared_obj<TDerived> dynCast()
+    {
+      auto sp = tryDynCast<TDerived>();
+      if ( sp==nullptr )
+        NCRYSTAL_THROW(LogicError,"shared_obj::dynCast ERROR: dynamic cast failed");
+      return { sp };
+    }
+
+    //Efficient creation (same as global makeSO<T>(...) function):
+    template<typename ...Args>
+    static shared_obj<T> make( Args&& ...args )
+    {
+      return shared_obj<T>( std::make_shared<T>(std::forward<Args>(args)...), guaranteed_non_null_t() );
+    }
+
+  private:
+    ncconstexpr17 void check_nonnull() const
+    {
+      if (!m_shptr)
+        NCRYSTAL_THROW(BadInput,"Attempt to initialise shared_obj<T> object with null pointer is illegal");
+    }
+    std::shared_ptr<T> m_shptr;
+    friend class shared_obj<element_type_nocv>;
+    friend class shared_obj<const element_type_nocv>;
+    //Efficient constructor for make(...) function:
+    struct guaranteed_non_null_t {};
+    constexpr shared_obj( std::shared_ptr<T>&& sp, guaranteed_non_null_t ) noexcept : m_shptr(std::move(sp)) {}
+  public:
+    //Don't use this! Only for casting functions above:
+    ncconstexpr17 std::shared_ptr<T>&& detail_consume_shptr() && noexcept { return std::move(m_shptr); }
+  };
+
+  //Efficient/safe creation of shared_object's (similar to std::make_unique/std::make_shared):
   template<typename T, typename ...Args>
-  inline RCHolder<T> makeRC( Args&& ...args )
+  inline shared_obj<T> makeSO( Args&& ...args )
   {
-    return RCHolder<T>( new T( std::forward<Args>(args)... ) );
+    return shared_obj<T>::make( std::forward<Args>(args)... );
   }
 
-  template<typename T, typename Tauto>
-  inline RCHolder<T> castRC( RCHolder<Tauto> tin )
-  {
-    return RCHolder<T>(dynamic_cast<T*>(tin.obj()));
-  }
+  template <class Derived>
+  struct EnableSharedFromThis : std::enable_shared_from_this<Derived> {
+    //Get smart pointer to current object (object MUST be already managed by
+    //shared pointer, e.g. created with NCrystal::makeSO or std::make_shared):
+    shared_obj<Derived> shared_obj_from_this() {
+#  if __cplusplus >= 201703L
+      auto shptr = this->weak_from_this().lock();
+      if (!shptr)
+        NCRYSTAL_THROW( LogicError, "shared_obj_from_this() does not work since this"
+                        " instance is not managed by std::shared_ptr / NCrystal::shared_obj" );
+      return shptr;
+#else
+      return this->shared_from_this();
+#endif
+    }
+    shared_obj<const Derived> shared_obj_from_this() const {
+#  if __cplusplus >= 201703L
+      auto shptr = this->weak_from_this().lock();
+      if (!shptr)
+        NCRYSTAL_THROW( LogicError, "shared_obj_from_this() does not work since this"
+                        " instance is not managed by std::shared_ptr / NCrystal::shared_obj" );
+      return shptr;
+#else
+      return this->shared_from_this();
+#endif
+    }
 
-  template<typename T, typename Tauto>
-  inline RCHolder<T> static_castRC( RCHolder<Tauto> tin )
-  {
-    nc_assert(dynamic_cast<T*>(tin.obj()));
-    return RCHolder<T>(static_cast<T*>(tin.obj()));
-  }
+  };
+
+  //Aligned allocation suitable for any alignment size. Returned memory must be
+  //eventually released by call to std::free. Throws std::bad_alloc in case the
+  //allocation fails.
+  void * alignedAlloc( std::size_t alignment, std::size_t size );
+
+  //Type-safe version of alignedAlloc (returned memory must be free'd by
+  //call to std::free, not delete):
+  template<class TValue>
+  inline TValue* alignedAlloc( std::size_t number_of_objects );
 
 }
-
 
 #if __cplusplus < 201402L
 //Make sure we can use std::make_unique from C++14 even in C++11 code
@@ -205,5 +283,48 @@ namespace std {
 }
 #endif
 
+
+////////////////////////////
+// Inline implementations //
+////////////////////////////
+
+namespace NCrystal {
+  namespace detail {
+    //For alignment > alignof(std::max_align_t):
+    void * bigAlignedAlloc( std::size_t alignment, std::size_t size );
+  }
+
+  //Aligned allocation suitable for any alignment size. Returned memory must be
+  //eventually released by call to std::free. Throws std::bad_alloc in case the
+  //allocation fails.
+  inline void * alignedAlloc( std::size_t alignment, std::size_t size ) {
+    nc_assert( size>0 );//size 0 malloc is UB
+    nc_assert( alignment>0 );//duh!
+    nc_assert( (alignment & (alignment - 1)) == 0 );//checks if (non-zero) alignment is power of 2.
+#  if defined(__GNUC__) && (__GNUC__*1000+__GNUC_MINOR__)<4009
+    //gcc didn't add max_align_t to std:: until gcc 4.9
+    constexpr auto alignof_max_align_t = alignof(max_align_t);
+#  else
+    constexpr auto alignof_max_align_t = alignof(std::max_align_t);
+#  endif
+    if ( alignment <= alignof_max_align_t ) {
+      //std::malloc is supposed to work in this case (and std::aligned_alloc
+      //might NOT work!):
+      void * result = std::malloc(size);
+      if ( result )
+        return result;
+      throw std::bad_alloc();
+    } else {
+      return detail::bigAlignedAlloc(alignment,size);
+    }
+  }
+
+  template<class TValue>
+  inline TValue* alignedAlloc( std::size_t number_of_objects )
+  {
+    return static_cast<TValue*>(alignedAlloc( alignof(TValue), number_of_objects * sizeof(TValue) ));
+  }
+
+}
 
 #endif

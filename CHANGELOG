@@ -1,3 +1,7 @@
+v2.4.80 2020-03-15
+      * RC1 for incoming major release v2.5.0.
+      * Detailed changelog still missing.
+
 v2.4.0 2020-12-17
       * Properly support delivery of NCMAT data files from plugins. For clarity,
         and to avoid name clashes, such data files must follow a clear naming

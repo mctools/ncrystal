@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -19,17 +19,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/NCVector.hh"
-#include <iostream>
-
-std::ostream& NCrystal::operator << (std::ostream &o, const NCrystal::Vector& vec)
-{
-  return o<<"{ " << vec.x() <<", " << vec.y() << ", " << vec.z() << " }";
-}
-
-void NCrystal::Vector::print() const
-{
-  std::cout << *this <<std::endl;
-}
 
 void NCrystal::Vector::setMag(double f)
 {
@@ -39,7 +28,5 @@ void NCrystal::Vector::setMag(double f)
   if (!themag2)
     NCRYSTAL_THROW(BadInput,"NCVector::setMag(): Can't scale null-vector.");
   double ff = f / sqrt(themag2);
-  m_x *= ff;
-  m_y *= ff;
-  m_z *= ff;
+  *this *= ff;
 }

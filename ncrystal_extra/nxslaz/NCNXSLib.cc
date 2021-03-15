@@ -1597,7 +1597,11 @@ const char *NXS_keys[] =
  * @param atomInfoList NXS_AtomInfo struct
  * @return nxs error code
  */
+#ifdef NCRYSTAL_NXSLIB_PARSEVIAFCTPTR
+int nxs_readParameterFile( char*(*dataProviderFct)(char*,int), NXS_UnitCell *uc, NXS_AtomInfo *atomInfoList[] )
+#else
 int nxs_readParameterFile( const char* fileName, NXS_UnitCell *uc, NXS_AtomInfo *atomInfoList[] )
+#endif
 {
   unsigned int numAtoms = 0;
   NXS_AtomInfo ai;
@@ -1607,19 +1611,26 @@ int nxs_readParameterFile( const char* fileName, NXS_UnitCell *uc, NXS_AtomInfo 
   unsigned int max_keys = sizeof(NXS_keys)/sizeof(NXS_keys[0]);
 
   /* open the parameter file */
+#ifndef NCRYSTAL_NXSLIB_PARSEVIAFCTPTR
   FILE* file;
   file = fopen(fileName, "r");
+#endif
 
   *uc = nxs_newUnitCell();
 
+#ifndef NCRYSTAL_NXSLIB_PARSEVIAFCTPTR
   if (!file)
   {
     return NXS_ERROR_READINGFILE;
   }
-
+#endif
   /* to make sure parameters are initialized if not in the parameter file */
 
+#ifdef NCRYSTAL_NXSLIB_PARSEVIAFCTPTR
+  while( dataProviderFct(line, sizeof(line)) != NULL )
+#else
   while( fgets(line, sizeof(line), file) != NULL )
+#endif
   {
     /* make sure 1st character isn't a space */
     char *ptr = line;
@@ -1730,7 +1741,9 @@ int nxs_readParameterFile( const char* fileName, NXS_UnitCell *uc, NXS_AtomInfo 
   } /* end of: while( fgets(line, sizeof(line), file) != NULL ) */
 
   /* finished with reading file */
+#ifndef NCRYSTAL_NXSLIB_PARSEVIAFCTPTR
   fclose(file);
+#endif
   if( !numAtoms )
     return NXS_ERROR_NOATOMINFOFOUND;
 

@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -18,17 +18,12 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCFactoryRegistry.hh"
-#include "NCrystal/NCFactory.hh"
-#include "NCrystal/NCMatCfg.hh"
-
+#include "NCrystal/NCFactImpl.hh"
 #include "NCrystal/internal/NCPlaneProvider.hh"
 #include "NCrystal/internal/NCDynInfoUtils.hh"
-
-#include "NCrystal/NCInfo.hh"
+#include "NCrystal/NCProcImpl.hh"
+#include "NCrystal/NCMatInfo.hh"
 #include "NCrystal/NCSCOrientation.hh"
-#include "NCrystal/NCScatterComp.hh"
-
 #include "NCrystal/internal/NCPCBragg.hh"
 #include "NCrystal/internal/NCSCBragg.hh"
 #include "NCrystal/internal/NCLCBragg.hh"
@@ -81,55 +76,58 @@ namespace NCrystal {
     virtual void prepareLoop() { m_pp->prepareLoop(); m_withheldPlanes.clear(); }
     virtual bool canProvide() const { return m_pp->canProvide(); }
 
-    std::vector<PairDD >& planesWithheldInLastLoop() { return m_withheldPlanes; };
+    bool hasPlanesWithheldInLastLoop() const { return !m_withheldPlanes.empty(); };
+
+    PCBragg::VectDFM&& consumePlanesWithheldInLastLoop() { return std::move(m_withheldPlanes); };
 
   private:
     std::unique_ptr<PlaneProvider> m_pp;
     double m_dcut;
-    std::vector<PairDD > m_withheldPlanes;
+    PCBragg::VectDFM m_withheldPlanes;
   };
 
-  class NCStdScatFact : public FactoryBase {
+  class StdScatFact : public FactImpl::ScatterFactory {
   public:
-    const char * getName() const final { return "stdscat"; }
+    const char * name() const noexcept final { return "stdscat"; }
 
-    int canCreateScatter( const MatCfg& cfg ) const final {
-
-      RCHolder<const Info> info;
-      std::string inelas;
-      return analyseCfg( cfg, info, inelas ) ? 100 : 0;
+    Priority query( const MatCfg& cfg ) const final
+    {
+      return analyseCfg( cfg ).able ? Priority{100} : Priority{Priority::Unable};
     }
 
-    RCHolder<const Scatter> createScatter( const MatCfg& cfg ) const final
+    ProcImpl::ProcPtr produce( const MatCfg& cfg ) const final
     {
       //Analyse and extract info:
-      RCHolder<const Info> info;
-      std::string inelas;
-      if ( !analyseCfg( cfg, info, inelas ) )
-        return 0;
-      nc_assert_always( info != nullptr );
+      auto ana = analyseCfg( cfg );
+      if ( !ana.able )
+        NCRYSTAL_THROW2(LogicError,"Could not create ProcImpl process for cfg=\""<<cfg
+                        <<"\" (this factory-produce method should not have been called)");
+
+      const MatInfo& info = ana.info;
+      const auto& inelas = ana.inelas;
+
       nc_assert_always(isOneOf(inelas,"none","external","dyninfo","vdosdebye","freegas"));
 
-      //Collect components on ScatterComp:
-      auto sc = makeRC<ScatterComp>();
+      //Collect components:
+      ProcImpl::ProcComposition::ComponentList components;
 
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////
       //Incoherent-elastic component:
-      if ( cfg.get_incoh_elas() && info->isCrystalline() ) {
-        const bool has_msd  = info->hasAtomMSD() || ( info->hasTemperature() && info->hasAnyDebyeTemperature() );
+      if ( cfg.get_incoh_elas() && info.isCrystalline() ) {
+        const bool has_msd = info.hasAtomMSD() || ( info.hasTemperature() && info.hasDebyeTemperature() );
         if ( has_msd )
-          sc->addComponent( new ElIncScatter( info.obj() ) );
+          components.push_back({1.0,makeSO<ElIncScatter>(info)});
       }
 
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////
       //Coherent-elastic (Bragg) component:
-      if ( cfg.get_coh_elas() && info->isCrystalline() && info->hasHKLInfo() ) {
+      if ( cfg.get_coh_elas() && info.isCrystalline() && info.hasHKLInfo() ) {
         if (cfg.isSingleCrystal()) {
           //TODO: factory function somewhere for this, so can be easily created directly in test-code wo matcfg?
-          auto sc_pp = createStdPlaneProvider( info.obj() );
+          auto sc_pp = createStdPlaneProvider( ana.info );
           PlaneProviderWCutOff* ppwcutoff(nullptr);
-          nc_assert(info->hasHKLInfo());
-          if ( cfg.get_sccutoff() && cfg.get_sccutoff() > info->hklDMinVal() ) {
+          nc_assert(info.hasHKLInfo());
+          if ( cfg.get_sccutoff() && cfg.get_sccutoff() > info.hklDMinVal() ) {
             //Improve efficiency by treating planes with dspacing less than
             //sccutoff as having isotropic mosaicity distribution.
             auto tmp = std::make_unique<PlaneProviderWCutOff>(cfg.get_sccutoff(),std::move(sc_pp));
@@ -139,19 +137,20 @@ namespace NCrystal {
           }
           SCOrientation sco = cfg.createSCOrientation();
           if (cfg.isLayeredCrystal()) {
-            double lcdir[3];
-            cfg.get_lcaxis(lcdir);
-            sc->addComponent(new LCBragg( info.obj(), sco, cfg.get_mos(), lcdir, cfg.get_lcmode(),
-                                        0,sc_pp.get(),cfg.get_mosprec(),0.0));
+            components.push_back({1.0,makeSO<LCBragg>( info, sco, cfg.get_mos(), cfg.get_lcaxis(), cfg.get_lcmode(),
+                                                       0,sc_pp.get(),cfg.get_mosprec(),0.0 )});
           } else {
-            sc->addComponent(new SCBragg( info.obj(), sco,cfg.get_mos(),0.0,sc_pp.get(),cfg.get_mosprec(),0.));
+            components.push_back({1.0,makeSO<SCBragg>( info, sco,cfg.get_mos(),0.0,
+                                                       sc_pp.get(),cfg.get_mosprec(),0.)});
+
+
           }
-          if ( ppwcutoff && !ppwcutoff->planesWithheldInLastLoop().empty() ) {
-            nc_assert_always(info->hasStructureInfo());
-            sc->addComponent(new PCBragg(info->getStructureInfo(),ppwcutoff->planesWithheldInLastLoop()));
+          if ( ppwcutoff && ppwcutoff->hasPlanesWithheldInLastLoop() ) {
+            nc_assert_always(info.hasStructureInfo());
+            components.push_back({1.0,makeSO<PCBragg>(info.getStructureInfo(),ppwcutoff->consumePlanesWithheldInLastLoop())});
           }
         } else {
-          sc->addComponent(new PCBragg( info.obj() ));
+          components.push_back({1.0,makeSO<PCBragg>(info)});
           //NB: Layered polycrystals get same treatment as unlayered
           //polycrystals in our current modelling.
         }
@@ -164,37 +163,35 @@ namespace NCrystal {
         //do not add anything.
 
       } else if ( inelas == "external" ) {
-
-        if ( !info->providesNonBraggXSects() )
+        if ( !info.providesNonBraggXSects() )
           NCRYSTAL_THROW2(BadInput,"inelas="<<inelas<<" mode requires input source which provides direct"
                           " parameterisation of (non-Bragg) scattering cross sections (try e.g. inelas=auto instead)");
 
-        sc->addComponent( new BkgdExtCurve( info.obj() ) );
+        components.push_back({1.0,makeSO<BkgdExtCurve>(ana.info)});
 
       } else {
-
         nc_assert_always( isOneOf(inelas,"dyninfo","freegas", "vdosdebye" ) );
 
-        if ( !info->hasComposition() )
+        if ( !info.hasComposition() )
           NCRYSTAL_THROW2(BadInput,"inelas="<<inelas<<" mode requires specification of material composition");
 
-        if ( !info->hasTemperature() )
+        if ( !info.hasTemperature() )
           NCRYSTAL_THROW2(BadInput,"inelas="<<inelas<<" mode requires specification of material temperature");
 
         if ( inelas == "dyninfo" ) {
 
-          if ( !info->hasDynamicInfo() )
+          if ( !info.hasDynamicInfo() )
             NCRYSTAL_THROW(BadInput,"inelas=dyninfo does not work for input without specific dynamic information. It is possible that"
                            " other modes might work (try e.g. inelas=auto instead).");
 
-          for (auto& di : info->getDynamicInfoList()) {
+          for (auto& di : info.getDynamicInfoList()) {
             const DI_ScatKnl* di_scatknl = dynamic_cast<const DI_ScatKnl*>(di.get());
             if (di_scatknl) {
-              sc->addComponent( new SABScatter( *di_scatknl, cfg.get_vdoslux() ), di->fraction() );
+              components.push_back({di->fraction(),makeSO<SABScatter>(*di_scatknl, cfg.get_vdoslux())});
             } else if (dynamic_cast<const DI_Sterile*>(di.get())) {
               continue;//just skip past sterile components
             } else if (dynamic_cast<const DI_FreeGas*>(di.get())) {
-              sc->addComponent( new FreeGas( info->getTemperature(), di->atomData() ), di->fraction() );
+              components.push_back({di->fraction(),makeSO<FreeGas>(info.getTemperature(), di->atomData())});
             } else {
               NCRYSTAL_THROW(LogicError,"Unsupported DynamicInfo entry encountered.");
             }
@@ -202,68 +199,68 @@ namespace NCrystal {
 
         } else if ( inelas=="freegas" ) {
 
-          for ( auto& e : info->getComposition() )
-            sc->addComponent( new FreeGas( info->getTemperature(), e.atom.data() ), e.fraction );
+          for ( auto& e : info.getComposition() ) {
+            components.push_back({e.fraction,makeSO<FreeGas>(info.getTemperature(), e.atom.data())});
+          }
 
         } else {
 
           nc_assert_always(inelas=="vdosdebye");
 
-          if ( !info->hasAnyDebyeTemperature() )
+          if ( !info.hasDebyeTemperature() )
             NCRYSTAL_THROW2(BadInput,"inelas="<<inelas<<" mode requires specification of Debye temperature");
-          if ( !info->isCrystalline() || !info->hasAtomInfo() )
+          if ( !info.isCrystalline() || !info.hasAtomInfo() )
             NCRYSTAL_THROW2(BadInput,"inelas="<<inelas<<" mode requires crystalline material with atomic information");
 
           unsigned ntot = 0.0;
-          for (auto it = info->atomInfoBegin(); it!= info->atomInfoEnd(); ++it)
-            ntot += it->number_per_unit_cell;
-          for (auto it = info->atomInfoBegin(); it!= info->atomInfoEnd(); ++it) {
-            const double debyeTemp = it->debye_temp > 0.0 ? it->debye_temp : info->getGlobalDebyeTemperature();
-            auto sabdata =  extractSABDataFromVDOSDebyeModel( debyeTemp,
-                                                              info->getTemperature(),
-                                                              it->atom.data().scatteringXS(),
-                                                              it->atom.data().averageMassAMU(),
+          for (auto it = info.atomInfoBegin(); it!= info.atomInfoEnd(); ++it)
+            ntot += it->numberPerUnitCell();
+          for (auto it = info.atomInfoBegin(); it!= info.atomInfoEnd(); ++it) {
+            nc_assert_always( it->debyeTemp().has_value() );
+            auto sabdata =  extractSABDataFromVDOSDebyeModel( it->debyeTemp().value(),
+                                                              info.getTemperature(),
+                                                              it->atomData().scatteringXS(),
+                                                              it->atomData().averageMassAMU(),
                                                               cfg.get_vdoslux() );
             auto scathelper = SAB::createScatterHelperWithCache( std::move(sabdata) );
-            sc->addComponent( new SABScatter( std::move(scathelper) ), it->number_per_unit_cell*1.0/ntot );
+            components.push_back({it->numberPerUnitCell()*1.0/ntot,makeSO<SABScatter>(std::move(scathelper))});
+
           }
         }
       }
 
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////
       //Wrap it up and return:
-      if (sc->nComponents()==0) {
-        //No components available, represent this with a NullScatter instead:
-        return makeRC<NullScatter>();
-      } else if ( sc->nComponents()==1 && sc->scale(0) == 1.0 ) {
-        //Single component with unit scale - no need to wrap in ScatterComp:
-        return RCHolder<Scatter>(sc->component(0));
-      } else {
-        //Usual case, return ScatterComp:
-        return sc;
-      }
+      return ProcImpl::ProcComposition::consumeAndCombine( std::move(components), ProcessType::Scatter );
     }
 
   private:
     //Common analysis function shared between canCreateScatter and createScatter
     //methods.
-    bool analyseCfg( const MatCfg& cfg, RCHolder<const Info>& info, std::string& inelas ) const {
+    struct CfgAnalysis {
+      CfgAnalysis(shared_obj<const MatInfo> ii) : info(std::move(ii)) {}
+      bool able = true;
+      shared_obj<const MatInfo> info;
+      std::string inelas;
+    };
+    CfgAnalysis analyseCfg( const MatCfg& cfg ) const {
+      CfgAnalysis result(FactImpl::createInfo( cfg ));
+      const MatInfo& info = result.info;
 
-      info = globalCreateInfo( cfg );
-      if ( !info )
-        return false;
+      result.inelas = cfg.get_inelas();
 
-      inelas = cfg.get_inelas();
+      if ( result.inelas == "none" )
+        return result;
 
-      if ( inelas == "none" )
-        return true;
-
-      if ( isOneOf(inelas,"external","dyninfo","vdosdebye","freegas" ) ) {
-        return true;
+      if ( isOneOf(result.inelas,"external","dyninfo","vdosdebye","freegas" ) ) {
+        return result;
       }
 
-      if (inelas!="auto")
-        return false;//inelas mode not supported by this standard factory
+      if (result.inelas!="auto") {
+        //inelas mode not supported by this standard factory
+        result.able = false;
+        return result;
+      }
 
       //Automatic selection requested.  Try to select in a way which respects
       //the behaviour outlined in ncmat_doc.md as well as respecting non-ncmat
@@ -271,23 +268,23 @@ namespace NCrystal {
       //files use external xs curves (and isotropic/deltaE=0 scattering even for
       //inelastic components).
 
-      const bool has_temperature_and_composition = info->hasTemperature() && info->hasComposition();
-      if ( info->providesNonBraggXSects() ) {
-        inelas = "external";//.nxs files end up here
-        return true;
+      const bool has_temperature_and_composition = info.hasTemperature() && info.hasComposition();
+      if ( info.providesNonBraggXSects() ) {
+        result.inelas = "external";//.nxs files end up here
+        return result;
       }
-      if ( info->hasDynamicInfo() ) {
+      if ( info.hasDynamicInfo() ) {
         nc_assert(has_temperature_and_composition);//guaranteed by NCInfo validation
-        inelas = "dyninfo";//.ncmat files end up here
-        return true;
+        result.inelas = "dyninfo";//.ncmat files end up here
+        return result;
       }
       if ( has_temperature_and_composition ) {
-        inelas = info->hasAnyDebyeTemperature() ? "vdosdebye" : "freegas";
-        return true;
+        result.inelas = info.hasDebyeTemperature() ? "vdosdebye" : "freegas";
+        return result;
       }
 
-      inelas = "none";//.laz/.lau files end up here
-      return true;
+      result.inelas = "none";//.laz/.lau files end up here
+      return result;
     }
 
   };
@@ -299,6 +296,6 @@ namespace NCrystal {
 
 extern "C" void ncrystal_register_stdscat_factory()
 {
-  if (!NC::hasFactory("stdscat"))
-    NC::registerFactory(std::make_unique<NC::NCStdScatFact>());
+  if (!NC::FactImpl::hasScatterFactory("stdscat"))
+    NC::FactImpl::registerFactory(std::make_unique<NC::StdScatFact>());
 }

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCInfo.hh"
+#include "NCrystal/NCMatInfo.hh"
 #include <utility>
 
 namespace NCrystal {
@@ -47,12 +47,12 @@ namespace NCrystal {
     typedef std::function< std::vector<std::pair<unsigned,double>> ( unsigned ) > NaturalAbundanceProvider;//Z -> [(A,fraction),...]
     typedef std::vector<FullElementBreakdown> FullBreakdown;
     enum ForceIsotopesChoice { ForceIsotopes, PreferNaturalElements };
-    NCRYSTAL_API FullBreakdown createFullBreakdown( const Info::Composition&,
+    NCRYSTAL_API FullBreakdown createFullBreakdown( const MatInfo::Composition&,
                                                     const NaturalAbundanceProvider&,
                                                     ForceIsotopesChoice = PreferNaturalElements );
 
 
-    class NCRYSTAL_API ElementBreakdownLW : public MoveOnly {
+    class NCRYSTAL_API ElementBreakdownLW : private MoveOnly {
       //Struct for keeping isotope breakdown of a particular element. Care is taken
       //to keep memory usage low and to have it easily sortable.
     public:
@@ -79,7 +79,7 @@ namespace NCrystal {
 
     typedef std::vector<std::pair<double,ElementBreakdownLW>> LWBreakdown;//(fraction, element)
     NCRYSTAL_API std::string breakdownToStr( const LWBreakdown&, unsigned precision=6 );
-    NCRYSTAL_API LWBreakdown createLWBreakdown( const Info::Composition& a,
+    NCRYSTAL_API LWBreakdown createLWBreakdown( const MatInfo::Composition& a,
                                                 const NaturalAbundanceProvider& b,
                                                 ForceIsotopesChoice c = PreferNaturalElements );
   }

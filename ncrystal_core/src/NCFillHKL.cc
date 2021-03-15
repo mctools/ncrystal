@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -121,29 +121,47 @@ namespace NCrystal {
 #endif
 
 namespace NCrystal {
+  namespace {
+    using SmallVectD = SmallVector<double,64>;//64 atomic positions is usually (but not always) enough.
 
-  void fillHKL_getWhkl(VectD& out_whkl, const double ksq, const VectD & msd)
-  {
-    nc_assert( msd.size() == out_whkl.size() );
-    //Sears, Acta Cryst. (1997). A53, 35-45
-    double kk2 = 0.5*ksq;
-    VectD::const_iterator it, itE(msd.end());
-    VectD::iterator itOut(out_whkl.begin());
-    for(it=msd.begin();it!=itE;++it)
-      *itOut++ = kk2*(*it);
+    inline void fillHKL_getWhkl(SmallVectD& out_whkl, const double ksq, const SmallVectD & msd)
+    {
+      nc_assert( msd.size() == out_whkl.size() );
+      //Sears, Acta Cryst. (1997). A53, 35-45
+      double kk2 = 0.5*ksq;
+
+      //NB: Do not call out_whkl.clear() followed by push_back, as the usage of
+      //SmallVector means we will discard the large allocation and have to do
+      //constant reallocations!!
+
+      auto it = msd.begin();
+      auto itE = msd.end();
+      auto itOut = out_whkl.begin();
+      for( ; it!=itE; ++it )
+        *itOut++ = kk2*(*it);
+    }
   }
 }
 
-void NCrystal::fillHKL( NCrystal::Info &info,
-                        double dcutoff, double dcutoffup, bool expandhkl,
-                        double fsquarecut, double merge_tolerance )
+void NCrystal::fillHKL( NCrystal::MatInfo &info, FillHKLCfg cfg )
 {
-
   const bool env_ignorefsqcut = std::getenv("NCRYSTAL_FILLHKL_IGNOREFSQCUT");
   if (env_ignorefsqcut)
-    fsquarecut = 0.0;
-  const bool no_forceunitdebyewallerfactor = !(std::getenv("NCRYSTAL_FILLHKL_FORCEUNITDEBYEWALLERFACTOR"));
+    cfg.fsquarecut = 0.0;
 
+  constexpr const double fsquarecut_lowest_possible_value = 1.0e-300;
+  if ( cfg.fsquarecut>=0.0 )
+    cfg.fsquarecut = ncmax(cfg.fsquarecut,fsquarecut_lowest_possible_value);
+
+  bool no_forceunitdebyewallerfactor;
+  if ( cfg.use_unit_debye_waller_factor.has_value() ) {
+    //Caller requested behaviour:
+    no_forceunitdebyewallerfactor = ! cfg.use_unit_debye_waller_factor.value();
+  } else {
+    //Fall-back to global default behaviour (which can be modified with env
+    //var for historic reasons):
+    no_forceunitdebyewallerfactor = !(std::getenv("NCRYSTAL_FILLHKL_FORCEUNITDEBYEWALLERFACTOR"));
+  }
 
   //For now we allow selection of a particular hkl value via an env var (a hacky
   //workarond required for certain validation plots - we should support this in
@@ -163,40 +181,36 @@ void NCrystal::fillHKL( NCrystal::Info &info,
 
   nc_assert_always(!info.isLocked());
   nc_assert_always(info.hasAtomInfo());
-  nc_assert_always(info.hasAtomPositions());
   nc_assert_always(info.hasAtomMSD());
   nc_assert_always(info.hasStructureInfo());
   nc_assert_always(!info.hasHKLInfo());
-  nc_assert_always(dcutoff>0.0&&dcutoff<dcutoffup);
+  nc_assert_always(cfg.dcutoff>0.0&&cfg.dcutoff<cfg.dcutoffup);
 
   const RotMatrix rec_lat = getReciprocalLatticeRot( info );
 
-  const double min_ds_sq(dcutoff*dcutoff);
-  const double max_ds_sq(dcutoffup*dcutoffup);
+  const double min_ds_sq(cfg.dcutoff*cfg.dcutoff);
+  const double max_ds_sq(cfg.dcutoffup*cfg.dcutoffup);
 
   //Collect info for each atom in suitable format for use for calculations below:
-  std::vector<std::vector<Vector> > atomic_pos;//atomic coordinates
-  VectD csl;//coherent scattering length
-  VectD msd;//mean squared displacement
-  VectD cache_factors;
+  SmallVector<SmallVector<Vector,16>,4> atomic_pos;//atomic coordinates
+  SmallVectD csl;//coherent scattering length
+  SmallVectD msd;//mean squared displacement
+  SmallVectD cache_factors;
 
   AtomList::const_iterator it (info.atomInfoBegin()), itE(info.atomInfoEnd());
   for (;it!=itE;++it) {
-    msd.push_back(it->mean_square_displacement);
-    csl.push_back(it->atom.data().coherentScatLen());
-    std::vector<Vector> pos;
-    pos.reserve(it->positions.size());
-    for (size_t i = 0; i<it->positions.size();++i) {
-      pos.push_back( Vector(it->positions.at(i).x,
-                            it->positions.at(i).y,
-                            it->positions.at(i).z) );
-    }
-    atomic_pos.push_back(pos);
-
+    nc_assert( it->msd().has_value() );
+    msd.push_back( it->msd().value() );
+    csl.push_back( it->atomData().coherentScatLen() );
+    SmallVector<Vector,16> pos;
+    pos.reserve_hint( it->unitCellPositions().size() );
+    for ( const auto& p : it->unitCellPositions() )
+      pos.push_back( p.as<Vector>() );
+    atomic_pos.push_back( std::move(pos) );
   }
 
   int max_h, max_k, max_l;
-  estimateHKLRange(dcutoff,rec_lat,max_h, max_k, max_l);
+  estimateHKLRange(cfg.dcutoff,rec_lat,max_h, max_k, max_l);
 
   nc_assert_always(msd.size()==atomic_pos.size());
   nc_assert_always(msd.size()==csl.size());
@@ -204,11 +218,11 @@ void NCrystal::fillHKL( NCrystal::Info &info,
 
   //cache some thresholds for efficiency (see below where it is used for more
   //comments):
-  VectD whkl_thresholds;
-  whkl_thresholds.reserve(csl.size());
+  SmallVectD whkl_thresholds;
+  whkl_thresholds.reserve_hint(csl.size());
   for (size_t i = 0; i<csl.size(); ++i) {
-    if ( fsquarecut < 0.01 && !env_ignorefsqcut )
-      whkl_thresholds.push_back(std::log(ncabs(csl.at(i)) / fsquarecut ) );
+    if ( cfg.fsquarecut < 0.01 && cfg.fsquarecut > fsquarecut_lowest_possible_value )
+      whkl_thresholds.push_back(std::log(ncabs(csl.at(i)) / cfg.fsquarecut ) );
     else
       whkl_thresholds.push_back(kInfinity);//use inf when not true that fsqcut^2 << fsq
   }
@@ -230,8 +244,9 @@ void NCrystal::fillHKL( NCrystal::Info &info,
   FamMap fsq2hklidx;
 #endif
 
-  VectD whkl;//outside loop for reusage
-  whkl.resize(msd.size(),1.0);//init with unit factors in case of forceunitdebyewallerfactor
+  SmallVectD whkl;//outside loop for reusage
+  while ( whkl.size() < msd.size() )
+    whkl.push_back(1.0);//init with unit factors in case of forceunitdebyewallerfactor
 
   //NB, for reasons of symmetry we ignore half of the hkl vectors (ignoring
   //h,k,l->-h,-k,-l and 000). This means, half a space, and half a plane and
@@ -253,8 +268,9 @@ void NCrystal::fillHKL( NCrystal::Info &info,
         if( dspacingsq < min_ds_sq || dspacingsq > max_ds_sq )
           continue;
 
-        if (no_forceunitdebyewallerfactor)
-          fillHKL_getWhkl(whkl, ksq, msd);
+        if (no_forceunitdebyewallerfactor) {
+          nclikely fillHKL_getWhkl(whkl, ksq, msd);
+        }
 
         //calculate |F|^2
         double real_or_imag_upper_limit(0.0);
@@ -277,7 +293,7 @@ void NCrystal::fillHKL( NCrystal::Info &info,
 
         //If the upper limit on fsq is below fsquarecut, we can skip already and
         //avoid needless calculations further down:
-        if(real_or_imag_upper_limit*real_or_imag_upper_limit*2.0<fsquarecut)
+        if(real_or_imag_upper_limit*real_or_imag_upper_limit*2.0<cfg.fsquarecut)
           continue;
 
         //Time to calculate phases and sum up contributions. Use numerically
@@ -288,7 +304,8 @@ void NCrystal::fillHKL( NCrystal::Info &info,
           double factor = cache_factors[i];
           if (!factor)
             continue;
-          std::vector<Vector>::const_iterator itAtomPos(atomic_pos[i].begin()), itAtomPosEnd(atomic_pos[i].end());
+          auto itAtomPos = atomic_pos[i].begin();
+          auto itAtomPosEnd = atomic_pos[i].end();
           StableSum cpsum, spsum;
           for(;itAtomPos!=itAtomPosEnd;++itAtomPos) {
             double phase = hkl.dot(*itAtomPos) * k2Pi;
@@ -305,7 +322,7 @@ void NCrystal::fillHKL( NCrystal::Info &info,
         double FSquared = (realsum*realsum+imagsum*imagsum);
 
         //skip weak or impossible reflections:
-        if(FSquared<fsquarecut)
+        if(FSquared<cfg.fsquarecut)
           continue;
 
         //normalise waveVector so we can use it below as a demi_normal:
@@ -320,12 +337,12 @@ void NCrystal::fillHKL( NCrystal::Info &info,
         for ( ; itSearch!=itSearchE && itSearch->first == searchkey; ++itSearch ) {
           nc_assert(itSearch->second<hkllist.size());
           HKLInfo * hklinfo = &hkllist[itSearch->second];
-          if ( ncabs(FSquared-hklinfo->fsquared) < merge_tolerance*(FSquared+hklinfo->fsquared )
-              && ncabs(dspacing-hklinfo->dspacing) < merge_tolerance*(dspacing+hklinfo->dspacing ) )
+          if ( ncabs(FSquared-hklinfo->fsquared) < cfg.merge_tolerance*(FSquared+hklinfo->fsquared )
+              && ncabs(dspacing-hklinfo->dspacing) < cfg.merge_tolerance*(dspacing+hklinfo->dspacing ) )
             {
               //Compatible with existing family, simply add normals to it.
-              hklinfo->demi_normals.emplace_back(waveVector.x(),waveVector.y(),waveVector.z());
-              if (expandhkl) {
+              hklinfo->demi_normals.push_back(waveVector.as<HKLInfo::Normal>());
+              if (cfg.expandhkl) {
                 nc_assert(itSearch->second<eqv_hkl_short.size());
                 eqv_hkl_short[itSearch->second].push_back(loop_h);
                 eqv_hkl_short[itSearch->second].push_back(loop_k);
@@ -338,7 +355,7 @@ void NCrystal::fillHKL( NCrystal::Info &info,
         if (isnewfamily) {
 
           if ( hkllist.size()>1000000 && !env_ignorefsqcut )//guard against crazy setups
-            NCRYSTAL_THROW2(CalcError,"Combinatorics too great to reach requested dcutoff = "<<dcutoff<<" Aa");
+            NCRYSTAL_THROW2(CalcError,"Combinatorics too great to reach requested dcutoff = "<<cfg.dcutoff<<" Aa");
 
           NCrystal::HKLInfo hi;
           hi.h=loop_h;
@@ -346,10 +363,10 @@ void NCrystal::fillHKL( NCrystal::Info &info,
           hi.l=loop_l;
           hi.fsquared = FSquared;
           hi.dspacing = dspacing;
-          hi.demi_normals.emplace_back(waveVector.x(),waveVector.y(),waveVector.z());
+          hi.demi_normals.push_back(waveVector.as<HKLInfo::Normal>());
           fsq2hklidx.insert(itSearchLB,FamMap::value_type(searchkey,hkllist.size()));
           hkllist.emplace_back(std::move(hi));
-          if (expandhkl) {
+          if (cfg.expandhkl) {
             eqv_hkl_short.push_back(std::vector<short>());
             std::vector<short>& last = eqv_hkl_short.back();
             last.reserve(3);
@@ -363,13 +380,13 @@ void NCrystal::fillHKL( NCrystal::Info &info,
   }//loop_h
 
   //update HKLlist and copy to info
-  info.enableHKLInfo(dcutoff,dcutoffup);
+  info.enableHKLInfo(cfg.dcutoff,cfg.dcutoffup);
 
   HKLList::iterator itHKL, itHKLB(hkllist.begin()), itHKLE(hkllist.end());
   for(itHKL=itHKLB;itHKL!=itHKLE;++itHKL) {
     unsigned deminorm_size = itHKL->demi_normals.size();
     itHKL->multiplicity=deminorm_size*2;
-    if(expandhkl) {
+    if(cfg.expandhkl) {
       std::vector<short>& eh = eqv_hkl_short.at(itHKL-itHKLB);
 #if __cplusplus >= 201402L
       //Our make_unique for c++11 seems to have problems with arrays

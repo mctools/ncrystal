@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -23,28 +23,28 @@ namespace NC = NCrystal;
 
 NC::SAB::SABExtender::~SABExtender() = default;
 
-NC::SAB::SABFGExtender::SABFGExtender( double temp_k, double target_mass, NC::SigmaFree sigma )
-  : m_xsprovider(temp_k,target_mass,sigma),
-    m_t(temp_k),
-    m_m(target_mass)
+NC::SAB::SABFGExtender::SABFGExtender( Temperature temp_k, AtomMass mass, NC::SigmaFree sigma )
+  : m_xsprovider(temp_k,mass,sigma),
+    m_t(DoValidate,temp_k),
+    m_m(DoValidate,mass)
 {
 }
 
-NC::SAB::SABFGExtender::SABFGExtender( double temp_k, double target_mass, NC::SigmaBound sigma )
-  : m_xsprovider(temp_k,target_mass,sigma),
-    m_t(temp_k),
-    m_m(target_mass)
+NC::SAB::SABFGExtender::SABFGExtender( Temperature temp_k, AtomMass mass, NC::SigmaBound sigma )
+  : m_xsprovider(temp_k,mass,sigma),
+    m_t(DoValidate,temp_k),
+    m_m(DoValidate,mass)
 {
 }
 
 NC::SAB::SABFGExtender::~SABFGExtender() = default;
 
-double NC::SAB::SABFGExtender::crossSection(double ekin) const
+NC::CrossSect NC::SAB::SABFGExtender::crossSection(NeutronEnergy ekin) const
 {
   return m_xsprovider.crossSection(ekin);
 }
 
-NC::PairDD NC::SAB::SABFGExtender::sampleAlphaBeta(NC::RandomBase& rng, double ekin) const
+NC::PairDD NC::SAB::SABFGExtender::sampleAlphaBeta( RNG& rng, NeutronEnergy ekin ) const
 {
   return FreeGasSampler(ekin, m_t, m_m).sampleAlphaBeta(rng);
 }

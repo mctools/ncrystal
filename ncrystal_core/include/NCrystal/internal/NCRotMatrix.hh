@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -26,7 +26,7 @@
 
 namespace NCrystal {
 
-  class RotMatrix : public Matrix {
+  class RotMatrix final : public Matrix {
   public:
 
     //Specialised Matrix which always has dimensions of 3x3 and which can
@@ -34,9 +34,9 @@ namespace NCrystal {
     //that in the strict mathematical sense, the contents are not always
     //guaranteed to be a true rotation matrix.
 
-    virtual ~RotMatrix();
-
     RotMatrix();//null 3x3 matrix
+
+    RotMatrix( Span<const double> data ) : Matrix( 3, 3, data ) {}
 
     //Construct rotation which transforms vectors v and u into v_trf and u_trf
     //respectively. As a sanity check, it is required (within the given
@@ -47,20 +47,12 @@ namespace NCrystal {
 
     double determinant() const;
 
-    //Copy semantics:
-    RotMatrix( const RotMatrix & );
-    RotMatrix( const Matrix & );//must be dimension 3x3
-    RotMatrix& operator=(const RotMatrix&);
-    RotMatrix& operator=(const Matrix&);//must be dimension 3x3
-
     //Move semantics:
     RotMatrix(RotMatrix && o);
     RotMatrix& operator=(RotMatrix&& o);
-    RotMatrix(Matrix && o);//must be dimension 3x3
-    RotMatrix& operator=(Matrix&& o);//must be dimension 3x3
-
-    RotMatrix( const double * );//must be length 9
-    RotMatrix( const VectD& );//must be length 9
+    //From base (must be 3x3 matrix):
+    RotMatrix(Matrix && o);
+    RotMatrix& operator=(Matrix&& o);
 
     Vector operator*(const Vector&) const;
     const Vector& colX() const;
@@ -97,10 +89,9 @@ namespace NCrystal {
   //rotation will not be fully determined, in which case the indeterminate
   //direction will be randomised if rand!=0, or if rand==0 an exception will be
   //thrown.
-  class RandomBase;
   void rotateToFrame( double sinab, double cosab,
                       const Vector& a, const Vector& b,
-                      Vector&v, RandomBase *  rand = 0);
+                      Vector&v, RNG * rand = nullptr );
 
 }
 
@@ -138,51 +129,12 @@ namespace NCrystal {
   {
     m_rowcount=3;
     m_colcount=3;
-    m_data.resize(9,0.0);
+    nc_assert(m_data.capacity()==9);
+    //SmallVector does not have m_data.resize(9,0.0):
+    for ( unsigned i = 0; i < 9; ++i )
+      m_data.emplace_back();
   }
 
-  inline RotMatrix::RotMatrix(const double *data)
-    : Matrix(3,3,data)
-  {
-  }
-
-  inline RotMatrix::RotMatrix(const VectD& data)
-    : Matrix(3,3,data)
-  {
-    if (data.size()!=9)
-      NCRYSTAL_THROW(BadInput,"Input vector to NCRotMatrix must have size 3*3=9");
-  }
-
-  inline RotMatrix::RotMatrix(const Matrix &mtx)
-    : Matrix(mtx)
-  {
-    if (mtx.nRows()!=3||mtx.nCols()!=3)
-      NCRYSTAL_THROW(BadInput,"Can only convert 3x3 Matrix to RotMatrix");
-  }
-
-  inline RotMatrix::RotMatrix(const RotMatrix &mtx)
-    : Matrix(mtx)
-  {
-  }
-
-    // RotMatrix& operator=(const RotMatrix&);
-    // RotMatrix& operator=(const Matrix&);//must be dimension 3x3
-
-  inline RotMatrix& RotMatrix::operator=(const Matrix& mtx)
-  {
-    if (mtx.nRows()!=3||mtx.nCols()!=3)
-      NCRYSTAL_THROW(BadInput,"Can only convert 3x3 Matrix to RotMatrix");
-    Matrix::operator=(mtx);
-    return *this;
-  }
-
-  inline RotMatrix& RotMatrix::operator=(const RotMatrix& mtx)
-  {
-    Matrix::operator=(mtx);
-    return *this;
-  }
-
-  //Move semantics:
   inline RotMatrix::RotMatrix(RotMatrix && mtx)
     : Matrix(std::move(mtx))
   {

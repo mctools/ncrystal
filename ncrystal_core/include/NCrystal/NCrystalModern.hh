@@ -1,8 +1,11 @@
+#ifndef NCrystal_NCrystalModern_hh
+#define NCrystal_NCrystalModern_hh
+
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2020 NCrystal developers                                   //
+//  Copyright 2015-2021 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -18,48 +21,26 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCCalcBase.hh"
-#include "NCrystal/internal/NCVector.hh"
-#include "NCrystal/internal/NCMath.hh"
+//Special migration header which will ensure that the Modern namespace is
+//injected into the NCrystal namespace and the Legacy namespace is NOT injected
+//into the NCrystal namespace.
 
-NCrystal::CalcBase::CalcBase(const char * calculator_type_name)
-  : m_name(calculator_type_name)
-{
-}
+#ifdef NCrystal_NCrystalLegacy_hh
+#  error Do not include both NCrystalModern.hh and NCrystalLegacy.hh in the same file.
+#endif
 
-NCrystal::CalcBase::~CalcBase()
-{
-  for (unsigned i=0;i<m_subcalcs.size();++i)
-    m_subcalcs[i]->unref();
-}
+#ifdef NCrystal_hh
+#  error NCrystalModern.hh must be included BEFORE NCrystal.hh
+#endif
 
-void NCrystal::CalcBase::registerSubCalc(CalcBase*sc)
-{
-  if (sc) {
-    sc->ref();
-    m_subcalcs.push_back(sc);
-  }
-}
+#ifndef NCRYSTAL_USE_MODERN_INTERFACES
+#  define NCRYSTAL_USE_MODERN_INTERFACES
+#endif
 
-bool NCrystal::CalcBase::isSubCalc(const CalcBase* cb) const
-{
-  for (unsigned i=0;i<m_subcalcs.size();++i)
-    if (cb==m_subcalcs[i])
-      return true;
-  return false;
-}
+#ifdef NCRYSTAL_USE_LEGACY_INTERFACES
+#  undef NCRYSTAL_USE_LEGACY_INTERFACES
+#endif
 
-void NCrystal::CalcBase::setRandomGenerator(NCrystal::RandomBase* rg)
-{
-  m_randgen = rg;
-  for (unsigned i=0;i<m_subcalcs.size();++i)
-    m_subcalcs[i]->setRandomGenerator(rg);
-}
+#include "NCrystal/NCrystal.hh"
 
-double NCrystal::CalcBase::initDefaultRand() const
-{
-  nc_assert_always(!m_randgen);
-  m_randgen = defaultRandomGenerator();
-  nc_assert_always(m_randgen.obj());
-  return m_randgen->generate();
-}
+#endif

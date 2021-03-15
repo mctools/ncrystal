@@ -2120,7 +2120,12 @@ double nxs_CoherentElasticTexture( double lambda, NXS_MarchDollase* md );
 
 
 /************************** PARAMETER FILE ROUTINES **************************/
+#define NCRYSTAL_NXSLIB_PARSEVIAFCTPTR/*Mode added by NCrystal developers to support in-memory file loading */
+#ifdef NCRYSTAL_NXSLIB_PARSEVIAFCTPTR
+int nxs_readParameterFile(char*(*dataProviderFct)(char*,int), NXS_UnitCell *uc , NXS_AtomInfo *atomInfoList[] );
+#else
 int nxs_readParameterFile(const char* fileName, NXS_UnitCell *uc , NXS_AtomInfo *atomInfoList[] );
+#endif
 int nxs_saveParameterFile( const char* fileName, NXS_UnitCell *uc );
 /*****************************************************************************/
 
