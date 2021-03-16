@@ -24,7 +24,7 @@
 #include "NCrystal/NCMatCfg.hh"
 #include "NCrystal/NCFactTypes.hh"
 #include "NCrystal/NCProcImpl.hh"
-#include "NCrystal/NCMatInfo.hh"
+#include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCTextData.hh"
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -34,8 +34,8 @@
 // and CachePtrs to the caller (see NCProcImpl.hh). This is the underlying     //
 // form used to represent all physics models in NCrystal, and any plugins      //
 // extending NCrystal with new physics capabilities should register factories  //
-// here. In addition, factory infrastructure for MatInfo objects is likewise,  //
-// kept here, as is those concerning text data (such as input files). For the  //
+// here. In addition, factory infrastructure for Info objects is likewise kept //
+// here, as is those concerning text data (such as input files). For the       //
 // latter, more convenient modification functions are available in the file    //
 // NCDataSources.hh.                                                           //
 //                                                                             //
@@ -54,7 +54,7 @@ namespace NCrystal {
 
     //Use registered factories:
     NCRYSTAL_API shared_obj<const TextData>          createTextData( const TextDataPath& cfg );
-    NCRYSTAL_API shared_obj<const MatInfo>           createInfo( const MatCfg& cfg );
+    NCRYSTAL_API shared_obj<const Info>           createInfo( const MatCfg& cfg );
     NCRYSTAL_API shared_obj<const ProcImpl::Process> createScatter( const MatCfg& cfg );
     NCRYSTAL_API shared_obj<const ProcImpl::Process> createAbsorption( const MatCfg& cfg );
 
@@ -106,7 +106,7 @@ namespace NCrystal {
     };
 
     //Info and Absorption factories are simple:
-    using InfoFactory = Factory<FactoryType::Info,MatInfo,MatInfoCfg>;
+    using InfoFactory = Factory<FactoryType::Info,Info,MatInfoCfg>;
     using AbsorptionFactory = Factory<FactoryType::Absorption,ProcImpl::Process,MatCfg>;
 
     class NCRYSTAL_API TextDataFactory
@@ -135,9 +135,9 @@ namespace NCrystal {
       //Wraps ::NCrystal::FactImpl::createScatter but avoids our own factory for consideration:
       ProcImpl::ProcPtr globalCreateScatter( const MatCfg&, bool allowself=false ) const;
 
-      //Scatter factories often need to access MatInfo, so make it easily available:
-      static shared_obj<const MatInfo> globalCreateInfo( const MatCfg& );
-      static shared_obj<const MatInfo> createInfo( const MatCfg& );
+      //Scatter factories often need to access Info, so make it easily available:
+      static shared_obj<const Info> globalCreateInfo( const MatCfg& );
+      static shared_obj<const Info> createInfo( const MatCfg& );
 
       //Combine multiple ProcPtr's into one:
       template<typename... Args>

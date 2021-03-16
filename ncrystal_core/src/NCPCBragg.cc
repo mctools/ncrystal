@@ -93,7 +93,7 @@ NC::PCBragg::PCBragg( double v0_times_natoms, VectDFM&&  data)
   init(v0_times_natoms,std::move(data));
 }
 
-NC::PCBragg::PCBragg(const MatInfo&ci)
+NC::PCBragg::PCBragg(const Info&ci)
 {
   if (!ci.hasHKLInfo())
     NCRYSTAL_THROW(MissingInfo,"Passed Info object lacks HKL information.");

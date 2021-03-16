@@ -31,14 +31,13 @@ namespace NCrystal { namespace { using ThreadID = int; } }
 
 
 namespace NC = NCrystal;
-namespace NCM = NCrystal::Modern;
 
-bool NCM::RNGStream::coinflip()
+bool NC::RNGStream::coinflip()
 {
   return generate() > 0.5;
 }
 
-uint64_t NCM::RNGStream::generate64RndmBits()
+uint64_t NC::RNGStream::generate64RndmBits()
 {
   //As generate() returns a double with only 53 random bits, we need two
   //calls. Most straight forward to do this by combining two 32 bit integers:
@@ -47,31 +46,31 @@ uint64_t NCM::RNGStream::generate64RndmBits()
   return ( uint64_t{ g1 } << 32 ) | g2;
 }
 
-uint32_t NCM::RNGStream::generate32RndmBits()
+uint32_t NC::RNGStream::generate32RndmBits()
 {
   return static_cast<uint32_t>(generate()*std::numeric_limits<uint32_t>::max());
 }
 
-uint32_t NCM::RNGStream::stateTypeUID() const noexcept
+uint32_t NC::RNGStream::stateTypeUID() const noexcept
 {
   return 0;
 }
 
-void NCM::RNGStream::actualSetState( std::vector<uint8_t>&& )
+void NC::RNGStream::actualSetState( std::vector<uint8_t>&& )
 {
 }
 
-std::vector<uint8_t> NCM::RNGStream::actualGetState() const
+std::vector<uint8_t> NC::RNGStream::actualGetState() const
 {
   return {};
 }
 
-NC::shared_obj<NCM::RNGStream> NCM::RNGStream::actualCloneWithNewState( std::vector<uint8_t>&& ) const
+NC::shared_obj<NC::RNGStream> NC::RNGStream::actualCloneWithNewState( std::vector<uint8_t>&& ) const
 {
-  return std::shared_ptr<NCM::RNGStream>{nullptr};//dummy (will trigger exception immediately)
+  return std::shared_ptr<RNGStream>{nullptr};//dummy (will trigger exception immediately)
 }
 
-NC::RNGStreamState NCM::RNGStream::getState() const
+NC::RNGStreamState NC::RNGStream::getState() const
 {
   uint32_t stateuid = stateTypeUID();
   if (!stateuid)
@@ -93,7 +92,7 @@ namespace NCrystal {
       std::vector<uint8_t> v = hexstr2bytes(state);
       if ( ! ( v.size() > sizeof(uint32_t) ) )
         NCRYSTAL_THROW2(BadInput,fullfct<<" got too short state.");
-      return NCM::RNGStream::popFromStateVector<uint32_t>(v);
+      return RNGStream::popFromStateVector<uint32_t>(v);
     }
 
     std::vector<uint8_t> extractStateBytes( const char * fct, const std::string& state, uint32_t expected_stateuid )
@@ -105,7 +104,7 @@ namespace NCrystal {
       if ( ! ( v.size() > sizeof(expected_stateuid) ) )
         NCRYSTAL_THROW2(BadInput,"RNGStream::"<<fct<<" got too short state.");
 
-      if ( NCM::RNGStream::popFromStateVector<uint32_t>(v) != expected_stateuid )
+      if ( RNGStream::popFromStateVector<uint32_t>(v) != expected_stateuid )
         NCRYSTAL_THROW2(BadInput,"RNGStream::"<<fct<<" got invalid state (or state originating in different RNG implementation).");
 
       return v;
@@ -113,114 +112,112 @@ namespace NCrystal {
   }
 }
 
-void NCM::RNGStream::setState( const RNGStreamState& state)
+void NC::RNGStream::setState( const RNGStreamState& state)
 {
   actualSetState( RNGStream_detail::extractStateBytes("setState",state.get(),stateTypeUID()) );
   nc_assert( getState() == state );
 }
 
-NC::shared_obj<NCM::RNGStream> NCM::RNGStream::cloneWithNewState( const RNGStreamState& state ) const
+NC::shared_obj<NC::RNGStream> NC::RNGStream::cloneWithNewState( const RNGStreamState& state ) const
 {
   auto rng = actualCloneWithNewState( RNGStream_detail::extractStateBytes("cloneWithNewState",state.get(),stateTypeUID()) );
   nc_assert( rng->getState() == state );
   return rng;
 }
 
-NC::shared_obj<NCM::RNGStream> NCM::RNGStream::createJumped() const
+NC::shared_obj<NC::RNGStream> NC::RNGStream::createJumped() const
 {
   NCRYSTAL_THROW(LogicError,"createJumped() is not supported by this RNG stream (check isJumpCapable() before calling).");
-  return optional_shared_obj<NCM::RNGStream>{nullptr};//can't just return nullptr when return type is shared_obj
+  return optional_shared_obj<RNGStream>{nullptr};//can't just return nullptr when return type is shared_obj
 }
 
-bool NCM::stateIsFromBuiltinRNG( const RNGStreamState& state )
+bool NC::stateIsFromBuiltinRNG( const RNGStreamState& state )
 {
   return RNGStream_detail::extractStateUID( "NCrystal::stateIsFromBuiltinRNG", state.get() ) == RNGStream_detail::builtinRNGStateTypeUID;
 }
 
 namespace NCrystal {
-  namespace Modern {
-    class RNG_XRSR final : public RNGStream {
-    public:
+  class RNG_XRSR final : public RNGStream {
+  public:
 
-      RNG_XRSR( uint64_t seed ) : m_impl{seed} {}
-      RNG_XRSR( RandXRSRImpl&& impl ) : m_impl(std::move(impl)) {}
-      RNG_XRSR( no_init_t ) : m_impl(no_init) {}
+    RNG_XRSR( uint64_t seed ) : m_impl{seed} {}
+    RNG_XRSR( RandXRSRImpl&& impl ) : m_impl(std::move(impl)) {}
+    RNG_XRSR( no_init_t ) : m_impl(no_init) {}
 
-      bool coinflip() override { return m_impl.coinflip(); }
-      uint64_t generate64RndmBits() override { return m_impl.genUInt64(); }
-      uint32_t generate32RndmBits() override { return m_impl.genUInt32(); }
+    bool coinflip() override { return m_impl.coinflip(); }
+    uint64_t generate64RndmBits() override { return m_impl.genUInt64(); }
+    uint32_t generate32RndmBits() override { return m_impl.genUInt32(); }
 
-    protected:
+  protected:
 
-      double actualGenerate() override { return m_impl.generate(); }
+    double actualGenerate() override { return m_impl.generate(); }
 
-      uint32_t stateTypeUID() const noexcept override {
-        return RNGStream_detail::builtinRNGStateTypeUID;
-      }
+    uint32_t stateTypeUID() const noexcept override {
+      return RNGStream_detail::builtinRNGStateTypeUID;
+    }
 
-      static RandXRSRImpl::state_t detail_convstate(std::vector<uint8_t>&& v)
-      {
-        RandXRSRImpl::state_t newstate;
-        nc_assert_always( v.size() == 2*sizeof(uint64_t) );
-        newstate[1] = popFromStateVector<uint64_t>(v);
-        nc_assert( v.size() == sizeof(uint64_t) );
-        newstate[0] = popFromStateVector<uint64_t>(v);
-        nc_assert(v.empty());
-        return newstate;
-      }
-      void actualSetState( std::vector<uint8_t>&& v ) override
-      {
-        m_impl.state() = detail_convstate(std::move(v));
-      }
-      std::vector<uint8_t> actualGetState() const override
-      {
-        std::vector<uint8_t> v;
-        v.reserve( 2*sizeof(uint64_t) );
-        appendToStateVector<uint64_t>(v,m_impl.state()[0]);
-        appendToStateVector<uint64_t>(v,m_impl.state()[1]);
-        nc_assert( v.size() == 2*sizeof(uint64_t) );
-        return v;
-      }
+    static RandXRSRImpl::state_t detail_convstate(std::vector<uint8_t>&& v)
+    {
+      RandXRSRImpl::state_t newstate;
+      nc_assert_always( v.size() == 2*sizeof(uint64_t) );
+      newstate[1] = popFromStateVector<uint64_t>(v);
+      nc_assert( v.size() == sizeof(uint64_t) );
+      newstate[0] = popFromStateVector<uint64_t>(v);
+      nc_assert(v.empty());
+      return newstate;
+    }
+    void actualSetState( std::vector<uint8_t>&& v ) override
+    {
+      m_impl.state() = detail_convstate(std::move(v));
+    }
+    std::vector<uint8_t> actualGetState() const override
+    {
+      std::vector<uint8_t> v;
+      v.reserve( 2*sizeof(uint64_t) );
+      appendToStateVector<uint64_t>(v,m_impl.state()[0]);
+      appendToStateVector<uint64_t>(v,m_impl.state()[1]);
+      nc_assert( v.size() == 2*sizeof(uint64_t) );
+      return v;
+    }
 
-      shared_obj<RNGStream> actualCloneWithNewState( std::vector<uint8_t>&& v ) const override
-      {
-        return makeSO<RNG_XRSR>( RandXRSRImpl( detail_convstate(std::move(v)) ) );
-      }
+    shared_obj<RNGStream> actualCloneWithNewState( std::vector<uint8_t>&& v ) const override
+    {
+      return makeSO<RNG_XRSR>( RandXRSRImpl( detail_convstate(std::move(v)) ) );
+    }
 
-      bool isJumpCapable() const override
-      {
-        return true;
-      }
+    bool isJumpCapable() const override
+    {
+      return true;
+    }
 
-      shared_obj<RNGStream> createJumped() const override
-      {
-        auto clone = makeSO<RNG_XRSR>(RandXRSRImpl(m_impl.state()));
-        clone->m_impl.jump();
-        return clone;
-      }
+    shared_obj<RNGStream> createJumped() const override
+    {
+      auto clone = makeSO<RNG_XRSR>(RandXRSRImpl(m_impl.state()));
+      clone->m_impl.jump();
+      return clone;
+    }
 
-    private:
-      RandXRSRImpl m_impl;
-    };
+  private:
+    RandXRSRImpl m_impl;
+  };
 
-    class RNG_OneFctForAllThreads final : public RNGStream {
-    public:
-      RNG_OneFctForAllThreads( std::function<double()> fct ) : m_fct{std::move(fct)} {}
-      bool useInAllThreads() const override { return true; }
-    protected:
-      double actualGenerate() override { return m_fct(); }
-    private:
-      std::function<double()> m_fct;
-    };
-  }
+  class RNG_OneFctForAllThreads final : public RNGStream {
+  public:
+    RNG_OneFctForAllThreads( std::function<double()> fct ) : m_fct{std::move(fct)} {}
+    bool useInAllThreads() const override { return true; }
+  protected:
+    double actualGenerate() override { return m_fct(); }
+  private:
+    std::function<double()> m_fct;
+  };
 }
 
-NC::shared_obj<NCM::RNGStream> NCM::createBuiltinRNG( uint64_t seed )
+NC::shared_obj<NC::RNGStream> NC::createBuiltinRNG( uint64_t seed )
 {
   return makeSO<RNG_XRSR>(seed);
 }
 
-NC::shared_obj<NCM::RNGStream> NCM::createBuiltinRNG( const RNGStreamState& state )
+NC::shared_obj<NC::RNGStream> NC::createBuiltinRNG( const RNGStreamState& state )
 {
   auto rng = makeSO<RNG_XRSR>( no_init );
   rng->setState(state);
@@ -228,21 +225,19 @@ NC::shared_obj<NCM::RNGStream> NCM::createBuiltinRNG( const RNGStreamState& stat
 }
 
 namespace NCrystal {
-  namespace Modern {
-    namespace {
-      struct DefRNGProd {
-        std::mutex mtx;
-        optional_shared_obj<RNGProducer> producer;
-      };
-      DefRNGProd& defRNGProdDB() {
-        static DefRNGProd s_rngprod;
-        return s_rngprod;
-      }
+  namespace {
+    struct DefRNGProd {
+      std::mutex mtx;
+      optional_shared_obj<RNGProducer> producer;
+    };
+    DefRNGProd& defRNGProdDB() {
+      static DefRNGProd s_rngprod;
+      return s_rngprod;
     }
   }
 }
 
-NC::shared_obj<NCM::RNGProducer> NCM::getDefaultRNGProducer()
+NC::shared_obj<NC::RNGProducer> NC::getDefaultRNGProducer()
 {
   auto& d = defRNGProdDB();
   NCRYSTAL_LOCK_GUARD(d.mtx);
@@ -251,7 +246,7 @@ NC::shared_obj<NCM::RNGProducer> NCM::getDefaultRNGProducer()
   return d.producer;
 }
 
-void NCM::setDefaultRNG( NC::shared_obj<NCM::RNGStream> rng )
+void NC::setDefaultRNG( NC::shared_obj<NC::RNGStream> rng )
 {
   auto newprod = makeSO<RNGProducer>( std::move(rng) );
   auto& d = defRNGProdDB();
@@ -259,20 +254,20 @@ void NCM::setDefaultRNG( NC::shared_obj<NCM::RNGStream> rng )
   d.producer = newprod;
 }
 
-void NCM::clearDefaultRNG()
+void NC::clearDefaultRNG()
 {
   auto& d = defRNGProdDB();
   NCRYSTAL_LOCK_GUARD(d.mtx);
   d.producer = nullptr;
 }
 
-void NCM::setDefaultRNGFctForAllThreads( std::function<double()> fct )
+void NC::setDefaultRNGFctForAllThreads( std::function<double()> fct )
 {
   setDefaultRNG(makeSO<RNG_OneFctForAllThreads>(fct));
 }
 
 namespace NCrystal {
-  struct Modern::RNGProducer::Impl {
+  struct RNGProducer::Impl {
     Impl( shared_obj<RNGStream> rng ) : m_nextproduct( std::move(rng) ) {}
     Impl( no_init_t ) {}
     optional_shared_obj<RNGStream> m_nextproduct;
@@ -287,7 +282,7 @@ namespace NCrystal {
     static uint64_t currentThreadID();
   };
 }
-void NCM::RNGProducer::Impl::jumpFillNextNextIfAppropriate()
+void NC::RNGProducer::Impl::jumpFillNextNextIfAppropriate()
 {
   nc_assert_always(m_nextnextproduct==nullptr);
   if ( m_nextproduct == nullptr || m_nextproduct->useInAllThreads() || !m_nextproduct->isJumpCapable() )
@@ -297,7 +292,7 @@ void NCM::RNGProducer::Impl::jumpFillNextNextIfAppropriate()
     NCRYSTAL_THROW(LogicError,"RNG stream claimed to be jump capable but a call to produce() returned nullptr!");
 }
 
-NC::shared_obj<NCM::RNGStream> NCM::RNGProducer::Impl::produceUnlocked()
+NC::shared_obj<NC::RNGStream> NC::RNGProducer::Impl::produceUnlocked()
 {
   if ( !m_nextproduct )
     NCRYSTAL_THROW(CalcError,"Can not produce more independent RNG streams.");
@@ -311,7 +306,7 @@ NC::shared_obj<NCM::RNGStream> NCM::RNGProducer::Impl::produceUnlocked()
   return result;
 }
 
-NC::shared_obj<NCM::RNGStream> NCM::RNGProducer::Impl::produceByIdxUnlocked( RNGStreamIndex idx )
+NC::shared_obj<NC::RNGStream> NC::RNGProducer::Impl::produceByIdxUnlocked( RNGStreamIndex idx )
 {
   optional_shared_obj<RNGStream>& entry = m_idxdb[idx];
   if ( entry == nullptr )
@@ -319,7 +314,7 @@ NC::shared_obj<NCM::RNGStream> NCM::RNGProducer::Impl::produceByIdxUnlocked( RNG
   return entry;
 }
 
-NC::shared_obj<NCM::RNGStream> NCM::RNGProducer::Impl::produceByThreadIdxUnlocked( ThreadID idx )
+NC::shared_obj<NC::RNGStream> NC::RNGProducer::Impl::produceByThreadIdxUnlocked( ThreadID idx )
 {
   optional_shared_obj<RNGStream>& entry = m_thread_idxdb[idx];
   if ( entry == nullptr )
@@ -327,19 +322,19 @@ NC::shared_obj<NCM::RNGStream> NCM::RNGProducer::Impl::produceByThreadIdxUnlocke
   return entry;
 }
 
-NC::shared_obj<NCM::RNGStream> NCM::RNGProducer::produce()
+NC::shared_obj<NC::RNGStream> NC::RNGProducer::produce()
 {
   NCRYSTAL_LOCK_GUARD(m_impl->m_mtx);
   return m_impl->produceUnlocked();
 }
 
-NC::shared_obj<NCM::RNGStream> NCM::RNGProducer::produceByIdx( RNGStreamIndex idx )
+NC::shared_obj<NC::RNGStream> NC::RNGProducer::produceByIdx( RNGStreamIndex idx )
 {
   NCRYSTAL_LOCK_GUARD(m_impl->m_mtx);
   return m_impl->produceByIdxUnlocked(idx);
 }
 
-NC::shared_obj<NCM::RNGStream> NCM::RNGProducer::produceForCurrentThread()
+NC::shared_obj<NC::RNGStream> NC::RNGProducer::produceForCurrentThread()
 {
 #ifndef NCRYSTAL_DISABLE_THREADS
   ThreadID thread_id = std::this_thread::get_id();
@@ -350,19 +345,19 @@ NC::shared_obj<NCM::RNGStream> NCM::RNGProducer::produceForCurrentThread()
   return m_impl->produceByThreadIdxUnlocked(thread_id);
 }
 
-NCM::RNGProducer::RNGProducer( no_init_t )
+NC::RNGProducer::RNGProducer( no_init_t )
   : m_impl( no_init )
 {
   //sterile null producer
 }
 
-NC::shared_obj<NCM::RNGProducer> NCM::RNGProducer::getNullProducer()
+NC::shared_obj<NC::RNGProducer> NC::RNGProducer::getNullProducer()
 {
   static shared_obj<RNGProducer> nullproducer = NC::makeSO<RNGProducer>(no_init);
   return nullproducer;
 }
 
-NCM::RNGProducer::RNGProducer( shared_obj<RNGStream> rng, SkipOriginal skip_orig )
+NC::RNGProducer::RNGProducer( shared_obj<RNGStream> rng, SkipOriginal skip_orig )
   : m_impl( std::move(rng) )
 {
   //Create jumped state immediately if possible (before anyone consumes
@@ -384,16 +379,16 @@ NCM::RNGProducer::RNGProducer( shared_obj<RNGStream> rng, SkipOriginal skip_orig
   produceForCurrentThread();
 }
 
-NCM::RNGProducer::RNGProducer( RNGProducer&& ) noexcept = default;
-NCM::RNGProducer& NCM::RNGProducer::operator=( RNGProducer&& ) noexcept = default;
-NCM::RNGProducer::~RNGProducer() = default;
+NC::RNGProducer::RNGProducer( RNGProducer&& ) noexcept = default;
+NC::RNGProducer& NC::RNGProducer::operator=( RNGProducer&& ) noexcept = default;
+NC::RNGProducer::~RNGProducer() = default;
 
-NC::shared_obj<NCM::RNGStream> NCM::getRNG()
+NC::shared_obj<NC::RNGStream> NC::getRNG()
 {
   return getDefaultRNGProducer()->produceForCurrentThread();
 }
 
-NC::shared_obj<NCM::RNGStream> NCM::getIndependentRNG()
+NC::shared_obj<NC::RNGStream> NC::getIndependentRNG()
 {
   return getDefaultRNGProducer()->produce();
 }

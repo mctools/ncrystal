@@ -22,7 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCProcImpl.hh"
-#include "NCrystal/NCMatInfo.hh"
+#include "NCrystal/NCInfo.hh"
 
 namespace NCrystal {
 
@@ -34,7 +34,7 @@ namespace NCrystal {
 
 
     AbsOOV( SigmaAbsorption );
-    AbsOOV( const MatInfo& );
+    AbsOOV( const Info& );
 
     const char * name() const noexcept final { return "AbsOOV"; }
     CrossSect crossSectionIsotropic(CachePtr&, NeutronEnergy ) const final;

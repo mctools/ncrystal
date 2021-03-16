@@ -23,7 +23,7 @@
 
 namespace NC = NCrystal;
 
-NC::AbsOOV::AbsOOV( const NC::MatInfo& info )
+NC::AbsOOV::AbsOOV( const NC::Info& info )
   : AbsOOV( [&info]()
   {
     if ( ! info.hasXSectAbsorption() )

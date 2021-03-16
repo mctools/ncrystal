@@ -21,9 +21,8 @@
 #include "NCrystal/NCProc.hh"
 
 namespace NC = NCrystal;
-namespace NCM = NCrystal::Modern;
 
-NCM::Scatter NCM::Scatter::clone()
+NC::Scatter NC::Scatter::clone()
 {
   //Check here that move constructors are noexcept. This is important if
   //e.g. using std::vector<Scatter>:
@@ -35,37 +34,37 @@ NCM::Scatter NCM::Scatter::clone()
                   m_proc );
 }
 
-NCM::Scatter NCM::Scatter::cloneByIdx( RNGStreamIndex idx )
+NC::Scatter NC::Scatter::cloneByIdx( RNGStreamIndex idx )
 {
   return Scatter( m_rngproducer,
                   m_rngproducer->produceByIdx(idx),
                   m_proc );
 }
 
-NCM::Scatter NCM::Scatter::cloneForCurrentThread()
+NC::Scatter NC::Scatter::cloneForCurrentThread()
 {
   return Scatter( m_rngproducer,
                   m_rngproducer->produceForCurrentThread(),
                   m_proc );
 }
 
-NCM::Scatter NCM::Scatter::cloneWithIdenticalRNGSettings()
+NC::Scatter NC::Scatter::cloneWithIdenticalRNGSettings()
 {
   return Scatter( m_rngproducer, m_rng, m_proc );
 }
 
-NCM::Scatter NCM::Scatter::clone( shared_obj<RNGProducer> rp, shared_obj<RNG> r )
+NC::Scatter NC::Scatter::clone( shared_obj<RNGProducer> rp, shared_obj<RNG> r )
 {
   return Scatter( std::move(rp), std::move(r), m_proc );
 }
 
-void NCM::Scatter::replaceRNG( shared_obj<RNG> r, shared_obj<RNGProducer> rp )
+void NC::Scatter::replaceRNG( shared_obj<RNG> r, shared_obj<RNGProducer> rp )
 {
   m_rngproducer = std::move(rp);
   m_rng = std::move(r);
 }
 
-void NCM::Scatter::replaceRNGAndUpdateProducer( shared_obj<RNGStream> r )
+void NC::Scatter::replaceRNGAndUpdateProducer( shared_obj<RNGStream> r )
 {
   //Adopt rng here, and reinit producer from the same rng - but make sure it
   //doesn't actually provide the SAME rng to anyone else:
@@ -73,7 +72,7 @@ void NCM::Scatter::replaceRNGAndUpdateProducer( shared_obj<RNGStream> r )
   m_rng = std::move(r);
 }
 
-NCM::Absorption NCM::Absorption::clone() const
+NC::Absorption NC::Absorption::clone() const
 {
   return Absorption( m_proc );
 }

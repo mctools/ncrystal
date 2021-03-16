@@ -118,7 +118,7 @@ void NC::LCBraggRndmRot::updateCache(Cache& cache, NeutronEnergy ekin, const Vec
   //potentially makes this model MT-unsafe (although since getRNG creates an
   //instance unique to the current thread, it will in most cases just behave
   //weirdly and escape user attempts at controlling RNG state, etc.)
-  auto rng = Modern::getRNG();
+  auto rng = getRNG();
 
   for (unsigned i = 0; i<m_nsample; ++i) {
     double cosphi, sinphi;

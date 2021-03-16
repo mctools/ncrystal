@@ -24,9 +24,8 @@
 #include "NCrystal/NCRNG.hh"
 
 namespace NC = NCrystal;
-namespace NCM = NCrystal::Modern;
 
-NCM::Scatter NCM::createScatter( const MatCfg& cfg )
+NC::Scatter NC::createScatter( const MatCfg& cfg )
 {
   auto rngproducer = getDefaultRNGProducer();
   auto rng = rngproducer->produce();
@@ -35,7 +34,7 @@ NCM::Scatter NCM::createScatter( const MatCfg& cfg )
                   FactImpl::createScatter( cfg ) );
 }
 
-NCM::Scatter NCM::createScatter_RNGByIdx( const MatCfg& cfg, RNGStreamIndex rngidx )
+NC::Scatter NC::createScatter_RNGByIdx( const MatCfg& cfg, RNGStreamIndex rngidx )
 {
   auto rngproducer = getDefaultRNGProducer();
   auto rng = rngproducer->produceByIdx(rngidx);
@@ -44,7 +43,7 @@ NCM::Scatter NCM::createScatter_RNGByIdx( const MatCfg& cfg, RNGStreamIndex rngi
                   FactImpl::createScatter( cfg ) );
 }
 
-NCM::Scatter NCM::createScatter_RNGForCurrentThread( const MatCfg& cfg )
+NC::Scatter NC::createScatter_RNGForCurrentThread( const MatCfg& cfg )
 {
   auto rngproducer = getDefaultRNGProducer();
   auto rng = rngproducer->produceForCurrentThread();
@@ -53,30 +52,30 @@ NCM::Scatter NCM::createScatter_RNGForCurrentThread( const MatCfg& cfg )
                   FactImpl::createScatter( cfg ) );
 }
 
-NCM::Absorption NCM::createAbsorption( const MatCfg& cfg )
+NC::Absorption NC::createAbsorption( const MatCfg& cfg )
 {
   return Absorption( FactImpl::createAbsorption( cfg ) );
 }
 
-NC::shared_obj<const NC::MatInfo> NCM::createInfo( const MatCfg& cfg )
+NC::shared_obj<const NC::Info> NC::createInfo( const MatCfg& cfg )
 {
   return FactImpl::createInfo(cfg);
 }
 
-void NCM::registerInMemoryFileData( std::string virtualFileName,
+void NC::registerInMemoryFileData( std::string virtualFileName,
                                     std::string&& data )
 {
   DataSources::registerInMemoryFileData( std::move(virtualFileName),
                                          std::move(data) );
 }
 
-void NCM::registerInMemoryStaticFileData( std::string virtualFileName,
+void NC::registerInMemoryStaticFileData( std::string virtualFileName,
                                           const char* static_data )
 {
   DataSources::registerInMemoryStaticFileData( std::move(virtualFileName),
                                                static_data );
 }
 
-void NCM::disableCaching() { FactImpl::setCachingEnabled(false); }
-void NCM::enableCaching() { FactImpl::setCachingEnabled(true); }
+void NC::disableCaching() { FactImpl::setCachingEnabled(false); }
+void NC::enableCaching() { FactImpl::setCachingEnabled(true); }
 

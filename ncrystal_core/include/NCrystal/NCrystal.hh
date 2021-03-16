@@ -25,12 +25,6 @@
 // Convenience header for all NCrystal interfaces //
 ////////////////////////////////////////////////////
 
-#ifndef NCrystal_LegacyProcs_hh
-#  include "NCrystal/NCLegacyProcs.hh"
-#endif
-#ifndef NCrystal_LegacyMem_hh
-#  include "NCrystal/NCLegacyMem.hh"
-#endif
 #ifndef NCrystal_Dump_hh
 #  include "NCrystal/NCDump.hh"
 #endif
@@ -49,9 +43,6 @@
 #ifndef NCrystal_Variant_hh
 #  include "NCrystal/NCVariant.hh"
 #endif
-#ifndef NCrystal_LegacyFactory_hh
-#  include "NCrystal/NCLegacyFactory.hh"
-#endif
 #ifndef NCrystal_PluginMgmt_hh
 #  include "NCrystal/NCPluginMgmt.hh"
 #endif
@@ -61,8 +52,8 @@
 #ifndef NCrystal_TextData_hh
 #  include "NCrystal/NCTextData.hh"
 #endif
-#ifndef NCrystal_MatInfo_hh
-#  include "NCrystal/NCMatInfo.hh"
+#ifndef NCrystal_Info_hh
+#  include "NCrystal/NCInfo.hh"
 #endif
 #ifndef NCrystal_SABData_hh
 #  include "NCrystal/NCSABData.hh"
@@ -111,24 +102,6 @@
 #endif
 #ifndef NCrystal_Types_hh
 #  include "NCrystal/NCTypes.hh"
-#endif
-
-//During migration we support both Modern and Legacy interfaces:
-
-#if !defined(NCRYSTAL_USE_LEGACY_INTERFACES) && !defined(NCRYSTAL_USE_MODERN_INTERFACES)
-#  define NCRYSTAL_USE_MODERN_INTERFACES//Default if nothing else is indicated.
-#endif
-
-#if defined(NCRYSTAL_USE_LEGACY_INTERFACES) && defined(NCRYSTAL_USE_MODERN_INTERFACES)
-#  error Do not define both NCRYSTAL_USE_LEGACY_INTERFACES and NCRYSTAL_USE_MODERN_INTERFACES
-#endif
-
-#ifdef NCRYSTAL_USE_MODERN_INTERFACES
-  namespace NCrystal { using namespace Modern; }
-#endif
-
-#ifdef NCRYSTAL_USE_LEGACY_INTERFACES
-  namespace NCrystal { using namespace Legacy; }
 #endif
 
 #endif

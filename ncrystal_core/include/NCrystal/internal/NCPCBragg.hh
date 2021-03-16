@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCMatInfo.hh"
+#include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCProcImpl.hh"
 
 namespace NCrystal {
@@ -38,7 +38,7 @@ namespace NCrystal {
     const char * name() const noexcept final { return "PCBragg"; }
 
     //Constructor:
-    PCBragg( const MatInfo& );
+    PCBragg( const Info& );
 
     //Specialised constructors taking (dspacing,fsquared*multiplicity) pairs.
     //Either needs structure info, or just v0*n_atoms, unit cell volume in Aa^3

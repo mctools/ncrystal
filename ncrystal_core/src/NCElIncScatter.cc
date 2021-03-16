@@ -20,7 +20,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/NCElIncScatter.hh"
-#include "NCrystal/NCMatInfo.hh"
+#include "NCrystal/NCInfo.hh"
 #include "NCrystal/internal/NCElIncXS.hh"
 #include "NCrystal/internal/NCRandUtils.hh"
 #include "NCrystal/internal/NCDebyeMSD.hh"
@@ -29,7 +29,7 @@ namespace NC = NCrystal;
 
 NC::ElIncScatter::~ElIncScatter() = default;
 
-NC::ElIncScatter::ElIncScatter( const MatInfo& ci )
+NC::ElIncScatter::ElIncScatter( const Info& ci )
 {
   if ( !ci.hasAtomInfo() )
     NCRYSTAL_THROW(MissingInfo,"Passed Info object lacks AtomInfo information"

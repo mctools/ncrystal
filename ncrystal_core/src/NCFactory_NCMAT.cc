@@ -35,9 +35,9 @@ namespace NCrystal {
       return cfg.getDataType()=="ncmat" ? Priority{100} : Priority{Priority::Unable};
     }
 
-    shared_obj<const MatInfo> produce( const MatInfoCfg& cfg ) const final
+    shared_obj<const Info> produce( const MatInfoCfg& cfg ) const final
     {
-      return NC::makeSO<const MatInfo>( loadNCMAT(cfg) );
+      return NC::makeSO<const Info>( loadNCMAT(cfg) );
     }
   };
 

@@ -127,22 +127,22 @@ void NC::setNCMATWarnOnCustomSections(bool bb)
   s_NCMATWarnOnCustomSections = bb;
 }
 
-NC::MatInfo NC::loadNCMAT( const char * ncmat_file,
-                           NC::NCMATCfgVars&& cfgvars )
+NC::Info NC::loadNCMAT( const char * ncmat_file,
+                        NC::NCMATCfgVars&& cfgvars )
 {
   nc_assert_always(ncmat_file);
   return loadNCMAT( std::string(ncmat_file), std::move(cfgvars) );
 }
 
-NC::MatInfo NC::loadNCMAT( const std::string& ncmat_file,
+NC::Info NC::loadNCMAT( const std::string& ncmat_file,
                            NC::NCMATCfgVars&& cfgvars )
 {
   return loadNCMAT( FactImpl::createTextData( ncmat_file ),
                     std::move(cfgvars) );
 }
 
-NC::MatInfo NC::loadNCMAT( const TextData& inputText,
-                           NC::NCMATCfgVars&& cfgvars )
+NC::Info NC::loadNCMAT( const TextData& inputText,
+                        NC::NCMATCfgVars&& cfgvars )
 {
   const bool doFinalValidation = false;
   //don't validate at end of the parseNCMATData call, since the loadNCMAT call
@@ -152,7 +152,7 @@ NC::MatInfo NC::loadNCMAT( const TextData& inputText,
 }
 
 
-NC::MatInfo NC::loadNCMAT( const MatInfoCfg& cfg )
+NC::Info NC::loadNCMAT( const MatInfoCfg& cfg )
 {
   cfg.infofactopt_validate({"expandhkl"});//only this infofactopt is supported
   NCMATCfgVars ncmatcfgvars;
@@ -164,13 +164,13 @@ NC::MatInfo NC::loadNCMAT( const MatInfoCfg& cfg )
   return loadNCMAT( cfg.textData(), std::move(ncmatcfgvars) );
 }
 
-NC::MatInfo NC::loadNCMAT( const MatCfg& cfg )
+NC::Info NC::loadNCMAT( const MatCfg& cfg )
 {
   return loadNCMAT( cfg.createInfoCfg() );
 }
 
-NC::MatInfo NC::loadNCMAT( NCMATData&& data,
-                           NC::NCMATCfgVars&& cfgvars )
+NC::Info NC::loadNCMAT( NCMATData&& data,
+                        NC::NCMATCfgVars&& cfgvars )
 {
   const bool verbose = ncgetenv_bool("DEBUGINFO");
 
@@ -332,7 +332,7 @@ NC::MatInfo NC::loadNCMAT( NCMATData&& data,
   // Create Info object //
   ////////////////////////
 
-  MatInfo info;
+  Info info;
 
   //Cache all the hasXXX results, before we start messing them up by
   //std::move'ing stuff out of the data object:

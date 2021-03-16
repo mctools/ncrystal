@@ -19,12 +19,14 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/NCOrientUtils.hh"
-#include "NCrystal/NCMatInfo.hh"
+#include "NCrystal/NCInfo.hh"
 #include "NCrystal/internal/NCLatticeUtils.hh"
 #include <iomanip>
 
-NCrystal::RotMatrix NCrystal::getCrystal2LabRot( const NCrystal::SCOrientation& sco,
-                                                 const NCrystal::RotMatrix& reci_lattice )
+namespace NC = NCrystal;
+
+NC::RotMatrix NC::getCrystal2LabRot( const NC::SCOrientation& sco,
+                                     const NC::RotMatrix& reci_lattice )
 {
   if (!sco.isComplete())
     NCRYSTAL_THROW(BadInput,"Incomplete SCOrientation object - must set both primary and secondary directions.");
@@ -70,7 +72,7 @@ NCrystal::RotMatrix NCrystal::getCrystal2LabRot( const NCrystal::SCOrientation& 
   return RotMatrix(dirl[0],dirc[0],dirl[1],dirc[1]);
 }
 
-NCrystal::RotMatrix NCrystal::getReciprocalLatticeRot( const NCrystal::MatInfo& cinfo )
+NC::RotMatrix NC::getReciprocalLatticeRot( const NC::Info& cinfo )
 {
   if (!cinfo.hasStructureInfo())
     NCRYSTAL_THROW(MissingInfo,"Passed Info object lacks Structure information.");

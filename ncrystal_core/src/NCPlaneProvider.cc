@@ -20,7 +20,7 @@
 
 #include "NCrystal/internal/NCPlaneProvider.hh"
 #include "NCrystal/internal/NCOrientUtils.hh"
-#include "NCrystal/NCMatInfo.hh"
+#include "NCrystal/NCInfo.hh"
 #include "NCrystal/internal/NCRotMatrix.hh"
 #include "NCrystal/internal/NCEqRefl.hh"
 
@@ -32,8 +32,8 @@ namespace NCrystal {
   class PlaneProviderStd final : public PlaneProvider {
   public:
 
-    PlaneProviderStd(shared_obj<const MatInfo>);
-    PlaneProviderStd( const MatInfo * );
+    PlaneProviderStd(shared_obj<const Info>);
+    PlaneProviderStd( const Info * );
     virtual ~PlaneProviderStd() = default;
 
     bool canProvide() const final;
@@ -41,8 +41,8 @@ namespace NCrystal {
     bool getNextPlane(double& dspacing, double& fsq, Vector& demi_normal) final;
 
   private:
-    optional_shared_obj<const MatInfo> m_info_strongref;
-    const MatInfo* m_info;
+    optional_shared_obj<const Info> m_info_strongref;
+    const Info* m_info;
     enum{ STRAT_MISSING, STRAT_DEMINORMAL, STRAT_EXPHKL, STRAT_SPACEGROUP } m_strategy;
     //outer loop:
     HKLList::const_iterator m_it_hklE;
@@ -78,13 +78,13 @@ namespace NCrystal {
     EqRefl m_eqreflcalc;
   };
 
-  PlaneProviderStd::PlaneProviderStd(shared_obj<const MatInfo> cinfo)
+  PlaneProviderStd::PlaneProviderStd(shared_obj<const Info> cinfo)
     : PlaneProviderStd(cinfo.get())
   {
     m_info_strongref = std::move(cinfo);
   }
 
-  PlaneProviderStd::PlaneProviderStd(const MatInfo* cinfo)
+  PlaneProviderStd::PlaneProviderStd(const Info* cinfo)
     : PlaneProvider(),
       m_info(cinfo),
       m_strategy(STRAT_MISSING),
@@ -198,11 +198,11 @@ namespace NCrystal {
     return true;
   }
 
-  std::unique_ptr<PlaneProvider> createStdPlaneProvider(shared_obj<const MatInfo> info)
+  std::unique_ptr<PlaneProvider> createStdPlaneProvider(shared_obj<const Info> info)
   {
     return std::make_unique<PlaneProviderStd>(std::move(info));
   }
-  std::unique_ptr<PlaneProvider> createStdPlaneProvider(const MatInfo* info)
+  std::unique_ptr<PlaneProvider> createStdPlaneProvider(const Info* info)
   {
     return std::make_unique<PlaneProviderStd>(info);
   }

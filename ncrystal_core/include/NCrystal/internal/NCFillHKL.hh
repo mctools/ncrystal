@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCMatInfo.hh"
+#include "NCrystal/NCInfo.hh"
 
 namespace NCrystal {
 
@@ -60,7 +60,7 @@ namespace NCrystal {
     Optional<bool> use_unit_debye_waller_factor = NullOpt;
   };
 
-  void fillHKL( MatInfo &info, FillHKLCfg = {} );
+  void fillHKL( Info& info, FillHKLCfg = {} );
 
 }
 

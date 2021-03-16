@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCMatInfo.hh"
+#include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCTextData.hh"
 #include "NCrystal/NCMatCfg.hh"
 
@@ -54,26 +54,26 @@ namespace NCrystal {
 
   //The core feature is to load from parsed NCMAT data structure (which will be
   //consumed):
-  NCRYSTAL_API MatInfo loadNCMAT( NCMATData&& ncmat_data,
+  NCRYSTAL_API Info loadNCMAT( NCMATData&& ncmat_data,
                                   NCMATCfgVars&& cfgvars = NCMATCfgVars() );
 
   //For conveniece, can also parse TextData and load result:
-  NCRYSTAL_API MatInfo loadNCMAT( const TextData&,
+  NCRYSTAL_API Info loadNCMAT( const TextData&,
                                   NCMATCfgVars&& cfgvars = NCMATCfgVars() );
 
   //For additional convenience can also load TextData from filename, parse it,
   //and then load it:
-  NCRYSTAL_API MatInfo loadNCMAT( const char * ncmat_file,
+  NCRYSTAL_API Info loadNCMAT( const char * ncmat_file,
                                   NCMATCfgVars&& cfgvars = NCMATCfgVars() );
 
-  NCRYSTAL_API MatInfo loadNCMAT( const std::string& ncmat_file,
+  NCRYSTAL_API Info loadNCMAT( const std::string& ncmat_file,
                                   NCMATCfgVars&& cfgvars = NCMATCfgVars() );
 
   //Finally, it is of course possible to load directly from MatCfg objects, as
   //they, contain both configuration and TextData (will only use data available
   //on MatInfoCfg):
-  NCRYSTAL_API MatInfo loadNCMAT( const MatInfoCfg& );
-  NCRYSTAL_API MatInfo loadNCMAT( const MatCfg& );
+  NCRYSTAL_API Info loadNCMAT( const MatInfoCfg& );
+  NCRYSTAL_API Info loadNCMAT( const MatCfg& );
 
   //@CUSTOM_xxx sections in NCMAT input will produce warnings by default, unless
   //the env var NCRYSTAL_NCMAT_NOWARNFORCUSTOM was set when NCrystal was

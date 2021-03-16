@@ -46,6 +46,7 @@ namespace NCPluginNamespace {
 
 //For convenience we include the public NCrystal API and creates a few aliases:
 #include "NCrystal/NCrystal.hh"
+
 namespace NC = NCrystal;
 namespace NCP = NCPluginNamespace;
 

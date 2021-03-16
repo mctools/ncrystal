@@ -22,7 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCProcImpl.hh"
-#include "NCrystal/NCMatInfo.hh"
+#include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCSCOrientation.hh"
 
 namespace NCrystal {
@@ -44,7 +44,7 @@ namespace NCrystal {
     //assume ownership of it.
     //
     //For a description of the prec and ntrunc parameters, see NCGaussMos.hh.
-    SCBragg( const MatInfo&,
+    SCBragg( const Info&,
              const SCOrientation&,
              MosaicityFWHM,
              double delta_d = 0,

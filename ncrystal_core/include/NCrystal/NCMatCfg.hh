@@ -236,7 +236,7 @@ namespace NCrystal {
     //               By supplying the name of an NCrystal factory, this
     //               parameter can be used by experts to circumvent the usual
     //               factory selection algorithms and instead choose the factory
-    //               for creating NCrystal::MatInfo instances directly.
+    //               for creating NCrystal::Info instances directly.
     //               (TODO: Mention how to set flags like expandhkl)
     //
     // scatfactory.: [ string, fallback value is "" ]

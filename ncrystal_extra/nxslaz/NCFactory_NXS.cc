@@ -185,12 +185,12 @@ double NC::XSectProvider_NXS::xsectScatNonBragg(const double& lambda) const
   return xsect_cell > 0.0 ? xsect_cell / nxs_uc.nAtoms : 0.0;//protect against negative numbers and NaNs propagating from nxslib code.
 }
 
-NC::MatInfo NC::loadNXSCrystal( const TextData& textData,
-                                Temperature temperature,
-                                double dcutoff_lower_aa,
-                                double dcutoff_upper_aa,
-                                bool bkgdlikemcstas,
-                                bool fixpolyatom )
+NC::Info NC::loadNXSCrystal( const TextData& textData,
+                             Temperature temperature,
+                             double dcutoff_lower_aa,
+                             double dcutoff_upper_aa,
+                             bool bkgdlikemcstas,
+                             bool fixpolyatom )
 {
   std::string dataDescr = textData.description();
 
@@ -205,10 +205,10 @@ NC::MatInfo NC::loadNXSCrystal( const TextData& textData,
              <<")"<<std::endl;
 
   ///////////////////////////////
-  // Create CrystalInfo object //
+  // Create Info object //
   ///////////////////////////////
 
-  MatInfo crystal;
+  Info info;
 
   //////////////////////////////////////////////////////////////////
   // Load and init NXS info (twice to figure out adequate maxhkl) //
@@ -265,14 +265,14 @@ NC::MatInfo NC::loadNXSCrystal( const TextData& textData,
     initNXS(&nxs_uc, textData, temperature.get(), maxhkl, fixpolyatom );
   }
 
-  crystal.setXSectProvider(xsect_provider);
+  info.setXSectProvider(xsect_provider);
 
   //////////////////////
   // ... add HKL info //
   //////////////////////
 
   if (enable_hkl) {
-    crystal.enableHKLInfo(dcutoff_lower_aa,dcutoff_upper_aa);
+    info.enableHKLInfo(dcutoff_lower_aa,dcutoff_upper_aa);
     nxs::NXS_HKL *it = &(nxs_uc.hklList[0]);
     nxs::NXS_HKL *itE = it + nxs_uc.nHKL;
     for (;it!=itE;++it) {
@@ -287,12 +287,12 @@ NC::MatInfo NC::loadNXSCrystal( const TextData& textData,
       hi.multiplicity = it->multiplicity;
       hi.dspacing = it->dhkl;
       hi.fsquared = 0.01 * it->FSquare;
-      crystal.addHKL(std::move(hi));
+      info.addHKL(std::move(hi));
     }
     //We used to emit a warning here, but decided not to (user should be allowed
     //to deliberately exclude all bragg edges via the dcutoff parameter without
     //getting warnings):
-    // if (!crystal.nHKL())
+    // if (!info.nHKL())
     //   printf("NCrystal::loadNXSCrystal WARNING: No HKL planes selected from file \"%s\"\n",nxs_file);
   }
 
@@ -311,7 +311,7 @@ NC::MatInfo NC::loadNXSCrystal( const TextData& textData,
   si.volume = nxs_uc.volume;
   si.n_atoms = nxs_uc.nAtoms;
 
-  crystal.setStructInfo(si);
+  info.setStructInfo(si);
 
   /////////////////////////////////////////////
   // ... add cross section info and atom info//
@@ -400,29 +400,29 @@ NC::MatInfo NC::loadNXSCrystal( const TextData& textData,
     average_atomic_mass_amu /= ntot;
     sigma_abs /= ntot;
     sigma_free /= ntot;
-    crystal.setXSectAbsorption( SigmaAbsorption{ sigma_abs } );
-    crystal.setXSectFree( SigmaFree{ sigma_free } );
+    info.setXSectAbsorption( SigmaAbsorption{ sigma_abs } );
+    info.setXSectFree( SigmaFree{ sigma_free } );
   }
 
   for (auto& e : zval_2_atominfo)
-    crystal.addAtom( e.second.moveToAtomInfo( nxs_uc.debyeTemp ) );//same Debye temp for all atoms
+    info.addAtom( e.second.moveToAtomInfo( nxs_uc.debyeTemp ) );//same Debye temp for all atoms
 
   //////////////////////////////
   // ... add temperature info //
   //////////////////////////////
 
   if (nxs_uc.temperature>0.0)
-    crystal.setTemperature(Temperature{nxs_uc.temperature});
+    info.setTemperature(Temperature{nxs_uc.temperature});
 
   /////////////////////
   // ... add density //
   /////////////////////
 
-  crystal.setDensity( Density{ nxs_uc.density } );
+  info.setDensity( Density{ nxs_uc.density } );
 
   //1e27 in next line converts kg/Aa^3 to g/cm^3:
   const double numberdensity_2_density = 1e27 * average_atomic_mass_amu * constant_dalton2kg;
-  crystal.setNumberDensity( NumberDensity{ nxs_uc.density / numberdensity_2_density } );
+  info.setNumberDensity( NumberDensity{ nxs_uc.density / numberdensity_2_density } );
 
 
   ///////////
@@ -433,6 +433,6 @@ NC::MatInfo NC::loadNXSCrystal( const TextData& textData,
   //point on, so might as well save some memory:
   deinitNXS_partly(&nxs_uc);
 
-  crystal.objectDone();
-  return crystal;
+  info.objectDone();
+  return info;
 }

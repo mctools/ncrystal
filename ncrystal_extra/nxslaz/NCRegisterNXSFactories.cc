@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCMatInfo.hh"
+#include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCFactImpl.hh"
 #include "NCrystal/NCDataSources.hh"
 #include "NCrystal/NCMatCfg.hh"
@@ -38,13 +38,13 @@ namespace NCrystal {
       return cfg.getDataType()=="nxs" ? Priority{100} : Priority::Unable;
     }
 
-    shared_obj<const MatInfo> produce( const MatInfoCfg& cfg ) const final
+    shared_obj<const Info> produce( const MatInfoCfg& cfg ) const final
     {
       nc_assert_always(cfg.getDataType()=="nxs");
       const char * flag_bkgdlikemcstas = "mcstaslikebkgd";
       const char * flag_fixpolyatom = "fixpolyatoms";
       cfg.infofactopt_validate({flag_bkgdlikemcstas,flag_fixpolyatom});
-      return makeSO<const MatInfo>(loadNXSCrystal( cfg.textData(),
+      return makeSO<const Info>(loadNXSCrystal( cfg.textData(),
                                                    cfg.get_temp().dbl()==-1.0?Temperature{293.15}:cfg.get_temp(),
                                                    cfg.get_dcutoff(),
                                                    cfg.get_dcutoffup(),
@@ -63,7 +63,7 @@ namespace NCrystal {
       return (ext=="laz"||ext=="lau") ? Priority{100} : Priority::Unable;
     }
 
-    shared_obj<const MatInfo> produce( const MatInfoCfg& cfg ) const final
+    shared_obj<const Info> produce( const MatInfoCfg& cfg ) const final
     {
       LazLoader ld (cfg.textData(),
                     cfg.get_dcutoff(),

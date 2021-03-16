@@ -22,7 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCProcImpl.hh"
-#include "NCrystal/NCMatInfo.hh"
+#include "NCrystal/NCInfo.hh"
 
 namespace NCrystal {
 
@@ -31,12 +31,12 @@ namespace NCrystal {
 
     //Calculates background (non-Bragg) scattering in a crystal, based on
     //external functions for calculating cross-sections, using the XSectProvider
-    //section in the passed <MatInfo object. Scatterings will be elastic and
+    //section in the passed Info object. Scatterings will be elastic and
     //isotropic.
 
     const char * name() const noexcept final { return "BkgdExtCurve"; }
 
-    BkgdExtCurve( shared_obj<const MatInfo> );
+    BkgdExtCurve( shared_obj<const Info> );
     virtual ~BkgdExtCurve();
 
     CrossSect crossSectionIsotropic(CachePtr&, NeutronEnergy ) const final;
@@ -44,7 +44,7 @@ namespace NCrystal {
     ScatterOutcome sampleScatter(CachePtr&, RNG&, NeutronEnergy, const NeutronDirection& ) const final;
 
   protected:
-    shared_obj<const MatInfo> m_ci;
+    shared_obj<const Info> m_ci;
   };
 }
 

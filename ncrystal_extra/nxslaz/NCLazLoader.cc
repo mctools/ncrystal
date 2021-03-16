@@ -74,14 +74,14 @@ bool NC::LazLoader::setupSgInfo(unsigned spaceGroupNbr, nxs::T_SgInfo& sgInfo) {
   return true;
 }
 
-NC::shared_obj<const NC::MatInfo> NC::LazLoader::getCrystalInfo()
+NC::shared_obj<const NC::Info> NC::LazLoader::getCrystalInfo()
 {
   return m_cinfo;
 }
 
 NC::LazLoader::LazLoader(const TextData& data,double dcutlow, double dcutup, Temperature temp)
   : m_inputDescription(data.description()),
-    m_cinfo(makeSO<MatInfo>()),
+    m_cinfo(makeSO<Info>()),
     m_dcutlow(dcutlow),
     m_dcutup(dcutup),
     m_temp(temp)

@@ -661,7 +661,24 @@ std::vector<NCD::FileListEntry> NCD::listAvailableFiles()
   v.reserve(128);
   for ( const auto& f : FactImpl::getTextDataFactoryList() ) {
     const std::string factName = f->name();
-    for ( auto& b : f->browse() )
+    auto l = f->browse();
+    std::stable_sort(l.begin(),l.end(),[](const decltype(l)::value_type& a,const decltype(l)::value_type& b)
+    {
+      if ( a.priority != b.priority ) {
+        auto pa = a.priority;
+        auto pb = b.priority;
+        if (!pa.canServiceRequest()||!pb.canServiceRequest())
+          NCRYSTAL_THROW2(LogicError,"Factory "<<(!pa.canServiceRequest()?a.name:b.name)
+                          <<" browse() method returns entries with Priority::Unable");
+        uint_fast32_t pav = pa.needsExplicitRequest() ? 0 : pa.priority();
+        uint_fast32_t pbv = pb.needsExplicitRequest() ? 0 : pb.priority();
+        return pav > pbv;//descending sort
+      }
+      if ( a.name != b.name )
+        return a.name < b.name;
+      return a.source < b.source;
+    });
+    for ( auto& b : l )
       v.push_back(FileListEntry{std::move(b.name),
                                 std::move(b.source),
                                 factName,

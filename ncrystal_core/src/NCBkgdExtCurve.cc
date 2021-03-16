@@ -23,7 +23,7 @@
 
 namespace NC = NCrystal;
 
-NC::BkgdExtCurve::BkgdExtCurve( shared_obj<const MatInfo> ci )
+NC::BkgdExtCurve::BkgdExtCurve( shared_obj<const Info> ci )
   : m_ci(std::move(ci))
 {
   if (!m_ci->providesNonBraggXSects())

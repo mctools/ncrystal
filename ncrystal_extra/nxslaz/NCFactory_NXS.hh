@@ -21,28 +21,28 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCMatInfo.hh"
+#include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCTextData.hh"
 
 namespace NCrystal {
 
-  MatInfo loadNXSCrystal( const TextData&,
-                          Temperature,
-                          double dcutoff_low_aa,
-                          double dcutoff_upper_aa,
-                          bool bkgdlikemcstas,//compose background curve as done in McStas
-                                              //Sample_nxs.comp rather than as in NXSG4.
-                          bool fixpolyatom//upstream nxslib
-                                          //overestimates
-                                          //incoherent xsect of
-                                          //polyatomic crystals at
-                                          //long wavelengths. Set
-                                          //to exclude this
-                                          //contribution (warning:
-                                          //this might instead
-                                          //underestimate at short
-                                          //wavelengths).
-                                       );
+  Info loadNXSCrystal( const TextData&,
+                       Temperature,
+                       double dcutoff_low_aa,
+                       double dcutoff_upper_aa,
+                       bool bkgdlikemcstas,//compose background curve as done in McStas
+                                           //Sample_nxs.comp rather than as in NXSG4.
+                       bool fixpolyatom//upstream nxslib
+                                       //overestimates
+                                       //incoherent xsect of
+                                       //polyatomic crystals at
+                                       //long wavelengths. Set
+                                       //to exclude this
+                                       //contribution (warning:
+                                       //this might instead
+                                       //underestimate at short
+                                       //wavelengths).
+                       );
 
 }
 

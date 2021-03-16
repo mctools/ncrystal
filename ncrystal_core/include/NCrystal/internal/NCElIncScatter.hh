@@ -26,7 +26,7 @@
 namespace NCrystal {
 
   class ElIncXS;
-  class MatInfo;
+  class Info;
 
   class ElIncScatter final : public ProcImpl::ScatterIsotropicMat {
   public:
@@ -42,8 +42,8 @@ namespace NCrystal {
     const char * name() const noexcept final { return "ElIncScatter"; }
     virtual ~ElIncScatter();
 
-    //Construct from MatInfo:
-    ElIncScatter( const MatInfo& );
+    //Construct from Info:
+    ElIncScatter( const Info& );
 
     //Constructor similar to the ElIncXS constructor:
     ElIncScatter( const VectD& elements_meanSqDisp,

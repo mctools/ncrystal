@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCMatInfo.hh"
+#include "NCrystal/NCInfo.hh"
 #include "NCrystal/internal/NCLatticeUtils.hh"
 #include "NCrystal/internal/NCMath.hh"
 #include "NCrystal/internal/NCString.hh"
@@ -89,7 +89,7 @@ namespace NCrystal {
   }
 }
 
-void NC::MatInfo::objectDone()
+void NC::Info::objectDone()
 {
   //TODO: Throw LogicErrors or BadInput here?
   ensureNoLock();
@@ -437,7 +437,7 @@ void NC::MatInfo::objectDone()
   }
 }
 
-void NC::MatInfo::enableHKLInfo(double dlower, double dupper)
+void NC::Info::enableHKLInfo(double dlower, double dupper)
 {
   ensureNoLock();
   nc_assert_always( !m_hkl_dlower_and_dupper.has_value() );
@@ -445,13 +445,13 @@ void NC::MatInfo::enableHKLInfo(double dlower, double dupper)
   nc_assert_always(hasHKLInfo());
 }
 
-void NC::MatInfo::ensureNoLock()
+void NC::Info::ensureNoLock()
 {
   if (m_lock)
     NCRYSTAL_THROW(LogicError,"Modification of Info object after it is locked is forbidden");
 }
 
-NC::HKLList::const_iterator NC::MatInfo::searchExpandedHKL(short h, short k, short l) const
+NC::HKLList::const_iterator NC::Info::searchExpandedHKL(short h, short k, short l) const
 {
   nc_assert_always(hasHKLInfo());
   nc_assert_always(hasExpandedHKLInfo());
@@ -476,7 +476,7 @@ NC::HKLList::const_iterator NC::MatInfo::searchExpandedHKL(short h, short k, sho
 //demi_normals from the interface? The memory usage is 4 times lower and the
 //added initialisation time is likely negligible.
 
-double NC::MatInfo::hklDMinVal() const
+double NC::Info::hklDMinVal() const
 {
   nc_assert(hasHKLInfo());
   if (m_hkllist.empty())
@@ -484,7 +484,7 @@ double NC::MatInfo::hklDMinVal() const
   return hklLast()->dspacing;
 }
 
-double NC::MatInfo::hklDMaxVal() const
+double NC::Info::hklDMaxVal() const
 {
   nc_assert(hasHKLInfo());
   if (m_hkllist.empty())
@@ -492,7 +492,7 @@ double NC::MatInfo::hklDMaxVal() const
   return hklBegin()->dspacing;
 }
 
-double NC::MatInfo::dspacingFromHKL( int h, int k, int l ) const
+double NC::Info::dspacingFromHKL( int h, int k, int l ) const
 {
   if (!hasStructureInfo())
     NCRYSTAL_THROW(MissingInfo,"Info object lacks Structure information.");
@@ -536,7 +536,7 @@ NC::DI_ScatKnlDirect::~DI_ScatKnlDirect() = default;
 NC::DI_VDOS::~DI_VDOS() = default;
 NC::DI_VDOSDebye::~DI_VDOSDebye() = default;
 
-unsigned NC::MatInfo::countCustomSections(const NC::MatInfo::CustomSectionName& sectionname ) const
+unsigned NC::Info::countCustomSections(const NC::Info::CustomSectionName& sectionname ) const
 {
   unsigned i = 0;
   for (const auto& e: m_custom) {
@@ -546,8 +546,8 @@ unsigned NC::MatInfo::countCustomSections(const NC::MatInfo::CustomSectionName& 
   return i;
 }
 
-const NC::MatInfo::CustomSectionData& NC::MatInfo::getCustomSection( const NC::MatInfo::CustomSectionName& name,
-                                                                     unsigned index ) const
+const NC::Info::CustomSectionData& NC::Info::getCustomSection( const NC::Info::CustomSectionName& name,
+                                                               unsigned index ) const
 {
   unsigned i = 0;
   for (const auto& e: m_custom) {

@@ -37,7 +37,7 @@ namespace NCG4 = G4NCrystal;
 
 namespace G4NCrystal {
   namespace {
-    class RNG_G4Wrapper : public NC::Modern::RNGStream {
+    class RNG_G4Wrapper : public NC::RNGStream {
       CLHEP::HepRandomEngine * m_engine;
     public:
       //Can be cheaply created on the stack just before being used in calls to

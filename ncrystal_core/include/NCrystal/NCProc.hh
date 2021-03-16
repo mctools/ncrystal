@@ -50,103 +50,100 @@ namespace NCrystal {
   //                                                                          //
   //////////////////////////////////////////////////////////////////////////////
 
-  namespace Modern {
+  class Scatter;
+  class Absorption;
 
-    class Scatter;
-    class Absorption;
+  class NCRYSTAL_API Process : private MoveOnly {
+  public:
 
-    class NCRYSTAL_API Process : private MoveOnly {
-    public:
+    MaterialType materialType() const noexcept;
+    ProcessType processType() const noexcept;
+    const char * name() const noexcept;
+    bool isOriented() const noexcept;
+    EnergyDomain domain() const noexcept;
+    bool isNull() const noexcept;
 
-      MaterialType materialType() const noexcept;
-      ProcessType processType() const noexcept;
-      const char * name() const noexcept;
-      bool isOriented() const noexcept;
-      EnergyDomain domain() const noexcept;
-      bool isNull() const noexcept;
+    CrossSect crossSection( NeutronEnergy, const NeutronDirection& );
+    CrossSect crossSectionIsotropic( NeutronEnergy );
 
-      CrossSect crossSection( NeutronEnergy, const NeutronDirection& );
-      CrossSect crossSectionIsotropic( NeutronEnergy );
+    void clearCache();
+    ProcImpl::ProcPtr underlyingPtr() const;
+    const ProcImpl::Process& underlying() const;
 
-      void clearCache();
-      ProcImpl::ProcPtr underlyingPtr() const;
-      const ProcImpl::Process& underlying() const;
+    virtual ~Process() = default;
 
-      virtual ~Process() = default;
+  protected:
+    //Allow move semantics only on derived classes:
+    Process( Process&& ) = default;
+    Process& operator=( Process&& ) = default;
+    ProcImpl::ProcPtr m_proc;
+    CachePtr m_cachePtr;
+  private:
+    //Only allow Scatter + Absorption to implement:
+    Process( ProcImpl::ProcPtr );
+    friend class Scatter;
+    friend class Absorption;
+  };
 
-    protected:
-      //Allow move semantics only on derived classes:
-      Process( Process&& ) = default;
-      Process& operator=( Process&& ) = default;
-      ProcImpl::ProcPtr m_proc;
-      CachePtr m_cachePtr;
-    private:
-      //Only allow Scatter + Absorption to implement:
-      Process( ProcImpl::ProcPtr );
-      friend class Scatter;
-      friend class Absorption;
-    };
+  /////////////////////////////////////////////////////////////////////////////////
+  class NCRYSTAL_API Absorption final : public Process {
+  public:
+    //NB: Methods related to e.g. cross section are inherited from Process.
 
-    /////////////////////////////////////////////////////////////////////////////////
-    class NCRYSTAL_API Absorption final : public Process {
-    public:
-      //NB: Methods related to e.g. cross section are inherited from Process.
+    //Multi-threaded applications should clone the object and work
+    //with one cloned object per thread:
+    Absorption clone() const;
 
-      //Multi-threaded applications should clone the object and work
-      //with one cloned object per thread:
-      Absorption clone() const;
+    //Allow move-semantics:
+    Absorption( Absorption&& ) = default;
+    Absorption& operator=( Absorption&& ) = default;
 
-      //Allow move-semantics:
-      Absorption( Absorption&& ) = default;
-      Absorption& operator=( Absorption&& ) = default;
+    //Constructor (NB: Most users will instead use the global
+    //createAbsorption function from NCFact.hh):
+    Absorption( ProcImpl::ProcPtr );
 
-      //Constructor (NB: Most users will instead use the global
-      //createAbsorption function from NCFact.hh):
-      Absorption( ProcImpl::ProcPtr );
+  };
 
-    };
+  class NCRYSTAL_API Scatter final : public Process {
+  public:
 
-    class NCRYSTAL_API Scatter final : public Process {
-    public:
+    //NB: Methods related to e.g. cross section are inherited from Process.
 
-      //NB: Methods related to e.g. cross section are inherited from Process.
+    //Sample scatterings.
+    ScatterOutcome sampleScatter( NeutronEnergy, const NeutronDirection& );
+    ScatterOutcomeIsotropic sampleScatterIsotropic( NeutronEnergy );
 
-      //Sample scatterings.
-      ScatterOutcome sampleScatter( NeutronEnergy, const NeutronDirection& );
-      ScatterOutcomeIsotropic sampleScatterIsotropic( NeutronEnergy );
+    //Multi-threaded applications should clone the object and work
+    //with one cloned object per thread (will use equivalently named
+    //RNGProducer::produceXXX methods to produce new RNG stream for
+    //cloned object):
+    Scatter clone();
+    Scatter cloneByIdx( RNGStreamIndex rngstreamid );
+    Scatter cloneForCurrentThread();
+    //Other esoteric cloning methods:
+    Scatter cloneWithIdenticalRNGSettings();
+    Scatter clone( shared_obj<RNGProducer>, shared_obj<RNG> );
 
-      //Multi-threaded applications should clone the object and work
-      //with one cloned object per thread (will use equivalently named
-      //RNGProducer::produceXXX methods to produce new RNG stream for
-      //cloned object):
-      Scatter clone();
-      Scatter cloneByIdx( RNGStreamIndex rngstreamid );
-      Scatter cloneForCurrentThread();
-      //Other esoteric cloning methods:
-      Scatter cloneWithIdenticalRNGSettings();
-      Scatter clone( shared_obj<RNGProducer>, shared_obj<RNG> );
+    //Access and manipulate RNG state:
+    RNG& rng();
+    shared_obj<RNG> rngSO();
+    RNGProducer& rngproducer();
+    shared_obj<RNGProducer> rngproducerSO();
+    void replaceRNG( shared_obj<RNG>, shared_obj<RNGProducer> );
+    void replaceRNGAndUpdateProducer( shared_obj<RNGStream> );//will reinit current producer (potentially affecting other objects!)
 
-      //Access and manipulate RNG state:
-      RNG& rng();
-      shared_obj<RNG> rngSO();
-      RNGProducer& rngproducer();
-      shared_obj<RNGProducer> rngproducerSO();
-      void replaceRNG( shared_obj<RNG>, shared_obj<RNGProducer> );
-      void replaceRNGAndUpdateProducer( shared_obj<RNGStream> );//will reinit current producer (potentially affecting other objects!)
+    //Allow move-semantics:
+    Scatter( Scatter&& ) = default;
+    Scatter &operator=(Scatter &&) = default;
 
-      //Allow move-semantics:
-      Scatter( Scatter&& ) = default;
-      Scatter &operator=(Scatter &&) = default;
+    //Constructor (NB: Most users will instead use the global
+    //createScatter function from NCFact.hh):
+    Scatter( shared_obj<RNGProducer>, shared_obj<RNG>, ProcImpl::ProcPtr );
+  private:
+    shared_obj<RNG> m_rng;
+    shared_obj<RNGProducer> m_rngproducer;
+  };
 
-      //Constructor (NB: Most users will instead use the global
-      //createScatter function from NCFact.hh):
-      Scatter( shared_obj<RNGProducer>, shared_obj<RNG>, ProcImpl::ProcPtr );
-    private:
-      shared_obj<RNG> m_rng;
-      shared_obj<RNGProducer> m_rngproducer;
-    };
-
-  }
 }
 
 
@@ -154,30 +151,30 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-inline NCrystal::Modern::Process::Process( ProcImpl::ProcPtr pp ) : m_proc(std::move(pp)) {}
-inline NCrystal::Modern::Absorption::Absorption( ProcImpl::ProcPtr pp) : Process(std::move(pp)) {}
-inline NCrystal::Modern::Scatter::Scatter( shared_obj<RNGProducer> rp, shared_obj<RNG> r, ProcImpl::ProcPtr pp )
+inline NCrystal::Process::Process( ProcImpl::ProcPtr pp ) : m_proc(std::move(pp)) {}
+inline NCrystal::Absorption::Absorption( ProcImpl::ProcPtr pp) : Process(std::move(pp)) {}
+inline NCrystal::Scatter::Scatter( shared_obj<RNGProducer> rp, shared_obj<RNG> r, ProcImpl::ProcPtr pp )
   : Process(std::move(pp)), m_rng(std::move(r)), m_rngproducer(std::move(rp)) {}
-inline NCrystal::ProcImpl::ProcPtr NCrystal::Modern::Process::underlyingPtr() const { return m_proc; }
-inline const NCrystal::ProcImpl::Process& NCrystal::Modern::Process::underlying() const { return *m_proc; }
-inline NCrystal::MaterialType NCrystal::Modern::Process::materialType() const noexcept { return m_proc->materialType(); }
-inline NCrystal::ProcessType NCrystal::Modern::Process::processType() const noexcept { return m_proc->processType(); }
-inline const char * NCrystal::Modern::Process::name() const noexcept { return m_proc->name(); }
-inline bool NCrystal::Modern::Process::isOriented() const noexcept { return m_proc->isOriented(); }
-inline NCrystal::EnergyDomain NCrystal::Modern::Process::domain() const noexcept { return m_proc->domain(); }
-inline bool NCrystal::Modern::Process::isNull() const noexcept { return m_proc->isNull(); }
-inline void NCrystal::Modern::Process::clearCache() { m_cachePtr.reset(); }
-inline NCrystal::CrossSect NCrystal::Modern::Process::crossSection( NeutronEnergy ekin, const NeutronDirection& dir )
+inline NCrystal::ProcImpl::ProcPtr NCrystal::Process::underlyingPtr() const { return m_proc; }
+inline const NCrystal::ProcImpl::Process& NCrystal::Process::underlying() const { return *m_proc; }
+inline NCrystal::MaterialType NCrystal::Process::materialType() const noexcept { return m_proc->materialType(); }
+inline NCrystal::ProcessType NCrystal::Process::processType() const noexcept { return m_proc->processType(); }
+inline const char * NCrystal::Process::name() const noexcept { return m_proc->name(); }
+inline bool NCrystal::Process::isOriented() const noexcept { return m_proc->isOriented(); }
+inline NCrystal::EnergyDomain NCrystal::Process::domain() const noexcept { return m_proc->domain(); }
+inline bool NCrystal::Process::isNull() const noexcept { return m_proc->isNull(); }
+inline void NCrystal::Process::clearCache() { m_cachePtr.reset(); }
+inline NCrystal::CrossSect NCrystal::Process::crossSection( NeutronEnergy ekin, const NeutronDirection& dir )
 { return m_proc->crossSection(m_cachePtr,ekin,dir); }
-inline NCrystal::CrossSect NCrystal::Modern::Process::crossSectionIsotropic( NeutronEnergy ekin )
+inline NCrystal::CrossSect NCrystal::Process::crossSectionIsotropic( NeutronEnergy ekin )
 { return m_proc->crossSectionIsotropic(m_cachePtr,ekin); }
-inline NCrystal::shared_obj<NCrystal::RNG> NCrystal::Modern::Scatter::rngSO() { return m_rng; }
-inline NCrystal::RNG& NCrystal::Modern::Scatter::rng() { return m_rng; }
-inline NCrystal::shared_obj<NCrystal::Modern::RNGProducer> NCrystal::Modern::Scatter::rngproducerSO() { return m_rngproducer; }
-inline NCrystal::Modern::RNGProducer& NCrystal::Modern::Scatter::rngproducer() { return m_rngproducer; }
-inline NCrystal::ScatterOutcome NCrystal::Modern::Scatter::sampleScatter( NeutronEnergy ekin, const NeutronDirection& dir )
+inline NCrystal::shared_obj<NCrystal::RNG> NCrystal::Scatter::rngSO() { return m_rng; }
+inline NCrystal::RNG& NCrystal::Scatter::rng() { return m_rng; }
+inline NCrystal::shared_obj<NCrystal::RNGProducer> NCrystal::Scatter::rngproducerSO() { return m_rngproducer; }
+inline NCrystal::RNGProducer& NCrystal::Scatter::rngproducer() { return m_rngproducer; }
+inline NCrystal::ScatterOutcome NCrystal::Scatter::sampleScatter( NeutronEnergy ekin, const NeutronDirection& dir )
 { return m_proc->sampleScatter(m_cachePtr,m_rng,ekin,dir); }
-inline NCrystal::ScatterOutcomeIsotropic NCrystal::Modern::Scatter::sampleScatterIsotropic( NeutronEnergy ekin )
+inline NCrystal::ScatterOutcomeIsotropic NCrystal::Scatter::sampleScatterIsotropic( NeutronEnergy ekin )
 { return m_proc->sampleScatterIsotropic(m_cachePtr,m_rng,ekin); }
 
 #endif

@@ -26,6 +26,8 @@
 #include "NCrystal/NCDefs.hh"
 #include <cstdlib>
 
+namespace NC = NCrystal;
+
 namespace NCrystal {
   //map keys used during search for hkl families.
   typedef unsigned FamKeyType;
@@ -143,7 +145,7 @@ namespace NCrystal {
   }
 }
 
-void NCrystal::fillHKL( NCrystal::MatInfo &info, FillHKLCfg cfg )
+void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
 {
   const bool env_ignorefsqcut = std::getenv("NCRYSTAL_FILLHKL_IGNOREFSQCUT");
   if (env_ignorefsqcut)
@@ -229,7 +231,7 @@ void NCrystal::fillHKL( NCrystal::MatInfo &info, FillHKLCfg cfg )
 
   //We now conduct a brute-force loop over h,k,l indices, adding calculated info
   //in the following containers along the way:
-  NCrystal::HKLList hkllist;
+  HKLList hkllist;
   std::vector<std::vector<short> > eqv_hkl_short;
 
   //Breaking O(N^2) complexity in compatibility searches by using map (the key
@@ -357,7 +359,7 @@ void NCrystal::fillHKL( NCrystal::MatInfo &info, FillHKLCfg cfg )
           if ( hkllist.size()>1000000 && !env_ignorefsqcut )//guard against crazy setups
             NCRYSTAL_THROW2(CalcError,"Combinatorics too great to reach requested dcutoff = "<<cfg.dcutoff<<" Aa");
 
-          NCrystal::HKLInfo hi;
+          HKLInfo hi;
           hi.h=loop_h;
           hi.k=loop_k;
           hi.l=loop_l;

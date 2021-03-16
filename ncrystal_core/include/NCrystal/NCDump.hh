@@ -25,12 +25,10 @@
 
 namespace NCrystal {
 
-  class MatInfo;
-  namespace Legacy { class Info; }
+  class Info;
 
   //Dumps info to stdout:
-  NCRYSTAL_API void dump(const MatInfo&);
-  NCRYSTAL_API void dump(const Legacy::Info*);
+  NCRYSTAL_API void dump(const Info&);
 }
 
 #endif

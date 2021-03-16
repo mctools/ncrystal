@@ -26,7 +26,7 @@
 
 namespace NCrystal {
 
-  class MatInfo;
+  class Info;
 
   //Helper function which finally constructs the rotation between the crystal
   //frame and the laboratory frame based on a completed SCOrientation
@@ -41,7 +41,7 @@ namespace NCrystal {
 
   //Convenience wrapper, providing the reciprocal lattice matrix needed above
   //directly from an Info object (errors if StructureInfo is missing):
-  RotMatrix getReciprocalLatticeRot( const MatInfo& info );
+  RotMatrix getReciprocalLatticeRot( const Info& info );
 
 }
 

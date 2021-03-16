@@ -22,7 +22,7 @@
 #include "NCrystal/internal/NCPlaneProvider.hh"
 #include "NCrystal/internal/NCDynInfoUtils.hh"
 #include "NCrystal/NCProcImpl.hh"
-#include "NCrystal/NCMatInfo.hh"
+#include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCSCOrientation.hh"
 #include "NCrystal/internal/NCPCBragg.hh"
 #include "NCrystal/internal/NCSCBragg.hh"
@@ -103,7 +103,7 @@ namespace NCrystal {
         NCRYSTAL_THROW2(LogicError,"Could not create ProcImpl process for cfg=\""<<cfg
                         <<"\" (this factory-produce method should not have been called)");
 
-      const MatInfo& info = ana.info;
+      const Info& info = ana.info;
       const auto& inelas = ana.inelas;
 
       nc_assert_always(isOneOf(inelas,"none","external","dyninfo","vdosdebye","freegas"));
@@ -238,14 +238,14 @@ namespace NCrystal {
     //Common analysis function shared between canCreateScatter and createScatter
     //methods.
     struct CfgAnalysis {
-      CfgAnalysis(shared_obj<const MatInfo> ii) : info(std::move(ii)) {}
+      CfgAnalysis(shared_obj<const Info> ii) : info(std::move(ii)) {}
       bool able = true;
-      shared_obj<const MatInfo> info;
+      shared_obj<const Info> info;
       std::string inelas;
     };
     CfgAnalysis analyseCfg( const MatCfg& cfg ) const {
       CfgAnalysis result(FactImpl::createInfo( cfg ));
-      const MatInfo& info = result.info;
+      const Info& info = result.info;
 
       result.inelas = cfg.get_inelas();
 

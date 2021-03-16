@@ -57,11 +57,11 @@ struct NC::SCBragg::pimpl {
   typedef std::map<std::pair<uint64_t,uint64_t>,std::vector<Vector>,
                    std::greater<std::pair<uint64_t,uint64_t> > > SCBraggSortMap;
 
-  pimpl( const NC::MatInfo&, MosaicityFWHM, double dd,
+  pimpl( const NC::Info&, MosaicityFWHM, double dd,
          const SCOrientation&, PlaneProvider * plane_provider,
          double prec, double ntrunc );
 
-  double setupFamilies( const MatInfo& cinfo,
+  double setupFamilies( const Info& cinfo,
                         const RotMatrix& cry2lab,
                         PlaneProvider * plane_provider,
                         double V0numAtom );
@@ -86,7 +86,7 @@ struct NC::SCBragg::pimpl {
   GaussMos m_gm;
 };
 
-NC::SCBragg::pimpl::pimpl(const NC::MatInfo& cinfo, MosaicityFWHM mosaicity,
+NC::SCBragg::pimpl::pimpl(const NC::Info& cinfo, MosaicityFWHM mosaicity,
                           double dd, const SCOrientation& sco, PlaneProvider * plane_provider,
                           double prec, double ntrunc)
   : m_threshold_ekin(kInfinity),
@@ -109,7 +109,7 @@ NC::SCBragg::pimpl::pimpl(const NC::MatInfo& cinfo, MosaicityFWHM mosaicity,
 
 }
 
-NC::SCBragg::SCBragg( const NC::MatInfo& cinfo,
+NC::SCBragg::SCBragg( const NC::Info& cinfo,
                       const SCOrientation& sco,
                       MosaicityFWHM mosaicity,
                       double dd,
@@ -121,7 +121,7 @@ NC::SCBragg::SCBragg( const NC::MatInfo& cinfo,
 
 NC::SCBragg::~SCBragg() = default;
 
-double NC::SCBragg::pimpl::setupFamilies( const NC::MatInfo& cinfo,
+double NC::SCBragg::pimpl::setupFamilies( const NC::Info& cinfo,
                                           const NC::RotMatrix& cry2lab,
                                           NC::PlaneProvider * plane_provider,
                                           double V0numAtom )

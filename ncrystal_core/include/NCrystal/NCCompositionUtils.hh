@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCMatInfo.hh"
+#include "NCrystal/NCInfo.hh"
 #include <utility>
 
 namespace NCrystal {
@@ -47,7 +47,7 @@ namespace NCrystal {
     typedef std::function< std::vector<std::pair<unsigned,double>> ( unsigned ) > NaturalAbundanceProvider;//Z -> [(A,fraction),...]
     typedef std::vector<FullElementBreakdown> FullBreakdown;
     enum ForceIsotopesChoice { ForceIsotopes, PreferNaturalElements };
-    NCRYSTAL_API FullBreakdown createFullBreakdown( const MatInfo::Composition&,
+    NCRYSTAL_API FullBreakdown createFullBreakdown( const Info::Composition&,
                                                     const NaturalAbundanceProvider&,
                                                     ForceIsotopesChoice = PreferNaturalElements );
 
@@ -79,7 +79,7 @@ namespace NCrystal {
 
     typedef std::vector<std::pair<double,ElementBreakdownLW>> LWBreakdown;//(fraction, element)
     NCRYSTAL_API std::string breakdownToStr( const LWBreakdown&, unsigned precision=6 );
-    NCRYSTAL_API LWBreakdown createLWBreakdown( const MatInfo::Composition& a,
+    NCRYSTAL_API LWBreakdown createLWBreakdown( const Info::Composition& a,
                                                 const NaturalAbundanceProvider& b,
                                                 ForceIsotopesChoice c = PreferNaturalElements );
   }

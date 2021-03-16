@@ -19,7 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCDump.hh"
-#include "NCrystal/NCMatInfo.hh"
+#include "NCrystal/NCInfo.hh"
 #include "NCrystal/internal/NCMath.hh"
 #include "NCrystal/internal/NCString.hh"
 #include <cstdio>
@@ -27,7 +27,7 @@
 #include <iostream>
 #include <iomanip>
 
-void NCrystal::dump(const MatInfo&c)
+void NCrystal::dump(const Info&c)
 {
   //Figure out max display label width for column alignment:
   unsigned longestDisplayLabel(0);
@@ -228,11 +228,4 @@ void NCrystal::dump(const MatInfo&c)
     }
   }
   printf("%s", hr);
-}
-
-#include "NCrystal/NCLegacyProcs.hh"
-void NCrystal::dump(const NCrystal::Legacy::Info*c)
-{
-  nc_assert_always(c);
-  dump(c->wrapped());
 }

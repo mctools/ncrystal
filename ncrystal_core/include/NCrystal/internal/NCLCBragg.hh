@@ -28,7 +28,7 @@
 namespace NCrystal {
 
   class PlaneProvider;
-  class MatInfo;
+  class Info;
 
   class LCBragg final : public ProcImpl::ScatterAnisotropicMat {
   public:
@@ -44,7 +44,7 @@ namespace NCrystal {
     //     mode<0: LCBraggRndmRef(nsample=-mode)
     //
     //For a description of the prec and ntrunc parameters, see NCGaussMos.hh.
-    LCBragg( const MatInfo&,
+    LCBragg( const Info&,
              const SCOrientation&,
              MosaicityFWHM,
              const LCAxis& lcaxis,

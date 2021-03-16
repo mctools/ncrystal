@@ -137,7 +137,7 @@ namespace G4NCrystal {
     // natural elements directly from G4's nist manager):               //
     //////////////////////////////////////////////////////////////////////
 
-    G4Material * getBaseMaterial( const NC::MatInfo::Composition& cmp ) {
+    G4Material * getBaseMaterial( const NC::Info::Composition& cmp ) {
       auto key = NCCU::createLWBreakdown( cmp, g4NaturalAbundanceProvider );
       nc_assert(!key.empty());
       NCRYSTAL_DEBUGONLY(for (auto& e: key) { nc_assert_always(e.second.valid()); });

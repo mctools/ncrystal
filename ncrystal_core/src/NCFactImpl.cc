@@ -370,7 +370,7 @@ namespace NCrystal {
         static constexpr const char* name() { return "Info"; }
         constexpr static unsigned nstrongrefs_kept = 20;
         using key_type = DBKey_MatInfoCfg;
-        using produced_type = MatInfo;
+        using produced_type = Info;
         using pubfactory_type = FactImpl::InfoFactory;
         static MatCfg::FactRequested extractRequestedFactoryName( const key_type& key )
         {
@@ -498,7 +498,7 @@ NC::shared_obj<const NC::TextData> NCF::createTextData( const TextDataPath& path
   return produceTextDataSP_PreferPreviousObject( path, std::move(textDataSource) );
 }
 
-NC::shared_obj<const NC::MatInfo> NCF::createInfo( const MatCfg& cfg )
+NC::shared_obj<const NC::Info> NCF::createInfo( const MatCfg& cfg )
 {
   return infoDB().createWithOrWithoutCache( { cfg.createInfoCfg() } );
 }
@@ -535,12 +535,12 @@ NC::ProcImpl::ProcPtr NCF::ScatterFactory::globalCreateScatter( const MatCfg& cf
   return ::NCrystal::FactImpl::createScatter(cfg2);
 }
 
-NC::shared_obj<const NC::MatInfo> NCF::ScatterFactory::globalCreateInfo( const MatCfg& cfg )
+NC::shared_obj<const NC::Info> NCF::ScatterFactory::globalCreateInfo( const MatCfg& cfg )
 {
   return ::NCrystal::FactImpl::createInfo(cfg);
 }
 
-NC::shared_obj<const NC::MatInfo> NCF::ScatterFactory::createInfo( const MatCfg& cfg )
+NC::shared_obj<const NC::Info> NCF::ScatterFactory::createInfo( const MatCfg& cfg )
 {
   return ::NCrystal::FactImpl::createInfo(cfg);
 }

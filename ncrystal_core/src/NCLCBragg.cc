@@ -35,7 +35,7 @@ namespace NCrystal{
   struct LCBragg::pimpl {
 
     pimpl(LCBragg * lcbragg, LCAxis lcaxis, int mode,
-          SCOrientation sco, const MatInfo& cinfo, PlaneProvider * plane_provider,
+          SCOrientation sco, const Info& cinfo, PlaneProvider * plane_provider,
           MosaicityFWHM mosaicity, double delta_d, double prec,double ntrunc)
       : m_ekin_low(-1)
     {
@@ -93,7 +93,7 @@ namespace NCrystal{
 
 }
 
-NC::LCBragg::LCBragg( const MatInfo& ci, const SCOrientation& sco, MosaicityFWHM mosaicity,
+NC::LCBragg::LCBragg( const Info& ci, const SCOrientation& sco, MosaicityFWHM mosaicity,
                       const LCAxis& lcaxis, int mode, double delta_d, PlaneProvider * plane_provider,
                       double prec, double ntrunc)
   : m_pimpl(std::make_unique<pimpl>(this,lcaxis,mode,sco,ci,plane_provider,mosaicity,delta_d,prec,ntrunc))

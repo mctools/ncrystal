@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCMatInfo.hh"
+#include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCTextData.hh"
 #include "NCNXSLib.hh"
 
@@ -32,7 +32,7 @@ namespace NCrystal {
     LazLoader(const TextData& laz_file, double dcutlow, double dcutup, Temperature);
     ~LazLoader() = default;
     void read();
-    shared_obj<const MatInfo> getCrystalInfo();
+    shared_obj<const Info> getCrystalInfo();
   protected:
 
     void preParse(const TextData&);
@@ -41,7 +41,7 @@ namespace NCrystal {
     std::vector<VectS> m_raw_data;
 
 
-    shared_obj<MatInfo> m_cinfo;
+    shared_obj<Info> m_cinfo;
     double m_dcutlow;
     double m_dcutup;
     Temperature m_temp;

@@ -42,11 +42,9 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-//Include all NCrystal public headers (note that this is NCrystalModern.hh only
-//during the migration around NCrystal release 2.5, later it will become
-//NCrystal.hh again):
+//Include all NCrystal public headers:
 
-#include "NCrystal/NCrystalModern.hh"
+#include "NCrystal/NCrystal.hh"
 
 //This example uses the randIsotropicScatterMu function which is only available
 //in an internal NCrystal header file (this is mainly intended as an example of

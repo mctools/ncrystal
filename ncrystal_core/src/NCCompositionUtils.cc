@@ -64,7 +64,7 @@ namespace NCrystal {
   }
 }
 
-NC::CU::FullBreakdown NC::CU::createFullBreakdown( const MatInfo::Composition& composition,
+NC::CU::FullBreakdown NC::CU::createFullBreakdown( const Info::Composition& composition,
                                                    const NC::CU::NaturalAbundanceProvider& natabprov_raw,
                                                    NC::CU::ForceIsotopesChoice forceiso )
 {
@@ -282,7 +282,7 @@ NC::CU::ElementBreakdownLW::ElementBreakdownLW(const NC::CU::FullElementBreakdow
   nc_assert(valid());
 }
 
-NC::CU::LWBreakdown NC::CU::createLWBreakdown( const MatInfo::Composition& a,
+NC::CU::LWBreakdown NC::CU::createLWBreakdown( const Info::Composition& a,
                                                const NaturalAbundanceProvider& b,
                                                ForceIsotopesChoice c )
 {

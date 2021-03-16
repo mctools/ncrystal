@@ -23,63 +23,59 @@
 
 #include "NCrystal/NCMatCfg.hh"
 #include "NCrystal/NCProc.hh"
-#include "NCrystal/NCMatInfo.hh"
+#include "NCrystal/NCInfo.hh"
 
 namespace NCrystal {
 
-  namespace Modern {
+  ///////////////////////////////////////////////////////////////////////////////
+  // Factory functions needed by most clients.                                  //
+  //                                                                            //
+  // These factory functions are thin wrappers around the factory functions     //
+  // from the FactImpl namespace (in NCFactImpl.hh). For the case of Scatter    //
+  // and Absorption classes, they add caching and (for Scatter) RNG stream      //
+  // handling, on top of the process implementations from the ProcImpl          //
+  // namespace (in NCProcImpl.hh). For multi-threaded applications, one can use //
+  // the cloneXXX() methods of the Absorption and Scatter classes, or simply    //
+  // use the ProcImpl classes directly, along with the RNG stream handling from //
+  // NCRNG.hh.                                                                  //
+  ////////////////////////////////////////////////////////////////////////////////
 
-    ///////////////////////////////////////////////////////////////////////////////
-    // Factory functions needed by most clients.                                  //
-    //                                                                            //
-    // These factory functions are thin wrappers around the factory functions     //
-    // from the FactImpl namespace (in NCFactImpl.hh). For the case of Scatter    //
-    // and Absorption classes, they add caching and (for Scatter) RNG stream      //
-    // handling, on top of the process implementations from the ProcImpl          //
-    // namespace (in NCProcImpl.hh). For multi-threaded applications, one can use //
-    // the cloneXXX() methods of the Absorption and Scatter classes, or simply    //
-    // use the ProcImpl classes directly, along with the RNG stream handling from //
-    // NCRNG.hh.                                                                  //
-    ////////////////////////////////////////////////////////////////////////////////
+  NCRYSTAL_API shared_obj<const Info> createInfo( const MatCfg& cfg );
+  NCRYSTAL_API Scatter createScatter( const MatCfg& cfg );
+  NCRYSTAL_API Absorption createAbsorption( const MatCfg& cfg );
 
-    NCRYSTAL_API shared_obj<const MatInfo> createInfo( const MatCfg& cfg );
-    NCRYSTAL_API Scatter createScatter( const MatCfg& cfg );
-    NCRYSTAL_API Absorption createAbsorption( const MatCfg& cfg );
+  //////////////////////////////////////////////////////////////////////////
+  // For the case of Scatter instance, they can also by created with more //
+  // control over the RNG streams (again, this is just thin wrappers over //
+  // functionaliy available in NCRNG.hh+NCFactImpl.hh+NCProc.hh):         //
+  //////////////////////////////////////////////////////////////////////////
 
-    //////////////////////////////////////////////////////////////////////////
-    // For the case of Scatter instance, they can also by created with more //
-    // control over the RNG streams (again, this is just thin wrappers over //
-    // functionaliy available in NCRNG.hh+NCFactImpl.hh+NCProc.hh):         //
-    //////////////////////////////////////////////////////////////////////////
+  NCRYSTAL_API Scatter createScatter_RNGByIdx( const MatCfg& cfg, RNGStreamIndex rngidx );
+  NCRYSTAL_API Scatter createScatter_RNGForCurrentThread( const MatCfg& cfg );
 
-    NCRYSTAL_API Scatter createScatter_RNGByIdx( const MatCfg& cfg, RNGStreamIndex rngidx );
-    NCRYSTAL_API Scatter createScatter_RNGForCurrentThread( const MatCfg& cfg );
+  //////////////////////////////////////////////////////////////////////////
+  // Register in-memory data files which can later be referred to in      //
+  // cfg strings. Note that the file NCDataSources.hh provides MANY more  //
+  // options and control of input data.                                   //
+  //////////////////////////////////////////////////////////////////////////
 
-    //////////////////////////////////////////////////////////////////////////
-    // Register in-memory data files which can later be referred to in      //
-    // cfg strings. Note that the file NCDataSources.hh provides MANY more  //
-    // options and control of input data.                                   //
-    //////////////////////////////////////////////////////////////////////////
+  NCRYSTAL_API void registerInMemoryFileData( std::string virtualFileName,
+                                              std::string&& data );
 
-    NCRYSTAL_API void registerInMemoryFileData( std::string virtualFileName,
-                                                std::string&& data );
+  //Version which just registers the address of data and does not copy
+  //it. Naturally the lifetime of the static_data should be longer than any
+  //direct or indirect calls to FactImpl::createTextData (it is intended for
+  //efficiently hard-coding file content in C/C++ code):
+  NCRYSTAL_API void registerInMemoryStaticFileData( std::string virtualFileName,
+                                                    const char* static_data );
 
-    //Version which just registers the address of data and does not copy
-    //it. Naturally the lifetime of the static_data should be longer than any
-    //direct or indirect calls to FactImpl::createTextData (it is intended for
-    //efficiently hard-coding file content in C/C++ code):
-    NCRYSTAL_API void registerInMemoryStaticFileData( std::string virtualFileName,
-                                                      const char* static_data );
+  //////////////////////////////////////////////////////////////////////////
+  // Backwards compatible functions (these functions now simply calls     //
+  // FactImpl::setCachingEnabled(..)):                                    //
+  //////////////////////////////////////////////////////////////////////////
 
-    //////////////////////////////////////////////////////////////////////////
-    // Backwards compatible functions (these functions now simply calls     //
-    // FactImpl::setCachingEnabled(..)):                                    //
-    //////////////////////////////////////////////////////////////////////////
-
-    NCRYSTAL_API void disableCaching();
-    NCRYSTAL_API void enableCaching();
-
-  }
+  NCRYSTAL_API void disableCaching();
+  NCRYSTAL_API void enableCaching();
 }
 
 #endif

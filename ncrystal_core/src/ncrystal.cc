@@ -183,10 +183,10 @@ namespace NCrystal {
     ////////////////////////////////////////////////////////////////////////////////////
     //Info objects:
     struct WrappedDef_Info {
-      using object_type = shared_obj<const MatInfo>;
+      using object_type = shared_obj<const Info>;
       using c_handle_type = ncrystal_info_t;
       static constexpr ObjectTypeID object_typeid = 0xcac4c93f;//randomly generated 32 bits
-      static constexpr const char * name() { return "MatInfo"; }
+      static constexpr const char * name() { return "Info"; }
     };
     using Wrapped_Info = Wrapped<WrappedDef_Info>;
     Wrapped_Info& extractWrapper(Wrapped_Info::c_handle_type h) { return extractWrapperImpl<Wrapped_Info>(h); }
@@ -195,7 +195,7 @@ namespace NCrystal {
     ////////////////////////////////////////////////////////////////////////////////////
     //Scatter objects:
     struct WrappedDef_Scatter {
-      using object_type = Modern::Scatter;
+      using object_type = Scatter;
       using c_handle_type = ncrystal_scatter_t;
       static constexpr ObjectTypeID object_typeid = 0x7d6b0637;//randomly generated 32 bits
       static constexpr const char * name() { return "Scatter"; }
@@ -207,7 +207,7 @@ namespace NCrystal {
     ////////////////////////////////////////////////////////////////////////////////////
     //Absorption objects:
     struct WrappedDef_Absorption {
-      using object_type = Modern::Absorption;
+      using object_type = Absorption;
       using c_handle_type = ncrystal_absorption_t;
       static constexpr ObjectTypeID object_typeid = 0xede2eb9d;//randomly generated 32 bits
       static constexpr const char * name() { return "Absorption"; }
@@ -228,7 +228,7 @@ namespace NCrystal {
     Wrapped_AtomData& extractWrapper(Wrapped_AtomData::c_handle_type h) { return extractWrapperImpl<Wrapped_AtomData>(h); }
     Wrapped_AtomData::object_type& extract(Wrapped_AtomData::c_handle_type h) { return extractWrapperImpl<Wrapped_AtomData>(h).obj(); }
 
-    Modern::Process& extractProcess(ncrystal_process_t h)
+    Process& extractProcess(ncrystal_process_t h)
     {
       ObjectTypeID objtypeid = h.internal ? extractObjectTypeID(h.internal) : 0x0;
       if ( objtypeid == Wrapped_Scatter::object_typeid() )
@@ -1089,11 +1089,11 @@ void ncrystal_multicreate_direct( const char* data,
                                               std::string(cfg_params?cfg_params:""),
                                               std::string(dataType?dataType:"") );
     if ( h_i )
-      *h_i = ncc::createNewCHandle<ncc::Wrapped_Info>( NC::Modern::createInfo(cfg) );
+      *h_i = ncc::createNewCHandle<ncc::Wrapped_Info>( NC::createInfo(cfg) );
     if ( h_s )
-      *h_s = ncc::createNewCHandle<ncc::Wrapped_Scatter>( NC::Modern::createScatter(cfg) );
+      *h_s = ncc::createNewCHandle<ncc::Wrapped_Scatter>( NC::createScatter(cfg) );
     if ( h_a )
-      *h_a = ncc::createNewCHandle<ncc::Wrapped_Absorption>( NC::Modern::createAbsorption(cfg) );
+      *h_a = ncc::createNewCHandle<ncc::Wrapped_Absorption>( NC::createAbsorption(cfg) );
   } NCCATCH;
 
 }
@@ -1101,7 +1101,7 @@ void ncrystal_multicreate_direct( const char* data,
 ncrystal_info_t ncrystal_create_info( const char * cfgstr )
 {
   try {
-    return ncc::createNewCHandle<ncc::Wrapped_Info>( NC::Modern::createInfo(cfgstr) );
+    return ncc::createNewCHandle<ncc::Wrapped_Info>( NC::createInfo(cfgstr) );
   } NCCATCH;
   return {nullptr};
 }
@@ -1127,7 +1127,7 @@ unsigned ncrystal_decodecfg_vdoslux( const char * cfgstr )
 ncrystal_scatter_t ncrystal_create_scatter( const char * cfgstr )
 {
   try {
-    return ncc::createNewCHandle<ncc::Wrapped_Scatter>( NC::Modern::createScatter(cfgstr) );
+    return ncc::createNewCHandle<ncc::Wrapped_Scatter>( NC::createScatter(cfgstr) );
   } NCCATCH;
   return {nullptr};
 }
@@ -1171,10 +1171,10 @@ ncrystal_scatter_t ncrystal_clone_scatter_rngforcurrentthread( ncrystal_scatter_
 ncrystal_scatter_t ncrystal_create_scatter_builtinrng( const char * cfgstr, unsigned long seed )
 {
   try {
-    auto rng = NC::Modern::createBuiltinRNG( static_cast<uint64_t>(seed) );
-    auto rngproducer = NC::makeSO<NC::Modern::RNGProducer>( rng );
+    auto rng = NC::createBuiltinRNG( static_cast<uint64_t>(seed) );
+    auto rngproducer = NC::makeSO<NC::RNGProducer>( rng );
     auto pp = NC::FactImpl::createScatter(cfgstr);
-    return ncc::createNewCHandle<ncc::Wrapped_Scatter>( NC::Modern::Scatter(std::move(rngproducer), std::move(rng),std::move(pp)));
+    return ncc::createNewCHandle<ncc::Wrapped_Scatter>( NC::Scatter(std::move(rngproducer), std::move(rng),std::move(pp)));
   } NCCATCH;
   return {nullptr};
 }
@@ -1182,7 +1182,7 @@ ncrystal_scatter_t ncrystal_create_scatter_builtinrng( const char * cfgstr, unsi
 ncrystal_absorption_t ncrystal_create_absorption( const char * cfgstr )
 {
   try {
-    return ncc::createNewCHandle<ncc::Wrapped_Absorption>( NC::Modern::createAbsorption(cfgstr) );
+    return ncc::createNewCHandle<ncc::Wrapped_Absorption>( NC::createAbsorption(cfgstr) );
   } NCCATCH;
   return {nullptr};
 }
@@ -1546,23 +1546,23 @@ void ncrystal_setrandgen( double (*rg)() )
 {
   try {
     if (rg)
-      NC::Modern::setDefaultRNGFctForAllThreads(rg);
+      NC::setDefaultRNGFctForAllThreads(rg);
     else
-      NC::Modern::clearDefaultRNG();
+      NC::clearDefaultRNG();
   } NCCATCH;
 }
 
 void ncrystal_setbuiltinrandgen()
 {
   try {
-    NC::Modern::setDefaultRNG( NC::Modern::createBuiltinRNG() );
+    NC::setDefaultRNG( NC::createBuiltinRNG() );
   } NCCATCH;
 }
 
 void ncrystal_setbuiltinrandgen_withseed(unsigned long seed)
 {
   try {
-    NC::Modern::setDefaultRNG( NC::Modern::createBuiltinRNG( static_cast<uint64_t>(seed) ) );
+    NC::setDefaultRNG( NC::createBuiltinRNG( static_cast<uint64_t>(seed) ) );
   } NCCATCH;
 }
 
@@ -1570,16 +1570,16 @@ void ncrystal_setbuiltinrandgen_withstate(const char* state)
 {
   try {
     nc_assert_always(state!=nullptr);
-    if ( ! NC::Modern::stateIsFromBuiltinRNG(NC::RNGStreamState{state}) )
+    if ( ! NC::stateIsFromBuiltinRNG(NC::RNGStreamState{state}) )
       NCRYSTAL_THROW2(BadInput,"ncrystal_setbuiltinrandgen_withstate got state which is not from NCrystal's builtin RNG: "<<state);
-    setDefaultRNG( NC::Modern::createBuiltinRNG(NC::RNGStreamState{state}) );
+    setDefaultRNG( NC::createBuiltinRNG(NC::RNGStreamState{state}) );
   } NCCATCH;
 }
 
 int ncrystal_rngsupportsstatemanip_ofscatter( ncrystal_scatter_t sh )
 {
   try {
-    auto rng = ncc::extract(sh).rngSO().tryDynCast<NC::Modern::RNGStream>();
+    auto rng = ncc::extract(sh).rngSO().tryDynCast<NC::RNGStream>();
     return ( rng != nullptr && rng->supportsStateManipulation() ) ? 1 : 0;
   } NCCATCH;
   return 0;
@@ -1588,7 +1588,7 @@ int ncrystal_rngsupportsstatemanip_ofscatter( ncrystal_scatter_t sh )
 char* ncrystal_getrngstate_ofscatter(ncrystal_scatter_t sh)
 {
   try {
-    auto rng = ncc::extract(sh).rngSO().tryDynCast<NC::Modern::RNGStream>();
+    auto rng = ncc::extract(sh).rngSO().tryDynCast<NC::RNGStream>();
     if ( rng == nullptr || ! rng->supportsStateManipulation() )
       return nullptr;
     return ncc::createString(rng->getState().get());
@@ -1602,11 +1602,11 @@ void ncrystal_setrngstate_ofscatter(ncrystal_scatter_t sh,const char* state_raw)
     nc_assert_always(state_raw!=nullptr);
     NC::RNGStreamState state{state_raw};
     auto& sc = ncc::extract(sh);
-    if ( NC::Modern::stateIsFromBuiltinRNG(state) ) {
-      auto rng = NC::Modern::createBuiltinRNG(state);
+    if ( NC::stateIsFromBuiltinRNG(state) ) {
+      auto rng = NC::createBuiltinRNG(state);
       sc.replaceRNGAndUpdateProducer(rng);
     } else {
-      auto rng = sc.rngSO().tryDynCast<NC::Modern::RNGStream>();
+      auto rng = sc.rngSO().tryDynCast<NC::RNGStream>();
       if ( rng == nullptr )
         NCRYSTAL_THROW(CalcError,"ncrystal_setrngstate_ofscatter ERROR: scatter has RNG source which is not actually derived from RNGStream.");
       if ( ! rng->supportsStateManipulation() )
