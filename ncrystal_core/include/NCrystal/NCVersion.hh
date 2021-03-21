@@ -22,10 +22,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #define NCRYSTAL_VERSION_MAJOR 2
-#define NCRYSTAL_VERSION_MINOR 4
-#define NCRYSTAL_VERSION_PATCH 81
-#define NCRYSTAL_VERSION   2004081 /* (1000000*MAJOR+1000*MINOR+PATCH)   */
-#define NCRYSTAL_VERSION_STR "2.4.81"
+#define NCRYSTAL_VERSION_MINOR 5
+#define NCRYSTAL_VERSION_PATCH 0
+#define NCRYSTAL_VERSION   2005000 /* (1000000*MAJOR+1000*MINOR+PATCH)   */
+#define NCRYSTAL_VERSION_STR "2.5.0"
 
 #include "NCrystal/ncapi.h"
 #include <stdexcept>

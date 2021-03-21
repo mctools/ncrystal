@@ -73,7 +73,7 @@ namespace NCrystal {
     virtual ~Process() = default;
 
   protected:
-    //Allow move semantics only on derived classes:
+    //Allow move semantics only on derived classes (no slicing):
     Process( Process&& ) = default;
     Process& operator=( Process&& ) = default;
     ProcImpl::ProcPtr m_proc;

@@ -92,7 +92,7 @@ namespace NCrystal {
     //group):
     NCRYSTAL_API void registerNamedVirtualDataSource( const std::string& factoryName,
                                                       std::map<std::string,TextDataSource>&& virtualfiles,
-                                                      Priority );//fixme use in plugins with priority "on explicit request"
+                                                      Priority );
 
     ////////////////////////////////////////////////////////////////////////////
     // Register custom directories to be monitored for data files.

@@ -52,7 +52,7 @@ For detailed usage conditions and licensing of this open source project, see:
 ################################################################################
 
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
-__version__ = '2.4.81'
+__version__ = '2.5.0'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
 __copyright__ = "Copyright 2015-2021 %s"%__author__
@@ -61,14 +61,12 @@ __email__ = "ncrystal-developers@cern.ch"
 #Only put the few most important items in __all__, to prevent cluttering on
 #wildcard imports. Specifically this is the exceptions, the most important API
 #classes, the factory functions, and the constants:
-__all__ = [ 'NCException','NCFileNotFound','NCDataLoadError',
-            'NCCalcError','NCLogicError','NCBadInput',
-            'RCBase','AtomData','Info','CalcBase','Process','Absorption','Scatter',
-            'createInfo','createScatter','createAbsorption',
-            'atomDB','registerInMemoryFileData',
-            'constant_c','constant_dalton2kg','constant_dalton2eVc2',
-            'constant_avogadro','constant_boltzmann',
-            'const_neutron_mass_amu','constant_planck']
+__all__ = [ 'NCException','NCFileNotFound','NCDataLoadError','NCMissingInfo','NCCalcError',
+            'NCLogicError','NCBadInput','RCBase','TextData','Info','CalcBase','Process',
+            'Absorption','Scatter','AtomData','FileListEntry','createTextData',
+            'createInfo','createScatter','createScatterIndependentRNG','createAbsorption',
+            'constant_c','constant_dalton2kg','constant_dalton2eVc2','constant_avogadro',
+            'constant_boltzmann','const_neutron_mass_amu','constant_planck']
 
 import sys
 pyversion = sys.version_info[0:3]
