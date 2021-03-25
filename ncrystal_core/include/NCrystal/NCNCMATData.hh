@@ -51,7 +51,7 @@ namespace NCrystal {
 
     //Metadata
     int version = 0;
-    constexpr static int latest_version = 3;
+    constexpr static int latest_version = 4;
     std::string sourceDescription;
 
     //convenience (for a validated instance, this is the same as hasCell or hasAtomPos):

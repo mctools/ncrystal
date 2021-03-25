@@ -48,7 +48,19 @@ void NC::registerCacheCleanupFunction( std::function<void()> f )
 void * NC::detail::bigAlignedAlloc( std::size_t alignment, std::size_t size )
 {
   void * result = nullptr;
+
+  //Aligned_alloc available in C++17, but on OSX only from Catalina (10.15):
 #if __cplusplus >= 201703L
+#  if defined(__APPLE__)
+#    if defined(__MACH__) && defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) && __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 101500
+#      define NCRYSTAL_DETAIL_SYSHASALIGNEDALLOC
+#    endif
+#  else
+#    define NCRYSTAL_DETAIL_SYSHASALIGNEDALLOC
+#  endif
+#endif
+
+#ifdef NCRYSTAL_DETAIL_SYSHASALIGNEDALLOC
   //Observed issues with std::aligned_alloc on osx, seems to simply be missing
   //from std:: namespace:
   //    result = std::aligned_alloc(alignment,size);

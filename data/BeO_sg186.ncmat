@@ -1,17 +1,12 @@
-NCMAT v2
+NCMAT v4
 #Beryllium Oxide (BeO).
 #
-#Lattice parameters, crystal structure, and Debye temperatures based on:
+#Lattice parameters and crystal structure based on:
 #
 #   "Electronic structure and properties of beryllium oxide"
 #   A. L. Ivanovskii, et. al.
 #   Inorganic Materials volume 45, Article number: 223 (2009)
 #   https://doi.org/10.1134/S0020168509030017
-#
-#Concerning Debye temperatures, Ivanovskii (2009) quotes global Debye
-#temperatures: 1188 (calculated), 1270 (exp) and 1280 (exp).  Inspecting the
-#phonon DOS spectra below, these values are OK for Be, but seem a bit too high
-#for O, for which a slightly lower value seems more suitable.
 #
 #Atomic positions taken from:
 #
@@ -25,18 +20,15 @@ NCMAT v2
 #tsl-OinBeO.leapr in that release).
 #
 @CELL
-  lengths 2.698 2.698 4.359
+  lengths 2.698 !! 4.359
   angles 90 90 120
 @SPACEGROUP
   186
 @ATOMPOSITIONS
-  Be 0   0   0
-  Be 1/3 2/3 1/2
-  O  0   0   0.378
+  Be   0   0     0
+  Be 1/3 2/3   1/2
+  O    0   0 0.378
   O  1/3 2/3 0.878
-@DEBYETEMPERATURE
-  Be 1275
-  O  1100
 @DYNINFO
   element  Be
   fraction 1/2

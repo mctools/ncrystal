@@ -21,11 +21,27 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+#ifdef NCRYSTAL_VERSION_MAJOR
+#  undef NCRYSTAL_VERSION_MAJOR
+#endif
+#ifdef NCRYSTAL_VERSION_MINOR
+#  undef NCRYSTAL_VERSION_MINOR
+#endif
+#ifdef NCRYSTAL_VERSION_PATCH
+#  undef NCRYSTAL_VERSION_PATCH
+#endif
+#ifdef NCRYSTAL_VERSION
+#  undef NCRYSTAL_VERSION
+#endif
+#ifdef NCRYSTAL_VERSION_STR
+#  undef NCRYSTAL_VERSION_STR
+#endif
+
 #define NCRYSTAL_VERSION_MAJOR 2
 #define NCRYSTAL_VERSION_MINOR 5
-#define NCRYSTAL_VERSION_PATCH 0
-#define NCRYSTAL_VERSION   2005000 /* (1000000*MAJOR+1000*MINOR+PATCH)   */
-#define NCRYSTAL_VERSION_STR "2.5.0"
+#define NCRYSTAL_VERSION_PATCH 80
+#define NCRYSTAL_VERSION   2005080 /* (1000000*MAJOR+1000*MINOR+PATCH)   */
+#define NCRYSTAL_VERSION_STR "2.5.80"
 
 #include "NCrystal/ncapi.h"
 #include <stdexcept>

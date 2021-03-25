@@ -8,10 +8,10 @@ format itself, and that different versions of NCrystal might choose to do
 slightly different things with the same input file - ideally because newer
 versions of the code will introduce improved modelling capabilities, but also
 because bugs might get fixed (usually) or introduced (hopefully rarely).
-Currently the three versions of the format are *NCMAT v1* which is supported by
+Currently the four versions of the format are *NCMAT v1* which is supported by
 all NCrystal releases, *NCMAT v2* which can be read with NCrystal releases 2.0.0
-and beyond, and *NCMAT v3* which can be read with NCrystal releases 2.1.0 and
-beyond.
+and beyond, *NCMAT v3* which can be read with NCrystal releases 2.1.0 and
+beyond, and *NCMAT v4* which can be read with NCrystal releases 2.6.0 and beyond.
 
 # The NCMAT v1 format #
 
@@ -84,7 +84,7 @@ but the order of `length` and `angles` can be reversed if desired.
 ## The @ATOMPOSITIONS section ##
 
 Atomic unit cell positions in relative lattice coordinates. Each element
-appearing must be on separate line, as shown in the example above, and the name
+appearing must be on a separate line, as shown in the example above, and the name
 must be Capitalised and use the standard chemical element notation.
 
 ## The @SPACEGROUP section ##
@@ -97,7 +97,9 @@ single integer with a value from 1 to 230.
 ## The @DEBYETEMPERATURE section ##
 
 Either a single number, the global Debye temperature, must be provided, or one
-for each of the elements in the material. Each element must be on separate line.
+for each of the elements in the material. Each element must be on a separate
+line. Note that the concept "global Debye temperature" in this sense, just
+implies that the same value will be applied to all elements.
 
 ## Historical note about the v1 format parsers ##
 
@@ -383,11 +385,10 @@ written here, no spaces allowed).
 As mentioned, it is since *NCMAT v2* possible to omit all of the @SPACEGROUP,
 @CELL and @ATOMPOSITIONS sections, in order to describe non-crystalline
 materials. If at least one of the @CELL and @ATOMPOSITIONS is present, they must
-both be present. The @DEBYETEMPERATURE section should never be specified if
-there are no @CELL/@ATOMPOSITION sections, and is for now actually also
-*required* when there are @CELL/@ATOMPOSITIONS in the file (in later versions
-this might become optional for elements for which a @DYNINFO section of vdos
-type is present).
+both be present. The @DEBYETEMPERATURE section should likewise never be specified if
+there are no @CELL/@ATOMPOSITION sections in the file, and is also required if there
+are @CELL/@ATOMPOSITIONS in the file (as will be mentioned below this changes in
+*NCMAT v4* where the @DEBYETEMPERATURE section becomes optional in some cases).
 
 ### The @ATOMPOSITIONS section supports fractions ###
 
@@ -627,6 +628,80 @@ custom sections, serving as a reminder that such files are likely only intended
 for a particular development setup and might not be sensible to share with a
 wider community.
 
+# The NCMAT v4 format #
+
+The *NCMAT v4* format is similar to the *NCMAT v3* format, but with two changes.
+Firstly, Debye temperatures are no longer required to be specified in crystals
+which have actual phonon VDOS spectra available, and global Debye temperatures
+are no longer allowed. Secondly, unit cell definitions in the @CELL section
+can now optionally use a syntax which is slightly more terse and avoids needless
+repetition.
+
+## Changes for the @DEBYETEMPERATURE section ##
+
+Based on the fact that it is possible to estimate mean-squared-displacements
+(and corresponding Debye temperatures) from a phonon VDOS curve, elements which
+have such curves available in @DYNINFO sections of type vdos are no longer required
+have to entries in the @DEBYETEMPERATURE section. And if this is the case for all
+elements, the @DEBYETEMPERATURE section can be left out entirely.
+
+Note that it is still *allowed* to specify @DEBYETEMPERATURE entries for such
+elements. If this is done, the values specified in the @DEBYETEMPERATURE section
+will take precedence, but NCrystal might emit a warning message to make sure this
+was intended. Note that the NCrystal developers would in general advice against
+specifying such Debye temperature values for elements with VDOS curves, as the
+values estimated from VDOS curves seems to provide more robust and trustworthy
+physics performance.
+
+Finally, global Debye temperatures are no longer allowed in *NCMAT v4*.
+
+## Changes for the @CELL section ##
+
+To reduce repetion, *NCMAT v4* introduces options for specifying data in the
+`@CELL` section more tersely. Firstly, cubic crystals can now be specified
+by just providing one lattice length. Thus, writing:
+
+```
+@CELL
+  cubic 4.04958
+```
+
+has the same effect as writing:
+
+```
+@CELL
+ lengths 4.04958 4.04958 4.04958
+ angles 90 90 90
+```
+
+When using the `cubic` keyword in the @CELL section, the space group number
+in the @SPACEGROUP section (if present) must indicate a cubic material as
+well (i.e. be in the range 195..230).
+
+The other new option that is introduced is that the second or third parameters
+after the `length` keyword, can be replaced by two exclamation marks, `!!`,
+which has the effect of repeating the previous value on the line (for those
+curious, `!!` was chosen for this since in many Unix shells `!!` is a command
+which means "repeat previous command"). Thus,
+
+```
+@CELL
+  lengths 2.2866 !! 3.5833
+  angles 90 90 120
+```
+
+Has the same meaning as:
+
+```
+@CELL
+  lengths 2.2866 2.2866 3.5833
+  angles 90 90 120
+```
+
+Although this syntax is not quite as terse as is what possible for cubic
+materials with the `cubic` keyword, it still means that e.g. hexagonal
+crystals can now be defined without repetition of the same value.
+
 # EMACS Syntax highlighting #
 
 If using EMACS, add the following to your ~/.emacs configuration file to enable
@@ -637,7 +712,7 @@ a basic syntax highlighting of .ncmat files:
 ; Major mode for .ncmat files:
 (setq ncmat-sections '("CELL" "ATOMPOSITIONS" "SPACEGROUP" "DEBYETEMPERATURE"
                        "DYNINFO" "DENSITY" "ATOMDB" "CUSTOM_[A-Z]+"))
-(setq ncmat-fields '("lengths" "angles" "element" "fraction" "type" "temperature"
+(setq ncmat-fields '("lengths" "angles" "cubic" "element" "fraction" "type" "temperature"
                      "sab_scaled" "sab" "alphagrid" "betagrid" "egrid" "vdos_egrid" "vdos_density"))
 (setq ncmat-highlights
       `(("^NCMAT\s*v[0-9]+[a-z0-9]*" . font-lock-function-name-face)

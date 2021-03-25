@@ -174,17 +174,6 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
 {
   const bool verbose = ncgetenv_bool("DEBUGINFO");
 
-  //Temporary test options:
-  const auto& cd = data.customSections;
-  using CDSec = decltype(data.customSections)::value_type;
-  const bool opt_prefer_msd_from_vdos = ( std::find_if(cd.begin(), cd.end(),[](const CDSec& e ){ return e.first=="TMPHACKPREFERMSDFROMVDOS";}) != cd.end() );
-  const bool opt_calc_debye_msd_via_vdos = ( std::find_if(cd.begin(), cd.end(),[](const CDSec& e ){ return e.first=="TMPHACKGETDEBYEMSDVIAVDOS";}) != cd.end() );
-  if (opt_calc_debye_msd_via_vdos)
-    std::cout<<"NCrystal::LoadNCMAT running with untested option: calc_debye_msd_via_vdos"<<std::endl;
-  if (opt_prefer_msd_from_vdos)
-    std::cout<<"NCrystal::LoadNCMAT running with untested option: prefer_msd_from_vdos"<<std::endl;
-
-
   if (verbose) {
     std::cout<<"NCrystal::loadNCMAT called with ("
              << data.sourceDescription
@@ -359,10 +348,20 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
     }
   }
 
+  auto tryElement2DebyeTemp = [&perelemdebye_map](const AtomIndex& idx)
+  {
+    Optional<DebyeTemperature> res;
+    auto it = perelemdebye_map.find(idx);
+    if ( it != perelemdebye_map.end() )
+      res = DebyeTemperature{ it->second };
+    return res;
+  };
+
   auto element2DebyeTemp = [&perelemdebye_map](const AtomIndex& idx)
   {
+    //only call if there!
     auto it = perelemdebye_map.find(idx);
-    nc_assert_always( it != perelemdebye_map.end() );//only call if there!
+    nc_assert_always( it != perelemdebye_map.end() );
     return DebyeTemperature{ it->second };
   };
 
@@ -545,34 +544,38 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
 
     //==> Prepare MSD numbers from VDOS or Debye temperature:
 
+    //NB: msd from vdos only allowed in NCMAT v4 or later. If both msd-from-vdos
+    //and msd-from-debyetemp is possible, the latter will be preferred (as per
+    //the NCMAT doc), but we will emit a warning at the end.
+
+    const bool do_allow_msd_from_vdos = ( data.version >= 4);
+    bool warn_msd_from_debye_but_vdos_avail = false;
+
     std::map<AtomIndex,Optional<double>> elem2msd;
 
     for (auto& di: dyninfolist) {
-      //First option: estimate MSD from actual VDOS provided in input data:
       auto& msd = elem2msd[di->atom().index];
-      auto di_vdos = opt_prefer_msd_from_vdos ? dynamic_cast<const DI_VDOS*>(di.get()) : nullptr;
-      if ( di_vdos ) {
-        msd = VDOSEval( di_vdos->vdosData() ).getMSD();
-        continue;
-      };
-      if ( !data_hasDebyeTemperature )
-        continue;//All other options involve the Debye temperature!
-
-      const auto debye_temp = element2DebyeTemp(di->atom().index);
-      const auto mass = di->atomData().averageMassAMU();
-
-      if ( opt_calc_debye_msd_via_vdos ) {
-        //Second option: estimate MSD from idealised parabolic VDOS created from Debye temperature:
-        msd = VDOSEval( createVDOSDebye( element2DebyeTemp(di->atom().index),
-                                         cfgvars.temp,
-                                         SigmaBound{1.0},//irrelevant for this usage
-                                         mass ) ).getMSD();
-      } else {
-        //Fall back option, estimate via Debye temperature (as described in sec. 2.5
+      //Possible sources are Debye temp or VDOS:
+      auto debyeTemp = tryElement2DebyeTemp(di->atom().index);
+      auto di_vdos = do_allow_msd_from_vdos ? dynamic_cast<const DI_VDOS*>(di.get()) : nullptr;
+      if ( debyeTemp.has_value() ) {
+        if ( di_vdos)
+          warn_msd_from_debye_but_vdos_avail = true;
+        //Estimate via Debye temperature (as described in sec. 2.5
         //of the first NCrystal paper [https://doi.org/10.1016/j.cpc.2019.07.015]):
-        msd = debyeIsotropicMSD( debye_temp, cfgvars.temp, mass );
+        const auto mass = di->atomData().averageMassAMU();
+        msd = debyeIsotropicMSD( debyeTemp.value(), cfgvars.temp, mass );
+      } else if ( di_vdos ) {
+        //Estimate MSD by VDOS integral:
+        msd = VDOSEval( di_vdos->vdosData() ).getMSD();
+      } else {
+        NCRYSTAL_THROW(LogicError,"No MSD source available (this should not"
+                       " happen - other code should have caught this earlier)");
       }
     }
+
+    if (warn_msd_from_debye_but_vdos_avail)//Fixme: Make it possible to disable this warning
+      std::cout<<"NCrystal::NCMATFactory WARNING: Loading NCMAT data which has Debye temperatures for elements with VDOS curves available (this might give sub-optimal MSD values)."<<std::endl;
 
     //==> Fill Info::AtomInfo
     for ( auto& ef : elem2frac ) {
@@ -582,7 +585,12 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
       nc_assert_always( msd.has_value() );
       Optional<DebyeTemperature> ai_debye_temp;
       if ( data_hasDebyeTemperature )
-        ai_debye_temp = element2DebyeTemp(ef.first);
+        ai_debye_temp = tryElement2DebyeTemp(ef.first);
+      if ( !ai_debye_temp.has_value() ) {
+        //No direct debye temp was provided in input, but we can estimate one via MSD:
+        const auto mass = iad.atomDataSP->averageMassAMU();
+        ai_debye_temp = debyeTempFromIsotropicMSD( msd.value(), cfgvars.temp, mass );
+      }
       info.addAtom( AtomInfo( std::move(iad), std::move(std::move(elem2pos.at(ef.first))), ai_debye_temp, msd ) );
     }
 

@@ -95,6 +95,13 @@ namespace NCrystal {
 //                                                                                         //
 /////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef NCRYSTAL_THROW
+#  undef NCRYSTAL_THROW
+#endif
+#ifdef NCRYSTAL_THROW2
+#  undef NCRYSTAL_THROW2
+#endif
+
 #define NCRYSTAL_THROW(ErrType, msg)                            \
   {                                                             \
     throw ::NCrystal::Error::ErrType(msg,__FILE__,__LINE__);    \
@@ -112,6 +119,22 @@ namespace NCrystal {
 //enabled in all builds. Note that since these assert's throw, they
 //should not be used in destructors.
 
+#ifdef ncrystal_str
+#  undef ncrystal_str
+#endif
+#ifdef ncrystal_xstr
+#  undef ncrystal_xstr
+#endif
+#ifdef nc_assert_always
+#  undef nc_assert_always
+#endif
+#ifdef nc_assert
+#  undef nc_assert
+#endif
+#ifdef nc_assert2
+#  undef nc_assert2
+#endif
+
 #define ncrystal_str(s) #s
 #define ncrystal_xstr(s) ncrystal_str(s)
 #define nc_assert_always(x) do { if (!(x)) { NCRYSTAL_THROW(LogicError,\
@@ -125,5 +148,8 @@ namespace NCrystal {
 #  define nc_assert2(x) do { (void)sizeof(x); } while(0)//use but dont evaluate x
 #endif
 
+#ifdef nc_not_implemented
+#  undef nc_not_implemented
+#endif
 #define nc_not_implemented do { NCRYSTAL_THROW(LogicError, "NotImplemented") } while(0)
 #endif

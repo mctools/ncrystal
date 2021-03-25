@@ -1,4 +1,4 @@
-NCMAT v2
+NCMAT v4
 #Corundum (alpha alumina)
 #
 #Crystal structure was converted from the cif file of the entry 0009327 in the AMCSD.
@@ -14,7 +14,7 @@ NCMAT v2
 #   https://doi.org/10.1103/PhysRevB.67.174106
 #
 @CELL
-  lengths 4.757 4.757 12.9877
+  lengths 4.757 !! 12.9877
   angles 90 90 120
 @SPACEGROUP
   167
@@ -49,9 +49,6 @@ NCMAT v2
   O  0.69375 0       3/4
   O  13/480  173/480 11/12
   O  0       0.69375 3/4
-@DEBYETEMPERATURE
-  Al  853.4
-  O  1054.6
 @DYNINFO
   element  O
   fraction 3/5

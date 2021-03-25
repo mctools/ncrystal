@@ -40,7 +40,6 @@ namespace NCrystal {
   //Calculates 3*hbar^2/(M*kBoltzmann*debye_temp) (in Aa^2):
   double calcDebyeMSDScale( DebyeTemperature, AtomMass );
 
-
   //invert debyeIsotropicMSD to estimate Debye temperature from MSD (NB: Rather slow)
   DebyeTemperature debyeTempFromIsotropicMSD(double msd, Temperature, AtomMass );
 

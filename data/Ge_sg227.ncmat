@@ -1,11 +1,8 @@
-NCMAT v2
+NCMAT v4
 #Germanium.
 #
 #Crystal structure was converted from the cif file of the entry 0011245 in the AMCSD.
 #Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
-#
-#The Debye temperature is derived from the Debye-waller factor at 293K compiled
-#in the supplement of Acta Cryst., A52, p. 456-470, 1996
 #
 #The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
 #software from Figure 3 of:
@@ -16,8 +13,7 @@ NCMAT v2
 #   https://doi.org/10.1103/PhysRevB.5.3151
 #
 @CELL
-  lengths 5.65735 5.65735 5.65735
-  angles 90 90 90
+  cubic 5.65735
 @SPACEGROUP
   227
 @ATOMPOSITIONS
@@ -29,8 +25,6 @@ NCMAT v2
   Ge 3/4 1/4 1/4
   Ge 0   0   1/2
   Ge 3/4 3/4 3/4
-@DEBYETEMPERATURE
-    Ge   281.4
 @DYNINFO
   element  Ge
   fraction 1

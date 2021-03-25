@@ -507,6 +507,21 @@ namespace NCrystal {
 
 //#define NCRYSTAL_DEBUG_LOCKS
 
+#ifdef ncrystal_join
+#  undef ncrystal_join
+#endif
+#ifdef ncrystal_xjoin
+#  undef ncrystal_xjoin
+#endif
+#ifdef NCRYSTAL_LOCK_GUARD
+#  undef NCRYSTAL_LOCK_GUARD
+#endif
+#ifdef NCRYSTAL_LOCK_MUTEX
+#  undef NCRYSTAL_LOCK_MUTEX
+#endif
+#ifdef NCRYSTAL_UNLOCK_MUTEX
+#  undef NCRYSTAL_UNLOCK_MUTEX
+#endif
 #define ncrystal_join( symbol1, symbol2 ) ncrystal_xjoin( symbol1, symbol2 )
 #define ncrystal_xjoin( symbol1, symbol2 ) symbol1##symbol2
 #ifdef NCRYSTAL_DEBUG_LOCKS
@@ -540,6 +555,9 @@ namespace NCrystal {
 }
 
 //For inserting code only in DEBUG builds:
+#ifdef NCRYSTAL_DEBUGONLY
+#  undef NCRYSTAL_DEBUGONLY
+#endif
 #ifndef NDEBUG
 #  define NCRYSTAL_DEBUGONLY(x) x
 #else

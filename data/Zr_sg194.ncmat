@@ -1,4 +1,4 @@
-NCMAT v2
+NCMAT v4
 #Zirconium (hcp)
 #
 #Crystal structure was converted from the cif file of the entry 0011201 in the AMCSD.
@@ -12,23 +12,14 @@ NCMAT v2
 #   Jean-Paul Crocombette et al 2015 J. Phys.: Condens. Matter 27 165501
 #   https://doi.org/10.1088/0953-8984/27/16/165501
 #
-#The Debye temperature derived from the Debye-waller factor at 293K compiled in
-#the supplement of Acta Cryst., A52, p. 456-470, 1996, is 257.7K. In the
-#Crocombette 2015 paper from which the VDOS is taken, a value of 268K is
-#extracted from the VDOS, and compared to an experimental value of 265K (see
-#ref. 14 in the Crocombette paper). All three values are in excellent agreement,
-#and for simplicity we simply use their average value below, which is 263.6K.
-#
 @CELL
-  lengths 3.232 3.232 5.147
+  lengths 3.232 !! 5.147
   angles 90 90 120
 @SPACEGROUP
   194
 @ATOMPOSITIONS
   Zr 1/3 2/3 1/4
   Zr 2/3 1/3 3/4
-@DEBYETEMPERATURE
-  Zr 263.6
 @DYNINFO
   element  Zr
   fraction 1

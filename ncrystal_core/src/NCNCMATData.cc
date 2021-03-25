@@ -196,7 +196,7 @@ bool NC::NCMATData::hasCell() const
 }
 
 bool NC::NCMATData::hasUnitCell() const {
-  nc_assert( hasCell()==hasAtomPos() && hasDebyeTemperature()==hasCell() );
+  nc_assert( hasCell()==hasAtomPos() && ( version>=4 || hasDebyeTemperature()==hasCell() ) );
   return hasCell();
 }
 
@@ -244,12 +244,12 @@ void NC::NCMATData::validateAtomDB() const
 
 void NC::NCMATData::validateElementNameByVersion(const std::string& s, unsigned version)
 {
-  nc_assert_always(version>0&&version<=3);
+  nc_assert_always(version>0&&version<=4);
   AtomSymbol atomsymbol(s);
   if ( atomsymbol.isInvalid() )
     NCRYSTAL_THROW2(BadInput,"Invalid element name \""<<s<<"\"");//invalid in any version
-  if (version==3)
-    return;//All is supported in the v3.
+  if (version>=3)
+    return;//All is supported in v3, v4, ...
 
   //Version-specific tests for older versions:
   if (atomsymbol.isCustomMarker())
@@ -302,6 +302,8 @@ void NC::NCMATData::validateDebyeTemperature() const
 {
   if (!hasDebyeTemperature())
     return;
+  if ( debyetemp_global.has_value() && version >=4 )
+    NCRYSTAL_THROW2(BadInput,sourceDescription<<" Global Debye temperatures are not allowed in NCMAT v4+ data (use per-element values instead)");
   if ( debyetemp_global.has_value() && !debyetemp_perelement.empty() )
     NCRYSTAL_THROW2(BadInput,sourceDescription<<" specifies both global and per-element Debye temperatures");
   if ( debyetemp_global.has_value() && !( debyetemp_global.value().get() >= 0.0 ) )
@@ -331,7 +333,7 @@ void NC::NCMATData::validateDensity() const
 
 void NC::NCMATData::validate() const
 {
-  if ( ! ( version==1 || version==2 || version==3 ) )
+  if ( ! ( version>=1 && version<=4 ) )
     NCRYSTAL_THROW2(BadInput,sourceDescription<<" unsupported NCMAT format version "<<version);
 
   std::set<std::string> allElementNames;
@@ -407,8 +409,8 @@ void NC::NCMATData::validate() const
 
   if ( !hasunitcellinfo && hasDebyeTemperature() )
     NCRYSTAL_THROW2(BadInput,sourceDescription<<" Debye temperature information is only relevant for crystalline materials with a unit cell defined");
-  if ( hasunitcellinfo && !hasDebyeTemperature() )
-    NCRYSTAL_THROW2(BadInput,sourceDescription<<" Debye temperature information is currently required for all crystalline materials with a unit cell defined");
+  if ( hasunitcellinfo && !hasDebyeTemperature() && version <= 3 )
+    NCRYSTAL_THROW2(BadInput,sourceDescription<<" In NCMAT formats before v4, Debye temperature information is required for all crystalline materials with a unit cell defined.");
 
   ////////////////////////////////////////////////////////////////////////////////
   //More detailed checks involving multiple sections.
@@ -470,7 +472,7 @@ void NC::NCMATData::validate() const
     }
   }
 
-  // Consistency between elements in ATOMPOSITIONS/DYNINFO sections and those with local Debye
+  // Consistency between elements in ATOMPOSITIONS/DYNINFO sections and those with per-element Debye
   // temperatures:
 
   if ( !debyetemp_perelement.empty() ) {
@@ -484,11 +486,14 @@ void NC::NCMATData::validate() const
       for (;itD!=itDE;++itD)
         if ( !atompos_elems2count.count(itD->first) )
           break;
-      for (const auto& e : atompos_elems2count) {
-        if (!std::any_of(debyetemp_perelement.cbegin(), debyetemp_perelement.cend(),
-                         [&e](const std::pair<std::string,DebyeTemperature>& e2){ return e.first==e2.first; })) {
-          NCRYSTAL_THROW2(BadInput,sourceDescription<<" Per-element Debye temperature specified for some elements"
-                          " but missing for element "<<e.first<<" which occurs in @ATOMPOSITIONS");
+      if ( version <=3 ) {
+        //before v4 if at least one atom was specified per-element, all elements must have per-element debye temps.
+        for (const auto& e : atompos_elems2count) {
+          if (!std::any_of(debyetemp_perelement.cbegin(), debyetemp_perelement.cend(),
+                           [&e](const std::pair<std::string,DebyeTemperature>& e2){ return e.first==e2.first; })) {
+            NCRYSTAL_THROW2(BadInput,sourceDescription<<" Per-element Debye temperature specified for some elements"
+                            " but missing for element "<<e.first<<" which occurs in @ATOMPOSITIONS");
+          }
         }
       }
     } else if ( !dyninfo_elems2frac.empty() ) {
@@ -500,6 +505,28 @@ void NC::NCMATData::validate() const
       NCRYSTAL_THROW2(BadInput,sourceDescription<<" element ("<<itD->first
                       <<") appearing in list of per-element Debye temperatures is not present in "
                       <<((!atompos_elems2count.empty())?"the list of atom positions":"any of the dynamic info sections"));
+  }
+
+  if ( version >= 4 && hasunitcellinfo ) {
+    //In v4+, check that for crystals we have either (or possibly both) Debye temps or dyninfo(type=vdos) for all elements:
+    nc_assert(!debyetemp_global.has_value());//already checked by validateDebyeTemperature()
+
+    std::set<std::string> elements_with_msd;
+    for ( const auto& di : dyninfos ) {
+      if ( di.dyninfo_type == DynInfo::VDOS )
+        elements_with_msd.insert(di.element_name);
+    }
+    for ( const auto& e : debyetemp_perelement )
+      elements_with_msd.insert(e.first);
+
+    for ( const auto& ename : allElementNames ) {
+      if ( elements_with_msd.find(ename) == elements_with_msd.end() )
+        NCRYSTAL_THROW2(BadInput,sourceDescription<<" element "<<ename
+                        <<" in crystal does not have sufficient information to estimate"
+                        " mean-squared atomic displacements. Either a VDOS (in a @DYNINFO"
+                        " section with type=vdos) or an entry in the @DEBYETEMPERATURE"
+                        " section is required.");
+    }
   }
 
   //Check consistency between temperature values specified in different parts of
@@ -524,4 +551,8 @@ void NC::NCMATData::validate() const
     if ( AtomSymbol(e).isCustomMarker() && !atomdb_custommarkers.count(e))
       NCRYSTAL_THROW2(BadInput,sourceDescription<<" custom marker \""<<e<<"\" is used but has no definition in the @ATOMDB section")
   }
+
+  //NB: We do not validate the space-group here (in principle we could easily
+  //recognise a cubic space group, but users should be allowed specify a lower
+  //symmetry, e.g. space-group 1.
 }

@@ -77,6 +77,9 @@ namespace NCrystal {
     VectD * m_dyninfo_active_vector_field;
     bool m_dyninfo_active_vector_field_allownegative;
 
+    //Handle "cubic" keyword in @CELL section:
+    Optional<double> m_cell_cubic;
+
     //For error messages:
     std::string descr() const
     {
@@ -126,8 +129,8 @@ if (!contains(ss,'/'))
 }
 
 NC::NCMATParser::NCMATParser( const TextData& input )
-  : m_active_dyninfo(0),
-    m_dyninfo_active_vector_field(0),
+  : m_active_dyninfo(nullptr),
+    m_dyninfo_active_vector_field(nullptr),
     m_dyninfo_active_vector_field_allownegative(false)
 {
   //Setup source description strings first as it is used in error messages:
@@ -158,6 +161,8 @@ NC::NCMATParser::NCMATParser( const TextData& input )
       m_data.version = 2;
     } else if ( parts.at(1) == "v3" ) {
       m_data.version = 3;
+    } else if ( parts.at(1) == "v4" ) {
+      m_data.version = 4;
     } else {
       NCRYSTAL_THROW2(BadInput,descr()<<": is in an NCMAT format version, \""<<parts.at(1)<<"\", which is not recognised by this installation of NCrystal");
     }
@@ -170,6 +175,16 @@ NC::NCMATParser::NCMATParser( const TextData& input )
 
   //Unalias element names:
   m_data.unaliasElementNames();
+
+  //Check that spacegroup is absent or 195-230 if cubic keyword was used (we
+  //can't do this in NCMatData::validate since it doesn't know if cubic keyword
+  //was used, or lengths/angles just happen to look cubic - because the user
+  //should in principle be allowed to specify a lower compatible symmetry
+  //(e.g. spacegroup=1) if not actually using the "cubic" keyword:
+  if ( m_cell_cubic.has_value() && m_data.hasSpaceGroup() && m_data.spacegroup<195 )
+    NCRYSTAL_THROW2(BadInput,descr()<<": The \"cubic\" keyword is not allowed in the @CELL section"
+                    " if the @SPACEGROUP section indicates a non-cubic group (cubic space group numbers are"
+                    " 195..230 which does not include the provided number: "<<m_data.spacegroup<<")");
 
 }
 
@@ -257,7 +272,7 @@ void NC::NCMATParser::parseFile( TextData::Iterator itLine, TextData::Iterator i
       std::swap(current_section,new_section);
       itSection = section2handler.find( is_custom_section ? "CUSTOM"_s : current_section );
 
-      nc_assert( m_data.version>=1 && m_data.version <= 3 );
+      nc_assert( m_data.version>=1 && m_data.version <= 4 );
       if ( itSection == section2handler.end() ) {
         //Unsupported section name. For better error messages, first check if it
         //is due to file version:
@@ -332,7 +347,7 @@ void NC::NCMATParser::parseLine( const std::string& line,
   parts.clear();
   const char * c = &line[0];
   const char * cE = c + line.size();
-  const char * partbegin = 0;
+  const char * partbegin = nullptr;
   for (;c!=cE;++c) {
     if ( *c < 127 && ( *c > 32 && *c != '#') ) {
       //A regular character which should go in the parts vector
@@ -435,6 +450,13 @@ void NC::NCMATParser::handleSectionData_HEAD(const Parts& parts, unsigned lineno
 void NC::NCMATParser::handleSectionData_CELL(const Parts& parts, unsigned lineno)
 {
   if (parts.empty()) {
+    //finish up, apply "cubic" and validate.
+    if ( m_cell_cubic.has_value() ) {
+      nc_assert( m_data.cell.lengths[0]==0.0 && m_data.cell.lengths[1]==0.0 && m_data.cell.lengths[2]==0.0 );
+      nc_assert( m_data.cell.angles[0]==0.0 && m_data.cell.angles[1]==0.0 && m_data.cell.angles[2]==0.0 );
+      m_data.cell.lengths = { m_cell_cubic.value(),m_cell_cubic.value(),m_cell_cubic.value() };
+      m_data.cell.angles = { 90.0, 90.0, 90.0 };
+    }
     try {
       m_data.validateCell();
     } catch (Error::BadInput&e) {
@@ -442,27 +464,65 @@ void NC::NCMATParser::handleSectionData_CELL(const Parts& parts, unsigned lineno
     }
     return;
   }
-  if ( !isOneOf(parts.at(0),"lengths","angles") ) {
-    NCRYSTAL_THROW2(BadInput,descr()<<": found \""<<parts.at(0)<<"\" where \"lengths\" or \"angles\" keyword was expected in @CELL section in line "<<lineno<<"");
+  const auto& keyword = parts.at(0);
+
+  if ( keyword=="cubic" ) {
+    if ( m_data.version < 4 )
+      NCRYSTAL_THROW2(BadInput,descr()<<": \"cubic\" keyword in @CELL section requires NCMAT v4 or later. Problem in line "<<lineno);
+    const bool has_lengths = !( m_data.cell.lengths[0]==0.0 && m_data.cell.lengths[1]==0.0 && m_data.cell.lengths[2]==0.0 );
+    const bool has_angles = !( m_data.cell.angles[0]==0.0 && m_data.cell.angles[1]==0.0 && m_data.cell.angles[2]==0.0 );
+    if ( has_lengths || has_angles ) {
+      NCRYSTAL_THROW2(BadInput,descr()<<": The \"cubic\" keyword can not be provided at the same time as the \""
+                      <<(has_lengths?"lengths":"angles")
+                      <<"\" keyword in the @CELL section in line "<<lineno);
+    }
+    if ( m_cell_cubic.has_value() )
+      NCRYSTAL_THROW2(BadInput,descr()<<": repeated keyword \"cubic\" in line "<<lineno);
+    if ( parts.size() != 2 )
+      NCRYSTAL_THROW2(BadInput,descr()<<": wrong number of data entries after \"cubic\" keyword in line "<<lineno<<" (expected a single number)");
+    try {
+      double cubic_val = str2dbl(parts.at(1));
+      m_cell_cubic = cubic_val;
+      if ( !(cubic_val>0.0) || cubic_val>1e4 )
+        NCRYSTAL_THROW(BadInput,"invalid value or value out of range");
+    } catch (Error::BadInput&e) {
+      NCRYSTAL_THROW2(BadInput,descr()<<": problem while decoding \"cubic\" parameter in line "<<lineno<<" : "<<e.what());
+    }
+    return;
+  }
+  if ( !isOneOf(keyword,"lengths","angles") ) {
+    NCRYSTAL_THROW2(BadInput,descr()<<": found \""<<keyword<<"\" where \"lengths\""
+                    <<(m_data.version>=4?",  \"angles\", or  \"cubic\"":" or \"angles\"")
+                    <<" keyword was expected in @CELL section in line "<<lineno);
   }
   if ( parts.size() != 4 ) {
-    NCRYSTAL_THROW2(BadInput,descr()<<": wrong number of data entries after \""<<parts.at(0)<<"\" keyword in line "<<lineno<<" (expected three numbers)");
+    NCRYSTAL_THROW2(BadInput,descr()<<": wrong number of data entries after \""<<keyword<<"\" keyword in line "<<lineno<<" (expected three numbers)");
   }
-  std::array<double,3>& targetvector = ( parts.at(0)=="lengths" ? m_data.cell.lengths : m_data.cell.angles );
+  std::array<double,3>& targetvector = ( keyword=="lengths" ? m_data.cell.lengths : m_data.cell.angles );
   if (!(targetvector[0]==0.&&targetvector[1]==0.&&targetvector[2]==0.)) {
-    NCRYSTAL_THROW2(BadInput,descr()<<": repeated keyword \""<<parts.at(0)<<"\" in line "<<lineno);
+    NCRYSTAL_THROW2(BadInput,descr()<<": repeated keyword \""<<keyword<<"\" in line "<<lineno);
   }
   std::array<double,3> v;
   for (unsigned i = 0; i<3; ++i) {
+    if ( parts.at(i+1) == "!!" ) {
+      if ( keyword!="lengths" )
+        NCRYSTAL_THROW2(BadInput,descr()<<": Usage of \"!!\" to repeat previous value can only be used for \"lengths\" keyword, not \""<<keyword<<"\" (in line "<<lineno<<")");
+      if ( i == 0 )
+        NCRYSTAL_THROW2(BadInput,descr()<<": Usage of \"!!\" to repeat previous length value can not be used for the first value (in line "<<lineno<<")");
+      if ( m_data.version < 4 )
+        NCRYSTAL_THROW2(BadInput,descr()<<": Usage of \"!!\" to repeat previous length value requires NCMAT v4 or later (in line "<<lineno<<")");
+      v.at(i) = v.at(i-1);
+      continue;
+    }
     try {
       v[i] = str2dbl(parts.at(i+1));
     } catch (Error::BadInput&e) {
-      NCRYSTAL_THROW2(BadInput,descr()<<": problem while decoding \""<<parts.at(0)<<"\" parameter #"<<i+1<<" in line "<<lineno<<" : "<<e.what());
+      NCRYSTAL_THROW2(BadInput,descr()<<": problem while decoding \""<<keyword<<"\" parameter #"<<i+1<<" in line "<<lineno<<" : "<<e.what());
     }
   }
   targetvector = v;
   if ( targetvector[0]==0. && targetvector[1]==0. && targetvector[2]==0. ) {
-    NCRYSTAL_THROW2(BadInput,descr()<<": vector \""<<parts.at(0)<<"\" is a null-vector in line "<<lineno);
+    NCRYSTAL_THROW2(BadInput,descr()<<": vector \""<<keyword<<"\" is a null-vector in line "<<lineno);
   }
 }
 
@@ -541,13 +601,17 @@ void NC::NCMATParser::handleSectionData_DEBYETEMPERATURE(const Parts& parts, uns
     NCRYSTAL_THROW2(BadInput,descr()<<": invalid entries found after global Debye temperature was already specified (offending entries are in line "<<lineno<<")");
 
   if (parts.size()==1) {
-    if (!m_data.debyetemp_perelement.empty())
+    if ( !m_data.debyetemp_perelement.empty() )//global DT not supported if per-element entries already seen (or if NCMAT version is v4 or later, but that is handled below).
       NCRYSTAL_THROW2(BadInput,descr()<<": invalid entries found in line "<<lineno<<" (missing element name or temperature?)");
     try {
       double tmp = str2dbl(parts.at(0));
       m_data.debyetemp_global = DebyeTemperature{ tmp };
     } catch (Error::BadInput&e) {
       NCRYSTAL_THROW2(BadInput,descr()<<": problem while decoding global Debye temperature in line "<<lineno<<" : "<<e.what());
+    }
+    if ( m_data.debyetemp_global.has_value() && m_data.version>=4 ) {
+      m_data.debyetemp_global.reset();
+      NCRYSTAL_THROW2(BadInput,descr()<<": Global Debye temperature's are not allowed in NCMAT v4 or later (problem in line "<<lineno<<")");
     }
   } else if (parts.size()==2) {
     validateElementName(parts.at(0),lineno);
@@ -579,9 +643,9 @@ void NC::NCMATParser::handleSectionData_DYNINFO(const Parts& parts, unsigned lin
     for (auto& e : m_active_dyninfo->fields)
       e.second.shrink_to_fit();
 
-    m_dyninfo_active_vector_field = 0;
+    m_dyninfo_active_vector_field = nullptr;
     m_dyninfo_active_vector_field_allownegative = false;
-    m_active_dyninfo = 0;
+    m_active_dyninfo = nullptr;
     return;
   }
   if (!m_active_dyninfo) {
@@ -592,7 +656,7 @@ void NC::NCMATParser::handleSectionData_DYNINFO(const Parts& parts, unsigned lin
   //all keywords use lowercase characters + '_' and must start with a lower-case
   //letter:
 
-  VectD * parse_target = 0;
+  VectD * parse_target = nullptr;
   NCMATData::DynInfo& di = *m_active_dyninfo;
   Parts::const_iterator itParseToVect(parts.begin()), itParseToVectE(parts.end());
   const std::string& p0 = parts.at(0);
@@ -606,7 +670,7 @@ void NC::NCMATParser::handleSectionData_DYNINFO(const Parts& parts, unsigned lin
     if (parts.size()<2)
       NCRYSTAL_THROW2(BadInput,e1<<": provides no arguments for keyword \""<<p0<<"\" in line "<<lineno);
 
-    m_dyninfo_active_vector_field = 0;//new keyword, deactivate active field.
+    m_dyninfo_active_vector_field = nullptr;//new keyword, deactivate active field.
     m_dyninfo_active_vector_field_allownegative = false;//forbid negative numbers except where we explicitly allow them
     ++itParseToVect;//skip keyword if later parsing values into vector
     const std::string& p1 = parts.at(1);
@@ -682,16 +746,17 @@ void NC::NCMATParser::handleSectionData_DYNINFO(const Parts& parts, unsigned lin
   /////////////////////////////////////////////////////////////////////////////
   // Only get here if we have to parse numbers into a vector in DynInfo.fields:
 
-  if (m_dyninfo_active_vector_field)
+  if ( m_dyninfo_active_vector_field )
     parse_target = m_dyninfo_active_vector_field;
-
-  nc_assert_always( parse_target && itParseToVect != itParseToVectE );
+  if ( !parse_target )
+    NCRYSTAL_THROW2(BadInput,descr()<<": Unexpected content in line "<<lineno<<": "<<parts.front());
+  nc_assert_always( itParseToVect != itParseToVectE );
   std::size_t idx = (itParseToVect-parts.begin());
   std::string tmp_strcache0, tmp_strcache1;
   for (; itParseToVect!=itParseToVectE; ++itParseToVect,++idx) {
     double val;
     const std::string * srcnumstr = &(*itParseToVect);
-    const std::string * srcrepeatstr = 0;
+    const std::string * srcrepeatstr = nullptr;
     //First check for compact notation of repeated entries:
     auto idx_repeat_marker = srcnumstr->find('r');
     if (idx_repeat_marker != std::string::npos) {

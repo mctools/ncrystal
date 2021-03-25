@@ -1,4 +1,4 @@
-NCMAT v2
+NCMAT v4
 #Lead (Pb)
 #
 #Crystal structure was converted from the cif file of the entry 0011154 in the AMCSD.
@@ -11,19 +11,8 @@ NCMAT v2
 #   G. Gilat, Solid State Communications, Vol. 3, pp. 101-103, 1965.
 #   https://doi.org/10.1016/0038-1098(65)90232-2
 #
-#The Debye temperature derived from the Debye-waller factor at 293K compiled in
-#the supplement of Acta Cryst., A52, p. 456-470, 1996 is 87.5K. On the other
-#hand, Introduction to Solid State Physics (Charles Kittel, 2004), provides a
-#value of 105K. Experimental data (EXFOR 14141002, G. Muhrer), indicates a flat
-#total cross section for wavelengths lower than 1.5Aa. A result reproduced by
-#NCrystal (v2.0) if using the average of the numbers as the Debye temperature,
-#(87.5K+105K)/2~=96K, but not if using either of the values 87.5K and 105K. A
-#value of 96K also seems consistent with the VDOS spectrum, and thus in general
-#seems to be a reasonable choice.
-#
 @CELL
-  lengths 4.9505 4.9505 4.9505
-  angles 90 90 90
+  cubic 4.9505
 @SPACEGROUP
   225
 @ATOMPOSITIONS
@@ -31,8 +20,6 @@ NCMAT v2
   Pb 1/2 0   0
   Pb 0   1/2 0
   Pb 0   0   1/2
-@DEBYETEMPERATURE
-  Pb 96
 @DYNINFO
   element  Pb
   fraction 1

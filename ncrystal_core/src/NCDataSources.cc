@@ -22,6 +22,7 @@
 #include "NCrystal/NCFactImpl.hh"
 #include "NCrystal/internal/NCString.hh"
 #include "NCrystal/internal/NCFileUtils.hh"
+#include "NCrystal/NCPluginMgmt.hh"
 
 namespace NC = NCrystal;
 namespace NCD = NCrystal::DataSources;
@@ -72,6 +73,7 @@ namespace NCrystal {
 }
 void NCD::enableAbsolutePaths( bool doEnable )
 {
+  Plugins::ensurePluginsLoaded();
   static std::atomic<bool> s_enabled = {false};
   if ( !setValue(s_enabled,doEnable).wasChanged )
     return;
@@ -249,6 +251,7 @@ namespace NCrystal {
 
 void NCD::enableRelativePaths( bool doEnable )
 {
+  Plugins::ensurePluginsLoaded();
   static std::atomic<bool> s_enabled = {false};
   if ( !setValue(s_enabled,doEnable).wasChanged )
     return;
@@ -318,6 +321,7 @@ namespace NCrystal {
 
 void NCD::enableStandardDataLibrary( bool doEnable, Optional<std::string> requested )
 {
+  Plugins::ensurePluginsLoaded();
   if ( requested.has_value() ) {
     auto rp = tryRealPath( requested.value() );
     if ( !rp.empty() )
@@ -382,6 +386,7 @@ void NCD::enableStandardDataLibrary( bool doEnable, Optional<std::string> reques
 
 void NCD::addCustomSearchDirectory( std::string dirname, Priority pr )
 {
+  Plugins::ensurePluginsLoaded();
   if ( !pr.canServiceRequest() || pr.needsExplicitRequest() )
     NCRYSTAL_THROW(BadInput,"addCustomSearchDirectory needs ordinary priority value");
 
@@ -426,6 +431,7 @@ void NCD::addCustomSearchDirectory( std::string dirname, Priority pr )
 
 void NCD::removeCustomSearchDirectories()
 {
+  Plugins::ensurePluginsLoaded();
   auto & cdl = getCustomDirList();
   NCRYSTAL_LOCK_GUARD(cdl.mtx);
   cdl.dirList.clear();
@@ -434,6 +440,7 @@ void NCD::removeCustomSearchDirectories()
 
 void NCD::enableStandardSearchPath( bool doEnable )
 {
+  Plugins::ensurePluginsLoaded();
   static std::atomic<bool> s_enabled = {false};
   if ( !setValue(s_enabled,doEnable).wasChanged )
     return;
@@ -582,6 +589,7 @@ void NCD::registerNamedVirtualDataSource( const std::string& factoryName,
                                           std::map<std::string,TextDataSource>&& virtualFiles,
                                           Priority priority )
 {
+  Plugins::ensurePluginsLoaded();
   if ( !priority.canServiceRequest() )
     NCRYSTAL_THROW(BadInput,"Virtual data sources can not be added with Priority::Unable");
   for ( const auto& e : virtualFiles )
@@ -595,6 +603,7 @@ void NCD::registerInMemoryFileData( std::string virtualFileName,
                                     std::string&& data,
                                     Priority priority )
 {
+  Plugins::ensurePluginsLoaded();
   registerVirtualDataSource( std::move(virtualFileName),
                              TextDataSource::createFromInMemData( RawStrData(std::move(data)) ),
                              priority );
@@ -604,6 +613,7 @@ void NCD::registerInMemoryStaticFileData( std::string virtualFileName,
                                           const char* static_data,
                                           Priority priority )
 {
+  Plugins::ensurePluginsLoaded();
   registerVirtualDataSource( std::move(virtualFileName),
                              TextDataSource::createFromInMemData( RawStrData(RawStrData::static_data_ptr_t(),
                                                                              static_data) ),
@@ -614,6 +624,7 @@ void NCD::registerVirtualFileAlias( std::string virtualFileName,
                                     std::string realAbsPathFileName,
                                     Priority priority )
 {
+  Plugins::ensurePluginsLoaded();
   if ( !priority.canServiceRequest() )
     NCRYSTAL_THROW(BadInput,"Virtual data sources can not be added with Priority::Unable");
   auto rp = tryRealPath( realAbsPathFileName );
@@ -637,6 +648,7 @@ namespace NCrystal {
 
 void NCD::addRecognisedFileExtensions( std::string s )
 {
+  Plugins::ensurePluginsLoaded();
   if ( s.empty() )
     return;
   if ( s.at(0) == '.' )
@@ -649,6 +661,7 @@ void NCD::addRecognisedFileExtensions( std::string s )
 
 NC::VectS NCD::recognisedFileExtensions()
 {
+  Plugins::ensurePluginsLoaded();
   auto& db = extensionsDB();
   NCRYSTAL_LOCK_GUARD(db.mtx);
   return db.list;
@@ -699,6 +712,7 @@ extern "C" void ncrystal_register_stddatasrc_factory()
 
 void NCD::removeAllDataSources()
 {
+  Plugins::ensurePluginsLoaded();
   enableAbsolutePaths(false);
   enableRelativePaths(false);
   enableStandardDataLibrary(false);

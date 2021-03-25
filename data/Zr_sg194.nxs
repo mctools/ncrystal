@@ -14,13 +14,6 @@
 ## #   Jean-Paul Crocombette et al 2015 J. Phys.: Condens. Matter 27 165501
 ## #   https://doi.org/10.1088/0953-8984/27/16/165501
 ## #
-## #The Debye temperature derived from the Debye-waller factor at 293K compiled in
-## #the supplement of Acta Cryst., A52, p. 456-470, 1996, is 257.7K. In the
-## #Crocombette 2015 paper from which the VDOS is taken, a value of 268K is
-## #extracted from the VDOS, and compared to an experimental value of 265K (see
-## #ref. 14 in the Crocombette paper). All three values are in excellent agreement,
-## #and for simplicity we simply use their average value below, which is 263.6K.
-## #
 ####################################################################################
 
 space_group = 194
@@ -30,7 +23,7 @@ lattice_c = 5.147
 lattice_alpha = 90
 lattice_beta  = 90
 lattice_gamma = 120
-debye_temp = 263.6
+debye_temp = 249.343824074318
 
 [atoms]
 # notation is "atom_number = name b_coh sigma_inc sigma_abs_2200 molar_mass x y z"
@@ -40,4 +33,4 @@ debye_temp = 263.6
 #   sigma_abs_2200 - the absorption cross sect. at 2200 m/s [barns]
 #   molar_mass     - the Molar mass [g/mol]
 #   x y z          - the Wyckoff postion of the atom inside the unit cell
-add_atom = Zr 7.16 0.02 0.185 91.2190408226 0.333333333333333 0.666666666666667 0.25
+add_atom = Zr 7.16 0.02 0.185 91.2190408226 0.66666666666666663 0.33333333333333331 0.75

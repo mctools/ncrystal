@@ -1,3 +1,6 @@
+v2.5.80 2020-03-25
+      * RC1 for incoming major release v2.6.0.
+
 v2.5.0 2020-03-21
       * The NCrystal v2.5.0 release brings major technical improvements to
         NCrystal "under the hood", with around 15.000 lines of code changed in

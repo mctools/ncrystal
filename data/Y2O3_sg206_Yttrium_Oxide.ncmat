@@ -1,7 +1,7 @@
-NCMAT v2
+NCMAT v4
 #Yttrium Oxide (Yttria). Cubic.
 #
-#Reference for crystal structure and Debye temperature:
+#Reference for crystal structure:
 #
 #   Park, Woon Bae, et. al., Journal of Materials Chemistry, vol. 21, p. 5780, 2011.
 #
@@ -15,8 +15,7 @@ NCMAT v2
 #   https://doi.org/10.1103/PhysRevB.84.094301
 #
 @CELL
-  lengths 10.6431 10.6431 10.6431
-  angles 90 90 90
+  cubic 10.6431
 @SPACEGROUP
   206
 @ATOMPOSITIONS
@@ -100,9 +99,6 @@ NCMAT v2
   O 0.108 0.355 0.13
   O 0.892 0.145 0.13
   O 0.608 0.145 0.87
-@DEBYETEMPERATURE
-  Y 363.0
-  O 842.6
 @DYNINFO
   element  Y
   fraction 2/5

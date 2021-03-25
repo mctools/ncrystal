@@ -6,9 +6,6 @@
 ## #Crystal structure was converted from the cif file of the entry 0011165 in the AMCSD.
 ## #Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
 ## #
-## #The Debye temperature is derived from the Debye-waller factor at 293K compiled
-## #in the supplement of Acta Cryst., A52, p. 456-470, 1996
-## #
 ## #The VDOS is the same as used to generate the scattering kernels shipped with
 ## #the ENDF/B-VIII release (extracted from the file tsl-Be-metal.leapr).
 ####################################################################################
@@ -20,7 +17,7 @@ lattice_c = 3.5833
 lattice_alpha = 90
 lattice_beta  = 90
 lattice_gamma = 120
-debye_temp = 1087.8
+debye_temp = 1074.71412351636
 
 [atoms]
 # notation is "atom_number = name b_coh sigma_inc sigma_abs_2200 molar_mass x y z"
@@ -30,4 +27,4 @@ debye_temp = 1087.8
 #   sigma_abs_2200 - the absorption cross sect. at 2200 m/s [barns]
 #   molar_mass     - the Molar mass [g/mol]
 #   x y z          - the Wyckoff postion of the atom inside the unit cell
-add_atom = Be 7.79 0.0018 0.0076 9.012183066 0.333333333333333 0.666666666666667 0.25
+add_atom = Be 7.79 0.0018 0.0076 9.012183066 0.66666666666666663 0.33333333333333331 0.75

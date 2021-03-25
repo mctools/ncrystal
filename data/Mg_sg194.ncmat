@@ -1,14 +1,36 @@
-NCMAT v1
-#converted from the cif file of the entry 0011183 in the AMCSD
-#reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
-#comment: The Debye temperature is derived from the Debye-waller factor at 293K compiled in the supplement of Acta Cryst., A52, p. 456-470, 1996
+NCMAT v4
+# Magnesium (hcp).
+#
+# Crystal structure Converted from the cif file of the entry 0011183 in the AMCSD.
+# Additonal reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+#
+# VDOS curve taken from:
+#
+#    Landolt-B"ornstein - Group III Condensed Matter
+#    Volume 13A 1981
+#    Metals: Phonon States. Electron States and Fermi Surfaces * Phonon States of Elements. Electron States and Fermi Surfaces of Alloys
+#    Editors: K.-H. Hellwege, J. L. Olsen
+#    ISBN: 978-3-540-09774-7 (Print) 978-3-540-38957-6 (Online)
+#    DOI: 10.1007/b19988
+#
 @CELL
-    lengths 3.20927 3.20927 5.21033 
-    angles 90. 90. 120. 
+  lengths 3.20927 !! 5.21033
+  angles 90 90 120
 @SPACEGROUP
-    194
+  194
 @ATOMPOSITIONS
-    Mg 0.333333333333 0.666666666667 0.25
-    Mg 0.666666666667 0.333333333333 0.75
-@DEBYETEMPERATURE
-    Mg   279.9220
+  Mg 1/3 2/3 1/4
+  Mg 2/3 1/3 3/4
+@DYNINFO
+  element  Mg
+  fraction 1
+  type     vdos
+  vdos_egrid 0.004135667662 0.0301903739326
+  vdos_density .0110375 .013245 .0154525 .0198675 .0220751 .0264901 .0309051
+    .0353201 .0397351 .0463576 .0529801 .0596026 .0684327 .0750552 .0860927
+    .0949227 .108168 .121413 .136865 .154525 .1766 .198675 .231788 .264901
+    .311258 .368653 .452539 .589404 .918322 .807947 .675497 .609272 .562914
+    .527594 .501104 .470199 .467991 .472406 .485651 .503311 .514349 .534216
+    .536424 .558499 .549669 .516556 .410596 .437086 .443709 .350993 .282561
+    .240618 .249448 .304636 .465784 .695364 1 .871965 .830022 .587196 .428256
+    .300221 .163355 0

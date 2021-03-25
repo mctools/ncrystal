@@ -47,19 +47,6 @@ except ImportError:
 
 NC = NCrystal
 
-def getVDOSFromNCMat(fn):
-    info = NC.createInfo(fn)
-    di_vdos = [di for di in info.dyninfos if isinstance(di,NC.Info.DI_VDOS)]
-    if len(di_vdos)>1:
-        print(f"WARNING: Using first of multiple vdos curves from file {fn}")
-    elif not di_vdos:
-        raise SystemExit(f"ERROR: No vdos found in file {fn}")
-    eg,ds = di_vdos[0].vdosOrigEgrid(),di_vdos[0].vdosOrigDensity()
-    ds /= ds.max()
-    if len(eg)==2:
-        eg = np.linspace(eg[0],eg[1],len(ds))
-    return eg,ds
-
 units_2_fact = {
     'eV' : 1.0,
     'meV' : 1e-3,
@@ -72,6 +59,67 @@ units_2_fact = {
     'Hz' : NC.constant_planck
 }
 
+def decodeFileName(filename):
+    if '@@' in filename:
+        path,select = filename.split('@@',1)
+    else:
+        path,select = filename,None
+    bn=os.path.basename(path)
+    return dict(path=path,select=select,basename=bn,
+                title=bn if not select else '%s in %s'%((select if not select.isdigit(
+                ) else f'column #{select}'),bn))
+
+def getVDOSFromFile(fn):
+    fnd = decodeFileName(fn)
+    if fnd['basename'].endswith('.ncmat'):
+        return getVDOSFromNCMAT(fn)
+    return getVDOSFromTXT(fn)
+
+def getVDOSFromTXT(fn):
+    fn = decodeFileName(fn)
+    select=None
+    if fn['select']:
+        assert fn['select'].isdigit(),"selection must be column number"
+        select = int(fn['select'])
+    usecols=None
+    if select is not None:
+        assert select>0
+        usecols=(0,select)
+    _ = np.genfromtxt(fn['path'],dtype=[('egrid','f8'),('density','f8')],usecols=usecols)
+    egrid=_['egrid'].copy()
+    density=_['density'].copy()
+    density /= density.max()
+    return egrid.copy(),density.copy()
+
+def getVDOSFromNCMAT(fn):
+    fnd = decodeFileName(fn)
+    info = NC.createInfo(fnd['path'])
+    select = fnd['select']
+    di_vdos = [di for di in info.dyninfos if isinstance(di,NC.Info.DI_VDOS)]
+    if not select is None:
+        l=[]
+        for di in di_vdos:
+            dl=di.atomData.displayLabel()
+            if dl!=select:
+                print(f"NB: Ignoring (due to selection) VDOS for element {dl} in file {fn}.")
+            else:
+                l+=[di]
+        if not l:
+            raise SystemExit(f'ERROR: Could not find VDOS in file {fn} for selected element: {select}')
+        if not len(l)==1:
+            raise SystemExit(f'ERROR: Multiple VDOS entries in file {fn} for selected element: {select} (which is rather odd!)')
+        di_vdos = l
+    if len(di_vdos)>1:
+        s=' '.join(di.atomData.displayLabel() for di in di_vdos)
+        raise SystemExit(f"ERROR: Multiple VDOS entries found in file {fn}. Please select one of them (by putting \"@@<element>\" after the file-name): {s}")
+    elif not di_vdos:
+        raise SystemExit(f"ERROR: No vdos found in file {fn}")
+    eg,ds = di_vdos[0].vdosOrigEgrid(),di_vdos[0].vdosOrigDensity()
+    ds /= ds.max()
+    if len(eg)==2:
+        eg = np.linspace(eg[0],eg[1],len(ds))
+    return eg.copy(),ds.copy()
+
 def parseArgs():
     descr="""
 
@@ -79,6 +127,12 @@ Script which can read vdos curves from either .ncmat files or simple two-column
 ascii text files (the two columns being energy grid and density) and help users
 prepare output suitable for inclusion in .ncmat files. When the input is not an
 .ncmat file, the user must specify the energy grid units with --unit.
+
+In case of NCMAT files with more than one VDOS, just post-fix the filename with
+the element to investigate, separated by '@@', e.g. "Al2O3.ncmat@@O". In case of
+.txt files with more than 2 columns, select the column representing the VDOS
+density in the same manner, e.g. "Al2O3.txt@2" (the first column is always the
+energy or frequency).
 
 Thus it is possible to plot the curve, compare against vdos curves from other
 .ncmat files, apply low-E truncation (cutoff), regularise binning, and overlay
@@ -88,14 +142,15 @@ spectrum into format which is ready for inclusion in .ncmat files.
 
 """
     parser = argparse.ArgumentParser(description=descr)
-    parser.add_argument("FILE",help="Either .ncmat file with VDOS or a text file with two colums of data: egrid and density")
+    parser.add_argument("FILE",help="Either .ncmat file with VDOS or a text file with two colums of data: egrid and density.")
     units_opts = ', '.join(sorted(units_2_fact.keys()))
     parser.add_argument("--unit",'-u',default='',type=str,help=f"Unit of egrid values. Possible options are {units_opts}.")
     parser.add_argument('--plot','-p', action='store_true',help='Plot extracted spectrum')
     parser.add_argument("--cutoff",'-c',nargs='+',default=None,type=float,
                         help="""Emin cutoff points in eV (more than one can be provided for simultaneous
                         inspection with --plot).""")
-    parser.add_argument("--ref",'-r',nargs='+',default='',type=str,
+    parser.add_argument("--ref",'-r',nargs='+',
+                        action='append',type=str,
                         help="""Optionally provide list of .ncmat files with
                         vdos data, to superimpose on plots.""")
     parser.add_argument("--forceregular",'-f',type=int,nargs='?',default=0,
@@ -133,7 +188,13 @@ spectrum into format which is ready for inclusion in .ncmat files.
         else:
             args.dpi=dpi_default
 
-    if args.FILE.endswith('.ncmat'):
+    if args.ref:
+        args.ref = [item for sublist in args.ref for item in sublist]
+        for r in args.ref:
+            if not decodeFileName(r)['basename'].endswith('.ncmat'):
+                raise SystemExit('Arguments to --ref must be .ncmat files (not .txt files, since we cant guess the unit)')
+
+    if decodeFileName(args.FILE)['basename'].endswith('.ncmat'):
         if args.unit:
             parser.error(f'Do not supply --unit when input is .ncmat file')
         args.unit='eV'
@@ -166,15 +227,9 @@ spectrum into format which is ready for inclusion in .ncmat files.
     return args
 
 args=parseArgs()
-args_file_basename=os.path.basename(args.FILE)
-
-if args.FILE.endswith('.ncmat'):
-    egrid,density = (_.copy() for _ in getVDOSFromNCMat(args.FILE))
-else:
-    _ = np.genfromtxt(args.FILE,dtype=[('egrid','f8'),('density','f8')])
-    egrid=_['egrid'].copy()
-    density=_['density'].copy()
-    density /= density.max()
+file_decoded = decodeFileName(args.FILE)
+args_file_basename=file_decoded['basename']
+egrid,density = getVDOSFromFile(args.FILE)
 
 assert len(egrid) == len(density)
 print (f"Loaded VDOS with {len(density)} grid points from {args_file_basename}")
@@ -268,9 +323,8 @@ if args.plot:
         mpl.rcParams['keymap.quit'] = tuple(list(mpl.rcParams['keymap.quit'])+['q','Q'])
     import matplotlib.pyplot as plt
 
-
     def common():
-        plt.title(os.path.basename(args.FILE))
+        plt.title(file_decoded['title'])
         plt.grid(ls=':')
         plt.show()
 
@@ -281,22 +335,22 @@ if args.plot:
     else:
         vis_unit = ('meV',1000.0)
         plt.xlabel(vis_unit[0])
-        plt.plot(egrid*vis_unit[1],density,'o-',label=args_file_basename)
+        plt.plot(egrid*vis_unit[1],density,'o-',label=file_decoded['title'])
         if args.forceregular:
             plt.plot(regularised_egrid*vis_unit[1],regularised_density,'x-',label='regularised')
         for c_idx, c_val in cutoffs:
             d=density[c_idx]
             # f(x)=k*x^2, f(c_val)=d<=> k*c_val^2 = d <=> k = d/c_val^2
             x=np.linspace(0.0,c_val,3000)
-            plt.plot(x*vis_unit[1],(d/c_val**2)*(x**2),label=f'with cutoff {c_val}')
+            plt.plot(x*vis_unit[1],(d/c_val**2)*(x**2),label=f'with cutoff {c_val} eV')
         if args.debye:
             x=np.linspace(0.0,max(egrid.max(),args.debye),1000)
             y = np.where(  x<=args.debye, x**2 * ( density.max() / args.debye**2 ), 0.0 )
             plt.plot(x*vis_unit[1],y,
                      label=f'Debye spectrum (E_Debye={1000*args.debye:.5}meV, T_Debye={args.debye/NC.constant_boltzmann:.5}K)')
         for r in args.ref:
-            eg,ds = getVDOSFromNCMat(r)
-            plt.plot(eg*vis_unit[1],ds,label=os.path.basename(r))
+            eg,ds = getVDOSFromNCMAT(r)
+            plt.plot(eg*vis_unit[1],ds,label=decodeFileName(r)['title'])
         plt.legend()
         common()
 

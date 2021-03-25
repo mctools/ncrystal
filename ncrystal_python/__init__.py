@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Python module for using the NCrystal library for thermal neutron transport in crystals
 
 Please find more information about NCrystal at the website:
@@ -52,7 +52,7 @@ For detailed usage conditions and licensing of this open source project, see:
 ################################################################################
 
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
-__version__ = '2.5.0'
+__version__ = '2.5.80'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
 __copyright__ = "Copyright 2015-2021 %s"%__author__
@@ -2245,7 +2245,7 @@ def _actualtest():
             raise RuntimeError('check failed (%.16g != %.16g, diff %g)'%(a,b,a-b))
         return True
 
-    al = createInfo('Al_sg225.ncmat;dcutoff=1.4')
+    al = createInfo('stdlib::Al_sg225.ncmat;dcutoff=1.4')
     require(hasFactory('stdncmat'))
     require(al.hasTemperature() and require_flteq(al.getTemperature(),293.15))
     require(al.hasXSectFree() and require_flteq(al.getXSectFree(),1.39667))
@@ -2269,9 +2269,9 @@ def _actualtest():
     require( al.nHKL() == 3 )
     require_flteq(al.hklDLower(),1.4)
     require( al.hklDUpper() > 1e36 )
-    expected_hkl = { 0  : (1, -1, -1, 8, 2.3380261031049243, 1.77210688280773),
-                     1  : (0, 0, 2, 6, 2.02479, 1.730418273564928),
-                     2  : (0, 2, -2, 12, 1.4317427394787094, 1.573243021457801) }
+    expected_hkl = { 0  : (1, -1, -1, 8, 2.3380261031049243, 1.773159275925474),
+                     1  : (0, 0, 2, 6, 2.02479, 1.731788590086223),
+                     2  : (0, 2, -2, 12, 1.4317427394787094, 1.575735707233723) }
     for idx,hkl in enumerate(al.hklList()):
         h,k,l,mult,dsp,fsq = hkl
         require(idx<len(expected_hkl))
@@ -2282,14 +2282,14 @@ def _actualtest():
 
     #We do all createScatter... here with independent RNG, for reproducibility
     #and to avoid consuming random numbers from other streams.
-    alpc = createScatterIndependentRNG('Al_sg225.ncmat;dcutoff=1.4;incoh_elas=0;inelas=0')
+    alpc = createScatterIndependentRNG('stdlib::Al_sg225.ncmat;dcutoff=1.4;incoh_elas=0;inelas=0')
     require( alpc.name == 'PCBragg' )
     require( isinstance(alpc.name,str) )
     require( alpc.refCount() in (1,2) and type(alpc.refCount()) == int )
     require( alpc.isNonOriented() )
     #print(alpc.xsect(wl=4.0))
-    require_flteq(1.631341646154576,alpc.crossSectionNonOriented(wl2ekin(4.0)) )
-    require_flteq(1.631341646154576,alpc.crossSection(wl2ekin(4.0),(1,0,0)))
+    require_flteq(1.632435821586171,alpc.crossSectionNonOriented(wl2ekin(4.0)) )
+    require_flteq(1.632435821586171,alpc.crossSection(wl2ekin(4.0),(1,0,0)))
     require( alpc.crossSectionNonOriented(wl2ekin(5.0)) == 0.0 )
 
     require( alpc.rngSupportsStateManipulation() )
@@ -2306,21 +2306,21 @@ def _actualtest():
     require(alpc_clone3.getRNGState()=='3a20660a10fd581bd7cddef8fc3f32a2b067bd44')
 
     #Pick Nickel at 1.2 angstrom, to also both vdos + incoherent-elastic + coherent-elastic:
-    nipc = createScatterIndependentRNG('Ni_sg225.ncmat;dcutoff=0.6;vdoslux=2',2543577)
+    nipc = createScatterIndependentRNG('stdlib::Ni_sg225.ncmat;dcutoff=0.6;vdoslux=2',2543577)
     nipc_testwl = 1.2
     #print(nipc.xsect(wl=nipc_testwl),nipc.xsect(wl=5.0))
-    require_flteq(16.687651945938732,nipc.xsect(wl=nipc_testwl))
-    require_flteq(16.687651945938732,nipc.xsect(wl=nipc_testwl,direction=(1,0,0)))
-    require_flteq(5.955685110089284,nipc.xsect(wl=5.0))
+    require_flteq(16.76180269901848,nipc.xsect(wl=nipc_testwl))
+    require_flteq(16.76180269901848,nipc.xsect(wl=nipc_testwl,direction=(1,0,0)))
+    require_flteq(5.957608321614448,nipc.xsect(wl=5.0))
 
     require( nipc.name == 'ProcComposition' )
 
     expected = [ ( 0.056808478892590906, 0.5361444826572668 ),
                  ( 0.056808478892590906, 0.5361444826572668 ),
                  ( 0.056808478892590906, 0.3621986636537414 ),
-                 ( 0.056808478892590906, 0.8399954705174071 ),
+                 ( 0.056808478892590906, 0.8391056916029316 ),
                  ( 0.042989187794288765, -0.9096194243039262 ),
-                 ( 0.056808478892590906, 0.006072454772982239 ),
+                 ( 0.056808478892590906, 0.0028144544046340148 ),
                  ( 0.056808478892590906, -0.10165685368899191 ),
                  ( 0.056808478892590906, -0.15963879335683306 ),
                  ( 0.056808478892590906, 0.8260541809964751 ),
@@ -2339,7 +2339,7 @@ def _actualtest():
                  ( 0.056808478892590906, -0.5655123710317247 ),
                  ( 0.05855201462547019, -0.8738494156078874 ),
                  ( 0.056808478892590906, 0.3042167239859003 ),
-                 ( 0.056808478892590906, 0.7392637342529926 ),
+                 ( 0.056808478892590906, 0.7378808571510718 ),
                  ( 0.056808478892590906, -0.10165685368899191 ),
                  ( 0.0805594553013878, -0.7456104365395846 ),
                  ( 0.056808478892590906, -0.5655123710317247 ),
@@ -2362,11 +2362,11 @@ def _actualtest():
 
     expected = [ ( 0.008116501671018274, (-0.7888579918584985, -0.6076320574780225, -0.09212139494168683) ),
                  ( 0.056808478892590906, (0.07228896531453344, -0.5190173207165885, 0.8517014302500192) ),
-                 ( 0.056808478892590906, (-0.9243942003022179, -0.32326505618061235, -0.20247238305548906) ),
+                 ( 0.056808478892590906, (-0.9249112255344181, -0.32220112076758217, -0.20180600252850442) ),
                  ( 0.056808478892590906, (-0.15963879335683306, -0.8486615569734178, 0.5042707778277745) ),
                  ( 0.055103725651071606, (-0.924890868488756, -0.0158891095949405, -0.37990053643341243) ),
                  ( 0.056808478892590906, (0.3621986636537414, 0.9195336880770101, -0.15254482796521104) ),
-                 ( 0.056808478892590906, (-0.8658856164714639, 0.3964839041218875, -0.3050288723385031) ),
+                 ( 0.056808478892590906, (-0.8667699444876275, 0.3952682020937969, -0.30409359043960893) ),
                  ( 0.056808478892590906, (-0.10165685368899191, -0.8869759070713323, -0.4504882066969593) ),
                  ( 0.056808478892590906, (0.07228896531453344, -0.39741541395284924, -0.914787021249449) ),
                  ( 0.056808478892590906, (-0.10165685368899191, -0.9768880366798581, -0.1880309758785167) ),
@@ -2380,16 +2380,16 @@ def _actualtest():
                  ( 0.056808478892590906, (0.5361444826572668, 0.555576061106532, -0.6355189486093414) ),
                  ( 0.05782436987235506, (-0.12701251140325537, -0.6897951154352726, 0.7127766274708206) ),
                  ( 0.056808478892590906, (0.3042167239859003, -0.8706122815482211, -0.3866347631352975) ),
-                 ( 0.056808478892590906, (-0.7368779236161493, 0.633848869536781, -0.23504581739332683) ),
+                 ( 0.056808478892590906, (-0.7384733804796917, 0.6322144258925643, -0.23443972789660028) ),
                  ( 0.056808478892590906, (-0.15963879335683306, 0.21525619037302965, -0.9634211063505222) ),
-                 ( 0.056808478892590906, (0.41618969482714796, 0.49206547906650094, 0.7646291272445356) ),
-                 ( 0.056808478892590906, (0.2609302425087996, 0.4848020789927303, 0.8347947967905799) ),
-                 ( 0.056808478892590906, (0.580551075759967, 0.8089993329222223, -0.09208978100389116) ),
+                 ( 0.056808478892590906, (0.41359447569500096, 0.4927058865194684, 0.7656242675514158) ),
+                 ( 0.056808478892590906, (0.25796367721315083, 0.48520231047621615, 0.8354839670198411) ),
+                 ( 0.056808478892590906, (0.5785005938702705, 0.8104481067271115, -0.09225469740985966) ),
                  ( 0.04360680292523353, (0.01407168194094006, -0.49565848951979996, 0.8684035061734282) ),
                  ( 0.05474653867336235, (-0.3057554799965015, -0.9250932477754973, 0.2252022854508615) ),
                  ( 0.056808478892590906, (0.3621986636537414, -0.8822186430862218, 0.3008361577978115) ),
                  ( 0.056808478892590906, (0.7680722413286334, 0.5975216576265994, -0.23028873347945303) ),
-                 ( 0.056808478892590906, (0.3320427409879605, -0.9416577328166099, 0.055030286060353616) ) ]
+                 ( 0.056808478892590906, (0.32922859149927786, -0.9426419619170849, 0.0550878042084668) ) ]
 
     for i in range(30):
         out_ekin,outdir = nipc.sampleScatter(wl2ekin(nipc_testwl),(1.0,0.0,0.0))
@@ -2398,8 +2398,8 @@ def _actualtest():
         require_flteq(outdir[0],expected[i][1][0])
         require_flteq(outdir[1],expected[i][1][1])
         require_flteq(outdir[2],expected[i][1][2])
-    gesc = createScatterIndependentRNG("""Ge_sg227.ncmat;dcutoff=0.5;mos=40.0arcsec
+    gesc = createScatterIndependentRNG("""stdlib::Ge_sg227.ncmat;dcutoff=0.5;mos=40.0arcsec
                             ;dir1=@crys_hkl:5,1,1@lab:0,0,1
                             ;dir2=@crys_hkl:0,-1,1@lab:0,1,0""",3453455)
-    require_flteq(587.7362483822535,gesc.crossSection(wl2ekin(1.540),( 0., 1., 1. )))
-    require_flteq(1.662676031142458,gesc.crossSection(wl2ekin(1.540),( 1., 1., 0. )))
+    require_flteq(591.0244135475151,gesc.crossSection(wl2ekin(1.540),( 0., 1., 1. )))
+    require_flteq(1.665666096099652,gesc.crossSection(wl2ekin(1.540),( 1., 1., 0. )))

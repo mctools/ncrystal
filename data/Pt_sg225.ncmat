@@ -1,11 +1,8 @@
-NCMAT v2
+NCMAT v4
 #Platinum (Pt)
 #
 #Crystal structure was converted from the cif file of the entry 0011157 in the AMCSD.
 #Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
-#
-#The Debye temperature is derived from the Debye-waller factor at 293K compiled
-#in the supplement of Acta Cryst., A52, p. 456-470, 1996.
 #
 #The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
 #software from Figure 6 of:
@@ -16,8 +13,7 @@ NCMAT v2
 #   https://doi.org/10.1016/j.actamat.2016.10.053
 #
 @CELL
-  lengths 3.9231 3.9231 3.9231
-  angles 90 90 90
+  cubic 3.9231
 @SPACEGROUP
   225
 @ATOMPOSITIONS
@@ -25,8 +21,6 @@ NCMAT v2
   Pt 1/2 1/2 0
   Pt 0   0   0
   Pt 0   1/2 1/2
-@DEBYETEMPERATURE
-  Pt 217.0
 @DYNINFO
   element  Pt
   fraction 1

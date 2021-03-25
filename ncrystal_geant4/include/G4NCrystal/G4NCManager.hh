@@ -26,7 +26,7 @@
 #include "G4Material.hh"
 #include "G4Version.hh"
 #include "G4MaterialPropertiesTable.hh"
-#include "NCrystal/NCProc.hh"
+#include "NCrystal/NCProcImpl.hh"
 //Manager class tracking indices of NCrystal::Scatter instances associated to
 //G4Materials, via entries in the G4MaterialPropertiesTable's on the materials.
 

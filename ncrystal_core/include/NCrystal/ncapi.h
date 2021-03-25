@@ -33,7 +33,12 @@
 /* NCrystal, this should be taken care of automatically.                        */
 /********************************************************************************/
 
-
+#ifdef NCRYSTAL_API
+#  undef NCRYSTAL_API
+#endif
+#ifdef NCRYSTAL_LOCAL
+#  undef NCRYSTAL_LOCAL
+#endif
 #if defined (_WIN32) || defined (__CYGWIN__) || defined (WIN32)
 #  ifdef NCrystal_EXPORTS
 #    define NCRYSTAL_API __declspec(dllexport)

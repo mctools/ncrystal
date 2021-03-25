@@ -6,11 +6,7 @@
 ## #Crystal structure was converted from the cif file of the entry 0011153 in the AMCSD.
 ## #Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
 ## #
-## #The Debye temperature derived from the Debye-waller factor at 293K compiled in
-## #the supplement of Acta Cryst., A52, p. 456-470 (1996) is 412.1K. However, a
-## #slightly lower value of 380K is used here, in order for the resulting cross
-## #sections to better reproduce experimental measurements of total cross
-## #section. The measurements used for comparison were R.G.Allen, et al. (1954,
+## #Cross sections were validated against measurements by R.G.Allen, et al. (1954,
 ## #EXFOR id 11762002) and H.Palevsky (1954, EXFOR id 11355002).
 ## #
 ## #The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
@@ -30,7 +26,7 @@ lattice_c = 3.52387
 lattice_alpha = 90
 lattice_beta  = 90
 lattice_gamma = 90
-debye_temp = 380
+debye_temp = 384.596354289505
 
 [atoms]
 # notation is "atom_number = name b_coh sigma_inc sigma_abs_2200 molar_mass x y z"
