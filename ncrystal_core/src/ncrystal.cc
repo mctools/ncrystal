@@ -30,6 +30,7 @@
 #include "NCrystal/internal/NCMath.hh"
 #include "NCrystal/internal/NCString.hh"
 #include "NCrystal/internal/NCAtomUtils.hh"
+#include "NCrystal/internal/NCDebyeMSD.hh"
 #include "NCrystal/internal/NCAtomDB.hh"
 #include <cstring>
 #include <cstdio>
@@ -1753,4 +1754,20 @@ void ncrystal_enable_stdsearchpath( int b )
   try {
     NC::DataSources::enableStandardSearchPath((bool)b);
   } NCCATCH;
+}
+
+double ncrystal_debyetemp2msd( double debyetemp, double temperature, double mass )
+{
+  try {
+    return NC::debyeIsotropicMSD( NC::DebyeTemperature{debyetemp}, NC::Temperature{temperature}, NC::AtomMass{mass} );
+  } NCCATCH;
+  return -1.0;
+}
+
+double ncrystal_msd2debyetemp( double msd, double temperature, double mass )
+{
+  try {
+    return NC::debyeTempFromIsotropicMSD( msd, NC::Temperature{temperature}, NC::AtomMass{mass} ).dbl();
+  } NCCATCH;
+  return -1.0;
 }

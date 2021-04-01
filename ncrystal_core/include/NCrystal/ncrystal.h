@@ -434,6 +434,11 @@ extern "C" {
   NCRYSTAL_API void ncrystal_atomdatadb_getallentries( unsigned* zvals,
                                                        unsigned* avals );
 
+  /* Convert between atomic mean squared displacements and Debye temperatures.     */
+  /* Units are kelvin, AMU, and Angstrom^2:                                        */
+  double ncrystal_debyetemp2msd( double debyetemp, double temperature, double mass );
+  double ncrystal_msd2debyetemp( double msd, double temperature, double mass );
+
   /* Extract NCMatCfg variables which can not be inferred from an ncrystal_info_t  */
   /* object and which might be needed in plugins (to be expanded as needed):       */
   NCRYSTAL_API double ncrystal_decodecfg_packfact( const char * cfgstr );
@@ -469,9 +474,9 @@ extern "C" {
 #endif
 #define NCRYSTAL_VERSION_MAJOR 2
 #define NCRYSTAL_VERSION_MINOR 5
-#define NCRYSTAL_VERSION_PATCH 80
-#define NCRYSTAL_VERSION   2005080 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
-#define NCRYSTAL_VERSION_STR "2.5.80"
+#define NCRYSTAL_VERSION_PATCH 81
+#define NCRYSTAL_VERSION   2005081 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
+#define NCRYSTAL_VERSION_STR "2.5.81"
   NCRYSTAL_API int ncrystal_version(); /* returns NCRYSTAL_VERSION                  */
   NCRYSTAL_API const char * ncrystal_version_str(); /* returns NCRYSTAL_VERSION_STR */
 

@@ -52,7 +52,7 @@ For detailed usage conditions and licensing of this open source project, see:
 ################################################################################
 
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
-__version__ = '2.5.80'
+__version__ = '2.5.81'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
 __copyright__ = "Copyright 2015-2021 %s"%__author__
@@ -289,6 +289,9 @@ def _load(nclib_filename):
     _wrap('ncrystal_wl2ekin',_dbl,(_dbl,))
     _wrap('ncrystal_isnonoriented',_int,(ncrystal_process_t,))
     _wrap('ncrystal_name',_cstr,(ncrystal_process_t,))
+
+    _wrap('ncrystal_debyetemp2msd',_dbl,(_dbl,_dbl,_dbl))
+    _wrap('ncrystal_msd2debyetemp',_dbl,(_dbl,_dbl,_dbl))
 
     _wrap('ncrystal_create_atomdata_fromdb',ncrystal_atomdata_t,(_uint,_uint))
     _wrap('ncrystal_create_atomdata_fromdbstr',ncrystal_atomdata_t,(_cstr,))
@@ -2228,6 +2231,21 @@ def browsePlugins(dump=False):
         pluginname, filename, plugintype = l[i]
         print('==> %s (%s%s)'%(pluginname,plugintype,
                              ' from %s'%filename if filename else ''))
+
+def debyeIsotropicMSD( *, debye_temperature, temperature, mass ):
+    """Estimate (isotropic, harmonic) atomic mean-squared-displacement using the
+       Debye Model (eq. 11+12 in R.J. Glauber, Phys. Rev. Vol98 num 6,
+       1955). Unit of returned MSD value is Aa^2. Input temperatures should be
+       in Kelvin, and input atomic mass should be in amu.
+    """
+    return float(_rawfct['ncrystal_debyetemp2msd'](debye_temperature, temperature, mass))
+
+def debyeTempFromIsotropicMSD( *, msd, temperature, mass ):
+    """The inverse of debyeIsotropicMSD (implemented via root-finding), allowing to
+       get the Debye temperature which will give rise to a given
+       mean-squared-displacement.
+    """
+    return float(_rawfct['ncrystal_msd2debyetemp'](msd, temperature, mass))
 
 def test():
     """Quick test that NCrystal works as expected in the current installation."""

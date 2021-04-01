@@ -1,7 +1,20 @@
 NCMAT v4
-#converted from the cif file of the entry 0011200 in the AMCSD
-#reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
-#comment: The Debye temperature is derived from the Debye-waller factor at 293K compiled in the supplement of Acta Cryst., A52, p. 456-470, 1996
+#
+# Zinc (hcp)
+#
+# Crystal structure converted from the cif file of the entry 0011200 in the AMCSD
+# Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+#
+# The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
+# software from the Born-von Karman curve in Figure 7 (Zn section) of:
+#
+#    Landolt-B"ornstein - Group III Condensed Matter, Volume 13A 1981
+#    Metals: Phonon States. Electron States and Fermi Surfaces * Phonon
+#    States of Elements. Electron States and Fermi Surfaces of Alloys
+#    Editors: K.-H. Hellwege, J. L. Olsen
+#    ISBN: 978-3-540-09774-7 (Print) 978-3-540-38957-6 (Online)
+#    DOI: 10.1007/b19988
+#
 @CELL
   lengths 2.6648 !! 4.9467
   angles 90 90 120
@@ -10,5 +23,29 @@ NCMAT v4
 @ATOMPOSITIONS
   Zn 1/3 2/3 1/4
   Zn 2/3 1/3 3/4
-@DEBYETEMPERATURE
-  Zn 213.8461
+@DYNINFO
+  element  Zn
+  fraction 1
+  type     vdos
+  vdos_egrid 0.005553333179857 0.026242221496971
+  vdos_density .123003 .13136 .139716 .148072 .157934 .169748 .181561 .263465
+    .373052 .482639 .56064 .568289 .693798 .774924 .85257 .947505 1 .991855
+    .975133 .954637 .931687 .901945 .851273 .796274 .741599 .684147 .624211
+    .514847 .465872 .416333 .374535 .338993 .328243 .327327 .342622 .392804
+    .424131 .447296 .458257 .44843 .435795 .425017 .419924 .420254 .428294
+    .431923 .435502 .436756 .436309 .433642 .434927 .436212 .437497 .440137
+    .443178 .446219 .449261 .452302 .45586 .460008 .464155 .468302 .47245
+    .476794 .48186 .486927 .491994 .49706 .509638 .522936 .533137 .542935
+    .552734 .562533 .57358 .584699 .60842 .644026 .684266 .736165 .798963
+    .848191 .850749 .826469 .772962 .765474 .767609 .783204 .835992 .886939
+    .890395 .840885 .761774 .688096 .609261 .5534 .523894 .497093 .468474
+    .437403 .414047 .412158 .416941 .422201 .428095 .431948 .503045 .618579
+    .579432 .517159 .449057 .424772 .408988 .393045 .377482 .364698 .351914
+    .33925 .326987 .314724 .304259 .294366 .284473 .274662 .265902 .257142
+    .248455 .240749 .233043 .225336 .21763 .210941 .206963 .203121 .201662
+    .200202 .199058 .199196 .199334 .199472 .201281 .203991 .206701 .21051
+    .21533 .220151 .225743 .24243 .260305 .273793 .287068 .299788 .312313
+    .324041 .338102 .360239 .387762 .463007 .55211 .64635 .697999 .70315 .687404
+    .659696 .628537 .615748 .613791 .62049 .636122 .662307 .74714 .88776 .832854
+    .747089 .659198 .621972 .603265 .5859 .568233 .544098 .43165 .323632 .291357
+    .279893 .269289 .262801 .255624 .245324 .235025 .205955 0

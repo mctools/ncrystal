@@ -1,7 +1,21 @@
 NCMAT v4
-#converted from the cif file of the entry 0011207 in the AMCSD
-#reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
-#comment: The Debye temperature is derived from the Debye-waller factor at 293K compiled in the supplement of Acta Cryst., A52, p. 456-470, 1996
+#
+# Barium (bcc)
+#
+# Crystal structure converted from the cif file of the entry 0011207 in the AMCSD
+# Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+#
+# VDOS curve at 295K is taken from:
+#
+#    Oli, B.A. (1988). Microscopic theory of the phonon frequencies in BCC
+#    barium (IC--88/322). International Atomic Energy Agency (IAEA)
+#
+# However, note that the VDOS curve in the reference had almost linear behaviour
+# at low E, so we force ~E^2 behaviour below 2.4meV, to not get inflated
+# quasy-elastic scattering. This also moves up the derived Debye temperature
+# towards the catalogued value (89.6K) derived from the Debye-waller factor at
+# 293K compiled in the supplement of Acta Cryst., A52, p. 456-470, 1996.
+#
 @CELL
   cubic 5.025
 @SPACEGROUP
@@ -9,5 +23,25 @@ NCMAT v4
 @ATOMPOSITIONS
   Ba 1/2 1/2 1/2
   Ba   0   0   0
-@DEBYETEMPERATURE
-  Ba 89.6063
+@DYNINFO
+  element  Ba
+  fraction 1
+  type     vdos
+  vdos_egrid 0.0024132861508069 0.0091978075936412
+  vdos_density .531495 .55588 .570281 .575456 .579918 .584166 .588218 .593424
+    .59863 .604238 .609398 .613639 .61154 .606213 .59878 .592221 .586459 .580933
+    .575868 .570855 .565899 .560943 .55623 .551607 .547053 .542886 .538718 .5348
+    .531279 .527758 .524358 .521528 .518698 .516169 .513721 .512994 .512284
+    .512567 .51285 .513682 .515755 .517299 .518613 .520795 .523725 .526707
+    .529839 .533296 .537504 .542682 .548512 .555306 .562247 .569359 .576872
+    .584596 .594881 .605123 .614949 .62495 .634604 .642453 .649261 .6551 .659725
+    .661058 .65817 .6531 .648432 .643856 .639682 .635507 .631486 .627484 .623372
+    .619222 .616721 .614497 .612199 .609851 .607575 .606232 .604889 .604039
+    .603401 .602763 .602125 .602191 .6026 .60301 .603419 .604268 .605513 .606793
+    .608263 .609733 .611203 .613038 .614885 .616996 .619529 .622062 .624732
+    .627569 .630406 .633244 .636972 .641147 .64537 .649762 .654155 .658756
+    .663859 .668963 .674875 .681462 .68805 .695462 .70307 .710693 .719835
+    .728977 .738522 .748642 .758914 .771037 .78316 .795361 .807637 .821511
+    .840357 .866186 1 .93438 .802568 .699857 .57233 .213072 .172048 .143894
+    .12205 .100942 .084673 .0689349 .0527215 .0389545 .0248723 .0131813
+    .00148669 0

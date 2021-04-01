@@ -77,8 +77,23 @@ double NC::calcDebyeMSDShape( double x )
 
 NC::DebyeTemperature NC::debyeTempFromIsotropicMSD( double msd, Temperature t, AtomMass am )
 {
-  return DebyeTemperature{
-    findRoot2( [msd,t,am](double dt) {
-      return debyeIsotropicMSD(DebyeTemperature{dt},t,am)-msd;
-    }, 0.1,0.999e5,1e-7) };
+  //For stability and efficiency, first perform a brute-force search of limits
+  //before unleashing the generic root finding algorithm.
+
+  auto calcMSD = [&t,&am](double debye_temp) { return debyeIsotropicMSD(DebyeTemperature{debye_temp},t,am); };
+  double dt_low(200.0), dt_high(300.0);
+  while ( calcMSD(dt_low) <= msd ) {
+    dt_high = dt_low;
+    dt_low /= 1.5;
+    if (dt_low < 1e-6)
+      NCRYSTAL_THROW(CalcError,"Can not determine Debye temperature from isotropic MSD (too loosely bound atoms?)");
+  }
+  while ( calcMSD(dt_high) >= msd ) {
+    dt_low = dt_high;
+    dt_high *= 1.5;
+    if (dt_low > 0.999e6)
+      NCRYSTAL_THROW(CalcError,"Can not determine Debye temperature from isotropic MSD (too tightly bound atoms?)");
+  }
+
+  return DebyeTemperature { findRoot2( [&calcMSD,msd](double dt) { return calcMSD(dt)-msd; }, dt_low,dt_high,1e-7) };
 }

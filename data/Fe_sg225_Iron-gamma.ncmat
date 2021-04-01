@@ -1,0 +1,62 @@
+NCMAT v4
+#
+# Gamma-iron (austenite, fcc Fe)
+#
+# In pure iron and at atmospheric pressure, the gamma phase of iron forms at
+# 1180K, but might exist at lower temperatures in impure alloys.
+#
+# Crystal structure (225, fcc) is well known and available from many
+# sources. The only parameter to determine is the lattice parameter, which affects
+# d-spacings and material density. We use the temperature-dependent
+# parameterisation found in (evaluated at 1300K):
+#
+#    "Lattice Constant of Iron and Austenite Including Its Supersaturation
+#     Phase of Carbon", Ichiro SEKI, Kazuhiro NAGATA,
+#     ISIJ International, 2005, Volume 45, Issue 12, Pages 1789-1794
+#     https://doi.org/10.2355/isijinternational.45.1789
+#
+# The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
+# software from Figure 2 of:
+#
+#    "Lattice dynamics of gamma-Fe"
+#    J. Zarestky and C. Stassis
+#    Phys. Rev. B 35, 4500 - Published 15 March 1987
+#
+@CELL
+  #Value calculated (to four decimals) as 3.5519+8.1593e-5*T with T=1300
+  #which is a formula from https://doi.org/10.2355/isijinternational.45.1789
+  cubic 3.658
+@SPACEGROUP
+    225
+@ATOMPOSITIONS
+    Fe   0   0   0
+    Fe   0 1/2 1/2
+    Fe 1/2   0 1/2
+    Fe 1/2 1/2   0
+@DYNINFO
+  element  Fe
+  fraction 1
+  type     vdos
+  vdos_egrid 0.0103457 0.030933643
+  vdos_density .0649167 .0664705 .0680242 .0696 .0712214 .0728428 .0744641
+    .0760855 .0777761 .079585 .081394 .083203 .085012 .086934 .0891046 .0912752
+    .0934458 .0956164 .0979062 .100237 .102568 .105132 .10793 .110727 .113796
+    .116996 .120204 .123432 .12666 .130378 .134277 .138177 .142195 .146247 .1503
+    .155174 .160261 .16539 .170872 .177581 .185127 .193101 .194944 .196283
+    .197732 .199273 .200814 .202355 .203928 .205584 .207241 .208897 .210553
+    .212212 .213872 .215531 .217191 .218858 .220536 .222213 .223891 .225582
+    .227366 .22915 .230934 .232718 .234502 .236314 .238138 .239961 .241785
+    .243734 .245721 .247642 .249074 .250764 .252801 .254838 .256875 .258863
+    .260812 .26276 .264714 .266757 .2688 .270837 .272711 .274585 .276459 .27869
+    .28093 .283108 .285168 .287151 .289175 .291396 .293618 .295861 .2982 .30054
+    .303047 .305665 .308282 .310889 .313453 .316016 .318615 .321315 .324015
+    .326715 .329734 .332802 .335803 .338672 .34121 .326449 .248617 .216294
+    .214817 .214836 .214854 .214852 .21481 .214768 .214725 .214647 .214536
+    .214425 .214314 .214203 .214092 .213981 .213522 .213032 .212541 .212051
+    .211462 .21081 .210158 .209506 .208428 .207275 .206121 .204967 .203339
+    .201319 .199298 .196833 .194193 .191553 .188288 .184454 .18062 .174717
+    .168349 .161588 .154539 .143125 .134714 .127964 .123218 .121498 .122202
+    .125256 .129158 .1368 .143693 .14967 .158913 .173055 .189982 .202053 .241901
+    .272547 .311176 .344165 .381467 .426797 .466621 .504469 .560971 .627021
+    .733418 .844712 .959797 1 .954421 .886591 .816193 .861479 .914495 .101916
+    .0748203 .0643153 .052565 .0415266 .0231842 .0134555 .00282871 0

@@ -235,8 +235,8 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
     cfgvars.temp = ( input_temperature.get()==-1.0 ? Temperature{293.15} : input_temperature );
   } else {
     if ( input_temperature.get() != -1.0 && !floateq(input_temperature.get(), cfgvars.temp.get()) )
-      NCRYSTAL_THROW2(BadInput,data.sourceDescription <<" specified temperature ("<<cfgvars.temp<<"K)"
-                      " is incompatible with temperature ("<<input_temperature<<"K) at which input data is valid.");
+      NCRYSTAL_THROW2(BadInput,data.sourceDescription <<" specified temperature ("<<cfgvars.temp<<")"
+                      " is incompatible with temperature ("<<input_temperature<<") at which input data is valid.");
   }
   nc_assert_always( cfgvars.temp.get() > 0.0 && ( input_temperature.get()==-1.0 || floateq(input_temperature.get(),cfgvars.temp.get()) ) );
 

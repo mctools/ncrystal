@@ -1,7 +1,18 @@
 NCMAT v4
-#converted from the cif file of the entry 0011221 in the AMCSD
-#reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
-#comment: The Debye temperature is derived from the Debye-waller factor at 293K compiled in the supplement of Acta Cryst., A52, p. 456-470, 1996
+# Molybdenum (bcc)
+#
+# Crystal structure converted from the cif file of the entry 0011221 in the AMCSD
+# Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+#
+# VDOS curve at 296K taken from:
+#
+#    Landolt-B"ornstein - Group III Condensed Matter, Volume 13A 1981
+#    Metals: Phonon States. Electron States and Fermi Surfaces * Phonon
+#    States of Elements. Electron States and Fermi Surfaces of Alloys
+#    Editors: K.-H. Hellwege, J. L. Olsen
+#    ISBN: 978-3-540-09774-7 (Print) 978-3-540-38957-6 (Online)
+#    DOI: 10.1007/b19988
+#
 @CELL
   cubic 3.1473
 @SPACEGROUP
@@ -9,5 +20,23 @@ NCMAT v4
 @ATOMPOSITIONS
   Mo   0   0   0
   Mo 1/2 1/2 1/2
-@DEBYETEMPERATURE
-  Mo 414.3772
+@DYNINFO
+  element  Mo
+  fraction 1
+  type     vdos
+  vdos_egrid 0.010339169155 0.03337556358807
+  vdos_density .0395798 .041158 .0427361 .0448824 .0472496 .0492696 .0508478
+    .0524259 .054004 .0555822 .0578547 .0602219 .0625891 .0649563 .0673236
+    .0696908 .072058 .0744252 .0767924 .0797593 .0829156 .0860719 .0892282
+    .0923845 .0955407 .098697 .102579 .106525 .11047 .114415 .118361 .122306
+    .126315 .131049 .135783 .141149 .146673 .153017 .160118 .16722 .174322
+    .181423 .19004 .19872 .209009 .220056 .233313 .249883 .269673 .313072
+    .356471 .370043 .377934 .383173 .386329 .389927 .394662 .399396 .405709
+    .412021 .418902 .426004 .4338 .44248 .451538 .462585 .473632 .487457 .50166
+    .519651 .540167 .56548 .600988 .63773 .708487 .867699 .735625 .703788
+    .697287 .695708 .694187 .692894 .633707 .578515 .524859 .482817 .447309
+    .420322 .408486 .397155 .391632 .386108 .374272 .360858 .350726 .343625
+    .312361 .235438 .228751 .228483r2 .236532 .248368 .269357 .304077 .335955
+    .347002 .358049 .373736 .390306 .408644 .428371 .44854 .469845 .49115
+    .514822 .538494 .574097 .614339 .661873 .78739 1 .434391 .319617 .262792
+    .21387 .109081 0

@@ -552,10 +552,10 @@ inline double NCrystal::findRoot2(const Func& f,double a, double b, double acc)
 {
 
   struct FctWrap : public Fct1D {
-    const Func& m_f;
-    FctWrap(const Func& f) : m_f(f) {};
+    const Func* m_f;
+    FctWrap(const Func& f) : m_f(&f) {};
     virtual ~FctWrap() = default;
-    double eval(double x) const final { return m_f(x); }
+    double eval(double x) const final { return (*m_f)(x); }
   } fwrap(f);
   return findRoot(&fwrap,a,b,acc);
 }

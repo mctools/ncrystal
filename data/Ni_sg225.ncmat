@@ -1,19 +1,19 @@
 NCMAT v4
-#Nickel (fcc)
+# Nickel (fcc)
 #
-#Crystal structure was converted from the cif file of the entry 0011153 in the AMCSD.
-#Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+# Crystal structure was converted from the cif file of the entry 0011153 in the AMCSD.
+# Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
 #
-#Cross sections were validated against measurements by R.G.Allen, et al. (1954,
-#EXFOR id 11762002) and H.Palevsky (1954, EXFOR id 11355002).
+# Cross sections were validated against measurements by R.G.Allen, et al. (1954,
+# EXFOR id 11762002) and H.Palevsky (1954, EXFOR id 11355002).
 #
-#The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
-#software from Figure 4 of:
+# The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
+# software from Figure 4 of:
 #
-#   "Neutron scattering measurements of phonons in nickel at elevated temperatures"
-#   M. Kresch, O. Delaire, R. Stevens, J. Y. Y. Lin, and B. Fultz
-#   Phys. Rev. B 75, 104301 - Published 9 March 2007
-#   https://doi.org/10.1103/PhysRevB.75.104301
+#    "Neutron scattering measurements of phonons in nickel at elevated temperatures"
+#    M. Kresch, O. Delaire, R. Stevens, J. Y. Y. Lin, and B. Fultz
+#    Phys. Rev. B 75, 104301 - Published 9 March 2007
+#    https://doi.org/10.1103/PhysRevB.75.104301
 #
 @CELL
   cubic 3.52387

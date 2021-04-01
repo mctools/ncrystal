@@ -1,15 +1,15 @@
 NCMAT v4
-#Aluminium.
+# Aluminium.
 #
-#Crystal structure was converted from the cif file of the entry 0011136 in the AMCSD.
-#Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+# Crystal structure was converted from the cif file of the entry 0011136 in the AMCSD.
+# Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
 #
-#The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
-#software from Figure 1 of:
+# The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
+# software from Figure 1 of:
 #
-#   "First principles phonon calculations in materials science"
-#   A. Togo and I. Tanaka, Scripta Materialia 108 (2015) 1-5
-#   https://doi.org/10.1016/j.scriptamat.2015.07.021
+#    "First principles phonon calculations in materials science"
+#    A. Togo and I. Tanaka, Scripta Materialia 108 (2015) 1-5
+#    https://doi.org/10.1016/j.scriptamat.2015.07.021
 #
 @CELL
  cubic 4.04958

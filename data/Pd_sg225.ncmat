@@ -1,7 +1,19 @@
 NCMAT v4
-#converted from the cif file of the entry 0011155 in the AMCSD
-#reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
-#comment: The Debye temperature is derived from the Debye-waller factor at 293K compiled in the supplement of Acta Cryst., A52, p. 456-470, 1996
+# Paladium (fcc)
+#
+# Crystal struture converted from the cif file of the entry 0011155 in the AMCSD
+# Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+#
+# VDOS curve at 296K taken from (note: reference also has VDOS at 120K and 853K
+# available):
+#
+#    Landolt-B"ornstein - Group III Condensed Matter, Volume 13A 1981
+#    Metals: Phonon States. Electron States and Fermi Surfaces * Phonon
+#    States of Elements. Electron States and Fermi Surfaces of Alloys
+#    Editors: K.-H. Hellwege, J. L. Olsen
+#    ISBN: 978-3-540-09774-7 (Print) 978-3-540-38957-6 (Online)
+#    DOI: 10.1007/b19988
+#
 @CELL
   cubic 3.8898
 @SPACEGROUP
@@ -11,5 +23,19 @@ NCMAT v4
   Pd 1/2   0 1/2
   Pd   0 1/2 1/2
   Pd   0   0   0
-@DEBYETEMPERATURE
-  Pd 269.5374
+@DYNINFO
+  element  Pd
+  fraction 1
+  type     vdos
+  vdos_egrid 0.011283590222294 0.028773155066851
+  vdos_density .314201 .329304 .344408 .359512 .375924 .39596 .415996 .436031
+    .460409 .497233 .534056 .61239 .671327 .683136 .694944 .706752 .718557
+    .730358 .74216 .753756 .763404 .773052 .782701 .792223 .800395 .808567
+    .814883 .819764 .824024 .8257 .827375 .826121 .824232 .730503 .673728
+    .640923 .610093 .583243 .556392 .535119 .514509 .494293 .481612 .470638
+    .459663 .448689 .437715 .426741 .415766 .404792 .392691 .379206 .365722
+    .351944 .338063 .324181 .308741 .292515 .275536 .254836 .234137 .212494
+    .192413 .193877 .246486 .300506 .359951 .434717 .521432 .623015 .687458
+    .70993 .735306 .760682 .786058 .814278 .845834 .87739 .908946 .940502
+    .970734 1 .759147 .614491 .528835 .449934 .373563 .300203 .150757 .131618
+    .107273 .0717718 .0240157 0

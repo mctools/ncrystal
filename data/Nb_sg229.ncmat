@@ -1,7 +1,19 @@
 NCMAT v4
-#converted from the cif file of the entry 0011224 in the AMCSD
-#reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
-#comment: The Debye temperature is derived from the Debye-waller factor at 293K compiled in the supplement of Acta Cryst., A52, p. 456-470, 1996
+#
+# Niobium (bcc)
+#
+# Crystal structure converted from the cif file of the entry 0011224 in the AMCSD
+# Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+#
+# VDOS curve at 296K taken from:
+#
+#    Landolt-B"ornstein - Group III Condensed Matter, Volume 13A 1981
+#    Metals: Phonon States. Electron States and Fermi Surfaces * Phonon
+#    States of Elements. Electron States and Fermi Surfaces of Alloys
+#    Editors: K.-H. Hellwege, J. L. Olsen
+#    ISBN: 978-3-540-09774-7 (Print) 978-3-540-38957-6 (Online)
+#    DOI: 10.1007/b19988
+#
 @CELL
   cubic 3.3004
 @SPACEGROUP
@@ -9,5 +21,23 @@ NCMAT v4
 @ATOMPOSITIONS
   Nb   0   0   0
   Nb 1/2 1/2 1/2
-@DEBYETEMPERATURE
-  Nb 287.6381
+@DYNINFO
+  element  Nb
+  fraction 1
+  type     vdos
+  vdos_egrid 0.0051695845775 0.026881839803
+  vdos_density .0296403 .0311841 .0333453 .035661 .0376679 .0392117 .0407554
+    .0430711 .0447692 .046313 .0478567 .0494005 .0509443 .0532599 .0549581
+    .056965 .0586631 .0597437 .0620594 .0636032 .0651469 .0671538 .0691607
+    .0707045 .0722482 .0753358 .0771883 .0787321 .0805846 .0829002 .0852159
+    .0883034 .0901559 .092626 .095096 .0971029 .100962 .103278 .106211 .109299
+    .112695 .116554 .120414 .123501 .127206 .131992 .137086 .141872 .147275
+    .15345 .160243 .166727 .174446 .184634 .195441 .214738 .256265 .322801
+    .36896 .367262 .374209 .388103 .411877 .391808 .359697 .342562 .27232
+    .246848 .228786 .215818 .206865 .201153 .197293 .19575 .196676 .200535
+    .206556 .211959 .211187 .209643 .2081 .205166 .202233 .200226 .196367
+    .195595 .192971 .191273 .189883 .187568 .185252 .183708 .159934 .145886
+    .144805 .148819 .156538 .1658 .178151 .194051 .214583 .241291 .276025
+    .334688 .464365 1 .70828 .568569 .530747 .58555 .50759 .306129 .139248
+    .116863 .103741 .0944785 .0864509 .0801214 .0744095 .0683888 .0629856
+    .0591262 .0540318 .0481655 .0401379 .026244 0

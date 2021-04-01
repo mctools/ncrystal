@@ -1,7 +1,22 @@
 NCMAT v4
-#converted from the cif file of the entry 0011248 in the AMCSD
-#reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
-#comment: The Debye temperature is derived from the Debye-waller factor at 293K compiled in the supplement of Acta Cryst., A52, p. 456-470, 1996
+#
+# Beta-tin (Sn). (body-centered tetragonal, "white tin").
+#
+# Crystal structure converted from the cif file of the entry 0011248 in the AMCSD
+# Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+#
+# The VDOS curve at 300K was extracted by T. Kittelmann using the engauge
+# digitizer software from Figure 4 (solid curve) of:
+#
+#     "Direct determination of the phonon density of states in beta-Sn"
+#     Barla, Alessandro & Plessel, J. & Abd-Elmeguid, Mohsen. (2000).
+#     Physical Review B. 61. https://dx.doi.org/10.1103/PhysRevB.61.R14881
+#
+# The curve in question was derived from work in:
+#
+#     E. G. Brovman and Yu. Kagan, Fiz. Tverd. Tela (Leningrad) 8,
+#     1402 (1966) [Sov. Phys. Solid State 8, 1120 (1966)].
+#
 @CELL
   lengths 5.8197 !! 3.17488
   angles 90 90 90
@@ -12,5 +27,15 @@ NCMAT v4
   Sn 1/2   0 3/4
   Sn 1/2 1/2 1/2
   Sn   0 1/2 1/4
-@DEBYETEMPERATURE
-  Sn 158.8835
+@DYNINFO
+  element  Sn
+  fraction 1
+  type     vdos
+  vdos_egrid 0.0016759 0.0184349
+  vdos_density .0531392 .0945335 .150109 .213574 .286094 .396231 .503733 .592516
+    .655594 .692495 .689801 .669612 .633298 .588878 .54714 .51319 .48579 .468322
+    .456413 .448441 .441464 .434488 .428441 .42271 .417991 .415075 .411851
+    .407347 .402843 .394486 .386226 .37996 .378779 .382702 .397434 .423217
+    .474034 .543061 .622614 .721921 .819083 .903185 .971724 1 .972552 .896022
+    .796909 .678025 .547771 .432472 .32284 .240839 .17676 .123845 .0778986
+    .0462663 .0247447 .0118274 .00659815 .00298692 0

@@ -25,7 +25,7 @@
 
 namespace NCrystal {
 
-  //Estimate (isotropic, harmonic) atomic mean-square-displacement using the
+  //Estimate (isotropic, harmonic) atomic mean-squared-displacement using the
   //Debye Model (eq. 11+12 in R.J. Glauber, Phys. Rev. Vol98 num 6, 1955). Unit
   //of returned MSD value is Aa^2. Input temperatures should be in Kelvin, and
   //input atomic mass should be in amu.

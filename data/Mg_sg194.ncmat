@@ -1,14 +1,14 @@
 NCMAT v4
 # Magnesium (hcp).
 #
-# Crystal structure Converted from the cif file of the entry 0011183 in the AMCSD.
+# Crystal structure converted from the cif file of the entry 0011183 in the AMCSD.
 # Additonal reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
 #
-# VDOS curve taken from:
+# VDOS curve at 290K taken from:
 #
-#    Landolt-B"ornstein - Group III Condensed Matter
-#    Volume 13A 1981
-#    Metals: Phonon States. Electron States and Fermi Surfaces * Phonon States of Elements. Electron States and Fermi Surfaces of Alloys
+#    Landolt-B"ornstein - Group III Condensed Matter, Volume 13A 1981
+#    Metals: Phonon States. Electron States and Fermi Surfaces * Phonon
+#    States of Elements. Electron States and Fermi Surfaces of Alloys
 #    Editors: K.-H. Hellwege, J. L. Olsen
 #    ISBN: 978-3-540-09774-7 (Print) 978-3-540-38957-6 (Online)
 #    DOI: 10.1007/b19988

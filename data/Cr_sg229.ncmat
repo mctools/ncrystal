@@ -1,7 +1,18 @@
 NCMAT v4
-#converted from the cif file of the entry 0011209 in the AMCSD
-#reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
-#comment: The Debye temperature is derived from the Debye-waller factor at 293K compiled in the supplement of Acta Cryst., A52, p. 456-470, 1996
+# Chromium (bcc)
+#
+# Crystal structure converted from the cif file of the entry 0011209 in the AMCSD
+# Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+#
+# VDOS curve at 300K taken from:
+#
+#    Landolt-B"ornstein - Group III Condensed Matter, Volume 13A 1981
+#    Metals: Phonon States. Electron States and Fermi Surfaces * Phonon
+#    States of Elements. Electron States and Fermi Surfaces of Alloys
+#    Editors: K.-H. Hellwege, J. L. Olsen
+#    ISBN: 978-3-540-09774-7 (Print) 978-3-540-38957-6 (Online)
+#    DOI: 10.1007/b19988
+#
 @CELL
   cubic 2.8839
 @SPACEGROUP
@@ -9,5 +20,22 @@ NCMAT v4
 @ATOMPOSITIONS
   Cr   0   0   0
   Cr 1/2 1/2 1/2
-@DEBYETEMPERATURE
-  Cr 529.7748
+@DYNINFO
+  element  Cr
+  fraction 1
+  type     vdos
+  vdos_egrid 0.010339169155 0.039914001854186
+  vdos_density .02759 .0291941 .0307981 .0324022 .0340063 .0356104 .0372144
+    .0388185 .0404226 .0420266 .0436307 .0463255 .0495337 .0512019 .052806
+    .0544101 .0568482 .0600564 .0632645 .0663443 .0679484 .0701299 .0733381
+    .0765462 .0797544 .0844382 .0889296 .0921378 .0953459 .0985541 .102981
+    .107794 .112606 .117418 .12223 .127042 .131855 .138078 .144238 .14905
+    .155274 .163294 .17016 .176576 .184596 .193066 .20269 .212315 .221939
+    .231564 .241573 .254406 .26788 .282316 .296753 .31119 .330246 .35065 .374711
+    .404611 .4399 .493155 .546539 .549747 .552955 .556163 .560398 .56521 .568547
+    .572076 .576888 .58247 .588886 .595302 .601719 .608135 .615065 .623085
+    .631105 .639126 .649969 .661711 .676148 .69129 .707331 .727991 .750448
+    .784134 .827251 .894622 .976021 1 .98939 .966869 .885062 .804537 .725938
+    .598254 .447471 .329027 .240803 .244011 .271409 .321135 .379844 .444905
+    .55719 .641179 .674864 .703417 .729082 .753271 .777332 .801393 .823145
+    .842393 .866519 .882239 .659273 .461972 .31921 .187035 .0619171 0

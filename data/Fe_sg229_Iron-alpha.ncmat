@@ -1,30 +1,42 @@
 NCMAT v4
-#Alpha iron (ferrite, BCC). Can be used to model low-carbon steel, where it is
-#the primary phase.
 #
-#Crystal structure was converted from the cif file of the entry 0011214 in the AMCSD.
-#Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+# Alpha-iron (bcc Fe)
 #
-#The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
-#software from Figure 5 of:
+# Can be used to model low-carbon steel, where it is the primary phase.
 #
-#   "Phonon Dispersion Relation for Iron"
-#   V. J. Minkiewicz, G. Shirane, and R. Nathans
-#   Phys. Rev. 162, 528 - Published 15 October 1967
-#   https://doi.org/10.1103/PhysRev.162.528
+# Crystal structure (229, bcc) is well known and available from many
+# sources. The only parameter to determine is the lattice parameter, which
+# affects d-spacings and material density. We use the temperature-dependent
+# parameterisation found in (evaluated at 300K):
 #
-#The VDOS curve was validated with experimental data in:
+#    "Lattice Constant of Iron and Austenite Including Its Supersaturation
+#     Phase of Carbon", Ichiro SEKI, Kazuhiro NAGATA,
+#     ISIJ International, 2005, Volume 45, Issue 12, Pages 1789-1794
+#     https://doi.org/10.2355/isijinternational.45.1789
 #
-#  T. S. Toellner, et. al., Appl. Phys. Lett. 71, 2112 (1997)
-#  https://doi.org/10.1063/1.120448
+# The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
+# software from Figure 5 of:
 #
-#Finally it should be noted that the VDOS curve was compared with the one used
-#to generate the alpha-Iron scattering kernel in ENDF/B-VIII (which uses a
-#distribution due to Stedman, Almqvist, and Nilsson). It is essentially roughly
-#compatible in shape, but the Minkiewicz distribution adopted for the present
-#NCMAT file is more detailed.
+#    "Phonon Dispersion Relation for Iron"
+#    V. J. Minkiewicz, G. Shirane, and R. Nathans
+#    Phys. Rev. 162, 528 - Published 15 October 1967
+#    https://doi.org/10.1103/PhysRev.162.528
+#
+# The VDOS curve was validated with experimental data in:
+#
+#    T. S. Toellner, et. al., Appl. Phys. Lett. 71, 2112 (1997)
+#    https://doi.org/10.1063/1.120448
+#
+# Finally it should be noted that the VDOS curve was compared with the one used
+# to generate the alpha-Iron scattering kernel in ENDF/B-VIII (which uses a
+# distribution due to Stedman, Almqvist, and Nilsson). It is essentially roughly
+# compatible in shape, but the Minkiewicz distribution adopted for the present
+# NCMAT file is more detailed.
+#
 @CELL
-  cubic 2.8665
+  #Value calculated (to five decimals) as a0=1.602e-8*T**2+2.059e-5*T+2.860 with T=300
+  #which is a formula from https://doi.org/10.2355/isijinternational.45.1789
+  cubic 2.8676
 @SPACEGROUP
   229
 @ATOMPOSITIONS
