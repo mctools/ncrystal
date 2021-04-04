@@ -20,17 +20,23 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/NCElIncScatter.hh"
+#include "NCrystal/internal/NCVDOSEval.hh"
 #include "NCrystal/NCInfo.hh"
 #include "NCrystal/internal/NCElIncXS.hh"
 #include "NCrystal/internal/NCRandUtils.hh"
 #include "NCrystal/internal/NCDebyeMSD.hh"
 #include "NCrystal/internal/NCSpan.hh"
+#include "NCrystal/internal/NCDebyeMSD.hh"
+#include <iostream>
+
 namespace NC = NCrystal;
 
 NC::ElIncScatter::~ElIncScatter() = default;
 
-NC::ElIncScatter::ElIncScatter( const Info& ci )
+NC::ElIncScatter::ElIncScatter( msd_from_atominfo_t, const Info& ci, double scale_factor, bool use_total_xsect )
 {
+  nc_assert_always( !(scale_factor<=0.0) );
+
   if ( !ci.hasAtomInfo() )
     NCRYSTAL_THROW(MissingInfo,"Passed Info object lacks AtomInfo information"
                    " (elastic-incoherent model only works with crystalline materials).");
@@ -56,8 +62,11 @@ NC::ElIncScatter::ElIncScatter( const Info& ci )
     ntot += ai.numberPerUnitCell();
 
   for ( const auto& ai : atominfos ) {
-    scale.push_back(double(ai.numberPerUnitCell())/ntot);
-    bixs.push_back(ai.atomData().incoherentXS().get());
+    scale.push_back(double(ai.numberPerUnitCell())*scale_factor/ntot);
+    if (use_total_xsect)
+      bixs.push_back(ai.atomData().scatteringXS().get());
+    else
+      bixs.push_back(ai.atomData().incoherentXS().get());
     if ( ai.msd().has_value() ) {
       msd.push_back( ai.msd().value() );
     } else {
@@ -74,6 +83,45 @@ NC::ElIncScatter::ElIncScatter( const Info& ci )
   }
 
   m_elincxs = std::make_unique<ElIncXS>( msd, bixs, scale );
+}
+
+NC::ElIncScatter::ElIncScatter( msd_from_dyninfo_t, const Info& info, double scale_factor, bool use_total_xsect )
+{
+  VectD msd, bixs, scale;
+  msd.reserve(info.getDynamicInfoList().size());
+  bixs.reserve(info.getDynamicInfoList().size());
+  scale.reserve(info.getDynamicInfoList().size());
+
+  nc_assert_always( !(scale_factor<=0.0) );
+  unsigned nmissing = 0;
+  for ( auto& di : info.getDynamicInfoList() ) {
+    double msd_value(0.0);
+    if ( dynamic_cast<const DI_VDOS*>(di.get()) ) {
+      msd_value = VDOSEval( static_cast<const DI_VDOS*>(di.get())->vdosData() ).getMSD();
+    } else if ( dynamic_cast<const DI_VDOSDebye*>(di.get()) ) {
+      if ( !info.hasTemperature() )
+        NCRYSTAL_THROW(MissingInfo,"Requested to evaluate atomic mean-squared-displacements for a material without a temperature value.");
+      msd_value = debyeIsotropicMSD( static_cast<const DI_VDOSDebye*>(di.get())->debyeTemperature(),
+                                     info.getTemperature(),
+                                     di->atomData().averageMassAMU() );
+    } else {
+      ++nmissing;
+    }
+    if ( msd_value ) {
+      msd.push_back( msd_value );
+      scale.push_back( di->fraction() * scale_factor );
+      if (use_total_xsect)
+        bixs.push_back(di->atomData().scatteringXS().get());
+      else
+        bixs.push_back(di->atomData().incoherentXS().get());
+    }
+  }
+
+  m_elincxs = std::make_unique<ElIncXS>( msd, bixs, scale );
+
+  if ( nmissing > 0 )
+    std::cout<<"NCrystal WARNING: Requested to create incoherent-elastic component from dynamic information in material where "<<nmissing
+             <<" atom"<<(nmissing==1?"":"s")<<" do not have the necessary information."<<std::endl;
 }
 
 NC::ElIncScatter::ElIncScatter( const VectD& elements_meanSqDisp,

@@ -1,3 +1,56 @@
+v2.6.0 2020-04-05
+      * Introduce NCMAT v4 which introduces a few new features, as described in
+        detail in the ncmat_doc.md file. The most important new feature relies
+        on the fact that it is possible to estimate atomic
+        mean-squared-displacements directly from a phonon density of state
+        distribution (VDOS), meaning that it is now allowed (and actually
+        recommended) to skip @DEBYETEMPERATURE's for crystalline materials where
+        atoms have VDOS curves available). This is not only useful, but improves
+        low-temperature reliability of the Debye-Waller factors used in the
+        elastic scattering components. This development was helped by Kemal
+        Ramic and Jose Ignacio Marquez Damian from the ESS Spallation Physics
+        group, and more details are available in the ncrystal GitHub issue
+        #58. The other new feature in NCMAT v4 is a new optional syntax for the
+        @CELL section, which allows more compact specification for certain
+        crystal systems (in particular cubic systems).
+      * The vast majority of crystalline materials in the NCrystal data library
+        were updated to take advantage of the new features, and in addition the
+        number of VDOS curves was increased dramatically, meaning that the
+        dynamics in almost all crystalline materials are now described using
+        actual VDOS curves rather than just Debye temperatures.
+      * Missing VDOS curves for all elements in beryllium-fluoride (BeF2),
+        aragonite (CaCO3), cuprite (Cu2O), periclase (MgO), and quartz (SiO2)
+        were provided by Kemal Ramic from the ESS Spallation Physics group,
+        based on modelling with Phonopy, VASP and OCLIMAX software.
+      * Missing VDOS curves for 14 mono-atomic materials were added (fixing
+        github issue #39): Au, Ba, Cr, Mg, Mo, Na, Nb, Pd, Pt, Rb, Sc, Sn, Y,
+        and Zn. Refer to comments in the individual NCMAT files for references
+        concerning the origin of these curves.
+      * Missing VDOS curves were added to uranium oxide (UO2), taken from
+        DOI:10.1103/PhysRevB.102.134312. Note that UO2 NCMAT files with VDOS
+        tuned for specific temperatures are available (refer to comments in the
+        UO2 NCMAT file for details).
+      * All existing files with VDOS have been update to NCMAT v4, and had
+        @DEBYETEMPERATURE sections removed in order to benefit from the better
+        performance of getting the atomic displacements from the VDOS.
+      * Added new material: gamma-Iron (Fe_sg225_Iron-gamma.ncmat) with VDOS
+        curve. At the same time, the not particularly useful beta-Iron file was
+        removed, so the NCrystal data library now contains both alpha- and
+        gamma-iron, both with VDOS curves.
+      * Expose debyeIsotropicMSD and debyeTempFromIsotropicMSD functions from
+        NCDebyeMSD.hh header to C and Python, allowing conversions between
+        atomic mean-squared-displacement and Debye temperature.
+      * Improve robustness of the function debyeTempFromIsotropicMSD. Previously
+        the internally deployed root-finding algorithm could fail under some
+        scenarios (e.g. non-ultra cold rubidium).
+      * Various improvements for ncrystal_vdos2ncmat.
+      * Compilation fix for pre-Catalina OSX where the aligned_alloc function is
+        apparently missing.
+      * Fix bug where early calls to removeAllDataSources could get reverted by
+        subsequent plugin loading.
+      * Before defining macros in public headers, check if present already and
+        if so undefine.
+
 v2.5.81 2020-04-01
       * RC2 for incoming release v2.6.0.
 

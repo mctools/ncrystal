@@ -32,6 +32,7 @@
 #include "NCrystal/internal/NCElIncScatter.hh"
 #include "NCrystal/internal/NCSABScatter.hh"
 #include "NCrystal/internal/NCSABFactory.hh"
+#include "NCrystal/internal/NCString.hh"//for safe_str2dbl
 
 namespace NC = NCrystal;
 
@@ -116,8 +117,61 @@ namespace NCrystal {
       if ( cfg.get_incoh_elas() && info.isCrystalline() ) {
         const bool has_msd = info.hasAtomMSD() || ( info.hasTemperature() && info.hasDebyeTemperature() );
         if ( has_msd )
-          components.push_back({1.0,makeSO<ElIncScatter>(info)});
+          components.push_back({1.0,makeSO<ElIncScatter>(ElIncScatter::msd_from_atominfo_t(),info)});
       }
+
+      if ( info.countCustomSections( "SPECIALINCOHELAS" ) > 0 ) {
+        //Special "secret" test code for testing purposes (before we perhaps
+        //decide to make it an official feature). Add @CUSTOM_SPECIALINCOHELAS
+        //section to enable incoherent-elastic treatment in non-crystals.
+        if ( info.countCustomSections( "SPECIALINCOHELAS" ) != 1 )
+          NCRYSTAL_THROW(BadInput,"Only one CUSTOM_SPECIALINCOHELAS section is allowed in input.");
+        bool has_atominfo_msd = info.hasAtomMSD() || ( info.hasTemperature() && info.hasDebyeTemperature() );
+        bool has_dyninfovdos_msd = false;
+        if ( !has_atominfo_msd ) {
+          for ( auto& di : info.getDynamicInfoList() ) {
+            if ( dynamic_cast<const DI_VDOS*>(di.get()) ) {
+              //Allow if even a single VDOS is present (it might for instance be
+              //e.g. H-in-polyethylene where the almost irrelevant C atom is
+              //simply modelled as free gas).
+              has_dyninfovdos_msd = true;
+              break;
+            }
+          }
+        }
+        if (!has_atominfo_msd && !has_dyninfovdos_msd)
+          NCRYSTAL_THROW(BadInput,"Presence of CUSTOM_SPECIALINCOHELAS section requires ability to"
+                         " determine atomic mean squared displacements for all atoms.");
+        if ( info.isCrystalline() )
+          NCRYSTAL_THROW(BadInput,"A @CUSTOM_SPECIALINCOHELAS section can currently only be used when there is otherwise no unit cell information in the input.");
+        if ( cfg.get_incoh_elas() ) {
+          //Decode:
+          //
+          //Syntax is single line with factor (>0.0,<=10.0), followed optionally by the keyword "include_sigma_coh"
+          const auto& cd = info.getCustomSection("SPECIALINCOHELAS");//vector<VectS>
+          if ( cd.size() != 1 )
+            NCRYSTAL_THROW(BadInput,"CUSTOM_SPECIALINCOHELAS section should only have 1 line.");
+          const auto& line = cd.at(0);
+          nc_assert_always(!line.empty());
+          if ( line.empty() || line.size() > 2  )
+            NCRYSTAL_THROW(BadInput,"Bad syntax in CUSTOM_SPECIALINCOHELAS section (too many entries).");
+          double scale_factor;
+          if (!safe_str2dbl( line.at(0), scale_factor ) || !(scale_factor>0.0) || !(scale_factor<=10.0) )
+            NCRYSTAL_THROW(BadInput,"Invalid scale factor in CUSTOM_SPECIALINCOHELAS section. Value should be in interval (0.0,10.0].");
+          bool include_sigma_coh(false);
+          if ( line.size()==2 )  {
+            if ( line.at(1)!="include_sigma_coh" )
+              NCRYSTAL_THROW2(BadInput,"Invalid keyword in CUSTOM_SPECIALINCOHELAS section. Syntax requires either"
+                              " just the scale factor, or a scale factor followed by the keyword \"include_sigma_coh\".");
+            include_sigma_coh = true;
+          }
+          if (has_atominfo_msd)
+            components.push_back({1.0,makeSO<ElIncScatter>(ElIncScatter::msd_from_atominfo_t(),info,scale_factor, include_sigma_coh)});
+          else
+            components.push_back({1.0,makeSO<ElIncScatter>(ElIncScatter::msd_from_dyninfo_t(),info,scale_factor, include_sigma_coh)});
+        }
+      }
+
 
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////
       //Coherent-elastic (Bragg) component:

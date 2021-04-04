@@ -13,6 +13,7 @@ NCMAT v4
 #     G. Noguere, J. P. Scotta, S. Xu, A. Filhol, J. Ollivier, E. Farhi,
 #     Y. Calzavarra, S. Rols, B. Fak, J.-M. Zanotti, and Q. Berrod
 #     Phys. Rev. B 102, 134312 - Published 30 October 2020
+#     https://doi.org/10.1103/PhysRevB.102.134312
 #
 # The paper above provided VDOS curves at 300K, 350K, 420K, 600K, 900K, 1200K,
 # and 1675K. Most users will likely get decent performance for materials at most

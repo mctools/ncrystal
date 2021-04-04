@@ -42,8 +42,17 @@ namespace NCrystal {
     const char * name() const noexcept final { return "ElIncScatter"; }
     virtual ~ElIncScatter();
 
-    //Construct from Info:
-    ElIncScatter( const Info& );
+    //Construct from Info. For special use-cases it is possible to apply an
+    //overall cross section scale-factor (>0.0), and to optionally use the total
+    //scattering cross section, rather than just sigma_incoherent:
+    //
+    //Two constructors based on Info objects are available, one taking the MSD
+    //information from AtomInfo, and getting them from integration of VDOS
+    //curves (.
+    struct msd_from_atominfo_t {};
+    struct msd_from_dyninfo_t {};
+    ElIncScatter( msd_from_atominfo_t, const Info&, double scale_factor = 1.0, bool use_total_xsect = false );
+    ElIncScatter( msd_from_dyninfo_t, const Info&, double scale_factor = 1.0, bool use_total_xsect = false );
 
     //Constructor similar to the ElIncXS constructor:
     ElIncScatter( const VectD& elements_meanSqDisp,
