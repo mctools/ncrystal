@@ -1,3 +1,14 @@
+v2.6.1 2020-05-03
+      * Workaround for numerical artifacts in inelastic cross sections arising
+        from low-granularity beta-grids. In practice this affected materials
+        which either used hard-coded low-granularity scattering kernel, or those
+        with phonon VDOS curves that had large empty regions (often the case for
+        hydrogen VDOS curves in materials with C-H bounds). The workaround for
+        external low-granularity kernels consists of a simple "thickening" of
+        the beta-grid, while the workaround for VDOS-based kernels consists in
+        modifying the beta-grid generation code to ensure points are inserted
+        into any large gaps in the single-phonon region.
+
 v2.6.0 2020-04-05
       * Introduce NCMAT v4 which introduces a few new features, as described in
         detail in the ncmat_doc.md file. The most important new feature relies

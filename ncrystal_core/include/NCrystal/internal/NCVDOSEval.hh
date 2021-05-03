@@ -49,7 +49,6 @@ namespace NCrystal {
     //Basic parameters (npts from emin to emax, npts_extended from 0 to emax):
     struct GridInfo { double emin, emax; unsigned npts, npts_extended; };
     GridInfo getGridInfo() const;
-    GridInfo getExtendedGridInfo() const;//same, but add bins to reach 0.
 
     Temperature temperature() const { return m_temperature; }
     double kT() const { return m_kT; }

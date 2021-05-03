@@ -20,7 +20,7 @@
 
 #include "NCrystal/internal/NCSABUtils.hh"
 #include "NCrystal/internal/NCIter.hh"
-
+#include "NCrystal/internal/NCString.hh"
 namespace NC = NCrystal;
 
 NC::SABData NC::SABUtils::transformKernelToStdFormat( NC::ScatKnlData&& input )
@@ -137,6 +137,62 @@ NC::SABData NC::SABUtils::transformKernelToStdFormat( NC::ScatKnlData&& input )
   }
 
   nc_assert_always( input.knltype == ScatKnlData::KnlType::SAB );
+
+  ///////////////////////////////////////////////////////////////////////////////
+  // Thicken beta grid to reduce numerical artifacts in subsequent processing. //
+  // This is obviously just a workaround and not the correct way to solve this //
+  // (TODO: Remove once processing handles sparse grids better)!               //
+  ///////////////////////////////////////////////////////////////////////////////
+
+  int nminbeta_int = ncgetenv_int("SAB_BETATHICKENING_MINNBETA",500);
+  nc_assert_always( nminbeta_int >=0 && nminbeta_int < 20000 );
+  const unsigned nminbeta = static_cast<unsigned>(nminbeta_int);
+
+  if ( input.betaGrid.size() < nminbeta ) {
+    const unsigned nextra = nminbeta / input.betaGrid.size();//Number of extra beta points
+                                                             //to insert between each point
+    nc_assert_always( nextra >= 1 );
+    auto newNBeta = 1 + ( input.betaGrid.size() -1 ) * ( 1 + nextra );
+    VectD newb;
+    newb.reserve( newNBeta );
+    VectD newS;
+    const std::size_t nalpha = input.alphaGrid.size();
+    newS.reserve( newNBeta * nalpha );
+    auto itB = input.betaGrid.begin();
+    auto itBLast = std::prev(input.betaGrid.end());
+    std::size_t ibeta(0);
+    for ( ; itB != itBLast; ++itB, ++ibeta ) {
+      auto itBNext = std::next(itB);
+      auto alphaSlice = sliceSABAtBetaIdx_const( input.sab, nalpha, ibeta );
+      auto alphaSliceNext = sliceSABAtBetaIdx_const( input.sab, nalpha, ibeta+1 );
+      //First copy over existing row:
+      newb.push_back(*itB);
+      std::copy(alphaSlice.begin(), alphaSlice.end(), std::back_inserter(newS));
+      //Then insert the new rows, one by one:
+      const double dBeta = (*itBNext - *itB)/(nextra+1);
+      for ( auto iextra : ncrange(nextra) ) {
+        double beta = *itB + (iextra+1)*dBeta;
+        newb.push_back(beta);
+        for ( auto ialpha : ncrange(nalpha) ) {
+          double S = alphaSlice.at(ialpha);
+          double SNext = alphaSliceNext.at(ialpha);
+          double kkk = ( beta - *itB) / (*itBNext - *itB);
+          //newS.push_back( S + (SNext - S) * kkk  );
+          newS.push_back( S * ( 1.0 - kkk) + kkk * SNext );
+        }
+      }
+    }
+    //Add last slide as well:
+    auto alphaSliceLast = sliceSABAtBetaIdx_const( input.sab, nalpha, ibeta );
+    std::copy(alphaSliceLast.begin(), alphaSliceLast.end(), std::back_inserter(newS));
+    newb.push_back(*itBLast);
+    nc_assert_always( newS.size() == newNBeta * nalpha );
+    nc_assert_always( newb.size() == newNBeta );
+
+    //Apply:
+    std::swap(newS,input.sab);
+    std::swap(newb,input.betaGrid);
+  }
 
   ///////////////////////////////////////////
   // Transfer to SABData object and return //

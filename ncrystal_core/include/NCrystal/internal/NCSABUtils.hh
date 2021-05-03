@@ -37,7 +37,6 @@ namespace NCrystal {
     //elsewhere with validate calls.
     SABData transformKernelToStdFormat(ScatKnlData&&);
 
-
     //If beta grid is defined as [0,b1,b2,..,bn] it is assumed that it is a
     //space-saving shorthand for [-bn,...,-b2,-b1,0,b1,b2,..,bn]. Expand, using
     //S(alpha,-beta)=S(alpha,beta):

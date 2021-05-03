@@ -585,10 +585,74 @@ NC::VectD NC::setupBetaGrid( const NC::VDOSGn& Gn, double betaMax, unsigned vdos
       n1_near0 = n1 - n1_spectrum;
     } else {
       //Remove least important points from G1 spectrum:
+#if 0
+      //Old way, just run reducePtsInDistribution. This might leave huge gaps if
+      //for instance VDOS is zero over a wide internal region:
       std::tie(evals_G1,rawspec_G1) = reducePtsInDistribution( evals_G1,rawspec_G1, n1_spectrum );
+#else
+      //New way, avoid leaving huge gaps without pts. Doing so can leave large
+      //gaps in the beta points, which when can lead to numerical artifacts when
+      //a scattering kernel is later integrated and sampled. If at some point
+      //(TODO!) we implement better integration/sampling algorithms, we can
+      //hopefully stop doing this - and perhaps also stop needing the n1_near
+      //values.
+      unsigned n_for_gaps = ( ( n1_spectrum > 30 && evals_G1.size()-n1_spectrum > 10 )
+                              ? std::max<unsigned>(5,static_cast<unsigned>(n1_spectrum*0.1+0.5))
+                              : 0 );
+      n1_spectrum -= n_for_gaps;
+      const double G1binwidth = evals_G1.at(1)-evals_G1.at(0);
+      std::tie(evals_G1,rawspec_G1) = reducePtsInDistribution( evals_G1,rawspec_G1, n1_spectrum );
+      if ( n_for_gaps > 0 ) {
+        struct Gap {
+          Gap(double bbb0, double bbb1)
+            : b0(bbb0), b1(bbb1)
+          {}
+          double b0, b1;//edges of gap
+          unsigned n = 0;//number of points allocated to fill the gap
+          bool operator<( const Gap& o ) const {
+            double a = ( b1 - b0 ) / ( n + 1 );
+            double b = ( o.b1 - o.b0 ) / ( o.n + 1 );
+            if ( floateq(a,b,1e-13,1e-13) )
+              return b0 > o.b0;
+            return a > b;//reverse sort
+          }
+        };
+        //Find all gaps:
+        std::vector<Gap> gaps;
+        gaps.reserve(256);
+        double dmin = 1.5 * G1binwidth;
+        auto it = evals_G1.begin();
+        auto itLast = std::prev(evals_G1.end());
+        for ( ; it != itLast; ++it ) {
+          double dd = *std::next(it)-*it;
+          if ( dd > dmin )
+            gaps.emplace_back( *it, *std::next(it) );
+        }
+        //Allocate pts one by one into largest remaining gap:
+        while (n_for_gaps>0 && !gaps.empty() ) {
+          std::stable_sort(gaps.begin(),gaps.end());
+          gaps.front().n += 1;
+          --n_for_gaps;
+        }
+        //Transfer points in gaps to evals_G1:
+        for ( const auto& g : gaps ) {
+          if ( g.n > 0 ) {
+            double bw = (g.b1-g.b0)/(g.n+1.0);
+            for ( auto i : ncrange(g.n) ) {
+              evals_G1.push_back( g.b0 + (i+1)*bw );
+            }
+          }
+        }
+        std::sort(evals_G1.begin(),evals_G1.end());
+      }
+      if ( n_for_gaps > 0 ) {
+        //unused gap filler points, put somewhere else:
+        n1_near0 += n_for_gaps;
+      }
+#endif
     }
 
-    for ( auto e: evals_G1 )
+    for ( auto e : evals_G1 )
       grid.push_back(e);
 
     //To reduce artefacts in sampling/integration algs, add points near 0:

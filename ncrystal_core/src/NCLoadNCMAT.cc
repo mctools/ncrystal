@@ -430,7 +430,6 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
           knldata.boundXS = iad.data().scatteringXS();//(full xs, incoherent approximation)
           knldata.elementMassAMU = iad.data().averageMassAMU();
           //Move acquire expensive fields:
-
           if (e.fields.count("sab")) {
             knldata.alphaGrid = std::move(e.fields.at("alphagrid"));
             knldata.betaGrid = std::move(e.fields.at("betagrid"));
