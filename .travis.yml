@@ -92,6 +92,13 @@ script:
     - ../installdir/bin/ncrystal_ncmat2cpp --help
     - ../installdir/bin/ncrystal_ncmat2cpp $(../installdir/bin/ncrystal-config --show=datadir)/Al_sg225.ncmat -o test.cpp
     - cat test.cpp
+    - ../installdir/bin/ncrystal_verifyatompos --help
+    - ../installdir/bin/ncrystal_onlinedb2ncmat --help
+    - python3 -c 'import ase' 2>/dev/null || python3 -mpip install ase
+    - ../installdir/bin/ncrystal_verifyatompos Al2O3_sg167_Corundum.ncmat
+    - python3 -c 'import pymatgen' 2>/dev/null || python3 -mpip install pymatgen
+    - ../installdir/bin/ncrystal_onlinedb2ncmat --codid=9008460
+    - cat autogen_Al_sg225_cod9008460.ncmat
     - set +e
 
 notifications:
