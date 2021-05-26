@@ -123,8 +123,8 @@ void NC::AtomSymbol::longInit(const std::string& symbol)
 
 void NC::validateAtomDBLine(const VectS& words, unsigned ncmat_version )
 {
-  nc_assert(ncmat_version>=3&&ncmat_version<=4);//for now this is the only supported version for
-                                                //ATOMDB data.
+  nc_assert(ncmat_version>=3);//for now all NCMAT versions >= v3 have the same
+                              //ATOMDB format
   (void)ncmat_version;
 
   auto isDblWithUnit = [](const std::string& s, const std::string& unit, double& val) -> bool

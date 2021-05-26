@@ -1,0 +1,53 @@
+NCMAT v5
+#
+# Bismuth (Bi, trigonal, SG-166 / R-3m)
+#
+# Under usual conditions this phase exists from 0 to 500K.
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "The crystal structure of Bi and of solid solutions
+#     of Pb, Sn, Sb and Te in Bi"
+#    Cucka, P. and Barrett, C.S.
+#    Acta Cryst. (1962). 15, 865-872
+#    DOI: https://doi.org/10.1107/S0365110X62002297
+#    Crystallography Open Database entry 2310889
+#    https://www.crystallography.net/cod/2310889.html
+#
+# This crystal structure is also compatible with structure obtained from
+# https://www.materialsproject.org/materials/mp-23152
+#
+# Reference for VDOS curve:
+#
+#    "Evaluation of coherent and incoherent thermal neutron
+#     scattering cross-sections for polycrystalline bismuth"
+#    Keinert, J. , Kaefer, S., Mattes, M.
+#    Kerntechnik (1987), ISSN 0932-3902, v. 57(4), p. 233-236
+#
+@CELL
+  lengths 4.546 !! 11.862
+  angles 90 90 120
+@SPACEGROUP
+  166
+@ATOMPOSITIONS
+  Bi 0 0 .23389
+  Bi 0 0 .76611
+  Bi 2/3 1/3 .5672233333333333
+  Bi 2/3 1/3 .0994433333333333
+  Bi 1/3 2/3 .9005566666666667
+  Bi 1/3 2/3 .4327766666666667
+@DYNINFO
+  element  Bi
+  fraction 1
+  type     vdos
+  vdos_egrid .0002 .0176
+  vdos_density .00281682 .00563364 .00845047 .0112673 .0198903 .0327872 .0474756
+    .063094 .0834686 .109856 .143837 .189588 .258674 .335502 .422763 .506798
+    .589905 .627724 .617159 .580207 .546573 .513244 .477436 .455275 .440407
+    .432726 .441112 .471245 .498392 .490859 .457184 .395065 .337799 .283188
+    .231598 .187761 .156331 .138213 .121788 .11228 .106666 .104593 .104639
+    .108319 .114531 .122518 .140137 .161389 .190461 .23441 .293406 .380876
+    .491502 .602562 .707191 .805798 .919206 .998979 1 .969377 .8354 .727403
+    .60195 .49949 .412923 .328949 .256908 .19483 .151467 .115067 .0934517
+    .0780789 .0679886 .0611239 .0547696 .0484229 .044127 .0396116 .0338677
+    .0284933 .0242352 .0199826 .0158975 .0118772 .00833614 .00493855 .00186072 0

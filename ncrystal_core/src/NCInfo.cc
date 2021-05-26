@@ -142,7 +142,7 @@ void NC::Info::objectDone()
 
     ntotatoms_from_atominfo += itAtm->numberPerUnitCell();
 
-    //Debye temps and msd's should be specified for all or none:
+    //Debye temps and msd's should be specified for all or none AtomInfo objects:
     if ( itAtm->debyeTemp().has_value() != m_atomlist.front().debyeTemp().has_value() )
       NCRYSTAL_THROW(LogicError,"Inconsistency: Debye temperatures specified for some but not all AtomInfo objects.");
     if ( itAtm->msd().has_value() != m_atomlist.front().msd().has_value() )
@@ -429,12 +429,31 @@ void NC::Info::objectDone()
     if ( !di_vdosdebye )
       continue;
     if ( di_vdosdebye->m_atomInfo == nullptr )
-      NCRYSTAL_THROW(BadInput,"DI_VDOSDebye can only be added on an Info object when AtomInfo objects are also added!");
+      continue;//Allow absent atominfo (for amorphous materials)
     if ( ! di_vdosdebye->m_atomInfo->debyeTemp().has_value() )
       NCRYSTAL_THROW(BadInput,"AtomInfo object associated with DI_VDOSDebye object must have Debye temperature available!");
     if ( di_vdosdebye->m_atomInfo->debyeTemp().value() != di_vdosdebye->debyeTemperature() )
       NCRYSTAL_THROW(BadInput,"Associated AtomInfo and DI_VDOSDebye objects do not have the same Debye temperature specified!");
   }
+
+  //Verify and possible fill out StateOfMatter:
+  //
+  //  isCrystalline() or presence VDOS/VDOSDebye DI implies solid. In that case,
+  //  verify that current state is either Unknown or Solid (and replace Unknown
+  //  with Solid)
+
+  bool should_be_solid(isCrystalline());
+  for ( auto& di : m_dyninfolist ) {
+    if (should_be_solid)
+      break;
+    if (dynamic_cast<const DI_VDOSDebye*>(di.get())||dynamic_cast<const DI_VDOS*>(di.get()))
+      should_be_solid = true;
+  }
+  if ( should_be_solid && !isOneOf(m_som,StateOfMatter::Unknown,StateOfMatter::Solid) )
+    NCRYSTAL_THROW2(BadInput,"Info objects that are crystalline or have at least one VDOS"
+                    " (or VDOSDebye) can not be designated as \""<<toString(m_som)<<"\"");
+  if ( should_be_solid && m_som == StateOfMatter::Unknown )
+    m_som = StateOfMatter::Solid;
 }
 
 void NC::Info::enableHKLInfo(double dlower, double dupper)
@@ -580,3 +599,15 @@ NC::AtomInfo::AtomInfo( IndexedAtomData iad,
     NCRYSTAL_THROW2(LogicError,"Invalid debye temperature value passed to AtomInfo constructor: " << m_dt.value());
 }
 
+std::string NC::Info::toString(StateOfMatter som)
+{
+  switch(som) {
+  case StateOfMatter::Unknown: return "Unknown"_s;
+  case StateOfMatter::Solid: return "Solid"_s;
+  case StateOfMatter::Gas: return "Gas"_s;
+  case StateOfMatter::Liquid: return "Liquid"_s;
+  default:
+    nc_assert_always(false);
+    return ""_s;
+  };
+}

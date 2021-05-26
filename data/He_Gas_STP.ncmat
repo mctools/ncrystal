@@ -1,12 +1,15 @@
-NCMAT v2
-
-#Natural Helium (aka "Helium-4" ). Non-enriched noble gasses such as this one
-#can be modelled realistically using the freegas model of NCrystal. The density
-#is the value at STP (273.15K, 1atm) calculated with the ideal gas equation. The
-#density value must currently (NCrystal v2.0.0) be manually changed by the user
-#if modelling using different temperatures or pressures is desired (the formula
-#is given below).
-
+NCMAT v5
+#
+# Helium (aka "Helium-4" ) gas.
+#
+# Noble gasses such as this one can be modelled realistically using the freegas
+# model of NCrystal. The density is the value at STP (273.15K, 1atm) calculated
+# with the ideal gas equation. The density value must currently (NCrystal
+# v2.7.0) be manually changed by the user if modelling using different
+# temperatures or pressures is desired (the formula is given below).
+#
+@STATEOFMATTER
+  gas
 @DYNINFO
   element  He
   fraction 1

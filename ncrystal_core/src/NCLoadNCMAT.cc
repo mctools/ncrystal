@@ -330,12 +330,13 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
   const bool data_hasCell = data.hasCell();
   const bool data_hasAtomPos = data.hasAtomPos();
   const bool data_hasSpaceGroup = data.hasSpaceGroup();
-  const bool data_hasDebyeTemperature = data.hasDebyeTemperature();
+  const bool data_hasDebyeTemperature = data.hasDebyeTemperature();//@DEBYETEMPERATURE section (must also check @DYNINFO section)
   const bool data_hasDensity = data.hasDensity();
 
-  //Find Debye temperatures of elements:
-
+  //Find Debye temperatures of elements from @DEBYETEMPERATURE section:
   std::map<AtomIndex,DebyeTemperature> perelemdebye_map;
+  std::map<AtomIndex,double> elem2msd;
+
   if ( data.debyetemp_global.has_value() ) {
     //Transfer global value to all entries:
     for ( const auto& e : elementname_2_indexedatomdata_map )
@@ -365,9 +366,10 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
     return DebyeTemperature{ it->second };
   };
 
-  //==> Dynamics (deal with them first as they might provide MSD info)
+  //==> Dynamics (deal with them first as they might provide MSD/DebyeTemp info)
   std::map<AtomIndex,double> elem2frac;
   std::vector<std::unique_ptr<DynamicInfo>> dyninfolist;
+  bool has_any_dyninfo_vdos_or_vdosdebye = false;
   auto getEgrid = [](NCMATData::DynInfo::FieldMapT& fields)
                   {
                     VectD egrid;
@@ -379,6 +381,7 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
                   };
 
   if (data_hasDynInfo) {
+    bool warn_msd_from_debye_but_vdos_avail = false;
     for (auto& e : data.dyninfos) {
       const auto& iad = elementname_2_indexedatomdata(e.element_name);
       nc_assert_always(e.fraction>0.0&&e.fraction<=1.0);
@@ -392,12 +395,27 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
         di = std::make_unique<DI_FreeGas>(e.fraction, iad, cfgvars.temp);
         break;
       case NCMATData::DynInfo::VDOSDebye:
-        nc_assert_always(data_hasDebyeTemperature);
-        di = std::make_unique<DI_VDOSDebye>(e.fraction, iad, cfgvars.temp,
-                                            element2DebyeTemp(iad.index));
+        {
+          has_any_dyninfo_vdos_or_vdosdebye =  true;
+          Optional<DebyeTemperature> debye_temp;
+          auto itDT = e.fields.find("debye_temp");//can only be there in NCMAT v5+ (and
+                                                  //then we are guaranteed that there
+                                                  //is no @DEBYETEMPERATURE section)
+          if ( itDT != e.fields.end() ) {
+            nc_assert(data.version>=5);
+            nc_assert(!data_hasDebyeTemperature);
+            nc_assert(itDT->second.size()==1);
+            debye_temp = DebyeTemperature{ itDT->second.at(0) };
+            perelemdebye_map[iad.index] = debye_temp.value();
+          }
+          if ( !debye_temp.has_value() )
+            debye_temp = element2DebyeTemp(iad.index);
+          di = std::make_unique<DI_VDOSDebye>(e.fraction, iad, cfgvars.temp, debye_temp.value());
+        }
         break;
       case NCMATData::DynInfo::VDOS:
         {
+          has_any_dyninfo_vdos_or_vdosdebye =  true;
           VectD egrid = getEgrid(e.fields);
           auto vdos_egrid_orig = std::move(e.fields.at("vdos_egrid"));
           auto vdos_density_orig = std::move(e.fields.at("vdos_density"));
@@ -410,6 +428,7 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
 
           nc_assert_always(vdos_egrid_reg.size()==2);
           PairDD vdos_egrid_pair(vdos_egrid_reg.front(),vdos_egrid_reg.back());
+
           di = std::make_unique<DI_VDOSImpl>( e.fraction, iad, cfgvars.temp,
                                               std::move(egrid),
                                               VDOSData(vdos_egrid_pair,
@@ -419,6 +438,17 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
                                                        iad.data().averageMassAMU()),
                                               std::move(vdos_egrid_orig),
                                               std::move(vdos_density_orig) );
+          //If missing, estimate MSD/DebyeTemp from VDOS (in v4 or later):
+          if ( data.version >= 4 ) {
+            if ( tryElement2DebyeTemp(iad.index).has_value() ) {
+              warn_msd_from_debye_but_vdos_avail = true;//@DEBYETEMPERATURE section takes precedence, but emit warning
+            } else {
+              double msd = VDOSEval( static_cast<const DI_VDOS*>(di.get())->vdosData() ).getMSD();
+              auto debye_temp = debyeTempFromIsotropicMSD( msd, cfgvars.temp, di->atomData().averageMassAMU() );
+              perelemdebye_map[iad.index] = debye_temp;
+              elem2msd[iad.index] = msd;//record so we don't have to convert back from Debye temp again below
+            }
+          }
         }
         break;
       case NCMATData::DynInfo::ScatKnl:
@@ -458,6 +488,7 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
           di = std::make_unique<DI_ScatKnlImpl>(e.fraction, iad,
                                                 std::move(egrid),
                                                 std::move(knldata));
+          //TODO: Also try to estimate Debye temperature from SAB?
         }
         break;
       default:
@@ -466,6 +497,9 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
       //Collect here for now (we might adjust the fractions before adding to NCInfo):
       dyninfolist.push_back(std::move(di));
     }
+    if (warn_msd_from_debye_but_vdos_avail)
+      std::cout<<"NCrystal::NCMATFactory WARNING: Loading NCMAT data which has Debye temperatures for"
+        " elements with VDOS curves available (this might give sub-optimal MSD values)."<<std::endl;
   }
 
   //==> Temperature:
@@ -541,54 +575,34 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
     }
     nc_assert_always(elem2pos.size()==elem2frac.size());
 
-    //==> Prepare MSD numbers from VDOS or Debye temperature:
+    //==> Prepare MSD numbers from Debye temperature (some might have been already filled from VDOS's above):
 
-    //NB: msd from vdos only allowed in NCMAT v4 or later. If both msd-from-vdos
-    //and msd-from-debyetemp is possible, the latter will be preferred (as per
-    //the NCMAT doc), but we will emit a warning at the end.
-
-    const bool do_allow_msd_from_vdos = ( data.version >= 4);
-    bool warn_msd_from_debye_but_vdos_avail = false;
-
-    std::map<AtomIndex,Optional<double>> elem2msd;
-
+    //Convert Debye temperatures to MSD values (as described in sec. 2.5 of the
+    //first NCrystal paper [https://doi.org/10.1016/j.cpc.2019.07.015]):
     for (auto& di: dyninfolist) {
-      auto& msd = elem2msd[di->atom().index];
-      //Possible sources are Debye temp or VDOS:
+      if ( elem2msd.count(di->atom().index) )
+        continue;//Already filled
       auto debyeTemp = tryElement2DebyeTemp(di->atom().index);
-      auto di_vdos = do_allow_msd_from_vdos ? dynamic_cast<const DI_VDOS*>(di.get()) : nullptr;
-      if ( debyeTemp.has_value() ) {
-        if ( di_vdos)
-          warn_msd_from_debye_but_vdos_avail = true;
-        //Estimate via Debye temperature (as described in sec. 2.5
-        //of the first NCrystal paper [https://doi.org/10.1016/j.cpc.2019.07.015]):
-        const auto mass = di->atomData().averageMassAMU();
-        msd = debyeIsotropicMSD( debyeTemp.value(), cfgvars.temp, mass );
-      } else if ( di_vdos ) {
-        //Estimate MSD by VDOS integral:
-        msd = VDOSEval( di_vdos->vdosData() ).getMSD();
-      } else {
-        NCRYSTAL_THROW(LogicError,"No MSD source available (this should not"
-                       " happen - other code should have caught this earlier)");
+      if (!debyeTemp.has_value()) {
+        NCRYSTAL_THROW(LogicError,"No MSD source available for element in crystal (this"
+                       "  should not happen - other code should have caught this earlier)");
       }
+      elem2msd[di->atom().index] = debyeIsotropicMSD( debyeTemp.value(), cfgvars.temp, di->atomData().averageMassAMU() );
     }
-
-    if (warn_msd_from_debye_but_vdos_avail)//Fixme: Make it possible to disable this warning
-      std::cout<<"NCrystal::NCMATFactory WARNING: Loading NCMAT data which has Debye temperatures for elements with VDOS curves available (this might give sub-optimal MSD values)."<<std::endl;
 
     //==> Fill Info::AtomInfo
     for ( auto& ef : elem2frac ) {
       IndexedAtomData iad = *index2iad.at(ef.first.get());
       nc_assert(iad.index==ef.first);
-      const auto& msd = elem2msd[iad.index];
-      nc_assert_always( msd.has_value() );
+      nc_assert( elem2msd.count(iad.index) );
+      double msd = elem2msd[iad.index];
       Optional<DebyeTemperature> ai_debye_temp;
-      if ( data_hasDebyeTemperature )
+      if ( !perelemdebye_map.empty() )
         ai_debye_temp = tryElement2DebyeTemp(ef.first);
       if ( !ai_debye_temp.has_value() ) {
         //No direct debye temp was provided in input, but we can estimate one via MSD:
         const auto mass = iad.atomDataSP->averageMassAMU();
-        ai_debye_temp = debyeTempFromIsotropicMSD( msd.value(), cfgvars.temp, mass );
+        ai_debye_temp = debyeTempFromIsotropicMSD( msd, cfgvars.temp, mass );
       }
       info.addAtom( AtomInfo( std::move(iad), std::move(std::move(elem2pos.at(ef.first))), ai_debye_temp, msd ) );
     }
@@ -677,6 +691,24 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
       std::cout<<"NCrystal::NCMATFactory:: Loaded NCMAT data has @CUSTOM_ section(s). This is OK if intended."<<std::endl;
     info.setCustomData(std::move(data.customSections));
   }
+
+  //==> State of matter.
+
+  Info::StateOfMatter som = Info::StateOfMatter::Unknown;
+  bool should_be_solid(data_hasUnitCell||has_any_dyninfo_vdos_or_vdosdebye);
+  if ( !data.stateOfMatter.has_value() ) {
+    som = should_be_solid ? Info::StateOfMatter::Solid : Info::StateOfMatter::Unknown;
+  } else if ( data.stateOfMatter.value() == NCMATData::StateOfMatter::Solid ) {
+    som = Info::StateOfMatter::Solid;
+  } else if ( data.stateOfMatter.value() == NCMATData::StateOfMatter::Gas ) {
+    som = Info::StateOfMatter::Gas;
+  } else if ( data.stateOfMatter.value() == NCMATData::StateOfMatter::Liquid ) {
+    som = Info::StateOfMatter::Liquid;
+  } else {
+    nc_assert_always(false);//should not happen
+  }
+  nc_assert_always( !should_be_solid || som == Info::StateOfMatter::Solid );
+  info.setStateOfMatter(som);
 
   ///////////
   // Done! //

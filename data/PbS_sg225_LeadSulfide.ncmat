@@ -1,0 +1,80 @@
+NCMAT v5
+#
+# Lead sulfide (PbS, cubic, SG-225 / Fm-3m)
+#
+# Valid temperatures for this structure are 0 to 1391 K.
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "Second edition. Interscience Publishers, New York, Rocksalt structure"
+#    Wyckoff, R. W. G. (1963)
+#    Crystallography Open Database entry 9008694
+#    https://www.crystallography.net/cod/9008694.html
+#
+# This crystal structure is also compatible with structure obtained from
+# https://www.materialsproject.org/materials/mp-21276
+#
+# The VDOS curves were calculated using Phonopy[1] input files from[2] and
+# OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics group.
+#
+# References:
+#  [1]: "First principles phonon calculations in materials science",
+#        Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)
+#  [2]: Kyoto University database of phonon calculations.
+#       Files for PbS taken from:
+#       http://phonondb.mtl.kyoto-u.ac.jp/ph20180417/d021/mp-21276.html
+#  [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J., "Calculation
+#       of the Thermal Neutron Scattering Cross-Section of Solids Using OCLIMAX".
+#       Journal of Chemical Theory and Computation 2020, 16 (8), 5212-5217.
+#
+@CELL
+  cubic 5.9362
+@SPACEGROUP
+  225
+@ATOMPOSITIONS
+  Pb 0 0 0
+  Pb 0 1/2 1/2
+  Pb 1/2 0 1/2
+  Pb 1/2 1/2 0
+  S 1/2 1/2 1/2
+  S 1/2 0 0
+  S 0 1/2 0
+  S 0 0 1/2
+@DYNINFO
+  element  Pb
+  fraction 1/2
+  type     vdos
+  vdos_egrid .00324989 .029999
+  vdos_density .0548676 .0726466 .095184 .133557 .196222 .248141 .283687 .330403
+    .398039 .47133 .579664 .746127 .939608 1 .894472 .618607 .286858 .114222
+    .0725293 .0633854 .0713133 .0865069 .0990366 .108669 .122268 .141931 .168144
+    .197608 .226269 .240559 .237294 .235135 .239318 .24269 .234209 .203883
+    .162199 .125759 .100106 .0808099 .0589126 .0344234 .0161293 .00850401
+    .00721581 .00732962 .00756449 .0079737 .00837213 .00813731 .00718444
+    .00622541 .00534968 .004307 .00358464 .00342227 .00329491 .00291286
+    .00261853 .0024815 .00239537 .0022992 .00202896 .00170961 .0015878 .00154317
+    .00146801 .00136328 .00120641 .00109695 .00116513 .00129532 .00130052
+    .00117011 .00100315 .000881977 .000810032 .000788904 .000806646 .000802839
+    .000783091 .000793431 .000799968 .000736593 .000635873 .000601865 .000674372
+    .000799466 .000896324 .00094739 .00102024 .00118116 .00139613 .00152679
+    .0014489 .00120589 .000957866 .000785079 .000651265 .000500679 .000330376
+    .00018335 8.84979e-05 3.8856e-05 1.55982e-05 5.41437e-06 1.48026e-06
+    2.91231e-07
+@DYNINFO
+  element  S
+  fraction 1/2
+  type     vdos
+  vdos_egrid .00349988 .029999
+  vdos_density .0166382 .0272694 .0530954 .0779323 .101426 .115585 .104225
+    .103308 .0945346 .0918446 .0935007 .0803428 .0694164 .0732098 .0787589
+    .0777057 .0744461 .0656189 .0556033 .0571151 .0689962 .0859424 .106377
+    .110993 .107196 .100516 .116286 .150786 .165099 .156915 .140621 .125704
+    .158046 .211837 .227261 .220719 .233235 .274276 .312656 .361559 .44024
+    .512359 .572089 .640508 .711609 .778318 .85468 .947211 1 .966938 .896489
+    .811984 .729144 .709885 .746178 .748616 .688168 .645196 .649424 .686637
+    .723992 .696272 .635311 .626557 .654823 .690761 .704031 .666319 .639264
+    .702848 .797024 .828066 .8024 .767547 .764172 .799577 .857104 .923828 .97486
+    .997107 .990264 .938817 .838746 .722956 .633251 .59532 .602999 .623262
+    .636664 .65595 .700342 .765487 .816101 .813784 .76287 .704557 .661602
+    .614495 .533942 .420152 .301682 .204921 .1351 .0826268 .0414652 .0150034
+    .00358507

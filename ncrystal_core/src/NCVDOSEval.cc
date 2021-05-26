@@ -52,7 +52,7 @@ NC::VDOSEval::VDOSEval(const VDOSData& vd)
   if ( s_verbose_vdoseval )
     std::cout << "NCrystal::VDOSEval constructed ("<<m_density.size()<<" density pts on egrid spanning ["<<m_emin<<", "<<m_emax<<"]"<<std::endl;
 
-  nc_assert( m_elementMassAMU>0.5 && m_elementMassAMU<2000.0 );
+  nc_assert( m_elementMassAMU.dbl()>0.5 && m_elementMassAMU.dbl()<2000.0 );
   nc_assert( m_temperature.get()>=1.0&&m_temperature.get()<1e5 );
   nc_assert_always(m_density.size()<static_cast<std::size_t>(std::numeric_limits<int>::max()-2));
   nc_assert(m_emin>=0.0&&m_emax>m_emin);
@@ -222,7 +222,7 @@ double NC::VDOSEval::getMSD( double gamma0 ) const
   //respectively emax or 1/emax.
 
   constexpr double convfact = 0.5*constant_hbar*constant_hbar*constant_c*constant_c / constant_dalton2eVc2;
-  return convfact * gamma0 / ( m_elementMassAMU * m_emax );
+  return convfact * gamma0 / ( m_elementMassAMU.dbl() * m_emax );
 }
 
 double NC::VDOSEval::evalG1Asymmetric( double energy, double gamma0 ) const

@@ -2,16 +2,17 @@
 Description of the NCMAT format
 ===============================
 
-This document describes the various versions of the NCMAT file format associated
-with NCrystal and the extension `.ncmat`. Note documented here is merely the
-format itself, and that different versions of NCrystal might choose to do
-slightly different things with the same input file - ideally because newer
+This document describes the various versions of the NCMAT data format associated
+with NCrystal and the file extension `.ncmat`. Note that documented here is
+merely the format itself, and that different versions of NCrystal might choose
+to do slightly different things with the same input file - ideally because newer
 versions of the code will introduce improved modelling capabilities, but also
 because bugs might get fixed (usually) or introduced (hopefully rarely).
-Currently the four versions of the format are *NCMAT v1* which is supported by
-all NCrystal releases, *NCMAT v2* which can be read with NCrystal releases 2.0.0
-and beyond, *NCMAT v3* which can be read with NCrystal releases 2.1.0 and
-beyond, and *NCMAT v4* which can be read with NCrystal releases 2.6.0 and beyond.
+Currently the versions of the format are *NCMAT v1* which is supported by all
+NCrystal releases, *NCMAT v2* which can be read with NCrystal releases 2.0.0 and
+beyond, *NCMAT v3* which can be read with NCrystal releases 2.1.0 and beyond,
+*NCMAT v4* which can be read with NCrystal releases 2.6.0 and beyond, and *NCMAT
+v5* which can be read with NCrystal releases v2.7.0 and beyond.
 
 # The NCMAT v1 format #
 
@@ -359,6 +360,10 @@ Boltzmann's constant times the Debye temperature. This is represented with a
   type     vdosdebye
 ```
 
+Note that in *NCMAT v5* (described below), a new optional keyword *debye_temp*
+is added for this section, allowing it to be used in files without a separate
+@DEBYETEMPERATURE section.
+
 ### The @DENSITY section ###
 
 In order to support non-crystalline materials for which a vibrational density of
@@ -642,7 +647,7 @@ repetition.
 Based on the fact that it is possible to estimate mean-squared-displacements
 (and corresponding Debye temperatures) from a phonon VDOS curve, elements which
 have such curves available in @DYNINFO sections of type vdos are no longer required
-have to entries in the @DEBYETEMPERATURE section. And if this is the case for all
+to have entries in the @DEBYETEMPERATURE section. And if this is the case for all
 elements, the @DEBYETEMPERATURE section can be left out entirely.
 
 Note that it is still *allowed* to specify @DEBYETEMPERATURE entries for such
@@ -702,6 +707,69 @@ Although this syntax is not quite as terse as is what possible for cubic
 materials with the `cubic` keyword, it still means that e.g. hexagonal
 crystals can now be defined without repetition of the same value.
 
+# The NCMAT v5 format #
+
+The *NCMAT v5* format is similar to the *NCMAT v4* format, but with two changes
+meant to facilitate modelling of amorphous solids (i.e. non-crystalline solids).
+Firstly, Debye temperatures can now be specified directly in @DYNINFO sections
+of *vdosdebye* type, meaning that such sections can now also be used in
+non-crystalline materials where @DEBYETEMPERATURE sections are disallowed.
+Secondly, a new optional @STATEOFMATTER section can be used to explicitly
+indicate the state of matter if needed.
+
+## Changes for the @DYNINFO section ##
+
+In files without a @DEBYETEMPERATURE section, it is now allowd to specify the
+Debye temperatures directly inside @DYNINFO sections of type *vdosdebye*,
+providing them in units of kelvin via the new keyword `debye_temp`, as for
+instance:
+
+```
+@DYNINFO
+  element  V
+  fraction 1
+  type     vdosdebye
+  debye_temp 350
+```
+
+Note that files for crystalline materials (those having @CELL and @ATOMPOSITIONS
+sections) which do not have a @DEBYETEMPERATURE section, are instead required to
+have all @DYNINFO sections being of type *vdos* or *vdosdebye*. This restriction
+is needed to ensure adequate information required for Debye Waller factor
+estimation in all crystalline materials.
+
+## The @STATEOFMATTER section ##
+
+This new section is optional and is intended to provide a way to indicate the
+state of matter in cases where this can not be automatically inferred. Possible
+states of matter are at present just *solid*, *liquid*, and *gas*, but that list
+might be extended or detailed in the future. The syntax is very simple as
+illustrated by the following example:
+
+```
+@STATEOFMATTER
+  liquid
+```
+
+Crystalline materials (those having @CELL and @ATOMPOSITIONS sections) or
+materials where one or more @DYNINFO sections are of *vdos* or *vdosdebye* type,
+are automatically classified as *solid*, so for such materials the
+@STATEOFMATTER section is optional. It can nonetheless be provided, but is then
+only allowed to specify the state as *solid*. Future NCMAT versions might change
+this requirement (for instance to allow VDOS usage for liquids).
+
+## Effect of state of matter on NCrystal physics modelling #
+
+At present (NCrystal v2.7.0), the effect of the state of matter type is mostly
+cosmetic, with one important exception: Non-crystalline solids will get elastic
+scattering added based on the assumption that atoms vibrate around fixed
+positions in the material. Technically, this will use atomic mean squared
+displacement information inferred from the @DYNINFO sections (for now just those
+of *vdos* or *vdosdebye* type, but it could possibly at some point also be
+inferred from other types such as *scatknl*). Furthermore, coherent-elastic
+scattering will for now simply be accounted for via the incoherent
+approximation.
+
 # EMACS Syntax highlighting #
 
 If using EMACS, add the following to your ~/.emacs configuration file to enable
@@ -711,8 +779,8 @@ a basic syntax highlighting of .ncmat files:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Major mode for .ncmat files:
 (setq ncmat-sections '("CELL" "ATOMPOSITIONS" "SPACEGROUP" "DEBYETEMPERATURE"
-                       "DYNINFO" "DENSITY" "ATOMDB" "CUSTOM_[A-Z]+"))
-(setq ncmat-fields '("lengths" "angles" "cubic" "element" "fraction" "type" "temperature"
+                       "DYNINFO" "DENSITY" "ATOMDB" "STATEOFMATTER" "CUSTOM_[A-Z]+"))
+(setq ncmat-fields '("lengths" "angles" "cubic" "element" "fraction" "type" "debye_temp" "temperature"
                      "sab_scaled" "sab" "alphagrid" "betagrid" "egrid" "vdos_egrid" "vdos_density"))
 (setq ncmat-highlights
       `(("^NCMAT\s*v[0-9]+[a-z0-9]*" . font-lock-function-name-face)

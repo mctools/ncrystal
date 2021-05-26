@@ -35,12 +35,25 @@ namespace NCrystal {
   //(but not less than 0), to prevent wasting resources on what is anyway rather
   //crude input.
   //
+  //The vdos2sabExcludeFlag is for special use-cases (testing) only, and only
+  //affects DI_VDOS, and can be used to selectively exclude parts or all of
+  //certain phonon-orders from the S(alpha,beta) when expanded from a VDOS. It
+  //should be composed according to the formula: MODE + 4*LOW + 40000*HIGH Here,
+  //MODE indicates what to exclude (0x0 nothing, 0x1 sigma_coherent, 0x2
+  //sigma_incoherent, 0x3 both). LOW is the lowest order to exclude something
+  //from, and HIGH is the highest. Both LOW and HIGH must be in [1,9999] where a
+  //value of 9999 is interpreted as infinity.
+  //
   //Unless useCache=false is set, a MT-safe caching mechanism will be employed
   //behind the scene in order to prevent duplication of work in case of repeated
   //calls. The cache can obviously be cleared with the
   //clearSABDataFromDynInfoCaches function (automatically invoked by the global
   //clearCaches function):
-  std::shared_ptr<const SABData> extractSABDataFromDynInfo( const DI_ScatKnl*, unsigned vdoslux = 3, bool useCache = true );
+  std::shared_ptr<const SABData> extractSABDataFromDynInfo( const DI_ScatKnl*,
+                                                            unsigned vdoslux = 3,
+                                                            bool useCache = true,
+                                                            uint32_t vdos2sabExcludeFlag = 0 );
+
   std::shared_ptr<const SABData> extractSABDataFromVDOSDebyeModel( DebyeTemperature, Temperature, SigmaBound, AtomMass,
                                                                    unsigned vdoslux = 3, bool useCache = true );
   void clearSABDataFromDynInfoCaches();

@@ -1,4 +1,4 @@
-NCMAT v2
+NCMAT v5
 #
 # Water (H2O) based on ENDF/B-VIII.0 scattering kernels by J.I. Marquez Damian,
 # et. al. (see below for references). Please check the @DENSITY carefully below, as
@@ -14,6 +14,8 @@ NCMAT v2
 # In case your local installation does not provide all these files, they can be
 # downloaded from: https://github.com/mctools/ncrystal-extra/tree/master/data
 #
+@STATEOFMATTER
+  liquid
 @DENSITY
   #NB: Density depends on pressure (value here provided by https://www.thermexcel.com/english/tables/eau_atm.htm):
   0.99820 g_per_cm3 #(at 1atm pressure)

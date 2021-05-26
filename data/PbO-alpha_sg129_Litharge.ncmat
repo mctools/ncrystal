@@ -1,0 +1,86 @@
+NCMAT v5
+#
+# Alpha Lead monoxide (alpha-PbO, Litharge, tetragonal, SG-129 / P4/nmm)
+#
+# This phase exists at lower temperatures and pressures, around 763-873K it
+# transitions into the beta phase (PbO-beta, Massicot). For more details about
+# the phase change, see:
+#
+#   Risold, D., J. Nagata and R. Suzuki. "Thermodynamic description of the
+#   Pb-O system." Journal of Phase Equilibria 19 (1998): 213-233.
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "On the crystal structure of tetragonal (red) Pb O"
+#    Leciejewicz, J. (1961)
+#    Crystallography Open Database entry 2310434
+#    https://www.crystallography.net/cod/2310434.html
+#
+# This crystal structure is also compatible with structure obtained from
+# https://www.materialsproject.org/materials/mp-19921
+#
+# The VDOS curves were calculated using Phonopy[1] input files from[2] and
+# OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics group.
+#
+# References:
+#  [1]: "First principles phonon calculations in materials science",
+#        Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)
+#  [2]: Kyoto University database of phonon calculations.
+#       Files for PbO taken from:
+#       http://phonondb.mtl.kyoto-u.ac.jp/ph20180417/d019/mp-19921.html
+#  [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J., "Calculation
+#       of the Thermal Neutron Scattering Cross-Section of Solids Using OCLIMAX".
+#       Journal of Chemical Theory and Computation 2020, 16 (8), 5212-5217.
+#
+@CELL
+  lengths 3.96 !! 5.01
+  angles 90 90 90
+@SPACEGROUP
+  129
+@ATOMPOSITIONS
+  Pb 1/4 1/4 .237
+  Pb 3/4 3/4 .763
+  O  3/4 1/4 0
+  O  1/4 3/4 0
+@DYNINFO
+  element  O
+  fraction 1/2
+  type     vdos
+  vdos_egrid .00149995 .0619979
+  vdos_density .0364341 .0564437 .0837397 .0999171 .0809833 .0907708 .105559
+    .119692 .107028 .0834001 .0489347 .032962 .0223626 .0156788 .0174003
+    .0187014 .0243162 .0258831 .0247759 .0237526 .019747 .019352 .0168924
+    .0115706 .00361959 .00158011 .00129035 .00178232 .00137351 .00254111
+    .00439506 .00564326 .00146391 .000116298 5.15938e-06 4.93828e-08 2.90054e-11
+    6.07908e-12 5.45796e-08 3.64799e-05 .00187553 .0104113 .024074 .0471433
+    .0657598 .0918021 .106995 .129832 .222599 .230182 .186669 .181019 .179574
+    .217278 .266166 .246392 .259585 .30933 .308335 .322132 .447763 .636132
+    .688558 .540053 .544134 .572618 .482857 .466004 .504258 .561705 .61724
+    .683522 .685344 .718123 .783846 .873731 .965435 1 .873214 .823279 .82401
+    .693837 .555393 .502625 .533392 .512169 .485493 .472038 .487071 .454373
+    .442602 .45195 .52063 .566159 .60094 .644747 .543958 .389252 .319781 .323021
+    .335074 .362067 .400058 .460152 .547725 .566381 .581562 .610668 .627184
+    .668817 .707103 .714887 .705045 .609379 .388534 .16045 .0473765 .0177943
+    .00887627 .00532521 .00261185 .000582437
+@DYNINFO
+  element  Pb
+  fraction 1/2
+  type     vdos
+  vdos_egrid .00149995 .0619979
+  vdos_density .115693 .185644 .279933 .33016 .268647 .297067 .35642 .424183
+    .395934 .337149 .214331 .166852 .148235 .134729 .190617 .253912 .41273
+    .487474 .390771 .323547 .272156 .266446 .24817 .233205 .125249 .114957
+    .101708 .149734 .157045 .246344 .507076 1 .349529 .0436433 .00220626
+    2.15715e-05 1.26852e-08 1.47097e-13 1.32073e-09 8.83076e-07 4.56018e-05
+    .000263166 .000669636 .00132218 .00151463 .00181857 .0022395 .0021088
+    .00293739 .00345464 .00328147 .00324956 .00369324 .00418337 .00380555
+    .00438274 .00462243 .00524823 .0051128 .00544926 .00733918 .0101822 .0103966
+    .00853695 .00753396 .00706846 .00584807 .00564126 .00530966 .00577646
+    .00636765 .00613575 .00573584 .0061382 .00634646 .00626179 .00599087
+    .00666158 .00561909 .00472533 .00495315 .00472812 .00436498 .00435397
+    .00441649 .00399125 .00386135 .00368617 .00325258 .00299945 .00292721
+    .00294666 .00316285 .00300181 .00271448 .00261843 .00225852 .00192743
+    .00199554 .00222691 .00242814 .00272976 .0029924 .00352409 .0042765
+    .00436474 .00443689 .00466406 .00478297 .0049459 .00487462 .00453292
+    .00412822 .00335411 .00218128 .00111856 .000557863 .000324109 .00017747
+    .000107268 5.26182e-05 1.17335e-05

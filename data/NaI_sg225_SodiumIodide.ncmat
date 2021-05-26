@@ -1,0 +1,78 @@
+NCMAT v5
+#
+# Sodium iodide (NaI, cubic, SG-225 / Fm-3m)
+#
+# Under usual conditions this phase exists from 0 to 934K.
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "Second edition. Interscience Publishers, New York, Rocksalt structure"
+#    Wyckoff, R. W. G. (1963)
+#    Crystallography Open Database entry 9008681
+#    https://www.crystallography.net/cod/9008681.html
+#
+# This crystal structure is also compatible with structure obtained from
+# https://www.materialsproject.org/materials/mp-23268
+#
+# The VDOS curves were calculated using Phonopy[1] input files from[2] and
+# OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics group.
+#
+# References:
+#  [1]: "First principles phonon calculations in materials science",
+#        Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)
+#  [2]: Kyoto University database of phonon calculations.
+#       Files for NaI taken from:
+#       http://phonondb.mtl.kyoto-u.ac.jp/ph20180417/d023/mp-23268.html
+#  [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J., "Calculation
+#       of the Thermal Neutron Scattering Cross-Section of Solids Using OCLIMAX".
+#       Journal of Chemical Theory and Computation 2020, 16 (8), 5212-5217.
+#
+@CELL
+  cubic 6.4728
+@SPACEGROUP
+  225
+@ATOMPOSITIONS
+  Na 0 0 0
+  Na 0 1/2 1/2
+  Na 1/2 0 1/2
+  Na 1/2 1/2 0
+  I 1/2 1/2 1/2
+  I 1/2 0 0
+  I 0 1/2 0
+  I 0 0 1/2
+@DYNINFO
+  element  I
+  fraction 1/2
+  type     vdos
+  vdos_egrid .00119996 .0219992
+  vdos_density .0204449 .0289315 .0359742 .0432585 .0516669 .0623221 .0730541
+    .0861883 .103026 .118441 .131423 .153953 .190917 .235853 .291588 .365305
+    .444502 .502543 .536149 .56273 .593373 .641997 .711069 .795753 .893786
+    .986807 1 .846072 .586384 .365693 .259431 .254023 .29438 .342725 .399857
+    .502768 .658179 .743164 .642243 .423564 .220302 .088806 .0255969 .00485682
+    .000577289 4.16967e-05 1.77185e-06 4.26274e-08 5.26621e-10 0r6 2.79256e-13
+    3.26316e-11 2.12976e-09 8.3254e-08 1.9864e-06 2.9561e-05 .000280925
+    .00174855 .00737027 .0222283 .0520945 .102006 .16713 .218382 .222664 .182159
+    .125699 .0767488 .0443161 .0271083 .0191793 .0154452 .013491 .0123332
+    .0116287 .0113522 .0114026 .0115564 .0115998 .0113061 .0106067 .00976895
+    .00899622 .00808813 .00684737 .00546842 .00427479 .00334753 .00259952
+    .00198544 .00148507 .00106942 .000731283 .000469429 .000273703 .000137079
+    5.54539e-05 1.71893e-05 3.92928e-06 6.45557e-07
+@DYNINFO
+  element  Na
+  fraction 1/2
+  type     vdos
+  vdos_egrid .00119996 .0219992
+  vdos_density .00212111 .00298769 .00370056 .00442914 .00525063 .00627904
+    .00730086 .00855041 .0101448 .0115485 .012661 .0146598 .0180126 .0221304
+    .0272693 .0340942 .0411276 .0452449 .0459256 .0451147 .044028 .0434378
+    .0427755 .0409971 .0380942 .0350591 .0326735 .0290908 .0229615 .0164907
+    .0124803 .0113243 .0114843 .0117953 .0120678 .0127101 .0137275 .013004
+    .00939834 .00508579 .00213499 .000689926 .000158623 2.34906e-05 2.07641e-06
+    1.05145e-07 3.02034e-09 4.92701e-11 2.64845e-13 0r6 1.07677e-11 1.20249e-09
+    7.62191e-08 2.85143e-06 6.37578e-05 .000866588 .00731218 .0392168 .137237
+    .325086 .556876 .766871 .931824 1 .90497 .687386 .455006 .276061 .1681
+    .119724 .105928 .106302 .111799 .119254 .128582 .140826 .155076 .168933
+    .179906 .185361 .185301 .183509 .181436 .174373 .158448 .137084 .116898
+    .100669 .0875519 .076627 .0671738 .0585808 .0504398 .0419468 .0321372
+    .0211597 .0111156 .0043804 .00123889 .000243939

@@ -1,0 +1,80 @@
+NCMAT v5
+#
+# Sodium Flouride (NaF, cubic, SG-225 / Fm-3m)
+#
+# Under usual conditions this phase exists from 0 to 1266K.
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "Second edition. Interscience Publishers, New York, Rocksalt structure"
+#    Wyckoff, R. W. G. (1963)
+#    Crystallography Open Database entry 9008679
+#    https://www.crystallography.net/cod/9008679.html
+#
+# This crystal structure is also compatible with structure obtained from
+# https://www.materialsproject.org/materials/mp-682
+#
+# The VDOS curves were calculated using Phonopy[1] input files from[2] and
+# OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics group.
+#
+# References:
+#  [1]: "First principles phonon calculations in materials science",
+#        Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)
+#  [2]: Kyoto University database of phonon calculations.
+#       Files for NaF taken from:
+#       http://phonondb.mtl.kyoto-u.ac.jp/ph20180417/d000/mp-682.html
+#  [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J., "Calculation
+#       of the Thermal Neutron Scattering Cross-Section of Solids Using OCLIMAX".
+#       Journal of Chemical Theory and Computation 2020, 16 (8), 5212-5217.
+#
+@CELL
+  cubic 4.62
+@SPACEGROUP
+  225
+@ATOMPOSITIONS
+  Na 0 0 0
+  Na 0 1/2 1/2
+  Na 1/2 0 1/2
+  Na 1/2 1/2 0
+  F 1/2 1/2 1/2
+  F 1/2 0 0
+  F 0 1/2 0
+  F 0 0 1/2
+@DYNINFO
+  element  F
+  fraction 1/2
+  type     vdos
+  vdos_egrid .0134995 .0429985
+  vdos_density .0759001 .0861701 .0939552 .0966494 .104591 .116103 .122806
+    .127529 .137199 .14322 .147793 .163108 .192805 .227639 .240448 .227759
+    .214512 .206629 .1994 .192816 .185007 .181833 .18575 .184578 .173467 .162668
+    .162882 .167896 .163163 .147395 .134561 .133797 .139161 .138633 .130102
+    .119684 .110503 .107523 .112905 .116083 .107734 .0998943 .116481 .172338
+    .250118 .305137 .326184 .339392 .349729 .347097 .336579 .334313 .350977
+    .376449 .389727 .384945 .376098 .380899 .394092 .400109 .407371 .4216
+    .428514 .436313 .47163 .526875 .589004 .689641 .839431 .970623 1 .912772
+    .769278 .642621 .571763 .551384 .529886 .454129 .338077 .248493 .227583
+    .259101 .301728 .330795 .342708 .3393 .321325 .292567 .263284 .241822
+    .225635 .209649 .196979 .194365 .201003 .207053 .204025 .192967 .182342
+    .179698 .184331 .18942 .190914 .189971 .191069 .20081 .222583 .252958
+    .283304 .298273 .279479 .22437 .15463 .0952158 .0544118 .0283817 .0126652
+    .00453036 .00124416
+@DYNINFO
+  element  Na
+  fraction 1/2
+  type     vdos
+  vdos_egrid .0134995 .0429985
+  vdos_density .113504 .129479 .141745 .146696 .159923 .178793 .190204 .198948
+    .216326 .22852 .238373 .26573 .317751 .379232 .404671 .388444 .37197 .364358
+    .357534 .351908 .345116 .348713 .366308 .372608 .359624 .352685 .377169
+    .419104 .436803 .420945 .414188 .448934 .490727 .479965 .42358 .369793
+    .334239 .316495 .317223 .314624 .286866 .254864 .242246 .240357 .239775
+    .236748 .232045 .241033 .255397 .250366 .234407 .233762 .25548 .283615
+    .296791 .292322 .28659 .296481 .317466 .333929 .349135 .36915 .384739 .40068
+    .437632 .494524 .565797 .673115 .821203 .955423 1 .929049 .791277 .663242
+    .594451 .57992 .558587 .47435 .346266 .236903 .176674 .152003 .138421
+    .124766 .112624 .103941 .097515 .0930842 .0907167 .0885471 .0848115 .0799781
+    .0760239 .0752164 .0790513 .0864178 .0935677 .0975525 .0998009 .104453
+    .112603 .121269 .127777 .131771 .135843 .145669 .165145 .192118 .218969
+    .232405 .217639 .173435 .117933 .0713383 .0400552 .0206269 .00913546
+    .00325402 .000891349

@@ -1,0 +1,613 @@
+#!/usr/bin/env python3
+
+################################################################################
+##                                                                            ##
+##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
+##                                                                            ##
+##  Copyright 2015-2021 NCrystal developers                                   ##
+##                                                                            ##
+##  Licensed under the Apache License, Version 2.0 (the "License");           ##
+##  you may not use this file except in compliance with the License.          ##
+##  You may obtain a copy of the License at                                   ##
+##                                                                            ##
+##      http://www.apache.org/licenses/LICENSE-2.0                            ##
+##                                                                            ##
+##  Unless required by applicable law or agreed to in writing, software       ##
+##  distributed under the License is distributed on an "AS IS" BASIS,         ##
+##  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  ##
+##  See the License for the specific language governing permissions and       ##
+##  limitations under the License.                                            ##
+##                                                                            ##
+################################################################################
+
+"""
+Script which can be used to generate NCMAT files from crystal structures in
+online databases, and optionally also compare existi ng NCMAT files with online
+structures indicated in their comments.
+"""
+
+import sys
+import pathlib
+import argparse
+import functools
+import math
+import re
+import numpy as np
+
+try:
+    import NCrystal
+except ImportError:
+    _ = pathlib.Path( __file__ ).parent / '../share/NCrystal/python/NCrystal/__init__.py'
+    if _.exists():
+        sys.path.append(str(_.parent.parent.absolute().resolve()))
+        try:
+            import NCrystal
+        except ImportError:
+            raise SystemExit("ERROR: Could not import the NCrystal Python module (perhaps your PYTHONPATH is misconfigured).")
+NC = NCrystal
+
+fallback_debye_temp = 300.0
+pdffn = 'ncrystal_onlinedb_validate.pdf'
+
+def classifySG(sgno):
+    assert 1<=sgno<=230
+    l=[(195,'cubic'),(168,'hexagonal'),(143,'trigonal'),
+       (75,'tetragonal'),(16,'orthorombic'),(3,'monoclinic'),(1,'triclinic')]
+    for thr,nme in l:
+        if sgno>=thr:
+            return nme
+    assert False
+
+def getMaterialsProjectAPIKEY():
+    apikey=os.environ.get('MATERIALSPROJECT_USER_API_KEY',None)
+    if not apikey:
+        raise SystemExit('ERROR: Missing API key for materialsproject.org access. To fix, '
+                         +'please make sure the environment variable MATERIALSPROJECT_USER_API_KEY'
+                         +' contains your personal access key that you see on'
+                         +' https://www.materialsproject.org/dashboard (after logging in).')
+    return apikey
+
+_fracdb=[None]
+def prettyFmtValue(x):
+    """Recognises common fractions in truncated values like '0.33333333' or
+    '0.4166667' and formats them as '1/3' and '5/12'. This not only saves space,
+    but can also reinject accuracy in atom positions (ncrystal_verifyatompos can
+    be used to check this, but it seems to be a clear improvement in all cases
+    tested so far).
+    """
+    global _fracdb
+    assert 0.0 <= x < 1.0
+    if x==0.0:
+        return '0'
+    if x==0.5:
+        return '1/2'
+    def find_nearest_idx(arr,val):
+        i = np.searchsorted(arr, val)
+        if i == 0:
+            return 0
+        if i == len(arr):
+            return len(arr)-1
+        return i if abs(val-arr[i])<abs(val-arr[i-1]) else i-1
+    def initFractions():
+        fractions=set()
+        nmax=40
+        for a in range(1,nmax):
+            for b in range(a+1,nmax+1):
+                g=math.gcd(a,b)
+                fractions.add( (a//g, b//g ) )
+        fractions=list(sorted( (a/b,a,b) for a,b in fractions))
+        values = np.asarray( list(e for e,_,_ in fractions), dtype=float )
+        fmt = [ f'{a}/{b}' for _,a,b in fractions ]
+        return values,fmt
+    xfmt = '%.14g'%x
+    if xfmt.startswith('0.'):
+        xfmt = xfmt[1:]
+    if _fracdb[0] is None:
+        _fracdb[0] = initFractions()
+    dbvals, dbfmt = _fracdb[0]
+    i = find_nearest_idx(dbvals,x)
+    v=dbvals[i]
+    #check if credible that the numbers are identical (must be close AND the str
+    #representations must be consistent with truncation):
+    expected_at_prec = ((f'%.{len(xfmt)-1}g')%v)[1:]
+    if abs(v-x)<1e-7 and expected_at_prec == xfmt:
+        return dbfmt[i]
+    if abs(v-x)<1e-14:
+        return dbfmt[i]
+    return xfmt
+
+def produceNCMAT(structure,srcdescr,dynamics,rawformat,atomdb,quiet):
+    if not dynamics:
+        dynamics = dict(comments=[],dyninfos=[])
+
+    #In case source had deuterium directly and we have to remap it via the
+    #atomdb parameter, we must do a trick and assign the element another
+    #name. This is because the @ATOMDB section can no reassign isotope names
+    #another meaning according to the NCMAT format.
+    remap_D = False
+    if atomdb:
+        _=atomdb.replace(':',' ').split()
+        assert len(_)>=3 and _[1]=='is'
+        remap_D = _[0]=='D'
+        if remap_D:
+            _[0] = 'X1'
+        atomdb = ' '.join(_)
+
+    elemNameRemap = lambda en : "X1" if (remap_D and en=="D") else en
+
+    emitted_warnings = []
+    def produceWarning(w):
+        if not quiet:
+            print(f'WARNING: {w}')
+        emitted_warnings.append(w)
+
+    def elemName(site):
+        species = site.species
+        _=site.as_dict()['species']
+        if not species.is_element or not len(species.elements)==1 or not len(_)==1:
+            raise SystemExit('Error: This script only supports a single well defined element at each site')
+        occu=_[0]['occu']
+        if abs(occu-1.0)<0.1 and occu!=1.0:
+            if abs(occu-1.0)>0.001:
+                produceWarning( f"Encountered species with almost-but-not-quite unit occupancy ({occu}). Treating as 1.0" )
+            occu=1.0
+        if occu!=1.0:
+            raise SystemExit(f'Error: This script only supports species with unit occupancies (encountered occupancy {occu})')
+        return _[0]['element']
+    elems = []
+    formula_elem2count={}
+    def apfmt(x):
+        while x<0.0:
+            x+=1
+        while x>=1.0:
+            x-=1.0
+        return (fmt if rawformat else prettyFmtValue)(x)
+    out_atompos_lines = ''
+    for s in structure.sites:
+        c=s.frac_coords
+        en = elemName(s)
+        elems += [en]
+        out_atompos_lines += f'  {elemNameRemap(en)} {apfmt(c[0])} {apfmt(c[1])} {apfmt(c[2])}\n'
+        formula_elem2count[en] = formula_elem2count.get(en, 0) + 1
+    elems_unique = sorted(list(set(elems)))
+
+    a,b,c = structure.lattice.abc
+    alpha,beta,gamma = structure.lattice.angles
+    sgsymb,sgno = structure.get_space_group_info()
+    def fmt(x):
+        s='%.14g'%x
+        if s.startswith('0.'):
+            s=s[1:]
+        return s
+    descr = ''.join('#    %s\n'%e for e in srcdescr)
+
+    if 195 <= sgno <= 230:
+        cell=f'@CELL\n  cubic {fmt(a)}'
+        assert fmt(a)==fmt(b) and fmt(a)==fmt(c)
+        assert fmt(alpha)=='90' and fmt(beta)=='90' and fmt(gamma)=='90'
+    else:
+        cell=f'@CELL\n  lengths {fmt(a)} {fmt(b) if fmt(b)!=fmt(a) else "!!"} {fmt(c)}\n  angles {fmt(alpha)} {fmt(beta)} {fmt(gamma)}'
+
+    #
+    elem2dyninfo={}
+    elems_with_fallback_dyninfo = []
+    for en in elems_unique:
+        #dynamics = dict(comments=[],dyninfos=[])
+        for di in dynamics['dyninfos']:
+            if di.atomData.displayLabel() == en:
+                elem2dyninfo[en] = di
+                break
+        if not en in elem2dyninfo:
+            #Check if perhaps this is just an isotope issue (e.g. "D" instead of
+            #"H"), and search for element with same Z:
+            en_atomData = NC.atomDB(en)
+            for di in dynamics['dyninfos']:
+                if di.atomData.isElement() and di.atomData.Z()==en_atomData.Z():
+                    elem2dyninfo[en] = di
+                    break
+        if not en in elem2dyninfo:
+            elems_with_fallback_dyninfo.append( en )
+
+    if dynamics['dyninfos'] and not elem2dyninfo:
+        raise SystemExit('Error: was not able to transfer any dynamics from source.')
+
+    formula=structure.composition.reduced_formula
+    if remap_D:
+        formula+='(WARNING:D was not changed automatically)'
+    title=f'{formula} ({classifySG(sgno)}, SG-{sgno} / {sgsymb})'
+    orig_comments=''
+    if elems_with_fallback_dyninfo:
+        orig_comments += '\n# WARNING: Dummy Debye temperature values were\n'
+        orig_comments += '#          inserted below for at least 1 element!\n'
+        orig_comments += '#'
+    if dynamics['comments']:
+        orig_comments += '\n# NOTICE: For reference comments in the file used as source\n'
+        orig_comments += '#         for the @DYNINFO sections are repeated below.\n'
+        orig_comments += '#         (please extract relevant sections and merge with\n'
+        orig_comments += '#          comments above in order to finalise file).\n'
+        orig_comments += '#\n'
+        for e in dynamics['comments']:
+            orig_comments += f'#   ---> {e}\n'
+        orig_comments+= '#'
+    atomdb = '\n@ATOMDB\n  %s'%(' '.join(atomdb.replace(':',' ').split())) if atomdb else ''
+    out = f"""NCMAT v5
+#
+# {title}
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+{descr}#
+# IMPORTANT NOTICE: This is an automatic conversion which has not
+# been verified!  In particular the @DYNINFO sections might need
+# post-editing. Before distributing this file to other people,
+# please review this, amend the comments here to document anything
+# done, and remove this notice.
+#{orig_comments}{atomdb}
+{cell}
+@SPACEGROUP
+  {sgno}
+@ATOMPOSITIONS
+"""
+    out += out_atompos_lines
+    #reduce chemical formula:
+    gcd = functools.reduce(math.gcd,[v for k,v in formula_elem2count.items()])
+    for en in formula_elem2count.keys():
+        formula_elem2count[en] //= gcd
+    chemform = ''.join(f'{en}{count if count>1 else ""}' for en,count in sorted(formula_elem2count.items()))
+
+    assert len(elem2dyninfo)+len(elems_with_fallback_dyninfo) == len(elems_unique)
+    for en in elems_unique:
+        di = elem2dyninfo.get(en,None)
+        fr_str = f'{formula_elem2count[en]}/{len(elems)//gcd}' if len(elems_unique)>1 else '1'
+        out += f'@DYNINFO\n  element  {elemNameRemap(en)}\n  fraction {fr_str}\n'
+        if di is None:
+            out += f'  type     vdosdebye\n  debye_temp {fallback_debye_temp:g} # WARNING: Dummy fall-back value added here!!\n'
+        elif isinstance(di,NC.Info.DI_VDOSDebye):
+            di.debyeTemperature()
+            out += f'  type     vdosdebye\n  debye_temp {di.debyeTemperature():.14g}\n'
+        else:
+            assert isinstance(di,NC.Info.DI_VDOS)
+            out += '  type     vdos\n'
+            out += NC.formatVectorForNCMAT('vdos_egrid',di.vdosOrigEgrid())
+            out += NC.formatVectorForNCMAT('vdos_density',di.vdosOrigDensity())
+
+    l = list(e.rstrip() for e in out.splitlines())
+    if emitted_warnings:
+        l2 = []
+        l2.append( l[0] )#NCMAT vx line
+        for w in emitted_warnings:
+            l2.append(f'# WARNING: {w}')
+        for e in l[1:]:
+            l2.append( e )
+        l = l2
+    l.append('')
+    return '\n'.join(l)
+
+##TODO:
+#def cif2msd(cif):
+#    if any(e!='Uiso' for e in cif.get('_atom_site_thermal_displace_type',[])):
+#        return {}#only support Uiso
+#    lbls = cif.get('_atom_site_label',[])
+#    uiso = cif.get('_atom_site_U_iso_or_equiv',[])
+#    if lbls and len(lbls) == len(uiso):
+#        return dict(zip(lbls,uiso))
+#    return {}
+
+def rawLoadCOD_CifAndStructure(codid):
+    import requests
+    import pymatgen.core.structure
+    import pymatgen.io.cif
+    r=requests.get("https://www.crystallography.net/cod/%i.cif"%codid)
+    r.raise_for_status()#throw exception in case of e.g. 404
+    cif_obj=pymatgen.io.cif.CifFile.from_string(r.text)
+    cif = list(cif_obj.data.items())[0][1].data
+    structure = pymatgen.core.structure.Structure.from_str(r.text, fmt="cif")
+    return cif,structure
+
+def cif2descr(cif):
+    l=[]
+    title = cif.get('_publ_section_title','').strip()
+    authors = cif.get('_publ_author_name',[])
+    year = cif.get('_journal_year','').strip()
+    doi = cif.get('_journal_paper_doi','').strip()
+    codid = cif.get('_cod_database_code','').strip()
+    if authors:
+        if len(authors)==1:
+            authors = authors[0]
+        elif len(authors)==2:
+            authors = f'{authors[0]} and {authors[1]}'
+        else:
+            authors = f'{authors[0]}, et al.'
+    if title:
+        l.append(f'"{title}"')
+    if authors and year:
+       l.append(f'{authors} ({year})')
+    if doi:
+        l.append(f'DOI: https://dx.doi.org/{doi}')
+    if codid:
+        l += [ f'Crystallography Open Database entry {codid}',
+               f'https://www.crystallography.net/cod/{codid}.html' ]
+    return l
+
+def lookupCODStructure(entryid,quiet):
+    if not quiet:
+        print(f"Querying the Crystallography Open Database for entry {entryid}")
+    cif,structure = rawLoadCOD_CifAndStructure(entryid)
+    descr = cif2descr(cif)
+    url = f'https://www.crystallography.net/cod/{entryid}.html'
+    if not any(url in e for e in descr):
+        descr += [ f'Crystallography Open Database entry {entryid}',
+                   f'https://www.crystallography.net/cod/{entryid}.html' ]
+    return structure,descr
+
+def lookupMPStructure(entryid,quiet):
+    descr=['The Materials Project',
+               f'https://www.materialsproject.org/materials/mp-{entryid}']
+    from pymatgen.ext.matproj import MPRester
+    if not quiet:
+        print(f"Querying the Materials Project for entry {entryid}")
+    with MPRester(getMaterialsProjectAPIKEY()) as m:
+        structure = m.get_structure_by_material_id("mp-%i"%entryid,
+                                                   conventional_unit_cell=True)
+    return structure,descr
+
+_keepalive=[]
+def extractDynamics(cfgstr_or_info):
+    #returns { 'comments':strlist, 'dyninfos':dyninfos }
+    if hasattr(cfgstr_or_info,'dyninfos'):
+        cfgstr, info = None, cfgstr_or_info
+    else:
+        cfgstr = cfgstr_or_info
+        info = NC.createInfo(cfgstr)
+
+    #DynInfos:
+    _keepalive.append(info)
+    dyninfos=[ di for di in info.dyninfos
+               if ( isinstance(di,NC.Info.DI_VDOS) or isinstance(di,NC.Info.DI_VDOSDebye) ) ]
+
+    #Comments:
+    comments = []
+    for l in (NC.createTextData(cfgstr) if cfgstr else []):
+        l=l.strip()
+        if l.startswith('#'):
+            comments.append(l[1:])
+        if l.startswith('@'):
+            break
+    #remove any common leading spaces:
+    while ( comments
+            and any(e.startswith(' ') for e in comments)
+            and all((e.startswith(' ') or not e) for e in comments) ):
+        for i in range(len(comments)):
+            comments[i] = comments[i][1:]
+    return dict( comments = comments, dyninfos=dyninfos )
+
+def parse_args():
+    descr="""
+Script which can be used to generate NCMAT files from crystal structures in
+online databases, and optionally also compare existing NCMAT files with online
+structures indicated in their comments.
+
+The script uses the pymatgen (Python Materials Genomics) module to query online
+databases. Currently this means either the Crystallography Open Database
+(https://www.crystallography.net/cod/) or the Materials Project
+(https://www.materialsproject.org/). Access to the Materials Project through
+this script requires an account and associated API key, which can be placed in
+the environment variable MATERIALSPROJECT_USER_API_KEY.
+"""
+    parser = argparse.ArgumentParser(description=descr)
+    parser.add_argument("--mpid",default=None,type=int,
+                        help=('Structure ID (integer) of material from the Materials'
+                              +' Project at https://www.materialsproject.org/.'))
+    parser.add_argument("--codid",default=None,type=int,
+                        help=('Structure ID (integer) of material from the Crystallography'
+                              +' Open Database (COD) at https://www.crystallography.net/cod/'))
+    parser.add_argument("--atomdb",default=None,type=str,
+                        help=('Use with --mpid or --codid to remap an atom via @ATOMDB "X is ..." '
+                              +'syntax. Examples "H is D" and "B is 0.9 B10 0.1 B11". Colons can'
+                              +' be used in place of spaces if desired.'))
+    parser.add_argument('--dynamics','-d',default=None,
+                        help=('The name of data file from which to copy over dynamics'
+                              +' information (based on Z-values to accommodate isotopic'
+                              +' variation). If this argument is not provided, or if a '
+                              +'required element is not present in the indicated file, '
+                              +'dynamics will be created with a simple Debye temperature'
+                              +f' of {fallback_debye_temp}K.'))
+    parser.add_argument('--output','-o',default=None,
+                        help=('Name of output file (specify "stdout" to print to stdout). If not'
+                              +' supplied, a name will be automatically generated.'))
+    parser.add_argument("--rawformat",default=False,action='store_true',
+                        help=('Set to disable the replacement of common fractions in atom positions '
+                              +'(e.g. leaving "0.6666667" as it is instead of replacing it with "1/6").'))
+    parser.add_argument("--validate",nargs='*',metavar="FILE",
+                        help=('List of existing NCMAT files which should be compared'
+                              +' to crystal structures directly taken from online DBs (thus verifying'
+                              +' that online DB references mentioned in comments in those files are'
+                              +' actually valid).'))
+    parser.add_argument("--pdf",default=False,action='store_true',
+                        help=(f'Use with --validate to produce PDF file ({pdffn}) rather than interactive plots'))
+
+    args=parser.parse_args()
+    if args.atomdb and not (args.mpid or args.codid):
+        parser.error('--atomdb requires --mpid or --codid')
+    if int(args.mpid is not None)+int(args.codid is not None) + int(bool(args.validate)) != 1:
+        parser.error('Must specify exactly one of --mpid, --codid, or --validate')
+    if args.validate and (args.output or args.mpid or args.codid or args.dynamics):
+        parser.error('Do not specify --output, --mpid, --codid, or --dynamics when running with --validate')
+    if args.pdf and not args.validate:
+        parser.error('Do not specify --pdf without --validate.')
+
+    return args
+
+def lookupAndProduce(codid,mpid,dynamics,rawformat,atomdb=None,quiet=False):
+    autofn=[]
+    if codid:
+        structure,descr=lookupCODStructure(codid,quiet=quiet)
+        autofn.append(f'cod{args.codid}')
+    else:
+        structure,descr=lookupMPStructure(mpid,quiet=quiet)
+        autofn.append(f'mp{mpid}')
+    if atomdb:
+        _adb=atomdb.replace(':',' ').split()
+        if not len(_adb)>=3 or _adb[1]!='is':
+            raise SystemExit(f'Error: Invalid ATOMDB format encountered: "{atomdb}" (supports "X is ..." syntax only)')
+        descr[-1] += f' [with {_adb[0]}->{" ".join(_adb[2:])}]'
+    autofn.insert(0,f'sg{structure.get_space_group_info()[1]}')
+    autofn.insert(0,structure.composition.reduced_formula)
+    autofn.insert(0,'autogen')
+    out = produceNCMAT(structure,descr,
+                       dynamics=dynamics,
+                       rawformat=rawformat,
+                       atomdb=atomdb,
+                       quiet=quiet)
+    return '_'.join(autofn)+'.ncmat', out
+
+def validate( fn ):
+    pass
+
+args=parse_args()
+args.dynamics = extractDynamics(args.dynamics) if args.dynamics else None
+
+try:
+    import pymatgen
+except ImportError:
+    raise SystemExit('Could not import pymatgen module (perhaps install with "python3 -mpip install pymatgen")')
+import os
+
+if not args.validate:
+    assert args.codid or args.mpid
+    fn = args.output
+    quiet = (fn=='stdout')
+    autofn, out = lookupAndProduce( args.codid,
+                                    args.mpid,args.
+                                    dynamics,
+                                    args.rawformat,
+                                    atomdb=args.atomdb,
+                                    quiet = quiet )
+    if not fn:
+        fn = autofn
+    if not quiet:
+        print("Verifying that resulting ncmat data can be loaded")
+    NC.directMultiCreate(out,'vdoslux=0;dcutoff=0.3')
+    if fn=='stdout':
+        print(out,end='')
+    else:
+        print(f"Writing {fn}")
+        pathlib.Path(fn).write_text(out)
+    raise SystemExit
+
+_re_atomdbspecs = re.compile("\[ *with ([a-zA-Z ]+)->([ a-zA-Z0-9+-\.]+) *\]")
+def extractAtomDBSpec(s):
+    #Look for remapping specs like "[with H->D]" and return in @ATOMDB format
+    #(i.e. "H is D").
+    if not '->' in s:
+        return
+    m = _re_atomdbspecs.search(s)
+    return ' '.join(('%s is %s'%m.groups()).split()) if m else None
+
+def extractID(s,pattern):
+    if not pattern in s:
+        return None
+    l=s.split(pattern)[1:]
+    while l:
+        e,l = l[0],l[1:]
+        d=''
+        while e and e[0].isdigit():
+            d+=e[0]
+            e=e[1:]
+        if d and int(d)>0:
+            yield int(d)
+
+pdf = None
+if args.pdf:
+    import matplotlib
+    matplotlib.use('agg')
+    try:
+        from matplotlib.backends.backend_pdf import PdfPages
+    except ImportError:
+        raise SystemExit("ERROR: Your installation of matplotlib does not have the required support for PDF output.")
+    pdf = PdfPages(pdffn)
+
+import matplotlib.pyplot as plt
+
+for fn in args.validate:
+    print(f'Attempting to validate {fn}')
+    td = NC.createTextData(fn)
+    ids = []
+    for l in td:
+        atomdb = extractAtomDBSpec(l)
+        for e in extractID(l,'materialsproject.org/materials/mp-'):
+            ids.append( dict(dbtype='mp',entryid=e,atomdb=atomdb))
+        for e in extractID(l,'crystallography.net/cod/'):
+            ids.append( dict(dbtype='cod',entryid=e,atomdb=atomdb))
+
+    #order-preserving remove duplicates:
+    _seen = set()
+    newids=[]
+    for d in ids:
+        key = tuple(sorted((k,v) for k,v in d.items()))
+        if key in _seen:
+            continue
+        newids.append(d)
+        _seen.add(key)
+    ids = newids
+
+    multcreate = lambda data : NC.directMultiCreate(data,cfg_params='inelas=0;incoh_elas=0')
+    mc = multcreate(td)
+    dynamics = extractDynamics(mc.info)
+    cmps = [ (fn, mc ) ]
+    for _ in ids:
+        dbname = _['dbtype']
+        entryid = _['entryid']
+        atomdb = _['atomdb']
+        lpargs=dict(atomdb=atomdb,dynamics=dynamics,codid=None,mpid=None,rawformat=args.rawformat)
+        if dbname=='mp':
+            lpargs['mpid']=entryid
+        else:
+            assert dbname=='cod'
+            lpargs['codid']=entryid
+        _, out = lookupAndProduce(**lpargs)
+        lbl=f'{dbname}-{entryid}'
+        if atomdb:
+            lbl = f'{lbl} with replacement "{atomdb}"'
+        cmps.append( ( lbl, multcreate(out) ) )
+    wlmax = max(1.05*NC.ekin2wl(mc.scatter.domain()[0]) for _,mc in cmps)
+    wls = np.linspace(0.001,wlmax,10000)
+    if len(cmps)<=1:
+        print(f"No online DB IDs found in {fn}")
+        continue
+
+    for i,(lbl,mc) in enumerate(cmps):
+        if '/' in lbl:
+            lbl=lbl.split('/')[-1]
+        elif lbl.startswith('mp-'):
+            lbl = 'Materials Project entry '+lbl[3:]
+        elif lbl.startswith('cod-'):
+            lbl = 'Crystallography Open Database entry '+lbl[4:]
+        #lw=2 if i>0 else 4
+        lw=4 if i>0 else 2
+        if pdf:
+            lw *= 0.5
+        args={}
+        plt.plot(wls,mc.scatter.xsect(wl=wls),
+                 label=lbl,
+                 linewidth=lw,
+                 alpha=0.5 if i==0 else 0.5,
+                 color = 'black' if i==0 else None,
+                 dashes = [] if i==0 else [4 if len(cmps)>2 else 2,2]+[2,2]*i)
+    plt.xlim(0.0)
+    plt.ylim(0.0)
+    plt.title('NB: This compares the crystal structure (space group, lattice, atom positions). Phonons/dynamics always taken from .ncmat file',fontsize=6)
+    plt.xlabel('Neutron wavelength (Å)')
+    plt.ylabel('Coherent elastic cross section (barn)')
+    plt.legend(loc='best',handlelength=5)
+    plt.grid()
+    plt.tight_layout()
+    if pdf:
+        pdf.savefig()
+        plt.close()
+    else:
+        plt.show()
+
+if pdf:
+    pdf.close()
+    print("created %s"%pdffn)

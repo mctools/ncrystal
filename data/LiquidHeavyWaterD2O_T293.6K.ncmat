@@ -1,4 +1,4 @@
-NCMAT v2
+NCMAT v5
 #
 # Heavy water (D2O) based on ENDF/B-VIII.0 scattering kernels by J.I. Marquez
 # Damian, et. al. (see below for references). Please check the @DENSITY
@@ -15,6 +15,8 @@ NCMAT v2
 # In case your local installation does not provide all these files, they can be
 # downloaded from: https://github.com/mctools/ncrystal-extra/tree/master/data
 #
+@STATEOFMATTER
+  liquid
 @DENSITY
   #NB: Density depends on pressure (value here provided by engineeringtoolbox.com):
   1.10526 g_per_cm3 #(at 1atm pressure)

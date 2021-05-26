@@ -28,7 +28,7 @@ namespace NC = NCrystal;
 namespace NCrystal {
   namespace DICache {
     //Cache keys:
-    using VDOSKey = std::tuple<uint64_t,unsigned,const DI_VDOS*>;//(DI unique id, vdoslux 0..5, DI object)
+    using VDOSKey = std::tuple<uint64_t,unsigned,uint32_t,const DI_VDOS*>;//(DI unique id, vdoslux 0..5,vdos2sabExcludeFlag,DI object)
     using VDOSDebyeKey = std::tuple<unsigned,uint64_t,uint64_t,uint64_t,uint64_t>;//(reduced vdoslux 0..2 + rounded: elementMass, boundXS, T, TDebye)
 
     //For VDOS Debye we can potentially share work between different Info
@@ -75,7 +75,7 @@ namespace NCrystal {
     }
 
     //Actual worker functions producing results:
-    std::shared_ptr<const SABData> extractFromDIVDOSNoCache( unsigned vdoslux, const DI_VDOS& );
+    std::shared_ptr<const SABData> extractFromDIVDOSNoCache( unsigned vdoslux, uint32_t vdos2sabExcludeFlag, const DI_VDOS& );
     std::shared_ptr<const SABData> extractFromDIVDOSDebyeNoCache( const VDOSDebyeKey& );
 
     //Factories:
@@ -85,16 +85,21 @@ namespace NCrystal {
       std::string keyToString( const VDOSKey& key ) const final
       {
         std::ostringstream ss;
-        ss<<"(DI_VDOS id="<<std::get<0>(key)<<";vdoslux="<<std::get<1>(key)<<")";
+        uint32_t vdos2sabExcludeFlag = std::get<2>(key);
+        ss<<"(DI_VDOS id="<<std::get<0>(key)<<";vdoslux="<<std::get<1>(key);
+        if ( vdos2sabExcludeFlag > 0 )
+          ss<<";vdos2sabExcludeFlag="<<vdos2sabExcludeFlag;
+        ss<<")";
         return ss.str();
       }
     protected:
       virtual ShPtr actualCreate( const VDOSKey& key ) const final
       {
         unsigned vdoslux = std::get<1>(key);
-        const DI_VDOS* di_vdos = std::get<2>(key);
+        uint32_t vdos2sabExcludeFlag = std::get<2>(key);
+        const DI_VDOS* di_vdos = std::get<3>(key);
         nc_assert_always( di_vdos && di_vdos->getUniqueID().value == std::get<0>(key) );
-        return extractFromDIVDOSNoCache( vdoslux, *di_vdos );
+        return extractFromDIVDOSNoCache( vdoslux, vdos2sabExcludeFlag, *di_vdos  );
       }
     };
 
@@ -122,9 +127,9 @@ namespace NCrystal {
     static VDOS2SABFactory s_vdos2sabfactory;
     static VDOSDebye2SABFactory s_vdosdebye2sabfactory;
 
-    std::shared_ptr<const SABData> extractFromDIVDOS( unsigned vdoslux, const DI_VDOS& di )
+    std::shared_ptr<const SABData> extractFromDIVDOS( unsigned vdoslux, uint32_t vdos2sabExcludeFlag, const DI_VDOS& di )
     {
-      VDOSKey key( di.getUniqueID().value, vdoslux, &di );
+      VDOSKey key( di.getUniqueID().value, vdoslux, vdos2sabExcludeFlag, &di );
       return s_vdos2sabfactory.create(key);
     }
 
@@ -154,7 +159,7 @@ std::shared_ptr<const NC::SABData> NC::extractSABDataFromVDOSDebyeModel( DebyeTe
   return DICache::extractFromDIVDOSDebye(key);
 }
 
-std::shared_ptr<const NC::SABData> NC::extractSABDataFromDynInfo( const NC::DI_ScatKnl* di, unsigned vdoslux, bool useCache )
+std::shared_ptr<const NC::SABData> NC::extractSABDataFromDynInfo( const NC::DI_ScatKnl* di, unsigned vdoslux, bool useCache, uint32_t vdos2sabExcludeFlag )
 {
   nc_assert( di );
   nc_assert( vdoslux <= 5 );
@@ -170,7 +175,6 @@ std::shared_ptr<const NC::SABData> NC::extractSABDataFromDynInfo( const NC::DI_S
   }
 
   //==> Directly specified kernels:
-
   auto di_direct = dynamic_cast<const DI_ScatKnlDirect*>(di);
   if (di_direct)
     return di_direct->ensureBuildThenReturnSAB();
@@ -179,8 +183,8 @@ std::shared_ptr<const NC::SABData> NC::extractSABDataFromDynInfo( const NC::DI_S
   auto di_vdos = dynamic_cast<const DI_VDOS*>(di);
   if (di_vdos) {
     if (!useCache)
-      return DICache::extractFromDIVDOSNoCache(vdoslux,*di_vdos);
-    return DICache::extractFromDIVDOS(vdoslux,*di_vdos);
+      return DICache::extractFromDIVDOSNoCache(vdoslux,vdos2sabExcludeFlag,*di_vdos);
+    return DICache::extractFromDIVDOS(vdoslux,vdos2sabExcludeFlag,*di_vdos);
   }
 
   //==> Unknown:
@@ -194,7 +198,7 @@ void NC::clearSABDataFromDynInfoCaches()
   DICache::s_vdosdebye2sabfactory.cleanup();
 }
 
-std::shared_ptr<const NC::SABData> NC::DICache::extractFromDIVDOSNoCache( unsigned vdoslux, const DI_VDOS& di )
+std::shared_ptr<const NC::SABData> NC::DICache::extractFromDIVDOSNoCache( unsigned vdoslux, uint32_t vdos2sabExcludeFlag, const DI_VDOS& di  )
 {
   //If user specified an energy-grid with a specific upper energy, Emax,
   //this is essentially a request to expand the vdos out to that energy:
@@ -207,9 +211,43 @@ std::shared_ptr<const NC::SABData> NC::DICache::extractFromDIVDOSNoCache( unsign
     requested_Emax = egrid->size()==3 ? egrid->at(1) : egrid->back();
   }
   const auto& vd = di.vdosData();
-  SABData sabdata = SABUtils::transformKernelToStdFormat( createScatteringKernel( vd, vdoslux,requested_Emax ) );
-  return std::make_shared<const SABData>(std::move(sabdata));
 
+  ScaleGnContributionFct scaleGnFct = nullptr;
+  if ( vdos2sabExcludeFlag > 0 ) {
+    //vdos2sabExcludeFlag = MODE + 4*LOW + 40000*HIGH
+    unsigned high = vdos2sabExcludeFlag / 40000;
+    unsigned low = (vdos2sabExcludeFlag / 4)%10000;
+    unsigned mode = vdos2sabExcludeFlag % 4;
+    if (low>=9999)
+      low = std::numeric_limits<unsigned>::max();
+    if (high>=9999)
+      high = std::numeric_limits<unsigned>::max();
+    nc_assert_always(high>=low);
+    nc_assert_always(low>=1);
+    nc_assert_always(mode>0);
+    //Must reduce contribution of selected Gn functions (Gnlow,...,Gnhigh) with
+    //scale factor dependening on mode.
+    if ( di.atomData().scatteringXS() != vd.boundXS() )
+      NCRYSTAL_THROW(LogicError,"VDOSData from DI_VDOS has boundXS which is"
+                     " not consistent with total scatteringXS of associated atom");
+    if ( di.atomData().scatteringXS().dbl() > 0.0 ) {
+      double scalefact;
+      if ( mode == 1 ) {
+        scalefact = di.atomData().incoherentXS().dbl() / di.atomData().scatteringXS().dbl();//exclude sigma_coh
+      } else if ( mode == 2 ) {
+        scalefact = di.atomData().coherentXS().dbl() / di.atomData().scatteringXS().dbl();//exclude sigma_incoh
+      } else {
+        nc_assert_always( mode == 3 );
+        scalefact = 0.0;//exclude both sigma_coh and sigma_incoh
+      }
+      nc_assert_always( scalefact>=0.0 && scalefact<=1.0 );
+      scaleGnFct = [scalefact,low,high](unsigned n) { return ( n >= low && n<= high ) ? scalefact : 1.0; };
+    }
+  }
+  SABData sabdata = SABUtils::transformKernelToStdFormat( createScatteringKernel( vd, vdoslux, requested_Emax,
+                                                                                  VDOSGn::TruncAndThinningChoices::Default,
+                                                                                  scaleGnFct ) );
+  return std::make_shared<const SABData>(std::move(sabdata));
 }
 
 std::shared_ptr<const NC::SABData> NC::DICache::extractFromDIVDOSDebyeNoCache( const VDOSDebyeKey& key )

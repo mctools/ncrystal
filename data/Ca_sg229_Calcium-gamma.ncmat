@@ -1,7 +1,25 @@
-NCMAT v4
-#converted from the cif file of the entry 0011208 in the AMCSD
-#reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
-#comment: The Debye temperature is derived from the Debye-waller factor at 293K compiled in the supplement of Acta Cryst., A52, p. 456-470, 1996
+NCMAT v5
+#
+# Gamma calcium (Ca, bcc, cubic, SG-229 / Im-3m)
+#
+# Under usual conditions this phase exists from roughly 700K to 1100K.
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "Second edition. Interscience Publishers, New York,
+#     Sample at T = 773 K  Body centered cubic, bcc, structure"
+#    Wyckoff, R. W. G. (1963)
+#    Crystallography Open Database entry 9008530
+#    https://www.crystallography.net/cod/9008530.html
+#
+# This crystal structure is also compatible with structure obtained from:
+#
+#   https://www.crystallography.net/cod/9011034.html
+#   https://www.crystallography.net/cod/9012732.html
+#
+# The Debye temperature is derived from the Debye-waller factor at 293K compiled
+# in the supplement of Acta Cryst., A52, p. 456-470, 1996.
+#
 @CELL
   cubic 4.38
 @SPACEGROUP
@@ -9,5 +27,8 @@ NCMAT v4
 @ATOMPOSITIONS
   Ca   0   0   0
   Ca 1/2 1/2 1/2
-@DEBYETEMPERATURE
-  Ca 180.7036
+@DYNINFO
+  element  Ca
+  fraction 1
+  type     vdosdebye
+  debye_temp 180.7036

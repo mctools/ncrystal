@@ -1,0 +1,103 @@
+NCMAT v5
+#
+# MagnesiumDeuteride (MgD2, tetragonal, SG-136 / P4_2/mnm)
+#
+# Under usual conditions this phase exists from 0 to 600K.
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "Neutron Diffraction Study of Magnesium Deuteride"
+#    W. H. Zachariasen, et al. (1963)
+#    DOI: https://dx.doi.org/10.1107/S0365110X63000967
+#    Crystallography Open Database entry 2310000
+#    https://www.crystallography.net/cod/2310000.html
+#
+# This crystal structure is also compatible with structure obtained from:
+#
+#    https://www.crystallography.net/cod/4124639.html [with H->D]
+#    https://www.materialsproject.org/materials/mp-23710 [with H->D]
+#
+# Phonon spectrum calculations were performed, by Davide Campi and
+# Marco Bernasconi from University of Milano-Bicocca, within Density
+# Functional Perturbation Theory (DFPT) by using the
+# Perdew-Burke-Ernzerhof (PBE) approximation to the exchange and
+# correlation energy functional. Ultrasoft pseudopotentials and a
+# plane wave expansion of Kohn-Sham orbitals up to a kinetic cutoff of
+# 60 Ry was employed, as implemented in the Quantum-ESPRESSO package.
+#
+# In the electronic structure calculations, the Brillouin zone (BZ)
+# integration was performed over a uniform Gamma-centered 10x10x14
+# k-point mesh.
+#
+# References:
+#
+#  [1]: "Phonons and related crystal properties from
+#       density-functional perturbation theory"
+#       Baroni, S., De Gironcoli, S., Dal Corso, A., Giannozzi, P.
+#       Reviews of Modern Physics 73, 515-562.
+#       doi: 10. 1103/RevModPhys.73.515 , arXiv:0012092v1
+#  [2]: "QUANTUM ESPRESSO: a modular and open-source software
+#       project for quantum simulations of materials"
+#       Giannozzi, P., Baroni, S., et al.,
+#       2009. Q. J. Phys.: Condens. Matter 21, 395502.
+#
+@CELL
+  lengths 4.5618 !! 3.0205
+  angles 90 90 90
+@SPACEGROUP
+  136
+@ATOMPOSITIONS
+  D .3051 .3051   0
+  D .6949 .6949   0
+  D .8051 .1949 1/2
+  D .1949 .8051 1/2
+  Mg   0   0   0
+  Mg 1/2 1/2 1/2
+@DYNINFO
+  element  Mg
+  fraction 1/3
+  type     vdos
+  vdos_egrid .0055 .12925
+  vdos_density .0136187 .0185969 .0235957 .030616 .037432 .0473414 .0585318
+    .0734615 .0916004 .117909 .170266 .206625 .23817 .277579 .332776 .421293
+    .569905 .622434 .727197 1 .422583 .314269 .205903 .236291 .424201 .609561
+    .514874 .533626 .522025 .519562 .577518 .395002 .315117 .294706 .44167
+    .26559 .163819 .166498 .205106 .174419 .167557 .170095 .175034 .163904
+    .161706 .162789 .170038 .176105 .190341 .207836 .244356 .31461 .345847
+    .262733 .241182 .0238865 .0396973 .0329316 .0367994 .0267164 .0176022
+    .0113228 .0058453 .0117701 .0112713 .0113936 .0114059 .0114843 .0114167
+    .0114865 .0114126 .0114065 .0114005 .011406 .0115112 .0116354 .0119204
+    .0124839 .0135699 .0168196 .0177426 .0149001 .00939213 .0026341 .000558929
+    0r12 .00108361 .00323795 .00386471 .00403364 .0043243 .0043898 .00456403
+    .00461976 .00463287 .00475428 .00505956 .0063475 .00893656 .0278618 .018745
+    .0191354 .0175981 .0146141 .0124793 .0108755 .00958907 .00935169 .00950268
+    .00904303 .0110134 .0128976 .0101222 .00694963 .0034687 .00228344 .00171119
+    .00147179 .00102589 .000290947 .00348922 .0116007 .0322847 .0157968 .0121709
+    .0102327 .00897918 .00813406 .00757769 .00730391 .00753454 .00842538
+    .0072312 .00498519 .00144335 .00122857 .00101812 .00108101 .00124801
+    .00152007 .00189831 .0024104 .00314358 .00428397 .00599158 .00833873
+    .00908376 .0102969 .00959678 .00901608 .00795878 .00635719 .00484802
+    .00310339 .000952564
+@DYNINFO
+  element  D
+  fraction 2/3
+  type     vdos
+  vdos_egrid .0055 .12925
+  vdos_density .00183879 .00246107 .00304914 .00384123 .00454528 .00552609
+    .0065157 .00771917 .00901084 .0106385 .0133698 .0149964 .016309 .0178413
+    .0201283 .0244984 .0345808 .0349472 .0366311 .0392798 .024963 .0204665
+    .0142551 .0167015 .0267232 .0308739 .0262475 .0323812 .0455451 .0605816
+    .103122 .0870274 .0658655 .0741147 .0909255 .039829 .0145915 .011894
+    .0118427 .0121863 .0154478 .0216437 .0323086 .03981 .0476857 .0552311
+    .064126 .0733427 .0843374 .0962181 .110237 .127235 .147334 .168833 .200229
+    .248202 .383888 .421395 .558621 .563626 .45451 .344735 .234367 .577802
+    .286623 .225299 .197172 .180248 .16827 .160537 .154032 .149427 .146133
+    .14392 .143042 .143213 .145037 .149492 .158017 .180227 .20091 .208359
+    .184774 .10328 .0616088 0r12 .00829292 .035059 .054105 .0693788 .0890245
+    .108076 .135845 .182797 .205006 .208347 .198387 .210789 .244959 1 .588939
+    .594591 .567849 .5238 .500931 .494232 .402861 .387375 .386935 .360867
+    .438359 .492338 .392277 .257193 .141815 .0954521 .0697477 .0593896 .0361709
+    .00896348 .1485 .385162 .797741 .458461 .383304 .343479 .318058 .301885
+    .293147 .294761 .335468 .291256 .162994 .0866005 .0231684 .0154069 .019976
+    .0286381 .0385557 .0520839 .0699346 .0933167 .126947 .17457 .25868 .398415
+    .47906 .594812 .468564 .462484 .486568 .349817 .274327 .213794 .138834

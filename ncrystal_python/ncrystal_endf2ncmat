@@ -113,7 +113,7 @@ def guessElementName(ZA,mass_amu):
     if ZA in (112,113):
         return 'D'#ortho-D or para-D
     guess_by_mass = guessElementFromMass(mass_amu)
-    guess_by_z = elementZToName(z) if (z>0 and z<120) else None
+    guess_by_z = elementZToName(Z) if (Z>0 and Z<120) else None
     if guess_by_z:
         if guess_by_z!=guess_by_mass:
             raise SystemExit(f"ERROR: Mass and Z guess gives different element name (Z={Z}=>'{guess_by_z}', mass={mass_amu}amu=>'{guess_by_mass}')")

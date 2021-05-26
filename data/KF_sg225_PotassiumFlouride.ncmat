@@ -1,0 +1,80 @@
+NCMAT v5
+#
+# Potassium Flouride (KF, cubic, SG-225 / Fm-3m)
+#
+# Under usual conditions this phase exists from 0 to 1131K.
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "Second edition. Interscience Publishers,
+#     New York, Rocksalt structure"
+#    Wyckoff, R. W. G. (1963)
+#    Crystallography Open Database entry 9008652
+#    https://www.crystallography.net/cod/9008652.html
+#
+# This crystal structure is also compatible with structure obtained from:
+#
+#   https://www.crystallography.net/cod/1010978.html
+#   https://www.materialsproject.org/materials/mp-463
+#
+# The VDOS curves were calculated using Phonopy[1] input files from[2] and
+# OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics group.
+#
+# References:
+#  [1]: "First principles phonon calculations in materials science",
+#        Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)
+#  [2]: Kyoto University database of phonon calculations.
+#       Files for KF taken from:
+#       http://phonondb.mtl.kyoto-u.ac.jp/ph20180417/d000/mp-463.html
+#  [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J., "Calculation
+#       of the Thermal Neutron Scattering Cross-Section of Solids Using OCLIMAX".
+#       Journal of Chemical Theory and Computation 2020, 16 (8), 5212-5217.
+#
+@CELL
+  cubic 5.347
+@SPACEGROUP
+  225
+@ATOMPOSITIONS
+  K 0 0 0
+  K 0 1/2 1/2
+  K 1/2 0 1/2
+  K 1/2 1/2 0
+  F 1/2 1/2 1/2
+  F 1/2 0 0
+  F 0 1/2 0
+  F 0 0 1/2
+@DYNINFO
+  element  K
+  fraction 1/2
+  type     vdos
+  vdos_egrid .00724975 .0329989
+  vdos_density .130628 .142233 .162558 .17479 .191355 .199831 .204952 .236311
+    .265568 .292188 .325642 .362334 .405912 .480933 .578297 .628619 .615749
+    .599602 .614833 .628045 .636871 .667115 .719056 .770007 .810166 .872893
+    .918874 .890891 .835738 .777179 .697771 .613888 .571382 .557448 .529193
+    .477406 .427317 .39255 .359463 .316937 .272684 .227215 .18913 .180284
+    .201186 .23102 .269298 .325987 .395885 .470038 .549364 .633614 .704993
+    .725615 .672051 .573065 .480019 .410897 .374872 .385982 .420962 .447744
+    .498616 .627971 .824858 .991461 1 .819591 .552691 .318963 .167134 .0873205
+    .0525109 .0398569 .0341421 .0286576 .0229088 .0184805 .0165054 .016828
+    .0187527 .0214674 .0230729 .0222204 .0214293 .0251238 .0322035 .0359618
+    .0350896 .0365403 .0440533 .0528005 .0589261 .0661616 .0790005 .097916
+    .12262 .14748 .152176 .120524 .0688633 .02773 .00781337 .00153248
+@DYNINFO
+  element  F
+  fraction 1/2
+  type     vdos
+  vdos_egrid .00724975 .0329989
+  vdos_density .0237721 .0255686 .0289588 .0308462 .0334147 .0346127 .0351759
+    .0400459 .0442069 .0480161 .0529654 .0583351 .0647373 .0757003 .0895207
+    .0946519 .0884386 .0813564 .0793814 .076885 .0728737 .0709149 .0705303
+    .0684494 .0638254 .060024 .0538538 .0439131 .0384548 .0391091 .0391748
+    .036556 .0361359 .0378325 .037796 .0344706 .0309343 .0289448 .0268464
+    .0243935 .0220999 .0192931 .0168772 .0171454 .0199155 .0228578 .0264217
+    .0321755 .0401455 .0505921 .0639563 .078 .0892347 .100011 .127087 .191407
+    .275184 .325317 .335731 .351793 .384565 .415382 .464762 .581177 .776012
+    .961668 1 .851881 .609988 .38403 .226766 .142832 .115212 .119306 .129028
+    .128202 .119108 .113408 .113546 .112755 .11186 .117217 .124169 .122344
+    .114843 .116734 .131543 .141851 .138289 .136098 .146692 .160591 .169325
+    .180375 .200964 .230227 .267488 .302291 .298965 .231214 .13037 .0518867
+    .0143765 .00275176

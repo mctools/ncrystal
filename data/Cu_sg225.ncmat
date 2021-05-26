@@ -1,11 +1,13 @@
 NCMAT v4
-#Copper (Cu). FCC.
 #
-#Crystal structure was converted from the cif file of the entry 0011145 in the AMCSD.
-#Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+# Copper (Cu, fcc).
 #
-#The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
-#software from Figure 4 (the 298K curve) of:
+# Crystal structure was converted from the cif file of the entry 0011145 in the AMCSD.
+# Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+#                       https://www.crystallography.net/cod/9008468.html
+#
+# The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
+# software from Figure 4 (the 298K curve) of:
 #
 #   "Phonon Frequencies in Copper at 49 and 298K"
 #   R. M. Nicklow, et. al. Phys. Rev. 164, 922 (1967)

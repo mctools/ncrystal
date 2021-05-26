@@ -1,0 +1,88 @@
+NCMAT v5
+#
+# Rutile Titanium oxide (TiO2, tetragonal, SG-136 / P4_2/mnm)
+#
+# Under usual conditions this phase exists from 873 to 2000K.
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "Polyhedral thermal expansion in the TiO2 polymorphs: Refinement
+#     of the crystal structure of rutile and brookite at high temperature
+#     Sample at 25 degrees C"
+#    Meagher, E. P. and Lager, G. A. (1979)
+#    Crystallography Open Database entry 9004141
+#    https://www.crystallography.net/cod/9004141.html
+#
+# This crystal structure is also compatible with structure obtained from:
+#
+#   https://www.crystallography.net/cod/1534781.html
+#   https://www.materialsproject.org/materials/mp-2657/
+#
+# The VDOS curves were calculated using Phonopy[1] input files from[2] and
+# OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics group.
+#
+# References:
+#  [1]: "First principles phonon calculations in materials science",
+#        Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)
+#  [2]: Kyoto University database of phonon calculations.
+#       Files for TiO2 taken from:
+#       http://phonondb.mtl.kyoto-u.ac.jp/ph20180417/d002/mp-2657.html
+#  [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J., "Calculation
+#       of the Thermal Neutron Scattering Cross-Section of Solids Using OCLIMAX".
+#       Journal of Chemical Theory and Computation 2020, 16 (8), 5212-5217.
+#
+@CELL
+  lengths 4.593 !! 2.959
+  angles 90 90 90
+@SPACEGROUP
+  136
+@ATOMPOSITIONS
+  Ti 0 0 0
+  Ti 1/2 1/2 1/2
+  O .3051 .3051 0
+  O .6949 .6949 0
+  O .8051 .1949 1/2
+  O .1949 .8051 1/2
+@DYNINFO
+  element  O
+  fraction 2/3
+  type     vdos
+  vdos_egrid .00449985 .104996
+  vdos_density .00496965 .00710606 .00894016 .00855195 .0168936 .0147529 .01344
+    .0186678 .0205234 .0200073 .024135 .0248621 .0275137 .0434092 .041476
+    .0248581 .039675 .0305773 .0444134 .0879847 .0755775 .0932501 .103007
+    .127246 .199958 .351546 .436841 .447102 .354663 .290382 .318067 .277696
+    .263809 .250291 .285643 .312782 .338506 .30814 .41369 .485871 .615157
+    .590026 .566394 .478099 .408789 .406325 .321768 .259945 .306352 .333443
+    .343387 .289451 .284672 .333129 .419456 .472559 .462503 .423799 .323132
+    .290072 .286386 .238776 .223145 .216771 .172237 .161633 .275786 .590949 1
+    .761671 .847001 .713978 .436736 .263644 .234759 .239356 .265674 .276591
+    .304162 .341644 .363355 .31677 .257184 .235488 .224873 .175795 .156246
+    .136787 .0973056 .0592815 .0356324 .0361011 .0408617 .04148 .0376071
+    .0277691 .02262 .0207791 .0219758 .0185477 .015284 .0151254 .0240091
+    .0541403 .0959941 .122247 .165361 .189688 .214614 .240406 .241161 .249632
+    .230637 .20626 .194949 .185012 .175916 .15875 .13933 .132433 .13506 .108842
+    .0821863 .0862093 .0888923 .075392 .0753099 .0770468 .0691865 .0653183
+    .0546992 .0297662 .00889851 .00126047 7.16305e-05
+@DYNINFO
+  element  Ti
+  fraction 1/3
+  type     vdos
+  vdos_egrid .00449985 .104996
+  vdos_density .103816 .175619 .271298 .511793 .598918 .696623 1 .733834 .798886
+    .357423 .27723 .23988 .229557 .260634 .217185 .142049 .163815 .0699076
+    .0763491 .182707 .0920653 .106592 .135536 .154355 .159768 .221313 .262056
+    .209649 .215315 .156923 .142851 .163406 .171132 .147885 .190523 .228483
+    .238849 .178775 .18485 .148887 .165958 .168125 .194585 .179293 .141491
+    .140467 .183509 .160196 .195031 .211172 .194567 .147047 .125512 .12413
+    .143104 .120907 .0978468 .0834695 .0872168 .116361 .154303 .136036 .12772
+    .130214 .11647 .12721 .140784 .127163 .128031 .145662 .129559 .109762
+    .110751 .116394 .122027 .116109 .129801 .137332 .153726 .139165 .124135
+    .0887258 .0530638 .0331065 .0253885 .0147794 .00843034 .00476589 .00317188
+    .00207583 .00144301 .000820966 .00160479 .00421575 .00434075 .00293794
+    .00156887 .00129242 .00181564 .00137582 .00122652 .00145314 .00206931
+    .00313093 .00650952 .0124758 .016289 .0168628 .0189401 .0225073 .0271531
+    .0336877 .0325793 .0279627 .0260337 .0248588 .0219724 .0181297 .0150857
+    .0128877 .0123803 .0101481 .00671696 .00604181 .00628039 .00537065 .00553188
+    .00610697 .00591019 .00598776 .00546539 .0032494 .00104514 .0001547
+    8.96085e-06

@@ -1,10 +1,26 @@
-NCMAT v4
+NCMAT v5
 #
-# Cuprite (Cu2O)
+# Cuprite (Cu2O, cubic, SG-224 / Pn-3m)
 #
-# Crystal structure converted from the cif file of the entry 0009326 in the AMCSD
-# Additional reference: Kirfel A, Eichhorn K, Acta Crystallographica, Section A,
-#                       vol. 46, p. 271-284, 1990.
+# Under usual conditions this phase exists from 0 to 1500 K.
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "Accurate structure analysis with synchrotron radiation. The electron
+#     density in Al2O3 and Cu2O (note: Atomic parameters were mislabeled
+#     in the publication. They have been fixed in this dataset)".
+#    Kirfel, A. and Eichhorn, K. (1990)
+#    Acta Crystallographica, Section A, vol. 46, p. 271-284, 1990.
+#    DOI: https://dx.doi.org/10.1107/S0108767389012596
+#    Crystallography Open Database entry 9007497
+#    https://www.crystallography.net/cod/9007497.html
+#
+# This crystal structure is also compatible with structure obtained from:
+#
+#   https://www.crystallography.net/cod/1000063.html
+#   https://www.crystallography.net/cod/1010941.html
+#   https://www.crystallography.net/cod/1010963.html
+#   https://www.materialsproject.org/materials/mp-361
 #
 # The VDOS curves were calculated using Phonopy[1] input files from[2] and
 # OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics group.
@@ -13,7 +29,7 @@ NCMAT v4
 #  [1]: "First principles phonon calculations in materials science",
 #        Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)
 #  [2]: Kyoto University database of phonon calculations.
-#       Files for BeF2 (material ID 361, DB release 2018-04-17) taken from:
+#       Files for Cu2O (material ID 361, DB release 2018-04-17) taken from:
 #       http://phonondb.mtl.kyoto-u.ac.jp/ph20180417/d000/mp-361.html
 #  [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J., "Calculation
 #       of the Thermal Neutron Scattering Cross-Section of Solids Using OCLIMAX".
@@ -28,13 +44,13 @@ NCMAT v4
   Cu 3/4 1/4 3/4
   Cu 1/4 3/4 3/4
   Cu 3/4 3/4 1/4
-   O   0   0   0
-   O 1/2 1/2 1/2
+  O 0 0 0
+  O 1/2 1/2 1/2
 @DYNINFO
   element  Cu
   fraction 2/3
   type     vdos
-  vdos_egrid 0.00209993 0.08819706
+  vdos_egrid .00209993 .0881971
   vdos_density .0731485 .0898552 .107024 .118254 .120262 .119736 .121373 .123058
     .124953 .130209 .138093 .143916 .14095 .1301 .119421 .113101 .111856 .121552
     .162442 .259492 .410571 .590384 .775744 .927544 1 .977717 .879635 .757636
@@ -70,7 +86,7 @@ NCMAT v4
   element  O
   fraction 1/3
   type     vdos
-  vdos_egrid 0.00209993 0.08819706
+  vdos_egrid .00209993 .0881971
   vdos_density .0350734 .0461533 .0584247 .0671003 .0695496 .0699507 .0717279
     .0737261 .0756093 .0792577 .0843801 .0873845 .0831631 .0729325 .0626674
     .0546901 .0481382 .0419939 .0359288 .0293676 .0222305 .016748 .0153599

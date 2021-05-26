@@ -279,13 +279,21 @@ namespace NCrystal {
 
     UniqueIDValue getUniqueID() const { return m_uid.getUniqueID(); }
 
+    /////////////////////
+    // State of matter //
+    /////////////////////
+
+    enum class StateOfMatter { Unknown = 0, Solid = 1, Gas = 2, Liquid = 3 };
+    StateOfMatter stateOfMatter() const noexcept;
+    static std::string toString(StateOfMatter);
+
     //////////////////////////
     // Check if crystalline //
     //////////////////////////
 
     //Materials can be crystalline (i.e. at least one of structure info, atomic
     //positions and hkl info) must be present. Non-crystalline materials must
-    //always have dynamic info present.
+    //currently always have dynamic info present.
     bool isCrystalline() const;
 
     /////////////////////////////////////////
@@ -483,7 +491,7 @@ namespace NCrystal {
     void addDynInfo(std::unique_ptr<DynamicInfo> di) { ensureNoLock(); nc_assert(di); m_dyninfolist.push_back(std::move(di)); }
     void setComposition(Composition&& c) { ensureNoLock(); m_composition = std::move(c); }
     void setCustomData(CustomData&& cd) { ensureNoLock(); m_custom = std::move(cd); }
-
+    void setStateOfMatter( StateOfMatter s )  { ensureNoLock(); m_som = s; }
     void objectDone();//Finish up (sorts hkl list (by dspacing first), and atom info list (by Z first)). This locks the instance.
     bool isLocked() const { return m_lock; }
 
@@ -506,6 +514,7 @@ namespace NCrystal {
     bool m_lock = false;
     std::vector<AtomDataSP> m_atomDataSPs;
     VectS m_displayLabels;
+    StateOfMatter m_som = StateOfMatter::Unknown;
     static void throwObsoleteDebyeTemp()
     {
       NCRYSTAL_THROW(LogicError,"The concept of global versus per-element Debye temperatures"
@@ -533,7 +542,8 @@ namespace NCrystal {
 ////////////////////////////
 
 namespace NCrystal {
-  inline bool Info::isCrystalline() const { return hasStructureInfo() || hasAtomPositions() || hasHKLInfo(); }
+  inline Info::StateOfMatter Info::stateOfMatter() const noexcept { return m_som; }
+  inline bool Info::isCrystalline() const { return hasStructureInfo() || hasAtomInfo() || hasHKLInfo(); }
   inline bool Info::hasStructureInfo() const { return m_structinfo.has_value(); }
   inline const StructureInfo& Info::getStructureInfo() const  { nc_assert(hasStructureInfo()); return m_structinfo.value(); }
   inline bool Info::hasXSectAbsorption() const { return m_xsect_absorption.has_value(); }

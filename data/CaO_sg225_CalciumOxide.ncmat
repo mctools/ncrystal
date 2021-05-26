@@ -1,0 +1,83 @@
+NCMAT v5
+#
+# Calcium oxide (CaO, cubic, SG-225 / Fm-3m)
+#
+# Under usual conditions this phase exists from 0 to 2886K.
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "Structural and electrical properties of calcium and strontium hydrides"
+#    Verbraeken, Maarten C., et al. (2009)
+#    DOI: https://dx.doi.org/10.1039/b820173k
+#    Crystallography Open Database entry 7200686
+#    https://www.crystallography.net/cod/7200686.html
+#
+# This crystal structure is also compatible with structure obtained from:
+#
+#   https://www.crystallography.net/cod/1000044.html
+#   https://www.crystallography.net/cod/1011094.html
+#   https://www.crystallography.net/cod/1011095.html
+#   https://www.crystallography.net/cod/1011327.html
+#   https://www.crystallography.net/cod/9006694.html
+#   https://www.crystallography.net/cod/9006712.html
+#   https://www.crystallography.net/cod/9006731.html
+#   https://www.materialsproject.org/materials/mp-2605
+#
+# The VDOS curves were calculated using Phonopy[1] input files from[2] and
+# OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics group.
+#
+# References:
+#  [1]: "First principles phonon calculations in materials science",
+#        Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)
+#  [2]: Kyoto University database of phonon calculations.
+#       Files for CaO taken from:
+#       http://phonondb.mtl.kyoto-u.ac.jp/ph20180417/d002/mp-2605.html
+#  [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J., "Calculation
+#       of the Thermal Neutron Scattering Cross-Section of Solids Using OCLIMAX".
+#       Journal of Chemical Theory and Computation 2020, 16 (8), 5212-5217.
+#
+@CELL
+  cubic 4.81072
+@SPACEGROUP
+  225
+@ATOMPOSITIONS
+  Ca   0   0   0
+  Ca 1/2 1/2   0
+  Ca 1/2   0 1/2
+  Ca   0 1/2 1/2
+  O  1/2 1/2 1/2
+  O    0   0 1/2
+  O    0 1/2   0
+  O  1/2   0   0
+@DYNINFO
+  element  Ca
+  fraction 1/2
+  type     vdos
+  vdos_egrid .0149995 .0609979
+  vdos_density .101099 .125546 .140702 .143356 .160528 .179008 .202998 .23703
+    .227653 .30101 .347022 .351434 .528978 .741117 1 .922882 .699701 .629186
+    .561974 .555387 .499941 .434272 .412103 .376032 .344985 .356561 .31125
+    .325927 .300106 .276503 .284356 .269874 .252029 .222836 .242365 .191286
+    .165898 .194223 .193417 .259444 .411065 .602384 .698312 .615315 .544815
+    .488787 .443206 .368449 .225054 .123688 .0840035 .0770676 .0795088 .0875886
+    .10995 .135646 .146833 .140006 .120084 .103434 .0872401 .0691029 .0413902
+    .0196951 .0124908 .0109654 .0112859 .0143995 .0171355 .0161021 .0152374
+    .016328 .0151708 .0146991 .0200569 .0274453 .0268666 .0233674 .0237768
+    .0297836 .0404465 .0444245 .0426571 .0536432 .0804756 .0965904 .0811008
+    .050617 .0284801 .0157534 .00738624 .00235215 .000396789
+@DYNINFO
+  element  O
+  fraction 1/2
+  type     vdos
+  vdos_egrid .0169994 .0609979
+  vdos_density .0183823 .0192724 .0203241 .022126 .019622 .0243065 .0254949
+    .0211358 .0279666 .028071 .0269658 .0280426 .0254641 .0252228 .0236532
+    .0234208 .0189469 .0171236 .0152058 .012679 .0118354 .0109395 .0093029
+    .00991573 .0107017 .00829932 .00898801 .0105516 .00839402 .00890151 .0124027
+    .0102316 .0154495 .0349941 .0524323 .0775352 .115796 .163426 .266307 .437722
+    .670714 .94033 1 .878477 .616334 .39573 .259244 .181229 .149881 .155474
+    .164903 .16453 .143618 .0915654 .052055 .0362734 .0333346 .0400835 .0486757
+    .0617976 .0721126 .0696152 .0690539 .0748423 .0735929 .0697945 .0756551
+    .0828562 .0758533 .0716343 .0853683 .0998818 .100428 .0957254 .0989341
+    .111477 .133391 .146988 .149969 .178512 .241716 .284093 .23512 .131054
+    .0604995 .0299402 .0136442 .00429658 .000720278

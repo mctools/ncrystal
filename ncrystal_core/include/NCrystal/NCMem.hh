@@ -124,12 +124,17 @@ namespace NCrystal {
     //Automatic conversions:
     constexpr operator const T&() const noexcept { return *m_shptr; }
     ncconstexpr17 operator T&() noexcept { return *m_shptr; }
-    constexpr operator const T*() const noexcept { return m_shptr.get(); }
-    ncconstexpr17 operator T*() noexcept { return m_shptr.get(); }
     constexpr operator std::shared_ptr<const T>() const noexcept { return m_shptr; }
     ncconstexpr17 operator std::shared_ptr<T>() noexcept { return m_shptr; }
     constexpr operator std::weak_ptr<const T>() const noexcept { return m_shptr; }
     ncconstexpr17 operator std::weak_ptr<T>() noexcept { return m_shptr; }
+
+    //Conversion to pointer is explicit to avoid footgun "const Info* info =
+    //NC::createInfo(..)". The footgun is still available for references (const
+    //Info& info = ...), but that is a necessary tradeoff since the implicit
+    //conversion to a reference is so useful when calling functions:
+    explicit constexpr operator const T*() const noexcept { return m_shptr.get(); }
+    explicit ncconstexpr17 operator T*() noexcept { return m_shptr.get(); }
 
     //If T is non-const, we can convert to const object:
     template<class U = T>

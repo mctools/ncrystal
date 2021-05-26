@@ -1,0 +1,90 @@
+NCMAT v5
+#
+# Anatase Titanium oxide (TiO2, tetragonal, SG-141 / I4_1/amd)
+#
+# Under usual conditions this phase is stable at room temperature, converting to
+# the rutile phase between 500-1000K.
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "Refinement of the structure of anatase at several temperatures
+#     Sample: T = 25 C  Locality: Legenbach quarry, Binnatal, Switzerland"
+#    Horn, M., et al. (1972)
+#    DOI: https://dx.doi.org/10.1524/zkri.1972.136.3-4.273
+#    Crystallography Open Database entry 9008213
+#    https://www.crystallography.net/cod/9008213.html
+#
+# This crystal structure is also compatible with structure obtained from
+# https://www.materialsproject.org/materials/mp-390
+#
+# The VDOS curves were calculated using Phonopy[1] input files from[2] and
+# OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics group.
+#
+# References:
+#  [1]: "First principles phonon calculations in materials science",
+#        Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)
+#  [2]: Kyoto University database of phonon calculations.
+#       Files for TiO2 taken from:
+#       http://phonondb.mtl.kyoto-u.ac.jp/ph20180417/d000/mp-390.html
+#  [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J., "Calculation
+#       of the Thermal Neutron Scattering Cross-Section of Solids Using OCLIMAX".
+#       Journal of Chemical Theory and Computation 2020, 16 (8), 5212-5217.
+#
+@CELL
+  lengths 3.7842 !! 9.5146
+  angles 90 90 90
+@SPACEGROUP
+  141
+@ATOMPOSITIONS
+  Ti   0   0   0
+  Ti 1/2 1/2 1/2
+  Ti   0 1/2 1/4
+  Ti 1/2   0 3/4
+  O   0   0 .2081
+  O 1/2 1/2 .7081
+  O   0 1/2 .4581
+  O 1/2   0 .9581
+  O 1/2 1/2 .2919
+  O   0   0 .7919
+  O 1/2   0 .5419
+  O   0 1/2 .0419
+@DYNINFO
+  element  Ti
+  fraction 1/3
+  type     vdos
+  vdos_egrid .00974967 .106496
+  vdos_density .154827 .210809 .24846 .39347 .351289 .234614 .360684 .267192
+    .484635 .84919 1 .877137 .502744 .491225 .763684 .713939 .565015 .206036
+    .142837 .166401 .223802 .135076 .144062 .201984 .206278 .202092 .176844
+    .206243 .277688 .265312 .284573 .327535 .299593 .302686 .327174 .254155
+    .239293 .249369 .258388 .270944 .258219 .264754 .213077 .21303 .200564
+    .185672 .222885 .273015 .284051 .222144 .151062 .113717 .105534 .105724
+    .126565 .130441 .14933 .123425 .09783 .117248 .145626 .182356 .228209
+    .276266 .318766 .340802 .397843 .341578 .277327 .262468 .23939 .156161
+    .114177 .106312 .0906475 .0723137 .0414139 .0180965 .0120651 .0102665
+    .0101399 .0127911 .0107682 .00851257 .00781351 .00942302 .0115971 .0122468
+    .0130364 .0120286 .00723594 .00644073 .0074528 .00988793 .0118628 .0117537
+    .0117744 .0105867 .00796428 .00744304 .0099726 .0128322 .0125952 .0115464
+    .0134197 .013373 .0146929 .015274 .0156388 .0132317 .0130182 .0147615
+    .0165989 .018898 .0221533 .0223288 .0196352 .0180197 .0160177 .0153583
+    .0172676 .019577 .0232068 .0250006 .0210634 .0128813 .00640782 .00263476
+    .000689542 9.31701e-05
+@DYNINFO
+  element  O
+  fraction 2/3
+  type     vdos
+  vdos_egrid .0127496 .106496
+  vdos_density .105769 .213693 .445342 .411646 .521952 .579474 .409689 .280698
+    .420273 .537139 .897852 .905794 .711853 .431403 .311419 .215865 .244799
+    .22844 .263841 .286263 .370359 .316139 .272712 .332203 .434432 .574729
+    .725172 .806418 .795488 .68265 .635084 .528202 .468691 .458193 .446121
+    .449521 .519298 .515833 .484367 .399225 .383167 .365665 .366092 .384066
+    .353566 .299355 .298489 .335034 .468887 .573383 .64698 .611389 .615266
+    .484828 .41757 .523404 .53751 .477774 .521296 .567696 .56801 .652036 .652794
+    .61922 .693816 .640025 .573925 .481713 .356874 .295705 .281833 .235739
+    .21377 .226667 .21773 .201121 .188671 .192194 .153091 .153705 .180766
+    .218637 .293959 .491677 .91957 1 .433894 .114627 .0658359 .0726713 .0866802
+    .0805647 .0779494 .0762725 .064948 .0671275 .0833909 .102972 .107077 .108742
+    .126318 .121648 .134359 .157307 .17331 .163301 .172798 .202026 .231555
+    .27535 .30828 .306131 .290415 .286975 .26917 .264959 .296065 .328899 .384829
+    .412649 .341299 .192765 .0825567 .0305229 .00770459 .00103069

@@ -1,8 +1,10 @@
 NCMAT v4
+#
 # Magnesium (hcp).
 #
 # Crystal structure converted from the cif file of the entry 0011183 in the AMCSD.
 # Additonal reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+#                      https://www.crystallography.net/cod/9008506.html
 #
 # VDOS curve at 290K taken from:
 #

@@ -1,0 +1,85 @@
+NCMAT v5
+#
+# Beta Silicon Carbide (beta-SiC, carborundum, cubic, SG-216 / F-43m)
+#
+# Under usual conditions this phase exists from 0 to 1973K.
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "Zur Kristallstruktur des kubischen Karborunds"
+#    Braekken, H (1930)
+#    Crystallography Open Database entry 1010995
+#    https://www.crystallography.net/cod/1010995.html
+#
+# This crystal structure is also compatible with structure obtained from:
+#
+#   https://www.materialsproject.org/materials/mp-8062
+#   https://www.crystallography.net/cod/1011031.html
+#   https://www.crystallography.net/cod/9008856.html
+#
+# The VDOS curves were calculated using Phonopy[1] input files from[2] and
+# OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics group.
+#
+# References:
+#  [1]: "First principles phonon calculations in materials science",
+#        Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)
+#  [2]: Kyoto University database of phonon calculations.
+#       Files for SiC taken from:
+#       http://phonondb.mtl.kyoto-u.ac.jp/ph20151124/d008/mp-8062.html
+#  [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J., "Calculation
+#       of the Thermal Neutron Scattering Cross-Section of Solids Using OCLIMAX".
+#       Journal of Chemical Theory and Computation 2020, 16 (8), 5212-5217.
+#
+@CELL
+  cubic 4.348
+@SPACEGROUP
+  216
+@ATOMPOSITIONS
+  Si   0   0   0
+  Si   0 1/2 1/2
+  Si 1/2   0 1/2
+  Si 1/2 1/2   0
+  C  1/4 1/4 1/4
+  C  1/4 3/4 3/4
+  C  3/4 1/4 3/4
+  C  3/4 3/4 1/4
+@DYNINFO
+  element  C
+  fraction 1/2
+  type     vdos
+  vdos_egrid .0254991 .116996
+  vdos_density .0130188 .015575 .0157034 .0200858 .0202764 .0259995 .0275375
+    .038024 .0491988 .0448798 .0450969 .0465249 .0454671 .0447086 .0447747
+    .0446022 .043407 .0442055 .0430205 .0437147 .0438825 .0437019 .0467404
+    .0472606 .0482102 .0450543 .0373141 .0332058 .0301974 .0283443 .0257028
+    .0229338 .0199302 .020721 .0189709 .0193499 .0190233 .0180696 .0184887
+    .0167892 .0166293 .0134879 .00861547 .00913886 .00855396 .00913076 .00977273
+    .0109238 .0110485 .011281 .0115452 .0126773 .0127853 .0136749 .0142654
+    .0150353 .0152341 .0141556 .0119755 .0090428 .00690017 .00538988 .00432837
+    .00336719 .002523 .0018171 .00122225 .000747235 .00042181 .000225495
+    9.14586e-05 1.97293e-05 1.43553e-06 2.44218e-08 8.55704e-11 0r8 1.68189e-12
+    1.95965e-09 6.35654e-07 5.82079e-05 .00157045 .0141705 .0564432 .141225
+    .289063 .550009 .882679 1 .790741 .570217 .443839 .300924 .148618 .0482626
+    .0130441 .0119385 .0226856 .0435866 .0785767 .129369 .214791 .351009 .460712
+    .434247 .327955 .227692 .150964 .102005 .0743805 .0565881 .0425887 .0291892
+    .0159434 .00572038 .00109072 9.45358e-05
+@DYNINFO
+  element  Si
+  fraction 1/2
+  type     vdos
+  vdos_egrid .0209993 .116996
+  vdos_density .0807216 .11161 .0967916 .1241 .122869 .157924 .154656 .187429
+    .189824 .246078 .250256 .325784 .34836 .485756 .637274 .590341 .609687
+    .643368 .642715 .649694 .667586 .683929 .684774 .718471 .720727 .759144
+    .78254 .807426 .895066 .936634 .986167 .944138 .795122 .727979 .676328
+    .643332 .597348 .519541 .450549 .476002 .446999 .458343 .463165 .453569
+    .464775 .438439 .4288 .316983 .166342 .160293 .155039 .169302 .190076
+    .220189 .235491 .250069 .271257 .318521 .354362 .436873 .588315 .799361
+    .88883 .889541 .794843 .630047 .505163 .427919 .375036 .326683 .284192
+    .245166 .195985 .135946 .0815675 .0545889 .0362404 .0113952 .000939622
+    1.6429e-05 5.79351e-08 0r8 1.03014e-13 1.20842e-10 3.98143e-08 3.83567e-06
+    .000120489 .00156249 .0111555 .0526297 .178782 .451958 .81945 1 .861198
+    .69926 .609744 .453616 .240232 .0811784 .0208687 .0123713 .0157754 .0228021
+    .033745 .055205 .10093 .176824 .250957 .270208 .242867 .197397 .147473
+    .109623 .0862698 .0697113 .0550204 .0391236 .0219547 .00801113 .00154072
+    .000134045

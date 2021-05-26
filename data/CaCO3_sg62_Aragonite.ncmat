@@ -2,9 +2,21 @@ NCMAT v4
 #
 # Aragonite (CaCO3)
 #
+# Under usual conditions this phase exists from 0 to 1100 K.
+#
 # Crystal structure converted from the cif file of the entry 0006300 in the AMCSD
 # Additional reference: Antao S M, Hassan I, The Canadian Mineralogist, vol. 47,
 #                       p. 1245-1255, 2009.
+#
+# This crystal structure is also compatible with structure obtained from:
+#
+#   https://www.crystallography.net/cod/2100187.html
+#   https://www.crystallography.net/cod/4001361.html
+#   https://www.crystallography.net/cod/4001363.html
+#   https://www.crystallography.net/cod/5000085.html
+#   https://www.crystallography.net/cod/9000229.html
+#   https://www.crystallography.net/cod/9013799.html
+#   https://www.materialsproject.org/materials/mp-4626
 #
 # The VDOS curves were calculated using Phonopy[1] input files from[2] and
 # OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics group.
@@ -13,7 +25,7 @@ NCMAT v4
 #  [1]: "First principles phonon calculations in materials science",
 #        Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)
 #  [2]: Kyoto University database of phonon calculations.
-#       Files for BeF2 (material ID 4626, DB release 2018-04-17) taken from:
+#       Files for CaCO3 (material ID 4626, DB release 2018-04-17) taken from:
 #       http://phonondb.mtl.kyoto-u.ac.jp/ph20180417/d004/mp-4626.html
 #  [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J., "Calculation
 #       of the Thermal Neutron Scattering Cross-Section of Solids Using OCLIMAX".

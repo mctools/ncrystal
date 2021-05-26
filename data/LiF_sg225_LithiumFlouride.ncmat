@@ -1,0 +1,81 @@
+NCMAT v5
+#
+# Lithium Flouride (LiF, cubic, SG-225 / Fm-3m)
+#
+# Under usual conditions this phase exists from 0 to 1118K.
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "Second edition. Interscience Publishers, New York, Rocksalt structure"
+#    Wyckoff, R. W. G. (1963)
+#    Crystallography Open Database entry 9008667
+#    https://www.crystallography.net/cod/9008667.html
+#
+# This crystal structure is also compatible with structure obtained from:
+#
+#   https://www.crystallography.net/cod/1010990
+#   https://www.materialsproject.org/materials/mp-1138
+#
+# The VDOS curves were calculated using Phonopy[1] input files from[2] and
+# OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics group.
+#
+# References:
+#  [1]: "First principles phonon calculations in materials science",
+#        Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)
+#  [2]: Kyoto University database of phonon calculations.
+#       Files for LiF taken from:
+#       http://phonondb.mtl.kyoto-u.ac.jp/ph20180417/d001/mp-1138.html
+#  [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J., "Calculation
+#       of the Thermal Neutron Scattering Cross-Section of Solids Using OCLIMAX".
+#       Journal of Chemical Theory and Computation 2020, 16 (8), 5212-5217.
+#
+@CELL
+  cubic 4.0173
+@SPACEGROUP
+  225
+@ATOMPOSITIONS
+  Li   0   0   0
+  Li   0 1/2 1/2
+  Li 1/2   0 1/2
+  Li 1/2 1/2   0
+  F  1/2 1/2 1/2
+  F  1/2   0   0
+  F    0 1/2   0
+  F    0   0 1/2
+@DYNINFO
+  element  Li
+  fraction 1/2
+  type     vdos
+  vdos_egrid .0219992 .0759974
+  vdos_density .044448 .0476955 .0562181 .0529394 .0587278 .0610891 .0631504
+    .0716374 .0736314 .0808415 .0844479 .0735673 .0649114 .0649549 .0576375
+    .0540434 .0505819 .0379869 .0339801 .0365352 .0322094 .0268665 .0254975
+    .0301637 .030153 .0281713 .0290848 .0284313 .0397727 .115882 .28645 .448046
+    .507994 .474148 .481152 .539624 .619383 .705017 .78443 .909178 1 .963561
+    .889677 .847412 .70081 .508579 .39929 .348436 .323675 .320089 .321439 .31804
+    .285391 .257136 .228126 .195068 .148539 .126728 .105153 .0774576 .0642572
+    .0559139 .0467341 .0411118 .0462027 .0620415 .0744731 .0847426 .100258
+    .117012 .133593 .139775 .13434 .130002 .132635 .129466 .122081 .131834
+    .146654 .150088 .142521 .139604 .154409 .170964 .168755 .169905 .184312
+    .19622 .198891 .216485 .252533 .283743 .329059 .385346 .398933 .354607
+    .268677 .191103 .148194 .130131 .118239 .102459 .0887091 .0779943 .0646837
+    .0460231 .0252162 .00947529 .00217718
+@DYNINFO
+  element  F
+  fraction 1/2
+  type     vdos
+  vdos_egrid .0204993 .0759974
+  vdos_density .152966 .198248 .210969 .200139 .223404 .272858 .273711 .31375
+    .351879 .40498 .515678 .622645 .867316 .989286 .773762 .634685 .649862
+    .572254 .550653 .545268 .463355 .428304 .45604 .422463 .367797 .36243
+    .345112 .33851 .323937 .329612 .332736 .299072 .327341 .310226 .289489
+    .348127 .334765 .3323 .346566 .403597 .520396 .693608 .873709 1 .944484
+    .677499 .45258 .293692 .1867 .147865 .152468 .176969 .223319 .27795 .249557
+    .119907 .0402846 .019647 .0117882 .006777 .00401904 .00231101 .00175771
+    .00301343 .00462446 .00499496 .00484383 .00470061 .00373029 .00437482
+    .00553477 .00523103 .00621433 .00952501 .01225 .0119231 .0110336 .0103644
+    .00961002 .00941767 .0115458 .0152491 .0175156 .0169039 .0150517 .0155761
+    .0180982 .0200376 .0220957 .0243164 .0256459 .0253453 .0288025 .03674
+    .0424569 .0504216 .0618823 .0642015 .053403 .0345176 .018335 .0101929
+    .00685776 .0051439 .00370937 .00249194 .00163292 .000980166 .000485872
+    .000181346 4.60368e-05 7.30861e-06

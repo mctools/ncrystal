@@ -1,0 +1,77 @@
+NCMAT v5
+#
+# Lithium nitride (Li3N, hexagonal, SG-191 / P6/mmm)
+#
+# Under usual conditions this phase exists from 0 to 1000K.
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "Time-of-flight neutron diffraction study of Li3N at
+#     high temperature  Sample: 20 C"
+#    Kawada, I, et al. (1986)
+#    Crystallography Open Database entry 1544904
+#    https://www.crystallography.net/cod/1544904.html
+#
+# This crystal structure is also compatible with structure obtained from:
+#
+#   https://www.crystallography.net/cod/4311893.html
+#   https://www.materialsproject.org/materials/mp-2251
+#
+# The VDOS curves were calculated using Phonopy[1] input files from[2] and
+# OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics group.
+#
+# References:
+#  [1]: "First principles phonon calculations in materials science",
+#        Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)
+#  [2]: Kyoto University database of phonon calculations.
+#       Files for Li3N taken from:
+#       http://phonondb.mtl.kyoto-u.ac.jp/ph20180417/d002/mp-2251.html
+#  [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J., "Calculation
+#       of the Thermal Neutron Scattering Cross-Section of Solids Using OCLIMAX".
+#       Journal of Chemical Theory and Computation 2020, 16 (8), 5212-5217.
+#
+@CELL
+  lengths 3.652 !! 3.866
+  angles 90 90 120
+@SPACEGROUP
+  191
+@ATOMPOSITIONS
+  Li 0 0 1/2
+  Li 1/3 2/3 0
+  Li 2/3 1/3 0
+  N 0 0 0
+@DYNINFO
+  element  Li
+  fraction 3/4
+  type     vdos
+  vdos_egrid .0119996 .0907469
+  vdos_density .15436 .201635 .232853 .251672 .293162 .461975 .702957 .664084
+    .583744 .477908 .601291 .511018 .578969 .683741 .677837 .643368 .587068
+    .39916 .321099 .28541 .272101 .240179 .328029 .319929 .324012 .381745
+    .632282 .525749 .314838 .32986 .441067 .535308 .614745 .703089 .757945
+    .820475 .898428 .795624 .46173 .367319 .344488 .326547 .316066 .302323
+    .346948 .341354 .372607 .391538 .409773 .459491 .466206 .428525 .408619
+    .357809 .357138 .358601 .344407 .332843 .276971 .239686 .21918 .213567
+    .215851 .242062 .254264 .232925 .293419 .384385 .389857 .38484 .314661
+    .176084 .11127 .0790057 .0919102 .111587 .130268 .165662 .226486 .254733
+    .276499 .285527 .299238 .322226 .364728 .430085 .517718 .674432 .818075
+    .75439 .649829 .637845 .667894 .632893 .520531 .430953 .425802 .507331
+    .771167 1 .807762 .480431 .209587 .0514001 .00516757 .000160658
+@DYNINFO
+  element  N
+  fraction 1/4
+  type     vdos
+  vdos_egrid .0119996 .0907469
+  vdos_density .0859244 .107759 .139789 .148314 .155353 .159838 .163036 .187367
+    .15694 .182752 .189824 .202478 .211223 .232111 .25704 .231107 .214641
+    .171206 .164718 .173539 .163613 .159251 .206922 .197023 .195797 .191662
+    .205741 .17167 .128546 .170517 .187932 .164644 .169991 .188414 .211327
+    .228068 .241205 .247877 .218097 .245495 .290445 .33131 .401808 .451035
+    .586774 .682197 .824394 .851589 .917606 1 .911744 .733553 .638126 .550537
+    .479189 .423092 .380971 .390666 .353452 .296411 .2937 .332172 .387553
+    .468407 .468097 .3632 .395394 .520383 .561188 .588828 .531543 .342133
+    .217802 .122489 .0957291 .0896587 .0776486 .0692088 .0726361 .0674895
+    .061408 .0493844 .028245 .0215759 .0237094 .0271818 .0323791 .0380957
+    .0429043 .0487579 .053646 .062508 .0664751 .0599604 .0629801 .0709531
+    .0914835 .163571 .333104 .437308 .284251 .11014 .0333396 .00701901
+    .000675704 2.07773e-05

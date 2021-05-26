@@ -1,0 +1,68 @@
+NCMAT v5
+#
+# Potassium Bromide, (KBr, cubic, SG-225 / Fm-3m)
+#
+# Under usual conditions this phase exists from 0 to 1000K.
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "Second edition. Interscience Publishers, New York, rocksalt structure"
+#    Wyckoff, R. W. G. (1963)
+#    Crystallography Open Database entry 9008650
+#    https://www.crystallography.net/cod/9008650.html
+#
+# This crystal structure is also compatible with structure obtained from
+# https://www.materialsproject.org/materials/mp-23251
+#
+# The VDOS curves were calculated using Phonopy[1] input files from[2] and
+# OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics group.
+#
+# References:
+#  [1]: "First principles phonon calculations in materials science",
+#        Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)
+#  [2]: Kyoto University database of phonon calculations.
+#       Files for KBr taken from:
+#       http://phonondb.mtl.kyoto-u.ac.jp/ph20180417/d023/mp-23251.html
+#  [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J., "Calculation
+#       of the Thermal Neutron Scattering Cross-Section of Solids Using OCLIMAX".
+#       Journal of Chemical Theory and Computation 2020, 16 (8), 5212-5217.
+#
+@CELL
+  cubic 6.6
+@SPACEGROUP
+  225
+@ATOMPOSITIONS
+  K 0 0 0
+  K 0 1/2 1/2
+  K 1/2 0 1/2
+  K 1/2 1/2 0
+  Br 1/2 1/2 1/2
+  Br 1/2 0 0
+  Br 0 1/2 0
+  Br 0 0 1/2
+@DYNINFO
+  element  Br
+  fraction 1/2
+  type     vdos
+  vdos_egrid .00224992 .0179994
+  vdos_density .0602193 .0734317 .0820251 .0961617 .110598 .140693 .177352
+    .207254 .2411 .301194 .378657 .444931 .474513 .484138 .495078 .518505
+    .546242 .563129 .592993 .625516 .667837 .728846 .836546 .982672 1 .737001
+    .445723 .374046 .456882 .549815 .661841 .779275 .773552 .566902 .296251
+    .11236 .0307099 .0122489 .0274575 .0616222 .101085 .138061 .176962 .21933
+    .279756 .390411 .501243 .494687 .370713 .220868 .127744 .0938914 .0736915
+    .0607018 .0637661 .0765206 .0840375 .0753244 .0541989 .0324145 .0164588
+    .00660623 .00183252 .000317044
+@DYNINFO
+  element  K
+  fraction 1/2
+  type     vdos
+  vdos_egrid .00224992 .0179994
+  vdos_density .0203969 .0246615 .0272374 .0315436 .035793 .0448449 .0556141
+    .0638132 .072684 .0887697 .109073 .125166 .129887 .128298 .126417 .126865
+    .127189 .123548 .12179 .11896 .114508 .109103 .103145 .0911901 .0726831
+    .0554076 .0441011 .0425459 .0488218 .0537087 .058283 .0600818 .0504901
+    .0316529 .0149408 .00711457 .0220176 .101578 .248565 .380183 .454509 .499663
+    .557955 .624693 .700469 .844303 1 .983634 .775386 .522575 .405092 .421204
+    .426328 .411952 .43023 .474467 .495002 .450931 .361669 .267239 .177768
+    .0942787 .0345088 .00773543

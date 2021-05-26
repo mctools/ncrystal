@@ -109,72 +109,35 @@ namespace NCrystal {
 
       nc_assert_always(isOneOf(inelas,"none","external","dyninfo","vdosdebye","freegas"));
 
+      //Unofficial hacks in @CUSTOM_UNOFFICIALHACKS section for special hacks
+      //that are needed for various tests, preliminary support of new materials,
+      //or special plugins.
+      auto getUnofficialHack = [&info]( const std::string& keyword ) -> Optional<VectS>
+      {
+        auto n = info.countCustomSections( "UNOFFICIALHACKS" );
+        if ( n == 0 )
+          return NullOpt;
+        if ( n > 1 )
+          NCRYSTAL_THROW(BadInput,"Only one CUSTOM_UNOFFICIALHACKS section is allowed in input.");
+        for ( auto& line : info.getCustomSection("UNOFFICIALHACKS") )
+          if ( line.at(0) == keyword )
+            return VectS(std::next(line.begin()),line.end());
+        return NullOpt;
+      };
+
       //Collect components:
       ProcImpl::ProcComposition::ComponentList components;
 
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-      //Incoherent-elastic component:
+      //Crystals: Incoherent-elastic component:
       if ( cfg.get_incoh_elas() && info.isCrystalline() ) {
         const bool has_msd = info.hasAtomMSD() || ( info.hasTemperature() && info.hasDebyeTemperature() );
         if ( has_msd )
-          components.push_back({1.0,makeSO<ElIncScatter>(ElIncScatter::msd_from_atominfo_t(),info)});
+          components.push_back({1.0,makeSO<ElIncScatter>(info)});
       }
-
-      if ( info.countCustomSections( "SPECIALINCOHELAS" ) > 0 ) {
-        //Special "secret" test code for testing purposes (before we perhaps
-        //decide to make it an official feature). Add @CUSTOM_SPECIALINCOHELAS
-        //section to enable incoherent-elastic treatment in non-crystals.
-        if ( info.countCustomSections( "SPECIALINCOHELAS" ) != 1 )
-          NCRYSTAL_THROW(BadInput,"Only one CUSTOM_SPECIALINCOHELAS section is allowed in input.");
-        bool has_atominfo_msd = info.hasAtomMSD() || ( info.hasTemperature() && info.hasDebyeTemperature() );
-        bool has_dyninfovdos_msd = false;
-        if ( !has_atominfo_msd ) {
-          for ( auto& di : info.getDynamicInfoList() ) {
-            if ( dynamic_cast<const DI_VDOS*>(di.get()) ) {
-              //Allow if even a single VDOS is present (it might for instance be
-              //e.g. H-in-polyethylene where the almost irrelevant C atom is
-              //simply modelled as free gas).
-              has_dyninfovdos_msd = true;
-              break;
-            }
-          }
-        }
-        if (!has_atominfo_msd && !has_dyninfovdos_msd)
-          NCRYSTAL_THROW(BadInput,"Presence of CUSTOM_SPECIALINCOHELAS section requires ability to"
-                         " determine atomic mean squared displacements for all atoms.");
-        if ( info.isCrystalline() )
-          NCRYSTAL_THROW(BadInput,"A @CUSTOM_SPECIALINCOHELAS section can currently only be used when there is otherwise no unit cell information in the input.");
-        if ( cfg.get_incoh_elas() ) {
-          //Decode:
-          //
-          //Syntax is single line with factor (>0.0,<=10.0), followed optionally by the keyword "include_sigma_coh"
-          const auto& cd = info.getCustomSection("SPECIALINCOHELAS");//vector<VectS>
-          if ( cd.size() != 1 )
-            NCRYSTAL_THROW(BadInput,"CUSTOM_SPECIALINCOHELAS section should only have 1 line.");
-          const auto& line = cd.at(0);
-          nc_assert_always(!line.empty());
-          if ( line.empty() || line.size() > 2  )
-            NCRYSTAL_THROW(BadInput,"Bad syntax in CUSTOM_SPECIALINCOHELAS section (too many entries).");
-          double scale_factor;
-          if (!safe_str2dbl( line.at(0), scale_factor ) || !(scale_factor>0.0) || !(scale_factor<=10.0) )
-            NCRYSTAL_THROW(BadInput,"Invalid scale factor in CUSTOM_SPECIALINCOHELAS section. Value should be in interval (0.0,10.0].");
-          bool include_sigma_coh(false);
-          if ( line.size()==2 )  {
-            if ( line.at(1)!="include_sigma_coh" )
-              NCRYSTAL_THROW2(BadInput,"Invalid keyword in CUSTOM_SPECIALINCOHELAS section. Syntax requires either"
-                              " just the scale factor, or a scale factor followed by the keyword \"include_sigma_coh\".");
-            include_sigma_coh = true;
-          }
-          if (has_atominfo_msd)
-            components.push_back({1.0,makeSO<ElIncScatter>(ElIncScatter::msd_from_atominfo_t(),info,scale_factor, include_sigma_coh)});
-          else
-            components.push_back({1.0,makeSO<ElIncScatter>(ElIncScatter::msd_from_dyninfo_t(),info,scale_factor, include_sigma_coh)});
-        }
-      }
-
 
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-      //Coherent-elastic (Bragg) component:
+      //Crystals: Coherent-elastic (Bragg) component:
       if ( cfg.get_coh_elas() && info.isCrystalline() && info.hasHKLInfo() ) {
         if (cfg.isSingleCrystal()) {
           //TODO: factory function somewhere for this, so can be easily created directly in test-code wo matcfg?
@@ -211,6 +174,31 @@ namespace NCrystal {
       }
 
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+      //Amorphous (non-crystal) solids: Incoherent and coherent elastic (via incoh. approximation) component
+      if ( !info.isCrystalline() && info.stateOfMatter() == Info::StateOfMatter::Solid ) {
+        bool add_inc = cfg.get_incoh_elas();
+        bool add_coh = cfg.get_coh_elas();
+        //Unofficial hack disabling the coherent part (for instance so plugins
+        //can create their own coherent elastic based on S(Q)):
+        if ( getUnofficialHack("no_cohelas_via_incohapprox_for_amorphous_solids").has_value() )
+          add_coh = false;
+        //Check if we actually have any way of estimating Debye Waller factors from DynInfo:
+        bool has_dyninfo_debyewaller = false;
+        for ( auto& di : info.getDynamicInfoList() ) {
+          if ( dynamic_cast<const DI_VDOS*>(di.get())||dynamic_cast<const DI_VDOSDebye*>(di.get())) {
+            has_dyninfo_debyewaller = true;
+            break;
+          }
+        }
+        if ( has_dyninfo_debyewaller && ( add_inc || add_coh ) ) {
+          ElIncScatterCfg elinc_cfg;
+          elinc_cfg.use_sigma_incoherent = add_inc;
+          elinc_cfg.use_sigma_coherent = add_coh;
+          components.push_back({1.0,makeSO<ElIncScatter>(info,elinc_cfg)});
+        }
+      }
+
+      ///////////////////////////////////////////////////////////////////////////////////////////////////////////
       //Inelastic components:
       if ( inelas == "none" ) {
 
@@ -238,10 +226,29 @@ namespace NCrystal {
             NCRYSTAL_THROW(BadInput,"inelas=dyninfo does not work for input without specific dynamic information. It is possible that"
                            " other modes might work (try e.g. inelas=auto instead).");
 
+          uint32_t vdos2sabExcludeFlag = 0;
+          auto specialIgnoreContribs = getUnofficialHack("vdos2sab_ignorecontrib");
+          if ( specialIgnoreContribs.has_value() ) {
+            //Parse syntax:  vdos2sab_ignorecontrib low [high] [coherent|incoherent]
+            auto& l = specialIgnoreContribs.value();
+            nc_assert_always(l.size()>=1);
+            unsigned mode = 3;
+            if ( isOneOf(l.back(),"coherent","incoherent") ) {
+              mode = l.back()=="coherent" ? 1 : 2;
+              l.pop_back();
+            }
+            nc_assert_always(l.size()>=1);
+            unsigned low = str2int(l.at(0));
+            unsigned high = l.size()==2 ? str2int(l.at(1)) : low;
+            nc_assert_always(low>=1&&high>=low);
+            nc_assert(high<=9999);
+            vdos2sabExcludeFlag = mode + 4*low + 40000*high;
+          }
+
           for (auto& di : info.getDynamicInfoList()) {
             const DI_ScatKnl* di_scatknl = dynamic_cast<const DI_ScatKnl*>(di.get());
             if (di_scatknl) {
-              components.push_back({di->fraction(),makeSO<SABScatter>(*di_scatknl, cfg.get_vdoslux())});
+              components.push_back({di->fraction(),makeSO<SABScatter>(*di_scatknl, cfg.get_vdoslux(), true, vdos2sabExcludeFlag)});
             } else if (dynamic_cast<const DI_Sterile*>(di.get())) {
               continue;//just skip past sterile components
             } else if (dynamic_cast<const DI_FreeGas*>(di.get())) {
@@ -262,7 +269,7 @@ namespace NCrystal {
           nc_assert_always(inelas=="vdosdebye");
 
           if ( !info.hasDebyeTemperature() )
-            NCRYSTAL_THROW2(BadInput,"inelas="<<inelas<<" mode requires specification of Debye temperature");
+            NCRYSTAL_THROW2(BadInput,"inelas="<<inelas<<" mode requires specification of Debye temperature");//TODO: This should be allowed also for elements with actual VDOS
           if ( !info.isCrystalline() || !info.hasAtomInfo() )
             NCRYSTAL_THROW2(BadInput,"inelas="<<inelas<<" mode requires crystalline material with atomic information");
 

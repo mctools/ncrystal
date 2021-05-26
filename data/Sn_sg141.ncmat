@@ -4,6 +4,7 @@ NCMAT v4
 #
 # Crystal structure converted from the cif file of the entry 0011248 in the AMCSD
 # Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+#                       https://www.crystallography.net/cod/9008570.html
 #
 # The VDOS curve at 300K was extracted by T. Kittelmann using the engauge
 # digitizer software from Figure 4 (solid curve) of:

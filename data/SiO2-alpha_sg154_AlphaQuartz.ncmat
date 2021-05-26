@@ -1,10 +1,26 @@
-NCMAT v4
+NCMAT v5
 #
-# Alpha-Quartz (SiO2)
+# Alpha-Quartz (SiO2, trigonal, SG-154 / P3_221)
 #
-# Crystal structure was converted from the cif file of the entry 0006212 in the AMCSD
-# Additional reference: Antao S M, Hassan I, Wang J, Lee P L, Toby B H, The Canadian
-#                       Mineralogist, vol. 46, p. 1501-1509, 2008.
+# Under usual conditions this phase exists from 0 to 850K.
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "State-of-the-art high-resolution powder x-ray diffraction
+#     (HRPXRD) illustrated with Rietveld structure refinement of
+#     quartz, sodalite,  tremolite, and meionite"
+#    Antao, S. M., et al. (2008)
+#    DOI: https://dx.doi.org/10.3749/canmin.46.5.1501
+#    Crystallography Open Database entry 9013321
+#    https://www.crystallography.net/cod/9013321.html
+#
+# This crystal structure is also compatible with structure obtained from:
+#
+#   https://www.crystallography.net/cod/2100188
+#   https://www.crystallography.net/cod/5000035
+#   https://www.crystallography.net/cod/9000775
+#   https://www.crystallography.net/cod/9005017
+#   https://www.crystallography.net/cod/9010144
 #
 # The VDOS curves were calculated using VASP DFT[1], with Phonopy[2] and
 # OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics group.
@@ -17,26 +33,27 @@ NCMAT v4
 #       of the Thermal Neutron Scattering Cross-Section of Solids Using OCLIMAX".
 #       Journal of Chemical Theory and Computation 2020, 16 (8), 5212-5217.
 #
+#
 @CELL
   lengths 4.913437 !! 5.405118
   angles 90 90 120
 @SPACEGROUP
   154
 @ATOMPOSITIONS
-  Si 0.47   0      2/3
-  Si 0      0.47   1/3
-  Si 0.53   0.53   0
-  O  0.4146 0.2678 0.78543
-  O  0.2678 0.4146 0.21457
-  O  0.7322 0.1468 0.452096666667
-  O  0.5854 0.8532 0.881236666667
-  O  0.8532 0.5854 0.118763333333
-  O  0.1468 0.7322 0.547903333333
+  Si .47 0   2/3
+  Si 0   .47 1/3
+  Si .53 .53 0
+  O .4146 .2678 .78543
+  O .2678 .4146 .21457
+  O .7322 .1468 .45209666666666667
+  O .5854 .8532 .88123666666666667
+  O .8532 .5854 .11876333333333333
+  O .1468 .7322 .54790333333333333
 @DYNINFO
   element  Si
   fraction 1/3
   type     vdos
-  vdos_egrid 0.0095 0.165
+  vdos_egrid .0095 .165
   vdos_density .177028 .24498 .33808 .369121 .31477 .284239 .291603 .282314
     .259883 .1968 .155077 .16577 .209744 .259427 .280949 .262354 .221366 .164319
     .137059 .143932 .186564 .239782 .256911 .232866 .215149 .209122 .185629
@@ -75,7 +92,7 @@ NCMAT v4
   element  O
   fraction 2/3
   type     vdos
-  vdos_egrid 0.0095 0.165
+  vdos_egrid .0095 .165
   vdos_density .170093 .244495 .341224 .370208 .307669 .270156 .271434 .25857
     .241815 .191117 .160812 .193555 .27977 .362832 .3836 .358887 .325159 .278865
     .256758 .247784 .274594 .317016 .316676 .272155 .243127 .235911 .212226

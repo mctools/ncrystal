@@ -1,0 +1,74 @@
+NCMAT v5
+#
+# Sodium Bromide (NaBr, cubic, SG-225 / Fm-3m)
+#
+# Under usual conditions this phase exists from 0 to 1020K.
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "Second edition. Interscience Publishers, New York, Rocksalt structure"
+#    Wyckoff, R. W. G. (1963)
+#    Crystallography Open Database entry 9008677
+#    https://www.crystallography.net/cod/9008677.html
+#
+# This crystal structure is also compatible with structure obtained from
+# https://www.materialsproject.org/materials/mp-22916
+#
+# The VDOS curves were calculated using Phonopy[1] input files from[2] and
+# OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics group.
+#
+# References:
+#  [1]: "First principles phonon calculations in materials science",
+#        Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)
+#  [2]: Kyoto University database of phonon calculations.
+#       Files for NaBr taken from:
+#       http://phonondb.mtl.kyoto-u.ac.jp/ph20180417/d022/mp-22916.html
+#  [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J., "Calculation
+#       of the Thermal Neutron Scattering Cross-Section of Solids Using OCLIMAX".
+#       Journal of Chemical Theory and Computation 2020, 16 (8), 5212-5217.
+#
+@CELL
+  cubic 5.97324
+@SPACEGROUP
+  225
+@ATOMPOSITIONS
+  Na 0 0 0
+  Na 0 1/2 1/2
+  Na 1/2 0 1/2
+  Na 1/2 1/2 0
+  Br 1/2 1/2 1/2
+  Br 1/2 0 0
+  Br 0 1/2 0
+  Br 0 0 1/2
+@DYNINFO
+  element  Br
+  fraction 1/2
+  type     vdos
+  vdos_egrid .00424985 .0249991
+  vdos_density .125861 .136931 .147997 .178185 .217007 .248615 .290055 .349578
+    .429821 .524098 .582058 .607675 .625924 .655729 .7104 .784341 .871734
+    .958644 1 .952838 .822822 .644401 .458431 .329159 .295782 .323169 .362643
+    .402251 .469001 .594711 .756176 .845539 .733871 .495025 .261612 .102085
+    .0271945 .00441117 .00037758 1.51354e-05 2.67102e-07 2.2318e-07 8.76488e-06
+    .000165604 .00157904 .00825164 .0260521 .0552456 .0892441 .128686 .193335
+    .292441 .365013 .345411 .266349 .181577 .112756 .0691212 .0488297 .0387013
+    .0306718 .0249444 .0218223 .0207086 .0211015 .0228886 .0253669 .026934
+    .0265643 .0249949 .0228288 .0193125 .0148138 .010885 .00805145 .00592317
+    .00417209 .00272529 .00164871 .000907687 .000415455 .000142371 3.38967e-05
+    5.29519e-06
+@DYNINFO
+  element  Na
+  fraction 1/2
+  type     vdos
+  vdos_egrid .00424985 .0249991
+  vdos_density .019838 .0213591 .0227757 .0270167 .0325422 .0367999 .0421818
+    .0502285 .0613508 .0735765 .0786693 .0778028 .0747607 .0717635 .0699958
+    .0679428 .0628687 .0540941 .045925 .0440714 .0434673 .0375073 .0290798
+    .024124 .0239223 .0250751 .0255186 .0256359 .0264195 .0287922 .0311161
+    .0291536 .0207245 .0111634 .00470395 .00142908 .000278488 3.2039e-05
+    2.06078e-06 6.95765e-08 7.86834e-08 6.53796e-06 .000249629 .00438031 .036386
+    .151566 .349773 .51741 .587045 .61837 .710768 .888914 1 .901381 .682942
+    .468075 .300091 .200806 .169644 .169471 .170462 .171092 .177262 .188693
+    .202822 .221372 .242803 .259033 .264181 .261449 .250517 .224893 .190828
+    .159803 .135566 .117496 .100952 .0837918 .06789 .0510392 .0316429 .0144151
+    .00437814 .000821498

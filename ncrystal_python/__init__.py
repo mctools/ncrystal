@@ -52,7 +52,7 @@ For detailed usage conditions and licensing of this open source project, see:
 ################################################################################
 
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
-__version__ = '2.6.1'
+__version__ = '2.7.0'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
 __copyright__ = "Copyright 2015-2021 %s"%__author__
@@ -83,6 +83,7 @@ import os
 import copy
 import ctypes
 import weakref
+import enum
 
 ###################################
 #Convert cstr<->str:
@@ -324,6 +325,7 @@ def _load(nclib_filename):
 
     for s in ('temperature','xsectabsorption','xsectfree','density','numberdensity'):
         _wrap('ncrystal_info_get%s'%s,_dbl,(ncrystal_info_t,))
+    _wrap('ncrystal_info_getstateofmatter',_int,( ncrystal_info_t,))
     _raw_info_getstruct = _wrap('ncrystal_info_getstructure',_int,(ncrystal_info_t,_uintp,_dblp,_dblp,_dblp,_dblp,_dblp,_dblp,_dblp,_uintp))
     def ncrystal_info_getstructure(nfo):
         sg,natom=_uint(),_uint()
@@ -381,6 +383,13 @@ def _load(nclib_filename):
     functions['ncrystal_dyninfo_extract_vdosdebye'] = ncrystal_dyninfo_extract_vdosdebye
     functions['ncrystal_dyninfo_extract_vdos_input'] = ncrystal_dyninfo_extract_vdos_input
 
+    _raw_vdoseval = _wrap('ncrystal_vdoseval',None,(_dbl,_dbl,_uint,_dblp,_dbl,_dbl,_dblp,_dblp,_dblp,_dblp,_dblp),hide=True)
+    def nc_vdoseval(emin,emax,density,temp,mass_amu):
+        msd,dt,g0,teff,oint=_dbl(),_dbl(),_dbl(),_dbl(),_dbl()
+        _raw_vdoseval(emin,emax,len(density),ndarray_to_dblp(density),temp,mass_amu,
+                      msd,dt,g0,teff,oint)
+        return dict(msd=msd.value,debye_temp=dt.value,gamma0=g0.value,teff=teff.value,integral=oint.value)
+    functions['nc_vdoseval']=nc_vdoseval
 
     _wrap('ncrystal_info_ncomponents',_uint,(ncrystal_info_t,))
     _raw_info_getcomp=_wrap('ncrystal_info_getcomponent',None,(ncrystal_info_t,_uint,_uintp,_dblp),hide=True)
@@ -874,6 +883,14 @@ class AtomData(RCBase):
         descr=self.description()
         return '%s=%s'%(self.__dl,descr) if self.__dl else descr
 
+class StateOfMatter(enum.Enum):
+    """State of matter. Note that Solid's might be either amorphous or crystalline."""
+    #NB: List here must be synchronized with list and values in NCInfo.hh:
+    Unknown = 0
+    Solid = 1
+    Gas = 2
+    Liquid = 3
+
 class Info(RCBase):
     """Class representing information about a given material"""
     def __init__(self, cfgstr):
@@ -889,6 +906,7 @@ class Info(RCBase):
         self.__custom=None
         self.__atomdatas=[]
         self.__comp=None
+        self._som=None
 
     def _initComp(self):
         assert self.__comp is None
@@ -898,6 +916,22 @@ class Info(RCBase):
             atomidx,fraction = _rawfct['ncrystal_info_getcomp'](self._rawobj,icomp)
             self.__comp += [(fraction,self._provideAtomData(atomidx))]
         return self.__comp
+
+    def stateOfMatter(self):
+        """State of matter, i.e. Solid, Liquid, Gas, ... as per the options in the
+        StateOfMatter class. Note that the .isCrystalline() method can be used
+        to additionally distinguish between amorphous and crystalline
+        solids. Return value is an enum object, whose .name() method can be used
+        in case a string value is desired.
+        """
+        if self._som is None:
+            self._som = StateOfMatter(_rawfct['ncrystal_info_getstateofmatter'](self._rawobj))
+        return self._som
+
+    def isCrystalline(self):
+        """Whether or not object is crystalline (i.e. has unit cell structure or list of
+        reflection planes)."""
+        return self.hasStructureInfo() or self.hasAtomInfo() or self.hasHKLInfo()
 
     def hasComposition(self):
         """Whether basic composition is available."""
@@ -1372,6 +1406,11 @@ class Info(RCBase):
             """Converts VDOS to S(alpha,beta) kernel with a luxury level given by the vdoslux parameter."""
             return self._loadKernel(vdoslux=vdoslux)
 
+        def analyseVDOS(self):
+            """Same as running the global analyseVDOS function on the contained VDOS."""
+            return analyseVDOS(*self.vdos_egrid,self.vdos_density,
+                               self.temperature,self.atomData.averageMassAMU())
+
     class DI_VDOSDebye(DI_ScatKnl):
         """Similarly to DI_VDOS, but instead of using a phonon VDOS spectrum provided
            externally, an idealised spectrum is used for lack of better
@@ -1505,7 +1544,7 @@ class Process(CalcBase):
     def crossSection( self, ekin, direction ):
         """Access cross sections."""
         return _rawfct['ncrystal_crosssection'](self._rawobj,ekin, direction)
-    def crossSectionNonOriented( self, ekin, repeat = None ):
+    def crossSectionIsotropic( self, ekin, repeat = None ):
         """Access cross sections (should not be called for oriented processes).
 
         For efficiency it is possible to provide the ekin parameter as a numpy
@@ -1516,6 +1555,9 @@ class Process(CalcBase):
 
         """
         return _rawfct['ncrystal_crosssection_nonoriented'](self._rawobj,ekin,repeat)
+
+    #Backwards compatible alias:
+    crossSectionNonOriented = crossSectionIsotropic
 
     def xsect(self,ekin=None,direction=None,wl=None,repeat=None):
         """Convenience function which redirects calls to either crossSectionNonOriented
@@ -1758,6 +1800,9 @@ def directMultiCreate( data, cfg_params='', *, dtype='',
        and is intended for scenarios where the same data should not be used
        repeatedly.
     """
+    if isinstance(data,TextData):
+        _localkeepalive = data
+        data = data.rawData
     if not dtype and not data.startswith('NCMAT') and 'NCMAT' in data:
         if data.strip().startswith('NCMAT'):
             raise NCBadInput('NCMAT data must have "NCMAT" as the first 5 characters (must not be preceded by whitespace)')
@@ -1850,35 +1895,42 @@ def formatVectorForNCMAT(name,values):
        with word-wrapping, usage of <val>r<n> syntax, etc. Returns list of lines
        (strings) for .ncmat files.
     """
-
-    v,res,l,indent,efmt_prev,efmt_nrepeat=values.flatten(),'  %s'%name,'','',None,0
-    if not len(v):
-        return res
-    ilast,nv=len(v)-1,len(v)
-    def _fmtnum(num):
-        _ = '%g'%num if num else '0'#avoid 0.0, -0, etc.
-        if _.startswith('0.'):
-            _=_[1:]
-        return _
-    i=0
-    while i<nv:
-        fmt_vi=_fmtnum(v[i])
-        #check if is repeated:
-        irepeat=i
-        while irepeat+1<nv:
-            if _fmtnum(v[irepeat+1])==fmt_vi:
-                irepeat+=1
-            else:
-                break
-        #Write:
-        s = ' %sr%i'%(fmt_vi,1+irepeat-i) if irepeat>i else ' %s'%fmt_vi
-        l+=(s if l else (indent+s))
-        i=irepeat+1#advance
-        if i>=nv or len(l)>80:
-            #Flush line
-            res += '%s\n'%l
-            l,indent='',' '
-    return res
+    def provideFormattedEntries():
+        def _fmtnum(num):
+            _ = '%g'%num if num else '0'#avoid 0.0, -0, etc.
+            if _.startswith('0.'):
+                _=_[1:]
+            return _
+        i=0
+        v=values.flatten()
+        nv=len(v)
+        while i<nv:
+            fmt_vi=_fmtnum(v[i])
+            #check if is repeated:
+            irepeat=i
+            while irepeat+1<nv:
+                if _fmtnum(v[irepeat+1])==fmt_vi:
+                    irepeat+=1
+                else:
+                    break
+            yield '%sr%i'%(fmt_vi,1+irepeat-i) if irepeat>i else '%s'%fmt_vi
+            i=irepeat+1#advance
+    out=''
+    line='  %s'%name
+    collim=80
+    for e in provideFormattedEntries():
+        snext=' %s'%e
+        line_next=line+snext
+        if len(line_next)>collim:
+            out += line
+            out += '\n'
+            line = '   '+snext
+        else:
+            line = line_next
+    if line:
+        out += line
+        out += '\n'
+    return out
 
 #Accept custom random generator:
 def setDefaultRandomGenerator(rg, keepalive=True):
@@ -2246,6 +2298,16 @@ def debyeTempFromIsotropicMSD( *, msd, temperature, mass ):
        mean-squared-displacement.
     """
     return float(_rawfct['ncrystal_msd2debyetemp'](msd, temperature, mass))
+
+def analyseVDOS(emin,emax,density,temperature,atom_mass_amu):
+    """Analyse VDOS curve to extract mean-squared-displacements, Debye temperature,
+    effective temperature, gamma0 and integral. Input VDOS must be defined via
+    an array of density values, over an equidistant energy grid over [emin,emax]
+    (in eV). Additionally, it is required that emin>0, and a parabolic trend
+    towards (0,0) will be assumed for energies in [0,emin]. Units are kelvin and
+    eV where appropriate.
+    """
+    return _rawfct['nc_vdoseval'](emin,emax,density,temperature,atom_mass_amu)
 
 def test():
     """Quick test that NCrystal works as expected in the current installation."""

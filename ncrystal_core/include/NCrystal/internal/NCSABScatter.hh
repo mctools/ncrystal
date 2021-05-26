@@ -47,8 +47,13 @@ namespace NCrystal {
     //multiple SABScatter instances based on the same input object will avoid
     //duplicated resource consumption.
     //
-    //The vdoslux parameter has no effect if input is not a VDOS.
-    SABScatter( const DI_ScatKnl&, unsigned vdoslux = 3, bool useCache = true );
+    //The vdoslux parameter has no effect if input is not a VDOS. The same goes
+    //for the special vdos2sabExcludeFlag parameter (the meaning of which is
+    //documented in NCDynInfoUtils.hh).
+    SABScatter( const DI_ScatKnl&,
+                unsigned vdoslux = 3,
+                bool useCache = true,
+                uint32_t vdos2sabExcludeFlag = 0 );
     SABScatter( SABData &&,
                 const VectD& energyGrid = VectD() );
     SABScatter( shared_obj<const SABData>,

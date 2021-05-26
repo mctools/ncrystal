@@ -1,0 +1,81 @@
+NCMAT v5
+#
+# Zinc Flouride (ZnF2, tetragonal, SG-136 / P4_2/mnm)
+#
+# Valid temperatures for this structure are 0 to 1145 K.
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "Rutile-type compounds. IV.  SiO2, GeO2 and a comparison
+#     with other rutile-type structures"
+#    Baur, W. H. and Khan, A. A. (1971)
+#    DOI: https://dx.doi.org/10.1107/S0567740871005466
+#    Crystallography Open Database entry 9007539
+#    https://www.crystallography.net/cod/9007539.html
+#
+# This crystal structure is also compatible with structure obtained from
+# https://www.materialsproject.org/materials/mp-1873
+#
+# The VDOS curves were calculated using Phonopy[1] input files from[2] and
+# OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics group.
+#
+# References:
+#  [1]: "First principles phonon calculations in materials science",
+#        Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)
+#  [2]: Kyoto University database of phonon calculations.
+#       Files for ZnF2 taken from:
+#       http://phonondb.mtl.kyoto-u.ac.jp/ph20180417/d001/mp-1873.html
+#  [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J., "Calculation
+#       of the Thermal Neutron Scattering Cross-Section of Solids Using OCLIMAX".
+#       Journal of Chemical Theory and Computation 2020, 16 (8), 5212-5217.
+#
+@CELL
+  lengths 4.7048 !! 3.1338
+  angles 90 90 90
+@SPACEGROUP
+  136
+@ATOMPOSITIONS
+  Zn 0 0 0
+  Zn 1/2 1/2 1/2
+  F .3024 .3024 0
+  F .6976 .6976 0
+  F .8024 .1976 1/2
+  F .1976 .8024 1/2
+@DYNINFO
+  element  F
+  fraction 2/3
+  type     vdos
+  vdos_egrid .00649978 .0649978
+  vdos_density .0295314 .0424052 .0557861 .0615352 .0901354 .0998271 .144072
+    .170745 .185617 .196657 .211591 .205523 .220358 .239515 .220093 .213997
+    .246356 .260465 .24496 .22814 .219913 .170806 .203791 .610019 1 .766893
+    .573194 .556391 .485352 .392099 .371037 .361395 .322795 .282141 .244762
+    .190952 .124493 .105425 .100985 .0890894 .0889346 .0940935 .111884 .109511
+    .112292 .128015 .197366 .349755 .353624 .321482 .245042 .201545 .187503
+    .183202 .234488 .345005 .413728 .346922 .28284 .246436 .223906 .257012
+    .370303 .434299 .407081 .357095 .334265 .334895 .372203 .386235 .389263
+    .422644 .466879 .423659 .329939 .263121 .228629 .201567 .22357 .302589
+    .425223 .46911 .40108 .283003 .232312 .212509 .191856 .175778 .168553
+    .178725 .174528 .15279 .130163 .0974132 .0761384 .0810494 .119903 .170861
+    .213152 .244926 .280556 .323904 .375512 .416397 .393786 .305504 .234213
+    .195824 .169758 .153526 .140461 .136382 .132853 .122723 .0946014 .047841
+    .0135686 .00204184
+@DYNINFO
+  element  Zn
+  fraction 1/3
+  type     vdos
+  vdos_egrid .00699976 .0649978
+  vdos_density .146152 .233239 .302347 .406705 .508547 .728269 .893718 .985302 1
+    .970882 .879726 .947685 .74102 .444023 .368683 .405482 .506362 .579609
+    .673027 .572178 .505052 .476756 .659898 .822434 .683182 .613317 .621804
+    .560605 .486268 .486028 .570776 .536735 .505625 .476731 .337325 .269272
+    .346151 .384089 .341482 .381518 .431152 .572896 .556491 .553741 .641504
+    .654367 .663756 .659886 .594597 .488701 .368079 .268576 .195687 .195237
+    .288778 .34241 .243227 .153199 .106657 .0831288 .100512 .17026 .213829
+    .193928 .154462 .137456 .142368 .15226 .144037 .131907 .134533 .143527
+    .13149 .106187 .0879507 .072594 .0622164 .0698945 .104907 .155837 .162778
+    .13064 .0898375 .073262 .0670727 .059621 .052341 .0495542 .0531579 .0473171
+    .0383584 .0342136 .0291467 .0270595 .030164 .0413808 .0535067 .0594255
+    .0609606 .0622386 .0634521 .0632159 .0609706 .0535719 .0414156 .0325844
+    .0273967 .023564 .0211077 .0193857 .0181968 .0171725 .0164234 .0136049
+    .00740512 .00226479 .000366042

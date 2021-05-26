@@ -1,0 +1,84 @@
+NCMAT v5
+#
+# Polymethyl-methacrylate (PMMA).
+#
+# Also known as Acrylic (glass), Plexiglass, or Lucite.
+#
+# The chemical composition and density value is widely known and quoted across
+# many sources, providing consistent information, with quoted densities ranging
+# from 1.17-1.20 g/cm3.
+#
+# Considering only scattering lengths and chemical composition, incoherent
+# scattering on hydrogen accounts for 92.7% of the scattering physics in this
+# material. This number is important since the physics modelling based on the
+# present file will be most accurate for incoherent hydrogen scattering.
+#
+# The hydrogen VDOS was extracted from tsl-HinC5O2H8.leapr from ENDF/B-VIII.0,
+# which had the following comments concerning the origin:
+#
+#  --->  H(Lucite) LEIP LAB   EVAL-SEP17 Petersen, Zhu, Wormald, Hawari
+#  --->
+#  ---> This library was produced by the Low Energy Interaction Physics
+#  ---> (LEIP) group at North Carolina State University.  One temperature
+#  ---> (300 K) is available in this library.  The inelastic scattering
+#  ---> cross section libraries for C5O2H8 (Lucite) were developed using
+#  ---> molecular dynamics methods [1]. This material is a polymer. The
+#  ---> incoherent elastic cross section is significant, so the MT = 2
+#  ---> section for elastic scattering is present. The LEAPR module from
+#  ---> NJOY code system was used to produce MT = 2 and MT = 4 data. By
+#  ---> convention, MAT=39 and ZA=139 are used for H in Lucite.
+#  --->
+#  --->  References
+#  --->  1. A.I. Hawari, "Modern Techniques in Inelastic Thermal Neutron
+#  --->     Scattering Analysis," Nuclear Data Sheets 118 (2014) 172.
+#
+# As a cross-check, it was verified that generating an NCMAT file with
+# ncrystal_hfg2ncmat --spec=2xCH3+1xCH2 --formula=C5O2H8 results in reasonably
+# similar scattering cross sections (although not exactly identical).
+#
+# Finally, oxygen and carbon are simply modelled using a Debye model VDOS, with
+# a typical (and untuned) Debye temperature value.
+#
+@STATEOFMATTER
+  solid
+@DENSITY
+  1.18 g_per_cm3
+@DYNINFO
+  element C
+  fraction 5/15
+  type vdosdebye
+  debye_temp 400.0
+@DYNINFO
+  element O
+  fraction 2/15
+  type vdosdebye
+  debye_temp 400.0
+@DYNINFO
+  element  H
+  fraction 8/15
+  type     vdos
+  vdos_egrid 0.00248233 0.45674872
+  vdos_density .0320526 .0523842 .0589341 .0556925 .0482712 .04604 .0488577
+    .0555998 .0681023 .0873125 .10404 .10505 .0960022 .0833572 .0792042 .0795941
+    .0703918 .0586601 .048551 .0444327 .0428836 .0406001 .034804 .03126 .0323898
+    .0318059 .0262885 .0189452 .0145184 .0130911 .0128814 .00911313 .00487015
+    .00479178 .0100184 .023988 .0209993 .0172226 .0108761 .0249876 .0435499
+    .058841 .0485414 .0264677 .0153746 .0269481 .0478941 .0608041 .0418187
+    .0993624 .255398 .096384 .0728214 .303841 .117381 .0974911 .0787343 .0315088
+    .0167896 .0521171 .0658746 .0655566 .0605295 .0621738 .0519052 .0406029
+    .0431916 .0469361 .0472763 .0414252 .0236682 .025075 .0322837 .03718 .018915
+    .00920446 .0093339 .0125479 .0225788 .0632754 .131141 .437127 .734922
+    .449283 .222467 .11251 .0777223 .0417637 .0240818 .0160283 .0113089
+    .00903573 .00814369 .00728443 .00565555 .00489153 .00498008 .00456859
+    .00451012 .0059822 .00413731 .00371101 .00399916 .00337841 .00249342
+    .00218826 .00246006 .00279368 .00217899 .00171631 .00161161 .00146348
+    .00123083 .000992606 .000804012 .000712973 .000715503 .00075871 .000773826
+    .000816972 .000897173 .000992781 .0011496 .00133758 .00140328 .00140369
+    .00141019 .00152732 .00177625 .0021264 .00249258 .00301538 .00417188
+    .00513791 .0065149 .00899207 .00795198 .00687606 .00630146 .00630002
+    .00677173 .00778384 .0097658 .0125019 .0161224 .0242558 .0878632 .430443
+    .0826172 .205694 .111887 .0571586 .10344 1 .300374 .0901556 .0344012
+    .0175012 .010123 .00660921 .00504236 .0042972 .00439909 .00475078 .00437341
+    .00413259 .00319848 .00226504 .00172641 .00136454 .00105544 .00083938
+    .000666021 .000543167 .000451593 .000373434 .000303038 .000250254 .000212185
+    .000179495 .000147053 .000122171 .000102832 8.71184e-05

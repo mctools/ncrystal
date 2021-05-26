@@ -1,0 +1,79 @@
+NCMAT v5
+#
+# Lanthanum bromide (LaBr3, hexagonal, SG-176 / P6_3/m)
+#
+# Under usual conditions this phase exists from 0 to 1056K.
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "Three bromides of lanthanum: La Br2, La2 Br5, and La Br3"
+#    Kraemer, K., et al. (1989)
+#    Crystallography Open Database entry 1540318
+#    https://www.crystallography.net/cod/1540318.html
+#
+# This crystal structure is also compatible with structure obtained from
+# https://www.materialsproject.org/materials/mp-23263
+#
+# The VDOS curves were calculated using Phonopy[1] input files from[2] and
+# OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics group.
+#
+# References:
+#  [1]: "First principles phonon calculations in materials science",
+#        Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)
+#  [2]: Kyoto University database of phonon calculations.
+#       Files for LaBr3 taken from:
+#       http://phonondb.mtl.kyoto-u.ac.jp/ph20180417/d023/mp-23263.html
+#  [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J., "Calculation
+#       of the Thermal Neutron Scattering Cross-Section of Solids Using OCLIMAX".
+#       Journal of Chemical Theory and Computation 2020, 16 (8), 5212-5217.
+#
+@CELL
+  lengths 7.9648 !! 4.5119
+  angles 90 90 120
+@SPACEGROUP
+  176
+@ATOMPOSITIONS
+  La 1/3 2/3 1/4
+  La 2/3 1/3 3/4
+  Br .38506 .29878 1/4
+  Br .08628 .38506 3/4
+  Br .70122 .08628 1/4
+  Br .61494 .70122 3/4
+  Br .91372 .61494 1/4
+  Br .29878 .91372 3/4
+@DYNINFO
+  element  Br
+  fraction 3/4
+  type     vdos
+  vdos_egrid .00259991 .0239992
+  vdos_density .0342314 .0416446 .0500927 .0609711 .0734044 .0827832 .0892075
+    .0997265 .1138 .123082 .130767 .143095 .156027 .168259 .180051 .180105
+    .173577 .179718 .1923 .201825 .209495 .222461 .251922 .305868 .378112 .44988
+    .487358 .460827 .390404 .319781 .28098 .290261 .335147 .384291 .418564
+    .421849 .405676 .435436 .526158 .612257 .646811 .632825 .591795 .549137
+    .526971 .547712 .611691 .686133 .761189 .845346 .912907 .943681 .946788
+    .916835 .848745 .777528 .73851 .730418 .753645 .810855 .880321 .946414
+    .996898 1 .943775 .844779 .730397 .645276 .613833 .621892 .662424 .743495
+    .853765 .949377 .970327 .883806 .722604 .553881 .416287 .313048 .241247
+    .202528 .192751 .198908 .209588 .220537 .232409 .242272 .239332 .2175
+    .183797 .147874 .113625 .0825847 .0570763 .0387629 .027001 .0197274 .0151477
+    .0119714 .00916474 .00629749 .00365633 .00171634 .000627363 .000172473
+    3.45872e-05 4.93497e-06
+@DYNINFO
+  element  La
+  fraction 1/4
+  type     vdos
+  vdos_egrid .00259991 .0239992
+  vdos_density .0588728 .0719587 .0871884 .106956 .129287 .146009 .157836
+    .177239 .202782 .219961 .234874 .257927 .281215 .301745 .319878 .318443
+    .308691 .324153 .3537 .381886 .411357 .45173 .5226 .638128 .781143 .919633 1
+    .955069 .807259 .645447 .536037 .495841 .492367 .483866 .463953 .424407
+    .354611 .29569 .284686 .306516 .324949 .322229 .314072 .315646 .317741
+    .315376 .311797 .305544 .304529 .320601 .352837 .395259 .435798 .448864
+    .422051 .38174 .356046 .337791 .320418 .321658 .350689 .394093 .427507
+    .431882 .412809 .395704 .409515 .470959 .560898 .641153 .701917 .756587
+    .804757 .826267 .799787 .722037 .614103 .505362 .416137 .358775 .339295
+    .353792 .388025 .424842 .453915 .476636 .506253 .544898 .56444 .538603
+    .475629 .399334 .323172 .251723 .189409 .14057 .105426 .0808911 .0639903
+    .051592 .0400806 .0278496 .0163072 .00770241 .00282721 .000779266 .000156506
+    2.23488e-05

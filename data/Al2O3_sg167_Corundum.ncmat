@@ -1,12 +1,26 @@
 NCMAT v4
-#Corundum (alpha alumina)
 #
-#Crystal structure was converted from the cif file of the entry 0009327 in the AMCSD.
-#Additional reference: Kirfel A, Eichhorn K, Acta Crystallographica, Section A,
-#                      vol. 46, p. 271-284, 1990.
+# Corundum (alpha alumina, alpha-Al2O3, trigonal, SG-167 / R-3c)
 #
-#The VDOS curves were extracted by T. Kittelmann using the engauge digitizer
-#software from Figure 5 of:
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "Accurate structure analysis with synchrotron radiation.
+#     The electron density in Al2O3 and Cu2O"
+#    Kirfel, A. and Eichhorn, K. (1990)
+#    DOI: https://dx.doi.org/10.1107/S0108767389012596
+#    Crystallography Open Database entry 9007498
+#    https://www.crystallography.net/cod/9007498.html
+#
+# This crystal structure is also compatible with structure obtained from:
+#
+#    https://www.crystallography.net/cod/2300448.html
+#    https://www.crystallography.net/cod/2101056.html
+#    https://www.crystallography.net/cod/9007496.html
+#    https://www.crystallography.net/cod/9007634.html
+#    https://www.crystallography.net/cod/9008081.html
+#
+# The VDOS curves were extracted by T. Kittelmann using the engauge digitizer
+# software from Figure 5 of:
 #
 #   "Dynamical stability of the alpha and theta phases of alumina"
 #   Lodziana, Z., & Parlinski, K. (2003).
@@ -19,30 +33,30 @@ NCMAT v4
 @SPACEGROUP
   167
 @ATOMPOSITIONS
-  Al 1/3     2/3     0.018846666666666667
-  Al 2/3     1/3     0.185513333333333333
-  Al 0       0       0.14782
-  Al 1/3     2/3     0.314486666666666667
+  Al 1/3 2/3 .018846666666666667
+  Al 2/3 1/3 .185513333333333333
+  Al 0   0   .14782
+  Al 1/3 2/3 .314486666666666667
+  Al 0   0   .35218
+  Al 1/3 2/3 .518846666666666667
+  Al 2/3 1/3 .481153333333333333
+  Al 0   0   .64782
+  Al 2/3 1/3 .685513333333333333
+  Al 0   0   .85218
+  Al 1/3 2/3 .814486666666666667
+  Al 2/3 1/3 .981153333333333333
   O  0.30625 0       1/4
   O  467/480 307/480 1/12
   O  0       0.30625 1/4
   O  173/480 1/3     1/12
   O  0.69375 0.69375 1/4
   O  2/3     13/480  1/12
-  Al 0       0       0.35218
-  Al 1/3     2/3     0.518846666666666667
-  Al 2/3     1/3     0.481153333333333333
-  Al 0       0       0.64782
   O  467/480 1/3     7/12
   O  307/480 467/480 5/12
   O  2/3     307/480 7/12
   O  13/480  2/3     5/12
   O  173/480 13/480  7/12
   O  1/3     173/480 5/12
-  Al 2/3     1/3     0.685513333333333333
-  Al 0       0       0.85218
-  Al 1/3     2/3     0.814486666666666667
-  Al 2/3     1/3     0.981153333333333333
   O  307/480 2/3     11/12
   O  0.30625 0.30625 3/4
   O  1/3     467/480 11/12

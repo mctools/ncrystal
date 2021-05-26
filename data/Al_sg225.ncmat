@@ -1,8 +1,22 @@
-NCMAT v4
-# Aluminium.
+NCMAT v5
 #
-# Crystal structure was converted from the cif file of the entry 0011136 in the AMCSD.
-# Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+# Aluminium (Al, fcc, cubic, SG-225 / Fm-3m)
+#
+# Under usual conditions this phase exists from 0 to 933K.
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "Second edition. Interscience Publishers,
+#     New York, Cubic closest packed, ccp, structure"
+#    Wyckoff R W G (1963)
+#    Crystallography Open Database entry 9008460
+#    https://www.crystallography.net/cod/9008460.html
+#
+# This crystal structure is also compatible with structure obtained from:
+#
+#   https://www.crystallography.net/cod/9012428.html
+#   https://www.crystallography.net/cod/9011602.html
+#   https://www.crystallography.net/cod/9012002.html
 #
 # The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
 # software from Figure 1 of:
@@ -12,19 +26,19 @@ NCMAT v4
 #    https://doi.org/10.1016/j.scriptamat.2015.07.021
 #
 @CELL
- cubic 4.04958
+  cubic 4.04958
 @SPACEGROUP
   225
 @ATOMPOSITIONS
-  Al 0   1/2 1/2
-  Al 0     0   0
+  Al   0 1/2 1/2
+  Al   0   0   0
   Al 1/2 1/2   0
   Al 1/2   0 1/2
 @DYNINFO
   element  Al
   fraction 1
   type     vdos
-  vdos_egrid .0048501456072871 .039822248144042
+  vdos_egrid .00485015 .0398222
   vdos_density .013232 .0141193 .0150065 .0158938 .0167811 .0176684 .0185557
     .0195536 .020725 .0218964 .0230678 .0242392 .0254106 .0265808 .027748
     .0289152 .0300825 .0312497 .032417 .0338129 .0352559 .0366988 .0381418

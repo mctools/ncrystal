@@ -1,0 +1,56 @@
+NCMAT v5
+#
+# Potassium (K, cubic, SG-229 / Im-3m)
+#
+# Under usual conditions this phase exists from 0 to 330K.
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "Second edition. Interscience Publishers, New York,
+#     Sample at T = 78 K  Body centered cubic, bcc, structure"
+#    Wyckoff, R. W. G. (1963)
+#    Crystallography Open Database entry 9008540
+#    https://www.crystallography.net/cod/9008540.html
+#
+# This crystal structure is also compatible with structure obtained from:
+#
+#    https://www.crystallography.net/cod/9011007.html 
+#    https://www.crystallography.net/cod/9011970.html
+#    https://materialsproject.org/materials/mp-58
+#
+# VDOS curve was taken from:
+#
+#   Landolt-B"ornstein - Group III Condensed Matter, Volume 13A 1981
+#   Metals: Phonon States. Electron States and Fermi Surfaces * Phonon
+#   States of Elements. Electron States and Fermi Surfaces of Alloys
+#   Editors: K.-H. Hellwege, J. L. Olsen
+#   ISBN: 978-3-540-09774-7 (Print) 978-3-540-38957-6 (Online)
+#   DOI: 10.1007/b19988
+#
+@CELL
+  cubic 5.247
+@SPACEGROUP
+  229
+@ATOMPOSITIONS
+  K 0 0 0
+  K 1/2 1/2 1/2
+@DYNINFO
+  element  K
+  fraction 1
+  type     vdos
+  vdos_egrid .0006464 .00998329
+  vdos_density .00432642 .00573373 .00707023 .00957669 .0125834 .0153963
+    .0182025 .0210202 .0241069 .027865 .0315045 .0351739 .0405996 .0453368
+    .0500914 .0555908 .0619319 .0680619 .0768355 .0840553 .0937659 .104609
+    .123521 .163715 .169315 .174916 .180038 .185769 .192784 .19939 .206113
+    .211465 .219012 .225955 .23353 .240952 .248623 .258541 .266893 .273939
+    .28408 .292923 .304065 .315271 .326539 .337783 .351577 .364825 .379621
+    .396505 .412007 .345455 .320669 .306538 .294773 .28552 .278317 .272749
+    .268956 .266692 .263835 .262607 .262832 .2618 .263554 .264789 .266761
+    .270057 .272455 .274372 .279559 .285922 .292888 .301092 .311413 .322397
+    .336275 .357661 .387556 .42123 .428725 .422165 .416456 .409817 .403673
+    .397692 .393503 .388624 .385016 .379511 .375738 .370871 .367263 .36244
+    .357652 .352356 .346352 .339016 .334232 .331759 .329548 .327349 .328174
+    .328196 .329869 .331622 .334306 .338723 .345291 .352968 .363905 .380559
+    .400637 .426996 .470681 .52175 .637614 .66645 .711234 .822816 1 .732258
+    .607836 .514916 .449658 .382555 .324967 .267942 .184365 .0345542 0

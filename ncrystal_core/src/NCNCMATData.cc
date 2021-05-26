@@ -25,7 +25,7 @@
 #include "NCrystal/internal/NCIter.hh"
 namespace NC = NCrystal;
 
-void NC::NCMATData::DynInfo::validate() const
+void NC::NCMATData::DynInfo::validate( int version ) const
 {
   //Check that required fields were present:
   if ( element_name.empty() )
@@ -35,7 +35,9 @@ void NC::NCMATData::DynInfo::validate() const
   if ( dyninfo_type==Undefined )
     NCRYSTAL_THROW(BadInput,"Type of dynamic info is unspecified");
   std::set<std::string> requiredfields,optionalfields;
-  if ( dyninfo_type==VDOS ) {
+  if ( dyninfo_type==VDOSDebye ) {
+    optionalfields.insert("debye_temp");///NB: Validate further down that it is not used before NCMAT v5
+  } else if ( dyninfo_type==VDOS ) {
     requiredfields.insert("vdos_egrid");
     requiredfields.insert("vdos_density");
     optionalfields.insert("egrid");
@@ -109,7 +111,7 @@ void NC::NCMATData::DynInfo::validate() const
     }
   }
 
- if ( dyninfo_type==VDOS ) {
+  if ( dyninfo_type==VDOS ) {
 
     //fields specific for type=vdos:
     auto& v_dos = fields.at("vdos_density");
@@ -124,10 +126,21 @@ void NC::NCMATData::DynInfo::validate() const
     if ( !(v_er.front()>=1e-5) )
       NCRYSTAL_THROW(BadInput,"invalid vdos_egrid parameters : first point must be at least 1e-5 (0.01 meV).");
     if ( !(v_er.back()<=1e6) )
-      NCRYSTAL_THROW(BadInput,"invalid vdos_egrid parameters : last point is excessively large (larger than 1MeV !!).");
+      NCRYSTAL_THROW(BadInput,"invalid vdos_egrid parameters : last point is excessively large (larger than 1MeV!).");
     if ( !nc_is_grid(v_er) )
       NCRYSTAL_THROW(BadInput,"invalid vdos_egrid parameters : points do not constitute a grid of increasing values");
 
+  } else if ( dyninfo_type==VDOSDebye ) {
+    //fields specific for type=vdosdebye:
+    if ( fields.count("debye_temp") ) {
+      if ( version < 5 )
+        NCRYSTAL_THROW(BadInput,"debye_temp keyword in @DYNINFO section of type vdosdebye is only allowed in NCMAT v5 or later");
+      auto& v_dt = fields.at("debye_temp");
+      if ( v_dt.size()!=1 )
+        NCRYSTAL_THROW(BadInput,"debye_temp keyword not followed by exactly one parameter");
+      if ( !(v_dt.at(0)>0.0) || !(v_dt.at(0)<1e6) )
+        NCRYSTAL_THROW(BadInput,"invalid debye_temp value");
+    }
   } else if ( dyninfo_type==ScatKnl ) {
 
     //fields specific for type=scatknl:
@@ -244,7 +257,7 @@ void NC::NCMATData::validateAtomDB() const
 
 void NC::NCMATData::validateElementNameByVersion(const std::string& s, unsigned version)
 {
-  nc_assert_always(version>0&&version<=4);
+  nc_assert_always(version>0&&version<=5);
   AtomSymbol atomsymbol(s);
   if ( atomsymbol.isInvalid() )
     NCRYSTAL_THROW2(BadInput,"Invalid element name \""<<s<<"\"");//invalid in any version
@@ -333,7 +346,7 @@ void NC::NCMATData::validateDensity() const
 
 void NC::NCMATData::validate() const
 {
-  if ( ! ( version>=1 && version<=4 ) )
+  if ( ! ( version>=1 && version<=5 ) )
     NCRYSTAL_THROW2(BadInput,sourceDescription<<" unsupported NCMAT format version "<<version);
 
   std::set<std::string> allElementNames;
@@ -348,15 +361,23 @@ void NC::NCMATData::validate() const
   validateAtomDB();
   const bool hasDebyeTemp = hasDebyeTemperature();
   for (std::size_t i = 0; i<dyninfos.size(); ++i) {
-    if ( !hasDebyeTemp && dyninfos.at(i).dyninfo_type==DynInfo::VDOSDebye )
-      NCRYSTAL_THROW2(BadInput,"dyninfo sections of type vdosdebye are only allowed when Debye temperatures are also specified.");
+    const auto& di = dyninfos.at(i);
+    if ( di.dyninfo_type==DynInfo::VDOSDebye ) {
+      const bool has_debye_temp_kw = di.fields.count("debye_temp")>0;
+      if ( !hasDebyeTemp && !has_debye_temp_kw )
+        NCRYSTAL_THROW2(BadInput,"@DYNINFO sections of type vdosdebye requires Debye temperature to be specified. Either in"
+                        " the same section via the debye_temp keyword (requires NCMAT v5+) or in the @DEBYETEMPERATURE section.");
+      if ( hasDebyeTemp && has_debye_temp_kw )
+        NCRYSTAL_THROW2(BadInput,"@DYNINFO sections of type vdosdebye can not have a debye_temp"
+                        " entry when there is a @DEBYETEMPERATURE section in the file.");
+    }
     try {
-      dyninfos.at(i).validate();
+      di.validate(version);
     } catch (Error::BadInput&e) {
       NCRYSTAL_THROW2(BadInput,sourceDescription<<" problem in dyninfos["<<i<<"]: "<<e.what());
     }
-    validateElementName(dyninfos.at(i).element_name);//more careful version-specific validation
-    allElementNames.insert(dyninfos.at(i).element_name);
+    validateElementName(di.element_name);//more careful version-specific validation
+    allElementNames.insert(di.element_name);
   }
 
   for (const auto& e : customSections) {
@@ -508,12 +529,12 @@ void NC::NCMATData::validate() const
   }
 
   if ( version >= 4 && hasunitcellinfo ) {
-    //In v4+, check that for crystals we have either (or possibly both) Debye temps or dyninfo(type=vdos) for all elements:
+    //In v4+, check that for crystals we have either (or possibly both) Debye temps or dyninfo(type=vdos) or (from v5+) dyninfo(type=vdosdebye) for all elements:
     nc_assert(!debyetemp_global.has_value());//already checked by validateDebyeTemperature()
 
     std::set<std::string> elements_with_msd;
     for ( const auto& di : dyninfos ) {
-      if ( di.dyninfo_type == DynInfo::VDOS )
+      if ( di.dyninfo_type == DynInfo::VDOS || ( version >= 5 && di.dyninfo_type == DynInfo::VDOSDebye ) )
         elements_with_msd.insert(di.element_name);
     }
     for ( const auto& e : debyetemp_perelement )
@@ -523,9 +544,9 @@ void NC::NCMATData::validate() const
       if ( elements_with_msd.find(ename) == elements_with_msd.end() )
         NCRYSTAL_THROW2(BadInput,sourceDescription<<" element "<<ename
                         <<" in crystal does not have sufficient information to estimate"
-                        " mean-squared atomic displacements. Either a VDOS (in a @DYNINFO"
-                        " section with type=vdos) or an entry in the @DEBYETEMPERATURE"
-                        " section is required.");
+                        " mean-squared atomic displacements. Either a VDOS in a @DYNINFO"
+                        " section with type=vdos (or type=vdosdebye from NCMAT v5+) or an"
+                        " entry in the @DEBYETEMPERATURE section is required.");
     }
   }
 
@@ -550,6 +571,25 @@ void NC::NCMATData::validate() const
   for (auto& e : allElementNames) {
     if ( AtomSymbol(e).isCustomMarker() && !atomdb_custommarkers.count(e))
       NCRYSTAL_THROW2(BadInput,sourceDescription<<" custom marker \""<<e<<"\" is used but has no definition in the @ATOMDB section")
+  }
+
+  //Validate StateOfMatter is consistent with other fields. Presence of unit
+  //cell or VDOS/VDOSDebye implies Solid.
+  if ( stateOfMatter.has_value() && stateOfMatter.value() != StateOfMatter::Solid ) {
+    nc_assert(version>=5);
+    bool should_be_solid(hasUnitCell());
+    if ( !should_be_solid ) {
+      for ( const auto& di : dyninfos ) {
+        if ( di.dyninfo_type == DynInfo::VDOS || ( di.dyninfo_type == DynInfo::VDOSDebye ) ) {
+          should_be_solid = true;
+          break;
+        }
+      }
+    }
+    if ( should_be_solid )
+      NCRYSTAL_THROW2(BadInput,sourceDescription<<" Invalid @STATEOFMATTER value. Presence of "
+                      <<(hasUnitCell()?" @CELL/ATOMPOSITIONS sections":"@DYNINFO section with VDOS")
+                      <<" implies that the material must be a solid");
   }
 
   //NB: We do not validate the space-group here (in principle we could easily

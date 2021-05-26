@@ -1,12 +1,16 @@
 NCMAT v4
-#Yttrium Oxide (Yttria). Cubic.
 #
-#Reference for crystal structure:
+# Yttrium Oxide (Yttria). Cubic.
+#
+# Under usual conditions this phase exists from 0 to 2700K.
+#
+# Reference for crystal structure:
 #
 #   Park, Woon Bae, et. al., Journal of Materials Chemistry, vol. 21, p. 5780, 2011.
+#   https://www.crystallography.net/cod/7205917.html
 #
-#The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
-#software from Figure 3 (Cubic, 0 GPa, Ab-initio curve) of:
+# The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
+# software from Figure 3 (Cubic, 0 GPa, Ab-initio curve) of:
 #
 #   "Phase transitions and thermodynamic properties of yttria, Y2O3 : Inelastic
 #    neutron scattering shell model and first-principles calculations"

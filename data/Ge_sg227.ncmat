@@ -1,11 +1,13 @@
 NCMAT v4
-#Germanium.
 #
-#Crystal structure was converted from the cif file of the entry 0011245 in the AMCSD.
-#Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+# Germanium (Ge)
 #
-#The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
-#software from Figure 3 of:
+# Crystal structure was converted from the cif file of the entry 0011245 in the AMCSD.
+# Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+#                       https://www.crystallography.net/cod/9008567.html
+#
+# The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
+# software from Figure 3 of:
 #
 #   "Phonon Density of States in Germanium at 80 K Measured by Neutron Spectrometry"
 #   G. Nelin and G. Nilsson

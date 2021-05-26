@@ -32,6 +32,7 @@
 #include "NCrystal/internal/NCAtomUtils.hh"
 #include "NCrystal/internal/NCDebyeMSD.hh"
 #include "NCrystal/internal/NCAtomDB.hh"
+#include "NCrystal/internal/NCVDOSEval.hh"
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
@@ -531,6 +532,14 @@ double ncrystal_info_getnumberdensity( ncrystal_info_t ci )
     return info->hasNumberDensity() ? info->getNumberDensity().dbl() : -1.0;
   } NCCATCH;
   return -1.0;
+}
+
+int ncrystal_info_getstateofmatter( ncrystal_info_t ih )
+{
+  try {
+    return static_cast<int>(ncc::extract(ih)->stateOfMatter());
+  } NCCATCH;
+  return -1;
 }
 
 int ncrystal_info_nhkl( ncrystal_info_t ci )
@@ -1439,7 +1448,9 @@ void ncrystal_info_getcomponent( ncrystal_info_t ci, unsigned icomponent,
 ncrystal_atomdata_t ncrystal_create_atomdata_fromdb( unsigned z, unsigned a )
 {
   try {
-    return ncc::createNewCHandle<ncc::Wrapped_AtomData>( NC::AtomDB::getIsotopeOrNatElem(z,a) );
+    auto opt_atomdatasp = NC::AtomDB::getIsotopeOrNatElem(z,a);
+    if ( opt_atomdatasp != nullptr )
+      return ncc::createNewCHandle<ncc::Wrapped_AtomData>( std::move(opt_atomdatasp) );
   } NCCATCH;
   return {nullptr};
 }
@@ -1454,8 +1465,11 @@ ncrystal_atomdata_t ncrystal_create_atomdata_fromdbstr( const char* name )
       z = symb.Z();
       a = symb.A();
     }
-    if (z)
-      return ncc::createNewCHandle<ncc::Wrapped_AtomData>( NC::AtomDB::getIsotopeOrNatElem(z,a) );
+    if (z) {
+      auto opt_atomdatasp = NC::AtomDB::getIsotopeOrNatElem(z,a);
+      if ( opt_atomdatasp != nullptr )
+        return ncc::createNewCHandle<ncc::Wrapped_AtomData>( std::move(opt_atomdatasp) );
+    }
   } NCCATCH;
   return {nullptr};
 }
@@ -1770,4 +1784,37 @@ double ncrystal_msd2debyetemp( double msd, double temperature, double mass )
     return NC::debyeTempFromIsotropicMSD( msd, NC::Temperature{temperature}, NC::AtomMass{mass} ).dbl();
   } NCCATCH;
   return -1.0;
+}
+
+void ncrystal_vdoseval( double vdos_emin, double vdos_emax,
+                        unsigned vdos_ndensity, const double* vdos_density,
+                        double temperature, double atom_mass_amu,
+                        double* msd, double* debye_temp, double* gamma0,
+                        double* temp_eff, double* origIntegral )
+{
+  try {
+    *msd = *debye_temp = *gamma0 = *temp_eff = *origIntegral = -1.0;
+    NC::VectD density;
+    density.reserve(vdos_ndensity);
+    for ( auto i : NC::ncrange(vdos_ndensity) )
+      density.push_back( vdos_density[i] );
+    NC::VDOSData vd( NC::PairDD{vdos_emin,vdos_emax},
+                     std::move(density),
+                     NC::Temperature{temperature},
+                     NC::SigmaBound{1.0},//doesn't matter for VDOSEval
+                     NC::AtomMass{atom_mass_amu} );
+    NC::VDOSEval ve(vd);
+    double res_oi = ve.originalIntegral();
+    double res_te = ve.calcEffectiveTemperature();
+    double res_g0 = ve.calcGamma0();
+    double res_msd = ve.getMSD( res_g0 );
+    double res_dt = NC::debyeTempFromIsotropicMSD( res_msd,
+                                                   NC::Temperature{temperature},
+                                                   NC::AtomMass{atom_mass_amu} ).dbl();
+    *msd = res_msd;
+    *debye_temp = res_dt;
+    *gamma0 = res_g0;
+    *temp_eff = res_te;
+    *origIntegral = res_oi;
+  } NCCATCH;
 }

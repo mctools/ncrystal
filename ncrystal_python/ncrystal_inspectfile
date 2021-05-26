@@ -232,7 +232,7 @@ def import_npplt(pdf=False):
         try:
             from matplotlib.backends.backend_pdf import PdfPages
         except ImportError:
-            raise SystemExit("ERROR: Your installation of matplotlib does not have required support for PDF output.")
+            raise SystemExit("ERROR: Your installation of matplotlib does not have the required support for PDF output.")
     plt = import_optpymod('matplotlib.pyplot')
 
     _npplt = (np,plt,PdfPages(_pdffilename) if pdf else None)

@@ -4,6 +4,7 @@ NCMAT v4
 #
 # Crystal structure converted from the cif file of the entry 0011228 in the AMCSD
 # Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+#                       https://www.crystallography.net/cod/9008550.html
 #
 # VDOS curve at 120K taken from (note that it also contains a curve at 12K,
 # which we ignored for now):

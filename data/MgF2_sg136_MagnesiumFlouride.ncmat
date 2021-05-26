@@ -1,0 +1,86 @@
+NCMAT v5
+#
+# Magnesium Flouride (MgF2, tetragonal, SG-136 / P4_2/mnm)
+#
+# Under usual conditions this phase exists from 0 to 1536K.
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "Rutile-type compounds. IV.  SiO2, GeO2 and a comparison with other rutile-type structures"
+#    Baur, W. H. and Khan, A. A. (1971)
+#    DOI: https://dx.doi.org/10.1107/S0567740871005466
+#    Crystallography Open Database entry 9007534
+#    https://www.crystallography.net/cod/9007534.html
+#
+# This crystal structure is also compatible with structure obtained from:
+#
+#   https://www.crystallography.net/cod/1526229.html
+#   https://www.crystallography.net/cod/9007434.html
+#   https://www.crystallography.net/cod/9009075.html
+#   https://www.materialsproject.org/materials/mp-1249
+#
+# The VDOS curves were calculated using Phonopy[1] input files from[2] and
+# OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics group.
+#
+# References:
+#  [1]: "First principles phonon calculations in materials science",
+#        Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)
+#  [2]: Kyoto University database of phonon calculations.
+#       Files for MgF2 taken from:
+#       http://phonondb.mtl.kyoto-u.ac.jp/ph20180417/d001/mp-1249.html
+#  [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J., "Calculation
+#       of the Thermal Neutron Scattering Cross-Section of Solids Using OCLIMAX".
+#       Journal of Chemical Theory and Computation 2020, 16 (8), 5212-5217.
+#
+@CELL
+  lengths 4.6213 !! 3.0159
+  angles 90 90 90
+@SPACEGROUP
+  136
+@ATOMPOSITIONS
+  Mg   0   0   0
+  Mg 1/2 1/2 1/2
+  F .3028 .3028 0
+  F .6972 .6972 0
+  F .8028 .1972 1/2
+  F .1972 .8028 1/2
+@DYNINFO
+  element  Mg
+  fraction 1/3
+  type     vdos
+  vdos_egrid .0114996 .0759974
+  vdos_density .0854214 .104768 .131167 .162668 .17926 .211332 .241913 .273792
+    .325499 .369289 .424183 .442045 .448132 .436715 .410451 .372575 .390363
+    .326459 .323201 .314903 .258398 .265889 .254714 .287387 .308281 .356895
+    .333795 .332626 .43203 .492962 .459194 .526484 .620936 .687388 .622998
+    .599327 .544248 .531841 .541541 .532414 .463117 .46238 .438984 .386023
+    .33461 .29762 .298045 .258417 .231301 .210566 .23146 .253084 .266714 .302081
+    .30559 .330721 .353625 .340046 .315888 .306231 .30366 .288276 .283783
+    .275652 .268903 .299559 .304301 .345717 .423166 .491468 .544491 .528213
+    .466068 .468509 .564771 .670006 .730423 .832736 .957092 1 .94898 .86639
+    .781185 .706975 .669441 .664271 .631295 .630452 .69654 .772886 .770923
+    .672816 .556146 .501197 .479794 .421674 .323328 .240784 .249566 .39459
+    .550634 .52807 .420076 .346014 .315533 .312993 .320357 .316315 .314978
+    .320278 .298859 .261764 .22856 .193935 .168756 .1492 .126046 .106991
+    .0850097 .0617576 .0490788 .0423232 .0345153 .0266775 .0187763 .0105439
+    .00410706 .00096628 .000122521 7.78212e-06
+@DYNINFO
+  element  F
+  fraction 2/3
+  type     vdos
+  vdos_egrid .0109996 .0759974
+  vdos_density .0949002 .10874 .123483 .153417 .174383 .194848 .255598 .296092
+    .376249 .434859 .520751 .65543 .700101 .71354 .713288 .664802 .65691 .617491
+    .510832 .480693 .405965 .358214 .468089 .768555 .985213 1 .822651 .574801
+    .476091 .529278 .602512 .554105 .639536 .684434 .713714 .679065 .58539
+    .458518 .427978 .410426 .376423 .359928 .382466 .36759 .298274 .239285
+    .218932 .223377 .211999 .353476 .634649 .614681 .636878 .549761 .593776
+    .641889 .628837 .705421 .745176 .661853 .627087 .611735 .534729 .452914
+    .405128 .362654 .333573 .275011 .257809 .287376 .331322 .388683 .420125
+    .387931 .38011 .470321 .584042 .618847 .638052 .656055 .598453 .508483
+    .436292 .381281 .345356 .331602 .341174 .351775 .382995 .448759 .508401
+    .49871 .416271 .326939 .288435 .28038 .255839 .217191 .208601 .290642
+    .500449 .670445 .593868 .43169 .326958 .268874 .24286 .233472 .227183
+    .232249 .241919 .222456 .184991 .150084 .118672 .097655 .0820703 .0663159
+    .0536912 .0397722 .025376 .0165727 .0125225 .00987629 .00762998 .00536848
+    .0030053 .00116548 .000273144 3.4547e-05 2.19134e-06

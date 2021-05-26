@@ -51,11 +51,15 @@ namespace NCrystal {
 
     //Metadata
     int version = 0;
-    constexpr static int latest_version = 4;
+    constexpr static int latest_version = 5;
     std::string sourceDescription;
 
     //convenience (for a validated instance, this is the same as hasCell or hasAtomPos):
     bool hasUnitCell() const;
+
+    //State of matter.
+    enum class StateOfMatter { Solid, Gas, Liquid };
+    Optional<StateOfMatter> stateOfMatter;
 
     //@CELL
     struct Cell {
@@ -76,7 +80,7 @@ namespace NCrystal {
     bool hasSpaceGroup() const { return spacegroup>0; }
     void validateSpaceGroup() const;
 
-    //@DEBYETEMPERATURE
+    //@DEBYETEMPERATURE (note that if absent, VDOSDebye DynInfo sections can have their own debye_temp field)
     Optional<DebyeTemperature> debyetemp_global;
     std::vector<std::pair<std::string,DebyeTemperature> > debyetemp_perelement;
     bool hasDebyeTemperature() const { return debyetemp_global.has_value() || !debyetemp_perelement.empty(); }
@@ -93,9 +97,9 @@ namespace NCrystal {
       //correspond to single numbers. The validate() method will take care of
       //checking correct number and presence of all values, and is also here
       //kept synchronised with the NCMAT loader code.
-      typedef std::map<std::string,VectD > FieldMapT;
+      typedef std::map<std::string,VectD> FieldMapT;
       FieldMapT fields;//Stuff like "temperature", "alphagrid", "betagrid", ...
-      void validate() const;//throws BadInput in case of problems specific to this DynInfo object (missing/wrong fields, etc.)
+      void validate( int version ) const;//throws BadInput in case of problems specific to this DynInfo object (missing/wrong fields, etc.)
     };
     std::vector<DynInfo> dyninfos;
     bool hasDynInfo() const { return !dyninfos.empty(); }

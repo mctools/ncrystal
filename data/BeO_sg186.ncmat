@@ -1,39 +1,41 @@
-NCMAT v4
-#Beryllium Oxide (BeO).
+NCMAT v5
 #
-#Lattice parameters and crystal structure based on:
+# Beryllium Oxide (BeO, hexagonal, SG-186 / P6_3mc)
 #
-#   "Electronic structure and properties of beryllium oxide"
-#   A. L. Ivanovskii, et. al.
-#   Inorganic Materials volume 45, Article number: 223 (2009)
-#   https://doi.org/10.1134/S0020168509030017
+# Structure converted with ncrystal_onlinedb2ncmat from:
 #
-#Atomic positions taken from:
+#    "Second edition. Interscience Publishers, New York, Wurtzite structure"
+#    Wyckoff, R. W. G. (1963)
+#    Crystallography Open Database entry 9008861
+#    https://www.crystallography.net/cod/9008861.html
 #
-#   "Electronic band structure of beryllium oxide"
-#   V. A. Sashin, et. al.
-#   Journal of Physics: Condensed Matter, Volume 15, Number 21 (2003)
-#   https://doi.org/10.1088/0953-8984/15/21/306
+# This crystal structure is also compatible with structure obtained from:
 #
-#Phonon DOS are the same as used to generate the scattering kernels shipped with
-#the ENDF/B-VIII release (extracted from the files tsl-BeinBeO.leapr and
-#tsl-OinBeO.leapr in that release).
+#   https://www.crystallography.net/cod/1010943.html
+#   https://www.crystallography.net/cod/1010526.html
+#   https://materialsproject.org/materials/mp-2542
+#
+# Phonon VDOS curves are the same as used to generate the scattering kernels
+# shipped with the ENDF/B-VIII release (extracted from the files
+# tsl-BeinBeO.leapr and tsl-OinBeO.leapr in that release). These were developed
+# by the Low Energy Interaction Physics (LEIP) group at North Carolina State
+# University.
 #
 @CELL
-  lengths 2.698 !! 4.359
+  lengths 2.698 !! 4.38
   angles 90 90 120
 @SPACEGROUP
   186
 @ATOMPOSITIONS
-  Be   0   0     0
-  Be 1/3 2/3   1/2
-  O    0   0 0.378
-  O  1/3 2/3 0.878
+  Be 1/3 2/3 0
+  Be 2/3 1/3 1/2
+  O  1/3 2/3 .378
+  O  2/3 1/3 .878
 @DYNINFO
   element  Be
   fraction 1/2
   type     vdos
-  vdos_egrid 0.001 0.149
+  vdos_egrid .001 .149
   vdos_density 4.44392e-05 .000101759 .000209314 .000362274 .00053681 .000735496
     .000993759 .00128744 .00165003 .00208186 .00250468 .00299028 .00357443
     .0041998 .00478299 .00545342 .00631288 .007202 .00811912 .00919108 .0102954
@@ -57,7 +59,7 @@ NCMAT v4
   element  O
   fraction 1/2
   type     vdos
-  vdos_egrid 0.004 0.149
+  vdos_egrid .004 .149
   vdos_density .000937036 .0013878 .00189964 .00256916 .00332958 .00426234
     .00538547 .00649439 .00776475 .00928938 .0109291 .0124689 .0142453 .0165186
     .0188747 .021326 .0241924 .0271617 .0303529 .0341006 .0380296 .0419847

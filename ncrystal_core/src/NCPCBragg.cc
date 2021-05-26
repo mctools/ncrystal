@@ -126,6 +126,7 @@ std::size_t NC::PCBragg::findLastValidPlaneIdx( NC::NeutronEnergy ekin) const {
   //satisfying wl<=2d, but in energy-space: Finding the index of the plane with
   //the largest value of ekin2wl(2d) satisfying ekin>=ekin2wl(2d).  We already
   //know that ekin>=m_2dE[0], so we search from one past this entry:
+  nc_assert( !ncisnan(ekin.dbl()) );
   nc_assert( ekin >= m_threshold );
   return (std::upper_bound(m_2dE.begin() + 1,m_2dE.end(),ekin.get()) - m_2dE.begin()) - 1;
 }

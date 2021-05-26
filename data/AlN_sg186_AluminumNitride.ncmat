@@ -1,0 +1,77 @@
+NCMAT v5
+#
+# Aluminum nitride (AlN, hexagonal, SG-186 / P6_3mc)
+#
+# Under usual conditions this phase exists from 0 to 2770K.
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "Electronic, optical, and structural properties of some wurtzite crystals"
+#    Xu, Y. N. and Ching, W. Y. (1993)
+#    DOI: https://dx.doi.org/10.1103/PhysRevB.48.4335
+#    Crystallography Open Database entry 9011657
+#    https://www.crystallography.net/cod/9011657.html
+#
+# This crystal structure is also compatible with structure obtained from
+# https://www.materialsproject.org/materials/mp-661
+#
+# The VDOS curves were calculated using Phonopy[1] input files from[2] and
+# OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics group.
+#
+# References:
+#  [1]: "First principles phonon calculations in materials science",
+#        Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)
+#  [2]: Kyoto University database of phonon calculations.
+#       Files for AlN taken from:
+#       http://phonondb.mtl.kyoto-u.ac.jp/ph20180417/d000/mp-661.html
+#  [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J., "Calculation
+#       of the Thermal Neutron Scattering Cross-Section of Solids Using OCLIMAX".
+#       Journal of Chemical Theory and Computation 2020, 16 (8), 5212-5217.
+#
+@CELL
+  lengths 3.11 !! 4.98
+  angles 90 90 120
+@SPACEGROUP
+  186
+@ATOMPOSITIONS
+  Al 2/3 1/3 0
+  Al 1/3 2/3 1/2
+  N  2/3 1/3 .382
+  N  1/3 2/3 .882
+@DYNINFO
+  element  Al
+  fraction 1/2
+  type     vdos
+  vdos_egrid .0232492 .106496
+  vdos_density .188993 .243706 .280394 .301156 .358545 .427018 .519098 .5658
+    .742416 .95004 .929731 .816422 .757606 .661777 .695139 .677509 .621645
+    .691966 .589635 .647632 .593569 .599698 .580804 .617323 .615291 .619728
+    .547878 .518734 .571594 .474133 .463365 .524163 .433278 .436877 .4928 .45459
+    .412527 .3266 .279607 .184767 .149027 .190616 .187644 .195864 .239088
+    .272767 .266989 .322589 .364814 .501723 .611879 .580904 .552713 .546086
+    .549474 .534595 .502135 .492575 .455592 .349953 .257497 .180239 .0863459
+    .0189481 .00102752 9.55541e-06 7.6166e-06 .000549225 .0082924 .0369055
+    .0791782 .130852 .275317 .466158 .432028 .370839 .49626 .828291 1 .914172
+    .631464 .390353 .23477 .108207 .0555469 .0685929 .101643 .121583 .110536
+    .0939315 .0871457 .0885047 .0922084 .0875717 .0851465 .0903865 .0981982
+    .104053 .110587 .124297 .14507 .156771 .137394 .107072 .0856247 .0731174
+    .0634737 .0510727 .036183 .0200376 .00682761 .00110411
+@DYNINFO
+  element  N
+  fraction 1/2
+  type     vdos
+  vdos_egrid .0232492 .106496
+  vdos_density .0282539 .0361368 .0406355 .0434531 .0504738 .0595514 .0709347
+    .07531 .0960483 .119849 .114857 .0988268 .090072 .0768387 .0789159 .0759588
+    .0684077 .0738008 .061828 .0668422 .0605065 .060098 .0555084 .0579736
+    .058151 .055929 .0487849 .0461116 .0476227 .0385058 .0371758 .0411864
+    .0348139 .0314907 .0354445 .0333589 .0309122 .0252117 .0278621 .0220908
+    .0197119 .0245842 .0237462 .0237572 .0266971 .0291373 .0270128 .0297927
+    .0299839 .0315606 .0312481 .0265159 .0243579 .022663 .0211367 .018756
+    .0159997 .0138225 .0114482 .00935104 .00742526 .00556492 .00286602
+    .000658679 3.61495e-05 3.49684e-07 5.20462e-06 .000377075 .00576846 .0266633
+    .060774 .109566 .250303 .442006 .433727 .409978 .533573 .82519 1 .939624
+    .702658 .533811 .414437 .20709 .108662 .169047 .295576 .376003 .341001
+    .267508 .209491 .178089 .160614 .135728 .119962 .116507 .11614 .115232
+    .11507 .120559 .132958 .139051 .119714 .09191 .0723561 .0606501 .0517927
+    .0411241 .0288896 .0159335 .00541442 .000874213

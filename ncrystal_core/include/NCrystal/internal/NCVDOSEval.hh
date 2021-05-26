@@ -52,7 +52,7 @@ namespace NCrystal {
 
     Temperature temperature() const { return m_temperature; }
     double kT() const { return m_kT; }
-    double elementMassAMU() const { return m_elementMassAMU; }
+    AtomMass elementMassAMU() const { return m_elementMassAMU; }
 
     //Evaluate f(E) with proper interpolation, extrapolation and normalisation:
     double eval(double energy) const;
@@ -92,7 +92,8 @@ namespace NCrystal {
     double m_emin, m_emax, m_k, m_binwidth, m_invbinwidth;
     double m_kT;
     Temperature m_temperature;
-    double m_elementMassAMU, m_originalIntegral;
+    AtomMass m_elementMassAMU;
+    double m_originalIntegral;
     unsigned m_nptsExtended;
     template <class Fct, class FctEsqTaylor>
     double integrateWithFunction(Fct,FctEsqTaylor) const;

@@ -190,6 +190,7 @@ extern "C" {
   NCRYSTAL_API double ncrystal_info_getxsectfree( ncrystal_info_t );
   NCRYSTAL_API double ncrystal_info_getdensity( ncrystal_info_t );
   NCRYSTAL_API double ncrystal_info_getnumberdensity( ncrystal_info_t );
+  NCRYSTAL_API int ncrystal_info_getstateofmatter( ncrystal_info_t );
 
   /*Access HKL info:                                                               */
   NCRYSTAL_API int ncrystal_info_nhkl( ncrystal_info_t ); /* -1 when not available */
@@ -439,6 +440,13 @@ extern "C" {
   double ncrystal_debyetemp2msd( double debyetemp, double temperature, double mass );
   double ncrystal_msd2debyetemp( double msd, double temperature, double mass );
 
+  /* Extract information from VDOS curve (see NCVDOSEval.hh for details):          */
+  void ncrystal_vdoseval( double vdos_emin, double vdos_emax,
+                          unsigned vdos_ndensity, const double* vdos_density,
+                          double temperature, double atom_mass_amu,
+                          double* msd, double* debye_temp, double* gamma0,
+                          double* temp_eff, double* origIntegral );
+
   /* Extract NCMatCfg variables which can not be inferred from an ncrystal_info_t  */
   /* object and which might be needed in plugins (to be expanded as needed):       */
   NCRYSTAL_API double ncrystal_decodecfg_packfact( const char * cfgstr );
@@ -473,10 +481,10 @@ extern "C" {
 #  undef NCRYSTAL_VERSION_STR
 #endif
 #define NCRYSTAL_VERSION_MAJOR 2
-#define NCRYSTAL_VERSION_MINOR 6
-#define NCRYSTAL_VERSION_PATCH 1
-#define NCRYSTAL_VERSION   2006001 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
-#define NCRYSTAL_VERSION_STR "2.6.1"
+#define NCRYSTAL_VERSION_MINOR 7
+#define NCRYSTAL_VERSION_PATCH 0
+#define NCRYSTAL_VERSION   2007000 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
+#define NCRYSTAL_VERSION_STR "2.7.0"
   NCRYSTAL_API int ncrystal_version(); /* returns NCRYSTAL_VERSION                  */
   NCRYSTAL_API const char * ncrystal_version_str(); /* returns NCRYSTAL_VERSION_STR */
 

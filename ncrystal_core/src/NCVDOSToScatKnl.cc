@@ -56,7 +56,8 @@ namespace NCrystal {
       return 1.0 + inv_n*(c1+inv_n*(c2+inv_n*(c3+inv_n*(c4+inv_n*(c5+inv_n*(c6+inv_n*(c7+inv_n*(c8+inv_n*c9))))))));
     }
 
-    constexpr double kTmsd_to_alpha2x(double kT,double msd) {
+    constexpr double kTmsd_to_alpha2x(double kT,double msd)
+    {
       //alpha2x is factor required to convert alpha value to x (aka "2W" in Sjolanders paper).
 #if __cplusplus >= 201402L
       constexpr double fact = ( 2.0*const_neutron_mass_evc2/(constant_hbar*constant_hbar) );
@@ -67,8 +68,12 @@ namespace NCrystal {
 #endif
     }
 
-    VectD fillSABFromVDOS( const VDOSGn& Gn_asym, const double msd, const VectD& alphaGrid, const VectD& betaGrid ) {
-
+    VectD fillSABFromVDOS( const VDOSGn& Gn_asym,
+                           const double msd,
+                           const VectD& alphaGrid,
+                           const VectD& betaGrid,
+                           ScaleGnContributionFct scaleGnContribFct )
+    {
       // Evaluate S(alpha,beta) from Sjolander's II.28, recasted to alpha/beta
       // and excluding sigma*kT/4E from the definition of S.
 
@@ -119,6 +124,9 @@ namespace NCrystal {
 
       for ( unsigned n = 1; n <= maxOrder; ++n) {
 
+        const double contribScaleFactor = scaleGnContribFct ? scaleGnContribFct(n) : 1.0;
+        nc_assert(contribScaleFactor>=0.0);
+
         //Prepare for Gn(beta)-evaluations:
         auto betakT_Range = Gn_asym.eRange(n);
         const double invn = 1.0/n;
@@ -166,10 +174,9 @@ namespace NCrystal {
             expMbeta = vectAt(expbeta_vals_nonposbeta,beta.idx);
           }
 
-          const double Gn_asym_eval = Gn_asym.eval(n,energy);
+          const double Gn_asym_eval = contribScaleFactor * Gn_asym.eval(n,energy);
           if ( !(Gn_asym_eval>0.0) )
             continue;
-
 #if 0
           //readable version of innermost loop:
           const auto offset_alpharow = beta.idx*nalpha;
@@ -683,7 +690,8 @@ NC::VectD NC::setupBetaGrid( const NC::VDOSGn& Gn, double betaMax, unsigned vdos
 NC::ScatKnlData NC::createScatteringKernel( const VDOSData& vdosdata,
                                             unsigned vdoslux,
                                             double targetEmax_requested,
-                                            VDOSGn::TruncAndThinningParams ttpars )
+                                            VDOSGn::TruncAndThinningParams ttpars,
+                                            ScaleGnContributionFct scaleGnContributionFct )
 {
   //Hidden unofficial env-vars used for special debugging purposes:
   auto getEnvInt = [](const char* name) { auto ev = getenv(name); return ev ? str2int(ev) :   0; };
@@ -805,7 +813,7 @@ NC::ScatKnlData NC::createScatteringKernel( const VDOSData& vdosdata,
   //All done, now all that remains is to go through the (alpha,beta) pts in the
   //grid and use Sjolander's II.28 equation to calculate S(alpha,beta) there as
   //the sum of individual phonon orders:
-  auto sab = V2SKDetail::fillSABFromVDOS( Gn_asym, msd, alphaGrid, betaGrid );
+  auto sab = V2SKDetail::fillSABFromVDOS( Gn_asym, msd, alphaGrid, betaGrid, scaleGnContributionFct );
 
   if (V2SKDetail::s_verbose)
     std::cout<<"NCrystal::VDOS2SK created SK with vdos expansion order N="<<max_phonon_order

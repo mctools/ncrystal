@@ -31,10 +31,20 @@ namespace NCrystal {
   // scattering kernel.                                                      //
   /////////////////////////////////////////////////////////////////////////////
 
+  using ScaleGnContributionFct = std::function<double(unsigned)>;
   ScatKnlData createScatteringKernel( const VDOSData&,
                                       unsigned vdosluxlvl = 3,//0 to 5, affects binning, Emax, etc.
                                       double targetEmax = 0.0,//if 0, will depend on luxlvl. Error if set to unachievable value.
-                                      const VDOSGn::TruncAndThinningParams ttpars = VDOSGn::TruncAndThinningChoices::Default );
+                                      const VDOSGn::TruncAndThinningParams ttpars = VDOSGn::TruncAndThinningChoices::Default,
+                                      ScaleGnContributionFct = nullptr );
+
+  //The ScaleGnContributionFct argument can be used to apply a scale factor to
+  //the Gn contribution, at the point where it is used to add a contribution
+  //into S(alpha,beta). This can for instance be used in the scenario where the
+  //coherent single-phonon contribution is modelled elsewhere, and therefore the
+  //G1 contribution should be reduced to take out sigma_coherent. In this case,
+  //the scaling function should return sigma_incoh/(sigma_coh+sigma_incoh) for
+  //the argument n==1, and 1.0 for n>1.
 
   //Internal functions, exposed here for testing:
   VectD setupAlphaGrid( double kT, double msd, double alphaMax, unsigned npts );

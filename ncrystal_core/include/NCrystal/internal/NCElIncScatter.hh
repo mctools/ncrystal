@@ -28,6 +28,13 @@ namespace NCrystal {
   class ElIncXS;
   class Info;
 
+  struct ElIncScatterCfg {
+    //Outside due to https://stackoverflow.com/questions/17430377/
+    bool use_sigma_incoherent = true;
+    bool use_sigma_coherent = false;
+    double scale_factor = 1.0;
+  };
+
   class ElIncScatter final : public ProcImpl::ScatterIsotropicMat {
   public:
 
@@ -42,22 +49,21 @@ namespace NCrystal {
     const char * name() const noexcept final { return "ElIncScatter"; }
     virtual ~ElIncScatter();
 
-    //Construct from Info. For special use-cases it is possible to apply an
-    //overall cross section scale-factor (>0.0), and to optionally use the total
-    //scattering cross section, rather than just sigma_incoherent:
-    //
-    //Two constructors based on Info objects are available, one taking the MSD
-    //information from AtomInfo, and getting them from integration of VDOS
-    //curves (.
-    struct msd_from_atominfo_t {};
-    struct msd_from_dyninfo_t {};
-    ElIncScatter( msd_from_atominfo_t, const Info&, double scale_factor = 1.0, bool use_total_xsect = false );
-    ElIncScatter( msd_from_dyninfo_t, const Info&, double scale_factor = 1.0, bool use_total_xsect = false );
-
     //Constructor similar to the ElIncXS constructor:
     ElIncScatter( const VectD& elements_meanSqDisp,
                   const VectD& elements_boundincohxs,
                   const VectD& elements_scale );
+
+    //Construct from Info. Using the cfg parameters, it is possible to apply an
+    //overall cross section scale-factor (>0.0), and to add either of
+    //sigma_incoherent and/or sigma_coherent. The latter is only appropriate
+    //under the incoherent approximation, and by default only the former is
+    //used. The Debye Waller factors will be determined via AtomInfo objects if
+    //available, otherwise from DynInfo objects. In that case, elements whose
+    //DynInfo is unable to provide Debye Waller factors, e.g. sterile/freegas
+    //and for now scatknl, will be ignored (if all elements are ignored, an
+    //error is raised).
+    ElIncScatter( const Info&, ElIncScatterCfg cfg = ElIncScatterCfg() );
 
     CrossSect crossSectionIsotropic(CachePtr&, NeutronEnergy ) const final;
     ScatterOutcomeIsotropic sampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const final;

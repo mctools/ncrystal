@@ -1,0 +1,99 @@
+NCMAT v5
+#
+# Uranium hexaflouride (UF6, orthorombic, SG-62 / Pnma)
+#
+# Under usual conditions this phase exists from 0 to 329.6K.
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "Structure of fluorides. Part XII. single-crystal neutron
+#     diffraction study of uranium hexafluoride at 293 K"
+#    Levy, J H, et al. (1976)
+#    Crystallography Open Database entry 1008004
+#    https://www.crystallography.net/cod/1008004.html
+#
+# This crystal structure is also compatible with structure obtained from:
+#
+#   https://www.crystallography.net/cod/1522029.html
+#   https://www.materialsproject.org/materials/mp-2275
+#
+# The VDOS curves were calculated using Phonopy[1] input files from[2] and
+# OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics group.
+#
+# References:
+#  [1]: "First principles phonon calculations in materials science",
+#        Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)
+#  [2]: Kyoto University database of phonon calculations.
+#       Files for UF6 taken from:
+#       http://phonondb.mtl.kyoto-u.ac.jp/ph20180417/d002/mp-2275.html
+#  [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J., "Calculation
+#       of the Thermal Neutron Scattering Cross-Section of Solids Using OCLIMAX".
+#       Journal of Chemical Theory and Computation 2020, 16 (8), 5212-5217.
+#
+@CELL
+  lengths 9.900 8.962 5.207
+  angles 90 90 90
+@SPACEGROUP
+  62
+@ATOMPOSITIONS
+  U .1295 1/4 .0799
+  U .6295 1/4 .4201
+  U .8705 3/4 .9201
+  U .3705 3/4 .5799
+  F .0126 1/4 .7711
+  F .5126 1/4 .7289
+  F .9874 3/4 .2289
+  F .4874 3/4 .2711
+  F .2471 1/4 .3895
+  F .7471 1/4 .1105
+  F .7529 3/4 .6105
+  F .2529 3/4 .8895
+  F .0143 .0947 .2378
+  F .5143 .4053 .2622
+  F .9857 .5947 .7622
+  F .4857 .9053 .7378
+  F .9857 .9053 .7622
+  F .4857 .5947 .7378
+  F .0143 .4053 .2378
+  F .5143 .0947 .2622
+  F .2443 .0937 .924
+  F .7443 .4063 .576
+  F .7557 .5937 .076
+  F .2557 .9063 .424
+  F .7557 .9063 .076
+  F .2557 .5937 .424
+  F .2443 .4063 .924
+  F .7443 .0937 .576
+@DYNINFO
+  element  U
+  fraction 1/7
+  type     vdos
+  vdos_egrid .0029999 .0829972
+  vdos_density .707875 1 .756784 .569773 .439983 .212117 .12445 .139914 .112273
+    .0757377 .0357207 .0161606 .0045671 .000564001 2.46455e-05 5.2503e-08 0r6
+    1.64538e-15 1.15568e-10 3.40605e-07 5.61159e-05 .00200483 .0115829 .0190928
+    .0196542 .00962563 .00199851 .00551571 .0515099 .19448 .335007 .273376
+    .273955 .131652 .0752983 .0488329 .0324576 .0290484 .0215998 .00768156
+    .00105865 2.72277e-05 7.26773e-08 0r67 9.98924e-15 4.12078e-12 6.80684e-10
+    4.64716e-08 1.37347e-06 1.9013e-05 .000135727 .000542927 .00132303 .00218792
+    .00266796 .00237216 .0014035 .000499087 9.65321e-05 9.16029e-06 3.93195e-07
+    7.40229e-09 2.08067e-08 1.61519e-06 5.82185e-05 .000991692 .00830564
+    .0366654 .094485 .159801 .197146 .193115 .161613 .123444 .0940206 .0823999
+    .0844851 .089807 .0886228 .0719634 .0448808 .0234927 .014584 .0124898
+    .00921497 .00429027 .00116069 .000176 1.44528e-05 6.24134e-07
+@DYNINFO
+  element  F
+  fraction 6/7
+  type     vdos
+  vdos_egrid .0029999 .0829972
+  vdos_density .109342 .15284 .127316 .123865 .185793 .330536 .464448 .624913
+    .571278 .568051 .394885 .252652 .102714 .0209051 .00149076 3.23232e-06 0r6
+    6.65783e-14 4.68103e-09 1.4054e-05 .00295447 .156459 .860317 1 .844872
+    .452006 .121374 .0234854 .109434 .422501 .72049 .659446 .728669 .475258
+    .602835 .64358 .647109 .661484 .518111 .216997 .0357781 .0009525 2.55154e-06
+    0r67 3.24389e-12 1.34044e-09 2.21909e-07 1.52236e-05 .000454189 .00637687
+    .0460396 .181823 .409151 .552927 .49908 .34755 .18389 .0627896 .0119391
+    .00112402 4.80774e-05 8.89176e-07 4.74867e-08 3.1602e-06 .000113885
+    .00193913 .016227 .0715129 .183695 .308999 .37828 .367368 .305276 .232179
+    .176378 .15419 .157458 .166072 .162262 .132272 .0969644 .126234 .263131
+    .370311 .283533 .117366 .0269628 .00350643 .000256912 1.03301e-05

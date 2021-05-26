@@ -1,11 +1,13 @@
 NCMAT v4
-#Zirconium (hcp)
 #
-#Crystal structure was converted from the cif file of the entry 0011201 in the AMCSD.
-#Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+# Zirconium (hcp)
 #
-#The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
-#software from Figure 1 of:
+# Crystal structure was converted from the cif file of the entry 0011201 in the AMCSD.
+# Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+#                       https://www.crystallography.net/cod/9008523.html
+#
+# The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
+# software from Figure 1 of:
 #
 #   "Effect of the variation of the electronic density of states of zirconium and
 #    tungsten on their respective thermal conductivity evolution with temperature"

@@ -41,6 +41,15 @@ void NCrystal::dump(const Info&c)
   }
 
   const char * hr = "---------------------------------------------------------\n";
+
+  if ( c.stateOfMatter() != Info::StateOfMatter::Unknown ) {
+    printf("%s", hr);
+    const char * subtype="";
+    if ( c.stateOfMatter() == Info::StateOfMatter::Solid )
+      subtype = c.isCrystalline() ? " (crystalline)" : " (amorphous)";
+    printf("State of matter: %s%s\n",Info::toString(c.stateOfMatter()).c_str(),subtype);
+  }
+
   if (c.hasStructureInfo()) {
     const StructureInfo& si = c.getStructureInfo();
     printf("%s", hr);

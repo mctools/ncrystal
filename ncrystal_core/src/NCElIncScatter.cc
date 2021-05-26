@@ -33,95 +33,79 @@ namespace NC = NCrystal;
 
 NC::ElIncScatter::~ElIncScatter() = default;
 
-NC::ElIncScatter::ElIncScatter( msd_from_atominfo_t, const Info& ci, double scale_factor, bool use_total_xsect )
+NC::ElIncScatter::ElIncScatter( const Info& info, ElIncScatterCfg cfg )
 {
-  nc_assert_always( !(scale_factor<=0.0) );
-
-  if ( !ci.hasAtomInfo() )
-    NCRYSTAL_THROW(MissingInfo,"Passed Info object lacks AtomInfo information"
-                   " (elastic-incoherent model only works with crystalline materials).");
-
-  auto atominfos = Span<const AtomInfo>(&*ci.atomInfoBegin(),&*ci.atomInfoEnd());
-
-  if ( !ci.hasAtomMSD() ) {
-    if ( !ci.hasTemperature() )
-      NCRYSTAL_THROW(MissingInfo,"Passed Info object contains neither atomic mean-square-displacements"
-                     " (MSD), nor material temperature which is needed for determination of MSDs.");
-    if ( !ci.hasDebyeTemperature() )
-      NCRYSTAL_THROW(MissingInfo,"Passed Info object contains neither atomic mean-square-displacements"
-                     " (MSD), nor Debye temperature info which is needed for determination of MSDs.");
-  }
+  nc_assert_always( !(cfg.scale_factor<=0.0) );
+  nc_assert_always( cfg.use_sigma_incoherent || cfg.use_sigma_coherent );
+  if ( !info.hasTemperature() )
+    NCRYSTAL_THROW(MissingInfo,"Info object passed to ElIncScatter lacks temperature.");
 
   VectD msd, bixs, scale;
-  msd.reserve(atominfos.size());
-  bixs.reserve(atominfos.size());
-  scale.reserve(atominfos.size());
+  msd.reserve(info.getComposition().size());
+  bixs.reserve(msd.size());
+  scale.reserve(msd.size());
 
-  unsigned ntot(0);
-  for ( const auto& ai : atominfos )
-    ntot += ai.numberPerUnitCell();
+  auto getSigma = [&cfg](const AtomData& ad)
+  {
+    return (  cfg.use_sigma_incoherent ? ad.incoherentXS().get() : 0.0 )
+      + ( cfg.use_sigma_coherent ? ad.coherentXS().get() : 0.0 );
+  };
 
-  for ( const auto& ai : atominfos ) {
-    scale.push_back(double(ai.numberPerUnitCell())*scale_factor/ntot);
-    if (use_total_xsect)
-      bixs.push_back(ai.atomData().scatteringXS().get());
-    else
-      bixs.push_back(ai.atomData().incoherentXS().get());
-    if ( ai.msd().has_value() ) {
-      msd.push_back( ai.msd().value() );
-    } else {
-      //Fall-back to calculating MSDs from the isotropic Debye model. Eventually
-      //we would like to avoid this here, and make sure this is done on the Info
-      //object itself.
-      nc_assert_always( ai.debyeTemp().has_value() );
-      auto debyeTemp = ai.debyeTemp().value();
-      auto temperature = ci.getTemperature();
-      auto atomMass = ai.atomData().averageMassAMU();
-      nc_assert(debyeTemp.get()>0.0&&temperature.get()>0.0&&atomMass.get()>0.0);
-      msd.push_back( debyeIsotropicMSD( debyeTemp, temperature, atomMass ) );
+
+  //Prefer initialising via atom infos (in this case we require all to contribute):
+  if ( info.hasAtomInfo() ) {
+
+    unsigned ntot(0);
+    for ( const auto& ai : info.getAtomInfos() )
+      ntot += ai.numberPerUnitCell();
+
+    for ( auto& ai : info.getAtomInfos() ) {
+      //scale factor + cross section:
+      scale.push_back(double(ai.numberPerUnitCell())*cfg.scale_factor/ntot);
+      bixs.push_back( getSigma(ai.atomData()) );
+      //msd:
+      if ( ai.msd().has_value() ) {
+        msd.push_back( ai.msd().value() );
+      } else {
+        //Fall-back to calculating MSDs from the isotropic Debye model. Eventually
+        //we would like to avoid this here, and make sure this is done on the Info
+        //object itself.
+        if ( !ai.debyeTemp().has_value() || ! info.hasTemperature() )
+          NCRYSTAL_THROW(MissingInfo,"Info object passed to ElIncScatter has AtomInfo object without "
+                         "mean-square-displacements (MSD), and there is not enough information to"
+                         " estimate one (a Debye temperature + material temperature is required).");
+        auto debyeTemp = ai.debyeTemp().value();
+        auto temperature = info.getTemperature();
+        auto atomMass = ai.atomData().averageMassAMU();
+        nc_assert(debyeTemp.get()>0.0&&temperature.get()>0.0&&atomMass.get()>0.0);
+        msd.push_back( debyeIsotropicMSD( debyeTemp, temperature, atomMass ) );
+      }
     }
+  } else {
+    //Try to initialise via dyninfo sections (ok if some, but not all, have missing info):
+    for ( auto& di : info.getDynamicInfoList() ) {
+      auto di_vdos = dynamic_cast<const DI_VDOS*>(di.get());
+      auto di_vdosdebye = dynamic_cast<const DI_VDOSDebye*>(di.get());
+      Optional<double> msd_value;
+      if ( di_vdos ) {
+        msd_value = VDOSEval( di_vdos->vdosData() ).getMSD();
+      } else if ( di_vdosdebye ) {
+        if ( !info.hasTemperature() )
+          NCRYSTAL_THROW(MissingInfo,"Requested to evaluate atomic mean-squared-displacements for a material without a temperature value.");
+        msd_value = debyeIsotropicMSD( di_vdosdebye->debyeTemperature(),
+                                       info.getTemperature(),
+                                       di_vdosdebye->atomData().averageMassAMU() );
+      }
+      if ( msd_value.has_value() ) {
+        msd.push_back( msd_value.value() );
+        scale.push_back( di->fraction() * cfg.scale_factor );
+        bixs.push_back( getSigma( di->atomData() ) );
+      }
+    }
+    if ( msd.empty() )
+      NCRYSTAL_THROW(MissingInfo,"Info object passed to ElIncScatter lacks information to create Debye-Waller factors.");
   }
-
   m_elincxs = std::make_unique<ElIncXS>( msd, bixs, scale );
-}
-
-NC::ElIncScatter::ElIncScatter( msd_from_dyninfo_t, const Info& info, double scale_factor, bool use_total_xsect )
-{
-  VectD msd, bixs, scale;
-  msd.reserve(info.getDynamicInfoList().size());
-  bixs.reserve(info.getDynamicInfoList().size());
-  scale.reserve(info.getDynamicInfoList().size());
-
-  nc_assert_always( !(scale_factor<=0.0) );
-  unsigned nmissing = 0;
-  for ( auto& di : info.getDynamicInfoList() ) {
-    double msd_value(0.0);
-    if ( dynamic_cast<const DI_VDOS*>(di.get()) ) {
-      msd_value = VDOSEval( static_cast<const DI_VDOS*>(di.get())->vdosData() ).getMSD();
-    } else if ( dynamic_cast<const DI_VDOSDebye*>(di.get()) ) {
-      if ( !info.hasTemperature() )
-        NCRYSTAL_THROW(MissingInfo,"Requested to evaluate atomic mean-squared-displacements for a material without a temperature value.");
-      msd_value = debyeIsotropicMSD( static_cast<const DI_VDOSDebye*>(di.get())->debyeTemperature(),
-                                     info.getTemperature(),
-                                     di->atomData().averageMassAMU() );
-    } else {
-      ++nmissing;
-    }
-    if ( msd_value ) {
-      msd.push_back( msd_value );
-      scale.push_back( di->fraction() * scale_factor );
-      if (use_total_xsect)
-        bixs.push_back(di->atomData().scatteringXS().get());
-      else
-        bixs.push_back(di->atomData().incoherentXS().get());
-    }
-  }
-
-  m_elincxs = std::make_unique<ElIncXS>( msd, bixs, scale );
-
-  if ( nmissing > 0 )
-    std::cout<<"NCrystal WARNING: Requested to create incoherent-elastic component from dynamic information in material where "<<nmissing
-             <<" atom"<<(nmissing==1?"":"s")<<" do not have the necessary information."<<std::endl;
 }
 
 NC::ElIncScatter::ElIncScatter( const VectD& elements_meanSqDisp,

@@ -67,6 +67,7 @@ namespace NCrystal {
     void handleSectionData_DYNINFO(const Parts&,unsigned);
     void handleSectionData_DENSITY(const Parts&,unsigned);
     void handleSectionData_ATOMDB(const Parts&,unsigned);
+    void handleSectionData_STATEOFMATTER(const Parts&,unsigned);
     void handleSectionData_CUSTOM(const Parts&,unsigned);
 
     //Collected data:
@@ -163,6 +164,8 @@ NC::NCMATParser::NCMATParser( const TextData& input )
       m_data.version = 3;
     } else if ( parts.at(1) == "v4" ) {
       m_data.version = 4;
+    } else if ( parts.at(1) == "v5" ) {
+      m_data.version = 5;
     } else {
       NCRYSTAL_THROW2(BadInput,descr()<<": is in an NCMAT format version, \""<<parts.at(1)<<"\", which is not recognised by this installation of NCrystal");
     }
@@ -206,6 +209,9 @@ void NC::NCMATParser::parseFile( TextData::Iterator itLine, TextData::Iterator i
   if (m_data.version>=3) {
     section2handler["ATOMDB"] = &NCMATParser::handleSectionData_ATOMDB;
     section2handler["CUSTOM"] = &NCMATParser::handleSectionData_CUSTOM;
+  }
+  if (m_data.version>=5) {
+    section2handler["STATEOFMATTER"] = &NCMATParser::handleSectionData_STATEOFMATTER;
   }
 
   //Technically handle the part before the first section ("@SECTIONNAME") by the
@@ -272,7 +278,7 @@ void NC::NCMATParser::parseFile( TextData::Iterator itLine, TextData::Iterator i
       std::swap(current_section,new_section);
       itSection = section2handler.find( is_custom_section ? "CUSTOM"_s : current_section );
 
-      nc_assert( m_data.version>=1 && m_data.version <= 4 );
+      nc_assert( m_data.version>=1 && m_data.version <= 5 );
       if ( itSection == section2handler.end() ) {
         //Unsupported section name. For better error messages, first check if it
         //is due to file version:
@@ -284,7 +290,10 @@ void NC::NCMATParser::parseFile( TextData::Iterator itLine, TextData::Iterator i
           NCRYSTAL_THROW2(BadInput,descr()<<": has @"<<current_section<<" section which is not supported in the indicated"
                           " NCMAT format version, \"NCMAT v"<<m_data.version<<"\". It is only available starting with \"NCMAT v3\".");
         }
-
+        if ( m_data.version<5 && (current_section=="STATEOFMATTER") ) {
+          NCRYSTAL_THROW2(BadInput,descr()<<": has @STATEOFMATTER section which is not supported in the indicated"
+                          " NCMAT format version, \"NCMAT v"<<m_data.version<<"\". It is only available starting with \"NCMAT v5\".");
+        }
         NCRYSTAL_THROW2(BadInput,descr()<<": has @"<<current_section<<" section which is not a supported section name.");
       }
       //Succesfully switched to the new section, proceed to next line (after
@@ -611,7 +620,7 @@ void NC::NCMATParser::handleSectionData_DEBYETEMPERATURE(const Parts& parts, uns
     }
     if ( m_data.debyetemp_global.has_value() && m_data.version>=4 ) {
       m_data.debyetemp_global.reset();
-      NCRYSTAL_THROW2(BadInput,descr()<<": Global Debye temperature's are not allowed in NCMAT v4 or later (problem in line "<<lineno<<")");
+      NCRYSTAL_THROW2(BadInput,descr()<<": Global Debye temperatures are not allowed in NCMAT v4 or later (problem in line "<<lineno<<")");
     }
   } else if (parts.size()==2) {
     validateElementName(parts.at(0),lineno);
@@ -634,7 +643,7 @@ void NC::NCMATParser::handleSectionData_DYNINFO(const Parts& parts, unsigned lin
     if (!m_active_dyninfo)
       NCRYSTAL_THROW2(BadInput,e1<<": no input found in @DYNINFO section (expected in line "<<lineno<<")");
     try {
-      m_active_dyninfo->validate();
+      m_active_dyninfo->validate( m_data.version );
     } catch (Error::BadInput&e) {
       NCRYSTAL_THROW2(BadInput,e.what()<<" (problem found in the @DYNINFO section ending in line "<<lineno<<")");
     }
@@ -729,18 +738,17 @@ void NC::NCMATParser::handleSectionData_DYNINFO(const Parts& parts, unsigned lin
     //Setup new vector for parsing into:
     di.fields[p0] = VectD();
     parse_target = &di.fields[p0];
-    parse_target->reserve(256);//will be squeezed later
     //Check if supports entry over multiple lines (mostly for keywords
     //potentially needing large number of arguments):
     if ( isOneOf(p0,"sab","sab_scaled","sqw","alphagrid","betagrid","qgrid",
                  "omegagrid","egrid","vdos_egrid", "vdos_density") ) {
+      parse_target->reserve(256);//will be squeezed later
       if ( isOneOf(p0,"sqw", "qgrid", "omegagrid") )
         NCRYSTAL_THROW2(BadInput,descr()<<": support for kernels in S(q,w) format and the keyword \""<<p0<<"\" in line "
-                        <<lineno<<" is not supported in NCMAT v1 or NCMAT v2 files (but is planned for inclusion in later format versions)");
+                        <<lineno<<" is not yet supported (but is planned for inclusion in later NCMAT format versions)");
       m_dyninfo_active_vector_field = parse_target;
       m_dyninfo_active_vector_field_allownegative = (p0=="betagrid"||p0=="omegagrid");
     }
-
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -785,7 +793,6 @@ void NC::NCMATParser::handleSectionData_DYNINFO(const Parts& parts, unsigned lin
     while (repeat_count--)
       parse_target->push_back(val);
   }
-
 }
 
 void NC::NCMATParser::handleSectionData_DENSITY(const Parts& parts, unsigned lineno)
@@ -800,6 +807,8 @@ void NC::NCMATParser::handleSectionData_DENSITY(const Parts& parts, unsigned lin
     }
     return;
   }
+  if ( m_data.density>0.0 )
+    NCRYSTAL_THROW2(BadInput,descr()<<": too many lines in @DENSITY section in line "<<lineno);
   if (parts.size()!=2)
     NCRYSTAL_THROW2(BadInput,descr()<<": wrong number of entries on line "<<lineno<<" in @DENSITY section");
   double density_val;
@@ -820,7 +829,31 @@ void NC::NCMATParser::handleSectionData_DENSITY(const Parts& parts, unsigned lin
   } else {
     NCRYSTAL_THROW2(BadInput,descr()<<": invalid density unit in line "<<lineno);
   }
+  if ( !(m_data.density>0.0) )
+    NCRYSTAL_THROW2(BadInput,descr()<<": invalid density value in line "<<lineno);
+}
 
+void NC::NCMATParser::handleSectionData_STATEOFMATTER(const Parts& parts, unsigned lineno)
+{
+  if (parts.empty()) {
+    if (!m_data.stateOfMatter.has_value())
+      NCRYSTAL_THROW2(BadInput,descr()<<": no input found in @STATEOFMATTER section (expected in line "<<lineno<<")");
+    return;
+  }
+  if ( m_data.stateOfMatter.has_value() )
+    NCRYSTAL_THROW2(BadInput,descr()<<": too many lines in @STATEOFMATTER section in line "<<lineno);
+  if (parts.size()!=1)
+    NCRYSTAL_THROW2(BadInput,descr()<<": wrong number of entries on line "<<lineno<<" in @STATEOFMATTER section");
+  if (parts.at(0)=="solid") {
+    m_data.stateOfMatter = NCMATData::StateOfMatter::Solid;
+  } else if (parts.at(0)=="liquid") {
+    m_data.stateOfMatter = NCMATData::StateOfMatter::Liquid;
+  } else if (parts.at(0)=="gas") {
+    m_data.stateOfMatter = NCMATData::StateOfMatter::Gas;
+  } else {
+    NCRYSTAL_THROW2(BadInput,descr()<<": invalid state of matter type specified in @STATEOFMATTER section in line "
+                    <<lineno<<" (must be \"solid\", \"liquid\", or \"gas\")");
+  }
 }
 
 void NC::NCMATParser::handleSectionData_ATOMDB(const Parts& parts, unsigned lineno)
