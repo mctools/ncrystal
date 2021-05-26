@@ -597,7 +597,7 @@ for fn in args.validate:
     plt.xlim(0.0)
     plt.ylim(0.0)
     plt.title('NB: This compares the crystal structure (space group, lattice, atom positions). Phonons/dynamics always taken from .ncmat file',fontsize=6)
-    plt.xlabel('Neutron wavelength (Å)')
+    plt.xlabel('Neutron wavelength (%s)'%(b'\xc3\x85'.decode()))
     plt.ylabel('Coherent elastic cross section (barn)')
     plt.legend(loc='best',handlelength=5)
     plt.grid()

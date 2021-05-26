@@ -25,7 +25,7 @@
 #include "NCrystal/internal/NCIter.hh"
 namespace NC = NCrystal;
 
-void NC::NCMATData::DynInfo::validate( int version ) const
+void NC::NCMATData::DynInfo::validate( int theversion ) const
 {
   //Check that required fields were present:
   if ( element_name.empty() )
@@ -133,7 +133,7 @@ void NC::NCMATData::DynInfo::validate( int version ) const
   } else if ( dyninfo_type==VDOSDebye ) {
     //fields specific for type=vdosdebye:
     if ( fields.count("debye_temp") ) {
-      if ( version < 5 )
+      if ( theversion < 5 )
         NCRYSTAL_THROW(BadInput,"debye_temp keyword in @DYNINFO section of type vdosdebye is only allowed in NCMAT v5 or later");
       auto& v_dt = fields.at("debye_temp");
       if ( v_dt.size()!=1 )
@@ -255,13 +255,13 @@ void NC::NCMATData::validateAtomDB() const
   }
 }
 
-void NC::NCMATData::validateElementNameByVersion(const std::string& s, unsigned version)
+void NC::NCMATData::validateElementNameByVersion(const std::string& s, unsigned theversion)
 {
-  nc_assert_always(version>0&&version<=5);
+  nc_assert_always(theversion>0&&theversion<=5);
   AtomSymbol atomsymbol(s);
   if ( atomsymbol.isInvalid() )
     NCRYSTAL_THROW2(BadInput,"Invalid element name \""<<s<<"\"");//invalid in any version
-  if (version>=3)
+  if (theversion>=3)
     return;//All is supported in v3, v4, ...
 
   //Version-specific tests for older versions:
@@ -270,7 +270,7 @@ void NC::NCMATData::validateElementNameByVersion(const std::string& s, unsigned 
                     <<"\" (custom markers X, X1, X2, ..., X99 are only supported from NCMAT v3).");
   //"D" was introduced in v2 as the only new element over v1:
   if (s=="D") {
-    if (version==1)
+    if (theversion==1)
       NCRYSTAL_THROW(BadInput,"Element \"D\" is not supported in NCMAT v1 files (requires NCMAT v2 or later)");
     return;
   }
