@@ -75,11 +75,6 @@ References:
         args.quiet = True
     return args
 
-try:
-    import ase.spacegroup
-except ImportError:
-    sysexit(msg='Could not import ase.spacegroup. Perhaps you can fix it with: python3 -mpip install ase',code=1)
-
 args = parse_args()
 orig_print = print
 do_print = print
@@ -90,6 +85,11 @@ def sysexit(*,msg,code):
     if msg:
         do_print(f'ERROR: {msg}' if code!=0 else msg)
     raise SystemExit(code)
+
+try:
+    import ase.spacegroup
+except ImportError:
+    sysexit(msg='Could not import ase.spacegroup. Perhaps you can fix it with: python3 -mpip install ase',code=1)
 
 #Load data:
 
