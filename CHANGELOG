@@ -1,4 +1,4 @@
-v2.7.0 2020-05-26
+v2.7.0 2020-05-28
       * Introduce NCMAT v5 which two updates for the format, both meant to
         facilitate modelling of amorphous (i.e. non-crystalline) solids.
         Firstly, Debye temperatures can now be specified directly in @DYNINFO
@@ -39,11 +39,15 @@ v2.7.0 2020-05-26
         (a.k.a. "Plexiglass" or "Lucite"), is based on a VDOS curve used in
         ENDF/B-VIII.0 due to Petersen, et. al. (NCSU)., as it gave a slightly
         better fit to experimental data.
+      * Add CaSiO3_sg2_Wollastonite.ncmat. The main motivation for adding this
+        is that our library should contain at least one triclinic material, to
+        make sure we exercise all code paths. For now, the material does not
+        have VDOS curves and the dynamics are described via the Debye model.
       * Thanks to work by K. Ramic and J. I. Marquez Damian from the ESS
         Spallation Physics group under the HighNESS EU project, a massive number
         (63) of new crystalline materials are added to the data library, which
         along with the 16 new amorphous materials brings the number of material
-        files shipped with NCrystal to a whooping total of 130!  Additionally,
+        files shipped with NCrystal to a whooping total of 131!  Additionally,
         VDOS curves were added for 4 existing materials so that now only a
         single crystalline material (gamma-calcium) in the entire library has
         dynamics based purely on the less accurate Debye model. The 63 new
@@ -70,6 +74,11 @@ v2.7.0 2020-05-26
       * Files for a few existing materials (SiLu2O5, UO2, SiO2) were renamed for
         consistency, and Crystallography Open Database reference numbers were
         added for all existing crystalline files.
+      * Fixed bug where some hkl planes slightly above the d-spacing cutoff were
+        left out of the final calculated list. Cubic, tetragonal, and
+        orthorombic space groups were not affected by this bug, and since our
+        default d-spacing cut off value is rather low, the effect was in any
+        case unlikely to have affected many users.
       * Updated calcium scattering lengths due to improved measurements,
         Palomino et al. (2019), DOI:10.1016/j.nima.2019.02.072. This was
         implemented as a modification of b_coh for natural Ca and the dominant

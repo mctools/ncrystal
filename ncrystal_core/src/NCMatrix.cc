@@ -110,7 +110,7 @@ void NCrystal::Matrix::inv(double epsilon  )
 }
 
 
-NCrystal::Matrix NCrystal::Matrix::getInv(double epsilon)
+NCrystal::Matrix NCrystal::Matrix::getInv(double epsilon) const
 {
   Matrix mat( MatrixAllowCopy, *this );
   mat.inv(epsilon);
@@ -131,7 +131,7 @@ std::ostream& NCrystal::operator << (std::ostream & o, const NCrystal::Matrix& m
   return o;
 }
 
-void NCrystal::Matrix::print()
+void NCrystal::Matrix::print() const
 {
   std::cout<< *this <<std::flush;
 }

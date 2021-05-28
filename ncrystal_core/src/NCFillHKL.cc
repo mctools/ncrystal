@@ -212,7 +212,15 @@ void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
   }
 
   int max_h, max_k, max_l;
-  estimateHKLRange(cfg.dcutoff,rec_lat,max_h, max_k, max_l);
+  {
+    const auto& si = info.getStructureInfo();
+    auto max_hkl = estimateHKLRange( cfg.dcutoff,
+                                     si.lattice_a, si.lattice_b, si.lattice_c,
+                                     si.alpha*kDeg, si.beta*kDeg, si.gamma*kDeg );
+    max_h = max_hkl.h;
+    max_k = max_hkl.k;
+    max_l = max_hkl.l;
+  }
 
   nc_assert_always(msd.size()==atomic_pos.size());
   nc_assert_always(msd.size()==csl.size());
@@ -257,10 +265,9 @@ void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
   for( int loop_h=0;loop_h<=max_h;++loop_h ) {
     for( int loop_k=(loop_h?-max_k:0);loop_k<=max_k;++loop_k ) {
       for( int loop_l=-max_l;loop_l<=max_l;++loop_l ) {
-        if(loop_h==0 && loop_k==0 && loop_l<=0)
+        if ( loop_h==0 && loop_k==0 && loop_l<=0)
           continue;
-        if ( do_select && (loop_h!=select_h||loop_k!=select_k||loop_l!=select_l) )
-            continue;
+
         const Vector hkl(loop_h,loop_k,loop_l);
 
         //calculate waveVector, wave number and dspacing:
@@ -273,6 +280,9 @@ void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
         if (no_forceunitdebyewallerfactor) {
           nclikely fillHKL_getWhkl(whkl, ksq, msd);
         }
+
+        if ( do_select && (loop_h!=select_h||loop_k!=select_k||loop_l!=select_l) )
+            continue;
 
         //calculate |F|^2
         double real_or_imag_upper_limit(0.0);

@@ -110,6 +110,7 @@ namespace NCrystal {
 
   //misc:
   constexpr double constexpr_sqrt(double);//compile time sqrt
+  inline constexpr double ncsquare( double x ) noexcept { return x*x; }
   bool isPrime(unsigned n);//simple O(n^0.5) implementation
   bool intervalsOverlap(double a0, double b0, double a1, double b1);
   bool intervalsDisjoint(double a0, double b0, double a1, double b1);

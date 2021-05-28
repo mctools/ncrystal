@@ -1,0 +1,78 @@
+NCMAT v5
+#
+# Wollastonite (CaSiO3, triclinic, SG-2 / P-1)
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "The Existence of Partial Mirrors in Wollastonite"
+#    Ito, Tei-ichi, et al. (1969)
+#    DOI: https://dx.doi.org/10.2183/pjab1945.45.913
+#    Crystallography Open Database entry 9012890
+#    https://www.crystallography.net/cod/9012890.html
+#
+# This crystal structure is also compatible with structure obtained from
+#   https://www.crystallography.net/cod/9005777
+#   https://www.materialsproject.org/materials/mp-5733
+#
+# Debye temperature value taken from (using the same value
+# for all elements):
+#
+#   "Debye temperatures of selected silicate minerals."
+#   Robie, Richard A., Department of the Interior,
+#   Geological Survey, 1988.
+#
+# Due to the low symmetry, all hkl families have a multiplicity of just 2,
+# leading to a very large number of such families. Accordingly we increase the
+# dcutoff value slightly: NCRYSTALMATCFG[dcutoff=0.25]
+#
+@CELL
+  lengths 7.94 7.32 7.07
+  angles 90.03 95.37 103.43
+@SPACEGROUP
+  2
+@ATOMPOSITIONS
+  Ca .998 .2495 .974
+  Ca .002 .7505 .026
+  Ca 7/10 37/40 .264
+  Ca 3/10 3/40 .736
+  Ca .698 .4245 .261
+  Ca .302 .5755 .739
+  Si .314 .043 .229
+  Si .686 .957 .771
+  Si .314 .614 .229
+  Si .686 .386 .771
+  Si .102 .2755 .442
+  Si .898 .7245 .558
+  O 1/10 11/40 .666
+  O 9/10 29/40 .334
+  O .076 .769 .693
+  O .924 .231 .307
+  O .194 .062 .037
+  O .806 .938 .963
+  O .194 .535 .037
+  O .806 .465 .963
+  O .516 .129 .226
+  O .484 .871 .774
+  O 13/25 .63 .233
+  O 12/25 .37 .767
+  O .224 3/25 .405
+  O .776 22/25 .595
+  O .224 .492 .405
+  O .776 .508 .595
+  O .29 .8225 .26
+  O .71 .1775 .74
+@DYNINFO
+  element  Ca
+  fraction 1/5
+  type     vdosdebye
+  debye_temp 539
+@DYNINFO
+  element  O
+  fraction 3/5
+  type     vdosdebye
+  debye_temp 539
+@DYNINFO
+  element  Si
+  fraction 1/5
+  type     vdosdebye
+  debye_temp 539

@@ -235,15 +235,27 @@ NC::Info NC::loadNXSCrystal( const TextData& textData,
 
   const bool enable_hkl(dcutoff_lower_aa!=-1);
   if (enable_hkl) {
-    RotMatrix rec_lat = getReciprocalLatticeRot( nxs_uc.a, nxs_uc.b, nxs_uc.c,
-                                                 nxs_uc.alpha * kDeg, nxs_uc.beta * kDeg, nxs_uc.gamma * kDeg );
+    auto maxHKLFromDCut = [&nxs_uc]( double dcut )
+    {
+      auto max_hkl = estimateHKLRange( dcut,
+                                       nxs_uc.a, nxs_uc.b, nxs_uc.c,
+                                       nxs_uc.alpha * kDeg, nxs_uc.beta * kDeg, nxs_uc.gamma * kDeg );
+      return std::max<int>( max_hkl.h, std::max<int>( max_hkl.k, max_hkl.l ) );
+    };
 
     if (dcutoff_lower_aa==0) {
-      //have to determine appropriate dcutoff for this crystal. Aim for
-      //maxhkl=20, but not outside [0.1,0.5].
-      dcutoff_lower_aa = ncmax( 0.1, ncmin( 0.5, estimateDCutoff( 20, rec_lat ) ));
+      //Have to determine appropriate dcutoff for this crystal. Aim for no more
+      //than maxhkl=20, and not outside [0.1,0.5]. For simplicity (and to get a
+      //nice looking cutoff value), we simply try 0.1, 0.15, ... 0.45, 0.5:
+      dcutoff_lower_aa = 0.5;
+      for ( auto dcut : linspace(0.1,0.45,8) ) {
+        if ( maxHKLFromDCut(dcut) <= 20 ) {
+          dcutoff_lower_aa = dcut;
+          break;
+        }
+      }
       std::string cmt;
-      if (dcutoff_lower_aa>=dcutoff_upper_aa) {
+      if (dcutoff_lower_aa>=dcutoff_upper_aa*0.95) {
         cmt = " (lower than usual due to value of dcutoffup)";
         dcutoff_lower_aa = 0.8*dcutoff_upper_aa;
       }
@@ -251,10 +263,8 @@ NC::Info NC::loadNXSCrystal( const TextData& textData,
         std::cout<<"NCrystal::NCNXSFactory::automatically selected dcutoff level "<< dcutoff_lower_aa << " Aa"<<cmt<<std::endl;
     }
 
-    int max_h, max_k, max_l;
-    estimateHKLRange( dcutoff_lower_aa, rec_lat, max_h, max_k, max_l );
+    maxhkl = maxHKLFromDCut( dcutoff_lower_aa );
 
-    maxhkl = ncmax(max_h,ncmax(max_k,max_l)) + 1;//+1 for safety
     deinitNXS(&nxs_uc);
     if (maxhkl>50)
       NCRYSTAL_THROW2(CalcError,"Combinatorics too great to reach requested dcutoff = "<<dcutoff_lower_aa<<" Aa");

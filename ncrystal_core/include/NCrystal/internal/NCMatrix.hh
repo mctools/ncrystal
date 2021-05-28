@@ -62,16 +62,16 @@ namespace NCrystal {
     Matrix operator~() const;
     void transpose();
 
-    void print();
+    void print() const;
     void unit();
     void rref(double epsilon = 1e-5);//bring to reduced row echelon form
     void inv(double epsilon = 1e-5);
-    Matrix getInv(double epsilon = 1e-5);
+    Matrix getInv(double epsilon = 1e-5) const;
 
     unsigned nRows() const;
     unsigned nCols() const;
     double mag2() const;//sum of elements squared
-    double mag() const { return sqrt(mag2()); }
+    double mag() const { return std::sqrt(mag2()); }
 
     const SmallVector<double,9>& rawData() const { return m_data; }
 

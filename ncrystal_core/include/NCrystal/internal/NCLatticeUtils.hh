@@ -34,14 +34,12 @@ namespace NCrystal {
   RotMatrix getReciprocalLatticeRot( double lattice_a, double lattice_b, double lattice_c,
                                      double alpha, double beta, double gamma );
 
-  //Based on a reciprocal lattice rotation matrix (like from
-  //getReciprocalLatticeRot(..)), translate dcutoff into required maximum values
-  //of |h|, |k| and |l|:
-  void estimateHKLRange( double dcutoff, const RotMatrix& rec_lat,
-                         int& max_h, int& max_k, int& max_l );
-
-  //Estimate what dcutoff is achievable with a given max_hkl value.
-  double estimateDCutoff( int max_hkl, const RotMatrix& rec_lat );
+  //Given a set of lattice parameters, translate dcutoff into required maximum
+  //values of |h|, |k| and |l|:
+  struct MaxHKL{ int h, k, l; };
+  MaxHKL estimateHKLRange( double dcutoff,
+                           double lattice_a, double lattice_b, double lattice_c,
+                           double alpha, double beta, double gamma );
 
   //Validate that lattice lengths are compatible with given spacegroup. For
   //space groups where a==b or a==c, it is allowed to provide b=0 or c=0, and
