@@ -190,9 +190,6 @@ void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
 
   const RotMatrix rec_lat = getReciprocalLatticeRot( info );
 
-  const double min_ds_sq(cfg.dcutoff*cfg.dcutoff);
-  const double max_ds_sq(cfg.dcutoffup*cfg.dcutoffup);
-
   //Collect info for each atom in suitable format for use for calculations below:
   SmallVector<SmallVector<Vector,16>,4> atomic_pos;//atomic coordinates
   SmallVectD csl;//coherent scattering length
@@ -262,11 +259,18 @@ void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
   //h,k,l->-h,-k,-l and 000). This means, half a space, and half a plane and
   //half an axis,  hence the loop limits:
 
-  //Acceptable range of ksq=(2pi/dspacing)^ (moved slightly up/down to avoid
-  //removing too much - the real check is on dspacing directly and is performed
-  //later):
-  const double max_ksq( (k4PiSq*(1.0+1e-14)) / min_ds_sq );
-  const double min_ksq( (k4PiSq*(1.0-1e-14)) / max_ds_sq );
+  auto clampNormal = [](double x)
+  {
+    //valueInInterval might trigger FPE if used with infinity
+    return ncclamp( x, std::numeric_limits<double>::min(), std::numeric_limits<double>::max() );
+  };
+
+  //Acceptable range of ksq=(2pi/dspacing)^2 and dspacing (ksq range expanded
+  //slightly to avoid removing too much - the real check is on dspacing and is
+  //performed later):
+  const PairDD ksq_preselect_interval( clampNormal( (k4PiSq*(1.0-1e-14)) / ncsquare(cfg.dcutoffup) ),
+                                       clampNormal( (k4PiSq*(1.0+1e-14)) / ncsquare(cfg.dcutoff) ) );
+  const PairDD dcut_interval( clampNormal(cfg.dcutoff), clampNormal(cfg.dcutoffup) );
 
   for( int loop_h=0;loop_h<=max_h;++loop_h ) {
     for( int loop_k=(loop_h?-max_k:0);loop_k<=max_k;++loop_k ) {
@@ -276,7 +280,7 @@ void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
         //calculate waveVector, wave number and dspacing:
         Vector waveVector = rec_lat*hkl;
         const double ksq = waveVector.mag2();
-        if (!valueInInterval(min_ksq,max_ksq,ksq))
+        if (!valueInInterval(ksq_preselect_interval,ksq))
           continue;
 
         if (no_forceunitdebyewallerfactor) {
@@ -296,9 +300,9 @@ void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
           } else {
             double factor = csl[i]*std::exp(-whkl[i]);
             cache_factors[i] = factor;
-            //Assuming cos(phase)=sin(phase)=1 gives us a cheap upper limit on
+            //Assuming cos(phase)*factor=sin(phase)*factor=|factor| gives us a cheap upper limit on
             //fsquared:
-            real_or_imag_upper_limit += atomic_pos[i].size()*ncabs(factor);
+            real_or_imag_upper_limit += atomic_pos[i].size()*ncabs( factor );
           }
         }
 
@@ -347,9 +351,7 @@ void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
           imag.add(spsum.sum() * factor);
         }
 
-        double realsum = real.sum();
-        double imagsum = imag.sum();
-        double FSquared = (realsum*realsum+imagsum*imagsum);
+        const double FSquared = ncsquare( real.sum() ) + ncsquare( imag.sum() );
 
         //skip weak or impossible reflections:
         if(FSquared<cfg.fsquarecut)
@@ -360,7 +362,7 @@ void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
         const double invkval = 1.0 / kval;
         const double dspacing = k2Pi * invkval;
 
-        if ( !valueInInterval( cfg.dcutoff, cfg.dcutoffup, dspacing ) )
+        if ( !valueInInterval( dcut_interval, dspacing ) )
           continue;
 
         //Normalise waveVector so we can use it below as a demi_normal:

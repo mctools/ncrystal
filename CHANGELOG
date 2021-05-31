@@ -86,6 +86,10 @@ v2.7.0 2020-05-31
         orthorombic space groups were not affected by this bug, and since our
         default d-spacing cut off value is rather low, the effect was in any
         case unlikely to have affected many users.
+      * Fixed bug where some hkl planes could very rarely be left out in
+        crystals containing elements with negative coherent scattering
+        lengths. It is not believed to be likely that this bug has affected any
+        users, but a few of the new materials would have been affected.
       * Updated calcium scattering lengths due to improved measurements,
         Palomino et al. (2019), DOI:10.1016/j.nima.2019.02.072. This was
         implemented as a modification of b_coh for natural Ca and the dominant
