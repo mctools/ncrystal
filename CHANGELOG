@@ -53,7 +53,7 @@ v2.7.0 2020-05-31
         have VDOS curves and the dynamics are described via the Debye model.
       * Thanks to work by K. Ramic and J. I. Marquez Damian from the ESS
         Spallation Physics group under the HighNESS EU project, a massive number
-        (63) of new crystalline materials are added to the data library, which
+        (64) of new crystalline materials are added to the data library, which
         along with the 16 new amorphous materials brings the number of material
         files shipped with NCrystal to a whooping total of 131!  Additionally,
         VDOS curves were added for 4 existing materials so that now only a
