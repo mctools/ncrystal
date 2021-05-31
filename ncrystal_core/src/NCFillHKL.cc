@@ -298,7 +298,7 @@ void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
             cache_factors[i] = factor;
             //Assuming cos(phase)=sin(phase)=1 gives us a cheap upper limit on
             //fsquared:
-            real_or_imag_upper_limit += atomic_pos[i].size()*factor;
+            real_or_imag_upper_limit += atomic_pos[i].size()*ncabs(factor);
           }
         }
 
