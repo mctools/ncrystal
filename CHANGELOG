@@ -1,4 +1,4 @@
-v2.7.0 2020-05-28
+v2.7.0 2020-05-31
       * Introduce NCMAT v5 which two updates for the format, both meant to
         facilitate modelling of amorphous (i.e. non-crystalline) solids.
         Firstly, Debye temperatures can now be specified directly in @DYNINFO
@@ -11,6 +11,14 @@ v2.7.0 2020-05-28
         solids will currently get both inelastic and elastic physics determined
         from the VDOS curves - with coherent components approximated via the
         incoherent approximation.
+      * Improve HKL plane initialisation code to make it 200% faster (i.e. a
+        factor of 3 speedup)! This was mostly achieved by using our own custom
+        sin+cos implementations, which are much faster than the standard ones,
+        but with no impact on precision. As a result, the heuristics picking a
+        default dcutoff value were updated so that structures with more than 40
+        atoms per unit cell now defaults to dcutoff=0.2Aa, as opposed to
+        dcutoff=0.25Aa before (the default value for other materials remain
+        dcutoff=0.1Aa).
       * Add ncrystal_hfg2ncmat script for convenient production of NCMAT files
         for hydrogen rich amorphous materials, based on concept and data from
         Romanelli et. al. (2021), https://dx.doi.org/10.1088/1361-648X/abfc13

@@ -27,6 +27,9 @@ NCMAT v5
 #       of the Thermal Neutron Scattering Cross-Section of Solids Using OCLIMAX".
 #       Journal of Chemical Theory and Computation 2020, 16 (8), 5212-5217.
 #
+# Due to the low symmetry, we increase the dcutoff value slightly to keep the
+# number of hkl families more manageable: NCRYSTALMATCFG[dcutoff=0.3]
+#
 @CELL
   lengths 14.564338 6.835386 10.556968467868
   angles 90 122.13203904306 90

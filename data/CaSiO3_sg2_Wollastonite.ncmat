@@ -21,9 +21,8 @@ NCMAT v5
 #   Robie, Richard A., Department of the Interior,
 #   Geological Survey, 1988.
 #
-# Due to the low symmetry, all hkl families have a multiplicity of just 2,
-# leading to a very large number of such families. Accordingly we increase the
-# dcutoff value slightly: NCRYSTALMATCFG[dcutoff=0.25]
+# Due to the low symmetry, we increase the dcutoff value slightly to keep the
+# number of hkl families more manageable: NCRYSTALMATCFG[dcutoff=0.3]
 #
 @CELL
   lengths 7.94 7.32 7.07

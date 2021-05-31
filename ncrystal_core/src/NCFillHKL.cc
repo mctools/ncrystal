@@ -262,27 +262,26 @@ void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
   //h,k,l->-h,-k,-l and 000). This means, half a space, and half a plane and
   //half an axis,  hence the loop limits:
 
+  //Acceptable range of ksq=(2pi/dspacing)^ (moved slightly up/down to avoid
+  //removing too much - the real check is on dspacing directly and is performed
+  //later):
+  const double max_ksq( (k4PiSq*(1.0+1e-14)) / min_ds_sq );
+  const double min_ksq( (k4PiSq*(1.0-1e-14)) / max_ds_sq );
+
   for( int loop_h=0;loop_h<=max_h;++loop_h ) {
     for( int loop_k=(loop_h?-max_k:0);loop_k<=max_k;++loop_k ) {
       for( int loop_l=-max_l;loop_l<=max_l;++loop_l ) {
-        if ( loop_h==0 && loop_k==0 && loop_l<=0)
-          continue;
-
         const Vector hkl(loop_h,loop_k,loop_l);
 
         //calculate waveVector, wave number and dspacing:
         Vector waveVector = rec_lat*hkl;
         const double ksq = waveVector.mag2();
-        const double dspacingsq = (k2Pi*k2Pi)/ksq;
-        if( dspacingsq < min_ds_sq || dspacingsq > max_ds_sq )
+        if (!valueInInterval(min_ksq,max_ksq,ksq))
           continue;
 
         if (no_forceunitdebyewallerfactor) {
           nclikely fillHKL_getWhkl(whkl, ksq, msd);
         }
-
-        if ( do_select && (loop_h!=select_h||loop_k!=select_k||loop_l!=select_l) )
-            continue;
 
         //calculate |F|^2
         double real_or_imag_upper_limit(0.0);
@@ -308,6 +307,12 @@ void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
         if(real_or_imag_upper_limit*real_or_imag_upper_limit*2.0<cfg.fsquarecut)
           continue;
 
+        if ( loop_h==0 && loop_k==0 && loop_l<=0)
+          continue;
+
+        if ( do_select && (loop_h!=select_h||loop_k!=select_k||loop_l!=select_l) )
+            continue;
+
         //Time to calculate phases and sum up contributions. Use numerically
         //stable summation, for better results on low-symmetry crystals (the
         //main cost here is anyway the phase calculations, not the summation):
@@ -320,15 +325,28 @@ void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
           auto itAtomPosEnd = atomic_pos[i].end();
           StableSum cpsum, spsum;
           for(;itAtomPos!=itAtomPosEnd;++itAtomPos) {
+#if 0
             double phase = hkl.dot(*itAtomPos) * k2Pi;
             double cp,sp;
-            sincos(phase,cp,sp);
+            sincos(phase,cp,sp);//<--- where we spend 99% of time in complex crystals
+#else
+            //Phase is hkl.dot(*itAtomPos)*2pi. We speed up the expensive
+            //calculation of sin+cos by a factor of 3 by shifting the phase to
+            //[0,2pi] and using our own fast sincos_02pi. Since 99% of the hkl
+            //initialisation time is spent calculating sin+cos here, that
+            //actually translates into an overall speedup of a factor of 3 (in
+            //NCrystal v2.7.0)!
+            const double phase_div2pi = hkl.dot(*itAtomPos);
+            double cp,sp;
+            sincos_02pi((phase_div2pi-std::floor(phase_div2pi))*k2Pi,cp,sp);
+#endif
             cpsum.add(cp);
             spsum.add(sp);
           }
           real.add(cpsum.sum() * factor);
           imag.add(spsum.sum() * factor);
         }
+
         double realsum = real.sum();
         double imagsum = imag.sum();
         double FSquared = (realsum*realsum+imagsum*imagsum);
@@ -337,11 +355,19 @@ void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
         if(FSquared<cfg.fsquarecut)
           continue;
 
-        //normalise waveVector so we can use it below as a demi_normal:
-        waveVector *= 1.0 / std::sqrt(ksq);
+        //Calculate d-spacing and recheck cut:
+        const double kval = std::sqrt( ksq );
+        const double invkval = 1.0 / kval;
+        const double dspacing = k2Pi * invkval;
 
-        const double dspacing = std::sqrt(dspacingsq);//TODO: store dspacingsquared in multimap and avoid some sqrt calls.
-        FamKeyType searchkey(keygen(FSquared,dspacing));//key for our fsq2hklidx multimap
+        if ( !valueInInterval( cfg.dcutoff, cfg.dcutoffup, dspacing ) )
+          continue;
+
+        //Normalise waveVector so we can use it below as a demi_normal:
+        waveVector *= invkval;
+
+        //Key for our fsq2hklidx multimap:
+        FamKeyType searchkey(keygen(FSquared,dspacing));
 
         FamMap::iterator itSearchLB = fsq2hklidx.lower_bound(searchkey);
         FamMap::iterator itSearch(itSearchLB), itSearchE(fsq2hklidx.end());

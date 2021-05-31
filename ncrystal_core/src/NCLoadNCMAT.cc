@@ -662,7 +662,7 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
       //Very simple heuristics here for now to select appropriate dcutoff value
       //(specifically we needed to raise the value for expensive Y2O3/SiLu2O5
       //with ~80/65 atoms/cell):
-      cfgvars.dcutoff = ( natoms_per_cell>40 ? 0.25 : 0.1 ) ;
+      cfgvars.dcutoff = ( natoms_per_cell>40 ? 0.2 : 0.1 ) ;
       std::string cmt;
       if (cfgvars.dcutoff>=cfgvars.dcutoffup) {
         //automatically selected conflicts with value of dcutoffup.
