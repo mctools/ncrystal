@@ -56,11 +56,11 @@ v2.7.0 2020-05-31
         (64) of new crystalline materials are added to the data library, which
         along with the 16 new amorphous materials brings the number of material
         files shipped with NCrystal to a whooping total of 131!  Additionally,
-        VDOS curves were added for 4 existing materials so that now only a
-        single crystalline material (gamma-calcium) in the entire library has
-        dynamics based purely on the less accurate Debye model. The 63 new
-        crystalline materials are mostly polyatomic materials of interest to the
-        wider community of nuclear scientists, neutronics, and neutron
+        VDOS curves were added for 4 existing materials so that now only two
+        crystalline materials (gamma-calcium and wollastonite) in the entire
+        library have dynamics based purely on the less accurate Debye model. The
+        64 new crystalline materials are mostly polyatomic materials of interest
+        to the wider community of nuclear scientists, neutronics, and neutron
         scattering instrumentation. All these materials come fully described
         with both crystal structures and phonon VDOS curves, and have been
         carefully validated. Crystal structures are mostly taken from the
@@ -77,8 +77,7 @@ v2.7.0 2020-05-31
         available, VDOS curves were verified to be in agreement with
         experimentally measured heat capacity curves, predicted material
         densities were verified to be in accordance with known densities, and
-        crystal symmetries were verified with the ncrystal_verifyatompos
-        script.
+        crystal symmetries were verified with the ncrystal_verifyatompos script.
       * Files for a few existing materials (SiLu2O5, UO2, SiO2) were renamed for
         consistency, and Crystallography Open Database reference numbers were
         added for all existing crystalline files.
