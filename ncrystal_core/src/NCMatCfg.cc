@@ -681,16 +681,16 @@ struct NC::MatCfg::Impl {
     SCOrientation orient;
     double tol = cfg.get_dirtol();
     if ( dir1->crystal_is_hkl )
-      orient.setPrimaryDirection( CrystalAxis{dir1->crystal[0],dir1->crystal[1],dir1->crystal[2]},
-                                  LabAxis{dir1->lab[0],dir1->lab[1],dir1->lab[2]} );
-    else
       orient.setPrimaryDirection( HKLPoint{dir1->crystal[0],dir1->crystal[1],dir1->crystal[2]},
                                   LabAxis{dir1->lab[0],dir1->lab[1],dir1->lab[2]} );
+    else
+      orient.setPrimaryDirection( CrystalAxis{dir1->crystal[0],dir1->crystal[1],dir1->crystal[2]},
+                                  LabAxis{dir1->lab[0],dir1->lab[1],dir1->lab[2]} );
     if ( dir2->crystal_is_hkl )
-      orient.setSecondaryDirection( CrystalAxis{dir2->crystal[0],dir2->crystal[1],dir2->crystal[2]},
+      orient.setSecondaryDirection( HKLPoint{dir2->crystal[0],dir2->crystal[1],dir2->crystal[2]},
                                     LabAxis{dir2->lab[0],dir2->lab[1],dir2->lab[2]}, tol );
     else
-      orient.setSecondaryDirection( HKLPoint{dir2->crystal[0],dir2->crystal[1],dir2->crystal[2]},
+      orient.setSecondaryDirection( CrystalAxis{dir2->crystal[0],dir2->crystal[1],dir2->crystal[2]},
                                     LabAxis{dir2->lab[0],dir2->lab[1],dir2->lab[2]}, tol );
     nc_assert_always(orient.isComplete());//should not be called otherwise
     return orient;

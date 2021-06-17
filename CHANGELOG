@@ -1,3 +1,9 @@
+v2.7.1 2020-06-17
+       * Fix single crystal alignment bug which was inadvertantly introduced
+         among the many technical changes in release v2.5.0, essentially
+         swapping the meaning of @crys: and @crys_hkl: in the parts of the cfg
+         strings defining the crystal orientation.
+
 v2.7.0 2020-05-31
       * Introduce NCMAT v5 which two updates for the format, both meant to
         facilitate modelling of amorphous (i.e. non-crystalline) solids.
