@@ -1,7 +1,7 @@
 v2.7.2 2020-07-08
        * Various compilation fixes, affecting only users of Geant4-hooks with
          the most recent Geant4 release (10.07.p02) or users with the rather
-         outdated gcc 4.8.5.
+         outdated gcc 4.8.5 (github issue #69).
 
 v2.7.1 2020-06-17
        * Fix single crystal alignment bug which was inadvertantly introduced
