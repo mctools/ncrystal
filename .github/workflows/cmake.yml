@@ -36,7 +36,7 @@ jobs:
       run: cmake --install ${{github.workspace}}/build
 
     - name: Look around
-      run: ls -l ${{github.workspace}}/install && find ${{github.workspace}}/install
+      run: ls -l ${{github.workspace}}/install && find ${{github.workspace}}/install && ls -l ${{github.workspace}}/install/bin/ncrystal_inspectfile
 
     - name: Test
       working-directory: ${{github.workspace}}/runtestdir
