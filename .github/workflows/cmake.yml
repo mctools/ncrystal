@@ -35,6 +35,9 @@ jobs:
     - name: Install
       run: cmake --install ${{github.workspace}}/build
 
+    - name: Check python
+      run: which python3 && python3 --version
+
     - name: Look around
       run: ls -l ${{github.workspace}}/install && find ${{github.workspace}}/install && ls -l ${{github.workspace}}/install/bin/ncrystal_inspectfile
 
