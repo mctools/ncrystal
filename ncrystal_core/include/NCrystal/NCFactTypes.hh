@@ -139,9 +139,9 @@ namespace NCrystal {
   inline constexpr bool Priority::operator==( const Priority& o ) const noexcept { return m_value == o.m_value; }
   inline constexpr bool Priority::operator!=( const Priority& o ) const noexcept { return m_value != o.m_value; }
 
-  inline ncconstexpr17 Priority::Priority( const uint_fast32_t priority ) : m_value{ 4*priority + 0x1 }
+  inline ncconstexpr17 Priority::Priority( const uint_fast32_t ppp ) : m_value{ 4*ppp + 0x1 }
   {
-    if (!(priority>=1&&priority<=1000000000))
+    if (!(ppp>=1&&ppp<=1000000000))
       NCRYSTAL_THROW(BadInput,"Priority must be in range 1-1000000000");
   }
 

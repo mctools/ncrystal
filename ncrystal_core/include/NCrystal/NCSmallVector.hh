@@ -282,7 +282,7 @@ namespace NCrystal {
       TValue * m_end;
       size_type m_capacity;
     public:
-      DetachedHeap(TValue*b,TValue*e,size_type capacity) : m_begin(b), m_end(e), m_capacity(capacity) {}
+      DetachedHeap(TValue*b,TValue*e,size_type cc) : m_begin(b), m_end(e), m_capacity(cc) {}
       ncconstexpr17 TValue * begin() noexcept { return m_begin; }
       ncconstexpr17 TValue * end() noexcept { return m_end; }
       constexpr size_type capacity() const noexcept { return m_capacity; }

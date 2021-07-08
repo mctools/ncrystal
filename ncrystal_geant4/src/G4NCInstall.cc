@@ -96,7 +96,8 @@ namespace G4NCrystal {
     const G4ProcessVector* pl = pmanager->GetProcessList();
     G4HadronElasticProcess* pHadElastic(0);
 
-    for (G4int i=0;i<pl->size();++i) {
+    auto nprocs = pl->size();
+    for ( decltype(nprocs) i = 0; i < nprocs; ++i ) {
       if (!pmanager->GetProcessActivation(i))
         continue;
       G4HadronElasticProcess* pHadElasticTest = dynamic_cast<G4HadronElasticProcess*>((*pl)[i]);

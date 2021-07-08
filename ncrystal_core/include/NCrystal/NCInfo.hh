@@ -583,8 +583,8 @@ namespace NCrystal {
   inline Temperature DynamicInfo::temperature() const { return m_temperature; }
   inline bool Info::hasComposition() const { return !m_composition.empty(); }
   inline const Info::Composition& Info::getComposition() const { return m_composition; }
-  inline DI_VDOSDebye::DI_VDOSDebye( double fr, IndexedAtomData atom, Temperature tt, DebyeTemperature dt )
-    : DI_ScatKnl(fr,std::move(atom),tt),m_dt(dt) { nc_assert(m_dt.get()>0.0); }
+  inline DI_VDOSDebye::DI_VDOSDebye( double fr, IndexedAtomData aaa, Temperature tt, DebyeTemperature dt )
+    : DI_ScatKnl(fr,std::move(aaa),tt),m_dt(dt) { nc_assert(m_dt.get()>0.0); }
   inline DebyeTemperature DI_VDOSDebye::debyeTemperature() const { return m_dt; }
   inline const Info::CustomData& Info::getAllCustomSections() const { return m_custom; }
   inline const AtomData& IndexedAtomData::data() const ncnoexceptndebug { return atomDataSP; }

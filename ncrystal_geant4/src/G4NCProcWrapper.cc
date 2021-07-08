@@ -46,10 +46,7 @@ namespace G4NCrystal {
       //  RNG_G4Wrapper rng(G4Random::getTheEngine());
       //
       //Since G4Random::getTheEngine() always returns a thread-local engine, this is then MT-safe!
-      constexpr RNG_G4Wrapper(CLHEP::HepRandomEngine * e) ncnoexceptndebug : m_engine(e)
-      {
-        nc_assert(e!=nullptr);//nc_assert ok here, used inside try-catch block below
-      }
+      constexpr RNG_G4Wrapper(CLHEP::HepRandomEngine * e) noexcept : m_engine(e) {}
     protected:
       double actualGenerate() override { return m_engine->flat(); }
     };
@@ -99,7 +96,9 @@ G4VParticleChange* NCG4::ProcWrapper::PostStepDoIt(const G4Track& trk, const G4S
   G4ThreeVector g4outcome_dir;
   double g4outcome_ekin;
   try {
-    RNG_G4Wrapper rng(G4Random::getTheEngine());
+    auto random_engine = G4Random::getTheEngine();
+    nc_assert(random_engine!=nullptr);
+    RNG_G4Wrapper rng(random_engine);
     constexpr double inv_eV = 1.0/CLHEP::eV;
     NC::NeutronEnergy nc_ekin_in{ekin * inv_eV};//NCrystal unit is eV
     const G4ThreeVector& indir = trk.GetMomentumDirection();
