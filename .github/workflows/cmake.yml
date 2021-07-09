@@ -41,7 +41,14 @@ jobs:
     - name: Look around
       run: ls -l ${{github.workspace}}/install && find ${{github.workspace}}/install && ls -l ${{github.workspace}}/install/bin/ncrystal_inspectfile
 
-    - name: Test
-      #working-directory: ${{github.workspace}}/runtestdir
-      run: ls -l ${{github.workspace}}/install/bin/ncrystal_inspectfile && ${{github.workspace}}/install/bin/ncrystal_inspectfile --test
-      # run: ctest -C ${{env.BUILD_TYPE}}
+    - name: Simple tests without setup.sh
+      run: |
+           ${{github.workspace}}/install/bin/ncrystal_inspectfile --test
+           ${{github.workspace}}/install/bin/ncrystal_example_c
+           ${{github.workspace}}/install/bin/ncrystal_example_cpp
+           ${{github.workspace}}/install/bin/ncrystal_inspectfile --help
+           ${{github.workspace}}/install/bin/ncrystal_inspectfile --test
+           ${{github.workspace}}/install/bin/ncrystal_inspectfile --dump 'Al_sg225.ncmat;dcutoff=1.5'
+           ${{github.workspace}}/install/bin/ncrystal_inspectfile --dump 'Al_sg225.nxs;dcutoff=1.5'
+
+
