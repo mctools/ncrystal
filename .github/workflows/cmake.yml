@@ -41,14 +41,49 @@ jobs:
     - name: Look around
       run: ls -l ${{github.workspace}}/install && find ${{github.workspace}}/install && ls -l ${{github.workspace}}/install/bin/ncrystal_inspectfile
 
-    - name: Simple tests without setup.sh
+    - name: Tests without setup.sh
       run: |
            ${{github.workspace}}/install/bin/ncrystal_inspectfile --test
+           ${{github.workspace}}/install/bin/ncrystal-config --help
            ${{github.workspace}}/install/bin/ncrystal_example_c
            ${{github.workspace}}/install/bin/ncrystal_example_cpp
            ${{github.workspace}}/install/bin/ncrystal_inspectfile --help
            ${{github.workspace}}/install/bin/ncrystal_inspectfile --test
            ${{github.workspace}}/install/bin/ncrystal_inspectfile --dump 'Al_sg225.ncmat;dcutoff=1.5'
            ${{github.workspace}}/install/bin/ncrystal_inspectfile --dump 'Al_sg225.nxs;dcutoff=1.5'
+    - name: Tests with setup.sh
+      run: |
+           . ${{github.workspace}}/install/setup.sh
+           ncrystal_inspectfile --test
+           ncrystal-config --help
+#
+#    - python3 -c 'import matplotlib' 2>/dev/null || python3 -mpip install matplotlib
+#    - ../installdir/bin/ncrystal_inspectfile --pdf Al_sg225.ncmat
+#    - . ../installdir/setup.sh
+#    - ../installdir/bin/ncrystal_example_py
+#    - python3 -c 'import NCrystal; NCrystal.test()'
+#    - ../installdir/bin/ncrystal_inspectfile --help
+#    - ../installdir/bin/ncrystal_inspectfile --test
+#    - ../installdir/bin/ncrystal_inspectfile --dump Al_sg225.ncmat
+#    - ../installdir/bin/ncrystal_inspectfile --pdf Al_sg225.ncmat
+#    - . ../installdir/setup.sh
+#    - ../installdir/bin/ncrystal_example_py
+#    - python3 -c 'import NCrystal; NCrystal.test()'
+##do not run vdos2ncmat/endf2ncmat with 3.5, (uses f-strings from py3.6):
+#    - python3 --version
+#    - python3 -c "import sys;sys.exit(1 if sys.version_info[0:2]>=(3,6) else 0)" || ../installdir/bin/ncrystal_vdos2ncmat --help
+##requires pyne!    - python3 -c "import sys;sys.exit(1 if sys.version_info[0:2]>=(3,6) else 0)" || ../installdir/bin/ncrystal_endf2ncmat --help
+#    - ../installdir/bin/ncrystal_ncmat2cpp --help
+#    - ../installdir/bin/ncrystal_ncmat2cpp $(../installdir/bin/ncrystal-config --show=datadir)/Al_sg225.ncmat -o test.cpp
+#    - cat test.cpp
+#    - ../installdir/bin/ncrystal_verifyatompos --help
+#    - ../installdir/bin/ncrystal_onlinedb2ncmat --help
+#    - python3 -c 'import ase' 2>/dev/null || python3 -mpip install ase
+#    - ../installdir/bin/ncrystal_verifyatompos Al2O3_sg167_Corundum.ncmat
+#    - python3 -c 'import pymatgen' 2>/dev/null || python3 -mpip install pymatgen
+#    - ../installdir/bin/ncrystal_onlinedb2ncmat --codid=9008460
+#    - cat autogen_Al_sg225_cod9008460.ncmat
+#    - set +e
+#
 
 
