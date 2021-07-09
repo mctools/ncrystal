@@ -51,11 +51,36 @@ jobs:
            ${{github.workspace}}/install/bin/ncrystal_inspectfile --test
            ${{github.workspace}}/install/bin/ncrystal_inspectfile --dump 'Al_sg225.ncmat;dcutoff=1.5'
            ${{github.workspace}}/install/bin/ncrystal_inspectfile --dump 'Al_sg225.nxs;dcutoff=1.5'
+
+    - name: Tests with eval ncrystal-config setup
+      run: |
+           eval $(${{github.workspace}}/install/bin/ncrystal-config --setup)
+           ncrystal-config --summary
+           ncrystal_inspectfile --test
+           ncrystal_example_c
+           ncrystal_example_cpp
+           python3 -c 'import NCrystal; NCrystal.test()'
+           eval $(ncrystal-config --unsetup)
+
     - name: Tests with setup.sh
       run: |
            . ${{github.workspace}}/install/setup.sh
+           ncrystal-config --summary
            ncrystal_inspectfile --test
-           ncrystal-config --help
+           ncrystal_example_c
+           ncrystal_example_cpp
+           python3 -c 'import NCrystal; NCrystal.test()'
+           . ${{github.workspace}}/install/unsetup.sh
+
+    - name: Tests that should fail
+      run: |
+           . ${{github.workspace}}/install/setup.sh
+           ncrystal-config --summary
+           ncrystal_inspectfile --testsdfsd
+
+
+
+
 #
 #    - python3 -c 'import matplotlib' 2>/dev/null || python3 -mpip install matplotlib
 #    - ../installdir/bin/ncrystal_inspectfile --pdf Al_sg225.ncmat
