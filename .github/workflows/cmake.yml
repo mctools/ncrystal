@@ -68,9 +68,7 @@ jobs:
            ${{github.workspace}}/install/bin/ncrystal_inspectfile --test
            ${{github.workspace}}/install/bin/ncrystal_example_c
            ${{github.workspace}}/install/bin/ncrystal_example_cpp
-           ${{github.workspace}}/install/bin/ncrystal_example_py
            ${{github.workspace}}/install/bin/ncrystal_inspectfile --dump 'Al_sg225.ncmat;dcutoff=1.5'
-           ${{github.workspace}}/install/bin/ncrystal_inspectfile --dump 'Al_sg225.nxs;dcutoff=1.5'
 
     - name: Tests with eval ncrystal-config setup
       run: |
