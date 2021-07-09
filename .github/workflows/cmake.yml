@@ -85,7 +85,6 @@ jobs:
            ncrystal_inspectfile --dump 'Al_sg225.ncmat;dcutoff=1.5'
            ncrystal_inspectfile --dump 'Al_sg225.nxs;dcutoff=1.5'
            python3 -c 'import NCrystal; NCrystal.test()'
-           #NEEDS MATPLOTLIB: ncrystal_inspectfile --pdf Al_sg225.ncmat
            ncrystal_vdos2ncmat --help
            ncrystal_onlinedb2ncmat --help
            ncrystal_ncmat2cpp --help
@@ -93,19 +92,8 @@ jobs:
            ncrystal_onlinedb2ncmat --codid=9008460
            ncrystal_ncmat2cpp $(ncrystal-config --show=datadir)/Al_sg225.ncmat -o test.cpp
            cat test.cpp
-##requires pyne!    - python3 -c "import sys;sys.exit(1 if sys.version_info[0:2]>=(3,6) else 0)" || ../installdir/bin/ncrystal_endf2ncmat --help
-#    - ../installdir/bin/ncrystal_ncmat2cpp --help
-#    - ../installdir/bin/ncrystal_ncmat2cpp $(../installdir/bin/ncrystal-config --show=datadir)/Al_sg225.ncmat -o test.cpp
-#    - cat test.cpp
-#    - ../installdir/bin/ncrystal_verifyatompos --help
-#    - ../installdir/bin/ncrystal_onlinedb2ncmat --help
-#    - python3 -c 'import ase' 2>/dev/null || python3 -mpip install ase
-#    - ../installdir/bin/ncrystal_verifyatompos Al2O3_sg167_Corundum.ncmat
-#    - python3 -c 'import pymatgen' 2>/dev/null || python3 -mpip install pymatgen
-#    - ../installdir/bin/ncrystal_onlinedb2ncmat --codid=9008460
-#    - cat autogen_Al_sg225_cod9008460.ncmat
-#    - set +e
            eval $(ncrystal-config --unsetup)
+           #NEEDS MATPLOTLIB: ncrystal_inspectfile --pdf Al_sg225.ncmat
 
     - name: Tests with setup.sh
       run: |
@@ -118,6 +106,18 @@ jobs:
            python3 -c 'import NCrystal; NCrystal.test()'
            . ${{github.workspace}}/install/unsetup.sh
 
+##requires pyne!    - python3 -c "import sys;sys.exit(1 if sys.version_info[0:2]>=(3,6) else 0)" || ../installdir/bin/ncrystal_endf2ncmat --help
+#    - ../installdir/bin/ncrystal_ncmat2cpp --help
+#    - ../installdir/bin/ncrystal_ncmat2cpp $(../installdir/bin/ncrystal-config --show=datadir)/Al_sg225.ncmat -o test.cpp
+#    - cat test.cpp
+#    - ../installdir/bin/ncrystal_verifyatompos --help
+#    - ../installdir/bin/ncrystal_onlinedb2ncmat --help
+#    - python3 -c 'import ase' 2>/dev/null || python3 -mpip install ase
+#    - ../installdir/bin/ncrystal_verifyatompos Al2O3_sg167_Corundum.ncmat
+#    - python3 -c 'import pymatgen' 2>/dev/null || python3 -mpip install pymatgen
+#    - ../installdir/bin/ncrystal_onlinedb2ncmat --codid=9008460
+#    - cat autogen_Al_sg225_cod9008460.ncmat
+#    - set +e
 #    - python3 -c 'import matplotlib' 2>/dev/null || python3 -mpip install matplotlib
 #    - ../installdir/bin/ncrystal_inspectfile --pdf Al_sg225.ncmat
 #    - . ../installdir/setup.sh
