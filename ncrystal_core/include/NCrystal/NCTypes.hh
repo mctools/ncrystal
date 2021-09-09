@@ -446,10 +446,10 @@ namespace NCrystal {
     : EncapsulatedValue(ekin2wl(nc_as_const(ekin).get())) {}
   inline constexpr NeutronEnergy::NeutronEnergy(NeutronWavelength wl) noexcept
     : EncapsulatedValue(wl2ekin(nc_as_const(wl).get())) {}
-  inline constexpr MosaicityFWHM::MosaicityFWHM(MosaicitySigma m) noexcept
-    : EncapsulatedValue( nc_as_const(m).get() * kSigma2FWHM ) {}
-  inline constexpr MosaicitySigma::MosaicitySigma(MosaicityFWHM m) noexcept
-    : EncapsulatedValue( nc_as_const(m).get() * kFWHM2Sigma ) {}
+  inline constexpr MosaicityFWHM::MosaicityFWHM(MosaicitySigma mos) noexcept
+    : EncapsulatedValue( nc_as_const(mos).get() * kSigma2FWHM ) {}
+  inline constexpr MosaicitySigma::MosaicitySigma(MosaicityFWHM mos) noexcept
+    : EncapsulatedValue( nc_as_const(mos).get() * kFWHM2Sigma ) {}
 
   inline constexpr MosaicitySigma MosaicityFWHM::sigma() const noexcept
   {

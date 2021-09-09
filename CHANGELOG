@@ -1,15 +1,23 @@
-v2.7.2 2020-07-08
+v2.7.3 2021-09-09
+       * Add missing import statement in ncrystal_hfg2ncmat (github issue #71).
+       * C++ API gets ekin2ksq and ksq2ekin utility functions.
+       * Cleanup the PointwiseDist utility class and add new sampleBelow and
+         commulIntegral utility functions
+       * Add new internal IofQHelper utility class which can be used to
+         implement elastic physics described via an I(Q) curve
+
+v2.7.2 2021-07-08
        * Various compilation fixes, affecting only users of Geant4-hooks with
          the most recent Geant4 release (10.07.p02) or users with the rather
          outdated gcc 4.8.5 (github issue #69).
 
-v2.7.1 2020-06-17
+v2.7.1 2021-06-17
        * Fix single crystal alignment bug which was inadvertantly introduced
          among the many technical changes in release v2.5.0, essentially
          swapping the meaning of @crys: and @crys_hkl: in the parts of the cfg
          strings defining the crystal orientation.
 
-v2.7.0 2020-05-31
+v2.7.0 2021-05-31
       * Introduce NCMAT v5 which two updates for the format, both meant to
         facilitate modelling of amorphous (i.e. non-crystalline) solids.
         Firstly, Debye temperatures can now be specified directly in @DYNINFO
@@ -139,7 +147,7 @@ v2.7.0 2020-05-31
         useful when passing shared objects to functions taking reference
         parameters.
 
-v2.6.1 2020-05-03
+v2.6.1 2021-05-03
       * Workaround for numerical artifacts in inelastic cross sections arising
         from low-granularity beta-grids. In practice this affected materials
         which either used hard-coded low-granularity scattering kernel, or those
@@ -150,7 +158,7 @@ v2.6.1 2020-05-03
         modifying the beta-grid generation code to ensure points are inserted
         into any large gaps in the single-phonon region.
 
-v2.6.0 2020-04-05
+v2.6.0 2021-04-05
       * Introduce NCMAT v4 which introduces a few new features, as described in
         detail in the ncmat_doc.md file. The most important new feature relies
         on the fact that it is possible to estimate atomic
@@ -203,13 +211,13 @@ v2.6.0 2020-04-05
       * Before defining macros in public headers, check if present already and
         if so undefine.
 
-v2.5.81 2020-04-01
+v2.5.81 2021-04-01
       * RC2 for incoming release v2.6.0.
 
-v2.5.80 2020-03-25
+v2.5.80 2021-03-25
       * RC1 for incoming release v2.6.0.
 
-v2.5.0 2020-03-21
+v2.5.0 2021-03-21
       * The NCrystal v2.5.0 release brings major technical improvements to
         NCrystal "under the hood", with around 15.000 lines of code changed in
         more than 200 files! Although massive, the changes are mostly technical
@@ -223,10 +231,10 @@ v2.5.0 2020-03-21
         in the wiki, so please find additional information at:
         https://github.com/mctools/ncrystal/wiki/Announcement-Release2.5.0
 
-v2.4.81 2020-03-16
+v2.4.81 2021-03-16
       * RC2 for incoming release v2.5.0.
 
-v2.4.80 2020-03-15
+v2.4.80 2021-03-15
       * RC1 for incoming release v2.5.0.
 
 v2.4.0 2020-12-17

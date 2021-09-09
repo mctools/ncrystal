@@ -55,13 +55,15 @@
 
 namespace NCrystal {
 
-  //Utility functions for converting between neutron wavelength [Aa] and kinetic
-  //energy [eV]:
+  //Utility functions for converting between neutron wavelength [Aa], kinetic
+  //energy [eV], and wavenumber k=2pi/lambda [1/Aa]:
   NCRYSTAL_API constexpr double wl2ekin( double wl );     //cost: 1 branch + 1 division + 1 mult
   NCRYSTAL_API constexpr double ekin2wl( double ekin );   //cost: 1 branch + 1 division + 1 sqrt
   NCRYSTAL_API constexpr double ekin2wlsq( double ekin ); //cost: 1 branch + 1 division
   NCRYSTAL_API constexpr double ekin2wlsqinv( double ekin ); //cost: 1 multiplication
   NCRYSTAL_API constexpr double wlsq2ekin( double wl );   //cost: 1 branch + 1 division
+  NCRYSTAL_API constexpr double ekin2ksq( double ekin );   //cost: 1 multiplication
+  NCRYSTAL_API constexpr double ksq2ekin( double ksq );   //cost: 1 multiplication
 
   //Physics constants (more are in internal NCMath.hh header):
   constexpr double constant_boltzmann = 8.6173303e-5;  // eV/K
@@ -707,6 +709,21 @@ namespace NCrystal {
   {
     //eV to 1/angstrom^2
     return ekin * 12.22430978582345950656;//constant is 1/0.081804209605330899
+  }
+
+  namespace detail {
+    constexpr double const_ekin2ksq_factor = k4PiSq * ekin2wlsqinv(1.0);
+    constexpr double const_ksq2ekin_factor = 1.0 / const_ekin2ksq_factor;
+  }
+
+  inline constexpr double ekin2ksq( double ekin )
+  {
+    return ekin * detail::const_ekin2ksq_factor;
+  }
+
+  inline constexpr double ksq2ekin( double ksq )
+  {
+    return detail::const_ksq2ekin_factor * ksq;
   }
 
   //Some obscure compilers like to complain about unused constants defined

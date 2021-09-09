@@ -22,8 +22,15 @@
 #include "NCrystal/internal/NCMath.hh"
 #include <cstdio>
 
-NCrystal::PointwiseDist::PointwiseDist(const VectD &xvals, const VectD &yvals, double iw)
-  : m_x(xvals), m_y(yvals), m_iweight(iw)
+namespace NC = NCrystal;
+
+NC::PointwiseDist::PointwiseDist(const VectD &xvals, const VectD &yvals)
+  : PointwiseDist( VectD(xvals), VectD(yvals) )
+{
+}
+
+NC::PointwiseDist::PointwiseDist( VectD&& xvals, VectD&& yvals )
+  : m_x(xvals), m_y(yvals)
 {
   if(m_x.size()!=m_y.size() || m_y.size()<2 )
     NCRYSTAL_THROW(CalcError, "input vector size error.");
@@ -41,7 +48,7 @@ NCrystal::PointwiseDist::PointwiseDist(const VectD &xvals, const VectD &yvals, d
   }
 
   m_cdf.reserve(m_y.size());
-  double totalArea = 0.;
+  StableSum totalArea;
 
   m_cdf.push_back(0.);
   for(std::size_t i=1;i<m_y.size();i++)
@@ -49,26 +56,24 @@ NCrystal::PointwiseDist::PointwiseDist(const VectD &xvals, const VectD &yvals, d
     double area = (m_x[i]-m_x[i-1])*0.5*(m_y[i]+m_y[i-1]);
     if(area<0)
       NCRYSTAL_THROW(CalcError, "Negative probability density");
-    totalArea+=area;
-    m_cdf.push_back(totalArea);
+    totalArea.add( area );
+    m_cdf.push_back( totalArea.sum() );
   }
 
-  if (!totalArea)
+  double totalAreaVal = totalArea.sum();
+  if ( !(totalAreaVal>0.0) )
     NCRYSTAL_THROW(CalcError, "No area in distribution.");
 
-  double normfact = 1.0/totalArea;
-  for(std::size_t i=0;i<m_cdf.size();i++)
-  {
-    m_cdf[i] *= normfact;
-    m_y[i] *= normfact;
-  }
+  double normfact = 1.0/totalAreaVal;
+  for ( auto& e : m_cdf )
+    e *= normfact;
+  for ( auto& e : m_y )
+    e *= normfact;
+  nc_assert( ncabs(1.0-m_cdf.back()) < 1.0e-14 );
+  m_cdf.back() = 1.0;
 }
 
-NCrystal::PointwiseDist::~PointwiseDist()
-{
-}
-
-std::pair<double,unsigned> NCrystal::PointwiseDist::percentileWithIndex(double p ) const
+std::pair<double,unsigned> NC::PointwiseDist::percentileWithIndex(double p ) const
 {
   nc_assert(p>=0.&&p<=1.0);
   if(p==1.)
@@ -82,7 +87,7 @@ std::pair<double,unsigned> NCrystal::PointwiseDist::percentileWithIndex(double p
   double d = m_y[i] - a;
   double zdx;
   if (!a) {
-    zdx =  d>0.0 ? std::sqrt( ( 2.0 * c * dx ) / d ) : 0.5*dx;//a=0 and d=0 should not really happen...
+    zdx = d>0.0 ? std::sqrt( ( 2.0 * c * dx ) / d ) : 0.5*dx;//a=0 and d=0 should not really happen...
   } else {
     double e = d * c / ( dx * a * a );
     if (ncabs(e)>1e-7) {
@@ -96,47 +101,50 @@ std::pair<double,unsigned> NCrystal::PointwiseDist::percentileWithIndex(double p
   return std::pair<double,unsigned>( ncclamp(m_x[i-1] + zdx,m_x[i-1],m_x[i]), i-1 );
 }
 
-void NCrystal::PointwiseDist::setIntegralWeight(double iw)
+double NC::PointwiseDist::commulIntegral( double x ) const
 {
-  m_iweight=iw;
+  //Above or below edges is easy:
+  if ( x <= m_x.front() )
+    return 0.0;
+  if ( x >= m_x.back() )
+    return 1.0;
+
+  //Find bin with binary search:
+  auto it = std::upper_bound( m_x.begin(), m_x.end(), x );
+  nc_assert( it != m_x.end() );
+  nc_assert( it != m_x.begin() );
+
+  //We are in the interval [std::prev(it),it], find parameters of this last bin:
+  auto i1 = std::distance(m_x.begin(),it);
+  nc_assert(i1>0);
+  auto i0 = i1 - 1;
+  const double x1 = vectAt(m_x,i0);
+  const double y1 = vectAt(m_y,i0);
+  const double x2 = vectAt(m_x,i1);
+  const double y2 = vectAt(m_y,i1);
+
+  //Find contribution in this bin as as
+  //<length in bin>*<average height in bin over used part>:
+  nc_assert( x2 - x1 > 0.0 );
+  const double dx = x-x1;
+  const double slope = ( y2-y1 ) / (x2-x1);
+  const double last_bin_contrib = dx * ( y1 + 0.5 * dx * slope );
+
+  //Combine with preceding bins from m_cdf:
+  return vectAt(m_cdf,i0) + last_bin_contrib;
 }
 
-
-NCrystal::PointwiseDist& NCrystal::PointwiseDist::operator+=(const NCrystal::PointwiseDist& right)
+double NC::PointwiseDist::sampleBelow( RNG& rng, double xtrunc ) const
 {
-  if(right.m_x.size()!=this->m_x.size() || right.m_x.size()!=this->m_y.size() || right.m_x.size()!=this->m_cdf.size())
-    NCRYSTAL_THROW(CalcError,"PointwiseDist objects are not compatible (grid-sizes differs).");
-  for(unsigned i=0;i<right.m_x.size();++i)
-  {
-    if(this->m_x[i]!=right.m_x[i])
-      NCRYSTAL_THROW(CalcError,"Can not add distributions with different grid values.");
+  //Above or below edges is easy:
+  if ( xtrunc <= m_x.front() ) {
+    if ( xtrunc == m_x.front() )
+      return m_x.front();
+    NCRYSTAL_THROW2(BadInput,"PointwiseDist::sampleBelow asked to sample point below distribution");
   }
+  if ( xtrunc >= m_x.back() )
+    return sample(rng);
 
-  double totweight =  this->m_iweight + right.m_iweight;
-  double ratiothis = this->m_iweight /totweight;
-  double ratioright = right.m_iweight /totweight;
+  return percentile( rng.generate() * commulIntegral( xtrunc ) );
 
-  for(unsigned i=0;i<right.m_x.size();i++)
-  {
-    this->m_y[i] = this->m_y[i]*ratiothis + right.m_y[i]*ratioright;
-    this->m_cdf[i] = this->m_cdf[i]*ratiothis + right.m_cdf[i]*ratioright;
-  }
-
-  this->m_iweight = totweight;
-
-  return *this;
-}
-
-NCrystal::PointwiseDist& NCrystal::PointwiseDist::operator*= (double frac)
-{
-  this->m_iweight *= frac;
-  return *this;
-}
-
-
-void NCrystal::PointwiseDist::print() const
-{
-  for(unsigned i=0;i<m_cdf.size();i++)  {
-    printf("cdf idx %u, val %e\n",i, m_cdf[i]);
-  }
 }

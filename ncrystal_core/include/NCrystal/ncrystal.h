@@ -482,9 +482,9 @@ extern "C" {
 #endif
 #define NCRYSTAL_VERSION_MAJOR 2
 #define NCRYSTAL_VERSION_MINOR 7
-#define NCRYSTAL_VERSION_PATCH 2
-#define NCRYSTAL_VERSION   2007002 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
-#define NCRYSTAL_VERSION_STR "2.7.2"
+#define NCRYSTAL_VERSION_PATCH 3
+#define NCRYSTAL_VERSION   2007003 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
+#define NCRYSTAL_VERSION_STR "2.7.3"
   NCRYSTAL_API int ncrystal_version(); /* returns NCRYSTAL_VERSION                  */
   NCRYSTAL_API const char * ncrystal_version_str(); /* returns NCRYSTAL_VERSION_STR */
 
