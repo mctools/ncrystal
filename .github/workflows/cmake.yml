@@ -91,6 +91,7 @@ jobs:
            ncrystal_vdos2ncmat --help
            ncrystal_onlinedb2ncmat --help
            ncrystal_ncmat2cpp --help
+           ncrystal_hfg2ncmat --help
            ncrystal_verifyatompos --help
            ncrystal_onlinedb2ncmat --codid=9008460
            ncrystal_ncmat2cpp $(ncrystal-config --show=datadir)/Al_sg225.ncmat -o test.cpp
@@ -103,6 +104,11 @@ jobs:
            . ${{github.workspace}}/install/setup.sh
            ncrystal-config --summary
            ncrystal_inspectfile --test
+           ncrystal_vdos2ncmat --help
+           ncrystal_onlinedb2ncmat --help
+           ncrystal_ncmat2cpp --help
+           ncrystal_hfg2ncmat --help
+           ncrystal_verifyatompos --help
            ncrystal_example_c
            ncrystal_example_cpp
            ncrystal_example_py
