@@ -5,6 +5,9 @@ v2.7.3 2021-09-09
          commulIntegral utility functions
        * Add new internal IofQHelper utility class which can be used to
          implement elastic physics described via an I(Q) curve
+       * Fix some obscure -Wshadow warnings on some rare platforms when some
+         local variable named s or m clashes with global variables of the same
+         name from Geant4.
 
 v2.7.2 2021-07-08
        * Various compilation fixes, affecting only users of Geant4-hooks with

@@ -124,7 +124,7 @@ namespace NCrystal {
     std::vector<std::pair<CustomSectionName,CustomSectionData>> customSections;
 
     //Helper for validating "element" names (throws BadInput in case of problems):
-    static void validateElementNameByVersion(const std::string& s, unsigned version );
+    static void validateElementNameByVersion(const std::string&, unsigned version );
 
     //Call this once after filling fields (and before calling validate()!) in
     //order to unalias all element names (D->H2, T->H3).
@@ -139,7 +139,7 @@ namespace NCrystal {
     NCMATData& operator=( NCMATData&& ) = default;
 
   private:
-    void validateElementName( const std::string& s ) const;
+    void validateElementName( const std::string& ) const;
   };
 
 }

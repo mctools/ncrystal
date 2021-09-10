@@ -45,7 +45,7 @@ namespace NCrystal {
     //   NB: special aliases: "D" for "H2" and "T" for "H3".
     //3) Custom markers: "X", "X1", "X2", ..., "X99" (and no others).
 
-    AtomSymbol(const std::string& s);
+    AtomSymbol(const std::string&);
     ~AtomSymbol() = default;
 
     bool isInvalid() const;
@@ -86,14 +86,14 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-inline NCrystal::AtomSymbol::AtomSymbol(const std::string& s)
-  : m_z(elementNameToZ(s)),
+inline NCrystal::AtomSymbol::AtomSymbol(const std::string& ss)
+  : m_z(elementNameToZ(ss)),
     m_a(0)
 {
   //Usual case of regular element names is inlined, other cases needs
   //longer init:
   if (m_z==0)
-    longInit(s);
+    longInit(ss);
 }
 
 inline bool NCrystal::AtomSymbol::isInvalid() const { return m_z == 0 && m_a ==0; }

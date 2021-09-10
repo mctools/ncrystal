@@ -609,8 +609,8 @@ namespace NCrystal {
   inline MatInfoCfg::MatInfoCfg(const MatCfg& cfg) : m_cfg(cfg) {}
   inline MatInfoCfg::MatInfoCfg(MatCfg&& cfg) : m_cfg(std::move(cfg)) {}
   inline bool MatInfoCfg::isThinned() const { return m_cfg.isThinned(); }
-  inline std::ostream& operator<< (std::ostream& s, const MatCfg& cfg) { cfg.dump(s,false); return s; }
-  inline std::ostream& operator<< (std::ostream& s, const MatInfoCfg& cfg) { cfg.dump(s,false); return s; }
+  inline std::ostream& operator<< (std::ostream& os, const MatCfg& cfg) { cfg.dump(os,false); return os; }
+  inline std::ostream& operator<< (std::ostream& os, const MatInfoCfg& cfg) { cfg.dump(os,false); return os; }
 }
 
 #endif

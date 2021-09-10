@@ -226,14 +226,14 @@ namespace NCrystal {
   {
   }
 
-  inline RawStrData::RawStrData( std::string&& s, const char * srcdescr )
-    : RawStrData( makeSO<std::string>(std::move(s)), srcdescr )
+  inline RawStrData::RawStrData( std::string&& ss, const char * srcdescr )
+    : RawStrData( makeSO<std::string>(std::move(ss)), srcdescr )
   {
   }
 
-  inline bool RawStrData::hasSameContent( const std::string& s ) const
+  inline bool RawStrData::hasSameContent( const std::string& ss ) const
   {
-    return hasSameContent( s.c_str(), std::next(s.c_str(),s.size()) );
+    return hasSameContent( ss.c_str(), std::next(ss.c_str(),ss.size()) );
   }
 
   inline bool RawStrData::hasSameContent( const RawStrData& o ) const
