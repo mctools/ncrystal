@@ -86,7 +86,6 @@ jobs:
            ncrystal_example_py
            ncrystal_inspectfile --help
            ncrystal_inspectfile --dump 'Al_sg225.ncmat;dcutoff=1.5'
-           ncrystal_inspectfile --dump 'Al_sg225.nxs;dcutoff=1.5'
            python3 -c 'import NCrystal; NCrystal.test()'
            ncrystal_vdos2ncmat --help
            ncrystal_onlinedb2ncmat --help
