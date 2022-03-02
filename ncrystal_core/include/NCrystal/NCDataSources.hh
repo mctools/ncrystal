@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -30,10 +30,9 @@
 //                                                                            //
 // The functions here are merely convenience functions dealing with the most  //
 // typical use cases. Behind the scenes, the functions simply modify the list //
-// of registered TextData factories (cf. NCFactImpl.hh) which are ultimately. //
-// For unusual use-cases not served by the functions below, more flexiblity   //
-// might be provided by implementing and registering custom TextData          //
-// factories.                                                                 //
+// of registered TextData factories (cf. NCFactImpl.hh). For unusual          //
+// use-cases not served by the functions below, more flexiblity might thus    //
+// be achieved by implementing and registering custom TextData factories.     //
 //                                                                            //
 // Most users are likely only interested in the first few functions near the  //
 // top of the file, allowing the registry of new file content directly in     //

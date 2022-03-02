@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,7 +22,7 @@
 #include "NCrystal/NCParseNCMAT.hh"
 #include "NCrystal/NCNCMATData.hh"
 #include "NCrystal/NCFactImpl.hh"
-#include "NCrystal/NCDefs.hh"
+#include "NCrystal/NCInfoBuilder.hh"
 #include "NCrystal/internal/NCAtomDBExtender.hh"
 #include "NCrystal/internal/NCFillHKL.hh"
 #include "NCrystal/internal/NCRotMatrix.hh"
@@ -30,12 +30,11 @@
 #include "NCrystal/internal/NCString.hh"
 #include "NCrystal/internal/NCDebyeMSD.hh"
 #include "NCrystal/internal/NCIter.hh"
+#include "NCrystal/internal/NCCfgManip.hh"
 #include "NCrystal/internal/NCSABUtils.hh"
 #include "NCrystal/internal/NCScatKnlData.hh"
 #include "NCrystal/internal/NCVDOSEval.hh"
-#include "NCrystal/internal/NCDynInfoUtils.hh"
 #include <iostream>
-#include <cstdlib>
 
 namespace NC = NCrystal;
 
@@ -135,7 +134,7 @@ NC::Info NC::loadNCMAT( const char * ncmat_file,
 }
 
 NC::Info NC::loadNCMAT( const std::string& ncmat_file,
-                           NC::NCMATCfgVars&& cfgvars )
+                        NC::NCMATCfgVars&& cfgvars )
 {
   return loadNCMAT( FactImpl::createTextData( ncmat_file ),
                     std::move(cfgvars) );
@@ -151,22 +150,17 @@ NC::Info NC::loadNCMAT( const TextData& inputText,
   return loadNCMAT( std::move(data), std::move(cfgvars) );
 }
 
-
-NC::Info NC::loadNCMAT( const MatInfoCfg& cfg )
+NC::Info NC::loadNCMAT( const FactImpl::InfoRequest& cfg )
 {
-  cfg.infofactopt_validate({"expandhkl"});//only this infofactopt is supported
   NCMATCfgVars ncmatcfgvars;
   ncmatcfgvars.temp      = cfg.get_temp();
   ncmatcfgvars.dcutoff   = cfg.get_dcutoff();
   ncmatcfgvars.dcutoffup = cfg.get_dcutoffup();
-  ncmatcfgvars.expandhkl = cfg.get_infofactopt_flag("expandhkl");
+  ncmatcfgvars.expandhkl = cfg.get_expandhkl();
   ncmatcfgvars.atomdb    = cfg.get_atomdb_parsed();
+  ncmatcfgvars.dataSourceName = cfg.dataSourceName();
+  ncmatcfgvars.originalInfoRequest = &cfg;
   return loadNCMAT( cfg.textData(), std::move(ncmatcfgvars) );
-}
-
-NC::Info NC::loadNCMAT( const MatCfg& cfg )
-{
-  return loadNCMAT( cfg.createInfoCfg() );
 }
 
 NC::Info NC::loadNCMAT( NCMATData&& data,
@@ -176,7 +170,7 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
 
   if (verbose) {
     std::cout<<"NCrystal::loadNCMAT called with ("
-             << data.sourceDescription
+             << data.sourceDescription//usually (always?) the same as cfgvars.dataSourceName()
              <<", temp="<<cfgvars.temp
              <<", dcutoff="<<cfgvars.dcutoff
              <<", dcutoffup="<<cfgvars.dcutoffup
@@ -191,7 +185,9 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
         std::cout<<joinstr(cfgvars.atomdb.at(i),":");
       }
     }
-    std::cout<<")"<<std::endl;
+    std::cout<<", dataSourceName="
+             << cfgvars.dataSourceName
+             <<")"<<std::endl;
   }
 
   /////////////////////////
@@ -321,17 +317,17 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
   // Create Info object //
   ////////////////////////
 
-  Info info;
+  InfoBuilder::SinglePhaseBuilder builder;
 
   //Cache all the hasXXX results, before we start messing them up by
   //std::move'ing stuff out of the data object:
   const bool data_hasDynInfo = data.hasDynInfo();
   const bool data_hasUnitCell = data.hasUnitCell();
-  const bool data_hasCell = data.hasCell();
-  const bool data_hasAtomPos = data.hasAtomPos();
   const bool data_hasSpaceGroup = data.hasSpaceGroup();
   const bool data_hasDebyeTemperature = data.hasDebyeTemperature();//@DEBYETEMPERATURE section (must also check @DYNINFO section)
   const bool data_hasDensity = data.hasDensity();
+
+  nc_assert_always( data_hasUnitCell == data.hasAtomPos() && data_hasUnitCell == data.hasCell() );
 
   //Find Debye temperatures of elements from @DEBYETEMPERATURE section:
   std::map<AtomIndex,DebyeTemperature> perelemdebye_map;
@@ -368,8 +364,8 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
 
   //==> Dynamics (deal with them first as they might provide MSD/DebyeTemp info)
   std::map<AtomIndex,double> elem2frac;
-  std::vector<std::unique_ptr<DynamicInfo>> dyninfolist;
-  bool has_any_dyninfo_vdos_or_vdosdebye = false;
+  builder.dynamics = DynamicInfoList();
+  builder.dynamics.value().reserve( elementname_2_indexedatomdata_map.size() );
   auto getEgrid = [](NCMATData::DynInfo::FieldMapT& fields)
                   {
                     VectD egrid;
@@ -396,7 +392,6 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
         break;
       case NCMATData::DynInfo::VDOSDebye:
         {
-          has_any_dyninfo_vdos_or_vdosdebye =  true;
           Optional<DebyeTemperature> debye_temp;
           auto itDT = e.fields.find("debye_temp");//can only be there in NCMAT v5+ (and
                                                   //then we are guaranteed that there
@@ -415,7 +410,6 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
         break;
       case NCMATData::DynInfo::VDOS:
         {
-          has_any_dyninfo_vdos_or_vdosdebye =  true;
           VectD egrid = getEgrid(e.fields);
           auto vdos_egrid_orig = std::move(e.fields.at("vdos_egrid"));
           auto vdos_density_orig = std::move(e.fields.at("vdos_density"));
@@ -495,36 +489,31 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
         nc_assert_always(false);//data.validate() should have caught this.
       };
       //Collect here for now (we might adjust the fractions before adding to NCInfo):
-      dyninfolist.push_back(std::move(di));
+      builder.dynamics.value().push_back(std::move(di));
     }
     if (warn_msd_from_debye_but_vdos_avail)
-      std::cout<<"NCrystal::NCMATFactory WARNING: Loading NCMAT data which has Debye temperatures for"
+      std::cout<<"NCrystal::NCMATLoader WARNING: Loading NCMAT data which has Debye temperatures for"
         " elements with VDOS curves available (this might give sub-optimal MSD values)."<<std::endl;
   }
 
   //==> Temperature:
-  info.setTemperature(cfgvars.temp);
-  double cell_volume = 0.0;
-  std::size_t natoms_per_cell = 0;
+  builder.temperature = cfgvars.temp;
 
   if ( data_hasUnitCell ) {
+    builder.unitcell = InfoBuilder::UnitCell{};
+
     //==> Cell layout (structure info)
-    if ( data_hasCell ) {
-      nc_assert_always(data_hasAtomPos);
-      StructureInfo si;
-      si.spacegroup = data_hasSpaceGroup ? data.spacegroup : 0;
-      si.lattice_a = data.cell.lengths[0];
-      si.lattice_b = data.cell.lengths[1];
-      si.lattice_c = data.cell.lengths[2];
-      si.alpha = data.cell.angles[0];
-      si.beta = data.cell.angles[1];
-      si.gamma = data.cell.angles[2];
-      const RotMatrix cell = getLatticeRot( si.lattice_a, si.lattice_b, si.lattice_c,
-                                            si.alpha*kDeg, si.beta*kDeg, si.gamma*kDeg );
-      si.volume = cell_volume = cell.colX().cross(cell.colY()).dot(cell.colZ());
-      natoms_per_cell += ( si.n_atoms = data.atompos.size() );
-      info.setStructInfo(si);
-    }
+    StructureInfo& si = builder.unitcell.value().structinfo;
+    si.spacegroup = data_hasSpaceGroup ? data.spacegroup : 0;
+    si.lattice_a = data.cell.lengths[0];
+    si.lattice_b = data.cell.lengths[1];
+    si.lattice_c = data.cell.lengths[2];
+    si.alpha = data.cell.angles[0];
+    si.beta = data.cell.angles[1];
+    si.gamma = data.cell.angles[2];
+    //Leave si.volume with zero value (InfoBuilder will calculate it).
+    si.n_atoms = data.atompos.size();
+
     //==> Get sorted list of atom positions (so adjacant entries have same element name):
     decltype(data.atompos) atompos = std::move(data.atompos);
     nc_assert_always(!atompos.empty());
@@ -551,35 +540,24 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
       elem2frac[ep.first] = fr_calc;
     }
 
-    if ( dyninfolist.empty() && data_hasDebyeTemperature ) {
+    if ( builder.dynamics.value().empty() && data_hasDebyeTemperature ) {
       //Special case: dyninfo not specified, but we know elemental fractions
       //from atom positions, and we have debye temperatures available. We must
       //add DI_VDOSDebye entries for all elements in this case:
       for ( auto& ef: elem2frac )
-        dyninfolist.emplace_back(std::make_unique<DI_VDOSDebye>(ef.second,
-                                                                *index2iad.at(ef.first.get()),
-                                                                cfgvars.temp,
-                                                                element2DebyeTemp(ef.first)));
+        builder.dynamics.value().emplace_back(std::make_unique<DI_VDOSDebye>(ef.second,
+                                                                             *index2iad.at(ef.first.get()),
+                                                                             cfgvars.temp,
+                                                                             element2DebyeTemp(ef.first)));
     }
 
-    //Check and update fractions on dyninfo objects with numbers in elem2frac,
-    //for consistency and increased precision in the scenario where numbers in
-    //dyninfos have less precision than those calculated from atomic
-    //compositions:
-    for (auto& di: dyninfolist) {
-      double precise_frac = elem2frac.at(di->atom().index);
-      if ( precise_frac != di->fraction() ) {
-        nc_assert_always( floateq( di->fraction(), precise_frac ) );//check consistency
-        di->changeFraction(precise_frac);//ensure highest precision
-      }
-    }
     nc_assert_always(elem2pos.size()==elem2frac.size());
 
     //==> Prepare MSD numbers from Debye temperature (some might have been already filled from VDOS's above):
 
     //Convert Debye temperatures to MSD values (as described in sec. 2.5 of the
     //first NCrystal paper [https://doi.org/10.1016/j.cpc.2019.07.015]):
-    for (auto& di: dyninfolist) {
+    for ( auto& di: builder.dynamics.value() ) {
       if ( elem2msd.count(di->atom().index) )
         continue;//Already filled
       auto debyeTemp = tryElement2DebyeTemp(di->atom().index);
@@ -590,7 +568,10 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
       elem2msd[di->atom().index] = debyeIsotropicMSD( debyeTemp.value(), cfgvars.temp, di->atomData().averageMassAMU() );
     }
 
-    //==> Fill Info::AtomInfo
+    //==> Fill AtomInfo list:
+    builder.unitcell.value().atomlist.emplace();
+    auto& bldr_atomlist = builder.unitcell.value().atomlist.value();
+    bldr_atomlist.reserve( elem2frac.size() );
     for ( auto& ef : elem2frac ) {
       IndexedAtomData iad = *index2iad.at(ef.first.get());
       nc_assert(iad.index==ef.first);
@@ -604,57 +585,25 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
         const auto mass = iad.atomDataSP->averageMassAMU();
         ai_debye_temp = debyeTempFromIsotropicMSD( msd, cfgvars.temp, mass );
       }
-      info.addAtom( AtomInfo( std::move(iad), std::move(std::move(elem2pos.at(ef.first))), ai_debye_temp, msd ) );
+      bldr_atomlist.emplace_back( std::move(iad), std::move(std::move(elem2pos.at(ef.first))), ai_debye_temp, msd );
     }
 
   }//end of unit-cell specific stuff
 
-  //==> Actually register the dyninfo objects now, since fractions have final values:
-  for (auto& di: dyninfolist)
-    info.addDynInfo(std::move(di));
 
-  //==> Figure out densities and cross sections:
-
-  SigmaAbsorption xs_abs;
-  SigmaFree xs_freescat;
-  double avr_elem_mass_amu = 0.;
-  for (auto& ef : elem2frac) {
-    //TODO: Make the info object add it by itself from composition (and only allow it to be specified when composition is not, i.e. .laz files...)
-    const AtomData& ad = index2iad.at(ef.first.get())->atomDataSP;
-    xs_abs.dbl()      += ad.captureXS()  * ef.second;
-    xs_freescat.dbl() += ad.freeScatteringXS().get() * ef.second;
-    avr_elem_mass_amu += ad.averageMassAMU().get() * ef.second;
-  }
-
-  info.setXSectAbsorption( xs_abs );
-  info.setXSectFree( xs_freescat );
-
-  Density density;
-  NumberDensity numberdensity;
-
-  //1e27 in next line converts kg/Aa^3 to g/cm^3:
-  const double numberdensity_2_density = 1e27 * avr_elem_mass_amu * constant_dalton2kg;
-
-  if ( cell_volume ) {
-    //Calculate from unit cell
-    nc_assert_always( natoms_per_cell>0 && !data_hasDensity );
-    numberdensity.dbl() = natoms_per_cell / cell_volume;
-    density.dbl() = numberdensity.dbl() * numberdensity_2_density;
+  if ( data_hasUnitCell ) {
+    //Density will be automatically calculated based on unit cell, no need to
+    //set explicitly.
   } else {
-    //No unit cell, user must have specified:
-    nc_assert_always( !natoms_per_cell && data_hasDensity );
+    //No unit cell, user must have specified density:
+    nc_assert_always( data_hasDensity );
     if ( data.density_unit == NCMATData::KG_PER_M3 ) {
-      density.dbl() = data.density * 0.001;
-      numberdensity.dbl() = density.dbl() / numberdensity_2_density;
+      builder.density = Density{ data.density * 0.001 };
     } else {
       nc_assert( data.density_unit == NCMATData::ATOMS_PER_AA3 );
-      numberdensity.dbl() = data.density;
-      density.dbl() = numberdensity.dbl() * numberdensity_2_density;
+      builder.numberDensity = NumberDensity{ data.density };
     }
   }
-
-  info.setDensity( density );
-  info.setNumberDensity( numberdensity );
 
   //==> Finally populate HKL list if appropriate:
   if ( data_hasUnitCell ) {
@@ -662,59 +611,161 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
       //Very simple heuristics here for now to select appropriate dcutoff value
       //(specifically we needed to raise the value for expensive Y2O3/SiLu2O5
       //with ~80/65 atoms/cell):
-      cfgvars.dcutoff = ( natoms_per_cell>40 ? 0.2 : 0.1 ) ;
+      cfgvars.dcutoff = ( builder.unitcell.value().structinfo.n_atoms > 40 ? 0.2 : 0.1 ) ;
       std::string cmt;
       if (cfgvars.dcutoff>=cfgvars.dcutoffup) {
         //automatically selected conflicts with value of dcutoffup.
         cmt = " (lower than usual due to value of dcutoffup)";
-        cfgvars.dcutoff = 0.5*cfgvars.dcutoffup;
+        cfgvars.dcutoff = 0.5 * cfgvars.dcutoffup;
       }
       if (verbose)
-        std::cout<<"NCrystal::NCMATFactory::automatically selected dcutoff level "<< cfgvars.dcutoff << " Aa"<<cmt<<std::endl;
+        std::cout<<"NCrystal::NCMATLoader::automatically selected dcutoff level "<< cfgvars.dcutoff << " Aa"<<cmt<<std::endl;
     }
     if ( cfgvars.dcutoff != -1 ) {
-
-      FillHKLCfg hklcfg;
-      hklcfg.dcutoff = cfgvars.dcutoff;
-      hklcfg.dcutoffup = cfgvars.dcutoffup;
-      hklcfg.expandhkl = cfgvars.expandhkl;
-
-      fillHKL( info,  hklcfg );
+      //HKL planes. Allow on-demand/delayed initialisation.
+      builder.hklPlanes.emplace();//Set up uninitialised HKLPlanes struct
+      builder.hklPlanes.value().dspacingRange = { cfgvars.dcutoff, cfgvars.dcutoffup };
+      using HKLListGenFct = InfoBuilder::SinglePhaseBuilder::HKLPlanes::HKLListGenFct;
+      bool cfg_expandhkl = cfgvars.expandhkl;
+      HKLListGenFct genfct = [cfg_expandhkl](const StructureInfo* si,
+                                             const AtomInfoList* ai,
+                                             PairDD dspacingRangeRequest) -> HKLList
+      {
+        nc_assert_always(si!=nullptr);
+        nc_assert_always(ai!=nullptr);
+        FillHKLCfg hklcfg;
+        hklcfg.dcutoff = dspacingRangeRequest.first;
+        hklcfg.dcutoffup = dspacingRangeRequest.second;
+        hklcfg.expandhkl = cfg_expandhkl;
+        return calculateHKLPlanes( *si, *ai, std::move(hklcfg) );
+      };
+      builder.hklPlanes.value().source = genfct;
     }
   }
 
   //==> Transfer any custom sections:
   if (!data.customSections.empty()) {
     if (s_NCMATWarnOnCustomSections)
-      std::cout<<"NCrystal::NCMATFactory WARNING: Loading NCMAT data which has @CUSTOM_ section(s). This is OK if intended."<<std::endl;
+      std::cout<<"NCrystal::NCMATLoader WARNING: Loading NCMAT data which has @CUSTOM_ section(s). This is OK if intended."<<std::endl;
     else if (verbose)
-      std::cout<<"NCrystal::NCMATFactory:: Loaded NCMAT data has @CUSTOM_ section(s). This is OK if intended."<<std::endl;
-    info.setCustomData(std::move(data.customSections));
+      std::cout<<"NCrystal::NCMATLoader:: Loaded NCMAT data has @CUSTOM_ section(s). This is OK if intended."<<std::endl;
+    builder.customData = std::move(data.customSections);
   }
 
   //==> State of matter.
 
-  Info::StateOfMatter som = Info::StateOfMatter::Unknown;
-  bool should_be_solid(data_hasUnitCell||has_any_dyninfo_vdos_or_vdosdebye);
-  if ( !data.stateOfMatter.has_value() ) {
-    som = should_be_solid ? Info::StateOfMatter::Solid : Info::StateOfMatter::Unknown;
-  } else if ( data.stateOfMatter.value() == NCMATData::StateOfMatter::Solid ) {
-    som = Info::StateOfMatter::Solid;
-  } else if ( data.stateOfMatter.value() == NCMATData::StateOfMatter::Gas ) {
-    som = Info::StateOfMatter::Gas;
-  } else if ( data.stateOfMatter.value() == NCMATData::StateOfMatter::Liquid ) {
-    som = Info::StateOfMatter::Liquid;
-  } else {
-    nc_assert_always(false);//should not happen
+  if ( data.stateOfMatter.has_value() ) {
+    switch( data.stateOfMatter.value() ) {
+    case NCMATData::StateOfMatter::Solid:
+      builder.stateOfMatter = Info::StateOfMatter::Solid;
+      break;
+    case NCMATData::StateOfMatter::Gas:
+      builder.stateOfMatter = Info::StateOfMatter::Gas;
+      break;
+    case NCMATData::StateOfMatter::Liquid:
+      builder.stateOfMatter = Info::StateOfMatter::Liquid;
+      break;
+    default:
+      nc_assert_always(false);//should not happen
+    }
   }
-  nc_assert_always( !should_be_solid || som == Info::StateOfMatter::Solid );
-  info.setStateOfMatter(som);
 
-  ///////////
-  // Done! //
-  ///////////
+  //////////////////////////////////////
+  // Multiphase support if requested. //
+  //////////////////////////////////////
 
-  info.objectDone();
-  return info;
+  //For now this is done via a @CUSTOM_OTHERPHASE section (which we subsequently remove):
+  auto findCustomSectionIndex = []( Info::CustomData& cd, const std::string& name ) -> Optional<std::size_t>
+    {
+      Optional<std::size_t> res;
+      for ( auto i : ncrange(cd.size()) ) {
+        if ( cd.at(i).first == name ) {
+          if ( res.has_value() )
+            NCRYSTAL_THROW2(BadInput,"NCMAT data contains more than one @CUSTOM_"<<name<<" section!");
+          res = i;
+        }
+      }
+      return res;
+    };
+  auto extractCustomSection = [&findCustomSectionIndex]( Info::CustomData& cd, const std::string& name ) -> Optional<Info::CustomSectionData>
+    {
+      auto opt_i = findCustomSectionIndex(cd,name);
+      if ( !opt_i.has_value() )
+        return NullOpt;
+      nc_assert( cd.at(opt_i.value()).first == name );
+      Optional<Info::CustomSectionData> res = std::move(cd.at(opt_i.value()).second);
+      //Remove the consumed section:
+      for ( auto j = opt_i.value(); j+1 < cd.size(); ++j )
+        cd.at(j) = std::move(cd.at(j+1));
+      cd.resize(cd.size()-1);
+      return res;
+    };
 
+  auto cst_otherphase = builder.customData.has_value() ? extractCustomSection(builder.customData.value(),"OTHERPHASE"_s) : NullOpt;
+  if ( cst_otherphase.has_value() ) {
+    auto cdata = cst_otherphase.value();
+    if ( cdata.size()!=1 )
+      NCRYSTAL_THROW(BadInput,"@CUSTOM_OTHERPHASE sections should contain exactly one non-empty line!");
+    const VectS& parts = cdata.at(0);
+    if ( parts.size()<2 )
+      NCRYSTAL_THROW(BadInput,"Syntax error in @CUSTOM_OTHERPHASE: too few entries on line.");
+    double fraction;
+    if (!safe_str2dbl(parts.at(0),fraction)||!(fraction>0.0)||!(fraction<1.0))
+      NCRYSTAL_THROW2(BadInput,"@CUSTOM_OTHERPHASE Invalid phase fraction: "<<parts.at(0));
+    std::string cfgstr2 = parts.at(1);
+    for ( auto i : ncrange(2, static_cast<int>(parts.size())) ) {
+      cfgstr2 += ";";
+      cfgstr2 += parts.at(i);
+    }
+    std::cout<<"NCrystal::NCMATLoader WARNING: Using @CUSTOM_OTHERPHASE section to add secondary"
+      " phase with fraction="<<fraction<<" and cfg string \""<<cfgstr2<<"\". This is not supported long-term."<<std::endl;
+
+    using Cfg::CfgManip;
+    auto createInfoFromSecondaryCfgStr = []( const Cfg::CfgData& top_request_cfgdata, const std::string& infile_cfgstr ) -> InfoPtr
+    {
+      nc_assert_always( CfgManip::empty( top_request_cfgdata,
+                                         [](Cfg::detail::VarId varid){ return Cfg::varGroup(varid) != Cfg::VarGroupId::Info; } ) );
+      //Essentially we want to call the top-level createInfo on the
+      //infile_cfgstr, but after applying any Info-variables from the
+      //top_request:
+      MatCfg cfg(infile_cfgstr);
+      cfg.apply(top_request_cfgdata);
+      return FactImpl::createInfo(cfg);
+    };
+
+    OptionalInfoPtr info_other;
+    if ( cfgvars.originalInfoRequest != nullptr ) {
+      info_other = createInfoFromSecondaryCfgStr( cfgvars.originalInfoRequest->rawCfgData(), cfgstr2 );
+    } else {
+        //No original InfoRequest, setup cfgdata based on cfgvars values:
+      Cfg::CfgData top_request_cfgdata;
+      CfgManip::set_temp( top_request_cfgdata, cfgvars.temp );
+      CfgManip::set_dcutoff( top_request_cfgdata, cfgvars.dcutoff );
+      CfgManip::set_dcutoffup( top_request_cfgdata, cfgvars.dcutoffup );
+      CfgManip::set_expandhkl( top_request_cfgdata, cfgvars.expandhkl );
+      CfgManip::set_atomdb_parsed( top_request_cfgdata, cfgvars.atomdb );
+      info_other = createInfoFromSecondaryCfgStr( top_request_cfgdata, cfgstr2 );
+    }
+
+    //////////////////////////////////////////////////
+    // Done (multi phase material with OTHERPHASE)! //
+    //////////////////////////////////////////////////
+
+    //The phase defined directly in our data becomes accessible as "phasechoice=0":
+    builder.dataSourceName = cfgvars.dataSourceName.str() + ";phasechoice=0";
+
+    InfoBuilder::MultiPhaseBuilder mp_builder;
+    mp_builder.phases.reserve(2);
+    mp_builder.phases.emplace_back( 1.0-fraction, InfoBuilder::buildInfoPtr(std::move(builder)) );
+    mp_builder.phases.emplace_back( fraction,     info_other );
+    return InfoBuilder::buildInfo( std::move(mp_builder) );
+  }
+
+
+  ///////////////////////////////////
+  // Done (single phase material)! //
+  ///////////////////////////////////
+
+  builder.dataSourceName = std::move(cfgvars.dataSourceName);
+  return InfoBuilder::buildInfo(std::move(builder));
 }

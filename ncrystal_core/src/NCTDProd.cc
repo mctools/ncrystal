@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -31,6 +31,7 @@ namespace NCrystal {
     public:
       TextDataSP produceTextDataSP_PreferPreviousObject( TextData&& newtd )
       {
+        nc_assert(newtd.dataUID().isUnset());
         uint64_t checkSum = newtd.rawData().calcCheckSum();
 
         auto it = m_db.begin();
@@ -46,8 +47,10 @@ namespace NCrystal {
             }
         }
         if ( it == itE ) {
-          //Did not find existing. Create and insert in cache:
-          auto newtdsp = makeSO<const TextData>(std::move(newtd));
+          //Did not find existing. Finalize new TextData object construction by
+          //actually assigning a UID, then insert in cache:
+          auto newtdsp = makeSO<const TextData>(TextData::internal_consumeAndSetNewUID(std::move(newtd)));
+
           if ( m_db.size() == NCACHED ) {
             //Must first discard existing entry to make room:
             auto itLast = std::prev(m_db.end());
@@ -102,9 +105,9 @@ namespace NCrystal {
         Optional<TextData::LastKnownOnDiskAbsPath> lastKnownOnDiskPath;
         Optional<RawStrData> rawdata;
 
-        //For consistency, simplicity and to avoid spuriosly duplicated cached
-        //entries, the description is always just the basename:
-        std::string description = basename(textdatapath.path());
+        //For consistency, simplicity, and to avoid spuriosly duplicated cached
+        //entries, the DataSourceName name is always just the basename:
+        std::string dataSourceName = basename(textdatapath.path());
 
         if ( data.has_value<std::string>() ) {
           //On-disk path.
@@ -135,9 +138,10 @@ namespace NCrystal {
         if ( dataType.empty() )
           dataType = FactImpl::guessDataType( rawdata.value(), textdatapath.path() );
 
-        return TextData( std::move(rawdata.value()),
+        return TextData( TextData::internal_with_unset_textdatauid_t{},//no need to consume uid before we actually return to consumer
+                         std::move(rawdata.value()),
                          TextData::DataType{dataType},
-                         TextData::Description{description},
+                         DataSourceName{dataSourceName},
                          std::move(lastKnownOnDiskPath) );
       }
 
@@ -159,7 +163,7 @@ namespace NCrystal {
 #endif
           NCRYSTAL_THROW2(DataLoadError,"Input has unsupported data size ("<<(size*1e-6)
                           <<"MB, max allowed is "<<(very_large_threshold_nBytes*1e-6)
-                          <<"MB): " << td.description() << extraguidance );
+                          <<"MB): " << td.dataSourceName() << extraguidance );
           return OptionalTextDataSP{nullptr};//dummy
         }
       }
@@ -183,6 +187,7 @@ namespace NCrystal {
     TextDataSP produceTextDataSP_PreferPreviousObject( const TextDataPath& path, TextDataSource&& tds)
     {
       TextData td = TDProd::produceTextDataWithoutCache( path, std::move(tds) );
+      nc_assert(td.dataUID().isUnset());//unset, if we don't actually need it we should ideally not consume an UID
       auto& db = globalTDProd();
       NCRYSTAL_LOCK_GUARD(db.mtx);
       static bool first = true;

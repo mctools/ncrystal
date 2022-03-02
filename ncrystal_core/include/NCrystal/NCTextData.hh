@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,8 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCVariant.hh"
-#include <ostream>
-#include <cstring>
+#include "NCrystal/NCTypes.hh"
 
 namespace NCrystal {
 
@@ -64,6 +63,8 @@ namespace NCrystal {
     RawStrData( static_data_ptr_t, const char * ) noexcept;
     RawStrData( std::string&&, const char * srcdescr = nullptr );
     RawStrData( shared_obj<std::string>, const char * srcdescr = nullptr );
+    RawStrData( std::string&&, const DataSourceName& );
+    RawStrData( shared_obj<std::string>, const DataSourceName& );
 
     RawStrData( const RawStrData& ) = default;
     RawStrData( RawStrData&& ) = default;
@@ -126,9 +127,9 @@ namespace NCrystal {
     const RawStrData& rawData() const noexcept;
 
     //Construct by combining raw string data with optional meta-data, which are:
-    //   1) A data type (e.g. "ncmat", "nxs", ...) descriping data format.
-    //   2) A description (only to be used for e.g. error messages). The description
-    //      can for instance be a filename.
+    //   1) A data type (e.g. "ncmat", "nxs", ...) describing data format.
+    //   2) A data source name (only to be used for e.g. error messages). This
+    //      flexible description can for instance be a filename.
     //   3) A last known physical location (as resolved absolute on-disk
     //      path). The indicated file should have content which is byte-to-byte
     //      identical to the raw string data provided in a separate argument,
@@ -136,11 +137,10 @@ namespace NCrystal {
     //      in on-disk files.
 
     struct DataType { std::string value; };
-    struct Description { std::string value; };
     struct LastKnownOnDiskAbsPath { std::string value; };
 
     TextData( RawStrData, DataType,
-              Optional<Description> = NullOpt,
+              Optional<DataSourceName> = NullOpt,
               Optional<LastKnownOnDiskAbsPath> = NullOpt );
 
     ncconstexpr17 const TextDataUID& dataUID() const noexcept;
@@ -152,7 +152,7 @@ namespace NCrystal {
     //constructor, an alternative will be constructed. Should ideally be just
     //the filename, presented in essentially the same form originally entered by
     //users.
-    const std::string& description() const noexcept;
+    const DataSourceName& dataSourceName() const noexcept { return m_dsn; }
 
     //Some consumers might only be able to deal with physical files. For such
     //files, we keep the last known on-disk path around. Code reading from such
@@ -197,8 +197,17 @@ namespace NCrystal {
   private:
     RawStrData m_data;
     Optional<std::string> m_optOnDisk;
-    std::string m_descr, m_dt;
+    DataSourceName m_dsn;
+    std::string m_dt;
     TextDataUID m_uid;
+  public:
+    //For factory infrastructure:
+    struct internal_with_unset_textdatauid_t {};
+    TextData( internal_with_unset_textdatauid_t, RawStrData, DataType,
+              Optional<DataSourceName> = NullOpt,
+              Optional<LastKnownOnDiskAbsPath> = NullOpt );
+    static TextData internal_consumeAndSetNewUID( TextData&& td_with_no_uid );
+
   };
 
   std::ostream& operator<< ( std::ostream& , const TextData& );
@@ -231,6 +240,16 @@ namespace NCrystal {
   {
   }
 
+  inline RawStrData::RawStrData( std::string&& ss, const DataSourceName&  dsn)
+    : RawStrData( makeSO<std::string>(std::move(ss)), dsn.str().c_str() )
+  {
+  }
+
+  inline RawStrData::RawStrData( shared_obj<std::string> ss, const DataSourceName&  dsn)
+    : RawStrData( std::move(ss), dsn.str().c_str() )
+  {
+  }
+
   inline bool RawStrData::hasSameContent( const std::string& ss ) const
   {
     return hasSameContent( ss.c_str(), std::next(ss.c_str(),ss.size()) );
@@ -244,7 +263,6 @@ namespace NCrystal {
   }
 
   inline const std::string& TextData::dataType() const noexcept { return m_dt; }
-  inline const std::string& TextData::description() const noexcept { return m_descr; }
   inline const Optional<std::string>& TextData::getLastKnownOnDiskLocation() const noexcept { return m_optOnDisk; }
   inline const RawStrData& TextData::rawData() const noexcept { return m_data; }
   inline ncconstexpr17 const TextDataUID& TextData::dataUID() const noexcept { return m_uid; }
@@ -319,7 +337,15 @@ namespace NCrystal {
 
   inline bool TextData::hasIdenticalMetaData( const TextData& o ) const noexcept
   {
-    return m_descr == o.m_descr && m_dt == o.m_dt && m_optOnDisk == o.m_optOnDisk;
+    return m_dsn.str() == o.m_dsn.str() && m_dt == o.m_dt && m_optOnDisk == o.m_optOnDisk;
+  }
+
+  inline TextData::TextData( RawStrData rsd, DataType dt,
+                             Optional<DataSourceName> dsn,
+                             Optional<LastKnownOnDiskAbsPath> lp )
+    : TextData( internal_with_unset_textdatauid_t{}, rsd, dt, std::move(dsn), std::move(lp) )
+  {
+    m_uid = TextDataUID::createNewUniqueIDValue();
   }
 
 }

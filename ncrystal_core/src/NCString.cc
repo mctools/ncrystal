@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -20,29 +20,28 @@
 
 #include "NCrystal/internal/NCString.hh"
 #include "NCrystal/internal/NCMath.hh"
-#include <cstring>
 #include <istream>
 #include <iomanip>
 #include <cstdlib>
 namespace NC = NCrystal;
 
-bool NC::isSimpleASCII(const std::string& input, bool allow_tab, bool allow_newline)
+std::string NC::displayCharSafeQuoted( char ch, char quote_char )
 {
-  nc_assert('\t'<32&&'\n'<32&&'\r'<32);
-  const char * c = &input[0];
-  const char * cE = c + input.size();
-  for (;c!=cE;++c) {
-    if (*c<32) {
-      if (allow_tab&&*c=='\t')
-        continue;
-      if (allow_newline&&(*c=='\n'||*c=='\r'))
-        continue;
-      return false;
-    }
-    if ( *c>126 )
-      return false;
+  std::ostringstream os;
+  os << quote_char;
+  if ( ch == quote_char )
+    os << '\\';//e.g. """ -> "\""
+  if ( ch >= ' ' && ch < '\x7f' ) {//' ' = 32, 0x7f=127
+    os << ch;
+  } else {
+    os << "\\x";
+    int ch_val(ch);
+    if ( ch_val < 10 )
+      os << '0';
+    os << ch_val;
   }
-  return true;
+  os << quote_char;
+  return os.str();
 }
 
 void NC::trim( std::string& input )
@@ -127,16 +126,6 @@ bool NC::endswith(const std::string& str, const std::string& substr)
   return str.size()>=substr.size() && str.compare(str.size()-substr.size(), substr.size(), substr) == 0;
 }
 
-bool NC::contains(const std::string& haystack, char needle )
-{
-  return haystack.find(needle) != std::string::npos;
-}
-
-bool NC::contains(const std::string& haystack, const std::string& needle)
-{
-  return haystack.find(needle) != std::string::npos;
-}
-
 bool NC::contains_any(const std::string& haystack, const std::string& needles)
 {
   const char * cB = &needles[0];
@@ -147,77 +136,104 @@ bool NC::contains_any(const std::string& haystack, const std::string& needles)
   return false;
 }
 
-namespace NCrystal {
-  namespace {
-
-  }
-}
-
-double NC::str2dbl(const std::string& s,const char * errmsg)
+double NC::str2dbl( StrView sv, const char * errmsg)
 {
   double result;
-  if ( !safe_str2dbl(s, result ) )
-    NCRYSTAL_THROW2(BadInput,(errmsg?errmsg:"Invalid number in string is not a double")<<": \""<<s<<"\"");
+  if ( !safe_str2dbl(sv, result ) )
+    NCRYSTAL_THROW2(BadInput,(errmsg?errmsg:"Invalid number in string is not a double")<<": \""<<sv<<"\"");
   return result;
 }
 
-int NC::str2int(const std::string& s,const char * errmsg)
+int NC::str2int( StrView sv, const char * errmsg)
 {
   int result;
-  if ( !safe_str2int(s, result ) )
-    NCRYSTAL_THROW2(BadInput,(errmsg?errmsg:"Invalid number in string is not an integer")<<": \""<<s<<"\"");
+  if ( !safe_str2int(sv, result ) )
+    NCRYSTAL_THROW2(BadInput,(errmsg?errmsg:"Invalid number in string is not an integer")<<": \""<<sv<<"\"");
   return result;
 }
 
-bool NC::safe_str2dbl(const std::string& s, double& result )
+int32_t NC::str2int32( StrView sv, const char * errmsg)
 {
-  bool ok(true);
-  double val;
-  std::stringstream ss(s);
-  ss >> val;
-  while (!ss.fail()&&!ss.eof()) {
-    char c;
-    ss >> c;
-    if (c!=' '&&c!='\t'&&c!='\n') {
-      ok=false;
-      break;
-    }
-  }
-  if (!ok||ss.fail()||!ss.eof()) {
-    if (!s.empty()) {
-      //Always support "inf" and "INF" for cross-platform consistency (possibly prefixed with spaces).
-      char last(s.at(s.size()-1));
-      if (last=='f'||last=='F') {
-        std::string tmp(s);
-        trim(tmp);
-        if (tmp=="inf"||tmp=="INF") {
-          result = kInfinity;
-          return true;
-        }
-        //TODO: Should we add support for "nan"/"infinity"?
-      }
-    }
+  int32_t result;
+  if ( !safe_str2int(sv, result ) )
+    NCRYSTAL_THROW2(BadInput,(errmsg?errmsg:"Invalid number in string is not an integer")<<": \""<<sv<<"\"");
+  return result;
+}
+
+int64_t NC::str2int64( StrView sv, const char * errmsg)
+{
+  int64_t result;
+  if ( !safe_str2int(sv, result ) )
+    NCRYSTAL_THROW2(BadInput,(errmsg?errmsg:"Invalid number in string is not an integer")<<": \""<<sv<<"\"");
+  return result;
+}
+
+bool NC::safe_str2dbl( StrView s, double& result )
+{
+  const auto n_size = s.size();
+  if ( n_size==0 || isWhiteSpace( s.front() ) || isWhiteSpace( s.back() ) )
     return false;
+
+  {
+    auto try_conv = detail::raw_str2dbl( s.data(), n_size );
+    if ( try_conv.has_value() ) {
+      result = try_conv.value();
+      return true;
+    }
   }
-  result = val;
+
+  //Did not work, check for "+-inf"/"+-INF"/"nan"/"NaN","NAN" for cross-platform
+  //consistency:
+  if ( n_size == 3 ) {
+    if ( isOneOf(s,"inf","INF") ) {
+      result = kInfinity;
+      return true;
+    }
+    if ( isOneOf(s,"nan","NAN","NaN") ) {
+      static_assert(std::numeric_limits<double>::has_quiet_NaN,"");
+      result = std::numeric_limits<double>::quiet_NaN();
+      return true;
+    }
+  }
+  if ( n_size == 4 ) {
+    if ( isOneOf(s,"+inf","+INF") ) {
+      result = kInfinity;
+      return true;
+    }
+    if ( isOneOf(s,"-inf","-INF") ) {
+      result = -kInfinity;
+      return true;
+    }
+  }
+
+  //Syntax error:
+  return false;
+}
+
+bool NC::safe_str2int( StrView s, int32_t& result )
+{
+  //For robustness/simplicity simply parse as 64 bit value and check range.
+  int64_t val64;
+  static constexpr int64_t range_min = static_cast<int64_t>( std::numeric_limits<int32_t>::lowest() );
+  static constexpr int64_t range_max = static_cast<int64_t>( std::numeric_limits<int32_t>::max() );
+  if ( !safe_str2int(s,val64) || val64 > range_max || val64 < range_min )
+    return false;
+  result = static_cast<int32_t>(val64);
   return true;
 }
 
-bool NC::safe_str2int(const std::string& s, int& result )
+bool NC::safe_str2int( StrView s, int64_t& result )
 {
-  int val;
-  std::stringstream ss(s);
-  ss >> val;
-  while (!ss.fail()&&!ss.eof()) {
-    char c;
-    ss >> c;
-    if (c!=' '&&c!='\t'&&c!='\n')
-      return false;
-  }
-  if (ss.fail()||!ss.eof())
+  const auto n_size = s.size();
+  if ( n_size==0 || isWhiteSpace( s.front() ) || isWhiteSpace( s.back() ) )
     return false;
-  result = val;
-  return true;
+  auto try_conv = detail::raw_str2int64( s.data(), n_size );
+  if ( try_conv.has_value() ) {
+    result = try_conv.value();
+    return true;
+  } else {
+    return false;
+  }
 }
 
 bool NC::contains_only(const std::string& haystack, const std::string& needles)
@@ -242,24 +258,22 @@ void NC::strreplace(std::string& str, const std::string& oldtxt, const std::stri
   }
 }
 
-std::string NC::joinstr(const NC::VectS& parts, std::string separator)
+std::string NC::joinstr( const Span<const StrView>& parts, StrView sep)
 {
   const std::size_t n = parts.size();
   if ( n < 2 )
-    return n ? parts.at(0) : std::string();
+    return n ? parts.at(0).to_string() : std::string();
 
-  std::size_t newsize( (n-1)*separator.size() );
+  std::size_t newsize( (n-1)*sep.size() );
   for (const auto& p : parts)
     newsize += p.size();
   std::string tmp;
   tmp.reserve(newsize);
-
-  tmp += parts.at(0);
+  tmp.append(parts.front().data(),parts.front().size());
   for (std::size_t i = 1; i < n; ++i) {
-    tmp += separator;
-    tmp += parts[i];
+    tmp.append( sep.data(), sep.size() );
+    tmp.append( parts[i].data(), parts[i].size() );
   }
-
   nc_assert(tmp.size()==newsize);
   return tmp;
 }
@@ -377,8 +391,6 @@ bool NC::ncgetenv_bool(std::string v)
   }
   NCRYSTAL_THROW2(BadInput,"Invalid value of environment variable "<<varname
                   <<" (expected a Boolean value, \"0\" or \"1\", but got \""<<evs<<"\").");
-
-
 }
 
 std::string NC::bytes2hexstr(const std::vector<uint8_t>& v) {
@@ -423,4 +435,90 @@ std::vector<uint8_t> NC::hexstr2bytes(const std::string& v) {
     res.push_back ( hex2val(*it++) + 16* hex2val(c) );
   }
   return res;
+}
+
+void NC::streamJSON( std::ostream& os, double val )
+{
+  if ( ncisnan( val ) )
+    NCRYSTAL_THROW(CalcError,"Can not represent not-a-number (NaN) values in JSON format!");
+
+  if ( ncisinf(val) ) {
+    //infinity is not supported in json, but at least the python json modules
+    //parses an out of bounds value as such:
+    os << ( val > 0 ? "1.0e99999" : "-1.0e99999" );
+    return;
+  }
+  if ( val == 0.0 ) {
+    os << "0.0";//avoid -0, 0.0, etc.
+    return;
+  }
+  //Encode as string, but make sure that we present floating point numbers in a
+  //type-preserving way ("5.0", not "5") so we won't end up mapping C++ floating
+  //point types to integer types once the json string is decoded in e.g. Python.
+  auto sstr = dbl2shortstr(val);
+  if ( sstr.to_view().toInt().has_value() )
+    os << fmt( val, "%.1f" );
+  else
+    os << sstr;
+}
+
+void NC::streamJSON( std::ostream& os, StrView sv )
+{
+  //According to answer at:
+  //https://stackoverflow.com/questions/3020094/how-should-i-escape-strings-in-json:
+  //  "JSON is pretty liberal: The only characters you must escape are \, ", and
+  //   control codes (anything less than U+0020)."
+  //In addition we use the special forms for "\n" "\t" "\r" for more
+  //readable/short results.
+
+  os << '"';
+  for ( auto ch : sv ) {
+    //Code below written to be valid and hopefully non-warning producing for
+    //both signed and unsigned char.
+    switch ( ch ) {
+    //Special cases first:
+    case '\x00' : os << '"'; return;//null-char in data, immediately end!
+    case '"'    : os << "\\\""; continue;
+    case '\\'   : os << "\\\\"; continue;
+    case '\n'   : os << "\\n"; continue;
+    case '\r'   : os << "\\r"; continue;
+    case '\t'   : os << "\\t"; continue;
+    default:
+      if ( ch < '\x20' && ch >= '\x01' ) {
+        //Control character. Must encode hex value using \u00XX format. We use
+        //snprintf rather than iomanip to avoid altering the state of the
+        //stream, and to hopefully keep malloc's low:
+        char buf[8];
+        std::snprintf(buf, sizeof(buf)-1, "%04x", (unsigned char)(ch));
+        os << "\\u"<<buf;
+      } else {
+        //Not control char or special case => simply pass through.
+        os << ch;
+      }
+    }
+  }
+  os << '"';
+}
+
+NC::Optional<std::string> NC::findForbiddenChar( const StrView& teststr,
+                                                 const StrView& forbidden_chars,
+                                                 ExtraForbidOpt extra )
+{
+  Optional<char> badchar;
+  if ( extra == ExtraForbidOpt::RequireSimpleASCII ) {
+    for ( auto ch : teststr ) {
+      if (!isSimpleASCII(ch,AllowTabs::Yes,AllowNewLine::Yes)) {
+        badchar = ch;
+        break;
+      }
+    }
+  }
+  if ( !badchar.has_value() && forbidden_chars.has_value() ) {
+    auto pos = teststr.find_first_of(forbidden_chars);
+    if ( pos != std::string::npos )
+      badchar = teststr.at(pos);
+  }
+  if ( !badchar.has_value() )
+    return NullOpt;
+  return displayCharSafeQuoted(badchar.value());
 }

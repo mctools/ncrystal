@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,84 +22,150 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCTypes.hh"
-#include "NCrystal/NCVariant.hh"
 #include "NCrystal/NCTextData.hh"
-#include <ostream>
 
 namespace NCrystal {
 
   class SCOrientation;
-
   class MatInfoCfg;
 
   class NCRYSTAL_API MatCfg {
   public:
 
-    /////////////////////////////////////////////////////////////////////////////
-    // Class which is used to define the configuration of a given material,    //
-    // which usually includes not only the path to a material data file in any //
-    // supported format, but also other parameters needed for a particular     //
-    // use-case, can be set up such as temperature, packing factor or          //
-    // orientation.                                                            //
-    /////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////
+    //                                                                          //
+    // Class which is used to encapsulate the high-level configuration of a     //
+    // given material.                                                          //
+    //                                                                          //
+    // The configuration can either be set up and edited via the API below, or  //
+    // simply by providing a so-called configuration string in the              //
+    // constructor. Once a MatCfg object is set up, it is possible to use it    //
+    // to load corresponding physics objects, by passing it to the global       //
+    // createInfo, createScatter, or createAbsorption functions (cf. NCFact.hh).//
+    //                                                                          //
+    // In the simplest case, the configuration will combine one source of input //
+    // (text) data (for instance an NCMAT file) with a set of configuration     //
+    // parameters (for instance the material temperature or a single crystal    //
+    // orientation). In more advanced cases, it is also possible for a MatCfg   //
+    // object to define a multi-phase material. Such a MatCfg object does not   //
+    // contain input data or (with a few exceptions) configuration parameters,  //
+    // but instead simply provides a list of child MatCfg objects, one for each //
+    // phase.                                                                   //
+    //                                                                          //
+    // NB: Even if the MatCfg object is not "multi-phase", and only refers to   //
+    // a single source of input data, the physics objects loaded with it might  //
+    // still represent a multi-phase material. This follows from the fact that  //
+    // for instance a single NCMAT file can provide a multi-phase material, but //
+    // the MatCfg object itself can not know whether or not this is the case.   //
+    //                                                                          //
+    //////////////////////////////////////////////////////////////////////////////
 
-
     /////////////////////////////////////////////////////////////////////////////
-    // Constructor:                                                            //
+    // Cfg-string constructor:                                                 //
     /////////////////////////////////////////////////////////////////////////////
-    //
-    // Construct material configuration by supplying at least the path to a data
-    // file (in any supported format). Optionally, it is possible to set
-    // configuration parameters by appending one or more occurances of
-    // "<name>=<value>" to the file name, all separated with semi-colons (;).
-    //
-    // Thus the single line:
-    //
-    //    MatCfg cfg("myfile.ncmat;temp=77.0;packfact=0.8");
-    //
-    // Has the same effect as the three lines:
-    //
-    //    MatCfg cfg("myfile.ncmat");
-    //    cfg.set_temp(77.0);
-    //    cfg.set_packfact(0.8);
-    //
-    // The supported variable names and the set methods which they invoke
-    // are documented below.
     //
 
     MatCfg( const std::string& datafile_and_parameters );
     MatCfg( const char* datafile_and_parameters );
+
+    // Construct material configuration by providing a configuration
+    // string. Such a cfg-string must at least contain the name identifying a
+    // piece of input data (in any supported format). This can for instance be a
+    // filename, and more generally it must be anything which can be used look
+    // up a TextData object via the infrastructure in NCFactImpl.hh, after
+    // constructing a TextDataPath object with it (see also NCDataSources.hh for
+    // how to modify this search).
     //
-    // Note that it is also possible to set the (initial) values of parameters,
-    // by embedding a statement like NCRYSTALMATCFG[temp=500.0;dcutoff=0.2] into
-    // the data itself (in a suitable location in the file of course, i.e. in a
-    // comment). These parameters can of course still be overridden, and such
-    // embedded configuration can be ignored entirely by appending
-    // ";ignorefilecfg" to the filename:
+    // Additionally, it is optionally possible to set configuration parameters
+    // by appending one or more occurances of "<name>=<value>" to the file name,
+    // all separated with semi-colons (;). Alternatively, the parameters can
+    // also be set via specific set_xxx() methods below.
     //
-    //    MatCfg cfg("myfile.ncmat;ignorefilecfg").
+    // Thus the single line:
     //
-    // Also note that for convenience some parameters optionally support the
-    // specification of units when setting their values via strings. For
-    // example, the following ways of setting the temperature all correspond to
-    // the freezing point of water:
+    //    MatCfg cfg("myfile.ncmat;temp=77.0;density=2.3gcm3");
     //
-    //     ";temp=273.15" ";temp=273.15K" ";temp=0C" "temp=32F"
+    // Has the same effect as the three lines:
     //
-    // No matter how the temperature was set, get_temp() will return the value
-    // in kelvin (273.15) afterwards.
+    //    MatCfg cfg("myfile.ncmat");
+    //    cfg.set_temp( Temperature{77.0} );
+    //    cfg.set_density( Density{2.3} );
     //
-    // Important notice: The MatCfg constructor immediately opens the specified
-    // input file and caches the content in memory (without needless copies in
-    // case of in-memory files), and makes it available via the textData and
-    // textDataSP methods. Thus, keeping a very large number of MatCfg objects
-    // around can potentially incur a sizeable overhead. However, the usage
-    // should be rather extreme before this can become a problem (e.g. keeping
-    // 1000 MatCfg objects around which all refer to unusually large 1MB files
-    // could potentially mean 1GB of memory retained). As most input files are
-    // typically 100 times smaller than this and since users typically only keep
-    // a few MatCfg alive at once, this is not expected to be a problem in
-    // practice. Notice also the cloneThinned() method below.
+    // See notes below concerning multiphase materials, in-file embedding of
+    // parameters, data caching, and instantiation directly from text data.
+    //
+    // The supported parameter names are (for the latest NCrystal release)
+    // documented at:
+    //
+    //   https://github.com/mctools/ncrystal/wiki/CfgRefDoc
+    //
+    // In case your version of NCrystal differs from the one mentioned on the
+    // wiki page above, you can instead generate the same documentation by
+    // invoking one of the following:
+    //
+    //   ncrystal_inspectfile --doc                #From the command line
+    //   NCrystal::MatCfg::genDoc(std::cout);    //#From C++ code.
+    //   print( NCrystal.generateCfgStrDoc() )     #From Python code
+    //
+    // C++ savvy users might also wish to take a look at the internal header
+    // file, NCCfgVars.hh, where the various parameters are actually defined.
+    //
+    // Multiphase materials can be composed directly in cfg-strings by simple
+    // additive composition from existing materials, as will be explained in the
+    // following. Note that very complicated multiphase materials, or those with
+    // nanostructures resulting in SANS physics, might be better described in
+    // NCMAT data. In that case, resulting physics objects might be multiphased,
+    // although the MatCfg object will seem to be single phase.
+    //
+    // The configuration string syntax used to define a multiphase material with
+    // N phases is:
+    //
+    //   "phases<FRAC1*CFG1&..&FRACN*CFGN>[;COMMONCFG]"
+    //
+    // Here FRACi is the (by-volume) fraction of the i'th component, and
+    // COMMONCFG, CFG1, ..., CFGN are cfg strings. The final cfg string of the
+    // i'th component is "CFG1;COMMONCFG", so COMMONCFG will be the most
+    // convenient place to change parameters which should affect all phases,
+    // such as material temperature.  One special exception is the use of
+    // "phasechoice" and "density" parameters (see below) in the COMMONCFG
+    // string, which will always be applied only to the top-level MatCfg object,
+    // and not be passed on to the child phases (doing so would defeat the
+    // purpose of using phasechoice parameters).
+    //
+    // Examples:
+    //
+    // * Equal (by volume) mix of Al and Mg powder:
+    //   "phases<0.5*Al_sg225.ncmat&0.5*Mg_sg194.ncmat>"
+    // * Same at T=20K:
+    //   "phases<0.5*Al_sg225.ncmat&0.5*Mg_sg194.ncmat>;temp=20K"
+    // * Aluminium with voids:
+    //   "phases < 0.99 * Al_sg225.ncmat & 0.01 * void.ncmat >"
+    // * Alumina powder suspended in water:
+    //   "phases<0.01*Al2O3_sg167_Corundum.ncmat&0.99*LiquidWaterH2O_T293.6K.ncmat>"
+    //
+    // Also note that in case where a material is defined using the "phases<..>"
+    // multiphase syntax, but only one phase is actually specified - the
+    // resulting MatCfg object will end up as a regular single phase object.
+    //
+    // A multi-phase MatCfg object is primarily useful since it can be passed to
+    // createInfo, createAbsorption, or createScatter as any MatCfg object and
+    // receive Info, Absorption, or Scatter physics objects in return. But note
+    // that some methods on multi-phase MatCfg objects are unavailable
+    // (i.e. will throw exceptions). This can for instance happen when asking
+    // for the value of a parameter which is not the same in all phases. Setting
+    // parameters is on the other hand always possible, and merely leads to the
+    // value being set for all phases (with the exception of phasechoice/density
+    // parameters as noted above). Additionally, a multi-phase MatCfg object
+    // never has text data directly available, since such data is associated
+    // with the individual phases.
+    //
+    // In addition to the cfg-string syntax above, it is also possible to setup
+    // multi-phase configurations with the following constructors:
+
+    using Phase = std::pair<double,MatCfg>;
+    using PhaseList = std::vector<Phase>;
+    MatCfg( PhaseList&& );
+    MatCfg( const PhaseList& );
 
     ////////////////////////////////////////////////////////////////////////////
     // For additional flexiblity, it is also possible to instantiate MatCfg
@@ -127,270 +193,60 @@ namespace NCrystal {
                                      std::string parameters = {},
                                      std::string dataType = {} );
 
-
-    /////////////////////////////////////////////////////////////////////////////
-    // Possible parameters and their meaning:                                  //
-    /////////////////////////////////////////////////////////////////////////////
-    //
-    // temp........: [ double, fallback value is -1.0 ]
-    //               Temperature of material in Kelvin. The special value of
-    //               -1.0 implies that the info factory should determine an
-    //               appropriate value based on the input data, falling back to
-    //               293.15K when the input has not special preference (example:
-    //               an S(alpha,beta) scattering kernel might be valid at a
-    //               particular temperature value only).
-    //               [ Recognised units: "K", "C", "F" ]
-    //
-    // coh_elas....: [ bool, fallback value is true ]
-    //               If enabled, scatter factories will include coherent elastic
-    //               (i.e. Bragg diffraction) components for crystalline
-    //               materials. See also pseudo-parameters "elas" and "bragg"
-    //               below which can both be used to change the value of the
-    //               coh_elas parameter.
-    //
-    // incoh_elas....: [ bool, fallback value is true ]
-    //               If enabled, scatter factories will include incoherent elastic
-    //               components for crystalline materials. See also pseudo-parameters
-    //               "elas" and "bkgd" below which can both be used to change the value
-    //               of the incoh_elas parameter.
-    //
-    // inelas........: [ string, fallback value is "auto" ]
-    //               Influence inelastic scattering models chosen by scatter
-    //               factories. The default value of "auto" leaves the choice up
-    //               to scatter factories, and a value of "none", "0", "false",
-    //               or "sterile", all disables inelastic scattering.  The
-    //               standard NCrystal scatter factory currently supports
-    //               additional values: "external", "dyninfo", "vdosdebye", and
-    //               "freegas", and internally the "auto" mode will simply
-    //               select the first possible of those in the listed order
-    //               (falling back to "none" when nothing is possible). Note
-    //               that "external" is not possible for .ncmat files (but is
-    //               for .nxs files), and when using .laz/.lau only "none" is
-    //               possible.  The "dyninfo" mode will simply base modelling on
-    //               whatever dynamic information is available for each element
-    //               in the input data. The "vdosdebye" and "freegas" modes
-    //               overrides this, and force those models for all elements if
-    //               possible.  The "external" mode implies usage of an
-    //               externally provided cross-section curve and an
-    //               isotropic-elastic scattering model. See also the parameter
-    //               "vdoslux" and pseudo-parameter "bkgd" below.
-    //
-    // dcutoff.....: [ double, fallback value is 0 ]
-    //               D-spacing cutoff in Angstrom. Crystal planes with spacing
-    //               below this value will not be created. The special setting
-    //               dcutoff=0 causes the code to attempt to select an
-    //               appropriate threshold automatically, and the special
-    //               setting dcutoff=-1 means that HKL lists should not be
-    //               created at all (often used with bragg=false).
-    //               [ Recognised units: "Aa", "nm", "mm", "cm", "m" ]
-    //
-    // packfact....: [ double, fallback value is 1.0 ]
-    //               Packing factor which can be less than 1.0 for powders,
-    //               which can thus be modelled as polycrystals with reduced
-    //               density (not to be confused with the *atomic* packing
-    //               factor).
-    //
-    // mos.........: [ double, no fallback value ]
-    //               Mosaic FWHM spread in mosaic single crystals, in radians.
-    //               [ Recognised units: "rad", "deg", "arcmin", "arcsec" ]
-    //
-    // dir1........: [ special, no fallback value ]
-    //               Used to specify orientation of single crystals, by
-    //               providing both a vector in the crystal frame and the lab
-    //               frame, as explained in more detail in the file
-    //               NCSCOrientation.hh. If the six numbers in the two vectors
-    //               are respectively (c1,c2,c3) and (l1,l2,l3), this is
-    //               specified as: "dir1=@crys:c1,c2,c3@lab:l1,l2,l3" If
-    //               (c1,c2,c3) are points in hkl space, simply use "@crys_hkl:"
-    //               instead, as in: "dir1=@crys_hkl:c1,c2,c3@lab:l1,l2,l3"
-    //
-    // dir2........: [ special, no fallback value ]
-    //               Similar to dir1, but the direction might be modified
-    //               slightly in case of imprecise input, up to the value of
-    //               dirtol).  See the file NCSCOrientation.hh for more details.
-    //
-    // dirtol......: [ double, fallback value is 0.0001 ]
-    //               Tolerance parameter for the secondary direction of the
-    //               single crystal orientation, here in radians. See the file
-    //               NCSCOrientation.hh for more details.
-    //               [ Recognised units: "rad", "deg", "arcmin", "arcsec" ]
-    //
-    // lcaxis......: [ vector, no fallback value ]
-    //               Used to specify symmetry axis of anisotropic layered
-    //               crystals with a layout similar to pyrolytic graphite, by
-    //               providing the axis in lattice coordinates using a format
-    //               like "0,0,1" (does not need to be normalised). Specifying
-    //               this parameter along with an orientation (see dir1, dir2
-    //               and dirtol parameters) will result in a specialised single
-    //               crystal scatter model being used.
-    //
-    //
-    /////////////////////////////////////////////////////////////////////////////
-    // Options mainly of interests to experts and NCrystal developers:
-    //
-    // dcutoffup...: [ double, fallback value is infinity ]
-    //               Like dcutoff, but representing an upper cutoff instead
-    //               [ Recognised units: "Aa", "nm", "mm", "cm", "m" ]
-    //
-    // infofactory.: [ string, fallback value is "" ]
-    //               By supplying the name of an NCrystal factory, this
-    //               parameter can be used by experts to circumvent the usual
-    //               factory selection algorithms and instead choose the factory
-    //               for creating NCrystal::Info instances directly.
-    //               (TODO: Mention how to set flags like expandhkl)
-    //
-    // scatfactory.: [ string, fallback value is "" ]
-    //               Similar to infofactory, this parameter can be used to
-    //               directly select factory with which to create
-    //               NCrystal::Scatter instances. As a special feature (needed
-    //               for plugin development), factories can be excluded by
-    //               adding them with a "!" in front of their name. Multiple
-    //               entries can be added by separating them with an "@" sign
-    //               (but at most one non-excluded entry can appear).
-    //
-    // absnfactory.: [ string, fallback value is "" ]
-    //               Similar to infofactory, this parameter can be used to
-    //               directly select factory with which to create
-    //               NCrystal::Absorption instances. As a special feature (needed
-    //               for plugin development), factories can be excluded by
-    //               adding them with a "!" in front of their name. Multiple
-    //               entries can be added by separating them with an "@" sign
-    //               (but at most one non-excluded entry can appear).
-    //
-    // mosprec.....: [ double, fallback value is 1.0e-3 ]
-    //               Approximate relative precision in implementation of mosaic
-    //               model in single crystals. Affects both approximations used
-    //               and truncation range of Gaussian. Values must be in the
-    //               range [1e-7,1e-1].
-    //
-    // lcmode......: [ int, fallback value is 0 ]
-    //               Choose which modelling is used for layered crystals (has no
-    //               effect unless lcaxis is also set). The default value
-    //               indicates the recommended model, which is both fast and
-    //               accurate. A positive value triggers a very slow but simple
-    //               reference model, in which n=lcmode crystallite orientations
-    //               are sampled internally (the model is accurate only when n
-    //               is very high). A negative value triggers a different (and
-    //               multi-thread unsafe!) model in which each crossSection call
-    //               triggers a new selection of n=-lcmode randomly oriented
-    //               crystallites.
-    //
-    // sccutoff....: [ double, fallback value is 0.4Aa ]
-    //               Single-crystal d-spacing cutoff in Angstrom. When creating
-    //               single-crystal scatterers, crystal planes with spacing
-    //               below this value will be modelled as having an isotropic
-    //               mosaicity distribution. This usually results in very great
-    //               computational speedups for neutrons at wavelengths below
-    //               2*sccutof. The tradeoff is in principle an incorrect angular
-    //               dependency when calculating the cross-section for scattering
-    //               on *these* individual planes, but in practice the net effect
-    //               is usually not particularly significant due to the very large
-    //               number of very weak planes affected. Setting sccutoff=0
-    //               naturally disables this approximation.
-    //               [ Recognised units: "Aa", "nm", "mm", "cm", "m" ]
-    //
-    // vdoslux.....: [ int, fallback value is 3 ]
-    //               Setting affecting "luxury" level when expanding phonon
-    //               spectrums (VDOS) into scattering kernels, affecting things
-    //               like number of (alpha,beta) grid points in the resulting
-    //               kernel and what energy range is covered by the kernel. In
-    //               very rough terms, the levels have the following approximate
-    //               impact (exact impact depends on both the given VDOS as well
-    //               as values of other configuration parameters):
-    //                  0 : Extremely crude, 100x50 grid, Emax=0.5eV
-    //                      Costs 0.1MB mem, 0.02s init time
-    //                  1 : Crude, 200x100 grid, Emax=1eV
-    //                      Costs 0.5MB mem, 0.04s init time
-    //                  2 : Decent, 400x200 grid, Emax=3eV
-    //                      Costs 2MB mem, 0.08s init time
-    //                  3 : Good, 800x400 grid, Emax=5eV
-    //                      Costs 8MB mem, 0.2s init time
-    //                  4 : Very good, 1600x800 grid, Emax=8eV
-    //                      Costs 30MB mem, 0.8s init time
-    //                  5 : Extremely good, 3200x1600 grid, Emax=12eV
-    //                      Costs 125MB mem, 5s init time
-    //               Levels 2-4 are intended for normal usage, level 5 as a
-    //               validation reference, while levels 0 and 1 are intended for
-    //               the case where the input VDOS data is anyway just a crude
-    //               estimate. For cases where NCrystal has no actual VDOS input
-    //               data provided and instead generates an idealised Debye
-    //               spectrum on the fly based on the Debye temperature, the
-    //               vdoslux level actually used will be 3 less than the one
-    //               specified in this variable (but at least 0).
-    //
-    // atomdb......: [ string, fallback value is "" ]
-    //               Modify atomic definitions if supported by the info factory
-    //               (in practice this is unlikely to be supported by anything
-    //               except NCMAT data). The string must follow a syntax
-    //               identical to that used in @ATOMDB sections of NCMAT file
-    //               (cf. ncmat_doc.md), with a few exceptions explained here:
-    //               First of all it is allowed to use semicolons (':') to
-    //               divide words (in fact all semicolons will simply be
-    //               replaced with spaces during evaluation), which makes it
-    //               possible to write cfg-strings without spaces (this might
-    //               occasionally be useful, e.g. on the command line). Next,
-    //               '@' characters play the role of line separators. Finally,
-    //               when used with an NCMAT file that already includes an
-    //               internal @ATOMDB section, the effect will essentially be to
-    //               combine the two sections by appending the atomdb lines from
-    //               the cfg parameter to the lines already present in the input
-    //               data. The exception is the case where the cfg parameter
-    //               contains an initial line with the single word "nodefaults",
-    //               the effect of which will always be the same as if it was
-    //               placed on the very first line in the @ATOMDB section
-    //               (i.e. NCrystal's internal database of elements and isotopes
-    //               will be ignored).
-
-
-    /////////////////////////////////////////////////////////////////////////////
-    // Special pseudo-parameters available for usage in configuration strings
-    // (and only there), for convenience and backwards compatiblity:
-    //
-    // bragg..: This is simply an alias for the "coh_elas" parameter.
-    // elas...: Assigning a boolean value to this pseudo-parameter will change
-    //          both the "coh_elas" and "incoh_elas" parameters at once.
-    // bkgd...: Assigning "0" or "none" to this pseudo-parameter will result in
-    //          coh_elas and inelas parameters being set to false and "none"
-    //          respectively. No other values are accepted as this parameter
-    //          exists purely for backwards compatiblity reasons. Users should
-    //          now use the "inelas" parameter to affect the choice of inelastic
-    //          model, and the "incoh_elas" parameter to toggle incoherent
-    //          elastic scattering.
+    //Generate cfg-string documentation, either full output including
+    //explanations, short output with one variable per line, or as a JSON data
+    //structure:
+    enum class GenDocMode { TXT_SHORT, TXT_FULL, JSON };
+    static void genDoc( std::ostream&, GenDocMode = GenDocMode::TXT_FULL );
 
     /////////////////////////////////////////////////////////////////////////////
     // Methods for setting parameters:                                         //
     /////////////////////////////////////////////////////////////////////////////
     //
-    //Directly set from C++ code:
+    // Directly set from C++ code:
     void set_temp( Temperature );
     void set_temp( double );
     void set_dcutoff( double );
     void set_dcutoffup( double );
-    void set_packfact( double );
+    void set_expandhkl( bool );
     void set_mos( MosaicityFWHM );
     void set_mosprec( double );
     void set_sccutoff( double );
     void set_dirtol( double );
     void set_coh_elas( bool );
     void set_incoh_elas( bool );
+    void set_sans( bool );
     void set_inelas( const std::string& );
     void set_infofactory( const std::string& );
     void set_scatfactory( const std::string& );
     void set_absnfactory( const std::string& );
-    void set_lcmode( int );
+    void set_lcmode( std::int_least32_t );
     void set_vdoslux( int );
     void set_atomdb( const std::string& );
     void set_lcaxis( const LCAxis& );
-    //
-    //Special setter method, which will set all orientation parameters based on
-    //an SCOrientation object:
-    void setOrientation( const SCOrientation& );
     void set_dir1( const HKLPoint&, const LabAxis& );
     void set_dir1( const CrystalAxis&, const LabAxis& );
     void set_dir2( const HKLPoint&, const LabAxis& );
     void set_dir2( const CrystalAxis&, const LabAxis& );
-    std::pair<Variant<CrystalAxis,HKLPoint>,LabAxis> get_dir1() const;
-    std::pair<Variant<CrystalAxis,HKLPoint>,LabAxis> get_dir2() const;
+    void set_dir1( const OrientDir& );
+    void set_dir2( const OrientDir& );
+    void setOrientation( const SCOrientation& );//sets dir1+dir2+dirtol
+
+    ///////////////////////////////////////////////////////////////////////////////////
+    //As explained above, MatCfg objects optionally retain a "density state",
+    //which can be either a scaling of, or an absolute override of, the density
+    //that will otherwise be created from the configuration. Note that final
+    //density value must be obtained from the loaded Info objects, not the
+    //MatCfg objects which can't know the underlying material density which it
+    //is possibly scaling.
+
+    void set_density( const Density& );
+    void set_density( const NumberDensity& );
+    void scale_density( double );//scales existing state (NB: repeated calls have commulative effect!)
+    void set_density( const DensityState& );// (NB: repeated calls have commulative effect if argument is scale factor!)
+    DensityState get_density() const;
+    bool hasDensityOverride() const;//True if get_density() does not yield {SCALEFACTOR,1.0}.
+
     //
     // Set parameters from a string, using the same format as that supported by
     // the constructor, e.g. "par1=val1;...;parn=valn":
@@ -400,75 +256,94 @@ namespace NCrystal {
     // Methods for accessing parameters or derived information:                //
     /////////////////////////////////////////////////////////////////////////////
     //
-    // Directly access from C++
+    // Directly access from C++ (might error for multiphase cfgs in case of
+    // inconsistent values across phases):
+
     Temperature get_temp() const;
     double get_dcutoff() const;
     double get_dcutoffup() const;
-    double get_packfact() const;
+    bool get_expandhkl() const;
     MosaicityFWHM get_mos() const;
     double get_mosprec() const;
     double get_sccutoff() const;
     double get_dirtol() const;
-    LCAxis get_lcaxis() const;
-    const std::string& get_scatfactory() const;
-    const std::string& get_absnfactory() const;
-    int  get_lcmode() const;
-    int  get_vdoslux() const;
-    const std::string& get_atomdb() const;
-    const std::vector<VectS>& get_atomdb_parsed() const;
-
+    const LCAxis& get_lcaxis() const;
+    std::string get_infofactory() const;
+    std::string get_scatfactory() const;
+    std::string get_absnfactory() const;
+    std::int_least32_t get_lcmode() const;
+    int get_vdoslux() const;
+    std::string get_atomdb() const;
+    std::vector<VectS> get_atomdb_parsed() const;
     bool get_coh_elas() const;
     bool get_incoh_elas() const;
-    const std::string& get_inelas() const;
+    bool get_sans() const;
+    std::string get_inelas() const;
+    OrientDir get_dir1() const;
+    OrientDir get_dir2() const;
 
-    //infofactory option decoded:
-    std::string get_infofact_name() const;
-    bool get_infofactopt_flag(const std::string& name) const;
-    double get_infofactopt_dbl(const std::string& name, double defval) const;
-    int get_infofactopt_int(const std::string& name, int defval) const;
-
-    // Specialised getters for derived information:
+    // Check if single/layered-single crystal, or access dir1+dir2+dirtol as
+    // SCOrientation (do not call any of these for multiphase cfgs):
     bool isSingleCrystal() const;//true if mos or orientation parameters are set
-    bool isPolyCrystal() const;//same as !isSingleCrystal()
-    SCOrientation createSCOrientation() const;//Create and return a new SCOrientation object based cfg.
     bool isLayeredCrystal() const;//true if lcaxis parameter is set
+    SCOrientation createSCOrientation() const;
 
-    //Test if was constructed with ";ignorefilecfg" keyword:
-    bool ignoredEmbeddedConfig() const;
-
-    //Validate infofactory flags and options to prevent silently ignoring
-    //unused options. Call only from *selected* factory, to throw BadInput in
-    //case of unknown options:
-    void infofactopt_validate(const std::set<std::string>& allowed_opts) const;
-
-    //Serialise in various forms (note that if the MatCfg object was not
-    //constructed from a text string, the string returned by toStrCfg(true) will
-    //of course not be useful for creating a new equivalent MatCfg object).
+    //Serialise in various forms. Note that if the MatCfg object was constructed
+    //from anonymous text data and not named data (filename), the data returned
+    //can not necessarily be used for an exact recreation of an equivalent
+    //MatCfg object.
+    //Note that for multiphase MatCfg objects, it is not allowed to call
+    //toEmbeddableCfg() or toStrCfg(include_datafile=false).
     std::string toStrCfg( bool include_datafile = true ) const;
     std::string toEmbeddableCfg() const;//Produces a string like "NCRYSTALMATCFG[temp=500.0;dcutoff=0.2]"
                                         //which can be embedded in data files.
+    std::string toJSONCfg() const;//same info as toStrCfg but as JSON struct.
     void dump( std::ostream &out, bool add_endl=true ) const;
 
     /////////////////////////////////////////////////////////////////////////////
-    // Associated text data (content and meta data of data file)               //
+    // Associated text data (content and meta data of data file).              //
     /////////////////////////////////////////////////////////////////////////////
     //
-    // Both content and meta data are available, unless the MatCfg object was
-    // "thinned" (see below), in which case the textData()/textDataSP() methods
-    // should not be used (but the textDataUID()/getDataType methods are always
-    // OK). However, normally MatCfg objects are not thinned and most code
-    // should simply use the methods.
-
+    // For non-multiphase cfg objects, access associated text and meta data:
     const TextData& textData() const;
     TextDataSP textDataSP() const;
-
-    //UID of text data:
     const TextDataUID textDataUID() const;
 
-    //Data type of text data (usually the extension of the data file). Calling
-    //this method should be the only manner of determining the format of the
-    //associated textData:
+    //For non-multiphase cfg objects, access data type of text data (usually the
+    //extension of the data file). Calling this method should be the only manner
+    //of determining the format of the associated textData.
     const std::string& getDataType() const;
+
+    //For non-multiphase cfg objects, access data source name (for output only,
+    //code should not parse this!):
+    const DataSourceName& getDataSourceName() const;
+
+    /////////////////////////////////////////////////////////////////////////////
+    // Methods for multi-phase configurations:                                 //
+    /////////////////////////////////////////////////////////////////////////////
+    //
+    bool isSinglePhase() const;
+    bool isMultiPhase() const;
+    const PhaseList& phases() const;//empty list if isSinglePhase.
+
+
+    /////////////////////////////////////////////////////////////////////////////
+    // Phasechoices                                                            //
+    /////////////////////////////////////////////////////////////////////////////
+
+    //Pick out child phases by index in Info::getPhases() list. Adding phase
+    //choices here (or with the "phasechoice" pseudo-parameter) can be used to
+    //ensure that passing the MatCfg object to high-level createXXX functions
+    //will result in the physics object corresponding to the given phase will be
+    //returned rather than the top-level objects (NOTE: this parameter picks out
+    //children at the Info object level, not at the MatCfg-level child
+    //phases). As child phase Info objects might themselves be multiphase, the
+    //method can be called more than once to navigate further into the Info
+    //object tree of child phases:
+    using PhaseChoices = SmallVector<unsigned,4,SVMode::LOWFOOTPRINT_IMPLICITCOPY>;
+    const PhaseChoices& getPhaseChoices() const;
+    void appendPhaseChoices( const PhaseChoices& );
+    void appendPhaseChoice( unsigned );
 
     /////////////////////////////////////////////////////////////////////////////
     // Copy/assign/move/clone/destruct                                         //
@@ -484,98 +359,66 @@ namespace NCrystal {
     ~MatCfg();
     MatCfg clone() const;
 
-    //Create a "thinned" clone which does not keep a strong reference to the
-    //associated TextData object, but which still retains all other information
-    //(including the textDataUID) needed for comparisons. Thus, such a clone is
-    //suitable for e.g. cache keys which must be kept around for comparison but
-    //which should not retain strong references to potentially large text
-    //data. Accessing the textData()/textDataSP() methods on a thinned object
-    //will result in an exception.
-    MatCfg cloneThinned() const;
-    bool isThinned() const;
-
     /////////////////////////////////////////////////////////////////////////////
     // Interface for NCrystal factory infrastructure:                          //
     /////////////////////////////////////////////////////////////////////////////
-    //
+
     // Advanced interface, which is intended solely for use by the NCrystal
     // factory infrastructure, for validation, factory selection, and to avoid
-    // unnecessarily re-initialisation of expensive objects.
+    // unnecessary re-initialisation of expensive objects.
 
-    //Create const-view wrapper of MatCfg with access to the restricted set of
-    //parameters which is allowed to use in info factories:
-    MatInfoCfg createInfoCfg() const;
+    //Create a "thinned" clone which does not keep a strong reference to the
+    //associated TextData object, but which still retains all other information
+    //(including the textDataUID) needed for comparisons, dumps, etc. Thus, such
+    //a clone is suitable for e.g. cache keys which must be kept around for
+    //comparison but which should not retain strong references to potentially
+    //large text data.
+    MatCfg cloneThinned() const;
+    bool isThinned() const;
+
+    //Clone with phase choices or density discarded:
+    MatCfg cloneWithoutPhaseChoices() const;
+    MatCfg cloneWithoutDensityState() const;
+
+    //Trivial means not multiphase, no phase choices, no density state override:
+    bool isTrivial() const;
 
     //Verify that the parameter values are not inconsistent or
-    //incomplete. Throws BadInput exception if they are. This will automatically
-    //be invoked by the factory infrastructure:
+    //incomplete. Throws BadInput exception if they are.
     void checkConsistency() const;
-
-    //Convenience interface for setting/decoding scatfactory+absnfactory parameters:
-    struct FactRequested {
-      std::string specific;
-      std::set<std::string> excluded;
-    };
-    FactRequested get_scatfactory_parsed() const;
-    FactRequested get_absnfactory_parsed() const;
-    void set_scatfactory(const FactRequested& );
-    void set_absnfactory(const FactRequested& );
 
     //Unspecified ordering (for usage as map keys):
     bool operator<(const MatCfg&) const;
 
+    //Low-level access to parameter data:
+    const Cfg::CfgData& rawCfgData() const;//NB: singlephase only fct
+    void apply( const Cfg::CfgData& );//NB: applies to all phases if multiphase
+
+    //////////////////////////////////////////////////////////////////////
+    // Obsolete functions kept temporarily for backwards compatibility. //
+    //////////////////////////////////////////////////////////////////////
+
+    //The get_packfact function was replaced with get_density which plays a
+    //slightly different role:
+    double get_packfact() const { return 1.0; }
+    //The ignorefilecfg keyword is no longer supported (it was too complicated
+    //to support):
+    bool ignoredEmbeddedConfig() const { return false; }
+
   private:
-    struct constructor_args : private MoveOnly {
-      OptionalTextDataSP td; std::string pars, origfn;
-    };
+    struct constructor_args;
     explicit MatCfg( constructor_args&& );
     struct from_raw_t {};
     explicit MatCfg( from_raw_t, std::string&& data, std::string pars, std::string ext );
-    const std::string& get_infofactory() const;//undecoded, internal usage only
     struct Impl;
+    struct Impl2;
     COWPimpl<Impl> m_impl;
+    COWPimpl<Impl2> m_impl2;
     OptionalTextDataSP m_textDataSP;
     friend class MatInfoCfg;
   };
 
-  class MatInfoCfg {
-  public:
-    //Reduced const-view wrapper of MatCfg, restricting access to the parameters
-    //that are allowed only in Info-factories. The comparison operator likewise
-    //ignores all other parameters.
-    const TextDataUID textDataUID() const;
-    const std::string& getDataType() const;
-    const TextData& textData() const;
-    TextDataSP textDataSP() const;
-    Temperature get_temp() const;
-    double get_dcutoff() const;
-    double get_dcutoffup() const;
-    const std::string& get_atomdb() const;
-    const std::vector<VectS>& get_atomdb_parsed() const;
-    std::string get_infofact_name() const;
-    bool get_infofactopt_flag(const std::string& name) const;
-    double get_infofactopt_dbl(const std::string& name, double defval) const;
-    int get_infofactopt_int(const std::string& name, int defval) const;
-    void checkConsistency() const;
-    void dump( std::ostream &out, bool add_endl=true ) const;
-    void infofactopt_validate(const std::set<std::string>& ao) const;
-    std::string toStrCfg( bool include_datafile = true ) const;
-    MatInfoCfg clone() const;
-    MatInfoCfg cloneThinned() const;
-    bool isThinned() const;
-    MatInfoCfg(const MatCfg&);
-    MatInfoCfg(MatCfg&&);
-    MatInfoCfg(const MatInfoCfg&) = default;
-    MatInfoCfg& operator=(const MatInfoCfg&) = default;
-    MatInfoCfg( MatInfoCfg&& ) = default;
-    MatInfoCfg& operator=(MatInfoCfg&&) = default;
-    bool operator<(const MatInfoCfg&) const;
-  private:
-    MatCfg m_cfg;
-  };
-
-  inline std::ostream& operator<< (std::ostream&, const MatCfg&);
-  inline std::ostream& operator<< (std::ostream&, const MatInfoCfg&);
+  NCRYSTAL_API std::ostream& operator<< (std::ostream&, const MatCfg&);
 
 }
 
@@ -587,30 +430,18 @@ namespace NCrystal {
 namespace NCrystal {
   inline void MatCfg::set_temp( double t ) { set_temp(Temperature{t}); }
   inline MatCfg MatCfg::clone() const { return MatCfg(*this); }
-  inline bool MatCfg::isThinned() const { return m_textDataSP == nullptr; }
   inline const TextData& MatCfg::textData() const { return textDataSP(); }
-  inline const TextDataUID MatInfoCfg::textDataUID() const { return m_cfg.textDataUID(); }
-  inline const std::string& MatInfoCfg::getDataType() const { return m_cfg.getDataType(); }
-  inline const TextData& MatInfoCfg::textData() const { return m_cfg.textData(); }
-  inline TextDataSP MatInfoCfg::textDataSP() const { return m_cfg.textDataSP(); }
-  inline Temperature MatInfoCfg::get_temp() const { return m_cfg.get_temp(); }
-  inline double MatInfoCfg::get_dcutoff() const { return m_cfg.get_dcutoff(); }
-  inline double MatInfoCfg::get_dcutoffup() const { return m_cfg.get_dcutoffup(); }
-  inline const std::string& MatInfoCfg::get_atomdb() const { return m_cfg.get_atomdb(); }
-  inline const std::vector<VectS>& MatInfoCfg::get_atomdb_parsed() const { return m_cfg.get_atomdb_parsed(); }
-  inline std::string MatInfoCfg::get_infofact_name() const { return m_cfg.get_infofact_name(); }
-  inline bool MatInfoCfg::get_infofactopt_flag(const std::string& name) const { return m_cfg.get_infofactopt_flag(name); }
-  inline double MatInfoCfg::get_infofactopt_dbl(const std::string& name, double defval) const { return m_cfg.get_infofactopt_dbl(name,defval); }
-  inline int MatInfoCfg::get_infofactopt_int(const std::string& name, int defval) const { return m_cfg.get_infofactopt_int(name,defval); }
-  inline void MatInfoCfg::checkConsistency() const { m_cfg.checkConsistency(); }
-  inline void MatInfoCfg::infofactopt_validate(const std::set<std::string>& ao) const { m_cfg.infofactopt_validate(ao); }
-  inline MatInfoCfg MatInfoCfg::clone() const { return m_cfg.clone(); }
-  inline MatInfoCfg MatInfoCfg::cloneThinned() const { return m_cfg.cloneThinned(); }
-  inline MatInfoCfg::MatInfoCfg(const MatCfg& cfg) : m_cfg(cfg) {}
-  inline MatInfoCfg::MatInfoCfg(MatCfg&& cfg) : m_cfg(std::move(cfg)) {}
-  inline bool MatInfoCfg::isThinned() const { return m_cfg.isThinned(); }
+  inline void MatCfg::scale_density( double val )
+  {
+    if ( val!= 1.0 ) {
+      DensityState ds;
+      ds.type = DensityState::Type::SCALEFACTOR;
+      ds.value = val;
+      set_density(ds);
+    }
+  }
   inline std::ostream& operator<< (std::ostream& os, const MatCfg& cfg) { cfg.dump(os,false); return os; }
-  inline std::ostream& operator<< (std::ostream& os, const MatInfoCfg& cfg) { cfg.dump(os,false); return os; }
+
 }
 
 #endif

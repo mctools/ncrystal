@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -111,7 +111,7 @@ namespace NCrystal {
     //Text data source, either in-memory or as a path to an on-disk file.  A
     //dataType can optionally be specified (if not, an error will ensue later if
     //NCrystal is not able to determine the format though other means, such as
-    //looking at the actual data (which always works for NCMAT data), or the
+    //looking at the actual data -- which always works for NCMAT data --, or the
     //file-name extension (e.g. a file named Foo.bar is assumed to have data
     //type "bar").
     static TextDataSource createFromOnDiskPath( std::string, std::string dataType = {} );

@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -32,7 +32,7 @@
 #include "NCrystal/internal/NCElIncScatter.hh"
 #include "NCrystal/internal/NCSABScatter.hh"
 #include "NCrystal/internal/NCSABFactory.hh"
-#include "NCrystal/internal/NCString.hh"//for safe_str2dbl
+#include "NCrystal/internal/NCString.hh"
 
 namespace NC = NCrystal;
 
@@ -91,12 +91,12 @@ namespace NCrystal {
   public:
     const char * name() const noexcept final { return "stdscat"; }
 
-    Priority query( const MatCfg& cfg ) const final
+    Priority query( const FactImpl::ScatterRequest& cfg ) const final
     {
       return analyseCfg( cfg ).able ? Priority{100} : Priority{Priority::Unable};
     }
 
-    ProcImpl::ProcPtr produce( const MatCfg& cfg ) const final
+    ProcImpl::ProcPtr produce( const FactImpl::ScatterRequest& cfg ) const final
     {
       //Analyse and extract info:
       auto ana = analyseCfg( cfg );
@@ -104,7 +104,7 @@ namespace NCrystal {
         NCRYSTAL_THROW2(LogicError,"Could not create ProcImpl process for cfg=\""<<cfg
                         <<"\" (this factory-produce method should not have been called)");
 
-      const Info& info = ana.info;
+      const Info& info = cfg.info();
       const auto& inelas = ana.inelas;
 
       nc_assert_always(isOneOf(inelas,"none","external","dyninfo","vdosdebye","freegas"));
@@ -138,12 +138,12 @@ namespace NCrystal {
 
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////
       //Crystals: Coherent-elastic (Bragg) component:
-      if ( cfg.get_coh_elas() && info.isCrystalline() && info.hasHKLInfo() ) {
+      if ( cfg.get_coh_elas() && info.isCrystalline() ) {
+        nc_assert(info.hasHKLInfo());
         if (cfg.isSingleCrystal()) {
-          //TODO: factory function somewhere for this, so can be easily created directly in test-code wo matcfg?
-          auto sc_pp = createStdPlaneProvider( ana.info );
+          //TODO: factory function somewhere for this, so can be easily created directly in test-code?
+          auto sc_pp = createStdPlaneProvider( cfg.infoPtr() );
           PlaneProviderWCutOff* ppwcutoff(nullptr);
-          nc_assert(info.hasHKLInfo());
           if ( cfg.get_sccutoff() && cfg.get_sccutoff() > info.hklDMinVal() ) {
             //Improve efficiency by treating planes with dspacing less than
             //sccutoff as having isotropic mosaicity distribution.
@@ -209,13 +209,10 @@ namespace NCrystal {
           NCRYSTAL_THROW2(BadInput,"inelas="<<inelas<<" mode requires input source which provides direct"
                           " parameterisation of (non-Bragg) scattering cross sections (try e.g. inelas=auto instead)");
 
-        components.push_back({1.0,makeSO<BkgdExtCurve>(ana.info)});
+        components.push_back({1.0,makeSO<BkgdExtCurve>(cfg.infoPtr())});
 
       } else {
         nc_assert_always( isOneOf(inelas,"dyninfo","freegas", "vdosdebye" ) );
-
-        if ( !info.hasComposition() )
-          NCRYSTAL_THROW2(BadInput,"inelas="<<inelas<<" mode requires specification of material composition");
 
         if ( !info.hasTemperature() )
           NCRYSTAL_THROW2(BadInput,"inelas="<<inelas<<" mode requires specification of material temperature");
@@ -274,17 +271,17 @@ namespace NCrystal {
             NCRYSTAL_THROW2(BadInput,"inelas="<<inelas<<" mode requires crystalline material with atomic information");
 
           unsigned ntot = 0.0;
-          for (auto it = info.atomInfoBegin(); it!= info.atomInfoEnd(); ++it)
-            ntot += it->numberPerUnitCell();
-          for (auto it = info.atomInfoBegin(); it!= info.atomInfoEnd(); ++it) {
-            nc_assert_always( it->debyeTemp().has_value() );
-            auto sabdata =  extractSABDataFromVDOSDebyeModel( it->debyeTemp().value(),
+          for ( auto& ai : info.getAtomInfos() )
+            ntot += ai.numberPerUnitCell();
+          for ( auto& ai : info.getAtomInfos() ) {
+            nc_assert_always( ai.debyeTemp().has_value() );
+            auto sabdata =  extractSABDataFromVDOSDebyeModel( ai.debyeTemp().value(),
                                                               info.getTemperature(),
-                                                              it->atomData().scatteringXS(),
-                                                              it->atomData().averageMassAMU(),
+                                                              ai.atomData().scatteringXS(),
+                                                              ai.atomData().averageMassAMU(),
                                                               cfg.get_vdoslux() );
             auto scathelper = SAB::createScatterHelperWithCache( std::move(sabdata) );
-            components.push_back({it->numberPerUnitCell()*1.0/ntot,makeSO<SABScatter>(std::move(scathelper))});
+            components.push_back({ai.numberPerUnitCell()*1.0/ntot,makeSO<SABScatter>(std::move(scathelper))});
 
           }
         }
@@ -299,14 +296,12 @@ namespace NCrystal {
     //Common analysis function shared between canCreateScatter and createScatter
     //methods.
     struct CfgAnalysis {
-      CfgAnalysis(shared_obj<const Info> ii) : info(std::move(ii)) {}
       bool able = true;
-      shared_obj<const Info> info;
       std::string inelas;
     };
-    CfgAnalysis analyseCfg( const MatCfg& cfg ) const {
-      CfgAnalysis result(FactImpl::createInfo( cfg ));
-      const Info& info = result.info;
+    CfgAnalysis analyseCfg( const FactImpl::ScatterRequest& cfg ) const {
+      CfgAnalysis result;
+      const Info& info = cfg.info();
 
       result.inelas = cfg.get_inelas();
 
@@ -329,18 +324,36 @@ namespace NCrystal {
       //files use external xs curves (and isotropic/deltaE=0 scattering even for
       //inelastic components).
 
-      const bool has_temperature_and_composition = info.hasTemperature() && info.hasComposition();
       if ( info.providesNonBraggXSects() ) {
         result.inelas = "external";//.nxs files end up here
         return result;
       }
       if ( info.hasDynamicInfo() ) {
-        nc_assert(has_temperature_and_composition);//guaranteed by NCInfo validation
+        nc_assert( info.hasTemperature() );//guaranteed by InfoBuilder validation
         result.inelas = "dyninfo";//.ncmat files end up here
         return result;
       }
-      if ( has_temperature_and_composition ) {
-        result.inelas = info.hasDebyeTemperature() ? "vdosdebye" : "freegas";
+      if ( info.hasTemperature() ) {
+        //No direct information provided about material dynamics available. If
+        //Debye temperatures are available and the material could be a solid
+        //(e.g. state of matter is solid or unknown, not explicitly
+        //gas/liquid/...), we can in principle revert to a free-gas
+        //model. However, a free-gas model accounts for the entire cross
+        //section, and should usually not be combined with e.g. Bragg
+        //diffraction. So we only add the free-gas modelling if there is no HKL
+        //information available. This is for instance important if loading from
+        //.laz / .lau files, which provide HKL planes but no dynamics. Users of
+        //.laz/.lau files will therefore not get any inelastic (or
+        //incoherent-elastic) component added, but that is likely less
+        //surprising for them than suddenly getting a large free-gas cross
+        //section added.
+        const bool could_be_solid = ( info.stateOfMatter() == Info::StateOfMatter::Solid
+                                      || info.stateOfMatter() == Info::StateOfMatter::Unknown );
+        if ( could_be_solid && info.hasDebyeTemperature() ) {
+          result.inelas = "vdosdebye";
+        } else {
+          result.inelas = info.hasHKLInfo() ? "none" : "freegas";
+        }
         return result;
       }
 

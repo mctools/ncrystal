@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,9 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
 #include "NCrystal/internal/NCMath.hh"
-#include <ostream>
 
 namespace NCrystal {
 
@@ -68,6 +66,9 @@ namespace NCrystal {
     ncconstexpr17 double& x() noexcept { return m_data[0]; }
     ncconstexpr17 double& y() noexcept { return m_data[1]; }
     ncconstexpr17 double& z() noexcept { return m_data[2]; }
+
+    //Sort x, then y, the z (assumes no NaN):
+    constexpr int lexCmp( const Vector& ) const noexcept;
 
   };
 
@@ -179,15 +180,32 @@ inline NCrystal::Vector NCrystal::Vector::unit() const
   return { m_data[0]*factor, m_data[1]*factor, m_data[2]*factor };
 }
 
+inline constexpr int NCrystal::Vector::lexCmp( const Vector& o ) const noexcept
+{
+  return ( x() != o.x()
+           ? ( x() < o.x() ? -1 : 1 )
+           : ( y() != o.y()
+               ? ( y() < o.y() ? -1 : 1 )
+               : ( z() != o.z()
+                   ? ( z() < o.z() ? -1 : 1 )
+                   : 0
+                   )
+               )
+           );
+}
+
 inline void NCrystal::Vector::normalise()
 {
   double themag2 = mag2();
-  if (themag2==1.0)
-    return;
+  constexpr double one_low = 1.0 - 2.0 * std::numeric_limits<double>::epsilon();
+  constexpr double one_high = 1.0 + 2.0 * std::numeric_limits<double>::epsilon();
+  if ( themag2 >= one_low && themag2 <= one_high )
+    return;//already normalised (normalising it again might change the values slightly)
   if (!themag2)
     NCRYSTAL_THROW(CalcError,"NCVector::normalise(): Can't scale null-vector.");
-  double f = 1.0/std::sqrt(themag2);
-  *this *= f;
+  if (ncisinf(themag2))
+    NCRYSTAL_THROW(CalcError,"NCVector::normalise(): Can't scale vector with infinite length.");
+  *this /= std::sqrt(themag2);
 }
 
 inline ncconstexpr17 NCrystal::Vector NCrystal::Vector::cross(const NCrystal::Vector& o) const

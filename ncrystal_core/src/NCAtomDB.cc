@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -73,7 +73,7 @@ namespace NCrystal {
         {
           return std::make_shared<AtomData>( SigmaBound{m_inc_xs},
                                              m_coh_sl,
-                                             m_abs_xs,
+                                             SigmaAbsorption{m_abs_xs},
                                              AtomMass{m_mass_amu},
                                              this->Z(),
                                              this->A() );
@@ -113,37 +113,41 @@ namespace NCrystal {
         return &(*it);
       }
 
-    //This template argument of base class is true, i.e. factory keeps strong
-    //not weak references.
-    class StdAtomDataFactory : public NC::CachedFactoryBase<AtomDBKey,AtomData,CachedFactory_KeepAllStrongRefs> {
-    public:
-      const char* factoryName() const final { return "StdAtomDataFactory"; }
-      std::string keyToString( const AtomDBKey& key ) const final
-      {
-        const unsigned Z = key.Z();
-        const unsigned A = key.A();
-        std::ostringstream ss;
-        ss<<"(Z="<<Z;
-        if (A==0) {
-          ss<<";natural)";
-        } else {
-          ss<<";A="<<A<<")";
+      //This template argument of base class is true, i.e. factory keeps strong
+      //not weak references.
+      class StdAtomDataFactory : public NC::CachedFactoryBase<AtomDBKey,AtomData,CachedFactory_KeepAllStrongRefs> {
+      public:
+        const char* factoryName() const final { return "StdAtomDataFactory"; }
+        std::string keyToString( const AtomDBKey& key ) const final
+        {
+          const unsigned Z = key.Z();
+          const unsigned A = key.A();
+          std::ostringstream ss;
+          ss<<"(Z="<<Z;
+          if (A==0) {
+            ss<<";natural)";
+          } else {
+            ss<<";A="<<A<<")";
+          }
+          return ss.str();
         }
-        return ss.str();
-      }
 
-    protected:
-      virtual OptionalAtomDataSP actualCreate( const AtomDBKey& key ) const final
+      protected:
+        virtual OptionalAtomDataSP actualCreate( const AtomDBKey& key ) const final
+        {
+          auto entry = lookupEntry(key);
+          if ( !entry )
+            return nullptr;
+          nc_assert( key.Z() == entry->Z() && key.A() == entry->A() );
+          return entry->createAtomDataSP();
+        }
+      };
+
+      static StdAtomDataFactory& getStdAtomDBFact()
       {
-        auto entry = lookupEntry(key);
-        if ( !entry )
-          return nullptr;
-        nc_assert( key.Z() == entry->Z() && key.A() == entry->A() );
-        return entry->createAtomDataSP();
+        static StdAtomDataFactory s_stdAtomDBFact;
+        return s_stdAtomDBFact;
       }
-    };
-
-      static StdAtomDataFactory s_stdAtomDBFact;
 
     }
   }
@@ -153,7 +157,7 @@ NC::OptionalAtomDataSP NC::AtomDB::getNaturalElement( unsigned Z )
 {
   if (!internal::AtomDBKey::isZAValid(Z,0))
     return nullptr;
-  return internal::s_stdAtomDBFact.create(internal::AtomDBKey(Z,0));
+  return internal::getStdAtomDBFact().create(internal::AtomDBKey(Z,0));
 }
 
 NC::OptionalAtomDataSP NC::AtomDB::getNaturalElement( const std::string& name )
@@ -162,14 +166,14 @@ NC::OptionalAtomDataSP NC::AtomDB::getNaturalElement( const std::string& name )
   unsigned Z = elementNameToZ(name);
   if (Z==0)
     return nullptr;
-  return internal::s_stdAtomDBFact.create(internal::AtomDBKey(Z,0));
+  return internal::getStdAtomDBFact().create(internal::AtomDBKey(Z,0));
 }
 
 NC::OptionalAtomDataSP NC::AtomDB::getIsotope( unsigned Z, unsigned A )
 {
   if (!internal::AtomDBKey::isZAValid(Z,A))
     return nullptr;
-  return A>=Z ? internal::s_stdAtomDBFact.create(internal::AtomDBKey(Z,A)) : nullptr;
+  return A>=Z ? internal::getStdAtomDBFact().create(internal::AtomDBKey(Z,A)) : nullptr;
 }
 
 NC::OptionalAtomDataSP NC::AtomDB::getIsotope( const std::string& name )
@@ -184,7 +188,7 @@ NC::OptionalAtomDataSP NC::AtomDB::getIsotopeOrNatElem( unsigned Z, unsigned A )
 {
   if (!internal::AtomDBKey::isZAValid(Z,A))
     return nullptr;
-  return internal::s_stdAtomDBFact.create(internal::AtomDBKey(Z,A));
+  return internal::getStdAtomDBFact().create(internal::AtomDBKey(Z,A));
 }
 
 NC::OptionalAtomDataSP NC::AtomDB::getIsotopeOrNatElem( const std::string& name )
@@ -197,7 +201,7 @@ NC::OptionalAtomDataSP NC::AtomDB::getIsotopeOrNatElem( const std::string& name 
   if (!internal::AtomDBKey::isZAValid(Z,A))
     return nullptr;
 
-  return internal::s_stdAtomDBFact.create(internal::AtomDBKey(Z,A));
+  return internal::getStdAtomDBFact().create(internal::AtomDBKey(Z,A));
 }
 
 unsigned NC::AtomDB::getAllEntriesCount()

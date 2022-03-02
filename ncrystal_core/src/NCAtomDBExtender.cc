@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -32,8 +32,8 @@ void NC::AtomDBExtender::addData( const std::string& line, unsigned format_versi
   trim(l);
   if (l.empty())
     NCRYSTAL_THROW(BadInput,"Invalid AtomDB specification (empty line)");
-  if (!isSimpleASCII(line))
-    NCRYSTAL_THROW2(BadInput,"Invalid AtomDB specification (must only contain simple ascii characters) :\""<<line<<"\"");
+  if (!isSimpleASCII(line,AllowTabs::No,AllowNewLine::No))
+    NCRYSTAL_THROW2(BadInput,"Invalid AtomDB specification (must only contain simple ASCII characters) :\""<<line<<"\"");
   VectS words;
   split(words,l);
   addData(words,format_version);
@@ -102,29 +102,50 @@ void NC::AtomDBExtender::addData( const NC::VectS& words, unsigned format_versio
                std::make_shared<const AtomData>(components));
     return;
   } else {
+
+
+
     nc_assert(endswith(words.at(1),"u"));
-    auto getDblWithUnit = [](const std::string& s, const std::string& unit) -> double
+    auto getDblWithUnit = []( const std::string& s,
+                              const std::string& unit,
+                              const char* value_name,
+                              bool allow_zero,
+                              bool allow_negative) -> double
     {
-      nc_assert(endswith(s,unit));
-      return str2dbl(s.substr(0,s.size()-unit.size()));
+      if ( !endswith(s,unit) )
+        NCRYSTAL_THROW2(BadInput,"Invalid syntax for "<<value_name<<" value in ATOMDB entry. Expected number prefixed with the unit \""<<unit<<"\" but got \""<<s<<"\"");
+      auto valstr = s.substr(0,s.size()-unit.size());
+      double value;
+      if ( !safe_str2dbl( valstr, value ) || ncisnan(value) || ncisinf(value) )
+        NCRYSTAL_THROW2(BadInput,"Invalid syntax for "<<value_name<<" value in ATOMDB entry. Expected finite number but got: \""<<valstr<<"\"");
+      if ( !allow_zero && value == 0.0 )
+        NCRYSTAL_THROW2(BadInput,"Invalid "<<value_name<<" value in ATOMDB entry. Number is not allowed to be zero.");
+      if ( !allow_negative && !(value>=0.0) )
+        NCRYSTAL_THROW2(BadInput,"Invalid "<<value_name<<" value in ATOMDB entry. Number is not allowed to be negative: \""<<s<<"\"");
+      return value;
     };
 
     //Data entry:
-    double mass = getDblWithUnit(words.at(1),"u"_s);
-    double csl = getDblWithUnit(words.at(2),"fm"_s)*0.1;//fm=1e-15m -> sqrt(barn)=1e-14m
-    double incxs = getDblWithUnit(words.at(3),"b"_s);
-    double absxs = getDblWithUnit(words.at(4),"b"_s);
+    double mass = getDblWithUnit(words.at(1),"u"_s,"mass",false,false);
+    double csl = getDblWithUnit(words.at(2),"fm"_s,"coherent scattering length",true,true)*0.1;//fm=1e-15m -> sqrt(barn)=1e-14m
+    double incxs = getDblWithUnit(words.at(3),"b"_s,"incoherent cross section",true,false);
+    double absxs = getDblWithUnit(words.at(4),"b"_s,"absorption cross section",true,false);
     nc_assert( !(mass<=0.0) );
-    nc_assert( !(incxs<=0.0) );
-    nc_assert( !(absxs<=0.0) );
+    nc_assert( !(incxs<0.0) );
+    nc_assert( !(absxs<0.0) );
     nc_assert( !ncisnan(mass) );
     AtomSymbol sbl(label);
+    if ( sbl.isInvalid()||sbl.isCustomMarker() )
+      NCRYSTAL_THROW2(BadInput,"Invalid label in ATOMDB entry: \""<<label<<"\"");
     nc_assert(!sbl.isInvalid()&&!sbl.isCustomMarker());
     //Add entry for that element/isotope (note that label_trailingnumber is 0 if
     //we are not updating a specific isotope, which is as it should be for the
     //AtomData constructor):
     populateDB(label,
-               std::make_shared<const AtomData>(SigmaBound{incxs},csl,absxs,AtomMass{mass},
+               std::make_shared<const AtomData>(SigmaBound{DoValidate,incxs},
+                                                csl,
+                                                SigmaAbsorption{DoValidate,absxs},
+                                                AtomMass{DoValidate,mass},
                                                 sbl.Z(),sbl.A()));
     return;
   }

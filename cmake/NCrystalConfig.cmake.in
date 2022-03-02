@@ -2,7 +2,7 @@
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2021 NCrystal developers                                   ##
+##  Copyright 2015-2022 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -39,8 +39,12 @@ get_filename_component( NCrystal_DATAROOT "${NCrystal_DIR}/@NCrystal_DATAROOT@" 
 get_filename_component( NCrystal_BINDIR "${NCrystal_CMAKEDIR}/@NCrystal_relpath_CMAKEDIR2BINDIR@" ABSOLUTE )
 get_filename_component( NCrystal_LIBDIR "${NCrystal_CMAKEDIR}/@NCrystal_relpath_CMAKEDIR2LIBDIR@" ABSOLUTE )
 get_filename_component( NCrystal_INCDIR "${NCrystal_CMAKEDIR}/@NCrystal_relpath_CMAKEDIR2INCDIR@" ABSOLUTE )
-get_filename_component( NCrystal_PYPATH "${NCrystal_CMAKEDIR}/@NCrystal_relpath_CMAKEDIR2PYPATH@" ABSOLUTE )#FIXME: Only if appropriate
-get_filename_component( NCrystal_DATAFILESDIR "${NCrystal_CMAKEDIR}/@NCrystal_relpath_CMAKEDIR2DATAFILESDIR@" ABSOLUTE )#FIXME: Only if appropriate
+if ( @INSTALL_PY@ )
+  get_filename_component( NCrystal_PYPATH "${NCrystal_CMAKEDIR}/@NCrystal_relpath_CMAKEDIR2PYPATH@" ABSOLUTE )
+endif()
+if ( @NCrystal_OPTION_INSTALL_DATA@ )
+  get_filename_component( NCrystal_DATAFILESDIR "${NCrystal_CMAKEDIR}/@NCrystal_relpath_CMAKEDIR2DATAFILESDIR@" ABSOLUTE )
+endif()
 
 #The NCrystal targets (not including the G4NCrystal targets!):
 if(NOT TARGET NCrystal::NCrystal)

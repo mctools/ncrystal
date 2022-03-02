@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -92,11 +92,12 @@ namespace NCrystal {
   {
     nc_assert(m_info);
     if (m_info->hasHKLInfo()) {
-      m_it_hkl  = m_info->hklBegin();
-      m_it_hklE = m_info->hklEnd();
+      auto& hklList = m_info->hklList();
+      m_it_hkl  = hklList.begin();
+      m_it_hklE = hklList.end();
       if ( m_info->hasHKLDemiNormals() ) {
         m_strategy = STRAT_DEMINORMAL;
-      } else if ( m_info->hasExpandedHKLInfo() ) {
+      } else if ( m_info->hasExpandedHKLInfo() && m_info->hasStructureInfo() ) {
         m_strategy = STRAT_EXPHKL;
       } else if ( m_info->hasStructureInfo() && m_info->getStructureInfo().spacegroup ) {
         m_strategy = STRAT_SPACEGROUP;
@@ -104,8 +105,10 @@ namespace NCrystal {
           m_sg = std::make_unique<StrSG>(m_info->getStructureInfo().spacegroup);
       }
     }
-    if ( m_strategy == STRAT_EXPHKL || m_strategy == STRAT_SPACEGROUP )
-      m_reci_lattice = getReciprocalLatticeRot( *m_info );
+    if ( m_strategy == STRAT_EXPHKL || m_strategy == STRAT_SPACEGROUP ) {
+      nc_assert(m_info->hasStructureInfo());
+      m_reci_lattice = getReciprocalLatticeRot( m_info->getStructureInfo() );
+    }
     if (canProvide())
       prepareLoop();
   }
@@ -122,8 +125,9 @@ namespace NCrystal {
                      " HKL normals, expanded HKL info, or spacegroup number is available.");
     nc_assert(m_info);
     m_ii = 0;
-    m_it_hkl  = m_info->hklBegin();
-    m_it_hklE = m_info->hklEnd();
+    auto& hklList = m_info->hklList();
+    m_it_hkl  = hklList.begin();
+    m_it_hklE = hklList.end();
     if ( m_sg ) {
       nc_assert(m_strategy == STRAT_SPACEGROUP);
       nc_assert(m_it_hkl!=m_it_hklE);

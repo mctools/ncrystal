@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -25,7 +25,6 @@
 #include "NCrystal/internal/NCLatticeUtils.hh"
 #include "NCNXSLib.hh"
 #include <cstdlib>
-#include <cstring>
 #include <iostream>
 
 namespace NC = NCrystal;
@@ -33,10 +32,10 @@ namespace NC = NCrystal;
 namespace NCrystal {
   struct FakeFileForNXSLoader {
     //Trying to mimic the behaviour of the fgets C-function, so we can load in-memory .nxs files
-    FakeFileForNXSLoader( const TextData& td ) : m_it(td.begin()), m_itE(td.end()), m_dataDescr(td.description()) {}
+    FakeFileForNXSLoader( const TextData& td ) : m_it(td.begin()), m_itE(td.end()), m_dataDescr(td.dataSourceName()) {}
     TextData::Iterator m_it;
     TextData::Iterator m_itE;
-    std::string m_dataDescr;
+    DataSourceName m_dataDescr;
   };
   //Need to pass function pointer to C doe. Thus we use a global function with
   //static data, and protect usage with a mutex:
@@ -83,7 +82,7 @@ namespace NCrystal {
     nxs::SgError = 0;
 
     nxs::NXS_AtomInfo *atomInfoList;
-    std::string dataDescr = textData.description();
+    const auto& dataDescr = textData.dataSourceName();
     int numAtomInfos = 0;
     {
       FakeFileForNXSLoader fake( textData );
@@ -185,14 +184,14 @@ double NC::XSectProvider_NXS::xsectScatNonBragg(const double& lambda) const
   return xsect_cell > 0.0 ? xsect_cell / nxs_uc.nAtoms : 0.0;//protect against negative numbers and NaNs propagating from nxslib code.
 }
 
-NC::Info NC::loadNXSCrystal( const TextData& textData,
-                             Temperature temperature,
-                             double dcutoff_lower_aa,
-                             double dcutoff_upper_aa,
-                             bool bkgdlikemcstas,
-                             bool fixpolyatom )
+NC::InfoBuilder::SinglePhaseBuilder NC::loadNXSCrystal( const TextData& textData,
+                                                        Temperature temperature,
+                                                        double dcutoff_lower_aa,
+                                                        double dcutoff_upper_aa,
+                                                        bool bkgdlikemcstas,
+                                                        bool fixpolyatom )
 {
-  std::string dataDescr = textData.description();
+  const auto& dataDescr = textData.dataSourceName();
 
   const bool verbose = (std::getenv("NCRYSTAL_DEBUGINFO") ? true : false);
   if (verbose)
@@ -205,10 +204,10 @@ NC::Info NC::loadNXSCrystal( const TextData& textData,
              <<")"<<std::endl;
 
   ///////////////////////////////
-  // Create Info object //
+  // Create Builder object //
   ///////////////////////////////
 
-  Info info;
+  NC::InfoBuilder::SinglePhaseBuilder builder;
 
   //////////////////////////////////////////////////////////////////
   // Load and init NXS info (twice to figure out adequate maxhkl) //
@@ -275,14 +274,15 @@ NC::Info NC::loadNXSCrystal( const TextData& textData,
     initNXS(&nxs_uc, textData, temperature.get(), maxhkl, fixpolyatom );
   }
 
-  info.setXSectProvider(xsect_provider);
+  builder.bkgdxsectprovider  = xsect_provider;
 
   //////////////////////
   // ... add HKL info //
   //////////////////////
 
   if (enable_hkl) {
-    info.enableHKLInfo(dcutoff_lower_aa,dcutoff_upper_aa);
+    HKLList hklList;
+    hklList.reserve( nxs_uc.nHKL );
     nxs::NXS_HKL *it = &(nxs_uc.hklList[0]);
     nxs::NXS_HKL *itE = it + nxs_uc.nHKL;
     for (;it!=itE;++it) {
@@ -297,13 +297,17 @@ NC::Info NC::loadNXSCrystal( const TextData& textData,
       hi.multiplicity = it->multiplicity;
       hi.dspacing = it->dhkl;
       hi.fsquared = 0.01 * it->FSquare;
-      info.addHKL(std::move(hi));
+      hklList.push_back( std::move(hi) );
     }
     //We used to emit a warning here, but decided not to (user should be allowed
     //to deliberately exclude all bragg edges via the dcutoff parameter without
     //getting warnings):
-    // if (!info.nHKL())
+    // if (hklList.empty())
     //   printf("NCrystal::loadNXSCrystal WARNING: No HKL planes selected from file \"%s\"\n",nxs_file);
+
+    builder.hklPlanes.emplace();//Set up uninitialised HKLPlanes struct
+    builder.hklPlanes.value().dspacingRange = { dcutoff_lower_aa, dcutoff_upper_aa  };
+    builder.hklPlanes.value().source = std::move(hklList);
   }
 
   ////////////////////////////
@@ -321,19 +325,12 @@ NC::Info NC::loadNXSCrystal( const TextData& textData,
   si.volume = nxs_uc.volume;
   si.n_atoms = nxs_uc.nAtoms;
 
-  info.setStructInfo(si);
+  //NB: delay actually adding to builder until atomList is also available below
 
-  /////////////////////////////////////////////
-  // ... add cross section info and atom info//
-  /////////////////////////////////////////////
+  ///////////////////////
+  // ... add atom info //
+  ///////////////////////
 
-  double sigma_free = 0;
-  double sigma_abs = 0;
-  unsigned ntot(0);
-
-  std::vector<AtomInfo> aivec;
-  aivec.reserve(nxs_uc.nAtomInfo);//correct unless multiple entries for same element
-  double average_atomic_mass_amu(0.0);
 
   struct AtomInfoCollector {
     //Helper class collecting info needed for AtomInfo constructor
@@ -374,7 +371,7 @@ NC::Info NC::loadNXSCrystal( const TextData& textData,
     const double nxsatom_incxs = nxs_ai.sigmaIncoherent;
     const double nxsatom_massamu = nxs_ai.M_m * const_neutron_atomic_mass;
     AtomData newatomdata( SigmaBound{nxsatom_incxs}, nxsatom_cohscatlen,
-                          nxsatom_capturexs, AtomMass{nxsatom_massamu}, Zval );
+                          SigmaAbsorption{nxsatom_capturexs}, AtomMass{nxsatom_massamu}, Zval );
 
     auto& ai = zval_2_atominfo[Zval];
     if ( ai.atomDataSP == nullptr ) {
@@ -395,45 +392,32 @@ NC::Info NC::loadNXSCrystal( const TextData& textData,
     nc_assert( ai.atomDataSP != nullptr );
     const unsigned multiplicity = nxs_ai.nAtoms;
 
-    sigma_abs += ai.atomDataSP->captureXS() * multiplicity;
-    sigma_free += ai.atomDataSP->freeScatteringXS().get()  * multiplicity;
-    average_atomic_mass_amu += ai.atomDataSP->averageMassAMU().dbl() * multiplicity;
-    ntot += multiplicity;
-
     ai.positions.reserve(ai.positions.size()+multiplicity);
     for ( auto ipos : ncrange(multiplicity) )
       ai.positions.emplace_back(nxs_ai.x[ipos],nxs_ai.y[ipos],nxs_ai.z[ipos]);
 
   }
 
-  if (ntot) {
-    average_atomic_mass_amu /= ntot;
-    sigma_abs /= ntot;
-    sigma_free /= ntot;
-    info.setXSectAbsorption( SigmaAbsorption{ sigma_abs } );
-    info.setXSectFree( SigmaFree{ sigma_free } );
-  }
-
+  AtomInfoList atomList;
+  atomList.reserve(zval_2_atominfo.size());
   for (auto& e : zval_2_atominfo)
-    info.addAtom( e.second.moveToAtomInfo( nxs_uc.debyeTemp ) );//same Debye temp for all atoms
+    atomList.push_back( e.second.moveToAtomInfo( nxs_uc.debyeTemp ) );//same Debye temp for all atoms
+
+  //Add both structure info and atom list in one go:
+  builder.unitcell = InfoBuilder::UnitCell{ std::move(si), std::move(atomList) };
 
   //////////////////////////////
   // ... add temperature info //
   //////////////////////////////
 
   if (nxs_uc.temperature>0.0)
-    info.setTemperature(Temperature{nxs_uc.temperature});
+    builder.temperature = Temperature{nxs_uc.temperature};
 
   /////////////////////
   // ... add density //
   /////////////////////
 
-  info.setDensity( Density{ nxs_uc.density } );
-
-  //1e27 in next line converts kg/Aa^3 to g/cm^3:
-  const double numberdensity_2_density = 1e27 * average_atomic_mass_amu * constant_dalton2kg;
-  info.setNumberDensity( NumberDensity{ nxs_uc.density / numberdensity_2_density } );
-
+  builder.density = Density{ nxs_uc.density };
 
   ///////////
   // Done! //
@@ -443,6 +427,5 @@ NC::Info NC::loadNXSCrystal( const TextData& textData,
   //point on, so might as well save some memory:
   deinitNXS_partly(&nxs_uc);
 
-  info.objectDone();
-  return info;
+  return builder;
 }

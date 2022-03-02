@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,8 +22,10 @@
 #include "NCrystal/NCFactImpl.hh"
 #include "NCrystal/NCDataSources.hh"
 #include "NCrystal/NCMatCfg.hh"
+#include "NCrystal/internal/NCString.hh"
 #include "NCFactory_NXS.hh"
 #include "NCLazLoader.hh"
+#include <iostream>
 
 namespace NC = NCrystal;
 
@@ -33,44 +35,45 @@ namespace NCrystal {
   public:
     const char * name() const noexcept final { return "stdnxs"; }
 
-    Priority query( const MatInfoCfg& cfg ) const final
+    Priority query( const FactImpl::InfoRequest& cfg ) const final
     {
       return cfg.getDataType()=="nxs" ? Priority{100} : Priority::Unable;
     }
 
-    shared_obj<const Info> produce( const MatInfoCfg& cfg ) const final
+    shared_obj<const Info> produce( const FactImpl::InfoRequest& cfg ) const final
     {
       nc_assert_always(cfg.getDataType()=="nxs");
-      const char * flag_bkgdlikemcstas = "mcstaslikebkgd";
-      const char * flag_fixpolyatom = "fixpolyatoms";
-      cfg.infofactopt_validate({flag_bkgdlikemcstas,flag_fixpolyatom});
-      return makeSO<const Info>(loadNXSCrystal( cfg.textData(),
-                                                   cfg.get_temp().dbl()==-1.0?Temperature{293.15}:cfg.get_temp(),
-                                                   cfg.get_dcutoff(),
-                                                   cfg.get_dcutoffup(),
-                                                   cfg.get_infofactopt_flag(flag_bkgdlikemcstas),
-                                                   cfg.get_infofactopt_flag(flag_fixpolyatom)
-                                                   ));
+      if ( !trim2(cfg.get_atomdb()).empty() )
+        std::cout<<"NCrystal WARNING: atomdb parameter is ignored for .nxs files"<<std::endl;
+      auto builder = loadNXSCrystal( cfg.textData(),
+                                     cfg.get_temp().dbl()==-1.0?Temperature{293.15}:cfg.get_temp(),
+                                     cfg.get_dcutoff(),
+                                     cfg.get_dcutoffup() );
+      builder.dataSourceName = cfg.dataSourceName();
+      return buildInfoPtr(std::move(builder));
     }
   };
 
   class LazFactory final : public FactImpl::InfoFactory {
   public:
     const char * name() const noexcept final { return "stdlaz"; }
-    Priority query( const MatInfoCfg& cfg ) const final
+    Priority query( const FactImpl::InfoRequest& cfg ) const final
     {
       std::string ext = cfg.getDataType();
       return (ext=="laz"||ext=="lau") ? Priority{100} : Priority::Unable;
     }
 
-    shared_obj<const Info> produce( const MatInfoCfg& cfg ) const final
+    shared_obj<const Info> produce( const FactImpl::InfoRequest& cfg ) const final
     {
+      if ( !trim2(cfg.get_atomdb()).empty() )
+        std::cout<<"NCrystal WARNING: atomdb parameter is ignored for .laz/.lau files"<<std::endl;
       LazLoader ld (cfg.textData(),
                     cfg.get_dcutoff(),
                     cfg.get_dcutoffup(),
                     cfg.get_temp().dbl()==-1.0?Temperature{293.15}:cfg.get_temp());
-      ld.read();
-      return ld.getCrystalInfo();
+      auto builder = ld.read();
+      builder.dataSourceName = cfg.dataSourceName();
+      return buildInfoPtr(std::move(builder));
     }
   };
 

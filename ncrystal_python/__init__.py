@@ -35,7 +35,7 @@ For detailed usage conditions and licensing of this open source project, see:
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2021 NCrystal developers                                   ##
+##  Copyright 2015-2022 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -52,7 +52,7 @@ For detailed usage conditions and licensing of this open source project, see:
 ################################################################################
 
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
-__version__ = '2.7.3'
+__version__ = '2.9.91'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
 __copyright__ = "Copyright 2015-2021 %s"%__author__
@@ -62,7 +62,7 @@ __email__ = "ncrystal-developers@cern.ch"
 #wildcard imports. Specifically this is the exceptions, the most important API
 #classes, the factory functions, and the constants:
 __all__ = [ 'NCException','NCFileNotFound','NCDataLoadError','NCMissingInfo','NCCalcError',
-            'NCLogicError','NCBadInput','RCBase','TextData','Info','CalcBase','Process',
+            'NCLogicError','NCBadInput','RCBase','TextData','Info','Process',
             'Absorption','Scatter','AtomData','FileListEntry','createTextData',
             'createInfo','createScatter','createScatterIndependentRNG','createAbsorption',
             'constant_c','constant_dalton2kg','constant_dalton2eVc2','constant_avogadro',
@@ -70,12 +70,9 @@ __all__ = [ 'NCException','NCFileNotFound','NCDataLoadError','NCMissingInfo','NC
 
 import sys
 pyversion = sys.version_info[0:3]
-_minpyversion=(3,5,0)
-if pyversion < (3,0,0):
-    raise SystemExit('NCrystal no longer supports Python2.')
-if pyversion < (3,5,0):
-    if not _unittest:
-        print('WARNING: Unsupported python version %i.%i.%i detected (recommended is %i.%i.%i or later).'%(pyversion+_minpyversion))
+_minpyversion=(3,6,0)
+if pyversion < _minpyversion:
+    raise SystemExit('Unsupported python version %i.%i.%i detected (needs %i.%i.%i or later).'%(pyversion+_minpyversion))
 
 import numbers
 import pathlib
@@ -84,6 +81,8 @@ import copy
 import ctypes
 import weakref
 import enum
+import json
+import collections
 
 ###################################
 #Convert cstr<->str:
@@ -125,7 +124,6 @@ class NCLogicError(NCException):
 class NCBadInput(NCException):
     pass
 
-
 #some constants (NB: Copied here from NCMath.hh - must keep synchronized!! Also,
 #remember to include in __all__ list above):
 constant_c  = 299792458e10#  speed of light in Aa/s
@@ -135,7 +133,10 @@ constant_avogadro = 6.022140857e23#  mol^-1
 constant_boltzmann = 8.6173303e-5#  eV/K
 const_neutron_mass_amu = 1.00866491588#  [amu]
 constant_planck = 4.135667662e-15 # [eV*s]
+_kPi        = 3.1415926535897932384626433832795028841971694
+_k2Pi       = 6.2831853071795864769252867665590057683943388
 _k4Pidiv100 = 0.125663706143591729538505735331180115367886776
+_k4PiSq     = 39.4784176043574344753379639995046045412547976
 
 def _find_nclib():
 
@@ -178,6 +179,33 @@ def _ensure_numpy():
         raise NCException("Numpy not available - array based functionality is unavailable")
 
 _keepalive = []
+
+def _np_linspace(start,stop,num=50):
+    """linspace with reproducible endpoint value"""
+    _ensure_numpy()
+    assert num >= 2
+    l = _np.linspace(start,stop,num)
+    l[0] = start
+    l[-1] = stop
+    return l
+
+def _np_geomspace(start,stop,num=50):
+    """geomspace with reproducible endpoint value"""
+    _ensure_numpy()
+    assert num >= 2
+    l = _np.geomspace(start,stop,num)
+    l[0] = start
+    l[-1] = stop
+    return l
+
+def _np_logspace(start,stop,num=50):
+    """logspace with reproducible endpoint value"""
+    _ensure_numpy()
+    assert num >= 2
+    l = _np.logspace(start,stop,num)
+    l[0] = start
+    l[-1] = stop
+    return l
 
 def _load(nclib_filename):
 
@@ -286,6 +314,7 @@ def _load(nclib_filename):
     _wrap('ncrystal_cast_abs2proc',ncrystal_process_t,(ncrystal_absorption_t,))
 
     _wrap('ncrystal_dump',None,(ncrystal_info_t,))
+    _wrap('ncrystal_dump_verbose',None,(ncrystal_info_t,))
     _wrap('ncrystal_ekin2wl',_dbl,(_dbl,))
     _wrap('ncrystal_wl2ekin',_dbl,(_dbl,))
     _wrap('ncrystal_isnonoriented',_int,(ncrystal_process_t,))
@@ -323,7 +352,7 @@ def _load(nclib_filename):
         return x.value, y.value, z.value
     functions['ncrystal_info_getatompos'] = ncrystal_info_getatompos
 
-    for s in ('temperature','xsectabsorption','xsectfree','density','numberdensity'):
+    for s in ('temperature','xsectabsorption','xsectfree','density','numberdensity','sld'):
         _wrap('ncrystal_info_get%s'%s,_dbl,(ncrystal_info_t,))
     _wrap('ncrystal_info_getstateofmatter',_int,( ncrystal_info_t,))
     _raw_info_getstruct = _wrap('ncrystal_info_getstructure',_int,(ncrystal_info_t,_uintp,_dblp,_dblp,_dblp,_dblp,_dblp,_dblp,_dblp,_uintp))
@@ -336,9 +365,13 @@ def _load(nclib_filename):
                     beta=beta.value,gamma=gamma.value,volume=vol.value,n_atoms=int(natom.value))
     functions['ncrystal_info_getstructure'] = ncrystal_info_getstructure
 
+    _wrap('ncrystal_info_nphases',_int,(ncrystal_info_t,))
+    _wrap('ncrystal_info_getphase',ncrystal_info_t,(ncrystal_info_t,_int,_dblp))
+
     _wrap('ncrystal_info_nhkl',_int,(ncrystal_info_t,))
     _wrap('ncrystal_info_hkl_dlower',_dbl,(ncrystal_info_t,))
     _wrap('ncrystal_info_hkl_dupper',_dbl,(ncrystal_info_t,))
+    _wrap('ncrystal_info_braggthreshold',_dbl,(ncrystal_info_t,))
     _wrap('ncrystal_info_gethkl',None,(ncrystal_info_t,_int,_intp,_intp,_intp,_intp,_dblp,_dblp))
     _wrap('ncrystal_info_dspacing_from_hkl',_dbl,(ncrystal_info_t,_int,_int,_int))
     functions['ncrystal_info_gethkl_setuppars'] = lambda : (_int(),_int(),_int(),_int(),_dbl(),_dbl())
@@ -611,13 +644,9 @@ def _load(nclib_filename):
     _wrap('ncrystal_clone_scatter',ncrystal_scatter_t,(ncrystal_scatter_t,))
     _wrap('ncrystal_clone_scatter_rngbyidx',ncrystal_scatter_t,(ncrystal_scatter_t,_ulong))
     _wrap('ncrystal_clone_scatter_rngforcurrentthread',ncrystal_scatter_t,(ncrystal_scatter_t,))
-    _wrap('ncrystal_decodecfg_packfact',_dbl,(_cstr,))
     _wrap('ncrystal_decodecfg_vdoslux',_uint,(_cstr,))
-    _wrap('ncrystal_disable_caching',None,tuple())
-    _wrap('ncrystal_enable_caching',None,tuple())
     _wrap('ncrystal_has_factory',_int,(_cstr,))
     _wrap('ncrystal_clear_caches',None,tuple())
-
 
     _wrap('ncrystal_rngsupportsstatemanip_ofscatter',_int,( ncrystal_scatter_t, ))
     _wrap('ncrystal_setrngstate_ofscatter',None,(ncrystal_scatter_t, _cstr))
@@ -632,6 +661,50 @@ def _load(nclib_filename):
         _raw_deallocstr(rawstate)
         return state
     functions['nc_getrngstate_scat']=nc_getrngstate_scat
+
+    def _decode_and_dealloc_raw_str(raw_cstr):
+        if not raw_cstr:
+            return None
+        res=_cstr2str(ctypes.cast(raw_cstr,_cstr).value)
+        _raw_deallocstr(raw_cstr)
+        return res
+
+    _raw_dbg_process = _wrap('ncrystal_dbg_process',_charptr,(ncrystal_process_t,),hide=True)
+    def nc_dbg_proc(rawprocobj):
+        return json.loads( _decode_and_dealloc_raw_str( _raw_dbg_process( rawprocobj ) ) )
+    functions['nc_dbg_proc']=nc_dbg_proc
+
+    _raw_decodecfg_json = _wrap('ncrystal_decodecfg_json',_charptr,(_cstr,),hide=True)
+    def nc_cfgstr2json(cfgstr):
+        return _decode_and_dealloc_raw_str( _raw_decodecfg_json(_str2cstr(cfgstr) ) )
+    functions['nc_cfgstr2json']=nc_cfgstr2json
+
+    raw_proc_uid = _wrap('ncrystal_process_uid',_charptr,(ncrystal_process_t,),hide=True)
+    functions['procuid'] = lambda rawproc : int(_decode_and_dealloc_raw_str(raw_proc_uid(rawproc)))
+    raw_info_uid = _wrap('ncrystal_info_uid',_charptr,(ncrystal_info_t,),hide=True)
+    functions['infouid'] = lambda rawinfo : int(_decode_and_dealloc_raw_str(raw_info_uid(rawinfo)))
+    raw_info_underlyinguid = _wrap('ncrystal_info_underlyinguid',_charptr,(ncrystal_info_t,),hide=True)
+    functions['infouid_underlying'] = lambda rawinfo : int(_decode_and_dealloc_raw_str(raw_info_underlyinguid(rawinfo)))
+
+    _raw_normcfgstr = _wrap('ncrystal_normalisecfg',_charptr,(_cstr,),hide=True)
+    def nc_normcfgstr(cfgstr):
+        raw_str = _raw_normcfgstr(_str2cstr(cfgstr))
+        if not raw_str:
+            return None
+        res=_cstr2str(ctypes.cast(raw_str,_cstr).value)
+        _raw_deallocstr(raw_str)
+        return res
+    functions['nc_normcfgstr']=nc_normcfgstr
+
+    _raw_gencfgdoc = _wrap('ncrystal_gencfgstr_doc',_charptr,(_int,),hide=True)
+    def nc_gencfgdoc(mode):
+        raw_str = _raw_gencfgdoc(mode)
+        if not raw_str:
+            return None
+        res=_cstr2str(ctypes.cast(raw_str,_cstr).value)
+        _raw_deallocstr(raw_str)
+        return res
+    functions['nc_gencfgdoc']=nc_gencfgdoc
 
     _raw_gettextdata = _wrap('ncrystal_get_text_data',_cstrp,(_cstr,),hide=True)
     _raw_deallocstr = _wrap('ncrystal_dealloc_string',None,(_charptr,),hide=True)
@@ -684,8 +757,8 @@ def _load(nclib_filename):
 _rawfct = _load(_find_nclib())
 
 def decodecfg_packfact(cfgstr):
-    """Extract packfact value from cfgstr"""
-    return float(_rawfct['ncrystal_decodecfg_packfact'](_str2cstr(cfgstr)))
+    """OBSOLETE FUNCTION (always returns 1.0 now)."""
+    return 1.0
 
 def decodecfg_vdoslux(cfgstr):
     """Extract vdoslux value from cfgstr"""
@@ -698,7 +771,7 @@ def createVDOSDebye(debye_temperature):
     #in .cc src (although leaving out temperature,boundXS,elementMassAMU args
     #here):
     debye_energy = constant_boltzmann*debye_temperature;
-    vdos_egrid = _np.linspace(0.5*debye_energy,debye_energy,20);
+    vdos_egrid = _np_linspace(0.5*debye_energy,debye_energy,20);
     scale = 1.0 / (debye_energy*debye_energy);
     vdos_density = scale * (vdos_egrid**2)
     #Actual returned egrid should contain only first and last value:
@@ -892,7 +965,19 @@ class StateOfMatter(enum.Enum):
     Liquid = 3
 
 class Info(RCBase):
-    """Class representing information about a given material"""
+    """Class representing information about a given material.
+
+     Objects might represent either multi- or single phase
+     materials. Multi-phase objects contain a list of phases (which might
+     themselves be either single or multi-phase objects). Most other fields
+     (structure, hkl lists, dynamics, etc.) are single-phase specific and will
+     be unavailable on multiphase-phase objects. Exceptions are phase-structure
+     information (todo) which is only available on multi-phase objects, and
+     fields which are available for both multi- and single-phase objects such as
+     density, composition, temperature, and state of matter (where such are well
+     defined).
+
+    """
     def __init__(self, cfgstr):
         """create Info object based on cfg-string (same as using createInfo(cfgstr))"""
         if isinstance(cfgstr,tuple) and len(cfgstr)==2 and cfgstr[0]=='_rawobj_':
@@ -907,6 +992,45 @@ class Info(RCBase):
         self.__atomdatas=[]
         self.__comp=None
         self._som=None
+        self._nphases = int(_rawfct['ncrystal_info_nphases'](rawobj))
+        assert self._nphases == 0 or self._nphases >= 2
+        self._phases = tuple() if self._nphases == 0 else None
+
+    def getUniqueID(self):
+        """Unique identifier of object (UID)."""
+        return _rawfct['infouid'](self._rawobj)
+    uid = property(getUniqueID)
+
+    def _getUnderlyingUniqueID(self):
+        """Unique identifier of underlying object, which does not change on simple
+        density or cfg-data overrides (expert usage only!)."""
+        return _rawfct['infouid_underlying'](self._rawobj)
+
+    def isSinglePhase(self):
+        """Single phase object."""
+        return self._nphases == 0
+
+    def isMultiPhase(self):
+        """Multi phase object."""
+        return self._nphases != 0
+
+    def __initPhases(self):
+        assert self._phases is None and self._nphases > 1
+        l=[]
+        for i in range(self._nphases):
+            fraction = ctypes.c_double()
+            ph_info_raw = _rawfct['ncrystal_info_getphase'](self._rawobj,i,fraction)
+            ph_info = Info( ('_rawobj_',ph_info_raw) )
+            l.append( ( float(fraction.value), ph_info ) )
+        self._phases = tuple(l)
+        return self._phases
+
+    def getPhases(self):
+        """Daughter phases in a multi-phase object. Returns a list of fractions and Info
+        objects of the daughter phases, in the format [(fraction_i,daughter_i),...]
+        """
+        return self.__initPhases() if self._phases is None else self._phases
+    phases=property(getPhases)
 
     def _initComp(self):
         assert self.__comp is None
@@ -934,21 +1058,22 @@ class Info(RCBase):
         return self.hasStructureInfo() or self.hasAtomInfo() or self.hasHKLInfo()
 
     def hasComposition(self):
-        """Whether basic composition is available."""
-        return bool(self._initComp() if self.__comp is None else self.__comp)
+        """OBSOLETE FUNCTION (always available now)."""
+        return True
 
     def getComposition(self):
-        """Get basic composition as list of (fraction,AtomData). The list is empty when
-        no composition is available, and is always consistent with AtomInfo/DynInfo (if
-        present). """
+        """Get basic composition as list of (fraction,AtomData). For a single-phase
+        object, the list is always consistent with AtomInfo/DynInfo (if
+        present).
+        """
         return self._initComp() if self.__comp is None else self.__comp
     composition=property(getComposition)
 
-    def dump(self):
+    def dump(self,verbose=False):
         """Dump contained information to standard output"""
         sys.stdout.flush()
         sys.stderr.flush()
-        _rawfct['ncrystal_dump'](self._rawobj)
+        _rawfct['ncrystal_dump_verbose' if verbose else 'ncrystal_dump'](self._rawobj)
 
     def hasTemperature(self):
         """Whether or not material has a temperature available"""
@@ -1010,26 +1135,28 @@ class Info(RCBase):
                          +' (must be top-level AtomData from the same Info object)')
 
     def hasDensity(self):
-        """Whether or not material has density available"""
-        return _rawfct['ncrystal_info_getdensity'](self._rawobj)>-1
+        """OBSOLETE FUNCTION (densities are now always available)."""
+        return True
     def getDensity(self):
         """Get density in g/cm^3. See also getNumberDensity()."""
         t=_rawfct['ncrystal_info_getdensity'](self._rawobj)
-        nc_assert(t>-1)
+        nc_assert(t>0.0)
         return t
+    density = property(getDensity)
 
     def hasNumberDensity(self):
-        """Whether or not material has number density available"""
-        return _rawfct['ncrystal_info_getnumberdensity'](self._rawobj)>-1
+        """OBSOLETE FUNCTION (densities are now always available)."""
+        return True
     def getNumberDensity(self):
         """Get number density in atoms/angstrom^3. See also getDensity()."""
         t=_rawfct['ncrystal_info_getnumberdensity'](self._rawobj)
-        nc_assert(t>-1)
+        nc_assert(t>0.0)
         return t
+    numberdensity = property(getNumberDensity)
 
     def hasXSectAbsorption(self):
-        """Whether or not material has absorption cross section available"""
-        return _rawfct['ncrystal_info_getxsectabsorption'](self._rawobj)>-1
+        """OBSOLETE FUNCTION"""
+        return True
     def getXSectAbsorption(self):
         """Absorption cross section in barn (at 2200m/s)"""
         t=_rawfct['ncrystal_info_getxsectabsorption'](self._rawobj)
@@ -1037,13 +1164,18 @@ class Info(RCBase):
         return t
 
     def hasXSectFree(self):
-        """Whether or not material has free scattering cross section available"""
-        return _rawfct['ncrystal_info_getxsectfree'](self._rawobj)>-1
+        """OBSOLETE FUNCTION"""
+        return True
     def getXSectFree(self):
         """Saturated (free) scattering cross section in barn in the high-E limit"""
         t=_rawfct['ncrystal_info_getxsectfree'](self._rawobj)
         nc_assert(t>-1)
         return t
+
+    def getSLD(self):
+        """Get scattering length density in 1e-6/Aa^2"""
+        return _rawfct['ncrystal_info_getsld'](self._rawobj)
+    sld = property(getSLD)
 
     def hasStructureInfo(self):
         """Whether or not material has crystal structure information available."""
@@ -1222,6 +1354,15 @@ class Info(RCBase):
         for idx in range(self.nHKL()):
             _rawfct['ncrystal_info_gethkl'](self._rawobj,idx,h,k,l,mult,dsp,fsq)
             yield h.value,k.value,l.value,mult.value,dsp.value,fsq.value
+    def getBraggThreshold(self):
+        """Get Bragg threshold in Aa (returns None if non-crystalline). This
+        method is meant as a fast way to access the Bragg threshold without
+        necessarily triggering a full initialisation of all HKL planes.
+        """
+        bt = float(_rawfct['ncrystal_info_braggthreshold'](self._rawobj))
+        return bt if bt > 0.0 else None
+    braggthreshold = property(getBraggThreshold)
+
     def dspacingFromHKL(self, h, k, l):
         """Convenience method, calculating the d-spacing of a given Miller
         index. Calling this incurs the overhead of creating a reciprocal lattice
@@ -1295,7 +1436,6 @@ class Info(RCBase):
             return ('DynamicInfo(%s, fraction=%.4g%%, type=%s%s)'%(self.atomData.displayLabel(),
                                                                  self.__fraction*100.0,
                                                                  n,s))
-
     class DI_Sterile(DynamicInfo):
         """Class indicating atoms for which inelastic neutron scattering is absent
            or disabled."""
@@ -1394,7 +1534,7 @@ class Info(RCBase):
             """Access the egrid expanded into all actual egrid points"""
             if self.__vdosegrid_expanded is None:
                 _ = self.vdosData()
-                self.__vdosegrid_expanded = self._np().linspace(_[0][0],_[0][1],len(_[1]))
+                self.__vdosegrid_expanded = _np_linspace(_[0][0],_[0][1],len(_[1]))
             return self.__vdosegrid_expanded
 
         @property
@@ -1451,7 +1591,7 @@ class Info(RCBase):
             """Access the egrid expanded into all actual egrid points"""
             if self.__vdosegrid_expanded is None:
                 _ = self.vdosData()
-                self.__vdosegrid_expanded = self._np().linspace(_[0][0],_[0][1],len(_[1]))
+                self.__vdosegrid_expanded = _np_linspace(_[0][0],_[0][1],len(_[1]))
             return self.__vdosegrid_expanded
 
         @property
@@ -1508,23 +1648,26 @@ class Info(RCBase):
         return self.__custom
     customsections = property(getAllCustomSections)
 
-class CalcBase(RCBase):
-    """Base class for all calculators"""
-    def getCalcName(self):
-        """Calculator name"""
-        return _cstr2str(_rawfct['ncrystal_name'](self._rawobj))
-    @property
-    def name(self):
-        """Calculator name as property"""
-        return self.getCalcName()
-
-class Process(CalcBase):
+class Process(RCBase):
     """Base class for calculations of processes in materials.
 
     Note that kinetic energies are in electronvolt and direction vectors are
     tuples of 3 numbers.
 
     """
+    def getCalcName(self):
+        """Obsolete alias for getName"""
+        return self.getName()
+    def getName(self):
+        """Process name"""
+        return _cstr2str(_rawfct['ncrystal_name'](self._rawobj))
+    name = property(getName)
+
+    def getUniqueID(self):
+        """UID of underlying ProcImpl::Process object."""
+        return _rawfct['procuid'](self._rawobj)
+    uid = property(getUniqueID)
+
     def domain(self):
         """Domain where process has non-vanishing cross section.
 
@@ -1585,6 +1728,44 @@ class Process(CalcBase):
             if ekin is not None:
                 raise NCBadInput('Do not provide both "ekin" and "wl" parameters')
             return wl2ekin(wl)
+
+    def getSummary(self,short = False ):
+        """By default access a high-level summary of the process in the form of a
+           dictionary holding various information which is also available on the
+           underlying C++ process object. If instead short==True, what is
+           instead returned is simply a short process label along with a list of
+           sub-components and their scales (if appropriate). Finally, if
+           short=='printable', the returned object will instead be a list of
+           strings suitable for a quick printout (each string is one line of
+           printout).
+        """
+        #Not caching, method is likely to be called sparringly.
+        d=_rawfct['nc_dbg_proc'](self._rawobj)
+        if not short:
+            return d
+        def fmt_lbl(proc):
+            name = proc['name']
+            summarystr = proc['specific'].get('summarystr','')
+            return f'{name}({summarystr})' if summarystr else name
+        if short != 'printable':
+            return (fmt_lbl(d),
+                    tuple((scale,fmt_lbl(proc))
+                          for scale,proc in d.get('specific',{}).get('components',[])))
+        toplbl,comps= self.getSummary(short=True)
+        l = [ toplbl ]
+        ncomps = len(comps)
+        for i,(scale,lbl) in enumerate(comps):
+            smb = '\--' if i+1==ncomps else '|--'
+            scale_str = '' if scale==1.0 else f'{scale:g} * '
+            l.append(f'   {smb} {scale_str}{lbl}')
+        return l
+
+    def dump(self,prefix=''):
+        """Print a quick high level summary of the process to stdout. What is printed is
+        in fact the lines resulting from a call to self.getSummary(short='printable'),
+        with an optional prefix prepended to each line.
+        """
+        print(prefix+f'\n{prefix}'.join(self.getSummary(short='printable')))
 
 class Absorption(Process):
     """Base class for calculations of absorption in materials"""
@@ -1687,7 +1868,7 @@ class Scatter(Process):
         neutron. Returns tuple(ekin_final,mu) where mu is the cosine of the
         scattering angle. For efficiency it is possible to provide the ekin
         parameter as a numpy array of numbers and get corresponding arrays of
-        angles and energy transfers back. Likewise, the repeat parameter can be
+        energies and mu back. Likewise, the repeat parameter can be
         set to a positive number, causing the ekin value(s) to be reused that
         many times and numpy arrays with results returned.
 
@@ -1871,18 +2052,41 @@ def ekin2wl(ekin):
     else:
         return _rawfct['ncrystal_ekin2wl'](ekin)
 
+_const_ekin2ksq_factor = _k4PiSq / _c_wl2ekin
+def ekin2ksq(ekin):
+    """Convert neutron kinetic energy in electronvolt to squared wavenumber (k^2) in 1/Angstrom^2"""
+    return _const_ekin2ksq_factor*ekin
+
+def wl2k(wl):
+    """Convert neutron wavelength in Angstrom to wavenumber (k) in 1/Angstrom. This is simply k=2pi/wl"""
+    if _np and hasattr(wl,'__len__'):
+        #reciprocals without zero division:
+        wlnonzero = ekin != 0.0
+        ksafe = _k2Pi / _np.where( wlnonzero, wl, 1.0)#fallback 1.0 wont be used
+        return  _np.where( wlnonzero, ksafe, _np.inf)
+    else:
+        return _k2Pi / wl if wl!=0.0 else float('inf')
+
+def wl2ksq(wl):
+    """Convert neutron wavelength in Angstrom to wavenumber (k^2) in 1/Angstrom^2. This is simply k^2=(2pi/wl)^2"""
+    return wl2k(wl) ** 2
+
 def clearCaches():
     """Clear various caches"""
     _rawfct['ncrystal_clear_caches']()
 def clearInfoCaches():
     """Deprecated. Does the same as clearCaches()"""
     clearCaches()
+
 def disableCaching():
-    """Disable caching of Info objects in factory infrastructure"""
-    _rawfct['ncrystal_disable_caching']()
+    """Obsolete function. Instead call clearCaches() as needed."""
+    raise RuntimeError('The disableCaching function has been removed. Users can'
+                       +' instead call the clearCaches function if really needed to clear the caches.')
+
 def enableCaching():
-    """Enable caching of Info objects in factory infrastructure"""
-    _rawfct['ncrystal_enable_caching']()
+    """Obsolete function. Instead call clearCaches() as needed."""
+    raise RuntimeError('The enableCaching function has been removed. Users can'
+                       +' instead call the clearCaches function if really needed to clear the caches.')
 
 def hasFactory(name):
     """Check if a factory of a given name exists"""
@@ -1934,12 +2138,10 @@ def formatVectorForNCMAT(name,values):
 
 #Accept custom random generator:
 def setDefaultRandomGenerator(rg, keepalive=True):
-    """Set the default random generator for CalcBase classes.
+    """Set the default random generator.
 
-    Note that this can only changes the random generator for those CalcBase
-    instances that did not already use random numbers). Default generator when
-    using the NCrystal python interface is the scientifically sound
-    random.random stream from the python standard library (a Mersenne Twister).
+    Note that this can only changes the random generator for those processes not
+    already created.
 
     To ensure Python does not clean up the passed function object prematurely,
     the NCrystal python module will keep a reference to it eternally. To avoid
@@ -2147,14 +2349,14 @@ class TextData:
        (without newline characters): for( auto& line : mytextdata ) {...}.  Of
        course, the raw underlying data buffer can also be accessed if needed.
 
-       The raw data must be ASCII or UTF-8 text, with line endings \n=CR=0x0A
-       (Unix) or \r\n=LF+CR=0x0D0A (Windows/dos). Other encodings might work
+       The raw data must be ASCII or UTF-8 text, with line endings \\n=CR=0x0A
+       (Unix) or \\r\\n=LF+CR=0x0D0A (Windows/DOS). Other encodings might work
        only if 0x00, 0x0A, 0x0D bytes do not occur in them outside of line
        endings.
 
-       Notice that ancient pre-OSX Mac line-endings \r=LF=0x0D are not
+       Notice that ancient pre-OSX Mac line-endings \\r=LF=0x0D are not
        supported, and iterators will actually throw an error upon encountering
-       them. This is done on purpose, since files with \r on unix might hide
+       them. This is done on purpose, since files with \\r on unix might hide
        content when inspected in a terminal can be either confusing, a potential
        security issue, or both.
     """
@@ -2165,7 +2367,7 @@ class TextData:
         assert len(l)==5
         self.__rd = l[0]
         self.__uid = int(l[1])
-        self.__descr = l[2]
+        self.__dsn = l[2]
         self.__datatype= l[3]
         self.__rp = pathlib.Path(l[4]) if l[4] else None
 
@@ -2181,9 +2383,9 @@ class TextData:
         return self.__datatype
 
     @property
-    def description(self):
-        """Short description. This might for instance be a filename."""
-        return self.__descr
+    def dataSourceName(self):
+        """Data source name. This might for instance be a filename."""
+        return self.__dsn
 
     @property
     def rawData(self):
@@ -2199,7 +2401,7 @@ class TextData:
         return self.__rp
 
     def __str__(self):
-        return 'TextData(%s, uid=%i, %i chars)'%(self.__descr,self.__uid,len(self.__rd))
+        return 'TextData(%s, uid=%i, %i chars)'%(self.__dsn,self.__uid,len(self.__rd))
 
     def __iter__(self):
         """Line-iteration, yielding lines without terminating newline characters"""
@@ -2309,6 +2511,42 @@ def analyseVDOS(emin,emax,density,temperature,atom_mass_amu):
     """
     return _rawfct['nc_vdoseval'](emin,emax,density,temperature,atom_mass_amu)
 
+def normaliseCfg(cfgstr):
+    """Returns normalised version of cfgstr. This is done behind the scenes by
+       loading the specified cfg-string into a C++ MatCfg object and then
+       re-encoding it as a string.
+    """
+    return _rawfct['nc_normcfgstr'](cfgstr)
+
+def decodeCfg(cfgstr,*,asJSONStr=False):
+    """Decodes cfg-string and returns as Python data structure (a dictionary). The
+       format of this data structure should be mostly self-evident by
+       inspection, and is not guaranteed to stay the same across NCrystal
+       versions. If asJSONStr=true, the data structure will be returned as a
+       JSON-encoded string, instead of a Python dictionary.
+    """
+    _js = _rawfct['nc_cfgstr2json'](cfgstr)
+    if asJSONStr:
+        return _js
+    return json.loads(_js)
+
+def generateCfgStrDoc( mode = "print" ):
+    """Generates documentation about the available cfg-str variables. Mode can
+    either be 'print' (print detailed explanation to stdout), 'txt_full' (return
+    detailed explanations as string), 'txt_short' (return short explanations as
+    string), 'json' (return json-encoded string), or 'python' (return python
+    data structures).
+    """
+    modemap={'print':0,'txt_full':0,'txt_short':1,'json':2,'python':2}
+    modeint = modemap.get(mode,None)
+    if modeint is None:
+        raise NCBadInput('mode must be one of %s'%list(sorted(modemap.keys())))
+    _=_rawfct['nc_gencfgdoc'](modeint)
+    if mode == 'print':
+        print(_)
+    else:
+        return json.loads(_) if mode=='python' else _
+
 def test():
     """Quick test that NCrystal works as expected in the current installation."""
     _actualtest()
@@ -2328,10 +2566,10 @@ def _actualtest():
     al = createInfo('stdlib::Al_sg225.ncmat;dcutoff=1.4')
     require(hasFactory('stdncmat'))
     require(al.hasTemperature() and require_flteq(al.getTemperature(),293.15))
-    require(al.hasXSectFree() and require_flteq(al.getXSectFree(),1.39667))
-    require(al.hasXSectAbsorption() and require_flteq(al.getXSectAbsorption(),0.231))
-    require(al.hasDensity() and require_flteq(al.getDensity(),2.69864547673))
-    require(al.hasNumberDensity() and require_flteq(al.getNumberDensity(),0.06023238256131625))
+    require_flteq(al.getXSectFree(),1.39667)
+    require_flteq(al.getXSectAbsorption(),0.231)
+    require_flteq(al.getDensity(),2.69864547673)
+    require_flteq(al.getNumberDensity(),0.06023238256131625)
     require(al.hasDebyeTemperature())
 
     require(al.hasStructureInfo())
@@ -2389,42 +2627,42 @@ def _actualtest():
     nipc = createScatterIndependentRNG('stdlib::Ni_sg225.ncmat;dcutoff=0.6;vdoslux=2',2543577)
     nipc_testwl = 1.2
     #print(nipc.xsect(wl=nipc_testwl),nipc.xsect(wl=5.0))
-    require_flteq(16.763384236274295,nipc.xsect(wl=nipc_testwl))
-    require_flteq(16.763384236274295,nipc.xsect(wl=nipc_testwl,direction=(1,0,0)))
-    require_flteq(5.958248153134731,nipc.xsect(wl=5.0))
+    require_flteq(16.76317928962922,nipc.xsect(wl=nipc_testwl))
+    require_flteq(16.76317928962922,nipc.xsect(wl=nipc_testwl,direction=(1,0,0)))
+    require_flteq(5.957888794444784,nipc.xsect(wl=5.0))
 
     require( nipc.name == 'ProcComposition' )
 
-    expected = [ ( 0.056808478892590906, 0.5361444826572668 ),
-                 ( 0.056808478892590906, 0.5361444826572668 ),
+    expected = [ ( 0.056808478892590906, 0.5361444826572666 ),
+                 ( 0.056808478892590906, 0.5361444826572666 ),
                  ( 0.056808478892590906, 0.3621986636537414 ),
                  ( 0.056808478892590906, 0.8391056916029316 ),
-                 ( 0.04306081224691682, -0.8967361422557182 ),
+                 ( 0.04299667891784979, -0.9096194707071311 ),
                  ( 0.056808478892590906, 0.0028144544046340148 ),
-                 ( 0.056808478892590906, -0.10165685368899191 ),
+                 ( 0.056808478892590906, -0.10165685368899147 ),
                  ( 0.056808478892590906, -0.15963879335683306 ),
                  ( 0.056808478892590906, 0.8260541809964751 ),
-                 ( 0.07817729397575277, -0.47118801199817245 ),
-                 ( 0.05401955085824633, -0.04621874653928581 ),
+                 ( 0.07815187462120533, -0.47841820175303057 ),
+                 ( 0.053947782038503665, -0.052300913437966556 ),
                  ( 0.056808478892590906, 0.8260541809964751 ),
-                 ( 0.041670508464271845, -0.1503940486202929 ),
-                 ( 0.056808478892590906, -0.10165685368899191 ),
-                 ( 0.056808478892590906, -0.10165685368899191 ),
-                 ( 0.056808478892590906, 0.5361444826572668 ),
+                 ( 0.0416125960343578, -0.15796667029753514 ),
+                 ( 0.056808478892590906, -0.10165685368899147 ),
+                 ( 0.056808478892590906, -0.10165685368899147 ),
+                 ( 0.056808478892590906, 0.5361444826572666 ),
                  ( 0.056808478892590906, -0.3915665520281999 ),
                  ( 0.056808478892590906, 0.3621986636537414 ),
-                 ( 0.05803278720551066, -0.4542597828355841 ),
+                 ( 0.05796262230888247, -0.4626155424845311 ),
                  ( 0.056808478892590906, 0.3621986636537414 ),
-                 ( 0.08136537448918617, -0.9123985306524791 ),
+                 ( 0.08134492707554557, -0.9219340880392132 ),
                  ( 0.056808478892590906, -0.5655123710317247 ),
-                 ( 0.058619077301964584, -0.8633498900743867 ),
+                 ( 0.058549224288175404, -0.8742102883360473 ),
                  ( 0.056808478892590906, 0.3042167239859003 ),
                  ( 0.056808478892590906, 0.7378808571510718 ),
-                 ( 0.056808478892590906, -0.10165685368899191 ),
-                 ( 0.08060018281822305, -0.7370163968204352 ),
+                 ( 0.056808478892590906, -0.10165685368899147 ),
+                 ( 0.08057848774834933, -0.7456086493116947 ),
                  ( 0.056808478892590906, -0.5655123710317247 ),
-                 ( 0.06972487412469042, 0.11577553721283067 ),
-                 ( 0.04057037479922572, -0.8570248794863715 ) ]
+                 ( 0.06966887424392498, 0.11122479793760214 ),
+                 ( 0.040517211926276296, -0.8699967641614244 ) ]
 
     if _np is None:
         ekin,mu=[],[]
@@ -2440,33 +2678,33 @@ def _actualtest():
         require_flteq(ekin[i],expected[i][0])
         require_flteq(mu[i],expected[i][1])
 
-    expected = [ ( 0.008416101633014865, (-0.757659986585644, -0.6452758602889546, -0.09782846648798732) ),
+    expected = [ ( 0.008118115215771701, (-0.7888509400655686, -0.6076410066613851, -0.09212275170231986) ),
                  ( 0.056808478892590906, (0.07228896531453344, -0.5190173207165885, 0.8517014302500192) ),
                  ( 0.056808478892590906, (-0.9249112255344181, -0.32220112076758217, -0.20180600252850442) ),
                  ( 0.056808478892590906, (-0.15963879335683306, -0.8486615569734178, 0.5042707778277745) ),
-                 ( 0.055175282123031216, (-0.9137234740275523, -0.01697993608051868, -0.4059816434048743) ),
+                 ( 0.05510388343809702, (-0.9252289628652087, -0.015854700042162356, -0.3790778215115509) ),
                  ( 0.056808478892590906, (0.3621986636537414, 0.9195336880770101, -0.15254482796521104) ),
                  ( 0.056808478892590906, (-0.8667699444876275, 0.3952682020937969, -0.30409359043960893) ),
-                 ( 0.056808478892590906, (-0.10165685368899191, -0.8869759070713323, -0.4504882066969593) ),
+                 ( 0.056808478892590906, (-0.10165685368899147, -0.8869759070713323, -0.4504882066969593) ),
                  ( 0.056808478892590906, (0.07228896531453344, -0.39741541395284924, -0.914787021249449) ),
-                 ( 0.056808478892590906, (-0.10165685368899191, -0.9768880366798581, -0.1880309758785167) ),
-                 ( 0.02606330473669421, (-0.7582323992671114, -0.6516002612972578, 0.022376956428100652) ),
+                 ( 0.056808478892590906, (-0.10165685368899147, -0.9768880366798581, -0.1880309758785167) ),
+                 ( 0.025997560001891004, (-0.7739589572893255, -0.63286269308698, 0.02173347948017065) ),
                  ( 0.056808478892590906, (0.8260541809964751, 0.539797243436807, 0.16202909009269678) ),
-                 ( 0.04566678251268602, (-0.9534434024097809, 0.17205470782622773, -0.2476748996488988) ),
+                 ( 0.0455976595034131, (-0.9663616387824883, 0.14673193287522976, -0.2112224490065456) ),
                  ( 0.056808478892590906, (-0.5655123710317247, 0.15884349419072655, 0.8092987721252006) ),
-                 ( 0.056808478892590906, (0.5361444826572668, 0.7795115518549292, 0.32389941994528487) ),
+                 ( 0.056808478892590906, (0.5361444826572666, 0.7795115518549294, 0.3238994199452849) ),
                  ( 0.056808478892590906, (0.07228896531453344, 0.746175597107444, 0.6618128767069312) ),
-                 ( 0.056808478892590906, (-0.10165685368899191, -0.4247181868490453, 0.8996001033001911) ),
-                 ( 0.056808478892590906, (0.5361444826572668, 0.555576061106532, -0.6355189486093414) ),
-                 ( 0.05789302012683443, (-0.12097277426532965, -0.6903199617139779, 0.7133189597548643) ),
+                 ( 0.056808478892590906, (-0.10165685368899147, -0.4247181868490453, 0.8996001033001911) ),
+                 ( 0.056808478892590906, (0.5361444826572666, 0.5555760611065321, -0.6355189486093415) ),
+                 ( 0.05782277081077251, (-0.12733295313030432, -0.6897665437789146, 0.7127471039088173) ),
                  ( 0.056808478892590906, (0.3042167239859003, -0.8706122815482211, -0.3866347631352975) ),
                  ( 0.056808478892590906, (-0.7384733804796917, 0.6322144258925643, -0.23443972789660028) ),
                  ( 0.056808478892590906, (-0.15963879335683306, 0.21525619037302965, -0.9634211063505222) ),
                  ( 0.056808478892590906, (0.41359447569500096, 0.4927058865194684, 0.7656242675514158) ),
                  ( 0.056808478892590906, (0.25796367721315083, 0.48520231047621615, 0.8354839670198411) ),
                  ( 0.056808478892590906, (0.5785005938702705, 0.8104481067271115, -0.09225469740985966) ),
-                 ( 0.04368024428240841, (0.020347983057095325, -0.49560493792245525, 0.8683096827125603) ),
-                 ( 0.05481910288975998, (-0.29870118895121683, -0.9272663989579163, 0.22573131170209382) ),
+                 ( 0.043614607651472896, (0.014066554670704504, -0.4956585252817857, 0.8684035688291368) ),
+                 ( 0.05474758775171918, (-0.30632011463052927, -0.9249168897721383, 0.22515935331887424) ),
                  ( 0.056808478892590906, (0.3621986636537414, -0.8822186430862218, 0.3008361577978115) ),
                  ( 0.056808478892590906, (0.7680722413286334, 0.5975216576265994, -0.23028873347945303) ),
                  ( 0.056808478892590906, (0.32922859149927786, -0.9426419619170849, 0.0550878042084668) ) ]

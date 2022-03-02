@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -31,8 +31,8 @@ namespace NCrystal {
   namespace SABUtils {
 
     //Transform ScatKnlData to the standard unscaled and asymmetric
-    //S(alpha,beta) format. Internally this calls validate(...,cheapOnly=false)
-    //on the input and, in debug builds only, also on the output. Thus, creating
+    //S(alpha,beta) format. Internally this calls validateScatKnlData(...) on
+    //the input and, in debug builds only, also on the output. Thus, creating
     //SABData objects via this function alleviates the need for littering code
     //elsewhere with validate calls.
     SABData transformKernelToStdFormat(ScatKnlData&&);
@@ -224,12 +224,14 @@ inline double NCrystal::SABUtils::sampleLogLinDist(double a, double fa, double b
   nc_assert(b>a);
   nc_assert(fa>=0.);
   nc_assert(fb>=0.);
-  const double df = fb-fa;
+  double df = fb-fa;
   if ( fa*fb*df != 0.0 ) {
     //usual, non-degenerate case:
     double a_sub_b = a-b;
     double logfa_fb = std::log(fb/fa);
-    return a_sub_b*std::log(fa*std::exp(a*logfa_fb/a_sub_b)/(fa+rand*df))/logfa_fb;
+    if ( a_sub_b * logfa_fb != 0.0 )
+      return a_sub_b*std::log(fa*std::exp(a*logfa_fb/a_sub_b)/(fa+rand*df))/logfa_fb;
+    df = 0.0;
   }
   if (!df)
     return a + rand*(b-a);//fa=fb, select uniformly in [a,b]
@@ -246,12 +248,14 @@ inline double NCrystal::SABUtils::sampleLogLinDist_fast(double a, double fa, dou
   nc_assert(b>a);
   nc_assert(fa>=0.);
   nc_assert(fb>=0.);
-  const double df = fb-fa;
+  double df = fb-fa;
   if ( fa*fb*df != 0.0 ) {
     //usual, non-degenerate case:
     double a_sub_b = a-b;
     double logfa_fb = logfb-logfa;
-    return a_sub_b*std::log(fa*std::exp(a*logfa_fb/a_sub_b)/(fa+rand*df))/logfa_fb;
+    if ( a_sub_b * logfa_fb != 0.0 )
+      return a_sub_b*std::log(fa*std::exp(a*logfa_fb/a_sub_b)/(fa+rand*df))/logfa_fb;
+    df = 0.0;
   }
   if (!df)
     return a + rand*(b-a);//fa=fb, select uniformly in [a,b]

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -38,7 +38,7 @@ namespace NCrystal {
   //some point.
   //
   //Both full and light-weight breakdowns are available. The former rely solely
-  //on standard containers, while the latter us custom classes with a lower
+  //on standard containers, while the latter use custom classes with a lower
   //memory footprint.
 
   namespace CompositionUtils {

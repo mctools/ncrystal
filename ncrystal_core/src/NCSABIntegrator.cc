@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -23,6 +23,7 @@
 #include "NCrystal/internal/NCSABUtils.hh"
 #include "NCrystal/internal/NCFactoryUtils.hh"
 #include "NCrystal/internal/NCIter.hh"
+#include "NCrystal/internal/NCString.hh"
 #include <iostream>
 
 namespace NC = NCrystal;
@@ -33,7 +34,7 @@ struct NC::SAB::SABIntegrator::Impl : private NoCopyMove {
   Impl( shared_obj<const SABData>,
         const VectD* egrid,
         std::shared_ptr<const SABExtender> );
-  void doit(SABXSProvider *, SABSampler*);
+  void doit(SABXSProvider *, SABSampler*, Optional<std::string>*);
   double determineEMax( const double ) const;
   double determineEMin( const double ) const;
   void setupEnergyGrid();
@@ -65,9 +66,9 @@ NS::SABIntegrator::SABIntegrator( shared_obj<const SABData> data,
 {
 }
 
-void NS::SABIntegrator::doit(SABXSProvider * out_xs, SABSampler* out_sampler)
+void NS::SABIntegrator::doit(SABXSProvider * out_xs, SABSampler* out_sampler, Optional<std::string>* json)
 {
-  m_impl->doit(out_xs,out_sampler);
+  m_impl->doit(out_xs,out_sampler,json);
 }
 
 NS::SABIntegrator::Impl::Impl( shared_obj<const SABData> data,
@@ -268,7 +269,7 @@ void NS::SABIntegrator::Impl::setupEnergyGrid()
 
 }
 
-void NS::SABIntegrator::Impl::doit(SABXSProvider * out_xs, SABSampler* out_sampler)
+void NS::SABIntegrator::Impl::doit(SABXSProvider * out_xs, SABSampler* out_sampler, Optional<std::string>* json)
 {
   nc_assert_always( out_xs || out_sampler );
   if ( !m_derivedData )
@@ -302,6 +303,29 @@ void NS::SABIntegrator::Impl::doit(SABXSProvider * out_xs, SABSampler* out_sampl
     out_xs->setData( VectD(m_egrid.begin(),m_egrid.end()),
                      std::move(xsvals),
                      m_extender );
+
+  if (json) {
+    std::ostringstream ss;
+    {
+      std::ostringstream tmp;
+      tmp << "nalpha="<<m_data->alphaGrid().size()<<";nbeta="<<m_data->betaGrid().size();
+      tmp << ";Emax="<<NeutronEnergy{m_egrid.back()};
+      tmp << ";T="<<m_data->temperature();
+      tmp << ";M="<<m_data->elementMassAMU();
+      tmp << ";sigma_free="<<m_data->boundXS().free(m_data->elementMassAMU());
+      streamJSONDictEntry( ss, "summarystr", tmp.str(), JSONDictPos::FIRST );
+    }
+    streamJSONDictEntry( ss, "Emax", m_egrid.back()  );
+    streamJSONDictEntry( ss, "Emin", m_egrid.front()  );
+    streamJSONDictEntry( ss, "negrid", m_egrid.size()  );
+    streamJSONDictEntry( ss, "T", m_data->temperature().dbl()  );
+    streamJSONDictEntry( ss, "M", m_data->elementMassAMU().dbl()  );
+    streamJSONDictEntry( ss, "sigma_bound", m_data->boundXS().dbl()  );
+    streamJSONDictEntry( ss, "sigma_free", m_data->boundXS().free(m_data->elementMassAMU()).dbl()  );
+    streamJSONDictEntry( ss, "nbeta", m_data->betaGrid().size()  );
+    streamJSONDictEntry( ss, "nalpha", m_data->alphaGrid().size(), JSONDictPos::LAST  );
+    *json = ss.str();
+  }
 
 }
 

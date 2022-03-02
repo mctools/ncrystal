@@ -4,7 +4,7 @@
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2021 NCrystal developers                                   ##
+##  Copyright 2015-2022 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -26,7 +26,6 @@ online databases, and optionally also compare existi ng NCMAT files with online
 structures indicated in their comments.
 """
 
-import sys
 import pathlib
 import argparse
 import functools
@@ -39,6 +38,7 @@ try:
 except ImportError:
     _ = pathlib.Path( __file__ ).parent / '../share/NCrystal/python/NCrystal/__init__.py'
     if _.exists():
+        import sys
         sys.path.append(str(_.parent.parent.absolute().resolve()))
         try:
             import NCrystal

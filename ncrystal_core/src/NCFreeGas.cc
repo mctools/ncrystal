@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,6 +21,7 @@
 #include "NCrystal/internal/NCFreeGas.hh"
 #include "NCrystal/internal/NCRandUtils.hh"
 #include "NCrystal/internal/NCFreeGasUtils.hh"
+#include "NCrystal/internal/NCString.hh"
 
 namespace NC = NCrystal;
 
@@ -38,7 +39,6 @@ struct NC::FreeGas::Impl {
   FreeGasXSProvider m_xsprovider;
   Temperature m_temperature;
   AtomMass m_target_mass_amu;
-
 };
 
 NC::FreeGas::FreeGas( Temperature t,
@@ -72,4 +72,19 @@ NC::ScatterOutcomeIsotropic NC::FreeGas::sampleScatterIsotropic(CachePtr&, RNG& 
   double delta_ekin, mu;
   std::tie(delta_ekin,mu) = FreeGasSampler(ekin,m_impl->m_temperature,m_impl->m_target_mass_amu).sampleDeltaEMu(rng);
   return { NeutronEnergy{ncmax(0.0,ekin.get()+delta_ekin)}, CosineScatAngle{mu} };
+}
+
+NC::Optional<std::string> NC::FreeGas::specificJSONDescription() const
+{
+  auto sigmafree = m_impl->m_xsprovider.sigmaFree();
+  std::ostringstream ss;
+  {
+    std::ostringstream tmp;
+    tmp << "sigma_free="<<sigmafree<<";T="<<m_impl->m_temperature<<";M="<<m_impl->m_target_mass_amu;
+    streamJSONDictEntry( ss, "summarystr", tmp.str(), JSONDictPos::FIRST );
+  }
+  streamJSONDictEntry( ss, "sigma_free", sigmafree.dbl() );
+  streamJSONDictEntry( ss, "temperature", m_impl->m_temperature.dbl() );
+  streamJSONDictEntry( ss, "atom_mass", m_impl->m_target_mass_amu.dbl(), JSONDictPos::LAST );
+  return ss.str();
 }

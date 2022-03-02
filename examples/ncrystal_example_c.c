@@ -3,7 +3,7 @@
 /*                                                                            */
 /*  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   */
 /*                                                                            */
-/*  Copyright 2015-2021 NCrystal developers                                   */
+/*  Copyright 2015-2022 NCrystal developers                                   */
 /*                                                                            */
 /*  Licensed under the Apache License, Version 2.0 (the "License");           */
 /*  you may not use this file except in compliance with the License.          */
@@ -36,7 +36,7 @@ int main() {
   ncrystal_scatter_t pc, sc;
   ncrystal_process_t pc_proc, sc_proc;
   double wl, ekin, xsect;
-  double angle,dekin;
+  double ekin_final, cos_scat_angle;
   unsigned i;
   const double dir1[3] = { 0., 1., 1. };
   const double dir2[3] = { 1., 1., 0. };
@@ -56,8 +56,11 @@ int main() {
   printf("polycrystal Al x-sect at %g Aa is %g barn\n",wl,xsect);
 
   for (i=0;i<20;++i) {
-    ncrystal_genscatter_nonoriented( pc,ekin,&angle,&dekin);
-    printf("polycrystal random angle/delta-e at %g Aa is %g degrees and %g meV\n",wl,angle*57.2957795131,dekin*1000.0);
+    ncrystal_samplescatterisotropic( pc, ekin, &ekin_final, &cos_scat_angle);
+    printf( "polycrystal random cos(scatangle) and delta_energy at %g Aa is %g and %g meV\n",
+            wl,
+            cos_scat_angle,
+            (ekin_final-ekin)*1000.0 );
   }
 
   /* Create and use single-crystal germanium */

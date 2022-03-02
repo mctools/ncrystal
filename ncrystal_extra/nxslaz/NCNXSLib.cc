@@ -5694,7 +5694,11 @@ int AreSymEquivalent_hkl(const T_SgInfo *SgInfo, int h1, int k1, int l1,
   for (iList = 0; iList < SgInfo->nList; iList++, lsmx++)
   {
     hm = lsmx->s.R[0] * h1 + lsmx->s.R[3] * k1 + lsmx->s.R[6] * l1;
+    if ( (hm-h2)*(hm+h2) != 0 )/*Check added by NCrystal developers for efficiency */
+      continue;
     km = lsmx->s.R[1] * h1 + lsmx->s.R[4] * k1 + lsmx->s.R[7] * l1;
+    if ( (km-k2)*(km+k2) != 0 )/*Check added by NCrystal developers for efficiency */
+      continue;
     lm = lsmx->s.R[2] * h1 + lsmx->s.R[5] * k1 + lsmx->s.R[8] * l1;
 
     if      ( h2 == hm &&  k2 == km &&  l2 == lm)

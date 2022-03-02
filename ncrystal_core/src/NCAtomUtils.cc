@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -121,6 +121,13 @@ void NC::AtomSymbol::longInit(const std::string& symbol)
   }
 }
 
+namespace NCrystal {
+  namespace {
+    static const std::string s_lowerabc = "abcdefghijklmnopqrstuvwxyz";
+    static const std::string s_upperabc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  }
+}
+
 void NC::validateAtomDBLine(const VectS& words, unsigned ncmat_version )
 {
   nc_assert(ncmat_version>=3);//for now all NCMAT versions >= v3 have the same
@@ -131,7 +138,8 @@ void NC::validateAtomDBLine(const VectS& words, unsigned ncmat_version )
   {
     if (!endswith(s,unit))
       return false;
-    return safe_str2dbl(s.substr(0,s.size()-unit.size()),val);
+    auto ss = s.substr(0,s.size()-unit.size());
+    return safe_str2dbl(ss,val);
   };
 
   if (words.size()>10000)//not documented in ncmat_doc.md, but is really just a sanity check.
@@ -139,14 +147,12 @@ void NC::validateAtomDBLine(const VectS& words, unsigned ncmat_version )
 
   const unsigned nwords = static_cast<unsigned>(words.size());
 
-  static std::string allowed_special_chars="+-."_s;
-  static std::string s_lowerabc = "abcdefghijklmnopqrstuvwxyz";
-  static std::string s_upperabc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  static std::string allowed_chars = s_upperabc+s_lowerabc+"0123456789+-%*"_s+allowed_special_chars;
+  static const std::string allowed_special_chars="+-."_s;
+  static const std::string allowed_chars = s_upperabc+s_lowerabc+"0123456789+-%*"_s+allowed_special_chars;
   for ( auto w : words ) {
     if (w.empty())
       NCRYSTAL_THROW(BadInput,"Invalid specification (empty part)");
-    if (!isSimpleASCII(w))
+    if (!isSimpleASCII(w,AllowTabs::No,AllowNewLine::No))
       NCRYSTAL_THROW2(BadInput,"Invalid specification (must only contain simple ascii characters) :\""<<w<<"\")");
     if (!contains_only(w,allowed_chars))
       NCRYSTAL_THROW2(BadInput,"Invalid specification (must only contain a-zA-Z0-9 and "<<allowed_special_chars<<") :\""<<w<<"\"");
@@ -225,4 +231,134 @@ void NC::validateAtomDBLine(const VectS& words, unsigned ncmat_version )
     if ( ncabs(1.0-totfrac.sum())>1e-10 )//1e-10 here, 1e-9 in NCAtomDBExtender (which should be slightly more relaxed).
       NCRYSTAL_THROW2(BadInput,"Invalid specification (fractions do not add up to 1: \""<<joinedline()<<"\" )");
   }
+}
+
+namespace NCrystal {
+  namespace {
+    bool readNextChemFormEntry( const char*& it, const char* itE, DecodedChemForm& cf ) {
+      //returns false in case of errors
+      auto skipWhiteSpace = [](const char*& it2, const char* it2E)
+      {
+        while ( it2!=it2E && isWhiteSpace(*it2) )
+          ++it2;
+      };
+      skipWhiteSpace(it,itE);
+      if ( it == itE )
+        return false;
+      if (!contains(s_upperabc,*it))
+        return false;//must start with upper case character.
+      auto itSymbE = std::next(it);
+      while ( itSymbE != itE && contains(s_lowerabc,*itSymbE) )
+        ++itSymbE;//include all immediately following lower case chars in symbol
+
+      AtomSymbol symbol(std::string(it,std::distance(it,itSymbE)));
+      if (!symbol.isElement())
+        return false;
+
+      //skip chars used for symbol and any leading whitespace:
+      it = itSymbE;
+      skipWhiteSpace(it,itE);
+
+      //See if we are followed by a number:
+      if ( it==itE || contains(s_upperabc,*it ) ) {
+        //end of string or encountered new element name, implicit count of 1:
+        cf.emplace_back( 1, symbol );
+        return true;
+      }
+      //Must be followed by a number here. Allowed forms are for now always
+      //integral and positive, i.e. pure digits 0-9!
+      auto isDigit = [](char c) { return c>='0'&&c<='9'; };
+      std::uint_least32_t digitVal = 0;
+      auto addDigitChar = [&digitVal](char c) {
+        constexpr std::uint_least32_t maxAllowed = 1000000000;
+        constexpr std::uint_least32_t maxAllowedDiv10 = maxAllowed/10;
+        nc_assert(c>='0'&&c<='9');
+        if ( digitVal > maxAllowedDiv10 )
+          return false;
+        digitVal *= 10;
+        digitVal += (int(c)-int('0'));
+        return digitVal <= maxAllowed;
+      };
+      if ( !isDigit(*it) )
+        return false;
+      if ( !addDigitChar(*it) )
+        return false;
+      //include all immediately following digits:
+      auto itDigitE = std::next(it);
+      while ( itDigitE != itE && isDigit(*itDigitE) ) {
+        if ( !addDigitChar(*itDigitE) )
+          return false;
+        ++itDigitE;
+      }
+      if (!digitVal)
+        return false;//prevent a count of 0
+      cf.emplace_back( digitVal, symbol );
+      it = itDigitE;
+      skipWhiteSpace(it,itE);
+      return true;
+    }
+
+    bool actualDecodeChemForm( std::string s, NC::DecodedChemForm& cf )
+    {
+      {
+        const char * it = s.data();
+        auto itE = it + s.size();
+        while ( it != itE ) {
+          if (!readNextChemFormEntry(it,itE,cf))
+            return false;
+        }
+      }
+      if ( cf.empty() )
+        return false;
+
+      if ( cf.size() <= 1 )
+        return !cf.empty();
+
+      //Sort:
+      std::stable_sort(cf.begin(),cf.end(),
+                       [](const DecodedChemForm::value_type& a,
+                          const DecodedChemForm::value_type& b)
+                       {
+                         nc_assert(a.second.isElement());
+                         nc_assert(b.second.isElement());
+                         if ( a.second.Z() != b.second.Z() )
+                           return a.second.Z() < b.second.Z();
+                         return a.first < b.first;
+                       });
+
+      //Merge duplicates:
+      NC::DecodedChemForm dedupcf;
+      auto it = cf.begin();
+      auto itE = cf.end();
+      auto itLast = std::prev(cf.end());
+      for ( ; it != itE; ++it ) {
+        auto n = it->first;
+        while ( it!=itLast && it->second.Z() == std::next(it)->second.Z()) {
+          ++it;
+          n += it->first;
+        }
+        dedupcf.emplace_back(n,it->second);
+      }
+      if ( dedupcf.size() != cf.size() )
+        cf.swap(dedupcf);
+
+      return true;
+    }
+  }
+}
+
+NC::DecodedChemForm NC::decodeSimpleChemicalFormula( std::string s ) {
+  NC::DecodedChemForm cf;
+  if (!actualDecodeChemForm(s,cf))
+    NCRYSTAL_THROW2(BadInput,"Invalid chemical formula: "<<s);
+  return cf;
+}
+
+NC::Optional<NC::DecodedChemForm> NC::tryDecodeSimpleChemicalFormula( std::string s )
+{
+  NC::Optional<NC::DecodedChemForm> res;
+  res.emplace();
+  if (!actualDecodeChemForm(std::move(s),res.value()))
+    res.reset();
+  return res;
 }

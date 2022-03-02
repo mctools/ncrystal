@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -23,6 +23,9 @@
 #include "NCrystal/internal/NCFactoryUtils.hh"
 #include "NCrystal/internal/NCString.hh"
 #include "NCrystal/internal/NCFileUtils.hh"
+#include "NCrystal/NCInfoBuilder.hh"
+#include "NCrystal/internal/NCCfgManip.hh"
+#include <list>
 
 namespace NC = NCrystal;
 namespace NCF = NCrystal::FactImpl;
@@ -32,8 +35,6 @@ namespace NCrystal {
   namespace FactImpl {
 
     namespace {
-
-      static std::atomic<bool> s_cache_enabled( ! ncgetenv_bool("NOCACHE") );
 
       static_assert(Priority{Priority::Unable}.canServiceRequest()==false,"");
       static_assert(Priority{Priority::Unable}.needsExplicitRequest()==false,"");
@@ -75,10 +76,10 @@ namespace NCrystal {
           return name.c_str();
         }
 
-        ShPtr createWithOrWithoutCache(const key_type& key)
+        ShPtr loadPluginsAndCreate(const key_type& key)
         {
           Plugins::ensurePluginsLoaded();
-          return s_cache_enabled ? this->create(key) : this->createWithoutCache(key);
+          return this->create(key);
         }
       protected:
         ShPtr actualCreate(const key_type& key) const final
@@ -116,12 +117,10 @@ namespace NCrystal {
 
           VerboseOutput produceVerboseOutput(&key);
 
-          key.validate();
-
           //First consider any specific requests:
-          auto requested = FactDef::extractRequestedFactoryName(key);
-          if ( requested.excluded.count(requested.specific) )
-            NCRYSTAL_THROW2(LogicError,"Factory is both requested and excluded: "<<requested.specific);
+          auto requested = FactDef::extractRequestedFactory(key);
+          nc_assert_always( !requested.hasSpecificRequest()
+                            || !requested.excludes(requested.specificRequest()) );//already checked by FactNameRequest::Parser
 
           //Get our own list of factories. This locks m_dbmutex briefly, but
           //unlocks it again. This is important since calls to query(..) or
@@ -139,18 +138,18 @@ namespace NCrystal {
           std::vector<const FactoryClass*> db;
           db.reserve(factories.size());
           for ( auto& e : factories ) {
-            if ( !requested.excluded.count(e->name()) )
+            if ( !requested.excludes(e->name()) )
               db.push_back(&*e);
           }
 
           //Deal with request for specific factory first:
-          if (!requested.specific.empty()) {
+          if ( requested.hasSpecificRequest() ) {
             for (auto f : db) {
-              if (f->name() == requested.specific) {
-                auto priority = f->query( key.getUserFactoryKey() );
+              if (f->name() == requested.specificRequest()) {
+                auto priority = FactDef::isSuitableForKey(*f,key) ? f->query( key.getUserFactoryKey() ) : Priority::Unable;
                 if ( !priority.canServiceRequest() ) {
-                  FactDef::produceCustomNoFactFoundError( key, requested.specific );
-                  NCRYSTAL_THROW2(BadInput,"Requested "<<FactDef::name()<<" factory \""<<requested.specific
+                  FactDef::produceCustomNoFactFoundError( key, requested.specificRequest() );
+                  NCRYSTAL_THROW2(BadInput,"Requested "<<FactDef::name()<<" factory \""<<requested.specificRequest()
                                   <<"\" does not actually have capability to service request: \""<<key.toString()<<"\"");
                 }
                 if ( verbose )
@@ -159,9 +158,9 @@ namespace NCrystal {
                 return f->produce(key.getUserFactoryKey());
               }
             }
-            FactDef::produceCustomNoSpecificFactAvail( key, requested.specific );
+            FactDef::produceCustomNoSpecificFactAvail( key, requested.specificRequest() );
             NCRYSTAL_THROW2(BadInput,"Specific "<<FactDef::name()<<" factory requested which is unavailable: \""
-                            <<requested.specific<<"\"");
+                            <<requested.specificRequest()<<"\"");
           }
 
           //Nothing specific requested, query all non-excluded factories for
@@ -169,7 +168,7 @@ namespace NCrystal {
           const FactoryClass* best = nullptr;
           Priority best_priority{Priority::Unable};
           for (auto f : db) {
-            auto priority = f->query(key.getUserFactoryKey());
+            auto priority = FactDef::isSuitableForKey(*f,key) ? f->query( key.getUserFactoryKey() ) : Priority::Unable;
             const bool unable = ( !priority.canServiceRequest() || priority.needsExplicitRequest() );
             if ( verbose ) {
               std::cout<<"NCrystal::FactImpl "<<FactDef::name()<<" factory \""<<f->name()
@@ -270,38 +269,29 @@ namespace NCrystal {
       public:
         DBKey_TextDataPath( const TextDataPath& p ) : m_path(p) {}
         const TextDataPath& getUserFactoryKey() const { return m_path; }
-        void validate() const {}//Nothing here, the TextDataPath already validated.
         std::string toString() const { return m_path.toString(); }
         bool operator<(const DBKey_TextDataPath&o) const { return m_path < o.m_path; }
       };
 
-      class DBKey_MatCfg {
-        MatCfg m_cfg;
+      template<class TXXXRequest>
+      class DBKey_XXXRequest {
+        TXXXRequest m_cfg;
       public:
-        using userfact_keytype = MatCfg;
-        DBKey_MatCfg( const MatCfg& cfg ) : m_cfg(cfg) {}
-        const MatCfg& getUserFactoryKey() const { return m_cfg; }
-        void validate() const { m_cfg.checkConsistency(); }
-        std::string toString() const { return m_cfg.toStrCfg(); }
-        bool operator<(const DBKey_MatCfg&o) const { return m_cfg < o.m_cfg; }
-        DBKey_MatCfg cloneThinned() const { return m_cfg.cloneThinned(); }
+        using userfact_keytype = TXXXRequest;
+        DBKey_XXXRequest( const TXXXRequest& cfg ) : m_cfg(cfg) {}
+        const TXXXRequest& getUserFactoryKey() const { return m_cfg; }
+        std::string toString() const { std::ostringstream ss; m_cfg.stream(ss); return ss.str(); }
+        bool operator<(const DBKey_XXXRequest&o) const { return m_cfg < o.m_cfg; }
+        DBKey_XXXRequest cloneThinned() const { return m_cfg.cloneThinned(); }
       };
 
-      class DBKey_MatInfoCfg {
-        MatInfoCfg m_cfg;
-      public:
-        using userfact_keytype = MatInfoCfg;
-        DBKey_MatInfoCfg( const MatInfoCfg& cfg ) : m_cfg(cfg) {}
-        const MatInfoCfg& getUserFactoryKey() const { return m_cfg; }
-        void validate() const { m_cfg.checkConsistency(); }
-        std::string toString() const { return m_cfg.toStrCfg(); }
-        bool operator<(const DBKey_MatInfoCfg&o) const { return m_cfg < o.m_cfg; }
-        DBKey_MatInfoCfg cloneThinned() const { return m_cfg.cloneThinned(); }
-      };
+      using DBKey_InfoRequest = DBKey_XXXRequest<InfoRequest>;
+      using DBKey_ScatterRequest = DBKey_XXXRequest<ScatterRequest>;
+      using DBKey_AbsorptionRequest = DBKey_XXXRequest<AbsorptionRequest>;
 
-      template<class TKey = DBKey_MatCfg>
+      template<class TKey>
       struct DBKeyThinner {
-        //Thinning (DBKey_)MatCfg objects so we don't have strong TextData refs in the cache map keys.
+        //Thinning key objects so we don't have strong TextData/Info refs in the cache map keys.
         using key_type = TKey;
         using thinned_key_type = TKey;
         template <class TMap>
@@ -326,17 +316,17 @@ namespace NCrystal {
         using key_type = DBKey_TextDataPath;
         using produced_type = TextDataSource;
         using pubfactory_type = TextDataFactory;
-        static MatCfg::FactRequested extractRequestedFactoryName( const key_type& key )
+        static bool isSuitableForKey( const pubfactory_type&, const key_type& ) { return true; }
+        static Cfg::FactNameRequest extractRequestedFactory( const key_type& key )
         {
-          MatCfg::FactRequested fr;
-          fr.specific = key.getUserFactoryKey().fact();
+          std::string specific = key.getUserFactoryKey().fact();
           //Special: paths starting with "./" should correspond to a "relpath' request.
-          if ( fr.specific.empty() && startswith(key.getUserFactoryKey().path(),"./") )
-            fr.specific = "relpath";
-          if ( fr.specific.empty() && path_is_absolute(key.getUserFactoryKey().path()) )
-            fr.specific = "abspath";
+          if ( specific.empty() && startswith(key.getUserFactoryKey().path(),"./") )
+            specific = "relpath";
+          if ( specific.empty() && path_is_absolute(key.getUserFactoryKey().path()) )
+            specific = "abspath";
           //fr.exluded = ...;//TODO: not possible to exclude textdata factories by name!
-          return fr;
+          return Cfg::FactNameRequest::Parser::doParse(specific);
         }
         static void produceCustomNoSpecificFactAvail( const key_type& key, const std::string& fact_requested )
         {
@@ -369,15 +359,14 @@ namespace NCrystal {
       struct FactDefInfo {
         static constexpr const char* name() { return "Info"; }
         constexpr static unsigned nstrongrefs_kept = 20;
-        using key_type = DBKey_MatInfoCfg;
+        using key_type = DBKey_InfoRequest;
         using produced_type = Info;
         using pubfactory_type = FactImpl::InfoFactory;
-        static MatCfg::FactRequested extractRequestedFactoryName( const key_type& key )
+        static bool isSuitableForKey( const pubfactory_type&, const key_type& ) { return true; }
+        static Cfg::FactNameRequest extractRequestedFactory( const key_type& key )
         {
-          MatCfg::FactRequested fr;
-          fr.specific = key.getUserFactoryKey().get_infofact_name();
-          //fr.exluded = ...;//TODO: not currently possible to exclude info factories by name!
-          return fr;
+          auto fnrstr = key.getUserFactoryKey().get_infofactory();
+          return Cfg::FactNameRequest::Parser::doParse(fnrstr);
         }
         using TKeyThinner = DBKeyThinner<key_type>;//no strong refs to TextData objects
         static void produceCustomNoSpecificFactAvail( const key_type&, const std::string& ) {}
@@ -387,17 +376,32 @@ namespace NCrystal {
         static TProdRV transformTProdRVToShPtr( TProdRV o ) { return o; }
       };
 
+      template<class TXXXRequest>
+      bool singleMultiPhaseSuitability(MultiPhaseCapability cap, const TXXXRequest& cfg )
+      {
+        //Info-lvl multiphase
+        return ( cfg.isMultiPhase()
+                 ? ( cap==MultiPhaseCapability::MPOnly || cap == MultiPhaseCapability::Both )
+                 : ( cap==MultiPhaseCapability::SPOnly || cap == MultiPhaseCapability::Both ) );
+      }
+
       struct FactDefScatter {
         static constexpr const char* name() { return "Scatter"; }
         constexpr static unsigned nstrongrefs_kept = 20;
-        using key_type = DBKey_MatCfg;
+        using key_type = DBKey_ScatterRequest;
         using produced_type = ProcImpl::Process;
         using pubfactory_type = FactImpl::ScatterFactory;
-        static MatCfg::FactRequested extractRequestedFactoryName( const key_type& key )
+        static bool isSuitableForKey( const pubfactory_type& pf, const key_type& key )
         {
-          return key.getUserFactoryKey().get_scatfactory_parsed();
+          return singleMultiPhaseSuitability(pf.multiPhaseCapability(),key.getUserFactoryKey());
         }
-        using TKeyThinner = DBKeyThinner<key_type>;//no strong refs to TextData objects
+        static Cfg::FactNameRequest extractRequestedFactory( const key_type& key )
+        {
+          auto fnrstr = key.getUserFactoryKey().get_scatfactory();
+          return Cfg::FactNameRequest::Parser::doParse(fnrstr);
+        }
+
+        using TKeyThinner = DBKeyThinner<key_type>;
         static void produceCustomNoSpecificFactAvail( const key_type&, const std::string& ) {}
         static void produceCustomNoFactFoundError( const key_type&, const std::string& = {} ) {}
         //produces shared objects directly:
@@ -408,14 +412,19 @@ namespace NCrystal {
       struct FactDefAbsorption {
         static constexpr const char* name() { return "Absorption"; }
         constexpr static unsigned nstrongrefs_kept = 5;
-        using key_type = DBKey_MatCfg;
+        using key_type = DBKey_AbsorptionRequest;
         using produced_type = ProcImpl::Process;
         using pubfactory_type = FactImpl::AbsorptionFactory;
-        static MatCfg::FactRequested extractRequestedFactoryName( const key_type& key )
+        static bool isSuitableForKey( const pubfactory_type& pf, const key_type& key )
         {
-          return key.getUserFactoryKey().get_absnfactory_parsed();
+          return singleMultiPhaseSuitability(pf.multiPhaseCapability(),key.getUserFactoryKey());
         }
-        using TKeyThinner = DBKeyThinner<key_type>;//no strong refs to TextData objects
+        static Cfg::FactNameRequest extractRequestedFactory( const key_type& key )
+        {
+          auto fnrstr = key.getUserFactoryKey().get_absnfactory();
+          return Cfg::FactNameRequest::Parser::doParse(fnrstr);
+        }
+        using TKeyThinner = DBKeyThinner<key_type>;
         static void produceCustomNoSpecificFactAvail( const key_type&, const std::string& ) {}
         static void produceCustomNoFactFoundError( const key_type&, const std::string& ={} ) {}
         //produces shared objects directly:
@@ -429,22 +438,6 @@ namespace NCrystal {
       FactDB<FactDefInfo>& infoDB() { static FactDB<FactDefInfo> db; return db; }
       FactDB<FactDefScatter>& scatterDB() { static FactDB<FactDefScatter> db; return db; }
       FactDB<FactDefAbsorption>& absorptionDB() { static FactDB<FactDefAbsorption> db; return db; }
-    }
-
-    void setCachingEnabled(bool b) {
-      if (getFactoryVerbosity())
-        std::cout<<"NCrystal::Factory - called setCachingEnabled("<<(b?"true":"false")<<")."<<std::endl;
-      s_cache_enabled = b;
-      if (!s_cache_enabled) {
-        textDataDB().cleanup();
-        infoDB().cleanup();
-        scatterDB().cleanup();
-        absorptionDB().cleanup();
-      }
-    }
-
-    bool getCachingEnabled() {
-      return s_cache_enabled;
     }
   }
 }
@@ -498,51 +491,442 @@ NC::shared_obj<const NC::TextData> NCF::createTextData( const TextDataPath& path
   return produceTextDataSP_PreferPreviousObject( path, std::move(textDataSource) );
 }
 
+namespace NCrystal {
+
+  namespace FactImpl {
+
+    namespace {
+
+
+      template<class TRequest>
+      TRequest createRequestTmpl( const MatCfg& );
+      template<> inline InfoRequest createRequestTmpl( const MatCfg& cfg ) { return InfoRequest(cfg); }
+      template<> inline ScatterRequest createRequestTmpl( const MatCfg& cfg ) { return ScatterRequest(cfg); }
+      template<> inline AbsorptionRequest createRequestTmpl( const MatCfg& cfg ) { return AbsorptionRequest(cfg); }
+
+      template<typename TRequest>
+      class CfgLvlMPProc_Key {
+      public:
+        using value_type = std::pair<double,TRequest>;
+
+        CfgLvlMPProc_Key( const MatCfg::PhaseList& cfg_phases )
+        {
+          //Must prepare TRequest objects for each phase, but must also at this
+          //point calculate the relative contribution of each phase to the number
+          //density, as this contribution determines the weight factor of the
+          //associated physics processes. This information can not be derived from
+          //the info objects in the TRequest objects, as that object will be
+          //independent of the MatCfg level density state.
+          //
+          //Also we are careful to NOT pass non-trivial (e.g. with density
+          //state) cfg objects to TRequest constructors.
+          nc_assert(cfg_phases.size()>=2);
+          m_data.reserve(cfg_phases.size());
+          StableSum combinedNumberDensity;
+          for ( auto& e : cfg_phases ) {
+            const double volfrac = e.first;
+            const auto& cfg = e.second;
+            nc_assert_always(!cfg.isMultiPhase());
+            nc_assert( cfg.isSinglePhase() );
+            //Always get number density of phase like this, to handle density
+            //overrides, phase-choices, etc.:
+            auto info = FactImpl::createInfo(cfg);
+            const double numdens_contrib = volfrac * info->getNumberDensity().dbl();
+            m_data.emplace_back( numdens_contrib,//<--will be normalised below
+                                 TRequest{info} );
+                                 //createRequestTmpl<TRequest>(info) );
+            nc_assert(!m_data.back().second.isThinned());
+            combinedNumberDensity.add( numdens_contrib );
+          }
+          const double totnd = combinedNumberDensity.sum();
+          if ( !(totnd>0.0) ) {
+            //shouldn't happen, but clear m_data to signal production of null process
+            m_data.clear();
+          } else {
+            for ( auto& e : m_data )
+              e.first /= totnd;
+          }
+          //For consistency (and to make phase specification order irrelevant
+          //for process objects), sort. Note that no sorting should happen
+          //BEFORE phasechoices are evaluated, since that would mess with user
+          //expectations:
+          std::stable_sort( m_data.begin(), m_data.end() );
+        }
+
+        const value_type* begin() const { return &m_data[0]; }
+        const value_type* end() const { return &m_data[0] + m_data.size(); }
+        bool empty() const { return m_data.empty(); }
+
+        bool isThinned() const
+        {
+          return m_data.at(0).isThinned();
+        }
+
+        CfgLvlMPProc_Key cloneThinned() const
+        {
+          CfgLvlMPProc_Key res;
+          res.m_data.reserve(m_data.size());
+          for ( auto& e : m_data )
+            res.m_data.emplace_back( e.first, e.second.cloneThinned() );
+          return res;
+        }
+
+        bool operator<(const CfgLvlMPProc_Key& o ) const
+        {
+          auto n = m_data.size();
+          if ( n != o.m_data.size() )
+            return n < o.m_data.size();
+          for ( auto i : ncrange(n) ) {
+            nc_assert_always( !std::isnan( m_data[i].first ) );
+            nc_assert_always( !std::isnan( o.m_data[i].first ) );
+            if ( m_data[i].first != o.m_data[i].first )
+              return m_data[i].first < o.m_data[i].first;
+          }
+          for ( auto i : ncrange(n) ) {
+            nc_assert( (m_data[i].second == o.m_data[i].second ) == ( !(m_data[i].second < o.m_data[i].second) && !(o.m_data[i].second < m_data[i].second)) );
+            if ( ! (m_data[i].second == o.m_data[i].second ) )
+              return m_data[i].second < o.m_data[i].second;
+          }
+          //equal:
+          return false;
+        }
+      private:
+        CfgLvlMPProc_Key() = default;
+        std::vector<value_type> m_data;
+      };
+
+      template<class TRequest, unsigned nstrongrefs_kept = 20>
+      class MPProcCacheDB : public CachedFactoryBase<CfgLvlMPProc_Key<TRequest>,
+                                                     ProcImpl::Process,
+                                                     nstrongrefs_kept,
+                                                     FactImpl::DBKeyThinner<CfgLvlMPProc_Key<TRequest>>> {
+      public:
+        using key_type = CfgLvlMPProc_Key<TRequest>;
+        std::string keyToString( const key_type& key ) const final
+        {
+          //NB: No attempt to print common parameters at the end - it would be overkill for this usage.
+          std::ostringstream ss;
+          ss << "MPProcRequest<";
+          bool first = true;
+          for ( auto& e : key ) {
+            if (!first)
+              ss<<'&';
+            first = false;
+            ss<<e.first<<'*'<<e.second;
+          }
+          ss<<'>';
+          return ss.str();
+        }
+        const char* factoryName() const final
+        {
+          static_assert( std::is_same<TRequest,ScatterRequest>::value
+                         || std::is_same<TRequest,AbsorptionRequest>::value,"" );
+          return ( std::is_same<TRequest,ScatterRequest>::value
+                   ? "CfgLvlMultiPhaseScatterBuilder"
+                   : "CfgLvlMultiPhaseAbsorptionBuilder" );
+        }
+      protected:
+        std::shared_ptr<const ProcImpl::Process> actualCreate(const key_type& key) const final
+        {
+          static_assert( std::is_same<TRequest,ScatterRequest>::value
+                         || std::is_same<TRequest,AbsorptionRequest>::value,"" );
+          constexpr ProcessType processType = ( std::is_same<TRequest,ScatterRequest>::value
+                                                ? ProcessType::Scatter
+                                                : ProcessType::Absorption );
+          if ( key.empty() )
+            return ProcImpl::getGlobalNullProcess(processType);
+          ProcImpl::ProcComposition::ComponentList proclist;
+          StableSum combinedNumberDensity;
+          for ( auto& e : key )
+            proclist.push_back( ProcImpl::ProcComposition::Component{ e.first, FactImpl::create( e.second ) } );
+          return ProcImpl::ProcComposition::consumeAndCombine( std::move(proclist), processType );
+        }
+      };
+
+      template<ProcessType processType, class TRequest>
+      ProcImpl::ProcPtr createProcFromMPCfg(const MatCfg::PhaseList& cfg_phases)
+      {
+        nc_assert_always(cfg_phases.size()>=2);
+        //Create via cache:
+        CfgLvlMPProc_Key<TRequest> key(cfg_phases);
+        static MPProcCacheDB<TRequest> s_db;
+        return s_db.create(key);
+      }
+
+      //Mini-factory for the creation of Info objects from MatCfg objects with
+      //isMultiPhase()=true. These can not be created from the other Info
+      //factory infrastructure since that one works on InfoRequests which are
+      //always based on single-phase objects (at the cfg-level).
+
+      struct MultiPhaseMatCfgCache {
+        std::mutex mtx;
+        std::map<MatCfg,std::weak_ptr<const Info>> db;
+        //Strong refs:
+        std::list<InfoPtr> strong_refs;
+        void cropStrongRefs() {
+          //Expire the least accessed strong refs if
+          //we are holding too many:
+          while ( strong_refs.size() > 20 )
+            strong_refs.pop_front();
+        };
+      };
+      MultiPhaseMatCfgCache& getMultiPhaseMatCfgCache()
+      {
+        static MultiPhaseMatCfgCache db;
+        return db;
+      }
+      void clearMPCfgInfoCache() {
+        auto& cache = getMultiPhaseMatCfgCache();
+        NCRYSTAL_LOCK_GUARD(cache.mtx);
+        cache.db.clear();
+        cache.strong_refs.clear();
+      }
+      InfoPtr createInfoFromMultiPhaseCfg(const MatCfg& cfg)
+      {
+        const bool verbose = getFactoryVerbosity();
+
+        nc_assert( cfg.isMultiPhase() && cfg.phases().size()>1 );
+        auto& cache = getMultiPhaseMatCfgCache();
+        {
+          //Acquire lock and check cache:
+          NCRYSTAL_LOCK_GUARD(cache.mtx);
+          auto it = cache.db.find(cfg);
+          if ( it != cache.db.end() ) {
+            auto res = it->second.lock();
+            if ( res != nullptr ) {
+              //Great, it was already in the cache! Only thing left is to make
+              //sure it is placed at the back of the strong_refs list.
+              auto& SR = cache.strong_refs;
+              if ( SR.empty() || SR.back() != res ) {
+                auto itsr = std::find(SR.begin(), SR.end(), res);
+                if ( itsr == SR.end() ) {
+                  SR.push_back(res);
+                  cache.cropStrongRefs();
+                } else {
+                  //Move existing entry to the end:
+                  SR.splice( SR.end(), SR, itsr );
+                }
+              }
+              if ( verbose )
+                std::cout<<"NCrystal::FactImpl (thread_"<<thread_details::currentThreadIDForPrint()
+                         <<") Returning existing MatCfg-level multiphase Info object from key "<<cfg<<std::endl;
+              return res;
+            }
+            //weakptr apparently expired:
+            cache.db.erase(it);
+          }
+          //Good place to register cache cleanup fct:
+          {
+            static bool first = true;
+            if ( first ) {
+              first = false;
+              //We register to be cleaned up whenever the Info factory is cleaned
+              //up:
+              FactImpl::infoDB().registerCleanupCallback(clearMPCfgInfoCache);
+              registerCacheCleanupFunction(clearMPCfgInfoCache);
+            }
+          }
+        }
+
+        //Lock released again.
+
+        //Nothing in the cache, build the object from scratch:
+        if ( verbose )
+          std::cout<<"NCrystal::FactImpl (thread_"<<thread_details::currentThreadIDForPrint()
+                   <<") creating (from scratch) MatCfg-level multiphase Info object from key "<<cfg<<std::endl;
+
+        InfoBuilder::MultiPhaseBuilder mp_builder;
+        const auto& cfg_phases = cfg.phases();
+        mp_builder.phases.reserve(cfg_phases.size());
+        for ( auto& cfg_ph : cfg_phases )
+          mp_builder.phases.emplace_back(cfg_ph.first,FactImpl::createInfo(cfg_ph.second));
+
+        auto res = InfoBuilder::buildInfoPtr( std::move(mp_builder) );
+
+        {
+          //Acquire lock again and check cache again:
+          NCRYSTAL_LOCK_GUARD(cache.mtx);
+          auto& entry_wp = cache.db[cfg];
+          auto entry_sp = entry_wp.lock();
+          if ( entry_sp != nullptr ) {
+            //Looks like another thread beat us to the creation. We simply return
+            //that one and discard the one we just created (we don't bother
+            //updating strong_ref here since the other thread will have done so
+            //recently).
+            if ( verbose )
+              std::cout<<"NCrystal::FactImpl (thread_"<<thread_details::currentThreadIDForPrint()
+                       <<") Discarding MatCfg-level multiphase Info object from key "
+                       <<cfg<<" (competing thread beat us to it)"<<std::endl;
+            return entry_sp;
+          }
+          //Ok, we have to return the one we created. First update cache:
+          entry_wp = res;
+          //Update strong refs:
+          cache.strong_refs.push_back(res);
+          cache.cropStrongRefs();
+          //Return:
+          return res;
+        }
+      }
+    }
+  }
+}
+
+NC::shared_obj<const NC::Info> NCF::createInfo( const InfoRequest& cfg )
+{
+  return infoDB().loadPluginsAndCreate( { cfg } );
+}
+
+NC::ProcImpl::ProcPtr NCF::createScatter( const ScatterRequest& cfg )
+{
+  auto p = scatterDB().loadPluginsAndCreate( { cfg } );
+  nc_assert( p!=nullptr );
+  if ( p->processType() != ProcessType::Scatter )
+    NCRYSTAL_THROW2(CalcError,"Scatter factory created "<<p->processType()<<" process!");
+  //All null processes use same global instances:
+  return p->isNull() ? ProcImpl::getGlobalNullProcess(p->processType()) : ProcImpl::ProcPtr{p};
+}
+
+NC::ProcImpl::ProcPtr NCF::createAbsorption( const AbsorptionRequest& cfg )
+{
+  auto p = absorptionDB().loadPluginsAndCreate( { cfg } );
+  nc_assert( p!=nullptr );
+  if ( p->processType() != ProcessType::Absorption )
+    NCRYSTAL_THROW2(CalcError,"Absorption factory created "<<p->processType()<<" process!");
+  //All null processes use same global instances:
+  return p->isNull() ? ProcImpl::getGlobalNullProcess(p->processType()) : ProcImpl::ProcPtr{p};
+}
+
 NC::shared_obj<const NC::Info> NCF::createInfo( const MatCfg& cfg )
 {
-  return infoDB().createWithOrWithoutCache( { cfg.createInfoCfg() } );
-}
-
-NC::shared_obj<const NC::ProcImpl::Process> NCF::createScatter( const MatCfg& cfg )
-{
-  auto p = scatterDB().createWithOrWithoutCache( { cfg } );
-  auto pt = p->processType();
-  if ( pt != ProcessType::Scatter )
-    NCRYSTAL_THROW2(CalcError,"Scatter factory created "<<pt<<" process!");
-  return p;
-}
-
-NC::shared_obj<const NC::ProcImpl::Process> NCF::createAbsorption( const MatCfg& cfg )
-{
-  auto p = absorptionDB().createWithOrWithoutCache( { cfg } );
-  auto pt = p->processType();
-  if ( pt != ProcessType::Absorption )
-    NCRYSTAL_THROW2(CalcError,"Absorption factory created "<<pt<<" process!");
-  return p;
-}
-
-NC::ProcImpl::ProcPtr NCF::ScatterFactory::globalCreateScatter( const MatCfg& cfg, bool allowself ) const
-{
-  auto cfg2 = cfg.clone();
-  if ( ! allowself ) {
-    std::string ourname=name();
-    auto factrequest = cfg2.get_scatfactory_parsed();
-    factrequest.excluded.insert(ourname);
-    if (factrequest.specific==ourname)
-      factrequest.specific.clear();
-    cfg2.set_scatfactory(factrequest);
+  ///////////////////////////////////////////////////////////////////////////////////////////////
+  // First deal with phase-choices (before all other things, which is in line
+  // with the documentation's promise that the effect of phase-choice parameter
+  // is applied after Info objects are loaded, based on all other parameters),
+  // making sure that only cfg objects without top-level phase-choices gets
+  // looked up below (to avoid populating the cache with essentially identical
+  // objects):
+  MatCfg::PhaseChoices phaseChoices = cfg.getPhaseChoices();
+  if ( !phaseChoices.empty() ) {
+    auto info = createInfo( cfg.cloneWithoutPhaseChoices() );
+    //Recursively zoom in to specific chosen phase:
+    for ( auto iphasechoice : phaseChoices ) {
+      if ( ! info->isMultiPhase() || !( iphasechoice < info->getPhases().size() ) )
+        NCRYSTAL_THROW(BadInput,"Invalid phase choice.");
+      info = info->getPhases().at(iphasechoice).second;
+    }
+    return info;
   }
-  return ::NCrystal::FactImpl::createScatter(cfg2);
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////
+  // Next deal with special density requests:
+
+  if ( cfg.hasDensityOverride() ) {
+    using DType = DensityState::Type;
+    auto info_underlying = createInfo( cfg.cloneWithoutDensityState() );
+    auto ds = cfg.get_density();
+    if ( info_underlying->isSinglePhase() ) {
+      //Single phase => Simply override or scale the density:
+      if ( ds.type == DType::SCALEFACTOR )
+        return InfoBuilder::buildInfoPtrWithScaledDensity( info_underlying,ds.value );
+      if ( ds.type == DType::NUMBERDENSITY )
+        return InfoBuilder::buildInfoPtr(info_underlying,NumberDensity{ ds.value });
+      nc_assert( ds.type == DType::DENSITY );
+      return InfoBuilder::buildInfoPtr(info_underlying,Density{ ds.value });
+    } else {
+      //Multi-phase => figure out density scale, apply it to all phases, and put together in a new object.
+      nc_assert( info_underlying->getNumberDensity().dbl() > 0.0 );
+      nc_assert( info_underlying->getDensity().dbl() > 0.0 );
+      double scale_factor = ds.value;
+      if ( ds.type == DType::NUMBERDENSITY )
+        scale_factor = ds.value / info_underlying->getNumberDensity().dbl();
+      if ( ds.type == DType::DENSITY )
+        scale_factor = ds.value / info_underlying->getDensity().dbl();
+      InfoBuilder::MultiPhaseBuilder mpbldr;
+      mpbldr.phases.reserve(info_underlying->getPhases().size());
+      for ( auto& ph : info_underlying->getPhases() ) {
+        mpbldr.phases.emplace_back(ph.first,
+                                   InfoBuilder::buildInfoPtrWithScaledDensity(ph.second,scale_factor));
+
+      }
+      return InfoBuilder::buildInfoPtr( std::move(mpbldr) );
+    }
+  }
+  nc_assert( !cfg.hasDensityOverride() );
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////
+  // Deal with multi-phase MatCfg objects:
+
+  nc_assert(cfg.getPhaseChoices().empty());
+  if ( cfg.isMultiPhase() ) {
+    nc_assert_always( cfg.phases().size() >= 2 );
+    return createInfoFromMultiPhaseCfg(cfg);
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////
+  //Finally cfg is here is a single-phase object without phase choices or
+  //density overrides. Request this from the InfoRequest-based infrastructure:
+
+  //NB: It is possible that the created Info object will be a multi-phase
+  //object, if e.g. a single .ncmat file provides multiple phases.
+
+  nc_assert(cfg.isTrivial());
+  auto info = createInfo( InfoRequest(cfg) );
+
+  return InfoBuilder::recordCfgDataOnInfoObject( std::move(info), cfg.rawCfgData() );
 }
 
-NC::shared_obj<const NC::Info> NCF::ScatterFactory::globalCreateInfo( const MatCfg& cfg )
+NC::ProcImpl::ProcPtr NCF::createScatter( const MatCfg& cfg )
 {
-  return ::NCrystal::FactImpl::createInfo(cfg);
+  if ( cfg.hasDensityOverride() )
+    return createScatter( cfg.cloneWithoutDensityState() );//never matters for a process
+  MatCfg::PhaseChoices phaseChoices = cfg.getPhaseChoices();
+  if ( !phaseChoices.empty() ) {
+    //Let createInfo deal with phasechoices, and let us just transform it into a scatter request:
+    return FactImpl::create( ScatterRequest(createInfo(cfg)) );
+  }
+  nc_assert_always( cfg.getPhaseChoices().empty() );
+  nc_assert_always( !cfg.hasDensityOverride() );
+  auto cfg_phases = cfg.phases();
+  nc_assert_always( cfg_phases.size() != 1 );
+  return ( cfg_phases.empty()
+           ? create( ScatterRequest(cfg) )
+           : createProcFromMPCfg<ProcessType::Scatter,ScatterRequest>(cfg_phases) );
 }
 
-NC::shared_obj<const NC::Info> NCF::ScatterFactory::createInfo( const MatCfg& cfg )
+NC::ProcImpl::ProcPtr NCF::createAbsorption( const MatCfg& cfg )
 {
-  return ::NCrystal::FactImpl::createInfo(cfg);
+  if ( cfg.hasDensityOverride() )
+    return createAbsorption( cfg.cloneWithoutDensityState() );//never matters for a process
+
+  MatCfg::PhaseChoices phaseChoices = cfg.getPhaseChoices();
+  if ( !phaseChoices.empty() ) {
+    //Let createInfo deal with phasechoices, and let us just transform it into a scatter request:
+    return FactImpl::create( AbsorptionRequest(createInfo(cfg) ));
+  }
+  auto cfg_phases = cfg.phases();
+  nc_assert_always( cfg_phases.size() != 1 );
+  return ( cfg_phases.empty()
+           ? create( AbsorptionRequest(cfg) )
+           : createProcFromMPCfg<ProcessType::Absorption,AbsorptionRequest>(cfg_phases) );
+}
+
+NC::ProcImpl::ProcPtr NCF::ScatterFactory::globalCreateScatter( const ScatterRequest& req ) const
+{
+  auto scatfact_strview = Cfg::CfgManip::get_scatfactory(req.rawCfgData());
+  auto fnreq = Cfg::FactNameRequest::Parser::doParse( scatfact_strview );
+  StrView ourname = name();
+  if (!fnreq.excludes(ourname))
+    fnreq = fnreq.withAdditionalExclude(ourname);
+  if ( ourname == fnreq.specificRequest() )
+    fnreq = fnreq.withNoSpecificRequest();
+  std::string modstr;
+  modstr.reserve(128);
+  constexpr StrView varname = Cfg::varInfo( Cfg::VarId::scatfactory ).nameSV();
+  varname.appendToString(modstr);
+  modstr += '=';
+  modstr.append(fnreq.to_string());
+  return ::NCrystal::FactImpl::createScatter(req.modified(modstr));
 }
 
 std::string NCF::guessDataType( const RawStrData& data,

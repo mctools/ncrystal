@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -32,17 +32,26 @@ namespace NCrystal {
     // Provide absorption cross section based on simple 1/velocity
     // (=OneOverVelocity=OOV) scaling. This is non-oriented.
 
-
     AbsOOV( SigmaAbsorption );
-    AbsOOV( const Info& );
 
     const char * name() const noexcept final { return "AbsOOV"; }
     CrossSect crossSectionIsotropic(CachePtr&, NeutronEnergy ) const final;
 
-    std::shared_ptr<Process> createMerged( const Process& ) const override;
+    EnergyDomain domain() const noexcept override { return m_domain; }
 
+    //Simple additive merge:
+    std::shared_ptr<Process> createMerged( const Process& other,
+                                           double scale_self,
+                                           double scale_other ) const override;
+
+    //For initialising directly from Info objects:
+    AbsOOV( const Info& info ) : AbsOOV( info.getXSectAbsorption() ) {}
+
+  protected:
+    Optional<std::string> specificJSONDescription() const override;
   private:
     double m_c;
+    EnergyDomain m_domain;
   };
 }
 

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -27,6 +27,9 @@
 
 namespace NCrystal {
 
+  namespace FactImpl {
+    class InfoRequest;
+  }
   class NCMATData;
 
   // Read .ncmat file and return a corresponding NCrystal::Info object from it
@@ -50,30 +53,33 @@ namespace NCrystal {
     double dcutoffup = kInfinity;//angstrom
     bool expandhkl = false;
     std::vector<VectS> atomdb;
+    DataSourceName dataSourceName;
+
+    //Optional (purely for passing on top-level info parameters to non-ncmat
+    //sub-phases):
+    const FactImpl::InfoRequest * originalInfoRequest = nullptr;
   };
 
   //The core feature is to load from parsed NCMAT data structure (which will be
   //consumed):
   NCRYSTAL_API Info loadNCMAT( NCMATData&& ncmat_data,
-                                  NCMATCfgVars&& cfgvars = NCMATCfgVars() );
+                               NCMATCfgVars&& cfgvars = NCMATCfgVars() );
 
   //For conveniece, can also parse TextData and load result:
   NCRYSTAL_API Info loadNCMAT( const TextData&,
-                                  NCMATCfgVars&& cfgvars = NCMATCfgVars() );
+                               NCMATCfgVars&& cfgvars = NCMATCfgVars() );
 
   //For additional convenience can also load TextData from filename, parse it,
   //and then load it:
   NCRYSTAL_API Info loadNCMAT( const char * ncmat_file,
-                                  NCMATCfgVars&& cfgvars = NCMATCfgVars() );
+                               NCMATCfgVars&& cfgvars = NCMATCfgVars() );
 
   NCRYSTAL_API Info loadNCMAT( const std::string& ncmat_file,
-                                  NCMATCfgVars&& cfgvars = NCMATCfgVars() );
+                               NCMATCfgVars&& cfgvars = NCMATCfgVars() );
 
-  //Finally, it is of course possible to load directly from MatCfg objects, as
-  //they, contain both configuration and TextData (will only use data available
-  //on MatInfoCfg):
-  NCRYSTAL_API Info loadNCMAT( const MatInfoCfg& );
-  NCRYSTAL_API Info loadNCMAT( const MatCfg& );
+  //Finally, it is of course possible to load directly from InfoRequest's, as
+  //they, contain both configuration and TextData:
+  NCRYSTAL_API Info loadNCMAT( const FactImpl::InfoRequest& );
 
   //@CUSTOM_xxx sections in NCMAT input will produce warnings by default, unless
   //the env var NCRYSTAL_NCMAT_NOWARNFORCUSTOM was set when NCrystal was

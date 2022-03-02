@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,8 +21,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCTextData.hh"
+#include "NCrystal/NCInfoBuilder.hh"
 #include "NCNXSLib.hh"
 
 namespace NCrystal {
@@ -31,28 +31,25 @@ namespace NCrystal {
   public:
     LazLoader(const TextData& laz_file, double dcutlow, double dcutup, Temperature);
     ~LazLoader() = default;
-    void read();
-    shared_obj<const Info> getCrystalInfo();
+    InfoBuilder::SinglePhaseBuilder read();
   protected:
 
     void preParse(const TextData&);
-    std::string m_inputDescription;
+    DataSourceName m_inputDescription;
     std::vector<VectS> m_raw_header;
     std::vector<VectS> m_raw_data;
 
-
-    shared_obj<Info> m_cinfo;
     double m_dcutlow;
     double m_dcutup;
     Temperature m_temp;
     typedef VectS::const_iterator StrVecItr;
     typedef std::vector<VectS >::const_iterator RawItr;
-    bool search_parameter(std::string attr, double &result);
-    bool search_index(std::string attr, unsigned &result);
-    bool search_spacegroup(unsigned &result);
-    bool search_multiplicity(unsigned &result );
-    unsigned countAtom(std::string formula);
-    bool setupSgInfo(unsigned spaceGroup, nxs::T_SgInfo& sgInfo);
+    bool search_parameter(const std::string& attr, double &result) const;
+    bool search_index(const std::string& attr, unsigned &result) const;
+    bool search_spacegroup(unsigned &result) const;
+    bool search_multiplicity(unsigned &result ) const;
+    unsigned countAtom(const std::string& formula) const;
+    bool setupSgInfo(unsigned spaceGroup, nxs::T_SgInfo& sgInfo) const;
   };
 }
 

@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -40,18 +40,17 @@ namespace NCrystal{
       : m_ekin_low(-1)
     {
       nc_assert_always(lcbragg);
+      if (!cinfo.hasStructureInfo())
+        NCRYSTAL_THROW(MissingInfo,"Passed Info object lacks structure information.");
 
       //Convert lcaxis to lab frame:
-      RotMatrix reci_lattice = getReciprocalLatticeRot( cinfo );
+      const StructureInfo& si = cinfo.getStructureInfo();
+      RotMatrix reci_lattice = getReciprocalLatticeRot( si );
       RotMatrix cry2lab = getCrystal2LabRot( sco, reci_lattice );
       LCAxis lcaxis_labframe = (cry2lab * lcaxis.as<Vector>()).unit().as<LCAxis>();
 
       if (mode==0) {
         nc_assert_always(delta_d==0);//mode=0 does not currently support delta_d!=0
-        if (!cinfo.hasStructureInfo())
-          NCRYSTAL_THROW(MissingInfo,"Passed Info object lacks structure information.");
-        nc_assert_always(cinfo.hasStructureInfo());
-        const StructureInfo& si = cinfo.getStructureInfo();
 
         std::unique_ptr<PlaneProvider> stdpp;
         if (!plane_provider) {

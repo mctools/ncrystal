@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -29,6 +29,29 @@ namespace NCrystal {
   //radians):
   RotMatrix getLatticeRot( double lattice_a, double lattice_b, double lattice_c,
                            double alpha, double beta, double gamma );
+
+  // Validate orientation parameters (check against null-vectors, parallel
+  // vectors, consistency of angles in the two frames given dirtol,
+  // etc.). Throws BadInput exception in case of issues.
+  void precheckLatticeOrientTol( double dirtol );
+  void precheckLatticeOrientDir( const OrientDir& );
+  void verifyLatticeOrientDef( const LabAxis& l1, const CrystalAxis& c1,
+                               const LabAxis& l2, const CrystalAxis& c2,
+                               double dirtol );
+
+  //Same, but on OrientDir's which might include HKLPoint's, in which case the
+  //validation won't be complete (due to the absence of a lattice rotation
+  //matrix):
+  void precheckLatticeOrientDef( const OrientDir& dir1, const OrientDir& dir2, double dirtol );
+
+  //Fully validate orientation parameters and construct crystal rotation matrix
+  //(transforms lab frame -> crystal frame). Requires a reciprocal lattice
+  //rotation matrix.
+  RotMatrix verifyLatticeOrientDefAndConstructCrystalRotation( const OrientDir& dir1,
+                                                               const OrientDir& dir2,
+                                                               double dirtol,
+                                                               const RotMatrix& reci_lattice );
+
 
   //Reciprocal lattice rotation (inverted lattice transform, multiplied by 2pi):
   RotMatrix getReciprocalLatticeRot( double lattice_a, double lattice_b, double lattice_c,

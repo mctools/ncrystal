@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,28 +21,28 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCTextData.hh"
+#include "NCrystal/NCInfoBuilder.hh"
 
 namespace NCrystal {
 
-  Info loadNXSCrystal( const TextData&,
-                       Temperature,
-                       double dcutoff_low_aa,
-                       double dcutoff_upper_aa,
-                       bool bkgdlikemcstas,//compose background curve as done in McStas
-                                           //Sample_nxs.comp rather than as in NXSG4.
-                       bool fixpolyatom//upstream nxslib
-                                       //overestimates
-                                       //incoherent xsect of
-                                       //polyatomic crystals at
-                                       //long wavelengths. Set
-                                       //to exclude this
-                                       //contribution (warning:
-                                       //this might instead
-                                       //underestimate at short
-                                       //wavelengths).
-                       );
+  InfoBuilder::SinglePhaseBuilder loadNXSCrystal( const TextData&,
+                                                  Temperature,
+                                                  double dcutoff_low_aa,
+                                                  double dcutoff_upper_aa,
+                                                  bool bkgdlikemcstas=false,//compose background curve as done in McStas
+                                                                      //Sample_nxs.comp rather than as in NXSG4.
+                                                  bool fixpolyatom=false//upstream nxslib
+                                                                  //overestimates
+                                                                  //incoherent xsect of
+                                                                  //polyatomic crystals at
+                                                                  //long wavelengths. Set
+                                                                  //to exclude this
+                                                                  //contribution (warning:
+                                                                  //this might instead
+                                                                  //underestimate at short
+                                                                  //wavelengths).
+                                                  );
 
 }
 

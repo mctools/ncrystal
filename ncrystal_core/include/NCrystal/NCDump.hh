@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -28,7 +28,8 @@ namespace NCrystal {
   class Info;
 
   //Dumps info to stdout:
-  NCRYSTAL_API void dump(const Info&);
+  enum class DumpVerbosity{ DEFAULT, VERBOSE };
+  NCRYSTAL_API void dump(const Info&, DumpVerbosity = DumpVerbosity::DEFAULT );
 }
 
 #endif

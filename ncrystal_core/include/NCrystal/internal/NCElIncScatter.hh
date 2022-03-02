@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -69,12 +69,17 @@ namespace NCrystal {
     ScatterOutcomeIsotropic sampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const final;
 
     //Simple additive merge:
-    std::shared_ptr<Process> createMerged( const Process& ) const override;
+    std::shared_ptr<Process> createMerged( const Process& other,
+                                           double scale_self,
+                                           double scale_other ) const override;
+
 
     //Specialised constructor providing internal state directly:
     ElIncScatter( std::unique_ptr<ElIncXS> );
 
   protected:
+    Optional<std::string> specificJSONDescription() const override;
+  private:
     std::unique_ptr<ElIncXS> m_elincxs;
   };
 }

@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -85,9 +85,9 @@ namespace NCrystal {
     std::string descr() const
     {
       std::string s;
-      s.reserve(m_data.sourceDescription.size()+2);
+      s.reserve(m_data.sourceDescription.str().size()+2);
       s += '"';
-      s+= m_data.sourceDescription;
+      s+= m_data.sourceDescription.str();
       s+='"';
       return s;
     }
@@ -135,7 +135,7 @@ NC::NCMATParser::NCMATParser( const TextData& input )
     m_dyninfo_active_vector_field_allownegative(false)
 {
   //Setup source description strings first as it is used in error messages:
-  m_data.sourceDescription = input.description();
+  m_data.sourceDescription = input.dataSourceName();
 
   //Inspect first line to ensure format is NCMAT and extract version:
   auto itLine = input.begin();

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -56,12 +56,17 @@ namespace NCrystal {
 
       SABXSProvider createXSProvider() { SABXSProvider o; doit(&o,nullptr); return o; }
       SABSampler createSampler() { SABSampler o; doit(nullptr,&o); return o; }
-      SABScatterHelper createScatterHelper() { SABScatterHelper o; doit(&o.xsprovider,&o.sampler); return o; }
+      SABScatterHelper createScatterHelper()
+      {
+        SABScatterHelper o;
+        doit(&o.xsprovider,&o.sampler,&o.specificJSONDescription);
+        return o;
+      }
 
     private:
       struct Impl;
       Pimpl<Impl> m_impl;
-      void doit(SABXSProvider *, SABSampler*);
+      void doit(SABXSProvider *, SABSampler*, Optional<std::string>* json = nullptr);
     };
   }
 }

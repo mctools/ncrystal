@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -48,11 +48,10 @@ namespace NCrystal {
     //validate():
     void validate() const;
 
-
     //Metadata
     int version = 0;
     constexpr static int latest_version = 5;
-    std::string sourceDescription;
+    DataSourceName sourceDescription;
 
     //convenience (for a validated instance, this is the same as hasCell or hasAtomPos):
     bool hasUnitCell() const;

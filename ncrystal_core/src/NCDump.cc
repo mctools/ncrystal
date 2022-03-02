@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,219 +22,367 @@
 #include "NCrystal/NCInfo.hh"
 #include "NCrystal/internal/NCMath.hh"
 #include "NCrystal/internal/NCString.hh"
+#include "NCrystal/NCMatCfg.hh"
+#include "NCrystal/internal/NCCfgManip.hh"
+
 #include <cstdio>
 #include <sstream>
 #include <iostream>
 #include <iomanip>
 
-void NCrystal::dump(const Info&c)
+void NCrystal::dump( const Info&c, DumpVerbosity verbosityVal )
 {
-  //Figure out max display label width for column alignment:
-  unsigned longestDisplayLabel(0);
-  if (c.hasComposition()) {
-    nc_assert_always(c.getComposition().size()<std::numeric_limits<unsigned>::max());
-    auto ncomps = static_cast<unsigned>(c.getComposition().size());
-    for ( unsigned i = 0; i < ncomps; ++i )
-      longestDisplayLabel = std::max<unsigned>(longestDisplayLabel,
-                                               static_cast<unsigned>(c.displayLabel(AtomIndex{i}).size()));
-    nc_assert_always(longestDisplayLabel<1000);
-  }
+  const bool verbose = verbosityVal == DumpVerbosity::VERBOSE;
+  const bool isSinglePhase = c.isSinglePhase();
 
-  const char * hr = "---------------------------------------------------------\n";
-
-  if ( c.stateOfMatter() != Info::StateOfMatter::Unknown ) {
-    printf("%s", hr);
-    const char * subtype="";
-    if ( c.stateOfMatter() == Info::StateOfMatter::Solid )
-      subtype = c.isCrystalline() ? " (crystalline)" : " (amorphous)";
-    printf("State of matter: %s%s\n",Info::toString(c.stateOfMatter()).c_str(),subtype);
-  }
-
-  if (c.hasStructureInfo()) {
-    const StructureInfo& si = c.getStructureInfo();
-    printf("%s", hr);
-    if (si.spacegroup!=0)
-      printf("Space group number      : %i\n",si.spacegroup);
-    printf("Lattice spacings   [Aa] : %g %g %g\n",si.lattice_a,si.lattice_b,si.lattice_c);
-    printf("Lattice angles    [deg] : %g %g %g\n",si.alpha,si.beta,si.gamma);
-    printf("Unit cell volume [Aa^3] : %g\n",si.volume);
-    printf("Atoms / unit cell       : %i\n",si.n_atoms);
+  //Display-labels - falling back to the AtomData description for multiphase:
+  auto safeDisplayLabelImpl = [](const Info& info, const IndexedAtomData& ai)
+  {
+    if (ai.index.isInvalid())
+      return ai.data().description(false);
+    return info.displayLabel(ai.index);
+  };
+  auto safeDisplayLabel = [&safeDisplayLabelImpl,&c](const IndexedAtomData& ai)
+  {
+    return safeDisplayLabelImpl(c,ai);
   };
 
-  if (c.hasAtomInfo()) {
+  //Figure out max display label width for column alignment:
+  unsigned longestDisplayLabel(0);
+  for ( auto& ce: c.getComposition() ) {
+    longestDisplayLabel = std::max<unsigned>(longestDisplayLabel,
+                                             static_cast<unsigned>(safeDisplayLabel(ce.atom).size()));
+  }
+  nc_assert_always(longestDisplayLabel<1000);
+
+  const char * hr = "----------------------------------------------------------------------------------------------------\n";
+  std::cout << hr <<"------------------------------------   NCrystal Material Info   ------------------------------------\n";
+
+  if ( !c.getDataSourceName().str().empty() && c.getDataSourceName().str() != "<unknown>" ) {
     printf("%s", hr);
-    unsigned ntot = 0;
-    for ( auto& ai : c.getAtomInfos() )
-      ntot += ai.numberPerUnitCell();
-    printf("Atoms in unit cell (total %i):\n",ntot);
-    for ( auto& ai : c.getAtomInfos() ) {
-      auto lbl = c.displayLabel( ai.atom().index );
-      std::ostringstream s;
-      nc_assert(longestDisplayLabel>0);
-      s << "     "<< ai.numberPerUnitCell() <<" "
-        << std::left << std::setw(longestDisplayLabel)
-        <<lbl
-        <<" atom"<<(ai.numberPerUnitCell()==1?"":"s");
-      if ( ai.debyeTemp().has_value() || ai.msd().has_value() ) {
-        s <<" [";
-        if ( ai.debyeTemp().has_value() ) {
-          s <<"T_Debye="<<ai.debyeTemp().value();
-          if ( ai.msd().has_value() )
-            s << ", ";
-        }
-        if ( ai.msd().has_value() )
-          s <<"MSD="<<ai.msd().value()<<"Aa^2";
-        s<<"]";
-      }
-      printf("%s\n",s.str().c_str());
-    }
-    {
-      printf("%s", hr);
-      printf("Atomic coordinates:\n");
-      for ( auto& ai : c.getAtomInfos() ) {
-        auto lbl = c.displayLabel(ai.atom().index);
-        for ( auto& pos : ai.unitCellPositions() ) {
-          std::ostringstream ss;
-          nc_assert(longestDisplayLabel>0);
-          ss << std::left << std::setw(longestDisplayLabel) << lbl;
-          printf("     %s   %10s   %10s   %10s\n",
-                 ss.str().c_str(),
-                 prettyPrintValue2Str(pos[0]).c_str(),
-                 prettyPrintValue2Str(pos[1]).c_str(),
-                 prettyPrintValue2Str(pos[2]).c_str());
-        }
-      }
-    }
+    std::cout<<"Data source: "<<c.getDataSourceName()<<std::endl;
   }
 
-  if (c.hasDensity()) {
+  if (!Cfg::CfgManip::empty(c.getCfgData())) {
     printf("%s", hr);
-    printf("Density : %g g/cm3\n",c.getDensity().dbl());
+    std::cout<<"Process cfg hints: ";
+    Cfg::CfgManip::stream( c.getCfgData(), std::cout );
+    std::cout<<std::endl;
   }
 
-  if (c.hasNumberDensity()) {
-    printf("%s", hr);
-    printf("NumberDensity : %g atoms/Aa3\n",c.getNumberDensity().dbl());
-  }
+  //Densities and composition-related information:
+  printf("%s", hr);
+  const auto averageMass = c.getAverageAtomMass();
+  std::cout<<"Density : "<<fmtg(c.getDensity().dbl())<<" g/cm3, "<<fmtg(c.getNumberDensity().dbl())<<" atoms/Aa^3"<<std::endl;
 
-  if (c.hasComposition()) {
+  {//Composition
     printf("%s", hr);
-    printf("Composition:\n");
+    printf("Composition (by mole):");
     for (auto& e : c.getComposition()) {
-      auto lbl = c.displayLabel(e.atom.index);
-      printf(" %20g%% %s\n",e.fraction*100.0,lbl.c_str());
+      auto lbl = safeDisplayLabel(e.atom);
+      printf(" %g%% %s",e.fraction*100.0,lbl.c_str());
     }
-    printf("%s", hr);
+    printf("\n%s", hr);
+    printf("Composition (by mass):");
+    for (auto& e : c.getComposition()) {
+      auto lbl = safeDisplayLabel(e.atom);
+      printf(" %g%% %s",e.fraction*100.0 * e.atom.data().averageMassAMU().dbl()/averageMass.dbl(),lbl.c_str());
+    }
+    printf("\n%s", hr);
     printf("Atom data:\n");
     for (auto& e : c.getComposition()) {
-      auto lbl = c.displayLabel(e.atom.index);
+      auto lbl = safeDisplayLabel(e.atom);
       nc_assert(longestDisplayLabel>0);
       std::cout<<"   "<<std::left << std::setw(longestDisplayLabel) << lbl<<" = "<<*e.atom.atomDataSP<<std::endl;
     }
   }
+  printf("%s", hr);
+  printf("Averaged quantities:\n");
+  printf("   Atomic mass               : %gu\n",averageMass.dbl());
+  printf("   Absorption XS at 2200m/s  : %g barn\n", c.getXSectAbsorption().dbl());
+  printf("   Free scattering XS        : %g barn\n", c.getXSectFree().dbl());
+  auto sld = c.getSLD();
+  printf("   Scattering length density : %g %s\n", c.getSLD().dbl(), decltype(sld)::unit());
 
   if (c.hasTemperature()) {
     printf("%s", hr);
     printf("Temperature : %g kelvin\n",c.getTemperature().dbl());
   }
 
-  if (c.hasDynamicInfo()) {
+  if ( c.stateOfMatter() != Info::StateOfMatter::Unknown ) {
     printf("%s", hr);
-    for (auto& di: c.getDynamicInfoList()) {
-      auto lbl = c.displayLabel(di->atom().index);
-      printf("Dynamic info for %s (%g%%):\n",lbl.c_str(),di->fraction()*100.0);
-      auto di_knl = dynamic_cast<const DI_ScatKnl*>(di.get());
-      if (di_knl) {
-        auto di_skd = dynamic_cast<const DI_ScatKnlDirect*>(di_knl);
-        auto di_vdos = dynamic_cast<const DI_VDOS*>(di_knl);
-        auto di_vdosdebye = dynamic_cast<const DI_VDOSDebye*>(di_knl);
-        printf("   type: S(alpha,beta)%s\n",(di_vdos?" [from VDOS]":(di_vdosdebye?" [from VDOSDebye]":"")));
-        auto sp_egrid = di_knl->energyGrid();
-        if (!!sp_egrid)
-          printf("   egrid: %g -> %g (%llu points)\n",sp_egrid->front(),sp_egrid->back(), (unsigned long long)sp_egrid->size());
-        if (di_skd) {
-          const auto& sabdata = *(di_skd->ensureBuildThenReturnSAB());
-          const auto& ag = sabdata.alphaGrid();
-          const auto& bg = sabdata.betaGrid();
-          const auto& sab = sabdata.sab();
-          printf("   alpha-grid   : %g -> %g (%llu points)\n",ag.front(),ag.back(), (unsigned long long)ag.size());
-          printf("   beta-grid    : %g -> %g (%llu points)\n",bg.front(),bg.back(), (unsigned long long)bg.size());
-          printf("   S(alpha,beta): %llu points, S_max = %g\n",(unsigned long long)sab.size(), *std::max_element(sab.begin(),sab.end()));
+    const char * subtype="";
+    if ( c.stateOfMatter() == Info::StateOfMatter::Solid )
+      subtype = isSinglePhase ? ( c.isCrystalline() ? " (crystalline)" : " (amorphous)" ) : "";
+    printf("State of matter: %s%s\n",Info::toString(c.stateOfMatter()).c_str(),subtype);
+  }
+
+  if ( !isSinglePhase ) {
+    ///////////////////
+    //  Multi phase  //
+    ///////////////////
+
+    auto& phases = c.getPhases();
+    std::cout<<hr<<"Multi-phase material with "<<phases.size()<<" phases:\n";
+    for ( auto& phidx : ncrange( phases.size() ) ) {
+      const auto& ph = phases.at(phidx);
+      const auto& volfrac = ph.first;
+      const auto& phinfo = *ph.second;
+      const double mole_frac = volfrac*phinfo.getNumberDensity().dbl()/c.getNumberDensity().dbl();
+      std::cout<<"  "<<phidx<<") "<< fmt(100.*volfrac,"%7g") <<"% (volume) "
+               <<fmt(100.0*mole_frac,"%7g")<<"% (mole) "
+               <<fmt(100.*mole_frac*phinfo.getAverageAtomMass().dbl()/averageMass.dbl(),"%7g")<<"% (mass): ";
+      bool firstph(true);
+      for ( auto& phc : phinfo.getComposition() ) {
+        if (firstph)
+          firstph=false;
+        else
+          std::cout<<" / ";
+        std::cout<<safeDisplayLabelImpl(phinfo,phc.atom);
+      }
+      if ( phinfo.isMultiPhase() ) {
+        std::cout<<"  {"<<phinfo.getPhases().size()<<" sub-phases}";
+      }
+
+      std::cout<<"\n";
+    }
+  } else {
+    ////////////////////
+    //  Single phase  //
+    ////////////////////
+
+    if ( c.hasStructureInfo() ) {
+      const StructureInfo& si = c.getStructureInfo();
+      printf("%s", hr);
+      if (si.spacegroup!=0)
+        printf("Space group number      : %i\n",si.spacegroup);
+      printf("Lattice spacings   [Aa] : %g %g %g\n",si.lattice_a,si.lattice_b,si.lattice_c);
+      printf("Lattice angles    [deg] : %g %g %g\n",si.alpha,si.beta,si.gamma);
+      printf("Unit cell volume [Aa^3] : %g\n",si.volume);
+      printf("Atoms / unit cell       : %i\n",si.n_atoms);
+    };
+
+    if ( c.hasAtomInfo() ) {
+      printf("%s", hr);
+      unsigned ntot = 0;
+      for ( auto& ai : c.getAtomInfos() )
+        ntot += ai.numberPerUnitCell();
+      printf("Atoms in unit cell (total %i):\n",ntot);
+      for ( auto& ai : c.getAtomInfos() ) {
+        auto lbl = safeDisplayLabel( ai.atom() );
+        std::ostringstream s;
+        nc_assert(longestDisplayLabel>0);
+        s << "     "<< ai.numberPerUnitCell() <<" "
+          << std::left << std::setw(longestDisplayLabel)
+          <<lbl
+          <<" atom"<<(ai.numberPerUnitCell()==1?"":"s");
+        if ( ai.debyeTemp().has_value() || ai.msd().has_value() ) {
+          s <<" [";
+          if ( ai.debyeTemp().has_value() ) {
+            s <<"T_Debye="<<ai.debyeTemp().value();
+            if ( ai.msd().has_value() )
+              s << ", ";
+          }
+          if ( ai.msd().has_value() )
+            s <<"MSD="<<ai.msd().value()<<"Aa^2";
+          s<<"]";
         }
-        if (di_vdos) {
-          printf("   VDOS Source: %llu points\n",(unsigned long long)di_vdos->vdosData().vdos_density().size());
-          printf("   VDOS E_max: %g meV\n",di_vdos->vdosData().vdos_egrid().second*1000.0);
-        } else if (di_vdosdebye) {
-          printf("   VDOS E_max: %g meV\n",di_vdosdebye->debyeTemperature().kT()*1000.0);
+        printf("%s\n",s.str().c_str());
+      }
+      {
+        printf("%s", hr);
+        printf("Atomic coordinates:\n");
+        auto& atomlist = c.getAtomInfos();
+        if ( !verbose && ntot>30) {
+          printf("  (suppressed due to their large number, increase verbosity to show)\n");
+        } else {
+          for ( auto& ai : atomlist ) {
+            auto lbl = safeDisplayLabel(ai.atom());
+            for ( auto& pos : ai.unitCellPositions() ) {
+              std::ostringstream ss;
+              nc_assert(longestDisplayLabel>0);
+              ss << std::left << std::setw(longestDisplayLabel) << lbl;
+              printf("     %s   %10s   %10s   %10s\n",
+                     ss.str().c_str(),
+                     prettyPrintValue2Str(pos[0]).c_str(),
+                     prettyPrintValue2Str(pos[1]).c_str(),
+                     prettyPrintValue2Str(pos[2]).c_str());
+            }
+          }
         }
-      } else if (dynamic_cast<const DI_Sterile*>(di.get())) {
-        printf("   type: sterile\n");
-      } else if (dynamic_cast<const DI_FreeGas*>(di.get())) {
-        printf("   type: freegas\n");
+      }
+    }
+
+    if ( c.hasDynamicInfo()) {
+      printf("%s", hr);
+      for (auto& di: c.getDynamicInfoList()) {
+        auto lbl = safeDisplayLabel(di->atom());
+        printf("Dynamic info for %s (%g%%):\n",lbl.c_str(),di->fraction()*100.0);
+        auto di_knl = dynamic_cast<const DI_ScatKnl*>(di.get());
+        if (di_knl) {
+          auto di_skd = dynamic_cast<const DI_ScatKnlDirect*>(di_knl);
+          auto di_vdos = dynamic_cast<const DI_VDOS*>(di_knl);
+          auto di_vdosdebye = dynamic_cast<const DI_VDOSDebye*>(di_knl);
+          printf("   type: S(alpha,beta)%s\n",(di_vdos?" [from VDOS]":(di_vdosdebye?" [from VDOSDebye]":"")));
+          auto sp_egrid = di_knl->energyGrid();
+          bool eg_is_auto = !sp_egrid || (sp_egrid->size()==3 && sp_egrid->at(0)==0.0 && sp_egrid->at(1)==0.0 && sp_egrid->at(2)==0.0);
+          if (!eg_is_auto) {
+            const auto& eg = *sp_egrid;
+            //"Grids must have at least 3 entries, and grids of size 3 actually
+            //indicates [emin,emax,npts], where any value can be 0 to leave the
+            //choice for the consuming code. Grids of size >=4 must be proper
+            //grids."
+            if ( eg.size()==3 ) {
+              double eg_emin = eg.at(0);
+              double eg_emax = eg.at(1);
+              double eg_npts = eg.at(2);
+              printf("   egrid: ");
+              if ( eg_emin == 0.0 )
+                printf("auto");
+              else
+                printf("%g eV",eg_emin);
+              printf(" -> ");
+              if ( eg_emax == 0.0 )
+                printf("auto");
+              else
+                printf("%g eV",eg_emax);
+              if ( eg_npts > 0)
+                printf(" (%g points)",eg_npts);
+              printf("\n");
+            } else {
+              nc_assert(eg.size()>=4);
+              printf("   egrid: %g eV -> %g eV (%llu points)\n",eg.front(),eg.back(), (unsigned long long)eg.size());
+            }
+          }
+
+          if (di_skd) {
+            const auto& sabdata = *(di_skd->ensureBuildThenReturnSAB());
+            const auto& ag = sabdata.alphaGrid();
+            const auto& bg = sabdata.betaGrid();
+            const auto& sab = sabdata.sab();
+            printf("   alpha-grid   : %g -> %g (%llu points)\n",ag.front(),ag.back(), (unsigned long long)ag.size());
+            printf("   beta-grid    : %g -> %g (%llu points)\n",bg.front(),bg.back(), (unsigned long long)bg.size());
+            printf("   S(alpha,beta): %llu points, S_max = %g\n",(unsigned long long)sab.size(), *std::max_element(sab.begin(),sab.end()));
+          }
+          if (di_vdos) {
+            printf("   VDOS Source: %llu points\n",(unsigned long long)di_vdos->vdosData().vdos_density().size());
+            printf("   VDOS E_max: %g meV\n",di_vdos->vdosData().vdos_egrid().second*1000.0);
+          } else if (di_vdosdebye) {
+            printf("   VDOS E_max: %g meV\n",di_vdosdebye->debyeTemperature().kT()*1000.0);
+          }
+        } else if (dynamic_cast<const DI_Sterile*>(di.get())) {
+          printf("   type: sterile\n");
+        } else if (dynamic_cast<const DI_FreeGas*>(di.get())) {
+          printf("   type: freegas\n");
+        } else {
+          nc_assert_always(false);
+        }
+      }
+    }
+
+    if ( c.providesNonBraggXSects() ) {
+      printf("%s", hr);
+      printf("Provides non-bragg cross section calculations. A few values are:\n");
+      printf("   lambda[Aa]  sigma_scat[barn]\n");
+      double ll[] = {0.5, 1.0, 1.798, 2.5, 5, 10, 20 };
+      for (unsigned i = 0; i < sizeof(ll)/sizeof(ll[0]); ++i)
+        printf("%13g %17g\n",ll[i],c.xsectScatNonBragg(NeutronWavelength{ll[i]}).dbl());
+    }
+
+    {
+      const auto& customsections = c.getAllCustomSections();
+      if ( !customsections.empty() ) {
+        printf("%s", hr);
+        printf("Custom data sections:\n");
+        for (const auto& e: customsections) {
+          printf("  %s:\n", e.first.c_str());
+          for (const auto& line : e.second) {
+            printf("    ");
+            for (std::size_t i = 0; i < line.size(); ++i ) {
+              printf("%s",line.at(i).c_str());
+              if ( i+1 != line.size() )
+                printf(" ");
+            }
+            printf("\n");
+          }
+        }
+      }
+    }
+
+    if ( c.hasHKLInfo() ) {
+      //Figure out how many planes to show, and try to get them available fast.
+      bool some_hidden = true;
+      std::size_t nhklplanes_max = 10;
+      const HKLList * thelist = nullptr;
+      Optional<HKLList> localHKLList;//for lifetime extension
+      if ( verbose || c.hklListIsFullyInitialised() ) {
+        //Need full list or full list is already available anyway:
+        thelist = &c.hklList();
+        if (verbose) {
+          nhklplanes_max = thelist->size();
+          some_hidden = false;
+        }
       } else {
-        nc_assert_always(false);
-      }
-    }
-  }
-
-  if (c.hasXSectAbsorption()||c.hasXSectFree()) {
-    printf("%s", hr);
-    printf("Neutron cross-sections:\n");
-    if (c.hasXSectAbsorption())
-      printf("   Absorption at 2200m/s : %g barn\n", c.getXSectAbsorption().dbl());
-    if (c.hasXSectFree())
-      printf("   Free scattering       : %g barn\n", c.getXSectFree().dbl());
-  }
-
-  if (c.providesNonBraggXSects()) {
-    printf("%s", hr);
-    printf("Provides non-bragg cross-section calculations. A few values are:\n");
-    printf("   lambda[Aa]  sigma_scat[barn]\n");
-    double ll[] = {0.5, 1.0, 1.798, 2.5, 5, 10, 20 };
-    for (unsigned i = 0; i < sizeof(ll)/sizeof(ll[0]); ++i)
-      printf("%13g %17g\n",ll[i],c.xsectScatNonBragg(NeutronWavelength{ll[i]}).dbl());
-  }
-
-  const auto& customsections = c.getAllCustomSections();
-  if (!customsections.empty()) {
-    printf("%s", hr);
-    printf("Custom data sections:\n");
-    for (const auto& e: customsections) {
-      printf("  %s:\n", e.first.c_str());
-      for (const auto& line : e.second) {
-        printf("    ");
-        for (std::size_t i = 0; i < line.size(); ++i ) {
-          printf("%s",line.at(i).c_str());
-          if ( i+1 != line.size() )
-            printf(" ");
+        //Full list is not available and we only need a few planes. For speedup,
+        //try to create smaller partial list.
+        double d1 = c.hklDLower();
+        double d2 = c.hklDUpper();
+        if ( std::isinf(d2) ) {
+          //upper scale not available, try to estimate it:
+          if ( !c.hasStructureInfo() ) {
+            d2 = d1 + 1.0;//pure guess
+          } else {
+            auto& si = c.getStructureInfo();
+            d2 = ncmax( 1.2 * d1, 2.0 * ncmax( si.lattice_a, si.lattice_b, si.lattice_c ) );
+          }
         }
-        printf("\n");
+        nc_assert(!std::isinf(d1) && !std::isinf(d2) && d2>d1 && d1 >= 0.0);
+        double dmin_quick = d2 < 15 ? 0.5 : 0.8;
+        if ( dmin_quick <= 1.1 * c.hklDLower() )
+          dmin_quick = 2.0*c.hklDLower();
+        if ( dmin_quick >= 0.9 * d2 )
+          dmin_quick = 0.5*d2;
+        if ( dmin_quick > c.hklDLower()*1.1 && dmin_quick < d2*0.9 )
+          localHKLList = c.hklListPartialCalc( dmin_quick, c.hklDUpper() );
+        if ( localHKLList.has_value() && localHKLList.value().size() >= nhklplanes_max ) {
+          thelist = &localHKLList.value();
+        } else {
+          //Didn't work for whatever reason, fall back to asking for the full list:
+          localHKLList.reset();
+          thelist = &c.hklList();
+        }
       }
+
+      //NB: Do not call c.hasExpandedHKLInfo() here, it will always trigger a full list build!
+      const HKLList& hklList = *thelist;
+      const bool hasExpandedHKLInfo = !hklList.empty() && hklList.front().eqv_hkl;
+      printf("%s", hr);
+      printf("HKL planes (d_lower = %g Aa, d_upper = %g Aa):\n",c.hklDLower(),c.hklDUpper());
+      printf("  H   K   L  d_hkl[Aa] Multiplicity FSquared[barn]%s\n",
+             (hasExpandedHKLInfo?" Expanded-HKL-list":""));
+      for ( auto& hkl : hklList ) {
+        if (nhklplanes_max==0)
+          break;
+        --nhklplanes_max;
+        printf("%3i %3i %3i %10g %12i %14g%s",hkl.h,hkl.k,hkl.l,hkl.dspacing,
+               hkl.multiplicity,hkl.fsquared,(hkl.eqv_hkl?"":"\n"));
+        if (hkl.eqv_hkl!=nullptr) {
+          const short * eqv_hkl = &(hkl.eqv_hkl[0]);
+          const size_t nEqv = hkl.demi_normals.size();
+          nc_assert_always( nEqv );
+          printf(" ");
+          for (size_t i = 0 ; i < nEqv; ++i) {
+            const short h(eqv_hkl[i*3]), k(eqv_hkl[i*3+1]), l(eqv_hkl[i*3+2]);
+            nc_assert(h||k||l);
+            printf("%i,%i,%i | %i,%i,%i%s",h,k,l,-h,-k,-l,(i+1==nEqv?"":" | "));
+          }
+          printf("\n");
+        }
+      }
+      if (some_hidden)
+        printf("  (some planes left out for brevity, increase verbosity to show all)\n");
     }
   }
 
-  if (c.hasHKLInfo()) {
-    printf("%s", hr);
-    printf("HKL planes (d_lower = %g Aa, d_upper = %g Aa):\n",c.hklDLower(),c.hklDUpper());
-    printf("  H   K   L  d_hkl[Aa] Multiplicity FSquared[barn]%s\n",
-           (c.hasExpandedHKLInfo()?" Expanded-HKL-list":""));
-    HKLList::const_iterator itE = c.hklEnd();
-    for (HKLList::const_iterator it = c.hklBegin();it!=itE;++it) {
-      printf("%3i %3i %3i %10g %12i %14g%s",it->h,it->k,it->l,it->dspacing,
-             it->multiplicity,it->fsquared,(it->eqv_hkl?"":"\n"));
-      if (it->eqv_hkl!=nullptr) {
-        const short * eqv_hkl = &(it->eqv_hkl[0]);
-        const size_t nEqv = it->demi_normals.size();
-        nc_assert_always( nEqv );
-        printf(" ");
-        for (size_t i = 0 ; i < nEqv; ++i) {
-          const short h(eqv_hkl[i*3]), k(eqv_hkl[i*3+1]), l(eqv_hkl[i*3+2]);
-          nc_assert(h||k||l);
-          printf("%i,%i,%i | %i,%i,%i%s",h,k,l,-h,-k,-l,(i+1==nEqv?"":" | "));
-        }
-        printf("\n");
-      }
-    }
-  }
-  printf("%s", hr);
+  std::cout<<hr<<std::flush;
 }

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,14 +21,19 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
+#ifndef NCrystal_Defs_hh
+#  include "NCrystal/NCDefs.hh"
+#endif
 #include <initializer_list>
 #include <type_traits>
 
 namespace NCrystal {
 
   //Mode (see below):
-  enum class SVMode { FASTACCESS, LOWFOOTPRINT };
+  enum class SVMode { FASTACCESS,
+                      LOWFOOTPRINT,
+                      FASTACCESS_IMPLICITCOPY,
+                      LOWFOOTPRINT_IMPLICITCOPY };
 
   namespace detail {
     class SV_CacheBegin;
@@ -65,9 +70,9 @@ namespace NCrystal {
     //which caches access to the beginning of the storage (local or heap),
     //meaning that access will be as fast as it is for std::vector (or better,
     //due to the better cache-locality when size()<=NSMALL). If MODE is
-    //LOWFOOTPRINT, fast access is only enabled if the additional data member
+    //LOWFOOTPRINT*, fast access is only enabled if the additional data member
     //does not actually increase the memory footprint (which it will unless
-    //TValue has very high alignment requirements). If mode is FASTACCESS, fast
+    //TValue has very high alignment requirements). If mode is FASTACCESS*, fast
     //access is always enabled as the name implies. If fast access is not added,
     //the consequence is that each call to data(), begin(), operator[],
     //etc. requires a test and branch. This is probably not a big issues for
@@ -82,6 +87,7 @@ namespace NCrystal {
   public:
     using value_type = TValue;
     using size_type = decltype(NSMALL);
+    static constexpr size_type nsmall = NSMALL;
 
     //TODO: Add custom iterators classes.
 
@@ -97,16 +103,20 @@ namespace NCrystal {
     //be required):
     SmallVector( SmallVector&& ) noexcept;
     SmallVector& operator=( SmallVector&& ) noexcept;
-    void swap( SmallVector& ) noexcept;//also used by std::swap 
+    void swap( SmallVector& ) noexcept;//also used by std::swap
+
+    //Comparison (first on size, then element-wise - this is different than std::vector):
+    bool operator==( const SmallVector& ) const noexcept;
+    bool operator<( const SmallVector& ) const noexcept;
 
     ///////////////////////////////////////////////////////////////////////////
     //Braced initializer list initialisation (requires TValue to be copy constructible):
-    SmallVector(std::initializer_list<TValue> l);
+    SmallVector( std::initializer_list<TValue> );
 
     ///////////////////////////////////////////////////////////////////////////
     //Can also move or copy (if TValue is copy constructible) from existing
     //containers. The SVAllowCopy trait is used to protect against accidental
-    //copies:
+    //copies (unless MODE flag is *_IMPLICITCOPY):
     template <class TIter>
     SmallVector( SVAllowCopy_t, TIter it_begin, TIter it_end );
     template <class TIter>
@@ -114,13 +124,21 @@ namespace NCrystal {
     template <class TIter>
     void setByMove( TIter it_begin, TIter it_end );
     template<class TOther>
-    SmallVector( TOther&& );
-    template<class TOther>
     SmallVector( SVAllowCopy_t, const TOther& );
+
+    //Construct from other container (if not in IMPLICITCOPY mode, the argument
+    //must be an r-value which will be moved-from):
+    template<class TOther>
+    SmallVector( TOther&& );
+
+    //L-value copy/assignment can only be used in IMPLICITCOPY mode (protected
+    //by static asserts):
+    SmallVector& operator=( const SmallVector& );
+    SmallVector( const SmallVector& );
 
     ////////////////////////////////////////////////////////////////////////////
     //Access contents. Note that if isFastAccess() is false (which happens when
-    //MODE is LOWFOOTPRINT and TValue does not have unusually large alignment
+    //MODE is LOWFOOTPRINT* and TValue does not have unusually large alignment
     //requirements), each call has a small overhead since it needs to check if
     //heap or local storage is used. To ensure this overhead is only paid once
     //when looping over all contents, one can use code a'la:
@@ -252,7 +270,9 @@ namespace NCrystal {
 
     template<class TValue, SVMode MODE>
     inline constexpr bool SVUseFast() {
-      return MODE==SVMode::FASTACCESS || sizeof(SVTestE<TValue>)==sizeof(SVTestCB<TValue>);
+      return ( MODE==SVMode::FASTACCESS
+               || MODE==SVMode::FASTACCESS_IMPLICITCOPY
+               || sizeof(SVTestE<TValue>)==sizeof(SVTestCB<TValue>) );
     }
   }
 
@@ -541,13 +561,46 @@ namespace NCrystal {
     : SmallVector()
   {
 
-    static_assert(std::is_rvalue_reference<TOther&&>(),
+    static_assert( MODE==SVMode::FASTACCESS_IMPLICITCOPY
+                   || MODE==SVMode::LOWFOOTPRINT_IMPLICITCOPY
+                   || std::is_rvalue_reference<TOther&&>(),
                   "Constructor intended for moving from other container"
                   " requires r-value reference argument (i.e. temporary"
                   " or std::move'd). Provide SVAllowCopy as first argument"
                   " if the intent is to simply copy over the values from"
-                  " the other container.");
-    setByMove(o.begin(),o.end());
+                  " the other container or change container MODE flag to"
+                   " *_IMPLICITCOPY.");
+
+    if ( std::is_rvalue_reference<TOther&&>() )
+      setByMove(o.begin(),o.end());
+    else
+      setByCopy(o.begin(),o.end());
+  }
+
+
+  template<class TValue, std::size_t NSMALL, SVMode MODE>
+  inline SmallVector<TValue,NSMALL,MODE>& SmallVector<TValue,NSMALL,MODE>::operator=( const SmallVector& o )
+  {
+    static_assert(    MODE==SVMode::FASTACCESS_IMPLICITCOPY
+                   || MODE==SVMode::LOWFOOTPRINT_IMPLICITCOPY,
+                   "Copy-assignment can only be used with SmallVector objects with"
+                   " *_IMPLICITCOPY MODE flag (but note that copy-construction and"
+                   " subsequent move-assignment is always possible by providing"
+                   " SVAllowCopy as first argument to the constructor).");
+    *this = SmallVector(SVAllowCopy,o);
+    return *this;
+  }
+
+  template<class TValue, std::size_t NSMALL, SVMode MODE>
+  inline SmallVector<TValue,NSMALL,MODE>::SmallVector( const SmallVector& o )
+    : SmallVector(SVAllowCopy,o)
+  {
+    static_assert(    MODE==SVMode::FASTACCESS_IMPLICITCOPY
+                   || MODE==SVMode::LOWFOOTPRINT_IMPLICITCOPY,
+                   "Copy-construction can only be used with SmallVector objects with"
+                   " *_IMPLICITCOPY MODE flag (but note that copy-construction is"
+                   " always possible by providing SVAllowCopy as first argument"
+                   " to the constructor).");
   }
 
   template<class TValue, std::size_t NSMALL, SVMode MODE>
@@ -556,7 +609,6 @@ namespace NCrystal {
     : SmallVector(SVAllowCopy,o.begin(),o.end())
   {
   }
-
 
   template<class TValue, std::size_t NSMALL, SVMode MODE>
   template <class TIter>
@@ -857,6 +909,39 @@ namespace NCrystal {
   inline void swap(SmallVector<TValue,NSMALL,MODE>& a, SmallVector<TValue,NSMALL,MODE>& b) noexcept
   {
     a.swap(b);
+  }
+
+  template<class TValue, std::size_t NSMALL, SVMode MODE>
+  inline bool SmallVector<TValue,NSMALL,MODE>::operator==( const SmallVector& o ) const noexcept
+  {
+    if ( this->m_count != o.m_count )
+      return false;
+    if ( this == &o || this->m_count == 0 )
+      return true;
+    auto it = this->begin();
+    auto itE = it + this->m_count;
+    auto itO = o.begin();
+    for ( ; it != itE; ++it, ++itO )
+      if ( ! ( *it == *itO ) )
+        return false;
+    return true;
+  }
+
+
+  template<class TValue, std::size_t NSMALL, SVMode MODE>
+  inline bool SmallVector<TValue,NSMALL,MODE>::operator<( const SmallVector& o ) const noexcept
+  {
+    if ( this->m_count != o.m_count )
+      return this->m_count < o.m_count;
+    if ( this == &o || this->m_count == 0 )
+      return false;
+    auto it = this->begin();
+    auto itE = it + this->m_count;
+    auto itO = o.begin();
+    for ( ; it != itE; ++it, ++itO )
+      if ( ! ( *it == *itO ) )
+        return *it < *itO;
+    return false;
   }
 
 }

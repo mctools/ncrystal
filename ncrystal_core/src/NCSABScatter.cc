@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -95,4 +95,9 @@ NC::ScatterOutcomeIsotropic NC::SABScatter::sampleScatterIsotropic( CachePtr&, R
   std::tie(delta_e,mu) = m_sh->sampler.sampleDeltaEMu(ekin, rng);
   nc_assert( mu >= -1.0 && mu <= 1.0 );
   return { NeutronEnergy{ncmax(0.0,ekin.get()+delta_e)}, CosineScatAngle{mu} };
+}
+
+NC::Optional<std::string> NC::SABScatter::specificJSONDescription() const
+{
+  return m_sh->specificJSONDescription;
 }

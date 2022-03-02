@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -25,14 +25,16 @@
 
 namespace NCrystal {
 
-  //Helper function which finds all (h,k,l) planes and calculates their
-  //d-spacings and structure factors (fsquared). The first input must be an Info
-  //object which already has StructureInfo and AtomInfo (with
-  //mean-squared-displacement and atomic coordinates) added. This helper function
-  //will then calculate and add the HKL info, so HKL must not yet have been
-  //enabled on the passed Info object.
+  // The helper function calculateHKLPlanes finds all (h,k,l) planes and
+  // calculates their d-spacings and structure factors (fsquared), based on unit
+  // cell info and a few configuration parameters (most importantly the dspacing
+  // cutoff value). The function needs StructureInfo, but only for the unit cell
+  // parameters (the space group number is not used). It also needs the list of
+  // atoms in the unit cell, which is required to contain
+  // mean-squared-displacement information so Debye-Waller factors can be
+  // calculated internally.
   //
-  //Several parameters can be used to fine-tune the behaviour:
+  // The parameters which can be used to tune the behaviour are:
 
   struct FillHKLCfg {
 
@@ -60,7 +62,9 @@ namespace NCrystal {
     Optional<bool> use_unit_debye_waller_factor = NullOpt;
   };
 
-  void fillHKL( Info& info, FillHKLCfg = {} );
+  HKLList calculateHKLPlanes( const StructureInfo&,
+                              const AtomInfoList&,
+                              FillHKLCfg = {} );
 
 }
 

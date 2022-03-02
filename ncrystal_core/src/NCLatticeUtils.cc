@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,6 +21,7 @@
 #include "NCrystal/internal/NCLatticeUtils.hh"
 #include "NCrystal/internal/NCMath.hh"
 #include "NCrystal/internal/NCVector.hh"
+#include "NCrystal/internal/NCString.hh"
 namespace NC = NCrystal;
 
 #define NCRYSTAL_EXACT_LATTICEROTS_FOR_SPECIAL_CASES
@@ -283,4 +284,129 @@ double NC::dspacingFromHKL( int h, int k, int l, const RotMatrix& rec_lat )
   if (!(ksq>0.0))
     NCRYSTAL_THROW(CalcError,"Created invalid k-vector in d-spacing calculations (bad lattice rotation provided?)");
   return k2Pi / std::sqrt(ksq);
+}
+
+  // Validate orientation parameters (check against null-vectors, parallel
+  // vectors, consistency of angles in the two frames given dirtol,
+  // etc.). Throws BadInput exception in case of issues.
+namespace NCrystal {
+  namespace  {
+    constexpr const char * vectName( const CrystalAxis& ) { return "CrystalAxis"; }
+    constexpr const char * vectName( const HKLPoint& ) { return "HKLPoint"; }
+    constexpr const char * vectName( const LabAxis& ) { return "LabAxis"; }
+    static constexpr double orient_paralleltol = 1e-6;
+    template<class TVect>
+    void checkNotNull( const TVect& v, const char * designator = nullptr)
+    {
+      if (!v.template as<Vector>().mag2())
+        NCRYSTAL_THROW2(BadInput,"Specified "
+                        <<(designator?designator:"")
+                        <<(designator?" ":"")
+                        <<vectName(v)<<" is a null-vector.");
+    }
+    void baseCheckOD( const OrientDir& odir, const char * designator = nullptr )
+    {
+      checkNotNull(odir.lab,designator);
+      const auto& cc = odir.crystal;
+      if ( cc.has_value<HKLPoint>() )
+        checkNotNull(cc.get<HKLPoint>(),designator);
+      else if ( cc.has_value<CrystalAxis>() )
+        checkNotNull(cc.get<CrystalAxis>(),designator);
+      else
+        NCRYSTAL_THROW2(BadInput,"Invalid crystal direction object (empty crystal direction)");
+    }
+  }
+
+}
+
+void NC::precheckLatticeOrientTol( double dirtol )
+{
+  if ( !( dirtol > 0.0 ) || dirtol > kPi )
+    NCRYSTAL_THROW(BadInput, "Directional tolerance must be in interval (0.0,pi]");
+}
+
+void NC::precheckLatticeOrientDir( const OrientDir& odir )
+{
+  baseCheckOD(odir);
+}
+
+void NC::verifyLatticeOrientDef( const LabAxis& l1, const CrystalAxis& c1,
+                                 const LabAxis& l2, const CrystalAxis& c2,
+                                 double dirtol )
+{
+  checkNotNull(l1,"primary");
+  checkNotNull(c1,"primary");
+  checkNotNull(l2,"secondary");
+  checkNotNull(c2,"secondary");
+  precheckLatticeOrientTol(dirtol);
+
+  if ( l1.as<Vector>().isParallel( l2.as<Vector>(), orient_paralleltol ) )
+    NCRYSTAL_THROW(BadInput, "Specified primary and secondary lab directions are parallel");
+
+  if ( c1.as<Vector>().isParallel( c2.as<Vector>(), orient_paralleltol ) )
+    NCRYSTAL_THROW(BadInput, "Specified primary and secondary crystal directions are parallel");
+
+  const double anglec = c1.as<Vector>().angle(c2.as<Vector>());
+  const double anglel = l1.as<Vector>().angle(l2.as<Vector>());
+  if ( ncabs( anglec - anglel ) > dirtol ) {
+    NCRYSTAL_THROW2(BadInput,"Chosen orientation defining directions in the lab frame are "<<dbl2shortstr(anglel*kToDeg)
+                    <<" deg apart, while the chosen directions in the crystal frame"
+                    " are "<<dbl2shortstr(anglec*kToDeg)<<" deg apart. This is not within the specified"
+                    " tolerance of "<<dbl2shortstr(dirtol)<<" rad. = "<<dbl2shortstr(dirtol*kToDeg)<<" deg.");
+  }
+
+}
+
+void NC::precheckLatticeOrientDef( const OrientDir& dir1, const OrientDir& dir2, double dirtol )
+{
+  if ( dir1.crystal.has_value<CrystalAxis>() && dir2.crystal.has_value<CrystalAxis>() ) {
+    //We can immediately do a full check:
+    verifyLatticeOrientDef( dir1.lab, dir1.crystal.get<CrystalAxis>(),
+                            dir2.lab, dir2.crystal.get<CrystalAxis>(),
+                            dirtol );
+    return;
+  }
+  //Partially check as much as we can:
+  baseCheckOD(dir1,"primary");
+  baseCheckOD(dir2,"secondary");
+  precheckLatticeOrientTol(dirtol);
+  if ( dir1.lab.as<Vector>().isParallel( dir2.lab.as<Vector>(), orient_paralleltol ) )
+    NCRYSTAL_THROW(BadInput, "Specified primary and secondary lab directions are parallel");
+  if ( dir1.crystal.has_value<HKLPoint>() && dir2.crystal.has_value<HKLPoint>() ) {
+    if ( dir1.crystal.get<HKLPoint>().as<Vector>().isParallel( dir2.crystal.get<HKLPoint>().as<Vector>(), orient_paralleltol ) )
+      NCRYSTAL_THROW(BadInput, "Specified primary and secondary crystal directions (hkl points) are parallel");
+  }
+}
+
+NC::RotMatrix NC::verifyLatticeOrientDefAndConstructCrystalRotation( const OrientDir& dir1,
+                                                                     const OrientDir& dir2,
+                                                                     double dirtol,
+                                                                     const RotMatrix& reci_lattice )
+{
+  precheckLatticeOrientDef( dir1, dir2, dirtol );
+  nc_assert(!dir1.crystal.empty());
+  nc_assert(!dir2.crystal.empty());
+
+  Vector c1 = ( dir1.crystal.has_value<CrystalAxis>()
+                ? dir1.crystal.get<CrystalAxis>().as<Vector>()
+                : ( reci_lattice * dir1.crystal.get<HKLPoint>().as<Vector>().unit() ) ).unit();
+  Vector c2 = ( dir2.crystal.has_value<CrystalAxis>()
+                ? dir2.crystal.get<CrystalAxis>().as<Vector>()
+                : ( reci_lattice * dir2.crystal.get<HKLPoint>().as<Vector>().unit() ) ).unit();
+  Vector l1 = dir1.lab.as<Vector>().unit();
+  Vector l2 = dir2.lab.as<Vector>().unit();
+
+  verifyLatticeOrientDef( l1.as<LabAxis>(), c1.as<CrystalAxis>(),
+                          l2.as<LabAxis>(), c2.as<CrystalAxis>(),
+                          dirtol );
+
+  //We are within the tolerance and all is OK (nothing null, parallel, etc.), so
+  //we now ensure exact angle(c1,c2)==angle(l1,l2) by removing components of the
+  //secondary direction parallel to the primary direction:
+
+  c2 -= c1 * c2.dot(c1);
+  l2 -= l1 * l2.dot(l1);
+  c2.normalise();
+  l2.normalise();
+  return RotMatrix(l1,c1,l2,c2);
 }

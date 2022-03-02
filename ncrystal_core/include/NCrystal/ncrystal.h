@@ -5,7 +5,7 @@
 /*                                                                            */
 /*  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   */
 /*                                                                            */
-/*  Copyright 2015-2021 NCrystal developers                                   */
+/*  Copyright 2015-2022 NCrystal developers                                   */
 /*                                                                            */
 /*  Licensed under the Apache License, Version 2.0 (the "License");           */
 /*  you may not use this file except in compliance with the License.          */
@@ -123,9 +123,7 @@ extern "C" {
                                                  ncrystal_scatter_t*,
                                                  ncrystal_absorption_t* );
 
-  /* Fine tuning factory availability and caching                                  */
-  NCRYSTAL_API void ncrystal_disable_caching(); /*NB: this concerns Info object caching only! */
-  NCRYSTAL_API void ncrystal_enable_caching();  /*NB: this concerns Info object caching only! */
+  /* Factory availablity:                                                          */
   NCRYSTAL_API int ncrystal_has_factory( const char * name );
 
   /*============================================================================== */
@@ -138,7 +136,7 @@ extern "C" {
   /*============================================================================== */
   /*============================================================================== */
 
-  /*Name of object:                                                                */
+  /*Name and UID of underlying ProcImpl::Process object:                           */
   NCRYSTAL_API const char * ncrystal_name(ncrystal_process_t);
 
   /*Determine if process is non-oriented (normally) or not (single-crystal):       */
@@ -184,13 +182,22 @@ extern "C" {
                                                double* alpha, double* beta, double* gamma,
                                                double* volume, unsigned* n_atoms );
 
-  /*Access various scalar information (return values of -1 means unavailable:      */
-  NCRYSTAL_API double ncrystal_info_gettemperature( ncrystal_info_t );
+  /*Access various scalar information:                                             */
   NCRYSTAL_API double ncrystal_info_getxsectabsorption( ncrystal_info_t );
   NCRYSTAL_API double ncrystal_info_getxsectfree( ncrystal_info_t );
   NCRYSTAL_API double ncrystal_info_getdensity( ncrystal_info_t );
   NCRYSTAL_API double ncrystal_info_getnumberdensity( ncrystal_info_t );
+  NCRYSTAL_API double ncrystal_info_getsld( ncrystal_info_t );
+  NCRYSTAL_API double ncrystal_info_gettemperature( ncrystal_info_t );/*-1 if N/A. */
+
+  /*State of matter (Unknown = 0, Solid = 1, Gas = 2, Liquid = 3)                  */
   NCRYSTAL_API int ncrystal_info_getstateofmatter( ncrystal_info_t );
+
+  /* Access phase information (nphases=0 means single phase)                       */
+  NCRYSTAL_API int ncrystal_info_nphases( ncrystal_info_t );
+  NCRYSTAL_API ncrystal_info_t ncrystal_info_getphase( ncrystal_info_t,
+                                                       int iphase,
+                                                       double* fraction );
 
   /*Access HKL info:                                                               */
   NCRYSTAL_API int ncrystal_info_nhkl( ncrystal_info_t ); /* -1 when not available */
@@ -199,6 +206,7 @@ extern "C" {
   NCRYSTAL_API void ncrystal_info_gethkl( ncrystal_info_t, int idx,
                                           int* h, int* k, int* l, int* multiplicity,
                                           double * dspacing, double* fsquared );
+  NCRYSTAL_API double ncrystal_info_braggthreshold( ncrystal_info_t ); /* [Aa], -1 when not available */
 
   /*Access AtomInfo:                                                               */
   NCRYSTAL_API unsigned ncrystal_info_natominfo( ncrystal_info_t );/* 0=unavail    */
@@ -261,7 +269,7 @@ extern "C" {
   NCRYSTAL_API double ncrystal_info_dspacing_from_hkl( ncrystal_info_t, int h, int k, int l );
 
 
-  /* Composition (ncomponents=0 means composition unavailable):                    */
+  /* Composition (always >=1 component):                                           */
   NCRYSTAL_API unsigned ncrystal_info_ncomponents( ncrystal_info_t );
   NCRYSTAL_API void ncrystal_info_getcomponent( ncrystal_info_t, unsigned icomponent,
                                                 unsigned* atomdataindex,
@@ -373,7 +381,7 @@ extern "C" {
   /*============================================================================== */
 
   /* Access TextData. Returns a string list of length 5:                           */
-  /* [contents, uid(as string), description, datatype, resolvedphyspath].          */
+  /* [contents, uid(as string), sourcename, datatype, resolvedphyspath].           */
   /* The last entry is optional and will be an empty str if absent.                */
   /* Must free list with call to ncrystal_dealloc_stringlist.                      */
   NCRYSTAL_API char** ncrystal_get_text_data( const char * name );
@@ -416,10 +424,28 @@ extern "C" {
 
   /* Dump info to stdout:                                                          */
   NCRYSTAL_API void ncrystal_dump(ncrystal_info_t);
+  NCRYSTAL_API void ncrystal_dump_verbose(ncrystal_info_t);
 
   /* Utility converting between neutron wavelength [Aa] to kinetic energy [eV]:    */
   NCRYSTAL_API double ncrystal_wl2ekin( double wl );
   NCRYSTAL_API double ncrystal_ekin2wl( double ekin );
+
+  /* Extract extra debug information about objects (as JSON string which must be   */
+  /* cleaned up with ncrystal_dealloc_string.                                      */
+  NCRYSTAL_API char * ncrystal_dbg_process( ncrystal_process_t );
+
+  /*UID of underlying Info or ProcImpl::Process object as string (must free with   */
+  /*call to ncrystal_dealloc_stringlist:                                           */
+  NCRYSTAL_API char * ncrystal_process_uid(ncrystal_process_t);
+  NCRYSTAL_API char * ncrystal_info_uid(ncrystal_info_t);
+
+  /*Generate cfg-str variable documentation as string (must free with call to      */
+  /*ncrystal_dealloc_stringlist). Mode 0 (full), 1 (short), 2 (json):              */
+  NCRYSTAL_API char * ncrystal_gencfgstr_doc(int mode);
+
+  /*Underlying UID (in case density value or cfgdata  was overridden):             */
+  NCRYSTAL_API char * ncrystal_info_underlyinguid(ncrystal_info_t);
+
 
   /* Access internal DB for isotopes and natural elements.                         */
   /* NB: Will return invalid handle in case lookup failed. Otherwise, the          */
@@ -448,9 +474,12 @@ extern "C" {
                           double* temp_eff, double* origIntegral );
 
   /* Extract NCMatCfg variables which can not be inferred from an ncrystal_info_t  */
-  /* object and which might be needed in plugins (to be expanded as needed):       */
-  NCRYSTAL_API double ncrystal_decodecfg_packfact( const char * cfgstr );
+  /* object and which might be needed in plugins (to be expanded as needed).       */
+  /* Returned strings must be cleaned up with ncrystal_dealloc_string.             */
   NCRYSTAL_API unsigned ncrystal_decodecfg_vdoslux( const char * cfgstr );
+  NCRYSTAL_API char* ncrystal_decodecfg_json( const char * cfgstr );
+  /* Parse and reencode cfg (as NCrystal::MatCfg(cfgstr).toStrCfg()):              */
+  NCRYSTAL_API char* ncrystal_normalisecfg( const char * cfgstr );
 
   /* Clear various caches employed inside NCrystal:                                */
   NCRYSTAL_API void ncrystal_clear_caches();
@@ -481,10 +510,10 @@ extern "C" {
 #  undef NCRYSTAL_VERSION_STR
 #endif
 #define NCRYSTAL_VERSION_MAJOR 2
-#define NCRYSTAL_VERSION_MINOR 7
-#define NCRYSTAL_VERSION_PATCH 3
-#define NCRYSTAL_VERSION   2007003 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
-#define NCRYSTAL_VERSION_STR "2.7.3"
+#define NCRYSTAL_VERSION_MINOR 9
+#define NCRYSTAL_VERSION_PATCH 91
+#define NCRYSTAL_VERSION   2009091 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
+#define NCRYSTAL_VERSION_STR "2.9.91"
   NCRYSTAL_API int ncrystal_version(); /* returns NCRYSTAL_VERSION                  */
   NCRYSTAL_API const char * ncrystal_version_str(); /* returns NCRYSTAL_VERSION_STR */
 
@@ -526,6 +555,10 @@ extern "C" {
   /*==                                                                          == */
   /*============================================================================== */
   /*============================================================================== */
+
+  /*Obsolete function which now always returns 1.0. Packing factors are now        */
+  /*instead absorbed into the material densities:                                  */
+  NCRYSTAL_API double ncrystal_decodecfg_packfact( const char * cfgstr );
 
   /*Obsolete function which now just is an alias for ncrystal_clear_caches above:  */
   NCRYSTAL_API void ncrystal_clear_info_caches();

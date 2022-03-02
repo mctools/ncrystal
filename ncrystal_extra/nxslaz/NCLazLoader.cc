@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -19,35 +19,30 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCLazLoader.hh"
-#include "NCrystal/NCDefs.hh"
 #include "NCrystal/internal/NCString.hh"
 #include "NCrystal/internal/NCMath.hh"
 #include "NCrystal/internal/NCLatticeUtils.hh"
 #include <sstream>
-#include <fstream>
-#include <cstring>
-#include <cstdio>
-#include <cstdlib>
-#include <stdint.h>
 #include <iostream>
 
 namespace NC = NCrystal;
 
-//NB: lower priority version without sginfo dep could go to ncrystal core code with...
+//NB: lower priority version without sginfo dep could go to ncrystal core code? But is it worth it?
 
 namespace NCrystal {
   double str2dbl_laz(const std::string& s) { return str2dbl(s,"Invalid number in .laz/.lau data"); }
-  double str2int_laz(const std::string& s) { return str2int(s,"Invalid integer in .laz/.lau data"); }
+  int str2int_laz(const std::string& s) { return str2int(s,"Invalid integer in .laz/.lau data"); }
 }
 
-bool NC::LazLoader::setupSgInfo(unsigned spaceGroupNbr, nxs::T_SgInfo& sgInfo) {
+bool NC::LazLoader::setupSgInfo(unsigned spaceGroupNbr, nxs::T_SgInfo& sgInfo) const
+{
   nc_assert_always(!nxs::SgError);
   sgInfo.MaxList = 1024;
   sgInfo.ListSeitzMx = (nxs::T_RTMx*)malloc( sgInfo.MaxList * sizeof(*sgInfo.ListSeitzMx) );
   /* no list info needed here */
   sgInfo.ListRotMxInfo = NULL;
   const nxs::T_TabSgName *tsgn = NULL;
-  std::stringstream s;
+  std::ostringstream s;
   s<<spaceGroupNbr;
   char spaceGroup[1024];
   strncpy(spaceGroup,s.str().c_str(),1023);
@@ -74,14 +69,8 @@ bool NC::LazLoader::setupSgInfo(unsigned spaceGroupNbr, nxs::T_SgInfo& sgInfo) {
   return true;
 }
 
-NC::shared_obj<const NC::Info> NC::LazLoader::getCrystalInfo()
-{
-  return m_cinfo;
-}
-
 NC::LazLoader::LazLoader(const TextData& data,double dcutlow, double dcutup, Temperature temp)
-  : m_inputDescription(data.description()),
-    m_cinfo(makeSO<Info>()),
+  : m_inputDescription(data.dataSourceName()),
     m_dcutlow(dcutlow),
     m_dcutup(dcutup),
     m_temp(temp)
@@ -107,20 +96,21 @@ void NC::LazLoader::preParse(const TextData& data)
   }
 }
 
-
-void NC::LazLoader::read()
+NC::InfoBuilder::SinglePhaseBuilder NC::LazLoader::read()
 {
+  NC::InfoBuilder::SinglePhaseBuilder builder;
+
   //set density
   double density=0.;
   if(search_parameter("density", density ))
-    m_cinfo->setDensity( Density{ density } );
+    builder.density = Density{ density };
 
   //set structure info
   StructureInfo structure_info;
-  if(!search_spacegroup(structure_info.spacegroup))
+  if(!search_spacegroup(structure_info.spacegroup)||structure_info.spacegroup==0)
     NCRYSTAL_THROW2(DataLoadError,"Can not find space group definition in the input data \""<<m_inputDescription<<"\"");
 
-  if(!search_multiplicity(structure_info.n_atoms))
+  if(!search_multiplicity(structure_info.n_atoms) || structure_info.n_atoms==0)
     NCRYSTAL_THROW2(DataLoadError,"Can not find multiplicity in the input data \""<<m_inputDescription<<"\"");
   double n = 0.;
   search_parameter("multiplicity", n );
@@ -145,19 +135,57 @@ void NC::LazLoader::read()
     structure_info.gamma = 90;
 
   if(!search_parameter("Vc", structure_info.volume ))
-    NCRYSTAL_THROW2(DataLoadError,"The unit cell volume is not defined in the input data \""<<m_inputDescription<<"\"");//TODO: just calculate (after completing structure info below)
+    structure_info.volume = 0.0;//Ok: InfoBuilder will simply calculate.
 
+  //Need to determine composition. First we look for a special line like:
+  //
+  //# formula Al2O3
 
-  //Delayed until after sanity check below: m_cinfo->setStructInfo(structure_info);
+  std::string composition_chemform_str;
+  for ( auto& l : m_raw_header ) {
+    auto it = l.begin();
+    auto itE = l.end();
+    while ( it!=itE && startswith(*it,"#") )
+      ++it;
+    if ( it!=itE && std::next(it)!=itE && *it == "formula" ) {
+      composition_chemform_str = *std::next(it);
+      break;
+    }
+  }
+  if ( composition_chemform_str.empty() ) {
+    //Try to fix monoatomic files by looking for ATOM lines.
+    SmallVector<std::string,4> atom_strs;
+    for ( auto& l : m_raw_header ) {
+      auto it = l.begin();
+      auto itE = l.end();
+      while ( it!=itE && startswith(*it,"#") )
+        ++it;
+      if ( it!=itE && std::next(it)!=itE && *it == "ATOM" ) {
+        if ( atom_strs.empty() || atom_strs.front() != *std::next(it) )
+          atom_strs.push_back(*std::next(it));
+      }
+    }
+    if ( atom_strs.size() == 1 && ( atom_strs.front().size() == 1 || atom_strs.front().size() == 2 ) ) {
+      std::string s = atom_strs.front();
+      //Fix casing, e.g. AL -> Al, al->Al:
+      if ( s.at(0)>='a' && s.at(0)<='z' )
+        s.at(0) += ('A'-'a');
+      if ( s.size()==2 && s.at(1)>='A' && s.at(1)<='Z' )
+        s.at(1) -= ('A'-'a');
+      composition_chemform_str = s;
+    }
+  }
+  if ( composition_chemform_str.empty() ) {
+    NCRYSTAL_THROW(BadInput,"Could not determine atomic composition from provided .laz/.lau data. Try to"
+                   " add a line in the file's header specifying the formula. For instance (using Al2O3 as an example): # formula Al2O3");
+  }
+  builder.composition = InfoBuilder::buildCompositionFromChemForm( composition_chemform_str );
+
+  //Delayed until after sanity check below: builder.hklPlanes = ...;
 
   //simply pass along requested temperature (there is anyway no material
   //temperature info given in the lazy data):
-  m_cinfo->setTemperature(m_temp);
-
-  //set cross section info
-  double sigma_abs(-1.0);
-  if(search_parameter("sigma_abs", sigma_abs ))
-    m_cinfo->setXSectAbsorption( SigmaAbsorption{ sigma_abs } );
+  builder.temperature = m_temp;
 
   //structure factors
   unsigned d_index = 0;
@@ -194,6 +222,7 @@ void NC::LazLoader::read()
   checkAndCompleteLattice( structure_info.spacegroup, structure_info.lattice_a, structure_info.lattice_b, structure_info.lattice_c );
 
   const bool enable_hkl(m_dcutlow!=-1);
+  HKLList hklList;
   bool structure_info_is_sane(true);
   if (enable_hkl) {
     double dlow(0.0);
@@ -255,7 +284,7 @@ void NC::LazLoader::read()
             else
               info.fsquared *= 15.0;
 #endif
-            m_cinfo->addHKL(std::move(info));
+            hklList.push_back( std::move(info) );
           }
       }
 
@@ -266,66 +295,72 @@ void NC::LazLoader::read()
       if (std::getenv("NCRYSTAL_DEBUGINFO"))
         std::cout<<"NCrystal::NCLAZFactory::automatically selected dcutoff level "<< m_dcutlow << " Aa"<<std::endl;
     }
-    m_cinfo->enableHKLInfo(m_dcutlow,m_dcutup);
-    if (m_cinfo->hasHKLInfo()) {
-      {
-        //Sanity-check .laz/.lau header, but verifying that no forbidden hkl planes were found in the list.
-        nxs::T_SgInfo sgInfo;
-        const char * old_SgError = nxs::SgError;
-        nxs::SgError = 0;
-        if (!setupSgInfo(structure_info.spacegroup,sgInfo)||nxs::SgError) {
-          printf("NCrystal::loadLazCrystal WARNING: Problems setting up space-group info for sanity checking data.\n");
-          if (nxs::SgError)
-            printf("NCrystal::loadLazCrystal WARNING: Problem was \"%s\".\n",nxs::SgError);
-          nxs::SgError = old_SgError;
-        } else {
-          nxs::SgError = old_SgError;
-          //Do stuff
-          HKLList::const_iterator it = m_cinfo->hklBegin();
-          HKLList::const_iterator itE = m_cinfo->hklEnd();
-          int warn(0);
-          for (;it!=itE;++it) {
-            int dummy(0);
-            if (IsSysAbsent_hkl(&sgInfo,it->h,it->k,it->l,&dummy)!=0) {
-              printf("NCrystal::loadLazCrystal WARNING: Forbidden hkl=(%i,%i,%i) for spacegroup found in data.\n",it->h,it->k,it->l);
-              ++warn;
-              if (warn==5) {
-                printf("NCrystal::loadLazCrystal WARNING: Suppressing further warnings about forbidden hkl for this data.\n");
-                break;
-              }
-              structure_info_is_sane=false;
+
+    {
+      //Sanity-check .laz/.lau header, but verifying that no forbidden hkl planes were found in the list.
+      nxs::T_SgInfo sgInfo;
+      const char * old_SgError = nxs::SgError;
+      nxs::SgError = 0;
+      if (!setupSgInfo(structure_info.spacegroup,sgInfo)||nxs::SgError) {
+        printf("NCrystal::loadLazCrystal WARNING: Problems setting up space-group info for sanity checking data.\n");
+        if (nxs::SgError)
+          printf("NCrystal::loadLazCrystal WARNING: Problem was \"%s\".\n",nxs::SgError);
+        nxs::SgError = old_SgError;
+      } else {
+        nxs::SgError = old_SgError;
+        //Do stuff
+        int warn(0);
+        for ( auto& hkl : hklList ) {
+          int dummy(0);
+          if (IsSysAbsent_hkl(&sgInfo,hkl.h,hkl.k,hkl.l,&dummy)!=0) {
+            printf("NCrystal::loadLazCrystal WARNING: Forbidden hkl=(%i,%i,%i) for spacegroup found in data.\n",hkl.h,hkl.k,hkl.l);
+            ++warn;
+            if (warn==5) {
+              printf("NCrystal::loadLazCrystal WARNING: Suppressing further warnings about forbidden hkl for this data.\n");
+              break;
             }
+            structure_info_is_sane=false;
           }
         }
-        free(sgInfo.ListSeitzMx);
+      }
+      free(sgInfo.ListSeitzMx);
+    }
+  }
+
+  if (structure_info_is_sane) {
+    builder.unitcell.emplace();
+    builder.unitcell.value().structinfo = std::move(structure_info);
+  } else {
+    std::cout<< "NCrystal::loadLazCrystal WARNING: Apparently forbidden hkl values"
+      " found indicating malformed header in .laz data \""<<m_inputDescription<<'"'<<std::endl;
+  }
+
+  if (enable_hkl) {
+    builder.hklPlanes.emplace();//Set up uninitialised HKLPlanes struct
+    builder.hklPlanes.value().dspacingRange = { m_dcutlow,m_dcutup };
+    builder.hklPlanes.value().source = std::move(hklList);
+  }
+
+  return builder;
+}
+
+bool NC::LazLoader::search_parameter(const std::string& attr, double &result ) const
+{
+  for ( const auto& hdrline : m_raw_header) {
+    const auto n = hdrline.size();
+    for ( auto i : ncrange( std::min<decltype(n)>(2,n) ) ) {
+      if ( hdrline.at(i) == attr ) {
+        if ( i+1 >= n )
+          NCRYSTAL_THROW2(DataLoadError,"Missing value after keyword: "<<attr);
+        result = str2dbl_laz( hdrline.at(i+1) );
+        return true;
       }
     }
   }
-  if (structure_info_is_sane)
-    m_cinfo->setStructInfo(structure_info);
-  else
-    printf("NCrystal::loadLazCrystal WARNING: Apparently forbidden hkl values found indicating malformed header in .laz data \"%s\"\n",m_inputDescription.c_str());
-
-  m_cinfo->objectDone();
-}
-
-bool NC::LazLoader::search_parameter(std::string attr, double &result )
-{
-  for (RawItr it = m_raw_header.begin() ; it != m_raw_header.end(); ++it)
-    {
-      for(StrVecItr it_str = (*it).begin() ; it_str != (*it).end(); ++it_str )
-        {
-          if(attr==(*it_str))
-            {
-              result = str2dbl_laz( (*++it_str));
-              return true;
-            }
-        }
-    }
   return false;
 }
 
-bool NC::LazLoader::search_index(std::string attr, unsigned &result)
+bool NC::LazLoader::search_index(const std::string& attr, unsigned &result) const
 {
   for (RawItr it = m_raw_header.begin() ; it != m_raw_header.end(); ++it)
     {
@@ -333,6 +368,8 @@ bool NC::LazLoader::search_index(std::string attr, unsigned &result)
         {
           if(attr==(*it_str))
             {
+              if ( std::next(it_str) == it->end() )
+                NCRYSTAL_THROW2(DataLoadError,"Missing value after keyword: "<<attr);
               result = str2int_laz( (*++it_str));
               return true;
             }
@@ -341,7 +378,7 @@ bool NC::LazLoader::search_index(std::string attr, unsigned &result)
   return false;
 }
 
-unsigned NC::LazLoader::countAtom(std::string formula)
+unsigned NC::LazLoader::countAtom(const std::string& formula) const
 {
   const char * sp = formula.c_str();
   unsigned nCap =0;
@@ -373,7 +410,7 @@ unsigned NC::LazLoader::countAtom(std::string formula)
 }
 
 
-bool NC::LazLoader::search_spacegroup(unsigned &result)
+bool NC::LazLoader::search_spacegroup(unsigned &result) const
 {
   for (RawItr it = m_raw_header.begin() ; it != m_raw_header.end(); ++it)
     {
@@ -381,6 +418,9 @@ bool NC::LazLoader::search_spacegroup(unsigned &result)
         {
           if((*it_str)=="SPCGRP")
             {
+
+              if ( std::next(it_str) == it->end() )
+                NCRYSTAL_THROW2(DataLoadError,"Missing value after keyword: SPCGRP");
               std::string sg_name = *(it_str+1);
               unsigned pos = 2;
               while ( (it_str+pos) != (*it).end() && (*(it_str+pos)).size() <=4 )
@@ -407,8 +447,15 @@ bool NC::LazLoader::search_spacegroup(unsigned &result)
   return false;
 }
 
-bool NC::LazLoader::search_multiplicity(unsigned &result )
+bool NC::LazLoader::search_multiplicity(unsigned &result ) const
 {
+  //Look for the "SiO2" in a line like:
+  //# multiplicity 3    in [SiO2/unit cell]
+  //and calculate the number of atoms (1+2=3 in case of SiO2).
+  //If it says:
+  //# multiplicity 240  in [atoms/unit cell]
+  //Then we should return 1.
+  result = 0;
   for (RawItr it = m_raw_header.begin() ; it != m_raw_header.end(); ++it)
     {
       nc_assert_always(!it->empty());
@@ -416,9 +463,13 @@ bool NC::LazLoader::search_multiplicity(unsigned &result )
         {
           if((*it_str)=="multiplicity")
             {
-              if (it->size()<3)
-                return false;
-              std::string full_string = it->at(it->size()-2);
+              auto it_fs = it_str;
+              for ( auto jj : ncrange(3) ) {
+                (void)jj;
+                if ( ++it_fs == it->end() )
+                  return false;
+              }
+              const std::string& full_string = *it_fs;
               std::string mul_str;
               for(unsigned i=1;i<full_string.size();++i)
                 {
@@ -437,4 +488,3 @@ bool NC::LazLoader::search_multiplicity(unsigned &result )
     }
   return false;
 }
-

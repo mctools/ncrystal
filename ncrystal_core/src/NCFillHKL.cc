@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -145,8 +145,20 @@ namespace NCrystal {
   }
 }
 
-void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
+NC::HKLList NC::calculateHKLPlanes( const StructureInfo& structureInfo,
+                                    const AtomInfoList& atomList,
+                                    FillHKLCfg cfg )
 {
+  if ( atomList.empty() )
+    NCRYSTAL_THROW(BadInput,"calculateHKLPlanes needs a non-empty AtomInfoList");
+  for ( auto& ai : atomList ) {
+    if (!ai.msd().has_value())
+      NCRYSTAL_THROW(BadInput,"calculateHKLPlanes needs an AtomInfoList"
+                     " which includes mean-squared-displacements of all atoms");
+  }
+
+  nc_assert_always(cfg.dcutoff>0.0&&cfg.dcutoff<cfg.dcutoffup);
+
   const bool env_ignorefsqcut = std::getenv("NCRYSTAL_FILLHKL_IGNOREFSQCUT");
   if (env_ignorefsqcut)
     cfg.fsquarecut = 0.0;
@@ -181,14 +193,7 @@ void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
     select_l = str2int(parts.at(2));
   }
 
-  nc_assert_always(!info.isLocked());
-  nc_assert_always(info.hasAtomInfo());
-  nc_assert_always(info.hasAtomMSD());
-  nc_assert_always(info.hasStructureInfo());
-  nc_assert_always(!info.hasHKLInfo());
-  nc_assert_always(cfg.dcutoff>0.0&&cfg.dcutoff<cfg.dcutoffup);
-
-  const RotMatrix rec_lat = getReciprocalLatticeRot( info );
+  const RotMatrix rec_lat = getReciprocalLatticeRot( structureInfo );
 
   //Collect info for each atom in suitable format for use for calculations below:
   SmallVector<SmallVector<Vector,16>,4> atomic_pos;//atomic coordinates
@@ -196,21 +201,20 @@ void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
   SmallVectD msd;//mean squared displacement
   SmallVectD cache_factors;
 
-  AtomList::const_iterator it (info.atomInfoBegin()), itE(info.atomInfoEnd());
-  for (;it!=itE;++it) {
-    nc_assert( it->msd().has_value() );
-    msd.push_back( it->msd().value() );
-    csl.push_back( it->atomData().coherentScatLen() );
+  for ( auto& ai : atomList ) {
+    nc_assert( ai.msd().has_value() );
+    msd.push_back( ai.msd().value() );
+    csl.push_back( ai.atomData().coherentScatLen() );
     SmallVector<Vector,16> pos;
-    pos.reserve_hint( it->unitCellPositions().size() );
-    for ( const auto& p : it->unitCellPositions() )
+    pos.reserve_hint( ai.unitCellPositions().size() );
+    for ( const auto& p : ai.unitCellPositions() )
       pos.push_back( p.as<Vector>() );
     atomic_pos.push_back( std::move(pos) );
   }
 
   int max_h, max_k, max_l;
   {
-    const auto& si = info.getStructureInfo();
+    auto& si = structureInfo;
     auto max_hkl = estimateHKLRange( cfg.dcutoff,
                                      si.lattice_a, si.lattice_b, si.lattice_c,
                                      si.alpha*kDeg, si.beta*kDeg, si.gamma*kDeg );
@@ -419,9 +423,7 @@ void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
     }//loop_k
   }//loop_h
 
-  //update HKLlist and copy to info
-  info.enableHKLInfo(cfg.dcutoff,cfg.dcutoffup);
-
+  //Update HKLlist and return:
   HKLList::iterator itHKL, itHKLB(hkllist.begin()), itHKLE(hkllist.end());
   for(itHKL=itHKLB;itHKL!=itHKLE;++itHKL) {
     unsigned deminorm_size = itHKL->demi_normals.size();
@@ -437,6 +439,5 @@ void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
       std::copy(eh.begin(), eh.end(), &itHKL->eqv_hkl[0]);
     }
   }
-  info.setHKLList(std::move(hkllist));;
-
+  return hkllist;
 }

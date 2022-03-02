@@ -2,7 +2,7 @@
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2021 NCrystal developers                                   ##
+##  Copyright 2015-2022 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -69,7 +69,7 @@ if(NOT DEFINED NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE)
 endif()
 
 #Setup project:
-project(NCrystal VERSION 2.7.3 LANGUAGES CXX C)
+project(NCrystal VERSION 2.9.91 LANGUAGES CXX C)
 
 if(NOT DEFINED NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE)
   if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
@@ -82,7 +82,7 @@ endif()
 #Options:
 option( BUILD_EXAMPLES  "Whether to build examples." ON )
 option( BUILD_G4HOOKS   "Whether to build the G4 hooks (requires Geant4 to be available)." OFF )
-option( BUILD_EXTRA     "Whether to build optional modules for .nxs/.laz/.lau support (nb: different license!)." ON )
+option( BUILD_EXTRA     "Whether to build optional modules for .nxs/.laz/.lau support (nb: different license!)." OFF )
 set( BUILD_STRICT OFF CACHE STRING "Stricter build (primarily for testing). Can optionally select specific C++ standard.")
 set_property(CACHE BUILD_STRICT PROPERTY STRINGS ON OFF 11 14 17 20 )
 option( INSTALL_MCSTAS  "Whether to install the NCrystal mcstas component and related scripts." ON )

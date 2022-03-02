@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,6 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCDefs.hh"
+#include "NCrystal/NCSmallVector.hh"
 #include <chrono>
 #include <iostream>
 #ifndef NCRYSTAL_DISABLE_THREADS
@@ -86,11 +87,20 @@ namespace NCrystal {
     virtual const char* factoryName() const = 0;
 
     //Cleanup cache, release all kept strong and weak references (this function
-    //automatically registered with and invoked by global clearCaches function):
+    //automatically registered with and invoked by global clearCaches
+    //function). But note that it is NOT called from the factory destructor,
+    //since that can trigger memory errors during programme shutdown.:
     void cleanup();
+
+    //To automatically call a function whenever cleanup() is invoked:
+    void registerCleanupCallback(std::function<void()>);
 
     struct Stats { std::size_t nstrongrefs, nweakrefs; };
     Stats currentStats();
+
+    //NB: This might seem sensible, but gives troubles since most
+    //CacheFactoryBase instances are kept as global static objects, with
+    //undefined destruction order: ~CachedFactoryBase() { cleanup(); }
 
   protected:
     virtual ShPtr actualCreate(const key_type&) const = 0;
@@ -107,7 +117,7 @@ namespace NCrystal {
     class StrongRefKeeper;
     StrongRefKeeper m_strongRefs;
     bool m_cleanupNeedsRegistry = true;
-
+    SmallVector<std::function<void()>,1,SVMode::LOWFOOTPRINT> m_cleanupCallbacks;
   };
 
   ///////////////////////////////////////////////////////////////////////////
@@ -133,9 +143,15 @@ namespace NCrystal {
 #else
     inline constexpr const char * currentThreadIDForPrint() noexcept { return "<thread-id-unavailable>"; }
 #endif
-
   }
-
+  namespace detail {
+#ifndef NCRYSTAL_DISABLE_THREADS
+    void registerThreadWork(std::thread::id);
+    void registerThreadWorkDone(std::thread::id);
+    void registerThreadAsWaiting(std::thread::id);
+    void registerThreadAsFinishedWaiting(std::thread::id);
+#endif
+  }
 
   template<class TKey, class TValue, unsigned NStrongRefsKept,class TKT>
   class CachedFactoryBase<TKey,TValue,NStrongRefsKept,TKT>::StrongRefKeeper {
@@ -222,6 +238,12 @@ namespace NCrystal {
   };
 
   template<class TKey,class TValue,unsigned N,class TKT>
+  inline void CachedFactoryBase<TKey,TValue,N,TKT>::registerCleanupCallback(std::function<void()> fn)
+  {
+    NCRYSTAL_LOCK_GUARD(m_mutex); m_cleanupCallbacks.push_back(fn);
+  }
+
+  template<class TKey,class TValue,unsigned N,class TKT>
   inline void CachedFactoryBase<TKey,TValue,N,TKT>::cleanup()
   {
     NCRYSTAL_LOCK_GUARD(m_mutex);
@@ -237,6 +259,8 @@ namespace NCrystal {
       }
       it = itNext;
     }
+    for ( const auto& fn : m_cleanupCallbacks )
+      fn();
   }
 
   template<class TKey,class TValue,unsigned N,class TKT>
@@ -252,12 +276,10 @@ namespace NCrystal {
   template<class TKey,class TValue,unsigned N,class TKT>
   inline std::shared_ptr<const TValue> CachedFactoryBase<TKey,TValue,N,TKT>::createWithoutCache( const TKey& key ) const
   {
-    const bool verbose = getFactoryVerbosity();
-    const std::string keystr = ( verbose ? keyToString(key) : std::string() );
-    if ( verbose )
+    if ( getFactoryVerbosity() )
       std::cout<< this->factoryName()
                <<" (thread_"<<thread_details::currentThreadIDForPrint()<<")"
-               <<" : Request to provide object for key "<<keystr<<" (without cache)"<<std::endl;
+               <<" : Request to provide object for key "<<keyToString(key)<<" (without cache)"<<std::endl;
     return actualCreate(key);
   }
 
@@ -383,7 +405,16 @@ namespace NCrystal {
                   <<" (thread_"<<thread_details::currentThreadIDForPrint()<<")"
                   << " : Creating (from scratch) object for key " << keystr << std::endl;
       //Invoke actual creation function without holding the mutex lock.
-      res = actualCreate(key);
+      {
+#ifndef NCRYSTAL_DISABLE_THREADS
+        struct IsWorkingGuard {
+          std::thread::id m_id;
+          IsWorkingGuard() : m_id(std::this_thread::get_id()) { detail::registerThreadWork(m_id); }
+          ~IsWorkingGuard() { detail::registerThreadWorkDone(m_id); }
+        } isworkingguard;
+#endif
+        res = actualCreate(key);
+      }
       //Populate result while holding mutex lock:
       guard.ensureLock(NCRYSTAL_DEBUG_LOCKS_ARGS);
       cache_entry = TKT::cacheMapLookup( m_cache, key, thinned_key );//reacquire after getting lock back
@@ -415,11 +446,21 @@ namespace NCrystal {
       }
     } else {
       //Wait for other thread to populate cache. Sleep and recheck periodically.
+#ifndef NCRYSTAL_DISABLE_THREADS
+        struct IsWaitingGuard {
+          std::thread::id m_id;
+          IsWaitingGuard() : m_id(std::this_thread::get_id()) { detail::registerThreadAsWaiting(m_id); }
+          ~IsWaitingGuard() { detail::registerThreadAsFinishedWaiting(m_id); }
+        } iswaitingguard;
+#endif
       while (true) {
 #ifndef NCRYSTAL_DISABLE_THREADS
+        //Try to detect cyclic dependencies:
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 #else
-        NCRYSTAL_THROW(LogicError,"Other thread seems to be doing work - but NCrystal was built with NCRYSTAL_DISABLE_THREADS and can not support this.");
+        NCRYSTAL_THROW(LogicError,"Other thread seems to be doing work (or you have"
+                       " a cyclical dependency!!) - but NCrystal was built with "
+                       "NCRYSTAL_DISABLE_THREADS and can not support this.");
 #endif
         guard.ensureLock(NCRYSTAL_DEBUG_LOCKS_ARGS);
         cache_entry = TKT::cacheMapLookup( m_cache, key, thinned_key );//reacquire after getting lock back

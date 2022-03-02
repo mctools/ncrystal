@@ -3,7 +3,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -99,7 +99,7 @@ NC::SCBragg::pimpl::pimpl(const NC::Info& cinfo, MosaicityFWHM mosaicity,
     NCRYSTAL_THROW(MissingInfo,"Passed Info object lacks Structure information.");
 
   //Setup based on structure info:
-  RotMatrix reci_lattice = getReciprocalLatticeRot( cinfo );
+  RotMatrix reci_lattice = getReciprocalLatticeRot( cinfo.getStructureInfo() );
   RotMatrix cry2lab = getCrystal2LabRot( sco, reci_lattice );
   double V0numAtom = cinfo.getStructureInfo().n_atoms * cinfo.getStructureInfo().volume;
 

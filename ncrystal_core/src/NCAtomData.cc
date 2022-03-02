@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -90,8 +90,8 @@ std::string NC::AtomData::elementName() const
   return name;
 }
 
-NC::AtomData::AtomData( SigmaBound incXS, double cohSL, double captureXS, AtomMass avrMassAMU, unsigned Z, unsigned A )
-  : m_m(DoValidate,avrMassAMU), m_ixs(incXS.get()), m_csl(cohSL), m_axs(captureXS), m_classify(A), m_z(Z)
+NC::AtomData::AtomData( SigmaBound incXS, double cohSL, SigmaAbsorption captureXS, AtomMass avrMassAMU, unsigned Z, unsigned A )
+  : m_m(DoValidate,avrMassAMU), m_ixs(incXS.get()), m_csl(cohSL), m_axs(captureXS.get()), m_classify(A), m_z(Z)
 {
   nc_assert(m_z>0);
   nc_assert(m_classify>=0);
@@ -242,7 +242,7 @@ void NC::AtomData::descriptionToStream(std::ostream& os, bool includeValues) con
   os<<"(cohSL="<<coherentScatLenFM()<<"fm"
     <<" cohXS="<<coherentXS()
     <<" incXS="<<incoherentXS()
-    <<" absXS="<<captureXS()<<"barn"
+    <<" absXS="<<captureXS()
     <<" mass="<<averageMassAMU();
   if (isElement())
     os<<" Z="<<Z();
@@ -258,6 +258,9 @@ bool NC::AtomData::operator<(const NC::AtomData & o) const
   unsigned oZval = o.isElement() ? o.Z() : 999999;
   if ( Zval != oZval )
     return Zval < oZval;
+  //cheap equality check before wasting more time below:
+  if ( getUniqueID() == o.getUniqueID() )
+    return false;
   //A (natural elements comes before isotopes):
   unsigned Aval = isSingleIsotope() ? A() : 0;
   unsigned oAval = o.isSingleIsotope() ? o.A() : 0;

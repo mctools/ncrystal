@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,7 +22,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCTypes.hh"
-#include <ostream>
 
 namespace NCrystal {
 
@@ -58,7 +57,7 @@ namespace NCrystal {
     SigmaBound coherentXS() const;//barn
     SigmaBound incoherentXS() const;//barn
     SigmaBound scatteringXS() const;//barn [=coherentXS()+incoherentXS()]
-    double captureXS() const;//barn, value at v_neutron = 2200m/s
+    SigmaAbsorption captureXS() const;//barn, value at v_neutron = 2200m/s
 
     //Free rather than bound cross sections. The free cross sections are
     //obtained by multiplying the bound ones with (A/(1+A))^2 where A is the
@@ -114,7 +113,7 @@ namespace NCrystal {
     ///////////////////////////////
 
     //Natural elements (provide just Z) or single isotopes (provide both Z and A):
-    AtomData( SigmaBound incXS, double cohSL, double captureXS, AtomMass avrMassAMU, unsigned Z, unsigned A=0 );
+    AtomData( SigmaBound incXS, double cohSL, SigmaAbsorption captureXS, AtomMass avrMassAMU, unsigned Z, unsigned A=0 );
 
     //Composite:
     using ComponentList = std::vector<Component>;
@@ -237,9 +236,9 @@ inline NCrystal::SigmaBound NCrystal::AtomData::scatteringXS() const
   return NCrystal::SigmaBound{m_ixs + coherentXS().get()};
 }
 
-inline double NCrystal::AtomData::captureXS() const
+inline NCrystal::SigmaAbsorption NCrystal::AtomData::captureXS() const
 {
-  return m_axs;
+  return SigmaAbsorption{ m_axs };
 }
 inline NCrystal::SigmaFree NCrystal::AtomData::freeScatteringXS() const
 {

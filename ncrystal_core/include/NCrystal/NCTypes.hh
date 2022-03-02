@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,8 +21,18 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
-#include <ostream>
+#ifndef NCrystal_SmallVector_hh
+#  include "NCrystal/NCSmallVector.hh"
+#endif
+#ifndef NCrystal_ImmutBuf_hh
+#  include "NCrystal/NCImmutBuf.hh"
+#endif
+#ifndef NCrystal_Variant_hh
+#  include "NCrystal/NCVariant.hh"
+#endif
+#ifndef NCrystal_Fmt_hh
+#  include "NCrystal/NCFmt.hh"
+#endif
 
 //////////////////////////////////////////////
 //                                          //
@@ -32,7 +42,7 @@
 
 namespace NCrystal {
 
-  //Base class used to MT-safe caching. Client code can provide polymorphic
+  //Base class used for MT-safe caching. Client code can provide polymorphic
   //CachePtr objects and pass them into various interfaces. This allows client
   //code to control the lifetime and number of caches (usually one per thread),
   //while giving NCrystal full control of what to actually put inside the
@@ -87,9 +97,9 @@ namespace NCrystal {
     EncapsulatedValue( DoValidate_t, EncapsulatedValue );
     explicit EncapsulatedValue( DoValidate_t, TValue );
 
-    //Accessing the wrapped value always require invocation of a named method or
-    //explicit cast (for strong type safety):
-    explicit constexpr operator TValue() const noexcept;
+    //Accessing the wrapped value always require invocation of a named
+    //method. Casts are forbidden (for strong type safety):
+    operator TValue() const = delete;
     ncconstexpr17 TValue& get() noexcept;
     constexpr const TValue& get() const noexcept;
     ncconstexpr17 void set( TValue ) noexcept;
@@ -113,13 +123,14 @@ namespace NCrystal {
     constexpr bool operator==( const EncapsulatedValue& o ) const noexcept { return m_value == o.m_value; }
     constexpr bool operator!=( const EncapsulatedValue& o ) const noexcept { return m_value != o.m_value; }
 #endif
+    void stream(std::ostream& os) const noexcept;
   protected:
     TValue m_value;
   };
 
   //Values are printed with suitable trailing unit:
   template <class Derived, class TValue>
-  NCRYSTAL_API std::ostream& operator<< (std::ostream& os, const EncapsulatedValue<Derived,TValue>& val) noexcept;
+  NCRYSTAL_API std::ostream& operator<<(std::ostream& os, const EncapsulatedValue<Derived,TValue>& val) noexcept;
 
   class NeutronEnergy;
 
@@ -130,8 +141,10 @@ namespace NCrystal {
     static constexpr const char * unit() noexcept { return "Aa"; }
     //Automatic conversions from/to energy:
     constexpr NeutronWavelength(NeutronEnergy) noexcept;
-    ncnodiscard17 constexpr NeutronEnergy energy() const noexcept;
     void validate() const;
+    ncnodiscard17 constexpr NeutronEnergy energy() const noexcept;
+    ncnodiscard17 constexpr double k() const noexcept;//Corresponding wavenumber (k) in units of 1/Aa
+    ncnodiscard17 constexpr double ksq() const noexcept;//Corresponding squared wavenumber (k^2) in units of 1/Aa^2
   };
 
   class NCRYSTAL_API NeutronEnergy final : public EncapsulatedValue<NeutronEnergy> {
@@ -141,8 +154,10 @@ namespace NCrystal {
     static constexpr const char * unit() noexcept { return "eV"; }
     //Automatic conversions from/to wavelength:
     constexpr NeutronEnergy(NeutronWavelength) noexcept;
-    ncnodiscard17 constexpr NeutronWavelength wavelength() const noexcept;
     void validate() const;
+    ncnodiscard17 constexpr NeutronWavelength wavelength() const noexcept;
+    ncnodiscard17 constexpr double k() const noexcept;//Corresponding wavenumber (k) in units of 1/Aa
+    ncnodiscard17 constexpr double ksq() const noexcept;//Corresponding squared wavenumber (k^2) in units of 1/Aa^2
   };
 
   class NCRYSTAL_API CosineScatAngle final : public EncapsulatedValue<CosineScatAngle> {
@@ -216,11 +231,13 @@ namespace NCrystal {
     void validate() const;
   };
 
+  class NumberDensity;
   class NCRYSTAL_API Density final : public EncapsulatedValue<Density> {
   public:
     //Material density in g/cm3.
     using EncapsulatedValue::EncapsulatedValue;
     static constexpr const char * unit() noexcept { return "g/cm3"; }
+    Density( NumberDensity, AtomMass averageAtomMass );
     void validate() const;
   };
 
@@ -229,7 +246,49 @@ namespace NCrystal {
     //Material number density in atoms per Aa^3.
     using EncapsulatedValue::EncapsulatedValue;
     static constexpr const char * unit() noexcept { return "atoms/Aa^3"; }
+    NumberDensity( Density, AtomMass averageAtomMass );
     void validate() const;
+  };
+
+  struct NCRYSTAL_API DensityState {
+    //Keep information about density overrides: Either an absolute override of
+    //density the numberdensity value, or a scaling factor. The default state is
+    //a scaling factor of 1.0, which is the same as no override.
+    //NB: NCCfgManip.hh assumes underlying type is unsigned!
+    enum class Type : unsigned { DENSITY, NUMBERDENSITY, SCALEFACTOR };
+    Type type = Type::SCALEFACTOR;
+    double value = 1.0;
+    bool operator==(DensityState const&) const;
+    void validate() const;
+    //For C++11:
+    DensityState() = default;
+    DensityState( Type tt, double vv ) : type(tt), value(vv) {}
+  };
+  NCRYSTAL_API std::ostream& operator<<(std::ostream&, const DensityState&);
+
+  class SLDContrast;
+
+  class NCRYSTAL_API ScatLenDensity final : public EncapsulatedValue<ScatLenDensity> {
+  public:
+    //Scattering length density (usually used for SANS physics). Note that this might be negative.
+    using EncapsulatedValue::EncapsulatedValue;
+    static constexpr const char * unit() noexcept { return "10^-6/Aa^2"; }
+    void stream(std::ostream& os) const noexcept;
+    void validate() const;
+    ncnodiscard17 constexpr SLDContrast contrast(ScatLenDensity other) const noexcept;
+  };
+
+  class NCRYSTAL_API SLDContrast final : public EncapsulatedValue<SLDContrast> {
+  public:
+    //Scattering length density contrast for SANS physics, (also known as
+    //"delta-rho"). This is an absolute difference between two scattering length
+    //densities.
+    using EncapsulatedValue::EncapsulatedValue;
+    static constexpr const char * unit() noexcept { return "1e-6/Aa^2"; }
+    void validate() const;
+    constexpr SLDContrast(ScatLenDensity rho1, ScatLenDensity rho2) noexcept;
+    ncnodiscard17 constexpr double valuePerAa2() const noexcept;//Value in units of 1/Aa^2
+    ncnodiscard17 constexpr double valuePerCM2() const noexcept;//Value in units of 1/cm^2
   };
 
   class MosaicitySigma;
@@ -281,6 +340,18 @@ namespace NCrystal {
     using StronglyTypedFixedVector::StronglyTypedFixedVector;
   };
 
+  struct NCRYSTAL_API OrientDir {
+    //Orientation of crystal axis, combining a laboratory direction with either
+    //a direction in the unit cell coordinate system or a HKL point (indicating
+    //the plane-normal of that HKL plane).
+    using CrysDir = Variant<CrystalAxis,HKLPoint,VariantAllowEmpty::No>;
+    using LabDir = LabAxis;
+    CrysDir crystal;
+    LabDir lab;
+    bool operator==(const OrientDir&o) const noexcept { return crystal == o.crystal && lab == o.lab; }
+  };
+  NCRYSTAL_API std::ostream& operator<<( std::ostream&, const OrientDir& );
+
   class NCRYSTAL_API LCAxis final : public StronglyTypedFixedVector<LCAxis,double,3> {
     //Layered crystal axis (e.g. (0,0,1) in pyrolytic graphite).
   public:
@@ -305,6 +376,9 @@ namespace NCrystal {
     CosineScatAngle mu;
   };
 
+  NCRYSTAL_API std::ostream& operator<<(std::ostream&, const ScatterOutcome&);
+  NCRYSTAL_API std::ostream& operator<<(std::ostream&, const ScatterOutcomeIsotropic&);
+
   //Index identifying RNG streams:
   class NCRYSTAL_API RNGStreamIndex final : public EncapsulatedValue<RNGStreamIndex,uint64_t> {
   public:
@@ -326,6 +400,72 @@ namespace NCrystal {
   NCRYSTAL_API std::ostream& operator<<(std::ostream&, MaterialType);
   NCRYSTAL_API std::ostream& operator<<(std::ostream&, ProcessType);
 
+  class NCRYSTAL_API DataSourceName {
+    //Immutable string which is used to indicate the origins of a given data
+    //object. This may or may not be a filename (e.g. "myfile.ncmat",
+    //"<unknown>", ...), and should in any case ONLY be used to create more
+    //meaningful output messages. In no case should an algorithm start to
+    //modify its behaviour depending on the content of such names.
+  public:
+    DataSourceName();//empty string
+    DataSourceName( std::string );
+    DataSourceName& operator=( std::string );
+    bool operator==( const DataSourceName& o ) const { return *m_str == *o.m_str; }
+    const std::string& str() const { return m_str; }
+  private:
+    shared_obj<const std::string> m_str;
+  };
+
+  NCRYSTAL_API std::ostream& operator<<(std::ostream&, const DataSourceName&);
+
+  namespace Cfg {
+
+    namespace detail {
+
+      //Internal types related to configuration and needed in public headers for
+      //technical reasons.
+
+      namespace varbuf_calc {
+        //Typically VarBuf will end up with alignment of 8, object size of 32,
+        //and a local buffer of 27. However, for portability and robustness we
+        //express the requirements for all supported types and combine
+        //appropriately:
+        static constexpr auto ValDbl_buf_align = alignof(double);
+        static constexpr auto ValDbl_buf_minsize = sizeof(double) + 16;
+        static constexpr auto ValInt_buf_align = alignof(int64_t);
+        static constexpr auto ValInt_buf_minsize = sizeof(int64_t);
+        static constexpr auto ValStr_buf_align = alignof(char);
+        static constexpr auto ValStr_buf_minsize = 24;
+        static constexpr auto ValBool_buf_align = alignof(char);
+        static constexpr auto ValBool_buf_minsize = 1;
+        static constexpr auto ValVector_buf_align = alignof(ThreeVector);
+        static constexpr auto ValVector_buf_minsize = sizeof(ThreeVector);
+        static constexpr auto ValOrientDir_buf_align = alignof(double);
+        static constexpr auto ValOrientDir_buf_minsize = 1;//too large, just keep in remote buffer.
+        static constexpr auto buf_align = ncconstexpr_lcm<std::size_t>( ValDbl_buf_align, ValInt_buf_align,
+                                                                        ValStr_buf_align, ValBool_buf_align,
+                                                                        ValVector_buf_align, ValOrientDir_buf_align );
+        static constexpr auto buf_minsize = ncconstexpr_max<std::size_t>( ValDbl_buf_minsize, ValInt_buf_minsize,
+                                                                          ValStr_buf_minsize, ValBool_buf_minsize,
+                                                                          ValVector_buf_minsize, ValOrientDir_buf_minsize );
+      }
+      enum class NCRYSTAL_API VarId : std::uint32_t;//only fwd decl here
+      using VarBuf = ImmutableBuffer<varbuf_calc::buf_minsize,varbuf_calc::buf_align,VarId>;
+      using VarBufVector = SmallVector<VarBuf,7,SVMode::FASTACCESS_IMPLICITCOPY>;
+    }
+
+    class CfgManip;
+    class NCRYSTAL_API CfgData {
+      //Class encapsulating a VarBufVector, ensuring that only CfgManip methods
+      //can access it. This allows CfgData objects in public headers, leaving a
+      //whole bunch of templated code private.
+    private:
+      friend class CfgManip;
+      detail::VarBufVector m_data;
+      ncconstexpr17 const detail::VarBufVector& operator()() const noexcept { return m_data; }
+      ncconstexpr17 detail::VarBufVector& operator()() noexcept { return m_data; }
+    };
+  }
 }
 
 
@@ -343,6 +483,16 @@ namespace NCrystal {
   inline std::ostream& operator<<(std::ostream& os, ProcessType pt)
   {
     return os << (pt==ProcessType::Scatter?"Scatter":"Absorption");
+  }
+
+  inline std::ostream& operator<<( std::ostream& os, const ScatterOutcome& outcome )
+  {
+    return os << "ScatterOutcomeIsotropic(E="<<outcome.ekin<<", dir="<<outcome.direction<<')';
+  }
+
+  inline std::ostream& operator<<(std::ostream& os, const ScatterOutcomeIsotropic& outcome)
+  {
+    return os << "ScatterOutcomeIsotropic(E="<<outcome.ekin<<", mu="<<outcome.mu<<')';
   }
 
   //Next two are defined in-class due to gcc 4.8 @ centos7:
@@ -371,12 +521,6 @@ namespace NCrystal {
     : m_value(val)
   {
     static_cast<const Derived*>(this)->validate();
-  }
-
-  template <class Derived, class TValue>
-  inline constexpr EncapsulatedValue<Derived,TValue>::operator TValue() const noexcept
-  {
-    return m_value;
   }
 
   template <class Derived, class TValue>
@@ -425,10 +569,26 @@ namespace NCrystal {
     return bool(m_value);
   }
 
+  namespace detail {
+    struct NCRYSTAL_API fmthelper{
+      static void dofmt( std::ostream& os, const double& val ) { os << fmtg(val); }
+      template<class T>
+      static void dofmt( std::ostream& os, const T& val ) { os << val; }
+    };
+  }
+
+  template <class Derived, class TValue>
+  inline void EncapsulatedValue<Derived,TValue>::stream(std::ostream& os) const noexcept
+  {
+    detail::fmthelper::dofmt(os,m_value);
+    os << Derived::unit();
+  }
+
   template <class Derived, class TValue>
   NCRYSTAL_API inline std::ostream& operator<< (std::ostream& os, const EncapsulatedValue<Derived,TValue>& val) noexcept
   {
-    return os << TValue(val) << Derived::unit();
+    static_cast<const Derived*>(&val)->stream(os);
+    return os;
   }
 
   inline constexpr NeutronEnergy NeutronWavelength::energy() const noexcept
@@ -439,6 +599,26 @@ namespace NCrystal {
   inline constexpr NeutronWavelength NeutronEnergy::wavelength() const noexcept
   {
     return *this;
+  }
+
+  inline constexpr double NeutronEnergy::k() const noexcept
+  {
+    return ekin2ksq(m_value);
+  }
+
+  inline constexpr double NeutronEnergy::ksq() const noexcept
+  {
+    return ekin2ksq(m_value);
+  }
+
+  inline constexpr double NeutronWavelength::k() const noexcept
+  {
+    return wl2k(m_value);
+  }
+
+  inline constexpr double NeutronWavelength::ksq() const noexcept
+  {
+    return wl2ksq(m_value);
   }
 
   //Using nc_as_const so it can also be constexpr in C++11
@@ -492,6 +672,33 @@ namespace NCrystal {
   inline constexpr SigmaBound SigmaFree::bound( AtomMass am ) const noexcept
   {
     return SigmaBound( *this, am );
+  }
+
+  inline Density::Density( NumberDensity nd_, AtomMass averageAtomMass_ )
+    : Density( [](NumberDensity nd, AtomMass averageAtomMass)
+    {
+      nd.validate();
+      averageAtomMass.validate();
+      constexpr double kkk = 1e27 * constant_dalton2kg;
+      double result = kkk * averageAtomMass.get() * nd.get();
+      if ( ! (result >= 0) || std::isinf(result) || std::isnan(result) )
+        NCRYSTAL_THROW(CalcError,"Problems calculating Density from NumberDensity from NumberDensity and averageAtomMass");
+      return Density{ result };
+    }(nd_,averageAtomMass_))
+  {}
+
+  inline NumberDensity::NumberDensity( Density dens_, AtomMass averageAtomMass_ )
+    : NumberDensity([](Density dens, AtomMass averageAtomMass)
+    {
+      dens.validate();
+      averageAtomMass.validate();
+      constexpr double kkk = 1e27 * constant_dalton2kg;
+      double denom = kkk * averageAtomMass.get();
+      if ( ! (denom > 0) || std::isinf(denom) || std::isnan(denom) )
+        NCRYSTAL_THROW(CalcError,"Can not calculate NumberDensity from Density when averageAtomMass is vanishing or invalid");
+      return NumberDensity{ dens.get() / denom };
+    }(dens_,averageAtomMass_))
+  {
   }
 
   inline constexpr double AtomMass::relativeToNeutronMass() const noexcept
@@ -565,6 +772,43 @@ namespace NCrystal {
       NCRYSTAL_THROW2(CalcError,"SigmaAbsorption::validate() failed. Invalid value:" << *this );
   }
 
+  inline void ScatLenDensity::validate() const
+  {
+    if ( std::isnan( m_value ) || m_value < -1.0e9 || m_value > 1.0e9 )
+      NCRYSTAL_THROW2(CalcError,"ScatLenDensity::validate() failed. Invalid value:" << *this );
+  }
+
+  inline void ScatLenDensity::stream(std::ostream& os) const noexcept
+  {
+    os << fmtg(get()) << "x" << unit();//Unit starts with number, so need "x" to separate from value.
+  }
+
+  inline constexpr SLDContrast ScatLenDensity::contrast(ScatLenDensity other) const noexcept
+  {
+    return SLDContrast{ *this, other };
+  }
+
+  inline constexpr SLDContrast::SLDContrast( ScatLenDensity rho1, ScatLenDensity rho2 ) noexcept
+    : SLDContrast( std::fabs( nc_as_const(rho1).dbl()-nc_as_const(rho2).dbl() ) )
+  {
+  }
+
+  inline constexpr double SLDContrast::valuePerAa2() const noexcept
+  {
+    return dbl() * 1.0e-6;
+  }
+
+  inline constexpr double SLDContrast::valuePerCM2() const noexcept
+  {
+    return dbl() * 1.0e10;
+  }
+
+  inline void SLDContrast::validate() const
+  {
+    if ( ! ( m_value >= 0.0 && m_value < 1e9 ) )
+      NCRYSTAL_THROW2(CalcError,"SLDContrast::validate() failed. Invalid value:" << *this );
+  }
+
   inline void Density::validate() const
   {
     if ( ! ( m_value >= 0.0 && m_value < 1e6 ) )
@@ -601,6 +845,33 @@ namespace NCrystal {
       NCRYSTAL_THROW2(CalcError,"NeutronEnergy::validate() failed. Invalid value:" << *this );
   }
 
+  inline std::ostream& operator<<(std::ostream& os, const DataSourceName& dsn)
+  {
+    return os << dsn.str();
+  }
+
+  inline DataSourceName::DataSourceName( std::string dsn )
+    : m_str(makeSO<std::string>(std::move(dsn)))
+  {
+  }
+
+  inline DataSourceName& DataSourceName::operator=( std::string dsn )
+  {
+    if ( *m_str != dsn )
+      m_str = makeSO<std::string>(std::move(dsn));
+    return *this;
+  }
+
+  inline bool DensityState::operator==( DensityState const& o ) const
+  {
+    return this->value == o.value && this->type == o.type;
+  }
+
+  inline void DensityState::validate() const
+  {
+    if ( !(value>0.0) || !( value <= 1.0e200) )
+      NCRYSTAL_THROW2(BadInput,"Density value invalid or out of bounds: "<<*this);
+  }
 }
 
 #endif

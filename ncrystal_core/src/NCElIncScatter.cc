@@ -3,7 +3,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -27,7 +27,8 @@
 #include "NCrystal/internal/NCDebyeMSD.hh"
 #include "NCrystal/internal/NCSpan.hh"
 #include "NCrystal/internal/NCDebyeMSD.hh"
-#include <iostream>
+#include "NCrystal/internal/NCString.hh"
+#include <sstream>
 
 namespace NC = NCrystal;
 
@@ -119,14 +120,12 @@ NC::ElIncScatter::ElIncScatter( const VectD& elements_meanSqDisp,
 
 NC::CrossSect NC::ElIncScatter::crossSectionIsotropic( CachePtr&, NeutronEnergy ekin ) const
 {
-  return CrossSect{ m_elincxs->evaluate( ekin ) };
+  return m_elincxs->evaluate( ekin );
 }
 
 NC::ScatterOutcomeIsotropic NC::ElIncScatter::sampleScatterIsotropic( CachePtr&, RNG& rng, NeutronEnergy ekin ) const
 {
-  double mu = m_elincxs->sampleMu( rng, ekin );
-  nc_assert( mu >= -1.0 && mu <= 1.0 );
-  return { ekin, CosineScatAngle{mu} };
+  return { ekin, m_elincxs->sampleMu( rng, ekin ) };
 }
 
 NC::ElIncScatter::ElIncScatter( std::unique_ptr<ElIncXS> p )
@@ -134,7 +133,9 @@ NC::ElIncScatter::ElIncScatter( std::unique_ptr<ElIncXS> p )
 {
 }
 
-std::shared_ptr<NC::ProcImpl::Process> NC::ElIncScatter::createMerged( const Process& oraw ) const
+std::shared_ptr<NC::ProcImpl::Process> NC::ElIncScatter::createMerged( const Process& oraw,
+                                                                       double scale_self,
+                                                                       double scale_other ) const
 {
   auto optr = dynamic_cast<const ElIncScatter*>(&oraw);
   if (!optr)
@@ -142,6 +143,22 @@ std::shared_ptr<NC::ProcImpl::Process> NC::ElIncScatter::createMerged( const Pro
   auto& o = *optr;
   nc_assert( m_elincxs != nullptr );
   nc_assert( o.m_elincxs != nullptr );
-  return std::make_shared<ElIncScatter>(std::make_unique<ElIncXS>( *m_elincxs, 1.0,
-                                                                   *o.m_elincxs, 1.0 ));
+  return std::make_shared<ElIncScatter>(std::make_unique<ElIncXS>( *m_elincxs, scale_self,
+                                                                   *o.m_elincxs, scale_other ));
+}
+
+NC::Optional<std::string> NC::ElIncScatter::specificJSONDescription() const
+{
+  std::ostringstream ss;
+  auto xs_lowE = m_elincxs->evaluate( NeutronEnergy{ 0.0 } );
+  auto nelem = m_elincxs == nullptr ? 0 : m_elincxs->nElements();
+  {
+    std::ostringstream tmp;
+    tmp << "nelements="<<nelem;
+    tmp << ";max_contrib="<<xs_lowE;
+    streamJSONDictEntry( ss, "summarystr", tmp.str(), JSONDictPos::FIRST );
+  }
+  streamJSONDictEntry( ss, "sigma_lowE_limit", xs_lowE.dbl() );
+  streamJSONDictEntry( ss, "nelements", nelem, JSONDictPos::LAST );
+  return ss.str();
 }
