@@ -11,8 +11,9 @@ because bugs might get fixed (usually) or introduced (hopefully rarely).
 Currently the versions of the format are *NCMAT v1* which is supported by all
 NCrystal releases, *NCMAT v2* which can be read with NCrystal releases 2.0.0 and
 beyond, *NCMAT v3* which can be read with NCrystal releases 2.1.0 and beyond,
-*NCMAT v4* which can be read with NCrystal releases 2.6.0 and beyond, and *NCMAT
-v5* which can be read with NCrystal releases v2.7.0 and beyond.
+*NCMAT v4* which can be read with NCrystal releases 2.6.0 and beyond, *NCMAT
+v5* which can be read with NCrystal releases v2.7.0 and beyond, and *NCMAT
+v6* which can be read with NCrystal releases v3.0.0 and beyond.
 
 # The NCMAT v1 format #
 
@@ -430,7 +431,8 @@ starting with NCrystal v2.1.0 it is also possible to modify atomic definitions
 for any ncmat file (even those in NCMAT v1 or NCMAT v2 formats), through the
 usage of the atomdb configuration parameter, using a syntax similar to the one
 used in @ATOMDB sections (which will be described below). For details about the
-atomdb configuration parameter see elsewhere (e.g. the NCMatCfg.hh header file).
+atomdb configuration parameter see elsewhere (for instance at
+https://github.com/mctools/ncrystal/wiki/CfgRefDoc).
 
 The other new feature in *NCMAT v3* is that it is now possible to add custom
 sections to NCMAT files. The content of these custom sections will be loaded
@@ -475,8 +477,8 @@ the unit. An example of this would be:
 
 ```
 @ATOMDB
-  Si    28.09u 0.41491fm 0.004b 0.171b
-  Si29  28.97649466525u 0.47fm 0.001b  0.101b
+  Si    28.09u 4.1491fm 0.004b 0.171b
+  Si29  28.97649466525u 4.7fm 0.001b  0.101b
   Rn222 222.018u -1.23fm 4.56b 7.89b
 ```
 
@@ -495,7 +497,7 @@ the @ATOMDB section:
 ```
 @ATOMDB
   nodefaults
-  Si29 28.97649466525u 0.47fm 0.001b  0.101b
+  Si29 28.97649466525u 4.7fm 0.001b  0.101b
 ```
 
 In this example, only `Si29` will be available for usage in the file. Concerning
@@ -605,7 +607,7 @@ effect. For instance:
 @ATOMDB
   B is 0.9 B10 0.1 B11  #<---- has no effect, B is not used in file
   Al is 0.99 Al 0.01 Cr #<---- has no effect, next line redefines Al.
-  Al 26.98u 0.3449fm 0.0082b 0.231b
+  Al 26.98u 3.449fm 0.0082b 0.231b
 ```
 
 It is syntactically OK to include lines which have no effect, but it is possible
@@ -770,6 +772,54 @@ inferred from other types such as *scatknl*). Furthermore, coherent-elastic
 scattering will for now simply be accounted for via the incoherent
 approximation.
 
+# The NCMAT v6 format #
+
+The *NCMAT v6* format is similar to the *NCMAT v5* format, but adds a new
+optional @OTHERPHASES section which can be used to add one or more secondary
+material phases along with the primary one defined in the file itself. This
+support for definition of multiphase materials in an NCMAT file should be
+considered a cautious first step, and it is expected that future versions of the
+NCMAT format will expand upon this with a more evolved syntax concerning phase
+composition and phase-contrast physics (SANS).
+
+## The @OTHERPHASES section ##
+
+The @OTHERPHASES section allows the definition of one or more secondary phases,
+by specifying phase volume fractions and cfg strings on one line per secondary
+phase. For instance the following section can be used to add 5% (by volume) of
+aluminium and 20% of copper with an increased dcutoff. The remaining 75% of the
+volume will be composed of the primary phase, defined in the rest of the file in
+the usual manner:
+
+```
+@OTHERPHASES
+  0.05 Al_sg225.ncmat
+  0.2  Cu_sg225.ncmat;dcutoff=0.5
+```
+
+The cfg-strings provided after the fractions in the @OTHERPHASES section will be
+used to set up the phases by directly passing them onto the the plugin and
+factory infrastructure available in the NCrystal installation, relying on the
+global functions such as createInfo(..) and createScatter(..). This means that
+the cfg-strings can even refer to other file-types than `.ncmat` files or employ
+a multi-phase syntax like (e.g. `phases<...>`).
+
+Once loaded, the primary phase defined in the NCMAT file itself will become the
+first phase in a multiphase Info object, and the secondary phases from the
+`@OTHERPHASES` section will follow it in the order specified.
+
+It should be noted that, due to the constraints of the NCMAT format, there are a
+few restraints concerning whitespace and non-ASCII filenames in the cfg-strings
+specified in the @OTHERPHASES section. In practice these restraints are likely
+to be only rarely relevant, but we list them here in any case for
+completeness. Firstly, newline or `#` characters can not be used at all in the
+cfg-strings for obvious reasons. Secondly, whitespace is "normalised"
+during parsing. In essence this means that all groups of internal whitespace in
+the cfg-strings in the @OTHERPHASES section will be parsed as a single space
+character. Finally, as non-ASCII characters are not allowed in NCMAT data (the
+UTF-8 encoding is only allowed in comments), it is not possible to use non-ASCII
+characters in data names.
+
 # EMACS Syntax highlighting #
 
 If using EMACS, add the following to your ~/.emacs configuration file to enable
@@ -778,8 +828,8 @@ a basic syntax highlighting of .ncmat files:
 ```
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Major mode for .ncmat files:
-(setq ncmat-sections '("CELL" "ATOMPOSITIONS" "SPACEGROUP" "DEBYETEMPERATURE"
-                       "DYNINFO" "DENSITY" "ATOMDB" "STATEOFMATTER" "CUSTOM_[A-Z]+"))
+(setq ncmat-sections '("CELL" "ATOMPOSITIONS" "SPACEGROUP" "DEBYETEMPERATURE" "DYNINFO"
+                       "DENSITY" "ATOMDB" "STATEOFMATTER" "OTHERPHASES" "CUSTOM_[A-Z]+"))
 (setq ncmat-fields '("lengths" "angles" "cubic" "element" "fraction" "type" "debye_temp" "temperature"
                      "sab_scaled" "sab" "alphagrid" "betagrid" "egrid" "vdos_egrid" "vdos_density"))
 (setq ncmat-highlights

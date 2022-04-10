@@ -78,20 +78,20 @@ NC::LCHelper::LCHelper( NC::LCAxis lcaxis,
   LCInitMap initmap;
   pp->prepareLoop();
   {
-    double dspacing, fsquared;
-    Vector deminormal;
-    while (pp->getNextPlane(dspacing, fsquared, deminormal)) {
+    Optional<PlaneProvider::Plane> opt_plane;
+    while ( (opt_plane = pp->getNextPlane() ).has_value() ) {
+      auto& plane = opt_plane.value();
 
-      nc_assert(deminormal.isUnitVector());
-      nc_assert(fsquared>0.0);
-      nc_assert(dspacing>0.0);
+      nc_assert(plane.demi_normal.isUnitVector());
+      nc_assert(plane.fsq>0.0);
+      nc_assert(plane.dspacing>0.0);
 
       //The only thing that matters is the angle between lcaxis (in crystal frame)
       //and that of the normals. By using the absolute value, we pick the one of the
       //two normals pointing into the same hemisphere as lcaxis:
       double alpha;
       {
-        double cosalpha = ncabs ( lcaxis.as<Vector>().dot(deminormal) );
+        double cosalpha = ncabs ( lcaxis.as<Vector>().dot(plane.demi_normal) );
         if (ncabs(cosalpha)>0.9999999) {
           //deminormal is parallel to lcaxis!
           alpha = 0;
@@ -102,8 +102,8 @@ NC::LCHelper::LCHelper( NC::LCAxis lcaxis,
       nc_assert( alpha>=0.0 && alpha <= kPiHalf );
 
       //avoid floating point keys + merge entries withing 1/DISCRFACT ~= 1e-12:
-      nc_assert_always(dspacing<1e7);//range limited by uint64_t bits
-      uint64_t ui_dsp = LCdiscretizeValue(dspacing);
+      nc_assert_always(plane.dspacing<1e7);//range limited by uint64_t bits
+      uint64_t ui_dsp = LCdiscretizeValue(plane.dspacing);
       uint64_t ui_alpha = LCdiscretizeValue(alpha);
 
       LCInitKey key(ui_dsp,ui_alpha);
@@ -116,10 +116,10 @@ NC::LCHelper::LCHelper( NC::LCAxis lcaxis,
         nc_assert(alpha_of_key<kPiHalf*(1.0+1e-10));
         nc_assert(alpha_of_key>=0);
         nc_assert(dsp_of_key>0);
-        LCPlaneSet ps( dsp_of_key, ncmin(alpha_of_key,kPiHalf), m_lcstdframe.gaussMos().mosaicityTruncationAngle(), fsquared );
+        LCPlaneSet ps( dsp_of_key, ncmin(alpha_of_key,kPiHalf), m_lcstdframe.gaussMos().mosaicityTruncationAngle(), plane.fsq );
         initmap.insert(std::make_pair(key,ps));
       } else {
-        it->second.addFsq(fsquared);
+        it->second.addFsq(plane.fsq);
       }
     }
   }

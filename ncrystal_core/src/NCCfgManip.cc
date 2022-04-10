@@ -113,7 +113,12 @@ NC::Cfg::TopLvlVarList NC::Cfg::CfgManip::applyStrCfg( CfgData& data, StrView st
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     static constexpr auto sv_bragg = StrView::make("bragg");
+    static constexpr auto sv_coh_elas = StrView::make("coh_elas");
+    static constexpr auto sv_incoh_elas = StrView::make("incoh_elas");
     static constexpr auto sv_elas = StrView::make("elas");
+    static constexpr auto sv_inelas = StrView::make("inelas");
+    static constexpr auto sv_sans = StrView::make("sans");
+    static constexpr auto sv_comp = StrView::make("comp");
     static constexpr auto sv_bkgd = StrView::make("bkgd");
     static constexpr auto sv_none = StrView::make("none");
     static constexpr auto sv_0 = StrView::make("0");
@@ -125,13 +130,46 @@ NC::Cfg::TopLvlVarList NC::Cfg::CfgManip::applyStrCfg( CfgData& data, StrView st
       setVarByStr( data, VarId::incoh_elas, val_str );
       setVarByStr( data, VarId::sans, val_str );
       continue;
+    } else if ( par_str == sv_comp ) {
+      bool comp_coh_elas = false;
+      bool comp_incoh_elas = false;
+      bool comp_inelas = false;
+      bool comp_sans = false;
+      for ( auto& e : val_str.splitTrimmedNoEmpty(',') ) {
+        if ( e == sv_elas ) {
+          comp_coh_elas = true;
+          comp_incoh_elas = true;
+        } else if ( e == sv_bragg || e == sv_coh_elas ) {
+          comp_coh_elas = true;
+        } else if ( e == sv_incoh_elas ) {
+          comp_incoh_elas = true;
+        } else if ( e == sv_inelas ) {
+          comp_inelas = true;
+        } else if ( e == sv_sans ) {
+          comp_sans = true;
+        } else {
+          NCRYSTAL_THROW2(BadInput,"Unsupported component requested via the \"comp\" cfg-variable: \""<<e<<"\"");
+        }
+      }
+      //Finally, turn off all comp_xxx that are now false (don't *enable*
+      //anything, or we might suddenly introduce components that have been
+      //already turned off):
+      if ( !comp_coh_elas )
+        setVarByStr( data, VarId::coh_elas, sv_0 );
+      if ( !comp_incoh_elas )
+        setVarByStr( data, VarId::incoh_elas, sv_0 );
+      if ( !comp_inelas )
+        setVarByStr( data, VarId::inelas, sv_0 );
+      if ( !comp_sans )
+        setVarByStr( data, VarId::sans, sv_0 );
+      continue;
     } else if ( par_str == sv_bkgd ) {
       if ( !isOneOf(val_str,sv_none,sv_0) )
         NCRYSTAL_THROW(BadInput,"The \"bkgd\" parameter is obsolete and is available for backwards compatibility "
                        "only with the values \"0\" or \"none\". For control of inelastic, incoherent-elastic, or SANS "
-                       "scattering, one must now instead use the parameters \"incoh_elas\" and \"inelas\".");
+                       "scattering, one must now instead use the parameters \"incoh_elas\", \"inelas\", and \"sans\".");
       setVarByStr( data, VarId::incoh_elas, sv_0 );
-      setVarByStr( data, VarId::inelas, sv_none );
+      setVarByStr( data, VarId::inelas, sv_0 );
       setVarByStr( data, VarId::sans, sv_0 );
       continue;
     }

@@ -24,6 +24,7 @@
 #include "NCrystal/internal/NCString.hh"
 #include "NCrystal/NCMatCfg.hh"
 #include "NCrystal/internal/NCCfgManip.hh"
+#include "NCrystal/internal/NCPlaneProvider.hh"
 
 #include <cstdio>
 #include <sstream>
@@ -32,7 +33,7 @@
 
 void NCrystal::dump( const Info&c, DumpVerbosity verbosityVal )
 {
-  const bool verbose = verbosityVal == DumpVerbosity::VERBOSE;
+  const auto verbose = enumAsInt( verbosityVal );
   const bool isSinglePhase = c.isSinglePhase();
 
   //Display-labels - falling back to the AtomData description for multiphase:
@@ -311,16 +312,23 @@ void NCrystal::dump( const Info&c, DumpVerbosity verbosityVal )
 
     if ( c.hasHKLInfo() ) {
       //Figure out how many planes to show, and try to get them available fast.
-      bool some_hidden = true;
+      enum class HideResult { Show, Hide, HideRest };
+      std::function<HideResult(std::size_t)> hide_entry = [](std::size_t i) { return i < 10 ? HideResult::Show : HideResult::HideRest; };
       std::size_t nhklplanes_max = 10;
       const HKLList * thelist = nullptr;
       Optional<HKLList> localHKLList;//for lifetime extension
+      bool some_hidden = false;
       if ( verbose || c.hklListIsFullyInitialised() ) {
         //Need full list or full list is already available anyway:
         thelist = &c.hklList();
         if (verbose) {
           nhklplanes_max = thelist->size();
-          some_hidden = false;
+          if ( verbose == 1 && nhklplanes_max > 50 ) {
+            //hide all but initial 30 and last 10
+            hide_entry = [nhklplanes_max](std::size_t i) { return ( i>30 && i+10 < nhklplanes_max ) ? HideResult::Hide : HideResult::Show; };
+          } else {
+            hide_entry = [](std::size_t) { return HideResult::Show; };
+          }
         }
       } else {
         //Full list is not available and we only need a few planes. For speedup,
@@ -344,8 +352,9 @@ void NCrystal::dump( const Info&c, DumpVerbosity verbosityVal )
           dmin_quick = 0.5*d2;
         if ( dmin_quick > c.hklDLower()*1.1 && dmin_quick < d2*0.9 )
           localHKLList = c.hklListPartialCalc( dmin_quick, c.hklDUpper() );
-        if ( localHKLList.has_value() && localHKLList.value().size() >= nhklplanes_max ) {
+        if ( localHKLList.has_value() && localHKLList.value().size() > nhklplanes_max ) {//> not >= so we know if some were hidden
           thelist = &localHKLList.value();
+          some_hidden = true;
         } else {
           //Didn't work for whatever reason, fall back to asking for the full list:
           localHKLList.reset();
@@ -353,29 +362,99 @@ void NCrystal::dump( const Info&c, DumpVerbosity verbosityVal )
         }
       }
 
-      //NB: Do not call c.hasExpandedHKLInfo() here, it will always trigger a full list build!
+      //NB: Be careful what methods we call here, so we don't trigger full list build by mistake!
       const HKLList& hklList = *thelist;
-      const bool hasExpandedHKLInfo = !hklList.empty() && hklList.front().eqv_hkl;
+      printf("%s", hr);
+      std::cout << "HKL info type: " << c.hklInfoType() << std::endl;
+      ExpandHKLHelper hklExpander( c );
+      const bool doExpandHKL = verbose && hklExpander.canExpand( c.hklInfoType() );
+      const bool doExpandHKLSnipSome = ( verbose == 1 );
+
+      enum class Encoding { ASCII, UTF8 };
+      Encoding encoding = ( verbose >= 3 ? Encoding::ASCII : Encoding::UTF8 );
+
+      auto prettyPrintHKL = []( HKL v, Encoding enc )
+      {
+        auto encDigit = [enc] ( int d ) {
+          constexpr auto unicode_combined_overline = "\xcc\x85";
+          if ( enc == Encoding::ASCII ) {
+            return std::to_string( d );
+          } else {
+            auto sa = std::to_string( std::abs(d) );
+            if ( d>=0 )
+              return sa;
+            std::string r;
+            for ( auto& ch : sa ) {
+              r += ch;
+              r += unicode_combined_overline;
+            }
+            return r;
+          }
+        };
+        auto isSingleDigit = [](int d) { return d >= -9 && d <= 9; };
+        std::string res;
+        if ( enc == Encoding::UTF8 && isSingleDigit(v.h) && isSingleDigit(v.k) && isSingleDigit(v.l) ) {
+          res += encDigit(v.h);
+          res += encDigit(v.k);
+          res += encDigit(v.l);
+        } else {
+          res += '(';
+          res += encDigit(v.h);
+          res += ',';
+          res += encDigit(v.k);
+          res += ',';
+          res += encDigit(v.l);
+          res += ')';
+        }
+        return res;
+      };
+      auto prHKL = [&prettyPrintHKL,encoding](HKL v) { return prettyPrintHKL(v,encoding); };
+
       printf("%s", hr);
       printf("HKL planes (d_lower = %g Aa, d_upper = %g Aa):\n",c.hklDLower(),c.hklDUpper());
-      printf("  H   K   L  d_hkl[Aa] Multiplicity FSquared[barn]%s\n",
-             (hasExpandedHKLInfo?" Expanded-HKL-list":""));
+      printf("  H   K   L  d_hkl[Aa] Mult. FSquared[barn]%s\n",
+             (doExpandHKL?" Expanded-HKL-list (+sign flips)":""));
+      std::size_t idx(0);
       for ( auto& hkl : hklList ) {
+        auto hideres = hide_entry( idx++ );
+        if ( hideres != HideResult::Show ) {
+          if ( (verbose==1) && hideres == HideResult::Hide && !some_hidden && hklList.size() != nhklplanes_max )
+            printf("...\n");
+          some_hidden = true;
+          if ( hideres == HideResult::HideRest )
+            break;
+          continue;
+        }
         if (nhklplanes_max==0)
           break;
         --nhklplanes_max;
-        printf("%3i %3i %3i %10g %12i %14g%s",hkl.h,hkl.k,hkl.l,hkl.dspacing,
-               hkl.multiplicity,hkl.fsquared,(hkl.eqv_hkl?"":"\n"));
-        if (hkl.eqv_hkl!=nullptr) {
-          const short * eqv_hkl = &(hkl.eqv_hkl[0]);
-          const size_t nEqv = hkl.demi_normals.size();
-          nc_assert_always( nEqv );
-          printf(" ");
-          for (size_t i = 0 ; i < nEqv; ++i) {
-            const short h(eqv_hkl[i*3]), k(eqv_hkl[i*3+1]), l(eqv_hkl[i*3+2]);
-            nc_assert(h||k||l);
-            printf("%i,%i,%i | %i,%i,%i%s",h,k,l,-h,-k,-l,(i+1==nEqv?"":" | "));
+        printf("%3i %3i %3i %10g %4i %11g%s",hkl.hkl.h,hkl.hkl.k,hkl.hkl.l,hkl.dspacing,
+               hkl.multiplicity,hkl.fsquared,(doExpandHKL?"":"\n"));
+
+        if ( doExpandHKL ) {
+
+          auto v = hklExpander.expand(hkl);
+
+          unsigned nEqvMaxIfSnip = 12;
+          for ( auto& e : v )
+            if ( std::max(std::max(std::abs(e.h),std::abs(e.k)),std::abs(e.l)) > 9 )
+              nEqvMaxIfSnip = 6;
+          nc_assert(nEqvMaxIfSnip%2 == 0);
+
+          auto nEqv = v.size();
+          printf("     ");
+          for ( auto i : ncrange(nEqv) ) {
+            if ( doExpandHKLSnipSome && nEqv > nEqvMaxIfSnip && ( i >= nEqvMaxIfSnip/2 && i+nEqvMaxIfSnip/2 < nEqv ) ) {
+              continue;
+            }
+            auto& e = v[i];
+            nc_assert(e.h||e.k||e.l);
+            printf( "%s%s",
+                    prHKL(e).c_str(),
+                    (i+1==nEqv?"":" ") );
           }
+          if ( doExpandHKLSnipSome && nEqv > nEqvMaxIfSnip )
+            printf(" ...");
           printf("\n");
         }
       }

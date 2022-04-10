@@ -44,7 +44,6 @@ namespace NCrystal {
       Temperature get_temp() const;
       double get_dcutoff() const;
       double get_dcutoffup() const;
-      bool get_expandhkl() const;
       std::string get_atomdb() const;
       std::vector<VectS> get_atomdb_parsed() const;
       std::string get_infofactory() const;

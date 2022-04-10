@@ -76,6 +76,7 @@ namespace NCrystal {
 
   //Various constexpr functions (not efficient for runtime usage!!):
   NCRYSTAL_API constexpr double constexpr_sqrt(double);
+  NCRYSTAL_API constexpr double constexpr_abs(double);
   template <typename TVal>
   NCRYSTAL_API constexpr TVal ncconstexpr_max( TVal, TVal );
   template <typename TVal, typename ... Args>
@@ -537,6 +538,10 @@ namespace NCrystal {
   template<class T> inline ValRange<T> ncrange(T n) { return ValRange<T>(n); }
   template<class T> inline ValRange<T> ncrange(T l, T n) { return ValRange<T>(l,n); }
 
+  //Type-safe access to underlying int value of enum:
+  template<class TEnum>
+  constexpr typename std::underlying_type<TEnum>::type enumAsInt(TEnum const value) noexcept;
+
 }
 
 //We perform all mutex locking/unlocking with the following defines. This
@@ -707,6 +712,11 @@ namespace NCrystal {
     return detail_sqrtNR(x, x, 0.);
   }
 
+  inline constexpr double constexpr_abs(double x)
+  {
+    return x < 0 ? -x : x;
+  }
+
   template <typename TVal>
   inline constexpr TVal ncconstexpr_max(TVal a,TVal b)
   {
@@ -741,6 +751,12 @@ namespace NCrystal {
   inline constexpr TInt ncconstexpr_roundToNextMultipleOf( TInt a, TInt b )
   {
     return ( a%b ? a + b - (a%b) : (a?a:b) );
+  }
+
+  template<class TEnum>
+  inline constexpr typename std::underlying_type<TEnum>::type NCrystal::enumAsInt( TEnum value ) noexcept
+  {
+    return static_cast<typename std::underlying_type<TEnum>::type>(value);
   }
 
   //The constant 8.1804... in the functions wl2ekin and ekin2wl is based on the

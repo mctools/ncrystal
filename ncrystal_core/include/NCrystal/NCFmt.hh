@@ -65,7 +65,7 @@ namespace NCrystal {
     constexpr size_type size() const noexcept;
     constexpr bool empty() const noexcept;
     constexpr StrView to_view() const noexcept;
-    constexpr std::string to_string() const noexcept;
+    std::string to_string() const noexcept;
 
     ShortStr( const ShortStr& ) = default;
     ShortStr& operator=( const ShortStr& ) = default;
@@ -157,7 +157,7 @@ namespace NCrystal {
   inline constexpr bool ShortStr<NMAX>::empty() const noexcept { return m_size==0; }
 
   template <unsigned NMAX>
-  inline constexpr std::string ShortStr<NMAX>::to_string() const noexcept { return std::string( data(), m_size ); }
+  inline std::string ShortStr<NMAX>::to_string() const noexcept { return std::string( data(), m_size ); }
 
   template <unsigned NMAX>
   inline ShortStr<NMAX>::ShortStr( const char * cstr ) : ShortStr( cstr, std::strlen(cstr) ) {}

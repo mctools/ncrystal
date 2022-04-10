@@ -24,6 +24,7 @@
 #include "NCrystal/internal/NCRandUtils.hh"
 #include "NCrystal/NCSCOrientation.hh"
 #include "NCrystal/internal/NCVector.hh"
+#include "NCrystal/internal/NCString.hh"
 #include "NCrystal/internal/NCOrientUtils.hh"
 #include "NCrystal/internal/NCPlaneProvider.hh"
 #include <functional>//std::greater
@@ -139,8 +140,6 @@ double NC::SCBragg::pimpl::setupFamilies( const NC::Info& cinfo,
   std::map<uint64_t,double> origvals_dsp;
   std::map<uint64_t,double> origvals_fsq;
 
-  double dsp, fsq;
-  Vector demi_normal;
   const double two30 = 1073741824.0;//2^30 ~= 1.07e9
 
   std::unique_ptr<PlaneProvider> ppguard;
@@ -156,26 +155,27 @@ double NC::SCBragg::pimpl::setupFamilies( const NC::Info& cinfo,
 
   double maxdspacing(0);
 
-  while (plane_provider->getNextPlane(dsp, fsq, demi_normal)) {
+  Optional<PlaneProvider::Plane> opt_plane;
+  while ( ( opt_plane = plane_provider->getNextPlane() ).has_value() ) {
+    auto& pl = opt_plane.value();
+    if (pl.dspacing>maxdspacing)
+      maxdspacing = pl.dspacing;
 
-    if (dsp>maxdspacing)
-      maxdspacing = dsp;
-
-    nc_assert(dsp>0.0&&fsq>0.0&&dsp<1e7&&fsq<1e7);
-    uint64_t ui_dsp = (uint64_t)(dsp*two30+0.5);
-    uint64_t ui_fsq = (uint64_t)(fsq*two30+0.5);
+    nc_assert(pl.dspacing>0.0&&pl.fsq>0.0&&pl.dspacing<1e7&&pl.fsq<1e7);
+    uint64_t ui_dsp = (uint64_t)(pl.dspacing*two30+0.5);
+    uint64_t ui_fsq = (uint64_t)(pl.fsq*two30+0.5);
 
     //a bit messy, but nice to preserve values when possible:
     std::map<uint64_t,double>::iterator itOrig = origvals_dsp.find(ui_dsp);
     if (itOrig==origvals_dsp.end()) {
-      origvals_dsp[ui_dsp] = dsp;
-    } else if (ncabs(dsp-itOrig->second)>1e-12) {
+      origvals_dsp[ui_dsp] = pl.dspacing;
+    } else if (ncabs(pl.dspacing-itOrig->second)>1e-12) {
       itOrig->second = -1;//multiple values observed ...!
     }
     itOrig = origvals_fsq.find(ui_fsq);
     if (itOrig==origvals_fsq.end()) {
-      origvals_fsq[ui_fsq] = fsq;
-    } else if (ncabs(fsq-itOrig->second)>1e-12) {
+      origvals_fsq[ui_fsq] = pl.fsq;
+    } else if (ncabs(pl.fsq-itOrig->second)>1e-12) {
       itOrig->second = -1;//multiple values observed ...!
     }
 
@@ -183,11 +183,11 @@ double NC::SCBragg::pimpl::setupFamilies( const NC::Info& cinfo,
 
     SCBraggSortMap::iterator it = planes.find(key);
     if ( it != planes.end() ) {
-      it->second.push_back(demi_normal);
+      it->second.push_back(pl.demi_normal);
     } else {
       std::pair<PairDD,std::vector<Vector> > newentry;
       newentry.first = key;
-      newentry.second.push_back(demi_normal);
+      newentry.second.push_back(pl.demi_normal);
       planes.insert(it,newentry);
     }
   }
@@ -198,11 +198,11 @@ double NC::SCBragg::pimpl::setupFamilies( const NC::Info& cinfo,
 
     std::map<uint64_t,double>::iterator itOrig = origvals_dsp.find(it->first.first);
     nc_assert(itOrig!=origvals_dsp.end());
-    dsp = (itOrig->second > 0 ? itOrig->second : it->first.first / two30);
+    const double dsp = (itOrig->second > 0 ? itOrig->second : it->first.first / two30);
 
     itOrig = origvals_fsq.find(it->first.second);
     nc_assert(itOrig!=origvals_fsq.end());
-    fsq = (itOrig->second > 0 ? itOrig->second : it->first.second / two30);
+    const double fsq = (itOrig->second > 0 ? itOrig->second : it->first.second / two30);
 
     m_reflfamilies.emplace_back(fsq/V0numAtom,dsp);
 
@@ -318,4 +318,31 @@ NC::ScatterOutcome NC::SCBragg::sampleScatter( CachePtr& cp, RNG& rng, NeutronEn
   NeutronDirection outdir;
   m_pimpl->genScat( cache, rng, outdir.as<Vector>() );
   return { ekin, outdir };
+}
+
+NC::Optional<std::string> NC::SCBragg::specificJSONDescription() const
+{
+  auto nfam = m_pimpl->m_reflfamilies.size();
+  auto mos = m_pimpl->m_gm.mosaicityFWHM();
+
+  double dmin(-1),dmax(-1);
+  if ( nfam ) {
+    dmin = 0.5/m_pimpl->m_reflfamilies.back().inv2d;
+    dmax = 0.5/m_pimpl->m_reflfamilies.front().inv2d;
+  }
+
+  std::ostringstream ss;
+  {
+    std::ostringstream tmp;
+    tmp << "nfamilies="<<nfam
+        <<";dmin="<<dmin
+        <<"Aa;dmax="<<dmax
+        <<"Aa;mos="<<mos;
+    streamJSONDictEntry( ss, "summarystr", tmp.str(), JSONDictPos::FIRST );
+  }
+  streamJSONDictEntry( ss, "nfamilies", nfam );
+  streamJSONDictEntry( ss, "dmin", dmin );
+  streamJSONDictEntry( ss, "dmax", dmax );
+  streamJSONDictEntry( ss, "dmax", mos.dbl(), JSONDictPos::LAST );
+  return ss.str();
 }

@@ -26,8 +26,6 @@
 
 namespace NCrystal {
 
-  class PlaneProvider;
-
   class PCBragg final : public ProcImpl::ScatterIsotropicMat {
   public:
 

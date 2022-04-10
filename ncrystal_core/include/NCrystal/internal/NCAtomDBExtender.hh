@@ -57,7 +57,7 @@ namespace NCrystal {
     //problems. Each call to addData takes a single "line", consisting of
     //multiple words. In general only simple ASCII characters are allowed, and
     //whitespace is normalised and trimmed.
-    constexpr static int latest_version = 5;
+    constexpr static int latest_version = 6;
     void addData( const VectS& words, unsigned format_version = latest_version );
     void addData( const std::string& line, unsigned format_version = latest_version );
 

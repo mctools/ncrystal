@@ -62,6 +62,8 @@ namespace NCrystal {
     CrossSect crossSection(CachePtr&, NeutronEnergy, const NeutronDirection& ) const final;
     ScatterOutcome sampleScatter(CachePtr&, RNG&, NeutronEnergy, const NeutronDirection& ) const final;
 
+  protected:
+    Optional<std::string> specificJSONDescription() const override;
   private:
     struct pimpl;
     std::unique_ptr<pimpl> m_pimpl;

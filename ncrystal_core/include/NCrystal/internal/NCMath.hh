@@ -33,7 +33,7 @@ namespace NCrystal {
   //Primary constants [NB: Some replicated in Python interface!]:
   constexpr double constant_c  = 299792458e10;// speed of light in Aa/s
   constexpr double constant_dalton2eVc2 =  931494095.17; // amu to eV/c^2 (source: NIST/CODATA 2018)
-  constexpr double constant_avogadro = 6.022140857e23; // mol^-1 (source: NIST/CODATA 2018)
+  constexpr double constant_avogadro = 6.022140857e23; // mol^-1 (source: NIST/CODATA 2018) [TODO: this might have been redefined to 6.02214076e23, change value?]
   constexpr double constant_dalton2gpermol = constant_dalton2kg*constant_avogadro*1000.0; // dalton to gram/mol
   //NB: constant_dalton2gmol is almost but not quite unity (cf. https://doi.org/10.1007/s00769-013-1004-9)
 
@@ -69,10 +69,6 @@ namespace NCrystal {
   template<class TInt>
   constexpr TInt ncconstexpr_roundupnextpow2( TInt );
   constexpr unsigned ncconstexpr_log10ceil(unsigned);
-
-  //Type-safe access to underlying int value of enum:
-  template<class TEnum>
-  constexpr typename std::underlying_type<TEnum>::type enumAsInt(TEnum const value) noexcept;
 
   //Check that span contains values that could be a grid. I.e. is non-empty,
   //sorted, no duplicated values, no NaN/inf's.
@@ -314,12 +310,6 @@ constexpr TInt NCrystal::ncconstexpr_roundupnextpow2( TInt a )
   return ncconstexpr_ispow2(a) ? a : ncconstexpr_roundupnextpow2( a + 1 );
 }
 
-template<class TEnum>
-inline constexpr typename std::underlying_type<TEnum>::type NCrystal::enumAsInt( TEnum value ) noexcept
-{
-  return static_cast<typename std::underlying_type<TEnum>::type>(value);
-}
-
 inline double NCrystal::ncabs(double a) { return std::abs(a); }
 inline bool NCrystal::ncisnan(double a) { return std::isnan(a); }
 inline bool NCrystal::ncisinf(double a) { return std::isinf(a); }
@@ -544,7 +534,13 @@ inline double NCrystal::StableSum::sum() const
 
 inline bool NCrystal::floateq(double a, double b, double rtol, double atol)
 {
-  return ncabs(a-b) <= (0.5 * rtol) * ( ncabs(a) + ncabs(b) ) + atol;
+  nc_assert(!std::isnan(a));
+  nc_assert(!std::isnan(b));
+  if ( std::isinf(a) || std::isinf(b) ) {
+    return a == b;
+  } else {
+    return ncabs(a-b) <= (0.5 * rtol) * ( ncabs(a) + ncabs(b) ) + atol;
+  }
 }
 
 template <class Func>

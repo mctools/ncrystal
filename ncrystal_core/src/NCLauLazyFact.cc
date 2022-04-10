@@ -20,35 +20,48 @@
 
 #include "NCrystal/NCFactImpl.hh"
 #include "NCrystal/NCDataSources.hh"
-#include "NCrystal/NCLoadNCMAT.hh"
+#include "NCLazy.hh"
+
 namespace NC = NCrystal;
+
+//////////////////////////////////////////////////////////////////
+//                                                              //
+// A small test factory providing an alternative .lau/.laz      //
+// reader (probably not fully functional).                      //
+//                                                              //
+//////////////////////////////////////////////////////////////////
 
 namespace NCrystal {
 
-  class NCMATFactory final : public FactImpl::InfoFactory {
-  public:
-    const char * name() const noexcept final { return "stdncmat"; }
+  namespace {
 
-    Priority query( const FactImpl::InfoRequest& cfg ) const final
-    {
-      return cfg.getDataType()=="ncmat" ? Priority{100} : Priority{Priority::Unable};
-    }
+    class AltLauFact final : public FactImpl::InfoFactory {
+    public:
+      static constexpr auto the_factory_name = "stdlaz";
+      const char * name() const noexcept override { return the_factory_name; }
 
-    shared_obj<const Info> produce( const FactImpl::InfoRequest& cfg ) const final
-    {
-      return makeSO<const Info>( loadNCMAT(cfg) );
-    }
-  };
+      Priority query( const FactImpl::InfoRequest& request ) const override
+      {
+        std::string ext = request.getDataType();
+        return (ext=="laz"||ext=="lau") ? Priority{100} : Priority::Unable;
+      }
 
+      InfoPtr produce( const FactImpl::InfoRequest& request ) const override
+      {
+        return Lazy::buildInfoFromLazyData(request);
+      }
+    };
+  }
 }
 
 //Finally, a function which can be used to enable the above factory. Note that
 //this function is forward declared elsewhere or might be dynamically invoked
 //(hence the C-mangling), and its name should not be changed just here:
 
-extern "C" void ncrystal_register_stdncmat_factory()
+extern "C" void ncrystal_register_stdlaz_factory()
 {
-  NC::FactImpl::registerFactory( std::make_unique<NC::NCMATFactory>(),
-                                 NC::FactImpl::RegPolicy::IGNORE_IF_EXISTS );
-  NC::DataSources::addRecognisedFileExtensions("ncmat");
+  if (!NC::FactImpl::hasInfoFactory(NC::AltLauFact::the_factory_name))
+    NC::FactImpl::registerFactory(std::make_unique<NC::AltLauFact>());
+  NC::DataSources::addRecognisedFileExtensions("laz");
+  NC::DataSources::addRecognisedFileExtensions("lau");
 }

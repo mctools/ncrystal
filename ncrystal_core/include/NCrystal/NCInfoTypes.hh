@@ -45,30 +45,52 @@ namespace NCrystal {
     unsigned n_atoms = 0;//Number of atoms per unit cell
   };
 
+  enum class NCRYSTAL_API HKLInfoType : unsigned { SymEqvGroup = 0,
+                                                   ExplicitHKLs = 1,
+                                                   ExplicitNormals = 2,
+                                                   Minimal = 3 };
+  NCRYSTAL_API std::ostream& operator<< ( std::ostream&, const HKLInfoType&);
+
   struct NCRYSTAL_API HKLInfo final : private MoveOnly {
+    HKL hkl;
+    unsigned multiplicity = 0;
     double dspacing = 0.0;//angstrom
     double fsquared = 0.0;//barn
-    int h = 0;
-    int k = 0;
-    int l = 0;
-    unsigned multiplicity = 0;
 
-    //If the HKLInfo source knows the plane normals, they will be provided in
-    //the following list as unit vectors. Only half of the normals should be
-    //included in this list, since if n is a normal, so is -n. If demi_normals
-    //is not empty, it will be true that multiplicity == 2*demi_normals.size().
+    //Concerning specification of the full list of (h,k,l) entries in the group
+    //(which has length "multiplicity"), and the associated plane normals, there
+    //are several options. In the most ideal case ("SymEqvGroup") the HKL
+    //groupings are according to symmetry-equivalency, and the Info object
+    //contains StructureInfo including spacegroup. Thus, nothing more than the
+    //hkl values above are needed. This is because the full list of HKL entries
+    //in the group can be provided via the symmetry (cf. NCEqRefl.hh), and the
+    //normals can then be constructed through knowledge of the unit cell
+    //transformations contained in the StructureInfo (cf. NCLatticeUtils.hh).
+    //
+    //Alternatively, when the groupings are not by symmetry-equivalency, the
+    //full list of HKL entries can be available ("ExplicitHKLs"). Again,
+    //structure info (but not necessarily the spacegroup) is needed to have
+    //access to normals. As another alternative, it is possibly to have an
+    //explicit list of normals ("ExplicitNormals"). In that case, normals are
+    //always available, whereas construction of (h,k,l) points would rely on
+    //StructureInfo. Finally, all information about (h,k,l) points and normals
+    //might be missing ("Minimal"), in which case the HKL lists would likely
+    //only be useful to describe powder diffraction.
+    //
+    //The header NCPlaneProvider.hh contains helper classes for accessing HKL
+    //values or normals in a manner independent of the exact manner of
+    //specification, so client C++ code should rarely have to check the
+    //HKLInfoType directly.
 
+    HKLInfoType type() const;
     class NCRYSTAL_API Normal final : public StronglyTypedFixedVector<Normal,double,3> {
     public:
       using StronglyTypedFixedVector::StronglyTypedFixedVector;
     };
-
-    std::vector<Normal> demi_normals;//TODO: vector->pointer saves 16B when not used
-
-    //If eqv_hkl is not a null pointer, it contains the corresponding Miller
-    //indices of the demi_normals as three 2-byte integers (short). Thus,
-    //eqv_hkl has demi_normal.size()*3 entries:
-    std::unique_ptr<short[]> eqv_hkl;
+    struct ExplicitVals {
+      Variant<std::vector<Normal>,std::vector<HKL>> list;//empty implies Type==Minimal
+    };
+    std::unique_ptr<ExplicitVals> explicitValues;
   };
 
   typedef std::vector<HKLInfo> HKLList;
@@ -98,7 +120,7 @@ namespace NCrystal {
     bool operator<(const IndexedAtomData& o) const ncnoexceptndebug;
     bool operator==(const IndexedAtomData& o) const ncnoexceptndebug;
   };
-  std::ostream& operator<< ( std::ostream&, const IndexedAtomData&);
+  NCRYSTAL_API std::ostream& operator<< ( std::ostream&, const IndexedAtomData&);
 
   class NCRYSTAL_API AtomInfo final : private MoveOnly {
   public:
@@ -315,6 +337,31 @@ namespace NCrystal {
     os<<"Atom(descr=\""<<ai.data().description(false)<<"\",index="<<ai.index<<")";
     return os;
   }
+  inline HKLInfoType HKLInfo::type() const
+  {
+    if ( !explicitValues )
+      return HKLInfoType::SymEqvGroup;//usual case (ncmat,laz,lau)
+    auto& evl = explicitValues->list;
+    if ( evl.has_value<std::vector<HKL>>() )//ncmat without spacegroup
+      return HKLInfoType::ExplicitHKLs;
+    if ( evl.has_value<std::vector<Normal>>() )//rare (handcrafted?)
+      return HKLInfoType::ExplicitNormals;
+    return HKLInfoType::Minimal;
+  }
+
+  inline std::ostream& operator<< ( std::ostream& os, const HKLInfoType& ht )
+  {
+    switch( ht ) {
+    case HKLInfoType::SymEqvGroup: return os << "SymEqvGroup";
+    case HKLInfoType::ExplicitHKLs: return os << "ExplicitHKLs";
+    case HKLInfoType::ExplicitNormals: return os << "ExplicitNormals";
+    case HKLInfoType::Minimal: return os << "Minimal";
+    };
+    nc_assert_always(false);
+    return os;
+  }
+
+
 }
 
 #endif

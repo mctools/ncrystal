@@ -113,6 +113,14 @@ namespace NCrystal {
                           "all of the  \"coh_elas\", \"incoh_elas\", and \"sans\" parameters "
                           "at once. Thus, \"elas=0\" is a convenient way of disabling "
                           "elastic scattering processes and is equivalent to \"coh_elas=0;incoh_elas=0;sans=0\".");
+        static constexpr auto sv_comp = StrView::make("comp");
+        static constexpr auto sv_comp_descr
+          = StrView::make("Convenience parameter which can be used to disable everything except "
+                          " the specified components. Note that this crucially does not re-enable "
+                          "the listed components if they have already been disabled. Components "
+                          "are listed as a comma separated list, and recognised component names "
+                          "are: \"elas\", \"incoh_elas\", \"coh_elas\", \"bragg\", \"inelas\", "
+                          "and \"sans\".");
         static constexpr auto sv_bkgd = StrView::make("bkgd");
         static constexpr auto sv_bkgd_descr
           = StrView::make("Obsolete parameter which can be used to disable all physics "
@@ -121,6 +129,7 @@ namespace NCrystal {
         return {
           PseudoVar( sv_bkgd, sv_bkgd_descr ),
           PseudoVar( sv_bragg, sv_bragg_descr ),
+          PseudoVar( sv_comp, sv_comp_descr ),
           PseudoVar( sv_elas, sv_elas_descr ),
         };
       }

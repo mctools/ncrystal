@@ -127,7 +127,7 @@ namespace NCrystal {
     const RawStrData& rawData() const noexcept;
 
     //Construct by combining raw string data with optional meta-data, which are:
-    //   1) A data type (e.g. "ncmat", "nxs", ...) describing data format.
+    //   1) A data type (e.g. "ncmat", "lau", ...) describing data format.
     //   2) A data source name (only to be used for e.g. error messages). This
     //      flexible description can for instance be a filename.
     //   3) A last known physical location (as resolved absolute on-disk
@@ -145,7 +145,7 @@ namespace NCrystal {
 
     ncconstexpr17 const TextDataUID& dataUID() const noexcept;
 
-    //Data type ("ncmat", "nxs", ...):
+    //Data type ("ncmat", "lau", ...):
     const std::string& dataType() const noexcept;
 
     //Description (for debug output and error messages). If not provided in the

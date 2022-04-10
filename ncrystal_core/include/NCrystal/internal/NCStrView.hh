@@ -25,6 +25,7 @@
 
 namespace NCrystal {
 
+  class StrView;
   class StrView
   {
     // Simple string view class similar to std::string_view (which is
@@ -56,7 +57,11 @@ namespace NCrystal {
     //The following can be used to create constexpr strviews from string
     //literals (i.e. constexpr auto sv = StrView::make("foo")):
     template<size_type N>
-    static constexpr StrView make( const char (&cdata)[N] ) noexcept;
+    static constexpr StrView make( const char (&cdata)[N] ) noexcept
+    {
+      //NB: Defining directly in-class due to apple clang 11.
+      return StrView( &cdata[0], ( cdata[N-1]=='\0' ? N-1 : N ) );
+    }
 
     //Constructing from a null-terminated string of unknown size needs a strlen
     //calculation. If needed in a constexpr context, this needs a special
@@ -70,8 +75,8 @@ namespace NCrystal {
     //Default constructing, or construction from nullptr/NullOpt, leads to a
     //StrView without value (which is NOT the same as an empty string).
     StrView() = default;
-    constexpr StrView( NullOptType ) noexcept : StrView() {}
-    constexpr StrView( nullptr_t ) noexcept : StrView() {}
+    constexpr StrView( NullOptType ) noexcept {}
+    constexpr StrView( std::nullptr_t ) noexcept {}
 
     //Only mutable operation is move/copy assignment (so the objects can be
     //meaningfully kept in containers):
@@ -340,12 +345,6 @@ namespace NCrystal {
   {
     auto it = (const char*)std::memchr( m_data, ch, m_size );
     return it ? std::distance(m_data,it): npos;
-  }
-
-  template<StrView::size_type N>
-  inline constexpr StrView StrView::make( const char (&cdata)[N] ) noexcept
-  {
-    return StrView( &cdata[0], ( cdata[N-1]=='\0' ? N-1 : N ) );
   }
 
   inline bool StrView::startswith( StrView o ) const

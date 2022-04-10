@@ -64,14 +64,39 @@ namespace NCrystal {
                            double lattice_a, double lattice_b, double lattice_c,
                            double alpha, double beta, double gamma );
 
+  //Calculate d-spacing from Miller index and reciprocal lattice rotation:
+  double dspacingFromHKL( int h, int k, int l, const RotMatrix& rec_lat );
+
   //Validate that lattice lengths are compatible with given spacegroup. For
   //space groups where a==b or a==c, it is allowed to provide b=0 or c=0, and
   //the function will then update the values of b and/or c accordingly. Any
-  //inconsistencies or errors will result in BadInput exceptions thrown.
-  void checkAndCompleteLattice( unsigned spacegroup, double a, double& b, double & c );
+  //inconsistencies or errors will result in BadInput exceptions thrown. It is
+  //allowed to provide spacegroup==0, in which case the function won't do much:
+  void checkAndCompleteLattice( unsigned spacegroup, double a, double& b, double& c );
 
-  //Calculate d-spacing from Miller index and reciprocal lattice rotation:
-  double dspacingFromHKL( int h, int k, int l, const RotMatrix& rec_lat );
+  //Same for angles, except that all three angles might be left zero in case the
+  //space group defines them:
+  void checkAndCompleteLatticeAngles( unsigned spacegroup, double& alpha, double& beta, double& gamma );
+
+  //Spacegroup utils:
+  enum CrystalSystem {
+    Triclinic,
+    Monoclinic,
+    Orthorhombic,
+    Tetragonal,
+    Trigonal,
+    Hexagonal,
+    Cubic
+  };
+  CrystalSystem crystalSystem( int spacegroup );
+
+  //Try to estimate the HKL point based on normal + dspacing, essentially by hkl
+  //= lattice_rot * normal / dspacing, but then returning the smallest of
+  //(hkl,-hkl).  Will throw CalcError in case the normal does not actually
+  //correspond to one coming from an integral hkl point.
+  std::tuple<int,int,int> normalAndDSpacingToHKLIndex( const RotMatrix& lattice_rot,
+                                                       double dspacing,
+                                                       const Vector& normal );
 
 
 }

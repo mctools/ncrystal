@@ -316,6 +316,7 @@ NC::CrossSect NCPI::ProcComposition::crossSection( CachePtr& cacheptr,
   auto& cache = ( m_materialType == MaterialType::Anisotropic
                   ? Impl::updateCacheAnisotropic( this, cacheptr, ekin, dir )
                   : Impl::updateCacheIsotropic( this, cacheptr, ekin ) );
+  nc_assert( cache.tot_xs >= 0.0 );
   return CrossSect{ cache.tot_xs };
 }
 
@@ -324,7 +325,9 @@ NC::CrossSect NCPI::ProcComposition::crossSectionIsotropic( CachePtr& cacheptr,
 {
   if (!m_domain.contains(ekin))
     return CrossSect{ 0.0 };
+  nc_assert( m_materialType == MaterialType::Isotropic );
   auto& cache = Impl::updateCacheIsotropic( this, cacheptr, ekin );
+  nc_assert( cache.tot_xs >= 0.0 );
   return CrossSect{cache.tot_xs};
 }
 
@@ -457,7 +460,7 @@ std::string NC::ProcImpl::Process::jsonDescription() const
 NC::Optional<std::string> NC::ProcImpl::ProcComposition::specificJSONDescription() const
 {
   std::ostringstream ss;
-  ss << "{\"summarystr\":\""<<m_components.size()<<" components\"";
+  ss << "{\"summarystr\":\""<<m_components.size()<<" components, "<<(isOriented()?"oriented":"isotropic")<<"\"";
   ss << ",\"components\":[";
   bool first(true);
   for ( auto& c : m_components ) {

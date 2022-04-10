@@ -1,0 +1,136 @@
+#!/usr/bin/env python3
+
+################################################################################
+##                                                                            ##
+##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
+##                                                                            ##
+##  Copyright 2015-2022 NCrystal developers                                   ##
+##                                                                            ##
+##  Licensed under the Apache License, Version 2.0 (the "License");           ##
+##  you may not use this file except in compliance with the License.          ##
+##  You may obtain a copy of the License at                                   ##
+##                                                                            ##
+##      http://www.apache.org/licenses/LICENSE-2.0                            ##
+##                                                                            ##
+##  Unless required by applicable law or agreed to in writing, software       ##
+##  distributed under the License is distributed on an "AS IS" BASIS,         ##
+##  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  ##
+##  See the License for the specific language governing permissions and       ##
+##  limitations under the License.                                            ##
+##                                                                            ##
+################################################################################
+
+"""
+
+Script which can be used to create input files with reflections for McStas
+crystalline sample components like PowderN and Single_crystal, based on NCrystal
+cfg-strings (usually referring to NCMAT files with crystalline single-phase
+materials).
+
+"""
+
+import sys
+if not (sys.version_info >= (3, 0)):
+    raise SystemExit('ERROR: This script requires Python3.')
+if not (sys.version_info >= (3, 6)):
+    print('WARNING: This script was only tested with Python3.6 and later.')
+
+import argparse
+import pathlib
+
+def tryImportNCrystal():
+    #import NCrystal. Prefer the one from our own installation (ok to modify
+    #sys.path since we are in a script!):
+    _ = pathlib.Path( __file__ ).parent / '../share/NCrystal/python/NCrystal/__init__.py'
+    if _.exists():
+        sys.path.insert(0,str(_.parent.parent.absolute().resolve()))
+    try:
+        import NCrystal
+        import NCrystal.mcstasutils
+    except ImportError:
+        #Fail silently (here)
+        return None
+    return NCrystal,NCrystal.mcstasutils
+
+def parseArgs():
+    import os
+    progname = os.path.basename(sys.argv[0])
+    progname_inspectfile=progname.replace(progname.split('_')[-1],'inspectfile').replace('ess_nctools_','ess_ncrystal_')
+    descr=f"""
+
+Script which can be used to create input files with reflections for McStas
+crystalline sample components like PowderN and Single_crystal, based on NCrystal
+cfg-strings (usually referring to NCMAT files with crystalline single-phase
+materials).
+
+Example invocations:
+
+          $> {progname} "Y2SiO5_sg15_YSO.ncmat" --format=laz -o YSO.laz
+          $> {progname} "Y2SiO5_sg15_YSO.ncmat" --format=lau -o YSO.lau
+
+     It might be useful to set certain parameters in the cfg-string in addition to
+     the input file name. For more information about available parameters, refer to
+     https://github.com/mctools/ncrystal/wiki/CfgRefDoc, or run the cmd:
+
+          $> {progname_inspectfile} --doc
+
+     For instance, to change the material temperature from room temperature, and to
+     leave out reflections at dspacing<0.5Aa, run:
+
+          $> {progname} "Y2SiO5_sg15_YSO.ncmat;dcutoff=0.5;temp=200K" --format=laz -o YSO_200K_largedsp.laz
+          $> {progname} "Y2SiO5_sg15_YSO.ncmat;dcutoff=0.5;temp=200K" --format=lau -o YSO_200K_largedsp.lau
+
+     To browse materials which are available in default NCrystal installations,
+     refer to https://github.com/mctools/ncrystal/wiki/Data-library. To list
+     actually available files in your installation, run:
+
+          $> {progname_inspectfile} --browse
+
+"""
+    from argparse import RawTextHelpFormatter
+    parser = argparse.ArgumentParser(description=descr,
+                                     formatter_class=RawTextHelpFormatter)
+    parser.add_argument('CFGSTR', type=str,
+                        help="""NCrystal cfg-string representing the material to load. For the
+                        purposes of the present script, it might be particularly relevant to set
+                        the temp and dcutoff parameters""")
+    parser.add_argument('--format','-f',default=None,choices=('laz','lau'),
+                        help=f"""What types of output files to produce. Choices are "lau" for .lau files
+                        for McStas PowderN or "laz" for .laz files for McStas Single_crystal.""")
+    parser.add_argument('--outfile','-o',type=str,default=None,
+                        help="Name of output file (default: stdout)")
+
+    args=parser.parse_args()
+    if not args.format:
+        parser.error('Please specify output type with --format, either'
+                     +' --format=laz or --format=lau (run with --help for details)')
+    if args.outfile is not None:
+        of = pathlib.Path(args.outfile)
+        if of.is_dir():
+            parser.error(f'Output destination is directory: {of}')
+        if of.exists():
+            parser.error(f'Output destination already exists: {of}')
+        ofr = of.resolve().absolute()
+        if not ofr.parent.exists() or not ofr.parent.is_dir():
+            parser.error(f'Output destination is in non-existing directory: {ofr.parent}')
+        args.outfile = ofr
+    return args
+
+
+def main():
+    args=parseArgs()
+    NC, NC_mcstasutils = tryImportNCrystal()
+    content_iter = NC_mcstasutils.cfgstr_2_hkl( cfgstr = args.CFGSTR,
+                                                tgtformat = args.format,
+                                                verbose = True )
+    if args.outfile is None:
+        #stdout:
+        for l in content_iter:
+            print(l)
+    else:
+        #to file:
+        args.outfile.write_text( '\n'.join( content_iter ) + '\n' )
+        print(f"Wrote {args.outfile}")
+
+if __name__ == '__main__':
+    main()

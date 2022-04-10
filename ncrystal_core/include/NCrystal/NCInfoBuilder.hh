@@ -46,7 +46,7 @@ namespace NCrystal {
       Optional<UnitCell> unitcell;
       Optional<DynamicInfoList> dynamics;
 
-      //Composition (do not provide if unitcell or dynamics are available)
+      //Composition (do not provide if unitcell.atomlist or dynamics are available)
       Optional<Info::Composition> composition;
 
       //Most materials also have a temperature:

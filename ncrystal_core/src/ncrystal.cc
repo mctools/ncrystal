@@ -27,11 +27,14 @@
 #include "NCrystal/NCPluginMgmt.hh"
 #include "NCrystal/NCDataSources.hh"
 #include "NCrystal/internal/NCDynInfoUtils.hh"
+#include "NCrystal/internal/NCPlaneProvider.hh"
 #include "NCrystal/NCDump.hh"
 #include "NCrystal/internal/NCMath.hh"
 #include "NCrystal/internal/NCString.hh"
 #include "NCrystal/internal/NCAtomUtils.hh"
 #include "NCrystal/internal/NCDebyeMSD.hh"
+#include "NCrystal/internal/NCLatticeUtils.hh"//TODO: might not be needed eventually
+#include "NCrystal/internal/NCEqRefl.hh"//TODO: might not be needed eventually
 #include "NCrystal/internal/NCAtomDB.hh"
 #include "NCrystal/internal/NCVDOSEval.hh"
 #include <cstdio>
@@ -459,7 +462,18 @@ void ncrystal_invalidate(void* o)
 }
 
 void ncrystal_dump(ncrystal_info_t ci) { try { NC::dump(ncc::extract(ci)); } NCCATCH; }
-void ncrystal_dump_verbose(ncrystal_info_t ci) { try { NC::dump(ncc::extract(ci),NC::DumpVerbosity::VERBOSE); } NCCATCH; }
+void ncrystal_dump_verbose(ncrystal_info_t ci, unsigned verbosity_lvl ) {
+  try {
+    NC::dump(ncc::extract(ci),
+             ( verbosity_lvl == 0
+               ? NC::DumpVerbosity::DEFAULT
+               : ( verbosity_lvl == 1
+                   ? NC::DumpVerbosity::VERBOSE1
+                   : ( verbosity_lvl == 2
+                       ? NC::DumpVerbosity::VERBOSE2
+                       : NC::DumpVerbosity::VERBOSE3 ) ) ) );
+  } NCCATCH;
+}
 
 int ncrystal_info_getstructure( ncrystal_info_t ci,
                                 unsigned* spacegroup,
@@ -561,6 +575,14 @@ double ncrystal_info_braggthreshold( ncrystal_info_t ci )
   return -1.0;
 }
 
+int ncrystal_info_hklinfotype( ncrystal_info_t nfo )
+{
+  try {
+    return NC::enumAsInt( ncc::extract(nfo)->hklInfoType() );
+  } NCCATCH;
+  return -1;
+}
+
 int ncrystal_info_nhkl( ncrystal_info_t ci )
 {
   try {
@@ -597,9 +619,9 @@ void ncrystal_info_gethkl( ncrystal_info_t ci, int idx,
     auto& hklList = info->hklList();
     NC::HKLList::const_iterator it = std::next(hklList.begin(),idx);
     nc_assert(it<hklList.end());
-    *h = it->h;
-    *k = it->k;
-    *l = it->l;
+    *h = it->hkl.h;
+    *k = it->hkl.k;
+    *l = it->hkl.l;
     *multiplicity = it->multiplicity;
     *dspacing = it->dspacing;
     *fsquared = it->fsquared;
@@ -609,6 +631,26 @@ void ncrystal_info_gethkl( ncrystal_info_t ci, int idx,
   *dspacing = *fsquared = -1.0;
 }
 
+void ncrystal_info_gethkl_allindices( ncrystal_info_t nfo, int idx,
+                                      int* h, int* k, int* l )
+{
+  try {
+    h[0] = k[0] = l[0] = 0;//signature for not possible
+    auto& info = ncc::extract(nfo);
+    auto& hklList = info->hklList();
+    NC::HKLList::const_iterator it = std::next(hklList.begin(),idx);
+    nc_assert(it<hklList.end());
+    nc_assert( info != nullptr );
+    auto res = NC::ExpandHKLHelper( *info );
+    for ( auto& e : res.expand( *it ) ) {
+      *h++ = e.h;
+      *k++ = e.k;
+      *l++ = e.l;
+    }
+    return;
+  } NCCATCH;
+  h[0] = k[0] = l[0] = 0;
+}
 
 unsigned ncrystal_info_ndyninfo( ncrystal_info_t ci )
 {

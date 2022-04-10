@@ -208,7 +208,6 @@ namespace NCrystal {
     void set_temp( double );
     void set_dcutoff( double );
     void set_dcutoffup( double );
-    void set_expandhkl( bool );
     void set_mos( MosaicityFWHM );
     void set_mosprec( double );
     void set_sccutoff( double );
@@ -262,7 +261,6 @@ namespace NCrystal {
     Temperature get_temp() const;
     double get_dcutoff() const;
     double get_dcutoffup() const;
-    bool get_expandhkl() const;
     MosaicityFWHM get_mos() const;
     double get_mosprec() const;
     double get_sccutoff() const;
@@ -410,8 +408,8 @@ namespace NCrystal {
     explicit MatCfg( constructor_args&& );
     struct from_raw_t {};
     explicit MatCfg( from_raw_t, std::string&& data, std::string pars, std::string ext );
-    struct Impl;
-    struct Impl2;
+    class Impl;
+    class Impl2;
     COWPimpl<Impl> m_impl;
     COWPimpl<Impl2> m_impl2;
     OptionalTextDataSP m_textDataSP;

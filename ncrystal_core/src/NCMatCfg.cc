@@ -124,7 +124,8 @@ public:
   }
 };
 
-struct NC::MatCfg::Impl {
+class NC::MatCfg::Impl {
+public:
   TextDataUID m_textDataUID;
   std::string m_textDataType;
   DataSourceName m_dataSourceName;//data name as passed to MatCfg constructor or an appropriate "<anonymousXXX-data>"
@@ -231,8 +232,13 @@ struct NC::MatCfg::Impl {
       if ( tmp2.size()!=2 )
         badSyntax();
       phases_str = tmp2.front();
-      commoncfgstr = tmp2.back();
+      commoncfgstr = tmp2.back().trimmed();
     }
+
+    if ( !commoncfgstr.empty() && !commoncfgstr.startswith(';') )
+      NCRYSTAL_THROW2(BadInput,"Invalid syntax in multiphase configuration "
+                      "string: \""<<input<<"\" (the part after the \">\""
+                      " character must begin with a \";\" character).");
 
     //Create result like this to (hopefully) avoid redundant copies:
     result.emplace();//create value
@@ -633,6 +639,10 @@ NC::MatCfg::MatCfg( const std::string& datafile_and_parameters )
     //Standard single-phase cfg string.
     StrView dataname,cfgstr;
     std::tie(dataname,cfgstr) = splitCfgOnFilename( input );
+    nc_assert( dataname.has_value() );
+    if ( dataname.empty() )
+      NCRYSTAL_THROW2(BadInput,"Missing data name in \""<<input<<'"');
+
     {
       auto badchar_strrep = findForbiddenChar( cfgstr, Cfg::forbidden_chars_non_multiphase,ExtraForbidOpt::RequireSimpleASCII );
       if ( badchar_strrep.has_value() )
@@ -898,7 +908,6 @@ NC::MatCfg::~MatCfg() = default;
 NC::Temperature NC::MatCfg::get_temp() const { return CfgManip::get_temp( m_impl->readVar(Cfg::VarId::temp) ); }
 double NC::MatCfg::get_dcutoff() const { return CfgManip::get_dcutoff( m_impl->readVar(Cfg::VarId::dcutoff) ); }
 double NC::MatCfg::get_dcutoffup() const { return CfgManip::get_dcutoffup( m_impl->readVar(Cfg::VarId::dcutoffup) ); }
-bool NC::MatCfg::get_expandhkl() const { return CfgManip::get_expandhkl( m_impl->readVar(Cfg::VarId::expandhkl) ); }
 NC::MosaicityFWHM NC::MatCfg::get_mos() const { return CfgManip::get_mos( m_impl->readVar(Cfg::VarId::mos) ); }
 double NC::MatCfg::get_mosprec() const { return CfgManip::get_mosprec( m_impl->readVar(Cfg::VarId::mosprec) ); }
 double NC::MatCfg::get_sccutoff() const { return CfgManip::get_sccutoff( m_impl->readVar(Cfg::VarId::sccutoff) ); }
@@ -916,7 +925,6 @@ const NC::LCAxis& NC::MatCfg::get_lcaxis() const { return CfgManip::get_lcaxis( 
 void NC::MatCfg::set_temp( Temperature v ) { m_impl.modify()->setVar( v, &CfgManip::set_temp ); }
 void NC::MatCfg::set_dcutoff( double v ) { m_impl.modify()->setVar( v, &CfgManip::set_dcutoff ); }
 void NC::MatCfg::set_dcutoffup( double v ) { m_impl.modify()->setVar( v, &CfgManip::set_dcutoffup ); }
-void NC::MatCfg::set_expandhkl( bool v ) { m_impl.modify()->setVar( v, &CfgManip::set_expandhkl ); }
 void NC::MatCfg::set_mos( MosaicityFWHM v ) { m_impl.modify()->setVar( v, &CfgManip::set_mos ); }
 void NC::MatCfg::set_mosprec( double v ) { m_impl.modify()->setVar( v, &CfgManip::set_mosprec ); }
 void NC::MatCfg::set_sccutoff( double v ) { m_impl.modify()->setVar( v, &CfgManip::set_sccutoff ); }

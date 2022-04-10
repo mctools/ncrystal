@@ -27,8 +27,18 @@ namespace NCrystal {
 
   class Info;
 
-  //Dumps info to stdout:
-  enum class DumpVerbosity{ DEFAULT, VERBOSE };
+  //Dumps info to stdout.
+  //
+  //  DEFAULT:  Only some information. In particular long atom position and hkl
+  //            lists might be shortened. Will not necessarily trigger a full hkl
+  //            list construction, so should be fast.
+  //  VERBOSE1: All atom positions, both first and last hkl entries (so requires
+  //            full hkl list construction), including some equivalent hkls.
+  //  VERBOSE2: All hkl entries, all equivalent hkls.
+  //  VERBOSE3: Like VERBOSE2 but without special UTF8 characters in the
+  //            expanded hkl lists.
+  //
+  enum class DumpVerbosity : unsigned { DEFAULT = 0, VERBOSE1 = 1, VERBOSE2 = 2, VERBOSE3 = 3 };
   NCRYSTAL_API void dump(const Info&, DumpVerbosity = DumpVerbosity::DEFAULT );
 }
 

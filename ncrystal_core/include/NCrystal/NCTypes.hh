@@ -334,8 +334,21 @@ namespace NCrystal {
     using StronglyTypedFixedVector::StronglyTypedFixedVector;
   };
 
+  struct NCRYSTAL_API HKL {
+    //Small structure containing hkl point. Comparisons use an inverse
+    //lexicographic sort, to ensure the first point in a sorted list always have
+    //a standard form where the first non-zero digit is positive.
+    int h, k, l;
+    HKL( no_init_t ) noexcept {}
+    constexpr HKL() noexcept : h(0), k(0), l(0) {}
+    constexpr HKL(int h_, int k_, int l_) noexcept;
+    bool operator<(const HKL&o) const noexcept;
+    bool operator==(const HKL&o) const noexcept;
+    constexpr HKL flipped() const noexcept { return HKL{-h,-k,-l}; }
+  };
+
   class NCRYSTAL_API HKLPoint final : public StronglyTypedFixedVector<HKLPoint,double,3> {
-    //Point in (h,k,l)-space.
+    //Point in (h,k,l)-space (unlike the HKL structure this is a floating pointer vector).
   public:
     using StronglyTypedFixedVector::StronglyTypedFixedVector;
   };
@@ -720,7 +733,9 @@ namespace NCrystal {
     nc_assert( elow.dbl() <= ehigh.dbl() );
 #endif
     //nc_as_const to get constexpr .dbl in before C++17:
-    return ( nc_as_const(ekin).dbl()-elow.dbl() ) * ( nc_as_const(ekin).dbl()-ehigh.dbl() ) <= 0.0;
+    return ( nc_as_const(ekin).dbl() >= elow.dbl() ) && ( nc_as_const(ekin).dbl() <= ehigh.dbl() );
+    //NB: More efficient version might trigger FPE's:
+    //    return ( nc_as_const(ekin).dbl()-elow.dbl() ) * ( nc_as_const(ekin).dbl()-ehigh.dbl() ) <= 0.0;
   }
 
 
@@ -789,7 +804,7 @@ namespace NCrystal {
   }
 
   inline constexpr SLDContrast::SLDContrast( ScatLenDensity rho1, ScatLenDensity rho2 ) noexcept
-    : SLDContrast( std::fabs( nc_as_const(rho1).dbl()-nc_as_const(rho2).dbl() ) )
+    : SLDContrast( constexpr_abs( nc_as_const(rho1).dbl()-nc_as_const(rho2).dbl() ) )
   {
   }
 
@@ -843,6 +858,18 @@ namespace NCrystal {
   {
     if ( ! ( m_value >= 0.0 ) )
       NCRYSTAL_THROW2(CalcError,"NeutronEnergy::validate() failed. Invalid value:" << *this );
+  }
+
+  constexpr inline HKL::HKL(int hh, int kk, int ll) noexcept : h(hh), k(kk), l(ll) {}
+
+  inline bool HKL::operator<(const HKL&o) const noexcept
+  {
+    return ( h!=o.h ? o.h<h : ( k!=o.k ? o.k<k : o.l<l ) );
+  }
+
+  inline bool HKL::operator==(const HKL&o) const noexcept
+  {
+    return  h==o.h && k==o.k && l==o.l;
   }
 
   inline std::ostream& operator<<(std::ostream& os, const DataSourceName& dsn)

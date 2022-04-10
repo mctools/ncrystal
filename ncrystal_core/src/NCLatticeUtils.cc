@@ -243,6 +243,40 @@ NC::MaxHKL NC::estimateHKLRange( double dcutoff,
            floorhkl( max_reach_l * invdcutoff ) };
 }
 
+void NC::checkAndCompleteLatticeAngles( unsigned sg, double& alpha, double& beta, double& gamma )
+{
+  if (sg>230)
+    NCRYSTAL_THROW2(BadInput,"invalid spacegroup number ("<<sg<<")");
+  if ( sg < 1 )
+    return;
+  auto cs = crystalSystem( sg );
+  switch (cs) {
+  case Orthorhombic:
+  case Tetragonal:
+  case Cubic:
+    //all 90
+    if ( ( alpha>0 && alpha!=90 ) || ( beta>0 && beta!=90 ) || ( gamma>0 && gamma!=90 ) )
+      NCRYSTAL_THROW2(BadInput,"Spacegroup ("<<sg<<") requires alpha=beta=gamma=90");
+    alpha = beta = gamma = 90;
+    return;
+  case Trigonal:
+  case Hexagonal:
+    if ( ( alpha>0 && alpha!=90 ) || ( beta>0 && beta!=90 ) || ( gamma>120 && gamma!=120 ) )
+      NCRYSTAL_THROW2(BadInput,"Spacegroup ("<<sg<<") requires alpha=beta=90 and gamma=120");
+    alpha = beta = 90;
+    gamma = 120;
+    return;
+  case Monoclinic:
+  case Triclinic:
+    //Although we might be able to do something more specific, we will for now.
+    //simply require all three angles to be set with values <180
+    if ( !( alpha>0 && alpha<180 ) || !( beta>0 && beta<180 ) || !( gamma>0 && gamma<180 ) )
+      NCRYSTAL_THROW2(BadInput,"Spacegroup ("<<sg<<") requires all three angles to be set (and to values < 180).");
+    return;
+  };
+}
+
+
 void NC::checkAndCompleteLattice( unsigned sg, double a, double& b, double & c )
 {
   if (sg>230)
@@ -409,4 +443,35 @@ NC::RotMatrix NC::verifyLatticeOrientDefAndConstructCrystalRotation( const Orien
   c2.normalise();
   l2.normalise();
   return RotMatrix(l1,c1,l2,c2);
+}
+
+NC::CrystalSystem NC::crystalSystem( int sg )
+{
+  if ( sg < 1 || sg > 230 )
+    NCRYSTAL_THROW(BadInput,"Space group number is not in the range 1 to 230");
+  if ( sg >= 143 ) {
+    if ( sg >= 195 )
+      return CrystalSystem::Cubic;
+    return sg >= 168 ? CrystalSystem::Hexagonal : CrystalSystem::Trigonal;
+  }
+  if ( sg >= 75 )
+    return CrystalSystem::Tetragonal;
+  if ( sg >= 16 )
+    return CrystalSystem::Orthorhombic;
+  return sg >= 3 ? CrystalSystem::Monoclinic : CrystalSystem::Triclinic;
+}
+
+std::tuple<int,int,int> NC::normalAndDSpacingToHKLIndex( const RotMatrix& lattice_rot,
+                                                         double dspacing,
+                                                         const Vector& normal )
+{
+  nc_assert( dspacing > 0.0 );
+  auto hkl = lattice_rot * normal;
+  hkl /= dspacing;
+  if ( hkl < -hkl )
+    hkl = -hkl;
+  Vector hkl_rounded( std::round(hkl[0]), std::round(hkl[1]), std::round(hkl[2]) );
+  if ( ( hkl - hkl_rounded ).mag2() > 1e-10 )
+    NCRYSTAL_THROW(CalcError,"HKL point estimated from dspacing+normal is not approximately integral.");
+  return { int(hkl_rounded[0]), int(hkl_rounded[1]), int(hkl_rounded[2]) };
 }

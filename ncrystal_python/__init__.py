@@ -27,7 +27,6 @@ For detailed usage conditions and licensing of this open source project, see:
 
    https://github.com/mctools/ncrystal/blob/master/NOTICE
    https://github.com/mctools/ncrystal/blob/master/LICENSE
-   https://github.com/mctools/ncrystal/blob/master/ncrystal_extra/LICENSE
 
 """
 
@@ -52,10 +51,10 @@ For detailed usage conditions and licensing of this open source project, see:
 ################################################################################
 
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
-__version__ = '2.9.91'
+__version__ = '2.9.92'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
-__copyright__ = "Copyright 2015-2021 %s"%__author__
+__copyright__ = "Copyright 2015-2022 %s"%__author__
 __maintainer__ = __author__
 __email__ = "ncrystal-developers@cern.ch"
 #Only put the few most important items in __all__, to prevent cluttering on
@@ -137,6 +136,7 @@ _kPi        = 3.1415926535897932384626433832795028841971694
 _k2Pi       = 6.2831853071795864769252867665590057683943388
 _k4Pidiv100 = 0.125663706143591729538505735331180115367886776
 _k4PiSq     = 39.4784176043574344753379639995046045412547976
+standard_comp_types = ('coh_elas','incoh_elas','inelas','sans')#for client code checking all types of components.
 
 def _find_nclib():
 
@@ -221,6 +221,7 @@ def _load(nclib_filename):
     _dblpp = ctypes.POINTER(_dblp)
     ndarray_to_dblp = lambda a : a.ctypes.data_as(_dblp)
     ndarray_to_uintp = lambda a : a.ctypes.data_as(_uintp)
+    ndarray_to_intp = lambda a : a.ctypes.data_as(_intp)
 
     def _create_numpy_double_array(n):
         _ensure_numpy()
@@ -231,6 +232,11 @@ def _load(nclib_filename):
         _ensure_numpy()
         a=_np.empty(n,dtype=_uint)
         return a,ndarray_to_uintp(a)
+
+    def _create_numpy_int_array(n):
+        _ensure_numpy()
+        a=_np.empty(n,dtype=_int)
+        return a,ndarray_to_intp(a)
 
     class ncrystal_info_t(ctypes.Structure):
         _fields_ = [('internal', _voidp)]
@@ -314,7 +320,7 @@ def _load(nclib_filename):
     _wrap('ncrystal_cast_abs2proc',ncrystal_process_t,(ncrystal_absorption_t,))
 
     _wrap('ncrystal_dump',None,(ncrystal_info_t,))
-    _wrap('ncrystal_dump_verbose',None,(ncrystal_info_t,))
+    _wrap('ncrystal_dump_verbose',None,(ncrystal_info_t,_uint))
     _wrap('ncrystal_ekin2wl',_dbl,(_dbl,))
     _wrap('ncrystal_wl2ekin',_dbl,(_dbl,))
     _wrap('ncrystal_isnonoriented',_int,(ncrystal_process_t,))
@@ -372,9 +378,28 @@ def _load(nclib_filename):
     _wrap('ncrystal_info_hkl_dlower',_dbl,(ncrystal_info_t,))
     _wrap('ncrystal_info_hkl_dupper',_dbl,(ncrystal_info_t,))
     _wrap('ncrystal_info_braggthreshold',_dbl,(ncrystal_info_t,))
+    _wrap('ncrystal_info_hklinfotype',_int,(ncrystal_info_t,))
     _wrap('ncrystal_info_gethkl',None,(ncrystal_info_t,_int,_intp,_intp,_intp,_intp,_dblp,_dblp))
     _wrap('ncrystal_info_dspacing_from_hkl',_dbl,(ncrystal_info_t,_int,_int,_int))
     functions['ncrystal_info_gethkl_setuppars'] = lambda : (_int(),_int(),_int(),_int(),_dbl(),_dbl())
+
+    _raw_gethkl_allindices = _wrap('ncrystal_info_gethkl_allindices',None,(ncrystal_info_t,_int,_intp,_intp,_intp), hide=True )
+    def iter_hkllist(nfo,all_indices=False):
+        h,k,l,mult,dsp,fsq = _int(),_int(),_int(),_int(),_dbl(),_dbl()
+        nhkl = int(functions['ncrystal_info_nhkl'](nfo))
+        for idx in range(nhkl):
+            _rawfct['ncrystal_info_gethkl'](nfo,idx,h,k,l,mult,dsp,fsq)
+            if not all_indices:
+                yield h.value,k.value,l.value,mult.value,dsp.value,fsq.value
+            else:
+                nc_assert( mult.value % 2 == 0 )
+                n = mult.value // 2
+                hvals, hvalsptr = _create_numpy_int_array( n )
+                kvals, kvalsptr = _create_numpy_int_array( n )
+                lvals, lvalsptr = _create_numpy_int_array( n )
+                _raw_gethkl_allindices(nfo,idx,hvalsptr,kvalsptr,lvalsptr)
+                yield hvals,kvals,lvals,mult.value,dsp.value,fsq.value
+    functions['iter_hkllist']=iter_hkllist
 
     _wrap('ncrystal_info_ndyninfo',_uint,(ncrystal_info_t,))
     _raw_di_base = _wrap('ncrystal_dyninfo_base',None,(ncrystal_info_t,_uint,_dblp,_uintp,_dblp,_uintp),hide=True)
@@ -408,7 +433,7 @@ def _load(nclib_filename):
     def ncrystal_dyninfo_extract_vdos_input(key):
         infoobj,dynidx = key
         negrid,egridptr,ndensity,densityptr = _uint(),_dblp(),_uint(),_dblp()
-        _raw_di_vdos_input(infoobj,dynidx,negrid,ctypes.byref(egridptr),ndensity,ctypes.byref(densityptr));
+        _raw_di_vdos_input(infoobj,dynidx,negrid,ctypes.byref(egridptr),ndensity,ctypes.byref(densityptr))
         return (negrid.value,egridptr,ndensity.value,densityptr)
     functions['ncrystal_dyninfo_base'] = ncrystal_dyninfo_base
     functions['ncrystal_dyninfo_extract_scatknl'] = ncrystal_dyninfo_extract_scatknl
@@ -559,8 +584,16 @@ def _load(nclib_filename):
     def ncrystal_crosssection( proc, ekin, direction):
         res = _dbl()
         cdir = (_dbl * 3)(*direction)
-        _raw_xs(proc,ekin,cdir,res)
-        return res.value
+        if hasattr(ekin,'__len__'):
+            #Todo: this vectorises on the Python side which is slow!
+            _ensure_numpy()
+            def e2xs(e):
+                _raw_xs(proc,e,cdir,res)
+                return res.value
+            return _np.vectorize(e2xs)(ekin)
+        else:
+            _raw_xs(proc,ekin,cdir,res)
+            return res.value
     functions['ncrystal_crosssection'] = ncrystal_crosssection
 
     #Obsolete:
@@ -770,9 +803,9 @@ def createVDOSDebye(debye_temperature):
     #NB: Must keep function exactly synchronised with createVDOSDebye function
     #in .cc src (although leaving out temperature,boundXS,elementMassAMU args
     #here):
-    debye_energy = constant_boltzmann*debye_temperature;
-    vdos_egrid = _np_linspace(0.5*debye_energy,debye_energy,20);
-    scale = 1.0 / (debye_energy*debye_energy);
+    debye_energy = constant_boltzmann*debye_temperature
+    vdos_egrid = _np_linspace(0.5*debye_energy,debye_energy,20)
+    scale = 1.0 / (debye_energy*debye_energy)
     vdos_density = scale * (vdos_egrid**2)
     #Actual returned egrid should contain only first and last value:
     return (_np.asarray([vdos_egrid[0],vdos_egrid[-1]]) ,vdos_density)
@@ -964,6 +997,16 @@ class StateOfMatter(enum.Enum):
     Gas = 2
     Liquid = 3
 
+class HKLInfoType(enum.Enum):
+    """Describes the kind of information about plane normals and Miller (hkl)
+       indices available on each entry in the HKLList."""
+    #NB: List here must be synchronized with list and values in NCInfoTypes.hh:
+    SymEqvGroup = 0
+    ExplicitHKLs = 1
+    ExplicitNormals = 2
+    Minimal = 3
+
+
 class Info(RCBase):
     """Class representing information about a given material.
 
@@ -1069,11 +1112,12 @@ class Info(RCBase):
         return self._initComp() if self.__comp is None else self.__comp
     composition=property(getComposition)
 
-    def dump(self,verbose=False):
-        """Dump contained information to standard output"""
+    def dump(self,verbose=0):
+        """Dump contained information to standard output. Use verbose argument to set
+        verbosity level to 0 (minimal), 1 (middle), 2 (most verbose), 3 (as 2 but no UTF8 chars)."""
         sys.stdout.flush()
         sys.stderr.flush()
-        _rawfct['ncrystal_dump_verbose' if verbose else 'ncrystal_dump'](self._rawobj)
+        _rawfct['ncrystal_dump_verbose'](self._rawobj,min(999,max(0,int(verbose))))
 
     def hasTemperature(self):
         """Whether or not material has a temperature available"""
@@ -1215,15 +1259,21 @@ class Info(RCBase):
             self.__correspDI_wp = None
 
         def correspondingDynamicInfo(self):
-            """Get corresponding DynamicInfo object from the same Info object. Returns None if Info object does not have dynamic info available"""
+            """
+            Get corresponding DynamicInfo object from the same Info
+            object. Returns None if Info object does not have dynamic info
+            available
+            """
             if self.__correspDI_wp is not None:
                 if self.__correspDI_wp == False:
                     return None
                 di = self.__correspDI_wp()
-                nc_assert(di is not None,"AtomInfo.correspondingDynamicInfo can not be used after associated Info object is deleted")
+                nc_assert(di is not None,"AtomInfo.correspondingDynamicInfo can not"
+                          +" be used after associated Info object is deleted")
                 return di
             _info = self._info_wr()
-            nc_assert(_info is not None,"AtomInfo.correspondingDynamicInfo can not be used after associated Info object is deleted")
+            nc_assert(_info is not None,"AtomInfo.correspondingDynamicInfo can not"
+                      +" be used after associated Info object is deleted")
             if not _info.hasDynamicInfo():
                 self.__correspDI_wp = False
                 return None
@@ -1346,14 +1396,16 @@ class Info(RCBase):
     def hklDUpper(self):
         """Upper d-spacing cutoff (angstrom)."""
         return float(_rawfct['ncrystal_info_hkl_dupper'](self._rawobj))
-    def hklList(self):
+    def hklList(self,all_indices=False):
         """Iterator over HKL info, yielding tuples in the format
-        (h,k,l,multiplicity,dspacing,fsquared)"""
+        (h,k,l,multiplicity,dspacing,fsquared). Running with all_indices=True to
+        get the full list of hkl points in each group - in that case, h, k, and
+        l will be numpy arrays of length multiplicity/2 (including just one of
+        (h,k,l) and (-h,-k,-l) in the list).
+        """
         nc_assert(self.hasHKLInfo())
-        h,k,l,mult,dsp,fsq = _rawfct['ncrystal_info_gethkl_setuppars']()
-        for idx in range(self.nHKL()):
-            _rawfct['ncrystal_info_gethkl'](self._rawobj,idx,h,k,l,mult,dsp,fsq)
-            yield h.value,k.value,l.value,mult.value,dsp.value,fsq.value
+        return _rawfct['iter_hkllist']( self._rawobj,
+                                        all_indices = all_indices )
     def getBraggThreshold(self):
         """Get Bragg threshold in Aa (returns None if non-crystalline). This
         method is meant as a fast way to access the Bragg threshold without
@@ -1362,6 +1414,14 @@ class Info(RCBase):
         bt = float(_rawfct['ncrystal_info_braggthreshold'](self._rawobj))
         return bt if bt > 0.0 else None
     braggthreshold = property(getBraggThreshold)
+
+    def hklInfoType(self):
+        """What kind of information about plane normals and Miller indices are
+        available in the hklList(). It is guaranteed to be the same for all
+        HKLInfo entries, and will return "Minimal" when hklList() is present but
+        empty. Like getBraggThreshold(), calling this method will not
+        necessarily trigger a full initialisation of the hklList()."""
+        return HKLInfoType(int(_rawfct['ncrystal_info_hklinfotype'](self._rawobj)))
 
     def dspacingFromHKL(self, h, k, l):
         """Convenience method, calculating the d-spacing of a given Miller
@@ -1678,6 +1738,14 @@ class Process(RCBase):
 
         """
         return _rawfct['ncrystal_domain'](self._rawobj)
+
+    def isNull(self):
+        """Domain might indicate that this is a null-process, vanishing everywhere."""
+        elow,ehigh = self.domain()
+        #checking for inf like the following to avoid depending on numpy or math
+        #modules just for this:
+        return ( elow >= ehigh or ( elow>1e99 and elow==float('inf') ) )
+
     def isNonOriented(self):
         """opposite of isOriented()"""
         return bool(_rawfct['ncrystal_isnonoriented'](self._rawobj))
@@ -1703,7 +1771,7 @@ class Process(RCBase):
     crossSectionNonOriented = crossSectionIsotropic
 
     def xsect(self,ekin=None,direction=None,wl=None,repeat=None):
-        """Convenience function which redirects calls to either crossSectionNonOriented
+        """Convenience function which redirects calls to either crossSectionIsotropic
         or crossSection depending on whether or not a direction is given. It can
         also accept wavelengths instead of kinetic energies via the wl
         parameter. The repeat parameter is currently only supported when
@@ -1711,7 +1779,7 @@ class Process(RCBase):
         """
         ekin = Process._parseekin( ekin, wl )
         if direction is None:
-            return self.crossSectionNonOriented( ekin, repeat )
+            return self.crossSectionIsotropic( ekin, repeat )
         else:
             if repeat is None:
                 return self.crossSection( ekin, direction )
@@ -2379,7 +2447,7 @@ class TextData:
 
     @property
     def dataType(self):
-        """Data type ("ncmat", "nxs", ...)."""
+        """Data type ("ncmat", "lau", ...)."""
         return self.__datatype
 
     @property
@@ -2587,9 +2655,9 @@ def _actualtest():
     require( al.nHKL() == 3 )
     require_flteq(al.hklDLower(),1.4)
     require( al.hklDUpper() > 1e36 )
-    expected_hkl = { 0  : (1, -1, -1, 8, 2.3380261031049243, 1.773159275925474),
-                     1  : (0, 0, 2, 6, 2.02479, 1.731788590086223),
-                     2  : (0, 2, -2, 12, 1.4317427394787094, 1.575735707233723) }
+    expected_hkl = { 0  : (1, 1, 1, 8, 2.3380261031049243, 1.7731590373262052),
+                     1  : (2, 0, 0, 6, 2.02479, 1.7317882793764163),
+                     2  : (2, 2, 0, 12, 1.4317427394787092, 1.5757351418107877) }
     for idx,hkl in enumerate(al.hklList()):
         h,k,l,mult,dsp,fsq = hkl
         require(idx<len(expected_hkl))
@@ -2606,9 +2674,9 @@ def _actualtest():
     require( alpc.refCount() in (1,2) and type(alpc.refCount()) == int )
     require( alpc.isNonOriented() )
     #print(alpc.xsect(wl=4.0))
-    require_flteq(1.632435821586171,alpc.crossSectionNonOriented(wl2ekin(4.0)) )
+    require_flteq(1.632435821586171,alpc.crossSectionIsotropic(wl2ekin(4.0)) )
     require_flteq(1.632435821586171,alpc.crossSection(wl2ekin(4.0),(1,0,0)))
-    require( alpc.crossSectionNonOriented(wl2ekin(5.0)) == 0.0 )
+    require( alpc.crossSectionIsotropic(wl2ekin(5.0)) == 0.0 )
 
     require( alpc.rngSupportsStateManipulation() )
     require(alpc.getRNGState()=='a79fd777407ba03b3d9d242b2b2a2e58b067bd44')

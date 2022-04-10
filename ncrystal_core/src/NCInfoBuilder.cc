@@ -97,17 +97,23 @@ namespace NCrystal {
       namespace details {
         bool dhkl_compare( const NC::HKLInfo& rh, const NC::HKLInfo& lh )
         {
-          if( ncabs(lh.dspacing-rh.dspacing) > 1.0e-6 )
+          nc_assert( !std::isnan(lh.dspacing) );
+          nc_assert( !std::isnan(rh.dspacing) );
+          nc_assert( !std::isinf(lh.dspacing) );
+          nc_assert( !std::isinf(rh.dspacing) );
+          if ( ncabs( lh.dspacing - rh.dspacing ) > 1e-6 )
             return lh.dspacing < rh.dspacing;
-          else if( ncabs(lh.fsquared*lh.multiplicity - rh.fsquared*rh.multiplicity) > 1.0e-6 )
-            return lh.fsquared*lh.multiplicity < rh.fsquared*rh.multiplicity;
-          else if (lh.multiplicity != rh.multiplicity)
+          double lh_fm = lh.fsquared*lh.multiplicity;
+          double rh_fm = rh.fsquared*rh.multiplicity;
+          nc_assert( !std::isnan(lh_fm) );
+          nc_assert( !std::isnan(rh_fm) );
+          nc_assert( !std::isinf(lh_fm) );
+          nc_assert( !std::isinf(rh_fm) );
+          if( ncabs( lh_fm - rh_fm ) > 1e-6 )
+            return lh_fm < rh_fm;
+          if (lh.multiplicity != rh.multiplicity)
             return lh.multiplicity < rh.multiplicity;
-          else if( lh.h!=rh.h )
-            return rh.h < lh.h;
-          else if( lh.k!=rh.k )
-            return rh.k < lh.k;
-          return rh.l < lh.l;
+          return lh.hkl < rh.hkl;
         }
         bool atominfo_pos_compare( const NC::AtomInfo::Pos& rh, const NC::AtomInfo::Pos& lh )
         {
@@ -215,6 +221,9 @@ namespace NCrystal {
 
         checkAndCompleteLattice( si.spacegroup, si.lattice_a,
                                  si.lattice_b,  si.lattice_c );
+
+        checkAndCompleteLatticeAngles( si.spacegroup, si.alpha, si.beta, si.gamma );
+
 
         if ( ! ( si.alpha > 0 && si.alpha < 180 &&
                  si.beta  > 0 && si.beta  < 180 &&
@@ -443,47 +452,34 @@ namespace NCrystal {
         std::stable_sort(hkllist.begin(),hkllist.end(),details::dhkl_compare);
         hkllist.shrink_to_fit();
 
-        int has_demi_normals(-1);
-        int has_eqv_hkl(-1);
+        HKLInfoType hitype = ( hkllist.empty() ? HKLInfoType::Minimal : hkllist.front().type() );
         for ( auto& hkl : hkllist ) {
-            if (hkl.multiplicity < 1 || hkl.multiplicity > 99999)
-              NCRYSTAL_THROW(BadInput,"HKL multiplicity is not in range 1..99999");
-            if ( ! (hkl.fsquared >= 0.0 ) )
-              NCRYSTAL_THROW(BadInput,"HKL fsquared is not a non-negative number");
-            checkDSpacing(hkl.dspacing);
-
-          if (! hkl.demi_normals.empty() ) {
-
-            hkl.demi_normals.shrink_to_fit();
-            if (has_demi_normals==0)
-              NCRYSTAL_THROW(BadInput,"Inconsistency: Some but not all HKLInfo objects provide demi_normals");
-            has_demi_normals=1;
-            if (hkl.demi_normals.size()*2 != (size_t)hkl.multiplicity)
-              NCRYSTAL_THROW(BadInput,"HKL normals provided but number does not match multiplicity");
-
-            if ( has_eqv_hkl != -1 && (hkl.eqv_hkl?1:0) != has_eqv_hkl )
-              NCRYSTAL_THROW(BadInput,"Inconsistency: Some but not all HKLInfo objects provide eqv_hkl");
-            has_eqv_hkl = (hkl.eqv_hkl?1:0);
-
-            //check demi-normals are normalised:
-            for ( const auto& demi_normal : hkl.demi_normals ) {
+          if ( hkl.multiplicity < 2 || hkl.multiplicity > 99998 )
+            NCRYSTAL_THROW(BadInput,"HKL multiplicity is not in range 2..99998");
+          if ( hkl.multiplicity % 2 != 0 )
+            NCRYSTAL_THROW(BadInput,"HKL multiplicity is not an even number.");
+          if ( ! (hkl.fsquared >= 0.0 ) )
+            NCRYSTAL_THROW(BadInput,"HKL fsquared is not a non-negative number");
+          checkDSpacing(hkl.dspacing);
+          if ( hkl.type() != hitype )
+            NCRYSTAL_THROW(BadInput,"Inconsistency: HKLInfoType is not the same on all HKLInfo objects in the same list");
+          if ( hitype == HKLInfoType::ExplicitHKLs ) {
+            nc_assert(hkl.explicitValues != nullptr );
+            auto& ll = hkl.explicitValues->list.get<std::vector<HKL>>();
+            if ( ll.size()*2 != (std::size_t)hkl.multiplicity )
+              NCRYSTAL_THROW(BadInput,"Explicit HKL values provided but number does not match multiplicity");
+            ll.shrink_to_fit();
+          } else if ( hitype == HKLInfoType::ExplicitNormals ) {
+            auto& ll = hkl.explicitValues->list.get<std::vector<HKLInfo::Normal>>();
+            if ( ll.size()*2 != (std::size_t)hkl.multiplicity )
+              NCRYSTAL_THROW(BadInput,"Explicit HKL normals provided but number does not match multiplicity");
+            ll.shrink_to_fit();
+            for ( const auto& demi_normal : ll ) {
               if ( ! demi_normal.as<Vector>().isUnitVector() )
                 NCRYSTAL_THROW(BadInput,"Provided demi_normals must have unit lengths");
             }
-
-          } else {
-
-            if (has_demi_normals==1)
-              NCRYSTAL_THROW(BadInput,"Inconsistency: Some but not all HKLInfo objects provide demi_normals");
-
-            has_demi_normals=0;
-            if (hkl.eqv_hkl)
-              NCRYSTAL_THROW(BadInput,"eqv_hkl provided although demi_normals are not!");
           }
-          if ( hkl.eqv_hkl && hkl.multiplicity%2 != 0 )
-            NCRYSTAL_THROW(BadInput,"Expanded HKL info (eqv_hkl) provided, but multiplicity is not an even number.");
         }
-
       }
 
       void validateTemperatures( const Optional<Temperature>& temperature,
@@ -795,6 +791,7 @@ namespace NCrystal {
         out.stateOfMatter = in.stateOfMatter;
 
         out.detail_braggthreshold = -1.0;
+        out.detail_hklInfoType = Info::Data::hKLInfoTypeInt_unsetval;
 
         if ( in.hklPlanes.has_value() ) {
           auto& hkl = in.hklPlanes.value();
@@ -804,6 +801,7 @@ namespace NCrystal {
             out.detail_hkllist_needs_init = false;
             out.detail_hklList = std::move( hkl.source.get<HKLList>() );
             out.detail_braggthreshold = ( out.detail_hklList.empty() ? 0.0 : out.detail_hklList.front().dspacing * 2.0 );
+            out.detail_hklInfoType = enumAsInt( out.detail_hklList.empty()  ? HKLInfoType::Minimal : out.detail_hklList.front().type() );
           } else {
             //Delayed init via generator function. We wrap the genfct call to
             //take care of StructureInfo/AtomInfoList arguments + make sure we
@@ -1245,4 +1243,3 @@ NC::InfoPtr NC::InfoBuilder::buildInfoPtrWithScaledDensity( InfoPtr orig, double
   }
   return overrideInfoFieldsWithCache( orig, fields );
 }
-

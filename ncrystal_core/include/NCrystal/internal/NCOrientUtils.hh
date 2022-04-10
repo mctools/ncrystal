@@ -27,7 +27,7 @@
 namespace NCrystal {
 
   class Info;
-  class StructureInfo;
+  struct StructureInfo;
 
   //Helper function which finally constructs the rotation between the crystal
   //frame and the laboratory frame based on a completed SCOrientation

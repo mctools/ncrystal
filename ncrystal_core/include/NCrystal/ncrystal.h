@@ -206,7 +206,12 @@ extern "C" {
   NCRYSTAL_API void ncrystal_info_gethkl( ncrystal_info_t, int idx,
                                           int* h, int* k, int* l, int* multiplicity,
                                           double * dspacing, double* fsquared );
+  /*All HKL indices in a given group (returns first value h[0]==k[0]==l[0]==0 if not possible). */
+  NCRYSTAL_API void ncrystal_info_gethkl_allindices( ncrystal_info_t, int idx,
+                                                     int* h, int* k, int* l );/* arrays of length multiplicity/2 */
+
   NCRYSTAL_API double ncrystal_info_braggthreshold( ncrystal_info_t ); /* [Aa], -1 when not available */
+  NCRYSTAL_API int ncrystal_info_hklinfotype( ncrystal_info_t ); /* integer casted value of HKLInfoType */
 
   /*Access AtomInfo:                                                               */
   NCRYSTAL_API unsigned ncrystal_info_natominfo( ncrystal_info_t );/* 0=unavail    */
@@ -422,9 +427,9 @@ extern "C" {
   /*============================================================================== */
   /*============================================================================== */
 
-  /* Dump info to stdout:                                                          */
+  /* Dump info to stdout (1st fct is same as calling 2nd one with verbosity_lvl=0):*/
   NCRYSTAL_API void ncrystal_dump(ncrystal_info_t);
-  NCRYSTAL_API void ncrystal_dump_verbose(ncrystal_info_t);
+  NCRYSTAL_API void ncrystal_dump_verbose(ncrystal_info_t, unsigned verbosity_lvl );
 
   /* Utility converting between neutron wavelength [Aa] to kinetic energy [eV]:    */
   NCRYSTAL_API double ncrystal_wl2ekin( double wl );
@@ -435,12 +440,12 @@ extern "C" {
   NCRYSTAL_API char * ncrystal_dbg_process( ncrystal_process_t );
 
   /*UID of underlying Info or ProcImpl::Process object as string (must free with   */
-  /*call to ncrystal_dealloc_stringlist:                                           */
+  /*call to ncrystal_dealloc_string:                                               */
   NCRYSTAL_API char * ncrystal_process_uid(ncrystal_process_t);
   NCRYSTAL_API char * ncrystal_info_uid(ncrystal_info_t);
 
   /*Generate cfg-str variable documentation as string (must free with call to      */
-  /*ncrystal_dealloc_stringlist). Mode 0 (full), 1 (short), 2 (json):              */
+  /*ncrystal_dealloc_string). Mode 0 (full), 1 (short), 2 (json):                  */
   NCRYSTAL_API char * ncrystal_gencfgstr_doc(int mode);
 
   /*Underlying UID (in case density value or cfgdata  was overridden):             */
@@ -511,9 +516,9 @@ extern "C" {
 #endif
 #define NCRYSTAL_VERSION_MAJOR 2
 #define NCRYSTAL_VERSION_MINOR 9
-#define NCRYSTAL_VERSION_PATCH 91
-#define NCRYSTAL_VERSION   2009091 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
-#define NCRYSTAL_VERSION_STR "2.9.91"
+#define NCRYSTAL_VERSION_PATCH 92
+#define NCRYSTAL_VERSION   2009092 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
+#define NCRYSTAL_VERSION_STR "2.9.92"
   NCRYSTAL_API int ncrystal_version(); /* returns NCRYSTAL_VERSION                  */
   NCRYSTAL_API const char * ncrystal_version_str(); /* returns NCRYSTAL_VERSION_STR */
 

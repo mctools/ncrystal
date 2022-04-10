@@ -120,7 +120,7 @@ namespace NCrystal {
     //value (e.g. a multiphase object will be "Solid" if all daughter phases are
     //"Solid").
 
-    enum class StateOfMatter { Unknown = 0, Solid = 1, Gas = 2, Liquid = 3 };
+    enum class NCRYSTAL_API StateOfMatter { Unknown = 0, Solid = 1, Gas = 2, Liquid = 3 };
     StateOfMatter stateOfMatter() const noexcept;
     static std::string toString(StateOfMatter);
 
@@ -224,7 +224,8 @@ namespace NCrystal {
     // Crystalline phases: HKL Information //
     /////////////////////////////////////////
 
-    bool hasHKLInfo() const;//same as isCrystalline() since we guarantee HKL planes in all crystalline materials.
+    bool hasHKLInfo() const;//same as isCrystalline() since we guarantee HKL
+                            //planes in all crystalline materials.
     const HKLList& hklList() const;
 
     //NB: it is ok to access hklList() even if hasHKLInfo()==false (the results
@@ -242,22 +243,21 @@ namespace NCrystal {
     double hklDMinVal() const;
     double hklDMaxVal() const;
 
-    //Convenience methods which tests for availability of certain fields on the
-    //entries in the hkl list, or searches the list:
-    //1) Whether HKLInfo objects have demi_normals available:
-    bool hasHKLDemiNormals() const;
-    //2) Whether HKLInfo objects have eqv_hkl available:
-    bool hasExpandedHKLInfo() const;
-    //3) Search eqv_hkl lists for specific (h,k,l) value. Returns hklEnd() if not found:
-    HKLList::const_iterator searchExpandedHKL(short h, short k, short l) const;
-    //4) Get Bragg threshold. In principle this method returns the same value as
-    //   2*hklDMaxVal(), but with two differences: Firstly, it is safe to call
-    //   even if hasHKL()==false, returning NullOpt (it also returns NullOpt if
-    //   hasHKL()==true but there are no planes). Secondly, if on-demand HKL
-    //   lists are not already initialised, this will attempt to calculate them
-    //   WITHOUT doing a full initialisation. This is done by trying to invoke
-    //   hklListPartialCalc for suitable large lower dspacing cutoffs:
+    //Access just the Bragg threshold. In principle this method returns the same
+    //value as 2*hklDMaxVal(), but with two differences: Firstly, it is safe to
+    //call even if hasHKL()==false, returning NullOpt (it also returns NullOpt
+    //if hasHKL()==true but there are no planes). Secondly, if on-demand HKL
+    //lists are not already initialised, this will attempt to calculate them
+    //WITHOUT doing a full initialisation. This is done by trying to invoke
+    //hklListPartialCalc for suitable large lower dspacing cutoffs:
     Optional<NeutronWavelength> getBraggThreshold() const;
+
+    //What kind of information about plane normals and Miller indices are
+    //available in the hklList(). It is guaranteed to be the same for all
+    //HKLInfo entries, and will return "Minimal" when hklList() is present but
+    //empty. Like getBraggThreshold(), calling this method will not necessarily
+    //trigger a full initialisation of the hklList().
+    HKLInfoType hklInfoType() const;
 
     ////////////////////////////////////////////////////////////
     // Crystalline phases: HKL Information - advanced control //
@@ -265,9 +265,9 @@ namespace NCrystal {
 
     //As HKL list initialisation can be computationally expensive, it might be
     //the case that HKL lists internally are only created on-demand. Invoking
-    //any of the HKL methods above (except hasHKLInfo, hklDLower, and hklDUpper)
-    //will trigger this initialisation. This method can be used to check if the
-    //initialisation is fully done:
+    //hklList(), hklDMinVal(), or hklDMaxVal(), will trigger this
+    //initialisation. This method can be used to check if the initialisation is
+    //fully done:
     bool hklListIsFullyInitialised() const;
 
     //Additionally (for advanced usage such as fast browsing), the following
@@ -320,7 +320,10 @@ namespace NCrystal {
     // Custom information for which the core NCrystal code does not have any  //
     // specific treatment. This is primarily intended as a place to put extra //
     // data needed while developing new physics models (e.g. in plugins). The //
-    // core NCrystal code should never make use of such custom data.          //
+    // core NCrystal code should in principle never make use of such custom   //
+    // data, although from time to time we might introduce quick workarounds  //
+    // based on such custom sections, but such workarounds are likely to stop //
+    // working in new releases.                                               //
     ////////////////////////////////////////////////////////////////////////////
 
     //Data is stored as an ordered list of named "sections", with each section
@@ -450,6 +453,16 @@ namespace NCrystal {
     mutable std::atomic<bool> detail_hkllist_needs_init;
     mutable HKLList detail_hklList;
     mutable std::atomic<double> detail_braggthreshold;//-1: needs init, =0: N/A, >0: the value
+
+    //HKLInfoType as atomic integer (using hKLInfoTypeInt_unsetval if needs init):
+    static constexpr std::underlying_type<HKLInfoType>::type hKLInfoTypeInt_unsetval = 9999;
+    mutable std::atomic<unsigned> detail_hklInfoType;
+    static_assert( enumAsInt(HKLInfoType::SymEqvGroup) != hKLInfoTypeInt_unsetval, "" );
+    static_assert( enumAsInt(HKLInfoType::ExplicitHKLs) != hKLInfoTypeInt_unsetval, "" );
+    static_assert( enumAsInt(HKLInfoType::ExplicitNormals) != hKLInfoTypeInt_unsetval, "" );
+    static_assert( enumAsInt(HKLInfoType::Minimal) != hKLInfoTypeInt_unsetval, "" );
+
+
     void doInitHKLList() const;
     const HKLList& hklList() const
     {
@@ -524,23 +537,6 @@ namespace NCrystal {
     singlePhaseOnly(__func__);
     nc_assert(hasHKLInfo());
     return !m_data->detail_hkllist_needs_init.load();
-  }
-
-  inline bool Info::hasExpandedHKLInfo() const
-  {
-    singlePhaseOnly(__func__);
-    if ( !hasHKLInfo() )
-      return false;
-    auto& hklList = m_data->hklList();
-    return !hklList.empty() && hklList.front().eqv_hkl;
-  }
-  inline bool Info::hasHKLDemiNormals() const
-  {
-    singlePhaseOnly(__func__);
-    if ( !hasHKLInfo() )
-      return false;
-    auto& hklList = m_data->hklList();
-    return !hklList.empty() && !hklList.front().demi_normals.empty();
   }
   inline unsigned Info::nHKL() const { singlePhaseOnly(__func__); return m_data->hklList().size(); }
   inline HKLList::const_iterator Info::hklBegin() const { singlePhaseOnly(__func__); return m_data->hklList().begin(); }

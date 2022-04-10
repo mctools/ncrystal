@@ -520,7 +520,6 @@ namespace NCrystal {
           NCRYSTAL_THROW2(BadInput,"Syntax error - invalid value \""
                           <<sv_in<<"\" provided for parameter \""<<Derived::name<<"\"");
 
-        StrView value_sv( opt_value.has_value<StrView>() ? opt_value.get<StrView>() : StrView(opt_value.get<std::string>()) );
         if ( opt_value.has_value<std::string>() ) {
           const auto& value = opt_value.get<std::string>();
           return VarBuf( &value[0], value.size()+1, varid );//+1 for null terminator!
@@ -717,7 +716,7 @@ namespace NCrystal {
                       TVarDef::description,
                       (TVarDef::has_default_value() ? TVarDef::stream_default_value : nullptr),
                       (TVarDef::has_default_value() ? TVarDef::stream_default_value_json : nullptr),
-                      ( TVarDef::units::actual_unit ? TVarDef::units::listAvailableUnits : VarInfo::StreamFct(nullptr) ),
+                      ( TVarDef::units::actual_unit!=nullptr ? TVarDef::units::listAvailableUnits : VarInfo::StreamFct(nullptr) ),
                       TVarDef::units::actual_unit,
                       TVarDef::value_type_descr,
                       TVarDef::asJSONObject );

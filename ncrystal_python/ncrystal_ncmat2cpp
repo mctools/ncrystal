@@ -22,12 +22,12 @@
 
 """
 
-Script which can be used to embed the content of .ncmat files directly into a
-C++ library. It does so by reading the .ncmat files and creating C++ code which
-keeps the contents of the files in static strings, and registers those strings
-with NCrystal, using the original filename as key. Naturally, those file must be
-compiled along with the rest of the C++ library, and the containing function
-must be invoked.
+Script which can be used to embed the content of .ncmat files (or actually any
+ASCII/UTF8 excoded text files) directly into a C++ library. It does so by
+reading the .ncmat files and creating C++ code which keeps the contents of the
+files in static strings, and registers those strings with NCrystal, using the
+original filename as key. Naturally, those file must be compiled along with the
+rest of the C++ library, and the enclosing function must be invoked.
 
 """
 
@@ -55,17 +55,17 @@ def tryImportNCrystal():
 def parseArgs():
     descr="""
 
-Script which can be used to embed the content of .ncmat files directly into a
-C++ library. It does so by reading the .ncmat files and creating C++ code which
-keeps the contents of the files in static strings, and registers those strings
-with NCrystal, using the original filename as key. Naturally, those file must be
-compiled along with the rest of the C++ library, and the containing function
-must be invoked.
+Script which can be used to embed the content of .ncmat files (or actually any
+ASCII/UTF8 excoded text files) directly into a C++ library. It does so by
+reading the .ncmat files and creating C++ code which keeps the contents of the
+files in static strings, and registers those strings with NCrystal, using the
+original filename as key. Naturally, those file must be compiled along with the
+rest of the C++ library, and the enclosing function must be invoked.
 
 """
     parser = argparse.ArgumentParser(description=descr)
     parser.add_argument('FILE', type=str, nargs='+',
-                        help="""One or more NCMAT files. They will be registered with a key equal to their
+                        help="""One or more NCMAT (or other text) files. They will be registered with a key equal to their
                         filename (without preceding directory name), which must
                         therefore be unique in the list""")
     parser.add_argument('--full','-f', action='store_true',

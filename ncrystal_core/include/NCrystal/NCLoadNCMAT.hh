@@ -38,9 +38,7 @@ namespace NCrystal {
   // Parameters must be set via a NCMATCfgVars struct.  Parameters "temp",
   // "dcutoff", "dcutoffup", and "atomdb" have the same meaning as the
   // corresponding parameters described in NCMatCfg.hh (although atomdb must
-  // here be already be split into "lines" and "words"). The "expandhkl"
-  // parameter can be used to request that lists of equivalent HKL planes be
-  // created.
+  // here be already be split into "lines" and "words").
   //
   // Setting "temp" to -1.0 will result in a temperature of 293.15K unless
   // something in the input indicates another value (i.e. if a scatterkernel is
@@ -51,7 +49,6 @@ namespace NCrystal {
     Temperature temp = Temperature{-1.0};//kelvin
     double dcutoff = 0.0;//angstrom
     double dcutoffup = kInfinity;//angstrom
-    bool expandhkl = false;
     std::vector<VectS> atomdb;
     DataSourceName dataSourceName;
 

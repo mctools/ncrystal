@@ -497,13 +497,6 @@ namespace NCrystal {
 
     namespace {
 
-
-      template<class TRequest>
-      TRequest createRequestTmpl( const MatCfg& );
-      template<> inline InfoRequest createRequestTmpl( const MatCfg& cfg ) { return InfoRequest(cfg); }
-      template<> inline ScatterRequest createRequestTmpl( const MatCfg& cfg ) { return ScatterRequest(cfg); }
-      template<> inline AbsorptionRequest createRequestTmpl( const MatCfg& cfg ) { return AbsorptionRequest(cfg); }
-
       template<typename TRequest>
       class CfgLvlMPProc_Key {
       public:
@@ -534,7 +527,6 @@ namespace NCrystal {
             const double numdens_contrib = volfrac * info->getNumberDensity().dbl();
             m_data.emplace_back( numdens_contrib,//<--will be normalised below
                                  TRequest{info} );
-                                 //createRequestTmpl<TRequest>(info) );
             nc_assert(!m_data.back().second.isThinned());
             combinedNumberDensity.add( numdens_contrib );
           }
@@ -636,7 +628,6 @@ namespace NCrystal {
           if ( key.empty() )
             return ProcImpl::getGlobalNullProcess(processType);
           ProcImpl::ProcComposition::ComponentList proclist;
-          StableSum combinedNumberDensity;
           for ( auto& e : key )
             proclist.push_back( ProcImpl::ProcComposition::Component{ e.first, FactImpl::create( e.second ) } );
           return ProcImpl::ProcComposition::consumeAndCombine( std::move(proclist), processType );

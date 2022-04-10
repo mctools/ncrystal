@@ -20,7 +20,6 @@
 
 #include "NCrystal/NCInfo.hh"
 #include "NCrystal/internal/NCMath.hh"
-
 namespace NC=NCrystal;
 
 namespace NCrystal {
@@ -168,28 +167,6 @@ void NC::AtomInfo::detail_setupLink( DynamicInfo* di )
   m_dyninfo = di;
 }
 
-NC::HKLList::const_iterator NC::Info::searchExpandedHKL(short h, short k, short l) const
-{
-  singlePhaseOnly(__func__);
-  nc_assert_always(hasHKLInfo());
-  nc_assert_always(hasExpandedHKLInfo());
-
-  HKLList::const_iterator it(hklBegin()), itE(hklEnd());
-  for(;it!=itE;++it)
-  {
-    for(unsigned i=0;i < it->multiplicity/2;i++)
-    {
-      nc_assert(it->eqv_hkl);
-      if( (it->eqv_hkl[i*3]==h && it->eqv_hkl[i*3+1]==k && it->eqv_hkl[i*3+2]==l) ||
-          (it->eqv_hkl[i*3]==-h && it->eqv_hkl[i*3+1]==-k && it->eqv_hkl[i*3+2]==-l) )
-      {
-        return it;
-      }
-    }
-  }
-  return itE;
-}
-
 NC::SigmaAbsorption NC::Info::getXSectAbsorption() const
 {
   StableSum sum;
@@ -222,6 +199,22 @@ NC::AtomMass NC::Info::getAverageAtomMass() const
   return AtomMass{ DoValidate, sum.sum() };
 }
 
+namespace NCrystal {
+  namespace {
+    template<class T>
+    bool atomic_setValueIfHasValue(std::atomic<T>& av, T new_value, T value_required_for_set ) {
+      //Set av to new_value if current value is value_required_for_set.
+      T old_value = av.load();
+      do {
+        if ( old_value != value_required_for_set )
+          return false;
+        //bool compare_exchange_weak( T& expected, T desired, ... )
+      } while ( !av.compare_exchange_weak( old_value, new_value ) );
+      return true;
+    }
+  }
+}
+
 void NC::Info::Data::doInitHKLList() const
 {
   nc_assert(hkl_dlower_and_dupper.has_value());
@@ -235,39 +228,78 @@ void NC::Info::Data::doInitHKLList() const
   if (!detail_hkllist_needs_init.load())
     return;//someone beat us to it - return (discarding our own result)
   detail_hklList = std::move(res);
+
+  //Take this chance to update Bragg threshold / HKLInfoType fields:
+  double bt = detail_hklList.empty() ? 0.0 : detail_hklList.front().dspacing * 2.0;
+  auto tp = enumAsInt(detail_hklList.empty() ? HKLInfoType::Minimal : detail_hklList.front().type() );
+  atomic_setValueIfHasValue( detail_braggthreshold, bt, -1.0 );
+  atomic_setValueIfHasValue( detail_hklInfoType, tp, hKLInfoTypeInt_unsetval );
+
   detail_hkllist_needs_init = false;
-  if ( detail_braggthreshold.load() == -1.0 )
-    detail_braggthreshold = detail_hklList.empty() ? 0.0 : detail_hklList.front().dspacing * 2.0;
 }
+
+NC::HKLInfoType NC::Info::hklInfoType() const
+{
+  singlePhaseOnly(__func__);
+  auto& data = *m_data;
+  if( !data.hkl_dlower_and_dupper.has_value() ) {
+    hklList();//This triggers exception
+    return HKLInfoType::Minimal;//not used
+  }
+  auto tp = data.detail_hklInfoType.load();
+  if ( tp != Data::hKLInfoTypeInt_unsetval )
+    return static_cast<HKLInfoType>(tp);
+
+  //trigger init and try again:
+  getBraggThreshold();
+
+  tp = data.detail_hklInfoType.load();
+  nc_assert( tp != Data::hKLInfoTypeInt_unsetval );
+  return static_cast<HKLInfoType>(tp);
+}
+
 
 NC::Optional<NC::NeutronWavelength> NC::Info::getBraggThreshold() const
 {
   singlePhaseOnly(__func__);
+
   auto& data = *m_data;
   if( !data.hkl_dlower_and_dupper.has_value() )
     return NullOpt;
+
+  auto retval = []( double bt )
+  {
+    Optional<NeutronWavelength> rv;
+    if ( bt > 0 )
+      rv.emplace( bt );
+    return rv;
+  };
+
   double bt = data.detail_braggthreshold.load();
-  if ( bt > 0.0 )
-    return NeutronWavelength{bt};
-  if ( bt == 0.0 )
-    return NullOpt;
+  if ( bt >= 0.0 )
+    return retval(bt);//already calculated
+
   //Needs init, try to avoid full init:
-  for ( auto dlow : { 1.5, 0.75 } ) {
-    if ( dlow >= data.hkl_dlower_and_dupper.value().second )
+  for ( auto dlow : { 5.0, 1.5, 0.75 } ) {
+    if ( (bt=data.detail_braggthreshold.load()) >= 0.0 )
+      return retval(bt);//was filled (by ourselves in a previous loop or by concurrent call)
+    if ( dlow > data.hkl_dlower_and_dupper.value().second )
       continue;//trivially won't select any planes
-    if ( data.detail_braggthreshold.load() >= 0.0 )
-      return getBraggThreshold();//was filled (by ourselves in a previous loop or by other caller)
     if ( dlow <= data.hkl_dlower_and_dupper.value().first ) {
-      //Break and do full init below
+      //Better to break and do full init below
       break;
     } else {
-      hklListPartialCalc( dlow );//will set data.detail_braggthreshold if dlow low enough
+      auto hl = hklListPartialCalc( dlow );//will set data.detail_braggthreshold if dlow low enough
     }
   }
 
+  if ( (bt=data.detail_braggthreshold.load()) >= 0.0 )
+    return retval(bt);//was filled (by ourselves above or by other caller)
+
   //Fall back to full init if not done already:
   data.hklList();
-  return getBraggThreshold();
+  nc_assert(data.detail_braggthreshold.load()>=0.0);
+  return retval(data.detail_braggthreshold.load());
 }
 
 NC::Optional<NC::HKLList> NC::Info::hklListPartialCalc( Optional<double> dlower,
@@ -287,8 +319,13 @@ NC::Optional<NC::HKLList> NC::Info::hklListPartialCalc( Optional<double> dlower,
                     <<", "<<dupp<<"] (once constrained to ["<<data.hkl_dlower_and_dupper.value().first
                     <<", "<<data.hkl_dlower_and_dupper.value().second<<"])");
   auto hklList = data.hkl_ondemand_fct( PairDD(dlow,dupp) );
-  if ( !hklList.empty() && data.detail_braggthreshold.load() == -1.0 )
-    data.detail_braggthreshold = hklList.front().dspacing * 2.0;
+  if ( !hklList.empty() && !dupper.has_value() ) {
+    //Take this chance to update Bragg threshold / HKLInfoType fields:
+    double bt = hklList.front().dspacing * 2.0;
+    auto tp = enumAsInt( hklList.front().type() );
+    atomic_setValueIfHasValue( data.detail_braggthreshold, bt, -1.0 );
+    atomic_setValueIfHasValue( data.detail_hklInfoType, tp, Data::hKLInfoTypeInt_unsetval );
+  }
   return hklList;
 }
 

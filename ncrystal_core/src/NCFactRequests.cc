@@ -108,7 +108,6 @@ void NCF::InfoRequest::streamParamsOnly( std::ostream &os ) const
 NC::Temperature NCF::InfoRequest::get_temp() const { return CfgManip::get_temp(m_data); }
 double NCF::InfoRequest::get_dcutoff() const { return CfgManip::get_dcutoff(m_data); }
 double NCF::InfoRequest::get_dcutoffup() const { return CfgManip::get_dcutoffup(m_data); }
-bool NCF::InfoRequest::get_expandhkl() const { return CfgManip::get_expandhkl(m_data); }
 std::string NCF::InfoRequest::get_infofactory() const { return CfgManip::get_infofactory( m_data ).to_string(); }
 std::string NCF::InfoRequest::get_atomdb() const { return CfgManip::get_atomdb( m_data ).to_string(); }
 std::vector<NC::VectS> NCF::InfoRequest::get_atomdb_parsed() const { return CfgManip::get_atomdb_parsed( m_data ); }

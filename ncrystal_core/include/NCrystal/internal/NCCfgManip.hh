@@ -156,9 +156,6 @@ namespace NCrystal {
       static double get_dcutoffup(const CfgData& data) { return getValue<vardef_dcutoffup>(data); }
       static void set_dcutoffup( CfgData& data, double val ) { setValue<vardef_dcutoffup>(data,val); }
 
-      static bool get_expandhkl(const CfgData& data) { return getValue<vardef_expandhkl>(data); }
-      static void set_expandhkl( CfgData& data, bool val ) { setValue<vardef_expandhkl>(data,val); }
-
       static double get_dirtol(const CfgData& data) { return getValue<vardef_dirtol>(data); }
       static void set_dirtol( CfgData& data, double val ) { setValue<vardef_dirtol>(data,val); }
 
@@ -337,11 +334,12 @@ namespace NCrystal {
       return hasValueSet( data, Cfg::VarId::lcaxis );
     }
 
-    template<class TVarDef, class TValType = typename TVarDef::value_type>
+    template<class TVarDef, class TValType>
     inline void CfgManip::setValue( CfgData& data, const TValType& val )
     {
       constexpr auto varid = constexpr_varIdFromName(TVarDef::name);
-      auto doCreate = [&val,&varid](){ return TVarDef::set_val( varid, val ); };
+      //NB: no need to capture &varid (even gives warning on apple clang 11):
+      auto doCreate = [&val](){ return TVarDef::set_val( varid, val ); };
       detail_setVar( data, varid, doCreate );
     }
 

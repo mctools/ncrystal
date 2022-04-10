@@ -334,7 +334,7 @@ namespace NCrystal {
   inline void streamJSON( std::ostream& os, const std::string&  s) { streamJSON(os,s.c_str()); }
   inline void streamJSON( std::ostream& os, const char * cstr ) { streamJSON(os,StrView(cstr)); }
   inline void streamJSON( std::ostream& os, float v ) { streamJSON(os,double(v)); }
-  template<class T, typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>
+  template<class T, typename std::enable_if<std::is_integral<T>::value>::type*>
   inline void streamJSON( std::ostream& os, T val )
   {
     os << val;
@@ -349,7 +349,7 @@ namespace NCrystal {
     os << ']';
   }
 
-  template<class TContainer, typename T = typename TContainer::value_type>
+  template<class TContainer, typename T>
   inline void streamJSON( std::ostream& os, const TContainer& arr )
   {
     os << '[';

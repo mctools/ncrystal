@@ -63,7 +63,7 @@ namespace NCrystal {
     //DynInfo is unable to provide Debye Waller factors, e.g. sterile/freegas
     //and for now scatknl, will be ignored (if all elements are ignored, an
     //error is raised).
-    ElIncScatter( const Info&, ElIncScatterCfg cfg = ElIncScatterCfg() );
+    ElIncScatter( const Info&, const ElIncScatterCfg& cfg = ElIncScatterCfg() );
 
     CrossSect crossSectionIsotropic(CachePtr&, NeutronEnergy ) const final;
     ScatterOutcomeIsotropic sampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const final;
@@ -76,6 +76,10 @@ namespace NCrystal {
 
     //Specialised constructor providing internal state directly:
     ElIncScatter( std::unique_ptr<ElIncXS> );
+
+    //Helper function for determining if ElincScatter(info,...) can proceed
+    //(i.e. if there is enough info to estimate Debye-Waller factors):
+    static bool hasSufficientInfo( const Info&, const ElIncScatterCfg& cfg = ElIncScatterCfg() );
 
   protected:
     Optional<std::string> specificJSONDescription() const override;

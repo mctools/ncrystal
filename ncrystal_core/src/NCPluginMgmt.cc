@@ -137,12 +137,9 @@ std::vector<NCP::PluginInfo> NCP::loadedPlugins()
   return result;
 }
 
-//Automatic enablement of .nxs/.laz support is controlled via the
-//NCRYSTAL_ENABLE_NXSLAZ macro, and the nxs/laz factories must obviously have
-//been built for this to work. Support for .ncmat files is on the other hand
-//ALWAYS enabled by default, unless disabled with the macro
-//NCRYSTAL_DISABLE_NCMAT. Likewise, the standard scatter/absorption factories
-//are always enabled, unless respectively NCRYSTAL_DISABLE_STDSCAT,
+//Support for .ncmat files is ALWAYS enabled by default, unless disabled with
+//the macro NCRYSTAL_DISABLE_NCMAT. Likewise, the standard scatter/absorption
+//factories are always enabled, unless respectively NCRYSTAL_DISABLE_STDSCAT,
 //NCRYSTAL_DISABLE_STDMPSCAT and NCRYSTAL_DISABLE_STDABS is defined.
 
 #ifndef NCRYSTAL_DISABLE_STDDATASOURCES
@@ -157,18 +154,19 @@ extern "C" void ncrystal_register_stdmpscat_factory();
 #ifndef NCRYSTAL_DISABLE_STDABS
 extern "C" void ncrystal_register_stdabs_factory();
 #endif
-#ifndef NCRYSTAL_DISABLE_NCMAT
-extern "C" void ncrystal_register_ncmat_factory();
+#ifndef NCRYSTAL_DISABLE_STDNCMAT
+extern "C" void ncrystal_register_stdncmat_factory();
+#endif
+#ifndef NCRYSTAL_DISABLE_STDLAZ
+extern "C" void ncrystal_register_stdlaz_factory();
 #endif
 #ifndef NCRYSTAL_DISABLE_QUICKFACT
 extern "C" void ncrystal_register_quick_factory();
 #endif
-#ifdef NCRYSTAL_ENABLE_NXSLAZ
-extern "C" void ncrystal_register_nxslaz_factories();
-#endif
 #ifndef NCRYSTAL_DISABLE_EXPERIMENTALSCATFACT
 extern "C" void ncrystal_register_experimentalscatfact();
 #endif
+
 
 //If NCRYSTAL_HAS_BUILTIN_PLUGINS is defined, it is assumed that the code is
 //being built with a void NCrystal::provideBuiltinPlugins() function defined in
@@ -209,20 +207,20 @@ void NCP::ensurePluginsLoaded()
 #ifndef NCRYSTAL_DISABLE_STDMPSCAT
   loadBuiltinPlugin("stdmpscat",ncrystal_register_stdmpscat_factory);
 #endif
-#ifndef NCRYSTAL_DISABLE_EXPERIMENTALSANSHARDSPHERESCAT
+#ifndef NCRYSTAL_DISABLE_EXPERIMENTALSCATFACT
   loadBuiltinPlugin("stdexpscat",ncrystal_register_experimentalscatfact);
+#endif
+#ifndef NCRYSTAL_DISABLE_STDLAZ
+  loadBuiltinPlugin("stdlaz",ncrystal_register_stdlaz_factory);
 #endif
 #ifndef NCRYSTAL_DISABLE_STDABS
   loadBuiltinPlugin("stdabs",ncrystal_register_stdabs_factory);
 #endif
 #ifndef NCRYSTAL_DISABLE_NCMAT
-  loadBuiltinPlugin("stdncmat",ncrystal_register_ncmat_factory);
+  loadBuiltinPlugin("stdncmat",ncrystal_register_stdncmat_factory);
 #endif
 #ifndef NCRYSTAL_DISABLE_QUICKFACT
   loadBuiltinPlugin("stdquick",ncrystal_register_quick_factory);
-#endif
-#ifdef NCRYSTAL_ENABLE_NXSLAZ
-  loadBuiltinPlugin("nxslaz",ncrystal_register_nxslaz_factories);//TODO: As external plugin?
 #endif
 
   //Static custom (builtin) plugins:

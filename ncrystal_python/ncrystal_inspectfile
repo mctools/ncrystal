@@ -102,7 +102,7 @@ examples:
                         in the usual NCrystal syntax (see also examples
                         below).""")
     parser.add_argument('-d','--dump', action='count',default=0,
-                        help='Dump derived information rather than displaying plots. Specify twice to increase verbosity.')
+                        help='Dump derived information rather than displaying plots. Specify multiple times to increase verbosity.')
     parser.add_argument('--common','-c', metavar='CFG', type=str, default=[],
                         help='Common configuration items that will be applied to all input cfg strings',action='append')
     parser.add_argument('--coh_elas','--bragg', action='store_true',
@@ -470,7 +470,9 @@ def plot_xsect(cfgs,comp,absorption,pdf,versus_energy,xrange,logy,breakdown_by_p
     for ipart,part in enumerate(parts):
         cfg = part._cfg
         compname = part._compname
-        xsects = part.crossSectionNonOriented(ekins)
+        if part.isOriented():
+            raise SystemExit("ERROR: This script can not produce quick cross-section plots for oriented processes (but you can still inspect the material with --dump)")
+        xsects = part.crossSectionIsotropic(ekins)
         if scalefactors is not None:
             xsects *= scalefactors[ipart]
         if need_tot:
@@ -486,12 +488,12 @@ def plot_xsect(cfgs,comp,absorption,pdf,versus_energy,xrange,logy,breakdown_by_p
         if comp=='all' and len(cfgs)==1 and not breakdown_by_phases:
             #sanity check
             if absorption:
-                xsects_tot_direct = cfgs[0].get_totalxsect().crossSectionNonOriented(ekins)
+                xsects_tot_direct = cfgs[0].get_totalxsect().crossSectionIsotropic(ekins)
             else:
-                xsects_tot_direct = cfgs[0].get_scatter('all').crossSectionNonOriented(ekins)
+                xsects_tot_direct = cfgs[0].get_scatter('all').crossSectionIsotropic(ekins)
             xsects_discrepancy = xsects_tot_direct-xsects_tot
             discr_lvl = max(abs(xsects_discrepancy))
-            if discr_lvl > 1e-12:
+            if discr_lvl > 1e-10:
                 print("WARNING: Discrepancy in breakdown into components detected (at the"
                       +f" {discr_lvl} level)!! Some plugins might be incorrectly programmed.")
                 plt.plot(xvar,xsects_discrepancy,
@@ -539,7 +541,10 @@ def plot_xsect(cfgs,comp,absorption,pdf,versus_energy,xrange,logy,breakdown_by_p
         else:
             plt.gca().set_xlim(wavelengths[0],wavelengths[-1])
     if title:
-        plt.title(title)
+        if len(title)>30:
+            plt.title(title,fontsize='smaller')
+        else:
+            plt.title(title)
     _end_plot(plt,pdf)
 
 def plot_2d_scatangle(cfg,comp,pdf,versus_energy,xrange):
@@ -565,7 +570,7 @@ def plot_2d_scatangle(cfg,comp,pdf,versus_energy,xrange):
 
     #First figure out how many points to put at each wavelength (or energy)
     if not part._nullprocess:
-        xsects = part.crossSectionNonOriented(ekins)
+        xsects = part.crossSectionIsotropic(ekins)
         n2d = 100 if _unittest else 25000
         sumxs = np.sum(xsects)
         if sumxs:
@@ -585,8 +590,8 @@ def plot_2d_scatangle(cfg,comp,pdf,versus_energy,xrange):
         for i,n in enumerate(n_at_xvar):
             i,n = int(i),int(n)
             evalue = xvar[i] if versus_energy else NC.wl2ekin(xvar[i])
-            ang,de = part.generateScatteringNonOriented(evalue,repeat=int(n))
-            plot_angles[j:j+n] = ang
+            ekinfinal,mu = part.sampleScatterIsotropic(evalue,repeat=int(n))
+            plot_angles[j:j+n] = np.arccos(mu)
             plot_xvar[j:j+n].fill(xvar[i])
             j+=n
         plot_angles *= (180./np.pi)
@@ -619,14 +624,14 @@ def plot_2d_scatangle(cfg,comp,pdf,versus_energy,xrange):
     plt.grid()
     _end_plot(plt,pdf)
 
-def dump_info(info):
-    NC.dump(info)
-
 class XSSum:
+    #Combine scatter+absorption processes (hence no sampleScatterIsotropic method).
     def __init__(self,*processes):
         self._p = processes[:]
-    def crossSectionNonOriented(self,ekin):
-        return sum(p.crossSectionNonOriented(ekin) for p in self._p)
+    def crossSectionIsotropic(self,ekin):
+        return sum(p.crossSectionIsotropic(ekin) for p in self._p)
+    def isOriented(self):
+        return any(p.isOriented() for p in self._p)
 
 class Cfg:
     def __init__(self,cfgstr, commoncfgstr):
@@ -678,7 +683,7 @@ class Cfg:
                     return None
                 else:
                     raise
-            sc._nullprocess = bool(sc.domain()[1]<=sc.domain()[0] or sc.domain()[0]>1e99)
+            sc._nullprocess = sc.isNull()
             sc._cfg = self
             sc._compname = comp
             self._sc[comp] = sc
@@ -687,7 +692,7 @@ class Cfg:
     def get_absorption(self):
         if not self._abs:
             a = NC.createAbsorption(self._cfgstr)
-            a._nullprocess = bool(a.domain()[1]<=a.domain()[0] or a.domain()[0]>1e99)
+            a._nullprocess = a.isNull()
             a._cfg = self
             a._compname = 'absorption'
             self._abs = a
@@ -775,7 +780,7 @@ def main():
             print("WARNING: Configuration specified more than once: \"%s\""%cstr)
     if args.dump:
         assert len(cfgs)==1
-        cfgs[0].get_info().dump(verbose = (args.dump > 1) )
+        cfgs[0].get_info().dump(verbose = int(args.dump)-1 )
         return
     plot_xsect( cfgs, comp  = args.comp, absorption = args.absorption, pdf=args.pdf,
                 versus_energy=args.energy, xrange = args.xrange, logy = args.logy,

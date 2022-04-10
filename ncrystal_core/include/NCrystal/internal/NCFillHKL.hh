@@ -28,11 +28,14 @@ namespace NCrystal {
   // The helper function calculateHKLPlanes finds all (h,k,l) planes and
   // calculates their d-spacings and structure factors (fsquared), based on unit
   // cell info and a few configuration parameters (most importantly the dspacing
-  // cutoff value). The function needs StructureInfo, but only for the unit cell
-  // parameters (the space group number is not used). It also needs the list of
-  // atoms in the unit cell, which is required to contain
-  // mean-squared-displacement information so Debye-Waller factors can be
-  // calculated internally.
+  // cutoff value). The function always needs StructureInfo for the unit cell
+  // parameters, including atom positions. If the space group number is also
+  // available, the constructed HKL groups will be exactly the
+  // symmetry-equivalent groups (i.e. of type HKLInfoType::SymEqvGroup).
+  // Otherwise the entries will be grouped by calculated (dspacing,fsquared)
+  // values (i.e. of type HKLInfoType::ExplicitHKLs). The list of atoms in the
+  // unit cell is required to contain mean-squared-displacement information so
+  // Debye-Waller factors can be calculated internally.
   //
   // The parameters which can be used to tune the behaviour are:
 
@@ -44,20 +47,21 @@ namespace NCrystal {
 
     double dcutoffup = kInfinity; //Angstrom. Same meaning as in NCMatCfg.hh.
 
-    bool expandhkl = false;// Request that lists of equivalent HKL planes be
-                           // created in Info objects.
-
     double fsquarecut = 1e-5;// Barn. A cutoff value in barn. HKL reflections
                              // with contribution below this will be skipped
                              // (used to skip weak and impossible
                              // reflections). NB: The value of 1e-5 is also used
                              // (hardcoded) in the .nxs factory.
 
+    //For usage only when a spacegroup number is NOT available:
+
     double merge_tolerance = 1e-6;// Relative tolerance for Fsquare & dspacing
-                                  // comparisons when composing hkl families.
+                                  // comparisons when composing hkl families
+                                  // (this is only used when a space group
+                                  // number is NOT available).
 
     //For specialised expert usage only, all Debye Waller factors can be forced
-    //to be unity. If not set, the default is false unless overriden by an
+    //to be unity. If not set, the default is false unless overridden by an
     //environment variables:
     Optional<bool> use_unit_debye_waller_factor = NullOpt;
   };

@@ -156,7 +156,6 @@ NC::Info NC::loadNCMAT( const FactImpl::InfoRequest& cfg )
   ncmatcfgvars.temp      = cfg.get_temp();
   ncmatcfgvars.dcutoff   = cfg.get_dcutoff();
   ncmatcfgvars.dcutoffup = cfg.get_dcutoffup();
-  ncmatcfgvars.expandhkl = cfg.get_expandhkl();
   ncmatcfgvars.atomdb    = cfg.get_atomdb_parsed();
   ncmatcfgvars.dataSourceName = cfg.dataSourceName();
   ncmatcfgvars.originalInfoRequest = &cfg;
@@ -174,7 +173,6 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
              <<", temp="<<cfgvars.temp
              <<", dcutoff="<<cfgvars.dcutoff
              <<", dcutoffup="<<cfgvars.dcutoffup
-             <<", expandhkl="<<cfgvars.expandhkl
              <<", atomdb=";
     if (cfgvars.atomdb.empty()) {
       std::cout<<"<none>";
@@ -626,8 +624,7 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
       builder.hklPlanes.emplace();//Set up uninitialised HKLPlanes struct
       builder.hklPlanes.value().dspacingRange = { cfgvars.dcutoff, cfgvars.dcutoffup };
       using HKLListGenFct = InfoBuilder::SinglePhaseBuilder::HKLPlanes::HKLListGenFct;
-      bool cfg_expandhkl = cfgvars.expandhkl;
-      HKLListGenFct genfct = [cfg_expandhkl](const StructureInfo* si,
+      HKLListGenFct genfct = [](const StructureInfo* si,
                                              const AtomInfoList* ai,
                                              PairDD dspacingRangeRequest) -> HKLList
       {
@@ -636,7 +633,6 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
         FillHKLCfg hklcfg;
         hklcfg.dcutoff = dspacingRangeRequest.first;
         hklcfg.dcutoffup = dspacingRangeRequest.second;
-        hklcfg.expandhkl = cfg_expandhkl;
         return calculateHKLPlanes( *si, *ai, std::move(hklcfg) );
       };
       builder.hklPlanes.value().source = genfct;
@@ -674,51 +670,7 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
   // Multiphase support if requested. //
   //////////////////////////////////////
 
-  //For now this is done via a @CUSTOM_OTHERPHASE section (which we subsequently remove):
-  auto findCustomSectionIndex = []( Info::CustomData& cd, const std::string& name ) -> Optional<std::size_t>
-    {
-      Optional<std::size_t> res;
-      for ( auto i : ncrange(cd.size()) ) {
-        if ( cd.at(i).first == name ) {
-          if ( res.has_value() )
-            NCRYSTAL_THROW2(BadInput,"NCMAT data contains more than one @CUSTOM_"<<name<<" section!");
-          res = i;
-        }
-      }
-      return res;
-    };
-  auto extractCustomSection = [&findCustomSectionIndex]( Info::CustomData& cd, const std::string& name ) -> Optional<Info::CustomSectionData>
-    {
-      auto opt_i = findCustomSectionIndex(cd,name);
-      if ( !opt_i.has_value() )
-        return NullOpt;
-      nc_assert( cd.at(opt_i.value()).first == name );
-      Optional<Info::CustomSectionData> res = std::move(cd.at(opt_i.value()).second);
-      //Remove the consumed section:
-      for ( auto j = opt_i.value(); j+1 < cd.size(); ++j )
-        cd.at(j) = std::move(cd.at(j+1));
-      cd.resize(cd.size()-1);
-      return res;
-    };
-
-  auto cst_otherphase = builder.customData.has_value() ? extractCustomSection(builder.customData.value(),"OTHERPHASE"_s) : NullOpt;
-  if ( cst_otherphase.has_value() ) {
-    auto cdata = cst_otherphase.value();
-    if ( cdata.size()!=1 )
-      NCRYSTAL_THROW(BadInput,"@CUSTOM_OTHERPHASE sections should contain exactly one non-empty line!");
-    const VectS& parts = cdata.at(0);
-    if ( parts.size()<2 )
-      NCRYSTAL_THROW(BadInput,"Syntax error in @CUSTOM_OTHERPHASE: too few entries on line.");
-    double fraction;
-    if (!safe_str2dbl(parts.at(0),fraction)||!(fraction>0.0)||!(fraction<1.0))
-      NCRYSTAL_THROW2(BadInput,"@CUSTOM_OTHERPHASE Invalid phase fraction: "<<parts.at(0));
-    std::string cfgstr2 = parts.at(1);
-    for ( auto i : ncrange(2, static_cast<int>(parts.size())) ) {
-      cfgstr2 += ";";
-      cfgstr2 += parts.at(i);
-    }
-    std::cout<<"NCrystal::NCMATLoader WARNING: Using @CUSTOM_OTHERPHASE section to add secondary"
-      " phase with fraction="<<fraction<<" and cfg string \""<<cfgstr2<<"\". This is not supported long-term."<<std::endl;
+  if ( data.hasOtherPhases() ) {
 
     using Cfg::CfgManip;
     auto createInfoFromSecondaryCfgStr = []( const Cfg::CfgData& top_request_cfgdata, const std::string& infile_cfgstr ) -> InfoPtr
@@ -733,32 +685,41 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
       return FactImpl::createInfo(cfg);
     };
 
-    OptionalInfoPtr info_other;
-    if ( cfgvars.originalInfoRequest != nullptr ) {
-      info_other = createInfoFromSecondaryCfgStr( cfgvars.originalInfoRequest->rawCfgData(), cfgstr2 );
+    //Figure out fraction of the primary phase and the cfg vars of the top
+    //request (which needs to be applied to all phases):
+    StableSum sumfrac;
+    for ( auto& e : data.otherPhases )
+      sumfrac.add(e.first);
+    const double frac_this = 1.0 - sumfrac.sum();
+    nc_assert_always( frac_this > 0.0 && frac_this < 1.0 );
+
+    Cfg::CfgData top_request_cfgdata_dummy;
+    const Cfg::CfgData * top_request_cfgdata(nullptr);
+    if ( cfgvars.originalInfoRequest == nullptr ) {
+      //No original InfoRequest, setup cfgdata based on cfgvars values:
+      CfgManip::set_temp( top_request_cfgdata_dummy, cfgvars.temp );
+      CfgManip::set_dcutoff( top_request_cfgdata_dummy, cfgvars.dcutoff );
+      CfgManip::set_dcutoffup( top_request_cfgdata_dummy, cfgvars.dcutoffup );
+      CfgManip::set_atomdb_parsed( top_request_cfgdata_dummy, cfgvars.atomdb );
+      top_request_cfgdata = &top_request_cfgdata_dummy;
     } else {
-        //No original InfoRequest, setup cfgdata based on cfgvars values:
-      Cfg::CfgData top_request_cfgdata;
-      CfgManip::set_temp( top_request_cfgdata, cfgvars.temp );
-      CfgManip::set_dcutoff( top_request_cfgdata, cfgvars.dcutoff );
-      CfgManip::set_dcutoffup( top_request_cfgdata, cfgvars.dcutoffup );
-      CfgManip::set_expandhkl( top_request_cfgdata, cfgvars.expandhkl );
-      CfgManip::set_atomdb_parsed( top_request_cfgdata, cfgvars.atomdb );
-      info_other = createInfoFromSecondaryCfgStr( top_request_cfgdata, cfgstr2 );
+      top_request_cfgdata = &cfgvars.originalInfoRequest->rawCfgData();
     }
 
-    //////////////////////////////////////////////////
-    // Done (multi phase material with OTHERPHASE)! //
-    //////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // Create other phases Info objects and finish up (multi phase material with OTHERPHASES)! //
+    /////////////////////////////////////////////////////////////////////////////////////////////
 
     //The phase defined directly in our data becomes accessible as "phasechoice=0":
     builder.dataSourceName = cfgvars.dataSourceName.str() + ";phasechoice=0";
 
     InfoBuilder::MultiPhaseBuilder mp_builder;
-    mp_builder.phases.reserve(2);
-    mp_builder.phases.emplace_back( 1.0-fraction, InfoBuilder::buildInfoPtr(std::move(builder)) );
-    mp_builder.phases.emplace_back( fraction,     info_other );
+    mp_builder.phases.reserve( data.otherPhases.size() + 1 );
+    mp_builder.phases.emplace_back( frac_this, InfoBuilder::buildInfoPtr(std::move(builder)) );
+    for ( auto& e : data.otherPhases )
+      mp_builder.phases.emplace_back( e.first, createInfoFromSecondaryCfgStr( *top_request_cfgdata, e.second ) );
     return InfoBuilder::buildInfo( std::move(mp_builder) );
+
   }
 
 

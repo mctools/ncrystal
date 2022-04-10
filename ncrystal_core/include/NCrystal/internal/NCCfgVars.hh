@@ -92,13 +92,6 @@ namespace NCrystal {
       }
     };
 
-    struct vardef_expandhkl final : public ValBool<vardef_expandhkl> {
-      static constexpr auto name = "expandhkl";
-      static constexpr auto group = VarGroupId::Info;
-      static constexpr auto description = "Set this parameter to enable full list of normals in HKL lists (mostly for debugging purposes).";
-      static constexpr value_type default_value() { return false; }
-    };
-
     struct vardef_sccutoff final : public ValDbl<vardef_sccutoff> {
       static constexpr auto name = "sccutoff";
       static constexpr auto group = VarGroupId::ScatterExtra;
@@ -312,8 +305,7 @@ namespace NCrystal {
         " \"freegas\", and internally the \"auto\" mode will simply"
         " select the first possible of those in the listed order"
         " (falling back to \"none\" when nothing is possible). Note"
-        " that \"external\" is only supported by .nxs files, while"
-        " .laz/.lau files always falls back to \"none\"."
+        " that \"external\" is only currently supported by .nxs files."
         " The \"dyninfo\" mode will simply base modelling on"
         " whatever dynamic information is available for each element"
         " in the input data. The \"vdosdebye\" and \"freegas\" modes"
@@ -329,9 +321,9 @@ namespace NCrystal {
         if (sv.empty()||!sv.contains_only("abcdefghijklmnopqrstuvwxyz_0123456789"))
           NCRYSTAL_THROW2(BadInput,"invalid value specified for parameter "<<name<<": \""<<sv<<"\"");
         nc_assert(sv.has_value());
-        static constexpr auto sv_none = StrView::make("none");
+        static constexpr auto sv_0 = StrView::make("0");
         if (isOneOf(sv,"none","0","sterile","false"))
-          return sv_none;
+          return sv_0;
         return sv;
       }
     };
@@ -515,7 +507,6 @@ namespace NCrystal {
       make_varinfo<vardef_dir1>(),
       make_varinfo<vardef_dir2>(),
       make_varinfo<vardef_dirtol>(),
-      make_varinfo<vardef_expandhkl>(),
       make_varinfo<vardef_incoh_elas>(),
       make_varinfo<vardef_inelas>(),
       make_varinfo<vardef_infofactory>(),
@@ -550,7 +541,6 @@ namespace NCrystal {
       dir2 = constexpr_varName2Idx("dir2"),
       sans = constexpr_varName2Idx("sans"),
       incoh_elas = constexpr_varName2Idx("incoh_elas"),
-      expandhkl = constexpr_varName2Idx("expandhkl"),
       inelas = constexpr_varName2Idx("inelas"),
       coh_elas = constexpr_varName2Idx("coh_elas"),
       atomdb = constexpr_varName2Idx("atomdb"),

@@ -80,7 +80,7 @@ namespace NCrystal {
   // X5 it can't check if X5 was defined previously):                            //
   /////////////////////////////////////////////////////////////////////////////////
 
-  void validateAtomDBLine(const VectS& words, unsigned ncmat_version = 5);
+  void validateAtomDBLine(const VectS& words, unsigned ncmat_version = 6);
 
   //Helper function which can be used to decode chemical formulas like "He",
   //"SiO2", "Al2O3", etc. Will return a list of fractions and associated decoded

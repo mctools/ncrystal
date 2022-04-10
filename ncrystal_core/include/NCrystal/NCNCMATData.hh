@@ -50,7 +50,7 @@ namespace NCrystal {
 
     //Metadata
     int version = 0;
-    constexpr static int latest_version = 5;
+    constexpr static int latest_version = 6;
     DataSourceName sourceDescription;
 
     //convenience (for a validated instance, this is the same as hasCell or hasAtomPos):
@@ -115,6 +115,11 @@ namespace NCrystal {
     AtomDBLines atomDBLines;
     bool hasAtomDB() const { return !atomDBLines.empty(); }
     void validateAtomDB() const;
+
+    //@OTHERPHASES
+    std::vector<std::pair<double,std::string>> otherPhases;//{volfrac,cfgstr}
+    bool hasOtherPhases() const { return !otherPhases.empty(); }
+    void validateOtherPhases() const;
 
     //@CUSTOM_xxx section contents. Kept in order of appearance in file.
     typedef VectS CustomLine;
