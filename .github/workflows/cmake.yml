@@ -111,10 +111,10 @@ jobs:
            ncrystal_vdos2ncmat --help
            ncrystal_onlinedb2ncmat --help
            ncrystal_ncmat2hkl --help
-           ncrystal_ncmat2hkl --format=laz 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test_Al.laz
-           ncrystal_ncmat2hkl --format=lau 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test_Al.lau
-           ncrystal_inspectfile -d ./test_Al.laz
-           ncrystal_inspectfile -d ./test_Al.lau
+           ncrystal_ncmat2hkl --format=laz 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test2_Al.laz
+           ncrystal_ncmat2hkl --format=lau 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test2_Al.lau
+           ncrystal_inspectfile -d ./test2_Al.laz
+           ncrystal_inspectfile -d ./test2_Al.lau
            ncrystal_ncmat2cpp --help
            ncrystal_hfg2ncmat --help
            ncrystal_verifyatompos --help
