@@ -91,10 +91,10 @@ must be Capitalised and use the standard chemical element notation.
 
 ## The @SPACEGROUP section ##
 
-This optional section contains the space group number of the crystal symmetry,
-which must be mathematically consistent with the unit cell layout provided in
-the @CELL and @ATOMPOSITIONS sections. The space group number is given as a
-single integer with a value from 1 to 230.
+This optional (but highly recommended) section contains the space group number
+of the crystal symmetry, which must be mathematically consistent with the unit
+cell layout provided in the @CELL and @ATOMPOSITIONS sections. The space group
+number is given as a single integer with a value from 1 to 230.
 
 ## The @DEBYETEMPERATURE section ##
 

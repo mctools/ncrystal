@@ -51,7 +51,7 @@ For detailed usage conditions and licensing of this open source project, see:
 ################################################################################
 
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
-__version__ = '2.9.92'
+__version__ = '2.9.93'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
 __copyright__ = "Copyright 2015-2022 %s"%__author__
@@ -1114,7 +1114,7 @@ class Info(RCBase):
 
     def dump(self,verbose=0):
         """Dump contained information to standard output. Use verbose argument to set
-        verbosity level to 0 (minimal), 1 (middle), 2 (most verbose), 3 (as 2 but no UTF8 chars)."""
+        verbosity level to 0 (minimal), 1 (middle), 2 (most verbose)."""
         sys.stdout.flush()
         sys.stderr.flush()
         _rawfct['ncrystal_dump_verbose'](self._rawobj,min(999,max(0,int(verbose))))

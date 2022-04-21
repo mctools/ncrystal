@@ -48,7 +48,6 @@ although that is not really best practice):
    options - or use cmake gui or ccmake to get the list presented):
 
    * -DBUILD_EXAMPLES=OFF  [do not build+install examples]
-   * -DBUILD_EXTRA=OFF     [do not build optional modules for .nxs/.laz/.lau support (Note the license!).]
    * -DBUILD_G4HOOKS=ON    [build+install the G4 hooks (requires Geant4)]
    * -DINSTALL_DATA=OFF    [do not install data files.]
    * -DEMBED_DATA=ON       [embed data files inside the compiled NCrystal library.]
@@ -56,10 +55,6 @@ although that is not really best practice):
    * -DINSTALL_SETUPSH=OFF [do not install setup.sh/unsetup.sh files]
    * -DDISABLE_DYNLOAD=ON  [do not enabled dynamic plugin support]
    * -DBUILTIN_PLUGIN_LIST [special, see https://github.com/mctools/ncrystal/wiki/Plugins]
-
-  Note that if BUILD_EXTRA=ON, optional components from ./ncrystal_extra/ will
-  be built, which are available under different open source licenses than the
-  rest of NCrystal. Refer to the file ./ncrystal_extra/LICENSE for details.
 
 3. Perform the build and install in one step with (assuming you are on a
    platform where CMake generates makefiles and want to use 4 processes for the

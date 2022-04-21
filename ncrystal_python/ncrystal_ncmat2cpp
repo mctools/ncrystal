@@ -297,7 +297,7 @@ def main():
             raise SystemExit("ERROR: Could not import the NCrystal Python module (this is required"
                              " when running with --validate). If it is installed, make sure your"
                              " PYTHONPATH is setup correctly.")
-        validatefct = lambda filename : nc.createInfo('%s;dcutoff=-1;inelas=sterile'%filename)
+        validatefct = lambda filename : nc.createInfo('%s;inelas=sterile'%filename)
 
     files2cppcode( args.files,
                    outfile = args.outfile,

@@ -752,16 +752,11 @@ namespace NCrystal {
         //be available.". The latter requirements comes from the way we have set
         //up the InfoBuilder::UnitCell struct, so we just have to check that if
         //the unitcell field is set, hklPlanes must also be there.:
-#if 0
-        //The way we want it to be:
+
         if ( in.unitcell.has_value() && ! in.hklPlanes.has_value() )
           NCRYSTAL_THROW2(BadInput,"Info objects that have unit cell structure"
                           " available must always have hklPlanes available as well.");
         const bool isCrystalline = in.hklPlanes.has_value();
-#else
-        //for now, to keep usage of dcutoff=-1 working (will be replaced with on-demand hkl lists and dump verbosity)
-        const bool isCrystalline = in.hklPlanes.has_value() || in.unitcell.has_value();
-#endif
 
         //State of matter:
         validateAndCompleteStateOfMatter( isCrystalline, in.dynamics, in.stateOfMatter );

@@ -754,7 +754,7 @@ namespace NCrystal {
   }
 
   template<class TEnum>
-  inline constexpr typename std::underlying_type<TEnum>::type NCrystal::enumAsInt( TEnum value ) noexcept
+  inline constexpr typename std::underlying_type<TEnum>::type enumAsInt( TEnum value ) noexcept
   {
     return static_cast<typename std::underlying_type<TEnum>::type>(value);
   }

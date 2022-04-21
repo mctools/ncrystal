@@ -90,7 +90,7 @@ namespace NCrystal {
 
   private:
     struct Helper;
-    friend class Helper;
+    friend struct Helper;
     EquivReflList (*m_calc) (int,int,int) = nullptr;
   };
 }

@@ -34,6 +34,7 @@
 void NCrystal::dump( const Info&c, DumpVerbosity verbosityVal )
 {
   const auto verbose = enumAsInt( verbosityVal );
+  nc_assert(verbose>=0&&verbose<=2);
   const bool isSinglePhase = c.isSinglePhase();
 
   //Display-labels - falling back to the AtomData description for multiphase:
@@ -369,9 +370,10 @@ void NCrystal::dump( const Info&c, DumpVerbosity verbosityVal )
       ExpandHKLHelper hklExpander( c );
       const bool doExpandHKL = verbose && hklExpander.canExpand( c.hklInfoType() );
       const bool doExpandHKLSnipSome = ( verbose == 1 );
+      static bool allow_utf8 = ncgetenv_bool("UTF8");
 
       enum class Encoding { ASCII, UTF8 };
-      Encoding encoding = ( verbose >= 3 ? Encoding::ASCII : Encoding::UTF8 );
+      Encoding encoding = ( allow_utf8 ? Encoding::UTF8 : Encoding::ASCII );
 
       auto prettyPrintHKL = []( HKL v, Encoding enc )
       {
@@ -435,10 +437,15 @@ void NCrystal::dump( const Info&c, DumpVerbosity verbosityVal )
 
           auto v = hklExpander.expand(hkl);
 
-          unsigned nEqvMaxIfSnip = 12;
-          for ( auto& e : v )
-            if ( std::max(std::max(std::abs(e.h),std::abs(e.k)),std::abs(e.l)) > 9 )
-              nEqvMaxIfSnip = 6;
+          unsigned nEqvMaxIfSnip;
+          if ( encoding == Encoding::UTF8 ) {
+            nEqvMaxIfSnip = 12;
+            for ( auto& e : v )
+              if ( std::max(std::max(std::abs(e.h),std::abs(e.k)),std::abs(e.l)) > 9 )
+                nEqvMaxIfSnip = 6;
+          } else {
+            nEqvMaxIfSnip = 8;
+          }
           nc_assert(nEqvMaxIfSnip%2 == 0);
 
           auto nEqv = v.size();

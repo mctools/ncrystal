@@ -34,10 +34,11 @@ import pathlib
 import argparse
 import math
 import os
+
+#in unit tests we dont display interactive images and we reduce cpu consumption
+#by watching for special env var:
 _unittest = bool(os.environ.get('NCRYSTAL_INSPECTFILE_UNITTESTS',''))
 
-#in unit test we dont display interactive images and we reduce cpu consumption
-#by watching for special env var:
 
 #Function for importing required python modules which may be missing, to provide
 #a somewhat more helpful error to the user:
@@ -67,16 +68,19 @@ NC=NCrystal
 #########################################################################
 
 def parse_cmdline():
-    descr=""" The most common usage of this tool is to load input data (usually .ncmat
-files) with NCrystal (v%s) and plot resulting isotropic cross sections for
-thermal neutrons. This is done by specifying one or more configurations (aka
-"cfg-strings"), which indicates data names (e.g. file names) and optionally
-configurations parameters (e.g. temperatures).. Specifying more than one
-configuration results in a single comparison plot of the total scattering cross
-section based on the different materials, whereas specifying just a single file,
-results in a more detailed cross section plot as well as a 2D plot of generated
-scatter angles. Other behavious can be obtained by specifying flags as indicated
-below."""%NC.__version__
+    descr="""
+
+The most common usage of this tool is to load input data (usually .ncmat files)
+with NCrystal (v%s) and plot resulting isotropic cross sections for thermal
+neutrons. This is done by specifying one or more configurations ("cfg-strings"),
+which indicates data names (e.g. file names) and optionally cfg parameters
+(e.g. temperatures). Specifying more than one configuration, results in a single
+comparison plot of the total scattering cross section based on the different
+materials. Specifying just a single file, results in a more detailed cross
+section plot as well as a 2D plot of generated scatter angles. Other behaviours
+can be obtained by specifying flags as indicated below.
+
+"""%NC.__version__
 
     descr=descr.strip()
 
@@ -782,6 +786,9 @@ def main():
         assert len(cfgs)==1
         cfgs[0].get_info().dump(verbose = int(args.dump)-1 )
         return
+    if not cfgs:
+        raise SystemExit('Error: nothing selected. Please run with --help for usage instructions.')
+
     plot_xsect( cfgs, comp  = args.comp, absorption = args.absorption, pdf=args.pdf,
                 versus_energy=args.energy, xrange = args.xrange, logy = args.logy,
                 breakdown_by_phases = args.phases )

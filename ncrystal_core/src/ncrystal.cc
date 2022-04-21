@@ -469,9 +469,7 @@ void ncrystal_dump_verbose(ncrystal_info_t ci, unsigned verbosity_lvl ) {
                ? NC::DumpVerbosity::DEFAULT
                : ( verbosity_lvl == 1
                    ? NC::DumpVerbosity::VERBOSE1
-                   : ( verbosity_lvl == 2
-                       ? NC::DumpVerbosity::VERBOSE2
-                       : NC::DumpVerbosity::VERBOSE3 ) ) ) );
+                   : NC::DumpVerbosity::VERBOSE2 ) ) );
   } NCCATCH;
 }
 

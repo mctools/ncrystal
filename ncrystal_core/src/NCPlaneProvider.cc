@@ -49,17 +49,16 @@ namespace NCrystal {
 
     class PlaneProviderStd_Normals final : public PlaneProvider {
       OptionalInfoPtr m_strongRef;
-      const Info * m_info;
       double m_dsp, m_fsq;
       HKLList::const_iterator m_it, m_itB, m_itE;
       std::vector<HKLInfo::Normal>::const_iterator m_it_inner, m_it_innerE;
     public:
       PlaneProviderStd_Normals( const Info * info, OptionalInfoPtr iptr )
-        : PlaneProvider(), m_strongRef(iptr), m_info(info)
+        : PlaneProvider(), m_strongRef(iptr)
       {
-        nc_assert_always( m_info );
-        nc_assert_always( m_info->hasHKLInfo() );
-        nc_assert_always( m_info->hklInfoType() == HKLInfoType::ExplicitNormals );
+        nc_assert_always( info );
+        nc_assert_always( info->hasHKLInfo() );
+        nc_assert_always( info->hklInfoType() == HKLInfoType::ExplicitNormals );
         auto& l = info->hklList();
         m_it = m_itB = l.begin();
         m_itE = l.end();
@@ -102,7 +101,6 @@ namespace NCrystal {
 
     class PlaneProviderStd_HKL final : public PlaneProvider {
       OptionalInfoPtr m_strongRef;
-      const Info * m_info;
       double m_dsp, m_fsq;
       ExpandHKLHelper m_hklExpander;
       RotMatrix m_reci_lattice;
@@ -113,7 +111,6 @@ namespace NCrystal {
       PlaneProviderStd_HKL( const Info * info, OptionalInfoPtr iptr )
         : PlaneProvider(),
           m_strongRef(iptr),
-          m_info(info),
           m_hklExpander( [&info](){
             nc_assert(info->hasStructureInfo());
             nc_assert_always( info );
@@ -123,7 +120,7 @@ namespace NCrystal {
           }() ),
           m_reci_lattice( getReciprocalLatticeRot( info->getStructureInfo() ) )
       {
-        nc_assert( m_hklExpander.canExpand( m_info->hklInfoType() ) );
+        nc_assert( m_hklExpander.canExpand( info->hklInfoType() ) );
         auto& l = info->hklList();
         m_it = m_itB = l.begin();
         m_itE = l.end();

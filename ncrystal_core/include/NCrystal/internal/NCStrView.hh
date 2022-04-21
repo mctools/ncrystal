@@ -54,6 +54,26 @@ namespace NCrystal {
     StrView( const std::string& ) noexcept;
     StrView( std::string&& ) = delete;//unsafe!
 
+    //Constructing from a char-array does not need a call to strlen:
+    template<size_type N>
+    constexpr StrView( const char (&cdata)[N] ) noexcept
+      : StrView( &cdata[0], ( cdata[N-1]=='\0' ? N-1 : N ) ) {}
+
+    //Construction from a null-terminated string of unknown size needs a strlen
+    //calculation. To avoid string literals selecting this constructor rather
+    //than the templated array one, we protect with enable_if
+    //(cf. https://stackoverflow.com/a/28243509).
+    template <typename T>
+    StrView(T cdata, typename std::enable_if<std::is_convertible<T, char const*>{}>::type* = nullptr) noexcept
+      : m_data(cdata), m_size(cdata?std::strlen(cdata):0) {}
+
+    //If needed in a constexpr context, this needs a special implementation
+    //which is inefficient at run-time, hence we protect the constexpr version
+    //with a special type signature (NB: the make(..) fct below might be more
+    //convenient for string literals).
+    struct constexpr_t {};
+    constexpr StrView( constexpr_t, const char * cdata ) noexcept;
+
     //The following can be used to create constexpr strviews from string
     //literals (i.e. constexpr auto sv = StrView::make("foo")):
     template<size_type N>
@@ -62,15 +82,6 @@ namespace NCrystal {
       //NB: Defining directly in-class due to apple clang 11.
       return StrView( &cdata[0], ( cdata[N-1]=='\0' ? N-1 : N ) );
     }
-
-    //Constructing from a null-terminated string of unknown size needs a strlen
-    //calculation. If needed in a constexpr context, this needs a special
-    //implementation which is inefficient at run-time, hence we protect the
-    //constexpr version with a special type signature (NB: the make(..) fct
-    //above might be more convenient for string literals):
-    StrView( const char * cdata ) noexcept;
-    struct constexpr_t {};
-    constexpr StrView( constexpr_t, const char * cdata ) noexcept;
 
     //Default constructing, or construction from nullptr/NullOpt, leads to a
     //StrView without value (which is NOT the same as an empty string).
@@ -235,7 +246,6 @@ namespace NCrystal {
 namespace NCrystal {
   inline constexpr StrView::StrView( const char * cdata, StrView::size_type len) noexcept : m_data(cdata), m_size(len) {}
   inline StrView::StrView( const std::string& stdstr ) noexcept : m_data(stdstr.c_str()), m_size(stdstr.size()) {}
-  inline StrView::StrView( const char * cdata ) noexcept : m_data(cdata), m_size(cdata?std::strlen(cdata):0) {}
   inline constexpr StrView::StrView( StrView::constexpr_t, const char * cdata ) noexcept : m_data(cdata), m_size(constexpr_strlen(cdata)) {}
   inline constexpr bool StrView::has_value() const noexcept { return m_data!=nullptr; }
   inline constexpr StrView::StrView( const StrView& o ) noexcept : m_data(o.m_data), m_size(o.m_size) {}
