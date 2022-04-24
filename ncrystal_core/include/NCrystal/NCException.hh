@@ -134,6 +134,12 @@ namespace NCrystal {
 #ifdef nc_assert2
 #  undef nc_assert2
 #endif
+#ifdef nc_assert_rv
+#  undef nc_assert_rv
+#endif
+#ifdef nc_assert_always_rv
+#  undef nc_assert_always_rv
+#endif
 
 #define ncrystal_str(s) #s
 #define ncrystal_xstr(s) ncrystal_str(s)

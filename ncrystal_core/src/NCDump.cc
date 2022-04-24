@@ -34,7 +34,7 @@
 void NCrystal::dump( const Info&c, DumpVerbosity verbosityVal )
 {
   const auto verbose = enumAsInt( verbosityVal );
-  nc_assert(verbose>=0&&verbose<=2);
+  nc_assert( verbose <= 2 );
   const bool isSinglePhase = c.isSinglePhase();
 
   //Display-labels - falling back to the AtomData description for multiphase:
