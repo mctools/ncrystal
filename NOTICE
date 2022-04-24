@@ -1,4 +1,4 @@
-NCrystal : A library for thermal neutron transport in crystals
+NCrystal : A library for thermal neutron transport in crystals and other materials
 
 Copyright 2015-2022 NCrystal developers
 
@@ -9,7 +9,7 @@ grant agreement No 676548 (the BrightnESS project) and 951782 (the HighNESS
 project).
 
 All NCrystal files are distributed under the Apache 2.0 license, available at
-http://www.apache.org/licenses/LICENSE-2.0. as well as in the LICENSE file found
+http://www.apache.org/licenses/LICENSE-2.0, as well as in the LICENSE file found
 in the NCrystal distribution.
 
 A very substantial effort went into developing NCrystal. If you use it for your
