@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -63,18 +63,27 @@ namespace NCrystal {
     //DynInfo is unable to provide Debye Waller factors, e.g. sterile/freegas
     //and for now scatknl, will be ignored (if all elements are ignored, an
     //error is raised).
-    ElIncScatter( const Info&, ElIncScatterCfg cfg = ElIncScatterCfg() );
+    ElIncScatter( const Info&, const ElIncScatterCfg& cfg = ElIncScatterCfg() );
 
     CrossSect crossSectionIsotropic(CachePtr&, NeutronEnergy ) const final;
     ScatterOutcomeIsotropic sampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const final;
 
     //Simple additive merge:
-    std::shared_ptr<Process> createMerged( const Process& ) const override;
+    std::shared_ptr<Process> createMerged( const Process& other,
+                                           double scale_self,
+                                           double scale_other ) const override;
+
 
     //Specialised constructor providing internal state directly:
     ElIncScatter( std::unique_ptr<ElIncXS> );
 
+    //Helper function for determining if ElincScatter(info,...) can proceed
+    //(i.e. if there is enough info to estimate Debye-Waller factors):
+    static bool hasSufficientInfo( const Info&, const ElIncScatterCfg& cfg = ElIncScatterCfg() );
+
   protected:
+    Optional<std::string> specificJSONDescription() const override;
+  private:
     std::unique_ptr<ElIncXS> m_elincxs;
   };
 }

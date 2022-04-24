@@ -1,0 +1,22 @@
+NCMAT v5
+#
+# Special void material with ~0 density and with vanishing cross sections.
+#
+# This is implemented redundantly using three different ways to disable
+# interactions below. Either of the first two methods would be enough to
+# completely disable interactions in NCrystal, and the last one should work even
+# if the material is converted for usage by other codes like Geant4 or OpenMC.
+#
+@ATOMDB
+   #Turn off physics on this modified hydrogen by putting cross sections to 0.
+   H 1.007975973752u 0fm 0b 0b
+@DYNINFO
+  #Also turn off physics by asking for "sterile" dynamics:
+  element H
+  fraction 1
+  type sterile
+@DENSITY
+  #And also turn it off by giving it a vanishing density (not strictly 0 since
+  #that might lead to zero division errors). This should also survive if the
+  #material is converted for usage with other codes.
+  1e-200 g_per_cm3

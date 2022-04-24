@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -39,6 +39,8 @@
 #include <set>
 #include <mutex>
 #include <atomic>
+#include <ostream>
+#include <cstring>
 #if __cplusplus >= 202002L
 #  include <compare>
 #endif
@@ -57,21 +59,36 @@ namespace NCrystal {
 
   //Utility functions for converting between neutron wavelength [Aa], kinetic
   //energy [eV], and wavenumber k=2pi/lambda [1/Aa]:
-  NCRYSTAL_API constexpr double wl2ekin( double wl );     //cost: 1 branch + 1 division + 1 mult
-  NCRYSTAL_API constexpr double ekin2wl( double ekin );   //cost: 1 branch + 1 division + 1 sqrt
-  NCRYSTAL_API constexpr double ekin2wlsq( double ekin ); //cost: 1 branch + 1 division
-  NCRYSTAL_API constexpr double ekin2wlsqinv( double ekin ); //cost: 1 multiplication
-  NCRYSTAL_API constexpr double wlsq2ekin( double wl );   //cost: 1 branch + 1 division
-  NCRYSTAL_API constexpr double ekin2ksq( double ekin );   //cost: 1 multiplication
-  NCRYSTAL_API constexpr double ksq2ekin( double ksq );   //cost: 1 multiplication
+  NCRYSTAL_API constexpr double wl2ekin( double wl ) noexcept;     //cost: 1 branch + 1 division + 1 mult
+  NCRYSTAL_API constexpr double ekin2wl( double ekin ) noexcept;   //cost: 1 branch + 1 division + 1 sqrt
+  NCRYSTAL_API constexpr double ekin2wlsq( double ekin ) noexcept; //cost: 1 branch + 1 division
+  NCRYSTAL_API constexpr double ekin2wlsqinv( double ekin ) noexcept; //cost: 1 multiplication
+  NCRYSTAL_API constexpr double wlsq2ekin( double wl ) noexcept;   //cost: 1 branch + 1 division
+  NCRYSTAL_API constexpr double ekin2ksq( double ekin ) noexcept;   //cost: 1 multiplication
+  NCRYSTAL_API constexpr double ksq2ekin( double ksq ) noexcept;   //cost: 1 multiplication
+  NCRYSTAL_API constexpr double wl2k( double wl ) noexcept;     //cost: 1 branch + 1 division
 
   //Physics constants (more are in internal NCMath.hh header):
   constexpr double constant_boltzmann = 8.6173303e-5;  // eV/K
   constexpr double const_neutron_mass_amu = 1.00866491588; // [amu]
   constexpr double const_inv_neutron_mass_amu = 1.0/const_neutron_mass_amu; // [amu]
+  constexpr double constant_dalton2kg =  1.660539040e-27; // amu to kg (source: NIST/CODATA 2018)
 
-  //Constexpr sqrt for derived constants (do NOT use for run-time code!!):
-  constexpr double constexpr_sqrt(double);
+  //Various constexpr functions (not efficient for runtime usage!!):
+  NCRYSTAL_API constexpr double constexpr_sqrt(double);
+  NCRYSTAL_API constexpr double constexpr_abs(double);
+  template <typename TVal>
+  NCRYSTAL_API constexpr TVal ncconstexpr_max( TVal, TVal );
+  template <typename TVal, typename ... Args>
+  NCRYSTAL_API constexpr TVal ncconstexpr_max( TVal, TVal, Args ... );
+  template<class TInt>
+  NCRYSTAL_API constexpr TInt ncconstexpr_gcd( TInt , TInt );
+  template<class TInt>
+  NCRYSTAL_API constexpr TInt ncconstexpr_lcm( TInt, TInt );
+  template <typename TInt, typename ... Args>
+  NCRYSTAL_API constexpr TInt ncconstexpr_lcm( TInt, TInt, Args ... );
+  template<class TInt>
+  NCRYSTAL_API constexpr TInt ncconstexpr_roundToNextMultipleOf( TInt a, TInt b );//round a to next mult of b (a,b>0)
 
   //Math constants (avoid M_PI etc. for portability reasons).
   constexpr double kInfinity    = std::numeric_limits<double>::infinity()           ; // = infinity
@@ -203,6 +220,8 @@ namespace NCrystal {
                   "Optional can only keep objects with noexcept destructors");
   public:
 
+    using value_type = T;
+
     //Construct with value:
     ncconstexpr17 Optional( const T& ) noexcept(std::is_nothrow_copy_constructible<T>::value);
     ncconstexpr17 Optional( T&& ) noexcept(std::is_nothrow_move_constructible<T>::value);
@@ -300,6 +319,7 @@ namespace NCrystal {
     COWPimpl& operator=( const COWPimpl& );
     COWPimpl( COWPimpl&& );
     COWPimpl& operator=( COWPimpl&& );
+
   private:
     struct Data;
     Data * m_data = nullptr;
@@ -308,12 +328,12 @@ namespace NCrystal {
     class NCRYSTAL_API Modifier : private MoveOnly {
       Data * m_data = nullptr;
       std::mutex * m_mtx = nullptr;
-      void reset();
     public:
       Modifier( COWPimpl& c, bool lock );
       ~Modifier();
       Modifier(Modifier&&o);
       Modifier& operator=(Modifier&&o);
+      void reset();//Early release of lock and any refs to COWPimpl object (careful!)
       ncconstexpr17 T* operator->() noexcept { return &m_data->t; }
       ncconstexpr17 T& operator*() noexcept { return m_data->t; }
     };
@@ -353,6 +373,10 @@ namespace NCrystal {
     using carray_type = TValue[N];
     using value_type = TValue;
     using size_type = typename stdarray_type::size_type;
+    using iterator = typename stdarray_type::iterator;
+    using const_iterator = typename stdarray_type::const_iterator;
+    using reverse_iterator = typename stdarray_type::reverse_iterator;
+    using const_reverse_iterator = typename stdarray_type::const_reverse_iterator;
 
     static constexpr size_type size() noexcept { return N; }
     ncconstexpr17 TValue* data() noexcept { return m_data.data(); }
@@ -406,14 +430,28 @@ namespace NCrystal {
     bool operator!=( const FixedVector& o ) const noexcept { return m_data != o.m_data; }
 #endif
 
+    //Support standard iteration:
+    ncconstexpr17 const_iterator begin() const noexcept { return m_data.cbegin(); }
+    ncconstexpr17 const_iterator end() const noexcept { return m_data.cend(); }
+    ncconstexpr17 const_iterator cbegin() const noexcept { return m_data.cbegin(); }
+    ncconstexpr17 const_iterator cend() const noexcept { return m_data.cend(); }
+    ncconstexpr17 iterator begin() noexcept { return m_data.begin(); }
+    ncconstexpr17 iterator end() noexcept { return m_data.end(); }
+    ncconstexpr17 const_reverse_iterator rbegin() const noexcept { return m_data.crbegin(); }
+    ncconstexpr17 const_reverse_iterator rend() const noexcept { return m_data.crend(); }
+    ncconstexpr17 const_reverse_iterator crbegin() const noexcept { return m_data.crbegin(); }
+    ncconstexpr17 const_reverse_iterator crend() const noexcept { return m_data.crend(); }
+    ncconstexpr17 reverse_iterator rbegin() noexcept { return m_data.rbegin(); }
+    ncconstexpr17 reverse_iterator rend() noexcept { return m_data.rend(); }
+
   protected:
     stdarray_type m_data;
   };
 
   //Functions which do not care about the type of vector and which do not want
-  //to be strongly type (for instance vector-math functions), can simply accept
-  //FixedVector references as arguments. We typedef the most important one for
-  //convenience:
+  //to be strongly typed (for instance vector-math functions), can simply accept
+  //references to the FixedVector type as arguments. We typedef the most
+  //important one for convenience:
   using ThreeVector = FixedVector<double,3>;
 
   //Strongly typed vectors (such as NeutronDirection or CrystalAxis) should be
@@ -499,6 +537,10 @@ namespace NCrystal {
 
   template<class T> inline ValRange<T> ncrange(T n) { return ValRange<T>(n); }
   template<class T> inline ValRange<T> ncrange(T l, T n) { return ValRange<T>(l,n); }
+
+  //Type-safe access to underlying int value of enum:
+  template<class TEnum>
+  constexpr typename std::underlying_type<TEnum>::type enumAsInt(TEnum const value) noexcept;
 
 }
 
@@ -670,6 +712,53 @@ namespace NCrystal {
     return detail_sqrtNR(x, x, 0.);
   }
 
+  inline constexpr double constexpr_abs(double x)
+  {
+    return x < 0 ? -x : x;
+  }
+
+  template <typename TVal>
+  inline constexpr TVal ncconstexpr_max(TVal a,TVal b)
+  {
+    return a > b ? a : b;
+  }
+
+  template <typename TVal, typename ... Args>
+  inline constexpr TVal ncconstexpr_max(TVal a, TVal b, Args ... args)
+  {
+    return ncconstexpr_max<TVal>(ncconstexpr_max<TVal>(a,b),args...);
+  }
+
+  template<class TInt>
+  inline constexpr TInt ncconstexpr_gcd( TInt a, TInt b )
+  {
+    return b ? ncconstexpr_gcd( b, a % b ) : a;
+  }
+
+  template<class TInt>
+  inline constexpr TInt ncconstexpr_lcm( TInt a, TInt b )
+  {
+    return a * b / ncconstexpr_gcd(a,b);
+  }
+
+  template <typename TInt, typename ... Args>
+  inline constexpr TInt ncconstexpr_lcm(TInt a, TInt b, Args ... args)
+  {
+    return ncconstexpr_lcm<TInt>(ncconstexpr_lcm<TInt>(a,b),args...);
+  }
+
+  template<class TInt>
+  inline constexpr TInt ncconstexpr_roundToNextMultipleOf( TInt a, TInt b )
+  {
+    return ( a%b ? a + b - (a%b) : (a?a:b) );
+  }
+
+  template<class TEnum>
+  inline constexpr typename std::underlying_type<TEnum>::type enumAsInt( TEnum value ) noexcept
+  {
+    return static_cast<typename std::underlying_type<TEnum>::type>(value);
+  }
+
   //The constant 8.1804... in the functions wl2ekin and ekin2wl is based on the
   //equation "h^2 * c^2 / (2.0*m)", using CODATA Internationally recommended
   //2014 values of the fundamental physical constants
@@ -681,31 +770,31 @@ namespace NCrystal {
   //
   //  h^2 * c^2 / (2.0*m) = 0.081804209605330899
 
-  inline constexpr double wl2ekin( double wl)
+  inline constexpr double wl2ekin( double wl) noexcept
   {
     //angstrom to eV
     return wlsq2ekin( wl * wl );
   }
 
-  inline constexpr double ekin2wl( double ekin)
+  inline constexpr double ekin2wl( double ekin) noexcept
   {
     //eV to angstrom
     return ekin ? std::sqrt( 0.081804209605330899 / ekin ) : kInfinity;
   }
 
-  inline constexpr double wlsq2ekin( double wlsq )
+  inline constexpr double wlsq2ekin( double wlsq ) noexcept
   {
     //angstrom^2 to eV
     return (wlsq ? ( 0.081804209605330899 / wlsq )  : kInfinity);
   }
 
-  inline constexpr double ekin2wlsq( double ekin)
+  inline constexpr double ekin2wlsq( double ekin) noexcept
   {
     //eV to angstrom^2
     return ekin ? 0.081804209605330899 / ekin : kInfinity;
   }
 
-  inline constexpr double ekin2wlsqinv( double ekin)
+  inline constexpr double ekin2wlsqinv( double ekin) noexcept
   {
     //eV to 1/angstrom^2
     return ekin * 12.22430978582345950656;//constant is 1/0.081804209605330899
@@ -714,16 +803,27 @@ namespace NCrystal {
   namespace detail {
     constexpr double const_ekin2ksq_factor = k4PiSq * ekin2wlsqinv(1.0);
     constexpr double const_ksq2ekin_factor = 1.0 / const_ekin2ksq_factor;
+    constexpr double constexpr_square_hlpr( double x ) noexcept { return x*x; }
   }
 
-  inline constexpr double ekin2ksq( double ekin )
+  inline constexpr double ekin2ksq( double ekin ) noexcept
   {
     return ekin * detail::const_ekin2ksq_factor;
   }
 
-  inline constexpr double ksq2ekin( double ksq )
+  inline constexpr double ksq2ekin( double ksq ) noexcept
   {
     return detail::const_ksq2ekin_factor * ksq;
+  }
+
+  inline constexpr double wl2k( double wl ) noexcept
+  {
+    return wl ? k2Pi / wl : kInfinity;
+  }
+
+  inline constexpr double wl2ksq( double wl ) noexcept
+  {
+    return detail::constexpr_square_hlpr( wl2k(wl) );
   }
 
   //Some obscure compilers like to complain about unused constants defined
@@ -1181,9 +1281,9 @@ namespace NCrystal {
   template<class T>
   inline COWPimpl<T>::COWPimpl( const COWPimpl& o )
   {
-    m_data = o.m_data;
-    if ( m_data ) {
-      NCRYSTAL_LOCK_GUARD(m_data->mtx);
+    if ( o.m_data ) {
+      NCRYSTAL_LOCK_GUARD(o.m_data->mtx);
+      m_data = o.m_data;
       ++( m_data->refcount );
     }
   }
@@ -1251,7 +1351,10 @@ namespace NCrystal {
       res.first->second = typename TMap::mapped_type( std::forward<Args>(args)... );
     }
   }
-
 }
+
+#ifndef NCrystal_Fmt_hh
+#  include "NCrystal/NCFmt.hh"
+#endif
 
 #endif

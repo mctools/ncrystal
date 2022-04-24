@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -20,8 +20,21 @@
 
 #include "NCrystal/NCFactImpl.hh"
 #include "NCrystal/internal/NCAbsOOV.hh"
+#include "NCrystal/internal/NCMath.hh"
 
 namespace NC = NCrystal;
+
+//////////////////////////////////////////////////////////////////
+//
+// The standard absorption factory, handling both single-phase and multi-phase
+// materials, with the simple 1/v model. Note that multiple phases might be
+// defined at the MatCfg level, but can also appear only at the Info level
+// (e.g. if a single NCMAT file produced multiple phases). This factory
+// trivially deals with both kinds since the resulting Info object is always
+// guaranteed to provide the combined composition and hence average absorption
+// cross section.
+//
+//////////////////////////////////////////////////////////////////
 
 namespace NCrystal {
 
@@ -29,18 +42,19 @@ namespace NCrystal {
   public:
     const char * name() const noexcept override { return "stdabs"; }
 
-    Priority query( const MatCfg& cfg ) const override
+    MultiPhaseCapability multiPhaseCapability() const override
     {
-      auto info = FactImpl::createInfo( cfg );
-      if ( ! info->hasXSectAbsorption() )
-        return Priority::Unable;
+      return MultiPhaseCapability::Both;
+    }
+
+    Priority query( const FactImpl::AbsorptionRequest& ) const override
+    {
       return Priority{100};
     }
 
-    ProcImpl::ProcPtr produce( const MatCfg& cfg ) const override
+    ProcImpl::ProcPtr produce( const FactImpl::AbsorptionRequest& cfg ) const override
     {
-      auto info = FactImpl::createInfo( cfg );
-      return makeSO<AbsOOV>( info );
+      return makeSO<AbsOOV>( cfg.info().getXSectAbsorption() );
     }
 
   };

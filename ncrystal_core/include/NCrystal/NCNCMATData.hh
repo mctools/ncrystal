@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -48,11 +48,10 @@ namespace NCrystal {
     //validate():
     void validate() const;
 
-
     //Metadata
     int version = 0;
-    constexpr static int latest_version = 5;
-    std::string sourceDescription;
+    constexpr static int latest_version = 6;
+    DataSourceName sourceDescription;
 
     //convenience (for a validated instance, this is the same as hasCell or hasAtomPos):
     bool hasUnitCell() const;
@@ -116,6 +115,11 @@ namespace NCrystal {
     AtomDBLines atomDBLines;
     bool hasAtomDB() const { return !atomDBLines.empty(); }
     void validateAtomDB() const;
+
+    //@OTHERPHASES
+    std::vector<std::pair<double,std::string>> otherPhases;//{volfrac,cfgstr}
+    bool hasOtherPhases() const { return !otherPhases.empty(); }
+    void validateOtherPhases() const;
 
     //@CUSTOM_xxx section contents. Kept in order of appearance in file.
     typedef VectS CustomLine;

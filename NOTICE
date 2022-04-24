@@ -1,23 +1,32 @@
-NCrystal : A library for thermal neutron transport in crystals
+NCrystal : A library for thermal neutron transport in crystals and other materials
 
-Copyright 2015-2021 NCrystal developers
+Copyright 2015-2022 NCrystal developers
 
 This software was mainly developed at the European Spallation Source ERIC (ESS)
 and the Technical University of Denmark (DTU). This work was supported in part
 by the European Union's Horizon 2020 research and innovation programme under
-grant agreement No 676548 (the BrightnESS project).
+grant agreement No 676548 (the BrightnESS project) and 951782 (the HighNESS
+project).
 
-With the exception of some files in the optional ncrystal_extra/ directory, all
-NCrystal files are distributed under the Apache 2.0 license, available at
-http://www.apache.org/licenses/LICENSE-2.0. as well as in the LICENSE file found
+All NCrystal files are distributed under the Apache 2.0 license, available at
+http://www.apache.org/licenses/LICENSE-2.0, as well as in the LICENSE file found
 in the NCrystal distribution.
 
-A substantial effort went into developing NCrystal. If you use it for your work,
-we would appreciate it if you would use the following reference in your work:
+A very substantial effort went into developing NCrystal. If you use it for your
+work, we would appreciate it if you would use the following primary reference in
+your work:
 
   X.-X. Cai and T. Kittelmann, NCrystal: A library for thermal neutron
   transport, Computer Physics Communications 246 (2020) 106851,
   https://doi.org/10.1016/j.cpc.2019.07.015
+
+For work benefitting from elastic physics (e.g. Bragg diffraction), we
+furthermore request that you additionally also use the following reference in
+your work:
+
+  T. Kittelmann and X.-X. Cai, Elastic neutron scattering models
+  for NCrystal, Computer Physics Communications 267 (2021) 108082,
+  https://doi.org/10.1016/j.cpc.2021.108082
 
 For work benefitting from our inelastic physics, we furthermore request that you
 additionally also use the following reference in your work:
@@ -25,11 +34,3 @@ additionally also use the following reference in your work:
   X.-X. Cai, T. Kittelmann, et. al., "Rejection-based sampling of inelastic
   neutron scattering", Journal of Computational Physics 380 (2019) 400-407,
   https://doi.org/10.1016/j.jcp.2018.11.043
-
-The optional modules available in the ncrystal_extra/ directory contain open
-source code from third-parties, and usage of these must naturally oblige by
-their licenses as well, as detailed in the file ncrystal_extra/LICENSE. If
-building via CMake, these extra modules and their license requirements can be
-disabled by supplying the -DBUILD_EXTRA=OFF flag. Alternatively, if integrating
-NCrystal code by hand into an existing build system, one can simply ignore files
-in the ncrystal_extra/ directory to obtain the same result.

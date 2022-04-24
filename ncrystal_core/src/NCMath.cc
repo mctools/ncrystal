@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -557,3 +557,19 @@ std::pair<unsigned,unsigned> NC::detectSimpleRationalNumbers(double value)
     return {0,0};
   return it->second;
 }
+
+static_assert( NC::ncconstexpr_ispow2( 1 ), "" );
+static_assert( NC::ncconstexpr_ispow2( 2 ), "" );
+static_assert( NC::ncconstexpr_ispow2( 4 ), "" );
+static_assert( NC::ncconstexpr_ispow2( 64 ), "" );
+static_assert( NC::ncconstexpr_ispow2( 1024 ), "" );
+static_assert( !NC::ncconstexpr_ispow2( 0 ), "" );
+static_assert( !NC::ncconstexpr_ispow2( 3 ), "" );
+static_assert( !NC::ncconstexpr_ispow2( 5 ), "" );
+static_assert( !NC::ncconstexpr_ispow2( 48 ), "" );
+static_assert( NC::ncconstexpr_roundupnextpow2(1) == 1, "" );
+static_assert( NC::ncconstexpr_roundupnextpow2(2) == 2, "" );
+static_assert( NC::ncconstexpr_roundupnextpow2(3) == 4, "" );
+static_assert( NC::ncconstexpr_roundupnextpow2(4) == 4, "" );
+static_assert( NC::ncconstexpr_roundupnextpow2(17) == 32, "" );
+static_assert( NC::ncconstexpr_roundupnextpow2(24) == 32, "" );

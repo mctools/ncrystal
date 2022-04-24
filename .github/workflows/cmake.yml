@@ -86,7 +86,6 @@ jobs:
            ncrystal_example_py
            ncrystal_inspectfile --help
            ncrystal_inspectfile --dump 'Al_sg225.ncmat;dcutoff=1.5'
-           ncrystal_inspectfile --dump 'Al_sg225.nxs;dcutoff=1.5'
            python3 -c 'import NCrystal; NCrystal.test()'
            ncrystal_vdos2ncmat --help
            ncrystal_onlinedb2ncmat --help
@@ -94,6 +93,11 @@ jobs:
            ncrystal_hfg2ncmat --help
            ncrystal_verifyatompos --help
            ncrystal_onlinedb2ncmat --codid=9008460
+           ncrystal_ncmat2hkl --help
+           ncrystal_ncmat2hkl --format=laz 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test_Al.laz
+           ncrystal_ncmat2hkl --format=lau 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test_Al.lau
+           ncrystal_inspectfile -d ./test_Al.laz
+           ncrystal_inspectfile -d ./test_Al.lau
            ncrystal_ncmat2cpp $(ncrystal-config --show=datadir)/Al_sg225.ncmat -o test.cpp
            cat test.cpp
            eval $(ncrystal-config --unsetup)
@@ -106,6 +110,11 @@ jobs:
            ncrystal_inspectfile --test
            ncrystal_vdos2ncmat --help
            ncrystal_onlinedb2ncmat --help
+           ncrystal_ncmat2hkl --help
+           ncrystal_ncmat2hkl --format=laz 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test2_Al.laz
+           ncrystal_ncmat2hkl --format=lau 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test2_Al.lau
+           ncrystal_inspectfile -d ./test2_Al.laz
+           ncrystal_inspectfile -d ./test2_Al.lau
            ncrystal_ncmat2cpp --help
            ncrystal_hfg2ncmat --help
            ncrystal_verifyatompos --help

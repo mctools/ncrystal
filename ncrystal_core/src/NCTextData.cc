@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -137,27 +137,36 @@ bool NC::RawStrData::hasSameContent( const char* dataBegin, const char* dataEnd 
   return std::memcmp( it, it2, n ) == 0;
 }
 
-NC::TextData::TextData( RawStrData data,
+NC::TextData NC::TextData::internal_consumeAndSetNewUID( TextData&& td_with_no_uid )
+{
+  nc_assert_always(td_with_no_uid.dataUID().isUnset());
+  NC::TextData res = std::move(td_with_no_uid);
+  res.m_uid = TextDataUID::createNewUniqueIDValue();
+  return res;
+}
+
+NC::TextData::TextData( internal_with_unset_textdatauid_t, RawStrData data,
                         DataType dt,
-                        Optional<Description> descr,
+                        Optional<DataSourceName> dsn,
                         Optional<LastKnownOnDiskAbsPath> ondisk )
   : m_data(std::move(data)),
     m_dt(dt.value),
-    m_uid( TextDataUID::createNewUniqueIDValue() )
+    m_uid()
 {
+  nc_assert(m_uid.isUnset());
   if ( m_dt.empty() || !isAlphaNumeric(m_dt)  )
     NCRYSTAL_THROW(BadInput,"Error: Data type must be alpha numeric and non-empty.");
   if ( ondisk.has_value() )
     m_optOnDisk = ondisk.value().value;
-  if ( descr.has_value() && !descr.value().value.empty() ) {
-    m_descr = descr.value().value;
+  if ( dsn.has_value() && !dsn.value().str().empty() ) {
+    m_dsn = std::move(dsn.value());
   } else {
     std::ostringstream s;
     s << "(anonymous TextData, "<<std::distance( m_data.begin(), m_data.end() )<<"bytes"
       <<", type="<<m_dt;
     s<<")";
     //Explicitly do not add m_optOnDisk, it is only for from-file-reading.
-    m_descr = s.str();
+    m_dsn = s.str();
   }
 }
 

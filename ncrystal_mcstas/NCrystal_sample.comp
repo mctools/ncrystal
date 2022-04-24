@@ -1,49 +1,46 @@
-
-/******************************************************************************/
-/*                                                                            */
-/*  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   */
-/*                                                                            */
-/*  Copyright 2015-2021 NCrystal developers                                   */
-/*                                                                            */
-/*  Licensed under the Apache License, Version 2.0 (the "License");           */
-/*  you may not use this file except in compliance with the License.          */
-/*  You may obtain a copy of the License at                                   */
-/*                                                                            */
-/*      http://www.apache.org/licenses/LICENSE-2.0                            */
-/*                                                                            */
-/*  Unless required by applicable law or agreed to in writing, software       */
-/*  distributed under the License is distributed on an "AS IS" BASIS,         */
-/*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  */
-/*  See the License for the specific language governing permissions and       */
-/*  limitations under the License.                                            */
-/*                                                                            */
-/******************************************************************************/
-/*
+/*****************************************************************************
+*
+*  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)
+*
+*  Copyright 2015-2022 NCrystal developers
+*
+*  Licensed under the Apache License, Version 2.0 (the "License");
+*  you may not use this file except in compliance with the License.
+*  You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+*  Unless required by applicable law or agreed to in writing, software
+*  distributed under the License is distributed on an "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*  See the License for the specific language governing permissions and
+*  limitations under the License.
+*
 *
 * Component: NCrystal_sample
 *
 * %I
-*
 * Written by: NCrystal developers
-* Version: 2.7.3
+* Version: 3.0.0
 * Origin: NCrystal Developers (European Spallation Source ERIC and DTU Nutech)
 *
-* McStas sample component for the NCrystal scattering library. Find more
-* information at <a href="https://github.com/mctools/ncrystal/wiki">the NCrystal
-* wiki</a>. In particular, browse the available datafiles at <a
-* href="https://github.com/mctools/ncrystal/wiki/Data-library">Data-library</a>
-* and read about format of the configuration string expected in the "cfg"
-* parameter at <a href="https://github.com/mctools/ncrystal/wiki/Using-NCrystal">Using-NCrystal</a>.
-*
-* <p/>NCrystal is available under the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache 2.0 license</a>. Depending
-* on the configuration choices, optional NCrystal modules under different
-* licenses might be enabled - see <a
-* href="https://github.com/mctools/ncrystal/wiki/About">About</a> for more
-* details.
+* McStas sample component for the NCrystal library for thermal neutron transport
+* (<a href="https://github.com/mctools/ncrystal">www</a>).
 *
 * %D
+* McStas sample component for the NCrystal scattering library.
+* Find more information at <a href="https://github.com/mctools/ncrystal/wiki">the NCrystal wiki</a>.
+* In particular, browse the available datafiles at <a href="https://github.com/mctools/ncrystal/wiki/Data-library">Data-library</a>
+* and read about the format of the configuration string expected in
+* the "cfg" parameter at <a href="https://github.com/mctools/ncrystal/wiki/Using-NCrystal">Using-NCrystal</a>.
 *
-* McStas sample component for the NCrystal scattering library
+* <p/>NCrystal is available under the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache 2.0 license</a>.
+* Depending on the configuration choices, optional NCrystal
+* modules under different licenses might be enabled,
+* see <a href="https://github.com/mctools/ncrystal/blob/master/NOTICE">here</a> for more details.
+*
+* Note also that for more complicated geometries, it might be desirable to use
+* NCrystal via the McStas Union components instead.
 *
 * %P
 * Input parameters:
@@ -57,13 +54,15 @@
 *
 * %L
 * The NCrystal wiki at <a href="https://github.com/mctools/ncrystal/wiki">https://github.com/mctools/ncrystal/wiki</a>.
+*
 * %E
 *******************************************************************************/
 
 DEFINE COMPONENT NCrystal_sample
-SETTING PARAMETERS (string cfg = "", absorptionmode = 1, multscat = 1, xwidth = 0, yheight = 0, zdepth = 0, radius = 0 )
+SETTING PARAMETERS (string cfg, absorptionmode = 1, multscat = 1, xwidth = 0, yheight = 0, zdepth = 0, radius = 0 )
 OUTPUT PARAMETERS (params, geoparams)/*not really intended for output, but here for multi-instance support*/
 DEPENDENCY "-Wl,-rpath,NCrystalLink/lib -LNCrystalLink/lib -lNCrystal -INCrystalLink/include"
+NOACC /* Notice: you must remove this line if using the legace McStas 2.x branch. */
 
 SHARE
 %{
@@ -96,29 +95,29 @@ SHARE
 
   /* Factor out geometry related code in the following functions (+MCDISPLAY section below): */
 
-  void ncrystalsample_initgeom(ncrystalsamplegeom_t* geom, const char * name_comp, double xwidth, double yheight, double zdepth, double rradius)
+  void ncrystalsample_initgeom(ncrystalsamplegeom_t* geom, const char * name_comp, double xxwidth, double yyheight, double zzdepth, double rradius)
   {
-    int isbox = ( xwidth>0 && yheight>0 && zdepth>0 );
-    int iscyl = ( yheight>0 && rradius>0 );
+    int isbox = ( xxwidth>0 && yyheight>0 && zzdepth>0 );
+    int iscyl = ( yyheight>0 && rradius>0 );
     int issphere = ( !iscyl && rradius>0 );
     int nshapes = (isbox?1:0)+(iscyl?1:0)+(issphere?1:0);
     if (nshapes==0)
       NCMCERR2(name_comp,"must specify more parameters to define shape");
     if ( nshapes > 1
-         || ( iscyl && ( xwidth>0 || zdepth>0 ) )
-         || ( issphere && ( xwidth>0 || yheight > 0 || zdepth>0 ) ) )
+         || ( iscyl && ( xxwidth>0 || zzdepth>0 ) )
+         || ( issphere && ( xxwidth>0 || yyheight > 0 || zzdepth>0 ) ) )
       NCMCERR2(name_comp,"conflicting shape parameters specified (pick either parameters for box, cylinder or sphere, not more than one)");
 
     if (isbox) {
       geom->shape = NC_BOX;
-      geom->dx = xwidth;
-      geom->dy = yheight;
-      geom->dz = zdepth;
+      geom->dx = xxwidth;
+      geom->dy = yyheight;
+      geom->dz = zzdepth;
       geom->rradius = 0.0;
     } else if (iscyl) {
       geom->shape = NC_CYLINDER;
       geom->dx = 0.0;
-      geom->dy = yheight;
+      geom->dy = yyheight;
       geom->dz = 0.0;
       geom->rradius = rradius;
     } else {
@@ -204,30 +203,28 @@ INITIALIZE
     NCMCERR("Invalid value of absorptionmode");
   params.absmode = absorptionmode;
 
-  /* Make sure NCrystal use the McStas RNG (ok if more than one component instance does this): */
+#ifndef rand01
+  /* Tell NCrystal to use the rand01 function provided by McStas: */
   ncrystal_setrandgen(rand01);
+#else
+  /* rand01 is actually a macro not an actual C-function (most likely defined as */
+  /* _rand01(_particle->randstate) for OPENACC purposes), which we can not       */
+  /* register with NCrystal. As a workaround we tell NCrystal to use its own RNG */
+  /* algorithm, with merely the seed provided by McStas:                         */
+  ncrystal_setbuiltinrandgen_withseed( mcseed );
+#endif
 
-  /* access powder packingfactor (nb: always 1.0 for non-powders): */
-  double packingfactor = ncrystal_decodecfg_packfact(cfg);
-
-  /* access crystal structure to get number density (natoms/volume): */
+  /* access material info to get number density (natoms/volume): */
   ncrystal_info_t info = ncrystal_create_info(cfg);
   double numberdensity = ncrystal_info_getnumberdensity(info);
-  if( numberdensity <= 0.0 )
-    NCMCERR("Number density information is unavailable in the loaded NCrystal Info");
   ncrystal_unref(&info);
 
   //numberdensity is the atomic number density in units of Aa^-3=1e30m^3, and
   //given that we have cross-sections in barn (1e-28m^2) and want to generate
   //distances in meters with -log(R)/(numberdensity*xsect), we get the unit
-  //conversion factor of 0.01. We also apply the powder packing factor here (it
-  //is guaranteed to be non-zero):
-  params.density_factor = - 0.01  / ( numberdensity * packingfactor );
-  params.inv_density_factor = 1.0/params.density_factor;
-
-  //TODO: The density used here is in principle different from the one
-  //used in the Geant4 interface, which is possibly inconsistent when not using
-  //.ncmat files (more info at https://github.com/mctools/ncrystal/issues/9).
+  //conversion factor of 0.01:
+  params.density_factor = - 0.01  / numberdensity;
+  params.inv_density_factor = -100.0 * numberdensity;
 
   //Setup scattering:
   params.scat = ncrystal_create_scatter(cfg);
@@ -279,7 +276,7 @@ TRACE
       /* Make the calculations and pick the final state before exiting the sample */
       double xsect_step = xsect_scat;
       if (params.absmode==2) xsect_step += xsect_abs;
-      double distance = xsect_step ? log( rand01() ) * params.density_factor / xsect_step : INFINITY; /* in m */
+      double distance = xsect_step ? log( rand01() ) * params.density_factor / xsect_step : DBL_MAX; /* in m */
       double timestep = distance * inv_absv;
       /* Test when the neutron would reach the outer surface in absence of interactions: */
 
@@ -309,10 +306,11 @@ TRACE
       }
 
       /* scattering */
-      double delta_ekin;
-      ncrystal_genscatter( params.scat,ekin, (const double(*)[3])&dir, &dirout, &delta_ekin);
+      double ekin_final;
+      ncrystal_samplescatter( params.scat, ekin, (const double(*)[3])&dir, &ekin_final, &dirout );
+      double delta_ekin = ekin_final - ekin;
       if (delta_ekin) {
-        ekin += delta_ekin;
+        ekin = ekin_final;
         if (ekin<=0) {
           //not expected to happen much, but an interaction could in principle bring the neutron to rest.
           ABSORB;
@@ -369,8 +367,8 @@ MCDISPLAY
   case NC_CYLINDER:
     mcdis_circle("xz", 0,  geoparams.dy/2.0, 0, geoparams.rradius);
     mcdis_circle("xz", 0, -geoparams.dy/2.0, 0, geoparams.rradius);
-    mcdis_line(-radius, -geoparams.dy/2.0, 0, -geoparams.rradius, +yheight/2.0, 0);
-    mcdis_line(+radius, -geoparams.dy/2.0, 0, +geoparams.rradius, +yheight/2.0, 0);
+    mcdis_line(-geoparams.rradius, -geoparams.dy/2.0, 0, -geoparams.rradius, +geoparams.dy/2.0, 0);
+    mcdis_line(+geoparams.rradius, -geoparams.dy/2.0, 0, +geoparams.rradius, +geoparams.dy/2.0, 0);
     mcdis_line(0, -geoparams.dy/2.0, -geoparams.rradius, 0, +geoparams.dy/2.0, -geoparams.rradius);
     mcdis_line(0, -geoparams.dy/2.0, +geoparams.rradius, 0, +geoparams.dy/2.0, +geoparams.rradius);
     break;

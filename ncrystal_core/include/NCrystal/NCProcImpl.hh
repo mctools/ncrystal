@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -23,7 +23,6 @@
 
 #include "NCrystal/NCTypes.hh"
 #include "NCrystal/NCRNG.hh"
-#include "NCrystal/NCSmallVector.hh"
 
 ///////////////////////////////////////////////////////////////////////////////////
 //                                                                               //
@@ -103,10 +102,13 @@ namespace NCrystal {
 
       //In some cases it might be possible, and desirable from an efficiency
       //POV, for a process to be merged with another (usually of its own type)
-      //into a single instance. Classes supporting this can reimplement this
-      //method (return nullptr if merging is not possible, which is why we
-      //return std::shared_ptr and not shared_obj):
-      virtual std::shared_ptr<Process> createMerged( const Process& ) const;
+      //into a single instance, possibly with scaling factors. Classes
+      //supporting this can reimplement this method (return nullptr if merging
+      //is not possible, which is why we return std::shared_ptr and not
+      //shared_obj):
+      virtual std::shared_ptr<Process> createMerged( const Process& other,
+                                                     double scale_other,
+                                                     double scale_self ) const;
 
       //The next four functions implement cross section calculations and
       //scattering samplings. Depending on material and process type, some of
@@ -129,11 +131,20 @@ namespace NCrystal {
       //guaranteed) to allocate an object in the provided CachePtr (if needed):
       void initCachePtr(CachePtr& cp) const;
 
+      //Summarise meta-data in JSON dictionary:
+      std::string jsonDescription() const;
+
     protected:
       //For unpacking CachePtr arguments into custom classes (should only be
       //used in derived classes marked "final"):
       template<class CacheClass>
       CacheClass& accessCache(CachePtr& cpbase) const;
+
+      //Optionally override to provide JSON dictionary with specific info
+      //relevant only for a given model. It is a good idea if such a dictionary
+      //contains an entry with the key named "summarystr", providing a short
+      //summary of the process:
+      virtual Optional<std::string> specificJSONDescription() const { return NullOpt; };
 
     private:
       UniqueID m_uniqueID;
@@ -217,6 +228,16 @@ namespace NCrystal {
     // sampled by first randomly selecting a component according to its
     // contribution to the cross section.
     //
+    // NB: If using scale factors to combine processes within a single material
+    // phase, scale factors will often be either 1.0 or represent atomic
+    // fractions (e.g. a free-gas process for Al in Al2O3 might have a scale
+    // factor of 2/5=0.4). But when using scale factors to combine processes
+    // from different phases, it is important to take the atomic number
+    // densities of each phase into account, as counted over the entire material
+    // (e.g. two phases might both occupy 50% of the whole volume, but if one
+    // has 10 times as many atoms inside then the resulting per-atom cross
+    // section should of course reflect that).
+    //
     // All processes added to a particular ProcComposition instance must all
     // have same processType, but might mix materialType (the material becomes
     // anisotropic when at least one component is anisotropic).
@@ -232,6 +253,8 @@ namespace NCrystal {
       struct NCRYSTAL_API Component {
         double scale;
         ProcPtr process;
+        Component( double sc, ProcPtr pp ) : scale(sc), process(std::move(pp)) {}
+        Component( ProcPtr pp ) : scale(1.0), process(std::move(pp)) {}
       };
       using ComponentList = SmallVector<Component,6>;
 
@@ -258,6 +281,8 @@ namespace NCrystal {
       template<typename... Args>
       static ProcPtr combine(Args &&... args);
 
+    protected:
+      Optional<std::string> specificJSONDescription() const override;
     private:
       unsigned m_nHistory = 1;//increment whenever m_components change.
       ComponentList m_components;
@@ -282,7 +307,6 @@ namespace NCrystal {
       ScatterOutcomeIsotropic sampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const final;
       ScatterOutcome sampleScatter(CachePtr&, RNG&, NeutronEnergy, const NeutronDirection& ) const final;
     private:
-      UniqueID m_uniqueID;
       //Only NullScatter/NullAbsorption can inherit from this class:
       NullProcess() = default;
       friend class NullScatter;
@@ -301,6 +325,11 @@ namespace NCrystal {
       ProcessType processType() const noexcept final { return ProcessType::Absorption; }
     };
 
+    //Global instances (better caching):
+    ProcPtr getGlobalNullScatter();
+    ProcPtr getGlobalNullAbsorption();
+    ProcPtr getGlobalNullProcess(ProcessType);
+
   }
 
 }
@@ -313,10 +342,8 @@ namespace NCrystal {
 namespace NCrystal {
   namespace ProcImpl {
     inline EnergyDomain Process::domain() const noexcept { return { NeutronEnergy{0.0}, NeutronEnergy{kInfinity} }; }
-
     inline bool Process::isNull() const noexcept { auto d = domain(); return std::isinf(d.elow.get()) || d.elow>=d.ehigh; }
-
-    inline std::shared_ptr<Process> Process::createMerged( const Process& ) const { return nullptr; }
+    inline std::shared_ptr<Process> Process::createMerged( const Process&, double, double ) const { return nullptr; }
 
     template<class CacheClass>
     inline CacheClass& Process::accessCache(CachePtr& cpbase) const {
@@ -357,6 +384,12 @@ namespace NCrystal {
         cl.push_back({1.0,std::move(pp)});
       auto proctype = cl.front().process->processType();
       return consumeAndCombine( std::move(cl), proctype );
+    }
+
+    inline ProcPtr getGlobalNullProcess(ProcessType pt)
+    {
+      nc_assert( pt == ProcessType::Scatter || pt == ProcessType::Absorption );
+      return ( pt == ProcessType::Scatter ? getGlobalNullScatter() : getGlobalNullAbsorption() );
     }
   }
 }

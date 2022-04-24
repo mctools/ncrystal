@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -20,6 +20,7 @@
 
 #include "NCrystal/NCProcImpl.hh"
 #include "NCrystal/internal/NCRandUtils.hh"
+#include "NCrystal/internal/NCString.hh"
 
 namespace NC = NCrystal;
 namespace NCPI = NCrystal::ProcImpl;
@@ -272,14 +273,16 @@ void NCPI::ProcComposition::addComponent( NCPI::ProcPtr process, double scale )
       e.scale += scale;
       return;
     }
-    if ( e.scale == scale ) {
-      //Check for processes which can be merged for efficiency (this can
-      //for instance be used to combine multiple PCBragg instances into
-      //one more efficient one which has just one internal hkl list to
-      //search - this could be very useful for multiphase materials):
-      auto merged_process = e.process->createMerged( *process );
-      if (merged_process!=nullptr) {
+    if ( true ) {
+      //Check for processes which can be merged for efficiency (absorbing
+      //non-unit scales in the process). This can for example be used to combine
+      //multiple PCBragg instances into one more efficient one which has just
+      //one internal hkl list to search - this is potentially quite useful for
+      //multiphase materials:
+      auto merged_process = e.process->createMerged( *process, e.scale, scale );
+      if ( merged_process != nullptr ) {
         e.process = std::move(merged_process);
+        e.scale = 1.0;
         if (e.process->materialType()==MaterialType::Anisotropic)
           m_materialType = MaterialType::Anisotropic;
         //Update domain (assume the merging will only have expanded the domain!):
@@ -313,6 +316,7 @@ NC::CrossSect NCPI::ProcComposition::crossSection( CachePtr& cacheptr,
   auto& cache = ( m_materialType == MaterialType::Anisotropic
                   ? Impl::updateCacheAnisotropic( this, cacheptr, ekin, dir )
                   : Impl::updateCacheIsotropic( this, cacheptr, ekin ) );
+  nc_assert( cache.tot_xs >= 0.0 );
   return CrossSect{ cache.tot_xs };
 }
 
@@ -321,7 +325,9 @@ NC::CrossSect NCPI::ProcComposition::crossSectionIsotropic( CachePtr& cacheptr,
 {
   if (!m_domain.contains(ekin))
     return CrossSect{ 0.0 };
+  nc_assert( m_materialType == MaterialType::Isotropic );
   auto& cache = Impl::updateCacheIsotropic( this, cacheptr, ekin );
+  nc_assert( cache.tot_xs >= 0.0 );
   return CrossSect{cache.tot_xs};
 }
 
@@ -358,6 +364,18 @@ NC::ProcImpl::ProcPtr NCPI::ProcComposition::combine( const ComponentList& compo
   return consumeAndCombine({SVAllowCopy,components},processType);
 }
 
+NC::ProcImpl::ProcPtr NC::ProcImpl::getGlobalNullScatter()
+{
+  static shared_obj<const Process> s_obj = makeSO<NullScatter>();
+  return s_obj;
+}
+
+NC::ProcImpl::ProcPtr NC::ProcImpl::getGlobalNullAbsorption()
+{
+  static shared_obj<const Process> s_obj = makeSO<NullAbsorption>();
+  return s_obj;
+}
+
 NC::ProcImpl::ProcPtr NCPI::ProcComposition::consumeAndCombine( ComponentList&& components,
                                                                 ProcessType processType )
 {
@@ -374,9 +392,9 @@ NC::ProcImpl::ProcPtr NCPI::ProcComposition::consumeAndCombine( ComponentList&& 
   }
   if (isnull) {
     if ( processType == ProcessType::Scatter )
-      return makeSO<ProcImpl::NullScatter>();
+      return getGlobalNullScatter();
     else
-      return makeSO<ProcImpl::NullAbsorption>();
+      return getGlobalNullAbsorption();
   }
 
   //Next, simple cheap check for a single unscaled component:
@@ -411,4 +429,51 @@ void NC::ProcImpl::Process::initCachePtr(CachePtr& cp) const
     }
   }
 
+}
+
+std::string NC::ProcImpl::Process::jsonDescription() const
+{
+  std::ostringstream ss;
+  streamJSONDictEntry( ss,"name", this->name(), JSONDictPos::FIRST );
+  {
+    std::ostringstream tmp; tmp << this->materialType();
+    streamJSONDictEntry( ss,"materialType", tmp.str() );
+  }
+  {
+    std::ostringstream tmp; tmp << this->processType();
+    streamJSONDictEntry( ss,"processType", tmp.str() );
+  }
+  streamJSONDictEntry( ss,"isOriented", this->isOriented() );
+  auto domain = this->domain();
+  streamJSONDictEntry( ss,"domain", PairDD{ domain.elow.dbl(), domain.ehigh.dbl() } );
+  streamJSONDictEntry( ss,"isNull", this->isNull() );
+  auto specific_descr = this->specificJSONDescription();
+  if ( specific_descr.has_value() ) {
+    ss << ",\"specific\":" << specific_descr.value();
+  } else {
+    ss << ",\"specific\":{}";
+  }
+  streamJSONDictEntry( ss,"uid", this->getUniqueID().value, JSONDictPos::LAST );
+  return ss.str();
+}
+
+NC::Optional<std::string> NC::ProcImpl::ProcComposition::specificJSONDescription() const
+{
+  std::ostringstream ss;
+  ss << "{\"summarystr\":\""<<m_components.size()<<" components, "<<(isOriented()?"oriented":"isotropic")<<"\"";
+  ss << ",\"components\":[";
+  bool first(true);
+  for ( auto& c : m_components ) {
+    if ( first)
+      first = false;
+    else
+      ss << ',';
+    ss << '[';
+    streamJSON(ss,c.scale);
+    ss << ',';
+    ss << c.process->jsonDescription();
+    ss << ']';
+  }
+  ss << "]}";
+  return ss.str();
 }

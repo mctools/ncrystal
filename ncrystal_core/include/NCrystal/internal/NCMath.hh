@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -32,9 +32,8 @@ namespace NCrystal {
 
   //Primary constants [NB: Some replicated in Python interface!]:
   constexpr double constant_c  = 299792458e10;// speed of light in Aa/s
-  constexpr double constant_dalton2kg =  1.660539040e-27; // amu to kg (source: NIST/CODATA 2018)
   constexpr double constant_dalton2eVc2 =  931494095.17; // amu to eV/c^2 (source: NIST/CODATA 2018)
-  constexpr double constant_avogadro = 6.022140857e23; // mol^-1 (source: NIST/CODATA 2018)
+  constexpr double constant_avogadro = 6.022140857e23; // mol^-1 (source: NIST/CODATA 2018) [TODO: this might have been redefined to 6.02214076e23, change value?]
   constexpr double constant_dalton2gpermol = constant_dalton2kg*constant_avogadro*1000.0; // dalton to gram/mol
   //NB: constant_dalton2gmol is almost but not quite unity (cf. https://doi.org/10.1007/s00769-013-1004-9)
 
@@ -63,12 +62,20 @@ namespace NCrystal {
   double ncmin(double, double, double, double);
   double ncmax(double, double, double, double);
 
+  //Various constexpr versions (not efficient for runtime usage):
+  //NB: See NCDefs.hh for max/gdc/lcm functions:
+  template<class TInt>
+  constexpr TInt ncconstexpr_ispow2( TInt );
+  template<class TInt>
+  constexpr TInt ncconstexpr_roundupnextpow2( TInt );
+  constexpr unsigned ncconstexpr_log10ceil(unsigned);
+
   //Check that span contains values that could be a grid. I.e. is non-empty,
   //sorted, no duplicated values, no NaN/inf's.
   bool nc_is_grid(Span<const double>);
 
   //sinus/cosine options (indicated approximate timings from 2014 thinkpad with gcc 6.3.1):
-  void sincos(double A,double&cosA, double& sinA);//slow cos(A) and sin(A) for any A   [40ns/call]
+  void sincos(double A,double&cosA, double& sinA);//slow cos(A) and sin(A) for any A   [40ns/call]  NB: See also sincos_fast below!!!!
   void sincos_mpi8pi8(double A, double& cosA, double& sinA);//Requires -pi/8<=A<=pi/8  [ 6ns/call]
   void sincos_mpi2pi2(double A, double& cosA, double& sinA);//Requires -pi/2<=A<=pi/2  [ 9ns/call]
   void sincos_mpipi(double A, double& cosA, double& sinA);//Requires -pi<=A<=pi        [14ns/call]
@@ -84,6 +91,12 @@ namespace NCrystal {
   double sin_mpipi(double A);//Requires -pi<=A<=pi        [8.3ns/call]
   double sin_mpi2pi2(double A);//Requires -pi/2<=A<=pi/2  [6.4ns/call]
   double sin_mpi8pi8(double A);//Requires -pi/8<=A<=pi/8  [4.7ns/call]
+
+  //Functions which remaps arguments and calls sincos_02pi for a potential
+  //factor of 3 speedup. To be conservative we do not retrofit this into the
+  //sincos(..)  function above (yet).:
+  PairDD sincos_2pix( double x );//Returns { sin(2*pi*x), cos(2*pi*x) }
+  PairDD sincos_fast( double );//Returns { sin(x), cos(x) }
 
   //Approximations for exponential function (errors is 0.7e-10 or better):
   double exp_negarg_approx(double x);//error smaller than 0.7e-10, negative arguments only (slightly faster)
@@ -111,9 +124,12 @@ namespace NCrystal {
   //misc:
   constexpr double constexpr_sqrt(double);//compile time sqrt
   inline constexpr double ncsquare( double x ) noexcept { return x*x; }
+  inline constexpr double nccube( double x ) noexcept { return x*x*x; }
   bool isPrime(unsigned n);//simple O(n^0.5) implementation
   bool intervalsOverlap(double a0, double b0, double a1, double b1);
   bool intervalsDisjoint(double a0, double b0, double a1, double b1);
+
+  //Quick check that a<=x<=b (do not use if a or b might be infinite):
   bool valueInInterval(double a, double b, double x);
   bool valueInInterval( const PairDD& ab, double x);
 
@@ -181,12 +197,10 @@ namespace NCrystal {
   public:
     //Numerically stable summation, based on Neumaier's
     //algorithm (doi:10.1002/zamm.19740540106).
-    StableSum();
-    ~StableSum();
     void add(double x);
     double sum() const;
   private:
-    double m_sum, m_correction;
+    double m_sum = 0.0, m_correction = 0.0;
   };
 
 
@@ -270,6 +284,32 @@ inline double NCrystal::ncmin(double a, double b, double c) { return std::min(c,
 inline double NCrystal::ncmin(double a, double b, double c, double d) { return std::min(std::min(d,c),std::min(b,a)); }
 inline double NCrystal::ncmax(double a, double b, double c, double d) { return std::max(std::max(d,c),std::max(b,a)); }
 
+inline constexpr unsigned NCrystal::ncconstexpr_log10ceil( unsigned val )
+{
+  return val < 10u ? 1u : 1u + ncconstexpr_log10ceil( val / 10u );
+}
+
+namespace NCrystal {
+  namespace detail {
+    template<class TInt>
+    inline static constexpr TInt ncconstexpr_ispow2_helper( TInt a, TInt k )
+    {
+      return a <= k ? (a==k) : ncconstexpr_ispow2_helper(a,k*2);
+    }
+  }
+}
+template<class TInt>
+inline constexpr TInt NCrystal::ncconstexpr_ispow2( TInt a )
+{
+  return detail::ncconstexpr_ispow2_helper<TInt>(a, 1);
+}
+
+template<class TInt>
+constexpr TInt NCrystal::ncconstexpr_roundupnextpow2( TInt a )
+{
+  return ncconstexpr_ispow2(a) ? a : ncconstexpr_roundupnextpow2( a + 1 );
+}
+
 inline double NCrystal::ncabs(double a) { return std::abs(a); }
 inline bool NCrystal::ncisnan(double a) { return std::isnan(a); }
 inline bool NCrystal::ncisinf(double a) { return std::isinf(a); }
@@ -281,6 +321,18 @@ inline double NCrystal::ncclamp(double val, double low, double up)
   //was checked to produce just two instructions (do NOT change argument order
   //here, or it will generate more instructions).
   return ncmin(ncmax(val,low),up);
+}
+
+inline NCrystal::PairDD NCrystal::sincos_2pix( double x )
+{
+  PairDD res;
+  sincos_02pi((x-std::floor(x))*k2Pi,res.second,res.first);
+  return res;
+}
+
+inline NCrystal::PairDD NCrystal::sincos_fast( double x )
+{
+  return sincos_2pix( x * kInv2Pi );
 }
 
 inline void NCrystal::sincos(double A,double&cosA, double& sinA)
@@ -468,15 +520,6 @@ inline bool NCrystal::CosSinGridGen::step() {
   return true;
 }
 
-inline NCrystal::StableSum::StableSum()
-  : m_sum(0.0), m_correction(0.0)
-{
-}
-
-inline NCrystal::StableSum::~StableSum()
-{
-}
-
 inline void NCrystal::StableSum::add( double x )
 {
   double t = m_sum + x;
@@ -491,7 +534,13 @@ inline double NCrystal::StableSum::sum() const
 
 inline bool NCrystal::floateq(double a, double b, double rtol, double atol)
 {
-  return ncabs(a-b) <= (0.5 * rtol) * ( ncabs(a) + ncabs(b) ) + atol;
+  nc_assert(!std::isnan(a));
+  nc_assert(!std::isnan(b));
+  if ( std::isinf(a) || std::isinf(b) ) {
+    return a == b;
+  } else {
+    return ncabs(a-b) <= (0.5 * rtol) * ( ncabs(a) + ncabs(b) ) + atol;
+  }
 }
 
 template <class Func>

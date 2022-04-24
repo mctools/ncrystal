@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -24,187 +24,186 @@
 #include "NCrystal/internal/NCRotMatrix.hh"
 #include "NCrystal/internal/NCEqRefl.hh"
 
+namespace NC = NCrystal;
+
+NC::PlaneProvider::PlaneProvider() = default;
+NC::PlaneProvider::~PlaneProvider() = default;
+
 namespace NCrystal {
 
-  PlaneProvider::PlaneProvider() = default;
-  PlaneProvider::~PlaneProvider() = default;
+  namespace {
 
-  class PlaneProviderStd final : public PlaneProvider {
-  public:
-
-    PlaneProviderStd(shared_obj<const Info>);
-    PlaneProviderStd( const Info * );
-    virtual ~PlaneProviderStd() = default;
-
-    bool canProvide() const final;
-    void prepareLoop() final;
-    bool getNextPlane(double& dspacing, double& fsq, Vector& demi_normal) final;
-
-  private:
-    optional_shared_obj<const Info> m_info_strongref;
-    const Info* m_info;
-    enum{ STRAT_MISSING, STRAT_DEMINORMAL, STRAT_EXPHKL, STRAT_SPACEGROUP } m_strategy;
-    //outer loop:
-    HKLList::const_iterator m_it_hklE;
-    HKLList::const_iterator m_it_hkl;
-    //inner loop counter (common for STRAT_DEMINORMAL + STRAT_EXPHKL)
-    size_t m_ii;
-    RotMatrix m_reci_lattice;
-    //needed just for STRAT_SPACEGROUP:
-    struct StrSG;
-    std::unique_ptr<StrSG> m_sg;
-    bool gnp_de(double& dspacing, double& fsq, Vector& normal);
-    bool gnp_eh(double& dspacing, double& fsq, Vector& normal);
-    bool gnp_sg(double& dspacing, double& fsq, Vector& normal);
-  };
-
-  struct PlaneProviderStd::StrSG {
-    StrSG(int spacegroup) : m_eqreflcalc(spacegroup) {}
-    void prepareLoop(int h, int k, int l, unsigned expected_multiplicity ) {
-      const std::set<EqRefl::HKL>& el = m_eqreflcalc.getEquivalentReflections(h,k,l);
-      if ( el.size() * 2 != expected_multiplicity ) {
-        NCRYSTAL_THROW2(MissingInfo,"Incomplete information for selected modeling: Neither"
-                        " HKL normals nor expanded HKL info available, and the HKL grouping in the"
-                        " input does not appear to have the multiplicities expected of symmetry"
-                        " equivalent families ( h,k,l="<<h<<","<<k<<","<<l
-                        <<" had multiplicity of "<<expected_multiplicity<<" where "
-                        <<el.size() * 2<<" was expected).");
+    class PlaneProviderStd_Unable final  : public PlaneProvider {
+    public:
+      bool canProvide() const override { return false; }
+      void prepareLoop() override
+      {
+        NCRYSTAL_THROW(MissingInfo,"Insufficient information to provide reflection plane normals.");
       }
-      it = el.begin();
-      itE = el.end();
-    }
-    std::set<EqRefl::HKL>::const_iterator it,itE;
-  private:
-    EqRefl m_eqreflcalc;
-  };
-
-  PlaneProviderStd::PlaneProviderStd(shared_obj<const Info> cinfo)
-    : PlaneProviderStd(cinfo.get())
-  {
-    m_info_strongref = std::move(cinfo);
-  }
-
-  PlaneProviderStd::PlaneProviderStd(const Info* cinfo)
-    : PlaneProvider(),
-      m_info(cinfo),
-      m_strategy(STRAT_MISSING),
-      m_ii(0)
-  {
-    nc_assert(m_info);
-    if (m_info->hasHKLInfo()) {
-      m_it_hkl  = m_info->hklBegin();
-      m_it_hklE = m_info->hklEnd();
-      if ( m_info->hasHKLDemiNormals() ) {
-        m_strategy = STRAT_DEMINORMAL;
-      } else if ( m_info->hasExpandedHKLInfo() ) {
-        m_strategy = STRAT_EXPHKL;
-      } else if ( m_info->hasStructureInfo() && m_info->getStructureInfo().spacegroup ) {
-        m_strategy = STRAT_SPACEGROUP;
-        if (m_it_hkl!=m_it_hklE)
-          m_sg = std::make_unique<StrSG>(m_info->getStructureInfo().spacegroup);
+      Optional<Plane> getNextPlane() override
+      {
+        NCRYSTAL_THROW(LogicError,"Do not call getNextPlane() without first checking canProvide() and calling prepareLoop().");
+        return NullOpt;
       }
-    }
-    if ( m_strategy == STRAT_EXPHKL || m_strategy == STRAT_SPACEGROUP )
-      m_reci_lattice = getReciprocalLatticeRot( *m_info );
-    if (canProvide())
-      prepareLoop();
-  }
-
-  bool PlaneProviderStd::canProvide() const
-  {
-    return m_strategy!=STRAT_MISSING;
-  }
-
-  void PlaneProviderStd::prepareLoop()
-  {
-    if (!canProvide())
-      NCRYSTAL_THROW(MissingInfo,"Insufficient information for plane normals: Neither"
-                     " HKL normals, expanded HKL info, or spacegroup number is available.");
-    nc_assert(m_info);
-    m_ii = 0;
-    m_it_hkl  = m_info->hklBegin();
-    m_it_hklE = m_info->hklEnd();
-    if ( m_sg ) {
-      nc_assert(m_strategy == STRAT_SPACEGROUP);
-      nc_assert(m_it_hkl!=m_it_hklE);
-      m_sg->prepareLoop(m_it_hkl->h, m_it_hkl->k, m_it_hkl->l, m_it_hkl->multiplicity);
-    }
-  }
-
-  bool PlaneProviderStd::getNextPlane(double& dspacing, double& fsq, Vector& demi_normal)
-  {
-    switch(m_strategy) {
-    case STRAT_DEMINORMAL: return gnp_de(dspacing,fsq,demi_normal);
-    case STRAT_EXPHKL: return gnp_eh(dspacing,fsq,demi_normal);
-    case STRAT_SPACEGROUP: return gnp_sg(dspacing,fsq,demi_normal);
-    case STRAT_MISSING:
-      NCRYSTAL_THROW(MissingInfo,"Insufficient information for plane normals: Neither"
-                     " HKL normals, expanded HKL info, or spacegroup number is available.");
     };
-    return false;
-  }
 
-  bool PlaneProviderStd::gnp_de(double& dspacing, double& fsq, Vector& demi_normal)
-  {
-    if (m_it_hkl == m_it_hklE)
-      return false;
-    if (m_ii == m_it_hkl->demi_normals.size()) {
-      ++m_it_hkl;
-      m_ii = 0;
-      return gnp_de(dspacing,fsq,demi_normal);
-    }
-    const HKLInfo::Normal & nn = m_it_hkl->demi_normals.at(m_ii++);
-    dspacing = m_it_hkl->dspacing;
-    fsq = m_it_hkl->fsquared;
-    demi_normal = nn.as<Vector>();
-    return true;
-  }
-
-  bool PlaneProviderStd::gnp_eh(double& dspacing, double& fsq, Vector& demi_normal)
-  {
-    if (m_it_hkl == m_it_hklE)
-      return false;
-    nc_assert_always( m_it_hkl->eqv_hkl );
-    nc_assert_always( m_it_hkl->multiplicity%2==0 );
-    if (m_ii * 2 == m_it_hkl->multiplicity) {
-      ++m_it_hkl;
-      m_ii = 0;
-      return gnp_eh(dspacing,fsq,demi_normal);
-    }
-    size_t jj( (m_ii++) * 3 );
-    fsq = m_it_hkl->fsquared;
-    dspacing = m_it_hkl->dspacing;
-    demi_normal = m_reci_lattice*Vector(m_it_hkl->eqv_hkl[jj],m_it_hkl->eqv_hkl[jj+1],m_it_hkl->eqv_hkl[jj+2]);
-    demi_normal.normalise();
-    return true;
-  }
-
-  bool PlaneProviderStd::gnp_sg(double& dspacing, double& fsq, Vector& demi_normal)
-  {
-    if (m_it_hkl == m_it_hklE)
-      return false;
-    nc_assert(!!m_sg);
-    if (m_sg->it == m_sg->itE) {
-      if (++m_it_hkl != m_it_hklE) {
-        m_sg->prepareLoop(m_it_hkl->h, m_it_hkl->k, m_it_hkl->l,m_it_hkl->multiplicity);
+    class PlaneProviderStd_Normals final : public PlaneProvider {
+      OptionalInfoPtr m_strongRef;
+      double m_dsp, m_fsq;
+      HKLList::const_iterator m_it, m_itB, m_itE;
+      std::vector<HKLInfo::Normal>::const_iterator m_it_inner, m_it_innerE;
+    public:
+      PlaneProviderStd_Normals( const Info * info, OptionalInfoPtr iptr )
+        : PlaneProvider(), m_strongRef(iptr)
+      {
+        nc_assert_always( info );
+        nc_assert_always( info->hasHKLInfo() );
+        nc_assert_always( info->hklInfoType() == HKLInfoType::ExplicitNormals );
+        auto& l = info->hklList();
+        m_it = m_itB = l.begin();
+        m_itE = l.end();
+        prepareLoop();
       }
-      return gnp_sg(dspacing,fsq,demi_normal);
+
+      void prepareLoopInner()
+      {
+        if ( m_it == m_itE )
+          return;
+        nc_assert( m_it->explicitValues != nullptr );
+        nc_assert(m_it->explicitValues->list.has_value<std::vector<HKLInfo::Normal>>());
+        auto& v = m_it->explicitValues->list.get<std::vector<HKLInfo::Normal>>();
+        m_it_inner = v.begin();
+        m_it_innerE = v.end();
+        m_dsp = m_it->dspacing;
+        m_fsq = m_it->fsquared;
+      }
+
+      bool canProvide() const override { return true; }
+
+      void prepareLoop() override
+      {
+        m_it = m_itB;
+        prepareLoopInner();
+      }
+
+      Optional<Plane> getNextPlane() override
+      {
+        if ( m_it_inner == m_it_innerE ) {
+          if ( ++m_it == m_itE )
+            return NullOpt;
+          prepareLoopInner();
+          return getNextPlane();
+        }
+        return Plane{ m_dsp, m_fsq, (m_it_inner++)->as<Vector>() };
+      }
+    };
+
+
+    class PlaneProviderStd_HKL final : public PlaneProvider {
+      OptionalInfoPtr m_strongRef;
+      double m_dsp, m_fsq;
+      ExpandHKLHelper m_hklExpander;
+      RotMatrix m_reci_lattice;
+      HKLList::const_iterator m_it, m_itB, m_itE;
+      const HKL * m_it_inner;
+      const HKL * m_it_innerE;
+    public:
+      PlaneProviderStd_HKL( const Info * info, OptionalInfoPtr iptr )
+        : PlaneProvider(),
+          m_strongRef(iptr),
+          m_hklExpander( [&info](){
+            nc_assert(info->hasStructureInfo());
+            nc_assert_always( info );
+            nc_assert_always( info->hasHKLInfo() );
+            nc_assert_always( isOneOf(info->hklInfoType(),HKLInfoType::SymEqvGroup,HKLInfoType::ExplicitHKLs) );
+            return info->getStructureInfo().spacegroup;
+          }() ),
+          m_reci_lattice( getReciprocalLatticeRot( info->getStructureInfo() ) )
+      {
+        nc_assert( m_hklExpander.canExpand( info->hklInfoType() ) );
+        auto& l = info->hklList();
+        m_it = m_itB = l.begin();
+        m_itE = l.end();
+        prepareLoop();
+      }
+
+      void prepareLoopInner()
+      {
+        if ( m_it == m_itE )
+          return;
+        nc_assert( isOneOf( m_it->type(), HKLInfoType::SymEqvGroup, HKLInfoType::ExplicitHKLs) );
+        auto v = m_hklExpander.expand( *m_it );
+        m_it_inner = v.begin();
+        m_it_innerE = v.end();
+        m_dsp = m_it->dspacing;
+        m_fsq = m_it->fsquared;
+      }
+
+      bool canProvide() const override { return true; }
+
+      void prepareLoop() override
+      {
+        m_it = m_itB;
+        prepareLoopInner();
+      }
+
+      Optional<Plane> getNextPlane() override
+      {
+        if ( m_it_inner == m_it_innerE ) {
+          if ( ++m_it == m_itE )
+            return NullOpt;
+          prepareLoopInner();
+          return getNextPlane();
+        }
+        Plane p{ m_dsp,
+                 m_fsq,
+                 m_reci_lattice * Vector( m_it_inner->h,
+                                          m_it_inner->k,
+                                          m_it_inner->l ) };
+        p.demi_normal.normalise();
+        ++m_it_inner;
+        return p;
+      }
+    };
+
+    std::unique_ptr<PlaneProvider> actual_createStdPlaneProvider( const Info* info, OptionalInfoPtr iptr )
+    {
+      auto unable = []() { return std::make_unique<PlaneProviderStd_Unable>(); };
+      if ( !info->hasHKLInfo() )
+        return unable();
+      auto hitype = info->hklInfoType();
+      switch( hitype ) {
+      case HKLInfoType::SymEqvGroup:
+        if ( !info->hasStructureInfo() || info->getStructureInfo().spacegroup == 0 )
+          return unable();
+        return std::make_unique<PlaneProviderStd_HKL>( info, std::move(iptr) );
+      case HKLInfoType::ExplicitHKLs:
+        if ( !info->hasStructureInfo() )
+          return unable();
+        return std::make_unique<PlaneProviderStd_HKL>( info, std::move(iptr) );
+      case HKLInfoType::ExplicitNormals:
+        return std::make_unique<PlaneProviderStd_Normals>( info, std::move(iptr) );
+      case HKLInfoType::Minimal:
+        return unable();
+      };
+      return unable();
     }
-    fsq = m_it_hkl->fsquared;
-    dspacing = m_it_hkl->dspacing;
-    demi_normal = m_reci_lattice * Vector(m_sg->it->h,m_sg->it->k,m_sg->it->l);
-    demi_normal.normalise();
-    ++(m_sg->it);
-    return true;
   }
+}
 
-  std::unique_ptr<PlaneProvider> createStdPlaneProvider(shared_obj<const Info> info)
-  {
-    return std::make_unique<PlaneProviderStd>(std::move(info));
-  }
-  std::unique_ptr<PlaneProvider> createStdPlaneProvider(const Info* info)
-  {
-    return std::make_unique<PlaneProviderStd>(info);
-  }
+std::unique_ptr<NC::PlaneProvider> NC::createStdPlaneProvider( InfoPtr info)
+{
+  auto rawinfo = info.get();
+  return actual_createStdPlaneProvider( rawinfo, std::move(info) );
+}
 
+std::unique_ptr<NC::PlaneProvider> NC::createStdPlaneProvider(const Info* info)
+{
+  nc_assert(info!=nullptr);
+  return actual_createStdPlaneProvider( info, nullptr );
+}
+
+NC::ExpandHKLHelper::ExpandHKLHelper( const Info& info )
+  : ExpandHKLHelper( info.hasStructureInfo() ? info.getStructureInfo().spacegroup : 0 )
+{
 }

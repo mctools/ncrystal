@@ -1,3 +1,124 @@
+v3.0.0 2022-04-24
+      * The NCrystal v3.0.0 release brings both major new features and technical
+        improvements "under the hood", with around 19.000 lines of code changed
+        in more than 300 files! The list of specific changes is too long to
+        document here, but the following bullet points mention a few highlights
+        as well as a select number of very specific technical details. For a
+        more detailed and hopefully readable overview, please refer to the
+        following page in the wiki:
+        https://github.com/mctools/ncrystal/wiki/Announcement-Release3.0.0
+        Furthermore, we would like to encourage users to post questions
+        concerning the new release (or anything else NCrystal related obviously)
+        to the forum at: https://github.com/mctools/ncrystal/discussions
+      * Support for multiphase materials. These can be defined in terms of phase
+        volume-fractions, either in cfg-strings
+        ("phases<0.9*Al_sg225.ncmat&0.1*Be_sg.ncmat>"), in NCMAT data, or a
+        combination of those. All interfaces and tools have been updated to
+        properly integrate multiphase materials, in a manner which is believed
+        to not add complications when working with single-phase materials.
+      * Framework-level support for Small Angle Neutron Scattering (SANS)
+        physics. The release includes resources to facilitate future development
+        of advanced SANS models, and already include a hard-sphere SANS model
+        (useful both by itself, and as proof-of-concept for other models).
+      * Material densities can now be easily modified. This can be done by
+        either specifying a relative scaling,
+        "Polyethylene_CH2.ncmat;density=0.9x", or an absolute one:
+        "Polyethylene_CH2.ncmat;density=0.88gcm3" (g/cm^3) or
+        "Polyethylene_CH2.ncmat;density=0.1perAa3" (atoms/Aa^3).
+      * Support for quickly setting up unstructured materials with just a
+        cfg-string and without a data file for such simple materials. For
+        instance, a He3 gas might be defined via the cfg-string
+        "freegas::He/0.17kgm3/He_is_He3". This makes it easy to add materials
+        for which the structure is not deemed important (e.g. in a strong
+        absorber).
+      * The various new features can be combined for quickly settting up
+        advanced materials. For instance, here is how to define a low-density
+        polyethylene with enriched B4C pellets, even without a dedicated data
+        file for B4C:
+        "phases<0.99*Polyethylene_CH2.ncmat;density=0.8x&0.01*solid::B4C/2.5gcm3/B_is_0.95_B10_0.05_B11>"
+      * Improve documentation of cfg-string parameters, with the code now able
+        to provide dynamic documentation, which can be accessed either
+        programatically (with the Python/C/C++ API or by running
+        ncrystal_inspectfile --doc), or on the new wiki page:
+        https://github.com/mctools/ncrystal/wiki/CfgRefDoc
+      * Introduce for convenience a new cfg-string parameter "comp", which can
+        be used to easily pick out one or more of the components contributing to
+        the scattering cross section. For instance, appending ";comp=inelas" to
+        any cfg-string (i.e. "Al_sg225.ncmat;comp=inelas"), will disable all
+        components *except* inelastic models.
+      * Reflection (hkl) planes provided by NCrystal are now grouped according
+        to the symmetry-equivalency indicated by the space group. This has the
+        benefit of drastically improving both the initialisation time and memory
+        usage needed for hkl lists, and additionally makes it easier to use
+        reflection lists from NCrystal with other software which often depends
+        on such symmetry groupings. Additionally, ondemand loading for quicker
+        inspection (e.g. --dump will be almost instantaneous even for the most
+        complicated crystal structures)... Also, only show 10 planes with larges
+        dspacing by default FIXME
+      * Improve and update McStas support:
+        - Make NCrystal work with both the McStas v2.7 and McStas v3.0 branches.
+        - Add ncrystal_ncmat2hkl cmd-line utility for converting NCMAT files to
+          the .laz and .lau files needed by the McStas PowderN and
+          Single_crystal components (note that this only includes Bragg
+          diffraction, not inelastic/incoherent/SANS/multiphase physics for
+          which direct NCrystal usage in the NCrystal_sample component or
+          McStas-Union system is needed).
+        - Utilities for better/easier integration between NCrystal and the
+          McStas-Union system for complex geometries.
+      * Remove the few optional files which were not copyrighted by the NCrystal
+        developers, ensuring that the entire NCrystal release now has a single
+        well-defined license (Apache 2.0). The removed files were used to
+        support the semi-obsolete .nxs file format, and will still be available
+        as a separately distributed plugin if really needed.
+      * Stop supporting Python 3.5. Oldest supported Python version is now
+        Python 3.6.
+      * Introduce NCMAT v6 which adds a new optional @OTHERPHASES section to the
+        format, allowing secondary phases to be defined via volume fractions and
+        cfg-strings.
+      * Remove NCMatCfg::isPolyCrystal which used to return the opposite of
+        isSingleCrystal(). This was obviously misleading for non-crystalline
+        materials.
+      * Vector::normalise() now does nothing if the squared magnitude is already
+        within 2 ULP's of unity. This is to avoid repeated calls to this
+        function from inducing slight changes due to numerical inaccuracies in
+        the normalisation process.
+      * Add cyclical dependency detection in NCrystal factories to exit with
+        clear error instead of deadlocking. This is in particular needed to
+        handle cyclic dependencies in multiphase materials in which a phase is
+        wrongly defined by recursively referring back to the top level material.
+      * Type safe AtomData::captureXS in C++.
+      * Add utilities for encoding data in JSON format, which for now is used to
+        enable conversion of MatCfg objects as JSON objects. On the python side
+        this means that a cfg-string can be decoded into a Python dictionary
+        using the new decodeCfg function (a new encodeCfg function re-encodes
+        this into a cfg-string).
+      * Fix bug where scattering kernels generated on-the-fly from VDOS curves
+        with vdoslux values less than 3 (the default) were subsequently treated
+        to the "beta-thickening" procedure introduced in release v2.6.1. This
+        procedure is now, as intended, only applied to externally provided
+        kernels, since the on-the-fly generated ones already have an optimised
+        grid layout.
+      * ncrystal_inspectfile gets --energy/--liny/--logy/--xrange options to
+        control more aspects of the generated plots.
+      * Introduce an alias, nctool, for the ncrystal_inspectfile command (this
+        is done in anticipation of a future actual renaming of the command).
+      * Fix misleading @ATOMDB examples in NCMAT documentation where cohSL
+        numbers for Si and Al were a factor of 10 off from realistic numbers,
+        which might confuse users to think they have to use a unit of 0.1fm
+        rather than fm for such numbers (github issue #77).
+
+v2.9.93 2022-04-21
+      * Release candidate #3 for release 3.0.0.
+      * Detailed ChangeLog to come.
+
+v2.9.92 2022-04-10
+      * Release candidate #2 for release 3.0.0.
+      * Detailed ChangeLog to come.
+
+v2.9.91 2022-03-02
+      * Release candidate #1 for release 3.0.0.
+      * Detailed ChangeLog to come.
+
 v2.7.3 2021-09-09
        * Add missing import statement in ncrystal_hfg2ncmat (github issue #71).
        * C++ API gets ekin2ksq and ksq2ekin utility functions.

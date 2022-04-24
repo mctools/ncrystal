@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -27,6 +27,7 @@
 namespace NCrystal {
 
   class Info;
+  struct StructureInfo;
 
   //Helper function which finally constructs the rotation between the crystal
   //frame and the laboratory frame based on a completed SCOrientation
@@ -40,8 +41,8 @@ namespace NCrystal {
   RotMatrix getCrystal2LabRot( const SCOrientation&, const RotMatrix& reci_lattice );
 
   //Convenience wrapper, providing the reciprocal lattice matrix needed above
-  //directly from an Info object (errors if StructureInfo is missing):
-  RotMatrix getReciprocalLatticeRot( const Info& info );
+  //directly from aStructureInfo object:
+  RotMatrix getReciprocalLatticeRot( const StructureInfo& );
 
 }
 

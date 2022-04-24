@@ -3,7 +3,7 @@
 /*                                                                            */
 /*  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   */
 /*                                                                            */
-/*  Copyright 2015-2021 NCrystal developers                                   */
+/*  Copyright 2015-2022 NCrystal developers                                   */
 /*                                                                            */
 /*  Licensed under the Apache License, Version 2.0 (the "License");           */
 /*  you may not use this file except in compliance with the License.          */
@@ -74,9 +74,9 @@ COMPONENT monochromator = NCrystal_sample(xwidth=0.05,yheight=0.05,zdepth=0.003,
 COMPONENT mono_out = Arm()
   AT (0, 0, 0) RELATIVE mono_arm ROTATED (0, -90, 0) RELATIVE source
 
-/* Make a cylindrical sample of loosely packed Y2O3 powder */
+/* Make a cylindrical sample of loosely packed Y2O3 powder (packing factor of 60%) */
 COMPONENT powder_sample = NCrystal_sample(yheight=0.01, radius=0.01,
-                                          cfg="Y2O3_sg206_Yttrium_Oxide.ncmat;packfact=0.6")
+                                          cfg="Y2O3_sg206_Yttrium_Oxide.ncmat;density=0.6x")
   AT (0, 0, 0.4) RELATIVE mono_out
 
 COMPONENT powder_pattern_detc = Monitor_nD(

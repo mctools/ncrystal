@@ -1,19 +1,22 @@
-NCrystal : A library for thermal neutron transport in crystals
---------------------------------------------------------------
+NCrystal : A library for thermal neutron transport in crystals and other materials
+----------------------------------------------------------------------------------
 
 This is a source distribution of NCrystal, a library and associated tools which
-enables calculations for Monte Carlo simulations of thermal neutrons in
-crystals. Initial releases focus on scattering in single-crystals or
-polycrystalline materials and powders, including both coherent elastic (Bragg)
-diffraction and various models for inelastic scattering on phonons. Written in
-C++, interfaces and infrastructure facilitate integration into existing
-simulation frameworks such as Geant4 (https://geant4.cern.ch/) or McStas
-(http://mcstas.org/), as well as allowing direct usage from C++, C or Python
-code or via command-line tools. While the C++ library is designed with a high
-degree of flexibility in mind for developers, typical end-user configuration is
-deliberately kept simple and uniform across various applications and APIs - this
-for instance allows tuning and validation of a particular crystal setup to be
-performed in one tool before it is then deployed in another.
+enables calculations for Monte Carlo simulations of thermal neutrons in crystals
+and other materials. Supported is a range of physics including both coherent,
+incoherent, elastic and inelastic scatterings in a wide range of materials,
+including crystal powders, mosaic single crystals, layered single crystals,
+amorphous solids, and liquids. Multiphase materials or isotopically enriched
+material are supported as well, and the framework furthermore supports
+phase-contrast (SANS) physics. Written in C++, interfaces and infrastructure
+facilitate integration into existing simulation frameworks such as Geant4
+(https://geant4.cern.ch/) or McStas (http://mcstas.org/), as well as allowing
+direct usage from C++, C or Python code or via command-line tools. While the C++
+library is designed with a high degree of flexibility in mind for developers,
+typical end-user configuration is deliberately kept simple and uniform across
+various applications and APIs - this for instance allows tuning and validation
+of a particular crystal setup to be performed in one tool before it is then
+deployed in another.
 
 In addition to code and tools, the NCrystal distribution also includes a set of
 validated data files, covering many crystals important at neutron scattering
@@ -22,19 +25,29 @@ users are referred to the dedicated page at
 https://github.com/mctools/ncrystal/wiki/Data-library .
 
 Supporting compilation with all modern C++ standards (C++11 and later), the code
-has no third-party dependencies and is available under a highly liberal open
-source license (see NOTICE and LICENSE files for usage conditions and the
-INSTALL file for build and installation instructions). NCrystal was developed in
-close collaboration by Xiao Xiao Cai (DTU, ESS) and Thomas Kittelmann (ESS) and
-was supported in part by the European Union's Horizon 2020 research and
-innovation programme under grant agreement No 676548 (the BrightnESS project).
+has no third-party dependencies and is available under the highly liberal open
+source Apache 2.0 license (see NOTICE and LICENSE files for usage conditions and
+the INSTALL file for build and installation instructions). NCrystal was
+developed in close collaboration by Xiao Xiao Cai (DTU, ESS) and Thomas
+Kittelmann (ESS) and was supported in part by the European Union's Horizon 2020
+research and innovation programme under grant agreement No 676548 (the
+BrightnESS project) and 951782 (the HighNESS project)..
 
-A substantial effort went into developing NCrystal. If you use it for your work,
-we would appreciate it if you would use the following reference in your work:
+A very substantial effort went into developing NCrystal. If you use it for your
+work, we would appreciate it if you would use the following primary reference in
+your work:
 
   X.-X. Cai and T. Kittelmann, NCrystal: A library for thermal neutron
   transport, Computer Physics Communications 246 (2020) 106851,
   https://doi.org/10.1016/j.cpc.2019.07.015
+
+For work benefitting from elastic physics (e.g. Bragg diffraction), we
+furthermore request that you additionally also use the following reference in
+your work:
+
+  T. Kittelmann and X.-X. Cai, Elastic neutron scattering models
+  for NCrystal, Computer Physics Communications 267 (2021) 108082,
+  https://doi.org/10.1016/j.cpc.2021.108082
 
 For work benefitting from our inelastic physics, we furthermore request that you
 additionally also use the following reference in your work:
@@ -113,10 +126,12 @@ Using the NCrystal installation from McStas
 A sample component is provided for McStas, which embeds NCrystal material
 simulations into simple shapes (currently boxes, cylinders and spheres),
 allowing for highly realistic components representing samples, filters or
-monochromators. The component is eventually intended to be contributed into the
-standard McStas component library, but for now one must make it available by
-running the following command in the directory from which McStas commands will
-later be invoked:
+monochromators. The component and ncrystal scripts referenced below is already
+available out of the box in McStas, but expert users can of course still
+download and install a more recent NCrystal version with an existing McStas
+installation. In any case, the NCrystal-McStas component must be made available
+by running the following command in the directory from which McStas commands
+will later be invoked:
 
 $> ncrystal_preparemcstasdir
 
@@ -131,3 +146,10 @@ AT (0, 0, 0) RELATIVE PREVIOUS
 For more documentation about the NCrystal_sample component, run:
 
 $> mcdoc NCrystal_sample
+
+It should be noted that NCrystal can also be used as a physics backend for
+McStas-Union geometries, due to Mads Bertelsen (ESS). It is possible to create
+code turning NCrystal cfg-strings into Union material definitions, using the
+NCrystal.mcstasutils Python module:
+
+$> python3 -mNCrystal.mcstasutils --union my_Al 'Al_sg225.ncmat;temp=250K'

@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -61,10 +61,22 @@ void * NC::detail::bigAlignedAlloc( std::size_t alignment, std::size_t size )
 #endif
 
 #ifdef NCRYSTAL_DETAIL_SYSHASALIGNEDALLOC
+  struct detail {
+    static std::size_t roundToNextMultiple( std::size_t i, std::size_t n )
+    {
+      nc_assert(n>0);
+      auto remainder = i % n;
+      if (!remainder)
+        return i;
+      return (i + n) - remainder;
+    }
+  };
   //Observed issues with std::aligned_alloc on osx, seems to simply be missing
   //from std:: namespace:
   //    result = std::aligned_alloc(alignment,size);
-  result = aligned_alloc(alignment,size);
+
+  //roundToNextMultiple since that is what the aligned_alloc function expects.
+  result = aligned_alloc(alignment,detail::roundToNextMultiple( size, alignment ));
 #endif
   if ( result == nullptr ) {
     //Try to over allocate and then trim off something:

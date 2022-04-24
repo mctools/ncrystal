@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -32,7 +32,9 @@ namespace NCCU = NCrystal::CompositionUtils;
 
 namespace G4NCrystal {
 
-  //TODO: Move to CachedFactoryBase implementation!
+  //TODO: Move to CachedFactoryBase implementation! Currently all initialisation
+  //(even of pure NCrystal objects) are forced by the mutex lock below to take
+  //place in a single thread.
 
   static std::atomic<bool> s_verbose( getenv("NCRYSTAL_DEBUG_G4MATERIALS")!=nullptr );
   void enableCreateMaterialVerbosity(bool flag)
@@ -227,13 +229,13 @@ namespace G4NCrystal {
 
     G4Material * getFinalMaterialImpl( const NC::MatCfg& cfg ) {
 
-      //Construct key. NB: Uses file name as specified in key, to avoid absolute
-      //paths in material names. We include the info objects unique id in the
-      //cache key, to safe-guard against problems where input data was changed
-      //and required reload.
+      //The key is simply the UID's of the NCrystal Info (for
+      //density/temperature/composition/...) and Scatter (for cross sectins and
+      //sampling) objects. This conveniently piggy-backs on the NCrystal factory
+      //caches.
       auto info = NC::FactImpl::createInfo(cfg);
-      const std::string cfg_as_str = cfg.toStrCfg(true);
-      auto cache_key = std::make_pair( info->getUniqueID().value, cfg_as_str );
+      auto scatter = NC::FactImpl::createScatter(cfg);
+      auto cache_key = std::make_pair( info->getUniqueID().value, scatter->getUniqueID().value );
 
       //check if we already have this material available:
       auto it = m_g4finalmaterials.find(cache_key);
@@ -244,18 +246,10 @@ namespace G4NCrystal {
       }
       //Must create:
 
+      G4String matnameprefix("NCrystal::");
+      auto matname = matnameprefix + cfg.toStrCfg(true);
+
       ensureCacheClearFctRegistered();//good place to put this
-
-      //Check that input has density and composition (for temperature we simply
-      //wall back to room temperature below):
-      if (!info->hasDensity())
-        NCRYSTAL_THROW(MissingInfo,"Selected crystal info source lacks info about material density.");
-      if (!info->hasComposition())
-        NCRYSTAL_THROW(MissingInfo,"Selected crystal info source lacks info about material composition.");
-
-      //Make sure that we are at all able to initialise an NCrystal scatter object
-      //for the given configuration:
-      auto scatter = NC::FactImpl::createScatter(cfg);
 
       //Base G4 material for the given chemical composition:
       G4Material * matBase = getBaseMaterial( info->getComposition() );
@@ -271,9 +265,9 @@ namespace G4NCrystal {
         ? info->getTemperature().get()*CLHEP::kelvin
         : 293.15*CLHEP::kelvin;
 
-      G4String matnameprefix("NCrystal::");
-      G4Material * mat = new G4Material( matnameprefix+cache_key.second,
-                                         cfg.get_packfact()*info->getDensity().dbl()*(CLHEP::gram/CLHEP::cm3),
+      constexpr double clhep_gpercm3 = CLHEP::gram/CLHEP::cm3;
+      G4Material * mat = new G4Material( matname,
+                                         info->getDensity().dbl() * clhep_gpercm3,
                                          matBase, kStateSolid, temp, 1.0 * CLHEP::atmosphere );
 
       G4NCrystal::Manager::getInstance()->addScatterProperty(mat,std::move(scatter));
@@ -291,7 +285,7 @@ namespace G4NCrystal {
     std::map<IsotopeZA,G4Index> m_g4isotopes;
     std::map<NCCU::ElementBreakdownLW,G4Index> m_g4elements;
     std::map<NCCU::LWBreakdown,G4Index> m_g4basematerials;
-    std::map<std::pair<uint64_t,std::string>,G4Index> m_g4finalmaterials;
+    std::map<std::pair<uint64_t,uint64_t>,G4Index> m_g4finalmaterials;
   };
 
   struct NCG4ObjectDB {

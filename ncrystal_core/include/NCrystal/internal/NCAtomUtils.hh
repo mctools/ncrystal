@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
+#include "NCrystal/NCSmallVector.hh"
 
 namespace NCrystal {
 
@@ -41,7 +41,7 @@ namespace NCrystal {
     //Valid atomic symbols are:
     //
     //1) Elements: "H", "He", "Li", ...
-    //2) Isotopes: "H1", "H2", "He3", "Li6", ... (impossible ones with A<Z are invalid)
+    //2) Isotopes: "H1", "H2", "He3", "Li6", ... (impossible ones with A<Z are invalid)#
     //   NB: special aliases: "D" for "H2" and "T" for "H3".
     //3) Custom markers: "X", "X1", "X2", ..., "X99" (and no others).
 
@@ -58,6 +58,9 @@ namespace NCrystal {
     unsigned Z() const;
     unsigned A() const;
 
+    ncconstexpr17 bool operator==( const AtomSymbol& ) const noexcept;
+    ncconstexpr17 bool operator<( const AtomSymbol& ) const noexcept;
+
   private:
     unsigned m_z = 0, m_a = 0;
     //(Z,0)=element, (Z,A>Z)=isotope, (0,1-100)=custom("X{i-1}") (0,0)=invalid
@@ -68,7 +71,7 @@ namespace NCrystal {
   // Validate the syntex of atomdb lines.  This should be kept in sync with the  //
   // NCMAT data spec in ncmat_doc.md and the cfg-str description in NCMatCfg.hh. //
   // NCMatCfg.hh. The special syntax available/required in cfg-strings (with     //
-  // semicolones and @) is not handled here. In case of problems, a BadInput     //
+  // semicolons and @) is not handled here. In case of problems, a BadInput      //
   // exception is thrown, which means that any code implementing subsequent      //
   // parsing of the lines is allowed to simply assume correct format. Note that  //
   // it only validates a single line at a time, and therefore does not verify    //
@@ -77,7 +80,19 @@ namespace NCrystal {
   // X5 it can't check if X5 was defined previously):                            //
   /////////////////////////////////////////////////////////////////////////////////
 
-  void validateAtomDBLine(const VectS& words, unsigned ncmat_version = 3);
+  void validateAtomDBLine(const VectS& words, unsigned ncmat_version = 6);
+
+  //Helper function which can be used to decode chemical formulas like "He",
+  //"SiO2", "Al2O3", etc. Will return a list of fractions and associated decoded
+  //AtomSymbols. These symbols will always be valid elements (or perhaps one day
+  //isotopes), never custom markers.
+  //
+  //This function only supports simple formulas like "Al2O3". In the future we
+  //might add versions which would support fractions or isotopes.
+
+  using DecodedChemForm = SmallVector<std::pair<std::uint_least32_t,AtomSymbol>,4>;
+  DecodedChemForm decodeSimpleChemicalFormula( std::string );
+  Optional<DecodedChemForm> tryDecodeSimpleChemicalFormula( std::string );
 
 }
 
@@ -94,6 +109,16 @@ inline NCrystal::AtomSymbol::AtomSymbol(const std::string& ss)
   //longer init:
   if (m_z==0)
     longInit(ss);
+}
+
+inline ncconstexpr17 bool NCrystal::AtomSymbol::operator==( const AtomSymbol& o ) const noexcept
+{
+  return m_z == o.m_z && m_a == o.m_a;
+}
+
+inline ncconstexpr17 bool NCrystal::AtomSymbol::operator<( const AtomSymbol& o ) const noexcept
+{
+  return m_z == o.m_z ? (m_a < o.m_a) : ( m_z < o.m_z);
 }
 
 inline bool NCrystal::AtomSymbol::isInvalid() const { return m_z == 0 && m_a ==0; }

@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,6 +21,7 @@
 #include "NCrystal/internal/NCPCBragg.hh"
 #include "NCrystal/internal/NCMath.hh"
 #include "NCrystal/internal/NCRandUtils.hh"
+#include "NCrystal/internal/NCString.hh"
 #include <functional>//std::greater
 
 namespace NC = NCrystal;
@@ -99,16 +100,16 @@ NC::PCBragg::PCBragg(const Info&ci)
     NCRYSTAL_THROW(MissingInfo,"Passed Info object lacks HKL information.");
   if (!ci.hasStructureInfo())
     NCRYSTAL_THROW(MissingInfo,"Passed Info object lacks Structure information.");
+  const auto& hklList = ci.hklList();
   VectDFM data;
-  data.reserve(ci.nHKL());
-  HKLList::const_iterator it = ci.hklBegin();
-  HKLList::const_iterator itE = ci.hklEnd();
-  for (;it!=itE;++it) {
-    double f = it->fsquared * it->multiplicity;
+  data.reserve(hklList.size());
+
+  for ( const auto& hkl : hklList ) {
+    double f = hkl.fsquared * hkl.multiplicity;
     if (f<0)
       NCRYSTAL_THROW(CalcError,"Inconsistent data implies negative |F|^2*multiplicity.");
-    if (data.empty()||data.back().first!=it->dspacing) {
-      data.emplace_back(it->dspacing,f);
+    if (data.empty()||data.back().first!=hkl.dspacing) {
+      data.emplace_back(hkl.dspacing,f);
     } else {
       data.back().second += f;
     }
@@ -177,8 +178,10 @@ NC::ScatterOutcomeIsotropic NC::PCBragg::sampleScatterIsotropic( NC::CachePtr&,
   }
 }
 
-std::shared_ptr<NC::ProcImpl::Process> NC::PCBragg::createMerged( const Process& oraw ) const
+std::shared_ptr<NC::ProcImpl::Process> NC::PCBragg::createMerged( const Process& oraw, double scale1, double scale2 ) const
 {
+  nc_assert(scale1>0.0);
+  nc_assert(scale2>0.0);
   auto optr = dynamic_cast<const PCBragg*>(&oraw);
   if (!optr)
     return nullptr;
@@ -204,12 +207,12 @@ std::shared_ptr<NC::ProcImpl::Process> NC::PCBragg::createMerged( const Process&
   //Special case empty vectors:
   if ( old1_a.empty() ) {
     new_a = old2_a;
-    new_b = old2_b;
+    new_b = vectorTrf(old2_b, [scale2](double x) {return x*scale2;});
     return fixThreshold(), result;
   }
   if ( old2_a.empty() ) {
     new_a = old1_a;
-    new_b = old1_b;
+    new_b = vectorTrf(old1_b, [scale1](double x) {return x*scale1;});
     return fixThreshold(), result;
   }
 
@@ -229,14 +232,18 @@ std::shared_ptr<NC::ProcImpl::Process> NC::PCBragg::createMerged( const Process&
   auto extractFDM = [](const VectD& commulFDM, std::size_t idx)
   {
     nc_assert(idx<commulFDM.size());
-    return idx ? commulFDM.at(idx)-commulFDM.at(idx-1) : commulFDM.front();
+    //The subtraction here is where we could potentially introduce numerical
+    //errors, but they seem manageable in practice.
+    //TODO: can we do better?  Perhaps cache the 100(?) FDM values at highest
+    //d-spacing directly in separate vector?
+    return idx ? commulFDM.at(idx) - commulFDM.at(idx-1) : commulFDM.front();
   };
 
-  StableSum commulFDMSum;
-  auto appendFDMPoint = [&commulFDMSum,&extractFDM,&new_b]( const VectD& commulFDM, std::size_t idx )
+  StableSum new_commulFDMSum;
+  auto appendFDMPoint = [&new_commulFDMSum,&extractFDM,&new_b]( const VectD& commulFDM, std::size_t idx, double scale )
   {
-    commulFDMSum.add( extractFDM(commulFDM,idx) );
-    new_b.push_back(commulFDMSum.sum());
+    new_commulFDMSum.add( scale * extractFDM(commulFDM,idx) );
+    new_b.push_back(new_commulFDMSum.sum());
   };
 
   nc_assert(old1_a.back() >= old1_a.front());
@@ -244,32 +251,32 @@ std::shared_ptr<NC::ProcImpl::Process> NC::PCBragg::createMerged( const Process&
     if ( can_merge( old1_a.at(i1), old2_a.at(i2) ) ) {
       //Same d-spacing point present in both lists:
       new_a.push_back( 0.5 * ( old1_a.at(i1)+old2_a.at(i2) ) );
-      commulFDMSum.add(extractFDM(old1_b,i1));
-      commulFDMSum.add(extractFDM(old2_b,i2));
-      new_b.push_back(commulFDMSum.sum());
+      new_commulFDMSum.add(scale1*extractFDM(old1_b,i1));
+      new_commulFDMSum.add(scale2*extractFDM(old2_b,i2));
+      new_b.push_back(new_commulFDMSum.sum());
       ++i1;
       ++i2;
       continue;
     }
     if ( old1_a.at(i1) < old2_a.at(i2) ) {
       new_a.push_back(old1_a.at(i1));
-      appendFDMPoint(old1_b,i1);
+      appendFDMPoint(old1_b,i1,scale1);
       ++i1;
     } else {
       new_a.push_back(old2_a.at(i2));
-      appendFDMPoint(old2_b,i2);
+      appendFDMPoint(old2_b,i2,scale2);
       ++i2;
     }
   }
   //Transfer any remaining entries:
   while ( i1 < i1E ) {
     new_a.push_back(old1_a.at(i1));
-    appendFDMPoint(old1_b,i1);
+    appendFDMPoint(old1_b,i1,scale1);
     ++i1;
   }
   while ( i2 < i2E ) {
     new_a.push_back(old2_a.at(i2));
-    appendFDMPoint(old2_b,i2);
+    appendFDMPoint(old2_b,i2,scale2);
     ++i2;
   }
 
@@ -277,4 +284,27 @@ std::shared_ptr<NC::ProcImpl::Process> NC::PCBragg::createMerged( const Process&
   new_b.shrink_to_fit();
 
   return fixThreshold(), result;
+}
+
+NC::Optional<std::string> NC::PCBragg::specificJSONDescription() const
+{
+  //Determine max_contrib by looking at the peaks m_2dE:
+  double max_contrib(0.0);
+  nc_assert(m_2dE.size()==m_fdm_commul.size());
+  for ( auto i : ncrange(m_2dE.size()) )
+    max_contrib = std::max<double>( max_contrib,m_fdm_commul.at(i) / m_2dE.at(i) );
+
+  std::ostringstream ss;
+  {
+    std::ostringstream tmp;
+    nc_assert(!m_2dE.empty());
+    tmp << "nplanes="<<m_2dE.size()
+        <<";2dmax="<<m_threshold.wavelength()
+        << ";max_contrib="<<CrossSect{max_contrib};
+    streamJSONDictEntry( ss, "summarystr", tmp.str(), JSONDictPos::FIRST );
+  }
+  streamJSONDictEntry( ss, "nhkl", m_2dE.size() );
+  streamJSONDictEntry( ss, "max_contrib", max_contrib );
+  streamJSONDictEntry( ss, "2dmax", m_threshold.wavelength().dbl(), JSONDictPos::LAST );
+  return ss.str();
 }

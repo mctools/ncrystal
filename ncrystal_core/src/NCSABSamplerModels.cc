@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -29,7 +29,7 @@ NC::SAB::SABSamplerAtE_Alg1::SABSamplerAtE_Alg1( std::shared_ptr<const CommonCac
                                                  std::vector<AlphaSampleInfo>&& alphaSamplerInfos,
                                                  std::size_t ibetaOffset )
   : m_common( std::move(common) ),
-    m_betaSampler(VectD(betaVals.begin(),betaVals.end()),
+    m_betaSampler(VectD(betaVals.begin(),betaVals.end()),//todo: in principle no need to copy here.
                   VectD(betaWeights.begin(),betaWeights.end()) ),
     m_alphaSamplerInfos( std::move(alphaSamplerInfos) ),
     m_ibetaOffset( ibetaOffset )

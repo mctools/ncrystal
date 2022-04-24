@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -102,7 +102,7 @@ public:
 
   //Analyse cfg and determine if, and if so with what priority, the factory
   //can service the request:
-  Priority query( const NC::MatCfg& cfg ) const override
+  Priority query( const NC::FactImpl::ScatterRequest& cfg ) const override
   {
     //Must return Priority{value} if we can do something, and a value higher
     //than 100 means that we take precedence over the standard NCrystal
@@ -113,8 +113,7 @@ public:
       return Priority::Unable;
     }
 
-    auto info = createInfo(cfg);
-    unsigned n_simpleincelas = info->countCustomSections("SIMPLEINCELAS");
+    unsigned n_simpleincelas = cfg.info().countCustomSections("SIMPLEINCELAS");
     if (n_simpleincelas==0) {
       //This factory is only relevant if input file has @CUSTOM_SIMPLEINCELAS
       //section.
@@ -131,15 +130,15 @@ public:
     return Priority{999};
   }
 
-  ProcPtr produce( const NC::MatCfg& cfg ) const override
+  ProcPtr produce( const NC::FactImpl::ScatterRequest& cfg ) const override
   {
     //Service the request and produce the requested object (the framework will
     //only call this method after a previous call to query(..) indicated that
     //the production is possible - i.e. did not return Priority::Unable):
 
-    //Let us dig out the cross section parameter (see the parseFileDataForSigma
+    //Let us dig out the cross section parameter (see the parseDataForSigma
     //method below for how it is done):
-    NC::CrossSect sigma = parseFileDataForSigma(cfg);
+    NC::CrossSect sigma = parseDataForSigma(cfg);
 
     //Ok, time to instantiate our new model. We always use the makeSO function
     //instead of "new SimpleIncElasScatter" to do this (makeSO is similar to
@@ -150,21 +149,18 @@ public:
     //(i.e. Bragg+inelastic).  So ask the framework to set this up, except for
     //incoherent-elastic physics of course since we are now dealing with that
     //ourselves in sc_simpleincelas:
-    auto cfg2 = cfg.clone();
-    cfg2.set_incoh_elas(false);
-    auto sc_std = globalCreateScatter(cfg2);
+    auto sc_std = globalCreateScatter(cfg.modified("incoh_elas=0"));
 
     //Combine and return:
     return combineProcs( sc_std, sc_simpleincelas );
   }
 
 private:
-  NC::CrossSect parseFileDataForSigma( const NC::MatCfg& cfg ) const
+  NC::CrossSect parseDataForSigma( const NC::FactImpl::ScatterRequest& cfg ) const
   {
     //Parse the @CUSTOM_SIMPLEINCELAS section to extract the cross section value
     //specified by the user. Throw BadInput exception in case of issues:
-    auto info = createInfo(cfg);
-    auto data = info->getCustomSection( "SIMPLEINCELAS" );
+    auto data = cfg.info().getCustomSection( "SIMPLEINCELAS" );
     if ( data.size() != 1 || data.at(0).size() != 1 ) {
       NCRYSTAL_THROW(BadInput,"Bad format of @CUSTOM_SIMPLEINCELAS section"
                      " (must consist of just one line with a single parameter");
@@ -225,7 +221,7 @@ int main() {
 
   //Now let's see what happens with our file which has a @CUSTOM_SIMPLEINCELAS section:
   auto scatter_custom_Al = NC::createScatter("Al_simpleincelas100barn.ncmat;dcutoff=0.5");
-  std::cout<<"Scatter created from Al_simpleincelas100barn.ncmat.ncmat has crossSection(5.0Aa) = "
+  std::cout<<"Scatter created from Al_simpleincelas100barn.ncmat has crossSection(5.0Aa) = "
            <<scatter_custom_Al.crossSectionIsotropic(NC::NeutronWavelength{5.0})<<std::endl;
 
   //That should have printed out something around 100.1-100.15 barn, clearly the

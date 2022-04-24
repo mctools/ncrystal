@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -31,7 +31,7 @@ NC::ElIncXS::ElIncXS( const VectD& elm_msd,
   set( elm_msd, elm_bixs, elm_scale );
 }
 
-double NC::ElIncXS::evaluate(NeutronEnergy ekin) const
+NC::CrossSect NC::ElIncXS::evaluate(NeutronEnergy ekin) const
 {
   //NB: The cross-section code here must be consistent with code in
   //evaluateMonoAtomic() and sampleMu(..)
@@ -40,7 +40,7 @@ double NC::ElIncXS::evaluate(NeutronEnergy ekin) const
   double xs = 0.0;
   for ( auto& elmdata : m_elm_data )
     xs += elmdata.second * eval_1mexpmtdivt( elmdata.first * e );
-  return xs;
+  return CrossSect{ xs };
 }
 
 double NC::ElIncXS::eval_1mexpmtdivt(double t)
@@ -62,11 +62,11 @@ double NC::ElIncXS::eval_1mexpmtdivt(double t)
   return std::expm1(t) / t;
 }
 
-double NC::ElIncXS::evaluateMonoAtomic(NeutronEnergy ekin, double meanSqDisp, SigmaBound bound_incoh_xs)
+NC::CrossSect NC::ElIncXS::evaluateMonoAtomic(NeutronEnergy ekin, double meanSqDisp, SigmaBound bound_incoh_xs)
 {
   nc_assert(ekin.get()>=0.0&&meanSqDisp>=0.0&&bound_incoh_xs.get()>=0.0);
   constexpr double kkk = 16.0 * kPiSq * ekin2wlsqinv(1.0);
-  return bound_incoh_xs.dbl() * eval_1mexpmtdivt(kkk * meanSqDisp * ekin.dbl());
+  return CrossSect{ bound_incoh_xs.dbl() * eval_1mexpmtdivt(kkk * meanSqDisp * ekin.dbl()) };
 }
 
 NC::ElIncXS::~ElIncXS() = default;
@@ -90,7 +90,7 @@ void NC::ElIncXS::set( const VectD& elm_msd,
     m_elm_data.emplace_back( elm_msd[i], elm_bixs[i]*elm_scale[i] );
 }
 
-double NC::ElIncXS::sampleMuMonoAtomic( RNG& rng, NeutronEnergy ekin, double meanSqDisp )
+NC::CosineScatAngle NC::ElIncXS::sampleMuMonoAtomic( RNG& rng, NeutronEnergy ekin, double meanSqDisp )
 {
   nc_assert(ekin.dbl()>=0.0&&meanSqDisp>=0.0);
   constexpr double kkk = 8.0 * kPiSq * ekin2wlsqinv(1.0);
@@ -108,7 +108,7 @@ double NC::ElIncXS::sampleMuMonoAtomic( RNG& rng, NeutronEnergy ekin, double mea
      while (true) {
        double mu = rng.generate()*2.0-1.0;
        if (rng.generate()*maxval < exp_smallarg_approx(a*mu))
-         return mu;
+         return CosineScatAngle{ mu };
      }
 
   } else {
@@ -122,11 +122,11 @@ double NC::ElIncXS::sampleMuMonoAtomic( RNG& rng, NeutronEnergy ekin, double mea
     // x(R) = log( 1 + R * ( exp(2*a)-1 ) ) / a - 1
     //
     // Which can preferably be evaluated with expm1/log1p functions.
-    return ncclamp(std::log1p( rng.generate() * std::expm1(2.0*a) ) / a - 1.0,-1.0,1.0);
+    return CosineScatAngle{ ncclamp(std::log1p( rng.generate() * std::expm1(2.0*a) ) / a - 1.0,-1.0,1.0) };
   }
 }
 
-double NC::ElIncXS::sampleMu( RNG& rng, NeutronEnergy ekin )
+NC::CosineScatAngle NC::ElIncXS::sampleMu( RNG& rng, NeutronEnergy ekin )
 {
   const std::size_t nelem = m_elm_data.size();
   nc_assert(nelem!=0);
@@ -194,4 +194,9 @@ NC::ElIncXS::ElIncXS( const ElIncXS& a, double scale_a, const ElIncXS& b, double
   }
   result.shrink_to_fit();
   std::swap(m_elm_data,result);
+}
+
+std::size_t NC::ElIncXS::nElements() const
+{
+  return m_elm_data.size();
 }

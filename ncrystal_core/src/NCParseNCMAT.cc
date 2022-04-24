@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -69,6 +69,7 @@ namespace NCrystal {
     void handleSectionData_ATOMDB(const Parts&,unsigned);
     void handleSectionData_STATEOFMATTER(const Parts&,unsigned);
     void handleSectionData_CUSTOM(const Parts&,unsigned);
+    void handleSectionData_OTHERPHASES(const Parts&,unsigned);
 
     //Collected data:
     NCMATData m_data;
@@ -85,9 +86,9 @@ namespace NCrystal {
     std::string descr() const
     {
       std::string s;
-      s.reserve(m_data.sourceDescription.size()+2);
+      s.reserve(m_data.sourceDescription.str().size()+2);
       s += '"';
-      s+= m_data.sourceDescription;
+      s+= m_data.sourceDescription.str();
       s+='"';
       return s;
     }
@@ -135,7 +136,7 @@ NC::NCMATParser::NCMATParser( const TextData& input )
     m_dyninfo_active_vector_field_allownegative(false)
 {
   //Setup source description strings first as it is used in error messages:
-  m_data.sourceDescription = input.description();
+  m_data.sourceDescription = input.dataSourceName();
 
   //Inspect first line to ensure format is NCMAT and extract version:
   auto itLine = input.begin();
@@ -166,6 +167,8 @@ NC::NCMATParser::NCMATParser( const TextData& input )
       m_data.version = 4;
     } else if ( parts.at(1) == "v5" ) {
       m_data.version = 5;
+    } else if ( parts.at(1) == "v6" ) {
+      m_data.version = 6;
     } else {
       NCRYSTAL_THROW2(BadInput,descr()<<": is in an NCMAT format version, \""<<parts.at(1)<<"\", which is not recognised by this installation of NCrystal");
     }
@@ -212,6 +215,9 @@ void NC::NCMATParser::parseFile( TextData::Iterator itLine, TextData::Iterator i
   }
   if (m_data.version>=5) {
     section2handler["STATEOFMATTER"] = &NCMATParser::handleSectionData_STATEOFMATTER;
+  }
+  if (m_data.version>=6) {
+    section2handler["OTHERPHASES"] = &NCMATParser::handleSectionData_OTHERPHASES;
   }
 
   //Technically handle the part before the first section ("@SECTIONNAME") by the
@@ -278,7 +284,7 @@ void NC::NCMATParser::parseFile( TextData::Iterator itLine, TextData::Iterator i
       std::swap(current_section,new_section);
       itSection = section2handler.find( is_custom_section ? "CUSTOM"_s : current_section );
 
-      nc_assert( m_data.version>=1 && m_data.version <= 5 );
+      nc_assert( m_data.version>=1 && m_data.version <= 6 );
       if ( itSection == section2handler.end() ) {
         //Unsupported section name. For better error messages, first check if it
         //is due to file version:
@@ -293,6 +299,10 @@ void NC::NCMATParser::parseFile( TextData::Iterator itLine, TextData::Iterator i
         if ( m_data.version<5 && (current_section=="STATEOFMATTER") ) {
           NCRYSTAL_THROW2(BadInput,descr()<<": has @STATEOFMATTER section which is not supported in the indicated"
                           " NCMAT format version, \"NCMAT v"<<m_data.version<<"\". It is only available starting with \"NCMAT v5\".");
+        }
+        if ( m_data.version<6 && (current_section=="OTHERPHASES") ) {
+          NCRYSTAL_THROW2(BadInput,descr()<<": has @OTHERPHASES section which is not supported in the indicated"
+                          " NCMAT format version, \"NCMAT v"<<m_data.version<<"\". It is only available starting with \"NCMAT v6\".");
         }
         NCRYSTAL_THROW2(BadInput,descr()<<": has @"<<current_section<<" section which is not a supported section name.");
       }
@@ -855,6 +865,30 @@ void NC::NCMATParser::handleSectionData_STATEOFMATTER(const Parts& parts, unsign
                     <<lineno<<" (must be \"solid\", \"liquid\", or \"gas\")");
   }
 }
+
+void NC::NCMATParser::handleSectionData_OTHERPHASES(const Parts& parts, unsigned lineno)
+{
+
+  if (parts.empty()) {
+    if (m_data.otherPhases.empty())
+      NCRYSTAL_THROW2(BadInput,descr()<<": no input found in @OTHERPHASES section (expected in line "<<lineno<<")");
+    return;
+  }
+  if (parts.size()<2)
+    NCRYSTAL_THROW2(BadInput,descr()<<": wrong number of entries on line "<<lineno<<" in @OTHERPHASES section");
+  auto volfrac = StrView(parts.at(0)).toDbl();
+  if ( !volfrac.has_value() || !(volfrac.value()>0.0) || !(volfrac.value()<1.0) )
+    NCRYSTAL_THROW2(BadInput,descr()<<": invalid volume fraction \""<<parts.at(0)<<"\" specified in @OTHERPHASES section in line "
+                    <<lineno<<" (must be a floating point number greater than 0.0 and less than 1.0)");
+  std::string cfgstr = parts.at(1);
+  for ( auto i : ncrange(2,(int)parts.size()) ) {
+    cfgstr += ' ';//normalise whitespace to single space (as documented in the NCMAT doc)
+    cfgstr += parts.at(i);
+  }
+
+  m_data.otherPhases.emplace_back(volfrac.value(),cfgstr);
+}
+
 
 void NC::NCMATParser::handleSectionData_ATOMDB(const Parts& parts, unsigned lineno)
 {

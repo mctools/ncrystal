@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -255,9 +255,28 @@ void NC::NCMATData::validateAtomDB() const
   }
 }
 
+void NC::NCMATData::validateOtherPhases() const
+{
+  //Just checking here that all volfrac are sensible and that no cfg-strings are
+  //empty.
+  if (!hasOtherPhases())
+    return;
+  StableSum sum;
+  for ( auto ph : otherPhases ) {
+    if ( !(ph.first>0.0) || !(ph.first<1.0) )
+      NCRYSTAL_THROW2(BadInput,sourceDescription<<": invalid volume fraction "<<ph.first<<"\" in @OTHERPHASES section"
+                      " (must be a floating point number greater than 0.0 and less than 1.0)");
+    sum.add(ph.first);
+  }
+  auto tot = sum.sum();
+  if ( !(tot>0.0) || !(tot<1.0) )
+    NCRYSTAL_THROW2(BadInput,sourceDescription<<": sum of volume fractions ("<<tot<<") in @OTHERPHASES section"
+                    " must be a floating point number greater than 0.0 and less than 1.0");
+}
+
 void NC::NCMATData::validateElementNameByVersion(const std::string& s, unsigned theversion)
 {
-  nc_assert_always(theversion>0&&theversion<=5);
+  nc_assert_always(theversion>0&&theversion<=6);
   AtomSymbol atomsymbol(s);
   if ( atomsymbol.isInvalid() )
     NCRYSTAL_THROW2(BadInput,"Invalid element name \""<<s<<"\"");//invalid in any version
@@ -346,7 +365,7 @@ void NC::NCMATData::validateDensity() const
 
 void NC::NCMATData::validate() const
 {
-  if ( ! ( version>=1 && version<=5 ) )
+  if ( ! ( version>=1 && version<=6 ) )
     NCRYSTAL_THROW2(BadInput,sourceDescription<<" unsupported NCMAT format version "<<version);
 
   std::set<std::string> allElementNames;
@@ -359,6 +378,7 @@ void NC::NCMATData::validate() const
   validateDebyeTemperature();
   validateDensity();
   validateAtomDB();
+  validateOtherPhases();
   const bool hasDebyeTemp = hasDebyeTemperature();
   for (std::size_t i = 0; i<dyninfos.size(); ++i) {
     const auto& di = dyninfos.at(i);

@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -148,7 +148,7 @@ NC::SABData NC::SABUtils::transformKernelToStdFormat( NC::ScatKnlData&& input )
   nc_assert_always( nminbeta_int >=0 && nminbeta_int < 20000 );
   const unsigned nminbeta = static_cast<unsigned>(nminbeta_int);
 
-  if ( input.betaGrid.size() < nminbeta ) {
+  if ( !input.betaGridOptimised && input.betaGrid.size() < nminbeta ) {
     const unsigned nextra = nminbeta / input.betaGrid.size();//Number of extra beta points
                                                              //to insert between each point
     nc_assert_always( nextra >= 1 );

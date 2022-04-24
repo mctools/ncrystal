@@ -2,7 +2,7 @@
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2021 NCrystal developers                                   ##
+##  Copyright 2015-2022 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -69,7 +69,7 @@ if(NOT DEFINED NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE)
 endif()
 
 #Setup project:
-project(NCrystal VERSION 2.7.3 LANGUAGES CXX C)
+project(NCrystal VERSION 3.0.0 LANGUAGES CXX C)
 
 if(NOT DEFINED NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE)
   if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
@@ -82,12 +82,12 @@ endif()
 #Options:
 option( BUILD_EXAMPLES  "Whether to build examples." ON )
 option( BUILD_G4HOOKS   "Whether to build the G4 hooks (requires Geant4 to be available)." OFF )
-option( BUILD_EXTRA     "Whether to build optional modules for .nxs/.laz/.lau support (nb: different license!)." ON )
+option( BUILD_EXTRA     "Obsolete option. For .nxs support use -DBUILTIN_PLUGIN_LIST=mctools:nxslib (not needed for .laz/.lau support)." OFF )
 set( BUILD_STRICT OFF CACHE STRING "Stricter build (primarily for testing). Can optionally select specific C++ standard.")
 set_property(CACHE BUILD_STRICT PROPERTY STRINGS ON OFF 11 14 17 20 )
 option( INSTALL_MCSTAS  "Whether to install the NCrystal mcstas component and related scripts." ON )
 option( INSTALL_PY      "Whether to install the NCrystal python module and various python scripts (including ncrystal-config)." ON )
-option( INSTALL_DATA    "Whether to install the shipped data files (always .ncmat files, .nxs files when BUILD_EXTRA=ON)." ON )
+option( INSTALL_DATA    "Whether to install the shipped data files." ON )
 option( INSTALL_SETUPSH "Whether to install setup.sh/unsetup.sh which users can source in order to use installaton." ON )
 option( EMBED_DATA      "Whether to embed the shipped .ncmat files directly into the NCrystal library (forces INSTALL_DATA=OFF)." OFF )
 option( MODIFY_RPATH    "Whether to try to set RPATH in installed binaries (if disabled all special RPATH handling is skipped)." ON )
@@ -95,7 +95,6 @@ option( DISABLE_DYNLOAD "Disable dynamic library loading capabilities (incl. plu
 
 set(BUILTIN_PLUGIN_LIST "" CACHE STRING
     "Semicolon separated list of external NCrystal plugins to statically build into the NCrystal library (local paths to sources or git <repo_url:tag>)" )
-
 
 #Installation directories (try to follow standard conventions):
 include(GNUInstallDirs)
@@ -125,6 +124,9 @@ file(RELATIVE_PATH NCrystal_relpath_CMAKEDIR2INCDIR   "${PROJECT_BINARY_DIR}/${N
 file(RELATIVE_PATH NCrystal_relpath_CMAKEDIR2PYPATH   "${PROJECT_BINARY_DIR}/${NCrystal_CMAKEDIR}" "${PROJECT_BINARY_DIR}/${NCrystal_PYPATH}")
 file(RELATIVE_PATH NCrystal_relpath_CMAKEDIR2DATAFILESDIR   "${PROJECT_BINARY_DIR}/${NCrystal_CMAKEDIR}" "${PROJECT_BINARY_DIR}/${NCrystal_DATAFILESDIR}")
 
+if ( BUILD_EXTRA )
+  message(FATAL_ERROR "The BUILD_EXTRA flag is obsolete. Laz/Lau support is now builtin to the core NCrystal code and is always available. Support for .nxs files is on the other hand moved to a separate repository for license reasons. If you need support for .nxs files, you should add mctools:nxslib to the BUILTIN_PLUGIN_LIST (e.g. -DBUILTIN_PLUGIN_LIST=mctools:nxslib)")
+endif()
 
 #Dummy interface target for common properties. Note that the interface is always
 #built with C++11 compatible compiler (which CMake will choose from a wide
@@ -202,14 +204,6 @@ file_globsrc( SRCS_PYSCRIPTS "ncrystal_python/ncrystal_*")
 file_globsrc( HDRS_NCG4 "ncrystal_geant4/include/G4NCrystal/*.*")
 file_globsrc( SRCS_NCG4 "ncrystal_geant4/src/*.cc")
 file_globsrc( EXAMPLES_NCG4 "examples/ncrystal_example_g4*.cc")
-
-#optional source- and data-files:
-if (BUILD_EXTRA)
-  file_globsrc( SRCS_EXTRA "ncrystal_extra/*/*.cc")
-  list(APPEND SRCS_NC "${SRCS_EXTRA}")
-  file_globsrc( DATAFILES_NXS "data/*.nxs")
-  list(APPEND DATAFILES "${DATAFILES_NXS}")
-endif()
 
 if (INSTALL_SETUPSH AND NOT INSTALL_PY)
   message(WARNING "INSTALL_SETUPSH is not possible when INSTALL_PY is OFF (forcing INSTALL_SETUPSH=OFF).")
@@ -335,9 +329,6 @@ endfunction()
 
 
 set(all_plugin_names_lc "stdscat;stdabs;stdncmat")
-if (BUILD_EXTRA)
-  list(APPEND all_plugin_names_lc nxslaz)
-endif()
 
 set(NCrystal_builtin_plugin_names "")
 set(ncrystal_iplugin 0)
@@ -492,9 +483,6 @@ if (INSTALL_DATA)
   #setup.sh):
   target_compile_definitions(NCrystal PRIVATE "NCRYSTAL_DATADIR=${CMAKE_INSTALL_PREFIX}/${NCrystal_DATAFILESDIR}")
   install(FILES ${DATAFILES} DESTINATION ${NCrystal_DATAFILESDIR})
-endif()
-if (BUILD_EXTRA)
-  target_compile_definitions(NCrystal PRIVATE NCRYSTAL_ENABLE_NXSLAZ)
 endif()
 install(TARGETS NCrystal EXPORT NCrystalTargets DESTINATION ${NCrystal_LIBDIR} )
 install(FILES ${HDRS_NC} DESTINATION ${NCrystal_INCDIR}/NCrystal)
@@ -657,7 +645,6 @@ ncmsg(      "G4NCrystal library and headers     " ${BUILD_G4HOOKS}   )
 ncmsg(      "Build and install examples         " ${BUILD_EXAMPLES}  )
 ncmsg(      "Install shipped data files         " ${INSTALL_DATA}    )
 ncmsg(      "Embed shipped data files in library" ${EMBED_DATA}      )
-ncmsg(      "Enable .nxs/.laz/.lau support      " ${BUILD_EXTRA}     )
 ncmsg(      "Add setup.sh and unsetup.sh files  " ${INSTALL_SETUPSH} )
 ncmsg(      "Binaries have RPATH modifications  " ${MODIFY_RPATH}    )
 if (DISABLE_DYNLOAD)

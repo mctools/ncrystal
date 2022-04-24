@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -58,27 +58,94 @@ namespace NCrystal {
     //
     //with (a_reci, b_reci, c_reci) being the reciprocal lattice indices. To
     //define directions in this fashion, use the following methods:
-
     void setPrimaryDirection( const HKLPoint&, const LabAxis& );
     void setSecondaryDirection( const HKLPoint&, const LabAxis&,
                                 double tolerance = default_tolerance );
 
+    //Alternatively, set with OrientDir objects which already encodes the
+    //CrystalAxis vs. HKLPoint concept:
+    void setPrimaryDirection( const OrientDir& );
+    void setSecondaryDirection( const OrientDir&, double tolerance = default_tolerance );
+
     //Complete when both primary and secondary directions have been set:
     bool isComplete() const;
 
+    //Access state of complete object (throws LogicError if not isComplete()):
+    struct Data {
+      OrientDir dir1, dir2;
+      double dirtol;
+    };
+    Data getData() const;
+
+    //Miscellaneous:
     void clear();
+    void stream(std::ostream&) const;
+    bool operator==( const SCOrientation& ) const;
+
   private:
-    Variant<CrystalAxis,HKLPoint> m_crystal[2];
-    Optional<LabAxis> m_lab[2];
-    double m_tolerance = default_tolerance;
-    struct Impl;
-    friend struct Impl;
-  public:
-    //Access contents (idir=0: primary, idir=1: secondary):
-    const Variant<CrystalAxis,HKLPoint>& getCrysDir(unsigned idir) const { nc_assert(idir<2); return m_crystal[idir]; }
-    const Optional<LabAxis>& getLabDir(unsigned idir) const { nc_assert(idir<2); return m_lab[idir]; }
-    double getTolerance() const { return m_tolerance; }
+    Optional<OrientDir> m_dir1data;
+    Optional<std::pair<OrientDir,double>> m_dir2data;
   };
+
+  std::ostream& operator<<( std::ostream&, const SCOrientation& );
+
+}
+
+
+////////////////////////////
+// Inline implementations //
+////////////////////////////
+
+namespace NCrystal {
+  inline std::ostream& operator<<(std::ostream& os, const SCOrientation& sco )
+  {
+    sco.stream(os);
+    return os;
+  }
+
+  inline void SCOrientation::setPrimaryDirection( const CrystalAxis& c, const LabAxis& l )
+  {
+    setPrimaryDirection( OrientDir{c,l} );
+  }
+
+  inline void SCOrientation::setSecondaryDirection( const CrystalAxis& c, const LabAxis& l, double t )
+  {
+    setSecondaryDirection( OrientDir{c,l}, t );
+  }
+
+  inline void SCOrientation::setPrimaryDirection( const HKLPoint& c, const LabAxis& l )
+  {
+    setPrimaryDirection( OrientDir{c,l} );
+  }
+
+  inline void SCOrientation::setSecondaryDirection( const HKLPoint& c, const LabAxis& l, double t )
+  {
+    setSecondaryDirection( OrientDir{c,l}, t );
+  }
+
+  inline bool SCOrientation::isComplete() const
+  {
+    return m_dir1data.has_value() && m_dir2data.has_value();
+  }
+
+  inline void SCOrientation::clear()
+  {
+    m_dir1data = NullOpt;
+    m_dir2data = NullOpt;
+  }
+
+  inline bool SCOrientation::operator==( const SCOrientation& o ) const
+  {
+    return m_dir1data == o.m_dir1data && m_dir2data == o.m_dir2data;
+  }
+
+  inline SCOrientation::Data SCOrientation::getData() const
+  {
+    if (!isComplete())
+      NCRYSTAL_THROW(LogicError,"Incomplete SCOrientation object - must set both primary and secondary directions.");
+    return { m_dir1data.value(), m_dir2data.value().first, m_dir2data.value().second };
+  }
+
 }
 
 #endif

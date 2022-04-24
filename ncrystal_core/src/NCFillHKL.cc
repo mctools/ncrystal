@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -23,8 +23,9 @@
 #include "NCrystal/internal/NCRotMatrix.hh"
 #include "NCrystal/internal/NCLatticeUtils.hh"
 #include "NCrystal/internal/NCString.hh"
-#include "NCrystal/NCDefs.hh"
+#include "NCrystal/internal/NCEqRefl.hh"
 #include <cstdlib>
+#include <bitset>
 
 namespace NC = NCrystal;
 
@@ -145,13 +146,104 @@ namespace NCrystal {
   }
 }
 
-void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
+namespace NCrystal {
+  namespace {
+    constexpr const double fsquarecut_lowest_possible_value = 1.0e-300;
+  }
+  namespace detail {
+    NC::HKLList calculateHKLPlanesWithSymEqRefl( const StructureInfo&,
+                                                 const AtomInfoList&,
+                                                 FillHKLCfg,
+                                                 bool no_forceunitdebyewallerfactor );
+
+    struct PreCalc {
+      SmallVector<SmallVector<Vector,32>,4> atomic_pos;//atomic coordinates
+      SmallVectD csl;//coherent scattering length
+      SmallVectD msd;//mean squared displacement
+      SmallVectD cache_factors;
+      int max_h, max_k, max_l;
+      SmallVectD whkl_thresholds;
+      SmallVectD whkl;
+      PairDD ksq_preselect_interval;
+      PairDD dcut_interval;
+    };
+
+    PreCalc fillHKLPreCalc( const StructureInfo& si,
+                            const AtomInfoList& atomList,
+                            const FillHKLCfg& cfg)
+    {
+      PreCalc res;
+      for ( auto& ai : atomList ) {
+        nc_assert( ai.msd().has_value() );
+        res.msd.push_back( ai.msd().value() );
+        res.csl.push_back( ai.atomData().coherentScatLen() );
+        SmallVector<Vector,32> pos;
+        pos.reserve_hint( ai.unitCellPositions().size() );
+        for ( const auto& p : ai.unitCellPositions() )
+          pos.push_back( p.as<Vector>() );
+        res.atomic_pos.push_back( std::move(pos) );
+      }
+
+      {
+        auto max_hkl = estimateHKLRange( cfg.dcutoff,
+                                         si.lattice_a, si.lattice_b, si.lattice_c,
+                                         si.alpha*kDeg, si.beta*kDeg, si.gamma*kDeg );
+        res.max_h = max_hkl.h;
+        res.max_k = max_hkl.k;
+        res.max_l = max_hkl.l;
+      }
+
+      nc_assert_always(res.msd.size()==res.atomic_pos.size());
+      nc_assert_always(res.msd.size()==res.csl.size());
+      res.cache_factors.resize(res.csl.size(),0.0);
+
+      //cache some thresholds for efficiency (see locations where it is used
+      //for more comments):
+      res.whkl_thresholds.reserve_hint(res.csl.size());
+      for ( auto i : ncrange( res.csl.size() ) ) {
+        if ( cfg.fsquarecut < 0.01 && cfg.fsquarecut > fsquarecut_lowest_possible_value )
+          res.whkl_thresholds.push_back(std::log(ncabs(res.csl.at(i)) / cfg.fsquarecut ) );
+        else
+          res.whkl_thresholds.push_back(kInfinity);//use inf when not true that fsqcut^2 << fsq
+      }
+
+      res.whkl.resize(res.msd.size(),1.0);//init with unit factors in case of forceunitdebyewallerfactor
+
+      auto clampNormal = [](double x)
+      {
+        //valueInInterval might trigger FPE if used with infinity
+        return ncclamp( x, std::numeric_limits<double>::min(), std::numeric_limits<double>::max() );
+      };
+
+      //Acceptable range of ksq=(2pi/dspacing)^2 and dspacing (ksq range expanded
+      //slightly to avoid removing too much - the real check is on dspacing and is
+      //performed later):
+      res.ksq_preselect_interval = { clampNormal( (k4PiSq*(1.0-1e-14)) / ncsquare(cfg.dcutoffup) ),
+                                     clampNormal( (k4PiSq*(1.0+1e-14)) / ncsquare(cfg.dcutoff) ) };
+      res.dcut_interval = { clampNormal(cfg.dcutoff), clampNormal(cfg.dcutoffup) };
+      return res;
+    }
+  }
+}
+
+NC::HKLList NC::calculateHKLPlanes( const StructureInfo& structureInfo,
+                                    const AtomInfoList& atomList,
+                                    FillHKLCfg cfg )
 {
+  if ( atomList.empty() )
+    NCRYSTAL_THROW(BadInput,"calculateHKLPlanes needs a non-empty AtomInfoList");
+  for ( auto& ai : atomList ) {
+    if (!ai.msd().has_value())
+      NCRYSTAL_THROW(BadInput,"calculateHKLPlanes needs an AtomInfoList"
+                     " which includes mean-squared-displacements of all atoms");
+  }
+
+  nc_assert_always(cfg.dcutoff>0.0&&cfg.dcutoff<cfg.dcutoffup);
+
   const bool env_ignorefsqcut = std::getenv("NCRYSTAL_FILLHKL_IGNOREFSQCUT");
   if (env_ignorefsqcut)
     cfg.fsquarecut = 0.0;
 
-  constexpr const double fsquarecut_lowest_possible_value = 1.0e-300;
   if ( cfg.fsquarecut>=0.0 )
     cfg.fsquarecut = ncmax(cfg.fsquarecut,fsquarecut_lowest_possible_value);
 
@@ -164,6 +256,12 @@ void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
     //var for historic reasons):
     no_forceunitdebyewallerfactor = !(std::getenv("NCRYSTAL_FILLHKL_FORCEUNITDEBYEWALLERFACTOR"));
   }
+
+  if ( structureInfo.spacegroup != 0 )
+    return detail::calculateHKLPlanesWithSymEqRefl( structureInfo,
+                                                    atomList,
+                                                    std::move(cfg),
+                                                    no_forceunitdebyewallerfactor );
 
   //For now we allow selection of a particular hkl value via an env var (a hacky
   //workarond required for certain validation plots - we should support this in
@@ -181,63 +279,12 @@ void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
     select_l = str2int(parts.at(2));
   }
 
-  nc_assert_always(!info.isLocked());
-  nc_assert_always(info.hasAtomInfo());
-  nc_assert_always(info.hasAtomMSD());
-  nc_assert_always(info.hasStructureInfo());
-  nc_assert_always(!info.hasHKLInfo());
-  nc_assert_always(cfg.dcutoff>0.0&&cfg.dcutoff<cfg.dcutoffup);
+  const RotMatrix rec_lat = getReciprocalLatticeRot( structureInfo );
 
-  const RotMatrix rec_lat = getReciprocalLatticeRot( info );
-
-  //Collect info for each atom in suitable format for use for calculations below:
-  SmallVector<SmallVector<Vector,16>,4> atomic_pos;//atomic coordinates
-  SmallVectD csl;//coherent scattering length
-  SmallVectD msd;//mean squared displacement
-  SmallVectD cache_factors;
-
-  AtomList::const_iterator it (info.atomInfoBegin()), itE(info.atomInfoEnd());
-  for (;it!=itE;++it) {
-    nc_assert( it->msd().has_value() );
-    msd.push_back( it->msd().value() );
-    csl.push_back( it->atomData().coherentScatLen() );
-    SmallVector<Vector,16> pos;
-    pos.reserve_hint( it->unitCellPositions().size() );
-    for ( const auto& p : it->unitCellPositions() )
-      pos.push_back( p.as<Vector>() );
-    atomic_pos.push_back( std::move(pos) );
-  }
-
-  int max_h, max_k, max_l;
-  {
-    const auto& si = info.getStructureInfo();
-    auto max_hkl = estimateHKLRange( cfg.dcutoff,
-                                     si.lattice_a, si.lattice_b, si.lattice_c,
-                                     si.alpha*kDeg, si.beta*kDeg, si.gamma*kDeg );
-    max_h = max_hkl.h;
-    max_k = max_hkl.k;
-    max_l = max_hkl.l;
-  }
-
-  nc_assert_always(msd.size()==atomic_pos.size());
-  nc_assert_always(msd.size()==csl.size());
-  cache_factors.resize(csl.size(),0.0);
-
-  //cache some thresholds for efficiency (see below where it is used for more
-  //comments):
-  SmallVectD whkl_thresholds;
-  whkl_thresholds.reserve_hint(csl.size());
-  for (size_t i = 0; i<csl.size(); ++i) {
-    if ( cfg.fsquarecut < 0.01 && cfg.fsquarecut > fsquarecut_lowest_possible_value )
-      whkl_thresholds.push_back(std::log(ncabs(csl.at(i)) / cfg.fsquarecut ) );
-    else
-      whkl_thresholds.push_back(kInfinity);//use inf when not true that fsqcut^2 << fsq
-  }
+  auto cache = detail::fillHKLPreCalc( structureInfo, atomList, cfg);
 
   //We now conduct a brute-force loop over h,k,l indices, adding calculated info
   //in the following containers along the way:
-  HKLList hkllist;
-  std::vector<std::vector<short> > eqv_hkl_short;
 
   //Breaking O(N^2) complexity in compatibility searches by using map (the key
   //is an integer composed from Fsquared and d-spacing, and although clashes are
@@ -251,58 +298,39 @@ void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
   FamMap fsq2hklidx;
 #endif
 
-  SmallVectD whkl;//outside loop for reusage
-  while ( whkl.size() < msd.size() )
-    whkl.push_back(1.0);//init with unit factors in case of forceunitdebyewallerfactor
+  HKLList hkllist;
 
-  //NB, for reasons of symmetry we ignore half of the hkl vectors (ignoring
-  //h,k,l->-h,-k,-l and 000). This means, half a space, and half a plane and
-  //half an axis,  hence the loop limits:
-
-  auto clampNormal = [](double x)
-  {
-    //valueInInterval might trigger FPE if used with infinity
-    return ncclamp( x, std::numeric_limits<double>::min(), std::numeric_limits<double>::max() );
-  };
-
-  //Acceptable range of ksq=(2pi/dspacing)^2 and dspacing (ksq range expanded
-  //slightly to avoid removing too much - the real check is on dspacing and is
-  //performed later):
-  const PairDD ksq_preselect_interval( clampNormal( (k4PiSq*(1.0-1e-14)) / ncsquare(cfg.dcutoffup) ),
-                                       clampNormal( (k4PiSq*(1.0+1e-14)) / ncsquare(cfg.dcutoff) ) );
-  const PairDD dcut_interval( clampNormal(cfg.dcutoff), clampNormal(cfg.dcutoffup) );
-
-  for( int loop_h=0;loop_h<=max_h;++loop_h ) {
-    for( int loop_k=(loop_h?-max_k:0);loop_k<=max_k;++loop_k ) {
-      for( int loop_l=-max_l;loop_l<=max_l;++loop_l ) {
+  for( int loop_h=0;loop_h<=cache.max_h;++loop_h ) {
+    for( int loop_k=(loop_h?-cache.max_k:0);loop_k<=cache.max_k;++loop_k ) {
+      for( int loop_l=-cache.max_l;loop_l<=cache.max_l;++loop_l ) {
         const Vector hkl(loop_h,loop_k,loop_l);
 
         //calculate waveVector, wave number and dspacing:
         Vector waveVector = rec_lat*hkl;
         const double ksq = waveVector.mag2();
-        if (!valueInInterval(ksq_preselect_interval,ksq))
+        if ( !valueInInterval(cache.ksq_preselect_interval,ksq))
           continue;
 
         if (no_forceunitdebyewallerfactor) {
-          nclikely fillHKL_getWhkl(whkl, ksq, msd);
+          nclikely fillHKL_getWhkl(cache.whkl, ksq, cache.msd);
         }
 
         //calculate |F|^2
         double real_or_imag_upper_limit(0.0);
-        for( unsigned i=0; i < whkl.size(); ++i ) {
-          if ( whkl[i] > whkl_thresholds[i]) {
-            cache_factors[i] = 0.0;
+        for( unsigned i=0; i < cache.whkl.size(); ++i ) {
+          if ( cache.whkl[i] > cache.whkl_thresholds[i]) {
+            cache.cache_factors[i] = 0.0;
             continue;//Abort early to save exp/cos/sin calls. Note that
                      //O(fsquarecut) here corresponds to O(fsquarecut^2)
                      //contributions to final FSquared - for which we demand
                      //>fsquarecut below. We only do this when fsquarecut<1e-2
                      //(see calculations for whkl_thresholds above).
           } else {
-            double factor = csl[i]*std::exp(-whkl[i]);
-            cache_factors[i] = factor;
+            double factor = cache.csl[i]*std::exp(-cache.whkl[i]);
+            cache.cache_factors[i] = factor;
             //Assuming cos(phase)*factor=sin(phase)*factor=|factor| gives us a cheap upper limit on
             //fsquared:
-            real_or_imag_upper_limit += atomic_pos[i].size()*ncabs( factor );
+            real_or_imag_upper_limit += cache.atomic_pos[i].size()*ncabs( factor );
           }
         }
 
@@ -321,29 +349,22 @@ void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
         //stable summation, for better results on low-symmetry crystals (the
         //main cost here is anyway the phase calculations, not the summation):
         StableSum real, imag;
-        for( unsigned i=0 ; i < whkl.size(); ++i ) {
-          double factor = cache_factors[i];
+        for( unsigned i=0 ; i < cache.whkl.size(); ++i ) {
+          double factor = cache.cache_factors[i];
           if (!factor)
             continue;
-          auto itAtomPos = atomic_pos[i].begin();
-          auto itAtomPosEnd = atomic_pos[i].end();
           StableSum cpsum, spsum;
-          for(;itAtomPos!=itAtomPosEnd;++itAtomPos) {
-#if 0
-            double phase = hkl.dot(*itAtomPos) * k2Pi;
-            double cp,sp;
-            sincos(phase,cp,sp);//<--- where we spend 99% of time in complex crystals
-#else
-            //Phase is hkl.dot(*itAtomPos)*2pi. We speed up the expensive
+          for ( auto& pos : cache.atomic_pos[i] ) {
+            //Phase is hkl.dot(pos)*2pi. We speed up the expensive
             //calculation of sin+cos by a factor of 3 by shifting the phase to
-            //[0,2pi] and using our own fast sincos_02pi. Since 99% of the hkl
-            //initialisation time is spent calculating sin+cos here, that
-            //actually translates into an overall speedup of a factor of 3 (in
-            //NCrystal v2.7.0)!
-            const double phase_div2pi = hkl.dot(*itAtomPos);
-            double cp,sp;
-            sincos_02pi((phase_div2pi-std::floor(phase_div2pi))*k2Pi,cp,sp);
-#endif
+            //[0,2pi] (easily done by simply NOT multiplying with 2pi) and using
+            //our own fast sincos_02pi through sincos_2pix. Since typically 99%
+            //of the hkl initialisation time is spent calculating sin+cos here,
+            //that actually translates into an overall speedup of a factor of 3
+            //(measured in NCrystal v2.7.0)!
+            const double phase_div2pi = hkl.dot(pos);
+            double sp,cp;
+            std::tie(sp,cp) = sincos_2pix(phase_div2pi);
             cpsum.add(cp);
             spsum.add(sp);
           }
@@ -362,11 +383,8 @@ void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
         const double invkval = 1.0 / kval;
         const double dspacing = k2Pi * invkval;
 
-        if ( !valueInInterval( dcut_interval, dspacing ) )
+        if ( !valueInInterval( cache.dcut_interval, dspacing ) )
           continue;
-
-        //Normalise waveVector so we can use it below as a demi_normal:
-        waveVector *= invkval;
 
         //Key for our fsq2hklidx multimap:
         FamKeyType searchkey(keygen(FSquared,dspacing));
@@ -376,67 +394,297 @@ void NC::fillHKL( NC::Info& info, FillHKLCfg cfg )
         bool isnewfamily = true;
         for ( ; itSearch!=itSearchE && itSearch->first == searchkey; ++itSearch ) {
           nc_assert(itSearch->second<hkllist.size());
-          HKLInfo * hklinfo = &hkllist[itSearch->second];
-          if ( ncabs(FSquared-hklinfo->fsquared) < cfg.merge_tolerance*(FSquared+hklinfo->fsquared )
-              && ncabs(dspacing-hklinfo->dspacing) < cfg.merge_tolerance*(dspacing+hklinfo->dspacing ) )
+          HKLInfo& hi = hkllist[itSearch->second];
+          if ( ncabs(FSquared-hi.fsquared) < cfg.merge_tolerance*(FSquared+hi.fsquared )
+               && ncabs(dspacing-hi.dspacing) < cfg.merge_tolerance*(dspacing+hi.dspacing ) )
             {
-              //Compatible with existing family, simply add normals to it.
-              hklinfo->demi_normals.push_back(waveVector.as<HKLInfo::Normal>());
-              if (cfg.expandhkl) {
-                nc_assert(itSearch->second<eqv_hkl_short.size());
-                eqv_hkl_short[itSearch->second].push_back(loop_h);
-                eqv_hkl_short[itSearch->second].push_back(loop_k);
-                eqv_hkl_short[itSearch->second].push_back(loop_l);
-              }
+              //Compatible with existing family, simply add HKL point to it.
+              hi.multiplicity += 2;
+              nc_assert(hi.explicitValues->list.has_value<std::vector<HKL>>());
+              hi.explicitValues->list.get<std::vector<HKL>>().emplace_back(loop_h,loop_k,loop_l);
               isnewfamily = false;
               break;
             }
         }
         if (isnewfamily) {
-
+          //Not fitting in existing group, set up new.
           if ( hkllist.size()>1000000 && !env_ignorefsqcut )//guard against crazy setups
             NCRYSTAL_THROW2(CalcError,"Combinatorics too great to reach requested dcutoff = "<<cfg.dcutoff<<" Aa");
-
           HKLInfo hi;
-          hi.h=loop_h;
-          hi.k=loop_k;
-          hi.l=loop_l;
+          hi.hkl = HKL{ loop_h, loop_k, loop_l };
+          hi.multiplicity = 2;
           hi.fsquared = FSquared;
           hi.dspacing = dspacing;
-          hi.demi_normals.push_back(waveVector.as<HKLInfo::Normal>());
+          hi.explicitValues = std::make_unique<HKLInfo::ExplicitVals>();
+          hi.explicitValues->list.emplace<std::vector<HKL>>();
+          hi.explicitValues->list.get<std::vector<HKL>>().reserve(24);//shrinked below
+          hi.explicitValues->list.get<std::vector<HKL>>().emplace_back(loop_h,loop_k,loop_l);
           fsq2hklidx.insert(itSearchLB,FamMap::value_type(searchkey,hkllist.size()));
           hkllist.emplace_back(std::move(hi));
-          if (cfg.expandhkl) {
-            eqv_hkl_short.push_back(std::vector<short>());
-            std::vector<short>& last = eqv_hkl_short.back();
-            last.reserve(3);
-            last.push_back(loop_h);
-            last.push_back(loop_k);
-            last.push_back(loop_l);
-          }
         }
       }//loop_l
     }//loop_k
   }//loop_h
 
-  //update HKLlist and copy to info
-  info.enableHKLInfo(cfg.dcutoff,cfg.dcutoffup);
-
-  HKLList::iterator itHKL, itHKLB(hkllist.begin()), itHKLE(hkllist.end());
-  for(itHKL=itHKLB;itHKL!=itHKLE;++itHKL) {
-    unsigned deminorm_size = itHKL->demi_normals.size();
-    itHKL->multiplicity=deminorm_size*2;
-    if(cfg.expandhkl) {
-      std::vector<short>& eh = eqv_hkl_short.at(itHKL-itHKLB);
-#if __cplusplus >= 201402L
-      //Our make_unique for c++11 seems to have problems with arrays
-      itHKL->eqv_hkl = std::make_unique<short[]>(deminorm_size*3);
-#else
-      itHKL->eqv_hkl = decltype(itHKL->eqv_hkl)(new short[deminorm_size*3]());
-#endif
-      std::copy(eh.begin(), eh.end(), &itHKL->eqv_hkl[0]);
-    }
+  //Sort explicit HKL entries and use first as representative index:
+  for ( auto& hi : hkllist ) {
+    auto& v = hi.explicitValues->list.get<std::vector<HKL>>();
+    std::sort(v.begin(),v.end());
+    v.shrink_to_fit();
+    hi.hkl = v.front();
   }
-  info.setHKLList(std::move(hkllist));;
 
+  //NB: Not sorting by dspace (InfoBuilder will anyway do it and it is slightly
+  //complicated to do consistently).
+  hkllist.shrink_to_fit();
+  return hkllist;
+}
+
+namespace NCrystal {
+  namespace {
+
+    class SymHKLSeenTracker {
+    private:
+      static constexpr unsigned fast_small_C = 128;//128;//always enabled, uses 4*C^3 bits [C=128 gives 1.04MB]
+      static constexpr unsigned fast_large_C = 512;//512;//rarely used, on-demand usage only [C=512 gives 67MB]
+      static constexpr unsigned n_small = 4*fast_small_C*fast_small_C*fast_small_C;
+      static constexpr unsigned n_large = 4*fast_large_C*fast_large_C*fast_large_C;
+      using FastArraySmall = std::bitset<n_small>;
+      using FastArrayLarge = std::bitset<n_large>;
+      //Both bitsets on the stack (to prevent stack overflow), but the smaller one is always set up.
+      std::unique_ptr<FastArraySmall> m_seen;//<--- this is the workhorse which is almost always used exclusively. Fast and not too big.
+      std::unique_ptr<FastArrayLarge> m_seenLarge;
+      std::set<HKL> m_seenFallBack;//<--- ultimate fallback, bad performance but always works.
+      double m_dcutoff;//for err msg (-1 means err disabled)
+    public:
+      SymHKLSeenTracker( double dcutoff ) : m_seen(std::make_unique<FastArraySmall>()), m_dcutoff(dcutoff) {}
+      bool isFirstCheck( const HKL& hkl ) {
+        auto idx = calcFastIdx<fast_small_C>(hkl);
+        if ( idx.has_value() ) {
+          nclikely auto e = (*m_seen)[idx.value()];
+          if ( (bool)e )
+            return false;
+          e = true;
+          return true;
+        } else {
+          return isFirstCheckFallBack(hkl);
+        }
+      }
+
+      //Pretend that *some* of the values != v where already seen (not all, due
+      //to internal storage being dynamic).
+      void optimiseForSelection( const HKL& v )
+      {
+        m_seen->set();//sets all to true, pretending they were already processed
+        auto idx = calcFastIdx<fast_small_C>(v);
+        if ( idx.has_value() )
+          m_seen->set(idx.value(),false);
+      }
+    private:
+      bool isFirstCheckFallBack( const HKL& v ) {
+        auto idx = calcFastIdx<fast_large_C>(v);
+        if ( idx.has_value() ) {
+          if (!m_seenLarge) {
+            ncunlikely m_seenLarge = std::make_unique<FastArrayLarge>();
+          }
+          nclikely auto e = (*m_seenLarge)[idx.value()];
+          if ( (bool)e )
+            return false;
+          e = true;
+          return true;
+        }
+        //Ultimate fallback:
+        auto it_and_inserted = m_seenFallBack.insert(v);
+        if ( m_seenFallBack.size() == 100000000 && m_dcutoff != -1.0 )
+          NCRYSTAL_THROW2(CalcError,"Combinatorics too great to reach requested dcutoff = "<<m_dcutoff<<" Aa (2)");
+        return it_and_inserted.second;
+      }
+
+      template<int C>
+      Optional<unsigned> calcFastIdx( const HKL&v ) const
+      {
+        //NOTE: l varies most frequently in the calling loop, then k, then h. So
+        //for cache-locality we should make sure that indices close in l are
+        //close, etc. (this is particularly important if overspilling to the
+        //m_seenLarge cache). Note on this note: The EqRefl remapping of HKL
+        //values screws this up, but benchmarking still showed the code below to
+        //be fastest.
+
+        //Works if h in range 0..C-1 (C values), and k,l in range -(C-1)..C (2C values)
+        static_assert(C>=2&&C<=10000,"");
+        nc_assert( v.h >= 0 );
+        constexpr int TwoC = 2*C;
+        constexpr int Cm1 = (C-1);
+        constexpr int mCm1 = -(C-1);
+        Optional<unsigned> res;
+        if ( v.h < C && std::min(v.k,v.l) >= mCm1 && std::max(v.k,v.l) <= C ) {
+          nc_assert( Cm1 + v.k >= 0 && Cm1 + v.k < TwoC );
+          nc_assert( Cm1 + v.l >= 0 && Cm1 + v.l < TwoC );
+          //res = static_cast<unsigned>(v.h + C * ( ( Cm1 + v.k) +  TwoC * ( Cm1 + v.l) ));This way would be very slow
+          res = static_cast<unsigned>( (Cm1 + v.l) + TwoC * ( ( Cm1 + v.k) + TwoC * v.h ) );//And this way much better
+          nc_assert( res < 4*C*C*C );
+        }
+        return res;
+      }
+    };
+  }
+}
+
+NC::HKLList NC::detail::calculateHKLPlanesWithSymEqRefl( const StructureInfo& structureInfo,
+                                                         const AtomInfoList& atomList,
+                                                         FillHKLCfg cfg,
+                                                         bool no_forceunitdebyewallerfactor )
+{
+  nc_assert_always(structureInfo.spacegroup!=0);
+
+  const bool env_ignorefsqcut = std::getenv("NCRYSTAL_FILLHKL_IGNOREFSQCUT");
+  nc_assert( !env_ignorefsqcut || cfg.fsquarecut == 0.0 );//due to logic in calling function
+
+  const RotMatrix rec_lat = getReciprocalLatticeRot( structureInfo );
+  EqRefl sym(structureInfo.spacegroup);
+  auto sym_findrepval = [&sym]( int hh, int kk, int ll )
+  {
+    //NB: Tried to get eqv hkl with smallest min(|h|,|k|,|l|) instead to avoid
+    //using the large cache in symSeenTracker, but profiling showed this to
+    //cause a slowdown of 50% over the entire data library (in both rel and dbg
+    //builds!).
+    return sym.getEquivalentReflectionsRepresentativeValue(hh,kk,ll);
+  };
+
+  SymHKLSeenTracker symSeenTracker( env_ignorefsqcut ? -1.0 : cfg.dcutoff );
+
+  //Make sure to always skip the (0,0,0) group:
+  symSeenTracker.isFirstCheck(sym_findrepval(0,0,0));
+
+  //For now we allow selection of a particular hkl value via an env var (a hacky
+  //workarond required for certain validation plots - we should support this in
+  //NCMatCfg instead).
+  Optional<HKL> do_select;
+  const char * selecthklcfg = std::getenv("NCRYSTAL_FILLHKL_SELECTHKL");
+  if ( selecthklcfg ) {
+    VectS parts;
+    split(parts,selecthklcfg,0,',');
+    nc_assert_always(parts.size()==3);
+    do_select = sym_findrepval( str2int(parts.at(0)),
+                                str2int(parts.at(1)),
+                                str2int(parts.at(2)) );
+    //Pure efficiency improvement, mark *some* of the other values as already
+    //seen (not all, due to the std::set fallback in symSeenTrackar):
+    symSeenTracker.optimiseForSelection( do_select.value() );
+  }
+
+  auto cache = detail::fillHKLPreCalc( structureInfo, atomList, cfg);
+
+  NC::HKLList hkllist;
+  hkllist.reserve( 4096 );
+
+  //We now conduct a brute-force loop over h,k,l indices, adding calculated info
+  //in the following containers along the way. For reasons of symmetry we ignore
+  //roughly half (but not all since the sym_key's might have sign flips).
+
+  for( int loop_h = 0 ; loop_h <= cache.max_h; ++loop_h ) {
+    for( int loop_k = (loop_h?-cache.max_k:0); loop_k <= cache.max_k; ++loop_k ) {
+      for( int loop_l = -cache.max_l; loop_l <= cache.max_l; ++loop_l ) {
+
+        auto sym_key = sym_findrepval( loop_h, loop_k, loop_l );
+        if (!symSeenTracker.isFirstCheck(sym_key))
+          continue;//Already seen this sym_key once.
+
+        //calculate waveVector at the cost of a matrix multiplication, and
+        //preselect on its squared magnitude:
+        const Vector hkl(sym_key.h,sym_key.k,sym_key.l);
+        Vector waveVector = rec_lat*hkl;
+        const double ksq = waveVector.mag2();
+        if ( ! valueInInterval( cache.ksq_preselect_interval , ksq ) )
+          continue;
+
+        if (no_forceunitdebyewallerfactor) {
+          nclikely fillHKL_getWhkl( cache.whkl, ksq, cache.msd);
+        }
+
+        //calculate |F|^2
+        double real_or_imag_upper_limit(0.0);
+        for( unsigned i=0; i < cache.whkl.size(); ++i ) {
+          if ( cache.whkl[i] > cache.whkl_thresholds[i]) {
+            cache.cache_factors[i] = 0.0;
+            continue;//Abort early to save exp/cos/sin calls. Note that
+                     //O(fsquarecut) here corresponds to O(fsquarecut^2)
+                     //contributions to final FSquared - for which we demand
+                     //>fsquarecut below. We only do this when fsquarecut<1e-2
+                     //(see calculations for whkl_thresholds above).
+          } else {
+            double factor = cache.csl[i]*std::exp(-cache.whkl[i]);
+            cache.cache_factors[i] = factor;
+            //Assuming cos(phase)*factor=sin(phase)*factor=|factor| gives us a cheap upper limit on
+            //fsquared:
+            real_or_imag_upper_limit += cache.atomic_pos[i].size()*ncabs( factor );
+          }
+        }
+
+        //If the upper limit on fsq is below fsquarecut, we can skip already and
+        //avoid needless calculations further down:
+        if(real_or_imag_upper_limit*real_or_imag_upper_limit*2.0<cfg.fsquarecut)
+          continue;
+
+        //Time to calculate phases and sum up contributions. Use numerically
+        //stable summation, for better results on low-symmetry crystals (the
+        //main cost here is anyway the phase calculations, not the summation):
+        StableSum real, imag;
+        for( unsigned i=0 ; i < cache.whkl.size(); ++i ) {
+          double factor = cache.cache_factors[i];
+          if (!factor)
+            continue;
+          StableSum cpsum, spsum;
+          for ( auto& pos : cache.atomic_pos[i] ) {
+            //Phase is hkl.dot(pos)*2pi. We speed up the expensive
+            //calculation of sin+cos by a factor of 3 by shifting the phase to
+            //[0,2pi] (easily done by simply NOT multiplying with 2pi) and using
+            //our own fast sincos_02pi through sincos_2pix. Since typically 99%
+            //of the hkl initialisation time is spent calculating sin+cos here,
+            //that actually translates into an overall speedup of a factor of 3
+            //(measured in NCrystal v2.7.0)!
+            const double phase_div2pi = hkl.dot(pos);
+            double sp,cp;
+            std::tie(sp,cp) = sincos_2pix(phase_div2pi);
+            cpsum.add(cp);
+            spsum.add(sp);
+          }
+          real.add(cpsum.sum() * factor);
+          imag.add(spsum.sum() * factor);
+        }
+
+        const double FSquared = ncsquare( real.sum() ) + ncsquare( imag.sum() );
+
+        //skip weak or impossible reflections:
+        if(FSquared<cfg.fsquarecut)
+          continue;
+
+        //Calculate d-spacing and recheck cut:
+        const double dspacing = k2Pi / std::sqrt( ksq );
+
+        if ( !valueInInterval( cache.dcut_interval, dspacing ) )
+          continue;
+
+        if ( do_select.has_value() && !(sym_key == do_select.value()) )
+            continue;
+
+        if ( hkllist.size()> 1000000 && !env_ignorefsqcut )//guard against crazy setups
+          NCRYSTAL_THROW2(CalcError,"Combinatorics too great to reach requested dcutoff = "<<cfg.dcutoff<<" Aa");
+
+        hkllist.emplace_back();
+        auto& entry = hkllist.back();
+        entry.dspacing = dspacing;
+        entry.fsquared = FSquared;
+        auto sym_list = sym.getEquivalentReflections( sym_key );
+        entry.hkl = sym_list.front();
+        entry.multiplicity = sym_list.size() * 2;
+      }//loop_l
+    }//loop_k
+  }//loop_h
+
+  //NB: Not sorting by dspace (InfoBuilder will anyway do it and it is slightly
+  //complicated to do consistently).
+
+  hkllist.shrink_to_fit();
+  return hkllist;
 }

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,6 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCMatCfg.hh"
+#include "NCrystal/NCFactRequests.hh"
 #include "NCrystal/NCFactTypes.hh"
 #include "NCrystal/NCProcImpl.hh"
 #include "NCrystal/NCInfo.hh"
@@ -29,8 +30,8 @@
 
 /////////////////////////////////////////////////////////////////////////////////
 //                                                                             //
-// Detailed factory infrastructure used to produce text and info objects, but  //
-// also physics-process objects which leaves the management of RNG streams     //
+// Detailed factory infrastructure used to produce text and info objects, as   //
+// well as  physics-process objects which leaves the management of RNG streams //
 // and CachePtrs to the caller (see NCProcImpl.hh). This is the underlying     //
 // form used to represent all physics models in NCrystal, and any plugins      //
 // extending NCrystal with new physics capabilities should register factories  //
@@ -53,16 +54,10 @@ namespace NCrystal {
   namespace FactImpl {
 
     //Use registered factories:
-    NCRYSTAL_API shared_obj<const TextData>          createTextData( const TextDataPath& cfg );
-    NCRYSTAL_API shared_obj<const Info>           createInfo( const MatCfg& cfg );
-    NCRYSTAL_API shared_obj<const ProcImpl::Process> createScatter( const MatCfg& cfg );
-    NCRYSTAL_API shared_obj<const ProcImpl::Process> createAbsorption( const MatCfg& cfg );
-
-    //Disable and enable caching in these factories (default state upon startup
-    //is for caching to be enabled, unless the environment variable
-    //NCRYSTAL_NOCACHE is set):
-    NCRYSTAL_API void setCachingEnabled(bool);
-    NCRYSTAL_API bool getCachingEnabled();
+    NCRYSTAL_API shared_obj<const TextData>          createTextData( const TextDataPath& );
+    NCRYSTAL_API shared_obj<const Info>              createInfo( const MatCfg& );
+    NCRYSTAL_API shared_obj<const ProcImpl::Process> createScatter( const MatCfg& );
+    NCRYSTAL_API shared_obj<const ProcImpl::Process> createAbsorption( const MatCfg& );
 
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
@@ -74,6 +69,15 @@ namespace NCrystal {
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
+    //Create objects via derived requests:
+    NCRYSTAL_API shared_obj<const Info>              createInfo( const InfoRequest& );
+    NCRYSTAL_API shared_obj<const ProcImpl::Process> createScatter( const ScatterRequest& );
+    NCRYSTAL_API shared_obj<const ProcImpl::Process> createAbsorption( const AbsorptionRequest& );
+
+    //Same, but resolved via overload resolution:
+    NCRYSTAL_API shared_obj<const Info>              create( const InfoRequest& );
+    NCRYSTAL_API shared_obj<const ProcImpl::Process> create( const ScatterRequest& );
+    NCRYSTAL_API shared_obj<const ProcImpl::Process> create( const AbsorptionRequest& );
 
     ///////////////////////////
     // Factory base classes: //
@@ -105,16 +109,13 @@ namespace NCrystal {
       virtual ~Factory() = default;
     };
 
-    //Info and Absorption factories are simple:
-    using InfoFactory = Factory<FactoryType::Info,Info,MatInfoCfg>;
-    using AbsorptionFactory = Factory<FactoryType::Absorption,ProcImpl::Process,MatCfg>;
-
+    //Text data factories:
     class NCRYSTAL_API TextDataFactory
       : public Factory<FactoryType::TextData,TextDataSource,TextDataPath,TextDataSource>
     {
     public:
       using Factory::Factory;
-      //In addition usual Factory methods, TextData factories can also
+      //In addition to the usual Factory methods, TextData factories can
       //optionally be browsed, providing list of available entries
       //(cf. listAvailableFiles() fct in NCDataSources.hh):
       struct NCRYSTAL_API BrowseEntry {
@@ -126,18 +127,44 @@ namespace NCrystal {
       virtual BrowseList browse() const = 0;
     };
 
-    //Scatter factories gets a few convenience methods:
-    class NCRYSTAL_API ScatterFactory : public Factory<FactoryType::Scatter,ProcImpl::Process,MatCfg> {
+
+    //Info factories operates on TextData objects and the reduced set of
+    //parameters available in InfoRequests, and always represent a single phase
+    //at a time at the configuration level (the FactImpl infrastructure will
+    //take care of combinations for multiple phases). The can of course return
+    //multiphased Info objects (e.g. a single mysansspheres.ncmat file might
+    //result in a two-phased material being loaded):
+    using InfoFactory = Factory<FactoryType::Info,Info,InfoRequest>;
+
+    //Analogously, scatter and absorption factories operates on Info objects and
+    //the reduced set of parameters available in ScatterRequests and Absorption
+    //requests, respectively. Additionally, they must declare capabilities for
+    //handling multi- and single-phase configurations (most plugins with the
+    //exceptions of SANS plugins should provide SPOnly factories). Additionally,
+    //scatter factories also gets a few convenience methods added, which are
+    //useful for a plugin factory wanting to add new physics on top of existing
+    //capabilities.
+
+    enum class MultiPhaseCapability { MPOnly, SPOnly, Both };
+
+    class NCRYSTAL_API AbsorptionFactory : public Factory<FactoryType::Absorption,ProcImpl::Process,AbsorptionRequest> {
     public:
       using Factory::Factory;
       using ProcPtr = ProcImpl::ProcPtr;
+      using MultiPhaseCapability = FactImpl::MultiPhaseCapability;
+      virtual MultiPhaseCapability multiPhaseCapability() const { return MultiPhaseCapability::SPOnly; }
+    };
 
-      //Wraps ::NCrystal::FactImpl::createScatter but avoids our own factory for consideration:
-      ProcImpl::ProcPtr globalCreateScatter( const MatCfg&, bool allowself=false ) const;
+    class NCRYSTAL_API ScatterFactory : public Factory<FactoryType::Scatter,ProcImpl::Process,ScatterRequest> {
+    public:
+      using Factory::Factory;
+      using ProcPtr = ProcImpl::ProcPtr;
+      using MultiPhaseCapability = FactImpl::MultiPhaseCapability;
 
-      //Scatter factories often need to access Info, so make it easily available:
-      static shared_obj<const Info> globalCreateInfo( const MatCfg& );
-      static shared_obj<const Info> createInfo( const MatCfg& );
+      virtual MultiPhaseCapability multiPhaseCapability() const { return MultiPhaseCapability::SPOnly; }
+
+      //Wraps ::NCrystal::FactImpl::createScatter but excludes our own factory for consideration:
+      ProcImpl::ProcPtr globalCreateScatter( const ScatterRequest& ) const;
 
       //Combine multiple ProcPtr's into one:
       template<typename... Args>
@@ -192,6 +219,12 @@ namespace NCrystal {
     inline bool hasInfoFactory( const std::string& name ) { return hasFactory(FactoryType::Info,name); }
     inline bool hasScatterFactory( const std::string& name ) { return hasFactory(FactoryType::Scatter,name); }
     inline bool hasAbsorptionFactory( const std::string& name ) { return hasFactory(FactoryType::Absorption,name); }
+
+    inline shared_obj<const Info> create( const InfoRequest& req ) { return createInfo(req); }
+    inline shared_obj<const ProcImpl::Process> create( const ScatterRequest& req ) { return createScatter(req); }
+    inline shared_obj<const ProcImpl::Process> create( const AbsorptionRequest& req ) { return createAbsorption(req); }
+
+
   }
 }
 

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -52,6 +52,7 @@ namespace NCrystal {
                          Unspecified };
     KnlType knltype = KnlType::Unspecified;
     double suggestedEmax = 0;//optional, 0 means not available.
+    bool betaGridOptimised = false;//set to true if beta grid is known to not require thickening before sampling.
   };
 
   struct ScatKnlDataView {

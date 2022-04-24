@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -20,20 +20,23 @@
 
 #include "NCrystal/ncrystal.h"
 #include "NCrystal/NCRNG.hh"
+#include "NCrystal/NCInfoBuilder.hh"
 #include "NCrystal/NCMatCfg.hh"
 #include "NCrystal/NCFactImpl.hh"
 #include "NCrystal/NCFact.hh"
 #include "NCrystal/NCPluginMgmt.hh"
 #include "NCrystal/NCDataSources.hh"
 #include "NCrystal/internal/NCDynInfoUtils.hh"
+#include "NCrystal/internal/NCPlaneProvider.hh"
 #include "NCrystal/NCDump.hh"
 #include "NCrystal/internal/NCMath.hh"
 #include "NCrystal/internal/NCString.hh"
 #include "NCrystal/internal/NCAtomUtils.hh"
 #include "NCrystal/internal/NCDebyeMSD.hh"
+#include "NCrystal/internal/NCLatticeUtils.hh"//TODO: might not be needed eventually
+#include "NCrystal/internal/NCEqRefl.hh"//TODO: might not be needed eventually
 #include "NCrystal/internal/NCAtomDB.hh"
 #include "NCrystal/internal/NCVDOSEval.hh"
-#include <cstring>
 #include <cstdio>
 #include <cstdlib>
 
@@ -459,6 +462,16 @@ void ncrystal_invalidate(void* o)
 }
 
 void ncrystal_dump(ncrystal_info_t ci) { try { NC::dump(ncc::extract(ci)); } NCCATCH; }
+void ncrystal_dump_verbose(ncrystal_info_t ci, unsigned verbosity_lvl ) {
+  try {
+    NC::dump(ncc::extract(ci),
+             ( verbosity_lvl == 0
+               ? NC::DumpVerbosity::DEFAULT
+               : ( verbosity_lvl == 1
+                   ? NC::DumpVerbosity::VERBOSE1
+                   : NC::DumpVerbosity::VERBOSE2 ) ) );
+  } NCCATCH;
+}
 
 int ncrystal_info_getstructure( ncrystal_info_t ci,
                                 unsigned* spacegroup,
@@ -502,7 +515,7 @@ double ncrystal_info_getxsectabsorption( ncrystal_info_t ci )
 {
   try {
     auto& info = ncc::extract(ci);
-    return info->hasXSectAbsorption() ? info->getXSectAbsorption().dbl() : -1.0;
+    return info->getXSectAbsorption().dbl();
   } NCCATCH;
   return -1.0;
 }
@@ -511,7 +524,7 @@ double ncrystal_info_getxsectfree( ncrystal_info_t ci )
 {
   try {
     auto& info = ncc::extract(ci);
-    return info->hasXSectFree() ? info->getXSectFree().dbl() : -1.0;
+    return info->getXSectFree().dbl();
   } NCCATCH;
   return -1.0;
 }
@@ -520,7 +533,7 @@ double ncrystal_info_getdensity( ncrystal_info_t ci )
 {
   try {
     auto& info = ncc::extract(ci);
-    return info->hasDensity() ? info->getDensity().dbl() : -1.0;
+    return info->getDensity().dbl();
   } NCCATCH;
   return -1.0;
 }
@@ -529,7 +542,16 @@ double ncrystal_info_getnumberdensity( ncrystal_info_t ci )
 {
   try {
     auto& info = ncc::extract(ci);
-    return info->hasNumberDensity() ? info->getNumberDensity().dbl() : -1.0;
+    return info->getNumberDensity().dbl();
+  } NCCATCH;
+  return -1.0;
+}
+
+double ncrystal_info_getsld( ncrystal_info_t ci )
+{
+  try {
+    auto& info = ncc::extract(ci);
+    return info->getSLD().dbl();
   } NCCATCH;
   return -1.0;
 }
@@ -542,11 +564,28 @@ int ncrystal_info_getstateofmatter( ncrystal_info_t ih )
   return -1;
 }
 
+double ncrystal_info_braggthreshold( ncrystal_info_t ci )
+{
+  try {
+    auto bt = ncc::extract(ci)->getBraggThreshold();
+    return bt.has_value() ? bt.value().dbl() : -1.0;
+  } NCCATCH;
+  return -1.0;
+}
+
+int ncrystal_info_hklinfotype( ncrystal_info_t nfo )
+{
+  try {
+    return NC::enumAsInt( ncc::extract(nfo)->hklInfoType() );
+  } NCCATCH;
+  return -1;
+}
+
 int ncrystal_info_nhkl( ncrystal_info_t ci )
 {
   try {
     auto& info = ncc::extract(ci);
-    return info->hasHKLInfo() ? info->nHKL() : -1;
+    return info->hasHKLInfo() ? info->hklList().size() : -1;
   } NCCATCH;
   return -1;
 }
@@ -575,11 +614,12 @@ void ncrystal_info_gethkl( ncrystal_info_t ci, int idx,
 {
   try {
     auto& info = ncc::extract(ci);
-    NC::HKLList::const_iterator it = std::next(info->hklBegin(),idx);
-    nc_assert(it<info->hklEnd());
-    *h = it->h;
-    *k = it->k;
-    *l = it->l;
+    auto& hklList = info->hklList();
+    NC::HKLList::const_iterator it = std::next(hklList.begin(),idx);
+    nc_assert(it<hklList.end());
+    *h = it->hkl.h;
+    *k = it->hkl.k;
+    *l = it->hkl.l;
     *multiplicity = it->multiplicity;
     *dspacing = it->dspacing;
     *fsquared = it->fsquared;
@@ -589,6 +629,26 @@ void ncrystal_info_gethkl( ncrystal_info_t ci, int idx,
   *dspacing = *fsquared = -1.0;
 }
 
+void ncrystal_info_gethkl_allindices( ncrystal_info_t nfo, int idx,
+                                      int* h, int* k, int* l )
+{
+  try {
+    h[0] = k[0] = l[0] = 0;//signature for not possible
+    auto& info = ncc::extract(nfo);
+    auto& hklList = info->hklList();
+    NC::HKLList::const_iterator it = std::next(hklList.begin(),idx);
+    nc_assert(it<hklList.end());
+    nc_assert( info != nullptr );
+    auto res = NC::ExpandHKLHelper( *info );
+    for ( auto& e : res.expand( *it ) ) {
+      *h++ = e.h;
+      *k++ = e.k;
+      *l++ = e.l;
+    }
+    return;
+  } NCCATCH;
+  h[0] = k[0] = l[0] = 0;
+}
 
 unsigned ncrystal_info_ndyninfo( ncrystal_info_t ci )
 {
@@ -1108,6 +1168,26 @@ void ncrystal_multicreate_direct( const char* data,
 
 }
 
+int ncrystal_info_nphases( ncrystal_info_t ih )
+{
+  try {
+    return static_cast<int>(ncc::extract(ih)->getPhases().size());
+  } NCCATCH;
+  return -1;
+}
+
+ncrystal_info_t ncrystal_info_getphase( ncrystal_info_t ih, int iphase, double* fraction )
+{
+  *fraction = -1.0;
+  try {
+    const auto& ph = ncc::extract(ih)->getPhases().at(iphase);
+    *fraction = ph.first;
+    return ncc::createNewCHandle<ncc::Wrapped_Info>( ph.second );
+  } NCCATCH;
+  *fraction = -1.0;
+  return {nullptr};
+}
+
 ncrystal_info_t ncrystal_create_info( const char * cfgstr )
 {
   try {
@@ -1118,9 +1198,12 @@ ncrystal_info_t ncrystal_create_info( const char * cfgstr )
 
 double ncrystal_decodecfg_packfact( const char * cfgstr )
 {
+  //Obsolete, returns 1 (but we still decode the cfgstr just to help the user
+  //catch errors).
   try {
     NC::MatCfg cfg(cfgstr);
-    return cfg.get_packfact();
+    (void)cfg;
+    return 1.0;
   } NCCATCH;
   return -1.0;
 }
@@ -1210,20 +1293,6 @@ void ncrystal_clear_info_caches()
   ncrystal_clear_caches();
 }
 
-void ncrystal_disable_caching()
-{
-  try {
-    NC::FactImpl::setCachingEnabled(false);
-  } NCCATCH;
-}
-
-void ncrystal_enable_caching()
-{
-  try {
-    NC::FactImpl::setCachingEnabled(true);
-  } NCCATCH;
-}
-
 int ncrystal_has_factory( const char* name )
 {
   try {
@@ -1253,7 +1322,7 @@ unsigned ncrystal_info_natominfo( ncrystal_info_t ci_t )
     auto& info = ncc::extract(ci_t);
     if (!info->hasAtomInfo())
       return 0;
-    return static_cast<unsigned>(std::distance(info->atomInfoBegin(),info->atomInfoEnd()));
+    return static_cast<unsigned>(info->getAtomInfos().size());
   } NCCATCH;
   return 0;
 }
@@ -1269,9 +1338,10 @@ void ncrystal_info_getatominfo( ncrystal_info_t ci, unsigned iatom,
 {
   try {
     auto& info = ncc::extract(ci);
-    if (iatom >= std::distance(info->atomInfoBegin(),info->atomInfoEnd()))
+    auto& atominfos = info->getAtomInfos();
+    if ( iatom >= atominfos.size() )
       NCRYSTAL_THROW(BadInput,"ncrystal_info_getatominfo iatom is out of bounds");
-    const NC::AtomInfo& ai = *std::next(info->atomInfoBegin(),iatom);
+    const NC::AtomInfo& ai = atominfos.at(iatom);
     *atomdataindex = ai.atom().index.get();
     *number_per_unit_cell = ai.numberPerUnitCell();
     if ( ai.debyeTemp().has_value() )
@@ -1292,14 +1362,14 @@ void ncrystal_info_getatompos( ncrystal_info_t ci,
 {
   try {
     auto& info = ncc::extract(ci);
-    if (iatom >= std::distance(info->atomInfoBegin(),info->atomInfoEnd()))
-      NCRYSTAL_THROW(BadInput,"ncrystal_info_getatominfo iatom is out of bounds");
-    const NC::AtomInfo& ai = *std::next(info->atomInfoBegin(),iatom);
+    auto& atominfos = info->getAtomInfos();
+    if ( iatom >= atominfos.size() )
+      NCRYSTAL_THROW(BadInput,"ncrystal_info_getatompos iatom is out of bounds");
+    const NC::AtomInfo& ai = atominfos.at(iatom);
     const auto& poslist = ai.unitCellPositions();
-
     nc_assert( !poslist.empty() );//AtomInfo constructor forbids this
     if ( ! ( ipos < poslist.size() ) )
-      NCRYSTAL_THROW(BadInput,"ncrystal_info_getatominfo ipos is out of bounds");
+      NCRYSTAL_THROW(BadInput,"ncrystal_info_getatompos ipos is out of bounds");
     const auto& pos = poslist[ipos];
     *x = pos[0];
     *y = pos[1];
@@ -1308,8 +1378,6 @@ void ncrystal_info_getatompos( ncrystal_info_t ci,
   } NCCATCH;
   *x = *y = *z = -999.0;
 }
-
-
 
 unsigned ncrystal_info_ncustomsections( ncrystal_info_t ci )
 {
@@ -1392,7 +1460,7 @@ void ncrystal_atomdata_getfields( ncrystal_atomdata_t o,
     *mass = data.averageMassAMU().dbl();
     *cohsl_fm = data.coherentScatLenFM();
     *incxs = data.incoherentXS().dbl();
-    *absxs = data.captureXS();
+    *absxs = data.captureXS().dbl();
     *zval = data.isElement() ? data.Z() : 0;
     *aval = data.isSingleIsotope() ? data.A() : 0;
     *ncomponents = data.nComponents();
@@ -1418,10 +1486,7 @@ ncrystal_atomdata_t ncrystal_create_atomdata_subcomp( ncrystal_atomdata_t o,
 unsigned ncrystal_info_ncomponents( ncrystal_info_t ci )
 {
   try {
-    auto& info = ncc::extract(ci);
-    if (!info->hasComposition())
-      return 0;
-    auto n = info->getComposition().size();
+    auto n = ncc::extract(ci)->getComposition().size();
     nc_assert( n>0 && n < std::numeric_limits<unsigned>::max() );
     return static_cast<unsigned>(n);
   } NCCATCH;
@@ -1433,7 +1498,8 @@ void ncrystal_info_getcomponent( ncrystal_info_t ci, unsigned icomponent,
 {
   try {
     auto& info = ncc::extract(ci);
-    auto n = info->hasComposition() ? info->getComposition().size() : 0;
+    auto n = info->getComposition().size();
+    nc_assert(n>=1);
     if ( ! ( icomponent<n) )
       NCRYSTAL_THROW(BadInput,"Requested component index is out of bounds");
     const auto& comp = info->getComposition().at(icomponent);
@@ -1611,6 +1677,32 @@ char* ncrystal_getrngstate_ofscatter(ncrystal_scatter_t sh)
   return nullptr;
 }
 
+char* ncrystal_decodecfg_json( const char * cfgstr )
+{
+  try {
+    NC::MatCfg cfg(cfgstr);
+    return ncc::createString(cfg.toJSONCfg());
+  } NCCATCH;
+  return nullptr;
+}
+
+char * ncrystal_dbg_process( ncrystal_process_t o )
+{
+  try {
+    return ncc::createString(ncc::extractProcess(o).underlying().jsonDescription());
+  } NCCATCH;
+  return nullptr;
+}
+
+char* ncrystal_normalisecfg( const char * cfgstr )
+{
+  try {
+    NC::MatCfg cfg(cfgstr);
+    return ncc::createString(cfg.toStrCfg());
+  } NCCATCH;
+  return nullptr;
+}
+
 void ncrystal_setrngstate_ofscatter(ncrystal_scatter_t sh,const char* state_raw)
 {
   try {
@@ -1635,7 +1727,7 @@ void ncrystal_setrngstate_ofscatter(ncrystal_scatter_t sh,const char* state_raw)
 char** ncrystal_get_text_data( const char * name )
 {
   try {
-    //Adding: [contents, uid(as string), description,  resolvedphyspath]
+    //Adding: [contents, uid(as string), datasourcename,  resolvedphyspath]
     auto td = NC::FactImpl::createTextData( name );
     NC::VectS strlist;
     strlist.reserve(5);
@@ -1643,7 +1735,7 @@ char** ncrystal_get_text_data( const char * name )
     std::ostringstream suid;
     suid << td->dataUID().value() <<std::endl;
     strlist.emplace_back(suid.str());
-    strlist.emplace_back(td->description());
+    strlist.emplace_back(td->dataSourceName().str());
     strlist.emplace_back(td->dataType());
     if ( td->getLastKnownOnDiskLocation().has_value() )
       strlist.emplace_back( td->getLastKnownOnDiskLocation().value() );
@@ -1817,4 +1909,52 @@ void ncrystal_vdoseval( double vdos_emin, double vdos_emax,
     *temp_eff = res_te;
     *origIntegral = res_oi;
   } NCCATCH;
+}
+
+char * ncrystal_process_uid( ncrystal_process_t cproc )
+{
+  try {
+    std::ostringstream suid;
+    suid << ncc::extractProcess(cproc).underlying().getUniqueID().value;
+    return ncc::createString(suid.str());
+  } NCCATCH;
+  return nullptr;
+}
+
+char * ncrystal_info_uid( ncrystal_info_t ci )
+{
+  try {
+    auto& info = ncc::extract(ci);
+    std::ostringstream suid;
+    suid << info->getUniqueID().value;
+    return ncc::createString(suid.str());
+  } NCCATCH;
+  return nullptr;
+}
+
+char * ncrystal_info_underlyinguid( ncrystal_info_t ci )
+{
+  try {
+    std::ostringstream suid;
+    suid << ncc::extract(ci)->detail_getUnderlyingUniqueID().value;
+    return ncc::createString(suid.str());
+  } NCCATCH;
+  return nullptr;
+}
+
+char * ncrystal_gencfgstr_doc(int mode)
+{
+  try {
+    std::ostringstream ss;
+    switch (mode) {
+    case 0: NC::MatCfg::genDoc(ss,NC::MatCfg::GenDocMode::TXT_FULL); break;
+    case 1: NC::MatCfg::genDoc(ss,NC::MatCfg::GenDocMode::TXT_SHORT); break;
+    case 2: NC::MatCfg::genDoc(ss,NC::MatCfg::GenDocMode::JSON); break;
+    default:
+      NCRYSTAL_THROW2(BadInput,"Invalid mode " << mode
+                      << " passed to ncrystal_gencfgstr_doc (must be 0, 1, or 2)");
+    };
+    return ncc::createString(ss.str());
+  } NCCATCH;
+  return nullptr;
 }

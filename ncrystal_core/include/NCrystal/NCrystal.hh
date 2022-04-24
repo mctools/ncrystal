@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -43,6 +43,9 @@
 #ifndef NCrystal_Variant_hh
 #  include "NCrystal/NCVariant.hh"
 #endif
+#ifndef NCrystal_Fmt_hh
+#  include "NCrystal/NCFmt.hh"
+#endif
 #ifndef NCrystal_PluginMgmt_hh
 #  include "NCrystal/NCPluginMgmt.hh"
 #endif
@@ -54,6 +57,12 @@
 #endif
 #ifndef NCrystal_Info_hh
 #  include "NCrystal/NCInfo.hh"
+#endif
+#ifndef NCrystal_InfoTypes_hh
+#  include "NCrystal/NCInfoTypes.hh"
+#endif
+#ifndef NCrystal_InfoBuilder_hh
+#  include "NCrystal/NCInfoBuilder.hh"
 #endif
 #ifndef NCrystal_SABData_hh
 #  include "NCrystal/NCSABData.hh"
@@ -94,6 +103,9 @@
 #ifndef NCrystal_FactImpl_hh
 #  include "NCrystal/NCFactImpl.hh"
 #endif
+#ifndef NCrystal_FactRequests_hh
+#  include "NCrystal/NCFactRequests.hh"
+#endif
 #ifndef NCrystal_DataSources_hh
 #  include "NCrystal/NCDataSources.hh"
 #endif
@@ -102,6 +114,9 @@
 #endif
 #ifndef NCrystal_Types_hh
 #  include "NCrystal/NCTypes.hh"
+#endif
+#ifndef NCrystal_ImmutBuf_hh
+#  include "NCrystal/NCImmutBuf.hh"
 #endif
 
 #endif

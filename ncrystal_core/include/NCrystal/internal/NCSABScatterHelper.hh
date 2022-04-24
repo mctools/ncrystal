@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -31,15 +31,27 @@ namespace NCrystal {
     //Convenience struct and helper class for when both sampler and xsprovider
     //are both needed and with similar lifetimes. Should normally be constructed
     //by using either the SABFactory functions or a SABIntegrator.
+    //
+    //For reference it can optionally hold a JSON descriptive dictionary (in a
+    //format suitable for ProcImpl::specificJSONDescription).
 
     class SABScatterHelper : private MoveOnly {
     public:
-      SABScatterHelper(SABXSProvider&& xp,SABSampler&&sp) : xsprovider(std::move(xp)), sampler(std::move(sp)) {}
+      SABScatterHelper( SABXSProvider&& xp,
+                        SABSampler&&sp,
+                        Optional<std::string> json = NullOpt )
+        : xsprovider(std::move(xp)),
+          sampler(std::move(sp)),
+          specificJSONDescription(std::move(json))
+      {
+      }
       SABScatterHelper() = default;//incomplete
       SABScatterHelper( SABScatterHelper&& ) = default;
       SABScatterHelper& operator=( SABScatterHelper&& ) = default;
       SABXSProvider xsprovider;
       SABSampler sampler;
+      Optional<std::string> specificJSONDescription;
+
     };
 
   }

@@ -4,7 +4,7 @@
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2021 NCrystal developers                                   ##
+##  Copyright 2015-2022 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -95,6 +95,8 @@ except ImportError:
 
 info = NC.createInfo(args.FILE)
 do_print(f'Loaded info based on: "{args.FILE}"')
+if info.isMultiPhase():
+    sysexit(msg='Not applicable: Material has multiple phases',code=99)
 if not info.atominfos:
     sysexit(msg='Not applicable: Material does not have atom positions',code=99)
 if not info.hasStructureInfo() or not info.getStructureInfo()['spacegroup']:

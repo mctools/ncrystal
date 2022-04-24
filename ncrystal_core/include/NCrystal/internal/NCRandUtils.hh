@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -91,8 +91,8 @@ namespace NCrystal {
 #endif
 
     double generate();// uniformly in ]0,1]
-    uint64_t genUInt64();//uniformly over 0..uint64max-1 (i.e. all bits randomised)
-    uint32_t genUInt32();//uniformly over 0..uint32max-1 (i.e. all bits randomised)
+    uint64_t genUInt64();//uniformly over 0..uint64max (i.e. all bits randomised)
+    uint32_t genUInt32();//uniformly over 0..uint32max (i.e. all bits randomised)
     bool coinflip();
 
     void seed(uint64_t seed);

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2021 NCrystal developers                                   //
+//  Copyright 2015-2022 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -25,8 +25,6 @@
 #include "NCrystal/NCProcImpl.hh"
 
 namespace NCrystal {
-
-  class PlaneProvider;
 
   class PCBragg final : public ProcImpl::ScatterIsotropicMat {
   public:
@@ -56,12 +54,17 @@ namespace NCrystal {
     ScatterOutcomeIsotropic sampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const final;
 
     //Two PCBragg instances can be merged by merging the plane lists:
-    std::shared_ptr<Process> createMerged( const Process& ) const override;
+    std::shared_ptr<Process> createMerged( const Process& other,
+                                           double scale_self,
+                                           double scale_other ) const override;
+
 
     //Empty, no planes:
     PCBragg( no_init_t ) {}
 
   protected:
+    Optional<std::string> specificJSONDescription() const override;
+  private:
     CosineScatAngle genScatterMu(RNG&, NeutronEnergy ekin) const;
     std::size_t findLastValidPlaneIdx( NeutronEnergy ekin) const;
     NeutronEnergy m_threshold = NeutronEnergy{kInfinity};
