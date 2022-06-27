@@ -49,13 +49,13 @@ namespace NCrystal {
   //calls. The cache can obviously be cleared with the
   //clearSABDataFromDynInfoCaches function (automatically invoked by the global
   //clearCaches function):
-  std::shared_ptr<const SABData> extractSABDataFromDynInfo( const DI_ScatKnl*,
-                                                            unsigned vdoslux = 3,
-                                                            bool useCache = true,
-                                                            uint32_t vdos2sabExcludeFlag = 0 );
+  shared_obj<const SABData> extractSABDataFromDynInfo( const DI_ScatKnl*,
+                                                       unsigned vdoslux = 3,
+                                                       bool useCache = true,
+                                                       uint32_t vdos2sabExcludeFlag = 0 );
 
-  std::shared_ptr<const SABData> extractSABDataFromVDOSDebyeModel( DebyeTemperature, Temperature, SigmaBound, AtomMass,
-                                                                   unsigned vdoslux = 3, bool useCache = true );
+  shared_obj<const SABData> extractSABDataFromVDOSDebyeModel( DebyeTemperature, Temperature, SigmaBound, AtomMass,
+                                                              unsigned vdoslux = 3, bool useCache = true );
   void clearSABDataFromDynInfoCaches();
 
   //Idealised VDOS based only on Debye temperature:

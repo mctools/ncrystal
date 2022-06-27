@@ -43,17 +43,29 @@ namespace NCrystal {
   class SABSampler final : private MoveOnly {
   public:
 
+    struct EGridMargin {
+      //The value (typically 1 or a value a bit larger than 1, e.g. 1.05),
+      //specifies a safety margin for what egrid point to actually sample the
+      //overlay distribution. A value of 1.05 would indicate that Egrid must be
+      //at least 1.05*ekin. A value of 1.0 indicates no additional margin is
+      //required.
+      double value = 1.0;
+      constexpr EGridMargin(double vv = 1.0) noexcept : value(vv) {}//for C++11
+    };
+
     void setData( Temperature temperature,
                   VectD&& egrid,
                   std::vector<std::unique_ptr<SABSamplerAtE>>&&,
                   std::shared_ptr<const SAB::SABExtender>,
-                  double xsAtEmax );
+                  double xsAtEmax,
+                  EGridMargin );
 
     SABSampler( Temperature temperature,
                 VectD&& egrid,
                 std::vector<std::unique_ptr<SABSamplerAtE>>&&,
                 std::shared_ptr<const SAB::SABExtender>,
-                double xsAtEmax );
+                double xsAtEmax,
+                EGridMargin );
 
     SABSampler() = default;//invalid instance.
     ~SABSampler();
@@ -75,6 +87,7 @@ namespace NCrystal {
     std::shared_ptr<const SAB::SABExtender> m_extender;
     double m_xsAtEmax = 0.0, m_k1 = 0.0, m_k2 = 0.0;
     PairDD sampleHighE(NeutronEnergy, RNG&) const;
+    EGridMargin m_egridMargin;
   };
 }
 

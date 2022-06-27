@@ -1256,3 +1256,7 @@ void NC::MatCfg::genDoc( std::ostream& os, GenDocMode gdm )
                            : Cfg::CfgVarListMode::JSON ) );
   Cfg::dumpCfgVarList( os, cfgdumpmode );
 }
+
+void NC::MatCfg::set_ucnmode( const Optional<UCNMode>& v ) { m_impl.modify()->setVar( v, &CfgManip::set_ucnmode ); }
+NC::StrView NC::MatCfg::get_ucnmode_str() const { return CfgManip::get_ucnmode_str( m_impl->readVar(Cfg::VarId::ucnmode) ); }
+NC::Optional<NC::UCNMode> NC::MatCfg::get_ucnmode() const { return CfgManip::get_ucnmode( m_impl->readVar(Cfg::VarId::ucnmode) ); }

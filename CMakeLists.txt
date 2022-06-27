@@ -69,7 +69,7 @@ if(NOT DEFINED NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE)
 endif()
 
 #Setup project:
-project(NCrystal VERSION 3.0.0 LANGUAGES CXX C)
+project(NCrystal VERSION 3.1.0 LANGUAGES CXX C)
 
 if(NOT DEFINED NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE)
   if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
@@ -201,6 +201,8 @@ file_globsrc( EXAMPLES_NC "examples/ncrystal_example_c*.c*")
 file_globsrc( DATAFILES "data/*.ncmat")
 file_globsrc( SRCS_NCPY "ncrystal_python/*.py")
 file_globsrc( SRCS_PYSCRIPTS "ncrystal_python/ncrystal_*")
+file_globsrc( tmp "ncrystal_python/nctool" )
+list(APPEND SRCS_PYSCRIPTS ${tmp})
 file_globsrc( HDRS_NCG4 "ncrystal_geant4/include/G4NCrystal/*.*")
 file_globsrc( SRCS_NCG4 "ncrystal_geant4/src/*.cc")
 file_globsrc( EXAMPLES_NCG4 "examples/ncrystal_example_g4*.cc")

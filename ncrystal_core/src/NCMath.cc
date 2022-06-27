@@ -573,3 +573,4 @@ static_assert( NC::ncconstexpr_roundupnextpow2(3) == 4, "" );
 static_assert( NC::ncconstexpr_roundupnextpow2(4) == 4, "" );
 static_assert( NC::ncconstexpr_roundupnextpow2(17) == 32, "" );
 static_assert( NC::ncconstexpr_roundupnextpow2(24) == 32, "" );
+static_assert( std::numeric_limits<double>::is_iec559, "NCrystal requires IEEE 754 floating point numbers" );

@@ -83,6 +83,10 @@ else
 fi
 
 echo "Succesfully linked ${nccompfn} to current directory and added NCrystalLink which is needed for instrument build."
+echo
+echo "Important notice: If you are using NCrystal with the McStas-Union geometry system, you need to manually fix a DEPENDENCY"
+echo "                  line in NCrystal_process.comp. See https://github.com/mctools/ncrystal/discussions/88 for details."
+echo
 
 #Notify user about example instrument file (duplicated due to different filenames in different setups... for historical reasons):
 if [ -f "$mcstasdir/NCrystal_example_mcstas.instr" ]; then

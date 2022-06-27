@@ -52,9 +52,11 @@ namespace NCrystal {
   double ncmin(double, double);
   double ncmax(double, double);
   double ncclamp(double val, double low, double up);//returns val, clamped to interval [low,up]
+  double ncclamp(double val, PairDD low_and_up);
   double ncabs(double);
   bool ncisnan(double);
   bool ncisinf(double);
+  bool ncisnanorinf(double);
 
   //Versions with multiple parameters:
   double ncmin(double, double, double);
@@ -127,6 +129,7 @@ namespace NCrystal {
   inline constexpr double nccube( double x ) noexcept { return x*x*x; }
   bool isPrime(unsigned n);//simple O(n^0.5) implementation
   bool intervalsOverlap(double a0, double b0, double a1, double b1);
+  bool intervalsOverlap( const PairDD&, const PairDD& );
   bool intervalsDisjoint(double a0, double b0, double a1, double b1);
 
   //Quick check that a<=x<=b (do not use if a or b might be infinite):
@@ -142,8 +145,8 @@ namespace NCrystal {
 
   class Fct1D {
   public:
-    //A very basic function object (probably will be replaced with c++11 lambdas
-    //once c++98 support is dropped).
+    //A very basic function object based on dynamic polymorphism (we can replace
+    //with c++11 lambdas now c++98 support has been dropped).
     Fct1D(){};
     virtual ~Fct1D();
     virtual double eval(double x) const = 0;
@@ -243,6 +246,10 @@ namespace NCrystal {
   double integrateRomberg17(const Func& f, double a, double b);
   template <class Func>
   double integrateRomberg33(const Func& f, double a, double b);
+  template <class Func>
+  double integrateRombergFlex(const Func& f, double a, double b,
+                              double prec=1e-12, unsigned minlvl = 3, unsigned maxlvl = 10 );
+
 
   //Reduce pts on curve by removing points that are least important for overall shape:
   std::pair<VectD,VectD> reducePtsInDistribution( const VectD& x, const VectD& y, std::size_t targetN );
@@ -283,6 +290,7 @@ inline double NCrystal::ncmax(double a, double b, double c) { return std::max(c,
 inline double NCrystal::ncmin(double a, double b, double c) { return std::min(c,std::min(b,a)); }
 inline double NCrystal::ncmin(double a, double b, double c, double d) { return std::min(std::min(d,c),std::min(b,a)); }
 inline double NCrystal::ncmax(double a, double b, double c, double d) { return std::max(std::max(d,c),std::max(b,a)); }
+inline double NCrystal::ncclamp(double val, PairDD low_and_up) { return ncclamp(val,low_and_up.first,low_and_up.second); }
 
 inline constexpr unsigned NCrystal::ncconstexpr_log10ceil( unsigned val )
 {
@@ -313,6 +321,7 @@ constexpr TInt NCrystal::ncconstexpr_roundupnextpow2( TInt a )
 inline double NCrystal::ncabs(double a) { return std::abs(a); }
 inline bool NCrystal::ncisnan(double a) { return std::isnan(a); }
 inline bool NCrystal::ncisinf(double a) { return std::isinf(a); }
+inline bool NCrystal::ncisnanorinf(double a) { return std::isnan(a) || std::isinf(a); }
 
 inline double NCrystal::ncclamp(double val, double low, double up)
 {
@@ -321,6 +330,11 @@ inline double NCrystal::ncclamp(double val, double low, double up)
   //was checked to produce just two instructions (do NOT change argument order
   //here, or it will generate more instructions).
   return ncmin(ncmax(val,low),up);
+}
+
+inline bool NCrystal::intervalsOverlap( const PairDD& x, const PairDD& y )
+{
+  return intervalsOverlap( x.first, x.second, y.first, y.second );
 }
 
 inline NCrystal::PairDD NCrystal::sincos_2pix( double x )
@@ -574,7 +588,8 @@ inline double NCrystal::integrateTrapezoidal(const Func& f, double a, double b, 
 }
 
 template <class Func>
-inline double NCrystal::integrateRomberg17(const Func& f, double a, double b) {
+inline double NCrystal::integrateRomberg17(const Func& f, double a, double b)
+{
   struct R17 : public Romberg {
     const Func& m_f;
     R17(const Func& f) : m_f(f) {}
@@ -586,7 +601,8 @@ inline double NCrystal::integrateRomberg17(const Func& f, double a, double b) {
 }
 
 template <class Func>
-inline double NCrystal::integrateRomberg33(const Func& f, double a, double b) {
+inline double NCrystal::integrateRomberg33(const Func& f, double a, double b)
+{
   struct R33 : public Romberg {
     const Func& m_f;
     R33(const Func& f) : m_f(f) {}
@@ -595,6 +611,27 @@ inline double NCrystal::integrateRomberg33(const Func& f, double a, double b) {
     bool accept(unsigned lvl, double, double,double,double) const override { return lvl>4; }
   };
   return R33(f).integrate(a,b);
+}
+
+template <class Func>
+inline double NCrystal::integrateRombergFlex(const Func& f, double a, double b, double prec, unsigned minlvl, unsigned maxlvl )
+{
+  struct RFlex final : public Romberg {
+    const Func& m_f;
+    double m_prec;
+    unsigned m_minlvl;
+    unsigned m_maxlvl;
+    RFlex(const Func& f, double pp,unsigned minl, unsigned maxl) : m_f(f), m_prec(pp), m_minlvl(minl), m_maxlvl(maxl) {}
+    double evalFunc(double x) const override { return m_f(x); }
+    bool accept(unsigned level, double prev_est, double est, double, double) const override
+    {
+      return level>=m_minlvl && (level>=m_maxlvl || floateq(prev_est,est,m_prec,0.0));
+    }
+  };
+  nc_assert(maxlvl>=minlvl);
+  nc_assert(minlvl>=3);
+  nc_assert(prec<1.0&&prec>=0.0);
+  return RFlex(f,prec,minlvl,maxlvl).integrate(a,b);
 }
 
 template <class Func>

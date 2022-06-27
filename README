@@ -10,7 +10,7 @@ amorphous solids, and liquids. Multiphase materials or isotopically enriched
 material are supported as well, and the framework furthermore supports
 phase-contrast (SANS) physics. Written in C++, interfaces and infrastructure
 facilitate integration into existing simulation frameworks such as Geant4
-(https://geant4.cern.ch/) or McStas (http://mcstas.org/), as well as allowing
+(https://geant4.web.cern.ch/) or McStas (http://mcstas.org/), as well as allowing
 direct usage from C++, C or Python code or via command-line tools. While the C++
 library is designed with a high degree of flexibility in mind for developers,
 typical end-user configuration is deliberately kept simple and uniform across

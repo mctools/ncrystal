@@ -86,10 +86,15 @@ namespace NCrystal {
                         "themselves being multi-phased, the phasechoice parameter can be specified "
                         "more than once to navigate deeper into the sub-phase tree."
                         );
-      return {
-        TopLvlVar( sv_density, sv_density_descr, sv_density_units ),
-        TopLvlVar( sv_phasechoice, sv_phasechoice_descr ),
-      };
+      SmallVector<TopLvlVar,3> res;
+      res.emplace_back(sv_density, sv_density_descr, sv_density_units);
+      res.emplace_back(sv_phasechoice, sv_phasechoice_descr);
+      return res;
+      //NB: Returning like this gives spurious(?) compilation warnings with gcc7:
+      // return {
+      //   TopLvlVar( sv_density, sv_density_descr, sv_density_units ),
+      //   TopLvlVar( sv_phasechoice, sv_phasechoice_descr ),
+      // };
     }
 
     SmallVector<PseudoVar,3> getPseudoVars( VarGroupId gr ) {

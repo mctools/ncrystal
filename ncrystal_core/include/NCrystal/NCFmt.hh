@@ -119,9 +119,7 @@ namespace NCrystal {
   using ShortStrDbl = ShortStr< detail::max_size_strbuf_double + 1 >;
   using ShortStrFlt = ShortStr< detail::max_size_strbuf_float + 1 >;
 
-  //Encode in shortest form which preserves value. If notInteger=true, integral
-  //values will always contain a dot (e.g. a value of 5.0 will be encoded as
-  //"5.0" not "5"), for clear type indication:
+  //Encode in shortest form which preserves value (unless fmtstr is set):
   ShortStrDbl dbl2shortstr( double value, const char * fmtstr = nullptr );
 
   //Utilities for printing double's to ostreams, either via a format string

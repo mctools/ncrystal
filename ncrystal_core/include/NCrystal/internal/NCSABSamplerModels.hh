@@ -31,6 +31,11 @@ namespace NCrystal {
     class SABSamplerAtE_Alg1 : public SABSamplerAtE {
       //A sampler which implements Algorithm1 of the Algorithm 1. of the
       //sampling paper (https://doi.org/10.1016/j.jcp.2018.11.043).
+      //
+      //On top of that, for NCrystal v3.1.0, a special treatment of the first
+      //beta-bin was added, since the piece-wise linear assumption was too crude
+      //there.
+
     public:
       PairDD sampleAlphaBeta(double ekin_div_kT, RNG&) const final;
 
@@ -54,11 +59,10 @@ namespace NCrystal {
                           VectD&& betaVals,
                           VectD&& betaWeights,
                           std::vector<AlphaSampleInfo>&&,
-                          std::size_t ibetaOffset );
+                          std::size_t ibetaOffset,
+                          double firstBinKinematicEndpointValue = 1.0 );
 
     private:
-      //Sample beta from P(beta|Ei) (line 4 of Alg. 1 in the sampling paper):
-      double sampleBeta(RNG&) const;
       // Sample alpha from F(alpha|beta_j,Ei) (line 7-8 of Alg. 1 in the sampling
       // paper). NB: this needs to work with a single random number, the
       // percentile, for purposes of interpolating between two beta-rows:
@@ -69,6 +73,12 @@ namespace NCrystal {
       PointwiseDist m_betaSampler;
       std::vector<AlphaSampleInfo> m_alphaSamplerInfos;
       std::size_t m_ibetaOffset;
+      double m_firstBinKinematicEndpointValue;//if <=0, lowest beta value in
+                                              //m_betaSampler has been moved
+                                              //down -1/3*firstbinwidth to fake
+                                              //the weight of a sqrt-like curve
+                                              //rather than a trapezoidal curve
+                                              //in the first bin.
     };
 
     class SABSamplerAtE_NoScatter : public SABSamplerAtE {

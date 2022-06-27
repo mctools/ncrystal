@@ -28,6 +28,9 @@ void NC::validateScatKnlData( const NC::ScatKnlDataView& data )
   auto xlabel = (data.knltype == ScatKnlData::KnlType::SQW?"Q":"alpha");
   auto ylabel = (data.knltype == ScatKnlData::KnlType::SQW?"omega":"beta");
 
+  if ( data.knltype == ScatKnlData::KnlType::Unspecified )
+    NCRYSTAL_THROW(BadInput,"Scatter kernel data has Unspecified type.");
+
   if ( !(data.temperature.get()>0.0) )
     NCRYSTAL_THROW(BadInput,"Scatter kernel data has invalid temperature");
 

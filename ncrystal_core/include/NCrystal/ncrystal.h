@@ -515,12 +515,17 @@ extern "C" {
 #  undef NCRYSTAL_VERSION_STR
 #endif
 #define NCRYSTAL_VERSION_MAJOR 3
-#define NCRYSTAL_VERSION_MINOR 0
+#define NCRYSTAL_VERSION_MINOR 1
 #define NCRYSTAL_VERSION_PATCH 0
-#define NCRYSTAL_VERSION   3000000 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
-#define NCRYSTAL_VERSION_STR "3.0.0"
+#define NCRYSTAL_VERSION   3001000 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
+#define NCRYSTAL_VERSION_STR "3.1.0"
   NCRYSTAL_API int ncrystal_version(); /* returns NCRYSTAL_VERSION                  */
   NCRYSTAL_API const char * ncrystal_version_str(); /* returns NCRYSTAL_VERSION_STR */
+
+  /* Load raw NCMAT data into JSON structures. Must deallocate with call to        */
+  /* ncrystal_dealloc_string as usual. (WARNING: JSON is incomplete for now!!!!!)  */
+  NCRYSTAL_API char * ncrystal_ncmat2json( const char * textdataname );
+
 
   /*============================================================================== */
   /*============================================================================== */

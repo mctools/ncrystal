@@ -32,13 +32,26 @@ namespace NCrystal {
   //to check muIsotropicAtBeta before calling this (for numerical safety, but it
   //might also save the effort of sampling alpha).
   PairDD convertAlphaBetaToDeltaEMu(double alpha, double beta, NeutronEnergy ekin, double kT );
-  inline PairDD convertAlphaBetaToDeltaEMu(PairDD alphabeta, NeutronEnergy ekin, double kT )
-  {
-    return convertAlphaBetaToDeltaEMu(alphabeta.first,alphabeta.second,ekin,kT);
-  }
+  PairDD convertAlphaBetaToDeltaEMu(PairDD alphabeta, NeutronEnergy ekin, double kT );
 
   //Get kinematically accessible alpha region for given ekin/kT and beta:
+  double getAlphaMinus( double ekin_div_kT, double beta );
+  double getAlphaPlus( double ekin_div_kT, double beta );
+
+  //It is faster to get both (alpha-,alpha+) at once (returns (1.0,-1.0) if not
+  //kinematically accessible, i.e. beta<-E/kT):
   PairDD getAlphaLimits( double ekin_div_kT, double beta );
+
+  //Get { alpha-, alpha+, and alpha+ - alpha- } in numerically stable manner:
+  struct AlphaLimitsWithDiff { double aminus, aplus, adiff; };
+  AlphaLimitsWithDiff getAlphaLimitsWithDiff( double ekin_div_kT, double beta );
+
+  //Get kinematically accessible beta region for given ekin/kT and alpha:
+  double getBetaMinus( double ekin_div_kT, double alpha );
+  double getBetaPlus( double ekin_div_kT, double alpha );
+
+  //It is again faster to get both (beta-,beta+) at once:
+  PairDD getBetaLimits( double ekin_div_kT, double alpha );
 
   //Near kinematic endpoint. alpha-, alpha, and alpha+ might become numerically
   //indistinguishable at floating point precision, but mu=cos(scattering_angle)
@@ -54,6 +67,142 @@ namespace NCrystal {
   }
 
 
+}
+
+
+////////////////////////////
+// Inline implementations //
+////////////////////////////
+
+namespace NCrystal {
+  inline PairDD convertAlphaBetaToDeltaEMu( PairDD alphabeta, NeutronEnergy ekin, double kT )
+  {
+    return convertAlphaBetaToDeltaEMu(alphabeta.first,alphabeta.second,ekin,kT);
+  }
+
+  namespace detail {
+    inline bool alphaMinusNeedsTaylor( double ekin_div_kT, double beta )
+    {
+      return std::abs(beta) < 0.01*ekin_div_kT;
+    }
+    inline double alphaMinusTaylor( double ekin_div_kT, double beta ) {
+      nc_assert( ekin_div_kT > 0.0 );
+      nc_assert( std::abs(beta) < 0.011*ekin_div_kT );
+      const double x = beta / ekin_div_kT;
+      constexpr double c9 = -715./32768.;
+      constexpr double c8 = 429./16384.;
+      constexpr double c7 = -33./1024.;
+      constexpr double c6 = 21./512.;
+      constexpr double c5 = -7./128.;
+      constexpr double c4 = 5./64.;
+      constexpr double c3 = - 1./8.;
+      constexpr double c2 = 1./4.;
+      return beta*x*(c2+x*(c3+x*(c4+x*(c5+x*(c6+x*(c7+x*(c8+x*c9)))))));
+    }
+  }
+
+  //Get kinematically accessible alpha region for given ekin/kT and beta:
+  inline PairDD getAlphaLimits( double ekin_div_kT, double beta )
+  {
+    nc_assert( ekin_div_kT >= 0.0 );
+    nc_assert( !std::isnan(beta) );
+    const double kk = ekin_div_kT + beta;
+    if ( !(kk >= 0.0) ) {
+      //kinematically forbidden
+      return std::make_pair(1.0,-1.0);
+    }
+    const double a = kk + ekin_div_kT;
+    const double b = 2.0*std::sqrt( ekin_div_kT * kk );
+    const double aminus = ( detail::alphaMinusNeedsTaylor( ekin_div_kT, beta )
+                            ? detail::alphaMinusTaylor( ekin_div_kT, beta )
+                            : std::max(0.0,a - b) );
+    nc_assert( a+b >= aminus );
+    return std::make_pair( aminus, a + b );
+  }
+
+  inline AlphaLimitsWithDiff getAlphaLimitsWithDiff( double ekin_div_kT, double beta )
+  {
+    nc_assert( ekin_div_kT >= 0.0 );
+    nc_assert( !std::isnan(beta) );
+    nc_assert( beta >= -ekin_div_kT );
+    const double kk = ekin_div_kT + beta;
+    const double a = kk + ekin_div_kT;
+    const double b = 2.0*std::sqrt( ekin_div_kT * kk );
+    const double aminus = ( detail::alphaMinusNeedsTaylor( ekin_div_kT, beta )
+                            ? detail::alphaMinusTaylor( ekin_div_kT, beta )
+                            : std::max(0.0,a - b) );
+    return { aminus, a+b, 2.0*b };
+  }
+
+  inline double getAlphaMinus( double ekin_div_kT, double beta ) {
+    nc_assert(ekin_div_kT >= 0.0);
+    if ( detail::alphaMinusNeedsTaylor( ekin_div_kT, beta ) )
+      return detail::alphaMinusTaylor( ekin_div_kT, beta );
+    nc_assert( ekin_div_kT >= 0.0 );
+    nc_assert( !std::isnan(beta) );
+    const double kk = ekin_div_kT + beta;
+    nc_assert( kk >= 0.0 );
+    const double a = kk + ekin_div_kT;
+    const double b = 2.0*std::sqrt( ekin_div_kT * kk );
+    return std::max(0.0,a - b);
+  }
+
+  inline double getAlphaPlus( double ekin_div_kT, double beta )
+  {
+    nc_assert(ekin_div_kT >= 0.0);
+    nc_assert( ekin_div_kT >= 0.0 );
+    nc_assert( !std::isnan(beta) );
+    const double kk = ekin_div_kT + beta;
+    nc_assert( kk >= 0.0 );
+    const double a = kk + ekin_div_kT;
+    const double b = 2.0*std::sqrt( ekin_div_kT * kk );
+    return a + b;
+  }
+
+  namespace detail {
+    inline bool betaMinusNeedsTaylor( double ekin_div_kT, double alpha )
+    {
+      return std::abs( alpha - 4.0*ekin_div_kT) < 0.05*ekin_div_kT;
+    }
+
+    inline double betaMinusTaylor( double ekin_div_kT, double alpha ) {
+      const double x = alpha / ekin_div_kT - 4.0;
+      nc_assert( std::abs(x) < 0.051 );
+      constexpr double c1 = 0.5;
+      constexpr double c2 = 1./32.;
+      constexpr double c3 = -1./256.;
+      constexpr double c4 = 5./8192.;
+      constexpr double c5 = -7./65536.;
+      constexpr double c6 = 21./1048576.;
+      constexpr double c7 = -33./8388608.;
+      constexpr double c8 = 429./536870912.;
+      return ekin_div_kT*(x*(c1+x*(c2+x*(c3+x*(c4+x*(c5+x*(c6+x*(c7+x*c8))))))));
+    }
+  }
+
+  inline double getBetaMinus( double ekin_div_kT, double alpha )
+  {
+    nc_assert(ekin_div_kT*alpha>=0);
+    return ( detail::betaMinusNeedsTaylor( ekin_div_kT, alpha )
+             ? detail::betaMinusTaylor( ekin_div_kT, alpha )
+             : ( alpha - 2*std::sqrt(ekin_div_kT*alpha) ) );
+  }
+
+  inline double getBetaPlus( double ekin_div_kT, double alpha )
+  {
+    nc_assert(ekin_div_kT*alpha>=0);
+    return alpha + 2*std::sqrt(ekin_div_kT*alpha);
+  }
+
+  inline PairDD getBetaLimits( double ekin_div_kT, double alpha )
+  {
+    nc_assert(ekin_div_kT>=0);
+    nc_assert(alpha>=0);
+    const double k = 2*std::sqrt(ekin_div_kT*alpha);
+    return { ( detail::betaMinusNeedsTaylor( ekin_div_kT, alpha )
+               ? detail::betaMinusTaylor( ekin_div_kT, alpha )
+               : alpha - k ), alpha + k };
+  }
 }
 
 #endif

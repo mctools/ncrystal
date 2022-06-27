@@ -21,7 +21,6 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
 #include "NCrystal/internal/NCMath.hh"
 
 namespace NCrystal {
@@ -79,6 +78,32 @@ namespace NCrystal {
                       const std::string& name,const std::string& descr ) const;
 
   };
+
+  class PiecewiseLinearFct1D {
+    //A simple piecewise linear function, with controllabe behaviour for
+    //over/underflow requests (an exception or a fixed value).
+  public:
+    struct OutOfBoundsYValues { Optional<double> underflowYValue, overflowYValue; };
+
+    //Construct by {xi,yi} pairs, where the {xi} values form a valid grid.
+    PiecewiseLinearFct1D( VectD x, VectD y, OutOfBoundsYValues = { NullOpt, NullOpt } );
+    double eval( double x ) const;
+    double operator()( double x ) const { return eval(x); }
+
+    //Dump points to text file for debugging purposes:
+    void dumpToFile( const std::string& filename ) const;
+
+    const VectD& xValues() const noexcept { return m_x; }
+    const VectD& yValues() const noexcept { return m_y; }
+    const OutOfBoundsYValues& outOfBoundsYValues() const noexcept { return m_ofVals; }
+    std::size_t size() const { return m_x.size(); }
+
+  private:
+    double evalEdgeCase( VectD::const_iterator, double x ) const;
+    VectD m_x, m_y;
+    OutOfBoundsYValues m_ofVals;
+  };
+
 
 }
 
@@ -144,6 +169,40 @@ inline void NCrystal::SplinedLookupTable::swap(NCrystal::SplinedLookupTable&o) {
 inline void NCrystal::CubicSpline::swap(NCrystal::CubicSpline&o) {
   std::swap(m_nm2,o.m_nm2);
   std::swap(m_data,o.m_data);
+}
+
+inline NCrystal::PiecewiseLinearFct1D::PiecewiseLinearFct1D( VectD x,
+                                                             VectD y,
+                                                             OutOfBoundsYValues ofVals )
+  : m_x(std::move(x)),
+    m_y(std::move(y)),
+    m_ofVals(std::move(ofVals))
+{
+  nc_assert_always( m_x.size() >= 2 );
+  nc_assert_always( m_x.size() == m_y.size() );
+  nc_assert( nc_is_grid(m_x) );
+#ifndef NDEBUG
+  for ( auto& e : m_y ) {
+    nc_assert( !ncisinf(e) );
+    nc_assert( !ncisnan(e) );
+  }
+#endif
+  m_x.shrink_to_fit();
+  m_y.shrink_to_fit();
+}
+
+inline double NCrystal::PiecewiseLinearFct1D::eval( double x ) const {
+  nc_assert(!ncisnan(x));
+  auto it = std::lower_bound( m_x.begin(), m_x.end(), x );
+  if ( it == m_x.end() || it == m_x.begin() )
+    return evalEdgeCase( it, x );
+  auto idx = std::distance(m_x.begin(),it);
+  auto itY = std::next(m_y.begin(),idx);
+  const double x1 = *it--;
+  const double x0 = *it;
+  const double y1 = *itY--;
+  const double y0 = *itY;
+  return y0 + (y1-y0 ) * ( x - x0 ) / ( x1 - x0 );
 }
 
 #endif

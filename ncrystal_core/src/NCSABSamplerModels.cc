@@ -21,18 +21,21 @@
 #include "NCrystal/internal/NCSABSamplerModels.hh"
 #include "NCrystal/internal/NCSABUtils.hh"
 #include "NCrystal/internal/NCString.hh"
+#include <iostream>
 namespace NC = NCrystal;
 
 NC::SAB::SABSamplerAtE_Alg1::SABSamplerAtE_Alg1( std::shared_ptr<const CommonCache> common,
                                                  VectD&& betaVals,
                                                  VectD&& betaWeights,
                                                  std::vector<AlphaSampleInfo>&& alphaSamplerInfos,
-                                                 std::size_t ibetaOffset )
+                                                 std::size_t ibetaOffset,
+                                                 double firstBinKinematicEndpointValue )
   : m_common( std::move(common) ),
     m_betaSampler(VectD(betaVals.begin(),betaVals.end()),//todo: in principle no need to copy here.
                   VectD(betaWeights.begin(),betaWeights.end()) ),
     m_alphaSamplerInfos( std::move(alphaSamplerInfos) ),
-    m_ibetaOffset( ibetaOffset )
+    m_ibetaOffset( ibetaOffset ),
+    m_firstBinKinematicEndpointValue(firstBinKinematicEndpointValue)
 {
   nc_assert( !!m_common );
   nc_assert( betaWeights.size() == betaVals.size() );
@@ -46,54 +49,86 @@ NC::PairDD NC::SAB::SABSamplerAtE_Alg1::sampleAlphaBeta(double ekin_div_kT, RNG&
 {
   nc_assert(!!m_common);
   const auto& betaGrid = m_common->data->betaGrid();
-  const auto& alphaGrid = m_common->data->alphaGrid();
+  //  const auto& alphaGrid = m_common->data->alphaGrid();
   nc_assert(m_ibetaOffset<betaGrid.size());
 
   //Allow only loopmax sample attempts, to make sure we detect if code gets too
   //inefficient. However, make sure users can override this if needed.
-  static const unsigned s_loopmax = []() -> unsigned
-                                    {
-                                      auto envstr = getenv("NCRYSTAL_SABSAMPLE_LOOPMAX");
-                                      return envstr ? str2int(envstr) : 100;
-                                    }();
+  static const unsigned s_loopmax = ncgetenv_int("SABSAMPLE_LOOPMAX", 100 );
+
   unsigned iloopmax(s_loopmax+1);
   while (--iloopmax) {
     double beta;
     unsigned ibetaSampled;
-    std::tie(beta,ibetaSampled) = m_betaSampler.sampleWithIndex( rng );
+    std::tie(beta,ibetaSampled) = m_betaSampler.percentileWithIndex( rng() );
 
     nc_assert( !ncisnan(beta) );
     nc_assert( beta <= betaGrid.back() );
     nc_assert( ibetaSampled < m_betaSampler.getXVals().size() );
 
+    if ( ibetaSampled == 0 && m_firstBinKinematicEndpointValue <= 0.0 ) {
+      //Resample the first starting at m_firstBinKinematicEndpointValue rather
+      //than the fake initial value in the beta sampler (see also comment in
+      //NCSABIntegrator.cc). Assuming that the first actual alpha sampler
+      //contains the best bet for the alpha-dependency over the entire
+      //rectangle, we first sample alpha according to the first alpha
+      //sampler. Beta is then sampled uniformly, and we discard values outside
+      //the kinematic boundary.
+      const double b0 = m_firstBinKinematicEndpointValue;
+      const double b1 = vectAt(m_betaSampler.getXVals(),1);
+      if ( b1 < -ekin_div_kT )
+        continue;//reject no matter what
+      nc_assert( b0 > m_betaSampler.getXVals().at(0) );//because we moved m_betaSampler.getXVals()[0] down by 4/3*(b1-b0)
+      const double delta_beta = b1 - b0;
+      nc_assert(delta_beta>0.0);
+      double alphaval;
+      unsigned tktest(0);
+      constexpr auto nsampletries = 30;
+      for ( auto iii : ncrange(nsampletries) ) {
+        ++tktest;
+        (void)iii;
+        beta = ncmax(m_firstBinKinematicEndpointValue, b0 + delta_beta*rng.generate());
+        if ( beta < -ekin_div_kT )
+          break;//reject
+        alphaval = sampleAlpha(m_ibetaOffset, rng.generate());
+        auto alims = getAlphaLimits(-m_firstBinKinematicEndpointValue,beta);
+        if ( valueInInterval(alims,alphaval) )
+          break;
+        constexpr auto nsampletriesm1 = nsampletries - 1;
+        if ( iii == nsampletriesm1 ) {
+          //Too inefficient. Fall back to isotropic alpha at the given beta.
+          static std::atomic<unsigned> s_nfail{0};
+          static constexpr unsigned nfail_max_warn = 20;
+          auto nfail = ++s_nfail;
+          if ( nfail <= nfail_max_warn ) {
+            std::cout<< "NCrystal WARNING: SABSampler reverts to isotropic model after "<<nsampletries<<" rejected attempts"
+                     << ( nfail == nfail_max_warn ? " (suppressing further warnings of this type)" : "" )
+                     << std::endl;
+          }
+          alphaval = 0.5*(alims.first+alims.second);
+          break;
+        }
+      }
+      if ( beta < -ekin_div_kT )
+        continue;//reject
+      auto alimits = getAlphaLimits( ekin_div_kT, beta );
+      if ( valueInInterval( alimits.first, alimits.second, alphaval ) )
+        return { alphaval, beta };//accept
+      continue;//reject
+    }
+
     if (beta <= ncmax(-ekin_div_kT,betaGrid.front()))
       continue;//reject
+
     double alphal(-1.0), bl;
     std::size_t ibeta;
 
     double rand_percentile = rng.generate();
-
-    if ( beta <= m_betaSampler.getXVals().at(1) ) {
-      //Special case, beta is before the first actual betaGrid point used to
-      //construct this instance of SABSamplerAtE_Alg1. Simply pick uniformly in
-      //allowed region (nb: we could of course instead query the actual S-values
-      //and interpolate among them).
-      bl = m_betaSampler.getXVals().front();
-      auto alimits_bl = getAlphaLimits( ekin_div_kT, bl );
-      double alphal_low = ncclamp(alimits_bl.first,alphaGrid.front(),alphaGrid.back());
-      double alphal_up = ncclamp(alimits_bl.second,alphaGrid.front(),alphaGrid.back());
-      alphal = alphal_low + rng.generate()*(alphal_up-alphal_low);
-      ibeta = m_ibetaOffset;
-      //Double-check that chosen ibeta value gives correct bh=betaGrid.at(ibeta)
-      //value, i.e. m_betaSampler.getXVals().at(1):
-      nc_assert(floateq(m_betaSampler.getXVals().at(1),betaGrid.at(ibeta)));
-    } else {
-      ibeta = m_ibetaOffset + ibetaSampled;
-      nc_assert( ibeta>0 );
-      bl = betaGrid.at(ibeta-1);
-      alphal = sampleAlpha(ibeta-1, rand_percentile);
-    }
-
+    nc_assert ( beta >= m_betaSampler.getXVals().at(1) );
+    ibeta = m_ibetaOffset + ibetaSampled;
+    nc_assert( ibeta>0 );
+    bl = betaGrid.at(ibeta-1);
+    alphal = sampleAlpha(ibeta-1, rand_percentile);
     nc_assert( valueInInterval(betaGrid.at(ibeta-1),betaGrid.at(ibeta),beta) );
     nc_assert( alphal>=0.0 );
     nc_assert( ibeta < betaGrid.size() );
@@ -101,29 +136,23 @@ NC::PairDD NC::SAB::SABSamplerAtE_Alg1::sampleAlphaBeta(double ekin_div_kT, RNG&
     //Sample alphas (with same "random percentile" at two neighbouring beta grid
     //points and combine with linear interpolation, as in line 9 in Algorithm 1
     //of the paper:
-    double bh = betaGrid.at(ibeta);
-    double alphah = sampleAlpha(ibeta, rand_percentile);
-
+    const double bh = betaGrid.at(ibeta);
+    const double alphah = sampleAlpha(ibeta, rand_percentile);
     nc_assert(bh-bl>0.0);
     nc_assert(alphal>=0.0);
     nc_assert(alphah>=0.0);
-    double alpha = alphal + (alphah-alphal) * (beta-bl)/(bh-bl);
+    const double alpha = alphal + (alphah-alphal) * (beta-bl)/(bh-bl);
 
     //Check if we can accept this:
     auto alimits = getAlphaLimits( ekin_div_kT, beta );
     if ( valueInInterval( alimits.first, alimits.second, alpha ) )
-      return { alpha, beta };
+      return { alpha, beta };//accept
   }
   NCRYSTAL_THROW2(CalcError,"Rejection method failed to sample kinematically valid (alpha,beta) point after "
                   <<s_loopmax<<" attempts. Perhaps energy grid is too sparse?"
                   " As a workaround it is possible to increase the allowed number of sampling attempts"
                   " by setting the NCRYSTAL_SABSAMPLE_LOOPMAX variable to a higher number"
                   " (but please consider reporting the issue to the NCrystal developers nonetheless).");
-}
-
-double NC::SAB::SABSamplerAtE_Alg1::sampleBeta(RNG& rng) const
-{
-  return m_betaSampler.sample(rng);
 }
 
 double NC::SAB::SABSamplerAtE_Alg1::sampleAlpha(std::size_t ibeta, double rand_percentile) const

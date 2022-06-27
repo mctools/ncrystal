@@ -416,7 +416,6 @@ namespace NCrystal {
       }
     };
 
-
     struct vardef_scatfactory final : public ValStr<vardef_scatfactory> {
       static constexpr auto name = "scatfactory";
       static constexpr auto group = VarGroupId::ScatterBase;
@@ -439,6 +438,142 @@ namespace NCrystal {
       static Variant<StrView,std::string> str2val( StrView sv ) {
         try {
           return FactNameRequest::Parser::doParse(sv).to_string();
+        } catch (Error::BadInput&err) {
+          NCRYSTAL_THROW2(BadInput,"Syntax error in "<<name<<" parameter. Error is: "<<err.what());
+        }
+      }
+    };
+
+    struct vardef_ucnmode final : public ValStr<vardef_ucnmode> {
+      static constexpr auto name = "ucnmode";
+      static constexpr auto group = VarGroupId::ScatterExtra;
+      static constexpr auto description =
+        "Modify how UCN (ultra cold neutron) production is handled in inelastic "
+        "models. The value \"refine\" simply improves the modelling by replacing the usual "
+        "scattering kernel treatment near the kinematic endpoint, where the neutron ends "
+        "with less than 300neV, with a different model. The values \"only\" and \"remove\" "
+        "performs the same split of the modelling, but then leaves out either all non-UCN "
+        "or all UCN processes, respectively, from the inelastic cross sections. Finally, the "
+        "threshold value of 300neV can be modified by appending the desired value to the "
+        "first keyword, separated by a \":\" character. The default unit is eV, but meV and "
+        "neV are supported as well, so \"ucnmode=refine:200neV\", \"ucnmode=remove:2e-7eV\", "
+        "\"ucnmode=remove:2e-7\", and \"ucnmode=only:0.0002meV\" all specify the same threshold. In "
+        "addition to simply refining the UCN model, the primary intended purpose of the "
+        "ucnmode parameter is to allow one to split out the UCN process from the rest, in "
+        "order to perform biased Monte Carlo simulations of UCN production in moderators.";
+      static constexpr value_type default_value() { return StrView::make(""); }
+      static bool isStdKeyword( const StrView& ssv)
+      {
+        static constexpr auto sv_refine = StrView::make("refine");
+        static constexpr auto sv_remove = StrView::make("remove");
+        static constexpr auto sv_only = StrView::make("only");
+        return isOneOf(ssv,sv_refine,sv_remove,sv_only);
+      };
+
+      static Optional<UCNMode> decode_value( StrView sv )
+      {
+        static constexpr auto sv_refine = StrView::make("refine");
+        static constexpr auto sv_only = StrView::make("only");
+        //assumes "sv" comes from str2val below.
+        if ( sv.empty() )
+          return NullOpt;
+        auto decodeMode = []( StrView svmode )
+        {
+          if ( svmode == sv_refine )
+            return UCNMode::Mode::Refine;
+          if ( svmode == sv_only )
+            return UCNMode::Mode::Only;
+          nc_assert( svmode == StrView::make("remove") );
+          return UCNMode::Mode::Remove;
+        };
+        if ( !sv.contains(':') ) {
+          UCNMode res;
+          res.mode = decodeMode(sv);
+          return res;
+        }
+        auto parts = sv.splitTrimmed<2>(':');
+        nc_assert( parts.size() == 2 && isStdKeyword(parts.at(0)) );
+        StrView thrstr = parts.at(1);
+        // Optional<double> thrval;
+        // double unit=1.0;
+        auto decodeWithUnit = [thrstr]( StrView unitname, StrView unitfpprefix, double unitvalue ) -> Optional<double> {
+          if ( !thrstr.endswith(unitname) )
+            return NullOpt;
+          auto valstr = thrstr.substr(0,thrstr.size()-unitname.size());
+          if ( !unitfpprefix.empty() && !valstr.contains_any("eE") ) {
+            //adding stuff like e-9 to the string before conversion to double
+            //seems to avoid introducing imprecision, unlike multiplying with
+            //1e-9 afterwards!
+            auto tmp = valstr.to_string() + unitfpprefix.to_string();
+            auto val = StrView(tmp).toDbl();
+            if ( val.has_value() )
+              return val;
+          }
+          auto val2 = valstr.toDbl();
+          if ( val2.has_value() )
+            val2.value() *= unitvalue;
+          return val2;
+        };
+        auto val = decodeWithUnit("neV","e-9",1e-9);
+        if ( !val.has_value() )
+          val = decodeWithUnit("meV","e-3",1e-3);
+        if ( !val.has_value() )
+          val = decodeWithUnit("eV","",1.0);//check AFTER neV/meV since they end with "eV".
+        if ( !val.has_value() )
+          val = thrstr.toDbl();
+        nc_assert( val.has_value() );//because we encoded it outselves!
+        UCNMode res;
+        res.mode = decodeMode(parts.at(0));
+        res.threshold = NeutronEnergy{ val.value() };
+        return res;
+      }
+
+      static Variant<StrView,std::string> str2val( StrView sv ) {
+        try {
+          if ( sv.empty() )
+            return sv;
+          if ( isStdKeyword(sv) )
+            return sv;
+          auto parts = sv.splitTrimmed<2>(':');
+          if ( parts.size() != 2 || !isStdKeyword(parts.at(0)) )
+            NCRYSTAL_THROW2(BadInput,"\""<<sv<<"\" is not in a valid format");
+          StrView thr = parts.at(1);
+          double unit = 1.0;
+          auto orig_thr_with_units = thr.to_string();
+          if ( thr.endswith("neV") ) {
+            unit = 1e-9;
+            thr = thr.substr(0,thr.size()-3).rtrimmed();
+            orig_thr_with_units = thr.to_string() + "neV";
+          } else if ( thr.endswith("meV") ) {
+            unit = 1e-3;
+            thr=thr.substr(0,thr.size()-3).rtrimmed();
+            orig_thr_with_units = thr.to_string() + "meV";
+          } else if ( thr.endswith("eV") ) {
+            thr=thr.substr(0,thr.size()-2).rtrimmed();
+            orig_thr_with_units = thr.to_string();
+          }
+          auto thr_val = thr.toDbl();
+          if ( !thr_val.has_value() )
+            NCRYSTAL_THROW2(BadInput,"Invalid number: "<<thr);
+          double val = thr_val.value() * unit;
+          if ( !(val>0.0) || val > 1e3 )
+            NCRYSTAL_THROW2(BadInput,"UCN threshold out of range: "<<sv);
+          //encode in best unit (same logic as in NCTypes.cc):
+          std::ostringstream ss, ssthr;
+          ss << parts.at(0) << ':';
+          if ( val >= 1e-9 && val < 1000e-9 ) {
+            ssthr << fmt(val * 1e9) << "neV";
+          } else if ( val >= 1e-3 && val < 1.0 ) {
+            ssthr << fmt(val * 1e3) << "meV";
+          } else {
+            ssthr << fmt(val);
+          }
+          auto proposed_thr_with_units = ssthr.str();
+          if ( proposed_thr_with_units.size() < orig_thr_with_units.size() )
+            ss << proposed_thr_with_units;
+          else
+            ss << orig_thr_with_units;
+          return ss.str();
         } catch (Error::BadInput&err) {
           NCRYSTAL_THROW2(BadInput,"Syntax error in "<<name<<" parameter. Error is: "<<err.what());
         }
@@ -518,6 +653,7 @@ namespace NCrystal {
       make_varinfo<vardef_scatfactory>(),
       make_varinfo<vardef_sccutoff>(),
       make_varinfo<vardef_temp>(),
+      make_varinfo<vardef_ucnmode>(),
       make_varinfo<vardef_vdoslux>()
     };
 
@@ -536,6 +672,7 @@ namespace NCrystal {
       vdoslux = constexpr_varName2Idx("vdoslux"),
       lcmode = constexpr_varName2Idx("lcmode"),
       lcaxis = constexpr_varName2Idx("lcaxis"),
+      ucnmode = constexpr_varName2Idx("ucnmode"),
       mos = constexpr_varName2Idx("mos"),
       dir1 = constexpr_varName2Idx("dir1"),
       dir2 = constexpr_varName2Idx("dir2"),

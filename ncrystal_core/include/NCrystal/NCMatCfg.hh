@@ -220,6 +220,7 @@ namespace NCrystal {
     void set_scatfactory( const std::string& );
     void set_absnfactory( const std::string& );
     void set_lcmode( std::int_least32_t );
+    void set_ucnmode( const Optional<UCNMode>& );
     void set_vdoslux( int );
     void set_atomdb( const std::string& );
     void set_lcaxis( const LCAxis& );
@@ -270,6 +271,8 @@ namespace NCrystal {
     std::string get_scatfactory() const;
     std::string get_absnfactory() const;
     std::int_least32_t get_lcmode() const;
+    StrView get_ucnmode_str() const;
+    Optional<UCNMode> get_ucnmode() const;
     int get_vdoslux() const;
     std::string get_atomdb() const;
     std::vector<VectS> get_atomdb_parsed() const;

@@ -180,6 +180,18 @@ namespace NCrystal {
       static std::int_least32_t get_lcmode(const CfgData& data) { return static_cast<std::int_least32_t>( getValue<vardef_lcmode>(data) ); }
       static void set_lcmode( CfgData& data, std::int_least32_t val ) { setValue<vardef_lcmode>( data,static_cast<std::int_least32_t>(val) ); }
 
+      static StrView get_ucnmode_str(const CfgData& data) { return getValue<vardef_ucnmode>(data); }
+      static Optional<UCNMode> get_ucnmode( const CfgData& data ) { return vardef_ucnmode::decode_value( get_ucnmode_str(data) ); }
+      static void set_ucnmode( CfgData& data, const Optional<UCNMode>& val ) {
+        if ( !val.has_value() ) {
+          setValue<vardef_ucnmode>(data,"");
+        } else {
+          std::ostringstream ss;
+          ss << val.value();
+          setValue<vardef_ucnmode>(data,ss.str());
+        }
+      }
+
       static const LCAxis& get_lcaxis(const CfgData& data) { return getValue<vardef_lcaxis>(data).as<LCAxis>(); }
       static void set_lcaxis( CfgData& data, const LCAxis& val ) { setValue<vardef_lcaxis>(data, val.as<Vector>()); }
 

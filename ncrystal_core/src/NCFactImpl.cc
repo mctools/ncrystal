@@ -301,13 +301,6 @@ namespace NCrystal {
             tkey = key.cloneThinned();
           return map[tkey.value()];
         }
-        template <class TMap>
-        static typename TMap::iterator cacheMapFind( TMap& map, const key_type& key, Optional<thinned_key_type>& tkey )
-        {
-          if ( !tkey.has_value() )
-            tkey = key.cloneThinned();
-          return map.find(tkey.value());
-        }
       };
 
       struct FactDefTextData {

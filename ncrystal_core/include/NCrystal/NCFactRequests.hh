@@ -141,7 +141,7 @@ namespace NCrystal {
       std::string get_inelas() const;
       std::string get_scatfactory() const;
 
-      //Parameters (single crystal):
+      //Parameters (advanced: single crystal, ucn, ...):
       MosaicityFWHM get_mos() const;
       OrientDir get_dir1() const;
       OrientDir get_dir2() const;
@@ -154,6 +154,9 @@ namespace NCrystal {
       bool isSingleCrystal() const;
       bool isLayeredCrystal() const;
       SCOrientation createSCOrientation() const;
+
+      StrView get_ucnmode_str() const;
+      Optional<UCNMode> get_ucnmode() const;
 
       //Enable constructors:
       using ProcessRequestBase<ScatterRequest>::ProcessRequestBase;

@@ -1,3 +1,52 @@
+v3.1.0 2022-06-27
+      * Introduce cfg parameter named "ucnmode" which can be used to enable a
+        new dedicated modelling of UCN-production processes. Thus, appending
+        ";comp=inelas;ucnmode=only" to a given cfg-string, will result in a
+        scattering process which ONLY contains UCN-production
+        events. Conversely, appending ";ucnmode=remove" will provide a process
+        which contains everything EXCEPT UCN-production events. This splitup is
+        intended to facilitate usage of biasing and variance reduction tricks
+        when designing VCN or UCN moderators. The UCN threshold defaults to
+        300neV, but this can of course be modified. In addition to just
+        facilitating a process splitup, the UCN-production process resulting
+        from "ucnmode=only" is more precise (essentially exact) than the usual
+        S(alpha,beta) treatment - which is rather precise in general, but
+        currently contains some flaws when sampling events where the neutron
+        loose almost all energy (see also next item).
+      * Improve general (i.e. also when not running with special ucnmode)
+        scattering-kernel based inelastic physics for the case where the neutron
+        looses almost all energy. Specifically, the sampling of S(alpha,beta)
+        near the kinematic endpoint is greatly improved. We still have
+        additional plans for how to completely remove any artifacts related to
+        the numerical processing, if manpower allows at some point in the
+        future.
+      * Add internal utilities for evaluating S(alpha,beta) kernels at any
+        (alpha,beta) point, and add utilities for what is essentially exact
+        sampling or integration for cross sections. These utilities are useful
+        as they allow us to validate scattering kernel models better, and are
+        used directly in the new UCN-production models.
+      * Add notice to the ncrystal_preparemcstasdir for how to make it work when
+        using NCrystal with the McStas-Union geometry system.
+      * CMake now actually installs the "nctool" alias of "ncrystal_inspectfile".
+      * S(alpha,beta) kernels hardcoded in .ncmat files will now have any
+        null-edges discarded upon loading. This is often needed for kernels
+        converted from ENDF files, where the alpha/beta grid is often larger
+        than needed.
+      * Add PiecewiseLinearFct1D utility class (for some reason we had utilities
+        for cubic splines and sampling of piece-wise linear functions, but not
+        for simple evaluations of them!).
+      * Fix bug when accessing DynInfo of directly specified scattering kernels
+        with the Python interface (the DI_ScatKnlDirect was missing a required
+        initialisation).
+      * The process summaries printed via ncrystal_inspectfile or accessed via
+        the Python interface, now supports multiple layers of nested
+        processes. This was required to support the new ExcludeUCNScatter
+        process, which is implemented as a wrapper of two other processes.
+      * Adding experimental and incomplete support for converting raw parsed
+        NCMAT data to JSON. This is intended to help avoid the need for
+        resorting to custom parsing code, but is clearly an expert-only feature
+        as the data is presented as-is, without additional loading.
+
 v3.0.0 2022-04-24
       * The NCrystal v3.0.0 release brings both major new features and technical
         improvements "under the hood", with around 19.000 lines of code changed

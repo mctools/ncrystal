@@ -21,6 +21,8 @@
 #include "NCrystal/internal/NCSABSampler.hh"
 #include "NCrystal/internal/NCSABUtils.hh"
 #include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/internal/NCString.hh"
+
 namespace NC = NCrystal;
 
 NC::SABSampler::~SABSampler() = default;
@@ -29,9 +31,10 @@ NC::SABSampler::SABSampler( Temperature temperature,
                             VectD&& egrid,
                             std::vector<std::unique_ptr<SABSamplerAtE>>&& samplers,
                             std::shared_ptr<const SAB::SABExtender> extender,
-                            double xsAtEmax )
+                            double xsAtEmax,
+                            EGridMargin egridMargin )
 {
-  setData( temperature, std::move(egrid), std::move(samplers), std::move(extender), xsAtEmax );
+  setData( temperature, std::move(egrid), std::move(samplers), std::move(extender), xsAtEmax, egridMargin );
 }
 
 
@@ -39,7 +42,8 @@ void NC::SABSampler::setData( Temperature temperature,
                               VectD&& egrid,
                               std::vector<std::unique_ptr<SABSamplerAtE>>&& samplers,
                               std::shared_ptr<const SAB::SABExtender> extender,
-                              double xsAtEmax )
+                              double xsAtEmax,
+                              EGridMargin egridMargin )
 {
   m_egrid = std::move(egrid);
   m_samplers = std::move(samplers);
@@ -48,7 +52,8 @@ void NC::SABSampler::setData( Temperature temperature,
   m_xsAtEmax = xsAtEmax;
   m_k1 = m_xsAtEmax * m_egrid.back();
   m_k2 = m_extender->crossSection( NeutronEnergy{m_egrid.back()} ).dbl() * m_egrid.back();
-
+  nc_assert_always( m_egridMargin.value >= 1.0 && m_egridMargin.value < 1e3 );
+  m_egridMargin = egridMargin;
 }
 
 NC::PairDD NC::SABSampler::sampleHighE(NeutronEnergy ekin, RNG& rng) const
@@ -158,6 +163,7 @@ NC::PairDD NC::SABSampler::sampleAlphaBeta(NeutronEnergy ekin, RNG& rng) const
   decltype(m_samplers.begin()) itSampler;
 
   auto itEkinUpper = std::upper_bound ( m_egrid.begin(), m_egrid.end(), ekin.dbl() );
+
   bool ultra_small_ekin_mode = false;
   const double ultra_small_ekin = m_egrid.front();
 
@@ -179,10 +185,12 @@ NC::PairDD NC::SABSampler::sampleAlphaBeta(NeutronEnergy ekin, RNG& rng) const
     ultra_small_ekin_mode = (ekin.get()<ultra_small_ekin);
 
   } else {
-
-    //Inside range of energy grid.
+    //Inside range of energy grid. Apply egridMargin if relevant+possible and pick overlay sampler.
+    if ( m_egridMargin.value > 1.0 ) {
+      while ( std::next(itEkinUpper) != m_egrid.end() && ekin.dbl()*m_egridMargin.value > *itEkinUpper )
+        ++itEkinUpper;
+    }
     itSampler = m_samplers.begin()+std::distance(m_egrid.begin(), itEkinUpper);
-
   }
 
   //Sample with *itSampler, using the rejection method to make the results

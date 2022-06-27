@@ -22,21 +22,6 @@
 #include "NCrystal/internal/NCMath.hh"
 namespace NC = NCrystal;
 
-NC::PairDD NC::getAlphaLimits( double ekin_div_kT, double beta )
-{
-  nc_assert(ekin_div_kT >= 0.0);
-  nc_assert(!ncisnan(beta));
-  double kk = ekin_div_kT + beta;
-  if ( !(kk >= 0.0) ) {
-    //kinematically forbidden
-    return std::make_pair(1.0,-1.0);
-  }
-  double a = kk + ekin_div_kT;
-  double b = std::sqrt( ekin_div_kT * kk );
-  b += b;
-  return std::make_pair( ncmax(0.0,a - b), a + b );
-}
-
 NC::PairDD NC::convertAlphaBetaToDeltaEMu(double alpha, double beta, NeutronEnergy ekin, double kT )
 {
 #ifndef NDEBUG

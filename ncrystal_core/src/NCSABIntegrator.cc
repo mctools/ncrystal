@@ -47,6 +47,9 @@ struct NC::SAB::SABIntegrator::Impl : private NoCopyMove {
   //Data derived from m_data:
   std::shared_ptr<const SABSamplerAtE_Alg1::CommonCache> m_derivedData;
 
+  //Setting;
+  SABSampler::EGridMargin m_egridMargin;
+
   typedef std::unique_ptr<SABSamplerAtE> SamplerAtE_uptr;
   std::pair<SamplerAtE_uptr,double> analyseEnergyPoint(double ekin, bool doSampler ) const;
 
@@ -76,7 +79,8 @@ NS::SABIntegrator::Impl::Impl( shared_obj<const SABData> data,
                                std::shared_ptr<const SABExtender> sabextender )
   : m_data(std::move(data)),
     m_egrid((egrid&&!egrid->empty())?*egrid:VectD()),
-    m_extender(!sabextender?std::make_unique<SABFGExtender>(m_data->temperature(),m_data->elementMassAMU(),m_data->boundXS()):std::move(sabextender))
+    m_extender(!sabextender?std::make_unique<SABFGExtender>(m_data->temperature(),m_data->elementMassAMU(),m_data->boundXS()):std::move(sabextender)),
+    m_egridMargin{ 1.05 }
 {
 }
 
@@ -298,7 +302,7 @@ void NS::SABIntegrator::Impl::doit(SABXSProvider * out_xs, SABSampler* out_sampl
     out_sampler->setData( m_data->temperature(),
                           VectD(m_egrid.begin(),m_egrid.end()),
                           std::move(energyPointSamplers),
-                          m_extender, xsvals.back() );
+                          m_extender, xsvals.back(), m_egridMargin );
   if ( out_xs )
     out_xs->setData( VectD(m_egrid.begin(),m_egrid.end()),
                      std::move(xsvals),
@@ -355,6 +359,7 @@ std::pair<NS::SABIntegrator::Impl::SamplerAtE_uptr,double> NS::SABIntegrator::Im
   const double kT = m_data->temperature().kT();
   const double ekin_div_kT = ekin / kT;
   double beta_lower_limit = -ekin_div_kT;
+  bool starts_at_kinematic_endpoint = true;
   if (beta_lower_limit<betaGrid.front()) {
     //This can happen at high energies. Push up beta_lower_limit to juuuust
     //before the first grid point, thus keeping code simple without introducing
@@ -364,6 +369,7 @@ std::pair<NS::SABIntegrator::Impl::SamplerAtE_uptr,double> NS::SABIntegrator::Im
                               betaGrid.front() - ncabs(betaGrid.front())*1e-13,
                               std::nexttoward(betaGrid.front(),beta_lower_limit) );
     nc_assert(beta_lower_limit<betaGrid.front());
+    starts_at_kinematic_endpoint = false;
   }
 
   //Figure out which sab alpha-ranges are involved, i.e. intersects the
@@ -385,6 +391,7 @@ std::pair<NS::SABIntegrator::Impl::SamplerAtE_uptr,double> NS::SABIntegrator::Im
   if ( ibeta_low > 0 && beta_lower_limit < vectAt(betaGrid,ibeta_low-1) ) {
     //move up lower limit, there was apparently no kinematically accessible content further down.
     beta_lower_limit = vectAt(betaGrid,ibeta_low-1);
+    starts_at_kinematic_endpoint = false;
   }
 
   nc_assert( ibeta_low==0 || beta_lower_limit >= betaGrid.front() );
@@ -397,6 +404,7 @@ std::pair<NS::SABIntegrator::Impl::SamplerAtE_uptr,double> NS::SABIntegrator::Im
   //We know (when beta_lower_limit=-E/kT, otherwise it is just something we
   //assume) that the cross sections take off from 0.0 at beta_lower_limit:
   PairDD prev_betaxs(beta_lower_limit,0.);
+
   std::vector<PairDD> betasampler_data;
   VectD betasampler_vals,betasampler_weights;
   std::vector<SABSamplerAtE_Alg1::AlphaSampleInfo> sampler_infos;
@@ -412,7 +420,12 @@ std::pair<NS::SABIntegrator::Impl::SamplerAtE_uptr,double> NS::SABIntegrator::Im
 
   StableSum xs_total_stable;
 
+  bool next_bin_has_kinematic_endpoint = starts_at_kinematic_endpoint;
+
   for ( auto&& beta : enumerate(relevant_betaGrid) ) {
+    if ( beta.val == beta_lower_limit )
+      continue;//guard against lower limit falling exactly on a grid point
+
     nc_assert( beta.val >= beta_lower_limit );
     nc_assert( beta.val >= -ekin_div_kT );
     nc_assert( beta.idx < alpharanges.size() );
@@ -471,6 +484,24 @@ std::pair<NS::SABIntegrator::Impl::SamplerAtE_uptr,double> NS::SABIntegrator::Im
       }
     }
 
+    if ( next_bin_has_kinematic_endpoint ) {
+      //The piece-wise-linear assumption is too crude in the first bin, we want to
+      //use a sqrt(x) shape instead. It just so happen that this increases the
+      //integral of the first bin by a factor of 4/3, which can be accommodated
+      //(faked!) in the piece-wise-linear machinary by moving the first beta value
+      //downwards by 1/3 of the first bin width. The only issue is that when
+      //sampling, we should resample values in the first bin according to the
+      //sqrt(x) shape, which is a piece of information we need to pass on to the
+      //SABSamplerAtE_Alg1 instance.
+      next_bin_has_kinematic_endpoint = false;
+      double db_real = (beta.val - prev_betaxs.first);
+      prev_betaxs.first -= db_real * (1.0 / 3.0);
+      if ( doSampler ) {
+        nc_assert( betasampler_vals.size() == 1 );
+        betasampler_vals.front() = prev_betaxs.first;
+      }
+    }
+
     //integrate trapezoidally from (beta,xs) = prev_betaxs
     xs_total_stable.add(0.5 * ( beta.val - prev_betaxs.first ) * ( xs_at_this_beta + prev_betaxs.second ));
 
@@ -502,6 +533,7 @@ std::pair<NS::SABIntegrator::Impl::SamplerAtE_uptr,double> NS::SABIntegrator::Im
                                                              std::move(betasampler_vals),
                                                              std::move(betasampler_weights),
                                                              std::move(sampler_infos),
-                                                             ibeta_low );
+                                                             ibeta_low,
+                                                             ( starts_at_kinematic_endpoint ? beta_lower_limit : 1.0 ) );
   return { std::move(up), xs_total };
 }

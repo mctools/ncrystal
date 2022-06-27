@@ -301,7 +301,7 @@ namespace NCrystal {
     class NullProcess : public Process {
     public:
       MaterialType materialType() const noexcept final { return MaterialType::Isotropic; }
-      EnergyDomain domain() const noexcept final { return { NeutronEnergy{0.0}, NeutronEnergy{0.0} }; }
+      EnergyDomain domain() const noexcept final { return EnergyDomain::null(); }
       CrossSect crossSectionIsotropic(CachePtr&, NeutronEnergy ) const final { return CrossSect{0.0}; }
       CrossSect crossSection(CachePtr&, NeutronEnergy, const NeutronDirection& ) const final { return CrossSect{0.0}; }
       ScatterOutcomeIsotropic sampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const final;
@@ -342,7 +342,7 @@ namespace NCrystal {
 namespace NCrystal {
   namespace ProcImpl {
     inline EnergyDomain Process::domain() const noexcept { return { NeutronEnergy{0.0}, NeutronEnergy{kInfinity} }; }
-    inline bool Process::isNull() const noexcept { auto d = domain(); return std::isinf(d.elow.get()) || d.elow>=d.ehigh; }
+    inline bool Process::isNull() const noexcept { return domain().isNull(); }
     inline std::shared_ptr<Process> Process::createMerged( const Process&, double, double ) const { return nullptr; }
 
     template<class CacheClass>

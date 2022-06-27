@@ -21,14 +21,121 @@
 #include "NCrystal/internal/NCSABUtils.hh"
 #include "NCrystal/internal/NCIter.hh"
 #include "NCrystal/internal/NCString.hh"
+#include <iostream>
 namespace NC = NCrystal;
 
-NC::SABData NC::SABUtils::transformKernelToStdFormat( NC::ScatKnlData&& input )
+namespace NCrystal {
+  namespace SABUtils {
+    namespace {
+      std::size_t detail_trimZeroEdgesFromKernel(ScatKnlData& input)
+      {
+        //trims edges but does NOT validate in this internal function
+        const auto nalpha = input.alphaGrid.size();
+        const auto nbeta = input.betaGrid.size();
+
+        auto betaRowIsZero = [&input,nalpha] ( std::size_t ibeta )
+        {
+          auto idx0 = ibeta * nalpha;
+          auto idxE = idx0 + nalpha;
+          for ( auto idx = idx0; idx != idxE; ++idx )
+            if ( vectAt( input.sab, idx ) )
+              return false;
+          return true;
+        };
+        auto alphaColIsZero = [&input,nalpha] ( std::size_t ialpha )
+        {
+          auto idx0 = ialpha;
+          auto idxE = input.sab.size();
+          for ( auto idx = idx0; idx < idxE; idx += nalpha )
+            if ( vectAt( input.sab, idx ) )
+              return false;
+          return true;
+        };
+
+        std::size_t nTrimBetaUpper(0);
+        std::size_t nTrimBetaLower(0);
+        std::size_t nTrimAlphaUpper(0);
+
+        for ( auto i : ncrange( nalpha ) ) {
+          const auto ialpha = nalpha - i - 1;
+          if ( vectAt(input.alphaGrid,ialpha) > 0.0 && alphaColIsZero( ialpha ) ) {
+            ++nTrimAlphaUpper;
+          } else {
+            break;
+          }
+        }
+
+        for ( auto i : ncrange( nbeta ) ) {
+          const auto ibeta = nbeta - i - 1;
+          if ( vectAt(input.betaGrid,ibeta) > 0.0 && betaRowIsZero( ibeta ) ) {
+            ++nTrimBetaUpper;
+          } else {
+            break;
+          }
+        }
+
+        for ( auto ibeta : ncrange( nbeta ) ) {
+          if ( vectAt(input.betaGrid,ibeta) < 0.0 && betaRowIsZero( ibeta ) ) {
+            ++nTrimBetaLower;
+          } else {
+            break;
+          }
+        }
+
+        const auto ntrimtot = nTrimBetaUpper + nTrimBetaLower + nTrimAlphaUpper;
+
+        if ( ntrimtot == 0 )
+          return 0;//nothing to trim
+
+        //Trim:
+        VectD new_sab;
+        new_sab.reserve( ( nalpha - nTrimAlphaUpper ) * ( nbeta - nTrimBetaUpper + nTrimBetaLower ) );
+        const auto nbetalim = nbeta - nTrimBetaUpper;
+        for ( auto ibeta : ncrange( nbeta ) ) {
+          if ( ! ( ibeta >= nTrimBetaLower && ibeta < nbetalim ) )
+            continue;
+          const auto offset = nalpha * ibeta;
+          for ( auto ialpha : ncrange( nalpha-nTrimAlphaUpper ) )
+            new_sab.push_back( vectAt( input.sab, ialpha + offset ) );
+        }
+        nc_assert_always( new_sab.size() == ( nalpha - nTrimAlphaUpper ) * ( nbeta - nTrimBetaUpper + nTrimBetaLower ) );
+        std::swap( input.sab, new_sab );
+        if ( nTrimAlphaUpper ) {
+          VectD new_alpha( input.alphaGrid.begin(), std::next(input.alphaGrid.begin(),nalpha-nTrimAlphaUpper) );
+          std::swap(input.alphaGrid,new_alpha);
+        }
+        if ( nTrimBetaUpper || nTrimBetaLower ) {
+          VectD new_beta( std::next(input.betaGrid.begin(),nTrimBetaLower), std::next(input.betaGrid.begin(),nbeta-nTrimBetaUpper) );
+          std::swap(input.betaGrid,new_beta);
+        }
+        nc_assert_always ( input.sab.size() == input.alphaGrid.size() * input.betaGrid.size() );
+        return ntrimtot;
+      }
+    }
+  }
+}
+
+
+NC::ScatKnlData NC::SABUtils::trimZeroEdgesFromKernel(ScatKnlData&& input)
 {
-  //TODO: If we know Emax in the energyGrid, then we could (in some other
-  //utility function perhaps) occasionally peal off some of the beta-values at
-  //lowest energies (but should probably be done elsewhere).
   validateScatKnlData(input);
+  NC::ScatKnlData res{ std::move(input) };
+  detail_trimZeroEdgesFromKernel(res);
+  return res;
+}
+
+NC::SABData NC::SABUtils::transformKernelToStdFormat( NC::ScatKnlData&& input_orig )
+{
+  validateScatKnlData(input_orig);
+
+  //////////////////////
+  // Trim null edges: //
+  //////////////////////
+
+  NC::ScatKnlData input{ std::move(input_orig) };
+  auto ntrimmed = detail_trimZeroEdgesFromKernel(input);
+  if ( ntrimmed )
+    std::cout<<"NCrystal WARNING: Discarding "<<ntrimmed<<" edges of provided kernel data due to missing S values."<<std::endl;
 
   ////////////////////////////////////////////////////
   // First convert ScatKnlData object to type "SAB" //

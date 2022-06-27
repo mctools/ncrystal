@@ -75,8 +75,8 @@ namespace NCrystal {
     }
 
     //Actual worker functions producing results:
-    std::shared_ptr<const SABData> extractFromDIVDOSNoCache( unsigned vdoslux, uint32_t vdos2sabExcludeFlag, const DI_VDOS& );
-    std::shared_ptr<const SABData> extractFromDIVDOSDebyeNoCache( const VDOSDebyeKey& );
+    shared_obj<const SABData> extractFromDIVDOSNoCache( unsigned vdoslux, uint32_t vdos2sabExcludeFlag, const DI_VDOS& );
+    shared_obj<const SABData> extractFromDIVDOSDebyeNoCache( const VDOSDebyeKey& );
 
     //Factories:
     class VDOS2SABFactory : public NC::CachedFactoryBase<VDOSKey,SABData,10> {
@@ -127,13 +127,13 @@ namespace NCrystal {
     static VDOS2SABFactory s_vdos2sabfactory;
     static VDOSDebye2SABFactory s_vdosdebye2sabfactory;
 
-    std::shared_ptr<const SABData> extractFromDIVDOS( unsigned vdoslux, uint32_t vdos2sabExcludeFlag, const DI_VDOS& di )
+    shared_obj<const SABData> extractFromDIVDOS( unsigned vdoslux, uint32_t vdos2sabExcludeFlag, const DI_VDOS& di )
     {
       VDOSKey key( di.getUniqueID().value, vdoslux, vdos2sabExcludeFlag, &di );
       return s_vdos2sabfactory.create(key);
     }
 
-    std::shared_ptr<const SABData> extractFromDIVDOSDebye( const VDOSDebyeKey& key )
+    shared_obj<const SABData> extractFromDIVDOSDebye( const VDOSDebyeKey& key )
     {
       return s_vdosdebye2sabfactory.create(key);
     }
@@ -141,7 +141,7 @@ namespace NCrystal {
   }
 }
 
-std::shared_ptr<const NC::SABData> NC::extractSABDataFromVDOSDebyeModel( DebyeTemperature debyeTemperature,
+NC::shared_obj<const NC::SABData> NC::extractSABDataFromVDOSDebyeModel( DebyeTemperature debyeTemperature,
                                                                          Temperature temperature,
                                                                          SigmaBound boundXS,
                                                                          AtomMass elementMassAMU,
@@ -159,7 +159,7 @@ std::shared_ptr<const NC::SABData> NC::extractSABDataFromVDOSDebyeModel( DebyeTe
   return DICache::extractFromDIVDOSDebye(key);
 }
 
-std::shared_ptr<const NC::SABData> NC::extractSABDataFromDynInfo( const NC::DI_ScatKnl* di, unsigned vdoslux, bool useCache, uint32_t vdos2sabExcludeFlag )
+NC::shared_obj<const NC::SABData> NC::extractSABDataFromDynInfo( const NC::DI_ScatKnl* di, unsigned vdoslux, bool useCache, uint32_t vdos2sabExcludeFlag )
 {
   nc_assert( di );
   nc_assert( vdoslux <= 5 );
@@ -189,7 +189,7 @@ std::shared_ptr<const NC::SABData> NC::extractSABDataFromDynInfo( const NC::DI_S
 
   //==> Unknown:
   NCRYSTAL_THROW(LogicError,"Unknown DI_ScatKnl sub class");
-  return nullptr;
+  return std::shared_ptr<const SABData>{nullptr};
 }
 
 void NC::clearSABDataFromDynInfoCaches()
@@ -198,7 +198,7 @@ void NC::clearSABDataFromDynInfoCaches()
   DICache::s_vdosdebye2sabfactory.cleanup();
 }
 
-std::shared_ptr<const NC::SABData> NC::DICache::extractFromDIVDOSNoCache( unsigned vdoslux, uint32_t vdos2sabExcludeFlag, const DI_VDOS& di  )
+NC::shared_obj<const NC::SABData> NC::DICache::extractFromDIVDOSNoCache( unsigned vdoslux, uint32_t vdos2sabExcludeFlag, const DI_VDOS& di  )
 {
   //If user specified an energy-grid with a specific upper energy, Emax,
   //this is essentially a request to expand the vdos out to that energy:
@@ -250,7 +250,7 @@ std::shared_ptr<const NC::SABData> NC::DICache::extractFromDIVDOSNoCache( unsign
   return std::make_shared<const SABData>(std::move(sabdata));
 }
 
-std::shared_ptr<const NC::SABData> NC::DICache::extractFromDIVDOSDebyeNoCache( const VDOSDebyeKey& key )
+NC::shared_obj<const NC::SABData> NC::DICache::extractFromDIVDOSDebyeNoCache( const VDOSDebyeKey& key )
 {
   auto param = debyekey2params( key );
 

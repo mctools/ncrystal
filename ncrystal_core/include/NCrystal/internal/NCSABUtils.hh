@@ -30,11 +30,18 @@ namespace NCrystal {
 
   namespace SABUtils {
 
+    //Some input kernels are not properly filling the entire grid on which they
+    //are specified. The following function detects and removes such parts of
+    //the grid:
+    ScatKnlData trimZeroEdgesFromKernel(ScatKnlData&&);
+
     //Transform ScatKnlData to the standard unscaled and asymmetric
     //S(alpha,beta) format. Internally this calls validateScatKnlData(...) on
     //the input and, in debug builds only, also on the output. Thus, creating
     //SABData objects via this function alleviates the need for littering code
-    //elsewhere with validate calls.
+    //elsewhere with validate calls. The function also invokes
+    //trimZeroEdgesFromKernel if needed, but will trigger a WARNING message in
+    //case anything is trimmed.
     SABData transformKernelToStdFormat(ScatKnlData&&);
 
     //If beta grid is defined as [0,b1,b2,..,bn] it is assumed that it is a
@@ -50,11 +57,20 @@ namespace NCrystal {
     Span<const double> sliceSABAtBetaIdx_const( Span<const double> sab, std::size_t nalpha, std::size_t beta_idx);
     Span<double> sliceSABAtBetaIdx( Span<double> sab, std::size_t nalpha, std::size_t beta_idx);
 
+    //Or just calculate the index:
+    std::size_t calcSABIdx( std::size_t nalpha, std::size_t alpha_idx, std::size_t beta_idx);
+
     //interpolate "loglin" (linear in log(f), fallback to linear when undefined)
     double interpolate_loglin_fallbacklinlin(double a, double fa, double b, double fb, double x);
     double interpolate_loglin_fallbacklinlin_fast(double a, double fa, double b, double fb, double x, double logfa, double logfb);
+    double interpolate_linear(double a, double fa, double b, double fb, double x);
 
-    //Equivalent functions for sampling:
+    //Templated selection based on enum:
+    enum class InterpolationScheme { LOGLIN, LINLIN };
+    template<InterpolationScheme scheme>
+    double interpolate(double a, double fa, double b, double fb, double x);
+
+    //Functions for sampling:
     double sampleLogLinDist(double a, double fa, double b, double fb, double rand);
     double sampleLogLinDist_fast(double a, double fa, double b, double fb, double rand, double logfa, double logfb);
 
@@ -133,6 +149,11 @@ inline NCrystal::Span<double> NCrystal::SABUtils::sliceSABAtBetaIdx( NCrystal::S
 {
   nc_assert( (beta_idx+1) * nalpha <= static_cast<std::size_t>(sab.size()) );
   return {sab.begin() + beta_idx*nalpha, sab.begin() + (beta_idx+1)*nalpha};
+}
+
+inline std::size_t NCrystal::SABUtils::calcSABIdx( std::size_t nalpha, std::size_t alpha_idx, std::size_t beta_idx)
+{
+  return beta_idx * nalpha + alpha_idx;
 }
 
 inline double NCrystal::SABUtils::interpolate_loglin_fallbacklinlin(double a, double fa, double b, double fb, double x)
@@ -263,6 +284,22 @@ inline double NCrystal::SABUtils::sampleLogLinDist_fast(double a, double fa, dou
   nc_assert(fa||fb);
   double x = (b-a)*std::sqrt(rand);
   return (fa ? b-x : a + x);
+}
+
+inline double NCrystal::SABUtils::interpolate_linear(double a, double fa, double b, double fb, double x)
+{
+  nc_assert( b > a );
+  nc_assert( !ncisnanorinf(x) );
+  nc_assert( x >= a && x <= b );
+  double r = ( x - a ) / ( b - a );
+  return (1-r) * fa + r * fb;
+}
+
+template<NCrystal::SABUtils::InterpolationScheme scheme>
+inline double NCrystal::SABUtils::interpolate(double a, double fa, double b, double fb, double x) {
+  return ( scheme == InterpolationScheme::LOGLIN
+           ? interpolate_loglin_fallbacklinlin(a, fa, b, fb, x)
+           : interpolate_linear(a, fa, b, fb, x) );
 }
 
 #endif

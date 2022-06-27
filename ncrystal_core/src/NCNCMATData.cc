@@ -616,3 +616,81 @@ void NC::NCMATData::validate() const
   //recognise a cubic space group, but users should be allowed specify a lower
   //symmetry, e.g. space-group 1.
 }
+
+const char * NC::NCMATData::DynInfo::diType2Str( DynInfoType di)
+{
+  switch( di ) {
+  case DynInfoType::Sterile: return "Sterile";
+  case DynInfoType::FreeGas: return "FreeGas";
+  case DynInfoType::VDOSDebye: return "VDOSDebye";
+  case DynInfoType::VDOS: return "VDOS";
+  case DynInfoType::ScatKnl: return "ScatKnl";
+  default:
+    nc_assert_always(false);
+  case DynInfoType::Undefined:
+    return "Undefined";
+  }
+}
+const char * NC::NCMATData::stateOfMatter2Str( StateOfMatter som )
+{
+  if ( som==StateOfMatter::Solid )
+    return "Solid";
+  else if ( som==StateOfMatter::Gas )
+    return "Gas";
+  else {
+    nc_assert(som==StateOfMatter::Liquid);
+    return "Liquid";
+  }
+}
+
+void NC::NCMATData::toJSON( std::ostream& ss ) const
+{
+  //NB: INCOMPLETE!!!
+  const auto& data = *this;
+  streamJSONDictEntry( ss, "ncmat_version", data.version, JSONDictPos::FIRST );
+  if ( data.hasSpaceGroup()) {
+    streamJSONDictEntry( ss, "spacegroup", data.spacegroup );
+  } else {
+    streamJSONDictEntry( ss, "spacegroup", json_null_t{} );
+  }
+  if ( data.stateOfMatter.has_value() ) {
+    streamJSONDictEntry( ss, "state_of_matter", NCMATData::stateOfMatter2Str(data.stateOfMatter.value()) );
+  } else {
+    streamJSONDictEntry( ss, "state_of_matter", json_null_t{} );
+  }
+  if ( !data.hasCell() ) {
+    streamJSONDictEntry( ss, "cell", json_null_t{} );
+  } else {
+    ss<<",\"cell\":";
+    streamJSONDictEntry( ss, "lengths", data.cell.lengths, JSONDictPos::FIRST );
+    streamJSONDictEntry( ss, "angles", data.cell.angles, JSONDictPos::LAST );
+  }
+  //Dyninfos:
+  {
+    ss << ",\"dyninfos\":[";
+    bool first(true);
+    for ( auto& di : data.dyninfos ) {
+      if (!first)
+        ss<<',';
+      first = false;
+      streamJSONDictEntry( ss, "type", di.typeStr(), JSONDictPos::FIRST );
+      streamJSONDictEntry( ss, "element_name", di.element_name );
+      streamJSONDictEntry( ss, "fraction", di.fraction );
+      ss << ",\"fields\":{";
+      bool first_fe(true);
+      for ( auto fe : di.fields ) {
+        if (!first_fe)
+          ss<<',';
+        first_fe = false;
+        streamJSON(ss,fe.first);
+        ss<<':';
+        streamJSON(ss,fe.second);
+      }
+      ss <<"}}";
+    }
+    ss << ']';
+  }
+  //... todo: more here!
+  ss << '}';
+}
+

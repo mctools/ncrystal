@@ -62,7 +62,8 @@ namespace NCrystal {
     //which may or may not be useful):
     virtual void convergenceError(double a, double b) const;
 
-    //Perform integration:
+    //Perform integration (NB: integrand might be evaluated at b+epsilon where
+    //epsilon represent a tiny numerical error):
     double integrate(double a, double b) const;
 
 

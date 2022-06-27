@@ -32,6 +32,7 @@
 #include "NCrystal/internal/NCElIncScatter.hh"
 #include "NCrystal/internal/NCSABScatter.hh"
 #include "NCrystal/internal/NCSABFactory.hh"
+#include "NCrystal/internal/NCSABUCN.hh"
 #include "NCrystal/internal/NCString.hh"
 
 namespace NC = NCrystal;
@@ -106,6 +107,8 @@ namespace NCrystal {
 
       const Info& info = cfg.info();
       const auto& inelas = ana.inelas;
+      const auto ucnmode = cfg.get_ucnmode();
+      const auto vdoslux = cfg.get_vdoslux();
 
       nc_assert_always(isOneOf(inelas,"0","external","dyninfo","vdosdebye","freegas"));
 
@@ -197,6 +200,8 @@ namespace NCrystal {
         //do not add anything.
 
       } else if ( inelas == "external" ) {
+        if ( ucnmode.has_value() )
+          NCRYSTAL_THROW2(BadInput,"inelas="<<inelas<<" mode is not compatible with any ucnmode)");
         if ( !info.providesNonBraggXSects() )
           NCRYSTAL_THROW2(BadInput,"inelas="<<inelas<<" mode requires input source which provides direct"
                           " parameterisation of (non-Bragg) scattering cross sections (try e.g. inelas=auto instead)");
@@ -237,26 +242,46 @@ namespace NCrystal {
           for (auto& di : info.getDynamicInfoList()) {
             const DI_ScatKnl* di_scatknl = dynamic_cast<const DI_ScatKnl*>(di.get());
             if (di_scatknl) {
-              components.push_back({di->fraction(),makeSO<SABScatter>(*di_scatknl, cfg.get_vdoslux(), true, vdos2sabExcludeFlag)});
+              auto makeSABScatter = [di_scatknl,vdoslux,vdos2sabExcludeFlag]() { return makeSO<SABScatter>(*di_scatknl, vdoslux, true, vdos2sabExcludeFlag); };
+              if ( ucnmode.has_value() ) {
+                auto scUCN = UCN::UCNScatter::createWithCache( NC::extractSABDataFromDynInfo( di_scatknl, vdoslux, true, vdos2sabExcludeFlag ),
+                                                               ucnmode.value().threshold );
+                nc_assert(isOneOf(ucnmode.value().mode,UCNMode::Mode::Refine,UCNMode::Mode::Remove,UCNMode::Mode::Only));
+                if ( scUCN->isNull() ) {
+                  //Just the normal process, the UCN process is apparently null.
+                  if ( isOneOf( ucnmode.value().mode, UCNMode::Mode::Refine,  UCNMode::Mode::Remove ) )
+                    components.push_back({di->fraction(),makeSABScatter()});
+                } else {
+                  if ( isOneOf( ucnmode.value().mode, UCNMode::Mode::Refine,  UCNMode::Mode::Remove ) )
+                    components.push_back({ di->fraction(), makeSO<UCN::ExcludeUCNScatter>( makeSABScatter(), scUCN ) });
+                  if ( isOneOf( ucnmode.value().mode, UCNMode::Mode::Refine,  UCNMode::Mode::Only ) )
+                    components.push_back({ di->fraction(), scUCN });
+                }
+              } else {
+                components.push_back({di->fraction(),makeSABScatter()});
+              }
             } else if (dynamic_cast<const DI_Sterile*>(di.get())) {
               continue;//just skip past sterile components
             } else if (dynamic_cast<const DI_FreeGas*>(di.get())) {
               components.push_back({di->fraction(),makeSO<FreeGas>(info.getTemperature(), di->atomData())});
+              if ( ucnmode.has_value() )
+                NCRYSTAL_THROW2(BadInput,"components with freegas dynamics are currently not supported when using any ucnmode)");
             } else {
               NCRYSTAL_THROW(LogicError,"Unsupported DynamicInfo entry encountered.");
             }
           }
 
         } else if ( inelas=="freegas" ) {
-
+          if ( ucnmode.has_value() )
+            NCRYSTAL_THROW2(BadInput,"inelas="<<inelas<<" mode is not compatible with any ucnmode)");
           for ( auto& e : info.getComposition() ) {
             components.push_back({e.fraction,makeSO<FreeGas>(info.getTemperature(), e.atom.data())});
           }
 
         } else {
-
           nc_assert_always(inelas=="vdosdebye");
-
+          if ( ucnmode.has_value() )
+            NCRYSTAL_THROW2(BadInput,"inelas="<<inelas<<" mode is not compatible with any ucnmode)");
           if ( !info.hasDebyeTemperature() )
             NCRYSTAL_THROW2(BadInput,"inelas="<<inelas<<" mode requires specification of Debye temperature");//TODO: This should be allowed also for elements with actual VDOS
           if ( !info.isCrystalline() || !info.hasAtomInfo() )
@@ -271,7 +296,7 @@ namespace NCrystal {
                                                               info.getTemperature(),
                                                               ai.atomData().scatteringXS(),
                                                               ai.atomData().averageMassAMU(),
-                                                              cfg.get_vdoslux() );
+                                                              vdoslux );
             auto scathelper = SAB::createScatterHelperWithCache( std::move(sabdata) );
             components.push_back({ai.numberPerUnitCell()*1.0/ntot,makeSO<SABScatter>(std::move(scathelper))});
 

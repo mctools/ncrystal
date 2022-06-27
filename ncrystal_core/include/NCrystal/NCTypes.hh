@@ -258,7 +258,7 @@ namespace NCrystal {
     enum class Type : unsigned { DENSITY, NUMBERDENSITY, SCALEFACTOR };
     Type type = Type::SCALEFACTOR;
     double value = 1.0;
-    bool operator==(DensityState const&) const;
+    bool operator==(const DensityState&) const;
     void validate() const;
     //For C++11:
     DensityState() = default;
@@ -376,7 +376,10 @@ namespace NCrystal {
     NeutronEnergy elow = NeutronEnergy{ 0.0 };
     NeutronEnergy ehigh = NeutronEnergy{ kInfinity };
     constexpr EnergyDomain(NeutronEnergy,NeutronEnergy) ncnoexceptndebug;
-    ncnodiscard17 constexpr bool contains(NeutronEnergy) const ncnoexceptndebug;
+    ncnodiscard17 constexpr bool contains(NeutronEnergy) const ncnoexceptndebug;//checks if in [elow,ehigh] (always false if isNull() is true!)
+    ncnodiscard17 constexpr bool isNull() const noexcept { return elow.get() > std::numeric_limits<double>::max() || elow==ehigh; }//nb: std::isinf not constexpr
+    static constexpr EnergyDomain null() noexcept { return EnergyDomain{ NeutronEnergy{kInfinity},
+                                                                         NeutronEnergy{kInfinity} }; }
   };
 
   struct NCRYSTAL_API ScatterOutcome {
@@ -387,6 +390,10 @@ namespace NCrystal {
   struct NCRYSTAL_API ScatterOutcomeIsotropic {
     NeutronEnergy ekin;
     CosineScatAngle mu;
+    constexpr static ScatterOutcomeIsotropic noScat( NeutronEnergy ef ) noexcept
+    {
+      return { ef, CosineScatAngle{1.0} };
+    }
   };
 
   NCRYSTAL_API std::ostream& operator<<(std::ostream&, const ScatterOutcome&);
@@ -430,6 +437,16 @@ namespace NCrystal {
   };
 
   NCRYSTAL_API std::ostream& operator<<(std::ostream&, const DataSourceName&);
+
+  struct NCRYSTAL_API UCNMode {
+    static constexpr NeutronEnergy default_threshold() noexcept { return NeutronEnergy{ 300e-9 }; }
+    enum class Mode { Refine, Remove, Only };
+    Mode mode = Mode::Refine;
+    NeutronEnergy threshold = default_threshold();
+    bool operator==(const UCNMode&) const;
+  };
+
+  NCRYSTAL_API std::ostream& operator<<(std::ostream&, const UCNMode&);
 
   namespace Cfg {
 
@@ -733,7 +750,7 @@ namespace NCrystal {
     nc_assert( elow.dbl() <= ehigh.dbl() );
 #endif
     //nc_as_const to get constexpr .dbl in before C++17:
-    return ( nc_as_const(ekin).dbl() >= elow.dbl() ) && ( nc_as_const(ekin).dbl() <= ehigh.dbl() );
+    return !isNull() && ( nc_as_const(ekin).dbl() >= elow.dbl() ) && ( nc_as_const(ekin).dbl() <= ehigh.dbl() );
     //NB: More efficient version might trigger FPE's:
     //    return ( nc_as_const(ekin).dbl()-elow.dbl() ) * ( nc_as_const(ekin).dbl()-ehigh.dbl() ) <= 0.0;
   }
@@ -889,7 +906,7 @@ namespace NCrystal {
     return *this;
   }
 
-  inline bool DensityState::operator==( DensityState const& o ) const
+  inline bool DensityState::operator==( const DensityState& o ) const
   {
     return this->value == o.value && this->type == o.type;
   }
@@ -899,6 +916,12 @@ namespace NCrystal {
     if ( !(value>0.0) || !( value <= 1.0e200) )
       NCRYSTAL_THROW2(BadInput,"Density value invalid or out of bounds: "<<*this);
   }
+
+  inline bool UCNMode::operator==( const UCNMode& o ) const
+  {
+    return this->mode == o.mode && this->threshold == o.threshold;
+  }
+
 }
 
 #endif

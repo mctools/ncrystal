@@ -51,7 +51,7 @@ For detailed usage conditions and licensing of this open source project, see:
 ################################################################################
 
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
-__version__ = '3.0.0'
+__version__ = '3.1.0'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
 __copyright__ = "Copyright 2015-2022 %s"%__author__
@@ -711,6 +711,11 @@ def _load(nclib_filename):
     def nc_cfgstr2json(cfgstr):
         return _decode_and_dealloc_raw_str( _raw_decodecfg_json(_str2cstr(cfgstr) ) )
     functions['nc_cfgstr2json']=nc_cfgstr2json
+
+    _raw_ncmat2json = _wrap('ncrystal_ncmat2json',_charptr,(_cstr,),hide=True)
+    def nc_ncmat2json(tdname):
+        return _decode_and_dealloc_raw_str( _raw_ncmat2json(_str2cstr(tdname) ) )
+    functions['nc_ncmat2json']=nc_ncmat2json
 
     raw_proc_uid = _wrap('ncrystal_process_uid',_charptr,(ncrystal_process_t,),hide=True)
     functions['procuid'] = lambda rawproc : int(_decode_and_dealloc_raw_str(raw_proc_uid(rawproc)))
@@ -1539,6 +1544,9 @@ class Info(RCBase):
     class DI_ScatKnlDirect(DI_ScatKnl):
         """Pre-calculated scattering kernel which at most needs a (hidden) conversion to
            S(alpha,beta) format before it is available."""
+        def __init__(self,theinfoobj,fr,atomidx,tt,key):
+            """internal usage only"""
+            super(Info.DI_ScatKnlDirect, self).__init__(theinfoobj,fr,atomidx,tt,key)
         def loadKernel( self ):
             """Prepares and returns the scattering kernel in S(alpha,beta) format"""
             return self._loadKernel(vdoslux=3)#vdoslux value not actually used
@@ -1798,35 +1806,48 @@ class Process(RCBase):
             return wl2ekin(wl)
 
     def getSummary(self,short = False ):
-        """By default access a high-level summary of the process in the form of a
-           dictionary holding various information which is also available on the
-           underlying C++ process object. If instead short==True, what is
-           instead returned is simply a short process label along with a list of
-           sub-components and their scales (if appropriate). Finally, if
-           short=='printable', the returned object will instead be a list of
-           strings suitable for a quick printout (each string is one line of
-           printout).
+        """By default access a high-level summary of the process in the form of
+           a dictionary holding various information which is also available on
+           the underlying C++ process object. If instead short==True, what is
+           instead returned is simply a short process label along with a
+           (recursive) list of sub-components and their scales (if
+           appropriate). Finally, if short=='printable', the returned object
+           will instead be a list of strings suitable for a quick printout (each
+           string is one line of printout).
+
         """
         #Not caching, method is likely to be called sparringly.
+
+        #short printable:
+        if short == 'printable':
+            toplbl,comps=self.getSummary(short=True)
+            l=[ toplbl]
+            def add_lines( comps, indentlvl = 1 ):
+                ncomps = len(comps)
+                prefix = '   '*indentlvl
+                for i,(scale,(lbl,subcomps)) in enumerate(comps):
+                    smb = '\--' if i+1==ncomps else '|--'
+                    scale_str = '' if scale==1.0 else f'{scale:g} * '
+                    l.append(f'{prefix}{smb} {scale_str}{lbl}')
+                    if subcomps:
+                        add_lines( subcomps, indentlvl + 1 )
+            if comps:
+                add_lines( comps )
+            return l
+
         d=_rawfct['nc_dbg_proc'](self._rawobj)
+        #full:
         if not short:
             return d
+        #short:
         def fmt_lbl(proc):
             name = proc['name']
             summarystr = proc['specific'].get('summarystr','')
             return f'{name}({summarystr})' if summarystr else name
-        if short != 'printable':
-            return (fmt_lbl(d),
-                    tuple((scale,fmt_lbl(proc))
-                          for scale,proc in d.get('specific',{}).get('components',[])))
-        toplbl,comps= self.getSummary(short=True)
-        l = [ toplbl ]
-        ncomps = len(comps)
-        for i,(scale,lbl) in enumerate(comps):
-            smb = '\--' if i+1==ncomps else '|--'
-            scale_str = '' if scale==1.0 else f'{scale:g} * '
-            l.append(f'   {smb} {scale_str}{lbl}')
-        return l
+        def extract_subcomponents(proc):
+            subprocs = proc.get('specific',{}).get('components',[])
+            return (fmt_lbl(proc),list( (scl, extract_subcomponents(sp)) for scl,sp in subprocs ))
+        return extract_subcomponents(d)
 
     def dump(self,prefix=''):
         """Print a quick high level summary of the process to stdout. What is printed is
@@ -2598,6 +2619,20 @@ def decodeCfg(cfgstr,*,asJSONStr=False):
         return _js
     return json.loads(_js)
 
+def _rawParseNCMAT(text_data_name,*,asJSONStr=False):
+    """Parses NCMAT content and returns as Python data structure (a dictionary). The
+       format of this data structure should be mostly self-evident by
+       inspection, and is not guaranteed to stay the same across NCrystal
+       versions. If asJSONStr=true, the data structure will be returned as a
+       JSON-encoded string, instead of a Python dictionary.
+
+       WARNING: This function is considered experimental and is currently NOT
+       feature complete. It only returns data from a few select NCMAT sections."""
+    _js = _rawfct['nc_ncmat2json'](text_data_name)
+    if asJSONStr:
+        return _js
+    return json.loads(_js)
+
 def generateCfgStrDoc( mode = "print" ):
     """Generates documentation about the available cfg-str variables. Mode can
     either be 'print' (print detailed explanation to stdout), 'txt_full' (return
@@ -2695,42 +2730,42 @@ def _actualtest():
     nipc = createScatterIndependentRNG('stdlib::Ni_sg225.ncmat;dcutoff=0.6;vdoslux=2',2543577)
     nipc_testwl = 1.2
     #print(nipc.xsect(wl=nipc_testwl),nipc.xsect(wl=5.0))
-    require_flteq(16.76317928962922,nipc.xsect(wl=nipc_testwl))
-    require_flteq(16.76317928962922,nipc.xsect(wl=nipc_testwl,direction=(1,0,0)))
-    require_flteq(5.957888794444784,nipc.xsect(wl=5.0))
+    require_flteq(16.76322537767633,nipc.xsect(wl=nipc_testwl))
+    require_flteq(16.76322537767633,nipc.xsect(wl=nipc_testwl,direction=(1,0,0)))
+    require_flteq(5.958094744249944,nipc.xsect(wl=5.0))
 
     require( nipc.name == 'ProcComposition' )
 
     expected = [ ( 0.056808478892590906, 0.5361444826572666 ),
                  ( 0.056808478892590906, 0.5361444826572666 ),
-                 ( 0.056808478892590906, 0.3621986636537414 ),
+                 ( 0.056808478892590906, 0.36219866365374176 ),
                  ( 0.056808478892590906, 0.8391056916029316 ),
-                 ( 0.04299667891784979, -0.9096194707071311 ),
-                 ( 0.056808478892590906, 0.0028144544046340148 ),
+                 ( 0.032001313096074194, -0.3726211530494784 ),
                  ( 0.056808478892590906, -0.10165685368899147 ),
                  ( 0.056808478892590906, -0.15963879335683306 ),
                  ( 0.056808478892590906, 0.8260541809964751 ),
-                 ( 0.07815187462120533, -0.47841820175303057 ),
-                 ( 0.053947782038503665, -0.052300913437966556 ),
+                 ( 0.07799891342244511, -0.5293689067509328 ),
+                 ( 0.05348597239804991, -0.09542895891111686 ),
                  ( 0.056808478892590906, 0.8260541809964751 ),
-                 ( 0.0416125960343578, -0.15796667029753514 ),
+                 ( 0.04125596596989546, -0.2114086959439411 ),
                  ( 0.056808478892590906, -0.10165685368899147 ),
                  ( 0.056808478892590906, -0.10165685368899147 ),
                  ( 0.056808478892590906, 0.5361444826572666 ),
                  ( 0.056808478892590906, -0.3915665520281999 ),
-                 ( 0.056808478892590906, 0.3621986636537414 ),
-                 ( 0.05796262230888247, -0.4626155424845311 ),
-                 ( 0.056808478892590906, 0.3621986636537414 ),
-                 ( 0.08134492707554557, -0.9219340880392132 ),
+                 ( 0.056808478892590906, 0.36219866365374176 ),
+                 ( 0.05750930296126236, -0.5221485562238027 ),
+                 ( 0.056808478892590906, 0.36219866365374176 ),
+                 ( 0.0812282226184265, -0.9893430983107131 ),
                  ( 0.056808478892590906, -0.5655123710317247 ),
-                 ( 0.058549224288175404, -0.8742102883360473 ),
+                 ( 0.058097184485747494, -0.951408724433637 ),
                  ( 0.056808478892590906, 0.3042167239859003 ),
                  ( 0.056808478892590906, 0.7378808571510718 ),
                  ( 0.056808478892590906, -0.10165685368899147 ),
-                 ( 0.08057848774834933, -0.7456086493116947 ),
+                 ( 0.08045270890565197, -0.8062090812584963 ),
                  ( 0.056808478892590906, -0.5655123710317247 ),
-                 ( 0.06966887424392498, 0.11122479793760214 ),
-                 ( 0.040517211926276296, -0.8699967641614244 ) ]
+                 ( 0.06930621305459778, 0.0790013056899895 ),
+                 ( 0.04019454300337846, -0.9619857378392679 ),
+                 ( 0.08983663449895618, -0.5822245509723732 ) ]
 
     if _np is None:
         ekin,mu=[],[]
@@ -2746,36 +2781,36 @@ def _actualtest():
         require_flteq(ekin[i],expected[i][0])
         require_flteq(mu[i],expected[i][1])
 
-    expected = [ ( 0.008118115215771701, (-0.7888509400655686, -0.6076410066613851, -0.09212275170231986) ),
-                 ( 0.056808478892590906, (0.07228896531453344, -0.5190173207165885, 0.8517014302500192) ),
+    expected = [ ( 0.056808478892590906, (0.07228896531453344, -0.5190173207165885, 0.8517014302500192) ),
                  ( 0.056808478892590906, (-0.9249112255344181, -0.32220112076758217, -0.20180600252850442) ),
                  ( 0.056808478892590906, (-0.15963879335683306, -0.8486615569734178, 0.5042707778277745) ),
-                 ( 0.05510388343809702, (-0.9252289628652087, -0.015854700042162356, -0.3790778215115509) ),
-                 ( 0.056808478892590906, (0.3621986636537414, 0.9195336880770101, -0.15254482796521104) ),
-                 ( 0.056808478892590906, (-0.8667699444876275, 0.3952682020937969, -0.30409359043960893) ),
+                 ( 0.0492224669270449, (-0.9779916301402904, 0.140975569549056, 0.15381241876342955) ),
+                 ( 0.056808478892590906, (0.07228896531453344, 0.7905105193171594, -0.6081672667471253) ),
                  ( 0.056808478892590906, (-0.10165685368899147, -0.8869759070713323, -0.4504882066969593) ),
                  ( 0.056808478892590906, (0.07228896531453344, -0.39741541395284924, -0.914787021249449) ),
                  ( 0.056808478892590906, (-0.10165685368899147, -0.9768880366798581, -0.1880309758785167) ),
-                 ( 0.025997560001891004, (-0.7739589572893255, -0.63286269308698, 0.02173347948017065) ),
+                 ( 0.025610418737037184, (-0.884783168996826, -0.4657283985847863, 0.015993830422524287) ),
                  ( 0.056808478892590906, (0.8260541809964751, 0.539797243436807, 0.16202909009269678) ),
-                 ( 0.0455976595034131, (-0.9663616387824883, 0.14673193287522976, -0.2112224490065456) ),
-                 ( 0.056808478892590906, (-0.5655123710317247, 0.15884349419072655, 0.8092987721252006) ),
+                 ( 0.07443181306716587, (-0.6036941700256581, -0.06282145095069493, -0.7947369466543514) ),
+                 ( 0.056808478892590906, (0.8260541809964751, 0.10854661864786977, 0.5530389874487663) ),
                  ( 0.056808478892590906, (0.5361444826572666, 0.7795115518549294, 0.3238994199452849) ),
                  ( 0.056808478892590906, (0.07228896531453344, 0.746175597107444, 0.6618128767069312) ),
                  ( 0.056808478892590906, (-0.10165685368899147, -0.4247181868490453, 0.8996001033001911) ),
                  ( 0.056808478892590906, (0.5361444826572666, 0.5555760611065321, -0.6355189486093415) ),
-                 ( 0.05782277081077251, (-0.12733295313030432, -0.6897665437789146, 0.7127471039088173) ),
+                 ( 0.05736918247226906, (-0.17265143322057086, -0.684984059616355, 0.7078052844380157) ),
                  ( 0.056808478892590906, (0.3042167239859003, -0.8706122815482211, -0.3866347631352975) ),
                  ( 0.056808478892590906, (-0.7384733804796917, 0.6322144258925643, -0.23443972789660028) ),
                  ( 0.056808478892590906, (-0.15963879335683306, 0.21525619037302965, -0.9634211063505222) ),
                  ( 0.056808478892590906, (0.41359447569500096, 0.4927058865194684, 0.7656242675514158) ),
                  ( 0.056808478892590906, (0.25796367721315083, 0.48520231047621615, 0.8354839670198411) ),
                  ( 0.056808478892590906, (0.5785005938702705, 0.8104481067271115, -0.09225469740985966) ),
-                 ( 0.043614607651472896, (0.014066554670704504, -0.4956585252817857, 0.8684035688291368) ),
-                 ( 0.05474758775171918, (-0.30632011463052927, -0.9249168897721383, 0.22515935331887424) ),
-                 ( 0.056808478892590906, (0.3621986636537414, -0.8822186430862218, 0.3008361577978115) ),
+                 ( 0.04320288783696474, (-0.030385860971878235, -0.49547867364837517, 0.8680884651996275) ),
+                 ( 0.05428746831317616, (-0.3602629693021255, -0.9063804616575692, 0.22064689364463652) ),
+                 ( 0.056808478892590906, (0.36219866365374176, -0.8822186430862216, 0.3008361577978114) ),
                  ( 0.056808478892590906, (0.7680722413286334, 0.5975216576265994, -0.23028873347945303) ),
-                 ( 0.056808478892590906, (0.32922859149927786, -0.9426419619170849, 0.0550878042084668) ) ]
+                 ( 0.056808478892590906, (0.32922859149927786, -0.9426419619170849, 0.0550878042084668) ),
+                 ( 0.056808478892590906, (-0.10165685368899147, -0.2489220191768986, -0.9631737706493833) ),
+                 ( 0.0670456981700729, (-0.8979842133391931, 0.34668021323231085, 0.2709929562678522) ) ]
 
     for i in range(30):
         out_ekin,outdir = nipc.sampleScatter(wl2ekin(nipc_testwl),(1.0,0.0,0.0))
@@ -2787,5 +2822,5 @@ def _actualtest():
     gesc = createScatterIndependentRNG("""stdlib::Ge_sg227.ncmat;dcutoff=0.5;mos=40.0arcsec
                             ;dir1=@crys_hkl:5,1,1@lab:0,0,1
                             ;dir2=@crys_hkl:0,-1,1@lab:0,1,0""",3453455)
-    require_flteq(591.0256514168468,gesc.crossSection(wl2ekin(1.540),( 0., 1., 1. )))
-    require_flteq(1.666903965431398,gesc.crossSection(wl2ekin(1.540),( 1., 1., 0. )))
+    require_flteq(591.025731949681,gesc.crossSection(wl2ekin(1.540),( 0., 1., 1. )))
+    require_flteq(1.666984885615526,gesc.crossSection(wl2ekin(1.540),( 1., 1., 0. )))

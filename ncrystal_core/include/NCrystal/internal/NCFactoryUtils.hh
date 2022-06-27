@@ -46,11 +46,6 @@ namespace NCrystal {
     {
       return map[key];
     }
-    template <class TMap>
-    static typename TMap::iterator cacheMapFind( TMap& map, const key_type& key, Optional<thinned_key_type>& )
-    {
-      return map.find(key);
-    }
   };
 
   template< class TKey, class TValue, unsigned NStrongRefsKept = 5, class TKeyThinner = CFB_Unthinned_t<TKey>>

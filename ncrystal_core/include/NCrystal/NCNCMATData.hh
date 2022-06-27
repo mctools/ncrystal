@@ -59,6 +59,7 @@ namespace NCrystal {
     //State of matter.
     enum class StateOfMatter { Solid, Gas, Liquid };
     Optional<StateOfMatter> stateOfMatter;
+    static const char * stateOfMatter2Str(StateOfMatter);
 
     //@CELL
     struct Cell {
@@ -88,6 +89,8 @@ namespace NCrystal {
     //@DYNINFO
     struct NCRYSTAL_API DynInfo {
       enum DynInfoType { Sterile, FreeGas, VDOSDebye, VDOS, ScatKnl, Undefined };
+      static const char * diType2Str(DynInfoType);
+      const char * typeStr() const { return diType2Str(dyninfo_type); }
       DynInfoType dyninfo_type = Undefined;
       std::string element_name;
       double fraction = -1.0;
@@ -141,6 +144,9 @@ namespace NCrystal {
     NCMATData& operator=( const NCMATData& ) = delete;
     NCMATData( NCMATData&& ) = default;
     NCMATData& operator=( NCMATData&& ) = default;
+
+    // Experimental and INCOMPLETE support for dumping the raw NCMAT data into JSON format:
+    void toJSON( std::ostream& ) const;
 
   private:
     void validateElementName( const std::string& ) const;

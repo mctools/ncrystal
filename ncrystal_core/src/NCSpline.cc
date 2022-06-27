@@ -20,6 +20,8 @@
 
 #include "NCrystal/internal/NCSpline.hh"
 #include <cstdlib>
+#include <fstream>
+#include <iomanip>
 
 //TODO: For convenience, CubicSpline derivatives should default to
 //special values (e.g. inf), in which case derivatives will be approximated,
@@ -182,3 +184,40 @@ void NCrystal::SplinedLookupTable::producefile( const Fct1D* thefct,
   std::cout <<"NCrystal: Wrote "<<filename<<" (since NCRYSTAL_DEBUG_SPLINE is set)."<<std::endl;
 }
 
+void NCrystal::PiecewiseLinearFct1D::dumpToFile( const std::string& filename ) const {
+  std::ofstream ofs (filename.c_str(), std::ofstream::out);
+  ofs << std::setprecision(20);
+  ofs << "#colnames=x,y\n";
+  ofs << "#plotstyle=*-\n";
+  ofs << "#overflow=";
+  if  ( m_ofVals.overflowYValue.has_value() )
+    ofs << "none\n";
+  else
+    ofs << m_ofVals.overflowYValue.value()<< "\n";
+  ofs << "#underflow=";
+  if  ( m_ofVals.underflowYValue.has_value() )
+    ofs << "none\n";
+  else
+    ofs << m_ofVals.underflowYValue.value()<< "\n";
+
+  for ( auto i : ncrange(m_x.size()) ) {
+    ofs << m_x.at(i) << " "<<m_y.at(i) << "\n";
+  }
+  ofs << std::flush;
+}
+
+double NCrystal::PiecewiseLinearFct1D::evalEdgeCase( VectD::const_iterator it, double x ) const
+{
+  if ( it == m_x.end() ) {
+    if ( !m_ofVals.overflowYValue.has_value() )
+      NCRYSTAL_THROW2(CalcError,"PiecewiseLinearFct1D: Out of bounds: x>xmax"
+                      " and no overflow value supplied (x="<<x<<", xmax="<<m_x.back()<<").");
+    return m_ofVals.overflowYValue.value();
+  };
+  if ( x >= m_x.front() )
+    return m_y.front();
+  if ( !m_ofVals.underflowYValue.has_value() )
+    NCRYSTAL_THROW2(CalcError,"PiecewiseLinearFct1D: Out of bounds: x<xmin"
+                    " and no underflow value supplied (x="<<x<<", xmin="<<m_x.front()<<").");
+  return m_ofVals.underflowYValue.value();
+}
