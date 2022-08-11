@@ -34,7 +34,7 @@
 #                                                                                #
 #  $> make install -j8                                                           #
 #                                                                                #
-# Written 2016-2021 by T. Kittelmann.                                            #
+# Written 2016-2022 by T. Kittelmann.                                            #
 #                                                                                #
 ##################################################################################
 
@@ -69,7 +69,7 @@ if(NOT DEFINED NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE)
 endif()
 
 #Setup project:
-project(NCrystal VERSION 3.1.0 LANGUAGES CXX C)
+project(NCrystal VERSION 3.2.0 LANGUAGES CXX C)
 
 if(NOT DEFINED NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE)
   if ("${CMAKE_BUILD_TYPE}" STREQUAL "")

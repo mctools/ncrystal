@@ -198,6 +198,12 @@ void NCrystal::dump( const Info&c, DumpVerbosity verbosityVal )
         if ( !verbose && ntot>30) {
           printf("  (suppressed due to their large number, increase verbosity to show)\n");
         } else {
+          auto prettyPrintValue2Str = [](double value)->std::string
+          {
+            std::ostringstream ss;
+            ss << fmtg_frac(value);
+            return ss.str();
+          };
           for ( auto& ai : atomlist ) {
             auto lbl = safeDisplayLabel(ai.atom());
             for ( auto& pos : ai.unitCellPositions() ) {

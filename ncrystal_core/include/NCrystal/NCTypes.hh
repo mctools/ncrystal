@@ -114,7 +114,7 @@ namespace NCrystal {
 
     //Supports comparisons:
 #if __cplusplus >= 202002L
-    auto operator<=>(const EncapsulatedValue&) const = default;
+    auto operator<=>( const EncapsulatedValue& ) const = default;
 #else
     constexpr bool operator<( const EncapsulatedValue& o ) const noexcept { return m_value < o.m_value; }
     constexpr bool operator>( const EncapsulatedValue& o ) const noexcept { return m_value > o.m_value; }
@@ -123,14 +123,14 @@ namespace NCrystal {
     constexpr bool operator==( const EncapsulatedValue& o ) const noexcept { return m_value == o.m_value; }
     constexpr bool operator!=( const EncapsulatedValue& o ) const noexcept { return m_value != o.m_value; }
 #endif
-    void stream(std::ostream& os) const noexcept;
+    void stream( std::ostream& ) const noexcept;
   protected:
     TValue m_value;
   };
 
   //Values are printed with suitable trailing unit:
   template <class Derived, class TValue>
-  NCRYSTAL_API std::ostream& operator<<(std::ostream& os, const EncapsulatedValue<Derived,TValue>& val) noexcept;
+  NCRYSTAL_API std::ostream& operator<<(std::ostream&, const EncapsulatedValue<Derived,TValue>& ) noexcept;
 
   class NeutronEnergy;
 
@@ -258,13 +258,23 @@ namespace NCrystal {
     enum class Type : unsigned { DENSITY, NUMBERDENSITY, SCALEFACTOR };
     Type type = Type::SCALEFACTOR;
     double value = 1.0;
-    bool operator==(const DensityState&) const;
+    bool operator==( const DensityState& ) const;
     void validate() const;
     //For C++11:
     DensityState() = default;
     DensityState( Type tt, double vv ) : type(tt), value(vv) {}
   };
-  NCRYSTAL_API std::ostream& operator<<(std::ostream&, const DensityState&);
+  NCRYSTAL_API std::ostream& operator<<( std::ostream&, const DensityState& );
+
+  class NCRYSTAL_API Pressure final : public EncapsulatedValue<Pressure> {
+  public:
+    //Pressure in pascal (Pa).
+    using EncapsulatedValue::EncapsulatedValue;
+    static constexpr const char * unit() noexcept { return "Pa"; }
+    static constexpr Pressure one_atm() noexcept { return Pressure{ 101325.0 }; }
+    static constexpr double one_atm_raw() noexcept { return 101325.0; }
+    void validate() const;
+  };
 
   class SLDContrast;
 
@@ -273,7 +283,7 @@ namespace NCrystal {
     //Scattering length density (usually used for SANS physics). Note that this might be negative.
     using EncapsulatedValue::EncapsulatedValue;
     static constexpr const char * unit() noexcept { return "10^-6/Aa^2"; }
-    void stream(std::ostream& os) const noexcept;
+    void stream( std::ostream& ) const noexcept;
     void validate() const;
     ncnodiscard17 constexpr SLDContrast contrast(ScatLenDensity other) const noexcept;
   };
@@ -284,7 +294,7 @@ namespace NCrystal {
     //"delta-rho"). This is an absolute difference between two scattering length
     //densities.
     using EncapsulatedValue::EncapsulatedValue;
-    static constexpr const char * unit() noexcept { return "1e-6/Aa^2"; }
+    static constexpr const char * unit() noexcept { return "10^-6/Aa^2"; }
     void validate() const;
     constexpr SLDContrast(ScatLenDensity rho1, ScatLenDensity rho2) noexcept;
     ncnodiscard17 constexpr double valuePerAa2() const noexcept;//Value in units of 1/Aa^2
@@ -396,8 +406,8 @@ namespace NCrystal {
     }
   };
 
-  NCRYSTAL_API std::ostream& operator<<(std::ostream&, const ScatterOutcome&);
-  NCRYSTAL_API std::ostream& operator<<(std::ostream&, const ScatterOutcomeIsotropic&);
+  NCRYSTAL_API std::ostream& operator<<( std::ostream&, const ScatterOutcome& );
+  NCRYSTAL_API std::ostream& operator<<( std::ostream&, const ScatterOutcomeIsotropic& );
 
   //Index identifying RNG streams:
   class NCRYSTAL_API RNGStreamIndex final : public EncapsulatedValue<RNGStreamIndex,uint64_t> {
@@ -436,17 +446,17 @@ namespace NCrystal {
     shared_obj<const std::string> m_str;
   };
 
-  NCRYSTAL_API std::ostream& operator<<(std::ostream&, const DataSourceName&);
+  NCRYSTAL_API std::ostream& operator<<( std::ostream&, const DataSourceName& );
 
   struct NCRYSTAL_API UCNMode {
     static constexpr NeutronEnergy default_threshold() noexcept { return NeutronEnergy{ 300e-9 }; }
     enum class Mode { Refine, Remove, Only };
     Mode mode = Mode::Refine;
     NeutronEnergy threshold = default_threshold();
-    bool operator==(const UCNMode&) const;
+    bool operator==( const UCNMode& ) const;
   };
 
-  NCRYSTAL_API std::ostream& operator<<(std::ostream&, const UCNMode&);
+  NCRYSTAL_API std::ostream& operator<<( std::ostream&, const UCNMode& );
 
   namespace Cfg {
 
@@ -760,6 +770,12 @@ namespace NCrystal {
   {
     if ( ! ( m_value >= 0.0 && m_value < 1e9 )  )
       NCRYSTAL_THROW2(CalcError,"AtomMass::validate() failed. Invalid value:" << *this );
+  }
+
+  inline void Pressure::validate() const
+  {
+    if ( ! ( m_value > 0.0 && m_value < 1e15 ) )
+      NCRYSTAL_THROW2(CalcError,"Pressure::validate() failed. Invalid value:" << *this );
   }
 
   inline void Temperature::validate() const

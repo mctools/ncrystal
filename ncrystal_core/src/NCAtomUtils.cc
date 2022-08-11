@@ -298,67 +298,100 @@ namespace NCrystal {
       return true;
     }
 
-    bool actualDecodeChemForm( std::string s, NC::DecodedChemForm& cf )
-    {
-      {
-        const char * it = s.data();
-        auto itE = it + s.size();
-        while ( it != itE ) {
-          if (!readNextChemFormEntry(it,itE,cf))
-            return false;
-        }
-      }
-      if ( cf.empty() )
-        return false;
-
-      if ( cf.size() <= 1 )
-        return !cf.empty();
-
-      //Sort:
-      std::stable_sort(cf.begin(),cf.end(),
-                       [](const DecodedChemForm::value_type& a,
-                          const DecodedChemForm::value_type& b)
-                       {
-                         nc_assert(a.second.isElement());
-                         nc_assert(b.second.isElement());
-                         if ( a.second.Z() != b.second.Z() )
-                           return a.second.Z() < b.second.Z();
-                         return a.first < b.first;
-                       });
-
-      //Merge duplicates:
-      NC::DecodedChemForm dedupcf;
-      auto it = cf.begin();
-      auto itE = cf.end();
-      auto itLast = std::prev(cf.end());
-      for ( ; it != itE; ++it ) {
-        auto n = it->first;
-        while ( it!=itLast && it->second.Z() == std::next(it)->second.Z()) {
-          ++it;
-          n += it->first;
-        }
-        dedupcf.emplace_back(n,it->second);
-      }
-      if ( dedupcf.size() != cf.size() )
-        cf.swap(dedupcf);
-
-      return true;
-    }
   }
-}
-
-NC::DecodedChemForm NC::decodeSimpleChemicalFormula( std::string s ) {
-  NC::DecodedChemForm cf;
-  if (!actualDecodeChemForm(s,cf))
-    NCRYSTAL_THROW2(BadInput,"Invalid chemical formula: "<<s);
-  return cf;
 }
 
 NC::Optional<NC::DecodedChemForm> NC::tryDecodeSimpleChemicalFormula( std::string s )
 {
-  NC::Optional<NC::DecodedChemForm> res;
-  res.emplace();
-  if (!actualDecodeChemForm(std::move(s),res.value()))
-    res.reset();
+  DecodedChemForm cf;
+  {
+    const char * it = s.data();
+    auto itE = it + s.size();
+    while ( it != itE ) {
+      if (!readNextChemFormEntry(it,itE,cf))
+        return NullOpt;
+    }
+  }
+  if ( cf.empty() )
+    return NullOpt;
+  if ( cf.size() == 1 )
+    return cf;
+  return normaliseSimpleChemicalFormula( cf );
+}
+
+NC::DecodedChemForm NC::decodeSimpleChemicalFormula( std::string s ) {
+  auto cf = tryDecodeSimpleChemicalFormula(s);
+  if (!cf.has_value())
+    NCRYSTAL_THROW2(BadInput,"Invalid chemical formula: "<<s);
+  return std::move(cf.value());
+}
+
+void NC::streamSimpleChemicalFormula( std::ostream& os, const DecodedChemForm& cf )
+{
+  nc_assert( !cf.empty() );
+  for ( auto& e : cf ) {
+    nc_assert(e.second.isElement());
+    os << elementZToName(e.second.Z());
+    if ( e.first != 1 )
+      os << e.first;
+  }
+}
+
+NC::DecodedChemForm NC::normaliseSimpleChemicalFormula( const DecodedChemForm& input )
+{
+  //Merge duplicates:
+  NC::DecodedChemForm res;
+  for ( const auto& e : input ) {
+    nc_assert( e.second.isElement() );
+    bool found = false;
+    for ( auto& er : res ) {
+      if ( er.second.Z() == e.second.Z() ) {
+        er.first += e.first;
+        found = true;
+        break;
+      }
+    }
+    if ( !found )
+      res.push_back( e );
+  }
+  //Sort according to the hill system. First we must know if there are any
+  //carbon atoms:
+  const bool hasCarbon = [&res]()
+  {
+    for ( auto& e : res )
+      if ( e.second.Z() == 6 )
+        return true;
+    return false;
+  }();
+
+  //Sort:
+  auto sortValue = [&hasCarbon]( const AtomSymbol& atom ) -> const std::string&
+  {
+    nc_assert( atom.isElement() );
+    const auto zval = atom.Z();
+    const std::string& name = elementZToName(zval);
+    nc_assert(!name.empty());
+
+    if ( !hasCarbon || ( zval!=1 && zval!=6 ) )
+      return name;
+    static const std::string hillC("Aa");
+    static const std::string hillH("Ab");
+    nc_assert( hillC < hillH );
+    nc_assert( hillC < "Ac"_s );
+    nc_assert( "Ac"_s < "Ag"_s );
+    nc_assert( "Ac"_s < "B"_s );
+    return zval == 6 ? hillC : hillH;
+  };
+  std::stable_sort(res.begin(),res.end(),
+                   [&sortValue]( const DecodedChemForm::value_type& a,
+                                 const DecodedChemForm::value_type& b )
+                   {
+                     const std::string& sortA = sortValue(a.second);
+                     const std::string& sortB = sortValue(b.second);
+                     if ( sortA != sortB )
+                       return sortA < sortB;
+                     return a.first < b.first;
+                   });
   return res;
 }
+

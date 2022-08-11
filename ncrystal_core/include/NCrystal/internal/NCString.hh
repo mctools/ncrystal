@@ -24,6 +24,7 @@
 //String-related utilities
 
 #include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/NCFmt.hh"
 
 namespace NCrystal {
 
@@ -112,13 +113,6 @@ namespace NCrystal {
   std::string joinstr(const Span<const StrView>& parts );//join by single space
   std::string joinstr(const Span<const StrView>& parts, StrView sep );
   std::string joinstr(const VectS& parts, StrView sep );
-
-  //Pretty-prints a value. If detectSimpleRationalNumbers detects a simple
-  //fraction, it will be printed as e.g. "2/9", or "3" (in case of integers). If
-  //not, it will be printed as a floating point (with a particular precision in
-  //case prec!=0):
-  void prettyPrintValue(std::ostream& os, double value, unsigned prec=0 );
-  std::string prettyPrintValue2Str(double value, unsigned prec=0 );
 
   //Convert values to/from hex strings:
   std::string bytes2hexstr(const std::vector<uint8_t>& v);

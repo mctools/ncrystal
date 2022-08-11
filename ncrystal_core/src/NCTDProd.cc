@@ -106,8 +106,11 @@ namespace NCrystal {
         Optional<RawStrData> rawdata;
 
         //For consistency, simplicity, and to avoid spuriosly duplicated cached
-        //entries, the DataSourceName name is always just the basename:
-        std::string dataSourceName = basename(textdatapath.path());
+        //entries, the DataSourceName name is always just the basename unless
+        //explicitly chosen otherwise:
+        std::string dataSourceName = tds.suggestedDataSourceName();
+        if ( dataSourceName.empty() )
+          dataSourceName = basename(textdatapath.path());
 
         if ( data.has_value<std::string>() ) {
           //On-disk path.

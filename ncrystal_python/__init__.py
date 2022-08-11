@@ -51,7 +51,7 @@ For detailed usage conditions and licensing of this open source project, see:
 ################################################################################
 
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
-__version__ = '3.1.0'
+__version__ = '3.2.0'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
 __copyright__ = "Copyright 2015-2022 %s"%__author__
@@ -2185,8 +2185,7 @@ def hasFactory(name):
 def formatVectorForNCMAT(name,values):
     """Utility function for help in python scripts composing .ncmat files,
        transforming an array of of values into a properly formatted text string,
-       with word-wrapping, usage of <val>r<n> syntax, etc. Returns list of lines
-       (strings) for .ncmat files.
+       with word-wrapping, usage of <val>r<n> syntax, etc.
     """
     def provideFormattedEntries():
         def _fmtnum(num):

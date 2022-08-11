@@ -70,6 +70,7 @@ namespace NCrystal {
     void handleSectionData_STATEOFMATTER(const Parts&,unsigned);
     void handleSectionData_CUSTOM(const Parts&,unsigned);
     void handleSectionData_OTHERPHASES(const Parts&,unsigned);
+    void handleSectionData_TEMPERATURE(const Parts&,unsigned);
 
     //Collected data:
     NCMATData m_data;
@@ -169,8 +170,11 @@ NC::NCMATParser::NCMATParser( const TextData& input )
       m_data.version = 5;
     } else if ( parts.at(1) == "v6" ) {
       m_data.version = 6;
+    } else if ( parts.at(1) == "v7" ) {
+      m_data.version = 7;
     } else {
       NCRYSTAL_THROW2(BadInput,descr()<<": is in an NCMAT format version, \""<<parts.at(1)<<"\", which is not recognised by this installation of NCrystal");
+      static_assert( supported_ncmat_format_version_max == 7, "");
     }
   }
   if (!m_data.version)
@@ -218,6 +222,9 @@ void NC::NCMATParser::parseFile( TextData::Iterator itLine, TextData::Iterator i
   }
   if (m_data.version>=6) {
     section2handler["OTHERPHASES"] = &NCMATParser::handleSectionData_OTHERPHASES;
+  }
+  if (m_data.version>=7) {
+    section2handler["TEMPERATURE"] = &NCMATParser::handleSectionData_TEMPERATURE;
   }
 
   //Technically handle the part before the first section ("@SECTIONNAME") by the
@@ -284,7 +291,7 @@ void NC::NCMATParser::parseFile( TextData::Iterator itLine, TextData::Iterator i
       std::swap(current_section,new_section);
       itSection = section2handler.find( is_custom_section ? "CUSTOM"_s : current_section );
 
-      nc_assert( m_data.version>=1 && m_data.version <= 6 );
+      nc_assert( m_data.version>=1 && m_data.version <= 7 );
       if ( itSection == section2handler.end() ) {
         //Unsupported section name. For better error messages, first check if it
         //is due to file version:
@@ -303,6 +310,10 @@ void NC::NCMATParser::parseFile( TextData::Iterator itLine, TextData::Iterator i
         if ( m_data.version<6 && (current_section=="OTHERPHASES") ) {
           NCRYSTAL_THROW2(BadInput,descr()<<": has @OTHERPHASES section which is not supported in the indicated"
                           " NCMAT format version, \"NCMAT v"<<m_data.version<<"\". It is only available starting with \"NCMAT v6\".");
+        }
+        if ( m_data.version<7 && (current_section=="TEMPERATURE") ) {
+          NCRYSTAL_THROW2(BadInput,descr()<<": has @TEMPERATURE section which is not supported in the indicated"
+                          " NCMAT format version, \"NCMAT v"<<m_data.version<<"\". It is only available starting with \"NCMAT v7\".");
         }
         NCRYSTAL_THROW2(BadInput,descr()<<": has @"<<current_section<<" section which is not a supported section name.");
       }
@@ -887,6 +898,37 @@ void NC::NCMATParser::handleSectionData_OTHERPHASES(const Parts& parts, unsigned
   }
 
   m_data.otherPhases.emplace_back(volfrac.value(),cfgstr);
+}
+
+void NC::NCMATParser::handleSectionData_TEMPERATURE(const Parts& parts, unsigned lineno)
+{
+  if (parts.empty()) {
+    if ( !m_data.temperature.has_value())
+      NCRYSTAL_THROW2(BadInput,descr()<<": no input found in @TEMPERATURE section (expected in line "<<lineno<<")");
+    try {
+      m_data.validateTemperature();
+    } catch (Error::BadInput&e) {
+      NCRYSTAL_THROW2(BadInput,e.what()<<" (problem in the @TEMPERATURE section ending in line "<<lineno<<")");
+    }
+    return;
+  }
+  if ( m_data.temperature.has_value() )
+    NCRYSTAL_THROW2(BadInput,descr()<<": too many lines in @TEMPERATURE section in line "<<lineno);
+  if ( !isOneOf((int)parts.size(),1,2) )
+    NCRYSTAL_THROW2(BadInput,descr()<<": wrong number of entries on line "<<lineno<<" in @TEMPERATURE section");
+  auto temperature_value = StrView(parts.back()).toDbl();
+  if ( !temperature_value.has_value() )
+    NCRYSTAL_THROW2(BadInput,descr()<<": problem decoding temperature value in line "<<lineno);
+  if ( !(temperature_value.value()>0.0) || !(temperature_value.value()<=1e6) )//NB: use same thresholds in NCNCMATData.cc
+    NCRYSTAL_THROW2(BadInput,descr()<<": out of range temperature value in line "<<lineno);
+  if ( parts.size() == 2 && parts.front() != "default" )
+    NCRYSTAL_THROW2(BadInput,descr()<<": Entry in line "<<lineno
+                    <<" must be a temperature value or the keyword \"default\" followed by a temperature value");
+  NCMATData::TemperatureType temptype = ( parts.size() == 1
+                                          ? NCMATData::TemperatureType::Fixed
+                                          : NCMATData::TemperatureType::Default );
+  m_data.temperature.emplace( Temperature{ temperature_value.value() }, temptype );
+
 }
 
 

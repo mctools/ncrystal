@@ -137,6 +137,22 @@ namespace NCrystal {
   NCRYSTAL_API detail_FmtDbl fmt( double, const char * fmtstr );
   NCRYSTAL_API detail_FmtDbl fmtg( double );//same as fmt(..,"%g")
   NCRYSTAL_API std::ostream& operator<<( std::ostream& , const detail_FmtDbl& );
+
+  //Similar, but will use the detectSimpleRationalNumbers to detect and print
+  //some simple rational numbers as fractions ("1/3" rather than "0.3333...").
+  struct NCRYSTAL_API detail_FmtDblFrac { double val; const char* fmtstr; };
+  std::ostream& operator<<( std::ostream& , const detail_FmtDblFrac& );
+
+  NCRYSTAL_API detail_FmtDblFrac fmt_frac( double );
+  NCRYSTAL_API detail_FmtDblFrac fmt_frac( double, const char * fmtstr );
+  NCRYSTAL_API detail_FmtDblFrac fmtg_frac( double );//same as fmt_frac(..,"%g")
+
+  //Find (A,B) so that value ~= A/B. This is only possible for a small subset
+  //of typical values (non-negative integers below 1e9) and some simple fractions with
+  //values in (0,1). When not possible, A=B=0.  The main use-case is to allow
+  //for pretty-printing double values which were originally input as fractions
+  //(e.g. we can print 1/3 instead of 0.33333333):
+  std::pair<unsigned,unsigned> detectSimpleRationalNumbers(double value);
 }
 
 
@@ -188,7 +204,9 @@ namespace NCrystal {
   inline detail_FmtDbl fmtg( double val ) { return { val, "%g" }; }
   inline std::ostream& operator<<( std::ostream& os , const detail_FmtDbl& fd ) { return os << dbl2shortstr( fd.val, fd.fmtstr ); }
 
-
+  inline detail_FmtDblFrac fmt_frac( double val ) { return { val, nullptr }; }
+  inline detail_FmtDblFrac fmt_frac( double val, const char * fmtstr ) { return { val, fmtstr }; }
+  inline detail_FmtDblFrac fmtg_frac( double val ) { return { val, "%g" }; }
 }
 
 

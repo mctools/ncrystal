@@ -305,35 +305,6 @@ NC::PairSS NC::decomposeStrWithTrailingDigits( const std::string& ss )
   return { ss.substr(0,nn), ss.substr(nn) };
 }
 
-void NC::prettyPrintValue(std::ostream& os, double value, unsigned prec )
-{
-  auto ab = detectSimpleRationalNumbers(value);
-  if ( ab.second == 1 ) {
-    //print integer
-    os << ab.first;
-  } else if ( ab.second == 0 )  {
-    //print value
-    if ( prec == 0 ) {
-      os << value;
-    } else {
-      //Must set precision. Make sure we don't change this globally:
-      std::ostringstream ss;
-      ss << std::setprecision(prec) << value;
-      os << ss.str();
-    }
-  } else {
-    //Fraction detected!
-    os << ab.first<<"/"<<ab.second;
-  }
-}
-
-std::string NC::prettyPrintValue2Str(double value, unsigned prec )
-{
-  std::ostringstream ss;
-  prettyPrintValue(ss,value,prec);
-  return ss.str();
-}
-
 //Common access to environment variables (unset and empty vars both return
 //empty strings / 0.0 / 0, depending on which function is used):
 std::string NC::ncgetenv(std::string v, std::string defval)

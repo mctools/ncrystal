@@ -267,7 +267,7 @@ namespace NCrystal {
       static constexpr auto group = VarGroupId::ScatterBase;
       static constexpr auto description =
         "If enabled, incoherent elastic scattering"
-        "components will be included for solid materials."
+        " components will be included for solid materials."
         ;
       static constexpr value_type default_value() { return true; }
     };
@@ -287,8 +287,8 @@ namespace NCrystal {
       static constexpr auto name = "sans";
       static constexpr auto group = VarGroupId::ScatterBase;
       static constexpr auto description =
-        "Control presence of SANS models.  Note that this parameter "
-        "is primarily added to support future developments."
+        "Control presence of SANS models.  Note that this parameter"
+        " is primarily added to support future developments."
         ;
       static constexpr value_type default_value() { return true; }
     };
@@ -448,19 +448,19 @@ namespace NCrystal {
       static constexpr auto name = "ucnmode";
       static constexpr auto group = VarGroupId::ScatterExtra;
       static constexpr auto description =
-        "Modify how UCN (ultra cold neutron) production is handled in inelastic "
-        "models. The value \"refine\" simply improves the modelling by replacing the usual "
-        "scattering kernel treatment near the kinematic endpoint, where the neutron ends "
-        "with less than 300neV, with a different model. The values \"only\" and \"remove\" "
-        "performs the same split of the modelling, but then leaves out either all non-UCN "
-        "or all UCN processes, respectively, from the inelastic cross sections. Finally, the "
-        "threshold value of 300neV can be modified by appending the desired value to the "
-        "first keyword, separated by a \":\" character. The default unit is eV, but meV and "
-        "neV are supported as well, so \"ucnmode=refine:200neV\", \"ucnmode=remove:2e-7eV\", "
-        "\"ucnmode=remove:2e-7\", and \"ucnmode=only:0.0002meV\" all specify the same threshold. In "
-        "addition to simply refining the UCN model, the primary intended purpose of the "
-        "ucnmode parameter is to allow one to split out the UCN process from the rest, in "
-        "order to perform biased Monte Carlo simulations of UCN production in moderators.";
+        "Modify how UCN (ultra cold neutron) production is handled in inelastic"
+        " models. The value \"refine\" simply improves the modelling by replacing the usual"
+        " scattering kernel treatment near the kinematic endpoint, where the neutron ends"
+        " with less than 300neV, with a different model. The values \"only\" and \"remove\""
+        " performs the same split of the modelling, but then leaves out either all non-UCN"
+        " or all UCN processes, respectively, from the inelastic cross sections. Finally, the"
+        " threshold value of 300neV can be modified by appending the desired value to the"
+        " first keyword, separated by a \":\" character. The default unit is eV, but meV and"
+        " neV are supported as well, so \"ucnmode=refine:200neV\", \"ucnmode=remove:2e-7eV\","
+        " \"ucnmode=remove:2e-7\", and \"ucnmode=only:0.0002meV\" all specify the same threshold. In"
+        " addition to simply refining the UCN model, the primary intended purpose of the"
+        " ucnmode parameter is to allow one to split out the UCN process from the rest, in"
+        " order to perform biased Monte Carlo simulations of UCN production in moderators.";
       static constexpr value_type default_value() { return StrView::make(""); }
       static bool isStdKeyword( const StrView& ssv)
       {

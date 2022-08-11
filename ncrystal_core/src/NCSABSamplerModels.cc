@@ -82,10 +82,8 @@ NC::PairDD NC::SAB::SABSamplerAtE_Alg1::sampleAlphaBeta(double ekin_div_kT, RNG&
       const double delta_beta = b1 - b0;
       nc_assert(delta_beta>0.0);
       double alphaval;
-      unsigned tktest(0);
       constexpr auto nsampletries = 30;
       for ( auto iii : ncrange(nsampletries) ) {
-        ++tktest;
         (void)iii;
         beta = ncmax(m_firstBinKinematicEndpointValue, b0 + delta_beta*rng.generate());
         if ( beta < -ekin_div_kT )

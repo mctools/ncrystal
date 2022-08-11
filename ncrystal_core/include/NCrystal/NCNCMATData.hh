@@ -50,7 +50,7 @@ namespace NCrystal {
 
     //Metadata
     int version = 0;
-    constexpr static int latest_version = 6;
+    constexpr static int latest_version = static_cast<int>(supported_ncmat_format_version_max);
     DataSourceName sourceDescription;
 
     //convenience (for a validated instance, this is the same as hasCell or hasAtomPos):
@@ -74,6 +74,11 @@ namespace NCrystal {
     std::vector<std::pair<std::string,Pos> > atompos;
     bool hasAtomPos() const { return !atompos.empty(); }
     void validateAtomPos() const;
+
+    //@TEMPERATURE (v7+)
+    enum class TemperatureType { Default, Fixed };
+    Optional<std::pair<Temperature,TemperatureType>> temperature;
+    void validateTemperature() const;
 
     //@SPACEGROUP
     int spacegroup = 0;

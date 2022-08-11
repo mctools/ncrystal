@@ -261,6 +261,8 @@ void NC::NCMATData::validateOtherPhases() const
   //empty.
   if (!hasOtherPhases())
     return;
+  if ( version < 6 )
+    NCRYSTAL_THROW2(BadInput,sourceDescription<<" otherPhases sections are not allowed in NCMAT data in version v1..v5.");
   StableSum sum;
   for ( auto ph : otherPhases ) {
     if ( !(ph.first>0.0) || !(ph.first<1.0) )
@@ -276,7 +278,7 @@ void NC::NCMATData::validateOtherPhases() const
 
 void NC::NCMATData::validateElementNameByVersion(const std::string& s, unsigned theversion)
 {
-  nc_assert_always(theversion>0&&theversion<=6);
+  nc_assert_always(theversion>0&&theversion<=supported_ncmat_format_version_max);
   AtomSymbol atomsymbol(s);
   if ( atomsymbol.isInvalid() )
     NCRYSTAL_THROW2(BadInput,"Invalid element name \""<<s<<"\"");//invalid in any version
@@ -355,6 +357,16 @@ void NC::NCMATData::validateDebyeTemperature() const
   }
 }
 
+void NC::NCMATData::validateTemperature() const
+{
+  if (!temperature.has_value())
+    return;
+  if ( version < 7 )
+    NCRYSTAL_THROW2(BadInput,sourceDescription<<" temperature sections are not allowed in NCMAT data in version v1..v6.");
+  if ( !( temperature.value().first.dbl() > 0.0) || !(temperature.value().first.dbl() <= 1e6) )//NB: use same thresholds in NCParseNCMAT.cc
+    NCRYSTAL_THROW2(BadInput,sourceDescription<<" out of range temperature value");
+}
+
 void NC::NCMATData::validateDensity() const
 {
   if ( density == 0 )
@@ -365,7 +377,7 @@ void NC::NCMATData::validateDensity() const
 
 void NC::NCMATData::validate() const
 {
-  if ( ! ( version>=1 && version<=6 ) )
+  if ( ! ( version>=(int)supported_ncmat_format_version_min && version<=(int)supported_ncmat_format_version_max ) )
     NCRYSTAL_THROW2(BadInput,sourceDescription<<" unsupported NCMAT format version "<<version);
 
   std::set<std::string> allElementNames;
@@ -376,6 +388,7 @@ void NC::NCMATData::validate() const
   validateAtomPos();
   validateSpaceGroup();
   validateDebyeTemperature();
+  validateTemperature();
   validateDensity();
   validateAtomDB();
   validateOtherPhases();
@@ -571,16 +584,21 @@ void NC::NCMATData::validate() const
   }
 
   //Check consistency between temperature values specified in different parts of
-  //the file (so far only dyninfo-sab has temperatures):
+  //the file:
+
   double di_temp = 0.0;
   for (auto& di: dyninfos) {
     if ( di.dyninfo_type == DynInfo::ScatKnl ) {
       double tt = di.fields.at("temperature").at(0);
       nc_assert(tt>0.0);//already checked
       if ( di_temp>0.0 && di_temp != tt )
-        NCRYSTAL_THROW2(BadInput,sourceDescription<<" temperature values specified in different dynamic info sections are different")
+        NCRYSTAL_THROW2(BadInput,sourceDescription<<" temperature values specified in different dynamic info sections are different");
+      di_temp = tt;
     }
   }
+
+  if ( di_temp > 0.0 && temperature.has_value() && di_temp != temperature.value().first.dbl() )
+    NCRYSTAL_THROW2(BadInput,sourceDescription<<" temperature values specified in @TEMPERATURE and @DYNINFO sections are different");
 
   //Check that any custom markers used in atompos/debyetemp/dyninfo sections are defined in atomdb section:
   std::set<std::string> atomdb_custommarkers;
@@ -590,7 +608,7 @@ void NC::NCMATData::validate() const
   }
   for (auto& e : allElementNames) {
     if ( AtomSymbol(e).isCustomMarker() && !atomdb_custommarkers.count(e))
-      NCRYSTAL_THROW2(BadInput,sourceDescription<<" custom marker \""<<e<<"\" is used but has no definition in the @ATOMDB section")
+      NCRYSTAL_THROW2(BadInput,sourceDescription<<" custom marker \""<<e<<"\" is used but has no definition in the @ATOMDB section");
   }
 
   //Validate StateOfMatter is consistent with other fields. Presence of unit

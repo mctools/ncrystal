@@ -37,9 +37,9 @@ namespace NCrystal {
   namespace {
 
     enum class QuickType { FreeGas, Solid };
-    void generateQuickNCMAT( std::ostream& os,
-                             QuickType qtype,
-                             const std::string& request )
+    std::string generateQuickNCMAT( std::ostream& os,
+                                    QuickType qtype,
+                                    const std::string& request )
     {
       constexpr static int ncmat_version = AtomDBExtender::latest_version;//latest NCMAT version
 
@@ -54,7 +54,7 @@ namespace NCrystal {
                                     : "Syntax error in solid specification: " );
       if (!isSimpleASCII(request,AllowTabs::No,AllowNewLine::No))
         NCRYSTAL_THROW2(BadInput,errmsgprefix<<"Does not contain only simple ASCII characters :\""<<request<<"\"");
-      if (contains_any(request,"\"'$@\\"))
+      if (contains_any(request,"\"'$@\\*<>"))
         NCRYSTAL_THROW2(BadInput,errmsgprefix<<"Contains forbidden characters :\""<<request<<"\"");
 
       Optional<std::pair<std::string,std::string>> density_line;
@@ -138,6 +138,7 @@ namespace NCrystal {
         }
         //AtomDB:
         {
+          //NB: Code duplicated between here and NCGasMixUtils.cc!!
           std::string tmp(e);
           //spaces, semicolons, or double underscores are disallowed as
           //separators, but we first remove them to provide a better error msg
@@ -236,6 +237,7 @@ namespace NCrystal {
           os <<"\n  type     vdosdebye\n  debye_temp "<<dt_str<<"\n";
         }
       }
+      return request_normalised;
     }
 
     class QuickFact final : public NC::FactImpl::TextDataFactory
@@ -257,8 +259,9 @@ namespace NCrystal {
         std::ostringstream src_descr;
         src_descr << "<automatically generated content from \""<<p.toString()<<"\">";
         std::ostringstream ncmat_data;
-        generateQuickNCMAT( ncmat_data, m_qtype, p.path() );
-        return TextDataSource::createFromInMemData( RawStrData(ncmat_data.str(),src_descr.str().c_str()), "ncmat" );
+        std::string request_normalised = generateQuickNCMAT( ncmat_data, m_qtype, p.path() );
+        return TextDataSource::createFromInMemData( RawStrData(ncmat_data.str(),src_descr.str().c_str()), "ncmat",
+                                                    std::move(request_normalised) );
       }
       std::vector<BrowseEntry> browse() const override {
         //Can't really browse ALL possibilities of course, but we can instead
@@ -292,10 +295,14 @@ namespace NCrystal {
 //this function is forward declared elsewhere or might be dynamically invoked
 //(hence the C-mangling), and its name should not be changed just here:
 
+extern "C" void ncrystal_register_quickgasmix_factory();
+
 extern "C" void ncrystal_register_quick_factory()
 {
   NC::FactImpl::registerFactory( std::make_unique<NC::QuickFact>(NC::QuickType::FreeGas),
                                  NC::FactImpl::RegPolicy::IGNORE_IF_EXISTS );
   NC::FactImpl::registerFactory( std::make_unique<NC::QuickFact>(NC::QuickType::Solid),
                                  NC::FactImpl::RegPolicy::IGNORE_IF_EXISTS );
+  //the gasmix factory should be part of the same "stdquick" plugin.
+  ncrystal_register_quickgasmix_factory();
 }

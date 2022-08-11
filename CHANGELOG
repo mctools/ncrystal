@@ -1,3 +1,24 @@
+v3.2.0 2022-08-11
+      * Introduce a new quick TextData factory for gas mixtures, supporting
+        on-the-fly gas mixtures through cfg-strings like
+        "gasmix::0.7xCO2+0.3xAr/2bar/30C".  The format is rather flexible, and
+        supports both mass and molar fractions, relative humidity, and has an
+        alias for normal air ("gasmix::air"). See more details on the wiki:
+        https://github.com/mctools/ncrystal/wiki/Announcement-Release3.2.0
+      * Introduce NCMAT v7 which adds a new optional @TEMPERATURE section to the
+        format, allowing the default temperature value to be modified from the
+        normal 293.15K, or even of locking the value at a certain value
+        (attempts at modifying it via cfg variables will then fail). This is
+        used by the new gasmix factory to error on the flawed but
+        correct-looking "gasmix::CO2/2bar;temp=200K" (which is not the same as
+        the correct "gasmix::CO2/2bar/200K"). Future developments might move the
+        gas mixture support to the NCMAT format itself (rather than just in the
+        pre-processing as now), which would solve the issue in a nicer way.
+      * At the C++ level, a new fmt_frac function allows easy printing of
+        floating point values which might be simple fractions, a dedicated
+        Pressure type was added, and a minor issue with confusing error messages
+        from NCMAT data from quick factories was addressed.
+
 v3.1.0 2022-06-29
       * Introduce cfg parameter named "ucnmode" which can be used to enable a
         new dedicated modelling of UCN-production processes. Thus, appending

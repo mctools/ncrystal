@@ -11,9 +11,10 @@ because bugs might get fixed (usually) or introduced (hopefully rarely).
 Currently the versions of the format are *NCMAT v1* which is supported by all
 NCrystal releases, *NCMAT v2* which can be read with NCrystal releases 2.0.0 and
 beyond, *NCMAT v3* which can be read with NCrystal releases 2.1.0 and beyond,
-*NCMAT v4* which can be read with NCrystal releases 2.6.0 and beyond, *NCMAT
-v5* which can be read with NCrystal releases v2.7.0 and beyond, and *NCMAT
-v6* which can be read with NCrystal releases v3.0.0 and beyond.
+*NCMAT v4* which can be read with NCrystal releases 2.6.0 and beyond, *NCMAT v5*
+which can be read with NCrystal releases v2.7.0 and beyond, *NCMAT v6* which can
+be read with NCrystal releases v3.0.0 and beyond, and *NCMAT v7* which can be
+read with NCrystal releases v3.2.0 and beyond.
 
 # The NCMAT v1 format #
 
@@ -665,7 +666,7 @@ Finally, global Debye temperatures are no longer allowed in *NCMAT v4*.
 ## Changes for the @CELL section ##
 
 To reduce repetion, *NCMAT v4* introduces options for specifying data in the
-`@CELL` section more tersely. Firstly, cubic crystals can now be specified
+@CELL section more tersely. Firstly, cubic crystals can now be specified
 by just providing one lattice length. Thus, writing:
 
 ```
@@ -806,7 +807,7 @@ a multi-phase syntax like (e.g. `phases<...>`).
 
 Once loaded, the primary phase defined in the NCMAT file itself will become the
 first phase in a multiphase Info object, and the secondary phases from the
-`@OTHERPHASES` section will follow it in the order specified.
+@OTHERPHASES section will follow it in the order specified.
 
 It should be noted that, due to the constraints of the NCMAT format, there are a
 few restraints concerning whitespace and non-ASCII filenames in the cfg-strings
@@ -820,6 +821,36 @@ character. Finally, as non-ASCII characters are not allowed in NCMAT data (the
 UTF-8 encoding is only allowed in comments), it is not possible to use non-ASCII
 characters in data names.
 
+# The NCMAT v7 format #
+
+The *NCMAT v7* format is similar to the *NCMAT v6* format, but adds a new
+optional @TEMPERATURE section.
+
+## The @TEMPERATURE section ##
+
+The @TEMPERATURE section can be used to modify the default temperature value, or lock
+the temperature to a specific value. For instance, changing the default
+temperature to 400K is done by adding:
+
+```
+@TEMPERATURE
+  default 400.0
+```
+
+If the default keyword is omitted, the value is instead locked in the sense that
+any attempts at using the cfg-level variable `temp`  to modify the temperature
+will result in an error:
+
+```
+@TEMPERATURE
+  400.0
+```
+
+In either case, if a @DYNINFO section in the same file also specifies a
+temperature value, the value must be the same as specified in the @TEMPERATURE
+section (in this case the @TEMPERATURE section has no effect and is at most
+syntactic sugar). Valid temperature values must be above 0K and at most 1e6K.
+
 # EMACS Syntax highlighting #
 
 If using EMACS, add the following to your ~/.emacs configuration file to enable
@@ -828,7 +859,7 @@ a basic syntax highlighting of .ncmat files:
 ```
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Major mode for .ncmat files:
-(setq ncmat-sections '("CELL" "ATOMPOSITIONS" "SPACEGROUP" "DEBYETEMPERATURE" "DYNINFO"
+(setq ncmat-sections '("CELL" "ATOMPOSITIONS" "SPACEGROUP" "DEBYETEMPERATURE" "DYNINFO" "TEMPERATURE"
                        "DENSITY" "ATOMDB" "STATEOFMATTER" "OTHERPHASES" "CUSTOM_[A-Z]+"))
 (setq ncmat-fields '("lengths" "angles" "cubic" "element" "fraction" "type" "debye_temp" "temperature"
                      "sab_scaled" "sab" "alphagrid" "betagrid" "egrid" "vdos_egrid" "vdos_density"))

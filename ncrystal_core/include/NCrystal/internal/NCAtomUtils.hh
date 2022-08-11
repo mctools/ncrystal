@@ -80,7 +80,8 @@ namespace NCrystal {
   // X5 it can't check if X5 was defined previously):                            //
   /////////////////////////////////////////////////////////////////////////////////
 
-  void validateAtomDBLine(const VectS& words, unsigned ncmat_version = 6);
+  void validateAtomDBLine(const VectS& words,
+                          unsigned ncmat_version = supported_ncmat_format_version_max);
 
   //Helper function which can be used to decode chemical formulas like "He",
   //"SiO2", "Al2O3", etc. Will return a list of fractions and associated decoded
@@ -90,10 +91,14 @@ namespace NCrystal {
   //This function only supports simple formulas like "Al2O3". In the future we
   //might add versions which would support fractions or isotopes.
 
-  using DecodedChemForm = SmallVector<std::pair<std::uint_least32_t,AtomSymbol>,4>;
+  using DecodedChemForm = SmallVector<std::pair<std::uint_least32_t,AtomSymbol>,
+                                      4,SVMode::FASTACCESS_IMPLICITCOPY>;
   DecodedChemForm decodeSimpleChemicalFormula( std::string );
   Optional<DecodedChemForm> tryDecodeSimpleChemicalFormula( std::string );
+  void streamSimpleChemicalFormula( std::ostream&, const DecodedChemForm& );
 
+  //Order entries in standard form (merge duplicates and sort by the Hill System):
+  DecodedChemForm normaliseSimpleChemicalFormula(const DecodedChemForm&);
 }
 
 

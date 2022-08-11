@@ -178,6 +178,9 @@ examples:
     if args.phases and not has_single_cfgstr:
         parser.error('Option --phase requires exactly one cfg-string to be specified.')
 
+    if args.dump and not has_single_cfgstr:
+        parser.error('Option --dump requires exactly one cfg-string to be specified.')
+
     if args.extract or args.plugins or args.doc or args.browse:
         return args
 

@@ -146,3 +146,49 @@ NC::ShortStrDbl NC::dbl2shortstr( double value, const char * fmtstr )
   }
   return result;
 }
+
+std::pair<unsigned,unsigned> NC::detectSimpleRationalNumbers(double value)
+{
+  if (value<=0.0)
+    return { 0, ( value == 0.0 ? 1 : 0 ) };
+  if (value>=1.0) {
+    if (value==1.0)
+      return { 1, 1 };
+    double intpart;
+    if ( modf(value, &intpart) != 0.0 || intpart > 1.0e9 )
+      return {0,0};
+    return { static_cast<double>(intpart), 1 };
+  }
+  //ok, value is in (0,1).
+  static std::map<uint64_t,std::pair<unsigned,unsigned>> s_cache = []()
+  {
+    std::map<uint64_t,std::pair<unsigned,unsigned>> result;
+    for (unsigned b = 2; b <= 64; ++b) {
+      for (unsigned a = 1; a < b; ++a) {
+        uint64_t key = static_cast<uint64_t>((double(a)/b)*1e18);//fits in uint64_t since value of a/b is in (0,1)
+        auto it = result.find(key);
+        if (it==result.end())
+          result[key] = { a,b };//only insert if not there (because if a1/b1 = a2/b2, we prefer the smallest b-value).
+      }
+    }
+    return result;
+  }();
+  uint64_t key = static_cast<uint64_t>(value*1e18);
+  auto it = s_cache.find(key);
+  if ( it == s_cache.end() )
+    return {0,0};
+  return it->second;
+}
+
+namespace NCrystal {
+  std::ostream& operator<<( std::ostream& os , const detail_FmtDblFrac& fd ) {
+    auto ab = detectSimpleRationalNumbers(fd.val);
+    if ( ab.second == 1 )
+      os << ab.first;//integer
+    else if ( ab.second == 0 )
+      os << dbl2shortstr( fd.val, fd.fmtstr );
+    else
+      os << ab.first<<"/"<<ab.second;//fraction detected
+    return os;
+  }
+}

@@ -114,14 +114,23 @@ namespace NCrystal {
     //looking at the actual data -- which always works for NCMAT data --, or the
     //file-name extension (e.g. a file named Foo.bar is assumed to have data
     //type "bar").
-    static TextDataSource createFromOnDiskPath( std::string, std::string dataType = {} );
-    static TextDataSource createFromInMemData( RawStrData, std::string dataType = {} );
+    static TextDataSource createFromOnDiskPath( std::string, std::string dataType = {},
+                                                std::string suggestedDataSourceName = {} );
+    static TextDataSource createFromInMemData( RawStrData, std::string dataType = {},
+                                               std::string suggestedDataSourceName = {} );
     const Variant<std::string,RawStrData>&& data() &&;
     const std::string& dataType() const noexcept;
+
+    //Suggested data source name (just leave empty if basename(..) on the
+    //associated textdatapath.path() is enough, this method is mostly intended
+    //for "quick-factories" where the names are actually filenames (virtual or
+    //on-disk).
+    const std::string& suggestedDataSourceName() const noexcept { return m_sdsn; }
   private:
     TextDataSource() = default;
     Variant<std::string,RawStrData> m_data;
     std::string m_dataType;
+    std::string m_sdsn;
   };
 
 }
@@ -154,19 +163,21 @@ namespace NCrystal {
     return os << "Priority{"<< p.priority()<<"}";
   }
 
-  inline TextDataSource TextDataSource::createFromInMemData( RawStrData data, std::string dt )
+  inline TextDataSource TextDataSource::createFromInMemData( RawStrData data, std::string dt, std::string sdsn )
   {
     TextDataSource t;
     t.m_data = std::move(data);
     t.m_dataType = std::move(dt);
+    t.m_sdsn = std::move(sdsn);
     return t;
   }
 
-  inline TextDataSource TextDataSource::createFromOnDiskPath( std::string path, std::string dt )
+  inline TextDataSource TextDataSource::createFromOnDiskPath( std::string path, std::string dt, std::string sdsn )
   {
     TextDataSource t;
     t.m_data = std::move(path);
     t.m_dataType = std::move(dt);
+    t.m_sdsn = std::move(sdsn);
     return t;
   }
 

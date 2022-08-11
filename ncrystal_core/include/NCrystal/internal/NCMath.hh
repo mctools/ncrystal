@@ -39,6 +39,7 @@ namespace NCrystal {
 
   constexpr double const_neutron_atomic_mass = const_neutron_mass_amu; // [amu]//obsolete name
   constexpr double constant_planck = 4.135667662e-15 ;//[eV*s]
+  constexpr double constant_gas_R = 8.31446261815324;// [J/(K*mol) = m^3*Pa/(K*mol) = kg*m^2/(K*mol*s^2)]. Value is exact definition.
 
   //Derived values:
   constexpr double const_neutron_mass_evc2 = const_neutron_mass_amu * constant_dalton2eVc2 / (constant_c*constant_c);// [ eV/(Aa/s)^2 ]
@@ -46,7 +47,6 @@ namespace NCrystal {
   constexpr double constant_hbar = constant_planck*kInv2Pi; //[eV*s]
   constexpr double const_hhm = constant_hbar*constant_hbar/const_neutron_mass_evc2;// hbar^2/neutron_mass [ eV*Aa^2 ]
   constexpr double constant_ekin2v = constexpr_sqrt(2.0/const_neutron_mass_evc2);//multiply this with sqrt(ekin[eV]) to get velocity in Aa/s
-
 
   //Our own min/max/abs to make sure only double versions are used:
   double ncmin(double, double);
@@ -135,13 +135,6 @@ namespace NCrystal {
   //Quick check that a<=x<=b (do not use if a or b might be infinite):
   bool valueInInterval(double a, double b, double x);
   bool valueInInterval( const PairDD& ab, double x);
-
-  //Find (A,B) so that value ~= A/B. This is only possible for a small subset
-  //of typical values (non-negative integers below 1e9) and some simple fractions with
-  //values in (0,1). When not possible, A=B=0.  The main use-case is to allow
-  //for pretty-printing double values which were originally input as fractions
-  //(e.g. we can print 1/3 instead of 0.33333333):
-  std::pair<unsigned,unsigned> detectSimpleRationalNumbers(double value);
 
   class Fct1D {
   public:

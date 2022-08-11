@@ -119,6 +119,8 @@ namespace NCrystal {
   constexpr double kToArcSec    = 206264.806247096355156473357330778613196659701    ; // = 180*3600/pi
   constexpr double kE           = 2.71828182845904523536028747135266249775724709    ; // = Euler's number, e
   constexpr double kInvE        = 0.367879441171442321595523770161460867445811131   ; // = 1/e
+  constexpr unsigned supported_ncmat_format_version_min = 1;
+  constexpr unsigned supported_ncmat_format_version_max = 7;
 
   //C++14 provides string_literals, allowing "hello"s as a shorthand for
   //std::string("hello",5). As C++11 does not support this, we implement our

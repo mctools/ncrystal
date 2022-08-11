@@ -211,28 +211,49 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
   ////////////////////////
 
   //Check for any temperature indicated in the input data itself (only possible
-  //in ScatKnl sections of dyninfos):
-  Temperature input_temperature{-1.0};
+  //in ScatKnl sections of dyninfos or @TEMPERATURE sections in NCMAT v7+):
+  Temperature dyninfo_temperature{-1.0};
   if (data.hasDynInfo()) {
     for (auto& e : data.dyninfos) {
       if ( e.dyninfo_type != NCMATData::DynInfo::ScatKnl )
         continue;
       Temperature dit{ e.fields.at("temperature").at(0) };
-      if ( input_temperature.get() == -1.0 ) {
-        input_temperature = dit;
+      if ( dyninfo_temperature.get() == -1.0 ) {
+        dyninfo_temperature = dit;
       } else {
-        nc_assert_always( floateq(input_temperature.get(), dit.get() ) );
+        nc_assert_always( floateq(dyninfo_temperature.get(), dit.get() ) );
       }
     }
   }
-  if ( cfgvars.temp.get() == -1.0 ) {
-    cfgvars.temp = ( input_temperature.get()==-1.0 ? Temperature{293.15} : input_temperature );
-  } else {
-    if ( input_temperature.get() != -1.0 && !floateq(input_temperature.get(), cfgvars.temp.get()) )
-      NCRYSTAL_THROW2(BadInput,data.sourceDescription <<" specified temperature ("<<cfgvars.temp<<")"
-                      " is incompatible with temperature ("<<input_temperature<<") at which input data is valid.");
+  Optional<std::pair<Temperature,NCMATData::TemperatureType>> input_temp_request;
+  if ( dyninfo_temperature.dbl() > -1.0 ) {
+    input_temp_request.emplace( dyninfo_temperature, NCMATData::TemperatureType::Fixed );
   }
-  nc_assert_always( cfgvars.temp.get() > 0.0 && ( input_temperature.get()==-1.0 || floateq(input_temperature.get(),cfgvars.temp.get()) ) );
+
+  if ( data.temperature.has_value() ) {
+    if ( input_temp_request.has_value() ) {
+      nc_assert_always( input_temp_request.value().first == data.temperature.value().first );
+    } else {
+      input_temp_request = data.temperature.value();
+    }
+  }
+
+  if ( !input_temp_request.has_value() ) {
+    //implicitly defaults to 293.15K
+    input_temp_request.emplace( Temperature{293.15}, NCMATData::TemperatureType::Default );
+  }
+
+  if ( cfgvars.temp.get() == -1.0 ) {
+    //Nothing indicated in cfg strings, go for default/fixed value found in data:
+    cfgvars.temp = input_temp_request.value().first;
+  } else if ( input_temp_request.value().second == NCMATData::TemperatureType::Fixed
+              && !floateq( cfgvars.temp.dbl(), input_temp_request.value().first.dbl() ) ) {
+    NCRYSTAL_THROW2(BadInput,data.sourceDescription <<" requested temperature ("<<cfgvars.temp<<")"
+                    " is incompatible with temperature ("<<input_temp_request.value().first<<") at which input data is valid.");
+  }
+  nc_assert_always( cfgvars.temp.dbl() > 0.0
+                    && ( input_temp_request.value().second == NCMATData::TemperatureType::Default
+                         || floateq( input_temp_request.value().first.dbl(),cfgvars.temp.dbl() ) ) );
 
   /////////////////////////////////////////////////////////
   // Setup AtomDB, possibly extended via @ATOMDB section //
