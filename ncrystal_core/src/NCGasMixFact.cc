@@ -51,9 +51,9 @@ namespace NCrystal {
       os << "NCMAT v"<<ncmat_version<<"\n#\n# Automatically generated NCMAT data for gas mixture\n";
       os << "#\n# Request: \""<<gasmixquickfactname<<"::"<<str_request_normalised<<"\"\n#\n";
       os << "# Resulting gas parameters:\n#\n";
-      os << "#  T   = "<<gm.temperature<<"\n";
-      os << "#  P   = "<<gm.pressure<<"\n";
-      os << "#  Rho = "<<fmtg(gm.density.dbl()*1000.0)<<"kg/m^3\n#\n";
+      os << "#  T   = "<<fmt(gm.temperature.dbl())<<"K\n";
+      os << "#  P   = "<<fmt(gm.pressure.dbl())<<"Pa\n";
+      os << "#  Rho = "<<fmt(gm.density.dbl()*1000.0)<<"kg/m^3\n#\n";
       os << "@STATEOFMATTER\n  gas\n";
       os << "@TEMPERATURE\n  "<<fmt(gm.temperature.dbl())<<"\n";
       os << "@DENSITY\n  "<< fmt(1000.0*gm.density.dbl()) << " kg_per_m3\n";
@@ -102,11 +102,12 @@ namespace NCrystal {
         const char* examples[] = {
           "CO2",
           "He/10bar",
+          "He/1.64kgm3",
           "0.7xCO2+0.3xAr/1.5atm/250K",
           "0.72xCO2+0.28xAr/massfractions/1.5atm/250K",
           "BF3/2atm/25C/B_is_0.95_B10_0.05_B11",
-          "stdair",
-          "stdair/-10C/0.8atm/0.30relhumidity",
+          "air",
+          "air/-10C/0.8atm/0.30relhumidity",
           "0.7xCO2+0.3xAr/0.001relhumidity",
         };
 
