@@ -105,6 +105,7 @@ examples:
                         can just be simple file-names or full-blown cfg-strings
                         in the usual NCrystal syntax (see also examples
                         below).""")
+    parser.add_argument('--version', action='version', version=str(NC.__version__))
     parser.add_argument('-d','--dump', action='count',default=0,
                         help='Dump derived information rather than displaying plots. Specify multiple times to increase verbosity.')
     parser.add_argument('--common','-c', metavar='CFG', type=str, default=[],

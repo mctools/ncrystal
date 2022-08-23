@@ -1,3 +1,8 @@
+v3.3.0 2022-08-23
+      * Updates to CMake code which is needed to support creation of
+        NCrystal conda packages.
+      * ncrystal_inspectfile now has --version and --versionnum arguments.
+
 v3.2.0 2022-08-11
       * Introduce a new quick TextData factory for gas mixtures, supporting
         on-the-fly gas mixtures through cfg-strings like
