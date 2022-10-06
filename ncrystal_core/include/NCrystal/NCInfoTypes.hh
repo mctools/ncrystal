@@ -101,6 +101,9 @@ namespace NCrystal {
     static constexpr const char * unit() noexcept { return ""; }
     static AtomIndex createInvalidObject();
     constexpr bool isInvalid() const noexcept;
+    //NB: Since unsigned is only guaranteed to be at least 16bit, the underlying
+    //value representing invalid indices might be as low as 65535 (of course, in
+    //practice it is usually 4294967295).
   };
 
   struct NCRYSTAL_API IndexedAtomData {

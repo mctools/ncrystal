@@ -149,7 +149,7 @@ AT (0,0,0) ABSOLUTE
 
     return res
 
-def cfgstr_2_hkl(*, cfgstr, tgtformat, verbose=True, fp_format = '%.15g'):
+def cfgstr_2_hkl(*, cfgstr, tgtformat, verbose=True, fp_format = '%.14g'):
     """Function which can be used to create input files with reflections for
     McStas crystalline sample components like PowderN and Single_crystal, based
     on NCrystal cfg-strings (usually referring to NCMAT files with crystalline

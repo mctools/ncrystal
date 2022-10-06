@@ -1,3 +1,17 @@
+v3.3.1 2022-10-06
+      * Fix info.getComposition() for multiphase materials in the Python
+        interface.  This issue is not believed to have affected many users, but
+        a fix is crucial in order to support multiphase materials in OpenMC
+        hooks which are currently being prepared (github issue #102).
+      * Minor fix to make Geant4 hooks work with Geant4 release 11. Note that
+        this is still not the long awaited major update which makes the hooks
+        work with Geant4 in multithreaded mode.
+      * Rewrote internal code in NCIter.hh to avoid usage of deprecated
+        std::iterator. This avoids compilation warnings on newer platforms
+        (github issue #100).
+      * Reduce precision from %.15g to %.14g in output of ncrystal_ncmat2hkl to
+        get reproducible results across platforms.
+
 v3.3.0 2022-08-23
       * Updates to CMake code which is needed to support creation of
         NCrystal conda packages.

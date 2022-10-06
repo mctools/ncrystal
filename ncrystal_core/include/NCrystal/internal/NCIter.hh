@@ -22,8 +22,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCDefs.hh"
-#include <iterator>
-#include <initializer_list>
 
 namespace NCrystal {
 
@@ -33,9 +31,15 @@ namespace NCrystal {
   //
   //Examples:
   //
-  //for (auto&& e : enumerate(mycontainer))
+  //for ( auto&& e : enumerate(mycontainer) )
   //   othercontainer[e.idx] = e.val;
-  //for (auto&& e : enumerate(mycontainer))
+  //for ( auto&& e : enumerate(mycontainer) )
+  //   e.val += 0.1*e.idx;
+  //
+  //The by-value form is also OK, but it might still be possible to modify the
+  //elements:
+  //
+  //for ( auto e : enumerate(mycontainer) )
   //   e.val += 0.1*e.idx;
   //
   //It is also possible to explicitly impose read-only access (for code clarity perhaps):
@@ -43,41 +47,42 @@ namespace NCrystal {
   //  for (const auto& e : enumerate(mycontainer))
   //     othercontainer[e.idx] = e.val;
   //
-  //The form (auto& e: enumerate(mycontainer)) does not always compile
-  //(depending on constness), but is anyway not needed given the options above.
+  // The form (auto& e: enumerate(mycontainer)) does not always compile
+  // (depending on constness), but is anyway not needed given the options above.
 
-  template <typename TIter>
-  class enumerate_iter_t : std::iterator<std::forward_iterator_tag, typename std::iterator_traits<TIter>::value_type> {
-  public:
-    using reference = typename std::iterator_traits<TIter>::reference;
-  private:
-    std::size_t m_idx = 0;
-    TIter m_it;
-  public:
-    explicit enumerate_iter_t(TIter&& it): m_it{ std::forward<TIter>(it) } {}
-    enumerate_iter_t& operator++() { ++m_it; ++m_idx; return *this; }
-    bool operator!=(const enumerate_iter_t& o) const { return m_it != o.m_it; }
-    struct entry_t { const std::size_t idx; reference val; };
-    struct const_entry_t { const std::size_t idx; const reference val; };
-    entry_t operator*() { return { m_idx, *m_it }; }
-    const_entry_t operator*() const { return { m_idx, *m_it }; }
-  };
-  template <typename T> struct enumerate_wrapper_t { T& container; };
-  template <typename T>
-  auto begin(enumerate_wrapper_t<T>& w) -> enumerate_iter_t<decltype(std::begin(w.container))>
-  {
-    return enumerate_iter_t<decltype(std::begin(w.container))>(std::begin(w.container));
-  }
-  template <typename T>
-  auto end(enumerate_wrapper_t<T>& w) -> enumerate_iter_t<decltype(std::begin(w.container))>
-  {
-    return enumerate_iter_t<decltype(std::begin(w.container))>(std::end(w.container));
-  }
-  template <typename T>
-  enumerate_wrapper_t<T> enumerate(T&& container) { return {container}; }
-  template <typename T>
-  enumerate_wrapper_t<std::initializer_list<T>> enumerate(std::initializer_list<T>&& container) { return {container}; }
+  namespace detail {
+    template <typename TIter>
+    struct EnumIter
+    {
+      std::size_t idx;
+      TIter it;
+      bool operator != (const EnumIter & other) const { return it != other.it; }
+      void operator ++() { ++idx; ++it; }
+      struct Entry {
+        std::size_t idx;
+        decltype( *TIter()) val;
+      };
+      Entry operator*() const { return Entry{idx, *it}; }
+    };
 
+    template <typename T, typename TIter>
+    struct EnumIterWrapper
+    {
+      static_assert(std::is_reference<T>::value,"Inefficient enumerate(..) usage");
+      T container;
+      EnumIter<TIter> begin() { return EnumIter<TIter>{ 0, std::begin(container) }; }
+      EnumIter<TIter> end() { return EnumIter<TIter>{ 0, std::end(container) }; }
+    };
+
+  }
+  template <typename T,
+            typename TIter = decltype(std::begin(std::declval<T>())),
+            typename TIterE = decltype(std::end(std::declval<T>()))>
+  inline constexpr detail::EnumIterWrapper<T,TIter> enumerate( T && container )
+  {
+    static_assert(std::is_same<TIter,TIterE>::value,"");
+    return detail::EnumIterWrapper<T,TIter>{ std::forward<T>(container) };
+  }
 }
 
 

@@ -722,7 +722,7 @@ indicate the state of matter if needed.
 
 ## Changes for the @DYNINFO section ##
 
-In files without a @DEBYETEMPERATURE section, it is now allowd to specify the
+In files without a @DEBYETEMPERATURE section, it is now allowed to specify the
 Debye temperatures directly inside @DYNINFO sections of type *vdosdebye*,
 providing them in units of kelvin via the new keyword `debye_temp`, as for
 instance:

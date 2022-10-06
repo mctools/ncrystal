@@ -52,7 +52,7 @@ For detailed usage conditions and licensing of this open source project, see:
 
 #NB: Synchronize meta-data below with fields in setup.py.in meta data:
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
-__version__ = '3.3.0'
+__version__ = '3.3.1'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
 __copyright__ = "Copyright 2015-2022 %s"%__author__
@@ -464,6 +464,8 @@ def _load(nclib_filename):
     _raw_atomdata_getfields=_wrap('ncrystal_atomdata_getfields',None,(ncrystal_atomdata_t,_cstrp,_cstrp,
                                                                       _dblp,_dblp,_dblp,_dblp,
                                                                       _uintp,_uintp,_uintp),hide=True)
+    _wrap('ncrystal_create_component_atomdata',ncrystal_atomdata_t,(ncrystal_info_t,_uint))
+
     def ncrystal_atomdata_createsubcomp(ad,icomp):
         fraction = _dbl()
         comp_ad = _raw_atomdata_subcomp(ad,icomp,fraction)
@@ -977,8 +979,11 @@ class AtomData(RCBase):
         return self.__dl
 
     def isTopLevel(self):
-        """Whether or not AtomData appears directly on an Info object (if not, it must
-        be a component (direct or indirect) of a top level AtomData object"""
+        """Whether or not AtomData appears directly on an Info object. If not,
+         it will most likely either be a component (direct or indirect) of a top
+         level AtomData object, or be taken from the composition list of a
+         multi-phase object.
+        """
         return bool(self.__dl)
 
     def description(self,includeValues=True):
@@ -1084,10 +1089,22 @@ class Info(RCBase):
     def _initComp(self):
         assert self.__comp is None
         nc = _rawfct['ncrystal_info_ncomponents'](self._rawobj)
-        self.__comp = []
+        l = []
         for icomp in range(nc):
             atomidx,fraction = _rawfct['ncrystal_info_getcomp'](self._rawobj,icomp)
-            self.__comp += [(fraction,self._provideAtomData(atomidx))]
+            #NB: atomidx will be invalid in case of multiphase objects!
+            if atomidx < 65535:
+                #Most likely a single-phase object with valid atomidx, we can
+                #use self._provideAtomData and share the AtomData objects also here on the python side:
+                l += [(fraction,self._provideAtomData(atomidx))]
+            else:
+                #Most likely a multi-phase object with invalid atomidx, we must
+                #create new AtomData objects, based on ncrystal_create_component_atomdata:
+                raw_ad = _rawfct['ncrystal_create_component_atomdata'](self._rawobj,icomp)
+                obj = AtomData(raw_ad)
+                assert not obj.isTopLevel()#does not appear directly on Info object
+                l += [(fraction,obj)]
+        self.__comp = l
         return self.__comp
 
     def stateOfMatter(self):
@@ -1238,7 +1255,8 @@ class Info(RCBase):
 
     def _provideAtomData(self,atomindex):
         if atomindex >= len(self.__atomdatas):
-            assert atomindex < 100000#sanity check
+            if atomindex >= 65535:
+                raise NCLogicError(f'Invalid atomindex ({atomindex}) provided to Info._provideAtomData')
             self.__atomdatas.extend([None,]*(atomindex+1-len(self.__atomdatas)))
         obj = self.__atomdatas[atomindex]
         if obj:

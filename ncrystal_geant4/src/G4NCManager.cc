@@ -105,7 +105,11 @@ void NCG4::Manager::addScatterProperty(G4Material* mat,NCrystal::ProcImpl::ProcP
     idx = it->second;
   }
   assert( unsigned(double(idx)) == idx );//make sure we can get the idx back out
-  matprop->AddConstProperty(m_key.c_str(), idx);
+  matprop->AddConstProperty(m_key.c_str(), idx
+#if G4VERSION_NUMBER >= 1100
+                            , true//createNewKey=true is required explicitly since G4 11.0
+#endif
+                            );
 }
 
 void NCG4::Manager::cleanup()

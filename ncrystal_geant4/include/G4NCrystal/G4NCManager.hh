@@ -131,8 +131,14 @@ namespace G4NCrystal {
     //we can't be sure it is always the same in different materials. Unfortunately
     //GetConstProperty triggers a G4 exception in case the key is not present,
     //so for safety we have to trigger one extra map search via ConstPropertyExists:
+
+#  if G4VERSION_NUMBER >= 1100
+    if ( matprop->GetMaterialConstPropertyNames().empty() || !matprop->ConstPropertyExists(m_key) )
+      return not_found;
+#  else
     if ( matprop->GetConstPropertyMap()->empty() || !matprop->ConstPropertyExists(m_key) )
       return not_found;
+#endif
     return static_cast<unsigned>(matprop->GetConstProperty(m_key));
 #endif
   }

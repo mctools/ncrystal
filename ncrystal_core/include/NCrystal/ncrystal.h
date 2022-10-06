@@ -274,7 +274,10 @@ extern "C" {
   NCRYSTAL_API double ncrystal_info_dspacing_from_hkl( ncrystal_info_t, int h, int k, int l );
 
 
-  /* Composition (always >=1 component):                                           */
+  /* Composition (always >=1 component). Note that for multiphase objects, the     */
+  /* provided atomdataidx will be invalid, so it is important in general to use    */
+  /* ncrystal_create_component_atomdata(..) to access the atomdata object          */
+  /* associated with the i'th component, and NOT ncrystal_create_atomdata(..):     */
   NCRYSTAL_API unsigned ncrystal_info_ncomponents( ncrystal_info_t );
   NCRYSTAL_API void ncrystal_info_getcomponent( ncrystal_info_t, unsigned icomponent,
                                                 unsigned* atomdataindex,
@@ -287,6 +290,10 @@ extern "C" {
   /* resource leaks.                                                               */
   NCRYSTAL_API ncrystal_atomdata_t ncrystal_create_atomdata( ncrystal_info_t,
                                                              unsigned atomdataindex );
+
+  /* Same, but via index in composition vector:                                    */
+  NCRYSTAL_API ncrystal_atomdata_t ncrystal_create_component_atomdata( ncrystal_info_t,
+                                                                       unsigned icomponent );
 
   /* Get atom data fields. Each object falls in one of three categories:           */
   /* 1) Natural elements (ncomponents=A=0,Z>0)                                     */
@@ -516,9 +523,9 @@ extern "C" {
 #endif
 #define NCRYSTAL_VERSION_MAJOR 3
 #define NCRYSTAL_VERSION_MINOR 3
-#define NCRYSTAL_VERSION_PATCH 0
-#define NCRYSTAL_VERSION   3003000 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
-#define NCRYSTAL_VERSION_STR "3.3.0"
+#define NCRYSTAL_VERSION_PATCH 1
+#define NCRYSTAL_VERSION   3003001 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
+#define NCRYSTAL_VERSION_STR "3.3.1"
   NCRYSTAL_API int ncrystal_version(); /* returns NCRYSTAL_VERSION                  */
   NCRYSTAL_API const char * ncrystal_version_str(); /* returns NCRYSTAL_VERSION_STR */
 

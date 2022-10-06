@@ -50,11 +50,12 @@ namespace NCrystal {
     class AtomDataObj : private MoveOnly {
       //Hold AtomData and related info. This wrapper class is associated with a
       //particular Info instance, and therefore also knows the displayLabel
-      //(unless a sub-component). It also caches some strings which would
-      //otherwise be temporary objects, making it safe to return their values to
-      //C code. Note that the displayLabels are only valid in connection with a
-      //particular Info object, and only "top-level" atoms, the ones with an
-      //AtomIndex on the Info object, have a displayLabel.
+      //(unless a sub-component, or atomdata is from the composition vector). It
+      //also caches some strings which would otherwise be temporary objects,
+      //making it safe to return their values to C code. Note that the
+      //displayLabels are only valid in connection with a particular Info
+      //object, and only "top-level" atoms, the ones with an AtomIndex on the
+      //Info object, have a displayLabel.
       shared_obj<const AtomData> m_atomDataSO;
       std::unique_ptr<std::string> m_displayLabel_ptr;
       std::unique_ptr<std::string> m_description_ptr;
@@ -1439,8 +1440,26 @@ ncrystal_atomdata_t ncrystal_create_atomdata( ncrystal_info_t ci,
 {
   try {
     auto& info = ncc::extract(ci);
-    return ncc::createNewCHandle<ncc::Wrapped_AtomData>( info->atomDataSP(NC::AtomIndex{atomdataindex}),
-                                                         info->displayLabel(NC::AtomIndex{atomdataindex}) );
+    NC::AtomIndex aidx{atomdataindex};
+    if ( aidx.isInvalid() )
+      NCRYSTAL_THROW2(BadInput,"ncrystal_create_atomdata: provided atomdataidx is invalid.");
+    return ncc::createNewCHandle<ncc::Wrapped_AtomData>( info->atomDataSP(aidx),
+                                                         info->displayLabel(aidx) );
+  } NCCATCH;
+  return {nullptr};
+}
+
+ncrystal_atomdata_t ncrystal_create_component_atomdata( ncrystal_info_t nfo,
+                                                        unsigned icomponent )
+{
+  try {
+    auto& info = ncc::extract(nfo);
+    auto n = info->getComposition().size();
+    nc_assert(n>=1);
+    if ( ! ( icomponent<n ) )
+      NCRYSTAL_THROW(BadInput,"Requested component index is out of bounds");
+    const auto& comp = info->getComposition().at(icomponent);
+    return ncc::createNewCHandle<ncc::Wrapped_AtomData>( comp.atom.atomDataSP );
   } NCCATCH;
   return {nullptr};
 }
@@ -1501,9 +1520,10 @@ void ncrystal_info_getcomponent( ncrystal_info_t ci, unsigned icomponent,
     auto& info = ncc::extract(ci);
     auto n = info->getComposition().size();
     nc_assert(n>=1);
-    if ( ! ( icomponent<n) )
+    if ( ! ( icomponent<n ) )
       NCRYSTAL_THROW(BadInput,"Requested component index is out of bounds");
     const auto& comp = info->getComposition().at(icomponent);
+    //NB: comp will contain invalid atom index on multiphase object!
     *atomdataindex = comp.atom.index.get();
     *fraction = comp.fraction;
     return;

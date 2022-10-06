@@ -70,7 +70,7 @@ if installation_info.get('libdir','@').startswith('@'):
 def hasopt(optname):
     return installation_info['opt_%s'%optname]
 
-####Remove some directories if nothing was installed there due configuration options:
+####Remove some directories if nothing was installed there due to configuration options:
 ###if not ( hasopt('data') and not hasopt('embed_data') ):
 ###    installation_info['datadir']=None
 ###if not ( hasopt('mcstas') and not hasopt('embed_data') ):
