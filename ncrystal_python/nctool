@@ -20,25 +20,62 @@
 ##                                                                            ##
 ################################################################################
 
-#########################################################################
-########################### System setup ################################
-#########################################################################
-
+################################################################################################
+####### Common code for all NCrystal cmdline scripts needing to import NCrystal modules ########
 import sys
 pyversion = sys.version_info[0:3]
 _minpyversion=(3,6,0)
 if pyversion < _minpyversion:
     raise SystemExit('Unsupported python version %i.%i.%i detected (needs %i.%i.%i or later).'%(pyversion+_minpyversion))
-
+import os
 import pathlib
+
+def maybeThisIsConda():
+    return ( os.environ.get('CONDA_PREFIX',None) or
+             os.path.exists(os.path.join(sys.base_prefix, 'conda-meta')) )
+
+def fixSysPathAndImportNCrystal( *, allowfail = False ):
+    thisdir = pathlib.Path( __file__ ).parent
+    def extract_cmake_pymodloc():
+        p = thisdir / 'ncrystal-config'
+        if not p.exists():
+            return
+        with p.open('rt') as fh:
+            for i,l in enumerate(fh):
+                if i==30:
+                    break
+                if l.startswith('#CMAKE_RELPATH_TO_PYMOD:'):
+                    l = l[24:].strip()
+                    return ( thisdir / l ) if l else None
+    pml = extract_cmake_pymodloc()
+    hack_syspath = pml and ( pml / 'NCrystal' / '__init__.py' ).exists()
+    if hack_syspath:
+        sys.path.insert(0,str(pml.absolute().resolve()))
+    try:
+        import NCrystal
+    except ImportError:
+        if allowfail:
+            return
+        msg = 'ERROR: Could not import the NCrystal Python module'
+        if maybeThisIsConda():
+            msg += ' (if using conda it might help to close your terminal and activate your environment again)'
+        elif not hack_syspath:
+            msg += ' (perhaps your PYTHONPATH is misconfigured)'
+        raise SystemExit(msg)
+    return NCrystal
+################################################################################################
+NC = fixSysPathAndImportNCrystal()
+
+#########################################################################
+########################### System setup ################################
+#########################################################################
+
 import argparse
 import math
-import os
 
 #in unit tests we dont display interactive images and we reduce cpu consumption
 #by watching for special env var:
 _unittest = bool(os.environ.get('NCRYSTAL_INSPECTFILE_UNITTESTS',''))
-
 
 #Function for importing required python modules which may be missing, to provide
 #a somewhat more helpful error to the user:
@@ -47,21 +84,12 @@ def import_optpymod(name):
     try:
         themod = importlib.import_module(name)
     except ImportError:
-        raise SystemExit('ERROR: Could not import a required python module: %s'%name)
+        msg = 'ERROR: Could not import a required python module: %s'%name
+        if maybeThisIsConda() and name in ('matplotlib','numpy'):
+                msg += ' (looks like you are using conda so you might solve this by running "conda install %s")'%name
+        raise SystemExit(msg)
     return themod
 
-#import NCrystal. Prefer the one from our own installation (ok to modify
-#sys.path since we are in a script!):
-_ = pathlib.Path( __file__ ).parent / '../share/NCrystal/python/NCrystal/__init__.py'
-if _.exists():
-    sys.path.insert(0,str(_.parent.parent.absolute().resolve()))
-
-try:
-    import NCrystal
-except ImportError:
-    raise SystemExit("ERROR: Could not import the NCrystal Python module (perhaps your PYTHONPATH is misconfigured).")
-
-NC=NCrystal
 
 #########################################################################
 #########################################################################

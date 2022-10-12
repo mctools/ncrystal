@@ -1,3 +1,21 @@
+v3.4.0 2022-10-12
+      * Modify location of CMake config files provided by an NCrystal
+        installation, to hopefully make it easier for downstream projects to
+        locate an existing NCrystal installation (more details on this MCPL
+        issue: https://github.com/mctools/mcpl/issues/58).
+      * Modify manner in which Geant4 bindings must be activated in downstream
+        CMake code. Previously they were enabled via a dedicated
+        "find_package(G4NCrystal)" call, but now they are instead provided as an
+        optional COMPONENT when requesting the NCrystal package:
+        "find_package(NCrystal COMPONENTS GEANT4BINDINGS )" and if succesful the
+        downstream binaries must be configured to depend on the G4NCrystal
+        interface by adding the NCrystal::G4NCrystal target as a dependency,
+        i.e. "target_link_libraries( mybinary NCrystal::G4NCrystal )".  The
+        Geant4 bindings will not be enabled unless the GEANT4BINDINGS component
+        is explicitly requested.
+      * Unify manner in which shipped cmdline scripts look for NCrystal python
+        module.
+
 v3.3.1 2022-10-06
       * Fix info.getComposition() for multiphase materials in the Python
         interface.  This issue is not believed to have affected many users, but

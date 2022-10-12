@@ -20,6 +20,9 @@
 ##                                                                            ##
 ################################################################################
 
+#Magic comment used by command-line scripts to find the NCrystal python module simply by parsing this file. Do not modify!
+#CMAKE_RELPATH_TO_PYMOD:@NCrystal_relpath_BINDIR2PYPATH@
+
 import sys
 
 pyversion = sys.version_info[0:3]
@@ -28,6 +31,7 @@ if pyversion < (3,0,0):
     raise SystemExit('NCrystal does not support Python2.')
 if pyversion < _minpyversion:
     raise SystemExit('ERROR: Unsupported python version %i.%i.%i detected (needs %i.%i.%i or later).'%(pyversion+_minpyversion))
+
 
 import pathlib
 import argparse

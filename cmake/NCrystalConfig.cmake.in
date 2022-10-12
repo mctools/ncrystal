@@ -18,17 +18,15 @@
 ##                                                                            ##
 ################################################################################
 
-##################################################################################
-#                                                                                #
-# Exports NCrystal targets, and provides a few PATHS and values of a few build   #
-# options.                                        #                              #
-#                                                                                #
-# Geant4 targets will not be exported from this file. If Geant4 targets are      #
-# needed, one should use find_package(G4NCrystal) instead of                     #
-# find_package(NCrystal) (the former will also provide targets and variables     #
-# from the latter).                                                              #
-#                                                                                #
-##################################################################################
+################################################################################
+#                                                                              #
+# Exports NCrystal targets, and provides a few paths and values of build       #
+# options.                                                                     #
+#                                                                              #
+# Geant4 targets will not be exported unless the GEANT4BINDINGS component is   #
+# explicitly requested                                                         #
+#                                                                              #
+################################################################################
 
 
 #Export a few directory paths (relocatable):
@@ -44,11 +42,6 @@ if ( @INSTALL_PY@ AND NOT @NO_DIRECT_PYMODINST@ AND EXISTS "${NCrystal_CMAKEDIR}
 endif()
 if ( @INSTALL_DATA@ )
   get_filename_component( NCrystal_DATAFILESDIR "${NCrystal_CMAKEDIR}/@NCrystal_relpath_CMAKEDIR2DATAFILESDIR@" ABSOLUTE )
-endif()
-
-#The NCrystal targets (not including the G4NCrystal targets!):
-if(NOT TARGET NCrystal::NCrystal)
-  include( "${NCrystal_CMAKEDIR}/NCrystalTargets.cmake" )
 endif()
 
 #Config variables:
@@ -78,3 +71,42 @@ set( NCrystal_CMD_NCRYSTALINSPECTFILE ${NCrystal_BINDIR}/ncrystal_inspectfile )
 if ( NOT EXISTS NCrystal_CMD_NCRYSTALINSPECTFILE )
   set( NCrystal_CMD_NCRYSTALINSPECTFILE "")
 endif()
+
+#The NCrystal targets (not including the G4NCrystal targets!):
+if(NOT TARGET NCrystal::NCrystal)
+  include( "${NCrystal_CMAKEDIR}/NCrystalTargets.cmake" )
+endif()
+
+#For now GEANT4BINDINGS is the only optional component. To avoid injecting a
+#dependency on Geant4 into non-Geant4 projects, the Geant4 dependency and G4NCrystal
+#targets will only be added if the GEANT4BINDINGS component is explicitly
+#requested.
+
+set( NCrystal_COMPONENT_GEANT4BINDINGS OFF )
+
+if ( NCrystal_OPTION_BUILD_G4HOOKS )
+  #Build with Geant4 bindings. However, only load these targets (and the Geant4
+  #dependency) if the GEANT4BINDINGS component was requested.
+  if ( "GEANT4BINDINGS" IN_LIST NCrystal_FIND_COMPONENTS )
+    if( NOT TARGET NCrystal::G4NCrystal )
+      include( CMakeFindDependencyMacro )
+      find_dependency( Geant4 @Geant4_VERSION@ EXACT REQUIRED )
+      include( "${NCrystal_CMAKEDIR}/G4NCrystalTargets.cmake" )
+      set( NCrystal_COMPONENT_GEANT4BINDINGS ON )
+    endif()
+  endif()
+else()
+  if ( NCrystal_FIND_REQUIRED_GEANT4BINDINGS )
+    #GEANT4BINDINGS were explicitly requested but this installation does not
+    #support it.
+    set( NCrystal_FOUND FALSE )
+  endif()
+endif()
+
+#Handle other requested components. For forward compatibility, silently ignore
+#any requested component name we do not recognise, unless it is REQUIRED:
+foreach(tmp ${NCrystal_FIND_COMPONENTS})
+  if ( NCrystal_FIND_REQUIRED_${tmp} AND NOT "${tmp}" STREQUAL "GEANT4BINDINGS" )
+    set( NCrystal_FOUND FALSE )
+  endif()
+endforeach()

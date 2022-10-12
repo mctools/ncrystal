@@ -69,7 +69,7 @@ if( NOT NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE )
 endif()
 
 #Setup project:
-project(NCrystal VERSION 3.3.1 LANGUAGES CXX C)
+project(NCrystal VERSION 3.4.0 LANGUAGES CXX C)
 
 if( NOT NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE )
   if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
@@ -119,7 +119,7 @@ if( NOT NCrystal_PYPATH )
   set(NCrystal_PYPATH "${NCrystal_DATAROOT}/python")#e.g. <prefix>/share/NCrystal/python
 endif()
 if ( NOT NCrystal_CMAKEDIR )
-  set(NCrystal_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake")#e.g. <prefix>/lib/cmake>
+  set(NCrystal_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")#e.g. <prefix>/lib/cmake/NCrystal>
 endif()
 if ( NOT NO_DIRECT_PYMODINST )
   set(NCrystal_PYMODDIR "${NCrystal_PYPATH}/NCrystal")#e.g. <prefix>/share/NCrystal/python/NCrystal
@@ -587,7 +587,7 @@ endif()
 
 #G4NCrystal
 if (BUILD_G4HOOKS)
-  #Build G4NCrystal library:
+  #Build G4NCrystal library
   find_package(Geant4)
   if(NOT Geant4_FOUND)
     message(FATAL_ERROR "BUILD_G4HOOKS set to ON but failed to enable Geant4 support.")
@@ -603,6 +603,7 @@ if (BUILD_G4HOOKS)
     )
 
   install(TARGETS G4NCrystal EXPORT G4NCrystalTargets DESTINATION ${NCrystal_LIBDIR} )
+
   install(FILES ${HDRS_NCG4} DESTINATION ${NCrystal_INCDIR}/G4NCrystal)
   #Transfer G4 flags uncovered by find_package(Geant4) call:
   #TODO: This should really use Geant4 targets once all known users move to
@@ -626,6 +627,10 @@ if (BUILD_G4HOOKS)
     target_compile_options( G4NCrystal PUBLIC -Wno-overloaded-virtual )
   endif()
 
+  #Add G4NCrystal target in separate file:
+  install( EXPORT G4NCrystalTargets FILE G4NCrystalTargets.cmake NAMESPACE NCrystal:: DESTINATION ${NCrystal_CMAKEDIR} )
+  add_library(NCrystal::G4NCrystal ALIAS G4NCrystal)#always alias namespaces locally
+
   #examples if needed:
   if (BUILD_EXAMPLES AND EXAMPLES_NCG4)
     foreach(ex ${EXAMPLES_NCG4})
@@ -638,22 +643,6 @@ if (BUILD_G4HOOKS)
       endif()
       install(TARGETS ${exbn} DESTINATION ${NCrystal_BINDIR} )
     endforeach()
-  endif()
-  #export dedicated cmake config. Users not needing Geant4 hooks can call
-  #find_package(NCrystal), and users needing Geant4 hooks can call
-  #find_package(G4NCrystal).
-  if (BUILD_G4HOOKS)
-    install( EXPORT G4NCrystalTargets
-      FILE G4NCrystalTargets.cmake
-      NAMESPACE G4NCrystal::
-      DESTINATION ${NCrystal_CMAKEDIR} )
-    add_library(G4NCrystal::G4NCrystal ALIAS G4NCrystal)#always alias namespaces locally
-    write_basic_package_version_file( "${PROJECT_BINARY_DIR}/G4NCrystalConfigVersion.cmake"
-      VERSION ${NCrystal_VERSION} COMPATIBILITY SameMajorVersion )
-    configure_file( "${PROJECT_SOURCE_DIR}/cmake/G4NCrystalConfig.cmake.in"
-      "${PROJECT_BINARY_DIR}/G4NCrystalConfig.cmake" @ONLY )
-    install( FILES "${PROJECT_BINARY_DIR}/G4NCrystalConfigVersion.cmake" "${PROJECT_BINARY_DIR}/G4NCrystalConfig.cmake"
-      DESTINATION ${NCrystal_CMAKEDIR} )
   endif()
 endif()
 

@@ -91,23 +91,20 @@ Using the NCrystal installation from C++ (including Geant4), C or Python code
 If you wish to use NCrystal from Python code, there is no special setup needed,
 beyond sourcing the setup.sh script mentioned in the INSTALL file. If you on the
 other hand wish to use NCrystal from your compiled C++ or C code, you must put
-the $NCRYSTALDIR/include directory in your include path, usually by providing
-your compiler with an "-I$NCRYSTALDIR/include" flag, and make sure you link to
-the NCrystal library in $NCRYSTALDIR/lib, usually via "-L$NCRYSTALDIR/lib
--lNCrystal" link flags. If using the NCrystal-Geant4 interfaces, you should also add
-"-lG4NCrystal" to the link flags. Then, in your code you can access the relevant
-APIs with with statements like:
+appropriate build flags. The recommended way is using CMake to do this (see next
+section), but otherwise you must put the $NCRYSTALDIR/include directory in your
+include path, usually by providing your compiler with an
+"-I$NCRYSTALDIR/include" flag, and make sure you link to the NCrystal library in
+$NCRYSTALDIR/lib, usually via "-L$NCRYSTALDIR/lib -lNCrystal" link flags. If
+using the NCrystal-Geant4 interfaces, you should also add "-lG4NCrystal" to the
+link flags.
+
+Then, in your code you can access the relevant APIs with with statements like:
 
   #include "NCrystal/NCrystal.hh"     // C++ code, core NCrystal
   #include "G4NCrystal/G4NCrystal.hh" // C++ code, for Geant4 users
   #include "NCrystal/ncrystal.h"      // C code
-  import NCrystal          ## Python code
-
-Since NCrystal release v2.2.0, the recommended way for C/C++ projects to build
-against NCrystal or G4NCrystal is to use CMake's find_package(NCrystal) or
-find_package(G4NCrystal) as appropriate. This respectively provides CMake
-targets NCrystal::NCrystal and G4NCrystal::G4NCrystal, which can be added as a
-dependency to your own targets.
+  import NCrystal                     ## Python code
 
 In the ./examples/ directory of your NCrystal distribution that you got after
 downloading and unpacking the NCrystal source tar-ball, you will find small
@@ -117,6 +114,40 @@ is some integrated documentation via the usual "help" function, accessed with:
 
   import NCrystal
   help(NCrystal)
+
+
+
+Configuring CMake-based projects to use NCrystal
+------------------------------------------------
+
+Assuming NCrystal was built and installed via CMake, it is possible and
+recommended for client projects to simply use NCrystal as a CMake package in
+order to correctly build their C/C++ code which depends on the NCrystal C++ or C
+APIs.
+
+Depending on where NCrystal was installed on the system, it might be necessary
+to let CMake know about it via the usual mechanisms (for instance passing
+-DNCrystal_DIR=/path/to/ncrystalinstall as an argument to cmake on the command
+line).
+
+CMake code for a small project using NCrystal might look like the following
+(assume that exampleapp.cc below includes the NCrystal/NCrystal.hh header):
+
+  cmake_minimum_required(VERSION 3.10...3.19)
+  project(MyExampleProject LANGUAGES CXX)
+  find_package(NCrystal REQUIRED)
+  add_executable(exampleapp "${PROJECT_SOURCE_DIR}/exampleapp.cc")
+  target_link_libraries( exampleapp NCrystal::NCrystal )
+  install( TARGETS exampleapp DESTINATION bin )
+
+If the NCrystal-Geant4 bindings are needed, they must be explicitly requested,
+and the NCrystal::G4NCrystal target added as a dependency for downstream code:
+
+  find_package(NCrystal REQUIRED COMPONENTS GEANT4BINDINGS )
+  target_link_libraries( exampleapp NCrystal::G4NCrystal )
+
+This will of course fail if NCrystal was not build with Geant4 support
+(i.e. configured with -DBUILD_G4HOOKS=ON).
 
 
 
