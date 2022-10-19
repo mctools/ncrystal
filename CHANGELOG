@@ -1,3 +1,13 @@
+v3.4.1 2022-10-19
+      * Expose utility for completely flattening a material composition to
+        Python interface, as a new info.getFlattenedComposition() method. This
+        is intended to better support materials with non-natural compositions in
+        the OpenMC bindings. Internally, the new method is using the same
+        machinery as what is already in place to provide the same functionality
+        for the Geant4 bindings.
+      * ncrystal_onlinedb2ncmat was not using new unified cmdline script
+        machinery introduced in v3.4.0, which has now been corrected.
+
 v3.4.0 2022-10-12
       * Modify location of CMake config files provided by an NCrystal
         installation, to hopefully make it easier for downstream projects to
@@ -957,4 +967,3 @@ v0.9.1 2017-08-30
 
 v0.9.0 2017-08-30
       * First github based public release of NCrystal.
-

@@ -314,6 +314,28 @@ extern "C" {
                                                                      unsigned icomponent,
                                                                      double* fraction );
 
+  /* Get flattened breakdown of composition i.e. to set up a structureless base    */
+  /* material with same atoms in another application). Set prefernatelem to 1 or   */
+  /* 0 to indicate whether the breakdowns should prefer natural elements (A=0)     */
+  /* where possible, or always expand such to individial isotopes. The             */
+  /* natelemprovider argument is a callback to a function which provides such      */
+  /* natural abundances, and this is needed when prefernatelem==0 or when the      */
+  /* composition contains both natural elements and isotopes of a particular       */
+  /* element. If prefernatelem=1 the natelemprovider can be left out by passing    */
+  /* a NULL ptr, which will then still work for all materials except for this with */
+  /* the mentioned mixed compositions. Results are returned as a JSON string (list */
+  /* of (Z,A,frac) entries where A=0 indicates natural elements), which must be    */
+  /* cleaned up with ncrystal_dealloc_string).                                     */
+  /*                                                                               */
+  /* To keep the interface simple (if ugly), the natelemprovider function is       */
+  /* passed the Z value along with a preallocated int and double array of length   */
+  /* 128, which it must fill with corresponding A and abundance values. The return */
+  /* value is used to indicate the number of isotopes present. Thus, at most 128   */
+  /* isotopes can be returned (which should be plenty for all known elements).     */
+  /* It should simply return 0 in case of an element with no nat. abundance data.  */
+  char * ncrystal_get_flatcompos( ncrystal_info_t, int prefernatelem,
+                                  unsigned (*natelemprovider)(unsigned,unsigned*,double*) );
+
   /* Custom data section:                                                         */
   NCRYSTAL_API unsigned ncrystal_info_ncustomsections( ncrystal_info_t );
   NCRYSTAL_API const char* ncrystal_info_customsec_name( ncrystal_info_t, unsigned isection );
@@ -443,7 +465,7 @@ extern "C" {
   NCRYSTAL_API double ncrystal_ekin2wl( double ekin );
 
   /* Extract extra debug information about objects (as JSON string which must be   */
-  /* cleaned up with ncrystal_dealloc_string.                                      */
+  /* cleaned up with ncrystal_dealloc_string).                                     */
   NCRYSTAL_API char * ncrystal_dbg_process( ncrystal_process_t );
 
   /*UID of underlying Info or ProcImpl::Process object as string (must free with   */
@@ -523,9 +545,9 @@ extern "C" {
 #endif
 #define NCRYSTAL_VERSION_MAJOR 3
 #define NCRYSTAL_VERSION_MINOR 4
-#define NCRYSTAL_VERSION_PATCH 0
-#define NCRYSTAL_VERSION   3004000 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
-#define NCRYSTAL_VERSION_STR "3.4.0"
+#define NCRYSTAL_VERSION_PATCH 1
+#define NCRYSTAL_VERSION   3004001 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
+#define NCRYSTAL_VERSION_STR "3.4.1"
   NCRYSTAL_API int ncrystal_version(); /* returns NCRYSTAL_VERSION                  */
   NCRYSTAL_API const char * ncrystal_version_str(); /* returns NCRYSTAL_VERSION_STR */
 

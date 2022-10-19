@@ -22,6 +22,7 @@
 #include "NCrystal/internal/NCAtomUtils.hh"
 #include "NCrystal/internal/NCMath.hh"
 #include "NCrystal/internal/NCIter.hh"
+#include "NCrystal/internal/NCString.hh"
 #include <iomanip>
 #include <sstream>
 
@@ -73,6 +74,8 @@ NC::CU::FullBreakdown NC::CU::createFullBreakdown( const Info::Composition& comp
 
   auto natabprov = [&natabprov_raw](unsigned Z)
   {
+    if (!natabprov_raw)
+      NCRYSTAL_THROW2(CalcError,"Could not determine natural abundances for Z="<<Z<<" (no natural abundance source was provided!)");
     auto natab = natabprov_raw(Z);
     if ( natab.empty() )
       NCRYSTAL_THROW2(CalcError,"Could not determine natural abundances for Z="<<Z);
@@ -300,4 +303,33 @@ NC::CU::LWBreakdown NC::CU::createLWBreakdown( const Info::Composition& a,
     lwbd.emplace_back(totfrac.sum(),ElementBreakdownLW(e));
   }
   return lwbd;
+}
+
+std::string NC::CU::fullBreakdownToJSON( const FullBreakdown& bd )
+{
+  //encode in json as list of elements of type "[ Z, [ [A_1,fraction_1],...,[A_N,fraction_N] ] ]
+  std::ostringstream ss;
+  ss << '[';
+
+  for ( auto e : enumerate(bd) ) {
+    //e.val type =  std::pair<unsigned,std::vector<std::pair<unsigned,double>>> FullElementBreakdown;//( Z, [(A,fraction),...] )
+    ss << '[';
+    streamJSON(ss,e.val.first);//Z
+    ss <<",[";
+    for ( auto eA : enumerate(e.val.second) ) {
+      ss<<'[';
+      streamJSON(ss,eA.val.first);//A
+      ss<<',';
+      streamJSON(ss,eA.val.second);//fraction
+      ss<<']';
+      if ( eA.idx + 1 != e.val.second.size() )
+        ss << ',';
+    }
+    ss << "]]";
+    if ( e.idx + 1 != bd.size() )
+      ss << ',';
+  }
+
+  ss << ']';
+  return ss.str();
 }

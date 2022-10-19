@@ -38,6 +38,7 @@
 #include "NCrystal/internal/NCAtomDB.hh"
 #include "NCrystal/internal/NCVDOSEval.hh"
 #include "NCrystal/NCParseNCMAT.hh"
+#include "NCrystal/NCCompositionUtils.hh"
 #include <cstdio>
 #include <cstdlib>
 
@@ -1980,7 +1981,7 @@ char * ncrystal_gencfgstr_doc(int mode)
   return nullptr;
 }
 
-NCRYSTAL_API char * ncrystal_ncmat2json( const char * textdataname )
+char * ncrystal_ncmat2json( const char * textdataname )
 {
   try {
     auto textData = NC::FactImpl::createTextData( textdataname );
@@ -1990,6 +1991,46 @@ NCRYSTAL_API char * ncrystal_ncmat2json( const char * textdataname )
     std::ostringstream ss;
     data.toJSON(ss);
     return ncc::createString(ss.str());
+  } NCCATCH;
+  return nullptr;
+}
+
+char * ncrystal_get_flatcompos( ncrystal_info_t nfo,
+                                int prefernatelem,
+                                unsigned (*natelemprovider_raw)(unsigned,unsigned*,double*) )
+{
+  try {
+    auto& info = ncc::extract(nfo);
+    NC::CompositionUtils::NaturalAbundanceProvider natprov{ nullptr };
+    if ( natelemprovider_raw ) {
+      natprov = [natelemprovider_raw]( unsigned Z )
+      {
+        nc_assert_always( Z >= 1 );
+        nc_assert_always( Z <= 150 );
+        std::vector<std::pair<unsigned,double>> result;
+        unsigned bufA[128];
+        double bufFrac[128];
+        auto nisotopes = natelemprovider_raw( Z, bufA, bufFrac );
+        //NB: nisotopes==0 indicates lack of knowledge, which translates to empty results vector
+        for ( auto i : NC::ncrange(nisotopes) ) {
+          (void)i;
+          //fixme: better exceptions:
+          if ( bufFrac[i] == 0.0 )
+            continue;//fixme: check if correct to return empty result in case of missing knowledge. (we need extensive unit test of this python interface)
+          nc_assert_always(bufA[i]>=Z);
+          nc_assert_always(bufA[i]<=999);
+          nc_assert_always(bufFrac[i]>0.0);
+          nc_assert_always(bufFrac[i]<=1.0);
+          result.emplace_back( bufA[i], bufFrac[i] );
+        }
+        return result;
+      };
+    }
+    auto bd = NC::CompositionUtils::createFullBreakdown( info->getComposition(), natprov,
+                                                         ( prefernatelem
+                                                           ? NC::CompositionUtils::PreferNaturalElements
+                                                           : NC::CompositionUtils::ForceIsotopes ) );
+    return ncc::createString(NC::CompositionUtils::fullBreakdownToJSON(bd));
   } NCCATCH;
   return nullptr;
 }

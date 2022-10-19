@@ -70,24 +70,13 @@ def fixSysPathAndImportNCrystal( *, allowfail = False ):
         raise SystemExit(msg)
     return NCrystal
 ################################################################################################
+NC = fixSysPathAndImportNCrystal()
+
 import argparse
 import functools
 import math
 import re
 import numpy as np
-
-try:
-    import NCrystal
-except ImportError:
-    _ = pathlib.Path( __file__ ).parent / '../share/NCrystal/python/NCrystal/__init__.py'
-    if _.exists():
-        import sys
-        sys.path.append(str(_.parent.parent.absolute().resolve()))
-        try:
-            import NCrystal
-        except ImportError:
-            raise SystemExit("ERROR: Could not import the NCrystal Python module (perhaps your PYTHONPATH is misconfigured).")
-NC = NCrystal
 
 fallback_debye_temp = 300.0
 pdffn = 'ncrystal_onlinedb_validate.pdf'

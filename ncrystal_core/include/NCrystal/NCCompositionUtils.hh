@@ -29,13 +29,15 @@ namespace NCrystal {
   //Utilities for breaking down the basic composition of a material into
   //elements and isotopes. If an element only occurs as a natural element (A=0)
   //and has no specific isotopes, that element will be returned as a natural
-  //isotope unless the ForceIsotopes flag is chosen. In any case, a
-  //NaturalAbundanceProvider must be available, since if a given Z value has a
-  //mix of isotopes and the natural elements, the natural element must always be
+  //isotope unless the ForceIsotopes flag is chosen. In any case, it is best if
+  //a NaturalAbundanceProvider is provided, since if a given Z value has a mix
+  //of isotopes and the natural elements, the natural element must always be
   //broken up. This behaviour is chosen in order to facilitate the needs of the
   //Geant4 interface (where we want to avoid two G4Elements's with the same Z
   //value), and might be further customised for other interfaces if needed at
-  //some point.
+  //some point. Note however, that it is allowed to not provide a
+  //NaturalAbundanceProvider (i.e. set it to nullptr), which will then only give
+  //an exception if it is actually needed.
   //
   //Both full and light-weight breakdowns are available. The former rely solely
   //on standard containers, while the latter use custom classes with a lower
@@ -51,6 +53,8 @@ namespace NCrystal {
                                                     const NaturalAbundanceProvider&,
                                                     ForceIsotopesChoice = PreferNaturalElements );
 
+
+    NCRYSTAL_API std::string fullBreakdownToJSON( const FullBreakdown& );
 
     class NCRYSTAL_API ElementBreakdownLW : private MoveOnly {
       //Struct for keeping isotope breakdown of a particular element. Care is taken

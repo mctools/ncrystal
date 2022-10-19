@@ -52,7 +52,7 @@ For detailed usage conditions and licensing of this open source project, see:
 
 #NB: Synchronize meta-data below with fields in setup.py.in meta data:
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
-__version__ = '3.4.0'
+__version__ = '3.4.1'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
 __copyright__ = "Copyright 2015-2022 %s"%__author__
@@ -457,6 +457,38 @@ def _load(nclib_filename):
         _raw_info_getcomp(nfo,icomp,aidx,fraction)
         return aidx.value,fraction.value
     functions['ncrystal_info_getcomp']=ncrystal_info_getcomp
+
+    _NEP_FCTTYPE = ctypes.CFUNCTYPE( _uint,_uint,_uintp,_dblp )# -> unsigned (*natelemprovider)(unsigned,unsigned*,double*)
+    _raw_info_getflatcompos = _wrap('ncrystal_get_flatcompos',_charptr,(ncrystal_info_t,_int,_NEP_FCTTYPE),hide=True)
+
+    def nc_info_getflatcompos( nfo, natelemprovider = None, prefernatelem = True ):
+        _prefnatelem = _int(1 if prefernatelem else 0)
+        if not natelemprovider:
+            _nullfct = ctypes.cast(None, _NEP_FCTTYPE)
+            raw_str = _raw_info_getflatcompos(nfo,_prefnatelem,_nullfct)
+        else:
+            #natelemprovider is function which takes integer Z and returns a list
+            #[(A,fraction),...]. Create a wrapper compatible with _NEP_FCTTYPE:
+            #unsigned (*natelemprovider)(unsigned,unsigned*,double*)
+            def nep_wrap(Z,bufA,bufFrac):
+                _ = natelemprovider(Z)
+                if not _:
+                    #returned None or [], i.e. there is no info about the
+                    #element:
+                    return 0
+                assert len(_) < 128
+                for i,(A,f) in enumerate(_):
+                    bufA[i] = A
+                    bufFrac[i] = f
+                return len(_)
+            _c_nep_wrap = _NEP_FCTTYPE(nep_wrap)
+            raw_str = _raw_info_getflatcompos(nfo,_prefnatelem,_c_nep_wrap)
+        if raw_str is None:
+            return 'null'#None in json
+        res=_cstr2str(ctypes.cast(raw_str,_cstr).value)
+        _raw_deallocstr(raw_str)
+        return res
+    functions['nc_info_getflatcompos']=nc_info_getflatcompos
 
     _wrap('ncrystal_create_atomdata',ncrystal_atomdata_t,(ncrystal_info_t,_uint))
     _raw_atomdata_subcomp = _wrap('ncrystal_create_atomdata_subcomp',ncrystal_atomdata_t,
@@ -1134,6 +1166,31 @@ class Info(RCBase):
         """
         return self._initComp() if self.__comp is None else self.__comp
     composition=property(getComposition)
+
+    def getFlattenedComposition( self,
+                                 preferNaturalElements = True,
+                                 naturalAbundProvider = None,
+                                 asJSONStr=False ):
+        """Break down the basic composition of the material into elements and
+        isotopes. If an element only occurs as a natural element and has no
+        specific isotopes, that element will be returned as a natural isotope
+        unless preferNaturalElements=False. Generally, it is best if a
+        naturalAbundProvider is given, since if a given Z value has a mix of
+        isotopes and the natural elements, the natural element must always be
+        broken up.
+
+        If a naturalAbundProvider is given, it must be a function taking a Z
+        value and returning the breakdown into isotopes,
+        [(A1,frac1),...,(An,fracn)]. It can return None or an empty list to
+        indicate missing information.
+
+        Returns a list of (Z,<breakdown>) tuples, where <breakdown> is again a
+        list of tuples of A-values and associated abundances (A=0 indicates
+        natural elements). If asJSONStr=true, the data structure will be
+        returned as a JSON-encoded string, instead of a Python dictionary.
+        """
+        _js = _rawfct['nc_info_getflatcompos'](self._rawobj,naturalAbundProvider,preferNaturalElements)
+        return _js if asJSONStr else json.loads(_js)
 
     def dump(self,verbose=0):
         """Dump contained information to standard output. Use verbose argument to set
