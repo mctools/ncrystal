@@ -1,3 +1,7 @@
+Work in progress:
+      * Minor fix for setup.py file generated from CMake, needed to work with some
+        outdated python installations.
+
 v3.4.1 2022-10-19
       * Expose utility for completely flattening a material composition to
         Python interface, as a new info.getFlattenedComposition() method. This
