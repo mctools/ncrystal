@@ -145,8 +145,8 @@ NC::VectS NC::ncglob(const std::string& pattern) {
 std::string NC::ncgetcwd() {
     char buff[MAX_PATH];
     GetModuleFileName( NULL, buff, MAX_PATH );
-    string::size_type position = string( buff ).find_last_of( "\\/" );
-    return string( buff ).substr( 0, position);
+    std::string::size_type position = std::string( buff ).find_last_of( "\\/" );
+    return std::string( buff ).substr( 0, position);
 }
 #else
 //POSIX globbing:
