@@ -76,6 +76,9 @@ void * NC::detail::bigAlignedAlloc( std::size_t alignment, std::size_t size )
   //    result = std::aligned_alloc(alignment,size);
 
   //roundToNextMultiple since that is what the aligned_alloc function expects.
+#ifdef WIN32
+#define aligned_alloc _aligned_malloc
+#endif
   result = aligned_alloc(alignment,detail::roundToNextMultiple( size, alignment ));
 #endif
   if ( result == nullptr ) {
