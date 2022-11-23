@@ -844,7 +844,13 @@ def main():
         print("created %s"%_pdffilename)
 
 if __name__=='__main__':
-    main()
+    import sys
+    if '--pytrace' in sys.argv[1:]:
+        sys.argv.remove('--pytrace')
+        import trace
+        trace.Trace().runfunc(main)
+    else:
+        main()
 
 # TODO:
 #   - allow tuning of n2d and alpha pars for 2D plot?

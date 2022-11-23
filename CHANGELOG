@@ -1,6 +1,23 @@
-Work in progress:
+v3.5.0 2022-11-23
+      * Migrate names of all CMake parameter options to be prefixed with
+        "NCRYSTAL_". Using the old names will mostly keep working for the time
+        being, but will cause a warning to be issued (mctools/ncrystal#105).
+      * No longer build and install examples by default.
+      * We now newer fiddle with CMAKE_BUILD_TYPE if a multi-cfg generator is
+        detected.
+      * Add option NCRYSTAL_ENABLE_CPACK. If set, a few CPACK-related variables
+        will be set and an "include(CPack)" statement is triggered just after
+        the "project(..)" statement (mctools/ncrystal#107).
+      * Rename CMake target "common" to "ncrystal_common" to avoid clashes when
+        project is build as a subproject (mctools/ncrystal#105).
+      * Completely ignore the CMake option BUILD_EXTRA which has not been
+        supported since release v3.0.0.
       * Minor fix for setup.py file generated from CMake, needed to work with some
         outdated python installations.
+      * Add hidden --pytrace option to ncrystal_inspectfile and nctool, for
+        running the script under the python trace module.
+      * A few fixes for Windows (thanks to Peter Willendrup). In particular,
+        never use aligned_alloc on windows.
 
 v3.4.1 2022-10-19
       * Expose utility for completely flattening a material composition to

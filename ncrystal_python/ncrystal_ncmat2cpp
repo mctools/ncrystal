@@ -31,6 +31,9 @@ rest of the C++ library, and the enclosing function must be invoked.
 
 """
 
+#NB: Important that we do not try to always import NCrystal here, since the
+#script is also used from the standard CMake code to embed the data library.
+
 ################################################################################################
 ####### Common code for all NCrystal cmdline scripts needing to import NCrystal modules ########
 import sys

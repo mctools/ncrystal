@@ -52,7 +52,7 @@ For detailed usage conditions and licensing of this open source project, see:
 
 #NB: Synchronize meta-data below with fields in setup.py.in meta data:
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
-__version__ = '3.4.1'
+__version__ = '3.5.0'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
 __copyright__ = "Copyright 2015-2022 %s"%__author__
@@ -68,9 +68,12 @@ __all__ = [ 'NCException','NCFileNotFound','NCDataLoadError','NCMissingInfo','NC
             'constant_c','constant_dalton2kg','constant_dalton2eVc2','constant_avogadro',
             'constant_boltzmann','const_neutron_mass_amu','constant_planck']
 
+#Place f-string here to catch python <3.6 in a more obvious way than a syntax error below:
+f'NCrystal does not work with Python2 (or Python3 < v3.6)'
+_minpyversion=(3,6,0)
+
 import sys
 pyversion = sys.version_info[0:3]
-_minpyversion=(3,6,0)
 if pyversion < _minpyversion:
     raise SystemExit('Unsupported python version %i.%i.%i detected (needs %i.%i.%i or later).'%(pyversion+_minpyversion))
 

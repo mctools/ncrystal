@@ -142,11 +142,12 @@ NC::VectS NC::ncglob(const std::string& pattern) {
   return result;
 }
 //Windows getcwd:
-std::string NC::ncgetcwd() {
-    char buff[MAX_PATH];
-    GetModuleFileName( NULL, buff, MAX_PATH );
-    std::string::size_type position = std::string( buff ).find_last_of( "\\/" );
-    return std::string( buff ).substr( 0, position);
+std::string NC::ncgetcwd()
+{
+  char buff[MAX_PATH];
+  GetModuleFileName( NULL, buff, MAX_PATH );
+  std::string::size_type position = std::string( buff ).find_last_of( "\\/" );
+  return std::string( buff ).substr( 0, position);
 }
 #else
 //POSIX globbing:

@@ -120,7 +120,7 @@ namespace NCrystal {
   using ShortStrFlt = ShortStr< detail::max_size_strbuf_float + 1 >;
 
   //Encode in shortest form which preserves value (unless fmtstr is set):
-  NCRYSTAL_API ShortStrDbl dbl2shortstr( double value, const char * fmtstr = nullptr );
+  ShortStrDbl dbl2shortstr( double value, const char * fmtstr = nullptr );
 
   //Utilities for printing double's to ostreams, either via a format string
   //(e.g. "%.3g"), or without. The latter prints the shortest/nicest string

@@ -1,9 +1,13 @@
-The official and supported way in which to build and install files in the
-NCrystal distribution is via CMake, which will make it possible to use
-standalone NCrystal functionality from either the command-line, via C++, C or
-Python code, or by using NCrystal in the context of a third-party simulation
-framework for which the appropriate plugins are available (initial planned
-supported is for Geant4 and McStas).
+First of all note that NCrystal might be available for installation via various
+distribution channels such as conda ("conda install -c conda-forge ncrystal"),
+Debian packages or even shipped with your application (e.g. McStas). The rest of
+this file contains instructions for performing a custom build and installation
+from the source code. The official and supported way in which to build and
+install files in the NCrystal source distribution is via CMake, which will make
+it possible to use standalone NCrystal functionality from either the
+command-line, via C++, C or Python code, or by using NCrystal in the context of
+a third-party simulation framework for which the appropriate plugins are
+available (initial planned supported is for Geant4 and McStas).
 
 Depending on the use-case it might of course be more appropriate to simply
 integrate NCrystal directly into the existing build system of a given project,
@@ -23,12 +27,13 @@ The NCrystal distribution requires CMake version 3.10.0 or later. If you do not
 have CMake installed, or if your platform has an older version installed, you
 have to visit http://cmake.org/ and acquire a recent version (note that on
 CentOS7 you can install the "cmake3" package and use the "cmake3" command to get
-this easily). CMake is a very powerful cross-platform configuration and build
-tool and a complete discussion of it is beyond the scope of the present
-instructions. Further in-depth instructions and tutorials are available at
-http://cmake.org/ and elsewhere online. The following is a quick recipe using
-the command-line cmake tool (and using an in-source build for simplicity
-although that is not really best practice):
+this easily, or it might also be enough to do a "pip install cmake"). CMake is a
+very powerful cross-platform configuration and build tool and a complete
+discussion of it is beyond the scope of the present instructions. Further
+in-depth instructions and tutorials are available at http://cmake.org/ and
+elsewhere online. The following is a quick recipe using the command-line cmake
+tool (and using an in-source build for simplicity although that is not really
+best practice):
 
 1. Since you are reading this INSTALL file, it is assumed you have already
    unpacked the NCrystal source distribution somewhere. Assuming this is in a
@@ -43,33 +48,30 @@ although that is not really best practice):
 
    This will fail if your system is missing basic build tools, such as a C/C++
    capable compiler. In addition to generic CMake options, you can fine-tune
-   what will be built by adding one or more of the following flags to the
-   command (look inside the file CMakeLists.txt to see the list of available
-   options - or use cmake gui or ccmake to get the list presented):
+   what will be build by adding flags to the command. For instance
+   -DNCRYSTAL_ENABLE_EXAMPLES=ON would cause the included examples to be built,
+   or -DNCRYSTAL_ENABLE_DATA=EMBED would embed the shipped NCMAT files directly
+   into the NCrystal binary library rather than installing them as actual files
+   on the file system. For a full list of available high-level options, one can
+   simply peek into the file cmake/modules/ncrystal_options.cmake, although
+   depending on your CMake client the options might also be available there.
 
-   * -DBUILD_EXAMPLES=OFF  [do not build+install examples]
-   * -DBUILD_G4HOOKS=ON    [build+install the G4 hooks (requires Geant4)]
-   * -DINSTALL_DATA=OFF    [do not install data files.]
-   * -DEMBED_DATA=ON       [embed data files inside the compiled NCrystal library.]
-   * -DMODIFY_RPATH=OFF    [refrain from fiddling with rpath in binaries]
-   * -DINSTALL_SETUPSH=OFF [do not install setup.sh/unsetup.sh files]
-   * -DDISABLE_DYNLOAD=ON  [do not enabled dynamic plugin support]
-   * -DBUILTIN_PLUGIN_LIST [special, see https://github.com/mctools/ncrystal/wiki/Plugins]
+3. Next, perform the build and install in one step with:
 
-3. Perform the build and install in one step with (assuming you are on a
-   platform where CMake generates makefiles and want to use 4 processes for the
-   build):
-
-   $> make -j4 install
+   cmake --build . --target install --config Release
 
 4. Setup runtime environment:
 
-   In order to use the NCrystal installation, you have to first source the
+   Depending on where you installed NCrystal, it might be necessary to setup
+   your environment (e.g. PATH, PYTHONPATH, etc. variables) in order to actually
+   use the NCrystal installation. One way to do that is to first source the
    setup.sh file from it:
 
    $> . /path/to/ncrystalinstall/setup.sh
 
-   Or alternatively use the ncrystal-config command to do the same:
+   Or alternatively use the ncrystal-config command to do the same (this is
+   actually recommended since ncrystal-config should always be available in
+   practice, while the setup.sh file might not be):
 
    $> $(/path/to/ncrystalinstall/bin/ncrystal-config --setup)
 
@@ -84,9 +86,9 @@ although that is not really best practice):
 
    $> . /path/to/ncrystalinstall/unsetup.sh
 
-   After sourcing setup.sh, you can quickly verify that your NCrystal
-   installation is sound, by running the following unit test (will fail if
-   INSTALL_DATA or INSTALL_PY was not enabled):
+   After sourcing setup.sh (or invokiing the equivalent ncrystal-config
+   command), you can quickly verify that your NCrystal installation is sound, by
+   running the following unit test:
 
    $> ncrystal_inspectfile --test
 
@@ -99,7 +101,7 @@ Building on Windows
 
 The NCrystal developers do not themselves have access to Windows, but thanks to
 patches, debugging and feedback from Andrey Morozov (LIP-Coimbra), Matteo Busi
-(PSI), and Anders Kaestner (PSI), is has been confirmed to work in that
+(PSI), Anders Kaestner (PSI), and Peter Willendrup (DTU/ESS), it has been confirmed to work in that
 environment. The GitHub issue at https://github.com/mctools/ncrystal/issues/38
 contains a specific recipe concerning Windows 10 with Visual Studio. Note that
 NCrystal release v2.2.0 contains many CMake-code changes, and it is unclear if

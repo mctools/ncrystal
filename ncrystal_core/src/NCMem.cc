@@ -60,6 +60,12 @@ void * NC::detail::bigAlignedAlloc( std::size_t alignment, std::size_t size )
 #  endif
 #endif
 
+  //But never try aligned_alloc on Windows:
+  //(cf. https://social.msdn.microsoft.com/Forums/vstudio/en-US/4617cd56-4c8d-4717-a96b-348ad3b2f149)
+#if defined( NCRYSTAL_DETAIL_SYSHASALIGNEDALLOC ) && ( defined (_WIN32) || defined (__CYGWIN__) || defined (WIN32) )
+#  undef NCRYSTAL_DETAIL_SYSHASALIGNEDALLOC
+#endif
+
 #ifdef NCRYSTAL_DETAIL_SYSHASALIGNEDALLOC
   struct detail {
     static std::size_t roundToNextMultiple( std::size_t i, std::size_t n )
