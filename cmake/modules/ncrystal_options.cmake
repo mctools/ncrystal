@@ -41,7 +41,7 @@ bool_option( NCRYSTAL_QUIET           "Produce less status messages during confi
 bool_option( NCRYSTAL_SKIP_INSTALL    "Set to prevent any installation targets from being created." OFF )
 
 string_option(
-  NCRYSTAL_BUILTIN_PLUGIN
+  NCRYSTAL_BUILTIN_PLUGINS
   "Semicolon separated list of external plugins to statically embed in the NCrystal library (local paths to sources or git <repo_url:tag>)"
   ""
   )
