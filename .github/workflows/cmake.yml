@@ -16,11 +16,23 @@ jobs:
     # well on Windows or Mac.  You can convert this to a matrix build if you need
     # cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
-    runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ '3.7', '3.11' ]
-    name: Ubuntu with Python ${{ matrix.python-version }}
+        include:
+          - { os: ubuntu-18.04, CC: gcc-7,    CXX: g++-7,      python: '3.6' }
+          - { os: ubuntu-20.04, CC: clang-10, CXX: clang++-10, python: '3.8' }
+          - { os: ubuntu-22.04, CC: gcc,      CXX: g++,        python: '3.9' }
+          - { os: ubuntu-22.04, CC: clang,    CXX: clang++,    python: '3.10' }
+          - { os: ubuntu-latest, CC: clang-10, CXX: clang++-10, python: default }
+          - { os: macos-11, CC: clang, CXX: clang++, python: default }
+          - { os: macos-latest, CC: clang, CXX: clang++, python: default }
+    name: ${{ matrix.os }}.${{ matrix.CC }}.python-${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    env:
+      CC: ${{ matrix.CC }}
+      CXX: ${{ matrix.CXX }}
+#      SHELL: /bin/bash
+    #name: Ubuntu with Python ${{ matrix.python-version }}
 
     steps:
     - name: Checkout
@@ -31,7 +43,7 @@ jobs:
     - name: Setup python
       uses: actions/setup-python@v2
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: ${{ matrix.python }}
 
     - name: Pip install
       run: |
