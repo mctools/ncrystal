@@ -21,10 +21,9 @@ jobs:
         include:
           - { os: ubuntu-18.04, CC: gcc-7,    CXX: g++-7,      python: '3.6' }
           - { os: ubuntu-20.04, CC: clang-10, CXX: clang++-10, python: '3.8' }
-          - { os: ubuntu-22.04, CC: gcc,      CXX: g++,        python: '3.9' }
-          - { os: ubuntu-22.04, CC: clang,    CXX: clang++,    python: '3.10' }
-          - { os: ubuntu-latest, CC: clang-10, CXX: clang++-10, python: default }
-          - { os: macos-11, CC: clang, CXX: clang++, python: default }
+          - { os: ubuntu-latest, CC: gcc,      CXX: g++,        python: '3.9' }
+          - { os: ubuntu-latest, CC: clang,    CXX: clang++,    python: '3.11' }
+          - { os: macos-11, CC: clang-11, CXX: clang++-11, python: default }
           - { os: macos-latest, CC: clang, CXX: clang++, python: default }
     name: ${{ matrix.os }}.${{ matrix.CC }}.python-${{ matrix.python }}
     runs-on: ${{ matrix.os }}
