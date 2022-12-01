@@ -66,6 +66,7 @@ jobs:
         -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
         -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install
         -DNCRYSTAL_ENABLE_EXAMPLES=ON
+        -DNCRYSTAL_BUILD_STRICT=ON
 
     - name: Build
       run: >
