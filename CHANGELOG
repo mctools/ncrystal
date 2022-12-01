@@ -1,3 +1,6 @@
+Work in progress:
+      * Fix ncrystal_endf2ncmat (github issue #110).
+
 v3.5.0 2022-11-23
       * Migrate names of all CMake parameter options to be prefixed with
         "NCRYSTAL_". Using the old names will mostly keep working for the time

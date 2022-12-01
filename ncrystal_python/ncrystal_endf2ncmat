@@ -83,7 +83,7 @@ def fixSysPathAndImportNCrystal( *, allowfail = False ):
         raise SystemExit(msg)
     return NCrystal
 ################################################################################################
-NC = fixSysPathAndImportNCrystal()
+NCrystal = fixSysPathAndImportNCrystal()
 
 import warnings
 import argparse
