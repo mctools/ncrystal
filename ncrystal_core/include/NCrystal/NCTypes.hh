@@ -182,6 +182,8 @@ namespace NCrystal {
     static constexpr const char * unit() noexcept { return "K"; }
     constexpr double kT() const noexcept;
     void validate() const;
+
+    static constexpr PairDD allowed_range = {0.001, 1000000.0};
   };
 
   class NCRYSTAL_API DebyeTemperature final : public EncapsulatedValue<DebyeTemperature> {
@@ -780,8 +782,12 @@ namespace NCrystal {
 
   inline void Temperature::validate() const
   {
-    if ( ! ( m_value > 0.0 && m_value < 1e9 ) )
+    if ( ! ( m_value > 0.0 && m_value < 1e99 ) )
       NCRYSTAL_THROW2(CalcError,"Temperature::validate() failed. Invalid value:" << *this );
+    if ( ! ( m_value >= allowed_range.first ) )
+      NCRYSTAL_THROW2(CalcError,"Temperature::validate() failed for T="<<*this<<" (temperature values below "<<Temperature{allowed_range.first}<< " are not supported).");
+    if ( ! ( m_value <= allowed_range.second ) )
+      NCRYSTAL_THROW2(CalcError,"Temperature::validate() failed for T="<<*this<<" (temperature values above "<<Temperature{allowed_range.second}<< " are not supported).");
   }
 
   inline void DebyeTemperature::validate() const

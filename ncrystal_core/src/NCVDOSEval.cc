@@ -25,11 +25,93 @@
 namespace NC=NCrystal;
 
 namespace NCrystal {
-  static std::atomic<bool> s_verbose_vdoseval( getenv("NCRYSTAL_DEBUG_PHONON")!=nullptr );
+  namespace {
+    static std::atomic<bool> s_verbose_vdoseval( getenv("NCRYSTAL_DEBUG_PHONON")!=nullptr );
+
+    constexpr double detail_xcothx_taylor_threshold = 0.1;
+
+    double safe_xcothx( double x )
+    {
+      // The function x*coth(x) = x/tanh(x) must be evaluated with a Taylor expansion near x=0.
+      // For the record we simply got the Taylor coefficients with sagemath:
+      // > sage: f=x*coth(x)
+      // First investigating number of orders needed for u=0.1 with command (with a few orders added for safety):
+      // > sage: u=0.1;(f-f.taylor(x,0,12))(x=u).n()
+      // Then generate the coefficients with:
+      // > sage:  print( '\n'.join(('constexpr double c%i = %s;'%(c[1],str(c[0]))).replace('/','./') for c in (f.taylor(x,0,14)).coefficients()))
+      if ( x < detail_xcothx_taylor_threshold ) {
+        constexpr double c0 = 1;
+        constexpr double c2 = 1./3;
+        constexpr double c4 = -1./45;
+        constexpr double c6 = 2./945;
+        constexpr double c8 = -1./4725;
+        constexpr double c10 = 2./93555;
+        constexpr double c12 = -1382./638512875.;
+        constexpr double c14 = 4./18243225.;
+        const double y = x*x;
+        return c0+y*(c2+y*(c4+y*(c6+y*(c8+y*(c10+y*(c12+y*c14))))));
+      } else {
+        return x / std::tanh(x);
+      }
+    }
+
+    constexpr double detail_x3cothx_taylor_threshold = 0.1;
+    double safe_x3cothx( double x ) {
+      // The function x^3*coth(x) = x^3/tanh(x) must be evaluated with a Taylor
+      // expansion near x=0. See safe_xcothx for remarks on how to get the
+      // Taylor coefficients easily.
+
+      if ( x < detail_x3cothx_taylor_threshold ) {
+        constexpr double c2 = 1;
+        constexpr double c4 = 1./3;
+        constexpr double c6 = -1./45;
+        constexpr double c8 = 2./945;
+        constexpr double c10 = -1./4725;
+        constexpr double c12 = 2./93555;
+        constexpr double c14 = -1382./638512875;
+        constexpr double c16 = 4./18243225;
+        constexpr double c18 = -3617./162820783125;
+        constexpr double c20 = 87734./38979295480125;
+        const double y = x*x;
+        return y*(c2+y*(c4+y*(c6+y*(c8+y*(c10+y*(c12+y*(c14+y*(c16+y*(c18+y*(c20))))))))));
+      } else {
+        return x*x*x / std::tanh(x);
+      }
+    }
+
+    constexpr double detail_xdivsinhx_taylor_threshold = 0.07;
+    double safe_xdivsinhx( double x ) {
+      // The function x/sinh(x) = x / csch(x) must be evaluated with a Taylor
+      // expansion near x=0.
+      if ( x < detail_xdivsinhx_taylor_threshold ) {
+        constexpr double c2 = -1./6.;
+        constexpr double c4 = 7./360.;
+        constexpr double c6 = -31./15120.;
+        constexpr double c8 = 127./604800.;
+        const double y = x*x;
+        return 1.0+y*(c2+y*(c4+y*(c6+y*c8)));
+      } else {
+        return x / std::sinh(x);
+      }
+    }
+#ifndef NDEBUG
+    static bool dummy_val_xcothx = []() {
+      //Sanity check overlap at the threshold:
+      nc_assert( floateq( safe_xcothx(detail_xcothx_taylor_threshold*(1-1e-15)),safe_xcothx(detail_xcothx_taylor_threshold*(1+1e-15)),1e-14,1e-99) );
+      nc_assert( floateq( safe_x3cothx(detail_x3cothx_taylor_threshold*(1-1e-15)),safe_x3cothx(detail_x3cothx_taylor_threshold*(1+1e-15)),1e-14,1e-99) );
+      nc_assert( floateq( safe_xdivsinhx(detail_xdivsinhx_taylor_threshold*(1-1e-15)),safe_xdivsinhx(detail_xdivsinhx_taylor_threshold*(1+1e-15)),1e-14,1e-99) );
+      return true;
+    }();
+#endif
+  }
+
 }
 
 void NC::VDOSEval::enableVerboseOutput(bool status)
 {
+#ifndef NDEBUG
+  (void)dummy_val_xcothx;
+#endif
   s_verbose_vdoseval = status;
 }
 
@@ -38,6 +120,49 @@ bool NC::VDOSEval::verboseOutputEnabled()
   return s_verbose_vdoseval;
 }
 
+template <class Fct, class TStableSum>
+void NC::VDOSEval::integrateBinsWithFunction( Fct f, TStableSum& sum ) const
+{
+  //////////////////////////////////////////////////////////////////////////////
+  // With VDOS=rho(E), integrate rho(E)*f(E) over [emin,emax] (a.k.a. the "binned
+  // part" of the density function). This differs from an integral over
+  // [0,infinity] only in that it is missing the parabolic part over
+  // [0,emin], which should be handled separately by the calling code.
+  //
+  // Since all callers will have to do their own custom integration over the
+  // parabolic part [0,emin] where the density is given by a parabola: rho(E) =
+  // m_k * E^2 with a custom function f(E), we derive the general formula for
+  // doing that in a dimensionless variable u=E/2kT here. So with ulim =
+  // m_emin/2kT:
+  //
+  // parabolic_part = integral_0^(m_emin){ m_k*E^2 * f(E) }dE
+  //                = integral_0^(ulim){ m_k* (2kT)^2u^2*f(E=u*2kt)2kT }du
+  //                = m_k* (2kT)^3 * integral_0^(ulim){ u^2*f(E=u*2kT)}du
+  //////////////////////////////////////////////////////////////////////////////
+
+  static_assert( std::is_same<TStableSum,StableSum>::value, "" );
+
+  nc_assert( m_emin > 0.0 );
+
+  //NB: If profiling shows that we spend a significant portion of time here, we
+  //could use integrateRomberg17 instead.
+
+  //Contribution in [m_emin,m_emax], considering individual bins (since the
+  //integrand will then be smooth each time we invoke the Romberg algorithm):
+  unsigned nbins = m_density.size()-1;
+  for ( unsigned ibin = 0; ibin < nbins; ++ibin ) {
+    const double d0=m_density.at(ibin);
+    const double d1=m_density.at(ibin+1);
+    const double e0=m_emin + m_binwidth*ibin;
+    const double e1= (ibin+1==nbins ? m_emax : m_emin + m_binwidth*(ibin+1));
+    //In this bin, rho(E) = (E-e0)*(d1-d0)/(e1-e0) + d0 = A*E+B,
+    //with A=(d1-d0)/(e1-e0), B=d0-e0 *A
+    const double A = (d1-d0)*m_invbinwidth;
+    const double B = d0-e0*A;
+    double bincontrib = integrateRomberg33([&f,A,B](double e){return f(e)*(A*e+B);}, e0, e1);
+    sum.add(bincontrib);
+  }
+}
 
 NC::VDOSEval::~VDOSEval() = default;
 
@@ -46,14 +171,14 @@ NC::VDOSEval::VDOSEval(const VDOSData& vd)
     m_emin(vd.vdos_egrid().first),
     m_emax(vd.vdos_egrid().second),
     m_kT(constant_boltzmann*vd.temperature().get()),
-    m_temperature(vd.temperature()),
+    m_temperature( DoValidate, vd.temperature()),
     m_elementMassAMU(vd.elementMassAMU())
 {
   if ( s_verbose_vdoseval )
-    std::cout << "NCrystal::VDOSEval constructed ("<<m_density.size()<<" density pts on egrid spanning ["<<m_emin<<", "<<m_emax<<"]"<<std::endl;
+    std::cout << "NCrystal::VDOSEval constructed ("<<m_density.size()
+              <<" density pts on egrid spanning ["<<m_emin<<", "<<m_emax<<"]"<<std::endl;
 
   nc_assert( m_elementMassAMU.dbl()>0.5 && m_elementMassAMU.dbl()<2000.0 );
-  nc_assert( m_temperature.get()>=1.0&&m_temperature.get()<1e5 );
   nc_assert_always(m_density.size()<static_cast<std::size_t>(std::numeric_limits<int>::max()-2));
   nc_assert(m_emin>=0.0&&m_emax>m_emin);
 
@@ -92,9 +217,13 @@ NC::VDOSEval::VDOSEval(const VDOSData& vd)
   nc_assert_always(m_binwidth>0.0);
   m_invbinwidth = 1.0/m_binwidth;
 
-  //Normalise:
-  m_originalIntegral = integrateWithFunction([](double){return 1.0;},
-                                             [](double e){return e*e;});
+  //Normalise by first calculating the integral. The integration range
+  //(0,m_emin) where the density fct is parabolic is handled analytically:
+  StableSum sum_integral;
+  sum_integral.add( ( m_k / 3.0 ) * nccube(m_emin) );
+  integrateBinsWithFunction( [](double){return 1.0;}, sum_integral );
+  m_originalIntegral = sum_integral.sum();
+
   nc_assert_always(m_originalIntegral>0.0);
   double scalefact = 1.0/m_originalIntegral;
   for (auto& e : m_density)
@@ -126,33 +255,42 @@ double NC::VDOSEval::calcGamma0() const
 {
   //Evaluate Sjolander1958 eq. II.3 with t=0 (NB: Sjolander is missing a factor
   //of emax, since he uses unit-less energies).
-
-  //We integrate the density with the function coth(E/2kT)/E = 1/E*tanh(E/2kT)
   //
-  //For low values of u=E/2kT, we should expand E^2*coth(E/2kT)/E=2kT*u*coth(u)
-  //in u. The expansion will be called only when E<1e-5, so u<1e-5/2kT =
-  //0.058/T[K]. To support T=1K, we thus need to ensure that the expansion is
-  //precise (at double precision level) to u=0.06. This is satisfied using an
-  //8th order taylor expansion.
+  // We integrate the density with the function:
+  //
+  // f(E) = coth(E/2kT)/E = 1/E*tanh(E/2kT) = (1/2kt) / ( u*tanh(u) )
+  //
+  // The parabolic part of the integral, over [0,m_emin] (cf. comments in
+  // integrateBinsWithFunction) thus becomes:
+  //
+  //   m_k* (2kt)^2 * integral_0^(m_emin/2kT){ u/(tanh(u))du }
+  //
+  // We use the safe_xcothx function to evaluate the integrand (needs a Taylor
+  // expansion near u~=0).
 
+  //First the parabolic part [0,emin]:
   const double twokT = 2.0*m_kT;
   const double inv2kT = 1.0 / twokT;
-  constexpr double c2 = 1./3.;
-  constexpr double c4 = -1./45.;
-  constexpr double c6 = 2./945.;
-  constexpr double c8 = -1./4725.;
-  return integrateWithFunction([inv2kT](double e){ return 1.0/(e*std::tanh(e*inv2kT)); },
-                               [c2,c4,c6,c8,twokT,inv2kT](double e)
-                               {
-                                 (void)c2;//avoid annoying misleading clang warning
-                                 (void)c4;//avoid annoying misleading clang warning
-                                 (void)c6;//avoid annoying misleading clang warning
-                                 (void)c8;//avoid annoying misleading clang warning
-                                 const double u=e*inv2kT;
-                                 const double u2=u*u;
-                                 return (1.0+u2*(c2+u2*(c4+u2*(c6+u2*c8))))*twokT;
-                               })*m_emax;
+  StableSum sum;
+  sum.add( m_k * ncsquare( twokT ) * integrateRomberg33( safe_xcothx, 0.0, m_emin * inv2kT ) );
 
+  //And now the binned part [emin,emax]:
+  auto f_binnedpart =  [ inv2kT ]( double e )
+  {
+    //NB: No Taylor expansion is possible near E/2kT~=0 here, but the precision
+    //of 1/tanh(x) goes down for very small x, so for very large T and small
+    //m_emin, we might introduce some imprecision here. For instance, if T=1e6K
+    //(the most extreme we claim to support) and emin = 1e-5eV (the smallest we
+    //claim to support), we get a precision of around 5e-11, which is likely
+    //good enough. For reference, if we were to allow emin=1e-7eV we would get a
+    //precision of just 3e-8 and with emin=1e-10eV it would become
+    //4e-5. However, this is only at the extreme T=1e6K, at T=1000K and
+    //emin=1e-10eV we would get a precision of 3e-8. So it would most likely be
+    //OK for this integration to loosen the emin limit from 1e-5 to 1e-10 eV.
+    return 1.0 / ( e * std::tanh( e * inv2kT ) );
+  };
+  integrateBinsWithFunction( f_binnedpart, sum );
+  return m_emax * sum.sum();
 }
 
 double NC::VDOSEval::calcEffectiveTemperature() const
@@ -165,7 +303,7 @@ double NC::VDOSEval::calcEffectiveTemperature() const
   //
   //  <=>
   //
-  // Teff = (1/2K) * integral( rho(E) * E / tanh(E/2kT) )
+  // Teff = (1/2k) * integral( rho(E) * E / tanh(E/2kT) )
   //
   //Two notes:
   //
@@ -182,28 +320,28 @@ double NC::VDOSEval::calcEffectiveTemperature() const
   //   would of course be nice to clarify this further, but doesn't seem
   //   urgent).
 
-  const double twokT=2.0*m_kT;
+  // We implement the integration in a similar manner as to what is done in
+  // ::calcGamma0, with the difference of course being the function f(E) which
+  // is instead f(E) = (1/2k) * E / tanh(E/2kT) = T * u / tanh(u). Correspondingly
+  // the integrand of the parabolic part of the integral becomes:
+  //
+  //   parabolic part :  m_k* (2kT)^3 * integral_0^(ulim){ u^3/(tanh(u) }du
+  //
+  // We use the safe_x3cothx function to evaluate the integrand (needs a Taylor
+  // expansion near u~=0).
+
+  //First the parabolic part [0,emin] (leaving out the overall factor of T
+  //until the return statement):
+  const double twokT = 2.0 * m_kT;
   const double inv2kT = 1.0 / twokT;
+  StableSum sum;
+  sum.add( m_k * nccube( twokT ) * integrateRomberg33( safe_x3cothx, 0.0, m_emin * inv2kT ) );
 
-  //For Taylor expansion: F(E)*E^2 = E^3 / tanh(E/2kT) = (2kT)^3 * u^3/tanh(u),
-  //u=E/2kT. We keep 10th order of Taylor expansion to be valid beyond u=0.06,
-  //for the same reasons given in the calcGamma0 function (i.e. to work up to
-  //E=1e-5eV and all the way down to T=1K).
+  //Binned part [emin,emax] (again leaving out a factor of T until the return
+  //statement):
+  integrateBinsWithFunction( [inv2kT](double E){ return safe_xcothx( E * inv2kT ); }, sum );
 
-  const double kkk = twokT*twokT*twokT;
-  const double c4 = 1./3.;
-  const double c6 = -1./45.;
-  const double c8 = 2./945.;
-  const double c10 = -1./4725.;
-  constexpr double ccc = 0.5/constant_boltzmann;
-
-  return ccc*integrateWithFunction( [inv2kT](double e){ return e / std::tanh(e*inv2kT); },
-                                    [c4,c6,c8,c10,kkk,inv2kT](double e)
-                                    {
-                                      const double u = inv2kT*e;
-                                      const double u2 = u*u;
-                                      return kkk * u2 * (1.0+u2*(c4+u2*(c6+u2*(c8+u2*c10))));
-                                    });
+  return m_temperature.dbl() * sum.sum();
 }
 
 double NC::VDOSEval::getMSD( double gamma0 ) const
@@ -221,13 +359,47 @@ double NC::VDOSEval::getMSD( double gamma0 ) const
   //since Sjolander works with unit-less energy and length, normalised to
   //respectively emax or 1/emax.
 
-  constexpr double convfact = 0.5*constant_hbar*constant_hbar*constant_c*constant_c / constant_dalton2eVc2;
+  constexpr double convfact = 0.5 * ncsquare(constant_hbar) * ncsquare(constant_c) / constant_dalton2eVc2;
   return convfact * gamma0 / ( m_elementMassAMU.dbl() * m_emax );
+}
+
+NC::PairDD NC::VDOSEval::evalG1AsymmetricAtEPair( double energy, double gamma0 ) const
+{
+  nc_assert( ! ( energy < 0.0 ) );
+  if ( energy < numericallySafeG1SymmetricELimitInUnitsOfKT * m_kT ) {
+    double G1sym = evalG1Symmetric( energy, gamma0 );
+    if (!G1sym)
+      return { 0.0, 0.0 };
+    const double dbfact = std::exp( energy / (2*m_kT) );
+    nc_assert( dbfact > 0.0 );
+    nc_assert( G1sym > 0.0 );
+    return { G1sym*dbfact, G1sym/dbfact };
+  } else {
+    nc_assert( energy * gamma0 > 0.0 );
+    const double kkk = eval( energy ) * m_emax / ( energy * gamma0 );
+    if ( !kkk )
+      return { 0.0, 0.0 };
+    return { -kkk / std::expm1( -energy / m_kT ),//-energy (absorb sign on kkk as well)
+             kkk / std::expm1( +energy / m_kT ) };
+  }
 }
 
 double NC::VDOSEval::evalG1Asymmetric( double energy, double gamma0 ) const
 {
-  double G1sym = evalG1Symmetric(ncabs(energy),gamma0);
+  const double absE = ncabs( energy );
+  if ( absE > numericallySafeG1SymmetricELimitInUnitsOfKT * m_kT ) {
+    //evaluating at point where the detailed balance factor is more than
+    //exp(+-100), leading to numerically unstable cancellations between the
+    //detailed balance factor and G1Sym. Thus, we use separate analytical
+    //formulas for +energy and -energy. In principle we could always use the
+    //formula below, except for the fact that the G1
+    nc_assert( absE * gamma0 > 0.0 );
+    const double kkk = eval( absE ) * m_emax / ( energy * gamma0 );
+    if ( !kkk )
+      return 0.0;
+    return kkk / std::expm1( energy / m_kT );
+  }
+  double G1sym = evalG1Symmetric(absE,gamma0);
   return G1sym ? G1sym * std::exp( -energy / (2*kT()) ) : 0.0;
 }
 
@@ -245,70 +417,11 @@ double NC::VDOSEval::evalG1Symmetric( double energy, double gamma0 ) const
   const double u = energy / twokT;
   if (energy<=m_emin) {
     //Here f(E) = m_k*E^2, so with u=E/2kT: G1 = (m_k*2kT/2*gamma0) * u / (sinh(u))
-    const double fact = m_k*m_kT*m_emax / gamma0;
-    if (u<0.07) {
-      //taylor expand u/sinh(u)
-      constexpr double c2 = -1./6.;
-      constexpr double c4 = 7./360.;
-      constexpr double c6 = -31./15120.;
-      constexpr double c8 = 127./604800.;
-      const double u2 = u*u;
-      return fact * ( 1.0+u2*(c2+u2*(c4+u2*(c6+u2*c8))) );
-    } else {
-      return fact * u / std::sinh(u);
-    }
+    return ( m_k * m_kT * m_emax / gamma0 ) * safe_xdivsinhx( u );
   } else {
     return eval(energy) * m_emax / ( energy * 2.0 * gamma0 * std::sinh(u) );
   }
 }
-
-template <class Fct, class FctEsqTaylor>
-double NC::VDOSEval::integrateWithFunction(Fct f, FctEsqTaylor fesqtaylor ) const
-{
-  //With VDOS=rho(E), integrate rho(E)*f(E) over [0,infinity].
-  //
-  //F might diverge for small E, but since for small E we have rho(E)=k*E^2, the
-  //combined integrand might be stable (and is for the present cases). For that
-  //reason, the caller should provide fesqtaylor with an approximation for
-  //f(E)*E^2 at small E (i.e. a Taylor expansion of F(E)*E^2). It should contain
-  //enough terms to be valid until E=1e-5.
-
-  constexpr double etiny = 0.9e-5;
-  nc_assert( m_emin>=1e-5 && etiny < m_emin*0.91 );
-
-  //Sanity check that provided functions are compatible:
-  nc_assert( floateq( f(etiny)*etiny*etiny, fesqtaylor(etiny),1e-14,1e-99) );
-
-  //NB: If profiling shows that we spend a significant portion of time here, we
-  //could use integrateRomberg17 instead.
-
-  StableSum sum;
-
-  //Contribution in [0,etiny]:
-  sum.add(m_k*integrateRomberg33(fesqtaylor, 0.0, etiny));
-
-  //Contribution in [etiny,m_emin]:
-  sum.add(m_k*integrateRomberg33([&f](double e){return f(e)*e*e;}, etiny, m_emin));
-
-  //Contribution in [m_emin,m_emax], considering individual bins (since the
-  //integrand will then be smooth each time we invoke the integration algorithm):
-  unsigned nbins = m_density.size()-1;
-  for ( unsigned ibin = 0; ibin < nbins; ++ibin ) {
-    const double d0=m_density.at(ibin);
-    const double d1=m_density.at(ibin+1);
-    const double e0=m_emin + m_binwidth*ibin;
-    const double e1= (ibin+1==nbins ? m_emax : m_emin + m_binwidth*(ibin+1));
-    //In this bin, rho(E) = (E-e0)*(d1-d0)/(e1-e0) + d0 = A*E+B,
-    //with A=(d1-d0)/(e1-e0), B=d0-e0 *A
-    const double A = (d1-d0)*m_invbinwidth;
-    const double B = d0-e0*A;
-    double bincontrib = integrateRomberg33([&f,A,B](double e){return f(e)*(A*e+B);}, e0, e1);
-    sum.add(bincontrib);
-  }
-
-  return sum.sum();
-}
-
 
 namespace NCrystal {
   namespace {

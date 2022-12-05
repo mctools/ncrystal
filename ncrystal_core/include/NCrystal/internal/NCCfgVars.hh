@@ -50,10 +50,12 @@ namespace NCrystal {
       using units = units_temperature;
       static double value_validate( double value )
       {
-        if ( ! ( value == -1.0 || ( value >= 0.001 && value <= 1e6 ) ) )
+        if ( ! ( value == -1.0 || ( value >= Temperature::allowed_range.first && value <= Temperature::allowed_range.second ) ) )
           NCRYSTAL_THROW2(BadInput,"Out of range temperature value "
                           <<Temperature{value}<<" provided for parameter \""<<name
-                          <<"\" (valid temperatures must be in the range 0.001K .. 1000000K)");
+                          <<"\" (valid temperatures must be in the range "
+                          <<Temperature{Temperature::allowed_range.first}
+                          <<" .. "<<Temperature{Temperature::allowed_range.second}<<")");
         return value;
       }
     };

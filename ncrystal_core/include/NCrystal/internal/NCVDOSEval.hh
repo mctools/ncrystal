@@ -73,6 +73,17 @@ namespace NCrystal {
     double evalG1Symmetric( double energy, double gamma0 ) const;
     double evalG1Asymmetric( double energy, double gamma0 ) const;
 
+    //For energy transfers beyond 200kT it is not numerically safe in usual
+    //double precision to calculate G1Asymmetric by calculating G1Symmetric and
+    //applying a detailed balance factor manually. Rather the evalG1Asymmetric
+    //method should be used separately for both:
+    static constexpr double numericallySafeG1SymmetricELimitInUnitsOfKT = 200.0;
+
+    //Helper function for evaluating G1Asymmetric at both -energy and +energy,
+    //in the safest + efficient way, and returning
+    //{G1asym(-energy),G1asym(+energy)}. Assumes energy to be positive!
+    PairDD evalG1AsymmetricAtEPair( double energy, double gamma0 ) const;
+
     //Estimate mean-squared-displacement for atoms of a given mass. The gamma0
     //value passed in must be the result of a call to calcGamma0() above:
     double getMSD( double gamma0 ) const;
@@ -95,8 +106,8 @@ namespace NCrystal {
     AtomMass m_elementMassAMU;
     double m_originalIntegral;
     unsigned m_nptsExtended;
-    template <class Fct, class FctEsqTaylor>
-    double integrateWithFunction(Fct,FctEsqTaylor) const;
+    template <class Fct, class TStableSum>
+    void integrateBinsWithFunction(Fct, TStableSum& ) const;
   };
 
   //////////////////////////////////////////////////////////////////////////////////

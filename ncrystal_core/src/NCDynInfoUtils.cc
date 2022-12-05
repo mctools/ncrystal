@@ -142,13 +142,13 @@ namespace NCrystal {
 }
 
 NC::shared_obj<const NC::SABData> NC::extractSABDataFromVDOSDebyeModel( DebyeTemperature debyeTemperature,
-                                                                         Temperature temperature,
-                                                                         SigmaBound boundXS,
-                                                                         AtomMass elementMassAMU,
-                                                                         unsigned vdoslux, bool useCache )
+                                                                        Temperature temperature,
+                                                                        SigmaBound boundXS,
+                                                                        AtomMass elementMassAMU,
+                                                                        unsigned vdoslux, bool useCache )
 {
   nc_assert( vdoslux <= 5 );
-  nc_assert( temperature.get() > 0.0 && temperature.get() < 1.0e5 );
+  temperature.validate();
   nc_assert( boundXS.get() > 0.0 && boundXS.get() < 1.0e6 );
   nc_assert( debyeTemperature.get() > 0.0 && debyeTemperature.get() < 1.0e5 );
   nc_assert( elementMassAMU.get() > 0.0 && elementMassAMU.get() < 1.0e5 );

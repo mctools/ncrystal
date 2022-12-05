@@ -729,7 +729,7 @@ NC::ScatKnlData NC::createScatteringKernel( const VDOSData& vdosdata,
   //keep default initialisation times reasonable (with special extreme settings
   //for vdoslux 0 and 5).
   unsigned order_limit = 1000;
-  if ( targetEmax_requested>0.0 || vdoslux==5 )
+  if ( targetEmax_requested > 0.0 || vdoslux == 5 )
     order_limit *= 10;
   if ( vdoslux==0 )
     order_limit /= 10;

@@ -49,7 +49,7 @@ namespace NCrystal {
     VectD m_spec;
     std::size_t m_spec_size_minus_2;
     double m_egrid_lower, m_egrid_upper, m_egrid_binwidth, m_egrid_invbinwidth, m_specMaxVal;
-    unsigned long m_thinFactor;//binwidth is G1's binwidth  divided by m_thinFactor
+    unsigned long m_thinFactor;//binwidth is G1's binwidth multiplied by m_thinFactor
   };
 }
 
@@ -143,26 +143,42 @@ NC::VDOSGn::Impl::Impl(const VDOSEval& vde, const TruncAndThinningParams ttpars)
   //Initialise G1 array on the egrid, from -emax to +emax:
   VectD G1spectrum(egrid.size()*2-1,0.0);
 
-  const double minv2kT = -0.5 / vde.kT();
   const double gamma0 = vde.calcGamma0();
 
   for (auto e: enumerate(egrid) ) {
     nc_assert(e.val>=0.0);
-    const double g1_val = vde.evalG1Symmetric(e.val, gamma0);
-    if (!g1_val)
-      continue;
-    //Detailed balance factor (to turn G1 to asymmetric formulation):
-    const double dbf = std::exp( e.val*minv2kT );
-    //Make asymmetric and fill:
+    auto g1_vals = vde.evalG1AsymmetricAtEPair( e.val, gamma0 );
     //Fill at +e.val:
-    vectAt(G1spectrum,nbins+e.idx) = g1_val * dbf;
+    vectAt(G1spectrum,nbins+e.idx) = g1_vals.second;
     //Fill at -e.val:
-    vectAt(G1spectrum,nbins-e.idx) = g1_val / dbf;
+    vectAt(G1spectrum,nbins-e.idx) = g1_vals.first;
   }
 
   nc_assert_always( valueInInterval(0.0,0.1,m_ttpars.truncationThreshold) );
   nc_assert_always( m_ttpars.minOrder >= -1 );
-  m_gndata.emplace_back( G1spectrum, -gridinfo.emax,binwidth, 1 );
+
+  //Discard excess zeroes at edges for G1, keeping at most a single entry with 0
+  //at each edge. This might in particular happen at very low energies where the
+  //detailed balance factor can become numerically identical to zero for even
+  //relatively small positive arguments:
+  double actual_edgelower = -gridinfo.emax;
+  auto itB = G1spectrum.begin();
+  auto itE = G1spectrum.end();
+  auto itFirst = itB;
+  auto itLast = std::prev(itE);
+  while ( itFirst != itLast && !(*itFirst>0.0) && !(*std::next(itFirst)>0.0) )
+    ++itFirst;
+  while ( itLast != itB && !(*itLast>0.0) && !(*std::prev(itLast)>0.0) )
+    --itLast;
+  if ( itFirst >= itLast || std::distance(itFirst,itLast) < 3 )
+    NCRYSTAL_THROW(CalcError,"Too few non-zero pts in G1 spectrum.");
+  if ( itFirst != itB || itLast != std::prev(itE) ) {
+    actual_edgelower += std::distance( itB, itFirst ) * binwidth;
+    VectD( itFirst, std::next(itLast) ).swap( G1spectrum );
+  }
+
+  //Place G1:
+  m_gndata.emplace_back( G1spectrum, actual_edgelower, binwidth, 1 );
 
   if (s_verbose_vdosgn)
     std::cout<<"NCrystal::VDOSGn constructed (input spectrum size: "<<G1spectrum.size()

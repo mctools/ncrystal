@@ -488,7 +488,8 @@ namespace NCrystal {
         Temperature tempval{-1.0};
         if ( temperature.has_value() ) {
           tempval = temperature.value();
-          if ( ! ( tempval.get() > 0.0 && tempval.get()<1e6 ) )
+          if ( ! ( tempval.get() >= Temperature::allowed_range.first
+                   && tempval.get() <= Temperature::allowed_range.second ) )
             NCRYSTAL_THROW2(BadInput,"Invalid or out-of-range temperature value provided: "<<tempval);
         }
         if ( !dynamics.has_value() )
@@ -960,10 +961,8 @@ namespace NCrystal {
                           });
 
         //sanity check temperature:
-        if (data.temp.has_value()) {
+        if (data.temp.has_value())
           data.temp.value().validate();
-          nc_assert_always(data.temp.value().get()>0.0&&data.temp.value().get()<1e6);
-        }
       }
     }
   }

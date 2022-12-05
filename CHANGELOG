@@ -1,4 +1,14 @@
-Work in progress:
+v3.5.1 2022-12-05
+      * Redo VDOS integrals for gamma0 and Teff to support much lower
+        temperatures (down to 0.001K certainly no issue now).
+      * Ensure that the evaluation of the G1 function is now numerically safe,
+        even at very low temperatures where the detailed balance factor becomes
+        numerically indistinguishable from 0 or infinity (github issue #109).
+      * Trim excess zeroes at edges of G1 function.
+      * Unify temperature range checks. More specifically, replace asserts which
+        were imposing temperature limits inconsistent with those allowed by the
+        "temp" cfg-parameter (1e-3K to 1e6K).
+      * Make FileListEntry returned by NCrystal.browseFiles sortable.
       * Fix ncrystal_endf2ncmat (github issue #110).
 
 v3.5.0 2022-11-23

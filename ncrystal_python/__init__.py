@@ -52,7 +52,7 @@ For detailed usage conditions and licensing of this open source project, see:
 
 #NB: Synchronize meta-data below with fields in setup.py.in meta data:
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
-__version__ = '3.5.0'
+__version__ = '3.5.1'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
 __copyright__ = "Copyright 2015-2022 %s"%__author__
@@ -2438,6 +2438,12 @@ class FileListEntry:
             l+=['factory=%s'%self.__f]
         l+=['priority=%s'%self.__p]
         return 'FileListEntry(%s)'%(', '.join(l))
+
+    def __lt__(self, other):
+        if not isinstance(other, FileListEntry):
+            return False
+        return ( (self.__f,self.__n,self.__s,self.__p)
+                 < (other.__f,other.__n,other.__s,other.__p) )
 
 def browseFiles(dump=False,factory=None):
     """Browse list of available input files (virtual or on-disk). The list is not

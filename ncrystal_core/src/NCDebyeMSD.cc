@@ -30,7 +30,7 @@ double NC::debyeIsotropicMSD( DebyeTemperature dt, Temperature t, AtomMass am )
   //Don't do this since we want to allow t=0: t.validate();
   am.validate();
   nc_assert_always(dt.get()>0.0&&dt.get()<1e5);
-  nc_assert_always(t.get()>=0.0&&t.get()<1e5);
+  nc_assert_always(t.get()>=0.0&&t.get()<=Temperature::allowed_range.second);
   nc_assert_always(am.get()>=1.007&&am.get()<500);
   return calcDebyeMSDScale( dt, am )*calcDebyeMSDShape(t.get()/dt.get());
 }
