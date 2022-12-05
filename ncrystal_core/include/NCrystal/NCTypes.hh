@@ -183,7 +183,8 @@ namespace NCrystal {
     constexpr double kT() const noexcept;
     void validate() const;
 
-    static constexpr PairDD allowed_range = {0.001, 1000000.0};
+    struct temp_range{ double first, second; };//std::pair not allowed in constexpr
+    static constexpr temp_range allowed_range = temp_range{0.001, 1000000.0};
   };
 
   class NCRYSTAL_API DebyeTemperature final : public EncapsulatedValue<DebyeTemperature> {
