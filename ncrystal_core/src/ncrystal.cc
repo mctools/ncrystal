@@ -1981,11 +1981,21 @@ char * ncrystal_gencfgstr_doc(int mode)
   return nullptr;
 }
 
-char * ncrystal_ncmat2json( const char * textdataname )
+char * ncrystal_ncmat2json( const char * input )
 {
   try {
-    auto textData = NC::FactImpl::createTextData( textdataname );
-    auto data_mut = NC::parseNCMATData( textData,
+    NC::optional_shared_obj<const NC::TextData> textData;
+    if ( 0 == std::strncmp( input, "NCMAT", 5 ) && std::strchr(input,'\n') ) {
+      //Raw data rather than a filename:
+      std::string tmp(input);
+      NC::RawStrData rsd( std::move(tmp) );
+      textData = NC::makeSO<NC::TextData>( rsd, NC::TextData::DataType{ "ncmat" } );
+    } else {
+      //likely a file name:
+      textData = NC::FactImpl::createTextData( input );
+    }
+    nc_assert_always( textData != nullptr );
+    auto data_mut = NC::parseNCMATData( *textData,
                                         true /*doFinalValidation*/ );
     const auto& data = data_mut;
     std::ostringstream ss;

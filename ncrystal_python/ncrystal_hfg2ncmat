@@ -69,6 +69,10 @@ def fixSysPathAndImportNCrystal( *, allowfail = False ):
             msg += ' (perhaps your PYTHONPATH is misconfigured)'
         raise SystemExit(msg)
     return NCrystal
+
+def ncImportSubModule( mainmodule, submodulename ):
+    _ = __import__( '%s.%s' % ( mainmodule.__name__, submodulename ) )
+    return getattr(_,submodulename)
 ################################################################################################
 NC = fixSysPathAndImportNCrystal()
 

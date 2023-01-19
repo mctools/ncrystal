@@ -1,3 +1,11 @@
+WORK IN PROGRESS:
+      * Start work on refactoring python modules.
+      * Start work on python utilities for composing NCMAT files (in
+        NCrystal.experimental for now).
+      * Start work on python utilities for converting CIF files to NCMAT files.
+      * ncrystal_ncmat2json now works with raw NCMAT data rather than just ncmat
+        files.
+
 v3.5.1 2022-12-05
       * Redo VDOS integrals for gamma0 and Teff to support much lower
         temperatures (down to 0.001K certainly no issue now).

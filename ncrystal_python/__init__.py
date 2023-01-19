@@ -127,6 +127,12 @@ class NCLogicError(NCException):
 class NCBadInput(NCException):
     pass
 
+class NCrystalUserWarning( UserWarning ):
+    """UserWarning's emitted from NCrystal code"""
+    #TODO: Move this class to non-internal module.
+    def __init__(self,*args,**kwargs):
+        super(NCrystalUserWarning, self).__init__(*args,**kwargs)
+
 #some constants (NB: Copied here from NCMath.hh - must keep synchronized!! Also,
 #remember to include in __all__ list above):
 constant_c  = 299792458e10#  speed of light in Aa/s
@@ -984,6 +990,8 @@ class AtomData(RCBase):
             return self.__ad
         def __str__(self):
             return '%g*AtomData(%s)'%(self.__fr,self.__ad.description(True))
+        def __repr__(self):
+            return self.__str__()
 
     def nComponents(self):
         """Number of sub-components in a mixture"""
@@ -1034,6 +1042,9 @@ class AtomData(RCBase):
     def __str__(self):
         descr=self.description()
         return '%s=%s'%(self.__dl,descr) if self.__dl else descr
+
+    def __repr__(self):
+        return self.__str__()
 
 class StateOfMatter(enum.Enum):
     """State of matter. Note that Solid's might be either amorphous or crystalline."""
