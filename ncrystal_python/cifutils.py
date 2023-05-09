@@ -1175,10 +1175,7 @@ def _cod_get_cifdata( codid, quiet = False ):
         return c
     if not quiet:
         _nc_common.print(f"Querying the Crystallography Open Database for entry {codid}")
-    requests = _import_requests()
-    r=requests.get("https://www.crystallography.net/cod/%i.cif"%(codid))
-    r.raise_for_status()#throw exception in case of e.g. 404
-    result = str(r.text)
+    result = _nc_common.download_url( "https://www.crystallography.net/cod/%i.cif"%(codid) )
     if len(_cod_cache)==10:
         _cod_cache.pop(0)
     _cod_cache.append( (codid, result ) )
@@ -1275,23 +1272,6 @@ def _import_gemmi( *, sysexit = False ):
         else:
             raise ImportError(m)
     return gemmi, gemmi.cif
-
-def _import_requests( *, sysexit = False ):
-    try:
-        import requests#both available on pypi and conda-forge
-    except ImportError:
-        m = ( 'Could not import the requests module needed to download remote CIF files.'
-              ' The requests package is available on both PyPI ("python3 -mpip install'
-              ' requests") and conda ("conda install -c conda-forge requests")' )
-        if sysexit:
-            raise SystemExit(m)
-        else:
-            raise ImportError(m)
-    return requests
-
-#NB: gemmi has the crystal system as a string (+ other stuff like short_name()):
-# crystal_system_str(...)
-# |      crystal_system_str(self: gemmi.SpaceGroup) -> str
 
 _guessmap = [None]
 def _guess_spacegroup_name( gemmi, s ):

@@ -318,3 +318,27 @@ def extract_path( s ):
         return pathlib.Path(s)
     if isinstance( s, str ) and not '\n' in s:
         return pathlib.Path(s)
+
+def download_url( url, decode_as_utf8_str = True, wrap_exception = True ):
+    import urllib.request
+    import urllib.error
+    try:
+        req = urllib.request.Request(url)
+        with urllib.request.urlopen(req) as response:
+            data = response.read()
+    except urllib.error.URLError as e:
+        if wrap_exception:
+            from .exceptions import NCException
+            raise NCException(f'Error downloading url "{url}": {e}')
+        else:
+            raise e
+    if decode_as_utf8_str:
+        try:
+            data = data.decode('utf8')
+        except UnicodeDecodeError as e:
+            if wrap_exception:
+                from .exceptions import NCException
+                raise NCException(f'Error decoding url to utf8 data "{url}": {e}')
+            else:
+                raise e
+    return data

@@ -249,9 +249,6 @@ def main( args ):
             return
         assert len(args.CIFFILE)==1
         cifsrc = nc_cifutils.CIFSource( args.CIFFILE[0] )
-        if cifsrc.codid and not os.environ.get('NCRYSTAL_ONLINEDB_FORBID_NETWORK'):
-            #Trigger requests import error already here (and with nicer SystemExit):
-            nc_cifutils._import_requests( sysexit = True )
         if args.via_ase:
             if cifsrc.is_remote:
                 ase_input_data = cifsrc.load_data( quiet = do_quiet )
