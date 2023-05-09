@@ -83,57 +83,59 @@ jobs:
     - name: Tests without environment setup
       run: |
            ${{github.workspace}}/install/bin/ncrystal-config --summary
-           ${{github.workspace}}/install/bin/ncrystal_inspectfile --test
+           ${{github.workspace}}/install/bin/nctool --test
            ${{github.workspace}}/install/bin/ncrystal_example_c
            ${{github.workspace}}/install/bin/ncrystal_example_cpp
-           ${{github.workspace}}/install/bin/ncrystal_inspectfile --dump 'Al_sg225.ncmat;dcutoff=1.5'
+           ${{github.workspace}}/install/bin/nctool --dump 'Al_sg225.ncmat;dcutoff=1.5'
 
     - name: Tests with eval ncrystal-config setup
       run: |
            eval $(${{github.workspace}}/install/bin/ncrystal-config --setup)
            ncrystal-config --summary
-           ncrystal_inspectfile --test
+           nctool --test
            ncrystal-config --help
            ncrystal_example_c
            ncrystal_example_cpp
            ncrystal_example_py
-           ncrystal_inspectfile --help
-           ncrystal_inspectfile --dump 'Al_sg225.ncmat;dcutoff=1.5'
+           nctool --help
+           nctool --dump 'Al_sg225.ncmat;dcutoff=1.5'
            python3 -c 'import NCrystal; NCrystal.test()'
            ncrystal_vdos2ncmat --help
-           ncrystal_onlinedb2ncmat --help
+           ncrystal_cif2ncmat --help
            ncrystal_ncmat2cpp --help
            ncrystal_hfg2ncmat --help
            ncrystal_verifyatompos --help
-           ncrystal_onlinedb2ncmat --codid=9008460
+           ncrystal_cif2ncmat codid::9008460
            ncrystal_ncmat2hkl --help
            ncrystal_ncmat2hkl --format=laz 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test_Al.laz
            ncrystal_ncmat2hkl --format=lau 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test_Al.lau
-           ncrystal_inspectfile -d ./test_Al.laz
-           ncrystal_inspectfile -d ./test_Al.lau
+           nctool -d ./test_Al.laz
+           nctool -d ./test_Al.lau
            ncrystal_ncmat2cpp $(ncrystal-config --show=datadir)/Al_sg225.ncmat -o test.cpp
            cat test.cpp
            eval $(ncrystal-config --unsetup)
-           #NEEDS MATPLOTLIB: ncrystal_inspectfile --pdf Al_sg225.ncmat
+           #NEEDS MATPLOTLIB: nctool --pdf Al_sg225.ncmat
 
     - name: Tests with setup.sh
       run: |
            . ${{github.workspace}}/install/setup.sh
            ncrystal-config --summary
+           nctool --test
            ncrystal_inspectfile --test
            ncrystal_vdos2ncmat --help
-           ncrystal_onlinedb2ncmat --help
+           ncrystal_cif2ncmat --help
            ncrystal_ncmat2hkl --help
            ncrystal_ncmat2hkl --format=laz 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test2_Al.laz
            ncrystal_ncmat2hkl --format=lau 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test2_Al.lau
-           ncrystal_inspectfile -d ./test2_Al.laz
-           ncrystal_inspectfile -d ./test2_Al.lau
+           nctool -d ./test2_Al.laz
+           nctool -d ./test2_Al.lau
            ncrystal_ncmat2cpp --help
            ncrystal_hfg2ncmat --help
            ncrystal_verifyatompos --help
            ncrystal_example_c
            ncrystal_example_cpp
            ncrystal_example_py
+           python3 -m NCrystal.test
            python3 -c 'import NCrystal; NCrystal.test()'
            . ${{github.workspace}}/install/unsetup.sh
 
