@@ -46,8 +46,10 @@ pyversion = sys.version_info[0:3]
 _minpyversion=(3,6,0)
 if pyversion < _minpyversion:
     raise SystemExit('Unsupported python version %i.%i.%i detected (needs %i.%i.%i or later).'%(pyversion+_minpyversion))
-import os
-import pathlib
+import os as _os
+os = _os
+import pathlib as _pathlib
+pathlib = _pathlib
 
 def maybeThisIsConda():
     return ( os.environ.get('CONDA_PREFIX',None) or

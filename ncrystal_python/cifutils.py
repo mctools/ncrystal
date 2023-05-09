@@ -1117,7 +1117,7 @@ def _use_local_cif_cache( fn, text_data = None, quiet = False ):
     #conditions!!! But we do perform write+move instead of simply write, which
     #is a bit more "atomic".
     import os
-    if os.environ.get('NCRYSTAL_ONLINEDB_FORBID_NETWORK',None):
+    if os.environ.get('NCRYSTAL_ONLINEDB_FORBID_NETWORK'):
         def notfound():
             raise RuntimeError('Error: Trying to access remote DB but NCRYSTAL_ONLINEDB_FORBID_NETWORK is set')
         time_limit_hours = 24*7*365*1000#sure, bug me in 3023
@@ -1125,7 +1125,7 @@ def _use_local_cif_cache( fn, text_data = None, quiet = False ):
         notfound = lambda : None
         time_limit_hours = 24*7
     import os
-    d = os.environ.get('NCRYSTAL_ONLINEDB_CACHEDIR',None)
+    d = os.environ.get('NCRYSTAL_ONLINEDB_CACHEDIR')
     if not d:
         return notfound()
     import os.path
@@ -1175,7 +1175,7 @@ def _cod_get_cifdata( codid, quiet = False ):
         return c
     if not quiet:
         _nc_common.print(f"Querying the Crystallography Open Database for entry {codid}")
-    import requests
+    requests = _import_requests()
     r=requests.get("https://www.crystallography.net/cod/%i.cif"%(codid))
     r.raise_for_status()#throw exception in case of e.g. 404
     result = str(r.text)
@@ -1275,6 +1275,19 @@ def _import_gemmi( *, sysexit = False ):
         else:
             raise ImportError(m)
     return gemmi, gemmi.cif
+
+def _import_requests( *, sysexit = False ):
+    try:
+        import requests#both available on pypi and conda-forge
+    except ImportError:
+        m = ( 'Could not import the requests module needed to download remote CIF files.'
+              ' The requests package is available on both PyPI ("python3 -mpip install'
+              ' requests") and conda ("conda install -c conda-forge requests")' )
+        if sysexit:
+            raise SystemExit(m)
+        else:
+            raise ImportError(m)
+    return requests
 
 #NB: gemmi has the crystal system as a string (+ other stuff like short_name()):
 # crystal_system_str(...)

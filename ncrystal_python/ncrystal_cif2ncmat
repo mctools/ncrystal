@@ -36,8 +36,10 @@ pyversion = sys.version_info[0:3]
 _minpyversion=(3,6,0)
 if pyversion < _minpyversion:
     raise SystemExit('Unsupported python version %i.%i.%i detected (needs %i.%i.%i or later).'%(pyversion+_minpyversion))
-import os
-import pathlib
+import os as _os
+os = _os
+import pathlib as _pathlib
+pathlib = _pathlib
 
 def maybeThisIsConda():
     return ( os.environ.get('CONDA_PREFIX',None) or
@@ -226,7 +228,6 @@ def main( args ):
 
     with nc_common.WarningSpy( block = do_quiet):
         if args.valplot:
-            import os
             _unit_test = bool(os.environ.get('NCRYSTAL_CIF2NCMAT_UNITTEST_NOPLOT',False))
             pdf_target = None
             if args.output and args.output.lower().endswith('pdf'):
@@ -248,6 +249,9 @@ def main( args ):
             return
         assert len(args.CIFFILE)==1
         cifsrc = nc_cifutils.CIFSource( args.CIFFILE[0] )
+        if cifsrc.codid and not os.environ.get('NCRYSTAL_ONLINEDB_FORBID_NETWORK'):
+            #Trigger requests import error already here (and with nicer SystemExit):
+            nc_cifutils._import_requests( sysexit = True )
         if args.via_ase:
             if cifsrc.is_remote:
                 ase_input_data = cifsrc.load_data( quiet = do_quiet )
