@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2022 NCrystal developers                                   //
+//  Copyright 2015-2023 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -45,6 +45,15 @@ namespace NCrystal {
         NCRYSTAL_THROW(LogicError,"Do not call getNextPlane() without first checking canProvide() and calling prepareLoop().");
         return NullOpt;
       }
+    };
+
+    class PlaneProviderStd_AbleButEmpty final  : public PlaneProvider {
+    public:
+      //Special case, we can always provide all the normals of an empty hkl list
+      //- there simply won't be any.
+      bool canProvide() const override { return true; }
+      void prepareLoop() override {}
+      Optional<Plane> getNextPlane() override { return NullOpt; }
     };
 
     class PlaneProviderStd_Normals final : public PlaneProvider {
@@ -169,8 +178,19 @@ namespace NCrystal {
     std::unique_ptr<PlaneProvider> actual_createStdPlaneProvider( const Info* info, OptionalInfoPtr iptr )
     {
       auto unable = []() { return std::make_unique<PlaneProviderStd_Unable>(); };
+
       if ( !info->hasHKLInfo() )
         return unable();
+
+      if ( info->hklList().empty() ) {
+        //special case, no matter the hkl info type it is always possible to
+        //turn an empty hkl list into a valid but empty list of normals! This is
+        //particularly important to avoid a spurious failure, since we (at least
+        //for now?) always use a type of HKLInfoType::Minimal when the hkl list
+        //is valid but empty.
+        return std::make_unique<PlaneProviderStd_AbleButEmpty>();
+      }
+
       auto hitype = info->hklInfoType();
       switch( hitype ) {
       case HKLInfoType::SymEqvGroup:

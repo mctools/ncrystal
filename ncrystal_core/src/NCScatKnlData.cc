@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2022 NCrystal developers                                   //
+//  Copyright 2015-2023 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -37,8 +37,12 @@ void NC::validateScatKnlData( const NC::ScatKnlDataView& data )
   if ( !(data.elementMassAMU.get()>0.0) )
     NCRYSTAL_THROW(BadInput,"Scatter kernel data has invalid elementMass");
 
-  if ( !(data.boundXS.get()>0.0) )
+  if ( !(data.boundXS.get()>=0.0) ) {
+    //NB: We allow ==0.0 since ppl might make species sterile with @ATOMDB
+    //syntax (the stdscat factory checks that boundXS>0 before instantiating
+    //SABScatter objects).
     NCRYSTAL_THROW(BadInput,"Scatter kernel data has invalid boundXS");
+  }
 
   for (const auto& e : {std::make_pair(&data.alphaGrid,xlabel),std::make_pair(&data.betaGrid,ylabel)}) {
     if ( e.first->size() < 5 )

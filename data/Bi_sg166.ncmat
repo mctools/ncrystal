@@ -14,8 +14,16 @@ NCMAT v5
 #    Crystallography Open Database entry 2310889
 #    https://www.crystallography.net/cod/2310889.html
 #
-# This crystal structure is also compatible with structure obtained from
-# https://www.materialsproject.org/materials/mp-23152
+# This crystal structure is also compatible with structures obtained from:
+#
+#    https://www.crystallography.net/cod/5000215.html
+#    https://www.crystallography.net/cod/7123351.html
+#    https://www.crystallography.net/cod/7123352.html
+#    https://www.crystallography.net/cod/9008576.html
+#
+# Note that while https://www.materialsproject.org/ seems to contain many
+# Bismuth structures, they are mutually incompatible and none seem to be
+# compatible with the crystal structure here.
 #
 # Reference for VDOS curve:
 #

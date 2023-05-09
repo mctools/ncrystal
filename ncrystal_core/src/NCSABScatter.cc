@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2022 NCrystal developers                                   //
+//  Copyright 2015-2023 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -33,24 +33,24 @@ struct NC::SABScatter::Impl {
 
 NC::SABScatter::~SABScatter() = default;
 
-NC::SABScatter::SABScatter( shared_obj<const NC::SAB::SABScatterHelper> sh )
+NC::SABScatter::SABScatter( shared_obj<const SAB::SABScatterHelper> sh )
   : m_impl(std::move(sh)), m_sh(m_impl->m_scathelper_shptr.get())
 {
   //All other constructors delegate to this one.
 }
 
-NC::SABScatter::SABScatter( std::unique_ptr<const NC::SAB::SABScatterHelper> upsh )
-  : SABScatter(shared_obj<const NC::SAB::SABScatterHelper>{std::move(upsh)})
+NC::SABScatter::SABScatter( std::unique_ptr<const SAB::SABScatterHelper> upsh )
+  : SABScatter(shared_obj<const SAB::SABScatterHelper>{std::move(upsh)})
 {
 }
 
-NC::SABScatter::SABScatter( NC::SAB::SABScatterHelper&& sh )
+NC::SABScatter::SABScatter( SAB::SABScatterHelper&& sh )
   : SABScatter( makeSO<const SAB::SABScatterHelper>(std::move(sh)) )
 {
 }
 
-NC::SABScatter::SABScatter( const DI_ScatKnl& di_sk, unsigned vdoslux, bool
-                            useCache, uint32_t vdos2sabExcludeFlag )
+NC::SABScatter::SABScatter( const DI_ScatKnl& di_sk, unsigned vdoslux,
+                            bool useCache, uint32_t vdos2sabExcludeFlag )
   : SABScatter( [&di_sk,vdoslux,useCache,vdos2sabExcludeFlag]()
                 {
                   auto sabdata_ptr = extractSABDataFromDynInfo(&di_sk,vdoslux,useCache,vdos2sabExcludeFlag);
@@ -64,9 +64,8 @@ NC::SABScatter::SABScatter( const DI_ScatKnl& di_sk, unsigned vdoslux, bool
 {
 }
 
-NC::SABScatter::SABScatter( NC::SABData && sabdata_,
-                            const VectD& energyGrid )
-  : SABScatter( [&energyGrid](NC::SABData&& sabdata)
+NC::SABScatter::SABScatter( SABData && sabdata_, const VectD& energyGrid )
+  : SABScatter( [&energyGrid]( SABData&& sabdata)
                 {
                   auto sabdata_shptr = makeSO<const SABData>(std::move(sabdata));
                   std::shared_ptr<const VectD> egrid_shptr;

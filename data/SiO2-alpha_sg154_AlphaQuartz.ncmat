@@ -16,11 +16,8 @@ NCMAT v5
 #
 # This crystal structure is also compatible with structure obtained from:
 #
-#   https://www.crystallography.net/cod/2100188
-#   https://www.crystallography.net/cod/5000035
-#   https://www.crystallography.net/cod/9000775
-#   https://www.crystallography.net/cod/9005017
-#   https://www.crystallography.net/cod/9010144
+#   https://www.crystallography.net/cod/2100188.html
+#   https://www.crystallography.net/cod/5000035.html
 #
 # The VDOS curves were calculated using VASP DFT[1], with Phonopy[2] and
 # OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics group.

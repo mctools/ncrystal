@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2022 NCrystal developers                                   //
+//  Copyright 2015-2023 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -484,12 +484,12 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
   if ( orig_egrid.front() < 1e-5 )
     NCRYSTAL_THROW(BadInput,"VDOS energy range can not be specified for values less than 1e-5eV = 0.01meV");
 
-  const double tolerance = 1e-6;
-  double emax_corrected = NC::checkIsRegularVDOSGrid( orig_egrid, orig_density );
+  const double tolerance = 1e-6;//NB: Should be same as checkIsRegularVDOSGrid default value!
+  double emax_corrected = NC::checkIsRegularVDOSGrid( orig_egrid, orig_density, tolerance );
   if ( emax_corrected ) {
-      //Is already OK within tolerance! Return regularised egrid, with potential
-      //slight correction to emax to correct for numerical imprecision within
-      //the allowed tolerance:
+    //Is already OK within tolerance! Return regularised egrid, with potential
+    //slight correction to emax to correct for numerical imprecision within
+    //the allowed tolerance:
     if ( s_verbose_vdoseval ) {
       std::cout<<"NCrystal::regulariseVDOSGrid Grid was already regular within tolerance of "<<tolerance;
       if ( orig_egrid.back() != emax_corrected )

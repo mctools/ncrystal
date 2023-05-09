@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2022 NCrystal developers                                   //
+//  Copyright 2015-2023 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -50,6 +50,8 @@ namespace NCrystal {
             {"lattice_aa",ColType::Dbl},
             {"lattice_bb",ColType::Dbl},
             {"lattice_cc",ColType::Dbl},
+            {"SPCGRP",ColType::Str},//NB: Has special parsing, search for SPCGRP below!
+            {"TITLE",ColType::Str},//NB: Has special parsing, search for TITLE below!
             //Our extensions:
             {"spacegroup",ColType::PosInt},
             {"temperature",ColType::Dbl},
@@ -128,7 +130,13 @@ namespace NCrystal {
               break;
             case ColType::Str:
               {
-                insertValue(errprefix,kw,m_strs,valstr.to_string());
+                if ( isOneOf(kw,"SPCGRP","TITLE") ) {
+                  //need more than just the first "word" to be able to extract the spacegroup number.
+                  const Span<const StrView> tmp( std::next(parts.begin()), parts.end() );
+                  insertValue(errprefix,kw,m_strs,joinstr(tmp));
+                } else {
+                  insertValue(errprefix,kw,m_strs,valstr.to_string());
+                }
               }
               break;
             default:
@@ -144,11 +152,36 @@ namespace NCrystal {
                               <<"# "<<key<<" "<<example);
             };
 
-            if ( !this->hasKey("spacegroup") )
-              complainRequired("spacegroup","225");
-            auto spacegroup = this->getPosInt("spacegroup");
-            if ( spacegroup < 1 || spacegroup > 230 )
-              NCRYSTAL_THROW(BadInput,"Error in Lazy/Lau data: Invalid spacegroup_number value (must be number in 1..230).");
+            //Spacegroup info is special, it will preferably be taken from our
+            //custom "spacegroup" field, but might optionally be extracted from a
+            //header field "SPCGRP" where it is encoded (by e.g. cif2hkl?) like: "SPCGRP  P m -3 m [Number 221]"
+
+            unsigned spacegroup(0);
+
+            if ( this->hasKey("spacegroup") ) {
+              spacegroup = this->getPosInt("spacegroup");
+              if ( spacegroup < 1 || spacegroup > 230 )
+                NCRYSTAL_THROW(BadInput,"Error in Lazy/Lau data: Invalid spacegroup value (must be number in 1..230).");
+            } else {
+              if ( !this->hasKey("SPCGRP") )
+                complainRequired("spacegroup","225");
+              int64_t SPCGRP_val ( 0 );
+              std::string ss = lowerCase( this->getStr("SPCGRP") );
+              strreplace( ss, "[", " [ " );
+              strreplace( ss, "]", " ] " );
+              auto sv = StrView(ss);
+              auto i = sv.find( "number" );
+              if ( i != StrView::npos ) {
+                auto p = sv.substr( i + 6 ).split();
+                if ( !p.empty() && p.at(0).toInt().has_value() )
+                  SPCGRP_val = p.at(0).toInt().value();
+              }
+              if ( SPCGRP_val < 1 || SPCGRP_val > 230 )
+                NCRYSTAL_THROW(BadInput,"Error in Lazy/Lau data: Could not extract valid spacegroup number from SPCGRP field"
+                               " (must be number in 1..230, expected format like \"SPCGRP  P m -3 m [Number 221]\").");
+              spacegroup = static_cast<unsigned>( SPCGRP_val );
+            }
+            nc_assert_always( spacegroup>=1 && spacegroup<=230 );
 
             double lattice_a = this->value_or("lattice_a",0.0);
             double lattice_b, lattice_c;
@@ -177,12 +210,34 @@ namespace NCrystal {
               {"lattice_aa","90"},
               {"lattice_bb","90"},
               {"lattice_cc","90"},
-              {"formula","Al2O3"},
-              {"nformula_per_unitcell","4"},
               {"column_h","1"},
               {"column_k","2"},
               {"column_l","3"},
             };
+
+            NC::Optional<NC::DecodedChemForm> chemform;
+            NC::Optional<unsigned> formulaPerUnitCell;
+            if ( this->hasKey("nformula_per_unitcell") && !this->hasKey("formula") )
+              NCRYSTAL_THROW(BadInput,"Error in Lazy/Lau data: nformula_per_unitcell should not be used without the formula field as well");
+
+            if ( this->hasKey("formula") ) {
+              chemform = decodeSimpleChemicalFormula( this->getStr("formula") );
+              if ( !this->hasKey("nformula_per_unitcell") )
+                complainRequired("nformula_per_unitcell","4");
+              formulaPerUnitCell = this->getPosInt( "nformula_per_unitcell" );
+            } else if ( this->hasKey("TITLE") ) {
+              //Try to extract the formula from data like: "# TITLE   Al2 O3 [Cubic, Centric (-1 at origin)]"
+              auto ss = this->getStr("TITLE");
+              auto p1 = NC::StrView(ss).splitTrimmedNoEmpty('[');
+              if ( !p1.empty() )
+                chemform =  NC::tryDecodeSimpleChemicalFormula( p1.at(0).to_string() );
+              if ( !chemform.has_value () )
+                NCRYSTAL_THROW(BadInput,"Error in Lazy/Lau data: Could not extract valid chemical formula number from TITLE field"
+                               " (expected format like \"TITLE Al2 O3 [whatever]\"). You should edit the file and insert dedicated \"formula\" field like \"#formula Al2O3\".");
+              formulaPerUnitCell = 1;
+            } else {
+              complainRequired("formula","Al2O3");
+            }
 
             for ( auto e : fields ) {
               if ( !this->hasKey(e.first) )
@@ -208,7 +263,9 @@ namespace NCrystal {
             if ( this->hasKey("temperature") )
               res.temp = Temperature{ this->getDbl("temperature") };
             res.debye_temp = DebyeTemperature{ this->value_or("debye_temperature",300.0) };
-            res.chemform = decodeSimpleChemicalFormula( this->getStr("formula") );
+
+            nc_assert_always( chemform.has_value() );
+            res.chemform = chemform.value();
             std::uint64_t chemform_ntot = 0;
             for ( const auto& e : res.chemform )
               chemform_ntot += e.first;
@@ -221,7 +278,11 @@ namespace NCrystal {
             si.beta = lattice_bb;
             si.gamma = lattice_cc;
             si.spacegroup = spacegroup;
-            si.n_atoms = chemform_ntot * this->getPosInt("nformula_per_unitcell");
+
+            nc_assert_always( formulaPerUnitCell.has_value() );
+            auto natoms = chemform_ntot * formulaPerUnitCell.value();
+            nc_assert_always( natoms < 60000 );
+            si.n_atoms = static_cast<unsigned>(natoms);
 
             //Prepare stuff needed for processing the data lines:
             this->rec_lattice = getReciprocalLatticeRot( si.lattice_a, si.lattice_b, si.lattice_c,

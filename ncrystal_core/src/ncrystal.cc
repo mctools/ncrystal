@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2022 NCrystal developers                                   //
+//  Copyright 2015-2023 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -37,6 +37,10 @@
 #include "NCrystal/internal/NCEqRefl.hh"//TODO: might not be needed eventually
 #include "NCrystal/internal/NCAtomDB.hh"
 #include "NCrystal/internal/NCVDOSEval.hh"
+#include "NCrystal/internal/NCVDOSGn.hh"
+#include "NCrystal/internal/NCVDOSToScatKnl.hh"
+#include "NCrystal/internal/NCSABUtils.hh"
+
 #include "NCrystal/NCParseNCMAT.hh"
 #include "NCrystal/NCCompositionUtils.hh"
 #include <cstdio>
@@ -690,6 +694,125 @@ void ncrystal_dyninfo_base( ncrystal_info_t ci,
   } NCCATCH;
   *fraction = *temperature = -1.0;
   *atomdataindex = *ditypeid = 0;
+}
+
+namespace NCrystal {
+  namespace NCCInterface {
+    VDOSData createVDOSDataFromRaw( const double* vdos_egrid,
+                                    const double* vdos_density,
+                                    unsigned vdos_egrid_npts,
+                                    unsigned vdos_density_npts,
+                                    double scatteringXS,
+                                    double mass_amu,
+                                    double temperature )
+    {
+      //NB: The following code should remain similar to the equivalent code in
+      //NCLoadNCMAT.cc.
+
+      VectD vdos_egrid_orig( vdos_egrid, vdos_egrid + vdos_egrid_npts );
+      VectD vdos_density_orig( vdos_density, vdos_density + vdos_density_npts );
+      if ( !( vdos_density_orig.size() >= 5 ) )
+        NCRYSTAL_THROW(BadInput,"Too few points in VDOS density.");
+      if ( ! ( vdos_egrid_orig.size()==2 || vdos_egrid_orig.size()==vdos_density_orig.size() ) )
+        NCRYSTAL_THROW(BadInput,"VDOS egrid must have two points, or the same number of points as the density.");
+      nc_assert_always( vdos_egrid_orig.size()==2 || vdos_egrid_orig.size()==vdos_density_orig.size());
+      nc_assert_always( vdos_density_orig.size() >= 5 );
+      VectD vdos_egrid_reg, vdos_density_reg;
+      std::tie(vdos_egrid_reg, vdos_density_reg) = regulariseVDOSGrid( vdos_egrid_orig, vdos_density_orig);
+      nc_assert_always(vdos_egrid_reg.size()==2);
+      PairDD vdos_egrid_pair(vdos_egrid_reg.front(),vdos_egrid_reg.back());
+      return VDOSData( vdos_egrid_pair,
+                       std::move(vdos_density_reg),
+                       Temperature{ temperature },
+                       SigmaBound{ scatteringXS },
+                       AtomMass{ mass_amu } );
+    }
+  }
+}
+
+void ncrystal_raw_vdos2gn( const double* vdos_egrid,
+                           const double* vdos_density,
+                           unsigned vdos_egrid_npts,
+                           unsigned vdos_density_npts,
+                           double scattering_xs,
+                           double mass_amu,
+                           double temperature,
+                           unsigned nvalue,
+                           double* res_gn_xmin,
+                           double* res_gn_xmax,
+                           unsigned* res_gn_npts,
+                           double** res_gn_vals )
+{
+  try {
+    *res_gn_xmin = 0.0;
+    *res_gn_xmax = 0.0;
+    *res_gn_npts = 0;
+    *res_gn_vals = nullptr;
+    auto vdosData = ncc::createVDOSDataFromRaw( vdos_egrid, vdos_density,
+                                                vdos_egrid_npts, vdos_density_npts,
+                                                scattering_xs, mass_amu, temperature );
+    NC::VDOSEval vdosEval( vdosData );
+    NC::VDOSGn vdosGn( vdosEval );
+    NC::VDOSGn::Order order{nvalue};
+    vdosGn.growMaxOrder( order );
+    auto xrange = vdosGn.eRange( order );
+    const auto& y =  vdosGn.getRawSpectrum( order );
+    auto ny = static_cast<unsigned>( y.size() );
+    double * arr_y = new double[ny];
+    std::copy( y.begin(), y.end(), arr_y );
+    *res_gn_xmin = xrange.first;
+    *res_gn_xmax = xrange.second;
+    *res_gn_npts = ny;
+    *res_gn_vals = arr_y;
+  } NCCATCH;
+}
+
+void ncrystal_raw_vdos2knl( const double* vdos_egrid,
+                            const double* vdos_density,
+                            unsigned vdos_egrid_npts,
+                            unsigned vdos_density_npts,
+                            double scattering_xs,
+                            double mass_amu,
+                            double temperature,
+                            unsigned vdoslux,
+                            double (*order_weight_fct)( unsigned order ),
+                            unsigned* nalpha,
+                            unsigned* nbeta,
+                            double** alpha,
+                            double** beta,
+                            double** sab )
+{
+  try {
+    auto vdosData = ncc::createVDOSDataFromRaw( vdos_egrid, vdos_density,
+                                                vdos_egrid_npts, vdos_density_npts,
+                                                scattering_xs, mass_amu, temperature );
+    const double targetEmax = 0.0;//if 0, will depend on luxlvl. Error if set to unachievable value.
+    auto ttpars = NC::VDOSGn::TruncAndThinningChoices::Default;
+    auto knldata = NC::createScatteringKernel( vdosData, vdoslux, targetEmax, ttpars, order_weight_fct );
+    auto sabdata = NC::SABUtils::transformKernelToStdFormat( std::move(knldata) );
+    //NB: We ignore sabdata.suggestedEmax(), since order_weight_fct might anyway
+    //have screwed with it.
+    auto na = sabdata.alphaGrid().size();
+    double * arr_a = new double[na];
+    std::copy( sabdata.alphaGrid().begin(), sabdata.alphaGrid().end(), arr_a );
+    auto nb = sabdata.betaGrid().size();
+    double * arr_b = new double[nb];
+    std::copy( sabdata.betaGrid().begin(), sabdata.betaGrid().end(), arr_b );
+    auto ns = sabdata.sab().size();
+    nc_assert_always( ns = na*nb );
+    double * arr_s = new double[ns];
+    std::copy( sabdata.sab().begin(), sabdata.sab().end(), arr_s );
+    *alpha = arr_a;
+    *beta = arr_b;
+    *sab = arr_s;
+    *nalpha = na;
+    *nbeta = nb;
+  } NCCATCH;
+}
+
+void ncrystal_dealloc_doubleptr( double* arr )
+{
+  delete[] arr;
 }
 
 void ncrystal_dyninfo_extract_scatknl( ncrystal_info_t ci,
@@ -2024,13 +2147,12 @@ char * ncrystal_get_flatcompos( ncrystal_info_t nfo,
         //NB: nisotopes==0 indicates lack of knowledge, which translates to empty results vector
         for ( auto i : NC::ncrange(nisotopes) ) {
           (void)i;
-          //fixme: better exceptions:
           if ( bufFrac[i] == 0.0 )
-            continue;//fixme: check if correct to return empty result in case of missing knowledge. (we need extensive unit test of this python interface)
-          nc_assert_always(bufA[i]>=Z);
-          nc_assert_always(bufA[i]<=999);
-          nc_assert_always(bufFrac[i]>0.0);
-          nc_assert_always(bufFrac[i]<=1.0);
+            continue;
+          if ( bufA[i]<Z || bufA[i]>999 )
+            NCRYSTAL_THROW2(CalcError, "Invalid (Z,A) value returned from provided natural abundance source: Z="<<Z<<", A="<<bufA[i]);
+          if ( ! ( bufFrac[i]>0.0 && bufFrac[i] <= 1.0 ) )
+            NCRYSTAL_THROW2(CalcError, "Invalid composition fraction returned from provided natural abundance source: "<<bufFrac[i] )
           result.emplace_back( bufA[i], bufFrac[i] );
         }
         return result;

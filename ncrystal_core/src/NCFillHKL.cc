@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2022 NCrystal developers                                   //
+//  Copyright 2015-2023 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -151,10 +151,10 @@ namespace NCrystal {
     constexpr const double fsquarecut_lowest_possible_value = 1.0e-300;
   }
   namespace detail {
-    NC::HKLList calculateHKLPlanesWithSymEqRefl( const StructureInfo&,
-                                                 const AtomInfoList&,
-                                                 FillHKLCfg,
-                                                 bool no_forceunitdebyewallerfactor );
+    HKLList calculateHKLPlanesWithSymEqRefl( const StructureInfo&,
+                                             const AtomInfoList&,
+                                             FillHKLCfg,
+                                             bool no_forceunitdebyewallerfactor );
 
     struct PreCalc {
       SmallVector<SmallVector<Vector,32>,4> atomic_pos;//atomic coordinates
@@ -175,6 +175,8 @@ namespace NCrystal {
       PreCalc res;
       for ( auto& ai : atomList ) {
         nc_assert( ai.msd().has_value() );
+        if ( ! ( ncabs( ai.atomData().coherentScatLen() ) > 0.0 ) )
+          continue;//ignore "sterile" species
         res.msd.push_back( ai.msd().value() );
         res.csl.push_back( ai.atomData().coherentScatLen() );
         SmallVector<Vector,32> pos;
@@ -233,9 +235,13 @@ NC::HKLList NC::calculateHKLPlanes( const StructureInfo& structureInfo,
   if ( atomList.empty() )
     NCRYSTAL_THROW(BadInput,"calculateHKLPlanes needs a non-empty AtomInfoList");
   for ( auto& ai : atomList ) {
-    if (!ai.msd().has_value())
+    if ( !ai.msd().has_value() ) {
+      //NB: strictly not needed if coherent scat len of that entry is vanishing,
+      //but for now we keep the requirement of always needing msd just to be
+      //consistent (we could reconsider this):
       NCRYSTAL_THROW(BadInput,"calculateHKLPlanes needs an AtomInfoList"
                      " which includes mean-squared-displacements of all atoms");
+    }
   }
 
   nc_assert_always(cfg.dcutoff>0.0&&cfg.dcutoff<cfg.dcutoffup);
@@ -290,6 +296,10 @@ NC::HKLList NC::calculateHKLPlanes( const StructureInfo& structureInfo,
   //is an integer composed from Fsquared and d-spacing, and although clashes are
   //allowed, it should only clash rarely or efficiency is compromised):
 
+  HKLList hkllist;
+  if ( cache.whkl.empty() )
+    return hkllist;//all elements have bcoh=0?
+
 #ifdef NCRYSTAL_NCMAT_USE_MEMPOOL
   MemPool pool(10000000);
   MemPoolAllocator<void> poolalloc(&pool);
@@ -297,8 +307,6 @@ NC::HKLList NC::calculateHKLPlanes( const StructureInfo& structureInfo,
 #else
   FamMap fsq2hklidx;
 #endif
-
-  HKLList hkllist;
 
   for( int loop_h=0;loop_h<=cache.max_h;++loop_h ) {
     for( int loop_k=(loop_h?-cache.max_k:0);loop_k<=cache.max_k;++loop_k ) {
@@ -575,7 +583,9 @@ NC::HKLList NC::detail::calculateHKLPlanesWithSymEqRefl( const StructureInfo& st
 
   auto cache = detail::fillHKLPreCalc( structureInfo, atomList, cfg);
 
-  NC::HKLList hkllist;
+  HKLList hkllist;
+  if ( cache.whkl.empty() )
+    return hkllist;//all elements have bcoh=0?
   hkllist.reserve( 4096 );
 
   //We now conduct a brute-force loop over h,k,l indices, adding calculated info

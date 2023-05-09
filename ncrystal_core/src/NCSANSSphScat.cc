@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2022 NCrystal developers                                   //
+//  Copyright 2015-2023 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -74,11 +74,12 @@ NC::SANSSphereScatter::SANSSphereScatter( SANSScaleFactor sfact_, sphere_radius 
 NC::CrossSect NC::SANSSphereScatter::crossSectionIsotropic(CachePtr&, NeutronEnergy ekin ) const
 {
   //Result is m_scale multiplied with rk^(-6)*[ 32*(rk)^4 - 8*(rk)^2 + 4*rk*sin(4*rk) + cos(4*rk) - 1 ].
-
   const double ksq = ekin2ksq( ekin.dbl() );
   const double rk = m_r * std::sqrt(ksq);//Unit is Aa * Aa^-1 = 1
   const double rksq = rk * rk;
   if ( rksq > 0.9 ) {
+    if ( rksq > 1e20 )
+      return CrossSect{ 0.0 };//guard against infinities
     const double fourrk=4.0*rk;
     double sin4rk,cos4rk;
     std::tie(sin4rk,cos4rk) = sincos_fast(fourrk);

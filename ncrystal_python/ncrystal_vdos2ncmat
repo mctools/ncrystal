@@ -4,7 +4,7 @@
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2022 NCrystal developers                                   ##
+##  Copyright 2015-2023 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -61,10 +61,10 @@ def fixSysPathAndImportNCrystal( *, allowfail = False ):
         sys.path.insert(0,str(pml.absolute().resolve()))
     try:
         import NCrystal
-    except ImportError:
+    except ImportError as e:
         if allowfail:
             return
-        msg = 'ERROR: Could not import the NCrystal Python module'
+        msg = 'ERROR: Could not import the NCrystal Python module (reason: "%s")'%e
         if maybeThisIsConda():
             msg += ' (if using conda it might help to close your terminal and activate your environment again)'
         elif not hack_syspath:
@@ -77,21 +77,13 @@ def ncImportSubModule( mainmodule, submodulename ):
     return getattr(_,submodulename)
 ################################################################################################
 NC = fixSysPathAndImportNCrystal()
+nc_constants = ncImportSubModule( NC, 'constants' )
+nc_vdos = ncImportSubModule( NC, 'vdos' )
 
 import numpy as np
 import argparse
 
-units_2_fact = {
-    'eV' : 1.0,
-    'meV' : 1e-3,
-    'keV' : 1e3,
-    'MeV' : 1e6,
-    'THz' : NC.constant_planck*1e12,
-    'GHz' : NC.constant_planck*1e9,
-    'MHz' : NC.constant_planck*1e6,
-    'kHz' : NC.constant_planck*1e3,
-    'Hz' : NC.constant_planck,
-}
+units_2_fact = nc_vdos.vdos_units_2_eV
 units_opts = ', '.join(sorted(units_2_fact.keys()))
 
 def decodeFileName(filename):
@@ -226,6 +218,9 @@ spectrum into format which is ready for inclusion in .ncmat files.
                         (default value is %i, or whatever the NCRYSTAL_DPI env var is set to)."""%dpi_default)
 
     args=parser.parse_args()
+    if args.forceregular is None:
+        parser.error('Missing argument (number of points) to --forceregular.')
+
     if args.dpi>3000:
         parser.error('Too high DPI value requested.')
     if args.dpi==-1:
@@ -261,7 +256,7 @@ spectrum into format which is ready for inclusion in .ncmat files.
 
     if args.debye:
         if args.debye.endswith('K'):
-            args.debye = float(args.debye[0:-1])*NC.constant_boltzmann
+            args.debye = float(args.debye[0:-1])*nc_constants.constant_boltzmann
         else:
             #find (longest, so "meV" does not trigger "eV") fitting unit:
             l=[ (len(u),u) for u in units_2_fact.keys() if args.debye.endswith(u) ]
@@ -312,23 +307,23 @@ if args.forceregular or (not args.plot):
     if applyCutoff(egrid,density,cutoffs)[0][0]<=1e-5:
         raise SystemExit(f"""
         ERROR: The first value in the loaded egrid is {egrid[0]} which is less than 1e-5eV.
-        This is not allowed when using --plot or --forceregular.
+        This is not allowed when using --forceregular or when not using --plot.
         Please use the --cutoff parameter to remove lowest part of input spectrum (perhaps
-        after investigating the cutoff value with --plots).
+        after investigating the cutoff value with --plot).
         """)
 
 def regularise(egrid,density,n):
     #first step back from any zeroes at the upper end:
     i=1
-    while density[-i]==0.0:
-        i=i+1
+    while i < len(density) and density[-i]==0.0:
+        i += 1
     safepeel = i-2
     if safepeel>=1:
         print (f"Ignoring {safepeel} last points while regularising since last {safepeel+1} points are 0.")
         egrid,density = egrid[0:-(safepeel)],density[0:-(safepeel)]
     emin,emax=egrid[0],egrid[-1]
     print('old range',emin,emax)
-    THZ=NC.constant_planck*1e12,
+    THZ = nc_constants.constant_planck*1e12
     print('old range [THZ]',emin/THZ,emax/THZ)
 
     for k in range(1,1000000000):
@@ -374,7 +369,7 @@ if args.plot:
             egrid_eV = egrid.copy() / vis_unit_fact
             T = args.g1
             gamma0 = 1.0
-            two_u = egrid_eV / ( NC.constant_boltzmann * T )
+            two_u = egrid_eV / ( nc_constants.constant_boltzmann * T )
             #g1asym_neg = dos / ( egrid_eV * -np.expm1(-two_u) )
             #g1asym_pos = dos / ( egrid_eV * np.expm1(two_u) )
             g1sym = dos / (egrid_eV*np.sinh(0.5*two_u))
@@ -401,7 +396,7 @@ if args.plot:
         x=np.linspace(0.0,max(egrid.max(),args.debye),1000)
         y = np.where(  x<=args.debye, x**2 * ( density.max() / args.debye**2 ), 0.0 )
         plt_plot(x*vis_unit_fact,y,
-                 label=f'Debye spectrum (E_Debye={1000*args.debye:.5}meV, T_Debye={args.debye/NC.constant_boltzmann:.5}K)')
+                 label=f'Debye spectrum (E_Debye={1000*args.debye:.5}meV, T_Debye={args.debye/nc_constants.constant_boltzmann:.5}K)')
     for r in (args.ref or []):
         eg,ds = getVDOSFromFile(r)
         plt_plot(eg*vis_unit_fact,ds,label=decodeFileName(r)['title'])

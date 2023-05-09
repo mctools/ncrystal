@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2022 NCrystal developers                                   //
+//  Copyright 2015-2023 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -82,6 +82,13 @@ namespace NCrystal {
           }
         }
 
+        //Abort if too agressive (e.g. S=0 everywhere)
+        if (  nTrimAlphaUpper >= nalpha ) {
+          nTrimAlphaUpper = 0;
+          nTrimBetaUpper = 0;
+          nTrimBetaLower = 0;
+        }
+
         const auto ntrimtot = nTrimBetaUpper + nTrimBetaLower + nTrimAlphaUpper;
 
         if ( ntrimtot == 0 )
@@ -89,7 +96,7 @@ namespace NCrystal {
 
         //Trim:
         VectD new_sab;
-        new_sab.reserve( ( nalpha - nTrimAlphaUpper ) * ( nbeta - nTrimBetaUpper + nTrimBetaLower ) );
+        new_sab.reserve( ( nalpha - nTrimAlphaUpper ) * ( nbeta - (nTrimBetaUpper + nTrimBetaLower) ) );
         const auto nbetalim = nbeta - nTrimBetaUpper;
         for ( auto ibeta : ncrange( nbeta ) ) {
           if ( ! ( ibeta >= nTrimBetaLower && ibeta < nbetalim ) )
@@ -98,7 +105,7 @@ namespace NCrystal {
           for ( auto ialpha : ncrange( nalpha-nTrimAlphaUpper ) )
             new_sab.push_back( vectAt( input.sab, ialpha + offset ) );
         }
-        nc_assert_always( new_sab.size() == ( nalpha - nTrimAlphaUpper ) * ( nbeta - nTrimBetaUpper + nTrimBetaLower ) );
+        nc_assert_always( new_sab.size() == ( nalpha - nTrimAlphaUpper ) * ( nbeta - (nTrimBetaUpper + nTrimBetaLower) ) );
         std::swap( input.sab, new_sab );
         if ( nTrimAlphaUpper ) {
           VectD new_alpha( input.alphaGrid.begin(), std::next(input.alphaGrid.begin(),nalpha-nTrimAlphaUpper) );

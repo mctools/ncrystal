@@ -1,18 +1,17 @@
+"""Utilities for converting local or online CIF data to NCMAT data.
+
+Two utility classes (CIFSource and CIFLoader) are included, and along with the
+NCMATComposer they are used to implement the related cmd-line scripts (in
+particular ncrystal_cif2ncmat), but they can of course also be used directly via
+the Python API below by expert users.
+
 """
-Utilities for converting local or online CIF files to NCMAT data.
-
-Various utility functions are included as needed to support the related cmd-line
-scripts (in particular ncrystal_cif2ncmat and ncrystal_onlinedb2ncmat), but they
-can of course also be used directly via the Python API below by expert users.
-
-"""
-
 
 ################################################################################
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2022 NCrystal developers                                   ##
+##  Copyright 2015-2023 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -28,140 +27,679 @@ can of course also be used directly via the Python API below by expert users.
 ##                                                                            ##
 ################################################################################
 
+__all__ = ['CIFSource','CIFLoader', 'produce_validation_plot','produce_validation_plots']
 
-#FIXME: Doc string on top and functions below... __all__ as well.
-#FIXME: check if error messages says "script"
-#FIXME: E.g. cif_willend/FECO_B2.cif has some info about origins which we don't user in cif2descr
-#FIXME: cif_uiso_temperature should be user-accessible in cmdline scripts
-#FIXME: Add unit tests and examples for the cifutils python module! Also documentation online?
-#FIXME: Do not raise SystemExit anywhere in a module!!
+from . import _common as _nc_common
+from . import ncmat as _nc_ncmat
+from . import _ncmatimpl as _nc_ncmatimpl
+from . import core as _nc_core
 
-value_fallback_debye_temp = 300.0
+class CIFSource:
 
-import math
-import functools
-import pathlib
-import os
-import warnings
-import numpy as np
-
-#NB: cmdline scripts should have more helpful error messages for these:
-import pymatgen
-import pymatgen.symmetry.analyzer
-
-#Main NCrystal module
-import importlib
-__name = 'NCrystal.cifutils' if __name__=='__main__' else __name__
-NC = importlib.import_module( '..', __name )#importing __init__.py
-nc_common = importlib.import_module( '.._common', __name )
-nc_experimental = importlib.import_module( '..experimental', __name )
-print = nc_common.print
-
-class CifSource:
     """
-    Generalised CIF source, either in the form of text data, a file path, or
-    a database ID for either the Crystallography Open Database
+    Generalised CIF source, either in the form of text data, a file path, a
+    database ID (in the form of a string like "codid::9008460" or "mpid::87)",
+    for either the Crystallography Open Database
     (https://www.crystallography.net/cod/) or the Materials Project
-    (https://www.materialsproject.org/)
+    (https://www.materialsproject.org/), an existing CIFSource object, or any
+    object like CIFLoader which has a cifsrc property which is a CIFSource
+    object.
     """
 
-    def __init__(self,*,codid=None,mpid=None,filepath=None,textdata=None):
+    def __init__( self, data, *, allow_fail = False ):
+        """
+        Initialise from data in various formats (see class
+        description). Unless allow_fail=True, an unrecognised input format will
+        result in an NCBadInput exception being thrown. If allow_fail=True the
+        .invalid property can be used to check if the loading failed.
+        """
         self.__codid,self.__mpid,self.__fp,self.__textdata = None,None,None,None
-        if codid is not None:
-            self.__codid = int(codid)
-        if mpid is not None:
-            self.__mpid = int(mpid)
-        if filepath is not None:
-            self.__fp = pathlib.Path(filepath)
-        if textdata is not None:
-            #textdata, decoding bytes to str assuming ascii/utf8:
-            self.__textdata = ( textdata if isinstance(textdata,str) else textdata.decode() )
-        if ( int(not self.__textdata is None)
-             + int(not self.__codid is None)
-             + int(not self.__mpid is None)
-             + int(not self.__fp is None) ) != 1:
-            raise ValueError('CifSource objects must be initialised with exactly one argument')
 
-    @staticmethod
-    def fromAnySrc( anysrc ):
-        if isinstance(anysrc,CifSource):
-            return anysrc
-        if isinstance(anysrc,LoadedCIF) or isinstance(anysrc,CIFAnalyser):
-            return anysrc.cifsrc
-        if hasattr(anysrc,'__fspath__'):
-            return CifSource( filepath = anysrc )
-        if hasattr( anysrc, 'startswith' ):
-            if anysrc.startswith('codid::') and anysrc[7:].isdigit():
-                return CifSource(codid=int(anysrc[7:]))
-            if anysrc.startswith('mpid::') and anysrc[6:].isdigit():
-                return CifSource(mpid=int(anysrc[6:]))
-        if isinstance( anysrc, str ):
-            return CifSource(textdata=anysrc) if '\n' in anysrc else CifSource(filepath=pathlib.Path(anysrc))
-        if isinstance( anysrc, bytes ):
-            return CifSource(textdata=anysrc.decode()) if b'\n' in anysrc else CifSource(filepath=pathlib.Path(anysrc))
-        raise ValueError('Could not detect CIF source type')
+        #Check if data is CIFSource object or has one as a .cifsrc property (e.g. LoadedCIF, CIFAnalyser)
+        o = getattr( data, 'cifsrc', None ) or data
+        if isinstance(o,CIFSource):
+            self.__codid = o.__codid
+            self.__mpid = o.__mpid
+            self.__fp = o.__fp
+            self.__textdata = o.__textdata
+            return
+        def _setfp( pth ):
+            import pathlib
+            pth = pth.decode() if hasattr(pth,'decode') else pth
+            self.__fp = pathlib.Path( pth )
+        if hasattr(data,'__fspath__'):
+            return _setfp(data)
+        if hasattr( data, 'startswith' ):
+            str_to_sb = ( lambda s : s ) if not hasattr(data,'decode') else ( lambda s : s.encode() )
+
+            if data.startswith(str_to_sb('codid::')) and data[7:].isdigit():
+                self.__codid = int(data[7:])
+                return
+            if data.startswith(str_to_sb('mpid::')) and data[6:].isdigit():
+                self.__mpid = int(data[6:])
+                return
+        if isinstance( data, str ):
+            if '\n' in data.strip():
+                self.__textdata = data
+            else:
+                _setfp(data)
+            return
+        if isinstance( data, bytes ):
+            if b'\n' in data.strip():
+                self.__textdata = data.decode()
+            else:
+                _setfp(data)
+            return
+        if not allow_fail:
+            _nc_core.NCBadInput('Could not detect CIF source type')
 
     @property
-    def codid( self ): return self.__codid
+    def invalid( self ):
+        """Check if instance is invalid (only possible if constructed with allow_fail=True). """
+        return all(e is None for e in (self.__codid,self.__mpid,self.__fp,self.__textdata))
+
     @property
-    def mpid( self ): return self.__mpid
+    def codid( self ):
+        """
+        None or a database ID (integer) for the Crystallography Open Database
+        (https://www.crystallography.net/cod/).
+        """
+        return self.__codid
+
     @property
-    def textdata( self ): return self.__textdata
+    def mpid( self ):
+        """
+        None or a database ID (integer) for the Materials Project
+        (https://www.materialsproject.org/).
+        """
+        return self.__mpid
+
     @property
-    def filepath( self ): return self.__fp
+    def textdata( self ):
+        """
+        None or a string containing raw CIF data.
+        """
+        return self.__textdata
 
-def getMaterialsProjectAPIKEY():
-    import os
-    apikey=os.environ.get('MATERIALSPROJECT_USER_API_KEY',None)
-    if not apikey:
-        raise RuntimeError('ERROR: Missing API key for materialsproject.org access. To fix, '
-                           +'please make sure the environment variable MATERIALSPROJECT_USER_API_KEY'
-                           +' contains your personal access key that you see on'
-                           +' https://www.materialsproject.org/dashboard (after logging in).')
-    return apikey
+    @property
+    def filepath( self ):
+        """
+        None or a pathlib.Path to an on-disk CIF file.
+        """
+        return self.__fp
 
-def _classifySG(sgno):
-    assert 1<=sgno<=230
-    l=[(195,'cubic'),(168,'hexagonal'),(143,'trigonal'),
-       (75,'tetragonal'),(16,'orthorombic'),(3,'monoclinic'),(1,'triclinic')]
-    for thr,nme in l:
-        if sgno>=thr:
-            return nme
-    assert False
+    @property
+    def is_remote( self):
+        """True if either .codid or .mpid is not None"""
+        return any( ( not e is None ) for e in (self.__codid,self.__mpid) )
 
-def _cif2descr(cif):
-    #cif is cif section with publication info
+    def load_data( self, quiet = False, mp_apikey = None ):
+        """Try to load the data and return it as a string. Depending on the
+        source, this might result in reading a file or querying an online
+        database. In case the data is defined via a materials project ID (mpid),
+        a materials project API key must be provided either via the mp_apikey
+        parameter, or in the MATERIALSPROJECT_USER_API_KEY environment variable.
+        """
+        assert not self.invalid
+        if self.__textdata is not None:
+            return self.__textdata
+        if self.__fp is not None:
+            if not quiet:
+                _nc_common.print(f"Loading data from file {self.__fp.name}")
+            return self.__fp.read_text()
+        if self.__mpid is not None:
+            return _mp_get_cifdata( self.__mpid, quiet = quiet, apikey = mp_apikey )
+        assert self.__codid
+        return _cod_get_cifdata( self.__codid, quiet = quiet )
 
-    #FIXME also support:
-    # ('_citation_journal_full', ['Chemistry of Materials']),
-    #             ('_citation_year', ['2019']),
-    #             ('_citation_journal_volume', ['31']),
-    #             ('_citation_page_first', ['7203']),
-    #             ('_citation_page_last', ['7211']),
-    #             ('_citation_journal_id_ASTM', ['CMATEX']),
-    #             ('_citation_author_citation_id',
+class CIFLoader:
 
-    l=[]
-    def extract(key,*,expectlist = False):
-        if not key in cif:
-            return [] if expectlist else ''
-        s=cif[key]
-        if not expectlist:
-            s=s.strip()
-            return '' if s=='?' else s
+    """Class which is used to load and analyse CIF data, primarily so it can be
+    used to transfer the crystal structure into an NCMATComposer object, with
+    the intention of producing NCMAT data and new materials for usage with
+    NCrystal.
+
+    Behind the scenes the class uses third-party projects gemmi and spglib to
+    parse the CIF data and process the symmetries within.
+
+    The perhaps biggest issue to understand when basing NCrystal materials on
+    CIF data, is that usually CIF data does not contain any or only incomplete
+    information about the dynamics of the atoms. Thus, for a complete
+    description of a high-quality material, one might want to pair up the usage
+    of a CIFLoader, with a PhononDOSAnalyser from the NCrystal.vdos
+    module.
+
+    However, some CIF data contain information about atomic displacements
+    (either "Uiso" or the anisotropic equivalent), which NCrystal is able to
+    convert into a Debye temperature in order to provide a temperature-dependent
+    model of dynamics and atomic displacement. However, such "Uiso" information
+    is only useful if one knows at which temperature it was obtained, and that
+    information is almost always absent in most CIF data out there. Thus, in the
+    last step - when using the .create_ncmat(..) or .create_ncmat_composer(..)
+    methods of the CIFLoader object, one should ideally use the uiso_temperature
+    parameter to provide this information to NCrystal (usually after a call to
+    print(cifloader.raw_cif_textdata) to manually inspect the meta-data, read
+    any linked journal papers, etc.).
+
+    TODO: Add link here to online tutorial once it is ready.
+
+    """
+
+    def __init__( self, cifsrc, quiet = False, mp_apikey = None, refine_with_spglib = True, merge_equiv = True, override_spacegroup = None ):
+        """Initialise from cifsrc which can either be a CIFSource object, or any
+        sort of data which can be used to initialise a CIFSource object (cf. the
+        CIFSource class documentation)
+
+        If refine_with_spglib=False, the structure will not be verified and
+        refined with spglib. It is strongly recommended to not disable this
+        refinement, as it is needed to ensure correctness and consistency of the
+        resulting material.
+
+        The override_spacegroup parameter can in some cases be used to select a
+        particular setting of the detected spacegroup. For instance, spacegroup
+        number 70 is available in two settings, and loading a CIF file with
+        those might result in a warning that both "F d d d:1" and "F d d d:2"
+        are available. Trying again with override_spacegroup="F d d d:1" can be
+        used to explicitly select one of them (it might require some
+        investigation of course to determine which one is right). A list of
+        space group settings can be found at:
+
+        https://cci.lbl.gov/sginfo/hall_symbols.html
+
+        Setting merge_equiv=False will prevent usage of the same NCMAT label for
+        multiple lists of equivalent atomic positions. However, note that this
+        might affect the symmetry and space group of the structure, and is in
+        general not recommended.
+
+        If quiet=True, no informative messages will be emitted.
+
+        Finally, the mp_apikey can be used to specify an API key in case the
+        cifsrc is an entry for the materialsproject.org. To avoid having to
+        specify the key here, one can instead provide the key in the environment
+        variable MATERIALSPROJECT_USER_API_KEY.
+        """
+        with _nc_common.WarningSpy( block = quiet ) as warnlist:
+            load, gemmi, struct = _actual_init_gemmicif( cifsrc,
+                                                         quiet = quiet,
+                                                         mp_apikey = mp_apikey,
+                                                         refine_with_spglib = refine_with_spglib,
+                                                         merge_equiv = merge_equiv,
+                                                         override_spacegroup = override_spacegroup )
+        assert len(load)==9
+        self.__cifsrc = load['cifsrc']
+        self.__actual_codid = load['actual_codid']
+        self.__actual_mpid = load['actual_mpid']
+        self.__cif_chemformula = load['cif_chemformula']
+        self.__cifdata = load['cifdata']
+        self.__cif_raw = load['cif_raw']
+        self.__cellsg = load['cellsg']
+        self.__atoms = load['atoms']
+        self.__cifdescr = load['cifdescr']
+        self.__warnlist = tuple( warnlist )
+
+        #Hidden support for additional processing in derived class:
+        _ = getattr( self, '_process_raw_gemmi_objects', None )
+        if _:
+            _( gemmi, struct )
+
+    @property
+    def cifsrc( self ):
+        """The CIFSource object on which everything is based."""
+        return self.__cifsrc
+
+    @property
+    def actual_codid( self ):
+        """None or the database ID of the Crystallography Open Database. This
+        might be present even if .cifsrc.codid is None, since the CIF data might
+        have been downloaded manually, but provide the ID in its metadata."""
+        return self.__actual_codid
+
+    @property
+    def actual_mpid( self ):
+        """None or the database ID of the Material Project. This might be
+        present even if .cifsrc.mpid is None, since the CIF data might have
+        been downloaded manually, but provide the ID in its metadata.
+        """
+        return self.__actual_mpid
+
+    @property
+    def raw_cif_textdata( self ):
+        """The raw CIF input data, as a string."""
+        return self.__cifdata
+
+    @property
+    def raw_cif_chemformula( self ):
+        """The chemical formula encoded in the CIF data (usually in the
+        _chemical_formula_sum field) as a string."""
+        return self.__cif_chemformula
+
+    @property
+    def raw_cif_dict( self ):
+        """The CIF data parsed into a dictionary."""
+        return self.__cif_raw
+
+    @property
+    def atoms( self ):
+        """A tuple of all atoms in the crystal structure, including positions in
+        the unit cell. The format of each atom is essentially a dictionary
+        similar to:
+               {'aniso': None,
+                'cif_labels': ['Al'],
+                'composition': ((1.0, 'Al'),),
+                'equivalent_positions': [(0.0, 0.0, 0.0),
+                                         (0.0, 0.5, 0.5),
+                                         (0.5, 0.0, 0.5),
+                                         (0.5, 0.5, 0.0)],
+                'occupancy': 1.0,
+
+                'uiso': None})
+
+        Here 'aniso' might provide information about
+        anisotropic displacements, 'uiso' (Uiso) about isotropic displacements,
+        and occupancy is the site occupancy. The 'cif_labels' are the
+        corresponding labels in the CIF data, and the 'composition' +
+        'equivalent_positions' should be self-explanatory.
+        """
+        return self.__atoms
+
+    @property
+    def cellsg( self ):
+        """
+        Get information about unit cell parameters and space group, as a
+        dictionary with a format like:
+
+           {'a': 4.0496, 'b': 4.0496,'c': 4.0496,
+            'alpha': 90,'beta': 90,'gamma': 90,
+            'spacegroup': {'hm': 'Fm-3m', 'number': 225} }
+
+        """
+        return self.__cellsg
+
+    @property
+    def extracted_description( self ):
+        """
+        Description of the material based on the meta-data found in the CIF
+        data. Returned as a list of strings.
+        """
+        return self.__cifdescr
+
+    @property
+    def warnings( self ):
+        """
+        List of warnings emitted during processing of the CIF data, as a
+        sequence of tuples of two strings: (warning_message, warning_category).
+        """
+        return self.__warnlist
+
+    def create_ncmat( self, *args, **kwargs ):
+        """
+        Return NCMAT data corresponding to the currently held crystal
+        parameters. All parameters are forwarded (same as calling
+        create_ncmat_composer(*args,**kwargs).create_ncmat())
+        """
+        c = self.create_ncmat_composer(*args,**kwargs)
+        return c.create_ncmat()
+
+    def create_ncmat_composer( self, *,
+                               uiso_temperature = None,
+                               skip_dyninfo = False,
+                               top_comments = None,
+                               fallback_debye_temp = 300.0,
+                               quiet = False,
+                               remap = None,
+                               no_formula_check = False ):
+        """Setup and return an NCMATComposer object, based on the currently held
+        crystal parameters.
+
+        The most important thing to be aware of is that, if you wish to take
+        advantage of any Uiso/biso values found in the CIF data, you must
+        provide the uiso_temperature parameter value (kelvin), to indicate the
+        temperature at which these are valid (most likely after inspecting the
+        .raw_cif_textdata manually for hints about the correct value).
+
+        If quiet=True, no informative messages will be emitted.
+
+        The fallback_debye_temp parameter can be used to change the default
+        Debye temperature assigned to atoms, for which Uiso/biso information was
+        not available.
+
+        The other parameters are more esoteric:
+
+        If skip_dyninfo=True, no ncmat.set_dyninfo_... calls will be performed,
+        presumably because the caller will perform such calls subsequently
+        (i.e. with a PhononDOSAnalyser).
+
+        The remap parameter can be used to remap elements and isotopes found in
+        the CIF data to any desired composition (cf. the
+        NCMATComposer.set_composition for the allowed composition syntax. For
+        instance, if one wishes to take a CIF file containing hydrogen atoms and
+        deuterate it partly, one could used remap = { 'H' : '0.95 D 0.05 H', }.
+
+        Finally, unless no_formula_check=True, an exception is raised if the
+        chemical formula of the resulting material is incompatible with any
+        chemical formula indicated in the input CIF meta data. This check is
+        normally nice to keep, since it can catch many cases where the wrong
+        setting of a spacegroup was used.
+        """
+        return _impl_create_ncmat_composer( self,
+                                            uiso_temperature = uiso_temperature,
+                                            skip_dyninfo = skip_dyninfo,
+                                            top_comments = top_comments,
+                                            fallback_debye_temp = fallback_debye_temp,
+                                            #TODO? #merge_equiv = merge_equiv,
+                                            quiet = quiet,
+                                            remap = remap,
+                                            no_formula_check = no_formula_check )
+
+
+def produce_validation_plots( files, verbose_lbls = True, pdf_target = None,
+                              **plot_kwargs ):
+    """Function which can produce several of the validation plots resulting
+    from usage of the produce_validation_plot(..) function, and possibly even
+    embed them in a PDF file. Any plot_kwargs will be passed along to the
+    produce_validation_plot(..) function.
+    """
+    from NCrystal.plot import _import_matplotlib_plt, _import_matplotlib_pdfpages, _fakepyplot_mode
+
+    if pdf_target:
+        pdfpages = _import_matplotlib_pdfpages()
+        the_real_pdfpages = ( pdfpages.the_real_inspected_object
+                              if hasattr(pdfpages,'the_real_inspected_object')
+                              else None )
+        already_pdfpages = isinstance(pdf_target,the_real_pdfpages) if the_real_pdfpages else False
+        pdf = pdf_target if already_pdfpages else pdfpages(pdf_target)
+        assert pdf
+    else:
+        pdf, already_pdfpages = None, False
+
+    if pdf:
+        plt = _import_matplotlib_plt()
+    for f in files:
+        produce_validation_plot( f, verbose_lbls = verbose_lbls, do_show = not pdf,
+                                 line_width_scale = 0.5, **plot_kwargs )
+        if pdf:
+            pdf.savefig()
+            plt.close()
+
+    if pdf and not already_pdfpages:
+        pdf.close()
+        _nc_common.print("created %s"%pdf_target)
+
+def produce_validation_plot( data_or_file, verbose_lbls = True, line_width_scale = 1,
+                             quiet = False, xlabel = None, legend_args = None, do_newfig = True,
+                             do_show = True, do_legend = True, do_grid=True, do_tight_layout=True ):
+
+    """Function which can produce validation plots for NCMAT data defining
+    crystalline materials like the ones on
+    https://github.com/mctools/ncrystal/wiki/Data-library. The plot will compare
+    the powder Bragg diffraction cross section curve of the NCMAT file, with
+    those obtained by replacing the crystal structure with a crystal structure
+    loaded directly from online database entries that might be mentioned in the
+    comments of the NCMAT data. This makes it easy to verify that the crystal
+    structure is still compatible (or not) with those crystal structures
+    mentioned in the comments.
+
+    Currently two online databases are supported, with recognised URLs in a
+    format like either of the following:
+
+       https://www.crystallography.net/cod/9008460.html
+       https://www.materialsproject.org/materials/mp-87
+
+    """
+
+    def lookupAndProduce( cifsrc, *,dynamics, remap):
+        cifloader = CIFLoader( cifsrc, quiet = quiet )
+        ncmat = cifloader.create_ncmat_composer( uiso_temperature = None,#dynamics provided separately here
+                                                 remap = remap,
+                                                 skip_dyninfo = True )
+        ncmat.transfer_dyninfo_objects( dynamics )
+        return ncmat.create_ncmat()
+
+    from NCrystal.plot import _import_matplotlib_plt
+    plt = _import_matplotlib_plt()
+    if do_newfig:
+        plt.figure()
+
+    multcreate = lambda data : _nc_core.directMultiCreate(data,cfg_params='comp=bragg')
+    _file = None
+    fn = None
+    if hasattr( data_or_file, '__fspath__' ):
+        pass
+    elif isinstance( data_or_file, _nc_core.TextData ):
+        mc = multcreate(td)
+        contentiterable = data_or_file
+        fn = td.dataSourceName
+    elif isinstance( data_or_file, bytes ) or isinstance( data_or_file, str ):
+        _ = data_or_file.decode() if isinstance( data_or_file, bytes ) else data_or_file
+        if '\n' in _ or _.startswith('NCMAT'):
+            contentiterable = _.splitlines()
+            mc = multcreate(_)
+            fn = 'Anonymous NCMAT data'
+    if not fn:
+        fn = data_or_file
+        contentiterable = _nc_core.createTextData(data_or_file)
+        mc = multcreate(contentiterable)
+
+    if hasattr(fn,'__fspath__'):
+        import pathlib
+        fn = pathlib.Path(fn).name
+    elif '/' in fn:
+        fn = fn.split('/')[-1]
+    if not quiet:
+        _nc_common.print(f'Attempting to validate {fn}')
+
+    if not mc.info.isCrystalline():
+        if not quiet:
+            _nc_common.print(f"Ignoring non-crystalline material {fn}")
+        return
+
+    def _extractID(s,pattern):
+        if not pattern in s:
+            return None
+        l=s.split(pattern)[1:]
+        while l:
+            e,l = l[0],l[1:]
+            d=''
+            while e and e[0].isdigit():
+                d+=e[0]
+                e=e[1:]
+            if d and int(d)>0:
+                yield int(d)
+
+    import re as _re
+    _re_atomdbspecs = _re.compile("\[ *with ([a-zA-Z ]+)->([ a-zA-Z0-9+-\.]+) *\]")
+    def _extractAtomDBSpec(s):
+        #Look for remapping specs like "[with H->D]" and return in @ATOMDB format
+        #(i.e. "H is D").
+        if not '->' in s:
+            return
+        m = _re_atomdbspecs.search(s)
+        return ' '.join(('%s is %s'%m.groups()).split()) if m else None
+
+    ids = []
+    for l in contentiterable:
+        atomdb = _extractAtomDBSpec(l)
+        for e in _extractID(l,'materialsproject.org/materials/mp-'):
+            ids.append( dict(dbtype='mp',entryid=e,atomdb=atomdb))
+        for e in _extractID(l,'crystallography.net/cod/'):
+            ids.append( dict(dbtype='cod',entryid=e,atomdb=atomdb))
+
+    #order-preserving remove duplicates:
+    _seen = set()
+    newids=[]
+    for d in ids:
+        key = tuple(sorted((k,v) for k,v in d.items()))
+        if key in _seen:
+            continue
+        newids.append(d)
+        _seen.add(key)
+    ids = newids
+
+    def _atomdb_to_remap( atomdb):
+        _atomdb = list( ' '.join(e.strip().split()) for e in (atomdb or '').replace(':',' ').split('@') )
+        _atomdb = list( e for e in _atomdb if e )
+        l = []
+        for c in _atomdb:
+            p=c.replace(':',' ').split()
+            if not len(p)>=3 or p[1]!='is':
+                raise _nc_core.NCBadInput('invalid atomdb remap syntax in "%s"'%c)
+            l.append( (p[0],' '.join(p[2:]) ) )
+        return l
+
+    dynamics = mc.info
+    cmps = [ (fn, mc ) ]
+    for _ in ids:
+        dbname = _['dbtype']
+        entryid = _['entryid']
+        atomdb = _['atomdb']
+        lpargs=dict(remap=_atomdb_to_remap(atomdb),dynamics=dynamics)
+        if dbname=='mp':
+            lpargs['cifsrc']='mpid::%i'%entryid
         else:
-            l=list( ('' if e.strip()=='?' else e.strip()) for e in s )
-            return list( e for e in l if e )
+            assert dbname=='cod'
+            lpargs['cifsrc']='codid::%i'%entryid
+        out = lookupAndProduce( **lpargs )
+        lbl=f'{dbname}-{entryid}'
+        if atomdb:
+            lbl = f'{lbl} with replacement "{atomdb}"'
+        cmps.append( ( lbl, multcreate(out) ) )
+    from .constants import ekin2wl
+    wlmax = max(1.05*ekin2wl(mc.scatter.domain()[0]) for _,mc in cmps)
+    from ._numpy import _np_linspace
+    wls = _np_linspace(0.001,wlmax,10000)
+    if len(cmps)<=1:
+        _nc_common.warn(f"No online DB IDs found in {fn}")
+        return
 
-    title = extract('_publ_section_title')
-    authors = extract('_publ_author_name',expectlist=True)
-    year = extract('_journal_year')
+    sgno_all = set()
+    natoms_all = set()
+
+    col_ordered = [_nc_common._palette_Few.get(k,k) for k in
+                   ('black',
+                    'blue',
+                    'orange',
+                    'green',
+                    'red',
+                    'brown',
+                    'purple',
+                    'yellow',
+                    'pink',
+                    'gray')]
+
+    for i,(lbl,mc) in enumerate(cmps):
+        lbl = str(lbl)
+        if '/' in lbl:
+            lbl=lbl.split('/')[-1]
+        elif lbl.startswith('mp-'):
+            lbl = 'Materials Project entry '+lbl[3:]
+        elif lbl.startswith('cod-'):
+            lbl = 'Crystallography Open Database entry '+lbl[4:]
+        lw=4 if i>0 else 2
+        lw *= line_width_scale
+        args={}
+
+        si = mc.info.structure_info if mc.info.hasStructureInfo() else None
+        if not quiet:
+            _nc_common.print('Structure[%s]:'%lbl,si)
+        if si and verbose_lbls:
+            sgno=si.get('spacegroup',None)
+            lbl += ' (SG-%s, %i atoms/cell, Vcell=%g)'%(sgno or 'unspecified',si['n_atoms'],si['volume'])
+            sgno_all.add(sgno)
+            natoms_all.add(si['n_atoms'])
+
+        plt.plot(wls,mc.scatter.xsect(wl=wls),
+                 label=lbl,
+                 linewidth=lw,
+                 alpha=0.5 if i==0 else 0.5,
+                 color = col_ordered[i] if i<len(col_ordered) else None,
+                 dashes = [] if i==0 else [4 if len(cmps)>2 else 2,2]+[2,2]*i)
+    if len(natoms_all)>1:
+        _nc_common.warn('WARNING validation detected different number of atoms/cell in tested curves')
+    if len(sgno_all)>1:
+        _nc_common.warn('WARNING validation detected different space group numbers in tested curves')
+
+    plt.xlim(0.0)
+    plt.ylim(0.0)
+    plt.title('NB: This compares the crystal structure (space group, lattice, atom positions). Phonons/dynamics always taken from .ncmat file',fontsize=6)
+    plt.xlabel(xlabel or 'Neutron wavelength (%s)'%(b'\xc3\x85'.decode()))
+    plt.ylabel('Coherent elastic cross section (barn)')
+    if do_legend:
+        plt.legend(loc='best',handlelength=5,**(legend_args or {}))
+    if do_grid:
+        plt.grid()
+    if do_tight_layout:
+        plt.tight_layout()
+    if do_show:
+        plt.show()
+
+def _extract_descr_from_cif( raw_cif_dict, cifsrc, ciftextdata ):
+
+    def normalise_result( _l ):
+        #split any newlines and trim whitespace before returning:
+        res = []
+        for e in _l:
+            for ee in e.splitlines():
+                res.append( ee.rstrip() )
+        return res
+
+    if not raw_cif_dict:
+        _nc_common.warn('Could not properly decode CIF metadata due to inability to access raw CIF data as dictionary.')
+        return [], None, None, None
+
+    #cif is cif section with publication info:
+    l=[]
+    def extract(key,*altkeys,expectlist = False):
+        if not any( key in s for _,s in sorted(raw_cif_dict.items())):
+            if altkeys:
+                return extract( altkeys[0], *altkeys[1:], expectlist = expectlist )
+            return [] if expectlist else ''
+        s = list( d[key] for _,d in sorted(raw_cif_dict.items()) if key in d)[0]
+        if not expectlist:
+            if s is None:
+                return ''
+            if not hasattr(s,'strip') and hasattr(s,'__len__') and len(s)==1:
+                s=s[0]#convert single element list to first element
+            s=str(s).strip()
+            return '' if s in ('?','.') else s
+        else:
+            _l=list( ('' if (e is None or (hasattr(e,'strip') and e.strip()=='?')) else str(e).strip()) for e in s )
+            return list( e for e in _l if e )
+
+    title = extract('_publ_section_title','_citation_title')
+    authors = extract('_publ_author_name','_citation_author_name',expectlist=True)
+    journalname = extract('_journal_name_full','_citation_journal_full')
+    year = extract('_journal_year','_citation_journal_year','_citation_year')
     doi = extract('_journal_paper_doi')
-    codid = extract('_cod_database_code')
+    chemformsum = extract('_chemical_formula_sum','_cod_original_formula_sum')
+
+    extracted_codid = extract('_cod_database_code')
+    if extracted_codid:
+        extracted_codid = int(extracted_codid) if extracted_codid.isdigit() else None
+
+    extracted_mpid = None
+    _sp = 'Note from NCrystal.cifutils: Data from materialsproject.org / mp-'# NB this exact format is produced elsewhere in this file.
+    for e in ciftextdata.splitlines():
+        if _sp in e:
+            _ = e.split(_sp,1)
+            if len(_) >= 2:
+                _ = _[1].split()[0].split('#',1)[0]
+                if _.isdigit():
+                    extracted_mpid = int(_)
+
+    if extracted_codid is not None and cifsrc.codid is not None and cifsrc.codid != extracted_codid:
+        _nc_common.warn(f'Embedded CODID {extracted_codid} is different than requested {cifsrc.codid}!')
+
+    if extracted_mpid is not None and cifsrc.mpid is not None and cifsrc.mpid != extracted_mpid:
+        _nc_common.warn(f'Embedded MPID {extracted_mpid} is different than requested {cifsrc.mpid}!')
+
+    _thecodid = cifsrc.codid or extracted_codid
+    _thempid = cifsrc.mpid or extracted_mpid
+
     audit_creation_method = extract('_audit_creation_method')
     audit_creation_date = extract('_audit_creation_date')
     audit_author_name = extract('_audit_author_name')
 
+    nauthors = len(authors or [])
     if authors:
         if len(authors)==1:
             authors = authors[0]
@@ -171,821 +709,1003 @@ def _cif2descr(cif):
             authors = f'{authors[0]}, et al.'
     if title:
         l.append(f'"{title}"')
-    if authors and year:
-       l.append(f'{authors} ({year})')
+    if  (journalname and year) and not authors:
+        authors = '<unknown authors>'
+    if journalname and year:
+        _jy = f'{journalname}, {year}'
+    elif journalname or year:
+        _jy = journalname or year
+    else:
+        _jy = ''
+    if authors:
+        l.append(f'{authors} [{_jy}]' if _jy else f'Author{"" if nauthors==1 else "s"}: {authors}')
+
     if doi:
         l.append(f'DOI: https://dx.doi.org/{doi}')
-    if codid:
-        l += [ f'Crystallography Open Database entry {codid}',
-               f'https://www.crystallography.net/cod/{codid}.html' ]
+
     if audit_creation_method:
-        l.append(f'Creation method: {audit_creation_method}')
+        l.append(f'CIF creation method: {audit_creation_method}')
     if audit_creation_date:
-        l.append(f'Creation date: {audit_creation_date}')
+        l.append(f'CIF creation date: {audit_creation_date}')
     if audit_author_name:
-        l.append(f'Created by: {audit_author_name}')
+        l.append(f'CIF created by: {audit_author_name}')
 
-    return l
+    if _thecodid:
+        l += [ f'Crystallography Open Database entry {_thecodid}', _codid2url(_thecodid) ]
+    if _thempid:
+        l += [ 'The Materials Project', _mpid2url(_thempid) ]
 
-class LoadedCIF:
-    """Information loaded from a CIF source.
+    return normalise_result( l ), _thecodid, _thempid, chemformsum
 
-    For reference it also contains information about the original CIF source, as
-    well as a list of warnings emitted while loading (these will have been
-    silenced if quiet=True, otherwise they will have been raised as usual to the
-    calling code).
+def _codid2url( codid ):
+    return f'https://www.crystallography.net/cod/{codid}.html'
 
-    """
+def _mpid2url( mpid ):
+    return f'https://www.materialsproject.org/materials/mp-{mpid}'
+
+def _impl_create_ncmat_composer( cifloader, *,
+                                 uiso_temperature,
+                                 skip_dyninfo,
+                                 top_comments,
+                                 fallback_debye_temp,
+                                 #merge_equiv,
+                                 quiet,
+                                 remap,
+                                 no_formula_check ):
+        with _nc_common.WarningSpy( block = quiet ) as extra_ana_warnings:
+            composer = _impl_create_ncmat_composer_internal( cifloader = cifloader,
+                                                             #merge_equiv = merge_equiv,
+                                                             uiso_temperature = uiso_temperature,
+                                                             skip_dyninfo = skip_dyninfo,
+                                                             top_comments = top_comments,
+                                                             remap = remap,
+                                                             no_formula_check = no_formula_check )
+            if not skip_dyninfo and fallback_debye_temp and fallback_debye_temp > 0.0:
+                composer.allow_fallback_dyninfo( fallback_debye_temp )
+
+        def fmtwarnings( warnings, descrtxt, nwmax ):
+            l=[]
+            if not warnings:
+                return l
+            l.append(f'Notice: The following WARNINGS were emitted {descrtxt}:')
+            l.append('')
+
+            wleft=warnings[::-1]
+            while wleft:
+                w = wleft.pop()
+                ncount = 1 + wleft.count(w)
+                if ncount > 1:
+                    wleft = [e for e in wleft if e!=w]
+                wmsg,wcat = w
+                wmsg = list(e.strip() for e in wmsg.splitlines() if e.strip())
+                s0 = '  %s :'%wcat if ncount==1 else '  (%ix) %s : '%(ncount,wcat)
+                for i,m in enumerate(wmsg):
+                    if i==nwmax:
+                        break
+                    pref=s0 if i==0 else ' '*(len(s0))
+                    if i+1==nwmax and len(wmsg)>nwmax:
+                        m='<%i lines of output hidden>'%(len(wmsg)-nwmax)
+                    l.append('%s %s'%(pref,m))
+            return l
+
+        composer.add_comments( fmtwarnings( list(cifloader.warnings) + extra_ana_warnings,
+                                            'when loading the CIF data',nwmax=10),
+                               add_empty_line_divider = True )
+        return composer
+
+def _aniso_nontrivial( aniso_dict ):
+    return aniso_dict and ( any( abs(aniso_dict[e])>1e-13 for e in ('u12','u13','u23') )
+                            or ( aniso_dict['u11'] != aniso_dict['u22'] )
+                            or ( aniso_dict['u11'] != aniso_dict['u33'] ) )
 
 
-    def __init__( self, cifsrc, *, quiet ):
-        self.__cifsrc = CifSource.fromAnySrc( cifsrc )
-        with nc_common.WarningSpy() as warnlist:
-            d = _loadCIF_actual( cifsrc, quiet )
-        assert len(d)==5
-        self.__w,self.__s,self.__d = warnlist,d['structure'],d['descr']
-        self.__cr,self.__cs,self.__cp = d['cif_raw'],d['cif_block_sites'],d['cif_block_publ']
+def _impl_create_ncmat_composer_internal( cifloader, *, uiso_temperature, skip_dyninfo, top_comments, remap, no_formula_check ):
 
-    @staticmethod
-    def fromAnySrc( anysrc, quiet = False ):
-        if isinstance(anysrc,LoadedCIF):
-            return anysrc
-        if isinstance(anysrc,CIFAnalyser):
-            return anysrc.loaded_cif
-        return LoadedCIF(anysrc,quiet=quiet)
+    src = cifloader
 
-    @property
-    def cifsrc( self ):
-        return self.__cifsrc
+    src_atoms = src.atoms
 
-    @property
-    def cif_raw( self ):
-        return self.__cr
+    #Apply remap:
+    def _stdatomname( name ):
+        return {'D':'H2','T':'H3'}.get(name,name)
 
-    @property
-    def cif_publ( self ):
-        return self.__cp
+    remap_decoded = {}
+    for elemiso, compos in (remap or []):
+        elemiso, compos = _nc_ncmatimpl._decode_composition(elemiso,compos)
+        elemiso = _stdatomname( elemiso )
+        remap_decoded[ elemiso ] = compos
+    remap = remap_decoded
+    remap_str = ''
 
-    @property
-    def cif_sites( self ):
-        return self.__cs
+    if remap:
+        new_src_atoms = []
+        for atom in src_atoms:
+            if not any( e in remap for fr,e in atom['composition'] ):
+                new_src_atoms.append( atom )
+                continue
+            newcompos = []
+            for fr,e in atom['composition']:
+                remap_compos = remap.get(e,None)
+                if remap_compos is None:
+                    newcompos.append( (fr,e) )
+                else:
+                    for remap_fr, remap_elem in remap_compos:
+                        newcompos.append( ( fr*remap_fr, remap_elem ) )
+                d = dict( (k,v) for k,v in atom.items() if k!='composition' )
+                d['composition'] = newcompos
+                new_src_atoms.append( d )
+        src_atoms = tuple( new_src_atoms )
+        #For the description:
+        remap_strs = []
+        for elemiso, compos in sorted(remap.items()):
+            compos_str = compos[0][1] if len(compos)==1 else ' '.join( f'{_f:g} {_n}' for _f,_n in compos)
+            remap_strs.append(f'{elemiso} -> {compos_str}')
+        remap_str = ', '.join(remap_strs)
 
-    @property
-    def structure( self ):
-        return self.__s
+    #DYNINFO analysis can only be done now, where we know the skip_dyninfo and uiso_temperature values:
+    dyninfo_args = []
 
-    @property
-    def descr( self ):
-        #FIXME: To CIFAnalyser?
-        return self.__d
-
-    @property
-    def warnings( self ):
-        return self.__w
-
-    def _append_warnlist(self,warnlist):
-        #FIXME: Get rid of this mutability!!
-        for wmsg,wcat in warnlist:
-            self.__w.append( (wmsg,wcat) )
-
-def _rawLoad_CifAndStructure(cifdata,quiet):
-    import pymatgen.core.structure
-    import pymatgen.io.cif
-
-    #First just load:
-    if not quiet:
-        print("Attempting to load CIF data (using pymatgen module).")
-    cif_obj = pymatgen.io.cif.CifFile.from_string( cifdata )
-    cif_raw = cif_obj.data
-
-    #Dig out publ + site blocks from cif:
-    if not quiet:
-        print("Attempting to locate relevant sections of CIF data.")
-    cifblocks_publ,cifblocks_sites = [],[]
-    for blockname,blockdata in cif_raw.items():
-        has_key_starting_with = lambda x : any(k.startswith(x) for k,v in blockdata.data.items())
-        is_publ = ( has_key_starting_with('_publ_')
-                    or has_key_starting_with('_journal_')
-                    or has_key_starting_with('_audit_')
-                    or has_key_starting_with('_cod_database_code') )
-        is_sites = has_key_starting_with('_atom_site_')
-        if is_publ:
-            cifblocks_publ.append( blockdata.data )
-        if is_sites:
-            cifblocks_sites.append( blockdata.data )
-
-    if len(cifblocks_sites) > 1:
-        raise ValueError('CIF file contains multiple sections with atom site info (multiphase CIF files are not supported).')
-    if len(cifblocks_publ) > 1:
-        warnings.warn('CIF file contains multiple sections with publication info. All but the first will be ignored.')
-    cif_sites = cifblocks_sites[0] if cifblocks_sites else None
-    cif_publ = cifblocks_publ[0] if cifblocks_publ else None
-
-    #Extract the structure:
-    if not quiet:
-        print("Attempting to retrieve crystal structure from CIF data (using pymatgen module).")
-    structure = pymatgen.core.structure.Structure.from_str( cifdata, fmt="cif" )
-
-    #Make sure it is a conventional, rather than primitive, cell:
-    sga = pymatgen.symmetry.analyzer.SpacegroupAnalyzer(structure)
-    structure_conventional = sga.get_conventional_standard_structure()
-
-    #Done:
-    return cif_raw, cif_sites, cif_publ, structure_conventional
-
-def _loadCIF_actual( cifsrc, quiet ):
-    cifsrc = CifSource.fromAnySrc( cifsrc )
-    textdata = cifsrc.textdata
-    if textdata is None and cifsrc.filepath is not None:
-        if not quiet:
-            print(f"Loading data from file {cifsrc.filepath}")
-        textdata = cifsrc.filepath.read_text()
-    if textdata is not None:
-        cif_raw,cif_sites,cif_publ,structure = _rawLoad_CifAndStructure(textdata,quiet)
-        if cifsrc.filepath is not None:
-            descr = [f'File: {cifsrc.filepath.name}']
+    ncmat = _nc_ncmat.NCMATComposer()
+    all_atompos = []
+    for idx, a in enumerate( src_atoms ):
+        lbl = f'cif_species_{idx}'
+        compos = [ (fr,e) for fr,e in a['composition'] ]
+        if len(compos)==1 and compos[0][0]==1.0:
+            composstr = compos[0][1]
         else:
-            descr = [f'Anonymous CIF data']
-        cifdescr = _cif2descr(cif_publ) if cif_publ else None
-        if cifdescr:
-            descr.append('')
-            descr += cifdescr
-
-    elif cifsrc.codid is not None:
-        if not quiet:
-            print(f"Querying the Crystallography Open Database for entry {cifsrc.codid}")
-        import requests
-        r=requests.get("https://www.crystallography.net/cod/%i.cif"%(cifsrc.codid))
-        r.raise_for_status()#throw exception in case of e.g. 404
-        cif_raw,cif_sites,cif_publ,structure = _rawLoad_CifAndStructure(r.text,quiet)
-        descr = _cif2descr(cif_publ) if cif_publ else ['']
-        url = f'https://www.crystallography.net/cod/{cifsrc.codid}.html'
-        if not any(url in e for e in descr):
-            descr += [ f'Crystallography Open Database entry {cifsrc.codid}',
-                       f'https://www.crystallography.net/cod/{cifsrc.codid}.html' ]
-    else:
-        assert cifsrc.mpid is not None
-        from pymatgen.ext.matproj import MPRester
-        if not quiet:
-            print(f"Querying the Materials Project for entry {cifsrc.mpid}")
-        with MPRester(getMaterialsProjectAPIKEY()) as m:
-            structure = m.get_structure_by_material_id("mp-%i"%cifsrc.mpid,
-                                                       conventional_unit_cell=True)
-        #No actual CIF data provided (at least not in the API we use):
-        cif_raw = {}
-        cif_publ = {}
-        cif_sites = {}
-        descr=['The Materials Project',
-               f'https://www.materialsproject.org/materials/mp-{cifsrc.mpid}']
-
-    #always return in same format:
-    return dict( structure = structure, descr = descr,
-                 cif_raw=cif_raw,
-                 cif_block_publ=cif_publ,
-                 cif_block_sites=cif_sites )
-
-def extract_uiso( cif ):
-    """Try to dig out atomic displacements (Uiso) information from the cif data.
-    """
-    #FIXME: Emit warnings as appropriate! + do this extraction in the CIFAnalyser
-
-    cif = LoadedCIF.fromAnySrc(cif)
-    c = cif.cif_sites
-
-    if not c:
-        #e.g. the case for materialsprojects input.
-        return {}
-    if not '_atom_site_label' in c:
-        nc_common.warn('Could not extract uiso values from CIF data: No _atom_site_label entries in data!')
-        return {}
-
-    if not('_atom_site_U_iso_or_equiv' in c or '_atom_site_B_iso_or_equiv' in c):
-        #This return statement will trigger for most files, a warning here would be too verbose.
-        return {}
-    albls = c['_atom_site_label']
-    if '_atom_site_type_symbol' in c and len(c['_atom_site_type_symbol'])==len(albls):
-        albls = c['_atom_site_type_symbol']
-    elif '_atom_type_symbol' in c and len(c['_atom_type_symbol'])==len(albls):
-        albls = c['_atom_type_symbol']
-
-    auiso = c.get('_atom_site_U_iso_or_equiv',None)
-    expected_adptype = 'Uiso'
-    auiso_factor = 1.0
-    if auiso is None:
-        auiso = c['_atom_site_B_iso_or_equiv']
-        auiso_factor = 1.0 / ( 8 * math.pi**2 )
-        expected_adptype = 'Biso'
-    if len(albls)!=len(auiso):
-        nc_common.warn('Could not extract uiso values from CIF data: Number of uiso/biso fields does not match number of sites.')
-        return {}
-
-    adptypes = c.get('_atom_site_adp_type',None)
-    if adptypes is None:
-        adptypes = c.get('_atom_site_thermal_displace_type',None)
-    if adptypes is not None:
-        if len(albls)!=len(adptypes):
-            nc_common.warn('Could not extract uiso values from CIF data: Number of _atom_site_thermal_displace_type fields does not match number of sites.')
-            return {}
-        if not all(e==expected_adptype for e in adptypes):
-            nc_common.warn('Could not extract uiso values from CIF data: Not all sites has same type of uiso/biso information.')
-            return {}
-
-    #Ok, all labels have Uiso/Biso. Proceed to decode them into elem2uiso map,
-    #with various checks along the way.
-
-    def extractElementName(lbl):
-        if lbl.endswith('+') or lbl.endswith('-'):
-            #Remove oxidation state, e.g. "Fe2+" -> "Fe"
-            l = lbl[:-1]
-            while l and l[-1].isdigit():
-                l = l[:-1]
-            lbl = l
-        for e in nc_experimental.knownElementNames():
-            #Case insensitive cmp, support e.g. "AL" instead of "Al":
-            if lbl.lower()==e.lower():
-                return e
-        return None
-
-    #Now check all the names are proper element names and with unique values
-    #(otherwise it is too complicated to support):
-    d={}
-    lbls_badnames = set()
-    for lbl,uiso in zip(albls,auiso):
-        #Map to proper element name, or warn+skip if not possible:
-        if lbl in lbls_badnames:
-            continue
-        elementName = extractElementName(lbl)
-        if elementName is None:
-            nc_common.warn(f'Ignoring Uiso/Biso info for label {lbl} since it is not a recognised element name')
-            lbls_badnames.add( lbl )
-            continue
-        if not elementName in d:
-            d[elementName] = set()
-        d[elementName].add( uiso )
-
-    elem2uiso = {}
-
-    def decode_value(s):
-        #support values with uncertainties like '0.080(10)' (simply discards the
-        #uncertainty).
-        try:
-            if s.count('(')==1 and s.count(')')==1:
-                s=s.split('(',1)[0]
-            return float(s)
-        except ValueError:
-            pass
-
-    for elem,uiso_values in d.items():
-        if len(uiso_values) > 1:
-            nc_common.warn( f'Ignoring Uiso/Biso info for element "{elem}" since more than one value were provided: '
-                            + '"%s"'%('", "'.join(sorted(uiso_values))))
-        else:
-            val = decode_value( uiso_values.pop() )
-            if val is None or not (0.0<val<1e5):
-                nc_common.warn( f'Ignoring Uiso/Biso info for element "%s" since value could not be decoded or is out of range'%elem )
-            else:
-                elem2uiso[ elem ] = val * auiso_factor
-
-    return elem2uiso
-
-#dyninfos can either be a dyninfo object (originating in an Info object), or an
-#instance of either AtomMSD or AtomDebyeTemp.
-
-class AtomMSD:
-
-    def __init__(self,*,name,msd,temperature):
-        """Takes name of atom (e.g. "Al"), mean-squared-displacement (msd), and
-        temperature at which the msd is valid. Units are respectively
-        squared-Angstrom and kelvin.
-        """
-        assert float( msd ) > 0.0
-        assert float( temperature ) > 0.0
-        self.__name,self.__m,self.__t = str(name),float(msd),float(temperature)
-
-    @property
-    def name(self):
-        """Name of atom."""
-        return self.__name
-
-    @property
-    def msd(self):
-        """Mean-squared-displacement value (Aa^2)"""
-        return self.__m
-
-    @property
-    def temperature(self):
-        """Temperature value  (kelvin) associated with the msd value"""
-        return self.__t
-
-class AtomDebyeTemp:
-
-    def __init__(self,*,name,debye_temperature):
-        """Takes name of atom (e.g. "Al"), and debye temperature value in kelvin."""
-        assert float( debye_temperature ) > 0.0
-        self.__name,self.__dt = str(name),float(debye_temperature)
-
-    @property
-    def name(self):
-        """Name of atom."""
-        return self.__name
-
-    @property
-    def debye_temperature(self):
-        """Temperature value  (kelvin) associated with the msd value"""
-        return self.__dt
-
-def produceNCMAT( cif, dynamics, rawformat, atomdb, cif_uiso_temperature = None, display_labels = None ):
-
-    #FIXME: Get rid of this deprecated function in favour of CIFAnalyser etc.
-
-    cif = LoadedCIF.fromAnySrc(cif)
-
-    if not dynamics:
-        dynamics = dict(comments=[],dyninfos=[])
-
-    #In case source had deuterium directly and we have to remap it via the
-    #atomdb parameter, we must do a trick and assign the element another
-    #name. This is because the @ATOMDB section can not reassign isotope names
-    #another meaning according to the NCMAT format.
-    remap_D = False
-    if atomdb:
-        _=atomdb.replace(':',' ').split()
-        assert len(_)>=3 and _[1]=='is'
-        remap_D = _[0]=='D'
-        if remap_D:
-            _[0] = 'X99'
-        atomdb = ' '.join(_)
-
-    elemNameRemap = lambda en : "X99" if (remap_D and en=="D") else en
-
-    extra_atomdb = []
-    if display_labels:
-        if remap_D and any(v=='X99' for k,v in display_labels.items()):
-            raise ValueError('Can not use label X99 when also trying to remap special element "D" (deuterium)')
-        _orig_elemNameRemap = elemNameRemap
-        elemNameRemap = lambda en : display_labels[en] if (en in display_labels) else _orig_elemNameRemap(en)
-        extra_atomdb = list( '%s is %s'%(v,k) for k,v in display_labels.items())
-
-    #fixme: no need for this extra warning tracking?
-    emitted_warnings = []
-    def produceWarning(w):
-        nc_common.warn(w)
-        cif._append_warnlist( [nc_common.WarningSpy._fmtwarning( str(w), NC.NCrystalUserWarning )] )
-
-    def elemName(site):
-        species = site.species
-        _=site.as_dict()['species']
-        if not species.is_element or not len(species.elements)==1 or not len(_)==1:
-            raise ValueError('NCrystal CifUtils currently only supports a single well defined element at each site')
-        occu=_[0]['occu']
-        if occu > 0.99:
-            produceWarning( f"Encountered species with almost-but-not-quite unit occupancy ({occu}). Treating as 1.0" )
-            occu = 1.0
-        if occu!=1.0:
-            raise ValueError(f'Error: This script only supports species with unit occupancies (encountered occupancy {occu})')
-        return _[0]['element']
-
-    elems = []
-    formula_elem2count={}
-    def fmt(x):
-        s='%.14g'%x
-        if s.startswith('0.'):
-            s=s[1:]
-        return s
-    def apfmt(x):
-        while x<0.0:
-            x+=1
-        while x>=1.0:
-            x-=1.0
-        return (fmt if rawformat else nc_common.prettyFmtValue)(x)
-    out_atompos_lines = ''
-    for s in cif.structure.sites:
-        c=s.frac_coords
-        en = elemName(s)
-        elems += [en]
-        out_atompos_lines += f'  {elemNameRemap(en)} {apfmt(c[0])} {apfmt(c[1])} {apfmt(c[2])}\n'
-        formula_elem2count[en] = formula_elem2count.get(en, 0) + 1
-    elems_unique = sorted(list(set(elems)))
-
-    a,b,c = cif.structure.lattice.abc
-    alpha,beta,gamma = cif.structure.lattice.angles
-    sgsymb,sgno = cif.structure.get_space_group_info()
-    descr = ''.join('#    %s\n'%e for e in cif.descr)
-
-    if 195 <= sgno <= 230:
-        cell=f'@CELL\n  cubic {fmt(a)}'
-        assert fmt(a)==fmt(b) and fmt(a)==fmt(c), "cubic cell must have all lattice parameters identical: a==b==c"
-        assert ( fmt(alpha)=='90' and fmt(beta)=='90' and fmt(gamma)=='90' ), "cubic cell must have all angles exactly 90 degrees"
-    else:
-        cell=f'@CELL\n  lengths {fmt(a)} {fmt(b) if fmt(b)!=fmt(a) else "!!"} {fmt(c)}\n  angles {fmt(alpha)} {fmt(beta)} {fmt(gamma)}'
-
-    #
-    elem2dyninfo={}
-    elems_with_fallback_dyninfo = []
-    for en in elems_unique:
-        #dynamics = dict(comments=[],dyninfos=[])
-        for di in dynamics['dyninfos']:
-            if hasattr(di,'atomData'):
-                name = di.atomData.displayLabel()
-            else:
-                name = di.name#AtomMSD or AtomDebyeTemp
-            if name == en:
-                elem2dyninfo[en] = di
-                break
-        if not en in elem2dyninfo:
-            #Check if perhaps this is just an isotope issue (e.g. "D" instead of
-            #"H"), and search for element with same Z:
-            en_atomData = NC.atomDB(en)
-            for di in dynamics['dyninfos']:
-                if hasattr(di,'atomData') and di.atomData.isElement() and di.atomData.Z()==en_atomData.Z():
-                    elem2dyninfo[en] = di
-                    break
-
-        if not en in elem2dyninfo:
-            elems_with_fallback_dyninfo.append( en )
-
-    if dynamics['dyninfos'] and not elem2dyninfo:
-        raise SystemExit('Error: was not able to transfer any dynamics from source.')#fixme not systemexit
-
-    formula=cif.structure.composition.reduced_formula
-    if remap_D:
-        formula+='(WARNING:D was not changed automatically)'
-    title=f'{formula} ({_classifySG(sgno)}, SG-{sgno} / {sgsymb})'
-    orig_comments=''
-
-    def calc_and_format_debyetemp_from_msd(msd,temperature,mass):
-        dtval = NC.debyeTempFromIsotropicMSD( msd=msd,
-                                              temperature=temperature,
-                                              mass = mass )
-        return f'debye_temp {dtval:.14g} # From msd={msd:.14g}Aa^2 @ T={temperature:.14g}K (M={mass:.14g}u) \n'
-
-    elems_with_cif_debyetemp = {}
-    if elems_with_fallback_dyninfo:
-        #Try to dig out Uiso from cif source
-        uiso_info = extract_uiso(cif)
-        if cif_uiso_temperature is None:
-            #FIXME: Warn (and explain about flag???)
-            cif_uiso_temperature = 293.15
-        for en in elems_with_fallback_dyninfo[:]:
-            if en in uiso_info:
-                en_atomData = NC.atomDB(en)
-                msd = uiso_info[en]
-                en_mass = en_atomData.averageMassAMU()
-                elems_with_cif_debyetemp[en] = calc_and_format_debyetemp_from_msd(msd,cif_uiso_temperature,en_mass)
-#                en_debyeTemp = NC.debyeTempFromIsotropicMSD( msd=msd,
-#                                                             temperature=cif_uiso_temperature,
-#                                                             mass=en_mass )
-#                elems_with_cif_debyetemp[en] = en_debyeTemp
-        elems_with_fallback_dyninfo = [e for e in elems_with_fallback_dyninfo if not e in elems_with_cif_debyetemp]
-
-    if elems_with_fallback_dyninfo:
-        orig_comments += '\n# WARNING: Dummy Debye temperature values were\n'
-        orig_comments += '#          inserted below for at least 1 element!\n'
-        orig_comments += '#'
-    if dynamics.get('comments',None):
-        orig_comments += '\n# NOTICE: For reference comments in the file used as source\n'
-        orig_comments += '#         for the @DYNINFO sections are repeated below.\n'
-        orig_comments += '#         (please extract relevant sections and merge with\n'
-        orig_comments += '#          comments above in order to finalise file).\n'
-        orig_comments += '#\n'
-        for e in dynamics['comments']:
-            orig_comments += f'#   ---> {e}\n'
-        orig_comments+= '#'
-    atomdb = '\n@ATOMDB\n  %s'%(' '.join(atomdb.replace(':',' ').split())) if atomdb else ''
-    if extra_atomdb and not atomdb:
-        atomdb = '\n@ATOMDB'
-    for e in extra_atomdb:
-        atomdb += f'\n  {e}'
-
-    warnstr=''
-    if cif.warnings:
-        warnstr+='\n# Notice: The following WARNINGS were emitted when loading the CIF data with pymatgen. They were:\n#'
-        nwmax=10
-        for wmsg,wcat in cif.warnings:
-            wmsg=list(e.strip() for e in wmsg.splitlines() if e.strip())
-            for i,m in enumerate(wmsg):
-                if i==nwmax:
-                    break
-                pref='  %s :'%wcat if i==0 else ' '*(len(wcat)+4)
-                if i+1==nwmax and len(wmsg)>nwmax:
-                    m='<%i lines of output hidden>'%(len(wmsg)-nwmax)
-                warnstr+='\n# %s %s'%(pref,m)
-        warnstr+='\n#'
-
-    out = f"""NCMAT v5
-#
-# {title}
-#
-# Structure converted (with NCrystal.cifutils module) from:
-#
-{descr}#
-# IMPORTANT NOTICE: This is an automatic conversion which has not
-# been verified!  In particular the @DYNINFO sections might need
-# post-editing. Before distributing this file to other people,
-# please review this, amend the comments here to document anything
-# done, and remove this notice.
-#{warnstr}{orig_comments}{atomdb}
-{cell}
-@SPACEGROUP
-  {sgno}
-@ATOMPOSITIONS
-"""
-    out += out_atompos_lines
-    #reduce chemical formula:
-    gcd = functools.reduce(math.gcd,[v for k,v in formula_elem2count.items()])
-    for en in formula_elem2count.keys():
-        formula_elem2count[en] //= gcd
-    chemform = ''.join(f'{en}{count if count>1 else ""}' for en,count in sorted(formula_elem2count.items()))
-
-    assert len(elem2dyninfo)+len(elems_with_fallback_dyninfo)+len(elems_with_cif_debyetemp) == len(elems_unique)
-
-    for en in elems_unique:
-        di = elem2dyninfo.get(en,None)
-        fr_str = f'{formula_elem2count[en]}/{len(elems)//gcd}' if len(elems_unique)>1 else '1'
-        out += f'@DYNINFO\n  element  {elemNameRemap(en)}\n  fraction {fr_str}\n'
-        if di is None:
-            cifdt = elems_with_cif_debyetemp.get(en,None)
-            if cifdt is not None:
-                out += f'  type     vdosdebye\n  '+cifdt#debye_temp {cifdt:g} # Based on Uiso in CIF input (assuming T={cif_uiso_temperature:g}K)\n'
-            else:
-                out += f'  type     vdosdebye\n  debye_temp {value_fallback_debye_temp:g} # WARNING: Dummy fall-back value added here!!\n'
-        elif isinstance(di,AtomMSD):
-            atom = NC.atomDB( di.name )
-            out += f'  type     vdosdebye\n  '
-            out += calc_and_format_debyetemp_from_msd(di.msd,di.temperature,atom.averageMassAMU())
-#            mass=atom.averageMassAMU()
-#            dtval = NC.debyeTempFromIsotropicMSD( msd=di.msd,
-#                                                  temperature=di.temperature,
-#                                                  mass = mass )
-#            out += f'  type     vdosdebye\n  debye_temp {dtval:.14g} # From msd={di.msd:.14g}Aa^2 @ T={di.temperature:.14g}K (M={mass:.14g}u) \n'
-        elif isinstance(di,AtomDebyeTemp):
-            out += f'  type     vdosdebye\n  debye_temp {di.debye_temperature:.14g}\n'
-        elif isinstance(di,NC.Info.DI_VDOSDebye):
-            out += f'  type     vdosdebye\n  debye_temp {di.debyeTemperature():.14g}\n'
-        else:
-            assert isinstance(di,NC.Info.DI_VDOS)
-            out += '  type     vdos\n'
-            out += NC.formatVectorForNCMAT('vdos_egrid',di.vdosOrigEgrid())
-            out += NC.formatVectorForNCMAT('vdos_density',di.vdosOrigDensity())
-
-    l = list(e.rstrip() for e in out.splitlines())
-    #if emitted_warnings:
-    #    l2 = []
-    #    l2.append( l[0] )#NCMAT vx line
-    #    for w in emitted_warnings:
-    #        l2.append(f'# WARNING: {w}')
-    #    for e in l[1:]:
-    #        l2.append( e )
-    #    l = l2
-    l.append('')
-    return '\n'.join(l)
-
-_keepalive_dynamics=[]
-def extractDynamics(cfgstr_or_info):
-    #returns { 'comments':strlist, 'dyninfos':dyninfos }
-    if hasattr(cfgstr_or_info,'dyninfos'):
-        cfgstr, info = None, cfgstr_or_info
-    else:
-        cfgstr = cfgstr_or_info
-        info = NC.createInfo(cfgstr)
-
-    #DynInfos:
-    _keepalive_dynamics.append(info)
-    dyninfos=[ di for di in info.dyninfos
-               if ( isinstance(di,NC.Info.DI_VDOS) or isinstance(di,NC.Info.DI_VDOSDebye) ) ]
-
-    #Comments:
-    comments = []
-    for l in (NC.createTextData(cfgstr) if cfgstr else []):
-        l=l.strip()
-        if l.startswith('#'):
-            comments.append(l[1:])
-        if l.startswith('@'):
-            break
-    #remove any common leading spaces:
-    while ( comments
-            and any(e.startswith(' ') for e in comments)
-            and all((e.startswith(' ') or not e) for e in comments) ):
-        for i in range(len(comments)):
-            comments[i] = comments[i][1:]
-    return dict( comments = comments, dyninfos=dyninfos )
-
-def lookupAndProduce( cifsrc, *,dynamics=None,rawformat=False,atomdb=None,quiet=False,cif_uiso_temperature=None,display_labels=None):
-    #source must be a file-path or a tuple with (onlinedatabasename,databaseid).
-    #Supported onlinedatabasename's are so far 'COD' and 'MP'.
-
-    #FIXME: Get rid of this deprecated function in favour of CIFAnalyser etc.
-
-
-    autofn=[]
-    cifsrc = CifSource.fromAnySrc( cifsrc )
-    if cifsrc.codid is not None:
-        autofn.append(f'cod{cifsrc.codid}')
-    elif cifsrc.mpid is not None:
-        autofn.append(f'mp{cifsrc.mpid}')
-    if atomdb:
-        _adb=atomdb.replace(':',' ').split()
-        if not len(_adb)>=3 or _adb[1]!='is':
-            raise SystemExit(f'Error: Invalid ATOMDB format encountered: "{atomdb}" (supports "X is ..." syntax only)')#fixme not systemexit
-        descr[-1] += f' [with {_adb[0]}->{" ".join(_adb[2:])}]'
-    cif = LoadedCIF.fromAnySrc(cifsrc,quiet=quiet)
-
-    autofn.insert(0,f'sg{cif.structure.get_space_group_info()[1]}')
-    autofn.insert(0,cif.structure.composition.reduced_formula)
-    autofn.insert(0,'autogen')
-    out = produceNCMAT( cif,
-                        dynamics = dynamics,
-                        rawformat=rawformat,
-                        atomdb=atomdb,
-                        cif_uiso_temperature = cif_uiso_temperature,
-                        display_labels = display_labels
-                       )
-    return '_'.join(autofn)+'.ncmat', out
-
-def _actual_cif_analyse( loadedcif, *, quiet ):
-
-    cif = loadedcif
-
-    # Decode sites and sort into species with different atom types and occupancy:
-    uiso = extract_uiso(cif)
-
-    species_info = {}
-    for i,site in enumerate(cif.structure.sites):
-        coords = site.frac_coords
-        species = site.species
-        site_as_dict_species=site.as_dict()['species']
-        if not species.is_element or not len(species.elements)==1 or not len(site_as_dict_species)==1:
-            #NB: There is no reason we can't support this!! We just need an
-            #example of a CIF file with non-element species to test it on!
-            raise ValueError('NCrystal CifUtils currently only supports a single well defined element at each site.'
-                             +' Please send your CIF file to the NCrystal developers if you wish us to try and remedy this.')
-
-        d=site_as_dict_species[0]#we checked there is only one entry just above
-        elementName = str(d['element'])
-        site_species_info = dict( element_name = elementName,#we checked "species.is_element" just above!
-                                  occupancy = float(d.get('occu',1.0))
-                                  #We could split on oxidation state as well, but we don't for now:
-                                  #oxidation_state = float(d.get('oxidation_state',None)),
-                                 )
-        site_species_info['uiso'] = uiso.get(elementName,None)
-        #Combine coords of any entries with same site_species_info
-        key = tuple( sorted( site_species_info.items() ) )
-        if not key in species_info:
-            species_info[key] = dict( info = site_species_info, coords = [] )
-        species_info[key]['coords'] += [ ( float(coords[0]), float(coords[1]), float(coords[2]) ) ]
-
-    atoms = []
-    for i,(_,e) in enumerate(sorted(species_info.items())):
-        atoms.append( dict( idx = i,
-                            element = e['info']['element_name'],
-                            site_occupancy = e['info']['occupancy'],
-                            uiso = e['info']['uiso'],
-                            atompositions = e['coords'] ) )
-
-    a,b,c = (float(e) for e in cif.structure.lattice.abc)
-    alpha,beta,gamma = (float(e) for e in cif.structure.lattice.angles)
-
-    if (not a>0.0) or not (b>0.0) or not (c>0.0):
-        raise RuntimeError(f'Structure loaded from cif has invalid lattice parameters: {a}, {b}, {c}')
-    if (not 0.0<alpha<180.0) or not (0.0<beta<180.0) or not (0.0<gamma<180.0):
-        raise RuntimeError(f'Structure loaded from cif has invalid lattice angles: {alpha}, {beta}, {gamma}')
-    if ( alpha<3.1416 and beta<3.1416 and gamma<3.1416 ):
-        raise RuntimeError(f'Structure loaded from cif has invalid lattice angles (might be in radians rather than degrees): {alpha}, {beta}, {gamma}')
-
-    sgsymb,sgno = cif.structure.get_space_group_info()
-    if not sgno or not 1<=int(sgno)<=230:
-        if sgno:
-            nc_common.warn(f'Ignoring invalid space group number: {sgno}')
-        sgno = None
-
-    if not sgsymb or not str(sgsymb).strip():
-        sgsymb = None
-    else:
-        sgsymb = str(sgsymb).strip()
-
-    #A simple sanity check
-    if sgno and 195 <= sgno <= 230:
-        #cubic:
-        if not a==b or not a==c:
-            raise RuntimeError("cubic cell loaded from CIF file does not have all lattice parameters identical (a==b==c)")
-        if not alpha==90.0 or not beta==90.0 or not gamma==90.0:
-            raise RuntimeError("cubic cell loaded from CIF file does not have all lattice angles equal to 90 degrees")
-
-    structure = dict( spacegroup = sgno,
-                      sgsymb = sgsymb,
-                      a = float(a), b = float(b), c = float(c),
-                      alpha = float(alpha), beta = float(beta), gamma = float(gamma) )
-
-    return atoms, structure
-
-class CIFAnalyser:
-
-    def __init__( self, cifsrc, quiet = False ):
-        self._c = LoadedCIF.fromAnySrc(cifsrc,quiet=quiet)
-        with nc_common.WarningSpy() as warnlist:
-            self.__atoms,self.__structure = _actual_cif_analyse( self._c, quiet=quiet )
-        self.__analysis_warnings = warnlist
-        #Make immutable:
-        import types
-        self.__structure = types.MappingProxyType(self.__structure)#read-only view
-        self.__atoms = tuple( self.__atoms )
-
-    def suggest_file_basename():
-        pass#fixme
-
-    @property
-    def loaded_cif( self ):
-        return self._c
-
-    @property
-    def cifsrc( self ):
-        return self._c.cifsrc
-
-    @property
-    def warnings( self ):
-        """Warnings emitted during analysis of the CIF data (this is in addition to the warnings emitted when loading the CIF data)"""
-        return self.__analysis_warnings
-
-    @property
-    def atoms( self ):
-        """Returns information about atoms in a format like:
-            [
-             {'idx':0,'element':'Al','site_occupancy':1.0,'atompositions':[<positions>],'uiso':None},
-             {'idx':1,'element':'Al','site_occupancy':0.2,'atompositions':[<positions>],'uiso':None},
-             {'idx':2,'element':'O','site_occupancy':1.0,'atompositions':[<positions>],'uiso':0.025},
-             ...
-            ]
-        """
-        return self.__atoms
-
-    @property
-    def structure( self ):
-        """Returns information about symmetries and unit cell in a format like:
-           { 'spacegroup' : 225, # 1-230 or None
-             'sgsymb' :  "Fm-3m", # None if absent
-             'a' : 4.012,
-             'b' : 4.012,
-             'c' : 4.012,
-             'alpha' : 90,
-             'beta' : 90,
-             'gamma' : 90
-           }
-        """
-        #Fixme: should sgsymb belong in the description instead?
-        return self.__structure
-
-    @property
-    def description( self ):
-        """Description deduced from metadata fields and cif src (suitable for NCMAT comments)"""
-        pass#fixme. Remove this?
-
-
-    def create_ncmat( self, *args, **kwargs ):
-        """Return NCMAT data corresponding to the currently held crystal
-        parameters. All parameters are forwarded (same as calling
-        create_ncmat_composer(*args,**kwargs).create_ncmat())
-
-        """
-        c = self.create_ncmat_composer(*args,**kwargs)
-        return c.create_ncmat()
-
-    def create_ncmat_composer( self, *, uiso_temperature = None, skip_dyninfo = False ):
-        """Setup and return an NCMATComposer object, based on the currently held
-        crystal parameters.  If you wish to take advantage of any uiso/biso
-        values found in the CIF data, you must provide the uiso_temperature
-        parameter value (kelvin), to indicate the temperature at which these are valid.
-
-        If skip_dyninfo=True, no ncmat.set_dyninfo_... calls will be performed,
-        presumably because the caller will perform such calls subsequently.
-        """
-
-        NCMATComposer = nc_experimental.NCMATComposer
-        ncmat = NCMATComposer()
-        st = self.__structure
-        ncmat.set_cellsg( a=st['a'], b=st['b'], c=st['c'],
-                          alpha=st['alpha'], beta=st['beta'], gamma=st['gamma'],
-                          spacegroup=st['spacegroup'] )
-
-        element_list = [ a['element'] for a in self.__atoms ]
-        assert all(nc_experimental.isKnownElement(e) for e in element_list), "non-pure-elements not supported yet"
-
-        all_atompos = []
-        for a in self.__atoms:
-            occu = a.get('site_occupancy',1.0)
-            for c in a['atompositions']:
-                all_atompos.append( ( a['element'], c[0], c[1], c[2], occu ) )
-
-        ncmat.set_atompos( all_atompos )
-
-        for a in ([] if skip_dyninfo else self.__atoms):
+            composstr = ' '.join(f'{f:g} {n}' for f,n in compos)
+        ncmat.set_composition( lbl, compos )
+        if not skip_dyninfo:
             uiso = a.get('uiso',None)
             if uiso is not None:
                 assert uiso>0.0
                 if uiso_temperature is None:
-                    pass#fixme: Add warning somehow about unused uiso info!
+                    _nc_common.warn(f'ignoring uiso info present in CIF input for "{composstr}" since uiso_temperature parameter value is not provided\n')
                 else:
-                    ncmat.set_dyninfo_msd(a['element'],msd=uiso, temperature=uiso_temperature)
-                    continue
-            ncmat.set_dyninfo_vdosdebye(a['element'],300.0,comment='WARNING: Dummy fall-back value added here!!')
+                    ncmat.set_dyninfo_msd( lbl, msd=uiso, temperature=uiso_temperature )
+            _aniso = a.get('aniso',None)
 
-        return ncmat
+            if _aniso_nontrivial(_aniso):
+                _nc_common.warn('Anisotropic displacement for %s ignored (%s)'%(composstr,', '.join (f'{k}={v:g}' for k,v in sorted(_aniso.items()))))
+
+        occu = a.get('occupancy',1.0)
+        for c in a['equivalent_positions']:
+            all_atompos.append( ( lbl, c[0], c[1], c[2], occu ) )
+
+    ncmat.set_atompos( all_atompos )
+
+    st = src.cellsg
+    ncmat.set_cellsg( a=st['a'], b=st['b'], c=st['c'],
+                      alpha=st['alpha'], beta=st['beta'], gamma=st['gamma'],
+                      spacegroup=st['spacegroup']['number'] )
+
+    if top_comments is not None:
+        ncmat.add_comments(top_comments)
+
+    _extracted_description = src.extracted_description
+    if not _extracted_description:
+        if src.cifsrc.filepath:
+            _extracted_description = [f'CIF file: {src.cifsrc.filepath.name}']
+        else:
+            _extracted_description = ['Anonymous CIF data']
+    if _extracted_description:
+        ncmat.add_comments(['Structure converted (with NCrystal.cifutils module) from:',''])
+
+        _thedescr = _extracted_description
+        if remap_str:
+            src.actual_mpid
+            _codidurl = _codid2url(src.actual_codid) if src.actual_codid else None
+            _mpidurl = _mpid2url(src.actual_mpid) if src.actual_mpid else None
+            if _codidurl and _codidurl in _thedescr:
+                _=f'{_codidurl} [with {remap_str}]'
+                _thedescr = [e.replace(_codidurl,_) for e in _thedescr]
+            elif _mpidurl and _mpidurl in _thedescr:
+                _=f'{_mpidurl} [with {remap_str}]'
+                _thedescr = [e.replace(_mpidurl,_) for e in _thedescr]
+            else:
+                _thedescr+=['',f'Note: With custom remappings: {remap_str}']
+
+        ncmat.add_comments(['  '+e for e in _thedescr])
+        ncmat.add_comments([''])
+
+    ncmat.add_comments('IMPORTANT NOTICE: This is a mostly automatic conversion which has not been',add_empty_line_divider=True)
+    ncmat.add_comments('                  verified!  In particular the @DYNINFO sections might need')
+    ncmat.add_comments('                  post-editing. Before distributing this file to other people,')
+    ncmat.add_comments('                  please review this, amend the comments here to document,')
+    ncmat.add_comments('                  anything done, and remove this notice.')
+
+   #formula
+    def _extract_atomcount( atom ):
+        occu, npos = atom['occupancy'], len(atom['equivalent_positions'])
+        return npos * ( int(occu) if occu == int(occu) else float(occu) )
+    total_composition = []
+    for a in src_atoms:
+        atomcount = _extract_atomcount( a )
+        for elemfrac, eleminfo in a['composition']:
+            total_composition.append( ( eleminfo, elemfrac * atomcount ) )
+    formula = _nc_common.format_chemform( total_composition )
+
+
+    expected_formula = cifloader.raw_cif_chemformula
+
+    if expected_formula:
+        def formula_to_dict( f ):
+            if not f:
+                return None
+            if isinstance(f,str):
+                return formula_to_dict( _decode_formula(f) )
+            if isinstance(f,dict):
+                return f
+            res = {}
+            for lbl,count in f:
+                assert count>=0.0
+                if count==0:
+                    continue
+                if lbl in res:
+                    res[lbl] += count
+                else:
+                    res[lbl] = count
+            return res or None
+        from .atomdata import allElementNames
+        _all_elements = allElementNames()
+        def _decode_formula( s ):
+            l1 = [e for e in _all_elements if len(e)==1]+['D','T']
+            l2 = [e for e in _all_elements if len(e)==2]
+            res = []
+            while s.strip():
+                s=s.strip()
+                c = [ e for e in l2 if s.startswith(e) ]
+                if not c:
+                    c = [ e for e in l1 if s.startswith(e) ]
+                if len(c)!=1:
+                    return None
+                c = c[0]
+                s=s[len(c):].strip()
+                leaddigits = ''
+                while s and s[0].isdigit():
+                    leaddigits += s[0]
+                    s=s[1:]#nb: no strip here, we want to stop on a space!
+                n = int(leaddigits) if leaddigits else 1
+                res.append( (c,n) )
+            return formula_to_dict(res)
+        def formulas_incompatible( formula1, formula2 ):
+            f1 = formula_to_dict(formula1)
+            f2 = formula_to_dict(formula2)
+            if not f1 or not f2:
+                return False
+            #map D,T,H2,H3 -> H to ensure fewer false positives:
+            _ = lambda d : dict( (('H' if k in ('D','T','H2','H3') else k),v) for k,v in d.items())
+            f1,f2 = _(f1),_(f2)
+            if f1 == f2:
+                return False
+            if not set(f1.keys())==set(f2.keys()):
+                return True
+            kref = list(f1.keys())[0]
+            assert f1[kref] > 0.0 and f2[kref]>0.0
+            f2scale = f1[kref]/f2[kref]
+            tol = 1e-2#not tighter to avoid false positives!
+            for k,v1 in f1.items():
+                v2 = f2[k]*f2scale
+                if abs(v1-v2)>tol and abs(v1-v2)/(1e-300+abs(v1)+abs(v2)) > tol:
+                    return True
+            return False
+
+        if not no_formula_check and expected_formula:
+            actual_expected_formula_dict = formula_to_dict( expected_formula )
+            if remap:
+                newf = {}
+                def _collect( _name, _frac ):
+                    _name = _stdatomname(_name)
+                    if not _name in newf:
+                        newf[_name] = _frac
+                    else:
+                        newf[_name] += _frac
+                for name, frac in actual_expected_formula_dict.items():
+                    _remapped = remap.get(_stdatomname(name),None)
+                    if _remapped is not None:
+                        for remap_frac, remap_name in _remapped:
+                            _collect( remap_name, remap_frac * frac )
+                    else:
+                        _collect( name, frac )
+                actual_expected_formula_dict = newf
+            if formulas_incompatible(total_composition,actual_expected_formula_dict):
+                s = f'"{expected_formula}"'
+                if remap:
+                    _ = _nc_common.format_chemform( list( sorted(actual_expected_formula_dict.items() ) ) )
+                    s += f' remapped to "{_}"'
+                raise _nc_core.NCBadInput(f'Formula encoded in CIF data ({s}) is not compatible with formula of loaded structure ("{formula}")')
+
+    return ncmat
+
+
+def _impl_merge_atoms( atoms ):
+    l = []
+    for a in atoms:
+        pos = list(a['equivalent_positions'])
+        cif_labels = list( a['cif_labels'] )
+        other_metadata = list( sorted( (k,v) for k,v in a.items() if not k in ('equivalent_positions','cif_labels') ) )
+        found = False
+        for k,v in l:
+            if k == other_metadata:
+                v[0] += list( pos )
+                v[1] += list( cif_labels )
+                found = True
+                break
+        if not found:
+            l.append( (other_metadata,[list(pos),list(cif_labels)]) )
+    res = []
+    for other_metadata, ( pos, cif_labels ) in l:
+        d = dict( (k,v) for k,v in sorted(other_metadata) )
+        d['equivalent_positions'] = list( sorted( pos ) )
+        d['cif_labels'] = list( sorted( cif_labels ) )
+        res.append( d )
+    return res
+
+def _suggest_filename( ncmat_metadata, cifloader ):
+    l = ['autogen']
+    l.append( ncmat_metadata['chemform'] )
+    sgnum = ncmat_metadata.get('cellsg',{}).get('spacegroup',None)
+    if sgnum:
+        l.append( 'sg%i'%sgnum )
+    if cifloader.actual_codid:
+        l.append( 'cod%i'%cifloader.actual_codid )
+    if cifloader.actual_mpid:
+        l.append( 'mp%i'%cifloader.actual_mpid )
+    return '_'.join(l) + '.ncmat'
+
+def _format_spglib_cell( cellsg, atoms ):
+    lattice = _nc_ncmatimpl._cellparams_to_spglib_lattice(cellsg)
+    atomic_points = []
+    atomic_types = []
+    for i,a in enumerate(atoms):
+        for p in a['equivalent_positions']:
+            atomic_points.append( p )
+            atomic_types.append( i )
+    return ( lattice, atomic_points, atomic_types )
+
+def _impl_refine_cell( cellsg, atoms ):
+    orig_cell = _format_spglib_cell( cellsg, atoms )
+
+    d = _nc_ncmatimpl._spglib_refine_cell( orig_cell )#, symprec = 0.01, allow_axis_swap = True )
+    assert len(d)==7
+
+    refined_cell = d['refined_cell']
+    new_atom_pos = dict( (i,[]) for i in range(max(refined_cell[2])+1) )
+    for pos, atomidx in zip(refined_cell[1],refined_cell[2]):
+        new_atom_pos[ atomidx ] += [ (pos[0],pos[1],pos[2]) ]
+
+    new_atoms = [ dict( (k,v if k!='equivalent_positions' else new_atom_pos[idx])
+                        for k,v in e.items()) for idx,e in enumerate(atoms) ]
+    if not d['can_keep_anisotropic_properties']:
+        new_atoms = [ dict( (k,v if k!='aniso' else None)
+                            for k,v in e.items()) for idx,e in enumerate(new_atoms) ]
+
+
+
+
+    new_cellsg = dict( d['cellparams_snapped'].items() )
+    new_cellsg['spacegroup'] = dict( number = d['sgno'],
+                                     hm = d['sgsymb_hm'] )
+
+    return new_cellsg, new_atoms, d['warnings'], d['msgs']
+
+def _gemmi_wrap_to_unit( gemmi_fractional ):
+    #gemmi's wrap_to_unit() can return 1.0, but we want those to be 0.0 (so
+    #(a,b,1.0) and (a,b,0.0) does not appear to be two different
+    #points). Update: I am not 100% sure about this, but keeping this function
+    #for added robustness.
+    c = gemmi_fractional.wrap_to_unit()
+    for i in range(3):
+        if c[i]==1.0:
+            c[i]=0.0
+    return c
+
+def _getMaterialsProjectAPIKEY():
+    import os
+    apikey = os.environ.get('MATERIALSPROJECT_USER_API_KEY',None)
+    if len(apikey.strip()) < 25:
+        raise _nc_core.NCException('ERROR: Legacy API key found in MATERIALSPROJECT_USER_API_KEY. Please instead provide a new API key from https://materialsproject.org/api (Keys for the new API are ~32 characters, whereas keys for the legacy API are ~16 characters).')
+    if not apikey:
+        raise _nc_core.NCException('ERROR: Missing API key for materialsproject.org access. To fix, '
+                           +'please make sure the environment variable MATERIALSPROJECT_USER_API_KEY'
+                           +' contains your personal access key that you see on'
+                           +' https://www.materialsproject.org/dashboard (after logging in).')
+    return apikey
+
+def _use_local_cif_cache( fn, text_data = None, quiet = False ):
+    #NB: This simple implementation use no locking to guard against race
+    #conditions!!! But we do perform write+move instead of simply write, which
+    #is a bit more "atomic".
+    import os
+    if os.environ.get('NCRYSTAL_ONLINEDB_FORBID_NETWORK',None):
+        def notfound():
+            raise RuntimeError('Error: Trying to access remote DB but NCRYSTAL_ONLINEDB_FORBID_NETWORK is set')
+        time_limit_hours = 24*7*365*1000#sure, bug me in 3023
+    else:
+        notfound = lambda : None
+        time_limit_hours = 24*7
+    import os
+    d = os.environ.get('NCRYSTAL_ONLINEDB_CACHEDIR',None)
+    if not d:
+        return notfound()
+    import os.path
+    import pathlib
+    p = pathlib.Path(os.path.expanduser(d)).resolve().absolute() if d else None
+    if not p:
+        return notfound()
+    pfn = ( p / fn )
+    if text_data:
+        #store data into local cache:
+        if not quiet:
+            _nc_common.print(f"Adding {fn} to local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR")
+        p.mkdir(parents=True, exist_ok=True)
+        pfn_tmp = p / f'{fn}_tmp_{os.getpid()}'
+        pfn_tmp.write_text(text_data)
+        pfn_tmp.replace(pfn)
+        return notfound()
+    #retrieve data from local cache:
+    if not pfn.exists():
+        return notfound()
+    #Since online data can change, entries expire eventually:
+    import datetime
+    timelim = datetime.timedelta( hours = time_limit_hours )
+    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    mtime = datetime.datetime.fromtimestamp(pfn.stat().st_mtime, tz=datetime.timezone.utc)
+    if ( now-mtime ) > timelim:
+        #entry expired:
+        if not quiet:
+            _nc_common.print(f"Ignoring (and removing) expired {fn} from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR")
+        pfn.unlink()
+        return notfound()
+    if not quiet:
+        _nc_common.print(f"Getting {fn} from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR")
+    return pfn.read_text()
+
+_cod_cache = []
+def _cod_get_cifdata( codid, quiet = False ):
+    for _codid, _result in _cod_cache:
+        if codid == _codid:
+            if not quiet:
+                _nc_common.print(f"Using cached Crystallography Open Database result for entry {codid}")
+            return _result
+    cache_fn = 'cod_%i.cif'%codid
+    #check file cache:
+    c = _use_local_cif_cache( cache_fn, quiet = quiet )
+    if c:
+        return c
+    if not quiet:
+        _nc_common.print(f"Querying the Crystallography Open Database for entry {codid}")
+    import requests
+    r=requests.get("https://www.crystallography.net/cod/%i.cif"%(codid))
+    r.raise_for_status()#throw exception in case of e.g. 404
+    result = str(r.text)
+    if len(_cod_cache)==10:
+        _cod_cache.pop(0)
+    _cod_cache.append( (codid, result ) )
+    #update file cache:
+    _use_local_cif_cache( cache_fn, quiet = quiet, text_data = result )
+    return result
+
+_mp_cache = []
+def _mp_get_cifdata( mpid, quiet = False, apikey = None ):
+    if hasattr(mpid,'startswith') and mpid.startswith('mp-'):
+        mpid = mpid[3:]
+    if hasattr(mpid,'startswith') and mpid.startswith('mpid::'):
+        mpid = mpid[6:]
+    mpid = int(mpid)
+    for _mpid, _result in _mp_cache:
+        if mpid == _mpid:
+            if not quiet:
+                _nc_common.print(f"Using cached materialsproject.org result for entry mp-{mpid}")
+            return _result
+    #check file cache:
+    cache_fn = 'mp_%i.cif'%mpid
+    c = _use_local_cif_cache( cache_fn, quiet = quiet )
+    if c:
+        return c
+
+    if not quiet:
+        _nc_common.print(f"Querying materialsproject.org for entry mp-{mpid}")
+
+    if apikey is None:
+        apikey = _getMaterialsProjectAPIKEY()
+
+    with _nc_common.WarningSpy(blockfct = lambda msg, cat : cat in ('PendingDeprecationWarning','DeprecationWarning') ):
+        try:
+            import mp_api.client
+        except ImportError:
+            raise ImportError('Could not import mp_api.client. Installing the mp-api package will most likely'
+                              ' fix this (perhaps with a command like "conda install -c conda-forge mp-api"'
+                              ' or "python3 -mpip install mp-api").')
+
+    with _nc_common.WarningSpy(blockfct = lambda msg,cat : msg.lower().startswith('mpcontribs-client not installed') ):
+        with mp_api.client.MPRester(apikey) as mpr:
+            s = mpr.get_structure_by_material_id( f'mp-{mpid}', conventional_unit_cell=True )
+            #If we do no use the symprec argument in the next line, we will get a an unrefined P1 structure:
+            result = s.to(fmt='cif',symprec=1e-4, significant_figures=15, angle_tolerance=5.0, refine_struct=True)
+            #But we want to sanity check that this refinement gives the same spacegroup result as listed in the MP database:
+            mp_expected_sg_number = s.get_space_group_info()[1]
+    sg_checked = False
+    errmsg = f'Unable to reliably determine spacegroup when trying to retrieve structure for mp-{mpid} from materialsproject.org'
+    for l in result.splitlines():
+        p = l.split('#',1)[0].split()
+        if p and p[0]=='_symmetry_Int_Tables_number':
+            if not len(p)>=2 or not p[1].isdigit():
+                raise _nc_core.NCBadInput(errmsg+f' (unexpected format of line: "{l}")')
+            _sgnum = int(p[1])
+            if _sgnum == mp_expected_sg_number:
+                sg_checked = True
+            else:
+                raise _nc_core.NCBadInput(errmsg+f' (expected SG-{mp_expected_sg_number} but got SG-{_sgnum})')
+
+    if not sg_checked:
+        raise _nc_core.NCBadInput(errmsg+f' (no line with "_symmetry_Int_Tables_number" produced)')
+
+    #Finally embed origin as a note (so we can extract it later for the ncmat
+    #header comments). Keep the format below synchronised with the reader
+    #elsewhere in this file!!
+    result += f'\n# Note from NCrystal.cifutils: Data from materialsproject.org / mp-{mpid}\n'
+
+    #Update cache and return:
+    if len( _mp_cache ) == 10:
+        _mp_cache.pop(0)
+    _mp_cache.append( (mpid, result ) )
+
+    #update file cache:
+    _use_local_cif_cache( cache_fn, quiet = quiet, text_data = result )
+
+    return result
+
+def _codid2url( codid ):
+    return f'https://www.crystallography.net/cod/{codid}.html'
+def _mpid2url( mpid ):
+    return f'https://www.materialsproject.org/materials/mp-{mpid}'
+
+####################### NEW GEMMI STUFF ############################################
+def _import_gemmi( *, sysexit = False ):
+    try:
+        import gemmi#both available on pypi and conda-forge
+        import gemmi.cif
+    except ImportError:
+        m = ( 'Could not import gemmi modules needed to process CIF files.'
+              +' The gemmi package is available on both PyPI ("python3 -mpip install'
+              +' gemmi") and conda ("conda install -c conda-forge gemmi")' )
+        if sysexit:
+            raise SystemExit(m)
+        else:
+            raise ImportError(m)
+    return gemmi, gemmi.cif
+
+#NB: gemmi has the crystal system as a string (+ other stuff like short_name()):
+# crystal_system_str(...)
+# |      crystal_system_str(self: gemmi.SpaceGroup) -> str
+
+_guessmap = [None]
+def _guess_spacegroup_name( gemmi, s ):
+    def _guess_keys( s ):
+        s=''.join(s.split())
+        return [ s, s.replace('/',''),s.replace('-',''),s.replace('-','').replace('/','' ) ]
+    def _init_guess_map():
+        guess = {}
+        def _ag( i, s ):
+            if not s in guess:
+                guess[s] = set([i])
+            else:
+                guess[s].add(i)
+        def add_guess( i, s ):
+            for k in _guess_keys(s):
+                _ag( i, k )
+        for i in range(1,230+1):
+            sg = gemmi.find_spacegroup_by_number(i)
+            add_guess( i, sg.xhm() )
+            add_guess( i, sg.short_name() )
+            add_guess( i, sg.hall )
+            add_guess( i, sg.hm )
+        return guess
+    if not _guessmap[0]:
+        _guessmap[0] = _init_guess_map()
+    gm = _guessmap[0]
+    possible_sgnos = set()
+    for k in _guess_keys(s):
+        for i in gm.get(k,[]):
+            possible_sgnos.add( i )
+    return list(sorted(possible_sgnos))
+
+def _load_with_gemmi( cifblock, allow_fixup = True ):
+    #Load cifblock into gemmi struct. We might perform in-place editing of the
+    #cifblock, if gemmi does not immediately recognise the space group.
+    gemmi, gemmi_cif = _import_gemmi()
+
+    struct = gemmi.make_small_structure_from_block( cifblock )
+    assert struct
+    sg = struct.find_spacegroup()
+    if sg or not allow_fixup:
+        return struct, sg
+
+    #Let us see if we can find the spacegroup with a bit of manual
+    #intervention. If we can, we update the cifblock and do a full reload
+    #(otherwise the gemmi struct object won't have the spacegroup and images
+    #properly initialised):
+
+    _ = cifblock.find(['_space_group_IT_number'])
+    if not _:
+        _ = cifblock.find(['_symmetry_Int_Tables_number'])
+
+    if _ and len(_)==1 and len(_[0])==1 and str(_[0][0]).isdigit() and (1<=int(str(_[0][0]))<=230):
+        _sgnum = int(_[0][0])
+        #NB: We can do this for some groups only (cubic?) Or perhaps we could use it as a double-check only?
+        sg = gemmi.find_spacegroup_by_number(_sgnum)
+        assert sg and sg.number == _sgnum
+
+    sg_hm = str(struct.spacegroup_hm).strip()
+    if sg_hm and not sg:
+        sg_searchname = lambda x : gemmi.find_spacegroup_by_name(x, struct.cell.alpha, struct.cell.gamma )
+        attempts = [ sg_hm ]
+        #TODO: We used to do this, but currently it does not make a difference:
+        #for e in ('H','R'):#NB H+R is not enough, see table 6 at http://cci.lbl.gov/sginfo/hall_symbols.html
+        #    if sg_hm.endswith(e):
+        #        attempts.append( sg_hm[:-1] + ' : ' + sg_hm[-1] )
+        for a in attempts:
+            a = ' '.join(a.split())
+            sg = sg_searchname( a )
+            if sg:
+                _nc_common.warn(f'Had to interpret spacegroup "{sg_hm}" as "{a}" before Gemmi could recognise it.')
+                break
+
+    if sg_hm and not sg:
+        possible = _guess_spacegroup_name( gemmi, sg_hm )
+        if len(possible) == 1:
+            sgnum = possible[0]
+            sg = gemmi.find_spacegroup_by_number(sgnum)
+            _nc_common.warn(f'Had to interpret spacegroup "{sg_hm}" as "{sg.hm}" before Gemmi could recognise it.')
+        elif len(possible) > 1:
+            poshm = list( (sgnum,gemmi.find_spacegroup_by_number(sgnum).hm) for sgnum in possible )
+            poshm = ', '.join( '"%s"(number %i)'  for sgnum,sgstr in poshm )
+            _nc_common.warn(f'Failed to interpret spacegroup interpret spacegroup "{sg_hm}". Could be any of: {poshm}.')
+    if not sg:
+        #manual intervention did not help:
+        return struct, None
+
+    #patch up the cifblock with info about manually found spacegroup, and try again:
+    _update_spacegroup_in_cifblock( cifblock, sg )
+
+    return _load_with_gemmi( cifblock, allow_fixup = False )
+
+def _update_spacegroup_in_cifblock_from_name( gemmi, cifblock, name ):
+    sg = gemmi.find_spacegroup_by_name( name )
+    if not sg:
+        raise _nc_core.NCBadInput(f'Unknown spacegroup: "{name}"')
+    _update_spacegroup_in_cifblock( cifblock, sg )
+
+def _update_spacegroup_in_cifblock( cifblock, sg, use_xhm = True ):
+    cifblock.set_pair('_space_group_name_H-M_alt', sg.xhm() if use_xhm else sg.hm )
+    cifblock.set_pair('_space_group_IT_number', str(sg.number) )
+    cifblock.set_pair('_space_group_name_Hall', sg.hall )
+    cifblock.set_pair('_space_group_crystal_system', sg.crystal_system_str() )
+
+
+def _actual_init_gemmicif( cifsrc, *, quiet, mp_apikey, refine_with_spglib, merge_equiv, override_spacegroup = None ):
+
+    from math import fsum as _math_fsum
+
+    result = {}
+    pos_tolerance = 0.0001;#NB: Best if value matches the one in NCInfoBuilder.cc
+
+    from types import MappingProxyType
+    dict_ro, list_ro = MappingProxyType, tuple
+
+    gemmi, gemmi_cif = _import_gemmi()
+
+    if not isinstance( cifsrc, CIFSource ):
+        cifsrc = CIFSource( cifsrc )
+
+    result['cifsrc'] = cifsrc
+
+    _cifdata = cifsrc.load_data( quiet = quiet, mp_apikey = mp_apikey )
+    if not quiet:
+        _nc_common.print("Attempting to load CIF data with gemmi")
+
+    result['cifdata'] = _cifdata
+    try:
+        cif_doc = gemmi_cif.read_string( _cifdata )
+    except ValueError as e:
+        errmsg = 'CIF parsing error (from Gemmi): "%s"'%e
+        cif_doc = None
+    if cif_doc is None:
+        raise _nc_core.NCBadInput(errmsg or 'Unknown CIF parsing error from Gemmi')
+
+    cif_doc_as_json = cif_doc.as_json()
+    import json
+    try:
+        cif_doc_as_dict = json.loads( cif_doc_as_json )
+    except json.decoder.JSONDecodeError as e:
+        cif_doc_as_dict = None
+        _nc_common.warn('Could not decode raw CIF data to dictionary (Gemmi bug?): JSONDecodeError("%s")'%e)
+
+    result['cif_raw'] = cif_doc_as_dict
+    if len(cif_doc) == 0:
+        raise _nc_core.NCBadInput('CIF data had no blocks!')
+    if len(cif_doc) == 1:
+        cif_block_with_structure = cif_doc.sole_block()
+    else:
+        cif_block_with_structure = None
+        for e in cif_doc:
+            if not len(e.find(['_atom_site_fract_x'])):
+                continue
+            if cif_block_with_structure:
+                cif_block_with_structure = None
+                break
+            cif_block_with_structure = e
+        if not cif_block_with_structure:
+            raise _nc_core.NCBadInput('Could not automatically determine block in CIF data with structure info')
+
+    assert cif_block_with_structure
+
+    if override_spacegroup:
+        assert isinstance(override_spacegroup,str)
+        _nc_common.warn(f'Overriding spacegroup to "{override_spacegroup}" due to explicit request')
+        _update_spacegroup_in_cifblock_from_name( gemmi, cif_block_with_structure, override_spacegroup )
+
+    #record original h-m-alt entry:
+    orig_hm_alt = None
+    _ = cif_block_with_structure.find(['_space_group_name_H-M_alt'])
+    if _ and len(_)==1 and len(_[0])==1:
+        orig_hm_alt = str(_[0][0]).strip()
+
+    struct, sg = _load_with_gemmi( cif_block_with_structure )
+
+    if not struct:
+        raise _nc_core.NCBadInput('Could not load structure with Gemmi')
+
+    if not sg:
+        raise _nc_core.NCBadInput('Could not determine space group from CIF data')
+
+    #warn if spacegroup setting might be ambiguous:
+    if sg.number != 1:
+        _ = list( sorted( (e.number,e.xhm(),e.is_reference_setting()) for e in gemmi.spacegroup_table() if ( e.number==sg.number and ':' in e.xhm())))
+        #_ = [ (no,xhm,isref) for no,xhm,isref in _ if isref ]
+        if len(_)>1:
+            _str = '", "'.join( xhm for no,xhm,isref in _)
+            if not orig_hm_alt or not any( (orig_hm_alt==e[1] or orig_hm_alt.replace(' ','')==e[1].replace(' ','')) for e in _ ):
+                _nc_common.warn(f'SG-{sg.number} available in multiple choices ("{_str}") and'
+                               ' which one was not encoded explicitly in the _space_group_name_H-M_alt CIF field. Consider overriding the space group explicitly when loading this file.')
+
+
+
+    _ = cif_block_with_structure.find(['_atom_type_number_in_cell'])
+    _ = sum((sum(([e] for e in l),[]) for l in _),[]) if _ else []
+    if _ and not any( e is None for e in _ ):
+        expected_tot_atom_in_orig_cell = sum(float(e) for e in _)
+    else:
+        expected_tot_atom_in_orig_cell = None
+    if not ( isinstance(sg.number,int) or sg.number.isdigit() ) or not ( 1<=int(sg.number)<=230 ):
+        raise _nc_core.NCBadInput(f'Could not determine space group from CIF data (it loaded with invalid SG number: {sg.number}')
+    if not struct.cell.is_crystal():
+        raise _nc_core.NCBadInput('Loaded structure is non-crystalline (according to Gemmi).')
+
+    sgnumber = int(sg.number)
+
+    if not struct.cell.is_compatible_with_spacegroup( sg ):
+        raise _nc_core.NCBadInput('Loaded unit cell is not compatible with deduced space group (according to Gemmi).')
+
+    cellsg = dict ( a = struct.cell.a, b = struct.cell.b, c = struct.cell.c,
+                    alpha = struct.cell.alpha,
+                    beta = struct.cell.beta,
+                    gamma = struct.cell.gamma )
+
+    fractcoord_approx_1angstrom = 1.0 / ( (struct.cell.a+struct.cell.b+struct.cell.c)/3.0 )
+
+
+    #Although the sg object also provides sg.ccp4 and sg.hall, we record here
+    #just sgnumber and xhm, since that is what spglib refinement also provides:
+    cellsg['spacegroup'] = dict_ro( dict( number = sgnumber,
+                                          hm = sg.xhm(),
+                                         ) )
+
+    collected_atoms = []
+
+    def _expand_coord_to_all_other_images( coord, allow_finetune = 3 ):
+        pos0 = _gemmi_wrap_to_unit(coord)
+        #First find all brute-force expanded coords (ignore those within machine
+        #precision of each other!):
+        l = [ pos0 ]
+        for candidate in ( _gemmi_wrap_to_unit(img.apply( pos0 )) for img in struct.cell.images):
+            use = True
+            for c in l:
+                if _nc_ncmatimpl._unit_cell_point_dist(candidate,c) < 1e-10:
+                    use = False
+                    break
+            if use:
+                l.append( candidate )
+        if not allow_finetune:
+            return l
+        #Now, check how many of these are very close to the initial point:
+        lclose = [ _nc_ncmatimpl._remap_fract_pos_pt(e) for e in l if _nc_ncmatimpl._unit_cell_point_dist(pos0,e) < 0.01*fractcoord_approx_1angstrom ]
+        assert len(lclose) > 0
+        if len(lclose) == 1:
+            #no issues, just return:
+            return l
+        #Input might have had inexact coordinates for atoms at special
+        #positions. Fine-tune pos0 as average over the close points, and rerun:
+        def _fract_delta( x1, x0 ):
+            #remember that distance of (0,0,eps) and (0,0,1-eps) is 2eps, not 1-2eps.
+            dx = x1 - x0
+            if dx > 0.5:
+                dx -= 1.0
+            if dx < -0.5:
+                dx += 1.0
+            return dx
+        def _fract_delta_pt( xyz1, xyz0 ):
+            return tuple( _fract_delta( xyz1[i], xyz0[i] ) for i in range(3) )
+
+        pos0_new = [ _math_fsum( [lclose[0][i]] + [ _fract_delta(c[i],lclose[0][i])/len(lclose) for c in lclose ] ) for i in range(3) ]
+        #snap to (0,0,0):
+        for i in range(3):
+            if abs(pos0_new[i])< 1e-16:
+                pos0_new[i] = 0.0
+        fmt = lambda c : f'({c[0]:.15g},{c[1]:.15g},{c[2]:.15g})'
+        _nc_common.warn('Fractional coordinate %s interpreted as special position %s to avoid numerical precision issues'%(fmt(coord),fmt(pos0_new)))
+        return _expand_coord_to_all_other_images( gemmi.Fractional(pos0_new[0],pos0_new[1],pos0_new[2]), allow_finetune = (allow_finetune-1) )
+
+
+    for site in struct.sites:
+        if not float( site.occ ) > 0.0:
+            continue
+        pos0 = _gemmi_wrap_to_unit( site.fract )
+        expanded_coords = _expand_coord_to_all_other_images( pos0 )
+
+        aniso = None
+        if site.aniso.nonzero:
+            aniso = dict( (k, float(getattr(site.aniso,k))) for k in ('u11','u22','u33','u12','u13','u23') )
+            if all( v==0.0 for v in aniso.values() ):
+                aniso = None
+        u_iso = float( site.u_iso )
+        if not u_iso > 0.0:
+            u_iso = None
+
+        if aniso and not u_iso:
+            #this logic might already exist on the gemmi-side, but to be safe we add it here as well:
+            u_iso = ( aniso['u11'] + aniso['u22'] + aniso['u33'] ) / 3
+
+        site_en = str(site.element.name).strip()
+        if site_en == 'X' or not site_en:
+            #Issue seen in codid::9005777, which had no atomic symbols but
+            #labels like "CaM1", "CaM2", "OA1".."OA3", "OB1", "OB2", "OC1",
+            #"OC3",... Correct if beginning of string starts with exactly one
+            #element name, followed by either a digit or an upper case string
+            #followed by digits.
+            from .atomdata import allElementNames
+            def guess_elem_name( site_label ):
+                sl, traildigit = _nc_common._split_trailing_digit( site_label )
+                if traildigit is None:
+                    return
+                #first check element names with 2 chars:
+                candidates = [ e for e in allElementNames() if ( sl.startswith(e) and len(e)==2 ) ]
+                if len(candidates) > 1:
+                    return
+                #Then those with 1 char if no hit already (also check for 'D' and 'T'):
+                if not candidates:
+                    candidates = [ e for e in allElementNames() if ( sl.startswith(e) and len(e)==1 ) ]
+                    candidates += [ e for e in ('D','T') if ( sl.startswith(e) and len(e)==1 ) ]
+                if len(candidates)!=1:
+                    return
+                c = candidates[0]
+                assert site_label.startswith(c)
+                leftover = site_label[len(c):].strip()
+                while leftover and leftover[0].isupper()  and leftover[0].isalpha():
+                    leftover = leftover[1:].strip()
+                if not leftover or leftover.isdigit():
+                    return c
+            elem_name = guess_elem_name( site.label )
+            if elem_name:
+                _nc_common.warn(f'Assuming atomic symbol "{elem_name}" based on CIF label "{site.label}"')
+            else:
+                raise _nc_core.NCBadInput(f'Neither Gemmi nor NCrystal\'s custom code could deduce an atomic symbol for the CIF label "{site.label}"')
+            elem_Z = None
+        else:
+            elem_name, elem_Z = site_en, int(site.element.atomic_number)
+
+        elem_A = None
+        if elem_name == 'D':
+            elem_name, elem_Z, elem_A = 'H',1,2
+        if elem_name == 'T':
+            elem_name, elem_Z, elem_A = 'T',1,3
+        elem_marker = elem_name + ( str(elem_A) if elem_A else '' )
+
+        from .atomdata import elementNameToZValue
+        z2name = elementNameToZValue( elem_name, allow_isotopes = False )
+        if z2name is None:
+            raise _nc_core.NCBadInput(f'Not an element name: "{elem_name}"')
+
+        if elem_Z is None:
+            elem_Z = z2name
+        if elem_Z != z2name:
+            raise _nc_core.NCBadInput('Wrong atomic number (%i) provided for element "%s"'%(elem_Z,elem_name))
+
+        collected_atoms.append( dict( expanded_coords = expanded_coords,
+                                      element_marker = elem_marker,
+                                      occupancy = float(site.occ),
+                                      cif_label = str(site.label),
+                                      uiso = u_iso,
+                                      aniso = aniso ) )
+
+    #Now merge collected atoms which occupy the same sites:
+    def has_same_sites( atom1, atom2 ):
+        l1,l2 = atom1['expanded_coords'],atom2['expanded_coords']
+        assert len(l1)>0 and len(l2)>0
+        return len(l1) == len(l2) and any( ( _nc_ncmatimpl._unit_cell_point_dist(c2,l1[0])<pos_tolerance) for c2 in l2 )
+
+    atoms_to_process, final_atoms = collected_atoms, []
+    while atoms_to_process:
+        atom1 = atoms_to_process[0]
+        atoms_with_same_pos = [ atom1 ]
+        atoms_with_different_pos = []
+        for atom2 in atoms_to_process[1:]:
+            if has_same_sites(atom1,atom2):
+                if atom1['uiso'] != atom2['uiso'] or atom1['aniso'] != atom2['aniso']:
+                    raise _nc_core.NCBadInput('atoms labelled "%s" and "%s" have same cell '%(atom1['cif_label'],atom2['cif_label'])
+                                              +'positions but different uiso information. This is not supported.')
+                atoms_with_same_pos.append( atom2 )
+            else:
+                atoms_with_different_pos.append( atom2 )
+
+        cif_labels = list( a['cif_label'] for a in atoms_with_same_pos )
+        cif_labels_str = '"%s"'%('", "'.join(cl for cl in cif_labels))
+
+        composition = list( ( a['occupancy'], a['element_marker'] ) for a in atoms_with_same_pos )
+        occupancy = _math_fsum( fr for fr, elem in composition )
+        assert occupancy > 0.0
+        if occupancy != 1.0:
+            composition = list( (fr/occupancy, elem) for fr, elem in composition )
+            if occupancy > (1.0 + 1e-6) :
+                m=f'Error: Too high total occupancy ({occupancy} which is >1) for atoms with CIF labels: {cif_labels_str}'
+                if abs(int(occupancy+0.5)-occupancy)<1e-10:
+                    m+='. A possible cause could be multiple entries in the CIF file using atomic positions that are actually symmetrically equivalent!'
+                raise _nc_core.NCBadInput(m)
+            occupancy = min( 1.0, occupancy )
+
+        final_atom_info = dict( cif_labels = list_ro( cif_labels ),
+                                equivalent_positions = list_ro( (c.x,c.y,c.z) for c in atoms_with_same_pos[0]['expanded_coords'] ),
+                                composition = list_ro( sorted( composition ) ),
+                                occupancy = occupancy,
+                                uiso = atoms_with_same_pos[0]['uiso'],
+                                aniso = atoms_with_same_pos[0]['aniso'] )
+        final_atoms.append( dict_ro( final_atom_info )  )
+        atoms_to_process = atoms_with_different_pos
+
+    if merge_equiv:
+        final_atoms = list_ro( dict_ro(a) for a in _impl_merge_atoms( final_atoms ) )
+
+    if expected_tot_atom_in_orig_cell:
+        n_actual = sum( len(a['equivalent_positions']) for a in final_atoms )
+        rd = lambda x,y : abs(x-y)/(max(1e-300,abs(x)+abs(y)))
+        if rd( n_actual, expected_tot_atom_in_orig_cell ) > 0.01:
+            raise _nc_core.NCBadInput(f'Expanded number of atoms per cell ({n_actual}) is different '
+                                      'from what is stated explicitly in the CIF data'
+                                      f' ({expected_tot_atom_in_orig_cell}). Wrong spacegroup (or'
+                                      ' choice/setting improperly specified)?')
+
+    if refine_with_spglib:
+        cellsg, final_atoms, warnings, msgs = _impl_refine_cell( cellsg, final_atoms )
+        for w in warnings:
+            _nc_common.warn(w)
+        if not quiet:
+            for m in msgs:
+                _nc_common.print(m)
+    else:
+        _nc_common.warn('Structure refinement and verification with spglib was disabled due to explicit request.')
+
+    if int(cellsg['spacegroup']['number']) == 1:
+        #The following warning might be a bit obsolete now that we usually
+        #refine cells, but we keep it here for now as an extra safeguard:
+        _nc_common.warn('Space-group number 1 ("P1") detected in CIF input. A lot (but not all) of CIF data'
+                       ' with this space group listed is in a non-conventional format not suitable for NCrystal. Be wary!')
+
+    result['cellsg'] = dict_ro( cellsg )
+    def _atom_sort( a ):
+        #well-defined sort order for reproducible output
+        return ( tuple(sorted(a.get('composition',[]))), len(a.get('equivalent_positions')),a.get('uiso',None),a.get('cif_labels',None), tuple(a.items()) )
+    result['atoms'] = list_ro( dict_ro(a) for a in sorted(final_atoms,key = _atom_sort) )
+
+    result['cifdescr'], result['actual_codid'],result['actual_mpid'],result['cif_chemformula'] =_extract_descr_from_cif( result['cif_raw'], result['cifsrc'], result['cifdata'] )
+    return result, gemmi, struct

@@ -4,7 +4,7 @@
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2022 NCrystal developers                                   ##
+##  Copyright 2015-2023 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -72,10 +72,10 @@ def fixSysPathAndImportNCrystal( *, allowfail = False ):
         sys.path.insert(0,str(pml.absolute().resolve()))
     try:
         import NCrystal
-    except ImportError:
+    except ImportError as e:
         if allowfail:
             return
-        msg = 'ERROR: Could not import the NCrystal Python module'
+        msg = 'ERROR: Could not import the NCrystal Python module (reason: "%s")'%e
         if maybeThisIsConda():
             msg += ' (if using conda it might help to close your terminal and activate your environment again)'
         elif not hack_syspath:

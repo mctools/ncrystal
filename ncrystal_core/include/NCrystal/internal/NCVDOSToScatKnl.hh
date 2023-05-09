@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2022 NCrystal developers                                   //
+//  Copyright 2015-2023 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -36,7 +36,8 @@ namespace NCrystal {
                                       unsigned vdosluxlvl = 3,//0 to 5, affects binning, Emax, etc.
                                       double targetEmax = 0.0,//if 0, will depend on luxlvl. Error if set to unachievable value.
                                       const VDOSGn::TruncAndThinningParams ttpars = VDOSGn::TruncAndThinningChoices::Default,
-                                      ScaleGnContributionFct = nullptr );
+                                      ScaleGnContributionFct = nullptr,
+                                      Optional<unsigned> override_max_order = NullOpt );
 
   //The ScaleGnContributionFct argument can be used to apply a scale factor to
   //the Gn contribution, at the point where it is used to add a contribution

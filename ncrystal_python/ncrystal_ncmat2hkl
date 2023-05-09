@@ -4,7 +4,7 @@
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2022 NCrystal developers                                   ##
+##  Copyright 2015-2023 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -62,10 +62,10 @@ def fixSysPathAndImportNCrystal( *, allowfail = False ):
         sys.path.insert(0,str(pml.absolute().resolve()))
     try:
         import NCrystal
-    except ImportError:
+    except ImportError as e:
         if allowfail:
             return
-        msg = 'ERROR: Could not import the NCrystal Python module'
+        msg = 'ERROR: Could not import the NCrystal Python module (reason: "%s")'%e
         if maybeThisIsConda():
             msg += ' (if using conda it might help to close your terminal and activate your environment again)'
         elif not hack_syspath:
@@ -117,9 +117,8 @@ Example invocations:
           $> {progname_inspectfile} --browse
 
 """
-    from argparse import RawTextHelpFormatter
     parser = argparse.ArgumentParser(description=descr,
-                                     formatter_class=RawTextHelpFormatter)
+                                     formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('CFGSTR', type=str,
                         help="""NCrystal cfg-string representing the material to load. For the
                         purposes of the present script, it might be particularly relevant to set
@@ -151,7 +150,8 @@ def main():
     args=parseArgs()
     content_iter = NC_mcstasutils.cfgstr_2_hkl( cfgstr = args.CFGSTR,
                                                 tgtformat = args.format,
-                                                verbose = True )
+                                                verbose = True,
+                                                prefer_systemexit_exceptions = True )
     if args.outfile is None:
         #stdout:
         for l in content_iter:

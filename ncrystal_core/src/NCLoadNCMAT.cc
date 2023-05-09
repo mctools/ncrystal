@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2022 NCrystal developers                                   //
+//  Copyright 2015-2023 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -432,6 +432,9 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
           VectD egrid = getEgrid(e.fields);
           auto vdos_egrid_orig = std::move(e.fields.at("vdos_egrid"));
           auto vdos_density_orig = std::move(e.fields.at("vdos_density"));
+
+          //NB: The following code should remain similar to the equivalent code
+          //in ncrystal.cc in ncc::createVDOSDataFromRaw:
 
           nc_assert_always( vdos_egrid_orig.size()==2 || vdos_egrid_orig.size()==vdos_density_orig.size());
           nc_assert_always( vdos_density_orig.size() >= 5 );

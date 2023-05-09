@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2022 NCrystal developers                                   //
+//  Copyright 2015-2023 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -149,9 +149,9 @@ namespace NCrystal {
     const AtomPositions& unitCellPositions() const noexcept { return m_pos; }
     unsigned numberPerUnitCell() const noexcept { return static_cast<unsigned>( m_pos.size() ); }
 
-    //Mean-square-displacements in angstrom^2 is optional. Note that this is the
-    //displacement projected onto a linear axis, for direct usage in isotropic
-    //Debye-Waller factors:
+    //Mean-square-displacements (a.k.a. "U_iso") in angstrom^2 is optional. Note
+    //that this is the displacement projected onto a linear axis, for direct
+    //usage in isotropic Debye-Waller factors:
     ncconstexpr17 const Optional<double>& msd() const noexcept { return m_msd; }
 
     //Debye temperature is optional::

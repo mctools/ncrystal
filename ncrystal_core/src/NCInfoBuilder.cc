@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2022 NCrystal developers                                   //
+//  Copyright 2015-2023 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -145,7 +145,7 @@ namespace NCrystal {
             x=0.0;//remaps -0 to 0
         }
         void detect_duplicate_positions(  const AtomInfo::AtomPositions& plist ) {
-          const double pos_tolerance = 0.01;
+          const double pos_tolerance = 0.0001;//NB: Best if value matches the one in NCrystal/cifutils.py!
           for (std::size_t i = 1; i < plist.size(); ++i) {
             const AtomInfo::Pos& p1 = plist.at(i-1);
             const AtomInfo::Pos& p2 = plist.at(i);

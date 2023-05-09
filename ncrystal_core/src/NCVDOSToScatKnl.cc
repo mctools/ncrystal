@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2022 NCrystal developers                                   //
+//  Copyright 2015-2023 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -691,12 +691,15 @@ NC::ScatKnlData NC::createScatteringKernel( const VDOSData& vdosdata,
                                             unsigned vdoslux,
                                             double targetEmax_requested,
                                             VDOSGn::TruncAndThinningParams ttpars,
-                                            ScaleGnContributionFct scaleGnContributionFct )
+                                            ScaleGnContributionFct scaleGnContributionFct,
+                                            Optional<unsigned> call_override_max_order )
 {
   //Hidden unofficial env-vars used for special debugging purposes:
   auto getEnvInt = [](const char* name) { auto ev = getenv(name); return ev ? str2int(ev) :   0; };
   auto getEnvDbl = [](const char* name) { auto ev = getenv(name); return ev ? str2dbl(ev) : 0.0; };
-  const unsigned override_max_order = getEnvInt("NCRYSTAL_HACK_MAXORDER");
+  const unsigned override_max_order = ( call_override_max_order.has_value()
+                                        ? call_override_max_order.value()
+                                        : static_cast<unsigned>(getEnvInt("NCRYSTAL_HACK_MAXORDER")) );
   const double override_alphamax = getEnvDbl("NCRYSTAL_HACK_ALPHAMAX");
   const double override_betamax = getEnvDbl("NCRYSTAL_HACK_BETAMAX");
   const unsigned override_nbins = getEnvInt("NCRYSTAL_HACK_NBINS");
@@ -815,6 +818,13 @@ NC::ScatKnlData NC::createScatteringKernel( const VDOSData& vdosdata,
   //the sum of individual phonon orders:
   auto sab = V2SKDetail::fillSABFromVDOS( Gn_asym, msd, alphaGrid, betaGrid, scaleGnContributionFct );
 
+  double suggestedEmax = ( override_max_order>0 ? 0.0 : targetEmax);
+  if ( scaleGnContributionFct!=nullptr && scaleGnContributionFct(max_phonon_order) == 0.0 ) {
+    //Caller might have essentially removed the last order(s), so it is unknown
+    //how far the kernel can be used.
+    suggestedEmax = 0.0;
+  }
+
   if (V2SKDetail::s_verbose)
     std::cout<<"NCrystal::VDOS2SK created SK with vdos expansion order N="<<max_phonon_order
              <<", Emax="<<targetEmax<<"eV, nalpha="<<alphaGrid.size()<< " nbeta="<<betaGrid.size()<<std::endl;
@@ -827,7 +837,7 @@ NC::ScatKnlData NC::createScatteringKernel( const VDOSData& vdosdata,
   out.boundXS = vdosdata.boundXS();
   out.elementMassAMU = vdosdata.elementMassAMU();
   out.knltype = ScatKnlData::KnlType::SAB;
-  out.suggestedEmax = targetEmax;
+  out.suggestedEmax = suggestedEmax;
   out.betaGridOptimised = true;//prevent beta-thickening code upon conversion to SABData
   return out;
 }

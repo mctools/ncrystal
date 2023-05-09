@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2022 NCrystal developers                                   //
+//  Copyright 2015-2023 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -49,10 +49,10 @@ namespace NCrystal {
       sb.validate();
       mass.validate();
       nc_assert(reduced_vdoslux<=2);
-      auto roundFct = [](double x) { nc_assert(x>0.0&&x<1.0e15); return static_cast<uint64_t>(1000.0*x+0.5); };
+      auto roundFct = [](double x) { nc_assert_always(x>0.0&&x<1.0e11); return static_cast<uint64_t>(1e7*x+0.5); };
       return VDOSDebyeKey( reduced_vdoslux,
                            roundFct(mass.get()),
-                           roundFct(sb.get()),
+                           (sb.get()?roundFct(sb.get()):uint64_t(0)),//sb might be zero in rare corner cases
                            roundFct(t.get()),
                            roundFct(dt.get()) );
     }
@@ -68,10 +68,10 @@ namespace NCrystal {
       //always base calculations only on what can be extracted using the key
       //(this is important due to rounding):
       return { std::get<0>(key),
-               AtomMass{std::get<1>(key)*0.001},
-               Temperature{std::get<3>(key)*0.001},
-               DebyeTemperature{std::get<4>(key)*0.001},
-               SigmaBound{std::get<2>(key)*0.001} };
+               AtomMass{std::get<1>(key)*1e-7},
+               Temperature{std::get<3>(key)*1e-7},
+               DebyeTemperature{std::get<4>(key)*1e-7},
+               SigmaBound{std::get<2>(key)*1e-7} };
     }
 
     //Actual worker functions producing results:
@@ -159,7 +159,8 @@ NC::shared_obj<const NC::SABData> NC::extractSABDataFromVDOSDebyeModel( DebyeTem
   return DICache::extractFromDIVDOSDebye(key);
 }
 
-NC::shared_obj<const NC::SABData> NC::extractSABDataFromDynInfo( const NC::DI_ScatKnl* di, unsigned vdoslux, bool useCache, uint32_t vdos2sabExcludeFlag )
+NC::shared_obj<const NC::SABData> NC::extractSABDataFromDynInfo( const NC::DI_ScatKnl* di, unsigned vdoslux,
+                                                                 bool useCache, std::uint32_t vdos2sabExcludeFlag )
 {
   nc_assert( di );
   nc_assert( vdoslux <= 5 );

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2022 NCrystal developers                                   //
+//  Copyright 2015-2023 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -52,7 +52,7 @@ namespace NCrystal {
   shared_obj<const SABData> extractSABDataFromDynInfo( const DI_ScatKnl*,
                                                        unsigned vdoslux = 3,
                                                        bool useCache = true,
-                                                       uint32_t vdos2sabExcludeFlag = 0 );
+                                                       std::uint32_t vdos2sabExcludeFlag = 0 );
 
   shared_obj<const SABData> extractSABDataFromVDOSDebyeModel( DebyeTemperature, Temperature, SigmaBound, AtomMass,
                                                               unsigned vdoslux = 3, bool useCache = true );

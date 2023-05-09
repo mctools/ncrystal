@@ -4,7 +4,7 @@ NCMAT v5
 #
 # Under usual conditions this phase exists from 0 to 500K.
 #
-# Structure converted with ncrystal_onlinedb2ncmat from:
+# Structure converted with NCrystal.cifutils from:
 #
 #    The Materials Project
 #    https://www.materialsproject.org/materials/mp-626716
@@ -28,17 +28,17 @@ NCMAT v5
 #       Journal of Chemical Theory and Computation 2020, 16 (8), 5212-5217.
 #
 @CELL
-  lengths 4.0540220 3.983887 5.753698
-  angles 90 104.88299364 90
+  lengths 3.9092 3.97746 5.50725
+  angles 90 109.975 90
 @SPACEGROUP
   4
 @ATOMPOSITIONS
-  K .172172 .241835 .288142
-  K .827828 .741835 .711858
-  H .430444 .105791 .909456
-  H .569556 .605791 .090544
-  O .324171 .252951 .774788
-  O .675829 .752951 .225212
+  H .46660881 .40161473 .93624027
+  H .53339119 .90161473 .06375973
+  K .14280099 .25829552 .27803776
+  K .85719901 .75829552 .72196224
+  O .38612037 .23951175 .79434111
+  O .61387963 .73951175 .20565889
 @DYNINFO
   element  K
   fraction 1/3

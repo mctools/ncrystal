@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2022 NCrystal developers                                   //
+//  Copyright 2015-2023 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -242,23 +242,25 @@ namespace NCrystal {
           for (auto& di : info.getDynamicInfoList()) {
             const DI_ScatKnl* di_scatknl = dynamic_cast<const DI_ScatKnl*>(di.get());
             if (di_scatknl) {
-              auto makeSABScatter = [di_scatknl,vdoslux,vdos2sabExcludeFlag]() { return makeSO<SABScatter>(*di_scatknl, vdoslux, true, vdos2sabExcludeFlag); };
-              if ( ucnmode.has_value() ) {
-                auto scUCN = UCN::UCNScatter::createWithCache( NC::extractSABDataFromDynInfo( di_scatknl, vdoslux, true, vdos2sabExcludeFlag ),
-                                                               ucnmode.value().threshold );
-                nc_assert(isOneOf(ucnmode.value().mode,UCNMode::Mode::Refine,UCNMode::Mode::Remove,UCNMode::Mode::Only));
-                if ( scUCN->isNull() ) {
-                  //Just the normal process, the UCN process is apparently null.
-                  if ( isOneOf( ucnmode.value().mode, UCNMode::Mode::Refine,  UCNMode::Mode::Remove ) )
-                    components.push_back({di->fraction(),makeSABScatter()});
+              auto sabdata = NC::extractSABDataFromDynInfo( di_scatknl, vdoslux, true/*use cache*/, vdos2sabExcludeFlag );
+              if ( sabdata->boundXS() ) {
+                auto sab_scatter = makeSO<SABScatter>( sabdata, di_scatknl->energyGrid() );
+                if ( ucnmode.has_value() ) {
+                  auto scUCN = UCN::UCNScatter::createWithCache( sabdata, ucnmode.value().threshold );
+                  nc_assert(isOneOf(ucnmode.value().mode,UCNMode::Mode::Refine,UCNMode::Mode::Remove,UCNMode::Mode::Only));
+                  if ( scUCN->isNull() ) {
+                    //Just the normal process, the UCN process is apparently null.
+                    if ( isOneOf( ucnmode.value().mode, UCNMode::Mode::Refine,  UCNMode::Mode::Remove ) )
+                      components.push_back({di->fraction(),sab_scatter});
+                  } else {
+                    if ( isOneOf( ucnmode.value().mode, UCNMode::Mode::Refine,  UCNMode::Mode::Remove ) )
+                      components.push_back({ di->fraction(), makeSO<UCN::ExcludeUCNScatter>( sab_scatter, scUCN ) });
+                    if ( isOneOf( ucnmode.value().mode, UCNMode::Mode::Refine,  UCNMode::Mode::Only ) )
+                      components.push_back({ di->fraction(), scUCN });
+                  }
                 } else {
-                  if ( isOneOf( ucnmode.value().mode, UCNMode::Mode::Refine,  UCNMode::Mode::Remove ) )
-                    components.push_back({ di->fraction(), makeSO<UCN::ExcludeUCNScatter>( makeSABScatter(), scUCN ) });
-                  if ( isOneOf( ucnmode.value().mode, UCNMode::Mode::Refine,  UCNMode::Mode::Only ) )
-                    components.push_back({ di->fraction(), scUCN });
+                  components.push_back({di->fraction(),sab_scatter});
                 }
-              } else {
-                components.push_back({di->fraction(),makeSABScatter()});
               }
             } else if (dynamic_cast<const DI_Sterile*>(di.get())) {
               continue;//just skip past sterile components

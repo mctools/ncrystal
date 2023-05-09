@@ -2,7 +2,9 @@ NCMAT v5
 #
 # Wollastonite (CaSiO3, triclinic, SG-2 / P-1)
 #
-# Structure converted with ncrystal_onlinedb2ncmat from:
+# Atoms per unit cell: 6xCa+18xO+6xSi
+#
+# Structure converted with NCrystal.cifutils from:
 #
 #    "The Existence of Partial Mirrors in Wollastonite"
 #    Ito, Tei-ichi, et al. (1969)
@@ -11,8 +13,9 @@ NCMAT v5
 #    https://www.crystallography.net/cod/9012890.html
 #
 # This crystal structure is also compatible with structure obtained from
+#
 #   https://www.crystallography.net/cod/9005777
-#   https://www.materialsproject.org/materials/mp-5733
+#   https://www.materialsproject.org/materials/mp-4429
 #
 # Debye temperature value taken from (using the same value
 # for all elements):
@@ -25,53 +28,53 @@ NCMAT v5
 # number of hkl families more manageable: NCRYSTALMATCFG[dcutoff=0.3]
 #
 @CELL
-  lengths 7.94 7.32 7.07
-  angles 90.03 95.37 103.43
+  lengths 7.07 7.32 7.94
+  angles 103.43 95.37 90.03
 @SPACEGROUP
   2
 @ATOMPOSITIONS
-  Ca .998 .2495 .974
-  Ca .002 .7505 .026
-  Ca 7/10 37/40 .264
-  Ca 3/10 3/40 .736
-  Ca .698 .4245 .261
-  Ca .302 .5755 .739
-  Si .314 .043 .229
-  Si .686 .957 .771
-  Si .314 .614 .229
-  Si .686 .386 .771
-  Si .102 .2755 .442
-  Si .898 .7245 .558
-  O 1/10 11/40 .666
-  O 9/10 29/40 .334
-  O .076 .769 .693
-  O .924 .231 .307
-  O .194 .062 .037
-  O .806 .938 .963
-  O .194 .535 .037
-  O .806 .465 .963
-  O .516 .129 .226
-  O .484 .871 .774
-  O 13/25 .63 .233
-  O 12/25 .37 .767
-  O .224 3/25 .405
-  O .776 22/25 .595
-  O .224 .492 .405
-  O .776 .508 .595
-  O .29 .8225 .26
-  O .71 .1775 .74
+  Ca .026 .7505 .002
+  Ca .261 .4245 .698
+  Ca .264 37/40 7/10
+  Ca .736 3/40 3/10
+  Ca .739 .5755 .302
+  Ca .974 .2495 .998
+  Si .229 .043 .314
+  Si .229 .614 .314
+  Si .442 .2755 .102
+  Si .558 .7245 .898
+  Si .771 .386 .686
+  Si .771 .957 .686
+  O .037 .062 .194
+  O .037 .535 .194
+  O .226 .129 .516
+  O .233 .63 13/25
+  O .26 .8225 .29
+  O .307 .231 .924
+  O .334 29/40 9/10
+  O .405 3/25 .224
+  O .405 .492 .224
+  O .595 .508 .776
+  O .595 22/25 .776
+  O .666 11/40 1/10
+  O .693 .769 .076
+  O .74 .1775 .71
+  O .767 .37 12/25
+  O .774 .871 .484
+  O .963 .465 .806
+  O .963 .938 .806
 @DYNINFO
   element  Ca
   fraction 1/5
   type     vdosdebye
   debye_temp 539
 @DYNINFO
-  element  O
-  fraction 3/5
+  element  Si
+  fraction 1/5
   type     vdosdebye
   debye_temp 539
 @DYNINFO
-  element  Si
-  fraction 1/5
+  element  O
+  fraction 3/5
   type     vdosdebye
   debye_temp 539

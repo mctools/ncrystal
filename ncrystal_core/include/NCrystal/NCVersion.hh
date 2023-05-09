@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2022 NCrystal developers                                   //
+//  Copyright 2015-2023 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -39,9 +39,9 @@
 
 #define NCRYSTAL_VERSION_MAJOR 3
 #define NCRYSTAL_VERSION_MINOR 5
-#define NCRYSTAL_VERSION_PATCH 1
-#define NCRYSTAL_VERSION   3005001 /* (1000000*MAJOR+1000*MINOR+PATCH)   */
-#define NCRYSTAL_VERSION_STR "3.5.1"
+#define NCRYSTAL_VERSION_PATCH 80
+#define NCRYSTAL_VERSION   3005080 /* (1000000*MAJOR+1000*MINOR+PATCH)   */
+#define NCRYSTAL_VERSION_STR "3.5.80"
 
 #include "NCrystal/ncapi.h"
 #include <stdexcept>

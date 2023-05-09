@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2022 NCrystal developers                                   //
+//  Copyright 2015-2023 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -210,9 +210,9 @@ namespace NCrystal {
     //Convenience methods which tests for availability of certain fields on the
     //entries in the list of atoms returned by getAtomInfos():
 
-    //1) Whether AtomInfo objects have mean-square-displacements available (they
-    //   will either all have them available, or none of them will have them
-    //   available):
+    //1) Whether AtomInfo objects have mean-square-displacements
+    //   (a.k.a. "U_iso") available (they will either all have them available,
+    //   or none of them will have them available):
     bool hasAtomMSD() const;
 
     //2) Whether AtomInfo objects have Debye temperatures available (they will
