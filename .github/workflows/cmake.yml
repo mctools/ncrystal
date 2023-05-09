@@ -47,7 +47,10 @@ jobs:
     - name: Pip install
       run: |
            python3 -m pip install numpy
-           python3 -m pip install pymatgen
+           python3 -m pip install gemmi
+           python3 -m pip install spglib
+           #python3 -m pip install ase
+           #python3 -m pip install pymatgen
 
     - name: Check versions
       run: |
