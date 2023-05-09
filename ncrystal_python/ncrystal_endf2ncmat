@@ -89,8 +89,8 @@ def ncImportSubModule( mainmodule, submodulename ):
     _ = __import__( '%s.%s' % ( mainmodule.__name__, submodulename ) )
     return getattr(_,submodulename)
 ################################################################################################
-NCrystal = fixSysPathAndImportNCrystal()
-
+NC = fixSysPathAndImportNCrystal()
+nc_constants = ncImportSubModule(NC,'constants')
 import warnings
 import argparse
 
@@ -129,11 +129,11 @@ def import_pyne():
     return pyne
 
 def elementZToName(z):
-    d = NCrystal.atomDB(z,throwOnErrors=False)
+    d = NC.atomDB(z,throwOnErrors=False)
     return d.elementName() if d else None
 
 def guessElementFromMass(mass_amu):
-    elem_data=[ (abs(d.averageMassAMU()-mass_amu),d) for d in [NCrystal.atomDB(z,throwOnErrors=False) for z in range(1,120)] if d ]
+    elem_data=[ (abs(d.averageMassAMU()-mass_amu),d) for d in [NC.atomDB(z,throwOnErrors=False) for z in range(1,120)] if d ]
     elem_data.sort()
     print (f'Guessing mass={mass_amu:.8}u is element {elem_data[0][1].elementName()}')
     return elem_data[0][1].elementName()
@@ -247,7 +247,7 @@ def parse_endf_file(filename):
     if ti['temperature_used'].strip()=='actual':
         alphabetagrid_T0=None
     else:
-        alphabetagrid_T0 = float(ti['temperature_used'].split('eV',1)[0].strip())/NCrystal.constant_boltzmann#Must stretch betagrid values relative to this
+        alphabetagrid_T0 = float(ti['temperature_used'].split('eV',1)[0].strip())/nc_constants.constant_boltzmann#Must stretch betagrid values relative to this
 
     #print(data.target)
     element_name=guessElementName(data.target['ZA'],data.target['mass'])
@@ -277,7 +277,7 @@ def parse_endf_file(filename):
             print(warnings_[-1])
         effective_mass = B[offset+3]#mass in units of neutron mass
         count = B[offset+6]#count per molecule or unit cell
-        theElementName = guessElementFromMass(effective_mass*NCrystal.const_neutron_mass_amu)
+        theElementName = guessElementFromMass(effective_mass*nc_constants.const_neutron_mass_amu)
         non_principal_data+=[[theElementName,count,effective_mass]]
 
     count_total = count_principal + sum(count_ for elemname,count_,effmass in non_principal_data)
@@ -355,9 +355,9 @@ def format_endf_block_as_ncmatdyninfo_for_principal_element(parsed_endf_data,tem
     res+=f'  temperature {temperature:.10} #NB: ENDF file specified "effective temperature" as {datablock["Teff"]:.10}K\n'
     #NB: Not suggesting an emax value, since it seems to be unreliable! Same for B[4] from above...
     #res+=f"  egrid {parsed_endf_data['pynedata'].info['energy_max']}#Value (in eV) as specified in source ENDF file.\n"#argh... e.g. D2O@300K shows this can't be trusted!!!
-    res += NCrystal.formatVectorForNCMAT('alphagrid',datablock['alphagrid'])
-    res += NCrystal.formatVectorForNCMAT('betagrid',datablock['betagrid'])
-    res += NCrystal.formatVectorForNCMAT('sab_scaled',datablock['sab'])
+    res += NC.formatVectorForNCMAT('alphagrid',datablock['alphagrid'])
+    res += NC.formatVectorForNCMAT('betagrid',datablock['betagrid'])
+    res += NC.formatVectorForNCMAT('sab_scaled',datablock['sab'])
     return res
 
 def _parseArgs():
@@ -677,5 +677,5 @@ if __name__=='__main__':
             if p2:
                 fh.write(format_endf_block_as_ncmatdyninfo_for_principal_element(p2,t,args.fraction2))
         print('   -> Testing that NCrystal can load this file')
-        NCrystal.createScatter(f'{fn};dcutoff=0.8')
+        NC.createScatter(f'{fn};dcutoff=0.8')
     print("All done.")
