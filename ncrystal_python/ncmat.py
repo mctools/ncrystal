@@ -100,17 +100,31 @@ class NCMATComposer:
         """
         from ._ncmatimpl import NCMATComposerImpl as Impl
         self.__impl = ( data if isinstance( data, Impl )
-                        else Impl( data = data, fmt = fmt, quiet = quiet ) )
+                        else ( data.__impl if isinstance( data, NCMATComposer )
+                               else Impl( data = data, fmt = fmt, quiet = quiet ) ) )
         if plotlabel:
             self.set_plotlabel(plotlabel)
 
     @staticmethod
-    def from_cif( cifsrc, quiet=False, mp_apikey = None, *args, **kwargs ):
+    def from_cif( cifsrc, quiet=False, mp_apikey = None,
+                  uiso_temperature = None,
+                  override_spacegroup = None, **kwargs ):
         """Initialise from CIF data (anything suitable for the
-        NCrystal.cifutils.CIFSource class)."""
+        NCrystal.cifutils.CIFSource class). Internally, the loading is carried
+        out by instantiating a CIFLoader instance (from the NCrystal.cifutils
+        module), and calling it's .create_ncmat_composer() method. Any provided
+        arguments will be passsed along to the call to .create_ncmat_composer(),
+        except for the override_spacegroup argument which is used when the
+        CIFLoader is instantiated.
+
+        For advanced work, it might be better to use the CIFLoader class
+        directly.
+        """
         from ._ncmatimpl import NCMATComposerImpl as Impl
         return NCMATComposer( Impl.from_cif( cifsrc=cifsrc, quiet=quiet,
-                                             mp_apikey = mp_apikey, *args, **kwargs ) )
+                                             uiso_temperature = uiso_temperature,
+                                             override_spacegroup = override_spacegroup,
+                                             mp_apikey = mp_apikey, **kwargs ) )
 
     @staticmethod
     def from_cfgstr( cfgstr ):

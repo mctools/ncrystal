@@ -154,7 +154,7 @@ class AnyTextData:
 
     @property
     def name( self ):
-        """Access a name of the text data (could for instance be the file name)"""
+        """Access a name of the text data (could for instance be the file name). None if not available."""
         return self.__name
 
     @property

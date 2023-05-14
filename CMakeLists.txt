@@ -86,7 +86,7 @@ endif()
 
 cmake_policy( SET CMP0048 NEW )#Not sure if this is really needed
 
-project( NCrystal VERSION 3.5.80 ${_project_metadata} )
+project( NCrystal VERSION 3.5.81 ${_project_metadata} )
 
 unset( _project_metadata )
 
@@ -297,6 +297,9 @@ endfunction()
 #NCrystal library and header files, including optional built-in modules if enabled:
 add_library( NCrystal SHARED ${SRCS_NC} )
 set( NCrystal_LIBNAME "${CMAKE_SHARED_LIBRARY_PREFIX}NCrystal${CMAKE_SHARED_LIBRARY_SUFFIX}" )
+
+#Make sure client code will use at least c++11:
+target_compile_features( NCrystal INTERFACE cxx_std_11 )
 
 #put libname in .txt file for downstream (e.g. conda) post-processing:
 file(WRITE ${PROJECT_BINARY_DIR}/cfg_ncrystal_libname.txt "${NCrystal_LIBNAME}")
@@ -619,6 +622,8 @@ endif()
 if ( NCRYSTAL_GEANT4 )
   add_library(G4NCrystal SHARED ${SRCS_NCG4})
   set(G4NCrystal_LIBNAME "${CMAKE_SHARED_LIBRARY_PREFIX}G4NCrystal${CMAKE_SHARED_LIBRARY_SUFFIX}")
+  #Make sure client code will use at least c++11:
+  target_compile_features( G4NCrystal INTERFACE cxx_std_11 )
   set_target_common_props( G4NCrystal )
   target_include_directories(G4NCrystal
     PUBLIC

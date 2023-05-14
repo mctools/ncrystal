@@ -215,6 +215,7 @@ def browseFiles(dump=False,factory=None):
                 extra=' <--- Hidden by higher priority entries (select as "%s::%s")'%(e.factName,e.name)
             pending.append(    '    %s%s'%(prname,extra))
         print_pending()
+        return #return None in this case, to avoid spurious printouts in an interactive session
     if factory is None:
         return res
     return [e for e in res if e.factName==factory]

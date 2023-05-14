@@ -70,7 +70,11 @@ def matsrc_initfmt( data, fmt, cfg_params ):
         def loadfct( extra_cfg, doInfo, doScatter, doAbsorption ):
             return wrapped_loadfct( cfgcombine(cfg_params,extra_cfg), doInfo, doScatter, doAbsorption )
         descr = data.get('description')
+        plotlabel = data.get('plotlabel')
+        if plotlabel:
+            plotlabel+=f'+ ";{cfg_params}"'
         return dict( description = f'{descr} + ";{cfg_params}"',
+                     plotlabel = plotlabel,
                      loadfct = loadfct )
     if fmt == 'filepath':
         import pathlib
@@ -216,8 +220,8 @@ def anytextdata_init( data, *, is_path, name ):
         res_content = p.read_text()
     else:
         res_content = data
-        res_name = name or 'anonymous text data'
-    return res_name, res_content, res_keepalive
+        res_name = name#Ok if None
+    return res_name or None, res_content, res_keepalive
 
 def _anyvdos_detect_fmt( class_AnyVDOS, data ):
     if isinstance(data,class_AnyVDOS):

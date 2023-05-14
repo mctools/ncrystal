@@ -170,12 +170,13 @@ class PhononDOSAnalyser:
     grid would have been extended downwards).
 
     Once the phonon curves are as desired, one most likely want to use the
-    .apply(..) method to apply all or selected VDOS curves to an NCMATComposer
-    instance (which one might then for instance use to write the data to an
-    NCMAT file).
+    .apply_to(..) method to apply all or selected VDOS curves to an
+    NCMATComposer instance (which one might then for instance use to write the
+    data to an NCMAT file).
 
     Note that many methods on this class can optionally take a list of labels or
     indices. If so, the operation will only affect those DOS curves.
+
     """
 
     def __init__(self, data, fmt = None ):
@@ -403,11 +404,7 @@ class PhononDOSAnalyser:
         if not selected:
             return self
 
-        _tp = self.__parse_threshold( threshold ) or 0.0
-        if not _tp > 0.0:
-            from .exceptions import NCBadInput
-            raise NCBadInput(f'Invalid threshold: {threshold}')
-        threshold = _tp
+        threshold = self._parse_threshold( threshold )
 
         from ._numpy import _ensure_numpy, _np
         _ensure_numpy()
@@ -428,16 +425,33 @@ class PhononDOSAnalyser:
         o.__d['doslist'] = newlist
         return o
 
-    def plot( self, *dos_labels_or_indices, do_newfig = True, do_show = True, do_legend = True, logy=None, unit = 'eV' ):
+    def plot( self, *dos_labels_or_indices,
+              do_newfig = True,
+              do_show = True,
+              do_legend = True,
+              logy=None,
+              unit = 'eV',
+              ymin = None,
+              ymax = None,
+              xmin = None,
+              xmax = None,
+             ):
         """Plot contained DOS curves for the selected DOS labels (or indices),
         defaulting to all curves. Set do_show to false to avoid plt.show(), logy
-        to default to a semilogy plot, and finally the unit argument can be used
-        to show the DOS in other units (e.g. "THz", "1/cm", "meV", etc."""
+        to default to a semilogy plot, ymin to set a minimum plotrange of the
+        y-axis, and finally the unit argument can be used to show the DOS in
+        other units (e.g. "THz", "1/cm", "meV", etc.
+        """
         self.__plot( *dos_labels_or_indices, do_newfig = do_newfig,
                      do_show = do_show, logy=logy, unit = unit,
-                     do_legend=do_legend )
+                     do_legend=do_legend,
+                     ymin = ymin, ymax = ymax,
+                     xmin = xmin, xmax = xmax )
 
-    def plot_gn( self, *dos_labels_or_indices, n=1, masses = None, temperature = 293.15, do_newfig = True, do_show = True, do_legend = True, logy=None, unit = 'eV' ):
+    def plot_gn( self, *dos_labels_or_indices, n=1,
+                 temperature = 293.15, masses = None,
+                 do_newfig = True, do_show = True, do_legend = True,
+                 logy=None, unit = 'eV' ):
         """Similar to .plot() but showing the Sjolander Gn function instead. If
            labels are not elements or isotopes, masses must be provided in a
            list (in daltons). It is an error to try to plot a Gn function for a
@@ -453,7 +467,9 @@ class PhononDOSAnalyser:
                                                             masses=masses,
                                                             temperature=temperature) )
 
-    def plot_cutoff_effects( self, thresholds, *dos_labels_or_indices, gn = None, temperature = 293.15, masses = None, regularise_n_values = None, **plot_kwargs ):
+    def plot_cutoff_effects( self, thresholds, *dos_labels_or_indices, gn = None,
+                             temperature = 293.15, masses = None,
+                             regularise_n_values = None, **plot_kwargs ):
         """Plot the effect of the listed thresholds on the DOS curves for the
         selected DOS labels (or indices), defaulting to all curves. Any
         plot_kwargs will be used as on the .plot() method.
@@ -472,6 +488,7 @@ class PhononDOSAnalyser:
                                                    temperature=temperature)
             plot_kwargs['sjolanderGn'] = sjolanderGn
 
+        unitname,unitfactor = _parsevdosunit( plot_kwargs.get('unit','eV') )
         do_show = plot_kwargs.get('do_show',True)
         do_newfig = plot_kwargs.get('do_newfig',True)
         color_offset = plot_kwargs.get('color_offset',0)
@@ -494,11 +511,6 @@ class PhononDOSAnalyser:
         reg_n_vals = [None] + ( [ e for e in regularise_n_values] if regularise_n_values else [] )
         for t in plot_thresholds:
             for regn in reg_n_vals:
-                _tp = self.__parse_threshold( t )
-                if not ( _tp is None or _tp > 0.0 ):
-                    from .exceptions import NCBadInput
-                    raise NCBadInput(f'Invalid threshold: {t}')
-                t = _tp
                 plot_kwargs['color_offset'] = color_offset
                 if t is None:
                     if regn is None:
@@ -506,7 +518,8 @@ class PhononDOSAnalyser:
                     else:
                         lblcomments = [f'npts={regn}']
                 else:
-                    lblcomments = [f'cut@{t:g}eV']
+                    t_parsed = self._parse_threshold( t )
+                    lblcomments = [f'cut@{t_parsed/unitfactor:g}{unitname}']
                     if not regn is None:
                         lblcomments+=[f'npts={regn}']
                 lblcomment = ','.join(lblcomments)
@@ -530,6 +543,7 @@ class PhononDOSAnalyser:
         assert isinstance(ncmatcomposer,NCMATComposer), ( "First argument in call to .plot_cutoff_"
                                                           "effects_on_xsects(..) must be an NCMATComposer object" )
         selected = self.__dosidxlist( *dos_labels_or_indices, default_is_all = True )
+        unitname,unitfactor = _parsevdosunit( plot_kwargs.get('unit','eV') )
         do_show = plot_kwargs.get('do_show',True)
         do_newfig = plot_kwargs.get('do_newfig',True)
         do_grid = plot_kwargs.get('do_grid',True)
@@ -553,21 +567,22 @@ class PhononDOSAnalyser:
             plt.figure()
         colorder = self.__colorder()
         for iplot, t in enumerate([e for e in thresholds]):
+            t = self._parse_threshold( t )
             c = ncmatcomposer.clone()
             o = self.apply_cutoff( t, lbls )
-            thr_description = f'cut@{t:g}eV'
+            thr_description = f'cut@{t/unitfactor:g}{unitname}'
             for lbl in lbls:
                 if not lbl in lblmap:
                     from . import _common as nc_common
                     nc_common.warn('Not using PhononDOSAnalyser label "{lbl}" in plot.')
                     continue
                 c.set_dyninfo_vdos( lblmap[lbl], comment = 'From PhononDOSAnalyser', **o.get_dyninfo_args(lbl) )
-                #print("PLOTTING",thr_description)
             if not color:
                 plot_kwargs['color'] = colorder[iplot%len(colorder)]
             plot_kwargs['labelfct'] = lambda x : thr_description
             c.plot_xsect( **plot_kwargs )
 
+        #fixme: plt_final?
         if do_legend:
             plt.legend()
         if do_grid:
@@ -579,7 +594,7 @@ class PhononDOSAnalyser:
         if do_show:
             plt.show()
 
-    def apply( self, ncmatcomposer, *dos_labels_or_indices, lblmap = None, warn = True, cutoff = None ):
+    def apply_to( self, ncmatcomposer, *dos_labels_or_indices, lblmap = None, warn = True, cutoff = None ):
         """Apply DOS curves to NCMATComposer objects, resulting in updates to
         the relevant dyninfo sections. If lblmap is not given, the
         determine_mapping_to_composer_labels() method is used to infer one
@@ -602,7 +617,7 @@ class PhononDOSAnalyser:
         warnfct = nc_common.warn if warn else (lambda s : None)
 
         lblmap = self.__determine_lblmap( selected, ncmatcomposer, lblmap = lblmap, warn = warn )
-        cutoff = self.__parse_threshold( cutoff ) or 0.0
+        cutoff = ( self._parse_threshold( cutoff ) if cutoff is not None else None ) or 0.0
         _access_egrid = lambda idx : self.__d['doslist'][idx][1]
         selected_needscutoff = [ idx for idx in selected if not _access_egrid(idx)[0] > cutoff ]
         if selected_needscutoff and not cutoff:
@@ -756,7 +771,8 @@ class PhononDOSAnalyser:
                                        ]]
 
     def __plot( self, *dos_labels_or_indices, do_newfig = True, do_show = True, logy=None, unit = 'eV',
-                color_offset = 0, labelfct = None, do_legend=True,do_grid=True, sjolanderGn = None ):
+                color_offset = 0, labelfct = None, do_legend=True,do_grid=True, sjolanderGn = None,
+                ymin=None, ymax = None, xmin=None, xmax=None ):
 
         selected = self.__dosidxlist( *dos_labels_or_indices, default_is_all = True )
         gnfcts = {}
@@ -800,29 +816,50 @@ class PhononDOSAnalyser:
                     _k = dos[0] / egrid[0]**2
                     _ensure_numpy()
                     _x = _np_linspace(0.0, egrid[0], 2000+2)[1:-1]
-                    plt.plot( _x, _k*(_x**2),ls=':',color=color)
+                    plt.plot( _x/unitfactor, _k*(_x**2),ls=':',color=color)
 
         plt.xlabel('Frequency (%s)'%unitname)
         if sjolanderGn is not None:
             plt.ylabel('G%i (arbitrary scale)'%sjolanderGn['n'])
         else:
             plt.ylabel('DOS (arbitrary scale)')
+        if ymin is not None or ymax is not None:
+            plt.ylim(ymin,ymax)
+        if xmin is not None or xmax is not None:
+            plt.xlim(xmin,xmax)
         from .plot import _plt_final
         _plt_final(do_grid,do_legend,do_show,logy=logy)
 
     def __clone( self ):
         return PhononDOSAnalyser( ('__internal_state__',self.__d) )
 
-    def __parse_threshold( self, value ):
-        if value is None:
-            return None
-        if hasattr(value,'__len__') and len(value)==2 and isinstance(value[1],str):
-            _,unitfactor = _parsevdosunit( value[1] )
-            return float(value[0]) * unitfactor if value[0] is not None else None
-        else:
-            v = float(value)
+    def _parse_threshold( self, value ):
+        import numbers
+        from ._common import _decodeflt
+        from .exceptions import NCBadInput
+        def impl(x):
+            if isinstance(x,numbers.Real):
+                return float(x)
+            if isinstance(x,str):
+                x=x.strip()
+                v = None
+                for un,unval in vdos_units_2_eV.items():
+                    if x.endswith(un):
+                        v = _decodeflt(x[:-len(un)].strip())
+                        if v is not None:
+                            return v *unval
+                if v is None:
+                    raise NCBadInput(f'Invalid threshold string: {s}')
+            if hasattr(x,'__len__') and len(x)==2 and isinstance(x[1],str):
+                _,unitfactor = _parsevdosunit( x[1] )
+                v = _decodeflt( x[0] )
+                if v is None:
+                    raise NCBadInput(f'Invalid threshold value: {x[0]}')
+                return v*unitfactor
+            raise NCBadInput(f'Invalid threshold: {x}')
+
+        v = impl(value)
         if not v>0.0 or not v < 1e6:
-            from .exceptions import NCBadInput
             raise NCBadInput(f'Invalid threshold value (out of range): {v:g}')
         return v
 

@@ -26,11 +26,13 @@ Utility functions related to plotting.
 """
 
 def plot_xsect( material, *, mode='wl', do_show = True, do_newfig = True,
-                npts=5000, xmin = None, xmax = None, logx = None, logy=None,
+                npts=5000, xmin = None, xmax = None, ymin=None, ymax=None,
+                logx = None, logy=None,
                 scatter_breakdown = True, xsmode='peratom',
                 show_absorption = True, show_scattering = True,
                 do_legend = True, do_grid = True, color = None,
-                labelfct = None, only_total = False, extra_cfg=None ):
+                labelfct = None, only_total = False, extra_cfg=None,
+                title = None ):
     """Quick plot (with matplotlib) showing the cross sections produced by
     current material. The mode parameter can be either 'wl' or 'ekin', and
     logx/logy can be set to None or a boolean to control whether the
@@ -134,10 +136,21 @@ def plot_xsect( material, *, mode='wl', do_show = True, do_newfig = True,
     plt.xlabel('Neutron wavelength (angstrom)' if mode=='wl' else 'Neutron energy (eV)')
     plt.ylabel('Macroscopic cross section (1/cm)' if xsmode=='macroscopic' else 'Cross section per atom (barn)')
 
-    if not logy:
-        plt.ylim(0.0,1.0 if nullxs else None)
+    auto_ymin = ( None if logy else 0.0)
+    auto_ymax = ( 1.0 if nullxs else None )
+    ymin = ( auto_ymin if ymin is None else ymin )
+    ymax = ( auto_ymax if ymax is None else ymax )
+    if ymin is not None or ymax is not None:
+        if ymin is not None and ymax is not None and not ymax>ymin:
+            from ._common import warn
+            _fmt = lambda x : ( 'auto' if x is None else x )
+            warn('ymin/ymax parameters would lead to a plot range of'
+                 f' [{ymin},{ymax}]. Reverting to [{_fmt(auto_ymin)},{_fmt(auto_ymax)}].')
+            ymin,ymax = auto_ymin,auto_ymax
+        plt.ylim(ymin,ymax)
     plt.xlim(xmin,xmax)
-    plt.title(matsrc.plotlabel)
+    if title is not False:
+        plt.title(title or matsrc.plotlabel)
     _plt_final(do_grid,do_legend,do_show,logy=logy,logx=logx)
 
 def plot_xsects( *materials, **plotkwargs ):
@@ -149,6 +162,8 @@ def plot_xsects( *materials, **plotkwargs ):
     for e in ['do_newfig','do_legend','do_grid','do_show','logy','logx']:
         do[e] = plotkwargs.get(e,None if e in ('logy','logx') else True)
         plotkwargs[e] = False
+    title = plotkwargs.get('title')
+    plotkwargs['title'] = False
     plotkwargs['scatter_breakdown']=False
     plotkwargs['only_total'] = True
     plt = _import_matplotlib_plt()
@@ -163,7 +178,8 @@ def plot_xsects( *materials, **plotkwargs ):
             plotkwargs['logy'] = do['logy']
             plotkwargs['logx'] = do['logx']
         plot_xsect(m,**plotkwargs)
-    plt.title('')
+    if title:
+        plt.title(title)
     _plt_final(do['do_grid'],do['do_legend'],do['do_show'])
 
 def plot_vdos( *vdos, unit='meV',

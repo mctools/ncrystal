@@ -185,7 +185,8 @@ class CIFLoader:
 
     """
 
-    def __init__( self, cifsrc, quiet = False, mp_apikey = None, refine_with_spglib = True, merge_equiv = True, override_spacegroup = None ):
+    def __init__( self, cifsrc, quiet = False, mp_apikey = None,
+                  refine_with_spglib = True, merge_equiv = True, override_spacegroup = None ):
         """Initialise from cifsrc which can either be a CIFSource object, or any
         sort of data which can be used to initialise a CIFSource object (cf. the
         CIFSource class documentation)

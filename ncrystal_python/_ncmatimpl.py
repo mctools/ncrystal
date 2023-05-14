@@ -77,6 +77,9 @@ class NCMATComposerImpl:
         assert not (fmt is not None and data is None)
         if data is None:
             return
+        if isinstance( data, NCMATComposerImpl ):
+            self.__params = data.clone().__params
+            return
         if fmt == 'via_ase':
             data= NCMATComposerImpl._ase_io_read( data, quiet = quiet )
             fmt = 'ase'
@@ -130,10 +133,13 @@ class NCMATComposerImpl:
             raise _nc_core.NCBadInput('Unknown data type (specify with the fmt keyword if this is just an auto-detection issue))')
 
     @staticmethod
-    def from_cif( cifsrc, quiet, mp_apikey = None, *args, **kwargs ):
+    def from_cif( cifsrc, quiet, mp_apikey = None, uiso_temperature = None, override_spacegroup = None, **kwargs ):
         from . import cifutils as nc_cifutils
-        lc = nc_cifutils.CIFLoader( cifsrc, quiet = quiet, mp_apikey = mp_apikey )
-        return lc.create_ncmat_composer( *args, quiet = quiet, **kwargs )._get_impl_obj()
+        lc = nc_cifutils.CIFLoader( cifsrc, quiet = quiet, mp_apikey = mp_apikey,
+                                    override_spacegroup = override_spacegroup )
+        return lc.create_ncmat_composer( quiet = quiet,
+                                         uiso_temperature = uiso_temperature,
+                                         **kwargs )._get_impl_obj()
 
     @staticmethod
     def from_cfgstr( cfgstr ):
@@ -425,7 +431,7 @@ class NCMATComposerImpl:
             self.set_fraction( label, fraction )
 
     def allow_fallback_dyninfo( self, debye_temp ):
-        dt = _decodeflt( debye_temp )
+        dt = _nc_common._decodeflt( debye_temp )
         if not ( dt and dt>0.0 ):
             raise _nc_core.NCBadInput(f'Invalid Debye temperature value: {debye_temp}')
         self.__dirty()
@@ -990,8 +996,7 @@ class NCMATComposerImpl:
                 l += 'default '
             l += f'{_v}\n'
 
-        ld, natoms_with_fallback_dyninfo = self.__lines_dyninfo( lbl_map, atompos_fractions or fractions )
-        l += ld
+
         if atomdb_lines:
             l += '@ATOMDB\n'
             l += '\n'.join(atomdb_lines)
@@ -1015,6 +1020,12 @@ class NCMATComposerImpl:
             l += '@CUSTOM_UNOFFICIALHACKS\n'
             for e in unofficial_hacks:
                 l += ' '.join(e)+'\n'
+
+        #Dyninfo lines last, since they might contain huge arrays of data, and
+        #people might only look at the top of the file:
+        ld, natoms_with_fallback_dyninfo = self.__lines_dyninfo( lbl_map, atompos_fractions or fractions )
+        l += ld
+
 
         out=["NCMAT v7"]
         comments = copy.deepcopy(self.__params.get('top_comments',[]))
@@ -1310,6 +1321,7 @@ def _decode_composition(label,*composition):
     if not composition:
         raise _nc_core.NCBadInput(errmsg)
 
+    _decodeflt = _nc_common._decodeflt
     #We want composition to end up in the final form: [(f0,name0),(f1,name1),...].
     is_final_form = lambda c : ( all(hasattr(e,'__len__') for e in c)
                                  and all(len(e)==2 for e in c)
@@ -1384,13 +1396,6 @@ def _decode_composition(label,*composition):
         if mfr:
             ll.append( ( -mfr, nme ) )
     return label, ll
-
-def _decodeflt(s):
-    try:
-        x = float( s )
-    except (TypeError,ValueError):
-        return None
-    return x
 
 def determine_labels_and_atomdb( _self_params, *, fractions, allow_siteoccu_ncmatv5_hack = True ):
     compositions = _self_params.get('compositions',{})

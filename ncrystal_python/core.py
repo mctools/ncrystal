@@ -1074,6 +1074,13 @@ class Info(RCBase):
             if di.atomData.displayLabel() == display_label:
                 return di
 
+    def findAtomInfo( self, display_label ):
+        """Look in the atominfos list for an entry with the given
+        display-label. Returns it if found, otherwise returns None."""
+        for ai in self.atominfos:
+            if ai.atomData.displayLabel() == display_label:
+                return ai
+
     def getAllCustomSections(self):
         """Custom information for which the core NCrystal code does not have any
         specific treatment. This is usually intended for usage by developers adding new
@@ -1223,6 +1230,13 @@ class Process(RCBase):
         with an optional prefix prepended to each line.
         """
         print(prefix+f'\n{prefix}'.join(self.getSummary(short='printable')))
+
+    def plot(self, *args, **kwargs ):
+        """Convenience method for plotting cross sections. This is the same as
+        NCrystal.plot.plot_xsect(material=self,*args,**kwargs), so refer to that
+        function for information about allowed arguments."""
+        from NCrystal.plot import plot_xsect
+        return plot_xsect( self, *args, **kwargs )
 
 class Absorption(Process):
     """Base class for calculations of absorption in materials"""
@@ -1432,10 +1446,16 @@ def createAbsorption(cfgstr):
     return Absorption(cfgstr)
 
 def createLoadedMaterial(cfgstr):
-    """Create and return LoadedMaterial object. This function does the same as
-    calling the LoadedMaterial constructor directly, and exists purely for
-    consistency."""
+    """Create and return LoadedMaterial object. A "loaded material" is simply a
+    convenience object which combines loaded Info, Scatter, and Absorption
+    objects of the same material.
+
+    This function does the same as calling the LoadedMaterial constructor
+    directly, and exists purely for consistency.
+    """
     return LoadedMaterial(cfgstr)
+
+load = createLoadedMaterial#convenience alias
 
 class LoadedMaterial:
     """This convenience class combines loaded Info, Scatter, and Absorption
@@ -1447,12 +1467,26 @@ class LoadedMaterial:
 
     def __init__(self,cfgstr):
         """Instantiate from a cfg-string which will be passed to the createInfo,
-           createScatter, and createAbsorption functions."""
+        createScatter, and createAbsorption functions.
+
+        As a special case, one can also pass a TextData object to this function,
+        and it will be loaded as by calling the directLoad(..)
+        function. Likewise, python strings beginning with 'NCMAT' and containing
+        at least one newline, will also be assumed to be raw NCMAT data and
+        loaded accordingly. For more control, however, the .directLoad function
+        is recommended.
+        """
         if isinstance(cfgstr,tuple) and len(cfgstr)==2 and cfgstr[0] == '__fromexistingobjects__':
             self.__i,self.__s,self.__a = cfgstr[1]['info'],cfgstr[1]['scatter'],cfgstr[1]['absorption']
             assert self.__i is None or isinstance(self.__i,Info)
             assert self.__s is None or isinstance(self.__s,Scatter)
             assert self.__a is None or isinstance(self.__a,Absorption)
+        elif ( isinstance(cfgstr,TextData)
+               or ( isinstance(cfgstr,str) and cfgstr.startswith('NCMAT') and '\n' in cfgstr ) ):
+            m = directLoad( cfgstr, dtype = cfgstr.dataType if isinstance(cfgstr,TextData) else 'ncmat' )
+            self.__i = m.info
+            self.__s = m.scatter
+            self.__a = m.absorption
         else:
             self.__i = createInfo(cfgstr)
             self.__s = createScatter(cfgstr)
@@ -1472,6 +1506,38 @@ class LoadedMaterial:
     def absorption(self):
         """Absorption object (None if not present)."""
         return self.__a
+
+    def plot(self, *args, **kwargs ):
+        """Convenience method for plotting cross sections. This is the same as
+        NCrystal.plot.plot_xsect(material=self,*args,**kwargs), so refer to that
+        function for information about allowed arguments."""
+        from NCrystal.plot import plot_xsect
+        return plot_xsect( self, *args, **kwargs )
+
+    def dump(self, verbose=0 ):
+        """Convenience method for dumping informtion about contained objects to
+        standard output. Use verbose argument to set verbosity level to 0
+        (minimal), 1 (middle), 2 (most verbose).
+        """
+        from .misc import MaterialSource
+        from ._common import print
+        import sys
+        flush = lambda : ( sys.stdout.flush(),sys.stderr.flush() )
+        flush()
+        any=False
+        for name,descr in [ ('info','Material info'),
+                            ('scatter','Scattering process (objects tree)'),
+                            ('absorption','Absorption process (object tree)') ]:
+            o = getattr(self,name)
+            if o:
+                any=True
+                print('\n>>> '+descr+':\n')
+                flush()
+                o.dump(**(dict(verbose=verbose) if name=='info' else {}))
+                flush()
+        if not any:
+            print('<empty>')
+            flush()
 
     def __str__(self):
         fmt = lambda x : str(x) if x else 'n/a'
@@ -1497,12 +1563,15 @@ def directLoad( data, cfg_params='', *, dtype='',
     any_data = AnyTextData( data )
     content = any_data.content
 
-    if not dtype and not content.startswith('NCMAT') and 'NCMAT' in content:
-        #Try to give a nice error for a common user-error:
-        if content.strip().startswith('NCMAT'):
-            raise NCBadInput('NCMAT data must have "NCMAT" as the first 5 characters (must not be preceded by whitespace)')
+    if not dtype:
+        if content.startswith('NCMAT'):
+            dtype = 'ncmat'
+        else:
+            #Try to give a nice error for a common user-error:
+            if content[0:1024].lstrip().startswith('NCMAT'):
+                raise NCBadInput('NCMAT data must have "NCMAT" as the first 5 characters (must not be preceded by whitespace)')
 
-    if not dtype and '.' in any_data.name:
+    if not dtype and any_data.name and '.' in any_data.name:
         p = any_data.name.split('.')
         if len(p)>=2 and p[-1] and p[-1].isalpha() and not p[-1] in ('gz','tgz','bz2','zip','tar'):
             dtype = dtype
@@ -1579,6 +1648,18 @@ class TextData:
            TextData object was created.
         """
         return self.__rp
+
+    def load( self ):
+        """Convenience method which loads the TextData with the directLoad(..)
+           function and returns the resulting LoadedMaterial object.
+        """
+        return LoadedMaterial(self)
+
+    def dump( self ):
+        """Convenience method which prints the contents.
+        """
+        from ._common import print
+        print( self.rawData )
 
     def __str__(self):
         return 'TextData(%s, uid=%i, %i chars)'%(self.__dsn,self.__uid,len(self.__rd))

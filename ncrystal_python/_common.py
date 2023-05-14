@@ -342,3 +342,15 @@ def download_url( url, decode_as_utf8_str = True, wrap_exception = True ):
             else:
                 raise e
     return data
+
+def _decodeflt(s):
+    import numbers
+    if s is None:
+        return None
+    if isinstance(s,numbers.Real):
+        return float(s)
+    try:
+        x = float( s )
+    except (TypeError,ValueError):
+        return None
+    return x
