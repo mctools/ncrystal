@@ -423,12 +423,9 @@ class Info(RCBase):
     def dump(self,verbose=0):
         """Dump contained information to standard output. Use verbose argument to set
         verbosity level to 0 (minimal), 1 (middle), 2 (most verbose)."""
-        import sys
-        sys.stdout.flush()
-        sys.stderr.flush()
+        _flush()
         _rawfct['ncrystal_dump_verbose'](self._rawobj,min(999,max(0,int(verbose))))
-        sys.stdout.flush()
-        sys.stderr.flush()
+        _flush()
 
     def hasTemperature(self):
         """Whether or not material has a temperature available"""
@@ -1229,7 +1226,10 @@ class Process(RCBase):
         in fact the lines resulting from a call to self.getSummary(short='printable'),
         with an optional prefix prepended to each line.
         """
+        from ._common import print
+        _flush()
         print(prefix+f'\n{prefix}'.join(self.getSummary(short='printable')))
+        _flush()
 
     def plot(self, *args, **kwargs ):
         """Convenience method for plotting cross sections. This is the same as
@@ -1521,9 +1521,7 @@ class LoadedMaterial:
         """
         from .misc import MaterialSource
         from ._common import print
-        import sys
-        flush = lambda : ( sys.stdout.flush(),sys.stderr.flush() )
-        flush()
+        _flush()
         any=False
         for name,descr in [ ('info','Material info'),
                             ('scatter','Scattering process (objects tree)'),
@@ -1532,12 +1530,12 @@ class LoadedMaterial:
             if o:
                 any=True
                 print('\n>>> '+descr+':\n')
-                flush()
+                _flush()
                 o.dump(**(dict(verbose=verbose) if name=='info' else {}))
-                flush()
+                _flush()
         if not any:
             print('<empty>')
-            flush()
+            _flush()
 
     def __str__(self):
         fmt = lambda x : str(x) if x else 'n/a'
@@ -1659,7 +1657,9 @@ class TextData:
         """Convenience method which prints the contents.
         """
         from ._common import print
+        _flush()
         print( self.rawData )
+        _flush()
 
     def __str__(self):
         return 'TextData(%s, uid=%i, %i chars)'%(self.__dsn,self.__uid,len(self.__rd))
@@ -1692,3 +1692,8 @@ def setDefaultRandomGenerator(rg):
 def clearCaches():
     """Clear various caches"""
     _rawfct['ncrystal_clear_caches']()
+
+def _flush():
+    import sys
+    sys.stdout.flush()
+    sys.stderr.flush()

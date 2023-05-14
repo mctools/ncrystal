@@ -819,11 +819,19 @@ class NCMATComposerImpl:
         from .plot import plot_xsect
         ms = MaterialSource( composer, cfg_params = cfg_params )
         loadedmat = ms.load()
+        import sys
+        flush = lambda : ( sys.stdout.flush(),sys.stderr.flush() )
+        flush()
         loadedmat.info.dump()
-        print("Absorption process (objects):")
+        flush()
+        _nc_common.print("Absorption process (objects):")
+        flush()
         loadedmat.absorption.dump(prefix='  ')
-        print("Scattering process (objects):")
+        flush()
+        _nc_common.print("Scattering process (objects):")
+        flush()
         loadedmat.scatter.dump(prefix='  ')
+        flush()
         return plot_xsect( ms, **kwargs_plot_xsect )
 
     def __determine_atompos_fractions( self, atompos ):
