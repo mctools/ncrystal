@@ -23,6 +23,12 @@
 set -e
 set -u
 
+echo
+echo "WARNING: The usage of ncrystal_preparemcstasdir should no longer be required in"
+echo "         newer McStas releases. Consequently the ncrystal_preparemcstasdir"
+echo "         script will be removed in one of the next NCrystal releases."
+echo
+
 if [ -f ./NCrystalLink -o -d ./NCrystalLink ]; then
     echo "Found ./NCrystalLink already (remove and rerun to force reinstallation)"
     exit 1
