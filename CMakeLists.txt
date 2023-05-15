@@ -524,6 +524,7 @@ if ( NCRYSTAL_ENABLE_DATA STREQUAL "EMBED" )
   endif()
   #Generate C++ code from the .ncmat files:
   execute_process(COMMAND "${Python3_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/ncrystal_python/ncrystal_ncmat2cpp"
+    "--full"
     "-n" "NCrystal::AutoGenNCMAT::registerStdNCMAT"
     "--regfctname" "NCrystal::internal::registerEmbeddedNCMAT(const char*,const char*)"
     "-o" "${PROJECT_BINARY_DIR}/autogen_ncmat_data.cc" ${DATAFILES} RESULT_VARIABLE status )
