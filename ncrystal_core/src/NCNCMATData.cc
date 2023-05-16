@@ -645,6 +645,7 @@ const char * NC::NCMATData::DynInfo::diType2Str( DynInfoType di)
   case DynInfoType::ScatKnl: return "ScatKnl";
   default:
     nc_assert_always(false);
+    return "";//need a return statement here to avoid spurious compiler warning with gcc12
   case DynInfoType::Undefined:
     return "Undefined";
   }

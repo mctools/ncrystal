@@ -489,6 +489,7 @@ namespace NCrystal {
       std::swap(m_count,o.m_count);
       this->setBeginPtr( m_data.large.data = o.m_data.large.data);
       m_data.large.capacity = o.m_data.large.capacity;
+      o.m_data.large.capacity = 0;//why did we leave out this line earlier?
       Impl::setBeginPtrSmallData(&o);
     }
     assert(o.empty());
