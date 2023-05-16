@@ -86,7 +86,7 @@ endif()
 
 cmake_policy( SET CMP0048 NEW )#Not sure if this is really needed
 
-project( NCrystal VERSION 3.5.81 ${_project_metadata} )
+project( NCrystal VERSION 3.6.0 ${_project_metadata} )
 
 unset( _project_metadata )
 

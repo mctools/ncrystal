@@ -52,7 +52,7 @@ For detailed usage conditions and licensing of this open source project, see:
 
 #NB: Synchronize meta-data below with fields in setup.py.in meta data:
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
-__version__ = '3.5.81'
+__version__ = '3.6.0'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
 __copyright__ = "Copyright 2015-2023 %s"%__author__
@@ -74,5 +74,5 @@ if not _os.environ.get('NCRYSTAL_SLIMPYINIT'):
 
 ###################################
 #Same as NCRYSTAL_VERSION macro (same as the get_version_num() function from .core):
-version_num = sum(int(i)*j for i,j in zip(__version__.split('.'),(1000000,1000,1)))
-version = tuple( int(i) for i in __version__.split('.') )
+version_tuple = tuple( int(i) for i in __version__.split('.') )#introduced in release 3.6.0
+version_num = sum(int(i)*j for i,j in zip(version_tuple,(1000000,1000,1)))#Introduced in release 0.9.1

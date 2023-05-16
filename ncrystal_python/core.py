@@ -36,18 +36,23 @@ import enum as _enum
 import ctypes as _ctypes
 import weakref as _weakref
 
-def version():
+def get_version():
     """Get NCrystal version (same as NCrystal.__version__)"""
     from . import __version__ as _v
     return _v
 
 def get_version_num():
+    """Encode version in single integer (same as NCRYSTAL_VERSION C++ macro)
+       for easier version comparison. This is also available as a variable named
+       version_num in the main NCrystal module.
     """
-    Encode version in single integer (same as NCRYSTAL_VERSION C++ macro) for
-    easier version comparison. This is also available as version_num in the main
-    NCrystal module
+    return sum(int(i)*j for i,j in zip(get_version().split('.'),(1000000,1000,1)))
+
+def get_version_tuple():
+    """Get NCrystal version as a tuple like (3,6,0). This is also available
+       as a variable named version_tuple in the main NCrystal module.
     """
-    return sum(int(i)*j for i,j in zip(version().split('.'),(1000000,1000,1)))
+    return tuple( int(i) for i in get_version().split('.') )
 
 class RCBase:
     """Base class for all NCrystal objects"""
@@ -509,8 +514,10 @@ class Info(RCBase):
     @property
     def factor_macroscopic_xs( self ):
         """Factor needed to convert cross sections from (barns/atom) to inverse
-        penetration depth (1/cm)."""
-        return 100.0 * self.numberdensity
+        penetration depth (1/cm). This is actually just the numberdensity value,
+        since (barns/atom) * ( atoms/Aa^3 ) = 1e-28m^2/1e-30m^3 = 1/cm.
+        """
+        return self.numberdensity
 
     def hasXSectAbsorption(self):
         """OBSOLETE FUNCTION"""

@@ -1,3 +1,187 @@
+v3.6.0 2023-05-16
+      * This milestone release primarily brings a massive restructuring and
+        update of the Python API of NCrystal. The changes should be backwards
+        compatible in almost all cases, and the most user-visible changes should
+        hopefully be the addition of several new big features, highlighted
+        below.
+      * Note that along with this release we are also publishing several Jupyter
+        notebooks at https://github.com/mctools/ncrystal-notebooks which might
+        be a more enjoyable (or at least useful) way to learn the Python API of
+        NCrystal. These notebooks will also be used during the "HighNESS
+        International School on Thermal Neutron Scattering Kernel Generation"
+        hosted at the European Spallation Source in Lund
+        (https://indico.esss.lu.se/event/3096/).
+      * The new NCMATComposer helper class is added to the Python API. It can be
+        used to create new materials in an object-orient and pythonic manner, as
+        opposed to hand-crafting the NCMAT data. It essentially supports all
+        features of the underlying NCMAT format, but does so in a much more
+        easily accessible manner, and handles a lot of the book-keeping that can
+        arise in some complicated materials.
+      * A new NCrystal.cifutils submodule brings a CIFLoader class, which behind
+        the scene empowers the NCMATComposer class to adopt crystal structures
+        from CIF files. Such files can reside both locally or in selected online
+        databases. CIF files often contain incomplete information, so be sure to
+        consult the Jupyter notebook tutorial linked above for examples of how
+        to deal with these. Note that based on this CIF functionality, the
+        NCMATComposer now also support ASE (https://wiki.fysik.dtu.dk/ase/)
+        objects, or the loading of a variety of input formats via ASE.
+      * A new PhononDOSAnalyser class can be used to investigate and cleanup
+        phonon density of state (VDOS) curves, and then (with the help of the
+        NCMATComposer class) add them to a material. In particular, one of the
+        Jupyter notebooks linked above shows how one might go through the steps
+        of converting phonon curves produced by Quantum Espresso
+        (https://www.quantum-espresso.org/) to define high quality NCMAT data
+        for a material.
+      * A new NCrystal.plot submodule brings several new plotting utilities,
+        that can either be used directly, or via various convenience plotting
+        methods added to various classes in the API. In particular, note the
+        plot_xsect(..) and plot_xsects(..) function in the submodule, which can
+        be used to easily produce cross section plots from a range of inputs
+        (NCrystal objects, NCMAT data, cfg-strings, etc.).
+      * In general, many objects, both new and old, have been enriched with more
+        convenience methods for plotting, dumping, or merely extracting
+        data. Note for instance the new .findDynInfo and .findAtomInfo methods
+        of the Info objects, or the various .plot_xxx() methods on the
+        DynamicsInfo objects.
+      * A new global .load() function can be used to load either cfg-strings or
+        raw NCMAT data into LoadedMaterials objects. LoadedMaterials objects
+        have .info, .scatter, and .absorption properties available for accessing
+        all of these physics objects. Loading a material in such a unified
+        manner might be more convenient for many use-cases (in particular
+        interactive sessions) than the classic .createInfo(..),
+        .createScatter(..), and .createAbsorption().
+      * Note that while NCrystal in general does not have any required
+        dependencies, several of the features above does depend on third-party
+        python modules. All these modules are well-maintained open-source
+        projects, available both on PyPI (for "pip install xxx") and on
+        conda-forge (for "conda install -c conda-forge xxx"). The optional
+        dependencies are:
+        - "numpy": for various array-based functionality. Although not strictly
+          needed, it is recommended to always install this.
+        - "matplotlib": for usage of the plotting utilities.
+        - "spglib": For producing crystalline materials with NCMATComposer, in
+          order to verify (or refine) the structures.
+        - "gemmi": For reading CIF data into NCMATComposer.
+        - "ase": For loading crystal structures from ASE objects or non-CIF files
+          (like those produced by Quantum Espresso) into NCMATComposer.
+        -"pymatgen"/"mp_api": Only needed for loading CIF data from the online
+          database at materialsproject.org into NCMATComposer.
+      * Since release 3.0.0 we have provided the alias "nctool" for the command
+        named "ncrystal_inspectfile", and while we will keep providing both
+        aliases, we now swap their role and primarily mention the name "nctool"
+        in our documentation. There are not immediate plans to remove the
+        "ncrystal_inspecfile" command, but users are encouraged to migrate to
+        use the "nctool" command instead.
+      * Introduce new ncrystal_cif2ncmat command which internally uses the new
+        CIF and NCMAT tools from the Python API, and which supports both local
+        CIF files or remote online databases. This also obsoletes the
+        ncrystal_onlinedb2ncmat command.
+      * The rest of this changelog will list a range of other improvements and
+        bug fixes that are also a part of this release.
+      * Added new utility functions in the NCrystal.atomdata Python module:
+        elementNameToZValue, elementZToName, allElementNames, isElementName,
+        knownElementNames, and isKnownElement.
+      * Added new conversion functions in the NCrystal.constants module in
+        addition to the existing. The full list is now wl2ekin, ekin2wl,
+        wlsq2ekin, ekin2wlsq, ekin2wlsqinv, ekin2ksq, ekin2k, ksq2ekin,
+        wl2k. However, note that only the first two are put in the main module,
+        so one must explicitly import NCrystal.constants to access the rest
+        (existing users of ekin2ksq, wl2k, wl2ksq functions will therefore have
+        to modify their code).
+      * Be in general aware that a few specialist functions were moved from the
+        main Python module to sub-modules.
+      * The AtomData class in the Python API gets new .fmt_atomdb_str(..) and
+        .to_atomdb_str() convenience methods, for converting data into a string
+        with a format suitable for @ATOMDB sections of NCMAT data. Perhaps more
+        noticably, the AtomData class also gets __str__ and __repr__ methods for
+        a better interactive experience with the NCrystal.atomDB function.
+      * NCrystal.Info objects gets a .factor_macroscopic_xs property, which can
+        be used to convert cross sections from (barns/atom) to inverse
+        penetration depth (1/cm). This is numerically identical to the
+        .numberdensity property, but more explicit.
+      * Rename NCrystal.directMultiCreate as NCrystal.directLoad, but keeping
+        the old name as an alias for now. Also make it more accepting in terms
+        of the kinds of data it accepts. Most users likely use the new
+        NCrystal.load(..) function instead though, as it accepts a wider range
+        of input types.
+      * Prepare Python modules with a special mode for finding libNCrystal.*,
+        needed for an hopefully upcoming PyPI package being developed with the
+        help of Milan Klausz.
+      * Add "version_tuple" variable in the main NCrystal module, so one can do
+        "if NCrystal.version_tuple>=(3,6,0)" instead of "if
+        NCrystal.version_num>=3006000". But be aware that the
+        NCrystal.version_num exists all the way back to NCrystal release 0.9.1,
+        so it will for now result in nicer error messages if one checks against
+        NCrystal.version_num (at least for the next few years).
+      * Allow atomic positions in unit cell with fractional coordinates within
+        1e-4 of each other. The previous limit of 1e-2 was too tight for some
+        CIF files.
+      * Single crystal materials with no hkl entries (due to high dcutoff or
+        forced b_coh=0 for atoms) no longer results in an exception from the
+        PlaneProvider. Rather, the std plane provider instead now provides an
+        empty list of normals, avoiding spurious errors.
+      * Modify the .laz/.lau loader to be able to work directly with files
+        produced by the cif2hkl programme. Specifically this means being able to
+        extract spacegroup and chemical composition from the SPCGRP and TITLE
+        fields. It still might not load all files though, since cif2hkl might
+        produce small fluctuations between structure-factors for
+        symmetry-equivalent planes, which NCrystal won't accept currently.
+      * Due to the new improved utilities for interpreting CIF files for
+        conversion to NCMAT, a few materials in the data-library received
+        corrections. Additionally, several online database entries (in
+        particular those at materialprojects.org) appear to have been updated
+        with supposedly more accurate content. These changes are naturally
+        reflected in the new validation plots at the data library
+        page. Consequently, two materials received updates to structures
+        (CaSiO3_sg2_Wollastonite.ncmat and KOH_sg4_PotassiumHydroxide.ncmat),
+        and for a few other materials the list of relevant online database
+        entries (mentioned in comments in the files) was updated. As a comment,
+        we observe a general trend for structures loaded from
+        materialprojects.org to now better match the equivalent structures
+      * The C API function ncrystal_ncmat2json now works with raw NCMAT data
+        rather than just ncmat files. It is still an incomplete implementation
+        though.
+      * Updated README file, including adding a mention about OpenMC support.
+      * Modify CMake to make sure downstream C++ projects use at least C++11.
+      * Data files embedded in the binary with -DNCRYSTAL_ENABLE_DATA=EMBED will
+        no longer be in a compact form stripped for comments. This was a
+        mistake, of course the content of the stdlib data files should never
+        depend on installation details.
+      * Fix bug in ncrystal_ncmat2cpp which could introduce extra random bytes
+        at the end of huge (>60KB) files. This affected two files
+        (LiquidHeavyWaterD2O_T293.6K.ncmat and LiquidWaterH2O_T293.6K.ncmat) in
+        the standard library when building with -DNCRYSTAL_ENABLE_DATA=EMBED,
+        like is done in the conda packages.
+      * NCScatKnlData now allows a vanishing boundXS, which would earlier
+        trigger an exception. Related to this, the standard scattering factory
+        has been updated to not initialse SABScatter processes based on such
+        vanishing kernels, or if the scattering cross section is vanishing.
+        Also Added a few checks elsewhere in the code against sterile elements
+        (all scattering lengths 0), ensuring not only a tiny speedup, but also
+        that consistency checks did not falsely trigger exceptions.
+      * It is now possible to get all usual NCrystal functions in the api Python
+        submodule, meaning that "import NCrystal.api as NC" will mostly (apart
+        from a bit of package metadata variables) give the same result as
+        "import NCrystal as NC" since the __init__.py module also does an "from
+        .api import *" import internally. However, this latter import can be
+        avoided by setting the environment variable NCRYSTAL_SLIMPYINIT.
+      * Many obsoleted functions will now emit a warning upon
+        usage. Additionally, setting the environment variable
+        NCRYSTAL_NOPYOBSOLETE before importing the NCrystal modules, will remove
+        many such obsolete functions entirely. Note that some obsolete functions
+        might not yet have been migrated to this new scheme.
+      * Better error messages if code like the following causes the Info object
+        to be cleaned up before an associated dyninfo object needs it:
+            di=NC.createInfo("bla.ncmat").dyninfos[0]
+            print(di.vdosData())
+        A better solution for the future would be to have DynInfo + AtomInfo
+        objects exposed directly as objects in the C-API, so the object
+        lifetimes in Python could be directly tied to the C++-side equivalents.
+      * Expose raw Gn functions and vdos2knl expansion code to both C and Python
+        APIs, and make available on dyninfo objects as well for convenience.
+      * Caching of idealised VDOS based on Debye temperatures use slightly more
+        digits in the cache keys.
+
 v3.5.81 2023-05-14
       * RC2 for incoming release v3.6.0.
 
