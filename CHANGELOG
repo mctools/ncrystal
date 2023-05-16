@@ -12,7 +12,7 @@ v3.6.0 2023-05-16
         hosted at the European Spallation Source in Lund
         (https://indico.esss.lu.se/event/3096/).
       * The new NCMATComposer helper class is added to the Python API. It can be
-        used to create new materials in an object-orient and pythonic manner, as
+        used to create new materials in an object-oriented and pythonic manner, as
         opposed to hand-crafting the NCMAT data. It essentially supports all
         features of the underlying NCMAT format, but does so in a much more
         easily accessible manner, and handles a lot of the book-keeping that can
