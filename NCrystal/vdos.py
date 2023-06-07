@@ -104,7 +104,7 @@ def extractKnl( vdos, mass_amu, temperature, vdoslux = 3, scatxs = 1.0,
     If provided, the order_weight_function can be used to assign a weight to
     each order of the expansion (e.g. 0.0 to remove the contribution of that
     order). It must be a function taking a single parameter n (the order), and
-    return a floating point value (the weight). Instead of providing
+    return a floating point value (the weight).
 
     If plot=True, the extracted kernel will be plotted with the
     NCrystal.plot.plot_knl function.

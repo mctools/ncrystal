@@ -592,7 +592,7 @@ namespace NCrystal {
         " identical to that used in @ATOMDB sections of NCMAT file"
         " (cf. https://github.com/mctools/ncrystal/wiki/NCMAT-format),"
         " with a few exceptions explained here:"
-        " First of all, semicolons (':') are interpreted as whitespace characters,"
+        " First of all, colons (':') are interpreted as whitespace characters,"
         " which might occasionally be useful (e.g. on the command line). Next,"
         " '@' characters play the role of line separators. Finally,"
         " when used with an NCMAT file that already includes an"

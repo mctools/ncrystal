@@ -200,8 +200,10 @@ namespace NCrystal {
         //do not add anything.
 
       } else if ( inelas == "external" ) {
+
         if ( ucnmode.has_value() )
           NCRYSTAL_THROW2(BadInput,"inelas="<<inelas<<" mode is not compatible with any ucnmode)");
+
         if ( !info.providesNonBraggXSects() )
           NCRYSTAL_THROW2(BadInput,"inelas="<<inelas<<" mode requires input source which provides direct"
                           " parameterisation of (non-Bragg) scattering cross sections (try e.g. inelas=auto instead)");

@@ -1,3 +1,6 @@
+v3.6.80 2023-06-07
+      * RC1 for release 3.7.0.
+
 v3.6.1 2023-05-16
       * Tiny update with a quick workaround for gcc12 compilation issues
         (github issue #125).

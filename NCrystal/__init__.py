@@ -50,9 +50,9 @@ For detailed usage conditions and licensing of this open source project, see:
 ##                                                                            ##
 ################################################################################
 
-#NB: Synchronize meta-data below with fields in setup.py.in meta data:
+#NB: Synchronize meta-data below with fields in setup.py+template_setup.py.in meta data:
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
-__version__ = '3.6.1'
+__version__ = '3.6.80'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
 __copyright__ = "Copyright 2015-2023 %s"%__author__

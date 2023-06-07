@@ -86,7 +86,7 @@ endif()
 
 cmake_policy( SET CMP0048 NEW )#Not sure if this is really needed
 
-project( NCrystal VERSION 3.6.1 ${_project_metadata} )
+project( NCrystal VERSION 3.6.80 ${_project_metadata} )
 
 unset( _project_metadata )
 
@@ -237,9 +237,9 @@ file_globsrc( HDRS_INTERNAL_NC "ncrystal_core/include/NCrystal/internal/*.*")
 file_globsrc( SRCS_NC "ncrystal_core/src/*.cc")
 file_globsrc( EXAMPLES_NC "examples/ncrystal_example_c*.c*")
 file_globsrc( DATAFILES "data/*.ncmat")
-file_globsrc( SRCS_NCPY "ncrystal_python/*.py")
-file_globsrc( SRCS_PYSCRIPTS "ncrystal_python/ncrystal_*")
-file_globsrc( tmp "ncrystal_python/nctool" )
+file_globsrc( SRCS_NCPY "NCrystal/*.py")
+file_globsrc( SRCS_PYSCRIPTS "scripts/ncrystal_*")
+file_globsrc( tmp "scripts/nctool" )
 list(APPEND SRCS_PYSCRIPTS ${tmp})
 file_globsrc( HDRS_NCG4 "ncrystal_geant4/include/G4NCrystal/*.*")
 file_globsrc( SRCS_NCG4 "ncrystal_geant4/src/*.cc")
@@ -523,7 +523,7 @@ if ( NCRYSTAL_ENABLE_DATA STREQUAL "EMBED" )
     message(FATAL_ERROR "Python3.6+ interpreter not found (required when NCRYSTAL_ENABLE_DATA=EMBED).")
   endif()
   #Generate C++ code from the .ncmat files:
-  execute_process(COMMAND "${Python3_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/ncrystal_python/ncrystal_ncmat2cpp"
+  execute_process(COMMAND "${Python3_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/scripts/ncrystal_ncmat2cpp"
     "--full"
     "-n" "NCrystal::AutoGenNCMAT::registerStdNCMAT"
     "--regfctname" "NCrystal::internal::registerEmbeddedNCMAT(const char*,const char*)"
@@ -585,7 +585,7 @@ if (NCRYSTAL_ENABLE_PYTHON)
     #Similar but preparing a custom directory on which to run pip install during conda build:
     #scripts:
     file( MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/ncrystal_pypkg/NCrystal" )
-    configure_file( "${PROJECT_SOURCE_DIR}/cmake/setup.py.in" "${PROJECT_BINARY_DIR}/ncrystal_pypkg/setup.py" @ONLY )
+    configure_file( "${PROJECT_SOURCE_DIR}/cmake/template_setup.py.in" "${PROJECT_BINARY_DIR}/ncrystal_pypkg/setup.py" @ONLY )
     file(COPY ${SRCS_NCPY} DESTINATION "${PROJECT_BINARY_DIR}/ncrystal_pypkg/NCrystal")
     message( STATUS "Will not install Python modules directly. Instead leaving pypkg skeleton in: ${PROJECT_BINARY_DIR}/ncrystal_pypkg/")
     message( STATUS "Note that the skeleton is incomplete (missing the ${PROJECT_BINARY_DIR}/ncrystal_pypkg/NCrystal/_nclibpath.py file).")

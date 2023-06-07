@@ -62,6 +62,16 @@ namespace NCrystal {
       AtomMass m_m;
     };
 
+    class SABNullExtender : public SABExtender {
+    public:
+      //For e.g. coherent-single-phonon models which should NOT get additional
+      //contributions outside the kernel itself.
+      SABNullExtender(){}
+      virtual ~SABNullExtender(){}
+      CrossSect crossSection(NeutronEnergy) const override { return CrossSect{0.0}; }
+      PairDD sampleAlphaBeta(RNG&, NeutronEnergy) const override { return {0.0,0.0}; }
+    };
+
   }
 
 }

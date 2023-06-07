@@ -28,9 +28,9 @@ ncrystal_geant4/....: NCrystal-Geant4 interface classes, with public header
                       implementation in ncrystal_geant4/src/.
 ncrystal_mcstas/....: NCrystal-McStas interface files, with sample component
                       and a script to prepare a given McStas rundir for using it.
-ncrystal_python/....: NCrystal python module and python-based scripts, including
-                      the ncrystal_inspectfile script and tools for NCMAT file
-                      preparation.
+NCrystal/...........: NCrystal python modules.
+scripts/............: Command-line scripts, including the nctool command and
+                      various tools for NCMAT file preparation.
 docs/...............: Extra documentation. Currently this is just ncmat_doc.md
                       with a thorough description of the NCMAT format.
 cmake/..............: Other files needed for CMake configuration.

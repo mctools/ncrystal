@@ -77,7 +77,7 @@ void NC::validateScatKnlData( const NC::ScatKnlDataView& data )
 
   if ( data.suggestedEmax > 0.0 ) {
     //The energy associated with the kinematic curve touching (alphamax,betamin)
-    //gives us an upper bound on the upper energy value of the table:
+    //gives us an approximate upper bound on the upper energy value of the table:
     const double bmin = data.betaGrid.front();
     const double amax = data.alphaGrid.back();
     const double EmaxUpperBound = constant_boltzmann*data.temperature.get()*(bmin-amax)*(bmin-amax)/(4*amax);

@@ -71,6 +71,56 @@ __version__ = installation_info['version']
 if installation_info.get('libdir','@').startswith('@'):
     raise SystemExit('ERROR: ncrystal-config script can only be used after installation via CMake')
 
+def fix_for_pycentric_installs():
+    nfo = installation_info
+    _ = pathlib.Path(__file__).parent.joinpath(nfo['libpath']).absolute()
+    if _.exists():
+        #False alarm.
+        return
+    #Could not find the library via the relative path provided by CMake. This
+    #can be the case if installing via the setup.py file rather than CMake. In
+    #those cases, we can try to import NCrystal and look for a subdirectory
+    #"ncrystal_pyinst_data/" next to the python modules, in which we can find
+    #the various files like library, etc.
+    try:
+        #This import is somewhat expensive, which is why we try to avoid it if possible:
+        import NCrystal
+        if __version__ != NCrystal.__version__:
+            raise SystemExit('Invalid installation. "import NCrystal" locates NCrystal v%s but'%NCrystal.__version__
+                             +' this ncrystal-config command is associated with NCrystal v%s'%__version__)
+
+        f = NCrystal.__file__
+    except ImportError:
+        f = None
+    if f:
+        f = pathlib.Path(f).parent / 'ncrystal_pyinst_data'
+        if not f.exists() or not f.is_dir():
+            f = None
+        if not ( f / 'lib' / nfo['libname'] ).exists():
+            f = None
+    if f is None:
+        raise SystemExit('Invalid installation. Could not locate the NCrystal library.')
+    #Ok, let us fix up stuff:
+    d = {}
+    d['libdir'] = f / 'lib'
+    if nfo['datadir'] is not None:
+        d['datadir'] = f / 'data' / 'NCrystal' /  'data'#Fixme verify this!!!
+    if nfo['mcstasdir'] is not None:
+        d['mcstasdir'] = f / 'data' / 'NCrystal' / 'mcstas'
+    d['pythonpath'] = f.parent.parent
+    d['cmakedir'] = f / 'lib' / 'cmake' / 'NCrystal'
+    d['prefix'] = None
+    d['includedir'] = f / 'include'
+    d['libpath'] =  f / 'lib' / nfo['libname']
+
+    for k,v in d.items():
+        if v is not None and not v.exists():
+            raise SystemExit(f'Invalid py-centric installation, did not find "{k}" in expected location: {v}')
+        nfo[k] = v
+
+if installation_info['pythonpath'] is None:
+    fix_for_pycentric_installs()
+
 def hasopt(optname):
     return installation_info['opt_%s'%optname]
 
@@ -81,9 +131,6 @@ def hasopt(optname):
 ###    installation_info['mcstasdir']=None
 ###
 
-_options = list(sorted(e[4:] for e in installation_info.keys() if e.startswith('opt_')))
-_infos_nonoptions = list(sorted(e for e in installation_info.keys() if not e.startswith('opt_')))
-
 def lookup_choice(name):
     info=installation_info[name]
     if info is None:
@@ -92,7 +139,13 @@ def lookup_choice(name):
     if name in ['libname','libnameg4','build_type','version','builtin_plugins']:
         #not a resolvable path
         return info
-    _=pathlib.Path(__file__).parent.joinpath(info).absolute()
+    if isinstance(info,pathlib.Path):
+        _ = info
+    elif os.path.isabs(info):
+        _ = pathlib.Path(info)
+    else:
+        _ = pathlib.Path(__file__).parent / info
+    _ = _.absolute()
     if not _.exists():
         raise SystemExit('Could not find path to %s (expected it in %s)'%(name,_))
     return _.resolve()
@@ -110,6 +163,9 @@ def modify_path_var(varname,apath,remove=False):
     apath = str(apath.absolute().resolve())
     others = list(e for e in os.environ.get(varname,'').split(':') if (e and e!=apath))
     return ':'.join(unique_list(others if remove else ([apath]+others)))
+
+_options = list(sorted(e[4:] for e in installation_info.keys() if e.startswith('opt_')))
+_infos_nonoptions = list(sorted(e for e in installation_info.keys() if not e.startswith('opt_')))
 
 #fs-path aware quote:
 shell_quote = lambda s : shlex.quote(str(s) if hasattr(s,'__fspath__') else s)

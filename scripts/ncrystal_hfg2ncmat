@@ -676,7 +676,7 @@ bindings are important here:
 List of valid bindings which can be used in --spec:
 
       CHali (1 hydrogen atom, aliphatic binding)
-      CHaro (1 hydrogren atom, aromatic binding, e.g. on phenyl group).
+      CHaro (1 hydrogen atom, aromatic binding, e.g. on phenyl group).
       CH2 (2 hydrogen atoms)
       CH3 (3 hydrogen atoms)
       NH (1 hydrogen atom)
