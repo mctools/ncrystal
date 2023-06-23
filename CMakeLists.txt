@@ -22,7 +22,7 @@
 #                                                                                #
 # CMake file which can be used to compile and link all files distributed with    #
 # NCrystal, and which provides CMake configuration files and setup.sh/unsetup.sh #
-# for subsequent usage.                                                          #
+# for subsequent usage (also ncrystal_setup.sh/ncrystal_unsetup.sh).             #
 #                                                                                #
 # One way to invoke cmake to build and install would be like this (run this from #
 # a temporary build dir)                                                         #
@@ -86,7 +86,7 @@ endif()
 
 cmake_policy( SET CMP0048 NEW )#Not sure if this is really needed
 
-project( NCrystal VERSION 3.6.80 ${_project_metadata} )
+project( NCrystal VERSION 3.6.81 ${_project_metadata} )
 
 unset( _project_metadata )
 
@@ -698,6 +698,8 @@ if ( NCRYSTAL_ENABLE_SETUPSH )
   configure_file( "${PROJECT_SOURCE_DIR}/cmake/template_unsetup.sh.in" "${PROJECT_BINARY_DIR}/generated_unsetup.sh" @ONLY )
   ncinstall( FILES "${PROJECT_BINARY_DIR}/generated_setup.sh" DESTINATION . RENAME setup.sh )
   ncinstall( FILES "${PROJECT_BINARY_DIR}/generated_unsetup.sh" DESTINATION . RENAME unsetup.sh )
+  ncinstall( FILES "${PROJECT_BINARY_DIR}/generated_setup.sh" DESTINATION . RENAME ncrystal_setup.sh )
+  ncinstall( FILES "${PROJECT_BINARY_DIR}/generated_unsetup.sh" DESTINATION . RENAME ncrystal_unsetup.sh )
 endif()
 
 if ( NOT NCRYSTAL_QUIET )

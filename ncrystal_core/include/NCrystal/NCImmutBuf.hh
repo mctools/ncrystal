@@ -27,24 +27,26 @@ namespace NCrystal {
 
   /////////////////////////////////////////////////////////////////////////////////
   //                                                                             //
-  // Immutable buffer with custom alignment and SBO. If needed, remote storage   //
-  // is kept in a shared ptr, so copying of buffer objects will always happen    //
-  // safely and malloc's. Note that the data length is NOT stored on the object, //
-  // so the code using ImmutableBuffer's are responsible for not using data      //
-  // beyond the length. It is optionally possible to store a trivial meta data   //
-  // object (such as an integer) on the object, which is both for convenience    //
-  // and to ensure any padding between the buffer and the metadata object are    //
-  // used to increase the size of the local buffer. Minimum local buffer size    //
-  // and required buffer alignment should be specified as template parameters.   //
-  // Note that a single char is used internally keep track of local vs. remote   //
-  // mode, so optimal LOCALBUF_MINSIZE will value will typically be 1 less than  //
-  // a power of two.                                                             //
+  // Immutable buffer with custom alignment and SBO (small buffer                //
+  // optimisation). If needed, remote storage is kept in a shared ptr, so        //
+  // copying of buffer objects will always happen safely and malloc's are        //
+  // reduced. Note that the data length is NOT stored on the object, so the code //
+  // using ImmutableBuffer's are responsible for not using data beyond the       //
+  // length. It is optionally possible to store a trivial meta data object (such //
+  // as an integer) on the object, which is both for convenience and to ensure   //
+  // any padding between the buffer and the metadata object are used to increase //
+  // the size of the local buffer. Minimum local buffer size and required buffer //
+  // alignment should be specified as template parameters.  Note that a single   //
+  // char is used internally keep track of local vs. remote mode, so optimal     //
+  // LOCALBUF_MINSIZE will value will typically be 1 less than a power of two.   //
   //                                                                             //
   // NB: On most platforms, only powers of two (1, 2, 4, 8, 16, ...) are valid   //
   // BUF_ALIGNMENT choices, but on some platforms e.g. long double apparently    //
   // has alignment of 10, so we don't static assert on it. It is always          //
-  // recommended to set BUF_ALIGNMENT to the alignment of the data to be         //
-  // stored, extracted using alignof(..).                                        //
+  // recommended to set BUF_ALIGNMENT to the alignment of the data to be stored, //
+  // extracted using alignof(..). UPDATE 2023: The underlying allignedAlloc code //
+  // now static_asserts on powers of two, so the code will need to be updated if //
+  // we encounter such platforms.                                                //
   //                                                                             //
   /////////////////////////////////////////////////////////////////////////////////
 
@@ -184,8 +186,8 @@ namespace NCrystal {
   class ImmutableBuffer<LOCALBUF_MINSIZE,BUF_ALIGNMENT,TMetaData>::RemoteBuf : private NoCopyMove {
     char * m_data;
   public:
-    RemoteBuf(const char * src, size_type len ) : m_data((char*)alignedAlloc(BUF_ALIGNMENT,len)) { std::memcpy(m_data,src,len); }
-    ~RemoteBuf() { std::free(m_data); }
+    RemoteBuf(const char * src, size_type len ) : m_data((char*)AlignedAlloc::alignedAllocFixedAlign<BUF_ALIGNMENT>(len)) { std::memcpy(m_data,src,len); }
+    ~RemoteBuf() { AlignedAlloc::freeAlignedAllocFixedAlign<BUF_ALIGNMENT>(static_cast<void*>(m_data)); }
     const char * data() const noexcept { return m_data; }
   };
 

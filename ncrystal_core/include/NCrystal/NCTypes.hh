@@ -139,8 +139,8 @@ namespace NCrystal {
   public:
     using EncapsulatedValue::EncapsulatedValue;
     static constexpr const char * unit() noexcept { return "Aa"; }
-    //Automatic conversions from/to energy:
-    constexpr NeutronWavelength(NeutronEnergy) noexcept;
+    //Automatic conversions from/to energy (not constexpr, since std::sqrt is not constexpr):
+    NeutronWavelength(NeutronEnergy) noexcept;
     void validate() const;
     ncnodiscard17 constexpr NeutronEnergy energy() const noexcept;
     ncnodiscard17 constexpr double k() const noexcept;//Corresponding wavenumber (k) in units of 1/Aa
@@ -155,9 +155,12 @@ namespace NCrystal {
     //Automatic conversions from/to wavelength:
     constexpr NeutronEnergy(NeutronWavelength) noexcept;
     void validate() const;
-    ncnodiscard17 constexpr NeutronWavelength wavelength() const noexcept;
-    ncnodiscard17 constexpr double k() const noexcept;//Corresponding wavenumber (k) in units of 1/Aa
+    ncnodiscard17 NeutronWavelength wavelength() const noexcept;
+    ncnodiscard17 double k() const noexcept;//Corresponding wavenumber (k) in units of 1/Aa
     ncnodiscard17 constexpr double ksq() const noexcept;//Corresponding squared wavenumber (k^2) in units of 1/Aa^2
+    //Constexpr versions (do not use in runtime!):
+    ncnodiscard17 constexpr NeutronWavelength constexpr_wavelength() const noexcept;
+    ncnodiscard17 constexpr double constexpr_k() const noexcept;
   };
 
   class NCRYSTAL_API CosineScatAngle final : public EncapsulatedValue<CosineScatAngle> {
@@ -639,14 +642,24 @@ namespace NCrystal {
     return *this;
   }
 
-  inline constexpr NeutronWavelength NeutronEnergy::wavelength() const noexcept
+  inline NeutronWavelength NeutronEnergy::wavelength() const noexcept
   {
     return *this;
   }
 
-  inline constexpr double NeutronEnergy::k() const noexcept
+  inline constexpr NeutronWavelength NeutronEnergy::constexpr_wavelength() const noexcept
   {
-    return ekin2ksq(m_value);
+    return NeutronWavelength{ constexpr_ekin2wl( this->get() ) };
+  }
+
+  inline double NeutronEnergy::k() const noexcept
+  {
+    return ekin2k(m_value);
+  }
+
+  inline constexpr double NeutronEnergy::constexpr_k() const noexcept
+  {
+    return constexpr_ekin2k(m_value);
   }
 
   inline constexpr double NeutronEnergy::ksq() const noexcept
@@ -664,8 +677,9 @@ namespace NCrystal {
     return wl2ksq(m_value);
   }
 
-  //Using nc_as_const so it can also be constexpr in C++11
-  inline constexpr NeutronWavelength::NeutronWavelength(NeutronEnergy ekin) noexcept
+  //Using nc_as_const so it can also be constexpr in C++11 [update: it can't
+  //anyway, since std::sqrt is not constexpr and so ekin2wl is not]:
+  inline NeutronWavelength::NeutronWavelength(NeutronEnergy ekin) noexcept
     : EncapsulatedValue(ekin2wl(nc_as_const(ekin).get())) {}
   inline constexpr NeutronEnergy::NeutronEnergy(NeutronWavelength wl) noexcept
     : EncapsulatedValue(wl2ekin(nc_as_const(wl).get())) {}

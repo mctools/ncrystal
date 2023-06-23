@@ -57,16 +57,22 @@
 
 namespace NCrystal {
 
-  //Utility functions for converting between neutron wavelength [Aa], kinetic
-  //energy [eV], and wavenumber k=2pi/lambda [1/Aa]:
-  NCRYSTAL_API constexpr double wl2ekin( double wl ) noexcept;     //cost: 1 branch + 1 division + 1 mult
-  NCRYSTAL_API constexpr double ekin2wl( double ekin ) noexcept;   //cost: 1 branch + 1 division + 1 sqrt
+  //Untyped utility functions for converting between neutron wavelength [Aa],
+  //kinetic energy [eV], and wavenumber k=2pi/lambda [1/Aa]:
+  NCRYSTAL_API constexpr double wl2ekin( double wl ) noexcept; //cost: 1 branch + 1 division + 1 mult
+  NCRYSTAL_API double ekin2wl( double ekin ) noexcept; //cost: 1 branch + 1 division + 1 sqrt
+  NCRYSTAL_API constexpr double constexpr_ekin2wl( double ekin ) noexcept;//expensive, use only compiletime
   NCRYSTAL_API constexpr double ekin2wlsq( double ekin ) noexcept; //cost: 1 branch + 1 division
   NCRYSTAL_API constexpr double ekin2wlsqinv( double ekin ) noexcept; //cost: 1 multiplication
-  NCRYSTAL_API constexpr double wlsq2ekin( double wl ) noexcept;   //cost: 1 branch + 1 division
-  NCRYSTAL_API constexpr double ekin2ksq( double ekin ) noexcept;   //cost: 1 multiplication
-  NCRYSTAL_API constexpr double ksq2ekin( double ksq ) noexcept;   //cost: 1 multiplication
-  NCRYSTAL_API constexpr double wl2k( double wl ) noexcept;     //cost: 1 branch + 1 division
+  NCRYSTAL_API constexpr double wlsq2ekin( double wl ) noexcept; //cost: 1 branch + 1 division
+  NCRYSTAL_API constexpr double ekin2ksq( double ekin ) noexcept; //cost: 1 multiplication
+  NCRYSTAL_API double ekin2k( double ekin ) noexcept; //cost: 1 multiplication + 1 sqrt
+  NCRYSTAL_API constexpr double constexpr_ekin2k( double ekin ) noexcept;//expensive, use only compiletime
+  NCRYSTAL_API constexpr double ksq2ekin( double ksq ) noexcept; //cost: 1 multiplication
+  NCRYSTAL_API constexpr double k2ekin( double k ) noexcept; //cost: 2 multiplications
+  NCRYSTAL_API constexpr double wl2k( double wl ) noexcept; //cost: 1 branch + 1 division
+  NCRYSTAL_API constexpr double wl2ksq( double wl ) noexcept; //cost: 1 branch + 1 division + 1 multiplication
+  NCRYSTAL_API constexpr double k2wl( double wl ) noexcept; //cost: 1 branch + 1 division
 
   //Physics constants (more are in internal NCMath.hh header):
   constexpr double constant_boltzmann = 8.6173303e-5;  // eV/K
@@ -708,15 +714,20 @@ namespace NCrystal {
     return xc == xp ? xc : detail_sqrtNR(x, 0.5 * (xc + x / xc), xc);
   }
 
-  inline constexpr double constexpr_sqrt(double x)
-  {
-    //TODO: Mark consteval in c++20.
-    return detail_sqrtNR(x, x, 0.);
-  }
-
   inline constexpr double constexpr_abs(double x)
   {
     return x < 0 ? -x : x;
+  }
+
+  inline constexpr bool constexpr_isinf(double x)
+  {
+    return constexpr_abs(x) >= std::numeric_limits<double>::infinity();
+  }
+
+  inline constexpr double constexpr_sqrt(double x)
+  {
+    //TODO: Mark consteval in c++20.
+    return constexpr_isinf( x ) ? x : detail_sqrtNR(x, x, 0.);
   }
 
   template <typename TVal>
@@ -778,10 +789,17 @@ namespace NCrystal {
     return wlsq2ekin( wl * wl );
   }
 
-  inline constexpr double ekin2wl( double ekin) noexcept
+  inline double ekin2wl( double ekin) noexcept
   {
+    //NB: std::sqrt is NOT constexpr!
     //eV to angstrom
     return ekin ? std::sqrt( 0.081804209605330899 / ekin ) : kInfinity;
+  }
+
+  inline constexpr double constexpr_ekin2wl( double ekin) noexcept
+  {
+    //eV to angstrom
+    return ekin ? constexpr_sqrt( 0.081804209605330899 / ekin ) : kInfinity;
   }
 
   inline constexpr double wlsq2ekin( double wlsq ) noexcept
@@ -813,14 +831,35 @@ namespace NCrystal {
     return ekin * detail::const_ekin2ksq_factor;
   }
 
+  inline double ekin2k( double ekin ) noexcept
+  {
+    //NB: std::sqrt is NOT constexpr!
+    return std::sqrt( ekin * detail::const_ekin2ksq_factor );
+  }
+
+  inline constexpr double constexpr_ekin2k( double ekin ) noexcept
+  {
+    return constexpr_sqrt( ekin * detail::const_ekin2ksq_factor );
+  }
+
   inline constexpr double ksq2ekin( double ksq ) noexcept
   {
     return detail::const_ksq2ekin_factor * ksq;
   }
 
+  inline constexpr double k2ekin( double k ) noexcept
+  {
+    return detail::const_ksq2ekin_factor * ( k * k );
+  }
+
   inline constexpr double wl2k( double wl ) noexcept
   {
     return wl ? k2Pi / wl : kInfinity;
+  }
+
+  inline constexpr double k2wl( double k ) noexcept
+  {
+    return k ? k2Pi / k : kInfinity;
   }
 
   inline constexpr double wl2ksq( double wl ) noexcept

@@ -20,25 +20,32 @@
 ################################################################################
 
 from skbuild import setup  # This line replaces 'from setuptools import setup'
-import codecs
-import os.path
 
-def read(rel_path):
-    here = os.path.abspath(os.path.dirname(__file__))
-    with codecs.open(os.path.join(here, rel_path), 'r') as fp:
-        return fp.read()
+def _extract_version():
+    import pathlib
+    p = pathlib.Path(__file__).parent / 'NCrystal' / '__init__.py'
+    if not p.exists():
+        raise RuntimeError("Unable to find NCrystal/__init__.py (for version string extraction).")
+    version_str = None
+    for l in p.read_text().splitlines():
+        if l.startswith('__version__'):
+            delim = '"' if '"' in l else "'"
+            version_str = l.split(delim)[1]
+            break
+    if not version_str:
+        raise RuntimeError(f'Unable to find version string in {p}.')
+    v = tuple( int(i) for i in version_str.split('.') )
+    if not len(v)==3:
+        raise RuntimeError(f'Invalid version string extracted from {p}.')
+    return v
 
-def get_version(rel_path):
-    for line in read(rel_path).splitlines():
-        if line.startswith('__version__'):
-            delim = '"' if '"' in line else "'"
-            return line.split(delim)[1]
-    else:
-        raise RuntimeError("Unable to find version string.")
+def get_version():
+    x,y,z = _extract_version()
+    return f'{x}.{y}.dev{z}' if z>=80 else f'{x}.{y}.{z}'
 
 setup(
     name="ncrystal",
-    version=get_version("NCrystal/__init__.py"),
+    version=get_version(),
     author='NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)',
     license = "Apache-2.0",
     description='Library for thermal neutron transport in crystals and other materials.',
@@ -51,7 +58,7 @@ setup(
     cmake_args=['-DNCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE=ON',
                 '-DNCRYSTAL_MODIFY_RPATH=OFF',
                 '-DNCRYSTAL_ENABLE_SETUPSH=OFF',
-                '-DNCRYSTAL_ENABLE_DATA=EMBED',
+                '-DNCRYSTAL_ENABLE_DATA=EMBED',#the c++ library can not currently locate the files if not embedding
                 '-DNCRYSTAL_ENABLE_MCSTAS=OFF',#Explicitly disable for now (was already moved into upstream McStas)
                 '-DNCRYSTAL_ENABLE_GEANT4=OFF',#Explicitly disable for now (planning to move out of core NCrystal repo)
                 '-DNCRYSTAL_SKIP_PYMODINST=ON',
@@ -59,5 +66,5 @@ setup(
                 '-DCMAKE_INSTALL_INCLUDEDIR=NCrystal/ncrystal_pyinst_data/include',
                 '-DCMAKE_INSTALL_DATADIR=NCrystal/ncrystal_pyinst_data/data',
                 '-DNCrystal_DATAFILESDIR=NCrystal/ncrystal_pyinst_data/stdlib_data',
-    ]
+                ]
 )

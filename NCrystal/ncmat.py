@@ -44,9 +44,9 @@ class NCMATComposer:
     quickly load and investigate the material. It might also be useful to print
     the output of .create_ncmat(), to understand what material has been created.
 
-    For a more in-depth discussion and usage examples, please refer to the wiki
-    page at https://github.com/mctools/ncrystal/wiki/NCMATComposer [fixme?]
-    TODO: Add link here to online tutorial once it is ready.
+    For a more in-depth discussion and usage examples, please refer to the
+    example Jupyter-Lab notebooks in the
+    https://github.com/mctools/ncrystal-notebooks repository.
 
     Note that the "labels" used in the various methods, to identify different
     atoms in the materials are custom user labels. They are simply a way to
@@ -79,6 +79,7 @@ class NCMATComposer:
     can also be invoked before the material is used, to detect the spacegroup in
     if it was not provided). Fortunately, "spglib" is available both on PyPI and
     in the conda-forge conda channel.
+
     """
 
     def __init__(self, data = None, fmt = None, quiet = False, plotlabel = None ):

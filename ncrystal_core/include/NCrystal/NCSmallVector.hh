@@ -322,7 +322,7 @@ namespace NCrystal {
           auto it(m_begin), itE(m_end);
           for ( ; it!=itE; ++it )
             it->~TValue();
-          std::free(m_begin);
+          AlignedAlloc::freeAlignedAlloc<TValue>( m_begin );
         }
       }
     };
@@ -340,7 +340,7 @@ namespace NCrystal {
     static DetachedHeap createNewDetachedHeap( size_type capacity )
     {
       //Can throw std::bad_alloc
-      TValue * b = alignedAlloc<TValue>(capacity);
+      TValue * b = AlignedAlloc::alignedAlloc<TValue>(capacity);
       return DetachedHeap(b,b,capacity);
     }
 
@@ -390,7 +390,8 @@ namespace NCrystal {
           it->~TValue();
       }
       if ( large(THIS) )
-        std::free(THIS->m_data.large.data);
+        AlignedAlloc::freeAlignedAlloc<TValue>( THIS->m_data.large.data );
+
       THIS->m_count = 0;
       setBeginPtrSmallData(THIS);
     }

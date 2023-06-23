@@ -1,6 +1,6 @@
 """
 
-Implementation of the built-in unit test.
+Implementation of the built-in unit tests.
 
 """
 
@@ -24,15 +24,56 @@ Implementation of the built-in unit test.
 ##                                                                            ##
 ################################################################################
 
-__all__ = ['test']
+__all__ = ['test','test_cmdline','test_cmake','test_extra','test_all']
 from ._common import print as _nc_print
 
-def test():
+def test( verbose = False ):
     """Quick test that NCrystal works as expected in the current installation."""
-    _actualtest()
-    _nc_print("Tests completed succesfully")
+    _actualtest( verbose = verbose )
+    if verbose!='quiet':
+        _nc_print("Tests completed succesfully")
 
-def _actualtest():
+def test_cmdline( verbose = False ):
+    """Quick test that NCrystal command-line scripts are present and working in
+    the current installation."""
+    _actual_test_cmdline( verbose = verbose )
+    if verbose!='quiet':
+        _nc_print("Tests completed succesfully")
+
+def test_cmake( verbose = False ):
+    """Quick test that the NCrystal installation supports down-stream CMake/C++
+    projects (possibly after using ncrystal-config to get CMAKE_PREFIX_PATH and
+    (DY)LD_LIBRARY_PATHS setup).
+    """
+    _actual_test_cmake( verbose = verbose, ignore_if_absent = False )
+    if verbose!='quiet':
+        _nc_print("Tests completed succesfully")
+
+def test_extra( verbose = False ):
+    """Run both test() and test_cmdline(). If CMake is present, also run test_cmake()."""
+    _actualtest( verbose = verbose )
+    _actual_test_cmdline( verbose = verbose )
+    _actual_test_cmake( verbose = verbose, ignore_if_absent = True )
+    if verbose!='quiet':
+        _nc_print("Tests completed succesfully")
+
+def test_all( verbose = False ):
+    """Run both test(), test_cmdline(), and test_cmake()."""
+    _actualtest( verbose = verbose )
+    _actual_test_cmdline( verbose = verbose )
+    _actual_test_cmake( verbose = verbose, ignore_if_absent = False )
+    if verbose!='quiet':
+        _nc_print("Tests completed succesfully")
+
+def _get_prfct( verbose ):
+    if verbose and verbose != 'quiet':
+        return lambda *a, **kw : _nc_print('::NCrystalTest::',*a,**kw)
+    else:
+        return lambda *a, **kw : None
+
+def _actualtest( verbose ):
+    prfct = _get_prfct( verbose )
+    prfct('starting standard Python-API testing')
     try:
         import numpy as _np
     except ImportError:
@@ -50,9 +91,16 @@ def _actualtest():
         if not flteq(a,b):
             raise RuntimeError('check failed (%.16g != %.16g, diff %g)'%(a,b,a-b))
         return True
-
-    al = NC.createInfo('stdlib::Al_sg225.ncmat;dcutoff=1.4')
     require(hasFactory('stdncmat'))
+    from . import _common as nc_common
+    require( nc_common.prettyFmtValue(0.25) == '1/4' )
+    require( nc_common.prettyFmtValue(0.25 + 1e-12) != '1/4' )
+    require( nc_common.prettyFmtValue(0.25 + 1e-15) == '1/4' )
+
+    _cfgstr='stdlib::Al_sg225.ncmat;dcutoff=1.4'
+    prfct(f'Trying to createInfo("{_cfgstr}")')
+    al = NC.createInfo(_cfgstr)
+    prfct(f'Verifying loaded Info object')
     require(al.hasTemperature() and require_flteq(al.getTemperature(),293.15))
     require_flteq(al.getXSectFree(),1.39667)
     require_flteq(al.getXSectAbsorption(),0.231)
@@ -86,9 +134,12 @@ def _actualtest():
         require_flteq(dsp, e[4])
         require_flteq(fsq, e[5])
 
+    _cfgstr2='stdlib::Al_sg225.ncmat;dcutoff=1.4;incoh_elas=0;inelas=0'
+    prfct(f'Trying to createScatter("{_cfgstr2}")')
     #We do all createScatter... here with independent RNG, for reproducibility
     #and to avoid consuming random numbers from other streams.
-    alpc = NC.createScatterIndependentRNG('stdlib::Al_sg225.ncmat;dcutoff=1.4;incoh_elas=0;inelas=0')
+    alpc = NC.createScatterIndependentRNG(_cfgstr2)
+    prfct(f'Verifying loaded Scatter object')
     require( alpc.name == 'PCBragg' )
     require( isinstance(alpc.name,str) )
     require( alpc.refCount() in (1,2) and type(alpc.refCount()) == int )
@@ -112,7 +163,11 @@ def _actualtest():
     require(alpc_clone3.getRNGState()=='3a20660a10fd581bd7cddef8fc3f32a2b067bd44')
 
     #Pick Nickel at 1.2 angstrom, to also both vdos + incoherent-elastic + coherent-elastic:
-    nipc = NC.createScatterIndependentRNG('stdlib::Ni_sg225.ncmat;dcutoff=0.6;vdoslux=2',2543577)
+    _cfgstr3='stdlib::Ni_sg225.ncmat;dcutoff=0.6;vdoslux=2'
+    _seed=2543577
+    prfct(f'Trying to createScatterIndependentRNG("{_cfgstr3}",{_seed})')
+    nipc = NC.createScatterIndependentRNG(_cfgstr3,_seed)
+    prfct(f'Verifying loaded Scatter object')
     nipc_testwl = 1.2
     #_nc_print(nipc.xsect(wl=nipc_testwl),nipc.xsect(wl=5.0))
     require_flteq(16.76322537767633,nipc.xsect(wl=nipc_testwl))
@@ -204,16 +259,18 @@ def _actualtest():
         require_flteq(outdir[0],expected[i][1][0])
         require_flteq(outdir[1],expected[i][1][1])
         require_flteq(outdir[2],expected[i][1][2])
-    gesc = NC.createScatterIndependentRNG("""stdlib::Ge_sg227.ncmat;dcutoff=0.5;mos=40.0arcsec
+
+    _cfgstr4="""stdlib::Ge_sg227.ncmat;dcutoff=0.5;mos=40.0arcsec
                             ;dir1=@crys_hkl:5,1,1@lab:0,0,1
-                            ;dir2=@crys_hkl:0,-1,1@lab:0,1,0""",3453455)
+                            ;dir2=@crys_hkl:0,-1,1@lab:0,1,0""".replace(' ','').replace('\n','')
+    _seed4 = 3453455
+    prfct(f'Trying to createScatterIndependentRNG("{_cfgstr4}",{_seed4})')
+    gesc = NC.createScatterIndependentRNG(_cfgstr4,_seed4)
+    prfct(f'Verifying loaded Scatter object')
     require_flteq(591.025731949681,gesc.crossSection(wl2ekin(1.540),( 0., 1., 1. )))
     require_flteq(1.666984885615526,gesc.crossSection(wl2ekin(1.540),( 1., 1., 0. )))
+    prfct('standard Python-API testing done')
 
-    from . import _common as nc_common
-    require( nc_common.prettyFmtValue(0.25) == '1/4' )
-    require( nc_common.prettyFmtValue(0.25 + 1e-12) != '1/4' )
-    require( nc_common.prettyFmtValue(0.25 + 1e-15) == '1/4' )
 
 class CallInspector:
 
@@ -325,3 +382,174 @@ def _create_pdfpages_inspector( real_pdfpages ):
     return CallInspector( name = 'PdfPages',
                           realobj = real_pdfpages,
                           subfcts = [ ('__call__',dict(subfcts=['savefig','close'])) ] )
+
+def _run_cmd( cmd, env = None ):
+    import sys
+    import subprocess
+    sys.stdout.flush()
+    sys.stderr.flush()
+    if env and sys.platform == 'darwin':
+        #osx's system protection #$%#^ is so damn annoying:
+        for name in ['DYLD_LIBRARY_PATH','LD_LIBRARY_PATH']:
+            v = env.get(name)
+            if v is not None:
+                from shlex import quote
+                #NB: "export A=B" is posix, not bash, so hopefully OK on all OSX
+                #shells:
+                cmd = 'export %s=%s && %s'%(name,quote(v),cmd)
+    try:
+        p = subprocess.Popen( cmd, shell=True, env=env,
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE )
+        output = p.communicate()[0]
+        ok = p.returncode==0
+    except OSError:
+        ok = False
+    sys.stdout.flush()
+    sys.stderr.flush()
+    return ok, output
+
+def _which(cmd):
+    """Function like BASH which (returns None if cmd not found)"""
+    from distutils.spawn import find_executable
+    cmd=find_executable(cmd)
+    if not cmd:
+        return None
+    import os
+    return os.path.abspath(os.path.realpath(cmd))
+
+def _actual_test_cmdline( verbose ):
+    prfct = _get_prfct( verbose )
+    prfct('starting testing of cmd-line utilities')
+    cmds = ['ncrystal-config --help',
+            'ncrystal-config -s',
+            'nctool --version',
+            'nctool --help',
+            'nctool --test',
+            'ncrystal_inspectfile --help',
+            'ncrystal_endf2ncmat --help',
+            'ncrystal_hfg2ncmat --help',
+            'ncrystal_ncmat2cpp --help',
+            'ncrystal_ncmat2hkl --help',
+            'ncrystal_cif2ncmat --help',
+            'ncrystal_vdos2ncmat --help',
+            'ncrystal_verifyatompos --help',
+            'ncrystal-config --show cmakedir']
+    for cmd in cmds:
+        prfct('Trying to run:',cmd)
+        ok, output = _run_cmd(cmd)
+        if not ok:
+            raise RuntimeError('Command failed: %s'%cmd)
+    prfct('testing of cmd-line utilities done')
+
+import contextlib as _contextlib
+@_contextlib.contextmanager
+def _work_in_tmpdir():
+    """Context manager for working in a temporary directory (automatically created+cleaned) and then switching back"""
+    import os
+    import tempfile
+    the_cwd = os.getcwd()
+    try:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            os.chdir(tmpdir)
+            yield
+    finally:
+        os.chdir(the_cwd)
+
+def _actual_test_cmake( verbose = False, ignore_if_absent = False ):
+    prfct = _get_prfct( verbose )
+    prfct('starting testing of compiled downstream cmake-based projects')
+    cmakecmd = _which('cmake')
+    if not cmakecmd:
+        if ignore_if_absent:
+            prfct('Skipping CMake test since "cmake" command not found.')
+            return
+        raise RuntimeError('cmake command not found')
+
+    prfct('Using cmake command: %s'%cmakecmd)
+
+
+    _singleline2str = lambda x : ((x.decode() if hasattr(x,'decode') else x) or '').strip()
+
+    _cmd = 'ncrystal-config --show cmakedir'
+    ok, ncrystal_cmakedir = _run_cmd(_cmd)
+    if not ok:
+        raise RuntimeError('Command failed: %s'%_cmd)
+    ncrystal_cmakedir = _singleline2str(ncrystal_cmakedir)
+    prfct('ncrystal-config gives cmakedir: %s'%ncrystal_cmakedir)
+    _cmd = 'ncrystal-config --show libdir'
+    ok, ncrystal_libdir = _run_cmd(_cmd)
+    if not ok:
+        raise RuntimeError('Command failed: %s'%_cmd)
+    ncrystal_libdir = _singleline2str(ncrystal_libdir)
+    prfct('ncrystal-config gives libdir: %s'%ncrystal_libdir)
+
+    def prepend_to_path( envdict, pathvar, entry ):
+        from shlex import quote
+        entry = quote(((entry.decode() if hasattr(entry,'decode') else entry) or '').strip())
+        if not entry:
+            return
+        l = [ entry ]
+        orig = envdict.get(pathvar,'')
+        if orig:
+            l.append( orig )
+        envdict[pathvar] = ':'.join(l)
+
+    import os
+    cmake_env = os.environ.copy()
+    runtime_env = os.environ.copy()
+    prfct('Testing with cmakedir added to CMAKE_PREFIX_PATH and libdir added to (DY)LD_LIBRARY_PATH')
+    prepend_to_path( cmake_env, 'CMAKE_PREFIX_PATH', ncrystal_cmakedir )
+    prepend_to_path( runtime_env, 'LD_LIBRARY_PATH', ncrystal_libdir )
+    prepend_to_path( runtime_env, 'DYLD_LIBRARY_PATH', ncrystal_libdir )
+    def runcmake(args):
+        cmake_args = cmake_env.get('CMAKE_ARGS','')
+        cmd=f'{cmakecmd} {cmake_args} {args}'
+        ok, output = _run_cmd(cmd, env=cmake_env)
+        prfct(f'Launching: {cmd}')
+        if not ok:
+            raise RuntimeError(f'Test command failed: {cmd}')
+
+    downstream_cmake = """
+cmake_minimum_required(VERSION 3.10...3.24)
+project(MyExampleProject LANGUAGES CXX)
+find_package(NCrystal REQUIRED)
+file(WRITE "${PROJECT_BINARY_DIR}/cppsrc.cpp" "
+#include \\"NCrystal/NCrystal.hh\\"
+#include <iostream>
+int main() {
+  auto pc = NCrystal::createScatter( \\"Al_sg225.ncmat;dcutoff=0.5;temp=25C\\" );
+  auto wl = NCrystal::NeutronWavelength{1.8};
+  auto xsect = pc.crossSectionIsotropic( wl );
+  std::cout << \\"Powder Al x-sect at \\" << wl << \\" is \\" << xsect << std::endl;
+  return 0;
+}
+")
+add_executable(exampleapp "${PROJECT_BINARY_DIR}/cppsrc.cpp")
+target_link_libraries( exampleapp NCrystal::NCrystal )
+install( TARGETS exampleapp DESTINATION bin )
+"""
+
+    import pathlib
+    with _work_in_tmpdir():
+        td = pathlib.Path('.').absolute()
+        ( td / 'src' ).mkdir()
+        ( td / 'src' / 'CMakeLists.txt' ).write_text(downstream_cmake)
+        ( td  / 'bld' ).mkdir()
+        os.chdir( td / 'bld' )
+        runcmake('../src -DCMAKE_INSTALL_PREFIX=../install')
+        runcmake('--build . --target install --config Release')
+        os.chdir( td )
+        app = ( td / 'install' / 'bin' / 'exampleapp' )
+        if not app.exists():
+            raise RuntimeError('Could not produce example app in downstream cmake project')
+        prfct(f'Launching: {app}')
+        ok, output = _run_cmd(str(app),env=runtime_env)
+        if not ok:
+            raise RuntimeError('Could not launch example app compiled in downstream cmake project')
+        envrun = os.environ.copy()
+        expected_output='Powder Al x-sect at 1.8Aa is 1.44816barn'
+        if not output.decode().strip()==expected_output:
+            raise RuntimeError('Example app compiled in downstream cmake project produces unexpected output')
+        prfct(f'App produced expected output')
+    prfct('testing of compiled downstream cmake-based projects done')

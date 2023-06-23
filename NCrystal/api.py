@@ -37,12 +37,12 @@ more stable in the long rum.
 from .exceptions import *
 from .core import *
 from .datasrc import *
-from .constants import wl2ekin, ekin2wl, ekin2ksq, wl2k, wl2ksq, constant_boltzmann #TODO: only wl2ekin, ekin2wl
+from .constants import wl2ekin, ekin2wl, ekin2ksq, wl2k, wl2ksq, constant_boltzmann #TODO: only wl2ekin, ekin2wl (or all?)
 from .atomdata import atomDB, iterateAtomDB
 from .cfgstr import normaliseCfg, decodeCfg, generateCfgStrDoc
 from .ncmat import NCMATComposer, formatVectorForNCMAT
 from .plugins import hasFactory, browsePlugins
-from ._testimpl import test
+from ._testimpl import *
 from .vdos import createVDOSDebye, debyeIsotropicMSD, PhononDOSAnalyser, debyeTempFromIsotropicMSD, analyseVDOS
 from .obsolete import *
 

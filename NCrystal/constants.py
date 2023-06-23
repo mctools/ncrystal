@@ -26,8 +26,7 @@ functions can be used with numpy arrays in addition to scalar numbers.
 ##                                                                            ##
 ################################################################################
 
-#some constants (NB: Copied here from NCMath.hh - must keep synchronized!! Also,
-#remember to include in __all__ list above):
+#some constants (NB: Copied here from NCMath.hh - must keep synchronized!!):
 
 constant_c  = 299792458e10#  speed of light in Aa/s
 constant_dalton2kg =  1.660539040e-27#  amu to kg
@@ -123,3 +122,11 @@ def wl2k( wl ):
 def wl2ksq( wl ):
     """Neutron wavelength (angstrom) to wavenumber squared, (k^2, in units of 1/angstrom^2)"""
     return ( wl2k(wl) )**2
+
+def k2wl( k ):
+    """Wavenumber, (k, in units of 1/angstrom) to neutron wavelength (angstrom)"""
+    return wl2k( k )#using that k2wl = wl2k (both are f(x)=2pi/x)
+
+def k2ekin( k ):
+    """Wavenumber, (k, in units of 1/angstrom) to neutron energy (eV)"""
+    return ksq2ekin( k * k )

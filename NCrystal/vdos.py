@@ -582,7 +582,6 @@ class PhononDOSAnalyser:
             plot_kwargs['labelfct'] = lambda x : thr_description
             c.plot_xsect( **plot_kwargs )
 
-        #fixme: plt_final?
         if do_legend:
             plt.legend()
         if do_grid:

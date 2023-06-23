@@ -96,7 +96,7 @@ def fix_for_pycentric_installs():
         f = pathlib.Path(f).parent / 'ncrystal_pyinst_data'
         if not f.exists() or not f.is_dir():
             f = None
-        if not ( f / 'lib' / nfo['libname'] ).exists():
+        if not f or not ( f / 'lib' / nfo['libname'] ).exists():
             f = None
     if f is None:
         raise SystemExit('Invalid installation. Could not locate the NCrystal library.')
@@ -104,7 +104,8 @@ def fix_for_pycentric_installs():
     d = {}
     d['libdir'] = f / 'lib'
     if nfo['datadir'] is not None:
-        d['datadir'] = f / 'data' / 'NCrystal' /  'data'#Fixme verify this!!!
+        d['datadir'] = f / 'stdlib_data'# NB: Does not 100% work, since libNCrystal.so can
+                                        #     not find it unless NCRYSTAL_DATADIR is set.
     if nfo['mcstasdir'] is not None:
         d['mcstasdir'] = f / 'data' / 'NCrystal' / 'mcstas'
     d['pythonpath'] = f.parent.parent

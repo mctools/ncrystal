@@ -41,8 +41,10 @@ struct NC::AtomData::Impl {
       (void)i;
       (it++)->~Component();
     }
-    std::free(THIS->m_components);
-    THIS->m_components = nullptr;
+    if ( THIS->m_components ) {
+      AlignedAlloc::freeAlignedAlloc<Component>( THIS->m_components );
+      THIS->m_components = nullptr;
+    }
   }
   static void setComponents(AtomData* THIS, const Component* o_begin, unsigned n )
   {
@@ -51,7 +53,7 @@ struct NC::AtomData::Impl {
     if ( n == 0)
       return;
     nc_assert_always( n < static_cast<unsigned>(-std::numeric_limits<decltype(m_classify)>::lowest()) );
-    Component * it = alignedAlloc<Component>(n);
+    Component * it = AlignedAlloc::alignedAlloc<Component>(n);
     //RAII, start at m_classify=0 so destructor won't clean up something we didn't construct.
     THIS->m_components = it;
     THIS->m_classify = 0;

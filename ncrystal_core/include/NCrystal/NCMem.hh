@@ -265,16 +265,85 @@ namespace NCrystal {
 
   };
 
-  //Aligned allocation suitable for any alignment size. Returned memory must be
-  //eventually released by call to std::free. Throws std::bad_alloc in case the
-  //allocation fails.
-  void * alignedAlloc( std::size_t alignment, std::size_t size );
+  namespace AlignedAlloc {
 
-  //Type-safe version of alignedAlloc (returned memory must be free'd by
-  //call to std::free, not delete):
-  template<class TValue>
-  inline TValue* alignedAlloc( std::size_t number_of_objects );
+    ///////////////////////////////////////////////////////////////////////////////
+    //                                                                           //
+    // Utilities for performing allocations of arbitrary size. Note that on most //
+    // platforms, only powers of two (1, 2, 4, 8, 16, ...) are valid alignment   //
+    // choices, and that is for now what the code supports. But there are        //
+    // platforms out there where e.g. long double apparently has alignment of    //
+    // 10. If we ever encounter such platforms we should get a compilation       //
+    // error, and will have to adapt the code accordingly.                       //
+    //                                                                           //
+    ///////////////////////////////////////////////////////////////////////////////
 
+    //Uncomment to debug aligned allocations:
+    //#define NCRYSTAL_TRACKALIGNEDALLOC
+
+    //Aligned allocation suitable for any alignment size which is a power of
+    //2. Returned memory must be eventually released by call to freeAlignedAlloc
+    //(or one of the templated overloads). Throws std::bad_alloc in case the
+    //allocation fails.
+    void * alignedAlloc( std::size_t alignment, std::size_t size );
+    void freeAlignedAlloc( std::size_t alignment, void* addr );
+
+    //Type-safe versions:
+    template<class TValue>
+    TValue* alignedAlloc( std::size_t number_of_objects );
+    template<class TValue>
+    void freeAlignedAlloc( TValue * );
+
+    //Templated versions (using templated versions potentially provides a tiny
+    //speedup):
+    template<std::size_t NALIGN, std::size_t NSIZE>
+    void * alignedAllocT();
+
+    template<std::size_t NALIGN>
+    void * alignedAllocFixedAlign( std::size_t size );
+
+    template<std::size_t NALIGN>
+    void freeAlignedAllocFixedAlign( void* addr );
+
+    namespace detail {
+      template<std::size_t N>
+      constexpr inline bool is_pow2() noexcept
+      {
+        return N > 0 && (N & (N - 1)) == 0;
+      }
+
+      constexpr inline bool is_pow2( std::size_t N ) noexcept
+      {
+        return N > 0 && (N & (N - 1)) == 0;
+      }
+    }
+
+    template< std::size_t NALIGN>
+    class AlignedHeapPtr {
+
+      //Move-only RAII class for aligned allocations with automatic
+      //deallocation. This class does NOT keep track of the allocation size.
+
+      static_assert( detail::is_pow2<NALIGN>(), "" );
+
+    public:
+      //Direct access to data pointer (do not modify this pointer address
+      //directly!):
+      void * data = nullptr;
+
+      //Use these to allocate / deallocate:
+      void allocate( std::size_t nbytes );
+      void deallocate();
+
+      //Implement Move-only RAII:
+      AlignedHeapPtr() = default;
+      ~AlignedHeapPtr() { deallocate(); }
+      AlignedHeapPtr( AlignedHeapPtr&& o ) { std::swap(data,o.data); }
+      AlignedHeapPtr& operator=( AlignedHeapPtr&& );
+      AlignedHeapPtr( const AlignedHeapPtr& ) = delete;
+      AlignedHeapPtr& operator=( const AlignedHeapPtr& ) = delete;
+    };
+  }
 }
 
 #if __cplusplus < 201402L
@@ -294,50 +363,157 @@ namespace std {
 ////////////////////////////
 
 namespace NCrystal {
-  namespace detail {
-    //For alignment > alignof(std::max_align_t):
-    void * bigAlignedAlloc( std::size_t alignment, std::size_t size );
-  }
 
-  //Aligned allocation suitable for any alignment size. Returned memory must be
-  //eventually released by call to std::free. Throws std::bad_alloc in case the
-  //allocation fails.
-  inline void * alignedAlloc( std::size_t alignment, std::size_t size ) {
-    nc_assert( size>0 );//size 0 malloc is UB
-    nc_assert( alignment>0 );//duh!
-    nc_assert( (alignment & (alignment - 1)) == 0 );//checks if (non-zero) alignment is power of 2.
+  namespace AlignedAlloc {
 
-#if defined(__GNUC__) && (__GNUC__ > 11 )
-    if ( false ) {//Very temporary workaround for gcc 12! This is of course pretty nasty!
-#else
+    template<class TValue>
+    inline TValue* alignedAlloc( std::size_t number_of_objects )
+    {
+      return static_cast<TValue*>(alignedAllocFixedAlign<alignof(TValue)>(number_of_objects * sizeof(TValue)));
+    }
+
+    template<class TValue>
+    inline void freeAlignedAlloc( TValue * addr )
+    {
+      freeAlignedAllocFixedAlign<alignof(TValue)>( static_cast<void*>( addr ) );
+    }
+
+    namespace detail {
+
+      //For alignment > alignof(std::max_align_t):
+      void * bigAlignedAlloc( std::size_t alignment, std::size_t size );
 
 #  if defined(__GNUC__) && (__GNUC__*1000+__GNUC_MINOR__)<4009
-    //gcc didn't add max_align_t to std:: until gcc 4.9
-    constexpr auto alignof_max_align_t = alignof(max_align_t);
+      //gcc didn't add max_align_t to std:: until gcc 4.9
+      constexpr auto nc_alignof_max_align_t = alignof(max_align_t);
 #  else
-    constexpr auto alignof_max_align_t = alignof(std::max_align_t);
+      constexpr auto nc_alignof_max_align_t = alignof(std::max_align_t);
 #  endif
-
-
-    if ( alignment <= alignof_max_align_t ) {
+#ifdef NCRYSTAL_TRACKALIGNEDALLOC
+      void trackalloc_enable( bool = true );
+      void trackalloc_malloc(void*);
+      void trackalloc_free(void*);
+      std::size_t trackalloc_count();
 #endif
-      //std::malloc is supposed to work in this case (and std::aligned_alloc
-      //might NOT work!):
-      void * result = std::malloc(size);
-      if ( result )
-        return result;
-      throw std::bad_alloc();
-    } else {
-      return detail::bigAlignedAlloc(alignment,size);
+      inline void * nc_std_malloc(std::size_t n)
+      {
+        void * addr = std::malloc(n);
+        if (!addr) {
+          ncunlikely throw std::bad_alloc();
+        }
+#ifdef NCRYSTAL_TRACKALIGNEDALLOC
+        trackalloc_malloc(addr);
+#endif
+        return addr;
+      }
+      inline void nc_std_free(void* addr)
+#ifndef NCRYSTAL_TRACKALIGNEDALLOC
+        noexcept
+#endif
+      {
+        if (addr) {
+#ifdef NCRYSTAL_TRACKALIGNEDALLOC
+          trackalloc_free(addr);
+#endif
+          nclikely std::free(addr);
+        }
+      }
+
+      void freeBigAlignedAlloc( void* );
     }
   }
+}
 
-  template<class TValue>
-  inline TValue* alignedAlloc( std::size_t number_of_objects )
-  {
-    return static_cast<TValue*>(alignedAlloc( alignof(TValue), number_of_objects * sizeof(TValue) ));
+inline void * NCrystal::AlignedAlloc::alignedAlloc( std::size_t alignment, std::size_t size )
+{
+  nc_assert( size>0 );
+  nc_assert( alignment>0 );
+  nc_assert( detail::is_pow2(alignment) );
+  void * result = ( alignment <= detail::nc_alignof_max_align_t
+                    ? detail::nc_std_malloc(size)
+                    : detail::bigAlignedAlloc(alignment,size) );
+  assert( result );
+  assert( reinterpret_cast<std::uintptr_t>(result) % alignment == 0 );
+  nclikely return result;
+}
+
+template<std::size_t NALIGN>
+void * NCrystal::AlignedAlloc::alignedAllocFixedAlign( std::size_t size )
+{
+  static_assert( detail::is_pow2<NALIGN>(), "" );
+  nc_assert( size>0 );
+  void * result = ( NALIGN <= detail::nc_alignof_max_align_t
+                    ? detail::nc_std_malloc(size)
+                    : detail::bigAlignedAlloc(NALIGN,size) );
+  assert( result );
+  assert( reinterpret_cast<std::uintptr_t>(result) % NALIGN == 0 );
+  nclikely return result;
+}
+
+template<std::size_t NALIGN, std::size_t NSIZE>
+inline void * NCrystal::AlignedAlloc::alignedAllocT()
+{
+  static_assert( detail::is_pow2<NALIGN>(), "" );
+  static_assert( NSIZE>0, "" );
+  void * result = ( NALIGN <= detail::nc_alignof_max_align_t
+                    ? detail::nc_std_malloc(NSIZE)
+                    : detail::bigAlignedAlloc(NALIGN,NSIZE) );
+  assert( result );
+  assert( reinterpret_cast<std::uintptr_t>(result) % NALIGN == 0 );
+  nclikely return result;
+}
+
+inline void NCrystal::AlignedAlloc::freeAlignedAlloc( std::size_t alignment, void* addr )
+{
+  assert( addr );
+  //Static check that pointer alignment is power of 2 (can be anywhere, we put
+  //it here in a function that will surely get compiled):
+  static_assert( detail::is_pow2<alignof(void*)>(), "" );
+
+  if ( alignment > detail::nc_alignof_max_align_t ) {
+    ncunlikely detail::freeBigAlignedAlloc( addr );
+    return;
   }
+  detail::nc_std_free( addr );
 
+}
+
+template<std::size_t NALIGN>
+inline void NCrystal::AlignedAlloc::freeAlignedAllocFixedAlign( void * addr )
+{
+  assert( addr );
+  static_assert( detail::is_pow2<NALIGN>(), "" );
+
+  if ( NALIGN > detail::nc_alignof_max_align_t ) {
+    ncunlikely detail::freeBigAlignedAlloc( addr );
+    return;
+  }
+  detail::nc_std_free( addr );
+}
+
+template< std::size_t NALIGN>
+inline NCrystal::AlignedAlloc::AlignedHeapPtr<NALIGN>& NCrystal::AlignedAlloc::AlignedHeapPtr<NALIGN>::operator=( AlignedHeapPtr<NALIGN>&& o )
+{
+  deallocate();
+  std::swap(data,o.data);
+  return *this;
+}
+
+template< std::size_t NALIGN>
+inline void NCrystal::AlignedAlloc::AlignedHeapPtr<NALIGN>::allocate( std::size_t nbytes )
+{
+  deallocate();
+  data = alignedAllocFixedAlign<NALIGN>( nbytes );
+}
+
+template< std::size_t NALIGN>
+inline void NCrystal::AlignedAlloc::AlignedHeapPtr<NALIGN>::deallocate()
+{
+  if ( !data )
+    return;
+  void * ddata = data;
+  data = nullptr;
+  freeAlignedAllocFixedAlign<NALIGN>( ddata );
 }
 
 #endif
