@@ -2,9 +2,9 @@ name: CMake
 
 on:
   push:
-    branches: [ develop ]
+    branches: [  develop, tk_throwaway_tests ]
   pull_request:
-    branches: [ develop ]
+    branches: [ develop, tk_throwaway_tests ]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
