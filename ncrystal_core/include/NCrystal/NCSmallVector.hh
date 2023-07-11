@@ -398,23 +398,25 @@ namespace NCrystal {
     {
       //Call destructors, release heap alloction (if any) and set count to
       //0. It is noexcept since destructors should not throw.
-      if ( small(THIS) ) {
-        nclikely
-        if ( THIS->m_count == 0 )
-          return;
-        auto itE = THIS->end();
-        for ( auto it = THIS->begin(); it!=itE ; ++it )
-          it->~TValue();
-        THIS->m_count = 0;
-        setBeginPtrSmallData(THIS);
-      } else {
+      if ( THIS->m_count == 0 )
+        return;
+
+      if ( large(THIS) ) {
         //Since v3.7.0 (summer 2023) we release the large area like this, to
         //avoid what looks like a spurious error with gcc 12 (see
         //https://github.com/mctools/ncrystal/issues/125). Doing it like this
         //seems to avoid this issue for some obscure reason, perhaps because it
-        //lets gcc focus on one RAII class at a time.
+        //lets gcc focus on one RAII class at a time. Also, it is important
+        //(apparently!) that the "THIS->m_count == 0" check above comes first.
         Impl::detachHeapDataAndClear(THIS);
+        return;
       }
+
+      nclikely auto itE = THIS->end();
+      for ( auto it = THIS->begin(); it!=itE ; ++it )
+        it->~TValue();
+      THIS->m_count = 0;
+      setBeginPtrSmallData(THIS);
     }
 
     static void resizeDown( SmallVector * THIS, size_type n ) noexcept
