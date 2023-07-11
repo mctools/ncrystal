@@ -27,3 +27,9 @@ requires = [
     "numpy"
 ]
 build-backend = "setuptools.build_meta"
+
+[tool.cibuildwheel]
+test-command = [
+  "python3 -mNCrystal.test all",
+  "nctool --test",
+]
