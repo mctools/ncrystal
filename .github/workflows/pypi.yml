@@ -1,5 +1,5 @@
 name: Publish to PyPI
-run-name: Publish to ${{inputs.TEST && 'Test' || ''}}PyPI
+run-name: Publish to ${{inputs.ENVIRONMENT=='testpypi' && 'Test' || ''}}PyPI ${{ inputs.REF && format('({0})', inputs.REF) }}
 
 on:
   push:
