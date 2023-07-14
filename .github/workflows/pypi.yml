@@ -1,0 +1,30 @@
+name: Publish to PyPI
+run-name: Publish to ${{inputs.TEST && 'Test' || ''}}PyPI
+
+on:
+  push:
+    tags:
+      - 'v[0-9].*' #pattern match
+  workflow_dispatch:
+    inputs:
+      REF:
+        type: string
+        description: Repository ref (tag/branch/SHA) to use. Use tags for uploading. (Defaults to the branch to use the workflow from)
+      BUILD_ONLY:
+        type: boolean
+        description: Build distributions without uploading.
+        default: false
+      ENVIRONMENT:
+        type: environment
+
+
+jobs:
+  use-pypi_deploy-workflow:
+    uses: mctools/mctools_actions/.github/workflows/pypi_deploy.yml@main
+    with:
+      REPOSITORY: ${{ github.repository }}
+      REF: ${{ inputs.REF || github.ref_name }}
+      DO_DEPLOY: ${{ !inputs.BUILD_ONLY }}
+      ENVIRONMENT: ${{ inputs.ENVIRONMENT || 'pypi' }}
+    secrets:
+      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
