@@ -34,4 +34,6 @@ scripts/............: Command-line scripts, including the nctool command and
 docs/...............: Extra documentation. Currently this is just ncmat_doc.md
                       with a thorough description of the NCMAT format.
 cmake/..............: Other files needed for CMake configuration.
-
+setup.py............: Support building and installing via standard Python
+                      tool-chains.
+pyproject.toml......: Like setup.py, needed for the standard Python tool-chains.

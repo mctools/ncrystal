@@ -1,3 +1,50 @@
+v3.7.0 2023-07-14
+      * The main feature of this release is that NCrystal now can be optionally
+        built and installed using standard Python-centric toolchains. Work on
+        this feature was spearheaded by Milan Klausz, and is associated with
+        newly added setup.py and pyproject.toml files, using skbuild behind the
+        scenes. Additionally, Python modules and script were moved out of the
+        ncrystal_python directory and into directories named NCrystal and
+        scripts, respectively (solving github issue #127). Finally, existing
+        Python modules and the ncrystal-config script were modified to support
+        such builds and installation. As a result, it is now possible to do "pip
+        install <path-to-ncrystal-src>", and get a fully-fledged NCrystal
+        release. The only difference with respect to e.g. a conda installation
+        of NCrystal, is that downstream CMake-based projecs won't detect the
+        installation, unless the directory reported by "ncrystal-config --show
+        cmakedir" is manually added to the CMAKE_PREFIX_PATH.
+      * Work is ongoing by Milan Klausz to setup workflows at GitHUB to
+        automatically build binary wheels for PyPI, similar to how binary
+        packages are now built automatically at conda-forge. Once this is
+        completed, it will be possible to install prebuilt NCrystal packages via
+        "pip install ncrystal" (solving github issue #93).
+      * Note that setup.py maps NCrystal releases with minor number >= 80 to a
+        development version lke "3.6.dev80", with the intention of preventing
+        "pip install ncrystal" from automatically picking up release candidates.
+      * Rewrote the aligned allocator code used internally when implementing
+        convenience containers such as SmallVector. This was done in response to
+        fix compilation errors with gcc12 (github issue #125). This new version
+        avoid the previous incorrect reliance of a non-standard feature of
+        std::free, and overall the new version is more portable, as it relies on
+        nothing except std::malloc and std::free.
+      * Updated the SmallVector::clear method, in order to work around what
+        appears to be a false-positive compilation error by gcc12.
+      * For completeness, added more functions like ekin2k, constexpr_ekin2k,
+        k2ekin, and k2wl functions in the C++ and Python API's.
+      * Bugfixes (C++ API): NeutronEnergy::k() now actually returns the
+        wavenumber k, and not the squared of k, as it did previously. Also, the
+        free-standing ekin2wl(..) function is no longer constexpr (since
+        std::sqrt is not actually constexpr), but there is a new
+        constexpr_ekin2wl which is.
+      * Added new standard testing facilities, for checking an installation for
+        presence of commandline scripts (solving github issue #110) and that
+        downstream CMake/C++ projects can find and use NCrystal (after getting
+        CMAKE_PREFIX_PATH from ncrystal-config). To invoke all tests, run
+        "python3 -mNCrystal.test all". For other options, run "python3
+        -mNCrystal.test all".
+      * Add ncrystal_setup.sh/ncrystal_unsetup.sh files in addition to the
+        ambiguously named setup.sh/unsetup.sh files. (github issue #126).
+
 v3.6.82 2023-07-13
       * RC3 for release 3.7.0.
 
