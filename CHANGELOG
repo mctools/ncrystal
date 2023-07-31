@@ -1,3 +1,10 @@
+v3.7.1 2023-07-31
+     * Update documentation to reflect availability on PyPI.
+     * Set a few policies in NCrystalConfig.cmake to make find_package(NCrystal)
+       work when CMake is new enough, but the downstream CMake project specifies
+       a very old version in their cmake_minimum_required statement (cf. github
+       issue #137).
+
 v3.7.0 2023-07-14
       * The main feature of this release is that NCrystal now can be optionally
         built and installed using standard Python-centric toolchains. Work on

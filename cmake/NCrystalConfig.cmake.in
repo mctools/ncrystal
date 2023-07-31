@@ -28,6 +28,13 @@
 #                                                                              #
 ################################################################################
 
+#Set a few policies to hopefully make this work when CMake is new enough, but
+#the user have a very old version in their cmake_minimum_required statements
+#(cf. github issue #137):
+cmake_policy(PUSH)#NB: We POP at the end of this file.
+cmake_policy(SET CMP0007 NEW)
+cmake_policy(SET CMP0012 NEW)
+cmake_policy(SET CMP0057 NEW)
 
 #Export a few directory paths (relocatable):
 set( NCrystal_CMAKEDIR "${CMAKE_CURRENT_LIST_DIR}" )
@@ -120,13 +127,14 @@ if ( NCrystal_OPTION_BUILD_G4HOOKS )
       include( CMakeFindDependencyMacro )
       find_dependency( Geant4 @Geant4_VERSION@ EXACT REQUIRED )
       include( "${NCrystal_CMAKEDIR}/G4NCrystalTargets.cmake" )
-      set( NCrystal_COMPONENT_GEANT4BINDINGS ON )
     endif()
+    set( NCrystal_COMPONENT_GEANT4BINDINGS ON )
   endif()
 else()
   if ( NCrystal_FIND_REQUIRED_GEANT4BINDINGS )
     #GEANT4BINDINGS were explicitly requested but this installation does not
     #support it.
+    message("Skipping ineligible NCrystal installation due to absence of required GEANT4BINDINGS")
     set( NCrystal_FOUND FALSE )
   endif()
 endif()
@@ -138,3 +146,6 @@ foreach(tmp ${NCrystal_FIND_COMPONENTS})
     set( NCrystal_FOUND FALSE )
   endif()
 endforeach()
+
+#Undo the policy changes we did above:
+cmake_policy(POP)

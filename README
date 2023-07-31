@@ -94,9 +94,9 @@ Using the NCrystal installation from C++ (including Geant4), C or Python code
 
 If you wish to use NCrystal from Python code, there is no special setup needed,
 beyond sourcing the setup.sh script mentioned in the INSTALL file (not needed in
-conda). If you on the other hand wish to use NCrystal from your compiled C++ or
-C code, you must put appropriate build flags. The recommended way is using CMake
-to do this (see next section), but otherwise you must put the
+conda or pip installs). If you on the other hand wish to use NCrystal from your
+compiled C++ or C code, you must put appropriate build flags. The recommended
+way is using CMake to do this (see next section), but otherwise you must put the
 $NCRYSTALDIR/include directory in your include path, usually by providing your
 compiler with an "-I$NCRYSTALDIR/include" flag, and make sure you link to the
 NCrystal library in $NCRYSTALDIR/lib, usually via "-L$NCRYSTALDIR/lib
@@ -140,10 +140,18 @@ CMake code for a small project using NCrystal might look like the following
 
   cmake_minimum_required(VERSION 3.10...3.26)
   project(MyExampleProject LANGUAGES CXX)
+  execute_process( COMMAND ncrystal-config --show cmakedir
+                   OUTPUT_VARIABLE NCrystal_DIR
+                   OUTPUT_STRIP_TRAILING_WHITESPACE )
   find_package(NCrystal REQUIRED)
   add_executable(exampleapp "${PROJECT_SOURCE_DIR}/exampleapp.cc")
   target_link_libraries( exampleapp NCrystal::NCrystal )
   install( TARGETS exampleapp DESTINATION bin )
+
+Note that the "execute_process( ... )" command above is optional, but is
+required before the code can work in an environment where the NCrystal CMake
+modules are not automatically injected into the CMake package search path (this
+notably includes NCrystal installed via "pip install ncrystal").
 
 If the NCrystal-Geant4 bindings are needed, they must be explicitly requested,
 and the NCrystal::G4NCrystal target added as a dependency for downstream code:
@@ -152,7 +160,8 @@ and the NCrystal::G4NCrystal target added as a dependency for downstream code:
   target_link_libraries( exampleapp NCrystal::G4NCrystal )
 
 This will of course fail if NCrystal was not build with Geant4 support
-(i.e. configured with -DNCRYSTAL_ENABLE_GEANT4=ON).
+(i.e. configured with -DNCRYSTAL_ENABLE_GEANT4=ON). Note: currently (summer
+2023), NCrystal conda and pip packages are built *without* Geant4 support.
 
 
 
