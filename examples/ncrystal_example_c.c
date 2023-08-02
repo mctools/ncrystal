@@ -25,13 +25,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-double my_randgen() {
+double my_randgen(void) {
   /* Using rand from stdlib.h for this small example to generate numbers     */
   /* uniformly in (0,1] (note, this is NOT recommended for scientific work). */
   return 1.0-rand() / (RAND_MAX + 1.);
 }
 
-int main() {
+int main(void) {
   /* declarations first (to support ancient pedantic C compilers) */
   ncrystal_scatter_t pc, sc;
   ncrystal_process_t pc_proc, sc_proc;

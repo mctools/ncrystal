@@ -284,7 +284,7 @@ def _anyvdos_initfmt( data, fmt ):
         if _needsexpand(egrid,dos):
             return _np_linspace( egrid[0], egrid[-1], len(dos) )
         else:
-            return np.asfarray(egrid,dtype=float)
+            return _np.asfarray(egrid,dtype=float)
     def integrate( expanded_egrid, dos ):
         x,y = expanded_egrid, dos
         if not x[0] > 0.0:

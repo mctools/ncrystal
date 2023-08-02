@@ -321,22 +321,22 @@ void ncrystal_seterrhandler(void (*handler)(char*,char*))
   ncc::custom_error_handler = handler;
 }
 
-int ncrystal_error()
+int ncrystal_error(void)
 {
   return ncc::waserror;
 }
 
-const char * ncrystal_lasterror()
+const char * ncrystal_lasterror(void)
 {
   return ncc::waserror ? ncc::errmsg : 0;
 }
 
-const char * ncrystal_lasterrortype()
+const char * ncrystal_lasterrortype(void)
 {
   return ncc::waserror ? ncc::errtype : 0;
 }
 
-void ncrystal_clearerror()
+void ncrystal_clearerror(void)
 {
   ncc::waserror = 0;
 }
@@ -1406,14 +1406,14 @@ ncrystal_absorption_t ncrystal_create_absorption( const char * cfgstr )
   return {nullptr};
 }
 
-void ncrystal_clear_caches()
+void ncrystal_clear_caches(void)
 {
   try {
     NC::clearCaches();
   } NCCATCH;
 }
 
-void ncrystal_clear_info_caches()
+void ncrystal_clear_info_caches(void)
 {
   //deprecated, now simply redirects to ncrystal_clear_caches.
   ncrystal_clear_caches();
@@ -1432,12 +1432,12 @@ int ncrystal_has_factory( const char* name )
   return 0;
 }
 
-int ncrystal_version()
+int ncrystal_version(void)
 {
   return NCRYSTAL_VERSION;
 }
 
-const char * ncrystal_version_str()
+const char * ncrystal_version_str(void)
 {
   return NCRYSTAL_VERSION_STR;
 }
@@ -1685,7 +1685,7 @@ ncrystal_atomdata_t ncrystal_create_atomdata_fromdbstr( const char* name )
   return {nullptr};
 }
 
-unsigned ncrystal_atomdatadb_getnentries()
+unsigned ncrystal_atomdatadb_getnentries(void)
 {
   try {
     return NC::AtomDB::getAllEntriesCount();
@@ -1768,7 +1768,7 @@ void ncrystal_dealloc_string( char* ss )
     delete[] ss;
 }
 
-void ncrystal_setrandgen( double (*rg)() )
+void ncrystal_setrandgen( double (*rg)(void) )
 {
   try {
     if (rg)
@@ -1778,7 +1778,7 @@ void ncrystal_setrandgen( double (*rg)() )
   } NCCATCH;
 }
 
-void ncrystal_setbuiltinrandgen()
+void ncrystal_setbuiltinrandgen(void)
 {
   try {
     NC::setDefaultRNG( NC::createBuiltinRNG() );
@@ -1961,7 +1961,7 @@ void ncrystal_add_custom_search_dir( const char * dir )
   } NCCATCH;
 }
 
-void ncrystal_remove_all_data_sources()
+void ncrystal_remove_all_data_sources(void)
 {
   try {
     NC::DataSources::removeAllDataSources();
@@ -1969,7 +1969,7 @@ void ncrystal_remove_all_data_sources()
 }
 
 
-void ncrystal_remove_custom_search_dirs( )
+void ncrystal_remove_custom_search_dirs(void)
 {
   try {
     NC::DataSources::removeCustomSearchDirectories();

@@ -34,6 +34,7 @@ except ImportError:
 
 def _ensure_numpy():
     if not _np:
+        from .exceptions import NCException
         raise NCException("Numpy not available - array based functionality is unavailable")
     return _np
 

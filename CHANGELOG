@@ -1,9 +1,26 @@
-v3.7.1 2023-07-31
+v3.7.1 2023-08-02
      * Update documentation to reflect availability on PyPI.
-     * Set a few policies in NCrystalConfig.cmake to make find_package(NCrystal)
-       work when CMake is new enough, but the downstream CMake project specifies
-       a very old version in their cmake_minimum_required statement (cf. github
-       issue #137).
+     * Set version-based policies in NCrystalConfig.cmake to make
+       find_package(NCrystal) work when CMake is new enough, but the downstream
+       CMake project nevertheless specifies a very old version in their
+       cmake_minimum_required statement (cf. github issue/discussion #137).
+     * Add NCrystal_LIBRARIES variables for downstream CMake-based projects with
+       legacy 2.x-style CMake code. If the GEANT4BINDINGS component is enabled,
+       also set G4NCrystal_LIBDIR, G4NCrystal_INCDIR, G4NCrystal_LIBNAME and
+       G4NCrystal_LIBRARIES variables, likewise intended for such legacy
+       projects. Note of course, that usage of such legacy CMake 2.x-style code
+       is discouraged.
+     * Include type_traits in NCDefs.hh, to potentially fix some compilation
+       errors seen in #137.
+     * Fix several minor bugs in NCrystal Python code which were discovered via
+       the ruff static code analysis tool.
+     * Change signature of all 0-argument functions in C-API in ncrystal.h from
+       f() to f(void), since the first form is apparently deprecated since 30
+       years and gives issues in clang 14
+       (cf. https://github.com/madler/zlib/issues/633 and
+       https://github.com/mctools/dgcode/issues/34).
+     * For NCrystal builds, change max version in cmake_minimum_required to
+       3.27.
 
 v3.7.0 2023-07-14
       * The main feature of this release is that NCrystal now can be optionally

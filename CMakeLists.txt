@@ -53,7 +53,7 @@
 # for specifying this maximum value is that it affects the default values of
 # cmake policies, depending on which version introduced them.
 
-cmake_minimum_required(VERSION 3.10...3.25)
+cmake_minimum_required(VERSION 3.10...3.27)
 cmake_policy(SET CMP0054 NEW)
 
 # Respect value of CMAKE_BUILD_TYPE if already defined, otherwise fall back to

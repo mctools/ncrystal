@@ -28,13 +28,11 @@
 #                                                                              #
 ################################################################################
 
-#Set a few policies to hopefully make this work when CMake is new enough, but
-#the user have a very old version in their cmake_minimum_required statements
-#(cf. github issue #137):
+#First make sure our file work when CMake is new enough, but the user have a
+#very old version in their cmake_minimum_required statements (cf. github
+#discussion/issue #137):
 cmake_policy(PUSH)#NB: We POP at the end of this file.
-cmake_policy(SET CMP0007 NEW)
-cmake_policy(SET CMP0012 NEW)
-cmake_policy(SET CMP0057 NEW)
+cmake_policy(VERSION 3.3...3.27)
 
 #Export a few directory paths (relocatable):
 set( NCrystal_CMAKEDIR "${CMAKE_CURRENT_LIST_DIR}" )
@@ -84,8 +82,9 @@ unset( _tmpnc_optsvals )
 unset( _tmpnc_o )
 unset( _tmpnc_v )
 
-#Libname:
+#Libname + old school NCrystal_LIBRARIES variable:
 set( NCrystal_LIBNAME @NCrystal_LIBNAME@ )
+set( NCrystal_LIBRARIES "${NCrystal_LIBDIR}/${NCrystal_LIBNAME}" )
 
 #Various scripts:
 if ( NCrystal_OPTION_INSTALL_PY )
@@ -122,13 +121,20 @@ set( NCrystal_COMPONENT_GEANT4BINDINGS OFF )
 if ( NCrystal_OPTION_BUILD_G4HOOKS )
   #Build with Geant4 bindings. However, only load these targets (and the Geant4
   #dependency) if the GEANT4BINDINGS component was requested.
-  if ( "GEANT4BINDINGS" IN_LIST NCrystal_FIND_COMPONENTS )
-    if( NOT TARGET NCrystal::G4NCrystal )
-      include( CMakeFindDependencyMacro )
-      find_dependency( Geant4 @Geant4_VERSION@ EXACT REQUIRED )
-      include( "${NCrystal_CMAKEDIR}/G4NCrystalTargets.cmake" )
+  if ( NCrystal_FIND_COMPONENTS )#if statements guards against CMP0085-OLD:
+    if ( "GEANT4BINDINGS" IN_LIST NCrystal_FIND_COMPONENTS )
+      if( NOT TARGET NCrystal::G4NCrystal )
+        include( CMakeFindDependencyMacro )
+        find_dependency( Geant4 @Geant4_VERSION@ EXACT REQUIRED )
+        include( "${NCrystal_CMAKEDIR}/G4NCrystalTargets.cmake" )
+      endif()
+      set( NCrystal_COMPONENT_GEANT4BINDINGS ON )
+      #A few variables for old-school downstream cmake projects:
+      set( G4NCrystal_LIBNAME @G4NCrystal_LIBNAME@ )
+      set( G4NCrystal_LIBDIR "${NCrystal_LIBDIR}" )
+      set( G4NCrystal_INCDIR "${NCrystal_INCDIR}" )
+      set( G4NCrystal_LIBRARIES "${NCrystal_LIBRARIES}" "${G4NCrystal_LIBDIR}/${G4NCrystal_LIBNAME}" )
     endif()
-    set( NCrystal_COMPONENT_GEANT4BINDINGS ON )
   endif()
 else()
   if ( NCrystal_FIND_REQUIRED_GEANT4BINDINGS )

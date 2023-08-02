@@ -848,7 +848,7 @@ class PhononDOSAnalyser:
                         if v is not None:
                             return v *unval
                 if v is None:
-                    raise NCBadInput(f'Invalid threshold string: {s}')
+                    raise NCBadInput(f'Invalid threshold string: {x}')
             if hasattr(x,'__len__') and len(x)==2 and isinstance(x[1],str):
                 _,unitfactor = _parsevdosunit( x[1] )
                 v = _decodeflt( x[0] )

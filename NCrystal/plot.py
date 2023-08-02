@@ -315,7 +315,7 @@ def plot_knl( kernel, do_newfig = True, do_show = True, do_grid = True, logz=Fal
         cb = c + beta
         assert cb>=0.0,f'c+beta={cb}, beta={beta}, c={c}'
         a = cb + c
-        b = 2*_np.sqrt( c * cb );
+        b = 2*_np.sqrt( c * cb )
         assert not _np.isinf(a).any()
         assert not _np.isinf(b).any()
         return max(0.0,a - b), a + b

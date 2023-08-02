@@ -588,7 +588,7 @@ class Info(RCBase):
             available
             """
             if self.__correspDI_wp is not None:
-                if self.__correspDI_wp == False:
+                if self.__correspDI_wp is False:
                     return None
                 di = self.__correspDI_wp()
                 nc_assert(di is not None,"AtomInfo.correspondingDynamicInfo can not"
@@ -775,7 +775,7 @@ class Info(RCBase):
         def correspondingAtomInfo(self):
             """Get corresponding AtomInfo object from the same Info object. Returns None if Info object does not have AtomInfo available"""
             if self.__correspAtomInfo_wp is not None:
-                if self.__correspAtomInfo_wp == False:
+                if self.__correspAtomInfo_wp is False:
                     return None
                 ai = self.__correspAtomInfo_wp()
                 nc_assert(ai is not None,"DynamicInfo.correspondingAtomInfo can not be used after associated Info object is deleted")

@@ -31,6 +31,7 @@
 #include <tuple>//std::tuple, std::tie
 //These we always include - simply because they otherwise have to be included in
 //so many places:
+#include <type_traits>
 #include <string>
 #include <vector>
 #include <array>

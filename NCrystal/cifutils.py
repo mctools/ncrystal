@@ -467,9 +467,9 @@ def produce_validation_plot( data_or_file, verbose_lbls = True, line_width_scale
     if hasattr( data_or_file, '__fspath__' ):
         pass
     elif isinstance( data_or_file, _nc_core.TextData ):
-        mc = multcreate(td)
+        mc = multcreate( data_or_file )
         contentiterable = data_or_file
-        fn = td.dataSourceName
+        fn = data_or_file.dataSourceName
     elif isinstance( data_or_file, bytes ) or isinstance( data_or_file, str ):
         _ = data_or_file.decode() if isinstance( data_or_file, bytes ) else data_or_file
         if '\n' in _ or _.startswith('NCMAT'):
@@ -1383,7 +1383,7 @@ def _actual_init_gemmicif( cifsrc, *, quiet, mp_apikey, refine_with_spglib, merg
     from math import fsum as _math_fsum
 
     result = {}
-    pos_tolerance = 0.0001;#NB: Best if value matches the one in NCInfoBuilder.cc
+    pos_tolerance = 0.0001#NB: Best if value matches the one in NCInfoBuilder.cc
 
     from types import MappingProxyType
     dict_ro, list_ro = MappingProxyType, tuple
