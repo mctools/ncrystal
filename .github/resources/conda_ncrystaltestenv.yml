@@ -1,0 +1,20 @@
+name: ncrystaltestenv
+channels:
+  - nodefaults
+  - conda-forge
+dependencies:
+  #FIXME: py 3.11 while testing:
+  - python=3.11
+  - compilers
+  - cmake
+  - numpy
+  - pip
+#  - geant4
+#  - expat
+#  - ase
+#  - pymatgen
+#  - matplotlib
+#  - gemmi
+#  - spglib
+#  - scipy
+#NOT THIS OR ANYTHING USING IT!:  - ncrystal

@@ -1,0 +1,123 @@
+name: condatest
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '30 18 * * 0'  # 18:30 every Sunday
+
+  workflow_dispatch:
+    inputs:
+      manual-debugging:
+        type: boolean
+        description: Launch manual debugging tmate session on failure
+        default: false
+
+# Workflow which pip installs and tests the source code in a conda environment
+
+jobs:
+
+  build:
+    strategy:
+      #fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-20.04 }
+          - { os: ubuntu-22.04 }
+          - { os: ubuntu-latest }
+          - { os: macos-11 }
+          - { os: macos-12 }
+#macos-13 does not have conda yet          - { os: macos-13 }
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -el {0}
+    env:
+      CONDA_SOLVER: libmamba
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: ./src_co
+
+      - name: Set up conda env
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          activate-environment: ncrystaltestenv
+          environment-file: ./src_co/.github/resources/conda_ncrystaltestenv.yml
+          auto-activate-base: false
+
+      - name: Inspect environment
+        run: |
+          conda info
+          conda list
+          set -x
+          cmake --version
+          #Ensure our environment did not get NCrystal installed by accident:
+          set +e
+          ( python3 -c 'import NCrystal'; if [ $? == 0 ]; then exit 1; else exit 0; fi )
+          ( which nctool >/dev/null; if [ $? == 0 ]; then exit 1; else exit 0; fi )
+          ( which ncrystal-config >/dev/null; if [ $? == 0 ]; then exit 1; else exit 0; fi )
+
+      - name: Install NCrystal
+        run: |
+          #python3 -m pip install ncrystal --no-deps
+          python3 -m pip install ./src_co --no-deps -vv
+          #Cheating:
+          #conda install -c conda-forge ncrystal
+
+      - name: Basic NCrystal tests
+        run: |
+          set -eux
+          ncrystal-config --summary
+          nctool --test
+          python3 -c 'import NCrystal'
+
+      - name: Simple downstream compilation
+        run: |
+          set -eux
+          ncrystal-config --show libpath
+          ncrystal-config --show includedir
+          cc -std=c11 ${LDFLAGS} ${CFLAGS} ./src_co/examples/ncrystal_example_c.c -o ncex_c -Wl,-rpath,$(ncrystal-config --show libdir) $(ncrystal-config --show libpath) -I$(ncrystal-config --show includedir)
+          ./ncex_c
+          c++ -std=c++17 ${LDFLAGS} ${CXXFLAGS} ./src_co/examples/ncrystal_example_cpp.cc -o ncex_cpp -Wl,-rpath,$(ncrystal-config --show libdir) $(ncrystal-config --show libpath) -I$(ncrystal-config --show includedir)
+          ./ncex_cpp
+
+      - name: conda install mcstas-core
+        run: |
+          conda install -c conda-forge mcstas-core
+
+      - name: Run McStas NCrystal_example.instr
+        run: |
+          set -eux
+          mkdir mcstasrun
+          cd mcstasrun
+          cp "${CONDA_PREFIX}/share/mcstas/resources/examples/NCrystal_example.instr" .
+          mcrun NCrystal_example.instr sample_cfg=Al_sg225.ncmat -s1000 -n1e5
+
+      - name: Uninstall NCrystal and install conda-forge NCrystal
+        run: |
+          python3 -m pip uninstall --yes ncrystal
+          conda install -c conda-forge ncrystal
+
+      - name: Rerun McStas NCrystal_example.instr
+        run: |
+          set -eux
+          mkdir mcstasrun2
+          cd mcstasrun2
+          cp "${CONDA_PREFIX}/share/mcstas/resources/examples/NCrystal_example.instr" .
+          mcrun NCrystal_example.instr sample_cfg=Al_sg225.ncmat -s1000 -n1e5
+
+      #Final step, so tmate step can check if we got this far.
+      - name: Final
+        id: final-step
+        run: |
+          echo "All steps fine"
+          true
+
+      - name: Setup tmate session for manual debugging
+        uses: mxschmitt/action-tmate@v3
+        if: always() && inputs.manual-debugging == true && steps.final-step != 'success'
+        with:
+          limit-access-to-actor: true
