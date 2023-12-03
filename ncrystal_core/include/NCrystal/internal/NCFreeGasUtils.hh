@@ -62,7 +62,7 @@
 //                                                                                //
 ////////////////////////////////////////////////////////////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class FreeGasXSProvider final {
   public:
@@ -116,7 +116,7 @@ namespace NCrystal {
 ////////////////////////////
 
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   inline CrossSect FreeGasXSProvider::crossSection( NeutronEnergy ekin ) const
   {

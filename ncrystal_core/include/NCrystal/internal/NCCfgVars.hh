@@ -24,7 +24,7 @@
 #include "NCrystal/internal/NCCfgTypes.hh"
 #include "NCrystal/internal/NCAtomUtils.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   ///////////////////////////////////////////////////////////////////////////
   //                                                                       //
@@ -706,7 +706,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace Cfg {
 
     inline constexpr VarId constexpr_varIdFromName( const char * name )

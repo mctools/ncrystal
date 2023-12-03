@@ -25,7 +25,7 @@
 #include "NCrystal/internal/NCPointwiseDist.hh"
 #include "NCrystal/internal/NCMath.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace SAB {
 
     class SABSamplerAtE_Alg1 : public SABSamplerAtE {

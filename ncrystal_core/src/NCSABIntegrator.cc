@@ -84,7 +84,7 @@ NS::SABIntegrator::Impl::Impl( shared_obj<const SABData> data,
 {
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace {
     //Derived data factory:
     typedef std::pair<UniqueIDValue, shared_obj<const SABData>* > D2DDKey;

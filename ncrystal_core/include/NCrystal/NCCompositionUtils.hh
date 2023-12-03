@@ -24,7 +24,7 @@
 #include "NCrystal/NCInfo.hh"
 #include <utility>
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   //Utilities for breaking down the basic composition of a material into
   //elements and isotopes. If an element only occurs as a natural element (A=0)
@@ -94,7 +94,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace CompositionUtils {
     inline bool ElementBreakdownLW::operator<(const ElementBreakdownLW& o) const {
       //TK: I am not 100% sure if it a bug or not, but it seems that when using

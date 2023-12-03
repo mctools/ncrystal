@@ -24,7 +24,7 @@
 #include <iostream>
 namespace NC=NCrystal;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace {
     static std::atomic<bool> s_verbose_vdoseval( getenv("NCRYSTAL_DEBUG_PHONON")!=nullptr );
 
@@ -423,7 +423,7 @@ double NC::VDOSEval::evalG1Symmetric( double energy, double gamma0 ) const
   }
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace {
     bool isLinearlySpacedGrid(const VectD& grid, double tolerance ) {
       nc_assert(nc_is_grid(grid));

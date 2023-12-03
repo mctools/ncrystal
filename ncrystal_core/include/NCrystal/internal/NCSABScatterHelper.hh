@@ -24,7 +24,7 @@
 #include "NCrystal/internal/NCSABSampler.hh"
 #include "NCrystal/internal/NCSABXSProvider.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace SAB {
 

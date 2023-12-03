@@ -28,7 +28,7 @@
 namespace NC=NCrystal;
 #include <iostream>
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace V2SKDetail {
     static bool s_verbose = getenv("NCRYSTAL_DEBUG_PHONON");

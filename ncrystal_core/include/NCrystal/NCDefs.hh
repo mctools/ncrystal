@@ -56,7 +56,7 @@
 #  include "NCrystal/NCMem.hh"
 #endif
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   //Untyped utility functions for converting between neutron wavelength [Aa],
   //kinetic energy [eV], and wavenumber k=2pi/lambda [1/Aa]:
@@ -560,12 +560,6 @@ namespace NCrystal {
 
 //#define NCRYSTAL_DEBUG_LOCKS
 
-#ifdef ncrystal_join
-#  undef ncrystal_join
-#endif
-#ifdef ncrystal_xjoin
-#  undef ncrystal_xjoin
-#endif
 #ifdef NCRYSTAL_LOCK_GUARD
 #  undef NCRYSTAL_LOCK_GUARD
 #endif
@@ -575,8 +569,6 @@ namespace NCrystal {
 #ifdef NCRYSTAL_UNLOCK_MUTEX
 #  undef NCRYSTAL_UNLOCK_MUTEX
 #endif
-#define ncrystal_join( symbol1, symbol2 ) ncrystal_xjoin( symbol1, symbol2 )
-#define ncrystal_xjoin( symbol1, symbol2 ) symbol1##symbol2
 #ifdef NCRYSTAL_DEBUG_LOCKS
 #  define NCRYSTAL_LOCK_GUARD(MtxVariable) ::NCrystal::LockGuard ncrystal_join(nc_lock_guard_instance_line,__LINE__)(MtxVariable,__FILE__,__LINE__)
 #  define NCRYSTAL_LOCK_MUTEX(MtxVariable) do { std::cout<<"NCrystal::Will lock mtx "<<(void*)&MtxVariable<<" ("<<__FILE__<<" : "<<__LINE__<<")"<<std::endl; MtxVariable.lock(); } while (0)
@@ -588,7 +580,7 @@ namespace NCrystal {
 #  define NCRYSTAL_UNLOCK_MUTEX(MtxVariable) do { MtxVariable.unlock(); } while (0)
 #endif
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   class NCRYSTAL_API LockGuard {
     using mutex_t = std::mutex;
     std::lock_guard<mutex_t> m_lg;
@@ -708,7 +700,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   inline constexpr double detail_sqrtNR(double x, double xc, double xp)
   {

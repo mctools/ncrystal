@@ -25,7 +25,7 @@
 #include <cstdlib>
 namespace NC = NCrystal;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   class CosExpansionRadiusFct : public Fct1D {
     double m_prec;
   public:
@@ -46,7 +46,7 @@ namespace NCrystal {
   }
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class GOSNormInt : public Romberg {
   public:

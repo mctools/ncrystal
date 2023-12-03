@@ -25,8 +25,7 @@
 #include <functional>//std::greater
 
 namespace NC = NCrystal;
-namespace NCrystal
-{
+namespace NCRYSTAL_NAMESPACE {
   namespace {
     constexpr double dspacing_merge_tolerance = 1e-11;
   }

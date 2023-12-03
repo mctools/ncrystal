@@ -46,7 +46,7 @@
 
 namespace NC = NCrystal;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace {
 #ifndef NCRYSTAL_DISABLE_DYNLOADER
     std::mutex& getMutex() {

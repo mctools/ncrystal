@@ -22,7 +22,7 @@
 #include "NCrystal/internal/NCMath.hh"
 namespace NC=NCrystal;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   static_assert(std::is_nothrow_move_constructible<AtomInfo>::value,"");
 }
 
@@ -199,7 +199,7 @@ NC::AtomMass NC::Info::getAverageAtomMass() const
   return AtomMass{ DoValidate, sum.sum() };
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace {
     template<class T>
     bool atomic_setValueIfHasValue(std::atomic<T>& av, T new_value, T value_required_for_set ) {

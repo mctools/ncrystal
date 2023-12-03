@@ -23,7 +23,7 @@
 
 #include "NCrystal/NCSmallVector.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   /////////////////////////////
   // Z<->elementName mapping //

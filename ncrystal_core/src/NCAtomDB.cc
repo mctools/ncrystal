@@ -28,7 +28,7 @@
 
 namespace NC = NCrystal;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace AtomDB {
 
@@ -671,7 +671,7 @@ std::vector<NC::AtomDB::internal::Entry> NC::AtomDB::internal::setupDBValues()
   return result;
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace AtomDB {
     static bool dummy_internal_force_init = [] () {
       if (std::getenv("NCRYSTAL_ATOMDB_DUMP"))

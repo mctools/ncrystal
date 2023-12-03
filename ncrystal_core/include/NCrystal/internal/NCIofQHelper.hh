@@ -24,7 +24,7 @@
 #include "NCrystal/NCTypes.hh"
 #include "NCrystal/internal/NCPointwiseDist.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class IofQHelper {
   public:

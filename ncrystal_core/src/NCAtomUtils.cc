@@ -23,7 +23,7 @@
 #include "NCrystal/internal/NCMath.hh"
 namespace NC = NCrystal;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace {
     static const std::string s_natelemlist[] = { "H"_s, "He"_s, "Li"_s, "Be"_s, "B"_s, "C"_s,
       "N"_s, "O"_s, "F"_s, "Ne"_s, "Na"_s, "Mg"_s, "Al"_s, "Si"_s, "P"_s, "S"_s, "Cl"_s,
@@ -121,7 +121,7 @@ void NC::AtomSymbol::longInit(const std::string& symbol)
   }
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace {
     static const std::string s_lowerabc = "abcdefghijklmnopqrstuvwxyz";
     static const std::string s_upperabc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -233,7 +233,7 @@ void NC::validateAtomDBLine(const VectS& words, unsigned ncmat_version )
   }
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace {
     bool readNextChemFormEntry( const char*& it, const char* itE, DecodedChemForm& cf ) {
       //returns false in case of errors

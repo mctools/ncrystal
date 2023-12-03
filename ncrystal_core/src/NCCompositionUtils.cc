@@ -29,7 +29,7 @@
 namespace NC = NCrystal;
 namespace NCCU = NCrystal::CompositionUtils;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace CU = CompositionUtils;
 
   namespace {

@@ -23,7 +23,7 @@
 
 #include "NCrystal/NCDefs.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   /////////////////////////////////////////////////////////////////////////////////
   //                                                                             //
@@ -140,7 +140,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   template<std::size_t LOCALBUF_MINSIZE, std::size_t BUF_ALIGNMENT, class TMetaData>
   inline ImmutableBuffer<LOCALBUF_MINSIZE,BUF_ALIGNMENT,TMetaData>::~ImmutableBuffer()

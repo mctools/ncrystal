@@ -23,7 +23,7 @@
 
 #include "NCrystal/internal/NCSABUtils.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace SABUtils {
 
@@ -182,7 +182,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace SABUtils {
 

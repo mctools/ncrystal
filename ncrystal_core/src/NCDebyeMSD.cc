@@ -45,7 +45,7 @@ double NC::calcDebyeMSDScale( DebyeTemperature dt, AtomMass am )
   return kk/(am.get()*dt.get());
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   class DebyeMSDShapeIntegral : public Romberg {
   public:
     //Integrate function f(x)=x/(exp(x)-1)

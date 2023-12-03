@@ -26,14 +26,14 @@
 #include "NCrystal/internal/NCRomberg.hh"
 #include <functional>
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   //NB: For physics constants, also see NCDefs.hh.
 
   //Primary constants [NB: Some replicated in Python interface!]:
   constexpr double constant_c  = 299792458e10;// speed of light in Aa/s
   constexpr double constant_dalton2eVc2 =  931494095.17; // amu to eV/c^2 (source: NIST/CODATA 2018)
-  constexpr double constant_avogadro = 6.022140857e23; // mol^-1 (source: NIST/CODATA 2018) [TODO: this might have been redefined to 6.02214076e23, change value?]
+  constexpr double constant_avogadro = 6.02214076e23; // mol^-1 (source: NIST/CODATA 2018)
   constexpr double constant_dalton2gpermol = constant_dalton2kg*constant_avogadro*1000.0; // dalton to gram/mol
   //NB: constant_dalton2gmol is almost but not quite unity (cf. https://doi.org/10.1007/s00769-013-1004-9)
 
@@ -290,7 +290,7 @@ inline constexpr unsigned NCrystal::ncconstexpr_log10ceil( unsigned val )
   return val < 10u ? 1u : 1u + ncconstexpr_log10ceil( val / 10u );
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace detail {
     template<class TInt>
     inline static constexpr TInt ncconstexpr_ispow2_helper( TInt a, TInt k )
@@ -676,7 +676,7 @@ inline const typename TVector::value_type& NCrystal::vectAt(const TVector& v, ty
 #endif
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   template <class T>
   inline HashValue calcHash(const T& t)

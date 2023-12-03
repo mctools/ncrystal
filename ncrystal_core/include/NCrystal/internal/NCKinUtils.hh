@@ -26,7 +26,7 @@
 //Various utilities related to kinematics, including those related to the
 //S(alpha,beta) formalism.
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   //Get deltaE and mu=cos(scattering_angle) from (alpha,beta). It is recommended
   //to check muIsotropicAtBeta before calling this (for numerical safety, but it
@@ -74,7 +74,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   inline PairDD convertAlphaBetaToDeltaEMu( PairDD alphabeta, NeutronEnergy ekin, double kT )
   {
     return convertAlphaBetaToDeltaEMu(alphabeta.first,alphabeta.second,ekin,kT);

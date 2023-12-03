@@ -26,7 +26,7 @@
 #include "NCrystal/internal/NCSpline.hh"
 #include "NCrystal/internal/NCRandUtils.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace UCN {
 

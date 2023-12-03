@@ -83,7 +83,7 @@ double NC::FreeGasXSProvider::evalXSShapeASq(double a_squared)
   return ( 1.0 + 0.5*inva*inva ) * std::erf(a) + kInvSqrtPi * std::exp(-a_squared)*inva;
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   //////////////////////////////
   // Private helper utilities //

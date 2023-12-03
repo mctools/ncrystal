@@ -24,7 +24,7 @@ namespace NC = NCrystal;
 namespace NCS = NCrystal::SABUtils;
 namespace NCSD = NCrystal::SABUtils::detail_sce;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace SABUtils {
 

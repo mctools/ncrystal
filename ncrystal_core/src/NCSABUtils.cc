@@ -24,7 +24,7 @@
 #include <iostream>
 namespace NC = NCrystal;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace SABUtils {
     namespace {
       std::size_t detail_trimZeroEdgesFromKernel(ScatKnlData& input)

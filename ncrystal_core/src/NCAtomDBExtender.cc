@@ -180,7 +180,7 @@ NC::AtomDataSP NC::AtomDBExtender::lookupAtomData(const std::string& lbl)
   return ad;
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace {
     //We group all entries in the global cache by their hash value. Whenever a
     //given AtomDBExtender instance populates the cache, it will check if it is

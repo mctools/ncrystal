@@ -24,7 +24,7 @@
 #include "NCrystal/NCTypes.hh"
 #include "NCrystal/NCTextData.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class SCOrientation;
   class MatInfoCfg;
@@ -103,7 +103,7 @@ namespace NCrystal {
     // wiki page above, you can instead generate the same documentation by
     // invoking one of the following:
     //
-    //   ncrystal_inspectfile --doc                #From the command line
+    //   nctool --doc                              #From the command line
     //   NCrystal::MatCfg::genDoc(std::cout);    //#From C++ code.
     //   print( NCrystal.generateCfgStrDoc() )     #From Python code
     //
@@ -428,7 +428,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   inline void MatCfg::set_temp( double t ) { set_temp(Temperature{t}); }
   inline MatCfg MatCfg::clone() const { return MatCfg(*this); }
   inline const TextData& MatCfg::textData() const { return textDataSP(); }

@@ -34,7 +34,7 @@ namespace NC = NCrystal;
 
 NC::ElIncScatter::~ElIncScatter() = default;
 
-namespace NCrystal{
+namespace NCRYSTAL_NAMESPACE {
   namespace {
     struct ElIncInfo {
       VectD msd, bixs, scale;

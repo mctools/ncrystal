@@ -26,7 +26,7 @@
 #include "NCrystal/internal/NCVector.hh"
 #include "NCrystal/NCTypes.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   //Utilities used to implement layered crystals, intended for internal usage in the LCBragg class.
 
@@ -231,7 +231,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   inline LCROI::LCROI(double rmin, double rmax,const LCPlaneSet* ps, double normsign)
     : rotmin(rmin), rotmax(rmax), planeset(ps), normal_sign(normsign)

@@ -21,8 +21,9 @@
 ##################################################################################
 #                                                                                #
 # CMake file which can be used to compile and link all files distributed with    #
-# NCrystal, and which provides CMake configuration files and setup.sh/unsetup.sh #
-# for subsequent usage (also ncrystal_setup.sh/ncrystal_unsetup.sh).             #
+# NCrystal, and which provides CMake configuration files and (with               #
+# NCRYSTAL_ENABLE_SETUPSH=ON) ncrystal_setup.sh/ncrystal_unsetup.sh for          #
+# subsequent usage (also ncrystal_setup.sh/ncrystal_unsetup.sh).                 #
 #                                                                                #
 # One way to invoke cmake to build and install would be like this (run this from #
 # a temporary build dir)                                                         #
@@ -34,7 +35,7 @@
 #                                                                                #
 #  $> make install -j8                                                           #
 #                                                                                #
-# Written 2016-2022 by T. Kittelmann.                                            #
+# Written 2016-2023 by T. Kittelmann.                                            #
 #                                                                                #
 ##################################################################################
 
@@ -54,7 +55,6 @@
 # cmake policies, depending on which version introduced them.
 
 cmake_minimum_required(VERSION 3.10...3.27)
-cmake_policy(SET CMP0054 NEW)
 
 # Respect value of CMAKE_BUILD_TYPE if already defined, otherwise fall back to
 # Release. In any case, expose CMAKE_BUILD_TYPE as an explicit cache variable
@@ -86,7 +86,7 @@ endif()
 
 cmake_policy( SET CMP0048 NEW )#Not sure if this is really needed
 
-project( NCrystal VERSION 3.7.1 ${_project_metadata} )
+project( NCrystal VERSION 3.8.0 ${_project_metadata} )
 
 unset( _project_metadata )
 
@@ -105,6 +105,36 @@ set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/cmake/mod
 
 #Define options:
 include(ncrystal_options)
+
+#Hidden option needed for python python setup.py/skbuild:
+function( _ncrystal_option_force varname value )
+  message( STATUS "Forcing ${varname}=\"${value}\"" )
+  set( "${varname}" "${value}" PARENT_SCOPE )
+endfunction()
+
+if ( DEFINED NCRYSTAL_SETUPPY_MODE )
+  if ( NCRYSTAL_SETUPPY_MODE )
+    set( NCRYSTAL_SETUPPY_MODE "ON" )
+    message( STATUS "NCRYSTAL_SETUPPY_MODE detected => force-overriding values of some variables:")
+    _ncrystal_option_force( NCRYSTAL_ENABLE_PYTHON "ON" )#plan is to move out of ncrystal repo
+    _ncrystal_option_force( NCRYSTAL_ENABLE_EXAMPLES "OFF" )
+    _ncrystal_option_force( NCRYSTAL_ENABLE_DYNLOAD "ON" )
+    _ncrystal_option_force( NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE "ON" )
+    _ncrystal_option_force( NCRYSTAL_MODIFY_RPATH "OFF" )
+    _ncrystal_option_force( NCRYSTAL_ENABLE_SETUPSH "OFF" )
+    _ncrystal_option_force( NCRYSTAL_ENABLE_DATA "EMBED" )#otherwise the c++ library can not locate the files
+    _ncrystal_option_force( NCRYSTAL_ENABLE_GEANT4 "OFF" )#plan is to move out of ncrystal repo
+    _ncrystal_option_force( NCRYSTAL_SKIP_PYMODINST "ON" )
+    _ncrystal_option_force( CMAKE_INSTALL_LIBDIR "NCrystal/ncrystal_pyinst_data/lib" )
+    _ncrystal_option_force( CMAKE_INSTALL_INCLUDEDIR "NCrystal/ncrystal_pyinst_data/include" )
+    _ncrystal_option_force( CMAKE_INSTALL_DATADIR "NCrystal/ncrystal_pyinst_data/data" )
+    _ncrystal_option_force( NCrystal_DATAFILESDIR "NCrystal/ncrystal_pyinst_data/stdlib_data" )
+    #TODO: Postpone adding the following namespace until e.g. mcstas comps stop hardcoding "-lNCrystal":
+    #_ncrystal_option_force( NCRYSTAL_NAMESPACE "pip${PROJECT_VERSION_MAJOR}d${PROJECT_VERSION_MINOR}d${PROJECT_VERSION_PATCH}" )
+  endif()
+else()
+  set( NCRYSTAL_SETUPPY_MODE "OFF" )
+endif()
 
 function( ncinstall )
   if ( NOT NCRYSTAL_SKIP_INSTALL )
@@ -127,6 +157,27 @@ if ( NCRYSTAL_SKIP_PYMODINST )
     message( FATAL_ERROR "The NCRYSTAL_SKIP_PYMODINST flag requires -DNCRYSTAL_ENABLE_SETUPSH=OFF." )
   endif()
 endif()
+
+if ( NCRYSTAL_NAMESPACE )
+  string( MAKE_C_IDENTIFIER "${NCRYSTAL_NAMESPACE}" tmp)
+  string( TOLOWER "${tmp}" tmp)
+  if ( NOT "x${NCRYSTAL_NAMESPACE}" STREQUAL "x${tmp}" )
+    message(
+      FATAL_ERROR
+      "The NCRYSTAL_NAMESPACE must be a lowercased valid C identifier"
+      "(meaning: alphanumeric, not leading with digit, lowercased)."
+      )
+  endif()
+else()
+  if ( NOT "x${NCRYSTAL_NAMESPACE}" STREQUAL "x" )
+    message(
+      FATAL_ERROR
+      "Do not set NCRYSTAL_NAMESPACE to a value which CMake interprets as \"false\"."
+      "To disable, instead set it to an empty string."
+      )
+  endif()
+endif()
+
 
 #Installation directories (try to follow standard conventions):
 include(GNUInstallDirs)
@@ -176,12 +227,13 @@ target_compile_features( ncrystal_common INTERFACE cxx_std_11 )
 
 #Properties for executables and G4NCrystal library (can't transfer all
 #properties via INTERFACE targets, so we need this variable-based workaround):
-set( binaryprops "" )#empty list
-set( libncg4props "" )#empty list
+set( _nc_executable_rpath "")
+set( _nc_libncg4_rpath "")
 
 if ( NCRYSTAL_MODIFY_RPATH )
   #Set RPATH properties. For some annoying reason, this is not possible to do
   #via interface targets, so we have to use a variable-based workaround:
+
   if ( NOT DEFINED CMAKE_INSTALL_RPATH_USE_LINK_PATH )
     #TODO: Figure out if we really need this (perhaps only for geant4 targets?)
     set( CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE )
@@ -189,13 +241,19 @@ if ( NCRYSTAL_MODIFY_RPATH )
   if( NOT APPLE )
     #Relocatable RPATHS: $ORIGIN in RPATH (including the $-char!!)  means the
     #location of the binary requiring the dependency:
-    list( APPEND binaryprops INSTALL_RPATH "$ORIGIN/${NCrystal_relpath_BINDIR2LIBDIR}" )
-    list( APPEND libncg4props INSTALL_RPATH $ORIGIN )
+    list( APPEND _nc_executable_rpath "$ORIGIN/${NCrystal_relpath_BINDIR2LIBDIR}" )
+    list( APPEND _nc_libncg4_rpath $ORIGIN )
   else()
     #On OSX, rpaths are absolute paths (todo: revisit if this is still the case)
     get_filename_component( tmp "${CMAKE_INSTALL_PREFIX}/${NCrystal_LIBDIR}" ABSOLUTE)
-    list( APPEND binaryprops INSTALL_RPATH  "${tmp}" )
-    list( APPEND libncg4brops INSTALL_RPATH "${tmp}" )
+    list( APPEND _nc_executable_rpath  "${tmp}" )
+    list( APPEND _nc_libncg4_rpath "${tmp}" )
+  endif()
+
+  if ( DEFINED ENV{CONDA_PREFIX} AND EXISTS "$ENV{CONDA_PREFIX}/lib" )
+    #In a conda environment we add $CONDA_PREFIX/lib to the rpath:
+    list( APPEND _nc_executable_rpath "$ENV{CONDA_PREFIX}/lib" )
+    list( APPEND _nc_libncg4_rpath "$ENV{CONDA_PREFIX}/lib" )
   endif()
 
   #Test if compiler supports -Wl,--disable-new-dtags. If it does, apply it
@@ -231,9 +289,15 @@ function(file_globsrc output_var pattern)
   set(${output_var} ${tmp} PARENT_SCOPE)
 endfunction()
 
-file_globsrc( HDRS_NC "ncrystal_core/include/NCrystal/*.*")
-file_globsrc( HDRS_NC "ncrystal_core/include/NCrystal/*.*")
-file_globsrc( HDRS_INTERNAL_NC "ncrystal_core/include/NCrystal/internal/*.*")
+function(file_glob output_var pattern)
+  if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.12.0")
+    file(GLOB tmp LIST_DIRECTORIES false CONFIGURE_DEPENDS "${pattern}" )
+  else()
+    file(GLOB tmp LIST_DIRECTORIES false "${pattern}" )
+  endif()
+  set(${output_var} ${tmp} PARENT_SCOPE)
+endfunction()
+
 file_globsrc( SRCS_NC "ncrystal_core/src/*.cc")
 file_globsrc( EXAMPLES_NC "examples/ncrystal_example_c*.c*")
 file_globsrc( DATAFILES "data/*.ncmat")
@@ -244,6 +308,45 @@ list(APPEND SRCS_PYSCRIPTS ${tmp})
 file_globsrc( HDRS_NCG4 "ncrystal_geant4/include/G4NCrystal/*.*")
 file_globsrc( SRCS_NCG4 "ncrystal_geant4/src/*.cc")
 file_globsrc( EXAMPLES_NCG4 "examples/ncrystal_example_g4*.cc")
+
+#The ncapi.h header needs expansion of CMake variables, so we copy ALL header
+#files to a temporary directory and edit just that one file:
+set( ncrystal_core_configured_includedir "${PROJECT_BINARY_DIR}/ncrystal_core_include_configured" )
+file( MAKE_DIRECTORY "${ncrystal_core_configured_includedir}" )
+
+#TODO: The trailing "/" on "ncrystal_core/include/" below is crucial. Is this behaviour portable?
+
+file(
+  COPY "ncrystal_core/include/"
+  DESTINATION "${ncrystal_core_configured_includedir}"
+  FILES_MATCHING
+  PATTERN "*.h"
+  PATTERN "*.hh"
+  )
+file( RENAME
+  "${ncrystal_core_configured_includedir}/NCrystal/ncapi.h"
+  "${ncrystal_core_configured_includedir}/NCrystal/ncapi.h.in"
+  )
+if ( NCRYSTAL_NAMESPACE )
+  set( NCRYSTAL_CMAKE_HOOK_FOR_ADDING_NAMESPACE
+    " -- CMake definitions begin -- */\n#define NCRYSTAL_NAMESPACE_PROTECTION ${NCRYSTAL_NAMESPACE}\n/* -- CMake definitions end --" )
+else()
+  set( NCRYSTAL_CMAKE_HOOK_FOR_ADDING_NAMESPACE
+    " -- No definitions added by CMake -- " )
+endif()
+configure_file(
+  "${ncrystal_core_configured_includedir}/NCrystal/ncapi.h.in"
+  "${ncrystal_core_configured_includedir}/NCrystal/ncapi.h"
+  @ONLY
+)
+
+file_glob( HDRS_NC "${ncrystal_core_configured_includedir}/NCrystal/*.hh" )
+file_glob( HDRS_INTERNAL_NC "${ncrystal_core_configured_includedir}/NCrystal/internal/*.hh" )
+file_glob( tmp "${ncrystal_core_configured_includedir}/NCrystal/*.h" )
+list( APPEND HDRS_NC ${tmp} )
+if ( NOT HDRS_NC OR NOT HDRS_INTERNAL_NC )
+  message( FATAL_ERROR "Unexpected problem globbing for header files in ${ncrystal_core_configured_includedir}/" )
+endif()
 
 if ( NCRYSTAL_ENABLE_SETUPSH AND NOT NCRYSTAL_ENABLE_PYTHON )
   message( WARNING "NCRYSTAL_ENABLE_SETUPSH is not possible when NCRYSTAL_ENABLE_PYTHON is OFF (forcing NCRYSTAL_ENABLE_SETUPSH=OFF)." )
@@ -296,10 +399,59 @@ endfunction()
 
 #NCrystal library and header files, including optional built-in modules if enabled:
 add_library( NCrystal SHARED ${SRCS_NC} )
-set( NCrystal_LIBNAME "${CMAKE_SHARED_LIBRARY_PREFIX}NCrystal${CMAKE_SHARED_LIBRARY_SUFFIX}" )
+
+if ( NCRYSTAL_ENABLE_SOVERSION AND NOT UNIX )
+  message( WARNING "NCRYSTAL_ENABLE_SOVERSION ignored on non-unix platforms for now." )
+  set( NCRYSTAL_ENABLE_SOVERSION OFF )
+endif()
+
+if ( DEFINED NCRYSTAL_OVERRIDE_SOVERSION )
+  #For now this is a hidden feature, needed for unit tests in an environment
+  #where NCrystal might already be installed:
+  if ( NOT NCRYSTAL_ENABLE_SOVERSION )
+    message( FATAL_ERROR "Do not use NCRYSTAL_OVERRIDE_SOVERSION with NCRYSTAL_ENABLE_SOVERSION=OFF" )
+  endif()
+  if ( NOT UNIX )
+    message( FATAL_ERROR "NCRYSTAL_OVERRIDE_SOVERSION is only supported on unix builds for now." )
+  endif()
+  set( NCrystal_SOVERSION "${NCRYSTAL_OVERRIDE_SOVERSION}" )
+else()
+  #NOTE: Only the major number here, so we better make sure we take care of ABI
+  #      compatibility within a major number in the future! We could have been
+  #      more strict here, but then the assumed version pinning to major version
+  #      numbers in conda and pypi would be a hassle instead:
+  set( NCrystal_SOVERSION "${PROJECT_VERSION_MAJOR}" )
+endif()
+if ( NCRYSTAL_ENABLE_SOVERSION )
+  set( _ncrystal_lib_version "${PROJECT_VERSION}")
+  set_target_properties( NCrystal PROPERTIES VERSION "${_ncrystal_lib_version}" SOVERSION ${NCrystal_SOVERSION} )
+else()
+  #Make sure to export empty string to .in files:
+  set( NCrystal_SOVERSION "" )
+endif()
 
 #Make sure client code will use at least c++11:
 target_compile_features( NCrystal INTERFACE cxx_std_11 )
+
+#Libname for ncrystal-config, _nclibpath, etc.:
+set( _tmp_basiclibname "NCrystal" )
+if ( NCRYSTAL_NAMESPACE )
+  set( _tmp_basiclibname "${_tmp_basiclibname}-${NCRYSTAL_NAMESPACE}" )
+endif()
+set_target_properties( NCrystal PROPERTIES OUTPUT_NAME "${_tmp_basiclibname}" )
+if ( NCRYSTAL_ENABLE_SOVERSION )
+  #NB: We disabled this on windows for now.
+  if( APPLE )
+    #On osx, we get libNCrystal.3.8.0.dylib
+    set( NCrystal_LIBNAME "${CMAKE_SHARED_LIBRARY_PREFIX}${_tmp_basiclibname}.${_ncrystal_lib_version}${CMAKE_SHARED_LIBRARY_SUFFIX}" )
+  else()
+    #On linux, we get libNCrystal.so.3.8.0
+    set( NCrystal_LIBNAME "${CMAKE_SHARED_LIBRARY_PREFIX}${_tmp_basiclibname}${CMAKE_SHARED_LIBRARY_SUFFIX}.${_ncrystal_lib_version}" )
+  endif()
+else()
+    #No version, just libNCrystal.so or libNCrystal.dylib
+  set( NCrystal_LIBNAME "${CMAKE_SHARED_LIBRARY_PREFIX}${_tmp_basiclibname}${CMAKE_SHARED_LIBRARY_SUFFIX}" )
+endif()
 
 #put libname in .txt file for downstream (e.g. conda) post-processing:
 file(WRITE ${PROJECT_BINARY_DIR}/cfg_ncrystal_libname.txt "${NCrystal_LIBNAME}")
@@ -332,8 +484,8 @@ endif()
 
 set_target_common_props( NCrystal )
 target_link_libraries( NCrystal PRIVATE ncrystal_common )
-target_include_directories(NCrystal PRIVATE "${PROJECT_SOURCE_DIR}/ncrystal_core/src"
- PUBLIC   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ncrystal_core/include>
+target_include_directories( NCrystal PRIVATE "${PROJECT_SOURCE_DIR}/ncrystal_core/src"
+ PUBLIC $<BUILD_INTERFACE:${ncrystal_core_configured_includedir}>
         $<INSTALL_INTERFACE:${NCrystal_INCDIR}> )
 
 #Make sure we link in math functions correctly (typically the linker needs libm on unix, but nothing on Windows).
@@ -477,7 +629,7 @@ if (NCrystal_builtin_plugin_names)
   foreach(NCPlugin_NAME ${NCrystal_builtin_plugin_names})
     file(APPEND ${ncplugcc} "namespace NCrystalPlugin_${NCPlugin_NAME} { void registerPlugin(); }\n")
   endforeach()
-  file(APPEND ${ncplugcc} "namespace NCrystal {\n  void provideBuiltinPlugins() {\n")
+  file(APPEND ${ncplugcc} "namespace NCRYSTAL_NAMESPACE {\n  void provideBuiltinPlugins() {\n")
   foreach(NCPlugin_NAME ${NCrystal_builtin_plugin_names})
     file(APPEND ${ncplugcc} "    Plugins::loadBuiltinPlugin(\"${NCPlugin_NAME}\",NCrystalPlugin_${NCPlugin_NAME}::registerPlugin);\n")
   endforeach()
@@ -537,9 +689,9 @@ endif()
 
 if ( NCRYSTAL_ENABLE_DATA STREQUAL "ON" )
   #Hardwiring NCRYSTAL_DATADIR in the binary, although handled with
-  #NCRYSTAL_DATADIR env var in setup.sh. The environment variable makes the
-  #installation relocatable (at least for users sourcing the installed
-  #setup.sh):
+  #NCRYSTAL_DATADIR env var in ncrystal_setup.sh. The environment variable makes
+  #the installation relocatable (at least for users sourcing the installed
+  #ncrystal_setup.sh):
   target_compile_definitions(NCrystal PRIVATE "NCRYSTAL_DATADIR=${CMAKE_INSTALL_PREFIX}/${NCrystal_DATAFILESDIR}")
   ncinstall(FILES ${DATAFILES} DESTINATION ${NCrystal_DATAFILESDIR})
 endif()
@@ -548,11 +700,6 @@ ncinstall(TARGETS NCrystal EXPORT NCrystalTargets DESTINATION ${NCrystal_LIBDIR}
 ncinstall(FILES ${HDRS_NC} DESTINATION ${NCrystal_INCDIR}/NCrystal)
 ncinstall(FILES ${HDRS_INTERNAL_NC} DESTINATION ${NCrystal_INCDIR}/NCrystal/internal)
 
-if (NCRYSTAL_ENABLE_PYTHON)
-  configure_file( "${PROJECT_SOURCE_DIR}/cmake/ncrystal-config.in" "${PROJECT_BINARY_DIR}/ncrystal-config" @ONLY )
-  ncinstall( PROGRAMS "${PROJECT_BINARY_DIR}/ncrystal-config" DESTINATION ${NCrystal_BINDIR} )
-endif()
-
 #Examples:
 if ( NCRYSTAL_ENABLE_EXAMPLES AND EXAMPLES_NC )
   foreach(ex ${EXAMPLES_NC})
@@ -560,8 +707,8 @@ if ( NCRYSTAL_ENABLE_EXAMPLES AND EXAMPLES_NC )
     add_executable(${exbn} "${ex}")
     set_target_common_props( ${exbn} )
     target_link_libraries(${exbn} NCrystal ncrystal_common )
-    if (binaryprops)
-      set_target_properties(${exbn} PROPERTIES ${binaryprops})
+    if ( NOT "x${_nc_executable_rpath}" STREQUAL "x" )
+      set_target_properties(${exbn} PROPERTIES INSTALL_RPATH "${_nc_executable_rpath}" )
     endif()
     ncinstall(TARGETS ${exbn} DESTINATION ${NCrystal_BINDIR} )
   endforeach()
@@ -579,16 +726,37 @@ if (NCRYSTAL_ENABLE_PYTHON)
     file(WRITE "${PROJECT_BINARY_DIR}/_nclibpath.py.in"
       "#File autogenerated by NCrystal's CMakeLists.txt:\n"
       "liblocation='${NCrystal_relpath_PYMODDIR2LIBDIR}/${NCrystal_LIBNAME}'\n")
+    if ( NCRYSTAL_NAMESPACE )
+      file(APPEND "${PROJECT_BINARY_DIR}/_nclibpath.py.in"
+        "ncrystal_namespace_protection='${NCRYSTAL_NAMESPACE}'\n")
+    endif()
     configure_file("${PROJECT_BINARY_DIR}/_nclibpath.py.in" "${PROJECT_BINARY_DIR}/_nclibpath.py" COPYONLY)
     ncinstall( FILES "${PROJECT_BINARY_DIR}/_nclibpath.py" DESTINATION ${NCrystal_PYMODDIR})
   else()
-    #Similar but preparing a custom directory on which to run pip install during conda build:
-    #scripts:
-    file( MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/ncrystal_pypkg/NCrystal" )
-    configure_file( "${PROJECT_SOURCE_DIR}/cmake/template_setup.py.in" "${PROJECT_BINARY_DIR}/ncrystal_pypkg/setup.py" @ONLY )
-    file(COPY ${SRCS_NCPY} DESTINATION "${PROJECT_BINARY_DIR}/ncrystal_pypkg/NCrystal")
-    message( STATUS "Will not install Python modules directly. Instead leaving pypkg skeleton in: ${PROJECT_BINARY_DIR}/ncrystal_pypkg/")
-    message( STATUS "Note that the skeleton is incomplete (missing the ${PROJECT_BINARY_DIR}/ncrystal_pypkg/NCrystal/_nclibpath.py file).")
+    if ( NCRYSTAL_SETUPPY_MODE )
+      #Static python files will be grapped from <src>/NCrystal by setup.py
+      #itself, so we do nothing. However, _chooks.py also needs the information
+      #about libname and namespace in _nclibpath.py:
+      message( STATUS "Adding _nclibpath.py needed for setup.py installation.")
+      file(WRITE "${PROJECT_BINARY_DIR}/_nclibpath.py.in"
+        "#File autogenerated by NCrystal's CMakeLists.txt:\n"
+        "import pathlib\n"
+        "liblocation=(pathlib.Path(__file__).parent / 'ncrystal_pyinst_data' / 'lib' / '${NCrystal_LIBNAME}').absolute()\n")
+      if ( NCRYSTAL_NAMESPACE )
+        file(APPEND "${PROJECT_BINARY_DIR}/_nclibpath.py.in"
+          "ncrystal_namespace_protection='${NCRYSTAL_NAMESPACE}'\n")
+      endif()
+      configure_file("${PROJECT_BINARY_DIR}/_nclibpath.py.in" "${PROJECT_BINARY_DIR}/_nclibpath.py" COPYONLY)
+      ncinstall( FILES "${PROJECT_BINARY_DIR}/_nclibpath.py" DESTINATION "NCrystal" )
+    else()
+      #Similar but preparing a custom directory on which to run pip install during conda build:
+      #scripts:
+      file( MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/ncrystal_pypkg/NCrystal" )
+      configure_file( "${PROJECT_SOURCE_DIR}/cmake/template_setup.py.in" "${PROJECT_BINARY_DIR}/ncrystal_pypkg/setup.py" @ONLY )
+      file(COPY ${SRCS_NCPY} DESTINATION "${PROJECT_BINARY_DIR}/ncrystal_pypkg/NCrystal")
+      message( STATUS "Will not install Python modules directly. Instead leaving pypkg skeleton in: ${PROJECT_BINARY_DIR}/ncrystal_pypkg/")
+      message( STATUS "Note that the skeleton is incomplete (missing the ${PROJECT_BINARY_DIR}/ncrystal_pypkg/NCrystal/_nclibpath.py file).")
+    endif()
   endif()
 
   # --> Python scripts:
@@ -599,17 +767,16 @@ if (NCRYSTAL_ENABLE_PYTHON)
 
 endif()
 
-if ( NCRYSTAL_ENABLE_MCSTAS )
-  ncinstall(FILES ${PROJECT_SOURCE_DIR}/ncrystal_mcstas/NCrystal_sample.comp DESTINATION ${NCrystal_DATAROOT}/mcstas)
-  ncinstall(PROGRAMS ${PROJECT_SOURCE_DIR}/ncrystal_mcstas/ncrystal_preparemcstasdir DESTINATION ${CMAKE_INSTALL_BINDIR})
-  if ( NCRYSTAL_ENABLE_EXAMPLES )
-    ncinstall(FILES ${PROJECT_SOURCE_DIR}/examples/NCrystal_example_mcstas.instr DESTINATION ${NCrystal_DATAROOT}/mcstas)
-  endif()
-endif()
-
 #G4NCrystal
 set( NCRYSTAL_GEANT4 OFF )
 if ( NOT NCRYSTAL_ENABLE_GEANT4 STREQUAL "OFF" )
+  if ( NCRYSTAL_NAMESPACE )
+    #Since we didn't implement the namespace for the G4NCrystal c++ namespace as
+    #well, it is best to error out here. Once we have migrated to new and better
+    #(and standalone) NCrystal-Geant4 hooks, they should certainly also have an
+    #option for namespace protection.
+    message( FATAL_ERROR "It is not currently supported to use NCRYSTAL_NAMESPACE without NCRYSTAL_GEANT4=OFF (please get in touch if you have a different need)" )
+  endif()
   find_package(Geant4)
   if( Geant4_FOUND )
     set( NCRYSTAL_GEANT4 ON )
@@ -621,7 +788,7 @@ if ( NOT NCRYSTAL_ENABLE_GEANT4 STREQUAL "OFF" )
 endif()
 
 if ( NCRYSTAL_GEANT4 )
-  add_library(G4NCrystal SHARED ${SRCS_NCG4})
+  add_library(G4NCrystal SHARED ${SRCS_NCG4})#NB: No SOVERSION number since we plan to migrate this library out of the NCrystal repo.
   set(G4NCrystal_LIBNAME "${CMAKE_SHARED_LIBRARY_PREFIX}G4NCrystal${CMAKE_SHARED_LIBRARY_SUFFIX}")
   #Make sure client code will use at least c++11:
   target_compile_features( G4NCrystal INTERFACE cxx_std_11 )
@@ -640,8 +807,8 @@ if ( NCRYSTAL_GEANT4 )
   #newer Geant4 release (G4 10.6?):
   target_compile_definitions(G4NCrystal PUBLIC ${Geant4_DEFINITIONS})
   target_link_libraries( G4NCrystal PUBLIC NCrystal ${Geant4_LIBRARIES} PRIVATE ncrystal_common )
-  if (libncg4props)
-    set_target_properties( G4NCrystal PROPERTIES ${libncg4props} )
+  if ( NOT "x${_nc_libncg4_rpath}" STREQUAL "x" )
+    set_target_properties( G4NCrystal PROPERTIES INSTALL_RPATH "${_nc_libncg4_rpath}" )
   endif()
   target_include_directories(G4NCrystal SYSTEM PUBLIC ${Geant4_INCLUDE_DIRS})
   set(Geant4_CXX_FLAGS_aslist ${Geant4_CXX_FLAGS})
@@ -664,8 +831,8 @@ if ( NCRYSTAL_GEANT4 )
       add_executable(${exbn} "${ex}")
       set_target_common_props( ${exbn} )
       target_link_libraries(${exbn} G4NCrystal ncrystal_common )
-      if (binaryprops)
-        set_target_properties(${exbn} PROPERTIES ${binaryprops} )
+      if ( NOT "x${_nc_executable_rpath}" STREQUAL "x" )
+        set_target_properties(${exbn} PROPERTIES INSTALL_RPATH "${_nc_executable_rpath}" )
       endif()
       ncinstall(TARGETS ${exbn} DESTINATION ${NCrystal_BINDIR} )
     endforeach()
@@ -682,6 +849,14 @@ if ( NCRYSTAL_GEANT4 )
   add_library(NCrystal::G4NCrystal ALIAS G4NCrystal)#always alias namespaces locally
 endif()
 
+if ( NCRYSTAL_ENABLE_SETUPSH )
+  configure_file( "${PROJECT_SOURCE_DIR}/cmake/template_setup.sh.in" "${PROJECT_BINARY_DIR}/generated_setup.sh" @ONLY )
+  configure_file( "${PROJECT_SOURCE_DIR}/cmake/template_unsetup.sh.in" "${PROJECT_BINARY_DIR}/generated_unsetup.sh" @ONLY )
+  ncinstall( FILES "${PROJECT_BINARY_DIR}/generated_setup.sh" DESTINATION . RENAME ncrystal_setup.sh )
+  ncinstall( FILES "${PROJECT_BINARY_DIR}/generated_unsetup.sh" DESTINATION . RENAME ncrystal_unsetup.sh )
+endif()
+
+#NB: Important we export the config file AFTER all variables used have been set!
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file( "${PROJECT_BINARY_DIR}/NCrystalConfigVersion.cmake"
                                   VERSION ${NCrystal_VERSION} COMPATIBILITY SameMajorVersion )
@@ -692,14 +867,10 @@ configure_file( "${PROJECT_SOURCE_DIR}/cmake/NCrystalConfig.cmake.in"
 ncinstall( FILES "${PROJECT_BINARY_DIR}/NCrystalConfigVersion.cmake" "${PROJECT_BINARY_DIR}/NCrystalConfig.cmake"
          DESTINATION ${NCrystal_CMAKEDIR} )
 
-
-if ( NCRYSTAL_ENABLE_SETUPSH )
-  configure_file( "${PROJECT_SOURCE_DIR}/cmake/template_setup.sh.in" "${PROJECT_BINARY_DIR}/generated_setup.sh" @ONLY )
-  configure_file( "${PROJECT_SOURCE_DIR}/cmake/template_unsetup.sh.in" "${PROJECT_BINARY_DIR}/generated_unsetup.sh" @ONLY )
-  ncinstall( FILES "${PROJECT_BINARY_DIR}/generated_setup.sh" DESTINATION . RENAME setup.sh )
-  ncinstall( FILES "${PROJECT_BINARY_DIR}/generated_unsetup.sh" DESTINATION . RENAME unsetup.sh )
-  ncinstall( FILES "${PROJECT_BINARY_DIR}/generated_setup.sh" DESTINATION . RENAME ncrystal_setup.sh )
-  ncinstall( FILES "${PROJECT_BINARY_DIR}/generated_unsetup.sh" DESTINATION . RENAME ncrystal_unsetup.sh )
+if (NCRYSTAL_ENABLE_PYTHON)
+  #NB: Important we do this next call AFTER all variables used in ncrystal-config.in have been set!
+  configure_file( "${PROJECT_SOURCE_DIR}/cmake/ncrystal-config.in" "${PROJECT_BINARY_DIR}/ncrystal-config" @ONLY )
+  ncinstall( PROGRAMS "${PROJECT_BINARY_DIR}/ncrystal-config" DESTINATION ${NCrystal_BINDIR} )
 endif()
 
 if ( NOT NCRYSTAL_QUIET )

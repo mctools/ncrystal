@@ -27,7 +27,7 @@
 // Various types associated with factories. //
 //////////////////////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class NCRYSTAL_API TextDataPath {
   public:
@@ -140,7 +140,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   inline constexpr Priority::Priority( SpecialCase sc ) noexcept : m_value( sc==Unable ? 0 : 0x3 ) {}
   inline constexpr bool Priority::canServiceRequest() const { return m_value & 0x1; }
   inline constexpr bool Priority::needsExplicitRequest() const { return m_value & 0x2; }

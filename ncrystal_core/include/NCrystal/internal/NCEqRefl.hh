@@ -41,7 +41,7 @@
 //situation would be desirable (either all factories should produce hkl lists
 //grouped by equivalency, or SCBragg code should become more intelligent).
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class EqRefl
   {
@@ -100,7 +100,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal{
+namespace NCRYSTAL_NAMESPACE {
 
   inline const HKL* EqRefl::EquivReflList::begin() const noexcept { return &m_data[0]; }
   inline const HKL* EqRefl::EquivReflList::end() const noexcept { return m_end; }

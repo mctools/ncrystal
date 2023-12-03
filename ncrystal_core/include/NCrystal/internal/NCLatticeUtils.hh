@@ -23,7 +23,7 @@
 
 #include "NCrystal/internal/NCRotMatrix.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   //Construct cell rotation matrix from lattice parameters (in angstrom and
   //radians):

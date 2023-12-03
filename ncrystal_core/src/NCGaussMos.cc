@@ -26,7 +26,7 @@
 
 namespace NC=NCrystal;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   inline double GaussMos_cacheRound(double x) {
     //Cut off input at 15 decimals, which should be a negligible effect on any
     //realistic value of wavelength or 1/2dspacing, but ensures that we don't

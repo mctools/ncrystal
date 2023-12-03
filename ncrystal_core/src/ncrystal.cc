@@ -46,7 +46,7 @@
 #include <cstdio>
 #include <cstdlib>
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace NCCInterface {
 
@@ -434,7 +434,7 @@ void ncrystal_ref(void* addrhandle)
   } NCCATCH;
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace NCCInterface {
     template<class TWrappedClass>
     void doUnref(void*o)
@@ -696,7 +696,7 @@ void ncrystal_dyninfo_base( ncrystal_info_t ci,
   *atomdataindex = *ditypeid = 0;
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace NCCInterface {
     VDOSData createVDOSDataFromRaw( const double* vdos_egrid,
                                     const double* vdos_density,
@@ -1707,7 +1707,7 @@ void ncrystal_atomdatadb_getallentries( unsigned* zvals,
 }
 
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace NCCInterface {
     char * createString(const char * str_begin, const char * str_end)
@@ -2165,4 +2165,11 @@ char * ncrystal_get_flatcompos( ncrystal_info_t nfo,
     return ncc::createString(NC::CompositionUtils::fullBreakdownToJSON(bd));
   } NCCATCH;
   return nullptr;
+}
+
+#include "NCrystal/NCVersion.hh"
+
+const char * ncrystal_namespace(void)
+{
+  return NC::getBuildNameSpace();
 }

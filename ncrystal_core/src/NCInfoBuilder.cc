@@ -46,7 +46,7 @@ NC::Info::InternalState NC::Info::copyInternalState() const
   return NC::Info::InternalState{ this->m_data, this->m_oData };
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace InfoBuilder {
     namespace detail {
 
@@ -1074,7 +1074,7 @@ NC::Info::Composition NC::InfoBuilder::buildCompositionFromChemForm( const std::
   return composition;
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace InfoBuilder {
     namespace {
 
@@ -1159,7 +1159,7 @@ namespace NCrystal {
   }
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace InfoBuilder {
     namespace {
       bool detail_phaseListsIdentical( const Info::PhaseList& a, const Info::PhaseList& b )

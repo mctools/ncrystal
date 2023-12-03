@@ -1,3 +1,55 @@
+v3.8.0 2023-12-03
+     * Completely obsolete the ncrystal_inspectfile command in favour of the
+       nctool command. Trying to invoke ncrystal_inspectfile now results in an
+       error message with a reminder to use nctool instead.
+     * The default value of the CMake cfg option -DNCRYSTAL_ENABLE_SETUPSH is
+       changed from "ON" to "OFF". Additionally, if setting
+       -DNCRYSTAL_ENABLE_SETUPSH=ON, the oly files installed are now named
+       <PREFIX>/ncrystal_setup.sh and <PREFIX>/ncrystal_unsetup.sh, whereas in
+       the past they were named <PREFIX>/setup.sh and <PREFIX>/unsetup.sh. Note
+       that in releases v3.7.0 and v3.7.1 both versions of the files were
+       available. Consequently, users who were manually compiling NCrystal and relying on
+       e.g. <PREFIX>/setup.sh files files will now need
+       to explicitly set -DNCRYSTAL_ENABLE_SETUPSH=ON and instead use the
+       <PREFIX>/ncrystal_setup.sh file. (github issue #126).
+     * NCrystal components and instrument examples for McStas (mcstas.org) are
+       no longer shipped with NCrystal, since all NCrystal components and
+       instrument examples are now shipped with McStas itself.
+     * Add a new NCRYSTAL_NAMESPACE option, which can be used when there is a
+       need to be able to use NCrystal header files and libraries from multiple
+       NCrystal installations into the same environment. Eventually, it is the
+       plan to enable such namespace protection in NCrystal conda-forge and PyPI
+       packages, to prevent hard-to-catch errors in case a user ends up having
+       both packages installed in the same environment (which can happen when
+       people mix "conda install .." and "pip install .."). CMake-based
+       downstream projects should not be affected by this, but if you are
+       maintaining downstream custom builds which hardcode linker flags like
+       "-L/path/to/ncrystal/lib -lNCrystal" you are encouraged to based your
+       flags instead on $(ncrystal-config --show libpath). That way you will be
+       future-proof and ready to also work with NCrystal installations where a
+       namespace has been enabled. See the README file for more details.
+     * As a result of the namespace support, all function names in the C-api are
+       now actually macros.
+     * Adding VERSION and SOVERSION to libNCrystal.so/dylib. For now, the
+       VERSION number is simply the full NCrystal release version number, while
+       the SOVERSION is the major release number (i.e. "3" for release
+       3.8.0). This feature can be disabled with -DNCRYSTAL_ENABLE_SOVERSION=OFF.
+     * CMake find_package(NCrystal ...) calls no longer sets NCrystal_DIR to the
+       installation prefix, since that could disrupt the usage of multiple
+       find_package calls. The prefix directory previously available as the
+       CMake variable NCrystal_DIR is thus instead made available under the name
+       NCrystal_PREFIX.
+     * Update Avogadro's constant to NIST/CODATA2018 value, changing it from
+       6.022140857e23/mol to 6.02214076e23/mol (a change of ~0.016ppm).
+     * The CMake code now also adds $CONDA_PREFIX/lib to rpath when appropriate.
+     * Explicitly forbid # and $ chars in cfg-strings (github issue #153).
+     * Fix misleading values in ncrystal-config in some rare cases.
+     * Fix for a few (incorrect) compiler warnings.
+     * Fix for cmake test in python3 -mNCrystal.test cmake.
+     * Warnings emitted from python layer now has right stacklevel.
+     * Fix tests for Python 3.12 (a few tests depended on the now
+       deprecated distutils modules, cf. PEP-632).
+
 v3.7.1 2023-08-02
      * Update documentation to reflect availability on PyPI.
      * Set version-based policies in NCrystalConfig.cmake to make

@@ -24,9 +24,9 @@
 
 #ifndef NCRYSTAL_DISABLE_THREADS
 #  include <thread>
-namespace NCrystal { namespace { using ThreadID = std::thread::id; } }
+namespace NCRYSTAL_NAMESPACE { namespace { using ThreadID = std::thread::id; } }
 #else
-namespace NCrystal { namespace { using ThreadID = int; } }
+namespace NCRYSTAL_NAMESPACE { namespace { using ThreadID = int; } }
 #endif
 
 
@@ -82,7 +82,7 @@ NC::RNGStreamState NC::RNGStream::getState() const
   return RNGStreamState{ bytes2hexstr(v) };
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace RNGStream_detail {
 
     constexpr uint32_t builtinRNGStateTypeUID = 0xb067bd44;//randomly generated
@@ -136,7 +136,7 @@ bool NC::stateIsFromBuiltinRNG( const RNGStreamState& state )
   return RNGStream_detail::extractStateUID( "NCrystal::stateIsFromBuiltinRNG", state.get() ) == RNGStream_detail::builtinRNGStateTypeUID;
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   class RNG_XRSR final : public RNGStream {
   public:
 
@@ -224,7 +224,7 @@ NC::shared_obj<NC::RNGStream> NC::createBuiltinRNG( const RNGStreamState& state 
   return rng;
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace {
     struct DefRNGProd {
       std::mutex mtx;
@@ -266,7 +266,7 @@ void NC::setDefaultRNGFctForAllThreads( std::function<double()> fct )
   setDefaultRNG(makeSO<RNG_OneFctForAllThreads>(fct));
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   struct RNGProducer::Impl {
     Impl( shared_obj<RNGStream> rng ) : m_nextproduct( std::move(rng) ) {}
     Impl( no_init_t ) {}

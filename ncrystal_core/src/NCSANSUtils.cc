@@ -25,7 +25,7 @@
 
 namespace NC = NCrystal;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace {
 
     const Info::CustomSectionData* getATypePhaseData( const Info& info, const std::string& customsectionname )

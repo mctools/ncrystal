@@ -24,7 +24,7 @@
 #include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCSABData.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   //Access SABData from DynInfo object (or just expand from VDOSDebye
   //model). This might result in some calculations carried out in order to

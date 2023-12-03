@@ -24,7 +24,7 @@
 #include "NCrystal/NCVariant.hh"
 #include "NCrystal/NCTypes.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   ////////////////////////////////////////////
   // TextData objects and associated types. //
@@ -218,7 +218,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   inline TextDataUID::TextDataUID( UniqueIDValue v ) : m_value(v) {}
   inline constexpr TextDataUID::TextDataUID() : m_value(UniqueIDValue{0}) {}

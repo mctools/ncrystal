@@ -23,7 +23,7 @@
 
 #include "NCrystal/NCAtomData.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   //Helper class which can be used to implement an extension to the hard-wired
   //atom database (from NCAtomDB.hh), with the possibility to add new data,

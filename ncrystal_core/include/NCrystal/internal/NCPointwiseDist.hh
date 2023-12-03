@@ -23,7 +23,7 @@
 
 #include "NCrystal/NCDefs.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   // Utility class which provides integration or sampling of a 1D piece-wise
   // linear distribution function. The function is defined by its non-negative

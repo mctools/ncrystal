@@ -23,7 +23,7 @@
 
 #include "NCrystal/NCSmallVector.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class StrView;
   class StrView
@@ -243,7 +243,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   inline constexpr StrView::StrView( const char * cdata, StrView::size_type len) noexcept : m_data(cdata), m_size(len) {}
   inline StrView::StrView( const std::string& stdstr ) noexcept : m_data(stdstr.c_str()), m_size(stdstr.size()) {}
   inline constexpr StrView::StrView( StrView::constexpr_t, const char * cdata ) noexcept : m_data(cdata), m_size(constexpr_strlen(cdata)) {}

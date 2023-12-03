@@ -24,7 +24,7 @@
 #include "NCrystal/NCProcImpl.hh"
 #include "NCrystal/internal/NCSANSUtils.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class SANSSphereScatter final : public ProcImpl::ScatterIsotropicMat {
   public:

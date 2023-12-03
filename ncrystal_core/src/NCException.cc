@@ -20,7 +20,7 @@
 
 #include "NCrystal/NCException.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace Error {
 

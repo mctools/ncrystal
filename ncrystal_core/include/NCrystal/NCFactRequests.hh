@@ -33,7 +33,7 @@
 //                                                                             //
 /////////////////////////////////////////////////////////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace FactImpl {
 
@@ -192,7 +192,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace FactImpl {
 
     inline TextDataUID InfoRequest::textDataUID() const { return m_textDataUID; }

@@ -30,7 +30,7 @@
 namespace NC = NCrystal;
 namespace NCF = NCrystal::FactImpl;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace FactImpl {
 
@@ -466,7 +466,7 @@ std::vector<NC::shared_obj<const NCF::InfoFactory>> NCF::getInfoFactoryList() { 
 std::vector<NC::shared_obj<const NCF::ScatterFactory>> NCF::getScatterFactoryList() { return scatterDB().getFactoryList(); }
 std::vector<NC::shared_obj<const NCF::AbsorptionFactory>> NCF::getAbsorptionFactoryList() { return absorptionDB().getFactoryList(); }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace FactImpl {
     //Fwd declare fct implemented in NCTDProd.cc:
    TextDataSP produceTextDataSP_PreferPreviousObject( const TextDataPath&, TextDataSource&& );
@@ -484,7 +484,7 @@ NC::shared_obj<const NC::TextData> NCF::createTextData( const TextDataPath& path
   return produceTextDataSP_PreferPreviousObject( path, std::move(textDataSource) );
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace FactImpl {
 

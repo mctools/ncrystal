@@ -23,7 +23,7 @@
 
 #include "NCrystal/internal/NCMath.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class Vector final : public StronglyTypedFixedVector<Vector,double,3> {
   public:

@@ -23,7 +23,7 @@
 
 #include "NCrystal/NCTypes.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   //Estimate (isotropic, harmonic) atomic mean-squared-displacement using the
   //Debye Model (eq. 11+12 in R.J. Glauber, Phys. Rev. Vol98 num 6, 1955). Unit

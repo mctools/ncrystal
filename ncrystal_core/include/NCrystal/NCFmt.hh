@@ -29,7 +29,7 @@
 #  include "NCrystal/NCDefs.hh"
 #endif
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class StrView;//Internal class (cf. NCStrView.hh)
 
@@ -160,7 +160,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   template <unsigned NMAX>
   inline constexpr const char * ShortStr<NMAX>::data() const noexcept { return &m_data[0]; }
 

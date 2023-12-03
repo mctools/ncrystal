@@ -65,7 +65,7 @@
 //                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace ProcImpl {
 
@@ -339,7 +339,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace ProcImpl {
     inline EnergyDomain Process::domain() const noexcept { return { NeutronEnergy{0.0}, NeutronEnergy{kInfinity} }; }
     inline bool Process::isNull() const noexcept { return domain().isNull(); }

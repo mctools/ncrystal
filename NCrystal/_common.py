@@ -38,7 +38,7 @@ def warn(msg):
     """Emit NCrystalUserWarning via standard warnings.warn function"""
     from .exceptions import NCrystalUserWarning
     import warnings
-    warnings.warn( NCrystalUserWarning( str(msg) ))
+    warnings.warn( NCrystalUserWarning(str(msg)), stacklevel = 2 )
 
 class WarningSpy:
     """Context manager which spies on any warnings emitted via warnings

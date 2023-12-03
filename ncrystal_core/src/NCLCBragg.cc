@@ -30,7 +30,7 @@
 
 namespace NC = NCrystal;
 
-namespace NCrystal{
+namespace NCRYSTAL_NAMESPACE {
 
   struct LCBragg::pimpl {
 

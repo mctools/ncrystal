@@ -1,13 +1,18 @@
+Install via pip or conda
+------------------------
+
 First of all note that NCrystal might be available for installation via various
 distribution channels such as pip ("pip install ncrystal") and conda ("conda
-install -c conda-forge ncrystal"), Debian packages or even shipped with your
-application (e.g. McStas). The rest of this file contains instructions for
-performing a custom build and installation from the source code. The official
-and supported way in which to build and install files in the NCrystal source
-distribution is via CMake, which will make it possible to use standalone
-NCrystal functionality from either the command-line, via C++, C or Python code,
-or by using NCrystal in the context of a third-party simulation framework for
-which the appropriate plugins are available.
+install -c conda-forge ncrystal"), Debian packages, FreeBSD packages, or even
+shipped with your application (e.g. McStas).
+
+The rest of this file contains instructions for performing a custom build and
+installation from the source code. The official and supported way in which to
+build and install files in the NCrystal source distribution is via CMake, which
+will make it possible to use standalone NCrystal functionality from either the
+command-line, via C++, C or Python code, or by using NCrystal in the context of
+a third-party simulation framework for which the appropriate plugins are
+available.
 
 
 
@@ -55,13 +60,14 @@ best practice):
    Depending on where you installed NCrystal, it might be necessary to setup
    your environment (e.g. PATH, PYTHONPATH, etc. variables) in order to actually
    use the NCrystal installation. One way to do that is to first source the
-   ncrystal_setup.sh file from it:
+   ncrystal_setup.sh file from it, however this will require you to add
+   -DNCRYSTAL_ENABLE_SETUPSH=ON in step #2 above.
 
    $> . /path/to/ncrystalinstall/ncrystal_setup.sh
 
    Or alternatively use the ncrystal-config command to do the same (this is
-   actually recommended since ncrystal-config should always be available in
-   practice, while the setup.sh file might not be):
+   actually recommended since ncrystal-config should always be available,
+   unlike the ncrystal_setup.sh file):
 
    $> $(/path/to/ncrystalinstall/bin/ncrystal-config --setup)
 
@@ -72,17 +78,20 @@ best practice):
    environment will always be prepared for you.
 
    For reference, it is possible to completely undo the effects of the above
-   setup by:
+   setup by one of:
 
+   $> $(/path/to/ncrystalinstall/bin/ncrystal-config --unsetup)
    $> . /path/to/ncrystalinstall/ncrystal_unsetup.sh
 
-   After sourcing ncrystal_setup.sh (or invoking the equivalent ncrystal-config
-   command), you can quickly verify that your NCrystal installation is sound, by
-   running the following unit test:
+5. Test runtime environment
+
+   You can quickly verify that your NCrystal installation is sound, by running
+   the following small unit tests:
 
    $> nctool --test
+   $> python3 -c 'import NCrystal; NCrystal.test()'
 
-5. Use the installation.
+6. Use the installation.
 
    Refer to the README file for more information.
 

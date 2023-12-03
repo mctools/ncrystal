@@ -117,6 +117,10 @@ G4VParticleChange* NCG4::ProcWrapper::PostStepDoIt(const G4Track& trk, const G4S
     }
   } catch ( NC::Error::Exception& e ) {
     Manager::handleError("G4NCrystal::ProcWrapper::PostStepDoIt",101,e);
+    //Avoid "may be used initialised" warnings from compilers that think we
+    //continue here.
+    g4outcome_ekin = 0.0;
+    g4outcome_dir.set(0.0,0.0,0.0);
   }
   m_particleChange.Clear();
   m_particleChange.Initialize(trk);

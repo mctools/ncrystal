@@ -23,7 +23,7 @@
 #include "NCrystal/NCLoadNCMAT.hh"
 namespace NC = NCrystal;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class NCMATFactory final : public FactImpl::InfoFactory {
   public:
@@ -46,7 +46,7 @@ namespace NCrystal {
 //this function is forward declared elsewhere or might be dynamically invoked
 //(hence the C-mangling), and its name should not be changed just here:
 
-extern "C" void ncrystal_register_stdncmat_factory()
+extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_stdncmat_factory)()
 {
   NC::FactImpl::registerFactory( std::make_unique<NC::NCMATFactory>(),
                                  NC::FactImpl::RegPolicy::IGNORE_IF_EXISTS );

@@ -25,7 +25,7 @@
 
 namespace NC = NCrystal;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace {
     static std::mutex s_cacheCleanerMutex;
     static std::vector<std::function<void()>> s_cacheCleanerMutexFcts;
@@ -114,7 +114,7 @@ void NC::AlignedAlloc::detail::freeBigAlignedAlloc( void* addr )
 
 #ifdef NCRYSTAL_TRACKALIGNEDALLOC
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace AlignedAlloc {
     namespace detail {
       namespace {

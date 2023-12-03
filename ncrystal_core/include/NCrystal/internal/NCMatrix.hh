@@ -23,7 +23,7 @@
 
 #include "NCrystal/internal/NCMath.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
 
   struct MatrixAllowCopy_t {};

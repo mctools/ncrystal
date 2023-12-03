@@ -24,7 +24,7 @@
 #include "NCrystal/NCProcImpl.hh"
 #include "NCrystal/NCAtomData.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class FreeGas final : public ProcImpl::ScatterIsotropicMat {
   public:

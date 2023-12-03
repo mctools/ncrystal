@@ -26,7 +26,7 @@
 namespace NC = NCrystal;
 namespace NCF = NCrystal::FactImpl;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace FactImpl {
     namespace {
       using Cfg::CfgManip;

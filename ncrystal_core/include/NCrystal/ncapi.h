@@ -21,17 +21,30 @@
 /*                                                                            */
 /******************************************************************************/
 
-/********************************************************************************/
-/* API macros for NCrystal, used to mark classes and functions exported to API  */
-/* clients. This is needed to support Windows DLL builds as well as Unix builds */
-/* with -fvisibility-hidden. Macros inspired by suggestions found at            */
-/* https://gcc.gnu.org/wiki/Visibility                                          */
-/*                                                                              */
-/* On windows, the NCrystal_EXPORTS macro must be defined during compilation of */
-/* the NCrystal library (dll), but not when client applications and libraries   */
-/* are being compiled. If using CMake and the CMakeLists.txt distributed with   */
-/* NCrystal, this should be taken care of automatically.                        */
-/********************************************************************************/
+/******************************************************************************/
+/* Namespace and API macros for NCrystal, used to mark classes and functions  */
+/* exported to API clients. This is needed to support Windows DLL builds as   */
+/* well as Unix builds with -fvisibility-hidden. Macros inspired by sugges-   */
+/* tions found at https://gcc.gnu.org/wiki/Visibility                         */
+/*                                                                            */
+/* On windows, the NCrystal_EXPORTS macro must be defined during compilation  */
+/* of the NCrystal library (dll), but not when client applications and libra- */
+/* ries are being compiled. If using CMake and the CMakeLists.txt distributed */
+/* with NCrystal, this should be taken care of automatically.                 */
+/******************************************************************************/
+
+
+/* First ensure the NCRYSTAL_NAMESPACE_PROTECTION is always hardwired in this */
+/* file, and never set via a compiler flag:                                   */
+#ifdef NCRYSTAL_NAMESPACE_PROTECTION
+#  undef NCRYSTAL_NAMESPACE_PROTECTION
+#endif
+
+/* Next, set a namespace if any. This can be done by manually editing this    */
+/* file and adding a line like "#define NCRYSTAL_NAMESPACE_PROTECTION foo",   */
+/* but it is usually better to let the NCrystal CMake code take care of this: */
+
+/* @NCRYSTAL_CMAKE_HOOK_FOR_ADDING_NAMESPACE@ */
 
 #ifdef NCRYSTAL_API
 #  undef NCRYSTAL_API
@@ -53,6 +66,41 @@
 #  else
 #    define NCRYSTAL_API
 #    define NCRYSTAL_LOCAL
+#  endif
+#endif
+
+#ifdef ncrystal_join
+#  undef ncrystal_join
+#endif
+#ifdef ncrystal_xjoin
+#  undef ncrystal_xjoin
+#endif
+#define ncrystal_join( symbol1, symbol2 ) ncrystal_xjoin( symbol1, symbol2 )
+#define ncrystal_xjoin( symbol1, symbol2 ) symbol1##symbol2
+
+#ifdef NCRYSTAL_NAMESPACE
+#  undef NCRYSTAL_NAMESPACE
+#endif
+#ifdef NCRYSTAL_APPLY_C_NAMESPACE
+#  undef NCRYSTAL_APPLY_C_NAMESPACE
+#endif
+#ifdef NCRYSTAL_C_NAMESPACE
+#  undef NCRYSTAL_C_NAMESPACE
+#endif
+#ifdef NCRYSTAL_NAMESPACE_PROTECTION
+#  define NCRYSTAL_NAMESPACE ncrystal_join(NCrystal,NCRYSTAL_NAMESPACE_PROTECTION )
+#  define NCRYSTAL_C_NAMESPACE ncrystal_join(ncrystal_join(ncrystal,NCRYSTAL_NAMESPACE_PROTECTION),_)
+#else
+#  define NCRYSTAL_NAMESPACE NCrystal
+#  define NCRYSTAL_C_NAMESPACE ncrystal_
+#endif
+
+#define NCRYSTAL_APPLY_C_NAMESPACE(x) ncrystal_join(NCRYSTAL_C_NAMESPACE,x)
+
+#ifdef __cplusplus
+namespace NCRYSTAL_NAMESPACE {}
+#  ifdef NCRYSTAL_NAMESPACE_PROTECTION
+namespace NCrystal = NCRYSTAL_NAMESPACE;
 #  endif
 #endif
 

@@ -24,7 +24,7 @@
 #include "NCrystal/internal/NCRotMatrix.hh"
 #include "NCrystal/NCSCOrientation.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class Info;
   struct StructureInfo;

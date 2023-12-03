@@ -24,7 +24,7 @@
 #include "NCrystal/NCSABData.hh"
 #include "NCrystal/internal/NCSABExtender.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class SABSamplerAtE : private NoCopyMove {
     //For sampling (alpha,beta) values at a given energy, Ei, or lower. This

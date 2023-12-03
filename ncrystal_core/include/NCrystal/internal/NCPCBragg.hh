@@ -24,7 +24,7 @@
 #include "NCrystal/NCInfo.hh"
 #include "NCrystal/NCProcImpl.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class PCBragg final : public ProcImpl::ScatterIsotropicMat {
   public:

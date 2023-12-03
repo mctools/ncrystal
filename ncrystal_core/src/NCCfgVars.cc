@@ -22,7 +22,7 @@
 
 namespace NC = NCrystal;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace Cfg {
     struct PseudoVar {
       StrView name;
@@ -143,7 +143,7 @@ namespace NCrystal {
   }
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace Cfg {
     namespace{
       using detail_printvargroupentry_t = std::pair<Optional<VarGroupId>,StrView>;
@@ -378,7 +378,7 @@ std::string NC::Cfg::FactNameRequest::to_string() const {
   return res;
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace Cfg {
     namespace {
       //compile-time check of sorted varlist:

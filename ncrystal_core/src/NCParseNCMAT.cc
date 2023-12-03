@@ -31,7 +31,7 @@
 #endif
 namespace NC = NCrystal;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class NCMATParser {
   public:

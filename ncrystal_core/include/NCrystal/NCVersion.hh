@@ -38,19 +38,24 @@
 #endif
 
 #define NCRYSTAL_VERSION_MAJOR 3
-#define NCRYSTAL_VERSION_MINOR 7
-#define NCRYSTAL_VERSION_PATCH 1
-#define NCRYSTAL_VERSION   3007001 /* (1000000*MAJOR+1000*MINOR+PATCH)   */
-#define NCRYSTAL_VERSION_STR "3.7.1"
+#define NCRYSTAL_VERSION_MINOR 8
+#define NCRYSTAL_VERSION_PATCH 0
+#define NCRYSTAL_VERSION   3008000 /* (1000000*MAJOR+1000*MINOR+PATCH)   */
+#define NCRYSTAL_VERSION_STR "3.8.0"
 
 #include "NCrystal/ncapi.h"
 #include <stdexcept>
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   //Function which returns NCRYSTAL_VERSION. If it does not, it indicates symbol
   //clashes from multiple installations of NCrystal.
   NCRYSTAL_API int getVersion();
+
+  //If compiled with NCRYSTAL_NAMESPACE_PROTECTION, return the namespace here
+  //(will be an empty string in default installations):
+  NCRYSTAL_API const char* getBuildNameSpace();
+
 
   //Call in client code to detect broken installations where there is a mismatch
   //in versions in NCrystal headers included and NCrystal library loaded. Raise

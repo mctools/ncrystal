@@ -148,7 +148,7 @@ NC::RotMatrix NC::getReciprocalLatticeRot( double a, double b, double c,
   return m;
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace {
     static constexpr std::size_t npts_sphere = 1000;
     const std::array<Vector,npts_sphere>& manyPtsAllOverUnitSphere() {
@@ -323,7 +323,7 @@ double NC::dspacingFromHKL( int h, int k, int l, const RotMatrix& rec_lat )
   // Validate orientation parameters (check against null-vectors, parallel
   // vectors, consistency of angles in the two frames given dirtol,
   // etc.). Throws BadInput exception in case of issues.
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace  {
     constexpr const char * vectName( const CrystalAxis& ) { return "CrystalAxis"; }
     constexpr const char * vectName( const HKLPoint& ) { return "HKLPoint"; }

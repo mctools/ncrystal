@@ -29,7 +29,7 @@
 
 namespace NC = NCrystal;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   //map keys used during search for hkl families.
   typedef unsigned FamKeyType;
   FamKeyType keygen(double fsq, double dsp) {
@@ -59,7 +59,7 @@ namespace NCrystal {
 #include <stdexcept>
 #include <type_traits>
 #include <scoped_allocator>
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   //We use a simple expanding-only memory pool for the temporary multimap used
   //to detect hkl families. This results in better cache locality and should
   //hopefully reduce memory fragmentation. TODO: Consider moving this pool
@@ -118,12 +118,12 @@ namespace NCrystal {
                         std::scoped_allocator_adaptor<MemPoolAllocator<std::pair<const FamKeyType, size_t>>>> FamMap;
 }
 #else
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   typedef std::multimap<FamKeyType,size_t> FamMap;
 }
 #endif
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace {
     using SmallVectD = SmallVector<double,64>;//64 atomic positions is usually (but not always) enough.
 
@@ -146,7 +146,7 @@ namespace NCrystal {
   }
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace {
     constexpr const double fsquarecut_lowest_possible_value = 1.0e-300;
   }
@@ -448,7 +448,7 @@ NC::HKLList NC::calculateHKLPlanes( const StructureInfo& structureInfo,
   return hkllist;
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace {
 
     class SymHKLSeenTracker {

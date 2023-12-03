@@ -24,7 +24,7 @@
 #include "NCrystal/NCProcImpl.hh"
 #include "NCrystal/NCInfo.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class AbsOOV : public ProcImpl::AbsorptionIsotropicMat {
   public:

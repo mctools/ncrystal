@@ -26,7 +26,7 @@
 #include "NCrystal/internal/NCMath.hh"
 #include "NCrystal/NCFmt.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class StrView;
 
@@ -190,7 +190,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   inline constexpr std::size_t constexpr_strlen( const char* cstr ) noexcept {
     //C++11 compatible => needs single recursive statement.

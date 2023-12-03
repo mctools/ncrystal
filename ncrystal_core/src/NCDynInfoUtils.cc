@@ -25,7 +25,7 @@
 #include "NCrystal/internal/NCSABUtils.hh"
 namespace NC = NCrystal;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace DICache {
     //Cache keys:
     using VDOSKey = std::tuple<uint64_t,unsigned,uint32_t,const DI_VDOS*>;//(DI unique id, vdoslux 0..5,vdos2sabExcludeFlag,DI object)

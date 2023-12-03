@@ -22,7 +22,7 @@
 #include "NCrystal/internal/NCFileUtils.hh"
 #include "NCrystal/internal/NCString.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace FactImpl {
 

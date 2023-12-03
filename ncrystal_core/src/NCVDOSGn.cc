@@ -26,7 +26,7 @@
 #include <iostream>
 namespace NC=NCrystal;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   static std::atomic<bool> s_verbose_vdosgn( getenv("NCRYSTAL_DEBUG_PHONON")!=nullptr );
 

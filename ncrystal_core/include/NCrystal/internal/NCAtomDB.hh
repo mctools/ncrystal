@@ -23,7 +23,7 @@
 
 #include "NCrystal/NCAtomData.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   //Access internal database of element and isotope data. Natural elements can
   //be accessed via Z-value or name ("Al", "H", ...). Isotopes can be accessed

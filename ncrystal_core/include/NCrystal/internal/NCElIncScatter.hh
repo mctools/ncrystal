@@ -23,7 +23,7 @@
 
 #include "NCrystal/NCProcImpl.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class ElIncXS;
   class Info;

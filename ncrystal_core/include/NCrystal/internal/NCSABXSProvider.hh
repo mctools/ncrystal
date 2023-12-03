@@ -24,7 +24,7 @@
 #include "NCrystal/NCDefs.hh"
 #include "NCrystal/internal/NCSABExtender.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class SABXSProvider final : private MoveOnly {
   public:

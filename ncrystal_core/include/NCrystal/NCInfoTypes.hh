@@ -28,7 +28,7 @@
 // Data structures used on Info objects (in NCInfo.hh) //
 /////////////////////////////////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class Info;
   class DynamicInfo;
@@ -309,7 +309,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   inline double DynamicInfo::fraction() const { return m_fraction; }
   inline Temperature DynamicInfo::temperature() const { return m_temperature; }
   inline DI_VDOSDebye::DI_VDOSDebye( double fr, IndexedAtomData aaa, Temperature tt, DebyeTemperature dt )

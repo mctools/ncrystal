@@ -25,7 +25,7 @@
 #include "NCrystal/internal/NCAtomUtils.hh"
 #include "NCrystal/NCAtomData.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace GasMix {
 

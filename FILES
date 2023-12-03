@@ -26,8 +26,6 @@ ncrystal_geant4/....: NCrystal-Geant4 interface classes, with public header
                       files for Geant4-dependent C++ code available in the
                       ncrystal_geant4/include/G4NCrystal/ directory, and the
                       implementation in ncrystal_geant4/src/.
-ncrystal_mcstas/....: NCrystal-McStas interface files, with sample component
-                      and a script to prepare a given McStas rundir for using it.
 NCrystal/...........: NCrystal python modules.
 scripts/............: Command-line scripts, including the nctool command and
                       various tools for NCMAT file preparation.

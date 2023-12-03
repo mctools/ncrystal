@@ -26,7 +26,7 @@ Scatter, Absorption, TextData, AtomData) and related factory methods.
 ################################################################################
 
 from .exceptions import *
-from ._chooks import _cstr2str, _get_raw_cfcts, _str2cstr
+from ._chooks import _cstr2str, _get_raw_cfcts, _str2cstr, _get_build_namespace
 from . import constants as _nc_constants
 from ._numpy import *
 from . import _coreimpl as _impl
@@ -53,6 +53,12 @@ def get_version_tuple():
        as a variable named version_tuple in the main NCrystal module.
     """
     return tuple( int(i) for i in get_version().split('.') )
+
+def get_build_namespace():
+    """If compiled with NCRYSTAL_NAMESPACE_PROTECTION, return the namespace here
+       (will be an empty string in default installations).
+    """
+    return _get_build_namespace()
 
 class RCBase:
     """Base class for all NCrystal objects"""
@@ -1242,7 +1248,7 @@ class Process(RCBase):
         """Convenience method for plotting cross sections. This is the same as
         NCrystal.plot.plot_xsect(material=self,*args,**kwargs), so refer to that
         function for information about allowed arguments."""
-        from NCrystal.plot import plot_xsect
+        from .plot import plot_xsect
         return plot_xsect( self, *args, **kwargs )
 
 class Absorption(Process):
@@ -1518,7 +1524,7 @@ class LoadedMaterial:
         """Convenience method for plotting cross sections. This is the same as
         NCrystal.plot.plot_xsect(material=self,*args,**kwargs), so refer to that
         function for information about allowed arguments."""
-        from NCrystal.plot import plot_xsect
+        from .plot import plot_xsect
         return plot_xsect( self, *args, **kwargs )
 
     def dump(self, verbose=0 ):

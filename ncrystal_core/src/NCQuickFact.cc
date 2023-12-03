@@ -33,7 +33,7 @@
 
 namespace NC = NCrystal;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace {
 
     enum class QuickType { FreeGas, Solid };
@@ -295,14 +295,14 @@ namespace NCrystal {
 //this function is forward declared elsewhere or might be dynamically invoked
 //(hence the C-mangling), and its name should not be changed just here:
 
-extern "C" void ncrystal_register_quickgasmix_factory();
+extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_quickgasmix_factory)();
 
-extern "C" void ncrystal_register_quick_factory()
+extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_quick_factory)()
 {
   NC::FactImpl::registerFactory( std::make_unique<NC::QuickFact>(NC::QuickType::FreeGas),
                                  NC::FactImpl::RegPolicy::IGNORE_IF_EXISTS );
   NC::FactImpl::registerFactory( std::make_unique<NC::QuickFact>(NC::QuickType::Solid),
                                  NC::FactImpl::RegPolicy::IGNORE_IF_EXISTS );
   //the gasmix factory should be part of the same "stdquick" plugin.
-  ncrystal_register_quickgasmix_factory();
+  NCRYSTAL_APPLY_C_NAMESPACE(register_quickgasmix_factory)();
 }

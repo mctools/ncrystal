@@ -43,7 +43,7 @@ namespace NC = NCrystal;
 //#define NCRYSTAL_LCUTILS_ANTINORMALS_ONLY
 
 #define NCRYSTAL_LCUTILS_DISCRFACT (1099511627776.0) // 2^40 ~= 1.1e12
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   uint64_t LCdiscretizeValue(double value) {
     nc_assert_always(value>=0.0&&value<1e7);//range limited by uint64_t bits
     return static_cast<uint64_t>(value*NCRYSTAL_LCUTILS_DISCRFACT+0.5);
@@ -453,7 +453,7 @@ void NC::LCHelper::Cache::reset()
   m_roixs_commul.clear();
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   class LCStdFrameIntegrator : public Romberg {
   public:
     LCStdFrameIntegrator(const GaussMos* gm, const LCStdFrame::NormalPars& normal, const LCStdFrame::NeutronPars& neutron)

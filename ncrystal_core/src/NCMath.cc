@@ -334,7 +334,7 @@ double NC::findRoot(const Fct1D*f,double a, double b, double acc)
 NC::Fct1D::~Fct1D(){}
 
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   double erfcdiff_notaylor(double a, double b)
   {
     nc_assert(b>=a);

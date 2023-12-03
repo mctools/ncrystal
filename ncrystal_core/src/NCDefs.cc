@@ -20,7 +20,7 @@
 
 #include "NCrystal/NCDefs.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   static_assert(std::is_trivially_copyable<ThreeVector>::value,"");
   static_assert(std::is_trivially_destructible<ThreeVector>::value,"");

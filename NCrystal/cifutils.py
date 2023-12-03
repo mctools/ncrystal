@@ -400,7 +400,7 @@ def produce_validation_plots( files, verbose_lbls = True, pdf_target = None,
     embed them in a PDF file. Any plot_kwargs will be passed along to the
     produce_validation_plot(..) function.
     """
-    from NCrystal.plot import _import_matplotlib_plt, _import_matplotlib_pdfpages, _fakepyplot_mode
+    from .plot import _import_matplotlib_plt, _import_matplotlib_pdfpages, _fakepyplot_mode
 
     if pdf_target:
         pdfpages = _import_matplotlib_pdfpages()
@@ -456,7 +456,7 @@ def produce_validation_plot( data_or_file, verbose_lbls = True, line_width_scale
         ncmat.transfer_dyninfo_objects( dynamics )
         return ncmat.create_ncmat()
 
-    from NCrystal.plot import _import_matplotlib_plt
+    from .plot import _import_matplotlib_plt
     plt = _import_matplotlib_plt()
     if do_newfig:
         plt.figure()

@@ -24,7 +24,7 @@
 
 namespace NC = NCrystal;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace {
     constexpr double sqrt_const_ekin_2200m_s = constexpr_sqrt(const_ekin_2200m_s.dbl());
   }

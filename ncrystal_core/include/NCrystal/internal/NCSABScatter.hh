@@ -23,7 +23,7 @@
 
 #include "NCrystal/NCProcImpl.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class DI_ScatKnl;
   class SABData;

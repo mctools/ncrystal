@@ -24,7 +24,7 @@ namespace NC = NCrystal;
 #include <streambuf>
 #include <istream>
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace detail {
     // Inspired by:
     // https://stackoverflow.com/questions/13059091/creating-an-input-stream-from-constant-memory/13059195#13059195
@@ -180,7 +180,7 @@ std::pair<unsigned,unsigned> NC::detectSimpleRationalNumbers(double value)
   return it->second;
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   std::ostream& operator<<( std::ostream& os , const detail_FmtDblFrac& fd ) {
     auto ab = detectSimpleRationalNumbers(fd.val);
     if ( ab.second == 1 )

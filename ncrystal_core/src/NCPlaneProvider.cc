@@ -29,7 +29,7 @@ namespace NC = NCrystal;
 NC::PlaneProvider::PlaneProvider() = default;
 NC::PlaneProvider::~PlaneProvider() = default;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace {
 

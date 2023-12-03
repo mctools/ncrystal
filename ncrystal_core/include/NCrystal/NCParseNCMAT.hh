@@ -24,7 +24,7 @@
 #include "NCrystal/NCNCMATData.hh"
 #include "NCrystal/NCTextData.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   //Parse NCMAT data. Will throw BadInput exceptions in case of problems.
   //

@@ -24,7 +24,7 @@
 #include "NCrystal/NCDefs.hh"
 #include "NCrystal/internal/NCFreeGasUtils.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace SAB {
 

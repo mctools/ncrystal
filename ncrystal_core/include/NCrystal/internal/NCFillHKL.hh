@@ -23,7 +23,7 @@
 
 #include "NCrystal/NCInfo.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   // The helper function calculateHKLPlanes finds all (h,k,l) planes and
   // calculates their d-spacings and structure factors (fsquared), based on unit

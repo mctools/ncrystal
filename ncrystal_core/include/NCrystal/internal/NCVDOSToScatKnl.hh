@@ -24,7 +24,7 @@
 #include "NCrystal/internal/NCScatKnlData.hh"
 #include "NCrystal/internal/NCVDOSGn.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   /////////////////////////////////////////////////////////////////////////////
   // Expand a vibrational density of state (VDOS) spectrum into a full-blown //

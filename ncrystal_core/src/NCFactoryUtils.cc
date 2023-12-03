@@ -23,7 +23,7 @@
 
 namespace NC = NCrystal;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace {
     static std::atomic<bool> s_factoryVerbosity( ncgetenv_bool("DEBUG_FACTORY")
                                                  || ncgetenv_bool("DEBUGFACTORY")
@@ -43,7 +43,7 @@ bool NC::getFactoryVerbosity()
 }
 
 #ifndef NCRYSTAL_DISABLE_THREADS
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace detail {
     struct ThreadDeadLockDetectDB {
       std::mutex mtx;

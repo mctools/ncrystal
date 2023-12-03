@@ -23,7 +23,7 @@
 
 #include "NCrystal/NCDefs.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   //Dynamic load libraries and symbols.
 

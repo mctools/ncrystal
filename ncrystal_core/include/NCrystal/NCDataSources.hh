@@ -40,7 +40,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace DataSources {
 

@@ -48,7 +48,7 @@
 //                                                                                         //
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace Error {
 
@@ -154,7 +154,7 @@ namespace NCrystal {
 #  define nc_assert2(x) do { (void)sizeof(x); } while(0)//use but dont evaluate x
 #endif
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace assert_details {
     //For C++11 constexpr function a separate nc_assert(..) statement won't
     //work. Instead one can use "return nc_assert_rv(foo), bar;"

@@ -25,3 +25,20 @@ int NCrystal::getVersion()
   return NCRYSTAL_VERSION;
 }
 
+const char* NCrystal::getBuildNameSpace()
+{
+#ifdef ncrystal_str
+#  undef ncrystal_str
+#endif
+#ifdef ncrystal_xstr
+#  undef ncrystal_xstr
+#endif
+#define ncrystal_str(s) #s
+#define ncrystal_xstr(s) ncrystal_str(s)
+
+#ifdef NCRYSTAL_NAMESPACE_PROTECTION
+  return ncrystal_xstr(NCRYSTAL_NAMESPACE_PROTECTION);
+#else
+  return "";
+#endif
+}

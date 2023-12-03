@@ -25,7 +25,7 @@
 #include "NCrystal/internal/NCGaussOnSphere.hh"
 #include "NCrystal/internal/NCVector.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class GaussMos {
   public:
@@ -169,7 +169,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   inline MosaicityFWHM GaussMos::mosaicityFWHM() const { return m_mos_fwhm; }
   inline MosaicitySigma GaussMos::mosaicityGaussSigma() const { nc_assert(m_mos_sigma.dbl()==m_gos.getSigma()); return MosaicitySigma{ m_gos.getSigma() }; }
   inline double GaussMos::mosaicityGaussNormFact() const { return m_gos.getNormFactor(); }

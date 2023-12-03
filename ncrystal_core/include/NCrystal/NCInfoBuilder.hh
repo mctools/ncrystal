@@ -28,7 +28,7 @@
 // Info objects. Once constructed, Info objects are immutable.            //
 ////////////////////////////////////////////////////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace InfoBuilder {
 

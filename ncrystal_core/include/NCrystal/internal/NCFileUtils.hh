@@ -27,7 +27,7 @@
 
 #include "NCrystal/NCDefs.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   //Check if file exists and is readable:
   bool file_exists( const std::string& filename );

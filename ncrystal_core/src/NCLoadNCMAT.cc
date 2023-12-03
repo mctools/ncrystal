@@ -38,7 +38,7 @@
 
 namespace NC = NCrystal;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class DI_ScatKnlImpl final : public DI_ScatKnlDirect {
   public:
@@ -110,7 +110,7 @@ namespace NCrystal {
 
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   static std::atomic<bool> s_NCMATWarnOnCustomSections(!ncgetenv_bool("NCMAT_NOWARNFORCUSTOM"));
 

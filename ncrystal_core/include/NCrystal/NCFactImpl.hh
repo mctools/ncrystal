@@ -49,7 +49,7 @@
 //                                                                             //
 /////////////////////////////////////////////////////////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace FactImpl {
 
@@ -208,7 +208,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace FactImpl {
     template<typename... Args>
     inline ProcImpl::ProcPtr ScatterFactory::combineProcs(Args &&... args)

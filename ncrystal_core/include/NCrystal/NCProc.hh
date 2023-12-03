@@ -24,7 +24,7 @@
 #include "NCrystal/NCProcImpl.hh"
 #include "NCrystal/NCRNG.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   //////////////////////////////////////////////////////////////////////////////
   //                                                                          //

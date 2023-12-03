@@ -23,7 +23,7 @@
 
 #include "NCrystal/NCSABData.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class VDOSEval final : private MoveOnly {
   public:

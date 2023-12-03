@@ -24,7 +24,7 @@
 #include "NCrystal/NCProcImpl.hh"
 #include "NCrystal/NCInfo.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class BkgdExtCurve final : public ProcImpl::ScatterIsotropicMat {
   public:

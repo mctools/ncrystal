@@ -68,8 +68,7 @@ Using the NCrystal installation from the command-line
 
 After installing NCrystal and having sourced the setup.sh script mentioned in
 the INSTALL file, you can run any of the commands from the $NCRYSTALDIR/bin
-directory, which includes example code as well as the nctool command (also
-available under the backwards-compatible alias "ncrystal_inspectfile"). Start by
+directory, which includes example code as well as the "nctool" command. Start by
 reading the usage instructions:
 
 $> nctool --help
@@ -92,16 +91,22 @@ $> nctool 'Al_sg225.ncmat;temp=10C'
 Using the NCrystal installation from C++ (including Geant4), C or Python code
 -----------------------------------------------------------------------------
 
-If you wish to use NCrystal from Python code, there is no special setup needed,
-beyond sourcing the setup.sh script mentioned in the INSTALL file (not needed in
-conda or pip installs). If you on the other hand wish to use NCrystal from your
-compiled C++ or C code, you must put appropriate build flags. The recommended
-way is using CMake to do this (see next section), but otherwise you must put the
-$NCRYSTALDIR/include directory in your include path, usually by providing your
-compiler with an "-I$NCRYSTALDIR/include" flag, and make sure you link to the
-NCrystal library in $NCRYSTALDIR/lib, usually via "-L$NCRYSTALDIR/lib
--lNCrystal" link flags. If using the NCrystal-Geant4 interfaces, you should also
-add "-lG4NCrystal" to the link flags.
+If you wish to use NCrystal from Python code, there is no special setup
+needed. If you on the other hand wish to use NCrystal from your compiled C++ or
+C code, you must put appropriate build flags. The recommended way is using CMake
+to do this (see next section), but otherwise you must ensure that the NCrystal
+header files are in your compiler's include path, and that the NCrystal library
+is linked correctly. Here are some examples of how this could for instance be
+done, with a C and a C++ app respectively:
+
+   export LDFLAGS="${LDFLAGS:-} -Wl,-rpath,$(ncrystal-config --show libdir) $(ncrystal-config --show libpath)"
+   export CFLAGS="${CFLAGS:-} -I$(ncrystal-config --show includedir)"
+   export CXXFLAGS="${CXXFLAGS:-} -I$(ncrystal-config --show includedir)"
+   cc -std=c11 ${LDFLAGS} ${CFLAGS} my_c_code.c -o my_c_app
+   c++ -std=c++17 ${LDFLAGS} ${CXXFLAGS} my_cpp_code.cpp -o my_cpp_app
+
+If using the NCrystal-Geant4 interfaces, you should also add "-lG4NCrystal" to
+the link flags.
 
 Then, in your code you can access the relevant APIs with with statements like:
 
@@ -119,6 +124,9 @@ with:
 
   import NCrystal
   help(NCrystal)
+
+There are also several jupyter-lab notebooks showcasing the NCrystal python API
+at https://github.com/mctools/ncrystal-notebooks
 
 
 
@@ -239,13 +247,13 @@ NCrystal_sample.comp. In any case, the McStas instrument file compilation will
 need to build against NCrystal, and it uses the ncrystal-config command to
 figure out the correct settings for doing so. Thus, you can always invoke
 "ncrystal-config -s" to find out if you have the right NCrystal installation
-available and active. It is currently the case (May, 2023) that most McStas
-users will find that NCrystal has already been installed as part of their McStas
-installation, albeit there might be a need to activate the NCrystal installation
-by invoking (the script might eventually be renamed ncrystal-setup.sh or
-similar):
+available and active. Depending on how you installed McStas, NCrystal is most
+likely already available. If not, you can try one of the following ways of
+enabling it:
 
-   $> . $MCSTAS/setup.sh
+   $> conda install -c conda-forge ncrystal [if you are in a conda-forge env]
+   $> python3 -mpip install ncrystal [for non-conda users]
+   $> . $MCSTAS/setup.sh [obsolete way]
 
 It is beyond the scope for this README to provide a full documentation of
 McStas, or the Union sub-system, but if you are using McStasScript to compose

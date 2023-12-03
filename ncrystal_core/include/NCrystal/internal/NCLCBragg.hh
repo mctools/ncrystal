@@ -25,7 +25,7 @@
 #include "NCrystal/NCSCOrientation.hh"
 #include "NCrystal/internal/NCVector.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class PlaneProvider;
   class Info;

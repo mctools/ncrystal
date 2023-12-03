@@ -24,7 +24,7 @@
 #include "NCrystal/internal/NCMath.hh"
 #include <complex>
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class FastConvolve : private MoveOnly {
 

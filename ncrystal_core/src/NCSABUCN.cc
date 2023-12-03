@@ -25,7 +25,7 @@
 #include <iostream>
 namespace NC = NCrystal;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace UCN {
 
     std::pair<std::vector<StableSum>,VectD> UCNHelper::getSIntegralsAndOverlayVals( const SABData& sabData,

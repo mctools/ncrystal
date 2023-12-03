@@ -25,7 +25,8 @@ def _extract_version():
     import pathlib
     p = pathlib.Path(__file__).parent / 'NCrystal' / '__init__.py'
     if not p.exists():
-        raise RuntimeError("Unable to find NCrystal/__init__.py (for version string extraction).")
+        raise RuntimeError("Unable to find NCrystal/__init__.py"
+                           " (for version string extraction).")
     version_str = None
     for l in p.read_text().splitlines():
         if l.startswith('__version__'):
@@ -43,6 +44,18 @@ def get_version():
     x,y,z = _extract_version()
     return f'{x}.{y}.dev{z}' if z>=80 else f'{x}.{y}.{z}'
 
+def get_cmake_args():
+    import os
+    ca = []
+    x = os.environ.get('CMAKE_ARGS')
+    if x:
+        #Most likely we are in a conda-forge environment, so make sure we apply
+        #the CMAKE_ARGS environment variable:
+        import shlex
+        ca += shlex.split(x)
+    ca += ['-DNCRYSTAL_SETUPPY_MODE=ON']
+    return ca
+
 setup(
     name="ncrystal",
     version=get_version(),
@@ -54,17 +67,6 @@ setup(
     packages=['NCrystal'],
     python_requires='>=3.6, <4',
     install_requires=['numpy'],
-    long_description='NCrystal is a library and associated tools which enables calculations for Monte Carlo simulations of thermal neutrons in crystals and other materials, supporting a range of physics including both coherent, incoherent, elastic and inelastic scatterings in a wide range of materials, including crystal powders, mosaic single crystals, layered single crystals, amorphous solids, and liquids. Multiphase materials or isotopically enriched materials are supported as well, and the framework furthermore supports phase-contrast (SANS) physics.',
-    cmake_args=['-DNCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE=ON',
-                '-DNCRYSTAL_MODIFY_RPATH=OFF',
-                '-DNCRYSTAL_ENABLE_SETUPSH=OFF',
-                '-DNCRYSTAL_ENABLE_DATA=EMBED',#the c++ library can not currently locate the files if not embedding
-                '-DNCRYSTAL_ENABLE_MCSTAS=OFF',#Explicitly disable for now (was already moved into upstream McStas)
-                '-DNCRYSTAL_ENABLE_GEANT4=OFF',#Explicitly disable for now (planning to move out of core NCrystal repo)
-                '-DNCRYSTAL_SKIP_PYMODINST=ON',
-                '-DCMAKE_INSTALL_LIBDIR=NCrystal/ncrystal_pyinst_data/lib',
-                '-DCMAKE_INSTALL_INCLUDEDIR=NCrystal/ncrystal_pyinst_data/include',
-                '-DCMAKE_INSTALL_DATADIR=NCrystal/ncrystal_pyinst_data/data',
-                '-DNCrystal_DATAFILESDIR=NCrystal/ncrystal_pyinst_data/stdlib_data',
-                ]
+    cmake_args=get_cmake_args(),
+    long_description='NCrystal is a library and associated tools which enables calculations for Monte Carlo simulations of thermal neutrons in crystals and other materials, supporting a range of physics including both coherent, incoherent, elastic and inelastic scatterings in a wide range of materials, including crystal powders, mosaic single crystals, layered single crystals, amorphous solids, and liquids. Multiphase materials or isotopically enriched materials are supported as well, and the framework furthermore supports phase-contrast (SANS) physics.'
 )

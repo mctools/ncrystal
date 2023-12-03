@@ -24,7 +24,7 @@
 #include "NCrystal/NCVariant.hh"
 #include "NCrystal/NCTypes.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class NCRYSTAL_API SCOrientation {
   public:
@@ -96,7 +96,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   inline std::ostream& operator<<(std::ostream& os, const SCOrientation& sco )
   {
     sco.stream(os);

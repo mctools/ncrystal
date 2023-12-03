@@ -80,14 +80,14 @@ def ncImportSubModule( mainmodule, submodulename ):
     return getattr(_,submodulename)
 ################################################################################################
 NC = fixSysPathAndImportNCrystal()
-import NCrystal.mcstasutils as  NC_mcstasutils
+NC_mcstasutils = ncImportSubModule( NC, 'mcstasutils' )
 
 import argparse
 
 def parseArgs():
     import os
     progname = os.path.basename(sys.argv[0])
-    progname_inspectfile=progname.replace(progname.split('_')[-1],'inspectfile').replace('ess_nctools_','ess_ncrystal_')
+    progname_tool='nctool'
     descr=f"""
 
 Script which can be used to create input files with reflections for McStas
@@ -104,7 +104,7 @@ Example invocations:
      the input file name. For more information about available parameters, refer to
      https://github.com/mctools/ncrystal/wiki/CfgRefDoc, or run the cmd:
 
-          $> {progname_inspectfile} --doc
+          $> {progname_tool} --doc
 
      For instance, to change the material temperature from room temperature, and to
      leave out reflections at dspacing<0.5Aa, run:
@@ -116,7 +116,7 @@ Example invocations:
      refer to https://github.com/mctools/ncrystal/wiki/Data-library. To list
      actually available files in your installation, run:
 
-          $> {progname_inspectfile} --browse
+          $> {progname_tool} --browse
 
 """
     parser = argparse.ArgumentParser(description=descr,
@@ -126,7 +126,7 @@ Example invocations:
                         purposes of the present script, it might be particularly relevant to set
                         the temp and dcutoff parameters""")
     parser.add_argument('--format','-f',default=None,choices=('laz','lau'),
-                        help=f"""What types of output files to produce. Choices are "lau" for .lau files
+                        help="""What types of output files to produce. Choices are "lau" for .lau files
                         for McStas PowderN or "laz" for .laz files for McStas Single_crystal.""")
     parser.add_argument('--outfile','-o',type=str,default=None,
                         help="Name of output file (default: stdout)")
@@ -156,8 +156,8 @@ def main():
                                                 prefer_systemexit_exceptions = True )
     if args.outfile is None:
         #stdout:
-        for l in content_iter:
-            print(l)
+        for line in content_iter:
+            print(line)
     else:
         #to file:
         args.outfile.write_text( '\n'.join( content_iter ) + '\n' )

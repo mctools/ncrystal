@@ -24,7 +24,7 @@
 #include "NCrystal/internal/NCMath.hh"
 #include "NCrystal/internal/NCSpline.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class GaussOnSphere {
   public:

@@ -27,7 +27,7 @@
 #include <initializer_list>
 #include <type_traits>
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   //Mode (see below):
   enum class SVMode { FASTACCESS,
@@ -245,7 +245,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace detail {
     using SV_size_type = std::size_t;

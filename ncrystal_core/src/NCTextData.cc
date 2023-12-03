@@ -25,7 +25,7 @@
 
 namespace NC = NCrystal;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace {
     const char * findNextNR0(const char * data) {
 

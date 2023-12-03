@@ -409,15 +409,6 @@ def _run_cmd( cmd, env = None ):
     sys.stderr.flush()
     return ok, output
 
-def _which(cmd):
-    """Function like BASH which (returns None if cmd not found)"""
-    from distutils.spawn import find_executable
-    cmd=find_executable(cmd)
-    if not cmd:
-        return None
-    import os
-    return os.path.abspath(os.path.realpath(cmd))
-
 def _actual_test_cmdline( verbose ):
     prfct = _get_prfct( verbose )
     prfct('starting testing of cmd-line utilities')
@@ -426,7 +417,6 @@ def _actual_test_cmdline( verbose ):
             'nctool --version',
             'nctool --help',
             'nctool --test',
-            'ncrystal_inspectfile --help',
             'ncrystal_endf2ncmat --help',
             'ncrystal_hfg2ncmat --help',
             'ncrystal_ncmat2cpp --help',
@@ -459,7 +449,8 @@ def _work_in_tmpdir():
 def _actual_test_cmake( verbose = False, ignore_if_absent = False ):
     prfct = _get_prfct( verbose )
     prfct('starting testing of compiled downstream cmake-based projects')
-    cmakecmd = _which('cmake')
+    import shutil
+    cmakecmd = shutil.which('cmake')
     if not cmakecmd:
         if ignore_if_absent:
             prfct('Skipping CMake test since "cmake" command not found.')
@@ -502,8 +493,8 @@ def _actual_test_cmake( verbose = False, ignore_if_absent = False ):
     prepend_to_path( cmake_env, 'CMAKE_PREFIX_PATH', ncrystal_cmakedir )
     prepend_to_path( runtime_env, 'LD_LIBRARY_PATH', ncrystal_libdir )
     prepend_to_path( runtime_env, 'DYLD_LIBRARY_PATH', ncrystal_libdir )
-    def runcmake(args):
-        cmake_args = cmake_env.get('CMAKE_ARGS','')
+    def runcmake(args,apply_CMAKE_ARGS=True):
+        cmake_args = cmake_env.get('CMAKE_ARGS','') if apply_CMAKE_ARGS else ''
         cmd=f'{cmakecmd} {cmake_args} {args}'
         ok, output = _run_cmd(cmd, env=cmake_env)
         prfct(f'Launching: {cmd}')
@@ -538,7 +529,7 @@ install( TARGETS exampleapp DESTINATION bin )
         ( td  / 'bld' ).mkdir()
         os.chdir( td / 'bld' )
         runcmake('../src -DCMAKE_INSTALL_PREFIX=../install')
-        runcmake('--build . --target install --config Release')
+        runcmake('--build . --target install --config Release',apply_CMAKE_ARGS=False)
         os.chdir( td )
         app = ( td / 'install' / 'bin' / 'exampleapp' )
         if not app.exists():

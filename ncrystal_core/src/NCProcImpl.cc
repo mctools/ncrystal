@@ -81,7 +81,7 @@ NC::ScatterOutcome NC::ProcImpl::NullProcess::sampleScatter( CachePtr&,
   return { ekin, dir };
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace ProcImpl {
 
     class CacheProcComp final : public CacheBase {

@@ -23,7 +23,7 @@
 
 #include "NCrystal/NCTypes.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   //RNG stream and producer classes (defined further down):
   class RNGStream;
@@ -163,7 +163,7 @@ namespace NCrystal {
 ////////////////////////////
 
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   inline bool RNGStream::supportsStateManipulation() const noexcept
   {

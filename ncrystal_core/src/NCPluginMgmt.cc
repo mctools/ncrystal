@@ -28,7 +28,7 @@
 namespace NC = NCrystal;
 namespace NCP = NCrystal::Plugins;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace Plugins {
 
     namespace {
@@ -74,7 +74,7 @@ namespace NCrystal {
   }
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace Plugins {
     namespace {
       PluginInfo loadDynamicPluginImpl( std::string path_to_shared_lib,
@@ -143,28 +143,28 @@ std::vector<NCP::PluginInfo> NCP::loadedPlugins()
 //NCRYSTAL_DISABLE_STDMPSCAT and NCRYSTAL_DISABLE_STDABS is defined.
 
 #ifndef NCRYSTAL_DISABLE_STDDATASOURCES
-extern "C" void ncrystal_register_stddatasrc_factory();
+extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_stddatasrc_factory)();
 #endif
 #ifndef NCRYSTAL_DISABLE_STDSCAT
-extern "C" void ncrystal_register_stdscat_factory();
+extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_stdscat_factory)();
 #endif
 #ifndef NCRYSTAL_DISABLE_STDMPSCAT
-extern "C" void ncrystal_register_stdmpscat_factory();
+extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_stdmpscat_factory)();
 #endif
 #ifndef NCRYSTAL_DISABLE_STDABS
-extern "C" void ncrystal_register_stdabs_factory();
+extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_stdabs_factory)();
 #endif
 #ifndef NCRYSTAL_DISABLE_STDNCMAT
-extern "C" void ncrystal_register_stdncmat_factory();
+extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_stdncmat_factory)();
 #endif
 #ifndef NCRYSTAL_DISABLE_STDLAZ
-extern "C" void ncrystal_register_stdlaz_factory();
+extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_stdlaz_factory)();
 #endif
 #ifndef NCRYSTAL_DISABLE_QUICKFACT
-extern "C" void ncrystal_register_quick_factory();
+extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_quick_factory)();
 #endif
 #ifndef NCRYSTAL_DISABLE_EXPERIMENTALSCATFACT
-extern "C" void ncrystal_register_experimentalscatfact();
+extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_experimentalscatfact)();
 #endif
 
 
@@ -175,7 +175,7 @@ extern "C" void ncrystal_register_experimentalscatfact();
 //the library, and 2) being built into a given NCrystal installation at compile
 //time.
 #ifdef NCRYSTAL_HAS_BUILTIN_PLUGINS
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   void provideBuiltinPlugins();
 }
 #endif
@@ -198,29 +198,29 @@ void NCP::ensurePluginsLoaded()
   done = true;
 
 #ifndef NCRYSTAL_DISABLE_STDDATASOURCES
-  loadBuiltinPlugin("stddatasrc",ncrystal_register_stddatasrc_factory);
+  loadBuiltinPlugin("stddatasrc",NCRYSTAL_APPLY_C_NAMESPACE(register_stddatasrc_factory));
 #endif
   //Standard plugins, always as builtin plugins:
 #ifndef NCRYSTAL_DISABLE_STDSCAT
-  loadBuiltinPlugin("stdscat",ncrystal_register_stdscat_factory);
+  loadBuiltinPlugin("stdscat",NCRYSTAL_APPLY_C_NAMESPACE(register_stdscat_factory));
 #endif
 #ifndef NCRYSTAL_DISABLE_STDMPSCAT
-  loadBuiltinPlugin("stdmpscat",ncrystal_register_stdmpscat_factory);
+  loadBuiltinPlugin("stdmpscat",NCRYSTAL_APPLY_C_NAMESPACE(register_stdmpscat_factory));
 #endif
 #ifndef NCRYSTAL_DISABLE_EXPERIMENTALSCATFACT
-  loadBuiltinPlugin("stdexpscat",ncrystal_register_experimentalscatfact);
+  loadBuiltinPlugin("stdexpscat",NCRYSTAL_APPLY_C_NAMESPACE(register_experimentalscatfact));
 #endif
 #ifndef NCRYSTAL_DISABLE_STDLAZ
-  loadBuiltinPlugin("stdlaz",ncrystal_register_stdlaz_factory);
+  loadBuiltinPlugin("stdlaz",NCRYSTAL_APPLY_C_NAMESPACE(register_stdlaz_factory));
 #endif
 #ifndef NCRYSTAL_DISABLE_STDABS
-  loadBuiltinPlugin("stdabs",ncrystal_register_stdabs_factory);
+  loadBuiltinPlugin("stdabs",NCRYSTAL_APPLY_C_NAMESPACE(register_stdabs_factory));
 #endif
 #ifndef NCRYSTAL_DISABLE_NCMAT
-  loadBuiltinPlugin("stdncmat",ncrystal_register_stdncmat_factory);
+  loadBuiltinPlugin("stdncmat",NCRYSTAL_APPLY_C_NAMESPACE(register_stdncmat_factory));
 #endif
 #ifndef NCRYSTAL_DISABLE_QUICKFACT
-  loadBuiltinPlugin("stdquick",ncrystal_register_quick_factory);
+  loadBuiltinPlugin("stdquick",NCRYSTAL_APPLY_C_NAMESPACE(register_quick_factory));
 #endif
 
   //Static custom (builtin) plugins:

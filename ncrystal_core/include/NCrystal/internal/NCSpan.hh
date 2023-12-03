@@ -25,7 +25,7 @@
 #include <type_traits>
 #include <iterator>
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   template <class T>
   class Span final {

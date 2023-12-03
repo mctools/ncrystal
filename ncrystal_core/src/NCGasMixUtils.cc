@@ -26,7 +26,7 @@
 namespace NC = NCrystal;
 namespace NCGM = NCrystal::GasMix;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace GasMix {
     namespace {
       using PairSD = std::pair<std::string,double>;

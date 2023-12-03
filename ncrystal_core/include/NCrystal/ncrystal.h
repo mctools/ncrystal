@@ -33,6 +33,590 @@ extern "C" {
 
   /*============================================================================== */
   /*============================================================================== */
+  /*== First some tedious definitions to effectively implement a namespace in C == */
+  /*== symbols, if requested through the NCRYSTAL_NAMESPACE_PROTECTION variable == */
+  /*== (cf. also ncapi.h). Normally, NCRYSTAL_NAMESPACE_PROTECTION is not set   == */
+  /*== and a define like ncrystal_create_info simply expands to the same name,  == */
+  /*== resulting in the same symbol in the compiled binaries. However, if for   == */
+  /*== instance =DNCRYSTAL_NAMESPACE_PROTECTION=foobar, then defines such as    == */
+  /*== ncrystal_create_info will instead expand to ncrystalfoobar_create_info,  == */
+  /*== resulting in namespaced symbols in the libraries. Due to the following   == */
+  /*== list of defines, user code using the C API here should alsmost always    == */
+  /*== write ncrystal_create_info(...) in their code.                           == */
+  /*============================================================================== */
+  /*============================================================================== */
+
+  /* Note: when there is no namespace we get self-referential macro's below, but   */
+  /* those are in fact allowed by the standard and won't be evaluated recursively. */
+
+#ifdef ncrystal_absorption_t
+#  undef ncrystal_absorption_t
+#endif
+#define ncrystal_absorption_t NCRYSTAL_APPLY_C_NAMESPACE(absorption_t)
+#ifdef ncrystal_add_custom_search_dir
+#  undef ncrystal_add_custom_search_dir
+#endif
+#define ncrystal_add_custom_search_dir NCRYSTAL_APPLY_C_NAMESPACE(add_custom_search_dir)
+#ifdef ncrystal_atomdata_getfields
+#  undef ncrystal_atomdata_getfields
+#endif
+#define ncrystal_atomdata_getfields NCRYSTAL_APPLY_C_NAMESPACE(atomdata_getfields)
+#ifdef ncrystal_atomdata_t
+#  undef ncrystal_atomdata_t
+#endif
+#define ncrystal_atomdata_t NCRYSTAL_APPLY_C_NAMESPACE(atomdata_t)
+#ifdef ncrystal_atomdatadb_getallentries
+#  undef ncrystal_atomdatadb_getallentries
+#endif
+#define ncrystal_atomdatadb_getallentries NCRYSTAL_APPLY_C_NAMESPACE(atomdatadb_getallentries)
+#ifdef ncrystal_atomdatadb_getnentries
+#  undef ncrystal_atomdatadb_getnentries
+#endif
+#define ncrystal_atomdatadb_getnentries NCRYSTAL_APPLY_C_NAMESPACE(atomdatadb_getnentries)
+#ifdef ncrystal_cast_abs2proc
+#  undef ncrystal_cast_abs2proc
+#endif
+#define ncrystal_cast_abs2proc NCRYSTAL_APPLY_C_NAMESPACE(cast_abs2proc)
+#ifdef ncrystal_cast_proc2abs
+#  undef ncrystal_cast_proc2abs
+#endif
+#define ncrystal_cast_proc2abs NCRYSTAL_APPLY_C_NAMESPACE(cast_proc2abs)
+#ifdef ncrystal_cast_proc2scat
+#  undef ncrystal_cast_proc2scat
+#endif
+#define ncrystal_cast_proc2scat NCRYSTAL_APPLY_C_NAMESPACE(cast_proc2scat)
+#ifdef ncrystal_cast_scat2proc
+#  undef ncrystal_cast_scat2proc
+#endif
+#define ncrystal_cast_scat2proc NCRYSTAL_APPLY_C_NAMESPACE(cast_scat2proc)
+#ifdef ncrystal_clear_caches
+#  undef ncrystal_clear_caches
+#endif
+#define ncrystal_clear_caches NCRYSTAL_APPLY_C_NAMESPACE(clear_caches)
+#ifdef ncrystal_clear_info_caches
+#  undef ncrystal_clear_info_caches
+#endif
+#define ncrystal_clear_info_caches NCRYSTAL_APPLY_C_NAMESPACE(clear_info_caches)
+#ifdef ncrystal_clearerror
+#  undef ncrystal_clearerror
+#endif
+#define ncrystal_clearerror NCRYSTAL_APPLY_C_NAMESPACE(clearerror)
+#ifdef ncrystal_clone_absorption
+#  undef ncrystal_clone_absorption
+#endif
+#define ncrystal_clone_absorption NCRYSTAL_APPLY_C_NAMESPACE(clone_absorption)
+#ifdef ncrystal_clone_scatter
+#  undef ncrystal_clone_scatter
+#endif
+#define ncrystal_clone_scatter NCRYSTAL_APPLY_C_NAMESPACE(clone_scatter)
+#ifdef ncrystal_clone_scatter_rngbyidx
+#  undef ncrystal_clone_scatter_rngbyidx
+#endif
+#define ncrystal_clone_scatter_rngbyidx NCRYSTAL_APPLY_C_NAMESPACE(clone_scatter_rngbyidx)
+#ifdef ncrystal_clone_scatter_rngforcurrentthread
+#  undef ncrystal_clone_scatter_rngforcurrentthread
+#endif
+#define ncrystal_clone_scatter_rngforcurrentthread NCRYSTAL_APPLY_C_NAMESPACE(clone_scatter_rngforcurrentthread)
+#ifdef ncrystal_create_absorption
+#  undef ncrystal_create_absorption
+#endif
+#define ncrystal_create_absorption NCRYSTAL_APPLY_C_NAMESPACE(create_absorption)
+#ifdef ncrystal_create_atomdata
+#  undef ncrystal_create_atomdata
+#endif
+#define ncrystal_create_atomdata NCRYSTAL_APPLY_C_NAMESPACE(create_atomdata)
+#ifdef ncrystal_create_atomdata_fromdb
+#  undef ncrystal_create_atomdata_fromdb
+#endif
+#define ncrystal_create_atomdata_fromdb NCRYSTAL_APPLY_C_NAMESPACE(create_atomdata_fromdb)
+#ifdef ncrystal_create_atomdata_fromdbstr
+#  undef ncrystal_create_atomdata_fromdbstr
+#endif
+#define ncrystal_create_atomdata_fromdbstr NCRYSTAL_APPLY_C_NAMESPACE(create_atomdata_fromdbstr)
+#ifdef ncrystal_create_atomdata_subcomp
+#  undef ncrystal_create_atomdata_subcomp
+#endif
+#define ncrystal_create_atomdata_subcomp NCRYSTAL_APPLY_C_NAMESPACE(create_atomdata_subcomp)
+#ifdef ncrystal_create_component_atomdata
+#  undef ncrystal_create_component_atomdata
+#endif
+#define ncrystal_create_component_atomdata NCRYSTAL_APPLY_C_NAMESPACE(create_component_atomdata)
+#ifdef ncrystal_create_info
+#  undef ncrystal_create_info
+#endif
+#define ncrystal_create_info NCRYSTAL_APPLY_C_NAMESPACE(create_info)
+#ifdef ncrystal_create_scatter
+#  undef ncrystal_create_scatter
+#endif
+#define ncrystal_create_scatter NCRYSTAL_APPLY_C_NAMESPACE(create_scatter)
+#ifdef ncrystal_create_scatter_builtinrng
+#  undef ncrystal_create_scatter_builtinrng
+#endif
+#define ncrystal_create_scatter_builtinrng NCRYSTAL_APPLY_C_NAMESPACE(create_scatter_builtinrng)
+#ifdef ncrystal_crosssection
+#  undef ncrystal_crosssection
+#endif
+#define ncrystal_crosssection NCRYSTAL_APPLY_C_NAMESPACE(crosssection)
+#ifdef ncrystal_crosssection_nonoriented
+#  undef ncrystal_crosssection_nonoriented
+#endif
+#define ncrystal_crosssection_nonoriented NCRYSTAL_APPLY_C_NAMESPACE(crosssection_nonoriented)
+#ifdef ncrystal_crosssection_nonoriented_many
+#  undef ncrystal_crosssection_nonoriented_many
+#endif
+#define ncrystal_crosssection_nonoriented_many NCRYSTAL_APPLY_C_NAMESPACE(crosssection_nonoriented_many)
+#ifdef ncrystal_dbg_process
+#  undef ncrystal_dbg_process
+#endif
+#define ncrystal_dbg_process NCRYSTAL_APPLY_C_NAMESPACE(dbg_process)
+#ifdef ncrystal_dealloc_doubleptr
+#  undef ncrystal_dealloc_doubleptr
+#endif
+#define ncrystal_dealloc_doubleptr NCRYSTAL_APPLY_C_NAMESPACE(dealloc_doubleptr)
+#ifdef ncrystal_dealloc_string
+#  undef ncrystal_dealloc_string
+#endif
+#define ncrystal_dealloc_string NCRYSTAL_APPLY_C_NAMESPACE(dealloc_string)
+#ifdef ncrystal_dealloc_stringlist
+#  undef ncrystal_dealloc_stringlist
+#endif
+#define ncrystal_dealloc_stringlist NCRYSTAL_APPLY_C_NAMESPACE(dealloc_stringlist)
+#ifdef ncrystal_debyetemp2msd
+#  undef ncrystal_debyetemp2msd
+#endif
+#define ncrystal_debyetemp2msd NCRYSTAL_APPLY_C_NAMESPACE(debyetemp2msd)
+#ifdef ncrystal_decodecfg_json
+#  undef ncrystal_decodecfg_json
+#endif
+#define ncrystal_decodecfg_json NCRYSTAL_APPLY_C_NAMESPACE(decodecfg_json)
+#ifdef ncrystal_decodecfg_packfact
+#  undef ncrystal_decodecfg_packfact
+#endif
+#define ncrystal_decodecfg_packfact NCRYSTAL_APPLY_C_NAMESPACE(decodecfg_packfact)
+#ifdef ncrystal_decodecfg_vdoslux
+#  undef ncrystal_decodecfg_vdoslux
+#endif
+#define ncrystal_decodecfg_vdoslux NCRYSTAL_APPLY_C_NAMESPACE(decodecfg_vdoslux)
+#ifdef ncrystal_domain
+#  undef ncrystal_domain
+#endif
+#define ncrystal_domain NCRYSTAL_APPLY_C_NAMESPACE(domain)
+#ifdef ncrystal_dump
+#  undef ncrystal_dump
+#endif
+#define ncrystal_dump NCRYSTAL_APPLY_C_NAMESPACE(dump)
+#ifdef ncrystal_dump_verbose
+#  undef ncrystal_dump_verbose
+#endif
+#define ncrystal_dump_verbose NCRYSTAL_APPLY_C_NAMESPACE(dump_verbose)
+#ifdef ncrystal_dyninfo_base
+#  undef ncrystal_dyninfo_base
+#endif
+#define ncrystal_dyninfo_base NCRYSTAL_APPLY_C_NAMESPACE(dyninfo_base)
+#ifdef ncrystal_dyninfo_extract_scatknl
+#  undef ncrystal_dyninfo_extract_scatknl
+#endif
+#define ncrystal_dyninfo_extract_scatknl NCRYSTAL_APPLY_C_NAMESPACE(dyninfo_extract_scatknl)
+#ifdef ncrystal_dyninfo_extract_vdos
+#  undef ncrystal_dyninfo_extract_vdos
+#endif
+#define ncrystal_dyninfo_extract_vdos NCRYSTAL_APPLY_C_NAMESPACE(dyninfo_extract_vdos)
+#ifdef ncrystal_dyninfo_extract_vdos_input
+#  undef ncrystal_dyninfo_extract_vdos_input
+#endif
+#define ncrystal_dyninfo_extract_vdos_input NCRYSTAL_APPLY_C_NAMESPACE(dyninfo_extract_vdos_input)
+#ifdef ncrystal_dyninfo_extract_vdosdebye
+#  undef ncrystal_dyninfo_extract_vdosdebye
+#endif
+#define ncrystal_dyninfo_extract_vdosdebye NCRYSTAL_APPLY_C_NAMESPACE(dyninfo_extract_vdosdebye)
+#ifdef ncrystal_ekin2wl
+#  undef ncrystal_ekin2wl
+#endif
+#define ncrystal_ekin2wl NCRYSTAL_APPLY_C_NAMESPACE(ekin2wl)
+#ifdef ncrystal_enable_abspaths
+#  undef ncrystal_enable_abspaths
+#endif
+#define ncrystal_enable_abspaths NCRYSTAL_APPLY_C_NAMESPACE(enable_abspaths)
+#ifdef ncrystal_enable_relpaths
+#  undef ncrystal_enable_relpaths
+#endif
+#define ncrystal_enable_relpaths NCRYSTAL_APPLY_C_NAMESPACE(enable_relpaths)
+#ifdef ncrystal_enable_stddatalib
+#  undef ncrystal_enable_stddatalib
+#endif
+#define ncrystal_enable_stddatalib NCRYSTAL_APPLY_C_NAMESPACE(enable_stddatalib)
+#ifdef ncrystal_enable_stdsearchpath
+#  undef ncrystal_enable_stdsearchpath
+#endif
+#define ncrystal_enable_stdsearchpath NCRYSTAL_APPLY_C_NAMESPACE(enable_stdsearchpath)
+#ifdef ncrystal_error
+#  undef ncrystal_error
+#endif
+#define ncrystal_error NCRYSTAL_APPLY_C_NAMESPACE(error)
+#ifdef ncrystal_gencfgstr_doc
+#  undef ncrystal_gencfgstr_doc
+#endif
+#define ncrystal_gencfgstr_doc NCRYSTAL_APPLY_C_NAMESPACE(gencfgstr_doc)
+#ifdef ncrystal_genscatter
+#  undef ncrystal_genscatter
+#endif
+#define ncrystal_genscatter NCRYSTAL_APPLY_C_NAMESPACE(genscatter)
+#ifdef ncrystal_genscatter_many
+#  undef ncrystal_genscatter_many
+#endif
+#define ncrystal_genscatter_many NCRYSTAL_APPLY_C_NAMESPACE(genscatter_many)
+#ifdef ncrystal_genscatter_nonoriented
+#  undef ncrystal_genscatter_nonoriented
+#endif
+#define ncrystal_genscatter_nonoriented NCRYSTAL_APPLY_C_NAMESPACE(genscatter_nonoriented)
+#ifdef ncrystal_genscatter_nonoriented_many
+#  undef ncrystal_genscatter_nonoriented_many
+#endif
+#define ncrystal_genscatter_nonoriented_many NCRYSTAL_APPLY_C_NAMESPACE(genscatter_nonoriented_many)
+#ifdef ncrystal_get_file_contents
+#  undef ncrystal_get_file_contents
+#endif
+#define ncrystal_get_file_contents NCRYSTAL_APPLY_C_NAMESPACE(get_file_contents)
+#ifdef ncrystal_get_file_list
+#  undef ncrystal_get_file_list
+#endif
+#define ncrystal_get_file_list NCRYSTAL_APPLY_C_NAMESPACE(get_file_list)
+#ifdef ncrystal_get_flatcompos
+#  undef ncrystal_get_flatcompos
+#endif
+#define ncrystal_get_flatcompos NCRYSTAL_APPLY_C_NAMESPACE(get_flatcompos)
+#ifdef ncrystal_get_plugin_list
+#  undef ncrystal_get_plugin_list
+#endif
+#define ncrystal_get_plugin_list NCRYSTAL_APPLY_C_NAMESPACE(get_plugin_list)
+#ifdef ncrystal_get_text_data
+#  undef ncrystal_get_text_data
+#endif
+#define ncrystal_get_text_data NCRYSTAL_APPLY_C_NAMESPACE(get_text_data)
+#ifdef ncrystal_getrngstate_ofscatter
+#  undef ncrystal_getrngstate_ofscatter
+#endif
+#define ncrystal_getrngstate_ofscatter NCRYSTAL_APPLY_C_NAMESPACE(getrngstate_ofscatter)
+#ifdef ncrystal_has_factory
+#  undef ncrystal_has_factory
+#endif
+#define ncrystal_has_factory NCRYSTAL_APPLY_C_NAMESPACE(has_factory)
+#ifdef ncrystal_info_braggthreshold
+#  undef ncrystal_info_braggthreshold
+#endif
+#define ncrystal_info_braggthreshold NCRYSTAL_APPLY_C_NAMESPACE(info_braggthreshold)
+#ifdef ncrystal_info_customline_getpart
+#  undef ncrystal_info_customline_getpart
+#endif
+#define ncrystal_info_customline_getpart NCRYSTAL_APPLY_C_NAMESPACE(info_customline_getpart)
+#ifdef ncrystal_info_customline_nparts
+#  undef ncrystal_info_customline_nparts
+#endif
+#define ncrystal_info_customline_nparts NCRYSTAL_APPLY_C_NAMESPACE(info_customline_nparts)
+#ifdef ncrystal_info_customsec_name
+#  undef ncrystal_info_customsec_name
+#endif
+#define ncrystal_info_customsec_name NCRYSTAL_APPLY_C_NAMESPACE(info_customsec_name)
+#ifdef ncrystal_info_customsec_nlines
+#  undef ncrystal_info_customsec_nlines
+#endif
+#define ncrystal_info_customsec_nlines NCRYSTAL_APPLY_C_NAMESPACE(info_customsec_nlines)
+#ifdef ncrystal_info_dspacing_from_hkl
+#  undef ncrystal_info_dspacing_from_hkl
+#endif
+#define ncrystal_info_dspacing_from_hkl NCRYSTAL_APPLY_C_NAMESPACE(info_dspacing_from_hkl)
+#ifdef ncrystal_info_getatominfo
+#  undef ncrystal_info_getatominfo
+#endif
+#define ncrystal_info_getatominfo NCRYSTAL_APPLY_C_NAMESPACE(info_getatominfo)
+#ifdef ncrystal_info_getatompos
+#  undef ncrystal_info_getatompos
+#endif
+#define ncrystal_info_getatompos NCRYSTAL_APPLY_C_NAMESPACE(info_getatompos)
+#ifdef ncrystal_info_getcomponent
+#  undef ncrystal_info_getcomponent
+#endif
+#define ncrystal_info_getcomponent NCRYSTAL_APPLY_C_NAMESPACE(info_getcomponent)
+#ifdef ncrystal_info_getdebyetempbyelement
+#  undef ncrystal_info_getdebyetempbyelement
+#endif
+#define ncrystal_info_getdebyetempbyelement NCRYSTAL_APPLY_C_NAMESPACE(info_getdebyetempbyelement)
+#ifdef ncrystal_info_getdensity
+#  undef ncrystal_info_getdensity
+#endif
+#define ncrystal_info_getdensity NCRYSTAL_APPLY_C_NAMESPACE(info_getdensity)
+#ifdef ncrystal_info_getglobaldebyetemp
+#  undef ncrystal_info_getglobaldebyetemp
+#endif
+#define ncrystal_info_getglobaldebyetemp NCRYSTAL_APPLY_C_NAMESPACE(info_getglobaldebyetemp)
+#ifdef ncrystal_info_gethkl
+#  undef ncrystal_info_gethkl
+#endif
+#define ncrystal_info_gethkl NCRYSTAL_APPLY_C_NAMESPACE(info_gethkl)
+#ifdef ncrystal_info_gethkl_allindices
+#  undef ncrystal_info_gethkl_allindices
+#endif
+#define ncrystal_info_gethkl_allindices NCRYSTAL_APPLY_C_NAMESPACE(info_gethkl_allindices)
+#ifdef ncrystal_info_getnumberdensity
+#  undef ncrystal_info_getnumberdensity
+#endif
+#define ncrystal_info_getnumberdensity NCRYSTAL_APPLY_C_NAMESPACE(info_getnumberdensity)
+#ifdef ncrystal_info_getphase
+#  undef ncrystal_info_getphase
+#endif
+#define ncrystal_info_getphase NCRYSTAL_APPLY_C_NAMESPACE(info_getphase)
+#ifdef ncrystal_info_getsld
+#  undef ncrystal_info_getsld
+#endif
+#define ncrystal_info_getsld NCRYSTAL_APPLY_C_NAMESPACE(info_getsld)
+#ifdef ncrystal_info_getstateofmatter
+#  undef ncrystal_info_getstateofmatter
+#endif
+#define ncrystal_info_getstateofmatter NCRYSTAL_APPLY_C_NAMESPACE(info_getstateofmatter)
+#ifdef ncrystal_info_getstructure
+#  undef ncrystal_info_getstructure
+#endif
+#define ncrystal_info_getstructure NCRYSTAL_APPLY_C_NAMESPACE(info_getstructure)
+#ifdef ncrystal_info_gettemperature
+#  undef ncrystal_info_gettemperature
+#endif
+#define ncrystal_info_gettemperature NCRYSTAL_APPLY_C_NAMESPACE(info_gettemperature)
+#ifdef ncrystal_info_getxsectabsorption
+#  undef ncrystal_info_getxsectabsorption
+#endif
+#define ncrystal_info_getxsectabsorption NCRYSTAL_APPLY_C_NAMESPACE(info_getxsectabsorption)
+#ifdef ncrystal_info_getxsectfree
+#  undef ncrystal_info_getxsectfree
+#endif
+#define ncrystal_info_getxsectfree NCRYSTAL_APPLY_C_NAMESPACE(info_getxsectfree)
+#ifdef ncrystal_info_hasanydebyetemp
+#  undef ncrystal_info_hasanydebyetemp
+#endif
+#define ncrystal_info_hasanydebyetemp NCRYSTAL_APPLY_C_NAMESPACE(info_hasanydebyetemp)
+#ifdef ncrystal_info_hasatomdebyetemp
+#  undef ncrystal_info_hasatomdebyetemp
+#endif
+#define ncrystal_info_hasatomdebyetemp NCRYSTAL_APPLY_C_NAMESPACE(info_hasatomdebyetemp)
+#ifdef ncrystal_info_hasatommsd
+#  undef ncrystal_info_hasatommsd
+#endif
+#define ncrystal_info_hasatommsd NCRYSTAL_APPLY_C_NAMESPACE(info_hasatommsd)
+#ifdef ncrystal_info_hasatompos
+#  undef ncrystal_info_hasatompos
+#endif
+#define ncrystal_info_hasatompos NCRYSTAL_APPLY_C_NAMESPACE(info_hasatompos)
+#ifdef ncrystal_info_hasdebyetemp
+#  undef ncrystal_info_hasdebyetemp
+#endif
+#define ncrystal_info_hasdebyetemp NCRYSTAL_APPLY_C_NAMESPACE(info_hasdebyetemp)
+#ifdef ncrystal_info_hkl_dlower
+#  undef ncrystal_info_hkl_dlower
+#endif
+#define ncrystal_info_hkl_dlower NCRYSTAL_APPLY_C_NAMESPACE(info_hkl_dlower)
+#ifdef ncrystal_info_hkl_dupper
+#  undef ncrystal_info_hkl_dupper
+#endif
+#define ncrystal_info_hkl_dupper NCRYSTAL_APPLY_C_NAMESPACE(info_hkl_dupper)
+#ifdef ncrystal_info_hklinfotype
+#  undef ncrystal_info_hklinfotype
+#endif
+#define ncrystal_info_hklinfotype NCRYSTAL_APPLY_C_NAMESPACE(info_hklinfotype)
+#ifdef ncrystal_info_natominfo
+#  undef ncrystal_info_natominfo
+#endif
+#define ncrystal_info_natominfo NCRYSTAL_APPLY_C_NAMESPACE(info_natominfo)
+#ifdef ncrystal_info_ncomponents
+#  undef ncrystal_info_ncomponents
+#endif
+#define ncrystal_info_ncomponents NCRYSTAL_APPLY_C_NAMESPACE(info_ncomponents)
+#ifdef ncrystal_info_ncustomsections
+#  undef ncrystal_info_ncustomsections
+#endif
+#define ncrystal_info_ncustomsections NCRYSTAL_APPLY_C_NAMESPACE(info_ncustomsections)
+#ifdef ncrystal_info_ndyninfo
+#  undef ncrystal_info_ndyninfo
+#endif
+#define ncrystal_info_ndyninfo NCRYSTAL_APPLY_C_NAMESPACE(info_ndyninfo)
+#ifdef ncrystal_info_nhkl
+#  undef ncrystal_info_nhkl
+#endif
+#define ncrystal_info_nhkl NCRYSTAL_APPLY_C_NAMESPACE(info_nhkl)
+#ifdef ncrystal_info_nphases
+#  undef ncrystal_info_nphases
+#endif
+#define ncrystal_info_nphases NCRYSTAL_APPLY_C_NAMESPACE(info_nphases)
+#ifdef ncrystal_info_t
+#  undef ncrystal_info_t
+#endif
+#define ncrystal_info_t NCRYSTAL_APPLY_C_NAMESPACE(info_t)
+#ifdef ncrystal_info_uid
+#  undef ncrystal_info_uid
+#endif
+#define ncrystal_info_uid NCRYSTAL_APPLY_C_NAMESPACE(info_uid)
+#ifdef ncrystal_info_underlyinguid
+#  undef ncrystal_info_underlyinguid
+#endif
+#define ncrystal_info_underlyinguid NCRYSTAL_APPLY_C_NAMESPACE(info_underlyinguid)
+#ifdef ncrystal_invalidate
+#  undef ncrystal_invalidate
+#endif
+#define ncrystal_invalidate NCRYSTAL_APPLY_C_NAMESPACE(invalidate)
+#ifdef ncrystal_isnonoriented
+#  undef ncrystal_isnonoriented
+#endif
+#define ncrystal_isnonoriented NCRYSTAL_APPLY_C_NAMESPACE(isnonoriented)
+#ifdef ncrystal_lasterror
+#  undef ncrystal_lasterror
+#endif
+#define ncrystal_lasterror NCRYSTAL_APPLY_C_NAMESPACE(lasterror)
+#ifdef ncrystal_lasterrortype
+#  undef ncrystal_lasterrortype
+#endif
+#define ncrystal_lasterrortype NCRYSTAL_APPLY_C_NAMESPACE(lasterrortype)
+#ifdef ncrystal_msd2debyetemp
+#  undef ncrystal_msd2debyetemp
+#endif
+#define ncrystal_msd2debyetemp NCRYSTAL_APPLY_C_NAMESPACE(msd2debyetemp)
+#ifdef ncrystal_multicreate_direct
+#  undef ncrystal_multicreate_direct
+#endif
+#define ncrystal_multicreate_direct NCRYSTAL_APPLY_C_NAMESPACE(multicreate_direct)
+#ifdef ncrystal_name
+#  undef ncrystal_name
+#endif
+#define ncrystal_name NCRYSTAL_APPLY_C_NAMESPACE(name)
+#ifdef ncrystal_ncmat2json
+#  undef ncrystal_ncmat2json
+#endif
+#ifdef ncrystal_namespace
+#  undef ncrystal_namespace
+#endif
+#define ncrystal_namespace NCRYSTAL_APPLY_C_NAMESPACE(namespace)
+#define ncrystal_ncmat2json NCRYSTAL_APPLY_C_NAMESPACE(ncmat2json)
+#ifdef ncrystal_normalisecfg
+#  undef ncrystal_normalisecfg
+#endif
+#define ncrystal_normalisecfg NCRYSTAL_APPLY_C_NAMESPACE(normalisecfg)
+#ifdef ncrystal_process_t
+#  undef ncrystal_process_t
+#endif
+#define ncrystal_process_t NCRYSTAL_APPLY_C_NAMESPACE(process_t)
+#ifdef ncrystal_process_uid
+#  undef ncrystal_process_uid
+#endif
+#define ncrystal_process_uid NCRYSTAL_APPLY_C_NAMESPACE(process_uid)
+#ifdef ncrystal_raw_vdos2gn
+#  undef ncrystal_raw_vdos2gn
+#endif
+#define ncrystal_raw_vdos2gn NCRYSTAL_APPLY_C_NAMESPACE(raw_vdos2gn)
+#ifdef ncrystal_raw_vdos2knl
+#  undef ncrystal_raw_vdos2knl
+#endif
+#define ncrystal_raw_vdos2knl NCRYSTAL_APPLY_C_NAMESPACE(raw_vdos2knl)
+#ifdef ncrystal_ref
+#  undef ncrystal_ref
+#endif
+#define ncrystal_ref NCRYSTAL_APPLY_C_NAMESPACE(ref)
+#ifdef ncrystal_refcount
+#  undef ncrystal_refcount
+#endif
+#define ncrystal_refcount NCRYSTAL_APPLY_C_NAMESPACE(refcount)
+#ifdef ncrystal_register_in_mem_file_data
+#  undef ncrystal_register_in_mem_file_data
+#endif
+#define ncrystal_register_in_mem_file_data NCRYSTAL_APPLY_C_NAMESPACE(register_in_mem_file_data)
+#ifdef ncrystal_remove_all_data_sources
+#  undef ncrystal_remove_all_data_sources
+#endif
+#define ncrystal_remove_all_data_sources NCRYSTAL_APPLY_C_NAMESPACE(remove_all_data_sources)
+#ifdef ncrystal_remove_custom_search_dirs
+#  undef ncrystal_remove_custom_search_dirs
+#endif
+#define ncrystal_remove_custom_search_dirs NCRYSTAL_APPLY_C_NAMESPACE(remove_custom_search_dirs)
+#ifdef ncrystal_rngsupportsstatemanip_ofscatter
+#  undef ncrystal_rngsupportsstatemanip_ofscatter
+#endif
+#define ncrystal_rngsupportsstatemanip_ofscatter NCRYSTAL_APPLY_C_NAMESPACE(rngsupportsstatemanip_ofscatter)
+#ifdef ncrystal_samplescatter
+#  undef ncrystal_samplescatter
+#endif
+#define ncrystal_samplescatter NCRYSTAL_APPLY_C_NAMESPACE(samplescatter)
+#ifdef ncrystal_samplescatter_many
+#  undef ncrystal_samplescatter_many
+#endif
+#define ncrystal_samplescatter_many NCRYSTAL_APPLY_C_NAMESPACE(samplescatter_many)
+#ifdef ncrystal_samplescatterisotropic
+#  undef ncrystal_samplescatterisotropic
+#endif
+#define ncrystal_samplescatterisotropic NCRYSTAL_APPLY_C_NAMESPACE(samplescatterisotropic)
+#ifdef ncrystal_samplescatterisotropic_many
+#  undef ncrystal_samplescatterisotropic_many
+#endif
+#define ncrystal_samplescatterisotropic_many NCRYSTAL_APPLY_C_NAMESPACE(samplescatterisotropic_many)
+#ifdef ncrystal_scatter_t
+#  undef ncrystal_scatter_t
+#endif
+#define ncrystal_scatter_t NCRYSTAL_APPLY_C_NAMESPACE(scatter_t)
+#ifdef ncrystal_setbuiltinrandgen
+#  undef ncrystal_setbuiltinrandgen
+#endif
+#define ncrystal_setbuiltinrandgen NCRYSTAL_APPLY_C_NAMESPACE(setbuiltinrandgen)
+#ifdef ncrystal_setbuiltinrandgen_withseed
+#  undef ncrystal_setbuiltinrandgen_withseed
+#endif
+#define ncrystal_setbuiltinrandgen_withseed NCRYSTAL_APPLY_C_NAMESPACE(setbuiltinrandgen_withseed)
+#ifdef ncrystal_setbuiltinrandgen_withstate
+#  undef ncrystal_setbuiltinrandgen_withstate
+#endif
+#define ncrystal_setbuiltinrandgen_withstate NCRYSTAL_APPLY_C_NAMESPACE(setbuiltinrandgen_withstate)
+#ifdef ncrystal_seterrhandler
+#  undef ncrystal_seterrhandler
+#endif
+#define ncrystal_seterrhandler NCRYSTAL_APPLY_C_NAMESPACE(seterrhandler)
+#ifdef ncrystal_sethaltonerror
+#  undef ncrystal_sethaltonerror
+#endif
+#define ncrystal_sethaltonerror NCRYSTAL_APPLY_C_NAMESPACE(sethaltonerror)
+#ifdef ncrystal_setquietonerror
+#  undef ncrystal_setquietonerror
+#endif
+#define ncrystal_setquietonerror NCRYSTAL_APPLY_C_NAMESPACE(setquietonerror)
+#ifdef ncrystal_setrandgen
+#  undef ncrystal_setrandgen
+#endif
+#define ncrystal_setrandgen NCRYSTAL_APPLY_C_NAMESPACE(setrandgen)
+#ifdef ncrystal_setrngstate_ofscatter
+#  undef ncrystal_setrngstate_ofscatter
+#endif
+#define ncrystal_setrngstate_ofscatter NCRYSTAL_APPLY_C_NAMESPACE(setrngstate_ofscatter)
+#ifdef ncrystal_unref
+#  undef ncrystal_unref
+#endif
+#define ncrystal_unref NCRYSTAL_APPLY_C_NAMESPACE(unref)
+#ifdef ncrystal_valid
+#  undef ncrystal_valid
+#endif
+#define ncrystal_valid NCRYSTAL_APPLY_C_NAMESPACE(valid)
+#ifdef ncrystal_vdoseval
+#  undef ncrystal_vdoseval
+#endif
+#define ncrystal_vdoseval NCRYSTAL_APPLY_C_NAMESPACE(vdoseval)
+#ifdef ncrystal_version
+#  undef ncrystal_version
+#endif
+#define ncrystal_version NCRYSTAL_APPLY_C_NAMESPACE(version)
+#ifdef ncrystal_version_str
+#  undef ncrystal_version_str
+#endif
+#define ncrystal_version_str NCRYSTAL_APPLY_C_NAMESPACE(version_str)
+#ifdef ncrystal_wl2ekin
+#  undef ncrystal_wl2ekin
+#endif
+#define ncrystal_wl2ekin NCRYSTAL_APPLY_C_NAMESPACE(wl2ekin)
+
+
+  /*============================================================================== */
+  /*============================================================================== */
   /*==                                                                          == */
   /*== Object handle types. All are pointer-sized, thus small enough to pass    == */
   /*== around by value. The internal data-structures are reference-counted, so  == */
@@ -367,8 +951,8 @@ extern "C" {
   /* value is used to indicate the number of isotopes present. Thus, at most 128   */
   /* isotopes can be returned (which should be plenty for all known elements).     */
   /* It should simply return 0 in case of an element with no nat. abundance data.  */
-  char * ncrystal_get_flatcompos( ncrystal_info_t, int prefernatelem,
-                                  unsigned (*natelemprovider)(unsigned,unsigned*,double*) );
+  NCRYSTAL_API char * ncrystal_get_flatcompos( ncrystal_info_t, int prefernatelem,
+                                               unsigned (*natelemprovider)(unsigned,unsigned*,double*) );
 
   /* Custom data section:                                                         */
   NCRYSTAL_API unsigned ncrystal_info_ncustomsections( ncrystal_info_t );
@@ -531,15 +1115,15 @@ extern "C" {
 
   /* Convert between atomic mean squared displacements and Debye temperatures.     */
   /* Units are kelvin, AMU, and Angstrom^2:                                        */
-  double ncrystal_debyetemp2msd( double debyetemp, double temperature, double mass );
-  double ncrystal_msd2debyetemp( double msd, double temperature, double mass );
+  NCRYSTAL_API double ncrystal_debyetemp2msd( double debyetemp, double temperature, double mass );
+  NCRYSTAL_API double ncrystal_msd2debyetemp( double msd, double temperature, double mass );
 
   /* Extract information from VDOS curve (see NCVDOSEval.hh for details):          */
-  void ncrystal_vdoseval( double vdos_emin, double vdos_emax,
-                          unsigned vdos_ndensity, const double* vdos_density,
-                          double temperature, double atom_mass_amu,
-                          double* msd, double* debye_temp, double* gamma0,
-                          double* temp_eff, double* origIntegral );
+  NCRYSTAL_API void ncrystal_vdoseval( double vdos_emin, double vdos_emax,
+                                       unsigned vdos_ndensity, const double* vdos_density,
+                                       double temperature, double atom_mass_amu,
+                                       double* msd, double* debye_temp, double* gamma0,
+                                       double* temp_eff, double* origIntegral );
 
   /* Extract NCMatCfg variables which can not be inferred from an ncrystal_info_t  */
   /* object and which might be needed in plugins (to be expanded as needed).       */
@@ -579,12 +1163,16 @@ extern "C" {
 #  undef NCRYSTAL_VERSION_STR
 #endif
 #define NCRYSTAL_VERSION_MAJOR 3
-#define NCRYSTAL_VERSION_MINOR 7
-#define NCRYSTAL_VERSION_PATCH 1
-#define NCRYSTAL_VERSION   3007001 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
-#define NCRYSTAL_VERSION_STR "3.7.1"
+#define NCRYSTAL_VERSION_MINOR 8
+#define NCRYSTAL_VERSION_PATCH 0
+#define NCRYSTAL_VERSION   3008000 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
+#define NCRYSTAL_VERSION_STR "3.8.0"
   NCRYSTAL_API int ncrystal_version(void); /* returns NCRYSTAL_VERSION                  */
   NCRYSTAL_API const char * ncrystal_version_str(void); /* returns NCRYSTAL_VERSION_STR */
+
+  /* If compiled with NCRYSTAL_NAMESPACE_PROTECTION, return the namespace here:    */
+  /* (will be an empty string in default installations):                           */
+  NCRYSTAL_API const char * ncrystal_namespace(void);
 
   /* Load raw NCMAT data into JSON structures. Must deallocate with call to        */
   /* ncrystal_dealloc_string as usual. (WARNING: JSON is incomplete for now!!!!!)  */

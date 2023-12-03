@@ -23,7 +23,7 @@
 
 #include "NCrystal/NCTypes.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class NCRYSTAL_API SABData : public UniqueID {
   public:

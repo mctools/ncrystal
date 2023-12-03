@@ -25,7 +25,7 @@
 
 namespace NC = NCrystal;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace SAB {
 
     //Cache key is (sabdata uid, egrid uid, sabdata ptr):
@@ -81,7 +81,7 @@ NC::shared_obj<const NC::SAB::SABScatterHelper> NC::SAB::createScatterHelperWith
   return s_scathelperfact.create(key);
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace {
     //Egrid UID cache. NB: We never clean this particular cache in order to
     //preserve the id's, in case something somewhere is still hanging on to one

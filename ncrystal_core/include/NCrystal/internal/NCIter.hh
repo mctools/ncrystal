@@ -23,7 +23,7 @@
 
 #include "NCrystal/NCDefs.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   //A bit of template magic to enable loops with functionality similar to
   //Python's enumerate, accessing both values and index numbers of

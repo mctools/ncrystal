@@ -25,7 +25,7 @@
 #include "NCrystal/NCProc.hh"
 #include "NCrystal/NCInfo.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   ///////////////////////////////////////////////////////////////////////////////
   // Factory functions needed by most clients.                                  //

@@ -24,7 +24,7 @@
 #include "NCrystal/internal/NCSABScatterHelper.hh"
 #include "NCrystal/internal/NCSABExtender.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace SAB {
 

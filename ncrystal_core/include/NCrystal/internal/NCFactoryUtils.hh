@@ -29,7 +29,7 @@
 #  include <thread>
 #endif
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   constexpr unsigned CachedFactory_KeepAllStrongRefs = std::numeric_limits<unsigned>::max();
 
@@ -130,7 +130,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace thread_details {
 #ifndef NCRYSTAL_DISABLE_THREADS

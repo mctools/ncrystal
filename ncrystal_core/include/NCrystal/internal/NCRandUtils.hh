@@ -25,7 +25,7 @@
 #include "NCrystal/internal/NCVector.hh"
 #include "NCrystal/NCTypes.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   //Directions or scattering angles (mu=cos(theta_scat)) under full or partial
   //isotropic distributions. Vector results are unit vectors:

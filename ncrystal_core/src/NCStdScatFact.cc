@@ -47,7 +47,7 @@ namespace NC = NCrystal;
 // Scatter factory should be completely replaced).                               //
 ///////////////////////////////////////////////////////////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class PlaneProviderWCutOff : public PlaneProvider {
   public:
@@ -382,7 +382,7 @@ namespace NCrystal {
 //this function is forward declared elsewhere or might be dynamically invoked
 //(hence the C-mangling), and its name should not be changed just here:
 
-extern "C" void ncrystal_register_stdscat_factory()
+extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_stdscat_factory)()
 {
   if (!NC::FactImpl::hasScatterFactory("stdscat"))
     NC::FactImpl::registerFactory(std::make_unique<NC::StdScatFact>());

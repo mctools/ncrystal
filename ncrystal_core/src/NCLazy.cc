@@ -29,7 +29,7 @@
 
 namespace NC = NCrystal;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace Lazy {
     namespace {
       struct CollectedData {

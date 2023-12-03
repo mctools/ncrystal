@@ -23,7 +23,7 @@
 
 #include "NCrystal/internal/NCCfgVars.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   /////////////////////////////////////////////////////////////////////////////////
   //                                                                             //
@@ -270,7 +270,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace Cfg {
 
     ncnodiscard17 inline ncconstexpr17 CfgManip::size_type CfgManip::size( const CfgData& data ) noexcept

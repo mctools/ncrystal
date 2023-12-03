@@ -188,7 +188,7 @@ void NC::streamWrappedText( std::ostream& os, StrView text, const WordWrapCfg& c
   }
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   static_assert( StrView::make("foo").size() == 3,"");
   static_assert( StrView::make("").size() == 0,"");
   static_assert( StrView::make("b").size() == 1,"");

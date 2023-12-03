@@ -26,7 +26,7 @@
 #include "NCrystal/NCSABData.hh"
 #include "NCrystal/internal/NCScatKnlData.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace SABUtils {
 

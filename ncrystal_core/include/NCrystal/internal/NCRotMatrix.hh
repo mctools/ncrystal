@@ -24,7 +24,7 @@
 #include "NCrystal/internal/NCMatrix.hh"
 #include "NCrystal/internal/NCVector.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class RotMatrix final : public Matrix {
   public:
@@ -99,7 +99,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   inline Vector RotMatrix::operator*(const Vector& v) const
   {
     nc_assert( m_colcount==3 && m_rowcount==3 );

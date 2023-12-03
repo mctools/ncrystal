@@ -26,7 +26,7 @@
 #include "NCrystal/internal/NCVector.hh"
 #include "NCrystal/NCVariant.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   //////////////////////////////////////////////////////////////
   // Infrastructure needed for the variables in NCCfgVars.hh  //
@@ -38,9 +38,9 @@ namespace NCrystal {
     using VarBuf = detail::VarBuf;
     using VarBufVector = detail::VarBufVector;
 
-    static constexpr StrView forbidden_chars_non_multiphase = StrView::make("\"'|(){}[]*&><");
-    static constexpr StrView forbidden_chars_value_strreps = StrView::make("\"'|(){}[]*&><;=");//+ "=;"
-    static constexpr StrView forbidden_chars_multiphase = StrView::make("\"'|(){}[]");//*&<> are allowed only in certain locations of multiphase strings
+    static constexpr StrView forbidden_chars_non_multiphase = StrView::make("\"'|(){}[]*&><#$");
+    static constexpr StrView forbidden_chars_value_strreps = StrView::make("\"'|(){}[]*&><;=#$");//+ "=;"
+    static constexpr StrView forbidden_chars_multiphase = StrView::make("\"'|(){}[]#$");//*&<> are allowed only in certain locations of multiphase strings
 
     enum class VarGroupId { Info, ScatterBase, ScatterExtra, Absorption };
 

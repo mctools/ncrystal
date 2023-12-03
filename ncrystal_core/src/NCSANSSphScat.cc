@@ -113,7 +113,7 @@ NC::CrossSect NC::SANSSphereScatter::crossSectionIsotropic(CachePtr&, NeutronEne
   }
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace {
     double hardSphereQRDensityFct( double x )

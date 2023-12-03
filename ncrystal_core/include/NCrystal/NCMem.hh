@@ -31,7 +31,7 @@
 #include <cstddef>
 #include <new>
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   //Attempt to clear all NCrystal caches (should be safe to call as it will not
   //clear data associated to active object for which client code has ownership):
@@ -362,7 +362,7 @@ namespace std {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace AlignedAlloc {
 

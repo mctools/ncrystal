@@ -82,7 +82,7 @@ import math
 
 #in unit tests we dont display interactive images and we reduce cpu consumption
 #by watching for special env var:
-_unittest = bool(os.environ.get('NCRYSTAL_INSPECTFILE_UNITTESTS',''))
+_unittest = bool(os.environ.get('NCRYSTAL_TOOL_UNITTESTS',''))
 
 #Function for importing required python modules which may be missing, to provide
 #a somewhat more helpful error to the user:
@@ -831,7 +831,7 @@ def main():
     plot_xsect( cfgs, comp  = args.comp, absorption = args.absorption, pdf=args.pdf,
                 versus_energy=args.energy, xrange = args.xrange, logy = args.logy,
                 breakdown_by_phases = args.phases )
-    if len(cfgs)==1 and not bool(os.environ.get('NCRYSTAL_INSPECTFILE_NO2DSCATTER',0)):
+    if len(cfgs)==1 and not bool(os.environ.get('NCRYSTAL_TOOL_NO2DSCATTER',0)):
         plot_2d_scatangle( cfgs[0], comp = args.comp, pdf=args.pdf, versus_energy=args.energy, xrange = args.xrange )
     if args.pdf:
         _,_,pdf = import_npplt(True)
@@ -840,9 +840,9 @@ def main():
             d = pdf.infodict()
         except AttributeError:
             d={}
-        d['Title'] = 'Plots made with NCrystal-inspectfile from file%s %s'%('' if len(args.input_cfgs)==1 else 's',
-                                                                            ','.join(os.path.basename(f) for f in args.input_cfgs))
-        d['Author'] = 'NCrystal %s (via inspectfile)'%NC.__version__
+        d['Title'] = 'Plots made with NCrystal nctool from file%s %s'%('' if len(args.input_cfgs)==1 else 's',
+                                                                       ','.join(os.path.basename(f) for f in args.input_cfgs))
+        d['Author'] = 'NCrystal %s (via nctool)'%NC.__version__
         d['Subject'] = 'NCrystal plots'
         d['Keywords'] = 'NCrystal'
         d['CreationDate'] = datetime.datetime.today()

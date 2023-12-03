@@ -25,7 +25,7 @@
 #include "NCrystal/internal/NCVector.hh"
 #include "NCrystal/internal/NCRotMatrix.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class LCBraggRef final : public ProcImpl::ScatterAnisotropicMat {
   public:

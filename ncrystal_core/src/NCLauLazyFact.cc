@@ -31,7 +31,7 @@ namespace NC = NCrystal;
 //                                                              //
 //////////////////////////////////////////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace {
 
@@ -58,7 +58,7 @@ namespace NCrystal {
 //this function is forward declared elsewhere or might be dynamically invoked
 //(hence the C-mangling), and its name should not be changed just here:
 
-extern "C" void ncrystal_register_stdlaz_factory()
+extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_stdlaz_factory)()
 {
   if (!NC::FactImpl::hasInfoFactory(NC::AltLauFact::the_factory_name))
     NC::FactImpl::registerFactory(std::make_unique<NC::AltLauFact>());

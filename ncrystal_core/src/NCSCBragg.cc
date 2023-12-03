@@ -219,7 +219,7 @@ double NC::SCBragg::pimpl::setupFamilies( const NC::Info& cinfo,
 }
 
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   inline double SCBragg_cacheRound(double x) {
     //Cut off input at 15 decimals, which should be a negligible effect on any
     //realistic value of ekin in eV, but ensures that we don't

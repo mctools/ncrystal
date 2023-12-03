@@ -40,7 +40,7 @@
 //                                          //
 //////////////////////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   //Base class used for MT-safe caching. Client code can provide polymorphic
   //CachePtr objects and pass them into various interfaces. This allows client
@@ -519,7 +519,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   inline std::ostream& operator<<(std::ostream& os, MaterialType mt)
   {

@@ -26,7 +26,7 @@
 #include <sstream>
 namespace NC = NCrystal;
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace {
     using Cfg::CfgManip;
 
@@ -537,7 +537,7 @@ NC::SCOrientation NC::MatCfg::createSCOrientation() const
   return CfgManip::createSCOrientation<SCOrientation>(cfg);
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace {
     void doSetSCOrient( Cfg::CfgData& data, const SCOrientation::Data& orient )
     {
@@ -1225,7 +1225,7 @@ void NC::MatCfg::set_density( const DensityState& ds ) {
     m_impl2.modify()->m_densityState.set( newds );
 }
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   namespace {
     //C++11 is annoying, hence this helper:
     void set_density_helper( MatCfg& cfg, DensityState::Type type, double val )

@@ -37,7 +37,7 @@
 //                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   struct ScatKnlData : private MoveOnly {
     VectD alphaGrid, betaGrid, sab;

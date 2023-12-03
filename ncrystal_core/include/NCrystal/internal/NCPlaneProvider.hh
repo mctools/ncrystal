@@ -25,7 +25,7 @@
 #include "NCrystal/internal/NCEqRefl.hh"
 #include "NCrystal/NCInfoTypes.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class Info;
 
@@ -102,7 +102,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
   inline ExpandHKLHelper::ExpandHKLHelper( int spacegroup )
   {
     nc_assert( spacegroup>=0 && spacegroup <= 230 );

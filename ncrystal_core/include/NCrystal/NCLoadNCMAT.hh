@@ -25,7 +25,7 @@
 #include "NCrystal/NCTextData.hh"
 #include "NCrystal/NCMatCfg.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   namespace FactImpl {
     class InfoRequest;

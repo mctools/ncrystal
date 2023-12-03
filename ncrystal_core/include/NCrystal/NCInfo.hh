@@ -32,7 +32,7 @@
 // indirectly initialised from them (with e.g. createScatter(..))              //
 /////////////////////////////////////////////////////////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   class NCRYSTAL_API Info final {
 
@@ -419,7 +419,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   struct NCRYSTAL_API Info::OverrideableDataFields final {
     //NB: It is not trivial to add more fields to this structs. Adding fields

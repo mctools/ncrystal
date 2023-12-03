@@ -23,7 +23,7 @@
 
 #include "NCrystal/NCDefs.hh"
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   /////////////////////////////////////////////////////////////////////////////////
   // Very simplistic alternative to std::variant which only supports two variant //
@@ -111,7 +111,7 @@ namespace NCrystal {
 // Inline implementations //
 ////////////////////////////
 
-namespace NCrystal {
+namespace NCRYSTAL_NAMESPACE {
 
   static_assert(std::is_default_constructible<Variant<double,int>>::value,"");
   static_assert(!std::is_default_constructible<Variant<double,int,VariantAllowEmpty::No>>::value,"");
