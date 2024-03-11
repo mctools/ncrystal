@@ -80,6 +80,9 @@ namespace NCRYSTAL_NAMESPACE {
       bool cmpDataEQ(const InfoRequest&) const;
     };
 
+    class ScatterRequest;
+    class AbsorptiondRequest;
+
     template <class TRequest>
     class NCRYSTAL_API ProcessRequestBase {
     public:
@@ -131,6 +134,7 @@ namespace NCRYSTAL_NAMESPACE {
     };
 
     class NCRYSTAL_API ScatterRequest final : public ProcessRequestBase<ScatterRequest> {
+      friend class ProcessRequestBase<ScatterRequest>;//For vscode
     public:
 
       //Parameters (basic):
@@ -167,6 +171,7 @@ namespace NCRYSTAL_NAMESPACE {
     };
 
     class NCRYSTAL_API AbsorptionRequest final : public ProcessRequestBase<AbsorptionRequest> {
+      friend class ProcessRequestBase<AbsorptionRequest>;//For vscode
     public:
 
       //Parameters:
