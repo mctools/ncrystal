@@ -401,13 +401,13 @@ namespace NCRYSTAL_NAMESPACE {
     //and 3-vectors (using one of these with a wrong length vector type will
     //result in a compile-time error):
     template<typename = typename std::enable_if_t<N==2>>
-    ncconstexpr17 FixedVector(double, double) noexcept;
+    ncconstexpr17 FixedVector(double xx, double yy) noexcept { m_data = { xx, yy }; }
     template<typename = typename std::enable_if_t<N==3>>
-    ncconstexpr17 FixedVector(double, double, double) noexcept;
+    ncconstexpr17 FixedVector(double xx, double yy, double zz) noexcept { m_data = { xx, yy, zz }; }
     template<typename = typename std::enable_if_t<N==2>>
-    ncconstexpr17 void set(double, double) noexcept;
+    ncconstexpr17 void set(double xx, double yy) noexcept { m_data = { xx, yy }; }
     template<typename = typename std::enable_if_t<N==3>>
-    ncconstexpr17 void set(double, double, double) noexcept;
+    ncconstexpr17 void set(double xx, double yy, double zz) noexcept { m_data = { xx, yy, zz }; }
 
     //Interoperability with std::array:
     explicit constexpr FixedVector(const stdarray_type& o) noexcept;
@@ -897,34 +897,6 @@ namespace NCRYSTAL_NAMESPACE {
   {
     static_assert(sizeof(a)==N*sizeof(TValue),"");
     std::copy(std::begin(m_data), std::end(m_data), std::begin(a));
-  }
-
-  template <class TValue, std::size_t N>
-  inline ncconstexpr17 FixedVector<TValue,N>::FixedVector(double xx, double yy) noexcept
-  {
-    static_assert(N==2,"Wrong number of arguments provided");
-    m_data = { xx, yy };
-  }
-
-  template <class TValue, std::size_t N>
-  inline ncconstexpr17 FixedVector<TValue,N>::FixedVector(double xx, double yy, double zz) noexcept
-  {
-    static_assert(N==3,"Wrong number of arguments provided");
-    m_data = { xx, yy, zz };
-  }
-
-  template <class TValue, std::size_t N>
-  inline ncconstexpr17 void FixedVector<TValue,N>::set(double xx, double yy) noexcept
-  {
-    static_assert(N==2,"Wrong number of arguments provided");
-    m_data = { xx, yy };
-  }
-
-  template <class TValue, std::size_t N>
-  inline ncconstexpr17 void FixedVector<TValue,N>::set(double xx, double yy, double zz) noexcept
-  {
-    static_assert(N==3,"Wrong number of arguments provided");
-    m_data = { xx, yy, zz };
   }
 
   template <class Derived, class TValue, std::size_t N>
