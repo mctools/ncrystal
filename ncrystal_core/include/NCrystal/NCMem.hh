@@ -348,7 +348,7 @@ namespace NCRYSTAL_NAMESPACE {
   }
 }
 
-#if nc_cplusplus < 201402L || WIN32
+#if nc_cplusplus < 201402L
 //Make sure we can use std::make_unique from C++14 even in C++11 code
 namespace std {
   template<typename T, typename ...Args>
