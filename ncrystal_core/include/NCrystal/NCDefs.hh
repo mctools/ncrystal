@@ -42,12 +42,11 @@
 #include <atomic>
 #include <ostream>
 #include <cstring>
-#if __cplusplus >= 202002L
-#  include <compare>
-#endif
-
 #ifndef ncrystal_api_h
 #  include "NCrystal/ncapi.h"
+#endif
+#if nc_cplusplus >= 202002L
+#  include <compare>
 #endif
 #ifndef NCrystal_NCException_hh
 #  include "NCrystal/NCException.hh"
@@ -190,7 +189,7 @@ namespace NCRYSTAL_NAMESPACE {
   struct NCRYSTAL_API UniqueIDValue {
     //type-safe unique id holder.
     uint64_t value;
-#if __cplusplus >= 202002L
+#if nc_cplusplus >= 202002L
     auto operator<=>(const UniqueIDValue&) const = default;
 #else
     constexpr bool operator<(UniqueIDValue const& o) const noexcept { return value < o.value; }
@@ -431,7 +430,7 @@ namespace NCRYSTAL_NAMESPACE {
     ncconstexpr17 value_type& at( size_type i ) { return m_data.at(i); }
 
     //Comparisons:
-#if __cplusplus >= 202002L
+#if nc_cplusplus >= 202002L
     auto operator<=>(const FixedVector&) const = default;
 #else
     //Can't be constexpr pre-C++20 due to lack of constexpr on std::array:
@@ -538,7 +537,7 @@ namespace NCRYSTAL_NAMESPACE {
     constexpr ValRange(value_type n) noexcept : m_begin(0), m_end(n) {}
     constexpr ValRange(value_type l, value_type n) noexcept : m_begin(l), m_end(n)
     {
-#if __cplusplus >= 201703L
+#if nc_cplusplus >= 201703L
       assert( l<=n );
 #endif
     }
@@ -1189,7 +1188,7 @@ namespace NCRYSTAL_NAMESPACE {
     //generated 64bit integers supposedly have some statistical issues, this
     //should be acceptable (whenever the primary term generates numbers greater
     //than 0.004 the lowest three bits have no effect at all).
-#if __cplusplus >= 201703L
+#if nc_cplusplus >= 201703L
     const double r1 = ( x >> 11 ) * 0x1.0p-53;
     const double r2 = ( x & 0x7FF ) * 0x1.0p-64;
 #else
@@ -1338,7 +1337,7 @@ namespace NCRYSTAL_NAMESPACE {
   template <class TMap, class ... Args>
   inline std::pair<typename TMap::iterator, bool> nc_map_try_emplace( TMap& themap, const typename TMap::key_type& key, Args&&... args )
   {
-#if __cplusplus >= 201703L
+#if nc_cplusplus >= 201703L
     return themap.try_emplace(key, std::forward<Args>(args)... );
 #else
     //slower workaround

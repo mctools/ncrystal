@@ -113,7 +113,7 @@ namespace NCRYSTAL_NAMESPACE {
     explicit constexpr operator bool() const noexcept;
 
     //Supports comparisons:
-#if __cplusplus >= 202002L
+#if nc_cplusplus >= 202002L
     auto operator<=>( const EncapsulatedValue& ) const = default;
 #else
     constexpr bool operator<( const EncapsulatedValue& o ) const noexcept { return m_value < o.m_value; }
@@ -768,14 +768,14 @@ namespace NCRYSTAL_NAMESPACE {
   inline constexpr EnergyDomain::EnergyDomain(NeutronEnergy el,NeutronEnergy eh) ncnoexceptndebug
     : elow(el), ehigh(eh)
   {
-#  if __cplusplus >= 201703L
+#  if nc_cplusplus >= 201703L
     nc_assert( elow.dbl() <= ehigh.dbl() );
 #endif
   }
 
   inline constexpr bool EnergyDomain::contains( NeutronEnergy ekin ) const ncnoexceptndebug
   {
-#  if __cplusplus >= 201703L
+#  if nc_cplusplus >= 201703L
     nc_assert( elow.dbl() <= ehigh.dbl() );
 #endif
     //nc_as_const to get constexpr .dbl in before C++17:

@@ -59,7 +59,7 @@ namespace NCRYSTAL_NAMESPACE {
     constexpr double kTmsd_to_alpha2x(double kT,double msd)
     {
       //alpha2x is factor required to convert alpha value to x (aka "2W" in Sjolanders paper).
-#if __cplusplus >= 201402L
+#if nc_cplusplus >= 201402L
       constexpr double fact = ( 2.0*const_neutron_mass_evc2/(constant_hbar*constant_hbar) );
       return fact*kT*msd;
 #else
