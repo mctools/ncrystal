@@ -33,7 +33,7 @@ jobs:
 
     - name: Pip install ncrystal
       shell: cmd
-      run: python3 -m pip install src
+      run: python3 -m pip install .\src\
 
     - name: Pip install numpy
       shell: cmd
