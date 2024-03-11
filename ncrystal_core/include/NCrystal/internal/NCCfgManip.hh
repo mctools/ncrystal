@@ -351,7 +351,7 @@ namespace NCRYSTAL_NAMESPACE {
     {
       constexpr auto varid = constexpr_varIdFromName(TVarDef::name);
       //NB: no need to capture &varid (even gives warning on apple clang 11):
-      auto doCreate = [&val](){ return TVarDef::set_val( varid, val ); };
+      auto doCreate = [&val,&varid](){ return TVarDef::set_val( varid, val ); };
       detail_setVar( data, varid, doCreate );
     }
 
