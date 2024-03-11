@@ -125,7 +125,8 @@ NC::DynLoader::DynLoader( const std::string& filename,
     const char* errMsg = "NCrystal dynamic loading is disabled";
 #else
 #  ifdef NCRYSTAL_WIN_LOADLIB
-    const char* errMsg = GetLastError();
+    //const char* errMsg = GetLastError();
+    const char* errMsg = "";
 #  else
     const char* errMsg = dlerror();
 #  endif
@@ -147,7 +148,7 @@ NC::DynLoader::~DynLoader()
   NCRYSTAL_LOCK_GUARD( getMutex() );
 #  ifdef NCRYSTAL_WIN_LOADLIB
   if (!FreeLibrary((HINSTANCE)m_handle))
-    errMsg = GetLastError();
+    errMsg = "";
 #  else
   dlerror();//clear
   if ( dlclose(m_handle)!=0 )
