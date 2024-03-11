@@ -315,7 +315,7 @@ namespace NCRYSTAL_NAMESPACE {
       }
       constexpr size_type capacity() const noexcept
       {
-#if __cplusplus >= 201402L // assert in constexpr requires C++14
+#if nc_cplusplus >= 201402L // assert in constexpr requires C++14
         assert( m_begin != nullptr);
 #endif
         return m_capacity;

@@ -24,7 +24,7 @@
 #include "NCrystal/internal/NCMath.hh"
 #include <iostream>
 #include <sstream>
-#if __cplusplus >= 201703L
+#if nc_cplusplus >= 201703L
 #  include <functional>//for std::invoke
 #else
 #  define NCPARSENCMAT_CALL_MEMBER_FN(objectaddr,ptrToMember)  ((*objectaddr).*(ptrToMember))
@@ -273,7 +273,7 @@ void NC::NCMATParser::parseFile( TextData::Iterator itLine, TextData::Iterator i
 
       //Close current section by sending it an empty parts list (and previous line number where that section ended).
       parts.clear();
-#if __cplusplus >= 201703L
+#if nc_cplusplus >= 201703L
       std::invoke(itSection->second,*this,parts,lineno-1);
 #else
       NCPARSENCMAT_CALL_MEMBER_FN(this,itSection->second)(parts,lineno);
@@ -329,7 +329,7 @@ void NC::NCMATParser::parseFile( TextData::Iterator itLine, TextData::Iterator i
     }
 
     //Line inside active section was succesfully parsed.
-#if __cplusplus >= 201703L
+#if nc_cplusplus >= 201703L
     std::invoke(itSection->second,*this,parts,lineno);
 #else
     NCPARSENCMAT_CALL_MEMBER_FN(this,itSection->second)(parts,lineno);
@@ -338,7 +338,7 @@ void NC::NCMATParser::parseFile( TextData::Iterator itLine, TextData::Iterator i
 
   //End of input. Close current section by sending it an empty parts list.
   parts.clear();
-#if __cplusplus >= 201703L
+#if nc_cplusplus >= 201703L
   std::invoke(itSection->second,*this,parts,lineno);
 #else
   NCPARSENCMAT_CALL_MEMBER_FN(this,itSection->second)(parts,lineno+1);

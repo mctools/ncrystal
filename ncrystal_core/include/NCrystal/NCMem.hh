@@ -243,7 +243,7 @@ namespace NCRYSTAL_NAMESPACE {
     //Get smart pointer to current object (object MUST be already managed by
     //shared pointer, e.g. created with NCrystal::makeSO or std::make_shared):
     shared_obj<Derived> shared_obj_from_this() {
-#  if __cplusplus >= 201703L
+#  if nc_cplusplus >= 201703L
       auto shptr = this->weak_from_this().lock();
       if (!shptr)
         NCRYSTAL_THROW( LogicError, "shared_obj_from_this() does not work since this"
@@ -254,7 +254,7 @@ namespace NCRYSTAL_NAMESPACE {
 #endif
     }
     shared_obj<const Derived> shared_obj_from_this() const {
-#  if __cplusplus >= 201703L
+#  if nc_cplusplus >= 201703L
       auto shptr = this->weak_from_this().lock();
       if (!shptr)
         NCRYSTAL_THROW( LogicError, "shared_obj_from_this() does not work since this"
@@ -348,7 +348,7 @@ namespace NCRYSTAL_NAMESPACE {
   }
 }
 
-#if __cplusplus < 201402L
+#if nc_cplusplus < 201402L || WIN32
 //Make sure we can use std::make_unique from C++14 even in C++11 code
 namespace std {
   template<typename T, typename ...Args>

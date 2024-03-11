@@ -42,7 +42,7 @@ namespace NCRYSTAL_NAMESPACE {
       static_assert(Priority{Priority::OnlyOnExplicitRequest}.canServiceRequest()==true,"");
       static_assert(Priority{Priority::OnlyOnExplicitRequest}.needsExplicitRequest()==true,"");
       static_assert(Priority{Priority::OnlyOnExplicitRequest}.priority()==0,"");
-#if __cplusplus >= 201703L
+#if nc_cplusplus >= 201703L
       static_assert(Priority{17}.canServiceRequest()==true,"");
       static_assert(Priority{17}.needsExplicitRequest()==false,"");
       static_assert(Priority{17}.priority()==17,"");

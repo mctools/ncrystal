@@ -104,13 +104,22 @@ namespace NCrystal = NCRYSTAL_NAMESPACE;
 #  endif
 #endif
 
+#ifdef nc_cplusplus
+#  undef nc_cplusplus
+#endif
 #ifdef __cplusplus
+#  if defined(WIN32) || defined(_WIN32)
+     //Apparently this is not reliable in vscode (FIXME: WIN32/_WIN32 not enough)
+#    define nc_cplusplus 201703L
+#  else
+#    define nc_cplusplus nc_cplusplus
+#  endif
 /* For decorating with constexpr only in C++17 and later, or noexcept only in */
 /* non-dbg builds:                                                            */
 #  ifdef ncconstexpr17
 #    undef ncconstexpr17
 #  endif
-#  if __cplusplus >= 201703L
+#  if nc_cplusplus >= 201703L
 #    define ncconstexpr17 constexpr
 #  else
 #    define ncconstexpr17
@@ -126,7 +135,7 @@ namespace NCrystal = NCRYSTAL_NAMESPACE;
 #  ifdef ncnodiscard17
 #    undef ncnodiscard17
 #  endif
-#  if __cplusplus >= 201703L
+#  if nc_cplusplus >= 201703L
 #    define ncnodiscard17 [[nodiscard]]
 #  else
 #    define ncnodiscard17
@@ -134,7 +143,7 @@ namespace NCrystal = NCRYSTAL_NAMESPACE;
 #  ifdef nclikely
 #    undef nclikely
 #  endif
-#  if __cplusplus >= 202002L
+#  if nc_cplusplus >= 202002L
 #    define nclikely [[likely]]
 #  else
 #    define nclikely
@@ -142,7 +151,7 @@ namespace NCrystal = NCRYSTAL_NAMESPACE;
 #  ifdef ncunlikely
 #    undef ncunlikely
 #  endif
-#  if __cplusplus >= 202002L
+#  if nc_cplusplus >= 202002L
 #    define ncunlikely [[unlikely]]
 #  else
 #    define ncunlikely
