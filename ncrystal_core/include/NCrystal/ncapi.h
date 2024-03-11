@@ -108,9 +108,17 @@ namespace NCrystal = NCRYSTAL_NAMESPACE;
 #  undef nc_cplusplus
 #endif
 #ifdef __cplusplus
-#  if defined(WIN32) || defined(_WIN32)
-     //Apparently this is not reliable in vscode (FIXME: WIN32/_WIN32 not enough)
-#    define nc_cplusplus 201703L
+/* First we provide nc_cplusplus as a more robust alternative to __cplusplus. */
+#  if defined(_MSC_VER) && __cplusplus == 199711L
+/* https://devblogs.microsoft.com/cppblog/msvc-now-correctly-reports-__cplusplus */
+/* tells us that vscode sets __cplusplus to a misleading 199711L unless          */
+/* compiling with certain flags.. However _MSVC_LANG is set correctly if         */
+/* defined, and otherwise 201402L is most likely the safest fallback.            */
+#    ifdef _MSVC_LANG
+#      define nc_cplusplus _MSVC_LANG
+#    else
+#      define nc_cplusplus 201402L
+#    endif
 #  else
 #    define nc_cplusplus nc_cplusplus
 #  endif
