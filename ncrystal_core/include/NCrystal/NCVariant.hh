@@ -320,6 +320,7 @@ namespace NCRYSTAL_NAMESPACE {
     return *this;
   }
 
+  static_assert(std::is_default_constructible<Variant<double,int,VariantAllowEmpty::Yes>>::value,"");
   static_assert(std::is_default_constructible<Variant<double,int>>::value,"");
   static_assert(!std::is_default_constructible<Variant<double,int,VariantAllowEmpty::No>>::value,"");
 
