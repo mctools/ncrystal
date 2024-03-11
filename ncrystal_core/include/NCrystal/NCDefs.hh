@@ -400,9 +400,13 @@ namespace NCRYSTAL_NAMESPACE {
     //For convenience we provide special constructors and setters for 2-vectors
     //and 3-vectors (using one of these with a wrong length vector type will
     //result in a compile-time error):
+    template<typename = typename std::enable_if_t<N==2>>
     ncconstexpr17 FixedVector(double, double) noexcept;
+    template<typename = typename std::enable_if_t<N==3>>
     ncconstexpr17 FixedVector(double, double, double) noexcept;
+    template<typename = typename std::enable_if_t<N==2>>
     ncconstexpr17 void set(double, double) noexcept;
+    template<typename = typename std::enable_if_t<N==3>>
     ncconstexpr17 void set(double, double, double) noexcept;
 
     //Interoperability with std::array:
