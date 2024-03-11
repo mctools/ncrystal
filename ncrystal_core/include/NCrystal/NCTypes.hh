@@ -420,6 +420,7 @@ namespace NCRYSTAL_NAMESPACE {
   public:
     using EncapsulatedValue::EncapsulatedValue;
     static constexpr const char * unit() noexcept { return ""; }
+    void validate() const {}
   };
 
   //Serialised RNG stream state:
@@ -427,6 +428,7 @@ namespace NCRYSTAL_NAMESPACE {
   public:
     using EncapsulatedValue::EncapsulatedValue;
     static constexpr const char * unit() noexcept { return ""; }
+    void validate() const {}
   };
 
   //Process properties:
