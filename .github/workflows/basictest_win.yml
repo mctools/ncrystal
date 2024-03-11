@@ -19,6 +19,18 @@ jobs:
       with:
         python-version: 3.11
 
+    - name: Pip upgrade pip
+      shell: cmd
+      run: python3 -m pip install -U pip
+
+    - name: Pip upgrade setuptools
+      shell: cmd
+      run: python3 -m pip install -U setuptools
+
+    - name: Pip upgrade scikit-build
+      shell: cmd
+      run: python3 -m pip install -U scikit-build
+
     - name: Pip install ncrystal
       shell: cmd
       run: python3 -m pip install src
