@@ -56,7 +56,10 @@ namespace NCRYSTAL_NAMESPACE {
     using detail_base = typename std::conditional<ALLOW_EMPTY==VariantAllowEmpty::Yes,
                                                   detail::DefaultConstructible,
                                                   detail::NoDefaultConstructible>::type;
-    using detail_base::detail_base;
+    //using detail_base::detail_base;
+    template<typename = typename std::enable_if_t<ALLOW_EMPTY==VariantAllowEmpty::Yes>>
+    Variant() = default;
+
 
     //NB: If ALLOW_EMPTY
     Variant( const T1& );
