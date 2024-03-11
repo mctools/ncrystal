@@ -113,9 +113,6 @@ namespace NCRYSTAL_NAMESPACE {
 
 namespace NCRYSTAL_NAMESPACE {
 
-  static_assert(std::is_default_constructible<Variant<double,int>>::value,"");
-  static_assert(!std::is_default_constructible<Variant<double,int,VariantAllowEmpty::No>>::value,"");
-
   template <class T1, class T2, VariantAllowEmpty ALLOW_EMPTY>
   struct Variant<T1,T2,ALLOW_EMPTY>::Impl {
 
@@ -322,6 +319,9 @@ namespace NCRYSTAL_NAMESPACE {
     emplace<T2>(std::move(o));
     return *this;
   }
+
+  static_assert(std::is_default_constructible<Variant<double,int>>::value,"");
+  static_assert(!std::is_default_constructible<Variant<double,int,VariantAllowEmpty::No>>::value,"");
 
 }
 
