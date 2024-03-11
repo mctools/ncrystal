@@ -71,7 +71,9 @@ namespace NCRYSTAL_NAMESPACE {
     FARPROC fproc;
     result = (void *)(intptr_t)GetProcAddress((HINSTANCE)handle, symbol.c_str());
     if (!result)
-      errMsg = GetLastError();
+      errMsg = "GetProcAddress failed";
+    //NB: We could perhaps useGetLastError() to get an error code and extract an
+    //actual message with that.;
 #  else
     dlerror();//clear previous errors
     result = dlsym( handle, symbol.c_str());
