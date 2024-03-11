@@ -1,0 +1,46 @@
+name: basictest_win
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        path: src
+
+    - name: Setup python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.11
+
+    - name: Pip upgrade pip
+      shell: cmd
+      run: python3 -m pip install -U pip
+
+    - name: Pip upgrade setuptools
+      shell: cmd
+      run: python3 -m pip install -U setuptools
+
+    - name: Pip upgrade scikit-build
+      shell: cmd
+      run: python3 -m pip install -U scikit-build
+
+    - name: Pip install ncrystal
+      shell: cmd
+      run: python3 -m pip install .\src\
+
+    - name: Pip install numpy
+      shell: cmd
+      run: python3 -m pip install numpy
+
+##    - name: Setup tmate session for manual debugging
+##      uses: mxschmitt/action-tmate@v3
+##      if: always()
+##      with:
+##        limit-access-to-actor: true
