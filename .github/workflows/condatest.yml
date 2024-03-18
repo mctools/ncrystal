@@ -24,9 +24,9 @@ jobs:
           - { os: ubuntu-20.04 }
           - { os: ubuntu-22.04 }
           - { os: ubuntu-latest }
-          - { os: macos-11 }
           - { os: macos-12 }
-#macos-13 does not have conda yet          - { os: macos-13 }
+          - { os: macos-13 }
+          - { os: macos-14 }
     name: ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     defaults:
@@ -93,7 +93,8 @@ jobs:
           set -eux
           mkdir mcstasrun
           cd mcstasrun
-          cp "${CONDA_PREFIX}/share/mcstas/resources/examples/NCrystal_example.instr" .
+
+          cp "${CONDA_PREFIX}/share/mcstas/resources/examples/NCrystal/NCrystal_example/NCrystal_example.instr" .
           mcrun NCrystal_example.instr sample_cfg=Al_sg225.ncmat -s1000 -n1e5
 
       - name: Uninstall NCrystal and install conda-forge NCrystal
@@ -106,7 +107,7 @@ jobs:
           set -eux
           mkdir mcstasrun2
           cd mcstasrun2
-          cp "${CONDA_PREFIX}/share/mcstas/resources/examples/NCrystal_example.instr" .
+          cp "${CONDA_PREFIX}/share/mcstas/resources/examples/NCrystal/NCrystal_example/NCrystal_example.instr" .
           mcrun NCrystal_example.instr sample_cfg=Al_sg225.ncmat -s1000 -n1e5
 
       #Final step, so tmate step can check if we got this far.
