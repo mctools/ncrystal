@@ -146,9 +146,11 @@ namespace NCRYSTAL_NAMESPACE {
     //Move/copy/assign to base class pointer (in shared_obj or std::shared_ptr)
     //should be ok (only compiles if T* can be assigned from TOther*):
     template<class TOther>
-    ncconstexpr17 shared_obj& operator=( shared_obj<TOther>&& o ) noexcept {
+    ncconstexpr17 shared_obj& operator=( shared_obj<TOther>&& o ) ncnoexceptndebug {
       m_shptr = std::move(o).detail_consume_shptr();
+#ifndef NDEBUG
       check_nonnull();
+#endif
       return *this;
     }
 
@@ -163,13 +165,13 @@ namespace NCRYSTAL_NAMESPACE {
     }
 
     template<class TOther>
-    ncconstexpr17 shared_obj( std::shared_ptr<TOther>&& sp ) noexcept : m_shptr(std::move(sp)) { check_nonnull(); }
+    ncconstexpr17 shared_obj( std::shared_ptr<TOther>&& sp ) : m_shptr(std::move(sp)) { check_nonnull(); }
 
     template<class TOther>
-    ncconstexpr17 shared_obj( const std::shared_ptr<TOther>& sp ) noexcept : m_shptr(sp) { check_nonnull(); }
+    ncconstexpr17 shared_obj( const std::shared_ptr<TOther>& sp ) : m_shptr(sp) { check_nonnull(); }
 
     template<class TOther>
-    ncconstexpr17 shared_obj& operator=( std::shared_ptr<TOther>&& sp ) noexcept
+    ncconstexpr17 shared_obj& operator=( std::shared_ptr<TOther>&& sp )
     {
       m_shptr = std::move(sp);
       check_nonnull();
@@ -177,7 +179,7 @@ namespace NCRYSTAL_NAMESPACE {
     }
 
     template<class TOther>
-    ncconstexpr17 shared_obj& operator=( const std::shared_ptr<TOther>& sp ) noexcept
+    ncconstexpr17 shared_obj& operator=( const std::shared_ptr<TOther>& sp )
     {
       m_shptr = sp;
       check_nonnull();

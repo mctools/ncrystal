@@ -76,7 +76,7 @@ namespace NCRYSTAL_NAMESPACE {
     //(i.e. constexpr auto sv = ShortStr::make("foo")): For now it is NOT
     //constexpr, due to limitations in C++11. This could be revisited if needed.
     template<size_type N>
-    static ShortStr make( const char (&cdata)[N] ) noexcept
+    static ShortStr make( const char (&cdata)[N] )
     {
       return ShortStr( &cdata[0], ( cdata[N-1]=='\0' ? N-1 : N ) );
     }

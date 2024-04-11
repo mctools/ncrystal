@@ -431,7 +431,6 @@ namespace NCRYSTAL_NAMESPACE {
 namespace NCRYSTAL_NAMESPACE {
   inline void MatCfg::set_temp( double t ) { set_temp(Temperature{t}); }
   inline MatCfg MatCfg::clone() const { return MatCfg(*this); }
-  inline const TextData& MatCfg::textData() const { return textDataSP(); }
   inline void MatCfg::scale_density( double val )
   {
     if ( val!= 1.0 ) {

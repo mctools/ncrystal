@@ -24,6 +24,8 @@ from .constants import constant_planck as _constant_planck
 from .constants import constant_boltzmann as _constant_boltzmann
 from .constants import constant_c as _constant_c
 
+_is_unit_test = False
+
 vdos_units_2_eV = {
     'eV' : 1.0,
     'meV' : 1e-3,
@@ -520,13 +522,13 @@ class PhononDOSAnalyser:
                 else:
                     t_parsed = self._parse_threshold( t )
                     lblcomments = [f'cut@{t_parsed/unitfactor:g}{unitname}']
-                    if not regn is None:
+                    if regn is not None:
                         lblcomments+=[f'npts={regn}']
                 lblcomment = ','.join(lblcomments)
                 plot_kwargs['labelfct'] = lambda lbl : f'{lbl} ({lblcomment})'
                 color_offset += len(selected)
                 o = self if t is None else self.apply_cutoff( t, *selected )
-                if not regn is None:
+                if regn is not None:
                     if t is None:
                         #Only go ahead in this case, if all selected egrids already have a cutoff:
                         if not all( self.dos(idx)[0][0]>0.0 for idx in selected ):
@@ -748,7 +750,7 @@ class PhononDOSAnalyser:
                 lbl = self.__d['doslist'][idx][0]
                 ad = atomDB(lbl,throwOnErrors=False)
                 if not ad:
-                    raise NCBadInput( f'Can not plot Gn function for label "lbl" which does'
+                    raise NCBadInput( 'Can not plot Gn function for label "lbl" which does'
                                       ' not correspond to a known element or isotope. Either'
                                       ' change the label with .update_label(..), or directly'
                                       ' provide masses using the "masses" parameter' )
@@ -804,7 +806,15 @@ class PhononDOSAnalyser:
             color = colorder[(color_offset+idx)%len(colorder)]
             actual_lbl = lbl if labelfct is None else labelfct(lbl)
             if gnfct:
-                plt.plot( gnfct[0]/unitfactor, gnfct[1],
+                _x,_y = gnfct[0]/unitfactor, gnfct[1]
+                if _is_unit_test:
+                    def _fixup_y(y):
+                        from ._numpy import _ensure_numpy, _np
+                        _ensure_numpy()
+                        assert y.min() >= 0.0
+                        return _np.clip(y,y.max()*1e-13,None)
+                    _y = _fixup_y(_y)#discard tiny values
+                plt.plot( _x,_y,
                           label = actual_lbl,
                           color = color )
             else:
@@ -994,7 +1004,7 @@ def _do_regularise( egrid, density, n, quiet = False):
     if not abs(round(test)-test)<1e-6:
         return retry()
     new_density = _np.interp(new_egrid,egrid,density, left=0.0, right=0.0)
-    nc_print(f'last density values in new grid: ',new_density[-5:])
+    nc_print('last density values in new grid:',new_density[-5:])
     return new_egrid,new_density
 
 def _parsevdosunit( name ):

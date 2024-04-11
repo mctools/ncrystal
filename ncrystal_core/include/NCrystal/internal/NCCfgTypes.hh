@@ -92,7 +92,11 @@ namespace NCRYSTAL_NAMESPACE {
         Derived::stream_val(os,default_value_in_varbuf());
       }
       struct detail_dvon {
-        static constexpr value_type dvon( NullOptType ) { return nc_assert_always_rv(false),*(value_type*)(nullptr); }//won't actually get called
+        //Next fct won't actually get called
+        static constexpr value_type dvon( NullOptType )
+        {
+          return nc_assert_always_rv(false),*(value_type*)(nullptr);// cppcheck-suppress nullPointer
+        }
         static constexpr value_type dvon( const value_type& v ) { return v; }
       };
       constexpr static value_type default_value_or_nonsense()

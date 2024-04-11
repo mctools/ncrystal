@@ -1,3 +1,11 @@
+v3.8.1 2024-04-11
+     * Fix rare FPE in lcbragg code (github issue #171).
+     * Remove a few faulty noexcept modifiers in (found by cppcheck).
+     * Fix NCMatCfg::textData which technically returned a reference to a
+       temporary (although this is not believed to have actually caused any
+       issues, since the "temporary" came from a longer-lived shared_ptr). This
+       was also found with cppcheck.
+
 v3.8.0 2023-12-03
      * Completely obsolete the ncrystal_inspectfile command in favour of the
        nctool command. Trying to invoke ncrystal_inspectfile now results in an

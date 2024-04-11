@@ -205,6 +205,7 @@ namespace NCRYSTAL_NAMESPACE {
   {
     nc_assert(ip.isValid());
     nc_assert(ncabs(cos_angle_indir_normal)<=1.+1e-10);
+    cos_angle_indir_normal = ncclamp(cos_angle_indir_normal,-1.0,1.0);
     if (ip.m_Q>0.) {
       double sin_angle_indir_normal = std::sqrt(1.0-cos_angle_indir_normal*cos_angle_indir_normal);//>0 since angle is in 0..pi.
       return ip.m_Q * m_gos.circleIntegral( cos_angle_indir_normal, sin_angle_indir_normal, ip.m_sin_perfect_theta, ip.m_cos_perfect_theta );

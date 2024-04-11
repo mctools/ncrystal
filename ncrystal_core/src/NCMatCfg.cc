@@ -1010,8 +1010,19 @@ NC::MatCfg NC::MatCfg::cloneThinned() const
   return cfg;
 }
 
+const NC::TextData& NC::MatCfg::textData() const {
+  //NB: Sync checks and messages between this fct and the next
+  if ( m_impl->isMultiPhase() )
+    NCRYSTAL_THROW(LogicError,"MatCfg::textDataSP called for multiphase object");
+  if ( m_textDataSP == nullptr )
+    NCRYSTAL_THROW(LogicError,"MatCfg::textDataSP/textData methods should not be"
+                   " used in a MatCfg object which was thinned or moved-from.");
+  return *m_textDataSP;
+}
+
 NC::TextDataSP NC::MatCfg::textDataSP() const
 {
+  //NB: Sync checks and messages between this fct and the previous
   if ( m_impl->isMultiPhase() )
     NCRYSTAL_THROW(LogicError,"MatCfg::textDataSP called for multiphase object");
   if ( m_textDataSP == nullptr )
