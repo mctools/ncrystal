@@ -267,7 +267,7 @@ void NC::setDefaultRNGFctForAllThreads( std::function<double()> fct )
 }
 
 namespace NCRYSTAL_NAMESPACE {
-  struct RNGProducer::Impl {
+  struct RNGProducer::Impl final {
     Impl( shared_obj<RNGStream> rng ) : m_nextproduct( std::move(rng) ) {}
     Impl( no_init_t ) {}
     optional_shared_obj<RNGStream> m_nextproduct;

@@ -1,3 +1,8 @@
+v3.8.2 2024-04-30
+     * Add importlib_metadata as python build dependency for Python < 3.8.
+     * CMake code no longer strictly disallows mixing of NCRYSTAL_NAMESPACE and
+       NCRYSTAL_GEANT4 options.
+
 v3.8.1 2024-04-11
      * Fix rare FPE in lcbragg code (github issue #171).
      * Remove a few faulty noexcept modifiers in (found by cppcheck).

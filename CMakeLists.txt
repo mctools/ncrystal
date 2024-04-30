@@ -86,7 +86,7 @@ endif()
 
 cmake_policy( SET CMP0048 NEW )#Not sure if this is really needed
 
-project( NCrystal VERSION 3.8.1 ${_project_metadata} )
+project( NCrystal VERSION 3.8.2 ${_project_metadata} )
 
 unset( _project_metadata )
 
@@ -770,13 +770,6 @@ endif()
 #G4NCrystal
 set( NCRYSTAL_GEANT4 OFF )
 if ( NOT NCRYSTAL_ENABLE_GEANT4 STREQUAL "OFF" )
-  if ( NCRYSTAL_NAMESPACE )
-    #Since we didn't implement the namespace for the G4NCrystal c++ namespace as
-    #well, it is best to error out here. Once we have migrated to new and better
-    #(and standalone) NCrystal-Geant4 hooks, they should certainly also have an
-    #option for namespace protection.
-    message( FATAL_ERROR "It is not currently supported to use NCRYSTAL_NAMESPACE without NCRYSTAL_GEANT4=OFF (please get in touch if you have a different need)" )
-  endif()
   find_package(Geant4)
   if( Geant4_FOUND )
     set( NCRYSTAL_GEANT4 ON )
@@ -788,8 +781,18 @@ if ( NOT NCRYSTAL_ENABLE_GEANT4 STREQUAL "OFF" )
 endif()
 
 if ( NCRYSTAL_GEANT4 )
+  set( _tmp_basiclibnameg4 "G4NCrystal" )
   add_library(G4NCrystal SHARED ${SRCS_NCG4})#NB: No SOVERSION number since we plan to migrate this library out of the NCrystal repo.
-  set(G4NCrystal_LIBNAME "${CMAKE_SHARED_LIBRARY_PREFIX}G4NCrystal${CMAKE_SHARED_LIBRARY_SUFFIX}")
+  if ( NCRYSTAL_NAMESPACE )
+    #Since we didn't implement the namespace for the G4NCrystal C++ namespace as
+    #well, it is best to error out here. Once we have migrated to new and better
+    #(and standalone) NCrystal-Geant4 hooks, they should certainly also have an
+    #option for namespace protection there.
+    message( WARNING "The NCRYSTAL_NAMESPACE feature is not actually fully implemented for the NCRYSTAL_GEANT4 extension (please get in touch if you have a different need)" )
+    set( _tmp_basiclibnameg4 "${_tmp_basiclibnameg4}-${NCRYSTAL_NAMESPACE}" )
+    set_target_properties( G4NCrystal PROPERTIES OUTPUT_NAME "${_tmp_basiclibnameg4}" )
+  endif()
+  set(G4NCrystal_LIBNAME "${CMAKE_SHARED_LIBRARY_PREFIX}${_tmp_basiclibnameg4}${CMAKE_SHARED_LIBRARY_SUFFIX}")
   #Make sure client code will use at least c++11:
   target_compile_features( G4NCrystal INTERFACE cxx_std_11 )
   set_target_common_props( G4NCrystal )
