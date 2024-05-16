@@ -32,12 +32,12 @@ namespace NCRYSTAL_NAMESPACE {
 
   namespace InfoBuilder {
 
-    struct NCRYSTAL_API UnitCell {
+    struct NCRYSTAL_API UnitCell final {
       StructureInfo structinfo;
       Optional<AtomInfoList> atomlist;
     };
 
-    struct NCRYSTAL_API SinglePhaseBuilder {
+    struct NCRYSTAL_API SinglePhaseBuilder final : MoveOnly {
 
       DataSourceName dataSourceName;
 
@@ -89,7 +89,7 @@ namespace NCRYSTAL_NAMESPACE {
       Info::StateOfMatter stateOfMatter = Info::StateOfMatter::Unknown;
     };
 
-    struct NCRYSTAL_API MultiPhaseBuilder {
+    struct NCRYSTAL_API MultiPhaseBuilder final : MoveOnly {
       Info::PhaseList phases;
     };
 
