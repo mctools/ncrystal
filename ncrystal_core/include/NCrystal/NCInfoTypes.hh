@@ -206,7 +206,8 @@ namespace NCRYSTAL_NAMESPACE {
   };
 
 #if defined(NCRYSTAL_ALLOW_ABI_BREAKAGE) || defined(_MSC_VER)
-  typedef SmallVector<std::unique_ptr<DynamicInfo>,4> DynamicInfoList;
+  //VSCode vectors does not support move-only objects apparently:
+  typedef SmallVector<std::unique_ptr<DynamicInfo>,4,SvMode::FASTACCESS_IMPLICITCOPY> DynamicInfoList;
 #else
   typedef std::vector<std::unique_ptr<DynamicInfo>> DynamicInfoList;
 #endif
