@@ -179,7 +179,14 @@ namespace NCRYSTAL_NAMESPACE {
     std::vector<Pos>& detail_accessPos() { return m_pos; }
   };
 
+
+#if defined(NCRYSTAL_ALLOW_ABI_BREAKAGE) || defined(_MSC_VER)
+  //VSCode std::vectors does not support move-only objects apparently:
+  using AtomInfoList = SmallVector<AtomInfo,4>;
+#else
   using AtomInfoList = std::vector<AtomInfo>;
+#endif
+
   using AtomList = AtomInfoList;//obsolete alias
 
   class NCRYSTAL_API DynamicInfo : public UniqueID {
@@ -206,7 +213,7 @@ namespace NCRYSTAL_NAMESPACE {
   };
 
 #if defined(NCRYSTAL_ALLOW_ABI_BREAKAGE) || defined(_MSC_VER)
-  //VSCode vectors does not support move-only objects apparently:
+  //VSCode std::vectors does not support move-only objects apparently:
   typedef SmallVector<std::unique_ptr<DynamicInfo>,4> DynamicInfoList;
 #else
   typedef std::vector<std::unique_ptr<DynamicInfo>> DynamicInfoList;
