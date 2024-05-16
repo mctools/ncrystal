@@ -284,10 +284,11 @@ namespace NCRYSTAL_NAMESPACE {
     T * m_ptr = nullptr;
   public:
     Pimpl() : m_ptr(new T) {}
-    template<typename ...Args> Pimpl( Args&& ...args ) : m_ptr(new T(std::forward<Args>(args)... )) {}
     ~Pimpl() { delete m_ptr; }
-    Pimpl( Pimpl&& o ) { std::swap(m_ptr,o.m_ptr); }
-    Pimpl& operator=( Pimpl&& o ) { delete m_ptr; m_ptr = nullptr; std::swap(m_ptr,o.m_ptr); return *m_ptr; }
+    template<typename ...Args>
+    Pimpl( Args&& ...args ) : m_ptr(new T(std::forward<Args>(args)... )) {}
+    Pimpl( Pimpl&& o ) { T* tmp = nullptr; std::swap(tmp,m_ptr); std::swap(m_ptr,o.m_ptr); delete tmp;  }
+    Pimpl& operator=( Pimpl&& o ) { T* tmp = nullptr; std::swap(tmp,m_ptr); std::swap(m_ptr,o.m_ptr); delete tmp; return *this; }
     const T* operator->() const { return m_ptr; }
     T* operator->() { return m_ptr; }
     const T& operator*() const  { return *m_ptr; }
