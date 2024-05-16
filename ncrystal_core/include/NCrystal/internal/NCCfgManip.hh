@@ -350,8 +350,13 @@ namespace NCRYSTAL_NAMESPACE {
     inline void CfgManip::setValue( CfgData& data, const TValType& val )
     {
       constexpr auto varid = constexpr_varIdFromName(TVarDef::name);
-      //NB: no need to capture &varid (even gives warning on apple clang 11):
+      //NB: no need to capture &varid (even gives warning on clang/gcc), but
+      //VSCode wants it:
+#ifdef _MSC_VER
       auto doCreate = [&val,&varid](){ return TVarDef::set_val( varid, val ); };
+#else
+      auto doCreate = [&val](){ return TVarDef::set_val( varid, val ); };
+#endif
       detail_setVar( data, varid, doCreate );
     }
 
