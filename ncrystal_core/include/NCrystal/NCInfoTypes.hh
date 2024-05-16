@@ -23,6 +23,9 @@
 
 #include "NCrystal/NCSABData.hh"
 #include "NCrystal/NCAtomData.hh"
+#if defined(NCRYSTAL_ALLOW_ABI_BREAKAGE) || defined(_MSC_VER)
+#  include "NCrystal/NCSmallVector.hh"
+#endif
 
 /////////////////////////////////////////////////////////
 // Data structures used on Info objects (in NCInfo.hh) //
@@ -202,7 +205,11 @@ namespace NCRYSTAL_NAMESPACE {
     friend class AtomInfo;
   };
 
+#if defined(NCRYSTAL_ALLOW_ABI_BREAKAGE) || defined(_MSC_VER)
+  typedef SmallVector<std::unique_ptr<DynamicInfo>,4> DynamicInfoList;
+#else
   typedef std::vector<std::unique_ptr<DynamicInfo>> DynamicInfoList;
+#endif
 
   class NCRYSTAL_API DI_Sterile final : public DynamicInfo {
     //Class indicating elements for which inelastic neutron scattering is absent
