@@ -439,6 +439,12 @@ namespace NCRYSTAL_NAMESPACE {
   };
 
   struct NCRYSTAL_API Info::Data final : private NoCopyMove {
+    //For MSC:
+    Data( const Data& ) = delete;
+    Data& operator=( const Data& ) = delete;
+    Data( Data&& ) = delete;
+    Data& operator=( Data&& ) = delete;
+
     //Single-phase only:
     Optional<StructureInfo> structinfo;
     AtomInfoList atomlist;
