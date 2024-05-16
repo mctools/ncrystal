@@ -120,7 +120,7 @@ namespace NCrystal = NCRYSTAL_NAMESPACE;
 #      define nc_cplusplus 201402L
 #    endif
 #  else
-#    define nc_cplusplus nc_cplusplus
+#    define nc_cplusplus __cplusplus
 #  endif
 /* For decorating with constexpr only in C++17 and later, or noexcept only in */
 /* non-dbg builds:                                                            */
