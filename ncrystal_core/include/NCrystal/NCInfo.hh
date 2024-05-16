@@ -440,6 +440,8 @@ namespace NCRYSTAL_NAMESPACE {
 
   struct NCRYSTAL_API Info::Data final : private NoCopyMove {
     //For MSC:
+    Data() = default;
+    ~Data() = default;
     Data( const Data& ) = delete;
     Data& operator=( const Data& ) = delete;
     Data( Data&& ) = delete;
