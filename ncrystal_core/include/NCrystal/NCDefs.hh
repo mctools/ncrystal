@@ -399,13 +399,13 @@ namespace NCRYSTAL_NAMESPACE {
     //For convenience we provide special constructors and setters for 2-vectors
     //and 3-vectors (using one of these with a wrong length vector type will
     //result in a compile-time error):
-    template<typename = typename std::enable_if_t<N==2>>
+    template<decltype(N) U = N, typename = typename std::enable_if<U==2>::type>
     ncconstexpr17 FixedVector(double xx, double yy) noexcept { m_data = { xx, yy }; }
-    template<typename = typename std::enable_if_t<N==3>>
+    template<decltype(N) U = N, typename = typename std::enable_if<U==3>::type>
     ncconstexpr17 FixedVector(double xx, double yy, double zz) noexcept { m_data = { xx, yy, zz }; }
-    template<typename = typename std::enable_if_t<N==2>>
+    template<decltype(N) U = N, typename = typename std::enable_if<U==2>::type>
     ncconstexpr17 void set(double xx, double yy) noexcept { m_data = { xx, yy }; }
-    template<typename = typename std::enable_if_t<N==3>>
+    template<decltype(N) U = N, typename = typename std::enable_if<U==3>::type>
     ncconstexpr17 void set(double xx, double yy, double zz) noexcept { m_data = { xx, yy, zz }; }
 
     //Interoperability with std::array:
