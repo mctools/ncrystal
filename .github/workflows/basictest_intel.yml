@@ -1,0 +1,120 @@
+name: basictest_intel
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        path: src
+
+    - name: add oneAPI to apt
+      run: |
+        cd /tmp
+        wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+        sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+        rm GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+        sudo add-apt-repository "deb https://apt.repos.intel.com/oneapi all main"
+
+    - name: apt update
+      run: sudo apt update
+
+    - name: install oneAPI dpcpp compiler
+      run: sudo apt install intel-oneapi-compiler-dpcpp-cpp
+
+    - name: Configure CMake
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        #NB: We could use
+        #        -DCMAKE_CXX_COMPILER=icpx
+        #        -DCMAKE_C_COMPILER=icx
+        #But just because it seems to be something that might be useful. we do:
+        export CC=$(which icx)
+        export CXX=$(which icpx)
+        cmake \
+        -S ${{github.workspace}}/src \
+        -B ${{github.workspace}}/build \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install \
+        -DNCRYSTAL_ENABLE_EXAMPLES=ON \
+        -DNCRYSTAL_BUILD_STRICT=ON
+
+#Flags that we didn't need:
+#        -DIntelDPCPP_DIR="/opt/intel/oneapi/compiler/latest/linux/cmake/SYCL"
+#        -DNCRYSTAL_ENABLE_SETUPSH=ON
+#        -DMKL_ROOT="/opt/intel/oneapi/mkl/latest"
+#        -DTBB_ROOT="/opt/intel/oneapi/tbb/latest"
+
+    - name: Build
+      run: >
+        source /opt/intel/oneapi/setvars.sh &&
+        cmake
+        --build ${{github.workspace}}/build
+        --config Release
+
+    - name: Install
+      run: source /opt/intel/oneapi/setvars.sh && cmake --install ${{github.workspace}}/build
+
+    - name: install other python packages
+      run: sudo apt install python3-numpy
+
+    - name: Tests with eval ncrystal-config setup
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        set -eux
+        eval $(${{github.workspace}}/install/bin/ncrystal-config --setup)
+        ncrystal-config --summary
+        nctool --test
+        ncrystal-config --help
+        ncrystal_example_c
+        ncrystal_example_cpp
+        ncrystal_example_py
+        nctool --help
+        nctool --dump 'Al_sg225.ncmat;dcutoff=1.5'
+        python3 -c 'import NCrystal; NCrystal.test()'
+        ncrystal_vdos2ncmat --help
+        ncrystal_cif2ncmat --help
+        ncrystal_ncmat2cpp --help
+        ncrystal_hfg2ncmat --help
+        ncrystal_verifyatompos --help
+        #needs gemmi: ncrystal_cif2ncmat codid::9008460
+        ncrystal_ncmat2hkl --help
+        ncrystal_ncmat2hkl --format=laz 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test_Al.laz
+        ncrystal_ncmat2hkl --format=lau 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test_Al.lau
+        nctool -d ./test_Al.laz
+        nctool -d ./test_Al.lau
+        ncrystal_ncmat2cpp $(ncrystal-config --show=datadir)/Al_sg225.ncmat -o test.cpp
+        cat test.cpp
+        #NEEDS MATPLOTLIB: nctool --pdf Al_sg225.ncmat
+        #Examples from README:
+        cp ./src/examples/ncrystal_example_cpp.cc ./my_cpp_code.cpp
+        cp ./src/examples/ncrystal_example_c.c ./my_c_code.c
+        export LDFLAGS="${LDFLAGS:-} -Wl,-rpath,$(ncrystal-config --show libdir) $(ncrystal-config --show libpath)" &&
+        export CFLAGS="${CFLAGS:-} -I$(ncrystal-config --show includedir)" &&
+        export CXXFLAGS="${CXXFLAGS:-} -I$(ncrystal-config --show includedir)" &&
+        cc -std=c11 ${LDFLAGS} ${CFLAGS} my_c_code.c -o my_c_app &&
+        ./my_c_app &&
+        c++ -std=c++17 ${LDFLAGS} ${CXXFLAGS} my_cpp_code.cpp -o my_cpp_app &&
+        ./my_cpp_app &&
+        echo "Custom compilation of downstream C/C++ code succeeded"
+        eval $(ncrystal-config --unsetup)
+
+#    - name: install oneAPI MKL library
+#      run: |
+#        sudo apt install intel-oneapi-mkl-devel
+
+#TK    - name: Add Intel package sources
+#TK      run: |
+#TK        wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | gpg --dearmor | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
+#TK        echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
+#TK        sudo apt update
+#TK
+#TK    - name: Install Intel OneAPI Base Toolkit
+#TK      run: |
+#TK        sudo apt install intel-basekit
