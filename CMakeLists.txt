@@ -381,6 +381,20 @@ if ( NCRYSTAL_BUILD_STRICT )
   endif()
 endif()
 
+set( ncrystal_extra_private_compile_options "" )
+if ( "x${CMAKE_CXX_COMPILER_ID}" STREQUAL "xIntelLLVM" )
+  #Intel defaults to the equivalent of -ffast-math, revert back to proper math:
+  set( ncrystal_extra_private_compile_options -fp-model=precise )
+elseif( "${CMAKE_VERSION}" VERSION_LESS "3.20" AND "x${CMAKE_CXX_COMPILER_ID}" STREQUAL "xClang" )
+  #Older cmake had the llvm-based intel compiler classified as "Clang". In
+  #this case, we check whether or not the -fp-model=precise flag is supported
+  #or not:
+  check_cxx_compiler_flag( -fp-model=precise ncrystal_compiler_supports_fpmodelprecise )
+  if ( ncrystal_compiler_supports_fpmodelprecise )
+    set( ncrystal_extra_private_compile_options -fp-model=precise )
+  endif()
+endif()
+
 function(set_target_common_props targetname)
   #Set private non-transitive properties. If strict builds are enabled, this can
   #enforce no warnings and compilation with a specific standards.
@@ -395,6 +409,9 @@ function(set_target_common_props targetname)
   endif()
   #Always disallow M_PI and friends in our own code (they are not portable):
   target_compile_definitions( ${targetname} PRIVATE NCRYSTAL_NO_CMATH_CONSTANTS )
+  if ( ncrystal_extra_private_compile_options )
+    target_compile_options( ${targetname} PRIVATE ${ncrystal_extra_private_compile_options} )
+  endif()
 endfunction()
 
 #NCrystal library and header files, including optional built-in modules if enabled:
