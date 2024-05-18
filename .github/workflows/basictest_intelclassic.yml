@@ -1,4 +1,4 @@
-name: basictest_intel
+name: basictest_intelclassic
 
 on:
   push:
