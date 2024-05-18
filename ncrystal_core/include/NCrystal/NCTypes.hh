@@ -497,7 +497,7 @@ namespace NCRYSTAL_NAMESPACE {
                                                                           ValStr_buf_minsize, ValBool_buf_minsize,
                                                                           ValVector_buf_minsize, ValOrientDir_buf_minsize );
       }
-      enum class NCRYSTAL_API VarId : std::uint32_t;//only fwd decl here
+      enum class VarId : std::uint32_t;//only fwd decl here
       using VarBuf = ImmutableBuffer<varbuf_calc::buf_minsize,varbuf_calc::buf_align,VarId>;
       using VarBufVector = SmallVector<VarBuf,7,SVMode::FASTACCESS_IMPLICITCOPY>;
     }
