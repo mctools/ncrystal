@@ -282,17 +282,17 @@ namespace NCRYSTAL_NAMESPACE {
   template<typename T>
   class NCRYSTAL_API Pimpl : private MoveOnly {
   private:
-    std::unique_ptr<T> m_ptr;
+    T * m_ptr = nullptr;
   public:
-    Pimpl() : m_ptr(std::make_unique<T>()) {}
-    template<typename ...Args> Pimpl( Args&& ...args ) : m_ptr(std::make_unique<T>(std::forward<Args>(args)... )) {}
-    ~Pimpl() = default;
-    Pimpl( Pimpl&& ) = default;
-    Pimpl& operator=( Pimpl&& ) = default;
-    const T* operator->() const { return m_ptr.get(); }
-    T* operator->() { return m_ptr.get(); }
-    const T& operator*() const  { return *m_ptr.get(); }
-    T& operator*() { return *m_ptr.get(); }
+    Pimpl() : m_ptr(new T) {}
+    template<typename ...Args> Pimpl( Args&& ...args ) : m_ptr(new T(std::forward<Args>(args)... )) {}
+    ~Pimpl() { delete m_ptr; }
+    Pimpl( Pimpl&& o ) { std::swap(m_ptr,o.m_ptr); }
+    Pimpl& operator=( Pimpl&& o ) { delete m_ptr; m_ptr = nullptr; std::swap(m_ptr,o.m_ptr); return *m_ptr; }
+    const T* operator->() const { return m_ptr; }
+    T* operator->() { return m_ptr; }
+    const T& operator*() const  { return *m_ptr; }
+    T& operator*() { return *m_ptr; }
   };
 
   template<class T>
