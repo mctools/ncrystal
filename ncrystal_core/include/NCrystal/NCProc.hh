@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -71,6 +71,10 @@ namespace NCRYSTAL_NAMESPACE {
     const ProcImpl::Process& underlying() const;
 
     virtual ~Process() = default;
+
+#ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
+    CachePtr& underlyingCachePtr() { return m_cachePtr; }
+#endif
 
   protected:
     //Allow move semantics only on derived classes (no slicing):

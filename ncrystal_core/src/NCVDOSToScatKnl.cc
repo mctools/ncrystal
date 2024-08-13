@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -24,220 +24,307 @@
 #include "NCrystal/internal/NCKinUtils.hh"
 #include "NCrystal/internal/NCString.hh"
 #include "NCrystal/internal/NCIter.hh"
+#include "NCrystal/internal/NCMsg.hh"
+#include "NCrystal/internal/NCFactoryJobs.hh"
 #include "NCrystal/internal/NCSABUtils.hh"
 namespace NC=NCrystal;
-#include <iostream>
 
 namespace NCRYSTAL_NAMESPACE {
 
   namespace V2SKDetail {
-    static bool s_verbose = getenv("NCRYSTAL_DEBUG_PHONON");
-    inline double stirlingsSeriesSum9thOrder(double inv_n)
-    {
-      //Calculate and return the sum_{k=0}^9{ gk/x^k }, needed to estimate
-      //Stirling's series (see eq. 5.11.3 and 5.11.4 in
-      //https://dlmf.nist.gov/5.11): Thus, pass in inv_n = 1/n and get back
-      //1+1/(12n)+1/(288n^2)+... (up to terms with 1/n^9) from Stirling's
-      //series, The result must be multiplied by sqrt(2pi*n)*(n/e)^n to provide
-      //an estimate of the faculty of n ("n!"). Factors ci are taken from:
-      //https://oeis.org/A001163 and https://oeis.org/A001164
-      //
-      //For arguments n>=9 this can be used to evaluate n! to a relative
-      //precision of O(1e-13) or better.
-      constexpr double c1 = 1./12.;
-      constexpr double c2 = 1./288.;
-      constexpr double c3 = -139/51840.;
-      constexpr double c4 = -571./2488320.;
-      constexpr double c5 = 163879./209018880.;
-      constexpr double c6 = 5246819./75246796800.;
-      constexpr double c7 = -534703531./902961561600.;
-      constexpr double c8 = -4483131259./86684309913600.;
-      constexpr double c9 = 432261921612371./514904800886784000.;
-      return 1.0 + inv_n*(c1+inv_n*(c2+inv_n*(c3+inv_n*(c4+inv_n*(c5+inv_n*(c6+inv_n*(c7+inv_n*(c8+inv_n*c9))))))));
-    }
 
-    constexpr double kTmsd_to_alpha2x(double kT,double msd)
-    {
-      //alpha2x is factor required to convert alpha value to x (aka "2W" in Sjolanders paper).
-#if __cplusplus >= 201402L
-      constexpr double fact = ( 2.0*const_neutron_mass_evc2/(constant_hbar*constant_hbar) );
-      return fact*kT*msd;
+    namespace {
+
+      static bool s_verbose = getenv("NCRYSTAL_DEBUG_PHONON");
+      inline double stirlingsSeriesSum9thOrder(double inv_n)
+      {
+        //Calculate and return the sum_{k=0}^9{ gk/x^k }, needed to estimate
+        //Stirling's series (see eq. 5.11.3 and 5.11.4 in
+        //https://dlmf.nist.gov/5.11): Thus, pass in inv_n = 1/n and get back
+        //1+1/(12n)+1/(288n^2)+... (up to terms with 1/n^9) from Stirling's
+        //series, The result must be multiplied by sqrt(2pi*n)*(n/e)^n to provide
+        //an estimate of the faculty of n ("n!"). Factors ci are taken from:
+        //https://oeis.org/A001163 and https://oeis.org/A001164
+        //
+        //For arguments n>=9 this can be used to evaluate n! to a relative
+        //precision of O(1e-13) or better.
+        constexpr double c1 = 1./12.;
+        constexpr double c2 = 1./288.;
+        constexpr double c3 = -139/51840.;
+        constexpr double c4 = -571./2488320.;
+        constexpr double c5 = 163879./209018880.;
+        constexpr double c6 = 5246819./75246796800.;
+        constexpr double c7 = -534703531./902961561600.;
+        constexpr double c8 = -4483131259./86684309913600.;
+        constexpr double c9 = 432261921612371./514904800886784000.;
+        return 1.0 + inv_n*(c1+inv_n*(c2+inv_n*(c3+inv_n*(c4+inv_n*(c5+inv_n*(c6+inv_n*(c7+inv_n*(c8+inv_n*c9))))))));
+      }
+
+      constexpr double kTmsd_to_alpha2x(double kT,double msd)
+      {
+        //alpha2x is factor required to convert alpha value to x (aka "2W" in Sjolanders paper).
+#if nc_cplusplus >= 201402L
+        constexpr double fact = ( 2.0*const_neutron_mass_evc2/(constant_hbar*constant_hbar) );
+        return fact*kT*msd;
 #else
-      //In c++11, constexpr functions can only consist of a single return statement.
-      return (( 2.0*const_neutron_mass_evc2/(constant_hbar*constant_hbar) ))*kT*msd;
+        //In c++11, constexpr functions can only consist of a single return statement.
+        return (( 2.0*const_neutron_mass_evc2/(constant_hbar*constant_hbar) ))*kT*msd;
 #endif
-    }
+      }
 
-    VectD fillSABFromVDOS( const VDOSGn& Gn_asym,
-                           const double msd,
-                           const VectD& alphaGrid,
-                           const VectD& betaGrid,
-                           ScaleGnContributionFct scaleGnContribFct )
-    {
-      // Evaluate S(alpha,beta) from Sjolander's II.28, recasted to alpha/beta
-      // and excluding sigma*kT/4E from the definition of S.
+      void nc_array_add_inplace( double * ncrestrict tgt,
+                                 const double * ncrestrict src,
+                                 std::size_t n )
+      {
+        for ( std::size_t i = 0; i < n; ++i )
+          tgt[i] += src[i];
+      }
 
-      const auto nalpha = alphaGrid.size();
-      VectD sab( nalpha * betaGrid.size(), 0.0);
-      const unsigned maxOrder = Gn_asym.maxOrder().value();
-      const double kT = Gn_asym.kT();
+      VectD fillSABFromVDOS( const VDOSGn& Gn_asym,
+                             const double msd,
+                             const VectD& alphaGrid,
+                             const VectD& betaGrid,
+                             ScaleGnContributionFct scaleGnContribFct,
+                             unsigned min_order = 1,
+                             unsigned max_order = std::numeric_limits<unsigned>::max() )
+      {
+        // Evaluate S(alpha,beta) from Sjolander's II.28, recasted to alpha/beta
+        // and excluding sigma*kT/4E from the definition of S.
 
-      //Alpha-dependency is contained in f(x,n)=exp(-x)*x^n/n! where
-      //x=alpha2x*alpha.  For n<stirling_threshold, f(x,n) are calculated
-      //directly and recursively, using f(x,n)=f(x,n-1)*(x/n). For higher n,
-      //this becomes numerically unstable and we instead use Stirling's series
-      //to rewrite the factor of "n!" and evaluate f(x,n) directly. NB,
-      //stirling_threshold should be left at 250: it can't be raised much higher
-      //since the direct method is not valid much beyond n=250, and if it is
-      //decreased too far there will be precision (and speed) issues.
-      constexpr bool stirling_threshold = 250;
-      const double alpha2x = V2SKDetail::kTmsd_to_alpha2x(kT,msd);
-      auto x_vals = vectorTrf(alphaGrid,[alpha2x](double alpha){ return alpha*alpha2x; } );
-      auto expmhalfx_vals = vectorTrf(x_vals,[](double x){ return std::exp(-0.5*x); } );
-      VectD logx_vals = ( maxOrder >= stirling_threshold ? vectorTrf(x_vals,[](double x){ return std::log(x); } ) : VectD() );
-      auto fxn_cache = expmhalfx_vals;//We apply half of the exp(-x) factor before
-                                      //the x^n/n! factor is added, and the other
-                                      //half of exp(-x) we add later. This is done
-                                      //to extend range of valid x-values.
-      VectD alpha_factors;
-      alpha_factors.resize(x_vals.size());
+        const auto nalpha = alphaGrid.size();
+        VectD sab( nalpha * betaGrid.size(), 0.0);
+        const unsigned maxOrder = Gn_asym.maxOrder().value();
+        const double kT = Gn_asym.kT();
 
-      //For reasons of numerical stability and efficiency, we always evaluate S
-      //first for negative beta, and obtain the values at positive beta by the
-      //identity ("detailed balance"): S(alpha,+beta)=S(alpha,-beta)*exp(-beta).
-      //
-      //Find range of betaGrid which should be flipped:
-      auto itbeta_zero = findClosestValInSortedVector(betaGrid, 0.0);
-      nc_assert( *itbeta_zero == 0.0 );
-      auto itbeta_firstflip = findClosestValInSortedVector(betaGrid, -betaGrid.back());
-      nc_assert( *itbeta_firstflip == -betaGrid.back() );
-      const std::size_t idx_firstflip = std::distance(betaGrid.cbegin(),itbeta_firstflip);
-      const std::size_t idx_zero = std::distance(betaGrid.cbegin(),itbeta_zero);
-      nc_assert( idx_zero+1 <= betaGrid.size() );
-      const VectD betaGridNonPositive( betaGrid.begin(), std::next(betaGrid.begin(),idx_zero+1) );//vector instead of span to simplify code below
-      auto expbeta_vals_nonposbeta = vectorTrf( betaGridNonPositive, [](double beta){ return std::exp(beta); } );
+        //Alpha-dependency is contained in f(x,n)=exp(-x)*x^n/n! where
+        //x=alpha2x*alpha.  For n<stirling_threshold, f(x,n) are calculated
+        //directly and recursively, using f(x,n)=f(x,n-1)*(x/n). For higher n,
+        //this becomes numerically unstable and we instead use Stirling's series
+        //to rewrite the factor of "n!" and evaluate f(x,n) directly. NB,
+        //stirling_threshold should be left at 250: it can't be raised much higher
+        //since the direct method is not valid much beyond n=250, and if it is
+        //decreased too far there will be precision (and speed) issues.
+        constexpr bool stirling_threshold = 250;
+        const double alpha2x = V2SKDetail::kTmsd_to_alpha2x(kT,msd);
+        auto x_vals = vectorTrf(alphaGrid,[alpha2x](double alpha){ return alpha*alpha2x; } );
+        auto expmhalfx_vals = vectorTrf(x_vals,[](double x){ return std::exp(-0.5*x); } );
+        VectD logx_vals = ( maxOrder >= stirling_threshold ? vectorTrf(x_vals,[](double x){ return std::log(x); } ) : VectD() );
+        auto fxn_cache = expmhalfx_vals;//We apply half of the exp(-x) factor before
+        //the x^n/n! factor is added, and the other
+        //half of exp(-x) we add later. This is done
+        //to extend range of valid x-values.
+        VectD alpha_factors;
+        alpha_factors.resize(x_vals.size());
 
-      //Now we loop and fill the S-table. First over phonon order, n, next over
-      //beta and finally alpha. We take care to keep as many calculations as
-      //possible in the outer loops, while avoiding unnecessarily repeating
-      //calculations or utilising enormous memory caches.
+        //For reasons of numerical stability and efficiency, we always evaluate S
+        //first for negative beta, and obtain the values at positive beta by the
+        //identity ("detailed balance"): S(alpha,+beta)=S(alpha,-beta)*exp(-beta).
+        //
+        //Find range of betaGrid which should be flipped:
+        auto itbeta_zero = findClosestValInSortedVector(betaGrid, 0.0);
+        nc_assert( *itbeta_zero == 0.0 );
+        auto itbeta_firstflip = findClosestValInSortedVector(betaGrid, -betaGrid.back());
+        nc_assert( *itbeta_firstflip == -betaGrid.back() );
+        const std::size_t idx_firstflip = std::distance(betaGrid.cbegin(),itbeta_firstflip);
+        const std::size_t idx_zero = std::distance(betaGrid.cbegin(),itbeta_zero);
+        nc_assert( idx_zero+1 <= betaGrid.size() );
+        const VectD betaGridNonPositive( betaGrid.begin(), std::next(betaGrid.begin(),idx_zero+1) );//vector instead of span to simplify code below
+        auto expbeta_vals_nonposbeta = vectorTrf( betaGridNonPositive, [](double beta){ return std::exp(beta); } );
 
-      for ( unsigned n = 1; n <= maxOrder; ++n) {
+        //Now we loop and fill the S-table. First over phonon order, n, next over
+        //beta and finally alpha. We take care to keep as many calculations as
+        //possible in the outer loops, while avoiding unnecessarily repeating
+        //calculations or utilising enormous memory caches.
 
-        const double contribScaleFactor = scaleGnContribFct ? scaleGnContribFct(n) : 1.0;
-        nc_assert(contribScaleFactor>=0.0);
-
-        //Prepare for Gn(beta)-evaluations:
-        auto betakT_Range = Gn_asym.eRange(n);
-        const double invn = 1.0/n;
-
-        //Preparation of f(x)=exp(-x)*x^n/n! is more tricky, due to reasons of
-        //efficiency and numerical issues. As explained above, for orders below
-        //stirling_threshold, we build up recursively, and above we use
-        //Stirling's formula:
-        if ( n < stirling_threshold ) {
-          //for reasonably low orders we can build up slowly and cheaply (leaving
-          //out of fxn_cache a final factor of expmhalfx for numerical stability):
-          for (auto x : enumerate(x_vals) )
-            vectAt(fxn_cache,x.idx) *= x.val*invn;
-          for (auto fxn : enumerate(fxn_cache) )
-            vectAt(alpha_factors,fxn.idx) = fxn.val * vectAt(expmhalfx_vals,fxn.idx) * kT;
-        } else {
-          //Very high order phonons, f(x) is non-zero at very high values of x, but
-          //exp(-0.5*x) becomes 0, precluding the direct/cheap evaluation. Instead
-          //we evaluate directly, with the help of Stirling's series for the
-          //factorial, n!. Everything is suitably rearranged so cancellations happen
-          //before the exponential is evaluated.
-          const double gn = V2SKDetail::stirlingsSeriesSum9thOrder(invn);
-          const double fact= kT * kInvSqrt2Pi/(std::sqrt(n)*gn);
-          if (!fact)
-            continue;//nothing can contribute at this order (should not really happen?)
-          const double logn = std::log(n);
-          for (auto x : enumerate(x_vals) ) {
-            const double exparg = n * ( vectAt(logx_vals,x.idx) - logn + 1.0 ) - x.val;
-            vectAt(alpha_factors,x.idx) = fact * std::exp(exparg);
-          }
-        }
-
-        for ( auto beta : enumerate(betaGridNonPositive) ) {
-          //Can evaluate more precisely at negative beta values and simply flip +
-          //apply detailed balance factor for positive.
-          nc_assert( beta.val<=0.0 );
-          double energy = beta.val * kT;
-          if (!valueInInterval(betakT_Range,energy))
-            continue;//Gn(beta) zero here.
-
-          double expMbeta(0.0);
-          std::size_t posbeta_idx(0);
-          if ( beta.idx >= idx_firstflip ) {
-            posbeta_idx = idx_zero + ( idx_zero - beta.idx );
-            expMbeta = vectAt(expbeta_vals_nonposbeta,beta.idx);
-          }
-
-          const double Gn_asym_eval = contribScaleFactor * Gn_asym.eval(n,energy);
-          if ( !(Gn_asym_eval>0.0) )
+        for ( unsigned n = 1; n <= maxOrder; ++n) {
+          if ( n < min_order )
             continue;
-#if 0
-          //readable version of innermost loop:
-          const auto offset_alpharow = beta.idx*nalpha;
-          const auto offset_alpharow_posbeta = posbeta_idx*nalpha;
-          for ( auto alpha_fact : enumerate(alpha_factors) ) {
-            if ( !(alpha_fact.val>0.0) )
-              continue;
-            double contrib_S_negbeta = alpha_fact.val * Gn_asym_eval;
+          if ( n > max_order )
+            break;
 
-            //Negative beta:
-            vectAt( sab, offset_alpharow + alpha_fact.idx ) += contrib_S_negbeta;
-            if ( expMbeta ) {
-              //Expand to beta>0 by first copying S-values,
-              //S(alpha,+beta)=S(alpha,-beta) and then applying the detailed
-              //balance factor, exp(-beta/2) twice to the values at beta>0, thus
-              //ensuring in the end that all entries end up with a correct factor:
-              vectAt( sab, offset_alpharow_posbeta + alpha_fact.idx ) += contrib_S_negbeta * expMbeta;
-            }
-          }//alpha loop
-#else
-          //Attempt to super-streamline this innermost loop:
-          nc_assert(nalpha==alpha_factors.size());
-          double * itAlphaFactB = &alpha_factors[0];
-          double * itAlphaFact = itAlphaFactB;
-          double * itAlphaFactE = itAlphaFactB + nalpha;
-          //Alpha-factors increase and then decrease. Thus, if we first skip
-          //over any initial zeros in the alpha factors, we can break (rather
-          //than just continue) in the final loop whenever we see a zero.
+          const double contribScaleFactor = scaleGnContribFct ? scaleGnContribFct(n) : 1.0;
+          nc_assert(contribScaleFactor>=0.0);
 
-          //First skip over any initial zeros in alpha-factors:
-          while( !(*itAlphaFact>0.0) && itAlphaFact!=itAlphaFactE )
-            ++itAlphaFact;
-          double * itSAB = &sab[0] + (beta.idx*nalpha + (itAlphaFact-itAlphaFactB));
-          if ( expMbeta) {
-            double * itSAB_posbeta = &sab[0] + (posbeta_idx*nalpha + (itAlphaFact-itAlphaFactB));
-            for (;itAlphaFact!=itAlphaFactE;++itAlphaFact,++itSAB,++itSAB_posbeta) {
-              if ( !(*itAlphaFact>0.0) )
-                break;
-              double contrib_S_negbeta = *itAlphaFact * Gn_asym_eval;
-              *itSAB += contrib_S_negbeta;
-              *itSAB_posbeta += contrib_S_negbeta*expMbeta;
-            }//alpha loop where +-|beta| is available
+          //Prepare for Gn(beta)-evaluations:
+          auto betakT_Range = Gn_asym.eRange(n);
+          const double invn = 1.0/n;
+
+          //Preparation of f(x)=exp(-x)*x^n/n! is more tricky, due to reasons of
+          //efficiency and numerical issues. As explained above, for orders below
+          //stirling_threshold, we build up recursively, and above we use
+          //Stirling's formula:
+          if ( n < stirling_threshold ) {
+            //for reasonably low orders we can build up slowly and cheaply (leaving
+            //out of fxn_cache a final factor of expmhalfx for numerical stability):
+            for (auto x : enumerate(x_vals) )
+              vectAt(fxn_cache,x.idx) *= x.val*invn;
+            for (auto fxn : enumerate(fxn_cache) )
+              vectAt(alpha_factors,fxn.idx) = fxn.val * vectAt(expmhalfx_vals,fxn.idx) * kT;
           } else {
-            for (;itAlphaFact!=itAlphaFactE;++itAlphaFact,++itSAB) {
-              if ( !(*itAlphaFact>0.0) )
-                break;
-              *itSAB += *itAlphaFact * Gn_asym_eval;
-            }//alpha loop where only -|beta| is available
+            //Very high order phonons, f(x) is non-zero at very high values of x, but
+            //exp(-0.5*x) becomes 0, precluding the direct/cheap evaluation. Instead
+            //we evaluate directly, with the help of Stirling's series for the
+            //factorial, n!. Everything is suitably rearranged so cancellations happen
+            //before the exponential is evaluated.
+            const double gn = V2SKDetail::stirlingsSeriesSum9thOrder(invn);
+            const double fact= kT * kInvSqrt2Pi/(std::sqrt(n)*gn);
+            if (!fact)
+              continue;//nothing can contribute at this order (should not really happen?)
+            const double logn = std::log(n);
+            for (auto x : enumerate(x_vals) ) {
+              const double exparg = n * ( vectAt(logx_vals,x.idx) - logn + 1.0 ) - x.val;
+              vectAt(alpha_factors,x.idx) = fact * std::exp(exparg);
+            }
           }
-#endif
-        }//beta loop
-      }//phonon order loop
 
-      return sab;
+          for ( auto beta : enumerate(betaGridNonPositive) ) {
+            //Can evaluate more precisely at negative beta values and simply flip +
+            //apply detailed balance factor for positive.
+            nc_assert( beta.val<=0.0 );
+            double energy = beta.val * kT;
+            if (!valueInInterval(betakT_Range,energy))
+              continue;//Gn(beta) zero here.
+
+            double expMbeta(0.0);
+            std::size_t posbeta_idx(0);
+            if ( beta.idx >= idx_firstflip ) {
+              posbeta_idx = idx_zero + ( idx_zero - beta.idx );
+              expMbeta = vectAt(expbeta_vals_nonposbeta,beta.idx);
+            }
+
+            const double Gn_asym_eval = contribScaleFactor * Gn_asym.eval(n,energy);
+            if ( !(Gn_asym_eval>0.0) )
+              continue;
+#if 0
+            //readable version of innermost loop:
+            const auto offset_alpharow = beta.idx*nalpha;
+            const auto offset_alpharow_posbeta = posbeta_idx*nalpha;
+            for ( auto alpha_fact : enumerate(alpha_factors) ) {
+              if ( !(alpha_fact.val>0.0) )
+                continue;
+              double contrib_S_negbeta = alpha_fact.val * Gn_asym_eval;
+
+              //Negative beta:
+              vectAt( sab, offset_alpharow + alpha_fact.idx ) += contrib_S_negbeta;
+              if ( expMbeta ) {
+                //Expand to beta>0 by first copying S-values,
+                //S(alpha,+beta)=S(alpha,-beta) and then applying the detailed
+                //balance factor, exp(-beta/2) twice to the values at beta>0, thus
+                //ensuring in the end that all entries end up with a correct factor:
+                vectAt( sab, offset_alpharow_posbeta + alpha_fact.idx ) += contrib_S_negbeta * expMbeta;
+              }
+            }//alpha loop
+#else
+            //Attempt to super-streamline this innermost loop:
+            nc_assert(nalpha==alpha_factors.size());
+            double * itAlphaFactB = &alpha_factors[0];
+            double * itAlphaFact = itAlphaFactB;
+            double * itAlphaFactE = itAlphaFactB + nalpha;
+            //Alpha-factors increase and then decrease. Thus, if we first skip
+            //over any initial zeros in the alpha factors, we can break (rather
+            //than just continue) in the final loop whenever we see a zero.
+
+            //First skip over any initial zeros in alpha-factors:
+            while( !(*itAlphaFact>0.0) && itAlphaFact!=itAlphaFactE )
+              ++itAlphaFact;
+            double * itSAB = &sab[0] + (beta.idx*nalpha + (itAlphaFact-itAlphaFactB));
+            if ( expMbeta) {
+              double * itSAB_posbeta = &sab[0] + (posbeta_idx*nalpha + (itAlphaFact-itAlphaFactB));
+              for (;itAlphaFact!=itAlphaFactE;++itAlphaFact,++itSAB,++itSAB_posbeta) {
+                if ( !(*itAlphaFact>0.0) )
+                  break;
+                double contrib_S_negbeta = *itAlphaFact * Gn_asym_eval;
+                *itSAB += contrib_S_negbeta;
+                *itSAB_posbeta += contrib_S_negbeta*expMbeta;
+              }//alpha loop where +-|beta| is available
+            } else {
+              for (;itAlphaFact!=itAlphaFactE;++itAlphaFact,++itSAB) {
+                if ( !(*itAlphaFact>0.0) )
+                  break;
+                *itSAB += *itAlphaFact * Gn_asym_eval;
+              }//alpha loop where only -|beta| is available
+            }
+#endif
+          }//beta loop
+        }//phonon order loop
+
+        return sab;
+      }
+
+      VectD fillSABFromVDOSConcurrent( const VDOSGn& Gn_asym,
+                                       const double msd,
+                                       const VectD& alphaGrid,
+                                       const VectD& betaGrid,
+                                       ScaleGnContributionFct scaleGnContribFct )
+      {
+        //Ideally, one would concurrently create the SAB from each order available
+        //in Gn_asym, and then simply merge them afterwars. However, the memory
+        //consumption required to do that might be very large. So instead, we can
+        //put the processing of e.g. orders 1-10, 11-20, 21-30, etc. into separate
+        //concurrent threads, and then add up the resulting SAB's
+        //afterwards. However, if we do this we must ALWAYS use the same
+        //subdivision of orders irrespective of how many threads are available,
+        //since the summation of floating point numbers depend on the order in
+        //which they are added: We do not want the number of threads available to
+        //change results, and we want an increase in maxorder to only affect the
+        //high-E region.
+        //
+        //Also, be aware that sab.size()=nalpha*nbeta might be huge, and each
+        //concurrent job will need its own copy of it, so we should not make
+        //njobs too huge!
+        const unsigned norders = Gn_asym.maxOrder().value();
+        const unsigned njobs = ( norders <= 16 ? 1 : norders / 16 );
+        if ( njobs == 1 )
+          return fillSABFromVDOS( Gn_asym, msd,
+                                  alphaGrid, betaGrid, scaleGnContribFct );
+        const unsigned norders_per_job = norders / njobs;
+        nc_assert_always( norders_per_job >= 1 );
+
+        SmallVector<VectD,16> results;
+        results.resize(njobs);
+        unsigned nextorder = 1;
+        FactoryJobs jobs;
+        for ( auto ijob : ncrange(njobs) ) {
+          const unsigned min_order = nextorder;
+          nextorder += norders_per_job;
+          const unsigned max_order = std::min<unsigned>( nextorder-1, norders );
+          nc_assert_always( max_order != norders || ijob+1 == njobs );
+          nc_assert_always(min_order >= 1);
+          nc_assert_always(max_order >= min_order);
+          nc_assert_always(max_order <= norders);
+          VectD * resptr = &results.at(ijob);
+          jobs.queue([resptr,min_order,max_order,
+                      &Gn_asym, msd, &alphaGrid, &betaGrid,&scaleGnContribFct]
+                     ()
+          {
+            *resptr = fillSABFromVDOS(Gn_asym,msd,
+                                      alphaGrid,betaGrid,scaleGnContribFct,
+                                      min_order, max_order );
+          });
+        }
+        jobs.waitAll();
+
+        //Add up results (:
+        VectD res = std::move(results.at(0));
+        nc_assert_always( res.size() > 0 );
+        for ( unsigned ijob = 1; ijob < njobs; ++ijob ) {
+          VectD& src = results.at( ijob );
+          nc_assert_always( res.size() == src.size() );
+          nc_array_add_inplace( &*res.begin(), &*src.begin(), res.size() );
+          src.clear();
+        }
+        return res;
+      }
+
     }
   }
 }
 
-//Interval where f(x) = x^n*exp(-x) is above eps*fpeak:
 NC::PairDD NC::rangeXNexpMX(unsigned n, double eps, double accuracy ) {
+  //Interval where f(x) = x^n*exp(-x) is above eps*fpeak.
+
   nc_assert(eps>0.0&&eps<1.0&&eps>1e-200&&n>0&&accuracy>0&&accuracy<=1e-2);
+
   //The function f(x) = x^n*exp(-x) peaks at x=n and falls off on both
   //sides. Returns the two solutions to f(x)= f(n)*eps, describing the central
   //range around x=n where the function is higher than eps times the peak
@@ -250,6 +337,7 @@ NC::PairDD NC::rangeXNexpMX(unsigned n, double eps, double accuracy ) {
   //<=> (x/n)*exp(-x/n) =  (1/e)*eps^(1/n) = k
   //
   //Which can be solved numerically for x/n:
+
   const double fn = static_cast<double>(n);
   const double k = kInvE * std::pow(eps,1.0/fn);
   auto f = [k](double y) { return y*std::exp(-y)-k; };
@@ -327,7 +415,8 @@ bool NC::sabPointWithinAlphaPlusCurve(double E_div_kT, double alpha, double beta
     return false;
   //With c=E/kT, we check the alpha+ condition:
   //  alpha+(beta) = 2*c + beta + 2 * sqrt( c * ( c + beta ) ).
-  //  So "within" means: alpha+(beta) >= alpha  <=> sqrt( c * ( c + beta ) ) >= (alpha-beta)/2 - c
+  //  So "within" means: alpha+(beta) >= alpha
+  //  <=> sqrt( c * ( c + beta ) ) >= (alpha-beta)/2 - c
   const double t = 0.5 * ( alpha - beta ) - c;
   return t <= 0.0 || c*cpb >= t*t;
 }
@@ -712,9 +801,11 @@ NC::ScatKnlData NC::createScatteringKernel( const VDOSData& vdosdata,
   nc_assert_always( vdoslux < 6 );
   double targetEmax = targetEmax_requested>0.0 ? targetEmax_requested : lux2emax[vdoslux];
 
-  if (V2SKDetail::s_verbose)
-    std::cout<<"NCrystal::VDOS2SK initialising with T="<<vdosdata.temperature()<<", vdoslux="<<vdoslux
-             <<", aiming for Emax="<<targetEmax<<"eV"<<(targetEmax_requested>0.0?" (as requested)":"")<<", ..."<<std::endl;
+  if ( V2SKDetail::s_verbose )
+    NCRYSTAL_MSG("VDOS2SK initialising with T="<<vdosdata.temperature()
+                 <<", vdoslux="<<vdoslux
+                 <<", aiming for Emax="<<targetEmax<<"eV"
+                 <<(targetEmax_requested>0.0?" (as requested)":"")<<", ...");
 
   //Initialise evaluators:
   VDOSEval vdoseval(vdosdata);
@@ -776,7 +867,7 @@ NC::ScatKnlData NC::createScatteringKernel( const VDOSData& vdosdata,
                           " value is too high, vdoslux too low, the temperature too high, or the VDOS is very unusual).");
       } while (sabPointWithinAlphaPlusCurve(targetEmax_reduced*invkT,alphaRange.first,betaRange.second));
       if (V2SKDetail::s_verbose)
-        std::cout<<"NCrystal::VDOS2SK Could only reach Emax="<<targetEmax_reduced<<"eV and not the requested Emax="<<targetEmax<<"K"<<std::endl;
+        NCRYSTAL_MSG("VDOS2SK Could only reach Emax="<<targetEmax_reduced<<"eV and not the requested Emax="<<targetEmax<<"K");
       targetEmax_div_kT = targetEmax_reduced * invkT;
       targetEmax = targetEmax_reduced;
       break;
@@ -810,14 +901,18 @@ NC::ScatKnlData NC::createScatteringKernel( const VDOSData& vdosdata,
   //Ok, time to setup the alpha/beta grids. The grid-spacing is not even, rather
   //it attempts to best accomodate features of the distributions:
   VectD betaGrid = setupBetaGrid( Gn_asym, upper_beta, vdoslux, override_nbins );
-  const unsigned alpha_size= ( override_nbins ? override_nbins : betaGrid.size()/2 );
+  const unsigned alpha_size = ( override_nbins ? override_nbins : betaGrid.size()/2 );
   VectD alphaGrid = setupAlphaGrid( kT, msd, upper_alpha, alpha_size );
 
   //All done, now all that remains is to go through the (alpha,beta) pts in the
   //grid and use Sjolander's II.28 equation to calculate S(alpha,beta) there as
   //the sum of individual phonon orders:
+#if 0
+  //old way, no concurrency:
   auto sab = V2SKDetail::fillSABFromVDOS( Gn_asym, msd, alphaGrid, betaGrid, scaleGnContributionFct );
-
+#else
+  auto sab = V2SKDetail::fillSABFromVDOSConcurrent( Gn_asym, msd, alphaGrid, betaGrid, scaleGnContributionFct );
+#endif
   double suggestedEmax = ( override_max_order>0 ? 0.0 : targetEmax);
   if ( scaleGnContributionFct!=nullptr && scaleGnContributionFct(max_phonon_order) == 0.0 ) {
     //Caller might have essentially removed the last order(s), so it is unknown
@@ -826,8 +921,8 @@ NC::ScatKnlData NC::createScatteringKernel( const VDOSData& vdosdata,
   }
 
   if (V2SKDetail::s_verbose)
-    std::cout<<"NCrystal::VDOS2SK created SK with vdos expansion order N="<<max_phonon_order
-             <<", Emax="<<targetEmax<<"eV, nalpha="<<alphaGrid.size()<< " nbeta="<<betaGrid.size()<<std::endl;
+    NCRYSTAL_MSG("VDOS2SK created SK with vdos expansion order N="<<max_phonon_order
+                 <<", Emax="<<targetEmax<<"eV, nalpha="<<alphaGrid.size()<< " nbeta="<<betaGrid.size());
 
   ScatKnlData out;
   out.alphaGrid = std::move(alphaGrid);

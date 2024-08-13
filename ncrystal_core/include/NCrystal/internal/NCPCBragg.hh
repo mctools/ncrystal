@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -33,7 +33,7 @@ namespace NCRYSTAL_NAMESPACE {
     //polycrystalline) material. Does not account for texture, grain size,
     //dspacing-deviations and other similar effects.
 
-    const char * name() const noexcept final { return "PCBragg"; }
+    const char * name() const noexcept override { return "PCBragg"; }
 
     //Constructor:
     PCBragg( const Info& );
@@ -48,10 +48,10 @@ namespace NCRYSTAL_NAMESPACE {
 
     //There is a maximum wavelength at which Bragg diffraction is possible, so
     //lower energy bound will reflect this (upper bound is infinity):
-    EnergyDomain domain() const noexcept final;
+    EnergyDomain domain() const noexcept override;
 
-    CrossSect crossSectionIsotropic(CachePtr&, NeutronEnergy ) const final;
-    ScatterOutcomeIsotropic sampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const final;
+    CrossSect crossSectionIsotropic(CachePtr&, NeutronEnergy ) const override;
+    ScatterOutcomeIsotropic sampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const override;
 
     //Two PCBragg instances can be merged by merging the plane lists:
     std::shared_ptr<Process> createMerged( const Process& other,
@@ -62,10 +62,19 @@ namespace NCRYSTAL_NAMESPACE {
     //Empty, no planes:
     PCBragg( no_init_t ) {}
 
+#ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
+    bool isPureElasticScatter() const override { return true; }
+    std::pair<CrossSect,ScatterOutcome>
+    evalXSAndSampleScatter( CachePtr&, RNG&, NeutronEnergy, const NeutronDirection& ) const override;
+    std::pair<CrossSect,ScatterOutcomeIsotropic>
+    evalXSAndSampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const override;
+    void evalManyXSIsotropic( CachePtr&, const double* ekin, std::size_t N, double* out_xs ) const override;
+#endif
+
   protected:
     Optional<std::string> specificJSONDescription() const override;
   private:
-    CosineScatAngle genScatterMu(RNG&, NeutronEnergy ekin) const;
+    CosineScatAngle genScatterMu(RNG&, NeutronEnergy ekin, std::size_t idx) const;
     std::size_t findLastValidPlaneIdx( NeutronEnergy ekin) const;
     NeutronEnergy m_threshold = NeutronEnergy{kInfinity};
     VectD m_2dE;

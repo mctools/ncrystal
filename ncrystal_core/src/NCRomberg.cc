@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -20,7 +20,7 @@
 
 #include "NCrystal/internal/NCRomberg.hh"
 #include "NCrystal/internal/NCMath.hh"
-#include <iostream>
+#include "NCrystal/internal/NCMsg.hh"
 
 void NCrystal::Romberg::evalFuncMany(double* fvals, unsigned n, double offset, double delta) const
 {
@@ -46,10 +46,17 @@ bool NCrystal::Romberg::accept(unsigned, double prev_estimate, double estimate,d
 
 void NCrystal::Romberg::convergenceError(double a, double b) const
 {
-  std::cout<<"NCrystal CalcError: Romberg integration did not converge. Will attempt to write"
-    " function curve to ncrystal_romberg.txt for potential debugging purposes."<<std::endl;
-  writeFctToFile("ncrystal_romberg.txt", a, b,16384);//2^(maxlevel-2)+1, i.e. last amount of pts sampled at once (not exactly at those precise points though).
-  NCRYSTAL_THROW(CalcError,"Romberg integration did not converge. Wrote function curve to ncrystal_romberg.txt for potential debugging purposes.");
+  NCRYSTAL_RAWOUT("NCrystal ERROR: Romberg integration did not converge. Will"
+                  " attempt to write function curve to ncrystal_romberg.txt"
+                  " for potential debugging purposes.\n");
+  writeFctToFile("ncrystal_romberg.txt", a, b,16384);//2^(maxlevel-2)+1,
+                                                     //i.e. last amount of pts
+                                                     //sampled at once (not
+                                                     //exactly at those precise
+                                                     //points though).
+  NCRYSTAL_THROW(CalcError,"Romberg integration did not converge. Wrote"
+                 " function curve to ncrystal_romberg.txt for potential"
+                 " debugging purposes.");
 }
 
 double NCrystal::Romberg::integrate(double a, double b) const
@@ -147,7 +154,7 @@ void NCrystal::Romberg::writeFctToFile(const std::string& filename, double a, do
 {
   nc_assert_always(b>a);
   if (file_exists(filename)) {
-    std::cout<<"NCrystal Warning: Aborting writing of "<<filename<<" since it already exists"<<std::endl;
+    NCRYSTAL_WARN("Aborting writing of "<<filename<<" since it already exists");
     return;
   }
   std::ofstream ofs (filename.c_str(), std::ofstream::out);
@@ -165,5 +172,5 @@ void NCrystal::Romberg::writeFctToFile(const std::string& filename, double a, do
     double y0 = evalFuncManySum(1,x,1e-10/*delta will be unused*/);
     ofs << x<<" "<<y0<<" "<<y.at(i)<<" "<< ncabs(y.at(i)-y0)/(ncmax(1e-300,ncabs(y0)))<<"\n";
   }
-  std::cout<<"NCrystal: Wrote "<<filename<<std::endl;
+  NCRYSTAL_MSG("Wrote "<<filename);
 }

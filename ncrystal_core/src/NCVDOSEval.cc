@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,7 +21,8 @@
 #include "NCrystal/internal/NCVDOSEval.hh"
 #include "NCrystal/internal/NCMath.hh"
 #include "NCrystal/internal/NCIter.hh"
-#include <iostream>
+#include "NCrystal/internal/NCMsg.hh"
+
 namespace NC=NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {
@@ -144,8 +145,6 @@ void NC::VDOSEval::integrateBinsWithFunction( Fct f, TStableSum& sum ) const
 
   nc_assert( m_emin > 0.0 );
 
-  //NB: If profiling shows that we spend a significant portion of time here, we
-  //could use integrateRomberg17 instead.
 
   //Contribution in [m_emin,m_emax], considering individual bins (since the
   //integrand will then be smooth each time we invoke the Romberg algorithm):
@@ -159,7 +158,9 @@ void NC::VDOSEval::integrateBinsWithFunction( Fct f, TStableSum& sum ) const
     //with A=(d1-d0)/(e1-e0), B=d0-e0 *A
     const double A = (d1-d0)*m_invbinwidth;
     const double B = d0-e0*A;
-    double bincontrib = integrateRomberg33([&f,A,B](double e){return f(e)*(A*e+B);}, e0, e1);
+    //NB: Reduced from integrateRomberg33 to integrateRomberg17 since it showed
+    //up in profiling:
+    double bincontrib = integrateRomberg17([&f,A,B](double e){return f(e)*(A*e+B);}, e0, e1);
     sum.add(bincontrib);
   }
 }
@@ -175,8 +176,8 @@ NC::VDOSEval::VDOSEval(const VDOSData& vd)
     m_elementMassAMU(vd.elementMassAMU())
 {
   if ( s_verbose_vdoseval )
-    std::cout << "NCrystal::VDOSEval constructed ("<<m_density.size()
-              <<" density pts on egrid spanning ["<<m_emin<<", "<<m_emax<<"]"<<std::endl;
+    NCRYSTAL_MSG("VDOSEval constructed ("<<m_density.size()
+                 <<" density pts on egrid spanning ["<<m_emin<<", "<<m_emax<<"]");
 
   nc_assert( m_elementMassAMU.dbl()>0.5 && m_elementMassAMU.dbl()<2000.0 );
   nc_assert_always(m_density.size()<static_cast<std::size_t>(std::numeric_limits<int>::max()-2));
@@ -198,8 +199,9 @@ NC::VDOSEval::VDOSEval(const VDOSData& vd)
                    " equidistant grid which can be extended downwards and exactly coincide with 0.");
 
   if ( s_verbose_vdoseval && emax_corrected != m_emax ) {
-    std::cout << "NCrystal::VDOSEval Correcting emax slightly for completely regular grid: " << m_emax << " -> "
-              << emax_corrected << " (relative change: " << ((emax_corrected-m_emax)/m_emax) << ")" << std::endl;
+    NCRYSTAL_MSG("VDOSEval Correcting emax slightly for completely regular"
+                 " grid: " << m_emax << " -> "<< emax_corrected << " (relative"
+                 " change: " << ((emax_corrected-m_emax)/m_emax) << ")");
     m_emax = emax_corrected;
   }
   const double binwidth = ( m_emax - m_emin ) / ( m_density.size() - 1 );
@@ -441,7 +443,6 @@ namespace NCRYSTAL_NAMESPACE {
   }
 }
 
-
 double NC::checkIsRegularVDOSGrid( const PairDD& egrid, const VectD& density, double tolerance )
 {
   nc_assert_always(egrid.first>=1e-5);//checking 1e-5 threshold in VDOSEval constructor
@@ -491,10 +492,11 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
     //slight correction to emax to correct for numerical imprecision within
     //the allowed tolerance:
     if ( s_verbose_vdoseval ) {
-      std::cout<<"NCrystal::regulariseVDOSGrid Grid was already regular within tolerance of "<<tolerance;
+      std::ostringstream msg;
+      msg<<"regulariseVDOSGrid Grid was already regular within tolerance of "<<tolerance;
       if ( orig_egrid.back() != emax_corrected )
-        std::cout<<" (corrected emax slightly "<<orig_egrid.back()<<" -> "<<emax_corrected<<", a relative change of "<<(emax_corrected/orig_egrid.back()-1.0)<<")";
-      std::cout<<std::endl;
+        msg<<" (corrected emax slightly "<<orig_egrid.back()<<" -> "<<emax_corrected<<", a relative change of "<<(emax_corrected/orig_egrid.back()-1.0)<<")";
+      NCRYSTAL_MSG(msg.str());
     }
     return { VectD({orig_egrid.front(),emax_corrected}), orig_density };
   }
@@ -600,8 +602,10 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
   nc_assert( newDensity.size() == new_npts );
 
   if ( s_verbose_vdoseval )
-    std::cout << "NCrystal::regulariseVDOSGrid Grid was regularised using " << newDensity.size()
-              << " equidistant points on interval [" << newEgrid.front() << ", " << newEgrid.back() << "]" << std::endl;
+    NCRYSTAL_MSG("regulariseVDOSGrid Grid was regularised using "
+                 << newDensity.size()
+                 << " equidistant points on interval [" << newEgrid.front()
+                 << ", " << newEgrid.back() << "]");
 
   nc_assert(newEgrid.size()==2);
   return { newEgrid, newDensity };

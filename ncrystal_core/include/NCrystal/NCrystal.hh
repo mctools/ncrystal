@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -97,6 +97,9 @@
 #ifndef NCrystal_Proc_hh
 #  include "NCrystal/NCProc.hh"
 #endif
+#ifndef NCrystal_MsgCtrl_hh
+#  include "NCrystal/NCMsgCtrl.hh"
+#endif
 #ifndef NCrystal_FactTypes_hh
 #  include "NCrystal/NCFactTypes.hh"
 #endif
@@ -117,6 +120,9 @@
 #endif
 #ifndef NCrystal_ImmutBuf_hh
 #  include "NCrystal/NCImmutBuf.hh"
+#endif
+#ifndef NCrystal_FactThreads_hh
+#  include "NCrystal/NCFactThreads.hh"
 #endif
 
 #endif

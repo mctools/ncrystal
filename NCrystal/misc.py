@@ -3,7 +3,7 @@
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2023 NCrystal developers                                   ##
+##  Copyright 2015-2024 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -77,7 +77,8 @@ class MaterialSource:
         detected automatically, unless the fmt parameter is provided.
         """
         from . import _miscimpl
-        self.__d = _miscimpl.matsrc_init( MaterialSource, lambda matsrc : matsrc.__d,
+        self.__d = _miscimpl.matsrc_init( MaterialSource,
+                                          lambda matsrc : matsrc.__d,
                                           data,cfg_params=cfg_params,fmt=fmt)
 
     @property
@@ -233,3 +234,14 @@ class AnyVDOS:
         temperature itself) was used to initialise the AnyVDOS object.
         """
         return self.__d.get('debyetemp')
+
+def _benchloadcfg( cfgstr, do_scatter=True, nrepeat = 1 ):
+    """
+    Get time in seconds to load the cfg in question (if not doScatter it will
+    only create Info objects). Caches are cleared as a side effect.
+    """
+    from . import _chooks as ch
+    _rawfct = ch._get_raw_cfcts()
+    return _rawfct['benchloadcfg'](cfgstr = cfgstr,
+                                   do_scatter = do_scatter,
+                                   nrepeat = nrepeat )

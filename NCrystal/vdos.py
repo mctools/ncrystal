@@ -4,7 +4,7 @@
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2023 NCrystal developers                                   ##
+##  Copyright 2015-2024 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -229,7 +229,7 @@ class PhononDOSAnalyser:
 
         nminpts = 5
         for lbl,egrid,density in doslist:
-            egrid = _np.asfarray(egrid).copy()
+            egrid = _np.asarray(egrid,dtype=float).copy()
             if len(egrid) < nminpts:
                 raise NCBadInput(f'DOS egrid has too few points (at least {nminpts} required).')
             if len(density) != len(egrid):
@@ -240,7 +240,7 @@ class PhononDOSAnalyser:
             if _np.isinf(egrid[-1]) or not egrid[-1] > 0.0:
                 raise NCBadInput(f'DOS egrid has invalid upper edge value: {egrid[-1]}')
 
-            density = _np.asfarray(density).copy()
+            density = _np.asarray(density,dtype=float).copy()
             _densmin, _densmax = density.min(), density.max()
             if not _densmax > 0.0:
                 raise NCBadInput('Maximum density value is not > 0.0.')
@@ -297,7 +297,8 @@ class PhononDOSAnalyser:
         if not droplist:
             return self
         o = self.__clone()
-        o.__d['doslist'] = [ e for i,e in enumerate(o.__d['doslist']) if not i in droplist ]
+        o.__d['doslist'] = [ e for i,e in enumerate(o.__d['doslist'])
+                             if i not in droplist ]
         return o
 
     def update_label( self, old_label_or_idx, newlabel ):
@@ -384,7 +385,7 @@ class PhononDOSAnalyser:
         oldlist = o.__d['doslist']
         newlist = []
         for idx,(lbl,egrid,dos) in enumerate(oldlist):
-            if not idx in selected:
+            if idx not in selected:
                 newlist.append( (lbl,egrid,dos) )
                 continue
             assert len(egrid)==len(dos)
@@ -415,7 +416,7 @@ class PhononDOSAnalyser:
         oldlist = o.__d['doslist']
         newlist = []
         for idx,(lbl,egrid,dos) in enumerate(oldlist):
-            if not idx in selected:
+            if idx not in selected:
                 newlist.append( (lbl,egrid,dos) )
                 continue
             assert len(egrid)==len(dos)
@@ -574,7 +575,7 @@ class PhononDOSAnalyser:
             o = self.apply_cutoff( t, lbls )
             thr_description = f'cut@{t/unitfactor:g}{unitname}'
             for lbl in lbls:
-                if not lbl in lblmap:
+                if lbl not in lblmap:
                     from . import _common as nc_common
                     nc_common.warn('Not using PhononDOSAnalyser label "{lbl}" in plot.')
                     continue
@@ -800,7 +801,7 @@ class PhononDOSAnalyser:
 
         colorder = self.__colorder()
         for idx,(lbl, egrid, dos) in enumerate( self.__d['doslist'] ):
-            if not idx in selected:
+            if idx not in selected:
                 continue
             gnfct = gnfcts.get(idx)
             color = colorder[(color_offset+idx)%len(colorder)]
@@ -916,7 +917,7 @@ def _read_quantumespresso( raw_text_data ):
 
     hdr = _get_header()
     _expected_hdr = 'Frequency[cm^-1] DOS PDOS'
-    if not hdr or not _expected_hdr in hdr:
+    if not hdr or _expected_hdr not in hdr:
         from .exceptions import NCBadInput
         raise NCBadInput('Invalid input format. Did not find expected header line "# %s"'%_expected_hdr)
     from ._numpy import _ensure_numpy, _np
@@ -959,8 +960,8 @@ def _do_regularise( egrid, density, n, quiet = False):
     from ._numpy import _ensure_numpy, _np, _np_linspace
     _ensure_numpy()
 
-    egrid = _np.asfarray(egrid)
-    density = _np.asfarray(density)
+    egrid = _np.asarray(egrid,dtype=float)
+    density = _np.asarray(density,dtype=float)
     assert len(egrid)==len(density)
     assert len(egrid) >= 2
     assert egrid[0] > 0.0

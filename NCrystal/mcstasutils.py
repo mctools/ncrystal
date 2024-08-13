@@ -11,7 +11,7 @@ Single_crystal.comp (with reduced physics capabilities of course).
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2023 NCrystal developers                                   ##
+##  Copyright 2015-2024 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -83,10 +83,10 @@ def cfgstr_2_union_instrument_code( *, cfgstr, name, split_by_physics = False ):
         if ch in name:
             raise ValueError(f'union process name "{name}" contains a "{ch}"'
                              +' character which is likely not what was intended.')
-    assert not '/*' in cfgstr
-    assert not '*/' in cfgstr
-    assert not '/*' in name
-    assert not '*/' in name
+    assert '/*' not in cfgstr
+    assert '*/' not in cfgstr
+    assert '/*' not in name
+    assert '*/' not in name
 
     out_absorption, physlist = cfgstr_2_unioncfg( cfgstr=cfgstr, split_by_physics=split_by_physics )
     res = f"""

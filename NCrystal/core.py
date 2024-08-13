@@ -9,7 +9,7 @@ Scatter, Absorption, TextData, AtomData) and related factory methods.
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2023 NCrystal developers                                   ##
+##  Copyright 2015-2024 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -25,16 +25,28 @@ Scatter, Absorption, TextData, AtomData) and related factory methods.
 ##                                                                            ##
 ################################################################################
 
-from .exceptions import *
-from ._chooks import _cstr2str, _get_raw_cfcts, _str2cstr, _get_build_namespace
-from . import constants as _nc_constants
-from ._numpy import *
-from . import _coreimpl as _impl
-_rawfct = _get_raw_cfcts()
+from .exceptions import ( NCrystalUserWarning,
+                          NCException,
+                          NCFileNotFound,
+                          NCDataLoadError,
+                          NCMissingInfo,
+                          NCCalcError,
+                          NCLogicError,
+                          NCBadInput,
+                          nc_assert )
 
-import enum as _enum
-import ctypes as _ctypes
-import weakref as _weakref
+from ._msg import _setDefaultPyMsgHandlerIfNotSet as _
+_()
+_=None
+
+from ._chooks import _cstr2str, _get_raw_cfcts, _str2cstr, _get_build_namespace # noqa E402
+from . import constants as _nc_constants # noqa E402
+from ._numpy import _np,_ensure_numpy,_np_linspace # noqa E402
+from . import _coreimpl as _impl # noqa E402
+import enum as _enum # noqa E402
+import ctypes as _ctypes # noqa E402
+import weakref as _weakref # noqa E402
+_rawfct = _get_raw_cfcts()
 
 def get_version():
     """Get NCrystal version (same as NCrystal.__version__)"""
@@ -438,6 +450,11 @@ class Info(RCBase):
         _rawfct['ncrystal_dump_verbose'](self._rawobj,min(999,max(0,int(verbose))))
         _flush()
 
+    def dump_str(self, verbose=0):
+        """Return contained information as multi-line string. Use verbose argument to set
+        verbosity level to 0 (minimal), 1 (middle), 2 (most verbose)."""
+        return _rawfct['nc_dump_tostr'](self._rawobj,min(999,max(0,int(verbose))))
+
     def hasTemperature(self):
         """Whether or not material has a temperature available"""
         return _rawfct['ncrystal_info_gettemperature'](self._rawobj)>-1
@@ -717,15 +734,20 @@ class Info(RCBase):
     def hasHKLInfo(self):
         """Whether or not material has lists of HKL-plane info available"""
         return bool(_rawfct['ncrystal_info_nhkl'](self._rawobj)>-1)
+
     def nHKL(self):
-        """Number of HKL planes available (grouped into families with similar d-spacing and f-squared)"""
+        """Number of HKL planes available (grouped into families with similar
+        d-spacing and f-squared)"""
         return int(_rawfct['ncrystal_info_nhkl'](self._rawobj))
+
     def hklDLower(self):
         """Lower d-spacing cutoff (angstrom)."""
         return float(_rawfct['ncrystal_info_hkl_dlower'](self._rawobj))
+
     def hklDUpper(self):
         """Upper d-spacing cutoff (angstrom)."""
         return float(_rawfct['ncrystal_info_hkl_dupper'](self._rawobj))
+
     def hklList(self,all_indices=False):
         """Iterator over HKL info, yielding tuples in the format
         (h,k,l,multiplicity,dspacing,fsquared). Running with all_indices=True to
@@ -736,6 +758,25 @@ class Info(RCBase):
         nc_assert(self.hasHKLInfo())
         return _rawfct['iter_hkllist']( self._rawobj,
                                         all_indices = all_indices )
+
+    def hklObjects( self ):
+        """Iterator like .hklList, but with each entry returned as a single
+        object, with the information accessible as (hopefully) more userfriendly
+        friendly properties.
+
+        Example usage:
+
+        for e in info._hklObjects:
+            #help( e );break #<- uncomment for usage info
+            print( e )#<- a quick look
+            print( e.hkl_label, e.mult, e.d, e.f2 )
+            print( e.h, e.k, e.l )#all Miller indices as arrays.
+
+        """
+        from ._hklobjects import _iter_hklobjects
+        for o in _iter_hklobjects(self):
+            yield o
+
     def getBraggThreshold(self):
         """Get Bragg threshold in Aa (returns None if non-crystalline). This
         method is meant as a fast way to access the Bragg threshold without
@@ -752,6 +793,10 @@ class Info(RCBase):
         empty. Like getBraggThreshold(), calling this method will not
         necessarily trigger a full initialisation of the hklList()."""
         return HKLInfoType(int(_rawfct['ncrystal_info_hklinfotype'](self._rawobj)))
+
+    def hklIsSymEqvGroup(self):
+        """Returns True if .hklInfoType() equals HKLInfoType.SymEqvGroup."""
+        return self.hklInfoType() == HKLInfoType.SymEqvGroup
 
     def dspacingFromHKL(self, h, k, l):
         """Convenience method, calculating the d-spacing of a given Miller
@@ -894,7 +939,11 @@ class Info(RCBase):
             super(Info.DI_ScatKnlDirect, self).__init__(theinfoobj_wr,fr,atomidx,tt)
 
         def loadKernel( self ):
-            """Prepares and returns the scattering kernel in S(alpha,beta) format"""
+            """Prepares and returns the scattering kernel in S(alpha,beta) format.
+
+            Note that the sab array is ordered so that
+            S(alpha[i],beta[j])=sab[j*len(alpha)+i].
+            """
             return self._loadKernel(vdoslux=3)#vdoslux value not actually used
 
         def plot_knl( self, **kwargs ):
@@ -966,7 +1015,12 @@ class Info(RCBase):
             return self.vdosData()[1]
 
         def loadKernel( self, vdoslux = 3 ):
-            """Converts VDOS to S(alpha,beta) kernel with a luxury level given by the vdoslux parameter."""
+            """Converts VDOS to S(alpha,beta) kernel with a luxury level given
+            by the vdoslux parameter.
+
+            Note that the sab array is ordered so that
+            S(alpha[i],beta[j])=sab[j*len(alpha)+i].
+            """
             return self._loadKernel(vdoslux=vdoslux)
 
         def analyseVDOS(self):
@@ -1039,8 +1093,23 @@ class Info(RCBase):
                0), since the Debye model is anyway only a crude approximation
                and it accordingly does not need the same level of precise
                treatment as a full externally specified VDOS.
+
+               Note that the sab array is ordered so that
+               S(alpha[i],beta[j])=sab[j*len(alpha)+i].
             """
             return self._loadKernel(vdoslux=vdoslux)
+
+        def analyseVDOS(self):
+            """Same as running the global analyseVDOS function on the contained
+               VDOS. Note that numbers returned here will be fully based on the
+               actual tabulated VDOS curve, and values such as Debye temperature
+               can therefore deviate slightly from the original value returned
+               by .debyeTemperature().
+            """
+            from .vdos import analyseVDOS
+            return analyseVDOS(*self.vdos_egrid,self.vdos_density,
+                               self.temperature,self.atomData.averageMassAMU())
+
 
         plot_knl = _impl.divdos_methods._plot_knl()
         plot_vdos = _impl.divdos_methods._plot_vdos()
@@ -1211,7 +1280,7 @@ class Process(RCBase):
                 ncomps = len(comps)
                 prefix = '   '*indentlvl
                 for i,(scale,(lbl,subcomps)) in enumerate(comps):
-                    smb = '\--' if i+1==ncomps else '|--'
+                    smb = r'\--' if i+1==ncomps else '|--'
                     scale_str = '' if scale==1.0 else f'{scale:g} * '
                     l.append(f'{prefix}{smb} {scale_str}{lbl}')
                     if subcomps:
@@ -1235,14 +1304,26 @@ class Process(RCBase):
         return extract_subcomponents(d)
 
     def dump(self,prefix=''):
-        """Print a quick high level summary of the process to stdout. What is printed is
-        in fact the lines resulting from a call to self.getSummary(short='printable'),
-        with an optional prefix prepended to each line.
+        """
+        Prints a quick high level summary of the process. What is printed is in
+        fact the lines resulting from a call to
+        self.getSummary(short='printable'), with an optional prefix prepended to
+        each line.
         """
         from ._common import print
         _flush()
-        print(prefix+f'\n{prefix}'.join(self.getSummary(short='printable')))
+        print(self.dump_str(prefix=prefix),end='')
         _flush()
+
+    def dump_str(self, prefix=''):
+        """
+        The string-returning sibling of .dump(..). Returns a quick high level
+        summary of the process as a multi-line string. What is printed is in
+        fact the lines resulting from a call to
+        self.getSummary(short='printable'), with an optional prefix prepended to
+        each line.
+        """
+        return prefix+f'\n{prefix}'.join(self.getSummary(short='printable'))+'\n'
 
     def plot(self, *args, **kwargs ):
         """Convenience method for plotting cross sections. This is the same as
@@ -1528,27 +1609,63 @@ class LoadedMaterial:
         return plot_xsect( self, *args, **kwargs )
 
     def dump(self, verbose=0 ):
-        """Convenience method for dumping informtion about contained objects to
-        standard output. Use verbose argument to set verbosity level to 0
-        (minimal), 1 (middle), 2 (most verbose).
         """
-        from .misc import MaterialSource
+        Convenience method for print information about contained objects. Use
+        verbose argument to set verbosity level to 0 (minimal), 1 (middle), 2
+        (most verbose).
+        """
         from ._common import print
         _flush()
-        any=False
+        print(self.dump_str(verbose=verbose),end='')
+        _flush()
+
+    def dump_str(self, verbose=0 ):
+        """
+        The string-returning sibling of .dump(..). Returns information about
+        contained objects as a multi-line string. Use verbose argument to set
+        verbosity level to 0 (minimal), 1 (middle), 2 (most verbose).
+        """
+        res=''
+        has_any=False
         for name,descr in [ ('info','Material info'),
                             ('scatter','Scattering process (objects tree)'),
                             ('absorption','Absorption process (object tree)') ]:
             o = getattr(self,name)
             if o:
-                any=True
-                print('\n>>> '+descr+':\n')
-                _flush()
-                o.dump(**(dict(verbose=verbose) if name=='info' else {}))
-                _flush()
-        if not any:
-            print('<empty>')
-            _flush()
+                has_any=True
+                res += '\n>>> '+descr+':\n'
+                res += '\n'
+                res += o.dump_str(**(dict(verbose=verbose) if name=='info' else {}))
+        if not has_any:
+            res += '<empty>'
+            res += '\n'
+        return res
+
+    def xsect( self, *args, **kwargs ):
+        """Convenience function which adds up the cross sections from any loaded
+        absorption and scatter processes. Refer to the Process.xsect method for
+        arguments."""
+        procs = (p for p in (self.scatter,self.absorption) if p is not None)
+        if not procs:
+            raise NCCalcError('.xsect(..) can only be called on'
+                              ' LoadedMaterial which contains processes.')
+        assert len(procs) in (1,2)
+        xs = procs[0].xsect(*args,**kwargs)
+        if len(procs)==2:
+            xs += procs[1].xsect(*args,**kwargs)
+        return xs
+
+    def macroscopic_xsect( self, *args, **kwargs ):
+        """Convenience function which calculates cross sections from any loaded
+        absorption and scatter processes, and converts to macroscopic cross
+        sections via the numerical density of the loaded Info object. Returned
+        unit is 1/cm.
+        """
+        if not self.info or not (self.scatter or self.absorption):
+            raise NCCalcError('.macroscopic_xsect(..) can only be called on'
+                              ' LoadedMaterial which contains both processes'
+                              ' and material Info.')
+        return self.info.factor_macroscopic_xs * self.xsect( *args,**kwargs )
 
     def __str__(self):
         fmt = lambda x : str(x) if x else 'n/a'
@@ -1584,7 +1701,7 @@ def directLoad( data, cfg_params='', *, dtype='',
 
     if not dtype and any_data.name and '.' in any_data.name:
         p = any_data.name.split('.')
-        if len(p)>=2 and p[-1] and p[-1].isalpha() and not p[-1] in ('gz','tgz','bz2','zip','tar'):
+        if len(p)>=2 and p[-1] and p[-1].isalpha() and p[-1] not in ('gz','tgz','bz2','zip','tar'):
             dtype = dtype
 
     rawi,raws,rawa = _rawfct['multicreate_direct'](content,dtype,cfg_params,doInfo,doScatter,doAbsorption)
@@ -1674,6 +1791,12 @@ class TextData:
         print( self.rawData )
         _flush()
 
+    def dump_str( self ):
+        """Alias which simply returns .rawData (this method exists exclusively
+        for API consistency).
+        """
+        return self.rawData
+
     def __str__(self):
         return 'TextData(%s, uid=%i, %i chars)'%(self.__dsn,self.__uid,len(self.__rd))
 
@@ -1710,3 +1833,16 @@ def _flush():
     import sys
     sys.stdout.flush()
     sys.stderr.flush()
+
+def enableFactoryThreads( nthreads = 'auto' ):
+    """Enable threading during object initialisation phase. Supply 'auto' or a
+    value >= 9999 to simply use a number of threads appropriate for the system.
+
+    The requested value is the TOTAL number of threads utilised INCLUDING the
+    main user thread. Thus, a value of 0 or 1 number will disable this thread
+    pool, while for instance calling enableFactoryThreads(8) will result in 7
+    secondary worker threads being allocated.
+
+    """
+    nt = 9999 if nthreads=='auto' else min(9999,max(1,int(nthreads)))
+    _rawfct['ncrystal_enable_factory_threadpool'](nt)

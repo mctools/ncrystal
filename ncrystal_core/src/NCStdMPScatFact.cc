@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,6 +22,7 @@
 #include "NCrystal/NCProcImpl.hh"
 #include "NCrystal/internal/NCIter.hh"
 #include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/internal/NCProcCompBldr.hh"
 
 namespace NC = NCrystal;
 
@@ -68,7 +69,7 @@ namespace NCRYSTAL_NAMESPACE {
 
       nc_assert( request.isMultiPhase() );
 
-      ProcImpl::ProcComposition::ComponentList scatter_phases;
+      Utils::ProcCompBldr scatter_phases;
 
       const double totnd = request.info().getNumberDensity().dbl();
       if ( ! ( totnd > 0.0 ) )
@@ -81,16 +82,19 @@ namespace NCRYSTAL_NAMESPACE {
         if ( ! phase_fraction )
           continue;
 
-        auto scatter_ph = FactImpl::createScatter( request.createChildRequest( info_ph.idx ) );
-
-        scatter_phases.push_back( ProcImpl::ProcComposition::Component{ phase_fraction, scatter_ph } );
+        auto child_request = request.createChildRequest( info_ph.idx );
+        scatter_phases.addfct_cl( [child_request,phase_fraction]()
+        {
+          ProcImpl::ProcComposition::ComponentList complist;
+          complist.emplace_back( phase_fraction, FactImpl::createScatter( child_request ) );
+          return complist;
+        } );
 
       }
 
       //NB: When we add support for SANS physics in NCMAT files (not via
       //@CUSTOM_ sections), we will handle it here.
-
-      return ProcImpl::ProcComposition::consumeAndCombine(std::move(scatter_phases));
+      return scatter_phases.finalise_scatter();
     }
   };
 

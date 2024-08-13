@@ -4,7 +4,7 @@
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2023 NCrystal developers                                   ##
+##  Copyright 2015-2024 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -20,8 +20,9 @@
 ##                                                                            ##
 ################################################################################
 
-#Common print function for NCrystal modules (allowing one to capture output of
-#NCrystal's python layer):
+#Common print function for NCrystal modules (allowing one to capture and
+#redirect the output of NCrystal):
+
 _stdprint = [print]
 
 def print(*args,**kwargs):
@@ -303,7 +304,7 @@ def _grid_is_linspace( grid, tol = 1e-6 ):
         return len(grid)==2
     from ._numpy import _ensure_numpy, _np
     _ensure_numpy()
-    g = _np.asfarray(grid)
+    g = _np.asarray(grid,dtype=float)
     bws = g[1:] - g[:-1]
     bmin, bmax = bws.min(), bws.max()
     if ( not ( bmax >= bmin > 0.0 ) ) or _np.isinf(bmin) or _np.isinf(bmax):
@@ -316,7 +317,7 @@ def extract_path( s ):
     import pathlib
     if hasattr( s, '__fspath__' ):
         return pathlib.Path(s)
-    if isinstance( s, str ) and not '\n' in s:
+    if isinstance( s, str ) and '\n' not in s:
         return pathlib.Path(s)
 
 def download_url( url, decode_as_utf8_str = True, wrap_exception = True ):

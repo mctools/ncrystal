@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -36,6 +36,10 @@ namespace NCRYSTAL_NAMESPACE {
 
   NeutronDirection randIsotropicNeutronDirection( RNG& );
   NeutronDirection randNeutronDirectionGivenScatterMu( RNG&, double mu, const Vector& in );
+  inline NeutronDirection randNeutronDirectionGivenScatterMu( RNG& rng, CosineScatAngle mu, const NeutronDirection& in )
+  {
+    return randNeutronDirectionGivenScatterMu( rng, mu.dbl(), in.as<Vector>() );
+  }
 
   //Sample a random point on the unit circle:
   PairDD randPointOnUnitCircle( RNG& );
@@ -50,6 +54,7 @@ namespace NCRYSTAL_NAMESPACE {
 
   //Pick index according to weights (values must be commulative):
   std::size_t pickRandIdxByWeight( RNG&, Span<const double> commulvals);
+  std::size_t pickRandIdxByWeight( double rand01val, Span<const double> commulvals);
 
   //Sample exponential:
   double randExp( RNG& rng );//sample non-negative value from exp(-x)
@@ -63,6 +68,7 @@ namespace NCRYSTAL_NAMESPACE {
     void set(double a, double b, double c);
     RandExpIntervalSampler(double a, double b, double c);
     double sample(RNG&rng) const;
+    double sample( double randval01 ) const;
     void invalidate();
     bool isValid() const;
   private:
@@ -72,7 +78,7 @@ namespace NCRYSTAL_NAMESPACE {
   //Sample f(x) = exp(-c*x)/sqrt(x) on [a,b], a>=0 b>a, c>0:
   double randExpDivSqrt( RNG&, double c, double a, double b );
 
-  class RandXRSRImpl : private MoveOnly {
+  class RandXRSRImpl final : private MoveOnly {
     //Generator implementing the xoroshiro128+ (XOR/rotate/shift/rotate) due to
     //David Blackman and Sebastiano Vigna (released into public domain / CC0
     //1.0). It has a period of 2^128-1, is very fast and passes most statistical
@@ -90,10 +96,12 @@ namespace NCRYSTAL_NAMESPACE {
     RandXRSRImpl( const state_t& st ) : m_s{st} {}
 #endif
 
-    double generate();// uniformly in ]0,1]
-    uint64_t genUInt64();//uniformly over 0..uint64max (i.e. all bits randomised)
-    uint32_t genUInt32();//uniformly over 0..uint32max (i.e. all bits randomised)
-    bool coinflip();
+    double generate() noexcept;// uniformly in ]0,1]
+    void generateMany(std::size_t n, double* tgt)  ncnoexceptndebug;
+
+    uint64_t genUInt64() noexcept;//uniformly over 0..uint64max (i.e. all bits randomised)
+    uint32_t genUInt32() noexcept;//uniformly over 0..uint32max (i.e. all bits randomised)
+    bool coinflip() noexcept;
 
     void seed(uint64_t seed);
     const state_t& state() const noexcept  { return m_s; }
@@ -102,9 +110,11 @@ namespace NCRYSTAL_NAMESPACE {
 
     //Internal functions, exposed solely for the purpose of unit tests:
     static uint64_t splitmix64(uint64_t& state);
-    uint64_t genUInt64WithBadLowerBits();
+    uint64_t genUInt64WithBadLowerBits() noexcept;
   private:
     state_t m_s;
+    void genmanyimpl(int n, double* tgt)  ncnoexceptndebug;
+
   };
 
 }
@@ -113,6 +123,11 @@ namespace NCRYSTAL_NAMESPACE {
 ////////////////////////////
 // Inline implementations //
 ////////////////////////////
+
+inline std::size_t NCrystal::pickRandIdxByWeight( RNG& rng, Span<const double> commulvals)
+{
+  return commulvals.size()==1 ? 0 : pickRandIdxByWeight( rng.generate(), commulvals );
+}
 
 inline double NCrystal::randIsotropicScatterAngle( NCrystal::RNG& rng )
 {
@@ -175,12 +190,18 @@ inline double NCrystal::RandExpIntervalSampler::sample(RNG&rng) const
   return m_a + m_c1 * std::log( 1.0 + rng.generate() * m_c2 );
 }
 
+inline double NCrystal::RandExpIntervalSampler::sample( double randval01 ) const
+{
+  nc_assert(isValid());
+  return m_a + m_c1 * std::log( 1.0 + randval01 * m_c2 );
+}
+
 inline double NCrystal::randExpInterval( RNG& rng, double a, double b, double c )
 {
   return RandExpIntervalSampler(a,b,c).sample(rng);
 }
 
-inline uint64_t NCrystal::RandXRSRImpl::genUInt64WithBadLowerBits()
+inline uint64_t NCrystal::RandXRSRImpl::genUInt64WithBadLowerBits() noexcept
 {
   const uint64_t s0 = m_s[0];
   uint64_t s1 = m_s[1];
@@ -191,12 +212,12 @@ inline uint64_t NCrystal::RandXRSRImpl::genUInt64WithBadLowerBits()
   return result;
 }
 
-inline double NCrystal::RandXRSRImpl::generate()
+inline double NCrystal::RandXRSRImpl::generate() noexcept
 {
   return randUInt64ToFP01( genUInt64WithBadLowerBits() );
 }
 
-inline uint64_t NCrystal::RandXRSRImpl::genUInt64()
+inline uint64_t NCrystal::RandXRSRImpl::genUInt64() noexcept
 {
   //Since lower 3 bits in generator output have unwanted correlations, we simply
   //combine upper bits of two integers into one:
@@ -205,14 +226,14 @@ inline uint64_t NCrystal::RandXRSRImpl::genUInt64()
   return ( g1 >> 32 ) | ( g2 & 0xffffffff00000000 );
 }
 
-inline uint32_t NCrystal::RandXRSRImpl::genUInt32()
+inline uint32_t NCrystal::RandXRSRImpl::genUInt32() noexcept
 {
   //Since lower 3 bits in generator output have unwanted correlations, we simply
   //just use the upper bits:
   return static_cast<uint32_t>(genUInt64WithBadLowerBits() >> 32);
 }
 
-inline bool NCrystal::RandXRSRImpl::coinflip()
+inline bool NCrystal::RandXRSRImpl::coinflip() noexcept
 {
   //Test one of the high bits, stay far away from the 3 lowest:
   constexpr uint64_t onebit = 0x1000000000000000ull;

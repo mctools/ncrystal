@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -260,7 +260,7 @@ NC::CU::ElementBreakdownLW::ElementBreakdownLW(const NC::CU::FullElementBreakdow
       N = 1;
     }
   } else {
-#if __cplusplus >= 201402L
+#if nc_cplusplus >= 201402L
     //Our make_unique for c++11 seems to have problems with arrays
     m_other = std::make_unique<std::pair<double,uint16_t>[]>(N-1);
 #else

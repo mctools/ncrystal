@@ -5,7 +5,7 @@
 /*                                                                            */
 /*  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   */
 /*                                                                            */
-/*  Copyright 2015-2023 NCrystal developers                                   */
+/*  Copyright 2015-2024 NCrystal developers                                   */
 /*                                                                            */
 /*  Licensed under the Apache License, Version 2.0 (the "License");           */
 /*  you may not use this file except in compliance with the License.          */
@@ -169,6 +169,10 @@ extern "C" {
 #  undef ncrystal_dbg_process
 #endif
 #define ncrystal_dbg_process NCRYSTAL_APPLY_C_NAMESPACE(dbg_process)
+#ifdef ncrystal_enable_factory_threadpool
+#  undef ncrystal_enable_factory_threadpool
+#endif
+#define ncrystal_enable_factory_threadpool NCRYSTAL_APPLY_C_NAMESPACE(enable_factory_threadpool)
 #ifdef ncrystal_dealloc_doubleptr
 #  undef ncrystal_dealloc_doubleptr
 #endif
@@ -209,6 +213,10 @@ extern "C" {
 #  undef ncrystal_dump_verbose
 #endif
 #define ncrystal_dump_verbose NCRYSTAL_APPLY_C_NAMESPACE(dump_verbose)
+#ifdef ncrystal_dump_tostr
+#  undef ncrystal_dump_tostr
+#endif
+#define ncrystal_dump_tostr NCRYSTAL_APPLY_C_NAMESPACE(dump_tostr)
 #ifdef ncrystal_dyninfo_base
 #  undef ncrystal_dyninfo_base
 #endif
@@ -613,6 +621,18 @@ extern "C" {
 #  undef ncrystal_wl2ekin
 #endif
 #define ncrystal_wl2ekin NCRYSTAL_APPLY_C_NAMESPACE(wl2ekin)
+#ifdef ncrystal_benchloadcfg
+#  undef ncrystal_benchloadcfg
+#endif
+#define ncrystal_benchloadcfg NCRYSTAL_APPLY_C_NAMESPACE(benchloadcfg)
+#ifdef ncrystal_setmsghandler
+#  undef ncrystal_setmsghandler
+#endif
+#define ncrystal_setmsghandler NCRYSTAL_APPLY_C_NAMESPACE(setmsghandler)
+#ifdef ncrystal_runmmcsim_stdengine
+#  undef ncrystal_runmmcsim_stdengine
+#endif
+#define ncrystal_runmmcsim_stdengine NCRYSTAL_APPLY_C_NAMESPACE(runmmcsim_stdengine)
 
 
   /*============================================================================== */
@@ -964,7 +984,7 @@ extern "C" {
   /*============================================================================== */
   /*============================================================================== */
   /*==                                                                          == */
-  /*== Error handling                                                           == */
+  /*== Error and message handling                                               == */
   /*==                                                                          == */
   /*============================================================================== */
   /*============================================================================== */
@@ -987,6 +1007,12 @@ extern "C" {
   /*Another option is to provide a custom error handler which will be called on    */
   /*each error:                                                                    */
   NCRYSTAL_API void ncrystal_seterrhandler(void (*handler)(char*,char*));
+
+  /* By default, NCrystal output is emitted on stdout. The following function can  */
+  /* be used to instead provide a custom handling of these via a call-back         */
+  /* function. The first argument is the message, and the second is the message    */
+  /* class (0: info, 1: warning, 2: raw output):                                   */
+  NCRYSTAL_API void ncrystal_setmsghandler(void (*handler)(const char*,unsigned));
 
   /*============================================================================== */
   /*============================================================================== */
@@ -1078,9 +1104,20 @@ extern "C" {
   NCRYSTAL_API void ncrystal_dump(ncrystal_info_t);
   NCRYSTAL_API void ncrystal_dump_verbose(ncrystal_info_t, unsigned verbosity_lvl );
 
+  /* Dump info to a string (must be cleaned up with ncrystal_dealloc_string):      */
+  NCRYSTAL_API char* ncrystal_dump_tostr(ncrystal_info_t, unsigned verbosity_lvl );
+
   /* Utility converting between neutron wavelength [Aa] to kinetic energy [eV]:    */
   NCRYSTAL_API double ncrystal_wl2ekin( double wl );
   NCRYSTAL_API double ncrystal_ekin2wl( double ekin );
+
+  /* Enable factory thread pool. Assuming that user code runs in single thread     */
+  /* (at least while initialising materials), this requested value is the TOTAL    */
+  /* number of threads utilised INCLUDING that user thread. Thus, a value of 0     */
+  /* or 1 will disable this thread pool, while a value of 8 will result in 7       */
+  /* secondary worker threads being allocated.  Supply a value >= 9999 to simply   */
+  /* use a number of threads appropriate for the system:                           */
+  NCRYSTAL_API void ncrystal_enable_factory_threadpool( unsigned );
 
   /* Extract extra debug information about objects (as JSON string which must be   */
   /* cleaned up with ncrystal_dealloc_string).                                     */
@@ -1163,10 +1200,10 @@ extern "C" {
 #  undef NCRYSTAL_VERSION_STR
 #endif
 #define NCRYSTAL_VERSION_MAJOR 3
-#define NCRYSTAL_VERSION_MINOR 8
-#define NCRYSTAL_VERSION_PATCH 2
-#define NCRYSTAL_VERSION   3008002 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
-#define NCRYSTAL_VERSION_STR "3.8.2"
+#define NCRYSTAL_VERSION_MINOR 9
+#define NCRYSTAL_VERSION_PATCH 0
+#define NCRYSTAL_VERSION   3009000 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
+#define NCRYSTAL_VERSION_STR "3.9.0"
   NCRYSTAL_API int ncrystal_version(void); /* returns NCRYSTAL_VERSION                  */
   NCRYSTAL_API const char * ncrystal_version_str(void); /* returns NCRYSTAL_VERSION_STR */
 
@@ -1177,6 +1214,10 @@ extern "C" {
   /* Load raw NCMAT data into JSON structures. Must deallocate with call to        */
   /* ncrystal_dealloc_string as usual. (WARNING: JSON is incomplete for now!!!!!)  */
   NCRYSTAL_API char * ncrystal_ncmat2json( const char * textdataname );
+
+  /* Get time in seconds to load the cfg in question (if do_scatter=0 it will only */
+  /* create Info objects). Caches are cleared as a side effect: */
+  NCRYSTAL_API double ncrystal_benchloadcfg( const char * cfgstr, int do_scat, int repeat );
 
 
   /*============================================================================== */
@@ -1265,6 +1306,27 @@ extern "C" {
                                               double * results_diry,
                                               double * results_dirz,
                                               double * results_dekin );
+
+
+  /* Run the experimental embedded simulation engine for diffraction patterns. */
+  /* Depending on the tally_detail_lvl, various results are returned in the    */
+  /* output variables:                                                         */
+  /*     0 : only exit angle hist (contents + errors, no tally_json)           */
+  /*     1 : also running stats of exit angle dist in tally_json.              */
+  /*     2 : many other hists as well (completely contained in tally_json).    */
+  /* tally_json must be deallocated with ncrystal_dealloc_string if not NULL.  */
+  /* tally_exitangle_contents and _errsq must be passed to                     */
+  /* ncrystal_dealloc_doubleptr after usage. Set nthreads>=9999 for            */
+  /* auto-detection of a suitable number of threads:                           */
+  NCRYSTAL_API void ncrystal_runmmcsim_stdengine( unsigned nthreads,
+                                                  unsigned tally_detail_lvl,
+                                                  const char * mat_cfgstr,
+                                                  const char * mmc_geomcfg,
+                                                  const char * mmc_srccfg,
+                                                  char ** tally_json,
+                                                  unsigned * tally_exitangle_nbins,
+                                                  double ** tally_exitangle_contents,
+                                                  double ** tally_exitangle_errsq );
 
 #ifdef __cplusplus
 }

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -32,12 +32,12 @@ namespace NCRYSTAL_NAMESPACE {
 
   namespace InfoBuilder {
 
-    struct NCRYSTAL_API UnitCell {
+    struct NCRYSTAL_API UnitCell final {
       StructureInfo structinfo;
       Optional<AtomInfoList> atomlist;
     };
 
-    struct NCRYSTAL_API SinglePhaseBuilder {
+    struct NCRYSTAL_API SinglePhaseBuilder final : MoveOnly {
 
       DataSourceName dataSourceName;
 
@@ -59,7 +59,7 @@ namespace NCRYSTAL_NAMESPACE {
       Optional<Density> density;
       Optional<NumberDensity> numberDensity;
 
-      struct NCRYSTAL_API HKLPlanes {
+      struct NCRYSTAL_API HKLPlanes final : MoveOnly {
         PairDD dspacingRange;//Dspacing interval searched for planes (usually a
                               //bit bigger than that deduced from the list of
                               //planes since it is unlikely that planes exists
@@ -89,7 +89,7 @@ namespace NCRYSTAL_NAMESPACE {
       Info::StateOfMatter stateOfMatter = Info::StateOfMatter::Unknown;
     };
 
-    struct NCRYSTAL_API MultiPhaseBuilder {
+    struct NCRYSTAL_API MultiPhaseBuilder final : MoveOnly {
       Info::PhaseList phases;
     };
 

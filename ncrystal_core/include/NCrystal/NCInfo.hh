@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -439,6 +439,15 @@ namespace NCRYSTAL_NAMESPACE {
   };
 
   struct NCRYSTAL_API Info::Data final : private NoCopyMove {
+
+    //For VSCode:
+    Data() = default;
+    ~Data() = default;
+    Data( const Data& ) = delete;
+    Data& operator=( const Data& ) = delete;
+    Data( Data&& ) = delete;
+    Data& operator=( Data&& ) = delete;
+
     //Single-phase only:
     Optional<StructureInfo> structinfo;
     AtomInfoList atomlist;

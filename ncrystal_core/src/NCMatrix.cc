@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -19,11 +19,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/NCMatrix.hh"
-#include <iostream>
 
-NCrystal::Matrix::~Matrix()
-{
-}
+NCrystal::Matrix::~Matrix() = default;
 
 NCrystal::Matrix NCrystal::operator*(const NCrystal::Matrix& m1, const NCrystal::Matrix& m2)
 {
@@ -129,9 +126,4 @@ std::ostream& NCrystal::operator << (std::ostream & o, const NCrystal::Matrix& m
   }
   o << " }\n";
   return o;
-}
-
-void NCrystal::Matrix::print() const
-{
-  std::cout<< *this <<std::flush;
 }

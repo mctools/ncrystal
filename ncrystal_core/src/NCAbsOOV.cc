@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -40,8 +40,22 @@ NC::AbsOOV::AbsOOV( SigmaAbsorption sigabs)
 
 NC::CrossSect NC::AbsOOV::crossSectionIsotropic(CachePtr&, NeutronEnergy ekin ) const
 {
-  return CrossSect{ ekin.dbl() ? m_c / std::sqrt(ekin.dbl()) : kInfinity };
+  const double sqrtE = std::sqrt(ekin.dbl());
+  return CrossSect{ sqrtE ? m_c / sqrtE : kInfinity };
 }
+
+#ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
+void NC::AbsOOV::evalManyXSIsotropic( CachePtr&, const double* ekin, std::size_t N,
+                                      double* out_xs ) const
+{
+  for ( std::size_t i = 0; i < N; ++i )
+    out_xs[i] = std::sqrt( ekin[i] );
+  for ( std::size_t i = 0; i < N; ++i )
+    out_xs[i] = ( out_xs[i] ? ( 1.0 / out_xs[i] ) : kInfinity );
+  for ( std::size_t i = 0; i < N; ++i )
+    out_xs[i] *= m_c;
+}
+#endif
 
 std::shared_ptr<NC::ProcImpl::Process> NC::AbsOOV::createMerged( const Process& oraw,
                                                                  double scale_self,
@@ -67,4 +81,3 @@ NC::Optional<std::string> NC::AbsOOV::specificJSONDescription() const
   streamJSONDictEntry( ss, "sigma_abs", sigabs.dbl(), JSONDictPos::LAST );
   return ss.str();
 }
-

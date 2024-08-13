@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -34,6 +34,7 @@
 #include "NCrystal/internal/NCSABFactory.hh"
 #include "NCrystal/internal/NCSABUCN.hh"
 #include "NCrystal/internal/NCString.hh"
+#include "NCrystal/internal/NCProcCompBldr.hh"
 
 namespace NC = NCrystal;
 
@@ -128,14 +129,17 @@ namespace NCRYSTAL_NAMESPACE {
         return NullOpt;
       };
 
+      ///////////////////////////////////////////////////////////////////////////////////////////////////////////
       //Collect components:
-      ProcImpl::ProcComposition::ComponentList components;
+
+      Utils::ProcCompBldr components;
+      //components.clearQueueFct();
 
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////
       //Crystals: Incoherent-elastic component:
       if ( cfg.get_incoh_elas() && info.isCrystalline() ) {
         if ( ElIncScatter::hasSufficientInfo(info) )
-          components.push_back({1.0,makeSO<ElIncScatter>(info)});
+          components.add(makeSO<ElIncScatter>(info));
       }
 
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -143,33 +147,38 @@ namespace NCRYSTAL_NAMESPACE {
       if ( cfg.get_coh_elas() && info.isCrystalline() ) {
         nc_assert(info.hasHKLInfo());
         if (cfg.isSingleCrystal()) {
-          //TODO: factory function somewhere for this, so can be easily created directly in test-code?
-          auto sc_pp = createStdPlaneProvider( cfg.infoPtr() );
-          PlaneProviderWCutOff* ppwcutoff(nullptr);
-          if ( cfg.get_sccutoff() && cfg.get_sccutoff() > info.hklDMinVal() ) {
-            //Improve efficiency by treating planes with dspacing less than
-            //sccutoff as having isotropic mosaicity distribution.
-            auto tmp = std::make_unique<PlaneProviderWCutOff>(cfg.get_sccutoff(),std::move(sc_pp));
-            ppwcutoff = tmp.get();
-            sc_pp = std::move(tmp);
-            nc_assert( sc_pp!=nullptr && (void*)sc_pp.get()==(void*)ppwcutoff );
-          }
-          SCOrientation sco = cfg.createSCOrientation();
-          if (cfg.isLayeredCrystal()) {
-            components.push_back({1.0,makeSO<LCBragg>( info, sco, cfg.get_mos(), cfg.get_lcaxis(), cfg.get_lcmode(),
-                                                       0,sc_pp.get(),cfg.get_mosprec(),0.0 )});
-          } else {
-            components.push_back({1.0,makeSO<SCBragg>( info, sco,cfg.get_mos(),0.0,
-                                                       sc_pp.get(),cfg.get_mosprec(),0.)});
+          components.addfct_cl( [&cfg,&info]()
+          {
+            ProcImpl::ProcComposition::ComponentList cl;
+            //TODO: factory function somewhere for this, so can be easily created directly in test-code?
+            auto sc_pp = createStdPlaneProvider( cfg.infoPtr() );
+            PlaneProviderWCutOff* ppwcutoff(nullptr);
+            if ( cfg.get_sccutoff() && cfg.get_sccutoff() > info.hklDMinVal() ) {
+              //Improve efficiency by treating planes with dspacing less than
+              //sccutoff as having isotropic mosaicity distribution.
+              auto tmp = std::make_unique<PlaneProviderWCutOff>(cfg.get_sccutoff(),std::move(sc_pp));
+              ppwcutoff = tmp.get();
+              sc_pp = std::move(tmp);
+              nc_assert( sc_pp!=nullptr && (void*)sc_pp.get()==(void*)ppwcutoff );
+            }
+            SCOrientation sco = cfg.createSCOrientation();
+            if (cfg.isLayeredCrystal()) {
+              cl.emplace_back(makeSO<LCBragg>( info, sco, cfg.get_mos(), cfg.get_lcaxis(), cfg.get_lcmode(),
+                                               0,sc_pp.get(),cfg.get_mosprec(),0.0 ));
+            } else {
+              cl.emplace_back(makeSO<SCBragg>( info, sco,cfg.get_mos(),0.0,
+                                               sc_pp.get(),cfg.get_mosprec(),0.));
 
 
-          }
-          if ( ppwcutoff && ppwcutoff->hasPlanesWithheldInLastLoop() ) {
-            nc_assert_always(info.hasStructureInfo());
-            components.push_back({1.0,makeSO<PCBragg>(info.getStructureInfo(),ppwcutoff->consumePlanesWithheldInLastLoop())});
-          }
+            }
+            if ( ppwcutoff && ppwcutoff->hasPlanesWithheldInLastLoop() ) {
+              nc_assert_always(info.hasStructureInfo());
+              cl.emplace_back(makeSO<PCBragg>(info.getStructureInfo(),ppwcutoff->consumePlanesWithheldInLastLoop()));
+            }
+            return cl;
+          });
         } else {
-          components.push_back({1.0,makeSO<PCBragg>(info)});
+          components.addfct( [&info](){ return makeSO<PCBragg>(info); } );
           //NB: Layered polycrystals get same treatment as unlayered
           //polycrystals in our current modelling.
         }
@@ -189,7 +198,7 @@ namespace NCRYSTAL_NAMESPACE {
           elinc_cfg.use_sigma_incoherent = add_inc;
           elinc_cfg.use_sigma_coherent = add_coh;
           if ( ElIncScatter::hasSufficientInfo(info, elinc_cfg) )
-            components.push_back({1.0,makeSO<ElIncScatter>(info,elinc_cfg)});
+            components.add(makeSO<ElIncScatter>(info,elinc_cfg));
         }
       }
 
@@ -208,7 +217,7 @@ namespace NCRYSTAL_NAMESPACE {
           NCRYSTAL_THROW2(BadInput,"inelas="<<inelas<<" mode requires input source which provides direct"
                           " parameterisation of (non-Bragg) scattering cross sections (try e.g. inelas=auto instead)");
 
-        components.push_back({1.0,makeSO<BkgdExtCurve>(cfg.infoPtr())});
+        components.add(makeSO<BkgdExtCurve>(cfg.infoPtr()));
 
       } else {
         nc_assert_always( isOneOf(inelas,"dyninfo","freegas", "vdosdebye" ) );
@@ -244,30 +253,38 @@ namespace NCRYSTAL_NAMESPACE {
           for (auto& di : info.getDynamicInfoList()) {
             const DI_ScatKnl* di_scatknl = dynamic_cast<const DI_ScatKnl*>(di.get());
             if (di_scatknl) {
-              auto sabdata = NC::extractSABDataFromDynInfo( di_scatknl, vdoslux, true/*use cache*/, vdos2sabExcludeFlag );
-              if ( sabdata->boundXS() ) {
+              components.addfct_cl([di_scatknl,vdoslux,vdos2sabExcludeFlag,ucnmode]()
+              {
+                ProcImpl::ProcComposition::ComponentList complist;
+                const double scale = di_scatknl->fraction();
+
+                auto sabdata = extractSABDataFromDynInfo( di_scatknl, vdoslux, true/*use cache*/, vdos2sabExcludeFlag );
+                if ( !sabdata->boundXS() )
+                  return complist;
+
                 auto sab_scatter = makeSO<SABScatter>( sabdata, di_scatknl->energyGrid() );
-                if ( ucnmode.has_value() ) {
-                  auto scUCN = UCN::UCNScatter::createWithCache( sabdata, ucnmode.value().threshold );
-                  nc_assert(isOneOf(ucnmode.value().mode,UCNMode::Mode::Refine,UCNMode::Mode::Remove,UCNMode::Mode::Only));
-                  if ( scUCN->isNull() ) {
-                    //Just the normal process, the UCN process is apparently null.
-                    if ( isOneOf( ucnmode.value().mode, UCNMode::Mode::Refine,  UCNMode::Mode::Remove ) )
-                      components.push_back({di->fraction(),sab_scatter});
-                  } else {
-                    if ( isOneOf( ucnmode.value().mode, UCNMode::Mode::Refine,  UCNMode::Mode::Remove ) )
-                      components.push_back({ di->fraction(), makeSO<UCN::ExcludeUCNScatter>( sab_scatter, scUCN ) });
-                    if ( isOneOf( ucnmode.value().mode, UCNMode::Mode::Refine,  UCNMode::Mode::Only ) )
-                      components.push_back({ di->fraction(), scUCN });
-                  }
-                } else {
-                  components.push_back({di->fraction(),sab_scatter});
+                if ( !ucnmode.has_value() ) {
+                  complist.emplace_back(scale,std::move(sab_scatter));
+                  return complist;
                 }
-              }
+                auto scUCN = UCN::UCNScatter::createWithCache( sabdata, ucnmode.value().threshold );
+                nc_assert(isOneOf(ucnmode.value().mode,UCNMode::Mode::Refine,UCNMode::Mode::Remove,UCNMode::Mode::Only));
+                if ( scUCN->isNull() ) {
+                  //Just the normal process, the UCN process is apparently null.
+                  if ( isOneOf( ucnmode.value().mode, UCNMode::Mode::Refine,  UCNMode::Mode::Remove ) )
+                    complist.emplace_back(scale,std::move(sab_scatter));
+                  return complist;
+                }
+                if ( isOneOf( ucnmode.value().mode, UCNMode::Mode::Refine,  UCNMode::Mode::Remove ) )
+                  complist.emplace_back(scale,makeSO<UCN::ExcludeUCNScatter>( sab_scatter, scUCN ));
+                if ( isOneOf( ucnmode.value().mode, UCNMode::Mode::Refine,  UCNMode::Mode::Only ) )
+                  complist.emplace_back(scale,scUCN);
+                return complist;
+              });
             } else if (dynamic_cast<const DI_Sterile*>(di.get())) {
               continue;//just skip past sterile components
             } else if (dynamic_cast<const DI_FreeGas*>(di.get())) {
-              components.push_back({di->fraction(),makeSO<FreeGas>(info.getTemperature(), di->atomData())});
+              components.add(makeSO<FreeGas>(info.getTemperature(), di->atomData()),di->fraction());
               if ( ucnmode.has_value() )
                 NCRYSTAL_THROW2(BadInput,"components with freegas dynamics are currently not supported when using any ucnmode)");
             } else {
@@ -279,7 +296,7 @@ namespace NCRYSTAL_NAMESPACE {
           if ( ucnmode.has_value() )
             NCRYSTAL_THROW2(BadInput,"inelas="<<inelas<<" mode is not compatible with any ucnmode)");
           for ( auto& e : info.getComposition() ) {
-            components.push_back({e.fraction,makeSO<FreeGas>(info.getTemperature(), e.atom.data())});
+            components.add(makeSO<FreeGas>(info.getTemperature(), e.atom.data()),e.fraction);
           }
 
         } else {
@@ -294,23 +311,29 @@ namespace NCRYSTAL_NAMESPACE {
           unsigned ntot = 0.0;
           for ( auto& ai : info.getAtomInfos() )
             ntot += ai.numberPerUnitCell();
-          for ( auto& ai : info.getAtomInfos() ) {
-            nc_assert_always( ai.debyeTemp().has_value() );
-            auto sabdata =  extractSABDataFromVDOSDebyeModel( ai.debyeTemp().value(),
-                                                              info.getTemperature(),
-                                                              ai.atomData().scatteringXS(),
-                                                              ai.atomData().averageMassAMU(),
-                                                              vdoslux );
-            auto scathelper = SAB::createScatterHelperWithCache( std::move(sabdata) );
-            components.push_back({ai.numberPerUnitCell()*1.0/ntot,makeSO<SABScatter>(std::move(scathelper))});
-
+          for ( auto& ai_orig : info.getAtomInfos() ) {
+            auto * ai_ptr = &ai_orig;
+            components.addfct_cl([&info,ai_ptr,vdoslux,ntot]()
+            {
+              ProcImpl::ProcComposition::ComponentList complist;
+              auto& ai = *ai_ptr;
+              nc_assert_always( ai.debyeTemp().has_value() );
+              auto sabdata =  extractSABDataFromVDOSDebyeModel( ai.debyeTemp().value(),
+                                                                info.getTemperature(),
+                                                                ai.atomData().scatteringXS(),
+                                                                ai.atomData().averageMassAMU(),
+                                                                vdoslux );
+              auto scathelper = SAB::createScatterHelperWithCache( std::move(sabdata) );
+              complist.emplace_back(ai.numberPerUnitCell()*1.0/ntot,makeSO<SABScatter>(std::move(scathelper)));
+              return complist;
+            });
           }
         }
       }
 
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////
       //Wrap it up and return:
-      return ProcImpl::ProcComposition::consumeAndCombine( std::move(components), ProcessType::Scatter );
+      return components.finalise_scatter();
     }
 
   private:

@@ -8,7 +8,7 @@ Internal implementation details for utilities in ncmat.py
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2023 NCrystal developers                                   ##
+##  Copyright 2015-2024 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -83,9 +83,9 @@ def matsrc_initfmt( data, fmt, cfg_params ):
            raise NCBadInput(f'Missing file: {p}')
         try:
             _textdata = p.read_text()
-        except OSError as e:
+        except OSError:
             raise NCBadInput(f'Could not read data from file: {p}')
-        except UnicodeDecodeError as e:
+        except UnicodeDecodeError:
             raise NCBadInput(f'Problems interpreting data in file as text: {p}')
         if _textdata.startswith('NCMAT'):
             _dtype = 'ncmat'
@@ -178,7 +178,7 @@ def matsrc_init( class_MaterialSource, matsrc_extract_d_fct, data, fmt, cfg_para
                              ' If this is merely a detection problem, set'
                              ' the fmt parameter to an accepted value (one of:'
                              ' %s)'%matsrc_allfmts(as_str=True))
-    if not fmt in matsrc_allfmts():
+    if fmt not in matsrc_allfmts():
         raise NCBadInput( f'Unknown format "{fmt}" (must be one of:'
                           ' %s)'%matsrc_allfmts(as_str=True) )
     d = matsrc_initfmt( matsrc_extract_d_fct(data) if fmt=='NCrystal.MaterialSource' else data, fmt, cfg_params )
@@ -186,8 +186,9 @@ def matsrc_init( class_MaterialSource, matsrc_extract_d_fct, data, fmt, cfg_para
     assert 'description' in d
     assert int('preloaded' in d) + int('loadfct' in d) == 1
     if 'preloaded' in d and (cfg_params or '').strip():
-        raise NCBadInput('MaterialSource objects that are wrapping preloaded physics objects '
-                         'can not be initialised with additional cfg parameters.')
+        raise NCBadInput('MaterialSource objects that are wrapping preloaded'
+                         ' physics objects can not be initialised with'
+                         ' additional cfg parameters.')
     return d
 
 def anytextdata_init( data, *, is_path, name ):
@@ -212,7 +213,7 @@ def anytextdata_init( data, *, is_path, name ):
     if not isinstance(data,str):
         from .exceptions import NCBadInput
         raise NCBadInput('Invalid text data / text file data (got type %s)'%type(data))
-    is_path = is_path if ( not is_path is None ) else ( not '\n' in data )
+    is_path = is_path if ( is_path is not None ) else ( '\n' not in data )
     if is_path:
         import pathlib
         p = pathlib.Path ( data )
@@ -257,14 +258,14 @@ def _anyvdos_preinit( data, fmt ):
                      debyetemp = debyetemp )
     if fmt =='arrays':
         eg, dens = data
-        dens = _np.asfarray( dens, dtype = float )
+        dens = _np.asarray( dens, dtype = float )
         if len(eg)==2 and len(dens)>2:
             eg = (float(eg[0]),float(eg[1]))
         else:
-            eg = _np.asfarray( eg, dtype = float )
+            eg = _np.asarray( eg, dtype = float )
         return dict( dos = ( eg, dens ) )
     assert not fmt == 'NCrystal.AnyVDOS'#should have been handled in calling code
-    if not fmt in allfmts:
+    if fmt not in allfmts:
         from .exceptions import NCBadInput
         s='"%s"'%('", "'.join(allfmts))
         if fmt is None:
@@ -284,7 +285,7 @@ def _anyvdos_initfmt( data, fmt ):
         if _needsexpand(egrid,dos):
             return _np_linspace( egrid[0], egrid[-1], len(dos) )
         else:
-            return _np.asfarray(egrid,dtype=float)
+            return _np.asarray(egrid,dtype=float)
     def integrate( expanded_egrid, dos ):
         x,y = expanded_egrid, dos
         if not x[0] > 0.0:
@@ -294,7 +295,7 @@ def _anyvdos_initfmt( data, fmt ):
         parabola_contrib = ( x[0] * y[0] ) / 3.0#integral of parabola through (0,0) and (x[0],y[0]) over [0,x[0]]
         return parabola_contrib + _np.trapz(x=x,y=y)
     for k in ('dos','dos_orig'):
-        if not k in p:
+        if k not in p:
             continue
         eg,dos = p[k]
         egexpand = _expandegrid(eg,dos) if _needsexpand(eg,dos) else None

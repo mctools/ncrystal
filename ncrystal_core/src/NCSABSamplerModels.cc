@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,7 +21,7 @@
 #include "NCrystal/internal/NCSABSamplerModels.hh"
 #include "NCrystal/internal/NCSABUtils.hh"
 #include "NCrystal/internal/NCString.hh"
-#include <iostream>
+#include "NCrystal/internal/NCMsg.hh"
 namespace NC = NCrystal;
 
 NC::SAB::SABSamplerAtE_Alg1::SABSamplerAtE_Alg1( std::shared_ptr<const CommonCache> common,
@@ -99,9 +99,10 @@ NC::PairDD NC::SAB::SABSamplerAtE_Alg1::sampleAlphaBeta(double ekin_div_kT, RNG&
           static constexpr unsigned nfail_max_warn = 20;
           auto nfail = ++s_nfail;
           if ( nfail <= nfail_max_warn ) {
-            std::cout<< "NCrystal WARNING: SABSampler reverts to isotropic model after "<<nsampletries<<" rejected attempts"
-                     << ( nfail == nfail_max_warn ? " (suppressing further warnings of this type)" : "" )
-                     << std::endl;
+            NCRYSTAL_WARN("SABSampler reverts to isotropic model"
+                          " after "<<nsampletries<<" rejected attempts"
+                          << ( nfail == nfail_max_warn ? " (suppressing"
+                               " further warnings of this type)" : "" ));
           }
           alphaval = 0.5*(alims.first+alims.second);
           break;

@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -47,9 +47,11 @@ NC::Cfg::TopLvlVarList NC::Cfg::CfgManip::applyStrCfg( CfgData& data, StrView st
   nc_assert( str.has_value() );
   const char *errintro = "Syntax error in parameter string: ";
   TopLvlVarList toplvlVars;
-  auto badchar_strrep = findForbiddenChar( str, forbidden_chars_non_multiphase, ExtraForbidOpt::RequireSimpleASCII );
+  auto badchar_strrep = findForbiddenChar( str, forbidden_chars_non_multiphase,
+                                           ExtraForbidOpt::RequireSimpleASCII );
   if ( badchar_strrep.has_value() )
-    NCRYSTAL_THROW2(BadInput,errintro<<"forbidden "<<badchar_strrep.value()<<" character encountered.");
+    NCRYSTAL_THROW2(BadInput,errintro<<"forbidden "<<badchar_strrep.value()
+                    <<" character encountered.");
 
   auto it = str.begin();
   auto itE = str.end();

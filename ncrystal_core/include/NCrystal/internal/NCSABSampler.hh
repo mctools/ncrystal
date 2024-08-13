@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -53,16 +53,22 @@ namespace NCRYSTAL_NAMESPACE {
       constexpr EGridMargin(double vv = 1.0) noexcept : value(vv) {}//for C++11
     };
 
+
+    //Wanted to use std::vector, but because of (older?) VSCode not supporting
+    //move-only types in std::vector, we use SmallVector for this:
+    using SABSamplerAtEList = SmallVector<std::unique_ptr<SABSamplerAtE>,1>;
+    //using SABSamplerAtEList = std::vector<std::unique_ptr<SABSamplerAtE>>;
+
     void setData( Temperature temperature,
                   VectD&& egrid,
-                  std::vector<std::unique_ptr<SABSamplerAtE>>&&,
+                  SABSamplerAtEList&&,
                   std::shared_ptr<const SAB::SABExtender>,
                   double xsAtEmax,
                   EGridMargin );
 
     SABSampler( Temperature temperature,
                 VectD&& egrid,
-                std::vector<std::unique_ptr<SABSamplerAtE>>&&,
+                SABSamplerAtEList&&,
                 std::shared_ptr<const SAB::SABExtender>,
                 double xsAtEmax,
                 EGridMargin );
@@ -82,7 +88,7 @@ namespace NCRYSTAL_NAMESPACE {
 
   private:
     VectD m_egrid;
-    std::vector<std::unique_ptr<SABSamplerAtE>> m_samplers;
+    SABSamplerAtEList m_samplers;
     double m_kT = 0.0;
     std::shared_ptr<const SAB::SABExtender> m_extender;
     double m_xsAtEmax = 0.0, m_k1 = 0.0, m_k2 = 0.0;

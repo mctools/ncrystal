@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -77,7 +77,7 @@ namespace NCRYSTAL_NAMESPACE {
         fmtFlexUnit( double value, Span<const Unit> units ) : m_res( toStringWithBestUnit(value,units) ) {}
         const std::string& result() const noexcept { return m_res; }
       };
-      inline std::ostream& operator<<(std::ostream& os, const fmtFlexUnit& val) noexcept { return os << val.result(); }
+      inline std::ostream& operator<<(std::ostream& os, const fmtFlexUnit& val) { return os << val.result(); }
     }
   }
 }

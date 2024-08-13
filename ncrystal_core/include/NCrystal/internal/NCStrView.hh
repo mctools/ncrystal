@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -94,7 +94,8 @@ namespace NCRYSTAL_NAMESPACE {
     ncconstexpr17 StrView& operator=( const StrView& o ) noexcept;
     ncconstexpr17 StrView& operator=( StrView&& o ) noexcept;
 
-    //Check if the view has a value or not. If it does not, :
+    //Check if the view has a value or not. If it does not, data() will return a
+    //nullptr, and no methods should be used except the assignment operators.
     constexpr bool has_value() const noexcept;
 
     //Access data, and size (empty() is just a check for non-zero size). Note
@@ -119,7 +120,7 @@ namespace NCRYSTAL_NAMESPACE {
     StrView rtrimmed() const;
 
     //Substring or a full std::string:
-    StrView substr( size_type first, size_type len = npos ) const;
+    StrView substr( size_type first, size_type len = npos ) const noexcept;
     std::string to_string() const;
 
     void appendToString( std::string& ss ) const { ss.append( m_data, m_size ); }
@@ -265,9 +266,9 @@ namespace NCRYSTAL_NAMESPACE {
     return os;
   }
 
-  inline StrView StrView::substr( size_type first, size_type len ) const
+  inline StrView StrView::substr( size_type first, size_type len ) const noexcept
   {
-    nc_assert(has_value());
+    //nc_assert(has_value());
     if ( first >= m_size || len == 0 )
       return StrView( m_data, 0 );//empty
     return StrView( m_data + first, std::min<size_type>(m_size-first,len) );

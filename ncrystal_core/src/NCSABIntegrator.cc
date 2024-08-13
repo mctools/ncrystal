@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -24,7 +24,7 @@
 #include "NCrystal/internal/NCFactoryUtils.hh"
 #include "NCrystal/internal/NCIter.hh"
 #include "NCrystal/internal/NCString.hh"
-#include <iostream>
+#include "NCrystal/internal/NCMsg.hh"
 
 namespace NC = NCrystal;
 namespace NS = NCrystal::SAB;
@@ -156,9 +156,10 @@ double NS::SABIntegrator::Impl::determineEMin(const double e_upp) const
       return ncmin(e_old,e_upp*0.01);
     const double f_new = f(e_new);
     if (f_new==0.0) {
-      std::cout<<"NCrystal WARNING: Encountered sqrt(E)*sigma(E)=0 at E="<<e_new
-               <<" while searching for suitable Emin value at which to start SAB"
-               <<" energy grid. Will revert to using Emin=0.001*Emax."<<std::endl;
+      NCRYSTAL_WARN("Encountered sqrt(E)*sigma(E)=0 at E="<<e_new
+                    <<" while searching for suitable Emin value at which"
+                    " to start SAB energy grid. Will revert to using"
+                    " Emin=0.001*Emax.");
       return 0.001*e_upp;
     }
     if ( ncabs(f_old/f_new-1.0) < tolerance )
@@ -245,11 +246,14 @@ void NS::SABIntegrator::Impl::setupEnergyGrid()
       emax = determineEMax(emax_upper_limit);
       if ( !(emax>0.0) ) {
         emax = 0.5 * emax_upper_limit;
-        std::cout<< "NCrystal WARNING: Algorithm searching for suitable Emax value at which to end SAB"
-                 << " energy grid failed to provide reasonable result. Using crude guess of "
-                 << emax<<"eV. It might be necessary to specify a more suitable value directly"
-                 << " (e.g. using the \"egrid\" keyword in .ncmat files). Consider sharing your"
-                 << " input data with NCrystal developers for further debugging." <<std::endl;
+        NCRYSTAL_WARN("Algorithm searching for suitable Emax value at"
+                      " which to end SAB energy grid failed to provide"
+                      " reasonable result. Using crude guess of "<< emax
+                      <<"eV. It might be necessary to specify a more"
+                      " suitable value directly (e.g. using the \"egrid\""
+                      " keyword in .ncmat files). Consider sharing your"
+                      " input data with NCrystal developers"
+                      " for further debugging.");
       }
     }
 
@@ -284,9 +288,9 @@ void NS::SABIntegrator::Impl::doit(SABXSProvider * out_xs, SABSampler* out_sampl
   //Prepare and validate energy grid:
   setupEnergyGrid();
 
-  std::vector<std::unique_ptr<SABSamplerAtE>> energyPointSamplers;
+  SABSampler::SABSamplerAtEList energyPointSamplers;
   if ( doSampler )
-    energyPointSamplers.reserve(m_egrid.size());
+    energyPointSamplers.reserve_hint(m_egrid.size());
   VectD xsvals;
   xsvals.reserve(m_egrid.size());
 
@@ -297,6 +301,8 @@ void NS::SABIntegrator::Impl::doit(SABXSProvider * out_xs, SABSampler* out_sampl
       energyPointSamplers.emplace_back(std::move(sampleruptr_and_xs.first));
     xsvals.emplace_back( sampleruptr_and_xs.second );
   }
+
+  energyPointSamplers.shrink_to_fit();
 
   if ( doSampler )
     out_sampler->setData( m_data->temperature(),

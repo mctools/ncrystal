@@ -1,3 +1,135 @@
+v3.9.0 2024-08-12
+     * This release brings both general improvements and new features, as well
+       as a slew of maintenance updates and bug fixes. The first few items below
+       will discuss the main highlights.
+     * General speedup in a lot of the code. In particular the Fast Fourier
+       Transform code, used when expanding phonon density of states to full
+       scattering kernels for inelastic modelling, was improved by as much as
+       40%. This will make a noticeable difference when initialising many
+       materials, and is an improvement independent from the multi-threading
+       option mentioned in the previous item.
+     * If requested, NCrystal can now initialise materials even faster, by
+       performing the initialisation calculations in multiple threads. This can
+       for instance be enabled by setting the environment variable
+       NCRYSTAL_FACTORY_THREADS to the number of threads you wish to use (e.g. 8
+       if you have 8 CPU cores available, or 9999 to have NCrystal pick a number
+       suitable for your machine). Alternatively, you can call functions in the
+       Python, C, or C++ APIs to enable this:
+         NC.enableFactoryThreads() # Python
+         NC::FactoryThreadPool::enable(); //C++
+         ncrystal_enable_factory_threadpool(9999); //C
+         export NCRYSTAL_FACTORY_THREADS=9999 # BASH
+     * NCrystal now includes the first iteration of a "Mini Monte Carlo"
+       framework (for lack of a better word), which makes it possible to insert
+       an NCrystal material into a simple geometric "sample" shape, subject it
+       to a source of neutrons, and obtain a spectrum or pattern of the outgoing
+       neutrons. Thus, one can easily produce a simplistic diffraction pattern,
+       including effects of multiple scattering and both elastic and inelastic
+       physics. For now, the focus has been on developing the framework itself,
+       rather than preparing a library of interesting shapes, sources, and
+       tallies. Thus, the only readily available setup in this release is that
+       of a monochromatic pencil beam impinging on a sphere, tallying the
+       outgoing angle of the neutrons as they leave that sphere. Nonetheless,
+       the results provides a very convenient view of how NCrystal modelling
+       translates into a particular pattern -- without the need for an
+       additional software package like McStas, Geant4, or OpenMC. The `nctool`
+       command will now by default show such scattering pattern, or they can be
+       explicitly requested, as shown in this example where 1.8Aa neutrons
+       impinge on an aluminium sphere with a diameter of 2cm:
+       $> nctool --mc 1.8Aa 2cm Al_sg225.ncmat
+       The scope of this "Mini Monte Carlo" framework is of course not to try to
+       rival existing applications in terms of ability to simulate complicated
+       geometries or beamlines, but rather to provide another convenient way to
+       quickly investigate NCrystal materials, as well as potentially serve as a
+       way for NCrystal to be used in a regression-loop while analysing actual
+       neutron scattering data. For that reason, speed has been a major concern,
+       and both multithreading and vectorisation has been utilised to bring the
+       time it takes to go from defined NCMAT data to having a high-statistics
+       diffraction pattern available, down to the sub-second scale.
+     * Internally NCrystal code no longer uses raw `std::cout` or `printf`
+       statements. Rather, all messages are now emitted via a centralised
+       infrastructure. This most importantly fixes an issue where output from
+       the Python and C++ layers could occasionally be emitted in incorrect
+       order - now, when using the NCrystal Python API, all output will be
+       emitted through Python's own print buffer. Secondly, several NCrystal
+       objects now gets a `.dump_str()` method, meaning for instance that
+       material dumps can be captured in strings rather than emitted on
+       std-output. Finally, this new feature could in principle be used for
+       various output redirection purposes (e.g. a GUI application might wish to
+       show all output from NCrystal in some dedicated text box).
+     * NCrystal has been updated to work with latest versions of Numpy, Clang,
+       GCC, Python, Gemmi, and Spglib. Additionally work has started to support
+       Intel OneAPI compilers and Microsoft VSCode, although more work is needed
+       to finalise this. As part of these efforts, the ABI had to be broken in
+       some places, since for instance Microsoft VSCode did not support all the
+       data structures used previously (for instance, VSCode's `std::vector`
+       does not accept move-only objects like `std::unique_ptr`).
+     * This concludes the highlights in this changelog entry - refer to the
+       following items for more detailed information about specific changes.
+     * Several speedups of the phonon convolution calculation code was
+       implemented, resulting in noticable speed increases (20-40%): the FFT
+       phase factor calculation by a factor of two, swap indices were cached,
+       and an integer division was rewritten as a bit shift.
+     * Reduce luxury in some VDOS integrations slightly for a more reasonable
+       amount of calculations, speeding up Info material creation.
+     * Add internal utilities to allow usage of multiple threads for material
+       loading, allowing for sizeable speedups. This required many changes to
+       ensure good behaviour (i.e. using a fixed number of threads only), and no
+       dead-locks of various kinds even though the multi-threading can take
+       place at various levels during the loading. For now, the number of
+       available threads can be controlled with the NCRYSTAL_FACTORY_THREADS
+       environment variable, the NCrystal::FactoryThreadPool::enable() C++
+       function, the NCrystal.enableFactoryThreads Python function, or the
+       ncrystal_enable_factory_threadpool C function.
+     * Build NCrystal library with -fno-math-errno (github issue #169).
+     * Several non-trivial fixes were implemented to prepare for MS VSCode and
+       Intel oneapi compilation support. This breaks ABI.
+     * Apply -fp-model=precise for intel oneapi compiler.
+     * Change C++ DynamicInfoList type from
+       std::vector<std::unique_ptr<DynamicInfo>> to typedef
+       SmallVector<std::unique_ptr<DynamicInfo>,4>, since VSCode apparently does
+       not support std::vector's with move-only objects. This in principle
+       breaks the ABI and API, but is deemed necessary. A few other types in
+       internal non-API headers were changed as well for the same reason.
+     * Fix build error due to ODR violation in the TopLvlVar type.
+     * Removed noexcept from C++ functions where it should not have been added
+       (e.g. those used for streaming to std::ostream).
+     * Fix cfg-string bug (github issue #182). This only affected multiphase
+       cfg-strings in which the first phase contained either a density or
+       phasechoice setting, so is not believed to have affected many users.
+     * ProcComposition::consumeAndCombine(..) fct is now better at removing null
+       components.
+     * Adding the infrastructure for better control of NCrystal output, through
+       usage of a new setMessageHandler(..) function (related to github issues
+       #53 and #122).
+     * Rewrote the NCrystal::dump C++ function (which provides printouts/"dumps"
+       of material Info objects) to stop using printf entirely and now only use
+       C++ output streams, but notably while preserving existing output
+       exactly. This makes it possible to capture the dumps into strings and
+       streams, rather than printing them out. Along with the general message
+       handling changes, this should prevent Python output buffering causing
+       incorrect output ordering (seen in e.g. Jupyter notebooks).
+     * Python objects with .dump(..) methods gets new .dump_str() methods as
+       well, which simply returns the information as a string instead of
+       printing it directly.
+     * Update cifutils to follow changes in upstream Gemmi project.
+     * Updates to reflect upstream API changes in spglib.
+     * Stop using numpy.asfarray which was removed in numpy 2.0.0 (github issue
+       #185).
+     * More helpful error message when loading huge DFT-generated unit cells
+       (thousands of atoms, no symmetries) without raising dcutoff (github issue
+       #160).
+     * DI_VDOSDebye Python objects now also get an analyseVDOS() method, for
+       consistency (github issue #174).
+     * Update NCMAT documentation to clarify the ordering of sab entries (github
+       issue #170).
+     * Add convenience .xsect(..) and .macroscopic_xsect(..) methods to
+       LoadedMaterial instances in the Python API.
+     * Add experimental material loading benchmark utility to nctool. This
+       feature is for now kept out of the documentation, but can be tested with:
+       "nctool --bench --help".
+     * Updated year in copyright notice in all files.
+
 v3.8.2 2024-04-30
      * Add importlib_metadata as python build dependency for Python < 3.8.
      * CMake code no longer strictly disallows mixing of NCRYSTAL_NAMESPACE and

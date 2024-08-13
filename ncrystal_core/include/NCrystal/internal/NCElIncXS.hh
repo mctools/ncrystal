@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,6 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCTypes.hh"
+#include "NCrystal/internal/NCSpan.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 
@@ -55,7 +56,6 @@ namespace NCRYSTAL_NAMESPACE {
               const VectD& elements_boundincohxs,
               const VectD& elements_scale );
 
-
     ~ElIncXS();
 
     //Empty if no elements added (evaluate() will always return zero).
@@ -64,6 +64,9 @@ namespace NCRYSTAL_NAMESPACE {
     //Evaluate the incoherent elastic cross section:
     static CrossSect evaluateMonoAtomic( NeutronEnergy, double meanSqDisp, SigmaBound bound_incoh_xs);
     CrossSect evaluate(NeutronEnergy ekin) const;
+
+    void evaluateMany( Span<const double> ekin, Span<double> tgt) const;
+
 
     //Sample cosine of scatter angle:
     static CosineScatAngle sampleMuMonoAtomic( RNG&, NeutronEnergy, double meanSqDisp );
@@ -74,6 +77,14 @@ namespace NCRYSTAL_NAMESPACE {
 
     //Number of elements:
     std::size_t nElements() const;
+
+    struct EPointAnalysis {
+      SmallVector<double,32> data;
+      NeutronEnergy ekin;
+      CrossSect getXS() const { return CrossSect{ data.back() }; }
+      CosineScatAngle sampleMu( const ElIncXS&, RNG& ) const;
+    };
+    EPointAnalysis analyseEnergyPoint( NeutronEnergy ekin ) const { return { evalXSContribsCommul(ekin), ekin }; };
 
     ////////////////////////////////////////////////////////////////////////////////////
     //
@@ -116,6 +127,8 @@ namespace NCRYSTAL_NAMESPACE {
     SmallVector<PairDD,16> m_elm_data;//for exact eval, (msd,boundincohxs*scale)
     static double eval_1mexpmtdivt(double t);//safe/fast eval of (1-exp(-t))/t for t>=0.0 with >10 sign. digits
 
+    SmallVector<double,32> evalXSContribsCommul( NeutronEnergy ) const;
+    friend struct EPointAnalysis;
   };
 }
 

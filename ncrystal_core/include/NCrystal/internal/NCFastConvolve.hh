@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,8 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCMath.hh"
-#include <complex>
+#include "NCrystal/NCDefs.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 
@@ -41,23 +40,21 @@ namespace NCRYSTAL_NAMESPACE {
   public:
     FastConvolve();
     ~FastConvolve();
-    void fftconv( const VectD& a1, const VectD& a2, VectD& y, double dt);
+    FastConvolve( FastConvolve&& ) noexcept;
+    FastConvolve& operator=( FastConvolve&& ) noexcept;
 
-    FastConvolve( FastConvolve&& ) = default;
-    FastConvolve& operator=( FastConvolve&& ) = default;
+    void convolve( const VectD& a1,
+                   const VectD& a2,
+                   VectD& y,
+                   double dt);
 
-    //Internal function for calculating exp(i*2pi*k/2^n), exposed for unit testing:
+    //Internal function for calculating exp(i*2pi*k/2^n), exposed for unit
+    //testing:
     static PairDD calcPhase(unsigned k, unsigned n);
 
   private:
-
-    enum caltype {FT_forward,FT_inverse};
-    std::vector< std::complex<double> > m_w;
-
-    //The actual fast-fourier transform algorithm:
-    void fftd( std::vector<std::complex<double> > &inout, caltype ct,
-               unsigned minimum_output_size );
-    void initWTable( unsigned );
+    struct Impl;
+    Pimpl<Impl> m_impl;
   };
 }
 

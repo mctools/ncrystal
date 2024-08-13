@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -66,17 +66,39 @@ NC::ScatterOutcomeIsotropic NCPI::AbsorptionIsotropicMat::sampleScatterIsotropic
   return { NeutronEnergy{0.0}, CosineScatAngle{0.0} };
 }
 
-NC::ScatterOutcomeIsotropic NC::ProcImpl::NullProcess::sampleScatterIsotropic( CachePtr&,
-                                                                               RNG&,
-                                                                               NeutronEnergy ekin ) const
+#ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
+bool NCPI::AbsorptionIsotropicMat::isPureElasticScatter() const
+{
+  NCRYSTAL_THROW(LogicError,"Process::isPureElasticScatter can not be called for an absorption process.");
+  return false;
+}
+
+std::pair<NC::CrossSect,NC::ScatterOutcome>
+NCPI::AbsorptionIsotropicMat::evalXSAndSampleScatter( CachePtr&, RNG&, NeutronEnergy ekin, const NeutronDirection& ndir ) const
+{
+  NCRYSTAL_THROW(LogicError,"Process::evalXSAndSampleScatter can not be called for an absorption process.");
+  return { CrossSect{0.0}, ScatterOutcome{ ekin, ndir } };
+}
+
+std::pair<NC::CrossSect,NC::ScatterOutcomeIsotropic>
+NCPI::AbsorptionIsotropicMat::evalXSAndSampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ekin ) const
+{
+  NCRYSTAL_THROW(LogicError,"Process::evalXSAndSampleScatterIsotropic can not be called for an absorption process.");
+  return { CrossSect{0.0}, ScatterOutcomeIsotropic::noScat(ekin) };
+}
+#endif
+
+NC::ScatterOutcomeIsotropic NCPI::NullProcess::sampleScatterIsotropic( CachePtr&,
+                                                                       RNG&,
+                                                                       NeutronEnergy ekin ) const
 {
   return { ekin, CosineScatAngle{1.0} };
 }
 
-NC::ScatterOutcome NC::ProcImpl::NullProcess::sampleScatter( CachePtr&,
-                                                             RNG&,
-                                                             NeutronEnergy ekin,
-                                                             const NeutronDirection& dir ) const
+NC::ScatterOutcome NCPI::NullProcess::sampleScatter( CachePtr&,
+                                                     RNG&,
+                                                     NeutronEnergy ekin,
+                                                     const NeutronDirection& dir ) const
 {
   return { ekin, dir };
 }
@@ -358,39 +380,48 @@ NC::ScatterOutcomeIsotropic NCPI::ProcComposition::sampleScatterIsotropic( Cache
   return m_components[ichoice].process->sampleScatterIsotropic(cache.componentCache[ichoice].cachePtr,rng,ekin);
 }
 
-NC::ProcImpl::ProcPtr NCPI::ProcComposition::combine( const ComponentList& components,
-                                                      ProcessType processType )
+NCPI::ProcPtr NCPI::ProcComposition::combine( const ComponentList& components,
+                                              ProcessType processType )
 {
   return consumeAndCombine({SVAllowCopy,components},processType);
 }
 
-NC::ProcImpl::ProcPtr NC::ProcImpl::getGlobalNullScatter()
+NCPI::ProcPtr NCPI::getGlobalNullScatter()
 {
   static shared_obj<const Process> s_obj = makeSO<NullScatter>();
   return s_obj;
 }
 
-NC::ProcImpl::ProcPtr NC::ProcImpl::getGlobalNullAbsorption()
+NCPI::ProcPtr NCPI::getGlobalNullAbsorption()
 {
   static shared_obj<const Process> s_obj = makeSO<NullAbsorption>();
   return s_obj;
 }
 
-NC::ProcImpl::ProcPtr NCPI::ProcComposition::consumeAndCombine( ComponentList&& components,
-                                                                ProcessType processType )
+NCPI::ProcPtr NCPI::ProcComposition::consumeAndCombine( ComponentList&& components_raw,
+                                                        ProcessType processType )
 {
   auto isNullComponent = [](Component& c) { return c.process==nullptr || c.process->isNull() || c.scale<=0.0; };
-
-  //First check if this is really a null-scatter, in which case it can be
-  //represented efficiently by a single null process instance:
-  bool isnull(true);
-  for (auto& comp : components) {
-    if ( !isNullComponent(comp) ) {
-      isnull = false;
-      break;
+  ComponentList components;
+  for ( auto& e : components_raw ) {
+    if ( isNullComponent(e) )
+      continue;
+    //Check if more than one identical component:
+    auto uid = e.process->getUniqueID();
+    bool merged(false);
+    for ( auto& e0 : components ) {
+      if ( e0.process->getUniqueID() == uid ) {
+        merged = true;
+        e0.scale += e.scale;
+        break;
+      }
     }
+    if ( merged )
+      continue;
+    components.emplace_back( std::move( e ) );
   }
-  if (isnull) {
+
+  if ( components.empty() ) {
     if ( processType == ProcessType::Scatter )
       return getGlobalNullScatter();
     else
@@ -413,7 +444,7 @@ NC::ProcImpl::ProcPtr NCPI::ProcComposition::consumeAndCombine( ComponentList&& 
   return pc;
 }
 
-void NC::ProcImpl::Process::initCachePtr(CachePtr& cp) const
+void NCPI::Process::initCachePtr(CachePtr& cp) const
 {
   //We trigger the cache ptr setup in a brute-force way. The alternative is to
   //add a new required method for all physics models, e.g. prepareCachePtr(..),
@@ -421,17 +452,16 @@ void NC::ProcImpl::Process::initCachePtr(CachePtr& cp) const
   cp.reset();
   for ( auto e : { 0.025, 0.0001, 1.0 } ) {
     for ( auto& dir : { NC::NeutronDirection{0.,0.,1.},
-                       NC::NeutronDirection{0.,1.,0.},
-                       NC::NeutronDirection{1.,0.,1.} } ) {
+                        NC::NeutronDirection{0.,1.,0.},
+                        NC::NeutronDirection{1.,0.,1.} } ) {
       crossSection(cp, NeutronEnergy{e}, dir );
       if (cp!=nullptr)
         return;
     }
   }
-
 }
 
-std::string NC::ProcImpl::Process::jsonDescription() const
+std::string NCPI::Process::jsonDescription() const
 {
   std::ostringstream ss;
   streamJSONDictEntry( ss,"name", this->name(), JSONDictPos::FIRST );
@@ -457,7 +487,7 @@ std::string NC::ProcImpl::Process::jsonDescription() const
   return ss.str();
 }
 
-NC::Optional<std::string> NC::ProcImpl::ProcComposition::specificJSONDescription() const
+NC::Optional<std::string> NCPI::ProcComposition::specificJSONDescription() const
 {
   std::ostringstream ss;
   ss << "{\"summarystr\":\""<<m_components.size()<<" components, "<<(isOriented()?"oriented":"isotropic")<<"\"";
@@ -477,3 +507,290 @@ NC::Optional<std::string> NC::ProcImpl::ProcComposition::specificJSONDescription
   ss << "]}";
   return ss.str();
 }
+
+#ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
+
+bool NCPI::Process::isPureElasticScatter() const
+{
+  return false;
+}
+
+std::pair<NC::CrossSect,NC::ScatterOutcome>
+NCPI::ScatterIsotropicMat::evalXSAndSampleScatter( CachePtr& cp, RNG& rng,
+                                                   NeutronEnergy ekin,
+                                                   const NeutronDirection& ndir ) const
+{
+#if 1
+  //This avoids calling randNeutronDirectionGivenScatterMu, in case the process
+  //has a more efficient implementation:
+  auto xs = this->crossSectionIsotropic( cp, ekin );
+  return { xs, this->sampleScatter( cp, rng, ekin, ndir ) };
+#else
+  //This could on the other hand in principle be more efficient if the process
+  //had reimplemented evalXSAndSampleScatterIsotropic but not
+  //evalXSAndSampleScatter. Given that high-quality processes might anyway
+  //override evalXSAndSampleScatter if it makes sense, we opt to avoid the call
+  //to randNeutronDirectionGivenScatterMu, and thus do NOT use the following
+  //code:
+  auto res = this->evalXSAndSampleScatterIsotropic( cp, rng, ekin );
+  return {
+    res.first,
+    { res.second.ekin,
+      randNeutronDirectionGivenScatterMu( rng, res.second.mu, indir ) }
+  };
+#endif
+}
+
+std::pair<NC::CrossSect,NC::ScatterOutcome>
+NCPI::ScatterAnisotropicMat::evalXSAndSampleScatter( CachePtr& cp, RNG& rng,
+                                                     NeutronEnergy ekin,
+                                                     const NeutronDirection& ndir ) const
+{
+  auto xs = this->crossSection( cp, ekin, ndir );
+  return { xs, this->sampleScatter( cp, rng, ekin, ndir ) };
+}
+
+std::pair<NC::CrossSect,NC::ScatterOutcomeIsotropic>
+NCPI::ScatterIsotropicMat::evalXSAndSampleScatterIsotropic( CachePtr& cp, RNG& rng,
+                                                            NeutronEnergy ekin ) const
+{
+  auto xs = this->crossSectionIsotropic( cp, ekin );
+  return { xs, this->sampleScatterIsotropic( cp, rng, ekin ) };
+}
+
+std::pair<NC::CrossSect,NC::ScatterOutcomeIsotropic>
+NCPI::ScatterAnisotropicMat::evalXSAndSampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ekin ) const
+{
+  NCRYSTAL_THROW(LogicError,"Process::evalXSAndSampleScatterIsotropic can only be called for isotropic materials.");
+  return { CrossSect{0.0}, ScatterOutcomeIsotropic::noScat(ekin) };
+}
+
+bool NCPI::ScatterIsotropicMat::isPureElasticScatter() const
+{
+  return false;
+}
+
+bool NCPI::ScatterAnisotropicMat::isPureElasticScatter() const
+{
+  return false;
+}
+
+void NCPI::ScatterIsotropicMat::evalManyXS( CachePtr& cp, const double* ekin,
+                                            const double*, const double*, const double*,
+                                            std::size_t N,
+                                            double* out_xs ) const
+{
+  //Default implementation simply serialises, and ignores direction:
+  for ( std::size_t i = 0; i < N; ++i )
+    *out_xs++ = this->crossSectionIsotropic( cp, NeutronEnergy{*ekin++} ).dbl();
+}
+
+void NCPI::ScatterAnisotropicMat::evalManyXS( CachePtr& cp, const double* ekin,
+                                              const double* ux, const double* uy, const double* uz,
+                                              std::size_t N,
+                                              double* out_xs ) const
+{
+  //Default implementation simply serialises:
+  for ( std::size_t i = 0; i < N; ++i )
+    *out_xs++ = this->crossSection( cp,
+                                    NeutronEnergy{*ekin++},
+                                    NeutronDirection{ *ux++, *uy++, *uz++ } ).dbl();
+}
+
+void NCPI::ScatterIsotropicMat::evalManyXSIsotropic( CachePtr& cp,
+                                                     const double* ekin,
+                                                     std::size_t N,
+                                                     double* out_xs ) const
+{
+  for ( std::size_t i = 0; i < N; ++i )
+    *out_xs++ = this->crossSectionIsotropic( cp, NeutronEnergy{*ekin++} ).dbl();
+}
+
+void NCPI::ScatterAnisotropicMat::evalManyXSIsotropic( CachePtr&,
+                                                       const double*,
+                                                       std::size_t,
+                                                       double* ) const
+{
+  NCRYSTAL_THROW(LogicError,"Process::evalManyXSIsotropic can only be called for isotropic materials.");
+}
+
+bool NCPI::ProcComposition::isPureElasticScatter() const
+{
+  if ( m_processType != ProcessType::Scatter )
+    return false;
+  for ( auto& e : m_components )
+    if ( !e.process->isPureElasticScatter() )
+      return false;
+  return true;
+}
+
+std::pair<NC::CrossSect,NC::ScatterOutcome>
+NCPI::ProcComposition::evalXSAndSampleScatter( CachePtr& cachePtr,
+                                               RNG& rng,
+                                               NeutronEnergy ekin,
+                                               const NeutronDirection& dir ) const
+{
+  if (!m_domain.contains(ekin))
+    return { CrossSect{0.0}, { ekin, dir } };
+  auto& cache = ( m_materialType == MaterialType::Anisotropic
+                  ? Impl::updateCacheAnisotropic( this, cachePtr, ekin, dir )
+                  : Impl::updateCacheIsotropic( this, cachePtr, ekin ) );
+  auto ichoice = pickRandIdxByWeight( rng, cache.componentXSectCommul );
+  return { CrossSect{cache.tot_xs},
+           m_components[ichoice].process->sampleScatter(cache.componentCache[ichoice].cachePtr,rng,ekin,dir) };
+}
+
+std::pair<NC::CrossSect,NC::ScatterOutcomeIsotropic>
+NCPI::ProcComposition::evalXSAndSampleScatterIsotropic( CachePtr& cachePtr,
+                                                        RNG& rng,
+                                                        NeutronEnergy ekin ) const
+{
+  if (!m_domain.contains(ekin))
+    return { CrossSect{0.0}, { ekin, CosineScatAngle{1.0} } };
+  nc_assert( m_materialType == MaterialType::Isotropic );
+  auto& cache = Impl::updateCacheIsotropic( this, cachePtr, ekin );
+  auto ichoice = pickRandIdxByWeight( rng, cache.componentXSectCommul );
+  return { CrossSect{cache.tot_xs},
+           m_components[ichoice].process->sampleScatterIsotropic(cache.componentCache[ichoice].cachePtr,rng,ekin) };
+}
+
+void NCPI::ProcComposition::evalManyXS( CachePtr& cachePtr, const double* ekin,
+                                        const double* ux, const double* uy, const double* uz,
+                                        std::size_t N, double* out_xs ) const
+{
+  auto& cache = Impl::initAndAccessCache(this,cachePtr);
+  if ( m_components.size() == 1 ) {
+    m_components.front().process->evalManyXS( cache.componentCache[0].cachePtr,
+                                              ekin, ux, uy, uz, N, out_xs );
+    double scale = m_components.front().scale;
+    if ( scale != 1.0 )
+      for ( auto i : ncrange(N) )
+        out_xs[i] *= scale;
+    return;
+  }
+
+  for ( auto i : ncrange(N) )
+    out_xs[i] = 0.0;
+
+  constexpr std::size_t nbuf = 4096;
+  double buf[nbuf];
+
+  while ( N > 0 ) {
+    std::size_t nstep = std::min<std::size_t>(N,nbuf);
+    for ( auto icomp : ncrange(m_components.size()) ) {
+      auto& comp = m_components[icomp];
+      comp.process->evalManyXS( cache.componentCache[icomp].cachePtr,
+                                ekin, ux, uy, uz, nstep, buf );
+      double scale = comp.scale;
+      for ( std::size_t j = 0; j<nstep; ++j )
+        out_xs[j] += scale * buf[j];
+    }
+    ekin += nstep;
+    ux += nstep;
+    uy += nstep;
+    uz += nstep;
+    out_xs += nstep;
+    N -= nstep;
+  }
+}
+
+void NCPI::ProcComposition::evalManyXSIsotropic( CachePtr& cachePtr,
+                                                 const double* ekin,
+                                                 std::size_t N,
+                                                 double* out_xs ) const
+{
+  auto& cache = Impl::initAndAccessCache(this,cachePtr);
+  if ( m_components.size() == 1 ) {
+    m_components.front().process->evalManyXSIsotropic( cache.componentCache[0].cachePtr,
+                                                       ekin, N, out_xs );
+    double scale = m_components.front().scale;
+    if ( scale != 1.0 )
+      for ( auto i : ncrange(N) )
+        out_xs[i] *= scale;
+    return;
+  }
+
+  for ( auto i : ncrange(N) )
+    out_xs[i] = 0.0;
+
+  constexpr std::size_t nbuf = 4096;
+  double buf[nbuf];
+
+  while ( N > 0 ) {
+    std::size_t nstep = std::min<std::size_t>(N,nbuf);
+    for ( auto icomp : ncrange(m_components.size()) ) {
+      auto& comp = m_components[icomp];
+      comp.process->evalManyXSIsotropic( cache.componentCache[icomp].cachePtr,
+                                         ekin, nstep, buf );
+      double scale = comp.scale;
+      for ( std::size_t j = 0; j<nstep; ++j )
+        out_xs[j] += scale * buf[j];
+    }
+    ekin += nstep;
+    out_xs += nstep;
+    N -= nstep;
+  }
+}
+
+void NCPI::NullProcess::evalManyXS( CachePtr&, const double*,
+                                    const double*, const double*, const double*,
+                                    std::size_t N, double* out_xs ) const
+{
+  for ( std::size_t i = 0; i < N; ++ i )
+    *out_xs++ = 0.0;
+}
+
+void NCPI::NullProcess::evalManyXSIsotropic( CachePtr&,
+                                             const double*,
+                                             std::size_t N,
+                                             double* out_xs ) const
+{
+  for ( std::size_t i = 0; i < N; ++ i )
+    *out_xs++ = 0.0;
+}
+
+
+std::pair<NC::CrossSect,NC::ScatterOutcome>
+NCPI::NullAbsorption::evalXSAndSampleScatter( CachePtr&, RNG&, NeutronEnergy, const NeutronDirection& ) const
+{
+  NCRYSTAL_THROW(LogicError,"Process::evalXSAndSampleScatter can not be called for an absorption process.");
+  return { CrossSect{0.0}, { NeutronEnergy{0.0}, NeutronDirection{0,0,1} } };
+}
+
+std::pair<NC::CrossSect,NC::ScatterOutcomeIsotropic>
+NCPI::NullAbsorption::evalXSAndSampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const
+{
+  NCRYSTAL_THROW(LogicError,"Process::evalXSAndSampleScatterIsotropic can not be called for an absorption process.");
+  return { CrossSect{0.0}, { NeutronEnergy{0.0}, CosineScatAngle{0.0} } };
+}
+
+std::pair<NC::CrossSect,NC::ScatterOutcome>
+NCPI::NullScatter::evalXSAndSampleScatter( CachePtr&, RNG&, NeutronEnergy ekin, const NeutronDirection& dir ) const
+{
+  return { CrossSect{0.0}, { ekin, dir } };
+}
+
+std::pair<NC::CrossSect,NC::ScatterOutcomeIsotropic>
+NCPI::NullScatter::evalXSAndSampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ekin ) const
+{
+  return { CrossSect{0.0}, { ekin, CosineScatAngle{1.0} } };
+}
+
+void NCPI::AbsorptionIsotropicMat::evalManyXS( CachePtr& cp, const double* ekin,
+                                               const double*, const double*, const double*,
+                                               std::size_t N,
+                                               double* out_xs ) const
+{
+  for ( std::size_t i = 0; i < N; ++i )
+    *out_xs++ = this->crossSectionIsotropic( cp, NeutronEnergy{*ekin++} ).dbl();
+}
+
+void NCPI::AbsorptionIsotropicMat::evalManyXSIsotropic( CachePtr& cp, const double* ekin, std::size_t N,
+                                                        double* out_xs ) const
+{
+  for ( std::size_t i = 0; i < N; ++i )
+    *out_xs++ = this->crossSectionIsotropic( cp, NeutronEnergy{*ekin++} ).dbl();
+}
+
+
+#endif

@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -25,7 +25,7 @@
 #include "NCrystal/internal/NCRomberg.hh"
 #include "NCrystal/internal/NCRandUtils.hh"
 #include "NCrystal/internal/NCRotMatrix.hh"
-#include <iostream>
+#include "NCrystal/internal/NCMsg.hh"
 #include <functional>//std::greater
 
 namespace NC = NCrystal;
@@ -641,12 +641,14 @@ void NC::LCHelper::genScatter( LCHelper::Cache& cache, RNG& rng, double wl, cons
           static bool first = true;
           if (first) {
             first = false;
-            std::cout<<"NCrystal WARNING: Problems sampling with rejection method during LCHelper::genScatter "
+            std::ostringstream ss;
+            ss<<"Problems sampling with rejection method during LCHelper::genScatter "
               "invocation. Overlay function was not larger than actual cross-section value at sampled point "
               "(overshot by factor of "<<(overlay_at_phi?xsphi/overlay_at_phi:kInfinity)<<"). Further warnings"
-              " of this type will not be emitted."<<std::endl;
+              " of this type will not be emitted.";
 #ifdef NCRYSTAL_LCHELPER_WRITE_OVERLAYS
-            std::cout<<"The associated overlay file was written to: "<<written_name<<std::endl;
+            ss<<" The associated overlay file was written to: "<<written_name;
+            Msg::outputMsg(ss.str(),MsgType::Warning);
 #endif
           }
         }
@@ -657,11 +659,13 @@ void NC::LCHelper::genScatter( LCHelper::Cache& cache, RNG& rng, double wl, cons
         static bool first = true;
         if (first) {
           first = false;
-          std::cout<<"NCrystal WARNING: Problems sampling with rejection method during LCHelper::genScatter "
+          std::ostringstream ss;
+          ss<<"NCrystal WARNING: Problems sampling with rejection method during LCHelper::genScatter "
             "invocation. Did not accept sampled value after "<<maxtries<<" attempts. Further warnings"
-            " of this type will not be emitted."<<std::endl;
+            " of this type will not be emitted.";
 #ifdef NCRYSTAL_LCHELPER_WRITE_OVERLAYS
-          std::cout<<"The associated overlay file was written to: "<<written_name<<std::endl;
+          ss<<" The associated overlay file was written to: "<<written_name;
+          Msg::outputMsg(ss.str(),MsgType::Warning);
 #endif
         }
       }

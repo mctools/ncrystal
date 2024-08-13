@@ -3,7 +3,7 @@
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2023 NCrystal developers                                   ##
+##  Copyright 2015-2024 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -151,7 +151,7 @@ def plot_xsect( material, *, mode='wl', do_show = True, do_newfig = True,
     plt.xlim(xmin,xmax)
     if title is not False:
         plt.title(title or matsrc.plotlabel)
-    _plt_final(do_grid,do_legend,do_show,logy=logy,logx=logx)
+    _plt_final(do_grid,do_legend,do_show,logy=logy,logx=logx,plt=plt)
 
 def plot_xsects( *materials, **plotkwargs ):
     """Compares cross sections of multiple materials. Accepts similar keywords
@@ -180,7 +180,7 @@ def plot_xsects( *materials, **plotkwargs ):
         plot_xsect(m,**plotkwargs)
     if title:
         plt.title(title)
-    _plt_final(do['do_grid'],do['do_legend'],do['do_show'])
+    _plt_final(do['do_grid'],do['do_legend'],do['do_show'],plt=plt)
 
 def plot_vdos( *vdos, unit='meV',
                show_orig_data = False,
@@ -239,7 +239,7 @@ def plot_vdos( *vdos, unit='meV',
 
     plt.xlabel(f'Frequency ({unit_name})')
     plt.ylabel('VDOS (arbitrary units)')
-    _plt_final(do_grid,do_legend,do_show,logy=logy)
+    _plt_final(do_grid,do_legend,do_show,logy=logy,plt=plt)
 
 def plot_knl( kernel, do_newfig = True, do_show = True, do_grid = True, logz=False, phasespace_curves = None,
               clim=None, xlim = None, ylim = None):
@@ -294,7 +294,7 @@ def plot_knl( kernel, do_newfig = True, do_show = True, do_grid = True, logz=Fal
     sab=sab.reshape((nb,na))
 
     cmap = 'jet'#fallback for some special options
-    sab_max = sab.max()
+    #sab_max = sab.max()
     quadmesh = plt.pcolormesh( x,y,sab, clim=clim,cmap=cmap )
 
     def _real_mpl_object( o ):
@@ -342,7 +342,7 @@ def plot_knl( kernel, do_newfig = True, do_show = True, do_grid = True, logz=Fal
 
     plt.xlabel('alpha')
     plt.ylabel('beta')
-    _plt_final(do_grid=do_grid,do_legend=False,do_show=do_show)
+    _plt_final(do_grid=do_grid,do_legend=False,do_show=do_show,plt=plt)
 
 def plot_vdos_Gn( Gn, unit = 'meV', logy = False,
                   do_newfig = True, do_legend = True,
@@ -353,6 +353,10 @@ def plot_vdos_Gn( Gn, unit = 'meV', logy = False,
     sequence of them.
     """
     def decode_Gn( x ):
+        if len(x) not in (3,4):
+            return None
+        if len(x[1]) <= 4:
+            return None
         if len(x) == 3:
             egrid, gnvals, n = x
             label = None
@@ -360,12 +364,12 @@ def plot_vdos_Gn( Gn, unit = 'meV', logy = False,
             egrid, gnvals, n, label = x
         else:
             return None
+        from ._numpy import _ensure_numpy,_np,_np_linspace
+        _ensure_numpy()
         if len(egrid)==2 and len(gnvals)>2:
-            from ._numpy import _ensure_np,_np_linspace
-            _ensure_np()
             egrid = _np_linspace(egrid[0],egrid[1],len(gnvals))
-        return dict( egrid = egrid,
-                     gnvals = gnvals,
+        return dict( egrid = _np.asarray(egrid,dtype=float),
+                     gnvals = _np.asarray(gnvals,dtype=float),
                      n = n,
                      label = f'{label} (G{n})' if label else f'G{n}' )
     _ = decode_Gn( Gn )
@@ -389,7 +393,7 @@ def plot_vdos_Gn( Gn, unit = 'meV', logy = False,
         plt.plot( gn['egrid']/unit_value, gn['gnvals'], label = gn['label'] )
 
     plt.xlabel(f'Energy ({unit_name})')
-    _plt_final(do_grid,do_legend,do_show,logy=logy)
+    _plt_final(do_grid,do_legend,do_show,logy=logy,plt=plt)
 
 def _get_col_ordered():
     from ._common import _palette_Few
@@ -397,14 +401,20 @@ def _get_col_ordered():
             ('blue','orange','green','red','brown',
              'purple','yellow','pink','gray','black')]
 
-def _plt_final(do_grid,do_legend,do_show,logx=False,logy=False):
-    plt=_import_matplotlib_plt()
+def _plt_final(do_grid,
+               do_legend,
+               do_show, *,
+               logx=False,
+               logy=False,
+               plt=None,
+               extra_legend_kwargs = None ):
+    plt = plt or _import_matplotlib_plt()
     if logx:
         plt.semilogx()
     if logy:
         plt.semilogy()
     if do_legend:
-        leg=plt.legend()
+        leg=plt.legend(**(extra_legend_kwargs or {}))
         if do_legend=='draggable':
             leg.set_draggable(True)
     if do_grid:

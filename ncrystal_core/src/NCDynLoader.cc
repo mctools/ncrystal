@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,8 +21,8 @@
 #include "NCrystal/internal/NCDynLoader.hh"
 #include "NCrystal/internal/NCString.hh"
 #include "NCrystal/internal/NCFileUtils.hh"
+#include "NCrystal/internal/NCMsg.hh"
 #include <functional>
-#include <iostream>
 #include <stdexcept>
 #include <string>
 
@@ -70,8 +70,11 @@ namespace NCRYSTAL_NAMESPACE {
 #  ifdef NCRYSTAL_WIN_LOADLIB
     FARPROC fproc;
     result = (void *)(intptr_t)GetProcAddress((HINSTANCE)handle, symbol.c_str());
-    if (!result)
-      errMsg = GetLastError();
+    if (!result) {
+      errMsg = "GetProcAddress failed";
+      //NB: We could perhaps useGetLastError() to get an error code and extract an
+      //actual message with that.;
+    }
 #  else
     dlerror();//clear previous errors
     result = dlsym( handle, symbol.c_str());
@@ -123,7 +126,8 @@ NC::DynLoader::DynLoader( const std::string& filename,
     const char* errMsg = "NCrystal dynamic loading is disabled";
 #else
 #  ifdef NCRYSTAL_WIN_LOADLIB
-    const char* errMsg = GetLastError();
+    //    const char* errMsg = GetLastError();
+    const char* errMsg = "";
 #  else
     const char* errMsg = dlerror();
 #  endif
@@ -145,7 +149,7 @@ NC::DynLoader::~DynLoader()
   NCRYSTAL_LOCK_GUARD( getMutex() );
 #  ifdef NCRYSTAL_WIN_LOADLIB
   if (!FreeLibrary((HINSTANCE)m_handle))
-    errMsg = GetLastError();
+    errMsg = "";//tried errMsg = GetLastError();
 #  else
   dlerror();//clear
   if ( dlclose(m_handle)!=0 )
@@ -153,10 +157,11 @@ NC::DynLoader::~DynLoader()
 #  endif
 #endif
   if (errMsg) {
-    //Never throw from destructors.
-    std::cout<<"NCrystal WARNING: Problems releasing handle to shared library: "
-             << m_filename << " (error was: "
-             << ( errMsg ? errMsg : "<unknown>" ) << ")" << std::endl;
+    //Never throw from destructors, but we hope it is at least safe to call the
+    //message handlers.
+    NCRYSTAL_WARN("Problems releasing handle to shared library: "
+                  << m_filename << " (error was: "
+                  << ( errMsg ? errMsg : "<unknown>" ) << ")");
   }
 }
 

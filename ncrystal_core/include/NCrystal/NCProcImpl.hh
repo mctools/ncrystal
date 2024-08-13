@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -89,11 +89,11 @@ namespace NCRYSTAL_NAMESPACE {
 
       bool isOriented() const noexcept { return materialType()==MaterialType::Anisotropic; }
 
-      //Does process scattering or absorption:
+      //Does process describe scattering or absorption:
       virtual ProcessType processType() const noexcept = 0;
 
       //Domain of process, i.e. range of neutron kinetic energies for which
-      //process might have non-zero cross section (defaults implementation
+      //process might have non-zero cross section (default implementation
       //returns [0,infinity]):
       virtual EnergyDomain domain() const noexcept;
 
@@ -103,7 +103,7 @@ namespace NCRYSTAL_NAMESPACE {
       //In some cases it might be possible, and desirable from an efficiency
       //POV, for a process to be merged with another (usually of its own type)
       //into a single instance, possibly with scaling factors. Classes
-      //supporting this can reimplement this method (return nullptr if merging
+      //supporting this can reimplement this method (returns nullptr if merging
       //is not possible, which is why we return std::shared_ptr and not
       //shared_obj):
       virtual std::shared_ptr<Process> createMerged( const Process& other,
@@ -126,9 +126,35 @@ namespace NCRYSTAL_NAMESPACE {
       //This can be called only when processType is Scatter and materialType is Isotropic:
       virtual ScatterOutcomeIsotropic sampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const = 0;
 
+#ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
+      //Experimental ABI-breaking additions. For now, it is best to use
+      //functions in NCABIUtils.hh to access these.
+
+      //Advanced cross section methods more suitable for vectorisation. These do
+      //not use the same level of type-safety, and any passed arrays are
+      //required to be non-aliasing (i.e. not overlap in memory):
+      virtual void evalManyXS( CachePtr&, const double* ekin,
+                               const double* ux, const double* uy, const double* uz,
+                               std::size_t N, double* out_xs ) const = 0;
+      virtual void evalManyXSIsotropic( CachePtr&, const double* ekin, std::size_t N,
+                                        double* out_xs ) const = 0;
+
+      //Elastic scattering processes that *never* change the neutrons energy can
+      //advertise themselves as such (this is optional but highly recommended).
+      virtual bool isPureElasticScatter() const = 0;
+
+      //If you know you need both the cross section and to sample a scattering,
+      //it is usually more efficient to request both at once:
+      virtual std::pair<CrossSect,ScatterOutcome>
+        evalXSAndSampleScatter( CachePtr&, RNG&, NeutronEnergy, const NeutronDirection& ) const = 0;
+
+      virtual std::pair<CrossSect,ScatterOutcomeIsotropic>
+        evalXSAndSampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const = 0;
+
+#endif
       //Callers who would like to reduce allocations during their event loops,
       //can call the following function which is likely (but not 100%
-      //guaranteed) to allocate an object in the provided CachePtr (if needed):
+      //guaranteed) to preallocate any required objects in the cache:
       void initCachePtr(CachePtr& cp) const;
 
       //Summarise meta-data in JSON dictionary:
@@ -174,15 +200,24 @@ namespace NCRYSTAL_NAMESPACE {
       ProcessType processType() const noexcept final { return ProcessType::Scatter; }
 
       //Isotropic material, anisotropic methods are implemented in terms of the isotropic ones:
-      CrossSect crossSection(CachePtr& cp, NeutronEnergy ekin, const NeutronDirection& ) const final;
-      ScatterOutcome sampleScatter(CachePtr& cp, RNG& rng, NeutronEnergy ekin, const NeutronDirection& ) const override;
+      CrossSect crossSection(CachePtr&, NeutronEnergy, const NeutronDirection& ) const final;
+      ScatterOutcome sampleScatter(CachePtr&, RNG&, NeutronEnergy, const NeutronDirection& ) const override;
 
-      //NB: We have marked the sampleScatter as "override" here instead of
-      //"final", since some models might be able to do something more efficient
-      //than the sampleScatter method implemented here (which calls
-      //sampleScatterIsotropic followed by a call to
-      //the randNeutronDirectionGivenScatterMu utility function).
+#ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
+      bool isPureElasticScatter() const override;
+      void evalManyXS( CachePtr&, const double*, const double*, const double*,
+                       const double*, std::size_t, double* ) const override;
+      void evalManyXSIsotropic( CachePtr&, const double*,
+                                std::size_t, double* ) const override;
+      std::pair<CrossSect,ScatterOutcome>
+        evalXSAndSampleScatter( CachePtr&, RNG&, NeutronEnergy, const NeutronDirection& ) const override;
+      std::pair<CrossSect,ScatterOutcomeIsotropic>
+        evalXSAndSampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const override;
+#endif
 
+      // NB: Several methods are marked as "override" here instead of "final",
+      // since some models might be able to do something more efficient than the
+      // default implementation).
     };
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -199,6 +234,20 @@ namespace NCRYSTAL_NAMESPACE {
       //throw LogicError if attempted):
       CrossSect crossSectionIsotropic(CachePtr&, NeutronEnergy ) const final;
       ScatterOutcomeIsotropic sampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const final;
+
+#ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
+      bool isPureElasticScatter() const override;
+      void evalManyXS( CachePtr&, const double*, const double*, const double*,
+                       const double*, std::size_t, double* ) const override;
+      void evalManyXSIsotropic( CachePtr&, const double*,
+                                std::size_t, double* ) const final;
+      std::pair<CrossSect,ScatterOutcome>
+        evalXSAndSampleScatter( CachePtr&, RNG&, NeutronEnergy, const NeutronDirection& ) const override;
+      std::pair<CrossSect,ScatterOutcomeIsotropic>
+        evalXSAndSampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const override;
+#endif
+
+
     };
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -213,10 +262,25 @@ namespace NCRYSTAL_NAMESPACE {
       //Isotropic material, anisotropic xsect is implemented in terms of the isotropic one:
       CrossSect crossSection(CachePtr& cp, NeutronEnergy ekin, const NeutronDirection& ) const final;
 
+#ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
+      void evalManyXS( CachePtr& cp, const double* ekin,
+                       const double*, const double*, const double*,
+                       std::size_t N, double* out_xs ) const override;
+      void evalManyXSIsotropic( CachePtr&, const double* ekin, std::size_t N,
+                                double* out_xs ) const override;
+#endif
+
       //Absorption process, it is not allowed to call scattering methods (will
       //throw LogicError if attempted):
       ScatterOutcome sampleScatter(CachePtr&, RNG&, NeutronEnergy, const NeutronDirection& ) const final;
       ScatterOutcomeIsotropic sampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const final;
+#ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
+      bool isPureElasticScatter() const final;
+      std::pair<CrossSect,ScatterOutcome>
+        evalXSAndSampleScatter( CachePtr&, RNG&, NeutronEnergy, const NeutronDirection& ) const final;
+      std::pair<CrossSect,ScatterOutcomeIsotropic>
+        evalXSAndSampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const final;
+#endif
     };
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -277,9 +341,23 @@ namespace NCRYSTAL_NAMESPACE {
       static ProcPtr combine(const ComponentList&, ProcessType processType = ProcessType::Scatter);
       static ProcPtr consumeAndCombine(ComponentList&&, ProcessType processType = ProcessType::Scatter);
 
-      //Combine (with no scaling, e.g. all scale=1.0):
+      //Combine (with no scaling, i.e. all scale=1.0):
       template<typename... Args>
       static ProcPtr combine(Args &&... args);
+
+#ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
+      bool isPureElasticScatter() const override;
+      std::pair<CrossSect,ScatterOutcome>
+        evalXSAndSampleScatter( CachePtr&, RNG&, NeutronEnergy, const NeutronDirection& ) const override;
+      std::pair<CrossSect,ScatterOutcomeIsotropic>
+        evalXSAndSampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const override;
+      void evalManyXS( CachePtr&, const double* ekin,
+                       const double* ux, const double* uy, const double* uz,
+                       std::size_t N,
+                       double* out_xs ) const override;
+      void evalManyXSIsotropic( CachePtr&, const double* ekin, std::size_t N,
+                                double* out_xs ) const override;
+#endif
 
     protected:
       Optional<std::string> specificJSONDescription() const override;
@@ -306,6 +384,15 @@ namespace NCRYSTAL_NAMESPACE {
       CrossSect crossSection(CachePtr&, NeutronEnergy, const NeutronDirection& ) const final { return CrossSect{0.0}; }
       ScatterOutcomeIsotropic sampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const final;
       ScatterOutcome sampleScatter(CachePtr&, RNG&, NeutronEnergy, const NeutronDirection& ) const final;
+#ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
+      void evalManyXS( CachePtr&, const double* ekin,
+                       const double* ux, const double* uy, const double* uz,
+                       std::size_t N,
+                       double* out_xs ) const override;
+      void evalManyXSIsotropic( CachePtr&, const double* ekin, std::size_t N,
+                                double* out_xs ) const override;
+#endif
+
     private:
       //Only NullScatter/NullAbsorption can inherit from this class:
       NullProcess() = default;
@@ -315,14 +402,28 @@ namespace NCRYSTAL_NAMESPACE {
 
     class NullScatter final : public NullProcess {
     public:
-      const char * name() const noexcept final { return "NullScatter"; }
-      ProcessType processType() const noexcept final { return ProcessType::Scatter; }
+      const char * name() const noexcept override { return "NullScatter"; }
+      ProcessType processType() const noexcept override { return ProcessType::Scatter; }
+#ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
+      bool isPureElasticScatter() const override { return true; }
+      std::pair<CrossSect,ScatterOutcome>
+        evalXSAndSampleScatter( CachePtr&, RNG&, NeutronEnergy, const NeutronDirection& ) const override;
+      std::pair<CrossSect,ScatterOutcomeIsotropic>
+        evalXSAndSampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const override;
+#endif
     };
 
     class NullAbsorption final : public NullProcess {
     public:
-      const char * name() const noexcept final { return "NullAbsorption"; }
-      ProcessType processType() const noexcept final { return ProcessType::Absorption; }
+      const char * name() const noexcept override { return "NullAbsorption"; }
+      ProcessType processType() const noexcept override { return ProcessType::Absorption; }
+#ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
+      bool isPureElasticScatter() const override { return false; }
+      std::pair<CrossSect,ScatterOutcome>
+        evalXSAndSampleScatter( CachePtr&, RNG&, NeutronEnergy, const NeutronDirection& ) const override;
+      std::pair<CrossSect,ScatterOutcomeIsotropic>
+        evalXSAndSampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const override;
+#endif
     };
 
     //Global instances (better caching):
@@ -355,7 +456,7 @@ namespace NCRYSTAL_NAMESPACE {
                          << "\". Was accessCache<..> used with conflicting cache class types?" );
       }
 #endif
-        return *static_cast<CacheClass*>(cpbase.get());
+      return *static_cast<CacheClass*>(cpbase.get());
     }
 
     inline CrossSect ScatterIsotropicMat::crossSection( CachePtr& cp, NeutronEnergy ekin, const NeutronDirection& ) const

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -28,12 +28,13 @@ namespace NCRYSTAL_NAMESPACE {
 
   ///////////////////////////////////////////////////////////////////////////
   //                                                                       //
-  // Definition of cfg-variables (for pseudo variables, see NCCfgData.cc). //
+  // Definition of cfg-variables (for pseudo variables, see                //
+  // NCCfgManip.cc).                                                       //
   //                                                                       //
   // NB: To add a new parameter xxx:                                       //
   //    1) Add a suitable vardef_xxx struct below.                         //
   //    2) Add it into the varlist array and VarId enum below.             //
-  //    4) Add C++ interface methods for it in the NCCfgData.hh file.      //
+  //    4) Add C++ interface methods for it in the NCCfgManip.hh file.     //
   //    5) Add it to suitable user-visible Cfg classes (e.g. NCMatCfg.hh,  //
   //       NCFactRequests.hh).                                             //
   ///////////////////////////////////////////////////////////////////////////

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -78,6 +78,7 @@ namespace NCRYSTAL_NAMESPACE {
 
   //sinus/cosine options (indicated approximate timings from 2014 thinkpad with gcc 6.3.1):
   void sincos(double A,double&cosA, double& sinA);//slow cos(A) and sin(A) for any A   [40ns/call]  NB: See also sincos_fast below!!!!
+  void sincos_mpi256pi256(double A, double& cosA, double& sinA);//Requires -pi/256<=A<=pi/256 [ 3ns/call]
   void sincos_mpi8pi8(double A, double& cosA, double& sinA);//Requires -pi/8<=A<=pi/8  [ 6ns/call]
   void sincos_mpi2pi2(double A, double& cosA, double& sinA);//Requires -pi/2<=A<=pi/2  [ 9ns/call]
   void sincos_mpipi(double A, double& cosA, double& sinA);//Requires -pi<=A<=pi        [14ns/call]
@@ -359,6 +360,12 @@ inline void NCrystal::sincos_mpi8pi8_lowres(double A, double& cosA, double& sinA
              + mx2 * ( 4.16666666666666666666666666666666666666666667e-2 // + x^4 / 4!
              + mx2 * ( 1.38888888888888888888888888888888888888888889e-3 // - x^6 / 6!
                        )));
+}
+
+inline void NCrystal::sincos_mpi256pi256(double A, double& cosA, double& sinA)
+{
+  nc_assert(ncabs(A)<=kPi*0.003906250001);
+  sincos_mpi8pi8_lowres(A,cosA,sinA);
 }
 
 inline void NCrystal::sincos_mpipi(double A, double& cosA, double& sinA) {

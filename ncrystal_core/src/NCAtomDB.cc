@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,8 +22,7 @@
 #include "NCrystal/internal/NCFactoryUtils.hh"
 #include "NCrystal/internal/NCAtomUtils.hh"
 #include "NCrystal/internal/NCString.hh"
-#include <cstdlib>
-#include <iostream>
+#include "NCrystal/internal/NCMsg.hh"
 #include <iomanip>
 
 namespace NC = NCrystal;
@@ -662,10 +661,12 @@ std::vector<NC::AtomDB::internal::Entry> NC::AtomDB::internal::setupDBValues()
 
 
   if (std::getenv("NCRYSTAL_ATOMDB_DUMP")) {
-    std::cout<<"NCrystal::AtomDB:BeginDump (since NCRYSTAL_ATOMDB_DUMP env var was set)"<<std::endl;
+    std::ostringstream ss;
+    ss<<"NCrystal::AtomDB:BeginDump (since NCRYSTAL_ATOMDB_DUMP env var was set)\n";
     for (const auto& e : result)
-      std::cout<<"NCrystal::AtomDB:  "<<e.getAtomDBLine()<<std::endl;
-    std::cout<<"NCrystal::AtomDB:EndDump"<<std::endl;
+      ss<<"NCrystal::AtomDB:  "<<e.getAtomDBLine()<<'\n';
+    ss<<"NCrystal::AtomDB:EndDump\n";
+    Msg::outputMsg(ss.str(),MsgType::RawOutput);
   }
 
   return result;

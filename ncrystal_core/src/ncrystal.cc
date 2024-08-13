@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -20,6 +20,8 @@
 
 #include "NCrystal/ncrystal.h"
 #include "NCrystal/NCRNG.hh"
+#include "NCrystal/NCMsgCtrl.hh"
+#include "NCrystal/internal/NCMsg.hh"
 #include "NCrystal/NCInfoBuilder.hh"
 #include "NCrystal/NCMatCfg.hh"
 #include "NCrystal/NCFactImpl.hh"
@@ -40,15 +42,20 @@
 #include "NCrystal/internal/NCVDOSGn.hh"
 #include "NCrystal/internal/NCVDOSToScatKnl.hh"
 #include "NCrystal/internal/NCSABUtils.hh"
+#include "NCrystal/internal/NCABIUtils.hh"
+#include "NCrystal/NCFactThreads.hh"
 
 #include "NCrystal/NCParseNCMAT.hh"
 #include "NCrystal/NCCompositionUtils.hh"
 #include <cstdio>
-#include <cstdlib>
+#include <chrono>
+#include <sstream>
 
 namespace NCRYSTAL_NAMESPACE {
 
   namespace NCCInterface {
+
+    namespace {
 
     using ObjectTypeID = uint32_t;
 
@@ -201,7 +208,7 @@ namespace NCRYSTAL_NAMESPACE {
       static constexpr const char * name() { return "Info"; }
     };
     using Wrapped_Info = Wrapped<WrappedDef_Info>;
-    Wrapped_Info& extractWrapper(Wrapped_Info::c_handle_type h) { return extractWrapperImpl<Wrapped_Info>(h); }
+    //not used: Wrapped_Info& extractWrapper(Wrapped_Info::c_handle_type h) { return extractWrapperImpl<Wrapped_Info>(h); }
     Wrapped_Info::object_type& extract(Wrapped_Info::c_handle_type h) { return extractWrapperImpl<Wrapped_Info>(h).obj(); }
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -213,7 +220,7 @@ namespace NCRYSTAL_NAMESPACE {
       static constexpr const char * name() { return "Scatter"; }
     };
     using Wrapped_Scatter = Wrapped<WrappedDef_Scatter>;
-    Wrapped_Scatter& extractWrapper(Wrapped_Scatter::c_handle_type h) { return extractWrapperImpl<Wrapped_Scatter>(h); }
+    //not used: Wrapped_Scatter& extractWrapper(Wrapped_Scatter::c_handle_type h) { return extractWrapperImpl<Wrapped_Scatter>(h); }
     Wrapped_Scatter::object_type& extract(Wrapped_Scatter::c_handle_type h) { return extractWrapperImpl<Wrapped_Scatter>(h).obj(); }
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -225,7 +232,7 @@ namespace NCRYSTAL_NAMESPACE {
       static constexpr const char * name() { return "Absorption"; }
     };
     using Wrapped_Absorption = Wrapped<WrappedDef_Absorption>;
-    Wrapped_Absorption& extractWrapper(Wrapped_Absorption::c_handle_type h) { return extractWrapperImpl<Wrapped_Absorption>(h); }
+    //not used: Wrapped_Absorption& extractWrapper(Wrapped_Absorption::c_handle_type h) { return extractWrapperImpl<Wrapped_Absorption>(h); }
     Wrapped_Absorption::object_type& extract(Wrapped_Absorption::c_handle_type h) { return extractWrapperImpl<Wrapped_Absorption>(h).obj(); }
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -237,7 +244,7 @@ namespace NCRYSTAL_NAMESPACE {
       static constexpr const char * name() { return "AtomData"; }
     };
     using Wrapped_AtomData = Wrapped<WrappedDef_AtomData>;
-    Wrapped_AtomData& extractWrapper(Wrapped_AtomData::c_handle_type h) { return extractWrapperImpl<Wrapped_AtomData>(h); }
+    //not used: Wrapped_AtomData& extractWrapper(Wrapped_AtomData::c_handle_type h) { return extractWrapperImpl<Wrapped_AtomData>(h); }
     Wrapped_AtomData::object_type& extract(Wrapped_AtomData::c_handle_type h) { return extractWrapperImpl<Wrapped_AtomData>(h).obj(); }
 
     Process& extractProcess(ncrystal_process_t h)
@@ -289,10 +296,11 @@ namespace NCRYSTAL_NAMESPACE {
         (*custom_error_handler)(errtype,errmsg);
       }
       waserror = 1;
-      if (!quietonerror)
-        printf("NCrystal ERROR [%s]: %s\n",errtype,errmsg);
+      if (!quietonerror) {
+        NCRYSTAL_RAWOUT("NCrystal ERROR ["<<errtype<<"]: "<<errmsg<<'\n');
+      }
       if (haltonerror) {
-        printf("NCrystal terminating due to ERROR\n");
+        NCRYSTAL_RAWOUT("NCrystal terminating due to ERROR\n");
         exit(1);
       }
     }
@@ -310,6 +318,7 @@ namespace NCRYSTAL_NAMESPACE {
         setError("<unknown>","std::exception");
     }
 
+  }
   }
 }
 
@@ -466,18 +475,6 @@ void ncrystal_invalidate(void* o)
   if (!ncrystal_valid(o))
     return;
   ncc::internal(o) = 0;
-}
-
-void ncrystal_dump(ncrystal_info_t ci) { try { NC::dump(ncc::extract(ci)); } NCCATCH; }
-void ncrystal_dump_verbose(ncrystal_info_t ci, unsigned verbosity_lvl ) {
-  try {
-    NC::dump(ncc::extract(ci),
-             ( verbosity_lvl == 0
-               ? NC::DumpVerbosity::DEFAULT
-               : ( verbosity_lvl == 1
-                   ? NC::DumpVerbosity::VERBOSE1
-                   : NC::DumpVerbosity::VERBOSE2 ) ) );
-  } NCCATCH;
 }
 
 int ncrystal_info_getstructure( ncrystal_info_t ci,
@@ -1041,13 +1038,27 @@ void ncrystal_crosssection_nonoriented_many( ncrystal_process_t o,
                                              unsigned long repeat,
                                              double* results )
 {
+
+
+
+
   unsigned long repeat_orig = repeat;
   double* results_orig = results;
   try {
     auto& process = ncc::extractProcess(o);
+#ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
+    auto& theCachePtr = process.underlyingCachePtr();
+    auto& underlyingProcess = process.underlying();
+#endif
     while (repeat--) {
+#ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
+      NC::ProcImpl::NewABI::evalManyXSIsotropic( underlyingProcess, theCachePtr,
+                                                 ekin, n_ekin, results );
+      results += n_ekin;
+#else
       for (unsigned long i = 0; i < n_ekin; ++i)
         *results++ = process.crossSectionIsotropic(NC::NeutronEnergy{ekin[i]}).get();
+#endif
     }
     return;
   } NCCATCH;
@@ -1103,11 +1114,27 @@ void ncrystal_samplescatterisotropic_many( ncrystal_scatter_t o,
   double* results_cos_scat_angle_orig = results_cos_scat_angle;
   try {
     auto& sc = ncc::extract(o);
+#if 0
     while (repeat--) {
       for (unsigned long i = 0; i < n_ekin; ++i) {
         auto outcome = sc.sampleScatterIsotropic(NC::NeutronEnergy{ekin[i]});
         *results_ekin++ = outcome.ekin.dbl();
         *results_cos_scat_angle++ = outcome.mu.dbl();
+      }
+    }
+#endif
+    //Note, to keep the cacheptrs "warm", it is better to do all the scatterings
+    //at a given energy at once (although the output array will be accessed in
+    //strides rather than contiguously which is also not great if repeat would
+    //be a very large number):
+    for (unsigned long i = 0; i < n_ekin; ++i ) {
+      NC::NeutronEnergy ekinobj{ ekin[i] };
+      for (unsigned long irepeat = 0; irepeat < repeat; ++irepeat ) {
+        auto outcome = sc.sampleScatterIsotropic( ekinobj );
+        auto idx = irepeat * n_ekin + i;
+        nc_assert_always( idx < repeat * n_ekin );
+        results_ekin[ idx ] = outcome.ekin.dbl();
+        results_cos_scat_angle[ idx ] = outcome.mu.dbl();
       }
     }
     return;
@@ -1768,6 +1795,34 @@ void ncrystal_dealloc_string( char* ss )
     delete[] ss;
 }
 
+
+void ncrystal_dump(ncrystal_info_t ci) { try { NC::dump(ncc::extract(ci)); } NCCATCH; }
+
+void ncrystal_dump_verbose(ncrystal_info_t ci, unsigned verbosity_lvl ) {
+  try {
+    NC::dump(ncc::extract(ci),
+             ( verbosity_lvl == 0
+               ? NC::DumpVerbosity::DEFAULT
+               : ( verbosity_lvl == 1
+                   ? NC::DumpVerbosity::VERBOSE1
+                   : NC::DumpVerbosity::VERBOSE2 ) ) );
+  } NCCATCH;
+}
+
+char* ncrystal_dump_tostr(ncrystal_info_t ci , unsigned verbosity_lvl )
+{
+  try {
+    auto dstr = NC::dump_str(ncc::extract(ci),
+                             ( verbosity_lvl == 0
+                               ? NC::DumpVerbosity::DEFAULT
+                               : ( verbosity_lvl == 1
+                                   ? NC::DumpVerbosity::VERBOSE1
+                                   : NC::DumpVerbosity::VERBOSE2 ) ) );
+    return ncc::createString(dstr);
+  } NCCATCH;
+  return nullptr;
+}
+
 void ncrystal_setrandgen( double (*rg)(void) )
 {
   try {
@@ -2165,6 +2220,122 @@ char * ncrystal_get_flatcompos( ncrystal_info_t nfo,
     return ncc::createString(NC::CompositionUtils::fullBreakdownToJSON(bd));
   } NCCATCH;
   return nullptr;
+}
+
+/* Get time in seconds to load the cfg in question (if do_scatter=0 it will only */
+/* create Info objects). Caches are cleared as a side effect: */
+double ncrystal_benchloadcfg( const char * cfgstr, int do_scat, int repeat )
+{
+  try {
+    NC::clearCaches();
+    auto t0 = std::chrono::steady_clock::now();
+    for ( int i = 0; i < repeat; ++i ) {
+      if ( i > 0 )
+        NC::clearCaches();
+      if ( do_scat )
+        NC::createScatter(cfgstr);
+      else
+        NC::createInfo(cfgstr);
+    }
+    auto t1 = std::chrono::steady_clock::now();
+    NC::clearCaches();
+    double dt = std::chrono::duration_cast<std::chrono::duration<double>>(t1-t0).count();
+    return dt / ( repeat ? repeat : 1 );
+ } NCCATCH;
+  return -1.0;
+}
+
+void ncrystal_enable_factory_threadpool( unsigned nthreads )
+{
+  try {
+    NC::FactoryThreadPool::enable( NC::ThreadCount{ nthreads } );
+ } NCCATCH;
+}
+
+void ncrystal_setmsghandler(void (*handler)(const char*,unsigned))
+{
+  try {
+    if (!handler) {
+      NC::setMessageHandler();
+    } else {
+      static_assert( static_cast<unsigned>(NC::MsgType::Info) == 0, "" );
+      static_assert( static_cast<unsigned>(NC::MsgType::Warning) == 1, "" );
+      static_assert( static_cast<unsigned>(NC::MsgType::RawOutput) == 2, "" );
+      NC::MsgHandlerFct_t fct = [handler]( const char* msg,NC::MsgType mt )
+      {
+        unsigned mt_int = static_cast<unsigned>(mt);
+        nc_assert( mt_int <= 2 );
+        handler(msg,mt_int);
+      };
+      NC::setMessageHandler( std::move(fct) );
+    }
+  } NCCATCH;
+}
+
+#include "NCrystal/internal/NCMMC_RunSim.hh"
+#include "NCrystal/internal/NCMMC_Geom.hh"
+#include "NCrystal/internal/NCMMC_Source.hh"
+#include "NCrystal/internal/NCMMC_StdTallies.hh"
+#include "NCrystal/internal/NCMMC_StdEngine.hh"
+
+namespace NCMMC = NCrystal::MiniMC;
+
+void ncrystal_runmmcsim_stdengine( unsigned nthreads,
+                                   unsigned tally_detail_lvl,
+                                   const char * mat_cfgstr,
+                                   const char * mmc_geomcfg,
+                                   const char * mmc_srccfg,
+                                   char ** tally_json,
+                                   unsigned * tally_exitangle_nbins,
+                                   double ** tally_exitangle_contents,
+                                   double ** tally_exitangle_errsq )
+{
+  *tally_json = nullptr;
+  *tally_exitangle_contents = nullptr;
+  *tally_exitangle_errsq = nullptr;
+  *tally_exitangle_nbins = 0;
+
+  try {
+    NCMMC::MatDef matdef( mat_cfgstr );
+    auto geom = NCMMC::createGeometry( mmc_geomcfg );
+    auto src = NCMMC::createSource( mmc_srccfg );
+
+    using basket_t = NCMMC::StdEngine::basket_t;//Clumsy!!
+
+    NCMMC::Tally_ExitAngle_Options opt;
+    opt.nbins = 1800;//Todo: option??
+    opt.detail_level = tally_detail_lvl;
+
+    auto tally = NC::makeSO<NCMMC::Tally_ExitAngle<basket_t>>( opt );
+    NCMMC::runSim_StdEngine( NC::ThreadCount{ nthreads },
+                             geom,
+                             src,
+                             tally,
+                             matdef );
+
+    auto copySpan2Array = [](NC::Span<const double> in)
+    {
+      double * out = new double[in.size()];
+      std::copy( in.begin(), in.end(), out );
+      return out;
+    };
+    const auto& t = *tally;
+
+    auto ct = t.getExitAngleBinned().getContents();
+    auto errsq = t.getExitAngleBinned().getErrorsSquared();
+    nc_assert_always(ct.size()==errsq.size());
+    *tally_exitangle_nbins = ct.size();
+    *tally_exitangle_contents = copySpan2Array(ct);
+    *tally_exitangle_errsq = copySpan2Array(errsq);
+
+    if ( t.hasJSON() ) {
+      //More info via json:
+      std::ostringstream os;
+      t.toJSON(os);
+      *tally_json = ncc::createString( os.str() );
+    }
+  } NCCATCH;
+
 }
 
 #include "NCrystal/NCVersion.hh"

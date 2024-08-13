@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -144,7 +144,7 @@ namespace NCRYSTAL_NAMESPACE {
       constexpr PackedCellIndex() noexcept : m_idx(invalid) {}
       constexpr PackedCellIndex( NullOptType ) noexcept : m_idx(invalid) {}
       constexpr PackedCellIndex( NAlphaCells, CellIndex ) noexcept;
-      CellIndex unpack( NAlphaCells ) const noexcept;
+      CellIndex unpack( NAlphaCells ) const ncnoexceptndebug;
       constexpr bool isValid() const noexcept { return m_idx != invalid; }
       constexpr index_t value() const noexcept { return m_idx; }
       static index_t nRawMax( NAlphaCells, std::size_t nbeta );
@@ -359,7 +359,7 @@ namespace NCRYSTAL_NAMESPACE {
     {
     }
 
-    inline CellIndex PackedCellIndex::unpack( NAlphaCells nac ) const noexcept
+    inline CellIndex PackedCellIndex::unpack( NAlphaCells nac ) const ncnoexceptndebug
     {
       return CellIndex{ static_cast<index_t>(m_idx%nac.value()),
                         static_cast<index_t>(m_idx/nac.value()) };

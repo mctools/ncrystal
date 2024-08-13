@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,7 +21,7 @@
 #include "NCrystal/NCPluginMgmt.hh"
 #include "NCrystal/internal/NCDynLoader.hh"
 #include "NCrystal/internal/NCString.hh"
-#include <iostream>
+#include "NCrystal/internal/NCMsg.hh"
 
 //MT TODO: Do we need to make these thread-safe?
 
@@ -51,7 +51,7 @@ namespace NCRYSTAL_NAMESPACE {
         bool verbose = ncgetenv_bool("DEBUG_PLUGIN");
         std::string ptypestr(pinfo.pluginType==PluginType::Dynamic?"dynamic":"builtin");
         if (verbose)
-          std::cout<<"NCrystal: Loading "<<ptypestr<<" plugin \""<<pinfo.pluginName<<"\"."<<std::endl;
+          NCRYSTAL_MSG("Loading "<<ptypestr<<" plugin \""<<pinfo.pluginName<<"\".");
 
         for ( const auto& pl : getPLList() ) {
           if ( pl.pluginName == pinfo.pluginName )
@@ -61,14 +61,14 @@ namespace NCRYSTAL_NAMESPACE {
         try {
           regfct();
         } catch (std::exception& e) {
-          std::cout<<"NCrystal ERROR: Problems while loading plugin!"<<std::endl;
+          NCRYSTAL_RAWOUT("NCrystal ERROR: Problems while loading plugin!\n");
           throw;
         }
 
         getPLList().push_back(pinfo);
 
         if (verbose)
-          std::cout<<"NCrystal: Done loading plugin \""<<pinfo.pluginName<<"\"."<<std::endl;
+          NCRYSTAL_MSG("Done loading plugin \""<<pinfo.pluginName<<"\".");
       }
     }
   }
@@ -89,7 +89,7 @@ namespace NCRYSTAL_NAMESPACE {
         NCRYSTAL_LOCK_GUARD(getPluginMgmtMutex());
 
         if (ncgetenv_bool("DEBUG_PLUGIN"))
-          std::cout<<"NCrystal: Attempting to loading dynamic library with plugin: "<<pinfo.fileName<<std::endl;
+          NCRYSTAL_MSG("Attempting to loading dynamic library with plugin: "<<pinfo.fileName);
 
         DynLoader dl( pinfo.fileName,
                       DynLoader::ScopeFlag::local,//reduce symbol interference between plugins

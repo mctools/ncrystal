@@ -8,7 +8,7 @@ Obsolete functions
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2023 NCrystal developers                                   ##
+##  Copyright 2015-2024 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -24,6 +24,7 @@ Obsolete functions
 ##                                                                            ##
 ################################################################################
 
+import os as _os
 
 def decodecfg_packfact(cfgstr):
     """OBSOLETE FUNCTION (always returns 1.0 now)."""
@@ -59,7 +60,6 @@ def enableCaching():
     raise RuntimeError('The enableCaching function has been removed. Users can'
                        +' instead call the clearCaches function if really needed to clear the caches.')
 
-import os as _os
 if _os.environ.get('NCRYSTAL_NOPYOBSOLETE',None) is not None:
     _ = globals()
     for _k in [_k for _k in _.keys() if ( hasattr(_k,'startswith') and not _k.startswith('_') )]:

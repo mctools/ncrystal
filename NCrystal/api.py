@@ -16,7 +16,7 @@ more stable in the long rum.
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2023 NCrystal developers                                   ##
+##  Copyright 2015-2024 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -34,17 +34,17 @@ more stable in the long rum.
 
 #NB: reduce imported symbols here a bit in a future release (possibly by
 #wrapping the removed function and placing in obsolete.py);
-from .exceptions import *
-from .core import *
-from .datasrc import *
+from .exceptions import * # noqa F403
+from .core import * # noqa F403
+from .datasrc import * # noqa F403
 from .constants import wl2ekin, ekin2wl, ekin2ksq, wl2k, wl2ksq, constant_boltzmann #TODO: only wl2ekin, ekin2wl (or all?)
 from .atomdata import atomDB, iterateAtomDB
 from .cfgstr import normaliseCfg, decodeCfg, generateCfgStrDoc
 from .ncmat import NCMATComposer, formatVectorForNCMAT
 from .plugins import hasFactory, browsePlugins
-from ._testimpl import *
+from ._testimpl import * # noqa F403
 from .vdos import createVDOSDebye, debyeIsotropicMSD, PhononDOSAnalyser, debyeTempFromIsotropicMSD, analyseVDOS
-from .obsolete import *
+from .obsolete import * # noqa F403
 
 #Some modules are left out on purpose (due to esoteric usage or non-standard
 #dependencies that most users might not need):

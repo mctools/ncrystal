@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -80,6 +80,10 @@ namespace NCRYSTAL_NAMESPACE {
   std::string lowerCase( std::string );
   std::string upperCase( std::string );
 
+  //String justification:
+  std::string str_rjust( std::string, std::size_t n );
+  std::string str_ljust( std::string, std::size_t n );
+
   //Check if letter (defined as containing only a-zA-Z):
   constexpr bool isAlpha( const char ) noexcept;
 
@@ -127,6 +131,7 @@ namespace NCRYSTAL_NAMESPACE {
   std::string ncgetenv(std::string, std::string defval = std::string() );
   double ncgetenv_dbl(std::string, double defval = 0.0);
   int ncgetenv_int(std::string, int defval = 0 );
+  std::int64_t ncgetenv_int64(std::string, int64_t defval = 0 );
   bool ncgetenv_bool(std::string);//if set to 1 -> true, 0/unset -> false (otherwise exception).
 
   //Find forbidden characters. Either from a given list and/or by looking for non-ASCII characters.
@@ -314,6 +319,24 @@ namespace NCRYSTAL_NAMESPACE {
 
   inline bool startswith(const std::string& str, char c ) { return !str.empty() && str.front()==c; }
   inline bool endswith(const std::string& str, char c ) { return !str.empty() && str.back()==c; }
+
+  inline std::string str_rjust( std::string str, std::size_t n )
+  {
+    const auto ssize = str.size();
+    if ( ssize >= n )
+      return str;
+    std::string res( n - ssize, ' ' );
+    res += str;
+    return res;
+  }
+
+  inline std::string str_ljust( std::string str, std::size_t n )
+  {
+    const auto ssize = str.size();
+    if ( ssize <= n )
+      str.append( n - ssize, ' ' );
+    return str;
+  }
 
   inline VectS trimEntries( VectS&& v )
   {

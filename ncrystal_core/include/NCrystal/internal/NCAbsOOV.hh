@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -46,6 +46,11 @@ namespace NCRYSTAL_NAMESPACE {
 
     //For initialising directly from Info objects:
     AbsOOV( const Info& info ) : AbsOOV( info.getXSectAbsorption() ) {}
+
+#ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
+    void evalManyXSIsotropic( CachePtr&, const double* ekin, std::size_t N,
+                              double* out_xs ) const override;
+#endif
 
   protected:
     Optional<std::string> specificJSONDescription() const override;

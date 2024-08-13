@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -23,9 +23,9 @@
 #include "NCrystal/internal/NCLatticeUtils.hh"
 #include "NCrystal/internal/NCAtomUtils.hh"
 #include "NCrystal/internal/NCEqRefl.hh"
+#include "NCrystal/internal/NCMsg.hh"
 #include "NCrystal/internal/NCAtomDBExtender.hh"
 #include "NCrystal/NCInfoBuilder.hh"
-#include <iostream>
 
 namespace NC = NCrystal;
 
@@ -463,12 +463,13 @@ NC::Lazy::ParsedLazyData NC::Lazy::parseLazyTextData( const TextData& td, const 
 NC::InfoPtr NC::Lazy::buildInfo( const LazyCfgVars& cfg, const ParsedLazyData& data )
 {
   auto hkllist = validateAndNormaliseHKLFsqList( data.structInfo.spacegroup, data.hkllist );
-  if ( hkllist.size() != data.hkllist.size() )
-    std::cout<<"NCrystal Info: trimming and normalising HKL list from "
-             <<data.hkllist.size()<<" to "<<hkllist.size()<<" entries"<<std::endl;
-  else
-    std::cout<<"NCrystal Info: Normalising HKL list with "
-             <<data.hkllist.size()<<" entries"<<std::endl;
+  if ( hkllist.size() != data.hkllist.size() ) {
+    NCRYSTAL_MSG("Trimming and normalising provided HKL list from "
+                 <<data.hkllist.size()<<" to "<<hkllist.size()<<" entries");
+  } else {
+    NCRYSTAL_MSG("Normalising provided HKL list with "
+                 <<data.hkllist.size()<<" entries");
+  }
 
   auto& si = data.structInfo;
   auto rec_lat = getReciprocalLatticeRot( si.lattice_a, si.lattice_b, si.lattice_c,
@@ -497,9 +498,14 @@ NC::InfoPtr NC::Lazy::buildInfo( const LazyCfgVars& cfg, const ParsedLazyData& d
   PairDD dsp_range{ ( cfg.dcutoff <= 0.0 ? dsp_min : cfg.dcutoff ), cfg.dcutoffup };
   if ( dsp_range.first >= cfg.dcutoffup )
     dsp_range.first = 0.999 * dsp_range.second;
-  builder.hklPlanes = InfoBuilder::SinglePhaseBuilder::HKLPlanes{ dsp_range, std::move(out_hkllist) };
+
+  builder.hklPlanes.emplace();
+  builder.hklPlanes.value().dspacingRange = dsp_range;
+  builder.hklPlanes.value().source = std::move(out_hkllist);
+
   builder.unitcell.emplace();
   builder.unitcell.value().structinfo = std::move(data.structInfo);
+
   if ( cfg.temp.has_value() && data.temp.has_value() && cfg.temp.value() != data.temp.value() )
     NCRYSTAL_THROW2(BadInput,"Requested T="<<cfg.temp.value()<<" in input \""
                     <<cfg.dataSourceName<<"\" which only supports T="<<data.temp.value());
@@ -512,7 +518,7 @@ NC::InfoPtr NC::Lazy::buildInfo( const LazyCfgVars& cfg, const ParsedLazyData& d
 
   builder.dynamics.emplace();
   auto& dyninfos = builder.dynamics.value();
-  dyninfos.reserve(data.chemform.size());
+  //dyninfos.reserve(data.chemform.size());
 
   //Setup atomdb (support atomdb cfg keyword):
   const bool cfg_atomdb_nodefs = ( !cfg.atomdb.empty() && cfg.atomdb.at(0).size()==1
@@ -544,6 +550,7 @@ NC::InfoPtr NC::Lazy::buildInfo( const LazyCfgVars& cfg, const ParsedLazyData& d
                                                           data.debye_temp ) );
   }
 
+  dyninfos.shrink_to_fit();
   return buildInfoPtr(std::move(builder));
 }
 

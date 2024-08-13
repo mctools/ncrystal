@@ -2,7 +2,7 @@
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2023 NCrystal developers                                   ##
+##  Copyright 2015-2024 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -86,7 +86,7 @@ endif()
 
 cmake_policy( SET CMP0048 NEW )#Not sure if this is really needed
 
-project( NCrystal VERSION 3.8.2 ${_project_metadata} )
+project( NCrystal VERSION 3.9.0 ${_project_metadata} )
 
 unset( _project_metadata )
 
@@ -353,9 +353,10 @@ if ( NCRYSTAL_ENABLE_SETUPSH AND NOT NCRYSTAL_ENABLE_PYTHON )
   set( NCRYSTAL_ENABLE_SETUPSH OFF )
 endif()
 
+include(CheckCXXCompilerFlag)
+
 set( NC_STRICT_COMP_FLAGS -Wall -Wextra -pedantic -Werror )
 if ( NCRYSTAL_BUILD_STRICT )
-  include(CheckCXXCompilerFlag)
   string( REPLACE ";" " " tmp "${NC_STRICT_COMP_FLAGS}" )# check_cxx_compiler_flag needs single argument
   check_cxx_compiler_flag( "${tmp}" ncrystal_compiler_supports_strict_comp_flags )
 endif()
@@ -414,8 +415,16 @@ function(set_target_common_props targetname)
   endif()
 endfunction()
 
+#Can we use -fno-math-errno when building the NCrystal library?
+check_cxx_compiler_flag( -fno-math-errno ncrystal_compiler_supports_nomatherrno_flag )
+
 #NCrystal library and header files, including optional built-in modules if enabled:
 add_library( NCrystal SHARED ${SRCS_NC} )
+if ( ncrystal_compiler_supports_nomatherrno_flag )
+  target_compile_options( NCrystal PRIVATE -fno-math-errno )
+endif()
+
+
 
 if ( NCRYSTAL_ENABLE_SOVERSION AND NOT UNIX )
   message( WARNING "NCRYSTAL_ENABLE_SOVERSION ignored on non-unix platforms for now." )
@@ -838,7 +847,6 @@ if ( NCRYSTAL_GEANT4 )
   #public flag on the G4NCrystal target. This is because of Geant4 adds
   #-Wno-overloaded-virtual, and Geant4 v10.4 headers gives that warning with
   #gcc8/gcc9.
-  include(CheckCXXCompilerFlag)
   check_cxx_compiler_flag( -Wno-overloaded-virtual ncrystal_compiler_supports_no_overloaded_virtual_flag )
   if ( ncrystal_compiler_supports_no_overloaded_virtual_flag )
     target_compile_options( G4NCrystal PUBLIC -Wno-overloaded-virtual )

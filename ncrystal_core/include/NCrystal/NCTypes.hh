@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -113,7 +113,7 @@ namespace NCRYSTAL_NAMESPACE {
     explicit constexpr operator bool() const noexcept;
 
     //Supports comparisons:
-#if __cplusplus >= 202002L
+#if nc_cplusplus >= 202002L
     auto operator<=>( const EncapsulatedValue& ) const = default;
 #else
     constexpr bool operator<( const EncapsulatedValue& o ) const noexcept { return m_value < o.m_value; }
@@ -123,14 +123,14 @@ namespace NCRYSTAL_NAMESPACE {
     constexpr bool operator==( const EncapsulatedValue& o ) const noexcept { return m_value == o.m_value; }
     constexpr bool operator!=( const EncapsulatedValue& o ) const noexcept { return m_value != o.m_value; }
 #endif
-    void stream( std::ostream& ) const noexcept;
+    void stream( std::ostream& ) const;
   protected:
     TValue m_value;
   };
 
   //Values are printed with suitable trailing unit:
   template <class Derived, class TValue>
-  NCRYSTAL_API std::ostream& operator<<(std::ostream&, const EncapsulatedValue<Derived,TValue>& ) noexcept;
+  NCRYSTAL_API std::ostream& operator<<(std::ostream&, const EncapsulatedValue<Derived,TValue>& );
 
   class NeutronEnergy;
 
@@ -173,7 +173,8 @@ namespace NCRYSTAL_NAMESPACE {
 
   class NCRYSTAL_API CrossSect final : public EncapsulatedValue<CrossSect> {
   public:
-    //Cross section value (usually calculated for a particular neutron state and material).
+    //Cross section value (usually calculated per-atom for a particular neutron
+    //state and material).
     using EncapsulatedValue::EncapsulatedValue;
     static constexpr const char * unit() noexcept { return "barn"; }
     void validate() const;
@@ -289,7 +290,7 @@ namespace NCRYSTAL_NAMESPACE {
     //Scattering length density (usually used for SANS physics). Note that this might be negative.
     using EncapsulatedValue::EncapsulatedValue;
     static constexpr const char * unit() noexcept { return "10^-6/Aa^2"; }
-    void stream( std::ostream& ) const noexcept;
+    void stream( std::ostream& ) const;
     void validate() const;
     ncnodiscard17 constexpr SLDContrast contrast(ScatLenDensity other) const noexcept;
   };
@@ -329,12 +330,35 @@ namespace NCRYSTAL_NAMESPACE {
     void validate() const;
   };
 
-
   class NCRYSTAL_API NeutronDirection final : public StronglyTypedFixedVector<NeutronDirection,double,3> {
     //Neutron direction vector (usually it should be normalised, but this is not
     //imposed by the class itself).
   public:
     using StronglyTypedFixedVector::StronglyTypedFixedVector;
+  };
+
+  class NCRYSTAL_API Length final : public EncapsulatedValue<Length> {
+  public:
+    //Length (in meters) used for macroscopic length scales like geometries and
+    //particle positions. Although, this is the same type of unit as
+    //NeutronWavelength, we keep the two uses in separate types with separate
+    //default units (but we provide explicit conversion options):
+    using EncapsulatedValue::EncapsulatedValue;
+    static constexpr const char * unit() noexcept { return "m"; }
+    void validate() const;
+    //Automatic conversions from/to NeutronWavelengthwavelength:
+    explicit constexpr Length(NeutronWavelength wl) noexcept;
+    ncnodiscard17 constexpr NeutronWavelength as_wavelength() const noexcept;
+    //Related numeric definitions of the chosen numerical values:
+    static constexpr double kilometer = 1000.0;
+    static constexpr double meter = 1.0;
+    static constexpr double centimeter = 0.01;
+    static constexpr double millimeter = 0.001;
+    static constexpr double micrometer = 1e-6;
+    static constexpr double nanometer = 1e-9;
+    static constexpr double angstrom = 1e-10;
+    static constexpr double cm = centimeter;
+    static constexpr double mm = millimeter;
   };
 
   class NCRYSTAL_API LabAxis final : public StronglyTypedFixedVector<LabAxis,double,3> {
@@ -392,9 +416,13 @@ namespace NCRYSTAL_NAMESPACE {
     NeutronEnergy elow = NeutronEnergy{ 0.0 };
     NeutronEnergy ehigh = NeutronEnergy{ kInfinity };
     constexpr EnergyDomain(NeutronEnergy,NeutronEnergy) ncnoexceptndebug;
+    struct no_check_t{};
+    constexpr EnergyDomain(no_check_t,NeutronEnergy,NeutronEnergy) noexcept;
+
     ncnodiscard17 constexpr bool contains(NeutronEnergy) const ncnoexceptndebug;//checks if in [elow,ehigh] (always false if isNull() is true!)
     ncnodiscard17 constexpr bool isNull() const noexcept { return elow.get() > std::numeric_limits<double>::max() || elow==ehigh; }//nb: std::isinf not constexpr
-    static constexpr EnergyDomain null() noexcept { return EnergyDomain{ NeutronEnergy{kInfinity},
+    static constexpr EnergyDomain null() noexcept { return EnergyDomain{ no_check_t{},
+                                                                         NeutronEnergy{kInfinity},
                                                                          NeutronEnergy{kInfinity} }; }
   };
 
@@ -420,6 +448,7 @@ namespace NCRYSTAL_NAMESPACE {
   public:
     using EncapsulatedValue::EncapsulatedValue;
     static constexpr const char * unit() noexcept { return ""; }
+    ncconstexpr17 void validate() const noexcept {}
   };
 
   //Serialised RNG stream state:
@@ -427,6 +456,7 @@ namespace NCRYSTAL_NAMESPACE {
   public:
     using EncapsulatedValue::EncapsulatedValue;
     static constexpr const char * unit() noexcept { return ""; }
+    ncconstexpr17 void validate() const noexcept {}
   };
 
   //Process properties:
@@ -435,6 +465,19 @@ namespace NCRYSTAL_NAMESPACE {
 
   NCRYSTAL_API std::ostream& operator<<(std::ostream&, MaterialType);
   NCRYSTAL_API std::ostream& operator<<(std::ostream&, ProcessType);
+
+  class NCRYSTAL_API ThreadCount final : public EncapsulatedValue<ThreadCount,uint32_t> {
+  public:
+    //Thread counts (for specifying number of multiprocessing threads). Values
+    //>= 9999 are used to indicate an automatic number of threads.
+
+    using EncapsulatedValue::EncapsulatedValue;
+    static constexpr const char * unit() noexcept { return ""; }
+    bool indicatesAutoDetect() const noexcept { return this->get()>=9999; }
+
+    static ThreadCount auto_detect() noexcept
+    { return ThreadCount{9999}; }
+  };
 
   class NCRYSTAL_API DataSourceName {
     //Immutable string which is used to indicate the origins of a given data
@@ -463,6 +506,9 @@ namespace NCRYSTAL_NAMESPACE {
   };
 
   NCRYSTAL_API std::ostream& operator<<( std::ostream&, const UCNMode& );
+
+  //For message passing and output control:
+  enum class MsgType : unsigned { Info = 0, Warning = 1, RawOutput = 2 };
 
   namespace Cfg {
 
@@ -495,7 +541,7 @@ namespace NCRYSTAL_NAMESPACE {
                                                                           ValStr_buf_minsize, ValBool_buf_minsize,
                                                                           ValVector_buf_minsize, ValOrientDir_buf_minsize );
       }
-      enum class NCRYSTAL_API VarId : std::uint32_t;//only fwd decl here
+      enum class VarId : std::uint32_t;//only fwd decl here
       using VarBuf = ImmutableBuffer<varbuf_calc::buf_minsize,varbuf_calc::buf_align,VarId>;
       using VarBufVector = SmallVector<VarBuf,7,SVMode::FASTACCESS_IMPLICITCOPY>;
     }
@@ -624,14 +670,14 @@ namespace NCRYSTAL_NAMESPACE {
   }
 
   template <class Derived, class TValue>
-  inline void EncapsulatedValue<Derived,TValue>::stream(std::ostream& os) const noexcept
+  inline void EncapsulatedValue<Derived,TValue>::stream(std::ostream& os) const
   {
     detail::fmthelper::dofmt(os,m_value);
     os << Derived::unit();
   }
 
   template <class Derived, class TValue>
-  NCRYSTAL_API inline std::ostream& operator<< (std::ostream& os, const EncapsulatedValue<Derived,TValue>& val) noexcept
+  NCRYSTAL_API inline std::ostream& operator<< (std::ostream& os, const EncapsulatedValue<Derived,TValue>& val)
   {
     static_cast<const Derived*>(&val)->stream(os);
     return os;
@@ -677,8 +723,8 @@ namespace NCRYSTAL_NAMESPACE {
     return wl2ksq(m_value);
   }
 
-  //Using nc_as_const so it can also be constexpr in C++11 [update: it can't
-  //anyway, since std::sqrt is not constexpr and so ekin2wl is not]:
+  //Using nc_as_const so it can also be constexpr in C++11 [update: they can't
+  //all anyway, since std::sqrt is not constexpr and so ekin2wl is not]:
   inline NeutronWavelength::NeutronWavelength(NeutronEnergy ekin) noexcept
     : EncapsulatedValue(ekin2wl(nc_as_const(ekin).get())) {}
   inline constexpr NeutronEnergy::NeutronEnergy(NeutronWavelength wl) noexcept
@@ -687,6 +733,21 @@ namespace NCRYSTAL_NAMESPACE {
     : EncapsulatedValue( nc_as_const(mos).get() * kSigma2FWHM ) {}
   inline constexpr MosaicitySigma::MosaicitySigma(MosaicityFWHM mos) noexcept
     : EncapsulatedValue( nc_as_const(mos).get() * kFWHM2Sigma ) {}
+
+  inline constexpr Length::Length(NeutronWavelength wl) noexcept
+    : EncapsulatedValue( nc_as_const(wl).get() * angstrom ) {}
+
+  inline constexpr NeutronWavelength Length::as_wavelength() const noexcept
+  {
+    static_assert( angstrom == 1e-10, "" );
+    return NeutronWavelength{ m_value * 1e10 };
+  }
+
+  inline void Length::validate() const
+  {
+    if ( !(m_value>=0.0) || !std::isfinite(m_value) )
+      NCRYSTAL_THROW2(CalcError,"Length::validate() failed. Invalid value:" << *this );
+  }
 
   inline constexpr MosaicitySigma MosaicityFWHM::sigma() const noexcept
   {
@@ -766,14 +827,19 @@ namespace NCRYSTAL_NAMESPACE {
   inline constexpr EnergyDomain::EnergyDomain(NeutronEnergy el,NeutronEnergy eh) ncnoexceptndebug
     : elow(el), ehigh(eh)
   {
-#  if __cplusplus >= 201703L
+#if nc_cplusplus >= 201703L
     nc_assert( elow.dbl() <= ehigh.dbl() );
 #endif
   }
 
+  inline constexpr EnergyDomain::EnergyDomain(EnergyDomain::no_check_t, NeutronEnergy el,NeutronEnergy eh) noexcept
+    : elow(el), ehigh(eh)
+  {
+  }
+
   inline constexpr bool EnergyDomain::contains( NeutronEnergy ekin ) const ncnoexceptndebug
   {
-#  if __cplusplus >= 201703L
+#if nc_cplusplus >= 201703L
     nc_assert( elow.dbl() <= ehigh.dbl() );
 #endif
     //nc_as_const to get constexpr .dbl in before C++17:
@@ -819,7 +885,7 @@ namespace NCRYSTAL_NAMESPACE {
 
   inline void CrossSect::validate() const
   {
-    if ( ! ( m_value >= 0.0 && m_value < 1e9 ) )
+    if ( ! ( m_value >= 0.0 && std::isfinite(m_value) ) )
       NCRYSTAL_THROW2(CalcError,"CrossSect::validate() failed. Invalid value:" << *this );
   }
 
@@ -847,7 +913,7 @@ namespace NCRYSTAL_NAMESPACE {
       NCRYSTAL_THROW2(CalcError,"ScatLenDensity::validate() failed. Invalid value:" << *this );
   }
 
-  inline void ScatLenDensity::stream(std::ostream& os) const noexcept
+  inline void ScatLenDensity::stream(std::ostream& os) const
   {
     os << fmtg(get()) << "x" << unit();//Unit starts with number, so need "x" to separate from value.
   }

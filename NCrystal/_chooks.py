@@ -5,7 +5,7 @@
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2023 NCrystal developers                                   ##
+##  Copyright 2015-2024 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -63,7 +63,7 @@ def _find_nclib():
     #If NCRYSTAL_LIB env var is set, we try that and only that:
     import os
     import pathlib
-    from .exceptions import NCFileNotFound, NCBadInput, NCException
+    from .exceptions import NCFileNotFound
 
     override = os.environ.get('NCRYSTAL_LIB')
     override_namespace_protection = os.environ.get('NCRYSTAL_LIB_NAMESPACE_PROTECTION')
@@ -106,7 +106,7 @@ def _find_nclib():
                                  'if you know where it is.')
     return _.resolve(), ncrystal_namespace_protection
 
-_keepalive = []#for python based RNGs which we need to keep alive
+_keepalive = []#for python based callback functions which we need to keep alive
 
 def _load(nclib_filename, ncrystal_namespace_protection ):
 
@@ -119,6 +119,7 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
                                                        ctypes.POINTER(ctypes.c_double), ctypes.c_char_p, ctypes.c_void_p)
     _ulong = ctypes.c_ulong
     _charptr = ctypes.POINTER(ctypes.c_char)
+    _charptrptr = ctypes.POINTER(_charptr)
 
     _cstrp = ctypes.POINTER(_cstr)
     _cstrpp = ctypes.POINTER(_cstrp)
@@ -233,6 +234,7 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
 
     _wrap('ncrystal_dump',None,(ncrystal_info_t,))
     _wrap('ncrystal_dump_verbose',None,(ncrystal_info_t,_uint))
+
     _wrap('ncrystal_ekin2wl',_dbl,(_dbl,))
     _wrap('ncrystal_wl2ekin',_dbl,(_dbl,))
     _wrap('ncrystal_isnonoriented',_int,(ncrystal_process_t,))
@@ -332,8 +334,8 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
 
     def raw_vdos2gn( egrid, density, scatxs, mass_amu, temperature, nvalue ):
         _ensure_numpy()
-        _egrid = _np.asfarray(egrid)
-        _density = _np.asfarray(density)
+        _egrid = _np.asarray(egrid,dtype=float)
+        _density = _np.asarray(density,dtype=float)
         _s = _dbl(float(scatxs))
         _m = _dbl(float(mass_amu))
         _t = _dbl(float(temperature))
@@ -352,7 +354,7 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
     _raw_vdos2knl = _wrap('ncrystal_raw_vdos2knl',None,(_dblp,_dblp,_uint,_uint,_dbl,_dbl,_dbl,_uint,_ORDERWEIGHTFCTTYPE,_uintp,_uintp,_dblpp,_dblpp,_dblpp),hide=True)
     def raw_vdos2knl( egrid, density, scatxs, mass_amu, temperature, vdoslux, order_weight_fct ):
         _ensure_numpy()
-        _egrid,_density = _np.asfarray(egrid),_np.asfarray(density)
+        _egrid,_density = _np.asarray(egrid,dtype=float),_np.asarray(density,dtype=float)
         _s,_m,_t,_vdl = _dbl(float(scatxs)),_dbl(float(mass_amu)),_dbl(float(temperature)),_uint(int(vdoslux))
         nalpha, nbeta,agrid, bgrid, sab = _uint(), _uint(),_dblp(), _dblp(), _dblp()
         if order_weight_fct:
@@ -506,18 +508,23 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
     functions['ncrystal_register_in_mem_file_data']=ncrystal_register_in_mem_file_data
 
     def _prepare_many(ekin,repeat):
-        if _np is None and not repeat is None:
+        if _np is None and repeat is not None:
             raise NCBadInput('Can not use "repeat" parameter when Numpy is absent on the system')
         if repeat is None and not hasattr(ekin,'__len__'):
             return None#scalar case, array interface not triggered
         repeat = 1 if repeat is None else repeat
-        ekin = (ekin if hasattr(ekin,'ctypes') else _np.asfarray(ekin) ) if hasattr(ekin,'__len__') else _np.ones(1)*ekin
+        ekin = (ekin if hasattr(ekin,'ctypes') else _np.asarray(ekin,dtype=float) ) if hasattr(ekin,'__len__') else _np.ones(1)*ekin
         #NB: returning the ekin object itself is important in order to keep a reference to it after the call:
         return ndarray_to_dblp(ekin),len(ekin),repeat,ekin
 
     _raw_xs_no = _wrap('ncrystal_crosssection_nonoriented',None,(ncrystal_process_t,_dbl,_dblp),hide=True)
     _raw_xs_no_many = _wrap('ncrystal_crosssection_nonoriented_many',None,(ncrystal_process_t,_dblp,_ulong,
                                                                            _ulong,_dblp),hide=True)
+    _empty_arrayf = _np.empty(shape=(0,),dtype=float) if _np else tuple()
+    _empty_arrayf_2tuple = ( ( _np.empty(shape=(0,),dtype=float),
+                               _np.empty(shape=(0,),dtype=float) )
+                             if _np else (tuple(),tuple()) )
+
     def ncrystal_crosssection_nonoriented(scat,ekin,repeat=None):
         many = _prepare_many(ekin,repeat)
         if many is None:
@@ -526,6 +533,8 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
             return res.value
         else:
             ekin_ct,n_ekin,repeat,ekin_nparr = many
+            if repeat == 0:
+                return _empty_arrayf
             xs, xs_ct = _create_numpy_double_array(n_ekin*repeat)
             _raw_xs_no_many(scat,ekin_ct,n_ekin,repeat,xs_ct)
             return xs
@@ -552,6 +561,9 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
             return ekin_final.value,mu.value
         else:
             ekin_ct,n_ekin,repeat,ekin_nparr = many
+            if repeat == 0:
+                #special case which happens often in our nctool usage:
+                return _empty_arrayf_2tuple
             ekin_final, ekin_final_ct = _create_numpy_double_array(n_ekin*repeat)
             mu, mu_ct = _create_numpy_double_array(n_ekin*repeat)
             _raw_samplesct_iso_many(scat,ekin_ct,n_ekin,repeat,ekin_final_ct,mu_ct)
@@ -697,6 +709,11 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
         _raw_deallocstr(raw_cstr)
         return res
 
+    _raw_dump_tostr = _wrap('ncrystal_dump_tostr',_charptr,(ncrystal_info_t,_uint),hide=True)
+    def nc_dump_tostr( raw_infoobj, verbosity ):
+        return _decode_and_dealloc_raw_str( _raw_dump_tostr( raw_infoobj, verbosity ) )
+    functions['nc_dump_tostr'] = nc_dump_tostr
+
     _raw_dbg_process = _wrap('ncrystal_dbg_process',_charptr,(ncrystal_process_t,),hide=True)
     def nc_dbg_proc(rawprocobj):
         import json
@@ -742,6 +759,7 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
 
     _raw_gettextdata = _wrap('ncrystal_get_text_data',_cstrp,(_cstr,),hide=True)
     _raw_deallocstr = _wrap('ncrystal_dealloc_string',None,(_charptr,),hide=True)
+    _raw_deallocstrlist = _wrap('ncrystal_dealloc_stringlist',None,(_uint,_cstrp),hide=True)
 
     def nc_gettextdata(name):
         l = _raw_gettextdata(_str2cstr(str(name)))
@@ -754,7 +772,6 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
     functions['nc_gettextdata'] = nc_gettextdata
 
     _raw_getfilelist = _wrap('ncrystal_get_file_list',None,(_uintp,_cstrpp),hide=True)
-    _raw_deallocstrlist = _wrap('ncrystal_dealloc_stringlist',None,(_uint,_cstrp),hide=True)
     def ncrystal_get_filelist():
         n,l = _uint(),_cstrp()
         _raw_getfilelist(n,ctypes.byref(l))
@@ -786,4 +803,76 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
     _wrap('ncrystal_enable_stddatalib',None,(_int,_cstr))
     _wrap('ncrystal_enable_stdsearchpath',None,(_int,))
     _wrap('ncrystal_remove_all_data_sources',None,tuple())
+    _wrap('ncrystal_enable_factory_threadpool',None,(_uint,))
+
+    _raw_benchloadcfg = _wrap('ncrystal_benchloadcfg',_dbl,(_cstr,_int,_int),hide=True)
+    def ncrystal_benchloadcfg( cfgstr, do_scatter, nrepeat ):
+        arg_doscatter = _int( 1 if do_scatter else 0)
+        arg_nrepeat = _int( int(nrepeat) )
+        res=_raw_benchloadcfg(_str2cstr(cfgstr),arg_doscatter,arg_nrepeat)
+        return float(res)
+    functions['benchloadcfg'] = ncrystal_benchloadcfg
+
+    _MSGHANDLERFCTTYPE = ctypes.CFUNCTYPE( None, _cstr, _uint )
+    _raw_setmsghandler    = _wrap('ncrystal_setmsghandler',None,(_MSGHANDLERFCTTYPE,),hide=True)
+    def ncrystal_setmsghandler(pyhandler):
+        #Set msg handler function, keeping references as needed (otherwise fct ptrs
+        #kept on C++ side will suddenly stop working!) and casting None to a null-ptr.
+        def handler( msg, msgtype ):
+            #NB: We could instead consider converting to bytes rather than str
+            #in case msgtype==2 (raw output):
+            pyhandler( _cstr2str(msg), int(msgtype) )
+        if not handler:
+            keepalive=(None,None,ctypes.cast(None, _MSGHANDLERFCTTYPE))
+        else:
+            keepalive=(pyhandler,handler,_MSGHANDLERFCTTYPE(handler))#keep refs!
+        _keepalive.append(keepalive)
+        _raw_setmsghandler(keepalive[-1])
+    functions['setmsghandler'] = ncrystal_setmsghandler
+
+    _raw_runmmcsim_stdengine    = _wrap('ncrystal_runmmcsim_stdengine',None,
+                                        (_uint,_uint,
+                                         _cstr,_cstr,_cstr,
+                                         _charptrptr,_uintp,_dblpp,_dblpp),
+                                        hide=True)
+    def nc_runmmcsim_stdengine( nthreads,
+                                tally_detail_lvl,
+                                mat_cfgstr,
+                                mmc_geomcfg,
+                                mmc_srccfg ):
+        nthreads_ = _uint(int(nthreads))
+        assert 0<=tally_detail_lvl<=2
+        tally_detail_lvl_ = _uint(int(tally_detail_lvl))
+        mat_cfgstr_ = _str2cstr(mat_cfgstr)
+        mmc_geomcfg_ = _str2cstr(mmc_geomcfg)
+        mmc_srccfg_ = _str2cstr(mmc_srccfg)
+        t_json = _charptr()
+        t_exitangle_nbins = _uint()
+        t_exitangle_ct = _dblp()
+        t_exitangle_errsq = _dblp()
+        _raw_runmmcsim_stdengine( nthreads_,
+                                  tally_detail_lvl_,
+                                  mat_cfgstr_,
+                                  mmc_geomcfg_,
+                                  mmc_srccfg_,
+                                  t_json,
+                                  t_exitangle_nbins,
+                                  ctypes.byref(t_exitangle_ct),
+                                  ctypes.byref(t_exitangle_errsq) )
+        if t_json is not None:
+            t_json_cstr = ctypes.cast(t_json,_cstr).value
+            if t_json_cstr is not None:
+                _ = _cstr2str(t_json_cstr)
+                _raw_deallocstr(t_json)
+                t_json = _
+            else:
+                t_json = None
+
+        tally_exitangle_contents = _cptr_to_nparray( t_exitangle_ct, t_exitangle_nbins )
+        tally_exitangle_errsq = _cptr_to_nparray( t_exitangle_errsq, t_exitangle_nbins )
+        return tally_exitangle_contents,tally_exitangle_errsq,t_json
+
+    functions['runmmcsim_stdengine']=nc_runmmcsim_stdengine
+
+
     return functions

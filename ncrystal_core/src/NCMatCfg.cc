@@ -3,7 +3,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -413,11 +413,13 @@ std::string NC::MatCfg::Impl::toStrCfg( const MatCfg& cfgobj,
     }
 
     out << '>';
-    if (!common_entries.empty())
-      out<<';'<<phlist.front().second.m_impl->toStrCfg( phlist.front().second,
-                                                        false,
-                                                        varfilter_onlycommon,
-                                                        includePhaseChoice );
+    if (!common_entries.empty()) {
+      const Cfg::CfgData& phase0_cfg_data = phlist.front().second.m_impl->m_cfgdata;
+      if ( !CfgManip::empty(phase0_cfg_data,varfilter_onlycommon) ) {
+        addSeparatorIfNeeded();
+        CfgManip::stream(phase0_cfg_data,out,varfilter_onlycommon);
+      }
+    }
 
     appendDensity(out,cfgobj);
     appendPhaseChoices(out,cfgobj);

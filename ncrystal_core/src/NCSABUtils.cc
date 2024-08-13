@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,7 +21,7 @@
 #include "NCrystal/internal/NCSABUtils.hh"
 #include "NCrystal/internal/NCIter.hh"
 #include "NCrystal/internal/NCString.hh"
-#include <iostream>
+#include "NCrystal/internal/NCMsg.hh"
 namespace NC = NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {
@@ -142,7 +142,8 @@ NC::SABData NC::SABUtils::transformKernelToStdFormat( NC::ScatKnlData&& input_or
   NC::ScatKnlData input{ std::move(input_orig) };
   auto ntrimmed = detail_trimZeroEdgesFromKernel(input);
   if ( ntrimmed )
-    std::cout<<"NCrystal WARNING: Discarding "<<ntrimmed<<" edges of provided kernel data due to missing S values."<<std::endl;
+    NCRYSTAL_WARN("Discarding "<<ntrimmed<<" edges of provided kernel"
+                  " data due to missing S values.");
 
   ////////////////////////////////////////////////////
   // First convert ScatKnlData object to type "SAB" //

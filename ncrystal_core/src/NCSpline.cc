@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -19,7 +19,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/NCSpline.hh"
-#include <cstdlib>
 #include <fstream>
 #include <iomanip>
 
@@ -124,9 +123,9 @@ void NCrystal::SplinedLookupTable::set( const Fct1D* thefct,
 
 #include "NCrystal/internal/NCString.hh"
 #include "NCrystal/internal/NCFileUtils.hh"
+#include "NCrystal/internal/NCMsg.hh"
 #include <fstream>
 #include <sstream>
-#include <iostream>
 #include <iomanip>
 
 void NCrystal::SplinedLookupTable::producefile( const Fct1D* thefct,
@@ -150,7 +149,8 @@ void NCrystal::SplinedLookupTable::producefile( const Fct1D* thefct,
   }
 
   if (file_exists(filename)) {
-    std::cout <<"NCrystal: Aborted writing of spline data file ncrystal_splinedlt_"<<username<<"_??.txt - too many files in current dir."<<std::endl;
+    NCRYSTAL_WARN("Aborted writing of spline data file ncrystal_splinedlt_"
+                  <<username<<"_??.txt - too many files in current dir.");
     return;
   }
 
@@ -181,7 +181,7 @@ void NCrystal::SplinedLookupTable::producefile( const Fct1D* thefct,
       ofs<<" "<<thefct->eval(x);
     ofs<<"\n";
   }
-  std::cout <<"NCrystal: Wrote "<<filename<<" (since NCRYSTAL_DEBUG_SPLINE is set)."<<std::endl;
+  NCRYSTAL_MSG("Wrote "<<filename<<" (since NCRYSTAL_DEBUG_SPLINE is set).");
 }
 
 void NCrystal::PiecewiseLinearFct1D::dumpToFile( const std::string& filename ) const {

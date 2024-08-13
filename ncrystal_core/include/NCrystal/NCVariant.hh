@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -33,39 +33,30 @@ namespace NCRYSTAL_NAMESPACE {
 
   enum class VariantAllowEmpty { Yes, No };
 
-  namespace detail {
-    struct NCRYSTAL_API DefaultConstructible  {
-      struct ignore_t{};
-      constexpr DefaultConstructible( ignore_t ) noexcept {}
-      DefaultConstructible() = default;
-    };
-    struct NCRYSTAL_API NoDefaultConstructible {
-      struct ignore_t{};
-      constexpr NoDefaultConstructible( ignore_t ) noexcept {}
-      NoDefaultConstructible() = delete;
-    };
-  }
-
   template <class T1, class T2, VariantAllowEmpty ALLOW_EMPTY = VariantAllowEmpty::Yes >
-  class NCRYSTAL_API Variant : public std::conditional<ALLOW_EMPTY==VariantAllowEmpty::Yes,
-                                                       detail::DefaultConstructible,
-                                                       detail::NoDefaultConstructible>::type {
+  class NCRYSTAL_API Variant final {
     //Todo: some of the methods below could be noexcept depending on methods of T1 and T2
   public:
-    //conditionally enable default constructor if ALLOW_EMPTY is Yes:
-    using detail_base = typename std::conditional<ALLOW_EMPTY==VariantAllowEmpty::Yes,
-                                                  detail::DefaultConstructible,
-                                                  detail::NoDefaultConstructible>::type;
-    using detail_base::detail_base;
 
-    //NB: If ALLOW_EMPTY
+    //conditionally enable default constructor if ALLOW_EMPTY is Yes. This is
+    //done using std::enable_if SFINAE, and a dummy dependent method template
+    //variable U:
+    template<VariantAllowEmpty U = ALLOW_EMPTY,
+             typename = typename std::enable_if<(U==VariantAllowEmpty::Yes)>::type >
+    constexpr Variant() noexcept {}
+
     Variant( const T1& );
     Variant( T1&& );
     Variant( const T2& );
     Variant( T2&& );
     ~Variant();
 
-    void clear();
+    template<VariantAllowEmpty U = ALLOW_EMPTY,
+             typename = typename std::enable_if<(U==VariantAllowEmpty::Yes)>::type >
+    void clear() { this->clear_impl(); }
+
+    //Whether or not Variant is empty. If ALLOW_EMPTY = VariantAllowEmpty::No,
+    //this is only the case for moved-from objects:
     constexpr bool empty() const noexcept;
 
     template<class T> constexpr bool has_value() const noexcept;
@@ -78,7 +69,7 @@ namespace NCRYSTAL_NAMESPACE {
     Variant( Variant&& );
     Variant& operator=( Variant&& );
 
-    //Copy/move (NB: moved from Variant is always empty)
+    //Copy/move (NB: moved from Variant is always empty):
     Variant& operator=( const T1& );
     Variant& operator=( T1&& );
     Variant& operator=( const T2& );
@@ -88,6 +79,8 @@ namespace NCRYSTAL_NAMESPACE {
     bool operator==( const Variant& ) const;
 
   private:
+    void clear_impl();
+
     static constexpr unsigned MAXSIZE = ( sizeof(T1) > sizeof(T2) ? sizeof(T1) : sizeof(T2) );
     //gcc 4.8 has problems with:
     //  static constexpr unsigned MAXALIGN = ( alignof(T1) > alignof(T2) ? alignof(T1) : alignof(T2) );
@@ -112,9 +105,6 @@ namespace NCRYSTAL_NAMESPACE {
 ////////////////////////////
 
 namespace NCRYSTAL_NAMESPACE {
-
-  static_assert(std::is_default_constructible<Variant<double,int>>::value,"");
-  static_assert(!std::is_default_constructible<Variant<double,int,VariantAllowEmpty::No>>::value,"");
 
   template <class T1, class T2, VariantAllowEmpty ALLOW_EMPTY>
   struct Variant<T1,T2,ALLOW_EMPTY>::Impl {
@@ -193,14 +183,13 @@ namespace NCRYSTAL_NAMESPACE {
     static_assert(std::is_same<T,T1>::value||std::is_same<T,T2>::value,
                   "Provided type is not one of the variants supported for this class");
     if (m_content!=Content::Empty)
-      clear();
+      clear_impl();
     new(Impl::data(this)) T(std::forward<Args>(args)...);
     m_content = ( std::is_same<T,T1>::value ? Content::HasT1 : Content::HasT2 );
   }
 
   template <class T1, class T2, VariantAllowEmpty AE>
   inline Variant<T1,T2,AE>::Variant( const Variant& o )
-    : detail_base(typename detail_base::ignore_t())
   {
     *this = o;
   }
@@ -208,7 +197,7 @@ namespace NCRYSTAL_NAMESPACE {
   template <class T1, class T2, VariantAllowEmpty AE>
   inline Variant<T1,T2,AE>& Variant<T1,T2,AE>::operator=( const Variant& o )
   {
-    clear();
+    clear_impl();
     if ( o.has_value<T1>() ) {
       emplace<T1>( o.get<T1>() );
     } else if ( o.has_value<T2>() ) {
@@ -219,7 +208,6 @@ namespace NCRYSTAL_NAMESPACE {
 
   template <class T1, class T2, VariantAllowEmpty AE>
   inline Variant<T1,T2,AE>::Variant( Variant&& o )
-    : detail_base(typename detail_base::ignore_t())
   {
     *this = std::move(o);
   }
@@ -227,13 +215,13 @@ namespace NCRYSTAL_NAMESPACE {
   template <class T1, class T2, VariantAllowEmpty AE>
   inline Variant<T1,T2,AE>&  Variant<T1,T2,AE>::operator=( Variant&& o )
   {
-    clear();
+    clear_impl();
     if ( o.has_value<T1>() ) {
       emplace<T1>( std::move(o.get<T1>()));
-      o.clear();
+      o.clear_impl();
     } else if ( o.has_value<T2>() ) {
       emplace<T2>( std::move(o.get<T2>()));
-      o.clear();
+      o.clear_impl();
     }
     return *this;
   }
@@ -259,25 +247,25 @@ namespace NCRYSTAL_NAMESPACE {
 
   template <class T1, class T2, VariantAllowEmpty AE>
   inline Variant<T1,T2,AE>::Variant( const T1& t1 )
-    : detail_base(typename detail_base::ignore_t()), m_content(Content::HasT1) { new(Impl::data(this)) T1(t1); }
+    : m_content(Content::HasT1) { new(Impl::data(this)) T1(t1); }
 
   template <class T1, class T2, VariantAllowEmpty AE>
   inline Variant<T1,T2,AE>::Variant( T1&& t1 )
-    : detail_base(typename detail_base::ignore_t()), m_content(Content::HasT1) { new(Impl::data(this)) T1(std::move(t1)); }
+    : m_content(Content::HasT1) { new(Impl::data(this)) T1(std::move(t1)); }
 
   template <class T1, class T2, VariantAllowEmpty AE>
   inline Variant<T1,T2,AE>::Variant( const T2& t2 )
-    : detail_base(typename detail_base::ignore_t()), m_content(Content::HasT2) { new(Impl::data(this)) T2(t2); }
+    : m_content(Content::HasT2) { new(Impl::data(this)) T2(t2); }
 
   template <class T1, class T2, VariantAllowEmpty AE>
   inline Variant<T1,T2,AE>::Variant( T2&& t2 )
-    : detail_base(typename detail_base::ignore_t()), m_content(Content::HasT2) { new(Impl::data(this)) T2(std::move(t2)); }
+    : m_content(Content::HasT2) { new(Impl::data(this)) T2(std::move(t2)); }
 
   template <class T1, class T2, VariantAllowEmpty AE>
   inline constexpr bool Variant<T1,T2,AE>::empty() const noexcept { return m_content == Content::Empty; }
 
   template <class T1, class T2, VariantAllowEmpty AE>
-  inline void Variant<T1,T2,AE>::clear()
+  inline void Variant<T1,T2,AE>::clear_impl()
   {
     if ( m_content == Content::Empty )
       return;
@@ -291,7 +279,7 @@ namespace NCRYSTAL_NAMESPACE {
   template <class T1, class T2, VariantAllowEmpty AE>
   inline Variant<T1,T2,AE>::~Variant()
   {
-    clear();
+    clear_impl();
   }
 
   template <class T1, class T2, VariantAllowEmpty AE>
@@ -322,6 +310,10 @@ namespace NCRYSTAL_NAMESPACE {
     emplace<T2>(std::move(o));
     return *this;
   }
+
+  static_assert(std::is_default_constructible<Variant<double,int,VariantAllowEmpty::Yes>>::value,"");
+  static_assert(std::is_default_constructible<Variant<double,int>>::value,"");
+  static_assert(!std::is_default_constructible<Variant<double,int,VariantAllowEmpty::No>>::value,"");
 
 }
 

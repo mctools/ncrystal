@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -29,7 +29,7 @@ NC::SABSampler::~SABSampler() = default;
 
 NC::SABSampler::SABSampler( Temperature temperature,
                             VectD&& egrid,
-                            std::vector<std::unique_ptr<SABSamplerAtE>>&& samplers,
+                            SABSamplerAtEList&& samplers,
                             std::shared_ptr<const SAB::SABExtender> extender,
                             double xsAtEmax,
                             EGridMargin egridMargin )
@@ -40,7 +40,7 @@ NC::SABSampler::SABSampler( Temperature temperature,
 
 void NC::SABSampler::setData( Temperature temperature,
                               VectD&& egrid,
-                              std::vector<std::unique_ptr<SABSamplerAtE>>&& samplers,
+                              SABSamplerAtEList&& samplers,
                               std::shared_ptr<const SAB::SABExtender> extender,
                               double xsAtEmax,
                               EGridMargin egridMargin )

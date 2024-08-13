@@ -36,7 +36,7 @@ For detailed usage conditions and licensing of this open source project, see:
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2023 NCrystal developers                                   ##
+##  Copyright 2015-2024 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -54,25 +54,26 @@ For detailed usage conditions and licensing of this open source project, see:
 
 #NB: Synchronize meta-data below with fields in setup.py+template_setup.py.in meta data:
 __license__ = "Apache 2.0, http://www.apache.org/licenses/LICENSE-2.0"
-__version__ = '3.8.2'
+__version__ = '3.9.0'
 __status__ = "Production"
 __author__ = "NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)"
-__copyright__ = "Copyright 2015-2023 %s"%__author__
+__copyright__ = "Copyright 2015-2024 %s"%__author__
 __maintainer__ = __author__
 __email__ = "ncrystal-developers@cern.ch"
 
+import sys as _sys
+import os as _os
+
 #Place f-string here to catch python <3.6 in a more obvious way than a syntax error below:
-f'NCrystal does not work with Python2 (or Python3 < v3.6)'
+f'NCrystal does not work with Python2 (or Python3 < v3.6)' #noqa F541
 _minpyversion=(3,6,0)
 
-import sys as _sys
 pyversion = _sys.version_info[0:3]
 if pyversion < _minpyversion:
     raise SystemExit('Unsupported python version %i.%i.%i detected (needs %i.%i.%i or later).'%(pyversion+_minpyversion))
 
-import os as _os
 if not _os.environ.get('NCRYSTAL_SLIMPYINIT'):
-    from .api import *
+    from .api import * # noqa F403
 
 ###################################
 #Same as NCRYSTAL_VERSION macro (same as the get_version_num() function from .core):

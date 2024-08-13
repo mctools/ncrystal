@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -44,20 +44,25 @@ namespace NCRYSTAL_NAMESPACE {
     // appropriate for numerical stability. See the corresponding .cc file for
     // details about formulas etc.
 
-    const char * name() const noexcept final { return "SANSSphereScatter"; }
+    const char * name() const noexcept override { return "SANSSphereScatter"; }
 
     //Constructor takes the sphere radius (in Angstrom), as well as SLD contrast
     //("delta-rho") and atomic number density:
     struct sphere_radius { double value; };
     SANSSphereScatter( SANSScaleFactor C_sans, sphere_radius );
 
-    CrossSect crossSectionIsotropic(CachePtr&, NeutronEnergy ) const final;
-    ScatterOutcomeIsotropic sampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const final;
+    CrossSect crossSectionIsotropic(CachePtr&, NeutronEnergy ) const override;
+    ScatterOutcomeIsotropic sampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const override;
 
     //Simple additive merge:
     std::shared_ptr<Process> createMerged( const Process& other,
                                            double scale_self,
                                            double scale_other ) const override;
+
+
+#ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
+    bool isPureElasticScatter() const override { return true; }
+#endif
 
     struct detail_direct_t;
     SANSSphereScatter(detail_direct_t,double r, double scale);

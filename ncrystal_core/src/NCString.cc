@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,7 +22,6 @@
 #include "NCrystal/internal/NCMath.hh"
 #include <istream>
 #include <iomanip>
-#include <cstdlib>
 namespace NC = NCrystal;
 
 std::string NC::displayCharSafeQuoted( char ch, char quote_char )
@@ -343,6 +342,22 @@ int NC::ncgetenv_int(std::string v, int defval )
                     <<" (expected an integral number but got \""<<ev<<"\").");
   return result;
 }
+
+std::int64_t NC::ncgetenv_int64(std::string v, std::int64_t defval )
+{
+  nc_assert(!v.empty());
+  std::string varname("NCRYSTAL_");
+  varname += v;
+  const char * ev = std::getenv(varname.c_str());
+  if (!ev)
+    return defval;
+  std::int64_t result;
+  if ( !safe_str2int(ev, result ) )
+    NCRYSTAL_THROW2(BadInput,"Invalid value of environment variable "<<varname
+                    <<" (expected an integral number but got \""<<ev<<"\").");
+  return result;
+}
+
 
 bool NC::ncgetenv_bool(std::string v)
 {

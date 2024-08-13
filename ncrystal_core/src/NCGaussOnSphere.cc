@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -21,8 +21,7 @@
 #include "NCrystal/internal/NCGaussOnSphere.hh"
 #include "NCrystal/internal/NCRomberg.hh"
 #include "NCrystal/internal/NCRandUtils.hh"
-#include <iostream>
-#include <cstdlib>
+#include "NCrystal/internal/NCMsg.hh"
 namespace NC = NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {
@@ -126,11 +125,11 @@ namespace NCRYSTAL_NAMESPACE {
       if (first) {
         first = false;
         unsigned twotolevelm1 = 1<<(level-1);//2^(level-1)
-        std::cout<<"NCrystal WARNING: Problems during numerical integration of Gaussian density on sphere. Romberg integration"
-          " did not converge after "<<2*twotolevelm1+1<<" function evaluations (requested acc="<<m_acc<<", got acc="<<
-          ncabs(prev_estimate-estimate)/(ncmax(1e-300,ncabs(estimate)))<<"). Dumping integrand to"
-          " ncrystal_goscircleintegral_fct.txt for debugging. Further warnings"
-          " of this type will not be emitted."<<std::endl;
+        NCRYSTAL_WARN("Problems during numerical integration of Gaussian density on sphere. Romberg integration"
+                      " did not converge after "<<2*twotolevelm1+1<<" function evaluations (requested acc="<<m_acc<<", got acc="<<
+                      ncabs(prev_estimate-estimate)/(ncmax(1e-300,ncabs(estimate)))<<"). Dumping integrand to"
+                      " ncrystal_goscircleintegral_fct.txt for debugging. Further warnings"
+                      " of this type will not be emitted.");
         writeFctToFile("ncrystal_goscircleintegral_fct.txt", a, b,twotolevelm1);
       }
       return true;
@@ -235,14 +234,18 @@ void NC::GaussOnSphere::produceStatReport(const char * callpt)
   markused(callpt);
 #ifndef NDEBUG
   uint64_t worst = (m_stats.genpointcalled?(uint64_t)m_stats.genpointworst:0);
-  std::cout<<"NCrystal GaussOnSphere(sigma="<<m_sigma<<", truncangle="<<m_truncangle/m_sigma<<"sigma, prec="<<m_prec<<") "
-           <<callpt<<". Used "<<m_stats.genpointtries
-           <<" tries to generate "<<m_stats.genpointcalled <<" pts on circles (acceptance rate: "
-           <<(m_stats.genpointtries?m_stats.genpointcalled*100.0/m_stats.genpointtries:0.0)
-           <<"%). Worst case used "<<worst<<" tries."
-           << " Performed "<<m_stats.circleintnumber<<" numerical circle integrations using an average of "
-           <<(m_stats.circleintnumber?double(m_stats.circleintevals)/m_stats.circleintnumber:0.0)<< " function evaluations each time (worst case used "
-           <<m_stats.circleintworst<<" evaluations)."<<std::endl;
+  NCRYSTAL_MSG("GaussOnSphere(sigma="<<m_sigma<<", truncangle="
+               <<m_truncangle/m_sigma<<"sigma, prec="<<m_prec<<") "
+               <<callpt<<". Used "<<m_stats.genpointtries
+               <<" tries to generate "<<m_stats.genpointcalled
+               <<" pts on circles (acceptance rate: "
+               <<(m_stats.genpointtries?m_stats.genpointcalled*100.0/m_stats.genpointtries:0.0)
+               <<"%). Worst case used "<<worst<<" tries."
+               << " Performed "<<m_stats.circleintnumber
+               <<" numerical circle integrations using an average of "
+               <<(m_stats.circleintnumber?double(m_stats.circleintevals)/m_stats.circleintnumber:0.0)
+               << " function evaluations each time (worst case used "
+               <<m_stats.circleintworst<<" evaluations).");
 #else
   markused(callpt);
 #endif
@@ -471,10 +474,10 @@ bool NC::GaussOnSphere::genPointOnCircle( RNG& rng, double cg, double sg, double
       static bool first = true;
       if (first) {
         first = false;
-        std::cout<<"NCrystal WARNING: Problems sampling with rejection method during GaussOnSphere::genPointOnCircle "
-          "invocation. Overlay value was not larger than actual cross-section value at sampled point "
-          "(overshot by factor of "<<(densitymax?density_at_t/densitymax:kInfinity)<<"). Further warnings"
-          " of this type will not be emitted."<<std::endl;
+        NCRYSTAL_WARN("Problems sampling with rejection method during GaussOnSphere::genPointOnCircle "
+                      "invocation. Overlay value was not larger than actual cross-section value at sampled point "
+                      "(overshot by factor of "<<(densitymax?density_at_t/densitymax:kInfinity)<<"). Further warnings"
+                      " of this type will not be emitted.");
       }
     }
     if ( density_at_t > densitymax * rng.generate())
@@ -492,9 +495,9 @@ bool NC::GaussOnSphere::genPointOnCircle( RNG& rng, double cg, double sg, double
     static bool first = true;
     if (first) {
       first = false;
-      std::cout<<"NCrystal WARNING: Problems sampling with rejection method during GaussOnSphere::genPointOnCircle "
-        "invocation. Did not accept sampled value after "<<maxtriesplus1-1<<" attempts. Further warnings"
-        " of this type will not be emitted."<<std::endl;
+      NCRYSTAL_WARN("Problems sampling with rejection method during GaussOnSphere::genPointOnCircle "
+                    "invocation. Did not accept sampled value after "<<maxtriesplus1-1<<" attempts. Further warnings"
+                    " of this type will not be emitted.");
     }
     return false;
   }

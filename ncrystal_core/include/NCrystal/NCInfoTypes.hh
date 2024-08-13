@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -23,6 +23,7 @@
 
 #include "NCrystal/NCSABData.hh"
 #include "NCrystal/NCAtomData.hh"
+#include "NCrystal/NCSmallVector.hh"
 
 /////////////////////////////////////////////////////////
 // Data structures used on Info objects (in NCInfo.hh) //
@@ -101,6 +102,7 @@ namespace NCRYSTAL_NAMESPACE {
     static constexpr const char * unit() noexcept { return ""; }
     static AtomIndex createInvalidObject();
     constexpr bool isInvalid() const noexcept;
+    ncconstexpr17 void validate() const noexcept {}
     //NB: Since unsigned is only guaranteed to be at least 16bit, the underlying
     //value representing invalid indices might be as low as 65535 (of course, in
     //practice it is usually 4294967295).
@@ -175,7 +177,9 @@ namespace NCRYSTAL_NAMESPACE {
     std::vector<Pos>& detail_accessPos() { return m_pos; }
   };
 
-  using AtomInfoList = std::vector<AtomInfo>;
+  //NB: VSCode std::vectors does not support move-only objects apparently, so we
+  //are using our own SmallVector for AtomInfoList:
+  using AtomInfoList = SmallVector<AtomInfo,4>;
   using AtomList = AtomInfoList;//obsolete alias
 
   class NCRYSTAL_API DynamicInfo : public UniqueID {
@@ -201,7 +205,9 @@ namespace NCRYSTAL_NAMESPACE {
     friend class AtomInfo;
   };
 
-  typedef std::vector<std::unique_ptr<DynamicInfo>> DynamicInfoList;
+  //NB: VSCode std::vectors does not support move-only objects apparently, so we
+  //are using our own SmallVector for DynamicInfoList:
+  typedef SmallVector<std::unique_ptr<DynamicInfo>,4> DynamicInfoList;
 
   class NCRYSTAL_API DI_Sterile final : public DynamicInfo {
     //Class indicating elements for which inelastic neutron scattering is absent
@@ -322,9 +328,11 @@ namespace NCRYSTAL_NAMESPACE {
     nc_assert( atomDataSP == o.atomDataSP || index != o.index || ( index.isInvalid() && o.index.isInvalid() ) );
     nc_assert( atomDataSP!=nullptr );
     nc_assert( o.atomDataSP!=nullptr );
-    return index.isInvalid()
-      ? atomDataSP->getUniqueID() < o.atomDataSP->getUniqueID()
-      : index < o.index;
+    return ( index.isInvalid()
+             ? ( *atomDataSP == *o.atomDataSP
+                 ? atomDataSP->getUniqueID() < o.atomDataSP->getUniqueID()
+                 : *atomDataSP < *o.atomDataSP )
+             : index < o.index );
   }
   inline bool IndexedAtomData::operator==(const IndexedAtomData& o) const ncnoexceptndebug {
     nc_assert( atomDataSP == o.atomDataSP || index != o.index || ( index.isInvalid() && o.index.isInvalid() ) );

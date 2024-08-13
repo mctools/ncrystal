@@ -3,7 +3,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -149,6 +149,14 @@ namespace NCRYSTAL_NAMESPACE {
         return res;
       }
     }
+
+    class CacheElInc : public CacheBase {
+    public:
+      void invalidateCache() override { data.ekin.dbl() = -1.0; }
+      CacheElInc() { data.ekin.dbl() = -1.0; }
+      ElIncXS::EPointAnalysis data;
+    };
+
   }
 }
 
@@ -179,14 +187,20 @@ NC::ElIncScatter::ElIncScatter( const VectD& elements_meanSqDisp,
                                          elements_scale );
 }
 
-NC::CrossSect NC::ElIncScatter::crossSectionIsotropic( CachePtr&, NeutronEnergy ekin ) const
+NC::CrossSect NC::ElIncScatter::crossSectionIsotropic( CachePtr& cp, NeutronEnergy ekin ) const
 {
-  return m_elincxs->evaluate( ekin );
+  auto& cache = accessCache<CacheElInc>(cp);
+  if ( cache.data.ekin != ekin )
+    cache.data = m_elincxs->analyseEnergyPoint( ekin );
+  return cache.data.getXS();
 }
 
-NC::ScatterOutcomeIsotropic NC::ElIncScatter::sampleScatterIsotropic( CachePtr&, RNG& rng, NeutronEnergy ekin ) const
+NC::ScatterOutcomeIsotropic NC::ElIncScatter::sampleScatterIsotropic( CachePtr& cp, RNG& rng, NeutronEnergy ekin ) const
 {
-  return { ekin, m_elincxs->sampleMu( rng, ekin ) };
+  auto& cache = accessCache<CacheElInc>(cp);
+  if ( cache.data.ekin != ekin )
+    cache.data = m_elincxs->analyseEnergyPoint( ekin );
+  return { ekin, cache.data.sampleMu( *m_elincxs, rng ) };
 }
 
 NC::ElIncScatter::ElIncScatter( std::unique_ptr<ElIncXS> p )
@@ -223,3 +237,24 @@ NC::Optional<std::string> NC::ElIncScatter::specificJSONDescription() const
   streamJSONDictEntry( ss, "nelements", nelem, JSONDictPos::LAST );
   return ss.str();
 }
+
+#ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
+void NC::ElIncScatter::evalManyXSIsotropic( CachePtr&, const double* ekin, std::size_t N, double* out_xs ) const
+{
+  m_elincxs->evaluateMany( Span<const double>( ekin, ekin + N ),
+                           Span<double>( out_xs, out_xs + N ) );
+}
+
+std::pair<NC::CrossSect,NC::ScatterOutcomeIsotropic>
+NC::ElIncScatter::evalXSAndSampleScatterIsotropic( CachePtr& cp, RNG& rng, NeutronEnergy ekin ) const
+{
+  auto& cache = accessCache<CacheElInc>(cp);
+  if ( cache.data.ekin != ekin )
+    cache.data = m_elincxs->analyseEnergyPoint( ekin );
+  return {
+    cache.data.getXS(),
+    { ekin, cache.data.sampleMu( *m_elincxs, rng ) }
+  };
+}
+
+#endif

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -51,16 +51,20 @@ namespace NCRYSTAL_NAMESPACE {
              PlaneProvider * plane_provider = nullptr,
              double prec = 1e-3, double ntrunc = 0.0 );
 
-    const char * name() const noexcept final { return "SCBragg"; }
+    const char * name() const noexcept override { return "SCBragg"; }
 
     virtual ~SCBragg();
 
     //There is a maximum wavelength at which Bragg diffraction is possible, so
     //lower bound will reflect this (upper bound is infinity):
-    EnergyDomain domain() const noexcept final;
+    EnergyDomain domain() const noexcept override;
 
-    CrossSect crossSection(CachePtr&, NeutronEnergy, const NeutronDirection& ) const final;
-    ScatterOutcome sampleScatter(CachePtr&, RNG&, NeutronEnergy, const NeutronDirection& ) const final;
+    CrossSect crossSection(CachePtr&, NeutronEnergy, const NeutronDirection& ) const override;
+    ScatterOutcome sampleScatter(CachePtr&, RNG&, NeutronEnergy, const NeutronDirection& ) const override;
+
+#ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
+    bool isPureElasticScatter() const override { return true; }
+#endif
 
   protected:
     Optional<std::string> specificJSONDescription() const override;

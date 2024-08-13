@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -79,9 +79,12 @@ namespace NCRYSTAL_NAMESPACE {
     //choices for truncation/thinning.
     enum class TruncAndThinningChoices { Default, Disabled };
     struct TruncAndThinningParams {
-      int minOrder = 5;//Below this order, no truncation or thinning takes place (0=always, -1=never)
-      unsigned thinNBins = 1000;//double binwidth whenever number of bins exceeds this value (0 disables)
-      double truncationThreshold = 1e-14;//trim ranges to remove negligible noise at edges (0 disables)
+      int minOrder = 5;//Below this order, no truncation or thinning takes place
+                       //(0=always, -1=never)
+      unsigned thinNBins = 1000;//double binwidth whenever number of bins
+                                //exceeds this value (0 disables)
+      double truncationThreshold = 1e-14;//trim ranges to remove negligible
+                                         //noise at edges (0 disables)
       TruncAndThinningParams(TruncAndThinningChoices);
       TruncAndThinningParams() = default;
     };
@@ -102,7 +105,7 @@ namespace NCRYSTAL_NAMESPACE {
     ////////////////////////////////////////////
     //Check or increase maximum available Gn: //
     ////////////////////////////////////////////
-    void growMaxOrder( Order );
+    void growMaxOrder( Order );//Not MT-safe
     Order maxOrder() const;
 
     //////////////////////////////
@@ -151,6 +154,7 @@ namespace NCRYSTAL_NAMESPACE {
     unsigned m_order;
     void checkValid() { nc_assert( m_order>0 && m_order<100000 ); }
   };
+
 }
 
 #endif

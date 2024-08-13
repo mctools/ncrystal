@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -46,7 +46,7 @@ namespace NCRYSTAL_NAMESPACE {
     //details, see section 2.3 of https://doi.org/10.1016/j.cpc.2019.07.015 and
     //comments in the NCElIncXS.hh header file.
 
-    const char * name() const noexcept final { return "ElIncScatter"; }
+    const char * name() const noexcept override { return "ElIncScatter"; }
     virtual ~ElIncScatter();
 
     //Constructor similar to the ElIncXS constructor:
@@ -65,8 +65,8 @@ namespace NCRYSTAL_NAMESPACE {
     //error is raised).
     ElIncScatter( const Info&, const ElIncScatterCfg& cfg = ElIncScatterCfg() );
 
-    CrossSect crossSectionIsotropic(CachePtr&, NeutronEnergy ) const final;
-    ScatterOutcomeIsotropic sampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const final;
+    CrossSect crossSectionIsotropic(CachePtr&, NeutronEnergy ) const override;
+    ScatterOutcomeIsotropic sampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const override;
 
     //Simple additive merge:
     std::shared_ptr<Process> createMerged( const Process& other,
@@ -80,6 +80,13 @@ namespace NCRYSTAL_NAMESPACE {
     //Helper function for determining if ElincScatter(info,...) can proceed
     //(i.e. if there is enough info to estimate Debye-Waller factors):
     static bool hasSufficientInfo( const Info&, const ElIncScatterCfg& cfg = ElIncScatterCfg() );
+
+#ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
+    bool isPureElasticScatter() const override { return true; }
+    std::pair<CrossSect,ScatterOutcomeIsotropic>
+    evalXSAndSampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const override;
+    void evalManyXSIsotropic( CachePtr&, const double* ekin, std::size_t N, double* out_xs ) const override;
+#endif
 
   protected:
     Optional<std::string> specificJSONDescription() const override;

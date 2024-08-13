@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -63,3 +63,38 @@ NCrystal::UniqueID::UniqueID()
 }
 
 NCrystal::RNG::~RNG() = default;
+
+#ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
+void NCrystal::RNG::generateMany( std::size_t n, double* tgt )
+{
+  for ( std::size_t i = 0; i < n; ++i )
+    *tgt++ = this->generate();
+}
+
+void NCrystal::RNG::generateRandomBits( std::size_t nbytes, uint8_t* data )
+{
+  static_assert(sizeof(uint8_t)==1,"");
+  constexpr auto nlarge_n64bit = 16;
+  constexpr auto nlarge = nlarge_n64bit * sizeof(std::uint64_t);
+  while ( nbytes > nlarge ) {
+    std::uint64_t buf[nlarge/sizeof(std::uint64_t)];
+    static_assert(sizeof(buf)==nlarge,"");
+    for ( auto i = 0; i < nlarge_n64bit; ++i )
+      buf[i] = this->generate64RndmBits();
+    std::memcpy(data,buf,nlarge);
+    data += nlarge;
+    nbytes -= nlarge;
+  }
+  while ( nbytes >= sizeof(std::uint64_t) ) {
+    std::uint64_t buf = this->generate64RndmBits();
+    std::memcpy(data,(void*)&buf,sizeof(std::uint64_t));
+    data += sizeof(std::uint64_t);
+    nbytes -= sizeof(std::uint64_t);
+  }
+  if ( nbytes ) {
+    //small tail:
+    std::uint64_t buf = this->generate64RndmBits();
+    std::memcpy(data,(void*)&buf,nbytes);
+  }
+}
+#endif

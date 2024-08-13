@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -955,11 +955,10 @@ namespace NCRYSTAL_NAMESPACE {
         std::stable_sort( data.composition.begin(), data.composition.end(),
                           [](const Info::CompositionEntry& a,const Info::CompositionEntry& b)
                           {
-                            return ( a.atom==b.atom
+                            return ( a.atom == b.atom
                                      ? a.fraction > b.fraction
                                      : a.atom < b.atom );
                           });
-
         //sanity check temperature:
         if (data.temp.has_value())
           data.temp.value().validate();

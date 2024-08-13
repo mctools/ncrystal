@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -243,7 +243,7 @@ namespace NCRYSTAL_NAMESPACE {
     //Get smart pointer to current object (object MUST be already managed by
     //shared pointer, e.g. created with NCrystal::makeSO or std::make_shared):
     shared_obj<Derived> shared_obj_from_this() {
-#  if __cplusplus >= 201703L
+#  if nc_cplusplus >= 201703L
       auto shptr = this->weak_from_this().lock();
       if (!shptr)
         NCRYSTAL_THROW( LogicError, "shared_obj_from_this() does not work since this"
@@ -254,7 +254,7 @@ namespace NCRYSTAL_NAMESPACE {
 #endif
     }
     shared_obj<const Derived> shared_obj_from_this() const {
-#  if __cplusplus >= 201703L
+#  if nc_cplusplus >= 201703L
       auto shptr = this->weak_from_this().lock();
       if (!shptr)
         NCRYSTAL_THROW( LogicError, "shared_obj_from_this() does not work since this"
@@ -340,10 +340,11 @@ namespace NCRYSTAL_NAMESPACE {
       //Implement Move-only RAII:
       AlignedHeapPtr() = default;
       ~AlignedHeapPtr() { deallocate(); }
-      AlignedHeapPtr( AlignedHeapPtr&& o ) { std::swap(data,o.data); }
+      AlignedHeapPtr( AlignedHeapPtr&& o ) noexcept { std::swap(data,o.data); }
       AlignedHeapPtr& operator=( AlignedHeapPtr&& );
       AlignedHeapPtr( const AlignedHeapPtr& ) = delete;
       AlignedHeapPtr& operator=( const AlignedHeapPtr& ) = delete;
+      void swap( AlignedHeapPtr& o ) noexcept { std::swap( data, o.data ); }
     };
   }
 }

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -27,7 +27,7 @@ namespace NCRYSTAL_NAMESPACE {
 
   class Info;
 
-  //Dumps info to stdout.
+  //Dumps info:
   //
   //  DEFAULT:  Only some information. In particular long atom position and hkl
   //            lists might be shortened. Will not necessarily trigger a full hkl
@@ -37,7 +37,19 @@ namespace NCRYSTAL_NAMESPACE {
   //  VERBOSE2: All hkl entries, all equivalent hkls.
   //
   enum class DumpVerbosity : unsigned { DEFAULT = 0, VERBOSE1 = 1, VERBOSE2 = 2 };
-  NCRYSTAL_API void dump(const Info&, DumpVerbosity = DumpVerbosity::DEFAULT );
+
+  //Capture output in stream or string:
+  NCRYSTAL_API void dump( std::ostream& os,
+                          const Info&c,
+                          DumpVerbosity = DumpVerbosity::DEFAULT );
+
+  NCRYSTAL_API std::string dump_str( const Info&c,
+                                     DumpVerbosity = DumpVerbosity::DEFAULT );
+
+
+  //Dump directly to stdout (or wherever NCrystal output is handled):
+  NCRYSTAL_API void dump(const Info&,
+                         DumpVerbosity = DumpVerbosity::DEFAULT );
 }
 
 #endif

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -80,6 +80,9 @@ namespace NCRYSTAL_NAMESPACE {
       bool cmpDataEQ(const InfoRequest&) const;
     };
 
+    class ScatterRequest;
+    class AbsorptionRequest;
+
     template <class TRequest>
     class NCRYSTAL_API ProcessRequestBase {
     public:
@@ -131,6 +134,7 @@ namespace NCRYSTAL_NAMESPACE {
     };
 
     class NCRYSTAL_API ScatterRequest final : public ProcessRequestBase<ScatterRequest> {
+      friend class ProcessRequestBase<ScatterRequest>;//For VSCode
     public:
 
       //Parameters (basic):
@@ -167,6 +171,7 @@ namespace NCRYSTAL_NAMESPACE {
     };
 
     class NCRYSTAL_API AbsorptionRequest final : public ProcessRequestBase<AbsorptionRequest> {
+      friend class ProcessRequestBase<AbsorptionRequest>;//For VSCode
     public:
 
       //Parameters:

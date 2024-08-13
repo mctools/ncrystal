@@ -8,7 +8,7 @@ Implementation of the built-in unit tests.
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2023 NCrystal developers                                   ##
+##  Copyright 2015-2024 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -26,6 +26,7 @@ Implementation of the built-in unit tests.
 
 __all__ = ['test','test_cmdline','test_cmake','test_extra','test_all']
 from ._common import print as _nc_print
+import contextlib as _contextlib
 
 def test( verbose = False ):
     """Quick test that NCrystal works as expected in the current installation."""
@@ -100,7 +101,7 @@ def _actualtest( verbose ):
     _cfgstr='stdlib::Al_sg225.ncmat;dcutoff=1.4'
     prfct(f'Trying to createInfo("{_cfgstr}")')
     al = NC.createInfo(_cfgstr)
-    prfct(f'Verifying loaded Info object')
+    prfct('Verifying loaded Info object')
     require(al.hasTemperature() and require_flteq(al.getTemperature(),293.15))
     require_flteq(al.getXSectFree(),1.39667)
     require_flteq(al.getXSectAbsorption(),0.231)
@@ -139,10 +140,11 @@ def _actualtest( verbose ):
     #We do all createScatter... here with independent RNG, for reproducibility
     #and to avoid consuming random numbers from other streams.
     alpc = NC.createScatterIndependentRNG(_cfgstr2)
-    prfct(f'Verifying loaded Scatter object')
+    prfct('Verifying loaded Scatter object')
     require( alpc.name == 'PCBragg' )
     require( isinstance(alpc.name,str) )
-    require( alpc.refCount() in (1,2) and type(alpc.refCount()) == int )
+    require( alpc.refCount() in (1,2) )
+    require( type(alpc.refCount()) == int ) # noqa E721
     require( alpc.isNonOriented() )
     #_nc_print(alpc.xsect(wl=4.0))
     require_flteq(1.632435821586171,alpc.crossSectionIsotropic(wl2ekin(4.0)) )
@@ -167,7 +169,7 @@ def _actualtest( verbose ):
     _seed=2543577
     prfct(f'Trying to createScatterIndependentRNG("{_cfgstr3}",{_seed})')
     nipc = NC.createScatterIndependentRNG(_cfgstr3,_seed)
-    prfct(f'Verifying loaded Scatter object')
+    prfct('Verifying loaded Scatter object')
     nipc_testwl = 1.2
     #_nc_print(nipc.xsect(wl=nipc_testwl),nipc.xsect(wl=5.0))
     require_flteq(16.76322537767633,nipc.xsect(wl=nipc_testwl))
@@ -266,7 +268,7 @@ def _actualtest( verbose ):
     _seed4 = 3453455
     prfct(f'Trying to createScatterIndependentRNG("{_cfgstr4}",{_seed4})')
     gesc = NC.createScatterIndependentRNG(_cfgstr4,_seed4)
-    prfct(f'Verifying loaded Scatter object')
+    prfct('Verifying loaded Scatter object')
     require_flteq(591.025731949681,gesc.crossSection(wl2ekin(1.540),( 0., 1., 1. )))
     require_flteq(1.666984885615526,gesc.crossSection(wl2ekin(1.540),( 1., 1., 0. )))
     prfct('standard Python-API testing done')
@@ -301,22 +303,24 @@ class CallInspector:
         return self.__getattrimpl(attrname)
 
     def __getattrimpl( self, attrname ):
-        if not attrname in self.__subfcts:
+        if attrname not in self.__subfcts:
             raise RuntimeError(f'Not allowed to access attribute {attrname} of {self.__name} objects.')
         sf_kwargs = self.__subfcts[attrname] or {}
         thefmtcall = sf_kwargs.get('fmtcall') or self.__fmtcall
         def wrapper( *args, **kwargs ):
             _n = f'{self.__name}.{attrname}' if attrname!='__call__' else self.__name
-            _nc_print(f"CALLING %s"%thefmtcall(_n,args,kwargs))
+            _nc_print("CALLING %s"%thefmtcall(_n,args,kwargs))
             res = getattr(self.__realobj,attrname)(*args,**kwargs) if self.__realobj else None
             return CallInspector( name = 'ResultOf[%s(..)]'%_n,
                                   realobj = res, **sf_kwargs ) if sf_kwargs else None
         return wrapper
 
-def _fmtvalue( x ):
+_fmtvalue_default_ndigits = 3
+def _fmtvalue( x, *, ndigits = _fmtvalue_default_ndigits ):
     import numbers
     if isinstance(x,numbers.Real) and not isinstance(x,numbers.Integral):
-        s='%.3g'%x#only 3 to avoid too many spurious test issues due to FPE irrep.
+        fmtstring = f'%.{ndigits}g'
+        s=fmtstring%x#only 3 to avoid too many spurious test issues due to FPE irrep.
         return s+'.0' if ( s.isdigit() or s[0]=='-' and s[1:].isdigit() ) else s
     return repr(x)
 
@@ -349,11 +353,23 @@ def _create_pyplot_inspector( pass_calls_to_real_plt ):
             return 'Array(shape=%s,content=%s)'%(x.shape,shorten(x.flatten()))
         if isinstance(x,str) or not hasattr(x,'__len__'):
             return x
-        #only 4 digits to guard against annoying test errors:
+        #Fewer digits to guard against annoying test errors:
+        maxxval = max(x)
+        def _fmtthislistval(val):
+            if val==0.0:
+                return '0.0'
+            if abs(val)<abs(maxxval)*1e-13:
+                return 'TINYVAL'
+                #return _fmtvalue( val, ndigits = max(1,(_fmtvalue_default_ndigits-2)) )
+            elif abs(val)<abs(maxxval)*1e-8:
+                return 'SMALLVAL'
+                #return _fmtvalue( val, ndigits = max(1,(_fmtvalue_default_ndigits-1)) )
+            else:
+                return _fmtvalue( val )
         if len(x) <= 10:
-            return list(_fmtvalue(e) for e in x)
+            return list(_fmtthislistval(e) for e in x)
         else:
-            return list(_fmtvalue(e) for e in x[0:3])+['...']+list(_fmtvalue(e) for e in x[-3:])
+            return list(_fmtthislistval(e) for e in x[0:3])+['...']+list(_fmtthislistval(e) for e in x[-3:])
     def _create_shortening_fmtcall( nargs_to_shorten, kwargs_to_shorten = None ):
         def fmtcall_pltplot( name, args, kwargs ):
             plot_args, plot_kwargs = args, kwargs
@@ -432,7 +448,6 @@ def _actual_test_cmdline( verbose ):
             raise RuntimeError('Command failed: %s'%cmd)
     prfct('testing of cmd-line utilities done')
 
-import contextlib as _contextlib
 @_contextlib.contextmanager
 def _work_in_tmpdir():
     """Context manager for working in a temporary directory (automatically created+cleaned) and then switching back"""
@@ -538,9 +553,9 @@ install( TARGETS exampleapp DESTINATION bin )
         ok, output = _run_cmd(str(app),env=runtime_env)
         if not ok:
             raise RuntimeError('Could not launch example app compiled in downstream cmake project')
-        envrun = os.environ.copy()
+        #envrun = os.environ.copy()
         expected_output='Powder Al x-sect at 1.8Aa is 1.44816barn'
         if not output.decode().strip()==expected_output:
             raise RuntimeError('Example app compiled in downstream cmake project produces unexpected output')
-        prfct(f'App produced expected output')
+        prfct('App produced expected output')
     prfct('testing of compiled downstream cmake-based projects done')

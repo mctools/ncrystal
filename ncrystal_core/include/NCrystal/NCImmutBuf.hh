@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -127,10 +127,11 @@ namespace NCRYSTAL_NAMESPACE {
     void initBuffer( const char *, size_type );
     constexpr bool isRemote() const noexcept;
     constexpr bool isEmpty() const noexcept;
-    const TRemotePtr& remotePtr() const ncnoexceptndebug;
-    TRemotePtr& remotePtr() ncnoexceptndebug;
+    const TRemotePtr& remotePtr() const noexcept;
+    TRemotePtr& remotePtr() noexcept;
     TMetaData& mdRef() noexcept;
     void unsetIfRemote() noexcept;
+    const TMetaData& detail_metaData_nocheck() const noexcept;
   };
 
 }
@@ -257,6 +258,12 @@ namespace NCRYSTAL_NAMESPACE {
     return *reinterpret_cast<const TMetaData*>(&m_data[_detail_pos_md]);
   }
 
+  template<std::size_t LBMS, std::size_t BA, class TMetaData>
+  inline const TMetaData& ImmutableBuffer<LBMS,BA,TMetaData>::detail_metaData_nocheck() const noexcept
+  {
+    return *reinterpret_cast<const TMetaData*>(&m_data[_detail_pos_md]);
+  }
+
   template<std::size_t LBMS, std::size_t BA, class MD>
   inline ImmutableBuffer<LBMS,BA,MD>::ImmutableBuffer( const ImmutableBuffer& o ) noexcept
   {
@@ -269,9 +276,9 @@ namespace NCRYSTAL_NAMESPACE {
   template<std::size_t LBMS, std::size_t BA, class MD>
   inline constexpr bool ImmutableBuffer<LBMS,BA,MD>::isEmpty() const noexcept { return m_data[_detail_pos_mode] == 0; }
   template<std::size_t LBMS, std::size_t BA, class MD>
-  inline const typename ImmutableBuffer<LBMS,BA,MD>::TRemotePtr& ImmutableBuffer<LBMS,BA,MD>::remotePtr() const ncnoexceptndebug { nc_assert(isRemote()); return *reinterpret_cast<const TRemotePtr*>(&m_data[0]); }
+  inline const typename ImmutableBuffer<LBMS,BA,MD>::TRemotePtr& ImmutableBuffer<LBMS,BA,MD>::remotePtr() const noexcept { /*?nc_assert(isRemote());*/ return *reinterpret_cast<const TRemotePtr*>(&m_data[0]); }
   template<std::size_t LBMS, std::size_t BA, class MD>
-  inline typename ImmutableBuffer<LBMS,BA,MD>::TRemotePtr& ImmutableBuffer<LBMS,BA,MD>::remotePtr() ncnoexceptndebug { nc_assert(isRemote()); return *reinterpret_cast<TRemotePtr*>(&m_data[0]); }
+  inline typename ImmutableBuffer<LBMS,BA,MD>::TRemotePtr& ImmutableBuffer<LBMS,BA,MD>::remotePtr() noexcept { /*nc_assert(isRemote());*/ return *reinterpret_cast<TRemotePtr*>(&m_data[0]); }
   template<std::size_t LBMS, std::size_t BA, class TMetaData>
   inline TMetaData& ImmutableBuffer<LBMS,BA,TMetaData>::mdRef() noexcept { return *reinterpret_cast<TMetaData*>(&m_data[_detail_pos_md]); }
 
@@ -291,7 +298,7 @@ namespace NCRYSTAL_NAMESPACE {
       }
       remotePtr() = o.remotePtr();
       if ( has_metadata )
-        mdRef() = o.metaData();
+        mdRef() = o.detail_metaData_nocheck();
     }
     return* this;
   }

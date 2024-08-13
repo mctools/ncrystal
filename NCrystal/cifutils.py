@@ -11,7 +11,7 @@ the Python API below by expert users.
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2023 NCrystal developers                                   ##
+##  Copyright 2015-2024 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -131,7 +131,7 @@ class CIFSource:
     @property
     def is_remote( self):
         """True if either .codid or .mpid is not None"""
-        return any( ( not e is None ) for e in (self.__codid,self.__mpid) )
+        return any( ( e is not None ) for e in (self.__codid,self.__mpid) )
 
     def load_data( self, quiet = False, mp_apikey = None ):
         """Try to load the data and return it as a string. Depending on the
@@ -495,7 +495,7 @@ def produce_validation_plot( data_or_file, verbose_lbls = True, line_width_scale
         return
 
     def _extractID(s,pattern):
-        if not pattern in s:
+        if pattern not in s:
             return None
         l=s.split(pattern)[1:]
         while l:
@@ -512,7 +512,7 @@ def produce_validation_plot( data_or_file, verbose_lbls = True, line_width_scale
     def _extractAtomDBSpec(s):
         #Look for remapping specs like "[with H->D]" and return in @ATOMDB format
         #(i.e. "H is D").
-        if not '->' in s:
+        if '->' not in s:
             return
         m = _re_atomdbspecs.search(s)
         return ' '.join(('%s is %s'%m.groups()).split()) if m else None
@@ -597,7 +597,6 @@ def produce_validation_plot( data_or_file, verbose_lbls = True, line_width_scale
             lbl = 'Crystallography Open Database entry '+lbl[4:]
         lw=4 if i>0 else 2
         lw *= line_width_scale
-        args={}
 
         si = mc.info.structure_info if mc.info.hasStructureInfo() else None
         if not quiet:
@@ -844,7 +843,6 @@ def _impl_create_ncmat_composer_internal( cifloader, *, uiso_temperature, skip_d
         remap_str = ', '.join(remap_strs)
 
     #DYNINFO analysis can only be done now, where we know the skip_dyninfo and uiso_temperature values:
-    dyninfo_args = []
 
     ncmat = _nc_ncmat.NCMATComposer()
     all_atompos = []
@@ -997,7 +995,7 @@ def _impl_create_ncmat_composer_internal( cifloader, *, uiso_temperature, skip_d
                 newf = {}
                 def _collect( _name, _frac ):
                     _name = _stdatomname(_name)
-                    if not _name in newf:
+                    if _name not in newf:
                         newf[_name] = _frac
                     else:
                         newf[_name] += _frac
@@ -1024,7 +1022,9 @@ def _impl_merge_atoms( atoms ):
     for a in atoms:
         pos = list(a['equivalent_positions'])
         cif_labels = list( a['cif_labels'] )
-        other_metadata = list( sorted( (k,v) for k,v in a.items() if not k in ('equivalent_positions','cif_labels') ) )
+        other_metadata = list( sorted( (k,v) for k,v in a.items()
+                                       if k not in ('equivalent_positions',
+                                                    'cif_labels') ) )
         found = False
         for k,v in l:
             if k == other_metadata:
@@ -1237,7 +1237,7 @@ def _mp_get_cifdata( mpid, quiet = False, apikey = None ):
                 raise _nc_core.NCBadInput(errmsg+f' (expected SG-{mp_expected_sg_number} but got SG-{_sgnum})')
 
     if not sg_checked:
-        raise _nc_core.NCBadInput(errmsg+f' (no line with "_symmetry_Int_Tables_number" produced)')
+        raise _nc_core.NCBadInput(errmsg+' (no line with "_symmetry_Int_Tables_number" produced)')
 
     #Finally embed origin as a note (so we can extract it later for the ncmat
     #header comments). Keep the format below synchronised with the reader
@@ -1260,7 +1260,10 @@ def _mpid2url( mpid ):
     return f'https://www.materialsproject.org/materials/mp-{mpid}'
 
 ####################### NEW GEMMI STUFF ############################################
+_import_gemmi_cache = [None,None]
 def _import_gemmi( *, sysexit = False ):
+    if _import_gemmi_cache[0] is not None:
+        return _import_gemmi_cache[0], _import_gemmi_cache[1]
     try:
         import gemmi#both available on pypi and conda-forge
         import gemmi.cif
@@ -1272,6 +1275,8 @@ def _import_gemmi( *, sysexit = False ):
             raise SystemExit(m)
         else:
             raise ImportError(m)
+    _import_gemmi_cache[0] = gemmi
+    _import_gemmi_cache[1] = gemmi.cif
     return gemmi, gemmi.cif
 
 _guessmap = [None]
@@ -1282,7 +1287,7 @@ def _guess_spacegroup_name( gemmi, s ):
     def _init_guess_map():
         guess = {}
         def _ag( i, s ):
-            if not s in guess:
+            if s not in guess:
                 guess[s] = set([i])
             else:
                 guess[s].add(i)
@@ -1311,8 +1316,19 @@ def _load_with_gemmi( cifblock, allow_fixup = True ):
     gemmi, gemmi_cif = _import_gemmi()
 
     struct = gemmi.make_small_structure_from_block( cifblock )
+
     assert struct
-    sg = struct.find_spacegroup()
+    if hasattr(struct,'find_spacegroup'):
+        sg = struct.find_spacegroup()
+    else:
+        sg = struct.spacegroup
+
+    if not sg:
+        #Doing what the old struct.find_spacegroup() was doing:
+        sg = gemmi.find_spacegroup_by_name( hm=struct.spacegroup_hm,
+                                            alpha=struct.cell.alpha,
+                                            gamma=struct.cell.gamma)
+
     if sg or not allow_fixup:
         return struct, sg
 

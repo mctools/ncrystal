@@ -3,7 +3,7 @@
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2023 NCrystal developers                                   ##
+##  Copyright 2015-2024 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -26,10 +26,9 @@ directories with data files to the search path, or adding in-memory files.
 
 """
 
-#from .exceptions import *
-from ._chooks import *
-_rawfct = _get_raw_cfcts()
+from ._chooks import _get_raw_cfcts,_str2cstr
 import pathlib as _pathlib
+_rawfct = _get_raw_cfcts()
 
 def registerInMemoryFileData(virtual_filename,data):
     """Register in-memory file data. This needs a "filename" and the content of this

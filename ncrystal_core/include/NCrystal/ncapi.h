@@ -5,7 +5,7 @@
 /*                                                                            */
 /*  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   */
 /*                                                                            */
-/*  Copyright 2015-2023 NCrystal developers                                   */
+/*  Copyright 2015-2024 NCrystal developers                                   */
 /*                                                                            */
 /*  Licensed under the Apache License, Version 2.0 (the "License");           */
 /*  you may not use this file except in compliance with the License.          */
@@ -104,13 +104,31 @@ namespace NCrystal = NCRYSTAL_NAMESPACE;
 #  endif
 #endif
 
+#ifdef nc_cplusplus
+#  undef nc_cplusplus
+#endif
+
 #ifdef __cplusplus
+/* First we provide nc_cplusplus as a more robust alternative to __cplusplus. */
+#  if defined(_MSC_VER) && __cplusplus == 199711L
+/* https://devblogs.microsoft.com/cppblog/msvc-now-correctly-reports-__cplusplus */
+/* tells us that vscode sets __cplusplus to a misleading 199711L unless          */
+/* compiling with certain flags.. However _MSVC_LANG is set correctly if         */
+/* defined, and otherwise 201402L is most likely the safest fallback.            */
+#    ifdef _MSVC_LANG
+#      define nc_cplusplus _MSVC_LANG
+#    else
+#      define nc_cplusplus 201402L
+#    endif
+#  else
+#    define nc_cplusplus __cplusplus
+#  endif
 /* For decorating with constexpr only in C++17 and later, or noexcept only in */
 /* non-dbg builds:                                                            */
 #  ifdef ncconstexpr17
 #    undef ncconstexpr17
 #  endif
-#  if __cplusplus >= 201703L
+#  if nc_cplusplus >= 201703L
 #    define ncconstexpr17 constexpr
 #  else
 #    define ncconstexpr17
@@ -126,7 +144,7 @@ namespace NCrystal = NCRYSTAL_NAMESPACE;
 #  ifdef ncnodiscard17
 #    undef ncnodiscard17
 #  endif
-#  if __cplusplus >= 201703L
+#  if nc_cplusplus >= 201703L
 #    define ncnodiscard17 [[nodiscard]]
 #  else
 #    define ncnodiscard17
@@ -134,7 +152,7 @@ namespace NCrystal = NCRYSTAL_NAMESPACE;
 #  ifdef nclikely
 #    undef nclikely
 #  endif
-#  if __cplusplus >= 202002L
+#  if nc_cplusplus >= 202002L
 #    define nclikely [[likely]]
 #  else
 #    define nclikely
@@ -142,11 +160,22 @@ namespace NCrystal = NCRYSTAL_NAMESPACE;
 #  ifdef ncunlikely
 #    undef ncunlikely
 #  endif
-#  if __cplusplus >= 202002L
+#  if nc_cplusplus >= 202002L
 #    define ncunlikely [[unlikely]]
 #  else
 #    define ncunlikely
 #  endif
+
+/* "restrict" for C++ if available (https://en.wikipedia.org/wiki/Restrict): */
+#ifdef ncrestrict
+#  undef ncrestrict
+#endif
+#if defined(__GNUC__) | defined(__clang__) || defined(_MSC_VER)
+#  define ncrestrict __restrict
+#else
+#  define ncrestrict
+#endif
+
 #endif
 
 #endif

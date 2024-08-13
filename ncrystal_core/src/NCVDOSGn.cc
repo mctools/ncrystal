@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -23,34 +23,40 @@
 #include "NCrystal/internal/NCFastConvolve.hh"
 #include "NCrystal/internal/NCMath.hh"
 #include "NCrystal/internal/NCIter.hh"
-#include <iostream>
+#include "NCrystal/internal/NCString.hh"
+#include "NCrystal/internal/NCFactoryJobs.hh"
+#include "NCrystal/internal/NCMsg.hh"
+#include <deque>
+
 namespace NC=NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {
 
-  static std::atomic<bool> s_verbose_vdosgn( getenv("NCRYSTAL_DEBUG_PHONON")!=nullptr );
+  namespace {
+    static std::atomic<bool> s_verbose_vdosgn( getenv("NCRYSTAL_DEBUG_PHONON")!=nullptr );
 
-  class VDOSGnData : private MoveOnly {
-  public:
-    VDOSGnData( const VectD &spec,
-                double egrid_lower,
-                double egrid_binwidth,
-                unsigned long thinFactor );
-    double interpolateDensity(double energy) const;
-    const VectD& getSpectrum() const { return m_spec; }
-    double getEGridLower() const {return m_egrid_lower;}
-    double getEGridUpper() const {return m_egrid_upper;}
-    double getEGridBinwidth() const {return m_egrid_binwidth;}
-    double maxDensity() const { return m_specMaxVal; }
-    unsigned long getThinFactor() const { return m_thinFactor; }
-    VDOSGnData( VDOSGnData&& ) = default;
-    VDOSGnData& operator=( VDOSGnData&& ) = default;
-  private:
-    VectD m_spec;
-    std::size_t m_spec_size_minus_2;
-    double m_egrid_lower, m_egrid_upper, m_egrid_binwidth, m_egrid_invbinwidth, m_specMaxVal;
-    unsigned long m_thinFactor;//binwidth is G1's binwidth multiplied by m_thinFactor
-  };
+    class VDOSGnData : private MoveOnly {
+    public:
+      VDOSGnData( const VectD &spec,
+                  double egrid_lower,
+                  double egrid_binwidth,
+                  unsigned long thinFactor );
+      double interpolateDensity(double energy) const;
+      const VectD& getSpectrum() const { return m_spec; }
+      double getEGridLower() const {return m_egrid_lower;}
+      double getEGridUpper() const {return m_egrid_upper;}
+      double getEGridBinwidth() const {return m_egrid_binwidth;}
+      double maxDensity() const { return m_specMaxVal; }
+      unsigned long getThinFactor() const { return m_thinFactor; }
+      VDOSGnData( VDOSGnData&& ) = default;
+      VDOSGnData& operator=( VDOSGnData&& ) = default;
+    private:
+      VectD m_spec;
+      std::size_t m_spec_size_minus_2;
+      double m_egrid_lower, m_egrid_upper, m_egrid_binwidth, m_egrid_invbinwidth, m_specMaxVal;
+      unsigned long m_thinFactor;//binwidth is G1's binwidth multiplied by m_thinFactor
+    };
+  }
 }
 
 NC::VDOSGnData::VDOSGnData( const NC::VectD &spec,
@@ -89,7 +95,9 @@ double NC::VDOSGnData::interpolateDensity(double energy) const
     return 0.0;
   double a = (energy-m_egrid_lower)*m_egrid_invbinwidth;
   double floor_a = std::floor(a);
-  std::size_t index = std::min<std::size_t>(m_spec_size_minus_2,static_cast<std::size_t>(floor_a));//clamp to safe-guard against numerical errors.
+  //clamp to safe-guard against numerical errors.:
+  std::size_t index = std::min<std::size_t>(m_spec_size_minus_2,
+                                            static_cast<std::size_t>(floor_a));
   double f = a - floor_a;//a-index instead would mix int and double => slower.
   nc_assert( index+1 < m_spec.size() );
   const double * valptr = &m_spec[index];
@@ -98,10 +106,19 @@ double NC::VDOSGnData::interpolateDensity(double energy) const
 
 struct NC::VDOSGn::Impl {
   Impl(const VDOSEval& vde, TruncAndThinningParams);
-  std::vector<VDOSGnData> m_gndata;
+  std::deque<VDOSGnData> m_gndata;//deque, to not change address of VDOSGnData
+                                  //objects when growMaxOrder() is called.
+  std::vector<VDOSGnData> m_mt_pending_gndata;//if in MT mode, we might
+                                              //precalculate next orders
+                                              //concurrently and same them here.
+  Optional<FactoryJobs> m_mt_jobs;
+  SmallVector<Optional<VDOSGnData>,10> m_mt_buffer;
   TruncAndThinningParams m_ttpars;
-  FastConvolve m_fastConvolve;
+  SmallVector<FastConvolve,4> m_fastConvolve;
+  int m_nmaxconcurrent = 0;
+
   void produceNewOrderByConvolution(Order);
+  VDOSGnData produceNewOrderByConvolutionImpl( Order, FastConvolve& ) const;
   VDOSGnData& accessAtOrder(Order n) { nc_assert(n.value()<=m_gndata.size()); return m_gndata[n.value()-1]; }
   const VDOSGnData& accessAtOrder(Order n) const { nc_assert(n.value()<=m_gndata.size()); return m_gndata[n.value()-1]; }
 
@@ -115,7 +132,8 @@ NC::VDOSGn::TruncAndThinningParams::TruncAndThinningParams(TruncAndThinningChoic
 }
 
 NC::VDOSGn::Impl::Impl(const VDOSEval& vde, const TruncAndThinningParams ttpars)
-  : m_ttpars(ttpars)
+  : m_ttpars(ttpars),
+    m_nmaxconcurrent(ncgetenv_int("VDOSGN_CONCURRENT",4))
 {
   auto gridinfo = vde.getGridInfo();
   nc_assert(gridinfo.npts>1);
@@ -131,8 +149,10 @@ NC::VDOSGn::Impl::Impl(const VDOSEval& vde, const TruncAndThinningParams ttpars)
   const unsigned long thicken_factor = static_cast<unsigned long>(std::ceil(double(min_nbins)/nbins));
 
   if ( s_verbose_vdosgn && thicken_factor != 1 )
-    std::cout<<"NCrystal::VDOSGn Thickening provided VDOS egrid for G1 by a factor of "<<thicken_factor
-             <<" resulting in number of grid points for [-emax,emax] increasing "<<nbins*2+1<<" -> "<<nbins*thicken_factor*2+1<<std::endl;
+    NCRYSTAL_MSG("VDOSGn Thickening provided VDOS egrid for G1 by a"
+                 " factor of "<<thicken_factor<<" resulting in number of grid"
+                 " points for [-emax,emax] increasing "<<nbins*2+1
+                 <<" -> "<<nbins*thicken_factor*2+1);
 
   nbins *= thicken_factor;
   nc_assert_always( nbins < 10000000);
@@ -181,16 +201,22 @@ NC::VDOSGn::Impl::Impl(const VDOSEval& vde, const TruncAndThinningParams ttpars)
   m_gndata.emplace_back( G1spectrum, actual_edgelower, binwidth, 1 );
 
   if (s_verbose_vdosgn)
-    std::cout<<"NCrystal::VDOSGn constructed (input spectrum size: "<<G1spectrum.size()
-             <<", truncation/thinning with minOrder="<<ttpars.minOrder
-             <<" thinNBins="<<ttpars.thinNBins
-             <<" truncationThreshold="<<ttpars.truncationThreshold
-             <<")"<<std::endl;
+    NCRYSTAL_MSG("VDOSGn constructed (input spectrum size: "<<G1spectrum.size()
+                 <<", truncation/thinning with minOrder="<<ttpars.minOrder
+                 <<" thinNBins="<<ttpars.thinNBins
+                 <<" truncationThreshold="<<ttpars.truncationThreshold
+                 <<")");
 }
 
 NC::VDOSGn::~VDOSGn() {
+  if ( m_impl->m_mt_jobs.has_value() ) {
+    //End running jobs, so they don't write to suddenly non-existent buffers:
+    m_impl->m_mt_jobs.value().waitAll();
+  }
   if (s_verbose_vdosgn)
-    std::cout<<"NCrystal::VDOSGn destructed (final max order: "<<maxOrder().value()<<")"<<std::endl;
+    NCRYSTAL_MSG("VDOSGn destructed (final max order: "
+                 <<maxOrder().value()<<")")
+
 }
 
 NC::VDOSGn::VDOSGn( const NC::VDOSEval& vde, NC::VDOSGn::TruncAndThinningParams ttpars )
@@ -273,13 +299,86 @@ bool NC::VDOSGn::verboseOutputEnabled()
 
 void NC::VDOSGn::Impl::produceNewOrderByConvolution( Order order )
 {
+  const unsigned current_maxorder = static_cast<unsigned>( m_gndata.size() );
+  nc_assert_always( order.value() == current_maxorder + 1 );
+
+  if ( m_mt_jobs.has_value() ) {
+    m_mt_jobs.value().waitAll();
+    //Transfer concurrently generated results:
+    for ( auto i : ncrange( m_mt_buffer.size() ) )
+      m_mt_pending_gndata.emplace_back( std::move( m_mt_buffer.at( m_mt_buffer.size()-1-i ).value() ) );
+    m_mt_buffer.clear();
+    m_mt_jobs.reset();
+  }
+
+  if ( !m_mt_pending_gndata.empty() ) {
+    //Easy, we already calculated that order previously (hopefully taking
+    //advantage of multithreading):
+    m_gndata.emplace_back( std::move( m_mt_pending_gndata.back() ) );
+    m_mt_pending_gndata.pop_back();
+    return;
+  }
+
+  //We have to do actual work. In case we want to take advantage of
+  //multi-threading, we need to go ahead and produce more than just the
+  //requested order. For that, we note that if we already have order N, then at
+  //most we can produce up to order 2N ("G_2n = G_n(x)G_n"), so we can never
+  //produce more new orders from existing data than we already have:
+  const int nconcurrent = std::min<int>((int)m_gndata.size(),m_nmaxconcurrent);
+
+  //We always need at least one convolver:
+  if ( m_fastConvolve.empty() )
+    m_fastConvolve.emplace_back();
+
+  if ( nconcurrent<=1 ) {
+    //Produce one without concurrency:
+    m_gndata.emplace_back( produceNewOrderByConvolutionImpl( order, m_fastConvolve.back() ) );
+    return;
+  }
+
+  //We want concurrent production, if there is a thread-pool available:
+  m_mt_jobs.emplace();
+  if ( !m_mt_jobs.value().isMT() ) {
+    //Abort, we don't actually have a thread pool anyway:
+    m_mt_jobs.reset();
+    m_gndata.emplace_back( produceNewOrderByConvolutionImpl( order, m_fastConvolve.back() ) );
+    return;
+  }
+
+  while ( m_fastConvolve.size() < (std::size_t)(nconcurrent) )
+    m_fastConvolve.emplace_back();
+
+  //Do nconcurrent-1 in the thread pool, and 1 here in the current thread (nb:
+  //we do not invoke m_mt_jobs.waitAll() yet).
+  m_mt_buffer.resize(nconcurrent-1);
+  unsigned max_new_order = current_maxorder + (unsigned)nconcurrent;
+  auto itFC = m_fastConvolve.begin();
+  auto itBuffer = m_mt_buffer.begin();
+  //NCRYSTAL_MSG("nconcurrent = "<<nconcurrent);
+  for ( unsigned target_order = current_maxorder + 2;
+        target_order <= max_new_order;
+        ++target_order ) {
+    FastConvolve *fcptr = &(*itFC++);
+    Optional<VDOSGnData>* resbufptr = &(*itBuffer++);
+    m_mt_jobs.value().queue( [fcptr,resbufptr,target_order,this]()
+    {
+      resbufptr->emplace( this->produceNewOrderByConvolutionImpl( Order{target_order}, *fcptr ) );
+    });
+  }
+  m_gndata.emplace_back( this->produceNewOrderByConvolutionImpl( Order{current_maxorder+1}, *itFC ) );
+}
+
+NC::VDOSGnData NC::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order, FastConvolve& fastConvolve ) const
+{
   Order order2 = order.value()/2;
   Order order1 = order.value()-order2.value();
+
+  //NCRYSTAL_MSG("Convolve G"<<order.value()<<" = conv( G"<<order2.value()<<", G"<<order.value()<<" )");
 
   const auto& p1 = accessAtOrder(order1);
   const auto& p2 = accessAtOrder(order2);
 
-  //Function which can thin a vector (i.e. increase binwidth by dropping bins),
+  //Function which can thin a vector (i.e. increase binwidth by merging bins),
   //used two places below:
   auto thinVector = [](unsigned thinFactor, const NC::VectD& v)
                     {
@@ -334,7 +433,7 @@ void NC::VDOSGn::Impl::produceNewOrderByConvolution( Order order )
 
   VectD phonon_spe;
   double start_energy = p1.getEGridLower() + p2.getEGridLower();
-  m_fastConvolve.fftconv( *input1_spec, *input2_spec, phonon_spe, dt );
+  fastConvolve.convolve( *input1_spec, *input2_spec, phonon_spe, dt );
   auto orig_npts_result = phonon_spe.size();
 
   unsigned long extraThinFactor = 1;
@@ -363,28 +462,30 @@ void NC::VDOSGn::Impl::produceNewOrderByConvolution( Order order )
       // => do thinning
       while ( phonon_spe.size() > m_ttpars.thinNBins*extraThinFactor)
         extraThinFactor *= 2;//always orders of 2, allows for on-demand thinning
-                        //later (above) without incompatible fractions of
-                        //thinFactors.
+                             //later (above) without incompatible fractions of
+                             //thinFactors.
       if ( extraThinFactor >= 8 && order.value() <= static_cast<unsigned>(m_ttpars.minOrder*2) ) {
         //Make brutal thinning slightly less brutal for orders between minOrder
         //and (minOrder-1)*2:
         extraThinFactor /= 2;
       }
 
-      phonon_spe = thinVector(extraThinFactor,phonon_spe);
+      phonon_spe = thinVector( extraThinFactor, phonon_spe );
       dt *= extraThinFactor;
     }
   }
 
   if (s_verbose_vdosgn) {
-    std::cout<<"NCrystal::VDOSGn Convolved G"<<order1.value()<<"(x)G"<<order2.value()<<" -> G"<<order.value()
-             <<" ("<<(dt_mismatch?" one input spectrum had to be thinned,":"")
-             <<" resulting npts="<<orig_npts_result;
+    std::ostringstream msg;
+    msg<<"VDOSGn Convolved G"<<order1.value()<<"(x)G"<<order2.value()
+       <<" -> G"<<order.value()
+       <<" ("<<(dt_mismatch?" one input spectrum had to be thinned,":"")
+       <<" resulting npts="<<orig_npts_result;
     if (orig_npts_result!=phonon_spe.size())
-      std::cout<<" -> "<<phonon_spe.size()<<" after thinning/truncation";
-    std::cout<<" )"<<std::endl;
+      msg<<" -> "<<phonon_spe.size()<<" after thinning/truncation";
+    msg<<" )";
+    NCRYSTAL_MSG(msg.str());
   }
 
-  m_gndata.emplace_back(phonon_spe, start_energy, dt, thinFactor1*extraThinFactor);
+  return VDOSGnData{ phonon_spe, start_energy, dt, thinFactor1*extraThinFactor };
 }
-

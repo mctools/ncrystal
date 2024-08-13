@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -32,26 +32,28 @@ namespace NCRYSTAL_NAMESPACE {
       {
       }
     };
-    struct TopLvlVar {
+    //NB: We had by mistake a TopLvlVar struct here and a different TopLvlVar in
+    //NCCfgManip.hh, so we renamed the one here to TopLvlVarDef
+    struct TopLvlVarDef {
       StrView name;
       StrView description;
       Optional<StrView> allowedUnits;
-      TopLvlVar( const StrView& name_,
-                 const StrView& descr_,
-                 Optional<StrView> au_ = NullOpt )
+      TopLvlVarDef( const StrView& name_,
+                    const StrView& descr_,
+                    Optional<StrView> au_ = NullOpt )
         : name(name_), description(descr_), allowedUnits(au_)
       {
       }
     };
 
-    SmallVector<TopLvlVar,3> getTopLvlVars( ) {
-
+    SmallVector<TopLvlVarDef,3> getTopLvlVars( )
+    {
       // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       // !!! IMPORTANT                            !!!
       // !!! Any modification to pseudo or toplvl !!!
       // !!! parameter docs must be reflected in  !!!
-      // !!! parsing code in NCCfgData.cc         !!!
+      // !!! parsing code in NCCfgManip.cc        !!!
       // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -86,24 +88,25 @@ namespace NCRYSTAL_NAMESPACE {
                         "themselves being multi-phased, the phasechoice parameter can be specified "
                         "more than once to navigate deeper into the sub-phase tree."
                         );
-      SmallVector<TopLvlVar,3> res;
+      SmallVector<TopLvlVarDef,3> res;
       res.emplace_back(sv_density, sv_density_descr, sv_density_units);
       res.emplace_back(sv_phasechoice, sv_phasechoice_descr);
       return res;
       //NB: Returning like this gives spurious(?) compilation warnings with gcc7:
       // return {
-      //   TopLvlVar( sv_density, sv_density_descr, sv_density_units ),
-      //   TopLvlVar( sv_phasechoice, sv_phasechoice_descr ),
+      //   TopLvlVarDef( sv_density, sv_density_descr, sv_density_units ),
+      //   TopLvlVarDef( sv_phasechoice, sv_phasechoice_descr ),
       // };
     }
 
-    SmallVector<PseudoVar,3> getPseudoVars( VarGroupId gr ) {
+    SmallVector<PseudoVar,3> getPseudoVars( VarGroupId gr )
+    {
       // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       // !!! IMPORTANT                            !!!
       // !!! Any modification to pseudo or toplvl !!!
       // !!! parameter docs must be reflected in  !!!
-      // !!! parsing code in NCCfgData.cc         !!!
+      // !!! parsing code in NCCfgManip.cc        !!!
       // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       if ( gr == VarGroupId::ScatterBase ) {

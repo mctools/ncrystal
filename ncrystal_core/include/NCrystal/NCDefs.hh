@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -42,7 +42,7 @@
 #include <atomic>
 #include <ostream>
 #include <cstring>
-#if __cplusplus >= 202002L
+#if nc_cplusplus >= 202002L
 #  include <compare>
 #endif
 
@@ -183,6 +183,12 @@ namespace NCRYSTAL_NAMESPACE {
     virtual uint64_t generate64RndmBits() = 0;
     virtual uint32_t generate32RndmBits() = 0;
 
+    //Possibly a more efficient version for getting many numbers at once:
+#ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
+    virtual void generateMany( std::size_t n, double* tgt );
+    virtual void generateRandomBits( std::size_t nbytes, uint8_t* data );
+#endif
+
   protected:
     virtual double actualGenerate() = 0;//uniformly in (0,1]
   };
@@ -190,7 +196,7 @@ namespace NCRYSTAL_NAMESPACE {
   struct NCRYSTAL_API UniqueIDValue {
     //type-safe unique id holder.
     uint64_t value;
-#if __cplusplus >= 202002L
+#if nc_cplusplus >= 202002L
     auto operator<=>(const UniqueIDValue&) const = default;
 #else
     constexpr bool operator<(UniqueIDValue const& o) const noexcept { return value < o.value; }
@@ -282,17 +288,24 @@ namespace NCRYSTAL_NAMESPACE {
   template<typename T>
   class NCRYSTAL_API Pimpl : private MoveOnly {
   private:
-    std::unique_ptr<T> m_ptr;
+    T * m_ptr = nullptr;
   public:
-    Pimpl() : m_ptr(std::make_unique<T>()) {}
-    template<typename ...Args> Pimpl( Args&& ...args ) : m_ptr(std::make_unique<T>(std::forward<Args>(args)... )) {}
-    ~Pimpl() = default;
-    Pimpl( Pimpl&& ) = default;
-    Pimpl& operator=( Pimpl&& ) = default;
-    const T* operator->() const { return m_ptr.get(); }
-    T* operator->() { return m_ptr.get(); }
-    const T& operator*() const  { return *m_ptr.get(); }
-    T& operator*() { return *m_ptr.get(); }
+    Pimpl() : m_ptr(new T) {}
+    ~Pimpl() { delete m_ptr; }
+    template<typename ...Args>
+    Pimpl( Args&& ...args ) : m_ptr(new T(std::forward<Args>(args)... )) {}
+    Pimpl( Pimpl&& o ) noexcept(std::is_nothrow_destructible<T>::value)
+    {
+      T* tmp = nullptr; std::swap(tmp,m_ptr); std::swap(m_ptr,o.m_ptr); delete tmp;
+    }
+    Pimpl& operator=( Pimpl&& o ) noexcept(std::is_nothrow_destructible<T>::value)
+    {
+      T* tmp = nullptr; std::swap(tmp,m_ptr); std::swap(m_ptr,o.m_ptr); delete tmp; return *this;
+    }
+    const T* operator->() const { return m_ptr; }
+    T* operator->() { return m_ptr; }
+    const T& operator*() const  { return *m_ptr; }
+    T& operator*() { return *m_ptr; }
   };
 
   template<class T>
@@ -400,10 +413,14 @@ namespace NCRYSTAL_NAMESPACE {
     //For convenience we provide special constructors and setters for 2-vectors
     //and 3-vectors (using one of these with a wrong length vector type will
     //result in a compile-time error):
-    ncconstexpr17 FixedVector(double, double) noexcept;
-    ncconstexpr17 FixedVector(double, double, double) noexcept;
-    ncconstexpr17 void set(double, double) noexcept;
-    ncconstexpr17 void set(double, double, double) noexcept;
+    template<decltype(N) U = N, typename = typename std::enable_if<U==2>::type>
+    ncconstexpr17 FixedVector(double xx, double yy) noexcept { m_data = { xx, yy }; }
+    template<decltype(N) U = N, typename = typename std::enable_if<U==3>::type>
+    ncconstexpr17 FixedVector(double xx, double yy, double zz) noexcept { m_data = { xx, yy, zz }; }
+    template<decltype(N) U = N, typename = typename std::enable_if<U==2>::type>
+    ncconstexpr17 void set(double xx, double yy) noexcept { m_data = { xx, yy }; }
+    template<decltype(N) U = N, typename = typename std::enable_if<U==3>::type>
+    ncconstexpr17 void set(double xx, double yy, double zz) noexcept { m_data = { xx, yy, zz }; }
 
     //Interoperability with std::array:
     explicit constexpr FixedVector(const stdarray_type& o) noexcept;
@@ -412,7 +429,7 @@ namespace NCRYSTAL_NAMESPACE {
     ncconstexpr17 stdarray_type& array() noexcept { return m_data; }
     constexpr const stdarray_type& array() const noexcept { return m_data; }
 
-   //Interoperability with C arrays:
+    //Interoperability with C arrays:
     explicit constexpr FixedVector(const carray_type& xyz) noexcept;
     explicit ncconstexpr17 operator carray_type&() noexcept { return rawArray(); }
     explicit ncconstexpr17 operator const carray_type&() const noexcept { return rawArray(); }
@@ -427,7 +444,7 @@ namespace NCRYSTAL_NAMESPACE {
     ncconstexpr17 value_type& at( size_type i ) { return m_data.at(i); }
 
     //Comparisons:
-#if __cplusplus >= 202002L
+#if nc_cplusplus >= 202002L
     auto operator<=>(const FixedVector&) const = default;
 #else
     //Can't be constexpr pre-C++20 due to lack of constexpr on std::array:
@@ -487,7 +504,7 @@ namespace NCRYSTAL_NAMESPACE {
 
   template <class TValue, std::size_t N>
   NCRYSTAL_API ncconstexpr17 std::ostream& operator<<(std::ostream& os,
-                                                      const FixedVector<TValue,N>& dir) noexcept;
+                                                      const FixedVector<TValue,N>& dir);
 
 
   //std::as_const is only available in C++17 and std::add_const_t only in C++14:
@@ -534,7 +551,7 @@ namespace NCRYSTAL_NAMESPACE {
     constexpr ValRange(value_type n) noexcept : m_begin(0), m_end(n) {}
     constexpr ValRange(value_type l, value_type n) noexcept : m_begin(l), m_end(n)
     {
-#if __cplusplus >= 201703L
+#if nc_cplusplus >= 201703L
       assert( l<=n );
 #endif
     }
@@ -570,6 +587,8 @@ namespace NCRYSTAL_NAMESPACE {
 #  undef NCRYSTAL_UNLOCK_MUTEX
 #endif
 #ifdef NCRYSTAL_DEBUG_LOCKS
+//NB: Not using NCrystal message infrastructure for this (it is anyway purely
+//for developers):
 #  define NCRYSTAL_LOCK_GUARD(MtxVariable) ::NCrystal::LockGuard ncrystal_join(nc_lock_guard_instance_line,__LINE__)(MtxVariable,__FILE__,__LINE__)
 #  define NCRYSTAL_LOCK_MUTEX(MtxVariable) do { std::cout<<"NCrystal::Will lock mtx "<<(void*)&MtxVariable<<" ("<<__FILE__<<" : "<<__LINE__<<")"<<std::endl; MtxVariable.lock(); } while (0)
 #  define NCRYSTAL_UNLOCK_MUTEX(MtxVariable) do { std::cout<<"NCrystal::Will unlock mtx "<<(void*)&MtxVariable<<" ("<<__FILE__<<" : "<<__LINE__<<")"<<std::endl; MtxVariable.unlock(); } while (0)
@@ -895,34 +914,6 @@ namespace NCRYSTAL_NAMESPACE {
     std::copy(std::begin(m_data), std::end(m_data), std::begin(a));
   }
 
-  template <class TValue, std::size_t N>
-  inline ncconstexpr17 FixedVector<TValue,N>::FixedVector(double xx, double yy) noexcept
-  {
-    static_assert(N==2,"Wrong number of arguments provided");
-    m_data = { xx, yy };
-  }
-
-  template <class TValue, std::size_t N>
-  inline ncconstexpr17 FixedVector<TValue,N>::FixedVector(double xx, double yy, double zz) noexcept
-  {
-    static_assert(N==3,"Wrong number of arguments provided");
-    m_data = { xx, yy, zz };
-  }
-
-  template <class TValue, std::size_t N>
-  inline ncconstexpr17 void FixedVector<TValue,N>::set(double xx, double yy) noexcept
-  {
-    static_assert(N==2,"Wrong number of arguments provided");
-    m_data = { xx, yy };
-  }
-
-  template <class TValue, std::size_t N>
-  inline ncconstexpr17 void FixedVector<TValue,N>::set(double xx, double yy, double zz) noexcept
-  {
-    static_assert(N==3,"Wrong number of arguments provided");
-    m_data = { xx, yy, zz };
-  }
-
   template <class Derived, class TValue, std::size_t N>
   template<class TOther>
   inline ncconstexpr17 void StronglyTypedFixedVector<Derived,TValue,N>::ensureCompatible() noexcept
@@ -971,7 +962,7 @@ namespace NCRYSTAL_NAMESPACE {
   }
 
   template <class TValue, std::size_t N>
-  inline ncconstexpr17 std::ostream& operator<< (std::ostream& os, const FixedVector<TValue,N>& dir) noexcept
+  inline ncconstexpr17 std::ostream& operator<< (std::ostream& os, const FixedVector<TValue,N>& dir)
   {
     if ( N==0 )
       return os << "{}";
@@ -1169,7 +1160,8 @@ namespace NCRYSTAL_NAMESPACE {
     return generate();
   }
 
-  inline double RNG::generate() {
+  inline double RNG::generate()
+  {
     double r = actualGenerate();
 #ifndef NDEBUG
     if ( ! ( r > 0.0 && r <= 1.0 ) )
@@ -1213,7 +1205,7 @@ namespace NCRYSTAL_NAMESPACE {
     //generated 64bit integers supposedly have some statistical issues, this
     //should be acceptable (whenever the primary term generates numbers greater
     //than 0.004 the lowest three bits have no effect at all).
-#if __cplusplus >= 201703L
+#if nc_cplusplus >= 201703L
     const double r1 = ( x >> 11 ) * 0x1.0p-53;
     const double r2 = ( x & 0x7FF ) * 0x1.0p-64;
 #else
@@ -1362,7 +1354,7 @@ namespace NCRYSTAL_NAMESPACE {
   template <class TMap, class ... Args>
   inline std::pair<typename TMap::iterator, bool> nc_map_try_emplace( TMap& themap, const typename TMap::key_type& key, Args&&... args )
   {
-#if __cplusplus >= 201703L
+#if nc_cplusplus >= 201703L
     return themap.try_emplace(key, std::forward<Args>(args)... );
 #else
     //slower workaround

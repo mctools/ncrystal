@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,7 +22,8 @@
 #include "NCrystal/internal/NCSABEval.hh"
 #include "NCrystal/internal/NCString.hh"
 #include "NCrystal/internal/NCFactoryUtils.hh"
-#include <iostream>
+#include "NCrystal/internal/NCMsg.hh"
+
 namespace NC = NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {
@@ -385,8 +386,9 @@ namespace NCRYSTAL_NAMESPACE {
         PairDD ab = genFlatAlphaBeta();
         const double S_at_ab = sabEvaluator.eval( ab );
         if ( S_at_ab > overlay ) {
-          std::cout<<"NCrystal UCNHelper WARNING: Overlay value in sampling too small by at least a factor: "
-                   <<S_at_ab/overlay<<" (please report to NCrystal developers)"<<std::endl;
+          NCRYSTAL_WARN("UCNHelper: Overlay value in sampling too small"
+                        " by at least a factor: "<<S_at_ab/overlay
+                        <<" (please report to NCrystal developers)");
         }
         if ( S_at_ab >= overlay * rng.generate() )
           return toOutcome(ab);
@@ -499,9 +501,13 @@ namespace NCRYSTAL_NAMESPACE {
         constexpr unsigned nwarnings_max = 50;
         if ( nwarnings < nwarnings_max ) {
           nwarnings += 1;
-          std::cout<<"NCrystal ExcludeUCNScatter WARNING: Wrapped process could not sample non-UCN final state in "
-                   << detail_sampleScatterIsotropic_loopmax << " attempts!"
-                   << ( nwarnings == nwarnings_max ? " (suppressing further WARNINGS of this type)": "" )<<std::endl;
+          NCRYSTAL_WARN("ExcludeUCNScatter: Wrapped process could not"
+                        " sample non-UCN final state in "
+                        << detail_sampleScatterIsotropic_loopmax
+                        << " attempts!"<<
+                        ( nwarnings == nwarnings_max
+                          ? " (suppressing further WARNINGS of this type)"
+                          : "" ));
         }
       }
     }

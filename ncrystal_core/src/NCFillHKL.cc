@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -24,7 +24,6 @@
 #include "NCrystal/internal/NCLatticeUtils.hh"
 #include "NCrystal/internal/NCString.hh"
 #include "NCrystal/internal/NCEqRefl.hh"
-#include <cstdlib>
 #include <bitset>
 
 namespace NC = NCrystal;
@@ -417,7 +416,10 @@ NC::HKLList NC::calculateHKLPlanes( const StructureInfo& structureInfo,
         if (isnewfamily) {
           //Not fitting in existing group, set up new.
           if ( hkllist.size()>1000000 && !env_ignorefsqcut )//guard against crazy setups
-            NCRYSTAL_THROW2(CalcError,"Combinatorics too great to reach requested dcutoff = "<<cfg.dcutoff<<" Aa");
+            NCRYSTAL_THROW2(CalcError,"Combinatorics too great to reach"
+                            " dcutoff = "<<cfg.dcutoff<<" Aa (you can try"
+                            " to increase the target value with the dcutoff"
+                            " parameter)");
           HKLInfo hi;
           hi.hkl = HKL{ loop_h, loop_k, loop_l };
           hi.multiplicity = 2;
@@ -504,7 +506,10 @@ namespace NCRYSTAL_NAMESPACE {
         //Ultimate fallback:
         auto it_and_inserted = m_seenFallBack.insert(v);
         if ( m_seenFallBack.size() == 100000000 && m_dcutoff != -1.0 )
-          NCRYSTAL_THROW2(CalcError,"Combinatorics too great to reach requested dcutoff = "<<m_dcutoff<<" Aa (2)");
+          NCRYSTAL_THROW2(CalcError,"Combinatorics too great to reach"
+                          " dcutoff = "<<m_dcutoff<<" Aa (you can try"
+                          " to increase the target value with the dcutoff"
+                          " parameter)");
         return it_and_inserted.second;
       }
 
@@ -679,7 +684,10 @@ NC::HKLList NC::detail::calculateHKLPlanesWithSymEqRefl( const StructureInfo& st
             continue;
 
         if ( hkllist.size()> 1000000 && !env_ignorefsqcut )//guard against crazy setups
-          NCRYSTAL_THROW2(CalcError,"Combinatorics too great to reach requested dcutoff = "<<cfg.dcutoff<<" Aa");
+          NCRYSTAL_THROW2(CalcError,"Combinatorics too great to reach"
+                          " dcutoff = "<<cfg.dcutoff<<" Aa (you can try"
+                          " to increase the target value with the dcutoff"
+                          " parameter)");
 
         hkllist.emplace_back();
         auto& entry = hkllist.back();

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -125,7 +125,11 @@ namespace NCRYSTAL_NAMESPACE {
     AtomData & operator= ( const AtomData & ) = delete;
     AtomData() = delete;
     ~AtomData();
-    bool operator <(const AtomData &) const;//Sorts roughly by (Z,A,description,uniqueid)
+    bool operator <(const AtomData&) const;//Sorts roughly by (Z,A,description,uniqueid)
+     bool operator ==(const AtomData& o) const
+    {
+      return !( *this < o ) && !( o < *this );
+    }
 
     ///////////////////////////////////////////////////////////////////////////////
     // Check if instance has values and composition identical to that of another //

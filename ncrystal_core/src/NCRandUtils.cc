@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -176,7 +176,7 @@ double NC::randNormTail(double tail, NC::RNG& rng)
   }
 }
 
-std::size_t NC::pickRandIdxByWeight( RNG& rng, Span<const double> commulvals)
+std::size_t NC::pickRandIdxByWeight( double rand01val, Span<const double> commulvals)
 {
   nc_assert(!commulvals.empty());
   const auto n = commulvals.size();
@@ -188,7 +188,7 @@ std::size_t NC::pickRandIdxByWeight( RNG& rng, Span<const double> commulvals)
       return 0;
     }
     //Small number of values => linear search:
-    const double rand_choice = commulvals.back() * rng.generate();
+    const double rand_choice = commulvals.back() * rand01val;
     auto itB = commulvals.begin();
     auto itE = commulvals.end();
     for (auto it = itB; it!=itE; ++it )
@@ -198,7 +198,7 @@ std::size_t NC::pickRandIdxByWeight( RNG& rng, Span<const double> commulvals)
   }
   //Binary search:
   auto itB = commulvals.begin();
-  auto it = std::lower_bound( itB,commulvals.end(), commulvals.back() * rng.generate() );
+  auto it = std::lower_bound( itB,commulvals.end(), commulvals.back() * rand01val );
   return std::min<std::size_t>((std::size_t)(it-itB),n-1);
 }
 
@@ -535,4 +535,32 @@ uint64_t NC::RandXRSRImpl::splitmix64(uint64_t& x)
   z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
   z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
   return z ^ (z >> 31);
+}
+
+void NC::RandXRSRImpl::genmanyimpl(int n, double* tgt) ncnoexceptndebug
+{
+  //At most 1024 at a time. This doesn't actually vectorize much unfortunately.
+  constexpr int nvect = 1024;
+  uint64_t buf[nvect];
+  nc_assert( n <= nvect );
+  for ( int i = 0; i < n; ++i )
+    buf[i] = this->genUInt64WithBadLowerBits();
+  //NB: I tried to vectorize this next one as it has 3 internal statements that
+  //can be split out. Only the third statement vectorized, so skipping for now.
+  for ( int i = 0; i < n; ++i )
+    tgt[i] = randUInt64ToFP01(buf[i]);
+}
+
+void NC::RandXRSRImpl::generateMany(std::size_t n, double* tgt) ncnoexceptndebug
+{
+  nc_assert( n>0 );
+  constexpr int nvect = 1024;
+  while ( n >= nvect ) {
+    this->genmanyimpl(nvect,tgt);
+    tgt += nvect;
+    n -= nvect;
+  }
+  //Tail:
+  if ( n )
+    this->genmanyimpl(n,tgt);
 }

@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -85,7 +85,16 @@ namespace NCRYSTAL_NAMESPACE {
     //required to be noexcept-move-constructible and noexcept-destructible.
 
   public:
-    using value_type = TValue;
+    typedef TValue element_type;
+    typedef typename std::remove_cv< TValue >::type value_type;
+    typedef TValue &       reference;
+    typedef TValue *       pointer;
+    typedef TValue const * const_pointer;
+    typedef TValue const & const_reference;
+    typedef pointer        iterator;
+    typedef const_pointer  const_iterator;
+    typedef std::ptrdiff_t difference_type;
+
     using size_type = decltype(NSMALL);
     static constexpr size_type nsmall = NSMALL;
 
@@ -315,7 +324,7 @@ namespace NCRYSTAL_NAMESPACE {
       }
       constexpr size_type capacity() const noexcept
       {
-#if __cplusplus >= 201402L // assert in constexpr requires C++14
+#if nc_cplusplus >= 201402L // assert in constexpr requires C++14
         assert( m_begin != nullptr);
 #endif
         return m_capacity;

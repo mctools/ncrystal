@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -25,6 +25,10 @@
 #include "NCrystal/internal/NCFileUtils.hh"
 #include "NCrystal/NCInfoBuilder.hh"
 #include "NCrystal/internal/NCCfgManip.hh"
+#include "NCrystal/internal/NCProcCompBldr.hh"
+#include "NCrystal/NCFactThreads.hh"
+#include "NCrystal/internal/NCFactoryJobs.hh"
+#include "NCrystal/internal/NCMsg.hh"
 #include <list>
 
 namespace NC = NCrystal;
@@ -42,7 +46,7 @@ namespace NCRYSTAL_NAMESPACE {
       static_assert(Priority{Priority::OnlyOnExplicitRequest}.canServiceRequest()==true,"");
       static_assert(Priority{Priority::OnlyOnExplicitRequest}.needsExplicitRequest()==true,"");
       static_assert(Priority{Priority::OnlyOnExplicitRequest}.priority()==0,"");
-#if __cplusplus >= 201703L
+#if nc_cplusplus >= 201703L
       static_assert(Priority{17}.canServiceRequest()==true,"");
       static_assert(Priority{17}.needsExplicitRequest()==false,"");
       static_assert(Priority{17}.priority()==17,"");
@@ -101,7 +105,7 @@ namespace NCRYSTAL_NAMESPACE {
             {
               if (m_verbose) {
                 nc_assert_always(m_keyptr!=nullptr);
-                std::cout<<"NCrystal::FactImpl requested to create "<<FactDef::name()<<" based on key "<<m_keyptr->toString()<<std::endl;
+                NCRYSTAL_MSG("FactImpl requested to create "<<FactDef::name()<<" based on key "<<m_keyptr->toString());
                 m_t0 = std::chrono::steady_clock::now();
               }
             }
@@ -109,8 +113,8 @@ namespace NCRYSTAL_NAMESPACE {
               if (m_verbose) {
                 auto t1 = std::chrono::steady_clock::now();
                 double dtsec = std::chrono::duration<double,std::milli>(t1-m_t0).count()*0.001;
-                std::cout<<"NCrystal::FactImpl creation of "<<FactDef::name()<<" object based on key "
-                         <<m_keyptr->toString()<<" took "<<dtsec<<"s"<<std::endl;
+                NCRYSTAL_MSG("FactImpl creation of "<<FactDef::name()<<" object based on key "
+                             <<m_keyptr->toString()<<" took "<<dtsec<<"s");
               }
             }
           };
@@ -153,8 +157,8 @@ namespace NCRYSTAL_NAMESPACE {
                                   <<"\" does not actually have capability to service request: \""<<key.toString()<<"\"");
                 }
                 if ( verbose )
-                  std::cout<<"NCrystal::FactImpl selected factory [specific request] \""<<f->name()
-                           <<"\" to create "<<FactDef::name()<<" based on key "<<key.toString()<<std::endl;
+                  NCRYSTAL_MSG("FactImpl selected factory [specific request] \""<<f->name()
+                               <<"\" to create "<<FactDef::name()<<" based on key "<<key.toString());
                 return f->produce(key.getUserFactoryKey());
               }
             }
@@ -171,16 +175,17 @@ namespace NCRYSTAL_NAMESPACE {
             auto priority = FactDef::isSuitableForKey(*f,key) ? f->query( key.getUserFactoryKey() ) : Priority::Unable;
             const bool unable = ( !priority.canServiceRequest() || priority.needsExplicitRequest() );
             if ( verbose ) {
-              std::cout<<"NCrystal::FactImpl "<<FactDef::name()<<" factory \""<<f->name()
+              std::ostringstream ss;
+              ss<<"FactImpl "<<FactDef::name()<<" factory \""<<f->name()
                        <<"\" responded to request for \""<< key.toString()<<"\" with priority: ";
               if ( unable ) {
-                std::cout << "UNABLE";
+                ss << "UNABLE";
                 if ( priority.needsExplicitRequest() )
-                  std::cout<<" (NeedsExplicitRequest)";
+                  ss<<" (NeedsExplicitRequest)";
               } else {
-                std::cout << priority.priority();
+                ss << priority.priority();
               }
-              std::cout<<std::endl;
+              Msg::outputMsg(ss.str());
             }
             if ( unable )
               continue;
@@ -195,8 +200,8 @@ namespace NCRYSTAL_NAMESPACE {
                             <<" creation request for \""<<key.toString()<<"\" ("<<db.size()<<" factories considered)");
           }
           if ( verbose )
-            std::cout<<"NCrystal::FactImpl selected factory [highest priority] \""<<best->name()
-                     <<"\" to create "<<FactDef::name()<<" based on key "<<key.toString()<<std::endl;
+            NCRYSTAL_MSG("FactImpl selected factory [highest priority] \""<<best->name()
+                         <<"\" to create "<<FactDef::name()<<" based on key "<<key.toString());
           return best->produce(key.getUserFactoryKey());
         }
 
@@ -620,10 +625,24 @@ namespace NCRYSTAL_NAMESPACE {
                                                 : ProcessType::Absorption );
           if ( key.empty() )
             return ProcImpl::getGlobalNullProcess(processType);
+#if 0
           ProcImpl::ProcComposition::ComponentList proclist;
           for ( auto& e : key )
             proclist.push_back( ProcImpl::ProcComposition::Component{ e.first, FactImpl::create( e.second ) } );
           return ProcImpl::ProcComposition::consumeAndCombine( std::move(proclist), processType );
+#else
+          Utils::ProcCompBldr proclist;
+          //FTUtils::ComponentAggregator proclist;
+          for ( auto& scale_and_request : key ) {
+            proclist.addfct_cl( [scale_and_request]() {
+              ProcImpl::ProcComposition::ComponentList cl;
+              cl.emplace_back( scale_and_request.first,
+                               FactImpl::create( scale_and_request.second ) );
+              return cl;
+            });
+          }
+          return ProcImpl::ProcComposition::consumeAndCombine( proclist.finalise(), processType );
+#endif
         }
       };
 
@@ -692,8 +711,8 @@ namespace NCRYSTAL_NAMESPACE {
                 }
               }
               if ( verbose )
-                std::cout<<"NCrystal::FactImpl (thread_"<<thread_details::currentThreadIDForPrint()
-                         <<") Returning existing MatCfg-level multiphase Info object from key "<<cfg<<std::endl;
+                NCRYSTAL_MSG("FactImpl (thread_"<<thread_details::currentThreadIDForPrint()
+                             <<") Returning existing MatCfg-level multiphase Info object from key "<<cfg);
               return res;
             }
             //weakptr apparently expired:
@@ -716,15 +735,36 @@ namespace NCRYSTAL_NAMESPACE {
 
         //Nothing in the cache, build the object from scratch:
         if ( verbose )
-          std::cout<<"NCrystal::FactImpl (thread_"<<thread_details::currentThreadIDForPrint()
-                   <<") creating (from scratch) MatCfg-level multiphase Info object from key "<<cfg<<std::endl;
+          NCRYSTAL_MSG("FactImpl (thread_"<<thread_details::currentThreadIDForPrint()
+                       <<") creating (from scratch) MatCfg-level multiphase Info object from key "<<cfg);
 
         InfoBuilder::MultiPhaseBuilder mp_builder;
         const auto& cfg_phases = cfg.phases();
         mp_builder.phases.reserve(cfg_phases.size());
+#if 0
+        //old:
         for ( auto& cfg_ph : cfg_phases )
           mp_builder.phases.emplace_back(cfg_ph.first,FactImpl::createInfo(cfg_ph.second));
-
+#else
+        //MT:
+        {
+          FactoryJobs jobs;
+          SmallVector<OptionalInfoPtr,6> tmp_phases;
+          tmp_phases.resize(cfg_phases.size());
+          unsigned iphase = 0;
+          for ( auto& cfg_ph : cfg_phases ) {
+            OptionalInfoPtr * tgt = &tmp_phases[iphase++];
+            jobs.queue([tgt,&cfg_ph]()
+            {
+              *tgt = FactImpl::createInfo(cfg_ph.second);
+            });
+          }
+          jobs.waitAll();
+          iphase = 0;
+          for ( auto& cfg_ph : cfg_phases )
+            mp_builder.phases.emplace_back(cfg_ph.first,std::move(tmp_phases.at(iphase++)));
+        }
+#endif
         auto res = InfoBuilder::buildInfoPtr( std::move(mp_builder) );
 
         {
@@ -738,9 +778,9 @@ namespace NCRYSTAL_NAMESPACE {
             //updating strong_ref here since the other thread will have done so
             //recently).
             if ( verbose )
-              std::cout<<"NCrystal::FactImpl (thread_"<<thread_details::currentThreadIDForPrint()
-                       <<") Discarding MatCfg-level multiphase Info object from key "
-                       <<cfg<<" (competing thread beat us to it)"<<std::endl;
+              NCRYSTAL_MSG("FactImpl (thread_"<<thread_details::currentThreadIDForPrint()
+                           <<") Discarding MatCfg-level multiphase Info object from key "
+                           <<cfg<<" (competing thread beat us to it)");
             return entry_sp;
           }
           //Ok, we have to return the one we created. First update cache:
@@ -752,17 +792,47 @@ namespace NCRYSTAL_NAMESPACE {
           return res;
         }
       }
+
     }
+  }
+}
+
+namespace NCRYSTAL_NAMESPACE {
+  namespace detail {
+#ifndef NCRYSTAL_DISABLE_THREADS
+    bool factThreadsEnableCalledExplicitly();//fwd declare fct from NCFactThreads.cc
+
+    namespace {
+      void factThreads_checkEnvVar()
+      {
+        static std::atomic<bool> first(true);
+        bool btrue(true);
+        if ( !first.compare_exchange_strong(btrue,false) )
+          return;
+        std::int64_t nthreads_raw = ncgetenv_int64("FACTORY_THREADS",-1);
+        if ( nthreads_raw >= 0 && !factThreadsEnableCalledExplicitly()) {
+          auto nthreads = ThreadCount{ nthreads_raw > 9999
+                                       ? 9999
+                                       : static_cast<unsigned>(nthreads_raw) };
+          FactoryThreadPool::enable( nthreads );
+        }
+      }
+    }
+#else
+    namespace { void factThreads_checkEnvVar() {} }
+#endif
   }
 }
 
 NC::shared_obj<const NC::Info> NCF::createInfo( const InfoRequest& cfg )
 {
+  detail::factThreads_checkEnvVar();
   return infoDB().loadPluginsAndCreate( { cfg } );
 }
 
 NC::ProcImpl::ProcPtr NCF::createScatter( const ScatterRequest& cfg )
 {
+  detail::factThreads_checkEnvVar();
   auto p = scatterDB().loadPluginsAndCreate( { cfg } );
   nc_assert( p!=nullptr );
   if ( p->processType() != ProcessType::Scatter )
@@ -773,6 +843,7 @@ NC::ProcImpl::ProcPtr NCF::createScatter( const ScatterRequest& cfg )
 
 NC::ProcImpl::ProcPtr NCF::createAbsorption( const AbsorptionRequest& cfg )
 {
+  detail::factThreads_checkEnvVar();
   auto p = absorptionDB().loadPluginsAndCreate( { cfg } );
   nc_assert( p!=nullptr );
   if ( p->processType() != ProcessType::Absorption )
@@ -783,6 +854,7 @@ NC::ProcImpl::ProcPtr NCF::createAbsorption( const AbsorptionRequest& cfg )
 
 NC::shared_obj<const NC::Info> NCF::createInfo( const MatCfg& cfg )
 {
+  detail::factThreads_checkEnvVar();
   ///////////////////////////////////////////////////////////////////////////////////////////////
   // First deal with phase-choices (before all other things, which is in line
   // with the documentation's promise that the effect of phase-choice parameter
@@ -862,6 +934,7 @@ NC::shared_obj<const NC::Info> NCF::createInfo( const MatCfg& cfg )
 
 NC::ProcImpl::ProcPtr NCF::createScatter( const MatCfg& cfg )
 {
+  detail::factThreads_checkEnvVar();
   if ( cfg.hasDensityOverride() )
     return createScatter( cfg.cloneWithoutDensityState() );//never matters for a process
   MatCfg::PhaseChoices phaseChoices = cfg.getPhaseChoices();
@@ -880,6 +953,7 @@ NC::ProcImpl::ProcPtr NCF::createScatter( const MatCfg& cfg )
 
 NC::ProcImpl::ProcPtr NCF::createAbsorption( const MatCfg& cfg )
 {
+  detail::factThreads_checkEnvVar();
   if ( cfg.hasDensityOverride() )
     return createAbsorption( cfg.cloneWithoutDensityState() );//never matters for a process
 

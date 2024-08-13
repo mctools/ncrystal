@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -28,6 +28,30 @@ namespace NC = NCrystal;
 namespace NCRYSTAL_NAMESPACE {
   namespace {
     constexpr double dspacing_merge_tolerance = 1e-11;
+    class CachePCBragg : public CacheBase {
+    public:
+      void invalidateCache() override { ekin.dbl() = -1.0; }
+      CachePCBragg() { ekin.dbl() = -1.0; }
+      bool cacheOK( NeutronEnergy eee ) const
+      {
+        nc_assert( eee.dbl() > 0.0 );
+        nc_assert( std::isfinite(eee.dbl()) );
+        return eee == ekin;
+      }
+      void updateCache( NeutronEnergy eee,
+                        std::size_t lvpi )
+      {
+        nc_assert( eee.dbl() > 0.0 );
+        nc_assert( std::isfinite(eee.dbl()) );
+        ekin = eee;
+        inv_ekin = 1.0 / eee.dbl();
+        lastValidPlaneIdx = lvpi;
+      }
+      NeutronEnergy ekin;
+      double inv_ekin;
+      std::size_t lastValidPlaneIdx;
+    };
+
   }
 }
 
@@ -128,28 +152,32 @@ std::size_t NC::PCBragg::findLastValidPlaneIdx( NC::NeutronEnergy ekin) const {
   //know that ekin>=m_2dE[0], so we search from one past this entry:
   nc_assert( !ncisnan(ekin.dbl()) );
   nc_assert( ekin >= m_threshold );
+  nc_assert( std::isfinite( ekin.dbl() ) );
   return (std::upper_bound(m_2dE.begin() + 1,m_2dE.end(),ekin.get()) - m_2dE.begin()) - 1;
 }
 
 
-NC::CrossSect NC::PCBragg::crossSectionIsotropic( NC::CachePtr&, NC::NeutronEnergy ekin ) const
+NC::CrossSect NC::PCBragg::crossSectionIsotropic( NC::CachePtr& cp, NC::NeutronEnergy ekin ) const
 {
-  if ( ekin < m_threshold)
+  if ( ekin < m_threshold || !std::isfinite(ekin.dbl()) )
     return CrossSect{0.0};
-  std::size_t idx = findLastValidPlaneIdx(ekin);
-  nc_assert(idx<m_fdm_commul.size());
-  return CrossSect{ m_fdm_commul[idx] / ekin.get() };
+  auto& cache = accessCache<CachePCBragg>(cp);
+  if (!cache.cacheOK(ekin))
+    cache.updateCache( ekin, findLastValidPlaneIdx(ekin) );
+  nc_assert(cache.lastValidPlaneIdx<m_fdm_commul.size());
+  return CrossSect{ m_fdm_commul[cache.lastValidPlaneIdx] * cache.inv_ekin };
 }
 
-NC::CosineScatAngle NC::PCBragg::genScatterMu( RNG& rng, NeutronEnergy ekin) const
+NC::CosineScatAngle NC::PCBragg::genScatterMu( RNG& rng,
+                                               NeutronEnergy ekin,
+                                               std::size_t last_valid_idx) const
 {
   nc_assert( ekin >= m_threshold );
-
-  std::size_t idx = findLastValidPlaneIdx(ekin);
-  nc_assert(idx<m_fdm_commul.size());
+  nc_assert( std::isfinite( ekin.dbl() ) );
+  nc_assert(last_valid_idx<m_fdm_commul.size());
 
   //randomly select one plane by contribution:
-  VectD::const_iterator itFCUpper = std::next( m_fdm_commul.begin(), idx );
+  VectD::const_iterator itFCUpper = std::next( m_fdm_commul.begin(), last_valid_idx );
   VectD::const_iterator itFC = std::lower_bound( m_fdm_commul.begin(),
                                                  itFCUpper,
                                                  rng.generate() * (*itFCUpper) );
@@ -164,16 +192,19 @@ NC::CosineScatAngle NC::PCBragg::genScatterMu( RNG& rng, NeutronEnergy ekin) con
   return CosineScatAngle{mu};
 }
 
-NC::ScatterOutcomeIsotropic NC::PCBragg::sampleScatterIsotropic( NC::CachePtr&,
+NC::ScatterOutcomeIsotropic NC::PCBragg::sampleScatterIsotropic( NC::CachePtr& cp,
                                                                  NC::RNG& rng,
                                                                  NC::NeutronEnergy ekin ) const
 {
   //elastic: ekin unchanged
-  if ( ekin < m_threshold ) {
+  if ( ekin < m_threshold || !std::isfinite(ekin.dbl()) ) {
     //scatterings not possible here
     return { ekin, CosineScatAngle{1.0} };
   } else {
-    return { ekin, genScatterMu(rng,ekin) };
+    auto& cache = accessCache<CachePCBragg>(cp);
+    if (!cache.cacheOK(ekin))
+      cache.updateCache( ekin, findLastValidPlaneIdx(ekin) );
+    return { ekin, genScatterMu(rng,ekin,cache.lastValidPlaneIdx) };
   }
 }
 
@@ -307,3 +338,61 @@ NC::Optional<std::string> NC::PCBragg::specificJSONDescription() const
   streamJSONDictEntry( ss, "2dmax", m_threshold.wavelength().dbl(), JSONDictPos::LAST );
   return ss.str();
 }
+
+#ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
+
+std::pair<NC::CrossSect,NC::ScatterOutcome>
+NC::PCBragg::evalXSAndSampleScatter( CachePtr& cp, RNG& rng,
+                                     NeutronEnergy ekin,
+                                     const NeutronDirection& dir ) const
+{
+  if ( ekin < m_threshold || !std::isfinite(ekin.dbl()) ) {
+    nc_assert( ekin.dbl()>=0.0 );
+    return { CrossSect{0.0},
+             { ekin, dir } };
+  } else {
+    auto& cache = accessCache<CachePCBragg>(cp);
+    if (!cache.cacheOK(ekin))
+      cache.updateCache( ekin, findLastValidPlaneIdx(ekin) );
+    auto mu = genScatterMu(rng,ekin,cache.lastValidPlaneIdx);
+    auto outdir = randNeutronDirectionGivenScatterMu( rng,
+                                                      mu.dbl(),
+                                                      dir.as<Vector>() );
+    return { CrossSect{ m_fdm_commul[cache.lastValidPlaneIdx] * cache.inv_ekin },
+             { ekin, outdir } };
+  }
+
+}
+
+std::pair<NC::CrossSect,NC::ScatterOutcomeIsotropic>
+NC::PCBragg::evalXSAndSampleScatterIsotropic(CachePtr& cp, RNG& rng,
+                                             NeutronEnergy ekin ) const
+{
+  if ( ekin < m_threshold || !std::isfinite(ekin.dbl()) ) {
+    nc_assert( ekin.dbl()>=0.0 );
+    return { CrossSect{0.0},
+             { ekin, CosineScatAngle{1.0} } };
+  } else {
+    auto& cache = accessCache<CachePCBragg>(cp);
+    if (!cache.cacheOK(ekin))
+      cache.updateCache( ekin, findLastValidPlaneIdx(ekin) );
+    return { CrossSect{ m_fdm_commul[cache.lastValidPlaneIdx] * cache.inv_ekin },
+             { ekin, genScatterMu(rng,ekin,cache.lastValidPlaneIdx) } };
+  }
+}
+
+void NC::PCBragg::evalManyXSIsotropic( CachePtr&, const double* ekin, std::size_t N,
+                                       double* out_xs ) const
+{
+  for ( std::size_t i = 0; i < N; ++i ) {
+    if ( ekin[i] < m_threshold.dbl() || !std::isfinite(ekin[i]) ) {
+      nc_assert( ekin[i] >= 0.0 );
+      out_xs[i] = 0.0;
+    } else {
+      std::size_t idx = findLastValidPlaneIdx(NeutronEnergy{ekin[i]});
+      nc_assert(idx<m_fdm_commul.size());
+      out_xs[i] = m_fdm_commul[idx] / ekin[i];
+    }
+  }
+}
+#endif

@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -22,9 +22,8 @@
 #include "NCrystal/NCException.hh"
 #include "NCrystal/internal/NCString.hh"
 #include "NCrystal/internal/NCMath.hh"
-#include <iostream>
 #include <sstream>
-#if __cplusplus >= 201703L
+#if nc_cplusplus >= 201703L
 #  include <functional>//for std::invoke
 #else
 #  define NCPARSENCMAT_CALL_MEMBER_FN(objectaddr,ptrToMember)  ((*objectaddr).*(ptrToMember))
@@ -273,7 +272,7 @@ void NC::NCMATParser::parseFile( TextData::Iterator itLine, TextData::Iterator i
 
       //Close current section by sending it an empty parts list (and previous line number where that section ended).
       parts.clear();
-#if __cplusplus >= 201703L
+#if nc_cplusplus >= 201703L
       std::invoke(itSection->second,*this,parts,lineno-1);
 #else
       NCPARSENCMAT_CALL_MEMBER_FN(this,itSection->second)(parts,lineno);
@@ -329,7 +328,7 @@ void NC::NCMATParser::parseFile( TextData::Iterator itLine, TextData::Iterator i
     }
 
     //Line inside active section was succesfully parsed.
-#if __cplusplus >= 201703L
+#if nc_cplusplus >= 201703L
     std::invoke(itSection->second,*this,parts,lineno);
 #else
     NCPARSENCMAT_CALL_MEMBER_FN(this,itSection->second)(parts,lineno);
@@ -338,7 +337,7 @@ void NC::NCMATParser::parseFile( TextData::Iterator itLine, TextData::Iterator i
 
   //End of input. Close current section by sending it an empty parts list.
   parts.clear();
-#if __cplusplus >= 201703L
+#if nc_cplusplus >= 201703L
   std::invoke(itSection->second,*this,parts,lineno);
 #else
   NCPARSENCMAT_CALL_MEMBER_FN(this,itSection->second)(parts,lineno+1);

@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -29,18 +29,6 @@ NC::ElIncXS::ElIncXS( const VectD& elm_msd,
                       const VectD& elm_scale )
 {
   set( elm_msd, elm_bixs, elm_scale );
-}
-
-NC::CrossSect NC::ElIncXS::evaluate(NeutronEnergy ekin) const
-{
-  //NB: The cross-section code here must be consistent with code in
-  //evaluateMonoAtomic() and sampleMu(..)
-  constexpr double kkk = 16.0 * kPiSq * ekin2wlsqinv(1.0);
-  double e = kkk*ekin.dbl();
-  double xs = 0.0;
-  for ( auto& elmdata : m_elm_data )
-    xs += elmdata.second * eval_1mexpmtdivt( elmdata.first * e );
-  return CrossSect{ xs };
 }
 
 double NC::ElIncXS::eval_1mexpmtdivt(double t)
@@ -126,42 +114,90 @@ NC::CosineScatAngle NC::ElIncXS::sampleMuMonoAtomic( RNG& rng, NeutronEnergy eki
   }
 }
 
-NC::CosineScatAngle NC::ElIncXS::sampleMu( RNG& rng, NeutronEnergy ekin )
+NC::CrossSect NC::ElIncXS::evaluate(NeutronEnergy ekin) const
 {
-  const std::size_t nelem = m_elm_data.size();
-  nc_assert(nelem!=0);
-  if ( nelem == 1 )
-    return sampleMuMonoAtomic( rng, ekin, m_elm_data.front().first );
-
-  //Calculate per-element contribution and select accordingly.
-
-  //First a little trick to provide us with an array for caching element-wise
-  //cross-sections, without a memory allocation for normal use-cases (but
-  //avoiding a hard-coded limit on number of elements).
-  constexpr auto nfixed = 8;
-  double cache_fixed[nfixed];
-  VectD cache_dynamic;
-  Span<double> elem_xs;
-  if ( nelem > nfixed ) {
-    cache_dynamic.resize(nelem);
-    elem_xs = cache_dynamic;
-  } else {
-    elem_xs = Span<double>(cache_fixed).subspan(0,nelem);
-  }
-
   //NB: The cross-section code here must be consistent with code in
-  //evaluateMonoAtomic() and evaluate(..):
+  //evalXSContribsCommul(), evaluateMany(), and
+  //evalXSContribsCommul().
   constexpr double kkk = 16.0 * kPiSq * ekin2wlsqinv(1.0);
   double e = kkk*ekin.dbl();
   double xs = 0.0;
-  auto itXS = elem_xs.begin();
-  auto it = m_elm_data.begin();
-  auto itE = m_elm_data.end();
-  for (;it!=itE;++it,++itXS)
-    *itXS = (xs += it->second * eval_1mexpmtdivt(it->first * e));
+  for ( auto& elmdata : m_elm_data )
+    xs += elmdata.second * eval_1mexpmtdivt( elmdata.first * e );
+  return CrossSect{ xs };
+}
 
-  auto choiceidx = pickRandIdxByWeight( rng, elem_xs );//pick index according to weights (values must be commulative)
-  nc_assert(choiceidx<nelem);
+NC::SmallVector<double,32> NC::ElIncXS::evalXSContribsCommul( NeutronEnergy ekin ) const
+{
+  SmallVector<double,32> res;
+  res.resize( m_elm_data.size() );
+  constexpr double kkk = 16.0 * kPiSq * ekin2wlsqinv(1.0);
+  double e = kkk*ekin.dbl();
+  double xs = 0.0;
+  unsigned i = 0;
+  for ( auto& elmdata : m_elm_data )
+    res[i++] = ( xs += elmdata.second * eval_1mexpmtdivt( elmdata.first * e ) );
+  return res;
+}
+
+void NC::ElIncXS::evaluateMany( Span<const double> ekin, Span<double> tgt) const
+{
+  constexpr double kkk = 16.0 * kPiSq * ekin2wlsqinv(1.0);
+  nc_assert(ekin.size()==tgt.size());
+  const std::size_t n = tgt.size();
+
+  constexpr auto nbuf = 2048;
+  double buf[nbuf];
+  double buf_e[nbuf];
+
+  const double * ekin_ptr = ekin.data();
+  double * tgt_ptr = tgt.data();
+
+  std::fill( tgt_ptr, tgt_ptr + n, 0.0 );
+
+  std::size_t nleft = n;
+  while ( nleft ) {
+    std::size_t nstep = std::min<std::size_t>(nleft,nbuf);
+    for( auto i : ncrange(nstep) )
+      buf_e[i] = kkk * ekin_ptr[i];
+    for ( auto& elmdata : m_elm_data ) {
+      for( auto i : ncrange(nstep) )
+        buf[i] = elmdata.first * buf_e[i];
+      for( auto i : ncrange(nstep) )
+        buf[i] = eval_1mexpmtdivt( buf[i] );//NB: One day we want to vectorize
+                                            //this!
+      for( auto i : ncrange(nstep) )
+        tgt_ptr[i] += elmdata.second * buf[i];
+    }
+    tgt_ptr += nstep;
+    ekin_ptr += nstep;
+    nleft -= nstep;
+  }
+}
+
+NC::CosineScatAngle NC::ElIncXS::EPointAnalysis::sampleMu( const ElIncXS& ei,
+                                                           RNG& rng ) const
+{
+  const auto& elm_data = ei.m_elm_data;
+  const auto& contribs = this->data;
+  nc_assert( contribs.size() == elm_data.size() );
+  if ( elm_data.size() == 1 )
+    return sampleMuMonoAtomic( rng, this->ekin, elm_data.front().first );
+  nc_assert( contribs.size() > 1 );
+  auto choiceidx = pickRandIdxByWeight( rng, contribs );
+  nc_assert( choiceidx < elm_data.size() );
+  return sampleMuMonoAtomic( rng, this->ekin, elm_data[choiceidx].first );
+}
+
+NC::CosineScatAngle NC::ElIncXS::sampleMu( RNG& rng, NeutronEnergy ekin )
+{
+  if ( m_elm_data.size() == 1 )
+    return sampleMuMonoAtomic( rng, ekin, m_elm_data.front().first );
+  auto contribs = evalXSContribsCommul(ekin);
+  nc_assert( contribs.size() > 1 );
+  nc_assert( contribs.size() == m_elm_data.size() );
+  auto choiceidx = pickRandIdxByWeight( rng, contribs );
+  nc_assert( choiceidx < m_elm_data.size() );
   return sampleMuMonoAtomic( rng, ekin, m_elm_data[choiceidx].first );
 }
 

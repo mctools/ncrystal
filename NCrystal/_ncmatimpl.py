@@ -8,7 +8,7 @@ Internal implementation details for NCMAT utilities in ncmat.py
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2023 NCrystal developers                                   ##
+##  Copyright 2015-2024 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -185,7 +185,7 @@ class NCMATComposerImpl:
         #
         # Note3: D is detected as H (cf. https://matsci.org/t/how-to-load-structures-including-deuterium-with-ase/41950/2).
         cifdata = _cifdata_via_ase( ase_obj, ase_format = 'ase', quiet = quiet )
-        if not 'no_formula_check' in kwargs:
+        if 'no_formula_check' not in kwargs:
             #ASE cif writer puts formula which does not take site occupancies into account:
             kwargs['no_formula_check'] = True
         o = NCMATComposerImpl.from_cif( cifsrc = cifdata, quiet=quiet, **kwargs )
@@ -202,7 +202,7 @@ class NCMATComposerImpl:
     def from_ncmat( data ):
         from .misc import AnyTextData
         td = AnyTextData(data)
-        if not '\n' in td.content and not td.content.startswith('NCMAT'):
+        if '\n' not in td.content and not td.content.startswith('NCMAT'):
             return NCMATComposerImpl.from_cfgstr( td.content )
         o = _nc_core.directLoad( td, doScatter = False, doAbsorption = False )
         return NCMATComposerImpl.from_info( o.info )
@@ -211,7 +211,7 @@ class NCMATComposerImpl:
         label,res=_decode_update_atomdb( element_or_isotope,data=data,mass=mass,
                                          coh_scat_len=coh_scat_len,incoh_xs=incoh_xs,abs_xs=abs_xs )
         self.__dirty()
-        if not 'atomdb' in self.__params:
+        if 'atomdb' not in self.__params:
             self.__params['atomdb'] = {}
         self.__params['atomdb'][label] = res
 
@@ -248,11 +248,11 @@ class NCMATComposerImpl:
         if not state_of_matter:
             state_of_matter = None
         allowed = ['solid','liquid','gas']
-        if not state_of_matter in allowed and not state_of_matter is None:
+        if state_of_matter not in allowed and state_of_matter is not None:
             s='", "'.join(allowed)
-            raise _nc_core.NCBadInput(f'Invalid state of matter value "{state_of_matter}" (allowed: {"s"})')
+            raise _nc_core.NCBadInput(f'Invalid state of matter value "{state_of_matter}" (allowed: "{s}")')
         if state_of_matter is None:
-            if not 'state_of_matter' in self.__params:
+            if 'state_of_matter' not in self.__params:
                 return
             self.__dirty()
             del self.__params['state_of_matter']
@@ -288,7 +288,7 @@ class NCMATComposerImpl:
     def set_composition( self, label, *composition ):
         label, composition = _decode_composition(label,*composition)
         self.__dirty()
-        if not 'compositions' in self.__params:
+        if 'compositions' not in self.__params:
             self.__params['compositions'] = {}
         self.__params['compositions'][ label ] = composition
 
@@ -326,7 +326,7 @@ class NCMATComposerImpl:
 
         self.__dirty()#not strictly needed as comments do not affect loading
 
-        if not 'top_comments' in self.__params:
+        if 'top_comments' not in self.__params:
             self.__params['top_comments'] = []
         elif add_empty_line_divider and self.__params['top_comments'] and self.__params['top_comments'][-1]:
             self.__params['top_comments'].append('')
@@ -366,9 +366,9 @@ class NCMATComposerImpl:
 
     def set_density( self, value, unit ):
         allowed = ['g/cm3','kg/m3','atoms/Aa3']
-        if not unit in allowed:
+        if unit not in allowed:
             s='", "'.join(allowed)
-            raise _nc_core.NCBadInput(f'Invalid density unit "{unit}" (allowed: {"s"})')
+            raise _nc_core.NCBadInput(f'Invalid density unit "{unit}" (allowed: "{s}")')
         if not ( value>0.0 ):
             raise _nc_core.NCBadInput(f'Invalid density value (must be >0): {value} {unit}')
         self.__dirty()
@@ -379,7 +379,7 @@ class NCMATComposerImpl:
         if not 0 < value <= 1.0:
             raise _nc_core.NCBadInput(f'Invalid component fraction is not in (0,1]: {value}')
         self.__dirty()
-        if not 'fractions' in self.__params:
+        if 'fractions' not in self.__params:
             self.__params['fractions'] = {}
         self.__params['fractions'][label] = value
 
@@ -423,7 +423,7 @@ class NCMATComposerImpl:
     def __add_dyninfo( self, label, fraction, dyninfo ):
         _checklabel(label)
         self.__dirty()
-        if not 'dyninfos' in self.__params:
+        if 'dyninfos' not in self.__params:
             self.__params['dyninfos'] = { label : dyninfo }
         else:
             self.__params['dyninfos'][label] = dyninfo
@@ -558,9 +558,9 @@ class NCMATComposerImpl:
         lbl2atomidx = {}
         atomic_points, atomic_types = [], []
         for lbl,x,y,z in sorted(atomposlist):
-            if not lbl in lbl2atomidx:
+            if lbl not in lbl2atomidx:
                 lbl2atomidx[lbl] = len(lbl2atomidx)
-            idx = lbl2atomidx[lbl]
+            #idx = lbl2atomidx[lbl]
             atomic_points.append( (x,y,z) )
             atomic_types.append( lbl2atomidx[lbl] )
         return ( lattice, atomic_points, atomic_types ), dict( (v,k) for k,v in lbl2atomidx.items())
@@ -574,7 +574,7 @@ class NCMATComposerImpl:
     def _impl_refine( self, *, mode_refine, symprec, quiet ):
         cellsg = self.__params.get('cellsg',None)
         atompos = self.__params.get('atompos',None)
-        atomposlist = atompos.get('pos',None) if atompos else None
+        #atomposlist = atompos.get('pos',None) if atompos else None
         if not cellsg and not atompos:
             return#do nothing if not crystal
         if int(bool(cellsg))+int(bool(atompos)) == 1:
@@ -627,7 +627,7 @@ class NCMATComposerImpl:
             rda = _reldiff_atompos( spglib_cell, d['refined_cell'] )
             #rd = None if (rdl is None or rda is None) else max(rdl,rda)
             if rdl is None or rda is None or max(rdl,rda) > 0.01:
-                raise _nc_core.NCBadInput(f'Failed to verify crystal structure with spglib.')
+                raise _nc_core.NCBadInput('Failed to verify crystal structure with spglib.')
 
     def set_atompos( self, atompos ):
         pos,occumap = [],{}
@@ -639,7 +639,7 @@ class NCMATComposerImpl:
             occu = float(e[4]) if len(e)==5 else 1.0
             if not ( 0.0 < occu <= 1.0 ):
                 raise _nc_core.NCBadInput('site_occupancy values must be in (0.0,1.0]')
-            if not lbl in occumap:
+            if lbl not in occumap:
                 occumap[lbl]=occu
             else:
                 if not occumap[lbl] == occu:
@@ -678,7 +678,7 @@ class NCMATComposerImpl:
         #principle two x values are almost identical and their order might
         #vary slightly.
         def extractval(s):
-            if not '/' in s:
+            if '/' not in s:
                 return float(s)
             p=s.split('/')
             assert len(p)==2
@@ -727,9 +727,9 @@ class NCMATComposerImpl:
 
         for lbl,fracinfo in sorted(fractions.items()):
             if not isinstance(fracinfo,float) and len(fracinfo)==3:
-                fracval_flt,frac_prettyprint,_ = fracinfo
+                _fracval_flt,frac_prettyprint,_ = fracinfo
             else:
-                fracval_flt,frac_prettyprint = fracinfo, _nc_common.prettyFmtValue( fracinfo )
+                _fracval_flt,frac_prettyprint = fracinfo, _nc_common.prettyFmtValue( fracinfo )
             lines += '@DYNINFO\n'
             dyninfo = dyninfos.get(lbl,None)
             dyninfo = transform_msd_to_vdosdebye( lbl, dyninfo )
@@ -950,7 +950,7 @@ class NCMATComposerImpl:
         if is_crystal and dyninfos:
             for lbl,di in sorted(dyninfos.items()):
                 _ditype=di.get('ditype',None)
-                if not _ditype in ('vdos','vdosdebye','msd'):
+                if _ditype not in ('vdos','vdosdebye','msd'):
                     raise _nc_core.NCBadInput('Crystalline material are currently only supported with dynamic info type of'
                                         +f' either "vdos", "vdosdebye", or "msd" (offending type "{_ditype}" for "{lbl}")')
 
@@ -1019,7 +1019,7 @@ class NCMATComposerImpl:
         custom_hardspheresans = self.__params.get('custom_hardspheresans')
         if custom_hardspheresans:
             if not secondary_phases:
-                raise _nc_core.NCBadInput(f'Material with hard-sphere SANS enabled must have at least one secondary phase added.')
+                raise _nc_core.NCBadInput('Material with hard-sphere SANS enabled must have at least one secondary phase added.')
             l += '@CUSTOM_HARDSPHERESANS\n'
             l += f'{custom_hardspheresans} #sphere radius in angstrom.\n'
 
@@ -1092,7 +1092,7 @@ class NCMATComposerImpl:
         if cfg_params:
             if out and out[-1] != '#':
                 out += [ '#' ]
-            out += [ f'# NCRYSTALMATCFG[str(cfg_params).strip()]', '#']
+            out += [ f'# NCRYSTALMATCFG[{str(cfg_params).strip()}]', '#']
 
         if out and out[-1] != '#':
             out += [ '#' ]
@@ -1248,6 +1248,8 @@ def _composerimpl_from_info( infoobj ):
             o.set_dyninfo_from_object( lbl, di )
             for x,y,z in ai.positions:
                 all_atompos.append( (lbl,x,y,z) )#NB: site_occupancy=1 here!
+        from .exceptions import nc_assert
+        nc_assert(len(all_atompos)==si_natoms)
         o.set_atompos( all_atompos )
     else:
         o.set_density( i.density, unit='g/cm3' )
@@ -1395,7 +1397,7 @@ def _decode_composition(label,*composition):
     #Now merge identical entries and snap fraction sum to 1:
     d = {}
     for fr,nme in l:
-        if not nme in d:
+        if nme not in d:
             d[nme] = [fr]
         else:
             d[nme] += [fr]
@@ -1423,12 +1425,12 @@ def determine_labels_and_atomdb( _self_params, *, fractions, allow_siteoccu_ncma
     #fill expand implicit compositions to be included explicitly:
     def _expand_implicit_compositions( direct_lbls, compositions ):
         for lbl,_ in compositions.items():
-            if not lbl in direct_lbls:
+            if lbl not in direct_lbls:
                 raise _nc_core.NCBadInput('Label "%s" was given a composition but is not actually used in the material'%lbl)
 
         compositions = copy.deepcopy(compositions)#retain immutability
         for lbl in direct_lbls:
-            if not lbl in compositions:
+            if lbl not in compositions:
                 _ = _nc_common.check_elem_or_isotope_marker( lbl )
                 if not _:
                     raise _nc_core.NCBadInput('Not able to determine composition associated with label '
@@ -1466,7 +1468,7 @@ def determine_labels_and_atomdb( _self_params, *, fractions, allow_siteoccu_ncma
         #actually needs Og999 or thereabouts, they are obviously just trying
         #to break our hack by being smartasses :-)
         hijackedIsotope = 'Og%i'%(299-i)
-        assert not hijackedIsotope in atomdb
+        assert hijackedIsotope not in atomdb
         atomdb[hijackedIsotope] = _nc_core.AtomData.fmt_atomdb_str( origelem_mass, 0.0, 0.0, 0.0 )
         occu = occumap[lbl]
         compositions[ lbl ] = [ (occu*frac,elem) for frac,elem in compos ] + [ ( 1.0 - occu, hijackedIsotope ) ]
@@ -1516,7 +1518,7 @@ def _copyarray_or_None( x ):
     if x is None or (hasattr(x,'__len__') and len(x)==0):
         return None
     from ._numpy import _np
-    return copy.deepcopy(_np.asfarray(x,dtype=float) if _np else x)
+    return copy.deepcopy(_np.asarray(x,dtype=float) if _np else x)
 
 def _decode_update_atomdb(element_or_isotope, data, *,  mass=None, coh_scat_len=None, incoh_xs=None, abs_xs=None ):
     e = _nc_common.check_elem_or_isotope_marker( element_or_isotope )
@@ -1643,9 +1645,8 @@ def _reldiff_atompos( spglib_cell1, spglib_cell2 ):
                     dsqmin_e1 = _
                     if _ == 0.0:
                         break
-            assert not dsqmin_e1 is None
+            assert dsqmin_e1 is not None
             distsqmax = max( dsqmin_e1, distsqmax )
-#
         return distsqmax
 
     max_distsq_seen = None
@@ -1688,9 +1689,16 @@ def _import_ase( *, sysexit = False ):
     return ase, ase.io
 
 def _spglib_extractsg( spglib_symdata ):
-    sgno = spglib_symdata['number']
-    sgsymb_hermann_mauguin = spglib_symdata['international']
-    c = spglib_symdata.get('choice',None)
+    sd = spglib_symdata
+    sgno = ( getattr(sd,'number')
+             if hasattr(sd,'number')
+             else sd['number'] )
+    sgsymb_hermann_mauguin = ( getattr(sd,'international')
+                               if hasattr(sd,'international')
+                               else sd['international'] )
+    c = ( getattr(sd,'choice')
+          if hasattr(sd,'choice')
+          else sd.get('choice',None))
     if c:
         sgsymb_hermann_mauguin += f':{c}'
     return sgno, sgsymb_hermann_mauguin
@@ -1820,7 +1828,8 @@ def _cifdata_via_ase( data_or_file, ase_format = None, quiet = False ):
 
     isbytes = hasattr( data_or_file, 'decode' )
     str_to_sb = ( lambda s : s ) if not isbytes else ( lambda s : s.encode() )
-    if not ase_obj and ( hasattr(data_or_file,'__fspath__') or not str_to_sb('\n') in data_or_file ):
+    if not ase_obj and ( hasattr(data_or_file,'__fspath__')
+                         or str_to_sb('\n') not in data_or_file ):
         #on-disk data:
         _ = 'data'
         if ( hasattr(data_or_file,'__fspath__') or isinstance(data_or_file,str) ):
@@ -1849,7 +1858,7 @@ def formatVectorForNCMAT(name,values,indent):
                 _=_[1:]
             return _
         from ._numpy import _np
-        v = _np.asfarray(values).flatten() if _np else values
+        v = _np.asarray(values,dtype=float).flatten() if _np else values
         i, nv = 0, len(v)
         while i < nv:
             fmt_vi=_fmtnum(v[i])

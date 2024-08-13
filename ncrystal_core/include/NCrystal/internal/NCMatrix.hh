@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -59,7 +59,6 @@ namespace NCRYSTAL_NAMESPACE {
     Matrix operator~() const;
     void transpose();
 
-    void print() const;
     void unit();
     void rref(double epsilon = 1e-5);//bring to reduced row echelon form
     void inv(double epsilon = 1e-5);

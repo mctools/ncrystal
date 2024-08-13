@@ -5,7 +5,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -29,6 +29,10 @@ namespace NCRYSTAL_NAMESPACE {
   public:
 
     //Immutable data structure defining an S(alpha,beta) scattering kernel.
+
+    //Note that the sab() vector is ordered so that:
+    //
+    //  S( alphaGrid()[i], betaGrid()[j] ) = sab()[ j * alphagrid.size() + i ]
 
     //Access data:
     const VectD& alphaGrid() const { return m_a; }

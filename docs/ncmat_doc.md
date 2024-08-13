@@ -211,20 +211,32 @@ table is specified with the *alphagrid*, *betagrid*, and *sab* keywords like:
               1.2642200e-19 1.5147000e-19 1.5901900e-19
 ```
 
-
 Of course, the number of entries in the *sab* field must be equal to the product
-of the number of entries in the *alphagrid* and *betagrid* fields. To allow for
-more efficient processing, the *alphagrid* and *betagrid* fields can have at
-most 65534 entries, and must have at least 5.  In addition to requiring large
-amounts of space, scattering kernels are complicated by the fact that they describe
-the relevant dynamics at a certain material temperature only. Thus, a
-*temperature* field exists in which this value must be specified. Furthermore,
-all @DYNINFO sections of type *scatknl* in a given file must contain the same
-value of the temperature field, and NCrystal will default the material
-temperature to that value as well when loading the input file (and might decide
-to raise an error on attempts to override it when loading the file). It is
-therefore recommended that *NCMAT* files with @DYNINFO sections of type
-*scatknl* should indicate the temperature in the file name, to avoid user
+of the number of entries in the *alphagrid* and *betagrid* fields. Furthermore,
+the ordering of the *sab* values must be so that if `ai` is the i'th *alphagrid*
+value, `bj` is the j'th *betagrid* value, and `A` is the number of *alphagrid*
+values, then `S(ai,bj)` is given by the k'th *sab* value, where `k=(j-1)*A+i`.
+Thus, if `B` is the number of entries in the *betagrid* field, the entries in
+the *sab* field are ordered as indicated here:
+
+```
+  sab    S(a1,b1) S(a2,b1) S(a3,b1) ... S(aA,b1)
+         S(a1,b2) S(a2,b2) S(a3,b2) ... S(aA,b2)
+         ...
+         S(a1,bB) S(a2,bB) S(a3,bB) ... S(aA,bB)
+```
+
+To allow for more efficient processing, the *alphagrid* and *betagrid* fields
+can have at most 65534 entries, and must have at least 5. In addition to
+requiring large amounts of space, scattering kernels are complicated by the fact
+that they describe the relevant dynamics at a certain material temperature
+only. Thus, a *temperature* field exists, in which this value must be
+specified. Furthermore, all @DYNINFO sections of type *scatknl* in a given file
+must contain the same value of the temperature field, and NCrystal will default
+the material temperature to that value as well when loading the input file (and
+might decide to raise an error on attempts to override it when loading the
+file). It is therefore recommended that *NCMAT* files with @DYNINFO sections of
+type *scatknl* should indicate the temperature in the file name, to avoid user
 confusion.
 
 At initialisation time, NCrystal will typically integrate the scattering kernel
@@ -235,7 +247,6 @@ suitable energy grid. This default behaviour can be modified through
 specification of the optional *egrid* field inside the @DYNINFO section. If
 desired, the exact energy grid can be directly specified by providing at least
 10 positive sorted energy values (unit eV):
-
 
 ```
   egrid 1e-5 2e-5 4e-5

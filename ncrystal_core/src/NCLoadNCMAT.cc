@@ -2,7 +2,7 @@
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
 //                                                                            //
-//  Copyright 2015-2023 NCrystal developers                                   //
+//  Copyright 2015-2024 NCrystal developers                                   //
 //                                                                            //
 //  Licensed under the Apache License, Version 2.0 (the "License");           //
 //  you may not use this file except in compliance with the License.          //
@@ -30,11 +30,12 @@
 #include "NCrystal/internal/NCString.hh"
 #include "NCrystal/internal/NCDebyeMSD.hh"
 #include "NCrystal/internal/NCIter.hh"
+#include "NCrystal/internal/NCFactoryJobs.hh"
+#include "NCrystal/internal/NCMsg.hh"
 #include "NCrystal/internal/NCCfgManip.hh"
 #include "NCrystal/internal/NCSABUtils.hh"
 #include "NCrystal/internal/NCScatKnlData.hh"
 #include "NCrystal/internal/NCVDOSEval.hh"
-#include <iostream>
 
 namespace NC = NCrystal;
 
@@ -168,24 +169,26 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
   const bool verbose = ncgetenv_bool("DEBUGINFO");
 
   if (verbose) {
-    std::cout<<"NCrystal::loadNCMAT called with ("
-             << data.sourceDescription//usually (always?) the same as cfgvars.dataSourceName()
-             <<", temp="<<cfgvars.temp
-             <<", dcutoff="<<cfgvars.dcutoff
-             <<", dcutoffup="<<cfgvars.dcutoffup
-             <<", atomdb=";
+    std::ostringstream ss;
+    ss<<"loadNCMAT called with ("
+      << data.sourceDescription//usually (always?) the same as cfgvars.dataSourceName()
+      <<", temp="<<cfgvars.temp
+      <<", dcutoff="<<cfgvars.dcutoff
+      <<", dcutoffup="<<cfgvars.dcutoffup
+      <<", atomdb=";
     if (cfgvars.atomdb.empty()) {
-      std::cout<<"<none>";
+      ss<<"<none>";
     } else {
       for (unsigned i = 0; i < cfgvars.atomdb.size(); ++i) {
         if (i>0)
-          std::cout<<"@";
-        std::cout<<joinstr(cfgvars.atomdb.at(i),":");
+          ss<<"@";
+        ss<<joinstr(cfgvars.atomdb.at(i),":");
       }
     }
-    std::cout<<", dataSourceName="
-             << cfgvars.dataSourceName
-             <<")"<<std::endl;
+    ss<<", dataSourceName="
+      << cfgvars.dataSourceName
+      <<")";
+    Msg::outputMsg(ss.str());
   }
 
   /////////////////////////
@@ -221,7 +224,9 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
       if ( dyninfo_temperature.get() == -1.0 ) {
         dyninfo_temperature = dit;
       } else {
-        nc_assert_always( floateq(dyninfo_temperature.get(), dit.get() ) );
+        if ( !floateq(dyninfo_temperature.get(), dit.get() ) )
+          NCRYSTAL_THROW2(BadInput,data.sourceDescription << " incompatible "
+                          "temperature values in different @DYNINFO sections");
       }
     }
   }
@@ -232,7 +237,10 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
 
   if ( data.temperature.has_value() ) {
     if ( input_temp_request.has_value() ) {
-      nc_assert_always( input_temp_request.value().first == data.temperature.value().first );
+      if ( ! (input_temp_request.value().first == data.temperature.value().first) )
+        NCRYSTAL_THROW2(BadInput,data.sourceDescription << " incompatible"
+                        " temperature values in @TEMPERATURE and @DYNINFO"
+                        " sections.");
     } else {
       input_temp_request = data.temperature.value();
     }
@@ -384,7 +392,7 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
   //==> Dynamics (deal with them first as they might provide MSD/DebyeTemp info)
   std::map<AtomIndex,double> elem2frac;
   builder.dynamics = DynamicInfoList();
-  builder.dynamics.value().reserve( elementname_2_indexedatomdata_map.size() );
+  //builder.dynamics.value().reserve( elementname_2_indexedatomdata_map.size() );
   auto getEgrid = [](NCMATData::DynInfo::FieldMapT& fields)
                   {
                     VectD egrid;
@@ -396,6 +404,7 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
                   };
 
   if (data_hasDynInfo) {
+    FactoryJobs jobs_msdcalc;
     bool warn_msd_from_debye_but_vdos_avail = false;
     for (auto& e : data.dyninfos) {
       const auto& iad = elementname_2_indexedatomdata(e.element_name);
@@ -459,10 +468,31 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
             if ( tryElement2DebyeTemp(iad.index).has_value() ) {
               warn_msd_from_debye_but_vdos_avail = true;//@DEBYETEMPERATURE section takes precedence, but emit warning
             } else {
+#if 0
+              //Directly:
               double msd = VDOSEval( static_cast<const DI_VDOS*>(di.get())->vdosData() ).getMSD();
               auto debye_temp = debyeTempFromIsotropicMSD( msd, cfgvars.temp, di->atomData().averageMassAMU() );
               perelemdebye_map[iad.index] = debye_temp;
               elem2msd[iad.index] = msd;//record so we don't have to convert back from Debye temp again below
+#else
+              //Concurrently:
+              auto di_raw_ptr = static_cast<const DI_VDOS*>(di.get());
+              perelemdebye_map[iad.index] = DebyeTemperature(100.0);//dummy
+              elem2msd[iad.index] = -1.0;//dummy
+              DebyeTemperature * res_debyetemp_ptr = &perelemdebye_map.find(iad.index)->second;
+              double * res_msd_ptr = &elem2msd.find(iad.index)->second;
+              Temperature temp = cfgvars.temp;
+              jobs_msdcalc.queue([di_raw_ptr,
+                                  res_debyetemp_ptr,
+                                  res_msd_ptr,
+                                  temp]()
+              {
+                double msd = VDOSEval( di_raw_ptr->vdosData() ).getMSD();//NB: getMSD->calcGamma0 is significant (~10ms) work.
+                auto debye_temp = debyeTempFromIsotropicMSD( msd, temp, di_raw_ptr->atomData().averageMassAMU() );
+                *res_debyetemp_ptr = debye_temp;
+                *res_msd_ptr = msd;
+              });
+#endif
             }
           }
         }
@@ -514,8 +544,11 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
       builder.dynamics.value().push_back(std::move(di));
     }
     if (warn_msd_from_debye_but_vdos_avail)
-      std::cout<<"NCrystal::NCMATLoader WARNING: Loading NCMAT data which has Debye temperatures for"
-        " elements with VDOS curves available (this might give sub-optimal MSD values)."<<std::endl;
+      NCRYSTAL_WARN("NCMATLoader: Loading NCMAT data which has Debye"
+                    " temperatures for elements with VDOS curves available"
+                    " (this might give sub-optimal MSD values).");
+    jobs_msdcalc.waitAll();//make sure msd/debyetemp info is available.
+    builder.dynamics.value().shrink_to_fit();
   }
 
   //==> Temperature:
@@ -593,7 +626,7 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
     //==> Fill AtomInfo list:
     builder.unitcell.value().atomlist.emplace();
     auto& bldr_atomlist = builder.unitcell.value().atomlist.value();
-    bldr_atomlist.reserve( elem2frac.size() );
+    //bldr_atomlist.reserve( elem2frac.size() );
     for ( auto& ef : elem2frac ) {
       IndexedAtomData iad = *index2iad.at(ef.first.get());
       nc_assert(iad.index==ef.first);
@@ -641,7 +674,8 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
         cfgvars.dcutoff = 0.5 * cfgvars.dcutoffup;
       }
       if (verbose)
-        std::cout<<"NCrystal::NCMATLoader::automatically selected dcutoff level "<< cfgvars.dcutoff << " Aa"<<cmt<<std::endl;
+        NCRYSTAL_MSG("NCMATLoader automatically selected dcutoff level "
+                     << cfgvars.dcutoff << " Aa"<<cmt);
     }
     if ( cfgvars.dcutoff != -1 ) {
       //HKL planes. Allow on-demand/delayed initialisation.
@@ -665,10 +699,8 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
 
   //==> Transfer any custom sections:
   if (!data.customSections.empty()) {
-    if (s_NCMATWarnOnCustomSections)
-      std::cout<<"NCrystal::NCMATLoader WARNING: Loading NCMAT data which has @CUSTOM_ section(s). This is OK if intended."<<std::endl;
-    else if (verbose)
-      std::cout<<"NCrystal::NCMATLoader:: Loaded NCMAT data has @CUSTOM_ section(s). This is OK if intended."<<std::endl;
+    Msg::outputMsg("Loading NCMAT data which has @CUSTOM_ section(s). This is OK if intended.",
+                   (s_NCMATWarnOnCustomSections?MsgType::Warning:MsgType::Info));
     builder.customData = std::move(data.customSections);
   }
 

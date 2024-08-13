@@ -10,7 +10,7 @@ functions can be used with numpy arrays in addition to scalar numbers.
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2023 NCrystal developers                                   ##
+##  Copyright 2015-2024 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -28,6 +28,8 @@ functions can be used with numpy arrays in addition to scalar numbers.
 
 #some constants (NB: Copied here from NCMath.hh - must keep synchronized!!):
 
+from ._numpy import _ensure_numpy, _np
+
 constant_c  = 299792458e10#  speed of light in Aa/s
 constant_dalton2kg =  1.660539040e-27#  amu to kg
 constant_dalton2eVc2 =  931494095.17#  amu to eV/c^2
@@ -41,9 +43,8 @@ k2Pi       = 6.2831853071795864769252867665590057683943388
 k4Pidiv100 = 0.125663706143591729538505735331180115367886776
 k4PiSq     = 39.4784176043574344753379639995046045412547976
 kInf       = float('inf')
-from ._numpy import _ensure_numpy, _np
 
-_as_np_array = ( lambda x : _np.asfarray(x,dtype=float) ) if _np else ( lambda *a,**kwargs : _ensure_numpy() )
+_as_np_array = ( lambda x : _np.asarray(x,dtype=float) ) if _np else ( lambda *a,**kwargs : _ensure_numpy() )
 def wlsq2ekin( wlsq ):
     """Neutron wavelength squared (angstrom^2) to energy (eV)"""
     if hasattr(wlsq,'__len__'):

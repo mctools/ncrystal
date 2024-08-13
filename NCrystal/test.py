@@ -8,7 +8,7 @@ Module which is intended to trigger the built-in test from the command line by r
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
 ##                                                                            ##
-##  Copyright 2015-2023 NCrystal developers                                   ##
+##  Copyright 2015-2024 NCrystal developers                                   ##
 ##                                                                            ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");           ##
 ##  you may not use this file except in compliance with the License.          ##
@@ -24,7 +24,7 @@ Module which is intended to trigger the built-in test from the command line by r
 ##                                                                            ##
 ################################################################################
 
-from ._testimpl import *
+from ._testimpl import test, test_cmdline, test_cmake, test_extra, test_all
 
 if __name__ == '__main__':
     from . import _testimpl as _tests
