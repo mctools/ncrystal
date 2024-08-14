@@ -483,6 +483,7 @@ namespace NCRYSTAL_NAMESPACE {
     static constexpr const char * unit() noexcept { return ""; }
     bool indicatesAutoDetect() const noexcept;
     static ThreadCount auto_detect() noexcept { return ThreadCount{9999}; }
+    ncconstexpr17 void validate() const noexcept {}
   };
 
   class NCRYSTAL_API DataSourceName {
