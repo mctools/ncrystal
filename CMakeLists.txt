@@ -437,6 +437,7 @@ add_library( NCrystal SHARED ${SRCS_NC} )
 if ( ncrystal_compiler_supports_nomatherrno_flag )
   target_compile_options( NCrystal PRIVATE -fno-math-errno )
 endif()
+
 if ( ncrystal_threads_lib )
   message( STATUS "Thread support will be enabled.")
   set( _ncrystal_actual_enable_threads ON )

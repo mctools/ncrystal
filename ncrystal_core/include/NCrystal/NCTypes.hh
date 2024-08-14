@@ -470,7 +470,6 @@ namespace NCRYSTAL_NAMESPACE {
   public:
     //Thread counts (for specifying number of multiprocessing threads). Values
     //>= 9999 are used to indicate an automatic number of threads.
-
     using EncapsulatedValue::EncapsulatedValue;
     static constexpr const char * unit() noexcept { return ""; }
     bool indicatesAutoDetect() const noexcept;
