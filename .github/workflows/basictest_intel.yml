@@ -6,7 +6,11 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
+    #Note: August 2024 the intel oneapi compilers did not work on ubuntu-22.04
+    #or ubuntu-latest. This is most likely because these platforms are using a
+    #too new c++ library from gcc, for which the intel compilers have not been
+    #updated. Or something like that.
 
     steps:
     - name: Checkout
