@@ -126,7 +126,7 @@ namespace NCRYSTAL_NAMESPACE {
     AtomData() = delete;
     ~AtomData();
     bool operator <(const AtomData&) const;//Sorts roughly by (Z,A,description,uniqueid)
-     bool operator ==(const AtomData& o) const
+    bool operator ==(const AtomData& o) const
     {
       return !( *this < o ) && !( o < *this );
     }
