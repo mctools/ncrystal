@@ -64,6 +64,7 @@ installation_info = dict( libdir = '@NCrystal_relpath_BINDIR2LIBDIR@',
                           opt_embed_data = ( '@NCRYSTAL_ENABLE_DATA@' == 'EMBED' ),
                           opt_modify_rpath = cmakebool('@NCRYSTAL_MODIFY_RPATH@'),
                           opt_dynamic_plugins = not cmakebool('@_ncrystal_actual_disable_dynload@'),
+                          opt_threads = cmakebool('@_ncrystal_actual_enable_threads@'),
                           builtin_plugins='@NCrystal_builtin_plugin_names@',
                          )
 

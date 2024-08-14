@@ -39,6 +39,7 @@ bool_option( NCRYSTAL_ENABLE_CPACK     "Includes CPack and sets relevant meta-da
 bool_option( NCRYSTAL_QUIET            "Produce less status messages during configuration." "OFF" )
 bool_option( NCRYSTAL_SKIP_INSTALL     "Set to prevent any installation targets from being created." "OFF" )
 bool_option( NCRYSTAL_ENABLE_SOVERSION "Enable shared library SOVERSION." "ON" )
+enum_option( NCRYSTAL_ENABLE_THREADS   "Enable multithread usage (multithread safety is not affected by this)." "IFAVAILABLE" "ON" "OFF" )
 
 string_option(
   NCRYSTAL_BUILTIN_PLUGINS

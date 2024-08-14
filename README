@@ -169,7 +169,7 @@ and the NCrystal::G4NCrystal target added as a dependency for downstream code:
 
 This will of course fail if NCrystal was not build with Geant4 support
 (i.e. configured with -DNCRYSTAL_ENABLE_GEANT4=ON). Note: currently (summer
-2023), NCrystal conda and pip packages are built *without* Geant4 support.
+2024), NCrystal conda and pip packages are built *without* Geant4 support.
 
 
 

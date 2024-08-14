@@ -124,6 +124,7 @@ if ( DEFINED NCRYSTAL_SETUPPY_MODE )
     _ncrystal_option_force( NCRYSTAL_ENABLE_SETUPSH "OFF" )
     _ncrystal_option_force( NCRYSTAL_ENABLE_DATA "EMBED" )#otherwise the c++ library can not locate the files
     _ncrystal_option_force( NCRYSTAL_ENABLE_GEANT4 "OFF" )#plan is to move out of ncrystal repo
+    _ncrystal_option_force( NCRYSTAL_ENABLE_THREADS "ON" )
     _ncrystal_option_force( NCRYSTAL_SKIP_PYMODINST "ON" )
     _ncrystal_option_force( CMAKE_INSTALL_LIBDIR "NCrystal/ncrystal_pyinst_data/lib" )
     _ncrystal_option_force( CMAKE_INSTALL_INCLUDEDIR "NCrystal/ncrystal_pyinst_data/include" )
@@ -418,13 +419,33 @@ endfunction()
 #Can we use -fno-math-errno when building the NCrystal library?
 check_cxx_compiler_flag( -fno-math-errno ncrystal_compiler_supports_nomatherrno_flag )
 
+set( ncrystal_threads_lib OFF )
+if ( NOT NCRYSTAL_ENABLE_THREADS STREQUAL "OFF" )
+  #set(THREADS_PREFER_PTHREAD_FLAG ON)
+  find_package(Threads)
+  if( Threads_FOUND )
+    set( ncrystal_threads_lib "Threads::Threads" )
+  else()
+    if ( NOT NCRYSTAL_ENABLE_THREADS STREQUAL "IFAVAILABLE" )
+      message( FATAL_ERROR "NCRYSTAL_ENABLE_THREADS set to ON but failed to enable thread support (set to IFAVAILABLE or OFF to proceed without it)." )
+    endif()
+  endif()
+endif()
+
 #NCrystal library and header files, including optional built-in modules if enabled:
 add_library( NCrystal SHARED ${SRCS_NC} )
 if ( ncrystal_compiler_supports_nomatherrno_flag )
   target_compile_options( NCrystal PRIVATE -fno-math-errno )
 endif()
-
-
+if ( ncrystal_threads_lib )
+  message( STATUS "Thread support will be enabled.")
+  set( _ncrystal_actual_enable_threads ON )
+  target_link_libraries( NCrystal PRIVATE ${ncrystal_threads_lib} )
+else()
+  message( STATUS "Thread support will not be enabled.")
+  set( _ncrystal_actual_enable_threads OFF )
+  target_compile_definitions( NCrystal PRIVATE NCRYSTAL_DISABLE_THREADS )
+endif()
 
 if ( NCRYSTAL_ENABLE_SOVERSION AND NOT UNIX )
   message( WARNING "NCRYSTAL_ENABLE_SOVERSION ignored on non-unix platforms for now." )
