@@ -58,7 +58,7 @@ namespace NCRYSTAL_NAMESPACE {
       ThreadPool::ThreadPool& getTP() {
         static ThreadPool::ThreadPool tp;
         return tp;
-      };
+      }
       using voidfct_t = std::function<void()>;
       voidfct_t detail_get_pending_job()
       {
