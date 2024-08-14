@@ -138,6 +138,7 @@ namespace NCRYSTAL_NAMESPACE {
     //Neutron wavelength in angstrom
   public:
     using EncapsulatedValue::EncapsulatedValue;
+    NeutronWavelength() = default;//for VSCode
     static constexpr const char * unit() noexcept { return "Aa"; }
     //Automatic conversions from/to energy (not constexpr, since std::sqrt is not constexpr):
     NeutronWavelength(NeutronEnergy) noexcept;
@@ -151,6 +152,7 @@ namespace NCRYSTAL_NAMESPACE {
   public:
     //Neutron kinetic energy in electronvolt
     using EncapsulatedValue::EncapsulatedValue;
+    NeutronEnergy() = default;//For VSCode
     static constexpr const char * unit() noexcept { return "eV"; }
     //Automatic conversions from/to wavelength:
     constexpr NeutronEnergy(NeutronWavelength) noexcept;
@@ -213,6 +215,7 @@ namespace NCRYSTAL_NAMESPACE {
   public:
     //Bound cross section value (usually a material-specific constant).
     using EncapsulatedValue::EncapsulatedValue;
+    SigmaBound() = default;//for VSCode
     static constexpr const char * unit() noexcept { return "barn"; }
     constexpr SigmaBound( SigmaFree, AtomMass ) noexcept;
     constexpr SigmaFree free( AtomMass am ) const noexcept;
@@ -223,7 +226,7 @@ namespace NCRYSTAL_NAMESPACE {
   public:
     //Free-limit cross section value (usually a material-specific constant).
     using EncapsulatedValue::EncapsulatedValue;
-    constexpr SigmaFree() noexcept : EncapsulatedValue{0.0} {}//line here for gcc4.8 @ centos7
+    constexpr SigmaFree() noexcept : EncapsulatedValue{0.0} {}//line here for VSCode and gcc4.8 @ centos7
     static constexpr const char * unit() noexcept { return "barn"; }
     constexpr SigmaFree( SigmaBound, AtomMass ) noexcept;
     constexpr SigmaBound bound( AtomMass am ) const noexcept;
@@ -243,6 +246,7 @@ namespace NCRYSTAL_NAMESPACE {
   public:
     //Material density in g/cm3.
     using EncapsulatedValue::EncapsulatedValue;
+    Density() = default;//for VSCode
     static constexpr const char * unit() noexcept { return "g/cm3"; }
     Density( NumberDensity, AtomMass averageAtomMass );
     void validate() const;
@@ -252,6 +256,7 @@ namespace NCRYSTAL_NAMESPACE {
   public:
     //Material number density in atoms per Aa^3.
     using EncapsulatedValue::EncapsulatedValue;
+    NumberDensity() = default;//for VSCode
     static constexpr const char * unit() noexcept { return "atoms/Aa^3"; }
     NumberDensity( Density, AtomMass averageAtomMass );
     void validate() const;
@@ -301,6 +306,7 @@ namespace NCRYSTAL_NAMESPACE {
     //"delta-rho"). This is an absolute difference between two scattering length
     //densities.
     using EncapsulatedValue::EncapsulatedValue;
+    SLDContrast() = default;//for VSCode
     static constexpr const char * unit() noexcept { return "10^-6/Aa^2"; }
     void validate() const;
     constexpr SLDContrast(ScatLenDensity rho1, ScatLenDensity rho2) noexcept;
@@ -314,6 +320,7 @@ namespace NCRYSTAL_NAMESPACE {
   public:
     //Mosaic spread (FWHM) in single crystals.
     using EncapsulatedValue::EncapsulatedValue;
+    MosaicityFWHM() = default;//for VSCode
     constexpr MosaicityFWHM(MosaicitySigma) noexcept;
     ncnodiscard17 constexpr MosaicitySigma sigma() const noexcept;
     static constexpr const char * unit() noexcept { return "radians"; }
@@ -324,6 +331,7 @@ namespace NCRYSTAL_NAMESPACE {
   public:
     //Mosaic spread (std dev, i.e. Gaussian sigma parameter) in single crystals.
     using EncapsulatedValue::EncapsulatedValue;
+    MosaicitySigma() = default;//for VSCode
     constexpr MosaicitySigma(MosaicityFWHM) noexcept;
     ncnodiscard17 constexpr MosaicityFWHM fwhm() const noexcept;
     static constexpr const char * unit() noexcept { return "radians"; }
@@ -344,6 +352,7 @@ namespace NCRYSTAL_NAMESPACE {
     //NeutronWavelength, we keep the two uses in separate types with separate
     //default units (but we provide explicit conversion options):
     using EncapsulatedValue::EncapsulatedValue;
+    Length() = default;//for VSCode
     static constexpr const char * unit() noexcept { return "m"; }
     void validate() const;
     //Automatic conversions from/to NeutronWavelengthwavelength:
