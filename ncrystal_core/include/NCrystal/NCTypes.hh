@@ -473,10 +473,8 @@ namespace NCRYSTAL_NAMESPACE {
 
     using EncapsulatedValue::EncapsulatedValue;
     static constexpr const char * unit() noexcept { return ""; }
-    bool indicatesAutoDetect() const noexcept { return this->get()>=9999; }
-
-    static ThreadCount auto_detect() noexcept
-    { return ThreadCount{9999}; }
+    bool indicatesAutoDetect() const noexcept;
+    static ThreadCount auto_detect() noexcept { return ThreadCount{9999}; }
   };
 
   class NCRYSTAL_API DataSourceName {
@@ -1023,6 +1021,11 @@ namespace NCRYSTAL_NAMESPACE {
   inline bool UCNMode::operator==( const UCNMode& o ) const
   {
     return this->mode == o.mode && this->threshold == o.threshold;
+  }
+
+  inline bool ThreadCount::indicatesAutoDetect() const noexcept
+  {
+    return this->get()>=9999;
   }
 
 }

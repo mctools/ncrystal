@@ -25,15 +25,17 @@ namespace NC = NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {
   namespace Msg {
-    namespace {
-      struct MsgHandler {
-        std::mutex mutex;
-        MsgHandlerFct_t handler;
-      };
-      MsgHandler& getMsgHandler()
-      {
-        static MsgHandler mh;
-        return mh;
+    namespace detail {
+      namespace {
+        struct MsgHandler {
+          std::mutex mutex;
+          MsgHandlerFct_t handler;
+        };
+        MsgHandler& getMsgHandler()
+        {
+          static MsgHandler mh;
+          return mh;
+        }
       }
     }
   }
@@ -41,7 +43,7 @@ namespace NCRYSTAL_NAMESPACE {
 
 void NC::Msg::setMsgHandler( MsgHandlerFct_t fct )
 {
-  auto& mh = getMsgHandler();
+  auto& mh = detail::getMsgHandler();
   NCRYSTAL_LOCK_GUARD(mh.mutex);
   mh.handler = std::move(fct);
 }
@@ -69,7 +71,7 @@ namespace NCRYSTAL_NAMESPACE {
   }
 }
 
-void NC::Msg::outputMsg( const char * msg, MsgType mt )
+void NC::Msg::detail::outputMsgImpl( const char * msg, MsgType mt )
 {
   auto& mh = getMsgHandler();
   NCRYSTAL_LOCK_GUARD(mh.mutex);//Protect in case of multithreading.

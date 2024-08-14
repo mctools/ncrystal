@@ -33,46 +33,67 @@ namespace NCRYSTAL_NAMESPACE {
     //proper capture of all output, but also makes output thread-safe due to
     //projection by a mutex).
 
-    void outputMsg( const char * msg, MsgType = MsgType::Info );
-
-    inline void outputMsg( const std::string& msg, MsgType mt = MsgType::Info )
-    {
-      outputMsg( msg.c_str(), mt );
-    }
-
-    namespace detail {
-      inline void outputMsgOSS( std::ostringstream&& msg_ss, MsgType mt )
-      {
-        outputMsg( msg_ss.str().c_str(), mt );
-      }
-    }
+    void outputMsg( const char * msg, MsgType mt = MsgType::Info );
+    void outputMsg( const std::string& msg, MsgType mt = MsgType::Info );
 
     //Set msg handler. An empty function indicates the default behaviour.
     using MsgHandlerFct_t = std::function<void(const char*,MsgType)>;
     void setMsgHandler( MsgHandlerFct_t = nullptr );
-  }
 
 #ifdef NCRYSTAL_MSG
 #  undef NCRYSTAL_MSG
 #endif
+#define NCRYSTAL_MSG(msg) ::NCRYSTAL_NAMESPACE::Msg::detail:: \
+  outputMsgMS( ::NCRYSTAL_NAMESPACE::Msg::detail::MsgStream() << msg, \
+               ::NCRYSTAL_NAMESPACE::MsgType::Info );
+
 #ifdef NCRYSTAL_WARN
 #  undef NCRYSTAL_WARN
 #endif
+#define NCRYSTAL_WARN(msg) ::NCRYSTAL_NAMESPACE::Msg::detail:: \
+  outputMsgMS( ::NCRYSTAL_NAMESPACE::Msg::detail::MsgStream() << msg, \
+               ::NCRYSTAL_NAMESPACE::MsgType::Warning );
+
 #ifdef NCRYSTAL_RAWOUT
 #  undef NCRYSTAL_RAWOUT
 #endif
-
-#define NCRYSTAL_MSG(msg) ::NCRYSTAL_NAMESPACE::Msg::detail:: \
-  outputMsgOSS( std::ostringstream() << msg, \
-                ::NCRYSTAL_NAMESPACE::MsgType::Info );
-#define NCRYSTAL_WARN(msg) ::NCRYSTAL_NAMESPACE::Msg::detail:: \
-  outputMsgOSS( std::ostringstream() << msg, \
-                ::NCRYSTAL_NAMESPACE::MsgType::Warning );
 #define NCRYSTAL_RAWOUT(msg) ::NCRYSTAL_NAMESPACE::Msg::detail:: \
-  outputMsgOSS( std::ostringstream() << msg, \
-                ::NCRYSTAL_NAMESPACE::MsgType::RawOutput );
+  outputMsgMS( ::NCRYSTAL_NAMESPACE::Msg::detail::MsgStream() << msg, \
+               ::NCRYSTAL_NAMESPACE::MsgType::RawOutput );
 
+  }
 }
 
+
+////////////////////////////
+// Inline implementations //
+////////////////////////////
+
+namespace NCRYSTAL_NAMESPACE {
+  namespace Msg {
+    //Note that some of the solutions here were inspired by discussions at
+    //https://stackoverflow.com/questions/303562.
+    namespace detail {
+      void outputMsgImpl( const char * msg, MsgType mt );
+      struct MsgStream {
+        std::ostringstream thestream;
+        template<class T>
+        MsgStream& operator<<(T const& v) { thestream << v; return *this; }
+      };
+      inline void outputMsgMS( MsgStream& ms, MsgType mt )
+      {
+        outputMsgImpl( ms.thestream.str().c_str(), mt );
+      }
+    }
+    inline void outputMsg( const char * msg, MsgType mt )
+    {
+      detail::outputMsgImpl( msg, mt );
+    }
+    inline void outputMsg( const std::string& msg, MsgType mt )
+    {
+      detail::outputMsgImpl( msg.c_str(), mt );
+    }
+  }
+}
 
 #endif
