@@ -39,6 +39,14 @@ jobs:
       shell: cmd
       run: python3 -m pip install numpy
 
+    - name: test NCrystal python module
+      shell: cmd
+      run: python3 -c "import NCrystal; NCrystal.test()"
+
+    - name: test NCrystal python module 2
+      shell: cmd
+      run: python3 -c "import NCrystal as n; mat=n.load('Al_sg225.ncmat;temp=350K'); mat.dump()"
+
 ##    - name: Setup tmate session for manual debugging
 ##      uses: mxschmitt/action-tmate@v3
 ##      if: always()
