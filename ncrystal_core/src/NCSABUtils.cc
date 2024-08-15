@@ -522,8 +522,8 @@ void NC::SABUtils::activeGridRanges( const NC::SABData& data,
     //simply register an empty range:
     nc_assert( itUpp < alphaGrid.end() );
     nc_assert( (aupp==alow) ? (itLow <= itUpp) : (itLow < itUpp) );
-    out_alpharanges.emplace_back( std::distance(itBegin,itLow),
-                                  std::distance(itBegin,itUpp) );
+    out_alpharanges.emplace_back( static_cast<std::uint16_t>(std::distance(itBegin,itLow)),
+                                  static_cast<std::uint16_t>(std::distance(itBegin,itUpp)) );
 
   }
 

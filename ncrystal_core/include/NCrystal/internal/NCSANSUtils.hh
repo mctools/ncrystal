@@ -70,6 +70,7 @@ namespace NCRYSTAL_NAMESPACE {
     using EncapsulatedValue::EncapsulatedValue;
     static constexpr const char * unit() noexcept { return "barn/Aa^3"; }
     SANSScaleFactor( SLDContrast drho, NumberDensity nd, double phi );
+    ncconstexpr17 void validate() const noexcept {}
   };
 
   //////////////////////////////////////////////////////////////////////////////////
