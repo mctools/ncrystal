@@ -76,8 +76,10 @@ NC::PointwiseDist::PointwiseDist( VectD&& xvals, VectD&& yvals )
 std::pair<double,unsigned> NC::PointwiseDist::percentileWithIndex(double p ) const
 {
   nc_assert(p>=0.&&p<=1.0);
+  nc_assert(m_x.size()<std::numeric_limits<unsigned>::max());
   if(p==1.)
-    return std::pair<double,unsigned>(m_x.back(), m_x.size()-2);
+    return std::pair<double,unsigned>(m_x.back(),
+                                      static_cast<unsigned>(m_x.size()-2));
 
   std::size_t i = std::max<std::size_t>(std::min<std::size_t>(std::lower_bound(m_cdf.begin(), m_cdf.end(), p)-m_cdf.begin(),m_cdf.size()-1),1);
   nc_assert( i>0 && i < m_x.size() );
@@ -98,7 +100,8 @@ std::pair<double,unsigned> NC::PointwiseDist::percentileWithIndex(double p ) con
       zdx = ( 1 + 0.5 * e * ( e - 1.0 ) ) * c / a;
     }
   }
-  return std::pair<double,unsigned>( ncclamp(m_x[i-1] + zdx,m_x[i-1],m_x[i]), i-1 );
+  return std::pair<double,unsigned>( ncclamp(m_x[i-1] + zdx,m_x[i-1],m_x[i]),
+                                     static_cast<unsigned>( i-1 ) );
 }
 
 double NC::PointwiseDist::commulIntegral( double x ) const
