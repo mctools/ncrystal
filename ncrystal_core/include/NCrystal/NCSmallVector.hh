@@ -196,8 +196,13 @@ namespace NCRYSTAL_NAMESPACE {
     void push_back( TValue&& value );
     template<typename ...Args>
     TValue& emplace_back( Args&& ... );
-    void resize( size_type );//requires TValue to have noexcept default constructor
-    void resize( size_type, const TValue& value );//requires TValue to be noexcept copy constructible
+
+    //Calls to resize requires TValue to have noexcept default constructor (FIXME why for the second version???)
+    template<class U = TValue, typename = typename
+             std::enable_if<std::is_nothrow_default_constructible<U>::value>::type >
+    void resize( size_type );
+    void resize( size_type, const TValue& value );
+
     void pop_back() noexcept;
     void clear() noexcept;
 
@@ -796,6 +801,7 @@ namespace NCRYSTAL_NAMESPACE {
   }
 
   template<class TValue, std::size_t NSMALL, SVMode MODE>
+  template<class U, typename>
   inline void SmallVector<TValue,NSMALL,MODE>::resize( size_type n )
   {
     static_assert(std::is_nothrow_default_constructible<TValue>::value,
@@ -832,8 +838,8 @@ namespace NCRYSTAL_NAMESPACE {
   template<class TValue, std::size_t NSMALL, SVMode MODE>
   inline void SmallVector<TValue,NSMALL,MODE>::resize( size_type n, const TValue& val_to_copy )
   {
-    static_assert(std::is_nothrow_copy_constructible<TValue>::value,
-                  "Usage of SmallVector::resize(size_type,const TValue&) requires objects to be noexcept copy constructible.");
+    // static_assert(std::is_nothrow_copy_constructible<TValue>::value,
+    //               "Usage of SmallVector::resize(size_type,const TValue&) requires objects to be noexcept copy constructible.");
     if ( m_count >= n ) {
       Impl::resizeDown( this, n );
       return;
