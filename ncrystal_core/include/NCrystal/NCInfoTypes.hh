@@ -94,7 +94,9 @@ namespace NCRYSTAL_NAMESPACE {
     std::unique_ptr<ExplicitVals> explicitValues;
   };
 
-  typedef std::vector<HKLInfo> HKLList;
+  //Using small vector since VisualStudio's vector does not support move-only
+  //types:
+  using HKLList = SmallVector<HKLInfo,1>;
 
   class NCRYSTAL_API AtomIndex final : public EncapsulatedValue<AtomIndex,unsigned> {
   public:

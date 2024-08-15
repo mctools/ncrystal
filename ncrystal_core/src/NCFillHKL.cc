@@ -591,7 +591,6 @@ NC::HKLList NC::detail::calculateHKLPlanesWithSymEqRefl( const StructureInfo& st
   HKLList hkllist;
   if ( cache.whkl.empty() )
     return hkllist;//all elements have bcoh=0?
-  hkllist.reserve( 4096 );
 
   //We now conduct a brute-force loop over h,k,l indices, adding calculated info
   //in the following containers along the way. For reasons of symmetry we ignore
@@ -688,6 +687,9 @@ NC::HKLList NC::detail::calculateHKLPlanesWithSymEqRefl( const StructureInfo& st
                           " dcutoff = "<<cfg.dcutoff<<" Aa (you can try"
                           " to increase the target value with the dcutoff"
                           " parameter)");
+
+        if ( hkllist.size() == decltype(hkllist)::nsmall+1 )
+          hkllist.reserve_hint( 4096 );
 
         hkllist.emplace_back();
         auto& entry = hkllist.back();

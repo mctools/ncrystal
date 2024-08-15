@@ -479,12 +479,14 @@ NC::InfoPtr NC::Lazy::buildInfo( const LazyCfgVars& cfg, const ParsedLazyData& d
 
   HKLList out_hkllist;
   EqRefl sym(data.structInfo.spacegroup);
-  out_hkllist.reserve(512);
+  //  out_hkllist.reserve(512);
   double dsp_min(kInfinity);
   for ( auto& e : hkllist ) {
     double dsp = dspacingFromHKL( e.h, e.k, e.l, rec_lat );
     if ( dsp < cfg.dcutoff || dsp > cfg.dcutoffup )
       continue;
+    if ( out_hkllist.size() == decltype(out_hkllist)::nsmall+1 )
+      out_hkllist.reserve_hint( 512 );
     out_hkllist.emplace_back();
     auto& hi = out_hkllist.back();
     hi.dspacing = dsp;
