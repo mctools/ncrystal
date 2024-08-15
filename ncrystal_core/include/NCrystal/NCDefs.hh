@@ -223,13 +223,14 @@ namespace NCRYSTAL_NAMESPACE {
     uint64_t m_uid;
   };
 
-  //Very simply optional class for C++11, similar to std::optional from C++17,
-  //but with less features:
+  //Very optional class for C++11, similar to std::optional from C++17, but with
+  //less features:
 
   struct NCRYSTAL_API NullOptType {};
   constexpr const NullOptType NullOpt;
 
-  template<class T>
+  template<class T,
+           bool = (std::is_copy_constructible<T>::value&&std::is_copy_assignable<T>::value)>
   class NCRYSTAL_API Optional {
     static_assert(std::is_nothrow_destructible<T>::value,
                   "Optional can only keep objects with noexcept destructors");
@@ -264,9 +265,7 @@ namespace NCRYSTAL_NAMESPACE {
     template<class U>
     constexpr T value_or(U&& u) const;
 
-    //Copy/assign/move/destruct (moved-from Optional is always without value):
-    Optional( const Optional& ) noexcept(std::is_nothrow_copy_constructible<T>::value);
-    Optional& operator=( const Optional& ) noexcept(std::is_nothrow_copy_constructible<T>::value);
+    //move/assign/destruct (moved-from Optional is always without value):
     Optional( Optional&& ) noexcept(std::is_nothrow_move_constructible<T>::value);
     Optional& operator=( Optional&& ) noexcept(std::is_nothrow_move_constructible<T>::value);
     ~Optional() noexcept;
@@ -279,10 +278,84 @@ namespace NCRYSTAL_NAMESPACE {
     bool operator==( const Optional& o) const;
     bool operator!=( const Optional& o) const;
 
-  private:
+  protected:
     union { char m_dummy; T m_value; };
     bool m_hasValue;
   };
+
+  template <typename T>
+  class NCRYSTAL_API Optional<T, true> : public Optional<T, false>
+  {
+    //Specialisation adding copy semantics.
+
+    //It can be access as a reference to the corresponding SmallVector:
+    using base_t = Optional<T,false>;
+    base_t& asBase() noexcept { return *static_cast<Optional<T,false>*>(this); }
+    const base_t& asBase() const noexcept { return *static_cast<const Optional<T,false>*>(this); }
+  public:
+    static_assert(std::is_copy_constructible<T>::value,"");
+    static_assert(std::is_copy_assignable<T>::value,"");
+
+    using Optional<T, false>::Optional;
+
+    template<class TOther>
+    Optional& operator=( TOther&& o ) noexcept(std::is_nothrow_move_constructible<T>::value)
+    {
+      this->asBase() = std::move(o);
+      return *this;
+    }
+
+    Optional( const Optional& o ) noexcept(std::is_nothrow_copy_constructible<T>::value)
+      : Optional<T, false>()
+      {
+        if ( o.m_hasValue ) {
+          new(&this->m_value) T(o.m_value);
+          this->m_hasValue = true;
+        } else {
+          this->m_dummy = 0;
+          this->m_hasValue = false;
+        }
+      }
+    Optional& operator=( const Optional& o ) noexcept(std::is_nothrow_copy_constructible<T>::value)
+    {
+      if ( &o == this )
+        return *this;
+      this->reset();
+      if ( o.m_hasValue ) {
+        new(&this->m_value) T(o.m_value);
+        this->m_hasValue = true;
+      }
+      return *this;
+    }
+
+    //Re-expose potentially hidden methods or those with changed return types:
+    inline Optional& set( const Optional& o )
+    {
+      this->asBase().set(o.asBase());
+      return *this;
+    }
+
+    inline Optional& set( Optional&& o )
+    {
+      this->asBase().set(std::move(o.asBase()));
+      return *this;
+    }
+
+    constexpr Optional() noexcept : Optional<T,false>() {};
+    ~Optional() noexcept {}
+    Optional( Optional&& o ) noexcept(std::is_nothrow_move_constructible<T>::value)
+      : Optional<T,false>(std::move(o.asBase()))
+    {
+    }
+
+    Optional& operator=( Optional&& o ) noexcept(std::is_nothrow_move_constructible<T>::value)
+    {
+      this->asBase() = std::move(o.asBase());
+      return *this;
+    }
+
+  };
+
 
   //Pimpl idiom helper (move-only, automatic lifetime mgmt, const-correctness, flexible constructor):
   template<typename T>
@@ -988,55 +1061,54 @@ namespace NCRYSTAL_NAMESPACE {
   //ensures that no existing object is assumed to exist in m_value which would
   //be UB.
 
-  template<class T>
-  inline ncconstexpr17 Optional<T>::Optional(const T& t) noexcept(std::is_nothrow_copy_constructible<T>::value)
+  template<class T,bool bcopy>
+  inline ncconstexpr17 Optional<T,bcopy>::Optional(const T& t) noexcept(std::is_nothrow_copy_constructible<T>::value)
     : m_hasValue(true) { new(&m_value)T(t); }
 
-  template<class T>
-  inline ncconstexpr17 Optional<T>::Optional(T&& t) noexcept(std::is_nothrow_move_constructible<T>::value)
+  template<class T,bool bcopy>
+  inline ncconstexpr17 Optional<T,bcopy>::Optional(T&& t) noexcept(std::is_nothrow_move_constructible<T>::value)
     : m_hasValue(true) { new(&m_value)T(std::move(t)); }
 
-  template<class T>
-  inline Optional<T>::~Optional() noexcept
+  template<class T,bool bcopy>
+  inline Optional<T,bcopy>::~Optional() noexcept
   {
     if (m_hasValue)
       m_value.~T();
   }
 
-  template<class T>
-  inline ncconstexpr17 Optional<T>& Optional<T>::operator=( NullOptType ) noexcept
+  template<class T,bool bcopy>
+  inline ncconstexpr17 Optional<T,bcopy>& Optional<T,bcopy>::operator=( NullOptType ) noexcept
   {
     reset();
     return *this;
   }
+  // template<class T,bool bcopy>
+  // inline Optional<T,bcopy>::Optional( const Optional& o ) noexcept(std::is_nothrow_copy_constructible<T>::value)
+  // {
+  //   if ( o.m_hasValue ) {
+  //     new(&m_value) T(o.m_value);
+  //     m_hasValue = true;
+  //   } else {
+  //     m_dummy = 0;
+  //     m_hasValue = false;
+  //   }
+  // }
 
-  template<class T>
-  inline Optional<T>::Optional( const Optional& o ) noexcept(std::is_nothrow_copy_constructible<T>::value)
-  {
-    if ( o.m_hasValue ) {
-      new(&m_value) T(o.m_value);
-      m_hasValue = true;
-    } else {
-      m_dummy = 0;
-      m_hasValue = false;
-    }
-  }
+  // template<class T,bool bcopy>
+  // inline Optional<T>& Optional<T,bcopy>::operator=( const Optional& o ) noexcept(std::is_nothrow_copy_constructible<T>::value)
+  // {
+  //   if ( &o == this )
+  //     return *this;
+  //   reset();
+  //   if ( o.m_hasValue ) {
+  //     new(&m_value) T(o.m_value);
+  //     m_hasValue = true;
+  //   }
+  //   return *this;
+  // }
 
-  template<class T>
-  inline Optional<T>& Optional<T>::operator=( const Optional& o ) noexcept(std::is_nothrow_copy_constructible<T>::value)
-  {
-    if ( &o == this )
-      return *this;
-    reset();
-    if ( o.m_hasValue ) {
-      new(&m_value) T(o.m_value);
-      m_hasValue = true;
-    }
-    return *this;
-  }
-
-  template<class T>
-  inline Optional<T>::Optional( Optional&& o ) noexcept(std::is_nothrow_move_constructible<T>::value)
+  template<class T,bool bcopy>
+  inline Optional<T,bcopy>::Optional( Optional&& o ) noexcept(std::is_nothrow_move_constructible<T>::value)
   {
     if ( o.m_hasValue ) {
       new(&m_value)T(std::move(o.m_value));
@@ -1048,8 +1120,8 @@ namespace NCRYSTAL_NAMESPACE {
     }
   }
 
-  template<class T>
-  inline Optional<T>& Optional<T>::set( const Optional& o )
+  template<class T,bool bcopy>
+  inline Optional<T,bcopy>& Optional<T,bcopy>::set( const Optional& o )
   {
     if ( &o == this )
       return *this;
@@ -1061,8 +1133,8 @@ namespace NCRYSTAL_NAMESPACE {
     return *this;
   }
 
-  template<class T>
-  inline Optional<T>& Optional<T>::set( Optional&& o )
+  template<class T,bool bcopy>
+  inline Optional<T,bcopy>& Optional<T,bcopy>::set( Optional&& o )
   {
     if ( &o == this )
       return *this;
@@ -1075,8 +1147,8 @@ namespace NCRYSTAL_NAMESPACE {
     return *this;
   }
 
-  template<class T>
-  inline Optional<T>& Optional<T>::operator=( Optional&& o ) noexcept(std::is_nothrow_move_constructible<T>::value)
+  template<class T,bool bcopy>
+  inline Optional<T,bcopy>& Optional<T,bcopy>::operator=( Optional&& o ) noexcept(std::is_nothrow_move_constructible<T>::value)
   {
     if ( &o == this )
       return *this;
@@ -1089,9 +1161,9 @@ namespace NCRYSTAL_NAMESPACE {
     return *this;
   }
 
-  template<class T>
+  template<class T,bool bcopy>
   template<class TOther>
-  inline Optional<T>& Optional<T>::operator=( TOther&& to ) noexcept(std::is_nothrow_move_constructible<T>::value)
+  inline Optional<T,bcopy>& Optional<T,bcopy>::operator=( TOther&& to ) noexcept(std::is_nothrow_move_constructible<T>::value)
   {
     reset();
     new(&m_value)T(std::forward<TOther>(to));
@@ -1099,16 +1171,16 @@ namespace NCRYSTAL_NAMESPACE {
     return *this;
   }
 
-  template<class T>
+  template<class T,bool bcopy>
   template<typename... Args>
-  inline void Optional<T>::emplace( Args&& ...args ) {
+  inline void Optional<T,bcopy>::emplace( Args&& ...args ) {
     reset();
     new(&m_value) T(std::forward<Args>(args)...);//wanted to use curly braces, but got unexpected narrowing errors with Optional<std::string>(5,'c')
     m_hasValue = true;
   }
 
-  template<class T>
-  inline void Optional<T>::reset() noexcept {
+  template<class T,bool bcopy>
+  inline void Optional<T,bcopy>::reset() noexcept {
     if (m_hasValue) {
       m_value.~T();
       m_hasValue = false;
@@ -1116,21 +1188,21 @@ namespace NCRYSTAL_NAMESPACE {
     }
   }
 
-  template<class T>
+  template<class T,bool bcopy>
   template<class U>
-  inline constexpr T Optional<T>::value_or(U&& u) const
+  inline constexpr T Optional<T,bcopy>::value_or(U&& u) const
   {
     return m_hasValue ? m_value : std::forward<U>(u);
   }
 
-  template<class T>
-  inline constexpr Optional<T>::Optional() noexcept : m_dummy(0), m_hasValue(false) {}
+  template<class T,bool bcopy>
+  inline constexpr Optional<T,bcopy>::Optional() noexcept : m_dummy(0), m_hasValue(false) {}
 
-  template<class T>
-  inline constexpr Optional<T>::Optional( NullOptType ) noexcept : m_dummy(0), m_hasValue(false) {}
+  template<class T,bool bcopy>
+  inline constexpr Optional<T,bcopy>::Optional( NullOptType ) noexcept : m_dummy(0), m_hasValue(false) {}
 
-  template<class T>
-  inline bool Optional<T>::operator<( const Optional& o) const
+  template<class T,bool bcopy>
+  inline bool Optional<T,bcopy>::operator<( const Optional& o) const
   {
     if ( has_value() && o.has_value() )
       return value() < o.value();
@@ -1138,16 +1210,16 @@ namespace NCRYSTAL_NAMESPACE {
     return !has_value() && o.has_value();
   }
 
-  template<class T>
-  inline bool Optional<T>::operator==( const Optional& o) const
+  template<class T,bool bcopy>
+  inline bool Optional<T,bcopy>::operator==( const Optional& o) const
   {
     if ( has_value() && o.has_value() )
       return value() == o.value();
     return has_value() == o.has_value();
   }
 
-  template<class T>
-  inline bool Optional<T>::operator!=( const Optional& o) const
+  template<class T,bool bcopy>
+  inline bool Optional<T,bcopy>::operator!=( const Optional& o) const
   {
     if ( has_value() && o.has_value() )
       return value() != o.value();
