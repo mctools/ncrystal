@@ -234,7 +234,7 @@ namespace NCRYSTAL_NAMESPACE {
     //invocation by requiring the SVCountConstruct trait. To be used like:
     //  SmallVector<MyType,4> myvect( SVCountConstruct, 20 );
     //  SmallVector<MyType,4> myvect( SVCountConstruct, 20, MyType("bla") )
-    SmallVector( SVCountConstruct_t, size_type count );
+    //SmallVector( SVCountConstruct_t, size_type count );
     SmallVector( SVCountConstruct_t, size_type count, const TValue& );
 
     //To make std::swap work (also has additional global functions inlined
@@ -893,12 +893,12 @@ namespace NCRYSTAL_NAMESPACE {
     assert(m_count==NSMALL);
   }
 
-  template<class TValue, std::size_t NSMALL, SVMode MODE>
-  inline SmallVector<TValue,NSMALL,MODE>::SmallVector( SVCountConstruct_t, size_type count )
-    : SmallVector()
-  {
-    resize(count);
-  }
+  // template<class TValue, std::size_t NSMALL, SVMode MODE>
+  // inline SmallVector<TValue,NSMALL,MODE>::SmallVector( SVCountConstruct_t, size_type count )
+  //   : SmallVector()
+  // {
+  //   resize(count);
+  // }
 
   template<class TValue, std::size_t NSMALL, SVMode MODE>
   inline SmallVector<TValue,NSMALL,MODE>::SmallVector( SVCountConstruct_t, size_type count, const TValue& value )
