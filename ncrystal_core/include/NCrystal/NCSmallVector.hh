@@ -265,6 +265,8 @@ namespace NCRYSTAL_NAMESPACE {
   {
   public:
     using SmallVector<TValue,NSMALL,MODE>::SmallVector;
+    constexpr SmallVector_IC() noexcept {}
+    ~SmallVector_IC() noexcept {}
     SmallVector_IC( SmallVector_IC&& ) noexcept;
     SmallVector_IC& operator=( SmallVector_IC&& ) noexcept;
     SmallVector_IC( const SmallVector_IC& );
@@ -998,6 +1000,8 @@ namespace NCRYSTAL_NAMESPACE {
   static_assert(std::is_copy_assignable<SmallVector_IC<int,1>>::value,"");
   static_assert(!std::is_copy_constructible<SmallVector<int,1>>::value,"");
   static_assert(!std::is_copy_assignable<SmallVector<int,1>>::value,"");
+  static_assert(std::is_nothrow_default_constructible<SmallVector<int,1>>::value,"");
+  static_assert(std::is_nothrow_default_constructible<SmallVector_IC<int,1>>::value,"");
 }
 
 namespace std {
