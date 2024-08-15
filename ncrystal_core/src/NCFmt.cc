@@ -155,9 +155,10 @@ std::pair<unsigned,unsigned> NC::detectSimpleRationalNumbers(double value)
     if (value==1.0)
       return { 1, 1 };
     double intpart;
-    if ( modf(value, &intpart) != 0.0 || intpart > 1.0e9 )
+    if ( std::modf(value, &intpart) != 0.0
+         || intpart >= (double)std::numeric_limits<unsigned>::max() )
       return {0,0};
-    return { static_cast<double>(intpart), 1 };
+    return { static_cast<unsigned>(intpart), unsigned(1) };
   }
   //ok, value is in (0,1).
   static std::map<uint64_t,std::pair<unsigned,unsigned>> s_cache = []()
@@ -165,10 +166,12 @@ std::pair<unsigned,unsigned> NC::detectSimpleRationalNumbers(double value)
     std::map<uint64_t,std::pair<unsigned,unsigned>> result;
     for (unsigned b = 2; b <= 64; ++b) {
       for (unsigned a = 1; a < b; ++a) {
-        uint64_t key = static_cast<uint64_t>((double(a)/b)*1e18);//fits in uint64_t since value of a/b is in (0,1)
+        uint64_t key = static_cast<uint64_t>((double(a)/b)*1e18);
+        //NB: key fits in uint64_t since value of a/b is in (0,1)
         auto it = result.find(key);
         if (it==result.end())
-          result[key] = { a,b };//only insert if not there (because if a1/b1 = a2/b2, we prefer the smallest b-value).
+          result[key] = { a,b };//only insert if not there (because if a1/b1 =
+                                //a2/b2, we prefer the smallest b-value).
       }
     }
     return result;
