@@ -113,7 +113,16 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
     import ctypes
     from ._numpy import _np, _ensure_numpy
 
-    _nclib = ctypes.CDLL(nclib_filename)
+    try:
+        _nclib = ctypes.CDLL(nclib_filename)
+    except TypeError:
+        _nclib = None
+
+    if _nclib is None:
+        #For some reason, on windows we get a TypeError and must pass a string
+        #rather than a pathlib object:
+        _nclib = ctypes.CDLL(str(nclib_filename))
+
     _int,_intp,_uint,_uintp,_dbl,_dblp,_cstr,_voidp = (ctypes.c_int, ctypes.POINTER(ctypes.c_int),
                                                        ctypes.c_uint,ctypes.POINTER(ctypes.c_uint), ctypes.c_double,
                                                        ctypes.POINTER(ctypes.c_double), ctypes.c_char_p, ctypes.c_void_p)
