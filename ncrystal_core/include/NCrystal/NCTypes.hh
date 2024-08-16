@@ -550,7 +550,7 @@ namespace NCRYSTAL_NAMESPACE {
       }
       enum class VarId : std::uint32_t;//only fwd decl here
       using VarBuf = ImmutableBuffer<varbuf_calc::buf_minsize,varbuf_calc::buf_align,VarId>;
-      using VarBufVector = SmallVector<VarBuf,7,SVMode::FASTACCESS_IMPLICITCOPY>;
+      using VarBufVector = SmallVector_IC<VarBuf,7,SVMode::FASTACCESS>;
     }
 
     class CfgManip;

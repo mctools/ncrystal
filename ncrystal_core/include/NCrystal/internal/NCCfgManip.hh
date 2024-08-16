@@ -73,7 +73,7 @@ namespace NCRYSTAL_NAMESPACE {
 
     using TopLvlVarList = SmallVector<TopLvlVar,6>;
     using VarIdFilter = std::function<bool(VarId)>;
-    using VarIdList = SmallVector<VarId,8,SVMode::FASTACCESS_IMPLICITCOPY>;
+    using VarIdList = SmallVector_IC<VarId,8>;
 
     class CfgManip {
     public:

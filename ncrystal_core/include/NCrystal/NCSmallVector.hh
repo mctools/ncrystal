@@ -29,11 +29,43 @@
 
 namespace NCRYSTAL_NAMESPACE {
 
-  //Mode (see below):
-  enum class SVMode { FASTACCESS,
-                      LOWFOOTPRINT,
-                      FASTACCESS_IMPLICITCOPY,
-                      LOWFOOTPRINT_IMPLICITCOPY };
+  //This file provides two container classes, SmallVector and SmallVector_IC.
+  //
+  //SmallVector is a generic vector class similar in many ways to std::vector,
+  //but using small buffer optimisation to keep contained objects on the
+  //SmallVector itself when the number of such objects is <= NSMALL, thus
+  //avoiding an allocation and a level of indirection at the expense of a larger
+  //memory footprint. If more elements are added to the vector, it will fall
+  //back to dynamically allocated heap storage. In any case, the elements are
+  //kept in contiguous memory.
+  //
+  //For obvious reasons, the memory footprint of the class will be
+  //NSMALL*sizeof(TValue) in addition to a small constant overhead which is
+  //typically 8 bytes or 16 bytes depending amongst other things on the MODE and
+  //the alignment requirements of TValue.
+  //
+  //If a SmallVector is determined to have fast access, a data member is added
+  //which caches access to the beginning of the storage (local or heap), meaning
+  //that access will be as fast as it is for std::vector (or better, due to the
+  //better cache-locality when size()<=NSMALL). If MODE is LOWFOOTPRINT, fast
+  //access is only enabled if the additional data member does not actually
+  //increase the memory footprint (which it will unless TValue has very high
+  //alignment requirements). If mode is FASTACCESS, fast access is always
+  //enabled as the name implies. If fast access is not added, the consequence is
+  //that each call to data(), begin(), operator[], etc. requires a test and
+  //branch. This is probably not a big issues for most applications, but can be
+  //worked around by only minimizing the number of such calls. E.g. instead of
+  //"for (size_t i = 0; i<v.size();++i) v[i] =...;" instead do "auto
+  //it=v.begin(); auto itE = it+v.size(); for (;it!=itE;++it) *it = ...;
+  //
+  //To additionally ensure good efficiency, contained TValue objects are
+  //required to be noexcept-move-constructible and noexcept-destructible.
+  //
+  //The SmallVector_IC class is for all practical purposes identical to the
+  //SmallVector class, with the only difference being that it is also implicitly
+  //copyable (hence the suffix _IC).
+
+  enum class SVMode : std::uint32_t { FASTACCESS=0, LOWFOOTPRINT=1 };
 
   namespace detail {
     class SV_CacheBegin;
@@ -47,43 +79,13 @@ namespace NCRYSTAL_NAMESPACE {
   struct SVCountConstruct_t {};
   constexpr SVCountConstruct_t SVCountConstruct = SVCountConstruct_t{};
 
-  template<class TValue, std::size_t NSMALL, SVMode MODE = SVMode::FASTACCESS>
-  class NCRYSTAL_API SmallVector final : private MoveOnly,
-                                         protected std::conditional<detail::SVUseFast<TValue,MODE>(),
-                                                                    detail::SV_CacheBegin,
-                                                                    detail::SV_Empty>::type
-  {
-    //Generic vector class similar in many ways to std::vector, but using small
-    //buffer optimisation to keep contained objects on the SmallVector itself
-    //when the number of such objects is <= NSMALL, thus avoiding an allocation
-    //+ a level of indirection at the expense of a larger memory footprint. If
-    //more elements are added to the vector, it will fall back to dynamically
-    //allocated heap storage. In any case, the elements are kept in contiguous
-    //memory.
-    //
-    //For obvious reasons, the memory footprint of the class will be
-    //NSMALL*sizeof(TValue) + a small constant overhead which is typically 8
-    //bytes or 16 bytes depending amongst other things on the MODE and the
-    //alignment requirements of TValue.
-    //
-    //If a SmallVector is determined to have fast access, a data member is added
-    //which caches access to the beginning of the storage (local or heap),
-    //meaning that access will be as fast as it is for std::vector (or better,
-    //due to the better cache-locality when size()<=NSMALL). If MODE is
-    //LOWFOOTPRINT*, fast access is only enabled if the additional data member
-    //does not actually increase the memory footprint (which it will unless
-    //TValue has very high alignment requirements). If mode is FASTACCESS*, fast
-    //access is always enabled as the name implies. If fast access is not added,
-    //the consequence is that each call to data(), begin(), operator[],
-    //etc. requires a test and branch. This is probably not a big issues for
-    //most applications, but can be worked around by only minimizing the number
-    //of such calls. E.g. instead of "for (size_t i = 0; i<v.size();++i) v[i]
-    //=...;" instead do "auto it=v.begin(); auto itE = it+v.size(); for
-    //(;it!=itE;++it) *it = ...;
-    //
-    //To additionally ensure good efficiency, contained TValue objects are
-    //required to be noexcept-move-constructible and noexcept-destructible.
 
+  template<class TValue, std::size_t NSMALL, SVMode MODE = SVMode::FASTACCESS>
+  class NCRYSTAL_API SmallVector : private MoveOnly,
+                                   protected std::conditional<detail::SVUseFast<TValue,MODE>(),
+                                                              detail::SV_CacheBegin,
+                                                              detail::SV_Empty>::type
+  {
   public:
     typedef TValue element_type;
     typedef typename std::remove_cv< TValue >::type value_type;
@@ -97,6 +99,7 @@ namespace NCRYSTAL_NAMESPACE {
 
     using size_type = decltype(NSMALL);
     static constexpr size_type nsmall = NSMALL;
+    static constexpr SVMode mode = MODE;
 
     //TODO: Add custom iterators classes.
 
@@ -106,20 +109,29 @@ namespace NCRYSTAL_NAMESPACE {
     ~SmallVector() noexcept;
 
     ///////////////////////////////////////////////////////////////////////////
-    //Move semantics and swap. This is a very cheap pointer swap when size()>NSMALL
-    //(i.e. objects are on heap). If not, the contained objects must be moved
-    //(but this will be at most NSMALL objects, and no memory allocations will
-    //be required):
+    //Move semantics and swap. This is a very cheap pointer swap when
+    //size()>NSMALL (i.e. objects are on heap). If not, the contained objects
+    //must be moved (but this will be at most NSMALL objects, and no memory
+    //allocations will be required):
     SmallVector( SmallVector&& ) noexcept;
     SmallVector& operator=( SmallVector&& ) noexcept;
     void swap( SmallVector& ) noexcept;//also used by std::swap
 
-    //Comparison (first on size, then element-wise - this is different than std::vector):
+    ///////////////////////////////////////////////////////////////////////////
+    //No implict copies (if you need those, use the SmallVector_IC class
+    //instead):
+    SmallVector& operator=( const SmallVector& ) = delete;
+    SmallVector( const SmallVector& ) = delete;
+
+    ///////////////////////////////////////////////////////////////////////////
+    //Comparison (first on size, then element-wise - this is different than
+    //std::vector):
     bool operator==( const SmallVector& ) const noexcept;
     bool operator<( const SmallVector& ) const noexcept;
 
     ///////////////////////////////////////////////////////////////////////////
-    //Braced initializer list initialisation (requires TValue to be copy constructible):
+    //Braced initializer list initialisation (requires TValue to be copy
+    //constructible):
     SmallVector( std::initializer_list<TValue> );
 
     ///////////////////////////////////////////////////////////////////////////
@@ -133,17 +145,13 @@ namespace NCRYSTAL_NAMESPACE {
     template <class TIter>
     void setByMove( TIter it_begin, TIter it_end );
     template<class TOther>
-    SmallVector( SVAllowCopy_t, const TOther& );
+    SmallVector( SVAllowCopy_t, const TOther& o );
 
-    //Construct from other container (if not in IMPLICITCOPY mode, the argument
-    //must be an r-value which will be moved-from):
-    template<class TOther>
-    SmallVector( TOther&& );
-
-    //L-value copy/assignment can only be used in IMPLICITCOPY mode (protected
-    //by static asserts):
-    SmallVector& operator=( const SmallVector& );
-    SmallVector( const SmallVector& );
+    //Construct from other container (the argument must be an r-value which will
+    //be moved-from):
+    template<class TOther, typename = typename
+             std::enable_if<std::is_rvalue_reference<TOther&&>::value>::type >
+    SmallVector( TOther&& o ) : SmallVector() { setByMove(o.begin(),o.end()); }
 
     ////////////////////////////////////////////////////////////////////////////
     //Access contents. Note that if isFastAccess() is false (which happens when
@@ -229,7 +237,8 @@ namespace NCRYSTAL_NAMESPACE {
     SmallVector( SVCountConstruct_t, size_type count );
     SmallVector( SVCountConstruct_t, size_type count, const TValue& );
 
-    //To make std::swap work (also has additional global functions in .icc):
+    //To make std::swap work (also has additional global functions inlined
+    //below):
     friend void swap( SmallVector& a, SmallVector& b ) noexcept { a.swap(b); }
 
   private:
@@ -245,6 +254,25 @@ namespace NCRYSTAL_NAMESPACE {
       alignas(TValue) uint8_t small_data[ NSMALL * sizeof(TValue) ];
     } m_data;
     struct Impl;
+  };
+
+  /////////////////////////////////////////////////////////////////////////////
+  //We implement the SmallVector_IC class by inheritance from the SmallVector
+  //class, and then implementing copy/move as required:
+
+  template<class TValue, std::size_t NSMALL, SVMode MODE = SVMode::FASTACCESS>
+  class NCRYSTAL_API SmallVector_IC final : public SmallVector<TValue,NSMALL,MODE>
+  {
+  public:
+    using SmallVector<TValue,NSMALL,MODE>::SmallVector;
+    SmallVector_IC( SmallVector_IC&& ) noexcept;
+    SmallVector_IC& operator=( SmallVector_IC&& ) noexcept;
+    SmallVector_IC( const SmallVector_IC& );
+    SmallVector_IC& operator=( const SmallVector_IC& );
+    //It can be access as a reference to the corresponding SmallVector:
+    using base_t = SmallVector<TValue,NSMALL,MODE>;
+    base_t& asBase() noexcept;
+    const base_t& asBase() const noexcept;
   };
 
 }
@@ -279,9 +307,7 @@ namespace NCRYSTAL_NAMESPACE {
 
     template<class TValue, SVMode MODE>
     inline constexpr bool SVUseFast() {
-      return ( MODE==SVMode::FASTACCESS
-               || MODE==SVMode::FASTACCESS_IMPLICITCOPY
-               || sizeof(SVTestE<TValue>)==sizeof(SVTestCB<TValue>) );
+      return ( MODE==SVMode::FASTACCESS || sizeof(SVTestE<TValue>)==sizeof(SVTestCB<TValue>) );
     }
   }
 
@@ -586,54 +612,6 @@ namespace NCRYSTAL_NAMESPACE {
   inline constexpr SmallVector<TValue,NSMALL,MODE>::SmallVector() noexcept
     : Impl::SVBase(Impl::smallDataBegin(this))
   {
-  }
-
-  template<class TValue, std::size_t NSMALL, SVMode MODE>
-  template<class TOther>
-  inline SmallVector<TValue,NSMALL,MODE>::SmallVector( TOther&& o )
-    : SmallVector()
-  {
-
-    static_assert( MODE==SVMode::FASTACCESS_IMPLICITCOPY
-                   || MODE==SVMode::LOWFOOTPRINT_IMPLICITCOPY
-                   || std::is_rvalue_reference<TOther&&>(),
-                  "Constructor intended for moving from other container"
-                  " requires r-value reference argument (i.e. temporary"
-                  " or std::move'd). Provide SVAllowCopy as first argument"
-                  " if the intent is to simply copy over the values from"
-                  " the other container or change container MODE flag to"
-                   " *_IMPLICITCOPY.");
-
-    if ( std::is_rvalue_reference<TOther&&>() )
-      setByMove(o.begin(),o.end());
-    else
-      setByCopy(o.begin(),o.end());
-  }
-
-
-  template<class TValue, std::size_t NSMALL, SVMode MODE>
-  inline SmallVector<TValue,NSMALL,MODE>& SmallVector<TValue,NSMALL,MODE>::operator=( const SmallVector& o )
-  {
-    static_assert(    MODE==SVMode::FASTACCESS_IMPLICITCOPY
-                   || MODE==SVMode::LOWFOOTPRINT_IMPLICITCOPY,
-                   "Copy-assignment can only be used with SmallVector objects with"
-                   " *_IMPLICITCOPY MODE flag (but note that copy-construction and"
-                   " subsequent move-assignment is always possible by providing"
-                   " SVAllowCopy as first argument to the constructor).");
-    *this = SmallVector(SVAllowCopy,o);
-    return *this;
-  }
-
-  template<class TValue, std::size_t NSMALL, SVMode MODE>
-  inline SmallVector<TValue,NSMALL,MODE>::SmallVector( const SmallVector& o )
-    : SmallVector(SVAllowCopy,o)
-  {
-    static_assert(    MODE==SVMode::FASTACCESS_IMPLICITCOPY
-                   || MODE==SVMode::LOWFOOTPRINT_IMPLICITCOPY,
-                   "Copy-construction can only be used with SmallVector objects with"
-                   " *_IMPLICITCOPY MODE flag (but note that copy-construction is"
-                   " always possible by providing SVAllowCopy as first argument"
-                   " to the constructor).");
   }
 
   template<class TValue, std::size_t NSMALL, SVMode MODE>
@@ -977,6 +955,49 @@ namespace NCRYSTAL_NAMESPACE {
     return false;
   }
 
+  template<class TValue, std::size_t NSMALL, SVMode MODE>
+  SmallVector<TValue,NSMALL,MODE>& SmallVector_IC<TValue,NSMALL,MODE>::asBase() noexcept
+  {
+    return *static_cast<SmallVector<TValue,NSMALL,MODE>*>(this);
+  }
+
+  template<class TValue, std::size_t NSMALL, SVMode MODE>
+  const SmallVector<TValue,NSMALL,MODE>& SmallVector_IC<TValue,NSMALL,MODE>::asBase() const noexcept
+  {
+    return *static_cast<SmallVector<TValue,NSMALL,MODE>*>(this);
+  }
+
+  template<class TValue, std::size_t NSMALL, SVMode MODE>
+  inline SmallVector_IC<TValue,NSMALL,MODE>::SmallVector_IC( SmallVector_IC&& o ) noexcept
+    : SmallVector_IC()
+  {
+    this->asBase() = std::move(o.asBase());
+  }
+
+  template<class TValue, std::size_t NSMALL, SVMode MODE>
+  inline SmallVector_IC<TValue,NSMALL,MODE>& SmallVector_IC<TValue,NSMALL,MODE>::operator=( SmallVector_IC&& o ) noexcept
+  {
+    this->asBase() = std::move(o.asBase());
+    return *this;
+  }
+
+  template<class TValue, std::size_t NSMALL, SVMode MODE>
+  inline SmallVector_IC<TValue,NSMALL,MODE>& SmallVector_IC<TValue,NSMALL,MODE>::operator=( const SmallVector_IC& o )
+  {
+    *this = SmallVector_IC(SVAllowCopy,o);
+    return *this;
+  }
+
+  template<class TValue, std::size_t NSMALL, SVMode MODE>
+  inline SmallVector_IC<TValue,NSMALL,MODE>::SmallVector_IC( const SmallVector_IC& o )
+    : SmallVector_IC(SVAllowCopy,o)
+  {
+  }
+
+  static_assert(std::is_copy_constructible<SmallVector_IC<int,1>>::value,"");
+  static_assert(std::is_copy_assignable<SmallVector_IC<int,1>>::value,"");
+  static_assert(!std::is_copy_constructible<SmallVector<int,1>>::value,"");
+  static_assert(!std::is_copy_assignable<SmallVector<int,1>>::value,"");
 }
 
 namespace std {

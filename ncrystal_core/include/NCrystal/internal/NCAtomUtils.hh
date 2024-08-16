@@ -91,8 +91,8 @@ namespace NCRYSTAL_NAMESPACE {
   //This function only supports simple formulas like "Al2O3". In the future we
   //might add versions which would support fractions or isotopes.
 
-  using DecodedChemForm = SmallVector<std::pair<std::uint_least32_t,AtomSymbol>,
-                                      4,SVMode::FASTACCESS_IMPLICITCOPY>;
+  using DecodedChemForm = SmallVector_IC<std::pair<std::uint_least32_t,
+                                                   AtomSymbol>,4>;
   DecodedChemForm decodeSimpleChemicalFormula( std::string );
   Optional<DecodedChemForm> tryDecodeSimpleChemicalFormula( std::string );
   void streamSimpleChemicalFormula( std::ostream&, const DecodedChemForm& );

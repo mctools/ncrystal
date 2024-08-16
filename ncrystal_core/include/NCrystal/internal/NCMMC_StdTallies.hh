@@ -46,7 +46,7 @@ namespace NCRYSTAL_NAMESPACE {
       using hist_exitangle_t = Hists::HistBinData1D<
         Hists::AllowWeights::YES,
         Hists::OverflowHandling::Clamp,
-        SmallVector<double,1800,SVMode::FASTACCESS_IMPLICITCOPY> >;
+        SmallVector_IC<double,1800> >;
 
     private:
       using this_class_t = Tally_ExitAngle;

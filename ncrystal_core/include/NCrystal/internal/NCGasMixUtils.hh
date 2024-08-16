@@ -33,7 +33,7 @@ namespace NCRYSTAL_NAMESPACE {
     // Gas mixture requests (i.e. user specifications). As objects or strings. //
     /////////////////////////////////////////////////////////////////////////////
 
-    using ComponentList = SmallVector<std::pair<double,DecodedChemForm>,6,SVMode::FASTACCESS_IMPLICITCOPY>;
+    using ComponentList = SmallVector_IC<std::pair<double,DecodedChemForm>,6>;
 
     struct GasMixRequest {
 
@@ -73,7 +73,7 @@ namespace NCRYSTAL_NAMESPACE {
       //Components (always by molar fraction here):
       ComponentList components;
       //Atom data associated with each symbol in the component formulas:
-      SmallVector<std::pair<AtomSymbol,AtomDataSP>,8,SVMode::FASTACCESS_IMPLICITCOPY> atomDB;
+      SmallVector_IC<std::pair<AtomSymbol,AtomDataSP>,8> atomDB;
     };
 
     //Output GasMixResult (does not print atomDB field):
@@ -92,7 +92,7 @@ namespace NCRYSTAL_NAMESPACE {
     Pressure saturatedVapourPressureOfWater( Temperature );
 
     //Convert to atomic level molar fractions:
-    using AtomicComponentList = SmallVector<std::pair<double,AtomSymbol>,6,SVMode::FASTACCESS_IMPLICITCOPY>;
+    using AtomicComponentList = SmallVector_IC<std::pair<double,AtomSymbol>,6>;
     AtomicComponentList flattenComponentList( const GasMixResult& );
   }
   std::ostream& operator<<( std::ostream&, const GasMix::AtomicComponentList& );

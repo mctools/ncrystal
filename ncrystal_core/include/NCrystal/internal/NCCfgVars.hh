@@ -348,7 +348,7 @@ namespace NCRYSTAL_NAMESPACE {
       friend class Parser;
       //FactNameRequest( StrView );
       std::string m_specific;
-      SmallVector<std::string,2,SVMode::FASTACCESS_IMPLICITCOPY> m_excluded;//sorted list of excluded
+      SmallVector_IC<std::string,2> m_excluded;//sorted list of excluded
     };
 
     class FactNameRequest::Parser {

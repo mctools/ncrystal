@@ -341,7 +341,7 @@ namespace NCRYSTAL_NAMESPACE {
     //phases). As child phase Info objects might themselves be multiphase, the
     //method can be called more than once to navigate further into the Info
     //object tree of child phases:
-    using PhaseChoices = SmallVector<unsigned,4,SVMode::LOWFOOTPRINT_IMPLICITCOPY>;
+    using PhaseChoices = SmallVector_IC<unsigned,4,SVMode::LOWFOOTPRINT>;
     const PhaseChoices& getPhaseChoices() const;
     void appendPhaseChoices( const PhaseChoices& );
     void appendPhaseChoice( unsigned );

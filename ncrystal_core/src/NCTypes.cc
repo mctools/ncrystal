@@ -22,6 +22,33 @@
 
 namespace NC = NCrystal;
 
+namespace NCRYSTAL_NAMESPACE {
+  //As good a place as any for all of these SmallVector asserts (since we do not
+  //have NCSmallVector.cc):
+  static_assert(SmallVector_IC<int,1>::mode==SVMode::FASTACCESS,"");
+  static_assert(SmallVector_IC<int,1,SVMode::FASTACCESS>::mode==SVMode::FASTACCESS,"");
+  static_assert(SmallVector_IC<int,1,SVMode::LOWFOOTPRINT>::mode==SVMode::LOWFOOTPRINT,"");
+  static_assert(SmallVector<int,1>::mode==SVMode::FASTACCESS,"");
+  static_assert(SmallVector<int,1,SVMode::FASTACCESS>::mode==SVMode::FASTACCESS,"");
+  static_assert(SmallVector<int,1,SVMode::LOWFOOTPRINT>::mode==SVMode::LOWFOOTPRINT,"");
+  static_assert(std::is_copy_constructible<SmallVector_IC<int,1,SVMode::FASTACCESS>>::value,"");
+  static_assert(std::is_copy_constructible<SmallVector_IC<int,1,SVMode::LOWFOOTPRINT>>::value,"");
+  static_assert(std::is_copy_assignable<SmallVector_IC<int,1,SVMode::FASTACCESS>>::value,"");
+  static_assert(std::is_copy_assignable<SmallVector_IC<int,1,SVMode::LOWFOOTPRINT>>::value,"");
+  static_assert(!std::is_copy_constructible<SmallVector<int,1,SVMode::FASTACCESS>>::value,"");
+  static_assert(!std::is_copy_constructible<SmallVector<int,1,SVMode::LOWFOOTPRINT>>::value,"");
+  static_assert(!std::is_copy_assignable<SmallVector<int,1,SVMode::FASTACCESS>>::value,"");
+  static_assert(!std::is_copy_assignable<SmallVector<int,1,SVMode::LOWFOOTPRINT>>::value,"");
+  static_assert(std::is_move_constructible<SmallVector_IC<int,1,SVMode::FASTACCESS>>::value,"");
+  static_assert(std::is_move_constructible<SmallVector_IC<int,1,SVMode::LOWFOOTPRINT>>::value,"");
+  static_assert(std::is_move_assignable<SmallVector_IC<int,1,SVMode::FASTACCESS>>::value,"");
+  static_assert(std::is_move_assignable<SmallVector_IC<int,1,SVMode::LOWFOOTPRINT>>::value,"");
+  static_assert(std::is_move_constructible<SmallVector<int,1,SVMode::FASTACCESS>>::value,"");
+  static_assert(std::is_move_constructible<SmallVector<int,1,SVMode::LOWFOOTPRINT>>::value,"");
+  static_assert(std::is_move_assignable<SmallVector<int,1,SVMode::FASTACCESS>>::value,"");
+  static_assert(std::is_move_assignable<SmallVector<int,1,SVMode::LOWFOOTPRINT>>::value,"");
+}
+
 NC::DataSourceName::DataSourceName()
   : m_str( [](){ static auto s_def = makeSO<std::string>(); return s_def; }() )
 {
