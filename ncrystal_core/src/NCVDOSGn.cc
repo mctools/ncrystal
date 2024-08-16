@@ -112,6 +112,7 @@ struct NC::VDOSGn::Impl {
                                               //precalculate next orders
                                               //concurrently and same them here.
   Optional<FactoryJobs> m_mt_jobs;
+  static_assert( std::is_nothrow_default_constructible<Optional<VDOSGnData>>::value, "");
   SmallVector<Optional<VDOSGnData>,10> m_mt_buffer;
   TruncAndThinningParams m_ttpars;
   SmallVector<FastConvolve,4> m_fastConvolve;

@@ -70,6 +70,7 @@ namespace NCRYSTAL_NAMESPACE {
   namespace detail {
     class SV_CacheBegin;
     class SV_Empty;
+    struct SV_Dummy {};
     template<class TValue, SVMode MODE>
     inline constexpr bool SVUseFast();
   }
@@ -196,15 +197,24 @@ namespace NCRYSTAL_NAMESPACE {
     void push_back( TValue&& value );
     template<typename ...Args>
     TValue& emplace_back( Args&& ... );
+    void pop_back() noexcept;
+    void clear() noexcept;
 
-    //Calls to resize requires TValue to have noexcept default constructor (FIXME why for the second version???)
+    //Calls to resize(n) requires TValue to have noexcept default construction
+    //or noexcept copy construction, while calls to resize(n,val) needs noexcept
+    //copy construction:
     template<class U = TValue, typename = typename
              std::enable_if<std::is_nothrow_default_constructible<U>::value>::type >
     void resize( size_type );
-    void resize( size_type, const TValue& value );
 
-    void pop_back() noexcept;
-    void clear() noexcept;
+    template<class U = TValue, typename = typename
+             std::enable_if<(!std::is_nothrow_default_constructible<U>::value
+                             &&std::is_nothrow_copy_constructible<U>::value)>::type >
+    void resize( size_type n, detail::SV_Dummy * = nullptr );
+
+    template<class U = TValue, typename = typename
+             std::enable_if<std::is_nothrow_copy_constructible<U>::value>::type >
+    void resize( size_type, const TValue& value );
 
     ///////////////////////////////////////////////////////////////////////////
     //Capacity modification methods. By design, the capacity is always NSMALL
@@ -802,14 +812,22 @@ namespace NCRYSTAL_NAMESPACE {
 
   template<class TValue, std::size_t NSMALL, SVMode MODE>
   template<class U, typename>
+  inline void SmallVector<TValue,NSMALL,MODE>::resize( size_type n,
+                                                       detail::SV_Dummy * )
+  {
+    n == m_count+1 ? this->emplace_back() : this->resize( n, TValue() );
+  }
+
+  template<class TValue, std::size_t NSMALL, SVMode MODE>
+  template<class U, typename>
   inline void SmallVector<TValue,NSMALL,MODE>::resize( size_type n )
   {
-    static_assert(std::is_nothrow_default_constructible<TValue>::value,
-                  "Usage of SmallVector::resize(size_type) requires objects to be noexcept default constructible.");
+    static_assert( std::is_nothrow_default_constructible<TValue>::value, "" );
     if ( m_count >= n ) {
       Impl::resizeDown( this, n );
       return;
     }
+
     //Must add new default-constructed elements at the end.
     if ( n <= capacity() ) {
       //In existing capacity (since TValue is_nothrow_default_constructible,
@@ -836,10 +854,11 @@ namespace NCRYSTAL_NAMESPACE {
   }
 
   template<class TValue, std::size_t NSMALL, SVMode MODE>
-  inline void SmallVector<TValue,NSMALL,MODE>::resize( size_type n, const TValue& val_to_copy )
+  template<class U, typename>
+  inline void SmallVector<TValue,NSMALL,MODE>::resize( size_type n,
+                                                       const TValue& val_to_copy )
   {
-    // static_assert(std::is_nothrow_copy_constructible<TValue>::value,
-    //               "Usage of SmallVector::resize(size_type,const TValue&) requires objects to be noexcept copy constructible.");
+    static_assert(std::is_nothrow_copy_constructible<TValue>::value,"");
     if ( m_count >= n ) {
       Impl::resizeDown( this, n );
       return;
@@ -898,13 +917,6 @@ namespace NCRYSTAL_NAMESPACE {
     this->setByMove( old_heap.begin(), std::next(old_heap.begin(),NSMALL) );
     assert(m_count==NSMALL);
   }
-
-  // template<class TValue, std::size_t NSMALL, SVMode MODE>
-  // inline SmallVector<TValue,NSMALL,MODE>::SmallVector( SVCountConstruct_t, size_type count )
-  //   : SmallVector()
-  // {
-  //   resize(count);
-  // }
 
   template<class TValue, std::size_t NSMALL, SVMode MODE>
   inline SmallVector<TValue,NSMALL,MODE>::SmallVector( SVCountConstruct_t, size_type count, const TValue& value )
