@@ -53,9 +53,9 @@ namespace NCRYSTAL_NAMESPACE {
 #endif
 
 #ifndef NDEBUG
-#  define NCRYSTAL_DEBUGMMCMSG(msg) { ::NCRYSTAL_NAMESPACE::Msg::detail:: \
-      outputMsgOSS( std::ostringstream() << "MMC: " << msg, \
-                    ::NCRYSTAL_NAMESPACE::MsgType::Info); }
+#define NCRYSTAL_DEBUGMMCMSG(msg) ::NCRYSTAL_NAMESPACE::Msg::detail:: \
+  outputMsgMS( ::NCRYSTAL_NAMESPACE::Msg::detail::MsgStream() << "MMC:" << msg, \
+               ::NCRYSTAL_NAMESPACE::MsgType::Warning );
 #else
 #  define NCRYSTAL_DEBUGMMCMSG(msg) {}
 #endif

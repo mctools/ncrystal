@@ -1,3 +1,8 @@
+v3.9.1 2024-08-16
+     * Add missing _hklobjects.py file which was left out by mistake. Thus
+       making the newly introduced info.hklObjects() function actually work.
+     * Fix debug compilation of MMC messages.
+
 v3.9.0 2024-08-12
      * This release brings both general improvements and new features, as well
        as a slew of maintenance updates and bug fixes. The first few items below
