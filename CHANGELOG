@@ -1,3 +1,9 @@
+v3.9.2 2024-08-19
+     * Prevent rare error in the MiniMC framework, which happened when acos was
+       evaluated on a value which due to numerical instabilities was ever so
+       slightly larger than one.
+     * Minor tweaks to MMC parsing and plotting code.
+
 v3.9.1 2024-08-16
      * Add missing _hklobjects.py file which was left out by mistake. Thus
        making the newly introduced info.hklObjects() function actually work.
@@ -64,11 +70,12 @@ v3.9.0 2024-08-12
        show all output from NCrystal in some dedicated text box).
      * NCrystal has been updated to work with latest versions of Numpy, Clang,
        GCC, Python, Gemmi, and Spglib. Additionally work has started to support
-       Intel OneAPI compilers and Microsoft VSCode, although more work is needed
-       to finalise this. As part of these efforts, the ABI had to be broken in
-       some places, since for instance Microsoft VSCode did not support all the
-       data structures used previously (for instance, VSCode's `std::vector`
-       does not accept move-only objects like `std::unique_ptr`).
+       Intel OneAPI compilers and Microsoft VisualStudio, although more work is
+       needed to finalise this. As part of these efforts, the ABI had to be
+       broken in some places, since for instance Microsoft VisualStudio did not
+       support all the data structures used previously (for instance,
+       VisualStudio `std::vector` does not accept move-only objects like
+       `std::unique_ptr`).
      * This concludes the highlights in this changelog entry - refer to the
        following items for more detailed information about specific changes.
      * Several speedups of the phonon convolution calculation code was
@@ -87,15 +94,16 @@ v3.9.0 2024-08-12
        function, the NCrystal.enableFactoryThreads Python function, or the
        ncrystal_enable_factory_threadpool C function.
      * Build NCrystal library with -fno-math-errno (github issue #169).
-     * Several non-trivial fixes were implemented to prepare for MS VSCode and
-       Intel oneapi compilation support. This breaks ABI.
+     * Several non-trivial fixes were implemented to prepare for MS VisualStudio
+       and Intel oneapi compilation support. This breaks ABI.
      * Apply -fp-model=precise for intel oneapi compiler.
      * Change C++ DynamicInfoList type from
        std::vector<std::unique_ptr<DynamicInfo>> to typedef
-       SmallVector<std::unique_ptr<DynamicInfo>,4>, since VSCode apparently does
-       not support std::vector's with move-only objects. This in principle
-       breaks the ABI and API, but is deemed necessary. A few other types in
-       internal non-API headers were changed as well for the same reason.
+       SmallVector<std::unique_ptr<DynamicInfo>,4>, since VisualStudio
+       apparently does not support std::vector's with move-only objects. This in
+       principle breaks the ABI and API, but is deemed necessary. A few other
+       types in internal non-API headers were changed as well for the same
+       reason.
      * Fix build error due to ODR violation in the TopLvlVar type.
      * Removed noexcept from C++ functions where it should not have been added
        (e.g. those used for streaming to std::ostream).
@@ -134,6 +142,9 @@ v3.9.0 2024-08-12
        feature is for now kept out of the documentation, but can be tested with:
        "nctool --bench --help".
      * Updated year in copyright notice in all files.
+     * Info objects gets a new .hklObjects() method which returns HKL list
+       information in a more object oriented and convenient format than the
+       existing .hklList(). See issue #164 for more details.
 
 v3.8.2 2024-04-30
      * Add importlib_metadata as python build dependency for Python < 3.8.

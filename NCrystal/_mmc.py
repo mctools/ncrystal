@@ -439,7 +439,14 @@ def runsim_diffraction_pattern( cfgstr, *,
             if title:
                 plt.title(title)
 
-            plt.suptitle(self.cfgstr)
+            suptitle_fs = 'medium'
+            if len(self.cfgstr)>40:
+                suptitle_fs = 'small'
+            if len(self.cfgstr)>80:
+                suptitle_fs = 'x-small'
+            if len(self.cfgstr)>101:
+                suptitle_fs = 'xx-small'
+            plt.suptitle(self.cfgstr,fontsize=suptitle_fs)
 
             absfracstr = 'unknown fraction'
             if tot_integral_with_absorption and tot_integral:
@@ -448,6 +455,7 @@ def runsim_diffraction_pattern( cfgstr, *,
             plt.plot([], [], ' ', label="Absorbed %s"%absfracstr)
 
             legargs = {}
+
             _plt_final(do_grid = do_grid,
                        do_legend = do_legend,
                        do_show = do_show,
@@ -505,10 +513,14 @@ def _parse_unit(valstr,unitmap):
 
 def _parse_energy( valstr ):
     v,u,uv = _parse_unit( valstr, _energy_units )
+    if v is not None and u is None and uv is None:
+        from .exceptions import NCBadInput
+        raise NCBadInput('Invalid energy specification (missing unit'
+                         f' like Aa or eV): "{valstr}"')
     if v is None:
         from .exceptions import NCBadInput
         raise NCBadInput(f'Invalid energy specification: "{valstr}"')
-    if u.lower() in ('aa','angstrom'):
+    if u is not None and u.lower() in ('aa','angstrom'):
         from .constants import wl2ekin
         return wl2ekin(v)
     v *= uv
@@ -516,6 +528,11 @@ def _parse_energy( valstr ):
 
 def _parse_length( valstr, mfp = None ):
     v,u,uv = _parse_unit( valstr, _length_units )
+    if v is not None and u is None and uv is None:
+        from .exceptions import NCBadInput
+        _ex0="mfp" if mfp is not None else "mm"
+        raise NCBadInput('Invalid length specification (missing unit like '
+                         f'{_ex0} or cm): "{valstr}"')
     if v is None:
         from .exceptions import NCBadInput
         raise NCBadInput(f'Invalid length specification: "{valstr}"')
@@ -564,7 +581,8 @@ def quick_diffraction_pattern_autoparams( cfgstr ):
 def quick_diffraction_pattern( cfgstr, *,
                                neutron_energy,
                                material_thickness,
-                               nstat = 'auto' ):
+                               nstat = 'auto',
+                               nthreads = 'auto' ):
 
     ### TODO: change c-api and use:
     ###    from .misc import MaterialSource
@@ -598,7 +616,8 @@ def quick_diffraction_pattern( cfgstr, *,
                                           geomcfg = f'sphere;r={r_meter}',
                                           srccfg = (f'constant;ekin={neutron_energy_eV}'
                                                     f';n={n};z={-r_meter*(1-1e-13)}'),
-                                          tally_detail_lvl = 2
+                                          tally_detail_lvl = 2,
+                                          nthreads = nthreads
                                          )
         t1 = time.time()
         return t1-t0, res

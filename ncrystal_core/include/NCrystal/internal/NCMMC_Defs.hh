@@ -55,7 +55,7 @@ namespace NCRYSTAL_NAMESPACE {
 #ifndef NDEBUG
 #define NCRYSTAL_DEBUGMMCMSG(msg) ::NCRYSTAL_NAMESPACE::Msg::detail:: \
   outputMsgMS( ::NCRYSTAL_NAMESPACE::Msg::detail::MsgStream() << "MMC:" << msg, \
-               ::NCRYSTAL_NAMESPACE::MsgType::Warning );
+               ::NCRYSTAL_NAMESPACE::MsgType::Info );
 #else
 #  define NCRYSTAL_DEBUGMMCMSG(msg) {}
 #endif

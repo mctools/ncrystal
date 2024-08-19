@@ -99,8 +99,11 @@ namespace NCRYSTAL_NAMESPACE {
         const std::size_t n = b.size();
         NCRYSTAL_DEBUGMMCMSG("Got result basket with size "<<n);
         double exit_angle[basket_N];
-        for ( std::size_t i = 0; i < n; ++i )
-          exit_angle[i] = std::acos( b.neutrons.uz[i] );
+        for ( std::size_t i = 0; i < n; ++i ) {
+          nc_assert( b.neutrons.uz[i] > -(1.0+1e-14) );
+          nc_assert( b.neutrons.uz[i] <  (1.0+1e-14) );
+          exit_angle[i] = std::acos( ncclamp(b.neutrons.uz[i],-1.0,1.0) );
+        }
         for ( std::size_t i = 0; i < n; ++i )
           exit_angle[i] *= kToDeg;
         for ( std::size_t i = 0; i < n; ++i )
