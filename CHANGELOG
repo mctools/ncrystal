@@ -1,3 +1,7 @@
+v3.9.3 2024-08-20
+     * Fix NCrystal.cifutils plot labels with underscores in filenames.
+     * Fix MiniMC plotting.
+
 v3.9.2 2024-08-19
      * Prevent rare error in the MiniMC framework, which happened when acos was
        evaluated on a value which due to numerical instabilities was ever so

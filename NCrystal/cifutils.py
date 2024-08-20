@@ -400,7 +400,9 @@ def produce_validation_plots( files, verbose_lbls = True, pdf_target = None,
     embed them in a PDF file. Any plot_kwargs will be passed along to the
     produce_validation_plot(..) function.
     """
-    from .plot import _import_matplotlib_plt, _import_matplotlib_pdfpages, _fakepyplot_mode
+    from .plot import ( _import_matplotlib_plt,
+                        _import_matplotlib_pdfpages,
+                        _fakepyplot_mode )
 
     if pdf_target:
         pdfpages = _import_matplotlib_pdfpages()
@@ -508,7 +510,7 @@ def produce_validation_plot( data_or_file, verbose_lbls = True, line_width_scale
                 yield int(d)
 
     import re as _re
-    _re_atomdbspecs = _re.compile("\[ *with ([a-zA-Z ]+)->([ a-zA-Z0-9+-\.]+) *\]")
+    _re_atomdbspecs = _re.compile(r"\[ *with ([a-zA-Z ]+)->([ a-zA-Z0-9+-\.]+) *\]")
     def _extractAtomDBSpec(s):
         #Look for remapping specs like "[with H->D]" and return in @ATOMDB format
         #(i.e. "H is D").
@@ -537,7 +539,8 @@ def produce_validation_plot( data_or_file, verbose_lbls = True, line_width_scale
     ids = newids
 
     def _atomdb_to_remap( atomdb):
-        _atomdb = list( ' '.join(e.strip().split()) for e in (atomdb or '').replace(':',' ').split('@') )
+        _atomdb = list( ' '.join(e.strip().split())
+                        for e in (atomdb or '').replace(':',' ').split('@') )
         _atomdb = list( e for e in _atomdb if e )
         l = []
         for c in _atomdb:
@@ -587,6 +590,9 @@ def produce_validation_plot( data_or_file, verbose_lbls = True, line_width_scale
                     'pink',
                     'gray')]
 
+    def fix_lbl_for_plt(lbl):
+        return lbl.replace('_',"$"+'\\'+"mathrm{\\_}$")
+
     for i,(lbl,mc) in enumerate(cmps):
         lbl = str(lbl)
         if '/' in lbl:
@@ -608,7 +614,7 @@ def produce_validation_plot( data_or_file, verbose_lbls = True, line_width_scale
             natoms_all.add(si['n_atoms'])
 
         plt.plot(wls,mc.scatter.xsect(wl=wls),
-                 label=lbl,
+                 label=fix_lbl_for_plt(lbl),
                  linewidth=lw,
                  alpha=0.5 if i==0 else 0.5,
                  color = col_ordered[i] if i<len(col_ordered) else None,
@@ -1610,7 +1616,9 @@ def _actual_init_gemmicif( cifsrc, *, quiet, mp_apikey, refine_with_spglib, merg
             if elem_name:
                 _nc_common.warn(f'Assuming atomic symbol "{elem_name}" based on CIF label "{site.label}"')
             else:
-                raise _nc_core.NCBadInput(f'Neither Gemmi nor NCrystal\'s custom code could deduce an atomic symbol for the CIF label "{site.label}"')
+                raise _nc_core.NCBadInput(f'Neither Gemmi nor NCrystal\'s custom'
+                                          ' code could deduce an atomic symbol'
+                                          f' for the CIF label "{site.label}"')
             elem_Z = None
         else:
             elem_name, elem_Z = site_en, int(site.element.atomic_number)

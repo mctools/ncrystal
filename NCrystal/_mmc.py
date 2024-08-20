@@ -329,6 +329,8 @@ def runsim_diffraction_pattern( cfgstr, *,
                 plt.figure()
 
             do_legend = False
+            tot_integral_with_absorption = None#unknown
+
             if breakdown_mode:
 
                 colors = {
@@ -357,7 +359,6 @@ def runsim_diffraction_pattern( cfgstr, *,
                                              'NOSCAT'].index(h.title))
 
                 integrals = [ h.stats.get('integral',-1.0) for h in hists ]
-                tot_integral_with_absorption = None#unknown
                 tot_integral = ( sum(integrals)
                                  if all( i>=0.0 for i in integrals )
                                  else None )
