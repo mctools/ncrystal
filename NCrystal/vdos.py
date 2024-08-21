@@ -184,6 +184,7 @@ class PhononDOSAnalyser:
     def __init__(self, data, fmt = None ):
         """Initialise from data (see class description)."""
         from .exceptions import NCBadInput
+        name = None
 
         if isinstance(data,tuple) and len(data)==2 and data[0]=='__internal_state__' and isinstance(data[1],dict):
             import copy
@@ -204,6 +205,7 @@ class PhononDOSAnalyser:
                 fmt = 'quantumespresso'
 
         def _extract_from_anyvdos(x):
+            from .misc import AnyVDOS
             v = AnyVDOS( x )
             return v.label,v.egrid(),v.dos()
 
