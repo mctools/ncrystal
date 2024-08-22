@@ -204,9 +204,11 @@ class PhononDOSAnalyser:
                 fmt = 'quantumespresso'
 
         def _extract_from_anyvdos(x):
+            from .misc import AnyVDOS
             v = AnyVDOS( x )
             return v.label,v.egrid(),v.dos()
 
+        _srcname = None
         if fmt == 'anyvdos':
             doslist = [_extract_from_anyvdos(data)]
         elif fmt == 'anyvdos_list':
@@ -215,11 +217,11 @@ class PhononDOSAnalyser:
             from .misc import AnyTextData
             td = AnyTextData( data )
             doslist = _read_quantumespresso( td.content )
-            name = td.name
+            _srcname = td.name
         elif fmt == 'raw':
             import copy
             doslist = copy.deepcopy( data )
-            name = 'raw data'
+            _srcname = 'raw data'
         else:
             raise NCBadInput('Invalid input format. Currently only "raw", "anyvdos", "anyvdos_list", and "quantumespresso" are supported.')
 
@@ -265,11 +267,11 @@ class PhononDOSAnalyser:
             _dl.append( ( str(lbl), egrid, density ) )
         doslist = _dl
 
-        self.__d = dict( doslist = doslist, srcname = name )
+        self.__d = dict( doslist = doslist, srcname = _srcname )
 
     @property
     def source_name( self ):
-        "Name of source data (such as the file name)."
+        "Name of source data (such as the file name). Might be absent (None)."
         return self.__d['srcname']
 
     @property
