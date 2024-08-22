@@ -26,5 +26,6 @@ jobs:
       REF: ${{ inputs.REF || github.ref_name }}
       DO_DEPLOY: ${{ !inputs.BUILD_ONLY }}
       ENVIRONMENT: ${{ inputs.ENVIRONMENT || 'pypi' }}
+      CIBW_SKIP: pp* cp36-* cp37-* cp313-*
     secrets:
       PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
