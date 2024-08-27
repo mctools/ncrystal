@@ -149,8 +149,6 @@ jobs:
         echo "Custom compilation of downstream C/C++ code succeeded"
         eval $(ncrystal-config --unsetup)
 
-
-
     - name: Tests with ncrystal_setup.sh
       run: |
         set -eux
@@ -173,6 +171,23 @@ jobs:
         python3 -m NCrystal.test
         python3 -c 'import NCrystal; NCrystal.test()'
         . ${{github.workspace}}/install/ncrystal_unsetup.sh
+
+    - name: Checkout ncrystal-notebooks
+      uses: actions/checkout@v4
+      with:
+        repository: mctools/ncrystal-notebooks
+        path: src_notebooks
+
+    - name: Extra pip install for notebooks
+      run: |
+        set -eu
+        python3 -m pip install numpy matplotlib spglib ase gemmi jupyterlab ipympl
+
+    - name: Test notebooks
+      run: |
+        set -eu
+        eval $(${{github.workspace}}/install/bin/ncrystal-config --setup)
+        ./src_notebooks/.github/resources/run_notebooks.x
 
     #Final step, so tmate step can check if we got this far.
     - name: Final
