@@ -89,15 +89,16 @@ class NCMATComposer:
         explicitly. Supported fmt's are "cif", "cfgstr", "ncmat", (for NCMAT
         data), "info" (for NCrystal.Info or LoadedMaterial objects), ase (for
         ASE structures). Finally, the format "via_ase" is special, since it will
-        always for the input to be processed with ASE, even if another more
-        obvious format exists (i.e. CIF files will be processed via ASE first,
-        not passed along directly to the NCrystal.CIFLoader). As an alternative
-        to the "fmt" parameter, one can also invoke the various .from_xxx(..)
-        static methods. This has the potential advantage of allowing the
-        specification of parameters dedicated only to that input data type.
+        always process the input with ASE, even if another more obvious format
+        exists (i.e. CIF files will be processed via ASE first, not passed along
+        directly to the NCrystal.CIFLoader). As an alternative to the "fmt"
+        parameter, one can also invoke the various .from_xxx(..)  static
+        methods. This has the potential advantage of allowing the specification
+        of parameters dedicated only to that input data type.
 
         If quiet=True, no informative messages will be emitted, and the plotlabel
         will be passed along to .set_plotlabel().
+
         """
         from ._ncmatimpl import NCMATComposerImpl as Impl
         self.__impl = ( data if isinstance( data, Impl )
@@ -169,6 +170,31 @@ class NCMATComposer:
         """
         from ._ncmatimpl import NCMATComposerImpl as Impl
         return NCMATComposer( Impl.from_ncmat( data ) )
+
+    @staticmethod
+    def from_hfg( spec,
+                  formula, *,
+                  density,
+                  title,
+                  debyetemp = 400.0,
+                  verbose = True,
+                  notrim = False ):
+        """Constructs an amorphous hydrogen-rich material via the hfg2ncmat
+        function from the NCrystal.hfg2ncmat module. Refer to that function for
+        usage instructions.
+        """
+        from .hfg2ncmat import _default_debye_temp, hfg2ncmat
+        from ._ncmatimpl import NCMATComposerImpl as Impl
+        assert _default_debye_temp()==400.0, "from_hfg default must be updated"
+        ncmat = hfg2ncmat( spec = spec,
+                           formula = formula,
+                           density = density,
+                           title = title,
+                           debyetemp = debyetemp,
+                           verbose = verbose,
+                           notrim = notrim )
+        return NCMATComposer( Impl.from_ncmat( ncmat,
+                                               keep_header=True ) )
 
     def __call__( self, cfg_params = None, **kwargs ):
         """Convenience short-cut for the .create_ncmat() method"""

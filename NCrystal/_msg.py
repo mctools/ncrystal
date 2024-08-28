@@ -49,8 +49,8 @@ _was_set = [False]
 def _setMsgHandler( handler ):
     from ._chooks import _get_raw_cfcts
     _rawfct = _get_raw_cfcts()
-    _rawfct['setmsghandler'](_default_pymsghandler)
-    _was_set = [True]
+    _rawfct['setmsghandler'](handler)
+    _was_set[0] = True
 
 def _setDefaultPyMsgHandlerIfNotSet():
     if not _was_set[0]:

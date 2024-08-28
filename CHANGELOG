@@ -1,3 +1,10 @@
+v3.9.5 2024-08-28
+     * Make ncrystal_hfg2ncmat functionality available in Python API as well in
+       the new NCrystal.hfg2ncmat module. Also add NCMATComposer.from_hfg(..)
+       factory function to access the functionality.
+     * Fix bug in Python-C++ message handler infrastructure which potentially
+       caused message handler to be set more than once.
+
 v3.9.4 2024-08-22
      * Fix PhononDOSAnalyser (github issue #187).
 
