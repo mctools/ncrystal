@@ -193,8 +193,10 @@ class NCMATComposer:
                            debyetemp = debyetemp,
                            verbose = verbose,
                            notrim = notrim )
-        return NCMATComposer( Impl.from_ncmat( ncmat,
-                                               keep_header=True ) )
+        c = NCMATComposer( Impl.from_ncmat( ncmat,
+                                            keep_header=True ) )
+        c.set_plotlabel(title)
+        return c
 
     def __call__( self, cfg_params = None, **kwargs ):
         """Convenience short-cut for the .create_ncmat() method"""
@@ -547,6 +549,52 @@ class NCMATComposer:
         sphere_radius in angstrom.
         """
         return self.__impl.add_hard_sphere_sans_model(sphere_radius=sphere_radius)
+
+    def add_raw_content( self,  content ):
+        """This is an experts-only method for adding raw text data to be
+        appended to the generated NCMAT data. Note that multiple calls to this
+        method will simply append more content, if you wish to remove content
+        again you must call clear_raw_content.
+
+        Note that this method does not necessarily add a newline to your content
+        if it is missing.
+
+        """
+        return self.__impl.add_raw_content( content )
+
+    def clear_raw_content( self ):
+        """Remove any content added by calls to .add_raw_content(..)"""
+        return self.__impl.clear_raw_content()
+
+    def get_raw_content( self ):
+        """Return any content added by calls to .add_raw_content(..). Returns an
+        empty string if no such content was added."""
+        return self.__impl.get_raw_content()
+
+    def set_custom_section_data( self, section_name, content ):
+        """Add a @CUSTOM_<sectionname> section with the provided content to the
+        generated NCMAT data. Note that multiple calls to this method with the
+        same section_name will simply override the content of that custom
+        section. To completely remove a previously added custom section, use the
+        .clear_custom_section_data(..) method.
+        """
+        return self.__impl.set_custom_section_data( section_name, content )
+
+    def get_custom_section_data( self, section_name = None ):
+        """Access any @CUSTOM_<sectionname> contents which was previously added
+        with the .set_custom_section_data(..) method. Returns None if data for
+        that section was not added. If called without parameters, a dictionary
+        of all such data in the form { section_name : content, ... } is
+        returned instead.
+        """
+        return self.__impl.get_custom_section_data( section_name )
+
+    def clear_custom_section_data( self, section_name = None ):
+        """Remove any @CUSTOM_<sectionname> section previously added by calling
+        set_custom_section_data. Does nothing if no such section was previously
+        added. Calling with no arguments clears all custom section data.
+        """
+        return self.__impl.clear_custom_section_data( section_name )
 
     def lock_temperature( self, value ):
         """

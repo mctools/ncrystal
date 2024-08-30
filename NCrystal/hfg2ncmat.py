@@ -90,7 +90,7 @@ def _parseHydrogenBindingSpecification(spec):
         if len(p)!=2:
             err()
         count,fg=p
-        if not fg in fg2nH:
+        if fg not in fg2nH:
             raise NCBadInput(f'Unknown functional group in "{spec}": "{fg}"')
         if not count.isdigit() or not 1 <= int(count) <= 10000:
             raise NCBadInput(f'Invalid count in "{spec}": "{count}"')

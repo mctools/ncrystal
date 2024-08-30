@@ -72,13 +72,13 @@ from hydrogen atoms.
     parser = argparse.ArgumentParser(description=descr,
                                      formatter_class=RawTextHelpFormatter)
     parser.add_argument("--output",'-o',default='autogen.ncmat',type=str,
-                        help=(f"Output file name (defaults to autogen.ncmat)."
+                        help=("Output file name (defaults to autogen.ncmat)."
                               " Can be stdout."))
     parser.add_argument('--force',action='store_true',
-                        help=(f"Will overwrite existing file "
+                        help=("Will overwrite existing file "
                               "if it already exists."))
     parser.add_argument("--spec",'-s',metavar='SPEC',type=str,required=True,
-                        help=f"Hydrogen binding specification (see above).")
+                        help="Hydrogen binding specification (see above).")
     parser.add_argument("--formula",'-f',metavar='FORMULA',
                         type=str,
                         required=True,
@@ -87,7 +87,7 @@ from hydrogen atoms.
     parser.add_argument("--density",'-d',metavar='DENSITY',
                         type=float,
                         required=True,
-                        help=f"Material density in g/cm3.")
+                        help="Material density in g/cm3.")
     parser.add_argument("--debyetemp",metavar='VALUE',
                         type=float,
                         default=default_debye_temp,
@@ -98,7 +98,7 @@ from hydrogen atoms.
                               ' comment near top of output file). Use \\n '
                               'for line-breaks.'))
     parser.add_argument('--notrim',action='store_true',
-                        help=f"No trimming of resulting VDOS curve.")
+                        help="No trimming of resulting VDOS curve.")
     args=parser.parse_args()
     return args
 

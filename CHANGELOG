@@ -1,3 +1,10 @@
+v3.9.6 2024-08-30
+     * Add several new convenience methods to MiniMC results and histograms.
+     * Fix bug in MiniMC histogram error propagation.
+     * NCMATComposer gets new expert-only methods for adding @CUSTOM_ sections
+       or raw text to NCMAT data.
+     * NCMATComposer.from_hfg sets plotlabel from title.
+
 v3.9.5 2024-08-28
      * Make ncrystal_hfg2ncmat functionality available in Python API as well in
        the new NCrystal.hfg2ncmat module. Also add NCMATComposer.from_hfg(..)

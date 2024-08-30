@@ -88,7 +88,8 @@ class MaterialSource:
 
     @property
     def plotlabel( self ):
-        """Returns a string with either a specific plotlabel or otherwise just the usual description."""
+        """Returns a string with either a specific plotlabel or otherwise just
+        the usual description."""
         return self.__d.get('plotlabel') or self.__d['description']
 
     def __str__(self):

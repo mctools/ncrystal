@@ -111,6 +111,96 @@ def runsim_diffraction_pattern( cfgstr, *,
                 c.rebin( rebin_factor )
             return c
 
+        def integrate( self, xlow, xhigh, tolerance = 1e-5 ):
+            """
+            Returns integrated contents of the histogram over the area
+            [xlow,xhigh] along with the error of that value in a tuple
+            (content,error).
+
+            This is done translating xlow and xhigh to exact bin edges and then
+            calling integrate_bins. If that is not possible within the
+            tolerance, an exception is raised.
+
+            """
+            if not ( xhigh >= xlow ):
+                from .exceptions import NCBadInput
+                raise NCBadInput('Invalid integration range requested.')
+
+            bw = self.binwidth
+            def _findedge(x):
+                if x <= self.__xmin:
+                    return 0
+                if x >= self.__xmax:
+                    return self.nbins
+                r = ( x - self.__xmin ) / bw
+                ir = int(r+0.5)
+                if abs(r-ir) > tolerance:
+                    from .exceptions import NCBadInput
+                    raise NCBadInput(f'Value {x} does not correspond exactly'
+                                     ' to a bin edge within the tolerance.')
+                return ir
+            e_low = _findedge(xlow)
+            e_high = _findedge(xhigh)
+            if e_low == e_high:
+                return ( 0.0, 0.0 )
+            assert e_low >= 0
+            assert e_low < e_high < self.nbins
+            return self.integrate_bins( e_low, e_high - 1 )
+
+        def integrate_bins( self, bin_low = None, bin_up = None ):
+            """
+            Returns integrated contents of the bins [bin_low,bin_up[ along with
+            the error of that value in a tuple (content,error).
+
+            If bin_low is None the integration will start at the first bin and
+            include the underflow bin.
+
+            If bin_up is None the integration will end at the last bin and
+            include the overflow bin.
+            """
+
+            add_overflow, add_underflow = False, False
+            if bin_low is None:
+                add_underflow = True
+                bin_low = 0
+                underflow_c = self.stats.get('underflow')
+                underflow_e2 = self.stats.get('underflow_errorsq')
+                if bool(underflow_c is None) != bool(underflow_e2 is None):
+                    from .exceptions import NCBadInput
+                    raise NCBadInput('Inconsistent underflow info')
+                if underflow_c is None:
+                    add_underflow = False
+
+            if bin_up is None:
+                add_overflow = True
+                bin_up = self.__nbins
+                overflow_c = self.stats.get('overflow')
+                overflow_e2 = self.stats.get('overflow_errorsq')
+                if bool(overflow_c is None) != bool(overflow_e2 is None):
+                    from .exceptions import NCBadInput
+                    raise NCBadInput('Inconsistent overflow info')
+                if overflow_c is None:
+                    add_overflow = False
+
+            bin_low, bin_up = int(bin_low), int(bin_up)
+            if bin_up < bin_low or bin_low<0 or bin_up > self.__nbins:
+                from .exceptions import NCBadInput
+                raise NCBadInput('Invalid bin range requested')
+            content_integral = self.__y[bin_low:bin_up].sum()
+            if add_underflow:
+                content_integral += underflow_c
+            if add_overflow:
+                content_integral += overflow_c
+            if self.__yerrsq is None:
+                #unweighted, just base erros on contents:
+                return ( content_integral, _np.sqrt(content_integral) )
+            errorsq_integral = self.__yerrsq[bin_low:bin_up].sum()
+            if add_underflow:
+                errorsq_integral += underflow_e2
+            if add_overflow:
+                errorsq_integral += overflow_e2
+            return ( content_integral, _np.sqrt(errorsq_integral) )
+
         def add_contents( self, other_hist ):
             o = other_hist
             assert self.__xmin == o.__xmin
@@ -124,12 +214,12 @@ def runsim_diffraction_pattern( cfgstr, *,
                 if o.__yerrsq is None:
                     pass#done
                 else:
-                    self.__yerrsq = o.__yerrsq
+                    self.__yerrsq = self.__y + o.__yerrsq
             else:
                 if o.__yerrsq is None:
-                    self.__yerrsq = o.__y
+                    self.__yerrsq += o.__y
                 else:
-                    self.__yerrsq = o.__yerrsq
+                    self.__yerrsq += o.__yerrsq
 
         def rebin( self, rebin_factor ):
             assert self.__nbins % rebin_factor == 0
@@ -151,10 +241,14 @@ def runsim_diffraction_pattern( cfgstr, *,
         @property
         def errors( self ):
             if self.__yerr is None:
-                self.__yerr = _np.sqrt( self.__yerrsq
-                                        if self.__yerrsq is not None
-                                        else self.__y )
+                self.__yerr = _np.sqrt( self.errors_squared )
             return self.__yerr
+
+        @property
+        def errors_squared( self ):
+            return ( self.__yerrsq
+                     if self.__yerrsq is not None
+                     else self.__y )
 
         @property
         def content( self ):
@@ -285,6 +379,33 @@ def runsim_diffraction_pattern( cfgstr, *,
         @property
         def histograms( self ):
             return self.__hists
+
+        @property
+        def histogram_main( self ):
+            return self.__hists[0]
+
+        @property
+        def histogram_breakdown( self ):
+            return dict( (h.title,h) for h in self.__hists[1:] )
+
+        def histogram_sum( self, *, select=None, exclude=None ):
+            if isinstance(exclude,str):
+                exclude=[exclude]
+            if isinstance(select,str):
+                select=[select]
+            hl = self.__hists[1:]
+            if not exclude and not select:
+                return self.histogram_main
+            if select:
+                hl = [ h for h in hl if h.title in select ]
+            if exclude:
+                hl = [ h for h in hl if h.title not in exclude ]
+            if len(hl) <= 1:
+                return hl[0] if hl else None
+            h = hl[0].clone()
+            for o in hl[1:]:
+                h.add_contents( o )
+            return h
 
         @property
         def cfgstr( self ):
@@ -606,8 +727,6 @@ def quick_diffraction_pattern( cfgstr, *,
     mfp_scatter = 1/macroxs_scatter if macroxs_scatter else float('inf')
 
     sphere_diameter = _parse_length(material_thickness, mfp=mfp_scatter)
-    #print(f'mfp_scatter = {mfp_scatter/unit_cm:g} cm')
-    #print(f'sphere_diameter = {sphere_diameter/unit_cm:g} cm')
 
     def simfct( n, cfgstr ):
         import time

@@ -70,6 +70,67 @@ class NCMATComposerImpl:
         self.__dirty()
         self.__params['custom_hardspheresans'] = float( sphere_radius )
 
+    def add_raw_content( self,  content ):
+        if not isinstance(content,str):
+            raise _nc_core.NCBadInput('Invalid raw content (must be a string)')
+        if not content:
+            return
+        self.__dirty()
+        if 'raw_content' in self.__params:
+            self.__params['raw_content'] += str(content)
+        else:
+            self.__params['raw_content'] = str(content)
+
+    def get_raw_content( self ):
+        return self.__params.get('raw_content','')
+
+    def clear_raw_content( self ):
+        if 'raw_content' in self.__params:
+            self.__dirty()
+            del self.__params['raw_content']
+
+    def get_custom_section_data( self, section_name ):
+        if section_name is None:
+            dd = self.__params.get('custom_sections')
+            return copy.deepcopy(dd) if dd else {}
+        _check_valid_custom_section_name(section_name)
+        if 'custom_sections' in self.__params:
+            return self.__params['custom_sections'].get(section_name)
+
+    def set_custom_section_data( self, section_name, content ):
+        if section_name == 'HARDSPHERESANS':
+            raise _nc_core.NCBadInput('For HARDSPHERESANS use the'
+                                      ' .add_hard_sphere_sans_model() method'
+                                      ' instead of set_custom_section_data.')
+        if section_name == 'UNOFFICIALHACKS':
+            raise _nc_core.NCBadInput('Do not set the @CUSTOM_UNOFFICIALHACKS'
+                                      ' content directly with '
+                                      'set_custom_section_data.')
+        _check_valid_custom_section_name(section_name)
+        if not isinstance(content,str):
+            raise _nc_core.NCBadInput('Invalid custom section data'
+                                      ' content (must be a string)')
+        if self.__params.get('custom_sections',{}).get(section_name) == content:
+            return
+        self.__dirty()
+        if 'custom_sections' not in self.__params:
+            self.__params['custom_sections'] = {}
+        self.__params['custom_sections'][section_name] = content
+
+    def clear_custom_section_data( self, section_name ):
+        if section_name is not None:
+            _check_valid_custom_section_name(section_name)
+        if 'custom_sections' not in self.__params:
+            return
+        if section_name is None:
+            self.__dirty()
+            del self.__params['custom_sections']
+        else:
+            if section_name not in self.__params['custom_sections']:
+                return
+            self.__dirty()
+            del self.__params['custom_sections'][section_name]
+
     def __init__(self, *, data, fmt, quiet ):
         self._ichange = 0#increment on all changes, for downstream caching
         self.__loadcache = None
@@ -283,7 +344,10 @@ class NCMATComposerImpl:
 
     def lock_temperature( self, value ):
         if value is None:
+            if 'temperature' not in self.__params:
+                return
             self.__params.pop('temperature',None)
+            self.__dirty()
             return
         v=float(value)
         assert v>0.0
@@ -332,7 +396,6 @@ class NCMATComposerImpl:
                     set_compos_args.append( (lbl,composition) )
         for lbl, _compos in set_compos_args:
             self.set_composition( lbl, _compos )
-
 
     def clear_comments( self ):
         self.__dirty()#not strictly needed but to be safe
@@ -1039,7 +1102,9 @@ class NCMATComposerImpl:
         custom_hardspheresans = self.__params.get('custom_hardspheresans')
         if custom_hardspheresans:
             if not secondary_phases:
-                raise _nc_core.NCBadInput('Material with hard-sphere SANS enabled must have at least one secondary phase added.')
+                raise _nc_core.NCBadInput('Material with hard-sphere SANS'
+                                          ' enabled must have at least one'
+                                          ' secondary phase added.')
             l += '@CUSTOM_HARDSPHERESANS\n'
             l += f'{custom_hardspheresans} #sphere radius in angstrom.\n'
 
@@ -1049,11 +1114,16 @@ class NCMATComposerImpl:
             for e in unofficial_hacks:
                 l += ' '.join(e)+'\n'
 
+        for sn,cnt in sorted(self.__params.get('custom_sections',{}).items()):
+            l += f'@CUSTOM_{sn}\n'
+            l += cnt
+            if not cnt.endswith('\n'):
+                l += '\n'
+
         #Dyninfo lines last, since they might contain huge arrays of data, and
         #people might only look at the top of the file:
         ld, natoms_with_fallback_dyninfo = self.__lines_dyninfo( lbl_map, atompos_fractions or fractions )
         l += ld
-
 
         out=["NCMAT v7"]
         comments = copy.deepcopy(self.__params.get('top_comments',[]))
@@ -1132,6 +1202,10 @@ class NCMATComposerImpl:
                 out.append('  '+e.replace(_magic_two_space,'  '))
 
         out = '\n'.join(e.rstrip() for e in out)+'\n'
+
+        raw_cnt = self.__params.get('raw_content')
+        if raw_cnt:
+            out += raw_cnt
         return out if md is None else ( out, md )
 
 def _determine_dyninfo_mapping( labels, composition, dilist ):
@@ -1335,6 +1409,23 @@ def _composerimpl_from_info( infoobj ):
         _builtin = atomDB(Z=key[0],A=key[1],throwOnErrors=False)
         if not _builtin or _adstr != _builtin.to_atomdb_str():
             o.update_atomdb( ad.description(False), _adstr )
+
+    #Custom sections:
+    for nm,cnt_lists in (i.customsections or []):
+        if nm == 'HARDSPHERESANS':
+            _nc_common.warn('Ignoring @CUSTOM_HARDSPHERESANS sections in input.')
+            continue
+        if nm == 'UNOFFICIALHACKS':
+            _nc_common.warn('Ignoring @CUSTOM_UNOFFICIALHACKS sections in input.')
+            continue
+        if o.get_custom_section_data(nm) is not None:
+            raise _nc_core.NCBadInput(f'Multiple @CUSTOM_{nm} sections in input'
+                                      'is not supported by NCMATComposer.')
+        cnt=''
+        for linedata in cnt_lists:
+            cnt += ' '.join(linedata)
+            cnt += '\n'
+        o.set_custom_section_data(nm,cnt)
 
     return o
 
@@ -1966,3 +2057,12 @@ def _extractInitialHeaderCommentsFromNCMATData( ncmat_data, dedent = True ):
         while all( ( e.startswith(' ') or not e) for e in comments ):
             comments = [ e[1:] for e in comments ]
     return comments
+
+def _check_valid_custom_section_name( name ):
+    if ( not name
+         or not isinstance(name,str)
+         or not name.isalpha()
+         or not name.isupper() ):
+        raise _nc_core.NCBadInput(f'Invalid custom section name: "{name}" '
+                                  '(must be non-empty and contain only'
+                                  ' capitalised letters A-Z)')
