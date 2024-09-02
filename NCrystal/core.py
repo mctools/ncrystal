@@ -1645,7 +1645,7 @@ class LoadedMaterial:
         """Convenience function which adds up the cross sections from any loaded
         absorption and scatter processes. Refer to the Process.xsect method for
         arguments."""
-        procs = (p for p in (self.scatter,self.absorption) if p is not None)
+        procs = [p for p in (self.scatter,self.absorption) if p is not None]
         if not procs:
             raise NCCalcError('.xsect(..) can only be called on'
                               ' LoadedMaterial which contains processes.')

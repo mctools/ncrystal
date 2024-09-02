@@ -150,8 +150,6 @@ contribution from hydrogen atoms (unless verbose=False).
     #ncrystal_hfg2ncmat command-line app!
 
     from ._hfgdata import get_data as hfg_get_data
-    #FIXME: CHECK ARGS
-    #FIXME: seems to parse!!!!! --formula CH6s
 
     if verbose:
         from ._common import print

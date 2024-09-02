@@ -1,3 +1,6 @@
+v3.9.7 2024-09-02
+     * Fix bug in LoadedMaterial.xsect/.macroscopic_xsect methods.
+
 v3.9.6 2024-08-30
      * Add several new convenience methods to MiniMC results and histograms.
      * Fix bug in MiniMC histogram error propagation.
