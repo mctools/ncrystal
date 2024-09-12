@@ -497,7 +497,7 @@ if ( NCRYSTAL_ENABLE_SOVERSION )
     set( NCrystal_LIBNAME "${CMAKE_SHARED_LIBRARY_PREFIX}${_tmp_basiclibname}${CMAKE_SHARED_LIBRARY_SUFFIX}.${_ncrystal_lib_version}" )
   endif()
 else()
-    #No version, just libNCrystal.so or libNCrystal.dylib
+    #No version, just libNCrystal<namespace>.so or libNCrystal<namespace>.dylib
   set( NCrystal_LIBNAME "${CMAKE_SHARED_LIBRARY_PREFIX}${_tmp_basiclibname}${CMAKE_SHARED_LIBRARY_SUFFIX}" )
 endif()
 
@@ -589,6 +589,18 @@ function(parse_pluginentry entry)
   set(pluginentry_remoteref ${remoteref} PARENT_SCOPE)
 endfunction()
 
+if ( NCRYSTAL_ENABLE_TESTING )
+  #NB: The enable_testing() call must occur before ANY add_subdirectory calls
+  #(including those further down this file).
+  if( "${CMAKE_VERSION}" VERSION_LESS "3.28" )
+    #NB: Keep this minimum version value synchronised with the one on the top of
+    #tests/CMakeLists.txt
+    message( WARNING "NCRYSTAL_ENABLE_TESTING requires cmake >= 3.28" )
+  else()
+    enable_testing()
+    add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/tests")
+  endif()
+endif()
 
 set(all_plugin_names_lc "stdscat;stdabs;stdncmat")
 
