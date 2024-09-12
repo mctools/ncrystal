@@ -25,7 +25,7 @@ cmake_minimum_required(VERSION 3.28...3.30)
 
 project( NCrystalTests LANGUAGES CXX C )
 
-if ( NOT TARGET NCrystal::NCrystal )
+if ( NOT TARGET NCrystal AND NOT TARGET NCrystal::NCrystal )
   if ( NOT NCrystal_DIR )
     #Support pip-installed NCrystal:
     execute_process(
