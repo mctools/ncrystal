@@ -41,9 +41,11 @@ if ( NOT TARGET NCrystal AND NOT TARGET NCrystal::NCrystal )
   find_package( NCrystal 3.9.7 REQUIRED )
   set( NCRYSTAL_ENABLE_PYTHON ON )
   set( NCTESTS_STANDALONE ON )
+  set( nctests_ncrystallib_target "NCrystal::NCrystal" )
 else()
   message(STATUS "Testing as part of the NCrystal build")
   set( NCTESTS_STANDALONE OFF )
+  set( nctests_ncrystallib_target "NCrystal" )
 endif()
 
 enable_testing()
@@ -75,8 +77,8 @@ else()
   )
 endif()
 mctools_testutils_add_test_libs(
-  "${CMAKE_CURRENT_LIST_DIR}" NCrystal::NCrystal
+  "${CMAKE_CURRENT_LIST_DIR}" "${nctests_ncrystallib_target}"
 )
 mctools_testutils_add_tests_apps(
-  "${CMAKE_CURRENT_LIST_DIR}" NCrystal::NCrystal
+  "${CMAKE_CURRENT_LIST_DIR}" "${nctests_ncrystallib_target}"
 )
