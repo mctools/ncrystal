@@ -40,6 +40,7 @@ bool_option( NCRYSTAL_QUIET            "Produce less status messages during conf
 bool_option( NCRYSTAL_SKIP_INSTALL     "Set to prevent any installation targets from being created." "OFF" )
 bool_option( NCRYSTAL_ENABLE_SOVERSION "Enable shared library SOVERSION." "ON" )
 enum_option( NCRYSTAL_ENABLE_THREADS   "Enable multithread usage (multithread safety is not affected by this)." "IFAVAILABLE" "ON" "OFF" )
+bool_option( NCRYSTAL_ENABLE_TESTING   "Whether to enable the CTest-based tests in the tests subdirectory." "OFF" )
 
 string_option(
   NCRYSTAL_BUILTIN_PLUGINS
@@ -52,7 +53,6 @@ string_option(
   "Custom string to inject into library symbols (for complex environments with multple NCrystal installations)."
   ""
   )
-
 
 #Older deprecated variables:
 if ( NOT NCRYSTAL_NOLEGACYOPTS )
