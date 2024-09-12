@@ -25,10 +25,15 @@ jobs:
 
     - name: CMake build NCrystal
       shell: cmd
-      run: cmake --build build --config Release
+      run: cmake --build build --config Release  -- /verbosity:detailed
 
-    - name: CMake build NCrystal
+#cmake --build . --target INSTALL -- /verbosity:detailed
+    - name: Run CTests
       shell: cmd
       run: |
         cd build
         ctest
+
+    - name: CMake install NCrystal
+      shell: cmd
+      run: cmake --build build --target INSTALL --config Release  -- /verbosity:detailed
