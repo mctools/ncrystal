@@ -1,0 +1,250 @@
+[ capacity=3 :  ]
+[ capacity=3 : 1,  ]
+[ capacity=3 : 1, 2,  ]
+shrink_to_fit
+[ capacity=3 : 1, 2,  ]
+[ capacity=3 : 1, 2, 3,  ]
+[ capacity=6 : 1, 2, 3, 4,  ]
+[ capacity=6 : 1, 2, 3, 4, 5,  ]
+shrink_to_fit
+[ capacity=5 : 1, 2, 3, 4, 5,  ]
+reserve_hint(17)
+[ capacity=17 : 1, 2, 3, 4, 5,  ]
+[ capacity=17 : 1, 2, 3, 4, 5, 6,  ]
+shrink_to_fit
+[ capacity=6 : 1, 2, 3, 4, 5, 6,  ]
+shrink_to_fit
+[ capacity=6 : 1, 2, 3, 4, 5, 6,  ]
+clear
+[ capacity=3 :  ]
+[ capacity=3 : 1,  ]
+[ capacity=3 : 1, 2,  ]
+[ capacity=3 : 1, 2, 3,  ]
+[ capacity=6 : 1, 2, 3, 4,  ]
+[ capacity=6 : 1, 2, 3, 4, 5,  ]
+[ capacity=6 : 1, 2, 3, 4, 5, 6,  ]
+[ capacity=12 : 1, 2, 3, 4, 5, 6, 7,  ]
+[ capacity=12 : 1, 2, 3, 4, 5, 6, 7, 8,  ]
+[ capacity=12 : 1, 2, 3, 4, 5, 6, 7, 8, 9,  ]
+[ capacity=12 : 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,  ]
+[ capacity=12 : 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,  ]
+----- b
+[ capacity=2 :  ]
+[ capacity=4 : 1, 2, 3, 4,  ]
+[ capacity=2 : 1, 2,  ]
+----- c
+c[ capacity=5 : 10, 20, 3, 4, 5,  ]
+a[ capacity=12 : 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,  ]
+c.setByMove(..a..)
+c[ capacity=10 : 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,  ]
+a[ capacity=12 : -998, -998, -998, -998, -998, -998, -998, -998, -998, -998,  ]
+d[ capacity=4 : 8, 7, 6, 5,  ]
+b.setByCopy(..d..)
+d[ capacity=4 : 8, 7, 6, 5,  ]
+b[ capacity=4 : 8, 7, 6, 5,  ]
+sizeof(MyBigAlign) = 512
+alignof(MyBigAlign) = 512
+aa[ capacity=8 : 2, 6, 8, 9, 2.1, 5, 4, 2,  ]
+aaa[ capacity=8 : 2, 6, 8, 9, 2.1, 5, 4, 2,  ]
+sort aa
+aa[ capacity=8 : 2, 2, 2.1, 4, 5, 6, 8, 9,  ]
+aaa[ capacity=8 : 2, 6, 8, 9, 2.1, 5, 4, 2,  ]
+sort aaa[0:-1]
+aa[ capacity=8 : 2, 2, 2.1, 4, 5, 6, 8, 9,  ]
+aaa[ capacity=8 : 2, 2.1, 4, 5, 6, 8, 9, 2,  ]
+aaaa[ capacity=8 : 2, 6, 8, 9, 2.1, 5, 4, 2,  ]
+sort aaaa
+aaaa[ capacity=8 : 2, 2, 2.1, 4, 5, 6, 8, 9,  ]
+vpt[ capacity=2 :  ]
+emplace_back(4,5)
+vpt[ capacity=2 : (4, 5),  ]
+reserve_hint(17)
+vpt[ capacity=2 : (4, 5),  ]
+move-assign to vpt2
+vpt[ capacity=2 :  ]
+vpt2[ capacity=2 : (4, 5),  ]
+push_back(40,50)
+vpt[ capacity=2 : (40, 50),  ]
+push_back(41,51)
+vpt[ capacity=2 : (40, 50), (41, 51),  ]
+push_back(42,52)
+vpt[ capacity=4 : (40, 50), (41, 51), (42, 52),  ]
+push_back(1,2)
+vpt[ capacity=4 : (40, 50), (41, 51), (42, 52), (1, 2),  ]
+reserve_hint(17)
+vpt[ capacity=17 : (40, 50), (41, 51), (42, 52), (1, 2),  ]
+move-assign to vpt2
+vpt[ capacity=2 :  ]
+vpt2[ capacity=17 : (40, 50), (41, 51), (42, 52), (1, 2),  ]
+vpt2.emplace_back 13 times
+vpt2[ capacity=17 : (40, 50), (41, 51), (42, 52), (1, 2), (100, 200), (101, 201), (102, 202), (103, 203), (104, 204), (105, 205), (106, 206), (107, 207), (108, 208), (109, 209), (110, 210), (111, 211), (112, 212),  ]
+vpt2.emplace_back
+vpt2[ capacity=34 : (40, 50), (41, 51), (42, 52), (1, 2), (100, 200), (101, 201), (102, 202), (103, 203), (104, 204), (105, 205), (106, 206), (107, 207), (108, 208), (109, 209), (110, 210), (111, 211), (112, 212), (0.123, 0.456),  ]
+vpt2.shrink_to_fit
+vpt[ capacity=2 :  ]
+vpt2[ capacity=18 : (40, 50), (41, 51), (42, 52), (1, 2), (100, 200), (101, 201), (102, 202), (103, 203), (104, 204), (105, 205), (106, 206), (107, 207), (108, 208), (109, 209), (110, 210), (111, 211), (112, 212), (0.123, 0.456),  ]
+vpt.swap(vpt2)
+vpt[ capacity=18 : (40, 50), (41, 51), (42, 52), (1, 2), (100, 200), (101, 201), (102, 202), (103, 203), (104, 204), (105, 205), (106, 206), (107, 207), (108, 208), (109, 209), (110, 210), (111, 211), (112, 212), (0.123, 0.456),  ]
+vpt2[ capacity=2 :  ]
+vpt.pop_back()
+vpt[ capacity=18 : (40, 50), (41, 51), (42, 52), (1, 2), (100, 200), (101, 201), (102, 202), (103, 203), (104, 204), (105, 205), (106, 206), (107, 207), (108, 208), (109, 209), (110, 210), (111, 211), (112, 212),  ]
+vpt.pop_back()
+vpt[ capacity=18 : (40, 50), (41, 51), (42, 52), (1, 2), (100, 200), (101, 201), (102, 202), (103, 203), (104, 204), (105, 205), (106, 206), (107, 207), (108, 208), (109, 209), (110, 210), (111, 211),  ]
+vpt.pop_back()
+vpt[ capacity=18 : (40, 50), (41, 51), (42, 52), (1, 2), (100, 200), (101, 201), (102, 202), (103, 203), (104, 204), (105, 205), (106, 206), (107, 207), (108, 208), (109, 209), (110, 210),  ]
+vpt.pop_back()
+vpt[ capacity=18 : (40, 50), (41, 51), (42, 52), (1, 2), (100, 200), (101, 201), (102, 202), (103, 203), (104, 204), (105, 205), (106, 206), (107, 207), (108, 208), (109, 209),  ]
+vpt.pop_back()
+vpt[ capacity=18 : (40, 50), (41, 51), (42, 52), (1, 2), (100, 200), (101, 201), (102, 202), (103, 203), (104, 204), (105, 205), (106, 206), (107, 207), (108, 208),  ]
+vpt.pop_back()
+vpt[ capacity=18 : (40, 50), (41, 51), (42, 52), (1, 2), (100, 200), (101, 201), (102, 202), (103, 203), (104, 204), (105, 205), (106, 206), (107, 207),  ]
+vpt.pop_back()
+vpt[ capacity=18 : (40, 50), (41, 51), (42, 52), (1, 2), (100, 200), (101, 201), (102, 202), (103, 203), (104, 204), (105, 205), (106, 206),  ]
+vpt.pop_back()
+vpt[ capacity=18 : (40, 50), (41, 51), (42, 52), (1, 2), (100, 200), (101, 201), (102, 202), (103, 203), (104, 204), (105, 205),  ]
+vpt.pop_back()
+vpt[ capacity=18 : (40, 50), (41, 51), (42, 52), (1, 2), (100, 200), (101, 201), (102, 202), (103, 203), (104, 204),  ]
+vpt.pop_back()
+vpt[ capacity=18 : (40, 50), (41, 51), (42, 52), (1, 2), (100, 200), (101, 201), (102, 202), (103, 203),  ]
+vpt.pop_back()
+vpt[ capacity=18 : (40, 50), (41, 51), (42, 52), (1, 2), (100, 200), (101, 201), (102, 202),  ]
+vpt.pop_back()
+vpt[ capacity=18 : (40, 50), (41, 51), (42, 52), (1, 2), (100, 200), (101, 201),  ]
+vpt.pop_back()
+vpt[ capacity=18 : (40, 50), (41, 51), (42, 52), (1, 2), (100, 200),  ]
+vpt.pop_back()
+vpt[ capacity=18 : (40, 50), (41, 51), (42, 52), (1, 2),  ]
+vpt.pop_back()
+vpt[ capacity=18 : (40, 50), (41, 51), (42, 52),  ]
+vpt.pop_back()
+vpt[ capacity=2 : (40, 50), (41, 51),  ]
+vpt.pop_back()
+vpt[ capacity=2 : (40, 50),  ]
+vpt.pop_back()
+vpt[ capacity=2 :  ]
+---------------------------------------
+u (SmallVector<MyDbl,NSMALL=3>) [ capacity=8 : 1, 2, 3, 4, 5, 6, 7, 8,  ]
+  Other(SVAllowCopy, u)
+u[ capacity=8 : 1, 2, 3, 4, 5, 6, 7, 8,  ]
+  u.resize(8)
+u[ capacity=8 : 1, 2, 3, 4, 5, 6, 7, 8,  ]
+  u.resize(4)
+u[ capacity=8 : 1, 2, 3, 4,  ]
+  u.resize(2)
+u[ capacity=3 : 1, 2,  ]
+  u.resize(3)
+u[ capacity=3 : 1, 2, -1.11111,  ]
+ nalive=3
+  u.resize(10)
+u[ capacity=10 : 1, 2, -1.11111, -1.11111, -1.11111, -1.11111, -1.11111, -1.11111, -1.11111, -1.11111,  ]
+  u.resize(0)
+u[ capacity=3 :  ]
+  u = {1,2}
+u[ capacity=3 : 1, 2,  ]
+  u.resize(5)
+u[ capacity=5 : 1, 2, -1.11111, -1.11111, -1.11111,  ]
+---------------------------------------
+SmallVector<int,3>{ 2 } = [ capacity=2 : 2,  ]
+SmallVector<int,3>{ 2, 4 } = [ capacity=2 : 2, 4,  ]
+SmallVector<int,3>{ 2, 4, 7 } = [ capacity=3 : 2, 4, 7,  ]
+SmallVector<int,3>{ SVCountConstruct, 2 } = [ capacity=2 : 0, 0,  ]
+SmallVector<int,3>{ SVCountConstruct, 2, 4 } = [ capacity=2 : 4, 4,  ]
+SmallVector<int,3>{ 5 } = [ capacity=2 : 5,  ]
+SmallVector<int,3>{ 5, 4 } = [ capacity=2 : 5, 4,  ]
+SmallVector<int,3>{ 5, 4, 7 } = [ capacity=3 : 5, 4, 7,  ]
+SmallVector<int,3>{ SVCountConstruct, 5 } = [ capacity=5 : 0, 0, 0, 0, 0,  ]
+SmallVector<int,3>{ SVCountConstruct, 5, 4 } = [ capacity=5 : 4, 4, 4, 4, 4,  ]
+SmallVector<MyDbl,3>{ 2 } = [ capacity=2 : 2,  ]
+SmallVector<MyDbl,3>{ 2, 4 } = [ capacity=2 : 2, 4,  ]
+SmallVector<MyDbl,3>{ 2, 4, 7 } = [ capacity=3 : 2, 4, 7,  ]
+SmallVector<MyDbl,3>{ SVCountConstruct, 2 } = [ capacity=2 : -1.11111, -1.11111,  ]
+SmallVector<MyDbl,3>{ SVCountConstruct, 2, 4 } = [ capacity=2 : 4, 4,  ]
+SmallVector<MyDbl,3>{ 5 } = [ capacity=2 : 5,  ]
+SmallVector<MyDbl,3>{ 5, 4 } = [ capacity=2 : 5, 4,  ]
+SmallVector<MyDbl,3>{ 5, 4, 7 } = [ capacity=3 : 5, 4, 7,  ]
+SmallVector<MyDbl,3>{ SVCountConstruct, 5 } = [ capacity=5 : -1.11111, -1.11111, -1.11111, -1.11111, -1.11111,  ]
+SmallVector<MyDbl,3>{ SVCountConstruct, 5, 4 } = [ capacity=5 : 4, 4, 4, 4, 4,  ]
+---------------------------------------
+u[ capacity=4 : 1, 2, 3,  ]
+v[ capacity=6 : 4, 5, 6, 7, 8, 9,  ]
+v = std::move(u)
+u[ capacity=4 :  ]
+v[ capacity=4 : 1, 2, 3,  ]
+---------------------------------------
+u[ capacity=4 : 1, 2, 3,  ]
+v[ capacity=6 : 4, 5, 6, 7, 8, 9,  ]
+u = std::move(v)
+u[ capacity=6 : 4, 5, 6, 7, 8, 9,  ]
+v[ capacity=4 :  ]
+v.push_back(17)
+u[ capacity=6 : 4, 5, 6, 7, 8, 9,  ]
+v[ capacity=4 : 17,  ]
+---------------------------------------
+w[ capacity=3 : 1, 2, 3,  ]
+x[ capacity=6 : 4, 5, 6, 7, 8, 9,  ]
+w[ capacity=6 : 4, 5, 6, 7, 8, 9,  ]
+x[ capacity=3 : 1, 2, 3,  ]
+y[ capacity=10 : 1, 2, 3,  ]
+z[ capacity=10 : 4, 5, 6, 7, 8, 9,  ]
+y[ capacity=10 : 4, 5, 6, 7, 8, 9,  ]
+z[ capacity=10 : 1, 2, 3,  ]
+u[ capacity=4 : 1, 2, 3,  ]
+v[ capacity=6 : 4, 5, 6, 7, 8, 9,  ]
+u.swap(v)
+u[ capacity=6 : 4, 5, 6, 7, 8, 9,  ]
+v[ capacity=4 : 1, 2, 3,  ]
+std::swap(u,v)
+u[ capacity=4 : 1, 2, 3,  ]
+v[ capacity=6 : 4, 5, 6, 7, 8, 9,  ]
+ADL: swap(u,v)
+u[ capacity=6 : 4, 5, 6, 7, 8, 9,  ]
+v[ capacity=4 : 1, 2, 3,  ]
+using std::swap; swap(u,v)
+u[ capacity=4 : 1, 2, 3,  ]
+v[ capacity=6 : 4, 5, 6, 7, 8, 9,  ]
+--------------------------------------- TEST THROWING COPY CONSTRUCTOR
+s[ capacity=4 : (1, 1.1), (2, 2.1), (3, 3.1),  ]
+now push_back with (234, 52.1) (should throw)
+--> got exception: MyThrowingPt copy-constructor
+s[ capacity=4 : (1, 1.1), (2, 2.1), (3, 3.1),  ]
+--------------------------------------- TEST THROWING COPY CONSTRUCTOR
+s[ capacity=4 : (1, 1.1), (2, 2.1), (3, 3.1), (4, 4.1),  ]
+now push_back with (234, 52.1) (should throw)
+--> got exception: MyThrowingPt copy-constructor
+s[ capacity=4 : (1, 1.1), (2, 2.1), (3, 3.1), (4, 4.1),  ]
+--------------------------------------- TEST THROWING COPY CONSTRUCTOR
+s[ capacity=8 : (1, 1.1), (2, 2.1), (3, 3.1), (4, 4.1), (5, 5.1),  ]
+now push_back with (234, 52.1) (should throw)
+--> got exception: MyThrowingPt copy-constructor
+s[ capacity=8 : (1, 1.1), (2, 2.1), (3, 3.1), (4, 4.1), (5, 5.1),  ]
+--------------------------------------- TEST THROWING COPY CONSTRUCTOR
+s[ capacity=8 : (1, 1.1), (2, 2.1), (3, 3.1), (4, 4.1), (5, 5.1), (6, 6.1),  ]
+now push_back with (234, 52.1) (should throw)
+--> got exception: MyThrowingPt copy-constructor
+s[ capacity=8 : (1, 1.1), (2, 2.1), (3, 3.1), (4, 4.1), (5, 5.1), (6, 6.1),  ]
+--------------------------------------- TEST THROWING COPY CONSTRUCTOR
+s[ capacity=8 : (1, 1.1), (2, 2.1), (3, 3.1), (4, 4.1), (5, 5.1), (6, 6.1), (7, 7.1),  ]
+now push_back with (234, 52.1) (should throw)
+--> got exception: MyThrowingPt copy-constructor
+s[ capacity=8 : (1, 1.1), (2, 2.1), (3, 3.1), (4, 4.1), (5, 5.1), (6, 6.1), (7, 7.1),  ]
+--------------------------------------- TEST THROWING COPY CONSTRUCTOR
+s[ capacity=8 : (1, 1.1), (2, 2.1), (3, 3.1), (4, 4.1), (5, 5.1), (6, 6.1), (7, 7.1), (8, 8.1),  ]
+now push_back with (234, 52.1) (should throw)
+--> got exception: MyThrowingPt copy-constructor
+s[ capacity=8 : (1, 1.1), (2, 2.1), (3, 3.1), (4, 4.1), (5, 5.1), (6, 6.1), (7, 7.1), (8, 8.1),  ]
+--------------------------------------- TEST THROWING COPY CONSTRUCTOR
+s[ capacity=16 : (1, 1.1), (2, 2.1), (3, 3.1), (4, 4.1), (5, 5.1), (6, 6.1), (7, 7.1), (8, 8.1), (9, 9.1),  ]
+now push_back with (234, 52.1) (should throw)
+--> got exception: MyThrowingPt copy-constructor
+s[ capacity=16 : (1, 1.1), (2, 2.1), (3, 3.1), (4, 4.1), (5, 5.1), (6, 6.1), (7, 7.1), (8, 8.1), (9, 9.1),  ]
+--------------------------------------- TEST THROWING COPY CONSTRUCTOR
+s[ capacity=16 : (1, 1.1), (2, 2.1), (3, 3.1), (4, 4.1), (5, 5.1), (6, 6.1), (7, 7.1), (8, 8.1), (9, 9.1), (10, 10.1),  ]
+now push_back with (234, 52.1) (should throw)
+--> got exception: MyThrowingPt copy-constructor
+s[ capacity=16 : (1, 1.1), (2, 2.1), (3, 3.1), (4, 4.1), (5, 5.1), (6, 6.1), (7, 7.1), (8, 8.1), (9, 9.1), (10, 10.1),  ]
+--------------------------------------- TEST THROWING COPY CONSTRUCTOR
+s[ capacity=16 : (1, 1.1), (2, 2.1), (3, 3.1), (4, 4.1), (5, 5.1), (6, 6.1), (7, 7.1), (8, 8.1), (9, 9.1), (10, 10.1), (11, 11.1),  ]
+now push_back with (234, 52.1) (should throw)
+--> got exception: MyThrowingPt copy-constructor
+s[ capacity=16 : (1, 1.1), (2, 2.1), (3, 3.1), (4, 4.1), (5, 5.1), (6, 6.1), (7, 7.1), (8, 8.1), (9, 9.1), (10, 10.1), (11, 11.1),  ]
+MyObjects #constructors - #destructors: 0
