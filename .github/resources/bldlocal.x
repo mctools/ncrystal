@@ -19,10 +19,13 @@ cmake \
     -DNCRYSTAL_ENABLE_EXAMPLES=ON \
     -DNCRYSTAL_ENABLE_GEANT4=OFF \
     -DNCRYSTAL_BUILD_STRICT=ON \
-    -DNCRYSTAL_ENABLE_SETUPSH=ON
+    -DNCRYSTAL_ENABLE_SETUPSH=ON \
+    "$@"
 
 #-DNCRYSTAL_ENABLE_THREADS=OFF
 
 cmake --build "${TGT}/bld" --config "${THE_BUILD_TYPE}"
-
+echo "Build dir was: ${TGT}/bld"
+ctest
 cmake --install "${TGT}/bld"
+echo "Build dir was: ${TGT}/bld"
