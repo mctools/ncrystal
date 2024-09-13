@@ -112,7 +112,9 @@ namespace NCRYSTAL_NAMESPACE {
     constexpr const double& dbl() const noexcept { return m_value; }
 
     //Can be used in boolean expression (usually this evaluates as "true" if value is non-zero).
-    explicit constexpr operator bool() const noexcept;
+    template<class U = TValue, typename = typename std::enable_if<!std::is_same<U,std::string>::value>::type>
+    explicit constexpr operator bool() const noexcept { return bool(m_value); }
+
 
     //Supports comparisons:
 #if nc_cplusplus >= 202002L
@@ -646,12 +648,6 @@ namespace NCRYSTAL_NAMESPACE {
   inline ncconstexpr17 void EncapsulatedValue<Derived,TValue>::set( const Derived& o ) noexcept
   {
     m_value = o.m_value;
-  }
-
-  template <class Derived, class TValue>
-  inline constexpr EncapsulatedValue<Derived,TValue>::operator bool() const noexcept
-  {
-    return bool(m_value);
   }
 
   namespace detail {
