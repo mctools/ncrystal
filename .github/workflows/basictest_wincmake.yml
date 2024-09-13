@@ -23,6 +23,11 @@ jobs:
       shell: cmd
       run: cmake -B build src -DNCRYSTAL_ENABLE_TESTING=ON -DNCRYSTAL_ENABLE_EXAMPLES=ON
 
+    - name: Look around
+      shell: cmd
+      run: |
+        tree build
+
     - name: CMake build NCrystal
       shell: cmd
       run: cmake --build build --config Release  -- /verbosity:detailed
