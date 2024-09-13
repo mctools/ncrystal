@@ -475,7 +475,7 @@ namespace NCRYSTAL_NAMESPACE {
 
     static constexpr size_type size() noexcept { return N; }
     ncconstexpr17 TValue* data() noexcept { return m_data.data(); }
-    constexpr TValue* data() const noexcept { return m_data.data(); }
+    constexpr const TValue* data() const noexcept { return m_data.data(); }
 
     //Default construct (will zero-initialise):
     explicit ncconstexpr17 FixedVector() noexcept;
