@@ -420,7 +420,7 @@ namespace NCRYSTAL_NAMESPACE {
     Data * m_data = nullptr;
     void releaseData();
   public:
-    class NCRYSTAL_API Modifier : private MoveOnly {
+    class Modifier : private MoveOnly {
       Data * m_data = nullptr;
       std::mutex * m_mtx = nullptr;
     public:
