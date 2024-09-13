@@ -264,7 +264,7 @@ if ( NCRYSTAL_MODIFY_RPATH )
   #
   #NB: CMake 3.18 introduces CheckLinkerFlag module which we can eventually use
   #    instead of try_compile!!
-  if( ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.14.0" )
+  if( NOT MSVC AND ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.14.0" )
     set(TMP_TESTDIR ${PROJECT_BINARY_DIR}/test_dtagflags)
     file(WRITE ${TMP_TESTDIR}/test.c "int main() { return 0; }\n")
     try_compile(LINKER_HAS_DTAGS "${TMP_TESTDIR}" "${TMP_TESTDIR}/test.c" LINK_OPTIONS -Wl,--disable-new-dtags)
@@ -532,9 +532,11 @@ endif()
 
 set_target_common_props( NCrystal )
 target_link_libraries( NCrystal PRIVATE ncrystal_common )
-target_include_directories( NCrystal PRIVATE "${PROJECT_SOURCE_DIR}/ncrystal_core/src"
- PUBLIC $<BUILD_INTERFACE:${ncrystal_core_configured_includedir}>
-        $<INSTALL_INTERFACE:${NCrystal_INCDIR}> )
+target_include_directories(
+  NCrystal PRIVATE "${PROJECT_SOURCE_DIR}/ncrystal_core/src"
+  PUBLIC $<BUILD_INTERFACE:${ncrystal_core_configured_includedir}>
+         $<INSTALL_INTERFACE:${NCrystal_INCDIR}>
+)
 
 #Make sure we link in math functions correctly (typically the linker needs libm on unix, but nothing on Windows).
 set(TMP_TESTLIBMSRC "#include <math.h>\nint main(int argc,char** argv) { (void)argv;double a=(exp)(argc+1.0); return (int)(a*0.1); }\n")
