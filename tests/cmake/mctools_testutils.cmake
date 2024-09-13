@@ -81,7 +81,8 @@ function( mctools_testutils_add_test_libs librootdir extra_link_libs )
         OR NOT EXISTS "${ncrystal_core_configured_includedir}/NCrystal/internal/NCMath.hh" )
       message( FATAL_ERROR "Problems finding NCrystal includes at ${ncrystal_core_configured_includedir}/NCrystal/NCDefs.hh" )
     endif()
-    target_include_directories( ${name} PRIVATE ${ncrystal_core_configured_includedir} )#FIXME JUST TESTING
+    target_link_libraries( ${name} PRIVATE "NCrystal" )
+    #target_include_directories( ${name} PRIVATE ${ncrystal_core_configured_includedir} )#FIXME JUST TESTING
 
     target_link_libraries( ${name} PRIVATE ${extra_link_libs} )
     if ( EXISTS "${libdir}/include" )
@@ -124,7 +125,8 @@ function( mctools_testutils_add_tests_apps approotdir )
         OR NOT EXISTS "${ncrystal_core_configured_includedir}/NCrystal/internal/NCMath.hh" )
       message( FATAL_ERROR "Problems finding NCrystal includes at ${ncrystal_core_configured_includedir}/NCrystal/NCDefs.hh" )
     endif()
-    target_include_directories( ${bn} PRIVATE ${ncrystal_core_configured_includedir} )#FIXME JUST TESTING
+    target_link_libraries( ${name} PRIVATE "NCrystal" )
+    #target_include_directories( ${bn} PRIVATE ${ncrystal_core_configured_includedir} )#FIXME JUST TESTING
 
 
 
