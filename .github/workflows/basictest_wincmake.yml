@@ -32,6 +32,11 @@ jobs:
       shell: cmd
       run: cmake --build build --config Release  -- /verbosity:detailed
 
+    - name: Look around again
+      shell: cmd
+      run: |
+        tree build
+
 #cmake --build . --target INSTALL -- /verbosity:detailed
     - name: Run CTests
       shell: cmd
