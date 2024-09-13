@@ -70,7 +70,9 @@ def _find_nclib():
     if override:
         override = pathlib.Path(override)
         if not override.exists() or override.is_dir():
-            raise NCFileNotFound('NCRYSTAL_LIB environment variable is set but does not point to an actual file.')
+            raise NCFileNotFound('NCRYSTAL_LIB environment variable is set'
+                                 f' ("{override}") but does not point'
+                                 ' to an actual file.')
         return override.absolute().resolve(), override_namespace_protection
 
     try:
