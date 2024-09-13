@@ -85,17 +85,17 @@ namespace NCRYSTAL_NAMESPACE {
   NCRYSTAL_API constexpr double constexpr_sqrt(double);
   NCRYSTAL_API constexpr double constexpr_abs(double);
   template <typename TVal>
-  NCRYSTAL_API constexpr TVal ncconstexpr_max( TVal, TVal );
+  constexpr TVal ncconstexpr_max( TVal, TVal );
   template <typename TVal, typename ... Args>
-  NCRYSTAL_API constexpr TVal ncconstexpr_max( TVal, TVal, Args ... );
+  constexpr TVal ncconstexpr_max( TVal, TVal, Args ... );
   template<class TInt>
-  NCRYSTAL_API constexpr TInt ncconstexpr_gcd( TInt , TInt );
+  constexpr TInt ncconstexpr_gcd( TInt , TInt );
   template<class TInt>
-  NCRYSTAL_API constexpr TInt ncconstexpr_lcm( TInt, TInt );
+  constexpr TInt ncconstexpr_lcm( TInt, TInt );
   template <typename TInt, typename ... Args>
-  NCRYSTAL_API constexpr TInt ncconstexpr_lcm( TInt, TInt, Args ... );
+  constexpr TInt ncconstexpr_lcm( TInt, TInt, Args ... );
   template<class TInt>
-  NCRYSTAL_API constexpr TInt ncconstexpr_roundToNextMultipleOf( TInt a, TInt b );//round a to next mult of b (a,b>0)
+  constexpr TInt ncconstexpr_roundToNextMultipleOf( TInt a, TInt b );//round a to next mult of b (a,b>0)
 
   //Math constants (avoid M_PI etc. for portability reasons).
   constexpr double kInfinity    = std::numeric_limits<double>::infinity()           ; // = infinity
@@ -231,7 +231,7 @@ namespace NCRYSTAL_NAMESPACE {
 
   template<class T,
            bool = (std::is_copy_constructible<T>::value&&std::is_copy_assignable<T>::value)>
-  class NCRYSTAL_API Optional {
+  class Optional {
     static_assert(std::is_nothrow_destructible<T>::value,
                   "Optional can only keep objects with noexcept destructors");
   public:
@@ -284,7 +284,7 @@ namespace NCRYSTAL_NAMESPACE {
   };
 
   template <typename T>
-  class NCRYSTAL_API Optional<T, true> : public Optional<T, false>
+  class Optional<T, true> : public Optional<T, false>
   {
     //Specialisation adding copy semantics.
 
@@ -359,7 +359,7 @@ namespace NCRYSTAL_NAMESPACE {
 
   //Pimpl idiom helper (move-only, automatic lifetime mgmt, const-correctness, flexible constructor):
   template<typename T>
-  class NCRYSTAL_API Pimpl : private MoveOnly {
+  class Pimpl : private MoveOnly {
   private:
     T * m_ptr = nullptr;
   public:
@@ -382,7 +382,7 @@ namespace NCRYSTAL_NAMESPACE {
   };
 
   template<class T>
-  class NCRYSTAL_API COWPimpl {
+  class COWPimpl {
   public:
 
     // Helper class implementing both pimpl and copy-on-write mechanics. This is
@@ -457,7 +457,7 @@ namespace NCRYSTAL_NAMESPACE {
   constexpr no_init_t no_init = no_init_t{};
 
   template <class TValue, std::size_t N>
-  class NCRYSTAL_API FixedVector {
+  class FixedVector {
     //Base class for N-vectors (such as NeutronDirection or the internal Vector
     //class, which are implemented via the StronglyTypedFixedVector class and
     //CRTP, see below). This common base class provides some generic methods for
@@ -560,7 +560,7 @@ namespace NCRYSTAL_NAMESPACE {
   //vector:
 
   template <class Derived, class TValue, std::size_t N>
-  class NCRYSTAL_API StronglyTypedFixedVector : public FixedVector<TValue,N> {
+  class StronglyTypedFixedVector : public FixedVector<TValue,N> {
 
   public:
     using FixedVector<TValue,N>::FixedVector;
@@ -576,28 +576,28 @@ namespace NCRYSTAL_NAMESPACE {
   };
 
   template <class TValue, std::size_t N>
-  NCRYSTAL_API ncconstexpr17 std::ostream& operator<<(std::ostream& os,
-                                                      const FixedVector<TValue,N>& dir);
+  ncconstexpr17 std::ostream& operator<<(std::ostream& os,
+                                         const FixedVector<TValue,N>& dir);
 
 
   //std::as_const is only available in C++17 and std::add_const_t only in C++14:
   template< class T >
   using nc_add_const_t = typename std::add_const<T>::type;
   template <class T>
-  NCRYSTAL_API constexpr nc_add_const_t<T>& nc_as_const(T& t) noexcept { return t; }
+  constexpr nc_add_const_t<T>& nc_as_const(T& t) noexcept { return t; }
 
   //Substitute for std::map::try_emplace which only available in C++17. For
   //simplicity we only implement the version which copies the key:
   template <class TMap, class ... Args>
-  NCRYSTAL_API std::pair<typename TMap::iterator, bool> nc_map_try_emplace( TMap&, const typename TMap::key_type&, Args&&... );
+  std::pair<typename TMap::iterator, bool> nc_map_try_emplace( TMap&, const typename TMap::key_type&, Args&&... );
 
   //For overriding existing keys (like m[k]=v but without default constructed value):
   template <class TMap, class ... Args>
-  NCRYSTAL_API void nc_map_force_emplace( TMap&, const typename TMap::key_type&, Args&&... );
+  void nc_map_force_emplace( TMap&, const typename TMap::key_type&, Args&&... );
 
 
   template<class T>
-  class NCRYSTAL_API ValRange {
+  class ValRange {
   public:
     // Small helper class which allows python-like iteration over
     // integer range (with ncrange helper functions below):

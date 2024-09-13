@@ -84,7 +84,7 @@ namespace NCRYSTAL_NAMESPACE {
     class AbsorptionRequest;
 
     template <class TRequest>
-    class NCRYSTAL_API ProcessRequestBase {
+    class ProcessRequestBase {
     public:
       //Common interface for Scatter and Absorption requests.
 

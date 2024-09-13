@@ -78,7 +78,7 @@ namespace NCRYSTAL_NAMESPACE {
   constexpr DoValidate_t DoValidate = DoValidate_t{};
 
   template <class Derived, class TValue = double>
-  class NCRYSTAL_API EncapsulatedValue {
+  class EncapsulatedValue {
     //CRTP base class for encapsulated values. Just as efficient as using raw
     //TValue objects, but with strong type safety.
   public:
@@ -130,7 +130,7 @@ namespace NCRYSTAL_NAMESPACE {
 
   //Values are printed with suitable trailing unit:
   template <class Derived, class TValue>
-  NCRYSTAL_API std::ostream& operator<<(std::ostream&, const EncapsulatedValue<Derived,TValue>& );
+  std::ostream& operator<<(std::ostream&, const EncapsulatedValue<Derived,TValue>& );
 
   class NeutronEnergy;
 
@@ -684,7 +684,7 @@ namespace NCRYSTAL_NAMESPACE {
   }
 
   template <class Derived, class TValue>
-  NCRYSTAL_API inline std::ostream& operator<< (std::ostream& os, const EncapsulatedValue<Derived,TValue>& val)
+  inline std::ostream& operator<< (std::ostream& os, const EncapsulatedValue<Derived,TValue>& val)
   {
     static_cast<const Derived*>(&val)->stream(os);
     return os;

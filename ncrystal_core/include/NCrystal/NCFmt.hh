@@ -34,7 +34,7 @@ namespace NCRYSTAL_NAMESPACE {
   class StrView;//Internal class (cf. NCStrView.hh)
 
   template <unsigned NMAX>
-  class NCRYSTAL_API ShortStr {
+  class ShortStr {
     // Simple short-string class with a given maximum string length (including
     // null char), and no memory allocations.
   public:
@@ -88,7 +88,7 @@ namespace NCRYSTAL_NAMESPACE {
   };
 
   template <unsigned NMAX>
-  NCRYSTAL_API std::ostream& operator<<(std::ostream&, const ShortStr<NMAX>&);
+  std::ostream& operator<<(std::ostream&, const ShortStr<NMAX>&);
 
   ///////////////////////////////////////////////////////
   // String <-> FP conversions
@@ -106,7 +106,7 @@ namespace NCRYSTAL_NAMESPACE {
     }
 
     template<typename T>
-    NCRYSTAL_API inline constexpr unsigned ncconstexpr_max_size_fp_strbuf()
+    inline constexpr unsigned ncconstexpr_max_size_fp_strbuf()
     {
       return 4u + std::numeric_limits<T>::max_digits10
         + ncconstexpr_max<unsigned>(2u, ncconstexpr_log10ceil(std::numeric_limits<T>::max_exponent10));
