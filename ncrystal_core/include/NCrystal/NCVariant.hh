@@ -34,7 +34,7 @@ namespace NCRYSTAL_NAMESPACE {
   enum class VariantAllowEmpty { Yes, No };
 
   template <class T1, class T2, VariantAllowEmpty ALLOW_EMPTY = VariantAllowEmpty::Yes >
-  class NCRYSTAL_API Variant final {
+  class Variant final {
     //Todo: some of the methods below could be noexcept depending on methods of T1 and T2
   public:
 

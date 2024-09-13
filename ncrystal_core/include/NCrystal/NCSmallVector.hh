@@ -82,10 +82,10 @@ namespace NCRYSTAL_NAMESPACE {
 
 
   template<class TValue, std::size_t NSMALL, SVMode MODE = SVMode::FASTACCESS>
-  class NCRYSTAL_API SmallVector : private MoveOnly,
-                                   protected std::conditional<detail::SVUseFast<TValue,MODE>(),
-                                                              detail::SV_CacheBegin,
-                                                              detail::SV_Empty>::type
+  class SmallVector : private MoveOnly,
+                      protected std::conditional<detail::SVUseFast<TValue,MODE>(),
+                                                 detail::SV_CacheBegin,
+                                                 detail::SV_Empty>::type
   {
   public:
     typedef TValue element_type;
@@ -276,7 +276,7 @@ namespace NCRYSTAL_NAMESPACE {
   //class, and then implementing copy/move as required:
 
   template<class TValue, std::size_t NSMALL, SVMode MODE = SVMode::FASTACCESS>
-  class NCRYSTAL_API SmallVector_IC final : public SmallVector<TValue,NSMALL,MODE>
+  class SmallVector_IC final : public SmallVector<TValue,NSMALL,MODE>
   {
   public:
     using SmallVector<TValue,NSMALL,MODE>::SmallVector;
