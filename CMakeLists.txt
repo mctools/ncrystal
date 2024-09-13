@@ -317,13 +317,17 @@ file( MAKE_DIRECTORY "${ncrystal_core_configured_includedir}" )
 
 #TODO: The trailing "/" on "ncrystal_core/include/" below is crucial. Is this behaviour portable?
 
-file(
+file (
   COPY "ncrystal_core/include/"
   DESTINATION "${ncrystal_core_configured_includedir}"
   FILES_MATCHING
   PATTERN "*.h"
   PATTERN "*.hh"
-  )
+)
+if ( NOT EXISTS "${ncrystal_core_configured_includedir}/NCrystal/NCDefs.hh"
+     OR NOT EXISTS "${ncrystal_core_configured_includedir}/NCrystal/internal/NCMath.hh" )
+  message( FATAL_ERROR "Problems copying over include files" )
+endif()
 file( RENAME
   "${ncrystal_core_configured_includedir}/NCrystal/ncapi.h"
   "${ncrystal_core_configured_includedir}/NCrystal/ncapi.h.in"
