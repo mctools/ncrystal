@@ -21,7 +21,7 @@ jobs:
 
     - name: CMake cfg NCrystal
       shell: cmd
-      run: cmake -B build src -DNCRYSTAL_ENABLE_TESTING=OFF -DNCRYSTAL_ENABLE_EXAMPLES=ON
+      run: cmake -B build src -DNCRYSTAL_ENABLE_TESTING=ON -DNCRYSTAL_ENABLE_EXAMPLES=ON
 
     - name: CMake build NCrystal
       shell: cmd
