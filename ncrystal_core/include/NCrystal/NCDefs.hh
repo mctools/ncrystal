@@ -175,18 +175,18 @@ namespace NCRYSTAL_NAMESPACE {
     double generate();
 
     //Generate integer uniformly in { 0, 1, ..., N-1 }:
-    uint32_t generateInt( uint32_t N );
-    uint64_t generateInt64( uint64_t N );
+    std::uint32_t generateInt( std::uint32_t N );
+    std::uint64_t generateInt64( std::uint64_t N );
 
     //Coin flips (50% true, 50% false) and completely randomised bit patterns:
     virtual bool coinflip() = 0;
-    virtual uint64_t generate64RndmBits() = 0;
-    virtual uint32_t generate32RndmBits() = 0;
+    virtual std::uint64_t generate64RndmBits() = 0;
+    virtual std::uint32_t generate32RndmBits() = 0;
 
     //Possibly a more efficient version for getting many numbers at once:
 #ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
     virtual void generateMany( std::size_t n, double* tgt );
-    virtual void generateRandomBits( std::size_t nbytes, uint8_t* data );
+    virtual void generateRandomBits( std::size_t nbytes, std::uint8_t* data );
 #endif
 
   protected:
@@ -195,7 +195,7 @@ namespace NCRYSTAL_NAMESPACE {
 
   struct NCRYSTAL_API UniqueIDValue {
     //type-safe unique id holder.
-    uint64_t value;
+    std::uint64_t value;
 #if nc_cplusplus >= 202002L
     auto operator<=>(const UniqueIDValue&) const = default;
 #else
@@ -220,18 +220,22 @@ namespace NCRYSTAL_NAMESPACE {
     UniqueID( UniqueID&& ) = default;
     UniqueID& operator=( UniqueID&& ) = default;
   private:
-    uint64_t m_uid;
+    std::uint64_t m_uid;
   };
 
-  //Very optional class for C++11, similar to std::optional from C++17, but with
-  //less features:
+  ////////////////////////////////////////////////////////////////////////////
+  //Very simple optional class for C++11, similar to std::optional from C++17,
+  //but with less features. It has copy semantics exactly when the wrapped type
+  //has (implemented via a second boolean template parameter and a class
+  //specialisation inlined elsewhere, so it works on all four major compilers):
 
   struct NCRYSTAL_API NullOptType {};
   constexpr const NullOptType NullOpt;
 
-  template<class T,
-           bool = (std::is_copy_constructible<T>::value&&std::is_copy_assignable<T>::value)>
+  template<class T, bool = (std::is_copy_constructible<T>::value
+                            &&std::is_copy_assignable<T>::value)>
   class Optional {
+
     static_assert(std::is_nothrow_destructible<T>::value,
                   "Optional can only keep objects with noexcept destructors");
   public:
@@ -239,7 +243,6 @@ namespace NCRYSTAL_NAMESPACE {
     using value_type = T;
 
     //Construct with value:
-    ncconstexpr17 Optional( const T& ) noexcept(std::is_nothrow_copy_constructible<T>::value);
     ncconstexpr17 Optional( T&& ) noexcept(std::is_nothrow_move_constructible<T>::value);
 
     //Assign/construct value-less:
@@ -251,8 +254,19 @@ namespace NCRYSTAL_NAMESPACE {
     void reset() noexcept;
 
     //Set value:
-    template<class TOther>
-    Optional& operator=( TOther&& ) noexcept(std::is_nothrow_move_constructible<T>::value);
+    template<class TOther, class U = TOther,
+             typename = typename std::enable_if<std::is_rvalue_reference<TOther>::value
+                                                && std::is_constructible<T,U>::value
+                                                && !std::is_base_of<Optional<T,false>,
+                                typename std::remove_cv<typename std::remove_reference<U>::type>::type>::value>::type>
+    Optional& operator=( TOther&& to ) noexcept(std::is_constructible<T,TOther>::value)
+    {
+      reset();
+      new(&m_value)T(std::forward<TOther>(to));
+      m_hasValue = true;
+      return *this;
+
+    }
 
     template<typename... Args>
     void emplace( Args&& ... );
@@ -265,12 +279,14 @@ namespace NCRYSTAL_NAMESPACE {
     template<class U>
     constexpr T value_or(U&& u) const;
 
-    //move/assign/destruct (moved-from Optional is always without value):
+    //move/assign/destruct (moved-from Optional is always without value). Note
+    //that if T has copy-semantics, this class will get them as well!:
     Optional( Optional&& ) noexcept(std::is_nothrow_move_constructible<T>::value);
     Optional& operator=( Optional&& ) noexcept(std::is_nothrow_move_constructible<T>::value);
     ~Optional() noexcept;
 
-    //Argh, operator= overloads gets swallowed by TOther. Provide set methods as workaround:
+    //Argh, operator= overloads occasionally gets swallowed by TOther. Provide
+    //set methods as workaround:
     Optional& set( const Optional& o );
     Optional& set( Optional&& o );//leaves o without value
 
@@ -278,88 +294,15 @@ namespace NCRYSTAL_NAMESPACE {
     bool operator==( const Optional& o) const;
     bool operator!=( const Optional& o) const;
 
-  protected:
+  private:
     union { char m_dummy; T m_value; };
     bool m_hasValue;
+    friend class Optional<T,true>;
   };
-
-  template <typename T>
-  class Optional<T, true> : public Optional<T, false>
-  {
-    //Specialisation adding copy semantics.
-
-    //It can be access as a reference to the corresponding SmallVector:
-    using base_t = Optional<T,false>;
-    base_t& asBase() noexcept { return *static_cast<Optional<T,false>*>(this); }
-    const base_t& asBase() const noexcept { return *static_cast<const Optional<T,false>*>(this); }
-  public:
-    static_assert(std::is_copy_constructible<T>::value,"");
-    static_assert(std::is_copy_assignable<T>::value,"");
-
-    using Optional<T, false>::Optional;
-
-    template<class TOther>
-    Optional& operator=( TOther&& o ) noexcept(std::is_nothrow_move_constructible<T>::value)
-    {
-      this->asBase() = std::move(o);
-      return *this;
-    }
-
-    Optional( const Optional& o ) noexcept(std::is_nothrow_copy_constructible<T>::value)
-      : Optional<T, false>()
-      {
-        if ( o.m_hasValue ) {
-          new(&this->m_value) T(o.m_value);
-          this->m_hasValue = true;
-        } else {
-          this->m_dummy = 0;
-          this->m_hasValue = false;
-        }
-      }
-    Optional& operator=( const Optional& o ) noexcept(std::is_nothrow_copy_constructible<T>::value)
-    {
-      if ( &o == this )
-        return *this;
-      this->reset();
-      if ( o.m_hasValue ) {
-        new(&this->m_value) T(o.m_value);
-        this->m_hasValue = true;
-      }
-      return *this;
-    }
-
-    //Re-expose potentially hidden methods or those with changed return types:
-    inline Optional& set( const Optional& o )
-    {
-      this->asBase().set(o.asBase());
-      return *this;
-    }
-
-    inline Optional& set( Optional&& o )
-    {
-      this->asBase().set(std::move(o.asBase()));
-      return *this;
-    }
-
-    constexpr Optional() noexcept : Optional<T,false>() {};
-    ~Optional() noexcept {}
-    Optional( Optional&& o ) noexcept(std::is_nothrow_move_constructible<T>::value)
-      : Optional<T,false>(std::move(o.asBase()))
-    {
-    }
-
-    Optional& operator=( Optional&& o ) noexcept(std::is_nothrow_move_constructible<T>::value)
-    {
-      this->asBase() = std::move(o.asBase());
-      return *this;
-    }
-
-  };
-
 
   //Pimpl idiom helper (move-only, automatic lifetime mgmt, const-correctness, flexible constructor):
   template<typename T>
-  class Pimpl : private MoveOnly {
+  class Pimpl final : private MoveOnly {
   private:
     T * m_ptr = nullptr;
   public:
@@ -382,7 +325,7 @@ namespace NCRYSTAL_NAMESPACE {
   };
 
   template<class T>
-  class COWPimpl {
+  class COWPimpl final {
   public:
 
     // Helper class implementing both pimpl and copy-on-write mechanics. This is
@@ -420,7 +363,7 @@ namespace NCRYSTAL_NAMESPACE {
     Data * m_data = nullptr;
     void releaseData();
   public:
-    class Modifier : private MoveOnly {
+    class Modifier final : private MoveOnly {
       Data * m_data = nullptr;
       std::mutex * m_mtx = nullptr;
     public:
@@ -443,15 +386,15 @@ namespace NCRYSTAL_NAMESPACE {
   //Structs which can be used in interfaces accepting cross-section values, to
   //make sure one does not accidentally mix up bound and free cross sections.
 
-  //Convert uniformly randomised uint64_t (i.e. 64 independently randomised
+  //Convert uniformly randomised std::uint64_t (i.e. 64 independently randomised
   //bits) to a double precision floating point uniformly distributed over
   //(0,1]. This will map uniformly from 1.0 at input 0x0 to epsilon~=5.42e-20 at
-  //uint64_max. The least significant bits in the input integer will also be
+  //std::uint64_max. The least significant bits in the input integer will also be
   //least significant for the output value, and due to precision issues the
   //lowest bits will only affect the result when the generated values are low
   //(e.g. the lowest 3 bits will only matter when the generated value is below
   //0.004):
-  NCRYSTAL_API ncconstexpr17 double randUInt64ToFP01( uint64_t );
+  NCRYSTAL_API ncconstexpr17 double randUInt64ToFP01( std::uint64_t );
 
   struct NCRYSTAL_API no_init_t {};
   constexpr no_init_t no_init = no_init_t{};
@@ -1057,13 +1000,99 @@ namespace NCRYSTAL_NAMESPACE {
     return *reinterpret_cast<const carray_type*>(m_data.data());
   }
 
+  template <typename T>
+  class Optional<T, true> final : public Optional<T, false>
+  {
+    //Specialisation adding copy semantics.
+    using base_t = Optional<T,false>;
+    base_t& asBase() noexcept { return *static_cast<Optional<T,false>*>(this); }
+    const base_t& asBase() const noexcept { return *static_cast<const Optional<T,false>*>(this); }
+  public:
+    static_assert(std::is_copy_constructible<T>::value,"");
+    static_assert(std::is_copy_assignable<T>::value,"");
+
+    using Optional<T, false>::Optional;
+
+    Optional& operator=( Optional&& o ) noexcept(std::is_nothrow_move_constructible<T>::value)
+    {
+      asBase() = std::move(o);
+      return *this;
+    }
+
+    ncconstexpr17 Optional& operator=( NullOptType ) noexcept
+    {
+      this->reset();
+      return *this;
+    }
+
+    template<class TOther, class U = TOther,
+             typename = typename std::enable_if<
+               std::is_constructible<T,U>::value &&
+               !std::is_base_of<Optional<T,false>,
+                                typename std::remove_cv<typename std::remove_reference<U>::type>::type>::value>::type>
+    Optional& operator=( TOther&& to ) noexcept(std::is_constructible<T,TOther>::value)
+    {
+      this->reset();
+      new(&asBase().m_value)T(std::forward<TOther>(to));
+      asBase().m_hasValue = true;
+      return *this;
+    }
+
+    ncconstexpr17 Optional( const T& t ) noexcept(std::is_nothrow_copy_constructible<T>::value)
+    {
+      asBase().m_hasValue = true;
+      new(&(asBase().m_value))T(t);
+    }
+
+    Optional( const Optional& o ) noexcept(std::is_nothrow_copy_constructible<T>::value)
+      : Optional<T, false>()
+      {
+        if ( o.m_hasValue ) {
+          new(&this->m_value) T(o.m_value);
+          this->m_hasValue = true;
+        } else {
+          this->m_dummy = 0;
+          this->m_hasValue = false;
+        }
+      }
+
+    Optional& operator=( const Optional& o ) noexcept(std::is_nothrow_copy_constructible<T>::value)
+    {
+      if ( &o == this )
+        return *this;
+      this->reset();
+      if ( o.m_hasValue ) {
+        new(&this->m_value) T(o.m_value);
+        this->m_hasValue = true;
+      }
+      return *this;
+    }
+
+    //Re-expose potentially hidden methods or those with changed return types:
+    Optional& set( const Optional& o )
+    {
+      this->asBase().set(o.asBase());
+      return *this;
+    }
+
+    Optional& set( Optional&& o )
+    {
+      this->asBase().set(std::move(o.asBase()));
+      return *this;
+    }
+
+    constexpr Optional() noexcept : Optional<T,false>() {};
+    ~Optional() noexcept {}
+    Optional( Optional&& o ) noexcept(std::is_nothrow_move_constructible<T>::value)
+      : Optional<T,false>(std::move(o.asBase()))
+    {
+    }
+
+  };
+
   //NB: using placement new in most places to add new values to m_value, this
   //ensures that no existing object is assumed to exist in m_value which would
   //be UB.
-
-  template<class T,bool bcopy>
-  inline ncconstexpr17 Optional<T,bcopy>::Optional(const T& t) noexcept(std::is_nothrow_copy_constructible<T>::value)
-    : m_hasValue(true) { new(&m_value)T(t); }
 
   template<class T,bool bcopy>
   inline ncconstexpr17 Optional<T,bcopy>::Optional(T&& t) noexcept(std::is_nothrow_move_constructible<T>::value)
@@ -1082,30 +1111,6 @@ namespace NCRYSTAL_NAMESPACE {
     reset();
     return *this;
   }
-  // template<class T,bool bcopy>
-  // inline Optional<T,bcopy>::Optional( const Optional& o ) noexcept(std::is_nothrow_copy_constructible<T>::value)
-  // {
-  //   if ( o.m_hasValue ) {
-  //     new(&m_value) T(o.m_value);
-  //     m_hasValue = true;
-  //   } else {
-  //     m_dummy = 0;
-  //     m_hasValue = false;
-  //   }
-  // }
-
-  // template<class T,bool bcopy>
-  // inline Optional<T>& Optional<T,bcopy>::operator=( const Optional& o ) noexcept(std::is_nothrow_copy_constructible<T>::value)
-  // {
-  //   if ( &o == this )
-  //     return *this;
-  //   reset();
-  //   if ( o.m_hasValue ) {
-  //     new(&m_value) T(o.m_value);
-  //     m_hasValue = true;
-  //   }
-  //   return *this;
-  // }
 
   template<class T,bool bcopy>
   inline Optional<T,bcopy>::Optional( Optional&& o ) noexcept(std::is_nothrow_move_constructible<T>::value)
@@ -1158,16 +1163,6 @@ namespace NCRYSTAL_NAMESPACE {
       m_hasValue = true;
       o.reset();
     }
-    return *this;
-  }
-
-  template<class T,bool bcopy>
-  template<class TOther>
-  inline Optional<T,bcopy>& Optional<T,bcopy>::operator=( TOther&& to ) noexcept(std::is_nothrow_move_constructible<T>::value)
-  {
-    reset();
-    new(&m_value)T(std::forward<TOther>(to));
-    m_hasValue = true;
     return *this;
   }
 
@@ -1242,29 +1237,29 @@ namespace NCRYSTAL_NAMESPACE {
     return r;
   }
 
-  inline uint32_t RNG::generateInt( uint32_t N )
+  inline std::uint32_t RNG::generateInt( std::uint32_t N )
   {
-    constexpr uint32_t nmax = std::numeric_limits<uint32_t>::max();
-    const uint32_t lim = nmax - nmax % N;//remove bias
+    constexpr std::uint32_t nmax = std::numeric_limits<std::uint32_t>::max();
+    const std::uint32_t lim = nmax - nmax % N;//remove bias
     do {
-      uint32_t r = generate32RndmBits();
+      std::uint32_t r = generate32RndmBits();
       if ( r < lim )
         return r % N;
     } while(true);
   }
 
-  inline uint64_t RNG::generateInt64( uint64_t N )
+  inline std::uint64_t RNG::generateInt64( std::uint64_t N )
   {
-    constexpr uint64_t nmax = std::numeric_limits<uint64_t>::max();
-    const uint64_t lim = nmax - nmax % N;//remove bias
+    constexpr std::uint64_t nmax = std::numeric_limits<std::uint64_t>::max();
+    const std::uint64_t lim = nmax - nmax % N;//remove bias
     do {
-      uint64_t r = generate64RndmBits();
+      std::uint64_t r = generate64RndmBits();
       if ( r < lim )
         return r % N;
     } while(true);
   }
 
-  inline ncconstexpr17 double randUInt64ToFP01( uint64_t x )
+  inline ncconstexpr17 double randUInt64ToFP01( std::uint64_t x )
   {
     //A note about the implementation: xoroshiro authors recommend: "(x >> 11) *
     //0x1.0p-53".  This selects all k*(2^53) for k=0..(2^53-1) with equal
@@ -1292,7 +1287,7 @@ namespace NCRYSTAL_NAMESPACE {
     template<typename ...Args> Data( Args&& ...args ) : t(std::forward<Args>(args)... ) {}
     T t;
     std::mutex mtx;
-    uint_fast64_t refcount = 1;
+    std::uint_fast64_t refcount = 1;
   };
 
   template<class T>

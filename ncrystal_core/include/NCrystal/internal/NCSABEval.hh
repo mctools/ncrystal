@@ -402,9 +402,8 @@ namespace NCRYSTAL_NAMESPACE {
     }
 
     template< InterpolationScheme AIT, SABInterpolationOrder IO>
-    inline Optional<SABCellEval<AIT,IO>> SABEval<AIT,IO>::getCellEval(double alpha, double beta) const
+    inline Optional<typename SABEval<AIT,IO>::celleval_t> SABEval<AIT,IO>::getCellEval(double alpha, double beta) const
     {
-      static_assert( std::is_same<celleval_t,SABCellEval<AIT,IO>>::value,"");
       Optional<celleval_t> cell;
       auto idx = getCellIndex(*m_sab,alpha,beta);
       if ( idx.isValid() ) {

@@ -23,7 +23,6 @@
 
 #include "NCrystal/NCMatCfg.hh"
 #include "NCrystal/NCInfo.hh"
-#include "NCrystal/NCFactRequestsImpl.hh"
 
 /////////////////////////////////////////////////////////////////////////////////
 //                                                                             //
@@ -79,6 +78,59 @@ namespace NCRYSTAL_NAMESPACE {
       DataSourceName m_dataSourceName;
       bool cmpDataLT(const InfoRequest&) const;
       bool cmpDataEQ(const InfoRequest&) const;
+    };
+
+    class ScatterRequest;
+    class AbsorptionRequest;
+
+    template <class TRequest>
+    class NCRYSTAL_API ProcessRequestBase {
+    public:
+      //Common interface for Scatter and Absorption requests.
+
+      //Info object:
+      UniqueIDValue infoUID() const;
+      const Info& info() const;
+      InfoPtr infoPtr() const;
+      bool isMultiPhase() const { return info().isMultiPhase(); }
+
+      //if isMultiPhase, requests for child phases can be generated with:
+      std::size_t nPhases() const;
+      TRequest createChildRequest( unsigned ichild ) const;
+
+      //Easily create modified request with parameters of string applied.
+      TRequest modified( const std::string& ) const;
+      TRequest modified( const char* ) const;
+      //For instance, if req is a ScatterRequest we might do
+      //  auto req_noelas = req.modified("elas=0");
+
+      //Miscellaneous:
+      void stream( std::ostream & ) const;
+      void streamParamsOnly( std::ostream & ) const;
+      bool operator<(const ProcessRequestBase&) const;
+      bool operator==(const ProcessRequestBase&) const;
+      TRequest cloneThinned() const;//only cmp operators should be used after thinning
+      bool isThinned() const;
+      const Cfg::CfgData& rawCfgData() const;
+      const DataSourceName& dataSourceName() const;//for err messages only
+
+      //Can only construct from "trivial" MatCfg objects (those with
+      //isTrivial()==true), or alternatively by providing an InfoPtr and
+      //possibly CfgData (only relevant data items will be used)
+      ProcessRequestBase( const MatCfg& );
+      ProcessRequestBase( InfoPtr );
+      ProcessRequestBase( InfoPtr, const Cfg::CfgData& );
+    private:
+      ProcessRequestBase( no_init_t ) {}
+      struct internal_t {};
+      ProcessRequestBase( internal_t, InfoPtr, const Cfg::CfgData* );
+      TRequest modified( internal_t, const char*, std::size_t ) const;
+      Cfg::CfgData m_data;
+      OptionalInfoPtr m_infoPtr;
+      UniqueIDValue m_infoUID;
+      DataSourceName m_dataSourceName;
+      bool cmpDataLT(const ProcessRequestBase&) const;
+      bool cmpDataEQ(const ProcessRequestBase&) const;
     };
 
     class NCRYSTAL_API ScatterRequest final : public ProcessRequestBase<ScatterRequest> {
@@ -162,6 +214,16 @@ namespace NCRYSTAL_NAMESPACE {
       return res;
     }
 
+    template<typename TRequest>
+    TRequest ProcessRequestBase<TRequest>::cloneThinned() const
+    {
+      TRequest res{ no_init };
+      res.m_data = m_data;
+      res.m_infoUID = m_infoUID;
+      res.m_dataSourceName = m_dataSourceName;
+      return res;
+    }
+
     inline bool InfoRequest::isThinned() const { return m_textDataSP == nullptr;  }
     inline const DataSourceName& InfoRequest::dataSourceName() const { return m_dataSourceName; }
     inline const Cfg::CfgData& InfoRequest::rawCfgData() const { return m_data; }
@@ -177,6 +239,58 @@ namespace NCRYSTAL_NAMESPACE {
       if ( m_textDataUID != o.m_textDataUID )
         return false;
       return cmpDataEQ( o );
+    }
+
+    template <class TR>
+    inline UniqueIDValue ProcessRequestBase<TR>::infoUID() const { return m_infoUID; }
+
+    template <class TR>
+    inline const Info& ProcessRequestBase<TR>::info() const { nc_assert( m_infoPtr!=nullptr ); return *m_infoPtr; }
+
+    template <class TR>
+    inline InfoPtr ProcessRequestBase<TR>::infoPtr() const {  nc_assert( m_infoPtr!=nullptr ); return m_infoPtr; }
+
+    template <class TR>
+    inline bool ProcessRequestBase<TR>::isThinned() const { return m_infoPtr == nullptr;  }
+
+    template <class TR>
+    inline const DataSourceName& ProcessRequestBase<TR>::dataSourceName() const { return m_dataSourceName; }
+
+    template <class TR>
+    inline const Cfg::CfgData& ProcessRequestBase<TR>::rawCfgData() const { return m_data; }
+
+    template <class TR>
+    inline bool ProcessRequestBase<TR>::operator<( const ProcessRequestBase& o ) const
+    {
+      if ( m_infoUID != o.m_infoUID )
+        return m_infoUID < o.m_infoUID;
+      return cmpDataLT( o );
+    }
+
+    template <class TR>
+    inline bool ProcessRequestBase<TR>::operator==( const ProcessRequestBase& o ) const
+    {
+      if ( m_infoUID != o.m_infoUID )
+        return false;
+      return cmpDataEQ( o );
+    }
+
+    template <class TR>
+    ProcessRequestBase<TR>::ProcessRequestBase( InfoPtr infoptr )
+      : ProcessRequestBase(internal_t(), std::move(infoptr), nullptr )
+    {
+    }
+
+    template <class TR>
+    ProcessRequestBase<TR>::ProcessRequestBase( InfoPtr infoptr, const Cfg::CfgData& data )
+      : ProcessRequestBase(internal_t(), std::move(infoptr), &data )
+    {
+    }
+
+    template <class TR>
+    inline std::size_t ProcessRequestBase<TR>::nPhases() const
+    {
+      return info().isMultiPhase() ? info().getPhases().size() : 0;
     }
 
     inline std::ostream& operator<<(std::ostream& os, const InfoRequest& req ) { req.stream(os); return os; }

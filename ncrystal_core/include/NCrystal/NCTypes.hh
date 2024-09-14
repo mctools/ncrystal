@@ -112,9 +112,8 @@ namespace NCRYSTAL_NAMESPACE {
     constexpr const double& dbl() const noexcept { return m_value; }
 
     //Can be used in boolean expression (usually this evaluates as "true" if value is non-zero).
-    template<class U = TValue, typename = typename std::enable_if<!std::is_same<U,std::string>::value>::type>
+    template<class U = TValue, typename = typename std::enable_if<std::is_arithmetic<U>::value>::type>
     explicit constexpr operator bool() const noexcept { return bool(m_value); }
-
 
     //Supports comparisons:
 #if nc_cplusplus >= 202002L
