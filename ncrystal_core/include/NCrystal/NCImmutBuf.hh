@@ -51,7 +51,7 @@ namespace NCRYSTAL_NAMESPACE {
   /////////////////////////////////////////////////////////////////////////////////
 
   template< std::size_t LOCALBUF_MINSIZE = 15, std::size_t BUF_ALIGNMENT=1, class TMetaData = NullOptType >
-  class ImmutableBuffer {
+  class ImmutableBuffer final {
     class RemoteBuf;
     using TRemotePtr = std::shared_ptr<const RemoteBuf>;
   public:

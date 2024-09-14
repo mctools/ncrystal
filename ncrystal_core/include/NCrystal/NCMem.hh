@@ -21,7 +21,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCException.hh"
+#ifndef NCrystal_Exception_hh
+#  include "NCrystal/NCException.hh"
+#endif
 #include <memory>
 #include <type_traits>
 #include <utility>//std::move
@@ -29,6 +31,7 @@
 #include <functional>
 #include <atomic>
 #include <cstddef>
+#include <cstdint>
 #include <new>
 
 namespace NCRYSTAL_NAMESPACE {
