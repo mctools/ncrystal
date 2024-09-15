@@ -19,13 +19,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCFactRequestsImpl.hh"
-// #include "NCFactories/NCMatCfg.hh"
 #include "NCrystal/NCFactImpl.hh"
 #include "NCrystal/internal/NCCfgManip.hh"
-//#include "NCInterfaces/NCSCOrientation.hh"
 
 namespace NC = NCrystal;
-//namespace NCF = NCrystal::FactImpl;
 namespace NCFD = NCrystal::FactImpl::detail;
 
 namespace NCRYSTAL_NAMESPACE {
@@ -63,12 +60,18 @@ NC::UniqueIDValue NCFD::ProcessRequestData::infoUID() const
 
 const NC::Info& NCFD::ProcessRequestData::info() const
 {
-  nc_assert_always( m_infoPtr!=nullptr );//fixme better exception
+  //Todo CalcError is not really a great type for this.
+  if ( m_infoPtr == nullptr )
+    NCRYSTAL_THROW(CalcError,"Do not use thinned ScatterRequest or"
+                   " Absorptionrequest objects to access Info objects.");
   return *m_infoPtr;
 }
 
 NC::InfoPtr NCFD::ProcessRequestData::infoPtr() const {
-  nc_assert_always( m_infoPtr!=nullptr );//fixme better exception
+  //Todo CalcError is not really a great type for this.
+  if ( m_infoPtr == nullptr )
+    NCRYSTAL_THROW(CalcError,"Do not use thinned ScatterRequest or"
+                   " Absorptionrequest objects to access Info objects.");
   return m_infoPtr;
 }
 
@@ -103,15 +106,15 @@ bool NCFD::ProcessRequestData::operator==( const ProcessRequestData& o ) const
 }
 
 NCFD::ProcessRequestData::ProcessRequestData( InfoPtr infoptr,
-                                              const VarIdFilter& vf )
-  : ProcessRequestData(internal_t(), std::move(infoptr), nullptr, vf )
+                                              ParamDefs pd )
+  : ProcessRequestData(internal_t(), std::move(infoptr), nullptr, pd )
 {
 }
 
 NCFD::ProcessRequestData::ProcessRequestData( InfoPtr infoptr,
                                               const Cfg::CfgData& data,
-                                              const VarIdFilter& vf )
-  : ProcessRequestData(internal_t(), std::move(infoptr), &data, vf )
+                                              ParamDefs pd )
+  : ProcessRequestData(internal_t(), std::move(infoptr), &data, pd )
 {
 }
 
@@ -123,7 +126,7 @@ std::size_t NCFD::ProcessRequestData::nPhases() const
 NCFD::ProcessRequestData::ProcessRequestData( internal_t,
                                               InfoPtr infoptr,
                                               const Cfg::CfgData* opt_data,
-                                              const VarIdFilter& varFilter )
+                                              ParamDefs pd )
   //We want to record just the underlying part of infoptr along with the
   //cfgdata. The reason for this is is that processes provide
   //cross-section-per-barn and thus can be shared between materials which only
@@ -138,8 +141,12 @@ NCFD::ProcessRequestData::ProcessRequestData( internal_t,
   //nonetheless perform a few sanity checks below.
   : m_infoPtr(Info::detail_copyUnderlying(infoptr)),//(NB: don't std::move in this line!!)
     m_infoUID(m_infoPtr->getUniqueID()),
-    m_dataSourceName(m_infoPtr->getDataSourceName())
+    m_dataSourceName(m_infoPtr->getDataSourceName()),
+    m_paramDefs( pd )
 {
+  nc_assert( m_paramDefs.varFilter != nullptr );
+  nc_assert( m_paramDefs.checkParamConsistency != nullptr );
+
   //Sanity checks that underlying and overridden phase lists only differ in a density scale.
   nc_assert( m_infoPtr->isMultiPhase() == infoptr->isMultiPhase() );
   if ( m_infoPtr.get() != infoptr.get() && m_infoPtr->isMultiPhase() ) {
@@ -156,14 +163,14 @@ NCFD::ProcessRequestData::ProcessRequestData( internal_t,
 
   //We take the cfg data from infoptr, NOT m_infoPtr (due to the
   //detail_copyUnderlying call above it was discarded from m_infoPtr):
-  CfgManip::apply( m_data, infoptr->getCfgData(), varFilter );
+  CfgManip::apply( m_data, infoptr->getCfgData(), m_paramDefs.varFilter );
   if ( opt_data )
-    CfgManip::apply( m_data, *opt_data, varFilter );
-  //FIXME Do this in the calling code! static_cast<const TRequest*>(this)->checkParamConsistency();
+    CfgManip::apply( m_data, *opt_data, m_paramDefs.varFilter );
+  m_paramDefs.checkParamConsistency( rawCfgData() );
 }
 
 NCFD::ProcessRequestData::ProcessRequestData( const MatCfg& cfg,
-                                              const VarIdFilter& vf )
+                                              ParamDefs pd )
   : ProcessRequestData( internal_t(),
                         [&cfg]()
                         {
@@ -175,26 +182,24 @@ NCFD::ProcessRequestData::ProcessRequestData( const MatCfg& cfg,
                           : nullptr),//of course, validateMatCfgState above
                                      //ensures cfg.isTrivial()==true, but it
                                      //might get invoked AFTER this line
-                        vf
+                        pd
                         )
 {
 }
 
-NCFD::ProcessRequestData NCFD::ProcessRequestData::createChildRequest( unsigned ichild,
-                                                                       const VarIdFilter& varFilter ) const
+NCFD::ProcessRequestData NCFD::ProcessRequestData::createChildRequest( unsigned ichild ) const
 {
   auto nchildren = isMultiPhase() ? info().getPhases().size() : 0;
   if ( ichild >= nchildren )
     NCRYSTAL_THROW2(BadInput,"createChildRequest index out of range (ichild="<<ichild<<", nchildren="<<nchildren<<")");
   auto info_child = info().getPhases().at(ichild).second;
-  auto child_request = ProcessRequestData( info_child, varFilter );
-  CfgManip::apply( child_request.m_data, m_data );//cfg settings trickle
-                                                       //down and override those
-                                                       //on children [important
-                                                       //to do this here due to
-                                                       //the
-                                                       //detail_copyUnderlying(..)
-                                                       //usage).
+  auto child_request = ProcessRequestData( info_child, m_paramDefs );
+  CfgManip::apply( child_request.m_data, m_data );//cfg settings trickle down
+                                                  //and override those on
+                                                  //children [important to do
+                                                  //this here due to the
+                                                  //detail_copyUnderlying(..)
+                                                  //usage).
   return child_request;
 }
 
@@ -229,31 +234,27 @@ void NCFD::ProcessRequestData::streamParamsOnly( std::ostream &os ) const
 
 NCFD::ProcessRequestData NCFD::ProcessRequestData::modified( internal_t,
                                                              const char* strdata,
-                                                             std::size_t len,
-                                                             const VarIdFilter& varFilter ) const
+                                                             std::size_t len ) const
 {
   StrView sv(strdata,len);
   Cfg::CfgData tmpdata;
   auto toplvlvars = CfgManip::applyStrCfg( tmpdata, sv );
-  auto varNotApplicaple = [&varFilter](const Cfg::detail::VarId varid){ return !varFilter(varid); };
+  auto varNotApplicaple = [this](Cfg::detail::VarId varid){ return !m_paramDefs.varFilter(varid); };
   if ( !toplvlvars.empty() || CfgManip::filterSelectsAny( tmpdata, varNotApplicaple ) )
     NCRYSTAL_THROW2(BadInput,"Invalid cfgstr passed to Request::modified function: \""<<sv
                     <<"\" (only settings applicable to the process type are allowed in this context)");
   ProcessRequestData res( *this );
-  //auto res = TRequest( *static_cast<const TRequest*>(this) );
   CfgManip::apply( res.m_data, tmpdata );
   return res;
 }
 
-NCFD::ProcessRequestData NCFD::ProcessRequestData::modified( const std::string& str,
-                                                             const VarIdFilter& vf ) const
+NCFD::ProcessRequestData NCFD::ProcessRequestData::modified( const std::string& str ) const
 {
-  return modified( internal_t(), str.c_str(), str.size(), vf );
+  return modified( internal_t(), str.c_str(), str.size() );
 }
 
-NCFD::ProcessRequestData NCFD::ProcessRequestData::modified( const char* cstr,
-                                                             const VarIdFilter& vf ) const
+NCFD::ProcessRequestData NCFD::ProcessRequestData::modified( const char* cstr ) const
 {
   StrView sv(cstr);
-  return modified( internal_t(), sv.data(), sv.size(), vf );
+  return modified( internal_t(), sv.data(), sv.size() );
 }

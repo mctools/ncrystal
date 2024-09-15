@@ -38,7 +38,15 @@ namespace NCRYSTAL_NAMESPACE {
       class NCRYSTAL_API ProcessRequestData {
       public:
 
-        using VarIdFilter = std::function<bool(Cfg::detail::VarId)>;
+        struct NCRYSTAL_API ParamDefs {
+          //We use this light-weight struct to capture the difference between
+          //ScatterRequest and AbsorptionRequest (to avoid any sort of public
+          //inheritance tree).
+          typedef bool(*VarFilter)(Cfg::detail::VarId);
+          typedef void(*CheckParamConsistency)(const Cfg::CfgData&);
+          VarFilter varFilter = nullptr;
+          CheckParamConsistency checkParamConsistency = nullptr;
+        };
 
         //Info object:
         UniqueIDValue infoUID() const;
@@ -48,12 +56,11 @@ namespace NCRYSTAL_NAMESPACE {
 
         //if isMultiPhase, requests for child phases can be generated with:
         std::size_t nPhases() const;
-        ProcessRequestData createChildRequest( unsigned ichild,
-                                               const VarIdFilter& ) const;
+        ProcessRequestData createChildRequest( unsigned ichild ) const;
 
         //Easily create modified request with parameters of string applied.
-        ProcessRequestData modified( const std::string&, const VarIdFilter& ) const;
-        ProcessRequestData modified( const char*, const VarIdFilter& ) const;
+        ProcessRequestData modified( const std::string& ) const;
+        ProcessRequestData modified( const char* ) const;
         //For instance, if req is a ScatterRequest we might do
         //  auto req_noelas = req.modified("elas=0");
 
@@ -70,30 +77,28 @@ namespace NCRYSTAL_NAMESPACE {
         //Can only construct from "trivial" MatCfg objects (those with
         //isTrivial()==true), or alternatively by providing an InfoPtr and
         //possibly CfgData (only relevant data items will be used)
-        ProcessRequestData( const MatCfg&, const VarIdFilter& );
-        ProcessRequestData( InfoPtr, const VarIdFilter& );
-        ProcessRequestData( InfoPtr, const Cfg::CfgData&, const VarIdFilter& );
+        ProcessRequestData( const MatCfg&, ParamDefs );
+        ProcessRequestData( InfoPtr, ParamDefs );
+        ProcessRequestData( InfoPtr, const Cfg::CfgData&, ParamDefs );
 
       private:
-
         ProcessRequestData( no_init_t ) {}
         struct internal_t {};
         ProcessRequestData( internal_t,
                             InfoPtr,
                             const Cfg::CfgData*,
-                            const VarIdFilter& );
+                            ParamDefs );
         ProcessRequestData modified( internal_t,
                                      const char*,
-                                     std::size_t,
-                                     const VarIdFilter& ) const;
+                                     std::size_t ) const;
         Cfg::CfgData m_data;
         OptionalInfoPtr m_infoPtr;
         UniqueIDValue m_infoUID;
         DataSourceName m_dataSourceName;
+        ParamDefs m_paramDefs;
         bool cmpDataLT(const ProcessRequestData&) const;
         bool cmpDataEQ(const ProcessRequestData&) const;
       };
-
     }
   }
 }
