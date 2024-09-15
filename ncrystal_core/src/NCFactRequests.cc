@@ -30,24 +30,60 @@ namespace NCRYSTAL_NAMESPACE {
   namespace FactImpl {
     namespace {
       using Cfg::CfgManip;
+
+      bool sr_varFilter(Cfg::detail::VarId varid)
+      {
+        auto gr = Cfg::varGroup(varid);
+        return ( gr == Cfg::VarGroupId::ScatterBase
+                 || gr == Cfg::VarGroupId::ScatterExtra );
+      }
+
+      bool ar_varFilter(Cfg::detail::VarId varid)
+      {
+        return Cfg::varGroup(varid) == Cfg::VarGroupId::Absorption;
+      }
+
+      void sr_checkParamConsistency( const Cfg::CfgData& data )
+      {
+        CfgManip::checkParamConsistency_ScatterBase( data );
+        CfgManip::checkParamConsistency_ScatterExtra( data );
+      }
+
+      void ar_checkParamConsistency( const Cfg::CfgData& data )
+      {
+        CfgManip::checkParamConsistency_Absorption( data );
+      }
+
+      // static bool def_varFilter(Cfg::detail::VarId);
+      // static void def_checkParamConsistency(const Cfg::CfgData&);
+
     }
   }
+}
+
+NCF::detail::ProcessRequestData::ParamDefs NCF::ScatterRequest::paramDefs()
+{
+  return { sr_varFilter, sr_checkParamConsistency };
+}
+
+NCF::detail::ProcessRequestData::ParamDefs NCF::AbsorptionRequest::paramDefs()
+{
+  return { ar_varFilter, ar_checkParamConsistency };
+}
+
+void NCF::ScatterRequest::checkParamConsistency() const
+{
+  sr_checkParamConsistency( rawCfgData() );
+}
+
+void NCF::AbsorptionRequest::checkParamConsistency() const
+{
+  ar_checkParamConsistency( rawCfgData() );
 }
 
 void NCF::InfoRequest::checkParamConsistency() const
 {
   CfgManip::checkParamConsistency_Info( rawCfgData() );
-}
-
-void NCF::ScatterRequest::checkParamConsistency() const
-{
-  CfgManip::checkParamConsistency_ScatterBase( rawCfgData() );
-  CfgManip::checkParamConsistency_ScatterExtra( rawCfgData() );
-}
-
-void NCF::AbsorptionRequest::checkParamConsistency() const
-{
-  CfgManip::checkParamConsistency_Absorption( rawCfgData() );
 }
 
 NCF::InfoRequest::InfoRequest( const MatCfg& cfg )
@@ -62,7 +98,9 @@ NCF::InfoRequest::InfoRequest( const MatCfg& cfg )
 {
   CfgManip::apply( m_data,
                    cfg.rawCfgData(),
-                   [](Cfg::detail::VarId varid){ return Cfg::varGroup(varid) == Cfg::VarGroupId::Info; } );
+                   [](Cfg::detail::VarId varid)
+                   { return ( Cfg::varGroup(varid)
+                              == Cfg::VarGroupId::Info ); } );
   checkParamConsistency();
 }
 
@@ -101,20 +139,6 @@ double NCF::InfoRequest::get_dcutoffup() const { return CfgManip::get_dcutoffup(
 std::string NCF::InfoRequest::get_infofactory() const { return CfgManip::get_infofactory( m_data ).to_string(); }
 std::string NCF::InfoRequest::get_atomdb() const { return CfgManip::get_atomdb( m_data ).to_string(); }
 std::vector<NC::VectS> NCF::InfoRequest::get_atomdb_parsed() const { return CfgManip::get_atomdb_parsed( m_data ); }
-
-
-bool NCF::ScatterRequest::varIsApplicable(Cfg::detail::VarId varid)
-{
-  auto gr = Cfg::varGroup(varid);
-  return ( gr == Cfg::VarGroupId::ScatterBase || gr == Cfg::VarGroupId::ScatterExtra );
-}
-
-bool NCF::AbsorptionRequest::varIsApplicable(Cfg::detail::VarId varid)
-{
-  return Cfg::varGroup(varid) == Cfg::VarGroupId::Absorption;
-}
-
-
 int NCF::ScatterRequest::get_vdoslux() const { return CfgManip::get_vdoslux(rawCfgData()); }
 bool NCF::ScatterRequest::get_coh_elas() const { return CfgManip::get_coh_elas(rawCfgData()); }
 bool NCF::ScatterRequest::get_incoh_elas() const { return CfgManip::get_incoh_elas(rawCfgData()); }
@@ -147,4 +171,53 @@ NC::SCOrientation NCF::ScatterRequest::createSCOrientation() const
   return CfgManip::createSCOrientation<SCOrientation>(rawCfgData());
 }
 
-std::string NCF::AbsorptionRequest::get_absnfactory() const { return CfgManip::get_absnfactory(rawCfgData()).to_string(); }
+std::string NCF::AbsorptionRequest::get_absnfactory() const
+{
+  return CfgManip::get_absnfactory(rawCfgData()).to_string();
+}
+
+NCF::ScatterRequest NCF::ScatterRequest::createChildRequest( unsigned ichild ) const
+{
+  return { internal_t(), m_data.createChildRequest( ichild ) };
+}
+
+NCF::ScatterRequest
+NCF::ScatterRequest::modified( const std::string& str) const
+{
+  return { internal_t(), m_data.modified( str ) };
+}
+
+NCF::ScatterRequest
+NCF::ScatterRequest::modified( const char* cstr ) const
+{
+  return { internal_t(), m_data.modified( cstr ) };
+}
+
+NCF::AbsorptionRequest
+NCF::AbsorptionRequest::createChildRequest( unsigned ichild ) const
+{
+  return { internal_t(), m_data.createChildRequest( ichild ) };
+}
+
+NCF::AbsorptionRequest
+NCF::AbsorptionRequest::modified( const std::string& str) const
+{
+  return { internal_t(), m_data.modified( str ) };
+}
+
+NCF::AbsorptionRequest
+NCF::AbsorptionRequest::modified( const char* cstr ) const
+{
+  return { internal_t(), m_data.modified( cstr ) };
+}
+
+NCF::ScatterRequest NCF::ScatterRequest::cloneThinned() const
+{
+  return { internal_t(), m_data.cloneThinned() };
+}
+
+NCF::AbsorptionRequest NCF::AbsorptionRequest::cloneThinned() const
+{
+  return { internal_t(), m_data.cloneThinned() };
+}
+

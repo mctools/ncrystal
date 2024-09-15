@@ -61,9 +61,10 @@ namespace NCRYSTAL_NAMESPACE {
       bool operator<(const InfoRequest&) const;
       bool operator==(const InfoRequest&) const;
       const DataSourceName& dataSourceName() const;//for err messages only
-      InfoRequest cloneThinned() const;//only cmp operators should be used after thinning
-      bool isThinned() const;
       const Cfg::CfgData& rawCfgData() const;
+      //Thinning (only cmp operators should be used afterwards):
+      InfoRequest cloneThinned() const;
+      bool isThinned() const;
 
       //Can only construct from "trivial" MatCfg objects (those with
       //isTrivial()==true):
@@ -81,61 +82,7 @@ namespace NCRYSTAL_NAMESPACE {
       bool cmpDataEQ(const InfoRequest&) const;
     };
 
-    // template <class TRequest>
-    // class NCRYSTAL_API ProcessRequestBase {
-    // public:
-    //   //Common interface for Scatter and Absorption requests.
-
-    //   //Info object:
-    //   UniqueIDValue infoUID() const;
-    //   const Info& info() const;
-    //   InfoPtr infoPtr() const;
-    //   bool isMultiPhase() const { return info().isMultiPhase(); }
-
-    //   //if isMultiPhase, requests for child phases can be generated with:
-    //   std::size_t nPhases() const;
-    //   TRequest createChildRequest( unsigned ichild ) const;
-
-    //   //Easily create modified request with parameters of string applied.
-    //   TRequest modified( const std::string& ) const;
-    //   TRequest modified( const char* ) const;
-    //   //For instance, if req is a ScatterRequest we might do
-    //   //  auto req_noelas = req.modified("elas=0");
-
-    //   //Miscellaneous:
-    //   void stream( std::ostream & ) const;
-    //   void streamParamsOnly( std::ostream & ) const;
-    //   bool operator<(const ProcessRequestBase&) const;
-    //   bool operator==(const ProcessRequestBase&) const;
-    //   TRequest cloneThinned() const;//only cmp operators should be used after thinning
-    //   bool isThinned() const;
-    //   const Cfg::CfgData& rawCfgData() const;
-    //   const DataSourceName& dataSourceName() const;//for err messages only
-
-    //   //Can only construct from "trivial" MatCfg objects (those with
-    //   //isTrivial()==true), or alternatively by providing an InfoPtr and
-    //   //possibly CfgData (only relevant data items will be used)
-    //   ProcessRequestBase( const MatCfg& );
-    //   ProcessRequestBase( InfoPtr );
-    //   ProcessRequestBase( InfoPtr, const Cfg::CfgData& );
-    // private:
-    //   ProcessRequestBase( no_init_t ) {}
-    //   struct internal_t {};
-    //   ProcessRequestBase( internal_t, InfoPtr, const Cfg::CfgData* );
-    //   TRequest modified( internal_t, const char*, std::size_t ) const;
-    //   Cfg::CfgData m_data;
-    //   OptionalInfoPtr m_infoPtr;
-    //   UniqueIDValue m_infoUID;
-    //   DataSourceName m_dataSourceName;
-    //   bool cmpDataLT(const ProcessRequestBase&) const;
-    //   bool cmpDataEQ(const ProcessRequestBase&) const;
-    // };
-
     class NCRYSTAL_API ScatterRequest final {
-      detail::ProcessRequestData m_data;
-      struct internal_t{};
-      ScatterRequest( internal_t, detail::ProcessRequestData&& data )
-        : m_data(std::move(data)) {}
     public:
 
       //Parameters (basic):
@@ -163,79 +110,60 @@ namespace NCRYSTAL_NAMESPACE {
       StrView get_ucnmode_str() const;
       Optional<UCNMode> get_ucnmode() const;
 
-      static bool varIsApplicable(Cfg::detail::VarId);
-
-      static constexpr const char * requestTypeName() noexcept { return "ScatterRequest"; }
-      void checkParamConsistency() const;
-
-
       //Info object:
       UniqueIDValue infoUID() const { return m_data.infoUID(); }
       const Info& info() const { return m_data.info(); }
       InfoPtr infoPtr() const { return m_data.infoPtr(); }
       bool isMultiPhase() const { return m_data.isMultiPhase(); }
 
-      //if isMultiPhase, requests for child phases can be generated with:
+      //if isMultiPhase(), requests for child phases can be generated with:
       std::size_t nPhases() const { return m_data.nPhases(); }
-      ScatterRequest createChildRequest( unsigned ichild ) const
-      {
-        return { internal_t(),
-                 m_data.createChildRequest( ichild, varIsApplicable ) };
-      }
+      ScatterRequest createChildRequest( unsigned ichild ) const;
 
       //Easily create modified request with parameters of string applied.
-      ScatterRequest modified( const std::string& str) const
-      {
-        return { internal_t(), m_data.modified( str, varIsApplicable ) };
-      }
-
-      ScatterRequest modified( const char* cstr ) const
-      {
-        return { internal_t(), m_data.modified( cstr, varIsApplicable ) };
-      }
-
-      //For instance, if req is a ScatterRequest we might do
-      //  auto req_noelas = req.modified("elas=0");
+      ScatterRequest modified( const std::string& ) const;
+      ScatterRequest modified( const char* ) const;
+      //For instance, if req is a ScatterRequest we might do:
+      //auto req_noelas = req.modified("elas=0");
 
       //Miscellaneous:
       void stream( std::ostream& os ) const { m_data.stream(os); }
       void streamParamsOnly( std::ostream& os ) const { m_data.streamParamsOnly(os); }
       bool operator<(const ScatterRequest& o) const { return m_data < o.m_data; }
       bool operator==(const ScatterRequest& o) const { return m_data == o.m_data; }
+      const DataSourceName& dataSourceName() const { return m_data.dataSourceName(); }
+      const Cfg::CfgData& rawCfgData() const { return m_data.rawCfgData(); }
 
-      ScatterRequest cloneThinned() const//only cmp operators should be used after thinning
+      //Thinning (only cmp operators should be used afterwards):
+      ScatterRequest cloneThinned() const;
+      bool isThinned() const;
+
+      //Can only construct from "trivial" MatCfg objects (those with
+      //isTrivial()==true), or alternatively by providing an InfoPtr and
+      //possibly CfgData (only relevant data items will be used)
+      ScatterRequest( const MatCfg& );
+      ScatterRequest( InfoPtr );
+      ScatterRequest( InfoPtr, const Cfg::CfgData& );
+
+      static constexpr const char * requestTypeName() noexcept
       {
-        return { internal_t(), m_data.cloneThinned() };
+        return "ScatterRequest";
       }
 
-      bool isThinned() const { return m_data.isThinned(); }
-      const Cfg::CfgData& rawCfgData() const { return m_data.rawCfgData(); }
-      const DataSourceName& dataSourceName() const { return m_data.dataSourceName(); }
+      void checkParamConsistency() const;
 
-        //Can only construct from "trivial" MatCfg objects (those with
-        //isTrivial()==true), or alternatively by providing an InfoPtr and
-        //possibly CfgData (only relevant data items will be used)
-      ScatterRequest( const MatCfg& cfg ) : m_data( cfg, varIsApplicable ) {}
-      ScatterRequest( InfoPtr info ) : m_data( std::move(info), varIsApplicable ) {}
-      ScatterRequest( InfoPtr info, const Cfg::CfgData& cfgdata ) : m_data( std::move(info), cfgdata, varIsApplicable ) {}
-
+    private:
+      static detail::ProcessRequestData::ParamDefs paramDefs();
+      detail::ProcessRequestData m_data;
+      struct internal_t{};
+      ScatterRequest( internal_t, detail::ProcessRequestData&& );
     };
 
     class NCRYSTAL_API AbsorptionRequest final {
-      detail::ProcessRequestData m_data;
-      struct internal_t{};
-      AbsorptionRequest( internal_t, detail::ProcessRequestData&& data )
-        : m_data(std::move(data)) {}
     public:
 
       //Parameters:
       std::string get_absnfactory() const;
-
-      static bool varIsApplicable(Cfg::detail::VarId);
-
-      static constexpr const char * requestTypeName() noexcept { return "AbsorptionRequest"; }
-      void checkParamConsistency() const;
-
 
       //Info object:
       UniqueIDValue infoUID() const { return m_data.infoUID(); }
@@ -243,47 +171,45 @@ namespace NCRYSTAL_NAMESPACE {
       InfoPtr infoPtr() const { return m_data.infoPtr(); }
       bool isMultiPhase() const { return m_data.isMultiPhase(); }
 
-      //if isMultiPhase, requests for child phases can be generated with:
+      //if isMultiPhase(), requests for child phases can be generated with:
       std::size_t nPhases() const { return m_data.nPhases(); }
-      AbsorptionRequest createChildRequest( unsigned ichild ) const
-      {
-        return { internal_t(),
-                 m_data.createChildRequest( ichild, varIsApplicable ) };
-      }
+      AbsorptionRequest createChildRequest( unsigned ichild ) const;
 
       //Easily create modified request with parameters of string applied.
-      AbsorptionRequest modified( const std::string& str) const
-      {
-        return { internal_t(), m_data.modified( str, varIsApplicable ) };
-      }
-
-      AbsorptionRequest modified( const char* cstr ) const
-      {
-        return { internal_t(), m_data.modified( cstr, varIsApplicable ) };
-      }
+      AbsorptionRequest modified( const std::string&) const;
+      AbsorptionRequest modified( const char* ) const;
 
       //Miscellaneous:
       void stream( std::ostream& os ) const { m_data.stream(os); }
       void streamParamsOnly( std::ostream& os ) const { m_data.streamParamsOnly(os); }
       bool operator<(const AbsorptionRequest& o) const { return m_data < o.m_data; }
       bool operator==(const AbsorptionRequest& o) const { return m_data == o.m_data; }
+      const DataSourceName& dataSourceName() const { return m_data.dataSourceName(); }
+      const Cfg::CfgData& rawCfgData() const { return m_data.rawCfgData(); }
 
-      AbsorptionRequest cloneThinned() const//only cmp operators should be used after thinning
+      //Thinning (only cmp operators should be used afterwards):
+      AbsorptionRequest cloneThinned() const;
+      bool isThinned() const;
+
+      //Can only construct from "trivial" MatCfg objects (those with
+      //isTrivial()==true), or alternatively by providing an InfoPtr and
+      //possibly CfgData (only relevant data items will be used)
+      AbsorptionRequest( const MatCfg& );
+      AbsorptionRequest( InfoPtr );
+      AbsorptionRequest( InfoPtr, const Cfg::CfgData& );
+
+      static constexpr const char * requestTypeName() noexcept
       {
-        return { internal_t(), m_data.cloneThinned() };
+        return "AbsorptionRequest";
       }
 
-      bool isThinned() const { return m_data.isThinned(); }
-      const Cfg::CfgData& rawCfgData() const { return m_data.rawCfgData(); }
-      const DataSourceName& dataSourceName() const { return m_data.dataSourceName(); }
+      void checkParamConsistency() const;
 
-        //Can only construct from "trivial" MatCfg objects (those with
-        //isTrivial()==true), or alternatively by providing an InfoPtr and
-        //possibly CfgData (only relevant data items will be used)
-      AbsorptionRequest( const MatCfg& cfg ) : m_data( cfg, varIsApplicable ) {}
-      AbsorptionRequest( InfoPtr info ) : m_data( std::move(info), varIsApplicable ) {}
-      AbsorptionRequest( InfoPtr info, const Cfg::CfgData& cfgdata ) : m_data( std::move(info), cfgdata, varIsApplicable ) {}
-
+    private:
+      static detail::ProcessRequestData::ParamDefs paramDefs();
+      detail::ProcessRequestData m_data;
+      struct internal_t{};
+      AbsorptionRequest( internal_t, detail::ProcessRequestData&& );
     };
 
     //Stream support:
@@ -317,6 +243,8 @@ namespace NCRYSTAL_NAMESPACE {
 
 
     inline bool InfoRequest::isThinned() const { return m_textDataSP == nullptr;  }
+    inline bool ScatterRequest::isThinned() const { return m_data.isThinned();  }
+    inline bool AbsorptionRequest::isThinned() const { return m_data.isThinned();  }
     inline const DataSourceName& InfoRequest::dataSourceName() const { return m_dataSourceName; }
     inline const Cfg::CfgData& InfoRequest::rawCfgData() const { return m_data; }
 
@@ -336,6 +264,50 @@ namespace NCRYSTAL_NAMESPACE {
     inline std::ostream& operator<<(std::ostream& os, const InfoRequest& req ) { req.stream(os); return os; }
     inline std::ostream& operator<<(std::ostream& os, const ScatterRequest& req ) { req.stream(os); return os; }
     inline std::ostream& operator<<(std::ostream& os, const AbsorptionRequest& req ) { req.stream(os); return os; }
+
+    inline ScatterRequest::ScatterRequest( const MatCfg& cfg )
+      : m_data( cfg, paramDefs() )
+    {
+    }
+
+    inline ScatterRequest::ScatterRequest( InfoPtr info )
+      : m_data( std::move(info), paramDefs() )
+    {
+    }
+
+    inline ScatterRequest::ScatterRequest( InfoPtr info,
+                                           const Cfg::CfgData& cfgdata )
+      : m_data( std::move(info), cfgdata, paramDefs() )
+    {
+    }
+
+    inline ScatterRequest::ScatterRequest( internal_t,
+                                           detail::ProcessRequestData&& data )
+      : m_data(std::move(data))
+    {
+    }
+
+    inline AbsorptionRequest::AbsorptionRequest( const MatCfg& cfg )
+      : m_data( cfg, paramDefs() )
+    {
+    }
+
+    inline AbsorptionRequest::AbsorptionRequest( InfoPtr info )
+      : m_data( std::move(info), paramDefs() )
+    {
+    }
+
+    inline AbsorptionRequest::AbsorptionRequest( InfoPtr info,
+                                                 const Cfg::CfgData& cfgdata )
+      : m_data( std::move(info), cfgdata, paramDefs() )
+    {
+    }
+
+    inline AbsorptionRequest::AbsorptionRequest( internal_t,
+                                                 detail::ProcessRequestData&& data )
+      : m_data(std::move(data))
+    {
+    }
 
   }
 }
