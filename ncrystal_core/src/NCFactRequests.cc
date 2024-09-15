@@ -30,16 +30,6 @@ namespace NCRYSTAL_NAMESPACE {
   namespace FactImpl {
     namespace {
       using Cfg::CfgManip;
-      void validateMatCfgState( const MatCfg& cfg ) {
-        //Validate MatCfg object ok for XXXRequest constructor:
-        if ( !cfg.isTrivial() )
-          NCRYSTAL_THROW(BadInput,"Only trivial MatCfg objects can be passed to constructors of Request objects.");
-        if ( cfg.isThinned() )
-          NCRYSTAL_THROW(BadInput,"Thinned MatCfg objects can not be passed to constructors of Request objects.");
-        nc_assert( !cfg.isMultiPhase() );
-        nc_assert( cfg.getPhaseChoices().empty() );
-        nc_assert( cfg.get_density() == DensityState() );
-      }
     }
   }
 }
@@ -62,7 +52,7 @@ void NCF::AbsorptionRequest::checkParamConsistency() const
 
 NCF::InfoRequest::InfoRequest( const MatCfg& cfg )
   : m_textDataSP( [&cfg]() {
-    validateMatCfgState(cfg);
+    detail::validateMatCfgState(cfg);
     auto tdsp = cfg.textDataSP();
     nc_assert(tdsp!=nullptr);
     return tdsp;
@@ -113,149 +103,17 @@ std::string NCF::InfoRequest::get_atomdb() const { return CfgManip::get_atomdb( 
 std::vector<NC::VectS> NCF::InfoRequest::get_atomdb_parsed() const { return CfgManip::get_atomdb_parsed( m_data ); }
 
 
-inline bool NCF::ScatterRequest::varIsApplicable(Cfg::detail::VarId varid)
+bool NCF::ScatterRequest::varIsApplicable(Cfg::detail::VarId varid)
 {
   auto gr = Cfg::varGroup(varid);
   return ( gr == Cfg::VarGroupId::ScatterBase || gr == Cfg::VarGroupId::ScatterExtra );
 }
 
-inline bool NCF::AbsorptionRequest::varIsApplicable(Cfg::detail::VarId varid)
+bool NCF::AbsorptionRequest::varIsApplicable(Cfg::detail::VarId varid)
 {
   return Cfg::varGroup(varid) == Cfg::VarGroupId::Absorption;
 }
 
-template<typename TRequest>
-NCF::ProcessRequestBase<TRequest>::ProcessRequestBase( internal_t, InfoPtr infoptr, const Cfg::CfgData* opt_data )
-  //We want to record just the underlying part of infoptr along with the
-  //cfgdata. The reason for this is is that processes provide
-  //cross-section-per-barn and thus can be shared between materials which only
-  //differ by a density override. Unfortunately the call to
-  //Info::detail_copyUnderlying(infoptr) below is somewhat fragile, since it
-  //also discards other fields on Info::OverrideableDataFields, namely
-  //overridden cfgdata and phaselist (in case of multiphase material). Now, the
-  //cfgdata is reapplied manually below, but we could potentially have buggy
-  //behaviour if the underlying and overriden phaselists would not simply differ
-  //by a general density scale. Ideally, this is guaranteed by having the code
-  //in NCInfoBuilder.cc only override phaselists in such a way, but we
-  //nonetheless perform a few sanity checks below.
-  : m_infoPtr(Info::detail_copyUnderlying(infoptr)),//(NB: don't std::move in this line!!)
-    m_infoUID(m_infoPtr->getUniqueID()),
-    m_dataSourceName(m_infoPtr->getDataSourceName())
-{
-  //Sanity checks that underlying and overridden phase lists only differ in a density scale.
-  nc_assert( m_infoPtr->isMultiPhase() == infoptr->isMultiPhase() );
-  if ( m_infoPtr.get() != infoptr.get() && m_infoPtr->isMultiPhase() ) {
-    auto &pl1 = infoptr->getPhases();
-    auto &pl2 = m_infoPtr->getPhases();
-    nc_assert_always( pl1.size() == pl2.size() );
-    for ( auto i : ncrange(pl1.size()) ) {
-      nc_assert_always( pl1.at(i).first == pl2.at(i).first );
-      nc_assert_always( pl1.at(i).second->detail_getUnderlyingUniqueID()
-                        == pl2.at(i).second->detail_getUnderlyingUniqueID() );
-      //NB: We could go ahead and verify stuff like relative density and cfgdata...
-    }
-  }
-
-  //We take the cfg data from infoptr, NOT m_infoPtr (due to the
-  //detail_copyUnderlying call above it was discarded from m_infoPtr):
-  CfgManip::apply( m_data, infoptr->getCfgData(), TRequest::varIsApplicable );
-  if ( opt_data )
-    CfgManip::apply( m_data, *opt_data, TRequest::varIsApplicable );
-  static_cast<const TRequest*>(this)->checkParamConsistency();
-}
-
-template<typename TRequest>
-NCF::ProcessRequestBase<TRequest>::ProcessRequestBase( const MatCfg& cfg )
-  : ProcessRequestBase( internal_t(),
-                        [&cfg]()
-                        {
-                          validateMatCfgState(cfg);
-                          return FactImpl::create(InfoRequest(cfg));
-                        }(),
-                        (cfg.isTrivial()?&cfg.rawCfgData():nullptr)//of course, validateMatCfgState above ensures
-                                                                   //cfg.isTrivial()==true, but it might get invoked
-                                                                   //AFTER this line
-                        )
-{
-}
-
-template<typename TRequest>
-TRequest NCF::ProcessRequestBase<TRequest>::createChildRequest( unsigned ichild ) const
-{
-  auto nchildren = isMultiPhase() ? info().getPhases().size() : 0;
-  if ( ichild >= nchildren )
-    NCRYSTAL_THROW2(BadInput,"createChildRequest index out of range (ichild="<<ichild<<", nchildren="<<nchildren<<")");
-  auto info_child = info().getPhases().at(ichild).second;
-  auto child_request = TRequest( info_child );
-  CfgManip::apply( child_request.m_data, m_data );//cfg settings trickle down
-                                                  //and override those on
-                                                  //children [important to do
-                                                  //this here due to the
-                                                  //detail_copyUnderlying(..)
-                                                  //usage)
-  return child_request;
-}
-
-template<typename TRequest>
-bool NCF::ProcessRequestBase<TRequest>::cmpDataLT( const ProcessRequestBase& o ) const
-{
-  return ( m_dataSourceName.str() == o.m_dataSourceName.str()
-           ? CfgManip::lessThan( m_data, o.m_data )
-           : m_dataSourceName.str() < o.m_dataSourceName.str() );
-}
-
-template<typename TRequest>
-bool NCF::ProcessRequestBase<TRequest>::cmpDataEQ( const ProcessRequestBase& o ) const
-{
-  return ( m_dataSourceName.str() == o.m_dataSourceName.str()
-           ? CfgManip::equal( m_data, o.m_data )
-           : false );
-}
-
-template<typename TRequest>
-void NCF::ProcessRequestBase<TRequest>::stream( std::ostream &os ) const
-{
-  os << m_dataSourceName << ";...";//;... represents the unknown Info params
-  if ( !CfgManip::empty(m_data) ) {
-    os << ';';
-    CfgManip::stream(m_data,os);
-  }
-}
-
-template<typename TRequest>
-void NCF::ProcessRequestBase<TRequest>::streamParamsOnly( std::ostream &os ) const
-{
-  if ( !CfgManip::empty(m_data) )
-    CfgManip::stream(m_data,os);
-}
-
-template<typename TRequest>
-TRequest NCF::ProcessRequestBase<TRequest>::modified( internal_t, const char*strdata, std::size_t len ) const
-{
-  StrView sv(strdata,len);
-  Cfg::CfgData tmpdata;
-  auto toplvlvars = CfgManip::applyStrCfg( tmpdata, sv );
-  auto varNotApplicaple = [](const Cfg::detail::VarId varid){ return !TRequest::varIsApplicable(varid); };
-  if ( !toplvlvars.empty() || CfgManip::filterSelectsAny( tmpdata, varNotApplicaple ) )
-    NCRYSTAL_THROW2(BadInput,"Invalid cfgstr passed to Request::modified function: \""<<sv
-                    <<"\" (only settings applicable to the process type are allowed in this context)");
-  auto res = TRequest( *static_cast<const TRequest*>(this) );
-  CfgManip::apply( res.m_data, tmpdata );
-  return res;
-}
-
-template<typename TRequest>
-TRequest NCF::ProcessRequestBase<TRequest>::modified( const std::string& str ) const
-{
-  return modified( internal_t(), str.c_str(), str.size() );
-}
-
-template<typename TRequest>
-TRequest NCF::ProcessRequestBase<TRequest>::modified( const char* cstr ) const
-{
-  StrView sv(cstr);
-  return modified( internal_t(), sv.data(), sv.size() );
-}
 
 int NCF::ScatterRequest::get_vdoslux() const { return CfgManip::get_vdoslux(rawCfgData()); }
 bool NCF::ScatterRequest::get_coh_elas() const { return CfgManip::get_coh_elas(rawCfgData()); }
@@ -290,7 +148,3 @@ NC::SCOrientation NCF::ScatterRequest::createSCOrientation() const
 }
 
 std::string NCF::AbsorptionRequest::get_absnfactory() const { return CfgManip::get_absnfactory(rawCfgData()).to_string(); }
-
-//Explicit instantiation (needed since we wanted templated code in this non-header file):
-template class NCF::ProcessRequestBase<NCF::ScatterRequest>;
-template class NCF::ProcessRequestBase<NCF::AbsorptionRequest>;

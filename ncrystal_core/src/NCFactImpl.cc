@@ -826,13 +826,13 @@ namespace NCRYSTAL_NAMESPACE {
 
 NC::shared_obj<const NC::Info> NCF::createInfo( const InfoRequest& cfg )
 {
-  detail::factThreads_checkEnvVar();
+  ::NC::detail::factThreads_checkEnvVar();
   return infoDB().loadPluginsAndCreate( { cfg } );
 }
 
 NC::ProcImpl::ProcPtr NCF::createScatter( const ScatterRequest& cfg )
 {
-  detail::factThreads_checkEnvVar();
+  ::NC::detail::factThreads_checkEnvVar();
   auto p = scatterDB().loadPluginsAndCreate( { cfg } );
   nc_assert( p!=nullptr );
   if ( p->processType() != ProcessType::Scatter )
@@ -843,7 +843,7 @@ NC::ProcImpl::ProcPtr NCF::createScatter( const ScatterRequest& cfg )
 
 NC::ProcImpl::ProcPtr NCF::createAbsorption( const AbsorptionRequest& cfg )
 {
-  detail::factThreads_checkEnvVar();
+  ::NC::detail::factThreads_checkEnvVar();
   auto p = absorptionDB().loadPluginsAndCreate( { cfg } );
   nc_assert( p!=nullptr );
   if ( p->processType() != ProcessType::Absorption )
@@ -854,7 +854,7 @@ NC::ProcImpl::ProcPtr NCF::createAbsorption( const AbsorptionRequest& cfg )
 
 NC::shared_obj<const NC::Info> NCF::createInfo( const MatCfg& cfg )
 {
-  detail::factThreads_checkEnvVar();
+  ::NC::detail::factThreads_checkEnvVar();
   ///////////////////////////////////////////////////////////////////////////////////////////////
   // First deal with phase-choices (before all other things, which is in line
   // with the documentation's promise that the effect of phase-choice parameter
@@ -934,7 +934,7 @@ NC::shared_obj<const NC::Info> NCF::createInfo( const MatCfg& cfg )
 
 NC::ProcImpl::ProcPtr NCF::createScatter( const MatCfg& cfg )
 {
-  detail::factThreads_checkEnvVar();
+  ::NC::detail::factThreads_checkEnvVar();
   if ( cfg.hasDensityOverride() )
     return createScatter( cfg.cloneWithoutDensityState() );//never matters for a process
   MatCfg::PhaseChoices phaseChoices = cfg.getPhaseChoices();
@@ -953,7 +953,7 @@ NC::ProcImpl::ProcPtr NCF::createScatter( const MatCfg& cfg )
 
 NC::ProcImpl::ProcPtr NCF::createAbsorption( const MatCfg& cfg )
 {
-  detail::factThreads_checkEnvVar();
+  ::NC::detail::factThreads_checkEnvVar();
   if ( cfg.hasDensityOverride() )
     return createAbsorption( cfg.cloneWithoutDensityState() );//never matters for a process
 
