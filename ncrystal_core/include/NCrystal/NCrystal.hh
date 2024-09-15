@@ -109,6 +109,9 @@
 #ifndef NCrystal_FactRequests_hh
 #  include "NCrystal/NCFactRequests.hh"
 #endif
+#ifndef NCrystal_FactRequestsImpl_hh
+#  include "NCrystal/NCFactRequestsImpl.hh"
+#endif
 #ifndef NCrystal_DataSources_hh
 #  include "NCrystal/NCDataSources.hh"
 #endif

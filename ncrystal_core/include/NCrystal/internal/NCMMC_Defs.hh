@@ -52,7 +52,7 @@ namespace NCRYSTAL_NAMESPACE {
 #  undef NCRYSTAL_DEBUGMMCMSG
 #endif
 
-#ifndef NDEBUG
+#if 0 //#ifndef NDEBUG (always disable, messes up tests)
 #define NCRYSTAL_DEBUGMMCMSG(msg) ::NCRYSTAL_NAMESPACE::Msg::detail:: \
   outputMsgMS( ::NCRYSTAL_NAMESPACE::Msg::detail::MsgStream() << "MMC:" << msg, \
                ::NCRYSTAL_NAMESPACE::MsgType::Info );
