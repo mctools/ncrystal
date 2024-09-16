@@ -108,6 +108,8 @@ namespace NCRYSTAL_NAMESPACE {
     class PackedCellIndex;
     class NAlphaCells;
 
+    CellIndex getCellIndex(const SABData&, double alpha, double beta );
+
     template< InterpolationScheme alphaInterpType_ = InterpolationScheme::LOGLIN,
               SABInterpolationOrder interpOrder_ = SABInterpolationOrder::ALPHA_FIRST>
     class SABEval {
@@ -182,8 +184,6 @@ namespace NCRYSTAL_NAMESPACE {
     private:
       index_t m_ia, m_ib;
     };
-
-    CellIndex getCellIndex(const SABData&, double alpha, double beta );
 
   }
 }
