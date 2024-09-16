@@ -475,7 +475,6 @@ void do_tests() {
 
 void do_tests_IC() {
 
-  Core::catch_fpe();
   {
     NC::SmallVector_IC<MyDblMoveOnly,3> a;
     print(a);
@@ -847,6 +846,7 @@ void do_tests_IC() {
 
 
 int main() {
+  NCTests::catch_fpe();
   do_tests();
   do_tests_IC();
   std::cout<<"MyObjects #constructors - #destructors: "<<nalive<<std::endl;

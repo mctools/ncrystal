@@ -110,40 +110,6 @@ namespace NCRYSTAL_NAMESPACE {
 
     CellIndex getCellIndex(const SABData&, double alpha, double beta );
 
-    template< InterpolationScheme alphaInterpType_ = InterpolationScheme::LOGLIN,
-              SABInterpolationOrder interpOrder_ = SABInterpolationOrder::ALPHA_FIRST>
-    class SABEval {
-    public:
-      using celleval_t = SABCellEval<alphaInterpType_,interpOrder_>;
-
-      SABEval( shared_obj<const SABData> );
-      SABEval( const SABData* );//Warning: lifetime of SABData must outlive SABEval object!!
-      const SABData& sabData() const;
-      rawcellidx_t nRawCellIdxMax() const;
-      celleval_t getCell( rawcellidx_t cell_rawidx ) const;
-      celleval_t getCell( PackedCellIndex ) const;
-      celleval_t getCell( CellIndex ) const;
-      Optional<celleval_t> getCellEval(double alpha, double beta) const
-      {
-        //Not inlined below due to VisualStudio issues.
-        Optional<celleval_t> cell;
-        auto idx = getCellIndex(*m_sab,alpha,beta);
-        if ( idx.isValid() ) {
-          //inside grid
-          nclikely cell.emplace( getCell( idx ) );
-        }
-        return cell;
-      }
-
-      double eval( PairDD alpha_beta ) const;
-      double eval( double alpha, double beta ) const;
-
-    private:
-      const SABData* m_sab;
-      std::shared_ptr<const SABData> m_sabptr;//to keep alive
-      NAlphaCells m_nalphacells;
-    };
-
     class PackedCellIndex {
     public:
       //Cell indices are in unpacked form (ialpha,ibeta) where the indices are
@@ -183,6 +149,41 @@ namespace NCRYSTAL_NAMESPACE {
       constexpr index_t ib() const noexcept { return m_ib; }
     private:
       index_t m_ia, m_ib;
+    };
+
+
+    template< InterpolationScheme alphaInterpType_ = InterpolationScheme::LOGLIN,
+              SABInterpolationOrder interpOrder_ = SABInterpolationOrder::ALPHA_FIRST>
+    class SABEval {
+    public:
+      using celleval_t = SABCellEval<alphaInterpType_,interpOrder_>;
+
+      SABEval( shared_obj<const SABData> );
+      SABEval( const SABData* );//Warning: lifetime of SABData must outlive SABEval object!!
+      const SABData& sabData() const;
+      rawcellidx_t nRawCellIdxMax() const;
+      celleval_t getCell( rawcellidx_t cell_rawidx ) const;
+      celleval_t getCell( PackedCellIndex ) const;
+      celleval_t getCell( CellIndex ) const;
+      Optional<celleval_t> getCellEval(double alpha, double beta) const
+      {
+        //Not inlined below due to VisualStudio issues.
+        Optional<celleval_t> cell;
+        auto idx = getCellIndex(*m_sab,alpha,beta);
+        if ( idx.isValid() ) {
+          //inside grid
+          nclikely cell.emplace( getCell( idx ) );
+        }
+        return cell;
+      }
+
+      double eval( PairDD alpha_beta ) const;
+      double eval( double alpha, double beta ) const;
+
+    private:
+      const SABData* m_sab;
+      std::shared_ptr<const SABData> m_sabptr;//to keep alive
+      NAlphaCells m_nalphacells;
     };
 
   }
