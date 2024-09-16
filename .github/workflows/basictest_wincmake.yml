@@ -42,7 +42,7 @@ jobs:
       shell: cmd
       run: |
         cd build
-        ctest
+        ctest --build-config Release
 
     - name: CMake install NCrystal
       shell: cmd
