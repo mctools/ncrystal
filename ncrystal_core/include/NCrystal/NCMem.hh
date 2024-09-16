@@ -290,8 +290,8 @@ namespace NCRYSTAL_NAMESPACE {
     //2. Returned memory must be eventually released by call to freeAlignedAlloc
     //(or one of the templated overloads). Throws std::bad_alloc in case the
     //allocation fails.
-    void * alignedAlloc( std::size_t alignment, std::size_t size );
-    void freeAlignedAlloc( std::size_t alignment, void* addr );
+    NCRYSTAL_API void * alignedAlloc( std::size_t alignment, std::size_t size );
+    NCRYSTAL_API void freeAlignedAlloc( std::size_t alignment, void* addr );
 
     //Type-safe versions:
     template<class TValue>
@@ -387,7 +387,7 @@ namespace NCRYSTAL_NAMESPACE {
     namespace detail {
 
       //For alignment > alignof(std::max_align_t):
-      void * bigAlignedAlloc( std::size_t alignment, std::size_t size );
+      NCRYSTAL_API void * bigAlignedAlloc( std::size_t alignment, std::size_t size );
 
 #  if defined(__GNUC__) && (__GNUC__*1000+__GNUC_MINOR__)<4009
       //gcc didn't add max_align_t to std:: until gcc 4.9
@@ -396,10 +396,10 @@ namespace NCRYSTAL_NAMESPACE {
       constexpr auto nc_alignof_max_align_t = alignof(std::max_align_t);
 #  endif
 #ifdef NCRYSTAL_TRACKALIGNEDALLOC
-      void trackalloc_enable( bool = true );
-      void trackalloc_malloc(void*);
-      void trackalloc_free(void*);
-      std::size_t trackalloc_count();
+      NCRYSTAL_API void trackalloc_enable( bool = true );
+      NCRYSTAL_API void trackalloc_malloc(void*);
+      NCRYSTAL_API void trackalloc_free(void*);
+      NCRYSTAL_API std::size_t trackalloc_count();
 #endif
       inline void * nc_std_malloc(std::size_t n)
       {
@@ -425,7 +425,7 @@ namespace NCRYSTAL_NAMESPACE {
         }
       }
 
-      void freeBigAlignedAlloc( void* );
+      NCRYSTAL_API void freeBigAlignedAlloc( void* );
     }
   }
 }
