@@ -341,16 +341,16 @@ void do_tests() {
   }
   {
     std::cout<<"---------------------------------------"<<std::endl;
-    {  NC::SmallVector<int,2> u{ 2 }; print(u,"SmallVector<int,3>{ 2 } = "); }
-    {  NC::SmallVector<int,2> u{ 2, 4 }; print(u,"SmallVector<int,3>{ 2, 4 } = "); }
-    {  NC::SmallVector<int,2> u{ 2, 4, 7 }; print(u,"SmallVector<int,3>{ 2, 4, 7 } = "); }
-    {  NC::SmallVector<int,2> u{ NC::SVCountConstruct, 2 }; print(u,"SmallVector<int,3>{ SVCountConstruct, 2 } = "); }
-    {  NC::SmallVector<int,2> u{ NC::SVCountConstruct, 2, 4 }; print(u,"SmallVector<int,3>{ SVCountConstruct, 2, 4 } = "); }
-    {  NC::SmallVector<int,2> u{ 5 }; print(u,"SmallVector<int,3>{ 5 } = "); }
-    {  NC::SmallVector<int,2> u{ 5, 4 }; print(u,"SmallVector<int,3>{ 5, 4 } = "); }
-    {  NC::SmallVector<int,2> u{ 5, 4, 7 }; print(u,"SmallVector<int,3>{ 5, 4, 7 } = "); }
-    {  NC::SmallVector<int,2> u{ NC::SVCountConstruct, 5 }; print(u,"SmallVector<int,3>{ SVCountConstruct, 5 } = "); }
-    {  NC::SmallVector<int,2> u{ NC::SVCountConstruct, 5, 4 }; print(u,"SmallVector<int,3>{ SVCountConstruct, 5, 4 } = "); }
+    {  NC::SmallVector<int,2> u{ 2 }; print(u,"SmallVector<int,2>{ 2 } = "); }
+    {  NC::SmallVector<int,2> u{ 2, 4 }; print(u,"SmallVector<int,2>{ 2, 4 } = "); }
+    {  NC::SmallVector<int,2> u{ 2, 4, 7 }; print(u,"SmallVector<int,2>{ 2, 4, 7 } = "); }
+    {  NC::SmallVector<int,2> u( NC::SVCountConstruct, 2 ); print(u,"SmallVector<int,2>{ SVCountConstruct, 2 } = "); }
+    {  NC::SmallVector<int,2> u{ NC::SVCountConstruct, 2, 4 }; print(u,"SmallVector<int,2>{ SVCountConstruct, 2, 4 } = "); }
+    {  NC::SmallVector<int,2> u{ 5 }; print(u,"SmallVector<int,2>{ 5 } = "); }
+    {  NC::SmallVector<int,2> u{ 5, 4 }; print(u,"SmallVector<int,2>{ 5, 4 } = "); }
+    {  NC::SmallVector<int,2> u{ 5, 4, 7 }; print(u,"SmallVector<int,2>{ 5, 4, 7 } = "); }
+    {  NC::SmallVector<int,2> u{ NC::SVCountConstruct, 5 }; print(u,"SmallVector<int,2>{ SVCountConstruct, 5 } = "); }
+    {  NC::SmallVector<int,2> u{ NC::SVCountConstruct, 5, 4 }; print(u,"SmallVector<int,2>{ SVCountConstruct, 5, 4 } = "); }
     {  NC::SmallVector<MyDbl,2> u{ 2 }; print(u,"SmallVector<MyDbl,3>{ 2 } = "); }
     {  NC::SmallVector<MyDbl,2> u{ 2, 4 }; print(u,"SmallVector<MyDbl,3>{ 2, 4 } = "); }
     {  NC::SmallVector<MyDbl,2> u{ 2, 4, 7 }; print(u,"SmallVector<MyDbl,3>{ 2, 4, 7 } = "); }
