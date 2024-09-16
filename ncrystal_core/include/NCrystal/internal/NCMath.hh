@@ -591,10 +591,10 @@ template <class Func>
 inline double NCrystal::integrateRomberg17(const Func& f, double a, double b)
 {
   struct R17 : public Romberg {
-    const Func& m_f;
-    R17(const Func& f) : m_f(f) {}
+    const Func* m_f;
+    R17(const Func& f) : m_f(&f) {}
     virtual ~R17() = default;
-    double evalFunc(double x) const override { return m_f(x); }
+    double evalFunc(double x) const override { return (*m_f)(x); }
     bool accept(unsigned, double, double,double,double) const override { return true; }
   };
   return R17(f).integrate(a,b);
@@ -604,10 +604,10 @@ template <class Func>
 inline double NCrystal::integrateRomberg33(const Func& f, double a, double b)
 {
   struct R33 : public Romberg {
-    const Func& m_f;
-    R33(const Func& f) : m_f(f) {}
+    const Func* m_f;
+    R33(const Func& f) : m_f(&f) {}
     virtual ~R33() = default;
-    double evalFunc(double x) const override { return m_f(x); }
+    double evalFunc(double x) const override { return (*m_f)(x); }
     bool accept(unsigned lvl, double, double,double,double) const override { return lvl>4; }
   };
   return R33(f).integrate(a,b);
@@ -617,12 +617,12 @@ template <class Func>
 inline double NCrystal::integrateRombergFlex(const Func& f, double a, double b, double prec, unsigned minlvl, unsigned maxlvl )
 {
   struct RFlex final : public Romberg {
-    const Func& m_f;
+    const Func* m_f;
     double m_prec;
     unsigned m_minlvl;
     unsigned m_maxlvl;
-    RFlex(const Func& f, double pp,unsigned minl, unsigned maxl) : m_f(f), m_prec(pp), m_minlvl(minl), m_maxlvl(maxl) {}
-    double evalFunc(double x) const override { return m_f(x); }
+    RFlex(const Func& f, double pp,unsigned minl, unsigned maxl) : m_f(&f), m_prec(pp), m_minlvl(minl), m_maxlvl(maxl) {}
+    double evalFunc(double x) const override { return (*m_f)(x); }
     bool accept(unsigned level, double prev_est, double est, double, double) const override
     {
       return level>=m_minlvl && (level>=m_maxlvl || floateq(prev_est,est,m_prec,0.0));
