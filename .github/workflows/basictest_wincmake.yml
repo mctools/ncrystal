@@ -27,7 +27,7 @@ jobs:
     - name: Look around
       shell: cmd
       run: |
-        tree build
+        tree /f build
 
     - name: CMake build NCrystal
       shell: cmd
@@ -36,7 +36,7 @@ jobs:
     - name: Look around again
       shell: cmd
       run: |
-        tree build
+        tree /f build
 
 #cmake --build . --target INSTALL -- /verbosity:detailed
     - name: Run CTests
