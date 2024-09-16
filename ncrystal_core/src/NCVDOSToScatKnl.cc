@@ -104,7 +104,7 @@ namespace NCRYSTAL_NAMESPACE {
         //stirling_threshold should be left at 250: it can't be raised much higher
         //since the direct method is not valid much beyond n=250, and if it is
         //decreased too far there will be precision (and speed) issues.
-        constexpr bool stirling_threshold = 250;
+        constexpr unsigned stirling_threshold = 250;
         const double alpha2x = V2SKDetail::kTmsd_to_alpha2x(kT,msd);
         auto x_vals = vectorTrf(alphaGrid,[alpha2x](double alpha){ return alpha*alpha2x; } );
         auto expmhalfx_vals = vectorTrf(x_vals,[](double x){ return std::exp(-0.5*x); } );
