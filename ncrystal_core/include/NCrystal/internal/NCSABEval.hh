@@ -121,7 +121,18 @@ namespace NCRYSTAL_NAMESPACE {
       celleval_t getCell( rawcellidx_t cell_rawidx ) const;
       celleval_t getCell( PackedCellIndex ) const;
       celleval_t getCell( CellIndex ) const;
-      Optional<celleval_t> getCellEval(double alpha, double beta) const;
+      Optional<celleval_t> getCellEval(double alpha, double beta) const
+      {
+        //Not inlined below due to VisualStudio issues.
+        Optional<celleval_t> cell;
+        auto idx = getCellIndex(*m_sab,alpha,beta);
+        if ( idx.isValid() ) {
+          //inside grid
+          nclikely cell.emplace( getCell( idx ) );
+        }
+        return cell;
+      }
+
       double eval( PairDD alpha_beta ) const;
       double eval( double alpha, double beta ) const;
 
@@ -401,17 +412,17 @@ namespace NCRYSTAL_NAMESPACE {
       return getCell( idx.unpack( m_nalphacells ) );
     }
 
-    template< InterpolationScheme AIT, SABInterpolationOrder IO>
-    inline Optional<typename SABEval<AIT,IO>::celleval_t> SABEval<AIT,IO>::getCellEval(double alpha, double beta) const
-    {
-      Optional<celleval_t> cell;
-      auto idx = getCellIndex(*m_sab,alpha,beta);
-      if ( idx.isValid() ) {
-        //inside grid
-        nclikely cell.emplace( getCell( idx ) );
-      }
-      return cell;
-    }
+    // template< InterpolationScheme AIT, SABInterpolationOrder IO>
+    // inline Optional<typename SABEval<AIT,IO>::celleval_t> SABEval<AIT,IO>::getCellEval(double alpha, double beta) const
+    // {
+    //   Optional<celleval_t> cell;
+    //   auto idx = getCellIndex(*m_sab,alpha,beta);
+    //   if ( idx.isValid() ) {
+    //     //inside grid
+    //     nclikely cell.emplace( getCell( idx ) );
+    //   }
+    //   return cell;
+    // }
 
     template< InterpolationScheme AIT, SABInterpolationOrder IO>
     inline double SABEval<AIT,IO>::eval( PairDD alpha_beta ) const { return eval(alpha_beta.first,alpha_beta.second); }
