@@ -138,7 +138,7 @@ namespace NCRYSTAL_NAMESPACE {
     ///////////////////////////////////////////////////////////////////////////
     //Can also move or copy (if TValue is copy constructible) from existing
     //containers. The SVAllowCopy trait is used to protect against accidental
-    //copies (unless MODE flag is *_IMPLICITCOPY):
+    //copies:
     template <class TIter>
     SmallVector( SVAllowCopy_t, TIter it_begin, TIter it_end );
     template <class TIter>
