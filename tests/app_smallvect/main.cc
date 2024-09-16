@@ -465,7 +465,7 @@ void do_tests() {
   }
 
   {
-    NC::SmallVector<double,2,NC::SVMode::FASTACCESS_IMPLICITCOPY> v_copyable = { 1.1, 2.2 };
+    NC::SmallVector_IC<double,2> v_copyable = { 1.1, 2.2 };
     decltype(v_copyable) v_copyable2(v_copyable);
     decltype(v_copyable) v_copyable3;
     v_copyable3 = v_copyable;
