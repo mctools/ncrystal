@@ -23,7 +23,7 @@ if ( NOT DEFINED MCTOOLS_TESTUTILS_PYTHON_EXECUTABLE )
   set( MCTOOLS_TESTUTILS_PYTHON_EXECUTABLE "auto" )
 endif()
 
-function( mctools_testutils_add_tests_pyscripts scriptsdir pyenvmod )
+function( mctools_testutils_add_tests_pyscripts scriptsdir envmod )
   file(
     GLOB pyscriptlist
     LIST_DIRECTORIES false
@@ -48,10 +48,10 @@ function( mctools_testutils_add_tests_pyscripts scriptsdir pyenvmod )
       add_test( NAME "${testname}" COMMAND "${pyexec}" "${pyscript}" )
       mctools_testutils_internal_settestprops( "py_${bn}" )
     endif()
-    if ( pyenvmod )
+    if ( envmod )
       set_property(
         TEST "${testname}"
-        PROPERTY ENVIRONMENT_MODIFICATION "${pyenvmod}"
+        PROPERTY ENVIRONMENT_MODIFICATION "${envmod}"
       )
     endif()
   endforeach()
@@ -98,7 +98,7 @@ function( mctools_testutils_add_test_libs librootdir extra_link_libs )
   endforeach()
 endfunction()
 
-function( mctools_testutils_add_tests_apps approotdir extra_link_libs )
+function( mctools_testutils_add_tests_apps approotdir extra_link_libs envmod )
   set( testsbindir "${PROJECT_BINARY_DIR}/mctools_tests_bin" )
   file( MAKE_DIRECTORY "${testsbindir}" )
   file(
@@ -116,21 +116,29 @@ function( mctools_testutils_add_tests_apps approotdir extra_link_libs )
       target_link_libraries( ${bn} PRIVATE "TestLib_${dep}" )
     endforeach()
     target_link_libraries( ${bn} PRIVATE ${extra_link_libs} )
+    #Fixme not great for multi-generators (also, do we need it??):
     set_target_properties(
       ${bn} PROPERTIES
       RUNTIME_OUTPUT_DIRECTORY "${testsbindir}/${bn}"
       RUNTIME_OUTPUT_NAME  "${bn}"
     )
     if ( EXISTS "${appdir}/test.log" )
+      set( testname "app_rl_${bn}" )
       mctools_testutils_internal_addreflogtest(
-        "app_rl_${bn}"
-        # "${testsbindir}/${bn}/${bn}"
+        "${testname}"
         "$<TARGET_FILE:${bn}>"
         "${appdir}/test.log"
       )
     else()
-      add_test( NAME "app_${bn}" COMMAND ${bn} )
+      set( testname "app_${bn}" )
+      add_test( NAME "${testname}" COMMAND ${bn} )
       mctools_testutils_internal_settestprops( "app_${bn}" )
+    endif()
+    if ( envmod )
+      set_property(
+        TEST "${testname}"
+        PROPERTY ENVIRONMENT_MODIFICATION "${envmod}"
+      )
     endif()
   endforeach()
 endfunction()
