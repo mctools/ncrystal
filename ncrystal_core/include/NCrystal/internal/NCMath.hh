@@ -158,7 +158,7 @@ namespace NCRYSTAL_NAMESPACE {
   double findRoot(const Fct1D*f,double a, double b, double acc = 1e-13);
 
   template <class Func>
-  double findRoot2(const Func& f,double a, double b, double acc = 1e-13);
+  double findRoot2(Func&& f,double a, double b, double acc = 1e-13);
 
   class CosSinGridGen {
   public:
@@ -237,11 +237,11 @@ namespace NCRYSTAL_NAMESPACE {
   template <class Func>
   double integrateTrapezoidal(const Func& f, double a, double b, unsigned n);
   template <class Func>
-  double integrateRomberg17(const Func& f, double a, double b);
+  double integrateRomberg17(Func&& f, double a, double b);
   template <class Func>
-  double integrateRomberg33(const Func& f, double a, double b);
+  double integrateRomberg33(Func&& f, double a, double b);
   template <class Func>
-  double integrateRombergFlex(const Func& f, double a, double b,
+  double integrateRombergFlex(Func&& f, double a, double b,
                               double prec=1e-12, unsigned minlvl = 3, unsigned maxlvl = 10 );
 
 
@@ -588,41 +588,42 @@ inline double NCrystal::integrateTrapezoidal(const Func& f, double a, double b, 
 }
 
 template <class Func>
-inline double NCrystal::integrateRomberg17(const Func& f, double a, double b)
+inline double NCrystal::integrateRomberg17(Func&& f, double a, double b)
 {
-  struct R17 : public Romberg {
-    const Func* m_f;
-    R17(const Func& f) : m_f(&f) {}
-    virtual ~R17() = default;
-    double evalFunc(double x) const override { return (*m_f)(x); }
+  auto callf = [&f]( double x ) -> double { return f(x); };
+  struct R17 final : public Romberg {
+    decltype(callf) m_f;
+    R17(decltype(callf)&& ff) : m_f(std::move(ff)) {}
+    double evalFunc(double x) const override { return m_f(x); }
     bool accept(unsigned, double, double,double,double) const override { return true; }
   };
-  return R17(f).integrate(a,b);
+  return R17(std::move(callf)).integrate(a,b);
 }
 
 template <class Func>
-inline double NCrystal::integrateRomberg33(const Func& f, double a, double b)
+inline double NCrystal::integrateRomberg33(Func&& f, double a, double b)
 {
-  struct R33 : public Romberg {
-    const Func* m_f;
-    R33(const Func& f) : m_f(&f) {}
-    virtual ~R33() = default;
-    double evalFunc(double x) const override { return (*m_f)(x); }
+  auto callf = [&f]( double x ) -> double { return f(x); };
+  struct R33 final : public Romberg {
+    decltype(callf) m_f;
+    R33(decltype(callf)&& ff) : m_f(std::move(ff)) {}
+    double evalFunc(double x) const override { return m_f(x); }
     bool accept(unsigned lvl, double, double,double,double) const override { return lvl>4; }
   };
-  return R33(f).integrate(a,b);
+  return R33(std::move(callf)).integrate(a,b);
 }
 
 template <class Func>
-inline double NCrystal::integrateRombergFlex(const Func& f, double a, double b, double prec, unsigned minlvl, unsigned maxlvl )
+inline double NCrystal::integrateRombergFlex(Func&& f, double a, double b, double prec, unsigned minlvl, unsigned maxlvl )
 {
+  auto callf = [&f]( double x ) -> double { return f(x); };
   struct RFlex final : public Romberg {
-    const Func* m_f;
+    decltype(callf) m_f;
     double m_prec;
     unsigned m_minlvl;
     unsigned m_maxlvl;
-    RFlex(const Func& f, double pp,unsigned minl, unsigned maxl) : m_f(&f), m_prec(pp), m_minlvl(minl), m_maxlvl(maxl) {}
-    double evalFunc(double x) const override { return (*m_f)(x); }
+    RFlex(decltype(callf)&& ff, double pp,unsigned minl, unsigned maxl) : m_f(std::move(ff)), m_prec(pp), m_minlvl(minl), m_maxlvl(maxl) {}
+    double evalFunc(double x) const override { return m_f(x); }
     bool accept(unsigned level, double prev_est, double est, double, double) const override
     {
       return level>=m_minlvl && (level>=m_maxlvl || floateq(prev_est,est,m_prec,0.0));
@@ -631,19 +632,18 @@ inline double NCrystal::integrateRombergFlex(const Func& f, double a, double b, 
   nc_assert(maxlvl>=minlvl);
   nc_assert(minlvl>=3);
   nc_assert(prec<1.0&&prec>=0.0);
-  return RFlex(f,prec,minlvl,maxlvl).integrate(a,b);
+  return RFlex(std::move(callf),prec,minlvl,maxlvl).integrate(a,b);
 }
 
 template <class Func>
-inline double NCrystal::findRoot2(const Func& f,double a, double b, double acc)
+inline double NCrystal::findRoot2(Func&& f,double a, double b, double acc)
 {
-
-  struct FctWrap : public Fct1D {
-    const Func* m_f;
-    FctWrap(const Func& f) : m_f(&f) {};
-    virtual ~FctWrap() = default;
-    double eval(double x) const final { return (*m_f)(x); }
-  } fwrap(f);
+  auto callf = [&f]( double x ) -> double { return f(x); };
+  struct FctWrap final : public Fct1D {
+    decltype(callf) m_f;
+    FctWrap(decltype(callf)&& ff) : m_f(std::move(ff)) {};
+    double eval(double x) const final { return m_f(x); }
+  } fwrap(std::move(callf));
   return findRoot(&fwrap,a,b,acc);
 }
 
