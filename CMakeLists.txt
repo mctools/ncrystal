@@ -312,6 +312,7 @@ file_globsrc( EXAMPLES_NCG4 "examples/ncrystal_example_g4*.cc")
 
 #The ncapi.h header needs expansion of CMake variables, so we copy ALL header
 #files to a temporary directory and edit just that one file:
+#FIXME: Try to include in-place (apart from ncapi.h)
 set( ncrystal_core_configured_includedir "${PROJECT_BINARY_DIR}/ncrystal_core_include_configured" )
 file( MAKE_DIRECTORY "${ncrystal_core_configured_includedir}" )
 

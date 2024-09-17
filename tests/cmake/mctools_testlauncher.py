@@ -53,9 +53,9 @@ New output is at: {newout.absolute()}
 Reference output is at: {reflogfile.absolute()}
 Unix commands to diff and update:
 
-    colordiff -y {qp(newout)} {qp(reflogfile)} | less -r
-    diff {qp(newout)} {qp(reflogfile)}
-    cp {qp(newout)} {qp(reflogfile)}
+    colordiff -y {qp(reflogfile)} {qp(newout)} | less -r
+    diff {qp(reflogfile)} {qp(newout)}
+    cp {qp(reflogfile)} {qp(newout)}
 
 """)
 
