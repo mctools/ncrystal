@@ -39,6 +39,12 @@ def run( app_file, reflogfile = None ):
     assert not newout.exists()
     newout.write_bytes(output_raw)
 
+    if r.returncode == 3221225781:
+        import platform
+        if platform.system() == 'Windows':
+            raise SystemExit('Error: Command ended with exit'
+                             f' code {r.returncode} (usually'
+                             ' indicates "DLL not found")')
     if r.returncode != 0:
         raise SystemExit(f'Error: Command ended with exit code {r.returncode}')
     if reflogfile is None:
