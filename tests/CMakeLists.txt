@@ -76,6 +76,7 @@ else()
       APPEND nctest_pyenvmod
       "NCRYSTAL_LIB=set:$<TARGET_FILE:NCrystal>"
     )
+    #FIXME: also NCRYSTAL_DATA_PATH (or whatever) to point to the stdlib?
   endif()
   mctools_testutils_add_tests_pyscripts(
     "${CMAKE_CURRENT_LIST_DIR}/scripts" "${nctest_pyenvmod}"
