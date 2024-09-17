@@ -43,7 +43,7 @@ jobs:
       shell: cmd
       run: |
         cd build
-        ctest --build-config Release --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle
+        ctest --build-config Release --verbose --extra-verbose --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle
 
     - name: CMake install NCrystal
       shell: cmd
