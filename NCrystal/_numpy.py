@@ -25,7 +25,8 @@ __all__ = ['_np',
            '_ensure_numpy',
            '_np_linspace',
            '_np_geomspace',
-           '_np_logspace' ]
+           '_np_logspace',
+           '_np_trapezoid']
 
 try:
     import numpy as _np
@@ -64,3 +65,9 @@ def _np_logspace(start,stop,num=50):
     l[0] = 10.0**start
     l[-1] = 10.0**stop
     return l
+
+def _np_trapezoid( *args, **kwargs ):
+    _ensure_numpy()
+    if hasattr(_np,'trapezoid'):
+        return _np.trapezoid( *args, **kwargs )
+    return _np.trapz( *args, **kwargs )

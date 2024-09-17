@@ -228,11 +228,11 @@ def _gcd( *vals ):
     return gcd
 
 def format_chemform( chemform, *, allow_rescaling = True ):
-    #takes chemform like [('Al',2'),('O',3)] and returns nicely formatted string
+    #takes chemform like [('Al',2),('O',3)] and returns nicely formatted string
     #"Al2O3", with no duplicated element names and sorted according to the Hill
     #system of notation. Additionally, integral counts are divided by greatest
     #common divisor, and an attempt is made to scale up non-integral counts
-    #where it makes sense (e.g. Al0.5O1.5 becomes Al2O6).
+    #where it makes sense (e.g. Al0.5O1.5 becomes AlO3).
     if len(chemform)==1:
         return str(chemform[0][0])
     cf = _hill_sort(chemform)
