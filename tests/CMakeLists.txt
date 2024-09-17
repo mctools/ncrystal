@@ -67,9 +67,14 @@ else()
       APPEND nctest_pyenvmod
       "PYTHONPATH=path_list_prepend:${PROJECT_BINARY_DIR}/nctests_pypath"
     )
+    get_target_property(
+      tmp_ncrystal_libloc
+      "${nctests_ncrystallib_target}"
+      "LIBRARY_OUTPUT_DIRECTORY_Release"
+    )
     list(
       APPEND nctest_pyenvmod
-      "NCRYSTAL_LIB=set:${NCrystal_BINARY_DIR}/${NCrystal_LIBNAME}"
+      "NCRYSTAL_LIB=set:$<TARGET_FILE:NCrystal>"
     )
   endif()
   mctools_testutils_add_tests_pyscripts(
@@ -82,3 +87,4 @@ mctools_testutils_add_test_libs(
 mctools_testutils_add_tests_apps(
   "${CMAKE_CURRENT_LIST_DIR}" "${nctests_ncrystallib_target}"
 )
+#FIXME: TODO Need python unit test which launches compiled app!

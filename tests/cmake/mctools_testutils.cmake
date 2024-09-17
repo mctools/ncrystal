@@ -19,8 +19,8 @@ if ( NOT EXISTS "${mctools_launcher_file}" )
   message( FATAL_ERROR "Did not find expected ${mctools_launcher_file}" )
 endif()
 
-if ( NOT DEFINED MCTOOLS_PYTHON_EXECUTABLE )
-  set( MCTOOLS_PYTHON_EXECUTABLE "auto" )
+if ( NOT DEFINED MCTOOLS_TESTUTILS_PYTHON_EXECUTABLE )
+  set( MCTOOLS_TESTUTILS_PYTHON_EXECUTABLE "auto" )
 endif()
 
 function( mctools_testutils_add_tests_pyscripts scriptsdir pyenvmod )
@@ -44,7 +44,8 @@ function( mctools_testutils_add_tests_pyscripts scriptsdir pyenvmod )
         "${psdir}/${bn}.log"
       )
     else()
-      add_test( NAME "py_${bn}" COMMAND "${pyexec}" "${pyscript}" )
+      set( testname "py_${bn}" )
+      add_test( NAME "${testname}" COMMAND "${pyexec}" "${pyscript}" )
       mctools_testutils_internal_settestprops( "py_${bn}" )
     endif()
     if ( pyenvmod )
@@ -123,7 +124,8 @@ function( mctools_testutils_add_tests_apps approotdir extra_link_libs )
     if ( EXISTS "${appdir}/test.log" )
       mctools_testutils_internal_addreflogtest(
         "app_rl_${bn}"
-        "${testsbindir}/${bn}/${bn}"
+        # "${testsbindir}/${bn}/${bn}"
+        "$<TARGET_FILE:${bn}>"
         "${appdir}/test.log"
       )
     else()
@@ -138,20 +140,20 @@ endfunction()
 ######################################
 
 function( mctools_testutils_internal_getpyexec resvar )
-  if ( MCTOOLS_PYTHON_EXECUTABLE )
-    if ( "x${MCTOOLS_PYTHON_EXECUTABLE}" STREQUAL "xauto" )
+  if ( MCTOOLS_TESTUTILS_PYTHON_EXECUTABLE )
+    if ( "x${MCTOOLS_TESTUTILS_PYTHON_EXECUTABLE}" STREQUAL "xauto" )
       find_package(Python3 3.8 REQUIRED COMPONENTS Interpreter)
-      set( "MCTOOLS_PYTHON_EXECUTABLE" "${Python3_EXECUTABLE}" PARENT_SCOPE )
+      set( "MCTOOLS_TESTUTILS_PYTHON_EXECUTABLE" "${Python3_EXECUTABLE}" PARENT_SCOPE )
       set( "${resvar}" "${Python3_EXECUTABLE}" PARENT_SCOPE )
     else()
-      set( "${resvar}" "${MCTOOLS_PYTHON_EXECUTABLE}" PARENT_SCOPE )
+      set( "${resvar}" "${MCTOOLS_TESTUTILS_PYTHON_EXECUTABLE}" PARENT_SCOPE )
     endif()
   elseif( Python3_EXECUTABLE )
     set( "${resvar}" "${Python3_EXECUTABLE}" PARENT_SCOPE )
   else()
     message(
       FATAL_ERROR
-      "MCTOOLS_PYTHON_EXECUTABLE or Python3_EXECUTABLE"
+      "MCTOOLS_TESTUTILS_PYTHON_EXECUTABLE or Python3_EXECUTABLE"
       "must be set before calling functions in mctools_testutils"
     )
   endif()
@@ -199,6 +201,7 @@ endfunction()
 
 function( mctools_testutils_internal_settestprops name )
   file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/rundirs/run_${name}")
+  #FIXME: Use generator expression with CONFIG in it!!! And test that we can build and test two separate configs! And add workflow with ninjamulticfg !
   set_property(
     TEST "${name}"
     PROPERTY WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/rundirs/run_${name}"
