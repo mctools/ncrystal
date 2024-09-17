@@ -85,7 +85,29 @@ endif()
 mctools_testutils_add_test_libs(
   "${CMAKE_CURRENT_LIST_DIR}" "${nctests_ncrystallib_target}"
 )
+
+
+set( nctest_appenvmod "" )
+if ( WIN32 )
+  if ( NCTESTS_STANDALONE )
+    #Do not get "dll not found" errors for the NCrystal library. Note that PATH
+    #plays the role of LD_LIBRARY_PATH on Windows (and there is seemingly not
+    #really any rpath-like solution).
+    list(
+      APPEND nctest_appenvmod
+      "PATH=path_list_prepend:${NCrystal_LIBDIR}"
+    )
+  else()
+    list(
+      APPEND nctest_appenvmod
+      "PATH=path_list_prepend:$<TARGET_FILE_DIR:NCrystal>"
+    )
+  endif()
+endif()
+
 mctools_testutils_add_tests_apps(
-  "${CMAKE_CURRENT_LIST_DIR}" "${nctests_ncrystallib_target}"
+  "${CMAKE_CURRENT_LIST_DIR}"
+  "${nctests_ncrystallib_target}"
+  "${nctest_appenvmod}"
 )
 #FIXME: TODO Need python unit test which launches compiled app!
