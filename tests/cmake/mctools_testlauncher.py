@@ -40,7 +40,7 @@ def run( app_file, reflogfile = None ):
     newout.write_bytes(output_raw)
 
     if r.returncode != 0:
-        raise SystemExit(r.returncode)
+        raise SystemExit(f'Error: Command ended with exit code {r.returncode}')
     if reflogfile is None:
         return #Done!
     refoutput = reflogfile.read_bytes()
