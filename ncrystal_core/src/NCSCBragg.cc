@@ -179,13 +179,15 @@ double NC::SCBragg::pimpl::setupFamilies( const NC::Info& cinfo,
       itOrig->second = -1;//multiple values observed ...!
     }
 
-    std::pair<uint64_t,uint64_t> key(ui_dsp,ui_fsq);
+    static_assert( std::is_same<SCBraggSortMap::key_type,
+                                std::pair<uint64_t,uint64_t> >::value, "" );
+    SCBraggSortMap::key_type key(ui_dsp,ui_fsq);
 
     SCBraggSortMap::iterator it = planes.find(key);
     if ( it != planes.end() ) {
       it->second.push_back(pl.demi_normal);
     } else {
-      std::pair<PairDD,std::vector<Vector> > newentry;
+      std::pair<SCBraggSortMap::key_type,std::vector<Vector> > newentry;
       newentry.first = key;
       newentry.second.push_back(pl.demi_normal);
       planes.insert(it,newentry);

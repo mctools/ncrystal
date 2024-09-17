@@ -495,7 +495,9 @@ void NC::SABUtils::activeGridRanges( const NC::SABData& data,
       } else {
         //Already encountered at least one beta point with accessible alpha
         //range, so must insert an empty alpha range at this point:
-        out_alpharanges.emplace_back(alphaGrid.size(),alphaGrid.size());
+        nc_assert(alphaGrid.size()<std::numeric_limits<std::uint16_t>::max());
+        auto na = static_cast<std::uint16_t>(alphaGrid.size());
+        out_alpharanges.emplace_back(na,na);
       }
       continue;
     }
