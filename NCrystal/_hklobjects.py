@@ -67,7 +67,7 @@ class HKLEntry:
     def hkl_label( self ):
         """Returns a hkl label for the entry, i.e. one of the hkl points in the
         group as a tuple of three integers: (h,k,l)."""
-        return (self.__h[0],self.__k[0],self.__l[0])
+        return (int(self.__h[0]),int(self.__k[0]),int(self.__l[0]))
 
     @property
     def h( self ):

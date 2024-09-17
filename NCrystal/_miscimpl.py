@@ -277,7 +277,7 @@ def _anyvdos_initfmt( data, fmt ):
     p = _anyvdos_preinit( data, fmt )
     #find derived quantities:
     d = {}
-    from ._numpy import _ensure_numpy, _np_linspace, _np
+    from ._numpy import _ensure_numpy, _np_linspace, _np, _np_trapezoid
     _ensure_numpy()
     def _needsexpand( egrid, dos ):
         return len(egrid)==2 and len(dos)>2
@@ -293,7 +293,7 @@ def _anyvdos_initfmt( data, fmt ):
             i = _np.argmax(x>0.0)
             x,y = x[i:],y[i:]
         parabola_contrib = ( x[0] * y[0] ) / 3.0#integral of parabola through (0,0) and (x[0],y[0]) over [0,x[0]]
-        return parabola_contrib + _np.trapz(x=x,y=y)
+        return parabola_contrib + _np_trapezoid(x=x,y=y)
     for k in ('dos','dos_orig'):
         if k not in p:
             continue
