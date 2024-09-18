@@ -1,0 +1,110 @@
+
+====================================================================
+ATOMDB line: X2 is B
+ATOMDB line: B is 0.5 B10 0.5 B11
+ATOMDB line: X2 is 0.1 B 0.9 Al
+ATOMDB line: X is 0.2 B10 0.5 Al27 0.3 X2
+--------------------------------
+AtomData description: Mix{50%Al27+30%Mix{90%Al+10%B{50%B10+50%B11}}+20%B10}
+Full breakdown:
+    --->Z=5 B
+        A=10 0.215
+        A=11 0.015
+    --->Z=13 Al
+        A=26 0.135
+        A=27 0.635
+LWBreakdown as str: Mix{0.23*B{0.934783*B10+0.0652174*B11}+0.77*Al{0.175325*Al26+0.824675*Al27}}
+
+====================================================================
+ATOMDB line: X is Al
+--------------------------------
+AtomData description: Al
+Full breakdown:
+    --->Z=13 Al
+        A=0 1
+LWBreakdown as str: Al
+
+====================================================================
+ATOMDB line: X is 0.9 Al 0.1 Al
+--------------------------------
+AtomData description: Al
+Full breakdown:
+    --->Z=13 Al
+        A=0 1
+LWBreakdown as str: Al
+
+====================================================================
+ATOMDB line: Al50 50u 1fm 1b 1b
+ATOMDB line: X is 0.5 Al 0.5 Al50
+--------------------------------
+AtomData description: Al{50%Al+50%Al50}
+Full breakdown:
+    --->Z=13 Al
+        A=26 0.25
+        A=27 0.25
+        A=50 0.5
+LWBreakdown as str: Al{0.25*Al26+0.25*Al27+0.5*Al50}
+
+====================================================================
+ATOMDB line: X2 is 0.5 B10 0.5 Xe
+ATOMDB line: X is 0.5 X2 0.5 B
+--------------------------------
+AtomData description: Mix{50%B+50%Mix{50%B10+50%Xe}}
+Full breakdown:
+    --->Z=5 B
+        A=10 0.5
+        A=11 0.25
+    --->Z=54 Xe
+        A=0 0.25
+LWBreakdown as str: Mix{0.75*B{0.666667*B10+0.333333*B11}+0.25*Xe}
+
+====================================================================
+ATOMDB line: X2 is 0.5 B 0.5 Xe
+ATOMDB line: X is 0.5 X2 0.5 B
+--------------------------------
+AtomData description: Mix{50%B+50%Mix{50%B+50%Xe}}
+Full breakdown:
+    --->Z=5 B
+        A=0 0.75
+    --->Z=54 Xe
+        A=0 0.25
+LWBreakdown as str: Mix{0.75*B+0.25*Xe}
+
+====================================================================
+ATOMDB line: X is B10
+--------------------------------
+AtomData description: B10
+Full breakdown:
+    --->Z=5 B
+        A=10 1
+LWBreakdown as str: B10
+
+====================================================================
+ATOMDB line: X is D
+--------------------------------
+AtomData description: H2
+Full breakdown:
+    --->Z=1 H
+        A=2 1
+LWBreakdown as str: H2
+Loading cfgstr: "C_sg227_Diamond.ncmat"
+  -> ncomponents: 1
+  -> 1 * C(cohSL=6.646fm cohXS=5.55048barn incXS=0.001barn absXS=0.0035barn mass=12.011u Z=6)
+Loading cfgstr: "phases<0.7*C_sg227_Diamond.ncmat&0.28*solid::V/6.12gcm3&0.02*Polyethylene_CH2.ncmat;comp=inelas>;temp=380K"
+  -> ncomponents: 3
+  -> 0.0108185 * H(cohSL=-3.739fm cohXS=1.75679barn incXS=80.26barn absXS=0.3326barn mass=1.00798u Z=1)
+  -> 0.850468 * C(cohSL=6.646fm cohXS=5.55048barn incXS=0.001barn absXS=0.0035barn mass=12.011u Z=6)
+  -> 0.138714 * V(cohSL=-0.3824fm cohXS=0.0183758barn incXS=5.08barn absXS=5.08barn mass=50.9415u Z=23)
+Loading cfgstr: "phases<1.0*C_sg227_Diamond.ncmat>;temp=380K"
+  -> ncomponents: 1
+  -> 1 * C(cohSL=6.646fm cohXS=5.55048barn incXS=0.001barn absXS=0.0035barn mass=12.011u Z=6)
+Loading cfgstr: "solid::B4C/2.52gcm3/B_is_0.95_B10_0.05_B11"
+  -> ncomponents: 2
+  -> 0.8 * B{95%B10+5%B11}(cohSL=0.2375fm cohXS=0.00708822barn incXS=3.13246barn absXS=3643.25barn mass=10.0628u Z=5)
+  -> 0.2 * C(cohSL=6.646fm cohXS=5.55048barn incXS=0.001barn absXS=0.0035barn mass=12.011u Z=6)
+Loading cfgstr: "phases<0.5*solid::B4C/2.52gcm3/B_is_0.95_B10_0.05_B11&0.5*gasmix::BF3/2bar>"
+  -> ncomponents: 4
+  -> 0.000339884 * B(cohSL=5.3fm cohXS=3.52989barn incXS=1.7barn absXS=767barn mass=10.81u Z=5)
+  -> 0.798912 * B{95%B10+5%B11}(cohSL=0.2375fm cohXS=0.00708822barn incXS=3.13246barn absXS=3643.25barn mass=10.0628u Z=5)
+  -> 0.199728 * C(cohSL=6.646fm cohXS=5.55048barn incXS=0.001barn absXS=0.0035barn mass=12.011u Z=6)
+  -> 0.00101965 * F(cohSL=5.654fm cohXS=4.01718barn incXS=0.0008barn absXS=0.0096barn mass=18.9984u Z=9)

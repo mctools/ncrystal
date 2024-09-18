@@ -1,0 +1,335 @@
+---> vector v:
+1
+1
+2
+3
+5
+8
+11
+---> span(v):
+1
+1
+2
+3
+5
+8
+11
+---> tmp span(v):
+1
+1
+2
+3
+5
+8
+11
+---> tmp span(v).subspan(3,2):
+3
+5
+---> span(v).subspan(2,2):
+2
+3
+---> span(v).subspan(2,20):
+2
+3
+5
+8
+11
+---> span(v).subspan(2,5):
+2
+3
+5
+8
+11
+---> span(v).subspan(0,7):
+1
+1
+2
+3
+5
+8
+11
+---> span(v).subspan(0,20):
+1
+1
+2
+3
+5
+8
+11
+---> span(v).subspan(0,5):
+1
+1
+2
+3
+5
+---> tmp span(v).subspan(2,0):
+---> tmp span(v).first(0):
+---> tmp span(v).first(2):
+1
+1
+---> tmp span(v).first(7):
+1
+1
+2
+3
+5
+8
+11
+---> tmp span(v).first(99):
+1
+1
+2
+3
+5
+8
+11
+---> tmp span(v).last(0):
+---> tmp span(v).last(2):
+8
+11
+---> tmp span(v).last(7):
+1
+1
+2
+3
+5
+8
+11
+---> tmp span(v).last(99):
+1
+1
+2
+3
+5
+8
+11
+---> reversed iterators of span(v):
+11
+8
+5
+3
+2
+1
+1
+---> const reversed iterators of span(v):
+11
+8
+5
+3
+2
+1
+1
+---> tmp span(<empty>).last(2):
+---> tmp span(<empty>).last(0):
+---> tmp span(<empty>).first(2):
+---> tmp span(<empty>).first(0):
+---> tmp span(<empty>).subspan(0,1):
+---> span(span(v)):
+1
+1
+2
+3
+5
+8
+11
+---> span(move(span(v))):
+1
+1
+2
+3
+5
+8
+11
+---> array a:
+0.1
+0.2
+0.3
+0.4
+---> span(a):
+0.1
+0.2
+0.3
+0.4
+---> c-array ca:
+0.01
+0.02
+0.03
+---> span(ca):
+0.01
+0.02
+0.03
+---> span = span (=v):
+1
+1
+2
+3
+5
+8
+11
+---> span = v:
+1
+1
+2
+3
+5
+8
+11
+---> span = ca:
+0.01
+0.02
+0.03
+---> span = a:
+0.1
+0.2
+0.3
+0.4
+Through fct1 call (v):
+1
+1
+2
+3
+5
+8
+11
+Through fct2 call (v):
+1
+1
+2
+3
+5
+8
+11
+Through fct3 call (v):
+1
+1
+2
+3
+5
+8
+11
+Through fct4 call (v):
+1
+1
+2
+3
+5
+8
+11
+Through fct1 call (a):
+0.1
+0.2
+0.3
+0.4
+Through fct2 call (a):
+0.1
+0.2
+0.3
+0.4
+Through fct3 call (a):
+0.1
+0.2
+0.3
+0.4
+Through fct4 call (a):
+0.1
+0.2
+0.3
+0.4
+Through fct1 call (ca):
+0.01
+0.02
+0.03
+Through fct2 call (ca):
+0.01
+0.02
+0.03
+Through fct3 call (ca):
+0.01
+0.02
+0.03
+Through fct4 call (ca):
+0.01
+0.02
+0.03
+Through fct1 call (nonc_span):
+1
+1
+2
+3
+5
+8
+11
+Through fct2 call (nonc_span):
+1
+1
+2
+3
+5
+8
+11
+Through fct3 call (nonc_span):
+1
+1
+2
+3
+5
+8
+11
+Through fct4 call (nonc_span):
+1
+1
+2
+3
+5
+8
+11
+Through fct3 call (c_v):
+1
+1
+2
+3
+5
+8
+11
+Through fct4 call (c_v):
+1
+1
+2
+3
+5
+8
+11
+Through fct3 call (c_a):
+0.1
+0.2
+0.3
+0.4
+Through fct4 call (c_a):
+0.1
+0.2
+0.3
+0.4
+Through fct3 call (c_ca):
+0.01
+0.02
+0.03
+Through fct4 call (c_ca):
+0.01
+0.02
+0.03
+Through fct3 call (c_span):
+1
+1
+2
+3
+5
+8
+11
+Through fct4 call (c_span):
+1
+1
+2
+3
+5
+8
+11

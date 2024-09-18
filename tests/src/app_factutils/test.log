@@ -1,0 +1,60 @@
+    ....(actualCreate invoked for N=2 M=3)
+(2,3) -> [ 0, 3, ]
+(2,3) -> [ 0, 3, ]
+    ....(actualCreate invoked for N=2 M=4)
+(2,4) -> [ 0, 4, ]
+(2,3) -> [ 0, 3, ]
+    ....(actualCreate invoked for N=4 M=2)
+(4,2) -> [ 0, 2, 4, 6, ]
+    ....(actualCreate invoked for N=2 M=4)
+(2,4) -> [ 0, 4, ]
+    ....(actualCreate invoked for N=2 M=3)
+(2,3) -> [ 0, 3, ]
+(keeping this result in external shptr)
+    ....(actualCreate invoked for N=3 M=3)
+(3,3) -> [ 0, 3, 6, ]
+    ....(actualCreate invoked for N=4 M=2)
+(4,2) -> [ 0, 2, 4, 6, ]
+    ....(actualCreate invoked for N=2 M=4)
+(2,4) -> [ 0, 4, ]
+(2,3) -> [ 0, 3, ]
+(2,3) -> [ 0, 3, ]
+    ....(actualCreate invoked for N=5 M=10)
+(5,10) -> [ 0, 10, 20, 30, 40, ]
+(2,3) -> [ 0, 3, ]
+(2,3) -> [ 0, 3, ]
+(reset external shptr)
+(2,3) -> [ 0, 3, ]
+    ....(actualCreate invoked for N=3 M=3)
+(3,3) -> [ 0, 3, 6, ]
+(2,3) -> [ 0, 3, ]
+    ....(actualCreate invoked for N=7 M=1)
+(7,1) -> [ 0, 1, 2, 3, 4, 5, 6, ]
+    ....(actualCreate invoked for N=3 M=3)
+(3,3) -> [ 0, 3, 6, ]
+    ....(actualCreate invoked for N=2 M=3)
+(2,3) -> [ 0, 3, ]
+(2,3) -> [ 0, 3, ]
+(keeping this result in external shptr)
+(invoking global clearCaches)
+    ....(actualCreate invoked for N=2 M=3)
+(2,3) -> [ 0, 3, ]
+    ....(actualCreate invoked for N=3 M=3)
+(3,3) -> [ 0, 3, 6, ]
+    ....(actualCreate invoked for N=7 M=1)
+(7,1) -> [ 0, 1, 2, 3, 4, 5, 6, ]
+    ....(actualCreate invoked for N=7 M=3)
+(7,3) -> [ 0, 3, 6, 9, 12, 15, 18, ]
+(2,3) -> [ 0, 3, ]
+(invoking factory specific cleanup)
+    ....(actualCreate invoked for N=2 M=3)
+(2,3) -> [ 0, 3, ]
+    ....(actualCreate invoked for N=3 M=3)
+(3,3) -> [ 0, 3, 6, ]
+    ....(actualCreate invoked for N=7 M=1)
+(7,1) -> [ 0, 1, 2, 3, 4, 5, 6, ]
+    ....(actualCreate invoked for N=7 M=3)
+(7,3) -> [ 0, 3, 6, 9, 12, 15, 18, ]
+    ....(actualCreate invoked for N=2 M=3)
+(2,3) -> [ 0, 3, ]
+(2,3) -> [ 0, 3, ]

@@ -1,0 +1,625 @@
+NCrystal::getBuildNameSpace() = dev
+NCrystal::getVersion() = 3009007
+MatCfg("<anonymous-ncmat-data>;dcutoff=2;temp=600")
+NCMAT v2
+bla bla
+Dump: MatCfg("Al_fake.ncmat;temp=77")
+toStrCfg(false) : "temp=77"
+toStrCfg: Al_fake.ncmat;absnfactory=SomeAbsFact;coh_elas=1;dcutoff=0.2;dir1=@crys:1,2,3@lab:4,5,6;dir2=@crys_hkl:1.1,2,3@lab:4.01,5,6;dirtol=3.1415926535897931;incoh_elas=1;inelas=auto;infofactory=mycoolfact;mos=0.02;sans=1;scatfactory=SomeScatterFact;temp=500;density=0.2x
+toStrCfg: Al_fake.ncmat;absnfactory=SomeAbsFact;coh_elas=1;dcutoff=0.2;dir1=@crys:1,2,3@lab:4,5,6;dir2=@crys_hkl:1.1,2,3@lab:4.01,5,6;dirtol=3.1415926535897931;incoh_elas=1;inelas=auto;infofactory=mycoolfact;mos=0.02;sans=1;scatfactory=SomeScatterFact;temp=500;density=1.2gcm3
+toEmbeddableCfg: NCRYSTALMATCFG[absnfactory=SomeAbsFact;coh_elas=1;dcutoff=0.2;dir1=@crys:1,2,3@lab:4,5,6;dir2=@crys_hkl:1.1,2,3@lab:4.01,5,6;dirtol=3.1415926535897931;incoh_elas=1;inelas=auto;infofactory=mycoolfact;mos=0.02;sans=1;scatfactory=SomeScatterFact;temp=500;density=1.2gcm3]
+Dump: MatCfg("Al_fake.ncmat;absnfactory=SomeAbsFact;coh_elas=1;dcutoff=0.2;dir1=@crys:1,2,3@lab:4,5,6;dir2=@crys_hkl:1.1,2,3@lab:4.01,5,6;dirtol=3.1415926535897931;incoh_elas=1;inelas=auto;infofactory=mycoolfact;mos=0.02;sans=1;scatfactory=SomeScatterFact;temp=500;density=1.2gcm3")
+toStrCfg(false) : "absnfactory=SomeAbsFact;coh_elas=1;dcutoff=0.2;dir1=@crys:1,2,3@lab:4,5,6;dir2=@crys_hkl:1.1,2,3@lab:4.01,5,6;dirtol=3.1415926535897931;incoh_elas=1;inelas=auto;infofactory=mycoolfact;mos=0.02;sans=1;scatfactory=SomeScatterFact;temp=500;density=1.2gcm3"
+Dump: MatCfg("Al_fake.ncmat;temp=80")
+toStrCfg(false) : "temp=80"
+Dump: MatCfg("Al_fake.ncmat;mos=0.08")
+toStrCfg(false) : "mos=0.08"
+Dump: MatCfg("Al_fake.ncmat;lcaxis=0,0.5,0.66666666666666663")
+toStrCfg(false) : "lcaxis=0,0.5,0.66666666666666663"
+Dump: MatCfg("Al_fake.ncmat;lcaxis=0,0.5,0.66666666666666663")
+toStrCfg(false) : "lcaxis=0,0.5,0.66666666666666663"
+Dump: MatCfg("Al_fake.ncmat;lcaxis=0,0.5,0.66666666666666663;lcmode=10023")
+toStrCfg(false) : "lcaxis=0,0.5,0.66666666666666663;lcmode=10023"
+NCrystal::MissingInfo: Value for parameter mos not available
+NCrystal::MissingInfo: Value for parameter dir1 not available
+Dump: MatCfg("Al_fake.ncmat;mos=0.5")
+toStrCfg(false) : "mos=0.5"
+Dump: MatCfg("Al_fake.ncmat")
+toStrCfg(false) : ""
+Dump: MatCfg("Al_fake.ncmat;dir1=@crys_hkl:5,1,1@lab:1,0,0;dir2=@crys:0,0,0.33333333333333331@lab:0,1,1;mos=0.001")
+toStrCfg(false) : "dir1=@crys_hkl:5,1,1@lab:1,0,0;dir2=@crys:0,0,0.33333333333333331@lab:0,1,1;mos=0.001"
+refine:2meV
+only:20meV
+remove:200neV
+remove:200neV
+only:200neV
+remove:2.12meV
+remove:2.12meV
+refine:2.12meV
+remove:2.12meV
+remove:2.12meV
+only:123meV
+remove:123meV
+remove:1
+======= COW =====================================
+===  1 new, 3 copies:
+===  trigger cow:
+===  operations which does not trigger cow:
+===  trigger cow different way:
+===  end of scope - trigger all destructors:
+MatCfg("Al_fake.ncmat;coh_elas=0;dir1=@crys:1,2,3@lab:4,5,6;infofactory=SomeFact;temp=77")
+MatCfg("Al_fake.ncmat;coh_elas=0;dir1=@crys:1,2,3@lab:4,5,6;infofactory=SomeFact;temp=77;density=0.5x")
+MatCfg("Al_fake.ncmat;coh_elas=0;dir1=@crys:1,2,3@lab:4,5,6;infofactory=SomeFact;temp=77")
+======= EOCOW ===================================
+MatCfg("fakefile.bla;dcutoff=0.6;temp=2.4")
+MatCfg("fakefile.bla;dcutoff=0.6;temp=2.4")
+MatCfg("fakefile.bla;dcutoff=0.6;temp=40")
+MatCfg("fakefile.bla;dcutoff=0.6;temp=60")
+MatCfg("fakefile.bla;dcutoff=0.6;temp=2.4")
+MatCfg("fakefile.bla")
+NCrystal::BadInput: Input data contains NCRYSTALMATCFG which is not followed by a '[' character: fakefile.bla
+NCrystal::BadInput: Input data contains more than one NCRYSTALMATCFG specification: fakefile.bla
+NCrystal::BadInput: Input data contains more than one NCRYSTALMATCFG specification on a single line: fakefile.bla
+NCrystal::BadInput: fakefile.bla requested temperature (399.9K) is incompatible with temperature (400K) at which input data is valid.
+NCrystal::FileNotFound: Could not find data: "doesnotexists.ncmat"
+NCrystal::BadInput: Syntax error in parameter string: The "ignorefilecfg" keyword is no longer supported.
+======= UNITS =====================================
+======= EOUNITS ===================================
+======= DENSITY =====================================
+
+=> Trying to load:
+   -> NCMAT v999
+=> Went OK! Resulting toStrCfg(): "<anonymous>"
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[dcutoff=1;dcutoffup=0.5]
+=> Got expected MatCfg ERROR: NC::BadInput: dcutoff must be less than dcutoffup
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[mos=2deg]
+=> Got expected MatCfg ERROR: NC::BadInput: Must set all or none of mos, dir1 and dir2 parameters
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[dir1=@crys:1,1,1@lab:0,0,1]
+=> Got expected MatCfg ERROR: NC::BadInput: Must set all or none of mos, dir1 and dir2 parameters
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[dir2=@crys:1,1,1@lab:0,0,1]
+=> Got expected MatCfg ERROR: NC::BadInput: Must set all or none of mos, dir1 and dir2 parameters
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[dir1=@crys:1,1,1@lab:0,0,1;mos=2deg;dirtol=2deg]
+=> Got expected MatCfg ERROR: NC::BadInput: Must set all or none of mos, dir1 and dir2 parameters
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[mos=2deg]
+=> Got expected MatCfg ERROR: NC::BadInput: Must set all or none of mos, dir1 and dir2 parameters
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[dirtol=2deg]
+=> Got expected MatCfg ERROR: NC::BadInput: mos, dir1 and dir2 parameters must all be set when dirtol is set
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[dir1=@crys:1,1,1@lab:0,0,1;dir2=@crys:1,1,1@lab:0,0,1;mos=2deg;dirtol=180deg]
+=> Got expected MatCfg ERROR: NC::BadInput: Specified primary and secondary lab directions are parallel
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[dir1=@crys:1,1,1@lab:0,0,1;dir2=@crys:1,0,1@lab:0,1,0;mos=2deg;dirtol=180deg]
+=> Went OK! Resulting toStrCfg(): "<anonymous>;dir1=@crys:1,1,1@lab:0,0,1;dir2=@crys:1,0,1@lab:0,1,0;dirtol=180deg;mos=2deg"
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[dir1=@crys:1,1,1@lab:0,1,0;dir2=@crys:1,0,1@lab:0,1,0;mos=2deg;dirtol=180deg]
+=> Got expected MatCfg ERROR: NC::BadInput: Specified primary and secondary lab directions are parallel
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[dir1=@crys:1,1,1@lab:0,1,0;dir2=@crys:1,0,1@lab:0,0.999999999999,0;mos=2deg;dirtol=180deg]
+=> Got expected MatCfg ERROR: NC::BadInput: Specified primary and secondary lab directions are parallel
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[dir1=@crys:1,1,1@lab:0,1,0;dir2=@crys:2,2,1.9999999@lab:1,0,0;mos=2deg;dirtol=180deg]
+=> Got expected MatCfg ERROR: NC::BadInput: Specified primary and secondary crystal directions are parallel
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.2x]
+=> Got expected MatCfg ERROR: NC::BadInput: density parameters with scale factors are not allowed in embedded cfg strings. Seen in data: <anonymous>
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[packfact=1.2]
+=> Got expected MatCfg ERROR: NC::BadInput: Syntax error in parameter string: The "packfact" parameter is obsolete. Previous "packfact=0.8" is now "density=0.8x" (but note that the density scaling of multiple such statements is now commulative!). Alternatively, it is now also possible to set an absolute density, e.g. "density=2.3gcm3".
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1x]
+=> Went OK! Resulting toStrCfg(): "<anonymous>"
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[packfact=1.0]
+=> Got expected MatCfg ERROR: NC::BadInput: Syntax error in parameter string: The "packfact" parameter is obsolete. Previous "packfact=0.8" is now "density=0.8x" (but note that the density scaling of multiple such statements is now commulative!). Alternatively, it is now also possible to set an absolute density, e.g. "density=2.3gcm3".
+
+=> Trying to load:
+   -> NCMAT v999
+=> Now calling .applyStrCfg("packfact=1.2;packfact=2.0")
+=> Got expected MatCfg ERROR: NC::BadInput: Syntax error in parameter string: The "packfact" parameter is obsolete. Previous "packfact=0.8" is now "density=0.8x" (but note that the density scaling of multiple such statements is now commulative!). Alternatively, it is now also possible to set an absolute density, e.g. "density=2.3gcm3".
+
+=> Trying to load (applying params "packfact=1.2;packfact=2.0" in constructor):
+   -> NCMAT v999
+=> Got expected MatCfg ERROR: NC::BadInput: Syntax error in parameter string: The "packfact" parameter is obsolete. Previous "packfact=0.8" is now "density=0.8x" (but note that the density scaling of multiple such statements is now commulative!). Alternatively, it is now also possible to set an absolute density, e.g. "density=2.3gcm3".
+
+=> Trying to load:
+   -> NCMAT v999
+=> Now calling .applyStrCfg("packfact=1.0;packfact=2.0")
+=> Got expected MatCfg ERROR: NC::BadInput: Syntax error in parameter string: The "packfact" parameter is obsolete. Previous "packfact=0.8" is now "density=0.8x" (but note that the density scaling of multiple such statements is now commulative!). Alternatively, it is now also possible to set an absolute density, e.g. "density=2.3gcm3".
+
+=> Trying to load (applying params "packfact=1.0;packfact=2.0" in constructor):
+   -> NCMAT v999
+=> Got expected MatCfg ERROR: NC::BadInput: Syntax error in parameter string: The "packfact" parameter is obsolete. Previous "packfact=0.8" is now "density=0.8x" (but note that the density scaling of multiple such statements is now commulative!). Alternatively, it is now also possible to set an absolute density, e.g. "density=2.3gcm3".
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.23e6gcm3]
+=> Went OK! Resulting toStrCfg(): "<anonymous>;density=1230000gcm3"
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.23e4perAa3]
+=> Went OK! Resulting toStrCfg(): "<anonymous>;density=12300perAa3"
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.23e4peraa3]
+=> Got expected MatCfg ERROR: NC::BadInput: Bad value syntax in "density" parameter: "1.23e4peraa3". Expects value with unit "gcm3", "kgm3", "perAa3", or "x"
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.23e163gcm3]
+=> Went OK! Resulting toStrCfg(): "<anonymous>;density=1.23e+163gcm3"
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.0000000001e200gcm3]
+=> Got expected MatCfg ERROR: NC::BadInput: Density value invalid or out of bounds: 1.0000000001e+200gcm3
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=0gcm3]
+=> Got expected MatCfg ERROR: NC::BadInput: Density value invalid or out of bounds: 0gcm3
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=0x]
+=> Got expected MatCfg ERROR: NC::BadInput: Density value invalid or out of bounds: 0x
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=-0.1gcm3]
+=> Got expected MatCfg ERROR: NC::BadInput: Density value invalid or out of bounds: -0.1gcm3
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.23e163gcm3;density=1e40x]
+=> Got expected MatCfg ERROR: NC::BadInput: Density value invalid or out of bounds: 1.23e+203gcm3
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=-1.23gcm3]
+=> Got expected MatCfg ERROR: NC::BadInput: Density value invalid or out of bounds: -1.23gcm3
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=0.00gcm3]
+=> Got expected MatCfg ERROR: NC::BadInput: Density value invalid or out of bounds: 0gcm3
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.23e6kgm3]
+=> Went OK! Resulting toStrCfg(): "<anonymous>;density=1230gcm3"
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.23e163kgm3]
+=> Went OK! Resulting toStrCfg(): "<anonymous>;density=1.23e+160gcm3"
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=-1.23kgm3]
+=> Got expected MatCfg ERROR: NC::BadInput: Density value invalid or out of bounds: -0.00123gcm3
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=0.00kgm3]
+=> Got expected MatCfg ERROR: NC::BadInput: Density value invalid or out of bounds: 0gcm3
+
+=> Trying to load:
+   -> NCMAT v999
+=> Now calling .applyStrCfg("density=1.23kgm3")
+=> Went OK! Resulting toStrCfg(): "<anonymous>;density=0.00123gcm3"
+
+=> Trying to load (applying params "density=1.23kgm3" in constructor):
+   -> NCMAT v999
+=> Went OK! Resulting toStrCfg(): "<anonymous>;density=0.00123gcm3"
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.23kgm3]
+=> Now calling .applyStrCfg("density=2.2x")
+=> Went OK! Resulting toStrCfg(): "<anonymous>;density=0.002706gcm3"
+
+=> Trying to load (applying params "density=2.2x" in constructor):
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.23kgm3]
+=> Went OK! Resulting toStrCfg(): "<anonymous>;density=0.002706gcm3"
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.23kgm3]
+=> Now calling .applyStrCfg("packfact=2.2")
+=> Got expected MatCfg ERROR: NC::BadInput: Syntax error in parameter string: The "packfact" parameter is obsolete. Previous "packfact=0.8" is now "density=0.8x" (but note that the density scaling of multiple such statements is now commulative!). Alternatively, it is now also possible to set an absolute density, e.g. "density=2.3gcm3".
+
+=> Trying to load (applying params "packfact=2.2" in constructor):
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.23kgm3]
+=> Got expected MatCfg ERROR: NC::BadInput: Syntax error in parameter string: The "packfact" parameter is obsolete. Previous "packfact=0.8" is now "density=0.8x" (but note that the density scaling of multiple such statements is now commulative!). Alternatively, it is now also possible to set an absolute density, e.g. "density=2.3gcm3".
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.23kgm3]
+=> Now calling .applyStrCfg("density=1gcm3")
+=> Went OK! Resulting toStrCfg(): "<anonymous>;density=1gcm3"
+
+=> Trying to load (applying params "density=1gcm3" in constructor):
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.23kgm3]
+=> Went OK! Resulting toStrCfg(): "<anonymous>;density=1gcm3"
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.23kgm3;density=2x]
+=> Now calling .applyStrCfg("density=2x")
+=> Went OK! Resulting toStrCfg(): "<anonymous>;density=0.00492gcm3"
+
+=> Trying to load (applying params "density=2x" in constructor):
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.23kgm3;density=2x]
+=> Went OK! Resulting toStrCfg(): "<anonymous>;density=0.00492gcm3"
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.23kgm3;packfact=2]
+=> Got expected MatCfg ERROR: NC::BadInput: Syntax error in parameter string: The "packfact" parameter is obsolete. Previous "packfact=0.8" is now "density=0.8x" (but note that the density scaling of multiple such statements is now commulative!). Alternatively, it is now also possible to set an absolute density, e.g. "density=2.3gcm3".
+
+=> Trying to load (applying params "density=2x" in constructor):
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.23kgm3;packfact=2]
+=> Got expected MatCfg ERROR: NC::BadInput: Syntax error in parameter string: The "packfact" parameter is obsolete. Previous "packfact=0.8" is now "density=0.8x" (but note that the density scaling of multiple such statements is now commulative!). Alternatively, it is now also possible to set an absolute density, e.g. "density=2.3gcm3".
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.23kgm3;density=2x]
+=> Now calling .applyStrCfg("packfact=2")
+=> Got expected MatCfg ERROR: NC::BadInput: Syntax error in parameter string: The "packfact" parameter is obsolete. Previous "packfact=0.8" is now "density=0.8x" (but note that the density scaling of multiple such statements is now commulative!). Alternatively, it is now also possible to set an absolute density, e.g. "density=2.3gcm3".
+
+=> Trying to load (applying params "packfact=2" in constructor):
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.23kgm3;density=2x]
+=> Got expected MatCfg ERROR: NC::BadInput: Syntax error in parameter string: The "packfact" parameter is obsolete. Previous "packfact=0.8" is now "density=0.8x" (but note that the density scaling of multiple such statements is now commulative!). Alternatively, it is now also possible to set an absolute density, e.g. "density=2.3gcm3".
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.23kgm3;packfact=2]
+=> Got expected MatCfg ERROR: NC::BadInput: Syntax error in parameter string: The "packfact" parameter is obsolete. Previous "packfact=0.8" is now "density=0.8x" (but note that the density scaling of multiple such statements is now commulative!). Alternatively, it is now also possible to set an absolute density, e.g. "density=2.3gcm3".
+
+=> Trying to load (applying params "packfact=2" in constructor):
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.23kgm3;packfact=2]
+=> Got expected MatCfg ERROR: NC::BadInput: Syntax error in parameter string: The "packfact" parameter is obsolete. Previous "packfact=0.8" is now "density=0.8x" (but note that the density scaling of multiple such statements is now commulative!). Alternatively, it is now also possible to set an absolute density, e.g. "density=2.3gcm3".
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.23kgm3;packfact=1]
+=> Got expected MatCfg ERROR: NC::BadInput: Syntax error in parameter string: The "packfact" parameter is obsolete. Previous "packfact=0.8" is now "density=0.8x" (but note that the density scaling of multiple such statements is now commulative!). Alternatively, it is now also possible to set an absolute density, e.g. "density=2.3gcm3".
+
+=> Trying to load (applying params "packfact=2" in constructor):
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.23kgm3;packfact=1]
+=> Got expected MatCfg ERROR: NC::BadInput: Syntax error in parameter string: The "packfact" parameter is obsolete. Previous "packfact=0.8" is now "density=0.8x" (but note that the density scaling of multiple such statements is now commulative!). Alternatively, it is now also possible to set an absolute density, e.g. "density=2.3gcm3".
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.23kgm3;packfact=2]
+=> Got expected MatCfg ERROR: NC::BadInput: Syntax error in parameter string: The "packfact" parameter is obsolete. Previous "packfact=0.8" is now "density=0.8x" (but note that the density scaling of multiple such statements is now commulative!). Alternatively, it is now also possible to set an absolute density, e.g. "density=2.3gcm3".
+
+=> Trying to load (applying params "packfact=1" in constructor):
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.23kgm3;packfact=2]
+=> Got expected MatCfg ERROR: NC::BadInput: Syntax error in parameter string: The "packfact" parameter is obsolete. Previous "packfact=0.8" is now "density=0.8x" (but note that the density scaling of multiple such statements is now commulative!). Alternatively, it is now also possible to set an absolute density, e.g. "density=2.3gcm3".
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=1.23kgm3;density=1.5x]
+=> Went OK! Resulting toStrCfg(): "<anonymous>;density=0.0018449999999999999gcm3"
+
+=> Trying to load:
+   -> NCMAT v999
+=> Now calling .applyStrCfg("temp=20.0K;density=2x")
+=> Went OK! Resulting toStrCfg(): "<anonymous>;temp=20;density=2x"
+
+=> Trying to load (applying params "temp=20.0K;density=2x" in constructor):
+   -> NCMAT v999
+=> Went OK! Resulting toStrCfg(): "<anonymous>;temp=20;density=2x"
+
+=> Trying to load:
+   -> NCMAT v999
+=> Now calling .applyStrCfg("temp=20.0K;density=2x;density=2.0perAa3;density=0.25x")
+=> Went OK! Resulting toStrCfg(): "<anonymous>;temp=20;density=0.5perAa3"
+
+=> Trying to load (applying params "temp=20.0K;density=2x;density=2.0perAa3;density=0.25x" in constructor):
+   -> NCMAT v999
+=> Went OK! Resulting toStrCfg(): "<anonymous>;temp=20;density=0.5perAa3"
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=2x]
+=> Got expected MatCfg ERROR: NC::BadInput: density parameters with scale factors are not allowed in embedded cfg strings. Seen in data: <anonymous>
+
+=> Trying to load (applying params "density=1gcm3" in constructor):
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[density=2x]
+=> Got expected MatCfg ERROR: NC::BadInput: density parameters with scale factors are not allowed in embedded cfg strings. Seen in data: <anonymous>
+
+=> Trying to load:
+   -> NCMAT v999
+=> Now calling .applyStrCfg("temp=20.0K;packfact=2.0")
+=> Got expected MatCfg ERROR: NC::BadInput: Syntax error in parameter string: The "packfact" parameter is obsolete. Previous "packfact=0.8" is now "density=0.8x" (but note that the density scaling of multiple such statements is now commulative!). Alternatively, it is now also possible to set an absolute density, e.g. "density=2.3gcm3".
+
+=> Trying to load (applying params "temp=20.0K;packfact=2.0" in constructor):
+   -> NCMAT v999
+=> Got expected MatCfg ERROR: NC::BadInput: Syntax error in parameter string: The "packfact" parameter is obsolete. Previous "packfact=0.8" is now "density=0.8x" (but note that the density scaling of multiple such statements is now commulative!). Alternatively, it is now also possible to set an absolute density, e.g. "density=2.3gcm3".
+
+=> Trying to load:
+   -> NCMAT v999
+=> Now calling .applyStrCfg("temp=20.0K;packfact=2.0;density=2.0perAa3;density=0.25x")
+=> Got expected MatCfg ERROR: NC::BadInput: Syntax error in parameter string: The "packfact" parameter is obsolete. Previous "packfact=0.8" is now "density=0.8x" (but note that the density scaling of multiple such statements is now commulative!). Alternatively, it is now also possible to set an absolute density, e.g. "density=2.3gcm3".
+
+=> Trying to load (applying params "temp=20.0K;packfact=2.0;density=2.0perAa3;density=0.25x" in constructor):
+   -> NCMAT v999
+=> Got expected MatCfg ERROR: NC::BadInput: Syntax error in parameter string: The "packfact" parameter is obsolete. Previous "packfact=0.8" is now "density=0.8x" (but note that the density scaling of multiple such statements is now commulative!). Alternatively, it is now also possible to set an absolute density, e.g. "density=2.3gcm3".
+
+=> Trying to load:
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[packfact=2.0]
+=> Got expected MatCfg ERROR: NC::BadInput: Syntax error in parameter string: The "packfact" parameter is obsolete. Previous "packfact=0.8" is now "density=0.8x" (but note that the density scaling of multiple such statements is now commulative!). Alternatively, it is now also possible to set an absolute density, e.g. "density=2.3gcm3".
+
+=> Trying to load (applying params "density=1gcm3" in constructor):
+   -> NCMAT v999
+   -> # NCRYSTALMATCFG[packfact=2.0]
+=> Got expected MatCfg ERROR: NC::BadInput: Syntax error in parameter string: The "packfact" parameter is obsolete. Previous "packfact=0.8" is now "density=0.8x" (but note that the density scaling of multiple such statements is now commulative!). Alternatively, it is now also possible to set an absolute density, e.g. "density=2.3gcm3".
+======= EODENSITY =====================================
+======= DENSITY_MULTIPHASE =====================================
+
+=> Trying to load cfg "phases<0.3*Al_sg225.ncmat&0.7*Ge_sg227.ncmat>":
+=> Went OK! Resulting toStrCfg(): "phases<0.3*Al_sg225.ncmat&0.7*Ge_sg227.ncmat>"
+
+=> Trying to load cfg "phases<0.3*Al_sg225.ncmat&0.6*Ge_sg227.ncmat>":
+=> Got expected MatCfg ERROR: NC::BadInput: Component fractions in multiphase configuration string do not add up to unity: "phases<0.3*Al_sg225.ncmat&0.6*Ge_sg227.ncmat>"
+
+=> Trying to load cfg "phases<0.3*Al_sg225.ncmat&0.7*Ge_sg227.ncmat>;density=2gcm3":
+=> Went OK! Resulting toStrCfg(): "phases<0.3*Al_sg225.ncmat&0.7*Ge_sg227.ncmat>;density=2gcm3"
+
+=> Trying to load cfg "phases<0.3*Al_sg225.ncmat;density=2gcm3&0.7*Ge_sg227.ncmat>":
+=> Went OK! Resulting toStrCfg(): "phases<0.3*Al_sg225.ncmat;density=2gcm3&0.7*Ge_sg227.ncmat>"
+
+=> Trying to load cfg "phases<0.3*Al_sg225.ncmat;density=2gcm3&0.7*Ge_sg227.ncmat>;packfact=1.4":
+=> Got expected MatCfg ERROR: NC::BadInput: Syntax error in parameter string: The "packfact" parameter is obsolete. Previous "packfact=0.8" is now "density=0.8x" (but note that the density scaling of multiple such statements is now commulative!). Alternatively, it is now also possible to set an absolute density, e.g. "density=2.3gcm3".
+
+=> Trying to load cfg "phases<0.3*Al_sg225.ncmat;density=2gcm3&0.7*Ge_sg227.ncmat>;density=1.4x":
+=> Went OK! Resulting toStrCfg(): "phases<0.3*Al_sg225.ncmat;density=2gcm3&0.7*Ge_sg227.ncmat>;density=1.4x"
+
+=> Trying to load cfg "Al_sg225.ncmat;ignorefilecfg":
+=> Got expected MatCfg ERROR: NC::BadInput: Usage of the "ignorefilecfg" keyword in cfg strings is obsolete and no longer supported.
+
+=> Trying to load cfg "Al_sg225.ncmat;sccutoff = 1e-5;density=1.2gcm3":
+=> Went OK! Resulting toStrCfg(): "Al_sg225.ncmat;sccutoff=1e-5;density=1.2gcm3"
+
+=> Trying to load cfg "phases<0.2*Al_sg225.ncmat;sccutoff = 1e-5;density=1.2gcm3&0.8*freegas::CO2":
+=> Got expected MatCfg ERROR: NC::BadInput: Invalid syntax in multiphase configuration string: "phases<0.2*Al_sg225.ncmat;sccutoff = 1e-5;density=1.2gcm3&0.8*freegas::CO2"
+
+=> Trying to load cfg "phases<0.2*Al_sg225.ncmat;sccutoff = 1e-5;density=1.2gcm3&0.8*freegas::CO2/2kgm3;density=1.5x>":
+=> Went OK! Resulting toStrCfg(): "phases<0.2*Al_sg225.ncmat;sccutoff=1e-5;density=1.2gcm3&0.8*freegas::CO2/2kgm3;density=1.5x>"
+
+=> Trying to load cfg "phases<0.2*Al_sg225.ncmat;sccutoff = 1e-5;density=1.2gcm3&0.8*freegas::CO2/2kgm3;density=1.5x>;density=2x":
+=> Went OK! Resulting toStrCfg(): "phases<0.2*Al_sg225.ncmat;sccutoff=1e-5;density=1.2gcm3&0.8*freegas::CO2/2kgm3;density=1.5x>;density=2x"
+
+======= EODENSITY_MULTIPHASE =====================================
+
+---------------------------------------------------------------------------------
+MatCfg("fake.ncmat;inelas=freegas")
+----------------------------------------------------------------------------------------------------
+------------------------------------   NCrystal Material Info   ------------------------------------
+----------------------------------------------------------------------------------------------------
+Data source: fake.ncmat
+----------------------------------------------------------------------------------------------------
+Process cfg hints: inelas=freegas
+----------------------------------------------------------------------------------------------------
+Density : 0.000178577 g/cm3, 3.56567e-05 atoms/Aa^3
+----------------------------------------------------------------------------------------------------
+Composition (by mole): 100% He3
+----------------------------------------------------------------------------------------------------
+Composition (by mass): 100% He3
+----------------------------------------------------------------------------------------------------
+Atom data:
+   He3 = He3(cohSL=5.74fm cohXS=4.14032barn incXS=1.6barn absXS=5333barn mass=3.01603u Z=2 A=3)
+----------------------------------------------------------------------------------------------------
+Averaged quantities:
+   Atomic mass               : 3.01603u
+   Absorption XS at 2200m/s  : 5333 barn
+   Free scattering XS        : 3.2236 barn
+   Scattering length density : 0.00204669 10^-6/Aa^2
+----------------------------------------------------------------------------------------------------
+Temperature : 293.15 kelvin
+----------------------------------------------------------------------------------------------------
+Dynamic info for He3 (100%):
+   type: freegas
+----------------------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------
+MatCfg("fake.ncmat;inelas=freegas")
+Got expected createInfo ERROR: NC::BadInput: Atom with label "He" is unknown (note that access to the inbuilt database was disabled).
+
+---------------------------------------------------------------------------------
+MatCfg("fake.ncmat;inelas=freegas")
+----------------------------------------------------------------------------------------------------
+------------------------------------   NCrystal Material Info   ------------------------------------
+----------------------------------------------------------------------------------------------------
+Data source: fake.ncmat
+----------------------------------------------------------------------------------------------------
+Process cfg hints: inelas=freegas
+----------------------------------------------------------------------------------------------------
+Density : 0.000178577 g/cm3, 2.68854e-05 atoms/Aa^3
+----------------------------------------------------------------------------------------------------
+Composition (by mole): 100% He
+----------------------------------------------------------------------------------------------------
+Composition (by mass): 100% He
+----------------------------------------------------------------------------------------------------
+Atom data:
+   He = He(cohSL=1fm cohXS=0.125664barn incXS=1barn absXS=1barn mass=4u Z=2)
+----------------------------------------------------------------------------------------------------
+Averaged quantities:
+   Atomic mass               : 4u
+   Absorption XS at 2200m/s  : 1 barn
+   Free scattering XS        : 0.717934 barn
+   Scattering length density : 0.000268854 10^-6/Aa^2
+----------------------------------------------------------------------------------------------------
+Temperature : 293.15 kelvin
+----------------------------------------------------------------------------------------------------
+Dynamic info for He (100%):
+   type: freegas
+----------------------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------
+MatCfg("fake.ncmat;inelas=freegas")
+Got expected createInfo ERROR: NC::BadInput: Invalid AtomDB specification (component "He3" is not a known element, isotope, or mixture)
+
+---------------------------------------------------------------------------------
+Got expected MatCfg ERROR: NC::BadInput: Invalid entry in atomdb cfg parameter ("nodefaults" must be the first line).
+
+---------------------------------------------------------------------------------
+MatCfg("fake.ncmat;atomdb=nodefaults@He:is:He3@He3:4u:1fm:1b:1b;inelas=freegas")
+Got expected createInfo ERROR: NC::BadInput: Invalid AtomDB specification (component "He3" is not a known element, isotope, or mixture)
+
+---------------------------------------------------------------------------------
+MatCfg("fake.ncmat;atomdb=nodefaults@He3:4u:1fm:1b:1b@He:is:He3;inelas=freegas")
+----------------------------------------------------------------------------------------------------
+------------------------------------   NCrystal Material Info   ------------------------------------
+----------------------------------------------------------------------------------------------------
+Data source: fake.ncmat
+----------------------------------------------------------------------------------------------------
+Process cfg hints: inelas=freegas
+----------------------------------------------------------------------------------------------------
+Density : 0.000178577 g/cm3, 2.68854e-05 atoms/Aa^3
+----------------------------------------------------------------------------------------------------
+Composition (by mole): 100% He3
+----------------------------------------------------------------------------------------------------
+Composition (by mass): 100% He3
+----------------------------------------------------------------------------------------------------
+Atom data:
+   He3 = He3(cohSL=1fm cohXS=0.125664barn incXS=1barn absXS=1barn mass=4u Z=2 A=3)
+----------------------------------------------------------------------------------------------------
+Averaged quantities:
+   Atomic mass               : 4u
+   Absorption XS at 2200m/s  : 1 barn
+   Free scattering XS        : 0.717934 barn
+   Scattering length density : 0.000268854 10^-6/Aa^2
+----------------------------------------------------------------------------------------------------
+Temperature : 293.15 kelvin
+----------------------------------------------------------------------------------------------------
+Dynamic info for He3 (100%):
+   type: freegas
+----------------------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------
+MatCfg("fake.ncmat;inelas=freegas")
+Got expected createInfo ERROR: NC::BadInput: Invalid entry in @ATOMDB section in the line: "nodefaults He". Error is: Invalid specification. Line has unsupported format: "nodefaults He"
+
+---------------------------------------------------------------------------------
+MatCfg("fake.ncmat;atomdb=nodefaults@He3:4u:1fm:1b:1b@He:is:He3;inelas=freegas")
+----------------------------------------------------------------------------------------------------
+------------------------------------   NCrystal Material Info   ------------------------------------
+----------------------------------------------------------------------------------------------------
+Data source: fake.ncmat
+----------------------------------------------------------------------------------------------------
+Process cfg hints: inelas=freegas
+----------------------------------------------------------------------------------------------------
+Density : 0.000178577 g/cm3, 2.68854e-05 atoms/Aa^3
+----------------------------------------------------------------------------------------------------
+Composition (by mole): 100% He3
+----------------------------------------------------------------------------------------------------
+Composition (by mass): 100% He3
+----------------------------------------------------------------------------------------------------
+Atom data:
+   He3 = He3(cohSL=1fm cohXS=0.125664barn incXS=1barn absXS=1barn mass=4u Z=2 A=3)
+----------------------------------------------------------------------------------------------------
+Averaged quantities:
+   Atomic mass               : 4u
+   Absorption XS at 2200m/s  : 1 barn
+   Free scattering XS        : 0.717934 barn
+   Scattering length density : 0.000268854 10^-6/Aa^2
+----------------------------------------------------------------------------------------------------
+Temperature : 293.15 kelvin
+----------------------------------------------------------------------------------------------------
+Dynamic info for He3 (100%):
+   type: freegas
+----------------------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------
+MatCfg("fake.ncmat;atomdb=nodefaults@He:4u:1fm:1b:1b;inelas=freegas")
+----------------------------------------------------------------------------------------------------
+------------------------------------   NCrystal Material Info   ------------------------------------
+----------------------------------------------------------------------------------------------------
+Data source: fake.ncmat
+----------------------------------------------------------------------------------------------------
+Process cfg hints: inelas=freegas
+----------------------------------------------------------------------------------------------------
+Density : 0.000178577 g/cm3, 2.68854e-05 atoms/Aa^3
+----------------------------------------------------------------------------------------------------
+Composition (by mole): 100% He
+----------------------------------------------------------------------------------------------------
+Composition (by mass): 100% He
+----------------------------------------------------------------------------------------------------
+Atom data:
+   He = He(cohSL=1fm cohXS=0.125664barn incXS=1barn absXS=1barn mass=4u Z=2)
+----------------------------------------------------------------------------------------------------
+Averaged quantities:
+   Atomic mass               : 4u
+   Absorption XS at 2200m/s  : 1 barn
+   Free scattering XS        : 0.717934 barn
+   Scattering length density : 0.000268854 10^-6/Aa^2
+----------------------------------------------------------------------------------------------------
+Temperature : 293.15 kelvin
+----------------------------------------------------------------------------------------------------
+Dynamic info for He (100%):
+   type: freegas
+----------------------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------
+MatCfg("fake.ncmat;atomdb=nodefaults;inelas=freegas")
+Got expected createInfo ERROR: NC::BadInput: Atom with label "He" is unknown (note that access to the inbuilt database was disabled).
+X:is:Al@Al:is:0.99:Al:0.0100000000000000000000000000000000001:Cr@Be10:0.1e-15u:1fm:1b:1e+5b
+MatCfg("Al_sg225.ncmat;sccutoff=1e-5;density=1.2gcm3")
+MatCfg("phases<0.2*Al_sg225.ncmat;sccutoff=1e-5;density=1.2gcm3&0.8*freegas::CO2/2kgm3;density=1.5x>")
+MatCfg("phases<0.2*Al_sg225.ncmat;sccutoff=1e-5;density=1.2gcm3&0.8*freegas::CO2/2kgm3;density=1.5x>;density=2x")
+All tests completed.

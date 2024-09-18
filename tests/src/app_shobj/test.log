@@ -1,0 +1,42 @@
+fct1: 12
+fct1: 12
+fct1b: 12
+fct1b: 12
+fct2: 12
+fct2: 12
+fct2b: 12
+fct2b: 12
+fct3: 12
+fct4: 12
+fct5: 12
+fct5b: 12
+fct1: 14
+fct1: 14
+fct1b: 14
+fct1b: 14
+fct2: 14
+fct2: 14
+fct2b: 14
+fct2b: 14
+fct3: 14
+fct4: 14
+fct5: 14
+fct5b: 14
+fct1b: 15
+fct1b: 15
+fct4: 15
+fct5: 15
+fct5: 20
+fct5b: 20
+fct5: 21
+fct5: 117
+fct5: 118
+I am DummyDerived
+I am DummyDerived
+I am DummyDerived
+I am DummyDerived
+I am DummyDerived
+I am DummyDerived
+I am DummyDerived
+I am DummyDerived
+Got expected error: shared_obj_from_this() does not work since this instance is not managed by std::shared_ptr / NCrystal::shared_obj

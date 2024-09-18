@@ -1,0 +1,386 @@
+  ImmutableBuffer<23,16,TMetaData(size=4,align=4)>
+     |-object size: 32
+     |-object_alignment: 16
+     |-unused_trailing_bytes: 0
+     |
+     |-metadata_size: 4
+     |
+     |-buffer_local_size: 27
+     |-buffer_alignment: 16
+     \----------------------------------------------
+32
+272
+Testing:
+  ImmutableBuffer<1,1>
+     |-object size: 24
+     |-object_alignment: 8
+     |-unused_trailing_bytes: 0
+     |
+     |-metadata_size: 0
+     |
+     |-buffer_local_size: 23
+     |-buffer_alignment: 1
+     \----------------------------------------------
+  ==> Testing with data of length 1
+  ==> Testing with data of length 1
+  ==> Testing with data of length 1
+  ==> Testing with data of length 1
+  ==> Testing with data of length 2
+  ==> Testing with data of length 205
+  ==> Testing with data of length 9
+  ==> Testing with data of length 22
+  ==> Testing with data of length 23
+  ==> Testing with data of length 24
+  ==> Testing with data of length 2000000
+Testing:
+  ImmutableBuffer<1,32>
+     |-object size: 32
+     |-object_alignment: 32
+     |-unused_trailing_bytes: 0
+     |
+     |-metadata_size: 0
+     |
+     |-buffer_local_size: 31
+     |-buffer_alignment: 32
+     \----------------------------------------------
+  ==> Testing with data of length 1
+  ==> Testing with data of length 1
+  ==> Testing with data of length 1
+  ==> Testing with data of length 1
+  ==> Testing with data of length 2
+  ==> Testing with data of length 205
+  ==> Testing with data of length 9
+  ==> Testing with data of length 30
+  ==> Testing with data of length 31
+  ==> Testing with data of length 32
+  ==> Testing with data of length 2000000
+Testing:
+  ImmutableBuffer<1,1>
+     |-object size: 24
+     |-object_alignment: 8
+     |-unused_trailing_bytes: 0
+     |
+     |-metadata_size: 0
+     |
+     |-buffer_local_size: 23
+     |-buffer_alignment: 1
+     \----------------------------------------------
+  ==> Testing with data of length 1
+  ==> Testing with data of length 1
+  ==> Testing with data of length 1
+  ==> Testing with data of length 1
+  ==> Testing with data of length 2
+  ==> Testing with data of length 205
+  ==> Testing with data of length 9
+  ==> Testing with data of length 22
+  ==> Testing with data of length 23
+  ==> Testing with data of length 24
+  ==> Testing with data of length 2000000
+Testing:
+  ImmutableBuffer<1,8>
+     |-object size: 24
+     |-object_alignment: 8
+     |-unused_trailing_bytes: 0
+     |
+     |-metadata_size: 0
+     |
+     |-buffer_local_size: 23
+     |-buffer_alignment: 8
+     \----------------------------------------------
+  ==> Testing with data of length 1
+  ==> Testing with data of length 1
+  ==> Testing with data of length 1
+  ==> Testing with data of length 1
+  ==> Testing with data of length 2
+  ==> Testing with data of length 205
+  ==> Testing with data of length 9
+  ==> Testing with data of length 22
+  ==> Testing with data of length 23
+  ==> Testing with data of length 24
+  ==> Testing with data of length 2000000
+Testing:
+  ImmutableBuffer<16,32>
+     |-object size: 32
+     |-object_alignment: 32
+     |-unused_trailing_bytes: 0
+     |
+     |-metadata_size: 0
+     |
+     |-buffer_local_size: 31
+     |-buffer_alignment: 32
+     \----------------------------------------------
+  ==> Testing with data of length 1
+  ==> Testing with data of length 14
+  ==> Testing with data of length 15
+  ==> Testing with data of length 16
+  ==> Testing with data of length 17
+  ==> Testing with data of length 205
+  ==> Testing with data of length 9
+  ==> Testing with data of length 30
+  ==> Testing with data of length 31
+  ==> Testing with data of length 32
+  ==> Testing with data of length 2000000
+Testing:
+  ImmutableBuffer<16,1>
+     |-object size: 24
+     |-object_alignment: 8
+     |-unused_trailing_bytes: 0
+     |
+     |-metadata_size: 0
+     |
+     |-buffer_local_size: 23
+     |-buffer_alignment: 1
+     \----------------------------------------------
+  ==> Testing with data of length 1
+  ==> Testing with data of length 14
+  ==> Testing with data of length 15
+  ==> Testing with data of length 16
+  ==> Testing with data of length 17
+  ==> Testing with data of length 205
+  ==> Testing with data of length 9
+  ==> Testing with data of length 22
+  ==> Testing with data of length 23
+  ==> Testing with data of length 24
+  ==> Testing with data of length 2000000
+Testing:
+  ImmutableBuffer<16,8>
+     |-object size: 24
+     |-object_alignment: 8
+     |-unused_trailing_bytes: 0
+     |
+     |-metadata_size: 0
+     |
+     |-buffer_local_size: 23
+     |-buffer_alignment: 8
+     \----------------------------------------------
+  ==> Testing with data of length 1
+  ==> Testing with data of length 14
+  ==> Testing with data of length 15
+  ==> Testing with data of length 16
+  ==> Testing with data of length 17
+  ==> Testing with data of length 205
+  ==> Testing with data of length 9
+  ==> Testing with data of length 22
+  ==> Testing with data of length 23
+  ==> Testing with data of length 24
+  ==> Testing with data of length 2000000
+Testing:
+  ImmutableBuffer<15,32>
+     |-object size: 32
+     |-object_alignment: 32
+     |-unused_trailing_bytes: 0
+     |
+     |-metadata_size: 0
+     |
+     |-buffer_local_size: 31
+     |-buffer_alignment: 32
+     \----------------------------------------------
+  ==> Testing with data of length 1
+  ==> Testing with data of length 13
+  ==> Testing with data of length 14
+  ==> Testing with data of length 15
+  ==> Testing with data of length 16
+  ==> Testing with data of length 205
+  ==> Testing with data of length 9
+  ==> Testing with data of length 30
+  ==> Testing with data of length 31
+  ==> Testing with data of length 32
+  ==> Testing with data of length 2000000
+Testing:
+  ImmutableBuffer<15,1>
+     |-object size: 24
+     |-object_alignment: 8
+     |-unused_trailing_bytes: 0
+     |
+     |-metadata_size: 0
+     |
+     |-buffer_local_size: 23
+     |-buffer_alignment: 1
+     \----------------------------------------------
+  ==> Testing with data of length 1
+  ==> Testing with data of length 13
+  ==> Testing with data of length 14
+  ==> Testing with data of length 15
+  ==> Testing with data of length 16
+  ==> Testing with data of length 205
+  ==> Testing with data of length 9
+  ==> Testing with data of length 22
+  ==> Testing with data of length 23
+  ==> Testing with data of length 24
+  ==> Testing with data of length 2000000
+Testing:
+  ImmutableBuffer<15,8>
+     |-object size: 24
+     |-object_alignment: 8
+     |-unused_trailing_bytes: 0
+     |
+     |-metadata_size: 0
+     |
+     |-buffer_local_size: 23
+     |-buffer_alignment: 8
+     \----------------------------------------------
+  ==> Testing with data of length 1
+  ==> Testing with data of length 13
+  ==> Testing with data of length 14
+  ==> Testing with data of length 15
+  ==> Testing with data of length 16
+  ==> Testing with data of length 205
+  ==> Testing with data of length 9
+  ==> Testing with data of length 22
+  ==> Testing with data of length 23
+  ==> Testing with data of length 24
+  ==> Testing with data of length 2000000
+Testing:
+  ImmutableBuffer<18,8>
+     |-object size: 24
+     |-object_alignment: 8
+     |-unused_trailing_bytes: 0
+     |
+     |-metadata_size: 0
+     |
+     |-buffer_local_size: 23
+     |-buffer_alignment: 8
+     \----------------------------------------------
+  ==> Testing with data of length 1
+  ==> Testing with data of length 16
+  ==> Testing with data of length 17
+  ==> Testing with data of length 18
+  ==> Testing with data of length 19
+  ==> Testing with data of length 205
+  ==> Testing with data of length 9
+  ==> Testing with data of length 22
+  ==> Testing with data of length 23
+  ==> Testing with data of length 24
+  ==> Testing with data of length 2000000
+Testing:
+  ImmutableBuffer<18,8,TMetaData(size=4,align=4)>
+     |-object size: 24
+     |-object_alignment: 8
+     |-unused_trailing_bytes: 0
+     |
+     |-metadata_size: 4
+     |
+     |-buffer_local_size: 19
+     |-buffer_alignment: 8
+     \----------------------------------------------
+  ==> Testing with data of length 1
+  ==> Testing with data of length 16
+  ==> Testing with data of length 17
+  ==> Testing with data of length 18
+  ==> Testing with data of length 19
+  ==> Testing with data of length 205
+  ==> Testing with data of length 9
+  ==> Testing with data of length 18
+  ==> Testing with data of length 19
+  ==> Testing with data of length 20
+  ==> Testing with data of length 2000000
+Testing:
+  ImmutableBuffer<27,8,TMetaData(size=4,align=4)>
+     |-object size: 32
+     |-object_alignment: 8
+     |-unused_trailing_bytes: 0
+     |
+     |-metadata_size: 4
+     |
+     |-buffer_local_size: 27
+     |-buffer_alignment: 8
+     \----------------------------------------------
+  ==> Testing with data of length 1
+  ==> Testing with data of length 25
+  ==> Testing with data of length 26
+  ==> Testing with data of length 27
+  ==> Testing with data of length 28
+  ==> Testing with data of length 205
+  ==> Testing with data of length 9
+  ==> Testing with data of length 26
+  ==> Testing with data of length 27
+  ==> Testing with data of length 28
+  ==> Testing with data of length 2000000
+Testing:
+  ImmutableBuffer<19,8,TMetaData(size=4,align=4)>
+     |-object size: 24
+     |-object_alignment: 8
+     |-unused_trailing_bytes: 0
+     |
+     |-metadata_size: 4
+     |
+     |-buffer_local_size: 19
+     |-buffer_alignment: 8
+     \----------------------------------------------
+  ==> Testing with data of length 1
+  ==> Testing with data of length 17
+  ==> Testing with data of length 18
+  ==> Testing with data of length 19
+  ==> Testing with data of length 20
+  ==> Testing with data of length 205
+  ==> Testing with data of length 9
+  ==> Testing with data of length 18
+  ==> Testing with data of length 19
+  ==> Testing with data of length 20
+  ==> Testing with data of length 2000000
+Testing:
+  ImmutableBuffer<1,1,TMetaData(size=4,align=4)>
+     |-object size: 24
+     |-object_alignment: 8
+     |-unused_trailing_bytes: 0
+     |
+     |-metadata_size: 4
+     |
+     |-buffer_local_size: 19
+     |-buffer_alignment: 1
+     \----------------------------------------------
+  ==> Testing with data of length 1
+  ==> Testing with data of length 1
+  ==> Testing with data of length 1
+  ==> Testing with data of length 1
+  ==> Testing with data of length 2
+  ==> Testing with data of length 205
+  ==> Testing with data of length 9
+  ==> Testing with data of length 18
+  ==> Testing with data of length 19
+  ==> Testing with data of length 20
+  ==> Testing with data of length 2000000
+Testing:
+  ImmutableBuffer<1,1,TMetaData(size=4,align=4)>
+     |-object size: 24
+     |-object_alignment: 8
+     |-unused_trailing_bytes: 0
+     |
+     |-metadata_size: 4
+     |
+     |-buffer_local_size: 19
+     |-buffer_alignment: 1
+     \----------------------------------------------
+  ==> Testing with data of length 1
+  ==> Testing with data of length 1
+  ==> Testing with data of length 1
+  ==> Testing with data of length 1
+  ==> Testing with data of length 2
+  ==> Testing with data of length 205
+  ==> Testing with data of length 9
+  ==> Testing with data of length 18
+  ==> Testing with data of length 19
+  ==> Testing with data of length 20
+  ==> Testing with data of length 2000000
+Testing:
+  ImmutableBuffer<19,8,TMetaData(size=8,align=8)>
+     |-object size: 32
+     |-object_alignment: 8
+     |-unused_trailing_bytes: 0
+     |
+     |-metadata_size: 8
+     |
+     |-buffer_local_size: 23
+     |-buffer_alignment: 8
+     \----------------------------------------------
+  ==> Testing with data of length 1
+  ==> Testing with data of length 17
+  ==> Testing with data of length 18
+  ==> Testing with data of length 19
+  ==> Testing with data of length 20
+  ==> Testing with data of length 205
+  ==> Testing with data of length 9
+  ==> Testing with data of length 22
+  ==> Testing with data of length 23
+  ==> Testing with data of length 24
+  ==> Testing with data of length 2000000

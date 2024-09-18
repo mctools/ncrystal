@@ -1,0 +1,3 @@
+NCP::pluginName() = "Dummy"
+NCP::pluginNameUpperCase() = "DUMMY"
+NCP::pluginNameLowerCase() = "dummy"
