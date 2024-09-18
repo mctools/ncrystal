@@ -1,0 +1,199 @@
+MatCfg test-case:
+  Input          : Al.ncmat;vdoslux=1;dcutoff=0.2
+  Object ostream : MatCfg("Al.ncmat;dcutoff=0.2;vdoslux=1")
+  Object.toStrCfg: Al.ncmat;dcutoff=0.2;vdoslux=1
+MatCfg test-case:
+  Input          : Al_400K.ncmat
+  Object ostream : MatCfg("Al_400K.ncmat;temp=400")
+  Object.toStrCfg: Al_400K.ncmat;temp=400
+MatCfg test-case:
+  Input          : phases<0.9999999999999 * Al.ncmat;vdoslux=1>;dcutoff=0.2
+  Object ostream : MatCfg("Al.ncmat;dcutoff=0.2;vdoslux=1")
+  Object.toStrCfg: Al.ncmat;dcutoff=0.2;vdoslux=1
+MatCfg test-case:
+  Input          : phases<0.1 * Al.ncmat;vdoslux=1  & 0.9 * water.ncmat>;dcutoff=0.2
+  Object ostream : MatCfg("phases<0.1*Al.ncmat;vdoslux=1&0.9*water.ncmat>;dcutoff=0.2")
+  Object.toStrCfg: phases<0.1*Al.ncmat;vdoslux=1&0.9*water.ncmat>;dcutoff=0.2
+MatCfg test-case:
+  Input          : phases<0.1 * Al.ncmat & 0.9 * Al.ncmat  >;dcutoff=0.2
+  Object ostream : MatCfg("Al.ncmat;dcutoff=0.2")
+  Object.toStrCfg: Al.ncmat;dcutoff=0.2
+MatCfg test-case:
+  Input          : phases<0.1 * Al.ncmat & 0.9 * Al.ncmat;vdoslux=1>;dcutoff=0.2 
+  Object ostream : MatCfg("phases<0.1*Al.ncmat&0.9*Al.ncmat;vdoslux=1>;dcutoff=0.2")
+  Object.toStrCfg: phases<0.1*Al.ncmat&0.9*Al.ncmat;vdoslux=1>;dcutoff=0.2
+MatCfg test-case:
+  Input          : phases<1e-10*Al.ncmat&1.0*Al.ncmat	>;dcutoff=0.2
+  Object ostream : MatCfg("Al.ncmat;dcutoff=0.2")
+  Object.toStrCfg: Al.ncmat;dcutoff=0.2
+MatCfg test-case:
+  Input          : phases<0.1*Al.ncmat&0.3*Al_400K.ncmat&0.4*water.ncmat&0.2*Al_ec.ncmat>
+  Object ostream : MatCfg("phases<0.1*Al.ncmat&0.3*Al_400K.ncmat;temp=400&0.4*water.ncmat&0.2*Al_ec.ncmat;dcutoff=1>")
+  Object.toStrCfg: phases<0.1*Al.ncmat&0.3*Al_400K.ncmat;temp=400&0.4*water.ncmat&0.2*Al_ec.ncmat;dcutoff=1>
+MatCfg test-case:
+  Input          : phases<0.1*Al.ncmat;temp=400K&0.3*Al_400K.ncmat&0.4*water.ncmat;temp=400K&0.2*Al_ec.ncmat;temp=400>
+  Object ostream : MatCfg("phases<0.1*Al.ncmat&0.3*Al_400K.ncmat&0.4*water.ncmat&0.2*Al_ec.ncmat;dcutoff=1>;temp=400")
+  Object.toStrCfg: phases<0.1*Al.ncmat&0.3*Al_400K.ncmat&0.4*water.ncmat&0.2*Al_ec.ncmat;dcutoff=1>;temp=400
+MatCfg test-case:
+  Input          : phases<0.1*Al.ncmat&0.9*phases<1.0*Al_400K.ncmat>>
+Failed as expected : Invalid syntax in multiphase configuration string: "phases<0.1*Al.ncmat&0.9*phases<1.0*Al_400K.ncmat>>"
+test2-----------------------
+  cfg = MatCfg("phases<0.1*Al.ncmat;temp=400&0.9*water.ncmat>;dcutoffup=99")
+  cfg.get_inelas() = auto
+  cfg.get_dcutoff() = 0
+  cfg.get_dcutoffup() = 99
+  cfg.get_temp() = BadInputException[Could not determine unique value of parameter "temp" on multiphase MatCfg object (different values found in different phases).]
+  Calling cfg.set_temp(550).
+  cfg.get_temp() = 550K
+
+Testing get_temp() and set_temp():
+  initial cfg: MatCfg("phases<0.2*Al.ncmat;temp=210&0.75*water.ncmat&0.05*Be.ncmat;temp=430>")
+  trying get_temp() with result: BadInputException[Could not determine unique value of parameter "temp" on multiphase MatCfg object (different values found in different phases).]
+  Calling set_temp() changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;temp=210")
+  Calling again get_temp() with result: 210K
+  Applying str cfg "temp=10C" changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;temp=10C")
+  Calling again get_temp() with result: 283.15K
+
+Testing get_mos() and set_mos():
+  initial cfg: MatCfg("phases<0.2*Al.ncmat;mos=0.0017453292519943296&0.75*water.ncmat;mos=0.123arcsec&0.05*Be.ncmat;mos=0.017453292519943295>;dir1=@crys:0,0,1@lab:0,0,1;dir2=@crys:0,1,0@lab:0,1,0;dirtol=120deg")
+  trying get_mos() with result: BadInputException[Could not determine unique value of parameter "mos" on multiphase MatCfg object (different values found in different phases).]
+  Calling set_mos() changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;dir1=@crys:0,0,1@lab:0,0,1;dir2=@crys:0,1,0@lab:0,1,0;dirtol=120deg;mos=0.0017453292519943296")
+  Calling again get_mos() with result: 0.00174533radians
+  Applying str cfg "mos=1arcmin" changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;dir1=@crys:0,0,1@lab:0,0,1;dir2=@crys:0,1,0@lab:0,1,0;dirtol=120deg;mos=1arcmin")
+  Calling again get_mos() with result: 0.000290888radians
+
+Testing get_dcutoff() and set_dcutoff():
+  initial cfg: MatCfg("phases<0.2*Al.ncmat;dcutoff=0.9&0.75*water.ncmat&0.05*Be.ncmat;dcutoff=1.2>")
+  trying get_dcutoff() with result: BadInputException[Could not determine unique value of parameter "dcutoff" on multiphase MatCfg object (different values found in different phases).]
+  Calling set_dcutoff() changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;dcutoff=0.9")
+  Calling again get_dcutoff() with result: 0.9
+  Applying str cfg "dcutoff=2Aa" changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;dcutoff=2")
+  Calling again get_dcutoff() with result: 2
+
+Testing get_dcutoffup() and set_dcutoffup():
+  initial cfg: MatCfg("phases<0.2*Al.ncmat;dcutoffup=0.9&0.75*water.ncmat&0.05*Be.ncmat;dcutoffup=1.2>")
+  trying get_dcutoffup() with result: BadInputException[Could not determine unique value of parameter "dcutoffup" on multiphase MatCfg object (different values found in different phases).]
+  Calling set_dcutoffup() changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;dcutoffup=0.9")
+  Calling again get_dcutoffup() with result: 0.9
+  Applying str cfg "dcutoffup=10Aa" changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;dcutoffup=10")
+  Calling again get_dcutoffup() with result: 10
+
+Testing get_mosprec() and set_mosprec():
+  initial cfg: MatCfg("phases<0.2*Al.ncmat;mosprec=0.0001&0.75*water.ncmat&0.05*Be.ncmat;mosprec=1e-05>")
+  trying get_mosprec() with result: BadInputException[Could not determine unique value of parameter "mosprec" on multiphase MatCfg object (different values found in different phases).]
+  Calling set_mosprec() changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;mosprec=0.0001")
+  Calling again get_mosprec() with result: 0.0001
+  Applying str cfg "mosprec=0.00002" changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;mosprec=2e-05")
+  Calling again get_mosprec() with result: 2e-05
+
+Testing get_sccutoff() and set_sccutoff():
+  initial cfg: MatCfg("phases<0.2*Al.ncmat;sccutoff=0.1&0.75*water.ncmat&0.05*Be.ncmat;sccutoff=1>")
+  trying get_sccutoff() with result: BadInputException[Could not determine unique value of parameter "sccutoff" on multiphase MatCfg object (different values found in different phases).]
+  Calling set_sccutoff() changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;sccutoff=0.1")
+  Calling again get_sccutoff() with result: 0.1
+  Applying str cfg "sccutoff=0.5Aa" changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;sccutoff=0.5")
+  Calling again get_sccutoff() with result: 0.5
+
+Testing get_dirtol() and set_dirtol():
+  initial cfg: MatCfg("phases<0.2*Al.ncmat;dirtol=0.017453292519943295&0.75*water.ncmat;dirtol=120deg&0.05*Be.ncmat;dirtol=3.1415926535897931>;dir1=@crys:0,0,1@lab:0,0,1;dir2=@crys:0,1,0@lab:0,1,0;mos=0.123arcsec")
+  trying get_dirtol() with result: BadInputException[Could not determine unique value of parameter "dirtol" on multiphase MatCfg object (different values found in different phases).]
+  Calling set_dirtol() changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;dir1=@crys:0,0,1@lab:0,0,1;dir2=@crys:0,1,0@lab:0,1,0;dirtol=0.017453292519943295;mos=0.123arcsec")
+  Calling again get_dirtol() with result: 0.0174533
+  Applying str cfg "dirtol=20deg" changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;dir1=@crys:0,0,1@lab:0,0,1;dir2=@crys:0,1,0@lab:0,1,0;dirtol=20deg;mos=0.123arcsec")
+  Calling again get_dirtol() with result: 0.349066
+
+Testing get_coh_elas() and set_coh_elas():
+  initial cfg: MatCfg("phases<0.2*Al.ncmat;coh_elas=1&0.75*water.ncmat&0.05*Be.ncmat;coh_elas=0>")
+  trying get_coh_elas() with result: BadInputException[Could not determine unique value of parameter "coh_elas" on multiphase MatCfg object (different values found in different phases).]
+  Calling set_coh_elas() changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;coh_elas=1")
+  Calling again get_coh_elas() with result: 1
+  Applying str cfg "coh_elas=true" changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;coh_elas=1")
+  Calling again get_coh_elas() with result: 1
+
+Testing get_incoh_elas() and set_incoh_elas():
+  initial cfg: MatCfg("phases<0.2*Al.ncmat;incoh_elas=1&0.75*water.ncmat&0.05*Be.ncmat;incoh_elas=0>")
+  trying get_incoh_elas() with result: BadInputException[Could not determine unique value of parameter "incoh_elas" on multiphase MatCfg object (different values found in different phases).]
+  Calling set_incoh_elas() changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;incoh_elas=1")
+  Calling again get_incoh_elas() with result: 1
+  Applying str cfg "incoh_elas=0" changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;incoh_elas=0")
+  Calling again get_incoh_elas() with result: 0
+
+Testing get_atomdb() and set_atomdb():
+  initial cfg: MatCfg("phases<0.2*Al.ncmat;atomdb=Al:is:Xe&0.75*water.ncmat&0.05*Be.ncmat;atomdb=Be:is:Ne>")
+  trying get_atomdb() with result: BadInputException[Could not determine unique value of parameter "atomdb" on multiphase MatCfg object (different values found in different phases).]
+  Calling set_atomdb() changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;atomdb=Al:is:Xe")
+  Calling again get_atomdb() with result: Al:is:Xe
+  Applying str cfg "atomdb=Al is B" changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;atomdb=Al:is:B")
+  Calling again get_atomdb() with result: Al:is:B
+
+Testing get_inelas() and set_inelas():
+  initial cfg: MatCfg("phases<0.2*Al.ncmat;inelas=freegas&0.75*water.ncmat&0.05*Be.ncmat;inelas=0>")
+  trying get_inelas() with result: BadInputException[Could not determine unique value of parameter "inelas" on multiphase MatCfg object (different values found in different phases).]
+  Calling set_inelas() changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;inelas=freegas")
+  Calling again get_inelas() with result: freegas
+  Applying str cfg "inelas=vdosdebye" changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;inelas=vdosdebye")
+  Calling again get_inelas() with result: vdosdebye
+
+Testing get_infofactory() and set_infofactory():
+  initial cfg: MatCfg("phases<0.2*Al.ncmat;infofactory=aaa&0.75*water.ncmat&0.05*Be.ncmat;infofactory=bbb>")
+  trying get_infofactory() with result: BadInputException[Could not determine unique value of parameter "infofactory" on multiphase MatCfg object (different values found in different phases).]
+  Calling set_infofactory() changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;infofactory=aaa")
+  Calling again get_infofactory() with result: aaa
+  Applying str cfg "infofactory=ccc" changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;infofactory=ccc")
+  Calling again get_infofactory() with result: ccc
+
+Testing get_scatfactory() and set_scatfactory():
+  initial cfg: MatCfg("phases<0.2*Al.ncmat;scatfactory=aaa&0.75*water.ncmat&0.05*Be.ncmat;scatfactory=bbb>")
+  trying get_scatfactory() with result: BadInputException[Could not determine unique value of parameter "scatfactory" on multiphase MatCfg object (different values found in different phases).]
+  Calling set_scatfactory() changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;scatfactory=aaa")
+  Calling again get_scatfactory() with result: aaa
+  Applying str cfg "scatfactory=ccc" changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;scatfactory=ccc")
+  Calling again get_scatfactory() with result: ccc
+
+Testing get_absnfactory() and set_absnfactory():
+  initial cfg: MatCfg("phases<0.2*Al.ncmat;absnfactory=aaa&0.75*water.ncmat&0.05*Be.ncmat;absnfactory=bbb>")
+  trying get_absnfactory() with result: BadInputException[Could not determine unique value of parameter "absnfactory" on multiphase MatCfg object (different values found in different phases).]
+  Calling set_absnfactory() changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;absnfactory=aaa")
+  Calling again get_absnfactory() with result: aaa
+  Applying str cfg "absnfactory=ccc" changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;absnfactory=ccc")
+  Calling again get_absnfactory() with result: ccc
+
+Testing get_lcmode() and set_lcmode():
+  initial cfg: MatCfg("phases<0.2*Al.ncmat;lcmode=1000&0.75*water.ncmat&0.05*Be.ncmat;lcmode=-5>")
+  trying get_lcmode() with result: BadInputException[Could not determine unique value of parameter "lcmode" on multiphase MatCfg object (different values found in different phases).]
+  Calling set_lcmode() changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;lcmode=1000")
+  Calling again get_lcmode() with result: 1000
+  Applying str cfg "lcmode=30" changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;lcmode=30")
+  Calling again get_lcmode() with result: 30
+
+Testing get_vdoslux() and set_vdoslux():
+  initial cfg: MatCfg("phases<0.2*Al.ncmat;vdoslux=2&0.75*water.ncmat&0.05*Be.ncmat;vdoslux=4>")
+  trying get_vdoslux() with result: BadInputException[Could not determine unique value of parameter "vdoslux" on multiphase MatCfg object (different values found in different phases).]
+  Calling set_vdoslux() changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;vdoslux=2")
+  Calling again get_vdoslux() with result: 2
+  Applying str cfg "vdoslux=5" changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;vdoslux=5")
+  Calling again get_vdoslux() with result: 5
+
+Testing get_lcaxis() and set_lcaxis():
+  initial cfg: MatCfg("phases<0.2*Al.ncmat;lcaxis=0,1,0&0.75*water.ncmat&0.05*Be.ncmat;lcaxis=1,0,0>")
+  trying get_lcaxis() with result: BadInputException[Could not determine unique value of parameter "lcaxis" on multiphase MatCfg object (different values found in different phases).]
+  Calling set_lcaxis() changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;lcaxis=0,1,0")
+  Calling again get_lcaxis() with result: { 0, 1, 0 }
+  Applying str cfg "lcaxis=0,0.5,0.5" changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;lcaxis=0,0.5,0.5")
+  Calling again get_lcaxis() with result: { 0, 0.5, 0.5 }
+
+Testing get_dir1() and set_dir1():
+  initial cfg: MatCfg("phases<0.2*Al.ncmat;dir1=@crys:1,2,3@lab:4,5,6&0.75*water.ncmat;dir1=@crys:0,0,1@lab:0,0,1&0.05*Be.ncmat;dir1=@crys_hkl:0,1,0@lab:1,0,0>;dir2=@crys:0,1,0@lab:0,1,0;dirtol=120deg;mos=0.123arcsec")
+  trying get_dir1() with result: BadInputException[Could not determine unique value of parameter "dir1" on multiphase MatCfg object (different values found in different phases).]
+  Calling set_dir1() changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;dir1=@crys:1,2,3@lab:4,5,6;dir2=@crys:0,1,0@lab:0,1,0;dirtol=120deg;mos=0.123arcsec")
+  Calling again get_dir1() with result: @crys:1,2,3@lab:4,5,6
+  Applying str cfg "dir1=@crys:0.2,0,0.8@lab:0,0,1" changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;dir1=@crys:0.2,0,0.8@lab:0,0,1;dir2=@crys:0,1,0@lab:0,1,0;dirtol=120deg;mos=0.123arcsec")
+  Calling again get_dir1() with result: @crys:0.2,0,0.8@lab:0,0,1
+
+Testing get_dir2() and set_dir2():
+  initial cfg: MatCfg("phases<0.2*Al.ncmat;dir2=@crys:1,-2,3@lab:2,5,-6&0.75*water.ncmat;dir2=@crys:0,1,0@lab:0,1,0&0.05*Be.ncmat;dir2=@crys_hkl:0,1,2@lab:1,-1,0>;dir1=@crys:0,0,1@lab:0,0,1;dirtol=120deg;mos=0.123arcsec")
+  trying get_dir2() with result: BadInputException[Could not determine unique value of parameter "dir2" on multiphase MatCfg object (different values found in different phases).]
+  Calling set_dir2() changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;dir1=@crys:0,0,1@lab:0,0,1;dir2=@crys:1,-2,3@lab:2,5,-6;dirtol=120deg;mos=0.123arcsec")
+  Calling again get_dir2() with result: @crys:1,-2,3@lab:2,5,-6
+  Applying str cfg "dir2=@crys:0.3,0.1,0.8@lab:0,1,1" changing state to: MatCfg("phases<0.2*Al.ncmat&0.75*water.ncmat&0.05*Be.ncmat>;dir1=@crys:0,0,1@lab:0,0,1;dir2=@crys:0.3,0.1,0.8@lab:0,1,1;dirtol=120deg;mos=0.123arcsec")
+  Calling again get_dir2() with result: @crys:0.3,0.1,0.8@lab:0,1,1

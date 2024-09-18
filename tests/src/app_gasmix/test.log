@@ -1,0 +1,454 @@
+Parsing (expects BadInput failure): >>><<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Missing gas mixture formula specification: "".<<<
+Parsing (expects BadInput failure): >>>1.0*CO2<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Contains forbidden characters :"1.0*CO2"<<<
+Parsing: >>>1.0xCO2<<<
+  \-> reencoded: >>>CO2<<<
+  \-> gives: GasMixResult{T=293.15K, P=1atm, Rho=1.8295336435565634kgm3;1xCO2}
+Parsing: >>>CO2<<<
+  \-> reencoded: >>>CO2<<<
+  \-> gives: GasMixResult{T=293.15K, P=1atm, Rho=1.8295336435565634kgm3;1xCO2}
+Parsing: >>>OCO<<<
+  \-> reencoded: >>>CO2<<<
+  \-> gives: GasMixResult{T=293.15K, P=1atm, Rho=1.8295336435565634kgm3;1xCO2}
+Parsing: >>>1.0xCH4<<<
+  \-> reencoded: >>>CH4<<<
+  \-> gives: GasMixResult{T=293.15K, P=1atm, Rho=0.66692424005281237kgm3;1xCH4}
+Parsing: >>>1.0xCO2////<<<
+  \-> reencoded: >>>CO2<<<
+  \-> gives: GasMixResult{T=293.15K, P=1atm, Rho=1.8295336435565634kgm3;1xCO2}
+Parsing (expects BadInput failure): >>>1.0xCO2"<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Contains forbidden characters :"1.0xCO2""<<<
+Parsing (expects BadInput failure): >>>1.0xCO2'<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Contains forbidden characters :"1.0xCO2'"<<<
+Parsing (expects BadInput failure): >>>1.0xCO2$<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Contains forbidden characters :"1.0xCO2$"<<<
+Parsing (expects BadInput failure): >>>1.0xCO2@<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Contains forbidden characters :"1.0xCO2@"<<<
+Parsing (expects BadInput failure): >>>1.0xCO2\<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Contains forbidden characters :"1.0xCO2\"<<<
+Parsing (expects BadInput failure): >>>1.0xCO2	<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Does not contain only simple ASCII characters :"1.0xCO2	"<<<
+Parsing (expects BadInput failure): >>>1.0xCO2
+<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Does not contain only simple ASCII characters :"1.0xCO2
+"<<<
+Parsing: >>>1.0xCO2/10bar<<<
+  \-> reencoded: >>>CO2/10bar<<<
+  \-> gives: GasMixResult{T=293.15K, P=10bar, Rho=18.056093200656932kgm3;1xCO2}
+Parsing (expects BadInput failure): >>>1.0xCO2/1e20bar<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Pressure value out of bounds: 1e20bar<<<
+Parsing (expects BadInput failure): >>>1.0xCO2/0.0bar<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Pressure value out of bounds: 0.0bar<<<
+Parsing (expects BadInput failure): >>>1.0xCO2/-1.0bar<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Pressure value out of bounds: -1.0bar<<<
+Parsing (expects BadInput failure): >>>1.0xCO2/1.0bar/1000Pa<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Multiple pressure entries are not allowed.<<<
+Parsing (expects BadInput failure): >>>1.0xCO2/10t-4bar<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Could not parse value from: "10t-4bar"<<<
+Parsing: >>>0.3xCO2+0.7xAr/2atm<<<
+  \-> reencoded: >>>0.3xCO2+0.7xAr/2atm<<<
+  \-> gives: GasMixResult{T=293.15K, P=2atm, Rho=3.4226610471645547kgm3;0.3xCO2+0.7xAr}
+Parsing: >>>0.3xCO2+0.7xH2O/H_is_D<<<
+  \-> reencoded: >>>0.3xCO2+0.7xH2O/H_is_D<<<
+  \-> gives: GasMixResult{T=293.15K, P=1atm, Rho=1.1316573264427738kgm3;0.3xCO2+0.7xH2O}
+Parsing: >>>air<<<
+  \-> reencoded: >>>0.7807712xN2+0.20945xO2+0.00934xAr+0.000412xCO2+1.818e-05xNe+5.24e-06xHe+1.79e-06xCH4+1e-06xKr+5e-07xH2+9e-08xXe<<<
+  \-> gives: GasMixResult{T=293.15K, P=1atm, Rho=1.2041520769553551kgm3;9e-08xXe+5e-07xH2+1e-06xKr+1.79e-06xCH4+5.24e-06xHe+1.818e-05xNe+0.000412xCO2+0.00934xAr+0.20945xO2+0.7807712xN2}
+Parsing: >>>0.3xCO2+0.7xAr/0.02relhumidity<<<
+  \-> reencoded: >>>0.3xCO2+0.7xAr/0.02relhumidity<<<
+  \-> gives: GasMixResult{T=293.15K, P=1atm, Rho=1.7108861324047007kgm3;0.00046174601522985928xH2O+0.299861476195431xCO2+0.699676777789339xAr}
+Parsing (expects BadInput failure): >>>0.3xCO2+0.8xAr<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: fractions do not sum up to unity<<<
+Parsing: >>>0.3xCO2+0.7000000001xAr<<<
+  \-> reencoded: >>>0.29999999997xCO2+0.70000000003xAr<<<
+  \-> gives: GasMixResult{T=293.15K, P=1atm, Rho=1.7113305235772114kgm3;0.29999999997xCO2+0.70000000003xAr}
+Parsing: >>>massfractions/0.3xCO2+0.7xAr<<<
+  \-> reencoded: >>>0.3xCO2+0.7xAr/massfractions<<<
+  \-> gives: GasMixResult{T=293.15K, P=1atm, Rho=1.7079643568548479kgm3;0.28006552864498491xCO2+0.7199344713550152xAr}
+Parsing (expects BadInput failure): >>>massfractions/0.3xCO2+0.7xAr/molarfractions<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Multiple fraction type (massfractions/molarfractions) keywords are not allowed.<<<
+Parsing (expects BadInput failure): >>>massfractions/0.3xCO2+0.7xAr/massfractions<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Multiple fraction type (massfractions/molarfractions) keywords are not allowed.<<<
+Parsing (expects BadInput failure): >>>1.0xCO2/1.0bar/2gcm3<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Can not specify both pressure and density: "1.0xCO2/1.0bar/2gcm3".<<<
+Parsing (expects BadInput failure): >>>1.0xCO2/1kgm3/2gcm3<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Multiple density entries are not allowed.<<<
+Parsing (expects BadInput failure): >>>1.0xCO2/1perAa3<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Unrecognised syntax: "1perAa3".<<<
+Parsing: >>>1.0xCO2/1kgm3<<<
+  \-> reencoded: >>>CO2/1kgm3<<<
+  \-> gives: GasMixResult{T=293.15K, P=55382.96623123419Pa, Rho=1kgm3;1xCO2}
+Parsing (expects BadInput failure): >>>1.0xCO2/0.0kgm3<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Density value out of bounds: 0.0kgm3<<<
+Parsing (expects BadInput failure): >>>1.0xCO2/1e20kgm3<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Density value out of bounds: 1e20kgm3<<<
+Parsing: >>>1.0xCO2/0.0relhumidity<<<
+  \-> reencoded: >>>CO2<<<
+  \-> gives: GasMixResult{T=293.15K, P=1atm, Rho=1.8295336435565634kgm3;1xCO2}
+Parsing: >>>1.0xCO2/1.0relhumidity<<<
+  \-> reencoded: >>>CO2/1relhumidity<<<
+  \-> gives: GasMixResult{T=293.15K, P=1atm, Rho=1.8045850936959305kgm3;0.023087300761492964xH2O+0.976912699238507xCO2}
+Parsing: >>>1.0xCO2/0.01relhumidity<<<
+  \-> reencoded: >>>CO2/0.01relhumidity<<<
+  \-> gives: GasMixResult{T=293.15K, P=1atm, Rho=1.8292841580579569kgm3;0.00023087300761492964xH2O+0.99976912699238507xCO2}
+Parsing (expects BadInput failure): >>>1.0xCO2/1.0000000000001relhumidity<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Relative humidity value out of bounds: 1.0000000000001relhumidity<<<
+Parsing (expects BadInput failure): >>>1.0xCO2/-1e-20relhumidity<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Relative humidity value out of bounds: -1e-20relhumidity<<<
+Parsing (expects BadInput failure): >>>0.3xCO2+0.7xAr/0.02relhumidity/0.02relhumidity<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Multiple relative humidity entries are not allowed.<<<
+Parsing (expects BadInput failure): >>>1.0xCO2/1kgm3/1.0xCO2<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Multiple gas mixture formulas specified.<<<
+Parsing (expects BadInput failure): >>>1.0xCO2/1kgm3/1.0xAr<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Multiple gas mixture formulas specified.<<<
+Parsing: >>>1.0xCO2/300K<<<
+  \-> reencoded: >>>CO2/300K<<<
+  \-> gives: GasMixResult{T=300K, P=1atm, Rho=1.7877592920286884kgm3;1xCO2}
+Parsing: >>>1.0xCO2/293.15K<<<
+  \-> reencoded: >>>CO2<<<
+  \-> gives: GasMixResult{T=293.15K, P=1atm, Rho=1.8295336435565634kgm3;1xCO2}
+Parsing: >>>1.0xCO2/20C<<<
+  \-> reencoded: >>>CO2<<<
+  \-> gives: GasMixResult{T=293.15K, P=1atm, Rho=1.8295336435565634kgm3;1xCO2}
+Parsing: >>>1.0xCO2/-270C<<<
+  \-> reencoded: >>>CO2/-270C<<<
+  \-> gives: GasMixResult{T=3.15K, P=1atm, Rho=170.26278971701916kgm3;1xCO2}
+Parsing (expects BadInput failure): >>>1.0xCO2/-270CK<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Could not parse value from: "-270CK"<<<
+Parsing: >>>1.0xCO2/0.001K<<<
+  \-> reencoded: >>>CO2/0.001K<<<
+  \-> gives: GasMixResult{T=0.001K, P=1atm, Rho=536.32778760860651gcm3;1xCO2}
+Parsing (expects BadInput failure): >>>1.0xCO2/0.0K<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Temperature value out of bounds: 0.0K<<<
+Parsing (expects BadInput failure): >>>1.0xCO2/1e20K<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Temperature value out of bounds: 1e20K<<<
+Parsing: >>>1.0xCO2/1000000C<<<
+  \-> reencoded: >>>CO2/1000000C<<<
+  \-> gives: GasMixResult{T=1.00027e+06K, P=1atm, Rho=5.3618132967840486e-07gcm3;1xCO2}
+Parsing (expects BadInput failure): >>>1.0xCO2/wuhu<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Unrecognised syntax: "wuhu".<<<
+Parsing (expects BadInput failure): >>>1.0xCO2/270C/10K<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Multiple temperature entries are not allowed.<<<
+Parsing (expects BadInput failure): >>>1.0xSiH4/Si 28.09u 4.1491fm 0.004b 0.171b<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Do not use spaces or semicolons as separators in ATOMDB sections (use single underscores instead): Si 28.09u 4.1491fm 0.004b 0.171b".<<<
+Parsing (expects BadInput failure): >>>1.0xSiH4/Si;28.09u;4.1491fm;0.004b;0.171b<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Unrecognised syntax: "Si;28.09u;4.1491fm;0.004b;0.171b".<<<
+Parsing: >>>1.0xSiH4/Si_28.09u_4.1491fm_0.004b_0.171b/H_is_D<<<
+  \-> reencoded: >>>H4Si/Si_28.09u_4.1491fm_0.004b_0.171b/H_is_D<<<
+  \-> gives: GasMixResult{T=293.15K, P=1atm, Rho=1.5026493831365042kgm3;1xH4Si}
+Parsing (expects BadInput failure): >>>1.0xSiH4/Si_28.09u_4.1491fm_0.004b__0.171b/H_is_D<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Do not use double underscores as separators in ATOMDB sections: Si_28.09u_4.1491fm_0.004b__0.171b".<<<
+Parsing: >>>1.0xSiH4/ Si_28.09u_4.1491fm_0.004b_0.171b  /  /  H_is_D<<<
+  \-> reencoded: >>>H4Si/Si_28.09u_4.1491fm_0.004b_0.171b/H_is_D<<<
+  \-> gives: GasMixResult{T=293.15K, P=1atm, Rho=1.5026493831365042kgm3;1xH4Si}
+Parsing (expects BadInput failure): >>>1.0xSiH4/ Si_28.09u_4.1491fm_0.004b_0.171b  /  /  H_isss_D<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Unrecognised syntax: "H_isss_D".<<<
+Parsing (expects BadInput failure): >>>1.0xSiH4/ Si_28.09u_4.1491fm_0.004b_0.171b  /  /  H_is_G<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Invalid ATOMDB syntax: Invalid specification. The label "G" is neither a standard element name (e.g. Al, H), an isotope (e.g. Li6), or a custom marker (X, X1, X2, ..., X99).".<<<
+Parsing (expects BadInput failure): >>>1kgm3<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: Missing gas mixture formula specification: "1kgm3".<<<
+Parsing: >>>1.0xHe/1kgm3<<<
+  \-> reencoded: >>>He/1kgm3<<<
+  \-> gives: GasMixResult{T=293.15K, P=608950.08641367743Pa, Rho=1kgm3;1xHe}
+Parsing: >>>//1.0xHe/1kgm3<<<
+  \-> reencoded: >>>He/1kgm3<<<
+  \-> gives: GasMixResult{T=293.15K, P=608950.08641367743Pa, Rho=1kgm3;1xHe}
+Parsing: >>>air/1kgm3<<<
+  \-> reencoded: >>>0.7807712xN2+0.20945xO2+0.00934xAr+0.000412xCO2+1.818e-05xNe+5.24e-06xHe+1.79e-06xCH4+1e-06xKr+5e-07xH2+9e-08xXe/1kgm3<<<
+  \-> gives: GasMixResult{T=293.15K, P=84146.34823883354Pa, Rho=1kgm3;9e-08xXe+5e-07xH2+1e-06xKr+1.79e-06xCH4+5.24e-06xHe+1.818e-05xNe+0.000412xCO2+0.00934xAr+0.20945xO2+0.7807712xN2}
+Parsing: >>>air/2atm<<<
+  \-> reencoded: >>>0.7807712xN2+0.20945xO2+0.00934xAr+0.000412xCO2+1.818e-05xNe+5.24e-06xHe+1.79e-06xCH4+1e-06xKr+5e-07xH2+9e-08xXe/2atm<<<
+  \-> gives: GasMixResult{T=293.15K, P=2atm, Rho=2.40830415391071kgm3;9e-08xXe+5e-07xH2+1e-06xKr+1.79e-06xCH4+5.24e-06xHe+1.818e-05xNe+0.000412xCO2+0.00934xAr+0.20945xO2+0.7807712xN2}
+Parsing: >>>air/2atm/0.01relhumidity<<<
+  \-> reencoded: >>>0.7807712xN2+0.20945xO2+0.00934xAr+0.000412xCO2+1.818e-05xNe+5.24e-06xHe+1.79e-06xCH4+1e-06xKr+5e-07xH2+9e-08xXe/0.01relhumidity/2atm<<<
+  \-> gives: GasMixResult{T=293.15K, P=2atm, Rho=2.4081990521352923kgm3;8.9989610714657317e-08xXe+4.9994228174809625e-07xH2+9.998845634961925e-07xKr+1.7897933686581845e-06xCH4+5.2393951127200485e-06xHe+1.8177901364360777e-05xNe+0.00011543650380746482xH2O+0.00041195244016043131xCO2+0.0093389218230544371xAr+0.20942582182427752xO2+0.78068107050239843xN2}
+Parsing: >>>air/2atm/0.01relhumidity/molarfractions<<<
+  \-> reencoded: >>>0.7807712xN2+0.20945xO2+0.00934xAr+0.000412xCO2+1.818e-05xNe+5.24e-06xHe+1.79e-06xCH4+1e-06xKr+5e-07xH2+9e-08xXe/0.01relhumidity/2atm<<<
+  \-> gives: GasMixResult{T=293.15K, P=2atm, Rho=2.4081990521352923kgm3;8.9989610714657317e-08xXe+4.9994228174809625e-07xH2+9.998845634961925e-07xKr+1.7897933686581845e-06xCH4+5.2393951127200485e-06xHe+1.8177901364360777e-05xNe+0.00011543650380746482xH2O+0.00041195244016043131xCO2+0.0093389218230544371xAr+0.20942582182427752xO2+0.78068107050239843xN2}
+Parsing (expects BadInput failure): >>>air/2atm/0.01relhumidity/massfractions<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: "air" keyword only works with molar fractions<<<
+Parsing (expects BadInput failure): >>>0.3xCO2+1.01xAr<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: invalid component entry: "1.01xAr"<<<
+Parsing (expects BadInput failure): >>>0.3xCO2+-0.11xAr<<<
+  \-> got expected BadInput error: >>>Syntax error in gasmix specification: invalid component entry: "-0.11xAr"<<<
+Parsing: >>>1.0xCO2+0.xAr<<<
+  \-> reencoded: >>>CO2<<<
+  \-> gives: GasMixResult{T=293.15K, P=1atm, Rho=1.8295336435565634kgm3;1xCO2}
+Parsing: >>>1.0xCO2/10bar<<<
+  \-> reencoded: >>>CO2/10bar<<<
+  \-> gives: GasMixResult{T=293.15K, P=10bar, Rho=18.056093200656932kgm3;1xCO2}
+Parsing: >>>1.0xCO2/2atm<<<
+  \-> reencoded: >>>CO2/2atm<<<
+  \-> gives: GasMixResult{T=293.15K, P=2atm, Rho=3.6590672871131269kgm3;1xCO2}
+Parsing: >>>1.0xCO2/20F<<<
+  \-> reencoded: >>>CO2/266.48333333333329K<<<
+  \-> gives: GasMixResult{T=266.483K, P=1atm, Rho=2.0126128748837573kgm3;1xCO2}
+Parsing: >>>1.0xCO2/0F<<<
+  \-> reencoded: >>>CO2/0F<<<
+  \-> gives: GasMixResult{T=255.372K, P=1atm, Rho=2.1001806028139578kgm3;1xCO2}
+Parsing: >>>1.0xCO2/100F<<<
+  \-> reencoded: >>>CO2/310.92777777777775K<<<
+  \-> gives: GasMixResult{T=310.928K, P=1atm, Rho=1.724927220854239kgm3;1xCO2}
+Parsing: >>>1.0xCO2/-1.234F<<<
+  \-> reencoded: >>>CO2/254.68666666666664K<<<
+  \-> gives: GasMixResult{T=254.687K, P=1atm, Rho=2.10583378638565kgm3;1xCO2}
+Parsing (expects BadInput failure): >>>0.2xCO2+0.8xAr/0.5relhumidity/H_is_D<<<
+  \-> reencoded: >>>0.2xCO2+0.8xAr/0.5relhumidity/H_is_D<<<
+  \-> got expected BadInput error: >>>The saturated vapour pressure formula needed to decode relative humidity has not been validated for the case of H or O atoms being heavily enriched.<<<
+Water vapour P @ 173.15K : 0.00140497Pa (ref. 0.0014049Pa). Reldiff = 5.23848e-05
+Water vapour P @ 193.15K : 0.0547711Pa (ref. 0.054773Pa). Reldiff = 3.42316e-05
+Water vapour P @ 213.15K : 1.08142Pa (ref. 1.0813Pa). Reldiff = 0.000106363
+Water vapour P @ 233.15K : 12.8406Pa (ref. 12.8412Pa). Reldiff = 4.64041e-05
+Water vapour P @ 253.15K : 103.226Pa (ref. 103.239Pa). Reldiff = 0.000125782
+Water vapour P @ 273.15K : 611.245Pa (ref. 611.3Pa). Reldiff = 8.96401e-05
+Water vapour P @ 278.15K : 872.579Pa (ref. 872.6Pa). Reldiff = 2.36693e-05
+Water vapour P @ 283.15K : 1228.19Pa (ref. 1228.1Pa). Reldiff = 7.15493e-05
+Water vapour P @ 288.15K : 1705.78Pa (ref. 1705.6Pa). Reldiff = 0.000106949
+Water vapour P @ 293.15K : 2339.32Pa (ref. 2338.8Pa). Reldiff = 0.000222657
+Water vapour P @ 298.15K : 3169.95Pa (ref. 3169Pa). Reldiff = 0.000299789
+Water vapour P @ 303.15K : 4247Pa (ref. 4245.5Pa). Reldiff = 0.000354251
+Water vapour P @ 308.15K : 5629.04Pa (ref. 5626.7Pa). Reldiff = 0.000416582
+Water vapour P @ 313.15K : 7384.93Pa (ref. 7381.4Pa). Reldiff = 0.00047861
+Water vapour P @ 318.15K : 9594.93Pa (ref. 9589.8Pa). Reldiff = 0.000534764
+Water vapour P @ 323.15K : 12351.8Pa (ref. 12344Pa). Reldiff = 0.000630565
+Water vapour P @ 328.15K : 15761.8Pa (ref. 15752Pa). Reldiff = 0.000624764
+Water vapour P @ 333.15K : 19946.1Pa (ref. 19932Pa). Reldiff = 0.000707624
+Water vapour P @ 338.15K : 25041.3Pa (ref. 25022Pa). Reldiff = 0.00077031
+Water vapour P @ 343.15K : 31200.7Pa (ref. 31176Pa). Reldiff = 0.000793593
+Water vapour P @ 348.15K : 38595.5Pa (ref. 38563Pa). Reldiff = 0.000842939
+Water vapour P @ 353.15K : 47415Pa (ref. 47373Pa). Reldiff = 0.000887445
+Water vapour P @ 358.15K : 57868.1Pa (ref. 57815Pa). Reldiff = 0.000917616
+Water vapour P @ 363.15K : 70183.2Pa (ref. 70117Pa). Reldiff = 0.000943528
+Water vapour P @ 368.15K : 84609.5Pa (ref. 84529Pa). Reldiff = 0.000951828
+Water vapour P @ 373.15K : 101417Pa (ref. 101320Pa). Reldiff = 0.000957312
+Water vapour P @ 383.15K : 143363Pa (ref. 143380Pa). Reldiff = 0.00012114
+Water vapour P @ 393.15K : 198609Pa (ref. 198670Pa). Reldiff = 0.000305016
+Water vapour P @ 403.15K : 270091Pa (ref. 270280Pa). Reldiff = 0.000698463
+Water vapour P @ 413.15K : 361080Pa (ref. 361540Pa). Reldiff = 0.00127226
+Water vapour P @ 423.15K : 475172Pa (ref. 476160Pa). Reldiff = 0.00207563
+Water vapour P @ 433.15K : 616265Pa (ref. 618230Pa). Reldiff = 0.00317894
+Water vapour P @ 453.15K : 996392Pa (ref. 1.0028e+06Pa). Reldiff = 0.00639015
+Water vapour P @ 473.15K : 1.53753e+06Pa (ref. 1.5549e+06Pa). Reldiff = 0.0111701
+Water vapour P @ 493.15K : 2.27837e+06Pa (ref. 2.3196e+06Pa). Reldiff = 0.0177767
+Water vapour P @ 513.15K : 3.25881e+06Pa (ref. 3.3469e+06Pa). Reldiff = 0.0263198
+Water vapour P @ 533.15K : 4.51862e+06Pa (ref. 4.6923e+06Pa). Reldiff = 0.0370131
+Water vapour P @ 553.15K : 6.09609e+06Pa (ref. 6.4166e+06Pa). Reldiff = 0.0499509
+Water vapour P @ 573.15K : 8.02684e+06Pa (ref. 8.5879e+06Pa). Reldiff = 0.0653316
+Water vapour P @ 593.15K : 1.03429e+07Pa (ref. 1.1284e+07Pa). Reldiff = 0.0833981
+Water vapour P @ 613.15K : 1.30721e+07Pa (ref. 1.4601e+07Pa). Reldiff = 0.104712
+Water vapour P @ 633.15K : 1.62372e+07Pa (ref. 1.8666e+07Pa). Reldiff = 0.130116
+Water vapour P @ 643.15K : 1.79891e+07Pa (ref. 2.1044e+07Pa). Reldiff = 0.145169
+Testing: >>>CO2<<<
+  \-> reencoded: >>>CO2<<<
+  \-> result: GasMixResult{T=293.15K, P=1atm, Rho=1.8295336435565634kgm3;1xCO2}
+  \-> flat composition: 0.33333333333333331*C+0.66666666666666663*O
+  \-> atomdb: 
+       | C : C(cohSL=6.646fm cohXS=5.55048barn incXS=0.001barn absXS=0.0035barn mass=12.011u Z=6) <<STANDARD-ELEM-DATA>>
+       | O : O(cohSL=5.803fm cohXS=4.2317barn incXS=0.0008barn absXS=0.00019barn mass=15.9993u Z=8) <<STANDARD-ELEM-DATA>>
+Testing: >>>1.0xCO2<<<
+  \-> reencoded: >>>CO2<<<
+  \-> result: GasMixResult{T=293.15K, P=1atm, Rho=1.8295336435565634kgm3;1xCO2}
+  \-> flat composition: 0.33333333333333331*C+0.66666666666666663*O
+  \-> atomdb: 
+       | C : C(cohSL=6.646fm cohXS=5.55048barn incXS=0.001barn absXS=0.0035barn mass=12.011u Z=6) <<STANDARD-ELEM-DATA>>
+       | O : O(cohSL=5.803fm cohXS=4.2317barn incXS=0.0008barn absXS=0.00019barn mass=15.9993u Z=8) <<STANDARD-ELEM-DATA>>
+Testing: >>>CO2/C_is_H<<<
+  \-> reencoded: >>>CO2/C_is_H<<<
+  \-> result: GasMixResult{T=293.15K, P=1atm, Rho=1.3721232385113793kgm3;1xCO2}
+  \-> flat composition: 0.33333333333333331*C+0.66666666666666663*O
+  \-> atomdb: 
+       | C : H(cohSL=-3.739fm cohXS=1.75679barn incXS=80.26barn absXS=0.3326barn mass=1.00798u Z=1)
+       | O : O(cohSL=5.803fm cohXS=4.2317barn incXS=0.0008barn absXS=0.00019barn mass=15.9993u Z=8) <<STANDARD-ELEM-DATA>>
+Testing: >>>1.0xCO2/C_is_C13<<<
+  \-> reencoded: >>>CO2/C_is_C13<<<
+  \-> result: GasMixResult{T=293.15K, P=1atm, Rho=1.8707854870327585kgm3;1xCO2}
+  \-> flat composition: 0.33333333333333331*C+0.66666666666666663*O
+  \-> atomdb: 
+       | C : C13(cohSL=6.19fm cohXS=4.81494barn incXS=0.034barn absXS=0.00137barn mass=13.0034u Z=6 A=13)
+       | O : O(cohSL=5.803fm cohXS=4.2317barn incXS=0.0008barn absXS=0.00019barn mass=15.9993u Z=8) <<STANDARD-ELEM-DATA>>
+Testing: >>>air<<<
+  \-> reencoded: >>>0.7807712xN2+0.20945xO2+0.00934xAr+0.000412xCO2+1.818e-05xNe+5.24e-06xHe+1.79e-06xCH4+1e-06xKr+5e-07xH2+9e-08xXe<<<
+  \-> result: GasMixResult{T=293.15K, P=1atm, Rho=1.2041520769553551kgm3;9e-08xXe+5e-07xH2+1e-06xKr+1.79e-06xCH4+5.24e-06xHe+1.818e-05xNe+0.000412xCO2+0.00934xAr+0.20945xO2+0.7807712xN2}
+  \-> flat composition: 4.5202215274184131e-08*Xe+5.0224683637982365e-07*Kr+2.6317734226302762e-06*He+4.0983341848593612e-06*H+9.1308474853851943e-06*Ne+0.00020782471842560723*C+0.0046909854517875526*Ar+0.21080505115268511*O+0.78427973027295717*N
+  \-> atomdb: 
+       | H : H(cohSL=-3.739fm cohXS=1.75679barn incXS=80.26barn absXS=0.3326barn mass=1.00798u Z=1) <<STANDARD-ELEM-DATA>>
+       | He : He(cohSL=3.26548fm cohXS=1.34barn incXS=0barn absXS=0.00747barn mass=4.0026u Z=2) <<STANDARD-ELEM-DATA>>
+       | C : C(cohSL=6.646fm cohXS=5.55048barn incXS=0.001barn absXS=0.0035barn mass=12.011u Z=6) <<STANDARD-ELEM-DATA>>
+       | N : N(cohSL=9.36fm cohXS=11.0093barn incXS=0.5barn absXS=1.9barn mass=14.0068u Z=7) <<STANDARD-ELEM-DATA>>
+       | O : O(cohSL=5.803fm cohXS=4.2317barn incXS=0.0008barn absXS=0.00019barn mass=15.9993u Z=8) <<STANDARD-ELEM-DATA>>
+       | Ne : Ne(cohSL=4.566fm cohXS=2.61988barn incXS=0.008barn absXS=0.039barn mass=20.1794u Z=10) <<STANDARD-ELEM-DATA>>
+       | Ar : Ar(cohSL=1.909fm cohXS=0.457954barn incXS=0.225barn absXS=0.675barn mass=39.9477u Z=18) <<STANDARD-ELEM-DATA>>
+       | Kr : Kr(cohSL=7.81fm cohXS=7.665barn incXS=0.01barn absXS=25barn mass=83.8u Z=36) <<STANDARD-ELEM-DATA>>
+       | Xe : Xe(cohSL=4.92fm cohXS=3.04187barn incXS=1.16133barn absXS=23.9barn mass=131.293u Z=54) <<STANDARD-ELEM-DATA>>
+Testing: >>>air/C_is_C13<<<
+  \-> reencoded: >>>0.7807712xN2+0.20945xO2+0.00934xAr+0.000412xCO2+1.818e-05xNe+5.24e-06xHe+1.79e-06xCH4+1e-06xKr+5e-07xH2+9e-08xXe/C_is_C13<<<
+  \-> result: GasMixResult{T=293.15K, P=1atm, Rho=1.2041691465556672kgm3;9e-08xXe+5e-07xH2+1e-06xKr+1.79e-06xCH4+5.24e-06xHe+1.818e-05xNe+0.000412xCO2+0.00934xAr+0.20945xO2+0.7807712xN2}
+  \-> flat composition: 4.5202215274184131e-08*Xe+5.0224683637982365e-07*Kr+2.6317734226302762e-06*He+4.0983341848593612e-06*H+9.1308474853851943e-06*Ne+0.00020782471842560723*C+0.0046909854517875526*Ar+0.21080505115268511*O+0.78427973027295717*N
+  \-> atomdb: 
+       | H : H(cohSL=-3.739fm cohXS=1.75679barn incXS=80.26barn absXS=0.3326barn mass=1.00798u Z=1) <<STANDARD-ELEM-DATA>>
+       | He : He(cohSL=3.26548fm cohXS=1.34barn incXS=0barn absXS=0.00747barn mass=4.0026u Z=2) <<STANDARD-ELEM-DATA>>
+       | C : C13(cohSL=6.19fm cohXS=4.81494barn incXS=0.034barn absXS=0.00137barn mass=13.0034u Z=6 A=13)
+       | N : N(cohSL=9.36fm cohXS=11.0093barn incXS=0.5barn absXS=1.9barn mass=14.0068u Z=7) <<STANDARD-ELEM-DATA>>
+       | O : O(cohSL=5.803fm cohXS=4.2317barn incXS=0.0008barn absXS=0.00019barn mass=15.9993u Z=8) <<STANDARD-ELEM-DATA>>
+       | Ne : Ne(cohSL=4.566fm cohXS=2.61988barn incXS=0.008barn absXS=0.039barn mass=20.1794u Z=10) <<STANDARD-ELEM-DATA>>
+       | Ar : Ar(cohSL=1.909fm cohXS=0.457954barn incXS=0.225barn absXS=0.675barn mass=39.9477u Z=18) <<STANDARD-ELEM-DATA>>
+       | Kr : Kr(cohSL=7.81fm cohXS=7.665barn incXS=0.01barn absXS=25barn mass=83.8u Z=36) <<STANDARD-ELEM-DATA>>
+       | Xe : Xe(cohSL=4.92fm cohXS=3.04187barn incXS=1.16133barn absXS=23.9barn mass=131.293u Z=54) <<STANDARD-ELEM-DATA>>
+Testing: >>>air/0.0relhumidity<<<
+  \-> reencoded: >>>0.7807712xN2+0.20945xO2+0.00934xAr+0.000412xCO2+1.818e-05xNe+5.24e-06xHe+1.79e-06xCH4+1e-06xKr+5e-07xH2+9e-08xXe<<<
+  \-> result: GasMixResult{T=293.15K, P=1atm, Rho=1.2041520769553551kgm3;9e-08xXe+5e-07xH2+1e-06xKr+1.79e-06xCH4+5.24e-06xHe+1.818e-05xNe+0.000412xCO2+0.00934xAr+0.20945xO2+0.7807712xN2}
+  \-> flat composition: 4.5202215274184131e-08*Xe+5.0224683637982365e-07*Kr+2.6317734226302762e-06*He+4.0983341848593612e-06*H+9.1308474853851943e-06*Ne+0.00020782471842560723*C+0.0046909854517875526*Ar+0.21080505115268511*O+0.78427973027295717*N
+  \-> atomdb: 
+       | H : H(cohSL=-3.739fm cohXS=1.75679barn incXS=80.26barn absXS=0.3326barn mass=1.00798u Z=1) <<STANDARD-ELEM-DATA>>
+       | He : He(cohSL=3.26548fm cohXS=1.34barn incXS=0barn absXS=0.00747barn mass=4.0026u Z=2) <<STANDARD-ELEM-DATA>>
+       | C : C(cohSL=6.646fm cohXS=5.55048barn incXS=0.001barn absXS=0.0035barn mass=12.011u Z=6) <<STANDARD-ELEM-DATA>>
+       | N : N(cohSL=9.36fm cohXS=11.0093barn incXS=0.5barn absXS=1.9barn mass=14.0068u Z=7) <<STANDARD-ELEM-DATA>>
+       | O : O(cohSL=5.803fm cohXS=4.2317barn incXS=0.0008barn absXS=0.00019barn mass=15.9993u Z=8) <<STANDARD-ELEM-DATA>>
+       | Ne : Ne(cohSL=4.566fm cohXS=2.61988barn incXS=0.008barn absXS=0.039barn mass=20.1794u Z=10) <<STANDARD-ELEM-DATA>>
+       | Ar : Ar(cohSL=1.909fm cohXS=0.457954barn incXS=0.225barn absXS=0.675barn mass=39.9477u Z=18) <<STANDARD-ELEM-DATA>>
+       | Kr : Kr(cohSL=7.81fm cohXS=7.665barn incXS=0.01barn absXS=25barn mass=83.8u Z=36) <<STANDARD-ELEM-DATA>>
+       | Xe : Xe(cohSL=4.92fm cohXS=3.04187barn incXS=1.16133barn absXS=23.9barn mass=131.293u Z=54) <<STANDARD-ELEM-DATA>>
+Testing: >>>air/0.50relhumidity<<<
+  \-> reencoded: >>>0.7807712xN2+0.20945xO2+0.00934xAr+0.000412xCO2+1.818e-05xNe+5.24e-06xHe+1.79e-06xCH4+1e-06xKr+5e-07xH2+9e-08xXe/0.5relhumidity<<<
+  \-> result: GasMixResult{T=293.15K, P=1atm, Rho=1.1988969881844465kgm3;8.8961071465732812e-08xXe+4.942281748096268e-07xH2+9.884563496192536e-07xKr+1.769336865818464e-06xCH4+5.1795112720048886e-06xHe+1.7970136436078028e-05xNe+0.00040724401604313245xCO2+0.0092321823054438267xAr+0.011543650380746482xH2O+0.20703218242775265xO2+0.77175825023984412xN2}
+  \-> flat composition: 4.4420572556626563e-08*Xe+4.9356191729585077e-07*Kr+2.5862644466302578e-06*He+8.9729556564385661e-06*Ne+0.00020423098575785009*C+0.0046098683075432457*Ar+0.011532116119253682*H+0.21292382650208794*O+0.77071786088276428*N
+  \-> atomdb: 
+       | H : H(cohSL=-3.739fm cohXS=1.75679barn incXS=80.26barn absXS=0.3326barn mass=1.00798u Z=1) <<STANDARD-ELEM-DATA>>
+       | He : He(cohSL=3.26548fm cohXS=1.34barn incXS=0barn absXS=0.00747barn mass=4.0026u Z=2) <<STANDARD-ELEM-DATA>>
+       | C : C(cohSL=6.646fm cohXS=5.55048barn incXS=0.001barn absXS=0.0035barn mass=12.011u Z=6) <<STANDARD-ELEM-DATA>>
+       | N : N(cohSL=9.36fm cohXS=11.0093barn incXS=0.5barn absXS=1.9barn mass=14.0068u Z=7) <<STANDARD-ELEM-DATA>>
+       | O : O(cohSL=5.803fm cohXS=4.2317barn incXS=0.0008barn absXS=0.00019barn mass=15.9993u Z=8) <<STANDARD-ELEM-DATA>>
+       | Ne : Ne(cohSL=4.566fm cohXS=2.61988barn incXS=0.008barn absXS=0.039barn mass=20.1794u Z=10) <<STANDARD-ELEM-DATA>>
+       | Ar : Ar(cohSL=1.909fm cohXS=0.457954barn incXS=0.225barn absXS=0.675barn mass=39.9477u Z=18) <<STANDARD-ELEM-DATA>>
+       | Kr : Kr(cohSL=7.81fm cohXS=7.665barn incXS=0.01barn absXS=25barn mass=83.8u Z=36) <<STANDARD-ELEM-DATA>>
+       | Xe : Xe(cohSL=4.92fm cohXS=3.04187barn incXS=1.16133barn absXS=23.9barn mass=131.293u Z=54) <<STANDARD-ELEM-DATA>>
+Testing: >>>air/1.0relhumidity<<<
+  \-> reencoded: >>>0.7807712xN2+0.20945xO2+0.00934xAr+0.000412xCO2+1.818e-05xNe+5.24e-06xHe+1.79e-06xCH4+1e-06xKr+5e-07xH2+9e-08xXe/1relhumidity<<<
+  \-> result: GasMixResult{T=293.15K, P=1atm, Rho=1.1936418994135378kgm3;8.7922142931465625e-08xXe+4.8845634961925352e-07xH2+9.76912699238507e-07xKr+1.7486737316369275e-06xCH4+5.1190225440097765e-06xHe+1.7760272872156056e-05xNe+0.00040248803208626485xCO2+0.0091243646108876541xAr+0.023087300761492964xH2O+0.2046143648555053xO2+0.76274530047968814xN2}
+  \-> flat composition: 4.3647968740140272e-08*Xe+4.8497743044600307e-07*Kr+2.5412817355370562e-06*He+8.8168896855083349e-06*Ne+0.00020067881094425159*C+0.0045296892003656684*Ar+0.022926824132522085*H+0.21501810037486302*O+0.75731282068448469*N
+  \-> atomdb: 
+       | H : H(cohSL=-3.739fm cohXS=1.75679barn incXS=80.26barn absXS=0.3326barn mass=1.00798u Z=1) <<STANDARD-ELEM-DATA>>
+       | He : He(cohSL=3.26548fm cohXS=1.34barn incXS=0barn absXS=0.00747barn mass=4.0026u Z=2) <<STANDARD-ELEM-DATA>>
+       | C : C(cohSL=6.646fm cohXS=5.55048barn incXS=0.001barn absXS=0.0035barn mass=12.011u Z=6) <<STANDARD-ELEM-DATA>>
+       | N : N(cohSL=9.36fm cohXS=11.0093barn incXS=0.5barn absXS=1.9barn mass=14.0068u Z=7) <<STANDARD-ELEM-DATA>>
+       | O : O(cohSL=5.803fm cohXS=4.2317barn incXS=0.0008barn absXS=0.00019barn mass=15.9993u Z=8) <<STANDARD-ELEM-DATA>>
+       | Ne : Ne(cohSL=4.566fm cohXS=2.61988barn incXS=0.008barn absXS=0.039barn mass=20.1794u Z=10) <<STANDARD-ELEM-DATA>>
+       | Ar : Ar(cohSL=1.909fm cohXS=0.457954barn incXS=0.225barn absXS=0.675barn mass=39.9477u Z=18) <<STANDARD-ELEM-DATA>>
+       | Kr : Kr(cohSL=7.81fm cohXS=7.665barn incXS=0.01barn absXS=25barn mass=83.8u Z=36) <<STANDARD-ELEM-DATA>>
+       | Xe : Xe(cohSL=4.92fm cohXS=3.04187barn incXS=1.16133barn absXS=23.9barn mass=131.293u Z=54) <<STANDARD-ELEM-DATA>>
+Testing: >>>air/0.0relhumidity/20C<<<
+  \-> reencoded: >>>0.7807712xN2+0.20945xO2+0.00934xAr+0.000412xCO2+1.818e-05xNe+5.24e-06xHe+1.79e-06xCH4+1e-06xKr+5e-07xH2+9e-08xXe<<<
+  \-> result: GasMixResult{T=293.15K, P=1atm, Rho=1.2041520769553551kgm3;9e-08xXe+5e-07xH2+1e-06xKr+1.79e-06xCH4+5.24e-06xHe+1.818e-05xNe+0.000412xCO2+0.00934xAr+0.20945xO2+0.7807712xN2}
+  \-> flat composition: 4.5202215274184131e-08*Xe+5.0224683637982365e-07*Kr+2.6317734226302762e-06*He+4.0983341848593612e-06*H+9.1308474853851943e-06*Ne+0.00020782471842560723*C+0.0046909854517875526*Ar+0.21080505115268511*O+0.78427973027295717*N
+  \-> atomdb: 
+       | H : H(cohSL=-3.739fm cohXS=1.75679barn incXS=80.26barn absXS=0.3326barn mass=1.00798u Z=1) <<STANDARD-ELEM-DATA>>
+       | He : He(cohSL=3.26548fm cohXS=1.34barn incXS=0barn absXS=0.00747barn mass=4.0026u Z=2) <<STANDARD-ELEM-DATA>>
+       | C : C(cohSL=6.646fm cohXS=5.55048barn incXS=0.001barn absXS=0.0035barn mass=12.011u Z=6) <<STANDARD-ELEM-DATA>>
+       | N : N(cohSL=9.36fm cohXS=11.0093barn incXS=0.5barn absXS=1.9barn mass=14.0068u Z=7) <<STANDARD-ELEM-DATA>>
+       | O : O(cohSL=5.803fm cohXS=4.2317barn incXS=0.0008barn absXS=0.00019barn mass=15.9993u Z=8) <<STANDARD-ELEM-DATA>>
+       | Ne : Ne(cohSL=4.566fm cohXS=2.61988barn incXS=0.008barn absXS=0.039barn mass=20.1794u Z=10) <<STANDARD-ELEM-DATA>>
+       | Ar : Ar(cohSL=1.909fm cohXS=0.457954barn incXS=0.225barn absXS=0.675barn mass=39.9477u Z=18) <<STANDARD-ELEM-DATA>>
+       | Kr : Kr(cohSL=7.81fm cohXS=7.665barn incXS=0.01barn absXS=25barn mass=83.8u Z=36) <<STANDARD-ELEM-DATA>>
+       | Xe : Xe(cohSL=4.92fm cohXS=3.04187barn incXS=1.16133barn absXS=23.9barn mass=131.293u Z=54) <<STANDARD-ELEM-DATA>>
+Testing: >>>air/0.8relhumidity/20C<<<
+  \-> reencoded: >>>0.7807712xN2+0.20945xO2+0.00934xAr+0.000412xCO2+1.818e-05xNe+5.24e-06xHe+1.79e-06xCH4+1e-06xKr+5e-07xH2+9e-08xXe/0.8relhumidity<<<
+  \-> result: GasMixResult{T=293.15K, P=1atm, Rho=1.1957439349219015kgm3;8.83377143451725e-08xXe+4.9076507969540281e-07xH2+9.8153015939080562e-07xKr+1.7569389853095422e-06xCH4+5.1432180352078217e-06xHe+1.7844218297724848e-05xNe+0.00040439042566901194xCO2+0.0091674916887101252xAr+0.018469840609194373xH2O+0.20558149188440425xO2+0.76635048038375064xN2}
+  \-> flat composition: 4.39559356563325e-08*Xe+4.8839928507036113e-07*Kr+2.5592122537686924e-06*He+8.8790990025791662e-06*Ne+0.00020209474016926474*C+0.0045616493225571738*Ar+0.01838478976396761*H+0.21418330373977298*O+0.762656191767056*N
+  \-> atomdb: 
+       | H : H(cohSL=-3.739fm cohXS=1.75679barn incXS=80.26barn absXS=0.3326barn mass=1.00798u Z=1) <<STANDARD-ELEM-DATA>>
+       | He : He(cohSL=3.26548fm cohXS=1.34barn incXS=0barn absXS=0.00747barn mass=4.0026u Z=2) <<STANDARD-ELEM-DATA>>
+       | C : C(cohSL=6.646fm cohXS=5.55048barn incXS=0.001barn absXS=0.0035barn mass=12.011u Z=6) <<STANDARD-ELEM-DATA>>
+       | N : N(cohSL=9.36fm cohXS=11.0093barn incXS=0.5barn absXS=1.9barn mass=14.0068u Z=7) <<STANDARD-ELEM-DATA>>
+       | O : O(cohSL=5.803fm cohXS=4.2317barn incXS=0.0008barn absXS=0.00019barn mass=15.9993u Z=8) <<STANDARD-ELEM-DATA>>
+       | Ne : Ne(cohSL=4.566fm cohXS=2.61988barn incXS=0.008barn absXS=0.039barn mass=20.1794u Z=10) <<STANDARD-ELEM-DATA>>
+       | Ar : Ar(cohSL=1.909fm cohXS=0.457954barn incXS=0.225barn absXS=0.675barn mass=39.9477u Z=18) <<STANDARD-ELEM-DATA>>
+       | Kr : Kr(cohSL=7.81fm cohXS=7.665barn incXS=0.01barn absXS=25barn mass=83.8u Z=36) <<STANDARD-ELEM-DATA>>
+       | Xe : Xe(cohSL=4.92fm cohXS=3.04187barn incXS=1.16133barn absXS=23.9barn mass=131.293u Z=54) <<STANDARD-ELEM-DATA>>
+Testing: >>>air/0.0relhumidity/80C<<<
+  \-> reencoded: >>>0.7807712xN2+0.20945xO2+0.00934xAr+0.000412xCO2+1.818e-05xNe+5.24e-06xHe+1.79e-06xCH4+1e-06xKr+5e-07xH2+9e-08xXe/80C<<<
+  \-> result: GasMixResult{T=353.15K, P=1atm, Rho=0.99956726988379541kgm3;9e-08xXe+5e-07xH2+1e-06xKr+1.79e-06xCH4+5.24e-06xHe+1.818e-05xNe+0.000412xCO2+0.00934xAr+0.20945xO2+0.7807712xN2}
+  \-> flat composition: 4.5202215274184131e-08*Xe+5.0224683637982365e-07*Kr+2.6317734226302762e-06*He+4.0983341848593612e-06*H+9.1308474853851943e-06*Ne+0.00020782471842560723*C+0.0046909854517875526*Ar+0.21080505115268511*O+0.78427973027295717*N
+  \-> atomdb: 
+       | H : H(cohSL=-3.739fm cohXS=1.75679barn incXS=80.26barn absXS=0.3326barn mass=1.00798u Z=1) <<STANDARD-ELEM-DATA>>
+       | He : He(cohSL=3.26548fm cohXS=1.34barn incXS=0barn absXS=0.00747barn mass=4.0026u Z=2) <<STANDARD-ELEM-DATA>>
+       | C : C(cohSL=6.646fm cohXS=5.55048barn incXS=0.001barn absXS=0.0035barn mass=12.011u Z=6) <<STANDARD-ELEM-DATA>>
+       | N : N(cohSL=9.36fm cohXS=11.0093barn incXS=0.5barn absXS=1.9barn mass=14.0068u Z=7) <<STANDARD-ELEM-DATA>>
+       | O : O(cohSL=5.803fm cohXS=4.2317barn incXS=0.0008barn absXS=0.00019barn mass=15.9993u Z=8) <<STANDARD-ELEM-DATA>>
+       | Ne : Ne(cohSL=4.566fm cohXS=2.61988barn incXS=0.008barn absXS=0.039barn mass=20.1794u Z=10) <<STANDARD-ELEM-DATA>>
+       | Ar : Ar(cohSL=1.909fm cohXS=0.457954barn incXS=0.225barn absXS=0.675barn mass=39.9477u Z=18) <<STANDARD-ELEM-DATA>>
+       | Kr : Kr(cohSL=7.81fm cohXS=7.665barn incXS=0.01barn absXS=25barn mass=83.8u Z=36) <<STANDARD-ELEM-DATA>>
+       | Xe : Xe(cohSL=4.92fm cohXS=3.04187barn incXS=1.16133barn absXS=23.9barn mass=131.293u Z=54) <<STANDARD-ELEM-DATA>>
+Testing: >>>air/0.8relhumidity/80C<<<
+  \-> reencoded: >>>0.7807712xN2+0.20945xO2+0.00934xAr+0.000412xCO2+1.818e-05xNe+5.24e-06xHe+1.79e-06xCH4+1e-06xKr+5e-07xH2+9e-08xXe/0.8relhumidity/80C<<<
+  \-> result: GasMixResult{T=353.15K, P=1atm, Rho=0.85809963790991772kgm3;5.6307594907631008e-08xXe+3.1281997170906115e-07xH2+6.2563994341812229e-07xKr+1.119895498718439e-06xCH4+3.2783533035109611e-06xHe+1.1374134171341463e-05xNe+0.00025776365668826642xCO2+0.005843477071525262xAr+0.13104028614892571xO2+0.37436005658187765xH2O+0.48848164939049948xN2}
+  \-> flat composition: 2.3770892200226955e-08*Xe+2.6412102444696618e-07*Kr+1.3839941681021029e-06*He+4.8017202244458449e-06*Ne+0.00010929063870591013*C+0.0024668903683346638*Ar+0.26889829249455782*O+0.31608287448671829*H+0.41243617840537428*N
+  \-> atomdb: 
+       | H : H(cohSL=-3.739fm cohXS=1.75679barn incXS=80.26barn absXS=0.3326barn mass=1.00798u Z=1) <<STANDARD-ELEM-DATA>>
+       | He : He(cohSL=3.26548fm cohXS=1.34barn incXS=0barn absXS=0.00747barn mass=4.0026u Z=2) <<STANDARD-ELEM-DATA>>
+       | C : C(cohSL=6.646fm cohXS=5.55048barn incXS=0.001barn absXS=0.0035barn mass=12.011u Z=6) <<STANDARD-ELEM-DATA>>
+       | N : N(cohSL=9.36fm cohXS=11.0093barn incXS=0.5barn absXS=1.9barn mass=14.0068u Z=7) <<STANDARD-ELEM-DATA>>
+       | O : O(cohSL=5.803fm cohXS=4.2317barn incXS=0.0008barn absXS=0.00019barn mass=15.9993u Z=8) <<STANDARD-ELEM-DATA>>
+       | Ne : Ne(cohSL=4.566fm cohXS=2.61988barn incXS=0.008barn absXS=0.039barn mass=20.1794u Z=10) <<STANDARD-ELEM-DATA>>
+       | Ar : Ar(cohSL=1.909fm cohXS=0.457954barn incXS=0.225barn absXS=0.675barn mass=39.9477u Z=18) <<STANDARD-ELEM-DATA>>
+       | Kr : Kr(cohSL=7.81fm cohXS=7.665barn incXS=0.01barn absXS=25barn mass=83.8u Z=36) <<STANDARD-ELEM-DATA>>
+       | Xe : Xe(cohSL=4.92fm cohXS=3.04187barn incXS=1.16133barn absXS=23.9barn mass=131.293u Z=54) <<STANDARD-ELEM-DATA>>
+Testing: >>>0.5xHe+0.5xAr<<<
+  \-> reencoded: >>>0.5xHe+0.5xAr<<<
+  \-> result: GasMixResult{T=293.15K, P=1atm, Rho=0.91353249574473439kgm3;0.5xHe+0.5xAr}
+  \-> flat composition: 0.5*He+0.5*Ar
+  \-> atomdb: 
+       | He : He(cohSL=3.26548fm cohXS=1.34barn incXS=0barn absXS=0.00747barn mass=4.0026u Z=2) <<STANDARD-ELEM-DATA>>
+       | Ar : Ar(cohSL=1.909fm cohXS=0.457954barn incXS=0.225barn absXS=0.675barn mass=39.9477u Z=18) <<STANDARD-ELEM-DATA>>
+Testing: >>>0.5xHe+0.5xAr/massfractions<<<
+  \-> reencoded: >>>0.5xHe+0.5xAr/massfractions<<<
+  \-> result: GasMixResult{T=293.15K, P=1atm, Rho=0.30247869463798488kgm3;0.091071170796460585xAr+0.90892882920353946xHe}
+  \-> flat composition: 0.091071170796460585*Ar+0.90892882920353946*He
+  \-> atomdb: 
+       | He : He(cohSL=3.26548fm cohXS=1.34barn incXS=0barn absXS=0.00747barn mass=4.0026u Z=2) <<STANDARD-ELEM-DATA>>
+       | Ar : Ar(cohSL=1.909fm cohXS=0.457954barn incXS=0.225barn absXS=0.675barn mass=39.9477u Z=18) <<STANDARD-ELEM-DATA>>
+Testing: >>>0.5xAr+0.5xHe<<<
+  \-> reencoded: >>>0.5xAr+0.5xHe<<<
+  \-> result: GasMixResult{T=293.15K, P=1atm, Rho=0.91353249574473439kgm3;0.5xHe+0.5xAr}
+  \-> flat composition: 0.5*He+0.5*Ar
+  \-> atomdb: 
+       | He : He(cohSL=3.26548fm cohXS=1.34barn incXS=0barn absXS=0.00747barn mass=4.0026u Z=2) <<STANDARD-ELEM-DATA>>
+       | Ar : Ar(cohSL=1.909fm cohXS=0.457954barn incXS=0.225barn absXS=0.675barn mass=39.9477u Z=18) <<STANDARD-ELEM-DATA>>
+Testing: >>>0.5xAr+0.5xHe/massfractions<<<
+  \-> reencoded: >>>0.5xAr+0.5xHe/massfractions<<<
+  \-> result: GasMixResult{T=293.15K, P=1atm, Rho=0.30247869463798488kgm3;0.091071170796460585xAr+0.90892882920353946xHe}
+  \-> flat composition: 0.091071170796460585*Ar+0.90892882920353946*He
+  \-> atomdb: 
+       | He : He(cohSL=3.26548fm cohXS=1.34barn incXS=0barn absXS=0.00747barn mass=4.0026u Z=2) <<STANDARD-ELEM-DATA>>
+       | Ar : Ar(cohSL=1.909fm cohXS=0.457954barn incXS=0.225barn absXS=0.675barn mass=39.9477u Z=18) <<STANDARD-ELEM-DATA>>
+Testing: >>>0.4xAr+0.5xHe+0.1xAr<<<
+  \-> reencoded: >>>0.4xAr+0.5xHe+0.1xAr<<<
+  \-> result: GasMixResult{T=293.15K, P=1atm, Rho=0.91353249574473439kgm3;0.5xHe+0.5xAr}
+  \-> flat composition: 0.5*He+0.5*Ar
+  \-> atomdb: 
+       | He : He(cohSL=3.26548fm cohXS=1.34barn incXS=0barn absXS=0.00747barn mass=4.0026u Z=2) <<STANDARD-ELEM-DATA>>
+       | Ar : Ar(cohSL=1.909fm cohXS=0.457954barn incXS=0.225barn absXS=0.675barn mass=39.9477u Z=18) <<STANDARD-ELEM-DATA>>
+Testing: >>>0.4xHe+0.5xAr+0.1xHe<<<
+  \-> reencoded: >>>0.4xHe+0.5xAr+0.1xHe<<<
+  \-> result: GasMixResult{T=293.15K, P=1atm, Rho=0.91353249574473439kgm3;0.5xHe+0.5xAr}
+  \-> flat composition: 0.5*He+0.5*Ar
+  \-> atomdb: 
+       | He : He(cohSL=3.26548fm cohXS=1.34barn incXS=0barn absXS=0.00747barn mass=4.0026u Z=2) <<STANDARD-ELEM-DATA>>
+       | Ar : Ar(cohSL=1.909fm cohXS=0.457954barn incXS=0.225barn absXS=0.675barn mass=39.9477u Z=18) <<STANDARD-ELEM-DATA>>
+Testing: >>>0.2xCO2+0.8xAr<<<
+  \-> reencoded: >>>0.2xCO2+0.8xAr<<<
+  \-> result: GasMixResult{T=293.15K, P=1atm, Rho=1.694444363585951kgm3;0.2xCO2+0.8xAr}
+  \-> flat composition: 0.14285714285714285*C+0.2857142857142857*O+0.5714285714285714*Ar
+  \-> atomdb: 
+       | C : C(cohSL=6.646fm cohXS=5.55048barn incXS=0.001barn absXS=0.0035barn mass=12.011u Z=6) <<STANDARD-ELEM-DATA>>
+       | O : O(cohSL=5.803fm cohXS=4.2317barn incXS=0.0008barn absXS=0.00019barn mass=15.9993u Z=8) <<STANDARD-ELEM-DATA>>
+       | Ar : Ar(cohSL=1.909fm cohXS=0.457954barn incXS=0.225barn absXS=0.675barn mass=39.9477u Z=18) <<STANDARD-ELEM-DATA>>
+Testing: >>>0.2xCO2+0.8xAr/0.5relhumidity<<<
+  \-> reencoded: >>>0.2xCO2+0.8xAr/0.5relhumidity<<<
+  \-> result: GasMixResult{T=293.15K, P=1atm, Rho=1.6835295120738019kgm3;0.011543650380746482xH2O+0.19769126992385072xCO2+0.79076507969540288xAr}
+  \-> flat composition: 0.01627620136891849*H+0.13936938542094604*C+0.28687687152635133*O+0.55747754168378416*Ar
+  \-> atomdb: 
+       | H : H(cohSL=-3.739fm cohXS=1.75679barn incXS=80.26barn absXS=0.3326barn mass=1.00798u Z=1) <<STANDARD-ELEM-DATA>>
+       | C : C(cohSL=6.646fm cohXS=5.55048barn incXS=0.001barn absXS=0.0035barn mass=12.011u Z=6) <<STANDARD-ELEM-DATA>>
+       | O : O(cohSL=5.803fm cohXS=4.2317barn incXS=0.0008barn absXS=0.00019barn mass=15.9993u Z=8) <<STANDARD-ELEM-DATA>>
+       | Ar : Ar(cohSL=1.909fm cohXS=0.457954barn incXS=0.225barn absXS=0.675barn mass=39.9477u Z=18) <<STANDARD-ELEM-DATA>>

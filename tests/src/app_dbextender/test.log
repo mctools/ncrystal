@@ -1,0 +1,52 @@
+Looking up "Al" gives: Al(cohSL=3.449fm cohXS=1.49485barn incXS=0.0082barn absXS=0.231barn mass=26.9815u Z=13) [uid=1]
+Adding data: "Al 20u -2fm 5b 1b"
+Looking up "Al" gives: Al(cohSL=-2fm cohXS=0.502655barn incXS=5barn absXS=1barn mass=20u Z=13) [uid=2]
+Looking up "H2" gives: H2(cohSL=6.671fm cohXS=5.59232barn incXS=2.05barn absXS=0.000519barn mass=2.0141u Z=1 A=2) [uid=3]
+Looking up "D" gives: H2(cohSL=6.671fm cohXS=5.59232barn incXS=2.05barn absXS=0.000519barn mass=2.0141u Z=1 A=2) [uid=3]
+Adding data: "Og 20u -2fm 5b 1b"
+Looking up "Og" gives: Og(cohSL=-2fm cohXS=0.502655barn incXS=5barn absXS=1barn mass=20u Z=118) [uid=4]
+Trying to add invalid data: "Xb 20u -2fm 5b 1b"
+    -> Exception caught: NC::BadInput: Invalid specification. The label "Xb" is neither a standard element name (e.g. Al, H), an isotope (e.g. Li6), or a custom marker (X, X1, X2, ..., X99).
+Looking up "Og" gives: Og(cohSL=-2fm cohXS=0.502655barn incXS=5barn absXS=1barn mass=20u Z=118) [uid=4]
+Trying to lookup invalid label: "Xb"
+    -> Exception caught: NC::BadInput: Atom with label "Xb" is unknown.
+Looking up "H2" gives: H2(cohSL=6.671fm cohXS=5.59232barn incXS=2.05barn absXS=0.000519barn mass=2.0141u Z=1 A=2) [uid=3]
+Trying to lookup invalid label: "C14"
+    -> Exception caught: NC::BadInput: Atom with label "C14" is unknown. If it is a valid isotope which is simply missing in NCrystal's internal database you must define it yourself.
+Adding data: "C14 30u 15.0e-3fm 5b 1b"
+Looking up "C14" gives: C14(cohSL=0.015fm cohXS=2.82743e-05barn incXS=5barn absXS=1barn mass=30u Z=6 A=14) [uid=5]
+------------------ Trying another DB instance (while original still in scope):
+Looking up "Al" gives: Al(cohSL=3.449fm cohXS=1.49485barn incXS=0.0082barn absXS=0.231barn mass=26.9815u Z=13) [uid=1]
+Looking up "H2" gives: H2(cohSL=6.671fm cohXS=5.59232barn incXS=2.05barn absXS=0.000519barn mass=2.0141u Z=1 A=2) [uid=3]
+Trying to lookup invalid label: "C14"
+    -> Exception caught: NC::BadInput: Atom with label "C14" is unknown. If it is a valid isotope which is simply missing in NCrystal's internal database you must define it yourself.
+Adding data: "C14 30u 15.0e-3fm 5b 1b"
+Looking up "C14" gives: C14(cohSL=0.015fm cohXS=2.82743e-05barn incXS=5barn absXS=1barn mass=30u Z=6 A=14) [uid=5]
+Adding data: "C14 30u 15.0e-3fm 5000b 1b"
+Looking up "C14" gives: C14(cohSL=0.015fm cohXS=2.82743e-05barn incXS=5000barn absXS=1barn mass=30u Z=6 A=14) [uid=7]
+------------------ Trying another DB instance (original has gone out of scope):
+Trying to lookup invalid label: "C14"
+    -> Exception caught: NC::BadInput: Atom with label "C14" is unknown. If it is a valid isotope which is simply missing in NCrystal's internal database you must define it yourself.
+Adding data: "C14 30u 15.0e-3fm 5b 1b"
+Looking up "C14" gives: C14(cohSL=0.015fm cohXS=2.82743e-05barn incXS=5barn absXS=1barn mass=30u Z=6 A=14) [uid=5]
+------------------ Clear global cache (but keep local):
+Looking up "C14" gives: C14(cohSL=0.015fm cohXS=2.82743e-05barn incXS=5barn absXS=1barn mass=30u Z=6 A=14) [uid=5]
+------------------ Clear local cache as well:
+Trying to lookup invalid label: "C14"
+    -> Exception caught: NC::BadInput: Atom with label "C14" is unknown (note that access to the inbuilt database was disabled).
+Adding data: "C14 30u 15.0e-3fm 5b 1b"
+Looking up "C14" gives: C14(cohSL=0.015fm cohXS=2.82743e-05barn incXS=5barn absXS=1barn mass=30u Z=6 A=14) [uid=9]
+------------------ Test mixtures:
+Looking up "Al" gives: Al(cohSL=3.449fm cohXS=1.49485barn incXS=0.0082barn absXS=0.231barn mass=26.9815u Z=13) [uid=1]
+Looking up "Cr" gives: Cr(cohSL=3.635fm cohXS=1.66042barn incXS=1.83barn absXS=3.05barn mass=51.9959u Z=24) [uid=10]
+Adding data: "Al is 0.99 Al 0.01 Cr"
+Looking up "Al" gives: Mix{99%Al+1%Cr}(cohSL=3.45086fm cohXS=1.49646barn incXS=0.026461barn absXS=0.25919barn mass=27.2317u) [uid=11]
+Adding data: "Al is 0.5 Al 0.5 Cr"
+Looking up "Al" gives: Mix{50%Cr+50%Mix{99%Al+1%Cr}}(cohSL=3.54293fm cohXS=1.57738barn incXS=0.929296barn absXS=1.6546barn mass=39.6138u) [uid=12]
+Adding data: "B11 1u 2fm 3b 4b"
+Trying to add invalid data: "B10 is 0.5 B 0.5 B11"
+    -> Exception caught: NC::BadInput: Invalid AtomDB specification (isotope labels like "B10" are not allowed as alias or name of mixtures)
+Adding data: "B10 1u 2fm 3b 400b"
+Trying to add invalid data: "B is 0.95 B10 0.06 B11"
+    -> Exception caught: NC::BadInput: Invalid specification (fractions do not add up to 1: "B is 0.95 B10 0.06 B11" )
+Adding data: "B is 0.95 B10 0.05 B11"

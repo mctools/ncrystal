@@ -1,0 +1,46 @@
+---- Testing integration over [1,5.4] with acc=1
+res: -0.0194346
+ref: -0.0192637
+err: -0.000170912
+relerr: 0.00887222
+nevals: 17
+---- Testing integration over [1,5.4] with acc=0.001
+res: -0.0192624
+ref: -0.0192637
+err: 1.30416e-06
+relerr: -6.77002e-05
+nevals: 33
+---- Testing integration over [1,2] with acc=0.0001
+res: 0.0138076
+ref: 0.0138076
+err: 6.40513e-10
+relerr: 4.63884e-08
+nevals: 17
+---- Testing integration over [0,3.14159] with acc=0.0001
+res: <almost zero>
+ref: <almost zero>
+err: <almost zero>
+relerr: 0
+nevals: 17
+---- Testing integration over [0,3] with acc=0.0001
+res: 0.00985815
+ref: 0.00985828
+err: -1.28152e-07
+relerr: -1.29994e-05
+nevals: 33
+---- Testing integration over [0,1.5] with acc=0.0001
+res: 0.249994
+ref: 0.249994
+err: -2.41695e-08
+relerr: -9.66805e-08
+nevals: 17
+---- Testing integration over [0,1.5] with acc=1e-12
+res: 0.249994
+ref: 0.249994
+err: 1.11022e-16
+relerr: 4.441e-16
+nevals: 129
+---- Testing integration over [0,1.5] with acc=-1
+NCrystal ERROR: Romberg integration did not converge. Will attempt to write function curve to ncrystal_romberg.txt for potential debugging purposes.
+NCrystal: Wrote ncrystal_romberg.txt
+NCrystal::CalcError: Romberg integration did not converge. Wrote function curve to ncrystal_romberg.txt for potential debugging purposes.

@@ -1,0 +1,45 @@
+default init a
+a has MyPt: 0
+a has double: 0
+a assigned 17.123
+a has MyPt: 0
+a has double: 1
+a get double: 17.123
+a emplace MyPt{1.0,5.5}
+a has MyPt: 1
+a has double: 0
+a.get<MyPt>() = (1, 5.5)
+b = move from a
+a has MyPt: 0
+a has double: 0
+b has MyPt: 1
+b has double: 0
+b.get<MyPt>() = (1, 5.5)
+c = copy of b
+a has MyPt: 0
+a has double: 0
+b has MyPt: 1
+b has double: 0
+c has MyPt: 1
+c has double: 0
+b.get<MyPt>() = (1, 5.5)
+c.get<MyPt>() = (1, 5.5)
+d = move from c.get<MyPt>()
+c has MyPt: 1
+c has double: 0
+c.get<MyPt>() =  (moved-from)
+d: (1, 5.5)
+c emplace double 12.34
+c has MyPt: 0
+c has double: 1
+c.get<double>() = 12.34
+c = double 5.7
+c has MyPt: 0
+c has double: 1
+c.get<double>() = 5.7
+c = move-from-(aa=MyPt(1.1,2.2))
+c has MyPt: 1
+c has double: 0
+c.get<MyPy>() = (1.1, 2.2)
+aa =  (moved-from)
+MyObjects #constructors - #destructors: 0

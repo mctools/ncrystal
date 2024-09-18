@@ -1,0 +1,41 @@
+"" splits to 0 parts (settings: no options):
+"" splits to 1 parts (settings: sep=;):
+       -->  ""
+"   " splits to 1 parts (settings: sep=;):
+       -->  "   "
+"   " splits to 0 parts (settings: no options):
+"  hej med dig 	 lala	" splits to 4 parts (settings: no options):
+       -->  "hej"
+       -->  "med"
+       -->  "dig"
+       -->  "lala"
+";hej;med;;dig;" splits to 6 parts (settings: sep=;):
+       -->  ""
+       -->  "hej"
+       -->  "med"
+       -->  ""
+       -->  "dig"
+       -->  ""
+";hej;med; dig;;;hejsa" splits to 7 parts (settings: sep=;):
+       -->  ""
+       -->  "hej"
+       -->  "med"
+       -->  " dig"
+       -->  ""
+       -->  ""
+       -->  "hejsa"
+"hej;med;dig;" splits to 2 parts (settings: maxsplit 1;sep=;):
+       -->  "hej"
+       -->  "med;dig;"
+"hej med dig" splits to 2 parts (settings: maxsplit 1):
+       -->  "hej"
+       -->  "med dig"
+" hej med dig" splits to 2 parts (settings: maxsplit 1):
+       -->  "hej"
+       -->  "med dig"
+" hej med dig " splits to 2 parts (settings: maxsplit 1):
+       -->  "hej"
+       -->  "med dig "
+"temp=77.0" splits to 2 parts (settings: sep='='):
+       -->  "temp"
+       -->  "77.0"

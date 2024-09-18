@@ -1,0 +1,64 @@
+>>>:
+    >>>>>data with no descr<<<<<
+>>> (both unix and dos line endings):
+    >>>>>bla bla bla<<<<<
+    >>>>>blabla<<<<<
+    >>>>>hello you<<<<<
+    >>>>>blabla<<<<<
+>>> (single line with single word (dos)):
+    >>>>>bla<<<<<
+>>> BadInput as expected: single line with single word (mac)
+>>> (single line with single word (win)):
+    >>>>>bla<<<<<
+>>> (single line with single word (no line ending)):
+    >>>>>bla<<<<<
+>>> (empty file):
+>>> (empty file with extra null char):
+>>> (single empty line (unix)):
+    >>>>><<<<<
+>>> (single empty line (dos)):
+    >>>>><<<<<
+>>> BadInput as expected: single empty line (mac)
+>>> (empty line and line with 1 space (dos)):
+    >>>>><<<<<
+    >>>>> <<<<<
+>>> (empty line and line with 1 space (win)):
+    >>>>><<<<<
+    >>>>> <<<<<
+>>> BadInput as expected: empty line and line with 1 space (mac)
+>>> (empty line and line with 1 space (dos + no final line ending):
+    >>>>><<<<<
+    >>>>> <<<<<
+>>> (char with high bit set (UTF8 multi-byte)):
+    >>>>>high bit set: ☠<<<<<
+>>> (string with TAB character (a valid non-newline non-null char without 4 high bits set)):
+    >>>>>a tab	<<<<<
+    >>>>>two tabs		tada.<<<<<
+>>> (three lines, mixed endings (dos+win+null)):
+    >>>>><<<<<
+    >>>>><<<<<
+    >>>>> <<<<<
+>>> BadInput as expected: four lines, mixed endings (dos+mac+dos+null)
+Got line >>>123<<< [length=3, buf capacity <not shown>]
+Got line >>>1234567<<< [length=7, buf capacity <not shown>]
+Got line >>>1234567890123456789012345678901234567890<<< [length=40, buf capacity <not shown>]
+Got line >>>123<<< [length=3, buf capacity <not shown>]
+Got line >>>444<<< [length=3, buf capacity <not shown>]
+Got line >>>aaaaa...aaaaaa<<< [length=100, buf capacity >=50]
+Got line >>>aaaaa...aaaaaa<<< [length=200, buf capacity >=50]
+Got line >>>aaaaa...aaaaaa<<< [length=300, buf capacity >=50]
+Got line >>>aaaaa...aaaaaa<<< [length=200, buf capacity >=50]
+Got line >>>aaaaa...aaaaaa<<< [length=100, buf capacity >=50]
+Got line >>><<< [length=0, buf capacity >=50]
+Got line >>>aaaaa...aaaaaa<<< [length=300, buf capacity >=50]
+Got line >>>aaaaa...aaaaaa<<< [length=900, buf capacity >=50]
+
+Line 0: 123
+Line 0 copy: 123
+Line 0 copy: 123
+Line 0 copy: 123
+All lines: 123
+All lines: 1234567
+All lines: 1234567890123456789012345678901234567890
+All lines: 123
+All lines: 444

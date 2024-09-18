@@ -1,0 +1,34 @@
+Test object: >>>Hello world<<<
+As JSON: >>>"Hello world"<<<
+Test object: >>>Hello world\n<<<
+As JSON: >>>"Hello world\\n"<<<
+Test object: >>>Hello world\n<<<
+As JSON: >>>"Hello world\\n"<<<
+Test object: >>>Hello '"{}\world
+	yoÅæø<<<
+As JSON: >>>"Hello '\"{}\\world\n\tyoÅæø"<<<
+Test object: >>>17.5<<<
+As JSON: >>>17.5<<<
+Test object: >>>3.14159<<<
+As JSON: >>>3.1415926535897931<<<
+Test object: >>>-17<<<
+As JSON: >>>-17<<<
+Test object: >>>1234567891234567<<<
+As JSON: >>>1234567891234567<<<
+Test object: >>>17<<<
+As JSON: >>>17<<<
+Test object: >>>-17<<<
+As JSON: >>>-17<<<
+Test object: >>>-17500<<<
+As JSON: >>>-17500.0<<<
+Test object: >>>{hello,world
+	yoÅæø,bla,}<<<
+As JSON: >>>["hello","world\n\tyoÅæø","bla"]<<<
+Test object: >>>{}<<<
+As JSON: >>>[]<<<
+Test object: >>>{1e-100,inf,}<<<
+As JSON: >>>[1e-100,1.0e99999]<<<
+Test object: >>>{}<<<
+As JSON: >>>[]<<<
+Test object: >>>{{hello,},{a,b,c,},{},}<<<
+As JSON: >>>[["hello"],["a","b","c"],[]]<<<
