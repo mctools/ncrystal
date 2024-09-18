@@ -101,10 +101,16 @@ namespace NCRYSTAL_NAMESPACE {
         //directly and recursively, using f(x,n)=f(x,n-1)*(x/n). For higher n,
         //this becomes numerically unstable and we instead use Stirling's series
         //to rewrite the factor of "n!" and evaluate f(x,n) directly. NB,
-        //stirling_threshold should be left at 250: it can't be raised much higher
-        //since the direct method is not valid much beyond n=250, and if it is
-        //decreased too far there will be precision (and speed) issues.
-        constexpr unsigned stirling_threshold = 250;
+        //stirling_threshold should not be changed without validation: raise it
+        //too much, and the direct method runs into issues at high n, decrease
+        //it too much there will be precision (and speed) issues.
+        //
+        //The reason for picking 16 is it seems the stirling formula as
+        //implemented here reaches "a few ulps" precision at n=16, and
+        //presumably it is better to switch to it as early as possible for
+        //numerical stability (although pure computation speed considerations
+        //would imply switching as late as possible).
+        constexpr unsigned stirling_threshold = 16;//See comment ^^^
         const double alpha2x = V2SKDetail::kTmsd_to_alpha2x(kT,msd);
         auto x_vals = vectorTrf(alphaGrid,[alpha2x](double alpha){ return alpha*alpha2x; } );
         auto expmhalfx_vals = vectorTrf(x_vals,[](double x){ return std::exp(-0.5*x); } );
