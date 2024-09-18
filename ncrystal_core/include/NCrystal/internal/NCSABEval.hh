@@ -413,18 +413,6 @@ namespace NCRYSTAL_NAMESPACE {
       return getCell( idx.unpack( m_nalphacells ) );
     }
 
-    // template< InterpolationScheme AIT, SABInterpolationOrder IO>
-    // inline Optional<typename SABEval<AIT,IO>::celleval_t> SABEval<AIT,IO>::getCellEval(double alpha, double beta) const
-    // {
-    //   Optional<celleval_t> cell;
-    //   auto idx = getCellIndex(*m_sab,alpha,beta);
-    //   if ( idx.isValid() ) {
-    //     //inside grid
-    //     nclikely cell.emplace( getCell( idx ) );
-    //   }
-    //   return cell;
-    // }
-
     template< InterpolationScheme AIT, SABInterpolationOrder IO>
     inline double SABEval<AIT,IO>::eval( PairDD alpha_beta ) const { return eval(alpha_beta.first,alpha_beta.second); }
 

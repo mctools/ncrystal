@@ -103,4 +103,68 @@ namespace NCRYSTAL_NAMESPACE {
   }
 }
 
+
+////////////////////////////
+// Inline implementations //
+////////////////////////////
+
+namespace NCRYSTAL_NAMESPACE {
+  namespace FactImpl {
+    namespace detail {
+      inline bool ProcessRequestData::isThinned() const
+      {
+        return m_infoPtr == nullptr;
+      }
+
+      inline const DataSourceName& ProcessRequestData::dataSourceName() const
+      {
+        return m_dataSourceName;
+      }
+
+      inline const Cfg::CfgData& ProcessRequestData::rawCfgData() const
+      {
+        return m_data;
+      }
+
+      inline bool ProcessRequestData::operator<( const ProcessRequestData& o ) const
+      {
+        if ( m_infoUID != o.m_infoUID )
+          return m_infoUID < o.m_infoUID;
+        return cmpDataLT( o );
+      }
+
+      inline bool ProcessRequestData::operator==( const ProcessRequestData& o ) const
+      {
+        if ( m_infoUID != o.m_infoUID )
+          return false;
+        return cmpDataEQ( o );
+      }
+
+      inline ProcessRequestData::ProcessRequestData( InfoPtr infoptr,
+                                              ParamDefs pd )
+        : ProcessRequestData(internal_t(), std::move(infoptr), nullptr, pd )
+      {
+      }
+
+      inline ProcessRequestData::ProcessRequestData( InfoPtr infoptr,
+                                              const Cfg::CfgData& data,
+                                              ParamDefs pd )
+        : ProcessRequestData(internal_t(), std::move(infoptr), &data, pd )
+      {
+      }
+
+      inline std::size_t ProcessRequestData::nPhases() const
+      {
+        return info().isMultiPhase() ? info().getPhases().size() : 0;
+      }
+
+      inline UniqueIDValue ProcessRequestData::infoUID() const
+      {
+        return m_infoUID;
+      }
+
+    }
+  }
+}
+
 #endif

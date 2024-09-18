@@ -53,11 +53,6 @@ NCFD::ProcessRequestData NCFD::ProcessRequestData::cloneThinned() const
   return res;
 }
 
-NC::UniqueIDValue NCFD::ProcessRequestData::infoUID() const
-{
-  return m_infoUID;
-}
-
 const NC::Info& NCFD::ProcessRequestData::info() const
 {
   //Todo CalcError is not really a great type for this.
@@ -75,53 +70,6 @@ NC::InfoPtr NCFD::ProcessRequestData::infoPtr() const {
   return m_infoPtr;
 }
 
-//fixme: inline a few of the simplest?
-bool NCFD::ProcessRequestData::isThinned() const
-{
-  return m_infoPtr == nullptr;
-}
-
-const NC::DataSourceName& NCFD::ProcessRequestData::dataSourceName() const
-{
-  return m_dataSourceName;
-}
-
-const NC::Cfg::CfgData& NCFD::ProcessRequestData::rawCfgData() const
-{
-  return m_data;
-}
-
-bool NCFD::ProcessRequestData::operator<( const ProcessRequestData& o ) const
-{
-  if ( m_infoUID != o.m_infoUID )
-    return m_infoUID < o.m_infoUID;
-  return cmpDataLT( o );
-}
-
-bool NCFD::ProcessRequestData::operator==( const ProcessRequestData& o ) const
-{
-  if ( m_infoUID != o.m_infoUID )
-    return false;
-  return cmpDataEQ( o );
-}
-
-NCFD::ProcessRequestData::ProcessRequestData( InfoPtr infoptr,
-                                              ParamDefs pd )
-  : ProcessRequestData(internal_t(), std::move(infoptr), nullptr, pd )
-{
-}
-
-NCFD::ProcessRequestData::ProcessRequestData( InfoPtr infoptr,
-                                              const Cfg::CfgData& data,
-                                              ParamDefs pd )
-  : ProcessRequestData(internal_t(), std::move(infoptr), &data, pd )
-{
-}
-
-std::size_t NCFD::ProcessRequestData::nPhases() const
-{
-  return info().isMultiPhase() ? info().getPhases().size() : 0;
-}
 
 NCFD::ProcessRequestData::ProcessRequestData( internal_t,
                                               InfoPtr infoptr,
