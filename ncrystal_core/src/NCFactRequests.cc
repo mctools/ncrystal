@@ -63,12 +63,18 @@ namespace NCRYSTAL_NAMESPACE {
 
 NCF::detail::ProcessRequestData::ParamDefs NCF::ScatterRequest::paramDefs()
 {
-  return { sr_varFilter, sr_checkParamConsistency };
+  detail::ProcessRequestData::ParamDefs pd;
+  pd.varFilter = sr_varFilter;
+  pd.checkParamConsistency = sr_checkParamConsistency;
+  return pd;
 }
 
 NCF::detail::ProcessRequestData::ParamDefs NCF::AbsorptionRequest::paramDefs()
 {
-  return { ar_varFilter, ar_checkParamConsistency };
+  detail::ProcessRequestData::ParamDefs pd;
+  pd.varFilter = ar_varFilter;
+  pd.checkParamConsistency = ar_checkParamConsistency;
+  return pd;
 }
 
 void NCF::ScatterRequest::checkParamConsistency() const
