@@ -83,7 +83,7 @@ else()
   )
 endif()
 mctools_testutils_add_test_libs(
-  "${CMAKE_CURRENT_LIST_DIR}" "${nctests_ncrystallib_target}"
+  "${CMAKE_CURRENT_LIST_DIR}/libs" "${nctests_ncrystallib_target}"
 )
 
 
@@ -106,7 +106,7 @@ if ( WIN32 )
 endif()
 
 mctools_testutils_add_tests_apps(
-  "${CMAKE_CURRENT_LIST_DIR}"
+  "${CMAKE_CURRENT_LIST_DIR}/src"
   "${nctests_ncrystallib_target}"
   "${nctest_appenvmod}"
 )
