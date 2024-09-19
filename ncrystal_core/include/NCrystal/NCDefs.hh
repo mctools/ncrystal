@@ -254,12 +254,20 @@ namespace NCRYSTAL_NAMESPACE {
     void reset() noexcept;
 
     //Set value:
+    Optional& operator=( T&& o ) noexcept(std::is_nothrow_move_constructible<T>::value)
+    {
+      reset();
+      new(&m_value)T(std::move(o));
+      m_hasValue = true;
+      return *this;
+    }
+
     template<class TOther, class U = TOther,
              typename = typename std::enable_if<std::is_rvalue_reference<TOther>::value
                                                 && std::is_constructible<T,U>::value
                                                 && !std::is_base_of<Optional<T,false>,
                                 typename std::remove_cv<typename std::remove_reference<U>::type>::type>::value>::type>
-    Optional& operator=( TOther&& to ) noexcept(std::is_constructible<T,TOther>::value)
+    Optional& operator=( TOther&& to ) noexcept(std::is_nothrow_constructible<T,TOther>::value)
     {
       reset();
       new(&m_value)T(std::forward<TOther>(to));
@@ -1022,6 +1030,14 @@ namespace NCRYSTAL_NAMESPACE {
     ncconstexpr17 Optional& operator=( NullOptType ) noexcept
     {
       this->reset();
+      return *this;
+    }
+
+    Optional& operator=( const T& o ) noexcept(std::is_nothrow_copy_constructible<T>::value)
+    {
+      this->reset();
+      new(&asBase().m_value)T(o);
+      asBase().m_hasValue = true;
       return *this;
     }
 
