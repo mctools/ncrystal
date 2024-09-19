@@ -19,8 +19,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/NCSABUtils.hh"
+#include "NCrystal/NCFmt.hh"
 #include <iostream>
-#include <iomanip>
 namespace NC = NCrystal;
 namespace NS = NC::SABUtils;
 
@@ -30,7 +30,7 @@ void printrange(NC::Span<double> v,bool eol = true) {
   //std::cout << NC::stream_shortform(v) <<std::endl;
   std::cout<<"[";
   if (!v.empty()) {
-    for (auto e: NC::Span(v).first(v.size()-1))
+    for (auto e: NC::Span<const double>(v).first(v.size()-1))
       std::cout<<e<<", ";
     std::cout<<v.back();
   }
@@ -114,10 +114,10 @@ void test_alpha_integrals() {
     double resfast = NS::integrateAlphaInterval_fast(0.0, s1, 1.0, s2, std::log(s1), std::log(s2) );//claims precision better than 1e-14
     if (!NC::floateq(res,refval,1e-15,0.0))
       NCRYSTAL_THROW2(LogicError,"problem with integrateAlphaInterval for y="
-                      <<std::setprecision(20)<<y<<" : "<<res<<" differs too much from expected "<<refval);
+                      <<NC::fmt(y)<<" : "<<res<<" differs too much from expected "<<refval);
     if (!NC::floateq(resfast,refval,1e-14,0.0))
       NCRYSTAL_THROW2(LogicError,"problem with integrateAlphaInterval_fast for y="
-                      <<std::setprecision(20)<<y<<" : "<<resfast<<" differs too much from expected "<<refval);
+                      <<NC::fmt(y)<<" : "<<resfast<<" differs too much from expected "<<refval);
   }
 }
 
