@@ -107,11 +107,16 @@ void test_alpha_integrals() {
   ref.emplace_back( 0.99 , 0.18702871509983897278285159318 );
   ref.emplace_back( 0.99999999999999 , 0.0303673187635422435892942080719 );
 
-  for (auto& [ y, refval ] : ref ) {
-    double s1 = (1.0-y)/2.0;
-    double s2 = (1.0+y)/2.0;
-    double res = NS::integrateAlphaInterval(0.0, s1, 1.0, s2);//claims precision better than 1e-15
-    double resfast = NS::integrateAlphaInterval_fast(0.0, s1, 1.0, s2, std::log(s1), std::log(s2) );//claims precision better than 1e-14
+  //for (auto& [ y, refval ] : ref ) {
+  for (auto& e : ref ) {
+    // auto& y = e.first;
+    // auto& refval = e.second;
+    const double y = e.first;
+    const double refval = e.second;
+    const double s1 = (1.0-y)/2.0;
+    const double s2 = (1.0+y)/2.0;
+    const double res = NS::integrateAlphaInterval(0.0, s1, 1.0, s2);//claims precision better than 1e-15
+    const double resfast = NS::integrateAlphaInterval_fast(0.0, s1, 1.0, s2, std::log(s1), std::log(s2) );//claims precision better than 1e-14
     if (!NC::floateq(res,refval,1e-15,0.0))
       NCRYSTAL_THROW2(LogicError,"problem with integrateAlphaInterval for y="
                       <<NC::fmt(y)<<" : "<<res<<" differs too much from expected "<<refval);
