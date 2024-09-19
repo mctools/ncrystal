@@ -66,11 +66,11 @@ namespace {
 int main() {
 
   //The testing is really just compile-time at this point.
-  std::make_shared<MyIsoScat>();
-  std::make_shared<MyAnisoScat>();
-  std::make_shared<MyIsoAbs>();
-  std::make_shared<NC::ProcImpl::ProcComposition>();
-  std::make_shared<NC::ProcImpl::NullScatter>();
-  std::make_shared<NC::ProcImpl::NullAbsorption>();
+  (void)std::make_shared<MyIsoScat>();
+  (void)std::make_shared<MyAnisoScat>();
+  (void)std::make_shared<MyIsoAbs>();
+  (void)std::make_shared<NC::ProcImpl::ProcComposition>();
+  (void)std::make_shared<NC::ProcImpl::NullScatter>();
+  (void)std::make_shared<NC::ProcImpl::NullAbsorption>();
 
 }
