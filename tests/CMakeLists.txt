@@ -76,7 +76,13 @@ else()
       APPEND nctest_pyenvmod
       "NCRYSTAL_LIB=set:$<TARGET_FILE:NCrystal>"
     )
-    #FIXME: also NCRYSTAL_DATA_PATH (or whatever) to point to the stdlib?
+    #FIXME: Only if not embedding!:
+    if ( NOT NCRYSTAL_ENABLE_DATA STREQUAL "EMBED" )
+      list(
+        APPEND nctest_pyenvmod
+        "NCRYSTAL_DATADIR=set:${NCrystal_SOURCE_DIR}/data"
+      )
+    endif()
   endif()
   mctools_testutils_add_tests_pyscripts(
     "${CMAKE_CURRENT_LIST_DIR}/scripts" "${nctest_pyenvmod}"
@@ -103,6 +109,16 @@ if ( WIN32 )
       "PATH=path_list_prepend:$<TARGET_FILE_DIR:NCrystal>"
     )
   endif()
+endif()
+
+if (
+    NOT NCTESTS_STANDALONE
+    AND NOT NCRYSTAL_ENABLE_DATA STREQUAL "EMBED"
+  )
+  list(
+    APPEND nctest_appenvmod
+    "NCRYSTAL_DATADIR=set:${NCrystal_SOURCE_DIR}/data"
+  )
 endif()
 
 mctools_testutils_add_tests_apps(
