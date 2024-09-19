@@ -239,6 +239,7 @@ namespace NCRYSTAL_NAMESPACE {
     static_assert(std::is_nothrow_destructible<T>::value,
                   "Optional can only keep objects with noexcept destructors");
   public:
+    constexpr bool has_copy_semantics = false;
 
     using value_type = T;
 
@@ -1016,6 +1017,8 @@ namespace NCRYSTAL_NAMESPACE {
     base_t& asBase() noexcept { return *static_cast<Optional<T,false>*>(this); }
     const base_t& asBase() const noexcept { return *static_cast<const Optional<T,false>*>(this); }
   public:
+    constexpr bool has_copy_semantics = true;
+
     static_assert(std::is_copy_constructible<T>::value,"");
     static_assert(std::is_copy_assignable<T>::value,"");
 

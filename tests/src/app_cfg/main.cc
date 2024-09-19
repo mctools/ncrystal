@@ -425,6 +425,7 @@ void test_density () {
     for ( auto& l : *textData )
       std::cout<<"   -> "<<l<<std::endl;
     NC::Optional<NC::MatCfg> opt_cfg, opt_cfg2;
+    static_assert(NC::Optional<NC::MatCfg>::has_copy_semantics,"");
     try {
       opt_cfg.emplace( textData, (params&&!applyParamsAfter) ? params : "" );
       static int i = 0;
