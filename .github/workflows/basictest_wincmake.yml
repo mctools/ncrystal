@@ -21,7 +21,7 @@ jobs:
 
     - name: CMake cfg NCrystal
       shell: cmd
-      run: cmake -B build src -DNCRYSTAL_ENABLE_TESTING=ON -DNCRYSTAL_ENABLE_EXAMPLES=ON -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+      run: cmake -B build src -DNCRYSTAL_ENABLE_TESTING=ON -DNCRYSTAL_ENABLE_EXAMPLES=ON -DCMAKE_COMPILE_WARNING_AS_ERROR=ON  -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=ON
 
 #    - name: Look around
 #      shell: cmd
