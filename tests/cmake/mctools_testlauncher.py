@@ -3,14 +3,19 @@
 # Utility script needed by mctools_testutils.cmake for launching tests and
 # comparing with reference output.
 
+import sys
+ENCODING = sys.stdout.encoding
+
 import os
 #Might be too late here?:
-os.environ['PYTHONIOENCODING'] = 'UTF-8'
-os.environ['PYTHONLEGACYWINDOWSSTDIO'] = 'UTF-8'
+os.environ['PYTHONIOENCODING'] = ENCODING#'UTF-8'
+os.environ['PYTHONLEGACYWINDOWSSTDIO'] = ENCODING#'UTF-8'
 
 import pathlib
 import shutil
 import shlex
+
+
 
 def run( app_file, reflogfile = None ):
     wd=pathlib.Path('./wd')
@@ -28,14 +33,14 @@ def run( app_file, reflogfile = None ):
     sys.stdout.flush()
 
     r = subprocess.run( cmd,
-                        encoding='utf-8',
+                        encoding=ENCODING,
                         capture_output = True,
                         cwd = wd )
     print("MCTools TestLauncher done running command.")
-    r_stdout = ( r.stdout.decode('utf-8',errors='backslashreplace')
+    r_stdout = ( r.stdout.decode(ENCODING,errors='backslashreplace')
                  if isinstance(r.stdout,bytes)
                  else ( r.stdout or '' ) )
-    r_stderr = ( r.stderr.decode('utf-8',errors='backslashreplace')
+    r_stderr = ( r.stderr.decode(ENCODING,errors='backslashreplace')
                  if isinstance(r.stderr,bytes)
                  else ( r.stderr or '' ) )
     assert isinstance(r_stdout,str)
@@ -53,7 +58,7 @@ def run( app_file, reflogfile = None ):
     newout = pathlib.Path('./output.log').absolute()
     newout.unlink(missing_ok=True)
     assert not newout.exists()
-    newout.write_bytes(output_raw.encode('utf-8',errors='backslashreplace'))
+    newout.write_bytes(output_raw.encode(ENCODING,errors='backslashreplace'))
 
     if r.returncode == 3221225781:
         import platform
@@ -65,10 +70,10 @@ def run( app_file, reflogfile = None ):
         raise SystemExit(f'Error: Command ended with exit code {r.returncode}')
     if reflogfile is None:
         return #Done!
-    refoutput = reflogfile.read_text()
+    refoutput = reflogfile.read_text(encoding='utf-8')
     if output_raw == refoutput:
         sys.stdout.flush()
-        print("Reference log-files are exact byte-for-byte match!")
+        print("Reference log-files are exact match!")
         sys.stdout.flush()
         return
     #output = output_raw.decode('utf-8').splitlines()
