@@ -442,6 +442,10 @@ namespace NCRYSTAL_NAMESPACE {
   }
   inline std::ostream& operator<< (std::ostream& os, const MatCfg& cfg) { cfg.dump(os,false); return os; }
 
+  static_assert(std::is_move_constructible<MatCfg>::value, "");
+  static_assert(std::is_move_assignable<MatCfg>::value, "");
+  static_assert(std::is_copy_constructible<MatCfg>::value, "");
+  static_assert(std::is_copy_assignable<MatCfg>::value, "");
 }
 
 #endif
