@@ -3,6 +3,11 @@
 # Utility script needed by mctools_testutils.cmake for launching tests and
 # comparing with reference output.
 
+import os
+#Might be too late here?:
+os.environ['PYTHONIOENCODING'] = 'UTF-8'
+os.environ['PYTHONLEGACYWINDOWSSTDIO'] = 'UTF-8'
+
 import pathlib
 import shutil
 import shlex
@@ -61,6 +66,11 @@ def run( app_file, reflogfile = None ):
         sys.stdout.flush()
         print("Reference log-files match!")
         return
+    if len(output)==len(refoutput):
+        for o,r in zip(output,refoutput):
+            if o!=r:
+                print(f"line with difference: - {o}")
+                print(f"line with difference: - {r}")
     def qp( p ):
         return shlex.quote(str(p.absolute()))
     raise SystemExit(f"""
