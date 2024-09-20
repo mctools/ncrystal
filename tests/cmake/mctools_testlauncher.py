@@ -32,18 +32,22 @@ def run( app_file, reflogfile = None ):
                         capture_output = True,
                         cwd = wd )
     print("MCTools TestLauncher done running command.")
-    assert isinstance(r.stdout,str)
-    assert isinstance(r.stderr,str)
-    if r.stderr:
+    r_stdout = ( r.stdout if isinstance(r.stdout,str)
+                 else r.stdout.decode('utf-8') )
+    r_stderr = ( r.stderr if isinstance(r.stderr,str)
+                 else r.stderr.decode('utf-8') )
+    assert isinstance(r_stdout,str)
+    assert isinstance(r_stderr,str)
+    if r_stderr:
         #Todo support this, by merging them (probably needs subprocess.Popen not
         #subprocess.run):
-        for line in r.stderr.splitlines():
+        for line in r_stderr.splitlines():
             #sys.stderr.buffer.write(b'stderr> '+line+'\n'.encode())
             sys.stderr.write('stderr> '+line+'\n')
         sys.stderr.flush()
         raise SystemExit('Error: Process emitted output on'
                          ' stderr (not supported yet with ref logs)')
-    output_raw = r.stdout
+    output_raw = r_stdout
     newout = pathlib.Path('./output.log').absolute()
     newout.unlink(missing_ok=True)
     assert not newout.exists()
