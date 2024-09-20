@@ -26,15 +26,20 @@ def run( app_file, reflogfile = None ):
         print(f"  {shlex.quote(e)}")
     print()
     sys.stdout.flush()
+
     r = subprocess.run( cmd,
+                        encoding='utf-8',
                         capture_output = True,
                         cwd = wd )
     print("MCTools TestLauncher done running command.")
+    assert isinstance(r.stdout,str)
+    assert isinstance(r.stderr,str)
     if r.stderr:
         #Todo support this, by merging them (probably needs subprocess.Popen not
         #subprocess.run):
         for line in r.stderr.splitlines():
-            sys.stderr.buffer.write(b'stderr> '+line+'\n'.encode())
+            #sys.stderr.buffer.write(b'stderr> '+line+'\n'.encode())
+            sys.stderr.write('stderr> '+line+'\n')
         sys.stderr.flush()
         raise SystemExit('Error: Process emitted output on'
                          ' stderr (not supported yet with ref logs)')
@@ -60,8 +65,10 @@ def run( app_file, reflogfile = None ):
         print("Reference log-files are exact byte-for-byte match!")
         sys.stdout.flush()
         return
-    output = output_raw.decode().splitlines()
-    refoutput = refoutput.decode().splitlines()
+    #output = output_raw.decode('utf-8').splitlines()
+    #refoutput = refoutput.decode('utf-8').splitlines()
+    output = output_raw.splitlines()
+    refoutput = refoutput.splitlines()
     if output == reflogfile:
         sys.stdout.flush()
         print("Reference log-files match!")
