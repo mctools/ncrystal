@@ -32,10 +32,12 @@ def run( app_file, reflogfile = None ):
                         capture_output = True,
                         cwd = wd )
     print("MCTools TestLauncher done running command.")
-    r_stdout = ( r.stdout if isinstance(r.stdout,str)
-                 else r.stdout.decode('utf-8') )
-    r_stderr = ( r.stderr if isinstance(r.stderr,str)
-                 else r.stderr.decode('utf-8') )
+    r_stdout = ( r.stdout.decode('utf-8',errors='backslashreplace')
+                 if isinstance(r.stdout,bytes)
+                 else ( r.stdout or '' ) )
+    r_stderr = ( r.stderr.decode('utf-8',errors='backslashreplace')
+                 if isinstance(r.stderr,bytes)
+                 else ( r.stderr or '' ) )
     assert isinstance(r_stdout,str)
     assert isinstance(r_stderr,str)
     if r_stderr:
@@ -51,7 +53,7 @@ def run( app_file, reflogfile = None ):
     newout = pathlib.Path('./output.log').absolute()
     newout.unlink(missing_ok=True)
     assert not newout.exists()
-    newout.write_text(output_raw)
+    newout.write_bytes(output_raw.encode('utf-8',errors='backslashreplace'))
 
     if r.returncode == 3221225781:
         import platform
