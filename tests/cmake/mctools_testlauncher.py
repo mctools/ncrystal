@@ -47,7 +47,7 @@ def run( app_file, reflogfile = None ):
     newout = pathlib.Path('./output.log').absolute()
     newout.unlink(missing_ok=True)
     assert not newout.exists()
-    newout.write_bytes(output_raw)
+    newout.write_text(output_raw)
 
     if r.returncode == 3221225781:
         import platform
@@ -59,7 +59,7 @@ def run( app_file, reflogfile = None ):
         raise SystemExit(f'Error: Command ended with exit code {r.returncode}')
     if reflogfile is None:
         return #Done!
-    refoutput = reflogfile.read_bytes()
+    refoutput = reflogfile.read_text()
     if output_raw == refoutput:
         sys.stdout.flush()
         print("Reference log-files are exact byte-for-byte match!")
@@ -69,15 +69,15 @@ def run( app_file, reflogfile = None ):
     #refoutput = refoutput.decode('utf-8').splitlines()
     output = output_raw.splitlines()
     refoutput = refoutput.splitlines()
-    if output == reflogfile:
+    if output == refoutput:
         sys.stdout.flush()
         print("Reference log-files match!")
         return
     if len(output)==len(refoutput):
-        for o,r in zip(output,refoutput):
+        for i,(o,r) in enumerate(zip(output,refoutput)):
             if o!=r:
-                print(f"line with difference: - {o}")
-                print(f"line with difference: - {r}")
+                print(f"L{i+1} - {r}")
+                print(f"L{i+1} + {o}")
     def qp( p ):
         return shlex.quote(str(p.absolute()))
     raise SystemExit(f"""
