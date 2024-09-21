@@ -9,6 +9,9 @@ jobs:
     runs-on: windows-latest
 
     steps:
+    - name: Install Dumpbin
+      uses: lorenalexm/install-dumpbin-action@main
+
     - name: Checkout
       uses: actions/checkout@v4
       with:
