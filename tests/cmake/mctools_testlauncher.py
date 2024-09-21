@@ -23,8 +23,12 @@ is_osx  =  (platform.system() == 'Darwin')
 def inspectbin( afile, cwd ):
     if is_windows:
         db=shutil.which('dumpbin')
-        assert db is not None, "could not find dumpbin"
-        cmd=[str(db),'/dependents',str(afile)]
+        if db:
+            cmd=[str(db),'/dependents',str(afile)]
+        elif shutil.which('ldd'):
+            cmd=[str(shutil.which('ldd')),'-r',str(afile)]
+        else:
+            raise SystemExit("could not find either dumpbin or ldd")
     elif is_linux:
         cmd=['ldd','-r',str(afile)]
     elif is_osx:

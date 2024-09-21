@@ -6,11 +6,15 @@ on:
 
 jobs:
   build:
+    #C:\Program Files\Microsoft Visual Studio\2022\Enterprise
+
+    #TODO: Also windows-2019, windows-2022(==latest?). Also try to build with clang/gcc on
+    #windows?
+    #https://github.com/actions/runner-images/blob/main/images/windows/Windows2022-Readme.md
+    #Also add a conda-based test.
     runs-on: windows-latest
 
     steps:
-    - name: Install Dumpbin
-      uses: lorenalexm/install-dumpbin-action@main
 
     - name: Checkout
       uses: actions/checkout@v4
