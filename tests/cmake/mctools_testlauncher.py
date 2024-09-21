@@ -22,11 +22,13 @@ is_osx  =  (platform.system() == 'Darwin')
 
 def inspectbin( afile, cwd ):
     if is_windows:
+        subprocess.run( str(shutil.which('ldd')), '/h', check=True)
+
         db=shutil.which('dumpbin')
         if db:
             cmd=[str(db),'/dependents',str(afile)]
         elif shutil.which('ldd'):
-            cmd=[str(shutil.which('ldd')),'/r',str(afile)]
+            cmd=[str(shutil.which('ldd')),str(afile)]
         else:
             raise SystemExit("could not find either dumpbin or ldd")
     elif is_linux:
