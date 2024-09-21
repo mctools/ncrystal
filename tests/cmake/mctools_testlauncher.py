@@ -20,12 +20,55 @@ is_windows = (platform.system() == 'Windows')
 is_linux  =  (platform.system() == 'Linux')
 is_osx  =  (platform.system() == 'Darwin')
 
+def hack_ldd_libncrystal(cwd):
+    libncrystal = pathlib.Path('D:/a/ncrystal/ncrystal/build/Release/NCrystal.dll')
+    assert libncrystal.is_file()
+    cmd=[str(shutil.which('ldd')),str(libncrystal)]
+    print("Launching: %s"%shlex.join(cmd))
+    sys.stdout.flush()
+    sys.stderr.flush()
+    subprocess.run( cmd,
+                    check=True,
+                    cwd = cwd )
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+def hack_nm_libncrystal(cwd):
+    libncrystal = pathlib.Path('D:/a/ncrystal/ncrystal/build/Release/NCrystal.dll')
+    assert libncrystal.is_file()
+    cmd=[str(shutil.which('nm')),str(libncrystal)]
+    print("Launching: %s"%shlex.join(cmd))
+    sys.stdout.flush()
+    sys.stderr.flush()
+    subprocess.run( cmd,
+                    check=True,
+                    cwd = cwd )
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+def hack_nmu_libncrystal(cwd):
+    libncrystal = pathlib.Path('D:/a/ncrystal/ncrystal/build/Release/NCrystal.dll')
+    assert libncrystal.is_file()
+    cmd=[str(shutil.which('nm')),'/u',str(libncrystal)]
+    print("Launching: %s"%shlex.join(cmd))
+    sys.stdout.flush()
+    sys.stderr.flush()
+    subprocess.run( cmd,
+                    check=True,
+                    cwd = cwd )
+    sys.stdout.flush()
+    sys.stderr.flush()
+
 def inspectbin( afile, cwd ):
+
     if is_windows:
         db=shutil.which('dumpbin')
         if db:
             cmd=[str(db),'/dependents',str(afile)]
         elif shutil.which('ldd'):
+            hack_ldd_libncrystal(cwd=cwd)
+            hack_nm_libncrystal(cwd=cwd)
+            hack_nmu_libncrystal(cwd=cwd)
             #"ldd /r' does not seem to work
             cmd=[str(shutil.which('ldd')),str(afile)]
         else:
@@ -37,9 +80,13 @@ def inspectbin( afile, cwd ):
     else:
         raise SystemExit('System not recognised can not inspect binary')
     print("Launching: %s"%shlex.join(cmd))
+    sys.stdout.flush()
+    sys.stderr.flush()
     subprocess.run( cmd,
                     check=True,
                     cwd = cwd )
+    sys.stdout.flush()
+    sys.stderr.flush()
 
 def run( app_file, reflogfile = None ):
     wd=pathlib.Path('./wd')
@@ -56,10 +103,14 @@ def run( app_file, reflogfile = None ):
     print()
     sys.stdout.flush()
 
+    sys.stdout.flush()
+    sys.stderr.flush()
     r = subprocess.run( cmd,
                         encoding=ENCODING,
                         capture_output = True,
                         cwd = wd )
+    sys.stdout.flush()
+    sys.stderr.flush()
     print("MCTools TestLauncher done running command.")
     r_stdout = ( r.stdout.decode(ENCODING,errors='backslashreplace')
                  if isinstance(r.stdout,bytes)
