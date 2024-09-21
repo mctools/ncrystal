@@ -22,7 +22,7 @@ is_osx  =  (platform.system() == 'Darwin')
 
 def inspectbin( afile, cwd ):
     if is_windows:
-        subprocess.run( str(shutil.which('ldd')), '/h', check=True)
+        subprocess.run( [str(shutil.which('ldd')), '/h'], check=True)
 
         db=shutil.which('dumpbin')
         if db:
