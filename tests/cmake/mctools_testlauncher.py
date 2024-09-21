@@ -14,15 +14,32 @@ os.environ['PYTHONLEGACYWINDOWSSTDIO'] = ENCODING#'UTF-8'
 import pathlib
 import shutil
 import shlex
+import platform
+import subprocess
+is_windows = (platform.system() == 'Windows')
+is_linux  =  (platform.system() == 'Linux')
+is_osx  =  (platform.system() == 'Darwin')
 
-
+def inspectbin( afile, cwd ):
+    if is_windows:
+        cmd=['dumpbin','/dependents',str(afile)]
+    elif is_linux:
+        cmd=['ldd','-r',str(afile)]
+    elif is_osx:
+        cmd=['otool','-L',str(afile)]
+    else:
+        raise SystemExit('System not recognised can not inspect binary')
+    print("Launching %s"%shlex.join(cmd))
+    subprocess.run( cmd,
+                    check=True,
+                    cwd = cwd )
 
 def run( app_file, reflogfile = None ):
     wd=pathlib.Path('./wd')
     shutil.rmtree(wd,ignore_errors=True)
     wd.mkdir()
-    import subprocess
-    import sys
+    if not app_file.name.endswith('.py') and True:#FIXME not always!
+        inspectbin(app_file,cwd=wd)
     cmd = [str(app_file)]
     if app_file.name.endswith('.py'):
         cmd = [sys.executable] + cmd
@@ -61,8 +78,7 @@ def run( app_file, reflogfile = None ):
     newout.write_bytes(output_raw.encode(ENCODING,errors='backslashreplace'))
 
     if r.returncode == 3221225781:
-        import platform
-        if platform.system() == 'Windows':
+        if is_windows:
             raise SystemExit('Error: Command ended with exit'
                              f' code {r.returncode} (usually'
                              ' indicates "DLL not found")')
@@ -104,7 +120,6 @@ Unix commands to diff and update:
 """)
 
 def main( ):
-    import sys
     assert len(sys.argv) in (2,3)
     app_file = pathlib.Path(sys.argv[1])
     if not app_file.is_file():
