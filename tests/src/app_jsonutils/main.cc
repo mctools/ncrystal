@@ -58,10 +58,10 @@ int main()
   test("Hello world");
   test("Hello world\\n");
   test(std::string("Hello world\\n"));
-  test("Hello '\"{}\\world\n\tyo\u00c5\u00e6\u00f8");//The last three unicode chars are
-                                                     // uppercase danish A with ring
-                                                     // lowercase danish ae
-                                                     // lowercase danish o-slash
+  test("Hello '\"{}\\world\n\tyo\xc3\x85\xc3\xa6\xc3\xb8");
+  //                            ^^^^^^^^^^^^^^^^^^^^^^^^
+  // The last three unicode chars above (two bytes each) are uppercase danish A
+  // with ring lowercase danish ae lowercase danish o-slash
 
   test(17.5);
   test(NC::kPi);
@@ -70,7 +70,7 @@ int main()
   test((uint16_t)17);
   test((int16_t)-17);
   test(-17.5e3f);
-  test(NC::VectS{"hello","world\n\tyo\u00c5\u00e6\u00f8","bla"});
+  test(NC::VectS{"hello","world\n\tyo\xc3\x85\xc3\xa6\xc3\xb8","bla"});
   test(NC::VectS{});
   test(NC::VectD{1e-100,std::numeric_limits<double>::infinity()});
   test(NC::VectD{});
