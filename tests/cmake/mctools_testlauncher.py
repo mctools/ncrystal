@@ -22,14 +22,16 @@ is_osx  =  (platform.system() == 'Darwin')
 
 def inspectbin( afile, cwd ):
     if is_windows:
-        cmd=['dumpbin','/dependents',str(afile)]
+        db=shutil.which('dumpbin')
+        assert db is not None, "could not find dumpbin"
+        cmd=[str(db),'/dependents',str(afile)]
     elif is_linux:
         cmd=['ldd','-r',str(afile)]
     elif is_osx:
         cmd=['otool','-L',str(afile)]
     else:
         raise SystemExit('System not recognised can not inspect binary')
-    print("Launching %s"%shlex.join(cmd))
+    print("Launching: %s"%shlex.join(cmd))
     subprocess.run( cmd,
                     check=True,
                     cwd = cwd )
