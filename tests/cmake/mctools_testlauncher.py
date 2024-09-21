@@ -26,7 +26,7 @@ def inspectbin( afile, cwd ):
         if db:
             cmd=[str(db),'/dependents',str(afile)]
         elif shutil.which('ldd'):
-            cmd=[str(shutil.which('ldd')),'-r',str(afile)]
+            cmd=[str(shutil.which('ldd')),'/r',str(afile)]
         else:
             raise SystemExit("could not find either dumpbin or ldd")
     elif is_linux:
