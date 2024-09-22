@@ -1,0 +1,315 @@
+=====> TRYING TO LOAD NCMAT DATA:
+
+
+NCMAT v6
+@DYNINFO
+  element H
+  fraction 1
+  type sterile
+@DENSITY
+  1 g_per_cm3
+@OTHERPHASES
+  0.001 utf8_filenåme.ncmat#comment
+
+
+<=====
+
+
+
+Got expected error: "(anonymous TextData, 131bytes, type=ncmat)": contains invalid character at position 18 in line 9. Only regular ASCII characters (including spaces) are allowed outside comments (comments can be UTF-8)
+=====> TRYING TO LOAD NCMAT DATA:
+
+
+NCMAT v6
+@DYNINFO
+  element H
+  fraction 1
+  type sterile
+@DENSITY
+  1 g_per_cm3
+@OTHERPHASES
+  0.001 utf8_filenåme.ncmat ; 
+ dcutoff = 0.4#comment
+
+
+<=====
+
+
+
+Got expected error: "(anonymous TextData, 149bytes, type=ncmat)": contains invalid character at position 18 in line 9. Only regular ASCII characters (including spaces) are allowed outside comments (comments can be UTF-8)
+=====> TRYING TO LOAD NCMAT DATA:
+
+
+NCMAT v6
+@DYNINFO
+  element H
+  fraction 1
+  type sterile
+@DENSITY
+  1 g_per_cm3
+@OTHERPHASES
+  0.001 utf8_filename.ncmat ; 
+ dcutoff = 0.4#comment
+
+
+<=====
+
+
+
+Got expected error: "(anonymous TextData, 148bytes, type=ncmat)": invalid volume fraction "dcutoff" specified in @OTHERPHASES section in line 10 (must be a floating point number greater than 0.0 and less than 1.0)
+=====> TRYING TO LOAD NCMAT DATA:
+
+
+NCMAT v6
+@DYNINFO
+  element H
+  fraction 1
+  type sterile
+@DENSITY
+  1 g_per_cm3
+@OTHERPHASES
+  0.001 utf8_filename.ncmat ; dcutoff = 0.4#comment
+
+
+<=====
+
+
+
+=====> TRYING TO LOAD NCMAT DATA:
+
+
+NCMAT v6
+@DYNINFO
+  element H
+  fraction 1
+  type sterile
+@DENSITY
+  1 g_per_cm3
+@OTHERPHASES
+  0.001 Al_sg225.ncmat;dcutoff=0.4#comment
+
+
+<=====
+
+
+
+=====> TRYING TO LOAD NCMAT DATA:
+
+
+NCMAT v6
+@DYNINFO
+  element H
+  fraction 1
+  type sterile
+@DENSITY
+  1 g_per_cm3
+@OTHERPHASES
+  0.001 Al_sg225.ncmat ; dcutoff =   0.4#comment
+
+
+<=====
+
+
+
+=====> TRYING TO LOAD NCMAT DATA:
+
+
+NCMAT v6
+@DYNINFO
+  element H
+  fraction 1
+  type sterile
+@DENSITY
+  1 g_per_cm3
+@OTHERPHASES
+  0.001 Al_sg225.ncmat dcutoff=0.8#comment
+
+
+<=====
+
+
+
+Got expected error: Could not find data: "Al_sg225.ncmat dcutoff=0.8"
+=====> TRYING TO LOAD NCMAT DATA:
+
+
+NCMAT v6
+@DYNINFO
+  element H
+  fraction 1
+  type sterile
+@DENSITY
+  1 g_per_cm3
+@OTHERPHASES
+  0.001 Al_sg225.ncmat;dcutoff=0.4 dcutoffup=2.0#comment
+
+
+<=====
+
+
+
+Got expected error: Syntax error in parameter string: unexpected "=" character.
+=====> TRYING TO LOAD NCMAT DATA:
+
+
+NCMAT v6
+@DYNINFO
+  element H
+  fraction 1
+  type sterile
+@DENSITY
+  1 g_per_cm3
+@OTHERPHASES
+  0.001 Al_sg225.ncmat;atomdb=H   is   D#comment
+
+
+<=====
+
+
+
+=====> TRYING TO LOAD NCMAT DATA:
+
+
+NCMAT v6
+@DYNINFO
+  element H
+  fraction 1
+  type sterile
+@DENSITY
+  1 g_per_cm3
+@OTHERPHASES
+  0.001   Al_sg225.ncmat 	 	 ; 			atomdb		 = H:: 		:  is:  :: D  #comment
+
+
+<=====
+
+
+
+=====> TRYING TO LOAD NCMAT DATA:
+
+
+NCMAT v6
+@DYNINFO
+  element H
+  fraction 1
+  type sterile
+@DENSITY
+  1 g_per_cm3
+@OTHERPHASES
+  0.001 phases<0.4*Al_sg225.ncmat;dcutoffup=2.0&0.6*void.ncmat> ;dcutoff=0.4#comment
+
+
+<=====
+
+
+
+=====> TRYING TO LOAD NCMAT DATA:
+
+
+NCMAT v6
+@DYNINFO
+  element H
+  fraction 1
+  type sterile
+@DENSITY
+  1 g_per_cm3
+@OTHERPHASES
+  0.001 phases<0.4*Al_sg225.ncmat;dcutoffup=2.0&0.6*void.ncmat> dcutoff=0.4#comment
+
+
+<=====
+
+
+
+Got expected error: Invalid syntax in multiphase configuration string: "phases<0.4*Al_sg225.ncmat;dcutoffup=2.0&0.6*void.ncmat> dcutoff=0.4" (the part after the ">" character must begin with a ";" character).
+=====> TRYING TO LOAD NCMAT DATA:
+
+
+NCMAT v6
+@DYNINFO
+  element H
+  fraction 1
+  type sterile
+@DENSITY
+  1 g_per_cm3
+@OTHERPHASES
+  0.001 phases<0.4*Al_sg225.ncmat;dcutoffup=2.0&0.6*void.ncmat> ;dcutoff=0.4#comment
+
+
+<=====
+
+
+
+=====> TRYING TO LOAD NCMAT DATA:
+
+
+NCMAT v6
+@DYNINFO
+  element H
+  fraction 1
+  type sterile
+@DENSITY
+  1 g_per_cm3
+@OTHERPHASES
+  0.001 phases<0.4*Al_sg225.ncmat;dcutoffup=2.0&0.6*void.ncmat > ;dcutoff=0.4#comment
+
+
+<=====
+
+
+
+=====> TRYING TO LOAD NCMAT DATA:
+
+
+NCMAT v6
+@DYNINFO
+  element H
+  fraction 1
+  type sterile
+@DENSITY
+  1 g_per_cm3
+@OTHERPHASES
+  0.001 phases<0.4*Al_sg225.ncmat&0.6*void.ncmat>#comment
+
+
+<=====
+
+
+
+=====> TRYING TO LOAD NCMAT DATA:
+
+
+NCMAT v6
+@DYNINFO
+  element H
+  fraction 1
+  type sterile
+@DENSITY
+  1 g_per_cm3
+@OTHERPHASES
+  0.001  phases   <		0.4 *   Al_sg225.ncmat		&0.6*void.ncmat >#comment
+
+
+<=====
+
+
+
+=====> TRYING TO LOAD NCMAT DATA:
+
+
+NCMAT v6
+@DYNINFO
+  element H
+  fraction 1
+  type sterile
+@DENSITY
+  1 g_per_cm3
+@OTHERPHASES
+  0.001 #comment
+
+
+<=====
+
+
+
+Got expected error: "(anonymous TextData, 111bytes, type=ncmat)": wrong number of entries on line 9 in @OTHERPHASES section

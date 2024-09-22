@@ -1,0 +1,138 @@
+-------------------------------------------------------------
+Sigma(lambda=0.1Aa)=0.00720639barn. Scattering gave theta=2.45079degree and dE=0eV
+Sigma(lambda=0.5Aa)=0.18016barn. Scattering gave theta=23.6299degree and dE=0eV
+Sigma(lambda=0.9Aa)=0.583718barn. Scattering gave theta=83.6313degree and dE=0eV
+Sigma(lambda=1.3Aa)=0.937438barn. Scattering gave theta=143.461degree and dE=0eV
+Sigma(lambda=1.7Aa)=1.0756barn. Scattering gave theta=72.8375degree and dE=0eV
+Sigma(lambda=2.1Aa)=1.13994barn. Scattering gave theta=127.843degree and dE=0eV
+Sigma(lambda=2.5Aa)=0.954451barn. Scattering gave theta=64.6389degree and dE=0eV
+Sigma(lambda=2.9Aa)=0.856996barn. Scattering gave theta=91.4707degree and dE=0eV
+Sigma(lambda=3.3Aa)=1.10971barn. Scattering gave theta=109.155degree and dE=0eV
+Sigma(lambda=3.7Aa)=1.39504barn. Scattering gave theta=132.037degree and dE=0eV
+Sigma(lambda=4.1Aa)=1.04824barn. Scattering gave theta=122.519degree and dE=0eV
+Sigma(lambda=4.5Aa)=1.26276barn. Scattering gave theta=148.456degree and dE=0eV
+Sigma(lambda=4.9Aa)=0barn. Scattering gave theta=0degree and dE=0eV
+-------------------------------------------------------------
+Sigma(lambda=0.1Aa)=0.00735964barn. Scattering gave theta=3.24157degree and dE=0eV
+Sigma(lambda=0.5Aa)=0.183991barn. Scattering gave theta=38.2793degree and dE=0eV
+Sigma(lambda=0.9Aa)=0.596131barn. Scattering gave theta=20.7395degree and dE=0eV
+Sigma(lambda=1.3Aa)=0.984068barn. Scattering gave theta=51.0826degree and dE=0eV
+Sigma(lambda=1.7Aa)=1.01016barn. Scattering gave theta=57.4796degree and dE=0eV
+Sigma(lambda=2.1Aa)=1.17888barn. Scattering gave theta=72.8784degree and dE=0eV
+Sigma(lambda=2.5Aa)=1.196barn. Scattering gave theta=112.024degree and dE=0eV
+Sigma(lambda=2.9Aa)=1.36339barn. Scattering gave theta=148.233degree and dE=0eV
+Sigma(lambda=3.3Aa)=1.13553barn. Scattering gave theta=82.5997degree and dE=0eV
+Sigma(lambda=3.7Aa)=0.94061barn. Scattering gave theta=79.7118degree and dE=0eV
+Sigma(lambda=4.1Aa)=1.15498barn. Scattering gave theta=90.4927degree and dE=0eV
+Sigma(lambda=4.5Aa)=1.39133barn. Scattering gave theta=102.416degree and dE=0eV
+Sigma(lambda=4.9Aa)=1.64967barn. Scattering gave theta=116.142degree and dE=0eV
+-------------------------------------------------------------
+Sigma(lambda=0.1Aa)=0.00717023barn. Scattering gave theta=10.2162degree and dE=0eV
+Sigma(lambda=0.5Aa)=0.179256barn. Scattering gave theta=55.03degree and dE=0eV
+Sigma(lambda=0.9Aa)=0.580789barn. Scattering gave theta=112.52degree and dE=0eV
+Sigma(lambda=1.3Aa)=0.934158barn. Scattering gave theta=32.2832degree and dE=0eV
+Sigma(lambda=1.7Aa)=1.07322barn. Scattering gave theta=49.6435degree and dE=0eV
+Sigma(lambda=2.1Aa)=1.13822barn. Scattering gave theta=118.623degree and dE=0eV
+Sigma(lambda=2.5Aa)=0.953505barn. Scattering gave theta=121.633degree and dE=0eV
+Sigma(lambda=2.9Aa)=0.856411barn. Scattering gave theta=91.4707degree and dE=0eV
+Sigma(lambda=3.3Aa)=1.10896barn. Scattering gave theta=109.155degree and dE=0eV
+Sigma(lambda=3.7Aa)=1.39409barn. Scattering gave theta=104.608degree and dE=0eV
+Sigma(lambda=4.1Aa)=1.04761barn. Scattering gave theta=122.519degree and dE=0eV
+Sigma(lambda=4.5Aa)=1.26199barn. Scattering gave theta=148.456degree and dE=0eV
+Sigma(lambda=4.9Aa)=0barn. Scattering gave theta=0degree and dE=0eV
+-------------------------------------------------------------
+Sigma(lambda=0.1Aa)=0.00444142barn. Scattering gave theta=8.49693degree and dE=0eV
+Sigma(lambda=0.5Aa)=0.111036barn. Scattering gave theta=37.4206degree and dE=0eV
+Sigma(lambda=0.9Aa)=0.359755barn. Scattering gave theta=57.9427degree and dE=0eV
+Sigma(lambda=1.3Aa)=0.472989barn. Scattering gave theta=143.461degree and dE=0eV
+Sigma(lambda=1.7Aa)=0.284589barn. Scattering gave theta=132.39degree and dE=0eV
+Sigma(lambda=2.1Aa)=0barn. Scattering gave theta=0degree and dE=0eV
+Sigma(lambda=2.5Aa)=0barn. Scattering gave theta=0degree and dE=0eV
+Sigma(lambda=2.9Aa)=0barn. Scattering gave theta=0degree and dE=0eV
+Sigma(lambda=3.3Aa)=0barn. Scattering gave theta=0degree and dE=0eV
+Sigma(lambda=3.7Aa)=0barn. Scattering gave theta=0degree and dE=0eV
+Sigma(lambda=4.1Aa)=0barn. Scattering gave theta=0degree and dE=0eV
+Sigma(lambda=4.5Aa)=0barn. Scattering gave theta=0degree and dE=0eV
+Sigma(lambda=4.9Aa)=0barn. Scattering gave theta=0degree and dE=0eV
+=======> Al_sg225.ncmat:
+NCMAT v2
+# NCRYSTALMATCFG[dcutoffup=1.0]
+@CELL
+ lengths 4.04958 4.04958 4.04958
+ angles 90 90 90
+@SPACEGROUP
+  225
+@ATOMPOSITIONS
+  Al 0   1/2 1/2
+  Al 0     0   0
+  Al 1/2 1/2   0
+  Al 1/2   0 1/2
+@DEBYETEMPERATURE
+  Al   410.4
+
+<=======
+=======> Ti_sg194.ncmat:
+NCMAT v4
+#
+# Titanium (hcp)
+#
+# Crystal structure was converted from the cif file of the entry 0011195 in the AMCSD.
+# Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+#                       https://www.crystallography.net/cod/9008517.html
+#
+# The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
+# software from Figure 5 of:
+#
+#   "Lattice dynamics of hcp Ti",
+#   C. Stassis, D. Arch, B. N. Harmon, and N. Wakabayashi
+#   Phys. Rev. B 19, 181 - Published 1 January 1979
+#   https://doi.org/10.1103/PhysRevB.19.181
+#
+@CELL
+  lengths 2.95 !! 4.686
+  angles 90 90 120
+@SPACEGROUP
+  194
+@ATOMPOSITIONS
+  Ti 1/3 2/3 1/4
+  Ti 2/3 1/3 3/4
+@DYNINFO
+  element Ti
+  fraction 1
+  type     vdos
+  vdos_egrid 0.0050175619664835 0.036101970246649
+  vdos_density .0205479 .0217686 .0229894 .0242101 .0254309 .0266516 .0278724
+    .0291313 .0305674 .0320035 .0334396 .0348756 .0364294 .0382764 .0401303
+    .041984 .0438378 .0456916 .0475453 .0495012 .0516524 .0538035 .0559547
+    .0581058 .0602569 .0626093 .0650432 .067477 .069911 .0723449 .0748473
+    .0776246 .0804106 .0831967 .0859829 .0891973 .0924878 .0957784 .0991899
+    .102841 .106493 .110145 .113796 .117861 .122268 .126683 .131238 .135828
+    .140418 .145007 .150106 .155456 .160808 .166158 .171578 .178197 .184816
+    .191434 .19851 .206481 .214452 .223714 .234863 .246013 .260506 .275895
+    .296124 .317153 .340298 .366082 .438069 .566511 .591168 .705991 .79974
+    .868029 .912258 .918302 .920579 .919685 .911557 .857945 .813472 .773428
+    .74075 .713774 .691138 .684773 .693021 .693315 .68574 .678197 .672112
+    .667939 .664566 .661866 .659336 .658464 .65812 .659405 .66108 .659656 .65529
+    .650654 .645971 .641147 .636313 .63131 .626277 .621244 .616212 .611041
+    .605508 .599976 .594443 .589006 .583634 .578261 .572888 .567632 .5625
+    .557368 .552236 .547104 .542033 .537001 .531968 .526938 .521924 .516909
+    .511878 .511266 .523528 .538967 .555694 .572167 .587855 .604682 .621739
+    .638396 .656221 .674044 .693406 .710327 .728364 .746018 .766891 .787192
+    .807013 .828851 .850859 .877216 .900817 .919622 .933852 .945381 .955863
+    .966246 .978468 .994793 1 .978542 .955983 .929513 .897416 .850268 .785479
+    .747923 .72966 .715238 .700326 .697234 .706021 .713665 .722788 .732644
+    .742492 .752703 .764745 .777647 .791597 .808489 .824462 .842155 .864227
+    .883402 .892003 .871146 .74454 .547644 .439777 .371314 .394825 .436966
+    .49559 .586272 .705963 .684129 .65003 .601763 .532556 .511505 .516305
+    .526178 .529849 .534023 .54046 .549178 .543307 .537009 .533075 .530016
+    .527571 .525836 .524856 .52485 .525696 .527518 .530208 .528829 .520448
+    .513292 .506658 .500205 .49459 .489223 .484561 .479929 .475973 .472064
+    .468726 .465482 .463206 .461781 .461711 .461936 .4617 .462861 .465116
+    .467753 .471329 .47577 .480925 .485617 .490487 .495875 .501997 .509659
+    .516966 .516309 .486637 .341108 .117982 .0016864 0
+
+<=======
+=======> something_that_does_not_exist.ncmat:
+<not-found>
+<=======
+Loading bad.ncmat gives expected error: @DYNINFO sections of type vdosdebye requires Debye temperature to be specified. Either in the same section via the debye_temp keyword (requires NCMAT v5+) or in the @DEBYETEMPERATURE section.

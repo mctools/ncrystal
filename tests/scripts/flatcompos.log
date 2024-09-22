@@ -1,0 +1,51 @@
+CFGSTR: >>>Al_sg225.ncmat<<<
+ARGS: >>><<<
+  -> flat compos: >>>[[13, [[0, 1.0]]]]<<<
+CFGSTR: >>>Al2O3_sg167_Corundum.ncmat<<<
+ARGS: >>><<<
+  -> flat compos: >>>[[8, [[0, 0.6]]], [13, [[0, 0.4]]]]<<<
+CFGSTR: >>>Al2O3_sg167_Corundum.ncmat;atomdb=Al is O<<<
+ARGS: >>><<<
+  -> flat compos: >>>[[8, [[0, 1.0]]]]<<<
+CFGSTR: >>>Al2O3_sg167_Corundum.ncmat;atomdb=Al is Al27<<<
+ARGS: >>><<<
+  -> flat compos: >>>[[8, [[0, 0.6]]], [13, [[27, 0.4]]]]<<<
+CFGSTR: >>>Al2O3_sg167_Corundum.ncmat;atomdb=Al is O18<<<
+ARGS: >>><<<
+  -> Got expected failure: >>>Could not determine natural abundances for Z=8 (no natural abundance source was provided!)<<<
+CFGSTR: >>>Al2O3_sg167_Corundum.ncmat;atomdb=Al is O18<<<
+ARGS: >>>naturalAbundProvider=FCT::simpleDB<<<
+  -> flat compos: >>>[[8, [[16, 0.5985], [17, 0.00024], [18, 0.40126]]]]<<<
+CFGSTR: >>>Al2O3_sg167_Corundum.ncmat;atomdb=Al is O18<<<
+ARGS: >>>naturalAbundProvider=FCT::simpleDB2<<<
+  -> flat compos: >>>[[8, [[16, 0.3], [17, 0.3], [18, 0.4]]]]<<<
+CFGSTR: >>>Al2O3_sg167_Corundum.ncmat;atomdb=O is Al27<<<
+ARGS: >>>naturalAbundProvider=FCT::simpleDB<<<
+  -> flat compos: >>>[[13, [[27, 1.0]]]]<<<
+CFGSTR: >>>Al2O3_sg167_Corundum.ncmat;atomdb=O is Al27<<<
+ARGS: >>>naturalAbundProvider=FCT::simpleDB2<<<
+  -> Got expected failure: >>>Could not determine natural abundances for Z=13<<<
+CFGSTR: >>>UO2_sg225_UraniumDioxide.ncmat;atomdb=O is 0.4 U235 0.5 U238 0.1 U234<<<
+ARGS: >>><<<
+  -> Got expected failure: >>>Could not determine natural abundances for Z=92 (no natural abundance source was provided!)<<<
+CFGSTR: >>>UO2_sg225_UraniumDioxide.ncmat;atomdb=O is 0.4 U235 0.5 U238 0.1 U234<<<
+ARGS: >>>naturalAbundProvider=FCT::simpleDB<<<
+  -> flat compos: >>>[[92, [[234, 0.06666666666666667], [235, 0.3], [238, 0.6333333333333333]]]]<<<
+CFGSTR: >>>Al2O3_sg167_Corundum.ncmat<<<
+ARGS: >>>preferNaturalElements=False<<<
+  -> Got expected failure: >>>Could not determine natural abundances for Z=8 (no natural abundance source was provided!)<<<
+CFGSTR: >>>Al2O3_sg167_Corundum.ncmat<<<
+ARGS: >>>naturalAbundProvider=FCT::simpleDB2, preferNaturalElements=False<<<
+  -> Got expected failure: >>>Could not determine natural abundances for Z=13<<<
+CFGSTR: >>>Al2O3_sg167_Corundum.ncmat<<<
+ARGS: >>>naturalAbundProvider=FCT::simpleDB, preferNaturalElements=False<<<
+  -> flat compos: >>>[[8, [[16, 0.5985], [17, 0.00024], [18, 0.0012599999999999998]]], [13, [[27, 0.4]]]]<<<
+CFGSTR: >>>Al2O3_sg167_Corundum.ncmat;atomdb=Al is O16<<<
+ARGS: >>>naturalAbundProvider=FCT::simpleDB3<<<
+  -> flat compos: >>>[[8, [[16, 0.7], [17, 0.3]]]]<<<
+CFGSTR: >>>Al2O3_sg167_Corundum.ncmat;atomdb=Al is O18<<<
+ARGS: >>>naturalAbundProvider=FCT::simpleDB2_inexact<<<
+  -> flat compos: >>>[[8, [[16, 0.3], [17, 0.3], [18, 0.4]]]]<<<
+CFGSTR: >>>Al2O3_sg167_Corundum.ncmat;atomdb=Al is O18<<<
+ARGS: >>>naturalAbundProvider=FCT::simpleDB2_bad<<<
+  -> Got expected failure: >>>Invalid (does not add up to 1) natural abundances for Z=8<<<

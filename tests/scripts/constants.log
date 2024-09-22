@@ -1,0 +1,110 @@
+NCrystal.constants.const_neutron_mass_amu = 1.00866491588
+NCrystal.constants.constant_avogadro = 6.022140857e+23
+NCrystal.constants.constant_boltzmann = 8.6173303e-05
+NCrystal.constants.constant_c = 2.99792458e+18
+NCrystal.constants.constant_dalton2eVc2 = 931494095.17
+NCrystal.constants.constant_dalton2kg = 1.66053904e-27
+NCrystal.constants.constant_planck = 4.135667662e-15
+NCrystal.constants.k2Pi = 6.283185307179586
+NCrystal.constants.k4PiSq = 39.47841760435743
+NCrystal.constants.k4Pidiv100 = 0.12566370614359174
+NCrystal.constants.kInf = inf
+NCrystal.constants.kPi = 3.141592653589793
+ ---- test wl = 0.0 Aa
+      -> wl2ekin(0 Aa) = inf eV
+      -> checked ekin2wl consistency
+      -> ekin2wlsq(inf eV) = 0 Aa^2
+      -> checked ekin2wlsq consistency
+      -> ekin2wlsqinv(inf eV) = inf Aa^-2
+      -> checked ekin2wlsqinv consistency
+      -> wlsq2ekin(0 Aa^2) = inf eV
+      -> wlsq2ekin consistency
+      -> wl2k(0 Aa) = inf Aa^-1
+      -> wl2ksq(0 Aa) = inf Aa^-1
+      -> ksq2ekin(inf Aa) = inf eV
+      -> ekin2k(inf eV) = inf Aa^-1
+      -> k2ekin(inf Aa^-1) = inf eV
+      -> k2wl(inf Aa^-1) = 0 Aa
+      -> ekin2ksq(inf eV) = inf Aa^-2
+ ---- test wl = 1e-10 Aa
+      -> wl2ekin(1e-10 Aa) = 8.18042e+18 eV
+      -> checked ekin2wl consistency
+      -> ekin2wlsq(8.18042e+18 eV) = 1e-20 Aa^2
+      -> checked ekin2wlsq consistency
+      -> ekin2wlsqinv(8.18042e+18 eV) = 1e+20 Aa^-2
+      -> checked ekin2wlsqinv consistency
+      -> wlsq2ekin(1e-20 Aa^2) = 8.18042e+18 eV
+      -> wlsq2ekin consistency
+      -> wl2k(1e-10 Aa) = 6.28319e+10 Aa^-1
+      -> wl2ksq(1e-10 Aa) = 3.94784e+21 Aa^-1
+      -> ksq2ekin(3.94784e+21 Aa) = 8.18042e+18 eV
+      -> ekin2k(8.18042e+18 eV) = 6.28319e+10 Aa^-1
+      -> k2ekin(6.28319e+10 Aa^-1) = 8.18042e+18 eV
+      -> k2wl(6.28319e+10 Aa^-1) = 1e-10 Aa
+      -> ekin2ksq(8.18042e+18 eV) = 3.94784e+21 Aa^-2
+ ---- test wl = 1.8 Aa
+      -> wl2ekin(1.8 Aa) = 0.0252482 eV
+      -> checked ekin2wl consistency
+      -> ekin2wlsq(0.0252482 eV) = 3.24 Aa^2
+      -> checked ekin2wlsq consistency
+      -> ekin2wlsqinv(0.0252482 eV) = 0.308642 Aa^-2
+      -> checked ekin2wlsqinv consistency
+      -> wlsq2ekin(3.24 Aa^2) = 0.0252482 eV
+      -> wlsq2ekin consistency
+      -> wl2k(1.8 Aa) = 3.49066 Aa^-1
+      -> wl2ksq(1.8 Aa) = 12.1847 Aa^-1
+      -> ksq2ekin(12.1847 Aa) = 0.0252482 eV
+      -> ekin2k(0.0252482 eV) = 3.49066 Aa^-1
+      -> k2ekin(3.49066 Aa^-1) = 0.0252482 eV
+      -> k2wl(3.49066 Aa^-1) = 1.8 Aa
+      -> ekin2ksq(0.0252482 eV) = 12.1847 Aa^-2
+ ---- test wl = 10 Aa
+      -> wl2ekin(10 Aa) = 0.000818042 eV
+      -> checked ekin2wl consistency
+      -> ekin2wlsq(0.000818042 eV) = 100 Aa^2
+      -> checked ekin2wlsq consistency
+      -> ekin2wlsqinv(0.000818042 eV) = 0.01 Aa^-2
+      -> checked ekin2wlsqinv consistency
+      -> wlsq2ekin(100 Aa^2) = 0.000818042 eV
+      -> wlsq2ekin consistency
+      -> wl2k(10 Aa) = 0.628319 Aa^-1
+      -> wl2ksq(10 Aa) = 0.394784 Aa^-1
+      -> ksq2ekin(0.394784 Aa) = 0.000818042 eV
+      -> ekin2k(0.000818042 eV) = 0.628319 Aa^-1
+      -> k2ekin(0.628319 Aa^-1) = 0.000818042 eV
+      -> k2wl(0.628319 Aa^-1) = 10 Aa
+      -> ekin2ksq(0.000818042 eV) = 0.394784 Aa^-2
+ ---- test wl = 10000.0 Aa
+      -> wl2ekin(10000 Aa) = 8.18042e-10 eV
+      -> checked ekin2wl consistency
+      -> ekin2wlsq(8.18042e-10 eV) = 1e+08 Aa^2
+      -> checked ekin2wlsq consistency
+      -> ekin2wlsqinv(8.18042e-10 eV) = 1e-08 Aa^-2
+      -> checked ekin2wlsqinv consistency
+      -> wlsq2ekin(1e+08 Aa^2) = 8.18042e-10 eV
+      -> wlsq2ekin consistency
+      -> wl2k(10000 Aa) = 0.000628319 Aa^-1
+      -> wl2ksq(10000 Aa) = 3.94784e-07 Aa^-1
+      -> ksq2ekin(3.94784e-07 Aa) = 8.18042e-10 eV
+      -> ekin2k(8.18042e-10 eV) = 0.000628319 Aa^-1
+      -> k2ekin(0.000628319 Aa^-1) = 8.18042e-10 eV
+      -> k2wl(0.000628319 Aa^-1) = 10000 Aa
+      -> ekin2ksq(8.18042e-10 eV) = 3.94784e-07 Aa^-2
+ ---- test wl = inf Aa
+      -> wl2ekin(inf Aa) = 0 eV
+      -> checked ekin2wl consistency
+      -> ekin2wlsq(0 eV) = inf Aa^2
+      -> checked ekin2wlsq consistency
+      -> ekin2wlsqinv(0 eV) = 0 Aa^-2
+      -> checked ekin2wlsqinv consistency
+      -> wlsq2ekin(inf Aa^2) = 0 eV
+      -> wlsq2ekin consistency
+      -> wl2k(inf Aa) = 0 Aa^-1
+      -> wl2ksq(inf Aa) = 0 Aa^-1
+      -> ksq2ekin(0 Aa) = 0 eV
+      -> ekin2k(0 eV) = 0 Aa^-1
+      -> k2ekin(0 Aa^-1) = 0 eV
+      -> k2wl(0 Aa^-1) = inf Aa
+      -> ekin2ksq(0 eV) = 0 Aa^-2
+ ---- test array of wavelengths (printouts disabled)
+Done
