@@ -26,9 +26,14 @@ jobs:
       with:
         python-version: 3.11
 
-    - name: ldd help
+    - name: pip install extra deps
       shell: cmd
-      run: help ldd
+      run: pip install numpy
+
+
+#    - name: ldd help
+#      shell: cmd
+#      run: help ldd
 
     - name: CMake cfg NCrystal
       shell: cmd
@@ -54,7 +59,7 @@ jobs:
       run: |
         cd build
         ctest --build-config Release -VV --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle
-      #NB more verbosity by appending: --verbose --extra-verbose
+      #NB more verbosity by appending: -VV
 
     - name: CMake install NCrystal
       shell: cmd
