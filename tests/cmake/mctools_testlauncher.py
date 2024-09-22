@@ -66,9 +66,9 @@ def inspectbin( afile, cwd ):
         if db:
             cmd=[str(db),'/dependents',str(afile)]
         elif shutil.which('ldd'):
-            hack_ldd_libncrystal(cwd=cwd)
-            hack_nm_libncrystal(cwd=cwd)
-            hack_nmu_libncrystal(cwd=cwd)
+            #hack_ldd_libncrystal(cwd=cwd)
+            #hack_nm_libncrystal(cwd=cwd)
+            #hack_nmu_libncrystal(cwd=cwd)
             #"ldd /r' does not seem to work
             cmd=[str(shutil.which('ldd')),str(afile)]
         else:
