@@ -93,7 +93,7 @@ namespace {
     doTestBad("vdoslux=2;atomdb=Al is Al27@B is B10=Al is Al27@B is B10");
     doTestBad("vdoslux=2;atomdb==Al is Al27@B is B10");
     doTestBad("vdoslux=2;atomdb=Al is Al27@B is B10  =");
-    //fixme: we could add a lot more tests here...
+    //TODO: we could add a lot more tests here...
   }
 
   void test_parse_and_fill() {
