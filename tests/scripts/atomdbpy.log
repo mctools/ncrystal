@@ -1,0 +1,1044 @@
+H(cohSL=-3.739fm cohXS=1.75679barn incXS=80.26barn absXS=0.3326barn mass=1.00798amu Z=1)
+'1.007975973752u -3.739fm 80.26b 0.3326b'
+H1(cohSL=-3.7406fm cohXS=1.7583barn incXS=80.27barn absXS=0.3326barn mass=1.00783amu Z=1 A=1)
+'1.00782503224u -3.7406fm 80.27b 0.3326b'
+H2(cohSL=6.671fm cohXS=5.59232barn incXS=2.05barn absXS=0.000519barn mass=2.0141amu Z=1 A=2)
+'2.01410177811u 6.671fm 2.05b 0.000519b'
+H3(cohSL=4.792fm cohXS=2.88565barn incXS=0.14barn absXS=0barn mass=3.01605amu Z=1 A=3)
+'3.01604928199u 4.792fm 0.14b 0b'
+He(cohSL=3.26548fm cohXS=1.34barn incXS=0barn absXS=0.00747barn mass=4.0026amu Z=2)
+'4.0026018729265u 3.26548fm 0b 0.00747b'
+He3(cohSL=5.74fm cohXS=4.14032barn incXS=1.6barn absXS=5333barn mass=3.01603amu Z=2 A=3)
+'3.01602932265u 5.74fm 1.6b 5333b'
+He4(cohSL=3.26fm cohXS=1.3355barn incXS=0barn absXS=0barn mass=4.0026amu Z=2 A=4)
+'4.00260325413u 3.26fm 0b 0b'
+Li(cohSL=-1.9fm cohXS=0.453646barn incXS=0.92barn absXS=70.5barn mass=6.94094amu Z=3)
+'6.94093739547u -1.9fm 0.92b 70.5b'
+Li6(cohSL=2fm cohXS=0.502655barn incXS=0.46barn absXS=940barn mass=6.01512amu Z=3 A=6)
+'6.01512288742u 2fm 0.46b 940b'
+Li7(cohSL=-2.22fm cohXS=0.619321barn incXS=0.78barn absXS=0.0454barn mass=7.016amu Z=3 A=7)
+'7.01600343666u -2.22fm 0.78b 0.0454b'
+Be(cohSL=7.79fm cohXS=7.62579barn incXS=0.0018barn absXS=0.0076barn mass=9.01218amu Z=4)
+'9.012183066u 7.79fm 0.0018b 0.0076b'
+Be9(cohSL=7.79fm cohXS=7.62579barn incXS=0.0018barn absXS=0.0076barn mass=9.01218amu Z=4 A=9)
+'9.012183066u 7.79fm 0.0018b 0.0076b'
+B(cohSL=5.3fm cohXS=3.52989barn incXS=1.7barn absXS=767barn mass=10.81amu Z=5)
+'10.8100315052u 5.3fm 1.7b 767b'
+B10(cohSL=-0.1fm cohXS=0.00125664barn incXS=3barn absXS=3835barn mass=10.0129amu Z=5 A=10)
+'10.012936862u -0.1fm 3b 3835b'
+B11(cohSL=6.65fm cohXS=5.55716barn incXS=0.21barn absXS=0.0055barn mass=11.0093amu Z=5 A=11)
+'11.009305166u 6.65fm 0.21b 0.0055b'
+C(cohSL=6.646fm cohXS=5.55048barn incXS=0.001barn absXS=0.0035barn mass=12.011amu Z=6)
+'12.0110369031873u 6.646fm 0.001b 0.0035b'
+C12(cohSL=6.6511fm cohXS=5.559barn incXS=0barn absXS=0.00353barn mass=12amu Z=6 A=12)
+'12.0u 6.6511fm 0b 0.00353b'
+C13(cohSL=6.19fm cohXS=4.81494barn incXS=0.034barn absXS=0.00137barn mass=13.0034amu Z=6 A=13)
+'13.00335483521u 6.19fm 0.034b 0.00137b'
+N(cohSL=9.36fm cohXS=11.0093barn incXS=0.5barn absXS=1.9barn mass=14.0068amu Z=7)
+'14.00676303357u 9.36fm 0.5b 1.9b'
+N14(cohSL=9.37fm cohXS=11.0329barn incXS=0.5barn absXS=1.91barn mass=14.0031amu Z=7 A=14)
+'14.00307400446u 9.37fm 0.5b 1.91b'
+N15(cohSL=6.44fm cohXS=5.21173barn incXS=5e-05barn absXS=2.4e-05barn mass=15.0001amu Z=7 A=15)
+'15.00010889894u 6.44fm 5e-05b 2.4e-05b'
+O(cohSL=5.803fm cohXS=4.2317barn incXS=0.0008barn absXS=0.00019barn mass=15.9993amu Z=8)
+'15.999304712099u 5.803fm 0.0008b 0.00019b'
+O16(cohSL=5.803fm cohXS=4.2317barn incXS=0barn absXS=0.0001barn mass=15.9949amu Z=8 A=16)
+'15.9949146196u 5.803fm 0b 0.0001b'
+O17(cohSL=5.78fm cohXS=4.19822barn incXS=0.004barn absXS=0.236barn mass=16.9991amu Z=8 A=17)
+'16.99913175664u 5.78fm 0.004b 0.236b'
+O18(cohSL=5.84fm cohXS=4.28584barn incXS=0barn absXS=0.00016barn mass=17.9992amu Z=8 A=18)
+'17.99915961284u 5.84fm 0b 0.00016b'
+F(cohSL=5.654fm cohXS=4.01718barn incXS=0.0008barn absXS=0.0096barn mass=18.9984amu Z=9)
+'18.99840316288u 5.654fm 0.0008b 0.0096b'
+F19(cohSL=5.654fm cohXS=4.01718barn incXS=0.0008barn absXS=0.0096barn mass=18.9984amu Z=9 A=19)
+'18.99840316288u 5.654fm 0.0008b 0.0096b'
+Ne(cohSL=4.566fm cohXS=2.61988barn incXS=0.008barn absXS=0.039barn mass=20.1794amu Z=10)
+'20.17944669657u 4.566fm 0.008b 0.039b'
+Ne20(cohSL=4.631fm cohXS=2.695barn incXS=0barn absXS=0.036barn mass=19.9924amu Z=10 A=20)
+'19.99244017619u 4.631fm 0b 0.036b'
+Ne21(cohSL=6.66fm cohXS=5.57389barn incXS=0.05barn absXS=0.67barn mass=20.9938amu Z=10 A=21)
+'20.993846685u 6.66fm 0.05b 0.67b'
+Ne22(cohSL=3.87fm cohXS=1.88205barn incXS=0barn absXS=0.046barn mass=21.9914amu Z=10 A=22)
+'21.991385109u 3.87fm 0b 0.046b'
+Na(cohSL=3.63fm cohXS=1.65586barn incXS=1.62barn absXS=0.53barn mass=22.9898amu Z=11)
+'22.98976928199u 3.63fm 1.62b 0.53b'
+Na23(cohSL=3.63fm cohXS=1.65586barn incXS=1.62barn absXS=0.53barn mass=22.9898amu Z=11 A=23)
+'22.98976928199u 3.63fm 1.62b 0.53b'
+Mg(cohSL=5.375fm cohXS=3.6305barn incXS=0.08barn absXS=0.063barn mass=24.3051amu Z=12)
+'24.305051619u 5.375fm 0.08b 0.063b'
+Mg24(cohSL=5.66fm cohXS=4.02571barn incXS=0barn absXS=0.05barn mass=23.985amu Z=12 A=24)
+'23.985041697u 5.66fm 0b 0.05b'
+Mg25(cohSL=3.62fm cohXS=1.64675barn incXS=0.28barn absXS=0.19barn mass=24.9858amu Z=12 A=25)
+'24.985836964u 3.62fm 0.28b 0.19b'
+Mg26(cohSL=4.89fm cohXS=3.00488barn incXS=0barn absXS=0.0382barn mass=25.9826amu Z=12 A=26)
+'25.982592971u 4.89fm 0b 0.0382b'
+Al(cohSL=3.449fm cohXS=1.49485barn incXS=0.0082barn absXS=0.231barn mass=26.9815amu Z=13)
+'26.981538408u 3.449fm 0.0082b 0.231b'
+Al27(cohSL=3.449fm cohXS=1.49485barn incXS=0.0082barn absXS=0.231barn mass=26.9815amu Z=13 A=27)
+'26.981538408u 3.449fm 0.0082b 0.231b'
+Si(cohSL=4.1491fm cohXS=2.1633barn incXS=0.004barn absXS=0.171barn mass=28.0855amu Z=14)
+'28.0855085183u 4.1491fm 0.004b 0.171b'
+Si28(cohSL=4.107fm cohXS=2.11963barn incXS=0barn absXS=0.177barn mass=27.9769amu Z=14 A=28)
+'27.97692653499u 4.107fm 0b 0.177b'
+Si29(cohSL=4.7fm cohXS=2.77591barn incXS=0.001barn absXS=0.101barn mass=28.9765amu Z=14 A=29)
+'28.97649466525u 4.7fm 0.001b 0.101b'
+Si30(cohSL=4.58fm cohXS=2.63597barn incXS=0barn absXS=0.107barn mass=29.9738amu Z=14 A=30)
+'29.973770136u 4.58fm 0b 0.107b'
+P(cohSL=5.13fm cohXS=3.30708barn incXS=0.005barn absXS=0.172barn mass=30.9738amu Z=15)
+'30.97376199863u 5.13fm 0.005b 0.172b'
+P31(cohSL=5.13fm cohXS=3.30708barn incXS=0.005barn absXS=0.172barn mass=30.9738amu Z=15 A=31)
+'30.97376199863u 5.13fm 0.005b 0.172b'
+S(cohSL=2.847fm cohXS=1.01856barn incXS=0.007barn absXS=0.53barn mass=32.0644amu Z=16)
+'32.0643885891u 2.847fm 0.007b 0.53b'
+S32(cohSL=2.804fm cohXS=0.98802barn incXS=0barn absXS=0.54barn mass=31.9721amu Z=16 A=32)
+'31.97207117443u 2.804fm 0b 0.54b'
+S33(cohSL=4.74fm cohXS=2.82336barn incXS=0.3barn absXS=0.54barn mass=32.9715amu Z=16 A=33)
+'32.97145890985u 4.74fm 0.3b 0.54b'
+S34(cohSL=3.48fm cohXS=1.52184barn incXS=0barn absXS=0.227barn mass=33.9679amu Z=16 A=34)
+'33.967867012u 3.48fm 0b 0.227b'
+S36(cohSL=3fm cohXS=1.13097barn incXS=0barn absXS=0.15barn mass=35.9671amu Z=16 A=36)
+'35.967080699u 3fm 0b 0.15b'
+Cl(cohSL=9.577fm cohXS=11.5257barn incXS=5.3barn absXS=33.5barn mass=35.4527amu Z=17)
+'35.4527378823u 9.577fm 5.3b 33.5b'
+Cl35(cohSL=11.65fm cohXS=17.0554barn incXS=4.7barn absXS=44.1barn mass=34.9689amu Z=17 A=35)
+'34.968852694u 11.65fm 4.7b 44.1b'
+Cl37(cohSL=3.08fm cohXS=1.1921barn incXS=0.001barn absXS=0.433barn mass=36.9659amu Z=17 A=37)
+'36.965902584u 3.08fm 0.001b 0.433b'
+Ar(cohSL=1.909fm cohXS=0.457954barn incXS=0.225barn absXS=0.675barn mass=39.9477amu Z=18)
+'39.94766073951u 1.909fm 0.225b 0.675b'
+Ar36(cohSL=24.9fm cohXS=77.9128barn incXS=0barn absXS=5.2barn mass=35.9675amu Z=18 A=36)
+'35.967545105u 24.9fm 0b 5.2b'
+Ar38(cohSL=3.5fm cohXS=1.53938barn incXS=0barn absXS=0.8barn mass=37.9627amu Z=18 A=38)
+'37.962732104u 3.5fm 0b 0.8b'
+Ar40(cohSL=1.83fm cohXS=0.420835barn incXS=0barn absXS=0.66barn mass=39.9624amu Z=18 A=40)
+'39.96238312378u 1.83fm 0b 0.66b'
+K(cohSL=3.67fm cohXS=1.69255barn incXS=0.27barn absXS=2.1barn mass=39.0983amu Z=19)
+'39.09829991492u 3.67fm 0.27b 2.1b'
+K39(cohSL=3.74fm cohXS=1.75773barn incXS=0.25barn absXS=2.1barn mass=38.9637amu Z=19 A=39)
+'38.96370648661u 3.74fm 0.25b 2.1b'
+K40(cohSL=3fm cohXS=1.13097barn incXS=0.5barn absXS=35barn mass=39.964amu Z=19 A=40)
+'39.963998166u 3fm 0.5b 35b'
+K41(cohSL=2.69fm cohXS=0.909315barn incXS=0.3barn absXS=1.46barn mass=40.9618amu Z=19 A=41)
+'40.96182525796u 2.69fm 0.3b 1.46b'
+Ca(cohSL=5.795fm cohXS=4.22004barn incXS=0.05barn absXS=0.43barn mass=40.078amu Z=20)
+'40.0780225128u 5.795fm 0.05b 0.43b'
+Ca40(cohSL=5.90962fm cohXS=4.38864barn incXS=0barn absXS=0.41barn mass=39.9626amu Z=20 A=40)
+'39.962590865u 5.90962fm 0b 0.41b'
+Ca42(cohSL=3.36fm cohXS=1.41869barn incXS=0barn absXS=0.68barn mass=41.9586amu Z=20 A=42)
+'41.958617828u 3.36fm 0b 0.68b'
+Ca43(cohSL=-1.56fm cohXS=0.305815barn incXS=0.5barn absXS=6.2barn mass=42.9588amu Z=20 A=43)
+'42.95876643u -1.56fm 0.5b 6.2b'
+Ca44(cohSL=1.42fm cohXS=0.253388barn incXS=0barn absXS=0.88barn mass=43.9555amu Z=20 A=44)
+'43.955481543u 1.42fm 0b 0.88b'
+Ca46(cohSL=3.6fm cohXS=1.6286barn incXS=0barn absXS=0.74barn mass=45.9537amu Z=20 A=46)
+'45.95368799u 3.6fm 0b 0.74b'
+Ca48(cohSL=0.39fm cohXS=0.0191134barn incXS=0barn absXS=1.09barn mass=47.9525amu Z=20 A=48)
+'47.952522904u 0.39fm 0b 1.09b'
+Sc(cohSL=12.29fm cohXS=18.9808barn incXS=4.5barn absXS=27.5barn mass=44.9559amu Z=21)
+'44.955907503u 12.29fm 4.5b 27.5b'
+Sc45(cohSL=12.29fm cohXS=18.9808barn incXS=4.5barn absXS=27.5barn mass=44.9559amu Z=21 A=45)
+'44.955907503u 12.29fm 4.5b 27.5b'
+Ti(cohSL=-3.438fm cohXS=1.48533barn incXS=2.87barn absXS=6.09barn mass=47.8684amu Z=22)
+'47.8684394371u -3.438fm 2.87b 6.09b'
+Ti46(cohSL=4.93fm cohXS=3.05424barn incXS=0barn absXS=0.59barn mass=45.9526amu Z=22 A=46)
+'45.952626856u 4.93fm 0b 0.59b'
+Ti47(cohSL=3.63fm cohXS=1.65586barn incXS=1.5barn absXS=1.7barn mass=46.9518amu Z=22 A=47)
+'46.951757752u 3.63fm 1.5b 1.7b'
+Ti48(cohSL=-6.08fm cohXS=4.64533barn incXS=0barn absXS=7.84barn mass=47.9479amu Z=22 A=48)
+'47.947940932u -6.08fm 0b 7.84b'
+Ti49(cohSL=1.04fm cohXS=0.135918barn incXS=3.3barn absXS=2.2barn mass=48.9479amu Z=22 A=49)
+'48.947864627u 1.04fm 3.3b 2.2b'
+Ti50(cohSL=6.18fm cohXS=4.7994barn incXS=0barn absXS=0.179barn mass=49.9448amu Z=22 A=50)
+'49.944785839u 6.18fm 0b 0.179b'
+V(cohSL=-0.3824fm cohXS=0.0183758barn incXS=5.08barn absXS=5.08barn mass=50.9415amu Z=23)
+'50.941464864u -0.3824fm 5.08b 5.08b'
+V50(cohSL=7.6fm cohXS=7.25834barn incXS=0.5barn absXS=60barn mass=49.9472amu Z=23 A=50)
+'49.947155845u 7.6fm 0.5b 60b'
+V51(cohSL=-0.402fm cohXS=0.0203078barn incXS=5.07barn absXS=4.9barn mass=50.944amu Z=23 A=51)
+'50.943956867u -0.402fm 5.07b 4.9b'
+Cr(cohSL=3.635fm cohXS=1.66042barn incXS=1.83barn absXS=3.05barn mass=51.9959amu Z=24)
+'51.995920918u 3.635fm 1.83b 3.05b'
+Cr50(cohSL=-4.5fm cohXS=2.54469barn incXS=0barn absXS=15.8barn mass=49.946amu Z=24 A=50)
+'49.946041443u -4.5fm 0b 15.8b'
+Cr52(cohSL=4.92fm cohXS=3.04187barn incXS=0barn absXS=0.76barn mass=51.9405amu Z=24 A=52)
+'51.940504992u 4.92fm 0b 0.76b'
+Cr53(cohSL=-4.2fm cohXS=2.21671barn incXS=5.93barn absXS=18.1barn mass=52.9406amu Z=24 A=53)
+'52.940646961u -4.2fm 5.93b 18.1b'
+Cr54(cohSL=4.55fm cohXS=2.60155barn incXS=0barn absXS=0.36barn mass=53.9389amu Z=24 A=54)
+'53.938878012u 4.55fm 0b 0.36b'
+Mn(cohSL=-3.73fm cohXS=1.74835barn incXS=0.4barn absXS=13.3barn mass=54.938amu Z=25)
+'54.938043172u -3.73fm 0.4b 13.3b'
+Mn55(cohSL=-3.73fm cohXS=1.74835barn incXS=0.4barn absXS=13.3barn mass=54.938amu Z=25 A=55)
+'54.938043172u -3.73fm 0.4b 13.3b'
+Fe(cohSL=9.45fm cohXS=11.2221barn incXS=0.4barn absXS=2.56barn mass=55.8472amu Z=26)
+'55.847211691u 9.45fm 0.4b 2.56b'
+Fe54(cohSL=4.2fm cohXS=2.21671barn incXS=0barn absXS=2.25barn mass=53.9396amu Z=26 A=54)
+'53.939608306u 4.2fm 0b 2.25b'
+Fe56(cohSL=9.94fm cohXS=12.416barn incXS=0barn absXS=2.59barn mass=55.9349amu Z=26 A=56)
+'55.934935617u 9.94fm 0b 2.59b'
+Fe57(cohSL=2.3fm cohXS=0.664761barn incXS=0.3barn absXS=2.48barn mass=56.9354amu Z=26 A=57)
+'56.935392134u 2.3fm 0.3b 2.48b'
+Fe58(cohSL=15fm cohXS=28.2743barn incXS=0barn absXS=1.28barn mass=57.9333amu Z=26 A=58)
+'57.933273738u 15fm 0b 1.28b'
+Co(cohSL=2.49fm cohXS=0.779128barn incXS=4.8barn absXS=37.18barn mass=58.9332amu Z=27)
+'58.933193656u 2.49fm 4.8b 37.18b'
+Co59(cohSL=2.49fm cohXS=0.779128barn incXS=4.8barn absXS=37.18barn mass=58.9332amu Z=27 A=59)
+'58.933193656u 2.49fm 4.8b 37.18b'
+Ni(cohSL=10.3fm cohXS=13.3317barn incXS=5.2barn absXS=4.49barn mass=58.6879amu Z=28)
+'58.68788578u 10.3fm 5.2b 4.49b'
+Ni58(cohSL=14.4fm cohXS=26.0576barn incXS=0barn absXS=4.6barn mass=57.9353amu Z=28 A=58)
+'57.93534178u 14.4fm 0b 4.6b'
+Ni60(cohSL=2.8fm cohXS=0.985203barn incXS=0barn absXS=2.9barn mass=59.9308amu Z=28 A=60)
+'59.930785256u 2.8fm 0b 2.9b'
+Ni61(cohSL=7.6fm cohXS=7.25834barn incXS=1.9barn absXS=2.5barn mass=60.9311amu Z=28 A=61)
+'60.931054945u 7.6fm 1.9b 2.5b'
+Ni62(cohSL=-8.7fm cohXS=9.51149barn incXS=0barn absXS=14.5barn mass=61.9283amu Z=28 A=62)
+'61.928344871u -8.7fm 0b 14.5b'
+Ni64(cohSL=-0.37fm cohXS=0.0172034barn incXS=0barn absXS=1.52barn mass=63.928amu Z=28 A=64)
+'63.927966341u -0.37fm 0b 1.52b'
+Cu(cohSL=7.718fm cohXS=7.48548barn incXS=0.55barn absXS=3.78barn mass=63.5456amu Z=29)
+'63.545639907u 7.718fm 0.55b 3.78b'
+Cu63(cohSL=6.43fm cohXS=5.19555barn incXS=0.006barn absXS=4.5barn mass=62.9296amu Z=29 A=63)
+'62.929597236u 6.43fm 0.006b 4.5b'
+Cu65(cohSL=10.61fm cohXS=14.1462barn incXS=0.4barn absXS=2.17barn mass=64.9278amu Z=29 A=65)
+'64.927789487u 10.61fm 0.4b 2.17b'
+Zn(cohSL=5.68fm cohXS=4.05421barn incXS=0.077barn absXS=1.11barn mass=65.3964amu Z=30)
+'65.396361173u 5.68fm 0.077b 1.11b'
+Zn64(cohSL=5.22fm cohXS=3.42413barn incXS=0barn absXS=0.93barn mass=63.9291amu Z=30 A=64)
+'63.929141772u 5.22fm 0b 0.93b'
+Zn66(cohSL=5.97fm cohXS=4.47877barn incXS=0barn absXS=0.62barn mass=65.926amu Z=30 A=66)
+'65.926033704u 5.97fm 0b 0.62b'
+Zn67(cohSL=7.56fm cohXS=7.18213barn incXS=0.28barn absXS=6.8barn mass=66.9271amu Z=30 A=67)
+'66.927127482u 7.56fm 0.28b 6.8b'
+Zn68(cohSL=6.03fm cohXS=4.56925barn incXS=0barn absXS=1.1barn mass=67.9248amu Z=30 A=68)
+'67.924844291u 6.03fm 0b 1.1b'
+Zn70(cohSL=6fm cohXS=4.52389barn incXS=0barn absXS=0.092barn mass=69.9253amu Z=30 A=70)
+'69.925319181u 6fm 0b 0.092b'
+Ga(cohSL=7.288fm cohXS=6.67462barn incXS=0.16barn absXS=2.75barn mass=69.7232amu Z=31)
+'69.723226004u 7.288fm 0.16b 2.75b'
+Ga69(cohSL=7.88fm cohXS=7.80301barn incXS=0.091barn absXS=2.18barn mass=68.9256amu Z=31 A=69)
+'68.925573531u 7.88fm 0.091b 2.18b'
+Ga71(cohSL=6.4fm cohXS=5.14719barn incXS=0.084barn absXS=3.61barn mass=70.9247amu Z=31 A=71)
+'70.924702536u 6.4fm 0.084b 3.61b'
+Ge(cohSL=8.185fm cohXS=8.41874barn incXS=0.18barn absXS=2.2barn mass=72.6322amu Z=32)
+'72.632248855u 8.185fm 0.18b 2.2b'
+Ge70(cohSL=10fm cohXS=12.5664barn incXS=0barn absXS=3barn mass=69.9242amu Z=32 A=70)
+'69.924248706u 10fm 0b 3b'
+Ge72(cohSL=8.51fm cohXS=9.10058barn incXS=0barn absXS=0.8barn mass=71.9221amu Z=32 A=72)
+'71.922075826u 8.51fm 0b 0.8b'
+Ge73(cohSL=5.02fm cohXS=3.16678barn incXS=1.5barn absXS=15.1barn mass=72.9235amu Z=32 A=73)
+'72.923458956u 5.02fm 1.5b 15.1b'
+Ge74(cohSL=7.58fm cohXS=7.22018barn incXS=0barn absXS=0.4barn mass=73.9212amu Z=32 A=74)
+'73.921177762u 7.58fm 0b 0.4b'
+Ge76(cohSL=8.2fm cohXS=8.44963barn incXS=0barn absXS=0.16barn mass=75.9214amu Z=32 A=76)
+'75.921402726u 8.2fm 0b 0.16b'
+As(cohSL=6.58fm cohXS=5.44079barn incXS=0.06barn absXS=4.5barn mass=74.9216amu Z=33)
+'74.921594562u 6.58fm 0.06b 4.5b'
+As75(cohSL=6.58fm cohXS=5.44079barn incXS=0.06barn absXS=4.5barn mass=74.9216amu Z=33 A=75)
+'74.921594562u 6.58fm 0.06b 4.5b'
+Se(cohSL=7.97fm cohXS=7.98227barn incXS=0.32barn absXS=11.7barn mass=78.9933amu Z=34)
+'78.993277226u 7.97fm 0.32b 11.7b'
+Se74(cohSL=0.8fm cohXS=0.0804248barn incXS=0barn absXS=51.8barn mass=73.9225amu Z=34 A=74)
+'73.922475935u 0.8fm 0b 51.8b'
+Se76(cohSL=12.2fm cohXS=18.7038barn incXS=0barn absXS=85barn mass=75.9192amu Z=34 A=76)
+'75.919213704u 12.2fm 0b 85b'
+Se77(cohSL=8.25fm cohXS=8.55299barn incXS=0.05barn absXS=42barn mass=76.9199amu Z=34 A=77)
+'76.91991415u 8.25fm 0.05b 42b'
+Se78(cohSL=8.24fm cohXS=8.53226barn incXS=0barn absXS=0.43barn mass=77.9173amu Z=34 A=78)
+'77.917309243u 8.24fm 0b 0.43b'
+Se80(cohSL=7.48fm cohXS=7.03093barn incXS=0barn absXS=0.61barn mass=79.9165amu Z=34 A=80)
+'79.916521785u 7.48fm 0b 0.61b'
+Se82(cohSL=6.34fm cohXS=5.05113barn incXS=0barn absXS=0.044barn mass=81.9167amu Z=34 A=82)
+'81.916699537u 6.34fm 0b 0.044b'
+Br(cohSL=6.795fm cohXS=5.80215barn incXS=0.1barn absXS=6.9barn mass=79.9035amu Z=35)
+'79.903527044u 6.795fm 0.1b 6.9b'
+Br79(cohSL=6.8fm cohXS=5.81069barn incXS=0.15barn absXS=11barn mass=78.9183amu Z=35 A=79)
+'78.918337601u 6.8fm 0.15b 11b'
+Br81(cohSL=6.79fm cohXS=5.79361barn incXS=0.05barn absXS=2.7barn mass=80.9163amu Z=35 A=81)
+'80.916288206u 6.79fm 0.05b 2.7b'
+Kr(cohSL=7.81fm cohXS=7.665barn incXS=0.01barn absXS=25barn mass=83.8amu Z=36)
+'83.8000174955u 7.81fm 0.01b 25b'
+Kr86(cohSL=8.1fm cohXS=8.2448barn incXS=0barn absXS=0.003barn mass=85.9106amu Z=36 A=86)
+'85.91061062627u 8.1fm 0b 0.003b'
+Rb(cohSL=7.09fm cohXS=6.31688barn incXS=0.5barn absXS=0.38barn mass=85.4677amu Z=37)
+'85.4676635954u 7.09fm 0.5b 0.38b'
+Rb85(cohSL=7.03fm cohXS=6.21041barn incXS=0.5barn absXS=0.48barn mass=84.9118amu Z=37 A=85)
+'84.9117897376u 7.03fm 0.5b 0.48b'
+Rb87(cohSL=7.23fm cohXS=6.56881barn incXS=0.5barn absXS=0.12barn mass=86.9092amu Z=37 A=87)
+'86.909180531u 7.23fm 0.5b 0.12b'
+Sr(cohSL=7.02fm cohXS=6.19276barn incXS=0.06barn absXS=1.28barn mass=87.6166amu Z=38)
+'87.6166442801u 7.02fm 0.06b 1.28b'
+Sr84(cohSL=7fm cohXS=6.15752barn incXS=0barn absXS=0.87barn mass=83.9134amu Z=38 A=84)
+'83.91341912u 7fm 0b 0.87b'
+Sr86(cohSL=5.67fm cohXS=4.03995barn incXS=0barn absXS=1.04barn mass=85.9093amu Z=38 A=86)
+'85.90926072631u 5.67fm 0b 1.04b'
+Sr87(cohSL=7.4fm cohXS=6.88134barn incXS=0.5barn absXS=16barn mass=86.9089amu Z=38 A=87)
+'86.90887749615u 7.4fm 0.5b 16b'
+Sr88(cohSL=7.15fm cohXS=6.42424barn incXS=0barn absXS=0.058barn mass=87.9056amu Z=38 A=88)
+'87.90561225561u 7.15fm 0b 0.058b'
+Y(cohSL=7.75fm cohXS=7.54768barn incXS=0.15barn absXS=1.28barn mass=88.9058amu Z=39)
+'88.905841205u 7.75fm 0.15b 1.28b'
+Y89(cohSL=7.75fm cohXS=7.54768barn incXS=0.15barn absXS=1.28barn mass=88.9058amu Z=39 A=89)
+'88.905841205u 7.75fm 0.15b 1.28b'
+Zr(cohSL=7.16fm cohXS=6.44223barn incXS=0.02barn absXS=0.185barn mass=91.219amu Z=40)
+'91.2190408226u 7.16fm 0.02b 0.185b'
+Zr90(cohSL=6.4fm cohXS=5.14719barn incXS=0barn absXS=0.011barn mass=89.9047amu Z=40 A=90)
+'89.904698758u 6.4fm 0b 0.011b'
+Zr91(cohSL=8.7fm cohXS=9.51149barn incXS=0.15barn absXS=1.17barn mass=90.9056amu Z=40 A=91)
+'90.905640223u 8.7fm 0.15b 1.17b'
+Zr92(cohSL=7.4fm cohXS=6.88134barn incXS=0barn absXS=0.22barn mass=91.905amu Z=40 A=92)
+'91.905035322u 7.4fm 0b 0.22b'
+Zr94(cohSL=8.2fm cohXS=8.44963barn incXS=0barn absXS=0.0499barn mass=93.9063amu Z=40 A=94)
+'93.906312524u 8.2fm 0b 0.0499b'
+Zr96(cohSL=5.5fm cohXS=3.80133barn incXS=0barn absXS=0.0229barn mass=95.9083amu Z=40 A=96)
+'95.908277621u 5.5fm 0b 0.0229b'
+Nb(cohSL=7.054fm cohXS=6.25289barn incXS=0.0024barn absXS=1.15barn mass=92.9064amu Z=41)
+'92.906373161u 7.054fm 0.0024b 1.15b'
+Nb93(cohSL=7.054fm cohXS=6.25289barn incXS=0.0024barn absXS=1.15barn mass=92.9064amu Z=41 A=93)
+'92.906373161u 7.054fm 0.0024b 1.15b'
+Mo(cohSL=6.715fm cohXS=5.66633barn incXS=0.04barn absXS=2.48barn mass=95.9313amu Z=42)
+'95.9312871581u 6.715fm 0.04b 2.48b'
+Mo92(cohSL=6.91fm cohXS=6.0002barn incXS=0barn absXS=0.019barn mass=91.9068amu Z=42 A=92)
+'91.906807155u 6.91fm 0b 0.019b'
+Mo94(cohSL=6.8fm cohXS=5.81069barn incXS=0barn absXS=0.015barn mass=93.9051amu Z=42 A=94)
+'93.905083592u 6.8fm 0b 0.015b'
+Mo95(cohSL=6.91fm cohXS=6.0002barn incXS=0.5barn absXS=13.1barn mass=94.9058amu Z=42 A=95)
+'94.905837442u 6.91fm 0.5b 13.1b'
+Mo96(cohSL=6.2fm cohXS=4.83051barn incXS=0barn absXS=0.5barn mass=95.9047amu Z=42 A=96)
+'95.904674774u 6.2fm 0b 0.5b'
+Mo97(cohSL=7.24fm cohXS=6.58699barn incXS=0.5barn absXS=2.5barn mass=96.906amu Z=42 A=97)
+'96.906016903u 7.24fm 0.5b 2.5b'
+Mo98(cohSL=6.58fm cohXS=5.44079barn incXS=0barn absXS=0.127barn mass=97.9054amu Z=42 A=98)
+'97.905403608u 6.58fm 0b 0.127b'
+Mo100(cohSL=6.73fm cohXS=5.69167barn incXS=0barn absXS=0.4barn mass=99.9075amu Z=42 A=100)
+'99.907467976u 6.73fm 0b 0.4b'
+Tc(cohSL=6.8fm cohXS=5.81069barn incXS=0.5barn absXS=20barn mass=98amu Z=43)
+'98.0u 6.8fm 0.5b 20b'
+Ru(cohSL=7.03fm cohXS=6.21041barn incXS=0.4barn absXS=2.56barn mass=101.07amu Z=44)
+'101.070135u 7.03fm 0.4b 2.56b'
+Rh(cohSL=5.88fm cohXS=4.34475barn incXS=0.3barn absXS=144.8barn mass=102.905amu Z=45)
+'102.90549407u 5.88fm 0.3b 144.8b'
+Rh103(cohSL=5.88fm cohXS=4.34475barn incXS=0.3barn absXS=144.8barn mass=102.905amu Z=45 A=103)
+'102.90549407u 5.88fm 0.3b 144.8b'
+Pd(cohSL=5.91fm cohXS=4.38919barn incXS=0.093barn absXS=6.9barn mass=106.415amu Z=46)
+'106.41532788u 5.91fm 0.093b 6.9b'
+Pd102(cohSL=7.7fm cohXS=7.4506barn incXS=0barn absXS=3.4barn mass=101.906amu Z=46 A=102)
+'101.90563206u 7.7fm 0b 3.4b'
+Pd104(cohSL=7.7fm cohXS=7.4506barn incXS=0barn absXS=0.6barn mass=103.904amu Z=46 A=104)
+'103.9040304u 7.7fm 0b 0.6b'
+Pd105(cohSL=5.5fm cohXS=3.80133barn incXS=0.8barn absXS=20barn mass=104.905amu Z=46 A=105)
+'104.90507949u 5.5fm 0.8b 20b'
+Pd106(cohSL=6.4fm cohXS=5.14719barn incXS=0barn absXS=0.304barn mass=105.903amu Z=46 A=106)
+'105.90348029u 6.4fm 0b 0.304b'
+Pd108(cohSL=4.1fm cohXS=2.11241barn incXS=0barn absXS=8.55barn mass=107.904amu Z=46 A=108)
+'107.90389181u 4.1fm 0b 8.55b'
+Pd110(cohSL=7.7fm cohXS=7.4506barn incXS=0barn absXS=0.226barn mass=109.905amu Z=46 A=110)
+'109.90517287u 7.7fm 0b 0.226b'
+Ag(cohSL=5.922fm cohXS=4.40704barn incXS=0.58barn absXS=63.3barn mass=107.868amu Z=47)
+'107.8683298u 5.922fm 0.58b 63.3b'
+Ag107(cohSL=7.555fm cohXS=7.17264barn incXS=0.13barn absXS=37.6barn mass=106.905amu Z=47 A=107)
+'106.90509153u 7.555fm 0.13b 37.6b'
+Ag109(cohSL=4.165fm cohXS=2.17992barn incXS=0.32barn absXS=91barn mass=108.905amu Z=47 A=109)
+'108.90475577u 4.165fm 0.32b 91b'
+Cd(cohSL=4.87fm cohXS=2.98035barn incXS=3.46barn absXS=2520barn mass=112.41amu Z=48)
+'112.410057988u 4.87fm 3.46b 2520b'
+Cd106(cohSL=5fm cohXS=3.14159barn incXS=0barn absXS=1barn mass=105.906amu Z=48 A=106)
+'105.9064598u 5fm 0b 1b'
+Cd108(cohSL=5.4fm cohXS=3.66435barn incXS=0barn absXS=1.1barn mass=107.904amu Z=48 A=108)
+'107.90418359u 5.4fm 0b 1.1b'
+Cd110(cohSL=5.9fm cohXS=4.37435barn incXS=0barn absXS=11barn mass=109.903amu Z=48 A=110)
+'109.90300746u 5.9fm 0b 11b'
+Cd111(cohSL=6.5fm cohXS=5.30929barn incXS=0.3barn absXS=24barn mass=110.904amu Z=48 A=111)
+'110.90418377u 6.5fm 0.3b 24b'
+Cd112(cohSL=6.4fm cohXS=5.14719barn incXS=0barn absXS=2.2barn mass=111.903amu Z=48 A=112)
+'111.902763883u 6.4fm 0b 2.2b'
+Cd113(cohSL=-8fm cohXS=8.04248barn incXS=0.3barn absXS=20600barn mass=112.904amu Z=48 A=113)
+'112.904408097u -8fm 0.3b 20600b'
+Cd114(cohSL=7.5fm cohXS=7.06858barn incXS=0barn absXS=0.34barn mass=113.903amu Z=48 A=114)
+'113.90336499u 7.5fm 0b 0.34b'
+Cd116(cohSL=6.3fm cohXS=4.98759barn incXS=0barn absXS=0.075barn mass=115.905amu Z=48 A=116)
+'115.90476323u 6.3fm 0b 0.075b'
+In(cohSL=4.065fm cohXS=2.0765barn incXS=0.54barn absXS=193.8barn mass=114.818amu Z=49)
+'114.817886585u 4.065fm 0.54b 193.8b'
+In113(cohSL=5.39fm cohXS=3.65079barn incXS=3.7e-05barn absXS=12barn mass=112.904amu Z=49 A=113)
+'112.904060448u 5.39fm 3.7e-05b 12b'
+In115(cohSL=4.01fm cohXS=2.02068barn incXS=0.55barn absXS=202barn mass=114.904amu Z=49 A=115)
+'114.903878773u 4.01fm 0.55b 202b'
+Sn(cohSL=6.225fm cohXS=4.86955barn incXS=0.022barn absXS=0.626barn mass=118.685amu Z=50)
+'118.68540724u 6.225fm 0.022b 0.626b'
+Sn112(cohSL=6fm cohXS=4.52389barn incXS=0barn absXS=1barn mass=111.905amu Z=50 A=112)
+'111.904824877u 6fm 0b 1b'
+Sn114(cohSL=6.2fm cohXS=4.83051barn incXS=0barn absXS=0.114barn mass=113.903amu Z=50 A=114)
+'113.902780132u 6.2fm 0b 0.114b'
+Sn115(cohSL=6fm cohXS=4.52389barn incXS=0.3barn absXS=30barn mass=114.903amu Z=50 A=115)
+'114.903344697u 6fm 0.3b 30b'
+Sn116(cohSL=5.93fm cohXS=4.41895barn incXS=0barn absXS=0.14barn mass=115.902amu Z=50 A=116)
+'115.901742824u 5.93fm 0b 0.14b'
+Sn117(cohSL=6.48fm cohXS=5.27667barn incXS=0.3barn absXS=2.3barn mass=116.903amu Z=50 A=117)
+'116.90295402u 6.48fm 0.3b 2.3b'
+Sn118(cohSL=6.07fm cohXS=4.63007barn incXS=0barn absXS=0.22barn mass=117.902amu Z=50 A=118)
+'117.90160661u 6.07fm 0b 0.22b'
+Sn119(cohSL=6.12fm cohXS=4.70666barn incXS=0.3barn absXS=2.2barn mass=118.903amu Z=50 A=119)
+'118.90331122u 6.12fm 0.3b 2.2b'
+Sn120(cohSL=6.49fm cohXS=5.29297barn incXS=0barn absXS=0.14barn mass=119.902amu Z=50 A=120)
+'119.90220187u 6.49fm 0b 0.14b'
+Sn122(cohSL=5.74fm cohXS=4.14032barn incXS=0barn absXS=0.18barn mass=121.903amu Z=50 A=122)
+'121.903444u 5.74fm 0b 0.18b'
+Sn124(cohSL=5.97fm cohXS=4.47877barn incXS=0barn absXS=0.133barn mass=123.905amu Z=50 A=124)
+'123.90527669u 5.97fm 0b 0.133b'
+Sb(cohSL=5.57fm cohXS=3.8987barn incXS=0.007barn absXS=4.91barn mass=121.758amu Z=51)
+'121.75798257u 5.57fm 0.007b 4.91b'
+Sb121(cohSL=5.71fm cohXS=4.09715barn incXS=0.0003barn absXS=5.75barn mass=120.904amu Z=51 A=121)
+'120.90381009u 5.71fm 0.0003b 5.75b'
+Sb123(cohSL=5.38fm cohXS=3.63726barn incXS=0.001barn absXS=3.8barn mass=122.904amu Z=51 A=123)
+'122.90421402u 5.38fm 0.001b 3.8b'
+Te(cohSL=5.8fm cohXS=4.22733barn incXS=0.09barn absXS=4.7barn mass=127.586amu Z=52)
+'127.58579825u 5.8fm 0.09b 4.7b'
+Te120(cohSL=5.3fm cohXS=3.52989barn incXS=0barn absXS=2.3barn mass=119.904amu Z=52 A=120)
+'119.90405951u 5.3fm 0b 2.3b'
+Te122(cohSL=3.8fm cohXS=1.81458barn incXS=0barn absXS=3.4barn mass=121.903amu Z=52 A=122)
+'121.90304343u 3.8fm 0b 3.4b'
+Te123(cohSL=-0.05fm cohXS=0.000314159barn incXS=0.52barn absXS=418barn mass=122.904amu Z=52 A=123)
+'122.90426975u -0.05fm 0.52b 418b'
+Te124(cohSL=7.96fm cohXS=7.96225barn incXS=0barn absXS=6.8barn mass=123.903amu Z=52 A=124)
+'123.90281706u 7.96fm 0b 6.8b'
+Te125(cohSL=5.02fm cohXS=3.16678barn incXS=0.008barn absXS=1.55barn mass=124.904amu Z=52 A=125)
+'124.9044299u 5.02fm 0.008b 1.55b'
+Te126(cohSL=5.56fm cohXS=3.88472barn incXS=0barn absXS=1.04barn mass=125.903amu Z=52 A=126)
+'125.90331087u 5.56fm 0b 1.04b'
+Te128(cohSL=5.89fm cohXS=4.35954barn incXS=0barn absXS=0.215barn mass=127.904amu Z=52 A=128)
+'127.90446131u 5.89fm 0b 0.215b'
+Te130(cohSL=6.02fm cohXS=4.5541barn incXS=0barn absXS=0.29barn mass=129.906amu Z=52 A=130)
+'129.906222747u 6.02fm 0b 0.29b'
+I(cohSL=5.28fm cohXS=3.5033barn incXS=0.31barn absXS=6.15barn mass=126.904amu Z=53)
+'126.90447184u 5.28fm 0.31b 6.15b'
+I127(cohSL=5.28fm cohXS=3.5033barn incXS=0.31barn absXS=6.15barn mass=126.904amu Z=53 A=127)
+'126.90447184u 5.28fm 0.31b 6.15b'
+Xe(cohSL=4.92fm cohXS=3.04187barn incXS=1.16133barn absXS=23.9barn mass=131.293amu Z=54)
+'131.29308175u 4.92fm 1.16133b 23.9b'
+Cs(cohSL=5.42fm cohXS=3.69155barn incXS=0.21barn absXS=29barn mass=132.905amu Z=55)
+'132.905451961u 5.42fm 0.21b 29b'
+Cs133(cohSL=5.42fm cohXS=3.69155barn incXS=0.21barn absXS=29barn mass=132.905amu Z=55 A=133)
+'132.905451961u 5.42fm 0.21b 29b'
+Ba(cohSL=5.07fm cohXS=3.23017barn incXS=0.15barn absXS=1.1barn mass=137.327amu Z=56)
+'137.326671887u 5.07fm 0.15b 1.1b'
+Ba130(cohSL=-3.6fm cohXS=1.6286barn incXS=0barn absXS=30barn mass=129.906amu Z=56 A=130)
+'129.90632087u -3.6fm 0b 30b'
+Ba132(cohSL=7.8fm cohXS=7.64538barn incXS=0barn absXS=7barn mass=131.905amu Z=56 A=132)
+'131.9050611u 7.8fm 0b 7b'
+Ba134(cohSL=5.7fm cohXS=4.08281barn incXS=0barn absXS=2barn mass=133.905amu Z=56 A=134)
+'133.904508399u 5.7fm 0b 2b'
+Ba135(cohSL=4.67fm cohXS=2.74059barn incXS=0.5barn absXS=5.8barn mass=134.906amu Z=56 A=135)
+'134.905688606u 4.67fm 0.5b 5.8b'
+Ba136(cohSL=4.91fm cohXS=3.02951barn incXS=0barn absXS=0.68barn mass=135.905amu Z=56 A=136)
+'135.904575959u 4.91fm 0b 0.68b'
+Ba137(cohSL=6.83fm cohXS=5.86207barn incXS=0.5barn absXS=3.6barn mass=136.906amu Z=56 A=137)
+'136.905827375u 6.83fm 0.5b 3.6b'
+Ba138(cohSL=4.84fm cohXS=2.94375barn incXS=0barn absXS=0.27barn mass=137.905amu Z=56 A=138)
+'137.905247229u 4.84fm 0b 0.27b'
+La(cohSL=8.24fm cohXS=8.53226barn incXS=1.13barn absXS=8.97barn mass=138.905amu Z=57)
+'138.90545949u 8.24fm 1.13b 8.97b'
+La138(cohSL=8fm cohXS=8.04248barn incXS=0.5barn absXS=57barn mass=137.907amu Z=57 A=138)
+'137.90711783u 8fm 0.5b 57b'
+La139(cohSL=8.24fm cohXS=8.53226barn incXS=1.13barn absXS=8.93barn mass=138.906amu Z=57 A=139)
+'138.9063588u 8.24fm 1.13b 8.93b'
+Ce(cohSL=4.84fm cohXS=2.94375barn incXS=0.001barn absXS=0.63barn mass=140.115amu Z=58)
+'140.1148724u 4.84fm 0.001b 0.63b'
+Ce136(cohSL=5.8fm cohXS=4.22733barn incXS=0barn absXS=7.3barn mass=135.907amu Z=58 A=136)
+'135.90712944u 5.8fm 0b 7.3b'
+Ce138(cohSL=6.7fm cohXS=5.64104barn incXS=0barn absXS=1.1barn mass=137.906amu Z=58 A=138)
+'137.9059887u 6.7fm 0b 1.1b'
+Ce140(cohSL=4.84fm cohXS=2.94375barn incXS=0barn absXS=0.57barn mass=139.905amu Z=58 A=140)
+'139.90544642u 4.84fm 0b 0.57b'
+Ce142(cohSL=4.75fm cohXS=2.83529barn incXS=0barn absXS=0.95barn mass=141.909amu Z=58 A=142)
+'141.90924988u 4.75fm 0b 0.95b'
+Pr(cohSL=4.58fm cohXS=2.63597barn incXS=0.015barn absXS=11.5barn mass=140.908amu Z=59)
+'140.9076584u 4.58fm 0.015b 11.5b'
+Pr141(cohSL=4.58fm cohXS=2.63597barn incXS=0.015barn absXS=11.5barn mass=140.908amu Z=59 A=141)
+'140.9076584u 4.58fm 0.015b 11.5b'
+Nd(cohSL=7.69fm cohXS=7.43126barn incXS=9.2barn absXS=50.5barn mass=144.241amu Z=60)
+'144.24064436u 7.69fm 9.2b 50.5b'
+Nd142(cohSL=7.7fm cohXS=7.4506barn incXS=0barn absXS=18.7barn mass=141.908amu Z=60 A=142)
+'141.90772889u 7.7fm 0b 18.7b'
+Nd143(cohSL=14fm cohXS=24.6301barn incXS=55barn absXS=337barn mass=142.91amu Z=60 A=143)
+'142.90981989u 14fm 55b 337b'
+Nd144(cohSL=2.8fm cohXS=0.985203barn incXS=0barn absXS=3.6barn mass=143.91amu Z=60 A=144)
+'143.91009286u 2.8fm 0b 3.6b'
+Nd145(cohSL=14fm cohXS=24.6301barn incXS=5barn absXS=42barn mass=144.913amu Z=60 A=145)
+'144.9125792u 14fm 5b 42b'
+Nd146(cohSL=8.7fm cohXS=9.51149barn incXS=0barn absXS=1.4barn mass=145.913amu Z=60 A=146)
+'145.9131225u 8.7fm 0b 1.4b'
+Nd148(cohSL=5.7fm cohXS=4.08281barn incXS=0barn absXS=2.5barn mass=147.917amu Z=60 A=148)
+'147.91689909u 5.7fm 0b 2.5b'
+Nd150(cohSL=5.3fm cohXS=3.52989barn incXS=0barn absXS=1.2barn mass=149.921amu Z=60 A=150)
+'149.92090153u 5.3fm 0b 1.2b'
+Pm(cohSL=12.6fm cohXS=19.9504barn incXS=1.3barn absXS=168.4barn mass=145amu Z=61)
+'145.0u 12.6fm 1.3b 168.4b'
+Sm(cohSL=0.8fm cohXS=0.0804248barn incXS=39barn absXS=5922barn mass=150.35amu Z=62)
+'150.35023831u 0.8fm 39b 5922b'
+Sm144(cohSL=-3fm cohXS=1.13097barn incXS=0barn absXS=0.7barn mass=143.912amu Z=62 A=144)
+'143.91200637u -3fm 0b 0.7b'
+Sm147(cohSL=14fm cohXS=24.6301barn incXS=143barn absXS=57barn mass=146.915amu Z=62 A=147)
+'146.91490406u 14fm 143b 57b'
+Sm148(cohSL=-3fm cohXS=1.13097barn incXS=0barn absXS=2.4barn mass=147.915amu Z=62 A=148)
+'147.91482901u -3fm 0b 2.4b'
+Sm149(cohSL=-19.2fm cohXS=46.3247barn incXS=137barn absXS=42080barn mass=148.917amu Z=62 A=149)
+'148.91719137u -19.2fm 137b 42080b'
+Sm150(cohSL=14fm cohXS=24.6301barn incXS=0barn absXS=104barn mass=149.917amu Z=62 A=150)
+'149.91728219u 14fm 0b 104b'
+Sm152(cohSL=-5fm cohXS=3.14159barn incXS=0barn absXS=206barn mass=151.92amu Z=62 A=152)
+'151.91973904u -5fm 0b 206b'
+Sm154(cohSL=9.3fm cohXS=10.8687barn incXS=0barn absXS=8.4barn mass=153.922amu Z=62 A=154)
+'153.92221616u 9.3fm 0b 8.4b'
+Eu(cohSL=7.22fm cohXS=6.55065barn incXS=2.5barn absXS=4530barn mass=151.965amu Z=63)
+'151.96457732u 7.22fm 2.5b 4530b'
+Eu151(cohSL=6.13fm cohXS=4.72205barn incXS=3.1barn absXS=9100barn mass=150.92amu Z=63 A=151)
+'150.91985686u 6.13fm 3.1b 9100b'
+Eu153(cohSL=8.22fm cohXS=8.4909barn incXS=1.3barn absXS=312barn mass=152.921amu Z=63 A=153)
+'152.92123704u 8.22fm 1.3b 312b'
+Gd(cohSL=6.5fm cohXS=5.30929barn incXS=151barn absXS=49700barn mass=157.251amu Z=64)
+'157.2510281u 6.5fm 151b 49700b'
+Gd152(cohSL=10fm cohXS=12.5664barn incXS=0barn absXS=735barn mass=151.92amu Z=64 A=152)
+'151.91979882u 10fm 0b 735b'
+Gd154(cohSL=10fm cohXS=12.5664barn incXS=0barn absXS=85barn mass=153.921amu Z=64 A=154)
+'153.9208734u 10fm 0b 85b'
+Gd155(cohSL=6fm cohXS=4.52389barn incXS=25barn absXS=61100barn mass=154.923amu Z=64 A=155)
+'154.9226298u 6fm 25b 61100b'
+Gd156(cohSL=6.3fm cohXS=4.98759barn incXS=0barn absXS=1.5barn mass=155.922amu Z=64 A=156)
+'155.92213056u 6.3fm 0b 1.5b'
+Gd157(cohSL=-1.14fm cohXS=0.163313barn incXS=394barn absXS=259000barn mass=156.924amu Z=64 A=157)
+'156.92396787u -1.14fm 394b 259000b'
+Gd158(cohSL=9fm cohXS=10.1788barn incXS=0barn absXS=2.2barn mass=157.924amu Z=64 A=158)
+'157.92411165u 9fm 0b 2.2b'
+Gd160(cohSL=9.15fm cohXS=10.5209barn incXS=0barn absXS=0.77barn mass=159.927amu Z=64 A=160)
+'159.92706154u 9.15fm 0b 0.77b'
+Tb(cohSL=7.38fm cohXS=6.8442barn incXS=0.004barn absXS=23.4barn mass=158.925amu Z=65)
+'158.92535393u 7.38fm 0.004b 23.4b'
+Tb159(cohSL=7.38fm cohXS=6.8442barn incXS=0.004barn absXS=23.4barn mass=158.925amu Z=65 A=159)
+'158.92535393u 7.38fm 0.004b 23.4b'
+Dy(cohSL=16.9fm cohXS=35.8908barn incXS=54.4barn absXS=994barn mass=162.495amu Z=66)
+'162.49453743u 16.9fm 54.4b 994b'
+Dy156(cohSL=6.1fm cohXS=4.67595barn incXS=0barn absXS=33barn mass=155.924amu Z=66 A=156)
+'155.92428404u 6.1fm 0b 33b'
+Dy158(cohSL=6fm cohXS=4.52389barn incXS=0barn absXS=43barn mass=157.924amu Z=66 A=158)
+'157.9244146u 6fm 0b 43b'
+Dy160(cohSL=6.7fm cohXS=5.64104barn incXS=0barn absXS=56barn mass=159.925amu Z=66 A=160)
+'159.92520324u 6.7fm 0b 56b'
+Dy161(cohSL=10.3fm cohXS=13.3317barn incXS=3barn absXS=600barn mass=160.927amu Z=66 A=161)
+'160.92693909u 10.3fm 3b 600b'
+Dy162(cohSL=-1.4fm cohXS=0.246301barn incXS=0barn absXS=194barn mass=161.927amu Z=66 A=162)
+'161.92680417u -1.4fm 0b 194b'
+Dy163(cohSL=5fm cohXS=3.14159barn incXS=0.21barn absXS=124barn mass=162.929amu Z=66 A=163)
+'162.92873688u 5fm 0.21b 124b'
+Dy164(cohSL=49.4fm cohXS=306.665barn incXS=0barn absXS=2840barn mass=163.929amu Z=66 A=164)
+'163.92918047u 49.4fm 0b 2840b'
+Ho(cohSL=8.01fm cohXS=8.0626barn incXS=0.36barn absXS=64.7barn mass=164.93amu Z=67)
+'164.93032805u 8.01fm 0.36b 64.7b'
+Ho165(cohSL=8.01fm cohXS=8.0626barn incXS=0.36barn absXS=64.7barn mass=164.93amu Z=67 A=165)
+'164.93032805u 8.01fm 0.36b 64.7b'
+Er(cohSL=7.79fm cohXS=7.62579barn incXS=1.1barn absXS=159barn mass=167.262amu Z=68)
+'167.26221528u 7.79fm 1.1b 159b'
+Er162(cohSL=8.8fm cohXS=9.7314barn incXS=0barn absXS=19barn mass=161.929amu Z=68 A=162)
+'161.92878696u 8.8fm 0b 19b'
+Er164(cohSL=8.2fm cohXS=8.44963barn incXS=0barn absXS=13barn mass=163.929amu Z=68 A=164)
+'163.92920739u 8.2fm 0b 13b'
+Er166(cohSL=10.6fm cohXS=14.1196barn incXS=0barn absXS=19.6barn mass=165.93amu Z=68 A=166)
+'165.93029902u 10.6fm 0b 19.6b'
+Er167(cohSL=3fm cohXS=1.13097barn incXS=0.13barn absXS=659barn mass=166.932amu Z=68 A=167)
+'166.93205412u 3fm 0.13b 659b'
+Er168(cohSL=7.4fm cohXS=6.88134barn incXS=0barn absXS=2.74barn mass=167.932amu Z=68 A=168)
+'167.93237619u 7.4fm 0b 2.74b'
+Er170(cohSL=9.6fm cohXS=11.5812barn incXS=0barn absXS=5.8barn mass=169.935amu Z=68 A=170)
+'169.93547067u 9.6fm 0b 5.8b'
+Tm(cohSL=7.07fm cohXS=6.28129barn incXS=0.1barn absXS=100barn mass=168.934amu Z=69)
+'168.93421835u 7.07fm 0.1b 100b'
+Tm169(cohSL=7.07fm cohXS=6.28129barn incXS=0.1barn absXS=100barn mass=168.934amu Z=69 A=169)
+'168.93421835u 7.07fm 0.1b 100b'
+Yb(cohSL=12.43fm cohXS=19.4157barn incXS=4barn absXS=34.8barn mass=173.033amu Z=70)
+'173.0333950863u 12.43fm 4b 34.8b'
+Yb168(cohSL=-4.07fm cohXS=2.08161barn incXS=0barn absXS=2230barn mass=167.934amu Z=70 A=168)
+'167.93388911u -4.07fm 0b 2230b'
+Yb170(cohSL=6.77fm cohXS=5.75953barn incXS=0barn absXS=11.4barn mass=169.935amu Z=70 A=170)
+'169.934767245u 6.77fm 0b 11.4b'
+Yb171(cohSL=9.66fm cohXS=11.7264barn incXS=3.9barn absXS=48.6barn mass=170.936amu Z=70 A=171)
+'170.936331517u 9.66fm 3.9b 48.6b'
+Yb172(cohSL=9.43fm cohXS=11.1746barn incXS=0barn absXS=0.8barn mass=171.936amu Z=70 A=172)
+'171.936386658u 9.43fm 0b 0.8b'
+Yb173(cohSL=9.56fm cohXS=11.4849barn incXS=3.5barn absXS=17.1barn mass=172.938amu Z=70 A=173)
+'172.938216215u 9.56fm 3.5b 17.1b'
+Yb174(cohSL=19.3fm cohXS=46.8085barn incXS=0barn absXS=69.4barn mass=173.939amu Z=70 A=174)
+'173.938867548u 19.3fm 0b 69.4b'
+Yb176(cohSL=8.72fm cohXS=9.55527barn incXS=0barn absXS=2.85barn mass=175.943amu Z=70 A=176)
+'175.942574708u 8.72fm 0b 2.85b'
+Lu(cohSL=7.21fm cohXS=6.53251barn incXS=0.7barn absXS=74barn mass=174.967amu Z=71)
+'174.96692728u 7.21fm 0.7b 74b'
+Lu175(cohSL=7.24fm cohXS=6.58699barn incXS=0.6barn absXS=21barn mass=174.941amu Z=71 A=175)
+'174.94077731u 7.24fm 0.6b 21b'
+Lu176(cohSL=6.1fm cohXS=4.67595barn incXS=1.2barn absXS=2065barn mass=175.943amu Z=71 A=176)
+'175.94269181u 6.1fm 1.2b 2065b'
+Hf(cohSL=7.7fm cohXS=7.4506barn incXS=2.6barn absXS=104.1barn mass=178.488amu Z=72)
+'178.48778639u 7.7fm 2.6b 104.1b'
+Hf174(cohSL=10.9fm cohXS=14.9301barn incXS=0barn absXS=561barn mass=173.94amu Z=72 A=174)
+'173.94004848u 10.9fm 0b 561b'
+Hf176(cohSL=6.61fm cohXS=5.49051barn incXS=0barn absXS=23.5barn mass=175.941amu Z=72 A=176)
+'175.94140991u 6.61fm 0b 23.5b'
+Hf177(cohSL=0.8fm cohXS=0.0804248barn incXS=0.1barn absXS=373barn mass=176.943amu Z=72 A=177)
+'176.94323032u 0.8fm 0.1b 373b'
+Hf178(cohSL=5.9fm cohXS=4.37435barn incXS=0barn absXS=84barn mass=177.944amu Z=72 A=178)
+'177.94370846u 5.9fm 0b 84b'
+Hf179(cohSL=7.46fm cohXS=6.99339barn incXS=0.14barn absXS=41barn mass=178.946amu Z=72 A=179)
+'178.94582584u 7.46fm 0.14b 41b'
+Hf180(cohSL=13.2fm cohXS=21.8956barn incXS=0barn absXS=13.04barn mass=179.947amu Z=72 A=180)
+'179.94655967u 13.2fm 0b 13.04b'
+Ta(cohSL=6.91fm cohXS=6.0002barn incXS=0.01barn absXS=20.6barn mass=180.948amu Z=73)
+'180.94787927u 6.91fm 0.01b 20.6b'
+Ta180(cohSL=7fm cohXS=6.15752barn incXS=0.5barn absXS=563barn mass=179.947amu Z=73 A=180)
+'179.94746839u 7fm 0.5b 563b'
+Ta181(cohSL=6.91fm cohXS=6.0002barn incXS=0.011barn absXS=20.5barn mass=180.948amu Z=73 A=181)
+'180.94799933u 6.91fm 0.011b 20.5b'
+W(cohSL=4.86fm cohXS=2.96813barn incXS=1.63barn absXS=18.3barn mass=183.85amu Z=74)
+'183.85009188u 4.86fm 1.63b 18.3b'
+W180(cohSL=5fm cohXS=3.14159barn incXS=0barn absXS=30barn mass=179.947amu Z=74 A=180)
+'179.94671343u 5fm 0b 30b'
+W182(cohSL=6.97fm cohXS=6.10486barn incXS=0barn absXS=20.7barn mass=181.948amu Z=74 A=182)
+'181.94820572u 6.97fm 0b 20.7b'
+W183(cohSL=6.53fm cohXS=5.35841barn incXS=0.3barn absXS=10.1barn mass=182.95amu Z=74 A=183)
+'182.9502245u 6.53fm 0.3b 10.1b'
+W184(cohSL=7.48fm cohXS=7.03093barn incXS=0barn absXS=1.7barn mass=183.951amu Z=74 A=184)
+'183.95093326u 7.48fm 0b 1.7b'
+W186(cohSL=-0.72fm cohXS=0.0651441barn incXS=0barn absXS=37.9barn mass=185.954amu Z=74 A=186)
+'185.95436521u -0.72fm 0b 37.9b'
+Re(cohSL=9.2fm cohXS=10.6362barn incXS=0.9barn absXS=89.7barn mass=186.207amu Z=75)
+'186.20670735u 9.2fm 0.9b 89.7b'
+Re185(cohSL=9fm cohXS=10.1788barn incXS=0.5barn absXS=112barn mass=184.953amu Z=75 A=185)
+'184.95295834u 9fm 0.5b 112b'
+Re187(cohSL=9.3fm cohXS=10.8687barn incXS=1barn absXS=76.4barn mass=186.956amu Z=75 A=187)
+'186.95575229u 9.3fm 1b 76.4b'
+Os(cohSL=10.7fm cohXS=14.3872barn incXS=0.3barn absXS=16barn mass=190.24amu Z=76)
+'190.23977696u 10.7fm 0.3b 16b'
+Os184(cohSL=10fm cohXS=12.5664barn incXS=0barn absXS=3000barn mass=183.952amu Z=76 A=184)
+'183.95249295u 10fm 0b 3000b'
+Os186(cohSL=11.6fm cohXS=16.9093barn incXS=0barn absXS=80barn mass=185.954amu Z=76 A=186)
+'185.95383766u 11.6fm 0b 80b'
+Os187(cohSL=10fm cohXS=12.5664barn incXS=0.3barn absXS=320barn mass=186.956amu Z=76 A=187)
+'186.95574964u 10fm 0.3b 320b'
+Os188(cohSL=7.6fm cohXS=7.25834barn incXS=0barn absXS=4.7barn mass=187.956amu Z=76 A=188)
+'187.95583736u 7.6fm 0b 4.7b'
+Os189(cohSL=10.7fm cohXS=14.3872barn incXS=0.5barn absXS=25barn mass=188.958amu Z=76 A=189)
+'188.958146u 10.7fm 0.5b 25b'
+Os190(cohSL=11fm cohXS=15.2053barn incXS=0barn absXS=13.1barn mass=189.958amu Z=76 A=190)
+'189.9584455u 11fm 0b 13.1b'
+Os192(cohSL=11.5fm cohXS=16.619barn incXS=0barn absXS=2barn mass=191.961amu Z=76 A=192)
+'191.96147888u 11.5fm 0b 2b'
+Ir(cohSL=10.6fm cohXS=14.1196barn incXS=0barn absXS=425barn mass=192.216amu Z=77)
+'192.21605388u 10.6fm 0b 425b'
+Pt(cohSL=9.6fm cohXS=11.5812barn incXS=0.13barn absXS=10.3barn mass=195.08amu Z=78)
+'195.0801337u 9.6fm 0.13b 10.3b'
+Pt190(cohSL=9fm cohXS=10.1788barn incXS=0barn absXS=152barn mass=189.96amu Z=78 A=190)
+'189.95994988u 9fm 0b 152b'
+Pt192(cohSL=9.9fm cohXS=12.3163barn incXS=0barn absXS=10barn mass=191.961amu Z=78 A=192)
+'191.96104274u 9.9fm 0b 10b'
+Pt194(cohSL=10.55fm cohXS=13.9867barn incXS=0barn absXS=1.44barn mass=193.963amu Z=78 A=194)
+'193.962683527u 10.55fm 0b 1.44b'
+Pt195(cohSL=8.83fm cohXS=9.79786barn incXS=0.13barn absXS=27.5barn mass=194.965amu Z=78 A=195)
+'194.964794353u 8.83fm 0.13b 27.5b'
+Pt196(cohSL=9.89fm cohXS=12.2914barn incXS=0barn absXS=0.72barn mass=195.965amu Z=78 A=196)
+'195.964954675u 9.89fm 0b 0.72b'
+Pt198(cohSL=7.8fm cohXS=7.64538barn incXS=0barn absXS=3.66barn mass=197.968amu Z=78 A=198)
+'197.96789673u 7.8fm 0b 3.66b'
+Au(cohSL=7.63fm cohXS=7.31575barn incXS=0.43barn absXS=98.65barn mass=196.967amu Z=79)
+'196.966570114u 7.63fm 0.43b 98.65b'
+Au197(cohSL=7.63fm cohXS=7.31575barn incXS=0.43barn absXS=98.65barn mass=196.967amu Z=79 A=197)
+'196.966570114u 7.63fm 0.43b 98.65b'
+Hg(cohSL=12.692fm cohXS=20.2428barn incXS=6.6barn absXS=372.3barn mass=200.585amu Z=80)
+'200.58545474u 12.692fm 6.6b 372.3b'
+Hg196(cohSL=30.3fm cohXS=115.371barn incXS=0barn absXS=3080barn mass=195.966amu Z=80 A=196)
+'195.96583344u 30.3fm 0b 3080b'
+Hg199(cohSL=16.9fm cohXS=35.8908barn incXS=30barn absXS=2150barn mass=198.968amu Z=80 A=199)
+'198.968280989u 16.9fm 30b 2150b'
+Tl(cohSL=8.776fm cohXS=9.67839barn incXS=0.21barn absXS=3.43barn mass=204.383amu Z=81)
+'204.38333219u 8.776fm 0.21b 3.43b'
+Tl203(cohSL=6.99fm cohXS=6.13994barn incXS=0.14barn absXS=11.4barn mass=202.972amu Z=81 A=203)
+'202.97234402u 6.99fm 0.14b 11.4b'
+Tl205(cohSL=9.52fm cohXS=11.389barn incXS=0.007barn absXS=0.104barn mass=204.974amu Z=81 A=205)
+'204.97442724u 9.52fm 0.007b 0.104b'
+Pb(cohSL=9.405fm cohXS=11.1155barn incXS=0.003barn absXS=0.171barn mass=207.217amu Z=82)
+'207.21690749u 9.405fm 0.003b 0.171b'
+Pb204(cohSL=9.9fm cohXS=12.3163barn incXS=0barn absXS=0.65barn mass=203.973amu Z=82 A=204)
+'203.97304342u 9.9fm 0b 0.65b'
+Pb206(cohSL=9.22fm cohXS=10.6825barn incXS=0barn absXS=0.03barn mass=205.974amu Z=82 A=206)
+'205.97446512u 9.22fm 0b 0.03b'
+Pb207(cohSL=9.28fm cohXS=10.822barn incXS=0.002barn absXS=0.699barn mass=206.976amu Z=82 A=207)
+'206.97589673u 9.28fm 0.002b 0.699b'
+Pb208(cohSL=9.5fm cohXS=11.3411barn incXS=0barn absXS=0.00048barn mass=207.977amu Z=82 A=208)
+'207.97665192u 9.5fm 0b 0.00048b'
+Bi(cohSL=8.532fm cohXS=9.14769barn incXS=0.0084barn absXS=0.0338barn mass=208.98amu Z=83)
+'208.98039852u 8.532fm 0.0084b 0.0338b'
+Bi209(cohSL=8.532fm cohXS=9.14769barn incXS=0.0084barn absXS=0.0338barn mass=208.98amu Z=83 A=209)
+'208.98039852u 8.532fm 0.0084b 0.0338b'
+Ra(cohSL=10fm cohXS=12.5664barn incXS=0barn absXS=12.8barn mass=226amu Z=88)
+'226.0u 10fm 0b 12.8b'
+Th(cohSL=10.31fm cohXS=13.3576barn incXS=0barn absXS=7.37barn mass=232.038amu Z=90)
+'232.03805369u 10.31fm 0b 7.37b'
+Th232(cohSL=10.31fm cohXS=13.3576barn incXS=0barn absXS=7.37barn mass=232.038amu Z=90 A=232)
+'232.03805369u 10.31fm 0b 7.37b'
+Pa(cohSL=9.1fm cohXS=10.4062barn incXS=0.1barn absXS=200.6barn mass=231.036amu Z=91)
+'231.03588u 9.1fm 0.1b 200.6b'
+U(cohSL=8.417fm cohXS=8.90276barn incXS=0.005barn absXS=7.57barn mass=238.029amu Z=92)
+'238.02893712u 8.417fm 0.005b 7.57b'
+U233(cohSL=10.1fm cohXS=12.819barn incXS=0.1barn absXS=574.7barn mass=233.04amu Z=92 A=233)
+'233.03963437u 10.1fm 0.1b 574.7b'
+U234(cohSL=12.4fm cohXS=19.3221barn incXS=0barn absXS=100.1barn mass=234.041amu Z=92 A=234)
+'234.04095037u 12.4fm 0b 100.1b'
+U235(cohSL=10.47fm cohXS=13.7754barn incXS=0.2barn absXS=680.9barn mass=235.044amu Z=92 A=235)
+'235.04392819u 10.47fm 0.2b 680.9b'
+U238(cohSL=8.402fm cohXS=8.87105barn incXS=0barn absXS=2.68barn mass=238.051amu Z=92 A=238)
+'238.050787u 8.402fm 0b 2.68b'
+(1, 0)
+(1, 1)
+(1, 2)
+(1, 3)
+(2, 0)
+(2, 3)
+(2, 4)
+(3, 0)
+(3, 6)
+(3, 7)
+(4, 0)
+(4, 9)
+(5, 0)
+(5, 10)
+(5, 11)
+(6, 0)
+(6, 12)
+(6, 13)
+(7, 0)
+(7, 14)
+(7, 15)
+(8, 0)
+(8, 16)
+(8, 17)
+(8, 18)
+(9, 0)
+(9, 19)
+(10, 0)
+(10, 20)
+(10, 21)
+(10, 22)
+(11, 0)
+(11, 23)
+(12, 0)
+(12, 24)
+(12, 25)
+(12, 26)
+(13, 0)
+(13, 27)
+(14, 0)
+(14, 28)
+(14, 29)
+(14, 30)
+(15, 0)
+(15, 31)
+(16, 0)
+(16, 32)
+(16, 33)
+(16, 34)
+(16, 36)
+(17, 0)
+(17, 35)
+(17, 37)
+(18, 0)
+(18, 36)
+(18, 38)
+(18, 40)
+(19, 0)
+(19, 39)
+(19, 40)
+(19, 41)
+(20, 0)
+(20, 40)
+(20, 42)
+(20, 43)
+(20, 44)
+(20, 46)
+(20, 48)
+(21, 0)
+(21, 45)
+(22, 0)
+(22, 46)
+(22, 47)
+(22, 48)
+(22, 49)
+(22, 50)
+(23, 0)
+(23, 50)
+(23, 51)
+(24, 0)
+(24, 50)
+(24, 52)
+(24, 53)
+(24, 54)
+(25, 0)
+(25, 55)
+(26, 0)
+(26, 54)
+(26, 56)
+(26, 57)
+(26, 58)
+(27, 0)
+(27, 59)
+(28, 0)
+(28, 58)
+(28, 60)
+(28, 61)
+(28, 62)
+(28, 64)
+(29, 0)
+(29, 63)
+(29, 65)
+(30, 0)
+(30, 64)
+(30, 66)
+(30, 67)
+(30, 68)
+(30, 70)
+(31, 0)
+(31, 69)
+(31, 71)
+(32, 0)
+(32, 70)
+(32, 72)
+(32, 73)
+(32, 74)
+(32, 76)
+(33, 0)
+(33, 75)
+(34, 0)
+(34, 74)
+(34, 76)
+(34, 77)
+(34, 78)
+(34, 80)
+(34, 82)
+(35, 0)
+(35, 79)
+(35, 81)
+(36, 0)
+(36, 86)
+(37, 0)
+(37, 85)
+(37, 87)
+(38, 0)
+(38, 84)
+(38, 86)
+(38, 87)
+(38, 88)
+(39, 0)
+(39, 89)
+(40, 0)
+(40, 90)
+(40, 91)
+(40, 92)
+(40, 94)
+(40, 96)
+(41, 0)
+(41, 93)
+(42, 0)
+(42, 92)
+(42, 94)
+(42, 95)
+(42, 96)
+(42, 97)
+(42, 98)
+(42, 100)
+(43, 0)
+(44, 0)
+(45, 0)
+(45, 103)
+(46, 0)
+(46, 102)
+(46, 104)
+(46, 105)
+(46, 106)
+(46, 108)
+(46, 110)
+(47, 0)
+(47, 107)
+(47, 109)
+(48, 0)
+(48, 106)
+(48, 108)
+(48, 110)
+(48, 111)
+(48, 112)
+(48, 113)
+(48, 114)
+(48, 116)
+(49, 0)
+(49, 113)
+(49, 115)
+(50, 0)
+(50, 112)
+(50, 114)
+(50, 115)
+(50, 116)
+(50, 117)
+(50, 118)
+(50, 119)
+(50, 120)
+(50, 122)
+(50, 124)
+(51, 0)
+(51, 121)
+(51, 123)
+(52, 0)
+(52, 120)
+(52, 122)
+(52, 123)
+(52, 124)
+(52, 125)
+(52, 126)
+(52, 128)
+(52, 130)
+(53, 0)
+(53, 127)
+(54, 0)
+(55, 0)
+(55, 133)
+(56, 0)
+(56, 130)
+(56, 132)
+(56, 134)
+(56, 135)
+(56, 136)
+(56, 137)
+(56, 138)
+(57, 0)
+(57, 138)
+(57, 139)
+(58, 0)
+(58, 136)
+(58, 138)
+(58, 140)
+(58, 142)
+(59, 0)
+(59, 141)
+(60, 0)
+(60, 142)
+(60, 143)
+(60, 144)
+(60, 145)
+(60, 146)
+(60, 148)
+(60, 150)
+(61, 0)
+(62, 0)
+(62, 144)
+(62, 147)
+(62, 148)
+(62, 149)
+(62, 150)
+(62, 152)
+(62, 154)
+(63, 0)
+(63, 151)
+(63, 153)
+(64, 0)
+(64, 152)
+(64, 154)
+(64, 155)
+(64, 156)
+(64, 157)
+(64, 158)
+(64, 160)
+(65, 0)
+(65, 159)
+(66, 0)
+(66, 156)
+(66, 158)
+(66, 160)
+(66, 161)
+(66, 162)
+(66, 163)
+(66, 164)
+(67, 0)
+(67, 165)
+(68, 0)
+(68, 162)
+(68, 164)
+(68, 166)
+(68, 167)
+(68, 168)
+(68, 170)
+(69, 0)
+(69, 169)
+(70, 0)
+(70, 168)
+(70, 170)
+(70, 171)
+(70, 172)
+(70, 173)
+(70, 174)
+(70, 176)
+(71, 0)
+(71, 175)
+(71, 176)
+(72, 0)
+(72, 174)
+(72, 176)
+(72, 177)
+(72, 178)
+(72, 179)
+(72, 180)
+(73, 0)
+(73, 180)
+(73, 181)
+(74, 0)
+(74, 180)
+(74, 182)
+(74, 183)
+(74, 184)
+(74, 186)
+(75, 0)
+(75, 185)
+(75, 187)
+(76, 0)
+(76, 184)
+(76, 186)
+(76, 187)
+(76, 188)
+(76, 189)
+(76, 190)
+(76, 192)
+(77, 0)
+(78, 0)
+(78, 190)
+(78, 192)
+(78, 194)
+(78, 195)
+(78, 196)
+(78, 198)
+(79, 0)
+(79, 197)
+(80, 0)
+(80, 196)
+(80, 199)
+(81, 0)
+(81, 203)
+(81, 205)
+(82, 0)
+(82, 204)
+(82, 206)
+(82, 207)
+(82, 208)
+(83, 0)
+(83, 209)
+(88, 0)
+(90, 0)
+(90, 232)
+(91, 0)
+(92, 0)
+(92, 233)
+(92, 234)
+(92, 235)
+(92, 238)

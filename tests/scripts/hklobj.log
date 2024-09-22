@@ -1,0 +1,918 @@
+test 1)
+HKL( hkl_label=(1,1,1), d=2.33803Aa, F2=1.77316barn, N=8 )
+HKL( hkl_label=(2,0,0), d=2.02479Aa, F2=1.73179barn, N=6 )
+HKL( hkl_label=(2,2,0), d=1.43174Aa, F2=1.57574barn, N=12 )
+HKL( hkl_label=(3,1,1), d=1.22099Aa, F2=1.46799barn, N=24 )
+HKL( hkl_label=(2,2,2), d=1.16901Aa, F2=1.43374barn, N=8 )
+HKL( hkl_label=(4,0,0), d=1.01239Aa, F2=1.30455barn, N=6 )
+HKL( hkl_label=(3,3,1), d=0.929037Aa, F2=1.21535barn, N=24 )
+HKL( hkl_label=(4,2,0), d=0.905514Aa, F2=1.18699barn, N=24 )
+HKL( hkl_label=(4,2,2), d=0.826617Aa, F2=1.08003barn, N=24 )
+HKL( hkl_label=(5,1,1), d=0.779342Aa, F2=1.00619barn, N=24 )
+HKL( hkl_label=(3,3,3), d=0.779342Aa, F2=1.00619barn, N=8 )
+HKL( hkl_label=(4,4,0), d=0.715871Aa, F2=0.894157barn, N=12 )
+HKL( hkl_label=(5,3,1), d=0.684504Aa, F2=0.833019barn, N=48 )
+HKL( hkl_label=(4,4,2), d=0.67493Aa, F2=0.813584barn, N=24 )
+HKL( hkl_label=(6,0,0), d=0.67493Aa, F2=0.813584barn, N=6 )
+HKL( hkl_label=(6,2,0), d=0.640295Aa, F2=0.740271barn, N=24 )
+HKL( hkl_label=(5,3,3), d=0.617555Aa, F2=0.689655barn, N=24 )
+HKL( hkl_label=(6,2,2), d=0.610497Aa, F2=0.673564barn, N=24 )
+HKL( hkl_label=(4,4,4), d=0.584507Aa, F2=0.612869barn, N=8 )
+HKL( hkl_label=(5,5,1), d=0.567055Aa, F2=0.570964barn, N=24 )
+HKL( hkl_label=(7,1,1), d=0.567055Aa, F2=0.570964barn, N=24 )
+HKL( hkl_label=(6,4,0), d=0.561576Aa, F2=0.557643barn, N=24 )
+HKL( hkl_label=(6,4,2), d=0.541148Aa, F2=0.507393barn, N=48 )
+HKL( hkl_label=(7,3,1), d=0.52721Aa, F2=0.4727barn, N=48 )
+HKL( hkl_label=(5,5,3), d=0.52721Aa, F2=0.4727barn, N=24 )
+HKL( hkl_label=(8,0,0), d=0.506197Aa, F2=0.42007barn, N=6 )
+HKL( hkl_label=(17,13,7), d=0.179848Aa, F2=1.20584e-05barn, N=48 )
+HKL( hkl_label=(19,11,5), d=0.179848Aa, F2=1.20584e-05barn, N=48 )
+HKL( hkl_label=(13,13,13), d=0.179848Aa, F2=1.20584e-05barn, N=8 )
+HKL( hkl_label=(16,16,0), d=0.178968Aa, F2=1.07158e-05barn, N=12 )
+test 2)
+
+e.hkl_label=(1, 1, 1)
+e.f2=1.7731590373262052
+e.fsquared=1.7731590373262052
+e.d=2.3380261031049243
+e.dspacing=2.3380261031049243
+e.h=array([1, 1, 1, 1], dtype=int32)
+e.k=array([ 1,  1, -1, -1], dtype=int32)
+e.l=array([ 1, -1,  1, -1], dtype=int32)
+e.mult=8
+e.multiplicity=8
+
+e.hkl_label=(2, 0, 0)
+e.f2=1.7317882793764163
+e.fsquared=1.7317882793764163
+e.d=2.02479
+e.dspacing=2.02479
+e.h=array([2, 0, 0], dtype=int32)
+e.k=array([0, 2, 0], dtype=int32)
+e.l=array([0, 0, 2], dtype=int32)
+e.mult=6
+e.multiplicity=6
+
+e.hkl_label=(2, 2, 0)
+e.f2=1.5757351418107877
+e.fsquared=1.5757351418107877
+e.d=1.4317427394787092
+e.dspacing=1.4317427394787092
+e.h=array([2, 2, 2, 2, 0, 0], dtype=int32)
+e.k=array([ 2,  0,  0, -2,  2,  2], dtype=int32)
+e.l=array([ 0,  2, -2,  0,  2, -2], dtype=int32)
+e.mult=12
+e.multiplicity=12
+
+e.hkl_label=(3, 1, 1)
+e.f2=1.4679948742891846
+e.fsquared=1.4679948742891846
+e.d=1.22099431077522
+e.dspacing=1.22099431077522
+e.h=array([3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1], dtype=int32)
+e.k=array([ 1,  1, -1, -1,  3,  3,  1,  1, -1, -1, -3, -3], dtype=int32)
+e.l=array([ 1, -1,  1, -1,  1, -1,  3, -3,  3, -3,  1, -1], dtype=int32)
+e.mult=24
+e.multiplicity=24
+
+e.hkl_label=(2, 2, 2)
+e.f2=1.4337441052733788
+e.fsquared=1.4337441052733788
+e.d=1.1690130515524622
+e.dspacing=1.1690130515524622
+e.h=array([2, 2, 2, 2], dtype=int32)
+e.k=array([ 2,  2, -2, -2], dtype=int32)
+e.l=array([ 2, -2,  2, -2], dtype=int32)
+e.mult=8
+e.multiplicity=8
+
+e.hkl_label=(4, 0, 0)
+e.f2=1.304548020071382
+e.fsquared=1.304548020071382
+e.d=1.012395
+e.dspacing=1.012395
+e.h=array([4, 0, 0], dtype=int32)
+e.k=array([0, 4, 0], dtype=int32)
+e.l=array([0, 0, 4], dtype=int32)
+e.mult=6
+e.multiplicity=6
+
+e.hkl_label=(3, 3, 1)
+e.f2=1.215350064813654
+e.fsquared=1.215350064813654
+e.d=0.9290373675675494
+e.dspacing=0.9290373675675494
+e.h=array([3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1], dtype=int32)
+e.k=array([ 3,  3,  1,  1, -1, -1, -3, -3,  3,  3, -3, -3], dtype=int32)
+e.l=array([ 1, -1,  3, -3,  3, -3,  1, -1,  3, -3,  3, -3], dtype=int32)
+e.mult=24
+e.multiplicity=24
+
+e.hkl_label=(4, 2, 0)
+e.f2=1.1869939206115612
+e.fsquared=1.1869939206115612
+e.d=0.9055136160323597
+e.dspacing=0.9055136160323597
+e.h=array([4, 4, 4, 4, 2, 2, 2, 2, 0, 0, 0, 0], dtype=int32)
+e.k=array([ 2,  0,  0, -2,  4,  0,  0, -4,  4,  4,  2,  2], dtype=int32)
+e.l=array([ 0,  2, -2,  0,  0,  4, -4,  0,  2, -2,  4, -4], dtype=int32)
+e.mult=24
+e.multiplicity=24
+
+e.hkl_label=(4, 2, 2)
+e.f2=1.080032736159233
+e.fsquared=1.080032736159233
+e.d=0.826617056048325
+e.dspacing=0.826617056048325
+e.h=array([4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2], dtype=int32)
+e.k=array([ 2,  2, -2, -2,  4,  4,  2,  2, -2, -2, -4, -4], dtype=int32)
+e.l=array([ 2, -2,  2, -2,  2, -2,  4, -4,  4, -4,  2, -2], dtype=int32)
+e.mult=24
+e.multiplicity=24
+
+e.hkl_label=(5, 1, 1)
+e.f2=1.006185924700701
+e.fsquared=1.006185924700701
+e.d=0.7793420343683081
+e.dspacing=0.7793420343683081
+e.h=array([5, 5, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1], dtype=int32)
+e.k=array([ 1,  1, -1, -1,  5,  5,  1,  1, -1, -1, -5, -5], dtype=int32)
+e.l=array([ 1, -1,  1, -1,  1, -1,  5, -5,  5, -5,  1, -1], dtype=int32)
+e.mult=24
+e.multiplicity=24
+
+e.hkl_label=(3, 3, 3)
+e.f2=1.006185924700701
+e.fsquared=1.006185924700701
+e.d=0.7793420343683081
+e.dspacing=0.7793420343683081
+e.h=array([3, 3, 3, 3], dtype=int32)
+e.k=array([ 3,  3, -3, -3], dtype=int32)
+e.l=array([ 3, -3,  3, -3], dtype=int32)
+e.mult=8
+e.multiplicity=8
+
+e.hkl_label=(4, 4, 0)
+e.f2=0.8941569748515454
+e.fsquared=0.8941569748515454
+e.d=0.7158713697393546
+e.dspacing=0.7158713697393546
+e.h=array([4, 4, 4, 4, 0, 0], dtype=int32)
+e.k=array([ 4,  0,  0, -4,  4,  4], dtype=int32)
+e.l=array([ 0,  4, -4,  0,  4, -4], dtype=int32)
+e.mult=12
+e.multiplicity=12
+
+e.hkl_label=(5, 3, 1)
+e.f2=0.8330193451061647
+e.fsquared=0.8330193451061647
+e.d=0.6845039533727011
+e.dspacing=0.6845039533727011
+e.h=array([5, 5, 5, 5, 5, 5, 5, 5, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1,
+       1, 1], dtype=int32)
+e.k=array([ 3,  3,  1,  1, -1, -1, -3, -3,  5,  5,  1,  1, -1, -1, -5, -5,  5,
+        5,  3,  3, -3, -3, -5, -5], dtype=int32)
+e.l=array([ 1, -1,  3, -3,  3, -3,  1, -1,  1, -1,  5, -5,  5, -5,  1, -1,  3,
+       -3,  5, -5,  5, -5,  3, -3], dtype=int32)
+e.mult=48
+e.multiplicity=48
+
+e.hkl_label=(4, 4, 2)
+e.f2=0.8135836143181097
+e.fsquared=0.8135836143181097
+e.d=0.6749299999999999
+e.dspacing=0.6749299999999999
+e.h=array([4, 4, 4, 4, 4, 4, 4, 4, 2, 2, 2, 2], dtype=int32)
+e.k=array([ 4,  4,  2,  2, -2, -2, -4, -4,  4,  4, -4, -4], dtype=int32)
+e.l=array([ 2, -2,  4, -4,  4, -4,  2, -2,  4, -4,  4, -4], dtype=int32)
+e.mult=24
+e.multiplicity=24
+
+e.hkl_label=(6, 0, 0)
+e.f2=0.8135836143181099
+e.fsquared=0.8135836143181099
+e.d=0.6749299999999999
+e.dspacing=0.6749299999999999
+e.h=array([6, 0, 0], dtype=int32)
+e.k=array([0, 6, 0], dtype=int32)
+e.l=array([0, 0, 6], dtype=int32)
+e.mult=6
+e.multiplicity=6
+
+e.hkl_label=(6, 2, 0)
+e.f2=0.7402707981971683
+e.fsquared=0.7402707981971683
+e.d=0.6402948183532333
+e.dspacing=0.6402948183532333
+e.h=array([6, 6, 6, 6, 2, 2, 2, 2, 0, 0, 0, 0], dtype=int32)
+e.k=array([ 2,  0,  0, -2,  6,  0,  0, -6,  6,  6,  2,  2], dtype=int32)
+e.l=array([ 0,  2, -2,  0,  0,  6, -6,  0,  2, -2,  6, -6], dtype=int32)
+e.mult=24
+e.multiplicity=24
+
+e.hkl_label=(5, 3, 3)
+e.f2=0.6896550749579573
+e.fsquared=0.6896550749579573
+e.d=0.6175551604475091
+e.dspacing=0.6175551604475091
+e.h=array([5, 5, 5, 5, 3, 3, 3, 3, 3, 3, 3, 3], dtype=int32)
+e.k=array([ 3,  3, -3, -3,  5,  5,  3,  3, -3, -3, -5, -5], dtype=int32)
+e.l=array([ 3, -3,  3, -3,  3, -3,  5, -5,  5, -5,  3, -3], dtype=int32)
+e.mult=24
+e.multiplicity=24
+
+e.hkl_label=(6, 2, 2)
+e.f2=0.6735642717224208
+e.fsquared=0.6735642717224208
+e.d=0.61049715538761
+e.dspacing=0.61049715538761
+e.h=array([6, 6, 6, 6, 2, 2, 2, 2, 2, 2, 2, 2], dtype=int32)
+e.k=array([ 2,  2, -2, -2,  6,  6,  2,  2, -2, -2, -6, -6], dtype=int32)
+e.l=array([ 2, -2,  2, -2,  2, -2,  6, -6,  6, -6,  2, -2], dtype=int32)
+e.mult=24
+e.multiplicity=24
+
+e.hkl_label=(4, 4, 4)
+e.f2=0.6128687356651841
+e.fsquared=0.6128687356651841
+e.d=0.5845065257762311
+e.dspacing=0.5845065257762311
+e.h=array([4, 4, 4, 4], dtype=int32)
+e.k=array([ 4,  4, -4, -4], dtype=int32)
+e.l=array([ 4, -4,  4, -4], dtype=int32)
+e.mult=8
+e.multiplicity=8
+
+e.hkl_label=(5, 5, 1)
+e.f2=0.570964078096709
+e.fsquared=0.570964078096709
+e.d=0.5670546222678148
+e.dspacing=0.5670546222678148
+e.h=array([5, 5, 5, 5, 5, 5, 5, 5, 1, 1, 1, 1], dtype=int32)
+e.k=array([ 5,  5,  1,  1, -1, -1, -5, -5,  5,  5, -5, -5], dtype=int32)
+e.l=array([ 1, -1,  5, -5,  5, -5,  1, -1,  5, -5,  5, -5], dtype=int32)
+e.mult=24
+e.multiplicity=24
+
+e.hkl_label=(7, 1, 1)
+e.f2=0.570964078096709
+e.fsquared=0.570964078096709
+e.d=0.5670546222678148
+e.dspacing=0.5670546222678148
+e.h=array([7, 7, 7, 7, 1, 1, 1, 1, 1, 1, 1, 1], dtype=int32)
+e.k=array([ 1,  1, -1, -1,  7,  7,  1,  1, -1, -1, -7, -7], dtype=int32)
+e.l=array([ 1, -1,  1, -1,  1, -1,  7, -7,  7, -7,  1, -1], dtype=int32)
+e.mult=24
+e.multiplicity=24
+
+e.hkl_label=(6, 4, 0)
+e.f2=0.5576425337931692
+e.fsquared=0.5576425337931692
+e.d=0.5615757051574407
+e.dspacing=0.5615757051574407
+e.h=array([6, 6, 6, 6, 4, 4, 4, 4, 0, 0, 0, 0], dtype=int32)
+e.k=array([ 4,  0,  0, -4,  6,  0,  0, -6,  6,  6,  4,  4], dtype=int32)
+e.l=array([ 0,  4, -4,  0,  0,  6, -6,  0,  4, -4,  6, -6], dtype=int32)
+e.mult=24
+e.multiplicity=24
+
+e.hkl_label=(6, 4, 2)
+e.f2=0.5073928190475505
+e.fsquared=0.5073928190475505
+e.d=0.5411478900118577
+e.dspacing=0.5411478900118577
+e.h=array([6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2,
+       2, 2], dtype=int32)
+e.k=array([ 4,  4,  2,  2, -2, -2, -4, -4,  6,  6,  2,  2, -2, -2, -6, -6,  6,
+        6,  4,  4, -4, -4, -6, -6], dtype=int32)
+e.l=array([ 2, -2,  4, -4,  4, -4,  2, -2,  2, -2,  6, -6,  6, -6,  2, -2,  4,
+       -4,  6, -6,  6, -6,  4, -4], dtype=int32)
+e.mult=48
+e.multiplicity=48
+
+e.hkl_label=(7, 3, 1)
+e.f2=0.472700035589093
+e.fsquared=0.472700035589093
+e.d=0.5272104101297247
+e.dspacing=0.5272104101297247
+e.h=array([7, 7, 7, 7, 7, 7, 7, 7, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1,
+       1, 1], dtype=int32)
+e.k=array([ 3,  3,  1,  1, -1, -1, -3, -3,  7,  7,  1,  1, -1, -1, -7, -7,  7,
+        7,  3,  3, -3, -3, -7, -7], dtype=int32)
+e.l=array([ 1, -1,  3, -3,  3, -3,  1, -1,  1, -1,  7, -7,  7, -7,  1, -1,  3,
+       -3,  7, -7,  7, -7,  3, -3], dtype=int32)
+e.mult=48
+e.multiplicity=48
+
+e.hkl_label=(5, 5, 3)
+e.f2=0.4727000355890927
+e.fsquared=0.4727000355890927
+e.d=0.5272104101297247
+e.dspacing=0.5272104101297247
+e.h=array([5, 5, 5, 5, 5, 5, 5, 5, 3, 3, 3, 3], dtype=int32)
+e.k=array([ 5,  5,  3,  3, -3, -3, -5, -5,  5,  5, -5, -5], dtype=int32)
+e.l=array([ 3, -3,  5, -5,  5, -5,  3, -3,  5, -5,  5, -5], dtype=int32)
+e.mult=24
+e.multiplicity=24
+
+e.hkl_label=(8, 0, 0)
+e.f2=0.42006951544297094
+e.fsquared=0.42006951544297094
+e.d=0.5061975
+e.dspacing=0.5061975
+e.h=array([8, 0, 0], dtype=int32)
+e.k=array([0, 8, 0], dtype=int32)
+e.l=array([0, 0, 8], dtype=int32)
+e.mult=6
+e.multiplicity=6
+
+e.hkl_label=(8, 4, 4)
+e.f2=0.1973461067434936
+e.fsquared=0.1973461067434936
+e.d=0.4133085280241625
+e.dspacing=0.4133085280241625
+e.h=array([8, 8, 8, 8, 4, 4, 4, 4, 4, 4, 4, 4], dtype=int32)
+e.k=array([ 4,  4, -4, -4,  8,  8,  4,  4, -4, -4, -8, -8], dtype=int32)
+e.l=array([ 4, -4,  4, -4,  4, -4,  8, -8,  8, -8,  4, -4], dtype=int32)
+e.mult=24
+e.multiplicity=24
+
+e.hkl_label=(11, 3, 1)
+e.f2=0.0863728557087596
+e.fsquared=0.0863728557087596
+e.d=0.35381344737734055
+e.dspacing=0.35381344737734055
+e.h=array([11, 11, 11, 11, 11, 11, 11, 11,  3,  3,  3,  3,  3,  3,  3,  3,  1,
+        1,  1,  1,  1,  1,  1,  1], dtype=int32)
+e.k=array([  3,   3,   1,   1,  -1,  -1,  -3,  -3,  11,  11,   1,   1,  -1,
+        -1, -11, -11,  11,  11,   3,   3,  -3,  -3, -11, -11], dtype=int32)
+e.l=array([  1,  -1,   3,  -3,   3,  -3,   1,  -1,   1,  -1,  11, -11,  11,
+       -11,   1,  -1,   3,  -3,  11, -11,  11, -11,   3,  -3], dtype=int32)
+e.mult=48
+e.multiplicity=48
+
+e.hkl_label=(12, 4, 2)
+e.f2=0.03963070353377532
+e.fsquared=0.03963070353377532
+e.d=0.31621907133443067
+e.dspacing=0.31621907133443067
+e.h=array([12, 12, 12, 12, 12, 12, 12, 12,  4,  4,  4,  4,  4,  4,  4,  4,  2,
+        2,  2,  2,  2,  2,  2,  2], dtype=int32)
+e.k=array([  4,   4,   2,   2,  -2,  -2,  -4,  -4,  12,  12,   2,   2,  -2,
+        -2, -12, -12,  12,  12,   4,   4,  -4,  -4, -12, -12], dtype=int32)
+e.l=array([  2,  -2,   4,  -4,   4,  -4,   2,  -2,   2,  -2,  12, -12,  12,
+       -12,   2,  -2,   4,  -4,  12, -12,  12, -12,   4,  -4], dtype=int32)
+e.mult=48
+e.multiplicity=48
+
+e.hkl_label=(13, 5, 1)
+e.f2=0.01906303622501099
+e.fsquared=0.01906303622501099
+e.d=0.2899964471612606
+e.dspacing=0.2899964471612606
+e.h=array([13, 13, 13, 13, 13, 13, 13, 13,  5,  5,  5,  5,  5,  5,  5,  5,  1,
+        1,  1,  1,  1,  1,  1,  1], dtype=int32)
+e.k=array([  5,   5,   1,   1,  -1,  -1,  -5,  -5,  13,  13,   1,   1,  -1,
+        -1, -13, -13,  13,  13,   5,   5,  -5,  -5, -13, -13], dtype=int32)
+e.l=array([  1,  -1,   5,  -5,   5,  -5,   1,  -1,   1,  -1,  13, -13,  13,
+       -13,   1,  -1,   5,  -5,  13, -13,  13, -13,   5,  -5], dtype=int32)
+e.mult=48
+e.multiplicity=48
+
+e.hkl_label=(13, 5, 5)
+e.f2=0.010817393323381252
+e.fsquared=0.010817393323381252
+e.d=0.273645257281899
+e.dspacing=0.273645257281899
+e.h=array([13, 13, 13, 13,  5,  5,  5,  5,  5,  5,  5,  5], dtype=int32)
+e.k=array([  5,   5,  -5,  -5,  13,  13,   5,   5,  -5,  -5, -13, -13],
+      dtype=int32)
+e.l=array([  5,  -5,   5,  -5,   5,  -5,  13, -13,  13, -13,   5,  -5],
+      dtype=int32)
+e.mult=24
+e.multiplicity=24
+
+e.hkl_label=(13, 9, 1)
+e.f2=0.0050819456756608416
+e.fsquared=0.0050819456756608416
+e.d=0.25560722308968015
+e.dspacing=0.25560722308968015
+e.h=array([13, 13, 13, 13, 13, 13, 13, 13,  9,  9,  9,  9,  9,  9,  9,  9,  1,
+        1,  1,  1,  1,  1,  1,  1], dtype=int32)
+e.k=array([  9,   9,   1,   1,  -1,  -1,  -9,  -9,  13,  13,   1,   1,  -1,
+        -1, -13, -13,  13,  13,   9,   9,  -9,  -9, -13, -13], dtype=int32)
+e.l=array([  1,  -1,   9,  -9,   9,  -9,   1,  -1,   1,  -1,  13, -13,  13,
+       -13,   1,  -1,   9,  -9,  13, -13,  13, -13,   9,  -9], dtype=int32)
+e.mult=48
+e.multiplicity=48
+
+e.hkl_label=(14, 8, 4)
+e.f2=0.002816486489828135
+e.fsquared=0.002816486489828135
+e.d=0.24375607146953457
+e.dspacing=0.24375607146953457
+e.h=array([14, 14, 14, 14, 14, 14, 14, 14,  8,  8,  8,  8,  8,  8,  8,  8,  4,
+        4,  4,  4,  4,  4,  4,  4], dtype=int32)
+e.k=array([  8,   8,   4,   4,  -4,  -4,  -8,  -8,  14,  14,   4,   4,  -4,
+        -4, -14, -14,  14,  14,   8,   8,  -8,  -8, -14, -14], dtype=int32)
+e.l=array([  4,  -4,   8,  -8,   8,  -8,   4,  -4,   4,  -4,  14, -14,  14,
+       -14,   4,  -4,   8,  -8,  14, -14,  14, -14,   8,  -8], dtype=int32)
+e.mult=48
+e.multiplicity=48
+
+e.hkl_label=(10, 10, 10)
+e.f2=0.001598226105791436
+e.fsquared=0.001598226105791436
+e.d=0.23380261031049243
+e.dspacing=0.23380261031049243
+e.h=array([10, 10, 10, 10], dtype=int32)
+e.k=array([ 10,  10, -10, -10], dtype=int32)
+e.l=array([ 10, -10,  10, -10], dtype=int32)
+e.mult=8
+e.multiplicity=8
+
+e.hkl_label=(15, 9, 5)
+e.f2=0.0007687736889276991
+e.fsquared=0.0007687736889276991
+e.d=0.2225850472335546
+e.dspacing=0.2225850472335546
+e.h=array([15, 15, 15, 15, 15, 15, 15, 15,  9,  9,  9,  9,  9,  9,  9,  9,  5,
+        5,  5,  5,  5,  5,  5,  5], dtype=int32)
+e.k=array([  9,   9,   5,   5,  -5,  -5,  -9,  -9,  15,  15,   5,   5,  -5,
+        -5, -15, -15,  15,  15,   9,   9,  -9,  -9, -15, -15], dtype=int32)
+e.l=array([  5,  -5,   9,  -9,   9,  -9,   5,  -5,   5,  -5,  15, -15,  15,
+       -15,   5,  -5,   9,  -9,  15, -15,  15, -15,   9,  -9], dtype=int32)
+e.mult=48
+e.multiplicity=48
+
+e.hkl_label=(14, 12, 4)
+e.f2=0.0004260652999441281
+e.fsquared=0.0004260652999441281
+e.d=0.21462731074580776
+e.dspacing=0.21462731074580776
+e.h=array([14, 14, 14, 14, 14, 14, 14, 14, 12, 12, 12, 12, 12, 12, 12, 12,  4,
+        4,  4,  4,  4,  4,  4,  4], dtype=int32)
+e.k=array([ 12,  12,   4,   4,  -4,  -4, -12, -12,  14,  14,   4,   4,  -4,
+        -4, -14, -14,  14,  14,  12,  12, -12, -12, -14, -14], dtype=int32)
+e.l=array([  4,  -4,  12, -12,  12, -12,   4,  -4,   4,  -4,  14, -14,  14,
+       -14,   4,  -4,  12, -12,  14, -14,  14, -14,  12, -12], dtype=int32)
+e.mult=48
+e.multiplicity=48
+
+e.hkl_label=(19, 3, 3)
+e.f2=0.00024754810556953884
+e.fsquared=0.00024754810556953884
+e.d=0.20801295230882183
+e.dspacing=0.20801295230882183
+e.h=array([19, 19, 19, 19,  3,  3,  3,  3,  3,  3,  3,  3], dtype=int32)
+e.k=array([  3,   3,  -3,  -3,  19,  19,   3,   3,  -3,  -3, -19, -19],
+      dtype=int32)
+e.l=array([  3,  -3,   3,  -3,   3,  -3,  19, -19,  19, -19,   3,  -3],
+      dtype=int32)
+e.mult=24
+e.multiplicity=24
+
+e.hkl_label=(15, 13, 3)
+e.f2=0.00014047212588780912
+e.fsquared=0.00014047212588780912
+e.d=0.20172394827140247
+e.dspacing=0.20172394827140247
+e.h=array([15, 15, 15, 15, 15, 15, 15, 15, 13, 13, 13, 13, 13, 13, 13, 13,  3,
+        3,  3,  3,  3,  3,  3,  3], dtype=int32)
+e.k=array([ 13,  13,   3,   3,  -3,  -3, -13, -13,  15,  15,   3,   3,  -3,
+        -3, -15, -15,  15,  15,  13,  13, -13, -13, -15, -15], dtype=int32)
+e.l=array([  3,  -3,  13, -13,  13, -13,   3,  -3,   3,  -3,  15, -15,  15,
+       -15,   3,  -3,  13, -13,  15, -15,  15, -15,  13, -13], dtype=int32)
+e.mult=48
+e.multiplicity=48
+
+e.hkl_label=(18, 8, 6)
+e.f2=8.556169598046277e-05
+e.fsquared=8.556169598046277e-05
+e.d=0.19666499012423647
+e.dspacing=0.19666499012423647
+e.h=array([18, 18, 18, 18, 18, 18, 18, 18,  8,  8,  8,  8,  8,  8,  8,  8,  6,
+        6,  6,  6,  6,  6,  6,  6], dtype=int32)
+e.k=array([  8,   8,   6,   6,  -6,  -6,  -8,  -8,  18,  18,   6,   6,  -6,
+        -6, -18, -18,  18,  18,   8,   8,  -8,  -8, -18, -18], dtype=int32)
+e.l=array([  6,  -6,   8,  -8,   8,  -8,   6,  -6,   6,  -6,  18, -18,  18,
+       -18,   6,  -6,   8,  -8,  18, -18,  18, -18,   8,  -8], dtype=int32)
+e.mult=48
+e.multiplicity=48
+
+e.hkl_label=(17, 9, 9)
+e.f2=4.5232568634543095e-05
+e.fsquared=4.5232568634543095e-05
+e.d=0.19068727475835184
+e.dspacing=0.19068727475835184
+e.h=array([17, 17, 17, 17,  9,  9,  9,  9,  9,  9,  9,  9], dtype=int32)
+e.k=array([  9,   9,  -9,  -9,  17,  17,   9,   9,  -9,  -9, -17, -17],
+      dtype=int32)
+e.l=array([  9,  -9,   9,  -9,   9,  -9,  17, -17,  17, -17,   9,  -9],
+      dtype=int32)
+e.mult=24
+e.multiplicity=24
+
+e.hkl_label=(16, 14, 4)
+e.f2=3.027973399600386e-05
+e.fsquared=3.027973399600386e-05
+e.d=0.1871919017191469
+e.dspacing=0.1871919017191469
+e.h=array([16, 16, 16, 16, 16, 16, 16, 16, 14, 14, 14, 14, 14, 14, 14, 14,  4,
+        4,  4,  4,  4,  4,  4,  4], dtype=int32)
+e.k=array([ 14,  14,   4,   4,  -4,  -4, -14, -14,  16,  16,   4,   4,  -4,
+        -4, -16, -16,  16,  16,  14,  14, -14, -14, -16, -16], dtype=int32)
+e.l=array([  4,  -4,  14, -14,  14, -14,   4,  -4,   4,  -4,  16, -16,  16,
+       -16,   4,  -4,  14, -14,  16, -16,  16, -16,  14, -14], dtype=int32)
+e.mult=48
+e.multiplicity=48
+
+e.hkl_label=(21, 7, 1)
+e.f2=1.7592821543653694e-05
+e.fsquared=1.7592821543653694e-05
+e.d=0.18275498703998116
+e.dspacing=0.18275498703998116
+e.h=array([21, 21, 21, 21, 21, 21, 21, 21,  7,  7,  7,  7,  7,  7,  7,  7,  1,
+        1,  1,  1,  1,  1,  1,  1], dtype=int32)
+e.k=array([  7,   7,   1,   1,  -1,  -1,  -7,  -7,  21,  21,   1,   1,  -1,
+        -1, -21, -21,  21,  21,   7,   7,  -7,  -7, -21, -21], dtype=int32)
+e.l=array([  1,  -1,   7,  -7,   7,  -7,   1,  -1,   1,  -1,  21, -21,  21,
+       -21,   1,  -1,   7,  -7,  21, -21,  21, -21,   7,  -7], dtype=int32)
+e.mult=48
+e.multiplicity=48
+test 3)
+
+HKL( hkl_label=(1,1,1), d=2.33803Aa, F2=1.77316barn, N=8 )
+(1, 1, 1) 8 2.3380261031049243 1.7731590373262052
+[1 1 1 1] [ 1  1 -1 -1] [ 1 -1  1 -1]
+
+HKL( hkl_label=(2,0,0), d=2.02479Aa, F2=1.73179barn, N=6 )
+(2, 0, 0) 6 2.02479 1.7317882793764163
+[2 0 0] [0 2 0] [0 0 2]
+
+HKL( hkl_label=(2,2,0), d=1.43174Aa, F2=1.57574barn, N=12 )
+(2, 2, 0) 12 1.4317427394787092 1.5757351418107877
+[2 2 2 2 0 0] [ 2  0  0 -2  2  2] [ 0  2 -2  0  2 -2]
+test 4)
+HKL( hkl_label=(1,1,1), d=2.33803Aa, F2=1.77316barn, N=8 )
+HKL( hkl_label=(2,0,0), d=2.02479Aa, F2=1.73179barn, N=6 )
+HKL( hkl_label=(2,2,0), d=1.43174Aa, F2=1.57574barn, N=12 )
+HKL( hkl_label=(3,1,1), d=1.22099Aa, F2=1.46799barn, N=24 )
+HKL( hkl_label=(2,2,2), d=1.16901Aa, F2=1.43374barn, N=8 )
+HKL( hkl_label=(4,0,0), d=1.01239Aa, F2=1.30455barn, N=6 )
+HKL( hkl_label=(3,3,1), d=0.929037Aa, F2=1.21535barn, N=24 )
+HKL( hkl_label=(4,2,0), d=0.905514Aa, F2=1.18699barn, N=24 )
+HKL( hkl_label=(4,2,2), d=0.826617Aa, F2=1.08003barn, N=24 )
+HKL( hkl_label=(5,1,1), d=0.779342Aa, F2=1.00619barn, N=24 )
+HKL( hkl_label=(3,3,3), d=0.779342Aa, F2=1.00619barn, N=8 )
+HKL( hkl_label=(4,4,0), d=0.715871Aa, F2=0.894157barn, N=12 )
+HKL( hkl_label=(5,3,1), d=0.684504Aa, F2=0.833019barn, N=48 )
+HKL( hkl_label=(4,4,2), d=0.67493Aa, F2=0.813584barn, N=24 )
+HKL( hkl_label=(6,0,0), d=0.67493Aa, F2=0.813584barn, N=6 )
+HKL( hkl_label=(6,2,0), d=0.640295Aa, F2=0.740271barn, N=24 )
+HKL( hkl_label=(5,3,3), d=0.617555Aa, F2=0.689655barn, N=24 )
+HKL( hkl_label=(6,2,2), d=0.610497Aa, F2=0.673564barn, N=24 )
+HKL( hkl_label=(4,4,4), d=0.584507Aa, F2=0.612869barn, N=8 )
+HKL( hkl_label=(5,5,1), d=0.567055Aa, F2=0.570964barn, N=24 )
+HKL( hkl_label=(7,1,1), d=0.567055Aa, F2=0.570964barn, N=24 )
+HKL( hkl_label=(6,4,0), d=0.561576Aa, F2=0.557643barn, N=24 )
+HKL( hkl_label=(6,4,2), d=0.541148Aa, F2=0.507393barn, N=48 )
+HKL( hkl_label=(7,3,1), d=0.52721Aa, F2=0.4727barn, N=48 )
+HKL( hkl_label=(5,5,3), d=0.52721Aa, F2=0.4727barn, N=24 )
+HKL( hkl_label=(8,0,0), d=0.506197Aa, F2=0.42007barn, N=6 )
+HKL( hkl_label=(7,3,3), d=0.494735Aa, F2=0.391347barn, N=24 )
+HKL( hkl_label=(6,4,4), d=0.491084Aa, F2=0.382217barn, N=24 )
+HKL( hkl_label=(8,2,0), d=0.491084Aa, F2=0.382217barn, N=24 )
+HKL( hkl_label=(8,2,2), d=0.477248Aa, F2=0.347775barn, N=24 )
+HKL( hkl_label=(6,6,0), d=0.477248Aa, F2=0.347775barn, N=12 )
+HKL( hkl_label=(7,5,1), d=0.467605Aa, F2=0.323996barn, N=48 )
+HKL( hkl_label=(5,5,5), d=0.467605Aa, F2=0.323996barn, N=8 )
+HKL( hkl_label=(6,6,2), d=0.464519Aa, F2=0.316436barn, N=24 )
+HKL( hkl_label=(8,4,0), d=0.452757Aa, F2=0.287922barn, N=24 )
+HKL( hkl_label=(7,5,3), d=0.444499Aa, F2=0.268235barn, N=48 )
+HKL( hkl_label=(9,1,1), d=0.444499Aa, F2=0.268235barn, N=24 )
+HKL( hkl_label=(8,4,2), d=0.441845Aa, F2=0.261977barn, N=48 )
+HKL( hkl_label=(6,6,4), d=0.431687Aa, F2=0.23837barn, N=24 )
+HKL( hkl_label=(9,3,1), d=0.424511Aa, F2=0.222072barn, N=48 )
+HKL( hkl_label=(8,4,4), d=0.413309Aa, F2=0.197346barn, N=24 )
+HKL( hkl_label=(7,5,5), d=0.406998Aa, F2=0.183853barn, N=24 )
+HKL( hkl_label=(7,7,1), d=0.406998Aa, F2=0.183853barn, N=24 )
+HKL( hkl_label=(9,3,3), d=0.406998Aa, F2=0.183853barn, N=24 )
+HKL( hkl_label=(8,6,0), d=0.404958Aa, F2=0.179563barn, N=24 )
+HKL( hkl_label=(10,0,0), d=0.404958Aa, F2=0.179563barn, N=6 )
+HKL( hkl_label=(8,6,2), d=0.397094Aa, F2=0.163382barn, N=48 )
+HKL( hkl_label=(10,2,0), d=0.397094Aa, F2=0.163382barn, N=24 )
+HKL( hkl_label=(9,5,1), d=0.391488Aa, F2=0.152211barn, N=48 )
+HKL( hkl_label=(7,7,3), d=0.391488Aa, F2=0.152211barn, N=24 )
+HKL( hkl_label=(10,2,2), d=0.389671Aa, F2=0.14866barn, N=24 )
+HKL( hkl_label=(6,6,6), d=0.389671Aa, F2=0.14866barn, N=8 )
+HKL( hkl_label=(9,5,3), d=0.377625Aa, F2=0.126015barn, N=48 )
+HKL( hkl_label=(8,6,4), d=0.375994Aa, F2=0.123075barn, N=48 )
+HKL( hkl_label=(10,4,0), d=0.375994Aa, F2=0.123075barn, N=24 )
+HKL( hkl_label=(10,4,2), d=0.369674Aa, F2=0.111985barn, N=48 )
+HKL( hkl_label=(7,7,5), d=0.365138Aa, F2=0.104328barn, N=24 )
+HKL( hkl_label=(11,1,1), d=0.365138Aa, F2=0.104328barn, N=24 )
+HKL( hkl_label=(8,8,0), d=0.357936Aa, F2=0.092712barn, N=12 )
+HKL( hkl_label=(9,7,1), d=0.353813Aa, F2=0.0863729barn, N=48 )
+HKL( hkl_label=(11,3,1), d=0.353813Aa, F2=0.0863729barn, N=48 )
+HKL( hkl_label=(9,5,5), d=0.353813Aa, F2=0.0863729barn, N=24 )
+HKL( hkl_label=(8,8,2), d=0.352471Aa, F2=0.0843576barn, N=24 )
+HKL( hkl_label=(10,4,4), d=0.352471Aa, F2=0.0843576barn, N=24 )
+HKL( hkl_label=(8,6,6), d=0.347249Aa, F2=0.0767561barn, N=24 )
+HKL( hkl_label=(10,6,0), d=0.347249Aa, F2=0.0767561barn, N=24 )
+HKL( hkl_label=(9,7,3), d=0.343481Aa, F2=0.0715079barn, N=48 )
+HKL( hkl_label=(11,3,3), d=0.343481Aa, F2=0.0715079barn, N=24 )
+HKL( hkl_label=(10,6,2), d=0.342252Aa, F2=0.0698395barn, N=48 )
+HKL( hkl_label=(8,8,4), d=0.337465Aa, F2=0.0635462barn, N=24 )
+HKL( hkl_label=(12,0,0), d=0.337465Aa, F2=0.0635462barn, N=6 )
+HKL( hkl_label=(11,5,1), d=0.334004Aa, F2=0.0592013barn, N=48 )
+HKL( hkl_label=(7,7,7), d=0.334004Aa, F2=0.0592013barn, N=8 )
+HKL( hkl_label=(12,2,0), d=0.332873Aa, F2=0.05782barn, N=24 )
+HKL( hkl_label=(10,6,4), d=0.328464Aa, F2=0.0526098barn, N=48 )
+HKL( hkl_label=(12,2,2), d=0.328464Aa, F2=0.0526098barn, N=24 )
+HKL( hkl_label=(9,7,5), d=0.32527Aa, F2=0.0490126barn, N=48 )
+HKL( hkl_label=(11,5,3), d=0.32527Aa, F2=0.0490126barn, N=48 )
+HKL( hkl_label=(12,4,0), d=0.320147Aa, F2=0.0435555barn, N=24 )
+HKL( hkl_label=(9,9,1), d=0.317188Aa, F2=0.0405774barn, N=24 )
+HKL( hkl_label=(12,4,2), d=0.316219Aa, F2=0.0396307barn, N=48 )
+HKL( hkl_label=(8,8,6), d=0.316219Aa, F2=0.0396307barn, N=24 )
+HKL( hkl_label=(10,8,0), d=0.316219Aa, F2=0.0396307barn, N=24 )
+HKL( hkl_label=(10,8,2), d=0.312432Aa, F2=0.0360595barn, N=48 )
+HKL( hkl_label=(11,7,1), d=0.309679Aa, F2=0.033594barn, N=48 )
+HKL( hkl_label=(9,9,3), d=0.309679Aa, F2=0.033594barn, N=24 )
+HKL( hkl_label=(11,5,5), d=0.309679Aa, F2=0.033594barn, N=24 )
+HKL( hkl_label=(13,1,1), d=0.309679Aa, F2=0.033594barn, N=24 )
+HKL( hkl_label=(10,6,6), d=0.308778Aa, F2=0.0328102barn, N=24 )
+HKL( hkl_label=(12,4,4), d=0.305249Aa, F2=0.0298536barn, N=24 )
+HKL( hkl_label=(11,7,3), d=0.30268Aa, F2=0.0278124barn, N=48 )
+HKL( hkl_label=(13,3,1), d=0.30268Aa, F2=0.0278124barn, N=48 )
+HKL( hkl_label=(9,7,7), d=0.30268Aa, F2=0.0278124barn, N=24 )
+HKL( hkl_label=(10,8,4), d=0.301838Aa, F2=0.0271635barn, N=48 )
+HKL( hkl_label=(12,6,0), d=0.301838Aa, F2=0.0271635barn, N=24 )
+HKL( hkl_label=(12,6,2), d=0.298539Aa, F2=0.0247158barn, N=48 )
+HKL( hkl_label=(9,9,5), d=0.296135Aa, F2=0.0230258barn, N=24 )
+HKL( hkl_label=(13,3,3), d=0.296135Aa, F2=0.0230258barn, N=24 )
+HKL( hkl_label=(8,8,8), d=0.292253Aa, F2=0.0204621barn, N=8 )
+HKL( hkl_label=(11,7,5), d=0.289996Aa, F2=0.019063barn, N=48 )
+HKL( hkl_label=(13,5,1), d=0.289996Aa, F2=0.019063barn, N=48 )
+HKL( hkl_label=(12,6,4), d=0.289256Aa, F2=0.0186183barn, N=48 )
+HKL( hkl_label=(14,0,0), d=0.289256Aa, F2=0.0186183barn, N=6 )
+HKL( hkl_label=(10,8,6), d=0.286349Aa, F2=0.0169406barn, N=48 )
+HKL( hkl_label=(14,2,0), d=0.286349Aa, F2=0.0169406barn, N=24 )
+HKL( hkl_label=(10,10,0), d=0.286349Aa, F2=0.0169406barn, N=12 )
+HKL( hkl_label=(11,9,1), d=0.284225Aa, F2=0.0157823barn, N=48 )
+HKL( hkl_label=(13,5,3), d=0.284225Aa, F2=0.0157823barn, N=48 )
+HKL( hkl_label=(10,10,2), d=0.283527Aa, F2=0.015414barn, N=24 )
+HKL( hkl_label=(14,2,2), d=0.283527Aa, F2=0.015414barn, N=24 )
+HKL( hkl_label=(12,8,0), d=0.280788Aa, F2=0.0140251barn, N=24 )
+HKL( hkl_label=(11,9,3), d=0.278785Aa, F2=0.0130661barn, N=48 )
+HKL( hkl_label=(9,9,7), d=0.278785Aa, F2=0.0130661barn, N=24 )
+HKL( hkl_label=(12,8,2), d=0.278126Aa, F2=0.0127612barn, N=48 )
+HKL( hkl_label=(14,4,0), d=0.278126Aa, F2=0.0127612barn, N=24 )
+HKL( hkl_label=(14,4,2), d=0.275539Aa, F2=0.0116113barn, N=48 )
+HKL( hkl_label=(10,10,4), d=0.275539Aa, F2=0.0116113barn, N=24 )
+HKL( hkl_label=(12,6,6), d=0.275539Aa, F2=0.0116113barn, N=24 )
+HKL( hkl_label=(13,7,1), d=0.273645Aa, F2=0.0108174barn, N=48 )
+HKL( hkl_label=(11,7,7), d=0.273645Aa, F2=0.0108174barn, N=24 )
+HKL( hkl_label=(13,5,5), d=0.273645Aa, F2=0.0108174barn, N=24 )
+HKL( hkl_label=(12,8,4), d=0.270574Aa, F2=0.00961298barn, N=48 )
+HKL( hkl_label=(11,9,5), d=0.26878Aa, F2=0.0089557barn, N=48 )
+HKL( hkl_label=(13,7,3), d=0.26878Aa, F2=0.0089557barn, N=48 )
+HKL( hkl_label=(15,1,1), d=0.26878Aa, F2=0.0089557barn, N=24 )
+HKL( hkl_label=(10,8,8), d=0.26819Aa, F2=0.00874675barn, N=24 )
+HKL( hkl_label=(14,4,4), d=0.26819Aa, F2=0.00874675barn, N=24 )
+HKL( hkl_label=(14,6,0), d=0.265868Aa, F2=0.00795857barn, N=24 )
+HKL( hkl_label=(15,3,1), d=0.264165Aa, F2=0.00741441barn, N=48 )
+HKL( hkl_label=(14,6,2), d=0.263605Aa, F2=0.00724141barn, N=48 )
+HKL( hkl_label=(10,10,6), d=0.263605Aa, F2=0.00724141barn, N=24 )
+HKL( hkl_label=(13,7,5), d=0.259781Aa, F2=0.00613837barn, N=48 )
+HKL( hkl_label=(11,11,1), d=0.259781Aa, F2=0.00613837barn, N=24 )
+HKL( hkl_label=(15,3,3), d=0.259781Aa, F2=0.00613837barn, N=24 )
+HKL( hkl_label=(9,9,9), d=0.259781Aa, F2=0.00613837barn, N=8 )
+HKL( hkl_label=(12,8,6), d=0.259248Aa, F2=0.00599515barn, N=48 )
+HKL( hkl_label=(12,10,0), d=0.259248Aa, F2=0.00599515barn, N=24 )
+HKL( hkl_label=(12,10,2), d=0.257149Aa, F2=0.00545492barn, N=48 )
+HKL( hkl_label=(14,6,4), d=0.257149Aa, F2=0.00545492barn, N=48 )
+HKL( hkl_label=(11,9,7), d=0.255607Aa, F2=0.00508195barn, N=48 )
+HKL( hkl_label=(13,9,1), d=0.255607Aa, F2=0.00508195barn, N=48 )
+HKL( hkl_label=(15,5,1), d=0.255607Aa, F2=0.00508195barn, N=48 )
+HKL( hkl_label=(11,11,3), d=0.255607Aa, F2=0.00508195barn, N=24 )
+HKL( hkl_label=(16,0,0), d=0.253099Aa, F2=0.00451612barn, N=6 )
+HKL( hkl_label=(13,9,3), d=0.251629Aa, F2=0.00420733barn, N=48 )
+HKL( hkl_label=(15,5,3), d=0.251629Aa, F2=0.00420733barn, N=48 )
+HKL( hkl_label=(12,10,4), d=0.251144Aa, F2=0.00410917barn, N=48 )
+HKL( hkl_label=(14,8,0), d=0.251144Aa, F2=0.00410917barn, N=24 )
+HKL( hkl_label=(16,2,0), d=0.251144Aa, F2=0.00410917barn, N=24 )
+HKL( hkl_label=(14,8,2), d=0.249234Aa, F2=0.00373889barn, N=48 )
+HKL( hkl_label=(10,10,8), d=0.249234Aa, F2=0.00373889barn, N=24 )
+HKL( hkl_label=(16,2,2), d=0.249234Aa, F2=0.00373889barn, N=24 )
+HKL( hkl_label=(11,11,5), d=0.24783Aa, F2=0.00348324barn, N=24 )
+HKL( hkl_label=(13,7,7), d=0.24783Aa, F2=0.00348324barn, N=24 )
+HKL( hkl_label=(14,6,6), d=0.247367Aa, F2=0.00340197barn, N=24 )
+HKL( hkl_label=(12,8,8), d=0.245542Aa, F2=0.00309542barn, N=24 )
+HKL( hkl_label=(16,4,0), d=0.245542Aa, F2=0.00309542barn, N=24 )
+HKL( hkl_label=(13,9,5), d=0.244199Aa, F2=0.00288377barn, N=48 )
+HKL( hkl_label=(15,7,1), d=0.244199Aa, F2=0.00288377barn, N=48 )
+HKL( hkl_label=(15,5,5), d=0.244199Aa, F2=0.00288377barn, N=24 )
+HKL( hkl_label=(14,8,4), d=0.243756Aa, F2=0.00281649barn, N=48 )
+HKL( hkl_label=(16,4,2), d=0.243756Aa, F2=0.00281649barn, N=48 )
+HKL( hkl_label=(12,10,6), d=0.242009Aa, F2=0.00256269barn, N=48 )
+HKL( hkl_label=(15,7,3), d=0.240723Aa, F2=0.00238747barn, N=48 )
+HKL( hkl_label=(11,9,9), d=0.240723Aa, F2=0.00238747barn, N=24 )
+HKL( hkl_label=(16,4,4), d=0.238624Aa, F2=0.00212165barn, N=24 )
+HKL( hkl_label=(12,12,0), d=0.238624Aa, F2=0.00212165barn, N=12 )
+HKL( hkl_label=(13,11,1), d=0.237391Aa, F2=0.00197658barn, N=48 )
+HKL( hkl_label=(11,11,7), d=0.237391Aa, F2=0.00197658barn, N=24 )
+HKL( hkl_label=(17,1,1), d=0.237391Aa, F2=0.00197658barn, N=24 )
+HKL( hkl_label=(12,12,2), d=0.236984Aa, F2=0.00193046barn, N=24 )
+HKL( hkl_label=(16,6,0), d=0.236984Aa, F2=0.00193046barn, N=24 )
+HKL( hkl_label=(14,8,6), d=0.235377Aa, F2=0.00175651barn, N=48 )
+HKL( hkl_label=(16,6,2), d=0.235377Aa, F2=0.00175651barn, N=48 )
+HKL( hkl_label=(14,10,0), d=0.235377Aa, F2=0.00175651barn, N=24 )
+HKL( hkl_label=(13,9,7), d=0.234193Aa, F2=0.00163641barn, N=48 )
+HKL( hkl_label=(13,11,3), d=0.234193Aa, F2=0.00163641barn, N=48 )
+HKL( hkl_label=(15,7,5), d=0.234193Aa, F2=0.00163641barn, N=48 )
+HKL( hkl_label=(17,3,1), d=0.234193Aa, F2=0.00163641barn, N=48 )
+HKL( hkl_label=(14,10,2), d=0.233803Aa, F2=0.00159823barn, N=48 )
+HKL( hkl_label=(10,10,10), d=0.233803Aa, F2=0.00159823barn, N=8 )
+HKL( hkl_label=(12,12,4), d=0.232259Aa, F2=0.00145421barn, N=24 )
+HKL( hkl_label=(15,9,1), d=0.231122Aa, F2=0.00135478barn, N=48 )
+HKL( hkl_label=(17,3,3), d=0.231122Aa, F2=0.00135478barn, N=24 )
+HKL( hkl_label=(12,10,8), d=0.230746Aa, F2=0.00132317barn, N=48 )
+HKL( hkl_label=(16,6,4), d=0.230746Aa, F2=0.00132317barn, N=48 )
+HKL( hkl_label=(14,10,4), d=0.229262Aa, F2=0.00120394barn, N=48 )
+HKL( hkl_label=(13,11,5), d=0.228168Aa, F2=0.00112162barn, N=48 )
+HKL( hkl_label=(15,9,3), d=0.228168Aa, F2=0.00112162barn, N=48 )
+HKL( hkl_label=(17,5,1), d=0.228168Aa, F2=0.00112162barn, N=48 )
+HKL( hkl_label=(16,8,0), d=0.226378Aa, F2=0.000996736barn, N=24 )
+HKL( hkl_label=(17,5,3), d=0.225325Aa, F2=0.000928585barn, N=48 )
+HKL( hkl_label=(11,11,9), d=0.225325Aa, F2=0.000928585barn, N=24 )
+HKL( hkl_label=(15,7,7), d=0.225325Aa, F2=0.000928585barn, N=24 )
+HKL( hkl_label=(16,8,2), d=0.224977Aa, F2=0.00090692barn, N=48 )
+HKL( hkl_label=(12,12,6), d=0.224977Aa, F2=0.00090692barn, N=24 )
+HKL( hkl_label=(14,8,8), d=0.224977Aa, F2=0.00090692barn, N=24 )
+HKL( hkl_label=(18,0,0), d=0.224977Aa, F2=0.00090692barn, N=6 )
+HKL( hkl_label=(16,6,6), d=0.223601Aa, F2=0.000825196barn, N=24 )
+HKL( hkl_label=(18,2,0), d=0.223601Aa, F2=0.000825196barn, N=24 )
+HKL( hkl_label=(15,9,5), d=0.222585Aa, F2=0.000768774barn, N=48 )
+HKL( hkl_label=(13,9,9), d=0.222585Aa, F2=0.000768774barn, N=24 )
+HKL( hkl_label=(14,10,6), d=0.22225Aa, F2=0.000750837barn, N=48 )
+HKL( hkl_label=(18,2,2), d=0.22225Aa, F2=0.000750837barn, N=24 )
+HKL( hkl_label=(16,8,4), d=0.220923Aa, F2=0.000683178barn, N=48 )
+HKL( hkl_label=(13,11,7), d=0.219943Aa, F2=0.000636466barn, N=48 )
+HKL( hkl_label=(17,7,1), d=0.219943Aa, F2=0.000636466barn, N=48 )
+HKL( hkl_label=(13,13,1), d=0.219943Aa, F2=0.000636466barn, N=24 )
+HKL( hkl_label=(17,5,5), d=0.219943Aa, F2=0.000636466barn, N=24 )
+HKL( hkl_label=(14,12,0), d=0.219619Aa, F2=0.000621616barn, N=24 )
+HKL( hkl_label=(18,4,0), d=0.219619Aa, F2=0.000621616barn, N=24 )
+HKL( hkl_label=(14,12,2), d=0.218339Aa, F2=0.000565602barn, N=48 )
+HKL( hkl_label=(18,4,2), d=0.218339Aa, F2=0.000565602barn, N=48 )
+HKL( hkl_label=(12,10,10), d=0.218339Aa, F2=0.000565602barn, N=24 )
+HKL( hkl_label=(15,11,1), d=0.217393Aa, F2=0.000526929barn, N=48 )
+HKL( hkl_label=(17,7,3), d=0.217393Aa, F2=0.000526929barn, N=48 )
+HKL( hkl_label=(13,13,3), d=0.217393Aa, F2=0.000526929barn, N=24 )
+HKL( hkl_label=(12,12,8), d=0.215843Aa, F2=0.000468261barn, N=24 )
+HKL( hkl_label=(15,9,7), d=0.214929Aa, F2=0.000436244barn, N=48 )
+HKL( hkl_label=(15,11,3), d=0.214929Aa, F2=0.000436244barn, N=48 )
+HKL( hkl_label=(14,12,4), d=0.214627Aa, F2=0.000426065barn, N=48 )
+HKL( hkl_label=(16,8,6), d=0.214627Aa, F2=0.000426065barn, N=48 )
+HKL( hkl_label=(16,10,0), d=0.214627Aa, F2=0.000426065barn, N=24 )
+HKL( hkl_label=(18,4,4), d=0.214627Aa, F2=0.000426065barn, N=24 )
+HKL( hkl_label=(14,10,8), d=0.213432Aa, F2=0.000387672barn, N=48 )
+HKL( hkl_label=(16,10,2), d=0.213432Aa, F2=0.000387672barn, N=48 )
+HKL( hkl_label=(18,6,0), d=0.213432Aa, F2=0.000387672barn, N=24 )
+HKL( hkl_label=(17,7,5), d=0.212548Aa, F2=0.000361165barn, N=48 )
+HKL( hkl_label=(13,13,5), d=0.212548Aa, F2=0.000361165barn, N=24 )
+HKL( hkl_label=(19,1,1), d=0.212548Aa, F2=0.000361165barn, N=24 )
+HKL( hkl_label=(11,11,11), d=0.212548Aa, F2=0.000361165barn, N=8 )
+HKL( hkl_label=(18,6,2), d=0.212256Aa, F2=0.000352739barn, N=48 )
+HKL( hkl_label=(13,11,9), d=0.210244Aa, F2=0.000299008barn, N=48 )
+HKL( hkl_label=(15,11,5), d=0.210244Aa, F2=0.000299008barn, N=48 )
+HKL( hkl_label=(17,9,1), d=0.210244Aa, F2=0.000299008barn, N=48 )
+HKL( hkl_label=(19,3,1), d=0.210244Aa, F2=0.000299008barn, N=48 )
+HKL( hkl_label=(16,10,4), d=0.209961Aa, F2=0.000292032barn, N=48 )
+HKL( hkl_label=(14,12,6), d=0.208841Aa, F2=0.000265716barn, N=48 )
+HKL( hkl_label=(18,6,4), d=0.208841Aa, F2=0.000265716barn, N=48 )
+HKL( hkl_label=(17,9,3), d=0.208013Aa, F2=0.000247548barn, N=48 )
+HKL( hkl_label=(19,3,3), d=0.208013Aa, F2=0.000247548barn, N=24 )
+HKL( hkl_label=(16,8,8), d=0.206654Aa, F2=0.000219986barn, N=24 )
+HKL( hkl_label=(19,5,1), d=0.205852Aa, F2=0.000204945barn, N=48 )
+HKL( hkl_label=(13,13,7), d=0.205852Aa, F2=0.000204945barn, N=24 )
+HKL( hkl_label=(15,9,9), d=0.205852Aa, F2=0.000204945barn, N=24 )
+HKL( hkl_label=(17,7,7), d=0.205852Aa, F2=0.000204945barn, N=24 )
+HKL( hkl_label=(12,12,10), d=0.205586Aa, F2=0.000200163barn, N=24 )
+HKL( hkl_label=(18,8,0), d=0.205586Aa, F2=0.000200163barn, N=24 )
+HKL( hkl_label=(16,10,6), d=0.204535Aa, F2=0.000182126barn, N=48 )
+HKL( hkl_label=(18,8,2), d=0.204535Aa, F2=0.000182126barn, N=48 )
+HKL( hkl_label=(14,14,0), d=0.204535Aa, F2=0.000182126barn, N=12 )
+HKL( hkl_label=(15,11,7), d=0.203756Aa, F2=0.000169673barn, N=48 )
+HKL( hkl_label=(15,13,1), d=0.203756Aa, F2=0.000169673barn, N=48 )
+HKL( hkl_label=(17,9,5), d=0.203756Aa, F2=0.000169673barn, N=48 )
+HKL( hkl_label=(19,5,3), d=0.203756Aa, F2=0.000169673barn, N=48 )
+HKL( hkl_label=(14,10,10), d=0.203499Aa, F2=0.000165714barn, N=24 )
+HKL( hkl_label=(14,14,2), d=0.203499Aa, F2=0.000165714barn, N=24 )
+HKL( hkl_label=(18,6,6), d=0.203499Aa, F2=0.000165714barn, N=24 )
+HKL( hkl_label=(16,12,0), d=0.202479Aa, F2=0.000150782barn, N=24 )
+HKL( hkl_label=(20,0,0), d=0.202479Aa, F2=0.000150782barn, N=6 )
+HKL( hkl_label=(15,13,3), d=0.201724Aa, F2=0.000140472barn, N=48 )
+HKL( hkl_label=(14,12,8), d=0.201474Aa, F2=0.000137195barn, N=48 )
+HKL( hkl_label=(16,12,2), d=0.201474Aa, F2=0.000137195barn, N=48 )
+HKL( hkl_label=(18,8,4), d=0.201474Aa, F2=0.000137195barn, N=48 )
+HKL( hkl_label=(20,2,0), d=0.201474Aa, F2=0.000137195barn, N=24 )
+HKL( hkl_label=(14,14,4), d=0.200484Aa, F2=0.000124832barn, N=24 )
+HKL( hkl_label=(20,2,2), d=0.200484Aa, F2=0.000124832barn, N=24 )
+HKL( hkl_label=(17,11,1), d=0.199751Aa, F2=0.000116297barn, N=48 )
+HKL( hkl_label=(19,7,1), d=0.199751Aa, F2=0.000116297barn, N=48 )
+HKL( hkl_label=(13,11,11), d=0.199751Aa, F2=0.000116297barn, N=24 )
+HKL( hkl_label=(19,5,5), d=0.199751Aa, F2=0.000116297barn, N=24 )
+HKL( hkl_label=(16,12,4), d=0.198547Aa, F2=0.000103348barn, N=48 )
+HKL( hkl_label=(20,4,0), d=0.198547Aa, F2=0.000103348barn, N=24 )
+HKL( hkl_label=(15,13,5), d=0.197835Aa, F2=9.62817e-05barn, N=48 )
+HKL( hkl_label=(17,9,7), d=0.197835Aa, F2=9.62817e-05barn, N=48 )
+HKL( hkl_label=(17,11,3), d=0.197835Aa, F2=9.62817e-05barn, N=48 )
+HKL( hkl_label=(19,7,3), d=0.197835Aa, F2=9.62817e-05barn, N=48 )
+HKL( hkl_label=(13,13,9), d=0.197835Aa, F2=9.62817e-05barn, N=24 )
+HKL( hkl_label=(16,10,8), d=0.197599Aa, F2=9.40353e-05barn, N=48 )
+HKL( hkl_label=(20,4,2), d=0.197599Aa, F2=9.40353e-05barn, N=48 )
+HKL( hkl_label=(18,8,6), d=0.196665Aa, F2=8.55617e-05barn, N=48 )
+HKL( hkl_label=(18,10,0), d=0.196665Aa, F2=8.55617e-05barn, N=24 )
+HKL( hkl_label=(15,11,9), d=0.195973Aa, F2=7.97114e-05barn, N=48 )
+HKL( hkl_label=(18,10,2), d=0.195744Aa, F2=7.78516e-05barn, N=48 )
+HKL( hkl_label=(14,14,6), d=0.195744Aa, F2=7.78516e-05barn, N=24 )
+HKL( hkl_label=(20,4,4), d=0.194836Aa, F2=7.08364e-05barn, N=24 )
+HKL( hkl_label=(12,12,12), d=0.194836Aa, F2=7.08364e-05barn, N=8 )
+HKL( hkl_label=(17,11,5), d=0.194162Aa, F2=6.5993e-05barn, N=48 )
+HKL( hkl_label=(19,7,5), d=0.194162Aa, F2=6.5993e-05barn, N=48 )
+HKL( hkl_label=(16,12,6), d=0.19394Aa, F2=6.44532e-05barn, N=48 )
+HKL( hkl_label=(20,6,0), d=0.19394Aa, F2=6.44532e-05barn, N=24 )
+HKL( hkl_label=(14,12,10), d=0.193056Aa, F2=5.86453e-05barn, N=48 )
+HKL( hkl_label=(18,10,4), d=0.193056Aa, F2=5.86453e-05barn, N=48 )
+HKL( hkl_label=(20,6,2), d=0.193056Aa, F2=5.86453e-05barn, N=48 )
+HKL( hkl_label=(15,13,7), d=0.192401Aa, F2=5.46354e-05barn, N=48 )
+HKL( hkl_label=(19,9,1), d=0.192401Aa, F2=5.46354e-05barn, N=48 )
+HKL( hkl_label=(21,1,1), d=0.192401Aa, F2=5.46354e-05barn, N=24 )
+HKL( hkl_label=(19,9,3), d=0.190687Aa, F2=4.52326e-05barn, N=48 )
+HKL( hkl_label=(21,3,1), d=0.190687Aa, F2=4.52326e-05barn, N=48 )
+HKL( hkl_label=(15,15,1), d=0.190687Aa, F2=4.52326e-05barn, N=24 )
+HKL( hkl_label=(17,9,9), d=0.190687Aa, F2=4.52326e-05barn, N=24 )
+HKL( hkl_label=(20,6,4), d=0.190476Aa, F2=4.41772e-05barn, N=48 )
+HKL( hkl_label=(16,14,0), d=0.190476Aa, F2=4.41772e-05barn, N=24 )
+HKL( hkl_label=(18,8,8), d=0.190476Aa, F2=4.41772e-05barn, N=24 )
+HKL( hkl_label=(16,14,2), d=0.189639Aa, F2=4.01964e-05barn, N=48 )
+HKL( hkl_label=(14,14,8), d=0.189639Aa, F2=4.01964e-05barn, N=24 )
+HKL( hkl_label=(16,10,10), d=0.189639Aa, F2=4.01964e-05barn, N=24 )
+HKL( hkl_label=(17,11,7), d=0.189018Aa, F2=3.7448e-05barn, N=48 )
+HKL( hkl_label=(17,13,1), d=0.189018Aa, F2=3.7448e-05barn, N=48 )
+HKL( hkl_label=(13,13,11), d=0.189018Aa, F2=3.7448e-05barn, N=24 )
+HKL( hkl_label=(15,15,3), d=0.189018Aa, F2=3.7448e-05barn, N=24 )
+HKL( hkl_label=(19,7,7), d=0.189018Aa, F2=3.7448e-05barn, N=24 )
+HKL( hkl_label=(21,3,3), d=0.189018Aa, F2=3.7448e-05barn, N=24 )
+HKL( hkl_label=(18,10,6), d=0.188813Aa, F2=3.65742e-05barn, N=48 )
+HKL( hkl_label=(16,12,8), d=0.187997Aa, F2=3.32785e-05barn, N=48 )
+HKL( hkl_label=(20,8,0), d=0.187997Aa, F2=3.32785e-05barn, N=24 )
+HKL( hkl_label=(17,13,3), d=0.187392Aa, F2=3.10031e-05barn, N=48 )
+HKL( hkl_label=(19,9,5), d=0.187392Aa, F2=3.10031e-05barn, N=48 )
+HKL( hkl_label=(21,5,1), d=0.187392Aa, F2=3.10031e-05barn, N=48 )
+HKL( hkl_label=(15,11,11), d=0.187392Aa, F2=3.10031e-05barn, N=24 )
+HKL( hkl_label=(16,14,4), d=0.187192Aa, F2=3.02797e-05barn, N=48 )
+HKL( hkl_label=(20,8,2), d=0.187192Aa, F2=3.02797e-05barn, N=48 )
+HKL( hkl_label=(18,12,0), d=0.187192Aa, F2=3.02797e-05barn, N=24 )
+HKL( hkl_label=(18,12,2), d=0.186397Aa, F2=2.75512e-05barn, N=48 )
+HKL( hkl_label=(20,6,6), d=0.186397Aa, F2=2.75512e-05barn, N=24 )
+HKL( hkl_label=(15,13,9), d=0.185807Aa, F2=2.56674e-05barn, N=48 )
+HKL( hkl_label=(21,5,3), d=0.185807Aa, F2=2.56674e-05barn, N=48 )
+HKL( hkl_label=(15,15,5), d=0.185807Aa, F2=2.56674e-05barn, N=24 )
+HKL( hkl_label=(20,8,4), d=0.184837Aa, F2=2.28096e-05barn, N=48 )
+HKL( hkl_label=(17,13,5), d=0.184262Aa, F2=2.125e-05barn, N=48 )
+HKL( hkl_label=(19,11,1), d=0.184262Aa, F2=2.125e-05barn, N=48 )
+HKL( hkl_label=(18,12,4), d=0.184072Aa, F2=2.07542e-05barn, N=48 )
+HKL( hkl_label=(14,12,12), d=0.184072Aa, F2=2.07542e-05barn, N=24 )
+HKL( hkl_label=(22,0,0), d=0.184072Aa, F2=2.07542e-05barn, N=6 )
+HKL( hkl_label=(16,14,6), d=0.183316Aa, F2=1.8884e-05barn, N=48 )
+HKL( hkl_label=(18,10,8), d=0.183316Aa, F2=1.8884e-05barn, N=48 )
+HKL( hkl_label=(22,2,0), d=0.183316Aa, F2=1.8884e-05barn, N=24 )
+HKL( hkl_label=(17,11,9), d=0.182755Aa, F2=1.75928e-05barn, N=48 )
+HKL( hkl_label=(19,9,7), d=0.182755Aa, F2=1.75928e-05barn, N=48 )
+HKL( hkl_label=(19,11,3), d=0.182755Aa, F2=1.75928e-05barn, N=48 )
+HKL( hkl_label=(21,7,1), d=0.182755Aa, F2=1.75928e-05barn, N=48 )
+HKL( hkl_label=(21,5,5), d=0.182755Aa, F2=1.75928e-05barn, N=24 )
+HKL( hkl_label=(14,14,10), d=0.182569Aa, F2=1.71824e-05barn, N=24 )
+HKL( hkl_label=(22,2,2), d=0.182569Aa, F2=1.71824e-05barn, N=24 )
+HKL( hkl_label=(21,7,3), d=0.181284Aa, F2=1.45651e-05barn, N=48 )
+HKL( hkl_label=(15,15,7), d=0.181284Aa, F2=1.45651e-05barn, N=24 )
+HKL( hkl_label=(16,12,10), d=0.181103Aa, F2=1.42252e-05barn, N=48 )
+HKL( hkl_label=(20,8,6), d=0.181103Aa, F2=1.42252e-05barn, N=48 )
+HKL( hkl_label=(20,10,0), d=0.181103Aa, F2=1.42252e-05barn, N=24 )
+HKL( hkl_label=(22,4,0), d=0.181103Aa, F2=1.42252e-05barn, N=24 )
+HKL( hkl_label=(18,12,6), d=0.180383Aa, F2=1.29434e-05barn, N=48 )
+HKL( hkl_label=(20,10,2), d=0.180383Aa, F2=1.29434e-05barn, N=48 )
+HKL( hkl_label=(22,4,2), d=0.180383Aa, F2=1.29434e-05barn, N=48 )
+HKL( hkl_label=(17,13,7), d=0.179848Aa, F2=1.20584e-05barn, N=48 )
+HKL( hkl_label=(19,11,5), d=0.179848Aa, F2=1.20584e-05barn, N=48 )
+HKL( hkl_label=(13,13,13), d=0.179848Aa, F2=1.20584e-05barn, N=8 )
+HKL( hkl_label=(16,16,0), d=0.178968Aa, F2=1.07158e-05barn, N=12 )
+test 5
+[1.45668954 1.5014747  1.56421594 1.67989498 1.55148539 0.78559669]
+[0.08773988 0.0904374  0.09421645 0.10118408 0.09344966 0.04731836]
+1.67989
+0.101184

@@ -1,0 +1,1178 @@
+====================================================================================================
+
+Trying to load "solid::Pb/+2.02e-30gcm3"
+
+Got TextData(uid=1) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for Pb (amorphous solid, Debye model)
+----> #
+----> # Request: "solid::Pb/+2.02e-30gcm3"
+----> #
+----> @STATEOFMATTER
+---->   solid
+----> @DENSITY
+---->   +2.02e-30 g_per_cm3
+----> @DYNINFO
+---->   element  Pb
+---->   fraction 1
+---->   type     vdosdebye
+---->   debye_temp 300
+
+====================================================================================================
+
+Trying to load "solid::Pb/+2.02e-30gcm3"
+
+Got TextData(uid=1) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for Pb (amorphous solid, Debye model)
+----> #
+----> # Request: "solid::Pb/+2.02e-30gcm3"
+----> #
+----> @STATEOFMATTER
+---->   solid
+----> @DENSITY
+---->   +2.02e-30 g_per_cm3
+----> @DYNINFO
+---->   element  Pb
+---->   fraction 1
+---->   type     vdosdebye
+---->   debye_temp 300
+
+====================================================================================================
+
+Trying to load " solid ::  Pb/+2.02e-30gcm3 "
+
+Got TextData(uid=1) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for Pb (amorphous solid, Debye model)
+----> #
+----> # Request: "solid::Pb/+2.02e-30gcm3"
+----> #
+----> @STATEOFMATTER
+---->   solid
+----> @DENSITY
+---->   +2.02e-30 g_per_cm3
+----> @DYNINFO
+---->   element  Pb
+---->   fraction 1
+---->   type     vdosdebye
+---->   debye_temp 300
+
+====================================================================================================
+
+Trying to load "solid::Pb/ +2.02e-30gcm3"
+
+Got TextData(uid=1) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for Pb (amorphous solid, Debye model)
+----> #
+----> # Request: "solid::Pb/+2.02e-30gcm3"
+----> #
+----> @STATEOFMATTER
+---->   solid
+----> @DENSITY
+---->   +2.02e-30 g_per_cm3
+----> @DYNINFO
+---->   element  Pb
+---->   fraction 1
+---->   type     vdosdebye
+---->   debye_temp 300
+
+====================================================================================================
+
+Trying to load "solid::Pb/+2.02e-30g_per_cm3"
+
+Got expected error: >>>Syntax error in solid specification: Unrecognised syntax: "+2.02e-30g_per_cm3".<<<
+====================================================================================================
+
+Trying to load "solid::Pb/2.02kgcm3"
+
+Got expected error: >>>Syntax error in solid specification: Density value is invalid or out-of-range: "2.02kgcm3"<<<
+====================================================================================================
+
+Trying to load "solid::Al2O3/0.06perAa3/TDebye100K"
+
+Got TextData(uid=2) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for Al2O3 (amorphous solid, Debye model)
+----> #
+----> # Request: "solid::Al2O3/0.06perAa3/TDebye100K"
+----> #
+----> @STATEOFMATTER
+---->   solid
+----> @DENSITY
+---->   0.06 atoms_per_aa3
+----> @DYNINFO
+---->   element  Al
+---->   fraction 2/5
+---->   type     vdosdebye
+---->   debye_temp 100
+----> @DYNINFO
+---->   element  O
+---->   fraction 3/5
+---->   type     vdosdebye
+---->   debye_temp 100
+
+====================================================================================================
+
+Trying to load "solid::Al2O3/0.06peraa3/TDebye100K"
+
+Got expected error: >>>Syntax error in solid specification: Unrecognised syntax: "0.06peraa3".<<<
+====================================================================================================
+
+Trying to load "solid::Al2O3/2.0kgm3/TDebye100K"
+
+Got TextData(uid=3) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for Al2O3 (amorphous solid, Debye model)
+----> #
+----> # Request: "solid::Al2O3/2.0kgm3/TDebye100K"
+----> #
+----> @STATEOFMATTER
+---->   solid
+----> @DENSITY
+---->   2.0 kg_per_m3
+----> @DYNINFO
+---->   element  Al
+---->   fraction 2/5
+---->   type     vdosdebye
+---->   debye_temp 100
+----> @DYNINFO
+---->   element  O
+---->   fraction 3/5
+---->   type     vdosdebye
+---->   debye_temp 100
+
+====================================================================================================
+
+Trying to load "solid::Al2O3/2.0kgm3/TDebye100"
+
+Got expected error: >>>Syntax error in solid specification: Invalid Debye temperature syntax: "TDebye100".<<<
+====================================================================================================
+
+Trying to load "solid::Al2O3/2.0kgm3/TDebye"
+
+Got expected error: >>>Syntax error in solid specification: Invalid Debye temperature syntax: "TDebye".<<<
+====================================================================================================
+
+Trying to load "freegas::Al2O3/0.06perAa3/TDebye100K"
+
+Got expected error: >>>Syntax error in freegas specification: Debye temperature entries like "TDebye100K" are only allowed for a solid.<<<
+====================================================================================================
+
+Trying to load "freegas::Ar/0.06perAa3"
+
+Got TextData(uid=4) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for Ar (free gas model)
+----> #
+----> # Request: "freegas::Ar/0.06perAa3"
+----> #
+----> @STATEOFMATTER
+---->   gas
+----> @DENSITY
+---->   0.06 atoms_per_aa3
+----> @DYNINFO
+---->   element  Ar
+---->   fraction 1
+---->   type     freegas
+
+====================================================================================================
+
+Trying to load "solid::B4C/2.52gcm3"
+
+Got TextData(uid=5) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for B4C (amorphous solid, Debye model)
+----> #
+----> # Request: "solid::B4C/2.52gcm3"
+----> #
+----> @STATEOFMATTER
+---->   solid
+----> @DENSITY
+---->   2.52 g_per_cm3
+----> @DYNINFO
+---->   element  C
+---->   fraction 1/5
+---->   type     vdosdebye
+---->   debye_temp 300
+----> @DYNINFO
+---->   element  B
+---->   fraction 4/5
+---->   type     vdosdebye
+---->   debye_temp 300
+
+====================================================================================================
+
+Trying to load "solid::B4C/2.383gcm3/B_is_0.95_B10_0.05_B11"
+
+Got TextData(uid=6) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for B4C (amorphous solid, Debye model)
+----> #
+----> # Request: "solid::B4C/2.383gcm3/B_is_0.95_B10_0.05_B11"
+----> #
+----> @STATEOFMATTER
+---->   solid
+----> @DENSITY
+---->   2.383 g_per_cm3
+----> @ATOMDB
+---->   B is 0.95 B10 0.05 B11
+----> @DYNINFO
+---->   element  C
+---->   fraction 1/5
+---->   type     vdosdebye
+---->   debye_temp 300
+----> @DYNINFO
+---->   element  B
+---->   fraction 4/5
+---->   type     vdosdebye
+---->   debye_temp 300
+
+====================================================================================================
+
+Trying to load "solid::B4C/2.383gcm3/B_is_0.95_B10_0.05_B11"
+
+Got TextData(uid=6) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for B4C (amorphous solid, Debye model)
+----> #
+----> # Request: "solid::B4C/2.383gcm3/B_is_0.95_B10_0.05_B11"
+----> #
+----> @STATEOFMATTER
+---->   solid
+----> @DENSITY
+---->   2.383 g_per_cm3
+----> @ATOMDB
+---->   B is 0.95 B10 0.05 B11
+----> @DYNINFO
+---->   element  C
+---->   fraction 1/5
+---->   type     vdosdebye
+---->   debye_temp 300
+----> @DYNINFO
+---->   element  B
+---->   fraction 4/5
+---->   type     vdosdebye
+---->   debye_temp 300
+
+====================================================================================================
+
+Trying to load "solid::B4C/2.383gcm3/B_is_0.95_B10_0.05_____B11"
+
+Got expected error: >>>Syntax error in solid specification: Do not use double underscores as separators in ATOMDB sections: B_is_0.95_B10_0.05_____B11".<<<
+====================================================================================================
+
+Trying to load "solid::B4C/2.383gcm3/B_is_0.95_B10_0.05 B11"
+
+Got expected error: >>>Syntax error in solid specification: Do not use spaces or semicolons as separators in ATOMDB sections (use single underscores instead): B_is_0.95_B10_0.05 B11".<<<
+====================================================================================================
+
+Trying to load "solid::B4C/2.383gcm3/B_is_0.95_B10_0.05:B11"
+
+Got expected error: >>>Syntax error in solid specification: Do not use spaces or semicolons as separators in ATOMDB sections (use single underscores instead): B_is_0.95_B10_0.05:B11".<<<
+====================================================================================================
+
+Trying to load "solid::B4C/2.383gcm3/   B_is_0.95_B10_0.05_B11  "
+
+Got TextData(uid=6) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for B4C (amorphous solid, Debye model)
+----> #
+----> # Request: "solid::B4C/2.383gcm3/B_is_0.95_B10_0.05_B11"
+----> #
+----> @STATEOFMATTER
+---->   solid
+----> @DENSITY
+---->   2.383 g_per_cm3
+----> @ATOMDB
+---->   B is 0.95 B10 0.05 B11
+----> @DYNINFO
+---->   element  C
+---->   fraction 1/5
+---->   type     vdosdebye
+---->   debye_temp 300
+----> @DYNINFO
+---->   element  B
+---->   fraction 4/5
+---->   type     vdosdebye
+---->   debye_temp 300
+
+====================================================================================================
+
+Trying to load "solid::B4C/2.383gcm3/B_is_0.95_B10_0.05_B11/Al_26.98u_0.3449fm_0.0082b_0.231b"
+
+Got TextData(uid=7) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for B4C (amorphous solid, Debye model)
+----> #
+----> # Request: "solid::B4C/2.383gcm3/B_is_0.95_B10_0.05_B11/Al_26.98u_0.3449fm_0.0082b_0.231b"
+----> #
+----> @STATEOFMATTER
+---->   solid
+----> @DENSITY
+---->   2.383 g_per_cm3
+----> @ATOMDB
+---->   B is 0.95 B10 0.05 B11
+---->   Al 26.98u 0.3449fm 0.0082b 0.231b
+----> @DYNINFO
+---->   element  C
+---->   fraction 1/5
+---->   type     vdosdebye
+---->   debye_temp 300
+----> @DYNINFO
+---->   element  B
+---->   fraction 4/5
+---->   type     vdosdebye
+---->   debye_temp 300
+
+====================================================================================================
+
+Trying to load "solid::B4C/2.383gcm3/B is 0.95 B10 0.05 B11"
+
+Got expected error: >>>Syntax error in solid specification: Do not use spaces or semicolons as separators in ATOMDB sections (use single underscores instead): B is 0.95 B10 0.05 B11".<<<
+====================================================================================================
+
+Trying to load "solid::B4C/2.383gcm3/B:is:0.95:B10:0.05:   :B11"
+
+Got expected error: >>>Syntax error in solid specification: Do not use spaces or semicolons as separators in ATOMDB sections (use single underscores instead): B:is:0.95:B10:0.05:   :B11".<<<
+====================================================================================================
+
+Trying to load "solid::B4C/2.383gcm3/B is 0.95 B10 0.05 B11/Al 26.98u 0.3449fm:0.0082b:0.231b"
+
+Got expected error: >>>Syntax error in solid specification: Do not use spaces or semicolons as separators in ATOMDB sections (use single underscores instead): B is 0.95 B10 0.05 B11".<<<
+====================================================================================================
+
+Trying to load "solid::B4C/2.52gcm3/TDebye123K_U"
+
+Got expected error: >>>Syntax error in solid specification: Debye temperature specified for invalid (or unused) atom.<<<
+====================================================================================================
+
+Trying to load "solid::B4C/2.383gcm3/B:is:0.95:B10:0.05:2B11"
+
+Got expected error: >>>Syntax error in solid specification: Do not use spaces or semicolons as separators in ATOMDB sections (use single underscores instead): B:is:0.95:B10:0.05:2B11".<<<
+====================================================================================================
+
+Trying to load "solid::B4C/2.383gcm3/B_is_0.95_B10_0.05_B11/TDebye100K_C/TDebye123.44K_B"
+
+Got TextData(uid=8) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for B4C (amorphous solid, Debye model)
+----> #
+----> # Request: "solid::B4C/2.383gcm3/B_is_0.95_B10_0.05_B11/TDebye100K_C/TDebye123.44K_B"
+----> #
+----> @STATEOFMATTER
+---->   solid
+----> @DENSITY
+---->   2.383 g_per_cm3
+----> @ATOMDB
+---->   B is 0.95 B10 0.05 B11
+----> @DYNINFO
+---->   element  C
+---->   fraction 1/5
+---->   type     vdosdebye
+---->   debye_temp 100
+----> @DYNINFO
+---->   element  B
+---->   fraction 4/5
+---->   type     vdosdebye
+---->   debye_temp 123.44
+
+====================================================================================================
+
+Trying to load "solid::B4C/2.52gcm3æøå"
+
+Got expected error: >>>Syntax error in solid specification: Does not contain only simple ASCII characters :"B4C/2.52gcm3æøå"<<<
+====================================================================================================
+
+Trying to load "solid::B4C/2.52gcm3""
+
+Got expected error: >>>Syntax error in solid specification: Contains forbidden characters :"B4C/2.52gcm3""<<<
+====================================================================================================
+
+Trying to load "solid::Al2O3/2.0kgm3/TDebye-100K"
+
+Got expected error: >>>Syntax error in solid specification: Invalid value in Debye temperature specification: "-100".<<<
+====================================================================================================
+
+Trying to load "solid::Al2O3/2.0kgm3/TDebye0.0K"
+
+Got expected error: >>>Syntax error in solid specification: Invalid value in Debye temperature specification: "0.0".<<<
+====================================================================================================
+
+Trying to load "solid::Al2O3/2.0kgm3/TDebyeinfK"
+
+Got expected error: >>>Syntax error in solid specification: Invalid value in Debye temperature specification: "inf".<<<
+====================================================================================================
+
+Trying to load "solid::Al2O3/2.0kgm3/TDebyenanK"
+
+Got expected error: >>>Syntax error in solid specification: Invalid value in Debye temperature specification: "nan".<<<
+====================================================================================================
+
+Trying to load "solid::Al2O3/2.0kgm3/TDebye1e-500K"
+
+Got expected error: >>>Syntax error in solid specification: Invalid value in Debye temperature specification: "1e-500".<<<
+====================================================================================================
+
+Trying to load "solid::Al2O3/2.0kgm3/TDebye1e-300K"
+
+Got TextData(uid=9) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for Al2O3 (amorphous solid, Debye model)
+----> #
+----> # Request: "solid::Al2O3/2.0kgm3/TDebye1e-300K"
+----> #
+----> @STATEOFMATTER
+---->   solid
+----> @DENSITY
+---->   2.0 kg_per_m3
+----> @DYNINFO
+---->   element  Al
+---->   fraction 2/5
+---->   type     vdosdebye
+---->   debye_temp 1e-300
+----> @DYNINFO
+---->   element  O
+---->   fraction 3/5
+---->   type     vdosdebye
+---->   debye_temp 1e-300
+
+====================================================================================================
+
+Trying to load "solid::Al2O3/2.0kgm3/TDebye300K/TDebye300K"
+
+Got expected error: >>>Syntax error in solid specification: More than one global Debye temperature specified.<<<
+====================================================================================================
+
+Trying to load "solid::Al2O3/2.0kgm3/TDebye200K_AL"
+
+Got expected error: >>>Syntax error in solid specification: Not a valid natural element "AL"<<<
+====================================================================================================
+
+Trying to load "solid::Gt2O3/2.0kgm3/TDebye200K_Gt"
+
+Got expected error: >>>Syntax error in solid specification: Unrecognised syntax: "Gt2O3".<<<
+====================================================================================================
+
+Trying to load "solid::Al2O3/2.0kgm3/1.0kgm3"
+
+Got expected error: >>>Syntax error in solid specification: Multiple density entries are not allowed.<<<
+====================================================================================================
+
+Trying to load "solid::Al2O3/1.0kgm3/1.0kgm3"
+
+Got expected error: >>>Syntax error in solid specification: Multiple density entries are not allowed.<<<
+====================================================================================================
+
+Trying to load "solid::Al2O3/0.0kgm3"
+
+Got expected error: >>>Syntax error in solid specification: Density value is invalid or out-of-range: "0.0kgm3"<<<
+====================================================================================================
+
+Trying to load "solid::Al2O3/infkgm3"
+
+Got expected error: >>>Syntax error in solid specification: Density value is invalid or out-of-range: "infkgm3"<<<
+====================================================================================================
+
+Trying to load "solid::Al2O3/Al/1.0kgm3"
+
+Got expected error: >>>Syntax error in solid specification: Multiple chemical formula entries.<<<
+====================================================================================================
+
+Trying to load "solid::B4C/2.383gcm3/B_is_0.95_B10_0.05_B11_0.1"
+
+Got expected error: >>>Syntax error in solid specification: Unrecognised syntax: "B_is_0.95_B10_0.05_B11_0.1".<<<
+====================================================================================================
+
+Trying to load "solid::B4C/2.383gcm3/B_is_0.95_B10_1.05_B11"
+
+Got expected error: >>>Syntax error in solid specification: Invalid ATOMDB syntax: Invalid specification (invalid fraction: "1.05" )".<<<
+====================================================================================================
+
+Trying to load "solid::2.383gcm3"
+
+Got expected error: >>>Syntax error in solid specification: Missing chemical formula.<<<
+====================================================================================================
+
+Trying to load "solid::B4C"
+
+Got expected error: >>>Syntax error in solid specification: Missing density specification.<<<
+====================================================================================================
+
+Trying to load "solid::Al2O3/2.0kgm3/TDebye200K_Al"
+
+Got TextData(uid=10) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for Al2O3 (amorphous solid, Debye model)
+----> #
+----> # Request: "solid::Al2O3/2.0kgm3/TDebye200K_Al"
+----> #
+----> @STATEOFMATTER
+---->   solid
+----> @DENSITY
+---->   2.0 kg_per_m3
+----> @DYNINFO
+---->   element  Al
+---->   fraction 2/5
+---->   type     vdosdebye
+---->   debye_temp 200
+----> @DYNINFO
+---->   element  O
+---->   fraction 3/5
+---->   type     vdosdebye
+---->   debye_temp 300
+
+====================================================================================================
+
+Trying to load "solid::Al2O3/2.0kgm3/TDebye200K_Al/TDebye1000K_O"
+
+Got TextData(uid=11) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for Al2O3 (amorphous solid, Debye model)
+----> #
+----> # Request: "solid::Al2O3/2.0kgm3/TDebye200K_Al/TDebye1000K_O"
+----> #
+----> @STATEOFMATTER
+---->   solid
+----> @DENSITY
+---->   2.0 kg_per_m3
+----> @DYNINFO
+---->   element  Al
+---->   fraction 2/5
+---->   type     vdosdebye
+---->   debye_temp 200
+----> @DYNINFO
+---->   element  O
+---->   fraction 3/5
+---->   type     vdosdebye
+---->   debye_temp 1000
+
+====================================================================================================
+
+Trying to load "solid::Al2O3/2.0kgm3/TDebye200K_Al/TDebye1000K_B"
+
+Got expected error: >>>Syntax error in solid specification: Debye temperature specified for invalid (or unused) atom.<<<
+====================================================================================================
+
+Trying to load "solid::Al2O3/2.0kgm3/TDebye200K_Al/TDebye1000K"
+
+Got expected error: >>>Syntax error in solid specification: Do not specify both per-element and global Debye temperatures.<<<
+====================================================================================================
+
+Trying to load "solid::Al2O3/4gcm3"
+
+Got TextData(uid=12) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for Al2O3 (amorphous solid, Debye model)
+----> #
+----> # Request: "solid::Al2O3/4gcm3"
+----> #
+----> @STATEOFMATTER
+---->   solid
+----> @DENSITY
+---->   4 g_per_cm3
+----> @DYNINFO
+---->   element  Al
+---->   fraction 2/5
+---->   type     vdosdebye
+---->   debye_temp 300
+----> @DYNINFO
+---->   element  O
+---->   fraction 3/5
+---->   type     vdosdebye
+---->   debye_temp 300
+
+====================================================================================================
+
+Trying to load "solid::Al2O3/4gcm3/TDebye750K_Al/TDebye1000K_O"
+
+Got TextData(uid=13) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for Al2O3 (amorphous solid, Debye model)
+----> #
+----> # Request: "solid::Al2O3/4gcm3/TDebye750K_Al/TDebye1000K_O"
+----> #
+----> @STATEOFMATTER
+---->   solid
+----> @DENSITY
+---->   4 g_per_cm3
+----> @DYNINFO
+---->   element  Al
+---->   fraction 2/5
+---->   type     vdosdebye
+---->   debye_temp 750
+----> @DYNINFO
+---->   element  O
+---->   fraction 3/5
+---->   type     vdosdebye
+---->   debye_temp 1000
+
+====================================================================================================
+
+Trying to load "solid::Al2O3/4gcm3/TDebye900K"
+
+Got TextData(uid=14) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for Al2O3 (amorphous solid, Debye model)
+----> #
+----> # Request: "solid::Al2O3/4gcm3/TDebye900K"
+----> #
+----> @STATEOFMATTER
+---->   solid
+----> @DENSITY
+---->   4 g_per_cm3
+----> @DYNINFO
+---->   element  Al
+---->   fraction 2/5
+---->   type     vdosdebye
+---->   debye_temp 900
+----> @DYNINFO
+---->   element  O
+---->   fraction 3/5
+---->   type     vdosdebye
+---->   debye_temp 900
+
+====================================================================================================
+
+Trying to load "solid::B4C/2.52gcm3/B_is_0.95_B10_0.05_B11"
+
+Got TextData(uid=15) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for B4C (amorphous solid, Debye model)
+----> #
+----> # Request: "solid::B4C/2.52gcm3/B_is_0.95_B10_0.05_B11"
+----> #
+----> @STATEOFMATTER
+---->   solid
+----> @DENSITY
+---->   2.52 g_per_cm3
+----> @ATOMDB
+---->   B is 0.95 B10 0.05 B11
+----> @DYNINFO
+---->   element  C
+---->   fraction 1/5
+---->   type     vdosdebye
+---->   debye_temp 300
+----> @DYNINFO
+---->   element  B
+---->   fraction 4/5
+---->   type     vdosdebye
+---->   debye_temp 300
+
+====================================================================================================
+
+Trying to load "solid::CH2/1gcm3"
+
+Got TextData(uid=16) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for CH2 (amorphous solid, Debye model)
+----> #
+----> # Request: "solid::CH2/1gcm3"
+----> #
+----> @STATEOFMATTER
+---->   solid
+----> @DENSITY
+---->   1 g_per_cm3
+----> @DYNINFO
+---->   element  C
+---->   fraction 1/3
+---->   type     vdosdebye
+---->   debye_temp 300
+----> @DYNINFO
+---->   element  H
+---->   fraction 2/3
+---->   type     vdosdebye
+---->   debye_temp 300
+
+====================================================================================================
+
+Trying to load "solid::Gd2O3/7.07gcm3"
+
+Got TextData(uid=17) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for Gd2O3 (amorphous solid, Debye model)
+----> #
+----> # Request: "solid::Gd2O3/7.07gcm3"
+----> #
+----> @STATEOFMATTER
+---->   solid
+----> @DENSITY
+---->   7.07 g_per_cm3
+----> @DYNINFO
+---->   element  Gd
+---->   fraction 2/5
+---->   type     vdosdebye
+---->   debye_temp 300
+----> @DYNINFO
+---->   element  O
+---->   fraction 3/5
+---->   type     vdosdebye
+---->   debye_temp 300
+
+====================================================================================================
+
+Trying to load "freegas::Ar/2.5e-5perAa3"
+
+Got TextData(uid=18) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for Ar (free gas model)
+----> #
+----> # Request: "freegas::Ar/2.5e-5perAa3"
+----> #
+----> @STATEOFMATTER
+---->   gas
+----> @DENSITY
+---->   2.5e-5 atoms_per_aa3
+----> @DYNINFO
+---->   element  Ar
+---->   fraction 1
+---->   type     freegas
+
+====================================================================================================
+
+Trying to load "freegas::CF4/3.72kgm3"
+
+Got TextData(uid=19) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for CF4 (free gas model)
+----> #
+----> # Request: "freegas::CF4/3.72kgm3"
+----> #
+----> @STATEOFMATTER
+---->   gas
+----> @DENSITY
+---->   3.72 kg_per_m3
+----> @DYNINFO
+---->   element  C
+---->   fraction 1/5
+---->   type     freegas
+----> @DYNINFO
+---->   element  F
+---->   fraction 4/5
+---->   type     freegas
+
+====================================================================================================
+
+Trying to load "freegas::CO2/1.98kgm3"
+
+Got TextData(uid=20) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for CO2 (free gas model)
+----> #
+----> # Request: "freegas::CO2/1.98kgm3"
+----> #
+----> @STATEOFMATTER
+---->   gas
+----> @DENSITY
+---->   1.98 kg_per_m3
+----> @DYNINFO
+---->   element  C
+---->   fraction 1/3
+---->   type     freegas
+----> @DYNINFO
+---->   element  O
+---->   fraction 2/3
+---->   type     freegas
+
+====================================================================================================
+
+Trying to load "freegas::He/0.17kgm3/He_is_He3"
+
+Got TextData(uid=21) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for He (free gas model)
+----> #
+----> # Request: "freegas::He/0.17kgm3/He_is_He3"
+----> #
+----> @STATEOFMATTER
+---->   gas
+----> @DENSITY
+---->   0.17 kg_per_m3
+----> @ATOMDB
+---->   He is He3
+----> @DYNINFO
+---->   element  He
+---->   fraction 1
+---->   type     freegas
+
+====================================================================================================
+
+Trying to load "gasmix::0.72xCO2+0.28xAr/massfractions/1.5atm/250K"
+
+Got TextData(uid=25) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for gas mixture
+----> #
+----> # Request: "gasmix::0.72xCO2+0.28xAr/massfractions/250K/1.5atm"
+----> #
+----> # Resulting gas parameters:
+----> #
+----> #  T   = 250K
+----> #  P   = 151987.5Pa
+----> #  Rho = 3.1288837960844229kg/m^3
+----> #
+----> @STATEOFMATTER
+---->   gas
+----> @TEMPERATURE
+---->   250
+----> @DENSITY
+---->   3.1288837960844229 kg_per_m3
+----> @DYNINFO
+---->   element  Ar
+---->   fraction 0.12496445530915704
+---->   type     freegas
+----> @DYNINFO
+---->   element  C
+---->   fraction 0.29167851489694763
+---->   type     freegas
+----> @DYNINFO
+---->   element  O
+---->   fraction 0.58335702979389525
+---->   type     freegas
+
+====================================================================================================
+
+Trying to load "gasmix::0.7xCO2+0.3xAr/0.001relhumidity"
+
+Got TextData(uid=27) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for gas mixture
+----> #
+----> # Request: "gasmix::0.7xCO2+0.3xAr/0.001relhumidity"
+----> #
+----> # Resulting gas parameters:
+----> #
+----> #  T   = 293.15K
+----> #  P   = 101325Pa
+----> #  Rho = 1.7788513845852865kg/m^3
+----> #
+----> @STATEOFMATTER
+---->   gas
+----> @TEMPERATURE
+---->   293.15
+----> @DENSITY
+---->   1.7788513845852865 kg_per_m3
+----> @DYNINFO
+---->   element  H
+---->   fraction 1.9239306255331645e-05
+---->   type     freegas
+----> @DYNINFO
+---->   element  Ar
+---->   fraction 0.12499639263007713
+---->   type     freegas
+----> @DYNINFO
+---->   element  C
+---->   fraction 0.29165824947018
+---->   type     freegas
+----> @DYNINFO
+---->   element  O
+---->   fraction 0.5833261185934876
+---->   type     freegas
+
+====================================================================================================
+
+Trying to load "gasmix::0.7xCO2+0.3xAr/1.5atm/250K"
+
+Got TextData(uid=28) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for gas mixture
+----> #
+----> # Request: "gasmix::0.7xCO2+0.3xAr/250K/1.5atm"
+----> #
+----> # Resulting gas parameters:
+----> #
+----> #  T   = 250K
+----> #  P   = 151987.5Pa
+----> #  Rho = 3.1288635251990224kg/m^3
+----> #
+----> @STATEOFMATTER
+---->   gas
+----> @TEMPERATURE
+---->   250
+----> @DENSITY
+---->   3.1288635251990224 kg_per_m3
+----> @DYNINFO
+---->   element  Ar
+---->   fraction 1/8
+---->   type     freegas
+----> @DYNINFO
+---->   element  C
+---->   fraction 7/24
+---->   type     freegas
+----> @DYNINFO
+---->   element  O
+---->   fraction 7/12
+---->   type     freegas
+
+====================================================================================================
+
+Trying to load "gasmix::BF3/2atm/25C/B_is_0.95_B10_0.05_B11"
+
+Got TextData(uid=33) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for gas mixture
+----> #
+----> # Request: "gasmix::BF3/25C/2atm/B_is_0.95_B10_0.05_B11"
+----> #
+----> # Resulting gas parameters:
+----> #
+----> #  T   = 298.15K
+----> #  P   = 202650Pa
+----> #  Rho = 5.4818603852909256kg/m^3
+----> #
+----> @STATEOFMATTER
+---->   gas
+----> @TEMPERATURE
+---->   298.15
+----> @DENSITY
+---->   5.4818603852909256 kg_per_m3
+----> @ATOMDB
+---->   B is 0.95 B10 0.05 B11
+----> @DYNINFO
+---->   element  B
+---->   fraction 1/4
+---->   type     freegas
+----> @DYNINFO
+---->   element  F
+---->   fraction 3/4
+---->   type     freegas
+
+====================================================================================================
+
+Trying to load "gasmix::CO2"
+
+Got TextData(uid=34) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for gas mixture
+----> #
+----> # Request: "gasmix::CO2"
+----> #
+----> # Resulting gas parameters:
+----> #
+----> #  T   = 293.15K
+----> #  P   = 101325Pa
+----> #  Rho = 1.8295336435565634kg/m^3
+----> #
+----> @STATEOFMATTER
+---->   gas
+----> @TEMPERATURE
+---->   293.15
+----> @DENSITY
+---->   1.8295336435565634 kg_per_m3
+----> @DYNINFO
+---->   element  C
+---->   fraction 1/3
+---->   type     freegas
+----> @DYNINFO
+---->   element  O
+---->   fraction 2/3
+---->   type     freegas
+
+====================================================================================================
+
+Trying to load "gasmix::He/1.64kgm3"
+
+Got TextData(uid=36) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for gas mixture
+----> #
+----> # Request: "gasmix::He/1.64kgm3"
+----> #
+----> # Resulting gas parameters:
+----> #
+----> #  T   = 293.15K
+----> #  P   = 998678.141718431Pa
+----> #  Rho = 1.64kg/m^3
+----> #
+----> @STATEOFMATTER
+---->   gas
+----> @TEMPERATURE
+---->   293.15
+----> @DENSITY
+---->   1.64 kg_per_m3
+----> @DYNINFO
+---->   element  He
+---->   fraction 1
+---->   type     freegas
+
+====================================================================================================
+
+Trying to load "gasmix::He/10bar"
+
+Got TextData(uid=37) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for gas mixture
+----> #
+----> # Request: "gasmix::He/10bar"
+----> #
+----> # Resulting gas parameters:
+----> #
+----> #  T   = 293.15K
+----> #  P   = 1000000Pa
+----> #  Rho = 1.6421707169619661kg/m^3
+----> #
+----> @STATEOFMATTER
+---->   gas
+----> @TEMPERATURE
+---->   293.15
+----> @DENSITY
+---->   1.6421707169619661 kg_per_m3
+----> @DYNINFO
+---->   element  He
+---->   fraction 1
+---->   type     freegas
+
+====================================================================================================
+
+Trying to load "gasmix::air"
+
+Got TextData(uid=42) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for gas mixture
+----> #
+----> # Request: "gasmix::0.7807712xN2+0.20945xO2+0.00934xAr+0.000412xCO2+1.818e-05xNe+5.24e-06xHe+1.79e-06xCH4+1e-06xKr+5e-07xH2+9e-08xXe"
+----> #
+----> # Resulting gas parameters:
+----> #
+----> #  T   = 293.15K
+----> #  P   = 101325Pa
+----> #  Rho = 1.2041520769553551kg/m^3
+----> #
+----> @STATEOFMATTER
+---->   gas
+----> @TEMPERATURE
+---->   293.15
+----> @DENSITY
+---->   1.2041520769553551 kg_per_m3
+----> @DYNINFO
+---->   element  Xe
+---->   fraction 4.5202215274184131e-08
+---->   type     freegas
+----> @DYNINFO
+---->   element  Kr
+---->   fraction 5.0224683637982365e-07
+---->   type     freegas
+----> @DYNINFO
+---->   element  He
+---->   fraction 2.6317734226302762e-06
+---->   type     freegas
+----> @DYNINFO
+---->   element  H
+---->   fraction 4.0983341848593612e-06
+---->   type     freegas
+----> @DYNINFO
+---->   element  Ne
+---->   fraction 9.1308474853851943e-06
+---->   type     freegas
+----> @DYNINFO
+---->   element  C
+---->   fraction 0.00020782471842560723
+---->   type     freegas
+----> @DYNINFO
+---->   element  Ar
+---->   fraction 0.0046909854517875526
+---->   type     freegas
+----> @DYNINFO
+---->   element  O
+---->   fraction 0.21080505115268511
+---->   type     freegas
+----> @DYNINFO
+---->   element  N
+---->   fraction 0.78427973027295717
+---->   type     freegas
+
+====================================================================================================
+
+Trying to load "gasmix::air/-10C/0.8atm/0.30relhumidity"
+
+Got TextData(uid=43) with contents:
+----> NCMAT v7
+----> #
+----> # Automatically generated NCMAT data for gas mixture
+----> #
+----> # Request: "gasmix::0.7807712xN2+0.20945xO2+0.00934xAr+0.000412xCO2+1.818e-05xNe+5.24e-06xHe+1.79e-06xCH4+1e-06xKr+5e-07xH2+9e-08xXe/0.3relhumidity/-10C/0.8atm"
+----> #
+----> # Resulting gas parameters:
+----> #
+----> #  T   = 263.15K
+----> #  P   = 81060Pa
+----> #  Rho = 1.0727534348569578kg/m^3
+----> #
+----> @STATEOFMATTER
+---->   gas
+----> @TEMPERATURE
+---->   263.15
+----> @DENSITY
+---->   1.0727534348569578 kg_per_m3
+----> @DYNINFO
+---->   element  Xe
+---->   fraction 4.5136744091954109e-08
+---->   type     freegas
+----> @DYNINFO
+---->   element  Kr
+---->   fraction 5.0151937879949013e-07
+---->   type     freegas
+----> @DYNINFO
+---->   element  He
+---->   fraction 2.6279615449093283e-06
+---->   type     freegas
+----> @DYNINFO
+---->   element  Ne
+---->   fraction 9.11762230657473e-06
+---->   type     freegas
+----> @DYNINFO
+---->   element  C
+---->   fraction 0.000207523703753441
+---->   type     freegas
+----> @DYNINFO
+---->   element  H
+---->   fraction 0.0009696967286989299
+---->   type     freegas
+----> @DYNINFO
+---->   element  Ar
+---->   fraction 0.0046841909979872375
+---->   type     freegas
+----> @DYNINFO
+---->   element  O
+---->   fraction 0.21098252191252118
+---->   type     freegas
+----> @DYNINFO
+---->   element  N
+---->   fraction 0.783143774417065
+---->   type     freegas
+

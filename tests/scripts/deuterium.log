@@ -1,0 +1,24 @@
+Trying element D in NCMAT data with version 1
+   => Result in exception:  "TestD.ncmat": Element "D" is not supported in NCMAT v1 files (requires NCMAT v2 or later) [in line 7]
+
+Trying element D in NCMAT data with version 2
+   => Create scatter with no problems (xs@25meV is 0.344212barn).
+
+Trying element D in NCMAT data with version 3
+   => Create scatter with no problems (xs@25meV is 0.344212barn).
+
+Trying element D in NCMAT data with version 4
+   => Create scatter with no problems (xs@25meV is 0.344212barn).
+
+Trying element D in NCMAT data with version 5
+   => Create scatter with no problems (xs@25meV is 0.344212barn).
+
+Trying element D in NCMAT data with version 6
+   => Create scatter with no problems (xs@25meV is 0.344212barn).
+
+Trying element D in NCMAT data with version 7
+   => Create scatter with no problems (xs@25meV is 0.344212barn).
+
+Trying element D in NCMAT data with version 8
+   => Result in exception:  "TestD.ncmat": is in an NCMAT format version, "v8", which is not recognised by this installation of NCrystal
+

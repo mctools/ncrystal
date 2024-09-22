@@ -1,0 +1,17 @@
+RNG STATES: 99 99
+  -> NCrystal consumed 1 rngs
+RNG STATES: 00 99
+  -> NCrystal consumed 5 rngs
+RNG STATES: 05 99
+(change rng)
+RNG STATES: 05 99
+  -> NCrystal consumed 6 rngs
+RNG STATES: 05 05
+(change rng back)
+RNG STATES: 05 05
+  -> NCrystal consumed 6 rngs
+RNG STATES: 11 05
+Tests completed succesfully
+RNG STATES: 11 05
+  -> NCrystal consumed 1 rngs
+RNG STATES: 12 05

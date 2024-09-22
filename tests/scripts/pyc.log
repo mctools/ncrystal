@@ -1,0 +1,38 @@
+------------- Na4Si3Al3O12Cl_sg218_Sodalite.ncmat
+0 DynamicInfo(O, fraction=52.17%, type=VDOS, npts=172) AtomInfo(O, 24, DebyeT=472.816K, MSD=0.0127678Aa^2, hasPositions=yes)
+1 DynamicInfo(Na, fraction=17.39%, type=VDOS, npts=172) AtomInfo(Na, 8, DebyeT=314.088K, MSD=0.0194033Aa^2, hasPositions=yes)
+2 DynamicInfo(Al, fraction=13.04%, type=VDOS, npts=172) AtomInfo(Al, 6, DebyeT=470.253K, MSD=0.0076484Aa^2, hasPositions=yes)
+3 DynamicInfo(Si, fraction=13.04%, type=VDOS, npts=172) AtomInfo(Si, 6, DebyeT=471.468K, MSD=0.00731235Aa^2, hasPositions=yes)
+4 DynamicInfo(Cl, fraction=4.348%, type=VDOS, npts=172) AtomInfo(Cl, 2, DebyeT=210.658K, MSD=0.0275031Aa^2, hasPositions=yes)
+0 AtomInfo(O, 24, DebyeT=472.816K, MSD=0.0127678Aa^2, hasPositions=yes) DynamicInfo(O, fraction=52.17%, type=VDOS, npts=172)
+1 AtomInfo(Na, 8, DebyeT=314.088K, MSD=0.0194033Aa^2, hasPositions=yes) DynamicInfo(Na, fraction=17.39%, type=VDOS, npts=172)
+2 AtomInfo(Al, 6, DebyeT=470.253K, MSD=0.0076484Aa^2, hasPositions=yes) DynamicInfo(Al, fraction=13.04%, type=VDOS, npts=172)
+3 AtomInfo(Si, 6, DebyeT=471.468K, MSD=0.00731235Aa^2, hasPositions=yes) DynamicInfo(Si, fraction=13.04%, type=VDOS, npts=172)
+4 AtomInfo(Cl, 2, DebyeT=210.658K, MSD=0.0275031Aa^2, hasPositions=yes) DynamicInfo(Cl, fraction=4.348%, type=VDOS, npts=172)
+----------
+0 AtomInfo(O, 24, DebyeT=472.816K, MSD=0.0127678Aa^2, hasPositions=yes) DynamicInfo(O, fraction=52.17%, type=VDOS, npts=172)
+1 AtomInfo(Na, 8, DebyeT=314.088K, MSD=0.0194033Aa^2, hasPositions=yes) DynamicInfo(Na, fraction=17.39%, type=VDOS, npts=172)
+2 AtomInfo(Al, 6, DebyeT=470.253K, MSD=0.0076484Aa^2, hasPositions=yes) DynamicInfo(Al, fraction=13.04%, type=VDOS, npts=172)
+3 AtomInfo(Si, 6, DebyeT=471.468K, MSD=0.00731235Aa^2, hasPositions=yes) DynamicInfo(Si, fraction=13.04%, type=VDOS, npts=172)
+4 AtomInfo(Cl, 2, DebyeT=210.658K, MSD=0.0275031Aa^2, hasPositions=yes) DynamicInfo(Cl, fraction=4.348%, type=VDOS, npts=172)
+0 DynamicInfo(O, fraction=52.17%, type=VDOS, npts=172) AtomInfo(O, 24, DebyeT=472.816K, MSD=0.0127678Aa^2, hasPositions=yes)
+1 DynamicInfo(Na, fraction=17.39%, type=VDOS, npts=172) AtomInfo(Na, 8, DebyeT=314.088K, MSD=0.0194033Aa^2, hasPositions=yes)
+2 DynamicInfo(Al, fraction=13.04%, type=VDOS, npts=172) AtomInfo(Al, 6, DebyeT=470.253K, MSD=0.0076484Aa^2, hasPositions=yes)
+3 DynamicInfo(Si, fraction=13.04%, type=VDOS, npts=172) AtomInfo(Si, 6, DebyeT=471.468K, MSD=0.00731235Aa^2, hasPositions=yes)
+4 DynamicInfo(Cl, fraction=4.348%, type=VDOS, npts=172) AtomInfo(Cl, 2, DebyeT=210.658K, MSD=0.0275031Aa^2, hasPositions=yes)
+------------- LiquidHeavyWaterD2O_T293.6K.ncmat
+0 DynamicInfo(D, fraction=66.67%, type=ScatKnlDirect) None
+1 DynamicInfo(O, fraction=33.33%, type=ScatKnlDirect) None
+----------
+0 DynamicInfo(D, fraction=66.67%, type=ScatKnlDirect) None
+1 DynamicInfo(O, fraction=33.33%, type=ScatKnlDirect) None
+------------- He_Gas_STP.ncmat
+0 DynamicInfo(He, fraction=100%, type=FreeGas) None
+----------
+0 DynamicInfo(He, fraction=100%, type=FreeGas) None
+------------- Ti_sg194.ncmat
+0 DynamicInfo(Ti, fraction=100%, type=VDOS, npts=255) AtomInfo(Ti, 2, DebyeT=373.306K, MSD=0.00667869Aa^2, hasPositions=yes)
+0 AtomInfo(Ti, 2, DebyeT=373.306K, MSD=0.00667869Aa^2, hasPositions=yes) DynamicInfo(Ti, fraction=100%, type=VDOS, npts=255)
+----------
+0 AtomInfo(Ti, 2, DebyeT=373.306K, MSD=0.00667869Aa^2, hasPositions=yes) DynamicInfo(Ti, fraction=100%, type=VDOS, npts=255)
+0 DynamicInfo(Ti, fraction=100%, type=VDOS, npts=255) AtomInfo(Ti, 2, DebyeT=373.306K, MSD=0.00667869Aa^2, hasPositions=yes)
