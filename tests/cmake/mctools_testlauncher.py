@@ -89,6 +89,11 @@ def run( app_file, reflogfile = None ):
                 print(f"L{i+1} + {o}")
     def qp( p ):
         return shlex.quote(str(p.absolute()))
+
+    import difflib
+    for l in difflib.unified_diff(output, refoutput):
+        print('DIFF: %s'%l)
+
     raise SystemExit(f"""
 ERROR: Output does not match that of the reference log.
 New output is at: {newout.absolute()}

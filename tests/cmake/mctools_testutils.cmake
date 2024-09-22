@@ -56,7 +56,6 @@ function( mctools_testutils_add_tests_pyscripts scriptsdir envmod )
       continue()
     endif()
 
-    message( STATUS "TKTEST Adding test ${testname}")
     if ( EXISTS "${psdir}/${bn}.log" )
       mctools_testutils_internal_addreflogtest(
         "${testname}"
@@ -104,7 +103,7 @@ function( mctools_testutils_internal_haspydep resvar pydep )
     COMMAND "${pyexec}" "-c" "import ${pydep}"
     RESULT_VARIABLE "res" OUTPUT_QUIET ERROR_QUIET
   )
-  if( "x${res}" EQUAL "x0" )
+  if( "x${res}" STREQUAL "x0" )
     set_property(
       GLOBAL PROPERTY mctools_testutils_internal_pydepspresent
       "${known_present};${pydep}"
@@ -262,7 +261,7 @@ function( mctools_testutils_internal_getpyexec resvar )
     message(
       FATAL_ERROR
       "Could not find Python3 executable (you can set "
-      "MCTOOLS_TESTUTILS_PYTHON_EXECUTABLE or Python3_EXECUTABLE"
+      "MCTOOLS_TESTUTILS_PYTHON_EXECUTABLE or Python3_EXECUTABLE "
       "before calling functions in mctools_testutils)."
     )
   endif()
