@@ -123,7 +123,7 @@ int main()
 
   fct5(fct6());
   fct5(fct7());
-  //Fixme: verify exceptions:
+  //todo: verify exceptions:
   //  NC::shared_obj<const Dummy>(nullptr);
 
   NC::shared_obj<const DummyBase> dbase = NC::makeSO<DummyDerived>();

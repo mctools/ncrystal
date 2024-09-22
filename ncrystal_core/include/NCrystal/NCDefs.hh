@@ -239,8 +239,8 @@ namespace NCRYSTAL_NAMESPACE {
     static_assert(std::is_nothrow_destructible<T>::value,
                   "Optional can only keep objects with noexcept destructors");
   public:
-    static constexpr bool has_copy_semantics = false;
 
+    static constexpr bool has_copy_semantics = false;
     using value_type = T;
 
     //Construct with value:
@@ -255,13 +255,7 @@ namespace NCRYSTAL_NAMESPACE {
     void reset() noexcept;
 
     //Set value:
-    Optional& operator=( T&& o ) noexcept(std::is_nothrow_move_constructible<T>::value)
-    {
-      reset();
-      new(&m_value)T(std::move(o));
-      m_hasValue = true;
-      return *this;
-    }
+    Optional& operator=( T&& o ) noexcept(std::is_nothrow_move_constructible<T>::value);
 
     template<class TOther, class U = TOther,
              typename = typename std::enable_if<std::is_rvalue_reference<TOther>::value
@@ -1018,7 +1012,6 @@ namespace NCRYSTAL_NAMESPACE {
     const base_t& asBase() const noexcept { return *static_cast<const Optional<T,false>*>(this); }
   public:
     static constexpr bool has_copy_semantics = true;
-
     static_assert(std::is_copy_constructible<T>::value,"");
     static_assert(std::is_copy_assignable<T>::value,"");
 
@@ -1049,7 +1042,7 @@ namespace NCRYSTAL_NAMESPACE {
                std::is_constructible<T,U>::value &&
                !std::is_base_of<Optional<T,false>,
                                 typename std::remove_cv<typename std::remove_reference<U>::type>::type>::value>::type>
-    Optional& operator=( TOther&& to ) noexcept(std::is_constructible<T,TOther>::value)
+    Optional& operator=( TOther&& to ) noexcept(std::is_nothrow_constructible<T,TOther>::value)
     {
       this->reset();
       new(&asBase().m_value)T(std::forward<TOther>(to));
@@ -1128,6 +1121,15 @@ namespace NCRYSTAL_NAMESPACE {
   inline ncconstexpr17 Optional<T,bcopy>& Optional<T,bcopy>::operator=( NullOptType ) noexcept
   {
     reset();
+    return *this;
+  }
+
+  template<class T,bool bcopy>
+  inline Optional<T,bcopy>& Optional<T,bcopy>::operator=( T&& o ) noexcept(std::is_nothrow_move_constructible<T>::value)
+  {
+    reset();
+    new(&m_value)T(std::move(o));
+    m_hasValue = true;
     return *this;
   }
 

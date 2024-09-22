@@ -439,10 +439,10 @@ void do_tests() {
     print(v,"v");
     //Also test std::swap, ADL swap:
     std::cout<<"std::swap(u,v)"<<std::endl;
-    std::swap(u,v);//fixme verify with printout that it works
+    std::swap(u,v);
     print(u,"u");
     print(v,"v");
-    //FIXME: Try all small/large combinations
+    //TODO: Try all small/large combinations
     [&u,&v](){
       std::cout<<"ADL: swap(u,v)"<<std::endl;
       swap(u,v);
@@ -810,10 +810,10 @@ void do_tests_IC() {
     print(v,"v");
     //Also test std::swap, ADL swap:
     std::cout<<"std::swap(u,v)"<<std::endl;
-    std::swap(u,v);//fixme verify with printout that it works
+    std::swap(u,v);
     print(u,"u");
     print(v,"v");
-    //FIXME: Try all small/large combinations
+    //TODO: Try all small/large combinations
     [&u,&v](){
       std::cout<<"ADL: swap(u,v)"<<std::endl;
       swap(u,v);

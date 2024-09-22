@@ -62,7 +62,7 @@ void test_split()
 
   s=";hej;med;;dig;";
   NC::split(parts,s,0,';');
-  dump("sep=;",s,parts);//FIXME does not work!
+  dump("sep=;",s,parts);
 
   s=";hej;med; dig;;;hejsa";
   NC::split(parts,s,0,';');

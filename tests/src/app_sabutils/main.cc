@@ -25,9 +25,9 @@ namespace NC = NCrystal;
 namespace NS = NC::SABUtils;
 
 void printrange(NC::Span<double> v,bool eol = true) {
-  //fixme: we should think about numpy-like adapters to print span's of values in ostreams. Perhaps even overloading adapters:
-  //std::cout << NC::stream(v) <<std::endl;
-  //std::cout << NC::stream_shortform(v) <<std::endl;
+  //TODO: we should think about numpy-like adapters to print span's of values in
+  //ostreams. Perhaps even overloading adapters: std::cout << NC::stream(v)
+  //<<std::endl; std::cout << NC::stream_shortform(v) <<std::endl;
   std::cout<<"[";
   if (!v.empty()) {
     for (auto e: NC::Span<const double>(v).first(v.size()-1))
