@@ -29,10 +29,8 @@ jobs:
     - name: pip install extra deps
       shell: cmd
       run: |
-        pip install numpy
-        python -h
+        python -mpip install numpy
         python -c "import numpy"
-
 
 #    - name: ldd help
 #      shell: cmd
