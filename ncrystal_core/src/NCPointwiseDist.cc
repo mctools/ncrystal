@@ -89,7 +89,7 @@ std::pair<double,unsigned> NC::PointwiseDist::percentileWithIndex(double p ) con
   double d = m_y[i] - a;
   double zdx;
   if (!a) {
-    zdx = d>0.0 ? std::sqrt( ( 2.0 * c * dx ) / d ) : 0.5*dx;//a=0 and d=0 should not really happen...
+    zdx = d>0.0 ? std::sqrt( ( 2.0 * c * dx ) / d ) : 0.5*dx;//(a,d)=(0,0) should not really happen?
   } else {
     double e = d * c / ( dx * a * a );
     if (ncabs(e)>1e-7) {
