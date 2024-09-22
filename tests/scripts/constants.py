@@ -20,6 +20,8 @@
 ##                                                                            ##
 ################################################################################
 
+# NEEDS: numpy
+
 #FIXME add this back import Core.FPE
 #FIXME add this back Core.FPE.catch_fpe()
 import NCrystal.constants as ncc

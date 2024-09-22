@@ -20,6 +20,8 @@
 ##                                                                            ##
 ################################################################################
 
+# NEEDS: numpy
+
 from NCrystal.hfg2ncmat import hfg2ncmat
 
 def test(spec,formula,**kwargs):
