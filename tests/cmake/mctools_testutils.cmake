@@ -19,7 +19,8 @@ if ( NOT EXISTS "${mctools_launcher_file}" )
   message( FATAL_ERROR "Did not find expected ${mctools_launcher_file}" )
 endif()
 
-if ( NOT DEFINED MCTOOLS_TESTUTILS_PYTHON_EXECUTABLE )
+if ( NOT DEFINED MCTOOLS_TESTUTILS_PYTHON_EXECUTABLE
+     AND NOT DEFINED Python3_EXECUTABLE )
   set( MCTOOLS_TESTUTILS_PYTHON_EXECUTABLE "auto" )
 endif()
 
@@ -36,18 +37,37 @@ function( mctools_testutils_add_tests_pyscripts scriptsdir envmod )
     endif()
     get_filename_component(bn "${pyscript}" NAME_WE)
     get_filename_component(psdir "${pyscript}" DIRECTORY)
+
+    set(missingdeps "")
+    mctools_testutils_internal_detectpydeps( "deplist" "${pyscript}" )
+    if ( deplist )
+      mctools_testutils_internal_missingpydeps( "missingdeps" "${deplist}" )
+    endif()
+
     if ( EXISTS "${psdir}/${bn}.log" )
       set( testname "py_rl_${bn}" )
+    else()
+      set( testname "py_${bn}" )
+    endif()
+
+    if ( missingdeps )
+      string(REPLACE ";" " " md_pretty "${missingdeps}")
+      message( WARNING "Skipping py test ${testname} due to missing deps: ${md_pretty}")
+      continue()
+    endif()
+
+    message( STATUS "TKTEST Adding test ${testname}")
+    if ( EXISTS "${psdir}/${bn}.log" )
       mctools_testutils_internal_addreflogtest(
         "${testname}"
         "${pyscript}"
         "${psdir}/${bn}.log"
       )
     else()
-      set( testname "py_${bn}" )
       add_test( NAME "${testname}" COMMAND "${pyexec}" "${pyscript}" )
       mctools_testutils_internal_settestprops( "py_${bn}" )
     endif()
+
     if ( envmod )
       set_property(
         TEST "${testname}"
@@ -55,6 +75,62 @@ function( mctools_testutils_add_tests_pyscripts scriptsdir envmod )
       )
     endif()
   endforeach()
+endfunction()
+
+set_property(GLOBAL PROPERTY mctools_testutils_internal_pydepspresent "")
+set_property(GLOBAL PROPERTY mctools_testutils_internal_pydepsabsent "")
+
+function( mctools_testutils_internal_haspydep resvar pydep )
+  get_property(
+    known_present
+    GLOBAL PROPERTY mctools_testutils_internal_pydepspresent
+  )
+  if( "${pydep}" IN_LIST known_present )
+    set( "${resvar}" "ON" PARENT_SCOPE )
+    return()
+  endif()
+  get_property(
+    known_absent
+    GLOBAL PROPERTY mctools_testutils_internal_pydepsabsent
+  )
+  if( "${pydep}" IN_LIST known_absent )
+    set( "${resvar}" "OFF" PARENT_SCOPE )
+    return()
+  endif()
+  #Ok, first time encountering this particular dependency.
+  mctools_testutils_internal_getpyexec( "pyexec" )
+  message(STATUS "Testing for presence of python module: ${pydep}")
+  execute_process(
+    COMMAND "${pyexec}" "-c" "import ${pydep}"
+    RESULT_VARIABLE "res" OUTPUT_QUIET ERROR_QUIET
+  )
+  if( "x${res}" EQUAL "x0" )
+    set_property(
+      GLOBAL PROPERTY mctools_testutils_internal_pydepspresent
+      "${known_present};${pydep}"
+    )
+    set( "${resvar}" "ON" PARENT_SCOPE )
+    message(STATUS "... PRESENT.")
+  else()
+    set_property(
+      GLOBAL PROPERTY mctools_testutils_internal_pydepsabsent
+      "${known_absent};${pydep}"
+    )
+    set( "${resvar}" "OFF" PARENT_SCOPE )
+    message(STATUS "... ABSENT.")
+  endif()
+endfunction()
+
+
+function( mctools_testutils_internal_missingpydeps resvar pydeps )
+  set( missing "")
+  foreach( pydep ${pydeps} )
+    mctools_testutils_internal_haspydep( present "${pydep}" )
+    if ( NOT present )
+      list( APPEND missing "${pydep}" )
+    endif()
+  endforeach()
+  set( "${resvar}" "${missing}" PARENT_SCOPE )
 endfunction()
 
 function( mctools_testutils_add_test_libs librootdir extra_link_libs )
@@ -151,21 +227,43 @@ endfunction()
 ######################################
 
 function( mctools_testutils_internal_getpyexec resvar )
+  get_property(
+    pyexec
+    GLOBAL PROPERTY mctools_testutils_internal_pyexec
+  )
+  if ( pyexec )
+    #Already found:
+    set( "${resvar}" "${pyexec}" PARENT_SCOPE )
+    return()
+  endif()
+  #Must figure out which one to use:
   if ( MCTOOLS_TESTUTILS_PYTHON_EXECUTABLE )
     if ( "x${MCTOOLS_TESTUTILS_PYTHON_EXECUTABLE}" STREQUAL "xauto" )
       find_package(Python3 3.8 REQUIRED COMPONENTS Interpreter)
-      set( "MCTOOLS_TESTUTILS_PYTHON_EXECUTABLE" "${Python3_EXECUTABLE}" PARENT_SCOPE )
+      set_property(
+        GLOBAL PROPERTY
+        mctools_testutils_internal_pyexec "${Python3_EXECUTABLE}"
+      )
       set( "${resvar}" "${Python3_EXECUTABLE}" PARENT_SCOPE )
     else()
+      set_property(
+        GLOBAL PROPERTY mctools_testutils_internal_pyexec
+        "${MCTOOLS_TESTUTILS_PYTHON_EXECUTABLE}"
+      )
       set( "${resvar}" "${MCTOOLS_TESTUTILS_PYTHON_EXECUTABLE}" PARENT_SCOPE )
     endif()
   elseif( Python3_EXECUTABLE )
+    set_property(
+      GLOBAL PROPERTY
+      mctools_testutils_internal_pyexec "${Python3_EXECUTABLE}"
+    )
     set( "${resvar}" "${Python3_EXECUTABLE}" PARENT_SCOPE )
   else()
     message(
       FATAL_ERROR
+      "Could not find Python3 executable (you can set "
       "MCTOOLS_TESTUTILS_PYTHON_EXECUTABLE or Python3_EXECUTABLE"
-      "must be set before calling functions in mctools_testutils"
+      "before calling functions in mctools_testutils)."
     )
   endif()
 endfunction()
@@ -184,6 +282,32 @@ function( mctools_testutils_internal_detectlibdeps resvar files )
       string(SUBSTRING "${entry}" 0 ${loc} entry)
       if( NOT "${entry}" IN_LIST deplist )
         list( APPEND deplist "${entry}" )
+      endif()
+    endforeach()
+  endforeach()
+  set( "${resvar}" "${deplist}" PARENT_SCOPE )
+endfunction()
+
+function( mctools_testutils_internal_detectpydeps resvar pyfile )
+  #Determine dependencies on optional python modules by looking for lines like:
+  #   "# NEEDS: numpy spglib"
+  #Their presence will then be determined or not based on whether "import
+  #<name>" works in python.
+  set(deplist "")
+  file( STRINGS "${pyfile}" needs_lines REGEX "^# NEEDS: " )
+  set( comment_marker_seen OFF )
+  foreach( entry ${needs_lines} )
+    string(SUBSTRING "${entry}" 9 -1 entry)#9 is length of "# NEEDS: "
+
+    #Support comment '#' char after the deplist:
+    string(REPLACE "#" " # " entry "${entry}")#add space around comment marker
+    string(REPLACE " " ";" entry "${entry}")#Turn into CMake list
+    foreach(depname ${entry})
+      if ( "x${depname}" STREQUAL "x#" )
+        break()#break on comment marker
+      endif()
+      if (NOT "${depname}" IN_LIST deplist )
+        list(APPEND deplist "${depname}")
       endif()
     endforeach()
   endforeach()
