@@ -80,12 +80,12 @@ int main () {
   }
 
   std::cout << "initializer list enumeration:\n";
-  auto hackhack={"aaa","bbb","ccc"};//FIXME: We have to do it like this to extend the lifetime of the container in this case. Solution?
+  auto hackhack={"aaa","bbb","ccc"};//TODO: We have to do it like this to extend the lifetime of the container in this case. Solution?
   for (auto&& e : NC::enumerate(hackhack)) {
     std::cout << "(" << e.idx << ", " << e.val << ")\n";
   }
   std::cout << "std::string enumeration:\n";
-  auto hackhack_str = std::string("abcdefghijkl");//FIXME: We have to do it like this to extend the lifetime of the std::string in this case. Solution?
+  auto hackhack_str = std::string("abcdefghijkl");//TODO: We have to do it like this to extend the lifetime of the std::string in this case. Solution?
   for (auto&& e : NC::enumerate(hackhack_str)) {
     std::cout << "(" << e.idx << ", " << e.val << ")\n";
   }
@@ -94,7 +94,7 @@ int main () {
     std::cout << "(" << e.idx << ", " << (e.val?e.val:'?') << ")\n";
   }
   std::cout << "span enumeration:\n";
-  auto hackhack2=NC::Span<int>(ncvec);//FIXME: We have to do it like this to extend the lifetime of the span in this case. Solution?
+  auto hackhack2=NC::Span<int>(ncvec);//TODO: We have to do it like this to extend the lifetime of the span in this case. Solution?
   for (auto&& e : NC::enumerate(hackhack2)) {
     std::cout << "(" << e.idx << ", " << e.val << ")\n";
   }

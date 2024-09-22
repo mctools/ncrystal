@@ -19,27 +19,22 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/NCPointwiseDist.hh"
-#include <vector>
+#include "NCrystal/internal/NCMath.hh"
+#include <iostream>
 
 //this test creates a uniform distribution in a fancy way
 int main(int , char**)
 {
-  double x[5]  = {0, 1 , 2 , 3 , 4};
-  //  double w1[5] = {0, 1 , 2, 3 , 4 };
-  double w2[5] = {4, 4 , 4, 4 , 4  };
-  NCrystal::VectD xv(x,x+5);
-  // NCrystal::VectD w1v(w1,w1+5);
-  NCrystal::VectD w2v(w2,w2+5);
-
-  // NCrystal::PointwiseDist dist1 (xv, w1v, 0.5);
+  const double xmax = 4.0;
+  NCrystal::VectD xv = {0, 1 , 2 , 3 , xmax};
+  NCrystal::VectD w2v = {4, 4 , 4, 4 , 4  };
   NCrystal::PointwiseDist dist2 (xv, w2v);
-
-  // dist1 += dist2;
-  for(unsigned i=0;i<10;i++)
-  {
-    double r=i*0.1;
-    //the accuracy of percentile(double r) is 1e-12 (fixme: actually now it is machine precision...)
-    printf("%0.8e\n", dist2.percentile(r)*0.25-r);
+  namespace NC = NCrystal;
+  for ( auto r : NC::linspace(0.0,1.0,117) ) {
+    const double expected_x_at_percentile_r  = r * xmax;
+    const double p = dist2.percentile(r);
+    nc_assert_always( NC::floateq(expected_x_at_percentile_r, p, 1e-12, 1e-12) );
+    std::cout<<"percentile( "<<NC::fmtg(r)<<" ) = "<<NC::fmtg(p)<<std::endl;
   }
 
   return 0;
