@@ -22,17 +22,18 @@
 
 import NCrystal as NC
 
-data_Au_sg225_nxs="""
-space_group = 225
-lattice_a = 4.07825
-lattice_b = 4.07825
-lattice_c = 4.07825
-lattice_alpha = 90
-lattice_beta  = 90
-lattice_gamma = 90
-debye_temp = 166.8082
-[atoms]
-add_atom = Au 7.63 0.43 98.65 196.966570114 0 0 0
+data_Au_sg225_ncmat="""NCMAT v4
+@CELL
+  cubic 4.07825
+@SPACEGROUP
+  225
+@ATOMPOSITIONS
+  Au   0 1/2 1/2
+  Au   0   0   0
+  Au 1/2 1/2   0
+  Au 1/2   0 1/2
+@DEBYETEMPERATURE
+  Au  167
 """
 
 mat = NC.directMultiCreate( """NCMAT v1
@@ -51,9 +52,12 @@ mat = NC.directMultiCreate( """NCMAT v1
 """ )
 print(mat.info.getDensity())
 
-bla=NC.directMultiCreate(data_Au_sg225_nxs,dtype='nxs',doInfo=False,doScatter=False,doAbsorption=False)
-print(bla)
-bla=NC.directMultiCreate(data_Au_sg225_nxs,'temp=600K;dcutoff=1',dtype='nxs')
-bla.info.dump()
-#help(bla.scatter)
-print(bla.scatter.crossSectionNonOriented(NC.wl2ekin(2.0)))
+mat2=NC.directMultiCreate( data_Au_sg225_ncmat,
+                           dtype='ncmat',
+                           doInfo=False,
+                           doScatter=False,
+                           doAbsorption=False )
+print(mat2)
+mat2=NC.directMultiCreate(data_Au_sg225_ncmat,'temp=600K;dcutoff=1')
+mat2.info.dump()
+print(mat2.scatter.crossSectionNonOriented(NC.wl2ekin(2.0)))
