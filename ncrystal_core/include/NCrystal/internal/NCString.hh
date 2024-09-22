@@ -47,16 +47,16 @@ namespace NCRYSTAL_NAMESPACE {
   constexpr bool isWhiteSpace( const char ) noexcept;
 
   //Split input string on separator (default sep=0 means splitting on general
-  //whitespace - " \t\r\n"). Results are placed in output vector, which is first
-  //cleared of existing contents. Empty parts are only kept when sep!=0 (similar
-  //to pythons str.split()). Finally, maxsplit can be used to limit the number
-  //of splittings performed:
+  //whitespace - " \t\r\n"). Empty parts are only kept when sep!=0 (similar to
+  //pythons str.split()). Finally, maxsplit can be used to limit the number of
+  //splittings performed:
   VectS split2( const std::string& input,
                 std::size_t maxsplit = 0,
                 char sep = 0);
 
-  //Backwards compatible version (eventually we will remove this and rename
-  //split2->split):
+  //Backwards compatible version. Results are placed in output vector, which is
+  //first cleared of existing contents. Eventually we will remove this version
+  //and rename split2->split:
   void split(VectS& output,
              const std::string& input,
              std::size_t maxsplit = 0,
