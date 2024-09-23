@@ -776,7 +776,11 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
         l = _raw_gettextdata(_str2cstr(str(name)))
         assert l is not None
         n = 5
-        res = [l[i].decode() for i in range(n)]
+        def _decode( s ):
+            s=s.decode('utf-8')
+            return ( s.replace('\r\n','\n').replace('\r','\n')
+                     if '\r' in s else s )
+        res = [_decode(l[i]) for i in range(n)]
         assert isinstance(res[0],str)
         _raw_deallocstrlist(n,l)
         return res
