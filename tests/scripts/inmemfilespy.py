@@ -112,6 +112,8 @@ for fn in ('Al_sg225.ncmat','Ti_sg194.ncmat','something_that_does_not_exist.ncma
     print(f"<=======")
 
 
+#Just wanted somewhere to test that vdosdebye is not possible without Debye
+#temperature:
 NC.registerInMemoryFileData( "bad.ncmat","""NCMAT v3
 @DYNINFO
   element  Xe
@@ -119,7 +121,7 @@ NC.registerInMemoryFileData( "bad.ncmat","""NCMAT v3
   type     vdosdebye
 @DENSITY
   10 kg_per_m3
-""")#just wanted somewhere to test that vdosdebye is not possible without Debye temperature
+""")
 try:
     NC.createInfo("virtual::bad.ncmat")
 except NC.NCBadInput as e:
