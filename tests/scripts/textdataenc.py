@@ -22,8 +22,9 @@
 
 import NCrystal as NC
 
-# A very simple test, based on something that gave problems on Windows (due to
-# encodings or line endings):
+# Test for line encodings (even just printing
+# getTextData('stdlib::somefile.ncmat').rawData gave problems on Windows before,
+# due to encodings or line endings:
 
 def query_print( key, load = True ):
     lines=[]
