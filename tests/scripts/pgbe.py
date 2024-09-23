@@ -23,7 +23,6 @@
 # NEEDS: numpy
 
 # Checks https://github.com/mctools/ncrystal/issues/171
-
 #FIXME add this back import Core.FPE
 #FIXME add this back Core.FPE.catch_fpe()
 
