@@ -25,7 +25,7 @@ import NCrystal as NC
 # A very simple test, based on something that gave problems on Windows (due to
 # encodings or line endings):
 
-def query_print( key ):
+def query_print( key, load = True ):
     lines=[]
     print()
     print( "===============================================================" )
@@ -41,6 +41,21 @@ def query_print( key ):
     assert not '\r' in td.rawData
     print( "=== Printing .rawData ===" )
     print( td.rawData, end='' )
+    print( "=============================" )
+    print( "=== Loading ===" )
+    ok = False
+    try:
+        NC.load(f'{key};dcutoff=1.0;vdoslux=0')
+        ok = True
+    except NC.NCBadInput as e:
+        if not load:
+            print(f" ... got expected error: {e}")
+        else:
+            raise
+    if ok and not load:
+        raise SystemExit('Load did not fail as expected')
+    if ok:
+        print(" ... success.")
     print( "=============================" )
     return lines,td.rawData
 
@@ -71,6 +86,12 @@ NC.registerInMemoryFileData( 'mixed.ncmat',
                              .replace( b'<ENDOFLINE>',
                                        b'\x0a' )
                             )
+#weird AKA "Ancient pre-OSX mac line endings are single \r". These can NOT be
+#loaded, as they are disallowed by the NCMAT spec.:
+#
+# "Line endings can be Unix (LF) or DOS (CRLF), but not the ancient Macintosh
+#  endings (CR)."
+
 NC.registerInMemoryFileData( 'weird.ncmat',
                              dummy_data
                              .replace( b'@DENSITY<ENDOFLINE>',
@@ -78,13 +99,9 @@ NC.registerInMemoryFileData( 'weird.ncmat',
                              .replace( b'<ENDOFLINE>',
                                        b'\x0a' )
                             )
-
-res_unix =  query_print('virtual::unix.ncmat')
-res_dos = query_print('virtual::dos.ncmat')
-res_mixed = query_print('virtual::mixed.ncmat')
-res_weird = query_print('virtual::weird.ncmat')
-
 for enc in ('unix','dos','mixed','weird'):
-    lines,rawdata = query_print(f'virtual::{enc}.ncmat')
+    do_load = ( enc != 'weird' )
+    lines,rawdata = query_print(f'virtual::{enc}.ncmat',
+                                load = do_load )
     assert lines == dummy_data_decoded.splitlines(), f'Unexpected {enc}.ncmat lines'
     assert rawdata == dummy_data_decoded, f'Unexpected {enc}.ncmat .rawData'
