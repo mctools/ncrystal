@@ -26,4 +26,11 @@ import NCrystal as NC
 # encodings or line endings):
 
 td = NC.createTextData('stdlib::Ti_sg194.ncmat')
-print( td.rawData )
+
+print( "=== Printing line by line ===" )
+for line in td:
+    print(line)
+print( "=============================" )
+print( "=== Printing .rawData ===" )
+print( td.rawData, end='' )
+print( "=============================" )
