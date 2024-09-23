@@ -133,9 +133,6 @@ function( mctools_testutils_internal_missingpydeps resvar pydeps )
 endfunction()
 
 function( mctools_testutils_add_test_libs librootdir extra_link_libs )
-  #  if ( NOT "x${extra_link_libs}" STREQUAL "xNCrystal" )
-  #    message( FATAL_ERROR "Why on earth is \"${extra_link_libs}\" not \"NCrystal\"" )
-  #  endif()
   file(
     GLOB libdirs
     LIST_DIRECTORIES true
@@ -154,14 +151,6 @@ function( mctools_testutils_add_test_libs librootdir extra_link_libs )
       endif()
     endforeach()
     add_library( ${name} ${srcfiles} )
-
-#    #FIXME JUST TESTING vvvvvvvvv
-#    if ( NOT EXISTS "${ncrystal_core_configured_includedir}/NCrystal/NCDefs.hh"
-#        OR NOT EXISTS "${ncrystal_core_configured_includedir}/NCrystal/internal/NCMath.hh" )
-#      message( FATAL_ERROR "Problems finding NCrystal includes at ${ncrystal_core_configured_includedir}/NCrystal/NCDefs.hh" )
-#    endif()
-#    target_link_libraries( "${name}" PRIVATE "NCrystal" )
-#    #target_include_directories( ${name} PRIVATE ${ncrystal_core_configured_includedir} )#FIXME JUST TESTING
 
     target_link_libraries( ${name} PRIVATE ${extra_link_libs} )
     if ( EXISTS "${libdir}/include" )
@@ -199,22 +188,12 @@ function( mctools_testutils_add_tests_apps approotdir extra_link_libs envmod )
     mctools_testutils_internal_getsrcfiles( srcfiles "${appdir}" )
     add_executable( ${bn} ${srcfiles})
 
-#    #FIXME JUST TESTING vvvvvvvvv
-#    if ( NOT EXISTS "${ncrystal_core_configured_includedir}/NCrystal/NCDefs.hh"
-#        OR NOT EXISTS "${ncrystal_core_configured_includedir}/NCrystal/internal/NCMath.hh" )
-#      message( FATAL_ERROR "Problems finding NCrystal includes at ${ncrystal_core_configured_includedir}/NCrystal/NCDefs.hh" )
-#    endif()
-#    target_link_libraries( ${bn} PRIVATE "NCrystal" )
-#    if ( NOT "x${extra_link_libs}" STREQUAL "xNCrystal" )
-#      message( FATAL_ERROR "Why on earth is \"${extra_link_libs}\" not \"NCrystal\"" )
-#    endif()
-#    #target_include_directories( ${bn} PRIVATE ${ncrystal_core_configured_includedir} )#FIXME JUST TESTING
-#
     mctools_testutils_internal_detectlibdeps( "deplist" "${srcfiles}" "" )
     foreach( dep ${deplist} )
       target_link_libraries( ${bn} PRIVATE "TestLib_${dep}" )
     endforeach()
     target_link_libraries( ${bn} PRIVATE ${extra_link_libs} )
+
     #Fixme not great for multi-generators (also, do we need it??):
     set_target_properties(
       ${bn} PROPERTIES

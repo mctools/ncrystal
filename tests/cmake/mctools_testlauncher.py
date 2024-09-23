@@ -7,10 +7,6 @@ import sys
 ENCODING = sys.stdout.encoding
 
 import os
-#Might be too late here?:
-os.environ['PYTHONIOENCODING'] = ENCODING#'UTF-8'
-os.environ['PYTHONLEGACYWINDOWSSTDIO'] = ENCODING#'UTF-8'
-
 import pathlib
 import shutil
 import shlex
@@ -20,45 +16,6 @@ is_windows = (platform.system() == 'Windows')
 is_linux  =  (platform.system() == 'Linux')
 is_osx  =  (platform.system() == 'Darwin')
 
-def hack_ldd_libncrystal(cwd):
-    libncrystal = pathlib.Path('D:/a/ncrystal/ncrystal/build/Release/NCrystal.dll')
-    assert libncrystal.is_file()
-    cmd=[str(shutil.which('ldd')),str(libncrystal)]
-    print("Launching: %s"%shlex.join(cmd))
-    sys.stdout.flush()
-    sys.stderr.flush()
-    subprocess.run( cmd,
-                    check=True,
-                    cwd = cwd )
-    sys.stdout.flush()
-    sys.stderr.flush()
-
-def hack_nm_libncrystal(cwd):
-    libncrystal = pathlib.Path('D:/a/ncrystal/ncrystal/build/Release/NCrystal.dll')
-    assert libncrystal.is_file()
-    cmd=[str(shutil.which('nm')),str(libncrystal)]
-    print("Launching: %s"%shlex.join(cmd))
-    sys.stdout.flush()
-    sys.stderr.flush()
-    subprocess.run( cmd,
-                    check=True,
-                    cwd = cwd )
-    sys.stdout.flush()
-    sys.stderr.flush()
-
-def hack_nmu_libncrystal(cwd):
-    libncrystal = pathlib.Path('D:/a/ncrystal/ncrystal/build/Release/NCrystal.dll')
-    assert libncrystal.is_file()
-    cmd=[str(shutil.which('nm')),'/u',str(libncrystal)]
-    print("Launching: %s"%shlex.join(cmd))
-    sys.stdout.flush()
-    sys.stderr.flush()
-    subprocess.run( cmd,
-                    check=True,
-                    cwd = cwd )
-    sys.stdout.flush()
-    sys.stderr.flush()
-
 def inspectbin( afile, cwd ):
 
     if is_windows:
@@ -66,10 +23,6 @@ def inspectbin( afile, cwd ):
         if db:
             cmd=[str(db),'/dependents',str(afile)]
         elif shutil.which('ldd'):
-            #hack_ldd_libncrystal(cwd=cwd)
-            #hack_nm_libncrystal(cwd=cwd)
-            #hack_nmu_libncrystal(cwd=cwd)
-            #"ldd /r' does not seem to work
             cmd=[str(shutil.which('ldd')),str(afile)]
         else:
             raise SystemExit("could not find either dumpbin or ldd")
