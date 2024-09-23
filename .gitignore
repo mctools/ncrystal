@@ -9,6 +9,7 @@ _site
 #node_modules
 #package.json
 
+/venv/
 
 # Emacs
 *~
