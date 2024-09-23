@@ -168,7 +168,15 @@ int main()
     A* a = spA.get();
     bool gotexpectederror(false);
     try {
+#if nc_cplusplus >= 201703L
       auto spA2 = a->shared_obj_from_this();
+#else
+      //Pre-C++17 this was actually undefined behaviour!! So to avoid a
+      //spuriously failing unit test, we emit the same error here:
+      NCRYSTAL_THROW( LogicError, "shared_obj_from_this() does not work since this"
+                      " instance is not managed by std::shared_ptr / NCrystal::shared_obj" );
+
+#endif
     } catch ( NCrystal::Error::LogicError& e ) {
       std::cout<<"Got expected error: "<<e.what()<<std::endl;
       gotexpectederror = true;
