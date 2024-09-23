@@ -91,8 +91,12 @@ def run( app_file, reflogfile = None ):
         return shlex.quote(str(p.absolute()))
 
     import difflib
-    for l in difflib.unified_diff(output, refoutput):
-        print('DIFF: %s'%l)
+    for l in difflib.unified_diff(output,
+                                  refoutput,
+                                  fromfile='BEFORE',
+                                  tofile='AFTER',
+                                  lineterm=''):
+        print('DIFF> %s'%l)
 
     raise SystemExit(f"""
 ERROR: Output does not match that of the reference log.
