@@ -6,12 +6,13 @@ on:
 
 jobs:
   build:
-    #C:\Program Files\Microsoft Visual Studio\2022\Enterprise
+    # More platform information available on:
+    # https://github.com/actions/runner-images/blob/main/images/windows/Windows2022-Readme.md
+    #
+    # Sep-2024: windows-latest is windows-2022. We should also try to make
+    # windows-2019 work, and try to build with clang/gcc on. And add a
+    # conda-based test.
 
-    #TODO: Also windows-2019, windows-2022(==latest?). Also try to build with clang/gcc on
-    #windows?
-    #https://github.com/actions/runner-images/blob/main/images/windows/Windows2022-Readme.md
-    #Also add a conda-based test.
     runs-on: windows-latest
 
     steps:
@@ -32,37 +33,35 @@ jobs:
         python -mpip install numpy
         python -c "import numpy"
 
-#    - name: ldd help
-#      shell: cmd
-#      run: help ldd
-
     - name: CMake cfg NCrystal
       shell: cmd
-      run: cmake -B build src -DNCRYSTAL_ENABLE_TESTING=ON -DNCRYSTAL_ENABLE_EXAMPLES=ON -DCMAKE_COMPILE_WARNING_AS_ERROR=ON  -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=ON
-
-#    - name: Look around
-#      shell: cmd
-#      run: |
-#        tree /f build
+      #FIXME: Using -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=ON right now to make tests
+      #       with private headers work on windows. We need to make this
+      #       automatic, but prevent it from being used to actually produce
+      #       pip/conda packages (unless we want them to support advanced plugins?).
+      #       We might also need to make NCRYSTAL_API a noop in that case, to
+      #       get rid of warnings about duplicate dllexport.
+      run: >
+        cmake -B build src
+        -DNCRYSTAL_ENABLE_TESTING=ON
+        -DNCRYSTAL_ENABLE_EXAMPLES=ON
+        -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+        -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=ON
+        -DMCTOOLS_REQUIRE_ALL_TEST_DEPS=ON
 
     - name: CMake build NCrystal
       shell: cmd
       run: cmake --build build --config Release
       #NB: More verbosity by appending: "-- /verbosity:detailed"
 
-#    - name: Look around again
-#      shell: cmd
-#      run: |
-#        tree /f build
-
     - name: Run CTests
       shell: cmd
       run: |
         cd build
-        ctest --build-config Release -VV --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle
-      #NB more verbosity by appending: -VV
+        ctest --build-config Release --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle
+      #NB more verbosity by appending: "-VV"
 
     - name: CMake install NCrystal
       shell: cmd
-      run: cmake --build build --target INSTALL --config Release  -- /verbosity:detailed
+      run: cmake --build build --target INSTALL --config Release
       #NB: More verbosity by appending: "-- /verbosity:detailed"
