@@ -24,14 +24,17 @@ import NCrystal as NC
 
 #Testing presence of data "files", as well as their sorting.
 
+# More robust testing:
+NC.removeAllDataSources()
+NC.enableStandardDataLibrary()
+
 files_default_order = {}
 files_sorted_order = {}
 
+print()
 print('========= In default order ===========')
 print()
 for f in NC.browseFiles():
-    if f.factName in ('stdpath','relpath'):
-        continue# More robust testing
     print(f.fullKey)
     if not f.factName in files_default_order:
         files_default_order[f.factName] = []
@@ -41,8 +44,6 @@ print()
 print('========= Sorted order ===========')
 print()
 for f in sorted(NC.browseFiles()):
-    if f.factName in ('stdpath','relpath'):
-        continue# More robust testing
     print(f.fullKey)
     if not f.factName in files_sorted_order:
         files_sorted_order[f.factName] = []

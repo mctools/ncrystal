@@ -24,6 +24,10 @@
 
 import NCrystal as NC
 
+# More robust testing:
+NC.removeAllDataSources()
+NC.enableStandardDataLibrary()
+
 itest = 0
 for vdoslux in (0,3):
   for temp in (0.001,300,1e6):
@@ -38,4 +42,5 @@ for vdoslux in (0,3):
       for di in info.dyninfos:
         if hasattr(di,'analyseVDOS'):
           print(f'==> {cfgstr}//{di.atomData.displayLabel()} => ',end='')
-          print('; '.join('%s=%.12g'%(k,v) for k,v in sorted(di.analyseVDOS().items())))
+          print('; '.join('%s=%.12g'%(k,v)
+                          for k,v in sorted(di.analyseVDOS().items())))
