@@ -253,6 +253,8 @@ namespace NCRYSTAL_NAMESPACE {
                         " instance is not managed by std::shared_ptr / NCrystal::shared_obj" );
       return shptr;
 #else
+      //Actually undefined behaviour to call this pre-C++17, if object was not
+      //allocated as shared pointer:
       return this->shared_from_this();
 #endif
     }
@@ -264,6 +266,8 @@ namespace NCRYSTAL_NAMESPACE {
                         " instance is not managed by std::shared_ptr / NCrystal::shared_obj" );
       return shptr;
 #else
+      //Actually undefined behaviour to call this pre-C++17, if object was not
+      //allocated as shared pointer:
       return this->shared_from_this();
 #endif
     }
