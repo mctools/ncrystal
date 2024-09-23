@@ -1,3 +1,8 @@
+
+===============================================================
+===============================================================
+===============================================================
+=== NC.createTextData( 'stdlib::Ti_sg194.ncmat' ===
 === Printing line by line ===
 NCMAT v4
 #
@@ -117,4 +122,204 @@ NCMAT v4
     .468726 .465482 .463206 .461781 .461711 .461936 .4617 .462861 .465116
     .467753 .471329 .47577 .480925 .485617 .490487 .495875 .501997 .509659
     .516966 .516309 .486637 .341108 .117982 .0016864 0
+=============================
+
+===============================================================
+===============================================================
+===============================================================
+=== NC.createTextData( 'virtual::unix.ncmat' ===
+=== Printing line by line ===
+NCMAT v7
+@DENSITY
+  1 g_per_cm3
+@DYNINFO
+  element  C
+  fraction 1
+  type     vdosdebye
+  debye_temp 300
+=============================
+=== Printing .rawData ===
+NCMAT v7
+@DENSITY
+  1 g_per_cm3
+@DYNINFO
+  element  C
+  fraction 1
+  type     vdosdebye
+  debye_temp 300
+=============================
+
+===============================================================
+===============================================================
+===============================================================
+=== NC.createTextData( 'virtual::dos.ncmat' ===
+=== Printing line by line ===
+NCMAT v7
+@DENSITY
+  1 g_per_cm3
+@DYNINFO
+  element  C
+  fraction 1
+  type     vdosdebye
+  debye_temp 300
+=============================
+=== Printing .rawData ===
+NCMAT v7
+@DENSITY
+  1 g_per_cm3
+@DYNINFO
+  element  C
+  fraction 1
+  type     vdosdebye
+  debye_temp 300
+=============================
+
+===============================================================
+===============================================================
+===============================================================
+=== NC.createTextData( 'virtual::mixed.ncmat' ===
+=== Printing line by line ===
+NCMAT v7
+@DENSITY
+  1 g_per_cm3
+@DYNINFO
+  element  C
+  fraction 1
+  type     vdosdebye
+  debye_temp 300
+=============================
+=== Printing .rawData ===
+NCMAT v7
+@DENSITY
+  1 g_per_cm3
+@DYNINFO
+  element  C
+  fraction 1
+  type     vdosdebye
+  debye_temp 300
+=============================
+
+===============================================================
+===============================================================
+===============================================================
+=== NC.createTextData( 'virtual::weird.ncmat' ===
+=== Printing line by line ===
+NCMAT v7
+@DENSITY
+  1 g_per_cm3
+@DYNINFO
+  element  C
+  fraction 1
+  type     vdosdebye
+  debye_temp 300
+=============================
+=== Printing .rawData ===
+NCMAT v7
+@DENSITY
+  1 g_per_cm3
+@DYNINFO
+  element  C
+  fraction 1
+  type     vdosdebye
+  debye_temp 300
+=============================
+
+===============================================================
+===============================================================
+===============================================================
+=== NC.createTextData( 'virtual::unix.ncmat' ===
+=== Printing line by line ===
+NCMAT v7
+@DENSITY
+  1 g_per_cm3
+@DYNINFO
+  element  C
+  fraction 1
+  type     vdosdebye
+  debye_temp 300
+=============================
+=== Printing .rawData ===
+NCMAT v7
+@DENSITY
+  1 g_per_cm3
+@DYNINFO
+  element  C
+  fraction 1
+  type     vdosdebye
+  debye_temp 300
+=============================
+
+===============================================================
+===============================================================
+===============================================================
+=== NC.createTextData( 'virtual::dos.ncmat' ===
+=== Printing line by line ===
+NCMAT v7
+@DENSITY
+  1 g_per_cm3
+@DYNINFO
+  element  C
+  fraction 1
+  type     vdosdebye
+  debye_temp 300
+=============================
+=== Printing .rawData ===
+NCMAT v7
+@DENSITY
+  1 g_per_cm3
+@DYNINFO
+  element  C
+  fraction 1
+  type     vdosdebye
+  debye_temp 300
+=============================
+
+===============================================================
+===============================================================
+===============================================================
+=== NC.createTextData( 'virtual::mixed.ncmat' ===
+=== Printing line by line ===
+NCMAT v7
+@DENSITY
+  1 g_per_cm3
+@DYNINFO
+  element  C
+  fraction 1
+  type     vdosdebye
+  debye_temp 300
+=============================
+=== Printing .rawData ===
+NCMAT v7
+@DENSITY
+  1 g_per_cm3
+@DYNINFO
+  element  C
+  fraction 1
+  type     vdosdebye
+  debye_temp 300
+=============================
+
+===============================================================
+===============================================================
+===============================================================
+=== NC.createTextData( 'virtual::weird.ncmat' ===
+=== Printing line by line ===
+NCMAT v7
+@DENSITY
+  1 g_per_cm3
+@DYNINFO
+  element  C
+  fraction 1
+  type     vdosdebye
+  debye_temp 300
+=============================
+=== Printing .rawData ===
+NCMAT v7
+@DENSITY
+  1 g_per_cm3
+@DYNINFO
+  element  C
+  fraction 1
+  type     vdosdebye
+  debye_temp 300
 =============================
