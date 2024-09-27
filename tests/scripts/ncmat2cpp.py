@@ -95,7 +95,12 @@ def main():
         test_cli(['-o','stdout'],'stdout')
 
     with work_in_tmpdir():
+        print("JUST TESTING os.getcwd()=",repr(os.getcwd()))
         pathlib.Path("somefile.ncmat").write_text(_some_ncmat_data)
+        print("JUST TESTING pathlib.Path(\"somefile.ncmat\")=",repr(pathlib.Path("somefile.ncmat")))
+        assert pathlib.Path("somefile.ncmat").is_file()
+        assert pathlib.Path("./somefile.ncmat").is_file()
+        test_cli(['./somefile.ncmat','-o','bla1.cc'],'bla1.cc')
         test_cli(['somefile.ncmat','-o','bla.cc'],'bla.cc')
         test_cli(['somefile.ncmat','-o','stdout'],None)
         test_cli(['Al_sg225.ncmat','-o','foo.cc'],'foo.cc')
