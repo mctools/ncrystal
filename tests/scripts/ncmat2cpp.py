@@ -95,6 +95,7 @@ def main():
         test_cli(['-o','stdout'],'stdout')
 
     with work_in_tmpdir():
+        import os#FIXME
         print("JUST TESTING os.getcwd()=",repr(os.getcwd()))
         pathlib.Path("somefile.ncmat").write_text(_some_ncmat_data)
         print("JUST TESTING pathlib.Path(\"somefile.ncmat\")=",repr(pathlib.Path("somefile.ncmat")))
