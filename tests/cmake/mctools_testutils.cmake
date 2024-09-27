@@ -71,7 +71,10 @@ function( mctools_testutils_add_tests_pyscripts scriptsdir envmod )
       add_test( NAME "${testname}" COMMAND "${pyexec}" "${pyscript}" )
       mctools_testutils_internal_settestprops( "py_${bn}" )
     endif()
-
+    list(
+      APPEND envmod
+      "PYTHONPYCACHEPREFIX=set:${PROJECT_BINARY_DIR}/test_pycache"
+    )
     if ( envmod )
       set_property(
         TEST "${testname}"
