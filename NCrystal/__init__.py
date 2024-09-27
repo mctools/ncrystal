@@ -1,7 +1,7 @@
-#!/usr/bin/env python3
-"""Python module for using the NCrystal library for thermal neutron transport in
-crystals and other materials.
+"""
 
+Python module for using the NCrystal library for thermal neutron transport in
+crystals and other materials.
 
 Please find more information about NCrystal at the website:
 

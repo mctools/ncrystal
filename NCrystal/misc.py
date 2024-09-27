@@ -153,16 +153,51 @@ class AnyTextData:
             from . import _miscimpl
             _ = _miscimpl.anytextdata_init( data, is_path=is_path, name=name )
         self.__name, self.__content, self.__keepalive = _
+        self.__hash = None
 
     @property
     def name( self ):
-        """Access a name of the text data (could for instance be the file name). None if not available."""
+        """Access a name of the text data (could for instance be the file
+        name). None if not available."""
         return self.__name
 
     @property
     def content( self ):
         """Access the contents (always type str)."""
         return self.__content
+
+    def __lt__( self, o ):
+        if self.name != o.name:
+            return self.name < o.name
+        if len(self.content) != len(o.content):
+            return self.content < o.content
+        if self.hash_hexdigest != o.hash_hexdigest:
+            return self.hash_hexdigest < o.hash_hexdigest
+        return self.content < o.content
+
+    def __eq__( self, o ):
+        if self.name != o.name:
+            return False
+        if len(self.content) != len(o.content):
+            return False
+        if self.hash_hexdigest != o.hash_hexdigest:
+            return False
+        return self.content == o.content
+
+    def __str__( self ):
+        n = repr(self.name) if self.name is not None else 'Anonymous'
+        return f'AnyTextData({n}, {len(self.content)} chars, MD5={self.hash_hexdigest})'
+
+    def __repr__( self ):
+        return self.__str__()
+
+    @property
+    def hash_hexdigest(self):
+        """Returns md5 checksum of content as hexdigest"""
+        if self.__hash is None:
+            from ._common import _calc_md5hexdigest
+            self.__hash = _calc_md5hexdigest( self.content )
+        return self.__hash
 
 class AnyVDOS:
     """

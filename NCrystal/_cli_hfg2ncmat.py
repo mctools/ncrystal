@@ -19,7 +19,14 @@
 ##                                                                            ##
 ################################################################################
 
-def _parseArgs( default_debye_temp ):
+def _parseArgs( default_debye_temp, argv = None, return_parser=False ):
+    import argparse
+    import sys
+    import os
+    if argv is None:
+        argv = sys.argv[:]
+    prog = os.path.basename(argv[0])
+
     fdt = default_debye_temp
     #NOTE: Keep the description below synchronised with doc-string of the
     #hfg2ncmat python API function:
@@ -67,10 +74,11 @@ of sigma_coh+sigma_incoh for all atoms), is due to the sigma_incoh contribution
 from hydrogen atoms.
 
 """
-    import argparse
     from argparse import RawTextHelpFormatter
-    parser = argparse.ArgumentParser(description=descr,
-                                     formatter_class=RawTextHelpFormatter)
+    from ._common import create_ArgumentParser
+    parser = create_ArgumentParser(prog = prog,
+                                   description=descr,
+                                   formatter_class=RawTextHelpFormatter)
     parser.add_argument("--output",'-o',default='autogen.ncmat',type=str,
                         help=("Output file name (defaults to autogen.ncmat)."
                               " Can be stdout."))
@@ -99,14 +107,23 @@ from hydrogen atoms.
                               'for line-breaks.'))
     parser.add_argument('--notrim',action='store_true',
                         help="No trimming of resulting VDOS curve.")
-    args=parser.parse_args()
+    if return_parser:
+        return parser
+    args=parser.parse_args(argv[1:])
     return args
 
-def main():
+#Sphinx doc function. Signature always the following:
+def create_argparser_for_sphinx( progname ):
+    #FIXME use and add to all _cli_*.py
+    from .hfg2ncmat import _default_debye_temp
+    return _parseArgs(_default_debye_temp(),[progname],return_parser=True)
+
+#Main function. Signature always the following:
+def main( argv = None ):
     import pathlib
     from ._common import print
     from .hfg2ncmat import _default_debye_temp, hfg2ncmat
-    args = _parseArgs( _default_debye_temp() )
+    args = _parseArgs( _default_debye_temp(), argv )
     do_stdout = args.output=='stdout'
     try:
         ncmat =  hfg2ncmat( spec = args.spec,

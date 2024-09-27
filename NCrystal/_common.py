@@ -23,14 +23,21 @@
 #Common print function for NCrystal modules (allowing one to capture and
 #redirect the output of NCrystal):
 
-_stdprint = [print]
+def _builtin_print():
+    import builtins
+    return builtins.print
+
+_stdprint = [_builtin_print()]
 
 def print(*args,**kwargs):
     _stdprint[0](*args,**kwargs)
 
+#TODO: Overlaps somewhat with the (more complete) _setMsgHandler from _msg.py:
+#TODO: Overlaps somewhat with the (py-only) set_ncrystal_print_fct from _msg.py:
 def set_ncrystal_print_fct( fct ):
-    _stdprint[0] = fct
-    return print
+    oldfct = _stdprint[0]
+    _stdprint[0] = fct or _builtin_print()
+    return oldfct
 
 def get_ncrystal_print_fct():
     return _stdprint[0]
@@ -40,6 +47,40 @@ def warn(msg):
     from .exceptions import NCrystalUserWarning
     import warnings
     warnings.warn( NCrystalUserWarning(str(msg)), stacklevel = 2 )
+
+_argparse_postinitfct = [ None ]
+def create_ArgumentParser( *args, **kwargs ):
+    """Always create argparse.ArgumentParser objects from this method, to ensure
+    output is redirected while invoking cmdline scripts with cliutils.run
+    """
+    from argparse import ArgumentParser
+    parser = ArgumentParser( *args, **kwargs )
+    f = _argparse_postinitfct[0]
+    if f is not None:
+        f(parser)
+    return parser
+
+class ctxmgr_redirect_argparse_output:
+
+    def __enter__(self):
+        def f(parser):
+            #Monkey patch object to redirect stdout/stderr of argparse to
+            #NCrystal's print handler.
+            if not hasattr(parser,'_print_message'):
+                warn("argparse non-API _print_message method disappeared."
+                     " Argparse output redirection to NCrystal msg handler"
+                     " will not work")
+                return
+            def _print_message( message, file=None):
+                if message:
+                    get_ncrystal_print_fct()(message)
+            parser._print_message = _print_message
+
+        self.__orig = _argparse_postinitfct[0]
+        _argparse_postinitfct[0] = f
+
+    def __exit__(self,*a,**kw):
+        _argparse_postinitfct[0] = self.__orig
 
 class WarningSpy:
     """Context manager which spies on any warnings emitted via warnings
@@ -355,3 +396,11 @@ def _decodeflt(s):
     except (TypeError,ValueError):
         return None
     return x
+
+def _calc_md5hexdigest( str_or_bytes, / ):
+    import hashlib
+    if hasattr(str_or_bytes,'encode'):
+        data = str_or_bytes.encode('utf8',errors='backslashreplace')
+    else:
+        data = str_or_bytes
+    return hashlib.md5( data ).hexdigest()
