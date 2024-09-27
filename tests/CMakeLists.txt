@@ -58,14 +58,10 @@ if ( NOT NCRYSTAL_ENABLE_PYTHON )
 else()
   set( nctest_pyenvmod "" )
   if ( NOT NCTESTS_STANDALONE )
-    add_custom_target(NCrystalTestsCopyPyModules ALL
-      COMMAND ${CMAKE_COMMAND} -E copy_directory
-      "${NCrystal_SOURCE_DIR}/NCrystal"
-      "${PROJECT_BINARY_DIR}/nctests_pypath/NCrystal"
-      DEPENDS "${NCrystal_SOURCE_DIR}/NCrystal" )
     list(
       APPEND nctest_pyenvmod
-      "PYTHONPATH=path_list_prepend:${PROJECT_BINARY_DIR}/nctests_pypath"
+      "PYTHONPATH=path_list_prepend:${NCrystal_SOURCE_DIR}"
+      "PYTHONPATH=path_list_prepend:${PROJECT_SOURCE_DIR}/pypath"
     )
     get_target_property(
       tmp_ncrystal_libloc
@@ -76,7 +72,6 @@ else()
       APPEND nctest_pyenvmod
       "NCRYSTAL_LIB=set:$<TARGET_FILE:NCrystal>"
     )
-    #FIXME: Only if not embedding!:
     if ( NOT NCRYSTAL_ENABLE_DATA STREQUAL "EMBED" )
       list(
         APPEND nctest_pyenvmod
