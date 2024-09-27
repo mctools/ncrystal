@@ -1800,6 +1800,9 @@ class TextData:
     def __str__(self):
         return 'TextData(%s, uid=%i, %i chars)'%(self.__dsn,self.__uid,len(self.__rd))
 
+    def __repr__(self):
+        return self.__str__()
+
     def __iter__(self):
         """Line-iteration, yielding lines without terminating newline characters"""
         from io import StringIO

@@ -38,6 +38,11 @@ def registerInMemoryFileData(virtual_filename,data):
 
        As a special case data can specified as "ondisk://<path>",
        which will instead create a virtual alias for an on-disk file.
+
+       Technically, the registered file data will be delivered to users from a
+       factory named "virtual", so prefixing the filename with "virtual::" in
+       future requests, will guarantee that only data registered in this manner
+       is returned.
     """
     if ( isinstance(data,str) and data.startswith('ondisk://')):
         data = 'ondisk://'+str(_pathlib.Path(data[9:]).resolve())
