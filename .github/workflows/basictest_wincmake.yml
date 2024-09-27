@@ -35,18 +35,11 @@ jobs:
 
     - name: CMake cfg NCrystal
       shell: cmd
-      #FIXME: Using -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=ON right now to make tests
-      #       with private headers work on windows. We need to make this
-      #       automatic, but prevent it from being used to actually produce
-      #       pip/conda packages (unless we want them to support advanced plugins?).
-      #       We might also need to make NCRYSTAL_API a noop in that case, to
-      #       get rid of warnings about duplicate dllexport.
       run: >
         cmake -B build src
         -DNCRYSTAL_ENABLE_TESTING=ON
         -DNCRYSTAL_ENABLE_EXAMPLES=ON
         -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
-        -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=ON
         -DMCTOOLS_REQUIRE_ALL_TEST_DEPS=ON
 
     - name: CMake build NCrystal
