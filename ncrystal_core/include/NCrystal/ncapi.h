@@ -53,10 +53,14 @@
 #  undef NCRYSTAL_LOCAL
 #endif
 #if defined (_WIN32) || defined (__CYGWIN__) || defined (WIN32)
-#  if defined(NCrystal_EXPORTS) && !defined(NCRYSTAL_PREVENT_WINDLLEXPORT)
-#    define NCRYSTAL_API __declspec(dllexport)
+#  ifndef NCRYSTAL_PREVENT_WINDLLEXPORT
+#    ifdef NCrystal_EXPORTS
+#      define NCRYSTAL_API __declspec(dllexport)
+#    else
+#      define NCRYSTAL_API __declspec(dllimport)
+#    endif
 #  else
-#    define NCRYSTAL_API __declspec(dllimport)
+#    define NCRYSTAL_API
 #  endif
 #  define NCRYSTAL_LOCAL
 #else
