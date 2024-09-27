@@ -66,7 +66,11 @@ namespace NCPluginNamespace {
 //C-mangled hooks (only for dynamic plugins)
 #ifndef NCPLUGIN_ASBUILTIN
 #  if defined (_WIN32) || defined (__CYGWIN__) || defined (WIN32)
-#    define ncpluginhh_export __declspec(dllexport)
+#    ifndef NCRYSTAL_PREVENT_WINDLLEXPORT
+#      define ncpluginhh_export __declspec(dllexport)
+#    else
+#      define ncpluginhh_export
+#    endif
 #  elif defined(__GNUC__) || defined(__clang__)
 #    define ncpluginhh_export __attribute__ ((visibility ("default")))
 #  else
