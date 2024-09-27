@@ -95,17 +95,35 @@ def main():
         test_cli(['-o','stdout'],'stdout')
 
     with work_in_tmpdir():
-        import os#FIXME
+        import os,sys#FIXME
         print("JUST TESTING os.getcwd()=",repr(os.getcwd()))
+        sys.stdout.flush()
+        sys.stderr.flush()
         pathlib.Path("somefile.ncmat").write_text(_some_ncmat_data)
+        sys.stdout.flush()
+        sys.stderr.flush()
         print("JUST TESTING pathlib.Path(\"somefile.ncmat\")=",repr(pathlib.Path("somefile.ncmat")))
+        sys.stdout.flush()
+        sys.stderr.flush()
         assert pathlib.Path("somefile.ncmat").is_file()
         assert pathlib.Path("./somefile.ncmat").is_file()
+        sys.stdout.flush()
+        sys.stderr.flush()
         test_cli(['./somefile.ncmat','-o','bla1.cc'],'bla1.cc')
+        sys.stdout.flush()
+        sys.stderr.flush()
         test_cli(['somefile.ncmat','-o','bla.cc'],'bla.cc')
+        sys.stdout.flush()
+        sys.stderr.flush()
         test_cli(['somefile.ncmat','-o','stdout'],None)
+        sys.stdout.flush()
+        sys.stderr.flush()
         test_cli(['Al_sg225.ncmat','-o','foo.cc'],'foo.cc')
+        sys.stdout.flush()
+        sys.stderr.flush()
         test_cli(['Al_sg225.ncmat','-o','foo.cc'],'foo.cc')#OK to overwrite
+        sys.stdout.flush()
+        sys.stderr.flush()
         with ensure_error(NC.NCFileNotFound,'No such file: "./Al_sg225.ncmat"'):
             test_cli(['./Al_sg225.ncmat','-o','foo2.cc'],'foo2.cc')
         test_cli(['stdlib::Al_sg225.ncmat','-o','foo3.cc'],'foo3.cc')
