@@ -95,21 +95,18 @@ def main():
         test_cli(['-o','stdout'],'stdout')
 
     with work_in_tmpdir():
-        import os,sys#FIXME
-        print("JUST TESTING os.getcwd()=",repr(os.getcwd()))
+        import sys
+        #FIXME: cleanup the below flushing?
         sys.stdout.flush()
         sys.stderr.flush()
         pathlib.Path("somefile.ncmat").write_text(_some_ncmat_data)
         sys.stdout.flush()
         sys.stderr.flush()
-        print("JUST TESTING pathlib.Path(\"somefile.ncmat\")=",repr(pathlib.Path("somefile.ncmat")))
+        #print("JUST TESTING pathlib.Path(\"somefile.ncmat\")=",repr(pathlib.Path("somefile.ncmat")))
         sys.stdout.flush()
         sys.stderr.flush()
         assert pathlib.Path("somefile.ncmat").is_file()
         assert pathlib.Path("./somefile.ncmat").is_file()
-        sys.stdout.flush()
-        sys.stderr.flush()
-        test_cli(['./somefile.ncmat','-o','bla1.cc'],'bla1.cc')
         sys.stdout.flush()
         sys.stderr.flush()
         test_cli(['somefile.ncmat','-o','bla.cc'],'bla.cc')
