@@ -79,7 +79,6 @@ else()
       )
     endif()
   endif()
-  #FIXME TEST: (should be in common module):
   list(
     APPEND nctest_pyenvmod
     "PYTHONIOENCODING=set:UTF-8"
@@ -91,6 +90,9 @@ else()
 endif()
 mctools_testutils_add_test_libs(
   "${CMAKE_CURRENT_LIST_DIR}/libs" "${nctests_ncrystallib_target}"
+)
+mctools_testutils_add_test_shlibs(
+  "${CMAKE_CURRENT_LIST_DIR}/shlibs" "${nctests_ncrystallib_target}"
 )
 
 

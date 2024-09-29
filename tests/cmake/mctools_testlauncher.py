@@ -15,7 +15,7 @@ is_windows = (platform.system() == 'Windows')
 ENCODING = sys.stdout.encoding
 
 def run( app_file, reflogfile = None ):
-    wd=pathlib.Path('./wd')
+    wd=pathlib.Path('./tmprundir')
     shutil.rmtree(wd,ignore_errors=True)
     wd.mkdir()
     cmd = [str(app_file)]
@@ -92,8 +92,8 @@ def run( app_file, reflogfile = None ):
         return shlex.quote(str(p.absolute()))
 
     import difflib
-    for l in difflib.unified_diff(output,
-                                  refoutput,
+    for l in difflib.unified_diff(refoutput,
+                                  output,
                                   fromfile='BEFORE',
                                   tofile='AFTER',
                                   lineterm=''):

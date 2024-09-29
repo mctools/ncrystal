@@ -3,8 +3,9 @@
 # libraries as well as python scripts. The API functions from this file are:
 #
 #   mctools_testutils_add_tests_pyscripts
-#   mctools_testutils_add_test_libs
 #   mctools_testutils_add_tests_apps
+#   mctools_testutils_add_test_libs (utility libs for the apps)
+#   mctools_testutils_add_test_shlibs (shared libs for python/ctypes access)
 #
 # This file (and the associated mctools_testlauncher.py file) is intended to be
 # eventually shared between at least NCrystal and MCPL projects.
@@ -30,6 +31,11 @@ function( mctools_testutils_add_tests_pyscripts scriptsdir envmod )
     LIST_DIRECTORIES false
     CONFIGURE_DEPENDS "${scriptsdir}/*.py"
   )
+  list(
+    APPEND envmod
+    "PYTHONPYCACHEPREFIX=set:${PROJECT_BINARY_DIR}/tests/test_pycache"
+    "MCTOOLS_SHLIB_LOCDIR=set:${PROJECT_BINARY_DIR}/tests/shlib_locations_$<CONFIG>"
+  )
   set( pyexec "" )
   foreach(pyscript ${pyscriptlist})
     if ( NOT pyexec )
@@ -44,9 +50,11 @@ function( mctools_testutils_add_tests_pyscripts scriptsdir envmod )
       mctools_testutils_internal_missingpydeps( "missingdeps" "${deplist}" )
     endif()
 
-    if ( EXISTS "${psdir}/${bn}.log" )
+    set( reflog "${psdir}/${bn}.log" )
+    if ( EXISTS "${reflog}" )
       set( testname "py_rl_${bn}" )
     else()
+      set( reflog "" )
       set( testname "py_${bn}" )
     endif()
 
@@ -61,20 +69,7 @@ function( mctools_testutils_add_tests_pyscripts scriptsdir envmod )
       continue()
     endif()
 
-    if ( EXISTS "${psdir}/${bn}.log" )
-      mctools_testutils_internal_addreflogtest(
-        "${testname}"
-        "${pyscript}"
-        "${psdir}/${bn}.log"
-      )
-    else()
-      add_test( NAME "${testname}" COMMAND "${pyexec}" "${pyscript}" )
-      mctools_testutils_internal_settestprops( "py_${bn}" )
-    endif()
-    list(
-      APPEND envmod
-      "PYTHONPYCACHEPREFIX=set:${PROJECT_BINARY_DIR}/test_pycache"
-    )
+    mctools_testutils_internal_addtest( "${testname}" "${pyscript}" "${reflog}" )
     if ( envmod )
       set_property(
         TEST "${testname}"
@@ -84,6 +79,8 @@ function( mctools_testutils_add_tests_pyscripts scriptsdir envmod )
   endforeach()
 endfunction()
 
+#Fixme: a project with both mcpl and ncrystal subdirs would perhaps get a name
+#clash here? (of course in this particular case, that would be a feature)
 set_property(GLOBAL PROPERTY mctools_testutils_internal_pydepspresent "")
 set_property(GLOBAL PROPERTY mctools_testutils_internal_pydepsabsent "")
 
@@ -140,7 +137,15 @@ function( mctools_testutils_internal_missingpydeps resvar pydeps )
   set( "${resvar}" "${missing}" PARENT_SCOPE )
 endfunction()
 
+function( mctools_testutils_add_test_shlibs librootdir extra_link_libs )
+  mctools_testutils_internal_add_test_libs( "${librootdir}" "${extra_link_libs}" "ON" )
+endfunction()
+
 function( mctools_testutils_add_test_libs librootdir extra_link_libs )
+  mctools_testutils_internal_add_test_libs( "${librootdir}" "${extra_link_libs}" "OFF" )
+endfunction()
+
+function( mctools_testutils_internal_add_test_libs librootdir extra_link_libs is_shlib )
   file(
     GLOB libdirs
     LIST_DIRECTORIES true
@@ -158,7 +163,16 @@ function( mctools_testutils_add_test_libs librootdir extra_link_libs )
         target_link_libraries( ${bn} PRIVATE "TestLib_${dep}" )
       endif()
     endforeach()
-    add_library( ${name} ${srcfiles} )
+    if ( is_shlib )
+      add_library( ${name} SHARED ${srcfiles} )#fixme: MODULE better than SHARED?
+      file (GENERATE
+        OUTPUT "${PROJECT_BINARY_DIR}/tests/shlib_locations_$<CONFIG>/shlib_loc_${name}.txt"
+        CONTENT "$<TARGET_FILE:${name}>"
+        TARGET ${name}
+      )
+    else()
+      add_library( ${name} ${srcfiles} )
+    endif()
 
     target_link_libraries( ${name} PRIVATE ${extra_link_libs} )
     if ( EXISTS "${libdir}/include" )
@@ -202,24 +216,18 @@ function( mctools_testutils_add_tests_apps approotdir extra_link_libs envmod )
     endforeach()
     target_link_libraries( ${bn} PRIVATE ${extra_link_libs} )
 
-    #Fixme not great for multi-generators (also, do we need it??):
-    set_target_properties(
-      ${bn} PROPERTIES
-      RUNTIME_OUTPUT_DIRECTORY "${testsbindir}/${bn}"
-      RUNTIME_OUTPUT_NAME  "${bn}"
-    )
-    if ( EXISTS "${appdir}/test.log" )
+    set( reflog "${appdir}/test.log" )
+    if ( EXISTS "${reflog}" )
       set( testname "app_rl_${bn}" )
-      mctools_testutils_internal_addreflogtest(
-        "${testname}"
-        "$<TARGET_FILE:${bn}>"
-        "${appdir}/test.log"
-      )
     else()
       set( testname "app_${bn}" )
-      add_test( NAME "${testname}" COMMAND ${bn} )
-      mctools_testutils_internal_settestprops( "app_${bn}" )
+      set( reflog "" )
     endif()
+    mctools_testutils_internal_addtest(
+      "${testname}"
+      "$<TARGET_FILE:${bn}>"
+      "${reflog}"
+    )
     if ( envmod )
       set_property(
         TEST "${testname}"
@@ -341,23 +349,19 @@ function( mctools_testutils_internal_getsrcfiles resvar_srcfiles dir )
   set( ${resvar_srcfiles} "${res}" PARENT_SCOPE )
 endfunction()
 
-function( mctools_testutils_internal_settestprops name )
-  file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/rundirs/run_${name}")
-  #FIXME: Use generator expression with CONFIG in it!!! And test that we can build and test two separate configs! And add workflow with ninjamulticfg !
-  set_property(
-    TEST "${name}"
-    PROPERTY WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/rundirs/run_${name}"
-  )
-  #Default to 5 second timeout (at some point, we can increase this value for
-  #some tests):
-  set_property( TEST "${name}" PROPERTY TIMEOUT 5 )
-endfunction()
-
-function( mctools_testutils_internal_addreflogtest name cmd_file reflog )
+function( mctools_testutils_internal_addtest name cmd_file reflog )
   mctools_testutils_internal_getpyexec( "pyexec" )
   add_test(
     NAME "${name}"
-    COMMAND "${pyexec}" "${mctools_launcher_file}" "${cmd_file}" "${reflog}"
+    COMMAND "${pyexec}" "${mctools_launcher_file}" "${cmd_file}" ${reflog}
   )
-  mctools_testutils_internal_settestprops( "${name}" )
+  set( wd "${PROJECT_BINARY_DIR}/tests/rundirs_$<CONFIG>/${name}" )
+  foreach( cfgval ${CMAKE_CONFIGURATION_TYPES} )
+    file( MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/tests/rundirs_${cfgval}/${name}" )
+  endforeach()
+  set_property( TEST "${name}" PROPERTY WORKING_DIRECTORY "${wd}" )
+
+  #Default to 60 second timeout, to detect hanging jobs (exact value to be
+  #revisited):
+  set_property( TEST "${name}" PROPERTY TIMEOUT 60 )
 endfunction()
