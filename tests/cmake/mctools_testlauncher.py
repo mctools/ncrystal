@@ -42,11 +42,11 @@ def inspectbin( afile, cwd ):
     sys.stderr.flush()
 
 def run( app_file, reflogfile = None ):
-    wd=pathlib.Path('./wd')
+    wd=pathlib.Path('./tmprundir')
     shutil.rmtree(wd,ignore_errors=True)
     wd.mkdir()
-    if not app_file.name.endswith('.py') and True:#FIXME not always!
-        inspectbin(app_file,cwd=wd)
+    #if not app_file.name.endswith('.py') and True:#FIXME not always!
+    #    inspectbin(app_file,cwd=wd)
     cmd = [str(app_file)]
     if app_file.name.endswith('.py'):
         cmd = [sys.executable] + cmd
@@ -121,8 +121,8 @@ def run( app_file, reflogfile = None ):
         return shlex.quote(str(p.absolute()))
 
     import difflib
-    for l in difflib.unified_diff(output,
-                                  refoutput,
+    for l in difflib.unified_diff(refoutput,
+                                  output,
                                   fromfile='BEFORE',
                                   tofile='AFTER',
                                   lineterm=''):
