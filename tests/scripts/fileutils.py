@@ -1,6 +1,8 @@
 
 from NCTestUtils.loadlib import Lib
 lib = Lib('testfileutils')
+assert hasattr(lib,'nctest_file_exists')
+assert hasattr(lib,'nctest_ncgetcwd')
 
 import pathlib
 d = pathlib.Path('.')

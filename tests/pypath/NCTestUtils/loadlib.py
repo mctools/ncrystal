@@ -49,6 +49,8 @@ class Lib:
             dictfct = _ctypes_create_fct( self.__lib,
                                           'nctest_ctypes_dictionary',
                                           ctypes.c_char_p )
+            dictstr = dictfct()
+            print('dictstr TEST:',repr(dictstr))
             for e in dictfct().split(';'):
                 e=e.strip()
                 if e:
@@ -65,6 +67,7 @@ class Lib:
               restype,
               argtypes) = _decode_signature_str(fctname,
                                                 include_fct_name = True)
+            print("TKTEST I DECODED AS:", repr(( fctname,restype,argtypes))
         elif len(argtypes)==0 and isinstance(restype,str) and '(' in restype:
             ( restype,
               argtypes ) = _decode_signature_str(restype,
