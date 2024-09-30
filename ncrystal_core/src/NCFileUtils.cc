@@ -146,7 +146,7 @@ std::string NC::ncgetcwd()
 {
   TCHAR pathbuf[MAX_PATH+1] = "";
   GetCurrentDirectoryA(MAX_PATH, pathbuf);
-  PathAddBackslashA(pathbuf);
+  //PathAddBackslashA(pathbuf);
   std::ostringstream ss;
   ss << pathbuf;
   return ss.str();
