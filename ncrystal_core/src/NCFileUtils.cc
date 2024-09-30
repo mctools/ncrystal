@@ -79,6 +79,7 @@ bool NC::path_is_absolute( const std::string& p )
   if (p.empty())
     return false;
 #if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(_WIN32) || defined(__CYGWIN__)
+  //FIXME: We need to consider that c:bla.ncmat means "relative to CWD of C:" not an absolute path!! We should unit test this!!
   if ( p.at(0)=='/' )
     return true;//who are we to argue if people are somehow using forward-slashes on a windows platform...
   //Try to catch e.g. "C:/" or "C:\":
@@ -149,7 +150,17 @@ std::string NC::ncgetcwd()
   //PathAddBackslashA(pathbuf);
   std::ostringstream ss;
   ss << pathbuf;
+  //Fixme: We should perhaps try to use windows functions to reencode as utf8?
+#if 1
   return ss.str();
+#else
+  //Fixme: consider this?
+  //Always ensure a trailing path separator?
+  std::string res = ss.str();
+  if ( res.empty() || res.back()!='\\' )
+    res += '\\';
+  return res;
+#endif
 }
 #else
 //POSIX globbing:
