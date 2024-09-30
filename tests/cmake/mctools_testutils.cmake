@@ -5,7 +5,7 @@
 #   mctools_testutils_add_tests_pyscripts
 #   mctools_testutils_add_tests_apps
 #   mctools_testutils_add_test_libs (utility libs for the apps)
-#   mctools_testutils_add_test_shlibs (shared libs for python/ctypes access)
+#   mctools_testutils_add_test_modules (shared libs for python/ctypes access)
 #
 # This file (and the associated mctools_testlauncher.py file) is intended to be
 # eventually shared between at least NCrystal and MCPL projects.
@@ -34,7 +34,7 @@ function( mctools_testutils_add_tests_pyscripts scriptsdir envmod )
   list(
     APPEND envmod
     "PYTHONPYCACHEPREFIX=set:${PROJECT_BINARY_DIR}/tests/test_pycache"
-    "MCTOOLS_SHLIB_LOCDIR=set:${PROJECT_BINARY_DIR}/tests/shlib_locations_$<CONFIG>"
+    "MCTOOLS_TESTMODULES_LOCDIR=set:${PROJECT_BINARY_DIR}/tests/modlib_locations_$<CONFIG>"
   )
   set( pyexec "" )
   foreach(pyscript ${pyscriptlist})
@@ -137,7 +137,7 @@ function( mctools_testutils_internal_missingpydeps resvar pydeps )
   set( "${resvar}" "${missing}" PARENT_SCOPE )
 endfunction()
 
-function( mctools_testutils_add_test_shlibs librootdir extra_link_libs )
+function( mctools_testutils_add_test_modules librootdir extra_link_libs )
   mctools_testutils_internal_add_test_libs( "${librootdir}" "${extra_link_libs}" "ON" )
 endfunction()
 
@@ -145,7 +145,7 @@ function( mctools_testutils_add_test_libs librootdir extra_link_libs )
   mctools_testutils_internal_add_test_libs( "${librootdir}" "${extra_link_libs}" "OFF" )
 endfunction()
 
-function( mctools_testutils_internal_add_test_libs librootdir extra_link_libs is_shlib )
+function( mctools_testutils_internal_add_test_libs librootdir extra_link_libs is_module )
   file(
     GLOB libdirs
     LIST_DIRECTORIES true
@@ -155,7 +155,7 @@ function( mctools_testutils_internal_add_test_libs librootdir extra_link_libs is
     get_filename_component(bn "${libdir}" NAME)
     string(SUBSTRING "${bn}" 4 -1 "bn")
     set( name "TestLib_${bn}" )
-    mctools_testutils_internal_getsrcfiles( srcfiles "${libdir}" )
+    mctools_testutils_internal_getsrcfiles( srcfiles "${libdir}" is_module )
     mctools_testutils_internal_detectlibdeps( "deplist" "${srcfiles}" )
     foreach( dep ${deplist} )
       if ( NOT "x${dep}" STREQUAL "x${bn}" )
@@ -163,14 +163,22 @@ function( mctools_testutils_internal_add_test_libs librootdir extra_link_libs is
         target_link_libraries( ${bn} PRIVATE "TestLib_${dep}" )
       endif()
     endforeach()
-    if ( is_shlib )
-      add_library( ${name} SHARED ${srcfiles} )#fixme: MODULE better than SHARED?
+    if ( is_module )
+      #Shared library to be loaded by python ctypes
+      add_library( ${name} MODULE ${srcfiles} )
+      set_target_properties(
+        ${name} PROPERTIES
+        CXX_VISIBILITY_PRESET "hidden"
+        C_VISIBILITY_PRESET "hidden"
+        VISIBILITY_INLINES_HIDDEN "ON"
+      )
       file (GENERATE
-        OUTPUT "${PROJECT_BINARY_DIR}/tests/shlib_locations_$<CONFIG>/shlib_loc_${name}.txt"
+        OUTPUT "${PROJECT_BINARY_DIR}/tests/modlib_locations_$<CONFIG>/module_loc_${name}.txt"
         CONTENT "$<TARGET_FILE:${name}>"
         TARGET ${name}
       )
     else()
+      #Library to be linked by test applications:
       add_library( ${name} ${srcfiles} )
     endif()
 
@@ -207,7 +215,7 @@ function( mctools_testutils_add_tests_apps approotdir extra_link_libs envmod )
   foreach(appdir ${appdirs})
     get_filename_component(bn "${appdir}" NAME_WE)
     string(SUBSTRING "${bn}" 4 -1 "bn")
-    mctools_testutils_internal_getsrcfiles( srcfiles "${appdir}" )
+    mctools_testutils_internal_getsrcfiles( srcfiles "${appdir}" "OFF" )
     add_executable( ${bn} ${srcfiles})
 
     mctools_testutils_internal_detectlibdeps( "deplist" "${srcfiles}" "" )
@@ -329,7 +337,7 @@ function( mctools_testutils_internal_detectpydeps resvar pyfile )
   set( "${resvar}" "${deplist}" PARENT_SCOPE )
 endfunction()
 
-function( mctools_testutils_internal_getsrcfiles resvar_srcfiles dir )
+function( mctools_testutils_internal_getsrcfiles resvar_srcfiles dir is_module )
   file(
     GLOB srcfiles_cxx LIST_DIRECTORIES false CONFIGURE_DEPENDS
     "${dir}/*.cc"
@@ -343,6 +351,20 @@ function( mctools_testutils_internal_getsrcfiles resvar_srcfiles dir )
   endif()
   set_source_files_properties(${srcfiles_cxx} PROPERTIES LANGUAGE CXX)
   set_source_files_properties(${srcfiles_c} PROPERTIES LANGUAGE C)
+  if ( is_module )
+    set_source_files_properties(
+      ${srcfiles_cxx} ${srcfiles_c}
+      PROPERTIES VISIBILITY_INLINES_HIDDEN "ON"
+    )
+    set_source_files_properties(
+      ${srcfiles_cxx}
+      PROPERTIES CXX_VISIBILITY_PRESET "hidden"
+    )
+    set_source_files_properties(
+      ${srcfiles_c}
+      PROPERTIES C_VISIBILITY_PRESET "hidden"
+    )
+  endif()
   set( res "" )
   list( APPEND res ${srcfiles_cxx} )
   list( APPEND res ${srcfiles_c} )

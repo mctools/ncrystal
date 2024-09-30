@@ -45,12 +45,14 @@ class Lib:
     def __init__( self, test_shlib_name ):
         self.__name = _normalise_testlib_name( test_shlib_name )
         self.__lib = _ctypes_load_testlib( test_shlib_name )
-        if hasattr(self.__lib,'nctest_ctypes_dictionary'):
+        if not hasattr(self.__lib,'nctest_ctypes_dictionary'):
+            print("Warning: No nctest_ctypes_dictionary symbol"
+                  " in testlib %s"%self.__name)
+        else:
             dictfct = _ctypes_create_fct( self.__lib,
                                           'nctest_ctypes_dictionary',
                                           ctypes.c_char_p )
             dictstr = dictfct()
-            print('dictstr TEST:',repr(dictstr))
             for e in dictfct().split(';'):
                 e=e.strip()
                 if e:
@@ -67,7 +69,6 @@ class Lib:
               restype,
               argtypes) = _decode_signature_str(fctname,
                                                 include_fct_name = True)
-            print("TKTEST I DECODED AS:", repr(( fctname,restype,argtypes))
         elif len(argtypes)==0 and isinstance(restype,str) and '(' in restype:
             ( restype,
               argtypes ) = _decode_signature_str(restype,
@@ -117,9 +118,9 @@ def _find_testlib(name):
     tln = _normalise_testlib_name(name)
     import pathlib
     import os
-    locdir = pathlib.Path(os.environ.get('MCTOOLS_SHLIB_LOCDIR'))
+    locdir = pathlib.Path(os.environ.get('MCTOOLS_TESTMODULES_LOCDIR'))
     assert locdir.is_dir()
-    f = locdir / f'shlib_loc_{tln}.txt'
+    f = locdir / f'module_loc_{tln}.txt'
     lib = pathlib.Path(f.read_text().strip())
     assert lib.is_file()
     return lib
