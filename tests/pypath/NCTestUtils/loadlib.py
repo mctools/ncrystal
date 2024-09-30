@@ -137,19 +137,6 @@ def _decode_signature_str( signature, include_fct_name ):
     else:
         return fctname,r,args
 
-def _normalise_testlib_name(name):
-    return name if name.startswith('TestLib_') else f'TestLib_{name}'
-def _find_testlib(name):
-    tln = _normalise_testlib_name(name)
-    import pathlib
-    import os
-    locdir = pathlib.Path(os.environ.get('MCTOOLS_TESTMODULES_LOCDIR'))
-    assert locdir.is_dir()
-    f = locdir / f'module_loc_{tln}.txt'
-    lib = pathlib.Path(f.read_text().strip())
-    assert lib.is_file()
-    return lib
-
 def _load_lib_with_ctypes( path ):
     assert path.is_file()
     #NOTE: We import NCrystal.core to ensure NCrystal lib is already loaded,
@@ -202,3 +189,17 @@ def _ctypes_create_fct( lib, fctname, restype, *argtypes ):
             rv = _cstr2str( rv )
         return rv
     return fct
+
+def _normalise_testlib_name(name):
+    return name if name.startswith('TestLib_') else f'TestLib_{name}'
+
+def _find_testlib(name):
+    tln = _normalise_testlib_name(name)
+    import pathlib
+    import os
+    locdir = pathlib.Path(os.environ.get('MCTOOLS_TESTMODULES_LOCDIR'))
+    assert locdir.is_dir()
+    f = locdir / f'module_loc_{tln}.txt'
+    lib = pathlib.Path(f.read_text().strip())
+    assert lib.is_file()
+    return lib
