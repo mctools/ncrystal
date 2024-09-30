@@ -454,13 +454,13 @@ def _work_in_tmpdir():
     import os
     import tempfile
     the_cwd = os.getcwd()
-    try:
-        with tempfile.TemporaryDirectory() as tmpdir:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        try:
             os.chdir(tmpdir)
             yield
-            os.chdir(the_cwd)
-    finally:
-        os.chdir(the_cwd)
+        finally:
+            os.chdir(the_cwd)#Important to leave tmpdir *before* deletion, to
+                             #avoid PermissionError on Windows.
 
 def _actual_test_cmake( verbose = False, ignore_if_absent = False ):
     prfct = _get_prfct( verbose )

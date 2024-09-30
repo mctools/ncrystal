@@ -95,6 +95,10 @@ def main():
         test_cli(['-o','stdout'],'stdout')
 
     with work_in_tmpdir():
+        print("Testing work_in_tmpdir()")
+    print("work_in_tmpdir() gave no errors (which is good)")
+
+    with work_in_tmpdir():
         pathlib.Path("somefile.ncmat").write_text(_some_ncmat_data)
         assert pathlib.Path("somefile.ncmat").is_file()
         assert pathlib.Path("./somefile.ncmat").is_file()
