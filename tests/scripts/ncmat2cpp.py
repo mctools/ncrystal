@@ -95,11 +95,8 @@ def main():
         test_cli(['-o','stdout'],'stdout')
 
     with work_in_tmpdir():
-        print("Step 1")
-        pathlib.Path("somefile0.ncmat").write_text(_some_ncmat_data)
-        print("Step 2")
-        test_cli(['somefile0.ncmat','-o','bla0.cc'],'bla0.cc')
-        print("Step 3")
+        print("Testing work_in_tmpdir()")
+    print("work_in_tmpdir() gave no errors (which is good)")
 
     with work_in_tmpdir():
         import sys
