@@ -144,11 +144,11 @@ NC::VectS NC::ncglob(const std::string& pattern) {
 //Windows getcwd:
 std::string NC::ncgetcwd()
 {
-  TChar buff[MAX_PATH+1] = "";
-  GetCurrentDirectoryA(MAX_PATH, path);
-  PathAddBackslashA(path);
+  TCHAR pathbuf[MAX_PATH+1] = "";
+  GetCurrentDirectoryA(MAX_PATH, pathbuf);
+  PathAddBackslashA(pathbuf);
   std::ostringstream ss;
-  ss << buff;
+  ss << pathbuf;
   return ss.str();
 }
 #else
