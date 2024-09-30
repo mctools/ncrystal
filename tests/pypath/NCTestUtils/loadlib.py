@@ -45,6 +45,7 @@ class Lib:
     def __init__( self, test_shlib_name ):
         self.__name = _normalise_testlib_name( test_shlib_name )
         self.__lib = _ctypes_load_testlib( test_shlib_name )
+        self.__fcts = set()
         if not hasattr(self.__lib,'nctest_ctypes_dictionary'):
             print("Warning: No nctest_ctypes_dictionary symbol"
                   " in testlib %s"%self.__name)
@@ -52,7 +53,6 @@ class Lib:
             dictfct = _ctypes_create_fct( self.__lib,
                                           'nctest_ctypes_dictionary',
                                           ctypes.c_char_p )
-            dictstr = dictfct()
             for e in dictfct().split(';'):
                 e=e.strip()
                 if e:
@@ -79,16 +79,41 @@ class Lib:
                                   *argtypes )
         #Fixme test: fct.__name__ = fctname
         assert not hasattr(self,fctname),f'Fct {repr(fctname)} already added!'
+        self.__fcts.add( (fctname,restype,argtypes) )
         setattr(self,fctname,fct)
+
+    @property
+    def functions(self):
+        """Get the name of all available functions in this library"""
+        return [f for f,_,_ in self.__fcts]
+
+    def dump(self,prefix=''):
+        """Print available functions in this library"""
+        print('%sLibrary "%s" (%i functions):'%(prefix,
+                                                self.__name,
+                                                len(self.__fcts)))
+        if not self.__fcts:
+            print(f"{prefix}  <no functions defined>")
+        for fctname,restype,argtypes in self.__fcts:
+            rt = _ctype_2_str(restype)
+            a=', '.join([_ctype_2_str(e) for e in argtypes])
+            print(f"{prefix}  {rt} {fctname}({a})")
+
+_map_str2ctype = { 'const char *':ctypes.c_char_p,
+                   'void' : 'void',
+                   'int':ctypes.c_int,
+                   'uint':ctypes.c_uint,
+                   'double':ctypes.c_double }
 
 def _decode_type_str( s ):
     s=' '.join(s.replace('*',' * ').strip().split())
-    m = { 'const char *':ctypes.c_char_p,
-          'void' : 'void',
-          'int':ctypes.c_int,
-          'uint':ctypes.c_uint,
-          'double':ctypes.c_double }
-    return m.get(s,s)
+    return _map_str2ctype.get(s,s)
+
+def _ctype_2_str( ct ):
+    for k,v in _map_str2ctype.items():
+        if ct is v:
+            return k
+    raise ValueError("ctype not in map: %s"%ct)
 
 def _decode_signature_str( signature, include_fct_name ):
     signature=signature.strip()
@@ -127,7 +152,9 @@ def _find_testlib(name):
 
 def _load_lib_with_ctypes( path ):
     assert path.is_file()
-    import NCrystal.core#FIXME: To ensure NCrystal lib is loaded!
+    #NOTE: We import NCrystal.core to ensure NCrystal lib is already loaded,
+    #because otherwise we can get DLL load errors on some platforms (Windows):
+    import NCrystal.core# noqa F401
     try:
         lib = ctypes.CDLL(path)
     except TypeError:
@@ -137,7 +164,8 @@ def _load_lib_with_ctypes( path ):
         #For some reason, on windows we get a TypeError and must pass a string
         #rather than a pathlib object:
         lib = ctypes.CDLL(str(path))
-        #NB: We might also get here a FileNotFoundError!! Perhaps in case of missing dll symbols?
+        #NB: We might also get here a FileNotFoundError here in case of missing
+        #symbols.
 
     return lib
 
@@ -173,5 +201,4 @@ def _ctypes_create_fct( lib, fctname, restype, *argtypes ):
         if restype == ctypes.c_char_p:
             rv = _cstr2str( rv )
         return rv
-    #fct.__name__== fixme
     return fct

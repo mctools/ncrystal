@@ -144,10 +144,12 @@ NC::VectS NC::ncglob(const std::string& pattern) {
 //Windows getcwd:
 std::string NC::ncgetcwd()
 {
-  char buff[MAX_PATH];
-  GetModuleFileName( NULL, buff, MAX_PATH );
-  std::string::size_type position = std::string( buff ).find_last_of( "\\/" );
-  return std::string( buff ).substr( 0, position);
+  TCHAR pathbuf[MAX_PATH+1] = "";
+  GetCurrentDirectoryA(MAX_PATH, pathbuf);
+  //PathAddBackslashA(pathbuf);
+  std::ostringstream ss;
+  ss << pathbuf;
+  return ss.str();
 }
 #else
 //POSIX globbing:
@@ -196,3 +198,7 @@ std::string NC::ncgetcwd() {
   NCRYSTAL_THROW(CalcError,"Could not determine current working directory");
 }
 #endif
+
+
+
+//FIXME: Once the above code works, we could investigate the C++17 function std::filesystem::current_path() (however, we need to be able to determine if the filesystem module is actually present or not)

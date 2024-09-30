@@ -44,10 +44,10 @@ def run( app_file, reflogfile = None ):
                  else ( r.stderr or '' ) )
     assert isinstance(r_stdout,str)
     assert isinstance(r_stderr,str)
+    sys.stdout.write(r_stdout)
     if r_stderr:
         #Todo support this, by merging them (probably needs subprocess.Popen not
         #subprocess.run):
-        sys.stdout.write(r_stdout)
         for line in r_stderr.splitlines():
             #sys.stderr.buffer.write(b'stderr> '+line+'\n'.encode())
             sys.stderr.write('stderr> '+line+'\n')
