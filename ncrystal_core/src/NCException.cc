@@ -24,28 +24,28 @@ namespace NCRYSTAL_NAMESPACE {
 
   namespace Error {
 
-    Exception::Exception(const std::string& msg, const char * f, unsigned l) throw()
+    Exception::Exception(const std::string& msg, const char * f, unsigned l) noexcept
       : std::runtime_error(msg),
         m_file(f),
         m_lineno(l)
     {
     }
 
-    Exception::Exception(const char * msg,  const char * f, unsigned l) throw()
+    Exception::Exception(const char * msg,  const char * f, unsigned l) noexcept
       : std::runtime_error(msg),
         m_file(f),
         m_lineno(l)
     {
     }
 
-    Exception::Exception( const Exception & o ) throw()
+    Exception::Exception( const Exception & o ) noexcept
       : std::runtime_error(o),
         m_file(o.m_file),
         m_lineno(o.m_lineno)
     {
     }
 
-    Exception & Exception::operator= ( const Exception & o ) throw()
+    Exception & Exception::operator= ( const Exception & o ) noexcept
     {
       std::runtime_error::operator=(o);
       m_file = o.m_file;
@@ -53,16 +53,16 @@ namespace NCRYSTAL_NAMESPACE {
       return *this;
     }
 
-    Exception::~Exception() throw()
+    Exception::~Exception() noexcept
     {
     }
 
-    FileNotFound::~FileNotFound() throw() {}
-    MissingInfo::~MissingInfo() throw() {}
-    DataLoadError::~DataLoadError() throw() {}
-    LogicError::~LogicError() throw() {}
-    CalcError::~CalcError() throw() {}
-    BadInput::~BadInput() throw() {}
+    FileNotFound::~FileNotFound() noexcept {}
+    MissingInfo::~MissingInfo() noexcept {}
+    DataLoadError::~DataLoadError() noexcept {}
+    LogicError::~LogicError() noexcept {}
+    CalcError::~CalcError() noexcept {}
+    BadInput::~BadInput() noexcept {}
   }
 
 }

@@ -284,7 +284,7 @@ namespace NCRYSTAL_NAMESPACE {
     static char errtype[64];
     static void (*custom_error_handler)(char *,char*) = 0;
 
-    void setError(const char *msg, const char * etype = 0) throw() {
+    void setError(const char *msg, const char * etype = 0) noexcept {
       if (!etype)
         etype="ncrystal_c-interface";
       strncpy(errmsg,msg,sizeof(errmsg)-1);
@@ -305,7 +305,7 @@ namespace NCRYSTAL_NAMESPACE {
       }
     }
 
-    void handleError(const std::exception &e) noexcept(true) {
+    void handleError(const std::exception &e) noexcept {
       const Error::Exception* nce = dynamic_cast<const Error::Exception*>(&e);
       if (nce) {
         setError(nce->what(),nce->getTypeName());

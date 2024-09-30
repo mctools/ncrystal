@@ -99,32 +99,13 @@ def main():
     print("work_in_tmpdir() gave no errors (which is good)")
 
     with work_in_tmpdir():
-        import sys
-        #FIXME: cleanup the below flushing?
-        sys.stdout.flush()
-        sys.stderr.flush()
         pathlib.Path("somefile.ncmat").write_text(_some_ncmat_data)
-        sys.stdout.flush()
-        sys.stderr.flush()
-        #print("JUST TESTING pathlib.Path(\"somefile.ncmat\")=",repr(pathlib.Path("somefile.ncmat")))
-        sys.stdout.flush()
-        sys.stderr.flush()
         assert pathlib.Path("somefile.ncmat").is_file()
         assert pathlib.Path("./somefile.ncmat").is_file()
-        sys.stdout.flush()
-        sys.stderr.flush()
         test_cli(['somefile.ncmat','-o','bla.cc'],'bla.cc')
-        sys.stdout.flush()
-        sys.stderr.flush()
         test_cli(['somefile.ncmat','-o','stdout'],None)
-        sys.stdout.flush()
-        sys.stderr.flush()
         test_cli(['Al_sg225.ncmat','-o','foo.cc'],'foo.cc')
-        sys.stdout.flush()
-        sys.stderr.flush()
         test_cli(['Al_sg225.ncmat','-o','foo.cc'],'foo.cc')#OK to overwrite
-        sys.stdout.flush()
-        sys.stderr.flush()
         with ensure_error(NC.NCFileNotFound,'No such file: "./Al_sg225.ncmat"'):
             test_cli(['./Al_sg225.ncmat','-o','foo2.cc'],'foo2.cc')
         test_cli(['stdlib::Al_sg225.ncmat','-o','foo3.cc'],'foo3.cc')
@@ -149,8 +130,9 @@ def main():
                quiet = True
                )
 
-    #FIXME: It would be useful with a test that we
-    #can actually compile the output, perhaps we need a special/dedicated CTest?
+    #FIXME: It would be useful with a test that we can actually compile the
+    #output (but... we do use the functionality for embedding). Perhaps we need
+    #a special/dedicated CTest?
 
 if __name__ == '__main__':
     main()
