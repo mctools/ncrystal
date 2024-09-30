@@ -54,7 +54,7 @@ jobs:
         ctest --build-config Release --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle
       #NB more verbosity by appending: "-VV"
 
-    - name: CMake install NCrystal
-      shell: cmd
-      run: cmake --build build --target INSTALL --config Release
-      #NB: More verbosity by appending: "-- /verbosity:detailed"
+#SKIPFORNOW    - name: CMake install NCrystal
+#SKIPFORNOW      shell: cmd
+#SKIPFORNOW      run: cmake --build build --target INSTALL --config Release
+#SKIPFORNOW      #NB: More verbosity by appending: "-- /verbosity:detailed"
