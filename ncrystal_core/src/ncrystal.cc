@@ -305,7 +305,7 @@ namespace NCRYSTAL_NAMESPACE {
       }
     }
 
-    void handleError(const std::exception &e) throw() {
+    void handleError(const std::exception &e) noexcept(true) {
       const Error::Exception* nce = dynamic_cast<const Error::Exception*>(&e);
       if (nce) {
         setError(nce->what(),nce->getTypeName());

@@ -24,7 +24,9 @@ assert d_abs.samefile ( pathlib.Path(_cwd).resolve().absolute() )
 assert d_abs.samefile ( _cwd )
 assert d.samefile ( _cwd )
 
+#FIXME : Step into dir with on-ascii name and check ncgetcwd ??
+
 #print('cwd',lib.nctest_ncgetcwd())
 
-#FIXME: Much more, including globbing and whatever is likely to cause issues on
-#Windows.
+#FIXME: Much more, including globbing, is_absolute_path("c:[\]bla.ncmat) and
+#whatever is likely to cause issues on Windows.
