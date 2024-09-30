@@ -126,6 +126,8 @@ def _find_testlib(name):
     return lib
 
 def _load_lib_with_ctypes( path ):
+    assert path.is_file()
+    import NCrystal.core#FIXME: To ensure NCrystal lib is loaded!
     try:
         lib = ctypes.CDLL(path)
     except TypeError:
@@ -135,6 +137,8 @@ def _load_lib_with_ctypes( path ):
         #For some reason, on windows we get a TypeError and must pass a string
         #rather than a pathlib object:
         lib = ctypes.CDLL(str(path))
+        #NB: We might also get here a FileNotFoundError!! Perhaps in case of missing dll symbols?
+
     return lib
 
 def _ctypes_load_testlib( test_shlib_name ):
