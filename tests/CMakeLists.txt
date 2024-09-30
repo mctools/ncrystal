@@ -91,8 +91,8 @@ endif()
 mctools_testutils_add_test_libs(
   "${CMAKE_CURRENT_LIST_DIR}/libs" "${nctests_ncrystallib_target}"
 )
-mctools_testutils_add_test_shlibs(
-  "${CMAKE_CURRENT_LIST_DIR}/shlibs" "${nctests_ncrystallib_target}"
+mctools_testutils_add_test_modules(
+  "${CMAKE_CURRENT_LIST_DIR}/modules" "${nctests_ncrystallib_target}"
 )
 
 
