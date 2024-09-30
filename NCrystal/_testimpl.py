@@ -458,6 +458,7 @@ def _work_in_tmpdir():
         with tempfile.TemporaryDirectory() as tmpdir:
             os.chdir(tmpdir)
             yield
+            os.chdir(the_cwd)
     finally:
         os.chdir(the_cwd)
 
