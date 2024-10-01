@@ -88,13 +88,17 @@ else()
     "${CMAKE_CURRENT_LIST_DIR}/scripts" "${nctest_pyenvmod}"
   )
 endif()
+set( nctests_extra_inc_dirs PUBLIC "${CMAKE_CURRENT_LIST_DIR}/include" )
 mctools_testutils_add_test_libs(
-  "${CMAKE_CURRENT_LIST_DIR}/libs" "${nctests_ncrystallib_target}"
+  "${CMAKE_CURRENT_LIST_DIR}/libs"
+  "${nctests_ncrystallib_target}"
+  "${nctests_extra_inc_dirs}"
 )
 mctools_testutils_add_test_modules(
-  "${CMAKE_CURRENT_LIST_DIR}/modules" "${nctests_ncrystallib_target}"
+  "${CMAKE_CURRENT_LIST_DIR}/modules"
+  "${nctests_ncrystallib_target}"
+  "${nctests_extra_inc_dirs}"
 )
-
 
 set( nctest_appenvmod "" )
 if ( WIN32 )
@@ -134,6 +138,7 @@ list(
 mctools_testutils_add_tests_apps(
   "${CMAKE_CURRENT_LIST_DIR}/src"
   "${nctests_ncrystallib_target}"
+  "${nctests_extra_inc_dirs}"
   "${nctest_appenvmod}"
 )
 #FIXME: TODO Need python unit test which launches compiled app!
