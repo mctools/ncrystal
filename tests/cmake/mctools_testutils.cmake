@@ -143,15 +143,28 @@ function( mctools_testutils_internal_missingpydeps resvar pydeps )
   set( "${resvar}" "${missing}" PARENT_SCOPE )
 endfunction()
 
-function( mctools_testutils_add_test_modules librootdir extra_link_libs )
-  mctools_testutils_internal_add_test_libs( "${librootdir}" "${extra_link_libs}" "ON" )
+function(
+    mctools_testutils_add_test_modules
+    librootdir extra_link_libs extra_inc_dirs
+  )
+  mctools_testutils_internal_add_test_libs(
+    "${librootdir}" "${extra_link_libs}" "${extra_inc_dirs}" "ON"
+  )
 endfunction()
 
-function( mctools_testutils_add_test_libs librootdir extra_link_libs )
-  mctools_testutils_internal_add_test_libs( "${librootdir}" "${extra_link_libs}" "OFF" )
+function(
+    mctools_testutils_add_test_libs
+    librootdir extra_link_libs extra_inc_dirs
+  )
+  mctools_testutils_internal_add_test_libs(
+    "${librootdir}" "${extra_link_libs}" "${extra_inc_dirs}" "OFF"
+  )
 endfunction()
 
-function( mctools_testutils_internal_add_test_libs librootdir extra_link_libs is_module )
+function(
+    mctools_testutils_internal_add_test_libs
+    librootdir extra_link_libs extra_inc_dirs is_module
+  )
   file(
     GLOB libdirs
     LIST_DIRECTORIES true
@@ -195,6 +208,7 @@ function( mctools_testutils_internal_add_test_libs librootdir extra_link_libs is
     endif()
 
     target_link_libraries( ${name} PRIVATE ${extra_link_libs} )
+    target_include_directories( ${name} ${extra_inc_dirs} )
 
     if ( EXISTS "${libdir}/include" )
       if ( is_module )
@@ -222,7 +236,10 @@ function( mctools_testutils_internal_add_test_libs librootdir extra_link_libs is
   endforeach()
 endfunction()
 
-function( mctools_testutils_add_tests_apps approotdir extra_link_libs envmod )
+function(
+    mctools_testutils_add_tests_apps
+    approotdir extra_link_libs extra_inc_dirs envmod
+  )
   set( testsbindir "${PROJECT_BINARY_DIR}/mctools_tests_bin" )
   file( MAKE_DIRECTORY "${testsbindir}" )
   file(
@@ -241,6 +258,7 @@ function( mctools_testutils_add_tests_apps approotdir extra_link_libs envmod )
       target_link_libraries( ${bn} PRIVATE "TestLib_${dep}" )
     endforeach()
     target_link_libraries( ${bn} PRIVATE ${extra_link_libs} )
+    target_include_directories( ${bn} ${extra_inc_dirs} )
 
     set( reflog "${appdir}/test.log" )
     if ( EXISTS "${reflog}" )
