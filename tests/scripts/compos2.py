@@ -20,6 +20,7 @@
 ##                                                                            ##
 ################################################################################
 
+import NCTestUtils.enable_fpe
 import NCrystal as NC
 
 def compos2str( composition ):

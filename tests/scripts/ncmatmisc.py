@@ -21,6 +21,7 @@
 ################################################################################
 
 #test file with same element in different roles (here differing by MSD value)
+import NCTestUtils.enable_fpe
 import NCrystal as NC
 import sys
 

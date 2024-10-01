@@ -22,6 +22,7 @@
 
 # NEEDS: numpy
 
+import NCTestUtils.enable_fpe
 import NCrystal as NC
 
 def test_dis(info):

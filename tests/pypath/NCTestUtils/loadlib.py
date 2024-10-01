@@ -43,12 +43,12 @@ import ctypes
 
 class Lib:
     def __init__( self, test_shlib_name ):
-        self.__name = _normalise_testlib_name( test_shlib_name )
-        self.__lib = _ctypes_load_testlib( test_shlib_name )
+        self.__name = _normalise_testmod_name( test_shlib_name )
+        self.__lib = _ctypes_load_testmod( test_shlib_name )
         self.__fcts = set()
         if not hasattr(self.__lib,'nctest_ctypes_dictionary'):
             print("Warning: No nctest_ctypes_dictionary symbol"
-                  " in testlib %s"%self.__name)
+                  " in testmod %s"%self.__name)
         else:
             dictfct = _ctypes_create_fct( self.__lib,
                                           'nctest_ctypes_dictionary',
@@ -156,8 +156,8 @@ def _load_lib_with_ctypes( path ):
 
     return lib
 
-def _ctypes_load_testlib( test_shlib_name ):
-    libpath = _find_testlib(test_shlib_name)
+def _ctypes_load_testmod( test_shlib_name ):
+    libpath = _find_testmod(test_shlib_name)
     return _load_lib_with_ctypes(libpath)
 
 def _ctypes_create_fct( lib, fctname, restype, *argtypes ):
@@ -190,11 +190,11 @@ def _ctypes_create_fct( lib, fctname, restype, *argtypes ):
         return rv
     return fct
 
-def _normalise_testlib_name(name):
-    return name if name.startswith('TestLib_') else f'TestLib_{name}'
+def _normalise_testmod_name(name):
+    return name if name.startswith('TestMod_') else f'TestMod_{name}'
 
-def _find_testlib(name):
-    tln = _normalise_testlib_name(name)
+def _find_testmod(name):
+    tln = _normalise_testmod_name(name)
     import pathlib
     import os
     locdir = pathlib.Path(os.environ.get('MCTOOLS_TESTMODULES_LOCDIR'))

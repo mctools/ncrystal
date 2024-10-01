@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 
 ################################################################################
 ##                                                                            ##
@@ -19,46 +18,19 @@
 ##  limitations under the License.                                            ##
 ##                                                                            ##
 ################################################################################
+"""
 
-import NCTestUtils.enable_fpe
-import NCrystal as NC
+   Importing this module enables FPE detection.
 
-#Testing presence of data "files", as well as their sorting.
+"""
 
-# More robust testing:
-NC.removeAllDataSources()
-NC.enableStandardDataLibrary()
+__all__=[]
 
-files_default_order = {}
-files_sorted_order = {}
+def _enable_fpe():
+    from .loadlib import Lib
+    lib = Lib('fpe')
+    lib.nctest_catch_fpe()
+    return lib
 
-print()
-print('========= In default order ===========')
-print()
-for f in NC.browseFiles():
-    print(f.fullKey)
-    if not f.factName in files_default_order:
-        files_default_order[f.factName] = []
-    files_default_order[f.factName].append(f.fullKey)
-
-print()
-print('========= Sorted order ===========')
-print()
-for f in sorted(NC.browseFiles()):
-    print(f.fullKey)
-    if not f.factName in files_sorted_order:
-        files_sorted_order[f.factName] = []
-    files_sorted_order[f.factName].append(f.fullKey)
-
-print()
-if files_default_order == files_sorted_order:
-    print("All good: Consistent sorting order observed!")
-else:
-    print("ERROR: Inconsistent sorting order observed!!")
-    print()
-    import pprint
-    pprint.pprint(files_default_order)
-    print()
-    pprint.pprint(files_sorted_order)
-    raise SystemExit("ERROR: Inconsistent sorting order observed!!")
-
+__keepalive = _enable_fpe()
+del _enable_fpe

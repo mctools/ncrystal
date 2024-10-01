@@ -20,6 +20,7 @@
 ##                                                                            ##
 ################################################################################
 
+import NCTestUtils.enable_fpe
 import NCrystal as NC
 
 contents="""NCMAT v[[VERSION]]

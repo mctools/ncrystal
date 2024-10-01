@@ -160,7 +160,13 @@ function( mctools_testutils_internal_add_test_libs librootdir extra_link_libs is
   foreach(libdir ${libdirs})
     get_filename_component(bn "${libdir}" NAME)
     string(SUBSTRING "${bn}" 4 -1 "bn")
-    set( name "TestLib_${bn}" )
+
+    if ( is_module )
+      set( libprefix "TestMod_" )
+    else()
+      set( libprefix "TestLib_" )
+    endif()
+    set( name "${libprefix}${bn}" )
     mctools_testutils_internal_getsrcfiles( srcfiles "${libdir}" is_module )
     mctools_testutils_internal_detectlibdeps( "deplist" "${srcfiles}" )
     foreach( dep ${deplist} )
@@ -189,23 +195,29 @@ function( mctools_testutils_internal_add_test_libs librootdir extra_link_libs is
     endif()
 
     target_link_libraries( ${name} PRIVATE ${extra_link_libs} )
+
     if ( EXISTS "${libdir}/include" )
-      if ( NOT EXISTS "${libdir}/include/TestLib_${bn}" )
-        message(
-          FATAL_ERROR
-          "${libdir}/include does not include TestLib_${bn} subdir"
-        )
+      if ( is_module )
+        message( FATAL_ERROR
+          "Modules can not export headers and should therefore not"
+          " contain include dirs. Offending directory is: ${libdir}/include")
+      else()
+        if ( NOT EXISTS "${libdir}/include/TestLib_${bn}" )
+          message(
+            FATAL_ERROR
+            "${libdir}/include does not include TestLib_${bn} subdir"
+          )
+        endif()
+        file( GLOB tmp LIST_DIRECTORIES true "${libdir}/include/*" )
+        list(LENGTH tmp tmp)
+        if ( NOT tmp EQUAL 1 )
+          message(
+            FATAL_ERROR
+            "${libdir}/include can only contain an TestLib_${bn} subdir"
+          )
+        endif()
+        target_include_directories( ${name} PUBLIC "${libdir}/include" )
       endif()
-      file( GLOB tmp LIST_DIRECTORIES true "${libdir}/include/*"
-      )
-      list(LENGTH tmp tmp)
-      if ( NOT tmp EQUAL 1 )
-        message(
-          FATAL_ERROR
-          "${libdir}/include can only contain an TestLib_${bn} subdir"
-        )
-      endif()
-      target_include_directories( ${name} PUBLIC "${libdir}/include" )
     endif()
   endforeach()
 endfunction()

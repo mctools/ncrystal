@@ -20,6 +20,7 @@
 ##                                                                            ##
 ################################################################################
 
+import NCTestUtils.enable_fpe
 import NCrystal as NC
 NC.setDefaultRandomGenerator(None)
 kToDeg = 57.295779513082322865

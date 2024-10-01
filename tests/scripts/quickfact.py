@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import NCrystal as NC
 
 ################################################################################
 ##                                                                            ##
@@ -20,6 +19,9 @@ import NCrystal as NC
 ##  limitations under the License.                                            ##
 ##                                                                            ##
 ################################################################################
+
+import NCTestUtils.enable_fpe
+import NCrystal as NC
 
 def test(cfgstr,expectBad = False):
     print("="*100)

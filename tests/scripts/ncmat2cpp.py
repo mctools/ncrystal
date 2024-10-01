@@ -22,6 +22,7 @@
 
 # NEEDS: numpy
 
+import NCTestUtils.enable_fpe
 import NCrystal as NC
 import NCrystal.cliutils as nc_cliutils
 from NCrystal.ncmat2cpp import ncmat2cpp

@@ -21,44 +21,40 @@
 ################################################################################
 
 import NCTestUtils.enable_fpe
-import NCrystal as NC
+from NCTestUtils.loadlib import Lib
+from multiprocessing import Process
+import platform
+import sys
+import os
 
-#Testing presence of data "files", as well as their sorting.
+lib_misc = Lib('misc')
+div = lib_misc.nctest_divide_args
 
-# More robust testing:
-NC.removeAllDataSources()
-NC.enableStandardDataLibrary()
+assert div(1.0,2.0) == 0.5
+assert div(10.0,2.0) == 5.0
 
-files_default_order = {}
-files_sorted_order = {}
+def worker_div( *div_args ):
+  #Redirect stderr to stdout, to avoid a test failure due to stderr output. Use
+  #dup2+fileno's, to make it work for the compiled layer as well:
+  os.dup2(sys.stdout.fileno(),
+          sys.stderr.fileno())
+  a,b = div_args
+  div( a, b )
 
-print()
-print('========= In default order ===========')
-print()
-for f in NC.browseFiles():
-    print(f.fullKey)
-    if not f.factName in files_default_order:
-        files_default_order[f.factName] = []
-    files_default_order[f.factName].append(f.fullKey)
+def div_in_subproc( a, b ):
+  print(f"-----------> Division {a}/{b} starting")
+  expect_error = (not b)
+  if expect_error:
+    print("About to trigger FPE: ------------------>",flush=True)
+  p = Process(target=worker_div, args=(a,b))
+  p.start()
+  p.join()
+  ok = p.exitcode==0
+  assert ok == (not expect_error)
+  print(f"-----------> Division {a}/{b} ended as expected")
 
-print()
-print('========= Sorted order ===========')
-print()
-for f in sorted(NC.browseFiles()):
-    print(f.fullKey)
-    if not f.factName in files_sorted_order:
-        files_sorted_order[f.factName] = []
-    files_sorted_order[f.factName].append(f.fullKey)
+div_in_subproc( 1.0,2.0)
+div_in_subproc( 10.0,2.0 )
 
-print()
-if files_default_order == files_sorted_order:
-    print("All good: Consistent sorting order observed!")
-else:
-    print("ERROR: Inconsistent sorting order observed!!")
-    print()
-    import pprint
-    pprint.pprint(files_default_order)
-    print()
-    pprint.pprint(files_sorted_order)
-    raise SystemExit("ERROR: Inconsistent sorting order observed!!")
-
+if platform.system().lower() not in ('Windows','Darwin'):
+  div_in_subproc( 1.0, 0.0 )

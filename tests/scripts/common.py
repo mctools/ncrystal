@@ -20,7 +20,9 @@
 ##                                                                            ##
 ################################################################################
 
+import NCTestUtils.enable_fpe
 import NCrystal._common as nc_common
+
 def require(b):
     if not b:
         raise RuntimeError('check failed')
