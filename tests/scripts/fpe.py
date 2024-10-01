@@ -56,7 +56,7 @@ def div_in_subproc( a, b ):
 def main():
     div_in_subproc( 1.0,2.0)
     div_in_subproc( 10.0,2.0 )
-    if platform.system().lower() not in ('Windows','Darwin'):
+    if platform.system().lower() not in ('windows','darwin'):
         div_in_subproc( 1.0, 0.0 )
 
 if __name__ == '__main__':
