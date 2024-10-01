@@ -20,6 +20,8 @@
 ##                                                                            ##
 ################################################################################
 
+import NCTestUtils.enable_fpe
+
 import sys
 
 def sec(title):

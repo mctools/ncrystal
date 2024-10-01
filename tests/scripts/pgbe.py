@@ -23,9 +23,8 @@
 # NEEDS: numpy
 
 # Checks https://github.com/mctools/ncrystal/issues/171
-#FIXME add this back import Core.FPE
-#FIXME add this back Core.FPE.catch_fpe()
 
+import NCTestUtils.enable_fpe
 import NCrystal as NC
 import numpy as np
 wl_x = np.arange(0.0,10.0,0.01)

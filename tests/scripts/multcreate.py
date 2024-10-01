@@ -20,6 +20,7 @@
 ##                                                                            ##
 ################################################################################
 
+import NCTestUtils.enable_fpe
 import NCrystal as NC
 
 data_Au_sg225_ncmat="""NCMAT v4

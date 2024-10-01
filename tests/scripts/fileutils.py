@@ -20,6 +20,7 @@
 ##                                                                            ##
 ################################################################################
 
+import NCTestUtils.enable_fpe
 from NCTestUtils.loadlib import Lib
 lib = Lib('testfileutils')
 lib.dump()

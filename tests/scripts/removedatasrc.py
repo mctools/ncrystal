@@ -23,6 +23,8 @@
 #If removeAllDataSources does not have an "ensurePluginsLoaded" call internally,
 #the code below will load the wrong file from the local directory:
 
+import NCTestUtils.enable_fpe
+
 import pathlib
 pathlib.Path('Al_sg225.ncmat').write_text("INVALID FILE DO NOT LOAD THIS")
 import NCrystal as NC

@@ -22,6 +22,7 @@
 
 # NEEDS: numpy
 
+import NCTestUtils.enable_fpe
 from NCrystal.hfg2ncmat import hfg2ncmat
 
 def test(spec,formula,**kwargs):

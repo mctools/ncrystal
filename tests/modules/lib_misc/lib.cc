@@ -20,8 +20,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCDefs.hh"
-#include "NCrystal/internal/NCFileUtils.hh"
-#include <cstring>
 
 namespace NC = NCrystal;
 
@@ -57,30 +55,16 @@ namespace nctest {
 NCTEST_CTYPES const char * nctest_ctypes_dictionary()
 {
   return
-    "int nctest_file_exists( const char * );"
-    "const char * nctest_ncgetcwd();"
+    "double nctest_divide_args( double, double );"
     ;
 }
 
-NCTEST_CTYPES int nctest_file_exists( const char * f )
+NCTEST_CTYPES double nctest_divide_args( double a, double b )
 {
-  int res;
+  //A silly function, used to enable an fpe
   try {
-    nc_assert_always( f );
-    res = NC::file_exists( f ) ? 1 : 0;
+    return a / b;
+    //return b ? a / b : 1.0;
   } NCCATCH;
-  return res;
+  return 0.0;
 }
-
-NCTEST_CTYPES const char * nctest_ncgetcwd()
-{
-  //For testing, we can get away with just using a large static buffer:
-  static char buf[16384];
-  try {
-    std::string thecwd = NC::ncgetcwd();
-    buf[0] = '\0';
-    std::strncat(buf,thecwd.c_str(),sizeof(buf)-1);
-  } NCCATCH;
-  return &buf[0];
-}
-
