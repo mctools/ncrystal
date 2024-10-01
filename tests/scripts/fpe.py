@@ -22,7 +22,7 @@
 
 import NCTestUtils.enable_fpe
 from NCTestUtils.loadlib import Lib
-from multiprocessing import Process
+from multiprocessing import Process, freeze_support
 import platform
 import sys
 import os
@@ -34,27 +34,31 @@ assert div(1.0,2.0) == 0.5
 assert div(10.0,2.0) == 5.0
 
 def worker_div( *div_args ):
-  #Redirect stderr to stdout, to avoid a test failure due to stderr output. Use
-  #dup2+fileno's, to make it work for the compiled layer as well:
-  os.dup2(sys.stdout.fileno(),
-          sys.stderr.fileno())
-  a,b = div_args
-  div( a, b )
+    #Redirect stderr to stdout, to avoid a test failure due to stderr output. Use
+    #dup2+fileno's, to make it work for the compiled layer as well:
+    os.dup2(sys.stdout.fileno(),
+            sys.stderr.fileno())
+    a,b = div_args
+    div( a, b )
 
 def div_in_subproc( a, b ):
-  print(f"-----------> Division {a}/{b} starting")
-  expect_error = (not b)
-  if expect_error:
-    print("About to trigger FPE: ------------------>",flush=True)
-  p = Process(target=worker_div, args=(a,b))
-  p.start()
-  p.join()
-  ok = p.exitcode==0
-  assert ok == (not expect_error)
-  print(f"-----------> Division {a}/{b} ended as expected")
+    print(f"-----------> Division {a}/{b} starting")
+    expect_error = (not b)
+    if expect_error:
+        print("About to trigger FPE: ------------------>",flush=True)
+    p = Process(target=worker_div, args=(a,b))
+    p.start()
+    p.join()
+    ok = p.exitcode==0
+    assert ok == (not expect_error)
+    print(f"-----------> Division {a}/{b} ended as expected")
 
-div_in_subproc( 1.0,2.0)
-div_in_subproc( 10.0,2.0 )
+def main():
+    div_in_subproc( 1.0,2.0)
+    div_in_subproc( 10.0,2.0 )
+    if platform.system().lower() not in ('windows','darwin'):
+        div_in_subproc( 1.0, 0.0 )
 
-if platform.system().lower() not in ('Windows','Darwin'):
-  div_in_subproc( 1.0, 0.0 )
+if __name__ == '__main__':
+    freeze_support()
+    main()
