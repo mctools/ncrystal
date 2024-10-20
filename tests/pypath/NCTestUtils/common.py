@@ -46,11 +46,13 @@ class ensure_error:
         if exc_type is None:
             raise SystemExit('Did not emit exception as required!')
         if exc_type != self.__et:
-            raise SystemExit(f'Emitted {exc_type.__name__} instead of the'
+            raise SystemExit(f'Emitted {exc_type.__name__}({exc_value}) instead of the'
                              f' required {self.__et.__name__}!')
         val = exc_value.args
         if isinstance(val,tuple) and len(val)==1:
             val=val[0]
+        elif len(val)>1:
+            val = str(exc_value) #seems to work for argparse.ArgumentError
 
         if self.__ev is not None and val != self.__ev:
             raise SystemExit(f'Expected {exc_type.__name__} did not have'

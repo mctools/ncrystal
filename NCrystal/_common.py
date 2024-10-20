@@ -33,7 +33,6 @@ def print(*args,**kwargs):
     _stdprint[0](*args,**kwargs)
 
 #TODO: Overlaps somewhat with the (more complete) _setMsgHandler from _msg.py:
-#TODO: Overlaps somewhat with the (py-only) set_ncrystal_print_fct from _msg.py:
 def set_ncrystal_print_fct( fct ):
     oldfct = _stdprint[0]
     _stdprint[0] = fct or _builtin_print()
@@ -42,45 +41,30 @@ def set_ncrystal_print_fct( fct ):
 def get_ncrystal_print_fct():
     return _stdprint[0]
 
+class modify_ncrystal_print_fct_ctxmgr:
+    """Context manager for modifying the print function (for instance to block
+    output temporarily)"""
+    def __init__(self, fct ):
+        if fct == 'block':
+            def fct( *a, **kw ):
+                pass
+        self.__fct = fct
+
+    def __enter__(self):
+        self.__orig = get_ncrystal_print_fct()
+        set_ncrystal_print_fct( self.__fct )
+
+    def __exit__(self,*args,**kwargs):
+        set_ncrystal_print_fct( self.__orig )
+        self.__orig = None
+        self.__fct = None
+
+
 def warn(msg):
     """Emit NCrystalUserWarning via standard warnings.warn function"""
     from .exceptions import NCrystalUserWarning
     import warnings
     warnings.warn( NCrystalUserWarning(str(msg)), stacklevel = 2 )
-
-_argparse_postinitfct = [ None ]
-def create_ArgumentParser( *args, **kwargs ):
-    """Always create argparse.ArgumentParser objects from this method, to ensure
-    output is redirected while invoking cmdline scripts with cliutils.run
-    """
-    from argparse import ArgumentParser
-    parser = ArgumentParser( *args, **kwargs )
-    f = _argparse_postinitfct[0]
-    if f is not None:
-        f(parser)
-    return parser
-
-class ctxmgr_redirect_argparse_output:
-
-    def __enter__(self):
-        def f(parser):
-            #Monkey patch object to redirect stdout/stderr of argparse to
-            #NCrystal's print handler.
-            if not hasattr(parser,'_print_message'):
-                warn("argparse non-API _print_message method disappeared."
-                     " Argparse output redirection to NCrystal msg handler"
-                     " will not work")
-                return
-            def _print_message( message, file=None):
-                if message:
-                    get_ncrystal_print_fct()(message)
-            parser._print_message = _print_message
-
-        self.__orig = _argparse_postinitfct[0]
-        _argparse_postinitfct[0] = f
-
-    def __exit__(self,*a,**kw):
-        _argparse_postinitfct[0] = self.__orig
 
 class WarningSpy:
     """Context manager which spies on any warnings emitted via warnings
@@ -175,7 +159,8 @@ def prettyFmtValue(x):
         return '1'
     if x==0.5:
         return '1/2'
-    stripleading0 = lambda s : ( s[1:] if (len(s) > 2 and s.startswith('0.')) else s )
+    def stripleading0(s):
+        return ( s[1:] if (len(s) > 2 and s.startswith('0.')) else s )
     xfmt = stripleading0('%.13g'%x)#.14g leads to irreproducibility issues in
     #our tests but there are sooo many numbers ending with 3333.... or
     #666667.... that we can safely "snap" these to their correct values:
@@ -277,11 +262,14 @@ def format_chemform( chemform, *, allow_rescaling = True ):
     if len(chemform)==1:
         return str(chemform[0][0])
     cf = _hill_sort(chemform)
-    is_near_int = lambda v : abs(int(v)-v)<1e-15
-    get_non_ints = lambda _l : [ v for k,v in _l if not is_near_int(v) ]
+    def is_near_int(v):
+        return abs(int(v)-v)<1e-15
+    def get_non_ints(_l):
+        return [ v for k,v in _l if not is_near_int(v) ]
 
     non_ints = get_non_ints( cf )
-    _find_frac = lambda x : find_fraction( x, max_denom = 100 )
+    def _find_frac(x):
+        return find_fraction( x, max_denom = 100 )
     non_int_ffractions = [ _find_frac(x) for x in non_ints ]
     denoms = [ ff[1] for ff in non_int_ffractions if ff is not None ]
     cf_alt = None
@@ -308,9 +296,11 @@ def format_chemform( chemform, *, allow_rescaling = True ):
 
     #find and apply gcd of all integers:
     def final_format( the_cf ):
-        l=[ int(v) for k,v in the_cf if is_near_int(v) ]
-        gcd = _gcd( *l ) if ( l and allow_rescaling ) else 1
-        wrapiso = lambda x : x if not x[-1].isdigit() else '{%s}'%x#nb: these curly braces are not great for filenames...
+        ll=[ int(v) for k,v in the_cf if is_near_int(v) ]
+        gcd = _gcd( *ll ) if ( ll and allow_rescaling ) else 1
+        def wrapiso( x ):
+            #nb: these curly braces are not great for filenames...:
+            return x if not x[-1].isdigit() else '{%s}'%x
         the_cf = [ (wrapiso(en),(count//gcd if is_near_int(count) else count/gcd)) for en,count in the_cf ]
         return ''.join( (en if count==1 else '%s%g'%(en,int(count) if count==int(count) else count)) for en,count in the_cf )
 
@@ -321,9 +311,9 @@ def format_chemform( chemform, *, allow_rescaling = True ):
 
 def _classifySG(sgno):
     assert 1<=sgno<=230
-    l=[(195,'cubic'),(168,'hexagonal'),(143,'trigonal'),
-       (75,'tetragonal'),(16,'orthorombic'),(3,'monoclinic'),(1,'triclinic')]
-    for thr,nme in l:
+    ll=[(195,'cubic'),(168,'hexagonal'),(143,'trigonal'),
+        (75,'tetragonal'),(16,'orthorombic'),(3,'monoclinic'),(1,'triclinic')]
+    for thr,nme in ll:
         if sgno>=thr:
             return nme
     assert False

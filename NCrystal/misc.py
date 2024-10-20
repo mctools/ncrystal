@@ -281,3 +281,25 @@ def _benchloadcfg( cfgstr, do_scatter=True, nrepeat = 1 ):
     return _rawfct['benchloadcfg'](cfgstr = cfgstr,
                                    do_scatter = do_scatter,
                                    nrepeat = nrepeat )
+
+def cfgstr_detect_components( cfgstr ):
+    """
+    Helper function which can detect which physics components are present
+    once a given cfg-string is loaded, and provide derived cfg-strings suitable
+    for picking out those components. The return value is a list of component
+    names (e.g. "inelas", "cohelas", "sans", etc.) and the associated
+    cfg-strings: [(cfgstr1,compname1), (cfgstr2,compname2),...].
+
+    """
+    #Normalise original cfg (so syntax errors will refer to the cfgstr as
+    #originally specified), and add flags which cause initialisation speedup
+    #without affecting which components are present:
+    from .cfgstr import normaliseCfg
+    from .core import createScatter
+    probecfgstr = normaliseCfg(cfgstr) + ';vdoslux=0'
+    res=[]
+    for ct in standard_comp_types:
+        extracfg = f';comp={ct}'
+        if not createScatter( probecfgstr + extracfg ).isNull():
+            res.append( ( normaliseCfg(cfgstr+extracfg), ct.replace('_','') ) )
+    return res

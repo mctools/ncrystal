@@ -18,14 +18,18 @@
 ##  limitations under the License.                                            ##
 ##                                                                            ##
 ################################################################################
+"""
 
-from ._cliimpl import cli_entry_point
+   Importing this module adds testing data to the NCrystal data path.
 
-def create_argparser_for_sphinx( progname ):
-    from ._ncmat2cpp_impl import parseArgs
-    return parseArgs(progname,[],return_parser=True)
+"""
 
-@cli_entry_point
-def main( progname, arglist ):
-    from ._ncmat2cpp_impl import main as main_impl
-    main_impl( progname, arglist )
+__all__=[]
+
+def _add_test_data():
+    from NCrystal.datasrc import addCustomSearchDirectory as add
+    import pathlib
+    assert False, "not implemented"
+
+_add_test_data()
+del _add_test_data

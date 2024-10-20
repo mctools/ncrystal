@@ -43,6 +43,8 @@ def _default_pymsghandler( msg, msgtype ):
         assert msgtype == 2
         print(msg,end='')
 
+#TODO: Overlaps somewhat with the (py-only) set_ncrystal_print_fct from _common.py:
+
 #NB: This next function could become part of a public API, allowing e.g. a GUI
 #to redirect all NCrystal output to appropriate text boxes, etc.:
 _was_set = [False]

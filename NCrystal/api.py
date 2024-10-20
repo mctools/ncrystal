@@ -37,13 +37,13 @@ more stable in the long rum.
 from .exceptions import * # noqa F403
 from .core import * # noqa F403
 from .datasrc import * # noqa F403
-from .constants import wl2ekin, ekin2wl, ekin2ksq, wl2k, wl2ksq, constant_boltzmann #TODO: only wl2ekin, ekin2wl (or all?)
-from .atomdata import atomDB, iterateAtomDB
-from .cfgstr import normaliseCfg, decodeCfg, generateCfgStrDoc
-from .ncmat import NCMATComposer, formatVectorForNCMAT
-from .plugins import hasFactory, browsePlugins
+from .constants import wl2ekin, ekin2wl, ekin2ksq, wl2k, wl2ksq, constant_boltzmann # noqa F401
+from .atomdata import atomDB, iterateAtomDB # noqa F401
+from .cfgstr import normaliseCfg, decodeCfg, generateCfgStrDoc # noqa F401
+from .ncmat import NCMATComposer, formatVectorForNCMAT # noqa F401
+from .plugins import hasFactory, browsePlugins # noqa F401
 from ._testimpl import * # noqa F403
-from .vdos import createVDOSDebye, debyeIsotropicMSD, PhononDOSAnalyser, debyeTempFromIsotropicMSD, analyseVDOS
+from .vdos import createVDOSDebye, debyeIsotropicMSD, PhononDOSAnalyser, debyeTempFromIsotropicMSD, analyseVDOS # noqa F401
 from .obsolete import * # noqa F403
 
 #Some modules are left out on purpose (due to esoteric usage or non-standard

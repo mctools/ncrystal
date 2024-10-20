@@ -49,13 +49,13 @@ def plot_xsect( material, *, mode='wl', do_show = True, do_newfig = True,
 
     """
     from . import misc as nc_misc
-    from .exceptions import NCBadInput
     matsrc = nc_misc.MaterialSource( material, cfg_params = extra_cfg )
     assert mode in ('wl','ekin')
     assert logx is None or logx in (True,False)
     assert xsmode in ('macroscopic','peratom')
     loadedmat = matsrc.load()
     if not loadedmat.scatter and not loadedmat.absorption:
+        from .exceptions import NCBadInput
         raise NCBadInput('Can not produce plots for material source which contains no physics processes')
     do_absn = show_absorption and bool(loadedmat.absorption)
     do_scat = show_scattering and bool(loadedmat.scatter)
@@ -63,7 +63,7 @@ def plot_xsect( material, *, mode='wl', do_show = True, do_newfig = True,
     plt = _import_matplotlib_plt()
     if do_newfig:
         plt.figure()
-    from ._numpy import _np_linspace, _np_geomspace, _np, _ensure_numpy
+    from ._numpy import _np_linspace, _np_geomspace, _ensure_numpy
     _ensure_numpy()
     from .constants import wl2ekin
     from ._common import _palette_Few as _palette
@@ -82,6 +82,7 @@ def plot_xsect( material, *, mode='wl', do_show = True, do_newfig = True,
     x = (_np_geomspace if logx else _np_linspace)( xmin, xmax, npts )
     xsectargs = dict(wl=x) if mode=='wl' else dict(ekin=x)
     if mode=='macroscopic' and not loadedmat.info:
+        from .exceptions import NCBadInput
         raise NCBadInput('Can not produce macroscopic cross section'
                          ' plots for material source which contains'
                          ' no NCrystal.Info object (and therefore no material density).')
@@ -195,7 +196,6 @@ def plot_vdos( *vdos, unit='meV',
     from . import misc as nc_misc
     from . import vdos as nc_vdos
     #from ._common import _palette_Few as _palette
-    from .exceptions import NCBadInput
     from ._numpy import _np_linspace,_ensure_numpy, _np
     unit_name, unit_value = nc_vdos._parsevdosunit( unit )
 
@@ -443,7 +443,7 @@ def _import_matplotlib_plt():
             _theplt[0] = _create_pyplot_inspector( pass_calls_to_real_plt = ( mode == 'log_and_plot' ) )
         else:
             #first matplotlib alone, for a perhaps more pedagogical ImportError.
-            import matplotlib
+            import matplotlib # noqa F401
             import matplotlib.pyplot as plt
             _theplt[0]=plt
     return _theplt[0]

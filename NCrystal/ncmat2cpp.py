@@ -64,7 +64,7 @@ def ncmat2cpp( *input_files_or_text_data,
         from .exceptions import NCBadInput
         raise NCBadInput('No files or text data provided')
 
-    from ._cli_ncmat2cpp import files2cppcode
+    from ._ncmat2cpp_impl import files2cppcode
     return files2cppcode( infiles = input_files_or_text_data,
                           quiet = quiet,
                           outfile = outfile,

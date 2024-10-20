@@ -18,14 +18,18 @@
 ##  limitations under the License.                                            ##
 ##                                                                            ##
 ################################################################################
+"""
 
-from ._cliimpl import cli_entry_point
+Catch escaped warnings and print them without a stack tracke (since the stack
+traces tend to make the test output irreprodicible.
 
-def create_argparser_for_sphinx( progname ):
-    from ._ncmat2cpp_impl import parseArgs
-    return parseArgs(progname,[],return_parser=True)
+"""
 
-@cli_entry_point
-def main( progname, arglist ):
-    from ._ncmat2cpp_impl import main as main_impl
-    main_impl( progname, arglist )
+__all__=[]
+
+import warnings
+def printWarnings( message, category, *args, **kwargs ):
+    import NCrystal._common as nc_common
+    msg,cat = nc_common.WarningSpy._fmtwarning( message, category )
+    print(f'CAUGHT ESCAPED WARNING ({cat}): {msg}')
+warnings.showwarning = printWarnings

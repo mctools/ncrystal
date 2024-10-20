@@ -46,14 +46,21 @@ class CIFSource:
     object.
     """
 
-    def __init__( self, data, *, allow_fail = False ):
-        """
-        Initialise from data in various formats (see class
+    def __init__( self, data, *, allow_fail = False, name = None ):
+        """Initialise from data in various formats (see class
         description). Unless allow_fail=True, an unrecognised input format will
         result in an NCBadInput exception being thrown. If allow_fail=True the
         .invalid property can be used to check if the loading failed.
+
+        The name argument can be used to assign a name to otherwise anonymous
+        text data. It can also be used to override the name.
+
         """
-        self.__codid,self.__mpid,self.__fp,self.__textdata = None,None,None,None
+        self.__codid = None
+        self.__mpid = None
+        self.__fp = None
+        self.__textdata = None
+        self.__name_override = name
 
         #Check if data is CIFSource object or has one as a .cifsrc property (e.g. LoadedCIF, CIFAnalyser)
         o = getattr( data, 'cifsrc', None ) or data
@@ -62,11 +69,27 @@ class CIFSource:
             self.__mpid = o.__mpid
             self.__fp = o.__fp
             self.__textdata = o.__textdata
+            self.__name_override = o.__name_override
             return
         def _setfp( pth ):
             import pathlib
             pth = pth.decode() if hasattr(pth,'decode') else pth
             self.__fp = pathlib.Path( pth )
+            if not self.__fp.exists():
+                #Try to look up via NCrystal's TextData infrastructure:
+                from .core import createTextData, NCFileNotFound
+                try:
+                    td = createTextData(pth)
+                    tdname = td.dataSourceName
+                except NCFileNotFound:
+                    td = None
+                    tdname = None
+                if td is not None:
+                    self.__textdata = td.rawData
+                    if tdname and not self.__name_override:
+                        self.__name_override = tdname
+                    self.__fp = None
+
         if hasattr(data,'__fspath__'):
             return _setfp(data)
         if hasattr( data, 'startswith' ):
@@ -120,6 +143,21 @@ class CIFSource:
         None or a string containing raw CIF data.
         """
         return self.__textdata
+
+    @property
+    def name( self ):
+        """A short string describing the data. This might be a file name
+        (without directory part), or a special string like 'mpid::xyz'
+        'codid::xyz'. Returns None if no name is available.
+        """
+        if self.__name_override:
+            return self.__name_override
+        if self.__mpid:
+            return 'mpid::%i'%self.__mpid
+        if self.__codid:
+            return 'codid::%i'%self.__codid
+        if self.__fp:
+            return self.__fp.name
 
     @property
     def filepath( self ):
@@ -401,8 +439,7 @@ def produce_validation_plots( files, verbose_lbls = True, pdf_target = None,
     produce_validation_plot(..) function.
     """
     from .plot import ( _import_matplotlib_plt,
-                        _import_matplotlib_pdfpages,
-                        _fakepyplot_mode )
+                        _import_matplotlib_pdfpages )
 
     if pdf_target:
         pdfpages = _import_matplotlib_pdfpages()
@@ -463,7 +500,8 @@ def produce_validation_plot( data_or_file, verbose_lbls = True, line_width_scale
     if do_newfig:
         plt.figure()
 
-    multcreate = lambda data : _nc_core.directMultiCreate(data,cfg_params='comp=bragg')
+    def multcreate( data ):
+        return _nc_core.directMultiCreate(data,cfg_params='comp=bragg')
     _file = None
     fn = None
     if hasattr( data_or_file, '__fspath__' ):
@@ -499,9 +537,9 @@ def produce_validation_plot( data_or_file, verbose_lbls = True, line_width_scale
     def _extractID(s,pattern):
         if pattern not in s:
             return None
-        l=s.split(pattern)[1:]
-        while l:
-            e,l = l[0],l[1:]
+        ll=s.split(pattern)[1:]
+        while ll:
+            e,ll = ll[0],ll[1:]
             d=''
             while e and e[0].isdigit():
                 d+=e[0]
@@ -520,11 +558,11 @@ def produce_validation_plot( data_or_file, verbose_lbls = True, line_width_scale
         return ' '.join(('%s is %s'%m.groups()).split()) if m else None
 
     ids = []
-    for l in contentiterable:
-        atomdb = _extractAtomDBSpec(l)
-        for e in _extractID(l,'materialsproject.org/materials/mp-'):
+    for ll in contentiterable:
+        atomdb = _extractAtomDBSpec(ll)
+        for e in _extractID(ll,'materialsproject.org/materials/mp-'):
             ids.append( dict(dbtype='mp',entryid=e,atomdb=atomdb))
-        for e in _extractID(l,'crystallography.net/cod/'):
+        for e in _extractID(ll,'crystallography.net/cod/'):
             ids.append( dict(dbtype='cod',entryid=e,atomdb=atomdb))
 
     #order-preserving remove duplicates:
@@ -542,13 +580,13 @@ def produce_validation_plot( data_or_file, verbose_lbls = True, line_width_scale
         _atomdb = list( ' '.join(e.strip().split())
                         for e in (atomdb or '').replace(':',' ').split('@') )
         _atomdb = list( e for e in _atomdb if e )
-        l = []
+        ll = []
         for c in _atomdb:
             p=c.replace(':',' ').split()
             if not len(p)>=3 or p[1]!='is':
                 raise _nc_core.NCBadInput('invalid atomdb remap syntax in "%s"'%c)
-            l.append( (p[0],' '.join(p[2:]) ) )
-        return l
+            ll.append( (p[0],' '.join(p[2:]) ) )
+        return ll
 
     dynamics = mc.info
     cmps = [ (fn, mc ) ]
@@ -653,7 +691,7 @@ def _extract_descr_from_cif( raw_cif_dict, cifsrc, ciftextdata ):
         return [], None, None, None
 
     #cif is cif section with publication info:
-    l=[]
+    ll=[]
     def extract(key,*altkeys,expectlist = False):
         if not any( key in s for _,s in sorted(raw_cif_dict.items())):
             if altkeys:
@@ -714,7 +752,7 @@ def _extract_descr_from_cif( raw_cif_dict, cifsrc, ciftextdata ):
         else:
             authors = f'{authors[0]}, et al.'
     if title:
-        l.append(f'"{title}"')
+        ll.append(f'"{title}"')
     if  (journalname and year) and not authors:
         authors = '<unknown authors>'
     if journalname and year:
@@ -724,24 +762,24 @@ def _extract_descr_from_cif( raw_cif_dict, cifsrc, ciftextdata ):
     else:
         _jy = ''
     if authors:
-        l.append(f'{authors} [{_jy}]' if _jy else f'Author{"" if nauthors==1 else "s"}: {authors}')
+        ll.append(f'{authors} [{_jy}]' if _jy else f'Author{"" if nauthors==1 else "s"}: {authors}')
 
     if doi:
-        l.append(f'DOI: https://dx.doi.org/{doi}')
+        ll.append(f'DOI: https://dx.doi.org/{doi}')
 
     if audit_creation_method:
-        l.append(f'CIF creation method: {audit_creation_method}')
+        ll.append(f'CIF creation method: {audit_creation_method}')
     if audit_creation_date:
-        l.append(f'CIF creation date: {audit_creation_date}')
+        ll.append(f'CIF creation date: {audit_creation_date}')
     if audit_author_name:
-        l.append(f'CIF created by: {audit_author_name}')
+        ll.append(f'CIF created by: {audit_author_name}')
 
     if _thecodid:
-        l += [ f'Crystallography Open Database entry {_thecodid}', _codid2url(_thecodid) ]
+        ll += [ f'Crystallography Open Database entry {_thecodid}', _codid2url(_thecodid) ]
     if _thempid:
-        l += [ 'The Materials Project', _mpid2url(_thempid) ]
+        ll += [ 'The Materials Project', _mpid2url(_thempid) ]
 
-    return normalise_result( l ), _thecodid, _thempid, chemformsum
+    return normalise_result( ll ), _thecodid, _thempid, chemformsum
 
 def _codid2url( codid ):
     return f'https://www.crystallography.net/cod/{codid}.html'
@@ -770,11 +808,11 @@ def _impl_create_ncmat_composer( cifloader, *,
                 composer.allow_fallback_dyninfo( fallback_debye_temp )
 
         def fmtwarnings( warnings, descrtxt, nwmax ):
-            l=[]
+            ll=[]
             if not warnings:
-                return l
-            l.append(f'Notice: The following WARNINGS were emitted {descrtxt}:')
-            l.append('')
+                return ll
+            ll.append(f'Notice: The following WARNINGS were emitted {descrtxt}:')
+            ll.append('')
 
             wleft=warnings[::-1]
             while wleft:
@@ -791,8 +829,8 @@ def _impl_create_ncmat_composer( cifloader, *,
                     pref=s0 if i==0 else ' '*(len(s0))
                     if i+1==nwmax and len(wmsg)>nwmax:
                         m='<%i lines of output hidden>'%(len(wmsg)-nwmax)
-                    l.append('%s %s'%(pref,m))
-            return l
+                    ll.append('%s %s'%(pref,m))
+            return ll
 
         composer.add_comments( fmtwarnings( list(cifloader.warnings) + extra_ana_warnings,
                                             'when loading the CIF data',nwmax=10),
@@ -889,12 +927,14 @@ def _impl_create_ncmat_composer_internal( cifloader, *, uiso_temperature, skip_d
 
     _extracted_description = src.extracted_description
     if not _extracted_description:
-        if src.cifsrc.filepath:
-            _extracted_description = [f'CIF file: {src.cifsrc.filepath.name}']
+        if src.cifsrc.name:
+            _ds = 'CIF data' if src.cifsrc.is_remote else 'CIF file'
+            _extracted_description = [f'{_ds}: {src.cifsrc.name}']
         else:
             _extracted_description = ['Anonymous CIF data']
     if _extracted_description:
-        ncmat.add_comments(['Structure converted (with NCrystal.cifutils module) from:',''])
+        ncmat.add_comments(['Structure converted (with NCrystal'
+                            '.cifutils module) from:',''])
 
         _thedescr = _extracted_description
         if remap_str:
@@ -979,8 +1019,10 @@ def _impl_create_ncmat_composer_internal( cifloader, *, uiso_temperature, skip_d
             if not f1 or not f2:
                 return False
             #map D,T,H2,H3 -> H to ensure fewer false positives:
-            _ = lambda d : dict( (('H' if k in ('D','T','H2','H3') else k),v) for k,v in d.items())
-            f1,f2 = _(f1),_(f2)
+            def _tmp(d):
+                return dict( (('H' if k in ('D','T','H2','H3') else k),v)
+                             for k,v in d.items() )
+            f1,f2 = _tmp(f1),_tmp(f2)
             if f1 == f2:
                 return False
             if not set(f1.keys())==set(f2.keys()):
@@ -1024,7 +1066,7 @@ def _impl_create_ncmat_composer_internal( cifloader, *, uiso_temperature, skip_d
 
 
 def _impl_merge_atoms( atoms ):
-    l = []
+    ll = []
     for a in atoms:
         pos = list(a['equivalent_positions'])
         cif_labels = list( a['cif_labels'] )
@@ -1032,16 +1074,16 @@ def _impl_merge_atoms( atoms ):
                                        if k not in ('equivalent_positions',
                                                     'cif_labels') ) )
         found = False
-        for k,v in l:
+        for k,v in ll:
             if k == other_metadata:
                 v[0] += list( pos )
                 v[1] += list( cif_labels )
                 found = True
                 break
         if not found:
-            l.append( (other_metadata,[list(pos),list(cif_labels)]) )
+            ll.append( (other_metadata,[list(pos),list(cif_labels)]) )
     res = []
-    for other_metadata, ( pos, cif_labels ) in l:
+    for other_metadata, ( pos, cif_labels ) in ll:
         d = dict( (k,v) for k,v in sorted(other_metadata) )
         d['equivalent_positions'] = list( sorted( pos ) )
         d['cif_labels'] = list( sorted( cif_labels ) )
@@ -1049,16 +1091,16 @@ def _impl_merge_atoms( atoms ):
     return res
 
 def _suggest_filename( ncmat_metadata, cifloader ):
-    l = ['autogen']
-    l.append( ncmat_metadata['chemform'] )
+    ll = ['autogen']
+    ll.append( ncmat_metadata['chemform'] )
     sgnum = ncmat_metadata.get('cellsg',{}).get('spacegroup',None)
     if sgnum:
-        l.append( 'sg%i'%sgnum )
+        ll.append( 'sg%i'%sgnum )
     if cifloader.actual_codid:
-        l.append( 'cod%i'%cifloader.actual_codid )
+        ll.append( 'cod%i'%cifloader.actual_codid )
     if cifloader.actual_mpid:
-        l.append( 'mp%i'%cifloader.actual_mpid )
-    return '_'.join(l) + '.ncmat'
+        ll.append( 'mp%i'%cifloader.actual_mpid )
+    return '_'.join(ll) + '.ncmat'
 
 def _format_spglib_cell( cellsg, atoms ):
     lattice = _nc_ncmatimpl._cellparams_to_spglib_lattice(cellsg)
@@ -1126,10 +1168,12 @@ def _use_local_cif_cache( fn, text_data = None, quiet = False ):
     import os
     if os.environ.get('NCRYSTAL_ONLINEDB_FORBID_NETWORK'):
         def notfound():
-            raise RuntimeError('Error: Trying to access remote DB but NCRYSTAL_ONLINEDB_FORBID_NETWORK is set')
+            raise RuntimeError('Error: Trying to access remote DB but'
+                               ' NCRYSTAL_ONLINEDB_FORBID_NETWORK is set')
         time_limit_hours = 24*7*365*1000#sure, bug me in 3023
     else:
-        notfound = lambda : None
+        def notfound():
+            pass
         time_limit_hours = 24*7
     import os
     d = os.environ.get('NCRYSTAL_ONLINEDB_CACHEDIR')
@@ -1216,7 +1260,7 @@ def _mp_get_cifdata( mpid, quiet = False, apikey = None ):
 
     with _nc_common.WarningSpy(blockfct = lambda msg, cat : cat in ('PendingDeprecationWarning','DeprecationWarning') ):
         try:
-            import mp_api.client
+            import mp_api.client#NB: This might trigger a spurious FPE
         except ImportError:
             raise ImportError('Could not import mp_api.client. Installing the mp-api package will most likely'
                               ' fix this (perhaps with a command like "conda install -c conda-forge mp-api"'
@@ -1231,11 +1275,11 @@ def _mp_get_cifdata( mpid, quiet = False, apikey = None ):
             mp_expected_sg_number = s.get_space_group_info()[1]
     sg_checked = False
     errmsg = f'Unable to reliably determine spacegroup when trying to retrieve structure for mp-{mpid} from materialsproject.org'
-    for l in result.splitlines():
-        p = l.split('#',1)[0].split()
+    for ll in result.splitlines():
+        p = ll.split('#',1)[0].split()
         if p and p[0]=='_symmetry_Int_Tables_number':
             if not len(p)>=2 or not p[1].isdigit():
-                raise _nc_core.NCBadInput(errmsg+f' (unexpected format of line: "{l}")')
+                raise _nc_core.NCBadInput(errmsg+f' (unexpected format of line: "{ll}")')
             _sgnum = int(p[1])
             if _sgnum == mp_expected_sg_number:
                 sg_checked = True
@@ -1355,7 +1399,10 @@ def _load_with_gemmi( cifblock, allow_fixup = True ):
 
     sg_hm = str(struct.spacegroup_hm).strip()
     if sg_hm and not sg:
-        sg_searchname = lambda x : gemmi.find_spacegroup_by_name(x, struct.cell.alpha, struct.cell.gamma )
+        def sg_searchname(x):
+            return gemmi.find_spacegroup_by_name(x,
+                                                 struct.cell.alpha,
+                                                 struct.cell.gamma )
         attempts = [ sg_hm ]
         #TODO: We used to do this, but currently it does not make a difference:
         #for e in ('H','R'):#NB H+R is not enough, see table 6 at http://cci.lbl.gov/sginfo/hall_symbols.html
@@ -1489,7 +1536,7 @@ def _actual_init_gemmicif( cifsrc, *, quiet, mp_apikey, refine_with_spglib, merg
 
 
     _ = cif_block_with_structure.find(['_atom_type_number_in_cell'])
-    _ = sum((sum(([e] for e in l),[]) for l in _),[]) if _ else []
+    _ = sum((sum(([e] for e in ll),[]) for ll in _),[]) if _ else []
     if _ and not any( e is None for e in _ ):
         expected_tot_atom_in_orig_cell = sum(float(e) for e in _)
     else:
@@ -1524,23 +1571,25 @@ def _actual_init_gemmicif( cifsrc, *, quiet, mp_apikey, refine_with_spglib, merg
         pos0 = _gemmi_wrap_to_unit(coord)
         #First find all brute-force expanded coords (ignore those within machine
         #precision of each other!):
-        l = [ pos0 ]
+        ll = [ pos0 ]
         for candidate in ( _gemmi_wrap_to_unit(img.apply( pos0 )) for img in struct.cell.images):
             use = True
-            for c in l:
+            for c in ll:
                 if _nc_ncmatimpl._unit_cell_point_dist(candidate,c) < 1e-10:
                     use = False
                     break
             if use:
-                l.append( candidate )
+                ll.append( candidate )
         if not allow_finetune:
-            return l
+            return ll
         #Now, check how many of these are very close to the initial point:
-        lclose = [ _nc_ncmatimpl._remap_fract_pos_pt(e) for e in l if _nc_ncmatimpl._unit_cell_point_dist(pos0,e) < 0.01*fractcoord_approx_1angstrom ]
+        _ucpdist = _nc_ncmatimpl._unit_cell_point_dist
+        lclose = [ _nc_ncmatimpl._remap_fract_pos_pt(e) for e in ll
+                   if _ucpdist(pos0,e) < 0.01*fractcoord_approx_1angstrom ]
         assert len(lclose) > 0
         if len(lclose) == 1:
             #no issues, just return:
-            return l
+            return ll
         #Input might have had inexact coordinates for atoms at special
         #positions. Fine-tune pos0 as average over the close points, and rerun:
         def _fract_delta( x1, x0 ):
@@ -1559,7 +1608,8 @@ def _actual_init_gemmicif( cifsrc, *, quiet, mp_apikey, refine_with_spglib, merg
         for i in range(3):
             if abs(pos0_new[i])< 1e-16:
                 pos0_new[i] = 0.0
-        fmt = lambda c : f'({c[0]:.15g},{c[1]:.15g},{c[2]:.15g})'
+        def fmt( c ):
+            return f'({c[0]:.15g},{c[1]:.15g},{c[2]:.15g})'
         _nc_common.warn('Fractional coordinate %s interpreted as special position %s to avoid numerical precision issues'%(fmt(coord),fmt(pos0_new)))
         return _expand_coord_to_all_other_images( gemmi.Fractional(pos0_new[0],pos0_new[1],pos0_new[2]), allow_finetune = (allow_finetune-1) )
 
@@ -1696,7 +1746,8 @@ def _actual_init_gemmicif( cifsrc, *, quiet, mp_apikey, refine_with_spglib, merg
 
     if expected_tot_atom_in_orig_cell:
         n_actual = sum( len(a['equivalent_positions']) for a in final_atoms )
-        rd = lambda x,y : abs(x-y)/(max(1e-300,abs(x)+abs(y)))
+        def rd( x,y ):
+            return abs(x-y)/(max(1e-300,abs(x)+abs(y)))
         if rd( n_actual, expected_tot_atom_in_orig_cell ) > 0.01:
             raise _nc_core.NCBadInput(f'Expanded number of atoms per cell ({n_actual}) is different '
                                       'from what is stated explicitly in the CIF data'

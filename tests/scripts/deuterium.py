@@ -46,6 +46,6 @@ for version in (1,2,3,4,5,6,7,8):
     except NC.NCBadInput as e:
         print ('   => Result in exception: ',str(e))
     else:
-        xs=sc.crossSectionNonOriented(0.025)
+        xs=sc.crossSectionIsotropic(0.025)
         print (f'   => Create scatter with no problems (xs@25meV is {xs:g}barn).')
     print()

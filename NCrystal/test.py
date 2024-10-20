@@ -24,9 +24,11 @@ Module which is intended to trigger the built-in test from the command line by r
 ##                                                                            ##
 ################################################################################
 
-from ._testimpl import test, test_cmdline, test_cmake, test_extra, test_all
+from ._testimpl import ( test, test_cmdline, test_cmake,  # noqa F401
+                         test_extra, test_all )           # noqa F401
 
 if __name__ == '__main__':
+    #FIXME: As dedicated command-line script instead?
     from . import _testimpl as _tests
     import sys
     args=set(sys.argv[1:])

@@ -70,7 +70,7 @@ _minpyversion=(3,6,0)
 
 pyversion = _sys.version_info[0:3]
 if pyversion < _minpyversion:
-    raise SystemExit('Unsupported python version %i.%i.%i detected (needs %i.%i.%i or later).'%(pyversion+_minpyversion))
+    raise RuntimeError('Unsupported python version %i.%i.%i detected (needs %i.%i.%i or later).'%(pyversion+_minpyversion))
 
 if not _os.environ.get('NCRYSTAL_SLIMPYINIT'):
     from .api import * # noqa F403

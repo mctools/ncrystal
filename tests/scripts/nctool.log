@@ -1,0 +1,814 @@
+============= CLI >>--help<< ====================
+usage: nctool [-h] [--version] [-d] [--mc SRCCFG GEOMCFG] [--common CFG]
+              [--coh_elas] [--incoh_elas] [--sans] [--elastic] [--inelastic]
+              [-a] [--phases] [-x [XRANGE]] [--logy] [--liny] [-e] [-p]
+              [--test] [--doc] [--dpi DPI] [--cfg] [--plugins] [-b]
+              [--extract DATANAME]
+              [CFGSTR ...]
+
+The most common usage of this tool is to load input data (usually .ncmat files)
+with NCrystal (v3.9.7) and plot resulting isotropic cross sections for thermal
+neutrons. This is done by specifying one or more configurations ("cfg-strings"),
+which indicates data names (e.g. file names) and optionally cfg parameters
+(e.g. temperatures). Specifying more than one configuration, results in a single
+comparison plot of the total scattering cross section based on the different
+materials. Specifying just a single file, results in a more detailed cross
+section plot as well as a 2D plot of generated scatter angles. Other behaviours
+can be obtained by specifying flags as indicated below.
+
+positional arguments:
+  CFGSTR                Input data (cfg-strings) to investigate. This can just
+                        be simple file-names or full-blown cfg-strings in the
+                        usual NCrystal syntax (see also examples below).
+
+options:
+  -h, --help            show this help message and exit
+  --version             show program's version number and exit
+  -d, --dump            Dump derived information rather than displaying plots.
+                        Specify multiple times to increase verbosity.
+  --mc SRCCFG GEOMCFG   Run embedded Monte Carlo app to produce a diffraction
+                        pattern of material. Run --mc --help for detailed
+                        instructions.
+  --common CFG, -c CFG  Common configuration items that will be applied to all
+                        input cfg strings
+  --coh_elas, --bragg   Only generate coherent-elastic (Bragg diffraction)
+                        component
+  --incoh_elas          Only generate incoherent-elastic component
+  --sans                Only generate SANS component
+  --elastic             Only generate elastic components (including SANS)
+  --inelastic           Only generate inelastic components
+  -a, --absorption      Include absorption in cross section plots
+  --phases              Show cross section breakdown of a single multiphase
+                        material by phase rather than physics process
+  -x [XRANGE], --xrange [XRANGE]
+                        Override plot range, e.g. "1e-5:1e2" or "0:10"
+  --logy                Force y-axis to use logarithmic scale.
+  --liny                Force y-axis to use linear scale.
+  -e, --energy          Show plots versus neutron energy rather than
+                        wavelength
+  -p, --pdf             Generate PDF file rather than launching an interactive
+                        plot viewer.
+  --test                Perform quick validation of NCrystal installation.
+  --doc                 Print documentation about the available cfg-str
+                        variables. Specify twice for more detailed help.
+  --dpi DPI             Change plot resolution. Set to 0 to leave matplotlib
+                        defaults alone. (default value is 200, or whatever the
+                        NCRYSTAL_DPI env var is set to).
+  --cfg                 Print normalised cfg-string and dump meta-data about
+                        loaded physics processes.
+  --plugins             List currently enabled loaded plugins.
+  -b, --browse          List data available in standard locations (e.g. the
+                        files in the current directory or search path)
+  --extract DATANAME    Extract contents of DATANAME (e.g. a file name) using
+                        the same lookup mechanism as used for data specified
+                        in NCrystal cfg strings. This can therefore also be
+                        used to inspect in-memory (or on-demand created) data.
+
+examples:
+  $ nctool Al_sg225.ncmat
+  plot aluminium cross sections and scatter-angles versus neutron wavelength.
+  $ nctool Al_sg225.ncmat Ge_sg227.ncmat --common temp=200
+  cross sections for aluminium and germanium at T=200K
+  $ nctool "Al_sg225.ncmat;dcutoff=0.1" "Al_sg225.ncmat;dcutoff=0.4" "Al_sg225.ncmat;dcutoff=0.8"
+  effect of d-spacing cut-off on aluminium cross sections
+  $ nctool "Al_sg225.ncmat;temp=20" "Al_sg225.ncmat;temp=293.15" "Al_sg225.ncmat;temp=600"
+  effect of temperature on aluminium cross sections
+  $ nctool "phases<0.65*Al_sg225.ncmat&0.35*MgO_sg225_Periclase.ncmat>;temp=100K"
+  investigate multiphase material at 100K
+
+===========================================
+============= CLI >>SrF2_sg225_StrontiumFluoride.ncmat -d<< ====================
+----------------------------------------------------------------------------------------------------
+------------------------------------   NCrystal Material Info   ------------------------------------
+----------------------------------------------------------------------------------------------------
+Data source: SrF2_sg225_StrontiumFluoride.ncmat
+----------------------------------------------------------------------------------------------------
+Density : 4.27712 g/cm3, 0.0615159 atoms/Aa^3
+----------------------------------------------------------------------------------------------------
+Composition (by mole): 66.6667% F 33.3333% Sr
+----------------------------------------------------------------------------------------------------
+Composition (by mass): 30.249% F 69.751% Sr
+----------------------------------------------------------------------------------------------------
+Atom data:
+   F  = F(cohSL=5.654fm cohXS=4.01718barn incXS=0.0008barn absXS=0.0096barn mass=18.9984u Z=9)
+   Sr = Sr(cohSL=7.02fm cohXS=6.19276barn incXS=0.06barn absXS=1.28barn mass=87.6166u Z=38)
+----------------------------------------------------------------------------------------------------
+Averaged quantities:
+   Atomic mass               : 41.8712u
+   Absorption XS at 2200m/s  : 0.433067 barn
+   Free scattering XS        : 4.45245 barn
+   Scattering length density : 3.75821 10^-6/Aa^2
+----------------------------------------------------------------------------------------------------
+Temperature : 293.15 kelvin
+----------------------------------------------------------------------------------------------------
+State of matter: Solid (crystalline)
+----------------------------------------------------------------------------------------------------
+Space group number      : 225
+Lattice spacings   [Aa] : 5.7996 5.7996 5.7996
+Lattice angles    [deg] : 90 90 90
+Unit cell volume [Aa^3] : 195.072
+Atoms / unit cell       : 12
+----------------------------------------------------------------------------------------------------
+Atoms in unit cell (total 12):
+     8 F  atoms [T_Debye=486.72K, MSD=0.0101856Aa^2]
+     4 Sr atoms [T_Debye=266.35K, MSD=0.00701951Aa^2]
+----------------------------------------------------------------------------------------------------
+Atomic coordinates:
+     F           1/4          1/4          1/4
+     F           1/4          1/4          3/4
+     F           1/4          3/4          1/4
+     F           1/4          3/4          3/4
+     F           3/4          1/4          1/4
+     F           3/4          1/4          3/4
+     F           3/4          3/4          1/4
+     F           3/4          3/4          3/4
+     Sr            0            0            0
+     Sr            0          1/2          1/2
+     Sr          1/2            0          1/2
+     Sr          1/2          1/2            0
+----------------------------------------------------------------------------------------------------
+Dynamic info for F (66.6667%):
+   type: S(alpha,beta) [from VDOS]
+   VDOS Source: 4077 points
+   VDOS E_max: 48.0083 meV
+Dynamic info for Sr (33.3333%):
+   type: S(alpha,beta) [from VDOS]
+   VDOS Source: 4077 points
+   VDOS E_max: 48.0083 meV
+----------------------------------------------------------------------------------------------------
+HKL info type: SymEqvGroup
+----------------------------------------------------------------------------------------------------
+HKL planes (d_lower = 0.1 Aa, d_upper = inf Aa):
+  H   K   L  d_hkl[Aa] Mult. FSquared[barn]
+  1   1   1     3.3484    8     7.69236
+  2   0   0     2.8998    6     2.73646
+  2   2   0    2.05047   12     49.4063
+  3   1   1    1.74865   24      7.2017
+  2   2   2     1.6742    8     2.36406
+  4   0   0     1.4499    6     45.4213
+  3   3   1    1.33052   24     6.74233
+  4   2   0    1.29683   24     2.03804
+  4   2   2    1.18384   24     41.7622
+  5   1   1    1.11613   24     6.31226
+  (some planes left out for brevity, increase verbosity to show all)
+----------------------------------------------------------------------------------------------------
+===========================================
+============= CLI >>some_nonexistant_file.ncmat -d<< ====================
+Caught expected NCFileNotFound('Could not find data: "some_nonexistant_file.ncmat"')
+============= CLI >>dummyAl.ncmat -d<< ====================
+----------------------------------------------------------------------------------------------------
+------------------------------------   NCrystal Material Info   ------------------------------------
+----------------------------------------------------------------------------------------------------
+Data source: dummyAl.ncmat
+----------------------------------------------------------------------------------------------------
+Density : 1 g/cm3, 0.597449 atoms/Aa^3
+----------------------------------------------------------------------------------------------------
+Composition (by mole): 100% H
+----------------------------------------------------------------------------------------------------
+Composition (by mass): 100% H
+----------------------------------------------------------------------------------------------------
+Atom data:
+   H = H(cohSL=-3.739fm cohXS=1.75679barn incXS=80.26barn absXS=0.3326barn mass=1.00798u Z=1)
+----------------------------------------------------------------------------------------------------
+Averaged quantities:
+   Atomic mass               : 1.00798u
+   Absorption XS at 2200m/s  : 0.3326 barn
+   Free scattering XS        : 20.4902 barn
+   Scattering length density : -22.3386 10^-6/Aa^2
+----------------------------------------------------------------------------------------------------
+Temperature : 293.15 kelvin
+----------------------------------------------------------------------------------------------------
+State of matter: Solid (amorphous)
+----------------------------------------------------------------------------------------------------
+Dynamic info for H (100%):
+   type: S(alpha,beta) [from VDOSDebye]
+   VDOS E_max: 25.852 meV
+----------------------------------------------------------------------------------------------------
+===========================================
+============= CLI >>dummyAl.ncmat --cfg<< ====================
+==> Debugging cfg-string: "dummyAl.ncmat"
+==> Normalised cfg-string : "dummyAl.ncmat"
+==> Absorption process (code level objects):
+                           AbsOOV(sigma_2200=0.3326barn)
+==> Scattering process (code level objects):
+                           ProcComposition(2 components, isotropic)
+                              |-- ElIncScatter(nelements=1;max_contrib=82.0168barn)
+                              \-- SABScatter(nalpha=50;nbeta=100;Emax=0.0260446eV;T=293.15K;M=1.00798u;sigma_free=20.4902barn)
+===========================================
+============= CLI >>'dummyAl.ncmat;temp=300K' --cfg<< ====================
+==> Debugging cfg-string: "dummyAl.ncmat;temp=300K"
+==> Normalised cfg-string : "dummyAl.ncmat;temp=300"
+==> Absorption process (code level objects):
+                           AbsOOV(sigma_2200=0.3326barn)
+==> Scattering process (code level objects):
+                           ProcComposition(2 components, isotropic)
+                              |-- ElIncScatter(nelements=1;max_contrib=82.0168barn)
+                              \-- SABScatter(nalpha=50;nbeta=100;Emax=0.0219541eV;T=300K;M=1.00798u;sigma_free=20.4902barn)
+===========================================
+============= CLI >>--test<< ====================
+Tests completed succesfully
+===========================================
+============= CLI >>--doc<< ====================
+Base parameters:
+  atomdb
+  dcutoff
+  dcutoffup
+  infofactory
+  temp
+Basic parameters related to scattering processes:
+  coh_elas
+  incoh_elas
+  inelas
+  sans
+  scatfactory
+  vdoslux
+  bkgd (pseudo parameter)
+  bragg (pseudo parameter)
+  comp (pseudo parameter)
+  elas (pseudo parameter)
+Advanced parameters related to scattering processes (single crystals):
+  dir1
+  dir2
+  dirtol
+  lcaxis
+  lcmode
+  mos
+  mosprec
+  sccutoff
+  ucnmode
+Parameters related to absorption processes:
+  absnfactory
+Special parameters:
+  density
+  phasechoice
+NOTE: Condensed output generated. Specify --doc twice for more details.
+===========================================
+============= CLI >>--doc --doc<< ====================
+Base parameters:
+
+  atomdb:
+    Type: string
+    Default value: ""
+    Description: Modify atomic definitions if supported (in practice this is
+                 unlikely to be supported by anything except NCMAT data). The
+                 string must follow a syntax identical to that used in @ATOMDB
+                 sections of NCMAT file (cf.
+                 https://github.com/mctools/ncrystal/wiki/NCMAT-format), with a
+                 few exceptions explained here: First of all, colons (':') are
+                 interpreted as whitespace characters, which might occasionally
+                 be useful (e.g. on the command line). Next, '@' characters play
+                 the role of line separators. Finally, when used with an NCMAT
+                 file that already includes an internal @ATOMDB section, the
+                 effect will essentially be to combine the two sections by
+                 appending the atomdb lines from this cfg parameter to the lines
+                 already present in the input data. The exception is the case
+                 where the cfg parameter contains an initial line with the
+                 single word "nodefaults" the effect of which will always be the
+                 same as if it was placed on the very first line in the @ATOMDB
+                 section (i.e. NCrystal's internal database of elements and
+                 isotopes will be ignored).
+
+  dcutoff:
+    Type: floating point number
+    Allowed input units: Aa [default], nm, mm, cm, m
+    Default value: 0 Aa
+    Description: Crystal planes with d-spacing below this value will be ignored.
+                 The special value of 0 implies an automatic selection of this
+                 threshold. Note that for backwards compatibility -1 is treated
+                 as 0 (for now).
+
+  dcutoffup:
+    Type: floating point number
+    Allowed input units: Aa [default], nm, mm, cm, m
+    Default value: inf Aa
+    Description: Crystal planes with d-spacing above this value will be ignored.
+
+  infofactory:
+    Type: string
+    Default value: ""
+    Description: This parameter can be used by experts to bypass the usual
+                 factory selection logic for material Info objects. A factory
+                 can be selected by providing its name, or excluded by prefixing
+                 the name with "!". Multiple entries must be separated by an "@"
+                 sign (obviously at most one non-excluded entry can appear).
+
+  temp:
+    Type: floating point number
+    Allowed input units: K [default], C, F
+    Default value: -1 K
+    Description: Temperature of material in Kelvin. The special value of -1.0
+                 implies 293.15K unless input data is only valid at a specific
+                 temperature, in which case that temperature is used instead.
+
+Basic parameters related to scattering processes:
+
+  coh_elas:
+    Type: boolean
+    Default value: 1
+    Description: If enabled, coherent elastic components will be included for
+                 solid materials. In the case of crystalline materials this is
+                 essentially Bragg diffraction.
+
+  incoh_elas:
+    Type: boolean
+    Default value: 1
+    Description: If enabled, incoherent elastic scattering components will be
+                 included for solid materials.
+
+  inelas:
+    Type: string
+    Default value: "auto"
+    Description: Influence choice of inelastic scattering models. The default
+                 value of "auto" leaves the choice to the code, and values of
+                 "none", "0", "false", or "sterile", all disable inelastic
+                 scattering. The standard scatter plugin currently supports
+                 additional values: "external", "dyninfo", "vdosdebye", and
+                 "freegas", and internally the "auto" mode will simply select
+                 the first possible of those in the listed order (falling back
+                 to "none" when nothing is possible). Note that "external" is
+                 only currently supported by .nxs files. The "dyninfo" mode will
+                 simply base modelling on whatever dynamic information is
+                 available for each element in the input data. The "vdosdebye"
+                 and "freegas" modes overrides this, and force those models for
+                 all elements if possible (thus "inelas=freegas;elas=0" can be
+                 used to force a pure free-gas scattering model). The "external"
+                 mode implies usage of an externally provided cross-section
+                 curve with an isotropic-elastic scattering model.
+
+  sans:
+    Type: boolean
+    Default value: 1
+    Description: Control presence of SANS models. Note that this parameter is
+                 primarily added to support future developments.
+
+  scatfactory:
+    Type: string
+    Default value: ""
+    Description: This parameter can be used by experts to bypass the usual
+                 factory selection logic for Scatter objects. A factory can be
+                 selected by providing its name, or excluded by prefixing the
+                 name with "!". Multiple entries must be separated by an "@"
+                 sign (obviously at most one non-excluded entry can appear).
+
+  vdoslux:
+    Type: integer
+    Default value: 3
+    Description: Setting affecting "luxury" level when expanding phonon
+                 spectrums (VDOS) into scattering kernels. This primarily
+                 impacts the granularity of the kernel and the upper neutron
+                 energy (Emax) beyond which free-gas extrapolation is used, with
+                 implication for memory usage and initialisation time. Allowed
+                 values are: 0 (Extremely crude, 100x50 grid, Emax=0.5eV, 0.1MB,
+                 0.02s init), 1 (Crude, 200x100 grid, Emax=1eV, 0.5MB, 0.02s
+                 init), 2 (Decent, 400x200 grid, Emax=3eV, 2MB, 0.08s init), 3
+                 (Good, 800x400 grid, Emax=5eV, 8MB, 0.2s init), 4 (Very good,
+                 1600x800 grid, Emax=8eV, 30MB, 0.8s init), 5 (Overkill,
+                 3200x1600 grid, Emax=12eV, 125MB, 5s init). Note that when no
+                 actual VDOS input curve is available and one is approximated
+                 from a Debye temperature, the vdoslux level actually used will
+                 be 3 less than the one specified in this parameter (but at
+                 least 0).
+
+  bkgd:
+    Type: pseudo
+    Description: Obsolete parameter which can be used to disable all physics
+                 processes except bragg diffraction. It only accepts "bkgd=0" or
+                 "bkgd=none", and is equivalent to
+                 "inelas=0;incoh_elas=0;sans=0".
+
+  bragg:
+    Type: pseudo
+    Description: This is simply an alias for the "coh_elas" parameter (although
+                 the name does not strictly make sense for non-crystalline
+                 solids).
+
+  comp:
+    Type: pseudo
+    Description: Convenience parameter which can be used to disable everything
+                 except the specified components. Note that this crucially does
+                 not re-enable the listed components if they have already been
+                 disabled. Components are listed as a comma separated list, and
+                 recognised component names are: "elas", "incoh_elas",
+                 "coh_elas", "bragg", "inelas", and "sans".
+
+  elas:
+    Type: pseudo
+    Description: Convenience parameter which can be used to assign values to all
+                 of the "coh_elas", "incoh_elas", and "sans" parameters at once.
+                 Thus, "elas=0" is a convenient way of disabling elastic
+                 scattering processes and is equivalent to
+                 "coh_elas=0;incoh_elas=0;sans=0".
+
+Advanced parameters related to scattering processes (single crystals):
+
+  dir1:
+    Type: crystal axis orientation
+    No default value.
+    Description: Primary orientation axis of a single crystal. This is specified
+                 by indicating the direction of given axis in both the crystal
+                 (c1,c2,c2) and lab frames (l1,l2,l3), using the format
+                 "@crys:c1,c2,c3@lab:l1,l2,l3". The direction in the crystal
+                 frame can alternatively be provided in HKL space (indicating
+                 the normal of a given HKL plane), by using "@crys_hkl:" instead
+                 of "@crys:": "dir1=@crys_hkl:c1,c2,c3@lab:l1,l2,l3". When this
+                 parameter is set, the parameters mos and dir2 must also be
+                 provided.
+
+  dir2:
+    Type: crystal axis orientation
+    No default value.
+    Description: Secondary orientation axis of a single crystal. This is
+                 specified using the same syntax as for the dir1 parameter. In
+                 general the opening angle between the dir1 and dir2 vectors
+                 must be nonzero and identical in the crystal and lab frames,
+                 but a discrepancy up to the value of the dirtol parameter is
+                 allowed. In any case, the components of the dir2 vectors
+                 parallel to the dir1 vectors are ignored. When this parameter
+                 is set, the parameters mos and dir1 must also be provided.
+
+  dirtol:
+    Type: floating point number
+    Allowed input units: rad [default], deg, arcmin, arcsec
+    Default value: 0.0001 rad
+    Description: Tolerance parameter for the secondary direction of the single
+                 crystal orientation (see the dir2 parameter description for
+                 more information). A value of 180deg can be used to easily set
+                 up a single crystal monochromator where one is only interested
+                 in the primary direction. When this parameter is set, the
+                 parameters mos, dir1, and dir2 must also be provided.
+
+  lcaxis:
+    Type: vector (3D)
+    No default value.
+    Description: Symmetry axis of anisotropic layered crystals with a layout
+                 similar to pyrolytic graphite (PG). The axis must be provided
+                 in direct lattice coordinates using a format like "0,0,1".
+                 Specifying this parameter along with an orientation (see dir1
+                 and dir2 parameters) will result in the appropriate anisotropic
+                 single crystal scatter model being used for Bragg diffraction.
+
+  lcmode:
+    Type: integer
+    Default value: 0
+    Description: Choose which modelling is used for layered crystals like PG
+                 (ignored unless the lcaxis, dir1, and dir2 parameters are set).
+                 The default value 0 enables the recommended model, which is
+                 both fast and accurate. A positive value N triggers a very slow
+                 but simple reference model, in which N crystallite orientations
+                 are sampled internally (the model is accurate only when N is
+                 very high). A negative value -N triggers a different (and
+                 multi-thread unsafe!) model in which each crossSection call
+                 triggers a new selection of N randomly oriented crystallites.
+
+  mos:
+    Type: floating point number
+    Allowed input units: rad [default], deg, arcmin, arcsec
+    No default value.
+    Description: Mosaic FWHM spread in mosaic single crystals. When this
+                 parameter is set, the parameters dir1 and dir2 must also be
+                 provided.
+
+  mosprec:
+    Type: floating point number
+    Default value: 0.001
+    Description: Approximate relative numerical precision in implementation of
+                 mosaic model in single crystals.
+
+  sccutoff:
+    Type: floating point number
+    Allowed input units: Aa [default], nm, mm, cm, m
+    Default value: 0.4 Aa
+    Description: Single-crystal modelling cutoff. Crystal planes with d-spacing
+                 below this value will be approximated as having infinite
+                 mosaicity (as in a powder). A value of 0 naturally disables
+                 this approximation entirely.
+
+  ucnmode:
+    Type: string
+    Default value: ""
+    Description: Modify how UCN (ultra cold neutron) production is handled in
+                 inelastic models. The value "refine" simply improves the
+                 modelling by replacing the usual scattering kernel treatment
+                 near the kinematic endpoint, where the neutron ends with less
+                 than 300neV, with a different model. The values "only" and
+                 "remove" performs the same split of the modelling, but then
+                 leaves out either all non-UCN or all UCN processes,
+                 respectively, from the inelastic cross sections. Finally, the
+                 threshold value of 300neV can be modified by appending the
+                 desired value to the first keyword, separated by a ":"
+                 character. The default unit is eV, but meV and neV are
+                 supported as well, so "ucnmode=refine:200neV",
+                 "ucnmode=remove:2e-7eV", "ucnmode=remove:2e-7", and
+                 "ucnmode=only:0.0002meV" all specify the same threshold. In
+                 addition to simply refining the UCN model, the primary intended
+                 purpose of the ucnmode parameter is to allow one to split out
+                 the UCN process from the rest, in order to perform biased Monte
+                 Carlo simulations of UCN production in moderators.
+
+Parameters related to absorption processes:
+
+  absnfactory:
+    Type: string
+    Default value: ""
+    Description: This parameter can be used by experts to bypass the usual
+                 factory selection logic for Absorption objects. A factory can
+                 be selected by providing its name, or excluded by prefixing the
+                 name with "!". Multiple entries must be separated by an "@"
+                 sign (obviously at most one non-excluded entry can appear).
+
+Special parameters:
+
+  density:
+    Type: special
+    Allowed input units: gcm3 kgm3 perAa3 x
+    Description: Modify the density state, which can be a scale factor
+                 (specified with the unit "x"), or an absolute value (using
+                 units "gcm3" for g/cm^3, "kgm3" for kg/m^3, or "perAa3" for
+                 atoms/angstrom^3). When an absolute value is specified, that
+                 value is simply used. However, when a scale factor is specified
+                 (e.g. density=1.2x), then the previous value is instead scaled
+                 by that value. Thus, appending ";density=1.2x" to a cfg-string
+                 will always increase the resulting material density by 20%. If
+                 unspecified, the density state will be "1x" (i.e. material
+                 densities are left as they are). Note that since it could
+                 easily lead to undesired behaviour, scale factor density
+                 assignments are not allowed for usage when cfg strings are
+                 embedded in input data (but absolute density values are always
+                 allowed).
+
+  phasechoice:
+    Type: special
+    Description: Specific material sub-phases can be selected by assigning an
+                 index value to this pseudo-parameter. More precisely, the
+                 parameter picks out child phases in LOADED materials, not at
+                 the configuration level. This is an important distinction since
+                 a single entry at the cfg-level might actually result in
+                 multiple phases being loaded. As an example, one would
+                 typically expect that loading a file called
+                 "my_sans_sample.ncmat" would result in a multiphase material
+                 with two phases. Specifying
+                 "my_sans_sample.ncmat;phasechoice=0" would then pick out one of
+                 these phases, and "my_sans_sample.ncmat;phasechoice=1" the
+                 other. When multi-phase materials are defined recursively with
+                 some child-phases themselves being multi-phased, the
+                 phasechoice parameter can be specified more than once to
+                 navigate deeper into the sub-phase tree.
+===========================================
+============= CLI >>--extract dummyAl.ncmat<< ====================
+NCMAT v5
+# Here is a comment
+@DENSITY
+  1 g_per_cm3#And another one
+@DYNINFO
+  element H
+  fraction 1
+  type vdosdebye
+  debye_temp 300
+===========================================
+============= CLI >>--extract 'dummyAl.ncmat;temp=300K'<< ====================
+Caught expected NCFileNotFound('Could not find data: "dummyAl.ncmat;temp=300K"')
+============= CLI >>dummyAl.ncmat --extract<< ====================
+Caught expected ArgumentError('argument --extract: expected one argument')
+Testing work_in_tmpdir()
+============= CLI >>'dummyAl.ncmat;temp=300K' --cfg<< ====================
+==> Debugging cfg-string: "dummyAl.ncmat;temp=300K"
+==> Normalised cfg-string : "dummyAl.ncmat;temp=300"
+==> Absorption process (code level objects):
+                           AbsOOV(sigma_2200=0.3326barn)
+==> Scattering process (code level objects):
+                           ProcComposition(2 components, isotropic)
+                              |-- ElIncScatter(nelements=1;max_contrib=82.0168barn)
+                              \-- SABScatter(nalpha=50;nbeta=100;Emax=0.0219541eV;T=300K;M=1.00798u;sigma_free=20.4902barn)
+===========================================
+============= CLI >>--extract dummyAl.ncmat<< ====================
+NCMAT v5
+# Here is a comment
+@DENSITY
+  1 g_per_cm3#And another one
+@DYNINFO
+  element H
+  fraction 1
+  type vdosdebye
+  debye_temp 300
+===========================================
+============= CLI >>'stdlib::Al_sg225.ncmat;temp=300K' --cfg<< ====================
+==> Debugging cfg-string: "stdlib::Al_sg225.ncmat;temp=300K"
+==> Normalised cfg-string : "stdlib::Al_sg225.ncmat;temp=300"
+==> Absorption process (code level objects):
+                           AbsOOV(sigma_2200=0.231barn)
+==> Scattering process (code level objects):
+                           ProcComposition(3 components, isotropic)
+                              |-- ElIncScatter(nelements=1;max_contrib=0.0082barn)
+                              |-- PCBragg(nplanes=169;2dmax=4.67605Aa;max_contrib=1.67034barn)
+                              \-- SABScatter(nalpha=400;nbeta=800;Emax=5eV;T=300K;M=26.9815u;sigma_free=1.39667barn)
+===========================================
+============= CLI >>'missing.ncmat;temp=300K' --cfg<< ====================
+==> Debugging cfg-string: "missing.ncmat;temp=300K"
+Caught expected NCFileNotFound('Could not find data: "missing.ncmat"')
+============= CLI >>'missing.ncmat;temp=300K' --cfg<< ====================
+==> Debugging cfg-string: "missing.ncmat;temp=300K"
+==> Normalised cfg-string : "missing.ncmat;temp=300"
+==> Absorption process (code level objects):
+                           AbsOOV(sigma_2200=0.3326barn)
+==> Scattering process (code level objects):
+                           ProcComposition(2 components, isotropic)
+                              |-- ElIncScatter(nelements=1;max_contrib=82.0168barn)
+                              \-- SABScatter(nalpha=50;nbeta=100;Emax=0.0219541eV;T=300K;M=1.00798u;sigma_free=20.4902barn)
+===========================================
+============= CLI >>'missing.ncmat;temp=300K' --cfg<< ====================
+==> Debugging cfg-string: "missing.ncmat;temp=300K"
+Caught expected NCFileNotFound('Could not find data: "missing.ncmat"')
+============= CLI >>--bench Al_sg225.ncmat<< ====================
+0.00ms
+===========================================
+============= CLI >>'Al_sg225.ncmat;dcutoff=0.5;vdoslux=2'<< ====================
+==> Debugging cfg-string: "Al_sg225.ncmat;dcutoff=0.5;vdoslux=2"
+==> Normalised cfg-string : "Al_sg225.ncmat;dcutoff=0.5;vdoslux=2"
+==> Absorption process (code level objects):
+                           AbsOOV(sigma_2200=0.231barn)
+==> Scattering process (code level objects):
+                           ProcComposition(3 components, isotropic)
+                              |-- ElIncScatter(nelements=1;max_contrib=0.0082barn)
+                              |-- PCBragg(nplanes=22;2dmax=4.67605Aa;max_contrib=1.67315barn)
+                              \-- SABScatter(nalpha=200;nbeta=400;Emax=3eV;T=293.15K;M=26.9815u;sigma_free=1.39667barn)
+===========================================
+============= CLI >>'Al_sg225.ncmat;dcutoff=0.5;vdoslux=2' -a --energy -x 1e-3:1e2<< ====================
+==> Debugging cfg-string: "Al_sg225.ncmat;dcutoff=0.5;vdoslux=2"
+==> Normalised cfg-string : "Al_sg225.ncmat;dcutoff=0.5;vdoslux=2"
+==> Absorption process (code level objects):
+                           AbsOOV(sigma_2200=0.231barn)
+==> Scattering process (code level objects):
+                           ProcComposition(3 components, isotropic)
+                              |-- ElIncScatter(nelements=1;max_contrib=0.0082barn)
+                              |-- PCBragg(nplanes=22;2dmax=4.67605Aa;max_contrib=1.67315barn)
+                              \-- SABScatter(nalpha=200;nbeta=400;Emax=3eV;T=293.15K;M=26.9815u;sigma_free=1.39667barn)
+===========================================
+============= CLI >>--mc<< ====================
+Caught expected ArgumentError('argument --mc: expected 2 arguments')
+============= CLI >>--mc -h<< ====================
+
+usage: nctool --mc SRCCFG GEOMCFG MATCFG
+
+Invoke the embedded stepping Monte Carlo to display a 4pi diffraction pattern of
+neutrons going through a simple sample. SRCCFG describes the source of neutrons,
+GEOMCFG the shape of the sample volume, and MATCFG is a normal NCrystal
+cfg-string describing the sample material.
+
+In the simplest case, simply supply a neutron energy value (e.g. "20meV",
+"1.8Aa", ...)  as SRCCFG and a geometry thickness as GEOMCFG (e.g. "1mm",
+"2.5cm", "1mfp", ...). This will result in a pencil beam of neutrons of that
+energy impinging centrally on a sphere with that thickness (diameter). The
+thickness unit "mfp" means mean-free-path between scattering interactions. The
+number of neutrons simulated will be automatically determined, so the simulation
+can finish in less than a second.
+
+For advanced users, it is also possibly to provide more options in both SRCCFG
+and GEOMCFG, but that is currently considered experimental and not documented
+further here.
+
+As an example, to get the diffraction patterm of a a 2Aa neutron through a
+sphere of T=250K aluminium with diameter 2cm:
+
+$> nctool --mc "2Aa" "2cm" "Al_sg225.ncmat;temp=250K"
+
+You can use --logy/--liny to override the y-axis logarithmic setting of the
+plot, and if you supply --pdf, a pdf file will produced instead of an
+interactive plot being launched.
+
+===========================================
+============= CLI >>--mc -h<< ====================
+
+usage: nctool --mc SRCCFG GEOMCFG MATCFG
+
+Invoke the embedded stepping Monte Carlo to display a 4pi diffraction pattern of
+neutrons going through a simple sample. SRCCFG describes the source of neutrons,
+GEOMCFG the shape of the sample volume, and MATCFG is a normal NCrystal
+cfg-string describing the sample material.
+
+In the simplest case, simply supply a neutron energy value (e.g. "20meV",
+"1.8Aa", ...)  as SRCCFG and a geometry thickness as GEOMCFG (e.g. "1mm",
+"2.5cm", "1mfp", ...). This will result in a pencil beam of neutrons of that
+energy impinging centrally on a sphere with that thickness (diameter). The
+thickness unit "mfp" means mean-free-path between scattering interactions. The
+number of neutrons simulated will be automatically determined, so the simulation
+can finish in less than a second.
+
+For advanced users, it is also possibly to provide more options in both SRCCFG
+and GEOMCFG, but that is currently considered experimental and not documented
+further here.
+
+As an example, to get the diffraction patterm of a a 2Aa neutron through a
+sphere of T=250K aluminium with diameter 2cm:
+
+$> nctool --mc "2Aa" "2cm" "Al_sg225.ncmat;temp=250K"
+
+You can use --logy/--liny to override the y-axis logarithmic setting of the
+plot, and if you supply --pdf, a pdf file will produced instead of an
+interactive plot being launched.
+
+===========================================
+============= CLI >>--mc 2Aa 2cm 'Al_sg225.ncmat;temp=250K'<< ====================
+===========================================
+============= CLI >>--mc 'constant;wl=2' 'sphere;r=0.02' 'Al_sg225.ncmat;vdoslux=1;comp=inelas;inelas=0'<< ====================
+===========================================
+============= CLI >>--cfg 'Al_sg225.ncmat;dcutoff=0.5;vdoslux=2' --coh_elas<< ====================
+==> Debugging cfg-string: "Al_sg225.ncmat;dcutoff=0.5;vdoslux=2"
+==> Adding due to --coh_elas flag specified: "incoh_elas=0;inelas=0;sans=0"
+==> Normalised cfg-string : "Al_sg225.ncmat;dcutoff=0.5;incoh_elas=0;inelas=0;sans=0;vdoslux=2"
+==> Absorption process (code level objects):
+                           AbsOOV(sigma_2200=0.231barn)
+==> Scattering process (code level objects):
+                           PCBragg(nplanes=22;2dmax=4.67605Aa;max_contrib=1.67315barn)
+===========================================
+============= CLI >>--cfg 'Al_sg225.ncmat;dcutoff=0.5;vdoslux=2' --bragg<< ====================
+==> Debugging cfg-string: "Al_sg225.ncmat;dcutoff=0.5;vdoslux=2"
+==> Adding due to --coh_elas flag specified: "incoh_elas=0;inelas=0;sans=0"
+==> Normalised cfg-string : "Al_sg225.ncmat;dcutoff=0.5;incoh_elas=0;inelas=0;sans=0;vdoslux=2"
+==> Absorption process (code level objects):
+                           AbsOOV(sigma_2200=0.231barn)
+==> Scattering process (code level objects):
+                           PCBragg(nplanes=22;2dmax=4.67605Aa;max_contrib=1.67315barn)
+===========================================
+============= CLI >>--cfg 'Al_sg225.ncmat;dcutoff=0.5;vdoslux=2' --incoh_elas<< ====================
+==> Debugging cfg-string: "Al_sg225.ncmat;dcutoff=0.5;vdoslux=2"
+==> Adding due to --incoh_elas flag specified: "coh_elas=0;inelas=0;sans=0"
+==> Normalised cfg-string : "Al_sg225.ncmat;coh_elas=0;dcutoff=0.5;inelas=0;sans=0;vdoslux=2"
+==> Absorption process (code level objects):
+                           AbsOOV(sigma_2200=0.231barn)
+==> Scattering process (code level objects):
+                           ElIncScatter(nelements=1;max_contrib=0.0082barn)
+===========================================
+============= CLI >>--cfg 'Al_sg225.ncmat;dcutoff=0.5;vdoslux=2' --sans<< ====================
+==> Debugging cfg-string: "Al_sg225.ncmat;dcutoff=0.5;vdoslux=2"
+==> Adding due to --sans flag specified: "coh_elas=0;incoh_elas=0;inelas=0"
+==> Normalised cfg-string : "Al_sg225.ncmat;coh_elas=0;dcutoff=0.5;incoh_elas=0;inelas=0;vdoslux=2"
+==> Absorption process (code level objects):
+                           AbsOOV(sigma_2200=0.231barn)
+==> Scattering process (code level objects):
+                           NullScatter
+===========================================
+============= CLI >>--cfg 'Al_sg225.ncmat;dcutoff=0.5;vdoslux=2' --elastic<< ====================
+==> Debugging cfg-string: "Al_sg225.ncmat;dcutoff=0.5;vdoslux=2"
+==> Adding due to --elastic flag specified: "inelas=0"
+==> Normalised cfg-string : "Al_sg225.ncmat;dcutoff=0.5;inelas=0;vdoslux=2"
+==> Absorption process (code level objects):
+                           AbsOOV(sigma_2200=0.231barn)
+==> Scattering process (code level objects):
+                           ProcComposition(2 components, isotropic)
+                              |-- ElIncScatter(nelements=1;max_contrib=0.0082barn)
+                              \-- PCBragg(nplanes=22;2dmax=4.67605Aa;max_contrib=1.67315barn)
+===========================================
+============= CLI >>--cfg 'Al_sg225.ncmat;dcutoff=0.5;vdoslux=2' --inelastic<< ====================
+==> Debugging cfg-string: "Al_sg225.ncmat;dcutoff=0.5;vdoslux=2"
+==> Adding due to --inelastic flag specified: "elas=0"
+==> Normalised cfg-string : "Al_sg225.ncmat;coh_elas=0;dcutoff=0.5;incoh_elas=0;sans=0;vdoslux=2"
+==> Absorption process (code level objects):
+                           AbsOOV(sigma_2200=0.231barn)
+==> Scattering process (code level objects):
+                           SABScatter(nalpha=200;nbeta=400;Emax=3eV;T=293.15K;M=26.9815u;sigma_free=1.39667barn)
+===========================================
+============= CLI >>'Al_sg225.ncmat;vdoslux=1;temp=1000K' 'Al_sg225.ncmat;vdoslux=1;temp=10K' --logy<< ====================
+===========================================
+============= CLI >>'Al_sg225.ncmat;vdoslux=1;temp=1000K' 'Al_sg225.ncmat;vdoslux=1;temp=10K' --common dcutoff=1.0Aa --liny<< ====================
+===========================================
+============= CLI >>'Al_sg225.ncmat;vdoslux=1;temp=1000K' --pdf<< ====================
+==> Debugging cfg-string: "Al_sg225.ncmat;vdoslux=1;temp=1000K"
+==> Normalised cfg-string : "Al_sg225.ncmat;temp=1000;vdoslux=1"
+==> Absorption process (code level objects):
+                           AbsOOV(sigma_2200=0.231barn)
+==> Scattering process (code level objects):
+                           ProcComposition(3 components, isotropic)
+                              |-- ElIncScatter(nelements=1;max_contrib=0.0082barn)
+                              |-- PCBragg(nplanes=53;2dmax=4.67605Aa;max_contrib=1.39782barn)
+                              \-- SABScatter(nalpha=100;nbeta=200;Emax=1eV;T=1000K;M=26.9815u;sigma_free=1.39667barn)
+Caught expected RuntimeError('Currently we do not support switching back and forth between pdf plotting in the same process (see also https://github.com/mctools/ncrystal/issues/202)')
+============= CLI >>--cfg 'phases<0.65*Al_sg225.ncmat&0.35*MgO_sg225_Periclase.ncmat>;temp=100K'<< ====================
+==> Debugging cfg-string: "phases<0.65*Al_sg225.ncmat&0.35*MgO_sg225_Periclase.ncmat>;temp=100K"
+==> Normalised cfg-string : "phases<0.65*Al_sg225.ncmat&0.35*MgO_sg225_Periclase.ncmat>;temp=100"
+==> Absorption process (code level objects):
+                           AbsOOV(sigma_2200=0.133448barn)
+==> Scattering process (code level objects):
+                           ProcComposition(5 components, isotropic)
+                              |-- ElIncScatter(nelements=3;max_contrib=0.0239527barn)
+                              |-- PCBragg(nplanes=969;2dmax=4.86244Aa;max_contrib=2.6496barn)
+                              |-- 0.244607 * SABScatter(nalpha=400;nbeta=800;Emax=5eV;T=100K;M=15.9993u;sigma_free=3.74537barn)
+                              |-- 0.244607 * SABScatter(nalpha=400;nbeta=800;Emax=5eV;T=100K;M=24.3051u;sigma_free=3.42069barn)
+                              \-- 0.510787 * SABScatter(nalpha=400;nbeta=800;Emax=5eV;T=100K;M=26.9815u;sigma_free=1.39667barn)
+===========================================
+============= CLI >>--phases 'phases<0.65*Al_sg225.ncmat&0.35*MgO_sg225_Periclase.ncmat>;temp=100K'<< ====================
+==> Debugging cfg-string: "phases<0.65*Al_sg225.ncmat&0.35*MgO_sg225_Periclase.ncmat>;temp=100K"
+==> Normalised cfg-string : "phases<0.65*Al_sg225.ncmat&0.35*MgO_sg225_Periclase.ncmat>;temp=100"
+==> Absorption process (code level objects):
+                           AbsOOV(sigma_2200=0.133448barn)
+==> Scattering process (code level objects):
+                           ProcComposition(5 components, isotropic)
+                              |-- ElIncScatter(nelements=3;max_contrib=0.0239527barn)
+                              |-- PCBragg(nplanes=969;2dmax=4.86244Aa;max_contrib=2.6496barn)
+                              |-- 0.244607 * SABScatter(nalpha=400;nbeta=800;Emax=5eV;T=100K;M=15.9993u;sigma_free=3.74537barn)
+                              |-- 0.244607 * SABScatter(nalpha=400;nbeta=800;Emax=5eV;T=100K;M=24.3051u;sigma_free=3.42069barn)
+                              \-- 0.510787 * SABScatter(nalpha=400;nbeta=800;Emax=5eV;T=100K;M=26.9815u;sigma_free=1.39667barn)
+===========================================
+============= CLI >>'Al_sg225.ncmat;temp=10 K;vdoslux=1' 'Al_sg225.ncmat;vdoslux=1;temp=10K' --common dcutoff=1.0Aa --liny<< ====================
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Configuration specified more than once: "Al_sg225.ncmat;dcutoff=1;temp=10;vdoslux=1"
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Comparing identical setups?
+===========================================
