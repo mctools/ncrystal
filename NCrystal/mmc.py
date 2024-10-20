@@ -1,3 +1,9 @@
+"""
+
+Highly experimental "Mini-MC" framework for transforming NCrystal materials into
+actual scattering patterns.
+
+"""
 
 ################################################################################
 ##                                                                            ##
@@ -19,13 +25,10 @@
 ##                                                                            ##
 ################################################################################
 
-from ._cliimpl import cli_entry_point
+__all__ = ['runsim_diffraction_pattern',
+           'quick_diffraction_pattern',
+           'quick_diffraction_pattern_autoparams']
 
-def create_argparser_for_sphinx( progname ):
-    from ._ncmat2cpp_impl import parseArgs
-    return parseArgs(progname,[],return_parser=True)
-
-@cli_entry_point
-def main( progname, arglist ):
-    from ._ncmat2cpp_impl import main as main_impl
-    main_impl( progname, arglist )
+from ._mmc import ( runsim_diffraction_pattern,
+                    quick_diffraction_pattern,
+                    quick_diffraction_pattern_autoparams )

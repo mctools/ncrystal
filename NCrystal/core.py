@@ -25,11 +25,11 @@ Scatter, Absorption, TextData, AtomData) and related factory methods.
 ##                                                                            ##
 ################################################################################
 
-from .exceptions import ( NCrystalUserWarning,
+from .exceptions import ( NCrystalUserWarning, # noqa F401
                           NCException,
-                          NCFileNotFound,
-                          NCDataLoadError,
-                          NCMissingInfo,
+                          NCFileNotFound, # noqa F401
+                          NCDataLoadError, # noqa F401
+                          NCMissingInfo, # noqa F401
                           NCCalcError,
                           NCLogicError,
                           NCBadInput,
@@ -407,6 +407,9 @@ class Info(RCBase):
 
     def hasComposition(self):
         """OBSOLETE FUNCTION (always available now)."""
+        from ._common import warn
+        warn('The .hasComposition method is obsolete'
+             ' (it always returns True now).')
         return True
 
     def getComposition(self):
@@ -471,6 +474,9 @@ class Info(RCBase):
            instead (see getAtomInfo() function) and get the Debye Temperature
            from those. This function will be removed in a future release.
         """
+        from ._common import warn
+        warn('The .hasGlobalDebyeTemperature method is obsolete'
+             ' (it always returns False now).')
         return False
 
     def getGlobalDebyeTemperature(self):
@@ -501,12 +507,19 @@ class Info(RCBase):
         """OBSOLETE FUNCTION which will be removed in a future release. Please
            call hasDebyeTemperature() instead.
         """
+        from ._common import warn
+        warn('The .hasAnyDebyeTemperature() method is deprecated.'
+             ' Please use .hasAtomDebyeTemp() instead')
         return self.hasAtomDebyeTemp()
 
     def getDebyeTemperatureByElement(self,atomdata):
         """OBSOLETE FUNCTION which will be removed in a future release. Please access
            the AtomInfo objects instead and query the Debye temperature there.
         """
+        from ._common import warn
+        warn('The getDebyeTemperatureByElement method is deprecated.'
+             ' Please access the AtomInfo objects instead and query'
+             ' the Debye temperature there.')
         if atomdata.isTopLevel():
             for ai in self.atominfos:
                 if atomdata is ai.atomData:
@@ -516,7 +529,11 @@ class Info(RCBase):
 
     def hasDensity(self):
         """OBSOLETE FUNCTION (densities are now always available)."""
+        from ._common import warn
+        warn('The hasDensity() method is deprecated'
+             ' (it always returns True now).')
         return True
+
     def getDensity(self):
         """Get density in g/cm^3. See also getNumberDensity()."""
         t=_rawfct['ncrystal_info_getdensity'](self._rawobj)
@@ -526,7 +543,11 @@ class Info(RCBase):
 
     def hasNumberDensity(self):
         """OBSOLETE FUNCTION (densities are now always available)."""
+        from ._common import warn
+        warn('The hasNumberDensity() method is deprecated'
+             ' (it always returns True now).')
         return True
+
     def getNumberDensity(self):
         """Get number density in atoms/angstrom^3. See also getDensity()."""
         t=_rawfct['ncrystal_info_getnumberdensity'](self._rawobj)
@@ -544,7 +565,11 @@ class Info(RCBase):
 
     def hasXSectAbsorption(self):
         """OBSOLETE FUNCTION"""
+        from ._common import warn
+        warn('The hasXSectAbsorption() method is deprecated'
+             ' (it always returns True now).')
         return True
+
     def getXSectAbsorption(self):
         """Absorption cross section in barn (at 2200m/s)"""
         t=_rawfct['ncrystal_info_getxsectabsorption'](self._rawobj)
@@ -553,7 +578,11 @@ class Info(RCBase):
 
     def hasXSectFree(self):
         """OBSOLETE FUNCTION"""
+        from ._common import warn
+        warn('The hasXSectFree() method is deprecated'
+             ' (it always returns True now).')
         return True
+
     def getXSectFree(self):
         """Saturated (free) scattering cross section in barn in the high-E limit"""
         t=_rawfct['ncrystal_info_getxsectfree'](self._rawobj)
@@ -695,12 +724,18 @@ class Info(RCBase):
            available. Returns same as hasAtomInfo(). Will be removed in a future
            release.
         """
+        from ._common import warn
+        warn('The hasAtomPositions() method is deprecated'
+             ' (it always returns the same as .hasAtomInfo() now).')
         return self.hasAtomInfo()
 
     def hasPerElementDebyeTemperature(self):
         """OBSOLETE FUNCTION which will be removed in a future
            release. Please use hasAtomDebyeTemp() instead.
         """
+        from ._common import warn
+        warn('The hasPerElementDebyeTemperature() method is deprecated.'
+             ' Please use the hasAtomDebyeTemp() method instead.')
         return self.hasAtomDebyeTemp()
 
     def getAtomInfo(self):
@@ -1179,7 +1214,11 @@ class Process(RCBase):
     """
     def getCalcName(self):
         """Obsolete alias for getName"""
+        from ._common import warn
+        warn('The .getCalcName() method is deprecated.'
+             ' Please use the .getName() method or the .name property instead.')
         return self.getName()
+
     def getName(self):
         """Process name"""
         return _cstr2str(_rawfct['ncrystal_name'](self._rawobj))
@@ -1229,8 +1268,13 @@ class Process(RCBase):
         """
         return _rawfct['ncrystal_crosssection_nonoriented'](self._rawobj,ekin,repeat)
 
-    #Backwards compatible alias:
-    crossSectionNonOriented = crossSectionIsotropic
+    def crossSectionNonOriented( self, ekin, repeat = None ):
+        """Deprecated method. Please use the crossSectionIsotropic method
+        instead."""
+        from ._common import warn
+        warn('The .crossSectionNonOriented method is deprecated.'
+             ' Please use .crossSectionIsotropic or .xsect methods instead')
+        return self.crossSectionIsotropic( ekin, repeat )
 
     def xsect(self,ekin=None,direction=None,wl=None,repeat=None):
         """Convenience function which redirects calls to either crossSectionIsotropic
@@ -1453,6 +1497,9 @@ class Scatter(Process):
         times and numpy arrays with results returned.
 
         """
+        from ._common import warn
+        warn('The .generateScattering method is deprecated.'
+             ' Please use .sampleScatter or .scatter instead')
         return _rawfct['ncrystal_genscatter'](self._rawobj_scat,ekin,direction,repeat)
 
     def generateScatteringNonOriented( self, ekin, repeat = None ):
@@ -1470,6 +1517,9 @@ class Scatter(Process):
         with results returned.
 
         """
+        from ._common import warn
+        warn('The .generateScatteringNonOriented method is deprecated.'
+             ' Please use .sampleScatterIsotropic or .scatter instead')
         return _rawfct['ncrystal_genscatter_nonoriented'](self._rawobj_scat,ekin,repeat)
 
     def scatter(self,ekin=None,direction=None,wl=None,repeat=None):
@@ -1479,7 +1529,9 @@ class Scatter(Process):
         kinetic energies via the wl parameter.
         """
         ekin = Process._parseekin( ekin, wl )
-        return self.sampleScatterIsotropic( ekin, repeat ) if direction is None else self.sampleScatter( ekin, direction, repeat )
+        return ( self.sampleScatterIsotropic( ekin, repeat )
+                 if direction is None
+                 else self.sampleScatter( ekin, direction, repeat ) )
 
     def genscat(self,ekin=None,direction=None,wl=None,repeat=None):
         """WARNING: Deprecated method. Please use the "scatter" method instead.
@@ -1489,8 +1541,13 @@ class Scatter(Process):
         or not a direction is given. It can also accept wavelengths instead of
         kinetic energies via the wl parameter.
         """
+        from ._common import warn
+        warn('The .genscat method is deprecated.'
+             ' Please use .scatter instead')
         ekin = Process._parseekin( ekin, wl )
-        return self.generateScatteringNonOriented( ekin, repeat ) if direction is None else self.generateScattering( ekin, direction, repeat )
+        return ( self.generateScatteringNonOriented( ekin, repeat )
+                 if direction is None
+                 else self.generateScattering( ekin, direction, repeat ) )
 
     def rngSupportsStateManipulation(self):
         """Query whether associated RNG stream supports state manipulation"""

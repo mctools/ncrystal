@@ -501,15 +501,7 @@ void registerNCMATData()
 }
 ===========================================
 ============= CLI >>-o stdout<< ====================
-usage: ncrystal_ncmat2cpp [-h] [--compact] [--validate] [--name NAME]
-                          [--regfctname REGFCTNAME]
-                          [--include INCLUDE [INCLUDE ...]] [--width WIDTH]
-                          [--outfile OUTFILE]
-                          FILE [FILE ...]
-
-ncrystal_ncmat2cpp: error: the following arguments are required: FILE
-
-Caught expected RuntimeError('Command ended with exit code 2')
+Caught expected ArgumentError('the following arguments are required: FILE')
 Testing work_in_tmpdir()
 work_in_tmpdir() gave no errors (which is good)
 ============= CLI >>somefile.ncmat -o bla.cc<< ====================

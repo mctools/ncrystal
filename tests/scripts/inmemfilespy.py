@@ -22,6 +22,7 @@
 
 import NCTestUtils.enable_fpe
 import NCrystal as NC
+import math
 NC.setDefaultRandomGenerator(None)
 kToDeg = 57.295779513082322865
 
@@ -32,13 +33,16 @@ def performSomeWork(sc):
     for i in range(13):
         #for wavelength in [0.1+i*0.4 for i in range(0, 13)]:
         ekin=NC.wl2ekin(wavelength)
-        xsect = sc.crossSectionNonOriented(ekin)
-        scat_angle, delta_ekin = sc.generateScatteringNonOriented( ekin )
-        print(f"Sigma(lambda={wavelength:g}Aa)={xsect:g}barn. Scattering gave theta={scat_angle*kToDeg:g}degree and dE={delta_ekin:g}eV")
+        xsect = sc.crossSectionIsotropic(ekin)
+        ekin_final, mu = sc.sampleScatterIsotropic( ekin )
+        delta_ekin = ekin_final - ekin
+        scat_angle = math.acos(mu)
+        print(f"Sigma(lambda={wavelength:g}Aa)={xsect:g}barn. "
+              f"Scattering gave theta={scat_angle*kToDeg:g}degree"
+              f" and dE={delta_ekin:g}eV")
         wavelength += 0.4
 
 cfgstr = "Al_sg225.ncmat;dcutoff=0.5;inelas=0;incoh_elas=0;temp=25C"
-
 
 #First try with the on-disk one:
 performSomeWork(NC.createScatter(cfgstr))

@@ -61,4 +61,4 @@ mat2=NC.directMultiCreate( data_Au_sg225_ncmat,
 print(mat2)
 mat2=NC.directMultiCreate(data_Au_sg225_ncmat,'temp=600K;dcutoff=1')
 mat2.info.dump()
-print(mat2.scatter.crossSectionNonOriented(NC.wl2ekin(2.0)))
+print(mat2.scatter.crossSectionIsotropic(NC.wl2ekin(2.0)))

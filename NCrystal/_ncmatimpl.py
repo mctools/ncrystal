@@ -1957,12 +1957,47 @@ def _cifdata_via_ase( data_or_file, ase_format = None, quiet = False ):
         ase_obj = ase_io.read( data_or_file, format = ase_format )
     if not ase_obj:
         #fall back to in-mem data
-        if not ase_format and not isbytes:
-            data_or_file = data_or_file.encode()
-            isbytes = True
-        with (io.BytesIO if isbytes else io.StringIO)(data_or_file) as memfile:
-            prfct('Attempting to load data via ASE')
-            ase_obj = ase_io.read( memfile, format = ase_format or 'cif' )
+        if isbytes:
+            dof_bytes = data_or_file
+            try:
+                dof_str = data_or_file.decode('utf8')
+            except UnicodeDecodeError:
+                dof_str = None
+        else:
+            dof_str = data_or_file
+            try:
+                dof_bytes = data_or_file.encode('utf8')
+            except UnicodeEncodeError:
+                dof_bytes = None
+
+        if not ase_format:
+            import ase.io.formats
+            if dof_bytes is not None:
+                try:
+                    ase_format = ase.io.formats.match_magic( dof_bytes ).name
+                except ase.io.formats.UnknownFileTypeError:
+                    ase_format = None
+            if ase_format is None and dof_str is not None and not '\n' in dof_str:
+                try:
+                    ase_format = ase.io.formats.filetype( dof_str ).name
+                except ase.io.formats.UnknownFileTypeError:
+                    ase_format = None
+            if not ase_format:
+                _nc_common.warn('Could not determine ASE format of'
+                                ' input data. Assuming CIF.')
+                ase_format = 'cif'
+        assert isinstance(ase_format,str)
+        prfct('Attempting to load data via ASE')
+        if dof_str:
+            assert isinstance(dof_str,str)
+            with io.StringIO(dof_str) as memfile:
+                ase_obj = ase_io.read( memfile, format = ase_format )
+        else:
+            assert isinstance(dof_bytes,bytes)
+            with io.BytesIO(dof_bytes) as memfile:
+                ase_obj = ase_io.read( memfile, format = ase_format )
+
+    assert ase_obj is not None
 
     with io.BytesIO() as s:
         ase_io.write(s, ase_obj, format='cif')

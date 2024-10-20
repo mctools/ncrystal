@@ -32,5 +32,67 @@ $> python3 -mNCrystal ncrystal_ncmat2cpp <args>
 Note that the two last commands above run the same command line script.
 
 """
-from .cliutils import _run_from_main_init
-_run_from_main_init()
+
+def _print_usage():
+    from ._common import print
+    from .cliutils import cli_tool_list
+    import textwrap
+    usagestr = textwrap.dedent("""
+    Usage: provide name and arguments of NCrystal commandline-tool to run.
+
+    Available tools:
+
+    <<TOOLLIST>>
+    Specifying -h or --help displays this message.""").lstrip()
+    toolliststr = ''.join( f'       {t}\n' for t
+                           in cli_tool_list( canonical_names = False ))
+    print(usagestr.replace('<<TOOLLIST>>',toolliststr))
+
+def _prepare():
+    import sys
+    from ._cliimpl import _resolve_cmd_and_import_climod as _resolve
+
+    args = sys.argv[1:]
+
+    initial_optargs = []
+    for a in args:
+        if a.startswith('-'):
+            initial_optargs.append(a)
+        else:
+            break
+    args = args[len(initial_optargs):]
+
+    is_help_req = False
+    opt_unblock = False
+    bad_usage = False
+    for a in initial_optargs:
+        if a in ('-h','--help','/?'):
+            is_help_req = True
+        elif a == '--unblock':
+            opt_unblock = True
+        else:
+            bad_usage = True
+
+    if is_help_req or bad_usage or not args:
+        _print_usage()
+        raise SystemExit(0 if is_help_req else 1)
+
+    return _resolve( args[0], args[1:] ), opt_unblock
+
+def main():
+    try:
+        (climod, argv), opt_unblock = _prepare()
+    except RuntimeError as e:
+        from ._common import print
+        _print_usage()
+        print()
+        raise SystemExit(f'ERROR: {e}')
+    if opt_unblock:
+        #Run like in pyapi (in particular letting all exceptions escape):
+        from .cliutils import run
+        run( *argv )
+    else:
+        climod.main( argv )
+
+if __name__ == '__main__':
+    main()

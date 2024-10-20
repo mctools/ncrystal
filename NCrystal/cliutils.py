@@ -30,14 +30,8 @@ def cli_tool_list( canonical_names = True  ):
     controls whether to return canonical (ncrystal_ncmat2cpp, nctool, ...)  or
     short (ncmat2cpp, nctool, ...) names.
     """
-    import pathlib
-    short_names = [ f.name[5:-3] for f in
-                    pathlib.Path(__file__).parent.glob('_cli_*.py') ]
-    short_names.sort()
-    if short_names:
-        return short_names
-    else:
-        return [ _map_shortname_2_canonical_name(sn) for sn in short_names ]
+    from ._cliimpl import cli_tool_list_impl
+    return cli_tool_list_impl( canonical_names = canonical_names )
 
 def cli_tool_lookup( name ):
     """
@@ -50,24 +44,10 @@ def cli_tool_lookup( name ):
 
     Returns None in case the name could not be resolved to an available tool.
     """
-    #Note: We basically have to treat only ncrystal-config and nctool as special
-    #cases.
-    if name == 'ncrystal-config':
-        #Special case:
-        #FIXME: We don't actually have such a script here yet!
-        short_name = 'config'
-    elif name.startswith('ncrystal_'):
-        short_name = name[9:]
-    else:
-        short_name = name
-    if short_name not in cli_tool_list( canonical_names=False ):
-        return None
-    return dict( short_name = short_name,
-                 canonical_name = _map_shortname_2_canonical_name(short_name) )
+    from ._cliimpl import cli_tool_lookup_impl
+    return cli_tool_lookup_impl( canonical_names = canonical_names )
 
-
-def run( cmdname, *arguments, check = True ):
-
+def run( toolname, *arguments ):
     """Can be used to invoke ncrystal command-line tools such as nctool,
     ncrystal_ncmat2cpp, ncrystal_hfg2ncmat, etc. directly via the Python API
     without the need for spawning separate subprocesses or actually using a
@@ -93,115 +73,38 @@ def run( cmdname, *arguments, check = True ):
     """
     #FIXME: Test that it gives a good experience in Jupyter
 
-    #FIXME: support + unit test various aliases
+    #FIXME: support + unit test various methods of invocation:
     #$> python -mNCrystal ncrystal_ncmat2cpp ...
     #$> python -mNCrystal ncmat2cpp ...
     #$> python -mNCrystal nctool ...
     #$> python -mNCrystal ncrystal_nctool ... (NOPE?)
-    #$> python -mNCrystal config ... #Perhaps implement this by shutil.which('ncrystal-config') and then IMPORTING the file directly? And of course, also then checking the version, etc. (we should most likely walk the PATH until we find an ncrystal-config with the correct version). Or we could simply have the ncrystal-config script as a local submodule named _ncrystal_config_copy.py ?
-    #$> python -mNCrystal ncrystal-config ...
 
     #FIXME: The embedded tests could verify that all of the command line script
     #are available. That way, we would not forget to update the conda-forge
     #recipe when adding a script.
 
-    resolved_cmd = cli_tool_lookup( cmdname )
-    if resolved_cmd is None:
-        from .exceptions import NCBadInput
-        raise NCBadInput(f'Command line tool name "{cmdname}" not recognised')
-    argv = [resolved_cmd['canonical_name']] + [a for a in arguments]
+    from ._cliimpl import _resolve_cmd_and_import_climod
+    climod, argv = _resolve_cmd_and_import_climod( toolname, arguments )
 
-    import importlib
-    clipymodname = '_cli_%s'%resolved_cmd['short_name']
-    climod = importlib.import_module(f'..{clipymodname}', __name__)
-    assert hasattr(climod,'main')
-
-    #Fixme: unit test the check=False usage!! The code below was not tested
-    #much, nor was the return value..
-
-    ec = 0
-    res = dict( returncode = 0,
-                stdout = '',
-                stderr = '',
-                exc_type = None,
-                exc_value = None )
-    from ._common import print, ctxmgr_redirect_argparse_output
+    from ._cliimpl import ( ctxmgr_modify_argparse_creation,
+                            _cli_call_from_pyapi_ctx )
     try:
-        with ctxmgr_redirect_argparse_output():
-            climod.main( argv )
+        #Fixme: merge the two following context managers?:
+        with _cli_call_from_pyapi_ctx():
+            with ctxmgr_modify_argparse_creation(exit_on_error = False,
+                                                 redirect_stdout_to_stderr = True):
+                climod.main( argv )
     except SystemExit as e:
+        #Map SystemExit to either a clean return or a RuntimeError.
+        if str(e) in ('','0'):
+            return#ended OK
         if len(e.args)==1 and isinstance(e.args[0],int):
             ec = e.args[0]
+        elif str(e).isdigit():
+            ec = str(e)
         else:
             ec = 1
-        if check and ec != 0:
-            raise RuntimeError(f'Command ended with exit code {ec}')
-        else:
-            res['exc_type'] = SystemExit
-            res['exc_value'] = e.args
-        res['returncode'] = ec
-    except Exception as e:
-        if check:
-            raise
-        res['returncode'] = 1
-        res['exc_type'] = e.__class__
-        res['exc_value'] = e.args
-
-    class CLIResult:
-        pass
-    o = CLIResult()
-    for k,v in res.items():
-        setattr(o,k,v)
-    return o
-
-def _map_shortname_2_canonical_name( short_name ):
-    return { 'config' : 'ncrystal-config',
-             'nctool' : 'nctool' }.get( short_name,
-                                        f'ncrystal_{short_name}' )
-
-def _single_integer_or_None( arglist ):
-    if len(arglist)==1 and isinstance(arglist[0],int):
-        return arglist[0]
-
-def _run_from_main_init():
-    import sys
-    import textwrap
-    from ._common import print
-    usagestr = textwrap.dedent("""
-    Usage: provide name and arguments of NCrystal commandline-tool to run.
-
-    Available tools:
-
-    <<TOOLLIST>>
-    Specifying -h or --help displays this message.""").lstrip()
-
-
-    is_help_req = len(sys.argv)>1 and sys.argv[0] in ('-h','--help','/?')
-    if is_help_req or len(sys.argv)<2 or sys.argv[0].startswith('-'):
-        toolliststr = ''.join( f'       {t}\n' for t
-                               in cli_tool_list( canonical_names = False ))
-        print(usagestr.replace('<<TOOLLIST>>',toolliststr))
-        raise SystemExit(0 if is_help_req else 1)
-
-    res = run(sys.argv[1],*sys.argv[2:])
-    if res.returncode==0:
-        #TODO: Print the output?
-        return
-    if res['exc_type'] is SystemExit:
-        ec = _single_integer_or_None(res['exc_value'])
-        if ec is not None:
-            #No additional message, just a pure exit
-            raise SystemExit(ec)
-        errstr = 'Error'
-    else:
-        errstr = res['exc_type'].__name__
-    for a in res['exc_value']:
-        print(f"{errstr}: {a}")
-    raise SystemExit(res.returncode)
-
-    #FIXME: Make sure we can run via:
-    #$> python -mNCrystal ncrystal_ncmat2cpp Al_sg225.ncmat -o myal.cpp
-    #Or even just:
-    #$> python -mNCrystal ncmat2cpp Al_sg225.ncmat -o myal.cpp
-
-#FIXME: Stop using SystemExit exceptions, but use a custom CLISysExit exception instead? In the actual cmdline usage we can then rethrow those??
+        msg = f'Command ended with exit code {ec}'
+        if not str(e).isdigit():
+            msg = str(e)
+        raise RuntimeError(msg) from e

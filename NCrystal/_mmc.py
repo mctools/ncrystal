@@ -1,9 +1,3 @@
-"""
-
-Highly experimental "Mini-MC" framework for transforming NCrystal materials into
-actual scattering patterns.
-
-"""
 
 ################################################################################
 ##                                                                            ##
@@ -24,6 +18,9 @@ actual scattering patterns.
 ##  limitations under the License.                                            ##
 ##                                                                            ##
 ################################################################################
+
+# For backwards compatibility we keep __all__ here in this internal file. In
+# NCrystal 4.0.0 we actually renamed the public API file from _mmc.py to mmc.py.
 
 __all__ = ['runsim_diffraction_pattern',
            'quick_diffraction_pattern',

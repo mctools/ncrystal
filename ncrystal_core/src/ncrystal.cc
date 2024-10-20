@@ -1122,6 +1122,7 @@ void ncrystal_samplescatterisotropic_many( ncrystal_scatter_t o,
         *results_cos_scat_angle++ = outcome.mu.dbl();
       }
     }
+    return;
 #endif
     //Note, to keep the cacheptrs "warm", it is better to do all the scatterings
     //at a given energy at once (although the output array will be accessed in

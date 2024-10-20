@@ -19,13 +19,12 @@
 ##                                                                            ##
 ################################################################################
 
-def _parseArgs( default_debye_temp, argv = None, return_parser=False ):
-    import argparse
-    import sys
-    import os
-    if argv is None:
-        argv = sys.argv[:]
-    prog = os.path.basename(argv[0])
+from ._cliimpl import ( create_ArgumentParser,
+                        cli_entry_point,
+                        print )
+
+def _parseArgs( default_debye_temp, progname, arglist, return_parser=False ):
+    from argparse import RawTextHelpFormatter
 
     fdt = default_debye_temp
     #NOTE: Keep the description below synchronised with doc-string of the
@@ -74,9 +73,7 @@ of sigma_coh+sigma_incoh for all atoms), is due to the sigma_incoh contribution
 from hydrogen atoms.
 
 """
-    from argparse import RawTextHelpFormatter
-    from ._common import create_ArgumentParser
-    parser = create_ArgumentParser(prog = prog,
+    parser = create_ArgumentParser(prog = progname,
                                    description=descr,
                                    formatter_class=RawTextHelpFormatter)
     parser.add_argument("--output",'-o',default='autogen.ncmat',type=str,
@@ -109,21 +106,18 @@ from hydrogen atoms.
                         help="No trimming of resulting VDOS curve.")
     if return_parser:
         return parser
-    args=parser.parse_args(argv[1:])
+    args=parser.parse_args(arglist)
     return args
 
-#Sphinx doc function. Signature always the following:
 def create_argparser_for_sphinx( progname ):
-    #FIXME use and add to all _cli_*.py
     from .hfg2ncmat import _default_debye_temp
-    return _parseArgs(_default_debye_temp(),[progname],return_parser=True)
+    return _parseArgs(_default_debye_temp(),progname,[],return_parser=True)
 
-#Main function. Signature always the following:
-def main( argv = None ):
+@cli_entry_point
+def main( progname, arglist ):
     import pathlib
-    from ._common import print
     from .hfg2ncmat import _default_debye_temp, hfg2ncmat
-    args = _parseArgs( _default_debye_temp(), argv )
+    args = _parseArgs( _default_debye_temp(), progname, arglist )
     do_stdout = args.output=='stdout'
     try:
         ncmat =  hfg2ncmat( spec = args.spec,

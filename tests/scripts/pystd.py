@@ -40,7 +40,7 @@ def nc_use_rng(n=1):
     #bkgd=none => PCBragg => 1rng/call:
     global _sc
     _sc=NC.createScatter("Al_sg225.ncmat;dcutoff=1.5;bkgd=none")
-    [_sc.generateScatteringNonOriented(NC.wl2ekin(3.5)) for i in range(n)]
+    [_sc.sampleScatterIsotropic(NC.wl2ekin(3.5)) for i in range(n)]
     print("  -> NCrystal consumed %i rngs"%n)
 
 def print_state():

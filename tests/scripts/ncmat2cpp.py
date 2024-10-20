@@ -56,7 +56,7 @@ def test_pyapi( *filelist, nstart = 30, nend = 20, **kwargs ):
 
 def test_cli( args, outfile, *, nstart = 30, nend = 20 ):
     print(f"============= CLI >>{shlex.join(args)}<< ====================")
-    nc_cliutils.run('ncmat2cpp',*args,check=True)
+    nc_cliutils.run('ncmat2cpp',*args)
     if outfile not in ('stdout',None):
         cpp = pathlib.Path(outfile).read_text()
         print_text_file_with_snipping(cpp,nstart=nstart,nend=nend,prefix='CPP>')
@@ -92,7 +92,9 @@ def main():
     test_cli(['--help'],None)
     test_cli(['SrF2_sg225_StrontiumFluoride.ncmat','-o','stdout'],'stdout')
 
-    with ensure_error(RuntimeError,'Command ended with exit code 2'):
+    import argparse
+    with ensure_error(argparse.ArgumentError,
+                      'the following arguments are required: FILE'):
         test_cli(['-o','stdout'],'stdout')
 
     with work_in_tmpdir():
