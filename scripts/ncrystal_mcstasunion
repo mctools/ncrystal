@@ -71,5 +71,5 @@ def ncImportSubModule( mainmodule, submodulename ):
     return getattr(_,submodulename)
 ################################################################################################
 NC = fixSysPathAndImportNCrystal()
-cli = ncImportSubModule( NC, '_cli_endf2ncmat' )
+cli = ncImportSubModule( NC, '_cli_mcstasunion' )
 cli.main()
