@@ -97,7 +97,6 @@ def main():
                       'Could not find data: "missing.ncmat"'):
         test_cli(['missing.ncmat;temp=300K','--cfg'])
 
-    import os
     os.environ['NCRYSTAL_TOOL_UNITTESTS'] = '1'
     os.environ['NCRYSTAL_DPI']='75'
     test_cli(['--bench','Al_sg225.ncmat'])

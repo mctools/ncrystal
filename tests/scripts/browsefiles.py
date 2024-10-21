@@ -37,7 +37,7 @@ print('========= In default order ===========')
 print()
 for f in NC.browseFiles():
     print(f.fullKey)
-    if not f.factName in files_default_order:
+    if f.factName not in files_default_order:
         files_default_order[f.factName] = []
     files_default_order[f.factName].append(f.fullKey)
 
@@ -46,7 +46,7 @@ print('========= Sorted order ===========')
 print()
 for f in sorted(NC.browseFiles()):
     print(f.fullKey)
-    if not f.factName in files_sorted_order:
+    if f.factName not in files_sorted_order:
         files_sorted_order[f.factName] = []
     files_sorted_order[f.factName].append(f.fullKey)
 

@@ -22,8 +22,8 @@
 
 import NCTestUtils.enable_fpe
 import NCrystal as NC
-i1 = NC.createInfo("Ge_sg227.ncmat;temp=20K");
-i2 = NC.createInfo("Ge_sg227.ncmat;density=1.5x;temp=20K");
+i1 = NC.createInfo("Ge_sg227.ncmat;temp=20K")
+i2 = NC.createInfo("Ge_sg227.ncmat;density=1.5x;temp=20K")
 print ( i1.uid )
 print ( i2.uid )
 assert i1.uid != i2.uid
@@ -33,8 +33,8 @@ print( i2._getUnderlyingUniqueID() )
 assert i1._getUnderlyingUniqueID() == i2._getUnderlyingUniqueID()
 assert i1._getUnderlyingUniqueID() == i1.uid
 
-sc1 = NC.createScatter("Al_sg225.ncmat;temp=20K");
-sc2 = NC.createScatter("Al_sg225.ncmat;density=1.5x;temp=20K");
+sc1 = NC.createScatter("Al_sg225.ncmat;temp=20K")
+sc2 = NC.createScatter("Al_sg225.ncmat;density=1.5x;temp=20K")
 print(sc1.uid)
 print(sc2.uid)
 assert sc1.uid==sc2.uid

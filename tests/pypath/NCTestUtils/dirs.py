@@ -20,16 +20,14 @@
 ################################################################################
 """
 
-   Merely importing this module adds testing data to the NCrystal data path.
+   Module providing directories needed during testing.
 
 """
 
-__all__=[]
+def _find_data_dir():
+    import pathlib
+    ddir = pathlib.Path(__file__).parent.parent.parent / 'data'
+    assert ddir.is_dir()
+    return ddir
 
-def _add_test_data():
-    from NCrystal.datasrc import addCustomSearchDirectory
-    from .dirs import test_data_dir
-    addCustomSearchDirectory( test_data_dir )
-
-_add_test_data()
-del _add_test_data
+test_data_dir = _find_data_dir()

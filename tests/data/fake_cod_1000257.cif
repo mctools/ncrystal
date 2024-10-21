@@ -1,0 +1,111 @@
+#------------------------------------------------------------------------------
+#$Date: 2015-01-27 21:58:39 +0200 (Tue, 27 Jan 2015) $
+#$Revision: 130149 $
+#$URL: svn://www.crystallography.net/cod/cif/1/00/02/1000257.cif $
+#------------------------------------------------------------------------------
+#
+# This file is available in the Crystallography Open Database (COD),
+# http://www.crystallography.net/
+#
+# All data on this site have been placed in the public domain by the
+# contributors.
+#
+data_1000257
+loop_
+_publ_author_name
+'Laligant, Y'
+'Calage, Y'
+'Heger, G'
+'Pannetier, J'
+'Ferey, G'
+_publ_section_title
+;
+Ordered Magnetic Frustration VII. Na~2~ Ni Fe F~7~: Reexamination of
+Its Crystal Structure in the True Space Group after Corrections from
+Renninger Effect and Refinement of Its Frustrated Magnetic Structure at
+4.2 and 55 K
+;
+_journal_coden_ASTM              JSSCBI
+_journal_name_full               'Journal of Solid State Chemistry'
+_journal_page_first              66
+_journal_page_last               77
+_journal_paper_doi               10.1016/0022-4596(89)90128-X
+_journal_volume                  78
+_journal_year                    1989
+_chemical_formula_structural     'Na2 Ni Fe F7'
+_chemical_formula_sum            'F7 Fe Na2 Ni'
+_chemical_name_systematic        'Disodium nickel iron(III) fluoride'
+_space_group_IT_number           74
+_symmetry_cell_setting           orthorhombic
+_symmetry_Int_Tables_number      74
+_symmetry_space_group_name_Hall  '-I 2b 2'
+_symmetry_space_group_name_H-M   'I m m a'
+_cell_angle_alpha                90
+_cell_angle_beta                 90
+_cell_angle_gamma                90
+_cell_formula_units_Z            4
+_cell_length_a                   7.2338(3)
+_cell_length_b                   10.3050(3)
+_cell_length_c                   7.4529(3)
+_cell_volume                     555.6
+_exptl_crystal_density_meas      3.5
+_refine_ls_R_factor_all          0.025
+_cod_database_code               1000257
+loop_
+_symmetry_equiv_pos_as_xyz
+x,y,z
+x,-y,-z
+x,1/2+y,-z
+x,1/2-y,z
+-x,-y,-z
+-x,y,z
+-x,1/2-y,z
+-x,1/2+y,-z
+1/2+x,1/2+y,1/2+z
+1/2+x,1/2-y,1/2-z
+1/2+x,y,1/2-z
+1/2+x,-y,1/2+z
+1/2-x,1/2-y,1/2-z
+1/2-x,1/2+y,1/2+z
+1/2-x,-y,1/2+z
+1/2-x,y,1/2-z
+loop_
+_atom_site_aniso_label
+_atom_site_aniso_U_11
+_atom_site_aniso_U_12
+_atom_site_aniso_U_13
+_atom_site_aniso_U_22
+_atom_site_aniso_U_23
+_atom_site_aniso_U_33
+Na1 0.0236(6) 0. 0. 0.0568(11) 0.0189(5) 0.0190(5)
+Na2 0.0223(7) 0. -0.0036(5) 0.0230(7) 0. 0.0667(14)
+Ni1 0.0068(1) 0. 0.0011(1) 0.0066(1) 0. 0.0082(1)
+Fe1 0.0090(1) 0. 0. 0.0084(1) 0.0025(1) 0.0083(1)
+F1 0.0074(3) 0. 0. 0.0286(6) 0. 0.0177(4)
+F2 0.0229(4) 0. 0. 0.0207(4) 0.0016(1) 0.0109(2)
+F3 0.0162(2) 0.0051(1) 0.0011(1) 0.0188(2) -0.0108(2) 0.0290(2)
+loop_
+_atom_site_label
+_atom_site_type_symbol
+_atom_site_symmetry_multiplicity
+_atom_site_Wyckoff_symbol
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+_atom_site_occupancy
+_atom_site_attached_hydrogens
+_atom_site_calc_flag
+Na1 Na1+ 4 a 0. 0. 0. 1. 0 d
+Na2 Na1+ 4 d 0.25 0.25 0.75 1. 0 d
+Ni1 Ni2+ 4 c 0.25 0.25 0.25 1. 0 d
+Fe1 Fe3+ 4 b 0. 0. 0.5 1. 0 d
+F1 F1- 4 e 0. 0.25 0.1473(2) 1. 0 d
+F2 F1- 8 h 0. 0.4109(1) 0.7299(1) 1. 0 d
+F3 F1- 16 j 0.1960(1) 0.3840(1) 0.4348(1) 1. 0 d
+loop_
+_atom_type_symbol
+_atom_type_oxidation_number
+Na1+ 1.000
+Ni2+ 2.000
+Fe3+ 3.000
+F1- -1.000

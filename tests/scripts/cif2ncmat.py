@@ -33,34 +33,25 @@ import NCrystal.cliutils as nc_cliutils
 import pathlib
 import os
 import contextlib
+import shlex
 
 def create_fake_onlinedb_cache_dir():
     #create fake NCRYSTAL_ONLINEDB_CACHEDIR and populate with 3 entries, so we are
-    #able to exercise codid:: and mpid:: capabilities in unit test.
-
-    #FIXME this is just a way to do it in the short term!!
+    #able to exercise codid:: and mpid:: capabilities in tests.
     d = pathlib.Path('fake_onlinedb_cachedir_testcif2ncmat')
     os.environ['NCRYSTAL_ONLINEDB_CACHEDIR'] = str(d.resolve().absolute())
     if d.is_dir():
         return
     d.mkdir(parents=True)
-    sblddata = pathlib.Path(os.environ['SBLD_DATA_DIR'])/'NCExtraTests'
-    for f in ['cod_1000257.cif','cod_9005777.cif']:
-        (d/f).write_text((sblddata/f).read_text())
-    #NB: Notice name change:
-    (d/'mp_55.cif').write_text((sblddata/'mp_55_std.cif').read_text())
-    #fixme also test with: mp_55_unrefined_conventional.cif and mp_55_unrefined_primitive.cif
-
-
+    from NCTestUtils.dirs import test_data_dir
+    for f in ['cod_1000257.cif','cod_9005777.cif','mp_55.cif']:
+        (d/f).write_text((test_data_dir/f'fake_{f}').read_text())
+    #fixme also test with: mp_55_unrefined_conventional.cif and mp_55_unrefined_primitive.cif ?
 
 from NCTestUtils.common import ( print_text_file_with_snipping,
                                  ensure_error,
                                  work_in_tmpdir,
                                  fmt_args_as_str )
-
-import pathlib
-import shlex
-import os
 
 #FIXME: Also test python API if not done elsewhere.
 

@@ -40,7 +40,7 @@ def query_print( key, load = True ):
         lines.append(line)
         print(line)
     print( "=============================" )
-    assert not '\r' in td.rawData
+    assert '\r' not in td.rawData
     print( "=== Printing .rawData ===" )
     print( td.rawData, end='' )
     print( "=============================" )
