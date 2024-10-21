@@ -230,22 +230,22 @@ assert abs(sc2.braggthreshold-alt_bt)<1e-14
 print()
 #test paths with unicode characters:
 
-dirname=u'unicodedir_test\u4500abc'
-testdir=os.path.join(os.getcwd(),dirname)
+dirname='unicodedir_test\u4500abc'
+testdir=pathlib.Path() / dirname
 try:
-    os.makedirs(testdir)
+    testdir.mkdir()
 except UnicodeEncodeError:
     #file system encoding does not allow our special character - avoid test
     #failure by falling back to ascii name:
     dirname=u'asciidir_testXabc'
-    testdir=os.path.join(os.getcwd(),dirname)
-    os.makedirs(testdir)
-
+    testdir=pathlib.Path() / dirname
+    testdir.mkdir()
+assert testdir.is_dir()
 al_sg225_content = NC.createTextData('stdlib::Al_sg225.ncmat').rawData
 (pathlib.Path(testdir)/'Al_sg225.ncmat').write_text(al_sg225_content)
 
 def testLoadOK(cfgstr,expectBadInput = False):
-    print(f"Test loading of :>>>{cfgstr}<<<")
+    print(f"Test loading of :>>>{cfgstr}<<<",flush=True)
     try:
         NC.createInfo(cfgstr)
     except NC.NCBadInput as e:
