@@ -30,7 +30,7 @@ jobs:
     - name: pip install extra deps
       shell: cmd
       run: |
-        python -mpip install numpy
+        python -mpip install numpy matplotlib gemmi spglib
         python -c "import numpy"
 
     - name: CMake cfg NCrystal
