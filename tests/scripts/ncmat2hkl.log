@@ -18,7 +18,7 @@ STDOUT>     to the input file name. For more information about available paramet
 STDOUT>     refer to https://github.com/mctools/ncrystal/wiki/CfgRefDoc, or run the
 STDOUT>     cmd:
 STDOUT>
-STDOUT>          $> ncrystal_tool --doc
+STDOUT>          $> nctool --doc
 STDOUT>
 STDOUT>     For instance, to change the material temperature from room temperature, and
 STDOUT>     to leave out reflections at dspacing<0.5Aa, run:
@@ -30,7 +30,7 @@ STDOUT>     To browse materials which are available in default NCrystal installa
 STDOUT>     refer to https://github.com/mctools/ncrystal/wiki/Data-library. To list
 STDOUT>     actually available files in your installation, run:
 STDOUT>
-STDOUT>          $> ncrystal_tool --browse
+STDOUT>          $> nctool --browse
 STDOUT>
 STDOUT>positional arguments:
 STDOUT>  CFGSTR                NCrystal cfg-string representing the material to load. For

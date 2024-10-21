@@ -107,11 +107,22 @@ function( mctools_testutils_internal_haspydep resvar pydep )
     set( "${resvar}" "OFF" PARENT_SCOPE )
     return()
   endif()
-  #Ok, first time encountering this particular dependency.
+
+  #Ok, first time encountering this particular dependency. We will detect its
+  #presence by importing it in Python. As a special case, for matplotlib we
+  #import matplotlib.pyplot and not just matplotlib. This has the advantage in
+  #that it ensures the matplotlib font cache building is triggered, so we don't
+  #get unexpected stderr output in the middle of our tests later.
+
   mctools_testutils_internal_getpyexec( "pyexec" )
+  if ( "x${pydep}" STREQUAL "xmatplotlib" )
+    set( pymodtoimport "matplotlib.pyplot" )
+  else()
+    set( pymodtoimport "${pydep}" )
+  endif()
   message(STATUS "Testing for presence of python module: ${pydep}")
   execute_process(
-    COMMAND "${pyexec}" "-c" "import ${pydep}"
+    COMMAND "${pyexec}" "-c" "import ${pymodtoimport}"
     RESULT_VARIABLE "res" OUTPUT_QUIET ERROR_QUIET
   )
   if( "x${res}" STREQUAL "x0" )
