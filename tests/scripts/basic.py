@@ -144,7 +144,7 @@ myprint(npfmt(angles*(180/math.pi)))
 myprint(npfmt(de*1000))
 
 #vanishing processes
-for fn in ('Be_sg194.nxs','Al_sg225.ncmat'):
+for fn in ('Be_sg194.ncmat','Al_sg225.ncmat'):
     for part in ('',";inelas=0;incoh_elas=0",';coh_elas=0'):
         cfg=fn+';dcutoff=10.0'+part
         myprint('===> Testing potentially vanishing scatter: "%s":'%cfg)
