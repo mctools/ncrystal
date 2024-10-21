@@ -46,7 +46,7 @@ for f in 'ekin2wl wl2ekin ekin2ksq wl2k wl2ksq'.split():
 
 #non-oriented scatters:
 
-datafile = "Al_sg225.nxs"
+datafile = "Al_sg225.ncmat"
 info = NC.createInfo(datafile)
 
 print('get_build_namespace=%s'%NC.get_build_namespace())
@@ -89,7 +89,7 @@ myprint("Aluminium absorption cross-section @ 4.0Aa: %g barn"%xs_abs)
 
 #single crystal Ge (also testing using python multi-line string for complex settings):
 calc_scatfactsc = NC.createScatter("""
-                                   Ge_sg227.nxs;
+                                   Ge_sg227.ncmat;
                                    mos=0.001;
                                    dir1=@crys_hkl:5,1,1@lab:1,0,0;
                                    dir2=@crys_hkl:0,0,1@lab:0,1,1;
@@ -144,12 +144,13 @@ myprint(npfmt(angles*(180/math.pi)))
 myprint(npfmt(de*1000))
 
 #vanishing processes
-for fn in ('Al_sg225.nxs','Al_sg225.ncmat'):
+for fn in ('Be_sg194.nxs','Al_sg225.ncmat'):
     for part in ('',";inelas=0;incoh_elas=0",';coh_elas=0'):
         cfg=fn+';dcutoff=10.0'+part
         myprint('===> Testing potentially vanishing scatter: "%s":'%cfg)
         sc = NC.createScatter(cfg)
         myprint('    xs@1Aa : %g'%sc.crossSectionIsotropic(NC.wl2ekin(1.0)))
+        myprint('    xs@5Aa : %g'%sc.crossSectionIsotropic(NC.wl2ekin(5.0)))
         #ang,de=sc.generateScatteringNonOriented(NC.wl2ekin(1.0),repeat=10000)
         ekin_final,mu=sc.sampleScatterIsotropic(NC.wl2ekin(1.0),repeat=10000)
         ang, de = np.vectorize(math.acos)(mu), ekin_final - NC.wl2ekin(1.0)
@@ -159,7 +160,7 @@ myprint('===> Testing exceptions')
 
 #test catch all ncrystal exceptions:
 try:
-    NC.createInfo("nosuchfile.nxs")
+    NC.createInfo("nosuchfile.ncmat")
 except NC.NCException as e:
     myprint("Caught NCException!:")
     myprint('  Type    : ',e.__class__.__name__)
@@ -167,7 +168,7 @@ except NC.NCException as e:
 
 #test catch specifically a given type:
 try:
-    NC.createInfo("nosuchfile.nxs")
+    NC.createInfo("nosuchfile.ncmat")
 except NC.NCFileNotFound as e:
     myprint("Caught NCFileNotFound!:")
     myprint('  Type    : ',e.__class__.__name__)
@@ -177,7 +178,7 @@ except NC.NCFileNotFound as e:
 try:
     caught = False
     try:
-        NC.createInfo("nosuchfile.nxs")
+        NC.createInfo("nosuchfile.ncmat")
     except NC.NCCalcError as e:
         caught = True
         myprint("Caught NCCalcError!:")
@@ -191,9 +192,9 @@ myprint("Did not catch exception! (as expected)")
 ###extract packingfactor:
 ##def _testpf(cfgstr):
 ##    print('decodepackingfactor("%s") = %g'%(cfgstr,NC.decodecfg_packfact(cfgstr)))
-##_testpf("Al_sg225.nxs;dcutoff=0.5")
-##_testpf("Al_sg225.nxs;packfact=0.235;dcutoff=0.5")
-###_testpf("Al_sg225.nxs;packfact=0.235;dcutoff=0.5;packfact=0.6;")
+##_testpf("Al_sg225.ncmat;dcutoff=0.5")
+##_testpf("Al_sg225.ncmat;packfact=0.235;dcutoff=0.5")
+###_testpf("Al_sg225.ncmat;packfact=0.235;dcutoff=0.5;packfact=0.6;")
 
 #ensure proper memory cleanup by releasing internal default-assigned random
 #generator:

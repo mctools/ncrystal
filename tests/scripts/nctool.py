@@ -22,7 +22,7 @@
 
 #FIXME: Update NEEDS
 
-#NEEDS: numpy
+# NEEDS: numpy matplotlib
 
 #import NCTestUtils.enable_fpe
 import NCTestUtils.reprint_escaped_warnings
