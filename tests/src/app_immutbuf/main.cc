@@ -26,13 +26,16 @@ namespace NC = NCrystal;
 template<class TImmutableBuffer>
 void inspectBufferType() {
   using B = TImmutableBuffer;
-  static_assert( std::is_same<B,NC::ImmutableBuffer<B::buffer_local_requested_size,B::buffer_alignment,typename B::metadata_type>>::value );
+  static_assert( std::is_same<
+                 B,
+                 NC::ImmutableBuffer<B::buffer_local_requested_size,B::buffer_alignment,typename B::metadata_type>
+                 >::value, "" );
   std::cout<<"  ImmutableBuffer<"<<B::buffer_local_requested_size<<","<<B::buffer_alignment;
   if ( B::has_metadata )
     std::cout<< ",TMetaData(size="<<sizeof(typename B::metadata_type)<<",align="<<alignof(typename B::metadata_type)<<")";
   std::cout<<">\n";
-  static_assert(sizeof(B)==B::object_size);
-  static_assert(alignof(B)==B::object_alignment);
+  static_assert(sizeof(B)==B::object_size,"");
+  static_assert(alignof(B)==B::object_alignment,"");
   std::cout<<"     |-object size: "<<sizeof(B)<<"\n";
   std::cout<<"     |-object_alignment: "<<B::object_alignment<<"\n";
   std::cout<<"     |-unused_trailing_bytes: "<<B::unused_trailing_bytes<<"\n";
@@ -72,10 +75,10 @@ void test_specific_immutbuf()
   auto testdata = [](const char* thedata, std::size_t len) {
     std::cout<<"  ==> Testing with data of length "<<len<<std::endl;
     B b(thedata,len,TMetaData());
-    static_assert(B::buffer_local_size >= LOCALBUF_MINSIZE);
-    static_assert(alignof(B)%BUF_ALIGN == 0);
-    static_assert(sizeof(B)%BUF_ALIGN == 0);
-    static_assert(sizeof(B)%alignof(std::shared_ptr<void>) == 0);
+    static_assert(B::buffer_local_size >= LOCALBUF_MINSIZE,"");
+    static_assert(alignof(B)%BUF_ALIGN == 0,"");
+    static_assert(sizeof(B)%BUF_ALIGN == 0,"");
+    static_assert(sizeof(B)%alignof(std::shared_ptr<void>) == 0,"");
     nc_assert_always(0==std::memcmp(thedata,b.data(),len));
     B b2(b);//copy construct
     nc_assert_always(0==std::memcmp(thedata,b.data(),len));
@@ -164,8 +167,8 @@ void test_immutbuf()
   static constexpr unsigned LBSIZE = 17;
   static constexpr unsigned BA = 8;
   using BM = NC::ImmutableBufferWithMetaData< uint32_t, LBSIZE, BA>;
-  static_assert( alignof(BM::buffer_type)%BA == 0);
-  static_assert( BM::buffer_type::buffer_local_size>=LBSIZE );
+  static_assert( alignof(BM::buffer_type)%BA == 0,"");
+  static_assert( BM::buffer_type::buffer_local_size>=LBSIZE ,"");
   std::cout<<"Requested min local buffer size: "<<LBSIZE<<std::endl;
   std::cout<<"Requested min alignment: "<<BA<<std::endl;
   std::cout<<"alignof(BM): "<<alignof(BM)<<std::endl;
@@ -181,16 +184,16 @@ void test_immutbuf()
   struct Dummy {
     alignas(8) char dummy[24];
   };
-  static_assert(alignof(char[24])==1);
-  static_assert(alignof(Dummy)==8);
+  static_assert(alignof(char[24])==1,"");
+  static_assert(alignof(Dummy)==8,"");
   struct Dummy2 {
     Dummy dummy;
     uint32_t dummy2;
   };
-  //  static_assert(alignof(char[24])==1);
-  static_assert(alignof(Dummy2)==8);
-  static_assert(sizeof(Dummy2)==32);
-  static_assert(sizeof(Dummy2)==32||sizeof(Dummy2)==28);
+  //  static_assert(alignof(char[24])==1,"");
+  static_assert(alignof(Dummy2)==8,"");
+  static_assert(sizeof(Dummy2)==32,"");
+  static_assert(sizeof(Dummy2)==32||sizeof(Dummy2)==28,"");
 #endif
 }
 

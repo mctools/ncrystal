@@ -34,9 +34,9 @@ namespace {
 
 int main() {
 
-  static_assert(sizeof(NC::NeutronWavelength)==sizeof(double));
-  static_assert(sizeof(NC::NeutronEnergy)==sizeof(double));
-  static_assert(sizeof(NC::NeutronDirection)==3*sizeof(double));//not actually guaranteed in case of padding...
+  static_assert(sizeof(NC::NeutronWavelength)==sizeof(double),"");
+  static_assert(sizeof(NC::NeutronEnergy)==sizeof(double),"");
+  static_assert(sizeof(NC::NeutronDirection)==3*sizeof(double),"");//not actually guaranteed in case of padding...
 
   std::cout << NC::NeutronEnergy(0.025)<<std::endl;
   std::cout << NC::NeutronWavelength(1.8)<<std::endl;
