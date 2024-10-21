@@ -30,7 +30,7 @@ def _add_test_data():
     from NCrystal.datasrc import addCustomSearchDirectory as add
     import pathlib
     ddir=pathlib.Path(__file__).parent.parent.parent / 'data'
-    asser ddir.is_dir()
+    assert ddir.is_dir()
     add(ddir)
 
 _add_test_data()

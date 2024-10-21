@@ -183,7 +183,7 @@ namespace {
     doTest("vdoslux=2; ; ; ;  ;    ;;;;atomdb=  Al is Al27@B is B10 ; ; ;vdoslux=3;temp=20.85C;dcutoff=0.6Aa;elas=1;bragg=0");
 
     //Test smallvector buffer overflow:
-    static_assert(NC::Cfg::VarBufVector::nsmall==7);
+    static_assert(NC::Cfg::VarBufVector::nsmall==7,"");
     doTest("temp=20;dcutoff=1;dcutoffup=2;sccutoff=0.5;sans=0;incoh_elas=0;inelas=freegas;absnfactory=stdabs;atomdb=H:is:H2;scatfactory=stdscat");
 
     {
@@ -231,8 +231,8 @@ namespace {
     static constexpr auto name = "vdoslux";
     static constexpr auto var_id = NC::Cfg::constexpr_varIdFromName(name);
     static constexpr auto var_name = NC::Cfg::varName( var_id );
-    static_assert(var_id==NC::Cfg::VarId::vdoslux);
-    static_assert(NC::constexpr_cstrequal(var_name,name));
+    static_assert(var_id==NC::Cfg::VarId::vdoslux,"");
+    static_assert(NC::constexpr_cstrequal(var_name,name),"");
     std::cout<<"\""<<name<<"\" -> "<<NC::enumAsInt(var_id)<<" -> \""<<var_name<<"\""<<std::endl;
 
     nc_assert_always( !( NC::StrView("temp") < NC::StrView("dcutoff") ) ) ;
