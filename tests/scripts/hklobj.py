@@ -42,13 +42,13 @@ for idx,e in enumerate(mat.info.hklObjects()):
     for a in e.h,e.k,e.l:
         assert a.dtype == numpy.int32
         assert isinstance(a,numpy.ndarray)
-    assert type(e.d)==float
-    assert type(e.f2)==float
-    assert type(e.mult)==int
-    assert type(e.hkl_label)==tuple
-    assert type(e.hkl_label[0])==int
-    assert type(e.hkl_label[1])==int
-    assert type(e.hkl_label[2])==int
+    assert type(e.d)==float # noqa E721
+    assert type(e.f2)==float # noqa E721
+    assert type(e.mult)==int # noqa E721
+    assert type(e.hkl_label)==tuple # noqa E721
+    assert type(e.hkl_label[0])==int # noqa E721
+    assert type(e.hkl_label[1])==int # noqa E721
+    assert type(e.hkl_label[2])==int # noqa E721
     assert e.f2 == e.fsquared
     assert e.d == e.dspacing
     assert e.multiplicity == e.mult

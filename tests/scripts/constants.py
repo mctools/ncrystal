@@ -65,7 +65,7 @@ for wl in testwls:
     is_array_test = hasattr(wl,'__len__')
     ekin = ncc.wl2ekin( wl )
     if is_array_test:
-        print( f" ---- test array of wavelengths (printouts disabled)")
+        print( " ---- test array of wavelengths (printouts disabled)")
     else:
         print( f" ---- test wl = {wl} Aa")
 

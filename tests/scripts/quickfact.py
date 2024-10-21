@@ -37,8 +37,8 @@ def test(cfgstr,expectBad = False):
     if expectBad:
         raise SystemExit("Did not end with exception as expected!")
     print(f"Got TextData(uid={td.uid}) with contents:")
-    for l in td:
-        print("---->",l)
+    for line in td:
+        print("---->",line)
     print()
 testbad = lambda cfgstr : test(cfgstr,True)
 

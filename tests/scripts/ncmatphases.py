@@ -43,7 +43,7 @@ NC.registerInMemoryFileData('utf8_filename.ncmat',NC.createTextData('void.ncmat'
 NC.registerInMemoryFileData(f'utf8_filen{a_ring_char}me.ncmat',NC.createTextData('void.ncmat').rawData)
 
 
-l=[
+ll=[
     #UTF8 chars never allowed in ncmat data, even if normally allowed in filenames in cfg strings:
     bad_otherphasescfgstr(f'utf8_filen{a_ring_char}me.ncmat'),
     #no newlines:
@@ -65,7 +65,7 @@ l=[
     bad_otherphasescfgstr(''),
     #otherphasescfgstr(''),
 ]
-for e in l:
+for e in ll:
     if isinstance(e,tuple):
         bad = False
         ncmatdata=e[0]

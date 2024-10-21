@@ -31,9 +31,9 @@ def test(spec,formula,**kwargs):
     print()
     print()
     print('-'*80)
-    if not 'title' in kwargs:
+    if 'title' not in kwargs:
         kwargs['title'] = 'Dummy title'
-    if not 'density' in kwargs:
+    if 'density' not in kwargs:
         kwargs['density'] = 123.45
     kwargs['spec']=spec
     kwargs['formula']=formula

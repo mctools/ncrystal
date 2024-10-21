@@ -114,7 +114,7 @@ for fn in ('Al_sg225.ncmat','Ti_sg194.ncmat','something_that_does_not_exist.ncma
     except NC.NCFileNotFound:
         td=None
     print(td.rawData if td else '<not-found>')
-    print(f"<=======")
+    print("<=======")
 
 
 #Just wanted somewhere to test that vdosdebye is not possible without Debye

@@ -1,0 +1,69 @@
+#------------------------------------------------------------------------------
+#$Date: 2016-02-16 14:49:47 +0200 (Tue, 16 Feb 2016) $
+#$Revision: 176465 $
+#$URL: svn://www.crystallography.net/cod/cif/9/00/57/9005777.cif $
+#------------------------------------------------------------------------------
+#
+# This file is available in the Crystallography Open Database (COD),
+# http://www.crystallography.net/. The original data for this entry
+# were provided the American Mineralogist Crystal Structure Database,
+# http://rruff.geo.arizona.edu/AMS/amcsd.php
+#
+# The file may be used within the scientific community so long as
+# proper attribution is given to the journal article from which the
+# data were obtained.
+#
+data_9005777
+loop_
+_publ_author_name
+'Ohashi, Y.'
+_publ_section_title
+;
+ Polysynthetically-twinned structures of enstatite and wollastonite
+ Sample: WO1T
+;
+_journal_name_full               'Physics and Chemistry of Minerals'
+_journal_page_first              217
+_journal_page_last               229
+_journal_paper_doi               10.1007/BF00309314
+_journal_volume                  10
+_journal_year                    1984
+_chemical_formula_sum            'Ca O3 Si'
+_chemical_name_mineral           Wollastonite
+_space_group_IT_number           2
+_symmetry_space_group_name_Hall  '-P 1'
+_symmetry_space_group_name_H-M   'P -1'
+_cell_angle_alpha                90.055
+_cell_angle_beta                 95.217
+_cell_angle_gamma                103.426
+_cell_length_a                   7.9258
+_cell_length_b                   7.3202
+_cell_length_c                   7.0653
+_cell_volume                     396.960
+_exptl_crystal_density_diffrn    2.916
+_cod_original_formula_sum        'Ca Si O3'
+_cod_database_code               9005777
+loop_
+_symmetry_equiv_pos_as_xyz
+x,y,z
+-x,-y,-z
+loop_
+_atom_site_label
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+CaM1 0.19831 0.42266 0.76060
+CaM2 0.20241 0.92919 0.76401
+CaM3 0.50333 0.75040 0.52691
+Si1 0.18510 0.38750 0.26840
+Si2 0.18490 0.95420 0.26910
+Si3 0.39730 0.72360 0.05610
+OA1 0.30340 0.46160 0.46280
+OA2 0.30140 0.93850 0.46410
+OA3 0.57050 0.76880 0.19880
+OB1 0.98320 0.37390 0.26550
+OB2 0.98190 0.86770 0.26480
+OB3 0.40180 0.72660 0.82960
+OC1 0.21830 0.17850 0.22540
+OC2 0.27130 0.87040 0.09380
+OC3 0.27350 0.51260 0.09310
