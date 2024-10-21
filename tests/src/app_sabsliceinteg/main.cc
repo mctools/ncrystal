@@ -18,6 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+//Test createTailedBreakdown function by integrating simple function,
+//SAB=exp(alpha), which is interpolated exactly by the loglin-interpolation
+//assumed for SAB tables (at least internally in NCSABUtils).
 
 #include "NCrystal/internal/NCSABUtils.hh"
 #include "NCrystal/internal/NCMath.hh"
@@ -25,88 +28,91 @@
 #include <iostream>
 namespace NC = NCrystal;
 
-// struct TailedBreakdown {
-//       double xs_front=0, xs_middle=0, xs_back=0;
-//       unsigned imiddle_low=0, imiddle_upp=0;
-//       struct TailPoint {
-//         double alpha=0, sval=0, logsval=0;
-//       } front, back;
-//       bool narrow = false;
-//     };
-//     TailedBreakdown createTailedBreakdown( const span<const double>& alphaGrid,
-//                                            const span<const double>& sab,
-//                                            const span<const double>& logsab,
-//                                            const span<const double>& alphaIntegrals_cumul,
-//                                            const double alpha_low, const double alpha_upp,
-//                                            const unsigned aidx_low, const unsigned aidx_upp );
-
-// namespace NCTest {
-//   struct FakeSABSlice {
-//     const vector<const double> alphaGrid, sab, logsab, alphaIntegrals_cumul;
-//   };
-//}
-
-int main () {
-
-  //Test createTailedBreakdown function by integrating simple function,
-  //SAB=exp(alpha), which is interpolated exactly by the loglin-interpolation
-  //assumed for SAB tables (at least internally in NCSABUtils).
+namespace {
 
   struct FakeSABSlice {
     const NC::VectD alphaGrid, sab, logsab, alphaIntegrals_cumul;
   };
-  auto createFakeSABSlice = [](auto alphaGrid_, auto f, auto f_defintegral)
-                            {
-                              NC::VectD sab, logsab, aic;
-                              for ( auto&& alpha : NC::enumerate(alphaGrid_) ) {
-                                sab.push_back(f(alpha.val));
-                                nc_assert(sab.back());
-                                logsab.push_back(sab.back()>0.0?std::log(sab.back()):-NC::kInfinity);
-                              }
-                              aic.push_back(0.0);
-                              for (unsigned i=1; i < alphaGrid_.size();++i)
-                                aic.push_back(aic.back()+f_defintegral(alphaGrid_.at(i-1),alphaGrid_.at(i)));
-                              return FakeSABSlice{alphaGrid_,std::move(sab),std::move(logsab),std::move(aic)};
-                            };
 
-  auto makeTailedBreakdown = [](const auto& fakesabslice, const double alpha_low, const double alpha_upp)
-                             {
-                               const auto& ag = fakesabslice.alphaGrid;
-                               auto it = std::lower_bound(ag.begin(),ag.end(),alpha_low);
-                               if (it > ag.begin())
-                                 it = std::prev(it);
-                               while (std::next(it)!=ag.end() && *std::next(it)<=alpha_low )
-                                 it = std::next(it);
-                               unsigned aidx_low = std::distance(ag.begin(),it);
-                               it = std::lower_bound(ag.begin(),std::prev(ag.end()),alpha_upp);
-                               while (it>ag.begin() && *std::prev(it)>=alpha_upp )
-                                 it = std::prev(it);
-                               unsigned aidx_upp = std::distance(ag.begin(),it);
-                               nc_assert(aidx_low<=aidx_upp && aidx_upp < ag.size());
-                               return NC::SABUtils::createTailedBreakdown( fakesabslice.alphaGrid,
-                                                                           fakesabslice.sab,
-                                                                           fakesabslice.logsab,
-                                                                           fakesabslice.alphaIntegrals_cumul,
-                                                                           alpha_low, alpha_upp,
-                                                                           aidx_low, aidx_upp );
-                             };
+  template<class Func_F, class Func_DefIntegralOfF>
+  FakeSABSlice createFakeSABSlice( const NC::VectD& alphaGrid_,
+                                   const Func_F& f,
+                                   const Func_DefIntegralOfF&  f_defintegral)
+  {
+    NC::VectD sab, logsab, aic;
+    for ( auto&& alpha : NC::enumerate(alphaGrid_) ) {
+      sab.push_back(f(alpha.val));
+      nc_assert(sab.back());
+      logsab.push_back(sab.back()>0.0?std::log(sab.back()):-NC::kInfinity);
+    }
+    aic.push_back(0.0);
+    for (unsigned i=1; i < alphaGrid_.size();++i)
+      aic.push_back(aic.back()+f_defintegral(alphaGrid_.at(i-1),alphaGrid_.at(i)));
+    return FakeSABSlice{alphaGrid_,std::move(sab),std::move(logsab),std::move(aic)};
+  }
 
-  auto checkXS = [&makeTailedBreakdown](const auto& fakesabslice, double a0, double a1, auto func_f_defintegral_)
-                 {
-                   auto tb = makeTailedBreakdown(fakesabslice,a0,a1);
-                   double xs_sum(tb.xs_front+tb.xs_middle+tb.xs_back), xs_expect(func_f_defintegral_(a0,a1));
-                   static int i = 0;
-                   std::cout<<" checkXS("<<++i<<"): xs_front = "<<tb.xs_front
-                            <<" xs_middle = "<<tb.xs_middle
-                            <<" xs_back = "<<tb.xs_back
-                            <<" xs_sum = "<<xs_sum
-                            <<" expected = "<<xs_expect
-                            <<" reldiff = "<<100.0*(xs_expect==xs_sum?0.0:(xs_sum/xs_expect-1))<<"%"
-                            <<std::endl;
-                 };
+  NC::SABUtils::TailedBreakdown
+  makeTailedBreakdown(const FakeSABSlice& fakesabslice,
+                      const double alpha_low,
+                      const double alpha_upp)
+  {
+    const auto& ag = fakesabslice.alphaGrid;
+    auto it = std::lower_bound(ag.begin(),ag.end(),alpha_low);
+    if (it > ag.begin())
+      it = std::prev(it);
+    while (std::next(it)!=ag.end() && *std::next(it)<=alpha_low )
+      it = std::next(it);
+    unsigned aidx_low = std::distance(ag.begin(),it);
+    it = std::lower_bound(ag.begin(),std::prev(ag.end()),alpha_upp);
+    while (it>ag.begin() && *std::prev(it)>=alpha_upp )
+      it = std::prev(it);
+    unsigned aidx_upp = std::distance(ag.begin(),it);
+    nc_assert(aidx_low<=aidx_upp && aidx_upp < ag.size());
+    return NC::SABUtils::createTailedBreakdown( fakesabslice.alphaGrid,
+                                                fakesabslice.sab,
+                                                fakesabslice.logsab,
+                                                fakesabslice.alphaIntegrals_cumul,
+                                                alpha_low, alpha_upp,
+                                                aidx_low, aidx_upp );
+  }
 
-  //
+  template<class Func_DefIntegralOfF>
+  void checkXS( const FakeSABSlice& fakesabslice,
+                double a0,
+                double a1,
+                const Func_DefIntegralOfF& func_f_defintegral_)
+  {
+    auto tb = makeTailedBreakdown(fakesabslice,a0,a1);
+    double xs_sum(tb.xs_front+tb.xs_middle+tb.xs_back), xs_expect(func_f_defintegral_(a0,a1));
+    static int i = 0;
+    std::cout<<" checkXS("<<++i<<"): xs_front = "<<tb.xs_front
+             <<" xs_middle = "<<tb.xs_middle
+             <<" xs_back = "<<tb.xs_back
+             <<" xs_sum = "<<xs_sum
+             <<" expected = "<<xs_expect
+             <<" reldiff = "<<100.0*(xs_expect==xs_sum?0.0:(xs_sum/xs_expect-1))<<"%"
+             <<std::endl;
+  }
+
+  template<class Func_F, class Func_DefIntegralOfF>
+  void check_integrateAlphaInterval (double a0, double a1,
+                                     const Func_F& func_f_,
+                                     const Func_DefIntegralOfF&  func_f_defintegral_)
+  {
+    double f0(func_f_(a0)),f1(func_f_(a1));
+    double calc = NC::SABUtils::integrateAlphaInterval(a0,f0, a1, f1 );
+    double calc_fast = NC::SABUtils::integrateAlphaInterval_fast(a0,f0, a1, f1, std::log(f0), std::log(f1) );
+    double expect = func_f_defintegral_(a0,a1);
+    std::cout<<" integrateAlphaInterval : "<<calc<<" vs. "<<calc_fast<<" vs. "<<expect<<" reldiff: "
+             <<100.0*(calc/expect-1.0)<<"% and "<<100.0*(calc_fast/expect-1.0)<<"%"<<std::endl;
+  }
+
+}
+
+int main () {
+
   auto alphaGrid = NC::linspace(0.1,2.0,20);
+
   auto func_f = [](double alpha) { return std::exp(alpha); };
   auto func_f_defintegral = [&alphaGrid](double a, double b)
                             {
@@ -141,16 +147,6 @@ int main () {
   checkXS(sabslice, 0.05, 2.3,func_f_defintegral);//partly outside
   checkXS(sabslice, 1.05, 2.3,func_f_defintegral);//partly outside
 
-
-  auto check_integrateAlphaInterval = [](double a0, double a1, auto func_f_, auto func_f_defintegral_)
-                                      {
-                                        double f0(func_f_(a0)),f1(func_f_(a1));
-                                        double calc = NC::SABUtils::integrateAlphaInterval(a0,f0, a1, f1 );
-                                        double calc_fast = NC::SABUtils::integrateAlphaInterval_fast(a0,f0, a1, f1, std::log(f0), std::log(f1) );
-                                        double expect = func_f_defintegral_(a0,a1);
-                                        std::cout<<" integrateAlphaInterval : "<<calc<<" vs. "<<calc_fast<<" vs. "<<expect<<" reldiff: "
-                                                 <<100.0*(calc/expect-1.0)<<"% and "<<100.0*(calc_fast/expect-1.0)<<"%"<<std::endl;
-                                      };
   //inside:
   check_integrateAlphaInterval(0.11,1.22, func_f, func_f_defintegral);
   check_integrateAlphaInterval(0.1,2.0, func_f, func_f_defintegral);
