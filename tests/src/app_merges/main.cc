@@ -61,7 +61,7 @@ int main() {
     std::cout<<"Writing "<<fn<<" (visualise with sb_ncperfval_plottxtfile script)"<<std::endl;
     std::ofstream fh(fn);
     fh << "# NB: Visualise this file with sb_ncperfval_plottxtfile\n";
-    auto xs = [](const auto& sc,double thewl) { NC::CachePtr dummy; return sc->crossSectionIsotropic( dummy, NC::NeutronWavelength{thewl} ).dbl(); };
+    auto xs = [](const NC::ProcImpl::ProcPtr& sc,double thewl) { NC::CachePtr dummy; return sc->crossSectionIsotropic( dummy, NC::NeutronWavelength{thewl} ).dbl(); };
     fh << "# colnames = PCBragg1 ; PCBragg2 ; PCBragg1+PCBragg2 ; PCBragg_merged \n";
     fh << "# plotstyle = - \n";
     fh << "# alpha = 0.4 \n";
