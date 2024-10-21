@@ -86,12 +86,16 @@ jobs:
         -DNCRYSTAL_ENABLE_EXAMPLES=ON
         -DNCRYSTAL_BUILD_STRICT=ON
         -DNCRYSTAL_ENABLE_SETUPSH=ON
+        -DNCRYSTAL_ENABLE_TESTING=ON
 
     - name: Build
       run: >
         cmake
         --build ${{github.workspace}}/build
         --config ${{env.BUILD_TYPE}}
+
+    - name: CTest
+      run: ( cd ${{github.workspace}}/build && ctest --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle )
 
     - name: Install
       run: cmake --install ${{github.workspace}}/build
