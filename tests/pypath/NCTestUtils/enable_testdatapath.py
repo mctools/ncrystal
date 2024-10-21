@@ -29,7 +29,9 @@ __all__=[]
 def _add_test_data():
     from NCrystal.datasrc import addCustomSearchDirectory as add
     import pathlib
-    assert False, "not implemented"
+    ddir=pathlib.Path(__file__).parent.parent.parent / 'data'
+    asser ddir.is_dir()
+    add(ddir)
 
 _add_test_data()
 del _add_test_data
