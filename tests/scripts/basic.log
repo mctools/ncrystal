@@ -23,7 +23,7 @@ Conversion: NC.wl2ksq(1.0) = 39.478417604357
 Conversion: NC.wl2ksq(2.0) = 9.8696044010894
 Conversion: NC.wl2ksq(0.0) = inf
 Conversion: NC.wl2ksq(inf) = 0
-get_build_namespace=dev
+get_build_namespace=
 Temperature : 293.15
 DebyeTemp : yes
 XSectAbsorp : 0.231
