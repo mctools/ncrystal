@@ -513,6 +513,9 @@ namespace NCRYSTAL_NAMESPACE {
     Mode mode = Mode::Refine;
     NeutronEnergy threshold = default_threshold();
     bool operator==( const UCNMode& ) const;
+    UCNMode( Mode mde = Mode::Refine,
+             NeutronEnergy thr = default_threshold() )
+    : mode(mde), threshold(thr) {}//constructor needed by clang
   };
 
   NCRYSTAL_API std::ostream& operator<<( std::ostream&, const UCNMode& );
