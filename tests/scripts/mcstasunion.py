@@ -22,7 +22,7 @@
 
 #FIXME: Update NEEDS
 
-#NEEDS: numpy
+# NEEDS: numpy
 
 import NCTestUtils.enable_fpe
 import NCrystal as NC

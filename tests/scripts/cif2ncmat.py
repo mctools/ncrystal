@@ -20,7 +20,7 @@
 ##                                                                            ##
 ################################################################################
 
-#NEEDS: gemmi spglib
+# NEEDS: gemmi spglib
 
 from argparse import ArgumentError
 
