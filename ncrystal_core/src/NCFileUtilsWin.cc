@@ -45,7 +45,7 @@ namespace NCRYSTAL_NAMESPACE {
   namespace WinFileUtils {
 
     namespace {
-      std::wstring winimpl_str2wstr( const std::string& in )
+      std::wstring winimpl_str2wstr( const std::string& src )
       {
         const char * in_data = &src[0];
         int in_size = static_cast<int>(src.size());//fixme range check
@@ -63,19 +63,19 @@ namespace NCRYSTAL_NAMESPACE {
         if (!out_size)
           NCRYSTAL_THROW(BadInput,errmsg);
         res.resize( out_size );
-        char * out_data = &res[0];
+        wchar_t * out_data = &res[0];
         //Same, but with out_data/out_size provided:
-        int out_size = MultiByteToWideChar( CP_UTF8, 0,
-                                            in_data, in_size,
-                                            out_data, out_size );
+        out_size = MultiByteToWideChar( CP_UTF8, 0,
+                                        in_data, in_size,
+                                        out_data, out_size );
         if ( out_size != res.size() )
           NCRYSTAL_THROW(BadInput,errmsg);
         return res;
       }
 
-      std::string winimpl_wstr2str( const std::wstring& in )
+      std::string winimpl_wstr2str( const std::wstring& src )
       {
-        const std::wchar_t * in_data = &src[0];
+        const wchar_t * in_data = &src[0];
         int in_size = static_cast<int>(src.size());//fixme range check
         std::string res;
         if ( !in_size )
@@ -95,10 +95,10 @@ namespace NCRYSTAL_NAMESPACE {
         res.resize( out_size );
         char * out_data = &res[0];
         //Same, but with out_data/out_size provided:
-        int out_size = WideCharToMultiByte( CP_UTF8, 0,
-                                            in_data, in_size,
-                                            out_data, out_size,
-                                            nullptr, nullptr);
+        out_size = WideCharToMultiByte( CP_UTF8, 0,
+                                        in_data, in_size,
+                                        out_data, out_size,
+                                        nullptr, nullptr);
         if ( out_size != res.size() )
           NCRYSTAL_THROW(BadInput,errmsg);
         return res;
