@@ -18,19 +18,21 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCCore/NCDefs.hh"
+#include "NCrystal/NCDefs.hh"
 #include <fstream>
 
 #if ( defined (_WIN32) || defined (WIN32) )
 #  define NCRYSTAL_USE_WINDOWS_FILEUTILS
+
 namespace NCRYSTAL_NAMESPACE {
 
   namespace WinFileUtils {
-    bool file_exists( std::string path );
-    std::ifstream open_ifstream_from_path( std::string path,
+    bool file_exists( const std::string& path );
+    std::ifstream open_ifstream_from_path( const std::string& path,
                                            std::ios_base::openmode mode = std::ios_base::in);
     NC::VectS ncglob(const std::string&);
     std::string get_current_working_dir();
   }
 }
+
 #endif

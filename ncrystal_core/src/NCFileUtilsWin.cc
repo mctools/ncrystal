@@ -18,9 +18,10 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+#include "NCFileUtilsWin.hh"
+
 #ifdef NCRYSTAL_USE_WINDOWS_FILEUTILS
 
-#include "NCFileUtilsWin.hh"
 #include "NCUtils/NCString.hh"
 
 #define WIN32_LEAN_AND_MEAN
@@ -104,7 +105,7 @@ namespace NCRYSTAL_NAMESPACE {
       }
     }
 
-    bool file_exists( std::string path )
+    bool file_exists( const std::string& path )
     {
       if ( isSimpleASCII( path ) ) {
         std::ifstream f(name.c_str());
@@ -116,7 +117,7 @@ namespace NCRYSTAL_NAMESPACE {
       }
     }
 
-    std::ifstream open_ifstream_from_path( std::string path,
+    std::ifstream open_ifstream_from_path( const std::string& path,
                                            std::ios_base::openmode mode )
     {
       if ( isSimpleASCII( path ) )
