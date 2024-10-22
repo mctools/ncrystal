@@ -20,6 +20,7 @@
 
 #include "NCrystal/internal/NCFileUtils.hh"
 #include "NCrystal/internal/NCString.hh"
+#include "NCFileUtilsWin.hh"
 #include <fstream>
 
 namespace NC = NCrystal;
@@ -40,13 +41,15 @@ std::string NC::tryRealPath( const std::string& fn ) {
   return std::string(res);
 }
 #else
-//Windows or whatever... just give up.
+//Windows or whatever... just give up. [FIXME: To NCFileUtilsWin.cc + add NCFileUtilsUnix.cc]
 std::string NC::tryRealPath( const std::string& ) { return {}; }
 #endif
 
 
 NC::Optional<std::string> NC::readEntireFileToString( const std::string& path )
 {
+  //FIXME: Give error on utf16/utf32 BOM, and skip past any utf8 BOM? See https://www.unicode.org/faq/utf_bom.html#BOM
+
   //Read entire file into a string while protecting against someone mistakenly
   //trying to open a multi-gigabyte file and bringing their machine to a slow
   //halt.
@@ -56,7 +59,12 @@ NC::Optional<std::string> NC::readEntireFileToString( const std::string& path )
   static const size_type maxread_bytes = maxread_megabytes*1048576ull;
   size_type maxread_blocks = maxread_bytes/read_block_size + 1;
   static std::ifstream::char_type buffer[read_block_size] = {};
-  std::ifstream fh( path, std::ios_base::binary );
+  auto mode = std::ios_base::binary | std::ios_base::in;
+#ifdef NCRYSTAL_USE_WINDOWS_FILEUTILS
+  std::ifstream fh = WinFileUtils::open_ifstream_from_path( path, mode );
+#else
+  std::ifstream fh( path, mode );
+#endif
   if ( !fh.good() )
     return NullOpt;//interpret as if file does not exist or is not readable.
   std::string out;
@@ -78,7 +86,7 @@ bool NC::path_is_absolute( const std::string& p )
 {
   if (p.empty())
     return false;
-#if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(_WIN32) || defined(__CYGWIN__)
+#if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(_WIN32) || defined(__CYGWIN__)//fixme: to NCFileUtilsWin.cc
   //FIXME: We need to consider that c:bla.ncmat means "relative to CWD of C:" not an absolute path!! We should unit test this!!
   if ( p.at(0)=='/' )
     return true;//who are we to argue if people are somehow using forward-slashes on a windows platform...
@@ -90,7 +98,7 @@ bool NC::path_is_absolute( const std::string& p )
 }
 std::string NC::path_join(const std::string& p1, const std::string& p2)
 {
-#if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(_WIN32) || defined(__CYGWIN__)
+#if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(_WIN32) || defined(__CYGWIN__)//fixme: to NCFileUtilsWin.cc
   if ( contains(p1,'/') || contains(p2,'/') )
     return p1+'/'+p2;//seems like user is already using forward slashes, so assume it is ok.
   return p1+'\\'+p2;
@@ -117,50 +125,20 @@ std::string NC::getfileext(const std::string& filename)
   return p == std::string::npos ? std::string() : bn.substr(p+1);
 }
 
-bool NC::file_exists(const std::string& name) {
-  //Only portable way in C++98 is to attempt to open the file.
+bool NC::file_exists(const std::string& name)
+{
+#ifdef NCRYSTAL_USE_WINDOWS_FILEUTILS
+  return WinFileUtils::file_exists( name );
+#else
   std::ifstream f(name.c_str());
   return f.good();
+#endif
 }
 
-#if ( defined (_WIN32) || defined (WIN32) ) && !defined (__CYGWIN__)
-//Windows globbing -> untested apart from compilation on godbolt.org
-#  define WIN32_LEAN_AND_MEAN
-#  include <windows.h>
-NC::VectS NC::ncglob(const std::string& pattern) {
-  VectS result;
-  WIN32_FIND_DATA fdata;
-  HANDLE fh = FindFirstFileA(pattern.c_str(), &fdata);
-  if (fh == INVALID_HANDLE_VALUE)
-    return result;
-  while (true) {
-    result.push_back(fdata.cFileName);
-    if (!FindNextFileA(fh, &fdata))
-      break;
-  }
-  FindClose(fh);
-  std::sort(result.begin(),result.end());
-  return result;
-}
-//Windows getcwd:
-std::string NC::ncgetcwd()
+#ifdef NCRYSTAL_USE_WINDOWS_FILEUTILS
+NC::VectS NC::ncglob(const std::string& pattern)
 {
-  TCHAR pathbuf[MAX_PATH+1] = "";
-  GetCurrentDirectoryA(MAX_PATH, pathbuf);
-  //PathAddBackslashA(pathbuf);
-  std::ostringstream ss;
-  ss << pathbuf;
-  //Fixme: We should perhaps try to use windows functions to reencode as utf8?
-#if 1
-  return ss.str();
-#else
-  //Fixme: consider this?
-  //Always ensure a trailing path separator?
-  std::string res = ss.str();
-  if ( res.empty() || res.back()!='\\' )
-    res += '\\';
-  return res;
-#endif
+  return WinFileUtils::ncglob(pattern);
 }
 #else
 //POSIX globbing:
@@ -170,7 +148,8 @@ NC::VectS NC::ncglob(const std::string& pattern) {
   glob_t pglob;
   int retval = glob(pattern.c_str(),0,0, &pglob);
   if ( retval != 0 && retval != GLOB_NOMATCH )
-    NCRYSTAL_THROW2(CalcError,"Error encountered while attempting to glob for \""<<pattern<<"\"");
+    NCRYSTAL_THROW2(CalcError,"Error encountered while"
+                    " attempting to glob for \""<<pattern<<"\"");
   if ( retval != GLOB_NOMATCH ) {
     for ( decltype(pglob.gl_pathc) i = 0; i < pglob.gl_pathc; ++i ) {
       auto pv = pglob.gl_pathv[i];
@@ -185,6 +164,14 @@ NC::VectS NC::ncglob(const std::string& pattern) {
   globfree(&pglob);
   return result;
 }
+#endif
+
+#ifdef NCRYSTAL_USE_WINDOWS_FILEUTILS
+std::string NC::ncgetcwd()
+{
+  return WinFileUtils::get_current_working_dir();
+}
+#else
 //POSIX getcwd:
 #include <unistd.h>
 std::string NC::ncgetcwd() {
@@ -209,6 +196,3 @@ std::string NC::ncgetcwd() {
   NCRYSTAL_THROW(CalcError,"Could not determine current working directory");
 }
 #endif
-//FIXME: Once the above code works, we could investigate the C++17 function
-//std::filesystem::current_path() (however, we need to be able to determine if
-//the filesystem module is actually present or not)
