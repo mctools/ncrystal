@@ -274,14 +274,14 @@ for temp in [1,300,10000]:
     for mass in [1.007, 10.0, 300.0]:
         for debye_temp in [5., 400., 10000.]:
             msd = NC.debyeIsotropicMSD( debye_temperature=debye_temp, temperature=temp, mass=mass )
-            print(f'  debyeIsotropicMSD( TDebye={debye_temp}, T={temp}, mass={mass} ) = {msd}')
+            print(f'  debyeIsotropicMSD( TDebye={debye_temp:.10g}, T={temp:.10g}, mass={mass:.10g} ) = {msd:.10g}')
             debye_temp_calc = NC.debyeTempFromIsotropicMSD(msd=msd, temperature=temp, mass=mass)
-            print(f'  ...going back via debyeTempFromIsotropicMSD gives TDebye={debye_temp_calc}')
+            print(f'  ...going back via debyeTempFromIsotropicMSD gives TDebye={debye_temp_calc:.10g}')
             assert debye_temp_calc>0.99*debye_temp
             assert abs(debye_temp-debye_temp_calc)/debye_temp < 0.0001
 
 
-#test tht json encoding of cfg docs can be decoded by the python json module:
+#test that json encoding of cfg docs can be decoded by the python json module:
 cfgaspy = NC.generateCfgStrDoc('python')
 pprint.pprint(cfgaspy)
 

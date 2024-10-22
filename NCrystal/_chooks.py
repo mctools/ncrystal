@@ -47,6 +47,7 @@ def _str2cstr(s):
         return s if isinstance(s,bytes) else s.encode('utf8')
     except UnicodeEncodeError:
         #Attempt with file-system encoding, in case of non-ASCII path names:
+        #Fixme: better with a clean error here, and simply say we only support utf8?
         import sys
         return s.encode(sys.getfilesystemencoding())
 
@@ -55,6 +56,7 @@ def _cstr2str(s):
     try:
         return s if isinstance(s,str) else s.decode('utf8')
     except UnicodeDecodeError:
+        #Fixme: better with a clean error here, and simply say we only support utf8?
         import sys
         return s.decode(sys.getfilesystemencoding())
 
