@@ -48,6 +48,8 @@ std::string NC::tryRealPath( const std::string& ) { return {}; }
 
 NC::Optional<std::string> NC::readEntireFileToString( const std::string& path )
 {
+  //FIXME: Give error on utf16/utf32 BOM, and skip past any utf8 BOM? See https://www.unicode.org/faq/utf_bom.html#BOM
+
   //Read entire file into a string while protecting against someone mistakenly
   //trying to open a multi-gigabyte file and bringing their machine to a slow
   //halt.
