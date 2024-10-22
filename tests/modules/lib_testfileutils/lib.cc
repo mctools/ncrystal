@@ -28,8 +28,32 @@ NCTEST_CTYPE_DICTIONARY
   return
     "int nctest_file_exists( const char * );"
     "const char * nctest_ncgetcwd();"
+    "const char * nctest_readEntireFileToString( const char * );"
     ;
 }
+
+//All I/O from these functions are in UTF-8.
+
+NCTEST_CTYPES const char * nctest_readEntireFileToString( const char * path )
+{
+  //Returns "<<NULL>>" in case readEntireFileToString did not return a value.
+
+  //For testing, we can get away with just using a large static buffer:
+
+  static char buf[10485760];//10MB, hopefully enough for even the largest file
+                            //in our tests
+  try {
+    nc_assert_always( path );
+    auto opt_content = NC::readEntireFileToString( path );
+    const char * content = ( opt_content.has_value()
+                             ? opt_content.value().c_str()
+                             : "<<NULL>>" );
+    buf[0] = '\0';
+    std::strncat(buf,content,sizeof(buf)-1);
+  } NCCATCH;
+  return &buf[0];
+}
+
 
 NCTEST_CTYPES int nctest_file_exists( const char * f )
 {

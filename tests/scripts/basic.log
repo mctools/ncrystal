@@ -138,60 +138,60 @@ Caught expected NCBadInput!: Forbidden character "\x0-28" in configuration strin
 Test loading of :>>>phases<1.0*unicodedir_test䔀abc/Al_sg225.ncmat><<<
 Test loading of :>>>phases<1.0*unicodedir_test䔀abc/Al_sg225.ncmat><<<
 Test loading of :>>>phases<0.1*unicodedir_test䔀abc/Al_sg225.ncmat&0.9*void.ncmat><<<
-  debyeIsotropicMSD( TDebye=5.0, T=1, mass=1.007 ) = 9.080584874466373
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=4.999999999999999
-  debyeIsotropicMSD( TDebye=400.0, T=1, mass=1.007 ) = 0.09032536976663282
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=400.0
-  debyeIsotropicMSD( TDebye=10000.0, T=1, mass=1.007 ) = 0.003612866453221419
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=10000.0
-  debyeIsotropicMSD( TDebye=5.0, T=1, mass=10.0 ) = 0.9144148968587635
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=5.000000000000001
-  debyeIsotropicMSD( TDebye=400.0, T=1, mass=10.0 ) = 0.009095764735499924
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=400.0
-  debyeIsotropicMSD( TDebye=10000.0, T=1, mass=10.0 ) = 0.00036381565183939683
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=10000.0
-  debyeIsotropicMSD( TDebye=5.0, T=1, mass=300.0 ) = 0.030480496561958788
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=4.999999999999999
-  debyeIsotropicMSD( TDebye=400.0, T=1, mass=300.0 ) = 0.00030319215784999743
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=400.0
-  debyeIsotropicMSD( TDebye=10000.0, T=1, mass=300.0 ) = 1.212718839464656e-05
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=10000.0
-  debyeIsotropicMSD( TDebye=5.0, T=300, mass=1.007 ) = 1734.1891653475307
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=5.0
-  debyeIsotropicMSD( TDebye=400.0, T=300, mass=1.007 ) = 0.2841150205494695
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=400.0
-  debyeIsotropicMSD( TDebye=10000.0, T=300, mass=1.007 ) = 0.0036342607536897628
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=10000.0
-  debyeIsotropicMSD( TDebye=5.0, T=300, mass=10.0 ) = 174.63284895049628
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=4.999999999999999
-  debyeIsotropicMSD( TDebye=400.0, T=300, mass=10.0 ) = 0.02861038256933158
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=400.00000000000006
-  debyeIsotropicMSD( TDebye=10000.0, T=300, mass=10.0 ) = 0.00036597005789655904
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=10000.0
-  debyeIsotropicMSD( TDebye=5.0, T=300, mass=300.0 ) = 5.8210949650165436
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=5.0
-  debyeIsotropicMSD( TDebye=400.0, T=300, mass=300.0 ) = 0.0009536794189777192
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=400.0000000000001
-  debyeIsotropicMSD( TDebye=10000.0, T=300, mass=300.0 ) = 1.2199001929885301e-05
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=10000.0
-  debyeIsotropicMSD( TDebye=5.0, T=10000, mass=1.007 ) = 57805.85988138655
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=5.0
-  debyeIsotropicMSD( TDebye=400.0, T=10000, mass=1.007 ) = 9.032566966900298
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=399.99999999999994
-  debyeIsotropicMSD( TDebye=10000.0, T=10000, mass=1.007 ) = 0.014848947123624301
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=9999.999999999998
-  debyeIsotropicMSD( TDebye=5.0, T=10000, mass=10.0 ) = 5821.050090055624
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=4.999999999999999
-  debyeIsotropicMSD( TDebye=400.0, T=10000, mass=10.0 ) = 0.90957949356686
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=399.99999999999994
-  debyeIsotropicMSD( TDebye=10000.0, T=10000, mass=10.0 ) = 0.0014952889753489667
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=10000.0
-  debyeIsotropicMSD( TDebye=5.0, T=10000, mass=300.0 ) = 194.03500300185416
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=4.999999999999999
-  debyeIsotropicMSD( TDebye=400.0, T=10000, mass=300.0 ) = 0.030319316452228663
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=399.99999999999994
-  debyeIsotropicMSD( TDebye=10000.0, T=10000, mass=300.0 ) = 4.984296584496556e-05
-  ...going back via debyeTempFromIsotropicMSD gives TDebye=10000.000000000002
+  debyeIsotropicMSD( TDebye=5, T=1, mass=1.007 ) = 9.080584874
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=5
+  debyeIsotropicMSD( TDebye=400, T=1, mass=1.007 ) = 0.09032536977
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=400
+  debyeIsotropicMSD( TDebye=10000, T=1, mass=1.007 ) = 0.003612866453
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=10000
+  debyeIsotropicMSD( TDebye=5, T=1, mass=10 ) = 0.9144148969
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=5
+  debyeIsotropicMSD( TDebye=400, T=1, mass=10 ) = 0.009095764735
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=400
+  debyeIsotropicMSD( TDebye=10000, T=1, mass=10 ) = 0.0003638156518
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=10000
+  debyeIsotropicMSD( TDebye=5, T=1, mass=300 ) = 0.03048049656
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=5
+  debyeIsotropicMSD( TDebye=400, T=1, mass=300 ) = 0.0003031921578
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=400
+  debyeIsotropicMSD( TDebye=10000, T=1, mass=300 ) = 1.212718839e-05
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=10000
+  debyeIsotropicMSD( TDebye=5, T=300, mass=1.007 ) = 1734.189165
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=5
+  debyeIsotropicMSD( TDebye=400, T=300, mass=1.007 ) = 0.2841150205
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=400
+  debyeIsotropicMSD( TDebye=10000, T=300, mass=1.007 ) = 0.003634260754
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=10000
+  debyeIsotropicMSD( TDebye=5, T=300, mass=10 ) = 174.632849
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=5
+  debyeIsotropicMSD( TDebye=400, T=300, mass=10 ) = 0.02861038257
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=400
+  debyeIsotropicMSD( TDebye=10000, T=300, mass=10 ) = 0.0003659700579
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=10000
+  debyeIsotropicMSD( TDebye=5, T=300, mass=300 ) = 5.821094965
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=5
+  debyeIsotropicMSD( TDebye=400, T=300, mass=300 ) = 0.000953679419
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=400
+  debyeIsotropicMSD( TDebye=10000, T=300, mass=300 ) = 1.219900193e-05
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=10000
+  debyeIsotropicMSD( TDebye=5, T=10000, mass=1.007 ) = 57805.85988
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=5
+  debyeIsotropicMSD( TDebye=400, T=10000, mass=1.007 ) = 9.032566967
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=400
+  debyeIsotropicMSD( TDebye=10000, T=10000, mass=1.007 ) = 0.01484894712
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=10000
+  debyeIsotropicMSD( TDebye=5, T=10000, mass=10 ) = 5821.05009
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=5
+  debyeIsotropicMSD( TDebye=400, T=10000, mass=10 ) = 0.9095794936
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=400
+  debyeIsotropicMSD( TDebye=10000, T=10000, mass=10 ) = 0.001495288975
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=10000
+  debyeIsotropicMSD( TDebye=5, T=10000, mass=300 ) = 194.035003
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=5
+  debyeIsotropicMSD( TDebye=400, T=10000, mass=300 ) = 0.03031931645
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=400
+  debyeIsotropicMSD( TDebye=10000, T=10000, mass=300 ) = 4.984296584e-05
+  ...going back via debyeTempFromIsotropicMSD gives TDebye=10000
 [{'group_description': 'Base parameters',
   'parameters': [{'allowed_input_units': None,
                   'default_value': '',
