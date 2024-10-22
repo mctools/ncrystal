@@ -108,7 +108,7 @@ namespace NCRYSTAL_NAMESPACE {
     bool file_exists( const std::string& path )
     {
       if ( isSimpleASCII( path ) ) {
-        std::ifstream f(name.c_str());
+        std::ifstream f(path.c_str());
         return f.good();
       } else {
         //Need UTF-16 API:
@@ -164,7 +164,7 @@ namespace NCRYSTAL_NAMESPACE {
         if (!FindNextFileW(fh, &fdata))
           break;
       }
-      FindCloseW(fh);
+      FindClose(fh);
       result.shrink_to_fit();
       std::sort(result.begin(),result.end());
       return result;
