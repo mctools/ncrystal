@@ -35,7 +35,8 @@
 #  endif
 #endif
 
-#if (nc_cplusplus >= 201703L) && !defined(NCRYSTAL_AVOID_CPP17FILESYSTEM)//FIXME: Use feature testing macro as well!
+#if (nc_cplusplus >= 201703L) && defined(__cpp_lib_filesystem)
+//The __cpp_lib_filesystem macro might only exist in C++20.
 #  include <filesystem>
 #endif
 
