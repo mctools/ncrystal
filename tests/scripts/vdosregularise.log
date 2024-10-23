@@ -1,0 +1,732 @@
+Validating VDOS regularisation of stdlib::AcrylicGlass_C5O2H8.ncmat / H:
+  egrid [meV]: 2.48233 .. 456.74872 (184 points)
+  density: [0.0320526, 0.0523842, 0.0589341, .., 0.000122171, 0.000102832, 8.71184e-05]
+Validating VDOS regularisation of stdlib::AcrylicGlass_C5O2H8.ncmat / C:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::AcrylicGlass_C5O2H8.ncmat / O:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::AgBr_sg225_SilverBromide.ncmat / Br:
+  egrid [meV]: 1.09996 .. 18.007678484848 (2030 points)
+  density: [0.0217383, 0.021988474192523, 0.022238648385046, .., 0.00029811660462567, 0.00025786348454901, 0]
+Validating VDOS regularisation of stdlib::AgBr_sg225_SilverBromide.ncmat / Ag:
+  egrid [meV]: 1.09996 .. 18.007678484848 (2030 points)
+  density: [0.0459825, 0.046537581541719, 0.047092663083439, .., 0.00010827637964193, 9.3953850870168e-05, 0]
+Validating VDOS regularisation of stdlib::Ag_sg225.ncmat / Ag:
+  egrid [meV]: 0.52039106190946 .. 20.295251414469 (229 points)
+  density: [0.00274907, 0.0048563, 0.00372493, .., 0.00070276, 0.000516426, 0]
+Validating VDOS regularisation of stdlib::Al2O3_sg167_Corundum.ncmat / O:
+  egrid [meV]: 11.354475566021 .. 107.69548036862 (281 points)
+  density: [0.00548724, 0.00611484, 0.00674243, .., 0.00202286, 0.00130394, 0]
+Validating VDOS regularisation of stdlib::Al2O3_sg167_Corundum.ncmat / Al:
+  egrid [meV]: 12.375158345003 .. 106.802997021 (352 points)
+  density: [0.0355487, 0.0412635, 0.0455539, .., 0.00604681, 0.00412848, 0]
+Validating VDOS regularisation of stdlib::Al4C3_sg166_AluminiumCarbide.ncmat / C:
+  egrid [meV]: 18.7494 .. 109.5139542192 (4992 points)
+  density: [0.037681, 0.03792932337473, 0.038177646749459, .., 0.0030725918456022, 0.0030058295990289, 0]
+Validating VDOS regularisation of stdlib::Al4C3_sg166_AluminiumCarbide.ncmat / Al:
+  egrid [meV]: 16.4994 .. 109.50543994975 (8975 points)
+  density: [0.165105, 0.16578284058479, 0.16646068116957, .., 0.0014693974403769, 0.0014512940071893, 0]
+Validating VDOS regularisation of stdlib::AlN_sg186_AluminumNitride.ncmat / N:
+  egrid [meV]: 23.2492 .. 106.51260390456 (4954 points)
+  density: [0.0282539, 0.028430596229073, 0.028607292458147, .., 0.00097723424586288, 0.00087546491527226, 0]
+Validating VDOS regularisation of stdlib::AlN_sg186_AluminumNitride.ncmat / Al:
+  egrid [meV]: 23.2492 .. 106.51260390456 (4954 points)
+  density: [0.188993, 0.19021939901322, 0.19144579802644, .., 0.0012339811932509, 0.0011056881961177, 0]
+Validating VDOS regularisation of stdlib::Al_sg225.ncmat / Al:
+  egrid [meV]: 4.85015 .. 39.828953120464 (4970 points)
+  density: [0.013232, 0.01328093683772, 0.013329873675441, .., 0.00077623419313604, 3.0334864404789e-05, 0]
+Validating VDOS regularisation of stdlib::Au_sg225.ncmat / Au:
+  egrid [meV]: 3.1017507465 .. 19.2308546283 (79 points)
+  density: [0.0744879, 0.0837989, 0.0949721, .., 0.217877, 0.0502793, 0]
+Validating VDOS regularisation of stdlib::BaF2_sg225_BariumFluoride.ncmat / F:
+  egrid [meV]: 5.24982 .. 43.005792906977 (4949 points)
+  density: [0.0108218, 0.010844912225046, 0.010868024450093, .., 0.00025150061840779, 0.00022768770102372, 0]
+Validating VDOS regularisation of stdlib::BaF2_sg225_BariumFluoride.ncmat / Ba:
+  egrid [meV]: 5.24982 .. 43.005792906977 (4949 points)
+  density: [0.0953472, 0.095639087989531, 0.095930975979061, .., 6.403514006556e-05, 5.8007708634112e-05, 0]
+Validating VDOS regularisation of stdlib::BaO_sg225_BariumOxide.ncmat / O:
+  egrid [meV]: 5.24982 .. 48.019186904762 (2054 points)
+  density: [0.0110796, 0.011179699892956, 0.011279799785911, .., 4.1836544943595e-05, 2.8175976218556e-05, 0]
+Validating VDOS regularisation of stdlib::BaO_sg225_BariumOxide.ncmat / Ba:
+  egrid [meV]: 5.24982 .. 48.019186904762 (2054 points)
+  density: [0.105139, 0.10674549828205, 0.1083519965641, .., 9.3527490809546e-09, 5.9446685588101e-09, 0]
+Validating VDOS regularisation of stdlib::Ba_sg229.ncmat / Ba:
+  egrid [meV]: 2.4132861508069 .. 9.1978075936414 (150 points)
+  density: [0.531495, 0.55588, 0.570281, .., 0.0131813, 0.00148669, 0]
+Validating VDOS regularisation of stdlib::Be3N2_sg206_BerylliumNitride.ncmat / Be:
+  egrid [meV]: 31.4989 .. 133.51495807717 (4953 points)
+  density: [0.0700741, 0.070719328168871, 0.071364556337742, .., 0.0021404347895616, 0.0019579256430545, 0]
+Validating VDOS regularisation of stdlib::Be3N2_sg206_BerylliumNitride.ncmat / N:
+  egrid [meV]: 31.4989 .. 133.51495807717 (4953 points)
+  density: [0.0898085, 0.090648873616258, 0.091489247232515, .., 0.0014818303277474, 0.0013558029904399, 0]
+Validating VDOS regularisation of stdlib::BeF2_sg152_Beryllium_Fluoride.ncmat / Be:
+  egrid [meV]: 2.09993 .. 124.36252111111 (2621 points)
+  density: [0.00397365, 0.0041281442624127, 0.0042826385248255, .., 8.8729746128179e-12, 2.7296146281353e-14, 0]
+Validating VDOS regularisation of stdlib::BeF2_sg152_Beryllium_Fluoride.ncmat / F:
+  egrid [meV]: 2.09993 .. 124.36252111111 (2621 points)
+  density: [0.0180403, 0.018811076869616, 0.019581853739231, .., 3.3177024311536e-12, 1.0206328185358e-14, 0]
+Validating VDOS regularisation of stdlib::BeO_sg186.ncmat / Be:
+  egrid [meV]: 1 .. 149 (149 points)
+  density: [4.44392e-05, 0.000101759, 0.000209314, .., 0.00636243, 0.00257612, 8.77064e-05]
+Validating VDOS regularisation of stdlib::BeO_sg186.ncmat / O:
+  egrid [meV]: 4 .. 149 (146 points)
+  density: [0.000937036, 0.0013878, 0.00189964, .., 0.00526579, 0.00213807, 7.30145e-05]
+Validating VDOS regularisation of stdlib::Be_sg194.ncmat / Be:
+  egrid [meV]: 0.69552 .. 87.63552 (126 points)
+  density: [0.00072477, 0.0037084, 0.0080087, .., 1.3358, 0.35968, 0]
+Validating VDOS regularisation of stdlib::Bi_sg166.ncmat / Bi:
+  egrid [meV]: 0.2 .. 17.6 (88 points)
+  density: [0.00281682, 0.00563364, 0.00845047, .., 0.00493855, 0.00186072, 0]
+Validating VDOS regularisation of stdlib::C_sg194_pyrolytic_graphite.ncmat / C:
+  egrid [meV]: 1 .. 200 (200 points)
+  density: [0.00309353, 0.00794698, 0.0141481, .., 0.926181, 0.384246, 0]
+Validating VDOS regularisation of stdlib::C_sg227_Diamond.ncmat / C:
+  egrid [meV]: 40.474125140929 .. 168.31313015923 (260 points)
+  density: [0.0209487, 0.0217242, 0.0224996, .., 0.0378375, 0.00676022, 0]
+Validating VDOS regularisation of stdlib::CaCO3_sg62_Aragonite.ncmat / C:
+  egrid [meV]: 1.09996 .. 200.19272 (363 points)
+  density: [0.00518673, 0.00986893, 0.0144394, .., 2.36421e-05, 5.28568e-06, 0]
+Validating VDOS regularisation of stdlib::CaCO3_sg62_Aragonite.ncmat / O:
+  egrid [meV]: 1.09996 .. 200.19272 (363 points)
+  density: [0.00541465, 0.0102909, 0.0150981, .., 2.33133e-06, 5.21314e-07, 0]
+Validating VDOS regularisation of stdlib::CaCO3_sg62_Aragonite.ncmat / Ca:
+  egrid [meV]: 1.09996 .. 200.19272 (363 points)
+  density: [0.0104042, 0.0199242, 0.0287771, .., 4.3419e-08, 9.70033e-09, 0]
+Validating VDOS regularisation of stdlib::CaF2_sg225_CalciumFlouride.ncmat / F:
+  egrid [meV]: 15.5995 .. 58.181682988248 (4879 points)
+  density: [0.125053, 0.12539337857079, 0.12573375714158, .., 8.8138488501132e-07, 1.4542306029532e-08, 0]
+Validating VDOS regularisation of stdlib::CaF2_sg225_CalciumFlouride.ncmat / Ca:
+  egrid [meV]: 15.5995 .. 58.181682988248 (4879 points)
+  density: [0.299919, 0.30106202949033, 0.30220505898066, .., 1.1139406239497e-06, 1.8379332034944e-08, 0]
+Validating VDOS regularisation of stdlib::CaH2_sg62_CalciumHydride.ncmat / H:
+  egrid [meV]: 9.74967 .. 150.8130772028 (2070 points)
+  density: [0.00486681, 0.0049491290311775, 0.005031448062355, .., 0.0013568994093551, 0.0010881732407094, 0]
+Validating VDOS regularisation of stdlib::CaH2_sg62_CalciumHydride.ncmat / Ca:
+  egrid [meV]: 8.99969 .. 150.8129869697 (2081 points)
+  density: [0.0894021, 0.091569633419971, 0.093737166839942, .., 2.0094348681091e-05, 1.6179253998069e-05, 0]
+Validating VDOS regularisation of stdlib::CaO2H2_sg164_CalciumHydroxide.ncmat / H:
+  egrid [meV]: 4.99983 .. 461.02206056604 (9669 points)
+  density: [0.0884415, 0.088820589893667, 0.089199679787333, .., 0.010588979375624, 0.0098570057391026, 0]
+Validating VDOS regularisation of stdlib::CaO2H2_sg164_CalciumHydroxide.ncmat / O:
+  egrid [meV]: 4.99983 .. 461.02206056604 (9669 points)
+  density: [0.0424719, 0.043434905405469, 0.044397910810938, .., 0.00027379142917387, 0.00025487797225574, 0]
+Validating VDOS regularisation of stdlib::CaO2H2_sg164_CalciumHydroxide.ncmat / Ca:
+  egrid [meV]: 4.99983 .. 461.02206056604 (9669 points)
+  density: [0.123381, 0.12600538866872, 0.12862977733745, .., 1.1686470951606e-07, 1.0895942084542e-07, 0]
+Validating VDOS regularisation of stdlib::CaO_sg225_CalciumOxide.ncmat / O:
+  egrid [meV]: 16.9994 .. 61.017077149321 (2290 points)
+  density: [0.0183823, 0.018416534574192, 0.018450769148384, .., 0.00085820659159603, 0.00072065668017999, 0]
+Validating VDOS regularisation of stdlib::CaO_sg225_CalciumOxide.ncmat / Ca:
+  egrid [meV]: 14.9995 .. 61.005311647429 (5847 points)
+  density: [0.101099, 0.1014837906941, 0.1018685813882, .., 0.00042935704983888, 0.00039858007448806, 0]
+Validating VDOS regularisation of stdlib::CaSiO3_sg2_Wollastonite.ncmat / O:
+  egrid [meV]: 23.2237051585 .. 46.447410317 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::CaSiO3_sg2_Wollastonite.ncmat / Si:
+  egrid [meV]: 23.2237051585 .. 46.447410317 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::CaSiO3_sg2_Wollastonite.ncmat / Ca:
+  egrid [meV]: 23.2237051585 .. 46.447410317 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::Ca_sg225.ncmat / Ca:
+  egrid [meV]: 7.29118 .. 19.382386833333 (200 points)
+  density: [0.10001, 0.101938, 0.103866, .., 0.122183, 0.0204241, 0]
+Validating VDOS regularisation of stdlib::Ca_sg229_Calcium-gamma.ncmat / Ca:
+  egrid [meV]: 7.7859130379954 .. 15.571826075991 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::CeO2_sg225_CeriumOxide.ncmat / O:
+  egrid [meV]: 11.9996 .. 73.502948277635 (9970 points)
+  density: [0.0298013, 0.029831319150371, 0.029861338300741, .., 0.0036545397755472, 0.0035053586156975, 0]
+Validating VDOS regularisation of stdlib::CeO2_sg225_CeriumOxide.ncmat / Ce:
+  egrid [meV]: 11.4996 .. 73.526854219949 (2110 points)
+  density: [0.116669, 0.11789835182041, 0.11912770364082, .., 0.00014636806457549, 0.00012269349792366, 0]
+Validating VDOS regularisation of stdlib::Cr_sg229.ncmat / Cr:
+  egrid [meV]: 10.339169155 .. 39.914001854186 (124 points)
+  density: [0.02759, 0.0291941, 0.0307981, .., 0.187035, 0.0619171, 0]
+Validating VDOS regularisation of stdlib::Cu2O_sg224_Cuprite.ncmat / O:
+  egrid [meV]: 2.09993 .. 88.239915714286 (2011 points)
+  density: [0.0350734, 0.036656242121768, 0.038239084243536, .., 6.1282545738265e-12, 5.714561164813e-15, 0]
+Validating VDOS regularisation of stdlib::Cu2O_sg224_Cuprite.ncmat / Cu:
+  egrid [meV]: 2.09993 .. 88.239915714286 (2011 points)
+  density: [0.0731485, 0.075535170319745, 0.077921840639489, .., 6.7827074005919e-13, 6.3248345571765e-16, 0]
+Validating VDOS regularisation of stdlib::Cu_sg225.ncmat / Cu:
+  egrid [meV]: 5.8437397630826 .. 30.314400020991 (202 points)
+  density: [0.0381641, 0.0400517, 0.0419393, .., 0.0439823, 0.0013455, 0]
+Validating VDOS regularisation of stdlib::Dy2O3_sg206_DysprosiumOxide.ncmat / O:
+  egrid [meV]: 6.49978 .. 77.030726051282 (2117 points)
+  density: [0.00937625, 0.0095968866474069, 0.0098175232948139, .., 9.8806051951878e-05, 5.09814294599e-05, 0]
+Validating VDOS regularisation of stdlib::Dy2O3_sg206_DysprosiumOxide.ncmat / Dy:
+  egrid [meV]: 5.99979 .. 77.031786551724 (2061 points)
+  density: [0.0753531, 0.075186720912283, 0.075020341824566, .., 4.1020232777462e-06, 2.0899135563065e-06, 0]
+Validating VDOS regularisation of stdlib::Epoxy_Araldite506_C18H20O3.ncmat / H:
+  egrid [meV]: 3.60721 .. 434.668805 (240 points)
+  density: [0.043309, 0.0779235, 0.112894, .., 6.5484e-07, 1.55005e-07, 0]
+Validating VDOS regularisation of stdlib::Epoxy_Araldite506_C18H20O3.ncmat / C:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::Epoxy_Araldite506_C18H20O3.ncmat / O:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::Fe_sg225_Iron-gamma.ncmat / Fe:
+  egrid [meV]: 10.3457 .. 30.933643 (200 points)
+  density: [0.0649167, 0.0664705, 0.0680242, .., 0.0134555, 0.00282871, 0]
+Validating VDOS regularisation of stdlib::Fe_sg229_Iron-alpha.ncmat / Fe:
+  egrid [meV]: 10.394090821551 .. 38.841076227901 (261 points)
+  density: [0.0506018, 0.0518623, 0.0531229, .., 0.0950716, 0.0661943, 0]
+Validating VDOS regularisation of stdlib::GaN_sg186_GalliumNitride.ncmat / N:
+  egrid [meV]: 5.49981 .. 91.038521590909 (2054 points)
+  density: [0.00305797, 0.0031080833077563, 0.0031581966155126, .., 0.00011517962581687, 6.4046751914294e-05, 0]
+Validating VDOS regularisation of stdlib::GaN_sg186_GalliumNitride.ncmat / Ga:
+  egrid [meV]: 5.49981 .. 91.038521590909 (2054 points)
+  density: [0.0204665, 0.020815041488777, 0.021163582977553, .., 6.2949760977953e-06, 3.5888541456248e-06, 0]
+Validating VDOS regularisation of stdlib::GaSe_sg194_GalliumSelenide.ncmat / Ga:
+  egrid [meV]: 2.24992 .. 39.016905365854 (2011 points)
+  density: [0.0712484, 0.071847769318178, 0.072447138636357, .., 0.0002415164524761, 0.0001680480891556, 0]
+Validating VDOS regularisation of stdlib::GaSe_sg194_GalliumSelenide.ncmat / Se:
+  egrid [meV]: 2.24992 .. 39.016905365854 (2011 points)
+  density: [0.0689547, 0.069528935231112, 0.070103170462224, .., 3.7376212225766e-05, 2.6030356056552e-05, 0]
+Validating VDOS regularisation of stdlib::Ge3Bi4O12_sg220_BismuthGermanate.ncmat / O:
+  egrid [meV]: 1.99993 .. 100.04527878049 (2011 points)
+  density: [0.0161587, 0.017628649719511, 0.019098599439022, .., 0.00045226864601007, 0.00022406683009669, 0]
+Validating VDOS regularisation of stdlib::Ge3Bi4O12_sg220_BismuthGermanate.ncmat / Ge:
+  egrid [meV]: 1.99993 .. 100.04527878049 (2011 points)
+  density: [0.0211617, 0.022528664458748, 0.023895628917496, .., 1.0347184485244e-05, 5.1554434416601e-06, 0]
+Validating VDOS regularisation of stdlib::Ge3Bi4O12_sg220_BismuthGermanate.ncmat / Bi:
+  egrid [meV]: 1.49995 .. 100.00324539474 (9983 points)
+  density: [0.0396859, 0.040714436880367, 0.041742973760734, .., 1.2340802938315e-06, 1.0331072762257e-06, 0]
+Validating VDOS regularisation of stdlib::Ge_sg227.ncmat / Ge:
+  egrid [meV]: 3.7709431308882 .. 37.789664141454 (425 points)
+  density: [0.00642161, 0.00671832, 0.00701502, .., 0.0129234, 0.00248401, 0]
+Validating VDOS regularisation of stdlib::HfO2_sg14_HafniumOxide.ncmat / O:
+  egrid [meV]: 6.74977 .. 105.75301408824 (9975 points)
+  density: [0.0242088, 0.024342866125421, 0.024476932250842, .., 2.5014570523951e-05, 2.1019608046065e-05, 0]
+Validating VDOS regularisation of stdlib::HfO2_sg14_HafniumOxide.ncmat / Hf:
+  egrid [meV]: 6.74977 .. 105.75301408824 (9975 points)
+  density: [0.0898221, 0.090386202407344, 0.090950304814688, .., 9.3643518465595e-07, 7.8712217755453e-07, 0]
+Validating VDOS regularisation of stdlib::Ho2O3_sg206_HolmiumOxide.ncmat / O:
+  egrid [meV]: 6.49978 .. 77.030726051282 (2117 points)
+  density: [0.00926086, 0.0095654759734096, 0.0098700919468192, .., 0.0026730472063899, 0.0020559639269227, 0]
+Validating VDOS regularisation of stdlib::Ho2O3_sg206_HolmiumOxide.ncmat / Ho:
+  egrid [meV]: 6.49978 .. 77.030726051282 (2117 points)
+  density: [0.0672478, 0.069665013122331, 0.072082226244662, .., 9.6682009204826e-05, 7.481143778061e-05, 0]
+Validating VDOS regularisation of stdlib::KBr_sg225_PotassiumBromide.ncmat / K:
+  egrid [meV]: 2.24992 .. 18.007226853147 (2004 points)
+  density: [0.0203969, 0.020531100358462, 0.020665300716925, .., 0.0085822303771992, 0.007739713880636, 0]
+Validating VDOS regularisation of stdlib::KBr_sg225_PotassiumBromide.ncmat / Br:
+  egrid [meV]: 2.24992 .. 18.007226853147 (2004 points)
+  density: [0.0602193, 0.060635073769204, 0.061050847538408, .., 0.00036497616724067, 0.00031728648416582, 0]
+Validating VDOS regularisation of stdlib::KF_sg225_PotassiumFlouride.ncmat / F:
+  egrid [meV]: 7.24975 .. 33.011361637931 (2062 points)
+  density: [0.0237721, 0.023861924867679, 0.023951749735358, .., 0.0033347599556584, 0.0027535238118776, 0]
+Validating VDOS regularisation of stdlib::KF_sg225_PotassiumFlouride.ncmat / K:
+  egrid [meV]: 7.24975 .. 33.011361637931 (2062 points)
+  density: [0.130628, 0.13120824914523, 0.13178849829047, .., 0.0018474770314601, 0.0015334329940785, 0]
+Validating VDOS regularisation of stdlib::KOH_sg4_PotassiumHydroxide.ncmat / H:
+  egrid [meV]: 2.9999 .. 413.01325945946 (10115 points)
+  density: [0.0036452, 0.003696298542595, 0.0037473970851899, .., 4.1291108538337e-05, 3.6007870396383e-05, 0]
+Validating VDOS regularisation of stdlib::KOH_sg4_PotassiumHydroxide.ncmat / O:
+  egrid [meV]: 2.9999 .. 413.01325945946 (10115 points)
+  density: [0.0273127, 0.027721701584124, 0.028130703168248, .., 1.0240670177295e-06, 8.931096864418e-07, 0]
+Validating VDOS regularisation of stdlib::KOH_sg4_PotassiumHydroxide.ncmat / K:
+  egrid [meV]: 2.9999 .. 413.01325945946 (10115 points)
+  density: [0.0400678, 0.040727265240183, 0.041386730480366, .., 2.41184894128e-10, 2.1089898499966e-10, 0]
+Validating VDOS regularisation of stdlib::K_sg229.ncmat / K:
+  egrid [meV]: 0.6464 .. 9.9877777777778 (2082 points)
+  density: [0.00432642, 0.0044143768645329, 0.0045023337290659, .., 0.0021601718066728, 5.3456367400446e-07, 0]
+Validating VDOS regularisation of stdlib::Kapton_C22H10N2O5.ncmat / H:
+  egrid [meV]: 3.60721 .. 433.07738882353 (2025 points)
+  density: [0.0237943, 0.024706439476533, 0.025618578953067, .., 4.7434195528464e-08, 1.7816595157338e-10, 0]
+Validating VDOS regularisation of stdlib::Kapton_C22H10N2O5.ncmat / C:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::Kapton_C22H10N2O5.ncmat / N:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::Kapton_C22H10N2O5.ncmat / O:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::LaBr3_sg176_LanthanumBromide.ncmat / Br:
+  egrid [meV]: 2.59991 .. 24.009695182186 (2035 points)
+  density: [0.0342314, 0.034621567860044, 0.035011735720088, .., 6.5001734731154e-06, 4.9395320328954e-06, 0]
+Validating VDOS regularisation of stdlib::LaBr3_sg176_LanthanumBromide.ncmat / La:
+  egrid [meV]: 2.59991 .. 24.009695182186 (2035 points)
+  density: [0.0588728, 0.059561530588646, 0.060250261177293, .., 2.9430335364573e-05, 2.2369440254023e-05, 0]
+Validating VDOS regularisation of stdlib::Li2O_sg225_LithiumOxide.ncmat / Li:
+  egrid [meV]: 24.7492 .. 94.505346975355 (7549 points)
+  density: [0.124642, 0.12500390404076, 0.12536580808152, .., 0.0067632849463231, 0.0065154032904717, 0]
+Validating VDOS regularisation of stdlib::Li2O_sg225_LithiumOxide.ncmat / O:
+  egrid [meV]: 24.7492 .. 94.505346975355 (7549 points)
+  density: [0.137703, 0.1380897711576, 0.13847654231519, .., 0.0016750094588253, 0.0016150380566862, 0]
+Validating VDOS regularisation of stdlib::Li3N_sg191_LithiumNitride.ncmat / Li:
+  egrid [meV]: 11.9996 .. 90.759861168385 (5731 points)
+  density: [0.15436, 0.1552264383968, 0.1560928767936, .., 0.00025765738907514, 0.00016589259148246, 0]
+Validating VDOS regularisation of stdlib::Li3N_sg191_LithiumNitride.ncmat / N:
+  egrid [meV]: 11.9996 .. 90.759861168385 (5731 points)
+  density: [0.0859244, 0.08632457632615, 0.0867247526523, .., 3.3465258124488e-05, 2.146200820447e-05, 0]
+Validating VDOS regularisation of stdlib::LiF_sg225_LithiumFlouride.ncmat / Li:
+  egrid [meV]: 21.9992 .. 76.016843493761 (2756 points)
+  density: [0.044448, 0.044575352555246, 0.044702705110491, .., 0.0024657680768361, 0.0021795685519821, 0]
+Validating VDOS regularisation of stdlib::LiF_sg225_LithiumFlouride.ncmat / F:
+  egrid [meV]: 20.4993 .. 76.008387479407 (4932 points)
+  density: [0.152966, 0.15398552891993, 0.15500505783985, .., 8.2014689017338e-06, 7.3294996927463e-06, 0]
+Validating VDOS regularisation of stdlib::LiH_sg225_LithiumHydride.ncmat / H:
+  egrid [meV]: 2.24992 .. 136.50412838323 (9966 points)
+  density: [6.39614e-06, 5.6713629584044e-05, 0.00010703111916809, .., 0.0012743632803026, 0.0011904406137643, 0]
+Validating VDOS regularisation of stdlib::LiH_sg225_LithiumHydride.ncmat / Li:
+  egrid [meV]: 2.24992 .. 136.50412838323 (9966 points)
+  density: [5.29896e-05, 0.00046985012249765, 0.00088671064499531, .., 4.5345672908727e-05, 4.2417182882918e-05, 0]
+Validating VDOS regularisation of stdlib::Lu2O3_sg206_LutetiumOxide.ncmat / O:
+  egrid [meV]: 8.49971 .. 80.032983655462 (2004 points)
+  density: [0.0218186, 0.022337706929313, 0.022856813858627, .., 0.001403323473208, 0.00096401379678287, 0]
+Validating VDOS regularisation of stdlib::Lu2O3_sg206_LutetiumOxide.ncmat / Lu:
+  egrid [meV]: 8.49971 .. 80.032983655462 (2004 points)
+  density: [0.166029, 0.17145035491269, 0.17687170982538, .., 3.7925243798967e-05, 2.6218141472032e-05, 0]
+Validating VDOS regularisation of stdlib::Lu2SiO5_sg15.ncmat / O:
+  egrid [meV]: 4.49985 .. 130.55902816901 (1990 points)
+  density: [0.0474277, 0.048580060179174, 0.049732420358349, .., 0.00044689181134822, 0.00033163449771528, 0]
+Validating VDOS regularisation of stdlib::Lu2SiO5_sg15.ncmat / Si:
+  egrid [meV]: 4.49985 .. 130.55902816901 (1990 points)
+  density: [0.0549219, 0.055913418372451, 0.056904936744902, .., 0.0013611418638396, 0.0010105560771581, 0]
+Validating VDOS regularisation of stdlib::Lu2SiO5_sg15.ncmat / Lu:
+  egrid [meV]: 4.49985 .. 130.55902816901 (1990 points)
+  density: [0.171798, 0.17728511151808, 0.18277222303616, .., 1.2241944867729e-06, 9.1199608641394e-07, 0]
+Validating VDOS regularisation of stdlib::Mg2SiO4_sg62_MagnesiumSilicate.ncmat / O:
+  egrid [meV]: 14.9995 .. 127.53287747525 (3032 points)
+  density: [0.0847858, 0.086730310530207, 0.088674821060413, .., 0.0066651023838946, 0.005964785623374, 0]
+Validating VDOS regularisation of stdlib::Mg2SiO4_sg62_MagnesiumSilicate.ncmat / Mg:
+  egrid [meV]: 14.9995 .. 127.53287747525 (3032 points)
+  density: [0.0945142, 0.096784630597995, 0.09905506119599, .., 0.00015959320273032, 0.00014336427839975, 0]
+Validating VDOS regularisation of stdlib::Mg2SiO4_sg62_MagnesiumSilicate.ncmat / Si:
+  egrid [meV]: 14.9995 .. 127.53287747525 (3032 points)
+  density: [0.164479, 0.16816508091735, 0.17185116183469, .., 0.026427195854737, 0.023654172314246, 0]
+Validating VDOS regularisation of stdlib::MgAl2O4_sg227_MAS.ncmat / O:
+  egrid [meV]: 14.4995 .. 98.01318816568 (4868 points)
+  density: [0.044024, 0.044562518121604, 0.045101036243209, .., 0.00011125068093334, 7.9433190919126e-05, 0]
+Validating VDOS regularisation of stdlib::MgAl2O4_sg227_MAS.ncmat / Mg:
+  egrid [meV]: 13.4995 .. 98.032083333333 (2368 points)
+  density: [0.0553881, 0.056534082599951, 0.057680065199901, .., 6.7190672893899e-05, 3.668703436235e-05, 0]
+Validating VDOS regularisation of stdlib::MgAl2O4_sg227_MAS.ncmat / Al:
+  egrid [meV]: 13.4995 .. 98.032083333333 (2368 points)
+  density: [0.0538321, 0.055076089476463, 0.056320078952927, .., 2.1575521532855e-05, 1.179667667938e-05, 0]
+Validating VDOS regularisation of stdlib::MgCO3_sg167_MagnesiumCarbonate.ncmat / C:
+  egrid [meV]: 18.7494 .. 195.00787055503 (9994 points)
+  density: [0.0442381, 0.044437729271, 0.044637358542, .., 0.0005184494111006, 0.0004672307988907, 0]
+Validating VDOS regularisation of stdlib::MgCO3_sg167_MagnesiumCarbonate.ncmat / O:
+  egrid [meV]: 17.9994 .. 195.00830700888 (9963 points)
+  density: [0.10173, 0.10224549207816, 0.10276098415631, .., 0.00011440354177737, 0.00010301642175144, 0]
+Validating VDOS regularisation of stdlib::MgCO3_sg167_MagnesiumCarbonate.ncmat / Mg:
+  egrid [meV]: 17.9994 .. 195.00830700888 (9963 points)
+  density: [0.121624, 0.12206334576236, 0.12250269152471, .., 2.1230115608642e-06, 1.9134850459608e-06, 0]
+Validating VDOS regularisation of stdlib::MgD2_sg136_MagnesiumDeuteride.ncmat / D:
+  egrid [meV]: 5.5 .. 129.25 (2026 points)
+  density: [0.00183879, 0.0018894942962963, 0.0019401985925926, .., 0.15104970370371, 0.14494185185185, 0.138834]
+Validating VDOS regularisation of stdlib::MgD2_sg136_MagnesiumDeuteride.ncmat / Mg:
+  egrid [meV]: 5.5 .. 129.25 (2026 points)
+  density: [0.0136187, 0.014024331111111, 0.014429962222222, .., 0.0013030689777778, 0.0011278164888889, 0.000952564]
+Validating VDOS regularisation of stdlib::MgF2_sg136_MagnesiumFlouride.ncmat / F:
+  egrid [meV]: 10.9996 .. 76.029493255132 (2017 points)
+  density: [0.0949002, 0.095793088074669, 0.096685976149338, .., 4.2893861636619e-06, 2.2019294835044e-06, 0]
+Validating VDOS regularisation of stdlib::MgF2_sg136_MagnesiumFlouride.ncmat / Mg:
+  egrid [meV]: 11.4996 .. 76.028605434783 (2066 points)
+  density: [0.0854214, 0.086630561684898, 0.087839723369796, .., 1.4963272800111e-05, 7.792097634238e-06, 0]
+Validating VDOS regularisation of stdlib::MgH2_sg136_MagnesiumHydride.ncmat / H:
+  egrid [meV]: 16.75 .. 182.5 (2653 points)
+  density: [0.0175555, 0.018142375, 0.01872925, .., 0.071000749999999, 0.063440224999996, 0.0558797]
+Validating VDOS regularisation of stdlib::MgH2_sg136_MagnesiumHydride.ncmat / Mg:
+  egrid [meV]: 7 .. 182.5 (2107 points)
+  density: [0.0217357, 0.022393533333333, 0.023051366666667, .., 9.0260633333326e-05, 5.6583866666663e-05, 2.29071e-05]
+Validating VDOS regularisation of stdlib::MgO2H2_sg164_MagnesiumHydroxide.ncmat / H:
+  egrid [meV]: 10.9996 .. 467.18301090909 (2282 points)
+  density: [0.0494886, 0.052882652691965, 0.056276705383931, .., 0.00016703996565059, 0.00010892729077813, 0]
+Validating VDOS regularisation of stdlib::MgO2H2_sg164_MagnesiumHydroxide.ncmat / O:
+  egrid [meV]: 10.9996 .. 467.18301090909 (2282 points)
+  density: [0.074631, 0.076908595095909, 0.079186190191818, .., 4.7052199814269e-06, 3.0700475022614e-06, 0]
+Validating VDOS regularisation of stdlib::MgO2H2_sg164_MagnesiumHydroxide.ncmat / Mg:
+  egrid [meV]: 10.9996 .. 467.18301090909 (2282 points)
+  density: [0.14781, 0.15245818999157, 0.15710637998314, .., 4.8183678663139e-09, 3.0226357328635e-09, 0]
+Validating VDOS regularisation of stdlib::MgO_sg225_Periclase.ncmat / O:
+  egrid [meV]: 1.29996 .. 80.077536 (304 points)
+  density: [0.000111624, 0.000648373, 0.00212966, .., 7.53097e-10, 5.00734e-11, 0]
+Validating VDOS regularisation of stdlib::MgO_sg225_Periclase.ncmat / Mg:
+  egrid [meV]: 1.29996 .. 80.077536 (304 points)
+  density: [0.000194326, 0.00112875, 0.00370751, .., 3.23914e-10, 2.08184e-11, 0]
+Validating VDOS regularisation of stdlib::Mg_sg194.ncmat / Mg:
+  egrid [meV]: 4.135667662 .. 30.1903739326 (64 points)
+  density: [0.0110375, 0.013245, 0.0154525, .., 0.300221, 0.163355, 0]
+Validating VDOS regularisation of stdlib::Mo_sg229.ncmat / Mo:
+  egrid [meV]: 10.339169155 .. 33.37556358807 (128 points)
+  density: [0.0395798, 0.041158, 0.0427361, .., 0.21387, 0.109081, 0]
+Validating VDOS regularisation of stdlib::Na4Si3Al3O12Cl_sg218_Sodalite.ncmat / O:
+  egrid [meV]: 4.49985 .. 132.75198504274 (10005 points)
+  density: [0.0331228, 0.033486117868281, 0.033849435736562, .., 0.0044151809269501, 0.0039979788854506, 0]
+Validating VDOS regularisation of stdlib::Na4Si3Al3O12Cl_sg218_Sodalite.ncmat / Na:
+  egrid [meV]: 4.49985 .. 132.75198504274 (10005 points)
+  density: [0.0125299, 0.012679234002884, 0.012828568005769, .., 3.2431975568491e-06, 2.9331277905577e-06, 0]
+Validating VDOS regularisation of stdlib::Na4Si3Al3O12Cl_sg218_Sodalite.ncmat / Al:
+  egrid [meV]: 4.49985 .. 132.75198504274 (10005 points)
+  density: [0.0345965, 0.034928082683259, 0.035259665366518, .., 2.9248753543222e-05, 2.6521847299822e-05, 0]
+Validating VDOS regularisation of stdlib::Na4Si3Al3O12Cl_sg218_Sodalite.ncmat / Si:
+  egrid [meV]: 4.49985 .. 132.75198504274 (10005 points)
+  density: [0.0419209, 0.04235395322368, 0.04278700644736, .., 0.0060094184236449, 0.0054431336624389, 0]
+Validating VDOS regularisation of stdlib::Na4Si3Al3O12Cl_sg218_Sodalite.ncmat / Cl:
+  egrid [meV]: 4.49985 .. 132.75198504274 (10005 points)
+  density: [0.0299368, 0.030399179850895, 0.03086155970179, .., 4.3063247157015e-07, 3.9109116607836e-07, 0]
+Validating VDOS regularisation of stdlib::NaBr_sg225_SodiumBromide.ncmat / Na:
+  egrid [meV]: 4.24985 .. 25.002711410602 (5436 points)
+  density: [0.019838, 0.019861233353093, 0.019884466706186, .., 0.00087876679947461, 0.00082444248193359, 0]
+Validating VDOS regularisation of stdlib::NaBr_sg225_SodiumBromide.ncmat / Br:
+  egrid [meV]: 4.24985 .. 25.002711410602 (5436 points)
+  density: [0.125861, 0.12603008370176, 0.12619916740351, .., 5.7557295035152e-06, 5.3188686917178e-06, 0]
+Validating VDOS regularisation of stdlib::NaCl_sg225_SodiumChloride.ncmat / Na:
+  egrid [meV]: 6.39978 .. 29.066322678133 (2884 points)
+  density: [0.0565201, 0.056709445124806, 0.056898790249612, .., 1.2495881011992e-10, 6.2402664543758e-13, 0]
+Validating VDOS regularisation of stdlib::NaCl_sg225_SodiumChloride.ncmat / Cl:
+  egrid [meV]: 6.09979 .. 29.109242492355 (4935 points)
+  density: [0.0784835, 0.078575455324338, 0.078667410648676, .., 6.1278549179586e-12, 1.549197709458e-13, 0]
+Validating VDOS regularisation of stdlib::NaF_sg225_SodiumFlouride.ncmat / F:
+  egrid [meV]: 13.4995 .. 43.01192042042 (2185 points)
+  density: [0.0759001, 0.076455233392656, 0.077010366785311, .., 0.0014230090272435, 0.0012453771523705, 0]
+Validating VDOS regularisation of stdlib::NaF_sg225_SodiumFlouride.ncmat / Na:
+  egrid [meV]: 13.4995 .. 43.01192042042 (2185 points)
+  density: [0.113504, 0.11436751080308, 0.11523102160617, .., 0.0010199356380763, 0.00089222409299751, 0]
+Validating VDOS regularisation of stdlib::NaI_sg225_SodiumIodide.ncmat / Na:
+  egrid [meV]: 1.19996 .. 22.000653102253 (10003 points)
+  density: [0.00212111, 0.0021301212593858, 0.0021391325187716, .., 0.00025740219632206, 0.00024705605224168, 0]
+Validating VDOS regularisation of stdlib::NaI_sg225_SodiumIodide.ncmat / I:
+  egrid [meV]: 1.19996 .. 22.000653102253 (10003 points)
+  density: [0.0204449, 0.020533149156343, 0.020621398312686, .., 6.8999075343736e-07, 6.5584447761269e-07, 0]
+Validating VDOS regularisation of stdlib::Na_sg229.ncmat / Na:
+  egrid [meV]: 2.067833831 .. 15.853392704333 (181 points)
+  density: [0.0173027, 0.0192252, 0.0211477, .., 0.162517, 0.0662481, 0]
+Validating VDOS regularisation of stdlib::Nb_sg229.ncmat / Nb:
+  egrid [meV]: 5.1695845775 .. 26.881839803 (127 points)
+  density: [0.0296403, 0.0311841, 0.0333453, .., 0.0401379, 0.026244, 0]
+Validating VDOS regularisation of stdlib::Ni_sg225.ncmat / Ni:
+  egrid [meV]: 6.4985 .. 40.403717391304 (121 points)
+  density: [0.0525808, 0.0562783, 0.0599758, .., 0.0207608, 0.00321169, 0]
+Validating VDOS regularisation of stdlib::Nylon11_C11H21NO.ncmat / H:
+  egrid [meV]: 3.60721 .. 436.6166984 (3002 points)
+  density: [0.0253091, 0.027488577029349, 0.029668054058698, .., 1.1809356163382e-07, 4.8092194111433e-10, 0]
+Validating VDOS regularisation of stdlib::Nylon11_C11H21NO.ncmat / C:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::Nylon11_C11H21NO.ncmat / N:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::Nylon11_C11H21NO.ncmat / O:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::Nylon12_C12H23NO.ncmat / H:
+  egrid [meV]: 3.60721 .. 436.6166984 (3002 points)
+  density: [0.0252308, 0.027408117032293, 0.029585434064586, .., 1.073827577021e-07, 4.3730346990835e-10, 0]
+Validating VDOS regularisation of stdlib::Nylon12_C12H23NO.ncmat / C:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::Nylon12_C12H23NO.ncmat / N:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::Nylon12_C12H23NO.ncmat / O:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::Nylon610_C16H30N2O2.ncmat / H:
+  egrid [meV]: 3.60721 .. 436.6166984 (3002 points)
+  density: [0.0256776, 0.027867277015446, 0.030056954030893, .., 1.6851964740084e-07, 6.862761595354e-10, 0]
+Validating VDOS regularisation of stdlib::Nylon610_C16H30N2O2.ncmat / C:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::Nylon610_C16H30N2O2.ncmat / N:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::Nylon610_C16H30N2O2.ncmat / O:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::Nylon66or6_C12H22N2O2.ncmat / H:
+  egrid [meV]: 3.60721 .. 436.6166984 (3002 points)
+  density: [0.0261677, 0.028370944996953, 0.030574189993906, .., 2.3558386739898e-07, 9.5938719467235e-10, 0]
+Validating VDOS regularisation of stdlib::Nylon66or6_C12H22N2O2.ncmat / C:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::Nylon66or6_C12H22N2O2.ncmat / N:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::Nylon66or6_C12H22N2O2.ncmat / O:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::PEEK_C19H12O3.ncmat / H:
+  egrid [meV]: 3.60721 .. 433.07738882353 (2025 points)
+  density: [0.0237943, 0.024706439476533, 0.025618578953067, .., 4.7434195528464e-08, 1.7816595157338e-10, 0]
+Validating VDOS regularisation of stdlib::PEEK_C19H12O3.ncmat / C:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::PEEK_C19H12O3.ncmat / O:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::PVC_C2H3Cl.ncmat / H:
+  egrid [meV]: 3.60721 .. 434.668805 (240 points)
+  density: [0.0188317, 0.0394442, 0.0624517, .., 1.72953e-06, 5.56859e-07, 0]
+Validating VDOS regularisation of stdlib::PVC_C2H3Cl.ncmat / C:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::PVC_C2H3Cl.ncmat / Cl:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::PbF2-beta_sg225_BetaLeadFlouride.ncmat / F:
+  egrid [meV]: 4.49985 .. 44.9985 (163 points)
+  density: [0.0147101, 0.0162082, 0.0194799, .., 3.64973e-07, 2.22723e-08, 8.92176e-10]
+Validating VDOS regularisation of stdlib::PbF2-beta_sg225_BetaLeadFlouride.ncmat / Pb:
+  egrid [meV]: 4.49985 .. 44.9985 (163 points)
+  density: [0.0670836, 0.083277, 0.130188, .., 1.31504e-08, 8.04079e-10, 3.22713e-11]
+Validating VDOS regularisation of stdlib::PbO-alpha_sg129_Litharge.ncmat / O:
+  egrid [meV]: 1.49995 .. 62.001981781377 (9964 points)
+  density: [0.0364341, 0.036677131712854, 0.036920163425707, .., 0.00061516670717781, 0.00059051795270607, 0]
+Validating VDOS regularisation of stdlib::PbO-alpha_sg129_Litharge.ncmat / Pb:
+  egrid [meV]: 1.49995 .. 62.001981781377 (9964 points)
+  density: [0.115693, 0.11654260775557, 0.11739221551114, .., 1.2392875030638e-05, 1.189629945339e-05, 0]
+Validating VDOS regularisation of stdlib::PbO-beta_sg57_Massicot.ncmat / O:
+  egrid [meV]: 2.24992 .. 63.028164324324 (2000 points)
+  density: [0.0200505, 0.020601652339791, 0.021152804679582, .., 0.00035624999969306, 0.00029112567770995, 0]
+Validating VDOS regularisation of stdlib::PbO-beta_sg57_Massicot.ncmat / Pb:
+  egrid [meV]: 2.24992 .. 63.028164324324 (2000 points)
+  density: [0.162937, 0.16852867199379, 0.17412034398757, .., 1.3059192783843e-05, 1.06763348934e-05, 0]
+Validating VDOS regularisation of stdlib::PbS_sg225_LeadSulfide.ncmat / S:
+  egrid [meV]: 3.49988 .. 30.009840621118 (2440 points)
+  density: [0.0166382, 0.017100425588583, 0.017562651177166, .., 0.0040828235904976, 0.0035863749953356, 0]
+Validating VDOS regularisation of stdlib::PbS_sg225_LeadSulfide.ncmat / Pb:
+  egrid [meV]: 3.24989 .. 30.012142064777 (2035 points)
+  density: [0.0548676, 0.055803336303921, 0.056739072607842, .., 3.5388461114129e-07, 2.9130417344994e-07, 0]
+Validating VDOS regularisation of stdlib::Pb_sg225.ncmat / Pb:
+  egrid [meV]: 1.15759 .. 9.508775 (203 points)
+  density: [0.0164391, 0.0181779, 0.0199167, .., 0.250927, 0.00160974, 0]
+Validating VDOS regularisation of stdlib::Pd_sg225.ncmat / Pd:
+  egrid [meV]: 11.283590222294 .. 28.77315506685 (94 points)
+  density: [0.314201, 0.329304, 0.344408, .., 0.0717718, 0.0240157, 0]
+Validating VDOS regularisation of stdlib::Polycarbonate_C16O3H14.ncmat / H:
+  egrid [meV]: 3.60721 .. 433.07738882353 (2025 points)
+  density: [0.0498054, 0.054068450878562, 0.058331501757124, .., 4.0701271666616e-08, 1.5287664765766e-10, 0]
+Validating VDOS regularisation of stdlib::Polycarbonate_C16O3H14.ncmat / C:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::Polycarbonate_C16O3H14.ncmat / O:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::Polyester_C10H8O4.ncmat / H:
+  egrid [meV]: 3.60721 .. 433.07738882353 (2025 points)
+  density: [0.0365673, 0.039676400087982, 0.042785500175964, .., 3.5634603275972e-08, 1.3384590865031e-10, 0]
+Validating VDOS regularisation of stdlib::Polyester_C10H8O4.ncmat / C:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::Polyester_C10H8O4.ncmat / O:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::Polyethylene_CH2.ncmat / H:
+  egrid [meV]: 9.99966 .. 388.16862 (2081 points)
+  density: [0.0318665, 0.033742753592404, 0.035619007184809, .., 2.8625455821585e-10, 3.0197619382147e-13, 0]
+Validating VDOS regularisation of stdlib::Polyethylene_CH2.ncmat / C:
+  egrid [meV]: 4.99983 .. 389.153435 (2306 points)
+  density: [0.322584, 0.34021090629215, 0.35783781258429, .., 4.2024468577295e-11, 5.6909944456211e-14, 0]
+Validating VDOS regularisation of stdlib::Polylactide_C3H4O2.ncmat / H:
+  egrid [meV]: 3.60721 .. 434.668805 (240 points)
+  density: [0.0331411, 0.0666322, 0.0947942, .., 1.24917e-06, 4.02195e-07, 0]
+Validating VDOS regularisation of stdlib::Polylactide_C3H4O2.ncmat / C:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::Polylactide_C3H4O2.ncmat / O:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::Polypropylene_C3H6.ncmat / H:
+  egrid [meV]: 3.60721 .. 434.668805 (240 points)
+  density: [0.0339065, 0.0689534, 0.101344, .., 9.56367e-07, 3.07922e-07, 0]
+Validating VDOS regularisation of stdlib::Polypropylene_C3H6.ncmat / C:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::Polystyrene_C8H8.ncmat / H:
+  egrid [meV]: 3.60721 .. 434.668805 (240 points)
+  density: [0.0334822, 0.05309, 0.0779554, .., 1.41337e-06, 3.6778e-07, 0]
+Validating VDOS regularisation of stdlib::Polystyrene_C8H8.ncmat / C:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::Pt_sg225.ncmat / Pt:
+  egrid [meV]: 3.5153175127 .. 24.472018069181 (156 points)
+  density: [0.0334117, 0.0368611, 0.0403105, .., 0.027054, 0.00865729, 0]
+Validating VDOS regularisation of stdlib::Rb_sg229.ncmat / Rb:
+  egrid [meV]: 0.74442017916 .. 6.16805291304 (205 points)
+  density: [0.034372, 0.0374103, 0.0404485, .., 0.172171, 0.072361, 0]
+Validating VDOS regularisation of stdlib::Rubber_C5H8.ncmat / H:
+  egrid [meV]: 3.60721 .. 434.668805 (240 points)
+  density: [0.0343813, 0.070393, 0.105407, .., 7.74766e-07, 2.49452e-07, 0]
+Validating VDOS regularisation of stdlib::Rubber_C5H8.ncmat / C:
+  egrid [meV]: 17.2346606 .. 34.4693212 (20 points)
+  density: [0.25, 0.27700831024931, 0.30540166204986, .., 0.89750692520776, 0.94806094182825, 1]
+Validating VDOS regularisation of stdlib::Sc_sg194.ncmat / Sc:
+  egrid [meV]: 4.1795884525704 .. 29.893143497732 (284 points)
+  density: [0.0111288, 0.0117466, 0.0123644, .., 0.0579158, 0.0167878, 0]
+Validating VDOS regularisation of stdlib::SiC-beta_sg216_BetaSiliconCarbide.ncmat / C:
+  egrid [meV]: 25.4991 .. 117.0399866782 (2076 points)
+  density: [0.0130188, 0.013169164493209, 0.013319528986418, .., 0.00015330668413751, 9.4707696430874e-05, 0]
+Validating VDOS regularisation of stdlib::SiC-beta_sg216_BetaSiliconCarbide.ncmat / Si:
+  egrid [meV]: 20.9993 .. 117.00433394328 (9995 points)
+  density: [0.0807216, 0.081117243230074, 0.081512886460149, .., 0.0001544492241186, 0.00013643141028996, 0]
+Validating VDOS regularisation of stdlib::SiO2-alpha_sg154_AlphaQuartz.ncmat / O:
+  egrid [meV]: 9.5 .. 165 (312 points)
+  density: [0.170093, 0.244495, 0.341224, .., 3.82939e-10, 1.70566e-11, 0]
+Validating VDOS regularisation of stdlib::SiO2-alpha_sg154_AlphaQuartz.ncmat / Si:
+  egrid [meV]: 9.5 .. 165 (312 points)
+  density: [0.177028, 0.24498, 0.33808, .., 3.81517e-10, 1.68709e-11, 0]
+Validating VDOS regularisation of stdlib::SiO2-beta_sg180_BetaQuartz.ncmat / O:
+  egrid [meV]: 3.74987 .. 154.56282345455 (2213 points)
+  density: [0.230884, 0.24291488067869, 0.25494576135738, .., 0.0071595352240341, 0.0062156783621445, 0]
+Validating VDOS regularisation of stdlib::SiO2-beta_sg180_BetaQuartz.ncmat / Si:
+  egrid [meV]: 3.74987 .. 154.56282345455 (2213 points)
+  density: [0.0526284, 0.058021078173701, 0.063413756347403, .., 0.0026276874972306, 0.0022923410164601, 0]
+Validating VDOS regularisation of stdlib::Si_sg227.ncmat / Si:
+  egrid [meV]: 3.6920759485739 .. 62.149945134327 (191 points)
+  density: [0.0035953, 0.00432814, 0.00506097, .., 0.0933721, 0.0633747, 0]
+Validating VDOS regularisation of stdlib::Sn_sg141.ncmat / Sn:
+  egrid [meV]: 1.6759 .. 18.4349 (61 points)
+  density: [0.0531392, 0.0945335, 0.150109, .., 0.00659815, 0.00298692, 0]
+Validating VDOS regularisation of stdlib::SrF2_sg225_StrontiumFluoride.ncmat / F:
+  egrid [meV]: 7.24975 .. 48.008344482759 (4077 points)
+  density: [0.0185146, 0.018620263856934, 0.018725927713868, .., 0.0013924751347182, 0.0012948088669554, 0]
+Validating VDOS regularisation of stdlib::SrF2_sg225_StrontiumFluoride.ncmat / Sr:
+  egrid [meV]: 7.24975 .. 48.008344482759 (4077 points)
+  density: [0.0946798, 0.095300687159337, 0.095921574318674, .., 0.0005534669409906, 0.00051490675319995, 0]
+Validating VDOS regularisation of stdlib::SrH2_sg62_StrontiumHydride.ncmat / H:
+  egrid [meV]: 5.24982 .. 144.00703053191 (9939 points)
+  density: [0.00327858, 0.0032954663906289, 0.0033123527812579, .., 3.9173985931205e-09, 2.167656018505e-09, 0]
+Validating VDOS regularisation of stdlib::SrH2_sg62_StrontiumHydride.ncmat / Sr:
+  egrid [meV]: 5.24982 .. 144.00703053191 (9939 points)
+  density: [0.107682, 0.10835277158048, 0.10902354316096, .., 1.9056390025861e-11, 1.0543924094919e-11, 0]
+Validating VDOS regularisation of stdlib::Sr_sg225.ncmat / Sr:
+  egrid [meV]: 4.20184 .. 13.124848539326 (190 points)
+  density: [0.131669, 0.134848, 0.138028, .., 0.0471035, 0.0181757, 0]
+Validating VDOS regularisation of stdlib::Th3N4_sg166_ThoriumNitride.ncmat / N:
+  egrid [meV]: 5.49981 .. 80.032949415584 (2088 points)
+  density: [0.0535375, 0.054253270817154, 0.054969041634307, .., 0.0051511161701807, 0.0037555966479602, 0]
+Validating VDOS regularisation of stdlib::Th3N4_sg166_ThoriumNitride.ncmat / Th:
+  egrid [meV]: 3.49988 .. 80.032970204082 (2144 points)
+  density: [0.153606, 0.15933978250197, 0.16507356500394, .., 2.1988435633392e-05, 1.6033546112436e-05, 0]
+Validating VDOS regularisation of stdlib::ThO2_sg225_ThoriumDioxide.ncmat / O:
+  egrid [meV]: 10.4996 .. 77.027767251462 (2168 points)
+  density: [0.0146951, 0.01504846928129, 0.015401838562579, .., 0.00014362029068478, 9.5439624306354e-05, 0]
+Validating VDOS regularisation of stdlib::ThO2_sg225_ThoriumDioxide.ncmat / Th:
+  egrid [meV]: 9.49967 .. 77.028574177632 (2162 points)
+  density: [0.105809, 0.10792856015311, 0.11004812030623, .., 4.6788157735224e-06, 3.1166162532691e-06, 0]
+Validating VDOS regularisation of stdlib::Th_sg225.ncmat / Th:
+  egrid [meV]: 4.17094 .. 14.533739738095 (2088 points)
+  density: [0.104866, 0.10532014173178, 0.10577428346356, .., 0.00068372150636963, 3.5160490584464e-06, 0]
+Validating VDOS regularisation of stdlib::TiO2_sg136_Rutile.ncmat / O:
+  egrid [meV]: 4.49985 .. 105.00319620536 (10007 points)
+  density: [0.00496965, 0.0049982627762854, 0.0050268755525709, .., 9.2067292378501e-05, 7.6145255572471e-05, 0]
+Validating VDOS regularisation of stdlib::TiO2_sg136_Rutile.ncmat / Ti:
+  egrid [meV]: 4.49985 .. 105.00319620536 (10007 points)
+  density: [0.103816, 0.10477765210593, 0.10573930421185, .., 1.1466184614108e-05, 9.5143112869017e-06, 0]
+Validating VDOS regularisation of stdlib::TiO2_sg141_Anatase.ncmat / O:
+  egrid [meV]: 12.7496 .. 106.51467627628 (4899 points)
+  density: [0.105769, 0.1085238361769, 0.1112786723538, .., 0.0012052041550371, 0.0010348481530263, 0]
+Validating VDOS regularisation of stdlib::TiO2_sg141_Anatase.ncmat / Ti:
+  egrid [meV]: 9.74967 .. 106.51252387097 (5539 points)
+  density: [0.154827, 0.15613124547356, 0.15743549094712, .., 0.00010781849003351, 9.3924464254969e-05, 0]
+Validating VDOS regularisation of stdlib::Ti_sg194.ncmat / Ti:
+  egrid [meV]: 5.0175619664835 .. 36.10197024665 (255 points)
+  density: [0.0205479, 0.0217686, 0.0229894, .., 0.117982, 0.0016864, 0]
+Validating VDOS regularisation of stdlib::TlBr_sg221_ThaliumBromide.ncmat / Br:
+  egrid [meV]: 0.699976 .. 13.99952 (10014 points)
+  density: [0.0108746, 0.010917034409164, 0.010959468818329, .., 0.051155651595644, 0.050888010775705, 0]
+Validating VDOS regularisation of stdlib::TlBr_sg221_ThaliumBromide.ncmat / Tl:
+  egrid [meV]: 0.699976 .. 13.99952 (10014 points)
+  density: [0.0225797, 0.022673437712121, 0.022767175424243, .., 0.0042487928804346, 0.004230443289273, 0]
+Validating VDOS regularisation of stdlib::Tm2O3_sg206_ThuliumOxide.ncmat / O:
+  egrid [meV]: 8.49971 .. 79.008400027739 (5982 points)
+  density: [0.0203551, 0.020586391971056, 0.020817683942113, .., 0.00033651300035652, 0.00028356353773734, 0]
+Validating VDOS regularisation of stdlib::Tm2O3_sg206_ThuliumOxide.ncmat / Tm:
+  egrid [meV]: 8.49971 .. 79.008400027739 (5982 points)
+  density: [0.160905, 0.16326906118416, 0.16563312236832, .., 1.0782234879325e-05, 9.1102449202788e-06, 0]
+Validating VDOS regularisation of stdlib::UF6_sg62_UraniumHexaflouride.ncmat / F:
+  egrid [meV]: 2.9999 .. 83.002580748663 (9975 points)
+  density: [0.109342, 0.11003982916778, 0.11073765833555, .., 1.5588141993998e-05, 1.1632280987378e-05, 0]
+Validating VDOS regularisation of stdlib::UF6_sg62_UraniumHexaflouride.ncmat / U:
+  egrid [meV]: 2.9999 .. 83.002580748663 (9975 points)
+  density: [0.707875, 0.71256149927898, 0.71724799855795, .., 9.1901252331808e-07, 6.9716217419284e-07, 0]
+Validating VDOS regularisation of stdlib::UO2_sg225_UraniumDioxide.ncmat / O:
+  egrid [meV]: 7.2 .. 80 (183 points)
+  density: [0.0111843, 0.0125824, 0.0139804, .., 0.0383463, 0.0383463, 0]
+Validating VDOS regularisation of stdlib::UO2_sg225_UraniumDioxide.ncmat / U:
+  egrid [meV]: 4 .. 80 (191 points)
+  density: [0.0146953, 0.0180077, 0.0216815, .., 0.00566129, 0.00566129, 0]
+Validating VDOS regularisation of stdlib::V_sg229.ncmat / V:
+  egrid [meV]: 2.5016 .. 49.317257142857 (263 points)
+  density: [0.00965782, 0.0109953, 0.0123328, .., 0.00786702, 0.00506826, 0]
+Validating VDOS regularisation of stdlib::W_sg229.ncmat / W:
+  egrid [meV]: 4.3216486367601 .. 22.719524261825 (150 points)
+  density: [0.0101232, 0.0106726, 0.0112219, .., 0.00678491, 0.00186939, 0]
+Validating VDOS regularisation of stdlib::Y2O3_sg206_Yttrium_Oxide.ncmat / O:
+  egrid [meV]: 5.304 .. 76.562086956522 (310 points)
+  density: [0.00993635, 0.0108187, 0.0117011, .., 0.00505914, 0.00168258, 0]
+Validating VDOS regularisation of stdlib::Y2O3_sg206_Yttrium_Oxide.ncmat / Y:
+  egrid [meV]: 8.194 .. 85.292090909091 (208 points)
+  density: [0.0856997, 0.0960481, 0.106397, .., 0.00371577, 0.00168165, 0]
+Validating VDOS regularisation of stdlib::Y2SiO5_sg15_YSO.ncmat / O:
+  egrid [meV]: 4.49985 .. 129.80817291667 (2006 points)
+  density: [0.0409835, 0.043151877706617, 0.045320255413234, .., 1.0387610794532e-05, 4.3397698213873e-06, 0]
+Validating VDOS regularisation of stdlib::Y2SiO5_sg15_YSO.ncmat / Si:
+  egrid [meV]: 4.49985 .. 129.80817291667 (2006 points)
+  density: [0.046718, 0.048517953662639, 0.050317907325278, .., 3.0347778238725e-05, 1.2680274084072e-05, 0]
+Validating VDOS regularisation of stdlib::Y2SiO5_sg15_YSO.ncmat / Y:
+  egrid [meV]: 4.49985 .. 129.80817291667 (2006 points)
+  density: [0.129339, 0.13586056641054, 0.14238213282108, .., 1.0583367199914e-07, 4.4286356708066e-08, 0]
+Validating VDOS regularisation of stdlib::Y3Al5O12_sg230_YAG.ncmat / O:
+  egrid [meV]: 10.4996 .. 106.54281607143 (2050 points)
+  density: [0.0350029, 0.036102774345288, 0.037202648690576, .., 0.0063589040709205, 0.0042500009512677, 0]
+Validating VDOS regularisation of stdlib::Y3Al5O12_sg230_YAG.ncmat / Al:
+  egrid [meV]: 10.4996 .. 106.54281607143 (2050 points)
+  density: [0.051002, 0.052526780342358, 0.054051560684716, .., 0.0073985337586886, 0.0050088033062012, 0]
+Validating VDOS regularisation of stdlib::Y3Al5O12_sg230_YAG.ncmat / Y:
+  egrid [meV]: 10.4996 .. 106.54281607143 (2050 points)
+  density: [0.063338, 0.065902185973641, 0.068466371947281, .., 5.9321562160724e-05, 3.9009961751422e-05, 0]
+Validating VDOS regularisation of stdlib::Y_sg194.ncmat / Y:
+  egrid [meV]: 4.2022519113582 .. 19.678838219043 (303 points)
+  density: [0.0359863, 0.0369621, 0.0379378, .., 0.25032, 0.0804197, 0]
+Validating VDOS regularisation of stdlib::ZnF2_sg136_ZincFlouride.ncmat / F:
+  egrid [meV]: 6.49978 .. 64.9978 (118 points)
+  density: [0.0295314, 0.0424052, 0.0557861, .., 0.047841, 0.0135686, 0.00204184]
+Validating VDOS regularisation of stdlib::ZnF2_sg136_ZincFlouride.ncmat / Zn:
+  egrid [meV]: 6.99976 .. 65.026341877551 (2032 points)
+  density: [0.146152, 0.15112839754849, 0.15610479509698, .., 0.00047465033581665, 0.00036615050355238, 0]
+Validating VDOS regularisation of stdlib::ZnO_sg186_ZincOxide.ncmat / O:
+  egrid [meV]: 7.24975 .. 71.028800646552 (2042 points)
+  density: [0.0212807, 0.021500449833585, 0.021720199667169, .., 0.00011431167774805, 8.3353826192261e-05, 0]
+Validating VDOS regularisation of stdlib::ZnO_sg186_ZincOxide.ncmat / Zn:
+  egrid [meV]: 7.24975 .. 71.028800646552 (2042 points)
+  density: [0.105315, 0.10657974904221, 0.10784449808442, .., 1.292345388802e-05, 9.4448540223438e-06, 0]
+Validating VDOS regularisation of stdlib::ZnS_sg216_Sphalerite.ncmat / S:
+  egrid [meV]: 6.74977 .. 43.998500740741 (150 points)
+  density: [0.0186568, 0.0225313, 0.0292953, .., 0.00105352, 0.000116527, 9.27059e-06]
+Validating VDOS regularisation of stdlib::ZnS_sg216_Sphalerite.ncmat / Zn:
+  egrid [meV]: 6.74977 .. 43.998500740741 (150 points)
+  density: [0.0754911, 0.0927522, 0.122447, .., 0.000236063, 2.63543e-05, 2.11387e-06]
+Validating VDOS regularisation of stdlib::Zn_sg194.ncmat / Zn:
+  egrid [meV]: 5.553333179857 .. 26.242221496971 (191 points)
+  density: [0.123003, 0.13136, 0.139716, .., 0.235025, 0.205955, 0]
+Validating VDOS regularisation of stdlib::ZrF4-beta_sg84.ncmat / F:
+  egrid [meV]: 2.24992 .. 80.247146666667 (209 points)
+  density: [0.0275908, 0.0347042, 0.0353262, .., 0.025142, 0.00766968, 0]
+Validating VDOS regularisation of stdlib::ZrF4-beta_sg84.ncmat / Zr:
+  egrid [meV]: 1.74994 .. 80.059755 (180 points)
+  density: [0.120147, 0.153541, 0.200943, .., 0.00701667, 0.00214592, 0]
+Validating VDOS regularisation of stdlib::ZrO2_sg137_Zirconia.ncmat / O:
+  egrid [meV]: 11.4996 .. 90.0802 (206 points)
+  density: [0.0547354, 0.0649554, 0.0828119, .., 0.0232844, 0.00808906, 0]
+Validating VDOS regularisation of stdlib::ZrO2_sg137_Zirconia.ncmat / Zr:
+  egrid [meV]: 11.4996 .. 90.0802 (206 points)
+  density: [0.237227, 0.306107, 0.362116, .., 0.00195933, 0.000759269, 0]
+Validating VDOS regularisation of stdlib::ZrO2_sg14_Zirconia.ncmat / O:
+  egrid [meV]: 9.74967 .. 103.5136392 (5050 points)
+  density: [0.0545412, 0.054723976016458, 0.054906752032917, .., 0.0032351160036921, 0.0031478573125891, 0]
+Validating VDOS regularisation of stdlib::ZrO2_sg14_Zirconia.ncmat / Zr:
+  egrid [meV]: 8.24972 .. 103.51063773585 (6121 points)
+  density: [0.103457, 0.10399853484591, 0.10454006969182, .., 0.00045748050235859, 0.00044733095798173, 0]
+Validating VDOS regularisation of stdlib::Zr_sg194.ncmat / Zr:
+  egrid [meV]: 1.8888421345886 .. 22.902210881887 (357 points)
+  density: [0.00580803, 0.00699617, 0.00673608, .., 0.00277092, 0.000477786, 0]
