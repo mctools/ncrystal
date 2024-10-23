@@ -60,10 +60,7 @@ jobs:
     - name: Pip install
       run: |
         set -eux
-        python3 -m pip install numpy
-        python3 -m pip install gemmi
-        python3 -m pip install spglib
-        #python3 -m pip install ase
+        python3 -m pip install numpy gemmi spglib ase mpmath matplotlib
         #python3 -m pip install pymatgen
 
     - name: Check versions
@@ -94,14 +91,14 @@ jobs:
         --build ${{github.workspace}}/build
         --config ${{env.BUILD_TYPE}}
 
-    - name: CTest
-      run: ( cd ${{github.workspace}}/build && ctest --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle )
+    - name: CTest (from the build area)
+      run: |
+        set -eux
+        cd ${{github.workspace}}/build
+        ctest --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle
 
     - name: Install
       run: cmake --install ${{github.workspace}}/build
-
-    - name: Look around
-      run: ls -l ${{github.workspace}}
 
     - name: Tests without environment setup
       run: |
