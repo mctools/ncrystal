@@ -515,13 +515,16 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
   const double oldEmaxMinusEmin = oldEmax-emin;
   const double oldEmaxMinusEminDivEmin = oldEmaxMinusEmin/emin;
 
-  double kBegin = 2000.0/oldEmaxMinusEminDivEmin;//at least 2000 bins inside [emin,emax]
+  const double kBegin = 2000.0/oldEmaxMinusEminDivEmin;//at least 2000 bins inside [emin,emax]
   double k = ncmax(1.0,std::round(kBegin));//k is double, to avoid conversions below.
   PairDD best = { kInfinity, 0.0 };
   while ( true ) {
     double m = std::floor(oldEmaxMinusEminDivEmin * k);
     double binwidth = emin / k;
     double eps = oldEmaxMinusEmin - (m*binwidth);
+    if (!(eps>=0.0))
+      NCRYSTAL_THROW2(CalcError,"VDOS grid regularisation sanity"
+                      " check failed with eps="<<eps);
     nc_assert_always(eps>=0.0);
     if ( eps < best.first )
       best = { eps, k };
