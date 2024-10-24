@@ -177,7 +177,8 @@ NC::VDOSEval::VDOSEval(const VDOSData& vd)
 {
   if ( s_verbose_vdoseval )
     NCRYSTAL_MSG("VDOSEval constructed ("<<m_density.size()
-                 <<" density pts on egrid spanning ["<<m_emin<<", "<<m_emax<<"]");
+                 <<" density pts on egrid spanning ["<<fmt(m_emin,"%.14g")
+                 <<", "<<fmt(m_emax,"%.14g")<<"])");
 
   nc_assert( m_elementMassAMU.dbl()>0.5 && m_elementMassAMU.dbl()<2000.0 );
   nc_assert_always(m_density.size()<static_cast<std::size_t>(std::numeric_limits<int>::max()-2));
