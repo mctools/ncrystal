@@ -662,19 +662,38 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
       double y1 = vectAt(orig_density,std::distance(itBegin,itNext));
       double x0 = *it;
       double x1 = *itNext;
-      double r = ncclamp( ( eval - x0 ) / ( x1 - x0 ), 0.0, 1.0 );
+      //double r = ncclamp( ( eval - x0 ) / ( x1 - x0 ), 0.0, 1.0 );
 #if 0
-      //newDensity.push_back( y0 * (1.0 - r ) + y1 * r );
+      //Fast, but not quite stable near r=1:
+      double r = ( eval - x0 ) / ( x1 - x0 );
+      nc_assert(r>=0.0 && r<=1.0);
+      newDensity.push_back( y0 * (1.0 - r ) + y1 * r );
 #else
-      if ( r == 1.0 ) {
-        newDensity.push_back( y1 );
-      } else {
-        StableSum sum;
-        sum.add(y0);
-        sum.add(y1 * r);
-        sum.add(- y0 * r);
-        newDensity.push_back( sum.sum() );
-      }
+      //Stable:
+      // y*(x1-x0) = y0*(x1-x0) + (y1-y0)*(x-x0)
+      //          = y0*x1 + y1*x - y1*x0 - y0*x
+
+      //double r_times_dx = ( eval - x0 );
+
+      // double dx = x1 - x0;
+      // x*(x1-x0) = y0*((x1-x0)-(eval - x0)) + (eval - x0)*y1
+      //           = y0*x1 - y0*eval + eval*y1 - x0*y1
+      //           =
+      // if ( r == 1.0 ) {
+      //   newDensity.push_back( y1 );
+      // } else {
+      StableSum sum;
+      sum.add(y0*x1);
+      sum.add(- y0*eval);
+      sum.add(eval*y1);
+      sum.add(- x0*y1);
+      newDensity.push_back( sum.sum()/ ( x1-x0) );
+        // StableSum sum;
+        // sum.add(y0);
+        // sum.add(- y0 * r);
+        // sum.add(y1 * r);
+        //        newDensity.push_back( sum.sum() );
+      // }
 #endif
     }
   }
