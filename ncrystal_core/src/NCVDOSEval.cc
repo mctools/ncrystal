@@ -530,38 +530,63 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
   double k = ncmax(1.0,std::round(kBegin));//k is double, to avoid conversions below.
   nc_assert_always(k >= 1.0 );
   PairDD best = { kInfinity, 0.0 };
+
   while ( true ) {
     nc_assert_always(k >= 1.0 );//fixme: cleanup asserts after debugging
-    double m = std::floor(oldEmaxMinusEminDivEmin * k);
+    const double oldEmaxMinusEminDivEmin_mult_k = oldEmaxMinusEminDivEmin * k;
+    const double m = std::floor(oldEmaxMinusEminDivEmin_mult_k);
     if ( m < 1.0 ) {
       if ( extra_verbose )
         NCRYSTAL_MSG("regulariseVDOSGrid skip k since m<1");
       k += 1.0;
       continue;
     }
-    double binwidth = emin / k;
+    const double binwidth = emin / k;
     double eps = oldEmaxMinusEmin - (m*binwidth);
+    nc_assert_always( eps >= -oldEmaxMinusEmin*1e-10 );
+    eps = ncmax(0.0, eps );
+
+    //constexpr double safety_factor = 1.0-1.0e-13;//fixme
+    //    double eps_to_beat = safety_factor * ( oldEmaxMinusEmin - floor(oldEmaxMinusEminDivEmin * kbest)*emin/kbest )
+
+    const double kbest = best.second;
+    //fixme Find one with highest value of std::floor(oldEmaxMinusEminDivEmin * k)/k ??
+
+    //    const double eps_to_beat = safety_factor*best.first;
     if ( extra_verbose )
       NCRYSTAL_MSG("regulariseVDOSGrid trying k="<<k<<" (m="<<m<<", eps="<<eps<<")");
-#if 0//FIXME use this?!?
-    if ( eps < 0.0 && eps > -1.0e-15*emin )
-      eps = 0.0;
-#endif
-    if (!(eps>=0.0))
-      NCRYSTAL_THROW2(CalcError,"VDOS grid regularisation sanity"
-                      " check failed with eps="<<eps);
+
+    //We want to check if "eps < eps_to_beat", but the calculation of eps involves a
+    //subtraction which is numerically unstable. Thus we do it like this
+    //instead:
+    if ( kbest == 0.0 || std::floor(oldEmaxMinusEminDivEmin * k)/k >  std::floor(oldEmaxMinusEminDivEmin * kbest)/kbest ) {
+      //    if ( oldEmaxMinusEminDivEmin_mult_k < eps_to_beat*k/emin + m ) {
+      //Beats it
+      if ( extra_verbose )
+        NCRYSTAL_MSG("regulariseVDOSGrid NEW BEST k="<<k
+                     <<" (reduces epsilon by factor "<<eps/best.first<<" = 1-"<<(1.0-eps/best.first)<<")");
+      best = { eps, k };
+    }
+
+// #if 0//FIXME use this?!?
+//     if ( eps < 0.0 && eps > -1.0e-15*emin )
+//       eps = 0.0;
+// #endif
+//     if (!(eps>=0.0))
+//       NCRYSTAL_THROW2(CalcError,"VDOS grid regularisation sanity"
+//                       " check failed with eps="<<eps);
 
     //We could simply check "eps < best.first" in the next line, but for
     //whatever reason, it seems to give numerical irreproducibility
     //issues. Perhaps because two integers can happy to give the same value of
     //"eps", and then it is down to numerical issues which one will be best.
-    if ( eps < (1.0-1e-11)*best.first ) {
-      if ( extra_verbose )
-        NCRYSTAL_MSG("regulariseVDOSGrid NEW BEST k="<<k
-                     <<" (reduces epsilon by factor "<<eps/best.first<<" = 1-"<<(1.0-eps/best.first)<<")");
-      best = { eps, k };
+    // if ( eps < eps_to_beat ) {
+    //   if ( extra_verbose )
+    //     NCRYSTAL_MSG("regulariseVDOSGrid NEW BEST k="<<k
+    //                  <<" (reduces epsilon by factor "<<eps/best.first<<" = 1-"<<(1.0-eps/best.first)<<")");
+    //   best = { eps, k };
 
-    }
+    //    }
     //Check if best result so far is acceptable. We lower our requirement as we
     //go along and get more and more desperate:
     double tol = 1e-6;

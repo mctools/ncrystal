@@ -110,8 +110,8 @@ Unit cell volume [Aa^3] : 195.072
 Atoms / unit cell       : 12
 ----------------------------------------------------------------------------------------------------
 Atoms in unit cell (total 12):
-     8 F  atoms [T_Debye=486.72K, MSD=0.0101856Aa^2]
-     4 Sr atoms [T_Debye=266.35K, MSD=0.00701951Aa^2]
+     8 F  atoms [T_Debye=486.72K, MSD=0.0101855Aa^2]
+     4 Sr atoms [T_Debye=266.35K, MSD=0.0070195Aa^2]
 ----------------------------------------------------------------------------------------------------
 Atomic coordinates:
      F           1/4          1/4          1/4
@@ -129,12 +129,12 @@ Atomic coordinates:
 ----------------------------------------------------------------------------------------------------
 Dynamic info for F (66.6667%):
    type: S(alpha,beta) [from VDOS]
-   VDOS Source: 4077 points
-   VDOS E_max: 48.0083 meV
+   VDOS Source: 2121 points
+   VDOS E_max: 48.0176 meV
 Dynamic info for Sr (33.3333%):
    type: S(alpha,beta) [from VDOS]
-   VDOS Source: 4077 points
-   VDOS E_max: 48.0083 meV
+   VDOS Source: 2121 points
+   VDOS E_max: 48.0176 meV
 ----------------------------------------------------------------------------------------------------
 HKL info type: SymEqvGroup
 ----------------------------------------------------------------------------------------------------

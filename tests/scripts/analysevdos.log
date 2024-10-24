@@ -9,7 +9,7 @@
 ==> ZrO2_sg14_Zirconia.ncmat;temp=300;vdoslux=0//Zr => debye_temp=383.938478901; gamma0=15.324375133; integral=0.0213535417696; msd=0.00339215056308; teff=333.879499869
 ==> HfO2_sg14_HafniumOxide.ncmat;temp=1000000.0;vdoslux=0//O => debye_temp=771.691188594; gamma0=12364.717242; integral=0.040090116984; msd=15.2740130292; teff=1000000.04149
 ==> HfO2_sg14_HafniumOxide.ncmat;temp=1000000.0;vdoslux=0//Hf => debye_temp=287.800582016; gamma0=88897.1688735; integral=0.0127715833725; msd=9.84349905348; teff=1000000.00582
-==> PbS_sg225_LeadSulfide.ncmat;temp=1000000.0;vdoslux=0//S => debye_temp=307.808398114; gamma0=22053.6902899; integral=0.012454008422; msd=47.9024195931; teff=1000000.00474
+==> PbS_sg225_LeadSulfide.ncmat;temp=1000000.0;vdoslux=0//S => debye_temp=307.80843561; gamma0=22055.3665109; integral=0.0124540125238; msd=47.9024079225; teff=1000000.00474
 ==> PbS_sg225_LeadSulfide.ncmat;temp=1000000.0;vdoslux=0//Pb => debye_temp=118.227230581; gamma0=149499.751695; integral=0.00284621939022; msd=50.2436430001; teff=1000000.00073
 ==> ZrO2_sg137_Zirconia.ncmat;temp=1000000.0;vdoslux=0//O => debye_temp=703.4077717; gamma0=12676.3299167; integral=0.0299490852461; msd=18.3834032384; teff=1000000.03836
 ==> ZrO2_sg137_Zirconia.ncmat;temp=1000000.0;vdoslux=0//Zr => debye_temp=334.808508924; gamma0=55951.9053529; integral=0.0150709992934; msd=14.2318995115; teff=1000000.00975
