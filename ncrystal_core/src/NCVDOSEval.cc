@@ -559,7 +559,9 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
     //We want to check if "eps < eps_to_beat", but the calculation of eps involves a
     //subtraction which is numerically unstable. Thus we do it like this
     //instead:
-    if ( kbest == 0.0 || std::floor(oldEmaxMinusEminDivEmin * k)/k >  std::floor(oldEmaxMinusEminDivEmin * kbest)/kbest ) {
+    if ( eps == 0.0 || kbest == 0.0
+         || ( kbest*std::floor(oldEmaxMinusEminDivEmin * k)
+              >  k*std::floor(oldEmaxMinusEminDivEmin * kbest) ) ) {
       //    if ( oldEmaxMinusEminDivEmin_mult_k < eps_to_beat*k/emin + m ) {
       //Beats it
       if ( extra_verbose )
