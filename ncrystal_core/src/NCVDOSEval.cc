@@ -177,7 +177,8 @@ NC::VDOSEval::VDOSEval(const VDOSData& vd)
 {
   if ( s_verbose_vdoseval )
     NCRYSTAL_MSG("VDOSEval constructed ("<<m_density.size()
-                 <<" density pts on egrid spanning ["<<m_emin<<", "<<m_emax<<"]");
+                 <<" density pts on egrid spanning ["<<fmt(m_emin,"%.14g")
+                 <<", "<<fmt(m_emax,"%.14g")<<"])");
 
   nc_assert( m_elementMassAMU.dbl()>0.5 && m_elementMassAMU.dbl()<2000.0 );
   nc_assert_always(m_density.size()<static_cast<std::size_t>(std::numeric_limits<int>::max()-2));
@@ -621,6 +622,12 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
     new_emax = emin + new_binwidth * ( new_npts - 1 );
   }
   nc_assert ( new_emax >= oldEmax);
+  if ( extra_verbose )
+    NCRYSTAL_MSG("regulariseVDOSGrid new binwidth="
+                 <<fmt(new_binwidth,"%.14g")
+                 <<", emin="<<fmt(emin,"%.14g")
+                 <<", emax="<<fmt(new_emax,"%.14g")
+                 <<", npts="<<new_npts);
 
   //Ok, we need to regularise! We do this by putting a high number of points
   //linearly spaced between [emin,emax-eps] where eps is determined as the
@@ -633,6 +640,11 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
   VectD newEgrid({emin,new_emax});
   VectD newDensity;
   newDensity.reserve(new_npts);
+  double orig_egrid_inverse_binwidth = 0.0;//0.0 means N/A
+  if ( orig_egrid.size() == 2 )// fixme: also use isLinearlySpacedGrid??
+    orig_egrid_inverse_binwidth = ( ( orig_density.size() - 1.0 )
+                                    / ( orig_egrid.back() - orig_egrid.front() ) );
+
   VectD orig_egrid_expanded = ( orig_egrid.size() == 2
                                 ? linspace(orig_egrid.front(),orig_egrid.back(),orig_density.size())
                                 : orig_egrid );
@@ -641,7 +653,15 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
   auto itBegin = orig_egrid_expanded.begin();
   auto itLast = std::prev(orig_egrid_expanded.end());
 
+  std::size_t ieval = 0;
   for ( auto eval : linspace(newEgrid.front(),newEgrid.back(),new_npts) ) {
+#if 1
+    //Try with more accurate (because new_binwidth is not exactly the same as
+    //(emax-emin)/nbins-1 due to FP inaccuracies):
+    eval = ( ieval == new_npts
+             ? new_emax
+             : emin + new_binwidth * ieval++ );
+#endif
     //Increment position in old grid if needed:
     while ( it != itLast && eval >= *std::next(it) )
       ++it;
@@ -662,8 +682,42 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
       double y1 = vectAt(orig_density,std::distance(itBegin,itNext));
       double x0 = *it;
       double x1 = *itNext;
+      //double r = ncclamp( ( eval - x0 ) / ( x1 - x0 ), 0.0, 1.0 );
+#if 0
+      //Fast, but not quite stable near r=1:
       double r = ( eval - x0 ) / ( x1 - x0 );
+      nc_assert(r>=0.0 && r<=1.0);
       newDensity.push_back( y0 * (1.0 - r ) + y1 * r );
+#else
+      //Stable:
+      // y*(x1-x0) = y0*(x1-x0) + (y1-y0)*(x-x0)
+      //          = y0*x1 + y1*x - y1*x0 - y0*x
+
+      //double r_times_dx = ( eval - x0 );
+
+      // double dx = x1 - x0;
+      // x*(x1-x0) = y0*((x1-x0)-(eval - x0)) + (eval - x0)*y1
+      //           = y0*x1 - y0*eval + eval*y1 - x0*y1
+      //           =
+      // if ( r == 1.0 ) {
+      //   newDensity.push_back( y1 );
+      // } else {
+      StableSum sum;
+      sum.add(y0*x1);
+      sum.add(- y0*eval);
+      sum.add(eval*y1);
+      sum.add(- x0*y1);
+      if ( orig_egrid_inverse_binwidth )
+        newDensity.push_back( sum.sum() * orig_egrid_inverse_binwidth );
+      else
+        newDensity.push_back( sum.sum()/(x1-x0) );
+        // StableSum sum;
+        // sum.add(y0);
+        // sum.add(- y0 * r);
+        // sum.add(y1 * r);
+        //        newDensity.push_back( sum.sum() );
+      // }
+#endif
     }
   }
   nc_assert( newDensity.size() == new_npts );

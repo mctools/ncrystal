@@ -42,7 +42,7 @@ namespace {
     NC::VectD sab, logsab, aic;
     for ( auto&& alpha : NC::enumerate(alphaGrid_) ) {
       sab.push_back(f(alpha.val));
-      nc_assert(sab.back());
+      nc_assert_always(sab.back());
       logsab.push_back(sab.back()>0.0?std::log(sab.back()):-NC::kInfinity);
     }
     aic.push_back(0.0);
@@ -67,7 +67,9 @@ namespace {
     while (it>ag.begin() && *std::prev(it)>=alpha_upp )
       it = std::prev(it);
     unsigned aidx_upp = std::distance(ag.begin(),it);
-    nc_assert(aidx_low<=aidx_upp && aidx_upp < ag.size());
+    nc_assert_always(aidx_low<=aidx_upp && aidx_upp < ag.size());
+    std::cout<<"makeTailedBreakdown DBG: aidx_low="
+             <<aidx_low<<", aidx_upp="<<aidx_upp<<std::endl;
     return NC::SABUtils::createTailedBreakdown( fakesabslice.alphaGrid,
                                                 fakesabslice.sab,
                                                 fakesabslice.logsab,
@@ -117,15 +119,15 @@ int main () {
   auto func_f_defintegral = [&alphaGrid](double a, double b)
                             {
                               //Implement cutoff on alphaGrid range:
-                              nc_assert(b>=a);
+                              nc_assert_always(b>=a);
                               if (a>=alphaGrid.back()||b<=alphaGrid.front())
                                 return 0.0;
                               b = std::min(b,alphaGrid.back());
                               a = std::max(a,alphaGrid.front());
-                              nc_assert(b>=a);
+                              nc_assert_always(b>=a);
                               //Evaluate:
-                              return std::exp(b)-std::exp(a);
-
+                              //return std::exp(b)-std::exp(a);//numerically unstable
+                              return std::exp(a)*std::expm1(b-a);//numerically stable
                             };
   auto sabslice = createFakeSABSlice(NC::linspace(0.1,2.0,20),func_f,func_f_defintegral);
   checkXS(sabslice, 0.1,2.0,func_f_defintegral);//everything

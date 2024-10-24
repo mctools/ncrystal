@@ -71,11 +71,12 @@ NC::VectD NC::linspace(double start, double stop, unsigned num)
   nc_assert(stop>start);
   VectD v;
   v.reserve(num) ;
-  const double interval = (stop-start)/(num-1);
+  unsigned num_minus_1 = num - 1;
+  const double interval = (stop-start)/num_minus_1;
   //Like this for highest numerical precision:
-  for (unsigned i = 0; i<num;++i)
+  for (unsigned i = 0; i<num_minus_1;++i)
     v.push_back(start+i*interval);
-  v.back() = stop;
+  v.push_back( stop );
   return v;
 }
 
@@ -91,7 +92,6 @@ bool NC::isPrime(unsigned n) {
   }
   return n>1;//2+3:prime, 0+1: not prime
 }
-
 
 void NC::sincos_mpi2pi2(double A, double& cosA, double& sinA) {
   nc_assert(ncabs(A)<=kPiHalf);

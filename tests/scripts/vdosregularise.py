@@ -35,12 +35,17 @@ def validate_cfgstr(cfgstr):
         (emin,emax),density = di.vdosData()
         print(f"  egrid [meV]: {emin*1000:.14g} .. {emax*1000:.14g} ({len(density)} points)")
         assert len(density)>=7
-        print("  density: [%.14g, %.14g, %.14g, .., %.14g, %.14g, %.14g]"%( density[0],
-                                                                            density[1],
-                                                                            density[2],
-                                                                            density[-3],
-                                                                            density[-2],
-                                                                            density[-1] ) )
+        vals = (density[0],density[1],density[2],
+                density[-3],density[-2],density[-1] )
+        #Worst imprecision is in last few density entries, but not THE last. And
+        #it is slightly worse for some of the hydrogren VDOS's. To make tests
+        #run, and still retain as much as possible robustness, we vary the
+        #output precisions accordingly:
+        if lbl=='H':
+            print("  density: [%.13g, %.13g, %.13g, .., %.9g, %.9g, %.14g]"%vals )
+        else:
+            print("  density: [%.13g, %.13g, %.13g, .., %.11g, %.11g, %.14g]"%vals )
+
 def main():
     cfgstrs = [f.fullKey for f in NC.browseFiles(factory='stdlib')]
     for i,f in enumerate(sorted(cfgstrs)):

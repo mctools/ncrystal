@@ -741,8 +741,9 @@ NCrystal: regulariseVDOSGrid trying k=614 (m=4999, eps=6.153e-06)
 NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
 NCrystal: regulariseVDOSGrid trying k=615 (m=5007, eps=7.36254e-06)
 NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-07 = 0.0427486 * 1e-05
+NCrystal: regulariseVDOSGrid new binwidth=2.0832619047619e-05, emin=0.00524982, emax=0.048019186904762, npts=2054
 NCrystal: regulariseVDOSGrid Grid was regularised using 2054 equidistant points on interval [0.00524982, 0.0480192]
-NCrystal: VDOSEval constructed (2054 density pts on egrid spanning [0.00524982, 0.0480192]
+NCrystal: VDOSEval constructed (2054 density pts on egrid spanning [0.00524982, 0.048019186904762])
 NCrystal: Called regulariseVDOSGrid([0.00524982,..,0.0479984], 172 density pts
 NCrystal: regulariseVDOSGrid trying k=246 (m=2003, eps=3.09439e-06)
 NCrystal: regulariseVDOSGrid NEW BEST k=246 (reduces epsilon by factor 0 = 1-1)
@@ -1486,5 +1487,6 @@ NCrystal: regulariseVDOSGrid trying k=614 (m=4999, eps=6.153e-06)
 NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
 NCrystal: regulariseVDOSGrid trying k=615 (m=5007, eps=7.36254e-06)
 NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-07 = 0.0427486 * 1e-05
+NCrystal: regulariseVDOSGrid new binwidth=2.0832619047619e-05, emin=0.00524982, emax=0.048019186904762, npts=2054
 NCrystal: regulariseVDOSGrid Grid was regularised using 2054 equidistant points on interval [0.00524982, 0.0480192]
-NCrystal: VDOSEval constructed (2054 density pts on egrid spanning [0.00524982, 0.0480192]
+NCrystal: VDOSEval constructed (2054 density pts on egrid spanning [0.00524982, 0.048019186904762])

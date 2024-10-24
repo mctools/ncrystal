@@ -117,10 +117,10 @@ namespace NCRYSTAL_NAMESPACE {
     //Break down how XS contributions falls over whole grid cells, as well as
     //front and back tails covering partial cells.
     struct TailedBreakdown {
-      double xs_front=0, xs_middle=0, xs_back=0;
+      double xs_front=0.0, xs_middle=0.0, xs_back=0.0;
       unsigned imiddle_low=0, imiddle_upp=0;
       struct TailPoint {
-        double alpha=0, sval=0, logsval=0;
+        double alpha=0.0, sval=0.0, logsval=0.0;
       } front, back;
       bool narrow = false;//if range inside single grid bin
     };
