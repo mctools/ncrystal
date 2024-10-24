@@ -1,4 +1,4 @@
-name: basictest-ubuntu20
+name: basictest_ubuntu20
 
 on:
   push:

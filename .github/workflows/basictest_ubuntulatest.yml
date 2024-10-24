@@ -1,4 +1,4 @@
-name: basictest
+name: basictest_ubuntulatest
 
 on:
   push:
