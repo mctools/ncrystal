@@ -222,12 +222,13 @@ NC::VDOSEval::VDOSEval(const VDOSData& vd)
   //Normalise by first calculating the integral. The integration range
   //(0,m_emin) where the density fct is parabolic is handled analytically:
   StableSum sum_integral;
-  sum_integral.add( ( m_k / 3.0 ) * nccube(m_emin) );
+  constexpr double onethird = 1.0 / 3.0;
+  sum_integral.add( onethird * m_density.front() * m_emin );
   integrateBinsWithFunction( [](double){return 1.0;}, sum_integral );
   m_originalIntegral = sum_integral.sum();
 
   nc_assert_always(m_originalIntegral>0.0);
-  double scalefact = 1.0/m_originalIntegral;
+  const double scalefact = 1.0 / m_originalIntegral;
   for (auto& e : m_density)
     e *= scalefact;
   m_k *= scalefact;
@@ -476,6 +477,8 @@ double NC::checkIsRegularVDOSGrid( const VectD& egrid, const VectD& density, dou
 
 std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, const VectD& orig_density )
 {
+  static bool s_verbose_vdosregul = ( getenv("NCRYSTAL_DEBUG_VDOSREGULARISATION")!=nullptr );
+  const bool extra_verbose = s_verbose_vdosregul;
   nc_assert_always( orig_density.size() > 2) ;
   nc_assert_always( orig_density.size() < 4000000000) ;
   nc_assert_always( orig_egrid.size()==2 || orig_egrid.size() == orig_density.size() );
@@ -484,6 +487,10 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
 
   if ( orig_egrid.front() < 1e-5 )
     NCRYSTAL_THROW(BadInput,"VDOS energy range can not be specified for values less than 1e-5eV = 0.01meV");
+
+  if ( extra_verbose )
+    NCRYSTAL_MSG("Called regulariseVDOSGrid(["<<orig_egrid.front()<<",..,"
+                 <<orig_egrid.back()<<"], "<<orig_density.size()<<" density pts");
 
   const double tolerance = 1e-6;//NB: Should be same as checkIsRegularVDOSGrid default value!
   double emax_corrected = NC::checkIsRegularVDOSGrid( orig_egrid, orig_density, tolerance );
@@ -524,23 +531,33 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
   nc_assert_always(k >= 1.0 );
   PairDD best = { kInfinity, 0.0 };
   while ( true ) {
-    nc_assert_always(k >= 1.0 );
+    nc_assert_always(k >= 1.0 );//fixme: cleanup asserts after debugging
     double m = std::floor(oldEmaxMinusEminDivEmin * k);
     if ( m < 1.0 ) {
+      if ( extra_verbose )
+        NCRYSTAL_MSG("regulariseVDOSGrid skip k since m<1");
       k += 1.0;
       continue;
     }
     double binwidth = emin / k;
     double eps = oldEmaxMinusEmin - (m*binwidth);
+    if ( extra_verbose )
+      NCRYSTAL_MSG("regulariseVDOSGrid trying k="<<k<<" (m="<<m<<", eps="<<eps<<")");
+#if 0//FIXME use this?!?
     if ( eps < 0.0 && eps > -1.0e-15*emin )
       eps = 0.0;
+#endif
     if (!(eps>=0.0))
       NCRYSTAL_THROW2(CalcError,"VDOS grid regularisation sanity"
                       " check failed with eps="<<eps);
-    nc_assert_always(eps>=0.0);
-    if ( eps < best.first )
+    if ( eps < best.first ) {
       best = { eps, k };
-    //Check if best result so far is acceptable. We lower our requirement as we go along:
+
+      if ( extra_verbose )
+        NCRYSTAL_MSG("regulariseVDOSGrid NEW BEST k="<<k);
+    }
+    //Check if best result so far is acceptable. We lower our requirement as we
+    //go along and get more and more desperate:
     double tol = 1e-6;
     if ( m > 5000 ) {
       tol = 1e-5;
@@ -550,6 +567,8 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
           tol = m > 19000 ? 1e-2 : 1e-3;
       }
     }
+    if ( extra_verbose )
+      NCRYSTAL_MSG("regulariseVDOSGrid Checking best tol (from k="<<best.second<<"):  "<<best.first<<" versus "<<oldEmaxMinusEmin*tol<<" = "<<oldEmaxMinusEmin<<" * "<<tol);
     if ( best.first < oldEmaxMinusEmin*tol )
       break;
     if ( m >= 20000 )
