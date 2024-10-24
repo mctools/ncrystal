@@ -558,7 +558,7 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
     if ( eps < (1.0-1e-11)*best.first ) {
       if ( extra_verbose )
         NCRYSTAL_MSG("regulariseVDOSGrid NEW BEST k="<<k
-                     <<" (reduces epsilon by factor "<<eps/best.first<<")");
+                     <<" (reduces epsilon by factor "<<eps/best.first<<" = 1-"<<(1.0-eps/best.first)<<")");
       best = { eps, k };
 
     }
