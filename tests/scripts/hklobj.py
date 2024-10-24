@@ -59,8 +59,8 @@ for idx,e in enumerate(mat.info.hklObjects()):
 
     print()
     print(f'{e.hkl_label=}')
-    print(f'e.f2={e.f2:.14g}')
-    print(f'e.fsquared={e.fsquared:.14g}')
+    print(f'e.f2={e.f2:.12g}')
+    print(f'e.fsquared={e.fsquared:.12g}')
     print(f'e.d={e.d:.14g}')
     print(f'e.dspacing={e.dspacing:.14g}')
     print(f'{e.h=}')

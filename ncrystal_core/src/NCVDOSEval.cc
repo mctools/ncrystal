@@ -662,8 +662,20 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
       double y1 = vectAt(orig_density,std::distance(itBegin,itNext));
       double x0 = *it;
       double x1 = *itNext;
-      double r = ( eval - x0 ) / ( x1 - x0 );
-      newDensity.push_back( y0 * (1.0 - r ) + y1 * r );
+      double r = ncclamp( ( eval - x0 ) / ( x1 - x0 ), 0.0, 1.0 );
+#if 0
+      //newDensity.push_back( y0 * (1.0 - r ) + y1 * r );
+#else
+      if ( r == 1.0 ) {
+        newDensity.push_back( y1 );
+      } else {
+        StableSum sum;
+        sum.add(y0);
+        sum.add(y1 * r);
+        sum.add(- y0 * r);
+        newDensity.push_back( sum.sum() );
+      }
+#endif
     }
   }
   nc_assert( newDensity.size() == new_npts );

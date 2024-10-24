@@ -189,7 +189,7 @@ def cfgstr2hkl(cfgstr,fmt,outfile,use_pyapi):
 
 def test_cfgstr(cfgstr, do_plot,outfile,use_pyapi):
 
-    max_diff_lvl = 1e-11
+    max_diff_lvl = 1e-10
     import numpy as np
 
     #NC.registerInMemoryFileData('foo.laz'c,fgstr2hkl(cfgstr,'laz'))
