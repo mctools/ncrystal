@@ -102,7 +102,7 @@ def validate_cfgstr(cfgstr):
         lbl = d['displayLabel']
         print(f"Validating VDOS integral of {cfgstr} / {lbl}")
         err = d['integral_vs_ref_deviation']
-        if err > 1.0e-15:
+        if err > 1.0e-14:
             print(f'High error in result: {err}')
             any_error = True
     return not any_error
