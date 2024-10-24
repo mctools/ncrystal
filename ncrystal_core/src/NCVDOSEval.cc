@@ -554,11 +554,8 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
     //We could simply check "eps < best.first" in the next line, but for
     //whatever reason, it seems to give numerical irreproducibility
     //issues. Perhaps because two integers can happy to give the same value of
-    //"eps", and then it is down to numerical issues which one will be best. For
-    //whatever reason, it seems to work better with a factor < 1 in front (and
-    //here we pick on a hunch 0.97, since 97 is a prime, but that might be
-    //completely irrelevant):
-    if ( eps < 0.97*best.first ) {
+    //"eps", and then it is down to numerical issues which one will be best.
+    if ( eps < (1.0-1e-11)*best.first ) {
       if ( extra_verbose )
         NCRYSTAL_MSG("regulariseVDOSGrid NEW BEST k="<<k
                      <<" (reduces epsilon by factor "<<eps/best.first<<")");
