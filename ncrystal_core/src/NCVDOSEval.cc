@@ -551,10 +551,11 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
       NCRYSTAL_THROW2(CalcError,"VDOS grid regularisation sanity"
                       " check failed with eps="<<eps);
     if ( eps < best.first ) {
+      if ( extra_verbose )
+        NCRYSTAL_MSG("regulariseVDOSGrid NEW BEST k="<<k
+                     <<" (reduces epsilon by factor "<<eps/best.first<<")");
       best = { eps, k };
 
-      if ( extra_verbose )
-        NCRYSTAL_MSG("regulariseVDOSGrid NEW BEST k="<<k);
     }
     //Check if best result so far is acceptable. We lower our requirement as we
     //go along and get more and more desperate:
