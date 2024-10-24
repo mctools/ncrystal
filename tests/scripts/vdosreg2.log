@@ -1,0 +1,1490 @@
+NCrystal: Called regulariseVDOSGrid([0.00524982,..,0.0479984], 172 density pts
+NCrystal: regulariseVDOSGrid trying k=246 (m=2003, eps=3.09439e-06)
+NCrystal: regulariseVDOSGrid NEW BEST k=246 (reduces epsilon by factor 0 = 1-1)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=246):  3.09439e-06 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=247 (m=2011, eps=6.11838e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=246):  3.09439e-06 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=248 (m=2019, eps=9.11798e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=246):  3.09439e-06 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=249 (m=2027, eps=1.20935e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=246):  3.09439e-06 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=250 (m=2035, eps=1.50452e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=246):  3.09439e-06 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=251 (m=2043, eps=1.79734e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=246):  3.09439e-06 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=252 (m=2052, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid NEW BEST k=252 (reduces epsilon by factor 0.0147733 = 1-0.985227)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=253 (m=2060, eps=3.01004e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=254 (m=2068, eps=5.95102e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=255 (m=2076, eps=8.86894e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=256 (m=2084, eps=1.17641e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=257 (m=2092, eps=1.46367e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=258 (m=2100, eps=1.7487e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=259 (m=2109, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=260 (m=2117, eps=2.93023e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=261 (m=2125, eps=5.79264e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=262 (m=2133, eps=8.63321e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=263 (m=2141, eps=1.14522e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=264 (m=2149, eps=1.42498e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=265 (m=2157, eps=1.70263e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=266 (m=2166, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=267 (m=2174, eps=2.85461e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=268 (m=2182, eps=5.64254e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=269 (m=2190, eps=8.40974e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=270 (m=2198, eps=1.11564e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=271 (m=2206, eps=1.38829e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=272 (m=2214, eps=1.65893e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=273 (m=2223, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=274 (m=2231, eps=2.78285e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=275 (m=2239, eps=5.50007e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=276 (m=2247, eps=8.19761e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=277 (m=2255, eps=1.08757e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=278 (m=2263, eps=1.35345e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=279 (m=2271, eps=1.61742e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=280 (m=2280, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=281 (m=2288, eps=2.71466e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=282 (m=2296, eps=5.36468e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=283 (m=2304, eps=7.99597e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=284 (m=2312, eps=1.06087e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=285 (m=2320, eps=1.32032e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=286 (m=2328, eps=1.57794e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=287 (m=2337, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=288 (m=2345, eps=2.64979e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=289 (m=2353, eps=5.23585e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=290 (m=2361, eps=7.80407e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=291 (m=2369, eps=1.03546e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=292 (m=2377, eps=1.28877e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=293 (m=2385, eps=1.54035e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=294 (m=2394, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=295 (m=2402, eps=2.588e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=296 (m=2410, eps=5.11311e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=297 (m=2418, eps=7.62121e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=298 (m=2426, eps=1.01125e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=299 (m=2434, eps=1.25871e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=300 (m=2442, eps=1.50452e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=301 (m=2451, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=302 (m=2459, eps=2.52907e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=303 (m=2467, eps=4.99604e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=304 (m=2475, eps=7.44678e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=305 (m=2483, eps=9.88144e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=306 (m=2491, eps=1.23002e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=307 (m=2499, eps=1.47032e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=308 (m=2508, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=309 (m=2516, eps=2.47282e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=310 (m=2524, eps=4.88426e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=311 (m=2532, eps=7.28019e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=312 (m=2540, eps=9.66077e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=313 (m=2548, eps=1.20261e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=314 (m=2556, eps=1.43764e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=315 (m=2565, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=316 (m=2573, eps=2.41905e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=317 (m=2581, eps=4.77741e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=318 (m=2589, eps=7.12094e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=319 (m=2597, eps=9.44978e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=320 (m=2605, eps=1.17641e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=321 (m=2613, eps=1.40639e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=322 (m=2622, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=323 (m=2630, eps=2.36762e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=324 (m=2638, eps=4.67519e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=325 (m=2646, eps=6.96855e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=326 (m=2654, eps=9.24785e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=327 (m=2662, eps=1.15132e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=328 (m=2670, eps=1.37648e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=329 (m=2679, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=330 (m=2687, eps=2.31836e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=331 (m=2695, eps=4.57728e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=332 (m=2703, eps=6.82259e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=333 (m=2711, eps=9.05441e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=334 (m=2719, eps=1.12729e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=335 (m=2727, eps=1.34781e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=336 (m=2736, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=337 (m=2744, eps=2.27116e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=338 (m=2752, eps=4.48343e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=339 (m=2760, eps=6.68265e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=340 (m=2768, eps=8.86894e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=341 (m=2776, eps=1.10424e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=342 (m=2784, eps=1.32032e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=343 (m=2793, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=344 (m=2801, eps=2.22587e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=345 (m=2809, eps=4.39339e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=346 (m=2817, eps=6.54838e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=347 (m=2825, eps=8.69095e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=348 (m=2833, eps=1.08212e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=349 (m=2841, eps=1.29393e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=350 (m=2850, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=351 (m=2858, eps=2.18239e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=352 (m=2866, eps=4.30693e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=353 (m=2874, eps=6.41943e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=354 (m=2882, eps=8.52e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=355 (m=2890, eps=1.06087e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=356 (m=2898, eps=1.26857e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=357 (m=2907, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=358 (m=2915, eps=2.14061e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=359 (m=2923, eps=4.22384e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=360 (m=2931, eps=6.2955e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=361 (m=2939, eps=8.35568e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=362 (m=2947, eps=1.04045e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=363 (m=2955, eps=1.2442e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=364 (m=2964, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=365 (m=2972, eps=2.10044e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=366 (m=2980, eps=4.14393e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=367 (m=2988, eps=6.17629e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=368 (m=2996, eps=8.19761e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=369 (m=3004, eps=1.0208e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=370 (m=3012, eps=1.22075e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=371 (m=3021, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=372 (m=3029, eps=2.06177e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=373 (m=3037, eps=4.06702e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=374 (m=3045, eps=6.06155e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=375 (m=3053, eps=8.04544e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=376 (m=3061, eps=1.00188e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=377 (m=3069, eps=1.19816e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=378 (m=3078, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=379 (m=3086, eps=2.02454e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=380 (m=3094, eps=3.99295e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=381 (m=3102, eps=5.95102e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=382 (m=3110, eps=7.89885e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=383 (m=3118, eps=9.8365e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=384 (m=3126, eps=1.17641e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=385 (m=3135, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=386 (m=3143, eps=1.98865e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=387 (m=3151, eps=3.92155e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=388 (m=3159, eps=5.84448e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=389 (m=3167, eps=7.75753e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=390 (m=3175, eps=9.66077e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=391 (m=3183, eps=1.15543e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=392 (m=3192, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=393 (m=3200, eps=1.95405e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=394 (m=3208, eps=3.85269e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=395 (m=3216, eps=5.74172e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=396 (m=3224, eps=7.62121e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=397 (m=3232, eps=9.49123e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=398 (m=3240, eps=1.13519e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=399 (m=3249, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=400 (m=3257, eps=1.92065e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=401 (m=3265, eps=3.78623e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=402 (m=3273, eps=5.64254e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=403 (m=3281, eps=7.48963e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=404 (m=3289, eps=9.32757e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=405 (m=3297, eps=1.11564e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=406 (m=3306, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=407 (m=3314, eps=1.8884e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=408 (m=3322, eps=3.72206e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=409 (m=3330, eps=5.54675e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=410 (m=3338, eps=7.36254e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=411 (m=3346, eps=9.16949e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=412 (m=3354, eps=1.09677e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=413 (m=3363, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=414 (m=3371, eps=1.85725e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=415 (m=3379, eps=3.66005e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=416 (m=3387, eps=5.45418e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=417 (m=3395, eps=7.23971e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=418 (m=3403, eps=9.0167e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=419 (m=3411, eps=1.07852e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=420 (m=3420, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=421 (m=3428, eps=1.82713e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=422 (m=3436, eps=3.60009e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=423 (m=3444, eps=5.36468e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=424 (m=3452, eps=7.12094e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=425 (m=3460, eps=8.86894e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=426 (m=3468, eps=1.06087e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=427 (m=3477, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=428 (m=3485, eps=1.79799e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=429 (m=3493, eps=3.5421e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=430 (m=3501, eps=5.27809e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=431 (m=3509, eps=7.00603e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=432 (m=3517, eps=8.72597e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=433 (m=3525, eps=1.0438e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=434 (m=3534, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=435 (m=3542, eps=1.76979e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=436 (m=3550, eps=3.48596e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=437 (m=3558, eps=5.19428e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=438 (m=3566, eps=6.89479e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=439 (m=3574, eps=8.58756e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=440 (m=3582, eps=1.02726e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=441 (m=3591, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=442 (m=3599, eps=1.74249e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=443 (m=3607, eps=3.4316e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=444 (m=3615, eps=5.11311e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=445 (m=3623, eps=6.78706e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=446 (m=3631, eps=8.4535e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=447 (m=3639, eps=1.01125e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=448 (m=3648, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=449 (m=3656, eps=1.71604e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=450 (m=3664, eps=3.37893e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=451 (m=3672, eps=5.03446e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=452 (m=3680, eps=6.68265e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=453 (m=3688, eps=8.32358e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=454 (m=3696, eps=9.95727e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=455 (m=3705, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=456 (m=3713, eps=1.69039e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=457 (m=3721, eps=3.32788e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=458 (m=3729, eps=4.95821e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=459 (m=3737, eps=6.58144e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=460 (m=3745, eps=8.19761e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=461 (m=3753, eps=9.80677e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=462 (m=3762, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=463 (m=3770, eps=1.66553e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=464 (m=3778, eps=3.27836e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=465 (m=3786, eps=4.88426e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=466 (m=3794, eps=6.48326e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=467 (m=3802, eps=8.07542e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=468 (m=3810, eps=9.66077e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=469 (m=3819, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=470 (m=3827, eps=1.6414e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=471 (m=3835, eps=3.23032e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=472 (m=3843, eps=4.8125e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=473 (m=3851, eps=6.38799e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=474 (m=3859, eps=7.95684e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=475 (m=3867, eps=9.51907e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=476 (m=3876, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=477 (m=3884, eps=1.61799e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=478 (m=3892, eps=3.18368e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=479 (m=3900, eps=4.74284e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=480 (m=3908, eps=6.2955e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=481 (m=3916, eps=7.8417e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=482 (m=3924, eps=9.38149e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=483 (m=3933, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=484 (m=3941, eps=1.59525e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=485 (m=3949, eps=3.13839e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=486 (m=3957, eps=4.67519e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=487 (m=3965, eps=6.20567e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=488 (m=3973, eps=7.72988e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=489 (m=3981, eps=9.24785e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=490 (m=3990, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=491 (m=3998, eps=1.57316e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=492 (m=4006, eps=3.09439e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=493 (m=4014, eps=4.60945e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=494 (m=4022, eps=6.11838e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=495 (m=4030, eps=7.62121e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=496 (m=4038, eps=9.11798e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=497 (m=4047, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=498 (m=4055, eps=1.55169e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=499 (m=4063, eps=3.05162e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=500 (m=4071, eps=4.54556e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=501 (m=4079, eps=6.03353e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=502 (m=4087, eps=7.51558e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=503 (m=4095, eps=8.99173e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=504 (m=4104, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=505 (m=4112, eps=1.53081e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=506 (m=4120, eps=3.01004e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=507 (m=4128, eps=4.48343e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=508 (m=4136, eps=5.95102e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=509 (m=4144, eps=7.41285e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=510 (m=4152, eps=8.86894e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=511 (m=4161, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=512 (m=4169, eps=1.51051e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=513 (m=4177, eps=2.96959e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=514 (m=4185, eps=4.423e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=515 (m=4193, eps=5.87076e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=516 (m=4201, eps=7.31291e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=517 (m=4209, eps=8.74948e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=518 (m=4218, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=519 (m=4226, eps=1.49075e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=520 (m=4234, eps=2.93023e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=521 (m=4242, eps=4.36418e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=522 (m=4250, eps=5.79264e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=523 (m=4258, eps=7.21564e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=524 (m=4266, eps=8.63321e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=525 (m=4275, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=526 (m=4283, eps=1.47152e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=527 (m=4291, eps=2.89192e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=528 (m=4299, eps=4.30693e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=529 (m=4307, eps=5.7166e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=530 (m=4315, eps=7.12094e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=531 (m=4323, eps=8.52e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=532 (m=4332, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=533 (m=4340, eps=1.4528e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=534 (m=4348, eps=2.85461e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=535 (m=4356, eps=4.25118e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=536 (m=4364, eps=5.64254e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=537 (m=4372, eps=7.02872e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=538 (m=4380, eps=8.40974e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=539 (m=4389, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=540 (m=4397, eps=1.43456e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=541 (m=4405, eps=2.81826e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=542 (m=4413, eps=4.19686e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=543 (m=4421, eps=5.57039e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=544 (m=4429, eps=6.93886e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=545 (m=4437, eps=8.30231e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=546 (m=4446, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=547 (m=4454, eps=1.41678e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=548 (m=4462, eps=2.78285e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=549 (m=4470, eps=4.14393e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=550 (m=4478, eps=5.50007e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=551 (m=4486, eps=6.85129e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=552 (m=4494, eps=8.19761e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=553 (m=4503, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=554 (m=4511, eps=1.39946e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=555 (m=4519, eps=2.74832e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=556 (m=4527, eps=4.09234e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=557 (m=4535, eps=5.43153e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=558 (m=4543, eps=6.76591e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=559 (m=4551, eps=8.09553e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=560 (m=4560, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=561 (m=4568, eps=1.38257e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=562 (m=4576, eps=2.71466e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=563 (m=4584, eps=4.04202e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=564 (m=4592, eps=5.36468e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=565 (m=4600, eps=6.68265e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=566 (m=4608, eps=7.99597e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=567 (m=4617, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=568 (m=4625, eps=1.36609e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=569 (m=4633, eps=2.68183e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=570 (m=4641, eps=3.99295e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=571 (m=4649, eps=5.29947e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=572 (m=4657, eps=6.60143e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=573 (m=4665, eps=7.89885e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=574 (m=4674, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=575 (m=4682, eps=1.35002e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=576 (m=4690, eps=2.64979e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=577 (m=4698, eps=3.94506e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=578 (m=4706, eps=5.23585e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=579 (m=4714, eps=6.52218e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=580 (m=4722, eps=7.80407e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=581 (m=4731, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=582 (m=4739, eps=1.33433e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=583 (m=4747, eps=2.61852e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=584 (m=4755, eps=3.89832e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=585 (m=4763, eps=5.17374e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=586 (m=4771, eps=6.44481e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=587 (m=4779, eps=7.71155e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=588 (m=4788, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=589 (m=4796, eps=1.31902e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=590 (m=4804, eps=2.588e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=591 (m=4812, eps=3.85269e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=592 (m=4820, eps=5.11311e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=593 (m=4828, eps=6.36927e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=594 (m=4836, eps=7.62121e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=595 (m=4845, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=596 (m=4853, eps=1.30406e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=597 (m=4861, eps=2.55819e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=598 (m=4869, eps=3.80813e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=599 (m=4877, eps=5.05389e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=600 (m=4885, eps=6.2955e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=601 (m=4893, eps=7.53298e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=602 (m=4902, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=603 (m=4910, eps=1.28945e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=604 (m=4918, eps=2.52907e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=605 (m=4926, eps=3.7646e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=606 (m=4934, eps=4.99604e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=607 (m=4942, eps=6.22343e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=608 (m=4950, eps=7.44678e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=609 (m=4959, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=610 (m=4967, eps=1.27518e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=611 (m=4975, eps=2.50062e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=612 (m=4983, eps=3.72206e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=613 (m=4991, eps=4.93951e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=614 (m=4999, eps=6.153e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=615 (m=5007, eps=7.36254e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-07 = 0.0427486 * 1e-05
+NCrystal: regulariseVDOSGrid Grid was regularised using 2054 equidistant points on interval [0.00524982, 0.0480192]
+NCrystal: VDOSEval constructed (2054 density pts on egrid spanning [0.00524982, 0.0480192]
+NCrystal: Called regulariseVDOSGrid([0.00524982,..,0.0479984], 172 density pts
+NCrystal: regulariseVDOSGrid trying k=246 (m=2003, eps=3.09439e-06)
+NCrystal: regulariseVDOSGrid NEW BEST k=246 (reduces epsilon by factor 0 = 1-1)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=246):  3.09439e-06 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=247 (m=2011, eps=6.11838e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=246):  3.09439e-06 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=248 (m=2019, eps=9.11798e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=246):  3.09439e-06 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=249 (m=2027, eps=1.20935e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=246):  3.09439e-06 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=250 (m=2035, eps=1.50452e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=246):  3.09439e-06 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=251 (m=2043, eps=1.79734e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=246):  3.09439e-06 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=252 (m=2052, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid NEW BEST k=252 (reduces epsilon by factor 0.0147733 = 1-0.985227)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=253 (m=2060, eps=3.01004e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=254 (m=2068, eps=5.95102e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=255 (m=2076, eps=8.86894e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=256 (m=2084, eps=1.17641e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=257 (m=2092, eps=1.46367e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=258 (m=2100, eps=1.7487e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=259 (m=2109, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=260 (m=2117, eps=2.93023e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=261 (m=2125, eps=5.79264e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=262 (m=2133, eps=8.63321e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=263 (m=2141, eps=1.14522e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=264 (m=2149, eps=1.42498e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=265 (m=2157, eps=1.70263e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=266 (m=2166, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=267 (m=2174, eps=2.85461e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=268 (m=2182, eps=5.64254e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=269 (m=2190, eps=8.40974e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=270 (m=2198, eps=1.11564e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=271 (m=2206, eps=1.38829e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=272 (m=2214, eps=1.65893e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=273 (m=2223, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=274 (m=2231, eps=2.78285e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=275 (m=2239, eps=5.50007e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=276 (m=2247, eps=8.19761e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=277 (m=2255, eps=1.08757e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=278 (m=2263, eps=1.35345e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=279 (m=2271, eps=1.61742e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=280 (m=2280, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=281 (m=2288, eps=2.71466e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=282 (m=2296, eps=5.36468e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=283 (m=2304, eps=7.99597e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=284 (m=2312, eps=1.06087e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=285 (m=2320, eps=1.32032e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=286 (m=2328, eps=1.57794e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=287 (m=2337, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=288 (m=2345, eps=2.64979e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=289 (m=2353, eps=5.23585e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=290 (m=2361, eps=7.80407e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=291 (m=2369, eps=1.03546e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=292 (m=2377, eps=1.28877e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=293 (m=2385, eps=1.54035e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=294 (m=2394, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=295 (m=2402, eps=2.588e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=296 (m=2410, eps=5.11311e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=297 (m=2418, eps=7.62121e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=298 (m=2426, eps=1.01125e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=299 (m=2434, eps=1.25871e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=300 (m=2442, eps=1.50452e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=301 (m=2451, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=302 (m=2459, eps=2.52907e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=303 (m=2467, eps=4.99604e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=304 (m=2475, eps=7.44678e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=305 (m=2483, eps=9.88144e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=306 (m=2491, eps=1.23002e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=307 (m=2499, eps=1.47032e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=308 (m=2508, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=309 (m=2516, eps=2.47282e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=310 (m=2524, eps=4.88426e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=311 (m=2532, eps=7.28019e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=312 (m=2540, eps=9.66077e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=313 (m=2548, eps=1.20261e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=314 (m=2556, eps=1.43764e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=315 (m=2565, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=316 (m=2573, eps=2.41905e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=317 (m=2581, eps=4.77741e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=318 (m=2589, eps=7.12094e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=319 (m=2597, eps=9.44978e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=320 (m=2605, eps=1.17641e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=321 (m=2613, eps=1.40639e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=322 (m=2622, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=323 (m=2630, eps=2.36762e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=324 (m=2638, eps=4.67519e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=325 (m=2646, eps=6.96855e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=326 (m=2654, eps=9.24785e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=327 (m=2662, eps=1.15132e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=328 (m=2670, eps=1.37648e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=329 (m=2679, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=330 (m=2687, eps=2.31836e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=331 (m=2695, eps=4.57728e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=332 (m=2703, eps=6.82259e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=333 (m=2711, eps=9.05441e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=334 (m=2719, eps=1.12729e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=335 (m=2727, eps=1.34781e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=336 (m=2736, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=337 (m=2744, eps=2.27116e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=338 (m=2752, eps=4.48343e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=339 (m=2760, eps=6.68265e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=340 (m=2768, eps=8.86894e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=341 (m=2776, eps=1.10424e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=342 (m=2784, eps=1.32032e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=343 (m=2793, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=344 (m=2801, eps=2.22587e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=345 (m=2809, eps=4.39339e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=346 (m=2817, eps=6.54838e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=347 (m=2825, eps=8.69095e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=348 (m=2833, eps=1.08212e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=349 (m=2841, eps=1.29393e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=350 (m=2850, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=351 (m=2858, eps=2.18239e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=352 (m=2866, eps=4.30693e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=353 (m=2874, eps=6.41943e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=354 (m=2882, eps=8.52e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=355 (m=2890, eps=1.06087e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=356 (m=2898, eps=1.26857e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=357 (m=2907, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=358 (m=2915, eps=2.14061e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=359 (m=2923, eps=4.22384e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=360 (m=2931, eps=6.2955e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=361 (m=2939, eps=8.35568e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=362 (m=2947, eps=1.04045e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=363 (m=2955, eps=1.2442e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=364 (m=2964, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=365 (m=2972, eps=2.10044e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=366 (m=2980, eps=4.14393e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=367 (m=2988, eps=6.17629e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=368 (m=2996, eps=8.19761e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=369 (m=3004, eps=1.0208e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=370 (m=3012, eps=1.22075e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=371 (m=3021, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=372 (m=3029, eps=2.06177e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=373 (m=3037, eps=4.06702e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=374 (m=3045, eps=6.06155e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=375 (m=3053, eps=8.04544e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=376 (m=3061, eps=1.00188e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=377 (m=3069, eps=1.19816e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=378 (m=3078, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=379 (m=3086, eps=2.02454e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=380 (m=3094, eps=3.99295e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=381 (m=3102, eps=5.95102e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=382 (m=3110, eps=7.89885e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=383 (m=3118, eps=9.8365e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=384 (m=3126, eps=1.17641e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=385 (m=3135, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=386 (m=3143, eps=1.98865e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=387 (m=3151, eps=3.92155e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=388 (m=3159, eps=5.84448e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=389 (m=3167, eps=7.75753e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=390 (m=3175, eps=9.66077e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=391 (m=3183, eps=1.15543e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=392 (m=3192, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=393 (m=3200, eps=1.95405e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=394 (m=3208, eps=3.85269e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=395 (m=3216, eps=5.74172e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=396 (m=3224, eps=7.62121e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=397 (m=3232, eps=9.49123e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=398 (m=3240, eps=1.13519e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=399 (m=3249, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=400 (m=3257, eps=1.92065e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=401 (m=3265, eps=3.78623e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=402 (m=3273, eps=5.64254e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=403 (m=3281, eps=7.48963e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=404 (m=3289, eps=9.32757e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=405 (m=3297, eps=1.11564e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=406 (m=3306, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=407 (m=3314, eps=1.8884e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=408 (m=3322, eps=3.72206e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=409 (m=3330, eps=5.54675e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=410 (m=3338, eps=7.36254e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=411 (m=3346, eps=9.16949e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=412 (m=3354, eps=1.09677e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=413 (m=3363, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=414 (m=3371, eps=1.85725e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=415 (m=3379, eps=3.66005e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=416 (m=3387, eps=5.45418e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=417 (m=3395, eps=7.23971e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=418 (m=3403, eps=9.0167e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=419 (m=3411, eps=1.07852e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=420 (m=3420, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=421 (m=3428, eps=1.82713e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=422 (m=3436, eps=3.60009e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=423 (m=3444, eps=5.36468e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=424 (m=3452, eps=7.12094e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=425 (m=3460, eps=8.86894e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=426 (m=3468, eps=1.06087e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=427 (m=3477, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=428 (m=3485, eps=1.79799e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=429 (m=3493, eps=3.5421e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=430 (m=3501, eps=5.27809e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=431 (m=3509, eps=7.00603e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=432 (m=3517, eps=8.72597e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=433 (m=3525, eps=1.0438e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=434 (m=3534, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=435 (m=3542, eps=1.76979e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=436 (m=3550, eps=3.48596e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=437 (m=3558, eps=5.19428e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=438 (m=3566, eps=6.89479e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=439 (m=3574, eps=8.58756e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=440 (m=3582, eps=1.02726e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=441 (m=3591, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=442 (m=3599, eps=1.74249e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=443 (m=3607, eps=3.4316e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=444 (m=3615, eps=5.11311e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=445 (m=3623, eps=6.78706e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=446 (m=3631, eps=8.4535e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=447 (m=3639, eps=1.01125e-05)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=448 (m=3648, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=449 (m=3656, eps=1.71604e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=450 (m=3664, eps=3.37893e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=451 (m=3672, eps=5.03446e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=452 (m=3680, eps=6.68265e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=453 (m=3688, eps=8.32358e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=454 (m=3696, eps=9.95727e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=455 (m=3705, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=456 (m=3713, eps=1.69039e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=457 (m=3721, eps=3.32788e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=458 (m=3729, eps=4.95821e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=459 (m=3737, eps=6.58144e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=460 (m=3745, eps=8.19761e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=461 (m=3753, eps=9.80677e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=462 (m=3762, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=463 (m=3770, eps=1.66553e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=464 (m=3778, eps=3.27836e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=465 (m=3786, eps=4.88426e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=466 (m=3794, eps=6.48326e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=467 (m=3802, eps=8.07542e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=468 (m=3810, eps=9.66077e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=469 (m=3819, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=470 (m=3827, eps=1.6414e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=471 (m=3835, eps=3.23032e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=472 (m=3843, eps=4.8125e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=473 (m=3851, eps=6.38799e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=474 (m=3859, eps=7.95684e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=475 (m=3867, eps=9.51907e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=476 (m=3876, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=477 (m=3884, eps=1.61799e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=478 (m=3892, eps=3.18368e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=479 (m=3900, eps=4.74284e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=480 (m=3908, eps=6.2955e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=481 (m=3916, eps=7.8417e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=482 (m=3924, eps=9.38149e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=483 (m=3933, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=484 (m=3941, eps=1.59525e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=485 (m=3949, eps=3.13839e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=486 (m=3957, eps=4.67519e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=487 (m=3965, eps=6.20567e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=488 (m=3973, eps=7.72988e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=489 (m=3981, eps=9.24785e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=490 (m=3990, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=491 (m=3998, eps=1.57316e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=492 (m=4006, eps=3.09439e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=493 (m=4014, eps=4.60945e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=494 (m=4022, eps=6.11838e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=495 (m=4030, eps=7.62121e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=496 (m=4038, eps=9.11798e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=497 (m=4047, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=498 (m=4055, eps=1.55169e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=499 (m=4063, eps=3.05162e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=500 (m=4071, eps=4.54556e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=501 (m=4079, eps=6.03353e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=502 (m=4087, eps=7.51558e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=503 (m=4095, eps=8.99173e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=504 (m=4104, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=505 (m=4112, eps=1.53081e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=506 (m=4120, eps=3.01004e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=507 (m=4128, eps=4.48343e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=508 (m=4136, eps=5.95102e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=509 (m=4144, eps=7.41285e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=510 (m=4152, eps=8.86894e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=511 (m=4161, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=512 (m=4169, eps=1.51051e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=513 (m=4177, eps=2.96959e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=514 (m=4185, eps=4.423e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=515 (m=4193, eps=5.87076e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=516 (m=4201, eps=7.31291e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=517 (m=4209, eps=8.74948e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=518 (m=4218, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=519 (m=4226, eps=1.49075e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=520 (m=4234, eps=2.93023e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=521 (m=4242, eps=4.36418e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=522 (m=4250, eps=5.79264e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=523 (m=4258, eps=7.21564e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=524 (m=4266, eps=8.63321e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=525 (m=4275, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=526 (m=4283, eps=1.47152e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=527 (m=4291, eps=2.89192e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=528 (m=4299, eps=4.30693e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=529 (m=4307, eps=5.7166e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=530 (m=4315, eps=7.12094e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=531 (m=4323, eps=8.52e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=532 (m=4332, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=533 (m=4340, eps=1.4528e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=534 (m=4348, eps=2.85461e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=535 (m=4356, eps=4.25118e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=536 (m=4364, eps=5.64254e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=537 (m=4372, eps=7.02872e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=538 (m=4380, eps=8.40974e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=539 (m=4389, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=540 (m=4397, eps=1.43456e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=541 (m=4405, eps=2.81826e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=542 (m=4413, eps=4.19686e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=543 (m=4421, eps=5.57039e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=544 (m=4429, eps=6.93886e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=545 (m=4437, eps=8.30231e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=546 (m=4446, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=547 (m=4454, eps=1.41678e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=548 (m=4462, eps=2.78285e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=549 (m=4470, eps=4.14393e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=550 (m=4478, eps=5.50007e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=551 (m=4486, eps=6.85129e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=552 (m=4494, eps=8.19761e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=553 (m=4503, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=554 (m=4511, eps=1.39946e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=555 (m=4519, eps=2.74832e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=556 (m=4527, eps=4.09234e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=557 (m=4535, eps=5.43153e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=558 (m=4543, eps=6.76591e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=559 (m=4551, eps=8.09553e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=560 (m=4560, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=561 (m=4568, eps=1.38257e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=562 (m=4576, eps=2.71466e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=563 (m=4584, eps=4.04202e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=564 (m=4592, eps=5.36468e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=565 (m=4600, eps=6.68265e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=566 (m=4608, eps=7.99597e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=567 (m=4617, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=568 (m=4625, eps=1.36609e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=569 (m=4633, eps=2.68183e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=570 (m=4641, eps=3.99295e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=571 (m=4649, eps=5.29947e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=572 (m=4657, eps=6.60143e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=573 (m=4665, eps=7.89885e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=574 (m=4674, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=575 (m=4682, eps=1.35002e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=576 (m=4690, eps=2.64979e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=577 (m=4698, eps=3.94506e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=578 (m=4706, eps=5.23585e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=579 (m=4714, eps=6.52218e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=580 (m=4722, eps=7.80407e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=581 (m=4731, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=582 (m=4739, eps=1.33433e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=583 (m=4747, eps=2.61852e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=584 (m=4755, eps=3.89832e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=585 (m=4763, eps=5.17374e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=586 (m=4771, eps=6.44481e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=587 (m=4779, eps=7.71155e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=588 (m=4788, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=589 (m=4796, eps=1.31902e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=590 (m=4804, eps=2.588e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=591 (m=4812, eps=3.85269e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=592 (m=4820, eps=5.11311e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=593 (m=4828, eps=6.36927e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=594 (m=4836, eps=7.62121e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=595 (m=4845, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=596 (m=4853, eps=1.30406e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=597 (m=4861, eps=2.55819e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=598 (m=4869, eps=3.80813e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=599 (m=4877, eps=5.05389e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=600 (m=4885, eps=6.2955e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=601 (m=4893, eps=7.53298e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=602 (m=4902, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=603 (m=4910, eps=1.28945e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=604 (m=4918, eps=2.52907e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=605 (m=4926, eps=3.7646e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=606 (m=4934, eps=4.99604e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=607 (m=4942, eps=6.22343e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=608 (m=4950, eps=7.44678e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=609 (m=4959, eps=4.57143e-08)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=610 (m=4967, eps=1.27518e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=611 (m=4975, eps=2.50062e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=612 (m=4983, eps=3.72206e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=613 (m=4991, eps=4.93951e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=614 (m=4999, eps=6.153e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-08 = 0.0427486 * 1e-06
+NCrystal: regulariseVDOSGrid trying k=615 (m=5007, eps=7.36254e-06)
+NCrystal: regulariseVDOSGrid Checking best tol (from k=252):  4.57143e-08 versus 4.27486e-07 = 0.0427486 * 1e-05
+NCrystal: regulariseVDOSGrid Grid was regularised using 2054 equidistant points on interval [0.00524982, 0.0480192]
+NCrystal: VDOSEval constructed (2054 density pts on egrid spanning [0.00524982, 0.0480192]
