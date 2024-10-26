@@ -61,7 +61,7 @@ def get_version_num():
     return sum(int(i)*j for i,j in zip(get_version().split('.'),(1000000,1000,1)))
 
 def get_version_tuple():
-    """Get NCrystal version as a tuple like (3,8,0). This is also available
+    """Get NCrystal version as a tuple like (3,9,3). This is also available
        as a variable named version_tuple in the main NCrystal module.
     """
     return tuple( int(i) for i in get_version().split('.') )

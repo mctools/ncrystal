@@ -65,8 +65,8 @@ import sys as _sys
 import os as _os
 
 #Place f-string here to catch python <3.6 in a more obvious way than a syntax error below:
-f'NCrystal does not work with Python2 (or Python3 < v3.8)' #noqa F541
-_minpyversion=(3,8,0)
+f'NCrystal does not work with Python2 (or Python3 < v3.9)' #noqa F541
+_minpyversion=(3,9,0)
 
 pyversion = _sys.version_info[0:3]
 if pyversion < _minpyversion:

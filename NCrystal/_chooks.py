@@ -45,20 +45,17 @@ def _str2cstr(s):
         s = str(s)
     try:
         return s if isinstance(s,bytes) else s.encode('utf8')
-    except UnicodeEncodeError:
-        #Attempt with file-system encoding, in case of non-ASCII path names:
-        #Fixme: better with a clean error here, and simply say we only support utf8?
-        import sys
-        return s.encode(sys.getfilesystemencoding())
+    except UnicodeEncodeError as e:
+        from .exceptions import NCBadInput
+        raise NCBadInput("Only unicode strings are supported") from e
 
 def _cstr2str(s):
     #converts bytes object to str
     try:
         return s if isinstance(s,str) else s.decode('utf8')
     except UnicodeDecodeError:
-        #Fixme: better with a clean error here, and simply say we only support utf8?
-        import sys
-        return s.decode(sys.getfilesystemencoding())
+        from .exceptions import NCBadInput
+        raise NCBadInput("Only UTF8-encoded C-strings are supported") from e
 
 def _find_nclib():
 

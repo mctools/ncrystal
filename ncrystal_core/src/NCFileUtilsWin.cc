@@ -30,13 +30,24 @@
 #ifdef _MSC_VER
 //  Visual Studio adds non-standard std::ifstream(std::wstring) constructor:
 #  define NCRYSTAL_FEATURE_IFSTREAM_WSTRING_PATH
-#  ifndef NCRYSTAL_AVOID_CPP17FILESYSTEM
-#    define NCRYSTAL_AVOID_CPP17FILESYSTEM //Not needed if we can use std::ifstream(std::wstring)
+#endif
+
+//Do not use std::filesystem if we have an alternative:
+#ifndef NCRYSTAL_AVOID_CPP17FILESYSTEM
+#  if NCRYSTAL_FEATURE_IFSTREAM_WSTRING_PATH
+#    define NCRYSTAL_AVOID_CPP17FILESYSTEM
 #  endif
 #endif
 
-#if (nc_cplusplus >= 201703L) && defined(__cpp_lib_filesystem)
-//The __cpp_lib_filesystem macro might only exist in C++20.
+//Do not use std::filesystem if not present:
+#ifndef NCRYSTAL_AVOID_CPP17FILESYSTEM
+// NB: The __cpp_lib_filesystem macro might only exist in C++20.
+#  if nc_cplusplus < 201703L || !defined(__cpp_lib_filesystem)
+#    define NCRYSTAL_AVOID_CPP17FILESYSTEM
+#  endif
+#endif
+
+#ifndef NCRYSTAL_AVOID_CPP17FILESYSTEM
 #  include <filesystem>
 #endif
 
@@ -49,7 +60,8 @@ namespace NCRYSTAL_NAMESPACE {
       std::wstring winimpl_str2wstr( const std::string& src )
       {
         const char * in_data = &src[0];
-        int in_size = static_cast<int>(src.size());//fixme range check
+        nc_assert_always( src.size() < std::numeric_limits<int>::max() );
+        int in_size = static_cast<int>(src.size());
         std::wstring res;
         if ( !in_size )
           return res;
@@ -108,14 +120,16 @@ namespace NCRYSTAL_NAMESPACE {
 
     bool file_exists( const std::string& path )
     {
-      if ( isSimpleASCII( path ) ) {
-        std::ifstream f(path.c_str());
-        return f.good();
-      } else {
-        //Need UTF-16 API:
-        auto wpath = winimpl_str2wstr( path );
-        return (_waccess(wpath.c_str(), 0) == 0);
-      }
+#if 0
+      //We could use the dedicated windows API:
+      auto wpath = winimpl_str2wstr( path );
+      return (_waccess(wpath.c_str(), 0) == 0);
+#endif
+      //But it might be easier to support using the open_ifstream_from_path
+      //function since we already have that implemented:
+      std::ifstream f = open_ifstream_from_path( path,
+                                                 std::ios_base::in );
+      return f.good();
     }
 
     std::ifstream open_ifstream_from_path( const std::string& path,
@@ -129,7 +143,7 @@ namespace NCRYSTAL_NAMESPACE {
 
 #ifdef NCRYSTAL_FEATURE_IFSTREAM_WSTRING_PATH
       return std::ifstream( wpath, mode );
-#elif (nc_cplusplus >= 201703L) && !defined(NCRYSTAL_AVOID_CPP17FILESYSTEM)
+#elif !defined(NCRYSTAL_AVOID_CPP17FILESYSTEM)
       //Rely on presence of C++17 filesystem.
       auto fspath = std::filesystem::path{ path }
       return std::ifstream( fspath, mode );

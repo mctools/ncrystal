@@ -29,7 +29,7 @@ are consistent (for instance in .ncmat files).
 ####### Common code for all NCrystal cmdline scripts needing to import NCrystal modules ########
 import sys
 pyversion = sys.version_info[0:3]
-_minpyversion=(3,8,0)
+_minpyversion=(3,9,0)
 if pyversion < _minpyversion:
     raise SystemExit('Unsupported python version %i.%i.%i detected (needs %i.%i.%i or later).'%(pyversion+_minpyversion))
 import os as _os
