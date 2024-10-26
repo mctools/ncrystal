@@ -1,34 +1,34 @@
 makeTailedBreakdown DBG: aidx_low=0, aidx_upp=19
- checkXS(1): xs_front = 0.116232 xs_middle = 5.46449 xs_back = 0.703162 xs_sum = 6.28389 expected = 6.28389 reldiff = 2.22045e-14%
+ checkXS(1): xs_front = 0.116232 xs_middle = 5.46449 xs_back = 0.703162 xs_sum = 6.28389 expected = 6.28389 reldiff<1e-15? = yes%
 makeTailedBreakdown DBG: aidx_low=1, aidx_upp=17
- checkXS(2): xs_front = 0.128456 xs_middle = 4.12409 xs_back = 0.5757 xs_sum = 4.82824 expected = 4.82824 reldiff = 0%
+ checkXS(2): xs_front = 0.128456 xs_middle = 4.12409 xs_back = 0.5757 xs_sum = 4.82824 expected = 4.82824 reldiff<1e-15? = yes%
 makeTailedBreakdown DBG: aidx_low=0, aidx_upp=17
- checkXS(3): xs_front = 0.102554 xs_middle = 4.25254 xs_back = 0.5757 xs_sum = 4.9308 expected = 4.9308 reldiff = 4.44089e-14%
+ checkXS(3): xs_front = 0.102554 xs_middle = 4.25254 xs_back = 0.5757 xs_sum = 4.9308 expected = 4.9308 reldiff<1e-15? = yes%
 makeTailedBreakdown DBG: aidx_low=0, aidx_upp=18
- checkXS(4): xs_front = 0.10289 xs_middle = 4.82824 xs_back = 0.0748702 xs_sum = 5.006 expected = 5.006 reldiff = 2.22045e-14%
+ checkXS(4): xs_front = 0.10289 xs_middle = 4.82824 xs_back = 0.0748702 xs_sum = 5.006 expected = 5.006 reldiff<1e-15? = yes%
 makeTailedBreakdown DBG: aidx_low=0, aidx_upp=18
- checkXS(5): xs_front = 0.0905183 xs_middle = 4.82824 xs_back = 0.0748702 xs_sum = 4.99363 expected = 4.99363 reldiff = 2.22045e-14%
+ checkXS(5): xs_front = 0.0905183 xs_middle = 4.82824 xs_back = 0.0748702 xs_sum = 4.99363 expected = 4.99363 reldiff<1e-15? = yes%
 makeTailedBreakdown DBG: aidx_low=0, aidx_upp=18
- checkXS(6): xs_front = 0.0595685 xs_middle = 4.82824 xs_back = 0.310172 xs_sum = 5.19799 expected = 5.19799 reldiff = 0%
+ checkXS(6): xs_front = 0.0595685 xs_middle = 4.82824 xs_back = 0.310172 xs_sum = 5.19799 expected = 5.19799 reldiff<1e-15? = yes%
 makeTailedBreakdown DBG: aidx_low=0, aidx_upp=1
- checkXS(7): xs_front = 0.0383078 xs_middle = 0 xs_back = 0 xs_sum = 0.0383078 expected = 0.0383078 reldiff = 4.44089e-14%
+ checkXS(7): xs_front = 0.0383078 xs_middle = 0 xs_back = 0 xs_sum = 0.0383078 expected = 0.0383078 reldiff<1e-15? = yes%
 makeTailedBreakdown DBG: aidx_low=1, aidx_upp=2
- checkXS(8): xs_front = 0.0712545 xs_middle = 0 xs_back = 0 xs_sum = 0.0712545 expected = 0.0712545 reldiff = 4.44089e-14%
+ checkXS(8): xs_front = 0.0712545 xs_middle = 0 xs_back = 0 xs_sum = 0.0712545 expected = 0.0712545 reldiff<1e-15? = yes%
 makeTailedBreakdown DBG: aidx_low=1, aidx_upp=2
- checkXS(9): xs_front = 0.0712545 xs_middle = 0 xs_back = 0 xs_sum = 0.0712545 expected = 0.0712545 reldiff = 4.44089e-14%
+ checkXS(9): xs_front = 0.0712545 xs_middle = 0 xs_back = 0 xs_sum = 0.0712545 expected = 0.0712545 reldiff<1e-15? = yes%
 makeTailedBreakdown DBG: aidx_low=1, aidx_upp=5
- checkXS(10): xs_front = 0.128456 xs_middle = 0.298862 xs_back = 0.0961835 xs_sum = 0.523502 expected = 0.523502 reldiff = 0%
+ checkXS(10): xs_front = 0.128456 xs_middle = 0.298862 xs_back = 0.0961835 xs_sum = 0.523502 expected = 0.523502 reldiff<1e-15? = yes%
 makeTailedBreakdown DBG: aidx_low=1, aidx_upp=13
- checkXS(11): xs_front = 0.128456 xs_middle = 2.31944 xs_back = 0.385903 xs_sum = 2.8338 expected = 2.8338 reldiff = 2.22045e-14%
+ checkXS(11): xs_front = 0.128456 xs_middle = 2.31944 xs_back = 0.385903 xs_sum = 2.8338 expected = 2.8338 reldiff<1e-15? = yes%
 makeTailedBreakdown DBG: aidx_low=19, aidx_upp=19
- checkXS(12): xs_front = 0 xs_middle = 0 xs_back = 0 xs_sum = 0 expected = 0 reldiff = 0%
+ checkXS(12): xs_front = 0 xs_middle = 0 xs_back = 0 xs_sum = 0 expected = 0 reldiff<1e-15? = yes%
 makeTailedBreakdown DBG: aidx_low=0, aidx_upp=0
- checkXS(13): xs_front = 0 xs_middle = 0 xs_back = 0 xs_sum = 0 expected = 0 reldiff = 0%
+ checkXS(13): xs_front = 0 xs_middle = 0 xs_back = 0 xs_sum = 0 expected = 0 reldiff<1e-15? = yes%
 makeTailedBreakdown DBG: aidx_low=0, aidx_upp=11
- checkXS(14): xs_front = 0.116232 xs_middle = 1.78276 xs_back = 0.0698965 xs_sum = 1.96889 expected = 1.96889 reldiff = 4.44089e-14%
+ checkXS(14): xs_front = 0.116232 xs_middle = 1.78276 xs_back = 0.0698965 xs_sum = 1.96889 expected = 1.96889 reldiff<1e-15? = yes%
 makeTailedBreakdown DBG: aidx_low=0, aidx_upp=19
- checkXS(15): xs_front = 0.116232 xs_middle = 5.46449 xs_back = 0.703162 xs_sum = 6.28389 expected = 6.28389 reldiff = 2.22045e-14%
+ checkXS(15): xs_front = 0.116232 xs_middle = 5.46449 xs_back = 0.703162 xs_sum = 6.28389 expected = 6.28389 reldiff<1e-15? = yes%
 makeTailedBreakdown DBG: aidx_low=9, aidx_upp=19
- checkXS(16): xs_front = 0.146515 xs_middle = 3.68173 xs_back = 0.703162 xs_sum = 4.5314 expected = 4.5314 reldiff = 2.22045e-14%
+ checkXS(16): xs_front = 0.146515 xs_middle = 3.68173 xs_back = 0.703162 xs_sum = 4.5314 expected = 4.5314 reldiff<1e-15? = yes%
  integrateAlphaInterval : 2.27091 vs. 2.27091 vs. 2.27091 reldiff: -2.22045e-14% and 0%
  integrateAlphaInterval : 6.28389 vs. 6.28389 vs. 6.28389 reldiff: 2.22045e-14% and 2.22045e-14%

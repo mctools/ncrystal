@@ -22,12 +22,13 @@
 #include "NCrystal/internal/NCMath.hh"
 #include "NCrystal/internal/NCIter.hh"
 #include "NCrystal/internal/NCMsg.hh"
+#include "NCrystal/internal/NCString.hh"
 
 namespace NC=NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {
   namespace {
-    static std::atomic<bool> s_verbose_vdoseval( getenv("NCRYSTAL_DEBUG_PHONON")!=nullptr );
+    static std::atomic<bool> s_verbose_vdoseval( ncgetenv_bool("DEBUG_PHONON") );
 
     constexpr double detail_xcothx_taylor_threshold = 0.1;
 
@@ -478,22 +479,25 @@ double NC::checkIsRegularVDOSGrid( const VectD& egrid, const VectD& density, dou
 
 std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, const VectD& orig_density )
 {
-  static bool s_verbose_vdosregul = ( getenv("NCRYSTAL_DEBUG_VDOSREGULARISATION")!=nullptr );
+  static bool s_verbose_vdosregul = ncgetenv_bool("DEBUG_VDOSREGULARISATION");
   const bool extra_verbose = s_verbose_vdosregul;
   nc_assert_always( orig_density.size() > 2) ;
   nc_assert_always( orig_density.size() < 4000000000) ;
-  nc_assert_always( orig_egrid.size()==2 || orig_egrid.size() == orig_density.size() );
+  nc_assert_always( orig_egrid.size()==2
+                    || orig_egrid.size() == orig_density.size() );
   nc_assert_always( nc_is_grid(orig_egrid) );
   nc_assert_always( orig_egrid.front() >= 0.0 );
 
   if ( orig_egrid.front() < 1e-5 )
-    NCRYSTAL_THROW(BadInput,"VDOS energy range can not be specified for values less than 1e-5eV = 0.01meV");
+    NCRYSTAL_THROW(BadInput,"VDOS energy range can not be specified"
+                   " for values less than 1e-5eV = 0.01meV");
 
   if ( extra_verbose )
     NCRYSTAL_MSG("Called regulariseVDOSGrid(["<<orig_egrid.front()<<",..,"
                  <<orig_egrid.back()<<"], "<<orig_density.size()<<" density pts");
 
-  const double tolerance = 1e-6;//NB: Should be same as checkIsRegularVDOSGrid default value!
+  const double tolerance = 1e-6;//NB: Should be same as checkIsRegularVDOSGrid
+                                //    default value!
   double emax_corrected = NC::checkIsRegularVDOSGrid( orig_egrid, orig_density, tolerance );
   if ( emax_corrected ) {
     //Is already OK within tolerance! Return regularised egrid, with potential
@@ -501,9 +505,12 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
     //the allowed tolerance:
     if ( s_verbose_vdoseval ) {
       std::ostringstream msg;
-      msg<<"regulariseVDOSGrid Grid was already regular within tolerance of "<<tolerance;
+      msg<<"regulariseVDOSGrid Grid was already regular within tolerance of "
+         <<tolerance;
       if ( orig_egrid.back() != emax_corrected )
-        msg<<" (corrected emax slightly "<<orig_egrid.back()<<" -> "<<emax_corrected<<", a relative change of "<<(emax_corrected/orig_egrid.back()-1.0)<<")";
+        msg<<" (corrected emax slightly "<<orig_egrid.back()<<" -> "
+           <<emax_corrected<<", a relative change of "
+           <<(emax_corrected/orig_egrid.back()-1.0)<<")";
       NCRYSTAL_MSG(msg.str());
     }
     return { VectD({orig_egrid.front(),emax_corrected}), orig_density };
@@ -519,7 +526,7 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
   //re-parameterisation artifacts)
 
   const double emin = orig_egrid.front();
-  nc_assert_always(emin>0.0 );
+  nc_assert(emin>0.0 );
   const double oldEmax = orig_egrid.back();
   nc_assert_always(oldEmax > emin );
   const double oldEmaxMinusEmin = oldEmax-emin;
@@ -527,9 +534,10 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
   const double oldEmaxMinusEminDivEmin = oldEmaxMinusEmin/emin;
   nc_assert_always(oldEmaxMinusEminDivEmin > 0.0 );
 
-  const double kBegin = 2000.0/oldEmaxMinusEminDivEmin;//at least 2000 bins inside [emin,emax]
-  double k = ncmax(1.0,std::round(kBegin));//k is double, to avoid conversions below.
-  nc_assert_always(k >= 1.0 );
+  const double kBegin = 2000.0/oldEmaxMinusEminDivEmin;//at least 2000 bins
+                                                       //inside [emin,emax]
+  double k = ncmax(1.0,std::round(kBegin));//k is double, to avoid conversions
+                                           //below.
   PairDD best = { kInfinity, 0.0 };
 
   while ( true ) {
@@ -547,49 +555,26 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
     nc_assert_always( eps >= -oldEmaxMinusEmin*1e-10 );
     eps = ncmax(0.0, eps );
 
-    //constexpr double safety_factor = 1.0-1.0e-13;//fixme
-    //    double eps_to_beat = safety_factor * ( oldEmaxMinusEmin - floor(oldEmaxMinusEminDivEmin * kbest)*emin/kbest )
-
     const double kbest = best.second;
-    //fixme Find one with highest value of std::floor(oldEmaxMinusEminDivEmin * k)/k ??
 
-    //    const double eps_to_beat = safety_factor*best.first;
     if ( extra_verbose )
-      NCRYSTAL_MSG("regulariseVDOSGrid trying k="<<k<<" (m="<<m<<", eps="<<eps<<")");
+      NCRYSTAL_MSG("regulariseVDOSGrid trying k="<<k<<" (m="
+                   <<m<<", eps="<<eps<<")");
 
-    //We want to check if "eps < eps_to_beat", but the calculation of eps involves a
-    //subtraction which is numerically unstable. Thus we do it like this
-    //instead:
+    //We want to check if "eps < best.first", but the calculation of eps
+    //involves a subtraction which is numerically unstable. Thus we do it like
+    //this instead:
     if ( eps == 0.0 || kbest == 0.0
          || ( kbest*std::floor(oldEmaxMinusEminDivEmin * k)
               >  k*std::floor(oldEmaxMinusEminDivEmin * kbest) ) ) {
-      //    if ( oldEmaxMinusEminDivEmin_mult_k < eps_to_beat*k/emin + m ) {
       //Beats it
       if ( extra_verbose )
         NCRYSTAL_MSG("regulariseVDOSGrid NEW BEST k="<<k
-                     <<" (reduces epsilon by factor "<<eps/best.first<<" = 1-"<<(1.0-eps/best.first)<<")");
+                     <<" (reduces epsilon by factor "<<eps/best.first
+                     <<" = 1-"<<(1.0-eps/best.first)<<")");
       best = { eps, k };
     }
 
-// #if 0//FIXME use this?!?
-//     if ( eps < 0.0 && eps > -1.0e-15*emin )
-//       eps = 0.0;
-// #endif
-//     if (!(eps>=0.0))
-//       NCRYSTAL_THROW2(CalcError,"VDOS grid regularisation sanity"
-//                       " check failed with eps="<<eps);
-
-    //We could simply check "eps < best.first" in the next line, but for
-    //whatever reason, it seems to give numerical irreproducibility
-    //issues. Perhaps because two integers can happy to give the same value of
-    //"eps", and then it is down to numerical issues which one will be best.
-    // if ( eps < eps_to_beat ) {
-    //   if ( extra_verbose )
-    //     NCRYSTAL_MSG("regulariseVDOSGrid NEW BEST k="<<k
-    //                  <<" (reduces epsilon by factor "<<eps/best.first<<" = 1-"<<(1.0-eps/best.first)<<")");
-    //   best = { eps, k };
-
-    //    }
     //Check if best result so far is acceptable. We lower our requirement as we
     //go along and get more and more desperate:
     double tol = 1e-6;
@@ -602,11 +587,14 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
       }
     }
     if ( extra_verbose )
-      NCRYSTAL_MSG("regulariseVDOSGrid Checking best tol (from k="<<best.second<<"):  "<<best.first<<" versus "<<oldEmaxMinusEmin*tol<<" = "<<oldEmaxMinusEmin<<" * "<<tol);
+      NCRYSTAL_MSG("regulariseVDOSGrid Checking best tol (from k="
+                   <<best.second<<"):  "<<best.first<<" versus "
+                   <<oldEmaxMinusEmin*tol<<" = "<<oldEmaxMinusEmin<<" * "<<tol);
     if ( best.first < oldEmaxMinusEmin*tol )
       break;
     if ( m >= 20000 )
-      NCRYSTAL_THROW(BadInput,"Could not regularise input energy grid. Are the energy ranges highly unusual?");
+      NCRYSTAL_THROW(BadInput,"Could not regularise input energy grid."
+                     " Are the energy ranges highly unusual?");
     k += 1.0;
   }
 
@@ -643,25 +631,24 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
   double orig_egrid_inverse_binwidth = 0.0;//0.0 means N/A
   if ( orig_egrid.size() == 2 )// fixme: also use isLinearlySpacedGrid??
     orig_egrid_inverse_binwidth = ( ( orig_density.size() - 1.0 )
-                                    / ( orig_egrid.back() - orig_egrid.front() ) );
+                                    / (orig_egrid.back()-orig_egrid.front()) );
 
   VectD orig_egrid_expanded = ( orig_egrid.size() == 2
-                                ? linspace(orig_egrid.front(),orig_egrid.back(),orig_density.size())
+                                ? linspace(orig_egrid.front(),
+                                           orig_egrid.back(),
+                                           orig_density.size())
                                 : orig_egrid );
   nc_assert_always( orig_egrid_expanded.size() == orig_density.size() );
   auto it = orig_egrid_expanded.begin();
   auto itBegin = orig_egrid_expanded.begin();
   auto itLast = std::prev(orig_egrid_expanded.end());
 
-  std::size_t ieval = 0;
-  for ( auto eval : linspace(newEgrid.front(),newEgrid.back(),new_npts) ) {
-#if 1
-    //Try with more accurate (because new_binwidth is not exactly the same as
-    //(emax-emin)/nbins-1 due to FP inaccuracies):
-    eval = ( ieval == new_npts
-             ? new_emax
-             : emin + new_binwidth * ieval++ );
-#endif
+  //Loop like this rather than calling linspace(..), since new_binwidth is not
+  //exactly the same as (emax-emin)/nbins-1 due to FP inaccuracies:
+  for ( auto ieval : ncrange(new_npts) ) {
+    const double eval = ( ieval + 1 == new_npts
+                          ? new_emax
+                          : emin + new_binwidth * ieval++ );
     //Increment position in old grid if needed:
     while ( it != itLast && eval >= *std::next(it) )
       ++it;
@@ -671,7 +658,8 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
       continue;
     }
     if ( it == itLast ) {
-      //eval is beyond old grid (can only happen for the very last point in the new grid):
+      //eval is beyond old grid (can only happen for the very last point in the
+      //new grid):
       nc_assert( eval == newEgrid.back() );
       nc_assert( eval > *itLast );
       newDensity.push_back(  eval > *it ? 0.0 : orig_density.back() );
@@ -682,7 +670,6 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
       double y1 = vectAt(orig_density,std::distance(itBegin,itNext));
       double x0 = *it;
       double x1 = *itNext;
-      //double r = ncclamp( ( eval - x0 ) / ( x1 - x0 ), 0.0, 1.0 );
 #if 0
       //Fast, but not quite stable near r=1:
       double r = ( eval - x0 ) / ( x1 - x0 );
@@ -690,18 +677,6 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
       newDensity.push_back( y0 * (1.0 - r ) + y1 * r );
 #else
       //Stable:
-      // y*(x1-x0) = y0*(x1-x0) + (y1-y0)*(x-x0)
-      //          = y0*x1 + y1*x - y1*x0 - y0*x
-
-      //double r_times_dx = ( eval - x0 );
-
-      // double dx = x1 - x0;
-      // x*(x1-x0) = y0*((x1-x0)-(eval - x0)) + (eval - x0)*y1
-      //           = y0*x1 - y0*eval + eval*y1 - x0*y1
-      //           =
-      // if ( r == 1.0 ) {
-      //   newDensity.push_back( y1 );
-      // } else {
       StableSum sum;
       sum.add(y0*x1);
       sum.add(- y0*eval);
@@ -711,12 +686,6 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
         newDensity.push_back( sum.sum() * orig_egrid_inverse_binwidth );
       else
         newDensity.push_back( sum.sum()/(x1-x0) );
-        // StableSum sum;
-        // sum.add(y0);
-        // sum.add(- y0 * r);
-        // sum.add(y1 * r);
-        //        newDensity.push_back( sum.sum() );
-      // }
 #endif
     }
   }

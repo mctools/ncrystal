@@ -76,4 +76,9 @@ int main() {
 
   }
 
+  std::cout<<"linspace test: ";
+  for ( auto val : NC::linspace(0.1,2.0,20) )
+    std::cout<<", "<<NC::fmt(val,"%.15g");
+  std::cout<<std::endl;
+
 }

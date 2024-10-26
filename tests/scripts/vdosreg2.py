@@ -21,32 +21,16 @@
 ################################################################################
 
 # NEEDS: numpy
+
 import os
 os.environ['NCRYSTAL_DEBUG_VDOSREGULARISATION']='1'
 os.environ['NCRYSTAL_DEBUG_PHONON']='1'
 import NCTestUtils.enable_fpe # noqa F401
 import NCrystal as NC
 
-#def validate_cfgstr(cfgstr):
-#    info = NC.createInfo(cfgstr)
-#    for i,di in enumerate(info.dyninfos):
-#        if not hasattr(di,'analyseVDOS'):
-#            continue
-#        lbl=di.atomData.displayLabel()
-#        print(f"Validating VDOS regularisation of {cfgstr} / {lbl}:")
-#        (emin,emax),density = di.vdosData()
-#        print(f"  egrid [meV]: {emin*1000:.14g} .. {emax*1000:.14g} ({len(density)} points)")
-#        assert len(density)>=7
-#        print("  density: [%.14g, %.14g, %.14g, .., %.14g, %.14g, %.14g]"%( density[0],
-#                                                                            density[1],
-#                                                                            density[2],
-#                                                                            density[-3],
-#                                                                            density[-2],
-#                                                                            density[-1] ) )
 def main():
     info = NC.createInfo('stdlib::BaO_sg225_BariumOxide.ncmat')
     di = info.findDynInfo('O')
     (emin,emax),density = di.vdosData()
-
 
 main()

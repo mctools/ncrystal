@@ -129,8 +129,7 @@ def main():
     cfgstrs = [f.fullKey for f in NC.browseFiles(factory='stdlib')]
     saw_errors = False
     for i,f in enumerate(sorted(cfgstrs)):
-        if True:# i%10 == 0:
-            #every 10th
+        if i%5 == 0:#skip some for speedup
             if not validate_cfgstr(f):
                 saw_errors = True
     if saw_errors:

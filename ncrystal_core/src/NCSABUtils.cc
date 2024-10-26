@@ -594,7 +594,6 @@ NC::SABUtils::TailedBreakdown NC::SABUtils::createTailedBreakdown( const NC::Spa
   tb.imiddle_upp = aidx_upp;
 
   //Front (not there if alpha_low is outside the grid range):
-
   if ( alpha_low >= alphaGrid[aidx_low] ) {
     nc_assert( alpha_low <= alphaGrid[aidx_low + 1] );
     setTailPoint(tb.front,aidx_low,alpha_low);

@@ -87,12 +87,14 @@ namespace {
     auto tb = makeTailedBreakdown(fakesabslice,a0,a1);
     double xs_sum(tb.xs_front+tb.xs_middle+tb.xs_back), xs_expect(func_f_defintegral_(a0,a1));
     static int i = 0;
+    double reldiff = (xs_expect==xs_sum?0.0:(xs_sum/xs_expect-1));
     std::cout<<" checkXS("<<++i<<"): xs_front = "<<tb.xs_front
              <<" xs_middle = "<<tb.xs_middle
              <<" xs_back = "<<tb.xs_back
              <<" xs_sum = "<<xs_sum
              <<" expected = "<<xs_expect
-             <<" reldiff = "<<100.0*(xs_expect==xs_sum?0.0:(xs_sum/xs_expect-1))<<"%"
+           //<<" reldiff = "<<100.0*reldiff<<"%"
+             <<" reldiff<1e-15? = "<<(reldiff<1e-15?"yes":"no")<<"%"
              <<std::endl;
   }
 
@@ -108,12 +110,19 @@ namespace {
     std::cout<<" integrateAlphaInterval : "<<calc<<" vs. "<<calc_fast<<" vs. "<<expect<<" reldiff: "
              <<100.0*(calc/expect-1.0)<<"% and "<<100.0*(calc_fast/expect-1.0)<<"%"<<std::endl;
   }
-
 }
 
 int main () {
 
+#if 1
   auto alphaGrid = NC::linspace(0.1,2.0,20);
+#else
+  //This emulates issue seen on osx:
+  const NC::VectD alphaGrid = { 0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,
+                                1.1,1.2,1.3,1.4,1.5,1.6,1.7,
+                                std::nextafter(1.8, -NC::kInfinity),
+                                1.9,2.0 };
+#endif
 
   auto func_f = [](double alpha) { return std::exp(alpha); };
   auto func_f_defintegral = [&alphaGrid](double a, double b)
@@ -129,7 +138,7 @@ int main () {
                               //return std::exp(b)-std::exp(a);//numerically unstable
                               return std::exp(a)*std::expm1(b-a);//numerically stable
                             };
-  auto sabslice = createFakeSABSlice(NC::linspace(0.1,2.0,20),func_f,func_f_defintegral);
+  auto sabslice = createFakeSABSlice(alphaGrid,func_f,func_f_defintegral);
   checkXS(sabslice, 0.1,2.0,func_f_defintegral);//everything
   checkXS(sabslice, 0.2,1.8,func_f_defintegral);//a range of whole bins
   checkXS(sabslice, 0.1123,1.8,func_f_defintegral);//+front

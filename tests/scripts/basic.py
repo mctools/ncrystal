@@ -67,7 +67,7 @@ myprint("Density : %g"%info.getDensity())
 myprint("Structure : %s"%(', '.join('%s=%.12g'%(k,v) for k,v in sorted(info.getStructureInfo().items())) if info.hasStructureInfo() else '<n/a>'))
 
 calc_pcbragg = NC.createScatter(datafile+";inelas=0;incoh_elas=0")
-xs = calc_pcbragg.crossSectionIsotropic(NC.wl2ekin(4.0))#FIXME obsolete method
+xs = calc_pcbragg.crossSectionIsotropic(NC.wl2ekin(4.0))
 myprint("Aluminium %s diffraction cross-section @ 4.0Aa: %g barn"%(calc_pcbragg.name,xs))
 
 wls=np.linspace(1.0,4.0,4)

@@ -75,7 +75,7 @@ for e in info.hklObjects():
     #help( e );break #<- uncomment for usage info
     print()
     print( e )#<- a quick look
-    print( e.hkl_label, e.mult, e.d, e.f2 )
+    print( e.hkl_label, e.mult, '%.14g'%e.d, '%.12g'%e.f2 )
     print( e.h, e.k, e.l )#all Miller indices as Numpy arrays.
     #Implement whatever selection logic suits you:
     if ( e.d < 1.5 ):
