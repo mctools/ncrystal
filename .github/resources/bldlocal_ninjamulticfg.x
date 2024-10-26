@@ -12,6 +12,9 @@ mkdir -p "${TGT}/bld" "${TGT}/inst"
 cd "${TGT}/bld"
 
 THE_BUILD_TYPE=Release
+#THE_OTHER_BUILD_TYPE=Debug
+THE_OTHER_BUILD_TYPE=
+
 cmake \
     -G 'Ninja Multi-Config' \
     -S "${SRCDIR}" \
@@ -24,11 +27,20 @@ cmake \
     -DNCRYSTAL_ENABLE_TESTING=ON \
     "$@"
 
+#    -DNCRYSTAL_ENABLE_DATA=EMBED \
+
 #-DCMAKE_BUILD_TYPE="${THE_BUILD_TYPE}"
 #-DNCRYSTAL_ENABLE_THREADS=OFF
 
 cmake --build "${TGT}/bld" --config "${THE_BUILD_TYPE}"
+if [ "x${THE_OTHER_BUILD_TYPE}" != "x" ]; then
+    cmake --build "${TGT}/bld" --config "${THE_OTHER_BUILD_TYPE}"
+fi
 echo "Build dir was: ${TGT}/bld"
 ctest --build-config  "${THE_BUILD_TYPE}"  --output-on-failure --test-output-size-failed 10000 --test-output-truncation middle
+if [ "x${THE_OTHER_BUILD_TYPE}" != "x" ]; then
+    ctest --build-config  "${THE_OTHER_BUILD_TYPE}"  --output-on-failure --test-output-size-failed 10000 --test-output-truncation middle
+fi
+#--verbose --extra-verbose
 cmake --install "${TGT}/bld"
 echo "Build dir was: ${TGT}/bld"
