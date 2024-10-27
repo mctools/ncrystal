@@ -51,8 +51,6 @@ FIXME: We should have a unit test which checks for all of the above issues!
 
 """
 
-
-
 __all__ = []
 
 def warn(*a,**kw):
@@ -74,6 +72,9 @@ def create_ArgumentParser( *args, **kwargs ):
         if k not in kwargs:
             kwargs[k] = v
     parser = ArgumentParser( *args, **kwargs )
+    #Ensure consistent argparse --help output from older versions, by changing a
+    #section title:
+    _fix_argparse_action_group_title(parser,'optional arguments','options')
     f = _argparse_postinitfct[0]
     if f is not None:
         f(parser)
@@ -139,8 +140,8 @@ def cli_entry_point(func):
             import os
             progname = argv[0]
             assert progname and isinstance(progname,str)
-            assert not '/' in progname and not '\\' in progname
-            assert not '.' in progname and not '~' in progname
+            assert '/' not in progname and '\\' not in progname
+            assert '.' not in progname and '~' not in progname
             arglist = argv[1:]
             return func( progname, arglist )
         #Called from actual command-line, so we translate warnings and
@@ -219,3 +220,12 @@ def _map_shortname_2_canonical_name( short_name ):
     return { 'config' : 'ncrystal-config',
              'nctool' : 'nctool' }.get( short_name,
                                         f'ncrystal_{short_name}' )
+
+def _fix_argparse_action_group_title( parser, oldtitle, newtitle ):
+    _ags = getattr(parser,'_action_groups',[])
+    if any( getattr(ag,'title','')==newtitle for ag in _ags):
+        return
+    for ag in _ags:
+        if getattr(ag,'title','') == oldtitle:
+            setattr(ag,'title',newtitle)
+            return
