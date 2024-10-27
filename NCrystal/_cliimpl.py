@@ -78,7 +78,31 @@ def create_ArgumentParser( *args, **kwargs ):
     f = _argparse_postinitfct[0]
     if f is not None:
         f(parser)
+
+    if _is_argparse_py38() and hasattr(parser.formatter_class,'_format_args'):
+        #Monkey patch object to fix minor inconsistency in --help
+        #formatting:
+        orig_format_args = parser.formatter_class._format_args
+        def _format_args(self, action, default_metavar):
+            get_metavar = self._metavar_formatter(action, default_metavar)
+            from argparse import ZERO_OR_MORE
+            if action.nargs == ZERO_OR_MORE:
+                metavar = get_metavar(1)
+                if len(metavar) == 2:
+                    result = '[%s [%s ...]]' % metavar
+                else:
+                    result = '[%s ...]' % metavar
+                return result
+            return orig_format_args(self,action,default_metavar)
+        parser.formatter_class._format_args = _format_args
+
     return parser
+
+def _is_argparse_py38():
+    from argparse import ArgumentParser
+    return ('exit_on_error' not in ArgumentParser.__doc__)
+
+
 
 class ctxmgr_modify_argparse_creation:
 
@@ -99,6 +123,7 @@ class ctxmgr_modify_argparse_creation:
                     from argparse import ArgumentError
                     raise ArgumentError(None,message)
                 parser.error = error
+
             if not redirect_stdout_to_stderr:
                 return
             #Monkey patch object to redirect stdout/stderr of argparse to
@@ -112,15 +137,14 @@ class ctxmgr_modify_argparse_creation:
                 if message:
                     print(message)
             parser._print_message = _print_message
+
         _argparse_postinitfct[0] = f
         self.__orig_extra_kwargs = _argparse_extra_kwargs[0]
         orig_extra_kwargs = self.__orig_extra_kwargs
         new_extra_kwargs = dict( (k,v)
                                  for k,v in (orig_extra_kwargs or {}).items() )
-        #exit_on_error only added in python 3.9. We detect the support by
-        #looking in the docstring of the class:
-        from argparse import ArgumentParser
-        if 'exit_on_error' in ArgumentParser.__doc__:
+        #exit_on_error only added in python 3.9:
+        if not _is_argparse_py38():
             new_extra_kwargs['exit_on_error'] = self.__exit_on_error
         _argparse_extra_kwargs[0] = new_extra_kwargs
 
