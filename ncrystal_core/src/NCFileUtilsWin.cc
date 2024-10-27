@@ -34,7 +34,7 @@
 
 //Do not use std::filesystem if we have an alternative:
 #ifndef NCRYSTAL_AVOID_CPP17FILESYSTEM
-#  if NCRYSTAL_FEATURE_IFSTREAM_WSTRING_PATH
+#  ifdef NCRYSTAL_FEATURE_IFSTREAM_WSTRING_PATH
 #    define NCRYSTAL_AVOID_CPP17FILESYSTEM
 #  endif
 #endif
@@ -50,6 +50,7 @@
 #ifndef NCRYSTAL_AVOID_CPP17FILESYSTEM
 #  include <filesystem>
 #endif
+#include <climits>
 
 namespace NC = NCrystal;
 
@@ -60,7 +61,7 @@ namespace NCRYSTAL_NAMESPACE {
       std::wstring winimpl_str2wstr( const std::string& src )
       {
         const char * in_data = &src[0];
-        nc_assert_always( src.size() < std::numeric_limits<int>::max() );
+        nc_assert_always( src.size() < INT_MAX );
         int in_size = static_cast<int>(src.size());
         std::wstring res;
         if ( !in_size )
