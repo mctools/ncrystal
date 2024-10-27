@@ -117,7 +117,11 @@ class ctxmgr_modify_argparse_creation:
         orig_extra_kwargs = self.__orig_extra_kwargs
         new_extra_kwargs = dict( (k,v)
                                  for k,v in (orig_extra_kwargs or {}).items() )
-        new_extra_kwargs['exit_on_error'] = self.__exit_on_error
+        #exit_on_error only added in python 3.9. We detect the support by
+        #looking in the docstring of the class:
+        from argparse import ArgumentParser
+        if 'exit_on_error' in ArgumentParser.__doc__:
+            new_extra_kwargs['exit_on_error'] = self.__exit_on_error
         _argparse_extra_kwargs[0] = new_extra_kwargs
 
     def __exit__(self,*a,**kw):
