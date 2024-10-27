@@ -20,6 +20,10 @@
 ##                                                                            ##
 ################################################################################
 
+import os
+os.environ['NCRYSTAL_DEBUG_VDOSREGULARISATION']='1'
+os.environ['NCRYSTAL_DEBUG_PHONON']='1'
+
 import NCTestUtils.enable_fpe # noqa F401
 import NCrystal as NC
 
