@@ -20,10 +20,20 @@
 ##                                                                            ##
 ################################################################################
 
-import NCTestUtils.enable_fpe
+import NCTestUtils.enable_fpe # noqa F401
 import NCrystal as NC
 
-data_Au_sg225_ncmat="""NCMAT v4
+def test1():
+    cfgstr='stdlib::Au_sg225.ncmat;temp=600K;dcutoff=1Aa'
+    print(f'Debugging "{cfgstr}":')
+    from NCrystal.misc import detect_scattering_components
+    for comp in detect_scattering_components(cfgstr):
+        wl=2.0
+        xs=NC.load(cfgstr+f';comp={comp}').scatter.xsect(wl=wl)
+        print(f"  sigma_{comp} ( {wl:g} Aa ) = {xs:.14g} barn")
+
+def test2():
+    data_Au_sg225_ncmat="""NCMAT v4
 @CELL
   cubic 4.07825
 @SPACEGROUP
@@ -37,7 +47,7 @@ data_Au_sg225_ncmat="""NCMAT v4
   Au  167
 """
 
-mat = NC.directMultiCreate( """NCMAT v1
+    mat = NC.directMultiCreate( """NCMAT v1
 @CELL
     lengths 4.07825 4.07825 4.07825
     angles 90. 90. 90.
@@ -51,14 +61,17 @@ mat = NC.directMultiCreate( """NCMAT v1
 @DEBYETEMPERATURE
     Au   167
 """ )
-print(mat.info.getDensity())
+    print(mat.info.getDensity())
 
-mat2=NC.directMultiCreate( data_Au_sg225_ncmat,
-                           dtype='ncmat',
-                           doInfo=False,
-                           doScatter=False,
-                           doAbsorption=False )
-print(mat2)
-mat2=NC.directMultiCreate(data_Au_sg225_ncmat,'temp=600K;dcutoff=1')
-mat2.info.dump()
-print('%.14g'%mat2.scatter.crossSectionIsotropic(NC.wl2ekin(2.0)))
+    mat2=NC.directMultiCreate( data_Au_sg225_ncmat,
+                               dtype='ncmat',
+                               doInfo=False,
+                               doScatter=False,
+                               doAbsorption=False )
+    print(mat2)
+    mat2=NC.directMultiCreate(data_Au_sg225_ncmat,'temp=600K;dcutoff=1')
+    mat2.info.dump()
+    print('%.14g'%mat2.scatter.crossSectionIsotropic(NC.wl2ekin(2.0)))
+
+test1()
+test2()

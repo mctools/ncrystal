@@ -1,3 +1,7 @@
+Debugging "stdlib::Au_sg225.ncmat;temp=600K;dcutoff=1Aa":
+  sigma_coh_elas ( 2 Aa ) = 4.7361254892674 barn
+  sigma_incoh_elas ( 2 Aa ) = 0.31946864208618 barn
+  sigma_inelas ( 2 Aa ) = 1.9616867001227 barn
 19.28768344355451
 LoadedMaterial(Info=n/a, Scatter=n/a, Absorption=n/a)
 ----------------------------------------------------------------------------------------------------
