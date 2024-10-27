@@ -32,6 +32,9 @@ jobs:
     - name: install oneAPI dpcpp compiler
       run: sudo apt install intel-oneapi-compiler-dpcpp-cpp
 
+    - name: install oneAPI runtime libs
+      run: sudo apt install intel-oneapi-runtime-libs
+
     - name: Configure CMake
       run: |
         source /opt/intel/oneapi/setvars.sh
@@ -47,7 +50,8 @@ jobs:
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install \
         -DNCRYSTAL_ENABLE_EXAMPLES=ON \
-        -DNCRYSTAL_BUILD_STRICT=ON
+        -DNCRYSTAL_BUILD_STRICT=ON \
+        -DNCRYSTAL_ENABLE_TESTING=ON
 
 #Flags that we didn't need:
 #        -DIntelDPCPP_DIR="/opt/intel/oneapi/compiler/latest/linux/cmake/SYCL"
@@ -61,6 +65,9 @@ jobs:
         cmake
         --build ${{github.workspace}}/build
         --config Release
+
+    - name: CTest
+      run: ( cd ${{github.workspace}}/build && ctest --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle )
 
     - name: Install
       run: source /opt/intel/oneapi/setvars.sh && cmake --install ${{github.workspace}}/build
