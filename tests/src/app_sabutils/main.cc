@@ -52,7 +52,10 @@ void test_loglin( long double a, long double fa, long double b, long double fb, 
     } else if ( x == b ) {
       expected = fb;
     } else {
-      expected = std::exp(std::log(fa)+(std::log(fb/fa))*(x-a)/(b-a));//loglin definition
+      expected = fa*std::pow(fb/fa,(x-a)/(b-a));//efficient rewrite of exp(log(fa)+(logfb-logfa)*r)
+      nc_assert_always( NC::floateq( expected,
+                                     std::exp(std::log(fa)+(std::log(fb/fa))*(x-a)/(b-a) ),
+                                     1.0e-8 ) );
     }
   } else {
     linlin = true;
@@ -74,8 +77,10 @@ void test_loglin( long double a, long double fa, long double b, long double fb, 
     }
   }
   if (!NC::floateq(expected, calculated_value,1e-12,1e-12))
-    NCRYSTAL_THROW2(CalcError,ss.str()<<" gave "<<calculated_value<<" not expected "<<expected<<" (absdiff "<<
-                    calculated_value-expected<<")"<<(linlin?"linlin":"loglin")<<")");
+    NCRYSTAL_THROW2(CalcError,ss.str()<<" gave "<<NC::fmt(calculated_value)
+                    <<" not expected "<<NC::fmt(expected)<<" (absdiff "<<
+                    calculated_value-expected<<")"
+                    <<(linlin?"linlin":"loglin")<<")");
   //std::cout<<"Testing "<<ss.str()<<" [expected "<<expected<<", got "<<calculated_value<<"] ("<<(linlin?"linlin":"loglin")<<")"<<std::endl;
 
 }
