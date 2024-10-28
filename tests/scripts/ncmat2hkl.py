@@ -28,6 +28,17 @@ import pathlib
 import contextlib
 import shlex
 
+#default is to encode numbers in produced .laz/.lau files with 14 digits of
+#precision (%.14g), but for robustness of the unit test we reduce this in any
+#printed content to avoid spurious false positives due to FP instabilities:
+test_precision = 10
+
+#for re-loading those files and comparing the precision with the original
+#NCrystal physics. Note, this could be a lot more precise if running with the
+#default FP precision of ncmat2hkl (test_precision=14), but we can't since then
+#we would get spurious test failures in the reflog diffing.:
+max_diff_lvl = 1e-7
+
 from NCTestUtils.common import ( print_text_file_with_snipping,
                                  ensure_error,
                                  work_in_tmpdir,
@@ -35,11 +46,13 @@ from NCTestUtils.common import ( print_text_file_with_snipping,
 
 def test_pyapi( cfgstr, fmt, nstart = 30, nend = 20 ):
     from NCrystal.mcstasutils import cfgstr_2_hkl
-    kwargs = dict(cfgstr=cfgstr,tgtformat=fmt)
+    kwargs = dict(cfgstr=cfgstr,
+                  tgtformat=fmt,
+                  fp_format=f'%.{test_precision}g')
     args_str = fmt_args_as_str( **kwargs )
     hr=f"============= PyAPI >>{args_str}<< ===================="
     print(hr)
-    res = '\n'.join(cfgstr_2_hkl(cfgstr=cfgstr,tgtformat=fmt))+'\n'
+    res = '\n'.join(cfgstr_2_hkl(**kwargs))+'\n'
     print_text_file_with_snipping( res,
                                    nstart=nstart,
                                    nend=nend,
@@ -53,6 +66,7 @@ def test_cli( args, *,
               in_tmp_dir = True ):
     if isinstance(args,str):
         args = shlex.split(args)
+    args = args[:] + [f'--override-prec={test_precision}']
     is_stdout = outfile is None or outfile=='stdout'
     if is_stdout:
         import io
@@ -189,7 +203,6 @@ def cfgstr2hkl(cfgstr,fmt,outfile,use_pyapi):
 
 def test_cfgstr(cfgstr, do_plot,outfile,use_pyapi):
 
-    max_diff_lvl = 1e-10
     import numpy as np
 
     #NC.registerInMemoryFileData('foo.laz'c,fgstr2hkl(cfgstr,'laz'))
@@ -249,8 +262,8 @@ def test_cfgstr(cfgstr, do_plot,outfile,use_pyapi):
             print (f'XS max-abs-diff converted {fmt} vs. original < {max_diff_lvl}?: %s'%('yes' if diff<max_diff_lvl else 'no'))
         if do_plot:
             import matplotlib.pyplot as plt
-            plt.plot(wls/2,xs,label='via laz')
-            plt.plot(wls/2,xs_orig,label='orig',ls='--',lw=3,alpha=0.5)
+            plt.plot(wls,xs,label='via laz')
+            plt.plot(wls,xs_orig,label='orig',ls='--',lw=3,alpha=0.5)
             plt.legend()
             plt.show()
         assert diff < max_diff_lvl
@@ -267,10 +280,12 @@ def test_cfgstr(cfgstr, do_plot,outfile,use_pyapi):
         else:
             print (f'SC XS max-abs-diff converted {fmt} vs. original < {max_diff_lvl}?: %s'%('yes' if diff<max_diff_lvl else 'no'))
         if do_plot:
-            plt.plot(wls_sparse/2,xs,label='via laz')
-            plt.plot(wls_sparse/2,xs_orig,label='orig',ls='--',lw=3,alpha=0.5)
+            import matplotlib.pyplot as plt
+            plt.plot(wls_sparse,xs,label='via laz')
+            plt.plot(wls_sparse,xs_orig,label='orig',ls='--',lw=3,alpha=0.5)
             plt.legend()
             plt.show()
+
         assert diff < max_diff_lvl
 
 if __name__ == '__main__':

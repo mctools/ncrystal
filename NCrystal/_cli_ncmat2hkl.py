@@ -130,23 +130,43 @@ def create_argparser_for_sphinx( progname ):
 
 @cli_entry_point
 def main( progname, arglist ):
+
+    #parse hidden option (needed for unit tests):
+    override_prec = None
+    override_opt = '--override-prec='
+    hidden_args, standard_args = [], []
+    for a in arglist:
+        (hidden_args
+         if a.startswith(override_opt)
+         else standard_args).append( a )
+    arglist = standard_args
+    if hidden_args:
+        override_prec = int(hidden_args[-1][len(override_opt):])
+
     args = parseArgs( progname, arglist )
     do_quiet = ( args.quiet or args.output == 'stdout' )
+
+    def invoke():
+        _main_impl(args,do_quiet,override_prec)
 
     if do_quiet:
         from ._common import modify_ncrystal_print_fct_ctxmgr
         with modify_ncrystal_print_fct_ctxmgr('block'):
-            _main_impl(args,do_quiet)
+            invoke()
     else:
-        _main_impl(args,do_quiet)
+        invoke()
 
-def _main_impl( args, do_quiet ):
+def _main_impl( args, do_quiet, override_prec ):
 
     from . import mcstasutils
     full_info = True
-    content_iter = mcstasutils.cfgstr_2_hkl( cfgstr = args.CFGSTR,
-                                             tgtformat = args.format,
-                                             verbose = full_info )
+    kwargs = dict(cfgstr = args.CFGSTR,
+                  tgtformat = args.format,
+                  verbose = full_info)
+    if override_prec:
+        kwargs['fp_format'] = f'%.{override_prec}g'
+
+    content_iter = mcstasutils.cfgstr_2_hkl( **kwargs )
     #Fixme: common helper function?
     if args.output is None or args.output == 'stdout':
         #FIXME: use _common.print or sys.stdout.write?

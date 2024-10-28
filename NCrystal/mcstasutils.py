@@ -127,7 +127,7 @@ AT (0,0,0) ABSOLUTE
 """
     return res
 
-def cfgstr_2_hkl(*, cfgstr, tgtformat, verbose=True, fp_format = '%.13g' ):
+def cfgstr_2_hkl(*, cfgstr, tgtformat, verbose=True, fp_format = '%.14g' ):
     """Function which can be used to create input files with reflections for
     McStas crystalline sample components like PowderN and Single_crystal, based
     on NCrystal cfg-strings (usually referring to NCMAT files with crystalline
@@ -135,12 +135,14 @@ def cfgstr_2_hkl(*, cfgstr, tgtformat, verbose=True, fp_format = '%.13g' ):
     verbose is True, the files might contain strictly unneccessary content
     (e.g. white-space for adjusting columns, a dspacing column in .lau files,
     ...). Finally the fp_format parameter can be used to change the precision of
-    floating point numbers in the file.
+    floating point numbers in the file in the data rows. Numbers in the header
+    will on the other hand always be produced using %.14g.
 
     This function returns an iterable, yielding one line of the output file at a
     time.
 
     """
+
     import numbers
     import functools
     import math
@@ -203,8 +205,11 @@ def cfgstr_2_hkl(*, cfgstr, tgtformat, verbose=True, fp_format = '%.13g' ):
     assert info.hasAtomInfo()
 
     si = info.getStructureInfo()
-    def fmtfp(x):
+    def fmtfp_datarows(x):
         return fp_format%x if isinstance(x, numbers.Real) else str(x)
+
+    def fmtfp_header(x):
+        return '%.14g'%x if isinstance(x, numbers.Real) else str(x)
 
     yield f'# File created by NCrystal v{_NC.get_version()}'
     yield '#'
@@ -237,34 +242,34 @@ def cfgstr_2_hkl(*, cfgstr, tgtformat, verbose=True, fp_format = '%.13g' ):
         yield '#'
         yield f'# ncrystal_embedded_cfg : NCRYSTALMATCFG[{cfgstr_nodataname}]'
         yield '#'
-    yield f'# temperature {fmtfp(info.getTemperature())} [kelvin]'
+    yield f'# temperature {fmtfp_header(info.getTemperature())} [kelvin]'
     yield '#'
     yield f'# spacegroup {si["spacegroup"]}'
-    yield f'# lattice_a {fmtfp(si["a"])} [Aa]'
-    yield f'# lattice_b {fmtfp(si["b"])} [Aa]'
-    yield f'# lattice_c {fmtfp(si["c"])} [Aa]'
-    yield f'# lattice_aa {fmtfp(si["alpha"])} [degrees]'
-    yield f'# lattice_bb {fmtfp(si["beta"])} [degrees]'
-    yield f'# lattice_cc {fmtfp(si["gamma"])} [degrees]'
-    yield f'# Vc {fmtfp(si["volume"])} [Aa^3]'
+    yield f'# lattice_a {fmtfp_header(si["a"])} [Aa]'
+    yield f'# lattice_b {fmtfp_header(si["b"])} [Aa]'
+    yield f'# lattice_c {fmtfp_header(si["c"])} [Aa]'
+    yield f'# lattice_aa {fmtfp_header(si["alpha"])} [degrees]'
+    yield f'# lattice_bb {fmtfp_header(si["beta"])} [degrees]'
+    yield f'# lattice_cc {fmtfp_header(si["gamma"])} [degrees]'
+    yield f'# Vc {fmtfp_header(si["volume"])} [Aa^3]'
     yield '#'
     n_atoms = sum( ai.count for ai in info.atominfos )
     assert si["n_atoms"] == n_atoms
     yield f'# multiplicity {n_atoms} [atoms/unit cell]'
-    yield f'# density {fmtfp(info.density)} [g/cm^3]'
-    yield f'# number_density {fmtfp(info.numberdensity)} [atoms/Aa^3]'
+    yield f'# density {fmtfp_header(info.density)} [g/cm^3]'
+    yield f'# number_density {fmtfp_header(info.numberdensity)} [atoms/Aa^3]'
     daltons_per_unitcell = sum(ai.atomData.averageMassAMU() * ai.count
                                for ai in info.atominfos)
-    yield f'# weight {fmtfp(daltons_per_unitcell)} [g/mol of entire unit cell]'
-    yield f'# average_mass {fmtfp(daltons_per_unitcell/n_atoms)} [average atomic g/mol]'
+    yield f'# weight {fmtfp_header(daltons_per_unitcell)} [g/mol of entire unit cell]'
+    yield f'# average_mass {fmtfp_header(daltons_per_unitcell/n_atoms)} [average atomic g/mol]'
 
     sigma_coh = sum(ai.atomData.coherentXS() * ai.count for ai in info.atominfos)
     sigma_inc = sum(ai.atomData.incoherentXS() * ai.count for ai in info.atominfos)
     sigma_abs = sum(ai.atomData.captureXS() * ai.count for ai in info.atominfos)
     yield '#'
-    yield f'# sigma_coh {fmtfp(sigma_coh)} [barn/unitcell]'
-    yield f'# sigma_inc {fmtfp(sigma_inc)} [barn/unitcell]'
-    yield f'# sigma_abs {fmtfp(sigma_abs)} [barn/unitcell]'
+    yield f'# sigma_coh {fmtfp_header(sigma_coh)} [barn/unitcell]'
+    yield f'# sigma_inc {fmtfp_header(sigma_inc)} [barn/unitcell]'
+    yield f'# sigma_abs {fmtfp_header(sigma_abs)} [barn/unitcell]'
     yield '#'
 
     has_debye_temp = True
@@ -294,7 +299,7 @@ def cfgstr_2_hkl(*, cfgstr, tgtformat, verbose=True, fp_format = '%.13g' ):
         yield f'# formula {formula}'
         yield f'# nformula_per_unitcell {nformula_per_unitcell}'
         if debye_temp_sum:
-            yield f'# debye_temperature {fmtfp(debye_temp_sum/debye_temp_sumw)} [kelvin, weighted by sigma_b]'
+            yield f'# debye_temperature {fmtfp_header(debye_temp_sum/debye_temp_sumw)} [kelvin, weighted by sigma_b]'
 
     cols = ['h','k','l']
     if doMult:
@@ -334,7 +339,7 @@ def cfgstr_2_hkl(*, cfgstr, tgtformat, verbose=True, fp_format = '%.13g' ):
         for c in cols:
             if s:
                 s+=' '
-            s+=fmtfp(data[c]).rjust(colwidths[c])
+            s+=fmtfp_datarows(data[c]).rjust(colwidths[c])
         return s
 
     if doPowder:
