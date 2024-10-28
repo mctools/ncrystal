@@ -163,7 +163,13 @@ inline double NCrystal::SABUtils::interpolate_loglin_fallbacklinlin(double a, do
   double r = (x-a)/(b-a);
   if( fa*fb!=0.0 )
     return fa*std::pow(fb/fa,r);//efficient rewrite of exp(log(fa)+(logfb-logfa)*r)
-  return  fa+(fb-fa)*r;//fallback to linlin
+  //fallback to linlin (try to pick more stable version for r close to 1:
+  if ( r > 0.5 ) {
+    //Express in (x-b) instead of (x-a), for better stability:
+    return fb + (fa-fb) * ((b-x)/(b-a));
+  } else {
+    return  fa+(fb-fa)*r;
+  }
 }
 
 inline double NCrystal::SABUtils::interpolate_loglin_fallbacklinlin_fast(double a, double fa, double b, double fb, double x, double logfa, double logfb)
@@ -174,7 +180,13 @@ inline double NCrystal::SABUtils::interpolate_loglin_fallbacklinlin_fast(double 
   double r = (x-a)/(b-a);
   if( fa*fb!=0.0 )
     return std::exp(logfa+(logfb-logfa)*r);//loglin
-  return  fa+(fb-fa)*r;//fallback to linlin
+  //fallback to linlin (try to pick more stable version for r close to 1:
+  if ( r > 0.5 ) {
+    //Express in (x-b) instead of (x-a), for better stability:
+    return fb + (fa-fb) * ((b-x)/(b-a));
+  } else {
+    return  fa+(fb-fa)*r;
+  }
 }
 
 inline double NCrystal::SABUtils::integrateAlphaInterval(double a1,double s1, double a2 , double s2 )
