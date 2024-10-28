@@ -107,8 +107,15 @@ namespace {
     double calc = NC::SABUtils::integrateAlphaInterval(a0,f0, a1, f1 );
     double calc_fast = NC::SABUtils::integrateAlphaInterval_fast(a0,f0, a1, f1, std::log(f0), std::log(f1) );
     double expect = func_f_defintegral_(a0,a1);
-    std::cout<<" integrateAlphaInterval : "<<calc<<" vs. "<<calc_fast<<" vs. "<<expect<<" reldiff: "
-             <<100.0*(calc/expect-1.0)<<"% and "<<100.0*(calc_fast/expect-1.0)<<"%"<<std::endl;
+    constexpr double tol = 3e-14;
+    auto rd_ok = [expect,tol](double v)
+    {
+      return ( ( v==expect || NC::ncabs(v/expect-1.0) < 3e-14 )
+               ? "yes" : "no" );
+    };
+
+    std::cout<<" integrateAlphaInterval : "<<calc<<" vs. "<<calc_fast<<" vs. "<<expect<<" reldiff < "<<tol<<": "
+             <<rd_ok(calc)<<" and "<<rd_ok(calc_fast)<<std::endl;
   }
 }
 

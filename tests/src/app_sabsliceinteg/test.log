@@ -30,5 +30,5 @@ makeTailedBreakdown DBG: aidx_low=0, aidx_upp=19
  checkXS(15): xs_front = 0.116232 xs_middle = 5.46449 xs_back = 0.703162 xs_sum = 6.28389 expected = 6.28389 reldiff<1e-15? = yes%
 makeTailedBreakdown DBG: aidx_low=9, aidx_upp=19
  checkXS(16): xs_front = 0.146515 xs_middle = 3.68173 xs_back = 0.703162 xs_sum = 4.5314 expected = 4.5314 reldiff<1e-15? = yes%
- integrateAlphaInterval : 2.27091 vs. 2.27091 vs. 2.27091 reldiff: -2.22045e-14% and 0%
- integrateAlphaInterval : 6.28389 vs. 6.28389 vs. 6.28389 reldiff: 2.22045e-14% and 2.22045e-14%
+ integrateAlphaInterval : 2.27091 vs. 2.27091 vs. 2.27091 reldiff < 3e-14: yes and yes
+ integrateAlphaInterval : 6.28389 vs. 6.28389 vs. 6.28389 reldiff < 3e-14: yes and yes
