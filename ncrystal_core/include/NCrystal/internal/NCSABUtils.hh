@@ -160,15 +160,16 @@ inline double NCrystal::SABUtils::interpolate_loglin_fallbacklinlin(double a, do
 {
   nc_assert ( fa>=0.0 && fb >= 0.0 );
   nc_assert ( x >= a && x <= b );
-  double r = (x-a)/(b-a);
-  if( fa*fb!=0.0 )
-    return fa*std::pow(fb/fa,r);//efficient rewrite of exp(log(fa)+(logfb-logfa)*r)
-  //fallback to linlin (try to pick more stable version for r close to 1:
-  if ( r > 0.5 ) {
-    //Express in (x-b) instead of (x-a), for better stability:
-    return fb + (fa-fb) * ((b-x)/(b-a));
+  const double midpoint = 0.5 * ( b + a );
+  const bool linlin_mode = ( fa*fb == 0.0 );
+  if ( x < midpoint ) {
+    //choose form most numerically stable for x near a
+    const double r = (x-a) / (b-a);
+    return ( linlin_mode ? ( fa + (fb-fa)*r ) : fa * std::pow(fb/fa,r) );
   } else {
-    return  fa+(fb-fa)*r;
+    //choose form most numerically stable for x near b
+    const double s = (b-x) / (b-a);
+    return ( linlin_mode ? ( fb + (fa-fb)*s ) : fb * std::pow(fa/fb,s) );
   }
 }
 
@@ -177,15 +178,16 @@ inline double NCrystal::SABUtils::interpolate_loglin_fallbacklinlin_fast(double 
   nc_assert ( fa>=0.0 && fb >= 0.0 );
   nc_assert ( x >= a && x <= b );
   nc_assert ( !ncisnan(logfa) && !ncisnan(logfb) );
-  double r = (x-a)/(b-a);
-  if( fa*fb!=0.0 )
-    return std::exp(logfa+(logfb-logfa)*r);//loglin
-  //fallback to linlin (try to pick more stable version for r close to 1:
-  if ( r > 0.5 ) {
-    //Express in (x-b) instead of (x-a), for better stability:
-    return fb + (fa-fb) * ((b-x)/(b-a));
+  const double midpoint = 0.5 * ( b + a );
+  const bool linlin_mode = ( fa*fb == 0.0 );
+  if ( x < midpoint ) {
+    //choose form most numerically stable for x near a
+    const double r = (x-a) / (b-a);
+    return ( linlin_mode ? ( fa + (fb-fa)*r ) : std::exp(logfa+(logfb-logfa)*r) );
   } else {
-    return  fa+(fb-fa)*r;
+    //choose form most numerically stable for x near b
+    const double s = (b-x) / (b-a);
+    return ( linlin_mode ? ( fb + (fa-fb)*s ) : std::exp(logfb+(logfa-logfb)*s) );
   }
 }
 
