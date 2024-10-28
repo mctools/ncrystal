@@ -121,14 +121,18 @@ namespace {
 
 int main () {
 
-#if 1
+#if 0
   auto alphaGrid = NC::linspace(0.1,2.0,20);
-#else
+#elif 0
   //This emulates issue seen on osx:
   const NC::VectD alphaGrid = { 0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,
                                 1.1,1.2,1.3,1.4,1.5,1.6,1.7,
                                 std::nextafter(1.8, -NC::kInfinity),
                                 1.9,2.0 };
+#else
+  //Hardcode input for now, to test sabutils and not NC::linspace:
+  const NC::VectD alphaGrid = { 0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,
+                                1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2.0 };
 #endif
 
   auto func_f = [](double alpha) { return std::exp(alpha); };
