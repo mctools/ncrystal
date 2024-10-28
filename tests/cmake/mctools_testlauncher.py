@@ -4,7 +4,6 @@
 # comparing with reference output.
 
 import sys
-import os
 import pathlib
 import shutil
 import shlex
@@ -91,13 +90,19 @@ def run( app_file, reflogfile = None ):
     def qp( p ):
         return shlex.quote(str(p.absolute()))
 
+    def explicit_unicode_char(c):
+        #32 is space, <32 are control chars, 127 is DEL.
+        return c if 32<=ord(c)<=126 else r'\u{%i}'%ord(c)
+    def explicit_unicode_str(s):
+        return ''.join( explicit_unicode_char(c) for c in s)
+
     import difflib
-    for l in difflib.unified_diff(refoutput,
-                                  output,
-                                  fromfile='BEFORE',
-                                  tofile='AFTER',
-                                  lineterm=''):
-        print('DIFF> %s'%l)
+    for line in difflib.unified_diff(refoutput,
+                                     output,
+                                     fromfile='BEFORE',
+                                     tofile='AFTER',
+                                     lineterm=''):
+        print('DIFF> %s'%explicit_unicode_str(line))
 
     raise SystemExit(f"""
 ERROR: Output does not match that of the reference log.
