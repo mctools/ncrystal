@@ -39,7 +39,7 @@ void printrange(NC::Span<double> v,bool eol = true) {
     std::cout<<std::endl;
 }
 
-void test_loglin( double a, double fa, double b, double fb, double x, double calculated_value ) {
+void test_loglin( long double a, long double fa, long double b, long double fb, long double x, long double calculated_value ) {
   double expected;
   std::ostringstream ss;
   ss << "loglin(a="<<a<<", fa="<<fa<<", b="<<b<<", fb="<<fb<<", x="<<x<<")";
@@ -50,7 +50,13 @@ void test_loglin( double a, double fa, double b, double fb, double x, double cal
     expected = std::exp(std::log(fa)+(std::log(fb/fa))*(x-a)/(b-a));//loglin definition
   } else {
     linlin = true;
-    expected = fa+(fb-fa)*(x-a)/(b-a);//linlin
+    //Unstable? : expected = fa+(fb-fa)*(x-a)/(b-a);//linlin
+    NC::StableSum sum;
+    sum.add(fa*b);
+    sum.add(fb*x);
+    sum.add(-fb*a);
+    sum.add(-fa*x);
+    expected = sum.sum() / ( b-a );
   }
   if (!NC::floateq(expected, calculated_value,1e-12,1e-12))
     NCRYSTAL_THROW2(CalcError,ss.str()<<" gave "<<calculated_value<<" not expected "<<expected<<" (absdiff "<<
