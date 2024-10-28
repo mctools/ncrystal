@@ -47,7 +47,8 @@ namespace NCRYSTAL_NAMESPACE {
     //A few utilities for doubles:
     inline double sanitiseDblValue(double v,const char * varname) {
       if ( std::isnan(v) )
-        NCRYSTAL_THROW2(BadInput,"NAN (not-a-number) value provided for parameter \""<<varname<<"\"");
+        NCRYSTAL_THROW2(BadInput,"NAN (not-a-number) value provided"
+                        " for parameter \""<<varname<<"\"");
       return ( v == 0.0 ? 0.0 : v );
     }
     using ValDbl_ShortStrOrigRep = ShortStr<VarBuf::buffer_local_size - sizeof(double)>;

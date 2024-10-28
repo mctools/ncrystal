@@ -45,18 +45,26 @@ namespace NCRYSTAL_NAMESPACE {
       static constexpr auto name = "temp";
       static constexpr auto group = VarGroupId::Info;
       static constexpr auto description =
-        "Temperature of material in Kelvin. The special value of -1.0 implies 293.15K unless"
-        " input data is only valid at a specific temperature, in which case that temperature is used instead.";
+        "Temperature of material in Kelvin. The special value of -1.0"
+        " implies 293.15K unless input data is only valid at a specific"
+        " temperature, in which case that temperature is used instead.";
       static constexpr value_type default_value() { return -1.0; }
       using units = units_temperature;
       static double value_validate( double value )
       {
-        if ( ! ( value == -1.0 || ( value >= Temperature::allowed_range.first && value <= Temperature::allowed_range.second ) ) )
+        if ( ! ( value == -1.0
+                 || ( value >= Temperature::allowed_range.first
+                      && value <= Temperature::allowed_range.second ) ) ) {
+          value = (value==0.0?0.0:value);//consistent printout of negative zero
           NCRYSTAL_THROW2(BadInput,"Out of range temperature value "
-                          <<Temperature{value}<<" provided for parameter \""<<name
+                          <<Temperature{value}
+                          <<" provided for parameter \""<<name
                           <<"\" (valid temperatures must be in the range "
                           <<Temperature{Temperature::allowed_range.first}
-                          <<" .. "<<Temperature{Temperature::allowed_range.second}<<")");
+                          <<" .. "
+                          <<Temperature{Temperature::allowed_range.second}<<")"
+                          );
+        }
         return value;
       }
     };
