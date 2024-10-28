@@ -132,12 +132,12 @@ Tests completed succesfully
   Fast Bragg threshold(1) 6.512627
   Full init bragg threshold(1) 6.512627
 
-Test loading of :>>>unicodedir_test䔀abc/Al_sg225.ncmat<<<
-Test loading of :>>>unicodedir_test䔀abc/Al_sg225.ncmat;inelas=test䔀abc<<<
+Test loading of :>>>unicodedir_test䔀abc{{NATIVEPATHSEP}}Al_sg225.ncmat<<<
+Test loading of :>>>unicodedir_test䔀abc{{NATIVEPATHSEP}}Al_sg225.ncmat;inelas=test䔀abc<<<
 Caught expected NCBadInput!: Forbidden character "\x0-28" in configuration string! Problem found in string: unicodedir_test䔀abc/Al_sg225.ncmat;inelas=test䔀abc
-Test loading of :>>>phases<1.0*unicodedir_test䔀abc/Al_sg225.ncmat><<<
-Test loading of :>>>phases<1.0*unicodedir_test䔀abc/Al_sg225.ncmat><<<
-Test loading of :>>>phases<0.1*unicodedir_test䔀abc/Al_sg225.ncmat&0.9*void.ncmat><<<
+Test loading of :>>>phases<1.0*unicodedir_test䔀abc{{NATIVEPATHSEP}}Al_sg225.ncmat><<<
+Test loading of :>>>phases<1.0*unicodedir_test䔀abc{{NATIVEPATHSEP}}Al_sg225.ncmat><<<
+Test loading of :>>>phases<0.1*unicodedir_test䔀abc{{NATIVEPATHSEP}}Al_sg225.ncmat&0.9*void.ncmat><<<
   debyeIsotropicMSD( TDebye=5, T=1, mass=1.007 ) = 9.080584874
   ...going back via debyeTempFromIsotropicMSD gives TDebye=5
   debyeIsotropicMSD( TDebye=400, T=1, mass=1.007 ) = 0.09032536977

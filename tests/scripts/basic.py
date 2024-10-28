@@ -33,6 +33,9 @@ import math
 import numpy as np
 from numpy import set_printoptions as np_setprintopts
 
+import platform
+is_windows = platform.system().lower()=='windows'
+
 np_setprintopts(infstr='inf')#test reproducibility
 
 #NC.disableCaching()
@@ -246,11 +249,18 @@ al_sg225_content = NC.createTextData('stdlib::Al_sg225.ncmat').rawData
 
 def testLoadOK(cfgstr,expectBadInput = False):
     print(f"Test loading of :>>>{cfgstr}<<<",flush=True)
+    cfgstr = cfgstr.replace( "{{NATIVEPATHSEP}}",
+                             os.path.sep )
     try:
         NC.createInfo(cfgstr)
     except NC.NCBadInput as e:
         _='expected' if expectBadInput else 'unexpected'
-        myprint(f"Caught {_} NCBadInput!: {e.message}")
+        msg = e.message
+        if is_windows and r'\Al_sg225.ncmat' in msg:
+            #Fix test output on windows:
+            msg = msg.replace('\Al_sg225.ncmat','/Al_sg225.ncmat')
+
+        myprint(f"Caught {_} NCBadInput!: {msg}")
         if not expectBadInput:
             raise SystemExit('Unexpected failure')
         return
@@ -260,7 +270,9 @@ def testLoadOK(cfgstr,expectBadInput = False):
 def testLoadFails(cfgstr):
     return testLoadOK(cfgstr,expectBadInput = True)
 
-specialfn=os.path.join(dirname,'Al_sg225.ncmat')
+#Use NATIVEPATHSEP trick to avoid test failure on windows (and still test the
+#native path separators):
+specialfn = dirname + "{{NATIVEPATHSEP}}" + 'Al_sg225.ncmat'
 testLoadOK(specialfn)
 testLoadFails(f'{specialfn};inelas=test\u4500abc')
 testLoadOK(f'phases<1.0*{specialfn}>')
