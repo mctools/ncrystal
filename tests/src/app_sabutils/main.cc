@@ -47,16 +47,31 @@ void test_loglin( long double a, long double fa, long double b, long double fb, 
   if (fa==fb) {
     expected = fa;//trivial
   } else if ( fa!=0 && fb!=0 ) {
-    expected = std::exp(std::log(fa)+(std::log(fb/fa))*(x-a)/(b-a));//loglin definition
+    if ( x == a ) {
+      expected = fa;
+    } else if ( x == b ) {
+      expected = fb;
+    } else {
+      expected = std::exp(std::log(fa)+(std::log(fb/fa))*(x-a)/(b-a));//loglin definition
+    }
   } else {
     linlin = true;
-    //Unstable? : expected = fa+(fb-fa)*(x-a)/(b-a);//linlin
-    NC::StableSum sum;
-    sum.add(fa*b);
-    sum.add(fb*x);
-    sum.add(-fb*a);
-    sum.add(-fa*x);
-    expected = sum.sum() / ( b-a );
+    if ( x == a ) {
+      expected = fa;
+    } else if ( x == b ) {
+      expected = fb;
+    } else {
+#if 1
+      expected = fa+(fb-fa)*(x-a)/(b-a);//linlin
+#else
+      NC::StableSum sum;
+      sum.add(fa*b);
+      sum.add(fb*x);
+      sum.add(-fb*a);
+      sum.add(-fa*x);
+      expected = sum.sum() / ( b-a );
+#endif
+    }
   }
   if (!NC::floateq(expected, calculated_value,1e-12,1e-12))
     NCRYSTAL_THROW2(CalcError,ss.str()<<" gave "<<calculated_value<<" not expected "<<expected<<" (absdiff "<<
