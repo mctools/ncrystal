@@ -55,9 +55,13 @@ namespace NCRYSTAL_NAMESPACE {
         if ( ! ( value == -1.0
                  || ( value >= Temperature::allowed_range.first
                       && value <= Temperature::allowed_range.second ) ) ) {
-          value = (value==0.0?0.0:value);//consistent printout of negative zero
+          //Fluff in the next lines is to force intel oneapi compiler to not
+          //print negative zero with a minus sign.
+          Temperature printval{value};
+          if ( value == 0.0 && std::signbit(value) )
+            printval = Temperature{0.0};
           NCRYSTAL_THROW2(BadInput,"Out of range temperature value "
-                          <<Temperature{value}
+                          <<printval
                           <<" provided for parameter \""<<name
                           <<"\" (valid temperatures must be in the range "
                           <<Temperature{Temperature::allowed_range.first}

@@ -258,7 +258,7 @@ def testLoadOK(cfgstr,expectBadInput = False):
         msg = e.message
         if is_windows and r'\Al_sg225.ncmat' in msg:
             #Fix test output on windows:
-            msg = msg.replace('\Al_sg225.ncmat','/Al_sg225.ncmat')
+            msg = msg.replace(r'\Al_sg225.ncmat','/Al_sg225.ncmat')
 
         myprint(f"Caught {_} NCBadInput!: {msg}")
         if not expectBadInput:

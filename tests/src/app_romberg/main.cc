@@ -60,11 +60,21 @@ void testint( double a, double b, double acc ) {
   tf.acc = acc;
   double res = tf.integrate(a,b);
   double ref = tf.integrateExact(a,b);
-  bool bothvanish = NCrystal::ncabs(ref)<1e-16&&NCrystal::ncabs(res)<1e-16;//Avoid tiny fluctuations to spoil unit tests on some platforms (OSX)
-  std::cout << "res: "; if (bothvanish) { std::cout<< "<almost zero>" << std::endl; } else { std::cout<< res << std::endl; }
-  std::cout << "ref: "; if (bothvanish) { std::cout<< "<almost zero>" << std::endl; } else { std::cout<< ref << std::endl; }
-  std::cout << "err: "; if (bothvanish) { std::cout<< "<almost zero>" << std::endl; } else { std::cout<< res-ref << std::endl; }
-  std::cout << "relerr: "<< (bothvanish ? 0.0 : (res-ref)/ref ) << std::endl;
+  //Avoid tiny fluctuations to spoil unit tests on some platforms (OSX, intel):
+  constexpr double tinyval_thr = 5e-16;
+  bool bothvanish = NCrystal::ncabs(ref)<tinyval_thr&&NCrystal::ncabs(res)<tinyval_thr;
+  auto safeprint = [tinyval_thr](double val ) {
+    if ( NCrystal::ncabs(val) < tinyval_thr )
+      std::cout<< "<almost zero>" << std::endl;
+    else
+      std::cout<< val << std::endl;
+  };
+
+  std::cout << "res: "; safeprint(res);
+  std::cout << "ref: "; safeprint(ref);
+  std::cout << "err: "; safeprint(res-ref);
+  std::cout << "relerr: ";
+  safeprint( (bothvanish||res==ref) ? 0.0 : (res-ref)/ref );
   std::cout << "nevals: "<< tf.nevals << std::endl;
 }
 

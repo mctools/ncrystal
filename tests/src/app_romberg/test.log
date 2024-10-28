@@ -20,7 +20,7 @@ nevals: 17
 res: <almost zero>
 ref: <almost zero>
 err: <almost zero>
-relerr: 0
+relerr: <almost zero>
 nevals: 17
 ---- Testing integration over [0,3] with acc=0.0001
 res: 0.00985815
@@ -37,8 +37,8 @@ nevals: 17
 ---- Testing integration over [0,1.5] with acc=1e-12
 res: 0.249994
 ref: 0.249994
-err: 1.11022e-16
-relerr: 4.441e-16
+err: <almost zero>
+relerr: <almost zero>
 nevals: 129
 ---- Testing integration over [0,1.5] with acc=-1
 NCrystal ERROR: Romberg integration did not converge. Will attempt to write function curve to ncrystal_romberg.txt for potential debugging purposes.
