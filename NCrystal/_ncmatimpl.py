@@ -1977,7 +1977,7 @@ def _cifdata_via_ase( data_or_file, ase_format = None, quiet = False ):
                     ase_format = ase.io.formats.match_magic( dof_bytes ).name
                 except ase.io.formats.UnknownFileTypeError:
                     ase_format = None
-            if ase_format is None and dof_str is not None and not '\n' in dof_str:
+            if ase_format is None and dof_str is not None and '\n' not in dof_str:
                 try:
                     ase_format = ase.io.formats.filetype( dof_str ).name
                 except ase.io.formats.UnknownFileTypeError:

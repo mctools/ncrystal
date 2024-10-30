@@ -56,10 +56,13 @@ def matsrc_initfmt( data, fmt, cfg_params ):
     from .exceptions import NCBadInput
     cfg_params = (cfg_params or '').strip() or None
     from . import core as _nc_core
-    to_str = lambda s : ( s.decode() if hasattr(s,'decode') else s )
+    def to_str(s):
+        return s.decode() if hasattr(s,'decode') else s
     def cfgcombine( cfgstr, extra_params ):
-        l = list( e.strip() for e in (to_str(cfgstr),to_str(extra_params)) if (e or '').strip() )
-        return ';'.join(l) if l else None
+        ll = list( e.strip()
+                   for e in (to_str(cfgstr),to_str(extra_params))
+                   if (e or '').strip() )
+        return ';'.join(ll) if ll else None
     if fmt == 'NCrystal.MaterialSource':
         if not cfg_params:
             return data

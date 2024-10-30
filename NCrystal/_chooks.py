@@ -53,7 +53,7 @@ def _cstr2str(s):
     #converts bytes object to str
     try:
         return s if isinstance(s,str) else s.decode('utf8')
-    except UnicodeDecodeError:
+    except UnicodeDecodeError as e:
         from .exceptions import NCBadInput
         raise NCBadInput("Only UTF8-encoded C-strings are supported") from e
 
@@ -134,9 +134,12 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
     _cstrp = ctypes.POINTER(_cstr)
     _cstrpp = ctypes.POINTER(_cstrp)
     _dblpp = ctypes.POINTER(_dblp)
-    ndarray_to_dblp = lambda a : a.ctypes.data_as(_dblp)
-    ndarray_to_uintp = lambda a : a.ctypes.data_as(_uintp)
-    ndarray_to_intp = lambda a : a.ctypes.data_as(_intp)
+    def ndarray_to_dblp(a):
+        return a.ctypes.data_as(_dblp)
+    def ndarray_to_uintp(a):
+        return a.ctypes.data_as(_uintp)
+    def ndarray_to_intp(a):
+        return a.ctypes.data_as(_intp)
 
     def _create_numpy_double_array(n):
         _ensure_numpy()
@@ -200,9 +203,11 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
 
         if take_ref:
             assert len(argtypes)==1
-            fct = lambda arg : raw(ctypes.byref(arg))
+            def fct(arg):
+                return raw(ctypes.byref(arg))
         else:
-            fct = lambda *args : raw(*args)
+            def fct(*args):
+                return raw(*args)
         if error_check:
             #NB: we should read about return types in the ctypes tutorial. Apparently one
             #can just set an error checking function as the restype.
@@ -309,12 +314,12 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
 
     _raw_gethkl_allindices = _wrap('ncrystal_info_gethkl_allindices',None,(ncrystal_info_t,_int,_intp,_intp,_intp), hide=True )
     def iter_hkllist(nfo,all_indices=False):
-        h,k,l,mult,dsp,fsq = _int(),_int(),_int(),_int(),_dbl(),_dbl()
+        h,k,ll,mult,dsp,fsq = _int(),_int(),_int(),_int(),_dbl(),_dbl()
         nhkl = int(functions['ncrystal_info_nhkl'](nfo))
         for idx in range(nhkl):
-            functions['ncrystal_info_gethkl'](nfo,idx,h,k,l,mult,dsp,fsq)
+            functions['ncrystal_info_gethkl'](nfo,idx,h,k,ll,mult,dsp,fsq)
             if not all_indices:
-                yield h.value,k.value,l.value,mult.value,dsp.value,fsq.value
+                yield h.value,k.value,ll.value,mult.value,dsp.value,fsq.value
             else:
                 nc_assert( mult.value % 2 == 0 )
                 n = mult.value // 2
@@ -368,7 +373,10 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
         _s,_m,_t,_vdl = _dbl(float(scatxs)),_dbl(float(mass_amu)),_dbl(float(temperature)),_uint(int(vdoslux))
         nalpha, nbeta,agrid, bgrid, sab = _uint(), _uint(),_dblp(), _dblp(), _dblp()
         if order_weight_fct:
-            owf = lambda order : float(order_weight_fct( int(order.value if hasattr(order,'value') else order) ))
+            def owf(order):
+                return float(order_weight_fct( int(order.value
+                                                   if hasattr(order,'value')
+                                                   else order) ))
             #NB: No need to keep owf alive, after our function exists, since it is only used during evaluation.
             _owf = _ORDERWEIGHTFCTTYPE(owf)
         else:
@@ -772,41 +780,42 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
     _raw_deallocstrlist = _wrap('ncrystal_dealloc_stringlist',None,(_uint,_cstrp),hide=True)
 
     def nc_gettextdata(name):
-        l = _raw_gettextdata(_str2cstr(str(name)))
-        assert l is not None
+        ll = _raw_gettextdata(_str2cstr(str(name)))
+        assert ll is not None
         n = 5
         def _decode( s ):
             s=s.decode('utf-8')
             return ( s.replace('\r\n','\n').replace('\r','\n')
                      if '\r' in s else s )
-        res = [_decode(l[i]) for i in range(n)]
+        res = [_decode(ll[i]) for i in range(n)]
         assert isinstance(res[0],str)
-        _raw_deallocstrlist(n,l)
+        _raw_deallocstrlist(n,ll)
         return res
     functions['nc_gettextdata'] = nc_gettextdata
 
     _raw_getfilelist = _wrap('ncrystal_get_file_list',None,(_uintp,_cstrpp),hide=True)
     def ncrystal_get_filelist():
-        n,l = _uint(),_cstrp()
-        _raw_getfilelist(n,ctypes.byref(l))
+        n,ll = _uint(),_cstrp()
+        _raw_getfilelist(n,ctypes.byref(ll))
         assert n.value%4==0
         res=[]
         for i in range(n.value//4):
-            res += [ (l[i*4].decode(),l[i*4+1].decode(),l[i*4+2].decode(),l[i*4+3].decode()) ]
-        _raw_deallocstrlist(n,l)
+            res += [ (ll[i*4].decode(),ll[i*4+1].decode(),
+                      ll[i*4+2].decode(),ll[i*4+3].decode()) ]
+        _raw_deallocstrlist(n,ll)
         return res
     functions['ncrystal_get_filelist'] = ncrystal_get_filelist
 
     _raw_getpluginlist = _wrap('ncrystal_get_plugin_list',None,(_uintp,_cstrpp),hide=True)
     def ncrystal_get_pluginlist():
-        n,l = _uint(),_cstrp()
-        _raw_getpluginlist(n,ctypes.byref(l))
+        n,ll = _uint(),_cstrp()
+        _raw_getpluginlist(n,ctypes.byref(ll))
         assert n.value%3==0
         res=[]
         for i in range(n.value//3):
-            pluginname,filename,plugintype=l[i*3].decode(),l[i*3+1].decode(),l[i*3+2].decode()
+            pluginname,filename,plugintype=ll[i*3].decode(),ll[i*3+1].decode(),ll[i*3+2].decode()
             res+=[(pluginname,filename,plugintype)]
-        _raw_deallocstrlist(n,l)
+        _raw_deallocstrlist(n,ll)
         return res
     functions['ncrystal_get_pluginlist'] = ncrystal_get_pluginlist
 

@@ -43,9 +43,10 @@ class divdos_methods:
             n2 = int( nmax if nmax is not None else n )
             from .vdos import extractGn
             from .plot import plot_vdos_Gn
-            f = lambda _n : extractGn( n=_n, vdos = _self, mass_amu = _self.atomData.averageMassAMU(),
-                                       temperature = _self.temperature, expand_egrid = True,
-                                       scatxs = 1.0 if without_xsect else _self.atomData.scatteringXS() )
+            def f(_n):
+                return extractGn( n=_n, vdos = _self, mass_amu = _self.atomData.averageMassAMU(),
+                                  temperature = _self.temperature, expand_egrid = True,
+                                  scatxs = 1.0 if without_xsect else _self.atomData.scatteringXS() )
             plot_vdos_Gn( [ (list(f(i))+[i]) for i in range(int(n),n2+1) ], **plotkwargs )
         return plot_Gn
 

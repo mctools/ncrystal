@@ -70,7 +70,10 @@ class MaterialSource:
     possiblity for loading with extra cfg-string parameters "appended").
     """
 
-    def __init__( self, data, *, fmt = None, cfg_params = None ):
+    def __init__( self, data, *,
+                  fmt = None,
+                  cfg_params = None,
+                  plotlabel = None ):
         """Wrap data object. If the data object is not a preloaded physics
         object, it is also allowed to specify cfg_params like
         cfg_params="temp=200K;vdoslux=2". Finally, the fmt string will be
@@ -80,6 +83,8 @@ class MaterialSource:
         self.__d = _miscimpl.matsrc_init( MaterialSource,
                                           lambda matsrc : matsrc.__d,
                                           data,cfg_params=cfg_params,fmt=fmt)
+        if plotlabel is not None:
+            self.set_plotlabel(plotlabel)
 
     @property
     def description( self ):
@@ -91,6 +96,13 @@ class MaterialSource:
         """Returns a string with either a specific plotlabel or otherwise just
         the usual description."""
         return self.__d.get('plotlabel') or self.__d['description']
+
+    def set_plotlabel( self, lbl ):
+        """Modify the plotting label."""
+        if self.__d.get('plotlabel') != lbl:
+            import copy
+            self.__d = copy.deepcopy(self.__d)
+            self.__d['plotlabel'] = lbl
 
     def __str__(self):
         return 'MaterialSource(%s)'%self.description

@@ -45,7 +45,7 @@ def cli_tool_lookup( name ):
     Returns None in case the name could not be resolved to an available tool.
     """
     from ._cliimpl import cli_tool_lookup_impl
-    return cli_tool_lookup_impl( canonical_names = canonical_names )
+    return cli_tool_lookup_impl( name )
 
 def run( toolname, *arguments ):
     """Can be used to invoke ncrystal command-line tools such as nctool,

@@ -390,7 +390,7 @@ def plot_vdos_Gn( Gn, unit = 'meV', logy = False,
         plt.figure()
 
     for gn in gnlist:
-        plt.plot( gn['egrid']/unit_value, gn['gnvals'], label = gn['label'] )
+        plt.plot( gn['egrid']/unit_value, gn['gnvals'], 'o', label = gn['label'] )
 
     plt.xlabel(f'Energy ({unit_name})')
     _plt_final(do_grid,do_legend,do_show,logy=logy,plt=plt)
