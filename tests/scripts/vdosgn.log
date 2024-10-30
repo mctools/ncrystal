@@ -1,0 +1,77 @@
+
+--------------------------------------------------------------------------------
+Investigating stdlib::Au_sg225.ncmat;temp=20K;comp=inelas;vdoslux=3
+--------------------------------------------------------------------------------
+
+Distribution "G1" with:
+  integral         : 1
+  mean             : -0.008904267
+  rms              : 0.004991968
+  skewness         : -5.143617
+  kurtosis         : 1.690972
+  5th moment (std) : -25.20308
+  6th moment (std) : -16.20096
+  7th moment (std) : -175.3141
+Distribution "G2" with:
+  integral         : 1
+  mean             : -0.01780853
+  rms              : 0.007059689
+  skewness         : -7.420945
+  kurtosis         : 1.605086
+  5th moment (std) : -37.0973
+  6th moment (std) : -11.40714
+  7th moment (std) : -264.4961
+Distribution "G3" with:
+  integral         : 1
+  mean             : -0.0267128
+  rms              : 0.008646309
+  skewness         : -9.148685
+  kurtosis         : 1.576457
+  5th moment (std) : -45.83445
+  6th moment (std) : -9.942244
+  7th moment (std) : -326.9162
+Distribution "G5" with:
+  integral         : 1
+  mean             : -0.04452133
+  rms              : 0.01116252
+  skewness         : -11.87259
+  kurtosis         : 1.553652
+  5th moment (std) : -59.49359
+  6th moment (std) : -8.81652
+  7th moment (std) : -422.6613
+Distribution "G8" with:
+  integral         : 1
+  mean             : -0.07123413
+  rms              : 0.0141195
+  skewness         : -15.06189
+  kurtosis         : 1.540732
+  5th moment (std) : -75.43952
+  6th moment (std) : -8.203655
+  7th moment (std) : -533.7042
+Distribution "G14" with:
+  integral         : 1
+  mean             : -0.1246597
+  rms              : 0.01867862
+  skewness         : -19.96632
+  kurtosis         : 1.531619
+  5th moment (std) : -99.94434
+  6th moment (std) : -7.772294
+  7th moment (std) : -704.271
+Distribution "G20" with:
+  integral         : 1
+  mean             : -0.1780853
+  rms              : 0.02232627
+  skewness         : -23.88309
+  kurtosis         : 1.528216
+  5th moment (std) : -119.5145
+  6th moment (std) : -7.597933
+  7th moment (std) : -840.6396
+Distribution "G50" with:
+  integral         : 1
+  mean             : -0.4452133
+  rms              : 0.03529938
+  skewness         : -37.80815
+  kurtosis         : 1.522806
+  5th moment (std) : -189.1077
+  6th moment (std) : -7.365721
+  7th moment (std) : -1326.434

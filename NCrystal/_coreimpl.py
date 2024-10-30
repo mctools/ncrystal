@@ -55,9 +55,7 @@ class divdos_methods:
             """Calculate Sjolander's Gn function of n'th order. If expand_egrid
             returns (egrid,Gn_values), otherwise ((emin,emax),Gn_values). If
             without_xsect is True, the result will not be multiplied by the
-            bound scattering cross section. If plot=True, the function will be
-            plotted with the NCrystal.plot.plot_vdos_Gn function, passing along
-            any plotkwargs.
+            bound scattering cross section.
             """
             assert 1 <= n <= 99999
             from .vdos import extractGn as _extgn
