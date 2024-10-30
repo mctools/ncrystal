@@ -29,6 +29,7 @@ NCTEST_CTYPE_DICTIONARY
     "int nctest_file_exists( const char * );"
     "const char * nctest_ncgetcwd();"
     "const char * nctest_readEntireFileToString( const char * );"
+    "const char * nctest_ncglob( const char * );"
     ;
 }
 
@@ -73,6 +74,26 @@ NCTEST_CTYPES const char * nctest_ncgetcwd()
     std::string thecwd = NC::ncgetcwd();
     buf[0] = '\0';
     std::strncat(buf,thecwd.c_str(),sizeof(buf)-1);
+  } NCCATCH;
+  return &buf[0];
+}
+
+
+NCTEST_CTYPES const char * nctest_ncglob(const char * pattern)
+{
+  //For testing, we can get away with just using a large static buffer:
+  static char buf[10485760];//10MB, plenty!
+  try {
+    std::ostringstream ss;
+    bool first = true;
+    for (auto&e : NC::ncglob(pattern) ) {
+      if ( !first )
+        ss << "<<@>>";//separator
+      first = false;
+      ss << e;
+    }
+    buf[0] = '\0';
+    std::strncat(buf,ss.str().c_str(),sizeof(buf)-1);
   } NCCATCH;
   return &buf[0];
 }

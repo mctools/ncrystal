@@ -20,23 +20,28 @@
 ##                                                                            ##
 ################################################################################
 
-import os
-os.environ['NCRYSTAL_DEBUG_VDOSREGULARISATION']='1'
-os.environ['NCRYSTAL_DEBUG_PHONON']='1'
-
 import NCTestUtils.enable_fpe # noqa F401
 import NCrystal as NC
 
-def test1():
-    cfgstr='stdlib::Au_sg225.ncmat;temp=600K;dcutoff=1Aa'
-    print(f'Debugging "{cfgstr}":')
-    from NCrystal.misc import detect_scattering_components
-    for comp in detect_scattering_components(cfgstr):
-        wl=2.0
-        xs=NC.load(cfgstr+f';comp={comp}').scatter.xsect(wl=wl)
-        print(f"  sigma_{comp} ( {wl:g} Aa ) = {xs:.14g} barn")
+def investigate_cross_sections(mat,lbl=None):
+    import NCrystal.misc as ncmisc
+    matsrc = ncmisc.MaterialSource(mat)
+    if lbl:
+        matsrc.set_plotlabel(lbl)
 
-def test2():
+    print(f"Scattering cross sections of {matsrc.plotlabel}")
+    from NCrystal.misc import detect_scattering_components
+    for comp in detect_scattering_components(matsrc):
+        loaded=matsrc.load(f'comp={comp}')
+        for wl in ( 0.5, 2.0, 5.0):
+            xs = loaded.scatter.xsect(wl=wl)
+            #Inelastic cross sections vary a bit too much due to FP instability of
+            #the VDOS expansion. But hopefully the vdosgn unit test will monitor the
+            #issues for that adequately.
+            fmtxs = f'{xs:.7g}' if comp=='inelas' else f'{xs:.14g}'
+            print(f"  sigma_{comp} ( {wl:g} Aa ) = {fmtxs} barn")
+
+def main():
     data_Au_sg225_ncmat="""NCMAT v4
 @CELL
   cubic 4.07825
@@ -75,7 +80,8 @@ def test2():
     print(mat2)
     mat2=NC.directMultiCreate(data_Au_sg225_ncmat,'temp=600K;dcutoff=1')
     mat2.info.dump()
-    print('%.14g'%mat2.scatter.crossSectionIsotropic(NC.wl2ekin(2.0)))
 
-test1()
-test2()
+    investigate_cross_sections(data_Au_sg225_ncmat,'Au_sg225.ncmat (inmem)')
+
+if __name__=='__main__':
+    main()

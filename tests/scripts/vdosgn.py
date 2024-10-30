@@ -65,6 +65,7 @@ def main():
 
     PWLinDistMoments.unit_test(mp)
 
+    #Fixme: add many more here, so we have good coverage.
     for filename in ('Au_sg225',
                      'Polyethylene_CH2'):
         for temp in (10,600):

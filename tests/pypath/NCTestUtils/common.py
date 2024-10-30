@@ -105,3 +105,9 @@ def _resolve_print_fct(printfct):
         return biprint
     else:
         return printfct
+
+def explicit_unicode_char(c):
+    #32 is space, <32 are control chars, 127 is DEL.
+    return c if 32<=ord(c)<=126 else r'\u{%s}'%(hex(ord(c))[2:])
+def explicit_unicode_str(s):
+    return ''.join( explicit_unicode_char(c) for c in s)

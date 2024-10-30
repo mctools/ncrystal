@@ -1,0 +1,15 @@
+Library "TestMod_testfileutils" (4 functions):
+  int nctest_file_exists(const char *)
+  const char * nctest_ncgetcwd()
+  const char * nctest_ncglob(const char *)
+  const char * nctest_readEntireFileToString(const char *)
+Testing ncgetcwd...
+...ncgetcwd ok
+Writing 29 chars
+Read 29 chars
+READ> 'some'
+READ> 'multi'
+READ> 'line funny \\u{2030} text'
+ncglob('unicode*/*.ncmat') -> ['unicodedir_test\\u{4500}abc/b\\u{2030}.ncmat']
+ncglob('unicode*/*.txt') -> ['unicodedir_test\\u{4500}abc/a.txt', 'unicodedir_test\\u{4500}abc/b.txt']
+ncglob('*abc/*\\u{2030}*') -> ['unicodedir_test\\u{4500}abc/b\\u{2030}.ncmat']

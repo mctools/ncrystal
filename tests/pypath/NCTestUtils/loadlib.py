@@ -85,7 +85,7 @@ class Lib:
     @property
     def functions(self):
         """Get the name of all available functions in this library"""
-        return [f for f,_,_ in self.__fcts]
+        return sorted([f for f,_,_ in self.__fcts])
 
     def dump(self,prefix=''):
         """Print available functions in this library"""
@@ -94,7 +94,7 @@ class Lib:
                                                 len(self.__fcts)))
         if not self.__fcts:
             print(f"{prefix}  <no functions defined>")
-        for fctname,restype,argtypes in self.__fcts:
+        for fctname,restype,argtypes in sorted(self.__fcts):
             rt = _ctype_2_str(restype)
             a=', '.join([_ctype_2_str(e) for e in argtypes])
             print(f"{prefix}  {rt} {fctname}({a})")
