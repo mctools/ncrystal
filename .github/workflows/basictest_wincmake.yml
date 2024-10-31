@@ -1,0 +1,62 @@
+name: basictest_wincmake
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    # More platform information available on:
+    # https://github.com/actions/runner-images/blob/main/images/windows/Windows2022-Readme.md
+    #
+    # Sep-2024: windows-latest is windows-2022. We should also try to make
+    # windows-2019 work, and try to build with clang/gcc on. And add a
+    # conda-based test.
+
+    runs-on: windows-latest
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        path: src
+
+    - name: Setup python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.11
+
+    - name: pip install extra deps
+      shell: cmd
+      run: |
+        #NB: We don't test matplotlib import here, since we want to make sure
+        #that our CTest infrastructure correctly avoids problems from "building
+        #font cache" printouts on first imports.
+        python -mpip install numpy matplotlib gemmi spglib ase mpmath
+        python -c "import numpy; print('numpy imported ok')"
+        python -c "import gemmi; print('gemmi imported ok')"
+        python -c "import spglib; print('spglib imported ok')"
+        python -c "import ase; print('ase imported ok')"
+        python -c "import mpmath; print('mpmath imported ok')"
+
+    - name: CMake cfg NCrystal
+      shell: cmd
+      run: >
+        cmake -B build src
+        -DNCRYSTAL_ENABLE_TESTING=ON
+        -DNCRYSTAL_ENABLE_EXAMPLES=ON
+        -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+        -DMCTOOLS_REQUIRE_ALL_TEST_DEPS=ON
+
+    - name: CMake build NCrystal
+      shell: cmd
+      run: cmake --build build --config Release
+      #NB: More verbosity by appending: "-- /verbosity:detailed"
+
+    - name: Run CTests
+      shell: cmd
+      run: |
+        cd build
+        ctest --build-config Release --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle
+      #NB more verbosity by appending: "-VV"
