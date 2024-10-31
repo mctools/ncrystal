@@ -106,12 +106,12 @@ set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/cmake/mod
 #Define options:
 include(ncrystal_options)
 
-#Hidden option needed for python python setup.py/skbuild:
 function( _ncrystal_option_force varname value )
   message( STATUS "Forcing ${varname}=\"${value}\"" )
   set( "${varname}" "${value}" PARENT_SCOPE )
 endfunction()
 
+#Hidden option needed for python setup.py/skbuild:
 if ( DEFINED NCRYSTAL_SETUPPY_MODE )
   if ( NCRYSTAL_SETUPPY_MODE )
     set( NCRYSTAL_SETUPPY_MODE "ON" )
@@ -135,6 +135,12 @@ if ( DEFINED NCRYSTAL_SETUPPY_MODE )
   endif()
 else()
   set( NCRYSTAL_SETUPPY_MODE "OFF" )
+endif()
+
+if ( WIN32 AND NCRYSTAL_ENABLE_TESTING AND NOT NCRYSTAL_SKIP_INSTALL )
+  #Testing on windows needs us to export symbols from internal headers.
+  message( WARNING "NCRYSTAL_ENABLE_TESTING on Windows implies NCRYSTAL_SKIP_INSTALL=ON for safety" )
+  _ncrystal_option_force( NCRYSTAL_SKIP_INSTALL "ON" )
 endif()
 
 function( ncinstall )
@@ -820,8 +826,17 @@ if ( NCRYSTAL_ENABLE_TESTING )
   if( "${CMAKE_VERSION}" VERSION_LESS "3.28" )
     #NB: Keep this minimum version value synchronised with the one on the top of
     #tests/CMakeLists.txt
-    message( WARNING "NCRYSTAL_ENABLE_TESTING requires cmake >= 3.28" )
+    message( FATAL_ERROR "NCRYSTAL_ENABLE_TESTING requires cmake >= 3.28" )
   else()
+    #We must export all symbols in libNCrystal.so, even those from internal
+    #headers - since we also use internal files in our tests (for that reason we
+    #also forced NCRYSTAL_SKIP_INSTALL above). We use
+    #NCRYSTAL_PREVENT_WINDLLEXPORT to avoid explicitly exporting any symbols in
+    #this case, since that triggers spurious warnings from VisualStudio.
+    if ( WIN32 )
+      set_target_properties(NCrystal PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
+      target_compile_definitions(NCrystal PRIVATE NCRYSTAL_PREVENT_WINDLLEXPORT)
+    endif()
     enable_testing()
     add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/tests")
   endif()
