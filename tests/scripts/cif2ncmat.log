@@ -44,8 +44,7 @@ positional arguments:
 
 options:
   -h, --help            show this help message and exit
-  --output OUTPUT, -o OUTPUT
-                        Name of output NCMAT file (specify "stdout" to print to
+  --output, -o OUTPUT   Name of output NCMAT file (specify "stdout" to print to
                         stdout). If not supplied, a name will be automatically
                         generated. Alternatively, this can be used with --valplot to
                         force output to a pdf file
@@ -64,8 +63,7 @@ options:
                         isotopes, using a syntax like the one in @ATOMDB sections of
                         NCMAT files. Example: "Si 28.09u 4.1491fm 0.004b 0.171b".
                         Colons can be used in place of spaces if desired.
-  --dynamics FILE, -d FILE
-                        Data file from which to copy over dynamics information
+  --dynamics, -d FILE   Data file from which to copy over dynamics information
                         (matching up atoms based on Z-values). If this argument is
                         not provided, or if a required element is not present in the
                         indicated file, dynamics will be created with a fall-back

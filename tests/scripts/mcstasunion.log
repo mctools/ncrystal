@@ -8,16 +8,15 @@ option will split NCrystal processes into physics types at the McStas-Union
 level, rather than internally in NCrystal.
 
 positional arguments:
-  NAME                  Resulting NAME of McStas-Union material.
-  CFGSTR                NCrystal cfg-string of the material.
+  NAME                 Resulting NAME of McStas-Union material.
+  CFGSTR               NCrystal cfg-string of the material.
 
 options:
-  -h, --help            show this help message and exit
-  --split, -s           Splits NCrystal processesinto physics types at the
-                        McStas-Union level,rather than internally in NCrystal.
-  --output OUTPUT, -o OUTPUT
-                        Output file name (defaults to stdout).
-  --force, -f           Override output file if it already exists.
+  -h, --help           show this help message and exit
+  --split, -s          Splits NCrystal processesinto physics types at the
+                       McStas-Union level,rather than internally in NCrystal.
+  --output, -o OUTPUT  Output file name (defaults to stdout).
+  --force, -f          Override output file if it already exists.
 
 ===========================================
 ============= CLI >>--split MyMat 'Al_sg225.ncmat;temp=20K;vdoslux=0;dcutoff=0.5'<< ====================

@@ -79,7 +79,7 @@ def create_ArgumentParser( *args, **kwargs ):
     if f is not None:
         f(parser)
 
-    if _is_argparse_py38() and hasattr(parser.formatter_class,'_format_args'):
+    if _pyversion() < (3,9) and hasattr(parser.formatter_class,'_format_args'):
         #Monkey patch object to fix minor inconsistency in --help
         #formatting:
         orig_format_args = parser.formatter_class._format_args
@@ -96,13 +96,27 @@ def create_ArgumentParser( *args, **kwargs ):
             return orig_format_args(self,action,default_metavar)
         parser.formatter_class._format_args = _format_args
 
+    if _pyversion() < (3,13) and hasattr(parser.formatter_class,
+                                         '_format_action_invocation'):
+        #Monkey patch object to fix minor inconsistency in --help
+        #formatting:
+        orig_format_act_invoc = parser.formatter_class._format_action_invocation
+        def _format_action_invocation(self, action):
+            if action.option_strings and not action.nargs == 0:
+                default = self._get_default_metavar_for_optional(action)
+                args_string = self._format_args(action, default)
+                return ', '.join(action.option_strings) + ' ' + args_string
+            else:
+                return orig_format_act_invoc(self,action)
+        parser.formatter_class._format_action_invocation = _format_action_invocation
+
+
     return parser
 
-def _is_argparse_py38():
-    from argparse import ArgumentParser
-    return ('exit_on_error' not in ArgumentParser.__doc__)
-
-
+def _pyversion():
+    #returns tuple like (3,13)
+    import sys
+    return sys.version_info[0:2]
 
 class ctxmgr_modify_argparse_creation:
 
@@ -144,7 +158,7 @@ class ctxmgr_modify_argparse_creation:
         new_extra_kwargs = dict( (k,v)
                                  for k,v in (orig_extra_kwargs or {}).items() )
         #exit_on_error only added in python 3.9:
-        if not _is_argparse_py38():
+        if _pyversion() >= (3,9):
             new_extra_kwargs['exit_on_error'] = self.__exit_on_error
         _argparse_extra_kwargs[0] = new_extra_kwargs
 

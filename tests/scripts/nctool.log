@@ -29,7 +29,7 @@ options:
   --mc SRCCFG GEOMCFG   Run embedded Monte Carlo app to produce a diffraction
                         pattern of material. Run --mc --help for detailed
                         instructions.
-  --common CFG, -c CFG  Common configuration items that will be applied to all
+  --common, -c CFG      Common configuration items that will be applied to all
                         input cfg strings
   --coh_elas, --bragg   Only generate coherent-elastic (Bragg diffraction)
                         component
@@ -40,7 +40,7 @@ options:
   -a, --absorption      Include absorption in cross section plots
   --phases              Show cross section breakdown of a single multiphase
                         material by phase rather than physics process
-  -x [XRANGE], --xrange [XRANGE]
+  -x, --xrange [XRANGE]
                         Override plot range, e.g. "1e-5:1e2" or "0:10"
   --logy                Force y-axis to use logarithmic scale.
   --liny                Force y-axis to use linear scale.

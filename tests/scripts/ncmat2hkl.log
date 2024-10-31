@@ -39,12 +39,11 @@ STDOUT>                        relevant to set the temp and dcutoff parameters
 STDOUT>
 STDOUT>options:
 STDOUT>  -h, --help            show this help message and exit
-STDOUT>  --format {laz,lau}, -f {laz,lau}
+STDOUT>  --format, -f {laz,lau}
 STDOUT>                        What types of output files to produce. Choices are "lau" for
 STDOUT>                        .lau files for McStas PowderN or "laz" for .laz files for
 STDOUT>                        McStas Single_crystal.
-STDOUT>  --output OUTPUT, -o OUTPUT
-STDOUT>                        Name of output file (default: stdout)
+STDOUT>  --output, -o OUTPUT   Name of output file (default: stdout)
 STDOUT>  --quiet, -q           Silence non-error output (automatic if --output=stdout).
 STDOUT>
 ================================================================

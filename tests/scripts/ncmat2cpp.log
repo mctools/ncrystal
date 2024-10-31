@@ -368,7 +368,7 @@ options:
                         confirming that they can be loaded with NCrystal. For
                         this to work, the NCrystal python module must be
                         available.
-  --name NAME, -n NAME  Name of C++ function to create which must be called in
+  --name, -n NAME       Name of C++ function to create which must be called in
                         order to register the data with NCrystal. If desired,
                         it can contain namespace(s), e.g. a value of
                         "MyNameSpace::myFunction" will create a function "void
@@ -381,10 +381,9 @@ options:
                         the file. The file NCrystal/NCDefs.hh will always be
                         included by default (prevent this by adding a special
                         entry 'no-ncrystal-includes' to the list).
-  --width WIDTH, -w WIDTH
-                        Wrap C++ code at this column width. Ignored for text
+  --width, -w WIDTH     Wrap C++ code at this column width. Ignored for text
                         files <~60KB unless running with --compact.
-  --outfile OUTFILE, -o OUTFILE
+  --outfile, -o OUTFILE
                         Name of output file (default: stdout)
 
 ===========================================
