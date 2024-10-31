@@ -172,26 +172,6 @@ jobs:
         python3 -c 'import NCrystal; NCrystal.test()'
         . ${{github.workspace}}/install/ncrystal_unsetup.sh
 
-    - name: Checkout ncrystal-notebooks
-      if: matrix.python != '3.7' && matrix.python != '3.8'
-      uses: actions/checkout@v4
-      with:
-        repository: mctools/ncrystal-notebooks
-        path: src_notebooks
-
-    - name: Extra pip install for notebooks
-      if: matrix.python != '3.7' && matrix.python != '3.8'
-      run: |
-        set -eu
-        python3 -m pip install numpy matplotlib spglib ase gemmi jupyterlab ipympl
-
-    - name: Test notebooks
-      if: matrix.python != '3.7' && matrix.python != '3.8'
-      run: |
-        set -eu
-        eval $(${{github.workspace}}/install/bin/ncrystal-config --setup)
-        ./src_notebooks/.github/resources/run_notebooks.x
-
     #Final step, so tmate step can check if we got this far.
     - name: Final
       id: final-step

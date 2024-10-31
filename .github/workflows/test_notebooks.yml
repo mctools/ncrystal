@@ -1,0 +1,51 @@
+name: notebooks
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '30 21 * * 0'  # 21:30 every Sunday
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+           #Note: Python 3.13 works (Aug 2024) because of the
+           #"allow-prereleases: true" below.
+          - { os: ubuntu-latest, CC: gcc,      CXX: g++,        python: '3.9' }
+          - { os: ubuntu-latest, CC: gcc,      CXX: g++,        python: '3.13' }
+          - { os: macos-latest,  CC: clang,    CXX: clang++,    python: "3.12" }
+    name: ${{ matrix.os }}.${{ matrix.CC }}.python-${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    env:
+      CC: ${{ matrix.CC }}
+      CXX: ${{ matrix.CXX }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        path: src_ncrystal
+
+    - name: Setup python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python }}
+        allow-prereleases: true #Needed (Aug 2024) for Python 3.13.
+
+    - name: Pip install ncrystal
+      run: python3 -m pip install ./src_ncrystal/
+
+    - name: Checkout ncrystal-notebooks
+      uses: actions/checkout@v4
+      with:
+        repository: mctools/ncrystal-notebooks
+        path: src_notebooks
+
+    - name: Extra pip install for notebooks
+      run: python3 -m pip install numpy matplotlib spglib ase gemmi jupyterlab ipympl
+
+    - name: Test notebooks
+      run: ./src_notebooks/.github/resources/run_notebooks.x
+
