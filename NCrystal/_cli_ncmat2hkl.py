@@ -174,8 +174,9 @@ def _main_impl( args, do_quiet, override_prec ):
         for line in content_iter:
             sys.stdout.write(line + '\n')
     else:
-        args.output.write_text( '\n'.join( content_iter ) + '\n',
-                                encoding = 'utf8' )
+        from ._common import write_text
+        write_text( args.output,
+                    ( '\n'.join( content_iter ) + '\n' ) )
         if not do_quiet:
             import pathlib
             print(f"Wrote {pathlib.Path(args.output).name}")

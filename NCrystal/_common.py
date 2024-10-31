@@ -394,3 +394,15 @@ def _calc_md5hexdigest( str_or_bytes, / ):
     else:
         data = str_or_bytes
     return hashlib.md5( data ).hexdigest()
+
+def write_text( path, content ):
+    """Like path.write_text(content) but forcing some global settings
+    to ensure consistent NCrystal behaviour on any platform. Specifically
+    encoding='utf8' and newline='\n'"""
+    #The newline parameter was only added for pathlib.Path.write_text in python
+    #3.10, so we do instead:
+    import pathlib
+    with pathlib.Path(path).open( 'wt',
+                                  encoding = 'utf8',
+                                  newline='\n' ) as fh:
+        fh.write(content)

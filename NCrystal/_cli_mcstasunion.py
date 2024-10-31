@@ -69,5 +69,6 @@ def main( progname, args ):
             raise SystemExit(f'File already exists (use --force to overwrite): {p}')
         if not p.parent.is_dir():
             raise SystemExit(f'Output directory does not exist: {p.parent}')
-        p.write_text(code,encoding = 'utf8' )
+        from ._common import write_text
+        write_text(p,code)
         print(f"Wrote: {p}")

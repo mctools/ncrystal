@@ -404,7 +404,11 @@ def files2cppcode(infiles,
     else:
         import pathlib
         of=pathlib.Path(outfile)
-        of.write_text(out,encoding='utf8')
+        if run_standalone:
+            of.write_text(out,encoding='utf8')
+        else:
+            from ._common import write_text
+            write_text(of,out)
         print('Wrote: %s'%of)
     return out
 

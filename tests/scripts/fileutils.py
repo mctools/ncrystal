@@ -20,7 +20,7 @@
 ##                                                                            ##
 ################################################################################
 
-import NCTestUtils.enable_fpe
+import NCTestUtils.enable_fpe # noqa F401
 from NCTestUtils.loadlib import Lib
 from NCTestUtils.common import explicit_unicode_str
 import pathlib

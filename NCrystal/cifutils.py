@@ -1191,7 +1191,7 @@ def _use_local_cif_cache( fn, text_data = None, quiet = False ):
             _nc_common.print(f"Adding {fn} to local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR")
         p.mkdir(parents=True, exist_ok=True)
         pfn_tmp = p / f'{fn}_tmp_{os.getpid()}'
-        pfn_tmp.write_text(text_data,encoding='utf8')
+        _nc_common.write_text(pfn_tmp,text_data)
         pfn_tmp.replace(pfn)
         return notfound()
     #retrieve data from local cache:

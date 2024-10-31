@@ -117,6 +117,7 @@ def create_argparser_for_sphinx( progname ):
 def main( progname, arglist ):
     import pathlib
     from .hfg2ncmat import _default_debye_temp, hfg2ncmat
+    from ._common import write_text as nc_write_text
     args = _parseArgs( _default_debye_temp(), progname, arglist )
     do_stdout = args.output=='stdout'
     try:
@@ -139,5 +140,5 @@ def main( progname, arglist ):
     if not outfile.parent.is_dir():
         raise SystemExit('Error: output directory does not exist:'
                          f' { outfile.parent }')
-    outfile.write_text(ncmat,encoding='utf8')
+    nc_write_text(outfile,ncmat)
     print(f"Wrote: {outfile}")
