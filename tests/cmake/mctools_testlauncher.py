@@ -92,7 +92,8 @@ def run( app_file, reflogfile = None ):
 
     def explicit_unicode_char(c):
         #32 is space, <32 are control chars, 127 is DEL.
-        return c if 32<=ord(c)<=126 else r'\u{%i}'%ord(c)
+        return c if 32<=ord(c)<=126 else r'\u{%s}'%(hex(ord(c))[2:])
+
     def explicit_unicode_str(s):
         return ''.join( explicit_unicode_char(c) for c in s)
 
