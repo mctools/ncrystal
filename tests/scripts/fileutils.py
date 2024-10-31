@@ -64,7 +64,10 @@ def test2():
     testtext = 'some\nmulti\nline funny \u2030 text\n'
     print("Writing %i chars"%len(testtext))
 
-    (subdir / 'b\u2030.ncmat').write_text(testtext)
+    (subdir / 'b\u2030.ncmat').write_text(testtext,encoding='utf8')#NCrystal
+                                                                   #only loads
+                                                                   #utf8 encoded
+                                                                   #text files!
 
     #NB: this fails, since cp1252 (windows Western) is incomplete:
     #'\u2030'.encode('cp1252') So on windows (where that encoding is common) we
