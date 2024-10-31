@@ -324,7 +324,7 @@ file( MAKE_DIRECTORY "${ncrystal_core_configured_includedir}" )
 
 #TODO: The trailing "/" on "ncrystal_core/include/" below is crucial. Is this behaviour portable?
 
-file (
+file(
   COPY "ncrystal_core/include/"
   DESTINATION "${ncrystal_core_configured_includedir}"
   FILES_MATCHING
@@ -637,13 +637,16 @@ if ( NCRYSTAL_ENABLE_DATA STREQUAL "EMBED" )
     message(FATAL_ERROR "Python3.6+ interpreter not found (required when NCRYSTAL_ENABLE_DATA=EMBED).")
   endif()
   #Generate C++ code from the .ncmat files:
-  execute_process(COMMAND "${Python3_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/scripts/ncrystal_ncmat2cpp"
-    "--full"
+  execute_process(
+    COMMAND "${Python3_EXECUTABLE}"
+    "-BI"
+    "${PROJECT_SOURCE_DIR}/NCrystal/_ncmat2cpp_impl.py"
     "-n" "NCrystal::AutoGenNCMAT::registerStdNCMAT"
     "--regfctname" "NCrystal::internal::registerEmbeddedNCMAT(const char*,const char*)"
-    "-o" "${PROJECT_BINARY_DIR}/autogen_ncmat_data.cc" ${DATAFILES} RESULT_VARIABLE status )
+    "-o" "${PROJECT_BINARY_DIR}/autogen_ncmat_data.cc" ${DATAFILES} RESULT_VARIABLE status
+  )
   if(status AND NOT status EQUAL 0)
-    message(FATAL_ERROR "Failure while trying to invoke ncrystal_ncmat2cpp (needed since NCRYSTAL_ENABLE_DATA=EMBED).")
+    message(FATAL_ERROR "Failure while trying to invoke ncmat2cpp (needed since NCRYSTAL_ENABLE_DATA=EMBED).")
   endif()
   target_sources(NCrystal PRIVATE "${PROJECT_BINARY_DIR}/autogen_ncmat_data.cc")#too late to just append to SRCS_NC
   message(STATUS "Generated autogen_ncmat_data.cc with embedded NCMAT data (will be compiled into the NCrystal library)." )
@@ -843,7 +846,6 @@ if ( NCRYSTAL_ENABLE_TESTING )
 endif()
 
 set(all_plugin_names_lc "stdscat;stdabs;stdncmat")
-
 set(NCrystal_builtin_plugin_names "")
 set(ncrystal_iplugin 0)
 foreach(pluginentry ${NCRYSTAL_BUILTIN_PLUGINS})
