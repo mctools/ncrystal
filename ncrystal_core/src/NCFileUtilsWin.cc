@@ -113,7 +113,7 @@ namespace NCRYSTAL_NAMESPACE {
                                         in_data, in_size,
                                         out_data, out_size,
                                         nullptr, nullptr);
-        if ( out_size != res.size() )
+        if ( out_size != static_cast<int>(res.size()) )
           NCRYSTAL_THROW(BadInput,errmsg);
         return res;
       }
@@ -165,24 +165,52 @@ namespace NCRYSTAL_NAMESPACE {
       return winimpl_wstr2str( std::move(wpath) );
     }
 
-    VectS ncglob( const std::string& pattern_utf8 )
+    VectS ncglob_impl( const std::string& pattern_utf8 )
     {
-      auto wpattern = winimpl_str2wstr( pattern_utf8 );
+      std::wstring wpattern;
+      if ( contains( pattern_utf8, '/' ) ) {
+        std::string pfix = pattern_utf8;
+        for ( auto& c : pfix )
+          if ( c == '/' )
+            c = '\\';
+        wpattern = winimpl_str2wstr( pfix );
+      } else {
+        wpattern = winimpl_str2wstr( pattern_utf8 );
+      }
       VectS result;
       WIN32_FIND_DATAW fdata;
-      HANDLE fh = FindFirstFileW(wpattern.c_str(), &fdata);
-      if (fh == INVALID_HANDLE_VALUE)
+      constexpr auto dwAdditionalFlags = ( FIND_FIRST_EX_CASE_SENSITIVE
+                                           | FIND_FIRST_EX_LARGE_FETCH );
+      HANDLE fh = FindFirstFileExW( wpattern.c_str(),
+                                    FindExInfoBasic,
+                                    &fdata,
+                                    FindExSearchNameMatch,
+                                    nullptr,
+                                    dwAdditionalFlags );
+      if (fh == INVALID_HANDLE_VALUE) {
+        auto last_error = GetLastError();
+        SetLastError(0);//clear
+        if ( last_error == ERROR_FILE_NOT_FOUND ) {
+          //Not actually an error condition, just no hits.
+        } else if ( last_error == ERROR_INVALID_NAME ) {
+          NCRYSTAL_THROW2(BadInput,"Invalid glob pattern: \""
+                          <<pattern_utf8<<"\"");
+        } else {
+          NCRYSTAL_THROW2(CalcError,"Unexpected error (code "<<last_error
+                          <<") while globbing via windows"
+                          " FindFirstFileW function");
+        }
         return result;
+      }
       while (true) {
         std::wstring hitw( fdata.cFileName );
         std::string hit_utf8 = winimpl_wstr2str( hitw );
-        result.push_back(hit_utf8);
+        if ( !hit_utf8.empty() && hit_utf8 != "." && hit_utf8!=".." )
+          result.push_back(hit_utf8);
         if (!FindNextFileW(fh, &fdata))
           break;
       }
       FindClose(fh);
-      result.shrink_to_fit();
-      std::sort(result.begin(),result.end());
       return result;
     }
 

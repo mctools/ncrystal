@@ -24,6 +24,7 @@
 
 import NCTestUtils.enable_fpe # noqa F401
 from NCTestUtils.printnumpy import format_numpy_1darray_asfloat as npfmt
+from NCTestUtils.common import is_windows
 import NCrystal as NC
 import pathlib
 import os
@@ -32,9 +33,6 @@ import pprint
 import math
 import numpy as np
 from numpy import set_printoptions as np_setprintopts
-
-import platform
-is_windows = platform.system().lower()=='windows'
 
 np_setprintopts(infstr='inf')#test reproducibility
 
@@ -256,7 +254,7 @@ def testLoadOK(cfgstr,expectBadInput = False):
     except NC.NCBadInput as e:
         _='expected' if expectBadInput else 'unexpected'
         msg = e.message
-        if is_windows and r'\Al_sg225.ncmat' in msg:
+        if is_windows() and r'\Al_sg225.ncmat' in msg:
             #Fix test output on windows:
             msg = msg.replace(r'\Al_sg225.ncmat','/Al_sg225.ncmat')
 

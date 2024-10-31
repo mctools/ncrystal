@@ -25,6 +25,13 @@
 
 from NCrystal._testimpl import _work_in_tmpdir as work_in_tmpdir # noqa F401
 
+_is_windows = [None]
+def is_windows():
+    if _is_windows[0] is None:
+        import platform
+        _is_windows[0] = platform.system().lower()=='windows'
+    return _is_windows[0]
+
 class ensure_error:
 
     """

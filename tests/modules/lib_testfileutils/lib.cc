@@ -30,10 +30,19 @@ NCTEST_CTYPE_DICTIONARY
     "const char * nctest_ncgetcwd();"
     "const char * nctest_readEntireFileToString( const char * );"
     "const char * nctest_ncglob( const char * );"
+    "const char * nctest_dirname( const char *);"
+    "const char * nctest_basename( const char *);"
+    "const char * nctest_getfileext( const char *);"
+    "const char * nctest_normalise( const char *);"
+    "int nctest_path_is_absolute( const char* );"
     ;
 }
 
 //All I/O from these functions are in UTF-8.
+
+
+
+
 
 NCTEST_CTYPES const char * nctest_readEntireFileToString( const char * path )
 {
@@ -98,3 +107,56 @@ NCTEST_CTYPES const char * nctest_ncglob(const char * pattern)
   return &buf[0];
 }
 
+
+NCTEST_CTYPES const char * nctest_dirname( const char * path )
+{
+  static char buf[16384];
+  try {
+    auto res = NC::dirname(path);
+    buf[0] = '\0';
+    std::strncat(buf,res.c_str(),sizeof(buf)-1);
+  } NCCATCH;
+  return &buf[0];
+}
+
+NCTEST_CTYPES const char * nctest_basename( const char * path )
+{
+  static char buf[16384];
+  try {
+    auto res = NC::basename(path);
+    buf[0] = '\0';
+    std::strncat(buf,res.c_str(),sizeof(buf)-1);
+  } NCCATCH;
+  return &buf[0];
+}
+
+NCTEST_CTYPES const char * nctest_getfileext( const char * path )
+{
+  static char buf[16384];
+  try {
+    auto res = NC::getfileext(path);
+    buf[0] = '\0';
+    std::strncat(buf,res.c_str(),sizeof(buf)-1);
+  } NCCATCH;
+  return &buf[0];
+}
+
+NCTEST_CTYPES const char * nctest_normalise( const char * path )
+{
+  static char buf[16384];
+  try {
+    auto res = NC::normalise(path);
+    buf[0] = '\0';
+    std::strncat(buf,res.c_str(),sizeof(buf)-1);
+  } NCCATCH;
+  return &buf[0];
+}
+
+NCTEST_CTYPES int nctest_path_is_absolute( const char* path )
+{
+  bool res( false );
+  try {
+    res = NC::path_is_absolute(path);
+  } NCCATCH;
+  return ( res ? 1 : 0 );
+}

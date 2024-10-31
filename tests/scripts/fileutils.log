@@ -1,15 +1,238 @@
-Library "TestMod_testfileutils" (4 functions):
+Library "TestMod_testfileutils" (9 functions):
+  const char * nctest_basename(const char *)
+  const char * nctest_dirname(const char *)
   int nctest_file_exists(const char *)
+  const char * nctest_getfileext(const char *)
   const char * nctest_ncgetcwd()
   const char * nctest_ncglob(const char *)
+  const char * nctest_normalise(const char *)
+  int nctest_path_is_absolute(const char *)
   const char * nctest_readEntireFileToString(const char *)
 Testing ncgetcwd...
 ...ncgetcwd ok
+0 Testing path "C:\somewhere\bla.txt":
+   NCrystal::dirname = "C:\somewhere"
+   NCrystal::basename = "bla.txt"
+   NCrystal::getfileext = "txt"
+   NCrystal::path_is_absolute = "1"
+   NCrystal::normalise = "C:\somewhere\bla.txt"
+
+1 Testing path "/somewhere/bla.txt":
+   NCrystal::dirname = "/somewhere"
+   NCrystal::basename = "bla.txt"
+   NCrystal::getfileext = "txt"
+   NCrystal::path_is_absolute = "1"
+   NCrystal::normalise = "/somewhere/bla.txt"
+
+2 Testing path "C:somewhere\bla.txt":
+   NCrystal::dirname = "C:somewhere"
+   NCrystal::basename = "bla.txt"
+   NCrystal::getfileext = "txt"
+   NCrystal::path_is_absolute = "0"
+   NCrystal::normalise = "C:somewhere\bla.txt"
+
+3 Testing path "somewhere\bla.txt":
+   NCrystal::dirname = "somewhere"
+   NCrystal::basename = "bla.txt"
+   NCrystal::getfileext = "txt"
+   NCrystal::path_is_absolute = "0"
+   NCrystal::normalise = "somewhere/bla.txt"
+
+4 Testing path "\somewhere\bla.txt":
+   NCrystal::dirname = "/somewhere"
+   NCrystal::basename = "bla.txt"
+   NCrystal::getfileext = "txt"
+   NCrystal::path_is_absolute = "1"
+   NCrystal::normalise = "/somewhere/bla.txt"
+
+5 Testing path "somewhere/bla.txt":
+   NCrystal::dirname = "somewhere"
+   NCrystal::basename = "bla.txt"
+   NCrystal::getfileext = "txt"
+   NCrystal::path_is_absolute = "0"
+   NCrystal::normalise = "somewhere/bla.txt"
+
+6 Testing path ".":
+   NCrystal::dirname = "."
+   NCrystal::basename = ""
+   NCrystal::getfileext = ""
+   NCrystal::path_is_absolute = "0"
+   NCrystal::normalise = "."
+
+7 Testing path "":
+   NCrystal::dirname = ""
+   NCrystal::basename = ""
+   NCrystal::getfileext = ""
+   NCrystal::path_is_absolute = "0"
+   NCrystal::normalise = "."
+
+8 Testing path "/":
+   NCrystal::dirname = "/"
+   NCrystal::basename = ""
+   NCrystal::getfileext = ""
+   NCrystal::path_is_absolute = "1"
+   NCrystal::normalise = "/"
+
+9 Testing path "./\":
+   NCrystal::dirname = "."
+   NCrystal::basename = ""
+   NCrystal::getfileext = ""
+   NCrystal::path_is_absolute = "0"
+   NCrystal::normalise = "."
+
+10 Testing path "/some/where//\bla.txt":
+   NCrystal::dirname = "/some/where"
+   NCrystal::basename = "bla.txt"
+   NCrystal::getfileext = "txt"
+   NCrystal::path_is_absolute = "1"
+   NCrystal::normalise = "/some/where/bla.txt"
+
+11 Testing path "some\where/bla.txt":
+   NCrystal::dirname = "some/where"
+   NCrystal::basename = "bla.txt"
+   NCrystal::getfileext = "txt"
+   NCrystal::path_is_absolute = "0"
+   NCrystal::normalise = "some/where/bla.txt"
+
+12 Testing path "/some/where/../bla.txt":
+   NCrystal::dirname = "/some"
+   NCrystal::basename = "bla.txt"
+   NCrystal::getfileext = "txt"
+   NCrystal::path_is_absolute = "1"
+   NCrystal::normalise = "/some/bla.txt"
+
+13 Testing path "some/where/../bla.txt":
+   NCrystal::dirname = "some"
+   NCrystal::basename = "bla.txt"
+   NCrystal::getfileext = "txt"
+   NCrystal::path_is_absolute = "0"
+   NCrystal::normalise = "some/bla.txt"
+
+14 Testing path "../bla.txt":
+   NCrystal::dirname = ".."
+   NCrystal::basename = "bla.txt"
+   NCrystal::getfileext = "txt"
+   NCrystal::path_is_absolute = "0"
+   NCrystal::normalise = "../bla.txt"
+
+15 Testing path "/test/bla/":
+   NCrystal::dirname = "/test"
+   NCrystal::basename = "bla"
+   NCrystal::getfileext = ""
+   NCrystal::path_is_absolute = "1"
+   NCrystal::normalise = "/test/bla"
+
 Writing 29 chars
-Read 29 chars
+Read 29 chars (after newline normalisation)
 READ> 'some'
 READ> 'multi'
 READ> 'line funny \\u{2030} text'
-ncglob('unicode*/*.ncmat') -> ['unicodedir_test\\u{4500}abc/b\\u{2030}.ncmat']
-ncglob('unicode*/*.txt') -> ['unicodedir_test\\u{4500}abc/a.txt', 'unicodedir_test\\u{4500}abc/b.txt']
-ncglob('*abc/*\\u{2030}*') -> ['unicodedir_test\\u{4500}abc/b\\u{2030}.ncmat']
+Testing ncglob('some_sub_dir/*.txt'):
+  --> Python glob got 2 results:
+   *: 'some_sub_dir/a.txt'
+   *: 'some_sub_dir/b.txt'
+  --> got 2 results:
+   *: 'some_sub_dir/a.txt'
+   *: 'some_sub_dir/b.txt'
+Testing ncglob('some_sub_dir/*'):
+  --> Python glob got 3 results:
+   *: 'some_sub_dir/a.txt'
+   *: 'some_sub_dir/b.txt'
+   *: 'some_sub_dir/b_bla.ncmat'
+  --> got 3 results:
+   *: 'some_sub_dir/a.txt'
+   *: 'some_sub_dir/b.txt'
+   *: 'some_sub_dir/b_bla.ncmat'
+Testing ncglob('some_sub_dir/***'):
+  --> Python glob got 3 results:
+   *: 'some_sub_dir/a.txt'
+   *: 'some_sub_dir/b.txt'
+   *: 'some_sub_dir/b_bla.ncmat'
+  --> got 3 results:
+   *: 'some_sub_dir/a.txt'
+   *: 'some_sub_dir/b.txt'
+   *: 'some_sub_dir/b_bla.ncmat'
+Testing ncglob('some_sub_dir/*txt*'):
+  --> Python glob got 2 results:
+   *: 'some_sub_dir/a.txt'
+   *: 'some_sub_dir/b.txt'
+  --> got 2 results:
+   *: 'some_sub_dir/a.txt'
+   *: 'some_sub_dir/b.txt'
+Testing ncglob('some_sub_dir/?.txt*'):
+  --> Python glob got 2 results:
+   *: 'some_sub_dir/a.txt'
+   *: 'some_sub_dir/b.txt'
+  --> got 2 results:
+   *: 'some_sub_dir/a.txt'
+   *: 'some_sub_dir/b.txt'
+Testing ncglob('some_sub_dir/*.ncmat'):
+  --> Python glob got 1 results:
+   *: 'some_sub_dir/b_bla.ncmat'
+  --> got 1 results:
+   *: 'some_sub_dir/b_bla.ncmat'
+Testing ncglob('some_sub_dir/*b*'):
+  --> Python glob got 2 results:
+   *: 'some_sub_dir/b.txt'
+   *: 'some_sub_dir/b_bla.ncmat'
+  --> got 2 results:
+   *: 'some_sub_dir/b.txt'
+   *: 'some_sub_dir/b_bla.ncmat'
+Testing ncglob('some_sub_dir/*a*'):
+  --> Python glob got 2 results:
+   *: 'some_sub_dir/a.txt'
+   *: 'some_sub_dir/b_bla.ncmat'
+  --> got 2 results:
+   *: 'some_sub_dir/a.txt'
+   *: 'some_sub_dir/b_bla.ncmat'
+Testing ncglob('some_sub_dir/*.ncm'):
+  --> Python glob got 0 results:
+  --> got 0 results:
+Testing ncglob('unicodedir_test\\u{4500}abc/*.ncmat'):
+  --> Python glob got 1 results:
+   *: 'unicodedir_test\\u{4500}abc/b\\u{2030}.ncmat'
+  --> got 1 results:
+   *: 'unicodedir_test\\u{4500}abc/b\\u{2030}.ncmat'
+Testing ncglob('unicodedir_test\\u{4500}abc/*.txt'):
+  --> Python glob got 2 results:
+   *: 'unicodedir_test\\u{4500}abc/a.txt'
+   *: 'unicodedir_test\\u{4500}abc/b.txt'
+  --> got 2 results:
+   *: 'unicodedir_test\\u{4500}abc/a.txt'
+   *: 'unicodedir_test\\u{4500}abc/b.txt'
+Testing ncglob('unicodedir_test\\u{4500}abc/*\\u{2030}*'):
+  --> Python glob got 1 results:
+   *: 'unicodedir_test\\u{4500}abc/b\\u{2030}.ncmat'
+  --> got 1 results:
+   *: 'unicodedir_test\\u{4500}abc/b\\u{2030}.ncmat'
+Testing ncglob('unicodedir_test\\u{4500}ab*'):
+  --> Python glob got 1 results:
+   *: 'unicodedir_test\\u{4500}abc'
+  --> got 1 results:
+   *: 'unicodedir_test\\u{4500}abc'
+Testing ncglob('unicodedir_test\\u{4500}abc*'):
+  --> Python glob got 1 results:
+   *: 'unicodedir_test\\u{4500}abc'
+  --> got 1 results:
+   *: 'unicodedir_test\\u{4500}abc'
+Testing ncglob('unicodedir_*'):
+  --> Python glob got 1 results:
+   *: 'unicodedir_test\\u{4500}abc'
+  --> got 1 results:
+   *: 'unicodedir_test\\u{4500}abc'
+Testing ncglob('/SOMEWHERE/*'):
+  --> Python glob got 3 results:
+   *: '/SOMEWHERE/a.txt'
+   *: '/SOMEWHERE/b.txt'
+   *: '/SOMEWHERE/b\\u{2030}.ncmat'
+  --> got 3 results:
+   *: '/SOMEWHERE/a.txt'
+   *: '/SOMEWHERE/b.txt'
+   *: '/SOMEWHERE/b\\u{2030}.ncmat'
+Triggering expected error (hopefully):
+NCTest ERROR (std::runtime_error): ncglob only supports wildcards in the last file or directory name
+Testing ncglob('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/bl*.txt'):
+  --> Python glob got 1 results:
+   *: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/bla.txt'
+  --> got 1 results:
+   *: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/bla.txt'

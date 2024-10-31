@@ -22,7 +22,9 @@
 
 import NCTestUtils.enable_fpe # noqa F401
 from NCTestUtils.loadlib import Lib
-from NCTestUtils.common import explicit_unicode_str
+from NCTestUtils.common import ( #ensure_error,
+                                 explicit_unicode_str,
+                                 is_windows )
 import pathlib
 
 lib = Lib('testfileutils')
@@ -34,7 +36,8 @@ assert hasattr(lib,'nctest_ncglob')
 
 _raw_ncglob = lib.nctest_ncglob
 def nctest_ncglob( pattern ):
-    return _raw_ncglob(pattern).split('<<@>>')
+    res = _raw_ncglob(pattern)
+    return res.split('<<@>>') if res else []
 lib.nctest_ncglob = nctest_ncglob
 
 def test1():
@@ -56,6 +59,72 @@ def test1():
     print("...ncgetcwd ok")
 
 def test2():
+    testpaths = [ r'C:\somewhere\bla.txt',
+                  '/somewhere/bla.txt',
+                  r'C:somewhere\bla.txt',
+                  r'somewhere\bla.txt',
+                  r'\somewhere\bla.txt',
+                  'somewhere/bla.txt',
+                  '.',
+                  '',
+                  '/',
+                  './'#os.path.basename of this is empty
+                  '\\',
+                  '/some/where//\\bla.txt',
+                  'some\\where/bla.txt',
+                  '/some/where/../bla.txt',
+                  'some/where/../bla.txt',
+                  '../bla.txt',
+                  #FIXME: What about '/some/where/../bla.txt'? Should be
+                  #'/some/bla.txt'. But '../bla.txt' should keep the relative
+                  #path.
+                  '/test/bla/'#pathlib.Path(..).name is 'bla' but
+                              #os.path.basename is ''
+                 ]
+
+    fctnames = ['dirname','basename','getfileext',
+                'path_is_absolute','normalise']
+    for i,p in enumerate(testpaths):
+        print(f'{i} Testing path "{p}":')
+        for fct in fctnames:
+            res = getattr(lib,f'nctest_{fct}')(p)
+            if is_windows() and fct in ('dirname','normalise'):
+                #ensure test reproducibility:
+                assert '/' not in res, "normalised paths should not contain / on windows"
+                is_windows_path = (len(p)>1 and p[1]==':')
+                if not is_windows_path:
+                    res = res.replace('\\','/')
+            print(f'   NCrystal::{fct} = "{res}"')
+        #test versus refs, but pathlib and os.path does not like back slashes on
+        #unix:
+
+        nc_basename = lib.nctest_basename(p)
+        def decode_refbn(p):
+            is_windows_path = '\\' in p or (len(p)>1 and p[1]==':')
+            if is_windows_path:
+                p = p.replace('/','\\')
+                return dict(pathlib=pathlib.PureWindowsPath(p).name)
+            else:
+                p = p.replace('\\','/')
+                return dict(pathlib=pathlib.PurePosixPath(p).name)
+        for refsrc, refbasename in decode_refbn(p).items():
+            if refbasename != nc_basename:
+                raise SystemExit(f"basename({repr(p)}) mismatch:"
+                                 f" ncrystal={repr(nc_basename)}"
+                                 f" {refsrc}={repr(refbasename)}")
+
+        assert ( lib.nctest_path_is_absolute( lib.nctest_normalise( p ) )
+                 == lib.nctest_path_is_absolute( p ) ), "normalisation alters is_absolute"
+        print()
+
+
+def test3():
+    dirname_simple = 'some_sub_dir'
+    subdir_simple = pathlib.Path('.') / dirname_simple
+    subdir_simple.mkdir()
+    for fn in [ 'a.txt', 'b.txt', 'b_bla.ncmat' ]:
+        (subdir_simple / fn).write_text('dummy')
+
     dirname = 'unicodedir_test\u4500abc'
     subdir = pathlib.Path('.') / dirname
     subdir.mkdir()
@@ -78,29 +147,134 @@ def test2():
     content = lib.nctest_readEntireFileToString(
         'unicodedir_test\u4500abc/b\u2030.ncmat'
     )
-    print("Read %i chars"%len(content))
+    content_newlines_norm = content.replace('\r\n','\n')
+    print("Read %i chars (after newline normalisation)"%len(content_newlines_norm))
     for e in content.splitlines():
-        print('READ>',repr(explicit_unicode_str(e)))
-    assert testtext == content
+        print('READ>',repr(explicit_unicode_str(e)),flush=True)
+    assert testtext == content_newlines_norm
+    if not is_windows():
+        #this breaks on windows since readEntireFileToString does not discard
+        #extra newline chars (they are anyway supported in .ncmat data, so not
+        #really a deal breaker).
+        assert testtext == content
 
-    def testglob(pattern,nexpect):
+    def testglob(pattern,nexpect,is_absolute=False):
+        def fmtpat( pattern ):
+            if is_absolute:
+                assert pathlib.Path(pattern).is_absolute()
+                s = '/SOMEWHERE/'+pathlib.Path(pattern).name
+            else:
+                s = str(pattern)
+            if is_windows():
+                s=s.replace('\\','/')#for test reproducibility
+            return repr(explicit_unicode_str(s))
+        print(f'Testing ncglob({fmtpat(pattern)}):')
+        import glob
+        g = sorted(glob.glob(pattern))
+        print('  --> Python glob got %i results:'%len(g))
+        for e in g:
+            print(f'   *: {fmtpat(e)}')
         g = lib.nctest_ncglob(pattern)
-        assert len(g) == nexpect
-        g = list(explicit_unicode_str(e) for e in g)
-        print(f'ncglob({repr(explicit_unicode_str(pattern))}) -> {repr(g)}')
-    testglob('unicode*/*.ncmat',1)
-    testglob('unicode*/*.txt',2)
-    testglob('*abc/*\u2030*',1)
+        print('  --> got %i results:'%len(g))
+        all_ok = True
+        for e in g:
+            badstr = ''
+            if not pathlib.Path(e).exists():
+                badstr = ' (ERROR NOT ACTUALLY FOUND)'
+                all_ok = False
+            print(f'   *: {fmtpat(e)}{badstr}')
+        if len(g) != nexpect:
+            raise SystemExit('Error: did not get expected %i entries'%nexpect)
+        if not all_ok:
+            raise SystemExit('Error: some hits were invalid')
+
+    #windows: testglob(r'some_sub_dir\*.txt',2)
+    testglob('some_sub_dir/*.txt',2)
+    testglob('some_sub_dir/*',3)
+    testglob('some_sub_dir/***',3)
+    testglob('some_sub_dir/*txt*',2)
+    testglob('some_sub_dir/?.txt*',2)
+    testglob('some_sub_dir/*.ncmat',1)
+    testglob('some_sub_dir/*b*',2)
+    testglob('some_sub_dir/*a*',2)
+    testglob('some_sub_dir/*.ncm',0)#could catch the .ncmat file if using wrong
+                                    #windows API, where only 3 characters in
+                                    #extensions are compared.
+    testglob('unicodedir_test\u4500abc/*.ncmat',1)
+    testglob('unicodedir_test\u4500abc/*.txt',2)
+    testglob('unicodedir_test\u4500abc/*\u2030*',1)
+
+    testglob('unicodedir_test\u4500ab*',1)
+    testglob('unicodedir_test\u4500abc*',1)
+    testglob('unicodedir_*',1)
+
+    import os
+    testglob(os.path.join(
+        str(pathlib.Path('unicodedir_test\u4500abc').absolute()),
+        '*') ,3,is_absolute = True)
+
+    #Fixme: we don't propagate C++ exceptions nicely:
+    #with ensure_error(RuntimeError,
+    #                  'ncglob only supports wildcards in the'
+    #                  ' last file or directory name'):
+    #    testglob('*ome_sub*/*.txt',2)
+    #so we do instead:
+    print("Triggering expected error (hopefully):",flush=True)
+    lib.nctest_ncglob('some*sub_dir/a.txt')
+
+    #Finally, test with paths longer than 260 chars:
+    dummy_path = pathlib.Path('a'*150).joinpath('b'*150).joinpath('bla.txt')
+    dummy_path.parent.parent.mkdir()
+    dummy_path.parent.mkdir()
+    dummy_path.write_text('hello')
+    testglob( str(dummy_path.parent)+'/bl*.txt',1)
+
+def test4():
+    def testbn(path,expected):
+        res=lib.nctest_basename(path)
+        if res != expected:
+            raise SystemExit(f'NCrystal::basename({repr(path)}) gave'
+                             f' {repr(res)} and not the'
+                             f' expected {repr(expected)}.')
+    testbn("","")
+    testbn("hej","hej")
+    testbn("hej.txt","hej.txt")
+    testbn("hej.txt.0","hej.txt.0")
+    testbn("./","")
+    testbn("./hej","hej")
+    testbn("./hej.txt","hej.txt")
+    testbn("./hej.txt.0","hej.txt.0")
+    testbn("/lala/bla/","bla")#NB: pre NCrystal 4.0 this gave ""
+    testbn("/lala/bla/hej","hej")
+    testbn("/lala/bla/hej.txt","hej.txt")
+    testbn("/lala/bla/hej.txt.0","hej.txt.0")
+    testbn("~lala/bla/","bla")#NB: pre NCrystal 4.0 this gave ""
+    testbn("~lala/bla/hej","hej")
+    testbn("~lala/bla/hej.txt","hej.txt")
+    testbn("~lala/bla/hej.txt.0","hej.txt.0")
+    testbn("../bla/","bla")#NB: pre NCrystal 4.0 this gave ""
+    testbn("../bla/hej","hej")
+    testbn("../bla/hej.txt","hej.txt")
+    testbn("../bla/hej.txt.0","hej.txt.0")
+
+    def testext(path,expected):
+        res=lib.nctest_getfileext(path)
+        if res != expected:
+            raise SystemExit(f'NCrystal::getfileext({repr(path)}) gave'
+                             f' {repr(res)} and not the'
+                             f' expected {repr(expected)}.')
+
+    testext("../bla/hej.txt","txt")
+    testext("../bla/hej.lala.txt","txt")
+    testext("../bla/","")
+    testext("../bla/lala","")
+    testext("../bla/.txt","txt")
 
 def main():
-
-
     test1()
     test2()
+    test3()
+    test4()
 
 if __name__=='__main__':
     main()
-
-
-#FIXME: Much more, including globbing, is_absolute_path("c:[\]bla.ncmat) and
-#whatever is likely to cause issues on Windows.

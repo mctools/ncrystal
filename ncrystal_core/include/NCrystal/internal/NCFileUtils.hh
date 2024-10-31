@@ -32,20 +32,29 @@ namespace NCRYSTAL_NAMESPACE {
   //Check if file exists and is readable:
   bool file_exists( const std::string& filename );
 
-  //Simple file globbing (sorts results before returning!):
+  //Simple file globbing, supporting wildcards only in the trailing directory or
+  //file name (sorts results before returning):
   VectS ncglob( const std::string&);
 
   //Current working directory:
   std::string ncgetcwd();
 
-  //Get basename and extension from filename:
-  std::string basename(const std::string& filename);
-  std::string getfileext(const std::string& filename);
+  //Get dirname (returns "" for a path in the root dir, and "." for a filename
+  //without a directory part):
+  std::string dirname(const std::string& path);
+  //Get the filename after the directory part
+  std::string basename(const std::string& path);
+  //The extension of the filename (if any):
+  std::string getfileext(const std::string& path);
+
+  //Normalise by analysing and reencoding:
+  std::string normalise(const std::string& path);
 
   //Determine if path is absolute:
   bool path_is_absolute( const std::string& );
 
-  //Join paths, trying to pick correct path separator:
+  //Join paths, trying to pick correct path separator (backwards slash on
+  //Windows, unless path already contains forward slashes):
   std::string path_join(const std::string&, const std::string&);
 
   // tryRealPath: Wrap posix "realpath" function in tryRealPath(..). On any

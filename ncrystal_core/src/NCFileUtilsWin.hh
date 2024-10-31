@@ -30,7 +30,7 @@ namespace NCRYSTAL_NAMESPACE {
     bool file_exists( const std::string& path );
     std::ifstream open_ifstream_from_path( const std::string& path,
                                            std::ios_base::openmode mode = std::ios_base::in);
-    VectS ncglob(const std::string&);
+    VectS ncglob_impl(const std::string&);
     std::string get_current_working_dir();
   }
 }

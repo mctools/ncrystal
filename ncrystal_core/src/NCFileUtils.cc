@@ -82,20 +82,157 @@ NC::Optional<std::string> NC::readEntireFileToString( const std::string& path )
   return Optional<std::string>(std::move(out));
 }
 
+namespace NCRYSTAL_NAMESPACE {
+  namespace {
+    bool is_path_sep( char c ) {
+      return c == '/' || c == '\\';
+    }
+    StrView trim_pathseps_from_edges( StrView p )
+    {
+      StrView::size_type i = 0;
+      StrView::size_type n = p.size();
+      while ( n && is_path_sep(p[n-1]) )
+        --n;
+      while ( i < n && is_path_sep(p[i]) )
+        ++i;
+      return p.substr( i, n );
+    }
+    struct AnalysedPath {
+      bool m_is_absolute;
+      VectS m_parents;
+      std::string m_filename;
+      std::string m_windows_drive_name;
+      void append_dirname( std::string& res ) const
+      {
+        if ( !m_windows_drive_name.empty() ) {
+          res += m_windows_drive_name;
+          res += ':';
+        }
+        char sep = pathsep();
+        if ( m_is_absolute )
+          res += sep;
+        for ( auto& i : ncrange(m_parents.size()) ) {
+          if ( i )
+            res += sep;
+          res += m_parents[i];
+        }
+      }
+
+    public:
+      char pathsep() const
+      {
+#ifdef NCRYSTAL_USE_WINDOWS_FILEUTILS
+        return '\\';
+#else
+        return ( m_windows_drive_name.empty() ? '/' : '\\' );
+#endif
+      }
+      bool is_absolute() const { return m_is_absolute; }
+      const std::string& filename() const { return m_filename; }
+      std::string dirname() const
+      {
+        std::string res;
+        res.reserve(128);
+        append_dirname(res);
+        res.shrink_to_fit();
+        return res;
+      }
+
+      //Optional<AnalysedPath> parent() const;
+      std::string encode() const
+      {
+        std::string res;
+        res.reserve(128);
+        append_dirname(res);
+        if ( m_filename.empty() ) {
+          //Return a string indicating the parent directory, avoiding an empty
+          //string:
+          if ( res.empty() )
+            res += ( m_is_absolute ? pathsep() : '.' );
+        } else {
+          if ( !m_parents.empty() )
+            res += pathsep();
+          res += m_filename;
+        }
+        res.shrink_to_fit();
+        return res;
+      }
+      AnalysedPath( const std::string& filename_str )
+      {
+        auto filename = StrView(filename_str);
+
+        //Determine (and peel off) windows drive letter:
+        if ( filename.size() >= 2
+             && filename[1] == ':'
+             && isAlphaNumeric(filename[0])
+             && filename[0] >= 'A' )
+        {
+          m_windows_drive_name = filename[0];
+          filename = filename.substr(2);
+        }
+
+        //Determine if absolute, i.e. starts with a pathsep:
+        m_is_absolute = !filename.empty() && is_path_sep(filename[0]);
+        //^^^^^ fixme this is not always correct for windows shared drive paths??
+
+        //Discard path seps at both ends:
+        filename = trim_pathseps_from_edges( filename );
+
+        //Now, split by pathsep:
+        auto parts = filename.split_any<8,
+                                        StrView::SplitKeepEmpty::No,
+                                        StrView::SplitTrimParts::No>("/\\");
+        if (!parts.empty()) {
+          m_filename = parts.back().to_string();
+          parts.pop_back();
+        }
+        m_parents.reserve(parts.size());
+        for ( auto& p : parts ) {
+          if ( p==".." && !m_parents.empty() )
+            m_parents.pop_back(); // ".." steps up from the previous
+          else
+            m_parents.emplace_back( p.to_string() );
+        }
+        //Finally, as a special case, we discard "." from filenames:
+        if ( m_filename == "." ) {
+          m_filename.clear();
+          if ( m_parents.empty() && !m_is_absolute )
+            m_parents.push_back(".");
+        }
+        m_parents.shrink_to_fit();
+      }
+    };
+
+  }
+}
+
 bool NC::path_is_absolute( const std::string& p )
 {
-  if (p.empty())
-    return false;
-#if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(_WIN32) || defined(__CYGWIN__)//fixme: to NCFileUtilsWin.cc
-  //FIXME: We need to consider that c:bla.ncmat means "relative to CWD of C:" not an absolute path!! We should unit test this!!
-  if ( p.at(0)=='/' )
-    return true;//who are we to argue if people are somehow using forward-slashes on a windows platform...
-  //Try to catch e.g. "C:/" or "C:\":
-  return p.size()>3 && p.at(1)==':' && ( p.at(2)=='/' || p.at(2)=='\\' ) ;
-#else
-  return p.at(0)=='/';
-#endif
+  return AnalysedPath( p ).is_absolute();
 }
+
+std::string NC::basename( const std::string& p )
+{
+  return AnalysedPath( p ).filename();
+}
+
+std::string NC::dirname( const std::string& p )
+{
+  return AnalysedPath( p ).dirname();
+}
+
+std::string NC::normalise( const std::string& p )
+{
+  return AnalysedPath( p ).encode();
+}
+
+std::string NC::getfileext( const std::string& p )
+{
+  std::string bn = basename( p );
+  std::size_t idx = bn.rfind('.');
+  return idx == std::string::npos ? std::string() : bn.substr(idx+1);
+}
+
 std::string NC::path_join(const std::string& p1, const std::string& p2)
 {
 #if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(_WIN32) || defined(__CYGWIN__)//fixme: to NCFileUtilsWin.cc
@@ -107,64 +244,85 @@ std::string NC::path_join(const std::string& p1, const std::string& p2)
 #endif
 }
 
-std::string NC::basename(const std::string& filename)
-{
-  std::size_t p = filename.rfind('/');
-#if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(_WIN32) || defined(__CYGWIN__)
-  std::size_t p2 = filename.rfind('\\');
-  if ( p2 != std::string::npos && ( p == std::string::npos || p2 > p ) )
-    p = p2;
-#endif
-  return p+1>filename.size() ? filename : filename.substr(p+1);
-}
-
-std::string NC::getfileext(const std::string& filename)
-{
-  std::string bn = basename(filename);
-  std::size_t p = bn.rfind('.');
-  return p == std::string::npos ? std::string() : bn.substr(p+1);
-}
-
-bool NC::file_exists(const std::string& name)
+bool NC::file_exists( const std::string& p )
 {
 #ifdef NCRYSTAL_USE_WINDOWS_FILEUTILS
-  return WinFileUtils::file_exists( name );
+  return WinFileUtils::file_exists( p );
 #else
-  std::ifstream f(name.c_str());
+  std::ifstream f(p.c_str());
   return f.good();
 #endif
 }
 
-#ifdef NCRYSTAL_USE_WINDOWS_FILEUTILS
-NC::VectS NC::ncglob(const std::string& pattern)
-{
-  return WinFileUtils::ncglob(pattern);
-}
-#else
+#ifndef NCRYSTAL_USE_WINDOWS_FILEUTILS
 //POSIX globbing:
-#include <glob.h>
-NC::VectS NC::ncglob(const std::string& pattern) {
-  VectS result;
-  glob_t pglob;
-  int retval = glob(pattern.c_str(),0,0, &pglob);
-  if ( retval != 0 && retval != GLOB_NOMATCH )
-    NCRYSTAL_THROW2(CalcError,"Error encountered while"
-                    " attempting to glob for \""<<pattern<<"\"");
-  if ( retval != GLOB_NOMATCH ) {
-    for ( decltype(pglob.gl_pathc) i = 0; i < pglob.gl_pathc; ++i ) {
-      auto pv = pglob.gl_pathv[i];
-      if ( pv ) {
-        std::string s(pv);
-        if ( !s.empty() )
-          result.push_back(s);
+#  include <glob.h>
+namespace NCRYSTAL_NAMESPACE {
+  namespace {
+    VectS ncglob_posix_impl(const std::string& pattern) {
+      VectS result;
+      glob_t pglob;
+      int retval = glob(pattern.c_str(),0,0, &pglob);
+      if ( retval != 0 && retval != GLOB_NOMATCH )
+        NCRYSTAL_THROW2(CalcError,"Error encountered while"
+                        " attempting to glob for \""<<pattern<<"\"");
+      if ( retval != GLOB_NOMATCH ) {
+        for ( decltype(pglob.gl_pathc) i = 0; i < pglob.gl_pathc; ++i ) {
+          auto pv = pglob.gl_pathv[i];
+          if ( pv ) {
+            std::string s(pv);
+            if ( !s.empty() && s != "." && s!=".." )
+              result.push_back(s);
+          }
+        }
       }
+      globfree(&pglob);
+      return result;
     }
-    std::sort(result.begin(),result.end());
   }
-  globfree(&pglob);
-  return result;
 }
 #endif
+
+NC::VectS NC::ncglob( const std::string& pattern )
+{
+  if ( pattern.empty() )
+    NCRYSTAL_THROW(BadInput,"ncglob does not work with empty patterns");
+  AnalysedPath path( pattern );
+  if ( path.filename().empty() )
+    NCRYSTAL_THROW2(BadInput,"ncglob could not decode pattern: \""
+                    <<pattern<<"\"");
+  auto contains_wildcard = [](const std::string& s )
+  {
+    return contains(s,'*') || contains(s,'?');
+  };
+  std::string path_dirname = path.dirname();
+  if ( contains_wildcard( path_dirname ) )
+    NCRYSTAL_THROW(BadInput,"ncglob only supports wildcards in the last"
+                   " file or directory name");
+  if ( !contains_wildcard( path.filename() ) ) {
+    //Special case, no wildcards:
+    std::string fn = path.encode();
+    VectS nonglob_res;
+    if ( file_exists(fn) )
+      nonglob_res.push_back(std::move(fn));
+    return nonglob_res;
+  }
+  //Ok, some actual work:
+#ifdef NCRYSTAL_USE_WINDOWS_FILEUTILS
+  VectS res = WinFileUtils::ncglob_impl(pattern);
+  //Windows globbing only gives the filenames, we have to re-inject the
+  //dirnames:
+  if ( !path_dirname.empty() ) {
+    for ( auto& e : res )
+      e = path_join( path_dirname, e );
+  }
+#else
+  VectS res = ncglob_posix_impl(pattern);
+#endif
+  res.shrink_to_fit();
+  std::sort(res.begin(),res.end());
+  return res;
+}
 
 #ifdef NCRYSTAL_USE_WINDOWS_FILEUTILS
 std::string NC::ncgetcwd()
