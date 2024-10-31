@@ -404,7 +404,7 @@ def files2cppcode(infiles,
     else:
         import pathlib
         of=pathlib.Path(outfile)
-        of.write_text(out)
+        of.write_text(out,encoding='utf8')
         print('Wrote: %s'%of)
     return out
 

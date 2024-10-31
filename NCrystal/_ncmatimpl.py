@@ -883,7 +883,8 @@ class NCMATComposerImpl:
         import pathlib
         p = pathlib.Path( path )
         assert p.name.endswith('.ncmat') and len(p.name) > 6
-        p.write_text( self.create_ncmat( cfg_params = cfg_params ) )
+        p.write_text( self.create_ncmat( cfg_params = cfg_params ),
+                      encoding = 'utf8' )
         return p
 
     def load(self,cfg_params,force ):

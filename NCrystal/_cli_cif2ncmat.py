@@ -268,4 +268,4 @@ def _main_impl( args, do_quiet ):
     else:
         if not do_quiet:
             print(f"Writing {fn}")
-        pathlib.Path(fn).write_text(out)
+        pathlib.Path(fn).write_text(out,encoding = 'utf8')

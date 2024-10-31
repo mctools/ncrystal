@@ -475,7 +475,7 @@ NCMAT v2
 
 def genstdheaders():
     def do_write(fn,suggestedcmdopts,content):
-        pathlib.Path(fn).write_text(content)
+        pathlib.Path(fn).write_text(content,encoding='utf8')
         print(f'Wrote {fn}')
         progname=os.path.basename(sys.argv[0])
         print( f'  -> Suggested conversion cmd: {progname} {suggestedcmdopts}')

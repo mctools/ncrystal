@@ -139,5 +139,5 @@ def main( progname, arglist ):
     if not outfile.parent.is_dir():
         raise SystemExit('Error: output directory does not exist:'
                          f' { outfile.parent }')
-    outfile.write_text(ncmat)
+    outfile.write_text(ncmat,encoding='utf8')
     print(f"Wrote: {outfile}")
