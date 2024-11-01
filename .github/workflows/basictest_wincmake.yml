@@ -27,12 +27,12 @@ jobs:
       with:
         python-version: 3.11
 
+      #NB: We don't test matplotlib import here in the next step, since we want
+      #to make sure that our CTest infrastructure correctly avoids problems from
+      #"building font cache" printouts on first imports.
     - name: pip install extra deps
       shell: cmd
       run: |
-        #NB: We don't test matplotlib import here, since we want to make sure
-        #that our CTest infrastructure correctly avoids problems from "building
-        #font cache" printouts on first imports.
         python -mpip install numpy matplotlib gemmi spglib ase mpmath
         python -c "import numpy; print('numpy imported ok')"
         python -c "import gemmi; print('gemmi imported ok')"
@@ -49,14 +49,14 @@ jobs:
         -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
         -DMCTOOLS_REQUIRE_ALL_TEST_DEPS=ON
 
+      #NB: More verbosity by appending: "-- /verbosity:detailed":
     - name: CMake build NCrystal
       shell: cmd
       run: cmake --build build --config Release
-      #NB: More verbosity by appending: "-- /verbosity:detailed"
 
+      #NB more verbosity by appending: "-VV":
     - name: Run CTests
       shell: cmd
       run: |
         cd build
         ctest --build-config Release --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle
-      #NB more verbosity by appending: "-VV"
