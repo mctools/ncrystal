@@ -3,6 +3,10 @@
 # Utility script needed by mctools_testutils.cmake for launching tests and
 # comparing with reference output.
 
+import sys
+ENCODING = sys.stdout.encoding
+
+import os
 import pathlib
 import shutil
 import shlex
@@ -21,23 +25,38 @@ def run( app_file, reflogfile = None ):
         print(f"  {shlex.quote(e)}")
     print()
     sys.stdout.flush()
+
+    sys.stdout.flush()
+    sys.stderr.flush()
     r = subprocess.run( cmd,
+                        encoding=ENCODING,
                         capture_output = True,
                         cwd = wd )
+    sys.stdout.flush()
+    sys.stderr.flush()
     print("MCTools TestLauncher done running command.")
-    if r.stderr:
+    r_stdout = ( r.stdout.decode(ENCODING,errors='backslashreplace')
+                 if isinstance(r.stdout,bytes)
+                 else ( r.stdout or '' ) )
+    r_stderr = ( r.stderr.decode(ENCODING,errors='backslashreplace')
+                 if isinstance(r.stderr,bytes)
+                 else ( r.stderr or '' ) )
+    assert isinstance(r_stdout,str)
+    assert isinstance(r_stderr,str)
+    if r_stderr:
         #Todo support this, by merging them (probably needs subprocess.Popen not
         #subprocess.run):
-        for line in r.stderr.splitlines():
-            sys.stderr.buffer.write(b'stderr> '+line+'\n'.encode())
+        for line in r_stderr.splitlines():
+            #sys.stderr.buffer.write(b'stderr> '+line+'\n'.encode())
+            sys.stderr.write('stderr> '+line+'\n')
         sys.stderr.flush()
         raise SystemExit('Error: Process emitted output on'
                          ' stderr (not supported yet with ref logs)')
-    output_raw = r.stdout
+    output_raw = r_stdout
     newout = pathlib.Path('./output.log').absolute()
     newout.unlink(missing_ok=True)
     assert not newout.exists()
-    newout.write_bytes(output_raw)
+    newout.write_bytes(output_raw.encode(ENCODING,errors='backslashreplace'))
 
     if r.returncode == 3221225781:
         import platform
@@ -49,18 +68,25 @@ def run( app_file, reflogfile = None ):
         raise SystemExit(f'Error: Command ended with exit code {r.returncode}')
     if reflogfile is None:
         return #Done!
-    refoutput = reflogfile.read_bytes()
+    refoutput = reflogfile.read_text(encoding='utf-8')
     if output_raw == refoutput:
         sys.stdout.flush()
-        print("Reference log-files are exact byte-for-byte match!")
+        print("Reference log-files are exact match!")
         sys.stdout.flush()
         return
-    output = output_raw.decode().splitlines()
-    refoutput = refoutput.decode().splitlines()
-    if output == reflogfile:
+    #output = output_raw.decode('utf-8').splitlines()
+    #refoutput = refoutput.decode('utf-8').splitlines()
+    output = output_raw.splitlines()
+    refoutput = refoutput.splitlines()
+    if output == refoutput:
         sys.stdout.flush()
         print("Reference log-files match!")
         return
+    if len(output)==len(refoutput):
+        for i,(o,r) in enumerate(zip(output,refoutput)):
+            if o!=r:
+                print(f"L{i+1} - {r}")
+                print(f"L{i+1} + {o}")
     def qp( p ):
         return shlex.quote(str(p.absolute()))
     raise SystemExit(f"""
@@ -76,7 +102,6 @@ Unix commands to diff and update:
 """)
 
 def main( ):
-    import sys
     assert len(sys.argv) in (2,3)
     app_file = pathlib.Path(sys.argv[1])
     if not app_file.is_file():

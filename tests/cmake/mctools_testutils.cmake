@@ -76,6 +76,7 @@ function( mctools_testutils_add_test_libs librootdir extra_link_libs )
       endif()
     endforeach()
     add_library( ${name} ${srcfiles} )
+
     target_link_libraries( ${name} PRIVATE ${extra_link_libs} )
     if ( EXISTS "${libdir}/include" )
       if ( NOT EXISTS "${libdir}/include/TestLib_${bn}" )
@@ -111,11 +112,13 @@ function( mctools_testutils_add_tests_apps approotdir extra_link_libs envmod )
     string(SUBSTRING "${bn}" 4 -1 "bn")
     mctools_testutils_internal_getsrcfiles( srcfiles "${appdir}" )
     add_executable( ${bn} ${srcfiles})
+
     mctools_testutils_internal_detectlibdeps( "deplist" "${srcfiles}" "" )
     foreach( dep ${deplist} )
       target_link_libraries( ${bn} PRIVATE "TestLib_${dep}" )
     endforeach()
     target_link_libraries( ${bn} PRIVATE ${extra_link_libs} )
+
     #Fixme not great for multi-generators (also, do we need it??):
     set_target_properties(
       ${bn} PROPERTIES
