@@ -97,7 +97,7 @@ function( mctools_testutils_add_test_libs librootdir extra_link_libs )
   endforeach()
 endfunction()
 
-function( mctools_testutils_add_tests_apps approotdir )
+function( mctools_testutils_add_tests_apps approotdir extra_link_libs )
   set( testsbindir "${PROJECT_BINARY_DIR}/mctools_tests_bin" )
   file( MAKE_DIRECTORY "${testsbindir}" )
   file(
