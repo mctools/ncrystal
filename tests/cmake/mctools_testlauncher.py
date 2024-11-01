@@ -4,19 +4,20 @@
 # comparing with reference output.
 
 import sys
-ENCODING = sys.stdout.encoding
-
 import os
 import pathlib
 import shutil
 import shlex
+import platform
+import subprocess
+
+is_windows = (platform.system() == 'Windows')
+ENCODING = sys.stdout.encoding
 
 def run( app_file, reflogfile = None ):
     wd=pathlib.Path('./wd')
     shutil.rmtree(wd,ignore_errors=True)
     wd.mkdir()
-    import subprocess
-    import sys
     cmd = [str(app_file)]
     if app_file.name.endswith('.py'):
         cmd = [sys.executable] + cmd
@@ -59,8 +60,7 @@ def run( app_file, reflogfile = None ):
     newout.write_bytes(output_raw.encode(ENCODING,errors='backslashreplace'))
 
     if r.returncode == 3221225781:
-        import platform
-        if platform.system() == 'Windows':
+        if is_windows:
             raise SystemExit('Error: Command ended with exit'
                              f' code {r.returncode} (usually'
                              ' indicates "DLL not found")')
