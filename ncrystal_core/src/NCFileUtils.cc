@@ -209,7 +209,6 @@ std::string NC::ncgetcwd() {
   NCRYSTAL_THROW(CalcError,"Could not determine current working directory");
 }
 #endif
-
-
-
-//FIXME: Once the above code works, we could investigate the C++17 function std::filesystem::current_path() (however, we need to be able to determine if the filesystem module is actually present or not)
+//FIXME: Once the above code works, we could investigate the C++17 function
+//std::filesystem::current_path() (however, we need to be able to determine if
+//the filesystem module is actually present or not)
