@@ -1,5 +1,25 @@
 #include "TestLib_fpe/FPE.hh"
 
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
+//                                                                            //
+//  Copyright 2015-2024 NCrystal developers                                   //
+//                                                                            //
+//  Licensed under the Apache License, Version 2.0 (the "License");           //
+//  you may not use this file except in compliance with the License.          //
+//  You may obtain a copy of the License at                                   //
+//                                                                            //
+//      http://www.apache.org/licenses/LICENSE-2.0                            //
+//                                                                            //
+//  Unless required by applicable law or agreed to in writing, software       //
+//  distributed under the License is distributed on an "AS IS" BASIS,         //
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  //
+//  See the License for the specific language governing permissions and       //
+//  limitations under the License.                                            //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
 #if defined(__APPLE__) || defined(_WIN32) || defined(WIN32)
 void NCTests::catch_fpe(){}
 #else
@@ -63,7 +83,6 @@ namespace NCTests {
       return value;
     }
   }
-  //  static long disable_fpe_count = 0;
 }
 
 void NCTests::catch_fpe() {
@@ -82,30 +101,6 @@ void NCTests::catch_fpe() {
   if ( ret!=0 )
     printf("NCTests::FPE ERROR: Could not install FPE handler.\n");
 }
-
-//disable/reenable fpe. Note nested functions of python context managers
-//applying these might result in call order like:
-//disable_catch_fpe->disable_catch_fpe->reenable_catch_fpe->reenable_catch_fpe,
-//which is why we need the disable_fpe_count variable to ensure FPEs are not
-//inadvertently reenabled before the final call to reenable_catch_fpe.
-//
-//void NCTests::disable_catch_fpe()
-//{
-//  if (!catch_fpe_installed())
-//    return;
-//  ++disable_fpe_count;
-//  if (disable_fpe_count==1)
-//    fedisableexcept(FE_DIVBYZERO|FE_INVALID);
-//}
-//
-//void NCTests::reenable_catch_fpe()
-//{
-//  if (!catch_fpe_installed())
-//    return;
-//  --disable_fpe_count;
-//  if (disable_fpe_count==0)
-//    feenableexcept(FE_DIVBYZERO|FE_INVALID);
-//}
 
 #endif
 

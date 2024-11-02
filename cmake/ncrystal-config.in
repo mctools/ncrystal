@@ -26,7 +26,7 @@
 import sys
 
 pyversion = sys.version_info[0:3]
-_minpyversion = (3,6,0)
+_minpyversion = (3,8,0)
 if pyversion < (3,0,0):
     raise SystemExit('NCrystal does not support Python2.')
 if pyversion < _minpyversion:

@@ -35,3 +35,5 @@ cmake/..............: Other files needed for CMake configuration.
 setup.py............: Support building and installing via standard Python
                       tool-chains.
 pyproject.toml......: Like setup.py, needed for the standard Python tool-chains.
+tests/..............: Files and infrastructure for CTest-based tests.
+#fixme: Update! Remove scripts/?

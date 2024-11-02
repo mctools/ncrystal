@@ -32,7 +32,6 @@ NCTEST_CTYPE_DICTIONARY
 #endif
 
 #ifdef NCTEST_SKIP_FPE
-//do nothing in release build or on osx
 NCTEST_CTYPES void nctest_catch_fpe(){}
 #else
 

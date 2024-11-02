@@ -21,15 +21,18 @@
 ################################################################################
 
 import NCrystal
+import math
 
-#Create and use polycrystalline aluminium:
+#Create and use powdered aluminium:
 
-pc = NCrystal.createScatter( "Al_sg225.ncmat;dcutoff=0.5;temp=25C" )
+scAl = NCrystal.createScatter( "Al_sg225.ncmat;dcutoff=0.5;temp=25C" )
 wavelength = 2.5
-xsect = pc.xsect(wl=wavelength)
+xsect = scAl.xsect(wl=wavelength)
 
 for i in range(20):
-    scatter_angle,delta_ekin = pc.genscat(wl=wavelength)
+    ekin_final, mu = scAl.scatter(wl=wavelength)
+    scatter_angle = math.acos(mu)
+    delta_ekin = ekin_final-NCrystal.wl2ekin(wavelength)
     print( "polycrystal random angle/delta-e at %g Aa is %g degrees and %g meV"%(wavelength,
                                                                                  scatter_angle*57.2957795131,
                                                                                  delta_ekin*1e3) )
