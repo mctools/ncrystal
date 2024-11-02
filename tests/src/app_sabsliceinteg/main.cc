@@ -108,9 +108,9 @@ namespace {
     double calc_fast = NC::SABUtils::integrateAlphaInterval_fast(a0,f0, a1, f1, std::log(f0), std::log(f1) );
     double expect = func_f_defintegral_(a0,a1);
     constexpr double tol = 3e-14;
-    auto rd_ok = [expect,tol](double v)
+    auto rd_ok = [expect](double v)
     {
-      return ( ( v==expect || NC::ncabs(v/expect-1.0) < 3e-14 )
+      return ( ( v==expect || NC::ncabs(v/expect-1.0) < tol )
                ? "yes" : "no" );
     };
 

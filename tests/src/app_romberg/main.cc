@@ -63,7 +63,9 @@ void testint( double a, double b, double acc ) {
   //Avoid tiny fluctuations to spoil unit tests on some platforms (OSX, intel):
   constexpr double tinyval_thr = 5e-16;
   bool bothvanish = NCrystal::ncabs(ref)<tinyval_thr&&NCrystal::ncabs(res)<tinyval_thr;
-  auto safeprint = [tinyval_thr](double val ) {
+  auto safeprint = [](double val ) {
+    //tinyval_thr does not need to be captured apparently (clang compilation
+    //fails if we try).
     if ( NCrystal::ncabs(val) < tinyval_thr )
       std::cout<< "<almost zero>" << std::endl;
     else

@@ -31,14 +31,15 @@ void testIntegration(const Func& f, double a, double b,
   std::cout<<"  Exact                : "<<expected_integral<<std::endl;
   constexpr double exact_tol = 4e-15;
   auto rd = [expected_integral]( double val ) { return (val/expected_integral-1.0); };
-  auto rd_expect_exact = [expected_integral,exact_tol,&rd]( double val )
+  auto rd_expect_exact = [&rd]( double val )
   {
+    //nb: do not capture exact_tol
     if ( rd(val) < exact_tol )
       return 0.0;//cheating, but works for the purpose of stabilising the unit test
     return rd(val);
   };
 
-  auto rd_simpsons = [expected_integral,&rd,&rd_expect_exact,expect_exact_simpsons]( double v )
+  auto rd_simpsons = [&rd,&rd_expect_exact,expect_exact_simpsons]( double v )
   {
     return ( expect_exact_simpsons ? rd_expect_exact(v) : rd(v) );
   };
