@@ -1,0 +1,148 @@
+============= CLI >>-h<< ====================
+usage: ncrystal_verifyatompos [-h] [--quiet] [--wyckoff] [--epsilon EPSILON]
+                              FILE
+
+Load input file (for instance an .ncmat file) with NCrystal and verify that
+the atom-positions are compatible with the indicated space group. Input must
+be in a format supported by NCrystal (e.g. .ncmat), and must represent a
+crystalline material with space group and atom position information. And exit
+code of 0 indicates no issues found with atom positions, exit code of 1
+indicates issues, and exit code of 99 indicates that the material is not
+crystalline with space group and atom positions. The symmetry checking is
+internally performed with the help of the ASE[1] spacegroup module, so it
+might be necessary to install this module first with: python3 -mpip install
+ase References: [1]: Ask Hjorth Larsen et al 2017 J. Phys.: Condens. Matter 29
+27300 https://doi.org/10.1088/1361-648X/aa680e
+
+positional arguments:
+  FILE               File to load
+
+options:
+  -h, --help         show this help message and exit
+  --quiet            Will not produce any output unless errors are found
+  --wyckoff          Output just Wyckoff positions in easily parsable format
+                     (implies --quiet, except for the Wyckoff positions).
+  --epsilon EPSILON  Level of precision required
+
+=============================================
+============= CLI >>Al.ncmat<< ====================
+Loaded info based on: "Al.ncmat"
+Input has space group: 225 (F m -3 m)
+
+==========================> Investigating element: Al
+
+The 4 positions are generated from the following symmetry-unique points:
+
+Symmetry-unique point: [0. 0. 0.]
+    -> Point (0, 0, 0) deviates 0 from expected position
+    -> Point (0, 0.5, 0.5) deviates 0 from expected position
+    -> Point (0.5, 0, 0.5) deviates 0 from expected position
+    -> Point (0.5, 0.5, 0) deviates 0 from expected position
+
+==========================> Done.
+
+All OK! Atom positions are from these Wyckoff positions for SG 225 (setting=1):
+
+  Al 0 0 0
+
+Worst discrepancy in distances: 0
+===================================================
+============= CLI >>Al_nosg.ncmat<< ====================
+Loaded info based on: "Al_nosg.ncmat"
+Caught expected RuntimeError('Not applicable: Material does not have unit cell structure info')
+============= CLI >>Al_perturbed8.ncmat<< ====================
+Loaded info based on: "Al_perturbed8.ncmat"
+Input has space group: 225 (F m -3 m)
+
+==========================> Investigating element: Al
+
+The 4 positions are generated from the following symmetry-unique points:
+
+Symmetry-unique point: [0. 0. 0.]
+    -> Point (0, 0, 0) deviates 0 from expected position
+    -> Point (0, 0.5, 0.5) deviates 0 from expected position
+    -> Point (0.5, 0, 0.5) deviates 0 from expected position
+    -> Point (0.5, 0.5, 0) deviates 1e-08 from expected position
+
+==========================> Done.
+
+All OK! Atom positions are from these Wyckoff positions for SG 225 (setting=1):
+
+  Al 0 0 0
+
+Worst discrepancy in distances: 1e-08
+==============================================================
+============= CLI >>Al_perturbed5.ncmat<< ====================
+Loaded info based on: "Al_perturbed5.ncmat"
+Input has space group: 225 (F m -3 m)
+
+==========================> Investigating element: Al
+
+The 4 positions are generated from the following symmetry-unique points:
+
+Symmetry-unique point: [0. 0. 0.]
+    -> Point (0, 0, 0) deviates 0 from expected position
+    -> Point (0, 0.5, 0.5) deviates 0 from expected position
+    -> Point (0.5, 0, 0.5) deviates 0 from expected position
+    -> Point (0.5, 0.49999, 0) deviates 1e-05 from expected position (0.5, 0.5, 0) <-- PROBLEM!!!
+
+==========================> Done.
+
+Caught expected RuntimeError('Problems detected in list of atom positions! Most likely this is a real problem, but you can also check with (enter spacegroup 225): https://www.cryst.ehu.es/cryst/get_wp.html')
+============= CLI >>Al_perturbed5.ncmat --eps=1e-4<< ====================
+Loaded info based on: "Al_perturbed5.ncmat"
+Input has space group: 225 (F m -3 m)
+
+==========================> Investigating element: Al
+
+The 4 positions are generated from the following symmetry-unique points:
+
+Symmetry-unique point: [0. 0. 0.]
+    -> Point (0, 0, 0) deviates 0 from expected position
+    -> Point (0, 0.5, 0.5) deviates 0 from expected position
+    -> Point (0.5, 0, 0.5) deviates 0 from expected position
+    -> Point (0.5, 0.49999, 0) deviates 1e-05 from expected position (0.5, 0.5, 0)
+
+==========================> Done.
+
+All OK! Atom positions are from these Wyckoff positions for SG 225 (setting=1):
+
+  Al 0 0 0
+
+Worst discrepancy in distances: 1e-05
+=========================================================================
+============= CLI >>Al_perturbed8.ncmat --eps=1e-10<< ====================
+Loaded info based on: "Al_perturbed8.ncmat"
+Input has space group: 225 (F m -3 m)
+
+==========================> Investigating element: Al
+
+The 4 positions are generated from the following symmetry-unique points:
+
+Symmetry-unique point: [0. 0. 0.]
+    -> Point (0, 0, 0) deviates 0 from expected position
+    -> Point (0, 0.5, 0.5) deviates 0 from expected position
+    -> Point (0.5, 0, 0.5) deviates 0 from expected position
+    -> Point (0.5, 0.49999999, 0) deviates 1e-08 from expected position (0.5, 0.5, 0) <-- PROBLEM!!!
+
+==========================> Done.
+
+Caught expected RuntimeError('Problems detected in list of atom positions! Most likely this is a real problem, but you can also check with (enter spacegroup 225): https://www.cryst.ehu.es/cryst/get_wp.html')
+============= CLI >>Al.ncmat --wyckoff<< ====================
+# Wyckoff positions for SG 225 (setting=1):
+Al 0 0 0
+=============================================================
+============= CLI >>MgAl2O4_sg227_MAS.ncmat --wyckoff<< ====================
+# Wyckoff positions for SG 227 (setting=1):
+O 0.1127 0.1127 0.3873
+Mg 0 0 0
+Al 0.125 0.125 0.625
+============================================================================
+============= CLI >>MgAl2O4_sg227_MAS.ncmat --wyckoff --quiet<< ====================
+# Wyckoff positions for SG 227 (setting=1):
+O 0.1127 0.1127 0.3873
+Mg 0 0 0
+Al 0.125 0.125 0.625
+====================================================================================
+============= CLI >>MgAl2O4_sg227_MAS.ncmat --quiet<< ====================
+==========================================================================
