@@ -55,7 +55,7 @@ from NCTestUtils.common import ( print_text_file_with_snipping,
 
 #FIXME: Also test python API if not done elsewhere.
 
-def test_cli( args, *, nstart = 30, nend = 20, outfile = None, in_tmp_dir = True ):
+def test_cli( args, *, nstart = 100, nend = 20, outfile = None, in_tmp_dir = True ):
     if isinstance(args,str):
         args = shlex.split(args)
     hr=f"============= CLI >>{shlex.join(args)}<< ===================="
@@ -66,9 +66,9 @@ def test_cli( args, *, nstart = 30, nend = 20, outfile = None, in_tmp_dir = True
         if outfile not in ('stdout',None):
             content = pathlib.Path(outfile).read_text()
             print_text_file_with_snipping( content,
-                                           nstart=nstart+100000,#FIXME
+                                           nstart=nstart,
                                            nend=nend,
-                                           prefix='')#FIXME 'OUTFILE>')
+                                           prefix='OUT>')
     print('='*len(hr))
 
 def main():

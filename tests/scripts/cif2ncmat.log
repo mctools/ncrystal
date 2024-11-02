@@ -173,186 +173,186 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based o
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 55.9001% level)
 Verifying that resulting ncmat data can be loaded
 Writing autogen_CaO3Si_sg2_cod9005777.ncmat
-NCMAT v7
-#
-# CaO3Si (triclinic, SG-2)
-#
-# Atoms per unit cell: 6xCa+18xO+6xSi
-#
-# Structure converted (with NCrystal.cifutils module) from:
-#
-#   "Polysynthetically-twinned structures of enstatite and wollastonite
-#    Sample: WO1T"
-#   Ohashi, Y. [Physics and Chemistry of Minerals, 1984]
-#   DOI: https://dx.doi.org/10.1007/BF00309314
-#   Crystallography Open Database entry 9005777
-#   https://www.crystallography.net/cod/9005777.html
-#
-# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
-#                   verified!  In particular the @DYNINFO sections might need
-#                   post-editing. Before distributing this file to other people,
-#                   please review this, amend the comments here to document,
-#                   anything done, and remove this notice.
-#
-# Notice: The following WARNINGS were emitted when loading the CIF data:
-#
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3"
-#   NCrystalUserWarning : Structure received major corrections by spglib (at the 55.9001% level)
-#
-# WARNING: Fallback (dummy) Debye temperature values were used for 15 atoms!
-#
-# NOTICE: crystal structure was verified with spglib to be self-consistent.
-#
-@CELL
-  lengths 7.0653 7.3202 7.9258
-  angles 103.426 95.217 90.055
-@SPACEGROUP
-  2
-@ATOMPOSITIONS
-  X1 .2394 .57734 .80169
-  X1 .7606 .42266 .19831
-  X10 .4641 .9385 .3014
-  X10 .5359 .0615 .6986
-  X11 .1988 .7688 .5705
-  X11 .8012 .2312 .4295
-  X12 .2655 .3739 .9832
-  X12 .7345 .6261 .0168
-  X13 .2648 .8677 .9819
-  X13 .7352 .1323 .0181
-  X14 .1704 .2734 .5982
-  X14 .8296 .7266 .4018
-  X15 .2254 .1785 .2183
-  X15 .7746 .8215 .7817
-  X2 .23599 .07081 .79759
-  X2 .76401 .92919 .20241
-  X3 .0938 .8704 .2713
-  X3 .9062 .1296 .7287
-  X4 .0931 .5126 .2735
-  X4 .9069 .4874 .7265
-  X5 .2684 .3875 .1851
-  X5 .7316 .6125 .8149
-  X6 .2691 .9542 .1849
-  X6 .7309 .0458 .8151
-  X7 .0561 .7236 .3973
-  X7 .9439 .2764 .6027
-  X8 .47309 .2496 .49667
-  X8 .52691 .7504 .50333
-  X9 .4628 .4616 .3034
-  X9 .5372 .5384 .6966
-@ATOMDB
-  X1 is Ca
-  X2 is Ca
-  X3 is O
-  X4 is O
-  X5 is Si
-  X6 is Si
-  X7 is Si
-  X8 is Ca
-  X9 is O
-  X10 is O
-  X11 is O
-  X12 is O
-  X13 is O
-  X14 is O
-  X15 is O
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element X1
-  fraction 1/15
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element X2
-  fraction 1/15
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element X3
-  fraction 1/15
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element X4
-  fraction 1/15
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element X5
-  fraction 1/15
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element X6
-  fraction 1/15
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element X7
-  fraction 1/15
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element X8
-  fraction 1/15
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element X9
-  fraction 1/15
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element X10
-  fraction 1/15
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element X11
-  fraction 1/15
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element X12
-  fraction 1/15
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element X13
-  fraction 1/15
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element X14
-  fraction 1/15
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element X15
-  fraction 1/15
-  type vdosdebye
-  debye_temp 300
+OUT>NCMAT v7
+OUT>#
+OUT># CaO3Si (triclinic, SG-2)
+OUT>#
+OUT># Atoms per unit cell: 6xCa+18xO+6xSi
+OUT>#
+OUT># Structure converted (with NCrystal.cifutils module) from:
+OUT>#
+OUT>#   "Polysynthetically-twinned structures of enstatite and wollastonite
+OUT>#    Sample: WO1T"
+OUT>#   Ohashi, Y. [Physics and Chemistry of Minerals, 1984]
+OUT>#   DOI: https://dx.doi.org/10.1007/BF00309314
+OUT>#   Crystallography Open Database entry 9005777
+OUT>#   https://www.crystallography.net/cod/9005777.html
+OUT>#
+OUT># IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+OUT>#                   verified!  In particular the @DYNINFO sections might need
+OUT>#                   post-editing. Before distributing this file to other people,
+OUT>#                   please review this, amend the comments here to document,
+OUT>#                   anything done, and remove this notice.
+OUT>#
+OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
+OUT>#
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3"
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 55.9001% level)
+OUT>#
+OUT># WARNING: Fallback (dummy) Debye temperature values were used for 15 atoms!
+OUT>#
+OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
+OUT>#
+OUT>@CELL
+OUT>  lengths 7.0653 7.3202 7.9258
+OUT>  angles 103.426 95.217 90.055
+OUT>@SPACEGROUP
+OUT>  2
+OUT>@ATOMPOSITIONS
+OUT>  X1 .2394 .57734 .80169
+OUT>  X1 .7606 .42266 .19831
+OUT>  X10 .4641 .9385 .3014
+OUT>  X10 .5359 .0615 .6986
+OUT>  X11 .1988 .7688 .5705
+OUT>  X11 .8012 .2312 .4295
+OUT>  X12 .2655 .3739 .9832
+OUT>  X12 .7345 .6261 .0168
+OUT>  X13 .2648 .8677 .9819
+OUT>  X13 .7352 .1323 .0181
+OUT>  X14 .1704 .2734 .5982
+OUT>  X14 .8296 .7266 .4018
+OUT>  X15 .2254 .1785 .2183
+OUT>  X15 .7746 .8215 .7817
+OUT>  X2 .23599 .07081 .79759
+OUT>  X2 .76401 .92919 .20241
+OUT>  X3 .0938 .8704 .2713
+OUT>  X3 .9062 .1296 .7287
+OUT>  X4 .0931 .5126 .2735
+OUT>  X4 .9069 .4874 .7265
+OUT>  X5 .2684 .3875 .1851
+OUT>  X5 .7316 .6125 .8149
+OUT>  X6 .2691 .9542 .1849
+OUT>  X6 .7309 .0458 .8151
+OUT>  X7 .0561 .7236 .3973
+OUT>  X7 .9439 .2764 .6027
+OUT>  X8 .47309 .2496 .49667
+OUT>  X8 .52691 .7504 .50333
+OUT>  X9 .4628 .4616 .3034
+OUT>  X9 .5372 .5384 .6966
+OUT>@ATOMDB
+OUT>  X1 is Ca
+OUT>  X2 is Ca
+OUT>  X3 is O
+OUT>  X4 is O
+OUT>  X5 is Si
+OUT>  X6 is Si
+OUT>  X7 is Si
+OUT>  X8 is Ca
+OUT>  X9 is O
+OUT>  X10 is O
+OUT>  X11 is O
+OUT>  X12 is O
+OUT>  X13 is O
+OUT>  X14 is O
+OUT>  X15 is O
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X1
+OUT>  fraction 1/15
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X2
+OUT>  fraction 1/15
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X3
+OUT>  fraction 1/15
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X4
+OUT>  fraction 1/15
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X5
+OUT>  fraction 1/15
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X6
+OUT>  fraction 1/15
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X7
+OUT>  fraction 1/15
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X8
+OUT>  fraction 1/15
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X9
+OUT>  fraction 1/15
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X10
+OUT>  fraction 1/15
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X11
+OUT>  fraction 1/15
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X12
+OUT>  fraction 1/15
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X13
+OUT>  fraction 1/15
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X14
+OUT>  fraction 1/15
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X15
+OUT>  fraction 1/15
+OUT>  type vdosdebye
+OUT>  debye_temp 300
 ===================================================================
 ============= CLI >>codid::9005777<< ====================
 Getting cod_9005777.cif from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR
@@ -369,98 +369,98 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based o
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 29.36% level)
 Verifying that resulting ncmat data can be loaded
 Writing autogen_CaO3Si_sg2_cod9005777.ncmat
-NCMAT v7
-#
-# CaO3Si (triclinic, SG-2)
-#
-# Atoms per unit cell: 6xCa+18xO+6xSi
-#
-# Structure converted (with NCrystal.cifutils module) from:
-#
-#   "Polysynthetically-twinned structures of enstatite and wollastonite
-#    Sample: WO1T"
-#   Ohashi, Y. [Physics and Chemistry of Minerals, 1984]
-#   DOI: https://dx.doi.org/10.1007/BF00309314
-#   Crystallography Open Database entry 9005777
-#   https://www.crystallography.net/cod/9005777.html
-#
-# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
-#                   verified!  In particular the @DYNINFO sections might need
-#                   post-editing. Before distributing this file to other people,
-#                   please review this, amend the comments here to document,
-#                   anything done, and remove this notice.
-#
-# Notice: The following WARNINGS were emitted when loading the CIF data:
-#
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3"
-#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level)
-#
-# WARNING: Fallback (dummy) Debye temperature values were used for 3 atoms!
-#
-# NOTICE: crystal structure was verified with spglib to be self-consistent.
-#
-@CELL
-  lengths 7.0653 7.3202 7.9258
-  angles 103.426 95.217 90.055
-@SPACEGROUP
-  2
-@ATOMPOSITIONS
-  Ca .23599 .07081 .79759
-  Ca .2394 .57734 .80169
-  Ca .47309 .2496 .49667
-  Ca .52691 .7504 .50333
-  Ca .7606 .42266 .19831
-  Ca .76401 .92919 .20241
-  O .0931 .5126 .2735
-  O .0938 .8704 .2713
-  O .1704 .2734 .5982
-  O .1988 .7688 .5705
-  O .2254 .1785 .2183
-  O .2648 .8677 .9819
-  O .2655 .3739 .9832
-  O .4628 .4616 .3034
-  O .4641 .9385 .3014
-  O .5359 .0615 .6986
-  O .5372 .5384 .6966
-  O .7345 .6261 .0168
-  O .7352 .1323 .0181
-  O .7746 .8215 .7817
-  O .8012 .2312 .4295
-  O .8296 .7266 .4018
-  O .9062 .1296 .7287
-  O .9069 .4874 .7265
-  Si .0561 .7236 .3973
-  Si .2684 .3875 .1851
-  Si .2691 .9542 .1849
-  Si .7309 .0458 .8151
-  Si .7316 .6125 .8149
-  Si .9439 .2764 .6027
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element Ca
-  fraction 1/5
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element O
-  fraction 3/5
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element Si
-  fraction 1/5
-  type vdosdebye
-  debye_temp 300
+OUT>NCMAT v7
+OUT>#
+OUT># CaO3Si (triclinic, SG-2)
+OUT>#
+OUT># Atoms per unit cell: 6xCa+18xO+6xSi
+OUT>#
+OUT># Structure converted (with NCrystal.cifutils module) from:
+OUT>#
+OUT>#   "Polysynthetically-twinned structures of enstatite and wollastonite
+OUT>#    Sample: WO1T"
+OUT>#   Ohashi, Y. [Physics and Chemistry of Minerals, 1984]
+OUT>#   DOI: https://dx.doi.org/10.1007/BF00309314
+OUT>#   Crystallography Open Database entry 9005777
+OUT>#   https://www.crystallography.net/cod/9005777.html
+OUT>#
+OUT># IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+OUT>#                   verified!  In particular the @DYNINFO sections might need
+OUT>#                   post-editing. Before distributing this file to other people,
+OUT>#                   please review this, amend the comments here to document,
+OUT>#                   anything done, and remove this notice.
+OUT>#
+OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
+OUT>#
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3"
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level)
+OUT>#
+OUT># WARNING: Fallback (dummy) Debye temperature values were used for 3 atoms!
+OUT>#
+OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
+OUT>#
+OUT>@CELL
+OUT>  lengths 7.0653 7.3202 7.9258
+OUT>  angles 103.426 95.217 90.055
+OUT>@SPACEGROUP
+OUT>  2
+OUT>@ATOMPOSITIONS
+OUT>  Ca .23599 .07081 .79759
+OUT>  Ca .2394 .57734 .80169
+OUT>  Ca .47309 .2496 .49667
+OUT>  Ca .52691 .7504 .50333
+OUT>  Ca .7606 .42266 .19831
+OUT>  Ca .76401 .92919 .20241
+OUT>  O .0931 .5126 .2735
+OUT>  O .0938 .8704 .2713
+OUT>  O .1704 .2734 .5982
+OUT>  O .1988 .7688 .5705
+OUT>  O .2254 .1785 .2183
+OUT>  O .2648 .8677 .9819
+OUT>  O .2655 .3739 .9832
+OUT>  O .4628 .4616 .3034
+OUT>  O .4641 .9385 .3014
+OUT>  O .5359 .0615 .6986
+OUT>  O .5372 .5384 .6966
+OUT>  O .7345 .6261 .0168
+OUT>  O .7352 .1323 .0181
+OUT>  O .7746 .8215 .7817
+OUT>  O .8012 .2312 .4295
+OUT>  O .8296 .7266 .4018
+OUT>  O .9062 .1296 .7287
+OUT>  O .9069 .4874 .7265
+OUT>  Si .0561 .7236 .3973
+OUT>  Si .2684 .3875 .1851
+OUT>  Si .2691 .9542 .1849
+OUT>  Si .7309 .0458 .8151
+OUT>  Si .7316 .6125 .8149
+OUT>  Si .9439 .2764 .6027
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element Ca
+OUT>  fraction 1/5
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element O
+OUT>  fraction 3/5
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element Si
+OUT>  fraction 1/5
+OUT>  type vdosdebye
+OUT>  debye_temp 300
 =========================================================
 ============= CLI >>codid::9005777 --uisotemp=50<< ====================
 Getting cod_9005777.cif from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR
@@ -477,98 +477,98 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based o
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 29.36% level)
 Verifying that resulting ncmat data can be loaded
 Writing autogen_CaO3Si_sg2_cod9005777.ncmat
-NCMAT v7
-#
-# CaO3Si (triclinic, SG-2)
-#
-# Atoms per unit cell: 6xCa+18xO+6xSi
-#
-# Structure converted (with NCrystal.cifutils module) from:
-#
-#   "Polysynthetically-twinned structures of enstatite and wollastonite
-#    Sample: WO1T"
-#   Ohashi, Y. [Physics and Chemistry of Minerals, 1984]
-#   DOI: https://dx.doi.org/10.1007/BF00309314
-#   Crystallography Open Database entry 9005777
-#   https://www.crystallography.net/cod/9005777.html
-#
-# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
-#                   verified!  In particular the @DYNINFO sections might need
-#                   post-editing. Before distributing this file to other people,
-#                   please review this, amend the comments here to document,
-#                   anything done, and remove this notice.
-#
-# Notice: The following WARNINGS were emitted when loading the CIF data:
-#
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3"
-#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level)
-#
-# WARNING: Fallback (dummy) Debye temperature values were used for 3 atoms!
-#
-# NOTICE: crystal structure was verified with spglib to be self-consistent.
-#
-@CELL
-  lengths 7.0653 7.3202 7.9258
-  angles 103.426 95.217 90.055
-@SPACEGROUP
-  2
-@ATOMPOSITIONS
-  Ca .23599 .07081 .79759
-  Ca .2394 .57734 .80169
-  Ca .47309 .2496 .49667
-  Ca .52691 .7504 .50333
-  Ca .7606 .42266 .19831
-  Ca .76401 .92919 .20241
-  O .0931 .5126 .2735
-  O .0938 .8704 .2713
-  O .1704 .2734 .5982
-  O .1988 .7688 .5705
-  O .2254 .1785 .2183
-  O .2648 .8677 .9819
-  O .2655 .3739 .9832
-  O .4628 .4616 .3034
-  O .4641 .9385 .3014
-  O .5359 .0615 .6986
-  O .5372 .5384 .6966
-  O .7345 .6261 .0168
-  O .7352 .1323 .0181
-  O .7746 .8215 .7817
-  O .8012 .2312 .4295
-  O .8296 .7266 .4018
-  O .9062 .1296 .7287
-  O .9069 .4874 .7265
-  Si .0561 .7236 .3973
-  Si .2684 .3875 .1851
-  Si .2691 .9542 .1849
-  Si .7309 .0458 .8151
-  Si .7316 .6125 .8149
-  Si .9439 .2764 .6027
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element Ca
-  fraction 1/5
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element O
-  fraction 3/5
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element Si
-  fraction 1/5
-  type vdosdebye
-  debye_temp 300
+OUT>NCMAT v7
+OUT>#
+OUT># CaO3Si (triclinic, SG-2)
+OUT>#
+OUT># Atoms per unit cell: 6xCa+18xO+6xSi
+OUT>#
+OUT># Structure converted (with NCrystal.cifutils module) from:
+OUT>#
+OUT>#   "Polysynthetically-twinned structures of enstatite and wollastonite
+OUT>#    Sample: WO1T"
+OUT>#   Ohashi, Y. [Physics and Chemistry of Minerals, 1984]
+OUT>#   DOI: https://dx.doi.org/10.1007/BF00309314
+OUT>#   Crystallography Open Database entry 9005777
+OUT>#   https://www.crystallography.net/cod/9005777.html
+OUT>#
+OUT># IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+OUT>#                   verified!  In particular the @DYNINFO sections might need
+OUT>#                   post-editing. Before distributing this file to other people,
+OUT>#                   please review this, amend the comments here to document,
+OUT>#                   anything done, and remove this notice.
+OUT>#
+OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
+OUT>#
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3"
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level)
+OUT>#
+OUT># WARNING: Fallback (dummy) Debye temperature values were used for 3 atoms!
+OUT>#
+OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
+OUT>#
+OUT>@CELL
+OUT>  lengths 7.0653 7.3202 7.9258
+OUT>  angles 103.426 95.217 90.055
+OUT>@SPACEGROUP
+OUT>  2
+OUT>@ATOMPOSITIONS
+OUT>  Ca .23599 .07081 .79759
+OUT>  Ca .2394 .57734 .80169
+OUT>  Ca .47309 .2496 .49667
+OUT>  Ca .52691 .7504 .50333
+OUT>  Ca .7606 .42266 .19831
+OUT>  Ca .76401 .92919 .20241
+OUT>  O .0931 .5126 .2735
+OUT>  O .0938 .8704 .2713
+OUT>  O .1704 .2734 .5982
+OUT>  O .1988 .7688 .5705
+OUT>  O .2254 .1785 .2183
+OUT>  O .2648 .8677 .9819
+OUT>  O .2655 .3739 .9832
+OUT>  O .4628 .4616 .3034
+OUT>  O .4641 .9385 .3014
+OUT>  O .5359 .0615 .6986
+OUT>  O .5372 .5384 .6966
+OUT>  O .7345 .6261 .0168
+OUT>  O .7352 .1323 .0181
+OUT>  O .7746 .8215 .7817
+OUT>  O .8012 .2312 .4295
+OUT>  O .8296 .7266 .4018
+OUT>  O .9062 .1296 .7287
+OUT>  O .9069 .4874 .7265
+OUT>  Si .0561 .7236 .3973
+OUT>  Si .2684 .3875 .1851
+OUT>  Si .2691 .9542 .1849
+OUT>  Si .7309 .0458 .8151
+OUT>  Si .7316 .6125 .8149
+OUT>  Si .9439 .2764 .6027
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element Ca
+OUT>  fraction 1/5
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element O
+OUT>  fraction 3/5
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element Si
+OUT>  fraction 1/5
+OUT>  type vdosdebye
+OUT>  debye_temp 300
 =======================================================================
 ============= CLI >>codid::9005777 --debyetemp=50<< ====================
 Getting cod_9005777.cif from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR
@@ -585,98 +585,98 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based o
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 29.36% level)
 Verifying that resulting ncmat data can be loaded
 Writing autogen_CaO3Si_sg2_cod9005777.ncmat
-NCMAT v7
-#
-# CaO3Si (triclinic, SG-2)
-#
-# Atoms per unit cell: 6xCa+18xO+6xSi
-#
-# Structure converted (with NCrystal.cifutils module) from:
-#
-#   "Polysynthetically-twinned structures of enstatite and wollastonite
-#    Sample: WO1T"
-#   Ohashi, Y. [Physics and Chemistry of Minerals, 1984]
-#   DOI: https://dx.doi.org/10.1007/BF00309314
-#   Crystallography Open Database entry 9005777
-#   https://www.crystallography.net/cod/9005777.html
-#
-# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
-#                   verified!  In particular the @DYNINFO sections might need
-#                   post-editing. Before distributing this file to other people,
-#                   please review this, amend the comments here to document,
-#                   anything done, and remove this notice.
-#
-# Notice: The following WARNINGS were emitted when loading the CIF data:
-#
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3"
-#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level)
-#
-# WARNING: Fallback (dummy) Debye temperature values were used for 3 atoms!
-#
-# NOTICE: crystal structure was verified with spglib to be self-consistent.
-#
-@CELL
-  lengths 7.0653 7.3202 7.9258
-  angles 103.426 95.217 90.055
-@SPACEGROUP
-  2
-@ATOMPOSITIONS
-  Ca .23599 .07081 .79759
-  Ca .2394 .57734 .80169
-  Ca .47309 .2496 .49667
-  Ca .52691 .7504 .50333
-  Ca .7606 .42266 .19831
-  Ca .76401 .92919 .20241
-  O .0931 .5126 .2735
-  O .0938 .8704 .2713
-  O .1704 .2734 .5982
-  O .1988 .7688 .5705
-  O .2254 .1785 .2183
-  O .2648 .8677 .9819
-  O .2655 .3739 .9832
-  O .4628 .4616 .3034
-  O .4641 .9385 .3014
-  O .5359 .0615 .6986
-  O .5372 .5384 .6966
-  O .7345 .6261 .0168
-  O .7352 .1323 .0181
-  O .7746 .8215 .7817
-  O .8012 .2312 .4295
-  O .8296 .7266 .4018
-  O .9062 .1296 .7287
-  O .9069 .4874 .7265
-  Si .0561 .7236 .3973
-  Si .2684 .3875 .1851
-  Si .2691 .9542 .1849
-  Si .7309 .0458 .8151
-  Si .7316 .6125 .8149
-  Si .9439 .2764 .6027
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element Ca
-  fraction 1/5
-  type vdosdebye
-  debye_temp 50
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element O
-  fraction 3/5
-  type vdosdebye
-  debye_temp 50
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element Si
-  fraction 1/5
-  type vdosdebye
-  debye_temp 50
+OUT>NCMAT v7
+OUT>#
+OUT># CaO3Si (triclinic, SG-2)
+OUT>#
+OUT># Atoms per unit cell: 6xCa+18xO+6xSi
+OUT>#
+OUT># Structure converted (with NCrystal.cifutils module) from:
+OUT>#
+OUT>#   "Polysynthetically-twinned structures of enstatite and wollastonite
+OUT>#    Sample: WO1T"
+OUT>#   Ohashi, Y. [Physics and Chemistry of Minerals, 1984]
+OUT>#   DOI: https://dx.doi.org/10.1007/BF00309314
+OUT>#   Crystallography Open Database entry 9005777
+OUT>#   https://www.crystallography.net/cod/9005777.html
+OUT>#
+OUT># IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+OUT>#                   verified!  In particular the @DYNINFO sections might need
+OUT>#                   post-editing. Before distributing this file to other people,
+OUT>#                   please review this, amend the comments here to document,
+OUT>#                   anything done, and remove this notice.
+OUT>#
+OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
+OUT>#
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3"
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level)
+OUT>#
+OUT># WARNING: Fallback (dummy) Debye temperature values were used for 3 atoms!
+OUT>#
+OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
+OUT>#
+OUT>@CELL
+OUT>  lengths 7.0653 7.3202 7.9258
+OUT>  angles 103.426 95.217 90.055
+OUT>@SPACEGROUP
+OUT>  2
+OUT>@ATOMPOSITIONS
+OUT>  Ca .23599 .07081 .79759
+OUT>  Ca .2394 .57734 .80169
+OUT>  Ca .47309 .2496 .49667
+OUT>  Ca .52691 .7504 .50333
+OUT>  Ca .7606 .42266 .19831
+OUT>  Ca .76401 .92919 .20241
+OUT>  O .0931 .5126 .2735
+OUT>  O .0938 .8704 .2713
+OUT>  O .1704 .2734 .5982
+OUT>  O .1988 .7688 .5705
+OUT>  O .2254 .1785 .2183
+OUT>  O .2648 .8677 .9819
+OUT>  O .2655 .3739 .9832
+OUT>  O .4628 .4616 .3034
+OUT>  O .4641 .9385 .3014
+OUT>  O .5359 .0615 .6986
+OUT>  O .5372 .5384 .6966
+OUT>  O .7345 .6261 .0168
+OUT>  O .7352 .1323 .0181
+OUT>  O .7746 .8215 .7817
+OUT>  O .8012 .2312 .4295
+OUT>  O .8296 .7266 .4018
+OUT>  O .9062 .1296 .7287
+OUT>  O .9069 .4874 .7265
+OUT>  Si .0561 .7236 .3973
+OUT>  Si .2684 .3875 .1851
+OUT>  Si .2691 .9542 .1849
+OUT>  Si .7309 .0458 .8151
+OUT>  Si .7316 .6125 .8149
+OUT>  Si .9439 .2764 .6027
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element Ca
+OUT>  fraction 1/5
+OUT>  type vdosdebye
+OUT>  debye_temp 50
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element O
+OUT>  fraction 3/5
+OUT>  type vdosdebye
+OUT>  debye_temp 50
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element Si
+OUT>  fraction 1/5
+OUT>  type vdosdebye
+OUT>  debye_temp 50
 ========================================================================
 ============= CLI >>codid::1000257<< ====================
 Getting cod_1000257.cif from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR
@@ -698,145 +698,145 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF 
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082)
 Verifying that resulting ncmat data can be loaded
 Writing autogen_F7FeNa2Ni_sg74_cod1000257.ncmat
-NCMAT v7
-#
-# F7FeNa2Ni (orthorombic, SG-74)
-#
-# Atoms per unit cell: 28xF+4xFe+8xNa+4xNi
-#
-# Structure converted (with NCrystal.cifutils module) from:
-#
-#   "Ordered Magnetic Frustration VII. Na~2~ Ni Fe F~7~: Reexamination of
-#   Its Crystal Structure in the True Space Group after Corrections from
-#   Renninger Effect and Refinement of Its Frustrated Magnetic Structure at
-#   4.2 and 55 K"
-#   Laligant, Y, et al. [Journal of Solid State Chemistry, 1989]
-#   DOI: https://dx.doi.org/10.1016/0022-4596(89)90128-X
-#   Crystallography Open Database entry 1000257
-#   https://www.crystallography.net/cod/1000257.html
-#
-# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
-#                   verified!  In particular the @DYNINFO sections might need
-#                   post-editing. Before distributing this file to other people,
-#                   please review this, amend the comments here to document,
-#                   anything done, and remove this notice.
-#
-# Notice: The following WARNINGS were emitted when loading the CIF data:
-#
-#   (3x) NCrystalUserWarning :  ignoring uiso info present in CIF input for "F" since uiso_temperature parameter value is not provided
-#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0074, u12=0, u13=0, u22=0.0286, u23=0, u33=0.0177)
-#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0229, u12=0, u13=0, u22=0.0207, u23=0.0016, u33=0.0109)
-#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0162, u12=0.0051, u13=0.0011, u22=0.0188, u23=-0.0108, u33=0.029)
-#   NCrystalUserWarning : ignoring uiso info present in CIF input for "Fe" since uiso_temperature parameter value is not provided
-#   NCrystalUserWarning : Anisotropic displacement for Fe ignored (u11=0.009, u12=0, u13=0, u22=0.0084, u23=0.0025, u33=0.0083)
-#   (2x) NCrystalUserWarning :  ignoring uiso info present in CIF input for "Na" since uiso_temperature parameter value is not provided
-#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0236, u12=0, u13=0, u22=0.0568, u23=0.0189, u33=0.019)
-#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0223, u12=0, u13=-0.0036, u22=0.023, u23=0, u33=0.0667)
-#   NCrystalUserWarning : ignoring uiso info present in CIF input for "Ni" since uiso_temperature parameter value is not provided
-#   NCrystalUserWarning : Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082)
-#
-# WARNING: Fallback (dummy) Debye temperature values were used for 7 atoms!
-#
-# NOTICE: crystal structure was verified with spglib to be self-consistent.
-#
-@CELL
-  lengths 7.2338 10.305 7.4529
-  angles 90 90 90
-@SPACEGROUP
-  74
-@ATOMPOSITIONS
-  Fe 0 0 1/2
-  Fe 0 1/2 1/2
-  Fe 1/2 0 0
-  Fe 1/2 1/2 0
-  Ni 1/4 1/4 1/4
-  Ni 1/4 3/4 3/4
-  Ni 3/4 1/4 1/4
-  Ni 3/4 3/4 3/4
-  X1 0 1/4 .1473
-  X1 0 3/4 .8527
-  X1 1/2 1/4 .3527
-  X1 1/2 3/4 .6473
-  X2 0 .0891 .7299
-  X2 0 .4109 .7299
-  X2 0 .5891 .2701
-  X2 0 .9109 .2701
-  X2 1/2 .0891 .7701
-  X2 1/2 .4109 .7701
-  X2 1/2 .5891 .2299
-  X2 1/2 .9109 .2299
-  X3 .196 .116 .4348
-  X3 .196 .384 .4348
-  X3 .196 .616 .5652
-  X3 .196 .884 .5652
-  X3 .304 .116 .0652
-  X3 .304 .384 .0652
-  X3 .304 .616 .9348
-  X3 .304 .884 .9348
-  X3 .696 .116 .0652
-  X3 .696 .384 .0652
-  X3 .696 .616 .9348
-  X3 .696 .884 .9348
-  X3 .804 .116 .4348
-  X3 .804 .384 .4348
-  X3 .804 .616 .5652
-  X3 .804 .884 .5652
-  X4 0 0 0
-  X4 0 1/2 0
-  X4 1/2 0 1/2
-  X4 1/2 1/2 1/2
-  X5 1/4 1/4 3/4
-  X5 1/4 3/4 1/4
-  X5 3/4 1/4 3/4
-  X5 3/4 3/4 1/4
-@ATOMDB
-  X1 is F
-  X2 is F
-  X3 is F
-  X4 is Na
-  X5 is Na
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element X1
-  fraction 1/11
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element X2
-  fraction 2/11
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element X3
-  fraction 4/11
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element Fe
-  fraction 1/11
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element X4
-  fraction 1/11
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element X5
-  fraction 1/11
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element Ni
-  fraction 1/11
-  type vdosdebye
-  debye_temp 300
+OUT>NCMAT v7
+OUT>#
+OUT># F7FeNa2Ni (orthorombic, SG-74)
+OUT>#
+OUT># Atoms per unit cell: 28xF+4xFe+8xNa+4xNi
+OUT>#
+OUT># Structure converted (with NCrystal.cifutils module) from:
+OUT>#
+OUT>#   "Ordered Magnetic Frustration VII. Na~2~ Ni Fe F~7~: Reexamination of
+OUT>#   Its Crystal Structure in the True Space Group after Corrections from
+OUT>#   Renninger Effect and Refinement of Its Frustrated Magnetic Structure at
+OUT>#   4.2 and 55 K"
+OUT>#   Laligant, Y, et al. [Journal of Solid State Chemistry, 1989]
+OUT>#   DOI: https://dx.doi.org/10.1016/0022-4596(89)90128-X
+OUT>#   Crystallography Open Database entry 1000257
+OUT>#   https://www.crystallography.net/cod/1000257.html
+OUT>#
+OUT># IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+OUT>#                   verified!  In particular the @DYNINFO sections might need
+OUT>#                   post-editing. Before distributing this file to other people,
+OUT>#                   please review this, amend the comments here to document,
+OUT>#                   anything done, and remove this notice.
+OUT>#
+OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
+OUT>#
+OUT>#   (3x) NCrystalUserWarning :  ignoring uiso info present in CIF input for "F" since uiso_temperature parameter value is not provided
+OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0074, u12=0, u13=0, u22=0.0286, u23=0, u33=0.0177)
+OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0229, u12=0, u13=0, u22=0.0207, u23=0.0016, u33=0.0109)
+OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0162, u12=0.0051, u13=0.0011, u22=0.0188, u23=-0.0108, u33=0.029)
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "Fe" since uiso_temperature parameter value is not provided
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Fe ignored (u11=0.009, u12=0, u13=0, u22=0.0084, u23=0.0025, u33=0.0083)
+OUT>#   (2x) NCrystalUserWarning :  ignoring uiso info present in CIF input for "Na" since uiso_temperature parameter value is not provided
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0236, u12=0, u13=0, u22=0.0568, u23=0.0189, u33=0.019)
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0223, u12=0, u13=-0.0036, u22=0.023, u23=0, u33=0.0667)
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "Ni" since uiso_temperature parameter value is not provided
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082)
+OUT>#
+OUT># WARNING: Fallback (dummy) Debye temperature values were used for 7 atoms!
+OUT>#
+OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
+OUT>#
+OUT>@CELL
+OUT>  lengths 7.2338 10.305 7.4529
+OUT>  angles 90 90 90
+OUT>@SPACEGROUP
+OUT>  74
+OUT>@ATOMPOSITIONS
+OUT>  Fe 0 0 1/2
+OUT>  Fe 0 1/2 1/2
+OUT>  Fe 1/2 0 0
+OUT>  Fe 1/2 1/2 0
+OUT>  Ni 1/4 1/4 1/4
+OUT>  Ni 1/4 3/4 3/4
+OUT>  Ni 3/4 1/4 1/4
+OUT>  Ni 3/4 3/4 3/4
+OUT>  X1 0 1/4 .1473
+OUT>  X1 0 3/4 .8527
+OUT>  X1 1/2 1/4 .3527
+OUT>  X1 1/2 3/4 .6473
+OUT>  X2 0 .0891 .7299
+OUT>  X2 0 .4109 .7299
+OUT>  X2 0 .5891 .2701
+OUT>  X2 0 .9109 .2701
+OUT>  X2 1/2 .0891 .7701
+OUT>  X2 1/2 .4109 .7701
+OUT>  X2 1/2 .5891 .2299
+OUT>  X2 1/2 .9109 .2299
+OUT>  X3 .196 .116 .4348
+OUT>  X3 .196 .384 .4348
+OUT>  X3 .196 .616 .5652
+OUT>  X3 .196 .884 .5652
+OUT>  X3 .304 .116 .0652
+OUT>  X3 .304 .384 .0652
+OUT>  X3 .304 .616 .9348
+OUT>  X3 .304 .884 .9348
+OUT>  X3 .696 .116 .0652
+OUT>  X3 .696 .384 .0652
+OUT>  X3 .696 .616 .9348
+OUT>  X3 .696 .884 .9348
+OUT>  X3 .804 .116 .4348
+OUT>  X3 .804 .384 .4348
+OUT>  X3 .804 .616 .5652
+OUT>  X3 .804 .884 .5652
+OUT>  X4 0 0 0
+OUT>  X4 0 1/2 0
+OUT>  X4 1/2 0 1/2
+OUT>  X4 1/2 1/2 1/2
+OUT>  X5 1/4 1/4 3/4
+OUT>  X5 1/4 3/4 1/4
+OUT>  X5 3/4 1/4 3/4
+OUT>  X5 3/4 3/4 1/4
+OUT>@ATOMDB
+OUT>  X1 is F
+OUT>  X2 is F
+OUT>  X3 is F
+OUT>  X4 is Na
+OUT>  X5 is Na
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X1
+OUT>  fraction 1/11
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X2
+OUT>  fraction 2/11
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X3
+OUT>  fraction 4/11
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element Fe
+OUT>  fraction 1/11
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X4
+OUT>  fraction 1/11
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X5
+OUT>  fraction 1/11
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element Ni
+OUT>  fraction 1/11
+OUT>  type vdosdebye
+OUT>  debye_temp 300
 =========================================================
 ============= CLI >>codid::1000257 --uisotemp=50<< ====================
 Getting cod_1000257.cif from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR
@@ -851,138 +851,138 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Na ig
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082)
 Verifying that resulting ncmat data can be loaded
 Writing autogen_F7FeNa2Ni_sg74_cod1000257.ncmat
-NCMAT v7
-#
-# F7FeNa2Ni (orthorombic, SG-74)
-#
-# Atoms per unit cell: 28xF+4xFe+8xNa+4xNi
-#
-# Structure converted (with NCrystal.cifutils module) from:
-#
-#   "Ordered Magnetic Frustration VII. Na~2~ Ni Fe F~7~: Reexamination of
-#   Its Crystal Structure in the True Space Group after Corrections from
-#   Renninger Effect and Refinement of Its Frustrated Magnetic Structure at
-#   4.2 and 55 K"
-#   Laligant, Y, et al. [Journal of Solid State Chemistry, 1989]
-#   DOI: https://dx.doi.org/10.1016/0022-4596(89)90128-X
-#   Crystallography Open Database entry 1000257
-#   https://www.crystallography.net/cod/1000257.html
-#
-# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
-#                   verified!  In particular the @DYNINFO sections might need
-#                   post-editing. Before distributing this file to other people,
-#                   please review this, amend the comments here to document,
-#                   anything done, and remove this notice.
-#
-# Notice: The following WARNINGS were emitted when loading the CIF data:
-#
-#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0074, u12=0, u13=0, u22=0.0286, u23=0, u33=0.0177)
-#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0229, u12=0, u13=0, u22=0.0207, u23=0.0016, u33=0.0109)
-#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0162, u12=0.0051, u13=0.0011, u22=0.0188, u23=-0.0108, u33=0.029)
-#   NCrystalUserWarning : Anisotropic displacement for Fe ignored (u11=0.009, u12=0, u13=0, u22=0.0084, u23=0.0025, u33=0.0083)
-#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0236, u12=0, u13=0, u22=0.0568, u23=0.0189, u33=0.019)
-#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0223, u12=0, u13=-0.0036, u22=0.023, u23=0, u33=0.0667)
-#   NCrystalUserWarning : Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082)
-# NOTICE: crystal structure was verified with spglib to be self-consistent.
-#
-@CELL
-  lengths 7.2338 10.305 7.4529
-  angles 90 90 90
-@SPACEGROUP
-  74
-@ATOMPOSITIONS
-  Fe 0 0 1/2
-  Fe 0 1/2 1/2
-  Fe 1/2 0 0
-  Fe 1/2 1/2 0
-  Ni 1/4 1/4 1/4
-  Ni 1/4 3/4 3/4
-  Ni 3/4 1/4 1/4
-  Ni 3/4 3/4 3/4
-  X1 0 1/4 .1473
-  X1 0 3/4 .8527
-  X1 1/2 1/4 .3527
-  X1 1/2 3/4 .6473
-  X2 0 .0891 .7299
-  X2 0 .4109 .7299
-  X2 0 .5891 .2701
-  X2 0 .9109 .2701
-  X2 1/2 .0891 .7701
-  X2 1/2 .4109 .7701
-  X2 1/2 .5891 .2299
-  X2 1/2 .9109 .2299
-  X3 .196 .116 .4348
-  X3 .196 .384 .4348
-  X3 .196 .616 .5652
-  X3 .196 .884 .5652
-  X3 .304 .116 .0652
-  X3 .304 .384 .0652
-  X3 .304 .616 .9348
-  X3 .304 .884 .9348
-  X3 .696 .116 .0652
-  X3 .696 .384 .0652
-  X3 .696 .616 .9348
-  X3 .696 .884 .9348
-  X3 .804 .116 .4348
-  X3 .804 .384 .4348
-  X3 .804 .616 .5652
-  X3 .804 .884 .5652
-  X4 0 0 0
-  X4 0 1/2 0
-  X4 1/2 0 1/2
-  X4 1/2 1/2 1/2
-  X5 1/4 1/4 3/4
-  X5 1/4 3/4 1/4
-  X5 3/4 1/4 3/4
-  X5 3/4 3/4 1/4
-@ATOMDB
-  X1 is F
-  X2 is F
-  X3 is F
-  X4 is Na
-  X5 is Na
-@DYNINFO
-  # Debye temperature value derived from msd=0.0179Aa^2 @ T=50K (mass=18.9984u)
-  element X1
-  fraction 1/11
-  type vdosdebye
-  debye_temp 165.177
-@DYNINFO
-  # Debye temperature value derived from msd=0.0181667Aa^2 @ T=50K (mass=18.9984u)
-  element X2
-  fraction 2/11
-  type vdosdebye
-  debye_temp 163.665
-@DYNINFO
-  # Debye temperature value derived from msd=0.0213333Aa^2 @ T=50K (mass=18.9984u)
-  element X3
-  fraction 4/11
-  type vdosdebye
-  debye_temp 148.343
-@DYNINFO
-  # Debye temperature value derived from msd=0.00856667Aa^2 @ T=50K (mass=55.8472u)
-  element Fe
-  fraction 1/11
-  type vdosdebye
-  debye_temp 134.406
-@DYNINFO
-  # Debye temperature value derived from msd=0.0331333Aa^2 @ T=50K (mass=22.9898u)
-  element X4
-  fraction 1/11
-  type vdosdebye
-  debye_temp 103.133
-@DYNINFO
-  # Debye temperature value derived from msd=0.0373333Aa^2 @ T=50K (mass=22.9898u)
-  element X5
-  fraction 1/11
-  type vdosdebye
-  debye_temp 96.5677
-@DYNINFO
-  # Debye temperature value derived from msd=0.0072Aa^2 @ T=50K (mass=58.6879u)
-  element Ni
-  fraction 1/11
-  type vdosdebye
-  debye_temp 144.673
+OUT>NCMAT v7
+OUT>#
+OUT># F7FeNa2Ni (orthorombic, SG-74)
+OUT>#
+OUT># Atoms per unit cell: 28xF+4xFe+8xNa+4xNi
+OUT>#
+OUT># Structure converted (with NCrystal.cifutils module) from:
+OUT>#
+OUT>#   "Ordered Magnetic Frustration VII. Na~2~ Ni Fe F~7~: Reexamination of
+OUT>#   Its Crystal Structure in the True Space Group after Corrections from
+OUT>#   Renninger Effect and Refinement of Its Frustrated Magnetic Structure at
+OUT>#   4.2 and 55 K"
+OUT>#   Laligant, Y, et al. [Journal of Solid State Chemistry, 1989]
+OUT>#   DOI: https://dx.doi.org/10.1016/0022-4596(89)90128-X
+OUT>#   Crystallography Open Database entry 1000257
+OUT>#   https://www.crystallography.net/cod/1000257.html
+OUT>#
+OUT># IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+OUT>#                   verified!  In particular the @DYNINFO sections might need
+OUT>#                   post-editing. Before distributing this file to other people,
+OUT>#                   please review this, amend the comments here to document,
+OUT>#                   anything done, and remove this notice.
+OUT>#
+OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
+OUT>#
+OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0074, u12=0, u13=0, u22=0.0286, u23=0, u33=0.0177)
+OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0229, u12=0, u13=0, u22=0.0207, u23=0.0016, u33=0.0109)
+OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0162, u12=0.0051, u13=0.0011, u22=0.0188, u23=-0.0108, u33=0.029)
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Fe ignored (u11=0.009, u12=0, u13=0, u22=0.0084, u23=0.0025, u33=0.0083)
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0236, u12=0, u13=0, u22=0.0568, u23=0.0189, u33=0.019)
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0223, u12=0, u13=-0.0036, u22=0.023, u23=0, u33=0.0667)
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082)
+OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
+OUT>#
+OUT>@CELL
+OUT>  lengths 7.2338 10.305 7.4529
+OUT>  angles 90 90 90
+OUT>@SPACEGROUP
+OUT>  74
+OUT>@ATOMPOSITIONS
+OUT>  Fe 0 0 1/2
+OUT>  Fe 0 1/2 1/2
+OUT>  Fe 1/2 0 0
+OUT>  Fe 1/2 1/2 0
+OUT>  Ni 1/4 1/4 1/4
+OUT>  Ni 1/4 3/4 3/4
+OUT>  Ni 3/4 1/4 1/4
+OUT>  Ni 3/4 3/4 3/4
+OUT>  X1 0 1/4 .1473
+OUT>  X1 0 3/4 .8527
+OUT>  X1 1/2 1/4 .3527
+OUT>  X1 1/2 3/4 .6473
+OUT>  X2 0 .0891 .7299
+OUT>  X2 0 .4109 .7299
+OUT>  X2 0 .5891 .2701
+OUT>  X2 0 .9109 .2701
+OUT>  X2 1/2 .0891 .7701
+OUT>  X2 1/2 .4109 .7701
+OUT>  X2 1/2 .5891 .2299
+OUT>  X2 1/2 .9109 .2299
+OUT>  X3 .196 .116 .4348
+OUT>  X3 .196 .384 .4348
+OUT>  X3 .196 .616 .5652
+OUT>  X3 .196 .884 .5652
+OUT>  X3 .304 .116 .0652
+OUT>  X3 .304 .384 .0652
+OUT>  X3 .304 .616 .9348
+OUT>  X3 .304 .884 .9348
+OUT>  X3 .696 .116 .0652
+OUT>  X3 .696 .384 .0652
+OUT>  X3 .696 .616 .9348
+OUT>  X3 .696 .884 .9348
+OUT>  X3 .804 .116 .4348
+OUT>  X3 .804 .384 .4348
+OUT>  X3 .804 .616 .5652
+OUT>  X3 .804 .884 .5652
+OUT>  X4 0 0 0
+OUT>  X4 0 1/2 0
+OUT>  X4 1/2 0 1/2
+OUT>  X4 1/2 1/2 1/2
+OUT>  X5 1/4 1/4 3/4
+OUT>  X5 1/4 3/4 1/4
+OUT>  X5 3/4 1/4 3/4
+OUT>  X5 3/4 3/4 1/4
+OUT>@ATOMDB
+OUT>  X1 is F
+OUT>  X2 is F
+OUT>  X3 is F
+OUT>  X4 is Na
+OUT>  X5 is Na
+OUT>@DYNINFO
+OUT>  # Debye temperature value derived from msd=0.0179Aa^2 @ T=50K (mass=18.9984u)
+OUT>  element X1
+OUT>  fraction 1/11
+OUT>  type vdosdebye
+OUT>  debye_temp 165.177
+OUT>@DYNINFO
+OUT>  # Debye temperature value derived from msd=0.0181667Aa^2 @ T=50K (mass=18.9984u)
+OUT>  element X2
+OUT>  fraction 2/11
+OUT>  type vdosdebye
+OUT>  debye_temp 163.665
+OUT>@DYNINFO
+OUT>  # Debye temperature value derived from msd=0.0213333Aa^2 @ T=50K (mass=18.9984u)
+OUT>  element X3
+OUT>  fraction 4/11
+OUT>  type vdosdebye
+OUT>  debye_temp 148.343
+OUT>@DYNINFO
+OUT>  # Debye temperature value derived from msd=0.00856667Aa^2 @ T=50K (mass=55.8472u)
+OUT>  element Fe
+OUT>  fraction 1/11
+OUT>  type vdosdebye
+OUT>  debye_temp 134.406
+OUT>@DYNINFO
+OUT>  # Debye temperature value derived from msd=0.0331333Aa^2 @ T=50K (mass=22.9898u)
+OUT>  element X4
+OUT>  fraction 1/11
+OUT>  type vdosdebye
+OUT>  debye_temp 103.133
+OUT>@DYNINFO
+OUT>  # Debye temperature value derived from msd=0.0373333Aa^2 @ T=50K (mass=22.9898u)
+OUT>  element X5
+OUT>  fraction 1/11
+OUT>  type vdosdebye
+OUT>  debye_temp 96.5677
+OUT>@DYNINFO
+OUT>  # Debye temperature value derived from msd=0.0072Aa^2 @ T=50K (mass=58.6879u)
+OUT>  element Ni
+OUT>  fraction 1/11
+OUT>  type vdosdebye
+OUT>  debye_temp 144.673
 =======================================================================
 ============= CLI >>codid::1000257 --debyetemp=150<< ====================
 Getting cod_1000257.cif from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR
@@ -1004,145 +1004,145 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF 
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082)
 Verifying that resulting ncmat data can be loaded
 Writing autogen_F7FeNa2Ni_sg74_cod1000257.ncmat
-NCMAT v7
-#
-# F7FeNa2Ni (orthorombic, SG-74)
-#
-# Atoms per unit cell: 28xF+4xFe+8xNa+4xNi
-#
-# Structure converted (with NCrystal.cifutils module) from:
-#
-#   "Ordered Magnetic Frustration VII. Na~2~ Ni Fe F~7~: Reexamination of
-#   Its Crystal Structure in the True Space Group after Corrections from
-#   Renninger Effect and Refinement of Its Frustrated Magnetic Structure at
-#   4.2 and 55 K"
-#   Laligant, Y, et al. [Journal of Solid State Chemistry, 1989]
-#   DOI: https://dx.doi.org/10.1016/0022-4596(89)90128-X
-#   Crystallography Open Database entry 1000257
-#   https://www.crystallography.net/cod/1000257.html
-#
-# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
-#                   verified!  In particular the @DYNINFO sections might need
-#                   post-editing. Before distributing this file to other people,
-#                   please review this, amend the comments here to document,
-#                   anything done, and remove this notice.
-#
-# Notice: The following WARNINGS were emitted when loading the CIF data:
-#
-#   (3x) NCrystalUserWarning :  ignoring uiso info present in CIF input for "F" since uiso_temperature parameter value is not provided
-#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0074, u12=0, u13=0, u22=0.0286, u23=0, u33=0.0177)
-#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0229, u12=0, u13=0, u22=0.0207, u23=0.0016, u33=0.0109)
-#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0162, u12=0.0051, u13=0.0011, u22=0.0188, u23=-0.0108, u33=0.029)
-#   NCrystalUserWarning : ignoring uiso info present in CIF input for "Fe" since uiso_temperature parameter value is not provided
-#   NCrystalUserWarning : Anisotropic displacement for Fe ignored (u11=0.009, u12=0, u13=0, u22=0.0084, u23=0.0025, u33=0.0083)
-#   (2x) NCrystalUserWarning :  ignoring uiso info present in CIF input for "Na" since uiso_temperature parameter value is not provided
-#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0236, u12=0, u13=0, u22=0.0568, u23=0.0189, u33=0.019)
-#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0223, u12=0, u13=-0.0036, u22=0.023, u23=0, u33=0.0667)
-#   NCrystalUserWarning : ignoring uiso info present in CIF input for "Ni" since uiso_temperature parameter value is not provided
-#   NCrystalUserWarning : Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082)
-#
-# WARNING: Fallback (dummy) Debye temperature values were used for 7 atoms!
-#
-# NOTICE: crystal structure was verified with spglib to be self-consistent.
-#
-@CELL
-  lengths 7.2338 10.305 7.4529
-  angles 90 90 90
-@SPACEGROUP
-  74
-@ATOMPOSITIONS
-  Fe 0 0 1/2
-  Fe 0 1/2 1/2
-  Fe 1/2 0 0
-  Fe 1/2 1/2 0
-  Ni 1/4 1/4 1/4
-  Ni 1/4 3/4 3/4
-  Ni 3/4 1/4 1/4
-  Ni 3/4 3/4 3/4
-  X1 0 1/4 .1473
-  X1 0 3/4 .8527
-  X1 1/2 1/4 .3527
-  X1 1/2 3/4 .6473
-  X2 0 .0891 .7299
-  X2 0 .4109 .7299
-  X2 0 .5891 .2701
-  X2 0 .9109 .2701
-  X2 1/2 .0891 .7701
-  X2 1/2 .4109 .7701
-  X2 1/2 .5891 .2299
-  X2 1/2 .9109 .2299
-  X3 .196 .116 .4348
-  X3 .196 .384 .4348
-  X3 .196 .616 .5652
-  X3 .196 .884 .5652
-  X3 .304 .116 .0652
-  X3 .304 .384 .0652
-  X3 .304 .616 .9348
-  X3 .304 .884 .9348
-  X3 .696 .116 .0652
-  X3 .696 .384 .0652
-  X3 .696 .616 .9348
-  X3 .696 .884 .9348
-  X3 .804 .116 .4348
-  X3 .804 .384 .4348
-  X3 .804 .616 .5652
-  X3 .804 .884 .5652
-  X4 0 0 0
-  X4 0 1/2 0
-  X4 1/2 0 1/2
-  X4 1/2 1/2 1/2
-  X5 1/4 1/4 3/4
-  X5 1/4 3/4 1/4
-  X5 3/4 1/4 3/4
-  X5 3/4 3/4 1/4
-@ATOMDB
-  X1 is F
-  X2 is F
-  X3 is F
-  X4 is Na
-  X5 is Na
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element X1
-  fraction 1/11
-  type vdosdebye
-  debye_temp 150
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element X2
-  fraction 2/11
-  type vdosdebye
-  debye_temp 150
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element X3
-  fraction 4/11
-  type vdosdebye
-  debye_temp 150
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element Fe
-  fraction 1/11
-  type vdosdebye
-  debye_temp 150
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element X4
-  fraction 1/11
-  type vdosdebye
-  debye_temp 150
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element X5
-  fraction 1/11
-  type vdosdebye
-  debye_temp 150
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element Ni
-  fraction 1/11
-  type vdosdebye
-  debye_temp 150
+OUT>NCMAT v7
+OUT>#
+OUT># F7FeNa2Ni (orthorombic, SG-74)
+OUT>#
+OUT># Atoms per unit cell: 28xF+4xFe+8xNa+4xNi
+OUT>#
+OUT># Structure converted (with NCrystal.cifutils module) from:
+OUT>#
+OUT>#   "Ordered Magnetic Frustration VII. Na~2~ Ni Fe F~7~: Reexamination of
+OUT>#   Its Crystal Structure in the True Space Group after Corrections from
+OUT>#   Renninger Effect and Refinement of Its Frustrated Magnetic Structure at
+OUT>#   4.2 and 55 K"
+OUT>#   Laligant, Y, et al. [Journal of Solid State Chemistry, 1989]
+OUT>#   DOI: https://dx.doi.org/10.1016/0022-4596(89)90128-X
+OUT>#   Crystallography Open Database entry 1000257
+OUT>#   https://www.crystallography.net/cod/1000257.html
+OUT>#
+OUT># IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+OUT>#                   verified!  In particular the @DYNINFO sections might need
+OUT>#                   post-editing. Before distributing this file to other people,
+OUT>#                   please review this, amend the comments here to document,
+OUT>#                   anything done, and remove this notice.
+OUT>#
+OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
+OUT>#
+OUT>#   (3x) NCrystalUserWarning :  ignoring uiso info present in CIF input for "F" since uiso_temperature parameter value is not provided
+OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0074, u12=0, u13=0, u22=0.0286, u23=0, u33=0.0177)
+OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0229, u12=0, u13=0, u22=0.0207, u23=0.0016, u33=0.0109)
+OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0162, u12=0.0051, u13=0.0011, u22=0.0188, u23=-0.0108, u33=0.029)
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "Fe" since uiso_temperature parameter value is not provided
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Fe ignored (u11=0.009, u12=0, u13=0, u22=0.0084, u23=0.0025, u33=0.0083)
+OUT>#   (2x) NCrystalUserWarning :  ignoring uiso info present in CIF input for "Na" since uiso_temperature parameter value is not provided
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0236, u12=0, u13=0, u22=0.0568, u23=0.0189, u33=0.019)
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0223, u12=0, u13=-0.0036, u22=0.023, u23=0, u33=0.0667)
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "Ni" since uiso_temperature parameter value is not provided
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082)
+OUT>#
+OUT># WARNING: Fallback (dummy) Debye temperature values were used for 7 atoms!
+OUT>#
+OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
+OUT>#
+OUT>@CELL
+OUT>  lengths 7.2338 10.305 7.4529
+OUT>  angles 90 90 90
+OUT>@SPACEGROUP
+OUT>  74
+OUT>@ATOMPOSITIONS
+OUT>  Fe 0 0 1/2
+OUT>  Fe 0 1/2 1/2
+OUT>  Fe 1/2 0 0
+OUT>  Fe 1/2 1/2 0
+OUT>  Ni 1/4 1/4 1/4
+OUT>  Ni 1/4 3/4 3/4
+OUT>  Ni 3/4 1/4 1/4
+OUT>  Ni 3/4 3/4 3/4
+OUT>  X1 0 1/4 .1473
+OUT>  X1 0 3/4 .8527
+OUT>  X1 1/2 1/4 .3527
+OUT>  X1 1/2 3/4 .6473
+OUT>  X2 0 .0891 .7299
+OUT>  X2 0 .4109 .7299
+OUT>  X2 0 .5891 .2701
+OUT>  X2 0 .9109 .2701
+OUT>  X2 1/2 .0891 .7701
+OUT>  X2 1/2 .4109 .7701
+OUT>  X2 1/2 .5891 .2299
+OUT>  X2 1/2 .9109 .2299
+OUT>  X3 .196 .116 .4348
+OUT>  X3 .196 .384 .4348
+OUT>  X3 .196 .616 .5652
+OUT>  X3 .196 .884 .5652
+OUT>  X3 .304 .116 .0652
+OUT>  X3 .304 .384 .0652
+OUT>  X3 .304 .616 .9348
+OUT>  X3 .304 .884 .9348
+OUT>  X3 .696 .116 .0652
+OUT>  X3 .696 .384 .0652
+OUT>  X3 .696 .616 .9348
+OUT>  X3 .696 .884 .9348
+OUT>  X3 .804 .116 .4348
+OUT>  X3 .804 .384 .4348
+OUT>  X3 .804 .616 .5652
+OUT>  X3 .804 .884 .5652
+OUT>  X4 0 0 0
+OUT>  X4 0 1/2 0
+OUT>  X4 1/2 0 1/2
+OUT>  X4 1/2 1/2 1/2
+OUT>  X5 1/4 1/4 3/4
+OUT>  X5 1/4 3/4 1/4
+OUT>  X5 3/4 1/4 3/4
+OUT>  X5 3/4 3/4 1/4
+OUT>@ATOMDB
+OUT>  X1 is F
+OUT>  X2 is F
+OUT>  X3 is F
+OUT>  X4 is Na
+OUT>  X5 is Na
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X1
+OUT>  fraction 1/11
+OUT>  type vdosdebye
+OUT>  debye_temp 150
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X2
+OUT>  fraction 2/11
+OUT>  type vdosdebye
+OUT>  debye_temp 150
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X3
+OUT>  fraction 4/11
+OUT>  type vdosdebye
+OUT>  debye_temp 150
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element Fe
+OUT>  fraction 1/11
+OUT>  type vdosdebye
+OUT>  debye_temp 150
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X4
+OUT>  fraction 1/11
+OUT>  type vdosdebye
+OUT>  debye_temp 150
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X5
+OUT>  fraction 1/11
+OUT>  type vdosdebye
+OUT>  debye_temp 150
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element Ni
+OUT>  fraction 1/11
+OUT>  type vdosdebye
+OUT>  debye_temp 150
 =========================================================================
 ============= CLI >>codid::1000257 --debyetemp=150 --uisotemp=50<< ====================
 Getting cod_1000257.cif from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR
@@ -1157,138 +1157,138 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Na ig
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082)
 Verifying that resulting ncmat data can be loaded
 Writing autogen_F7FeNa2Ni_sg74_cod1000257.ncmat
-NCMAT v7
-#
-# F7FeNa2Ni (orthorombic, SG-74)
-#
-# Atoms per unit cell: 28xF+4xFe+8xNa+4xNi
-#
-# Structure converted (with NCrystal.cifutils module) from:
-#
-#   "Ordered Magnetic Frustration VII. Na~2~ Ni Fe F~7~: Reexamination of
-#   Its Crystal Structure in the True Space Group after Corrections from
-#   Renninger Effect and Refinement of Its Frustrated Magnetic Structure at
-#   4.2 and 55 K"
-#   Laligant, Y, et al. [Journal of Solid State Chemistry, 1989]
-#   DOI: https://dx.doi.org/10.1016/0022-4596(89)90128-X
-#   Crystallography Open Database entry 1000257
-#   https://www.crystallography.net/cod/1000257.html
-#
-# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
-#                   verified!  In particular the @DYNINFO sections might need
-#                   post-editing. Before distributing this file to other people,
-#                   please review this, amend the comments here to document,
-#                   anything done, and remove this notice.
-#
-# Notice: The following WARNINGS were emitted when loading the CIF data:
-#
-#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0074, u12=0, u13=0, u22=0.0286, u23=0, u33=0.0177)
-#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0229, u12=0, u13=0, u22=0.0207, u23=0.0016, u33=0.0109)
-#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0162, u12=0.0051, u13=0.0011, u22=0.0188, u23=-0.0108, u33=0.029)
-#   NCrystalUserWarning : Anisotropic displacement for Fe ignored (u11=0.009, u12=0, u13=0, u22=0.0084, u23=0.0025, u33=0.0083)
-#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0236, u12=0, u13=0, u22=0.0568, u23=0.0189, u33=0.019)
-#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0223, u12=0, u13=-0.0036, u22=0.023, u23=0, u33=0.0667)
-#   NCrystalUserWarning : Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082)
-# NOTICE: crystal structure was verified with spglib to be self-consistent.
-#
-@CELL
-  lengths 7.2338 10.305 7.4529
-  angles 90 90 90
-@SPACEGROUP
-  74
-@ATOMPOSITIONS
-  Fe 0 0 1/2
-  Fe 0 1/2 1/2
-  Fe 1/2 0 0
-  Fe 1/2 1/2 0
-  Ni 1/4 1/4 1/4
-  Ni 1/4 3/4 3/4
-  Ni 3/4 1/4 1/4
-  Ni 3/4 3/4 3/4
-  X1 0 1/4 .1473
-  X1 0 3/4 .8527
-  X1 1/2 1/4 .3527
-  X1 1/2 3/4 .6473
-  X2 0 .0891 .7299
-  X2 0 .4109 .7299
-  X2 0 .5891 .2701
-  X2 0 .9109 .2701
-  X2 1/2 .0891 .7701
-  X2 1/2 .4109 .7701
-  X2 1/2 .5891 .2299
-  X2 1/2 .9109 .2299
-  X3 .196 .116 .4348
-  X3 .196 .384 .4348
-  X3 .196 .616 .5652
-  X3 .196 .884 .5652
-  X3 .304 .116 .0652
-  X3 .304 .384 .0652
-  X3 .304 .616 .9348
-  X3 .304 .884 .9348
-  X3 .696 .116 .0652
-  X3 .696 .384 .0652
-  X3 .696 .616 .9348
-  X3 .696 .884 .9348
-  X3 .804 .116 .4348
-  X3 .804 .384 .4348
-  X3 .804 .616 .5652
-  X3 .804 .884 .5652
-  X4 0 0 0
-  X4 0 1/2 0
-  X4 1/2 0 1/2
-  X4 1/2 1/2 1/2
-  X5 1/4 1/4 3/4
-  X5 1/4 3/4 1/4
-  X5 3/4 1/4 3/4
-  X5 3/4 3/4 1/4
-@ATOMDB
-  X1 is F
-  X2 is F
-  X3 is F
-  X4 is Na
-  X5 is Na
-@DYNINFO
-  # Debye temperature value derived from msd=0.0179Aa^2 @ T=50K (mass=18.9984u)
-  element X1
-  fraction 1/11
-  type vdosdebye
-  debye_temp 165.177
-@DYNINFO
-  # Debye temperature value derived from msd=0.0181667Aa^2 @ T=50K (mass=18.9984u)
-  element X2
-  fraction 2/11
-  type vdosdebye
-  debye_temp 163.665
-@DYNINFO
-  # Debye temperature value derived from msd=0.0213333Aa^2 @ T=50K (mass=18.9984u)
-  element X3
-  fraction 4/11
-  type vdosdebye
-  debye_temp 148.343
-@DYNINFO
-  # Debye temperature value derived from msd=0.00856667Aa^2 @ T=50K (mass=55.8472u)
-  element Fe
-  fraction 1/11
-  type vdosdebye
-  debye_temp 134.406
-@DYNINFO
-  # Debye temperature value derived from msd=0.0331333Aa^2 @ T=50K (mass=22.9898u)
-  element X4
-  fraction 1/11
-  type vdosdebye
-  debye_temp 103.133
-@DYNINFO
-  # Debye temperature value derived from msd=0.0373333Aa^2 @ T=50K (mass=22.9898u)
-  element X5
-  fraction 1/11
-  type vdosdebye
-  debye_temp 96.5677
-@DYNINFO
-  # Debye temperature value derived from msd=0.0072Aa^2 @ T=50K (mass=58.6879u)
-  element Ni
-  fraction 1/11
-  type vdosdebye
-  debye_temp 144.673
+OUT>NCMAT v7
+OUT>#
+OUT># F7FeNa2Ni (orthorombic, SG-74)
+OUT>#
+OUT># Atoms per unit cell: 28xF+4xFe+8xNa+4xNi
+OUT>#
+OUT># Structure converted (with NCrystal.cifutils module) from:
+OUT>#
+OUT>#   "Ordered Magnetic Frustration VII. Na~2~ Ni Fe F~7~: Reexamination of
+OUT>#   Its Crystal Structure in the True Space Group after Corrections from
+OUT>#   Renninger Effect and Refinement of Its Frustrated Magnetic Structure at
+OUT>#   4.2 and 55 K"
+OUT>#   Laligant, Y, et al. [Journal of Solid State Chemistry, 1989]
+OUT>#   DOI: https://dx.doi.org/10.1016/0022-4596(89)90128-X
+OUT>#   Crystallography Open Database entry 1000257
+OUT>#   https://www.crystallography.net/cod/1000257.html
+OUT>#
+OUT># IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+OUT>#                   verified!  In particular the @DYNINFO sections might need
+OUT>#                   post-editing. Before distributing this file to other people,
+OUT>#                   please review this, amend the comments here to document,
+OUT>#                   anything done, and remove this notice.
+OUT>#
+OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
+OUT>#
+OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0074, u12=0, u13=0, u22=0.0286, u23=0, u33=0.0177)
+OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0229, u12=0, u13=0, u22=0.0207, u23=0.0016, u33=0.0109)
+OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0162, u12=0.0051, u13=0.0011, u22=0.0188, u23=-0.0108, u33=0.029)
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Fe ignored (u11=0.009, u12=0, u13=0, u22=0.0084, u23=0.0025, u33=0.0083)
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0236, u12=0, u13=0, u22=0.0568, u23=0.0189, u33=0.019)
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0223, u12=0, u13=-0.0036, u22=0.023, u23=0, u33=0.0667)
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082)
+OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
+OUT>#
+OUT>@CELL
+OUT>  lengths 7.2338 10.305 7.4529
+OUT>  angles 90 90 90
+OUT>@SPACEGROUP
+OUT>  74
+OUT>@ATOMPOSITIONS
+OUT>  Fe 0 0 1/2
+OUT>  Fe 0 1/2 1/2
+OUT>  Fe 1/2 0 0
+OUT>  Fe 1/2 1/2 0
+OUT>  Ni 1/4 1/4 1/4
+OUT>  Ni 1/4 3/4 3/4
+OUT>  Ni 3/4 1/4 1/4
+OUT>  Ni 3/4 3/4 3/4
+OUT>  X1 0 1/4 .1473
+OUT>  X1 0 3/4 .8527
+OUT>  X1 1/2 1/4 .3527
+OUT>  X1 1/2 3/4 .6473
+OUT>  X2 0 .0891 .7299
+OUT>  X2 0 .4109 .7299
+OUT>  X2 0 .5891 .2701
+OUT>  X2 0 .9109 .2701
+OUT>  X2 1/2 .0891 .7701
+OUT>  X2 1/2 .4109 .7701
+OUT>  X2 1/2 .5891 .2299
+OUT>  X2 1/2 .9109 .2299
+OUT>  X3 .196 .116 .4348
+OUT>  X3 .196 .384 .4348
+OUT>  X3 .196 .616 .5652
+OUT>  X3 .196 .884 .5652
+OUT>  X3 .304 .116 .0652
+OUT>  X3 .304 .384 .0652
+OUT>  X3 .304 .616 .9348
+OUT>  X3 .304 .884 .9348
+OUT>  X3 .696 .116 .0652
+OUT>  X3 .696 .384 .0652
+OUT>  X3 .696 .616 .9348
+OUT>  X3 .696 .884 .9348
+OUT>  X3 .804 .116 .4348
+OUT>  X3 .804 .384 .4348
+OUT>  X3 .804 .616 .5652
+OUT>  X3 .804 .884 .5652
+OUT>  X4 0 0 0
+OUT>  X4 0 1/2 0
+OUT>  X4 1/2 0 1/2
+OUT>  X4 1/2 1/2 1/2
+OUT>  X5 1/4 1/4 3/4
+OUT>  X5 1/4 3/4 1/4
+OUT>  X5 3/4 1/4 3/4
+OUT>  X5 3/4 3/4 1/4
+OUT>@ATOMDB
+OUT>  X1 is F
+OUT>  X2 is F
+OUT>  X3 is F
+OUT>  X4 is Na
+OUT>  X5 is Na
+OUT>@DYNINFO
+OUT>  # Debye temperature value derived from msd=0.0179Aa^2 @ T=50K (mass=18.9984u)
+OUT>  element X1
+OUT>  fraction 1/11
+OUT>  type vdosdebye
+OUT>  debye_temp 165.177
+OUT>@DYNINFO
+OUT>  # Debye temperature value derived from msd=0.0181667Aa^2 @ T=50K (mass=18.9984u)
+OUT>  element X2
+OUT>  fraction 2/11
+OUT>  type vdosdebye
+OUT>  debye_temp 163.665
+OUT>@DYNINFO
+OUT>  # Debye temperature value derived from msd=0.0213333Aa^2 @ T=50K (mass=18.9984u)
+OUT>  element X3
+OUT>  fraction 4/11
+OUT>  type vdosdebye
+OUT>  debye_temp 148.343
+OUT>@DYNINFO
+OUT>  # Debye temperature value derived from msd=0.00856667Aa^2 @ T=50K (mass=55.8472u)
+OUT>  element Fe
+OUT>  fraction 1/11
+OUT>  type vdosdebye
+OUT>  debye_temp 134.406
+OUT>@DYNINFO
+OUT>  # Debye temperature value derived from msd=0.0331333Aa^2 @ T=50K (mass=22.9898u)
+OUT>  element X4
+OUT>  fraction 1/11
+OUT>  type vdosdebye
+OUT>  debye_temp 103.133
+OUT>@DYNINFO
+OUT>  # Debye temperature value derived from msd=0.0373333Aa^2 @ T=50K (mass=22.9898u)
+OUT>  element X5
+OUT>  fraction 1/11
+OUT>  type vdosdebye
+OUT>  debye_temp 96.5677
+OUT>@DYNINFO
+OUT>  # Debye temperature value derived from msd=0.0072Aa^2 @ T=50K (mass=58.6879u)
+OUT>  element Ni
+OUT>  fraction 1/11
+OUT>  type vdosdebye
+OUT>  debye_temp 144.673
 =======================================================================================
 ============= CLI >>mpid::55<< ====================
 Getting mp_55.cif from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR
@@ -1296,82 +1296,82 @@ Attempting to load CIF data with gemmi
 Self-consistency of structure was verified by spglib
 Verifying that resulting ncmat data can be loaded
 Writing autogen_Sn_sg139_mp55.ncmat
-NCMAT v7
-#
-# Sn (tetragonal, SG-139)
-#
-# Atoms per unit cell: 2xSn
-#
-# Structure converted (with NCrystal.cifutils module) from:
-#
-#   The Materials Project
-#   https://www.materialsproject.org/materials/mp-55
-#
-# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
-#                   verified!  In particular the @DYNINFO sections might need
-#                   post-editing. Before distributing this file to other people,
-#                   please review this, amend the comments here to document,
-#                   anything done, and remove this notice.
-#
-# WARNING: Fallback (dummy) Debye temperature value was used for 1 atom!
-#
-# NOTICE: crystal structure was verified with spglib to be self-consistent.
-#
-@CELL
-  lengths 4.05838 !! 3.32152
-  angles 90 90 90
-@SPACEGROUP
-  139
-@ATOMPOSITIONS
-  Sn 0 0 0
-  Sn 1/2 1/2 1/2
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element Sn
-  fraction 1
-  type vdosdebye
-  debye_temp 300
+OUT>NCMAT v7
+OUT>#
+OUT># Sn (tetragonal, SG-139)
+OUT>#
+OUT># Atoms per unit cell: 2xSn
+OUT>#
+OUT># Structure converted (with NCrystal.cifutils module) from:
+OUT>#
+OUT>#   The Materials Project
+OUT>#   https://www.materialsproject.org/materials/mp-55
+OUT>#
+OUT># IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+OUT>#                   verified!  In particular the @DYNINFO sections might need
+OUT>#                   post-editing. Before distributing this file to other people,
+OUT>#                   please review this, amend the comments here to document,
+OUT>#                   anything done, and remove this notice.
+OUT>#
+OUT># WARNING: Fallback (dummy) Debye temperature value was used for 1 atom!
+OUT>#
+OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
+OUT>#
+OUT>@CELL
+OUT>  lengths 4.05838 !! 3.32152
+OUT>  angles 90 90 90
+OUT>@SPACEGROUP
+OUT>  139
+OUT>@ATOMPOSITIONS
+OUT>  Sn 0 0 0
+OUT>  Sn 1/2 1/2 1/2
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element Sn
+OUT>  fraction 1
+OUT>  type vdosdebye
+OUT>  debye_temp 300
 ===================================================
 ============= CLI >>mpid::55 --noval<< ====================
 Getting mp_55.cif from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR
 Attempting to load CIF data with gemmi
 Self-consistency of structure was verified by spglib
 Writing autogen_Sn_sg139_mp55.ncmat
-NCMAT v7
-#
-# Sn (tetragonal, SG-139)
-#
-# Atoms per unit cell: 2xSn
-#
-# Structure converted (with NCrystal.cifutils module) from:
-#
-#   The Materials Project
-#   https://www.materialsproject.org/materials/mp-55
-#
-# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
-#                   verified!  In particular the @DYNINFO sections might need
-#                   post-editing. Before distributing this file to other people,
-#                   please review this, amend the comments here to document,
-#                   anything done, and remove this notice.
-#
-# WARNING: Fallback (dummy) Debye temperature value was used for 1 atom!
-#
-# NOTICE: crystal structure was verified with spglib to be self-consistent.
-#
-@CELL
-  lengths 4.05838 !! 3.32152
-  angles 90 90 90
-@SPACEGROUP
-  139
-@ATOMPOSITIONS
-  Sn 0 0 0
-  Sn 1/2 1/2 1/2
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element Sn
-  fraction 1
-  type vdosdebye
-  debye_temp 300
+OUT>NCMAT v7
+OUT>#
+OUT># Sn (tetragonal, SG-139)
+OUT>#
+OUT># Atoms per unit cell: 2xSn
+OUT>#
+OUT># Structure converted (with NCrystal.cifutils module) from:
+OUT>#
+OUT>#   The Materials Project
+OUT>#   https://www.materialsproject.org/materials/mp-55
+OUT>#
+OUT># IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+OUT>#                   verified!  In particular the @DYNINFO sections might need
+OUT>#                   post-editing. Before distributing this file to other people,
+OUT>#                   please review this, amend the comments here to document,
+OUT>#                   anything done, and remove this notice.
+OUT>#
+OUT># WARNING: Fallback (dummy) Debye temperature value was used for 1 atom!
+OUT>#
+OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
+OUT>#
+OUT>@CELL
+OUT>  lengths 4.05838 !! 3.32152
+OUT>  angles 90 90 90
+OUT>@SPACEGROUP
+OUT>  139
+OUT>@ATOMPOSITIONS
+OUT>  Sn 0 0 0
+OUT>  Sn 1/2 1/2 1/2
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element Sn
+OUT>  fraction 1
+OUT>  type vdosdebye
+OUT>  debye_temp 300
 ===========================================================
 ============= CLI >>mpid::55 --dynamics stdlib::Sn_sg141.ncmat<< ====================
 Getting mp_55.cif from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR
@@ -1379,46 +1379,46 @@ Attempting to load CIF data with gemmi
 Self-consistency of structure was verified by spglib
 Verifying that resulting ncmat data can be loaded
 Writing autogen_Sn_sg139_mp55.ncmat
-NCMAT v7
-#
-# Sn (tetragonal, SG-139)
-#
-# Atoms per unit cell: 2xSn
-#
-# Structure converted (with NCrystal.cifutils module) from:
-#
-#   The Materials Project
-#   https://www.materialsproject.org/materials/mp-55
-#
-# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
-#                   verified!  In particular the @DYNINFO sections might need
-#                   post-editing. Before distributing this file to other people,
-#                   please review this, amend the comments here to document,
-#                   anything done, and remove this notice.
-#
-# NOTICE: crystal structure was verified with spglib to be self-consistent.
-#
-@CELL
-  lengths 4.05838 !! 3.32152
-  angles 90 90 90
-@SPACEGROUP
-  139
-@ATOMPOSITIONS
-  Sn 0 0 0
-  Sn 1/2 1/2 1/2
-@DYNINFO
-  # Transferred from "Sn" in "stdlib::Sn_sg141.ncmat"
-  element Sn
-  fraction 1
-  type vdos
-  vdos_egrid .0016759 .0184349
-  vdos_density .0531392 .0945335 .150109 .213574 .286094 .396231 .503733 .592516
-     .655594 .692495 .689801 .669612 .633298 .588878 .54714 .51319 .48579 .468322
-     .456413 .448441 .441464 .434488 .428441 .42271 .417991 .415075 .411851
-     .407347 .402843 .394486 .386226 .37996 .378779 .382702 .397434 .423217
-     .474034 .543061 .622614 .721921 .819083 .903185 .971724 1 .972552 .896022
-     .796909 .678025 .547771 .432472 .32284 .240839 .17676 .123845 .0778986
-     .0462663 .0247447 .0118274 .00659815 .00298692 0
+OUT>NCMAT v7
+OUT>#
+OUT># Sn (tetragonal, SG-139)
+OUT>#
+OUT># Atoms per unit cell: 2xSn
+OUT>#
+OUT># Structure converted (with NCrystal.cifutils module) from:
+OUT>#
+OUT>#   The Materials Project
+OUT>#   https://www.materialsproject.org/materials/mp-55
+OUT>#
+OUT># IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+OUT>#                   verified!  In particular the @DYNINFO sections might need
+OUT>#                   post-editing. Before distributing this file to other people,
+OUT>#                   please review this, amend the comments here to document,
+OUT>#                   anything done, and remove this notice.
+OUT>#
+OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
+OUT>#
+OUT>@CELL
+OUT>  lengths 4.05838 !! 3.32152
+OUT>  angles 90 90 90
+OUT>@SPACEGROUP
+OUT>  139
+OUT>@ATOMPOSITIONS
+OUT>  Sn 0 0 0
+OUT>  Sn 1/2 1/2 1/2
+OUT>@DYNINFO
+OUT>  # Transferred from "Sn" in "stdlib::Sn_sg141.ncmat"
+OUT>  element Sn
+OUT>  fraction 1
+OUT>  type vdos
+OUT>  vdos_egrid .0016759 .0184349
+OUT>  vdos_density .0531392 .0945335 .150109 .213574 .286094 .396231 .503733 .592516
+OUT>     .655594 .692495 .689801 .669612 .633298 .588878 .54714 .51319 .48579 .468322
+OUT>     .456413 .448441 .441464 .434488 .428441 .42271 .417991 .415075 .411851
+OUT>     .407347 .402843 .394486 .386226 .37996 .378779 .382702 .397434 .423217
+OUT>     .474034 .543061 .622614 .721921 .819083 .903185 .971724 1 .972552 .896022
+OUT>     .796909 .678025 .547771 .432472 .32284 .240839 .17676 .123845 .0778986
+OUT>     .0462663 .0247447 .0118274 .00659815 .00298692 0
 =====================================================================================
 ============= CLI >>codid::9005777 --dynamics stdlib::CaSiO3_sg2_Wollastonite.ncmat<< ====================
 Getting cod_9005777.cif from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR
@@ -1435,95 +1435,95 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based o
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 29.36% level)
 Verifying that resulting ncmat data can be loaded
 Writing autogen_CaO3Si_sg2_cod9005777.ncmat
-NCMAT v7
-#
-# CaO3Si (triclinic, SG-2)
-#
-# Atoms per unit cell: 6xCa+18xO+6xSi
-#
-# Structure converted (with NCrystal.cifutils module) from:
-#
-#   "Polysynthetically-twinned structures of enstatite and wollastonite
-#    Sample: WO1T"
-#   Ohashi, Y. [Physics and Chemistry of Minerals, 1984]
-#   DOI: https://dx.doi.org/10.1007/BF00309314
-#   Crystallography Open Database entry 9005777
-#   https://www.crystallography.net/cod/9005777.html
-#
-# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
-#                   verified!  In particular the @DYNINFO sections might need
-#                   post-editing. Before distributing this file to other people,
-#                   please review this, amend the comments here to document,
-#                   anything done, and remove this notice.
-#
-# Notice: The following WARNINGS were emitted when loading the CIF data:
-#
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3"
-#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level)
-# NOTICE: crystal structure was verified with spglib to be self-consistent.
-#
-@CELL
-  lengths 7.0653 7.3202 7.9258
-  angles 103.426 95.217 90.055
-@SPACEGROUP
-  2
-@ATOMPOSITIONS
-  Ca .23599 .07081 .79759
-  Ca .2394 .57734 .80169
-  Ca .47309 .2496 .49667
-  Ca .52691 .7504 .50333
-  Ca .7606 .42266 .19831
-  Ca .76401 .92919 .20241
-  O .0931 .5126 .2735
-  O .0938 .8704 .2713
-  O .1704 .2734 .5982
-  O .1988 .7688 .5705
-  O .2254 .1785 .2183
-  O .2648 .8677 .9819
-  O .2655 .3739 .9832
-  O .4628 .4616 .3034
-  O .4641 .9385 .3014
-  O .5359 .0615 .6986
-  O .5372 .5384 .6966
-  O .7345 .6261 .0168
-  O .7352 .1323 .0181
-  O .7746 .8215 .7817
-  O .8012 .2312 .4295
-  O .8296 .7266 .4018
-  O .9062 .1296 .7287
-  O .9069 .4874 .7265
-  Si .0561 .7236 .3973
-  Si .2684 .3875 .1851
-  Si .2691 .9542 .1849
-  Si .7309 .0458 .8151
-  Si .7316 .6125 .8149
-  Si .9439 .2764 .6027
-@DYNINFO
-  # Transferred from "Ca" in "stdlib::CaSiO3_sg2_Wollastonite.ncmat;dcutoff=0.3"
-  element Ca
-  fraction 1/5
-  type vdosdebye
-  debye_temp 539
-@DYNINFO
-  # Transferred from "O" in "stdlib::CaSiO3_sg2_Wollastonite.ncmat;dcutoff=0.3"
-  element O
-  fraction 3/5
-  type vdosdebye
-  debye_temp 539
-@DYNINFO
-  # Transferred from "Si" in "stdlib::CaSiO3_sg2_Wollastonite.ncmat;dcutoff=0.3"
-  element Si
-  fraction 1/5
-  type vdosdebye
-  debye_temp 539
+OUT>NCMAT v7
+OUT>#
+OUT># CaO3Si (triclinic, SG-2)
+OUT>#
+OUT># Atoms per unit cell: 6xCa+18xO+6xSi
+OUT>#
+OUT># Structure converted (with NCrystal.cifutils module) from:
+OUT>#
+OUT>#   "Polysynthetically-twinned structures of enstatite and wollastonite
+OUT>#    Sample: WO1T"
+OUT>#   Ohashi, Y. [Physics and Chemistry of Minerals, 1984]
+OUT>#   DOI: https://dx.doi.org/10.1007/BF00309314
+OUT>#   Crystallography Open Database entry 9005777
+OUT>#   https://www.crystallography.net/cod/9005777.html
+OUT>#
+OUT># IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+OUT>#                   verified!  In particular the @DYNINFO sections might need
+OUT>#                   post-editing. Before distributing this file to other people,
+OUT>#                   please review this, amend the comments here to document,
+OUT>#                   anything done, and remove this notice.
+OUT>#
+OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
+OUT>#
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3"
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level)
+OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
+OUT>#
+OUT>@CELL
+OUT>  lengths 7.0653 7.3202 7.9258
+OUT>  angles 103.426 95.217 90.055
+OUT>@SPACEGROUP
+OUT>  2
+OUT>@ATOMPOSITIONS
+OUT>  Ca .23599 .07081 .79759
+OUT>  Ca .2394 .57734 .80169
+OUT>  Ca .47309 .2496 .49667
+OUT>  Ca .52691 .7504 .50333
+OUT>  Ca .7606 .42266 .19831
+OUT>  Ca .76401 .92919 .20241
+OUT>  O .0931 .5126 .2735
+OUT>  O .0938 .8704 .2713
+OUT>  O .1704 .2734 .5982
+OUT>  O .1988 .7688 .5705
+OUT>  O .2254 .1785 .2183
+OUT>  O .2648 .8677 .9819
+OUT>  O .2655 .3739 .9832
+OUT>  O .4628 .4616 .3034
+OUT>  O .4641 .9385 .3014
+OUT>  O .5359 .0615 .6986
+OUT>  O .5372 .5384 .6966
+OUT>  O .7345 .6261 .0168
+OUT>  O .7352 .1323 .0181
+OUT>  O .7746 .8215 .7817
+OUT>  O .8012 .2312 .4295
+OUT>  O .8296 .7266 .4018
+OUT>  O .9062 .1296 .7287
+OUT>  O .9069 .4874 .7265
+OUT>  Si .0561 .7236 .3973
+OUT>  Si .2684 .3875 .1851
+OUT>  Si .2691 .9542 .1849
+OUT>  Si .7309 .0458 .8151
+OUT>  Si .7316 .6125 .8149
+OUT>  Si .9439 .2764 .6027
+OUT>@DYNINFO
+OUT>  # Transferred from "Ca" in "stdlib::CaSiO3_sg2_Wollastonite.ncmat;dcutoff=0.3"
+OUT>  element Ca
+OUT>  fraction 1/5
+OUT>  type vdosdebye
+OUT>  debye_temp 539
+OUT>@DYNINFO
+OUT>  # Transferred from "O" in "stdlib::CaSiO3_sg2_Wollastonite.ncmat;dcutoff=0.3"
+OUT>  element O
+OUT>  fraction 3/5
+OUT>  type vdosdebye
+OUT>  debye_temp 539
+OUT>@DYNINFO
+OUT>  # Transferred from "Si" in "stdlib::CaSiO3_sg2_Wollastonite.ncmat;dcutoff=0.3"
+OUT>  element Si
+OUT>  fraction 1/5
+OUT>  type vdosdebye
+OUT>  debye_temp 539
 ==========================================================================================================
 ============= CLI >>codid::9005777 --showcif<< ====================
 #------------------------------------------------------------------------------
@@ -1602,45 +1602,45 @@ Attempting to load CIF data with gemmi
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (possibly due to conversion from primitive cell)
 Verifying that resulting ncmat data can be loaded
 Writing autogen_Al_sg225.ncmat
-NCMAT v7
-#
-# Al (cubic, SG-225)
-#
-# Atoms per unit cell: 4xAl
-#
-# Structure converted (with NCrystal.cifutils module) from:
-#
-#   Anonymous CIF data
-#
-# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
-#                   verified!  In particular the @DYNINFO sections might need
-#                   post-editing. Before distributing this file to other people,
-#                   please review this, amend the comments here to document,
-#                   anything done, and remove this notice.
-#
-# Notice: The following WARNINGS were emitted when loading the CIF data:
-#
-#   NCrystalUserWarning : Structure received major corrections by spglib (possibly due to conversion from primitive cell)
-#
-# WARNING: Fallback (dummy) Debye temperature value was used for 1 atom!
-#
-# NOTICE: crystal structure was verified with spglib to be self-consistent.
-#
-@CELL
-  cubic 4.03635
-@SPACEGROUP
-  225
-@ATOMPOSITIONS
-  Al 0 0 0
-  Al 0 1/2 1/2
-  Al 1/2 0 1/2
-  Al 1/2 1/2 0
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element Al
-  fraction 1
-  type vdosdebye
-  debye_temp 300
+OUT>NCMAT v7
+OUT>#
+OUT># Al (cubic, SG-225)
+OUT>#
+OUT># Atoms per unit cell: 4xAl
+OUT>#
+OUT># Structure converted (with NCrystal.cifutils module) from:
+OUT>#
+OUT>#   Anonymous CIF data
+OUT>#
+OUT># IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+OUT>#                   verified!  In particular the @DYNINFO sections might need
+OUT>#                   post-editing. Before distributing this file to other people,
+OUT>#                   please review this, amend the comments here to document,
+OUT>#                   anything done, and remove this notice.
+OUT>#
+OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
+OUT>#
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (possibly due to conversion from primitive cell)
+OUT>#
+OUT># WARNING: Fallback (dummy) Debye temperature value was used for 1 atom!
+OUT>#
+OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
+OUT>#
+OUT>@CELL
+OUT>  cubic 4.03635
+OUT>@SPACEGROUP
+OUT>  225
+OUT>@ATOMPOSITIONS
+OUT>  Al 0 0 0
+OUT>  Al 0 1/2 1/2
+OUT>  Al 1/2 0 1/2
+OUT>  Al 1/2 1/2 0
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element Al
+OUT>  fraction 1
+OUT>  type vdosdebye
+OUT>  debye_temp 300
 =================================================================
 ============= CLI >>dummy_D.cif<< ====================
 Attempting to load CIF data with gemmi
@@ -1649,53 +1649,53 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF 
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "H2" since uiso_temperature parameter value is not provided
 Verifying that resulting ncmat data can be loaded
 Writing autogen_C3D2_sg221.ncmat
-NCMAT v7
-#
-# C3D2 (cubic, SG-221)
-#
-# Atoms per unit cell: 3xC+2xD
-#
-# Structure converted (with NCrystal.cifutils module) from:
-#
-#   CIF file: dummy_D.cif
-#
-# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
-#                   verified!  In particular the @DYNINFO sections might need
-#                   post-editing. Before distributing this file to other people,
-#                   please review this, amend the comments here to document,
-#                   anything done, and remove this notice.
-#
-# Notice: The following WARNINGS were emitted when loading the CIF data:
-#
-#   NCrystalUserWarning : ignoring uiso info present in CIF input for "C" since uiso_temperature parameter value is not provided
-#   NCrystalUserWarning : ignoring uiso info present in CIF input for "H2" since uiso_temperature parameter value is not provided
-#
-# WARNING: Fallback (dummy) Debye temperature values were used for 2 atoms!
-#
-# NOTICE: crystal structure was verified with spglib to be self-consistent.
-#
-@CELL
-  cubic 4
-@SPACEGROUP
-  221
-@ATOMPOSITIONS
-  C 0 1/2 1/2
-  C 1/2 0 1/2
-  C 1/2 1/2 0
-  D 0 0 0
-  D 1/2 1/2 1/2
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element C
-  fraction 3/5
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element D
-  fraction 2/5
-  type vdosdebye
-  debye_temp 300
+OUT>NCMAT v7
+OUT>#
+OUT># C3D2 (cubic, SG-221)
+OUT>#
+OUT># Atoms per unit cell: 3xC+2xD
+OUT>#
+OUT># Structure converted (with NCrystal.cifutils module) from:
+OUT>#
+OUT>#   CIF file: dummy_D.cif
+OUT>#
+OUT># IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+OUT>#                   verified!  In particular the @DYNINFO sections might need
+OUT>#                   post-editing. Before distributing this file to other people,
+OUT>#                   please review this, amend the comments here to document,
+OUT>#                   anything done, and remove this notice.
+OUT>#
+OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
+OUT>#
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "C" since uiso_temperature parameter value is not provided
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "H2" since uiso_temperature parameter value is not provided
+OUT>#
+OUT># WARNING: Fallback (dummy) Debye temperature values were used for 2 atoms!
+OUT>#
+OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
+OUT>#
+OUT>@CELL
+OUT>  cubic 4
+OUT>@SPACEGROUP
+OUT>  221
+OUT>@ATOMPOSITIONS
+OUT>  C 0 1/2 1/2
+OUT>  C 1/2 0 1/2
+OUT>  C 1/2 1/2 0
+OUT>  D 0 0 0
+OUT>  D 1/2 1/2 1/2
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element C
+OUT>  fraction 3/5
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element D
+OUT>  fraction 2/5
+OUT>  type vdosdebye
+OUT>  debye_temp 300
 ======================================================
 ============= CLI >>dummy_D.cif --remap 'D is H'<< ====================
 Attempting to load CIF data with gemmi
@@ -1704,55 +1704,55 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF 
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "H" since uiso_temperature parameter value is not provided
 Verifying that resulting ncmat data can be loaded
 Writing autogen_C3H2_sg221.ncmat
-NCMAT v7
-#
-# C3H2 (cubic, SG-221)
-#
-# Atoms per unit cell: 3xC+2xH
-#
-# Structure converted (with NCrystal.cifutils module) from:
-#
-#   CIF file: dummy_D.cif
-#
-#   Note: With custom remappings: H2 -> H
-#
-# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
-#                   verified!  In particular the @DYNINFO sections might need
-#                   post-editing. Before distributing this file to other people,
-#                   please review this, amend the comments here to document,
-#                   anything done, and remove this notice.
-#
-# Notice: The following WARNINGS were emitted when loading the CIF data:
-#
-#   NCrystalUserWarning : ignoring uiso info present in CIF input for "C" since uiso_temperature parameter value is not provided
-#   NCrystalUserWarning : ignoring uiso info present in CIF input for "H" since uiso_temperature parameter value is not provided
-#
-# WARNING: Fallback (dummy) Debye temperature values were used for 2 atoms!
-#
-# NOTICE: crystal structure was verified with spglib to be self-consistent.
-#
-@CELL
-  cubic 4
-@SPACEGROUP
-  221
-@ATOMPOSITIONS
-  C 0 1/2 1/2
-  C 1/2 0 1/2
-  C 1/2 1/2 0
-  H 0 0 0
-  H 1/2 1/2 1/2
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element C
-  fraction 3/5
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element H
-  fraction 2/5
-  type vdosdebye
-  debye_temp 300
+OUT>NCMAT v7
+OUT>#
+OUT># C3H2 (cubic, SG-221)
+OUT>#
+OUT># Atoms per unit cell: 3xC+2xH
+OUT>#
+OUT># Structure converted (with NCrystal.cifutils module) from:
+OUT>#
+OUT>#   CIF file: dummy_D.cif
+OUT>#
+OUT>#   Note: With custom remappings: H2 -> H
+OUT>#
+OUT># IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+OUT>#                   verified!  In particular the @DYNINFO sections might need
+OUT>#                   post-editing. Before distributing this file to other people,
+OUT>#                   please review this, amend the comments here to document,
+OUT>#                   anything done, and remove this notice.
+OUT>#
+OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
+OUT>#
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "C" since uiso_temperature parameter value is not provided
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "H" since uiso_temperature parameter value is not provided
+OUT>#
+OUT># WARNING: Fallback (dummy) Debye temperature values were used for 2 atoms!
+OUT>#
+OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
+OUT>#
+OUT>@CELL
+OUT>  cubic 4
+OUT>@SPACEGROUP
+OUT>  221
+OUT>@ATOMPOSITIONS
+OUT>  C 0 1/2 1/2
+OUT>  C 1/2 0 1/2
+OUT>  C 1/2 1/2 0
+OUT>  H 0 0 0
+OUT>  H 1/2 1/2 1/2
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element C
+OUT>  fraction 3/5
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element H
+OUT>  fraction 2/5
+OUT>  type vdosdebye
+OUT>  debye_temp 300
 =======================================================================
 ============= CLI >>dummy_D.cif --remap 'D = H'<< ====================
 Caught expected ArgumentError('invalid --remap syntax in "D = H"')
@@ -1767,57 +1767,57 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF 
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "0.6 H 0.4 D" since uiso_temperature parameter value is not provided
 Verifying that resulting ncmat data can be loaded
 Writing autogen_C15D4H6_sg221.ncmat
-NCMAT v7
-#
-# C15D4H6 (cubic, SG-221)
-#
-# Atoms per unit cell: 3xC+0.8xD+1.2xH
-#
-# Structure converted (with NCrystal.cifutils module) from:
-#
-#   CIF file: dummy_D.cif
-#
-#   Note: With custom remappings: H2 -> 0.6 H 0.4 D
-#
-# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
-#                   verified!  In particular the @DYNINFO sections might need
-#                   post-editing. Before distributing this file to other people,
-#                   please review this, amend the comments here to document,
-#                   anything done, and remove this notice.
-#
-# Notice: The following WARNINGS were emitted when loading the CIF data:
-#
-#   NCrystalUserWarning : ignoring uiso info present in CIF input for "C" since uiso_temperature parameter value is not provided
-#   NCrystalUserWarning : ignoring uiso info present in CIF input for "0.6 H 0.4 D" since uiso_temperature parameter value is not provided
-#
-# WARNING: Fallback (dummy) Debye temperature values were used for 2 atoms!
-#
-# NOTICE: crystal structure was verified with spglib to be self-consistent.
-#
-@CELL
-  cubic 4
-@SPACEGROUP
-  221
-@ATOMPOSITIONS
-  C 0 1/2 1/2
-  C 1/2 0 1/2
-  C 1/2 1/2 0
-  X1 0 0 0
-  X1 1/2 1/2 1/2
-@ATOMDB
-  X1 is 0.6 H 0.4 D
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element C
-  fraction 3/5
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element X1
-  fraction 2/5
-  type vdosdebye
-  debye_temp 300
+OUT>NCMAT v7
+OUT>#
+OUT># C15D4H6 (cubic, SG-221)
+OUT>#
+OUT># Atoms per unit cell: 3xC+0.8xD+1.2xH
+OUT>#
+OUT># Structure converted (with NCrystal.cifutils module) from:
+OUT>#
+OUT>#   CIF file: dummy_D.cif
+OUT>#
+OUT>#   Note: With custom remappings: H2 -> 0.6 H 0.4 D
+OUT>#
+OUT># IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+OUT>#                   verified!  In particular the @DYNINFO sections might need
+OUT>#                   post-editing. Before distributing this file to other people,
+OUT>#                   please review this, amend the comments here to document,
+OUT>#                   anything done, and remove this notice.
+OUT>#
+OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
+OUT>#
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "C" since uiso_temperature parameter value is not provided
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "0.6 H 0.4 D" since uiso_temperature parameter value is not provided
+OUT>#
+OUT># WARNING: Fallback (dummy) Debye temperature values were used for 2 atoms!
+OUT>#
+OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
+OUT>#
+OUT>@CELL
+OUT>  cubic 4
+OUT>@SPACEGROUP
+OUT>  221
+OUT>@ATOMPOSITIONS
+OUT>  C 0 1/2 1/2
+OUT>  C 1/2 0 1/2
+OUT>  C 1/2 1/2 0
+OUT>  X1 0 0 0
+OUT>  X1 1/2 1/2 1/2
+OUT>@ATOMDB
+OUT>  X1 is 0.6 H 0.4 D
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element C
+OUT>  fraction 3/5
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X1
+OUT>  fraction 2/5
+OUT>  type vdosdebye
+OUT>  debye_temp 300
 =================================================================================
 ============= CLI >>codid::9005777 -ostdout --via-ase<< ====================
 NCMAT v7
@@ -1905,46 +1905,46 @@ Attempting to load CIF data with gemmi
 Self-consistency of structure was verified by spglib
 Verifying that resulting ncmat data can be loaded
 Writing bla.ncmat
-NCMAT v7
-#
-# Sn (tetragonal, SG-139)
-#
-# Atoms per unit cell: 2xSn
-#
-# Structure converted (with NCrystal.cifutils module) from:
-#
-#   The Materials Project
-#   https://www.materialsproject.org/materials/mp-55
-#
-# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
-#                   verified!  In particular the @DYNINFO sections might need
-#                   post-editing. Before distributing this file to other people,
-#                   please review this, amend the comments here to document,
-#                   anything done, and remove this notice.
-#
-# NOTICE: crystal structure was verified with spglib to be self-consistent.
-#
-@CELL
-  lengths 4.05838 !! 3.32152
-  angles 90 90 90
-@SPACEGROUP
-  139
-@ATOMPOSITIONS
-  Sn 0 0 0
-  Sn 1/2 1/2 1/2
-@DYNINFO
-  # Transferred from "Sn" in "stdlib::Sn_sg141.ncmat"
-  element Sn
-  fraction 1
-  type vdos
-  vdos_egrid .0016759 .0184349
-  vdos_density .0531392 .0945335 .150109 .213574 .286094 .396231 .503733 .592516
-     .655594 .692495 .689801 .669612 .633298 .588878 .54714 .51319 .48579 .468322
-     .456413 .448441 .441464 .434488 .428441 .42271 .417991 .415075 .411851
-     .407347 .402843 .394486 .386226 .37996 .378779 .382702 .397434 .423217
-     .474034 .543061 .622614 .721921 .819083 .903185 .971724 1 .972552 .896022
-     .796909 .678025 .547771 .432472 .32284 .240839 .17676 .123845 .0778986
-     .0462663 .0247447 .0118274 .00659815 .00298692 0
+OUT>NCMAT v7
+OUT>#
+OUT># Sn (tetragonal, SG-139)
+OUT>#
+OUT># Atoms per unit cell: 2xSn
+OUT>#
+OUT># Structure converted (with NCrystal.cifutils module) from:
+OUT>#
+OUT>#   The Materials Project
+OUT>#   https://www.materialsproject.org/materials/mp-55
+OUT>#
+OUT># IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+OUT>#                   verified!  In particular the @DYNINFO sections might need
+OUT>#                   post-editing. Before distributing this file to other people,
+OUT>#                   please review this, amend the comments here to document,
+OUT>#                   anything done, and remove this notice.
+OUT>#
+OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
+OUT>#
+OUT>@CELL
+OUT>  lengths 4.05838 !! 3.32152
+OUT>  angles 90 90 90
+OUT>@SPACEGROUP
+OUT>  139
+OUT>@ATOMPOSITIONS
+OUT>  Sn 0 0 0
+OUT>  Sn 1/2 1/2 1/2
+OUT>@DYNINFO
+OUT>  # Transferred from "Sn" in "stdlib::Sn_sg141.ncmat"
+OUT>  element Sn
+OUT>  fraction 1
+OUT>  type vdos
+OUT>  vdos_egrid .0016759 .0184349
+OUT>  vdos_density .0531392 .0945335 .150109 .213574 .286094 .396231 .503733 .592516
+OUT>     .655594 .692495 .689801 .669612 .633298 .588878 .54714 .51319 .48579 .468322
+OUT>     .456413 .448441 .441464 .434488 .428441 .42271 .417991 .415075 .411851
+OUT>     .407347 .402843 .394486 .386226 .37996 .378779 .382702 .397434 .423217
+OUT>     .474034 .543061 .622614 .721921 .819083 .903185 .971724 1 .972552 .896022
+OUT>     .796909 .678025 .547771 .432472 .32284 .240839 .17676 .123845 .0778986
+OUT>     .0462663 .0247447 .0118274 .00659815 .00298692 0
 =================================================================================================
 ============= CLI >>codid::9005777 --atomdata 'Si 28.09u::4.1491fm 0.004b 0.171b'<< ====================
 Getting cod_9005777.cif from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR
@@ -1961,100 +1961,100 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based o
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 29.36% level)
 Verifying that resulting ncmat data can be loaded
 Writing autogen_CaO3Si_sg2_cod9005777.ncmat
-NCMAT v7
-#
-# CaO3Si (triclinic, SG-2)
-#
-# Atoms per unit cell: 6xCa+18xO+6xSi
-#
-# Structure converted (with NCrystal.cifutils module) from:
-#
-#   "Polysynthetically-twinned structures of enstatite and wollastonite
-#    Sample: WO1T"
-#   Ohashi, Y. [Physics and Chemistry of Minerals, 1984]
-#   DOI: https://dx.doi.org/10.1007/BF00309314
-#   Crystallography Open Database entry 9005777
-#   https://www.crystallography.net/cod/9005777.html
-#
-# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
-#                   verified!  In particular the @DYNINFO sections might need
-#                   post-editing. Before distributing this file to other people,
-#                   please review this, amend the comments here to document,
-#                   anything done, and remove this notice.
-#
-# Notice: The following WARNINGS were emitted when loading the CIF data:
-#
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3"
-#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level)
-#
-# WARNING: Fallback (dummy) Debye temperature values were used for 3 atoms!
-#
-# NOTICE: crystal structure was verified with spglib to be self-consistent.
-#
-@CELL
-  lengths 7.0653 7.3202 7.9258
-  angles 103.426 95.217 90.055
-@SPACEGROUP
-  2
-@ATOMPOSITIONS
-  Ca .23599 .07081 .79759
-  Ca .2394 .57734 .80169
-  Ca .47309 .2496 .49667
-  Ca .52691 .7504 .50333
-  Ca .7606 .42266 .19831
-  Ca .76401 .92919 .20241
-  O .0931 .5126 .2735
-  O .0938 .8704 .2713
-  O .1704 .2734 .5982
-  O .1988 .7688 .5705
-  O .2254 .1785 .2183
-  O .2648 .8677 .9819
-  O .2655 .3739 .9832
-  O .4628 .4616 .3034
-  O .4641 .9385 .3014
-  O .5359 .0615 .6986
-  O .5372 .5384 .6966
-  O .7345 .6261 .0168
-  O .7352 .1323 .0181
-  O .7746 .8215 .7817
-  O .8012 .2312 .4295
-  O .8296 .7266 .4018
-  O .9062 .1296 .7287
-  O .9069 .4874 .7265
-  Si .0561 .7236 .3973
-  Si .2684 .3875 .1851
-  Si .2691 .9542 .1849
-  Si .7309 .0458 .8151
-  Si .7316 .6125 .8149
-  Si .9439 .2764 .6027
-@ATOMDB
-  Si 28.09u 4.1491fm 0.004b 0.171b
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element Ca
-  fraction 1/5
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element O
-  fraction 3/5
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element Si
-  fraction 1/5
-  type vdosdebye
-  debye_temp 300
+OUT>NCMAT v7
+OUT>#
+OUT># CaO3Si (triclinic, SG-2)
+OUT>#
+OUT># Atoms per unit cell: 6xCa+18xO+6xSi
+OUT>#
+OUT># Structure converted (with NCrystal.cifutils module) from:
+OUT>#
+OUT>#   "Polysynthetically-twinned structures of enstatite and wollastonite
+OUT>#    Sample: WO1T"
+OUT>#   Ohashi, Y. [Physics and Chemistry of Minerals, 1984]
+OUT>#   DOI: https://dx.doi.org/10.1007/BF00309314
+OUT>#   Crystallography Open Database entry 9005777
+OUT>#   https://www.crystallography.net/cod/9005777.html
+OUT>#
+OUT># IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+OUT>#                   verified!  In particular the @DYNINFO sections might need
+OUT>#                   post-editing. Before distributing this file to other people,
+OUT>#                   please review this, amend the comments here to document,
+OUT>#                   anything done, and remove this notice.
+OUT>#
+OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
+OUT>#
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3"
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level)
+OUT>#
+OUT># WARNING: Fallback (dummy) Debye temperature values were used for 3 atoms!
+OUT>#
+OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
+OUT>#
+OUT>@CELL
+OUT>  lengths 7.0653 7.3202 7.9258
+OUT>  angles 103.426 95.217 90.055
+OUT>@SPACEGROUP
+OUT>  2
+OUT>@ATOMPOSITIONS
+OUT>  Ca .23599 .07081 .79759
+OUT>  Ca .2394 .57734 .80169
+OUT>  Ca .47309 .2496 .49667
+OUT>  Ca .52691 .7504 .50333
+OUT>  Ca .7606 .42266 .19831
+OUT>  Ca .76401 .92919 .20241
+OUT>  O .0931 .5126 .2735
+OUT>  O .0938 .8704 .2713
+OUT>  O .1704 .2734 .5982
+OUT>  O .1988 .7688 .5705
+OUT>  O .2254 .1785 .2183
+OUT>  O .2648 .8677 .9819
+OUT>  O .2655 .3739 .9832
+OUT>  O .4628 .4616 .3034
+OUT>  O .4641 .9385 .3014
+OUT>  O .5359 .0615 .6986
+OUT>  O .5372 .5384 .6966
+OUT>  O .7345 .6261 .0168
+OUT>  O .7352 .1323 .0181
+OUT>  O .7746 .8215 .7817
+OUT>  O .8012 .2312 .4295
+OUT>  O .8296 .7266 .4018
+OUT>  O .9062 .1296 .7287
+OUT>  O .9069 .4874 .7265
+OUT>  Si .0561 .7236 .3973
+OUT>  Si .2684 .3875 .1851
+OUT>  Si .2691 .9542 .1849
+OUT>  Si .7309 .0458 .8151
+OUT>  Si .7316 .6125 .8149
+OUT>  Si .9439 .2764 .6027
+OUT>@ATOMDB
+OUT>  Si 28.09u 4.1491fm 0.004b 0.171b
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element Ca
+OUT>  fraction 1/5
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element O
+OUT>  fraction 3/5
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element Si
+OUT>  fraction 1/5
+OUT>  type vdosdebye
+OUT>  debye_temp 300
 ========================================================================================================
 ============= CLI >>codid::9005777 --atomdata 'Si 28.09u 0fm 0b 0b'<< ====================
 Getting cod_9005777.cif from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR
@@ -2071,100 +2071,100 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based o
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 29.36% level)
 Verifying that resulting ncmat data can be loaded
 Writing autogen_CaO3Si_sg2_cod9005777.ncmat
-NCMAT v7
-#
-# CaO3Si (triclinic, SG-2)
-#
-# Atoms per unit cell: 6xCa+18xO+6xSi
-#
-# Structure converted (with NCrystal.cifutils module) from:
-#
-#   "Polysynthetically-twinned structures of enstatite and wollastonite
-#    Sample: WO1T"
-#   Ohashi, Y. [Physics and Chemistry of Minerals, 1984]
-#   DOI: https://dx.doi.org/10.1007/BF00309314
-#   Crystallography Open Database entry 9005777
-#   https://www.crystallography.net/cod/9005777.html
-#
-# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
-#                   verified!  In particular the @DYNINFO sections might need
-#                   post-editing. Before distributing this file to other people,
-#                   please review this, amend the comments here to document,
-#                   anything done, and remove this notice.
-#
-# Notice: The following WARNINGS were emitted when loading the CIF data:
-#
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3"
-#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level)
-#
-# WARNING: Fallback (dummy) Debye temperature values were used for 3 atoms!
-#
-# NOTICE: crystal structure was verified with spglib to be self-consistent.
-#
-@CELL
-  lengths 7.0653 7.3202 7.9258
-  angles 103.426 95.217 90.055
-@SPACEGROUP
-  2
-@ATOMPOSITIONS
-  Ca .23599 .07081 .79759
-  Ca .2394 .57734 .80169
-  Ca .47309 .2496 .49667
-  Ca .52691 .7504 .50333
-  Ca .7606 .42266 .19831
-  Ca .76401 .92919 .20241
-  O .0931 .5126 .2735
-  O .0938 .8704 .2713
-  O .1704 .2734 .5982
-  O .1988 .7688 .5705
-  O .2254 .1785 .2183
-  O .2648 .8677 .9819
-  O .2655 .3739 .9832
-  O .4628 .4616 .3034
-  O .4641 .9385 .3014
-  O .5359 .0615 .6986
-  O .5372 .5384 .6966
-  O .7345 .6261 .0168
-  O .7352 .1323 .0181
-  O .7746 .8215 .7817
-  O .8012 .2312 .4295
-  O .8296 .7266 .4018
-  O .9062 .1296 .7287
-  O .9069 .4874 .7265
-  Si .0561 .7236 .3973
-  Si .2684 .3875 .1851
-  Si .2691 .9542 .1849
-  Si .7309 .0458 .8151
-  Si .7316 .6125 .8149
-  Si .9439 .2764 .6027
-@ATOMDB
-  Si 28.09u 0fm 0b 0b
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element Ca
-  fraction 1/5
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element O
-  fraction 3/5
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element Si
-  fraction 1/5
-  type vdosdebye
-  debye_temp 300
+OUT>NCMAT v7
+OUT>#
+OUT># CaO3Si (triclinic, SG-2)
+OUT>#
+OUT># Atoms per unit cell: 6xCa+18xO+6xSi
+OUT>#
+OUT># Structure converted (with NCrystal.cifutils module) from:
+OUT>#
+OUT>#   "Polysynthetically-twinned structures of enstatite and wollastonite
+OUT>#    Sample: WO1T"
+OUT>#   Ohashi, Y. [Physics and Chemistry of Minerals, 1984]
+OUT>#   DOI: https://dx.doi.org/10.1007/BF00309314
+OUT>#   Crystallography Open Database entry 9005777
+OUT>#   https://www.crystallography.net/cod/9005777.html
+OUT>#
+OUT># IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+OUT>#                   verified!  In particular the @DYNINFO sections might need
+OUT>#                   post-editing. Before distributing this file to other people,
+OUT>#                   please review this, amend the comments here to document,
+OUT>#                   anything done, and remove this notice.
+OUT>#
+OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
+OUT>#
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3"
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level)
+OUT>#
+OUT># WARNING: Fallback (dummy) Debye temperature values were used for 3 atoms!
+OUT>#
+OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
+OUT>#
+OUT>@CELL
+OUT>  lengths 7.0653 7.3202 7.9258
+OUT>  angles 103.426 95.217 90.055
+OUT>@SPACEGROUP
+OUT>  2
+OUT>@ATOMPOSITIONS
+OUT>  Ca .23599 .07081 .79759
+OUT>  Ca .2394 .57734 .80169
+OUT>  Ca .47309 .2496 .49667
+OUT>  Ca .52691 .7504 .50333
+OUT>  Ca .7606 .42266 .19831
+OUT>  Ca .76401 .92919 .20241
+OUT>  O .0931 .5126 .2735
+OUT>  O .0938 .8704 .2713
+OUT>  O .1704 .2734 .5982
+OUT>  O .1988 .7688 .5705
+OUT>  O .2254 .1785 .2183
+OUT>  O .2648 .8677 .9819
+OUT>  O .2655 .3739 .9832
+OUT>  O .4628 .4616 .3034
+OUT>  O .4641 .9385 .3014
+OUT>  O .5359 .0615 .6986
+OUT>  O .5372 .5384 .6966
+OUT>  O .7345 .6261 .0168
+OUT>  O .7352 .1323 .0181
+OUT>  O .7746 .8215 .7817
+OUT>  O .8012 .2312 .4295
+OUT>  O .8296 .7266 .4018
+OUT>  O .9062 .1296 .7287
+OUT>  O .9069 .4874 .7265
+OUT>  Si .0561 .7236 .3973
+OUT>  Si .2684 .3875 .1851
+OUT>  Si .2691 .9542 .1849
+OUT>  Si .7309 .0458 .8151
+OUT>  Si .7316 .6125 .8149
+OUT>  Si .9439 .2764 .6027
+OUT>@ATOMDB
+OUT>  Si 28.09u 0fm 0b 0b
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element Ca
+OUT>  fraction 1/5
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element O
+OUT>  fraction 3/5
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element Si
+OUT>  fraction 1/5
+OUT>  type vdosdebye
+OUT>  debye_temp 300
 ==========================================================================================
 ============= CLI >>codid::9005777 --atomdata 'Si 28.09 0fm 0b 0b'<< ====================
 Caught expected ArgumentError('invalid --atomdata syntax in "Si 28.09 0fm 0b 0b"')
@@ -2183,101 +2183,101 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based o
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 29.36% level)
 Verifying that resulting ncmat data can be loaded
 Writing autogen_CaO3Si_sg2_cod9005777.ncmat
-NCMAT v7
-#
-# CaO3Si (triclinic, SG-2)
-#
-# Atoms per unit cell: 6xCa+18xO+6xSi
-#
-# Structure converted (with NCrystal.cifutils module) from:
-#
-#   "Polysynthetically-twinned structures of enstatite and wollastonite
-#    Sample: WO1T"
-#   Ohashi, Y. [Physics and Chemistry of Minerals, 1984]
-#   DOI: https://dx.doi.org/10.1007/BF00309314
-#   Crystallography Open Database entry 9005777
-#   https://www.crystallography.net/cod/9005777.html
-#
-# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
-#                   verified!  In particular the @DYNINFO sections might need
-#                   post-editing. Before distributing this file to other people,
-#                   please review this, amend the comments here to document,
-#                   anything done, and remove this notice.
-#
-# Notice: The following WARNINGS were emitted when loading the CIF data:
-#
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2"
-#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3"
-#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level)
-#
-# WARNING: Fallback (dummy) Debye temperature values were used for 3 atoms!
-#
-# NOTICE: crystal structure was verified with spglib to be self-consistent.
-#
-@CELL
-  lengths 7.0653 7.3202 7.9258
-  angles 103.426 95.217 90.055
-@SPACEGROUP
-  2
-@ATOMPOSITIONS
-  Ca .23599 .07081 .79759
-  Ca .2394 .57734 .80169
-  Ca .47309 .2496 .49667
-  Ca .52691 .7504 .50333
-  Ca .7606 .42266 .19831
-  Ca .76401 .92919 .20241
-  O .0931 .5126 .2735
-  O .0938 .8704 .2713
-  O .1704 .2734 .5982
-  O .1988 .7688 .5705
-  O .2254 .1785 .2183
-  O .2648 .8677 .9819
-  O .2655 .3739 .9832
-  O .4628 .4616 .3034
-  O .4641 .9385 .3014
-  O .5359 .0615 .6986
-  O .5372 .5384 .6966
-  O .7345 .6261 .0168
-  O .7352 .1323 .0181
-  O .7746 .8215 .7817
-  O .8012 .2312 .4295
-  O .8296 .7266 .4018
-  O .9062 .1296 .7287
-  O .9069 .4874 .7265
-  Si .0561 .7236 .3973
-  Si .2684 .3875 .1851
-  Si .2691 .9542 .1849
-  Si .7309 .0458 .8151
-  Si .7316 .6125 .8149
-  Si .9439 .2764 .6027
-@ATOMDB
-  Ca 128.09u 0fm 0b 0b
-  Si 28.09u 0fm 0b 0b
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element Ca
-  fraction 1/5
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element O
-  fraction 3/5
-  type vdosdebye
-  debye_temp 300
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element Si
-  fraction 1/5
-  type vdosdebye
-  debye_temp 300
+OUT>NCMAT v7
+OUT>#
+OUT># CaO3Si (triclinic, SG-2)
+OUT>#
+OUT># Atoms per unit cell: 6xCa+18xO+6xSi
+OUT>#
+OUT># Structure converted (with NCrystal.cifutils module) from:
+OUT>#
+OUT>#   "Polysynthetically-twinned structures of enstatite and wollastonite
+OUT>#    Sample: WO1T"
+OUT>#   Ohashi, Y. [Physics and Chemistry of Minerals, 1984]
+OUT>#   DOI: https://dx.doi.org/10.1007/BF00309314
+OUT>#   Crystallography Open Database entry 9005777
+OUT>#   https://www.crystallography.net/cod/9005777.html
+OUT>#
+OUT># IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+OUT>#                   verified!  In particular the @DYNINFO sections might need
+OUT>#                   post-editing. Before distributing this file to other people,
+OUT>#                   please review this, amend the comments here to document,
+OUT>#                   anything done, and remove this notice.
+OUT>#
+OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
+OUT>#
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2"
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3"
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level)
+OUT>#
+OUT># WARNING: Fallback (dummy) Debye temperature values were used for 3 atoms!
+OUT>#
+OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
+OUT>#
+OUT>@CELL
+OUT>  lengths 7.0653 7.3202 7.9258
+OUT>  angles 103.426 95.217 90.055
+OUT>@SPACEGROUP
+OUT>  2
+OUT>@ATOMPOSITIONS
+OUT>  Ca .23599 .07081 .79759
+OUT>  Ca .2394 .57734 .80169
+OUT>  Ca .47309 .2496 .49667
+OUT>  Ca .52691 .7504 .50333
+OUT>  Ca .7606 .42266 .19831
+OUT>  Ca .76401 .92919 .20241
+OUT>  O .0931 .5126 .2735
+OUT>  O .0938 .8704 .2713
+OUT>  O .1704 .2734 .5982
+OUT>  O .1988 .7688 .5705
+OUT>  O .2254 .1785 .2183
+OUT>  O .2648 .8677 .9819
+OUT>  O .2655 .3739 .9832
+OUT>  O .4628 .4616 .3034
+OUT>  O .4641 .9385 .3014
+OUT>  O .5359 .0615 .6986
+OUT>  O .5372 .5384 .6966
+OUT>  O .7345 .6261 .0168
+OUT>  O .7352 .1323 .0181
+OUT>  O .7746 .8215 .7817
+OUT>  O .8012 .2312 .4295
+OUT>  O .8296 .7266 .4018
+OUT>  O .9062 .1296 .7287
+OUT>  O .9069 .4874 .7265
+OUT>  Si .0561 .7236 .3973
+OUT>  Si .2684 .3875 .1851
+OUT>  Si .2691 .9542 .1849
+OUT>  Si .7309 .0458 .8151
+OUT>  Si .7316 .6125 .8149
+OUT>  Si .9439 .2764 .6027
+OUT>@ATOMDB
+OUT>  Ca 128.09u 0fm 0b 0b
+OUT>  Si 28.09u 0fm 0b 0b
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element Ca
+OUT>  fraction 1/5
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element O
+OUT>  fraction 3/5
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element Si
+OUT>  fraction 1/5
+OUT>  type vdosdebye
+OUT>  debye_temp 300
 ============================================================================================================================
 ============= CLI >>--valplot stdlib::Al_sg225.ncmat<< ====================
 UNITTEST: Would invoke nc_cifutils.produce_validation_plots with pdf_target= None
@@ -2303,172 +2303,172 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): SG-70 available in multiple choice
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 16.9826% level)
 Verifying that resulting ncmat data can be loaded
 Writing autogen_S_sg70.ncmat
-NCMAT v7
-#
-# S (orthorombic, SG-70)
-#
-# Atoms per unit cell: 128xS
-#
-# Structure converted (with NCrystal.cifutils module) from:
-#
-#   "Second edition. Interscience Publishers, New York, New York"
-#   Wyckoff R W G [Crystal Structures, 1963]
-#
-# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
-#                   verified!  In particular the @DYNINFO sections might need
-#                   post-editing. Before distributing this file to other people,
-#                   please review this, amend the comments here to document,
-#                   anything done, and remove this notice.
-#
-# Notice: The following WARNINGS were emitted when loading the CIF data:
-#
-#   NCrystalUserWarning : SG-70 available in multiple choices ("F d d d:1", "F d d d:2") and which one was not encoded explicitly in the _space_group_name_H-M_alt CIF field. Consider overriding the space group explicitly when loading this file.
-#   NCrystalUserWarning : Structure received major corrections by spglib (at the 16.9826% level)
-#
-# WARNING: Fallback (dummy) Debye temperature value was used for 1 atom!
-#
-# NOTICE: crystal structure was verified with spglib to be self-consistent.
-#
-@CELL
-  lengths 10.467 12.87 24.493
-  angles 90 90 90
-@SPACEGROUP
-  70
-@ATOMPOSITIONS
-  S .0196 .0776 .4234
-  S .0196 .4224 .0766
-  S .0196 .5776 .9234
-  S .0196 .9224 .5766
-  S .0819 .1455 .879
-  S .0819 .3545 .621
-  S .0819 .6455 .379
-  S .0819 .8545 .121
-  S .0888 .0323 .246
-  S .0888 .4677 .254
-  S .0888 .5323 .746
-  S .0888 .9677 .754
-  S .0906 .1551 .2987
-  S .0906 .3449 .2013
-  S .0906 .6551 .7987
-  S .0906 .8449 .7013
-  S .1594 .0949 .9513
-  S .1594 .4051 .5487
-  S .1594 .5949 .4513
-  S .1594 .9051 .0487
-  S .1612 .2177 .004
-  S .1612 .2823 .496
-  S .1612 .7177 .504
-  S .1612 .7823 .996
-  S .1681 .1045 .371
-  S .1681 .3955 .129
-  S .1681 .6045 .871
-  S .1681 .8955 .629
-  S .2304 .1724 .8266
-  S .2304 .3276 .6734
-  S .2304 .6724 .3266
-  S .2304 .8276 .1734
-  S .2696 .1724 .6734
-  S .2696 .3276 .8266
-  S .2696 .6724 .1734
-  S .2696 .8276 .3266
-  S .3319 .1045 .129
-  S .3319 .3955 .371
-  S .3319 .6045 .629
-  S .3319 .8955 .871
-  S .3388 .2177 .496
-  S .3388 .2823 .004
-  S .3388 .7177 .996
-  S .3388 .7823 .504
-  S .3406 .0949 .5487
-  S .3406 .4051 .9513
-  S .3406 .5949 .0487
-  S .3406 .9051 .4513
-  S .4094 .1551 .2013
-  S .4094 .3449 .2987
-  S .4094 .6551 .7013
-  S .4094 .8449 .7987
-  S .4112 .0323 .254
-  S .4112 .4677 .246
-  S .4112 .5323 .754
-  S .4112 .9677 .746
-  S .4181 .1455 .621
-  S .4181 .3545 .879
-  S .4181 .6455 .121
-  S .4181 .8545 .379
-  S .4804 .0776 .0766
-  S .4804 .4224 .4234
-  S .4804 .5776 .5766
-  S .4804 .9224 .9234
-  S .5196 .0776 .9234
-  S .5196 .4224 .5766
-  S .5196 .5776 .4234
-  S .5196 .9224 .0766
-  S .5819 .1455 .379
-  S .5819 .3545 .121
-  S .5819 .6455 .879
-  S .5819 .8545 .621
-  S .5888 .0323 .746
-  S .5888 .4677 .754
-  S .5888 .5323 .246
-  S .5888 .9677 .254
-  S .5906 .1551 .7987
-  S .5906 .3449 .7013
-  S .5906 .6551 .2987
-  S .5906 .8449 .2013
-  S .6594 .0949 .4513
-  S .6594 .4051 .0487
-  S .6594 .5949 .9513
-  S .6594 .9051 .5487
-  S .6612 .2177 .504
-  S .6612 .2823 .996
-  S .6612 .7177 .004
-  S .6612 .7823 .496
-  S .6681 .1045 .871
-  S .6681 .3955 .629
-  S .6681 .6045 .371
-  S .6681 .8955 .129
-  S .7304 .1724 .3266
-  S .7304 .3276 .1734
-  S .7304 .6724 .8266
-  S .7304 .8276 .6734
-  S .7696 .1724 .1734
-  S .7696 .3276 .3266
-  S .7696 .6724 .6734
-  S .7696 .8276 .8266
-  S .8319 .1045 .629
-  S .8319 .3955 .871
-  S .8319 .6045 .129
-  S .8319 .8955 .371
-  S .8388 .2177 .996
-  S .8388 .2823 .504
-  S .8388 .7177 .496
-  S .8388 .7823 .004
-  S .8406 .0949 .0487
-  S .8406 .4051 .4513
-  S .8406 .5949 .5487
-  S .8406 .9051 .9513
-  S .9094 .1551 .7013
-  S .9094 .3449 .7987
-  S .9094 .6551 .2013
-  S .9094 .8449 .2987
-  S .9112 .0323 .754
-  S .9112 .4677 .746
-  S .9112 .5323 .254
-  S .9112 .9677 .246
-  S .9181 .1455 .121
-  S .9181 .3545 .379
-  S .9181 .6455 .621
-  S .9181 .8545 .879
-  S .9804 .0776 .5766
-  S .9804 .4224 .9234
-  S .9804 .5776 .0766
-  S .9804 .9224 .4234
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element S
-  fraction 1
-  type vdosdebye
-  debye_temp 300
+OUT>NCMAT v7
+OUT>#
+OUT># S (orthorombic, SG-70)
+OUT>#
+OUT># Atoms per unit cell: 128xS
+OUT>#
+OUT># Structure converted (with NCrystal.cifutils module) from:
+OUT>#
+OUT>#   "Second edition. Interscience Publishers, New York, New York"
+OUT>#   Wyckoff R W G [Crystal Structures, 1963]
+OUT>#
+OUT># IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+OUT>#                   verified!  In particular the @DYNINFO sections might need
+OUT>#                   post-editing. Before distributing this file to other people,
+OUT>#                   please review this, amend the comments here to document,
+OUT>#                   anything done, and remove this notice.
+OUT>#
+OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
+OUT>#
+OUT>#   NCrystalUserWarning : SG-70 available in multiple choices ("F d d d:1", "F d d d:2") and which one was not encoded explicitly in the _space_group_name_H-M_alt CIF field. Consider overriding the space group explicitly when loading this file.
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 16.9826% level)
+OUT>#
+OUT># WARNING: Fallback (dummy) Debye temperature value was used for 1 atom!
+OUT>#
+OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
+OUT>#
+OUT>@CELL
+OUT>  lengths 10.467 12.87 24.493
+OUT>  angles 90 90 90
+OUT>@SPACEGROUP
+OUT>  70
+OUT>@ATOMPOSITIONS
+OUT>  S .0196 .0776 .4234
+OUT>  S .0196 .4224 .0766
+OUT>  S .0196 .5776 .9234
+OUT>  S .0196 .9224 .5766
+OUT>  S .0819 .1455 .879
+OUT>  S .0819 .3545 .621
+OUT>  S .0819 .6455 .379
+OUT>  S .0819 .8545 .121
+OUT>  S .0888 .0323 .246
+OUT>  S .0888 .4677 .254
+OUT>  S .0888 .5323 .746
+OUT>  S .0888 .9677 .754
+OUT>  S .0906 .1551 .2987
+OUT>  S .0906 .3449 .2013
+OUT>  S .0906 .6551 .7987
+OUT>  S .0906 .8449 .7013
+OUT>  S .1594 .0949 .9513
+OUT>  S .1594 .4051 .5487
+OUT>  S .1594 .5949 .4513
+OUT>  S .1594 .9051 .0487
+OUT>  S .1612 .2177 .004
+OUT>  S .1612 .2823 .496
+OUT>  S .1612 .7177 .504
+OUT>  S .1612 .7823 .996
+OUT>  S .1681 .1045 .371
+OUT>  S .1681 .3955 .129
+OUT>  S .1681 .6045 .871
+OUT>  S .1681 .8955 .629
+OUT>  S .2304 .1724 .8266
+OUT>  S .2304 .3276 .6734
+OUT>  S .2304 .6724 .3266
+OUT>  S .2304 .8276 .1734
+OUT>  S .2696 .1724 .6734
+OUT>  S .2696 .3276 .8266
+OUT>  S .2696 .6724 .1734
+OUT>  S .2696 .8276 .3266
+OUT>  S .3319 .1045 .129
+OUT>  S .3319 .3955 .371
+OUT>  S .3319 .6045 .629
+OUT>  S .3319 .8955 .871
+OUT>  S .3388 .2177 .496
+OUT>  S .3388 .2823 .004
+OUT>  S .3388 .7177 .996
+OUT>  S .3388 .7823 .504
+OUT>  S .3406 .0949 .5487
+OUT>  S .3406 .4051 .9513
+OUT>  S .3406 .5949 .0487
+OUT>  S .3406 .9051 .4513
+OUT>  S .4094 .1551 .2013
+OUT>  S .4094 .3449 .2987
+OUT>  S .4094 .6551 .7013
+OUT>  S .4094 .8449 .7987
+OUT>  S .4112 .0323 .254
+OUT>  S .4112 .4677 .246
+OUT>  S .4112 .5323 .754
+OUT>  S .4112 .9677 .746
+OUT>  S .4181 .1455 .621
+OUT>  S .4181 .3545 .879
+OUT>  S .4181 .6455 .121
+OUT>  S .4181 .8545 .379
+OUT>  S .4804 .0776 .0766
+OUT>  S .4804 .4224 .4234
+OUT>  S .4804 .5776 .5766
+OUT>  S .4804 .9224 .9234
+OUT>  S .5196 .0776 .9234
+OUT>  S .5196 .4224 .5766
+OUT>  S .5196 .5776 .4234
+OUT>  S .5196 .9224 .0766
+OUT>  S .5819 .1455 .379
+OUT>  S .5819 .3545 .121
+OUT>  S .5819 .6455 .879
+OUT>  S .5819 .8545 .621
+OUT>  S .5888 .0323 .746
+OUT>  S .5888 .4677 .754
+OUT>  S .5888 .5323 .246
+OUT>  S .5888 .9677 .254
+OUT>  S .5906 .1551 .7987
+OUT>  S .5906 .3449 .7013
+OUT>  S .5906 .6551 .2987
+OUT>  S .5906 .8449 .2013
+OUT>  S .6594 .0949 .4513
+OUT>  S .6594 .4051 .0487
+OUT>  S .6594 .5949 .9513
+OUT>  S .6594 .9051 .5487
+OUT>  S .6612 .2177 .504
+OUT>  S .6612 .2823 .996
+OUT>  S .6612 .7177 .004
+OUT>  S .6612 .7823 .496
+OUT>  S .6681 .1045 .871
+OUT>  S .6681 .3955 .629
+OUT>  S .6681 .6045 .371
+OUT>  S .6681 .8955 .129
+OUT>  S .7304 .1724 .3266
+OUT>  S .7304 .3276 .1734
+OUT>  S .7304 .6724 .8266
+OUT>  S .7304 .8276 .6734
+OUT>  S .7696 .1724 .1734
+OUT>  S .7696 .3276 .3266
+OUT>  S .7696 .6724 .6734
+OUT>  S .7696 .8276 .8266
+OUT>  S .8319 .1045 .629
+OUT>  S .8319 .3955 .871
+OUT>  S .8319 .6045 .129
+OUT>  S .8319 .8955 .371
+OUT>  S .8388 .2177 .996
+OUT>  S .8388 .2823 .504
+OUT>  S .8388 .7177 .496
+OUT>  S .8388 .7823 .004
+OUT>  S .8406 .0949 .0487
+OUT>  S .8406 .4051 .4513
+OUT>  S .8406 .5949 .5487
+OUT>  S .8406 .9051 .9513
+OUT>  S .9094 .1551 .7013
+OUT>  S .9094 .3449 .7987
+OUT>  S .9094 .6551 .2013
+OUT>  S .9094 .8449 .2987
+OUT>  S .9112 .0323 .754
+OUT>  S .9112 .4677 .746
+OUT>  S .9112 .5323 .254
+OUT>  S .9112 .9677 .246
+OUT>  S .9181 .1455 .121
+OUT>  S .9181 .3545 .379
+OUT>  S .9181 .6455 .621
+OUT>  S .9181 .8545 .879
+OUT>  S .9804 .0776 .5766
+OUT>  S .9804 .4224 .9234
+OUT>  S .9804 .5776 .0766
+OUT>  S .9804 .9224 .4234
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element S
+OUT>  fraction 1
+OUT>  type vdosdebye
+OUT>  debye_temp 300
 ==========================================================================
 ============= CLI >>Wyckoff1963_Sulphor_0011255.cif --spacegroup 'F d d d:1'<< ====================
 Attempting to load CIF data with gemmi
@@ -2476,172 +2476,172 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): Overriding spacegroup to "F d d d:
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 16.9826% level)
 Verifying that resulting ncmat data can be loaded
 Writing autogen_S_sg70.ncmat
-NCMAT v7
-#
-# S (orthorombic, SG-70)
-#
-# Atoms per unit cell: 128xS
-#
-# Structure converted (with NCrystal.cifutils module) from:
-#
-#   "Second edition. Interscience Publishers, New York, New York"
-#   Wyckoff R W G [Crystal Structures, 1963]
-#
-# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
-#                   verified!  In particular the @DYNINFO sections might need
-#                   post-editing. Before distributing this file to other people,
-#                   please review this, amend the comments here to document,
-#                   anything done, and remove this notice.
-#
-# Notice: The following WARNINGS were emitted when loading the CIF data:
-#
-#   NCrystalUserWarning : Overriding spacegroup to "F d d d:1" due to explicit request
-#   NCrystalUserWarning : Structure received major corrections by spglib (at the 16.9826% level)
-#
-# WARNING: Fallback (dummy) Debye temperature value was used for 1 atom!
-#
-# NOTICE: crystal structure was verified with spglib to be self-consistent.
-#
-@CELL
-  lengths 10.467 12.87 24.493
-  angles 90 90 90
-@SPACEGROUP
-  70
-@ATOMPOSITIONS
-  S .0196 .0776 .4234
-  S .0196 .4224 .0766
-  S .0196 .5776 .9234
-  S .0196 .9224 .5766
-  S .0819 .1455 .879
-  S .0819 .3545 .621
-  S .0819 .6455 .379
-  S .0819 .8545 .121
-  S .0888 .0323 .246
-  S .0888 .4677 .254
-  S .0888 .5323 .746
-  S .0888 .9677 .754
-  S .0906 .1551 .2987
-  S .0906 .3449 .2013
-  S .0906 .6551 .7987
-  S .0906 .8449 .7013
-  S .1594 .0949 .9513
-  S .1594 .4051 .5487
-  S .1594 .5949 .4513
-  S .1594 .9051 .0487
-  S .1612 .2177 .004
-  S .1612 .2823 .496
-  S .1612 .7177 .504
-  S .1612 .7823 .996
-  S .1681 .1045 .371
-  S .1681 .3955 .129
-  S .1681 .6045 .871
-  S .1681 .8955 .629
-  S .2304 .1724 .8266
-  S .2304 .3276 .6734
-  S .2304 .6724 .3266
-  S .2304 .8276 .1734
-  S .2696 .1724 .6734
-  S .2696 .3276 .8266
-  S .2696 .6724 .1734
-  S .2696 .8276 .3266
-  S .3319 .1045 .129
-  S .3319 .3955 .371
-  S .3319 .6045 .629
-  S .3319 .8955 .871
-  S .3388 .2177 .496
-  S .3388 .2823 .004
-  S .3388 .7177 .996
-  S .3388 .7823 .504
-  S .3406 .0949 .5487
-  S .3406 .4051 .9513
-  S .3406 .5949 .0487
-  S .3406 .9051 .4513
-  S .4094 .1551 .2013
-  S .4094 .3449 .2987
-  S .4094 .6551 .7013
-  S .4094 .8449 .7987
-  S .4112 .0323 .254
-  S .4112 .4677 .246
-  S .4112 .5323 .754
-  S .4112 .9677 .746
-  S .4181 .1455 .621
-  S .4181 .3545 .879
-  S .4181 .6455 .121
-  S .4181 .8545 .379
-  S .4804 .0776 .0766
-  S .4804 .4224 .4234
-  S .4804 .5776 .5766
-  S .4804 .9224 .9234
-  S .5196 .0776 .9234
-  S .5196 .4224 .5766
-  S .5196 .5776 .4234
-  S .5196 .9224 .0766
-  S .5819 .1455 .379
-  S .5819 .3545 .121
-  S .5819 .6455 .879
-  S .5819 .8545 .621
-  S .5888 .0323 .746
-  S .5888 .4677 .754
-  S .5888 .5323 .246
-  S .5888 .9677 .254
-  S .5906 .1551 .7987
-  S .5906 .3449 .7013
-  S .5906 .6551 .2987
-  S .5906 .8449 .2013
-  S .6594 .0949 .4513
-  S .6594 .4051 .0487
-  S .6594 .5949 .9513
-  S .6594 .9051 .5487
-  S .6612 .2177 .504
-  S .6612 .2823 .996
-  S .6612 .7177 .004
-  S .6612 .7823 .496
-  S .6681 .1045 .871
-  S .6681 .3955 .629
-  S .6681 .6045 .371
-  S .6681 .8955 .129
-  S .7304 .1724 .3266
-  S .7304 .3276 .1734
-  S .7304 .6724 .8266
-  S .7304 .8276 .6734
-  S .7696 .1724 .1734
-  S .7696 .3276 .3266
-  S .7696 .6724 .6734
-  S .7696 .8276 .8266
-  S .8319 .1045 .629
-  S .8319 .3955 .871
-  S .8319 .6045 .129
-  S .8319 .8955 .371
-  S .8388 .2177 .996
-  S .8388 .2823 .504
-  S .8388 .7177 .496
-  S .8388 .7823 .004
-  S .8406 .0949 .0487
-  S .8406 .4051 .4513
-  S .8406 .5949 .5487
-  S .8406 .9051 .9513
-  S .9094 .1551 .7013
-  S .9094 .3449 .7987
-  S .9094 .6551 .2013
-  S .9094 .8449 .2987
-  S .9112 .0323 .754
-  S .9112 .4677 .746
-  S .9112 .5323 .254
-  S .9112 .9677 .246
-  S .9181 .1455 .121
-  S .9181 .3545 .379
-  S .9181 .6455 .621
-  S .9181 .8545 .879
-  S .9804 .0776 .5766
-  S .9804 .4224 .9234
-  S .9804 .5776 .0766
-  S .9804 .9224 .4234
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element S
-  fraction 1
-  type vdosdebye
-  debye_temp 300
+OUT>NCMAT v7
+OUT>#
+OUT># S (orthorombic, SG-70)
+OUT>#
+OUT># Atoms per unit cell: 128xS
+OUT>#
+OUT># Structure converted (with NCrystal.cifutils module) from:
+OUT>#
+OUT>#   "Second edition. Interscience Publishers, New York, New York"
+OUT>#   Wyckoff R W G [Crystal Structures, 1963]
+OUT>#
+OUT># IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+OUT>#                   verified!  In particular the @DYNINFO sections might need
+OUT>#                   post-editing. Before distributing this file to other people,
+OUT>#                   please review this, amend the comments here to document,
+OUT>#                   anything done, and remove this notice.
+OUT>#
+OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
+OUT>#
+OUT>#   NCrystalUserWarning : Overriding spacegroup to "F d d d:1" due to explicit request
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 16.9826% level)
+OUT>#
+OUT># WARNING: Fallback (dummy) Debye temperature value was used for 1 atom!
+OUT>#
+OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
+OUT>#
+OUT>@CELL
+OUT>  lengths 10.467 12.87 24.493
+OUT>  angles 90 90 90
+OUT>@SPACEGROUP
+OUT>  70
+OUT>@ATOMPOSITIONS
+OUT>  S .0196 .0776 .4234
+OUT>  S .0196 .4224 .0766
+OUT>  S .0196 .5776 .9234
+OUT>  S .0196 .9224 .5766
+OUT>  S .0819 .1455 .879
+OUT>  S .0819 .3545 .621
+OUT>  S .0819 .6455 .379
+OUT>  S .0819 .8545 .121
+OUT>  S .0888 .0323 .246
+OUT>  S .0888 .4677 .254
+OUT>  S .0888 .5323 .746
+OUT>  S .0888 .9677 .754
+OUT>  S .0906 .1551 .2987
+OUT>  S .0906 .3449 .2013
+OUT>  S .0906 .6551 .7987
+OUT>  S .0906 .8449 .7013
+OUT>  S .1594 .0949 .9513
+OUT>  S .1594 .4051 .5487
+OUT>  S .1594 .5949 .4513
+OUT>  S .1594 .9051 .0487
+OUT>  S .1612 .2177 .004
+OUT>  S .1612 .2823 .496
+OUT>  S .1612 .7177 .504
+OUT>  S .1612 .7823 .996
+OUT>  S .1681 .1045 .371
+OUT>  S .1681 .3955 .129
+OUT>  S .1681 .6045 .871
+OUT>  S .1681 .8955 .629
+OUT>  S .2304 .1724 .8266
+OUT>  S .2304 .3276 .6734
+OUT>  S .2304 .6724 .3266
+OUT>  S .2304 .8276 .1734
+OUT>  S .2696 .1724 .6734
+OUT>  S .2696 .3276 .8266
+OUT>  S .2696 .6724 .1734
+OUT>  S .2696 .8276 .3266
+OUT>  S .3319 .1045 .129
+OUT>  S .3319 .3955 .371
+OUT>  S .3319 .6045 .629
+OUT>  S .3319 .8955 .871
+OUT>  S .3388 .2177 .496
+OUT>  S .3388 .2823 .004
+OUT>  S .3388 .7177 .996
+OUT>  S .3388 .7823 .504
+OUT>  S .3406 .0949 .5487
+OUT>  S .3406 .4051 .9513
+OUT>  S .3406 .5949 .0487
+OUT>  S .3406 .9051 .4513
+OUT>  S .4094 .1551 .2013
+OUT>  S .4094 .3449 .2987
+OUT>  S .4094 .6551 .7013
+OUT>  S .4094 .8449 .7987
+OUT>  S .4112 .0323 .254
+OUT>  S .4112 .4677 .246
+OUT>  S .4112 .5323 .754
+OUT>  S .4112 .9677 .746
+OUT>  S .4181 .1455 .621
+OUT>  S .4181 .3545 .879
+OUT>  S .4181 .6455 .121
+OUT>  S .4181 .8545 .379
+OUT>  S .4804 .0776 .0766
+OUT>  S .4804 .4224 .4234
+OUT>  S .4804 .5776 .5766
+OUT>  S .4804 .9224 .9234
+OUT>  S .5196 .0776 .9234
+OUT>  S .5196 .4224 .5766
+OUT>  S .5196 .5776 .4234
+OUT>  S .5196 .9224 .0766
+OUT>  S .5819 .1455 .379
+OUT>  S .5819 .3545 .121
+OUT>  S .5819 .6455 .879
+OUT>  S .5819 .8545 .621
+OUT>  S .5888 .0323 .746
+OUT>  S .5888 .4677 .754
+OUT>  S .5888 .5323 .246
+OUT>  S .5888 .9677 .254
+OUT>  S .5906 .1551 .7987
+OUT>  S .5906 .3449 .7013
+OUT>  S .5906 .6551 .2987
+OUT>  S .5906 .8449 .2013
+OUT>  S .6594 .0949 .4513
+OUT>  S .6594 .4051 .0487
+OUT>  S .6594 .5949 .9513
+OUT>  S .6594 .9051 .5487
+OUT>  S .6612 .2177 .504
+OUT>  S .6612 .2823 .996
+OUT>  S .6612 .7177 .004
+OUT>  S .6612 .7823 .496
+OUT>  S .6681 .1045 .871
+OUT>  S .6681 .3955 .629
+OUT>  S .6681 .6045 .371
+OUT>  S .6681 .8955 .129
+OUT>  S .7304 .1724 .3266
+OUT>  S .7304 .3276 .1734
+OUT>  S .7304 .6724 .8266
+OUT>  S .7304 .8276 .6734
+OUT>  S .7696 .1724 .1734
+OUT>  S .7696 .3276 .3266
+OUT>  S .7696 .6724 .6734
+OUT>  S .7696 .8276 .8266
+OUT>  S .8319 .1045 .629
+OUT>  S .8319 .3955 .871
+OUT>  S .8319 .6045 .129
+OUT>  S .8319 .8955 .371
+OUT>  S .8388 .2177 .996
+OUT>  S .8388 .2823 .504
+OUT>  S .8388 .7177 .496
+OUT>  S .8388 .7823 .004
+OUT>  S .8406 .0949 .0487
+OUT>  S .8406 .4051 .4513
+OUT>  S .8406 .5949 .5487
+OUT>  S .8406 .9051 .9513
+OUT>  S .9094 .1551 .7013
+OUT>  S .9094 .3449 .7987
+OUT>  S .9094 .6551 .2013
+OUT>  S .9094 .8449 .2987
+OUT>  S .9112 .0323 .754
+OUT>  S .9112 .4677 .746
+OUT>  S .9112 .5323 .254
+OUT>  S .9112 .9677 .246
+OUT>  S .9181 .1455 .121
+OUT>  S .9181 .3545 .379
+OUT>  S .9181 .6455 .621
+OUT>  S .9181 .8545 .879
+OUT>  S .9804 .0776 .5766
+OUT>  S .9804 .4224 .9234
+OUT>  S .9804 .5776 .0766
+OUT>  S .9804 .9224 .4234
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element S
+OUT>  fraction 1
+OUT>  type vdosdebye
+OUT>  debye_temp 300
 ===================================================================================================
 ============= CLI >>Wyckoff1963_Sulphor_0011255.cif --spacegroup 'F d d d:2'<< ====================
 Attempting to load CIF data with gemmi
@@ -2649,170 +2649,170 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): Overriding spacegroup to "F d d d:
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 16.9826% level)
 Verifying that resulting ncmat data can be loaded
 Writing autogen_S_sg70.ncmat
-NCMAT v7
-#
-# S (orthorombic, SG-70)
-#
-# Atoms per unit cell: 128xS
-#
-# Structure converted (with NCrystal.cifutils module) from:
-#
-#   "Second edition. Interscience Publishers, New York, New York"
-#   Wyckoff R W G [Crystal Structures, 1963]
-#
-# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
-#                   verified!  In particular the @DYNINFO sections might need
-#                   post-editing. Before distributing this file to other people,
-#                   please review this, amend the comments here to document,
-#                   anything done, and remove this notice.
-#
-# Notice: The following WARNINGS were emitted when loading the CIF data:
-#
-#   NCrystalUserWarning : Overriding spacegroup to "F d d d:2" due to explicit request
-#   NCrystalUserWarning : Structure received major corrections by spglib (at the 16.9826% level)
-#
-# WARNING: Fallback (dummy) Debye temperature value was used for 1 atom!
-#
-# NOTICE: crystal structure was verified with spglib to be self-consistent.
-#
-@CELL
-  lengths 10.467 12.87 24.493
-  angles 90 90 90
-@SPACEGROUP
-  70
-@ATOMPOSITIONS
-  S .0196 .0776 .4234
-  S .0196 .4224 .0766
-  S .0196 .5776 .9234
-  S .0196 .9224 .5766
-  S .0819 .1455 .879
-  S .0819 .3545 .621
-  S .0819 .6455 .379
-  S .0819 .8545 .121
-  S .0888 .0323 .246
-  S .0888 .4677 .254
-  S .0888 .5323 .746
-  S .0888 .9677 .754
-  S .0906 .1551 .2987
-  S .0906 .3449 .2013
-  S .0906 .6551 .7987
-  S .0906 .8449 .7013
-  S .1594 .0949 .9513
-  S .1594 .4051 .5487
-  S .1594 .5949 .4513
-  S .1594 .9051 .0487
-  S .1612 .2177 .004
-  S .1612 .2823 .496
-  S .1612 .7177 .504
-  S .1612 .7823 .996
-  S .1681 .1045 .371
-  S .1681 .3955 .129
-  S .1681 .6045 .871
-  S .1681 .8955 .629
-  S .2304 .1724 .8266
-  S .2304 .3276 .6734
-  S .2304 .6724 .3266
-  S .2304 .8276 .1734
-  S .2696 .1724 .6734
-  S .2696 .3276 .8266
-  S .2696 .6724 .1734
-  S .2696 .8276 .3266
-  S .3319 .1045 .129
-  S .3319 .3955 .371
-  S .3319 .6045 .629
-  S .3319 .8955 .871
-  S .3388 .2177 .496
-  S .3388 .2823 .004
-  S .3388 .7177 .996
-  S .3388 .7823 .504
-  S .3406 .0949 .5487
-  S .3406 .4051 .9513
-  S .3406 .5949 .0487
-  S .3406 .9051 .4513
-  S .4094 .1551 .2013
-  S .4094 .3449 .2987
-  S .4094 .6551 .7013
-  S .4094 .8449 .7987
-  S .4112 .0323 .254
-  S .4112 .4677 .246
-  S .4112 .5323 .754
-  S .4112 .9677 .746
-  S .4181 .1455 .621
-  S .4181 .3545 .879
-  S .4181 .6455 .121
-  S .4181 .8545 .379
-  S .4804 .0776 .0766
-  S .4804 .4224 .4234
-  S .4804 .5776 .5766
-  S .4804 .9224 .9234
-  S .5196 .0776 .9234
-  S .5196 .4224 .5766
-  S .5196 .5776 .4234
-  S .5196 .9224 .0766
-  S .5819 .1455 .379
-  S .5819 .3545 .121
-  S .5819 .6455 .879
-  S .5819 .8545 .621
-  S .5888 .0323 .746
-  S .5888 .4677 .754
-  S .5888 .5323 .246
-  S .5888 .9677 .254
-  S .5906 .1551 .7987
-  S .5906 .3449 .7013
-  S .5906 .6551 .2987
-  S .5906 .8449 .2013
-  S .6594 .0949 .4513
-  S .6594 .4051 .0487
-  S .6594 .5949 .9513
-  S .6594 .9051 .5487
-  S .6612 .2177 .504
-  S .6612 .2823 .996
-  S .6612 .7177 .004
-  S .6612 .7823 .496
-  S .6681 .1045 .871
-  S .6681 .3955 .629
-  S .6681 .6045 .371
-  S .6681 .8955 .129
-  S .7304 .1724 .3266
-  S .7304 .3276 .1734
-  S .7304 .6724 .8266
-  S .7304 .8276 .6734
-  S .7696 .1724 .1734
-  S .7696 .3276 .3266
-  S .7696 .6724 .6734
-  S .7696 .8276 .8266
-  S .8319 .1045 .629
-  S .8319 .3955 .871
-  S .8319 .6045 .129
-  S .8319 .8955 .371
-  S .8388 .2177 .996
-  S .8388 .2823 .504
-  S .8388 .7177 .496
-  S .8388 .7823 .004
-  S .8406 .0949 .0487
-  S .8406 .4051 .4513
-  S .8406 .5949 .5487
-  S .8406 .9051 .9513
-  S .9094 .1551 .7013
-  S .9094 .3449 .7987
-  S .9094 .6551 .2013
-  S .9094 .8449 .2987
-  S .9112 .0323 .754
-  S .9112 .4677 .746
-  S .9112 .5323 .254
-  S .9112 .9677 .246
-  S .9181 .1455 .121
-  S .9181 .3545 .379
-  S .9181 .6455 .621
-  S .9181 .8545 .879
-  S .9804 .0776 .5766
-  S .9804 .4224 .9234
-  S .9804 .5776 .0766
-  S .9804 .9224 .4234
-@DYNINFO
-  # WARNING: Using fallback Debye temperature value!
-  element S
-  fraction 1
-  type vdosdebye
-  debye_temp 300
+OUT>NCMAT v7
+OUT>#
+OUT># S (orthorombic, SG-70)
+OUT>#
+OUT># Atoms per unit cell: 128xS
+OUT>#
+OUT># Structure converted (with NCrystal.cifutils module) from:
+OUT>#
+OUT>#   "Second edition. Interscience Publishers, New York, New York"
+OUT>#   Wyckoff R W G [Crystal Structures, 1963]
+OUT>#
+OUT># IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+OUT>#                   verified!  In particular the @DYNINFO sections might need
+OUT>#                   post-editing. Before distributing this file to other people,
+OUT>#                   please review this, amend the comments here to document,
+OUT>#                   anything done, and remove this notice.
+OUT>#
+OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
+OUT>#
+OUT>#   NCrystalUserWarning : Overriding spacegroup to "F d d d:2" due to explicit request
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 16.9826% level)
+OUT>#
+OUT># WARNING: Fallback (dummy) Debye temperature value was used for 1 atom!
+OUT>#
+OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
+OUT>#
+OUT>@CELL
+OUT>  lengths 10.467 12.87 24.493
+OUT>  angles 90 90 90
+OUT>@SPACEGROUP
+OUT>  70
+OUT>@ATOMPOSITIONS
+OUT>  S .0196 .0776 .4234
+OUT>  S .0196 .4224 .0766
+OUT>  S .0196 .5776 .9234
+OUT>  S .0196 .9224 .5766
+OUT>  S .0819 .1455 .879
+OUT>  S .0819 .3545 .621
+OUT>  S .0819 .6455 .379
+OUT>  S .0819 .8545 .121
+OUT>  S .0888 .0323 .246
+OUT>  S .0888 .4677 .254
+OUT>  S .0888 .5323 .746
+OUT>  S .0888 .9677 .754
+OUT>  S .0906 .1551 .2987
+OUT>  S .0906 .3449 .2013
+OUT>  S .0906 .6551 .7987
+OUT>  S .0906 .8449 .7013
+OUT>  S .1594 .0949 .9513
+OUT>  S .1594 .4051 .5487
+OUT>  S .1594 .5949 .4513
+OUT>  S .1594 .9051 .0487
+OUT>  S .1612 .2177 .004
+OUT>  S .1612 .2823 .496
+OUT>  S .1612 .7177 .504
+OUT>  S .1612 .7823 .996
+OUT>  S .1681 .1045 .371
+OUT>  S .1681 .3955 .129
+OUT>  S .1681 .6045 .871
+OUT>  S .1681 .8955 .629
+OUT>  S .2304 .1724 .8266
+OUT>  S .2304 .3276 .6734
+OUT>  S .2304 .6724 .3266
+OUT>  S .2304 .8276 .1734
+OUT>  S .2696 .1724 .6734
+OUT>  S .2696 .3276 .8266
+OUT>  S .2696 .6724 .1734
+OUT>  S .2696 .8276 .3266
+OUT>  S .3319 .1045 .129
+OUT>  S .3319 .3955 .371
+OUT>  S .3319 .6045 .629
+OUT>  S .3319 .8955 .871
+OUT>  S .3388 .2177 .496
+OUT>  S .3388 .2823 .004
+OUT>  S .3388 .7177 .996
+OUT>  S .3388 .7823 .504
+OUT>  S .3406 .0949 .5487
+OUT>  S .3406 .4051 .9513
+OUT>  S .3406 .5949 .0487
+OUT>  S .3406 .9051 .4513
+OUT>  S .4094 .1551 .2013
+OUT>  S .4094 .3449 .2987
+OUT>  S .4094 .6551 .7013
+OUT>  S .4094 .8449 .7987
+OUT>  S .4112 .0323 .254
+OUT>  S .4112 .4677 .246
+OUT>  S .4112 .5323 .754
+OUT>  S .4112 .9677 .746
+OUT>  S .4181 .1455 .621
+OUT>  S .4181 .3545 .879
+OUT>  S .4181 .6455 .121
+OUT>  S .4181 .8545 .379
+OUT>  S .4804 .0776 .0766
+OUT>  S .4804 .4224 .4234
+OUT>  S .4804 .5776 .5766
+OUT>  S .4804 .9224 .9234
+OUT>  S .5196 .0776 .9234
+OUT>  S .5196 .4224 .5766
+OUT>  S .5196 .5776 .4234
+OUT>  S .5196 .9224 .0766
+OUT>  S .5819 .1455 .379
+OUT>  S .5819 .3545 .121
+OUT>  S .5819 .6455 .879
+OUT>  S .5819 .8545 .621
+OUT>  S .5888 .0323 .746
+OUT>  S .5888 .4677 .754
+OUT>  S .5888 .5323 .246
+OUT>  S .5888 .9677 .254
+OUT>  S .5906 .1551 .7987
+OUT>  S .5906 .3449 .7013
+OUT>  S .5906 .6551 .2987
+OUT>  S .5906 .8449 .2013
+OUT>  S .6594 .0949 .4513
+OUT>  S .6594 .4051 .0487
+OUT>  S .6594 .5949 .9513
+OUT>  S .6594 .9051 .5487
+OUT>  S .6612 .2177 .504
+OUT>  S .6612 .2823 .996
+OUT>  S .6612 .7177 .004
+OUT>  S .6612 .7823 .496
+OUT>  S .6681 .1045 .871
+OUT>  S .6681 .3955 .629
+OUT>  S .6681 .6045 .371
+OUT>  S .6681 .8955 .129
+OUT>  S .7304 .1724 .3266
+OUT>  S .7304 .3276 .1734
+OUT>  S .7304 .6724 .8266
+OUT>  S .7304 .8276 .6734
+OUT>  S .7696 .1724 .1734
+OUT>  S .7696 .3276 .3266
+OUT>  S .7696 .6724 .6734
+OUT>  S .7696 .8276 .8266
+OUT>  S .8319 .1045 .629
+OUT>  S .8319 .3955 .871
+OUT>  S .8319 .6045 .129
+OUT>  S .8319 .8955 .371
+OUT>  S .8388 .2177 .996
+OUT>  S .8388 .2823 .504
+OUT>  S .8388 .7177 .496
+OUT>  S .8388 .7823 .004
+OUT>  S .8406 .0949 .0487
+OUT>  S .8406 .4051 .4513
+OUT>  S .8406 .5949 .5487
+OUT>  S .8406 .9051 .9513
+OUT>  S .9094 .1551 .7013
+OUT>  S .9094 .3449 .7987
+OUT>  S .9094 .6551 .2013
+OUT>  S .9094 .8449 .2987
+OUT>  S .9112 .0323 .754
+OUT>  S .9112 .4677 .746
+OUT>  S .9112 .5323 .254
+OUT>  S .9112 .9677 .246
+OUT>  S .9181 .1455 .121
+OUT>  S .9181 .3545 .379
+OUT>  S .9181 .6455 .621
+OUT>  S .9181 .8545 .879
+OUT>  S .9804 .0776 .5766
+OUT>  S .9804 .4224 .9234
+OUT>  S .9804 .5776 .0766
+OUT>  S .9804 .9224 .4234
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element S
+OUT>  fraction 1
+OUT>  type vdosdebye
+OUT>  debye_temp 300
 ===================================================================================================
