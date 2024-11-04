@@ -18,23 +18,32 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
-#include <fstream>
+#include "NCrystal/internal/NCFileUtils.hh"
+#include "NCrystal/internal/NCMath.hh"//isOneOf
+#include <iostream>
+namespace NC=NCrystal;
 
-#if ( defined (_WIN32) || defined (WIN32) )
-#  define NCRYSTAL_USE_WINDOWS_FILEUTILS
-
-namespace NCRYSTAL_NAMESPACE {
-
-  namespace WinFileUtils {
-    bool file_exists( const std::string& path );
-    std::ifstream open_ifstream_from_path( const std::string& path,
-                                           std::ios_base::openmode mode = std::ios_base::in);
-    VectS ncglob_impl(const std::string&);
-    std::string get_current_working_dir();
-    std::string get_self_exe_path_windows();
-    std::string get_absolute_path(std::string path)
+int main( int argc, char ** argv )
+{
+  auto self_path = NC::determine_exe_self_path( argc, argv );
+  std::cout<<"determine_exe_self_path: "<<self_path<<std::endl;
+  if (!NC::file_exists(self_path)) {
+    std::cout<<"Error: did not exist!"<<std::endl;
+    return 1;
   }
+
+  if (!NC::path_is_absolute(self_path)) {
+    std::cout<<"Error: was not absolute!"<<std::endl;
+    return 1;
+  }
+
+  nc_assert_always( NC::isOneOf( NC::basename(self_path),
+                                 "selfpath",
+                                 "selfpath.exe") );
+  nc_assert_always( NC::basename(NC::dirname(self_path)) == "bin" );
+  //tryRealPath
+  //std::string normalise(const std::string& path);
+  std::cout<<"All looks OK"<<std::endl;
+  return 0;
 }
 
-#endif

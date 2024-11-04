@@ -46,7 +46,6 @@ namespace NCRYSTAL_NAMESPACE {
   std::string basename(const std::string& path);
   //The extension of the filename (if any):
   std::string getfileext(const std::string& path);
-
   //Normalise by analysing and reencoding:
   std::string normalise(const std::string& path);
 
@@ -57,10 +56,10 @@ namespace NCRYSTAL_NAMESPACE {
   //Windows, unless path already contains forward slashes):
   std::string path_join(const std::string&, const std::string&);
 
-  // tryRealPath: Wrap posix "realpath" function in tryRealPath(..). On any
-  // sort of error (including the error of not being unix), returns an empty
-  // string. Hopefully this function should work for 99.9% of usecases on
-  // linux/osx/bsd, and fail gracefully in the rest.
+  // tryRealPath: Wrap posix "realpath" or windows GetFullPathNameW function. On
+  // any sort of error (including being un an unsupported platform), it returns
+  // an empty string. Hopefully this function should work most of the time, and
+  // fail gracefully in the rest.
   std::string tryRealPath( const std::string& path );
 
   //Read entire file into a string while protecting against someone mistakenly
@@ -69,6 +68,10 @@ namespace NCRYSTAL_NAMESPACE {
   //unreadable. Calling on too large files will instead result in a
   //DataLoadError.
   Optional<std::string> readEntireFileToString( const std::string& path );
+
+  //Use in applications (from main) needing to determine their own
+  //paths. Returns empty string if unable.
+  std::string determine_exe_self_path( int argc, char** argv );
 
 }
 

@@ -165,6 +165,39 @@ namespace NCRYSTAL_NAMESPACE {
       return winimpl_wstr2str( std::move(wpath) );
     }
 
+    std::wstring path2wpath( const std::string& path )
+    {
+      if ( contains( path, '/' ) ) {
+        std::string pfix = path;
+        for ( auto& c : pfix )
+          if ( c == '/' )
+            c = '\\';
+        return winimpl_str2wstr( pfix );
+      } else {
+        return winimpl_str2wstr( path );
+      }
+    }
+
+    std::string get_absolute_path(std::string path)
+    {
+      if ( path.empty() )
+        return {};
+      auto wpath = path2wpath( path );
+      auto len_with_null_term = GetFullPathNameW( &wpath[0],
+                                                  0, nullptr, nullptr );
+      if ( len_with_null_term <= 1 )
+        return {};
+      std::string wres;
+      wres.resize(len-1,0);
+      auto len = GetFullPathNameW( &wpath[0],
+                                   len_with_null_term, &wres[0],
+                                   nullptr );
+      if ( len != wres.size() )
+        return {};//failed
+
+      return winimpl_wstr2str( wres );
+    }
+
     VectS ncglob_impl( const std::string& pattern_utf8 )
     {
       std::wstring wpattern;
@@ -214,6 +247,15 @@ namespace NCRYSTAL_NAMESPACE {
       return result;
     }
 
+    std::string get_self_exe_path_windows()
+    {
+      std::wstring wpath;
+      wpath.resize(MAX_PATH);
+      auto nsize = GetModuleFileNameW(nullptr, &wpath[0], MAX_PATH);
+      nc_assert_always(nsize<=wpath.size());
+      wpath.resize(nsize);
+      return winimpl_wstr2str( std::move(wpath) );
+    }
   }
 }
 #endif

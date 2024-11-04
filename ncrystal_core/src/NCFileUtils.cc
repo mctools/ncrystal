@@ -25,7 +25,12 @@
 
 namespace NC = NCrystal;
 
-#if defined(__unix__) || (defined (__APPLE__) && defined (__MACH__))
+#ifdef NCRYSTAL_USE_WINDOWS_FILEUTILS
+std::string NC::tryRealPath( const std::string& path )
+{
+  return WinFileUtils::get_absolute_path(path);
+}
+#elif defined(__unix__) || (defined (__APPLE__) && defined (__MACH__))
 #include <stdlib.h>
 #include <limits.h>
 std::string NC::tryRealPath( const std::string& fn ) {
@@ -41,8 +46,11 @@ std::string NC::tryRealPath( const std::string& fn ) {
   return std::string(res);
 }
 #else
-//Windows or whatever... just give up. [FIXME: To NCFileUtilsWin.cc + add NCFileUtilsUnix.cc]
-std::string NC::tryRealPath( const std::string& ) { return {}; }
+//Give up:
+std::string NC::tryRealPath( const std::string& path )
+{
+  return {};
+}
 #endif
 
 
@@ -354,3 +362,90 @@ std::string NC::ncgetcwd() {
   NCRYSTAL_THROW(CalcError,"Could not determine current working directory");
 }
 #endif
+
+#if defined(__unix__) && !defined(__APPLE__)
+namespace NCRYSTAL_NAMESPACE {
+  namespace {
+    std::string try_get_self_exe_path_from_proc(const char * procpath)
+    {
+      //Read a link like /proc/self/exe
+      char buf[65536+1];//PATH_MAX is unreliable so we use huge buffer
+      auto len = ::readlink(procpath, buf, sizeof(buf)-1 );
+      if ( len > 0 && std::size_t(len+1) < std::size_t(sizeof(buf)) ) {
+        buf[len] = '\0';//readlink does not add terminating null char
+        return { buf };
+      } else {
+        return {};//error
+      }
+    }
+  }
+}
+#endif
+
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+namespace NCRYSTAL_NAMESPACE {
+  namespace {
+    std::string get_self_exe_path_apple()
+    {
+      //First find required buffer size:
+      uint32_t bufsize = 0;
+      char fakebuf[4];
+      auto status = _NSGetExecutablePath(&fakebuf, &bufsize);
+      if ( status != -1 )
+        return {};//unexpected result, buffer should NOT be large enough
+      std::string res;
+      res.resize( bufsize, 0 );
+      status = _NSGetExecutablePath(&fakebuf, &bufsize);
+      if ( status == 0 && res2.find('\0') > res2.size() )
+        return res;
+      else
+        return {};//error
+    }
+  }
+}
+#endif
+
+std::string NC::determine_exe_self_path( int argc, char** argv )
+{
+  //First try some platform specific methods not relying on argv0:
+#ifdef NCRYSTAL_USE_WINDOWS_FILEUTILS
+  {
+    auto res = WinFileUtils::get_self_exe_path_windows();
+    if (!res.empty())
+      return res;
+  }
+#endif
+#ifdef __APPLE__
+  {
+    auto res = get_self_exe_path_apple();
+    if (!res.empty())
+      return res;
+  }
+#endif
+#if defined(__unix__) && !defined(__APPLE__)
+  {
+    //Should always work on linux:
+    auto res = try_get_self_exe_path_from_proc("/proc/self/exe");
+    if (!res.empty())
+      return res;
+  }
+  {
+    //Might occasionally work on FreeBSD etc.
+    auto res = try_get_self_exe_path_from_proc("/proc/curproc/file");
+    if (!res.empty())
+      return res;
+  }
+#endif
+  //Fall back to argv0:
+  if ( !(argc > 0) )
+    return {};//not available (rare, but allowed by C standard);
+  std::string argv0( argv[0] );
+  if ( NC::path_is_absolute( argv0 ) )
+    return argv0;
+  std::string guess = NC::path_join( ncgetcwd(), argv0 );
+  if ( NC::file_exists(guess) )
+    return guess;
+  //Give up:
+  return {};
+}
