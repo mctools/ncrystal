@@ -27,13 +27,14 @@
 namespace NCRYSTAL_NAMESPACE {
 
   namespace WinFileUtils {
-    bool file_exists( const std::string& path );
-    std::ifstream open_ifstream_from_path( const std::string& path,
-                                           std::ios_base::openmode mode = std::ios_base::in);
+    bool file_exists( const std::string& );
+    std::ifstream open_ifstream_from_path( const std::string&,
+                                           std::ios_base::openmode
+                                           = std::ios_base::in);
     VectS ncglob_impl(const std::string&);
     std::string get_current_working_dir();
     std::string get_self_exe_path_windows();
-    std::string get_absolute_path(std::string path)
+    std::string get_absolute_path(std::string);
   }
 }
 

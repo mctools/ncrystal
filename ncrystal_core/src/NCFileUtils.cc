@@ -391,13 +391,13 @@ namespace NCRYSTAL_NAMESPACE {
       //First find required buffer size:
       uint32_t bufsize = 0;
       char fakebuf[4];
-      auto status = _NSGetExecutablePath(&fakebuf, &bufsize);
+      auto status = _NSGetExecutablePath(fakebuf, &bufsize);
       if ( status != -1 )
         return {};//unexpected result, buffer should NOT be large enough
       std::string res;
       res.resize( bufsize, 0 );
-      status = _NSGetExecutablePath(&fakebuf, &bufsize);
-      if ( status == 0 && res2.find('\0') > res2.size() )
+      status = _NSGetExecutablePath(&res[0], &bufsize);
+      if ( status == 0 && res.find('\0') > res.size() )
         return res;
       else
         return {};//error

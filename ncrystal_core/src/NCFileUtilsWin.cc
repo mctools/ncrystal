@@ -183,12 +183,13 @@ namespace NCRYSTAL_NAMESPACE {
       if ( path.empty() )
         return {};
       auto wpath = path2wpath( path );
+
       auto len_with_null_term = GetFullPathNameW( &wpath[0],
                                                   0, nullptr, nullptr );
       if ( len_with_null_term <= 1 )
         return {};
-      std::string wres;
-      wres.resize(len-1,0);
+      std::wstring wres;
+      wres.resize(len_with_null_term-1,0);
       auto len = GetFullPathNameW( &wpath[0],
                                    len_with_null_term, &wres[0],
                                    nullptr );
