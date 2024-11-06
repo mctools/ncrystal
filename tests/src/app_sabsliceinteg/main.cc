@@ -98,6 +98,8 @@ namespace {
              <<std::endl;
   }
 
+  constexpr double alpha_integral_tol = 3e-14;
+
   template<class Func_F, class Func_DefIntegralOfF>
   void check_integrateAlphaInterval (double a0, double a1,
                                      const Func_F& func_f_,
@@ -107,14 +109,14 @@ namespace {
     double calc = NC::SABUtils::integrateAlphaInterval(a0,f0, a1, f1 );
     double calc_fast = NC::SABUtils::integrateAlphaInterval_fast(a0,f0, a1, f1, std::log(f0), std::log(f1) );
     double expect = func_f_defintegral_(a0,a1);
-    constexpr double tol = 3e-14;
     auto rd_ok = [expect](double v)
     {
-      return ( ( v==expect || NC::ncabs(v/expect-1.0) < tol )
+      return ( ( v==expect || NC::ncabs(v/expect-1.0) < alpha_integral_tol )
                ? "yes" : "no" );
     };
 
-    std::cout<<" integrateAlphaInterval : "<<calc<<" vs. "<<calc_fast<<" vs. "<<expect<<" reldiff < "<<tol<<": "
+    std::cout<<" integrateAlphaInterval : "<<calc<<" vs. "<<calc_fast
+             <<" vs. "<<expect<<" reldiff < "<<alpha_integral_tol<<": "
              <<rd_ok(calc)<<" and "<<rd_ok(calc_fast)<<std::endl;
   }
 }
