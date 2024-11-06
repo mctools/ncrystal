@@ -35,6 +35,24 @@ test-command = [
   "nctool --test",
 ]
 
+[project]
+name = "ncrystal"
+version = '3.9.7'
+authors = [
+  { name="NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)" },
+]
+description = "Library for thermal neutron transport in crystals and other materials."
+readme = "README"
+requires-python = ">=3.8"
+license = {file = "LICENSE"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: Unix",
+]
+dependencies = [ 'numpy' ]
+
+
 [project.scripts]
 nctool = "NCrystal._cli_nctool:main"
 ncrystal_cif2ncmat = "NCrystal._cli_cif2ncmat:main"
