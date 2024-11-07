@@ -124,6 +124,8 @@ if ( DEFINED NCRYSTAL_SETUPPY_MODE )
 else()
   set( NCRYSTAL_SETUPPY_MODE "OFF" )
 endif()
+set( NCRYSTAL_ENABLE_PYTHON "OFF" )#FIXME
+set( NCRYSTAL_SKIP_PYMODINST "OFF" )#FIXME
 
 if ( WIN32 AND NCRYSTAL_ENABLE_TESTING AND NOT NCRYSTAL_SKIP_INSTALL )
   #Testing on windows needs us to export symbols from internal headers.
