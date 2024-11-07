@@ -39,22 +39,7 @@
 #                                                                                #
 ##################################################################################
 
-# We require cmake 3.10. This is intended to strike a balance between features
-# and availability. Of popular platforms, a lower number would only have helped
-# NCrystal usage on a few slightly older distributions such as Ubuntu 16.04 (has
-# 3.5.1), Debian oldstable (has 3.7.2 as of Nov2020). CentOS6 and CentOS7 have
-# CMake 2.8.12 which is clearly below any sensible threshold, so users on these
-# platforms can already be expected to be used to install custom versions of
-# tools like CMake (for instance CentOS7 provides cmake3 as a separate package,
-# providing CMake 3.11). In any case, on platforms lacking CMake 3.10, one
-# must install a newer cmake somehow (this is usually rather simple). See also:
-# https://cliutils.gitlab.io/modern-cmake/chapters/intro/installing.html
-#
-# The maximum value is the maximum value with which we have tested. The reason
-# for specifying this maximum value is that it affects the default values of
-# cmake policies, depending on which version introduced them.
-
-cmake_minimum_required(VERSION 3.10...3.27)
+cmake_minimum_required(VERSION 3.16...3.27)
 
 # Respect value of CMAKE_BUILD_TYPE if already defined, otherwise fall back to
 # Release. In any case, expose CMAKE_BUILD_TYPE as an explicit cache variable
@@ -70,8 +55,10 @@ if( NOT NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE )
     else()
       set( _def_cbt Release )
     endif()
-    set( CMAKE_BUILD_TYPE ${_def_cbt}  CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo and MinSizeRel." )
-    set_property( CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release RelWithDebInfo MinSizeRel None )
+    set( CMAKE_BUILD_TYPE ${_def_cbt}  CACHE STRING
+      "Choose the type of build, options are: Debug Release RelWithDebInfo and MinSizeRel." )
+    set_property( CACHE CMAKE_BUILD_TYPE
+      PROPERTY STRINGS Debug Release RelWithDebInfo MinSizeRel None )
   endif()
 endif()
 
@@ -79,12 +66,12 @@ endif()
 
 set( _project_metadata LANGUAGES CXX C )
 
-list( APPEND _project_metadata DESCRIPTION "Library for thermal neutron transport in crystals and other materials" )
-if( "${CMAKE_VERSION}" VERSION_GREATER_EQUAL "3.12.0" )
-  list( APPEND _project_metadata HOMEPAGE_URL "https://github.com/mctools/ncrystal" )
-endif()
-
-cmake_policy( SET CMP0048 NEW )#Not sure if this is really needed
+list( APPEND
+  _project_metadata DESCRIPTION
+  "Library for thermal neutron transport in crystals and other materials" )
+list( APPEND
+  _project_metadata HOMEPAGE_URL
+  "https://github.com/mctools/ncrystal" )
 
 project( NCrystal VERSION 3.9.7 ${_project_metadata} )
 
@@ -131,7 +118,8 @@ if ( DEFINED NCRYSTAL_SETUPPY_MODE )
     _ncrystal_option_force( CMAKE_INSTALL_DATADIR "NCrystal/ncrystal_pyinst_data/data" )
     _ncrystal_option_force( NCrystal_DATAFILESDIR "NCrystal/ncrystal_pyinst_data/stdlib_data" )
     #TODO: Postpone adding the following namespace until e.g. mcstas comps stop hardcoding "-lNCrystal":
-    #_ncrystal_option_force( NCRYSTAL_NAMESPACE "pip${PROJECT_VERSION_MAJOR}d${PROJECT_VERSION_MINOR}d${PROJECT_VERSION_PATCH}" )
+    #_ncrystal_option_force( NCRYSTAL_NAMESPACE
+    # "pip${PROJECT_VERSION_MAJOR}d${PROJECT_VERSION_MINOR}d${PROJECT_VERSION_PATCH}" )
   endif()
 else()
   set( NCRYSTAL_SETUPPY_MODE "OFF" )
@@ -270,7 +258,7 @@ if ( NCRYSTAL_MODIFY_RPATH )
   #
   #NB: CMake 3.18 introduces CheckLinkerFlag module which we can eventually use
   #    instead of try_compile!!
-  if( NOT MSVC AND ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.14.0" )
+  if( NOT MSVC )
     set(TMP_TESTDIR ${PROJECT_BINARY_DIR}/test_dtagflags)
     file(WRITE ${TMP_TESTDIR}/test.c "int main() { return 0; }\n")
     try_compile(LINKER_HAS_DTAGS "${TMP_TESTDIR}" "${TMP_TESTDIR}/test.c" LINK_OPTIONS -Wl,--disable-new-dtags)
@@ -288,20 +276,12 @@ endif()
 # keyword when it is supported.
 
 function(file_globsrc output_var pattern)
-  if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.12.0")
-    file(GLOB tmp LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/${pattern}" )
-  else()
-    file(GLOB tmp LIST_DIRECTORIES false "${PROJECT_SOURCE_DIR}/${pattern}" )
-  endif()
+  file(GLOB tmp LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/${pattern}" )
   set(${output_var} ${tmp} PARENT_SCOPE)
 endfunction()
 
 function(file_glob output_var pattern)
-  if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.12.0")
-    file(GLOB tmp LIST_DIRECTORIES false CONFIGURE_DEPENDS "${pattern}" )
-  else()
-    file(GLOB tmp LIST_DIRECTORIES false "${pattern}" )
-  endif()
+  file(GLOB tmp LIST_DIRECTORIES false CONFIGURE_DEPENDS "${pattern}" )
   set(${output_var} ${tmp} PARENT_SCOPE)
 endfunction()
 
@@ -603,39 +583,14 @@ function(parse_pluginentry entry)
 endfunction()
 
 if ( NCRYSTAL_ENABLE_DATA STREQUAL "EMBED" )
+  #Embed data (needs to invoke python process to generate C++ code from .ncmat files)
 
   target_compile_definitions(NCrystal PRIVATE NCRYSTAL_STDCMAKECFG_EMBED_DATA_ON)
 
-  #Embed data (needs to invoke python process to generate C++ code from .ncmat files)
-
   #We must find python3 interpreter. The FindPython3 module is only available
   #from CMake 3.12 and is reported to not work well until CMake 3.15.5.
-  if( ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.15.5" )
-    find_package (Python3 COMPONENTS Interpreter)#With cmake 3.15.5 we can put
-                                                 #3.6 REQUIRED here and simplify
-                                                 #the code below.
-  else()
-    #Older CMake, look for python3 command in path:
-    execute_process(COMMAND python3 -c "import sys;print('%s.%s.%s'%sys.version_info[0:3])"
-      RESULT_VARIABLE status OUTPUT_VARIABLE Python3_VERSION ERROR_QUIET)
-    if(status AND NOT status EQUAL 0)
-      set(Python3_FOUND OFF)
-      set(Python3_Interpreter_FOUND OFF)
-    else()
-      set(Python3_FOUND ON)
-      set(Python3_Interpreter_FOUND ON)
-      set(Python3_EXECUTABLE python3)
-    endif()
-  endif()
-  if( Python3_FOUND AND NOT Python3_Interpreter_FOUND)
-    set(Python3_FOUND OFF)
-  endif()
-  if ( Python3_FOUND AND "${Python3_VERSION}" VERSION_LESS "3.6.0" )
-    set(Python3_FOUND OFF)
-  endif()
-  if (NOT Python3_FOUND)
-    message(FATAL_ERROR "Python3.6+ interpreter not found (required when NCRYSTAL_ENABLE_DATA=EMBED).")
-  endif()
+  message( STATUS "Looking for python interpreter (needed when NCRYSTAL_ENABLE_DATA=EMBED).")
+  find_package(Python3 3.8 REQUIRED COMPONENTS Interpreter)
   #Generate C++ code from the .ncmat files:
   execute_process(
     COMMAND "${Python3_EXECUTABLE}"
