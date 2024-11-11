@@ -60,7 +60,7 @@ else()
   if ( NOT NCTESTS_STANDALONE )
     list(
       APPEND nctest_pyenvmod
-      "PYTHONPATH=path_list_prepend:${NCrystal_SOURCE_DIR}"
+      "PYTHONPATH=path_list_prepend:${NCrystal_SOURCE_DIR}/../ncrystal_python"
       "PYTHONPATH=path_list_prepend:${PROJECT_SOURCE_DIR}/pypath"
     )
     get_target_property(
@@ -70,7 +70,7 @@ else()
     )
     list(
       APPEND nctest_pyenvmod
-      "NCRYSTAL_LIB=set:$<TARGET_FILE:NCrystal>"
+      "NCRYSTAL_LIB=set:$<TARGET_FILE:${nctests_ncrystallib_target}>"
     )
     if ( NOT NCRYSTAL_ENABLE_DATA STREQUAL "EMBED" )
       list(
@@ -113,7 +113,7 @@ if ( WIN32 )
   else()
     list(
       APPEND nctest_appenvmod
-      "PATH=path_list_prepend:$<TARGET_FILE_DIR:NCrystal>"
+      "PATH=path_list_prepend:$<TARGET_FILE_DIR:${nctests_ncrystallib_target}>"
     )
   endif()
 endif()

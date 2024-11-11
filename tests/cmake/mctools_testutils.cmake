@@ -290,6 +290,13 @@ function(
     target_link_libraries( ${bn} PRIVATE ${extra_link_libs} )
     target_include_directories( ${bn} ${extra_inc_dirs} )
 
+    #Most apps won't need it, but we let an executable know its own path in the
+    #build area, so we can unit test an executable's ability to find its own
+    #path:
+    target_compile_definitions(
+      ${bn} PRIVATE "MCTOOLS_TESTAPP_FILE=$<TARGET_FILE:${bn}>"
+    )
+
     set( reflog "${appdir}/test.log" )
     if ( EXISTS "${reflog}" )
       set( testname "app_rl_${bn}" )
