@@ -18,27 +18,6 @@
 ##                                                                            ##
 ################################################################################
 
-##################################################################################
-#                                                                                #
-# CMake file which can be used to compile and link all files distributed with    #
-# NCrystal, and which provides CMake configuration files and (with               #
-# NCRYSTAL_ENABLE_SETUPSH=ON) ncrystal_setup.sh/ncrystal_unsetup.sh for          #
-# subsequent usage (also ncrystal_setup.sh/ncrystal_unsetup.sh).                 #
-#                                                                                #
-# One way to invoke cmake to build and install would be like this (run this from #
-# a temporary build dir)                                                         #
-#                                                                                #
-#  $> cmake /path/to/sourcedir -DCMAKE_INSTALL_PREFIX=/path/to/installdir        #
-#                                                                                #
-# Followed by (replace the number 8 by the number of processes you want to       #
-# use for the compilation):                                                      #
-#                                                                                #
-#  $> make install -j8                                                           #
-#                                                                                #
-# Written 2016-2023 by T. Kittelmann.                                            #
-#                                                                                #
-##################################################################################
-
 cmake_minimum_required(VERSION 3.16...3.27)
 
 # Respect value of CMAKE_BUILD_TYPE if already defined, otherwise fall back to
@@ -287,7 +266,7 @@ function(file_glob output_var pattern)
   set(${output_var} ${tmp} PARENT_SCOPE)
 endfunction()
 
-file_globsrc( SRCS_NC "ncrystal_core/src/*.cc")
+file_globsrc( SRCS_NC "src/*.cc")
 file_globsrc( EXAMPLES_NC "examples/ncrystal_example_c*.c*")
 file_globsrc( DATAFILES "data/*.ncmat")
 file_globsrc( SRCS_NCPY "NCrystal/*.py")
@@ -304,10 +283,10 @@ file_globsrc( EXAMPLES_NCG4 "examples/ncrystal_example_g4*.cc")
 set( ncrystal_core_configured_includedir "${PROJECT_BINARY_DIR}/ncrystal_core_include_configured" )
 file( MAKE_DIRECTORY "${ncrystal_core_configured_includedir}" )
 
-#TODO: The trailing "/" on "ncrystal_core/include/" below is crucial. Is this behaviour portable?
+#TODO: The trailing "/" on "include/" below is crucial. Is this behaviour portable?
 
 file(
-  COPY "ncrystal_core/include/"
+  COPY "include/"
   DESTINATION "${ncrystal_core_configured_includedir}"
   FILES_MATCHING
   PATTERN "*.h"
@@ -526,7 +505,7 @@ endif()
 set_target_common_props( NCrystal )
 target_link_libraries( NCrystal PRIVATE ncrystal_common )
 target_include_directories(
-  NCrystal PRIVATE "${PROJECT_SOURCE_DIR}/ncrystal_core/src"
+  NCrystal PRIVATE "${PROJECT_SOURCE_DIR}/src"
   PUBLIC $<BUILD_INTERFACE:${ncrystal_core_configured_includedir}>
          $<INSTALL_INTERFACE:${NCrystal_INCDIR}>
 )
@@ -594,10 +573,13 @@ if ( NCRYSTAL_ENABLE_DATA STREQUAL "EMBED" )
   message( STATUS "Looking for python interpreter (needed when NCRYSTAL_ENABLE_DATA=EMBED).")
   find_package(Python3 3.8 REQUIRED COMPONENTS Interpreter)
   #Generate C++ code from the .ncmat files:
+  #Fixme: Would be nice if we could invoke _ncmat2cpp_impl.py directly from the
+  #ncrystal_python subdir? Otherwise we should add it to a list of files to be
+  #kept in sync automatically (along with LICENSE file perhaps).
   execute_process(
     COMMAND "${Python3_EXECUTABLE}"
     "-BI"
-    "${PROJECT_SOURCE_DIR}/NCrystal/_ncmat2cpp_impl.py"
+    "${PROJECT_SOURCE_DIR}/cmake/_ncmat2cpp_impl.py"
     "-n" "NCrystal::AutoGenNCMAT::registerStdNCMAT"
     "--regfctname" "NCrystal::internal::registerEmbeddedNCMAT(const char*,const char*)"
     "-o" "${PROJECT_BINARY_DIR}/autogen_ncmat_data.cc" ${DATAFILES} RESULT_VARIABLE status
@@ -797,8 +779,8 @@ if ( NCRYSTAL_ENABLE_TESTING )
       set_target_properties(NCrystal PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
       target_compile_definitions(NCrystal PUBLIC NCRYSTAL_PREVENT_WINDLLEXPORT)
     endif()
-    enable_testing()
-    add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/tests")
+    #enable_testing()
+    #add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/tests")
   endif()
 endif()
 
@@ -914,6 +896,22 @@ if (NCRYSTAL_ENABLE_PYTHON)
   #NB: Important we do this next call AFTER all variables used in ncrystal-config.in have been set!
   configure_file( "${PROJECT_SOURCE_DIR}/cmake/ncrystal-config.in" "${PROJECT_BINARY_DIR}/ncrystal-config" @ONLY )
   ncinstall( PROGRAMS "${PROJECT_BINARY_DIR}/ncrystal-config" DESTINATION ${NCrystal_BINDIR} )
+endif()
+
+set( NCRYSTAL_ENABLE_CFGAPP "ON" )#fixme as option
+if ( NCRYSTAL_ENABLE_CFGAPP )
+  add_executable( ncrystal_cfgapp "${PROJECT_SOURCE_DIR}/app_config/main.c" )
+  #C99 and C11 seems to be OK for most systems. Using C99 to be conservative
+  #(could be reconsidered if we need it):
+  set_target_properties( ncrystal_cfgapp PROPERTIES LANGUAGE C )
+  target_compile_features( ncrystal_cfgapp INTERFACE c_std_99 )
+  if ( SKBUILD_SCRIPTS_DIR )
+    #fixme: verify if this actually ends up in PATH
+    set( ncrystal_cfgapp_dest "${SKBUILD_SCRIPTS_DIR}" )
+  else()
+    set( ncrystal_cfgapp_dest "${NCrystal_BINDIR}" )
+  endif()
+  ncinstall( TARGETS ncrystal_cfgapp DESTINATION scripts )
 endif()
 
 if ( NOT NCRYSTAL_QUIET )
