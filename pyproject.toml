@@ -29,14 +29,14 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
-[tool.cibuildwheel]
-test-command = [
-  "python3 -mNCrystal.test all",
-  "nctool --test",
-]
+#[tool.cibuildwheel]
+#test-command = [
+#  "python3 -mNCrystal.test all",
+#  "nctool --test",
+#]
 
 [project]
-name = "ncrystal"
+name = "ncrystal-python"
 version = '3.9.7'
 authors = [
   { name="NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)" },
