@@ -1,0 +1,67 @@
+
+################################################################################
+##                                                                            ##
+##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
+##                                                                            ##
+##  Copyright 2015-2024 NCrystal developers                                   ##
+##                                                                            ##
+##  Licensed under the Apache License, Version 2.0 (the "License");           ##
+##  you may not use this file except in compliance with the License.          ##
+##  You may obtain a copy of the License at                                   ##
+##                                                                            ##
+##      http://www.apache.org/licenses/LICENSE-2.0                            ##
+##                                                                            ##
+##  Unless required by applicable law or agreed to in writing, software       ##
+##  distributed under the License is distributed on an "AS IS" BASIS,         ##
+##  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  ##
+##  See the License for the specific language governing permissions and       ##
+##  limitations under the License.                                            ##
+##                                                                            ##
+################################################################################
+
+#Fixme this file needs a lot more work.
+
+[build-system]
+requires = ["scikit-build-core>=0.10"]
+build-backend = "scikit_build_core.build"
+
+[tool.scikit-build]
+#cmake.verbose = true
+logging.level = "INFO"
+minimum-version = "build-system.requires"
+cmake.source-dir = "."
+wheel.packages = []#ncrystal-core provides no python packges
+sdist.include = ["README.md","LICENSE","/src/","/include/","/data/","/cmake/"]
+
+[tool.scikit-build]
+cmake.build-type = "Release"
+
+[tool.scikit-build.cmake.define]
+#fixme doesnt work: NCRYSTAL_ENABLE_PYTHON = false
+NCRYSTAL_ENABLE_PYTHON = "OFF"
+NCRYSTAL_ENABLE_EXAMPLES = "OFF"
+NCRYSTAL_ENABLE_GEANT4 = "OFF"
+NCRYSTAL_SETUPPY_MODE = "ON"
+
+#fixme: ctest?
+#[tool.cibuildwheel]
+#test-command = [
+#  "python3 -mNCrystal.test all",
+#  "nctool --test",
+#]
+
+[project]
+name = "ncrystal-core"
+version = "3.9.7"
+authors = [
+  { name="NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)" },
+]
+description = "Library for thermal neutron transport in crystals and other materials."
+readme = "README.md"
+requires-python = ">=3.8"
+license = {file = "LICENSE"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: Unix",
+]
