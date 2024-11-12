@@ -64,7 +64,9 @@ jobs:
       - name: Install NCrystal
         run: |
           #python3 -m pip install ncrystal --no-deps
-          python3 -m pip install ./src_co --no-deps -vv
+          #FIXME: Add --no-deps and add deps in ./src_co/.github/resources/conda_ncrystaltestenv.yml !!
+          python3 -m pip install ./src_co/ncrystal_core -vv
+          python3 -m pip install ./src_co/ncrystal_python -vv
           #Cheating:
           #conda install -c conda-forge ncrystal
 
