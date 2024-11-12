@@ -35,6 +35,18 @@ jobs:
     - name: install oneAPI runtime libs
       run: sudo apt install intel-oneapi-runtime-libs
 
+      #NB: We don't test matplotlib import here in the next step, since we want
+      #to make sure that our CTest infrastructure correctly avoids problems from
+      #"building font cache" printouts on first imports.
+    - name: pip install extra deps
+      run: |
+        python3 -mpip install numpy matplotlib gemmi spglib ase mpmath
+        python3 -c "import numpy; print('numpy imported ok')"
+        python3 -c "import gemmi; print('gemmi imported ok')"
+        python3 -c "import spglib; print('spglib imported ok')"
+        python3 -c "import ase; print('ase imported ok')"
+        python3 -c "import mpmath; print('mpmath imported ok')"
+
     - name: Configure CMake
       run: |
         source /opt/intel/oneapi/setvars.sh
@@ -51,7 +63,9 @@ jobs:
         -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install \
         -DNCRYSTAL_ENABLE_EXAMPLES=ON \
         -DNCRYSTAL_BUILD_STRICT=ON \
-        -DNCRYSTAL_ENABLE_TESTING=ON
+        -DNCRYSTAL_ENABLE_TESTING=ON \
+        -DCMAKE_COMPILE_WARNING_AS_ERROR=ON \
+        -DMCTOOLS_REQUIRE_ALL_TEST_DEPS=ON
 
 #Flags that we didn't need:
 #        -DIntelDPCPP_DIR="/opt/intel/oneapi/compiler/latest/linux/cmake/SYCL"
