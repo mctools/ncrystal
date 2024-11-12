@@ -18,10 +18,14 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+#ifndef NCRYSTAL_PRETEND_EXPORTS
+// Let NCCFileUtils.hh know it is compiled into NCrystal, not some other
+// project.
+#  define NCRYSTAL_PRETEND_EXPORTS
+#endif
 #include "NCrystal/internal/NCCFileUtils.hh"
 
 namespace NC = NCrystal;
-
 #include <stdexcept>
 #include <cstring>
 

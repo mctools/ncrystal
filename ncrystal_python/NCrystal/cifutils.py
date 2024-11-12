@@ -1530,10 +1530,12 @@ def _actual_init_gemmicif( cifsrc, *, quiet, mp_apikey, refine_with_spglib, merg
         if len(_)>1:
             _str = '", "'.join( xhm for no,xhm,isref in _)
             if not orig_hm_alt or not any( (orig_hm_alt==e[1] or orig_hm_alt.replace(' ','')==e[1].replace(' ','')) for e in _ ):
-                _nc_common.warn(f'SG-{sg.number} available in multiple choices ("{_str}") and'
-                               ' which one was not encoded explicitly in the _space_group_name_H-M_alt CIF field. Consider overriding the space group explicitly when loading this file.')
-
-
+                _nc_common.warn(f'SG-{sg.number} available in multiple'
+                                f' choices ("{_str}") and which one was not'
+                                ' encoded explicitly in the '
+                                '_space_group_name_H-M_alt CIF field. Consider'
+                                ' overriding the space group explicitly when'
+                                ' loading this file.')
 
     _ = cif_block_with_structure.find(['_atom_type_number_in_cell'])
     _ = sum((sum(([e] for e in ll),[]) for ll in _),[]) if _ else []

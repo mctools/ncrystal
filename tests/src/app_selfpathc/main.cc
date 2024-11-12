@@ -18,8 +18,15 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+#ifndef NCRYSTAL_PRETEND_EXPORTS
+// Let NCCFileUtils.hh know it is compiled into NCrystal, not some other
+// project.
+#  define NCRYSTAL_PRETEND_EXPORTS
+#endif
 #include "NCrystal/internal/NCCFileUtils.hh"
+
 #include <stdio.h>
+
 namespace NC=NCrystal;
 
 #define ncrystal_xstr(a) ncrystal_str(a)
@@ -31,7 +38,7 @@ int main(int argc, char** argv) {
   printf("Self path:          %s\n",selfpath.c_str);
 
   NC::mcu8str expected_selfpath =
-    NC::mcu8str_create_from_cstr( xstr(MCTOOLS_TESTAPP_FILE) );
+    NC::mcu8str_create_from_cstr( MCTOOLS_TESTAPP_FILE );
   printf("Expected self path: %s\n",expected_selfpath.c_str);
   if ( std::string(selfpath.c_str) != expected_selfpath.c_str ) {
     printf("ERROR: Mismatch!!\n");

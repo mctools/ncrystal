@@ -294,7 +294,7 @@ function(
     #build area, so we can unit test an executable's ability to find its own
     #path:
     target_compile_definitions(
-      ${bn} PRIVATE "MCTOOLS_TESTAPP_FILE=$<TARGET_FILE:${bn}>"
+      ${bn} PRIVATE "MCTOOLS_TESTAPP_FILE=\"$<TARGET_FILE:${bn}>\""
     )
 
     set( reflog "${appdir}/test.log" )

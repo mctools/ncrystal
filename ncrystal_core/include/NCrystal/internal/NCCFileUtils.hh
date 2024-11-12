@@ -32,7 +32,7 @@
 // automatically for NCrystal below). It is also used to implement the
 // ncrystal-config command (written in C for maximal robustness).
 
-#ifdef NCrystal_EXPORTS
+#if defined(NCrystal_EXPORTS) || defined(NCRYSTAL_PRETEND_EXPORTS)
 #  include "NCrystal/ncapi.h"
 #  define MCFILEUTILS_CPPNAMESPACE NCRYSTAL_NAMESPACE
 #endif
