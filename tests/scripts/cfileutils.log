@@ -1,0 +1,255 @@
+Library "TestMod_testcfileutils" (17 functions):
+  const char * nctest_basename(const char *)
+  const char * nctest_basename_view(const char *)
+  const char * nctest_dirname(const char *)
+  const char * nctest_drive_letter(const char *)
+  int nctest_file_exists_and_readable(const char *)
+  const char * nctest_fileextension(const char *)
+  const char * nctest_fileextension_view(const char *)
+  const char * nctest_fopen_and_read_text(const char *)
+  const char * nctest_get_current_working_dir()
+  int nctest_is_dir(const char *)
+  int nctest_is_same_file(const char *, const char *)
+  int nctest_path_is_absolute(const char *)
+  int nctest_path_is_relative(const char *)
+  const char * nctest_path_join(const char *, const char *)
+  const char * nctest_pathseps_generic(const char *)
+  const char * nctest_pathseps_platform(const char *)
+  const char * nctest_real_path(const char *)
+Testing get_current_working_dir...
+...get_current_working_dir ok
+0 Testing path "hello.txt":
+   mctools_dirname = ""
+   mctools_basename = "hello.txt"
+   mctools_basename_view = "hello.txt"
+   mctools_fileextension = "txt"
+   mctools_fileextension_view = "txt"
+   mctools_file_exists_and_readable = "0"
+   mctools_path_is_absolute = "0"
+   mctools_path_is_relative = "1"
+   mctools_pathseps_platform = "hello.txt"
+   mctools_pathseps_generic = "hello.txt"
+   mctools_drive_letter = ""
+
+1 Testing path "C:\somewhere\bla.txt":
+   mctools_dirname = "C:\somewhere"
+   mctools_basename = "bla.txt"
+   mctools_basename_view = "bla.txt"
+   mctools_fileextension = "txt"
+   mctools_fileextension_view = "txt"
+   mctools_file_exists_and_readable = "0"
+   mctools_path_is_absolute = "1"
+   mctools_path_is_relative = "0"
+   mctools_pathseps_platform = "C:@NATIVESEP@somewhere@NATIVESEP@bla.txt"
+   mctools_pathseps_generic = "C:/somewhere/bla.txt"
+   mctools_drive_letter = "C"
+
+2 Testing path "/somewhere/bla.txt":
+   mctools_dirname = "/somewhere"
+   mctools_basename = "bla.txt"
+   mctools_basename_view = "bla.txt"
+   mctools_fileextension = "txt"
+   mctools_fileextension_view = "txt"
+   mctools_file_exists_and_readable = "0"
+   mctools_path_is_absolute = "1"
+   mctools_path_is_relative = "0"
+   mctools_pathseps_platform = "@NATIVESEP@somewhere@NATIVESEP@bla.txt"
+   mctools_pathseps_generic = "/somewhere/bla.txt"
+   mctools_drive_letter = ""
+
+3 Testing path "c:somewhere\bla.txt":
+   mctools_dirname = "C:somewhere"
+   mctools_basename = "bla.txt"
+   mctools_basename_view = "bla.txt"
+   mctools_fileextension = "txt"
+   mctools_fileextension_view = "txt"
+   mctools_file_exists_and_readable = "0"
+   mctools_path_is_absolute = "0"
+   mctools_path_is_relative = "1"
+   mctools_pathseps_platform = "C:somewhere@NATIVESEP@bla.txt"
+   mctools_pathseps_generic = "C:somewhere/bla.txt"
+   mctools_drive_letter = "C"
+
+4 Testing path "somewhere\bla.txt":
+   mctools_dirname = "somewhere"
+   mctools_basename = "bla.txt"
+   mctools_basename_view = "bla.txt"
+   mctools_fileextension = "txt"
+   mctools_fileextension_view = "txt"
+   mctools_file_exists_and_readable = "0"
+   mctools_path_is_absolute = "0"
+   mctools_path_is_relative = "1"
+   mctools_pathseps_platform = "somewhere@NATIVESEP@bla.txt"
+   mctools_pathseps_generic = "somewhere/bla.txt"
+   mctools_drive_letter = ""
+
+5 Testing path "\somewhere\bla.txt":
+   mctools_dirname = "\somewhere"
+   mctools_basename = "bla.txt"
+   mctools_basename_view = "bla.txt"
+   mctools_fileextension = "txt"
+   mctools_fileextension_view = "txt"
+   mctools_file_exists_and_readable = "0"
+   mctools_path_is_absolute = "1"
+   mctools_path_is_relative = "0"
+   mctools_pathseps_platform = "@NATIVESEP@somewhere@NATIVESEP@bla.txt"
+   mctools_pathseps_generic = "/somewhere/bla.txt"
+   mctools_drive_letter = ""
+
+6 Testing path "somewhere/bla.txt":
+   mctools_dirname = "somewhere"
+   mctools_basename = "bla.txt"
+   mctools_basename_view = "bla.txt"
+   mctools_fileextension = "txt"
+   mctools_fileextension_view = "txt"
+   mctools_file_exists_and_readable = "0"
+   mctools_path_is_absolute = "0"
+   mctools_path_is_relative = "1"
+   mctools_pathseps_platform = "somewhere@NATIVESEP@bla.txt"
+   mctools_pathseps_generic = "somewhere/bla.txt"
+   mctools_drive_letter = ""
+
+7 Testing path ".":
+   mctools_dirname = "."
+   mctools_basename = ""
+   mctools_basename_view = ""
+   mctools_fileextension = ""
+   mctools_fileextension_view = ""
+   mctools_file_exists_and_readable = "1"
+   mctools_path_is_absolute = "0"
+   mctools_path_is_relative = "1"
+   mctools_pathseps_platform = "."
+   mctools_pathseps_generic = "."
+   mctools_drive_letter = ""
+
+8 Testing path "":
+   mctools_dirname = ""
+   mctools_basename = ""
+   mctools_basename_view = ""
+   mctools_fileextension = ""
+   mctools_fileextension_view = ""
+   mctools_file_exists_and_readable = "0"
+   mctools_path_is_absolute = "0"
+   mctools_path_is_relative = "1"
+   mctools_pathseps_platform = ""
+   mctools_pathseps_generic = ""
+   mctools_drive_letter = ""
+
+9 Testing path "/":
+   mctools_dirname = "/"
+   mctools_basename = ""
+   mctools_basename_view = ""
+   mctools_fileextension = ""
+   mctools_fileextension_view = ""
+   mctools_file_exists_and_readable = "1"
+   mctools_path_is_absolute = "1"
+   mctools_path_is_relative = "0"
+   mctools_pathseps_platform = "@NATIVESEP@"
+   mctools_pathseps_generic = "/"
+   mctools_drive_letter = ""
+
+10 Testing path "./\":
+   mctools_dirname = "."
+   mctools_basename = ""
+   mctools_basename_view = ""
+   mctools_fileextension = ""
+   mctools_fileextension_view = ""
+   mctools_file_exists_and_readable = "1"
+   mctools_path_is_absolute = "0"
+   mctools_path_is_relative = "1"
+   mctools_pathseps_platform = ".@NATIVESEP@@NATIVESEP@"
+   mctools_pathseps_generic = ".//"
+   mctools_drive_letter = ""
+
+11 Testing path "/some/where//\bla.txt":
+   mctools_dirname = "/some/where"
+   mctools_basename = "bla.txt"
+   mctools_basename_view = "bla.txt"
+   mctools_fileextension = "txt"
+   mctools_fileextension_view = "txt"
+   mctools_file_exists_and_readable = "0"
+   mctools_path_is_absolute = "1"
+   mctools_path_is_relative = "0"
+   mctools_pathseps_platform = "@NATIVESEP@some@NATIVESEP@where@NATIVESEP@@NATIVESEP@@NATIVESEP@bla.txt"
+   mctools_pathseps_generic = "/some/where///bla.txt"
+   mctools_drive_letter = ""
+
+12 Testing path "some\where/bla.txt":
+   mctools_dirname = "some\where"
+   mctools_basename = "bla.txt"
+   mctools_basename_view = "bla.txt"
+   mctools_fileextension = "txt"
+   mctools_fileextension_view = "txt"
+   mctools_file_exists_and_readable = "0"
+   mctools_path_is_absolute = "0"
+   mctools_path_is_relative = "1"
+   mctools_pathseps_platform = "some@NATIVESEP@where@NATIVESEP@bla.txt"
+   mctools_pathseps_generic = "some/where/bla.txt"
+   mctools_drive_letter = ""
+
+13 Testing path "/some/where/../bla.txt":
+   mctools_dirname = "/some/where/.."
+   mctools_basename = "bla.txt"
+   mctools_basename_view = "bla.txt"
+   mctools_fileextension = "txt"
+   mctools_fileextension_view = "txt"
+   mctools_file_exists_and_readable = "0"
+   mctools_path_is_absolute = "1"
+   mctools_path_is_relative = "0"
+   mctools_pathseps_platform = "@NATIVESEP@some@NATIVESEP@where@NATIVESEP@..@NATIVESEP@bla.txt"
+   mctools_pathseps_generic = "/some/where/../bla.txt"
+   mctools_drive_letter = ""
+
+14 Testing path "some/where/../bla.txt":
+   mctools_dirname = "some/where/.."
+   mctools_basename = "bla.txt"
+   mctools_basename_view = "bla.txt"
+   mctools_fileextension = "txt"
+   mctools_fileextension_view = "txt"
+   mctools_file_exists_and_readable = "0"
+   mctools_path_is_absolute = "0"
+   mctools_path_is_relative = "1"
+   mctools_pathseps_platform = "some@NATIVESEP@where@NATIVESEP@..@NATIVESEP@bla.txt"
+   mctools_pathseps_generic = "some/where/../bla.txt"
+   mctools_drive_letter = ""
+
+15 Testing path "../bla.txt":
+   mctools_dirname = ".."
+   mctools_basename = "bla.txt"
+   mctools_basename_view = "bla.txt"
+   mctools_fileextension = "txt"
+   mctools_fileextension_view = "txt"
+   mctools_file_exists_and_readable = "0"
+   mctools_path_is_absolute = "0"
+   mctools_path_is_relative = "1"
+   mctools_pathseps_platform = "..@NATIVESEP@bla.txt"
+   mctools_pathseps_generic = "../bla.txt"
+   mctools_drive_letter = ""
+
+Writing 29 chars
+Read 29 chars (after newline normalisation)
+READ> 'some'
+READ> 'multi'
+READ> 'line funny \\u{2030} text'
+Testing file 0: "asimplefile.txt"
+Testing file 0: "asimplefile.txt"
+Testing file 1: "sd    	 3"
+Testing file 1: "sd    	 3"
+Testing file 2: "sd    	 3/bla.ncmat"
+Testing file 2: "sd    	 3/bla.ncmat"
+Testing file 3: "sd 1"
+Testing file 3: "sd 1"
+Testing file 4: "sd 1/lala.txt"
+Testing file 4: "sd 1/lala.txt"
+Testing file 5: "sd 1/䔀abc"
+Testing file 5: "sd 1/䔀abc"
+Testing file 6: "sd 1/䔀abc/.foo~"
+Testing file 6: "sd 1/䔀abc/.foo~"
+Testing file 7: "sd 1/䔀abc/.䔀"
+Testing file 7: "sd 1/䔀abc/.䔀"
+Testing file 8: "sd2"
+Testing file 8: "sd2"
+Testing file 9: "sd2/sl1"
+Testing file 9: "sd2/sl1"
+Testing file 10: "sd2/sl2"
+Testing file 10: "sd2/sl2"

@@ -35,12 +35,36 @@ namespace NC=NCrystal;
 int main(int argc, char** argv) {
 
   NC::mcu8str selfpath = NC::mctools_determine_exe_self_path( argc, argv );
-  printf("Self path:          %s\n",selfpath.c_str);
+  printf("Self path:          \"%s\"\n",selfpath.c_str);
+
+  if ( !NC::mctools_file_exists_and_readable( &selfpath ) ) {
+    printf("ERROR: self path is not a (readable) file!\n");
+    return 1;
+  }
+
+  //Test versus the expected path. We get the expected path from CMake, which
+  //has set the MCTOOLS_TESTAPP_FILE define to a string with the path:
 
   NC::mcu8str expected_selfpath =
     NC::mcu8str_create_from_cstr( MCTOOLS_TESTAPP_FILE );
-  printf("Expected self path: %s\n",expected_selfpath.c_str);
-  if ( std::string(selfpath.c_str) != expected_selfpath.c_str ) {
+
+  //Note that CMake might have used forward instead of backwards slashes on
+  //windows (e.g. "D:/a/some/where/selfpathc.exe" instead of
+  //"D:\a\some\where\selfpathc.exe") so we should be sure to not get a spurious
+  //failure here, by normalising:
+
+
+
+  printf("Expected self path: \"%s\"\n",expected_selfpath.c_str);
+  if ( !NC::mctools_file_exists_and_readable( &expected_selfpath ) ) {
+    printf("ERROR: expected self path is not a (readable) file!\n");
+    return 1;
+  }
+
+  mctools_pathseps_generic(&selfpath);
+  mctools_pathseps_generic(&expected_selfpath);
+
+  if ( !NC::mcu8str_equal(&selfpath,&expected_selfpath) ) {
     printf("ERROR: Mismatch!!\n");
     return 1;
   }
@@ -48,4 +72,3 @@ int main(int argc, char** argv) {
   NC::mcu8str_dealloc( &expected_selfpath );
   return 0;
 }
-
