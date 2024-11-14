@@ -320,6 +320,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 #  define MC_IS_WINDOWS
 #  define WIN32_LEAN_AND_MEAN
 #  include <windows.h>
+  //#  include <shlwapi.h>//for PathIsRelativeW (fixme: remove if needed)
 #else
 #  include <unistd.h>
 #  include <limits.h>
@@ -346,7 +347,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   DWORD GetFullPathNameW( const wchar_t*, DWORD, wchar_t*, wchar_t** );
   DWORD GetFileAttributesW( const wchar_t* );
   FILE * _wfopen( const wchar_t*,const wchar_t*);
-  int PathIsRelativeW( const wchar_t* );
+  //int PathIsRelativeW( const wchar_t* );
 #endif
 
 #if 0
@@ -766,16 +767,17 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       path_begin += 2;
     if ( *path_begin == '/' || *path_begin == '\\' )
       return 1;
-#ifdef MC_IS_WINDOWS
-    //FIXME: Would it perhaps be better if we implemented this function WITHOUT
-    //platform specific behaviour???
-    mcwinstr wpath = mc_path2wpath( path );
-    int is_abs = ( PathIsRelativeW(wpath.c_str) ? 0 : 1 );
-    mc_winstr_dealloc( &wpath );
-    return is_abs;
-#else
     return 0;
-#endif
+// #ifdef MC_IS_WINDOWS
+//     //FIXME: Would it perhaps be better if we implemented this function WITHOUT
+//     //platform specific behaviour???
+//     mcwinstr wpath = mc_path2wpath( path );
+//     int is_abs = ( PathIsRelativeW(wpath.c_str) ? 0 : 1 );
+//     mc_winstr_dealloc( &wpath );
+//     return is_abs;
+// #else
+//     return 0;
+// #endif
   }
 
   char mctools_drive_letter( const mcu8str* path )
