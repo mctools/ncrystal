@@ -364,7 +364,7 @@ def test5():
         dict(name='sd2',is_dir=True),
         dict(name='sd2/sl1',symlink='../sd 1'),
         dict(name='sd2/sl2',symlink=str(td.joinpath('sd 1').absolute())),
-        dict(name='sd    \t 3/bla.ncmat',content='NCMAT'),
+        dict(name='sd  __   3/bla.ncmat',content='NCMAT'),
     ]
     #Create layout:
     for finfo in files:

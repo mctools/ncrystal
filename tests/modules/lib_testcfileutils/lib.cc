@@ -61,7 +61,7 @@ namespace {
     {
       assert(str->size < BUFSIZE);
       m_buf[0] = '\0';
-      std::strncat(m_buf,str->c_str,sizeof(m_buf)-1);
+      std::strncat(m_buf,str->c_str,BUFSIZE);
       NC::mcu8str_dealloc(str);
       return &m_buf[0];
     }
@@ -176,7 +176,6 @@ NCTEST_CTYPES const char * nctest_fopen_and_read_text( const char * path )
   fclose(fh);
   return "<<READ_FAILURE>>";
 }
-
 
 NCTEST_CTYPES int nctest_file_exists_and_readable( const char * path )
 {
