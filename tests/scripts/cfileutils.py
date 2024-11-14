@@ -27,9 +27,9 @@ from NCTestUtils.common import ( work_in_tmpdir,
                                  explicit_unicode_str,
                                  is_windows )
 import pathlib
-pPath = pathlib.Path
 import os
 
+pPath = pathlib.Path
 lib = Lib('testcfileutils')
 lib.dump()
 assert hasattr(lib,'nctest_file_exists_and_readable')
@@ -402,7 +402,14 @@ def test5():
                 assert bool(lib.nctest_path_is_absolute(ftest)) == bool(is_abs)
                 assert bool(lib.nctest_path_is_relative(ftest)) == bool(not is_abs)
                 assert lib.nctest_file_exists_and_readable(ftest)
+
+                if not lib.nctest_is_same_file(ftest,str(fabs_resolved)):
+                    raise SystemExit("is_same_file does not return True"
+                                     f" for {repr(ftest)} vs "
+                                     f"{repr(str(fabs_resolved))}")
                 assert lib.nctest_is_same_file(ftest,str(fabs_resolved))
+
+
                 assert lib.nctest_is_same_file(str(fabs_resolved),ftest)
                 assert real_path0 == lib.nctest_real_path( ftest )
                 if not is_abs:
