@@ -337,7 +337,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 #  define MC_IS_WINDOWS
 #  define CP_UTF8 1
 #  define MAX_PATH 260
-#  define DWORD unsigned
+#  define DWORD int
 #  define INVALID_FILE_ATTRIBUTES 0x123
 #  define FILE_ATTRIBUTE_DIRECTORY 0x1000
   int MultiByteToWideChar( int,int,const char*,int,wchar_t*,int);
@@ -367,18 +367,19 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       STDNS size_t size;
       STDNS size_t buflen;
     };
-    mcwinstr mc_winstr_create( STDNS size_t size );
+    mcwinstr mc_winstr_create( STDNS size_t );
     mcwinstr mc_winstr_create_empty();
+    void mc_winstr_dealloc( mcwinstr* );
     mcwinstr mc_u8str_to_winstr( const mcu8str* src )
     {
       const int in_size = (int)( src->size );//fixme range check
 
       //First check for empty string:
-      if ( !src->c_str || in_size == 0 )
+      if ( !(src->c_str[0]) || in_size == 0 )
         return mc_winstr_create_empty();
 
       const char * in_data = src->c_str;
-      //fixme:nc_assert_always( src.size() < INT_MAX );
+      //fixme:nc_assert_always( src->size < INT_MAX );
       int out_size = MultiByteToWideChar( CP_UTF8,
                                           0,//Must be 0 for utf8
                                           in_data, in_size,
@@ -398,8 +399,10 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       int out_size2 = MultiByteToWideChar( CP_UTF8, 0,
                                            in_data, in_size,
                                            out_data, out_size );
-      if ( out_size != out_size2 || (STDNS size_t)out_size >= res.buflen )
+      if ( out_size != out_size2 || (STDNS size_t)out_size >= res.buflen ) {
+        mc_winstr_dealloc( &res );
         return mc_winstr_create_empty();//fixme: NCRYSTAL_THROW(BadInput,errmsg);
+      }
       res.c_str[out_size] = 0;
       res.size = out_size;
       return res;
@@ -407,26 +410,14 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 
     mcwinstr mc_path2wpath( const mcu8str* src )
     {
-      //Like mc_u8str_to_winstr but maps any '/' to '\' and upper cases drive
-      //letters:
-      mcwinstr res;
-      char drive_letter = mctools_drive_letter( src );
-      if ( drive_letter >= 'a' && drive_letter <= 'z' ) {
-        //Let us uppercase it for consistency. For simplicity we do it in the
-        //utf8 string at the cost of another malloc/free:
-        mcu8str dummy = mcu8str_copy(src);
-        dummy.c_str[0] = drive_letter;
-        res = mc_u8str_to_winstr( &dummy );
-        mcu8str_dealloc(&dummy);
-      } else {
-        res = mc_u8str_to_winstr( src );
-      }
-      //Convert to native path:
-      wchar_t * it = res.c_str;
-      wchar_t * itE = it + res.size;
-      for ( ; it!=itE; ++it )
-        if ( *it == L'/' )
-          *it = L'\\';
+      //Like mc_u8str_to_winstr but runs input through mctools_pathseps_platform
+      //for consistency. Usually without any unnecessary malloc/free calls.
+      char buf[4096];
+      mcu8str srccopy = mcu8str_create_from_staticbuffer( buf, sizeof(buf) );
+      mcu8str_assign( &srccopy, src );
+      mctools_pathseps_platform( &srccopy );
+      mcwinstr res = mc_u8str_to_winstr( &srccopy );
+      mcu8str_dealloc(&srccopy);
       return res;
     }
 
@@ -435,7 +426,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       const int in_size = (int)( src->size );//fixme range check
       //First check for empty string (also for safeguard in case of deallocated
       //string):
-      if ( !src->c_str || in_size == 0 )
+      if ( !src->c_str[0] || in_size == 0 )
         return mcu8str_create_empty();
 
       const wchar_t * in_data = src->c_str;
@@ -461,29 +452,31 @@ namespace MCFILEUTILS_CPPNAMESPACE {
                                            in_data, in_size,
                                            out_data, out_size,
                                            nullptr, nullptr);
-      if ( out_size2 != out_size || (STDNS size_t)out_size >= res.buflen )
+      if ( out_size2 != out_size || (STDNS size_t)out_size >= res.buflen ) {
+        mcu8str_dealloc(&res);
         return mcu8str_create_from_cstr(errmsg);//fixme: NCRYSTAL_THROW(BadInput,errmsg);
+      }
       res.c_str[out_size] = 0;
       res.size = out_size;
       return res;
     }
+
     mcwinstr mc_winstr_create_empty()
     {
       //empty (keep in allocated buffer for simplicity).
-      mcwinstr res_empty = mc_winstr_create(1);
-      res_empty.c_str[0] = 0;
-      res_empty.size = 0;
-      return res_empty;
+      return mc_winstr_create(0);
     }
+
     mcwinstr mc_winstr_create( STDNS size_t size )
     {
       mcwinstr str;
       str.c_str = (wchar_t*) STDNS malloc( sizeof(wchar_t)*(size + 1) );
       str.c_str[0] = 0;
       str.size = 0;
-      str.buflen = size;
+      str.buflen = size + 1;
       return str;
     }
+
     void mc_winstr_dealloc( mcwinstr* str )
     {
       if ( !str->c_str )
@@ -504,43 +497,35 @@ namespace MCFILEUTILS_CPPNAMESPACE {
                                   const char * mode )
   {
     //Utf8-encoded paths are used directly on platforms except Windows, where
-    //only ASCII encoded paths can be used directly:
+    //only ASCII encoded paths can be used directly. We also run paths through
+    //mctools_pathseps_platform.
 #ifdef MC_IS_WINDOWS
-    const int can_use_directly = ( mcu8str_is_ascii(path) ? 1 : 0 );
-    const char nonnative_sep = '/';
-#else
-    const int can_use_directly = 1;
-    const char nonnative_sep = '\\';
-#endif
-    MCTOOLS_FILE_t * result = (MCTOOLS_FILE_t *)0;
-    if ( can_use_directly ) {
-      if ( mcu8str_contains( path, nonnative_sep ) ) {
-        //Support non-native path seps:
-        char buf[4096];
-        mcu8str native = mcu8str_create_from_staticbuffer( buf, sizeof(buf) );
-        mcu8str_assign( &native, path );
-        mctools_pathseps_platform( &native );
-        result = STDNS fopen( native.c_str, mode );
-        mcu8str_dealloc(&native);
-      } else {
-        result = STDNS fopen( path->c_str, mode );
-      }
-    }
-#ifdef MC_IS_WINDOWS
-    else {
-      //Ok, non-ASCII path on windows. Reencode as wide strings and use _wfopen:
-      mcwinstr wpath = mc_path2wpath( path );//this also maps to native path sep
-      char buf[32];
-      mcu8str mcu8str_mode = mcu8str_create_from_staticbuffer( buf, sizeof(buf) );
-      mcu8str_append_cstr(&mcu8str_mode,mode);
-      mcwinstr wmode = mc_u8str_to_winstr( &mcu8str_mode );
-      result = _wfopen( wpath.c_str, wmode.c_str );//nb: no STDNS here on purpose
-      mcu8str_dealloc(&mcu8str_mode);
-      mc_winstr_dealloc( &wpath );
-      mc_winstr_dealloc( &wmode );
-    }
-#endif
+    //Ok, non-ASCII path on windows. Reencode as wide strings and use _wfopen:
+    mcwinstr wpath = mc_path2wpath( path );//this also maps to native path sep
+    char buf[32];
+    mcu8str mcu8str_mode = mcu8str_create_from_staticbuffer( buf, sizeof(buf) );
+    mcu8str_append_cstr(&mcu8str_mode,mode);
+    mcwinstr wmode = mc_u8str_to_winstr( &mcu8str_mode );
+    MCTOOLS_FILE_t * result = _wfopen( wpath.c_str, wmode.c_str );//nb: no STDNS here on purpose
+    mcu8str_dealloc(&mcu8str_mode);
+    mc_winstr_dealloc( &wpath );
+    mc_winstr_dealloc( &wmode );
     return result;
+#else
+    if ( !mcu8str_contains( path, '\\' ) ) {
+      //Usual case on unix -> no extra work needed
+      return STDNS fopen( path->c_str, mode );
+    } else {
+      //Copy path so we can run it through mctools_pathseps_platform:
+      char buf[4096];
+      mcu8str pathcopy = mcu8str_create_from_staticbuffer( buf, sizeof(buf) );
+      mcu8str_assign( &pathcopy, path );
+      mctools_pathseps_platform( &pathcopy );
+      MCTOOLS_FILE_t * fh = STDNS fopen( pathcopy.c_str, mode );
+      mcu8str_dealloc(&pathcopy);
+      return fh;
+    }
+#endif
   }
 
   int mctools_file_exists_and_readable( const mcu8str* path )
@@ -555,22 +540,22 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   mcu8str mctools_get_current_working_dir()
   {
 #ifdef MC_IS_WINDOWS
-    mcwinstr wpath = mc_winstr_create( ( MAX_PATH >= 260 ? MAX_PATH : 260 ) );
+    mcwinstr wpath = mc_winstr_create( ( MAX_PATH >= 260 ? MAX_PATH+1 : 261 ) );
     auto nsize = GetCurrentDirectoryW(wpath.buflen,wpath.c_str);
-    if ( (STDNS size_t)(nsize +1) > wpath.buflen ) {
+    if ( (STDNS size_t)(nsize + 1) > wpath.buflen ) {
       //Use larger buffer and try again:
       mc_winstr_dealloc( &wpath );
       wpath = mc_winstr_create( nsize );
       nsize = GetCurrentDirectoryW(wpath.buflen,wpath.c_str);
     }
-    if ( nsize == 0 || (STDNS size_t )( nsize +1 ) > wpath.buflen ) {
+    if ( nsize == 0 || (STDNS size_t )( nsize + 1 ) > wpath.buflen ) {
       //Error (fixme):
       mc_winstr_dealloc( &wpath );//check that we dealloc correctly everywhere
                                   //in this file in case of errors
       return mcu8str_create_empty();
     }
     wpath.c_str[nsize] = 0;
-    wpath.size = nsize = 0;
+    wpath.size = nsize;
     mcu8str res = mc_winstr_to_u8str( &wpath );
     mc_winstr_dealloc( &wpath );
     return res;
@@ -586,10 +571,10 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       if ( errno == ERANGE ) {
         //Try again with larger buffer: (fixme do not do this forever)
         mcu8str_clear( &res );
-        mcu8str_reserve( &res, res.buflen * 2 );
-        continue;
+        mcu8str_reserve( &res, (res.buflen-1) * 2 );
       } else {
         //FIXME: ERROR!!
+        mcu8str_dealloc( &res );
         return mcu8str_create_empty();//fixme
       }
     }
@@ -608,13 +593,17 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     //First try some platform specific methods not relying on argv0:
 #ifdef MC_IS_WINDOWS
     {
-      mcwinstr wpath = mc_winstr_create( (STDNS size_t)(MAX_PATH<4096
-                                                        ?4096:MAX_PATH) +1 );
-      auto nsize = GetModuleFileNameW(nullptr, wpath.c_str, wpath.buflen-1 );
-      assert( (STDNS size_t)(nsize) <= wpath.size );
-      wpath.c_str[nsize] = 0;//add null terminator
-      wpath.size = nsize;
-      if ( nsize > 0 ) {
+      mcwinstr wpath = mc_winstr_create( (STDNS size_t)(MAX_PATH<32768
+                                                        ?32768:MAX_PATH) +1 );
+      DWORD nsize = GetModuleFileNameW(nullptr, wpath.c_str, wpath.buflen );
+      if ( nsize == 0 || (STDNS size_t)(nsize + 2) >= wpath.buflen ) {//+2 is safety
+        //failure:
+        mc_winstr_dealloc( &wpath );
+      } else {
+        //success:
+        assert( (STDNS size_t)(nsize) <= wpath.size );
+        wpath.c_str[nsize] = 0;//add null terminator
+        wpath.size = nsize;
         mcu8str res = mc_winstr_to_u8str( &wpath );
         mc_winstr_dealloc( &wpath );
         return res;
@@ -677,6 +666,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     if ( argv[0][0] == '/' ) {
       //Looks like an absolute path:
       mcu8str path = mcu8str_create_from_cstr( argv[0] );
+      mctools_pathseps_platform( &path );
       if ( mctools_file_exists_and_readable( &path ) )
         return path;
       mcu8str_dealloc( &path );
@@ -831,12 +821,11 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     //For now, just compare the normalised paths (FIXME?):
     mcu8str rp1 = mctools_real_path( p1 );
     mcu8str rp2 = mctools_real_path( p2 );
-    if ( mcu8str_equal( &rp1, &rp2 ) ) {
-      mcu8str_dealloc( &rp1 );
-      mcu8str_dealloc( &rp2 );
-      return 1;
-    }
-    return 0;
+    int equal = mcu8str_equal( &rp1, &rp2 );
+    int size1 = rp1.size;
+    mcu8str_dealloc( &rp1 );
+    mcu8str_dealloc( &rp2 );
+    return ( size1 && equal ) ? 1 : 0;
 #else
     //A hopefully bullet proof way, (st_ino,st_dev) uniquely identifies a file
     //on a POSIX system.
@@ -890,6 +879,8 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 
     if ( p2->size == 0 ) {
       //Simply copy p1, but ensure it ends in a separator:
+      if ( !p1->size )
+        return mcu8str_create_empty();//special case: join("","")->""
       char lastchar = p1->c_str[p1->size-1];
       if ( lastchar == '\\' || lastchar == '/' )
         return mcu8str_copy( p1 );
