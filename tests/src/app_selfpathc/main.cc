@@ -37,8 +37,8 @@ int main(int argc, char** argv) {
   NC::mcu8str selfpath = NC::mctools_determine_exe_self_path( argc, argv );
   printf("Self path:          \"%s\"\n",selfpath.c_str);
 
-  if ( !NC::mctools_file_exists_and_readable( &selfpath ) ) {
-    printf("ERROR: self path is not a (readable) file!\n");
+  if ( !NC::mctools_is_file( &selfpath ) ) {
+    printf("ERROR: self path is not a file!\n");
     return 1;
   }
 
@@ -56,8 +56,8 @@ int main(int argc, char** argv) {
 
 
   printf("Expected self path: \"%s\"\n",expected_selfpath.c_str);
-  if ( !NC::mctools_file_exists_and_readable( &expected_selfpath ) ) {
-    printf("ERROR: expected self path is not a (readable) file!\n");
+  if ( !NC::mctools_is_file( &expected_selfpath ) ) {
+    printf("ERROR: expected self path is not a file!\n");
     return 1;
   }
 

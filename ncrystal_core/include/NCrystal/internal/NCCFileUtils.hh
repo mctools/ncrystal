@@ -124,11 +124,18 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   //be purely string based, or it could actually resolve symlinks etc.)
 
   //Actual file utilities, meant to be portable:
+  int mctools_exists( const mcu8str* );//path exists
+  int mctools_is_dir( const mcu8str* );//path exists and is directory
+  int mctools_is_file( const mcu8str* );//path exists and is not a directory
+  mcu8str mctools_get_current_working_dir();//like unix getcwd
+
+  //Check if two files exist and are actually the same file (i.e. same inode on
+  //same device) in the system. Returns false for directories:
+  int mctools_is_same_file( const mcu8str*, const mcu8str* );
+
+  //For usage in main fcts to get path to executable self:
   mcu8str mctools_determine_exe_self_path( int argc, char** argv );
-  int mctools_file_exists_and_readable( const mcu8str* );
-  int mctools_is_same_file( const mcu8str*, const mcu8str* );//paths must also exist
-  int mctools_is_dir( const mcu8str* );//paths must also exist
-  mcu8str mctools_get_current_working_dir();
+
 
   //Try to normalise path representation by turning it into an absolute path and
   //bringing it into a normalised form. If it is a symlink, it might be resolved
@@ -166,8 +173,17 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   const char * mctools_basename_view( const mcu8str* );
   const char * mctools_fileextension_view( const mcu8str* );
 
-  //Join paths.
+  //Join paths (with native path separator).
   mcu8str mctools_path_join( const mcu8str*, const mcu8str* );
+
+  //Turn path into absolute path (does not resolve symlinks):
+  mcu8str mctools_absolute_path( const mcu8str* );
+
+  //On unix this expands a leading '~/' to the users home directory (only if the
+  //HOME env var is set), and on Windows this expands paths with short 8.3-form
+  //filenames to their long form. It also affects slashes and drive letters like
+  //mctools_pathseps_platform:
+  mcu8str mctools_expand_path( const mcu8str* );
 
   //Portable version of_fopen. As usual, this returns null ptr on failure and
   //otherwise a FILE handle:

@@ -32,9 +32,9 @@
 NCTEST_CTYPE_DICTIONARY
 {
   return
-    "int nctest_file_exists_and_readable( const char * );"
     "const char * nctest_get_current_working_dir();"
     "const char * nctest_real_path( const char * );"
+    "const char * nctest_absolute_path( const char * );"
     "const char * nctest_fopen_and_read_text( const char * );"
     "const char * nctest_pathseps_platform( const char* );"
     "const char * nctest_pathseps_generic( const char* );"
@@ -49,6 +49,9 @@ NCTEST_CTYPE_DICTIONARY
     "const char * nctest_path_join( const char*, const char* );"
     "int nctest_is_same_file( const char *, const char * );"
     "int nctest_is_dir( const char* );"
+    "int nctest_is_file( const char* );"
+    "int nctest_exists( const char* );"
+    "const char * nctest_expand_path( const char* );"
     ;
 }
 
@@ -66,6 +69,14 @@ namespace {
       return &m_buf[0];
     }
   };
+}
+
+NCTEST_CTYPES const char * nctest_expand_path( const char* path )
+{
+  auto mpath = NC::mcu8str_view_cstr(path);
+  auto res =  NC::mctools_expand_path( &mpath );
+  static NCTestCharBuf<> buf;
+  return buf.consume(&res);
 }
 
 NCTEST_CTYPES const char * nctest_pathseps_platform( const char* path )
@@ -177,12 +188,6 @@ NCTEST_CTYPES const char * nctest_fopen_and_read_text( const char * path )
   return "<<READ_FAILURE>>";
 }
 
-NCTEST_CTYPES int nctest_file_exists_and_readable( const char * path )
-{
-  auto mpath = NC::mcu8str_view_cstr(path);
-  return NC::mctools_file_exists_and_readable(&mpath);
-}
-
 NCTEST_CTYPES const char * nctest_get_current_working_dir()
 {
   auto res = NC::mctools_get_current_working_dir();
@@ -198,6 +203,14 @@ NCTEST_CTYPES const char * nctest_real_path( const char * path )
   return buf.consume(&res);
 }
 
+NCTEST_CTYPES const char* nctest_absolute_path( const char* path )
+{
+  auto mpath = NC::mcu8str_view_cstr(path);
+  auto res = NC::mctools_absolute_path( &mpath );
+  static NCTestCharBuf<> buf;
+  return buf.consume(&res);
+}
+
 NCTEST_CTYPES int nctest_is_same_file( const char * p1, const char * p2 )
 {
   auto mp1 = NC::mcu8str_view_cstr(p1);
@@ -209,4 +222,16 @@ NCTEST_CTYPES int nctest_is_dir( const char* path )
 {
   auto mpath = NC::mcu8str_view_cstr(path);
   return NC::mctools_is_dir( &mpath );
+}
+
+NCTEST_CTYPES int nctest_is_file( const char* path )
+{
+  auto mpath = NC::mcu8str_view_cstr(path);
+  return NC::mctools_is_file( &mpath );
+}
+
+NCTEST_CTYPES int nctest_exists( const char* path )
+{
+  auto mpath = NC::mcu8str_view_cstr(path);
+  return NC::mctools_exists( &mpath );
 }

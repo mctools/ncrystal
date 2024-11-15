@@ -113,10 +113,10 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 
   void mcu8str_append_cstr( mcu8str* str, const char * c_str )
   {
-    const size_t o_size = STDNS strlen( c_str );
+    const STDNS size_t o_size = STDNS strlen( c_str );
     if ( o_size == 0 )
       return;
-    const size_t newsize = str->size + o_size;
+    const STDNS size_t newsize = str->size + o_size;
     if ( newsize + 1 > str->buflen )
       mcu8str_reserve( str, newsize );
     //memcpy ok since we handle the null char afterwards, there will be no
@@ -130,7 +130,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   {
     if ( ! *c_str )
       return mcu8str_create_empty();
-    const size_t o_size = STDNS strlen( c_str );
+    const STDNS size_t o_size = STDNS strlen( c_str );
     assert( o_size > 0 );
     mcu8str str = mcu8str_create( o_size );
     //str.c_str is newly allocated, so there can be no overlap:
@@ -303,7 +303,6 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 #  include <cstring>
 #  include <cassert>
 #  include <cstdint>
-namespace MCFILEUTILS_CPPNAMESPACE {
 #else
 #  include <stdlib.h>
 #  include <string.h>
@@ -321,6 +320,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 #  define WIN32_LEAN_AND_MEAN
 #  include <windows.h>
   //#  include <shlwapi.h>//for PathIsRelativeW (fixme: remove if needed)
+//#  include<io.h> //for _get_osfhandle (fixme: use different way to get the handle and avoid this header?)
 #else
 #  include <unistd.h>
 #  include <limits.h>
@@ -330,6 +330,14 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 #    define MC_IS_APPLE
 #    include <mach-o/dyld.h>
 #  endif
+#endif
+
+//fixme: use NULL everywhere as needed
+#ifdef __cplusplus
+#  ifdef NULL
+#    undef NULL
+#  endif
+#  define NULL nullptr
 #endif
 
 #if 0
@@ -346,8 +354,44 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   int GetModuleFileNameW( void*, wchar_t*, int );
   DWORD GetFullPathNameW( const wchar_t*, DWORD, wchar_t*, wchar_t** );
   DWORD GetFileAttributesW( const wchar_t* );
+  DWORD GetLongPathNameW( const wchar_t*, wchar_t*, DWORD);
+  DWORD GetLastError();
   FILE * _wfopen( const wchar_t*,const wchar_t*);
+  typedef struct { int dummy; } FILETIME;
+  typedef struct {
+    DWORD    dwFileAttributes;
+    FILETIME ftCreationTime;
+    FILETIME ftLastAccessTime;
+    FILETIME ftLastWriteTime;
+    DWORD    dwVolumeSerialNumber;
+    DWORD    nFileSizeHigh;
+    DWORD    nFileSizeLow;
+    DWORD    nNumberOfLinks;
+    DWORD    nFileIndexHigh;
+    DWORD    nFileIndexLow;
+  } BY_HANDLE_FILE_INFORMATION;
   //int PathIsRelativeW( const wchar_t* );
+  int CompareFileTime( const FILETIME *,const FILETIME *);
+  int _fileno( FILE * );
+  typedef void* HANDLE;//fixme, not sure about type
+  int GetFileInformationByHandle( HANDLE, BY_HANDLE_FILE_INFORMATION* );
+  DWORD GetFinalPathNameByHandleW( HANDLE, wchar_t*, DWORD, DWORD);
+  void CloseHandle( HANDLE );
+  HANDLE CreateFileW( const wchar_t*,DWORD,DWORD,void*,DWORD,DWORD,HANDLE );
+  typedef void* LPSECURITY_ATTRIBUTES;
+  //intptr_t _get_osfhandle(int);
+#  define FILE_SHARE_READ 0x00000001
+#  define FILE_SHARE_WRITE 0x00000002
+#  define FILE_SHARE_DELETE 0x00000004
+#  define OPEN_EXISTING 12345
+#  define FILE_ATTRIBUTE_NORMAL 12345
+#  define INVALID_HANDLE_VALUE 0
+#  define FILE_READ_ATTRIBUTES 12345
+#  define FILE_FLAG_BACKUP_SEMANTICS 12345
+#  define GENERIC_READ 12345
+#  define FILE_ATTRIBUTE_REPARSE_POINT 12345
+#  define ERROR_CANT_ACCESS_FILE 12345
+#  define FILE_FLAG_OPEN_REPARSE_POINT 12345
 #endif
 
 #if 0
@@ -356,20 +400,38 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   int _NSGetExecutablePath(char*, uint32_t*);
 #endif
 
+#ifdef MCFILEUTILS_CPPNAMESPACE
+namespace MCFILEUTILS_CPPNAMESPACE {
+#endif
 
 #ifdef MC_IS_WINDOWS
+#  ifdef __cplusplus
   namespace {
+#  endif
     //Need wide-char strings for unicode API. We try to be less fancy with these
     //than the mcu8str's, since they are anyway only used on Windows and in this
     //file.
-    struct mcwinstr {
+    typedef struct {
       wchar_t * c_str;
       STDNS size_t size;
       STDNS size_t buflen;
-    };
+    } mcwinstr;
+
+    void mc_winstr_swap( mcwinstr* p1, mcwinstr* p2 )
+    {
+      mcwinstr tmp = *p1;
+      p1->c_str = p2->c_str;
+      p1->size = p2->size;
+      p1->buflen = p2->buflen;
+      p2->c_str = tmp.c_str;
+      p2->size = tmp.size;
+      p2->buflen = tmp.buflen;
+    }
+
     mcwinstr mc_winstr_create( STDNS size_t );
     mcwinstr mc_winstr_create_empty();
     void mc_winstr_dealloc( mcwinstr* );
+
     mcwinstr mc_u8str_to_winstr( const mcu8str* src )
     {
       const int in_size = (int)( src->size );//fixme range check
@@ -421,6 +483,95 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       return res;
     }
 
+    mcwinstr mc_winstr_copy( const mcwinstr* path )
+    {
+      if ( path->size == 0 )
+        return mc_winstr_create_empty();
+      mcwinstr str = mc_winstr_create( path->size );
+      STDNS memcpy( str.c_str, path->c_str, sizeof(wchar_t)*(path->size + 1) );
+      str.size = path->size;
+      return str;
+    }
+
+    mcwinstr mc_impl_expand_wpath_to_longpathname( const mcwinstr* sp )
+    {
+      if ( sp->size == 0 )
+        return mc_winstr_create_empty();
+      mcwinstr out = mc_winstr_create( 4096 );
+      DWORD len = GetLongPathNameW( sp->c_str, out.c_str, out.buflen );
+      if ( len == 0 ) {
+        //failure (e.g. file does not exist). We return the original string
+        //unchanged in this case:
+        mc_winstr_dealloc( &out );
+        return mc_winstr_copy( sp );
+      }
+      if ( len < 4096 ) {
+        out.c_str[len] = 0;
+        out.size = (STDNS size_t)len;
+        return out;
+      }
+      mc_winstr_dealloc( &out );
+      out = mc_winstr_create( len );
+      len = GetLongPathNameW( sp->c_str, out.c_str, out.buflen );
+      if ( (STDNS size_t) len < out.buflen ) {
+        out.c_str[len] = 0;
+        out.size = (STDNS size_t)len;
+        return out;
+      } else {
+        //should not happen
+        mc_winstr_dealloc( &out );
+        return mc_winstr_copy( sp );
+      }
+    }
+
+    mcwinstr mc_winstr_expand_to_fullpath( const mcwinstr* wpath )
+    {
+      DWORD len_with_null_term = GetFullPathNameW( wpath->c_str,
+                                                   0, nullptr, nullptr );
+      if ( len_with_null_term <= 1 ) {
+        //return mcu8str_create_from_cstr("TESTRPERROR1: len_with_null_term <= 1");//fixme
+        return mc_winstr_create_empty();//fixme: check all callers that they check for non-empty
+      }
+      mcwinstr woutput = mc_winstr_create((STDNS size_t)(len_with_null_term-1));
+      DWORD len = GetFullPathNameW( wpath->c_str,
+                                    woutput.buflen, woutput.c_str,
+                                    nullptr );
+      if ( len+1 != len_with_null_term ) {
+        mc_winstr_dealloc( &woutput );
+        //return mcu8str_create_from_cstr("TESTRPERROR2: len+1 != len_with_null_term");//fixme
+        return mc_winstr_create_empty();//fixme: check all callers that they check for non-empty
+      }
+      //OK, update output size:
+      woutput.c_str[len] = 0;
+      woutput.size = (STDNS size_t)len;
+      //For some reason the above might have returned a path with short 8.3
+      //filenames, so we expand once more (only works if file exists):
+      if ( woutput.size > 0 ) {
+        mcwinstr woutput2 = mc_impl_expand_wpath_to_longpathname( &woutput );
+        if ( woutput2.size > 0 ) {
+          //ok, use expanded instead:
+          mc_winstr_swap( &woutput, &woutput2 );
+        }
+        mc_winstr_dealloc(&woutput2);
+      }
+      return woutput;
+    }
+
+    mcwinstr mc_path2longwpath( const mcu8str* src )
+    {
+      mcwinstr wp = mc_path2wpath( src );
+      if ( wp.size == 0 )
+        return wp;
+      mcwinstr lwp = mc_impl_expand_wpath_to_longpathname( &wp );
+      if ( lwp.size == 0 ) {
+        //something went wrong, return wp.
+        mc_winstr_dealloc(&lwp);
+        return wp;
+      }
+      mc_winstr_dealloc(&wp);
+      return lwp;
+    }
+
     mcu8str mc_winstr_to_u8str( const mcwinstr* src )
     {
       const int in_size = (int)( src->size );//fixme range check
@@ -461,6 +612,14 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       return res;
     }
 
+    mcu8str mc_winstr_expand_to_fullpath_u8str( const mcwinstr* wpath )
+    {
+      mcwinstr fp = mc_winstr_expand_to_fullpath( wpath );
+      mcu8str res = mc_winstr_to_u8str( &fp );
+      mc_winstr_dealloc(&fp);
+      return res;
+    }
+
     mcwinstr mc_winstr_create_empty()
     {
       //empty (keep in allocated buffer for simplicity).
@@ -490,7 +649,9 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 
 
 
-  }
+#  ifdef __cplusplus
+  }//end of anonymous namespace
+#  endif
 #endif
 
   MCTOOLS_FILE_t * mctools_fopen( const mcu8str* path,
@@ -528,13 +689,69 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 #endif
   }
 
-  int mctools_file_exists_and_readable( const mcu8str* path )
+  int mctools_is_dir( const mcu8str* path )
   {
-    MCTOOLS_FILE_t * fh = mctools_fopen( path, "r" );
-    if ( !fh )
+#ifdef MC_IS_WINDOWS
+    mcwinstr wpath = mc_path2wpath( path );
+    DWORD fa = GetFileAttributesW( wpath.c_str );
+    mc_winstr_dealloc( &wpath );
+    if ( fa == INVALID_FILE_ATTRIBUTES )
       return 0;
-    fclose(fh);
+    return ( fa & FILE_ATTRIBUTE_DIRECTORY) ? 1 : 0;
+#else
+    char buf[4096];
+    mcu8str native = mcu8str_create_from_staticbuffer( buf, sizeof(buf) );
+    mcu8str_assign( &native, path );
+    mctools_pathseps_platform( &native );
+    struct stat sinfo;
+    int res = ( stat( native.c_str, &sinfo) == 0
+                && S_ISDIR(sinfo.st_mode) ) ? 1 : 0;
+    mcu8str_dealloc(&native);
+    return res;
+#endif
+  }
+
+  int mctools_exists( const mcu8str* path )
+  {
+#ifdef MC_IS_WINDOWS
+    mcwinstr wpath = mc_path2wpath( path );
+    DWORD fa = GetFileAttributesW( wpath.c_str );
+    mc_winstr_dealloc( &wpath );
+    return fa == INVALID_FILE_ATTRIBUTES ? 0 : 1;
+#else
+    char buf[4096];
+    mcu8str native = mcu8str_create_from_staticbuffer( buf, sizeof(buf) );
+    mcu8str_assign( &native, path );
+    mctools_pathseps_platform( &native );
+    struct stat sinfo;
+    int res = ( stat( native.c_str, &sinfo) == 0 ) ? 1 : 0;
+    mcu8str_dealloc(&native);
+    return res;
+#endif
+  }
+
+  int mctools_is_file( const mcu8str* path )
+  {
+#ifdef MC_IS_WINDOWS
+    mcwinstr wpath = mc_path2wpath( path );
+    DWORD fa = GetFileAttributesW( wpath.c_str );
+    mc_winstr_dealloc( &wpath );
+    if ( fa == INVALID_FILE_ATTRIBUTES )
+      return 0;
+    if ( fa & FILE_ATTRIBUTE_DIRECTORY)
+      return 0;
     return 1;
+#else
+    char buf[4096];
+    mcu8str native = mcu8str_create_from_staticbuffer( buf, sizeof(buf) );
+    mcu8str_assign( &native, path );
+    mctools_pathseps_platform( &native );
+    struct stat sinfo;
+    int res = ( stat( native.c_str, &sinfo) == 0
+                && !S_ISDIR(sinfo.st_mode) ) ? 1 : 0;
+    mcu8str_dealloc(&native);
+    return res;
+#endif
   }
 
   mcu8str mctools_get_current_working_dir()
@@ -556,8 +773,11 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     }
     wpath.c_str[nsize] = 0;
     wpath.size = nsize;
-    mcu8str res = mc_winstr_to_u8str( &wpath );
+    mcwinstr woutput = mc_impl_expand_wpath_to_longpathname( &wpath );
     mc_winstr_dealloc( &wpath );
+    mcu8str res = mc_winstr_to_u8str( &woutput );
+    mc_winstr_dealloc( &woutput );
+    mctools_pathseps_platform( &res );
     return res;
 #else
     char buf[4096];//almost always enough in first go (fixme: test with tiny value here)
@@ -566,6 +786,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       if ( getcwd( res.c_str, res.buflen ) ) {
         mcu8str_update_size( &res );
         mcu8str_ensure_dynamic_buffer(&res);//don't return local static buffer
+        mctools_pathseps_platform( &res );
         return res;
       }
       if ( errno == ERANGE ) {
@@ -606,6 +827,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
         wpath.size = nsize;
         mcu8str res = mc_winstr_to_u8str( &wpath );
         mc_winstr_dealloc( &wpath );
+        mctools_pathseps_platform(&res);
         return res;
       }
     }
@@ -624,8 +846,10 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       if ( status == 0 ) {
         //success! Return (but make sure we do not refer to our static buffer)
         mcu8str_update_size( &path );
-        if ( path.size > 0 )
+        if ( path.size > 0 ) {
+          mctools_pathseps_platform(&path);
           return path;
+        }
       }
       mcu8str_dealloc(&path);
     }
@@ -649,6 +873,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
           path.c_str[len] = '\0';//readlink does not add terminating null char
           path.size = (STDNS size_t)len;
           mcu8str_ensure_dynamic_buffer( &path );
+          mctools_pathseps_platform(&path);
           return path;
         }
         mcu8str_dealloc(&path);
@@ -667,8 +892,10 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       //Looks like an absolute path:
       mcu8str path = mcu8str_create_from_cstr( argv[0] );
       mctools_pathseps_platform( &path );
-      if ( mctools_file_exists_and_readable( &path ) )
+      if ( mctools_is_file( &path ) ) {
+        mctools_pathseps_platform(&path);
         return path;
+      }
       mcu8str_dealloc( &path );
     }
 
@@ -682,23 +909,48 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     if ( path->size == 0 )
       return mcu8str_create_empty();
 #ifdef MC_IS_WINDOWS
+    //To resolve symlinks we must open a file handle with CreateFileW. If it
+    //fails, we revert back to at least returning an absolute path.
     mcwinstr wpath = mc_path2wpath( path );
-    DWORD len_with_null_term = GetFullPathNameW( wpath.c_str,
-                                                 0, nullptr, nullptr );
-    if ( len_with_null_term <= 1 ) {
+    DWORD share = FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE;
+    DWORD access = FILE_READ_ATTRIBUTES;
+    DWORD flags = FILE_FLAG_BACKUP_SEMANTICS;
+    HANDLE fh1 = CreateFileW( wpath.c_str, access, share, NULL,
+                              OPEN_EXISTING, flags, NULL );
+    if ( fh1 == INVALID_HANDLE_VALUE ) {
+      //Failed to open. This can happen for a variety of reasons. As a fallback
+      //option, we return the full path (which won't resolve symlinks):
+      mcu8str output = mc_winstr_expand_to_fullpath_u8str( &wpath );
       mc_winstr_dealloc( &wpath );
-      return mcu8str_create_empty();
+      return output;
     }
-    mcwinstr woutput = mc_winstr_create((STDNS size_t)(len_with_null_term-1));
-    DWORD len = GetFullPathNameW( wpath.c_str,
-                                  woutput.buflen, woutput.c_str,
-                                  nullptr );
+
+    //We have an open handle fh1, use it to find the resolved path:
+    mcwinstr resolvedpath = mc_winstr_create(4096);//fixme: test with super short buffer
+    DWORD len = GetFinalPathNameByHandleW( fh1, resolvedpath.c_str,
+                                           resolvedpath.buflen, 0 );
+    if ( (STDNS size_t)len >= resolvedpath.buflen ) {
+      //Too short buffer, try again:
+      mc_winstr_dealloc(&resolvedpath);
+      resolvedpath = mc_winstr_create(len);
+      len = GetFinalPathNameByHandleW( fh1, resolvedpath.c_str,
+                                       resolvedpath.buflen, 0 );
+    }
+    //Close the open file handle:
+    CloseHandle( fh1 );
+    if ( len == 0 || (STDNS size_t)len >= resolvedpath.buflen ) {
+      //Failure, fall-back to unresolved absolute path:
+      mc_winstr_dealloc(&resolvedpath);
+      mcu8str output = mc_winstr_expand_to_fullpath_u8str( &wpath );
+      mc_winstr_dealloc( &wpath );
+      return output;
+    }
     mc_winstr_dealloc( &wpath );
-    if ( len+1 != len_with_null_term ) {
-      //Failure:
-      mc_winstr_dealloc( &woutput );
-      return mcu8str_create_empty();
-    }
+    resolvedpath.c_str[len] = 0;
+    resolvedpath.size = len;
+    //All ok, get rid of any 8.3-form path names and return:
+    mcwinstr woutput = mc_impl_expand_wpath_to_longpathname( &resolvedpath );
+    mc_winstr_dealloc(&resolvedpath);
     mcu8str output = mc_winstr_to_u8str( &woutput );
     mc_winstr_dealloc( &woutput );
 #else
@@ -714,7 +966,6 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       return mcu8str_create_empty();
     }
     mcu8str_dealloc(&native);
-
 #endif
     mctools_pathseps_platform(&output);
     return output;
@@ -752,22 +1003,16 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   {
     if ( path->size == 0 )
       return 0;
+    if ( path->size >= 2
+         && path->c_str[0] == '~'
+         && ( path->c_str[1] == '/' || path->c_str[1] == '\\' ) )
+      return 1;//leading "~/"
     const char * path_begin = path->c_str;
     if ( mctools_drive_letter( path ) )
       path_begin += 2;
     if ( *path_begin == '/' || *path_begin == '\\' )
       return 1;
     return 0;
-// #ifdef MC_IS_WINDOWS
-//     //FIXME: Would it perhaps be better if we implemented this function WITHOUT
-//     //platform specific behaviour???
-//     mcwinstr wpath = mc_path2wpath( path );
-//     int is_abs = ( PathIsRelativeW(wpath.c_str) ? 0 : 1 );
-//     mc_winstr_dealloc( &wpath );
-//     return is_abs;
-// #else
-//     return 0;
-// #endif
   }
 
   char mctools_drive_letter( const mcu8str* path )
@@ -789,43 +1034,87 @@ namespace MCFILEUTILS_CPPNAMESPACE {
              && STDNS memcmp( s1->c_str, s2->c_str, s1->size )==0 );
   }
 
-  int mctools_is_dir( const mcu8str* path )
-  {
-#ifdef MC_IS_WINDOWS
-    mcwinstr wpath = mc_path2wpath( path );
-    DWORD fa = GetFileAttributesW( wpath.c_str );
-    mc_winstr_dealloc( &wpath );
-    if ( fa == INVALID_FILE_ATTRIBUTES )
-      return 0;
-    return ( fa & FILE_ATTRIBUTE_DIRECTORY) ? 1 : 0;
-#else
-    char buf[4096];
-    mcu8str native = mcu8str_create_from_staticbuffer( buf, sizeof(buf) );
-    mcu8str_assign( &native, path );
-    mctools_pathseps_platform( &native );
-    struct stat sinfo;
-    int res = ( stat( native.c_str, &sinfo) == 0
-                && S_ISDIR(sinfo.st_mode) ) ? 1 : 0;
-    mcu8str_dealloc(&native);
-    return res;
-#endif
-  }
-
   int mctools_is_same_file( const mcu8str* p1, const mcu8str* p2 )
   {
     //First check for trivial string equality:
     if ( mcu8str_equal( p1, p2 ) )
-      return mctools_file_exists_and_readable( p1 );
+      return mctools_is_file( p1 );
 
 #ifdef MC_IS_WINDOWS
-    //For now, just compare the normalised paths (FIXME?):
-    mcu8str rp1 = mctools_real_path( p1 );
-    mcu8str rp2 = mctools_real_path( p2 );
-    int equal = mcu8str_equal( &rp1, &rp2 );
-    int size1 = rp1.size;
-    mcu8str_dealloc( &rp1 );
-    mcu8str_dealloc( &rp2 );
-    return ( size1 && equal ) ? 1 : 0;
+    //Open files and query file information. Note that we try to keep both
+    //handles open while querying info, for consistent results.
+    mcwinstr wp1 = mc_path2wpath( p1 );
+    mcwinstr wp2 = mc_path2wpath( p2 );
+
+    constexpr DWORD dwShareMode_BLOCKNOTHING = ( FILE_SHARE_DELETE
+                                                 | FILE_SHARE_READ
+                                                 | FILE_SHARE_WRITE );
+    HANDLE fh1 = CreateFileW( wp1.c_str,
+                              0, //dwDesiredAccess
+                              dwShareMode_BLOCKNOTHING,
+                              (LPSECURITY_ATTRIBUTES)0,
+                              OPEN_EXISTING,
+                              FILE_ATTRIBUTE_NORMAL,
+                              (void*)(0) );
+    mc_winstr_dealloc( &wp1 );
+    if ( fh1 == INVALID_HANDLE_VALUE ) {
+      mc_winstr_dealloc( &wp2 );
+      return 0;//failed
+    }
+    HANDLE fh2 = CreateFileW( wp2.c_str,
+                              0, //dwDesiredAccess
+                              dwShareMode_BLOCKNOTHING,
+                              (LPSECURITY_ATTRIBUTES)0,
+                              OPEN_EXISTING,
+                              FILE_ATTRIBUTE_NORMAL,
+                              (void*)(0) );
+    mc_winstr_dealloc( &wp2 );
+    if ( fh2 == INVALID_HANDLE_VALUE ) {
+      CloseHandle( fh1 );
+      return 0;//failed
+    }
+
+    BY_HANDLE_FILE_INFORMATION info1;
+    BY_HANDLE_FILE_INFORMATION info2;
+
+    int got_info = ( GetFileInformationByHandle( fh1, &info1 )
+                     && GetFileInformationByHandle( fh2, &info2 ) ) ? 1 : 0;
+    CloseHandle(fh1);
+    CloseHandle(fh2);
+    if ( !got_info )
+      return 0;
+
+    //always false for directories:
+    if ( info1.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
+      return 0;
+    if ( info2.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
+      return 0;
+
+    //Now compare index:
+    if ( info1.nFileIndexLow != info2.nFileIndexLow )
+      return 0;
+    if ( info1.nFileIndexHigh != info2.nFileIndexHigh )
+      return 0;
+    if ( info1.dwVolumeSerialNumber != info2.dwVolumeSerialNumber )
+      return 0;
+    //Extra checks, added for safety in cases of rare clashes in the above:
+    if ( info1.nFileSizeLow != info2.nFileSizeLow )
+      return 0;
+    if ( info1.nFileSizeHigh != info2.nFileSizeHigh )
+      return 0;
+    if ( info1.nNumberOfLinks != info2.nNumberOfLinks )
+      return 0;
+    if ( info1.dwFileAttributes != info2.dwFileAttributes )
+      return 0;
+    //Finally, look at the creation time:
+    if ( CompareFileTime( &info1.ftCreationTime,
+                          &info2.ftCreationTime ) != 0 )
+      return 0;
+
+    //Must be the same file (even though the two paths might still represent two
+    //separate files in the file-system, but hardlinked to the same actual file
+    //node).
+    return 1;
 #else
     //A hopefully bullet proof way, (st_ino,st_dev) uniquely identifies a file
     //on a POSIX system.
@@ -846,6 +1135,8 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       }
       fclose(fh);
     }
+    if ( S_ISDIR(sinfo1.st_mode) )
+      return 0;//always false for directories
     {
       mcu8str native = mcu8str_create_from_staticbuffer( buf, sizeof(buf) );
       mcu8str_assign( &native, p2 );
@@ -860,6 +1151,8 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       }
       fclose(fh);
     }
+    if ( S_ISDIR(sinfo2.st_mode) )
+      return 0;//always false for directories
     return ( sinfo1.st_dev == sinfo2.st_dev
              && sinfo1.st_ino == sinfo2.st_ino ) ? 1 : 0;
 #endif
@@ -882,13 +1175,17 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       if ( !p1->size )
         return mcu8str_create_empty();//special case: join("","")->""
       char lastchar = p1->c_str[p1->size-1];
-      if ( lastchar == '\\' || lastchar == '/' )
-        return mcu8str_copy( p1 );
+      if ( lastchar == '\\' || lastchar == '/' ) {
+        mcu8str p1copy = mcu8str_copy( p1 );
+        mctools_pathseps_platform(&p1copy);
+        return p1copy;
+      }
       mcu8str res = mcu8str_create( p1->size + 1 );
       mcu8str_append( &res, p1 );
       res.c_str[res.size] = native_sep;
       ++( res.size );
       res.c_str[res.size] = '\0';
+      mctools_pathseps_platform(&res);
       return res;
     }
 
@@ -905,16 +1202,21 @@ namespace MCFILEUTILS_CPPNAMESPACE {
         res.c_str[2] = '\0';
         res.size = 2;
         mcu8str_append( &res, p2 );
+        mctools_pathseps_platform(&res);
         return res;
       } else {
-        return mcu8str_copy( p2 );
+        mcu8str p2copy = mcu8str_copy( p2 );
+        mctools_pathseps_platform(&p2copy);
+        return p2copy;
       }
     }
 
     if ( drive_letter2 && drive_letter1 != drive_letter2 ) {
       //p2 has a drive letter and p1 has a different drive letter => simply
       //return p2.
-      return mcu8str_copy( p2 );
+      mcu8str p2copy = mcu8str_copy( p2 );
+      mctools_pathseps_platform(&p2copy);
+      return p2copy;
     }
 
     //Neither p1 or p2 are empty here, so we can simply join them. However, if
@@ -952,6 +1254,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     }
     STDNS memcpy( res.c_str + used, p2->c_str, s2+1 );//+1 to include null char
     res.size = newsize;
+    mctools_pathseps_platform(&res);
     return res;
   }
 
@@ -1018,6 +1321,73 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     if ( itLastDot )
       return itLastDot + 1;
     return it;//empty string
+  }
+
+  mcu8str mctools_expand_path( const mcu8str* p )
+  {
+    if ( p->size == 0 )
+      return mcu8str_create_empty();
+    mcu8str res;
+    res.owns_memory = 0;
+    res.size = 0;
+    res.buflen = 0;
+#ifdef MC_IS_WINDOWS
+    mcwinstr wp = mc_path2longwpath( p );
+    res = mc_winstr_to_u8str(&wp);
+    mc_winstr_dealloc(&wp);
+#else
+    if ( p->size >= 2
+         && p->c_str[0] == '~'
+         && ( p->c_str[1] == '/' || p->c_str[1] == '\\' ) ) {
+      const char * home = getenv("HOME");
+      if ( home ) {
+        if ( p->size == 2 ) {
+          mcu8str rhome = mcu8str_create_from_cstr(home);
+          mctools_pathseps_platform(&rhome);
+          return rhome;
+        }
+        const STDNS size_t home_size = STDNS strlen( home );
+        const STDNS size_t newsize = (STDNS size_t)(home_size + p->size - 1);
+        res = mcu8str_create( newsize );
+        mcu8str_append_cstr(&res,home);
+        mcu8str_append_cstr(&res, p->c_str + 1 );
+      }
+    }
+    if ( res.size == 0 )
+      res = mcu8str_copy(p);
+#endif
+    mctools_pathseps_platform(&res);
+    return res;
+  }
+
+  mcu8str mctools_absolute_path( const mcu8str* path )
+  {
+    mcu8str res = mcu8str_create_empty();
+    if ( path->size == 0 )
+      return res;
+#ifdef MC_IS_WINDOWS
+    {
+      mcwinstr wpath = mc_path2wpath( path );
+      mcwinstr wfp = mc_winstr_expand_to_fullpath( &wpath );
+      mc_winstr_dealloc(&wpath);
+      res = mc_winstr_to_u8str( &wfp );
+      mc_winstr_dealloc(&wfp);
+    }
+    const int not_done = (res.size == 0?1:0);
+#else
+    const int not_done = 1;
+#endif
+    if ( not_done ) {
+      if ( mctools_path_is_absolute(path) ) {
+        res = mcu8str_copy( path );
+      } else {
+        mcu8str cwd = mctools_get_current_working_dir();
+        res = mctools_path_join( &cwd, path );
+        mcu8str_dealloc(&cwd);
+      }
+    }
+    mctools_pathseps_platform(&res);
+    return res;
   }
 
   mcu8str mctools_dirname( const mcu8str* path )
@@ -1088,12 +1458,14 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       STDNS memcpy( res.c_str + 2, it0, ressize );
       res.c_str[ressize+2] = '\0';
       res.size = ressize+2;
+      mctools_pathseps_platform(&res);
       return res;
     } else {
       mcu8str res = mcu8str_create( ressize );
       STDNS memcpy( res.c_str, it0, ressize );
       res.c_str[ressize] = '\0';
       res.size = ressize;
+      mctools_pathseps_platform(&res);
       return res;
     }
   }

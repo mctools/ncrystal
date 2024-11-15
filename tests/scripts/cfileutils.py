@@ -29,12 +29,15 @@ from NCTestUtils.common import ( work_in_tmpdir,
 import pathlib
 import os
 
+native_sep = '\\' if is_windows() else '/'
+nonnative_sep = '/' if is_windows() else '\\'
+
 pPath = pathlib.Path
 lib = Lib('testcfileutils')
 lib.dump()
-assert hasattr(lib,'nctest_file_exists_and_readable')
 assert hasattr(lib,'nctest_get_current_working_dir')
 assert hasattr(lib,'nctest_real_path')
+assert hasattr(lib,'nctest_absolute_path')
 assert hasattr(lib,'nctest_fopen_and_read_text')
 assert hasattr(lib,'nctest_pathseps_platform')
 assert hasattr(lib,'nctest_pathseps_generic')
@@ -48,18 +51,27 @@ assert hasattr(lib,'nctest_fileextension')
 assert hasattr(lib,'nctest_fileextension_view')
 assert hasattr(lib,'nctest_path_join')
 assert hasattr(lib,'nctest_is_same_file')
+assert hasattr(lib,'nctest_is_file')
 assert hasattr(lib,'nctest_is_dir')
+assert hasattr(lib,'nctest_exists')
+assert hasattr(lib,'nctest_expand_path')
+
+import builtins
+def print(*a,**kw):
+    sys.stdout.flush()
+    builtins.print(*a,**kw)
+    sys.stdout.flush()
 
 def test1():
     d = pPath('.')
     (d / 'foo.txt').write_text('foo')
 
-    assert lib.nctest_file_exists_and_readable('./foo.txt')
-    assert lib.nctest_file_exists_and_readable(r'.\foo.txt')
-    assert lib.nctest_file_exists_and_readable('foo.txt')
-    assert not lib.nctest_file_exists_and_readable('bar.txt')
-    assert not lib.nctest_file_exists_and_readable('./bar.txt')
-    assert not lib.nctest_file_exists_and_readable('/some/file/that/does/not/exist')
+    assert lib.nctest_is_file('./foo.txt')
+    assert lib.nctest_is_file(r'.\foo.txt')
+    assert lib.nctest_is_file('foo.txt')
+    assert not lib.nctest_is_file('bar.txt')
+    assert not lib.nctest_is_file('./bar.txt')
+    assert not lib.nctest_is_file('/some/file/that/does/not/exist')
     print("Testing get_current_working_dir...")
     _cwd = lib.nctest_get_current_working_dir()
     d_abs = d.resolve().absolute()
@@ -98,26 +110,30 @@ def test2():
 
     fctnames = ['dirname','basename','basename_view',
                 'fileextension','fileextension_view',
-                'file_exists_and_readable',
+                'is_file','is_dir','exists',
                 'path_is_absolute','path_is_relative',
                 'pathseps_platform','pathseps_generic',
-                'drive_letter'
+                'drive_letter','expand_path',
                 ]
 
-
     fctnames_same_is_absolute = ['dirname','pathseps_platform',
-                                 'pathseps_generic']
-
-    native_sep = '\\' if is_windows() else '/'
+                                 'pathseps_generic','expand_path']
 
     for i,p in enumerate(testpaths):
         print(f'{i} Testing path "{p}":')
         for fct in fctnames:
             res = getattr(lib,f'nctest_{fct}')(p)
-            if fct == 'pathseps_platform':
-                #ensure test reproducibility:
-                res = res.replace(native_sep,'@NATIVESEP@')
-            print(f'   mctools_{fct} = "{res}"')
+            res_print = res
+            if isinstance(res,str):
+                res_print = res_print.replace(native_sep,'/')
+                if len(res)>=2 and res[1]==':':
+                    assert res[0] == res[0].upper()
+                forbid_sep, allow_sep = nonnative_sep, native_sep
+                if fct=='pathseps_generic':
+                    forbid_sep, allow_sep = '\\', '/'
+                    assert forbid_sep not in res
+                    res = res.replace(allow_sep,'/')
+            print(f'   mctools_{fct} = "{res_print}"')
 
         #test versus refs, but pathlib and os.path does not like back slashes on
         #unix:
@@ -266,6 +282,8 @@ def test4():
 
     def testdirname(path,expected):
         res=lib.nctest_dirname(path)
+        assert nonnative_sep not in res
+        expected = expected.replace('/',native_sep)
         if res != expected:
             raise SystemExit(f'NCrystal::dirname({repr(path)}) gave'
                              f' {repr(res)} and not the'
@@ -349,35 +367,54 @@ def test4():
     testext("../bla/.txt","txt")
     testext("~lala/bla/hej.txt.0","0")
 
-def test5():
+def test5( workdir ):
     #exercise a bunch of things, including is_same_file, is_dir, real_path,
     #path_join.
-    td = pPath().joinpath('rp').absolute()
-    td.mkdir()
-    os.chdir(td)
+    td = workdir
     files = [
+        #We only test symlink to files, not directories here!
         dict(name='asimplefile.txt',content='hello'),
         dict(name='sd 1',is_dir=True),
         dict(name='sd 1/lala.txt',content='bla'),
+        dict(name='sd 1/\u4500abc',is_dir=True),
         dict(name='sd 1/\u4500abc/.\u4500',content='foobar'),
         dict(name='sd 1/\u4500abc/.foo~',content='foobar'),
+        dict(name='asimplefilelinked.txt',symlink='asimplefile.txt'),
+        dict(name='sd 1/asimplefilelinked.txt',symlink='../asimplefile.txt'),
         dict(name='sd2',is_dir=True),
-        dict(name='sd2/sl1',symlink='../sd 1'),
-        dict(name='sd2/sl2',symlink=str(td.joinpath('sd 1').absolute())),
+
+        #FIXME TEMPORARILY DO WITHOUT dict(name='sd2/sl1',symlink='../sd 1',is_dir=True),
+        dict(name='sd2/sl2',symlink=str(td.joinpath('sd 1').absolute()),is_dir=True),
+        dict(name='sd  __   3',is_dir=True),
         dict(name='sd  __   3/bla.ncmat',content='NCMAT'),
     ]
     #Create layout:
     for finfo in files:
         f = finfo['name']
         fabs = td.joinpath(f)
-        symlink=finfo.get('symlink')
-        if finfo.get('is_dir'):
+        symlink = finfo.get('symlink','')
+        is_dir = bool(finfo.get('is_dir'))
+        print(f'-->  Creating test file {repr(f)}'
+              f' (is_dir={is_dir}, is_symlink={bool(symlink)})')
+        if symlink:
+            #might have is_dir True
+            fabs.symlink_to(symlink,target_is_directory=is_dir)
+            if not fabs.exists():
+                raise SystemExit("Failed to create symlink!")
+            assert fabs.exists()
+            assert fabs.is_dir() == is_dir
+            assert fabs.is_symlink()
+            #print('symlink is',symlink)
+            if pPath(symlink).is_absolute():
+                assert fabs.samefile( pPath(symlink) )
+            else:
+                expected_linkdest = pPath(fabs.parent).joinpath(symlink)
+                assert fabs.samefile( expected_linkdest )
+        elif is_dir:
             fabs.mkdir()
             continue
-        elif symlink:
-            fabs.symlink_to(symlink)
         else:
-            fabs.parent.mkdir(exist_ok=True)
+            #fabs.parent.mkdir(exist_ok=False)
             content = finfo.get('content')
             if content is not None:
                 fabs.write_text(content)
@@ -385,33 +422,73 @@ def test5():
                 fabs.touch()
     #Analyse it:
 
-    for ifile,f in enumerate(sorted(pPath('.').rglob('**/*'))):
+    #sorted(pPath('.').rglob('**/*'))
+    for ifile,finfo in enumerate(files):
+        frawname = finfo['name']
+        print( f'Testing file {ifile}: "{frawname}"' )
+        f = pPath(frawname)
         fabs = f.absolute()
         fabs_resolved = f.resolve()
+        #print(f"TEST2: fabs = {repr(fabs)}")
+        #print(f"TEST1: fabs_resolved = {repr(fabs_resolved)}")
+        #print(f"TEST3: mctools_expand_path(fabs_resolved) = {repr(lib.nctest_expand_path(fabs_resolved))}")
+        #print(f"TEST4: mctools_expand_path(fabs) = {repr(lib.nctest_expand_path(fabs))}")
+        #print(f"TEST5: mctools_real_path(fabs_resolved) = {repr(lib.nctest_real_path(fabs_resolved))}")
+        #print(f"TEST6: mctools_real_path(fabs) = {repr(lib.nctest_real_path(fabs))}")
+
+        abs_path0 = lib.nctest_absolute_path( fabs_resolved )#fixme test more?
+        assert abs_path0
+        assert lib.nctest_path_is_absolute(abs_path0)
+
         real_path0 = lib.nctest_real_path( fabs_resolved )
+        if not real_path0:
+            print( 'ERROR: real_path returns empty (fails) for:')
+            print( f"  arg: {repr(str(fabs_resolved))} (fabs_resolved)")
+            print( f"  fabs= {repr(str(fabs))}")
+            print( f"  cwd= {repr(str(os.getcwd()))}")
+            raise SystemExit(1)
+
         transforms = [ str,
                        lambda fin : str(fin).replace('/','\\'),
                        lambda fin : str(fin).replace('\\','/') ]
-        is_dir = fabs.is_dir()
+        is_dir = bool( fabs_resolved.is_dir() )
+        assert is_dir == bool(finfo.get('is_dir'))
         fabs_prev = td.parent
-        for is_abs, fin in [ (True,fabs), (False,f) ]:
-            print( f'Testing file {ifile}: "{f}"' )
+        for is_abs, fin in [ (False,f), (True,fabs) ]:
             assert not lib.nctest_is_same_file( str(fabs_prev), str(fin) )
             for ftest in sorted(set([t(fin) for t in transforms])):
+                ftest_shown = ftest
+                if is_abs:
+                    ftest_shown = '<hiddenabspart>'+ftest[-len(str(f)):]
+                print( f'  Testing with form: "{ftest_shown}" (is_abs={is_abs})' )
                 assert bool(lib.nctest_is_dir(ftest)) == is_dir
                 assert bool(lib.nctest_path_is_absolute(ftest)) == bool(is_abs)
                 assert bool(lib.nctest_path_is_relative(ftest)) == bool(not is_abs)
-                assert lib.nctest_file_exists_and_readable(ftest)
 
-                if not lib.nctest_is_same_file(ftest,str(fabs_resolved)):
+                assert lib.nctest_exists(ftest)
+                assert lib.nctest_is_dir(ftest) == is_dir
+                assert lib.nctest_is_file(ftest) == bool(not is_dir)
+
+                if lib.nctest_is_same_file(ftest,str(fabs_resolved)) != bool(not is_dir):
                     raise SystemExit("is_same_file does not return True"
                                      f" for {repr(ftest)} vs "
                                      f"{repr(str(fabs_resolved))}")
-                assert lib.nctest_is_same_file(ftest,str(fabs_resolved))
+                assert lib.nctest_is_same_file(ftest,str(fabs_resolved)) == bool(not is_dir)
+                assert lib.nctest_is_same_file(str(fabs_resolved),ftest) == bool(not is_dir)
 
+                rp_ftest = lib.nctest_real_path( ftest )
+                if not real_path0 == rp_ftest:
+                    print( 'ERROR: real_path(ftest) results unexpected for:')
+                    print( f"  ftest: {repr(str(ftest))}")
+                    print( f"  cwd= {repr(str(os.getcwd()))}")
+                    print( f"  expected= {repr(str(real_path0))}")
+                    print( f"  got     = {repr(str(rp_ftest))}")
+                    raise SystemExit(1)
+                assert real_path0 == rp_ftest
 
-                assert lib.nctest_is_same_file(str(fabs_resolved),ftest)
-                assert real_path0 == lib.nctest_real_path( ftest )
+                abs_ftest = lib.nctest_absolute_path( ftest )
+                assert pPath(abs_ftest).samefile(pPath(fabs))
+
                 if not is_abs:
                     pj = lib.nctest_path_join(str(td),ftest)
                     pj2 = lib.nctest_path_join(
@@ -424,15 +501,54 @@ def test5():
                     assert pPath(fabs_resolved).samefile( f )
                     assert pPath(fabs_resolved).samefile( pPath(pj2) )
                     assert pPath(fabs_resolved).samefile( fabs )
+                    if not pPath(fabs_resolved).samefile( pPath(real_path0) ):
+                        print( 'ERROR: pathlib.Path.samefile_file False for:')
+                        print( f"  arg1: {repr(str(fabs_resolved))} (fabs_resolved)")
+                        print( f"  arg2: {repr(real_path0)} (real_path0)")
+                        print( f"  fabs= {repr(str(fabs))}")
+                        print( f"  fin= {repr(str(fin))}")
+                        print( f"  ftest= {repr(str(ftest))}")
+                        print( f"  cwd= {repr(str(os.getcwd()))}")
+                        raise SystemExit(1)
                     assert pPath(fabs_resolved).samefile( real_path0 )
         fabs_prev = fabs
 
+def test_dirsymlinks( workdir ):
+    #FIXME: Test symlink to dir here (with no printouts)
+    f1 = workdir / 'bla.txt'
+    f1.write_text('bla')
+    fd = workdir / 'somedir'
+    fd.mkdir()
+    (workdir / 'yihadir').mkdir()
+    f2 = fd / 'foo.bar'
+    f2.symlink_to('../bla.txt')
+    assert f2.name == 'foo.bar'
+    assert f2.resolve().name == 'bla.txt'
+    assert lib.nctest_basename(f2) == 'foo.bar'
+    assert lib.nctest_basename(lib.nctest_real_path(f2)) == 'bla.txt'
+
+    if not is_windows():
+        #Symlinks to dirs requires special priviledges on Windows:
+        f3 = fd / 'muahaha.bar'
+        f3.symlink_to('../yihadir')
+        assert f3.name == 'muahaha.bar'
+        assert f3.resolve().name == 'yihadir'
+        assert lib.nctest_basename(f3) == 'muahaha.bar'
+        assert lib.nctest_basename(lib.nctest_real_path(f3)) == 'yihadir'
+
 def main():
+    tempdir1 = pPath().joinpath('td1').absolute()
+    tempdir2 = pPath().joinpath('td2').absolute()
     test1()
     test2()
     test3()
     test4()
-    test5()#nb changes dir
+    tempdir1.mkdir()
+    os.chdir(tempdir1)
+    test5(tempdir1)
+    tempdir2.mkdir()
+    os.chdir(tempdir2)
+    test_dirsymlinks(tempdir2)
 
 if __name__=='__main__':
     import sys
@@ -441,3 +557,4 @@ if __name__=='__main__':
     else:
         with work_in_tmpdir():
             main()
+#fixme check with hardlinks + files without read permission
