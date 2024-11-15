@@ -52,7 +52,7 @@ jobs:
       #NB: More verbosity by appending: "-- /verbosity:detailed":
     - name: CMake build NCrystal
       shell: cmd
-      run: cmake --build build --config Release
+      run: cmake --build build --config Release -j 3
 
       #NB more verbosity by appending: "-VV":
     - name: Run CTests
