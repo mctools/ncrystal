@@ -36,6 +36,8 @@ add_deprecated_boolvar( NCRYSTAL_ENABLE_MCSTAS "" "OFF" "" )
 add_deprecated_boolvar( INSTALL_MCSTAS "" "OFF" "" )
 add_deprecated_boolvar( NCRYSTAL_ENABLE_SETUPSH "" "OFF" "" )
 add_deprecated_boolvar( INSTALL_SETUPSH "" "OFF" "" )
+add_deprecated_boolvar( NCRYSTAL_ENABLE_PYTHON "" "OFF" "" )
+add_deprecated_boolvar( NCRYSTAL_SKIP_PYMODINST "" "OFF" "" )
 
 if ( NOT "x${INSTALL_DATA}" STREQUAL "xUNSET" AND NOT "x${EMBED_DATA}" STREQUAL "xUNSET" )
   #both legacy data vars are set, we can't rely on the mapping by add_deprecated_boolvar:

@@ -77,34 +77,6 @@ function( _ncrystal_option_force varname value )
   set( "${varname}" "${value}" PARENT_SCOPE )
 endfunction()
 
-#Hidden option needed for python setup.py/skbuild:
-if ( DEFINED NCRYSTAL_SETUPPY_MODE )
-  if ( NCRYSTAL_SETUPPY_MODE )
-    set( NCRYSTAL_SETUPPY_MODE "ON" )
-    message( STATUS "NCRYSTAL_SETUPPY_MODE detected => force-overriding values of some variables:")
-    _ncrystal_option_force( NCRYSTAL_ENABLE_PYTHON "ON" )#plan is to move out of ncrystal repo
-    _ncrystal_option_force( NCRYSTAL_ENABLE_EXAMPLES "OFF" )
-    _ncrystal_option_force( NCRYSTAL_ENABLE_DYNLOAD "ON" )
-    _ncrystal_option_force( NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE "ON" )
-    _ncrystal_option_force( NCRYSTAL_MODIFY_RPATH "OFF" )
-    _ncrystal_option_force( NCRYSTAL_ENABLE_DATA "EMBED" )#otherwise the c++ library can not locate the files
-    _ncrystal_option_force( NCRYSTAL_ENABLE_GEANT4 "OFF" )#plan is to move out of ncrystal repo
-    _ncrystal_option_force( NCRYSTAL_ENABLE_THREADS "ON" )
-    _ncrystal_option_force( NCRYSTAL_SKIP_PYMODINST "ON" )
-    _ncrystal_option_force( CMAKE_INSTALL_LIBDIR "NCrystal/ncrystal_pyinst_data/lib" )
-    _ncrystal_option_force( CMAKE_INSTALL_INCLUDEDIR "NCrystal/ncrystal_pyinst_data/include" )
-    _ncrystal_option_force( CMAKE_INSTALL_DATADIR "NCrystal/ncrystal_pyinst_data/data" )
-    _ncrystal_option_force( NCrystal_DATAFILESDIR "NCrystal/ncrystal_pyinst_data/stdlib_data" )
-    #TODO: Postpone adding the following namespace until e.g. mcstas comps stop hardcoding "-lNCrystal":
-    #_ncrystal_option_force( NCRYSTAL_NAMESPACE
-    # "pip${PROJECT_VERSION_MAJOR}d${PROJECT_VERSION_MINOR}d${PROJECT_VERSION_PATCH}" )
-  endif()
-else()
-  set( NCRYSTAL_SETUPPY_MODE "OFF" )
-endif()
-set( NCRYSTAL_ENABLE_PYTHON "OFF" )#FIXME
-set( NCRYSTAL_SKIP_PYMODINST "OFF" )#FIXME
-
 if ( WIN32 AND NCRYSTAL_ENABLE_TESTING AND NOT NCRYSTAL_SKIP_INSTALL )
   #Testing on windows needs us to export symbols from internal headers.
   message( WARNING "NCRYSTAL_ENABLE_TESTING on Windows implies NCRYSTAL_SKIP_INSTALL=ON for safety" )
@@ -122,12 +94,6 @@ if ( NCRYSTAL_ENABLE_CPACK )
   set(CPACK_NSIS_PACKAGE_NAME "${PROJECT_NAME} ${PROJECT_VERSION}")
   set(CPACK_NSIS_DISPLAY_NAME "${PROJECT_NAME} ${PROJECT_VERSION}")
   include(CPack)
-endif()
-
-if ( NCRYSTAL_SKIP_PYMODINST )
-  if ( NOT NCRYSTAL_ENABLE_PYTHON )
-    message( FATAL_ERROR "The NCRYSTAL_SKIP_PYMODINST flag requires -DNCRYSTAL_ENABLE_PYTHON=ON." )
-  endif()
 endif()
 
 if ( NCRYSTAL_NAMESPACE )
@@ -160,24 +126,13 @@ set(NCrystal_DATAROOT "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}")#e.g. <prefix>/
 if( NOT NCrystal_DATAFILESDIR )
   set( NCrystal_DATAFILESDIR "${NCrystal_DATAROOT}/data")#e.g. <prefix>/share/NCrystal/data>
 endif()
-if( NOT NCrystal_PYPATH )
-  set(NCrystal_PYPATH "${NCrystal_DATAROOT}/python")#e.g. <prefix>/share/NCrystal/python
-endif()
 if ( NOT NCrystal_CMAKEDIR )
   set(NCrystal_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")#e.g. <prefix>/lib/cmake/NCrystal>
-endif()
-if ( NOT NCRYSTAL_SKIP_PYMODINST )
-  set(NCrystal_PYMODDIR "${NCrystal_PYPATH}/NCrystal")#e.g. <prefix>/share/NCrystal/python/NCrystal
 endif()
 
 #Get a few relative paths, mostly for expansion in various installed files (we
 #use PROJECT_BINARY_DIR as prefix here, but it should not matter which as long
 #as it is an absolute path):
-if ( NOT NCRYSTAL_SKIP_PYMODINST )
-  file(RELATIVE_PATH NCrystal_relpath_PYMODDIR2LIBDIR "${PROJECT_BINARY_DIR}/${NCrystal_PYMODDIR}" "${PROJECT_BINARY_DIR}/${NCrystal_LIBDIR}")
-  file(RELATIVE_PATH NCrystal_relpath_CMAKEDIR2PYPATH   "${PROJECT_BINARY_DIR}/${NCrystal_CMAKEDIR}" "${PROJECT_BINARY_DIR}/${NCrystal_PYPATH}")
-  file(RELATIVE_PATH NCrystal_relpath_BINDIR2PYPATH "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}"   "${PROJECT_BINARY_DIR}/${NCrystal_PYPATH}")
-endif()
 file(RELATIVE_PATH NCrystal_relpath_BINDIR2LIBDIR   "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}"   "${PROJECT_BINARY_DIR}/${NCrystal_LIBDIR}")
 if ( NCRYSTAL_ENABLE_DATA STREQUAL "ON" )
   file(RELATIVE_PATH NCrystal_relpath_BINDIR2DATADIR "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}"   "${PROJECT_BINARY_DIR}/${NCrystal_DATAROOT}/data")
@@ -269,10 +224,6 @@ endfunction()
 file_globsrc( SRCS_NC "src/*.cc")
 file_globsrc( EXAMPLES_NC "examples/ncrystal_example_c*.c*")
 file_globsrc( DATAFILES "data/*.ncmat")
-file_globsrc( SRCS_NCPY "NCrystal/*.py")
-file_globsrc( SRCS_PYSCRIPTS "scripts/ncrystal_*")
-file_globsrc( tmp "scripts/nctool" )
-list(APPEND SRCS_PYSCRIPTS ${tmp})
 file_globsrc( HDRS_NCG4 "ncrystal_geant4/include/G4NCrystal/*.*")
 file_globsrc( SRCS_NCG4 "ncrystal_geant4/src/*.cc")
 file_globsrc( EXAMPLES_NCG4 "examples/ncrystal_example_g4*.cc")
@@ -611,59 +562,6 @@ if ( NCRYSTAL_ENABLE_EXAMPLES AND EXAMPLES_NC )
     endif()
     ncinstall(TARGETS ${exbn} DESTINATION ${NCrystal_BINDIR} )
   endforeach()
-endif()
-
-#Python interface:
-if (NCRYSTAL_ENABLE_PYTHON)
-  #NB: We don't actually require Python3 to be available, since we are just
-  #copying over files. In principle a user can install python3 after installing
-  #NCrystal.
-  # --> Python module files:
-  if ( NOT NCRYSTAL_SKIP_PYMODINST )
-    ncinstall(FILES ${SRCS_NCPY} DESTINATION ${NCrystal_PYMODDIR})
-    #autogenerated _nclibpath.py with relative location to library:
-    file(WRITE "${PROJECT_BINARY_DIR}/_nclibpath.py.in"
-      "#File autogenerated by NCrystal's CMakeLists.txt:\n"
-      "liblocation='${NCrystal_relpath_PYMODDIR2LIBDIR}/${NCrystal_LIBNAME}'\n")
-    if ( NCRYSTAL_NAMESPACE )
-      file(APPEND "${PROJECT_BINARY_DIR}/_nclibpath.py.in"
-        "ncrystal_namespace_protection='${NCRYSTAL_NAMESPACE}'\n")
-    endif()
-    configure_file("${PROJECT_BINARY_DIR}/_nclibpath.py.in" "${PROJECT_BINARY_DIR}/_nclibpath.py" COPYONLY)
-    ncinstall( FILES "${PROJECT_BINARY_DIR}/_nclibpath.py" DESTINATION ${NCrystal_PYMODDIR})
-  else()
-    if ( NCRYSTAL_SETUPPY_MODE )
-      #Static python files will be grapped from <src>/NCrystal by setup.py
-      #itself, so we do nothing. However, _chooks.py also needs the information
-      #about libname and namespace in _nclibpath.py:
-      message( STATUS "Adding _nclibpath.py needed for setup.py installation.")
-      file(WRITE "${PROJECT_BINARY_DIR}/_nclibpath.py.in"
-        "#File autogenerated by NCrystal's CMakeLists.txt:\n"
-        "import pathlib\n"
-        "liblocation=(pathlib.Path(__file__).parent / 'ncrystal_pyinst_data' / 'lib' / '${NCrystal_LIBNAME}').absolute()\n")
-      if ( NCRYSTAL_NAMESPACE )
-        file(APPEND "${PROJECT_BINARY_DIR}/_nclibpath.py.in"
-          "ncrystal_namespace_protection='${NCRYSTAL_NAMESPACE}'\n")
-      endif()
-      configure_file("${PROJECT_BINARY_DIR}/_nclibpath.py.in" "${PROJECT_BINARY_DIR}/_nclibpath.py" COPYONLY)
-      ncinstall( FILES "${PROJECT_BINARY_DIR}/_nclibpath.py" DESTINATION "NCrystal" )
-    else()
-      #Similar but preparing a custom directory on which to run pip install during conda build:
-      #scripts:
-      file( MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/ncrystal_pypkg/NCrystal" )
-      configure_file( "${PROJECT_SOURCE_DIR}/cmake/template_setup.py.in" "${PROJECT_BINARY_DIR}/ncrystal_pypkg/setup.py" @ONLY )
-      file(COPY ${SRCS_NCPY} DESTINATION "${PROJECT_BINARY_DIR}/ncrystal_pypkg/NCrystal")
-      message( STATUS "Will not install Python modules directly. Instead leaving pypkg skeleton in: ${PROJECT_BINARY_DIR}/ncrystal_pypkg/")
-      message( STATUS "Note that the skeleton is incomplete (missing the ${PROJECT_BINARY_DIR}/ncrystal_pypkg/NCrystal/_nclibpath.py file).")
-    endif()
-  endif()
-
-  # --> Python scripts:
-  ncinstall(PROGRAMS ${SRCS_PYSCRIPTS} DESTINATION ${NCrystal_BINDIR})
-  if ( NCRYSTAL_ENABLE_EXAMPLES )
-    ncinstall(PROGRAMS "${PROJECT_SOURCE_DIR}/examples/ncrystal_example_py" DESTINATION ${NCrystal_BINDIR})
-  endif()
-
 endif()
 
 #G4NCrystal

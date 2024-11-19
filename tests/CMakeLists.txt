@@ -39,7 +39,6 @@ if ( NOT TARGET NCrystal AND NOT TARGET NCrystal::NCrystal )
     "Testing against existing NCrystal installation in ${NCrystal_DIR}"
   )
   find_package( NCrystal 3.9.7 REQUIRED )
-  set( NCRYSTAL_ENABLE_PYTHON ON )
   set( NCTESTS_STANDALONE ON )
   set( nctests_ncrystallib_target "NCrystal::NCrystal" )
 else()
@@ -53,41 +52,40 @@ enable_testing()
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/cmake")
 include( mctools_testutils )
 
-if ( NOT NCRYSTAL_ENABLE_PYTHON )
-  message( WARNING "Skipping python tests since NCRYSTAL_ENABLE_PYTHON=OFF")
-else()
-  set( nctest_pyenvmod "" )
-  if ( NOT NCTESTS_STANDALONE )
-    list(
-      APPEND nctest_pyenvmod
-      "PYTHONPATH=path_list_prepend:${NCrystal_SOURCE_DIR}/../ncrystal_python"
-      "PYTHONPATH=path_list_prepend:${PROJECT_SOURCE_DIR}/pypath"
-    )
-    get_target_property(
-      tmp_ncrystal_libloc
-      "${nctests_ncrystallib_target}"
-      "LIBRARY_OUTPUT_DIRECTORY_Release"
-    )
-    list(
-      APPEND nctest_pyenvmod
-      "NCRYSTAL_LIB=set:$<TARGET_FILE:${nctests_ncrystallib_target}>"
-    )
-    if ( NOT NCRYSTAL_ENABLE_DATA STREQUAL "EMBED" )
-      list(
-        APPEND nctest_pyenvmod
-        "NCRYSTAL_DATADIR=set:${NCrystal_SOURCE_DIR}/data"
-      )
-    endif()
-  endif()
+set( nctest_pyenvmod "" )
+if ( NOT NCTESTS_STANDALONE )
   list(
     APPEND nctest_pyenvmod
-    "PYTHONIOENCODING=set:UTF-8"
-    "PYTHONLEGACYWINDOWSSTDIO=set:UTF-8"
+    "PYTHONPATH=path_list_prepend:${NCrystal_SOURCE_DIR}/../ncrystal_python"
+    "PYTHONPATH=path_list_prepend:${PROJECT_SOURCE_DIR}/pypath"
   )
-  mctools_testutils_add_tests_pyscripts(
-    "${CMAKE_CURRENT_LIST_DIR}/scripts" "${nctest_pyenvmod}"
+  get_target_property(
+    tmp_ncrystal_libloc
+    "${nctests_ncrystallib_target}"
+    "LIBRARY_OUTPUT_DIRECTORY_Release"
   )
+  list(
+    APPEND nctest_pyenvmod
+    "NCRYSTAL_LIB=set:$<TARGET_FILE:${nctests_ncrystallib_target}>"
+  )
+  if ( NOT NCRYSTAL_ENABLE_DATA STREQUAL "EMBED" )
+    list(
+      APPEND nctest_pyenvmod
+      "NCRYSTAL_DATADIR=set:${NCrystal_SOURCE_DIR}/data"
+    )
+  endif()
 endif()
+
+list(
+  APPEND nctest_pyenvmod
+  "PYTHONIOENCODING=set:UTF-8"
+  "PYTHONLEGACYWINDOWSSTDIO=set:UTF-8"
+)
+
+mctools_testutils_add_tests_pyscripts(
+  "${CMAKE_CURRENT_LIST_DIR}/scripts" "${nctest_pyenvmod}"
+)
+
 set( nctests_extra_inc_dirs PUBLIC "${CMAKE_CURRENT_LIST_DIR}/include" )
 mctools_testutils_add_test_libs(
   "${CMAKE_CURRENT_LIST_DIR}/libs"

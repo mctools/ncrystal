@@ -108,12 +108,9 @@ function( create_ncrystal_config_app )
   )
   target_include_directories( ncrystal_cfgapp PUBLIC "${workdir}/include" )
 
-  if ( SKBUILD_SCRIPTS_DIR )
-    #fixme: verify if this actually ends up in PATH
-    set( ncrystal_cfgapp_dest "${SKBUILD_SCRIPTS_DIR}" )
-  else()
-    set( ncrystal_cfgapp_dest "${NCrystal_BINDIR}" )
-  endif()
+  #Note, we install in NCrystal_BINDIR even if SKBUILD_SCRIPTS_DIR is
+  #set.
+  set( ncrystal_cfgapp_dest "${NCrystal_BINDIR}" )
   ncinstall( TARGETS ncrystal_cfgapp DESTINATION ${ncrystal_cfgapp_dest} )
 
 endfunction()

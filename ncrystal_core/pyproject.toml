@@ -30,18 +30,25 @@ build-backend = "scikit_build_core.build"
 logging.level = "INFO"
 minimum-version = "build-system.requires"
 cmake.source-dir = "."
-wheel.packages = []#ncrystal-core provides no python packges
-sdist.include = ["README.md","LICENSE","/src/","/include/","/data/","/cmake/"]
-
-[tool.scikit-build]
+wheel.packages = ['_ncrystal_core']
+sdist.include = ["README.md","LICENSE","/src/","/include/","/data/","/cmake/",
+              '/_ncrystal_core/','/app_config/','/CMakeLists.txt','/pyproject.toml']
 cmake.build-type = "Release"
 
+#[tool.scikit-build]
+
 [tool.scikit-build.cmake.define]
-#fixme doesnt work: NCRYSTAL_ENABLE_PYTHON = false
-NCRYSTAL_ENABLE_PYTHON = "OFF"
 NCRYSTAL_ENABLE_EXAMPLES = "OFF"
+NCRYSTAL_ENABLE_DYNLOAD = "ON"
+NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE = "ON"
+NCRYSTAL_MODIFY_RPATH = "OFF"
+NCRYSTAL_ENABLE_DATA = "EMBED"
 NCRYSTAL_ENABLE_GEANT4 = "OFF"
-NCRYSTAL_SETUPPY_MODE = "ON"
+NCRYSTAL_ENABLE_THREADS = "ON"
+CMAKE_INSTALL_LIBDIR = "_ncrystal_core/ncrystal_pyinst_data/lib"
+CMAKE_INSTALL_INCLUDEDIR = "_ncrystal_core/ncrystal_pyinst_data/include"
+CMAKE_INSTALL_DATADIR = "_ncrystal_core/ncrystal_pyinst_data/data"
+CMAKE_INSTALL_BINDIR = "_ncrystal_core/ncrystal_pyinst_data/bin"
 
 #fixme: ctest?
 #[tool.cibuildwheel]
@@ -65,3 +72,6 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: Unix",
 ]
+
+[project.scripts]
+ncrystal-config = "_ncrystal_core._cli:ncrystal_cfg_wrapper"
