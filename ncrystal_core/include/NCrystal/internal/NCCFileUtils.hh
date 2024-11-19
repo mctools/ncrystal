@@ -88,9 +88,13 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   mcu8str mcu8str_create_from_staticbuffer( char * buf, size_t buflen );
   mcu8str mcu8str_create_from_cstr( const char * );
   mcu8str mcu8str_copy( const mcu8str* );
-  const mcu8str mcu8str_view_cstr( const char * );//const view (input string
-                                                  //should outlive resulting
-                                                  //object).
+#ifdef MCFILEUTILS_CPPNAMESPACE
+  const
+#endif
+  mcu8str mcu8str_view_cstr( const char * );//const view (input string
+                                            //should outlive resulting
+                                            //object).
+
   void mcu8str_ensure_dynamic_buffer( mcu8str* );//replace any static with
                                                  //dynamic buffers
   void mcu8str_append( mcu8str* str, const mcu8str * otherstr );
@@ -103,6 +107,14 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   int mcu8str_contains( const mcu8str*, char needle );
   int mcu8str_is_ascii( const mcu8str* );//ASCII (no chars have high bit set)
   int mcu8str_equal( const mcu8str*, const mcu8str* );
+
+  //Convenience macro to create an mcu8str object viewing a string literal:
+#define MCU8STR_FROMLITERAL( varame, str ) \
+  mcu8str varname; { \
+    varname.c_str = str; \
+    varname.buflen = sizeof(str); \
+    varname.size = sizeof(str)-1; \
+    varname.owns_memory = 0; }
 
 #ifdef MCFILEUTILS_CPPNAMESPACE
   std::string mcu8str_to_stdstring( const mcu8str* );

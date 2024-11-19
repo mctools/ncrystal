@@ -62,7 +62,14 @@ namespace {
   public:
     const char * consume( NC::mcu8str* str )
     {
-      assert(str->size < BUFSIZE);
+      std::size_t size = str->size;
+      std::size_t calc_size = (std::size_t)strlen(str->c_str);
+      if ( size != calc_size ) {
+        printf("Inconsistent size of mcu8str (size=%i but strlen=%i): \"%s\"\n",
+               (int)size, int(calc_size), str->c_str );
+        return "ERROR: inconsistent string size in mc8ustr!!";
+      }
+      assert(size < BUFSIZE);
       m_buf[0] = '\0';
       std::strncat(m_buf,str->c_str,BUFSIZE);
       NC::mcu8str_dealloc(str);

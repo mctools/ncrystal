@@ -27,7 +27,6 @@ include( ncrystal_options )
 add_deprecated_boolvar( BUILD_EXAMPLES  NCRYSTAL_ENABLE_EXAMPLES "ON" "OFF" )
 add_deprecated_boolvar( BUILD_G4HOOKS   NCRYSTAL_ENABLE_GEANT4 "ON" "OFF" )
 add_deprecated_boolvar( INSTALL_PY      NCRYSTAL_ENABLE_PYTHON "ON" "OFF" )
-add_deprecated_boolvar( INSTALL_SETUPSH NCRYSTAL_ENABLE_SETUPSH "ON" "OFF" )
 add_deprecated_boolvar( MODIFY_RPATH    NCRYSTAL_MODIFY_RPATH "ON" "OFF" )
 add_deprecated_boolvar( INSTALL_DATA    NCRYSTAL_ENABLE_DATA "ON" "OFF" )
 add_deprecated_boolvar( EMBED_DATA      NCRYSTAL_ENABLE_DATA "EMBED" "ON" )
@@ -35,6 +34,8 @@ add_deprecated_boolvar( DISABLE_DYNLOAD NCRYSTAL_ENABLE_DYNLOAD "OFF" "IFAVAILAB
 add_deprecated_boolvar( NO_DIRECT_PYMODINST NCRYSTAL_SKIP_PYMODINST "ON" "OFF" )
 add_deprecated_boolvar( NCRYSTAL_ENABLE_MCSTAS "" "OFF" "" )
 add_deprecated_boolvar( INSTALL_MCSTAS "" "OFF" "" )
+add_deprecated_boolvar( NCRYSTAL_ENABLE_SETUPSH "" "OFF" "" )
+add_deprecated_boolvar( INSTALL_SETUPSH "" "OFF" "" )
 
 if ( NOT "x${INSTALL_DATA}" STREQUAL "xUNSET" AND NOT "x${EMBED_DATA}" STREQUAL "xUNSET" )
   #both legacy data vars are set, we can't rely on the mapping by add_deprecated_boolvar:

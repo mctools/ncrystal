@@ -23,7 +23,6 @@
 import NCTestUtils.enable_fpe # noqa F401
 from NCTestUtils.loadlib import Lib
 from NCTestUtils.common import ( work_in_tmpdir,
-                                 #ensure_error,
                                  explicit_unicode_str,
                                  is_windows )
 import pathlib
@@ -82,8 +81,6 @@ def test1():
     print("...get_current_working_dir ok")
 
 def test2():
-    #FIXME: Replicate the stuff below!
-
     testpaths = [ 'hello.txt',
                   r'C:\somewhere\bla.txt',
                   '/somewhere/bla.txt',
@@ -101,11 +98,6 @@ def test2():
                   '/some/where/../bla.txt',
                   'some/where/../bla.txt',
                   '../bla.txt',
-                  #FIXME: What about '/some/where/../bla.txt'? Should be
-                  #'/some/bla.txt'. But '../bla.txt' should keep the relative
-                  #path.
-                  #'/test/bla/'#pPath(..).name and unix basename gives
-                  #            #'bla' but os.path.basename is ''
                  ]
 
     fctnames = ['dirname','basename','basename_view',
@@ -147,7 +139,6 @@ def test2():
                 p = p.replace('\\','/')
                 pobj=pathlib.PurePosixPath(p)
             return dict(pathlib=pobj.name)
-            #return dict(pathlib=os.path.basename(pobj))
         for refsrc, refbasename in decode_refbn(p).items():
             if refbasename != nc_basename:
                 raise SystemExit(f"basename({repr(p)}) mismatch:"
@@ -206,77 +197,6 @@ def test3():
         #extra newline chars (they are anyway supported in .ncmat data, so not
         #really a deal breaker).
         assert testtext == content
-
-    #def testglob(pattern,nexpect,is_absolute=False):
-    #    def fmtpat( pattern ):
-    #        if is_absolute:
-    #            assert pPath(pattern).is_absolute()
-    #            s = '/SOMEWHERE/'+pPath(pattern).name
-    #        else:
-    #            s = str(pattern)
-    #        if is_windows():
-    #            s=s.replace('\\','/')#for test reproducibility
-    #        return repr(explicit_unicode_str(s))
-    #    print(f'Testing ncglob({fmtpat(pattern)}):')
-    #    import glob
-    #    g = sorted(glob.glob(pattern))
-    #    print('  --> Python glob got %i results:'%len(g))
-    #    for e in g:
-    #        print(f'   *: {fmtpat(e)}')
-    #    g = lib.nctest_ncglob(pattern)
-    #    print('  --> got %i results:'%len(g))
-    #    all_ok = True
-    #    for e in g:
-    #        badstr = ''
-    #        if not pPath(e).exists():
-    #            badstr = ' (ERROR NOT ACTUALLY FOUND)'
-    #            all_ok = False
-    #        print(f'   *: {fmtpat(e)}{badstr}')
-    #    if len(g) != nexpect:
-    #        raise SystemExit('Error: did not get expected %i entries'%nexpect)
-    #    if not all_ok:
-    #        raise SystemExit('Error: some hits were invalid')
-    #
-    ##windows: testglob(r'some_sub_dir\*.txt',2)
-    #testglob('some_sub_dir/*.txt',2)
-    #testglob('some_sub_dir/*',3)
-    #testglob('some_sub_dir/***',3)
-    #testglob('some_sub_dir/*txt*',2)
-    #testglob('some_sub_dir/?.txt*',2)
-    #testglob('some_sub_dir/*.ncmat',1)
-    #testglob('some_sub_dir/*b*',2)
-    #testglob('some_sub_dir/*a*',2)
-    #testglob('some_sub_dir/*.ncm',0)#could catch the .ncmat file if using wrong
-    #                                #windows API, where only 3 characters in
-    #                                #extensions are compared.
-    #testglob('unicodedir_test\u4500abc/*.ncmat',1)
-    #testglob('unicodedir_test\u4500abc/*.txt',2)
-    #testglob('unicodedir_test\u4500abc/*\u2030*',1)
-    #
-    #testglob('unicodedir_test\u4500ab*',1)
-    #testglob('unicodedir_test\u4500abc*',1)
-    #testglob('unicodedir_*',1)
-    #
-    #import os
-    #testglob(os.path.join(
-    #    str(pPath('unicodedir_test\u4500abc').absolute()),
-    #    '*') ,3,is_absolute = True)
-    #
-    ##Fixme: we don't propagate C++ exceptions nicely:
-    ##with ensure_error(RuntimeError,
-    ##                  'ncglob only supports wildcards in the'
-    ##                  ' last file or directory name'):
-    ##    testglob('*ome_sub*/*.txt',2)
-    ##so we do instead:
-    #print("Triggering expected error (hopefully):",flush=True)
-    #lib.nctest_ncglob('some*sub_dir/a.txt')
-    #
-    ##Finally, test with paths longer than 260 chars:
-    #dummy_path = pPath('a'*150).joinpath('b'*150).joinpath('bla.txt')
-    #dummy_path.parent.parent.mkdir()
-    #dummy_path.parent.mkdir()
-    #dummy_path.write_text('hello')
-    #testglob( str(dummy_path.parent)+'/bl*.txt',1)
 
 def test4():
 
@@ -382,8 +302,6 @@ def test5( workdir ):
         dict(name='asimplefilelinked.txt',symlink='asimplefile.txt'),
         dict(name='sd 1/asimplefilelinked.txt',symlink='../asimplefile.txt'),
         dict(name='sd2',is_dir=True),
-
-        #FIXME TEMPORARILY DO WITHOUT dict(name='sd2/sl1',symlink='../sd 1',is_dir=True),
         dict(name='sd2/sl2',symlink=str(td.joinpath('sd 1').absolute()),is_dir=True),
         dict(name='sd  __   3',is_dir=True),
         dict(name='sd  __   3/bla.ncmat',content='NCMAT'),
@@ -404,7 +322,6 @@ def test5( workdir ):
             assert fabs.exists()
             assert fabs.is_dir() == is_dir
             assert fabs.is_symlink()
-            #print('symlink is',symlink)
             if pPath(symlink).is_absolute():
                 assert fabs.samefile( pPath(symlink) )
             else:
@@ -414,33 +331,25 @@ def test5( workdir ):
             fabs.mkdir()
             continue
         else:
-            #fabs.parent.mkdir(exist_ok=False)
             content = finfo.get('content')
             if content is not None:
                 fabs.write_text(content)
             else:
                 fabs.touch()
     #Analyse it:
-
-    #sorted(pPath('.').rglob('**/*'))
     for ifile,finfo in enumerate(files):
         frawname = finfo['name']
         print( f'Testing file {ifile}: "{frawname}"' )
         f = pPath(frawname)
         fabs = f.absolute()
         fabs_resolved = f.resolve()
-        #print(f"TEST2: fabs = {repr(fabs)}")
-        #print(f"TEST1: fabs_resolved = {repr(fabs_resolved)}")
-        #print(f"TEST3: mctools_expand_path(fabs_resolved) = {repr(lib.nctest_expand_path(fabs_resolved))}")
-        #print(f"TEST4: mctools_expand_path(fabs) = {repr(lib.nctest_expand_path(fabs))}")
-        #print(f"TEST5: mctools_real_path(fabs_resolved) = {repr(lib.nctest_real_path(fabs_resolved))}")
-        #print(f"TEST6: mctools_real_path(fabs) = {repr(lib.nctest_real_path(fabs))}")
 
         abs_path0 = lib.nctest_absolute_path( fabs_resolved )#fixme test more?
         assert abs_path0
         assert lib.nctest_path_is_absolute(abs_path0)
 
         real_path0 = lib.nctest_real_path( fabs_resolved )
+
         if not real_path0:
             print( 'ERROR: real_path returns empty (fails) for:')
             print( f"  arg: {repr(str(fabs_resolved))} (fabs_resolved)")
@@ -536,6 +445,13 @@ def test_dirsymlinks( workdir ):
         assert lib.nctest_basename(f3) == 'muahaha.bar'
         assert lib.nctest_basename(lib.nctest_real_path(f3)) == 'yihadir'
 
+def test6():
+    pj = lib.nctest_path_join('/some/where','bla.txt')
+    assert nonnative_sep not in pj
+    expected = '/some/where/bla.txt'.replace('/',native_sep)
+    assert pj == expected
+
+
 def main():
     tempdir1 = pPath().joinpath('td1').absolute()
     tempdir2 = pPath().joinpath('td2').absolute()
@@ -549,6 +465,7 @@ def main():
     tempdir2.mkdir()
     os.chdir(tempdir2)
     test_dirsymlinks(tempdir2)
+    test6()
 
 if __name__=='__main__':
     import sys
@@ -557,4 +474,5 @@ if __name__=='__main__':
     else:
         with work_in_tmpdir():
             main()
+
 #fixme check with hardlinks + files without read permission

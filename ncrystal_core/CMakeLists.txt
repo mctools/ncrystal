@@ -87,7 +87,6 @@ if ( DEFINED NCRYSTAL_SETUPPY_MODE )
     _ncrystal_option_force( NCRYSTAL_ENABLE_DYNLOAD "ON" )
     _ncrystal_option_force( NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE "ON" )
     _ncrystal_option_force( NCRYSTAL_MODIFY_RPATH "OFF" )
-    _ncrystal_option_force( NCRYSTAL_ENABLE_SETUPSH "OFF" )
     _ncrystal_option_force( NCRYSTAL_ENABLE_DATA "EMBED" )#otherwise the c++ library can not locate the files
     _ncrystal_option_force( NCRYSTAL_ENABLE_GEANT4 "OFF" )#plan is to move out of ncrystal repo
     _ncrystal_option_force( NCRYSTAL_ENABLE_THREADS "ON" )
@@ -128,9 +127,6 @@ endif()
 if ( NCRYSTAL_SKIP_PYMODINST )
   if ( NOT NCRYSTAL_ENABLE_PYTHON )
     message( FATAL_ERROR "The NCRYSTAL_SKIP_PYMODINST flag requires -DNCRYSTAL_ENABLE_PYTHON=ON." )
-  endif()
-  if ( NCRYSTAL_ENABLE_SETUPSH )
-    message( FATAL_ERROR "The NCRYSTAL_SKIP_PYMODINST flag requires -DNCRYSTAL_ENABLE_SETUPSH=OFF." )
   endif()
 endif()
 
@@ -183,10 +179,14 @@ if ( NOT NCRYSTAL_SKIP_PYMODINST )
   file(RELATIVE_PATH NCrystal_relpath_BINDIR2PYPATH "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}"   "${PROJECT_BINARY_DIR}/${NCrystal_PYPATH}")
 endif()
 file(RELATIVE_PATH NCrystal_relpath_BINDIR2LIBDIR   "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}"   "${PROJECT_BINARY_DIR}/${NCrystal_LIBDIR}")
-file(RELATIVE_PATH NCrystal_relpath_BINDIR2DATAROOT "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}"   "${PROJECT_BINARY_DIR}/${NCrystal_DATAROOT}")
+if ( NCRYSTAL_ENABLE_DATA STREQUAL "ON" )
+  file(RELATIVE_PATH NCrystal_relpath_BINDIR2DATADIR "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}"   "${PROJECT_BINARY_DIR}/${NCrystal_DATAROOT}/data")
+else()
+  set(NCrystal_relpath_BINDIR2DATADIR "")
+endif()
 file(RELATIVE_PATH NCrystal_relpath_BINDIR2CMAKEDIR "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}"   "${PROJECT_BINARY_DIR}/${NCrystal_CMAKEDIR}")
 file(RELATIVE_PATH NCrystal_relpath_BINDIR2INCDIR   "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}"   "${PROJECT_BINARY_DIR}/${NCrystal_INCDIR}")
-file(RELATIVE_PATH NCrystal_relpath_BINDIR2ROOT     "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}"   "${PROJECT_BINARY_DIR}/")
+#file(RELATIVE_PATH NCrystal_relpath_BINDIR2ROOT     "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}"   "${PROJECT_BINARY_DIR}/")
 file(RELATIVE_PATH NCrystal_relpath_CMAKEDIR2ROOT   "${PROJECT_BINARY_DIR}/${NCrystal_CMAKEDIR}" "${PROJECT_BINARY_DIR}/")
 file(RELATIVE_PATH NCrystal_relpath_CMAKEDIR2BINDIR   "${PROJECT_BINARY_DIR}/${NCrystal_CMAKEDIR}" "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}")
 file(RELATIVE_PATH NCrystal_relpath_CMAKEDIR2LIBDIR   "${PROJECT_BINARY_DIR}/${NCrystal_CMAKEDIR}" "${PROJECT_BINARY_DIR}/${NCrystal_LIBDIR}")
@@ -319,11 +319,6 @@ file_glob( tmp "${ncrystal_core_configured_includedir}/NCrystal/*.h" )
 list( APPEND HDRS_NC ${tmp} )
 if ( NOT HDRS_NC OR NOT HDRS_INTERNAL_NC )
   message( FATAL_ERROR "Unexpected problem globbing for header files in ${ncrystal_core_configured_includedir}/" )
-endif()
-
-if ( NCRYSTAL_ENABLE_SETUPSH AND NOT NCRYSTAL_ENABLE_PYTHON )
-  message( WARNING "NCRYSTAL_ENABLE_SETUPSH is not possible when NCRYSTAL_ENABLE_PYTHON is OFF (forcing NCRYSTAL_ENABLE_SETUPSH=OFF)." )
-  set( NCRYSTAL_ENABLE_SETUPSH OFF )
 endif()
 
 include(CheckCXXCompilerFlag)
@@ -755,13 +750,6 @@ if ( NCRYSTAL_GEANT4 )
   add_library(NCrystal::G4NCrystal ALIAS G4NCrystal)#always alias namespaces locally
 endif()
 
-if ( NCRYSTAL_ENABLE_SETUPSH )
-  configure_file( "${PROJECT_SOURCE_DIR}/cmake/template_setup.sh.in" "${PROJECT_BINARY_DIR}/generated_setup.sh" @ONLY )
-  configure_file( "${PROJECT_SOURCE_DIR}/cmake/template_unsetup.sh.in" "${PROJECT_BINARY_DIR}/generated_unsetup.sh" @ONLY )
-  ncinstall( FILES "${PROJECT_BINARY_DIR}/generated_setup.sh" DESTINATION . RENAME ncrystal_setup.sh )
-  ncinstall( FILES "${PROJECT_BINARY_DIR}/generated_unsetup.sh" DESTINATION . RENAME ncrystal_unsetup.sh )
-endif()
-
 if ( NCRYSTAL_ENABLE_TESTING )
   #NB: The enable_testing() call must occur before ANY add_subdirectory calls
   #(including those further down this file).
@@ -892,26 +880,9 @@ configure_file( "${PROJECT_SOURCE_DIR}/cmake/NCrystalConfig.cmake.in"
 ncinstall( FILES "${PROJECT_BINARY_DIR}/NCrystalConfigVersion.cmake" "${PROJECT_BINARY_DIR}/NCrystalConfig.cmake"
          DESTINATION ${NCrystal_CMAKEDIR} )
 
-if (NCRYSTAL_ENABLE_PYTHON)
-  #NB: Important we do this next call AFTER all variables used in ncrystal-config.in have been set!
-  configure_file( "${PROJECT_SOURCE_DIR}/cmake/ncrystal-config.in" "${PROJECT_BINARY_DIR}/ncrystal-config" @ONLY )
-  ncinstall( PROGRAMS "${PROJECT_BINARY_DIR}/ncrystal-config" DESTINATION ${NCrystal_BINDIR} )
-endif()
-
-set( NCRYSTAL_ENABLE_CFGAPP "ON" )#fixme as option
 if ( NCRYSTAL_ENABLE_CFGAPP )
-  add_executable( ncrystal_cfgapp "${PROJECT_SOURCE_DIR}/app_config/main.c" )
-  #C99 and C11 seems to be OK for most systems. Using C99 to be conservative
-  #(could be reconsidered if we need it):
-  set_target_properties( ncrystal_cfgapp PROPERTIES LANGUAGE C )
-  target_compile_features( ncrystal_cfgapp INTERFACE c_std_99 )
-  if ( SKBUILD_SCRIPTS_DIR )
-    #fixme: verify if this actually ends up in PATH
-    set( ncrystal_cfgapp_dest "${SKBUILD_SCRIPTS_DIR}" )
-  else()
-    set( ncrystal_cfgapp_dest "${NCrystal_BINDIR}" )
-  endif()
-  ncinstall( TARGETS ncrystal_cfgapp DESTINATION scripts )
+  include( ncrystal_nccfgapp )
+  create_ncrystal_config_app()
 endif()
 
 if ( NOT NCRYSTAL_QUIET )

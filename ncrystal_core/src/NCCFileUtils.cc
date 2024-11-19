@@ -18,9 +18,30 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCCFileUtils.hh"
-
 // Cross platform string and file system utilities for C.
+
+#if ( defined (_WIN32) || defined (WIN32) )
+#  define MC_IS_WINDOWS
+#endif
+#ifndef MC_IS_WINDOWS
+#  ifndef _POSIX_C_SOURCE
+#    define _POSIX_C_SOURCE 200809L
+#  endif
+#  ifndef _XOPEN_SOURCE
+#    define _XOPEN_SOURCE 500
+#  endif
+#  include <unistd.h>
+#  include <limits.h>
+#  include <errno.h>
+#  include <sys/stat.h>
+#endif
+
+//Fixme: something better?:
+#if __cplusplus
+#  include "NCrystal/internal/NCCFileUtils.hh"
+#else
+#  include "NCCFileUtils.h"
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -37,6 +58,7 @@
 #  include <cstdlib>
 #  include <cstring>
 #  include <cassert>
+#  include <new>//for std::bad_alloc
 namespace MCFILEUTILS_CPPNAMESPACE {
 #else
 #  include <stdlib.h>
@@ -85,7 +107,11 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     mcu8str s;
     s.c_str = (char*) STDNS malloc( prealloc_size+1 );
     if ( !s.c_str ) {
-      //Fixme: exception? (if c++). Otherwise printout?
+#ifdef MCFILEUTILS_CPPNAMESPACE
+      throw std::bad_alloc();
+#else
+      fprintf(stderr, "ERROR: Memory allocation failed in mcu8str_create\n");
+#endif
       return mcu8str_create_empty();
     }
     s.c_str[0] = '\0';
@@ -139,7 +165,10 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     return str;
   }
 
-  const mcu8str mcu8str_view_cstr( const char * c_str )
+#ifdef MCFILEUTILS_CPPNAMESPACE
+  const
+#endif
+ mcu8str mcu8str_view_cstr( const char * c_str )
   {
     mcu8str s;
     s.c_str = (char*)c_str;//cast away constness, but we will add it again in
@@ -298,17 +327,6 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifdef MCFILEUTILS_CPPNAMESPACE
-#  include <cstdlib>
-#  include <cstring>
-#  include <cassert>
-#  include <cstdint>
-#else
-#  include <stdlib.h>
-#  include <string.h>
-#  include <assert.h>
-#  include <stdint.h>
-#endif
 #ifdef MC_IS_WINDOWS
 #  undef MC_IS_WINDOWS
 #endif
@@ -319,17 +337,23 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 #  define MC_IS_WINDOWS
 #  define WIN32_LEAN_AND_MEAN
 #  include <windows.h>
-  //#  include <shlwapi.h>//for PathIsRelativeW (fixme: remove if needed)
-//#  include<io.h> //for _get_osfhandle (fixme: use different way to get the handle and avoid this header?)
 #else
-#  include <unistd.h>
-#  include <limits.h>
-#  include <errno.h>
-#  include <sys/stat.h>
 #  ifdef __APPLE__
 #    define MC_IS_APPLE
 #    include <mach-o/dyld.h>
 #  endif
+#endif
+
+#ifdef MCFILEUTILS_CPPNAMESPACE
+#  include <cstdlib>
+#  include <cstring>
+#  include <cassert>
+#  include <cstdint>
+#else
+#  include <stdlib.h>
+#  include <string.h>
+#  include <assert.h>
+#  include <stdint.h>
 #endif
 
 //fixme: use NULL everywhere as needed
@@ -630,6 +654,14 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     {
       mcwinstr str;
       str.c_str = (wchar_t*) STDNS malloc( sizeof(wchar_t)*(size + 1) );
+      if ( !str.c_str ) {
+#ifdef MCFILEUTILS_CPPNAMESPACE
+        throw std::bad_alloc();
+#else
+        fprintf(stderr, "ERROR: Memory allocation failed in mc_winstr_create\n");
+#endif
+        return mc_winstr_create_empty();
+      }
       str.c_str[0] = 0;
       str.size = 0;
       str.buflen = size + 1;
@@ -646,8 +678,6 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       str->c_str = (wchar_t*)(0);
       STDNS free( bufptr );
     }
-
-
 
 #  ifdef __cplusplus
   }//end of anonymous namespace
@@ -758,7 +788,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   {
 #ifdef MC_IS_WINDOWS
     mcwinstr wpath = mc_winstr_create( ( MAX_PATH >= 260 ? MAX_PATH+1 : 261 ) );
-    auto nsize = GetCurrentDirectoryW(wpath.buflen,wpath.c_str);
+    DWORD nsize = GetCurrentDirectoryW(wpath.buflen,wpath.c_str);
     if ( (STDNS size_t)(nsize + 1) > wpath.buflen ) {
       //Use larger buffer and try again:
       mc_winstr_dealloc( &wpath );
@@ -867,7 +897,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
         char buf[65536+1];//PATH_MAX is unreliable so we use huge buffer for
         //simplicity.
         mcu8str path = mcu8str_create_from_staticbuffer( buf, sizeof(buf) );
-        //NB: ssize_t is from unistd.h, so never exist in std:: namespace.
+        //NB: ssize_t is from unistd.h, so never exists in std:: namespace.
         ssize_t len = readlink(filename, path.c_str, path.buflen-1 );
         if ( len > 0 && (STDNS size_t)(len+1) < path.buflen ) {
           path.c_str[len] = '\0';//readlink does not add terminating null char
@@ -966,6 +996,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       return mcu8str_create_empty();
     }
     mcu8str_dealloc(&native);
+    mcu8str_update_size(&output);
 #endif
     mctools_pathseps_platform(&output);
     return output;
@@ -1285,6 +1316,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       return mcu8str_create_empty();
     mcu8str res = mcu8str_create( bnsize );
     STDNS memcpy( res.c_str, it, bnsize + 1 );
+    res.size = bnsize;
     return res;
   }
 
@@ -1311,7 +1343,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   {
     const char * it = mctools_basename_view( path );
     const char * itLastDot = (const char *)0;
-    while ( true ) {
+    while ( 1 ) {
       if ( *it == 0 )
         break;//end of string reached
       if ( *it == '.' )
@@ -1401,7 +1433,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     if ( itB == itE ) {
       //empty:
       if ( drive_letter ) {
-        auto res = mcu8str_create_from_cstr("::");
+        mcu8str res = mcu8str_create_from_cstr("::");
         res.c_str[0] = drive_letter;
         return res;
       } else {
@@ -1432,7 +1464,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     if ( ressize == 1 && *it0 == '.' ) {
       //special case, "." or "D:."
       if ( drive_letter ) {
-        auto res = mcu8str_create_from_cstr("::");
+        mcu8str res = mcu8str_create_from_cstr("::");
         res.c_str[0] = drive_letter;
         return res;
       } else {
@@ -1444,7 +1476,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       if ( path->c_str[0] == '.' && !drive_letter )
         return mcu8str_create_from_cstr(".");
       if ( drive_letter ) {
-        auto res = mcu8str_create_from_cstr("::");
+        mcu8str res = mcu8str_create_from_cstr("::");
         res.c_str[0] = drive_letter;
         return res;
       } else {

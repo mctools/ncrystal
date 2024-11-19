@@ -23,7 +23,6 @@ cmake \
     -DNCRYSTAL_ENABLE_EXAMPLES=ON \
     -DNCRYSTAL_ENABLE_GEANT4=OFF \
     -DNCRYSTAL_BUILD_STRICT=ON \
-    -DNCRYSTAL_ENABLE_SETUPSH=ON \
     -DNCRYSTAL_ENABLE_TESTING=ON \
     "$@"
 
@@ -37,6 +36,7 @@ if [ "x${THE_OTHER_BUILD_TYPE}" != "x" ]; then
     cmake --build "${TGT}/bld" --config "${THE_OTHER_BUILD_TYPE}"
 fi
 echo "Build dir was: ${TGT}/bld"
+# -R app_selfpath -VV
 ctest --build-config  "${THE_BUILD_TYPE}"  --output-on-failure --test-output-size-failed 10000 --test-output-truncation middle
 if [ "x${THE_OTHER_BUILD_TYPE}" != "x" ]; then
     ctest --build-config  "${THE_OTHER_BUILD_TYPE}"  --output-on-failure --test-output-size-failed 10000 --test-output-truncation middle

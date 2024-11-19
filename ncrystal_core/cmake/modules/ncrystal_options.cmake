@@ -30,7 +30,6 @@ bool_option( NCRYSTAL_ENABLE_EXAMPLES  "Whether to build and install various exa
 enum_option( NCRYSTAL_ENABLE_GEANT4    "Whether to build the G4 hooks." "OFF" "ON" "IFAVAILABLE" )
 bool_option( NCRYSTAL_ENABLE_PYTHON    "Whether to install the NCrystal python module and various python scripts (including ncrystal-config)." "ON" )
 enum_option( NCRYSTAL_ENABLE_DATA      "Whether to include the standard data library files (possibly EMBED'ed into the binary)." "ON" "OFF" "EMBED" )
-bool_option( NCRYSTAL_ENABLE_SETUPSH   "Whether to install ncrystal_[un]setup.sh which users can source in order to use installation." "OFF" )
 bool_option( NCRYSTAL_MODIFY_RPATH     "Whether to try to set RPATH in installed binaries (if disabled all special RPATH handling is skipped)." "ON" )
 enum_option( NCRYSTAL_ENABLE_DYNLOAD   "Enable dynamic library loading capabilities (for plugins)." "IFAVAILABLE" "ON" "OFF" )
 bool_option( NCRYSTAL_SKIP_PYMODINST   "Prevents Python module installation and creates setup.py-based skeleton in <blddir>/ncrystal_pypkg (w/o _nclibpath.py file)." "OFF" )
@@ -41,6 +40,7 @@ bool_option( NCRYSTAL_SKIP_INSTALL     "Set to prevent any installation targets 
 bool_option( NCRYSTAL_ENABLE_SOVERSION "Enable shared library SOVERSION." "ON" )
 enum_option( NCRYSTAL_ENABLE_THREADS   "Enable multithread usage (multithread safety is not affected by this)." "IFAVAILABLE" "ON" "OFF" )
 bool_option( NCRYSTAL_ENABLE_TESTING   "Whether to enable the CTest-based tests in the tests subdirectory." "OFF" )
+bool_option( NCRYSTAL_ENABLE_CFGAPP    "Whether to build and install the ncrystal-config command" "ON" )
 
 string_option(
   NCRYSTAL_BUILTIN_PLUGINS
