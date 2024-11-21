@@ -21,6 +21,29 @@
 
 #Fixme this file needs a lot more work.
 
+[project]
+name = "ncrystal-core"
+version = "3.9.7"
+requires-python = ">=3.8"
+readme = "skbld_autogen/README.md"
+license = {file = "skbld_autogen/LICENSE"}
+authors = [
+  { name="NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)" },
+]
+description = "Library for thermal neutron transport in crystals and other materials."
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: Unix",
+]
+
+[project.urls]
+"Homepage" = "https://mctools.github.io/ncrystal/"
+"Bug Tracker" = "https://github.com/mctools/ncrystal/issues"
+
+[project.scripts]
+ncrystal-config = "_ncrystal_core.info:_ncrystal_config_cli_wrapper"
+
 [build-system]
 requires = ["scikit-build-core>=0.10"]
 build-backend = "scikit_build_core.build"
@@ -29,49 +52,17 @@ build-backend = "scikit_build_core.build"
 #cmake.verbose = true
 logging.level = "INFO"
 minimum-version = "build-system.requires"
-cmake.source-dir = "."
-wheel.packages = ['_ncrystal_core']
-sdist.include = ["README.md","LICENSE","/src/","/include/","/data/","/cmake/",
-              '/_ncrystal_core/','/app_config/','/CMakeLists.txt','/pyproject.toml']
-cmake.build-type = "Release"
+wheel.packages = ['skbld_autogen/_ncrystal_core']
+sdist.include = ["/src/","/include/","/cmake/",
+                 '/app_config/','/CMakeLists.txt','/pyproject.toml',#fixme: pyproject.toml likely not needed!
+                 '/skbld_autogen/'#FIXME: README+LICENSE also to autogen!
+                 ]
+#sdist.exclude = ['**~','skbld_autogen/NCrystal/_is_std.py~']#fixme does not work, we might have to carefully add more
+#                      #specifically in .include. Or perhaps a .gitignore in THIS directory as well?
 
-#[tool.scikit-build]
 
-[tool.scikit-build.cmake.define]
-NCRYSTAL_ENABLE_EXAMPLES = "OFF"
-NCRYSTAL_ENABLE_DYNLOAD = "ON"
-NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE = "ON"
-NCRYSTAL_MODIFY_RPATH = "OFF"
-NCRYSTAL_ENABLE_DATA = "EMBED"
-NCRYSTAL_ENABLE_GEANT4 = "OFF"
-NCRYSTAL_ENABLE_THREADS = "ON"
-CMAKE_INSTALL_LIBDIR = "_ncrystal_core/ncrystal_pyinst_data/lib"
-CMAKE_INSTALL_INCLUDEDIR = "_ncrystal_core/ncrystal_pyinst_data/include"
-CMAKE_INSTALL_DATADIR = "_ncrystal_core/ncrystal_pyinst_data/data"
-CMAKE_INSTALL_BINDIR = "_ncrystal_core/ncrystal_pyinst_data/bin"
+sdist.cmake = true
+wheel.py-api = "py3" # as close to "noarch" as possible (ABI3)
 
-#fixme: ctest?
-#[tool.cibuildwheel]
-#test-command = [
-#  "python3 -mNCrystal.test all",
-#  "nctool --test",
-#]
 
-[project]
-name = "ncrystal-core"
-version = "3.9.7"
-authors = [
-  { name="NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)" },
-]
-description = "Library for thermal neutron transport in crystals and other materials."
-readme = "README.md"
-requires-python = ">=3.8"
-license = {file = "LICENSE"}
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: Apache Software License",
-    "Operating System :: Unix",
-]
-
-[project.scripts]
-ncrystal-config = "_ncrystal_core._cli:ncrystal_cfg_wrapper"
+#wheel.exclude = ["**.pyx","**.pyc"] ??

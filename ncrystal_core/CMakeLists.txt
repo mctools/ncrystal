@@ -26,6 +26,16 @@ cmake_minimum_required(VERSION 3.16...3.27)
 # project(..). We do not do this in case the generator is multi-cfg, and we also
 # provide the hidden NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE option to not do it.
 #
+if ( DEFINED SKBUILD_PROJECT_NAME )
+  set( NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE "OFF" )
+  set( nccore_pymodname "_ncrystal_core" )
+  if ( NCRYSTAL_SKBUILD_MONOLITHIC )
+    set( nccore_pymodname "_ncrystal_core_monolithic" )
+  endif()
+else()
+  set ( NCRYSTAL_SKBUILD_MONOLITHIC "OFF" )
+endif()
+
 if( NOT NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE )
   get_property( gen_is_multicfg GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG )
   if ( NOT gen_is_multicfg )
@@ -76,6 +86,28 @@ function( _ncrystal_option_force varname value )
   message( STATUS "Forcing ${varname}=\"${value}\"" )
   set( "${varname}" "${value}" PARENT_SCOPE )
 endfunction()
+
+if ( DEFINED SKBUILD_PROJECT_NAME )
+  message( STATUS "scikit-build mode detected. Overriding various settings" )
+  _ncrystal_option_force( NCRYSTAL_ENABLE_EXAMPLES "ON" )
+  _ncrystal_option_force( NCRYSTAL_ENABLE_DYNLOAD "ON" )
+  _ncrystal_option_force( NCRYSTAL_MODIFY_RPATH "OFF" )
+  _ncrystal_option_force( NCRYSTAL_ENABLE_DATA "EMBED" )
+  _ncrystal_option_force( NCRYSTAL_ENABLE_GEANT4 "OFF" )
+  _ncrystal_option_force( NCRYSTAL_ENABLE_THREADS "ON" )
+  _ncrystal_option_force( CMAKE_INSTALL_LIBDIR "${nccore_pymodname}/data/lib" )
+  _ncrystal_option_force( CMAKE_INSTALL_INCLUDEDIR "${nccore_pymodname}/data/include" )
+  _ncrystal_option_force( CMAKE_INSTALL_DATADIR "${nccore_pymodname}/data/data" )
+  _ncrystal_option_force( CMAKE_INSTALL_BINDIR "${nccore_pymodname}/data/bin" )
+  set ( ncrystal_sdist_autogendir "${PROJECT_SOURCE_DIR}/skbld_autogen" )
+  if ( "${SKBUILD_STATE}" STREQUAL "sdist" )
+    if ( IS_DIRECTORY "${ncrystal_sdist_autogendir}" )
+      message( STATUS "Cleaning out ${ncrystal_sdist_autogendir}" )
+      file( REMOVE_RECURSE "${ncrystal_sdist_autogendir}" )
+    endif()
+    file( MAKE_DIRECTORY "${ncrystal_sdist_autogendir}" )
+  endif()
+endif()
 
 if ( WIN32 AND NCRYSTAL_ENABLE_TESTING AND NOT NCRYSTAL_SKIP_INSTALL )
   #Testing on windows needs us to export symbols from internal headers.
@@ -213,17 +245,24 @@ endif()
 
 function(file_globsrc output_var pattern)
   file(GLOB tmp LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/${pattern}" )
-  set(${output_var} ${tmp} PARENT_SCOPE)
+  set(${output_var} "${tmp}" PARENT_SCOPE)
 endfunction()
 
 function(file_glob output_var pattern)
   file(GLOB tmp LIST_DIRECTORIES false CONFIGURE_DEPENDS "${pattern}" )
-  set(${output_var} ${tmp} PARENT_SCOPE)
+  set(${output_var} "${tmp}" PARENT_SCOPE)
 endfunction()
 
+function( get_datafile_list output_var )
+  set ( ddir "${PROJECT_SOURCE_DIR}/../data" )
+  if ( NOT EXISTS "${ddir}/Al_sg225.ncmat" )
+    message( FATAL_ERROR "Could not find data directory: ${ddir}" )
+  endif()
+  file(GLOB tmp LIST_DIRECTORIES false CONFIGURE_DEPENDS "${ddir}/*.ncmat" )
+  set( ${output_var} "${tmp}" PARENT_SCOPE )
+endfunction()
 file_globsrc( SRCS_NC "src/*.cc")
 file_globsrc( EXAMPLES_NC "examples/ncrystal_example_c*.c*")
-file_globsrc( DATAFILES "data/*.ncmat")
 file_globsrc( HDRS_NCG4 "ncrystal_geant4/include/G4NCrystal/*.*")
 file_globsrc( SRCS_NCG4 "ncrystal_geant4/src/*.cc")
 file_globsrc( EXAMPLES_NCG4 "examples/ncrystal_example_g4*.cc")
@@ -514,35 +553,54 @@ if ( NCRYSTAL_ENABLE_DATA STREQUAL "EMBED" )
 
   target_compile_definitions(NCrystal PRIVATE NCRYSTAL_STDCMAKECFG_EMBED_DATA_ON)
 
-  #We must find python3 interpreter. The FindPython3 module is only available
-  #from CMake 3.12 and is reported to not work well until CMake 3.15.5.
-  message( STATUS "Looking for python interpreter (needed when NCRYSTAL_ENABLE_DATA=EMBED).")
-  find_package(Python3 3.8 REQUIRED COMPONENTS Interpreter)
-  #Generate C++ code from the .ncmat files:
-  #Fixme: Would be nice if we could invoke _ncmat2cpp_impl.py directly from the
-  #ncrystal_python subdir? Otherwise we should add it to a list of files to be
-  #kept in sync automatically (along with LICENSE file perhaps).
-  execute_process(
-    COMMAND "${Python3_EXECUTABLE}"
-    "-BI"
-    "${PROJECT_SOURCE_DIR}/cmake/_ncmat2cpp_impl.py"
-    "-n" "NCrystal::AutoGenNCMAT::registerStdNCMAT"
-    "--regfctname" "NCrystal::internal::registerEmbeddedNCMAT(const char*,const char*)"
-    "-o" "${PROJECT_BINARY_DIR}/autogen_ncmat_data.cc" ${DATAFILES} RESULT_VARIABLE status
-  )
-  if(status AND NOT status EQUAL 0)
-    message(FATAL_ERROR "Failure while trying to invoke ncmat2cpp (needed since NCRYSTAL_ENABLE_DATA=EMBED).")
+  set( ncmatcc_bn "autogen_ncmat_data.cc" )
+  set( ncmatcc_file "${PROJECT_BINARY_DIR}/${ncmatcc_bn}" )
+  set( ncmatcc_file_needs_update ON )
+  if ( DEFINED SKBUILD_PROJECT_NAME )
+    #Ensure the file gets packaged up in the sdist (that way we do not need data
+    #files and _ncmat2cpp_impl.py to be in subdirs of ncrystal_core).
+    set( ncmatcc_file "${ncrystal_sdist_autogendir}/${ncmatcc_bn}" )
+    if ( EXISTS ${ncmatcc_file} AND NOT "${SKBUILD_STATE}" STREQUAL "sdist" )
+      message( STATUS "Using pregenerated ${ncmatcc_bn} with embedded NCMAT data" )
+      set( ncmatcc_file_needs_update OFF )
+      #FIXME: Also check generated .cc file is newer than all the source files!!!
+    else()
+      message(STATUS "created ${ncrystal_sdist_autogendir}" )
+    endif()
   endif()
-  target_sources(NCrystal PRIVATE "${PROJECT_BINARY_DIR}/autogen_ncmat_data.cc")#too late to just append to SRCS_NC
-  message(STATUS "Generated autogen_ncmat_data.cc with embedded NCMAT data (will be compiled into the NCrystal library)." )
-endif()
-
-if ( NCRYSTAL_ENABLE_DATA STREQUAL "ON" )
+  if ( ncmatcc_file_needs_update )
+    #We must find python3 interpreter.
+    message( STATUS "Looking for python interpreter (needed when NCRYSTAL_ENABLE_DATA=EMBED).")
+    find_package(Python3 3.8 REQUIRED COMPONENTS Interpreter)
+    #Generate C++ code from the .ncmat files:
+    #Fixme: Would be nice if we could invoke _ncmat2cpp_impl.py directly from the
+    #ncrystal_python subdir? Otherwise we should add it to a list of files to be
+    #kept in sync automatically (along with LICENSE file perhaps).
+    get_datafile_list( data_file_list )
+    set( ncmat2cpppy "${PROJECT_SOURCE_DIR}/../ncrystal_python/NCrystal/_ncmat2cpp_impl.py" )
+    if ( NOT EXISTS "${ncmat2cpppy}" )
+      message( FATAL_ERROR "Missing file: ${ncmat2cpppy}" )
+    endif()
+    execute_process(
+      COMMAND "${Python3_EXECUTABLE}" "-BI" "${ncmat2cpppy}"
+      "-n" "NCrystal::AutoGenNCMAT::registerStdNCMAT" "--regfctname"
+      "NCrystal::internal::registerEmbeddedNCMAT(const char*,const char*)"
+      "-o" "${ncmatcc_file}" ${data_file_list} RESULT_VARIABLE status
+    )
+    if(status AND NOT status EQUAL 0)
+      message(FATAL_ERROR "Failure while trying to invoke"
+        " ncmat2cpp (needed since NCRYSTAL_ENABLE_DATA=EMBED).")
+    endif()
+    message(STATUS "Generated ${ncmatcc_bn} with embedded NCMAT data (will be compiled into the NCrystal library)." )
+  endif()
+  target_sources(NCrystal PRIVATE "${ncmatcc_file}")
+elseif( NCRYSTAL_ENABLE_DATA STREQUAL "ON" )
   #Hardwiring NCRYSTAL_DATADIR in the binary, although handled with
   #NCRYSTAL_DATADIR env var in ncrystal_setup.sh. The environment variable makes
   #the installation relocatable (at least for users sourcing the installed
   #ncrystal_setup.sh):
   target_compile_definitions(NCrystal PRIVATE "NCRYSTAL_DATADIR=${CMAKE_INSTALL_PREFIX}/${NCrystal_DATAFILESDIR}")
+  get_datafile_list( DATAFILES )
   ncinstall(FILES ${DATAFILES} DESTINATION ${NCrystal_DATAFILESDIR})
 endif()
 
@@ -767,7 +825,7 @@ if (NCrystal_builtin_plugin_names)
   message( STATUS "Generated autogen_ncplugins.cc for enabling embedded plugins (will be compiled into the NCrystal library)." )
 endif()
 
-#NB: Important we export the config file AFTER all variables used have been set!
+#NB: Important we do any configure_file AFTER all variables used have been set!
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file( "${PROJECT_BINARY_DIR}/NCrystalConfigVersion.cmake"
                                   VERSION ${NCrystal_VERSION} COMPATIBILITY SameMajorVersion )
@@ -777,6 +835,27 @@ configure_file( "${PROJECT_SOURCE_DIR}/cmake/NCrystalConfig.cmake.in"
 
 ncinstall( FILES "${PROJECT_BINARY_DIR}/NCrystalConfigVersion.cmake" "${PROJECT_BINARY_DIR}/NCrystalConfig.cmake"
          DESTINATION ${NCrystal_CMAKEDIR} )
+
+if ( DEFINED SKBUILD_PROJECT_NAME AND "${SKBUILD_STATE}" STREQUAL "sdist" )
+  #Only if installed via scikit-build will we generate an appropriate
+  #_ncrystal_core Python module for installation. We will also copy over some
+  #metadata files which resides outside <reporoot>/ncrystal_core for inclusion
+  #in the sdist.
+  set( pymoddir "${ncrystal_sdist_autogendir}/${nccore_pymodname}" )
+  file( MAKE_DIRECTORY "${pymoddir}" )
+  file( WRITE "${pymoddir}/__init__.py" "__version__='${NCrystal_VERSION}'\n" )
+  configure_file(
+    "${PROJECT_SOURCE_DIR}/cmake/template_pymod.py.in"
+    "${pymoddir}/info.py"
+    @ONLY
+  )
+  #if ( NOT NCRYSTAL_SKBUILD_MONOLITHIC )
+  #  file( COPY "${PROJECT_SOURCE_DIR}/../README.md"
+  #    DESTINATION "${ncrystal_sdist_autogendir}" )
+  #  file( COPY "${PROJECT_SOURCE_DIR}/../LICENSE"
+  #    DESTINATION "${ncrystal_sdist_autogendir}" )
+  #endif()
+endif()
 
 if ( NCRYSTAL_ENABLE_CFGAPP )
   include( ncrystal_nccfgapp )

@@ -25,8 +25,45 @@ cmake_minimum_required(VERSION 3.16...3.27)
 
 project( NCrystalMeta LANGUAGES C CXX )
 
+set( NCRYSTAL_SKBUILD_MONOLITHIC "OFF" )
+if ( DEFINED SKBUILD_PROJECT_NAME )
+  message( STATUS
+    "scikit-build mode detected. Will produce monolithic"
+    " package including ncrystal-python contents." )
+  set( NCRYSTAL_SKBUILD_MONOLITHIC "ON" )
+endif()
+
 add_subdirectory("${PROJECT_SOURCE_DIR}/ncrystal_core")
 if ( NCRYSTAL_ENABLE_TESTING )
   enable_testing()
   add_subdirectory("${PROJECT_SOURCE_DIR}/tests")
 endif()
+
+if ( NCRYSTAL_SKBUILD_MONOLITHIC AND "${SKBUILD_STATE}" STREQUAL "sdist" )
+
+  # Monolithic install, include Python modules, but change the name of the
+  # _is_std.py file to _is_monolithic.py, so the code knows how it is being used
+  # (note we use separate files and not just variables inside files for this,
+  # because that allows us to detect broken installations where
+  # ncrystal-monolithic and ncrystal-python packages both clobber the same
+  # directories.
+  set ( ncrystal_sdist_autogendir "${PROJECT_SOURCE_DIR}/skbld_autogen" )
+  if ( "${SKBUILD_STATE}" STREQUAL "sdist" )
+    if ( IS_DIRECTORY "${ncrystal_sdist_autogendir}" )
+      message( STATUS "Cleaning out ${ncrystal_sdist_autogendir}" )
+      file( REMOVE_RECURSE "${ncrystal_sdist_autogendir}" )
+    endif()
+    file( MAKE_DIRECTORY "${ncrystal_sdist_autogendir}" )
+  endif()
+  file(
+    COPY "${PROJECT_SOURCE_DIR}/ncrystal_python/NCrystal"
+    DESTINATION "${ncrystal_sdist_autogendir}"
+  )
+  file(
+    RENAME
+    "${ncrystal_sdist_autogendir}/NCrystal/_is_std.py"
+    "${ncrystal_sdist_autogendir}/NCrystal/_is_monolithic.py"
+  )
+endif()
+#FIXME: We need CI which tests that our sdist packages are not missing any
+#files. And from both monolithic and normal.

@@ -27,11 +27,12 @@ _rawfcts = [None]
 _namespace = [None]
 def _get_raw_cfcts():
     if _rawfcts[0] is None:
+        from ._locatelib import get_libpath_and_namespace
         _rawfcts[0] = False
-        thelib, ncrystal_namespace_protection = _find_nclib()
-        _rawfcts[0] = _load(thelib, ncrystal_namespace_protection)
+        thelib, namespace = get_libpath_and_namespace()
+        _rawfcts[0] = _load(thelib, namespace)
         assert _rawfcts[0] is not None
-        _namespace[0] = ncrystal_namespace_protection or ''
+        _namespace[0] = namespace or ''
     return _rawfcts[0]
 
 def _get_build_namespace():
@@ -56,84 +57,6 @@ def _cstr2str(s):
     except UnicodeDecodeError as e:
         from .exceptions import NCBadInput
         raise NCBadInput("Only UTF8-encoded C-strings are supported") from e
-
-def _invoke_ncrystal_config():
-    #Try to query ncrystal-config script for shared library path, namespace and
-    #version.
-    import subprocess
-    import pathlib
-    cmdname='ncrystal-config'
-    res = subprocess.run([cmdname,'--show','libpath','namespace'],
-                         capture_output=True)
-    if res.returncode == 0:
-        l = res.stdout.decode('utf8').splitlines()
-        if len(l) == 2:
-            p = pathlib.Path(l[0])
-            if p.is_file():
-                return p, ( l[1] or None )
-
-def _find_nclib():
-    #Try to determine the location of the NCrystal shared library. In order of
-    #preference, we try:
-    #
-    #  1) The NCrystal_LIB environment variable (intended for specialised usage,
-    #     like CTests).
-    #     Note that an associated NCRYSTAL_LIB_NAMESPACE_PROTECTION variable must
-    #     be used for any namespace (fixme: decode the namespace from the
-    #     NCrystal_LIB file name?).
-    #
-    #  2) Attempt to get the location via a python module providing it (in case
-    #     ncrystal-core was installed via PyPI for instance).
-    #     FIXME: still local _nclibpath for now!
-    #
-    #  3) Invoke "ncrystal-config --show libpath namespace" for the information.
-    #
-
-    import os
-    import pathlib
-    from .exceptions import NCFileNotFound
-
-    override = os.environ.get('NCRYSTAL_LIB')
-    override_namespace_protection = os.environ.get('NCRYSTAL_LIB_NAMESPACE_PROTECTION')
-    if override:
-        override = pathlib.Path(override)
-        if not override.exists() or override.is_dir():
-            raise NCFileNotFound('NCRYSTAL_LIB environment variable is set'
-                                 f' ("{override}") but does not point'
-                                 ' to an actual file.')
-        return override.absolute().resolve(), override_namespace_protection
-
-    #Fixme: Replace the from . import _nclibpath with an attempt to import
-    #_ncrystal_core instead, which might be providing the NCrystal library (and
-    #a wrapped ncrystal-config).
-    try:
-        from . import _nclibpath
-    except ImportError:
-        _nclibpath = None
-
-    libloc = None
-
-    libnamespace = None
-    if _nclibpath is None:
-        _nccfgoutput = _invoke_ncrystal_config()
-        if _nccfgoutput:
-            libloc, libnamespace = _nccfgoutput
-    else:
-        libloc = _nclibpath.liblocation if _nclibpath else None
-        if hasattr(_nclibpath,'ncrystal_namespace_protection'):
-            libnamespace = _nclibpath.ncrystal_namespace_protection
-
-    if not libloc:
-        raise NCFileNotFound('Could not locate the NCrystal shared library'
-                             ' file. (as a workaround you can use the '
-                             'NCrystal_LIB env var to point at it)')
-    p = pathlib.Path(libloc)
-    if not p.is_absolute():
-        p = (pathlib.Path(__file__).absolute().parent / p)
-    if not p.is_file():
-        raise NCFileNotFound('Did not find the NCrystal shared library in'
-                             f' the indicated location ({p})')
-    return p.resolve(), libnamespace
 
 _keepalive = []#for python based callback functions which we need to keep alive
 

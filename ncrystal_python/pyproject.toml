@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=64.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "NCrystal.__version__"}
+
+[project]
+name = "ncrystal-python"
+dynamic = [ 'version' ]
+requires-python = ">=3.8"
+dependencies = [ 'numpy' ]
+authors = [
+  { name="NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)" },
+]
+description = "Library for thermal neutron transport in crystals and other materials."
+readme = "README.md"
+license = {file = "LICENSE"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: Unix",
+]
+
+[project.urls]
+"Homepage" = "https://mctools.github.io/ncrystal/"
+"Bug Tracker" = "https://github.com/mctools/ncrystal/issues"
+
+[project.scripts]
+nctool = "NCrystal._cli_nctool:main"
+ncrystal_cif2ncmat = "NCrystal._cli_cif2ncmat:main"
+ncrystal_endf2ncmat = "NCrystal._cli_endf2ncmat:main"
+ncrystal_hfg2ncmat = "NCrystal._cli_hfg2ncmat:main"
+ncrystal_mcstasunion = "NCrystal._cli_mcstasunion:main"
+ncrystal_ncmat2cpp = "NCrystal._cli_ncmat2cpp:main"
+ncrystal_ncmat2hkl = "NCrystal._cli_ncmat2hkl:main"
+ncrystal_vdos2ncmat = "NCrystal._cli_vdos2ncmat:main"
+ncrystal_verifyatompos = "NCrystal._cli_verifyatompos:main"

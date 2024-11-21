@@ -19,41 +19,49 @@
 ##                                                                            ##
 ################################################################################
 
-[build-system]
-requires = [
-    "setuptools>=42",
-    "scikit-build>=0.13",
-    "cmake>=3.18",
-    "numpy",
-    'importlib_metadata; python_version < "3.8"',
-]
-build-backend = "setuptools.build_meta"
-
-#[tool.cibuildwheel]
-#test-command = [
-#  "python3 -mNCrystal.test all",
-#  "nctool --test",
-#]
 
 [project]
-name = "ncrystal-python"
-version = '3.9.7'
+name = "ncrystal-monolithic-bundle"
+version = "3.9.7"
+requires-python = ">=3.8"
+dependencies = [ 'numpy' ]
+readme = "README.md"
+license = {file = "LICENSE"}
 authors = [
   { name="NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)" },
 ]
-description = "Library for thermal neutron transport in crystals and other materials."
-readme = "README"
-requires-python = ">=3.8"
-license = {file = "LICENSE"}
+description = "Package bundling both ncrystal-core and ncrystal-python (for developer usage only)."
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: Unix",
 ]
-dependencies = [ 'numpy' ]
 
+[project.urls]
+"Homepage" = "https://mctools.github.io/ncrystal/"
+"Bug Tracker" = "https://github.com/mctools/ncrystal/issues"
+
+[build-system]
+requires = ["scikit-build-core>=0.10"]
+build-backend = "scikit_build_core.build"
+
+[tool.scikit-build]
+#cmake.verbose = true
+logging.level = "INFO"
+minimum-version = "build-system.requires"
+wheel.packages = ['skbld_autogen/NCrystal','ncrystal_core/skbld_autogen/_ncrystal_core_monolithic']
+#Fixme: inclusion picks up stray files in repo, and exclude does not allow us to ignore emacs backup files *~
+sdist.include = ['ncrystal_core/skbld_autogen/','skbld_autogen/NCrystal/*.py']
+sdist.exclude = [
+              '/ncrystal_python/','ncrystal_geant4/',
+              '/tests/','/.github/','.gitignore','docs/','data/'
+]
+#                      #specifically in .include. Or perhaps a .gitignore in THIS directory as well?
+sdist.cmake = true
+wheel.py-api = "py3" # as close to "noarch" as possible (ABI3)
 
 [project.scripts]
+ncrystal-config = "_ncrystal_core_monolithic.info:_ncrystal_config_cli_wrapper"
 nctool = "NCrystal._cli_nctool:main"
 ncrystal_cif2ncmat = "NCrystal._cli_cif2ncmat:main"
 ncrystal_endf2ncmat = "NCrystal._cli_endf2ncmat:main"

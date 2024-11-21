@@ -24,6 +24,8 @@ Module providing access to the ncrystal commandline tools via the Python API.
 ##                                                                            ##
 ################################################################################
 
+#FIXME: Also include ncrystal-config in this list!
+
 def cli_tool_list( canonical_names = True  ):
     """
     Get list of available NCrystal command line tools. The canonical_names flag
