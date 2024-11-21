@@ -9,6 +9,14 @@ _site
 #node_modules
 #package.json
 
+ncrystal_python/ncrystal_python.egg-info/
+ncrystal_python/build/
+ncrystal_python/dist/
+ncrystal_core/skbld_autogen/
+skbld_autogen/
+ncrystal_core/dist/
+dist/
+
 /venv/
 
 # Emacs
