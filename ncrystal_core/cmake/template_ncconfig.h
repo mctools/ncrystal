@@ -24,14 +24,13 @@
 //expressions are expanded.
 
 const char * nccfg_const_bin2libdir() { return "@NCrystal_relpath_BINDIR2LIBDIR@"; }
-const char * nccfg_const_libname() { return "@NCrystal_LIBNAME@"; }
+const char * nccfg_const_libname() { return "$<TARGET_FILE_NAME:NCrystal>"; }//NB: generator expression
 const char * nccfg_const_bin2libpath() { return "@NCrystal_relpath_BINDIR2LIBDIR@/@NCrystal_LIBNAME@"; }
 const char * nccfg_const_bin2datadir() { return "@NCrystal_relpath_BINDIR2DATADIR@"; }
 const char * nccfg_const_bin2incdir() { return "@NCrystal_relpath_BINDIR2INCDIR@"; }
 const char * nccfg_const_bin2cmakedir() { return "@NCrystal_relpath_BINDIR2CMAKEDIR@"; }
 const char * nccfg_const_version() { return "@NCrystal_VERSION@"; }
 const char * nccfg_const_intversion() { return "@nccfgapp_intversion@"; }
-const char * nccfg_const_soversion() { return "@NCrystal_SOVERSION@"; }
 const char * nccfg_const_builtinplugins() { return "@NCrystal_builtin_plugin_names@"; }
 const char * nccfg_const_namespace() { return "@NCRYSTAL_NAMESPACE@"; }
 const char * nccfg_const_cmakebuildtype() { return "$<CONFIG>"; }//NB: generator expression

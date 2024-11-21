@@ -35,7 +35,6 @@ enum_option( NCRYSTAL_BUILD_STRICT     "Stricter build (primarily for testing). 
 bool_option( NCRYSTAL_ENABLE_CPACK     "Includes CPack and sets relevant meta-data." "OFF" )
 bool_option( NCRYSTAL_QUIET            "Produce less status messages during configuration." "OFF" )
 bool_option( NCRYSTAL_SKIP_INSTALL     "Set to prevent any installation targets from being created." "OFF" )
-bool_option( NCRYSTAL_ENABLE_SOVERSION "Enable shared library SOVERSION." "ON" )
 enum_option( NCRYSTAL_ENABLE_THREADS   "Enable multithread usage (multithread safety is not affected by this)." "IFAVAILABLE" "ON" "OFF" )
 bool_option( NCRYSTAL_ENABLE_TESTING   "Whether to enable the CTest-based tests in the tests subdirectory." "OFF" )
 bool_option( NCRYSTAL_ENABLE_CFGAPP    "Whether to build and install the ncrystal-config command" "ON" )

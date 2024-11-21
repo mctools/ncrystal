@@ -27,10 +27,7 @@ def _ncrystal_config_cli_wrapper():
     import subprocess
     import pathlib
     import sys
-    f = ( pathlib.Path(__file__).parent
-          / 'ncrystal_pyinst_data'
-          / 'bin'
-          / 'ncrystal-config' )
+    f = pathlib.Path(__file__).parent.joinpath('data','bin','ncrystal-config')
     a = sys.argv[:]
     a[0] = f
     rv = subprocess.run( a )
@@ -41,7 +38,7 @@ def version():
 
 def libname():
     #Expanded by CMake:
-    return '@NCrystal_LIBNAME@'
+    return '$<TARGET_FILE_NAME:NCrystal>'#NB: generator expression
 
 def namespace():
     #Expanded by CMake:

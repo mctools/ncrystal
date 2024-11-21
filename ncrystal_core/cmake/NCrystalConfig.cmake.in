@@ -79,7 +79,7 @@ unset( _tmpnc_o )
 unset( _tmpnc_v )
 
 #Libname + old school NCrystal_LIBRARIES variable:
-set( NCrystal_LIBNAME "@NCrystal_LIBNAME@" )
+set( NCrystal_LIBNAME "$<TARGET_FILE_NAME:NCrystal>" )#NB: generator expression
 set( NCrystal_LIBRARIES "${NCrystal_LIBDIR}/${NCrystal_LIBNAME}" )
 
 #The NCrystal targets (not including the G4NCrystal targets!):

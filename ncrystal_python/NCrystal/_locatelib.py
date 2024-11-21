@@ -50,7 +50,7 @@ def _detect_monolithic_installation():
     The current environment has traces of both a normal NCrystal installation
     (where ncrystal-core and ncrystal-python modules are installed separately),
     and a monolithic installation (most likely from running "pip install"
-    directly on the root of the ncrystal source tree. This latter method is
+    directly on the root of the ncrystal source tree). This latter method is
     primarily intended for developers, and should never be performed in an
     environment where NCrystal is already installed through other conventional
     methods.
@@ -116,7 +116,8 @@ def _search():
     ERROR: Inconsistent environment detected.
 
     The version of the installed core ncrystal modules ({version}) and the
-    ncrystal Python API ({_nc_version}) are not identical. This is not supported.
+    ncrystal Python API ({_nc_version}) are not identical. This is not
+    supported.
     """)
     #The environment is not necessarily completely broken, but the NCrystal
     #packages can not be used. Hence, we emit an ImportError here. However, we
@@ -131,13 +132,13 @@ def _search_env_overrides():
     lib = os.environ.get('NCRYSTAL_LIB')
     ns = os.environ.get('NCRYSTAL_LIB_NAMESPACE_PROTECTION','')
     if lib:
-        if not ns and '.' in lib and 'NCrystal' in lib:
+        if not ns and '.' in lib and 'NCrystal-' in lib:
             #Try to infer the namespace from the library name (so it is enough
             #to set NCRYSTAL_LIB).
             ll = lib.split('.')[0]
-            if 'NCrystal' in ll:
-                ll = lib.split('NCrystal')[-1]
-                if ll and 'NCrystal' not in ll and '.' not in ll:
+            if 'NCrystal-' in ll:
+                ll = lib.split('NCrystal-')[-1]
+                if ll and 'NCrystal-' not in ll and '.' not in ll:
                     ns = ll
         lib = pathlib.Path(lib)
         if not lib.exists() or lib.is_dir():
