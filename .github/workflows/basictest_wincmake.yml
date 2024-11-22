@@ -9,14 +9,16 @@ jobs:
     # More platform information available on:
     # https://github.com/actions/runner-images/blob/main/images/windows/Windows2022-Readme.md
     #
-    # Sep-2024: windows-latest is windows-2022. We should also try to make
-    # windows-2019 work, and try to build with clang/gcc on. And add a
-    # conda-based test.
+    # Nov-2024: windows-latest is windows-2022. We should try to exercise
+    # clang/gcc on this platform, and add a conda-based test.
 
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-2019, windows-2022]
     runs-on: windows-latest
 
     steps:
-
     - name: Checkout
       uses: actions/checkout@v4
       with:
