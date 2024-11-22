@@ -24,9 +24,10 @@ jobs:
       with:
         python-version: 3.11
 
-      #NB: We don't test matplotlib import here in the next step, since we want
-      #to make sure that our CTest infrastructure correctly avoids problems from
-      #"building font cache" printouts on first imports.
+    - name: Monolithic pip install of repo
+      shell: cmd
+      run: python3 -m pip install .\src\
+
     - name: pip install extra deps
       shell: cmd
       run: |
@@ -42,10 +43,8 @@ jobs:
         if %errorlevel% neq 0 then exit /b %errorlevel%
         python -c "import mpmath; print('mpmath imported ok')"
         if %errorlevel% neq 0 then exit /b %errorlevel%
-
-    - name: Monolithic pip install of repo
-      shell: cmd
-      run: python3 -m pip install .\src\
+        python -c "import matplotlib.pyplot; print(matplotlib imported ok')"
+        if %errorlevel% neq 0 then exit /b %errorlevel%
 
     - name: Various commandline tests
       shell: cmd
@@ -113,3 +112,30 @@ jobs:
       shell: cmd
       run: |
         cl /help
+
+    - name: Test downstream compilation and build flags
+      shell: cmd
+      run: |
+        cl /help
+        if %errorlevel% neq 0 then exit /b %errorlevel%
+
+        #Examples from README:
+        copy .\src\examples\ncrystal_example_cpp.cc my_cpp_code.cpp
+        if %errorlevel% neq 0 then exit /b %errorlevel%
+        copy .\src\examples\ncrystal_example_c.cc my_c_code.c
+        if %errorlevel% neq 0 then exit /b %errorlevel%
+
+        dir
+        if %errorlevel% neq 0 then exit /b %errorlevel%
+
+        #NOTE: Important that build flags comes AFTER the code being
+        #compiled. Otherwise ncrystal symbols will be initially ignored, leading
+        #to errors later:
+        ncrystal-config --show
+        if %errorlevel% neq 0 then exit /b %errorlevel%
+
+        cl my_c_code.c
+        if %errorlevel% neq 0 then exit /b %errorlevel%
+
+        echo "Custom compilation of downstream C/C++ code succeeded"
+
