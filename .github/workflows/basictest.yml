@@ -57,23 +57,11 @@ jobs:
         python-version: ${{ matrix.python }}
         allow-prereleases: true #Needed (Aug 2024) for Python 3.13.
 
-    - name: Pip install
+    - name: Pip install dependencies
       run: |
-        set -eux
         python3 -m pip install numpy gemmi spglib ase mpmath matplotlib
-        #python3 -m pip install pymatgen
-
-    - name: Check versions
-      run: |
-        set -eux
-        which python3
-        python3 --version
-        which cmake
-        cmake --version
 
     - name: Configure CMake
-      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: >
         cmake
         -S ${{github.workspace}}/src
@@ -82,8 +70,8 @@ jobs:
         -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install
         -DNCRYSTAL_ENABLE_EXAMPLES=ON
         -DNCRYSTAL_BUILD_STRICT=ON
-        -DNCRYSTAL_ENABLE_SETUPSH=ON
         -DNCRYSTAL_ENABLE_TESTING=ON
+        -DMCTOOLS_REQUIRE_ALL_TEST_DEPS=ON
 
     - name: Build
       run: >
@@ -100,19 +88,15 @@ jobs:
     - name: Install
       run: cmake --install ${{github.workspace}}/build
 
-    - name: Tests without environment setup
+    - name: Test installed
       run: |
         set -eux
         ${{github.workspace}}/install/bin/ncrystal-config --summary
-        ${{github.workspace}}/install/bin/nctool --test
-        ${{github.workspace}}/install/bin/ncrystal_example_c
-        ${{github.workspace}}/install/bin/ncrystal_example_cpp
-        ${{github.workspace}}/install/bin/nctool --dump 'Al_sg225.ncmat;dcutoff=1.5'
+        #Expose ncrystal-config and examples:
+        export PATH="${{github.workspace}}/install:${PATH:-}"
+        #Add python modules and cmdline scripts:
+        pip install ${{github.workspace}}/src/ncrystal_python
 
-    - name: Tests with eval ncrystal-config setup
-      run: |
-        set -eux
-        eval $(${{github.workspace}}/install/bin/ncrystal-config --setup)
         ncrystal-config --summary
         nctool --test
         ncrystal-config --help
@@ -133,44 +117,17 @@ jobs:
         ncrystal_ncmat2hkl --format=lau 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test_Al.lau
         nctool -d ./test_Al.laz
         nctool -d ./test_Al.lau
-        ncrystal_ncmat2cpp $(ncrystal-config --show=datadir)/Al_sg225.ncmat -o test.cpp
+        ncrystal_ncmat2cpp $(ncrystal-config --show datadir)/Al_sg225.ncmat -o test.cpp
         cat test.cpp
-        #NEEDS MATPLOTLIB: nctool --pdf Al_sg225.ncmat
+        nctool --pdf Al_sg225.ncmat
         #Examples from README:
         cp ./src/examples/ncrystal_example_cpp.cc ./my_cpp_code.cpp
         cp ./src/examples/ncrystal_example_c.c ./my_c_code.c
-        export LDFLAGS="${LDFLAGS:-} -Wl,-rpath,$(ncrystal-config --show libdir) $(ncrystal-config --show libpath)" &&
-        export CFLAGS="${CFLAGS:-} -I$(ncrystal-config --show includedir)" &&
-        export CXXFLAGS="${CXXFLAGS:-} -I$(ncrystal-config --show includedir)" &&
-        cc -std=c11 ${LDFLAGS} ${CFLAGS} my_c_code.c -o my_c_app &&
-        ./my_c_app &&
-        c++ -std=c++17 ${LDFLAGS} ${CXXFLAGS} my_cpp_code.cpp -o my_cpp_app &&
-        ./my_cpp_app &&
+        cc -std=c11 ${ncrystal-config --show buildflags} my_c_code.c -o my_c_app
+        ./my_c_app
+        c++ -std=c++17 ${ncrystal-config --show buildflags} my_cpp_code.cpp -o my_cpp_app
+        ./my_cpp_app
         echo "Custom compilation of downstream C/C++ code succeeded"
-        eval $(ncrystal-config --unsetup)
-
-    - name: Tests with ncrystal_setup.sh
-      run: |
-        set -eux
-        . ${{github.workspace}}/install/ncrystal_setup.sh
-        ncrystal-config --summary
-        nctool --test
-        ncrystal_vdos2ncmat --help
-        ncrystal_cif2ncmat --help
-        ncrystal_ncmat2hkl --help
-        ncrystal_ncmat2hkl --format=laz 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test2_Al.laz
-        ncrystal_ncmat2hkl --format=lau 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test2_Al.lau
-        nctool -d ./test2_Al.laz
-        nctool -d ./test2_Al.lau
-        ncrystal_ncmat2cpp --help
-        ncrystal_hfg2ncmat --help
-        ncrystal_verifyatompos --help
-        ncrystal_example_c
-        ncrystal_example_cpp
-        ncrystal_example_py
-        python3 -m NCrystal.test
-        python3 -c 'import NCrystal; NCrystal.test()'
-        . ${{github.workspace}}/install/ncrystal_unsetup.sh
 
     #Final step, so tmate step can check if we got this far.
     - name: Final
