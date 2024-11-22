@@ -125,6 +125,12 @@ jobs:
         #Examples from README:
         cp ./src/examples/ncrystal_example_cpp.cc ./my_cpp_code.cpp
         cp ./src/examples/ncrystal_example_c.c ./my_c_code.c
+
+        test -f $(ncrystal-config --show libpath)
+        test -d $(ncrystal-config --show libdir)
+        #FIXME: Why is this next line needed?!?
+        export LD_LIBRARY_PATH="$(ncrystal-config --show libdir):${LD_LIBRARY_PATH:-}"
+
         cc -std=c11 $(ncrystal-config --show buildflags) my_c_code.c -o my_c_app
         ./my_c_app
         c++ -std=c++17 $(ncrystal-config --show buildflags) my_cpp_code.cpp -o my_cpp_app
