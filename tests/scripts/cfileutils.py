@@ -20,9 +20,9 @@
 ##                                                                            ##
 ################################################################################
 
-import NCDistTests.enable_fpe # noqa F401
-from NCDistTests.loadlib import Lib
-from NCDistTests.common import ( work_in_tmpdir,
+import NCTestUtils.enable_fpe # noqa F401
+from NCTestUtils.loadlib import Lib
+from NCTestUtils.common import ( work_in_tmpdir,
                                  explicit_unicode_str,
                                  is_windows )
 import pathlib
