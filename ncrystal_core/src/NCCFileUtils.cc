@@ -1077,28 +1077,27 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     mcwinstr wp1 = mc_path2wpath( p1 );
     mcwinstr wp2 = mc_path2wpath( p2 );
 
-    constexpr DWORD dwShareMode_BLOCKNOTHING = ( FILE_SHARE_DELETE
-                                                 | FILE_SHARE_READ
-                                                 | FILE_SHARE_WRITE );
+    DWORD share = FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE;
+    DWORD access = FILE_READ_ATTRIBUTES;
+    DWORD flags = FILE_FLAG_BACKUP_SEMANTICS;
     HANDLE fh1 = CreateFileW( wp1.c_str,
-                              0, //dwDesiredAccess
-                              dwShareMode_BLOCKNOTHING,
-                              (LPSECURITY_ATTRIBUTES)0,
+                              access, share,
+                              NULL,
                               OPEN_EXISTING,
-                              FILE_ATTRIBUTE_NORMAL,
-                              (void*)(0) );
+                              flags,
+                              NULL );
     mc_winstr_dealloc( &wp1 );
     if ( fh1 == INVALID_HANDLE_VALUE ) {
       mc_winstr_dealloc( &wp2 );
       return 0;//failed
     }
     HANDLE fh2 = CreateFileW( wp2.c_str,
-                              0, //dwDesiredAccess
+                              access, share,
                               dwShareMode_BLOCKNOTHING,
-                              (LPSECURITY_ATTRIBUTES)0,
+                              NULL,
                               OPEN_EXISTING,
-                              FILE_ATTRIBUTE_NORMAL,
-                              (void*)(0) );
+                              flags,
+                              NULL );
     mc_winstr_dealloc( &wp2 );
     if ( fh2 == INVALID_HANDLE_VALUE ) {
       CloseHandle( fh1 );
