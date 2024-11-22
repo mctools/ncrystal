@@ -271,10 +271,8 @@ function( get_datafile_list output_var )
   set( ${output_var} "${tmp}" PARENT_SCOPE )
 endfunction()
 file_globsrc( SRCS_NC "src/*.cc")
-file_globsrc( EXAMPLES_NC "examples/ncrystal_example_c*.c*")
 file_globsrc( HDRS_NCG4 "ncrystal_geant4/include/G4NCrystal/*.*")
 file_globsrc( SRCS_NCG4 "ncrystal_geant4/src/*.cc")
-file_globsrc( EXAMPLES_NCG4 "examples/ncrystal_example_g4*.cc")
 
 #The ncapi.h header needs expansion of CMake variables, so we copy ALL header
 #files to a temporary directory and edit just that one file:
@@ -588,7 +586,8 @@ ncinstall(FILES ${HDRS_NC} DESTINATION ${NCrystal_INCDIR}/NCrystal)
 ncinstall(FILES ${HDRS_INTERNAL_NC} DESTINATION ${NCrystal_INCDIR}/NCrystal/internal)
 
 #Examples:
-if ( NCRYSTAL_ENABLE_EXAMPLES AND EXAMPLES_NC )
+if ( NCRYSTAL_ENABLE_EXAMPLES )
+  file_globsrc( EXAMPLES_NC "../examples/ncrystal_example_c*.c*")
   foreach(ex ${EXAMPLES_NC})
     get_filename_component(exbn "${ex}" NAME_WE)
     add_executable(${exbn} "${ex}")
@@ -661,7 +660,8 @@ if ( NCRYSTAL_GEANT4 )
   endif()
 
   #examples if needed:
-  if ( NCRYSTAL_ENABLE_EXAMPLES AND EXAMPLES_NCG4 )
+  if ( NCRYSTAL_ENABLE_EXAMPLES )
+    file_globsrc( EXAMPLES_NCG4 "../examples/ncrystal_example_g4*.cc")
     foreach(ex ${EXAMPLES_NCG4})
       get_filename_component(exbn "${ex}" NAME_WE)
       add_executable(${exbn} "${ex}")

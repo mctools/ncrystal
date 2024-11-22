@@ -92,6 +92,9 @@ jobs:
       run: |
         set -eux
         ${{github.workspace}}/install/bin/ncrystal-config --summary
+        echo "listing bindir"
+        ls -l ${{github.workspace}}/install/bin
+        echo "listing bindir done"
         #Expose ncrystal-config and examples:
         export PATH="${{github.workspace}}/install/bin:${PATH:-}"
         #Add python modules and cmdline scripts:
