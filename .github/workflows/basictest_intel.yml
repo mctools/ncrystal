@@ -99,7 +99,7 @@ jobs:
         ncrystal-config --help
         ncrystal_example_c
         ncrystal_example_cpp
-        ${{github.workspace}}/src/examples/ncrystal_example_py
+        python3 ${{github.workspace}}/src/examples/ncrystal_example_py
         nctool --help
         nctool --dump 'Al_sg225.ncmat;dcutoff=1.5'
         python3 -c 'import NCrystal; NCrystal.test()'
