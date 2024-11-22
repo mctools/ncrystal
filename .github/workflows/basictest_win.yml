@@ -33,11 +33,17 @@ jobs:
       shell: cmd
       run: |
         python -mpip install numpy matplotlib gemmi spglib ase mpmath
+        if %errorlevel% neq 0 then exit /b %errorlevel%
         python -c "import numpy; print('numpy imported ok')"
+        if %errorlevel% neq 0 then exit /b %errorlevel%
         python -c "import gemmi; print('gemmi imported ok')"
+        if %errorlevel% neq 0 then exit /b %errorlevel%
         python -c "import spglib; print('spglib imported ok')"
+        if %errorlevel% neq 0 then exit /b %errorlevel%
         python -c "import ase; print('ase imported ok')"
+        if %errorlevel% neq 0 then exit /b %errorlevel%
         python -c "import mpmath; print('mpmath imported ok')"
+        if %errorlevel% neq 0 then exit /b %errorlevel%
 
     - name: Monolithic pip install of repo
       shell: cmd
@@ -47,36 +53,53 @@ jobs:
       shell: cmd
       run: |
         ncrystal-config --summary
+        if %errorlevel% neq 0 then exit /b %errorlevel%
         ncrystal-config --help
+        if %errorlevel% neq 0 then exit /b %errorlevel%
         python3 -c "import NCrystal; NCrystal.test()"
+        if %errorlevel% neq 0 then exit /b %errorlevel%
         python3 -c "import NCrystal as n; mat=n.load('Al_sg225.ncmat;temp=350K'); mat.dump()"
+        if %errorlevel% neq 0 then exit /b %errorlevel%
         nctool --test
+        if %errorlevel% neq 0 then exit /b %errorlevel%
         nctool --dump Al_sg225.ncmat
+        if %errorlevel% neq 0 then exit /b %errorlevel%
         python3 -mNCrystal nctool --test
+        if %errorlevel% neq 0 then exit /b %errorlevel%
         python3 ./src/examples/ncrystal_example_py
+        if %errorlevel% neq 0 then exit /b %errorlevel%
         ncrystal_vdos2ncmat --help
+        if %errorlevel% neq 0 then exit /b %errorlevel%
         ncrystal_cif2ncmat --help
+        if %errorlevel% neq 0 then exit /b %errorlevel%
         ncrystal_ncmat2cpp --help
+        if %errorlevel% neq 0 then exit /b %errorlevel%
         ncrystal_hfg2ncmat --help
+        if %errorlevel% neq 0 then exit /b %errorlevel%
         ncrystal_verifyatompos --help
+        if %errorlevel% neq 0 then exit /b %errorlevel%
         ncrystal_cif2ncmat codid::9008460
+        if %errorlevel% neq 0 then exit /b %errorlevel%
         ncrystal_ncmat2hkl --help
+        if %errorlevel% neq 0 then exit /b %errorlevel%
         ncrystal_ncmat2hkl --format=laz 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test_Al.laz
+        if %errorlevel% neq 0 then exit /b %errorlevel%
         ncrystal_ncmat2hkl --format=lau 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test_Al.lau
+        if %errorlevel% neq 0 then exit /b %errorlevel%
         nctool -d ./test_Al.laz
+        if %errorlevel% neq 0 then exit /b %errorlevel%
         nctool -d ./test_Al.lau
+        if %errorlevel% neq 0 then exit /b %errorlevel%
         ncrystal_ncmat2cpp $(ncrystal-config --show datadir)/Al_sg225.ncmat -o test.cpp
+        if %errorlevel% neq 0 then exit /b %errorlevel%
         cat test.cpp
+        if %errorlevel% neq 0 then exit /b %errorlevel%
         nctool --pdf Al_sg225.ncmat
+        if %errorlevel% neq 0 then exit /b %errorlevel%
 
-
-#TODO:
-#        python3 ./src/examples/ncrystal_example_py
-#
-#
-
-##    - name: Setup tmate session for manual debugging
-##      uses: mxschmitt/action-tmate@v3
-##      if: always()
-##      with:
-##        limit-access-to-actor: true
+    - name: Find cl.exe
+      shell: cmd
+      run: |
+        cl.exe /h
+        C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat
+        cl.exe /h
