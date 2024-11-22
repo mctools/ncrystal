@@ -288,8 +288,6 @@ READ> 'line funny \\u{2030} text'
 -->  Creating test file 'sd 1/䔀abc' (is_dir=True, is_symlink=False)
 -->  Creating test file 'sd 1/䔀abc/.䔀' (is_dir=False, is_symlink=False)
 -->  Creating test file 'sd 1/䔀abc/.foo~' (is_dir=False, is_symlink=False)
--->  Creating test file 'asimplefilelinked.txt' (is_dir=False, is_symlink=True)
--->  Creating test file 'sd 1/asimplefilelinked.txt' (is_dir=False, is_symlink=True)
 -->  Creating test file 'sd2' (is_dir=True, is_symlink=False)
 -->  Creating test file 'sd  __   3' (is_dir=True, is_symlink=False)
 -->  Creating test file 'sd  __   3/bla.ncmat' (is_dir=False, is_symlink=False)
@@ -321,24 +319,15 @@ Testing file 5: "sd 1/䔀abc/.foo~"
   Testing with form: "sd 1\䔀abc\.foo~" (is_abs=False)
   Testing with form: "<hiddenabspart>sd 1/䔀abc/.foo~" (is_abs=True)
   Testing with form: "<hiddenabspart>sd 1\䔀abc\.foo~" (is_abs=True)
-Testing file 6: "asimplefilelinked.txt"
-  Testing with form: "asimplefilelinked.txt" (is_abs=False)
-  Testing with form: "<hiddenabspart>asimplefilelinked.txt" (is_abs=True)
-  Testing with form: "<hiddenabspart>asimplefilelinked.txt" (is_abs=True)
-Testing file 7: "sd 1/asimplefilelinked.txt"
-  Testing with form: "sd 1/asimplefilelinked.txt" (is_abs=False)
-  Testing with form: "sd 1\asimplefilelinked.txt" (is_abs=False)
-  Testing with form: "<hiddenabspart>sd 1/asimplefilelinked.txt" (is_abs=True)
-  Testing with form: "<hiddenabspart>sd 1\asimplefilelinked.txt" (is_abs=True)
-Testing file 8: "sd2"
+Testing file 6: "sd2"
   Testing with form: "sd2" (is_abs=False)
   Testing with form: "<hiddenabspart>sd2" (is_abs=True)
   Testing with form: "<hiddenabspart>sd2" (is_abs=True)
-Testing file 9: "sd  __   3"
+Testing file 7: "sd  __   3"
   Testing with form: "sd  __   3" (is_abs=False)
   Testing with form: "<hiddenabspart>sd  __   3" (is_abs=True)
   Testing with form: "<hiddenabspart>sd  __   3" (is_abs=True)
-Testing file 10: "sd  __   3/bla.ncmat"
+Testing file 8: "sd  __   3/bla.ncmat"
   Testing with form: "sd  __   3/bla.ncmat" (is_abs=False)
   Testing with form: "sd  __   3\bla.ncmat" (is_abs=False)
   Testing with form: "<hiddenabspart>sd  __   3/bla.ncmat" (is_abs=True)

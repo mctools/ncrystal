@@ -20,13 +20,19 @@
 ##                                                                            ##
 ################################################################################
 
-import NCTestUtils.enable_fpe # noqa F401
-from NCTestUtils.loadlib import Lib
-from NCTestUtils.common import ( work_in_tmpdir,
+import NCDistTests.enable_fpe # noqa F401
+from NCDistTests.loadlib import Lib
+from NCDistTests.common import ( work_in_tmpdir,
                                  explicit_unicode_str,
                                  is_windows )
 import pathlib
 import os
+
+#import builtins
+#def print(*a,**kw):
+#    sys.stdout.flush()
+#    builtins.print(*a,**kw)
+#    sys.stdout.flush()
 
 native_sep = '\\' if is_windows() else '/'
 nonnative_sep = '/' if is_windows() else '\\'
@@ -54,12 +60,6 @@ assert hasattr(lib,'nctest_is_file')
 assert hasattr(lib,'nctest_is_dir')
 assert hasattr(lib,'nctest_exists')
 assert hasattr(lib,'nctest_expand_path')
-
-import builtins
-def print(*a,**kw):
-    sys.stdout.flush()
-    builtins.print(*a,**kw)
-    sys.stdout.flush()
 
 def test1():
     d = pPath('.')
@@ -290,6 +290,8 @@ def test4():
 def test5( workdir ):
     #exercise a bunch of things, including is_same_file, is_dir, real_path,
     #path_join.
+
+    #Damn... we have to stop doing any symlink testing on windows...
     td = workdir
     files = [
         #We only test symlink to files, not directories here!
@@ -299,8 +301,8 @@ def test5( workdir ):
         dict(name='sd 1/\u4500abc',is_dir=True),
         dict(name='sd 1/\u4500abc/.\u4500',content='foobar'),
         dict(name='sd 1/\u4500abc/.foo~',content='foobar'),
-        dict(name='asimplefilelinked.txt',symlink='asimplefile.txt'),
-        dict(name='sd 1/asimplefilelinked.txt',symlink='../asimplefile.txt'),
+        #dict(name='asimplefilelinked.txt',symlink='asimplefile.txt'),
+        #dict(name='sd 1/asimplefilelinked.txt',symlink='../asimplefile.txt'),
         dict(name='sd2',is_dir=True),
         #dict(name='sd2/sl2',symlink=str(td.joinpath('sd 1').absolute()),is_dir=True),
         dict(name='sd  __   3',is_dir=True),
@@ -310,12 +312,14 @@ def test5( workdir ):
     for finfo in files:
         f = finfo['name']
         fabs = td.joinpath(f)
+        assert not fabs.exists()
         symlink = finfo.get('symlink','')
         is_dir = bool(finfo.get('is_dir'))
         print(f'-->  Creating test file {repr(f)}'
               f' (is_dir={is_dir}, is_symlink={bool(symlink)})')
         if symlink:
             #might have is_dir True
+            assert not is_dir, "this will almost certainly not work in windows"
             fabs.symlink_to(symlink,target_is_directory=is_dir)
             if not fabs.exists():
                 raise SystemExit("Failed to create symlink!")
@@ -436,14 +440,114 @@ def test_dirsymlinks( workdir ):
     assert lib.nctest_basename(f2) == 'foo.bar'
     assert lib.nctest_basename(lib.nctest_real_path(f2)) == 'bla.txt'
 
-    if not is_windows():
-        #Symlinks to dirs requires special priviledges on Windows:
-        f3 = fd / 'muahaha.bar'
-        f3.symlink_to('../yihadir')
+    def test_symlink( f ):
+        if f.exists():
+            return True
+        if is_windows():
+            #Symlinks are not always available Windows, so simply skip this
+            #test.
+            return False
+        else:
+            raise SystemExit(f'failed to create symlink: {repr(f)}')
+
+    def ensure_is_file(f):
+        assert not lib.nctest_is_dir(f)
+        assert lib.nctest_is_file(f)
+        assert lib.nctest_exists(f)
+
+    def ensure_is_dir(f):
+        assert lib.nctest_is_dir(f)
+        assert not lib.nctest_is_file(f)
+        assert lib.nctest_exists(f)
+
+    #a relative symlink to a file:
+    f3 = fd / 'muahaha.bar'
+    f3.symlink_to('../bla.txt')
+    if test_symlink( f3 ):
+        ensure_is_file(f3)
         assert f3.name == 'muahaha.bar'
-        assert f3.resolve().name == 'yihadir'
+        assert f3.resolve().name == 'bla.txt'
         assert lib.nctest_basename(f3) == 'muahaha.bar'
-        assert lib.nctest_basename(lib.nctest_real_path(f3)) == 'yihadir'
+        rp=lib.nctest_real_path(f3)
+        ensure_is_file(rp)
+        assert lib.nctest_basename(rp) == 'bla.txt'
+        assert lib.nctest_is_same_file(rp,f3)
+
+    #a relative symlink to a dir:
+    fr1 = (fd / 'a real dir1')
+    fr2 = (fd / 'a real dir2')
+    fr1_file = (fr1/'foo.txt')
+    fr1.mkdir()
+    fr2.mkdir()
+    fr1_file.write_text('yo')
+
+    fl1 = fr2 / 'a relsymlink to dir'
+    fl1.symlink_to('../a real dir1')
+    if test_symlink( fl1 ):
+        ensure_is_dir(fl1)
+        assert fl1.name == 'a relsymlink to dir'
+        assert fl1.resolve().name == 'a real dir1'
+        assert lib.nctest_basename(fl1) == 'a relsymlink to dir'
+        rp=lib.nctest_real_path(fl1)
+        ensure_is_dir(rp)
+        assert lib.nctest_basename(rp) == 'a real dir1'
+        assert pPath(rp).samefile(fl1)#pathlib's samefile works for dirs
+        assert not lib.nctest_is_same_file(rp,fl1)#our ALWAYS return false for
+                                                  #dirs
+    #an absolute symlink to a dir:
+    fl2 = fr2 / 'an abssymlink to dir'
+    fl2.symlink_to(fr1.absolute())
+    if test_symlink( fl2 ):
+        ensure_is_dir(fl2)
+        assert fl2.name == 'an abssymlink to dir'
+        assert fl2.resolve().name == 'a real dir1'
+        assert lib.nctest_basename(fl2) == 'an abssymlink to dir'
+        rp=lib.nctest_real_path(fl2)
+        ensure_is_dir(rp)
+        assert lib.nctest_basename(rp) == 'a real dir1'
+        assert pPath(rp).samefile(fl2)#pathlib's samefile works for dirs
+        assert not lib.nctest_is_same_file(rp,fl2)#our ALWAYS return false for
+                                                  #dirs
+
+    #an absolute symlink to a file:
+    fl3 = fr2 / 'an abssymlink to file'
+    fl3.symlink_to(fr1_file.absolute())
+    if test_symlink( fl3 ):
+        ensure_is_file(fl3)
+        assert fl3.name == 'an abssymlink to file'
+        assert fl3.resolve().name == 'foo.txt'
+        assert lib.nctest_basename(fl3) == 'an abssymlink to file'
+        rp=lib.nctest_real_path(fl3)
+        ensure_is_file(rp)
+        assert lib.nctest_basename(rp) == 'foo.txt'
+        assert lib.nctest_is_same_file(rp,fl3)
+
+    #a relative symlink to a symlink to a file:
+    fss1 = fd / 'ss1'
+    fss1.symlink_to('../bla.txt')
+    if test_symlink( fss1 ):
+        ensure_is_file(fss1)
+        assert fss1.name == 'ss1'
+        assert fss1.resolve().name == 'bla.txt'
+        assert lib.nctest_basename(fss1) == 'ss1'
+        rp=lib.nctest_real_path(fss1)
+        ensure_is_file(rp)
+        assert lib.nctest_basename(rp) == 'bla.txt'
+        assert lib.nctest_is_same_file(rp,fss1)
+
+        fss2 = fd / 'ss2'
+        fss2.symlink_to('ss1')
+        if test_symlink( fss2 ):
+            ensure_is_file(fss2)
+            assert fss2.name == 'ss2'
+            assert fss2.resolve().name == 'bla.txt'
+            assert lib.nctest_basename(fss2) == 'ss2'
+            rp=lib.nctest_real_path(fss2)
+            ensure_is_file(rp)
+            assert lib.nctest_basename(rp) == 'bla.txt'
+            assert lib.nctest_is_same_file(rp,fss2)
+
+
 
 def test6():
     pj = lib.nctest_path_join('/some/where','bla.txt')
