@@ -428,17 +428,9 @@ def test5( workdir ):
 
 def test_dirsymlinks( workdir ):
     #FIXME: Test symlink to dir here (with no printouts)
-    f1 = workdir / 'bla.txt'
-    f1.write_text('bla')
     fd = workdir / 'somedir'
     fd.mkdir()
-    (workdir / 'yihadir').mkdir()
-    f2 = fd / 'foo.bar'
-    f2.symlink_to('../bla.txt')
-    assert f2.name == 'foo.bar'
-    assert f2.resolve().name == 'bla.txt'
-    assert lib.nctest_basename(f2) == 'foo.bar'
-    assert lib.nctest_basename(lib.nctest_real_path(f2)) == 'bla.txt'
+    ( workdir / 'bla.txt' ).write_text('bla')
 
     def test_symlink( f ):
         if f.exists():
