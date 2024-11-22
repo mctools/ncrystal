@@ -128,12 +128,13 @@ jobs:
 
         test -f $(ncrystal-config --show libpath)
         test -d $(ncrystal-config --show libdir)
-        #FIXME: Why is this next line needed?!?
-        export LD_LIBRARY_PATH="$(ncrystal-config --show libdir):${LD_LIBRARY_PATH:-}"
 
-        cc -std=c11 $(ncrystal-config --show buildflags) my_c_code.c -o my_c_app
+        #NOTE: Important that build flags comes AFTER the code being
+        #compiled. Otherwise ncrystal symbols will be initially ignored, leading
+        #to errors later:
+        cc -std=c11 my_c_code.c $(ncrystal-config --show buildflags) -o my_c_app
         ./my_c_app
-        c++ -std=c++17 $(ncrystal-config --show buildflags) my_cpp_code.cpp -o my_cpp_app
+        c++ -std=c++17 my_cpp_code.cpp $(ncrystal-config --show buildflags) -o my_cpp_app
         ./my_cpp_app
         echo "Custom compilation of downstream C/C++ code succeeded"
 
