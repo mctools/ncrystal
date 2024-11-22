@@ -322,8 +322,9 @@ endif()
 
 include(CheckCXXCompilerFlag)
 
-set( NC_STRICT_COMP_FLAGS -Wall -Wextra -pedantic -Werror )
+set( NC_STRICT_COMP_FLAGS -Wall -Wextra -pedantic -Werror )#fixme different for windows
 if ( NCRYSTAL_BUILD_STRICT )
+  set( "CMAKE_COMPILE_WARNING_AS_ERROR" "ON" )
   string( REPLACE ";" " " tmp "${NC_STRICT_COMP_FLAGS}" )# check_cxx_compiler_flag needs single argument
   check_cxx_compiler_flag( "${tmp}" ncrystal_compiler_supports_strict_comp_flags )
 endif()

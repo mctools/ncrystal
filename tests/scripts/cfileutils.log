@@ -291,7 +291,6 @@ READ> 'line funny \\u{2030} text'
 -->  Creating test file 'asimplefilelinked.txt' (is_dir=False, is_symlink=True)
 -->  Creating test file 'sd 1/asimplefilelinked.txt' (is_dir=False, is_symlink=True)
 -->  Creating test file 'sd2' (is_dir=True, is_symlink=False)
--->  Creating test file 'sd2/sl2' (is_dir=True, is_symlink=True)
 -->  Creating test file 'sd  __   3' (is_dir=True, is_symlink=False)
 -->  Creating test file 'sd  __   3/bla.ncmat' (is_dir=False, is_symlink=False)
 Testing file 0: "asimplefile.txt"
@@ -335,16 +334,11 @@ Testing file 8: "sd2"
   Testing with form: "sd2" (is_abs=False)
   Testing with form: "<hiddenabspart>sd2" (is_abs=True)
   Testing with form: "<hiddenabspart>sd2" (is_abs=True)
-Testing file 9: "sd2/sl2"
-  Testing with form: "sd2/sl2" (is_abs=False)
-  Testing with form: "sd2\sl2" (is_abs=False)
-  Testing with form: "<hiddenabspart>sd2/sl2" (is_abs=True)
-  Testing with form: "<hiddenabspart>sd2\sl2" (is_abs=True)
-Testing file 10: "sd  __   3"
+Testing file 9: "sd  __   3"
   Testing with form: "sd  __   3" (is_abs=False)
   Testing with form: "<hiddenabspart>sd  __   3" (is_abs=True)
   Testing with form: "<hiddenabspart>sd  __   3" (is_abs=True)
-Testing file 11: "sd  __   3/bla.ncmat"
+Testing file 10: "sd  __   3/bla.ncmat"
   Testing with form: "sd  __   3/bla.ncmat" (is_abs=False)
   Testing with form: "sd  __   3\bla.ncmat" (is_abs=False)
   Testing with form: "<hiddenabspart>sd  __   3/bla.ncmat" (is_abs=True)

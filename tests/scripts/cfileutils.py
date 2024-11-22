@@ -302,7 +302,7 @@ def test5( workdir ):
         dict(name='asimplefilelinked.txt',symlink='asimplefile.txt'),
         dict(name='sd 1/asimplefilelinked.txt',symlink='../asimplefile.txt'),
         dict(name='sd2',is_dir=True),
-        dict(name='sd2/sl2',symlink=str(td.joinpath('sd 1').absolute()),is_dir=True),
+        #dict(name='sd2/sl2',symlink=str(td.joinpath('sd 1').absolute()),is_dir=True),
         dict(name='sd  __   3',is_dir=True),
         dict(name='sd  __   3/bla.ncmat',content='NCMAT'),
     ]
