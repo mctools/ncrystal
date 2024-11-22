@@ -19,33 +19,61 @@ jobs:
       with:
         python-version: 3.11
 
-    - name: Pip upgrade pip
-      shell: cmd
-      run: python3 -m pip install -U pip
+    #- name: Pip upgrade
+    #  shell: cmd
+    #  run: |
+    #    python3 -m pip install -U pip
+    #    python3 -m pip install -U setuptools
+    #    python3 -m pip install -U scikit-build-core
 
-    - name: Pip upgrade setuptools
+      #NB: We don't test matplotlib import here in the next step, since we want
+      #to make sure that our CTest infrastructure correctly avoids problems from
+      #"building font cache" printouts on first imports.
+    - name: pip install extra deps
       shell: cmd
-      run: python3 -m pip install -U setuptools
+      run: |
+        python -mpip install numpy matplotlib gemmi spglib ase mpmath
+        python -c "import numpy; print('numpy imported ok')"
+        python -c "import gemmi; print('gemmi imported ok')"
+        python -c "import spglib; print('spglib imported ok')"
+        python -c "import ase; print('ase imported ok')"
+        python -c "import mpmath; print('mpmath imported ok')"
 
-    - name: Pip upgrade scikit-build
-      shell: cmd
-      run: python3 -m pip install -U scikit-build
-
-    - name: Pip install ncrystal
+    - name: Monolithic pip install of repo
       shell: cmd
       run: python3 -m pip install .\src\
 
-    - name: Pip install numpy
+    - name: Various commandline tests
       shell: cmd
-      run: python3 -m pip install numpy
+      run: |
+        ncrystal-config --summary
+        ncrystal-config --help
+        python3 -c "import NCrystal; NCrystal.test()"
+        python3 -c "import NCrystal as n; mat=n.load('Al_sg225.ncmat;temp=350K'); mat.dump()"
+        nctool --test
+        nctool --dump Al_sg225.ncmat
+        python3 -mNCrystal nctool --test
+        python3 ./src/examples/ncrystal_example_py
+        ncrystal_vdos2ncmat --help
+        ncrystal_cif2ncmat --help
+        ncrystal_ncmat2cpp --help
+        ncrystal_hfg2ncmat --help
+        ncrystal_verifyatompos --help
+        ncrystal_cif2ncmat codid::9008460
+        ncrystal_ncmat2hkl --help
+        ncrystal_ncmat2hkl --format=laz 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test_Al.laz
+        ncrystal_ncmat2hkl --format=lau 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test_Al.lau
+        nctool -d ./test_Al.laz
+        nctool -d ./test_Al.lau
+        ncrystal_ncmat2cpp $(ncrystal-config --show datadir)/Al_sg225.ncmat -o test.cpp
+        cat test.cpp
+        nctool --pdf Al_sg225.ncmat
 
-    - name: test NCrystal python module
-      shell: cmd
-      run: python3 -c "import NCrystal; NCrystal.test()"
 
-    - name: test NCrystal python module 2
-      shell: cmd
-      run: python3 -c "import NCrystal as n; mat=n.load('Al_sg225.ncmat;temp=350K'); mat.dump()"
+#TODO:
+#        python3 ./src/examples/ncrystal_example_py
+#
+#
 
 ##    - name: Setup tmate session for manual debugging
 ##      uses: mxschmitt/action-tmate@v3

@@ -122,7 +122,7 @@ jobs:
         cp ./src/examples/ncrystal_example_c.c ./my_c_code.c
         cc -std=c11 $(ncrystal-config --show buildflags) my_c_code.c -o my_c_app
         ./my_c_app
-        c++ -std=c++17 $(ncrystal-config --show buildflags)${LDFLAGS} ${CXXFLAGS} my_cpp_code.cpp -o my_cpp_app
+        c++ -std=c++17 $(ncrystal-config --show buildflags) my_cpp_code.cpp -o my_cpp_app
         ./my_cpp_app
         echo "Custom compilation of downstream C/C++ code succeeded"
 
