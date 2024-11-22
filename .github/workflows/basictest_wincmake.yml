@@ -16,7 +16,6 @@ jobs:
     strategy:
       matrix:
         os: [windows-2019, windows-2022]
-    runs-on: windows-latest
 
     steps:
     - name: Checkout
