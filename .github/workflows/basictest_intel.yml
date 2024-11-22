@@ -86,14 +86,14 @@ jobs:
     - name: Install
       run: source /opt/intel/oneapi/setvars.sh && cmake --install ${{github.workspace}}/build
 
-    - name: install other python packages
-      run: sudo apt install python3-numpy
-
-    - name: Tests with eval ncrystal-config setup
+    - name: Test installed
       run: |
         source /opt/intel/oneapi/setvars.sh
         set -eux
-        eval $(${{github.workspace}}/install/bin/ncrystal-config --setup)
+        #Expose ncrystal-config and examples:
+        export PATH="${{github.workspace}}/install:${PATH:-}"
+        #Add python modules and cmdline scripts:
+        pip install ${{github.workspace}}/src/ncrystal_python
         ncrystal-config --summary
         nctool --test
         ncrystal-config --help
@@ -108,27 +108,23 @@ jobs:
         ncrystal_ncmat2cpp --help
         ncrystal_hfg2ncmat --help
         ncrystal_verifyatompos --help
-        #needs gemmi: ncrystal_cif2ncmat codid::9008460
+        ncrystal_cif2ncmat codid::9008460
         ncrystal_ncmat2hkl --help
         ncrystal_ncmat2hkl --format=laz 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test_Al.laz
         ncrystal_ncmat2hkl --format=lau 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test_Al.lau
         nctool -d ./test_Al.laz
         nctool -d ./test_Al.lau
-        ncrystal_ncmat2cpp $(ncrystal-config --show=datadir)/Al_sg225.ncmat -o test.cpp
+        ncrystal_ncmat2cpp $(ncrystal-config --show datadir)/Al_sg225.ncmat -o test.cpp
         cat test.cpp
-        #NEEDS MATPLOTLIB: nctool --pdf Al_sg225.ncmat
+        nctool --pdf Al_sg225.ncmat
         #Examples from README:
         cp ./src/examples/ncrystal_example_cpp.cc ./my_cpp_code.cpp
         cp ./src/examples/ncrystal_example_c.c ./my_c_code.c
-        export LDFLAGS="${LDFLAGS:-} -Wl,-rpath,$(ncrystal-config --show libdir) $(ncrystal-config --show libpath)" &&
-        export CFLAGS="${CFLAGS:-} -I$(ncrystal-config --show includedir)" &&
-        export CXXFLAGS="${CXXFLAGS:-} -I$(ncrystal-config --show includedir)" &&
-        cc -std=c11 ${LDFLAGS} ${CFLAGS} my_c_code.c -o my_c_app &&
-        ./my_c_app &&
-        c++ -std=c++17 ${LDFLAGS} ${CXXFLAGS} my_cpp_code.cpp -o my_cpp_app &&
-        ./my_cpp_app &&
+        cc -std=c11 $(ncrystal-config --show buildflags) my_c_code.c -o my_c_app
+        ./my_c_app
+        c++ -std=c++17 $(ncrystal-config --show buildflags)${LDFLAGS} ${CXXFLAGS} my_cpp_code.cpp -o my_cpp_app
+        ./my_cpp_app
         echo "Custom compilation of downstream C/C++ code succeeded"
-        eval $(ncrystal-config --unsetup)
 
 #    - name: install oneAPI MKL library
 #      run: |

@@ -57,6 +57,8 @@ best practice):
 
 4. Setup runtime environment:
 
+   FIXME OBSOLETE
+
    Depending on where you installed NCrystal, it might be necessary to setup
    your environment (e.g. PATH, PYTHONPATH, etc. variables) in order to actually
    use the NCrystal installation. One way to do that is to first source the
