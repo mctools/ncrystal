@@ -128,11 +128,13 @@ mcu8str nccfg_buildflags( nccfgstate* state )
   //fixme
   mcu8str res = mcu8str_create_from_cstr("notimplementedonwindowsyet");
 #else
-  //Construct "-Wl,-rpath,$libdir -Wl,$libpath -I$incdir"
-  mcu8str res = mcu8str_create( libdir.size + libpath.size + incdir.size
+  //Construct a string like:
+  //"-Wl,-rpath,$libdir -Wl,-rpath-link,$libdir -Wl,$libpath -I$incdir"
+  mcu8str res = mcu8str_create( libdir.size*2 + libpath.size + incdir.size
                                 + (size_t)128 );
-  //+128 in last line for safety (+20 would be enough)
   mcu8str_append_cstr(&res,"-Wl,-rpath,");
+  mcu8str_append(&res,&libdir);
+  mcu8str_append_cstr(&res," -Wl,-rpath-link,");
   mcu8str_append(&res,&libdir);
   mcu8str_append_cstr(&res," -Wl,");
   mcu8str_append(&res,&libpath);
