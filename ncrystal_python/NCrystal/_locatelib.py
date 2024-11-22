@@ -159,7 +159,6 @@ def _search_core_info_mod( is_monolithic ):
         mod = None
     versions = None
     if mod:
-        print("FOUND CORE INFO MOD",mod.__file__)
         #versions = ( mod.version(), _nc_version )
         return mod.libpath(), mod.namespace(), mod.version()
 
@@ -174,5 +173,4 @@ def _search_nccfgapp():
         if len(lines) == 3:
             p = pathlib.Path(lines[0])
             if p.is_file():
-                print("FOUND VIA ncrystal-config")
                 return p, ( lines[1].strip() or None ), lines[2].strip()
