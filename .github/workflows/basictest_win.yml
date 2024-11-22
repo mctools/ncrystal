@@ -97,15 +97,25 @@ jobs:
         nctool --pdf Al_sg225.ncmat
         if %errorlevel% neq 0 then exit /b %errorlevel%
 
-    - name: Fix path
-      run: echo "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.42.34433\bin\Hostx64\x64" >> $GITHUB_PATH
+    - name: Setup VS in shell
+      uses: ilammy/msvc-dev-cmd@v1
 
     - name: Find cl.exe
       shell: cmd
       run: |
-        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         cl /help
         cl.exe /help
-        call "C:\Program Files\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
-        cl /help
-        cl.exe /help
+
+#    - name: Fix path
+#      run: echo "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.42.34433\bin\Hostx64\x64" >> $GITHUB_PATH
+#
+#    - name: Find cl.exe
+#      shell: cmd
+#      run: |
+#        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+#        cl /help
+#        cl.exe /help
+#        call "C:\Program Files\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
+#        cl /help
+#        cl.exe /help
+#
