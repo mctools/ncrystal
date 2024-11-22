@@ -60,8 +60,8 @@ namespace NCRYSTAL_NAMESPACE {
     class HistBinData1D final {
     public:
       using size_t = std::uint_least32_t;
-      constexpr static auto opt_allow_weights = ALLOW_WEIGHTS;
-      constexpr static auto opt_of_handling = OF_HANDLING;
+      constexpr static AllowWeights opt_allow_weights = ALLOW_WEIGHTS;
+      constexpr static OverflowHandling opt_of_handling = OF_HANDLING;
       using opt_storate_type = TStorage;
     private:
       static constexpr size_t
