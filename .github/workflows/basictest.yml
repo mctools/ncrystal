@@ -93,7 +93,7 @@ jobs:
         set -eux
         ${{github.workspace}}/install/bin/ncrystal-config --summary
         #Expose ncrystal-config and examples:
-        export PATH="${{github.workspace}}/install:${PATH:-}"
+        export PATH="${{github.workspace}}/install/bin:${PATH:-}"
         #Add python modules and cmdline scripts:
         pip install ${{github.workspace}}/src/ncrystal_python
 
