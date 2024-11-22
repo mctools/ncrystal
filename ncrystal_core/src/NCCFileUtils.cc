@@ -1093,7 +1093,6 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     }
     HANDLE fh2 = CreateFileW( wp2.c_str,
                               access, share,
-                              dwShareMode_BLOCKNOTHING,
                               NULL,
                               OPEN_EXISTING,
                               flags,
