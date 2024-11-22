@@ -23,7 +23,7 @@ cmake_minimum_required(VERSION 3.16...3.27)
 
 #Fixme fix CMAKE_BUILD_TYPE here as well as in ncrystal_core subdir?
 
-project( NCrystalMeta LANGUAGES C CXX )
+project( NCrystalRoot LANGUAGES C CXX )
 
 set( NCRYSTAL_SKBUILD_MONOLITHIC "OFF" )
 if ( DEFINED SKBUILD_PROJECT_NAME )

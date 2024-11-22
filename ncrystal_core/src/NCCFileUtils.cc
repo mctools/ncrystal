@@ -469,7 +469,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       int out_size = MultiByteToWideChar( CP_UTF8,
                                           0,//Must be 0 for utf8
                                           in_data, in_size,
-                                          nullptr, //dest buffer (nullptr for dry-run)
+                                          NULL, //dest buffer (NULL for dry-run)
                                           0//dest buffer size (0 means
                                           //"dry-run" + return needed size).
                                           );
@@ -551,15 +551,15 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     mcwinstr mc_winstr_expand_to_fullpath( const mcwinstr* wpath )
     {
       DWORD len_with_null_term = GetFullPathNameW( wpath->c_str,
-                                                   0, nullptr, nullptr );
+                                                   (DWORD)0, NULL, NULL );
       if ( len_with_null_term <= 1 ) {
         //return mcu8str_create_from_cstr("TESTRPERROR1: len_with_null_term <= 1");//fixme
         return mc_winstr_create_empty();//fixme: check all callers that they check for non-empty
       }
       mcwinstr woutput = mc_winstr_create((STDNS size_t)(len_with_null_term-1));
       DWORD len = GetFullPathNameW( wpath->c_str,
-                                    woutput.buflen, woutput.c_str,
-                                    nullptr );
+                                    (DWORD)woutput.buflen, woutput.c_str,
+                                    NULL );
       if ( len+1 != len_with_null_term ) {
         mc_winstr_dealloc( &woutput );
         //return mcu8str_create_from_cstr("TESTRPERROR2: len+1 != len_with_null_term");//fixme
@@ -609,11 +609,11 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       int out_size = WideCharToMultiByte( CP_UTF8,
                                           0,//Must be 0 for utf8
                                           in_data, in_size,
-                                          nullptr, //dest buffer (nullptr for dry-run)
+                                          NULL, //dest buffer (NULL for dry-run)
                                           0,//dest buffer size (0 means "dry-run"
                                             //returning, needed size)
-                                          nullptr,//Must be null for utf8
-                                          nullptr//Must be null for utf8
+                                          NULL,//Must be null for utf8
+                                          NULL//Must be null for utf8
                                           );
       //NB: out_size does not include 0 termination char!
       const char * errmsg = "Failed to convert UTF-16 string to UTF-8";
@@ -626,7 +626,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       int out_size2 = WideCharToMultiByte( CP_UTF8, 0,
                                            in_data, in_size,
                                            out_data, out_size,
-                                           nullptr, nullptr);
+                                           NULL, NULL);
       if ( out_size2 != out_size || (STDNS size_t)out_size >= res.buflen ) {
         mcu8str_dealloc(&res);
         return mcu8str_create_from_cstr(errmsg);//fixme: NCRYSTAL_THROW(BadInput,errmsg);
@@ -846,7 +846,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     {
       mcwinstr wpath = mc_winstr_create( (STDNS size_t)(MAX_PATH<32768
                                                         ?32768:MAX_PATH) +1 );
-      DWORD nsize = GetModuleFileNameW(nullptr, wpath.c_str, wpath.buflen );
+      DWORD nsize = GetModuleFileNameW(NULL, wpath.c_str, wpath.buflen );
       if ( nsize == 0 || (STDNS size_t)(nsize + 2) >= wpath.buflen ) {//+2 is safety
         //failure:
         mc_winstr_dealloc( &wpath );

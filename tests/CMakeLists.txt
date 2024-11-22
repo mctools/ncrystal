@@ -56,7 +56,7 @@ set( nctest_pyenvmod "" )
 if ( NOT NCTESTS_STANDALONE )
   list(
     APPEND nctest_pyenvmod
-    "PYTHONPATH=path_list_prepend:${NCrystal_SOURCE_DIR}/../ncrystal_python"
+    "PYTHONPATH=path_list_prepend:${NCrystalRoot_SOURCE_DIR}/ncrystal_python"
     "PYTHONPATH=path_list_prepend:${PROJECT_SOURCE_DIR}/pypath"
   )
   get_target_property(
@@ -71,7 +71,7 @@ if ( NOT NCTESTS_STANDALONE )
   if ( NOT NCRYSTAL_ENABLE_DATA STREQUAL "EMBED" )
     list(
       APPEND nctest_pyenvmod
-      "NCRYSTAL_DATADIR=set:${NCrystal_SOURCE_DIR}/data"
+      "NCRYSTAL_DATADIR=set:${NCrystalRoot_SOURCE_DIR}/data"
     )
   endif()
 endif()
@@ -122,7 +122,7 @@ if (
   )
   list(
     APPEND nctest_appenvmod
-    "NCRYSTAL_DATADIR=set:${NCrystal_SOURCE_DIR}/data"
+    "NCRYSTAL_DATADIR=set:${NCrystalRoot_SOURCE_DIR}/data"
   )
 endif()
 
