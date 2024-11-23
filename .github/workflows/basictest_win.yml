@@ -43,7 +43,7 @@ jobs:
         if %errorlevel% neq 0 then exit /b %errorlevel%
         python -c "import mpmath; print('mpmath imported ok')"
         if %errorlevel% neq 0 then exit /b %errorlevel%
-        python -c "import matplotlib.pyplot; print(matplotlib imported ok')"
+        python -c "import matplotlib.pyplot; print('matplotlib imported ok')"
         if %errorlevel% neq 0 then exit /b %errorlevel%
 
     - name: Various commandline tests
