@@ -119,13 +119,15 @@ jobs:
         cl /help
         if %errorlevel% neq 0 exit /b %errorlevel%
 
+        echo "Set BUILDFLAGS variable"
         ncrystal-config --show buildflags > buildflags.txt
         set /p BUILDFLAGS=<buildflags.txt
+        echo "Got:" %BUILDFLAGS%
 
         @REM Examples from README:
         copy .\src\examples\ncrystal_example_cpp.cc my_cpp_code.cpp
         if %errorlevel% neq 0 exit /b %errorlevel%
-        copy .\src\examples\ncrystal_example_c.cc my_c_code.c
+        copy .\src\examples\ncrystal_example_c.c my_c_code.c
         if %errorlevel% neq 0 exit /b %errorlevel%
 
         dir
