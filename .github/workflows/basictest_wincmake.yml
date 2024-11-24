@@ -35,17 +35,17 @@ jobs:
       shell: cmd
       run: |
         python -mpip install numpy matplotlib gemmi spglib ase mpmath
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         python -c "import numpy; print('numpy imported ok')"
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         python -c "import gemmi; print('gemmi imported ok')"
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         python -c "import spglib; print('spglib imported ok')"
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         python -c "import ase; print('ase imported ok')"
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         python -c "import mpmath; print('mpmath imported ok')"
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
 
     - name: CMake cfg NCrystal
       shell: cmd
@@ -66,6 +66,6 @@ jobs:
       shell: cmd
       run: |
         cd build
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         ctest --build-config Release --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%

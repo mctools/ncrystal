@@ -32,67 +32,67 @@ jobs:
       shell: cmd
       run: |
         python -mpip install numpy matplotlib gemmi spglib ase mpmath
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         python -c "import numpy; print('numpy imported ok')"
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         python -c "import gemmi; print('gemmi imported ok')"
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         python -c "import spglib; print('spglib imported ok')"
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         python -c "import ase; print('ase imported ok')"
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         python -c "import mpmath; print('mpmath imported ok')"
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         python -c "import matplotlib.pyplot; print('matplotlib imported ok')"
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
 
     - name: Various commandline tests
       shell: cmd
       run: |
         ncrystal-config --summary
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         ncrystal-config --help
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         python3 -c "import NCrystal; NCrystal.test()"
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         python3 -c "import NCrystal as n; mat=n.load('Al_sg225.ncmat;temp=350K'); mat.dump()"
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         nctool --test
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         nctool --dump Al_sg225.ncmat
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         python3 -mNCrystal nctool --test
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         python3 ./src/examples/ncrystal_example_py
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         ncrystal_vdos2ncmat --help
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         ncrystal_cif2ncmat --help
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         ncrystal_ncmat2cpp --help
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         ncrystal_hfg2ncmat --help
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         ncrystal_verifyatompos --help
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         ncrystal_cif2ncmat codid::9008460
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         ncrystal_ncmat2hkl --help
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         ncrystal_ncmat2hkl --format=laz 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test_Al.laz
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         ncrystal_ncmat2hkl --format=lau 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test_Al.lau
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         nctool -d ./test_Al.laz
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         nctool -d ./test_Al.lau
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         ncrystal_ncmat2cpp $(ncrystal-config --show datadir)/Al_sg225.ncmat -o test.cpp
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         cat test.cpp
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         nctool --pdf Al_sg225.ncmat
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
 
     #Two ways of enabling cl.exe and other tools. One is via an external action...:
     - name: Setup VS in shell
@@ -117,25 +117,25 @@ jobs:
       shell: cmd
       run: |
         cl /help
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
 
         #Examples from README:
         copy .\src\examples\ncrystal_example_cpp.cc my_cpp_code.cpp
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
         copy .\src\examples\ncrystal_example_c.cc my_c_code.c
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
 
         dir
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
 
         #NOTE: Important that build flags comes AFTER the code being
         #compiled. Otherwise ncrystal symbols will be initially ignored, leading
         #to errors later:
         ncrystal-config --show
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
 
         cl my_c_code.c
-        if %errorlevel% neq 0 then exit /b %errorlevel%
+        if %errorlevel% neq 0 exit /b %errorlevel%
 
         echo "Custom compilation of downstream C/C++ code succeeded"
 
