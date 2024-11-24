@@ -698,6 +698,12 @@ namespace {
       mcwinstr fp = mc_winstr_expand_to_fullpath( wpath );
       mcu8str res = mc_winstr_to_u8str( &fp );
       mc_winstr_dealloc(&fp);
+      if ( mctools_impl_has_winnamespace( &res ) ) {
+        mcu8str res2 = mctools_impl_view_no_winnamespace( &res );
+        mcu8str_ensure_dynamic_buffer(&res2);
+        mcu8str_swap( &res, &res2 );
+        mcu8str_dealloc(&res);
+      }
       return res;
     }
 
@@ -1480,10 +1486,8 @@ namespace {
 #ifdef MC_IS_WINDOWS
     {
       mcwinstr wpath = mc_path2wpath( &path );
-      mcwinstr wfp = mc_winstr_expand_to_fullpath( &wpath );
+      res = mc_winstr_expand_to_fullpath_u8str( &wpath );
       mc_winstr_dealloc(&wpath);
-      res = mc_winstr_to_u8str( &wfp );
-      mc_winstr_dealloc(&wfp);
     }
     const int not_done = (res.size == 0?1:0);
 #else
