@@ -125,8 +125,13 @@ mcu8str nccfg_buildflags( nccfgstate* state )
   mcu8str incdir = nccfg_incdir( state );
 
 #if ( defined (_WIN32) || defined (WIN32) )
-  //fixme
-  mcu8str res = mcu8str_create_from_cstr("notimplementedonwindowsyet");
+  mcu8str res = mcu8str_create( 10000 );
+  mcu8str_append_cstr(&res," /I");
+  mcu8str_append(&res,&incdir);
+  mcu8str_append_cstr(&res," /link /LIBPATH:");
+  mcu8str_append(&res,&libdir);
+  mcu8str_append_cstr(&res," ");
+  mcu8str_append(&res,&libpath);
 #else
   //Construct "-Wl,-rpath,$libdir -Wl,$libpath -I$incdir"
   mcu8str res = mcu8str_create( libdir.size + libpath.size + incdir.size
