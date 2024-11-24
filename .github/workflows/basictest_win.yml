@@ -119,7 +119,10 @@ jobs:
         cl /help
         if %errorlevel% neq 0 exit /b %errorlevel%
 
-        #Examples from README:
+        ncrystal-config --show buildflags > buildflags.txt
+        set /p BUILDFLAGS=<buildflags.txt
+
+        @REM Examples from README:
         copy .\src\examples\ncrystal_example_cpp.cc my_cpp_code.cpp
         if %errorlevel% neq 0 exit /b %errorlevel%
         copy .\src\examples\ncrystal_example_c.cc my_c_code.c
@@ -128,13 +131,10 @@ jobs:
         dir
         if %errorlevel% neq 0 exit /b %errorlevel%
 
-        #NOTE: Important that build flags comes AFTER the code being
-        #compiled. Otherwise ncrystal symbols will be initially ignored, leading
-        #to errors later:
-        ncrystal-config --show
+        ncrystal-config --show buildflags
         if %errorlevel% neq 0 exit /b %errorlevel%
 
-        cl my_c_code.c
+        cl %BUILDFLAGS% my_c_code.c
         if %errorlevel% neq 0 exit /b %errorlevel%
 
         echo "Custom compilation of downstream C/C++ code succeeded"
