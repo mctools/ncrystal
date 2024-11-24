@@ -111,51 +111,53 @@ def test2():
     fctnames_same_is_absolute = ['dirname','pathseps_platform',
                                  'pathseps_generic','expand_path']
 
-    for i,p in enumerate(testpaths):
-        print(f'{i} Testing path "{p}":')
-        for fct in fctnames:
-            res = getattr(lib,f'nctest_{fct}')(p)
-            res_print = res
-            if isinstance(res,str):
-                res_print = res_print.replace(native_sep,'/')
-                if len(res)>=2 and res[1]==':':
-                    assert res[0] == res[0].upper()
-                forbid_sep, allow_sep = nonnative_sep, native_sep
-                if fct=='pathseps_generic':
-                    forbid_sep, allow_sep = '\\', '/'
-                    assert forbid_sep not in res
-                    res = res.replace(allow_sep,'/')
-            print(f'   mctools_{fct} = "{res_print}"')
+    winlongstr='\\\\?\\'
+    for i,pin in enumerate(testpaths):
+        for p in [pin, winlongstr+pin]:
+            print(f'{i} Testing path "{p}":')
+            for fct in fctnames:
+                res = getattr(lib,f'nctest_{fct}')(p)
+                res_print = res
+                if isinstance(res,str):
+                    res_print = res_print.replace(native_sep,'/')
+                    if len(res)>=2 and res[1]==':':
+                        assert res[0] == res[0].upper()
+                    forbid_sep, allow_sep = nonnative_sep, native_sep
+                    if fct=='pathseps_generic':
+                        forbid_sep, allow_sep = '\\', '/'
+                        assert forbid_sep not in res
+                        res = res.replace(allow_sep,'/')
+                print(f'   mctools_{fct} = "{res_print}"')
 
-        #test versus refs, but pathlib and os.path does not like back slashes on
-        #unix:
-        nc_basename = lib.nctest_basename(p)
-        def decode_refbn(p):
-            is_windows_path = '\\' in p or (len(p)>1 and p[1]==':')
-            if is_windows_path:
-                p = p.replace('/','\\')
-                pobj = pathlib.PureWindowsPath(p)
-            else:
-                p = p.replace('\\','/')
-                pobj=pathlib.PurePosixPath(p)
-            return dict(pathlib=pobj.name)
-        for refsrc, refbasename in decode_refbn(p).items():
-            if refbasename != nc_basename:
-                raise SystemExit(f"basename({repr(p)}) mismatch:"
-                                 f" ncrystal={repr(nc_basename)}"
-                                 f" {refsrc}={repr(refbasename)}")
+            #test versus refs, but pathlib and os.path does not like back slashes on
+            #unix:
+            nc_basename = lib.nctest_basename(p)
+            def decode_refbn(pp):
+                if pp.startswith(winlongstr):
+                    pp = pp[len(winlongstr):]
+                is_windows_path = '\\' in pp or (len(pp)>1 and pp[1]==':')
+                if is_windows_path:
+                    pp = pp.replace('/','\\')
+                    pobj = pathlib.PureWindowsPath(pp)
+                else:
+                    pp = pp.replace('\\','/')
+                    pobj=pathlib.PurePosixPath(pp)
+                return dict(pathlib=pobj.name)
+            for refsrc, refbasename in decode_refbn(p).items():
+                if refbasename != nc_basename:
+                    raise SystemExit(f"basename({repr(p)}) mismatch:"
+                                     f" ncrystal={repr(nc_basename)}"
+                                     f" {refsrc}={repr(refbasename)}")
 
-
-
-        _isabs = lib.nctest_path_is_absolute( p )
-        for fct in fctnames_same_is_absolute:
-            pmod = getattr(lib,f'nctest_{fct}')(p)
-            newisabs = lib.nctest_path_is_absolute( pmod )
-            if _isabs != newisabs:
-                raise SystemExit(f"ERROR: {fct}({p})={pmod} "
-                                 "has changed is_absolute_path"
-                                 f" from {_isabs} to {newisabs}")
-        print()
+            _isabs = lib.nctest_path_is_absolute( p )
+            for fct in fctnames_same_is_absolute:
+                pmod = getattr(lib,f'nctest_{fct}')(p)
+                newisabs = lib.nctest_path_is_absolute( pmod )
+                if _isabs != newisabs:
+                    raise SystemExit(f"ERROR: {fct}({p})={pmod} "
+                                     "has changed is_absolute_path"
+                                     f" from {_isabs} to {newisabs}")
+            print()
 
 
 def test3():
@@ -572,3 +574,4 @@ if __name__=='__main__':
             main()
 
 #fixme check with hardlinks + files without read permission
+#fixme test expand_path... and verify that \\?\ in front does not change results

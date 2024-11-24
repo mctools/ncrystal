@@ -88,12 +88,17 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   mcu8str mcu8str_create_from_staticbuffer( char * buf, size_t buflen );
   mcu8str mcu8str_create_from_cstr( const char * );
   mcu8str mcu8str_copy( const mcu8str* );
+
+  //Views (input strings should outlive resulting objects). Note they are
+  //technically const only in C++, but should always be treated as such:
 #ifdef MCFILEUTILS_CPPNAMESPACE
   const
 #endif
-  mcu8str mcu8str_view_cstr( const char * );//const view (input string
-                                            //should outlive resulting
-                                            //object).
+  mcu8str mcu8str_view_cstr( const char * );
+#ifdef MCFILEUTILS_CPPNAMESPACE
+  const
+#endif
+  mcu8str mcu8str_view_str( const mcu8str * );
 
   void mcu8str_ensure_dynamic_buffer( mcu8str* );//replace any static with
                                                  //dynamic buffers

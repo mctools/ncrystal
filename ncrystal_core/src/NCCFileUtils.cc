@@ -90,7 +90,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   {
     char * buf_to_free = ( str->owns_memory
                            ? str->c_str
-                           : (char*)(0) );
+                           : NULL );
     static char dummy[4] = { 0, 0, 0, 0 };
     str->c_str = &dummy[0];
     str->size = 0;
@@ -172,9 +172,23 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   {
     mcu8str s;
     s.c_str = (char*)c_str;//cast away constness, but we will add it again in
-                           //the return type.
+                           //the return type (in c++).
     s.size = STDNS strlen( c_str );
     s.buflen = s.size + 1;
+    s.owns_memory = 0;
+    return s;
+  }
+
+#ifdef MCFILEUTILS_CPPNAMESPACE
+  const
+#endif
+ mcu8str mcu8str_view_str( const mcu8str * str )
+  {
+    mcu8str s;
+    s.c_str = (char*)str->c_str;//cast away constness, but we will add it again in
+                           //the return type (in c++).
+    s.size = str->size;
+    s.buflen = s.size + 1;//limit as much as possible.
     s.owns_memory = 0;
     return s;
   }
@@ -251,6 +265,12 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     }
   }
 
+  int mcu8str_equal( const mcu8str* s1, const mcu8str* s2 )
+  {
+    return ( s1->size == s2->size
+             && STDNS memcmp( s1->c_str, s2->c_str, s1->size )==0 );
+  }
+
   void mcu8str_ensure_dynamic_buffer( mcu8str* str )
   {
     if ( str->owns_memory )
@@ -313,6 +333,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
              : std::string() );
   }
 #endif
+
 #ifdef MCFILEUTILS_CPPNAMESPACE
 }
 #endif
@@ -427,6 +448,42 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 #ifdef MCFILEUTILS_CPPNAMESPACE
 namespace MCFILEUTILS_CPPNAMESPACE {
 #endif
+
+
+#ifdef MCFILEUTILS_CPPNAMESPACE
+namespace {
+#endif
+  int mctools_impl_has_winnamespace( const mcu8str * path )
+  {
+    return ( path->size >= 4 && path->c_str[2] == '?'
+             && ( path->c_str[0] == '/' || path->c_str[0] == '\\' )
+             && ( path->c_str[1] == '/' || path->c_str[1] == '\\' )
+             && ( path->c_str[3] == '/' || path->c_str[3] == '\\' ) );
+  }
+
+#ifdef MCFILEUTILS_CPPNAMESPACE
+  //We want to return a const view, but can't in c:
+  const
+#endif
+  mcu8str mctools_impl_view_no_winnamespace( const mcu8str * path )
+  {
+    //Windows paths starting with "\\?\" are a bit special. For our purposes we
+    //simply skip those initial characters. See more on:
+    //https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file
+    mcu8str res = mcu8str_view_str( path );
+    if ( mctools_impl_has_winnamespace(path) ) {
+      //Begins with "<sep><sep>?<sep>", modify the view:
+      res.c_str += 4;
+        res.size -= 4;
+    }
+    return res;
+  }
+
+#ifdef MCFILEUTILS_CPPNAMESPACE
+}
+#endif
+
+
 
 #ifdef MC_IS_WINDOWS
 #  ifdef __cplusplus
@@ -675,7 +732,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       void * bufptr = (void*) str->c_str;
       str->size = 0;
       str->buflen = 0;
-      str->c_str = (wchar_t*)(0);
+      str->c_str = NULL;
       STDNS free( bufptr );
     }
 
@@ -684,15 +741,17 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 #  endif
 #endif
 
-  MCTOOLS_FILE_t * mctools_fopen( const mcu8str* path,
+  MCTOOLS_FILE_t * mctools_fopen( const mcu8str* rawpath,
                                   const char * mode )
   {
+    mcu8str path = mctools_impl_view_no_winnamespace( rawpath );
+
     //Utf8-encoded paths are used directly on platforms except Windows, where
     //only ASCII encoded paths can be used directly. We also run paths through
     //mctools_pathseps_platform.
 #ifdef MC_IS_WINDOWS
     //Ok, non-ASCII path on windows. Reencode as wide strings and use _wfopen:
-    mcwinstr wpath = mc_path2wpath( path );//this also maps to native path sep
+    mcwinstr wpath = mc_path2wpath( &path );//this also maps to native path sep
     char buf[32];
     mcu8str mcu8str_mode = mcu8str_create_from_staticbuffer( buf, sizeof(buf) );
     mcu8str_append_cstr(&mcu8str_mode,mode);
@@ -703,14 +762,14 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     mc_winstr_dealloc( &wmode );
     return result;
 #else
-    if ( !mcu8str_contains( path, '\\' ) ) {
+    if ( !mcu8str_contains( &path, '\\' ) ) {
       //Usual case on unix -> no extra work needed
-      return STDNS fopen( path->c_str, mode );
+      return STDNS fopen( path.c_str, mode );
     } else {
       //Copy path so we can run it through mctools_pathseps_platform:
       char buf[4096];
       mcu8str pathcopy = mcu8str_create_from_staticbuffer( buf, sizeof(buf) );
-      mcu8str_assign( &pathcopy, path );
+      mcu8str_assign( &pathcopy, &path );
       mctools_pathseps_platform( &pathcopy );
       MCTOOLS_FILE_t * fh = STDNS fopen( pathcopy.c_str, mode );
       mcu8str_dealloc(&pathcopy);
@@ -719,10 +778,11 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 #endif
   }
 
-  int mctools_is_dir( const mcu8str* path )
+  int mctools_is_dir( const mcu8str* rawpath )
   {
+    mcu8str path = mctools_impl_view_no_winnamespace( rawpath );
 #ifdef MC_IS_WINDOWS
-    mcwinstr wpath = mc_path2wpath( path );
+    mcwinstr wpath = mc_path2wpath( &path );
     DWORD fa = GetFileAttributesW( wpath.c_str );
     mc_winstr_dealloc( &wpath );
     if ( fa == INVALID_FILE_ATTRIBUTES )
@@ -731,7 +791,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 #else
     char buf[4096];
     mcu8str native = mcu8str_create_from_staticbuffer( buf, sizeof(buf) );
-    mcu8str_assign( &native, path );
+    mcu8str_assign( &native, &path );
     mctools_pathseps_platform( &native );
     struct stat sinfo;
     int res = ( stat( native.c_str, &sinfo) == 0
@@ -741,17 +801,18 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 #endif
   }
 
-  int mctools_exists( const mcu8str* path )
+  int mctools_exists( const mcu8str* rawpath )
   {
+    mcu8str path = mctools_impl_view_no_winnamespace( rawpath );
 #ifdef MC_IS_WINDOWS
-    mcwinstr wpath = mc_path2wpath( path );
+    mcwinstr wpath = mc_path2wpath( &path );
     DWORD fa = GetFileAttributesW( wpath.c_str );
     mc_winstr_dealloc( &wpath );
     return fa == INVALID_FILE_ATTRIBUTES ? 0 : 1;
 #else
     char buf[4096];
     mcu8str native = mcu8str_create_from_staticbuffer( buf, sizeof(buf) );
-    mcu8str_assign( &native, path );
+    mcu8str_assign( &native, &path );
     mctools_pathseps_platform( &native );
     struct stat sinfo;
     int res = ( stat( native.c_str, &sinfo) == 0 ) ? 1 : 0;
@@ -760,10 +821,11 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 #endif
   }
 
-  int mctools_is_file( const mcu8str* path )
+  int mctools_is_file( const mcu8str* rawpath )
   {
+    mcu8str path = mctools_impl_view_no_winnamespace( rawpath );
 #ifdef MC_IS_WINDOWS
-    mcwinstr wpath = mc_path2wpath( path );
+    mcwinstr wpath = mc_path2wpath( &path );
     DWORD fa = GetFileAttributesW( wpath.c_str );
     mc_winstr_dealloc( &wpath );
     if ( fa == INVALID_FILE_ATTRIBUTES )
@@ -774,7 +836,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 #else
     char buf[4096];
     mcu8str native = mcu8str_create_from_staticbuffer( buf, sizeof(buf) );
-    mcu8str_assign( &native, path );
+    mcu8str_assign( &native, &path );
     mctools_pathseps_platform( &native );
     struct stat sinfo;
     int res = ( stat( native.c_str, &sinfo) == 0
@@ -934,14 +996,16 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     return mcu8str_create_empty();
   }
 
-  mcu8str mctools_real_path( const mcu8str* path )
+  mcu8str mctools_real_path( const mcu8str* rawpath )
   {
-    if ( path->size == 0 )
+    mcu8str path = mctools_impl_view_no_winnamespace(rawpath);
+    if ( path.size == 0 )
       return mcu8str_create_empty();
+
 #ifdef MC_IS_WINDOWS
     //To resolve symlinks we must open a file handle with CreateFileW. If it
     //fails, we revert back to at least returning an absolute path.
-    mcwinstr wpath = mc_path2wpath( path );
+    mcwinstr wpath = mc_path2wpath( &path );
     DWORD share = FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE;
     DWORD access = FILE_READ_ATTRIBUTES;
     DWORD flags = FILE_FLAG_BACKUP_SEMANTICS;
@@ -986,7 +1050,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 #else
     char buf[4096];
     mcu8str native = mcu8str_create_from_staticbuffer( buf, sizeof(buf) );
-    mcu8str_assign( &native, path );
+    mcu8str_assign( &native, &path );
     mctools_pathseps_platform( &native );
     mcu8str output = mcu8str_create( PATH_MAX );
     if ( !realpath( native.c_str, output.c_str ) ) {
@@ -1007,9 +1071,12 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     mcu8str_replace( path, '\\', '/' );
     //Upper case drive letter for consistency:
     char drive_letter = mctools_drive_letter( path );
-    if ( drive_letter )
-      path->c_str[0] = drive_letter;
-
+    if ( drive_letter ) {
+      if ( mctools_impl_has_winnamespace( path ) )
+        path->c_str[4] = drive_letter;
+      else
+        path->c_str[0] = drive_letter;
+    }
   }
 
   void mctools_pathseps_platform( mcu8str* path )
@@ -1021,8 +1088,12 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 #endif
     //Upper case drive letter for consistency:
     char drive_letter = mctools_drive_letter( path );
-    if ( drive_letter )
-      path->c_str[0] = drive_letter;
+    if ( drive_letter ) {
+      if ( mctools_impl_has_winnamespace( path ) )
+        path->c_str[4] = drive_letter;
+      else
+        path->c_str[0] = drive_letter;
+    }
   }
 
   int mctools_path_is_relative( const mcu8str* path )
@@ -1030,58 +1101,58 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     return ( mctools_path_is_absolute(path) ? 0 : 1 );
   }
 
-  int mctools_path_is_absolute( const mcu8str* path )
+  int mctools_path_is_absolute( const mcu8str* rawpath )
   {
-    if ( path->size == 0 )
+    mcu8str path = mctools_impl_view_no_winnamespace(rawpath);
+    if ( path.size == 0 )
       return 0;
-    if ( path->size >= 2
-         && path->c_str[0] == '~'
-         && ( path->c_str[1] == '/' || path->c_str[1] == '\\' ) )
+    if ( path.size >= 2
+         && path.c_str[0] == '~'
+         && ( path.c_str[1] == '/' || path.c_str[1] == '\\' ) )
       return 1;//leading "~/"
-    const char * path_begin = path->c_str;
-    if ( mctools_drive_letter( path ) )
+    const char * path_begin = path.c_str;
+    if ( mctools_drive_letter( &path ) )
       path_begin += 2;
     if ( *path_begin == '/' || *path_begin == '\\' )
       return 1;
     return 0;
   }
 
-  char mctools_drive_letter( const mcu8str* path )
+  char mctools_drive_letter( const mcu8str* rawpath )
   {
-    if ( path->size < 2 )
+    mcu8str path = mctools_impl_view_no_winnamespace(rawpath);
+    if ( path.size < 2 )
       return 0;
-    if ( path->c_str[1] != ':' )
+    if ( path.c_str[1] != ':' )
       return 0;
-    if ( path->c_str[0] >= 'A' && path->c_str[0] <= 'Z' )
-      return path->c_str[0];
-    if ( path->c_str[0] >= 'a' && path->c_str[0] <= 'z' )
-      return (char)(path->c_str[0] - 32);//uppercase
+    if ( path.c_str[0] >= 'A' && path.c_str[0] <= 'Z' )
+      return path.c_str[0];
+    if ( path.c_str[0] >= 'a' && path.c_str[0] <= 'z' )
+      return (char)(path.c_str[0] - 32);//uppercase
     return 0;
   }
 
-  int mcu8str_equal( const mcu8str* s1, const mcu8str* s2 )
+  int mctools_is_same_file( const mcu8str* p1raw, const mcu8str* p2raw )
   {
-    return ( s1->size == s2->size
-             && STDNS memcmp( s1->c_str, s2->c_str, s1->size )==0 );
-  }
+    mcu8str p1 = mctools_impl_view_no_winnamespace(p1raw);
+    mcu8str p2 = mctools_impl_view_no_winnamespace(p2raw);
 
-  int mctools_is_same_file( const mcu8str* p1, const mcu8str* p2 )
-  {
     //First check for trivial string equality:
-    if ( mcu8str_equal( p1, p2 ) )
-      return mctools_is_file( p1 );
+    if ( mcu8str_equal( &p1, &p2 ) )
+      return mctools_is_file( &p1 );
 
 #ifdef MC_IS_WINDOWS
     //Open files and query file information. Note that we try to keep both
     //handles open while querying info, for consistent results.
-    mcwinstr wp1 = mc_path2wpath( p1 );
-    mcwinstr wp2 = mc_path2wpath( p2 );
+    mcwinstr wp1 = mc_path2wpath( &p1 );
+    mcwinstr wp2 = mc_path2wpath( &p2 );
 
     DWORD share = FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE;
     DWORD access = FILE_READ_ATTRIBUTES;
     DWORD flags = FILE_FLAG_BACKUP_SEMANTICS;
     HANDLE fh1 = CreateFileW( wp1.c_str,
-                              access, share,
+                              access,
+                              share,
                               NULL,
                               OPEN_EXISTING,
                               flags,
@@ -1092,7 +1163,8 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       return 0;//failed
     }
     HANDLE fh2 = CreateFileW( wp2.c_str,
-                              access, share,
+                              access,
+                              share,
                               NULL,
                               OPEN_EXISTING,
                               flags,
@@ -1152,7 +1224,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     char buf[4096];
     {
       mcu8str native = mcu8str_create_from_staticbuffer( buf, sizeof(buf) );
-      mcu8str_assign( &native, p1 );
+      mcu8str_assign( &native, &p1 );
       mctools_pathseps_platform( &native );
       FILE * fh = fopen(native.c_str,"rb");
       mcu8str_dealloc(&native);
@@ -1168,7 +1240,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       return 0;//always false for directories
     {
       mcu8str native = mcu8str_create_from_staticbuffer( buf, sizeof(buf) );
-      mcu8str_assign( &native, p2 );
+      mcu8str_assign( &native, &p2 );
       mctools_pathseps_platform( &native );
       FILE * fh = fopen(native.c_str,"rb");
       mcu8str_dealloc(&native);
@@ -1187,11 +1259,14 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 #endif
   }
 
-  mcu8str mctools_path_join( const mcu8str* p1, const mcu8str* p2 )
+  mcu8str mctools_path_join( const mcu8str* p1raw, const mcu8str* p2raw )
   {
     //In general try to mimic os.path.path from Python, although we do not
     //require a drive letter on windows to be considered an absolute path, so we
     //might have slight changes in some weird cases.
+
+    mcu8str p1 = mctools_impl_view_no_winnamespace(p1raw);
+    mcu8str p2 = mctools_impl_view_no_winnamespace(p2raw);
 
 #ifdef MC_IS_WINDOWS
     const char native_sep = '\\';
@@ -1199,18 +1274,18 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     const char native_sep = '/';
 #endif
 
-    if ( p2->size == 0 ) {
+    if ( p2.size == 0 ) {
       //Simply copy p1, but ensure it ends in a separator:
-      if ( !p1->size )
+      if ( !p1.size )
         return mcu8str_create_empty();//special case: join("","")->""
-      char lastchar = p1->c_str[p1->size-1];
+      char lastchar = p1.c_str[p1.size-1];
       if ( lastchar == '\\' || lastchar == '/' ) {
-        mcu8str p1copy = mcu8str_copy( p1 );
+        mcu8str p1copy = mcu8str_copy( &p1 );
         mctools_pathseps_platform(&p1copy);
         return p1copy;
       }
-      mcu8str res = mcu8str_create( p1->size + 1 );
-      mcu8str_append( &res, p1 );
+      mcu8str res = mcu8str_create( p1.size + 1 );
+      mcu8str_append( &res, &p1 );
       res.c_str[res.size] = native_sep;
       ++( res.size );
       res.c_str[res.size] = '\0';
@@ -1218,23 +1293,23 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       return res;
     }
 
-    char drive_letter1 = p1->size >= 2 ? mctools_drive_letter(p1) : 0;
-    char drive_letter2 = p2->size >= 2 ? mctools_drive_letter(p2) : 0;
-    if ( p1->size == 0 || mctools_path_is_absolute(p2) ) {
+    char drive_letter1 = p1.size >= 2 ? mctools_drive_letter(&p1) : 0;
+    char drive_letter2 = p2.size >= 2 ? mctools_drive_letter(&p2) : 0;
+    if ( p1.size == 0 || mctools_path_is_absolute(&p2) ) {
       //p1 is empty or p2 is an absolute path, so simply discard p1 (like
       //Pythons os.path.join does in this case). However, if there is a drive
       //letter in p1 and not in p2, we use that drive letter:
       if ( drive_letter1 && !drive_letter2 ) {
-        mcu8str res = mcu8str_create( p2->size + 2 );
+        mcu8str res = mcu8str_create( p2.size + 2 );
         res.c_str[0] = drive_letter1;
         res.c_str[1] = ':';
         res.c_str[2] = '\0';
         res.size = 2;
-        mcu8str_append( &res, p2 );
+        mcu8str_append( &res, &p2 );
         mctools_pathseps_platform(&res);
         return res;
       } else {
-        mcu8str p2copy = mcu8str_copy( p2 );
+        mcu8str p2copy = mcu8str_copy( &p2 );
         mctools_pathseps_platform(&p2copy);
         return p2copy;
       }
@@ -1243,7 +1318,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     if ( drive_letter2 && drive_letter1 != drive_letter2 ) {
       //p2 has a drive letter and p1 has a different drive letter => simply
       //return p2.
-      mcu8str p2copy = mcu8str_copy( p2 );
+      mcu8str p2copy = mcu8str_copy( &p2 );
       mctools_pathseps_platform(&p2copy);
       return p2copy;
     }
@@ -1254,9 +1329,9 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 
     //Selected ranges:
     STDNS size_t iB1 = 0;
-    STDNS size_t iE1 = p1->size;
+    STDNS size_t iE1 = p1.size;
     STDNS size_t iB2 = 0;
-    STDNS size_t iE2 = p2->size;
+    STDNS size_t iE2 = p2.size;
 
     if ( drive_letter1 && drive_letter1 == drive_letter2 )
       iB2 += 2;//skip common drive letter from p2
@@ -1264,24 +1339,24 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     //Strip repeated trailing slashes down to one trailing slash:
     STDNS size_t minlen1 = ( drive_letter1 ? 3 : 1 );
     while ( iE1-iB1 > minlen1
-            && ( p1->c_str[iE1-1]=='/' || p1->c_str[iE1-1]=='\\' )
-            && ( p1->c_str[iE1-2]=='/' || p1->c_str[iE1-2]=='\\' ) )
+            && ( p1.c_str[iE1-1]=='/' || p1.c_str[iE1-1]=='\\' )
+            && ( p1.c_str[iE1-2]=='/' || p1.c_str[iE1-2]=='\\' ) )
       --iE1;
 
-    STDNS size_t needs_slash = ( ( p1->c_str[iE1-1]=='/'
-                                   || p1->c_str[iE1-1]=='\\' ) ? 0 : 1 );
+    STDNS size_t needs_slash = ( ( p1.c_str[iE1-1]=='/'
+                                   || p1.c_str[iE1-1]=='\\' ) ? 0 : 1 );
 
     STDNS size_t s1 = iE1-iB1;
     STDNS size_t s2 = iE2-iB2;
     STDNS size_t newsize = s1 + s2 + needs_slash;
     mcu8str res =  mcu8str_create( newsize  );
-    STDNS memcpy( res.c_str, p1->c_str, s1 );
+    STDNS memcpy( res.c_str, p1.c_str, s1 );
     STDNS size_t used = s1;
     if ( needs_slash ) {
       res.c_str[used] = native_sep;
       ++used;
     }
-    STDNS memcpy( res.c_str + used, p2->c_str, s2+1 );//+1 to include null char
+    STDNS memcpy( res.c_str + used, p2.c_str, s2+1 );//+1 to include null char
     res.size = newsize;
     mctools_pathseps_platform(&res);
     return res;
@@ -1297,8 +1372,11 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   {
     const char * itB = path->c_str;
     const char * itE = path->c_str + path->size;
+
+    if ( mctools_impl_has_winnamespace( path ) )
+      itB += 4;//skip '\\?\'
     if ( mctools_drive_letter( path ) )
-      itB += 2;//always skip drive letter for basename
+      itB += 2;//skip drive letter
 
     if ( itB == itE )
       return mcu8str_create_empty();
@@ -1322,8 +1400,10 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   {
     const char * itB = path->c_str;
     const char * itE = path->c_str + path->size;
+    if ( mctools_impl_has_winnamespace( path ) )
+      itB += 4;//skip '\\?\'
     if ( mctools_drive_letter( path ) )
-      itB += 2;//always skip drive letter for basename
+      itB += 2;//skip drive letter
     if ( itB == itE )
       return itE;//empty
     //Find last path sep:
@@ -1340,7 +1420,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   const char* mctools_fileextension_view( const mcu8str* path )
   {
     const char * it = mctools_basename_view( path );
-    const char * itLastDot = (const char *)0;
+    const char * itLastDot = NULL;
     while ( 1 ) {
       if ( *it == 0 )
         break;//end of string reached
@@ -1353,51 +1433,53 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     return it;//empty string
   }
 
-  mcu8str mctools_expand_path( const mcu8str* p )
+  mcu8str mctools_expand_path( const mcu8str* praw )
   {
-    if ( p->size == 0 )
+    mcu8str p = mctools_impl_view_no_winnamespace(praw);
+    if ( p.size == 0 )
       return mcu8str_create_empty();
     mcu8str res;
     res.owns_memory = 0;
     res.size = 0;
     res.buflen = 0;
 #ifdef MC_IS_WINDOWS
-    mcwinstr wp = mc_path2longwpath( p );
+    mcwinstr wp = mc_path2longwpath( &p );
     res = mc_winstr_to_u8str(&wp);
     mc_winstr_dealloc(&wp);
 #else
-    if ( p->size >= 2
-         && p->c_str[0] == '~'
-         && ( p->c_str[1] == '/' || p->c_str[1] == '\\' ) ) {
+    if ( p.size >= 2
+         && p.c_str[0] == '~'
+         && ( p.c_str[1] == '/' || p.c_str[1] == '\\' ) ) {
       const char * home = getenv("HOME");
       if ( home ) {
-        if ( p->size == 2 ) {
+        if ( p.size == 2 ) {
           mcu8str rhome = mcu8str_create_from_cstr(home);
           mctools_pathseps_platform(&rhome);
           return rhome;
         }
         const STDNS size_t home_size = STDNS strlen( home );
-        const STDNS size_t newsize = (STDNS size_t)(home_size + p->size - 1);
+        const STDNS size_t newsize = (STDNS size_t)(home_size + p.size - 1);
         res = mcu8str_create( newsize );
         mcu8str_append_cstr(&res,home);
-        mcu8str_append_cstr(&res, p->c_str + 1 );
+        mcu8str_append_cstr(&res, p.c_str + 1 );
       }
     }
     if ( res.size == 0 )
-      res = mcu8str_copy(p);
+      res = mcu8str_copy( &p );
 #endif
     mctools_pathseps_platform(&res);
     return res;
   }
 
-  mcu8str mctools_absolute_path( const mcu8str* path )
+  mcu8str mctools_absolute_path( const mcu8str* pathraw )
   {
+    mcu8str path = mctools_impl_view_no_winnamespace(pathraw);
     mcu8str res = mcu8str_create_empty();
-    if ( path->size == 0 )
+    if ( path.size == 0 )
       return res;
 #ifdef MC_IS_WINDOWS
     {
-      mcwinstr wpath = mc_path2wpath( path );
+      mcwinstr wpath = mc_path2wpath( &path );
       mcwinstr wfp = mc_winstr_expand_to_fullpath( &wpath );
       mc_winstr_dealloc(&wpath);
       res = mc_winstr_to_u8str( &wfp );
@@ -1408,11 +1490,11 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     const int not_done = 1;
 #endif
     if ( not_done ) {
-      if ( mctools_path_is_absolute(path) ) {
-        res = mcu8str_copy( path );
+      if ( mctools_path_is_absolute(&path) ) {
+        res = mcu8str_copy( &path );
       } else {
         mcu8str cwd = mctools_get_current_working_dir();
-        res = mctools_path_join( &cwd, path );
+        res = mctools_path_join( &cwd, &path );
         mcu8str_dealloc(&cwd);
       }
     }
@@ -1420,11 +1502,12 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     return res;
   }
 
-  mcu8str mctools_dirname( const mcu8str* path )
+  mcu8str mctools_dirname( const mcu8str* pathraw )
   {
-    char drive_letter = mctools_drive_letter( path );
-    const char * itB = path->c_str;
-    const char * itE = path->c_str + path->size;
+    mcu8str path = mctools_impl_view_no_winnamespace(pathraw);
+    char drive_letter = mctools_drive_letter( &path );
+    const char * itB = path.c_str;
+    const char * itE = path.c_str + path.size;
     if ( drive_letter )
       itB += 2;//ignore drive letter while analysing
 
@@ -1471,7 +1554,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     }
 
     if ( ressize == 0 ) {
-      if ( path->c_str[0] == '.' && !drive_letter )
+      if ( path.c_str[0] == '.' && !drive_letter )
         return mcu8str_create_from_cstr(".");
       if ( drive_letter ) {
         mcu8str res = mcu8str_create_from_cstr("::");
