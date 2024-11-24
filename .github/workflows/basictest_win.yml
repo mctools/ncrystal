@@ -79,9 +79,9 @@ jobs:
         if %errorlevel% neq 0 exit /b %errorlevel%
         ncrystal_ncmat2hkl --help
         if %errorlevel% neq 0 exit /b %errorlevel%
-        ncrystal_ncmat2hkl --format=laz 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test_Al.laz
+        ncrystal_ncmat2hkl --format=laz "Al_sg225.ncmat;temp=250K;dcutoff=0.75" -o test_Al.laz
         if %errorlevel% neq 0 exit /b %errorlevel%
-        ncrystal_ncmat2hkl --format=lau 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test_Al.lau
+        ncrystal_ncmat2hkl --format=lau "Al_sg225.ncmat;temp=250K;dcutoff=0.75" -o test_Al.lau
         if %errorlevel% neq 0 exit /b %errorlevel%
         nctool -d ./test_Al.laz
         if %errorlevel% neq 0 exit /b %errorlevel%
