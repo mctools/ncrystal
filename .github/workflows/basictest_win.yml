@@ -87,7 +87,7 @@ jobs:
         if %errorlevel% neq 0 exit /b %errorlevel%
         nctool -d ./test_Al.lau
         if %errorlevel% neq 0 exit /b %errorlevel%
-        ncrystal_ncmat2cpp $(ncrystal-config --show datadir)/Al_sg225.ncmat -o test.cpp
+        ncrystal_ncmat2cpp stdlib::Al_sg225.ncmat -o test.cpp
         if %errorlevel% neq 0 exit /b %errorlevel%
         cat test.cpp
         if %errorlevel% neq 0 exit /b %errorlevel%
