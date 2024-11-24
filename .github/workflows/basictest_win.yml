@@ -136,7 +136,8 @@ jobs:
         ncrystal-config --show buildflags
         if %errorlevel% neq 0 exit /b %errorlevel%
 
-        cl %BUILDFLAGS% my_c_code.c
+        @REM cl %BUILDFLAGS% my_c_code.c
+        cl my_c_code.c %BUILDFLAGS%
         if %errorlevel% neq 0 exit /b %errorlevel%
 
         echo "Custom compilation of downstream C/C++ code succeeded"
