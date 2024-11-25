@@ -46,5 +46,8 @@ def namespace():
 
 def libpath():
     import pathlib
+    #Fixme: hack as a quick workaround:
+    dirname = 'lib' if '@NCrystal_SHLIBDIR@'.endswith('lib') else 'bin'
+
     return pathlib.Path(__file__).parent.joinpath(
-        'data', '@NCrystal_SHLIBDIR@', libname() ).absolute().resolve()
+        'data', dirname, libname() ).absolute().resolve()
