@@ -85,7 +85,7 @@ def _search():
 
     #always invoke _detect_monolithic_installation() since it also detects
     #broken installations.
-    verbose = True#fixme
+    verbose = False#fixme
     if verbose:
         from ._common import print
         print('NCrystal._locatelib: Starting search for NCrystal shared library')
