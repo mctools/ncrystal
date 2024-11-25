@@ -162,6 +162,16 @@ endif()
 include(GNUInstallDirs)
 set(NCrystal_BINDIR "${CMAKE_INSTALL_BINDIR}")#e.g. <prefix>/bin>
 set(NCrystal_LIBDIR "${CMAKE_INSTALL_LIBDIR}")#e.g. <prefix>/lib>
+
+if ( UNIX )
+  #sane standard world
+  set(NCrystal_SHLIBDIR "${NCrystal_LIBDIR}")
+else()
+  #dll's must be in %PATH% so we put them in bin (same as seems to be the way
+  #most packages do it on conda-forge).
+  set(NCrystal_SHLIBDIR "${NCrystal_BINDIR}")
+endif()
+
 set(NCrystal_INCDIR "${CMAKE_INSTALL_INCLUDEDIR}")#e.g. <prefix>/include>
 set(NCrystal_DATAROOT "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}")#e.g. <prefix>/share/NCrystal>
 if( NOT NCrystal_DATAFILESDIR )
@@ -175,6 +185,7 @@ endif()
 #use PROJECT_BINARY_DIR as prefix here, but it should not matter which as long
 #as it is an absolute path):
 file(RELATIVE_PATH NCrystal_relpath_BINDIR2LIBDIR   "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}"   "${PROJECT_BINARY_DIR}/${NCrystal_LIBDIR}")
+file(RELATIVE_PATH NCrystal_relpath_BINDIR2SHLIBDIR   "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}"   "${PROJECT_BINARY_DIR}/${NCrystal_SHLIBDIR}")
 if ( NCRYSTAL_ENABLE_DATA STREQUAL "ON" )
   file(RELATIVE_PATH NCrystal_relpath_BINDIR2DATADIR "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}"   "${PROJECT_BINARY_DIR}/${NCrystal_DATAROOT}/data")
 else()
@@ -567,21 +578,24 @@ elseif( NCRYSTAL_ENABLE_DATA STREQUAL "ON" )
   ncinstall(FILES ${DATAFILES} DESTINATION ${NCrystal_DATAFILESDIR})
 endif()
 
-set( extra_ncrystal_inst_opts "" )
-if ( DEFINED SKBUILD_PROJECT_NAME )
-  # Avoid libNCrystal.so -> libNCrystal.so.<version> symlinks since symlinks are
-  # replaced with file contents in wheels.
-  # (see https://github.com/scikit-build/scikit-build/issues/625 ).
-  set( extra_ncrystal_inst_opts "LIBRARY;NAMELINK_SKIP" )
-endif()
-set( extra_ncrystal_inst_opts "LIBRARY;NAMELINK_SKIP" )#FIXME
+#set( extra_ncrystal_inst_opts "" )
+#if ( DEFINED SKBUILD_PROJECT_NAME )
+#  # Avoid libNCrystal.so -> libNCrystal.so.<version> symlinks since symlinks are
+#  # replaced with file contents in wheels.
+#  # (see https://github.com/scikit-build/scikit-build/issues/625 ).
+#  set( extra_ncrystal_inst_opts "LIBRARY;NAMELINK_SKIP" )
+#endif()
+#set( extra_ncrystal_inst_opts "LIBRARY;NAMELINK_SKIP" )#FIXME
+#
 
 ncinstall(
   TARGETS NCrystal
   EXPORT NCrystalTargets
-  DESTINATION ${NCrystal_LIBDIR}
-  ${extra_ncrystal_inst_opts}
+  RUNTIME DESTINATION ${NCrystal_SHLIBDIR}
+  ARCHIVE DESTINATION ${NCrystal_LIBDIR}
+  LIBRARY DESTINATION ${NCrystal_LIBDIR}
 )
+
 ncinstall(FILES ${HDRS_NC} DESTINATION ${NCrystal_INCDIR}/NCrystal)
 ncinstall(FILES ${HDRS_INTERNAL_NC} DESTINATION ${NCrystal_INCDIR}/NCrystal/internal)
 

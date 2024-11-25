@@ -24,8 +24,11 @@
 //expressions are expanded.
 
 const char * nccfg_const_bin2libdir() { return "@NCrystal_relpath_BINDIR2LIBDIR@"; }
-const char * nccfg_const_libname() { return "$<TARGET_FILE_NAME:NCrystal>"; }//NB: generator expression
-const char * nccfg_const_bin2libpath() { return "@NCrystal_relpath_BINDIR2LIBDIR@/@NCrystal_LIBNAME@"; }
+const char * nccfg_const_bin2shlibdir() { return "@NCrystal_relpath_BINDIR2SHLIBDIR@"; }
+const char * nccfg_const_libname() { return "@NCrystal_libname_genexp@"; }//NB: generator expression
+const char * nccfg_const_shlibname() { return "@NCrystal_shlibname_genexp@"; }//NB: generator expression
+const char * nccfg_const_bin2libpath() { return "@NCrystal_relpath_BINDIR2LIBDIR@/@NCrystal_libname_genexp@"; }
+const char * nccfg_const_bin2shlibpath() { return "@NCrystal_relpath_BINDIR2SHLIBDIR@/@NCrystal_shlibname_genexp@"; }
 const char * nccfg_const_bin2datadir() { return "@NCrystal_relpath_BINDIR2DATADIR@"; }
 const char * nccfg_const_bin2incdir() { return "@NCrystal_relpath_BINDIR2INCDIR@"; }
 const char * nccfg_const_bin2cmakedir() { return "@NCrystal_relpath_BINDIR2CMAKEDIR@"; }

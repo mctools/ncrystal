@@ -1053,6 +1053,12 @@ namespace {
     mc_winstr_dealloc(&resolvedpath);
     mcu8str output = mc_winstr_to_u8str( &woutput );
     mc_winstr_dealloc( &woutput );
+    if ( mctools_impl_has_winnamespace( &output ) ) {
+      mcu8str tmp = mctools_impl_view_no_winnamespace( &output );
+      mcu8str_ensure_dynamic_buffer(&tmp);
+      mcu8str_swap( &tmp, &output );
+      mcu8str_dealloc(&tmp);
+    }
 #else
     char buf[4096];
     mcu8str native = mcu8str_create_from_staticbuffer( buf, sizeof(buf) );

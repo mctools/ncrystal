@@ -83,6 +83,12 @@ mcu8str nccfg_libdir( nccfgstate* state )
   return nccfg_resolverelpath(&(state->bindir),nccfg_const_bin2libdir());
 }
 
+mcu8str nccfg_shlibdir( nccfgstate* state )
+{
+  nccfg_init_bindir(state);
+  return nccfg_resolverelpath(&(state->bindir),nccfg_const_bin2shlibdir());
+}
+
 mcu8str nccfg_incdir( nccfgstate* state )
 {
   nccfg_init_bindir(state);
@@ -109,6 +115,12 @@ mcu8str nccfg_libpath_given_libdir( const mcu8str* libdir )
   return mctools_path_join(libdir,&libname);
 }
 
+mcu8str nccfg_shlibpath_given_shlibdir( const mcu8str* shlibdir )
+{
+  mcu8str shlibname = mcu8str_view_cstr(nccfg_const_shlibname());
+  return mctools_path_join(shlibdir,&shlibname);
+}
+
 mcu8str nccfg_libpath( nccfgstate* state )
 {
   nccfg_init_bindir(state);
@@ -118,18 +130,25 @@ mcu8str nccfg_libpath( nccfgstate* state )
   return res;
 }
 
+mcu8str nccfg_shlibpath( nccfgstate* state )
+{
+  nccfg_init_bindir(state);
+  mcu8str shlibdir = nccfg_resolverelpath(&(state->bindir),nccfg_const_bin2shlibdir());
+  mcu8str res = nccfg_shlibpath_given_shlibdir( &shlibdir );
+  mcu8str_dealloc( &shlibdir );
+  return res;
+}
+
 mcu8str nccfg_buildflags( nccfgstate* state )
 {
   mcu8str libdir = nccfg_libdir( state );
   mcu8str libpath = nccfg_libpath_given_libdir( &libdir );
   mcu8str incdir = nccfg_incdir( state );
-
 #if ( defined (_WIN32) || defined (WIN32) )
-  mcu8str res = mcu8str_create( 10000 );
+  //Construct "/I$incdir $libpath"
+  mcu8str res = mcu8str_create( incdir.size + libpath.size + (size_t)128 );
   mcu8str_append_cstr(&res," /I");
   mcu8str_append(&res,&incdir);
-  mcu8str_append_cstr(&res," /link /LIBPATH:");
-  mcu8str_append(&res,&libdir);
   mcu8str_append_cstr(&res," ");
   mcu8str_append(&res,&libpath);
 #else
@@ -230,6 +249,9 @@ nccfg_strlist nccfg_show_item_list()
     "libname",
     "libpath",
     "namespace",
+    "shlibdir",
+    "shlibname",
+    "shlibpath",
     "version",
   };
   nccfg_strlist res;
@@ -252,6 +274,9 @@ mcu8str nccfg_show_item_lookup( nccfgstate* state,
 
   //All options (libpath first since it might be used by e.g. the python
   //modules):
+  if ( NCCFG_STREQUALCONST(item,"shlibpath") )
+    return nccfg_shlibpath(state);
+
   if ( NCCFG_STREQUALCONST(item,"libpath") )
     return nccfg_libpath(state);
 
@@ -270,6 +295,9 @@ mcu8str nccfg_show_item_lookup( nccfgstate* state,
   if ( NCCFG_STREQUALCONST(item,"libdir") )
     return nccfg_libdir(state);
 
+  if ( NCCFG_STREQUALCONST(item,"shlibdir") )
+    return nccfg_shlibdir(state);
+
   if ( NCCFG_STREQUALCONST(item,"includedir") )
     return nccfg_incdir(state);
 
@@ -278,6 +306,9 @@ mcu8str nccfg_show_item_lookup( nccfgstate* state,
 
   if ( NCCFG_STREQUALCONST(item,"libname") )
     return mcu8str_view_cstr(nccfg_const_libname());
+
+  if ( NCCFG_STREQUALCONST(item,"shlibname") )
+    return mcu8str_view_cstr(nccfg_const_shlibname());
 
   if ( NCCFG_STREQUALCONST(item,"cmakedir") )
     return nccfg_cmakedir(state);
@@ -295,6 +326,7 @@ mcu8str nccfg_show_item_lookup( nccfgstate* state,
     int val = -1;
     if ( NCCFG_STREQUALCONST(item,"has_data") )
       val = nccfg_boolopt_data();
+    //fixme: else if
     if ( NCCFG_STREQUALCONST(item,"has_dynamic_plugins") )
       val = nccfg_boolopt_dynamic_plugins();
     if ( NCCFG_STREQUALCONST(item,"has_embed_data") )
