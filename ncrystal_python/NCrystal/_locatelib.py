@@ -85,11 +85,28 @@ def _search():
 
     #always invoke _detect_monolithic_installation() since it also detects
     #broken installations.
+    verbose = True#fixme
+    if verbose:
+        from ._common import print
+        print('NCrystal._locatelib: Starting search for NCrystal shared library')
     is_monolithic = _detect_monolithic_installation()
+    if verbose:
+        print('NCrystal._locatelib: monolithic installation'
+              f' = {"yes" if is_monolithic else "no"}')
 
-    v = ( _search_env_overrides()
-          or _search_core_info_mod( is_monolithic )
-          or _search_nccfgapp() )
+    v = _search_env_overrides( verbose )
+    if verbose and v:
+        print('NCrystal._locatelib: Succesfully searched via method: env vars')
+    if not v:
+        v = _search_core_info_mod( is_monolithic, verbose )
+        if verbose and v:
+            print('NCrystal._locatelib: Succesfully searched via method: pymod')
+
+    if not v:
+        v = _search_nccfgapp(verbose)
+        if verbose and v:
+            print('NCrystal._locatelib: Succesfully searched'
+                  ' via method: ncrystal-config')
 
     if not v:
         from .exceptions import NCFileNotFound
@@ -97,6 +114,10 @@ def _search():
                              ' file. Have you installed the ncrystal-core'
                              ' package?')
     lib, namespace, version = v
+    if verbose:
+        print('NCrystal._locatelib: namespace = "{namespace}"')
+        print('NCrystal._locatelib: lib = "{lib}"')
+
     lib = pathlib.Path(lib)
     if not lib.is_file():
         from .exceptions import NCFileNotFound
@@ -111,7 +132,6 @@ def _search():
 
     #Found it, but there was a version mismatch!
     import textwrap
-    vcore, vpy = versions
     msg = textwrap.dedent(f"""
     ERROR: Inconsistent environment detected.
 
@@ -157,16 +177,14 @@ def _search_core_info_mod( is_monolithic ):
             import _ncrystal_core.info as mod
     except ModuleNotFoundError:
         mod = None
-    versions = None
     if mod:
-        #versions = ( mod.version(), _nc_version )
         return mod.libpath(), mod.namespace(), mod.version()
 
 def _search_nccfgapp():
     #Try to query ncrystal-config script:
     import subprocess
     cmdname='ncrystal-config'
-    res = subprocess.run([cmdname,'--show','libpath','namespace','version'],
+    res = subprocess.run([cmdname,'--show','shlibpath','namespace','version'],
                          capture_output=True)
     if res.returncode == 0:
         lines = res.stdout.decode('utf8').splitlines()
