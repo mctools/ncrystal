@@ -126,29 +126,31 @@ jobs:
     - name: Test downstream compilation and build flags
       shell: cmd
       run: |
-        cl /help
-        if %errorlevel% neq 0 exit /b %errorlevel%
 
-        echo "Set BUILDFLAGS variable"
+        echo "Set BUILDFLAGS variable via ncrystal-config --show buildflags"
         ncrystal-config --show buildflags > buildflags.txt
         set /p BUILDFLAGS=<buildflags.txt
         echo "Got:" %BUILDFLAGS%
 
-        @REM Examples from README:
+        echo "Copying C and C++ examples"
         copy .\src\examples\ncrystal_example_cpp.cc my_cpp_code.cpp
         if %errorlevel% neq 0 exit /b %errorlevel%
+
         copy .\src\examples\ncrystal_example_c.c my_c_code.c
         if %errorlevel% neq 0 exit /b %errorlevel%
 
-        dir
-        if %errorlevel% neq 0 exit /b %errorlevel%
-
-        ncrystal-config --show buildflags
-        if %errorlevel% neq 0 exit /b %errorlevel%
-
-        @REM cl %BUILDFLAGS% my_c_code.c
+        echo "Compiling C code"
         cl my_c_code.c %BUILDFLAGS%
+        if %errorlevel% neq 0 exit /b %errorlevel%
+
+        echo "Compiling C++ code"
+        cl my_cpp_code.cpp %BUILDFLAGS%
         if %errorlevel% neq 0 exit /b %errorlevel%
 
         echo "Custom compilation of downstream C/C++ code succeeded"
 
+        echo "Running C app"
+        my_c_code.exe
+
+        echo "Running C++ app"
+        my_cpp_code.exe
