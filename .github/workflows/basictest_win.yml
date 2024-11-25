@@ -35,8 +35,8 @@ jobs:
     - name: tree ncrystalcoremonopkg
       shell: cmd
       run: |
-        tree C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_ncrystal_core_monolithic
-        echo hello
+        tree /F /A C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_ncrystal_core_monolithic
+        echo Tree done
 
     - name: pip install extra deps
       shell: cmd
