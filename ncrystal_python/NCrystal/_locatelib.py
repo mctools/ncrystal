@@ -115,8 +115,8 @@ def _search():
                              ' package?')
     lib, namespace, version = v
     if verbose:
-        print('NCrystal._locatelib: namespace = "{namespace}"')
-        print('NCrystal._locatelib: lib = "{lib}"')
+        print(f'NCrystal._locatelib: namespace = "{namespace}"')
+        print(f'NCrystal._locatelib: lib = "{lib}"')
 
     lib = pathlib.Path(lib)
     if not lib.is_file():
