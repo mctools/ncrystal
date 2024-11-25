@@ -47,4 +47,4 @@ def namespace():
 def libpath():
     import pathlib
     return pathlib.Path(__file__).parent.joinpath(
-        'data', 'lib', libname() ).absolute().resolve()
+        'data', '@NCrystal_SHLIBDIR@', libname() ).absolute().resolve()
