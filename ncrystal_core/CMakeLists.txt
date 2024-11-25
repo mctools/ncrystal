@@ -849,6 +849,9 @@ if ( DEFINED SKBUILD_PROJECT_NAME )
   file( MAKE_DIRECTORY "${pymoddir}" )
   file( WRITE "${pymoddir}/__init__.py" "__version__='${NCrystal_VERSION}'\n" )
   #First generated a configured version of the template:
+  get_filename_component(
+    "ncrystal_pymod_shlib_dirname" "${NCrystal_SHLIBDIR}" NAME
+  )
   configure_file(
     "${PROJECT_SOURCE_DIR}/cmake/template_pymod.py.in"
     "${PROJECT_BINARY_DIR}/template_pymod.py.pregen.in"

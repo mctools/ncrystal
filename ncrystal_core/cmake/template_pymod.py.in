@@ -34,6 +34,7 @@ def _ncrystal_config_cli_wrapper():
     raise SystemExit(rv.returncode)
 
 def version():
+    #Expanded by CMake:
     return '@NCrystal_VERSION@'
 
 def libname():
@@ -46,8 +47,7 @@ def namespace():
 
 def libpath():
     import pathlib
-    #Fixme: hack as a quick workaround:
-    dirname = 'lib' if '@NCrystal_SHLIBDIR@'.endswith('lib') else 'bin'
-
+    #Name of last component before libname() is expanded by CMake:
     return pathlib.Path(__file__).parent.joinpath(
-        'data', dirname, libname() ).absolute().resolve()
+        'data', '@ncrystal_pymod_shlib_dirname@', libname()
+    ).absolute().resolve()
