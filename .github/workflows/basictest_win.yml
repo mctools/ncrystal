@@ -128,11 +128,16 @@ jobs:
       run: |
 
         echo "Set BUILDFLAGS variable via ncrystal-config --show buildflags"
+        if %errorlevel% neq 0 exit /b %errorlevel%
         ncrystal-config --show buildflags > buildflags.txt
+        if %errorlevel% neq 0 exit /b %errorlevel%
         set /p BUILDFLAGS=<buildflags.txt
+        if %errorlevel% neq 0 exit /b %errorlevel%
         echo "Got:" %BUILDFLAGS%
+        if %errorlevel% neq 0 exit /b %errorlevel%
 
         echo "Copying C and C++ examples"
+        if %errorlevel% neq 0 exit /b %errorlevel%
         copy .\src\examples\ncrystal_example_cpp.cc my_cpp_code.cpp
         if %errorlevel% neq 0 exit /b %errorlevel%
 
@@ -140,6 +145,7 @@ jobs:
         if %errorlevel% neq 0 exit /b %errorlevel%
 
         echo "Compiling C code"
+        if %errorlevel% neq 0 exit /b %errorlevel%
         cl my_c_code.c %BUILDFLAGS%
         if %errorlevel% neq 0 exit /b %errorlevel%
 
@@ -148,9 +154,12 @@ jobs:
         if %errorlevel% neq 0 exit /b %errorlevel%
 
         echo "Custom compilation of downstream C/C++ code succeeded"
+        if %errorlevel% neq 0 exit /b %errorlevel%
 
         echo "Running C app"
         my_c_code.exe
+        if %errorlevel% neq 0 exit /b %errorlevel%
 
         echo "Running C++ app"
         my_cpp_code.exe
+        if %errorlevel% neq 0 exit /b %errorlevel%
