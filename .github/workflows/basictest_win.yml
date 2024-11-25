@@ -28,6 +28,10 @@ jobs:
       shell: cmd
       run: python3 -m pip install .\src\
 
+    - name: ncrystal-config summary
+      shell: cmd
+      run: ncrystal-config --summary
+
     - name: pip install extra deps
       shell: cmd
       run: |
