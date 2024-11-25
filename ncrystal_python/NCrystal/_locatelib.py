@@ -94,16 +94,16 @@ def _search():
         print('NCrystal._locatelib: monolithic installation'
               f' = {"yes" if is_monolithic else "no"}')
 
-    v = _search_env_overrides( verbose )
+    v = _search_env_overrides()
     if verbose and v:
         print('NCrystal._locatelib: Succesfully searched via method: env vars')
     if not v:
-        v = _search_core_info_mod( is_monolithic, verbose )
+        v = _search_core_info_mod( is_monolithic )
         if verbose and v:
             print('NCrystal._locatelib: Succesfully searched via method: pymod')
 
     if not v:
-        v = _search_nccfgapp(verbose)
+        v = _search_nccfgapp()
         if verbose and v:
             print('NCrystal._locatelib: Succesfully searched'
                   ' via method: ncrystal-config')
