@@ -32,6 +32,12 @@ jobs:
       shell: cmd
       run: ncrystal-config --summary
 
+    - name: tree ncrystalcoremonopkg
+      shell: cmd
+      run: |
+        tree C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_ncrystal_core_monolithic
+        echo hello
+
     - name: pip install extra deps
       shell: cmd
       run: |
