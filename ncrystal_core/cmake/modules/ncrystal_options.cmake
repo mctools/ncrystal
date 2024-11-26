@@ -31,7 +31,7 @@ enum_option( NCRYSTAL_ENABLE_GEANT4    "Whether to build the G4 hooks." "OFF" "O
 enum_option( NCRYSTAL_ENABLE_DATA      "Whether to include the standard data library files (possibly EMBED'ed into the binary)." "ON" "OFF" "EMBED" )
 bool_option( NCRYSTAL_MODIFY_RPATH     "Whether to try to set RPATH in installed binaries (if disabled all special RPATH handling is skipped)." "ON" )
 enum_option( NCRYSTAL_ENABLE_DYNLOAD   "Enable dynamic library loading capabilities (for plugins)." "IFAVAILABLE" "ON" "OFF" )
-enum_option( NCRYSTAL_BUILD_STRICT     "Stricter build (primarily for testing). Can optionally select specific C++ standard." "OFF" "ON" "11" "14" "17" "20" )
+enum_option( NCRYSTAL_BUILD_STRICT     "Stricter build (primarily for testing). Can optionally select specific C++ standard." "OFF" "ON" "11" "14" "17" "20" "23" )
 bool_option( NCRYSTAL_ENABLE_CPACK     "Includes CPack and sets relevant meta-data." "OFF" )
 bool_option( NCRYSTAL_QUIET            "Produce less status messages during configuration." "OFF" )
 bool_option( NCRYSTAL_SKIP_INSTALL     "Set to prevent any installation targets from being created." "OFF" )

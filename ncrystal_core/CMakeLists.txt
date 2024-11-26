@@ -371,9 +371,10 @@ set( STRICT_CPPSTD OFF )
 set( STRICT_CSTD OFF )
 if ( NCRYSTAL_BUILD_STRICT )
   #We also want to test the C-example with strict C standard (90, 99, 11). For
-  #simplicity we simply map: C++11->C90, C++14->C99, C++17->C11. It is mainly
-  #done to ensure unit test coverage.
-  if ( NCRYSTAL_BUILD_STRICT STREQUAL "11" )
+  #simplicity we simply pick a C standard value based on the provided c++
+  #standard, in a way which allows us to cover the various C standards.
+  if ( NCRYSTAL_BUILD_STRICT STREQUAL "11"
+      OR NCRYSTAL_BUILD_STRICT STREQUAL "ON" )
     set( STRICT_CSTD 90 )
     set( STRICT_CPPSTD 11 )
   elseif ( NCRYSTAL_BUILD_STRICT STREQUAL "14" )
@@ -383,8 +384,20 @@ if ( NCRYSTAL_BUILD_STRICT )
     set( STRICT_CSTD 11 )
     set( STRICT_CPPSTD 17 )
   elseif ( NCRYSTAL_BUILD_STRICT STREQUAL "20" )
-    set( STRICT_CSTD 11 )#NB: Perhaps we will get C22 at some point?
+    if( "${CMAKE_VERSION}" VERSION_LESS "3.21" )
+      message(FATAL_ERROR "NCRYSTAL_BUILD_STRICT=20 requires cmake 3.21")
+    endif()
+    set( STRICT_CSTD 17 )#needs cmake 3.21
     set( STRICT_CPPSTD 20 )
+  elseif ( NCRYSTAL_BUILD_STRICT STREQUAL "23" )
+    if( "${CMAKE_VERSION}" VERSION_LESS "3.21" )
+      message(FATAL_ERROR "NCRYSTAL_BUILD_STRICT=23 requires cmake 3.21")
+    endif()
+    set( STRICT_CSTD 17 )#needs cmake 3.21
+    set( STRICT_CPPSTD 23 )#needs cmake 3.20
+  else()
+    #should have been caught earlier:
+    message( FATAL_ERROR "Unexpected value of NCRYSTAL_BUILD_STRICT" )
   endif()
 endif()
 
