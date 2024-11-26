@@ -145,12 +145,12 @@ jobs:
         if %errorlevel% neq 0 exit /b %errorlevel%
 
         echo "Compiling C code"
-        cl my_c_code.c %BUILDFLAGS% /std:c11
+        cl my_c_code.c %BUILDFLAGS%
         if %errorlevel% neq 0 exit /b %errorlevel%
         echo "Custom compilation of downstream C code succeeded"
 
         echo "Compiling C++ code"
-        cl my_cpp_code.cpp %BUILDFLAGS% /std:c++14 /EHsc
+        cl my_cpp_code.cpp %BUILDFLAGS% /EHsc
         if %errorlevel% neq 0 exit /b %errorlevel%
         echo "Custom compilation of downstream C++ code succeeded"
 
@@ -163,10 +163,6 @@ jobs:
         echo "Got:" NCSHLIBDIR
         if %errorlevel% neq 0 exit /b %errorlevel%
 
-        @REM No longer do this
-        @REM echo "Hack PATH
-        @REM set PATH=%NCSHLIBDIR%;%PATH%
-
         echo "Running C app"
         my_c_code.exe
         if %errorlevel% neq 0 exit /b %errorlevel%
@@ -174,3 +170,38 @@ jobs:
         echo "Running C++ app"
         my_cpp_code.exe
         if %errorlevel% neq 0 exit /b %errorlevel%
+
+        echo "Compiling C code again (c11)"
+        cl my_c_code.c %BUILDFLAGS% /std:c11
+        if %errorlevel% neq 0 exit /b %errorlevel%
+        echo "Custom compilation of downstream C code succeeded"
+
+        echo "Compiling C code again (c17)"
+        cl my_c_code.c %BUILDFLAGS% /std:c17
+        if %errorlevel% neq 0 exit /b %errorlevel%
+        echo "Custom compilation of downstream C code succeeded"
+
+        echo "Compiling C code again (clatest)"
+        cl my_c_code.c %BUILDFLAGS% /std:c17
+        if %errorlevel% neq 0 exit /b %errorlevel%
+        echo "Custom compilation of downstream C code succeeded"
+
+        echo "Compiling C++ code again (c++14)"
+        cl my_cpp_code.cpp %BUILDFLAGS% /std:c++14 /EHsc
+        if %errorlevel% neq 0 exit /b %errorlevel%
+        echo "Custom compilation of downstream C++ code succeeded"
+
+        echo "Compiling C++ code again (c++17)"
+        cl my_cpp_code.cpp %BUILDFLAGS% /std:c++17 /EHsc
+        if %errorlevel% neq 0 exit /b %errorlevel%
+        echo "Custom compilation of downstream C++ code succeeded"
+
+        echo "Compiling C++ code again (c++20)"
+        cl my_cpp_code.cpp %BUILDFLAGS% /std:c++20 /EHsc
+        if %errorlevel% neq 0 exit /b %errorlevel%
+        echo "Custom compilation of downstream C++ code succeeded"
+
+        echo "Compiling C++ code again (c++latest)"
+        cl my_cpp_code.cpp %BUILDFLAGS% /std:c++20 /EHsc
+        if %errorlevel% neq 0 exit /b %errorlevel%
+        echo "Custom compilation of downstream C++ code succeeded"
