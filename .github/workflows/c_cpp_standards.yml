@@ -1,0 +1,51 @@
+name: c_cpp_standards
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '10 15 * * 0'  # 10:15 every Sunday
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        strictflag: [11, 14, 17, 20, 23]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    name: ${{ matrix.os }}.strict${{ matrix.strictflag }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        path: src
+
+    - name: Setup python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ 3.12 }}
+
+    - name: Configure CMake
+      run: >
+        cmake
+        -S ${{github.workspace}}/src
+        -B ${{github.workspace}}/build
+        -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install
+        -DNCRYSTAL_ENABLE_EXAMPLES=ON
+        -DNCRYSTAL_BUILD_STRICT=${{ matrix.strictflag }}
+
+    - name: Build
+      run: >
+        cmake
+        --build ${{github.workspace}}/build
+        --config Release
