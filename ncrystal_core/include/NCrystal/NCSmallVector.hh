@@ -453,7 +453,7 @@ namespace NCRYSTAL_NAMESPACE {
       if ( THIS->m_count == 0 )
         return;
 
-      if ( large(THIS) ) {
+      if ( large(THIS) ) ncunlikely {
         //Since v3.7.0 (summer 2023) we release the large area like this, to
         //avoid what looks like a spurious error with gcc 12 (see
         //https://github.com/mctools/ncrystal/issues/125). Doing it like this
@@ -464,7 +464,7 @@ namespace NCRYSTAL_NAMESPACE {
         return;
       }
 
-      auto itE = THIS->end() nclikely;
+      auto itE = THIS->end();
       for ( auto it = THIS->begin(); it!=itE ; ++it )
         it->~TValue();
       THIS->m_count = 0;
@@ -522,17 +522,17 @@ namespace NCRYSTAL_NAMESPACE {
     template<typename ...Args>
     static TValue& emplace_back( SmallVector * THIS, Args&& ...args )
     {
-      if ( THIS->m_count < THIS->capacity() ) {
+      if ( THIS->m_count < THIS->capacity() ) nclikely {
         //If TValue constructor throws we must not change state. This is easily
         //handled by only incrementing m_count on the line AFTER trying the
         //construction (a partially constructed object should not have its
         //destructor run so there won't be any cleanup):
-        TValue * newobjaddr = THIS->end() nclikely;
+        TValue * newobjaddr = THIS->end();
         new( (void*)(newobjaddr) ) TValue(std::forward<Args>(args)...);
         ++(THIS->m_count);
         return *newobjaddr;
       } else {
-        return grow_and_emplace_back(THIS, std::forward<Args>(args)...) ncunlikely;
+        return grow_and_emplace_back(THIS, std::forward<Args>(args)...);
       }
     }
   };
@@ -651,19 +651,19 @@ namespace NCRYSTAL_NAMESPACE {
   {
     if (detail::SVUseFast<TValue,MODE>())
       return static_cast<TValue*>(this->beginPtr());
-    if ( Impl::small(this) )
-      return reinterpret_cast<TValue*>(&m_data.small_data[0]) nclikely;
+    if ( Impl::small(this) ) nclikely
+      return reinterpret_cast<TValue*>(&m_data.small_data[0]);
     else
-      return m_data.large.data ncunlikely;
+      return m_data.large.data;
   }
   template<class TValue, std::size_t NSMALL, SVMode MODE>
   ncnodiscard17 inline ncconstexpr17 const TValue* SmallVector<TValue,NSMALL,MODE>::data() const noexcept {
     if (detail::SVUseFast<TValue,MODE>())
       return static_cast<const TValue*>(this->beginPtr());
-    if ( Impl::small(this) )
-      return reinterpret_cast<const TValue*>(&m_data.small_data[0]) nclikely;
+    if ( Impl::small(this) ) nclikely
+      return reinterpret_cast<const TValue*>(&m_data.small_data[0]);
     else
-      return m_data.large.data ncunlikely;
+      return m_data.large.data;
   }
 
   template<class TValue, std::size_t NSMALL, SVMode MODE>
@@ -765,10 +765,10 @@ namespace NCRYSTAL_NAMESPACE {
   ncnodiscard17 inline ncconstexpr17 typename SmallVector<TValue,NSMALL,MODE>::size_type
   SmallVector<TValue,NSMALL,MODE>::capacity() const noexcept
   {
-    if ( Impl::small(this) )
-      return NSMALL nclikely;
+    if ( Impl::small(this) ) nclikely
+      return NSMALL ;
     else
-      return m_data.large.capacity ncunlikely;
+      return m_data.large.capacity;
   }
 
   template<class TValue, std::size_t NSMALL, SVMode MODE>
@@ -892,16 +892,16 @@ namespace NCRYSTAL_NAMESPACE {
   template<class TValue, std::size_t NSMALL, SVMode MODE>
   inline void SmallVector<TValue,NSMALL,MODE>::pop_back() noexcept
   {
-    if ( m_count && m_count != (NSMALL+1) ) {
+    if ( m_count && m_count != (NSMALL+1) ) nclikely {
       //Simply destruct last entry and move count down.
-      ( data() + --m_count)->~TValue() nclikely;
+      ( data() + --m_count)->~TValue();
       return;
     }
-    if ( !m_count ) {
+    if ( !m_count ) ncunlikely {
       //std::vector::pop_back on empty vector is UB. Here we simply choose the
       //easy (and well defined ) solution of asserting and otherwise doing
       //nothing.
-      assert( false && "pop_back on empty vector is undefined behaviour") ncunlikely;
+      assert( false && "pop_back on empty vector is undefined behaviour");
       return;
     }
 

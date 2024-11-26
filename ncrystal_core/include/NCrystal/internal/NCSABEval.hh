@@ -170,9 +170,9 @@ namespace NCRYSTAL_NAMESPACE {
         //Not inlined below due to VisualStudio issues.
         Optional<celleval_t> cell;
         auto idx = getCellIndex(*m_sab,alpha,beta);
-        if ( idx.isValid() ) {
+        if ( idx.isValid() ) nclikely {
           //inside grid
-          nclikely cell.emplace( getCell( idx ) );
+          cell.emplace( getCell( idx ) );
         }
         return cell;
       }

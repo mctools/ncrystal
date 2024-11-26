@@ -318,8 +318,8 @@ NC::HKLList NC::calculateHKLPlanes( const StructureInfo& structureInfo,
         if ( !valueInInterval(cache.ksq_preselect_interval,ksq))
           continue;
 
-        if (no_forceunitdebyewallerfactor) {
-          nclikely fillHKL_getWhkl(cache.whkl, ksq, cache.msd);
+        if (no_forceunitdebyewallerfactor) nclikely {
+          fillHKL_getWhkl(cache.whkl, ksq, cache.msd);
         }
 
         //calculate |F|^2
@@ -470,8 +470,8 @@ namespace NCRYSTAL_NAMESPACE {
       SymHKLSeenTracker( double dcutoff ) : m_seen(std::make_unique<FastArraySmall>()), m_dcutoff(dcutoff) {}
       bool isFirstCheck( const HKL& hkl ) {
         auto idx = calcFastIdx<fast_small_C>(hkl);
-        if ( idx.has_value() ) {
-          nclikely auto e = (*m_seen)[idx.value()];
+        if ( idx.has_value() ) nclikely {
+          auto e = (*m_seen)[idx.value()];
           if ( (bool)e )
             return false;
           e = true;
@@ -494,10 +494,10 @@ namespace NCRYSTAL_NAMESPACE {
       bool isFirstCheckFallBack( const HKL& v ) {
         auto idx = calcFastIdx<fast_large_C>(v);
         if ( idx.has_value() ) {
-          if (!m_seenLarge) {
-            ncunlikely m_seenLarge = std::make_unique<FastArrayLarge>();
+          if (!m_seenLarge) ncunlikely {
+            m_seenLarge = std::make_unique<FastArrayLarge>();
           }
-          nclikely auto e = (*m_seenLarge)[idx.value()];
+          auto e = (*m_seenLarge)[idx.value()];
           if ( (bool)e )
             return false;
           e = true;
@@ -613,8 +613,8 @@ NC::HKLList NC::detail::calculateHKLPlanesWithSymEqRefl( const StructureInfo& st
         if ( ! valueInInterval( cache.ksq_preselect_interval , ksq ) )
           continue;
 
-        if (no_forceunitdebyewallerfactor) {
-          nclikely fillHKL_getWhkl( cache.whkl, ksq, cache.msd);
+        if (no_forceunitdebyewallerfactor) nclikely {
+          fillHKL_getWhkl( cache.whkl, ksq, cache.msd);
         }
 
         //calculate |F|^2
