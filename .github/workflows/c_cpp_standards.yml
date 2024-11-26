@@ -22,10 +22,13 @@ jobs:
       with:
         path: src
 
+    - name: Set CMAKE_GENERATOR
+      if: runner.os != 'Windows'
+      run: echo "CMAKE_GENERATOR=Ninja Multi-Config" >> $GITHUB_ENV
+
     - name: Configure CMake
       run: >
         cmake -S ./src -B ./build
-        -G "Ninja Multi-Config"
         -DNCRYSTAL_ENABLE_EXAMPLES=ON
         -DNCRYSTAL_BUILD_STRICT=${{ matrix.strictflag }}
 
