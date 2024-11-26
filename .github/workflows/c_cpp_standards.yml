@@ -25,9 +25,12 @@ jobs:
     - name: Configure CMake
       run: >
         cmake -S ./src -B ./build
-        -DCMAKE_INSTALL_PREFIX=./install
+        -G "Ninja Multi-Config"
         -DNCRYSTAL_ENABLE_EXAMPLES=ON
         -DNCRYSTAL_BUILD_STRICT=${{ matrix.strictflag }}
 
-    - name: Build
+    - name: Build Release
       run: cmake --build ./build --config Release
+
+    - name: Build Debug
+      run: cmake --build ./build --config Debug
