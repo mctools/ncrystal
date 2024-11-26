@@ -118,11 +118,6 @@ jobs:
     #
     #...but since we also want to support VS 2019, we use the above action for now
 
-    - name: Use cl.exe
-      shell: cmd
-      run: |
-        cl /help
-
     - name: Test downstream compilation and build flags
       shell: cmd
       run: |
