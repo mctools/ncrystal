@@ -31,6 +31,7 @@
 
 typedef struct {
   mcu8str bindir;
+  mcu8str shlibdir_override;
   int argc;
   char** argv;
 } nccfgstate;
@@ -85,8 +86,30 @@ mcu8str nccfg_libdir( nccfgstate* state )
 
 mcu8str nccfg_shlibdir( nccfgstate* state )
 {
+  if ( state->shlibdir_override.size > 0 )
+    return mcu8str_copy( &(state->shlibdir_override) );
   nccfg_init_bindir(state);
   return nccfg_resolverelpath(&(state->bindir),nccfg_const_bin2shlibdir());
+}
+
+mcu8str nccfg_shlibpath_given_shlibdir( const mcu8str* shlibdir )
+{
+  mcu8str shlibname = mcu8str_view_cstr(nccfg_const_shlibname());
+  return mctools_path_join(shlibdir,&shlibname);
+}
+
+mcu8str nccfg_shlibpath( nccfgstate* state )
+{
+  if ( state->shlibdir_override.size > 0 ) {
+    return nccfg_shlibpath_given_shlibdir( &(state->shlibdir_override) );
+  } else {
+    nccfg_init_bindir(state);
+    mcu8str shlibdir = nccfg_resolverelpath(&(state->bindir),
+                                            nccfg_const_bin2shlibdir());
+    mcu8str res = nccfg_shlibpath_given_shlibdir( &shlibdir );
+    mcu8str_dealloc( &shlibdir );
+    return res;
+  }
 }
 
 mcu8str nccfg_incdir( nccfgstate* state )
@@ -115,27 +138,12 @@ mcu8str nccfg_libpath_given_libdir( const mcu8str* libdir )
   return mctools_path_join(libdir,&libname);
 }
 
-mcu8str nccfg_shlibpath_given_shlibdir( const mcu8str* shlibdir )
-{
-  mcu8str shlibname = mcu8str_view_cstr(nccfg_const_shlibname());
-  return mctools_path_join(shlibdir,&shlibname);
-}
-
 mcu8str nccfg_libpath( nccfgstate* state )
 {
   nccfg_init_bindir(state);
   mcu8str libdir = nccfg_resolverelpath(&(state->bindir),nccfg_const_bin2libdir());
   mcu8str res = nccfg_libpath_given_libdir( &libdir );
   mcu8str_dealloc( &libdir );
-  return res;
-}
-
-mcu8str nccfg_shlibpath( nccfgstate* state )
-{
-  nccfg_init_bindir(state);
-  mcu8str shlibdir = nccfg_resolverelpath(&(state->bindir),nccfg_const_bin2shlibdir());
-  mcu8str res = nccfg_shlibpath_given_shlibdir( &shlibdir );
-  mcu8str_dealloc( &shlibdir );
   return res;
 }
 
@@ -468,7 +476,28 @@ int main ( int argc, char** argv )
   state.bindir.size = 0;
   state.bindir.buflen = 0;
   state.bindir.owns_memory = 0;
+  state.shlibdir_override.c_str = NULL;
+  state.shlibdir_override.size = 0;
+  state.shlibdir_override.buflen = 0;
+  state.shlibdir_override.owns_memory = 0;
+
+  if ( nccfg_boolopt_expects_shlibdir_override() ) {
+    //Expects hidden trailing arguments '+' 'shlibdir' (to support having
+    //NCrystal.dll in %PATH% on windows)
+    if ( argc >= 3 && argv[argc-2][0] == '+' && argv[argc-2][1] == '\0'  ) {
+      state.shlibdir_override = mcu8str_create_from_cstr( argv[argc-1] );
+      state.argc -= 2;
+    } else {
+      mcu8str cmdname = nccfg_thiscmdname(&state);
+      fprintf(stderr,"%s: installation error (shlibdir override absent).\n",
+              cmdname.c_str);
+      mcu8str_dealloc(&cmdname);
+      return 1;
+    }
+  }
+
   int res = mainprog( &state );
   mcu8str_dealloc(&state.bindir);
+  mcu8str_dealloc(&state.shlibdir_override);
   return res;
 }

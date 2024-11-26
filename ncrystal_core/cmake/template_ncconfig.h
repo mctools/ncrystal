@@ -43,3 +43,4 @@ int nccfg_boolopt_embed_data() { return @nccfgapp_has_dataembed_01@; }
 int nccfg_boolopt_examples() { return @nccfgapp_has_examples_01@; }
 int nccfg_boolopt_modify_rpath() { return @nccfgapp_has_modrpath_01@; }
 int nccfg_boolopt_threads() { return @nccfgapp_has_threads_01@; }
+int nccfg_boolopt_expects_shlibdir_override() { return @nccfgapp_expect_shlibdir_override_01@; }

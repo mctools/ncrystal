@@ -20,9 +20,14 @@
 
 include_guard()
 
-function( nccfgapp_create_ncconfig_h targetfile )
+function( nccfgapp_create_ncconfig_h targetfile expects_shlibdir_override )
   #Generate ncconfig.h via file(GENERATE ..) from template. Supports generator
   #expressions in both targetfile and template contents.
+  if ( expects_shlibdir_override )
+    set( nccfgapp_expect_shlibdir_override_01 "1" )
+  else()
+    set( nccfgapp_expect_shlibdir_override_01 "0" )
+  endif()
   if ( NCRYSTAL_ENABLE_DATA )
     set( nccfgapp_has_data_01 "1" )
   else()
@@ -79,11 +84,14 @@ function( nccfgapp_create_ncconfig_h targetfile )
   )
 endfunction()
 
-function( create_ncrystal_config_app )
+function( create_ncrystal_config_app expects_shlibdir_override )
   set( autogenheader_name "ncconfig_autogen_$<CONFIG>.h")
   set ( workdir "${PROJECT_BINARY_DIR}/nccfgapp" )
 
-  nccfgapp_create_ncconfig_h( "${workdir}/include/${autogenheader_name}" )
+  nccfgapp_create_ncconfig_h(
+    "${workdir}/include/${autogenheader_name}"
+    "${expects_shlibdir_override}"
+  )
   configure_file(
     "${PROJECT_SOURCE_DIR}/include/NCrystal/internal/NCCFileUtils.hh"
     "${workdir}/include/NCCFileUtils.h"

@@ -151,25 +151,54 @@ else()
   if ( NOT "x${NCRYSTAL_NAMESPACE}" STREQUAL "x" )
     message(
       FATAL_ERROR
-      "Do not set NCRYSTAL_NAMESPACE to a value which CMake interprets as \"false\"."
-      "To disable, instead set it to an empty string."
+      "Do not set NCRYSTAL_NAMESPACE to a value which CMake interprets "
+      "as \"false\". To disable, instead set it to an empty string."
       )
   endif()
 endif()
-
+if ( DEFINED NCRYSTAL_SKBUILD_MONOLITHIC )
+  #Add a namespace for safety (but not if testing, since tests are currently
+  #failing with non-empty namespaces (FIXME!!!!).
+  if ( NOT NCRYSTAL_ENABLE_TESTING )
+    set( NCRYSTAL_NAMESPACE "mono${NCRYSTAL_NAMESPACE}" )
+  endif()
+endif()
 
 #Installation directories (try to follow standard conventions):
 include(GNUInstallDirs)
 set(NCrystal_BINDIR "${CMAKE_INSTALL_BINDIR}")#e.g. <prefix>/bin>
 set(NCrystal_LIBDIR "${CMAKE_INSTALL_LIBDIR}")#e.g. <prefix>/lib>
 
-if ( UNIX )
-  #sane standard world
-  set(NCrystal_SHLIBDIR "${NCrystal_LIBDIR}")
-else()
+#FIXME: Use this for all relative paths below, for robustness!
+function( nc_find_bindir2other_relpath resultvar otherpath )
+  #The relative path at the installation stage from the NCrystal_BINDIR to
+  #otherpath
+  set( srcdir "${NCrystal_BINDIR}" )
+  set( tgtdir "${otherpath}" )
+  if ( NOT IS_ABSOLUTE "${srcdir}" )
+    set( srcdir "${CMAKE_INSTALL_PREFIX}/${srcdir}" )
+  endif()
+  if ( NOT IS_ABSOLUTE "${tgtdir}" )
+    set( tgtdir "${CMAKE_INSTALL_PREFIX}/${tgtdir}" )
+  endif()
+  file(RELATIVE_PATH res "${srcdir}" "${tgtdir}")
+  set( "${resultvar}" "${res}" PARENT_SCOPE )
+endfunction()
+
+if ( WIN32 )
   #dll's must be in %PATH% so we put them in bin (same as seems to be the way
   #most packages do it on conda-forge).
   set(NCrystal_SHLIBDIR "${NCrystal_BINDIR}")
+  set(ncrystal_skbuild_shlib_in_wheel_scripts "OFF")
+  if ( DEFINED SKBUILD_PROJECT_NAME )
+    #For wheels we will place the NCrystal.dll into the scripts folder, since
+    #that seems to be the only way to get the dll onto the PATH.
+    set(NCrystal_SHLIBDIR "${SKBUILD_SCRIPTS_DIR}")
+    set(ncrystal_skbuild_shlib_in_wheel_scripts "ON")
+  endif()
+else()
+  #sane standard world
+  set(NCrystal_SHLIBDIR "${NCrystal_LIBDIR}")
 endif()
 
 set(NCrystal_INCDIR "${CMAKE_INSTALL_INCLUDEDIR}")#e.g. <prefix>/include>
@@ -578,16 +607,6 @@ elseif( NCRYSTAL_ENABLE_DATA STREQUAL "ON" )
   ncinstall(FILES ${DATAFILES} DESTINATION ${NCrystal_DATAFILESDIR})
 endif()
 
-#set( extra_ncrystal_inst_opts "" )
-#if ( DEFINED SKBUILD_PROJECT_NAME )
-#  # Avoid libNCrystal.so -> libNCrystal.so.<version> symlinks since symlinks are
-#  # replaced with file contents in wheels.
-#  # (see https://github.com/scikit-build/scikit-build/issues/625 ).
-#  set( extra_ncrystal_inst_opts "LIBRARY;NAMELINK_SKIP" )
-#endif()
-#set( extra_ncrystal_inst_opts "LIBRARY;NAMELINK_SKIP" )#FIXME
-#
-
 ncinstall(
   TARGETS NCrystal
   EXPORT NCrystalTargets
@@ -837,6 +856,7 @@ file( GENERATE
 ncinstall( FILES "${PROJECT_BINARY_DIR}/NCrystalConfigVersion.cmake" "${PROJECT_BINARY_DIR}/NCrystalConfig.cmake"
          DESTINATION ${NCrystal_CMAKEDIR} )
 
+set( nccfg_expects_shlibdir_override OFF )
 if ( DEFINED SKBUILD_PROJECT_NAME )
   #Only if installed via scikit-build will we generate an appropriate
   #_ncrystal_core Python module for installation. We will also copy over some
@@ -849,9 +869,18 @@ if ( DEFINED SKBUILD_PROJECT_NAME )
   file( MAKE_DIRECTORY "${pymoddir}" )
   file( WRITE "${pymoddir}/__init__.py" "__version__='${NCrystal_VERSION}'\n" )
   #First generated a configured version of the template:
-  get_filename_component(
-    "ncrystal_pymod_shlib_dirname" "${NCrystal_SHLIBDIR}" NAME
-  )
+  if ( ncrystal_skbuild_shlib_in_wheel_scripts )
+    #dll is over in the wheel scripts dir, at an unknown relative location.
+    set( ncrystal_pymod_shlib_in_scripts "1" )#non-empty string
+    set( ncrystal_pymod_shlib_dirname "" )
+    set( nccfg_expects_shlibdir_override ON )
+  else()
+    set( ncrystal_pymod_shlib_in_scripts "" )#empty string
+    get_filename_component(
+      "ncrystal_pymod_shlib_dirname" "${NCrystal_SHLIBDIR}" NAME
+    )
+  endif()
+
   configure_file(
     "${PROJECT_SOURCE_DIR}/cmake/template_pymod.py.in"
     "${PROJECT_BINARY_DIR}/template_pymod.py.pregen.in"
@@ -867,7 +896,7 @@ endif()
 
 if ( NCRYSTAL_ENABLE_CFGAPP )
   include( ncrystal_nccfgapp )
-  create_ncrystal_config_app()
+  create_ncrystal_config_app( ${nccfg_expects_shlibdir_override} )
 endif()
 
 if ( NOT NCRYSTAL_QUIET )
