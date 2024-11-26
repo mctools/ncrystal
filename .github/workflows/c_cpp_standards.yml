@@ -22,23 +22,12 @@ jobs:
       with:
         path: src
 
-    - name: Setup python
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ 3.12 }}
-
     - name: Configure CMake
       run: >
-        cmake
-        -S ${{github.workspace}}/src
-        -B ${{github.workspace}}/build
-        -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-        -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install
+        cmake -S ./src -B ./build
+        -DCMAKE_INSTALL_PREFIX=./install
         -DNCRYSTAL_ENABLE_EXAMPLES=ON
         -DNCRYSTAL_BUILD_STRICT=${{ matrix.strictflag }}
 
     - name: Build
-      run: >
-        cmake
-        --build ${{github.workspace}}/build
-        --config Release
+      run: cmake --build ./build --config Release

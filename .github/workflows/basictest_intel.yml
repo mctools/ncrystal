@@ -64,12 +64,10 @@ jobs:
         -DNCRYSTAL_ENABLE_EXAMPLES=ON \
         -DNCRYSTAL_BUILD_STRICT=ON \
         -DNCRYSTAL_ENABLE_TESTING=ON \
-        -DCMAKE_COMPILE_WARNING_AS_ERROR=ON \
         -DMCTOOLS_REQUIRE_ALL_TEST_DEPS=ON
 
 #Flags that we didn't need:
 #        -DIntelDPCPP_DIR="/opt/intel/oneapi/compiler/latest/linux/cmake/SYCL"
-#        -DNCRYSTAL_ENABLE_SETUPSH=ON
 #        -DMKL_ROOT="/opt/intel/oneapi/mkl/latest"
 #        -DTBB_ROOT="/opt/intel/oneapi/tbb/latest"
 
