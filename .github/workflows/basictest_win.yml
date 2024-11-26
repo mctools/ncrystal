@@ -146,11 +146,11 @@ jobs:
 
         echo "Compiling C code"
         if %errorlevel% neq 0 exit /b %errorlevel%
-        cl my_c_code.c %BUILDFLAGS%
+        cl my_c_code.c %BUILDFLAGS% /std:clatest
         if %errorlevel% neq 0 exit /b %errorlevel%
 
         echo "Compiling C++ code"
-        cl my_cpp_code.cpp %BUILDFLAGS%
+        cl my_cpp_code.cpp %BUILDFLAGS% /std:c++latest
         if %errorlevel% neq 0 exit /b %errorlevel%
 
         echo "Custom compilation of downstream C/C++ code succeeded"
