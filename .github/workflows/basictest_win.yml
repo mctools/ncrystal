@@ -165,9 +165,9 @@ jobs:
         echo "Got:" NCSHLIBDIR
         if %errorlevel% neq 0 exit /b %errorlevel%
 
-        echo "Hack PATH
-        set PATH=%NCSHLIBDIR%;%PATH%
-        if %errorlevel% neq 0 exit /b %errorlevel%
+        @REM No longer do this
+        @REM echo "Hack PATH
+        @REM set PATH=%NCSHLIBDIR%;%PATH%
 
         echo "Running C app"
         my_c_code.exe
