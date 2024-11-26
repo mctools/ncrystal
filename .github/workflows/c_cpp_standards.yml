@@ -22,7 +22,16 @@ jobs:
       with:
         path: src
 
-    - name: Set CMAKE_GENERATOR
+    - name: Install Ninja (Linux)
+      if: runner.os == 'Linux'
+      run: sudo apt-get install ninja-build
+
+
+    - name: Install Ninja (macOS)
+      if: runner.os == 'macOS'
+      run: brew install ninja
+
+    - name: Set CMAKE_GENERATOR (Linux/macOS)
       if: runner.os != 'Windows'
       run: echo "CMAKE_GENERATOR=Ninja Multi-Config" >> $GITHUB_ENV
 
