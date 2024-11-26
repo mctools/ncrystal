@@ -464,7 +464,7 @@ namespace NCRYSTAL_NAMESPACE {
         return;
       }
 
-      nclikely auto itE = THIS->end();
+      auto itE = THIS->end() nclikely;
       for ( auto it = THIS->begin(); it!=itE ; ++it )
         it->~TValue();
       THIS->m_count = 0;
@@ -527,12 +527,12 @@ namespace NCRYSTAL_NAMESPACE {
         //handled by only incrementing m_count on the line AFTER trying the
         //construction (a partially constructed object should not have its
         //destructor run so there won't be any cleanup):
-        nclikely TValue * newobjaddr = THIS->end();
+        TValue * newobjaddr = THIS->end() nclikely;
         new( (void*)(newobjaddr) ) TValue(std::forward<Args>(args)...);
         ++(THIS->m_count);
         return *newobjaddr;
       } else {
-        ncunlikely return grow_and_emplace_back(THIS, std::forward<Args>(args)...);
+        return grow_and_emplace_back(THIS, std::forward<Args>(args)...) ncunlikely;
       }
     }
   };
@@ -652,18 +652,18 @@ namespace NCRYSTAL_NAMESPACE {
     if (detail::SVUseFast<TValue,MODE>())
       return static_cast<TValue*>(this->beginPtr());
     if ( Impl::small(this) )
-      nclikely return reinterpret_cast<TValue*>(&m_data.small_data[0]);
+      return reinterpret_cast<TValue*>(&m_data.small_data[0]) nclikely;
     else
-      ncunlikely return m_data.large.data;
+      return m_data.large.data ncunlikely;
   }
   template<class TValue, std::size_t NSMALL, SVMode MODE>
   ncnodiscard17 inline ncconstexpr17 const TValue* SmallVector<TValue,NSMALL,MODE>::data() const noexcept {
     if (detail::SVUseFast<TValue,MODE>())
       return static_cast<const TValue*>(this->beginPtr());
     if ( Impl::small(this) )
-      nclikely return reinterpret_cast<const TValue*>(&m_data.small_data[0]);
+      return reinterpret_cast<const TValue*>(&m_data.small_data[0]) nclikely;
     else
-      ncunlikely return m_data.large.data;
+      return m_data.large.data ncunlikely;
   }
 
   template<class TValue, std::size_t NSMALL, SVMode MODE>
@@ -766,9 +766,9 @@ namespace NCRYSTAL_NAMESPACE {
   SmallVector<TValue,NSMALL,MODE>::capacity() const noexcept
   {
     if ( Impl::small(this) )
-      nclikely return NSMALL;
+      return NSMALL nclikely;
     else
-      ncunlikely return m_data.large.capacity;
+      return m_data.large.capacity ncunlikely;
   }
 
   template<class TValue, std::size_t NSMALL, SVMode MODE>
@@ -894,15 +894,14 @@ namespace NCRYSTAL_NAMESPACE {
   {
     if ( m_count && m_count != (NSMALL+1) ) {
       //Simply destruct last entry and move count down.
-      nclikely ( data() + --m_count)->~TValue();
+      ( data() + --m_count)->~TValue() nclikely;
       return;
     }
     if ( !m_count ) {
       //std::vector::pop_back on empty vector is UB. Here we simply choose the
       //easy (and well defined ) solution of asserting and otherwise doing
       //nothing.
-      assert( false && "pop_back on empty vector is undefined behaviour");
-      ncunlikely;
+      assert( false && "pop_back on empty vector is undefined behaviour") ncunlikely;
       return;
     }
 
