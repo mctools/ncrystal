@@ -145,16 +145,14 @@ jobs:
         if %errorlevel% neq 0 exit /b %errorlevel%
 
         echo "Compiling C code"
+        cl my_c_code.c %BUILDFLAGS% /std:c11
         if %errorlevel% neq 0 exit /b %errorlevel%
-        cl my_c_code.c %BUILDFLAGS% /std:clatest
-        if %errorlevel% neq 0 exit /b %errorlevel%
+        echo "Custom compilation of downstream C code succeeded"
 
         echo "Compiling C++ code"
-        cl my_cpp_code.cpp %BUILDFLAGS% /std:c++latest
+        cl my_cpp_code.cpp %BUILDFLAGS% /std:c++14 /EHsc
         if %errorlevel% neq 0 exit /b %errorlevel%
-
-        echo "Custom compilation of downstream C/C++ code succeeded"
-        if %errorlevel% neq 0 exit /b %errorlevel%
+        echo "Custom compilation of downstream C++ code succeeded"
 
         echo "Set NCSHLIBDIR variable via ncrystal-config --show shlibdir"
         if %errorlevel% neq 0 exit /b %errorlevel%
