@@ -2,35 +2,24 @@
 *** The files in this distribution are:
 
 NOTICE              : Important notice concerning attribution and licensing.
-README              : Brief instructions.
+README.md           : Brief introduction.
 LICENSE             : License conditions
 VERSION             : File containing the version of the distribution.
 CHANGELOG           : Release notes.
-INSTALL             : Build, installation and brief usage instructions.
+INSTALL             : Instructions for installation and building.
 FILES               : This file.
-CMakeLists.txt......: Configuration file for building and installing via CMake
-                      (cf. the INSTALL file for instructions).
 data/...............: Material data files in NCrystals native format (.ncmat).
+ncrystal_core/......: The core NCrystal code implemented in C++.
+ncrystal_python/....: NCrystal python modules.
+CMakeLists.txt......: Configuration file for building and installing via CMake
+                      (but see instructions in INSTALL first).
+pyproject.toml......: Support building and installing via standard Python
+                      (but see instructions in INSTALL first).
+docs/...............: Extra documentation. Currently this is just ncmat_doc.md
+                      with a thorough description of the NCMAT format.
+tests/..............: Files and infrastructure for CTest-based tests.
+ncrystal_geant4/....: Code for NCrystal-Geant4 hooks. Will eventually be
+                      migrated to reside in another repository.
 examples/...........: Small standalone examples for using NCrystal, either from
                       the commandline, C, C++ or python applications or through
                       Geant4 simulations in C++.
-ncrystal_core/......: The core NCrystal code implemented in C++. Public header
-                      files for C++ and C are available in the
-                      ncrystal_core/include/NCrystal/ directory, and the
-                      implementation is in ncrystal_core/src/. Internal header
-                      files can also be accessed in the internal/ subdirectory,
-                      but are not guaranteed to present a stable API, and also
-                      do not contain NCRYSTAL_API statements needed for symbol
-                      visibility in certain builds.
-ncrystal_geant4/....: NCrystal-Geant4 interface classes, with public header
-                      files for Geant4-dependent C++ code available in the
-                      ncrystal_geant4/include/G4NCrystal/ directory, and the
-                      implementation in ncrystal_geant4/src/.
-NCrystal/...........: NCrystal python modules.
-docs/...............: Extra documentation. Currently this is just ncmat_doc.md
-                      with a thorough description of the NCMAT format.
-cmake/..............: Other files needed for CMake configuration.
-setup.py............: Support building and installing via standard Python
-                      tool-chains.
-pyproject.toml......: Like setup.py, needed for the standard Python tool-chains.
-tests/..............: Files and infrastructure for CTest-based tests.
