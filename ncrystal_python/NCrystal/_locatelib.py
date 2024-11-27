@@ -97,6 +97,7 @@ def _search():
     v = _search_env_overrides()
     if verbose and v:
         print('NCrystal._locatelib: Succesfully searched via method: env vars')
+
     if not v:
         v = _search_core_info_mod( is_monolithic )
         if verbose and v:
