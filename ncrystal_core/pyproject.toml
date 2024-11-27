@@ -59,10 +59,6 @@ sdist.include = ["/src/","/include/","/cmake/",
                  ]
 #sdist.exclude = ['**~','skbld_autogen/NCrystal/_is_std.py~']#fixme does not work, we might have to carefully add more
 #                      #specifically in .include. Or perhaps a .gitignore in THIS directory as well?
-
-
+#wheel.exclude = ["**.pyx","**.pyc"] ??
 sdist.cmake = true
 wheel.py-api = "py3" # as close to "noarch" as possible (ABI3)
-
-
-#wheel.exclude = ["**.pyx","**.pyc"] ??
