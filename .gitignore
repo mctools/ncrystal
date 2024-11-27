@@ -17,6 +17,8 @@ skbld_autogen/
 ncrystal_core/dist/
 dist/
 
+__pycache__/
+
 /venv/
 
 # Emacs
