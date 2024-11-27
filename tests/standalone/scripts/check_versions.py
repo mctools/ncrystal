@@ -32,7 +32,7 @@ def get_py_version( path ):
         if line.startswith('__version__'):
             var,val = line.split('=')
             assert var.rstrip()=='__version__'
-            return ast.literal_eval(val)
+            return ast.literal_eval(val.strip())
 
 def get_toml_version( path ):
     assert path.name == 'pyproject.toml'

@@ -38,7 +38,7 @@ def run_all():
     for sf in scripts:
         print(f"==> Running standalone script: {sf.name}\n")
         if run( sf ) != 0:
-            print("ERROR: Standalone script {sf.name} failed")
+            print(f"ERROR: Standalone script {sf.name} failed")
             failures.append(sf.name)
         print('='*80)
 

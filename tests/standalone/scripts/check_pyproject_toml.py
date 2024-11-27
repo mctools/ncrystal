@@ -25,10 +25,17 @@ import pathlib
 sys.path.insert(0,str(pathlib.Path(__file__).parent/'../pypath'))
 import common
 
+if not common.can_parse_toml():
+    #Acceptable simplification to simply abort, since already we mostly have
+    #python >=3.11 in dev envs, and CI certainly will catch it with python
+    #>=3.11 somewhere.
+    print("Silent abort: tomli not present and python < 3.11")
+    raise SystemExit(0)
+
 def load_data(subpath):
     d = common.parse_toml(common.reporoot / subpath)
     #sneak in the source location:
-    assert not '__file__' in d
+    assert '__file__' not in d
     d['__srcloc__'] = subpath
     print(f"Loaded: {describe(d)}")
     return d
@@ -154,19 +161,9 @@ def _check_project_scripts_impl( data, *, cli_scripts, extra ):
             if v_toml is not None:
                 print(f'Got instead:\n\n   {k} = "{v_toml}"\n')
     for k,v in from_toml.items():
-        if not k in expected:
+        if k not in expected:
             print(f'ERROR: Unexpected line in {descr}:\n\n   {k}="{v}"\n')
     return False
-    #import pprint
-    #pprint.pprint(from_toml)
-    #pprint.pprint(expected)
-    #if from_toml != expected:
-    #    print("ERROR")
-
-#nctool = "NCrystal._cli_nctool:main"
-#ncrystal_cif2ncmat = "NCrystal._cli_cif2ncmat:main"
-
-
 
 def main():
     check_all_project_scripts()
@@ -175,28 +172,3 @@ def main():
 
 if __name__=='__main__':
     main()
-#
-#
-#[project.scripts]
-#ncrystal-config = "_ncrystal_core_monolithic.info:_ncrystal_config_cli_wrapper"
-#nctool = "NCrystal._cli_nctool:main"
-#ncrystal_cif2ncmat = "NCrystal._cli_cif2ncmat:main"
-#ncrystal_endf2ncmat = "NCrystal._cli_endf2ncmat:main"
-#ncrystal_hfg2ncmat = "NCrystal._cli_hfg2ncmat:main"
-#ncrystal_mcstasunion = "NCrystal._cli_mcstasunion:main"
-#ncrystal_ncmat2cpp = "NCrystal._cli_ncmat2cpp:main"
-#ncrystal_ncmat2hkl = "NCrystal._cli_ncmat2hkl:main"
-#ncrystal_vdos2ncmat = "NCrystal._cli_vdos2ncmat:main"
-#ncrystal_verifyatompos = "NCrystal._cli_verifyatompos:main"
-#
-#[project.scripts]
-#nctool = "NCrystal._cli_nctool:main"
-#ncrystal_cif2ncmat = "NCrystal._cli_cif2ncmat:main"
-#ncrystal_endf2ncmat = "NCrystal._cli_endf2ncmat:main"
-#ncrystal_hfg2ncmat = "NCrystal._cli_hfg2ncmat:main"
-#ncrystal_mcstasunion = "NCrystal._cli_mcstasunion:main"
-#ncrystal_ncmat2cpp = "NCrystal._cli_ncmat2cpp:main"
-#ncrystal_ncmat2hkl = "NCrystal._cli_ncmat2hkl:main"
-#ncrystal_vdos2ncmat = "NCrystal._cli_vdos2ncmat:main"
-#ncrystal_verifyatompos = "NCrystal._cli_verifyatompos:main"
-#

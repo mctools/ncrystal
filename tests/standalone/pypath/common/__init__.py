@@ -26,6 +26,12 @@ reporoot = pathlib.Path(
     __file__
 ).absolute().resolve().parent.parent.parent.parent.parent
 
+def can_parse_toml():
+    if sys.version_info < (3, 11):
+        import importlib
+        return bool(importlib.util.find_spec('tomli'))
+    return True
+
 def parse_toml(path):
     if sys.version_info >= (3, 11):
         import tomllib as mod
