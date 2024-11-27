@@ -1783,7 +1783,10 @@ namespace NCRYSTAL_NAMESPACE {
 void ncrystal_dealloc_stringlist( unsigned length, char** sl )
 {
   if (sl) {
-    nc_assert(length>0);
+#ifndef NDEBUG
+    //if length==0, we must have returned sl=nullptr
+    try { nc_assert_always(length>0); } NCCATCH;
+#endif
     for (unsigned i = 0; i < length; ++i)
       delete[] const_cast<char*>(sl[i]);
     delete[] sl;

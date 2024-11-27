@@ -1070,7 +1070,7 @@ extern "C" {
                                                        const char* data);
 
   /* Browse (some) available files. Resulting string list must be deallocated by a */
-  /* call to ncrystal_dealloc_stringlist by, and contains entries in the format    */
+  /* call to ncrystal_dealloc_stringlist, and contains entries in the format       */
   /* name0,src0,fact0,priority0,name1,src1,fact1,priority1,..:                     */
   NCRYSTAL_API void ncrystal_get_file_list( unsigned* nstrs, char*** strs );
 
