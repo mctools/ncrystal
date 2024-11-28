@@ -23,10 +23,9 @@
 def run( script_file ):
     import sys
     import subprocess
-    pyexec = sys.executable
-    if not pyexec:
-        pyexec = 'python3'
-    rv = subprocess.run( [pyexec, script_file.resolve().absolute() ] )
+    rv = subprocess.run( [ sys.executable or 'python3',
+                           '-BI',
+                           script_file.resolve().absolute() ] )
     return rv.returncode
 
 def run_all():
