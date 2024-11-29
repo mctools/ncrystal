@@ -304,78 +304,90 @@ NC::PairSS NC::decomposeStrWithTrailingDigits( const std::string& ss )
   return { ss.substr(0,nn), ss.substr(nn) };
 }
 
+namespace NCRYSTAL_NAMESPACE {
+  namespace {
+    struct GetEnvResult {
+      std::string varname;
+      const char * val;
+    };
+    GetEnvResult raw_getenv( std::string& v )
+    {
+      nc_assert(!v.empty());
+      nc_assert(!startswith(v,"NCRYSTAL_"));//common mistake
+      GetEnvResult res;
+#if defined(NCRYSTAL_NAMESPACE_PROTECTION) && defined( NCRYSTAL_NAMESPACED_ENVVARS )
+      res.varname = ncrystal_xstr(NCRYSTAL_NAMESPACE_PROTECTION);
+      res.varname = upperCase( res.varname );
+#else
+      res.varname = "NCRYSTAL_";
+#endif
+      res.varname += v;
+      res.val = std::getenv( res.varname.c_str() );
+      return res;
+    }
+  }
+}
+
 //Common access to environment variables (unset and empty vars both return
 //empty strings / 0.0 / 0, depending on which function is used):
 std::string NC::ncgetenv(std::string v, std::string defval)
 {
-  nc_assert(!v.empty());
-  const char * ev = std::getenv(("NCRYSTAL_"_s+v).c_str());
-  return ev ? std::string(ev) : defval;
+  auto res = raw_getenv(v);
+  return res.val ? std::string(res.val) : defval;
 }
 
 double NC::ncgetenv_dbl(std::string v, double defval )
 {
-  nc_assert(!v.empty());
-  std::string varname("NCRYSTAL_");
-  varname += v;
-  const char * ev = std::getenv(varname.c_str());
-  if (!ev)
+  auto res = raw_getenv(v);
+  if (!res.val)
     return defval;
   double result;
-  if ( !safe_str2dbl(ev, result ) )
-    NCRYSTAL_THROW2(BadInput,"Invalid value of environment variable "<<varname
-                    <<" (expected a floating point number but got \""<<ev<<"\").");
+  if ( !safe_str2dbl(res.val, result ) )
+    NCRYSTAL_THROW2(BadInput,"Invalid value of environment variable "
+                    <<res.varname
+                    <<" (expected a floating point number but got \""
+                    <<res.val<<"\").");
   return result;
 }
 
 int NC::ncgetenv_int(std::string v, int defval )
 {
-  nc_assert(!v.empty());
-  std::string varname("NCRYSTAL_");
-  varname += v;
-  const char * ev = std::getenv(varname.c_str());
-  if (!ev)
+  auto res = raw_getenv(v);
+  if (!res.val)
     return defval;
   int result;
-  if ( !safe_str2int(ev, result ) )
-    NCRYSTAL_THROW2(BadInput,"Invalid value of environment variable "<<varname
-                    <<" (expected an integral number but got \""<<ev<<"\").");
+  if ( !safe_str2int(res.val, result ) )
+    NCRYSTAL_THROW2(BadInput,"Invalid value of environment variable "<<res.varname
+                    <<" (expected an integral number but got \""<<res.val<<"\").");
   return result;
 }
 
 std::int64_t NC::ncgetenv_int64(std::string v, std::int64_t defval )
 {
-  nc_assert(!v.empty());
-  std::string varname("NCRYSTAL_");
-  varname += v;
-  const char * ev = std::getenv(varname.c_str());
-  if (!ev)
+  auto res = raw_getenv(v);
+  if (!res.val)
     return defval;
   std::int64_t result;
-  if ( !safe_str2int(ev, result ) )
-    NCRYSTAL_THROW2(BadInput,"Invalid value of environment variable "<<varname
-                    <<" (expected an integral number but got \""<<ev<<"\").");
+  if ( !safe_str2int(res.val, result ) )
+    NCRYSTAL_THROW2(BadInput,"Invalid value of environment variable "<<res.varname
+                    <<" (expected an integral number but got \""<<res.val<<"\").");
   return result;
 }
 
 
 bool NC::ncgetenv_bool(std::string v)
 {
-  nc_assert(!v.empty());
-  nc_assert(!startswith(v,"NCRYSTAL_"));
-  std::string varname("NCRYSTAL_");
-  varname += v;
-  const char * ev = std::getenv(varname.c_str());
-  if (!ev)
+  auto res = raw_getenv(v);
+  if (!res.val)
     return false;
-  std::string evs(ev);
+  std::string evs(res.val);
   if (evs.size()==1) {
     if (evs[0]=='0')
       return false;
     if (evs[0]=='1')
       return true;
   }
-  NCRYSTAL_THROW2(BadInput,"Invalid value of environment variable "<<varname
+  NCRYSTAL_THROW2(BadInput,"Invalid value of environment variable "<<res.varname
                   <<" (expected a Boolean value, \"0\" or \"1\", but got \""<<evs<<"\").");
 }
 
