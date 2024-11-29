@@ -660,7 +660,7 @@ std::vector<NC::AtomDB::internal::Entry> NC::AtomDB::internal::setupDBValues()
   itCalcium40->modifyCohScatLen(0.5909624496225);//increased from 0.48, an increase of 23.1%
 
 
-  if (std::getenv("NCRYSTAL_ATOMDB_DUMP")) {
+  if (ncgetenv_bool("ATOMDB_DUMP")) {
     std::ostringstream ss;
     ss<<"NCrystal::AtomDB:BeginDump (since NCRYSTAL_ATOMDB_DUMP env var was set)\n";
     for (const auto& e : result)
@@ -675,7 +675,7 @@ std::vector<NC::AtomDB::internal::Entry> NC::AtomDB::internal::setupDBValues()
 namespace NCRYSTAL_NAMESPACE {
   namespace AtomDB {
     static bool dummy_internal_force_init = [] () {
-      if (std::getenv("NCRYSTAL_ATOMDB_DUMP"))
+      if (ncgetenv_bool("ATOMDB_DUMP"))
         internal::internalDB();//ensure internalDB initialisation
       return true;
     }();

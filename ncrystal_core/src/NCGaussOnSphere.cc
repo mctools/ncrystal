@@ -22,6 +22,7 @@
 #include "NCrystal/internal/NCRomberg.hh"
 #include "NCrystal/internal/NCRandUtils.hh"
 #include "NCrystal/internal/NCMsg.hh"
+#include "NCrystal/internal/NCString.hh"
 namespace NC = NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {
@@ -271,7 +272,7 @@ void NC::GaussOnSphere::set(double sigma, double trunc_angle, double prec ) {
     m_stats.genpointworst = m_stats.genpointtries = m_stats.genpointcalled = 0;
     m_stats.circleintworst = m_stats.circleintnumber = m_stats.circleintevals = 0;
   }
-  if (std::getenv("NCRYSTAL_DEBUG_GAUSSONSPHERE")) {
+  if (ncgetenv_bool("DEBUG_GAUSSONSPHERE")) {
     m_stats.genpointworst = 1;//enable stat collection
     m_stats.genpointtries = m_stats.genpointcalled = 0;
     m_stats.circleintworst = m_stats.circleintnumber = m_stats.circleintevals = 0;

@@ -19,6 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/NCSpline.hh"
+#include "NCrystal/internal/NCString.hh"
 #include <fstream>
 #include <iomanip>
 
@@ -82,7 +83,7 @@ void NCrystal::SplinedLookupTable::set( const VectD& fvals,
   m_spline.set( fvals, fprime_a*delta, fprime_b*delta );
   nc_assert(delta>0.0);
   m_invdelta = 1.0 / delta;
-  if (std::getenv("NCRYSTAL_DEBUG_SPLINES"))
+  if (ncgetenv_bool("DEBUG_SPLINES"))
     producefile( 0/*true function not known*/,fprime_a, fprime_b,name,description );
 
 }
@@ -116,7 +117,7 @@ void NCrystal::SplinedLookupTable::set( const Fct1D* thefct,
   m_invdelta = 1.0 / delta;
 
 
-  if (std::getenv("NCRYSTAL_DEBUG_SPLINES"))
+  if (ncgetenv_bool("DEBUG_SPLINES"))
     producefile( thefct,fprime_a, fprime_b,name,description );
 }
 

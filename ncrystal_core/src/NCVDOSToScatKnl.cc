@@ -35,7 +35,7 @@ namespace NCRYSTAL_NAMESPACE {
 
     namespace {
 
-      static bool s_verbose = getenv("NCRYSTAL_DEBUG_PHONON");
+      static bool s_verbose = ncgetenv_bool("DEBUG_PHONON");
       inline double stirlingsSeriesSum9thOrder(double inv_n)
       {
         //Calculate and return the sum_{k=0}^9{ gk/x^k }, needed to estimate
@@ -790,14 +790,12 @@ NC::ScatKnlData NC::createScatteringKernel( const VDOSData& vdosdata,
                                             Optional<unsigned> call_override_max_order )
 {
   //Hidden unofficial env-vars used for special debugging purposes:
-  auto getEnvInt = [](const char* name) { auto ev = getenv(name); return ev ? str2int(ev) :   0; };
-  auto getEnvDbl = [](const char* name) { auto ev = getenv(name); return ev ? str2dbl(ev) : 0.0; };
   const unsigned override_max_order = ( call_override_max_order.has_value()
                                         ? call_override_max_order.value()
-                                        : static_cast<unsigned>(getEnvInt("NCRYSTAL_HACK_MAXORDER")) );
-  const double override_alphamax = getEnvDbl("NCRYSTAL_HACK_ALPHAMAX");
-  const double override_betamax = getEnvDbl("NCRYSTAL_HACK_BETAMAX");
-  const unsigned override_nbins = getEnvInt("NCRYSTAL_HACK_NBINS");
+                                        : static_cast<unsigned>(ncgetenv_int("HACK_MAXORDER")) );
+  const double override_alphamax = ncgetenv_dbl("HACK_ALPHAMAX");
+  const double override_betamax = ncgetenv_dbl("HACK_BETAMAX");
+  const unsigned override_nbins = ncgetenv_int("HACK_NBINS");
 
   //Which Emax should we target (i.e. aim to cover the kinematic reachable area
   //for neutrons of that energy):

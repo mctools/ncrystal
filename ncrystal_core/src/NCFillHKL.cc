@@ -245,7 +245,7 @@ NC::HKLList NC::calculateHKLPlanes( const StructureInfo& structureInfo,
 
   nc_assert_always(cfg.dcutoff>0.0&&cfg.dcutoff<cfg.dcutoffup);
 
-  const bool env_ignorefsqcut = std::getenv("NCRYSTAL_FILLHKL_IGNOREFSQCUT");
+  const bool env_ignorefsqcut = ncgetenv_bool("FILLHKL_IGNOREFSQCUT");
   if (env_ignorefsqcut)
     cfg.fsquarecut = 0.0;
 
@@ -259,7 +259,7 @@ NC::HKLList NC::calculateHKLPlanes( const StructureInfo& structureInfo,
   } else {
     //Fall-back to global default behaviour (which can be modified with env
     //var for historic reasons):
-    no_forceunitdebyewallerfactor = !(std::getenv("NCRYSTAL_FILLHKL_FORCEUNITDEBYEWALLERFACTOR"));
+    no_forceunitdebyewallerfactor = !(ncgetenv_bool("FILLHKL_FORCEUNITDEBYEWALLERFACTOR"));
   }
 
   if ( structureInfo.spacegroup != 0 )
@@ -273,8 +273,8 @@ NC::HKLList NC::calculateHKLPlanes( const StructureInfo& structureInfo,
   //NCMatCfg instead).
   bool do_select = false;
   int select_h(0),select_k(0),select_l(0);
-  const char * selecthklcfg = std::getenv("NCRYSTAL_FILLHKL_SELECTHKL");
-  if (selecthklcfg) {
+  std::string selecthklcfg = ncgetenv("FILLHKL_SELECTHKL");
+  if (!selecthklcfg.empty()) {
     do_select = true;
     VectS parts;
     split(parts,selecthklcfg,0,',');
@@ -550,7 +550,7 @@ NC::HKLList NC::detail::calculateHKLPlanesWithSymEqRefl( const StructureInfo& st
 {
   nc_assert_always(structureInfo.spacegroup!=0);
 
-  const bool env_ignorefsqcut = std::getenv("NCRYSTAL_FILLHKL_IGNOREFSQCUT");
+  const bool env_ignorefsqcut = ncgetenv_bool("FILLHKL_IGNOREFSQCUT");
   nc_assert( !env_ignorefsqcut || cfg.fsquarecut == 0.0 );//due to logic in calling function
 
   const RotMatrix rec_lat = getReciprocalLatticeRot( structureInfo );
@@ -573,8 +573,8 @@ NC::HKLList NC::detail::calculateHKLPlanesWithSymEqRefl( const StructureInfo& st
   //workarond required for certain validation plots - we should support this in
   //NCMatCfg instead).
   Optional<HKL> do_select;
-  const char * selecthklcfg = std::getenv("NCRYSTAL_FILLHKL_SELECTHKL");
-  if ( selecthklcfg ) {
+  std::string selecthklcfg = ncgetenv("FILLHKL_SELECTHKL");
+  if ( !selecthklcfg.empty() ) {
     VectS parts;
     split(parts,selecthklcfg,0,',');
     nc_assert_always(parts.size()==3);

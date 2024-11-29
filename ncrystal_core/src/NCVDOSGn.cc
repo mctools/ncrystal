@@ -33,7 +33,7 @@ namespace NC=NCrystal;
 namespace NCRYSTAL_NAMESPACE {
 
   namespace {
-    static std::atomic<bool> s_verbose_vdosgn( getenv("NCRYSTAL_DEBUG_PHONON")!=nullptr );
+    static std::atomic<bool> s_verbose_vdosgn( ncgetenv_bool("DEBUG_PHONON") );
 
     class VDOSGnData : private MoveOnly {
     public:

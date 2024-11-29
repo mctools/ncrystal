@@ -40,8 +40,7 @@ NC::GaussMos::GaussMos( MosaicityFWHM mosaicity, double prec, double ntrunc )
   : m_mos_truncN( ntrunc==0 ? GaussOnSphere::estimateNTruncFromPrec(prec) : ntrunc),
     m_prec(prec)
 {
-  auto getEnvDbl = [](const char* name) { auto ev = getenv(name); return ev ? str2dbl(ev) : 0.0; };
-  double override_ntrunc = getEnvDbl("NCRYSTAL_GAUSSMOS_OVERRIDE_NTRUNC");
+  double override_ntrunc = ncgetenv_dbl("GAUSSMOS_OVERRIDE_NTRUNC");
   if (override_ntrunc)
     m_mos_truncN = override_ntrunc;
   nc_assert(prec>=0);
