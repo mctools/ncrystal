@@ -21,27 +21,12 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifdef NCRYSTAL_VERSION_MAJOR
-#  undef NCRYSTAL_VERSION_MAJOR
-#endif
-#ifdef NCRYSTAL_VERSION_MINOR
-#  undef NCRYSTAL_VERSION_MINOR
-#endif
-#ifdef NCRYSTAL_VERSION_PATCH
-#  undef NCRYSTAL_VERSION_PATCH
-#endif
-#ifdef NCRYSTAL_VERSION
-#  undef NCRYSTAL_VERSION
-#endif
-#ifdef NCRYSTAL_VERSION_STR
-#  undef NCRYSTAL_VERSION_STR
-#endif
-
-#define NCRYSTAL_VERSION_MAJOR 3
-#define NCRYSTAL_VERSION_MINOR 9
-#define NCRYSTAL_VERSION_PATCH 7
-#define NCRYSTAL_VERSION   3009007 /* (1000000*MAJOR+1000*MINOR+PATCH)   */
-#define NCRYSTAL_VERSION_STR "3.9.7"
+//NB Several VERSION defines are set in ncapi.h:
+// #define NCRYSTAL_VERSION_MAJOR (integer)
+// #define NCRYSTAL_VERSION_MINOR (integer)
+// #define NCRYSTAL_VERSION_PATCH (integer)
+// #define NCRYSTAL_VERSION  (integer = 1000000*MAJOR+1000*MINOR+PATCH) 
+// #define NCRYSTAL_VERSION_STR (string ="major.minor.patch")
 
 #include "NCrystal/ncapi.h"
 #include <stdexcept>

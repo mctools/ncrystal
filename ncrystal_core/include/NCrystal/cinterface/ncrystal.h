@@ -1183,7 +1183,13 @@ extern "C" {
   NCRYSTAL_API void ncrystal_dealloc_string( char* );
   NCRYSTAL_API void ncrystal_dealloc_doubleptr( double* );
 
-  /* NCrystal version info:                                                        */
+  /* NCrystal version info:                                                             */
+  /* Note that through the ncapi.h include above you also have access to macros:        */
+  /* NCRYSTAL_VERSION_MAJOR (integer)                                                   */
+  /* NCRYSTAL_VERSION_MINOR (integer)                                                   */
+  /* NCRYSTAL_VERSION_PATCH (integer)                                                   */
+  /* NCRYSTAL_VERSION (integer == 1000000*MAJOR+1000*MINOR+PATCH)                       */
+  /* NCRYSTAL_VERSION_STRING (string, "MAJOR.MINOR.PATCH" )                             */
   NCRYSTAL_API int ncrystal_version(void); /* returns NCRYSTAL_VERSION                  */
   NCRYSTAL_API const char * ncrystal_version_str(void); /* returns NCRYSTAL_VERSION_STR */
 
