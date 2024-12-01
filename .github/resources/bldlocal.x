@@ -44,5 +44,5 @@ ${TGT}/app_cpp
 c++ -std=c++11 ${SRCDIR}/examples/ncrystal_example_customphysics.cc ${BUILDFLAGS} -o ${TGT}/app_customphysics
 ${TGT}/app_customphysics
 #Due to missing c++ stdlib symbols otherwise, we link with it here:
-c++ -std=c11 ${SRCDIR}/examples/ncrystal_example_c.c ${BUILDFLAGS} -o ${TGT}/app_c
+c++ -std=c++11 ${SRCDIR}/examples/ncrystal_example_c.c ${BUILDFLAGS} -o ${TGT}/app_c
 ${TGT}/app_c

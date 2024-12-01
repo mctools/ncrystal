@@ -31,7 +31,7 @@ cmake \
 #-DCMAKE_BUILD_TYPE="${THE_BUILD_TYPE}"
 #-DNCRYSTAL_ENABLE_THREADS=OFF
 
-cmake --build "${TGT}/bld" --config "${THE_BUILD_TYPE}" --verbose
+cmake --build "${TGT}/bld" --config "${THE_BUILD_TYPE}"
 if [ "x${THE_OTHER_BUILD_TYPE}" != "x" ]; then
     cmake --build "${TGT}/bld" --config "${THE_OTHER_BUILD_TYPE}"
 fi
@@ -57,5 +57,5 @@ ${TGT}/app_cpp
 c++ -std=c++11 ${SRCDIR}/examples/ncrystal_example_customphysics.cc ${BUILDFLAGS} -o ${TGT}/app_customphysics
 ${TGT}/app_customphysics
 #Due to missing c++ stdlib symbols otherwise, we link with it here:
-c++ -std=c11 ${SRCDIR}/examples/ncrystal_example_c.c ${BUILDFLAGS} -o ${TGT}/app_c
+c++ -std=c++11 ${SRCDIR}/examples/ncrystal_example_c.c ${BUILDFLAGS} -o ${TGT}/app_c
 ${TGT}/app_c

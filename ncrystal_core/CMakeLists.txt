@@ -322,6 +322,7 @@ nccfgapp_create_ncapi_h( ncapi_include_path )
 # placing results in "ncpkg_*" variables. It also installs core header files and
 # sets up properties on the source files:
 include( "ncrystal_coresrc" )
+ncrystal_detectsrc()
 ncrystal_process_core_srcfiles()
 
 #We must additionally install a few special include files (ncapi.h, ncrystal.h,
