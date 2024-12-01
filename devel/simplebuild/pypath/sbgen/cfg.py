@@ -25,8 +25,27 @@ class Cfg:
     def ncrystal_namespace(self):
         return 'dev'
 
+    #def sbpkgname_ncrystal_comp(self, compname):
+    #    return 'NC%s'%compname
+
     def sbpkgname_ncrystal_comp(self, compname):
-        return 'NC%s'%compname
+        orig="""NCAbsFact  NCBkgdExtCurve  NCCore          NCElIncScatter  NCFactories      NCFreeGas  NCInterfaces  NCPCBragg    NCrystalDev   NCScatFact  NCTools
+NCAbsOOV   NCCfgUtils      NCData          NCExperimental  NCFactory_Laz    NCGasMix   NCLCBragg     NCPubUtils   NCSAB         NCSCBragg   NCUtils
+NCAtomDB   NCCInterface    NCDynInfoUtils  NCExtdUtils     NCFactory_NCMAT  NCInfoBld  NCMiniMC      NCQuickFact  NCSABScatter  NCThreads   NCVDOS"""
+        guess = dict( (e[2:].lower(),e) for e in orig.split() )
+        if not compname in guess:
+            e = {'extd_utils':'NCExtdUtils',
+                 'misc':'NCPubUtils',
+                 'ncmat':'NCFactory_NCMAT',
+                 'lazlau':'NCFactory_Laz',
+                 'sanshardsphere':'NCExperimental',
+                 'stdscatfactory':'NCScatFact',
+                 'elasincoh':'NCElIncScatter'
+                 }.get(compname)
+            if e is None:
+                raise SystemExit(compname)
+            return e
+        return guess[compname]
 
     @property
     def sbpkgname_ncrystal_lib(self):

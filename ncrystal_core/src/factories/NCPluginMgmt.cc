@@ -180,6 +180,30 @@ namespace NCRYSTAL_NAMESPACE {
 }
 #endif
 
+#ifdef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
+#  include "NCrystal/internal/utils/NCFileUtils.hh"
+namespace NCRYSTAL_NAMESPACE {
+  namespace {
+    std::string getSBLDPkgLib(const char* pkgname) {
+      auto sbld_libdir_raw = std::getenv("SBLD_LIB_DIR");
+      if ( !sbld_libdir_raw)
+        NCRYSTAL_THROW(CalcError,"SBLD_LIB_DIR not set");
+      auto soprefix = std::string(sbld_libdir_raw) + "/libPKG__";
+      std::string lib(soprefix + pkgname);
+      if ( file_exists(lib+".so") ) {
+        lib+=".so";
+      } else if (file_exists(lib+".dylib")) {
+        lib+=".dylib";
+      } else {
+        NCRYSTAL_THROW2(FileNotFound,"Could not find"
+                        " sbl pkg library (\""
+                        <<pkgname<<"\"). Is the package enabled?");
+      }
+      return lib;
+    }
+  }
+}
+#endif
 
 void NCP::ensurePluginsLoaded()
 {
@@ -197,30 +221,51 @@ void NCP::ensurePluginsLoaded()
     return;
   done = true;
 
+#ifdef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
+  //Standard plugins, dynamic in simplebuild mode, except for datasources:
+  auto loadstdplugin = []( const char* pkgname,
+                           const char* pluginname,
+                           std::string regfctname )
+  {
+    regfctname = std::string(ncrystal_xstr(NCRYSTAL_C_NAMESPACE)) + regfctname;
+    loadDynamicPluginImpl( getSBLDPkgLib(pkgname), pluginname, regfctname);
+  };
+  loadstdplugin("NCScatFact","stdscat","register_stdscat_factory");
+  loadstdplugin("NCScatFact","stdmpscat","register_stdmpscat_factory");
+  loadstdplugin("NCExperimental","stdexpscat","register_experimentalscatfact");
+  loadstdplugin("NCFactory_Laz","stdlaz","register_stdlaz_factory");
+  loadstdplugin("NCAbsFact","stdabs","register_stdabs_factory");
+  loadstdplugin("NCFactory_NCMAT","stdncmat","register_stdncmat_factory");
+  loadstdplugin("NCQuickFact","stdquick","register_quick_factory");
+  //loadstdplugin("NCNXSFactories","legacynxslaz","register_nxslaz_factories");
+#endif
+
 #ifndef NCRYSTAL_DISABLE_STDDATASOURCES
   loadBuiltinPlugin("stddatasrc",NCRYSTAL_APPLY_C_NAMESPACE(register_stddatasrc_factory));
 #endif
+#ifndef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
   //Standard plugins, always as builtin plugins:
-#ifndef NCRYSTAL_DISABLE_STDSCAT
+#  ifndef NCRYSTAL_DISABLE_STDSCAT
   loadBuiltinPlugin("stdscat",NCRYSTAL_APPLY_C_NAMESPACE(register_stdscat_factory));
-#endif
-#ifndef NCRYSTAL_DISABLE_STDMPSCAT
+#  endif
+#  ifndef NCRYSTAL_DISABLE_STDMPSCAT
   loadBuiltinPlugin("stdmpscat",NCRYSTAL_APPLY_C_NAMESPACE(register_stdmpscat_factory));
-#endif
-#ifndef NCRYSTAL_DISABLE_EXPERIMENTALSCATFACT
+#  endif
+#  ifndef NCRYSTAL_DISABLE_EXPERIMENTALSCATFACT
   loadBuiltinPlugin("stdexpscat",NCRYSTAL_APPLY_C_NAMESPACE(register_experimentalscatfact));
-#endif
-#ifndef NCRYSTAL_DISABLE_STDLAZ
+#  endif
+#  ifndef NCRYSTAL_DISABLE_STDLAZ
   loadBuiltinPlugin("stdlaz",NCRYSTAL_APPLY_C_NAMESPACE(register_stdlaz_factory));
-#endif
-#ifndef NCRYSTAL_DISABLE_STDABS
+#  endif
+#  ifndef NCRYSTAL_DISABLE_STDABS
   loadBuiltinPlugin("stdabs",NCRYSTAL_APPLY_C_NAMESPACE(register_stdabs_factory));
-#endif
-#ifndef NCRYSTAL_DISABLE_NCMAT
+#  endif
+#  ifndef NCRYSTAL_DISABLE_NCMAT
   loadBuiltinPlugin("stdncmat",NCRYSTAL_APPLY_C_NAMESPACE(register_stdncmat_factory));
-#endif
-#ifndef NCRYSTAL_DISABLE_QUICKFACT
+#  endif
+#  ifndef NCRYSTAL_DISABLE_QUICKFACT
   loadBuiltinPlugin("stdquick",NCRYSTAL_APPLY_C_NAMESPACE(register_quick_factory));
+#  endif
 #endif
 
   //Static custom (builtin) plugins:
@@ -229,10 +274,19 @@ void NCP::ensurePluginsLoaded()
 #endif
 
   //Dynamic custom plugins, as indicated by environment variable:
-  for (auto& pluginlib : split2(ncgetenv("PLUGIN_LIST"),0,':')) {
+  for ( auto& pluginlib : split2(ncgetenv("PLUGIN_LIST"),0,':') ) {
     trim(pluginlib);
     if (pluginlib.empty())
       continue;
+#ifdef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
+    //Fixme: std::atomic. Also, why are we loading ourselves?
+    static bool firstpl=true;
+    if (firstpl) {
+      firstpl=false;
+      DynLoader( getSBLDPkgLib("NCFactories"),
+                 DynLoader::ScopeFlag::global ).doNotClose();
+    }
+#endif
     Plugins::loadDynamicPlugin(pluginlib);
   }
 }
