@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCFactImpl.hh"
-#include "NCrystal/NCDataSources.hh"
+#include "NCrystal/factories/NCFactImpl.hh"
+#include "NCrystal/factories/NCDataSources.hh"
 #include "NCLazy.hh"
 
 namespace NC = NCrystal;

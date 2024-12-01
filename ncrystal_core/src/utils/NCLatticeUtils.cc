@@ -18,10 +18,10 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCLatticeUtils.hh"
-#include "NCrystal/internal/NCMath.hh"
-#include "NCrystal/internal/NCVector.hh"
-#include "NCrystal/internal/NCString.hh"
+#include "NCrystal/internal/utils/NCLatticeUtils.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/utils/NCVector.hh"
+#include "NCrystal/internal/utils/NCString.hh"
 namespace NC = NCrystal;
 
 #define NCRYSTAL_EXACT_LATTICEROTS_FOR_SPECIAL_CASES

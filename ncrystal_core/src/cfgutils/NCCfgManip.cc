@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCCfgManip.hh"
+#include "NCrystal/internal/cfgutils/NCCfgManip.hh"
 
 namespace NC = NCrystal;
 
@@ -449,7 +449,7 @@ void NC::Cfg::CfgManip::checkParamConsistency_ScatterBase( const CfgData& )
   //consistency constraints.
 }
 
-#include "NCrystal/internal/NCLatticeUtils.hh"
+#include "NCrystal/internal/utils/NCLatticeUtils.hh"
 
 void NC::Cfg::CfgManip::checkParamConsistency_ScatterExtra( const CfgData& data )
 {

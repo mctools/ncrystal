@@ -50,10 +50,10 @@
 #  include "NCrystal/ncapi.h"
 #endif
 #ifndef NCrystal_NCException_hh
-#  include "NCrystal/NCException.hh"
+#  include "NCrystal/core/NCException.hh"
 #endif
 #ifndef NCrystal_NCMem_hh
-#  include "NCrystal/NCMem.hh"
+#  include "NCrystal/core/NCMem.hh"
 #endif
 
 namespace NCRYSTAL_NAMESPACE {
@@ -1468,7 +1468,7 @@ namespace NCRYSTAL_NAMESPACE {
 }
 
 #ifndef NCrystal_Fmt_hh
-#  include "NCrystal/NCFmt.hh"
+#  include "NCrystal/core/NCFmt.hh"
 #endif
 
 #endif

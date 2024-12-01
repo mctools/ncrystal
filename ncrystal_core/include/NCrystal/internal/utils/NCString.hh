@@ -23,8 +23,8 @@
 
 //String-related utilities
 
-#include "NCrystal/internal/NCMath.hh"
-#include "NCrystal/NCFmt.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/core/NCFmt.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 
@@ -189,7 +189,7 @@ namespace NCRYSTAL_NAMESPACE {
                                    JSONDictPos pos = JSONDictPos::OTHER);
 }
 
-#include "NCrystal/internal/NCStrView.hh"
+#include "NCrystal/internal/utils/NCStrView.hh"
 
 ////////////////////////////
 // Inline implementations //

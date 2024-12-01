@@ -25,7 +25,7 @@
 // or simple wait for the glorious future when std::filesystem support is
 // ubiquitous, but until then...
 
-#include "NCrystal/NCDefs.hh"
+#include "NCrystal/core/NCDefs.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

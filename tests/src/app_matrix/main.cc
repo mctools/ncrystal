@@ -19,9 +19,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <iostream>
-#include "NCrystal/internal/NCMatrix.hh"
-#include "NCrystal/internal/NCRotMatrix.hh"
-#include "NCrystal/internal/NCVector.hh"
+#include "NCrystal/internal/utils/NCMatrix.hh"
+#include "NCrystal/internal/utils/NCRotMatrix.hh"
+#include "NCrystal/internal/utils/NCVector.hh"
 namespace NC = NCrystal;
 
 int main(int , char**)

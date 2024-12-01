@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCException.hh"
+#include "NCrystal/core/NCException.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

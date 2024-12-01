@@ -21,9 +21,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCSABData.hh"
-#include "NCrystal/NCAtomData.hh"
-#include "NCrystal/NCSmallVector.hh"
+#include "NCrystal/interfaces/NCSABData.hh"
+#include "NCrystal/interfaces/NCAtomData.hh"
+#include "NCrystal/core/NCSmallVector.hh"
 
 /////////////////////////////////////////////////////////
 // Data structures used on Info objects (in NCInfo.hh) //

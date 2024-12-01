@@ -21,9 +21,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCInfo.hh"
-#include "NCrystal/NCTextData.hh"
-#include "NCrystal/NCMatCfg.hh"
+#include "NCrystal/interfaces/NCInfo.hh"
+#include "NCrystal/interfaces/NCTextData.hh"
+#include "NCrystal/factories/NCMatCfg.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

@@ -18,10 +18,10 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCSABSampler.hh"
-#include "NCrystal/internal/NCSABUtils.hh"
-#include "NCrystal/internal/NCMath.hh"
-#include "NCrystal/internal/NCString.hh"
+#include "NCrystal/internal/sab/NCSABSampler.hh"
+#include "NCrystal/internal/sab/NCSABUtils.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/utils/NCString.hh"
 
 namespace NC = NCrystal;
 

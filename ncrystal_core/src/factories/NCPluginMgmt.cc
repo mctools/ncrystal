@@ -18,10 +18,10 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCPluginMgmt.hh"
-#include "NCrystal/internal/NCDynLoader.hh"
-#include "NCrystal/internal/NCString.hh"
-#include "NCrystal/internal/NCMsg.hh"
+#include "NCrystal/factories/NCPluginMgmt.hh"
+#include "NCrystal/internal/utils/NCDynLoader.hh"
+#include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
 
 //MT TODO: Do we need to make these thread-safe?
 

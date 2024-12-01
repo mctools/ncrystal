@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCInfo.hh"
-#include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/interfaces/NCInfo.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
 namespace NC=NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {
@@ -329,7 +329,7 @@ NC::Optional<NC::HKLList> NC::Info::hklListPartialCalc( Optional<double> dlower,
   return hklList;
 }
 
-#include "NCrystal/internal/NCLatticeUtils.hh"//Needed for dspacingFromHKL
+#include "NCrystal/internal/utils/NCLatticeUtils.hh"//Needed for dspacingFromHKL
 double NC::Info::dspacingFromHKL( int h, int k, int l ) const
 {
   singlePhaseOnly(__func__);

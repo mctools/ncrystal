@@ -19,9 +19,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/NCrystal.hh"
-#include "NCrystal/internal/NCMath.hh"
-#include "NCrystal/internal/NCPCBragg.hh"
-#include "NCrystal/internal/NCElIncScatter.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/pcbragg/NCPCBragg.hh"
+#include "NCrystal/internal/elincscatter/NCElIncScatter.hh"
 
 #include <iostream>
 #include <fstream>

@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCRomberg.hh"
-#include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/internal/utils/NCRomberg.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
 #include <iostream>
 
 namespace NC = NCrystal;

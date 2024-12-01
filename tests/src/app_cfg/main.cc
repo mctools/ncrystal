@@ -18,17 +18,17 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
-#include "NCrystal/NCMatCfg.hh"
-#include "NCrystal/NCDataSources.hh"
-#include "NCrystal/NCFact.hh"
-#include "NCrystal/NCSCOrientation.hh"
-#include "NCrystal/NCDump.hh"
-#include "NCrystal/internal/NCString.hh"
-#include "NCrystal/internal/NCFileUtils.hh"
+#include "NCrystal/core/NCDefs.hh"
+#include "NCrystal/factories/NCMatCfg.hh"
+#include "NCrystal/factories/NCDataSources.hh"
+#include "NCrystal/factories/NCFact.hh"
+#include "NCrystal/interfaces/NCSCOrientation.hh"
+#include "NCrystal/tools/NCDump.hh"
+#include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCFileUtils.hh"
 #include <iostream>
 #include <sstream>
-#include "NCrystal/NCVersion.hh"
+#include "NCrystal/interfaces/NCVersion.hh"
 
 namespace NC = NCrystal;
 

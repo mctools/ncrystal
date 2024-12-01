@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCGasMixUtils.hh"
-#include "NCrystal/internal/NCAtomDB.hh"
+#include "NCrystal/internal/gasmix/NCGasMixUtils.hh"
+#include "NCrystal/internal/atomdb/NCAtomDB.hh"
 #include <iostream>
 namespace NC = NCrystal;
 namespace NCGM = NCrystal::GasMix;

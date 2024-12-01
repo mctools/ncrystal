@@ -26,106 +26,106 @@
 ////////////////////////////////////////////////////
 
 #ifndef NCrystal_Dump_hh
-#  include "NCrystal/NCDump.hh"
+#  include "NCrystal/tools/NCDump.hh"
 #endif
 #ifndef NCrystal_Defs_hh
-#  include "NCrystal/NCDefs.hh"
+#  include "NCrystal/core/NCDefs.hh"
 #endif
 #ifndef NCrystal_Exception_hh
-#  include "NCrystal/NCException.hh"
+#  include "NCrystal/core/NCException.hh"
 #endif
 #ifndef NCrystal_Mem_hh
-#  include "NCrystal/NCMem.hh"
+#  include "NCrystal/core/NCMem.hh"
 #endif
 #ifndef NCrystal_SmallVector_hh
-#  include "NCrystal/NCSmallVector.hh"
+#  include "NCrystal/core/NCSmallVector.hh"
 #endif
 #ifndef NCrystal_Variant_hh
-#  include "NCrystal/NCVariant.hh"
+#  include "NCrystal/core/NCVariant.hh"
 #endif
 #ifndef NCrystal_Fmt_hh
-#  include "NCrystal/NCFmt.hh"
+#  include "NCrystal/core/NCFmt.hh"
 #endif
 #ifndef NCrystal_PluginMgmt_hh
-#  include "NCrystal/NCPluginMgmt.hh"
+#  include "NCrystal/factories/NCPluginMgmt.hh"
 #endif
 #ifndef NCrystal_AtomData_hh
-#  include "NCrystal/NCAtomData.hh"
+#  include "NCrystal/interfaces/NCAtomData.hh"
 #endif
 #ifndef NCrystal_TextData_hh
-#  include "NCrystal/NCTextData.hh"
+#  include "NCrystal/interfaces/NCTextData.hh"
 #endif
 #ifndef NCrystal_Info_hh
-#  include "NCrystal/NCInfo.hh"
+#  include "NCrystal/interfaces/NCInfo.hh"
 #endif
 #ifndef NCrystal_InfoTypes_hh
-#  include "NCrystal/NCInfoTypes.hh"
+#  include "NCrystal/interfaces/NCInfoTypes.hh"
 #endif
 #ifndef NCrystal_InfoBuilder_hh
-#  include "NCrystal/NCInfoBuilder.hh"
+#  include "NCrystal/infobld/NCInfoBuilder.hh"
 #endif
 #ifndef NCrystal_SABData_hh
-#  include "NCrystal/NCSABData.hh"
+#  include "NCrystal/interfaces/NCSABData.hh"
 #endif
 #ifndef NCrystal_MatCfg_hh
-#  include "NCrystal/NCMatCfg.hh"
+#  include "NCrystal/factories/NCMatCfg.hh"
 #endif
 #ifndef NCrystal_RNG_hh
-#  include "NCrystal/NCRNG.hh"
+#  include "NCrystal/interfaces/NCRNG.hh"
 #endif
 #ifndef NCrystal_SCOrientation_hh
-#  include "NCrystal/NCSCOrientation.hh"
+#  include "NCrystal/interfaces/NCSCOrientation.hh"
 #endif
 #ifndef NCrystal_LoadNCMAT_hh
-#  include "NCrystal/NCLoadNCMAT.hh"
+#  include "NCrystal/ncmat/NCLoadNCMAT.hh"
 #endif
 #ifndef NCrystal_NCMATData_hh
-#  include "NCrystal/NCNCMATData.hh"
+#  include "NCrystal/ncmat/NCNCMATData.hh"
 #endif
 #ifndef NCrystal_ParseNCMAT_hh
-#  include "NCrystal/NCParseNCMAT.hh"
+#  include "NCrystal/ncmat/NCParseNCMAT.hh"
 #endif
 #ifndef NCrystal_Version_hh
-#  include "NCrystal/NCVersion.hh"
+#  include "NCrystal/interfaces/NCVersion.hh"
 #endif
 #ifndef NCrystal_CompositionUtils_hh
-#  include "NCrystal/NCCompositionUtils.hh"
+#  include "NCrystal/misc/NCCompositionUtils.hh"
 #endif
 #ifndef NCrystal_ProcImpl_hh
-#  include "NCrystal/NCProcImpl.hh"
+#  include "NCrystal/interfaces/NCProcImpl.hh"
 #endif
 #ifndef NCrystal_Proc_hh
-#  include "NCrystal/NCProc.hh"
+#  include "NCrystal/interfaces/NCProc.hh"
 #endif
 #ifndef NCrystal_MsgCtrl_hh
-#  include "NCrystal/NCMsgCtrl.hh"
+#  include "NCrystal/interfaces/NCMsgCtrl.hh"
 #endif
 #ifndef NCrystal_FactTypes_hh
-#  include "NCrystal/NCFactTypes.hh"
+#  include "NCrystal/factories/NCFactTypes.hh"
 #endif
 #ifndef NCrystal_FactImpl_hh
-#  include "NCrystal/NCFactImpl.hh"
+#  include "NCrystal/factories/NCFactImpl.hh"
 #endif
 #ifndef NCrystal_FactRequests_hh
-#  include "NCrystal/NCFactRequests.hh"
+#  include "NCrystal/factories/NCFactRequests.hh"
 #endif
 #ifndef NCrystal_FactRequestsImpl_hh
-#  include "NCrystal/NCFactRequestsImpl.hh"
+#  include "NCrystal/factories/NCFactRequestsImpl.hh"
 #endif
 #ifndef NCrystal_DataSources_hh
-#  include "NCrystal/NCDataSources.hh"
+#  include "NCrystal/factories/NCDataSources.hh"
 #endif
 #ifndef NCrystal_Fact_hh
-#  include "NCrystal/NCFact.hh"
+#  include "NCrystal/factories/NCFact.hh"
 #endif
 #ifndef NCrystal_Types_hh
-#  include "NCrystal/NCTypes.hh"
+#  include "NCrystal/core/NCTypes.hh"
 #endif
 #ifndef NCrystal_ImmutBuf_hh
-#  include "NCrystal/NCImmutBuf.hh"
+#  include "NCrystal/core/NCImmutBuf.hh"
 #endif
 #ifndef NCrystal_FactThreads_hh
-#  include "NCrystal/NCFactThreads.hh"
+#  include "NCrystal/threads/NCFactThreads.hh"
 #endif
 
 #endif

@@ -21,10 +21,10 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCImmutBuf.hh"
-#include "NCrystal/internal/NCStrView.hh"
-#include "NCrystal/internal/NCVector.hh"
-#include "NCrystal/NCVariant.hh"
+#include "NCrystal/core/NCImmutBuf.hh"
+#include "NCrystal/internal/utils/NCStrView.hh"
+#include "NCrystal/internal/utils/NCVector.hh"
+#include "NCrystal/core/NCVariant.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

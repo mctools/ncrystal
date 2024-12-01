@@ -23,7 +23,7 @@
 // project.
 #  define NCRYSTAL_PRETEND_EXPORTS
 #endif
-#include "NCrystal/internal/NCCFileUtils.hh"
+#include "NCrystal/internal/utils/NCCFileUtils.hh"
 
 namespace NC = NCrystal;
 #include <stdexcept>

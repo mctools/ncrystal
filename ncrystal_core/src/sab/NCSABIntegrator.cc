@@ -18,13 +18,13 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCSABIntegrator.hh"
-#include "NCrystal/internal/NCSABSamplerModels.hh"
-#include "NCrystal/internal/NCSABUtils.hh"
-#include "NCrystal/internal/NCFactoryUtils.hh"
-#include "NCrystal/internal/NCIter.hh"
-#include "NCrystal/internal/NCString.hh"
-#include "NCrystal/internal/NCMsg.hh"
+#include "NCrystal/internal/sab/NCSABIntegrator.hh"
+#include "NCrystal/internal/sab/NCSABSamplerModels.hh"
+#include "NCrystal/internal/sab/NCSABUtils.hh"
+#include "NCrystal/internal/utils/NCFactoryUtils.hh"
+#include "NCrystal/internal/utils/NCIter.hh"
+#include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
 
 namespace NC = NCrystal;
 namespace NS = NCrystal::SAB;

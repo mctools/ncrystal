@@ -18,9 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCFactImpl.hh"
-#include "NCrystal/internal/NCFileUtils.hh"
-#include "NCrystal/internal/NCString.hh"
+#include "NCrystal/factories/NCFactImpl.hh"
+#include "NCrystal/internal/utils/NCFileUtils.hh"
+#include "NCrystal/internal/utils/NCString.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

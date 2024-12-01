@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCMem.hh"
-#include "NCrystal/NCDefs.hh"
+#include "NCrystal/core/NCMem.hh"
+#include "NCrystal/core/NCDefs.hh"
 #include <vector>
 #include <mutex>
 

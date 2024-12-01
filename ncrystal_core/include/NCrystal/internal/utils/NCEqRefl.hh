@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCTypes.hh"
+#include "NCrystal/core/NCTypes.hh"
 
 //Class EqRefl provides symmetry-equivalent reflections for a given space group
 //number, by providing a list of all (h,k,l) indices symmetry-equivalent to a

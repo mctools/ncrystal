@@ -23,7 +23,7 @@
 
 // SANS related utilities.
 
-#include "NCrystal/NCTypes.hh"
+#include "NCrystal/core/NCTypes.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

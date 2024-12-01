@@ -18,9 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCMath.hh"
-#include "NCrystal/internal/NCRotMatrix.hh"
-#include "NCrystal/internal/NCIter.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/utils/NCRotMatrix.hh"
+#include "NCrystal/internal/utils/NCIter.hh"
 #include <sstream>
 #include <list>
 

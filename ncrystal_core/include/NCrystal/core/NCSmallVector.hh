@@ -22,7 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef NCrystal_Defs_hh
-#  include "NCrystal/NCDefs.hh"
+#  include "NCrystal/core/NCDefs.hh"
 #endif
 #include <initializer_list>
 #include <type_traits>

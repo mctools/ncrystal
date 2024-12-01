@@ -21,12 +21,12 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCMatCfg.hh"
-#include "NCrystal/NCFactRequests.hh"
-#include "NCrystal/NCFactTypes.hh"
-#include "NCrystal/NCProcImpl.hh"
-#include "NCrystal/NCInfo.hh"
-#include "NCrystal/NCTextData.hh"
+#include "NCrystal/factories/NCMatCfg.hh"
+#include "NCrystal/factories/NCFactRequests.hh"
+#include "NCrystal/factories/NCFactTypes.hh"
+#include "NCrystal/interfaces/NCProcImpl.hh"
+#include "NCrystal/interfaces/NCInfo.hh"
+#include "NCrystal/interfaces/NCTextData.hh"
 
 /////////////////////////////////////////////////////////////////////////////////
 //                                                                             //

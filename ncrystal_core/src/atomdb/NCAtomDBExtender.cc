@@ -18,12 +18,12 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCAtomDBExtender.hh"
-#include "NCrystal/internal/NCAtomDB.hh"
-#include "NCrystal/internal/NCFactoryUtils.hh"
-#include "NCrystal/internal/NCString.hh"
-#include "NCrystal/internal/NCAtomUtils.hh"
-#include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/internal/atomdb/NCAtomDBExtender.hh"
+#include "NCrystal/internal/atomdb/NCAtomDB.hh"
+#include "NCrystal/internal/utils/NCFactoryUtils.hh"
+#include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCAtomUtils.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
 namespace NC = NCrystal;
 
 void NC::AtomDBExtender::addData( const std::string& line, unsigned format_version )

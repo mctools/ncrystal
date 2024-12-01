@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCSABXSProvider.hh"
+#include "NCrystal/internal/sab/NCSABXSProvider.hh"
 
 namespace NC = NCrystal;
 

@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCBkgdExtCurve.hh"
-#include "NCrystal/internal/NCRandUtils.hh"
+#include "NCrystal/internal/bkgdextcurve/NCBkgdExtCurve.hh"
+#include "NCrystal/internal/utils/NCRandUtils.hh"
 
 namespace NC = NCrystal;
 

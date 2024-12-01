@@ -18,17 +18,17 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCFactImpl.hh"
-#include "NCrystal/NCPluginMgmt.hh"
-#include "NCrystal/internal/NCFactoryUtils.hh"
-#include "NCrystal/internal/NCString.hh"
-#include "NCrystal/internal/NCFileUtils.hh"
-#include "NCrystal/NCInfoBuilder.hh"
-#include "NCrystal/internal/NCCfgManip.hh"
-#include "NCrystal/internal/NCProcCompBldr.hh"
-#include "NCrystal/NCFactThreads.hh"
-#include "NCrystal/internal/NCFactoryJobs.hh"
-#include "NCrystal/internal/NCMsg.hh"
+#include "NCrystal/factories/NCFactImpl.hh"
+#include "NCrystal/factories/NCPluginMgmt.hh"
+#include "NCrystal/internal/utils/NCFactoryUtils.hh"
+#include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCFileUtils.hh"
+#include "NCrystal/infobld/NCInfoBuilder.hh"
+#include "NCrystal/internal/cfgutils/NCCfgManip.hh"
+#include "NCrystal/internal/extd_utils/NCProcCompBldr.hh"
+#include "NCrystal/threads/NCFactThreads.hh"
+#include "NCrystal/internal/utils/NCFactoryJobs.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
 #include <list>
 
 namespace NC = NCrystal;

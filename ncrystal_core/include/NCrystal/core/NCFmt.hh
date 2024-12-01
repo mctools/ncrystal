@@ -26,7 +26,7 @@
 // numbers. To support this, a short-string class is also provided.
 
 #ifndef NCrystal_Defs_hh
-#  include "NCrystal/NCDefs.hh"
+#  include "NCrystal/core/NCDefs.hh"
 #endif
 
 namespace NCRYSTAL_NAMESPACE {

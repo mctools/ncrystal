@@ -18,15 +18,15 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCLCBragg.hh"
-#include "NCrystal/internal/NCLCUtils.hh"
-#include "NCrystal/internal/NCLCRefModels.hh"
-#include "NCrystal/internal/NCSCBragg.hh"
-#include "NCrystal/NCDefs.hh"
-#include "NCrystal/internal/NCVector.hh"
-#include "NCrystal/internal/NCLatticeUtils.hh"
-#include "NCrystal/internal/NCOrientUtils.hh"
-#include "NCrystal/internal/NCPlaneProvider.hh"
+#include "NCrystal/internal/lcbragg/NCLCBragg.hh"
+#include "NCrystal/internal/extd_utils/NCLCUtils.hh"
+#include "NCrystal/internal/extd_utils/NCLCRefModels.hh"
+#include "NCrystal/internal/scbragg/NCSCBragg.hh"
+#include "NCrystal/core/NCDefs.hh"
+#include "NCrystal/internal/utils/NCVector.hh"
+#include "NCrystal/internal/utils/NCLatticeUtils.hh"
+#include "NCrystal/internal/extd_utils/NCOrientUtils.hh"
+#include "NCrystal/internal/extd_utils/NCPlaneProvider.hh"
 
 namespace NC = NCrystal;
 

@@ -18,11 +18,11 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCCompositionUtils.hh"
-#include "NCrystal/internal/NCAtomDBExtender.hh"
-#include "NCrystal/internal/NCAtomUtils.hh"
-#include "NCrystal/internal/NCMath.hh"
-#include "NCrystal/NCFactImpl.hh"
+#include "NCrystal/misc/NCCompositionUtils.hh"
+#include "NCrystal/internal/atomdb/NCAtomDBExtender.hh"
+#include "NCrystal/internal/utils/NCAtomUtils.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/factories/NCFactImpl.hh"
 #include <iostream>
 namespace NC = NCrystal;
 namespace NCCU = NCrystal::CompositionUtils;

@@ -18,9 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCTextData.hh"
-#include "NCrystal/NCFactRequests.hh"
-#include "NCrystal/internal/NCAtomUtils.hh"
+#include "NCrystal/interfaces/NCTextData.hh"
+#include "NCrystal/factories/NCFactRequests.hh"
+#include "NCrystal/internal/utils/NCAtomUtils.hh"
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //

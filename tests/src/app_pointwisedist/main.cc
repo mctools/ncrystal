@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCPointwiseDist.hh"
-#include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/internal/utils/NCPointwiseDist.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
 #include <iostream>
 
 //this test creates a uniform distribution in a fancy way

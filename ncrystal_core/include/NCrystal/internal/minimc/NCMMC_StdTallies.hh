@@ -21,9 +21,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCTypes.hh"
-#include "NCrystal/internal/NCMMC_Tally.hh"
-#include "NCrystal/internal/NCHists.hh"
+#include "NCrystal/core/NCTypes.hh"
+#include "NCrystal/internal/minimc/NCMMC_Tally.hh"
+#include "NCrystal/internal/utils/NCHists.hh"
 
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {

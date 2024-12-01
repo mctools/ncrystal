@@ -25,8 +25,8 @@
 // is an implementation detail used in NCFactRequests.hh to implement the
 // ScatterRequest and AbsorptionRequest classes.
 
-#include "NCrystal/NCMatCfg.hh"
-#include "NCrystal/NCInfo.hh"
+#include "NCrystal/factories/NCMatCfg.hh"
+#include "NCrystal/interfaces/NCInfo.hh"
 
 namespace NCRYSTAL_NAMESPACE {
   namespace FactImpl {

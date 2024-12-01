@@ -18,15 +18,15 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCVDOSToScatKnl.hh"
-#include "NCrystal/internal/NCVDOSEval.hh"
-#include "NCrystal/internal/NCVDOSGn.hh"
-#include "NCrystal/internal/NCKinUtils.hh"
-#include "NCrystal/internal/NCString.hh"
-#include "NCrystal/internal/NCIter.hh"
-#include "NCrystal/internal/NCMsg.hh"
-#include "NCrystal/internal/NCFactoryJobs.hh"
-#include "NCrystal/internal/NCSABUtils.hh"
+#include "NCrystal/internal/vdos/NCVDOSToScatKnl.hh"
+#include "NCrystal/internal/vdos/NCVDOSEval.hh"
+#include "NCrystal/internal/vdos/NCVDOSGn.hh"
+#include "NCrystal/internal/utils/NCKinUtils.hh"
+#include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCIter.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
+#include "NCrystal/internal/utils/NCFactoryJobs.hh"
+#include "NCrystal/internal/sab/NCSABUtils.hh"
 namespace NC=NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {

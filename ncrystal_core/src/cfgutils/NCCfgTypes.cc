@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCCfgTypes.hh"
+#include "NCrystal/internal/cfgutils/NCCfgTypes.hh"
 
 namespace NC = NCrystal;
 

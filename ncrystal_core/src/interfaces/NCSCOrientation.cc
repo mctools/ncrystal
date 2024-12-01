@@ -18,10 +18,10 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCSCOrientation.hh"
-#include "NCrystal/internal/NCVector.hh"
-#include "NCrystal/internal/NCString.hh"
-#include "NCrystal/internal/NCLatticeUtils.hh"
+#include "NCrystal/interfaces/NCSCOrientation.hh"
+#include "NCrystal/internal/utils/NCVector.hh"
+#include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCLatticeUtils.hh"
 
 namespace NC = NCrystal;
 

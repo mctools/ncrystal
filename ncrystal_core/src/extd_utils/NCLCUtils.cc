@@ -18,14 +18,14 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
-#include "NCrystal/internal/NCLCUtils.hh"
-#include "NCrystal/internal/NCPlaneProvider.hh"
-#include "NCrystal/internal/NCGaussMos.hh"
-#include "NCrystal/internal/NCRomberg.hh"
-#include "NCrystal/internal/NCRandUtils.hh"
-#include "NCrystal/internal/NCRotMatrix.hh"
-#include "NCrystal/internal/NCMsg.hh"
+#include "NCrystal/core/NCDefs.hh"
+#include "NCrystal/internal/extd_utils/NCLCUtils.hh"
+#include "NCrystal/internal/extd_utils/NCPlaneProvider.hh"
+#include "NCrystal/internal/utils/NCGaussMos.hh"
+#include "NCrystal/internal/utils/NCRomberg.hh"
+#include "NCrystal/internal/utils/NCRandUtils.hh"
+#include "NCrystal/internal/utils/NCRotMatrix.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
 #include <functional>//std::greater
 
 namespace NC = NCrystal;

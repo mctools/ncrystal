@@ -21,8 +21,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
-#include "NCrystal/NCProcImpl.hh"
+#include "NCrystal/core/NCDefs.hh"
+#include "NCrystal/interfaces/NCProcImpl.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

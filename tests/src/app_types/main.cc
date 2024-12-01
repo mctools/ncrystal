@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCTypes.hh"
-#include "NCrystal/internal/NCVector.hh"
+#include "NCrystal/core/NCTypes.hh"
+#include "NCrystal/internal/utils/NCVector.hh"
 #include <iostream>
 namespace NC = NCrystal;
 

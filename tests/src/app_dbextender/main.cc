@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCAtomDBExtender.hh"
+#include "NCrystal/internal/atomdb/NCAtomDBExtender.hh"
 #include <iostream>
 namespace NC = NCrystal;
 

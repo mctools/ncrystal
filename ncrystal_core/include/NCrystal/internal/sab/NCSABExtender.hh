@@ -21,8 +21,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
-#include "NCrystal/internal/NCFreeGasUtils.hh"
+#include "NCrystal/core/NCDefs.hh"
+#include "NCrystal/internal/utils/NCFreeGasUtils.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

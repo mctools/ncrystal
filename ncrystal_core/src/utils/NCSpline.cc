@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCSpline.hh"
-#include "NCrystal/internal/NCString.hh"
+#include "NCrystal/internal/utils/NCSpline.hh"
+#include "NCrystal/internal/utils/NCString.hh"
 #include <fstream>
 #include <iomanip>
 
@@ -122,9 +122,9 @@ void NCrystal::SplinedLookupTable::set( const Fct1D* thefct,
 }
 
 
-#include "NCrystal/internal/NCString.hh"
-#include "NCrystal/internal/NCFileUtils.hh"
-#include "NCrystal/internal/NCMsg.hh"
+#include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCFileUtils.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
 #include <fstream>
 #include <sstream>
 #include <iomanip>

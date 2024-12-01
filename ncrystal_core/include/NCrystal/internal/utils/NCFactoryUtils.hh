@@ -21,9 +21,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
-#include "NCrystal/NCSmallVector.hh"
-#include "NCrystal/internal/NCMsg.hh"
+#include "NCrystal/core/NCDefs.hh"
+#include "NCrystal/core/NCSmallVector.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

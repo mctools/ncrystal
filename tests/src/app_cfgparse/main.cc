@@ -18,9 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCCfgVars.hh"
+#include "NCrystal/internal/cfgutils/NCCfgVars.hh"
 #include <iostream>
-#include "NCrystal/internal/NCCfgManip.hh"
+#include "NCrystal/internal/cfgutils/NCCfgManip.hh"
 
 namespace NC = NCrystal;
 

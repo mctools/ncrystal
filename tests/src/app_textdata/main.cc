@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCTextData.hh"
+#include "NCrystal/interfaces/NCTextData.hh"
 #include <iostream>
 namespace NC = NCrystal;
 

@@ -21,9 +21,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCTypes.hh"
-#include "NCrystal/internal/NCGaussOnSphere.hh"
-#include "NCrystal/internal/NCVector.hh"
+#include "NCrystal/core/NCTypes.hh"
+#include "NCrystal/internal/utils/NCGaussOnSphere.hh"
+#include "NCrystal/internal/utils/NCVector.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCSABEval.hh"
+#include "NCrystal/internal/sab/NCSABEval.hh"
 
 namespace NC = NCrystal;
 namespace NCS = NCrystal::SABUtils;

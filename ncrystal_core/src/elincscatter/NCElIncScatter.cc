@@ -19,15 +19,15 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCElIncScatter.hh"
-#include "NCrystal/internal/NCVDOSEval.hh"
-#include "NCrystal/NCInfo.hh"
-#include "NCrystal/internal/NCElIncXS.hh"
-#include "NCrystal/internal/NCRandUtils.hh"
-#include "NCrystal/internal/NCDebyeMSD.hh"
-#include "NCrystal/internal/NCSpan.hh"
-#include "NCrystal/internal/NCDebyeMSD.hh"
-#include "NCrystal/internal/NCString.hh"
+#include "NCrystal/internal/elincscatter/NCElIncScatter.hh"
+#include "NCrystal/internal/vdos/NCVDOSEval.hh"
+#include "NCrystal/interfaces/NCInfo.hh"
+#include "NCrystal/internal/utils/NCElIncXS.hh"
+#include "NCrystal/internal/utils/NCRandUtils.hh"
+#include "NCrystal/internal/utils/NCDebyeMSD.hh"
+#include "NCrystal/internal/utils/NCSpan.hh"
+#include "NCrystal/internal/utils/NCDebyeMSD.hh"
+#include "NCrystal/internal/utils/NCString.hh"
 #include <sstream>
 
 namespace NC = NCrystal;

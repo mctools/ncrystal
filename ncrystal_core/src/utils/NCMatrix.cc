@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCMatrix.hh"
+#include "NCrystal/internal/utils/NCMatrix.hh"
 
 NCrystal::Matrix::~Matrix() = default;
 

@@ -21,8 +21,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCCfgTypes.hh"
-#include "NCrystal/internal/NCAtomUtils.hh"
+#include "NCrystal/internal/cfgutils/NCCfgTypes.hh"
+#include "NCrystal/internal/utils/NCAtomUtils.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

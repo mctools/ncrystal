@@ -21,9 +21,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCSABSampler.hh"
-#include "NCrystal/internal/NCPointwiseDist.hh"
-#include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/internal/sab/NCSABSampler.hh"
+#include "NCrystal/internal/utils/NCPointwiseDist.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
 
 namespace NCRYSTAL_NAMESPACE {
   namespace SAB {

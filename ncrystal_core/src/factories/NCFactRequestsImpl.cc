@@ -18,9 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCFactRequestsImpl.hh"
-#include "NCrystal/NCFactImpl.hh"
-#include "NCrystal/internal/NCCfgManip.hh"
+#include "NCrystal/factories/NCFactRequestsImpl.hh"
+#include "NCrystal/factories/NCFactImpl.hh"
+#include "NCrystal/internal/cfgutils/NCCfgManip.hh"
 
 namespace NC = NCrystal;
 namespace NCFD = NCrystal::FactImpl::detail;

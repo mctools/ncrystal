@@ -18,11 +18,11 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCFactImpl.hh"
-#include "NCrystal/NCProcImpl.hh"
-#include "NCrystal/internal/NCIter.hh"
-#include "NCrystal/internal/NCMath.hh"
-#include "NCrystal/internal/NCProcCompBldr.hh"
+#include "NCrystal/factories/NCFactImpl.hh"
+#include "NCrystal/interfaces/NCProcImpl.hh"
+#include "NCrystal/internal/utils/NCIter.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/extd_utils/NCProcCompBldr.hh"
 
 namespace NC = NCrystal;
 

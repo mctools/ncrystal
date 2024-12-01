@@ -18,9 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCMMC_Utils.hh"
-#include "NCrystal/internal/NCABIUtils.hh"
-#include "NCrystal/internal/NCRandUtils.hh"
+#include "NCrystal/internal/minimc/NCMMC_Utils.hh"
+#include "NCrystal/internal/extd_utils/NCABIUtils.hh"
+#include "NCrystal/internal/utils/NCRandUtils.hh"
 
 namespace NC = NCrystal;
 namespace NCMMCU = NCrystal::MiniMC::Utils;

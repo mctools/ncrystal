@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCKinUtils.hh"
-#include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/internal/utils/NCKinUtils.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
 namespace NC = NCrystal;
 
 NC::PairDD NC::convertAlphaBetaToDeltaEMu(double alpha, double beta, NeutronEnergy ekin, double kT )

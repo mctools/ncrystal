@@ -18,9 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCFactImpl.hh"
-#include "NCrystal/NCDataSources.hh"
-#include "NCrystal/NCLoadNCMAT.hh"
+#include "NCrystal/factories/NCFactImpl.hh"
+#include "NCrystal/factories/NCDataSources.hh"
+#include "NCrystal/ncmat/NCLoadNCMAT.hh"
 namespace NC = NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {

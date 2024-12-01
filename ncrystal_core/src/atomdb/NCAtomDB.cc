@@ -18,11 +18,11 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCAtomDB.hh"
-#include "NCrystal/internal/NCFactoryUtils.hh"
-#include "NCrystal/internal/NCAtomUtils.hh"
-#include "NCrystal/internal/NCString.hh"
-#include "NCrystal/internal/NCMsg.hh"
+#include "NCrystal/internal/atomdb/NCAtomDB.hh"
+#include "NCrystal/internal/utils/NCFactoryUtils.hh"
+#include "NCrystal/internal/utils/NCAtomUtils.hh"
+#include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
 #include <iomanip>
 
 namespace NC = NCrystal;

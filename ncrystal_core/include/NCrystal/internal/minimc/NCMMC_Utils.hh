@@ -21,8 +21,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCTypes.hh"
-#include "NCrystal/internal/NCMMC_Basket.hh"
+#include "NCrystal/core/NCTypes.hh"
+#include "NCrystal/internal/minimc/NCMMC_Basket.hh"
 
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {

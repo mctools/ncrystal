@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCString.hh"
-#include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
 #include <istream>
 #include <iomanip>
 namespace NC = NCrystal;

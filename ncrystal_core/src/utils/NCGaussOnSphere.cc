@@ -18,11 +18,11 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCGaussOnSphere.hh"
-#include "NCrystal/internal/NCRomberg.hh"
-#include "NCrystal/internal/NCRandUtils.hh"
-#include "NCrystal/internal/NCMsg.hh"
-#include "NCrystal/internal/NCString.hh"
+#include "NCrystal/internal/utils/NCGaussOnSphere.hh"
+#include "NCrystal/internal/utils/NCRomberg.hh"
+#include "NCrystal/internal/utils/NCRandUtils.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
+#include "NCrystal/internal/utils/NCString.hh"
 namespace NC = NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {

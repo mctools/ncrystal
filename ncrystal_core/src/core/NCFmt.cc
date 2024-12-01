@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCFmt.hh"
+#include "NCrystal/core/NCFmt.hh"
 namespace NC = NCrystal;
 
 #include <streambuf>

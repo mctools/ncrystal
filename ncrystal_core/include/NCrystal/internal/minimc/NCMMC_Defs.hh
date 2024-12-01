@@ -21,8 +21,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCTypes.hh"
-#include "NCrystal/NCProcImpl.hh"
+#include "NCrystal/core/NCTypes.hh"
+#include "NCrystal/interfaces/NCProcImpl.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 
@@ -47,7 +47,7 @@ namespace NCRYSTAL_NAMESPACE {
   }
 }
 
-#include "NCrystal/internal/NCMsg.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
 #ifdef NCRYSTAL_DEBUGMMCMSG
 #  undef NCRYSTAL_DEBUGMMCMSG
 #endif

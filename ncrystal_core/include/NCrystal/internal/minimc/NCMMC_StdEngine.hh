@@ -37,9 +37,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCMMC_RunSim.hh"
-#include "NCrystal/internal/NCMMC_Basket.hh"
-#include "NCrystal/internal/NCMMC_BasketMgr.hh"
+#include "NCrystal/internal/minimc/NCMMC_RunSim.hh"
+#include "NCrystal/internal/minimc/NCMMC_Basket.hh"
+#include "NCrystal/internal/minimc/NCMMC_BasketMgr.hh"
 
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {

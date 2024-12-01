@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCFileUtils.hh"
-#include "NCrystal/internal/NCMath.hh"//for isOneOf
+#include "NCrystal/internal/utils/NCFileUtils.hh"
+#include "NCrystal/internal/utils/NCMath.hh"//for isOneOf
 #include <iostream>
 namespace NC=NCrystal;
 

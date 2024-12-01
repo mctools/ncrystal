@@ -18,11 +18,11 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCDynInfoUtils.hh"
-#include "NCrystal/internal/NCFactoryUtils.hh"
-#include "NCrystal/internal/NCMath.hh"
-#include "NCrystal/internal/NCVDOSToScatKnl.hh"
-#include "NCrystal/internal/NCSABUtils.hh"
+#include "NCrystal/internal/dyninfoutils/NCDynInfoUtils.hh"
+#include "NCrystal/internal/utils/NCFactoryUtils.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/vdos/NCVDOSToScatKnl.hh"
+#include "NCrystal/internal/sab/NCSABUtils.hh"
 namespace NC = NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {

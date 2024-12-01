@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCMMC_Defs.hh"
+#include "NCrystal/internal/minimc/NCMMC_Defs.hh"
 
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {

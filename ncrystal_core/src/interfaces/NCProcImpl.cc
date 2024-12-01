@@ -18,9 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCProcImpl.hh"
-#include "NCrystal/internal/NCRandUtils.hh"
-#include "NCrystal/internal/NCString.hh"
+#include "NCrystal/interfaces/NCProcImpl.hh"
+#include "NCrystal/internal/utils/NCRandUtils.hh"
+#include "NCrystal/internal/utils/NCString.hh"
 
 namespace NC = NCrystal;
 namespace NCPI = NCrystal::ProcImpl;

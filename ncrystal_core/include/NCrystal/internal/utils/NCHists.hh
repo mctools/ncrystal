@@ -21,9 +21,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
-#include "NCrystal/internal/NCSpan.hh"
-#include "NCrystal/internal/NCString.hh"
+#include "NCrystal/core/NCDefs.hh"
+#include "NCrystal/internal/utils/NCSpan.hh"
+#include "NCrystal/internal/utils/NCString.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

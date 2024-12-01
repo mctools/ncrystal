@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCLCRefModels.hh"
-#include "NCrystal/internal/NCRandUtils.hh"
+#include "NCrystal/internal/extd_utils/NCLCRefModels.hh"
+#include "NCrystal/internal/utils/NCRandUtils.hh"
 
 namespace NC = NCrystal;
 

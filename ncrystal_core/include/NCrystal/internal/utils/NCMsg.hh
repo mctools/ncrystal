@@ -21,8 +21,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
-#include "NCrystal/NCTypes.hh"
+#include "NCrystal/core/NCDefs.hh"
+#include "NCrystal/core/NCTypes.hh"
 #include <sstream>
 
 namespace NCRYSTAL_NAMESPACE {

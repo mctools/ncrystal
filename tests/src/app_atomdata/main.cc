@@ -18,9 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCAtomData.hh"
-#include "NCrystal/internal/NCAtomDB.hh"
-#include "NCrystal/internal/NCAtomUtils.hh"
+#include "NCrystal/interfaces/NCAtomData.hh"
+#include "NCrystal/internal/atomdb/NCAtomDB.hh"
+#include "NCrystal/internal/utils/NCAtomUtils.hh"
 #include <iostream>
 namespace NC = NCrystal;
 

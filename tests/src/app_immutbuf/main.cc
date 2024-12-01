@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCImmutBuf.hh"
-#include "NCrystal/NCSmallVector.hh"
+#include "NCrystal/core/NCImmutBuf.hh"
+#include "NCrystal/core/NCSmallVector.hh"
 #include <iostream>
 namespace NC = NCrystal;
 

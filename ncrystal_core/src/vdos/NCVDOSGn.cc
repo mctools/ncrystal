@@ -18,14 +18,14 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCVDOSGn.hh"
-#include "NCrystal/internal/NCVDOSEval.hh"
-#include "NCrystal/internal/NCFastConvolve.hh"
-#include "NCrystal/internal/NCMath.hh"
-#include "NCrystal/internal/NCIter.hh"
-#include "NCrystal/internal/NCString.hh"
-#include "NCrystal/internal/NCFactoryJobs.hh"
-#include "NCrystal/internal/NCMsg.hh"
+#include "NCrystal/internal/vdos/NCVDOSGn.hh"
+#include "NCrystal/internal/vdos/NCVDOSEval.hh"
+#include "NCrystal/internal/utils/NCFastConvolve.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/utils/NCIter.hh"
+#include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCFactoryJobs.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
 #include <deque>
 
 namespace NC=NCrystal;

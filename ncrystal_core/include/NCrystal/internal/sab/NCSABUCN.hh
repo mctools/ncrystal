@@ -21,10 +21,10 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCSABData.hh"
-#include "NCrystal/NCProcImpl.hh"
-#include "NCrystal/internal/NCSpline.hh"
-#include "NCrystal/internal/NCRandUtils.hh"
+#include "NCrystal/interfaces/NCSABData.hh"
+#include "NCrystal/interfaces/NCProcImpl.hh"
+#include "NCrystal/internal/utils/NCSpline.hh"
+#include "NCrystal/internal/utils/NCRandUtils.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

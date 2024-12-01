@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCVariant.hh"
+#include "NCrystal/core/NCVariant.hh"
 #include <iostream>
 #include <vector>
 namespace NC=NCrystal;

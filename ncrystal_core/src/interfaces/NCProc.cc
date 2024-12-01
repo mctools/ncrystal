@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCProc.hh"
+#include "NCrystal/interfaces/NCProc.hh"
 
 namespace NC = NCrystal;
 

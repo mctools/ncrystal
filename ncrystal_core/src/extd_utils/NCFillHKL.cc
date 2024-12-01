@@ -18,12 +18,12 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCFillHKL.hh"
-#include "NCrystal/internal/NCOrientUtils.hh"
-#include "NCrystal/internal/NCRotMatrix.hh"
-#include "NCrystal/internal/NCLatticeUtils.hh"
-#include "NCrystal/internal/NCString.hh"
-#include "NCrystal/internal/NCEqRefl.hh"
+#include "NCrystal/internal/extd_utils/NCFillHKL.hh"
+#include "NCrystal/internal/extd_utils/NCOrientUtils.hh"
+#include "NCrystal/internal/utils/NCRotMatrix.hh"
+#include "NCrystal/internal/utils/NCLatticeUtils.hh"
+#include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCEqRefl.hh"
 #include <bitset>
 
 namespace NC = NCrystal;

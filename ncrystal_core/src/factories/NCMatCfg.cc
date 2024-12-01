@@ -19,10 +19,10 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCMatCfg.hh"
-#include "NCrystal/NCFactImpl.hh"
-#include "NCrystal/NCSCOrientation.hh"
-#include "NCrystal/internal/NCCfgManip.hh"
+#include "NCrystal/factories/NCMatCfg.hh"
+#include "NCrystal/factories/NCFactImpl.hh"
+#include "NCrystal/interfaces/NCSCOrientation.hh"
+#include "NCrystal/internal/cfgutils/NCCfgManip.hh"
 #include <sstream>
 namespace NC = NCrystal;
 

@@ -18,9 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCDebyeMSD.hh"
-#include "NCrystal/internal/NCMath.hh"
-#include "NCrystal/internal/NCRomberg.hh"
+#include "NCrystal/internal/utils/NCDebyeMSD.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/utils/NCRomberg.hh"
 
 namespace NC = NCrystal;
 

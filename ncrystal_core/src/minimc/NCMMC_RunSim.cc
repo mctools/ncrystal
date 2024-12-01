@@ -18,10 +18,10 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCMMC_RunSim.hh"
-#include "NCrystal/internal/NCMMC_StdEngine.hh"
-#include "NCrystal/internal/NCMMC_SimMgrMT.hh"
-#include "NCrystal/NCFactImpl.hh"
+#include "NCrystal/internal/minimc/NCMMC_RunSim.hh"
+#include "NCrystal/internal/minimc/NCMMC_StdEngine.hh"
+#include "NCrystal/internal/minimc/NCMMC_SimMgrMT.hh"
+#include "NCrystal/factories/NCFactImpl.hh"
 
 namespace NC = NCrystal;
 namespace NCMMC = NCrystal::MiniMC;

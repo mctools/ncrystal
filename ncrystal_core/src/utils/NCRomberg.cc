@@ -18,9 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCRomberg.hh"
-#include "NCrystal/internal/NCMath.hh"
-#include "NCrystal/internal/NCMsg.hh"
+#include "NCrystal/internal/utils/NCRomberg.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
 
 void NCrystal::Romberg::evalFuncMany(double* fvals, unsigned n, double offset, double delta) const
 {
@@ -147,7 +147,7 @@ double NCrystal::Romberg::integrate(double a, double b) const
   return row_prev[maxlevel-1];//convergenceError() did not throw or otherwise die, so return best estimate.
 }
 
-#include "NCrystal/internal/NCFileUtils.hh"
+#include "NCrystal/internal/utils/NCFileUtils.hh"
 #include <fstream>
 #include <iomanip>
 void NCrystal::Romberg::writeFctToFile(const std::string& filename, double a, double b, unsigned n) const

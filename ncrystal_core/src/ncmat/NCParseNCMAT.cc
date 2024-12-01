@@ -18,10 +18,10 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCParseNCMAT.hh"
-#include "NCrystal/NCException.hh"
-#include "NCrystal/internal/NCString.hh"
-#include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/ncmat/NCParseNCMAT.hh"
+#include "NCrystal/core/NCException.hh"
+#include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
 #include <sstream>
 #if nc_cplusplus >= 201703L
 #  include <functional>//for std::invoke

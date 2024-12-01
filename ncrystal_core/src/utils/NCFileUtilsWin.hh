@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
+#include "NCrystal/core/NCDefs.hh"
 #include <fstream>
 
 #if ( defined (_WIN32) || defined (WIN32) )

@@ -21,8 +21,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCMath.hh"
-#include "NCrystal/internal/NCSpline.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/utils/NCSpline.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

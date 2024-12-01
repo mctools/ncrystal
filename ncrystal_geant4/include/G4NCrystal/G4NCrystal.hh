@@ -35,10 +35,10 @@
 #  include "G4NCrystal/G4NCMatHelper.hh"
 #endif
 #ifndef NCrystal_MatCfg_hh
-#  include "NCrystal/NCMatCfg.hh"
+#  include "NCrystal/factories/NCMatCfg.hh"
 #endif
 #ifndef NCrystal_Version_hh
-#  include "NCrystal/NCVersion.hh"
+#  include "NCrystal/interfaces/NCVersion.hh"
 #endif
 //#ifndef NCrystal_hh
 //#  include "NCrystal/NCrystal.hh"

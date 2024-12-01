@@ -21,8 +21,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCTypes.hh"
-#include "NCrystal/NCRNG.hh"
+#include "NCrystal/core/NCTypes.hh"
+#include "NCrystal/interfaces/NCRNG.hh"
 
 ///////////////////////////////////////////////////////////////////////////////////
 //                                                                               //

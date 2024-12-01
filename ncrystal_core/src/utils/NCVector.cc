@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCVector.hh"
+#include "NCrystal/internal/utils/NCVector.hh"
 
 void NCrystal::Vector::setMag(double f)
 {

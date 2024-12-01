@@ -21,12 +21,12 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCMMC_Geom.hh"
-#include "NCrystal/internal/NCMMC_Basket.hh"
-#include "NCrystal/internal/NCMMC_BasketSrcFiller.hh"
-#include "NCrystal/internal/NCMMC_BasketMgr.hh"
-#include "NCrystal/internal/NCMMC_Source.hh"
-#include "NCrystal/internal/NCMMC_Tally.hh"
+#include "NCrystal/internal/minimc/NCMMC_Geom.hh"
+#include "NCrystal/internal/minimc/NCMMC_Basket.hh"
+#include "NCrystal/internal/minimc/NCMMC_BasketSrcFiller.hh"
+#include "NCrystal/internal/minimc/NCMMC_BasketMgr.hh"
+#include "NCrystal/internal/minimc/NCMMC_Source.hh"
+#include "NCrystal/internal/minimc/NCMMC_Tally.hh"
 #ifndef NCRYSTAL_DISABLE_THREADS
 #  include <thread>
 #  include <condition_variable>

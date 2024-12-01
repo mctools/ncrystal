@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCProcCompBldr.hh"
-#include "NCrystal/internal/NCFactoryJobs.hh"
+#include "NCrystal/internal/extd_utils/NCProcCompBldr.hh"
+#include "NCrystal/internal/utils/NCFactoryJobs.hh"
 #include <list>
 
 namespace NC = NCrystal;

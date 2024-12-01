@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCSmallVector.hh"
+#include "NCrystal/core/NCSmallVector.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

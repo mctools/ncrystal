@@ -18,12 +18,12 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCSABScatter.hh"
-#include "NCrystal/internal/NCSABFactory.hh"
-#include "NCrystal/internal/NCDynInfoUtils.hh"
-#include "NCrystal/internal/NCSABFactory.hh"
-#include "NCrystal/internal/NCRandUtils.hh"
-#include "NCrystal/internal/NCVDOSToScatKnl.hh"
+#include "NCrystal/internal/sabscatter/NCSABScatter.hh"
+#include "NCrystal/internal/sab/NCSABFactory.hh"
+#include "NCrystal/internal/dyninfoutils/NCDynInfoUtils.hh"
+#include "NCrystal/internal/sab/NCSABFactory.hh"
+#include "NCrystal/internal/utils/NCRandUtils.hh"
+#include "NCrystal/internal/vdos/NCVDOSToScatKnl.hh"
 namespace NC = NCrystal;
 
 struct NC::SABScatter::Impl {

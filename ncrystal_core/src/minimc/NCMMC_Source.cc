@@ -18,11 +18,11 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCMMC_Source.hh"
-#include "NCrystal/internal/NCMMC_Geom.hh"
-#include "NCrystal/internal/NCRandUtils.hh"
-#include "NCrystal/internal/NCVector.hh"
-#include "NCrystal/internal/NCStrView.hh"
+#include "NCrystal/internal/minimc/NCMMC_Source.hh"
+#include "NCrystal/internal/minimc/NCMMC_Geom.hh"
+#include "NCrystal/internal/utils/NCRandUtils.hh"
+#include "NCrystal/internal/utils/NCVector.hh"
+#include "NCrystal/internal/utils/NCStrView.hh"
 #include "NCMMC_ParseCfg.hh"
 
 namespace NC = NCrystal;

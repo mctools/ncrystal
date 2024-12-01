@@ -18,9 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCOrientUtils.hh"
-#include "NCrystal/NCInfo.hh"
-#include "NCrystal/internal/NCLatticeUtils.hh"
+#include "NCrystal/internal/extd_utils/NCOrientUtils.hh"
+#include "NCrystal/interfaces/NCInfo.hh"
+#include "NCrystal/internal/utils/NCLatticeUtils.hh"
 #include <iomanip>
 
 namespace NC = NCrystal;

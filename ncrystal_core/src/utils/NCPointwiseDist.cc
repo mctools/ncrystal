@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCPointwiseDist.hh"
-#include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/internal/utils/NCPointwiseDist.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
 #include <cstdio>
 
 namespace NC = NCrystal;

@@ -18,9 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCMatCfg.hh"
-#include "NCrystal/NCDataSources.hh"
-#include "NCrystal/NCSCOrientation.hh"
+#include "NCrystal/factories/NCMatCfg.hh"
+#include "NCrystal/factories/NCDataSources.hh"
+#include "NCrystal/interfaces/NCSCOrientation.hh"
 #include <iostream>
 
 namespace NC = NCrystal;

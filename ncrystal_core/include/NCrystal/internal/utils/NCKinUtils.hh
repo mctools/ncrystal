@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCTypes.hh"
+#include "NCrystal/core/NCTypes.hh"
 
 //Various utilities related to kinematics, including those related to the
 //S(alpha,beta) formalism.

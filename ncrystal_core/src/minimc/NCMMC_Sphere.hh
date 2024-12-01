@@ -21,10 +21,10 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCTypes.hh"
-#include "NCrystal/internal/NCVector.hh"
-#include "NCrystal/internal/NCMMC_Basket.hh"
-#include "NCrystal/internal/NCMMC_Defs.hh"
+#include "NCrystal/core/NCTypes.hh"
+#include "NCrystal/internal/utils/NCVector.hh"
+#include "NCrystal/internal/minimc/NCMMC_Basket.hh"
+#include "NCrystal/internal/minimc/NCMMC_Defs.hh"
 
 namespace NCRYSTAL_NAMESPACE {
   namespace {

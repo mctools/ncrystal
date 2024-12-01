@@ -18,12 +18,12 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCInfoBuilder.hh"
-#include "NCrystal/internal/NCLatticeUtils.hh"
-#include "NCrystal/internal/NCMath.hh"
-#include "NCrystal/internal/NCString.hh"
-#include "NCrystal/internal/NCIter.hh"
-#include "NCrystal/internal/NCCfgManip.hh"
+#include "NCrystal/infobld/NCInfoBuilder.hh"
+#include "NCrystal/internal/utils/NCLatticeUtils.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCIter.hh"
+#include "NCrystal/internal/cfgutils/NCCfgManip.hh"
 
 namespace NC = NCrystal;
 
@@ -1049,8 +1049,8 @@ NC::Info NC::InfoBuilder::buildInfo( MultiPhaseBuilder&& input )
 NC::InfoPtr NC::InfoBuilder::buildInfoPtr( SinglePhaseBuilder&& bldr ) { return makeSO<const Info>( buildInfo( std::move(bldr) ) ); }
 NC::InfoPtr NC::InfoBuilder::buildInfoPtr( MultiPhaseBuilder&& bldr )  { return makeSO<const Info>( buildInfo( std::move(bldr) ) ); }
 
-#include "NCrystal/internal/NCAtomUtils.hh"
-#include "NCrystal/internal/NCAtomDB.hh"
+#include "NCrystal/internal/utils/NCAtomUtils.hh"
+#include "NCrystal/internal/atomdb/NCAtomDB.hh"
 
 NC::Info::Composition NC::InfoBuilder::buildCompositionFromChemForm( const std::string& cf_str )
 {

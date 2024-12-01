@@ -21,8 +21,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCInfo.hh"
-#include "NCrystal/NCSABData.hh"
+#include "NCrystal/interfaces/NCInfo.hh"
+#include "NCrystal/interfaces/NCSABData.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

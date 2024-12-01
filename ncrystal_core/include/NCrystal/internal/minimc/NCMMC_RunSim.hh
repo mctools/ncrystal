@@ -21,10 +21,10 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCMMC_Tally.hh"
-#include "NCrystal/internal/NCMMC_Geom.hh"
-#include "NCrystal/internal/NCMMC_Source.hh"
-#include "NCrystal/NCMatCfg.hh"
+#include "NCrystal/internal/minimc/NCMMC_Tally.hh"
+#include "NCrystal/internal/minimc/NCMMC_Geom.hh"
+#include "NCrystal/internal/minimc/NCMMC_Source.hh"
+#include "NCrystal/factories/NCMatCfg.hh"
 
 // High level interface for a diffraction-pattern MMC application.
 

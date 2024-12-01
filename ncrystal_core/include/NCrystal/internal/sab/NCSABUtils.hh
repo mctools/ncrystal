@@ -21,10 +21,10 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCMath.hh"
-#include "NCrystal/internal/NCKinUtils.hh"
-#include "NCrystal/NCSABData.hh"
-#include "NCrystal/internal/NCScatKnlData.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/utils/NCKinUtils.hh"
+#include "NCrystal/interfaces/NCSABData.hh"
+#include "NCrystal/internal/sab/NCScatKnlData.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

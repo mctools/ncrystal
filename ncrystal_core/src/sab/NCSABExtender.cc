@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCSABExtender.hh"
+#include "NCrystal/internal/sab/NCSABExtender.hh"
 namespace NC = NCrystal;
 
 NC::SAB::SABExtender::~SABExtender() = default;

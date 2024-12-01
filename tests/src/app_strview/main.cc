@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCStrView.hh"
+#include "NCrystal/internal/utils/NCStrView.hh"
 #include <iostream>
 
 namespace NC = NCrystal;

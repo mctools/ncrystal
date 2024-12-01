@@ -38,7 +38,7 @@
 
 //Fixme: something better?:
 #if __cplusplus
-#  include "NCrystal/internal/NCCFileUtils.hh"
+#  include "NCrystal/internal/utils/NCCFileUtils.hh"
 #else
 #  include "NCCFileUtils.h"
 #endif

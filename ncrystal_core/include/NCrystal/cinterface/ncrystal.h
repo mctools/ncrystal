@@ -41,7 +41,7 @@ extern "C" {
   /*== instance =DNCRYSTAL_NAMESPACE_PROTECTION=foobar, then defines such as    == */
   /*== ncrystal_create_info will instead expand to ncrystalfoobar_create_info,  == */
   /*== resulting in namespaced symbols in the libraries. Due to the following   == */
-  /*== list of defines, user code using the C API here should alsmost always    == */
+  /*== list of defines, user code using the C API here should almost always     == */
   /*== write ncrystal_create_info(...) in their code.                           == */
   /*============================================================================== */
   /*============================================================================== */

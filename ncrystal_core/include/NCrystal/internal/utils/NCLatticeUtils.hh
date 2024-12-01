@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCRotMatrix.hh"
+#include "NCrystal/internal/utils/NCRotMatrix.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

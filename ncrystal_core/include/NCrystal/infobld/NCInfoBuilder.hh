@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCInfo.hh"
+#include "NCrystal/interfaces/NCInfo.hh"
 
 ////////////////////////////////////////////////////////////////////////////
 // Builder functions and associated mutable structures used to construct  //

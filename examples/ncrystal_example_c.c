@@ -20,7 +20,7 @@
 /******************************************************************************/
 
 /* Include NCrystal C-interface: */
-#include "NCrystal/ncrystal.h"
+#include "NCrystal/cinterface/ncrystal.h"
 
 #include <stdio.h>
 #include <stdlib.h>

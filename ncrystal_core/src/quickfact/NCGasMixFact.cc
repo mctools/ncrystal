@@ -18,11 +18,11 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCFactImpl.hh"
-#include "NCrystal/internal/NCGasMixUtils.hh"
-#include "NCrystal/internal/NCString.hh"
-#include "NCrystal/internal/NCAtomUtils.hh"
-#include "NCrystal/internal/NCAtomDBExtender.hh"
+#include "NCrystal/factories/NCFactImpl.hh"
+#include "NCrystal/internal/gasmix/NCGasMixUtils.hh"
+#include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCAtomUtils.hh"
+#include "NCrystal/internal/atomdb/NCAtomDBExtender.hh"
 
 // "Quick" TextData factories which rather than working from pre-existing file
 // data, simply generates NCMAT data on the basis of information encoded directly

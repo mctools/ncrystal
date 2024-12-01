@@ -22,9 +22,9 @@
 //SAB=exp(alpha), which is interpolated exactly by the loglin-interpolation
 //assumed for SAB tables (at least internally in NCSABUtils).
 
-#include "NCrystal/internal/NCSABUtils.hh"
-#include "NCrystal/internal/NCMath.hh"
-#include "NCrystal/internal/NCIter.hh"
+#include "NCrystal/internal/sab/NCSABUtils.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/utils/NCIter.hh"
 #include <iostream>
 namespace NC = NCrystal;
 

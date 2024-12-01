@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCFactThreads.hh"
+#include "NCrystal/threads/NCFactThreads.hh"
 namespace NC = NCrystal;
 
 #ifdef NCRYSTAL_DISABLE_THREADS

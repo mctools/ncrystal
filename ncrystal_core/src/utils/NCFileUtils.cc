@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCFileUtils.hh"
-#include "NCrystal/internal/NCString.hh"
+#include "NCrystal/internal/utils/NCFileUtils.hh"
+#include "NCrystal/internal/utils/NCString.hh"
 #include "NCFileUtilsWin.hh"
 #include <fstream>
 

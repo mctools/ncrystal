@@ -18,10 +18,10 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCDynLoader.hh"
-#include "NCrystal/internal/NCString.hh"
-#include "NCrystal/internal/NCFileUtils.hh"
-#include "NCrystal/internal/NCMsg.hh"
+#include "NCrystal/internal/utils/NCDynLoader.hh"
+#include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCFileUtils.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
 #include <functional>
 #include <stdexcept>
 #include <string>

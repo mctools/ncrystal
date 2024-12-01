@@ -18,9 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCElIncXS.hh"
-#include "NCrystal/internal/NCMath.hh"
-#include "NCrystal/internal/NCRandUtils.hh"
+#include "NCrystal/internal/utils/NCElIncXS.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/utils/NCRandUtils.hh"
 
 namespace NC = NCrystal;
 

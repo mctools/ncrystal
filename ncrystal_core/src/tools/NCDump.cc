@@ -18,14 +18,14 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDump.hh"
-#include "NCrystal/NCInfo.hh"
-#include "NCrystal/internal/NCMath.hh"
-#include "NCrystal/internal/NCString.hh"
-#include "NCrystal/internal/NCMsg.hh"
-#include "NCrystal/NCMatCfg.hh"
-#include "NCrystal/internal/NCCfgManip.hh"
-#include "NCrystal/internal/NCPlaneProvider.hh"
+#include "NCrystal/tools/NCDump.hh"
+#include "NCrystal/interfaces/NCInfo.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
+#include "NCrystal/factories/NCMatCfg.hh"
+#include "NCrystal/internal/cfgutils/NCCfgManip.hh"
+#include "NCrystal/internal/extd_utils/NCPlaneProvider.hh"
 #include <sstream>
 
 void NCrystal::dump( std::ostream& os, const Info&c, DumpVerbosity verbosityVal )

@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCVersion.hh"
+#include "NCrystal/interfaces/NCVersion.hh"
 
 int NCrystal::getVersion()
 {

@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCScatKnlData.hh"
-#include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/internal/sab/NCScatKnlData.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
 
 namespace NC = NCrystal;
 

@@ -18,11 +18,11 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCSABUCN.hh"
-#include "NCrystal/internal/NCSABEval.hh"
-#include "NCrystal/internal/NCString.hh"
-#include "NCrystal/internal/NCFactoryUtils.hh"
-#include "NCrystal/internal/NCMsg.hh"
+#include "NCrystal/internal/sab/NCSABUCN.hh"
+#include "NCrystal/internal/sab/NCSABEval.hh"
+#include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCFactoryUtils.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
 
 namespace NC = NCrystal;
 

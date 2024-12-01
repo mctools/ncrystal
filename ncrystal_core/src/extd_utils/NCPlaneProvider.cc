@@ -18,11 +18,11 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCPlaneProvider.hh"
-#include "NCrystal/internal/NCOrientUtils.hh"
-#include "NCrystal/NCInfo.hh"
-#include "NCrystal/internal/NCRotMatrix.hh"
-#include "NCrystal/internal/NCEqRefl.hh"
+#include "NCrystal/internal/extd_utils/NCPlaneProvider.hh"
+#include "NCrystal/internal/extd_utils/NCOrientUtils.hh"
+#include "NCrystal/interfaces/NCInfo.hh"
+#include "NCrystal/internal/utils/NCRotMatrix.hh"
+#include "NCrystal/internal/utils/NCEqRefl.hh"
 
 namespace NC = NCrystal;
 

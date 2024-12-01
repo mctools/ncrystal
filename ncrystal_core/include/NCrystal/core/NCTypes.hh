@@ -22,16 +22,16 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef NCrystal_SmallVector_hh
-#  include "NCrystal/NCSmallVector.hh"
+#  include "NCrystal/core/NCSmallVector.hh"
 #endif
 #ifndef NCrystal_ImmutBuf_hh
-#  include "NCrystal/NCImmutBuf.hh"
+#  include "NCrystal/core/NCImmutBuf.hh"
 #endif
 #ifndef NCrystal_Variant_hh
-#  include "NCrystal/NCVariant.hh"
+#  include "NCrystal/core/NCVariant.hh"
 #endif
 #ifndef NCrystal_Fmt_hh
-#  include "NCrystal/NCFmt.hh"
+#  include "NCrystal/core/NCFmt.hh"
 #endif
 
 //////////////////////////////////////////////

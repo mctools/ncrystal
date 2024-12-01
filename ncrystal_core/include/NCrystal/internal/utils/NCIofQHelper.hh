@@ -21,8 +21,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCTypes.hh"
-#include "NCrystal/internal/NCPointwiseDist.hh"
+#include "NCrystal/core/NCTypes.hh"
+#include "NCrystal/internal/utils/NCPointwiseDist.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

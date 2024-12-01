@@ -18,9 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCSANSSphScat.hh"
-#include "NCrystal/NCFactImpl.hh"
-#include "NCrystal/internal/NCString.hh"
+#include "NCrystal/internal/sanshardsphere/NCSANSSphScat.hh"
+#include "NCrystal/factories/NCFactImpl.hh"
+#include "NCrystal/internal/utils/NCString.hh"
 
 namespace NC = NCrystal;
 

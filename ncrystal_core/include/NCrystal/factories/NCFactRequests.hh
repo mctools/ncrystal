@@ -21,9 +21,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCMatCfg.hh"
-#include "NCrystal/NCInfo.hh"
-#include "NCrystal/NCFactRequestsImpl.hh"
+#include "NCrystal/factories/NCMatCfg.hh"
+#include "NCrystal/interfaces/NCInfo.hh"
+#include "NCrystal/factories/NCFactRequestsImpl.hh"
 
 /////////////////////////////////////////////////////////////////////////////////
 //                                                                             //

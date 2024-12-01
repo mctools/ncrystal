@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCFastConvolve.hh"
-#include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/internal/utils/NCFastConvolve.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
 #include <complex>
 namespace NC = NCrystal;
 

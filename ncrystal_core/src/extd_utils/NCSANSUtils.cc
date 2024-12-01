@@ -18,10 +18,10 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCSANSUtils.hh"
-#include "NCrystal/internal/NCMath.hh"
-#include "NCrystal/NCInfo.hh"
-#include "NCrystal/internal/NCCfgManip.hh"
+#include "NCrystal/internal/extd_utils/NCSANSUtils.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/interfaces/NCInfo.hh"
+#include "NCrystal/internal/cfgutils/NCCfgManip.hh"
 
 namespace NC = NCrystal;
 

@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCHists.hh"
+#include "NCrystal/internal/utils/NCHists.hh"
 
 namespace NC = NCrystal;
 

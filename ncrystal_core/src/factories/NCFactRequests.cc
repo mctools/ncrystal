@@ -18,11 +18,11 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCFactRequests.hh"
-#include "NCrystal/NCMatCfg.hh"
-#include "NCrystal/NCFactImpl.hh"
-#include "NCrystal/internal/NCCfgManip.hh"
-#include "NCrystal/NCSCOrientation.hh"
+#include "NCrystal/factories/NCFactRequests.hh"
+#include "NCrystal/factories/NCMatCfg.hh"
+#include "NCrystal/factories/NCFactImpl.hh"
+#include "NCrystal/internal/cfgutils/NCCfgManip.hh"
+#include "NCrystal/interfaces/NCSCOrientation.hh"
 namespace NC = NCrystal;
 namespace NCF = NCrystal::FactImpl;
 

@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCSmallVector.hh"
+#include "NCrystal/core/NCSmallVector.hh"
 #include "TestLib_fpe/FPE.hh"
 
 #include <iostream>

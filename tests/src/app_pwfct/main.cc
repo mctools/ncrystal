@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCSpline.hh"
+#include "NCrystal/internal/utils/NCSpline.hh"
 
 #define REQUIRE(x) nc_assert_always(x)
 

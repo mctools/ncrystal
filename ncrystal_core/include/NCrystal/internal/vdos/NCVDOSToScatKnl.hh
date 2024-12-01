@@ -21,8 +21,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCScatKnlData.hh"
-#include "NCrystal/internal/NCVDOSGn.hh"
+#include "NCrystal/internal/sab/NCScatKnlData.hh"
+#include "NCrystal/internal/vdos/NCVDOSGn.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

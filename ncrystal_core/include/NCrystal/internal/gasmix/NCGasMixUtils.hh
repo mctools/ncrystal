@@ -21,9 +21,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCTypes.hh"
-#include "NCrystal/internal/NCAtomUtils.hh"
-#include "NCrystal/NCAtomData.hh"
+#include "NCrystal/core/NCTypes.hh"
+#include "NCrystal/internal/utils/NCAtomUtils.hh"
+#include "NCrystal/interfaces/NCAtomData.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

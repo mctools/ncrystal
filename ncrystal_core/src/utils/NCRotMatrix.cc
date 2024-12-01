@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCRotMatrix.hh"
-#include "NCrystal/internal/NCRandUtils.hh"
+#include "NCrystal/internal/utils/NCRotMatrix.hh"
+#include "NCrystal/internal/utils/NCRandUtils.hh"
 
 NCrystal::RotMatrix::RotMatrix(const NCrystal::Vector v, const NCrystal::Vector& v_trf,
                                const NCrystal::Vector u, const NCrystal::Vector& u_trf,

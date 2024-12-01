@@ -21,8 +21,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCSABSampler.hh"
-#include "NCrystal/internal/NCSABXSProvider.hh"
+#include "NCrystal/internal/sab/NCSABSampler.hh"
+#include "NCrystal/internal/sab/NCSABXSProvider.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

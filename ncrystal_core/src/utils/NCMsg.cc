@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCMsg.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
 #include <iostream>
 
 namespace NC = NCrystal;

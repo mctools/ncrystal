@@ -18,10 +18,10 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCGasMixUtils.hh"
-#include "NCrystal/internal/NCStrView.hh"
-#include "NCrystal/internal/NCString.hh"
-#include "NCrystal/internal/NCAtomDBExtender.hh"
+#include "NCrystal/internal/gasmix/NCGasMixUtils.hh"
+#include "NCrystal/internal/utils/NCStrView.hh"
+#include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/atomdb/NCAtomDBExtender.hh"
 #include <sstream>
 namespace NC = NCrystal;
 namespace NCGM = NCrystal::GasMix;

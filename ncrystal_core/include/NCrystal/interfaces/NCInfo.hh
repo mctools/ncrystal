@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCInfoTypes.hh"
+#include "NCrystal/interfaces/NCInfoTypes.hh"
 
 /////////////////////////////////////////////////////////////////////////////////
 // Data class containing information (high level or derived) about a given     //

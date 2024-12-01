@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCMsgCtrl.hh"
-#include "NCrystal/internal/NCMsg.hh"
+#include "NCrystal/interfaces/NCMsgCtrl.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
 
 namespace NC = NCrystal;
 

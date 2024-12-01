@@ -21,9 +21,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCProcImpl.hh"
-#include "NCrystal/internal/NCVector.hh"
-#include "NCrystal/internal/NCRotMatrix.hh"
+#include "NCrystal/interfaces/NCProcImpl.hh"
+#include "NCrystal/internal/utils/NCVector.hh"
+#include "NCrystal/internal/utils/NCRotMatrix.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

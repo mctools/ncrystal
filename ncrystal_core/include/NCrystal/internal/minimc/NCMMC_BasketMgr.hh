@@ -21,9 +21,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
-#include "NCrystal/NCSmallVector.hh"
-#include "NCrystal/internal/NCMMC_Defs.hh"
+#include "NCrystal/core/NCDefs.hh"
+#include "NCrystal/core/NCSmallVector.hh"
+#include "NCrystal/internal/minimc/NCMMC_Defs.hh"
 
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {

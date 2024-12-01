@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCEqRefl.hh"
+#include "NCrystal/internal/utils/NCEqRefl.hh"
 #include <string>
 #include <vector>
 #include <cstdlib>//std::abs

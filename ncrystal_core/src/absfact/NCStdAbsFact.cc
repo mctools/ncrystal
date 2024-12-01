@@ -18,9 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCFactImpl.hh"
-#include "NCrystal/internal/NCAbsOOV.hh"
-#include "NCrystal/internal/NCMath.hh"
+#include "NCrystal/factories/NCFactImpl.hh"
+#include "NCrystal/internal/absoov/NCAbsOOV.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
 
 namespace NC = NCrystal;
 

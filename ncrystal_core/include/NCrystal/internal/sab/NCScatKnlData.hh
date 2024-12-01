@@ -21,8 +21,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCSABData.hh"
-#include "NCrystal/internal/NCSpan.hh"
+#include "NCrystal/interfaces/NCSABData.hh"
+#include "NCrystal/internal/utils/NCSpan.hh"
 
 ///////////////////////////////////////////////////////////////////////////////////
 //                                                                               //

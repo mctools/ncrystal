@@ -18,35 +18,35 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/ncrystal.h"
-#include "NCrystal/NCRNG.hh"
-#include "NCrystal/NCMsgCtrl.hh"
-#include "NCrystal/internal/NCMsg.hh"
-#include "NCrystal/NCInfoBuilder.hh"
-#include "NCrystal/NCMatCfg.hh"
-#include "NCrystal/NCFactImpl.hh"
-#include "NCrystal/NCFact.hh"
-#include "NCrystal/NCPluginMgmt.hh"
-#include "NCrystal/NCDataSources.hh"
-#include "NCrystal/internal/NCDynInfoUtils.hh"
-#include "NCrystal/internal/NCPlaneProvider.hh"
-#include "NCrystal/NCDump.hh"
-#include "NCrystal/internal/NCMath.hh"
-#include "NCrystal/internal/NCString.hh"
-#include "NCrystal/internal/NCAtomUtils.hh"
-#include "NCrystal/internal/NCDebyeMSD.hh"
-#include "NCrystal/internal/NCLatticeUtils.hh"//TODO: might not be needed eventually
-#include "NCrystal/internal/NCEqRefl.hh"//TODO: might not be needed eventually
-#include "NCrystal/internal/NCAtomDB.hh"
-#include "NCrystal/internal/NCVDOSEval.hh"
-#include "NCrystal/internal/NCVDOSGn.hh"
-#include "NCrystal/internal/NCVDOSToScatKnl.hh"
-#include "NCrystal/internal/NCSABUtils.hh"
-#include "NCrystal/internal/NCABIUtils.hh"
-#include "NCrystal/NCFactThreads.hh"
+#include "NCrystal/cinterface/ncrystal.h"
+#include "NCrystal/interfaces/NCRNG.hh"
+#include "NCrystal/interfaces/NCMsgCtrl.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
+#include "NCrystal/infobld/NCInfoBuilder.hh"
+#include "NCrystal/factories/NCMatCfg.hh"
+#include "NCrystal/factories/NCFactImpl.hh"
+#include "NCrystal/factories/NCFact.hh"
+#include "NCrystal/factories/NCPluginMgmt.hh"
+#include "NCrystal/factories/NCDataSources.hh"
+#include "NCrystal/internal/dyninfoutils/NCDynInfoUtils.hh"
+#include "NCrystal/internal/extd_utils/NCPlaneProvider.hh"
+#include "NCrystal/tools/NCDump.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCAtomUtils.hh"
+#include "NCrystal/internal/utils/NCDebyeMSD.hh"
+#include "NCrystal/internal/utils/NCLatticeUtils.hh"//TODO: might not be needed eventually
+#include "NCrystal/internal/utils/NCEqRefl.hh"//TODO: might not be needed eventually
+#include "NCrystal/internal/atomdb/NCAtomDB.hh"
+#include "NCrystal/internal/vdos/NCVDOSEval.hh"
+#include "NCrystal/internal/vdos/NCVDOSGn.hh"
+#include "NCrystal/internal/vdos/NCVDOSToScatKnl.hh"
+#include "NCrystal/internal/sab/NCSABUtils.hh"
+#include "NCrystal/internal/extd_utils/NCABIUtils.hh"
+#include "NCrystal/threads/NCFactThreads.hh"
 
-#include "NCrystal/NCParseNCMAT.hh"
-#include "NCrystal/NCCompositionUtils.hh"
+#include "NCrystal/ncmat/NCParseNCMAT.hh"
+#include "NCrystal/misc/NCCompositionUtils.hh"
 #include <cstdio>
 #include <chrono>
 #include <sstream>
@@ -2276,11 +2276,11 @@ void ncrystal_setmsghandler(void (*handler)(const char*,unsigned))
   } NCCATCH;
 }
 
-#include "NCrystal/internal/NCMMC_RunSim.hh"
-#include "NCrystal/internal/NCMMC_Geom.hh"
-#include "NCrystal/internal/NCMMC_Source.hh"
-#include "NCrystal/internal/NCMMC_StdTallies.hh"
-#include "NCrystal/internal/NCMMC_StdEngine.hh"
+#include "NCrystal/internal/minimc/NCMMC_RunSim.hh"
+#include "NCrystal/internal/minimc/NCMMC_Geom.hh"
+#include "NCrystal/internal/minimc/NCMMC_Source.hh"
+#include "NCrystal/internal/minimc/NCMMC_StdTallies.hh"
+#include "NCrystal/internal/minimc/NCMMC_StdEngine.hh"
 
 namespace NCMMC = NCrystal::MiniMC;
 
@@ -2342,7 +2342,7 @@ void ncrystal_runmmcsim_stdengine( unsigned nthreads,
 
 }
 
-#include "NCrystal/NCVersion.hh"
+#include "NCrystal/interfaces/NCVersion.hh"
 
 const char * ncrystal_namespace(void)
 {

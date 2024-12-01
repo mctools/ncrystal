@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCMMC_BasketSrcFiller.hh"
+#include "NCrystal/internal/minimc/NCMMC_BasketSrcFiller.hh"
 
 namespace NC = NCrystal;
 namespace NCMMC = NCrystal::MiniMC;

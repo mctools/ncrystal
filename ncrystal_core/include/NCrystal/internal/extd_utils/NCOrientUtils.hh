@@ -21,8 +21,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCRotMatrix.hh"
-#include "NCrystal/NCSCOrientation.hh"
+#include "NCrystal/internal/utils/NCRotMatrix.hh"
+#include "NCrystal/interfaces/NCSCOrientation.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

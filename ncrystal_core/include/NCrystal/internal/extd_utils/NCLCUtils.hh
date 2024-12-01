@@ -21,10 +21,10 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
-#include "NCrystal/internal/NCGaussMos.hh"
-#include "NCrystal/internal/NCVector.hh"
-#include "NCrystal/NCTypes.hh"
+#include "NCrystal/core/NCDefs.hh"
+#include "NCrystal/internal/utils/NCGaussMos.hh"
+#include "NCrystal/internal/utils/NCVector.hh"
+#include "NCrystal/core/NCTypes.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

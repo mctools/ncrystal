@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDefs.hh"
+#include "NCrystal/core/NCDefs.hh"
 
 #ifndef NCRYSTAL_DISABLE_THREADS
 #  include <thread>

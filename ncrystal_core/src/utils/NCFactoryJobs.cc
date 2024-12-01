@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCFactoryJobs.hh"
+#include "NCrystal/internal/utils/NCFactoryJobs.hh"
 #ifndef NCRYSTAL_DISABLE_THREADS
 #  include <condition_variable>
 #  include <chrono>

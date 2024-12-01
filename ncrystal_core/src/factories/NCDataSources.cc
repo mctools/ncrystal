@@ -18,11 +18,11 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCDataSources.hh"
-#include "NCrystal/NCFactImpl.hh"
-#include "NCrystal/internal/NCString.hh"
-#include "NCrystal/internal/NCFileUtils.hh"
-#include "NCrystal/NCPluginMgmt.hh"
+#include "NCrystal/factories/NCDataSources.hh"
+#include "NCrystal/factories/NCFactImpl.hh"
+#include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCFileUtils.hh"
+#include "NCrystal/factories/NCPluginMgmt.hh"
 
 namespace NC = NCrystal;
 namespace NCD = NCrystal::DataSources;

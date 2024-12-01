@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCMMC_Geom.hh"
+#include "NCrystal/internal/minimc/NCMMC_Geom.hh"
 #include "NCMMC_Sphere.hh"
 #include "NCMMC_ParseCfg.hh"
 

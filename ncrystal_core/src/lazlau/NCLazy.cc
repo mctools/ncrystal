@@ -19,13 +19,13 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCLazy.hh"
-#include "NCrystal/internal/NCStrView.hh"
-#include "NCrystal/internal/NCLatticeUtils.hh"
-#include "NCrystal/internal/NCAtomUtils.hh"
-#include "NCrystal/internal/NCEqRefl.hh"
-#include "NCrystal/internal/NCMsg.hh"
-#include "NCrystal/internal/NCAtomDBExtender.hh"
-#include "NCrystal/NCInfoBuilder.hh"
+#include "NCrystal/internal/utils/NCStrView.hh"
+#include "NCrystal/internal/utils/NCLatticeUtils.hh"
+#include "NCrystal/internal/utils/NCAtomUtils.hh"
+#include "NCrystal/internal/utils/NCEqRefl.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
+#include "NCrystal/internal/atomdb/NCAtomDBExtender.hh"
+#include "NCrystal/infobld/NCInfoBuilder.hh"
 
 namespace NC = NCrystal;
 

@@ -22,7 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef NCrystal_Exception_hh
-#  include "NCrystal/NCException.hh"
+#  include "NCrystal/core/NCException.hh"
 #endif
 #include <memory>
 #include <type_traits>

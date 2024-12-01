@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCIter.hh"
-#include "NCrystal/internal/NCSpan.hh"
+#include "NCrystal/internal/utils/NCIter.hh"
+#include "NCrystal/internal/utils/NCSpan.hh"
 #include <iostream>
 #include <vector>
 #include <set>

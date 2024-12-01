@@ -19,14 +19,14 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCSCBragg.hh"
-#include "NCrystal/internal/NCGaussMos.hh"
-#include "NCrystal/internal/NCRandUtils.hh"
-#include "NCrystal/NCSCOrientation.hh"
-#include "NCrystal/internal/NCVector.hh"
-#include "NCrystal/internal/NCString.hh"
-#include "NCrystal/internal/NCOrientUtils.hh"
-#include "NCrystal/internal/NCPlaneProvider.hh"
+#include "NCrystal/internal/scbragg/NCSCBragg.hh"
+#include "NCrystal/internal/utils/NCGaussMos.hh"
+#include "NCrystal/internal/utils/NCRandUtils.hh"
+#include "NCrystal/interfaces/NCSCOrientation.hh"
+#include "NCrystal/internal/utils/NCVector.hh"
+#include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/extd_utils/NCOrientUtils.hh"
+#include "NCrystal/internal/extd_utils/NCPlaneProvider.hh"
 #include <functional>//std::greater
 namespace NC=NCrystal;
 

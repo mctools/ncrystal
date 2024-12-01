@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCDebyeMSD.hh"
+#include "NCrystal/internal/utils/NCDebyeMSD.hh"
 #include <iostream>
 
 int main(int,char**) {

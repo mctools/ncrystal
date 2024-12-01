@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCSABUtils.hh"
-#include "NCrystal/NCFmt.hh"
+#include "NCrystal/internal/sab/NCSABUtils.hh"
+#include "NCrystal/core/NCFmt.hh"
 #include <iostream>
 namespace NC = NCrystal;
 namespace NS = NC::SABUtils;

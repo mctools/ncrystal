@@ -18,10 +18,10 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/NCPCBragg.hh"
-#include "NCrystal/internal/NCMath.hh"
-#include "NCrystal/internal/NCRandUtils.hh"
-#include "NCrystal/internal/NCString.hh"
+#include "NCrystal/internal/pcbragg/NCPCBragg.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/utils/NCRandUtils.hh"
+#include "NCrystal/internal/utils/NCString.hh"
 #include <functional>//std::greater
 
 namespace NC = NCrystal;

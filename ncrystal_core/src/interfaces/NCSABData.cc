@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCSABData.hh"
+#include "NCrystal/interfaces/NCSABData.hh"
 namespace NC = NCrystal;
 
 

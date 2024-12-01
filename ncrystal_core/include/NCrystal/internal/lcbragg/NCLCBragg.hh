@@ -21,9 +21,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCProcImpl.hh"
-#include "NCrystal/NCSCOrientation.hh"
-#include "NCrystal/internal/NCVector.hh"
+#include "NCrystal/interfaces/NCProcImpl.hh"
+#include "NCrystal/interfaces/NCSCOrientation.hh"
+#include "NCrystal/internal/utils/NCVector.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 
