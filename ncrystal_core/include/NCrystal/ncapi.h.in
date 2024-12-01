@@ -34,17 +34,49 @@
 /******************************************************************************/
 
 
-/* First ensure the NCRYSTAL_NAMESPACE_PROTECTION is always hardwired in this */
-/* file, and never set via a compiler flag:                                   */
+/* First ensure the NCRYSTAL_NAMESPACE_PROTECTION and version numbers are     */
+/* always hardwired in this file, and never set via a compiler flag:          */
+
 #ifdef NCRYSTAL_NAMESPACE_PROTECTION
 #  undef NCRYSTAL_NAMESPACE_PROTECTION
 #endif
+#ifdef NCRYSTAL_VERSION_MAJOR
+#  undef NCRYSTAL_VERSION_MAJOR
+#endif
+#ifdef NCRYSTAL_VERSION_MINOR
+#  undef NCRYSTAL_VERSION_MINOR
+#endif
+#ifdef NCRYSTAL_VERSION_PATCH
+#  undef NCRYSTAL_VERSION_PATCH
+#endif
+#ifdef NCRYSTAL_VERSION
+#  undef NCRYSTAL_VERSION
+#endif
+#ifdef NCRYSTAL_VERSION_STR
+#  undef NCRYSTAL_VERSION_STR
+#endif
 
-/* Next, set a namespace if any. This can be done by manually editing this    */
-/* file and adding a line like "#define NCRYSTAL_NAMESPACE_PROTECTION foo",   */
-/* but it is usually better to let the NCrystal CMake code take care of this: */
+/* Next, the configuration system will set version numbers and a namespace if */
+/* any: */
 
-/* @NCRYSTAL_CMAKE_HOOK_FOR_ADDING_NAMESPACE@ */
+/* @NCRYSTAL_HOOK_FOR_ADDING_DEFINES@ */
+
+/* Fall-back, in case of unusual pre-processing: */
+#ifndef NCRYSTAL_VERSION_MAJOR
+#  define NCRYSTAL_VERSION_MAJOR 999
+#endif
+#ifndef NCRYSTAL_VERSION_MINOR
+#  define NCRYSTAL_VERSION_MINOR 999
+#endif
+#ifndef NCRYSTAL_VERSION_PATCH
+#  define NCRYSTAL_VERSION_PATCH 999
+#endif
+#ifndef NCRYSTAL_VERSION
+#  define NCRYSTAL_VERSION 999999999
+#endif
+#ifndef NCRYSTAL_VERSION_STR
+#  define NCRYSTAL_VERSION_STR "999.999.999"
+#endif
 
 #ifdef NCRYSTAL_API
 #  undef NCRYSTAL_API
