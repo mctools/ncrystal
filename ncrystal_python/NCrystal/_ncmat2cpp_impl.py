@@ -146,7 +146,7 @@ rest of the C++ library, and the enclosing function must be invoked.
                         help="""Name of C++ function used to register string objects with NCrystal.""")
     parser.add_argument("--include",nargs='+',type=str,action='append',
                         help="""One or more extra include statements for the top of the file. The file
-                                NCrystal/NCDefs.hh will always be included by default (prevent this by
+                                NCrystal/core/NCDefs.hh will always be included by default (prevent this by
                                 adding a special entry 'no-ncrystal-includes' to the list).""")
     parser.add_argument("--width",'-w',type=int,default=80,
                         help=("Wrap C++ code at this column width. Ignored"
@@ -228,7 +228,7 @@ def files2cppcode(infiles,
         extra_includes = [ e for e in extra_includes
                            if e!='no-ncrystal-includes' ]
     else:
-        extra_includes.insert(0,'NCrystal/NCDefs.hh')
+        extra_includes.insert(0,'NCrystal/core/NCDefs.hh')
 
     for inc in extra_includes:
         if inc.startswith('#include'):
