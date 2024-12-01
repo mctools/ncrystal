@@ -24,7 +24,7 @@
 // project.
 #  define NCRYSTAL_PRETEND_EXPORTS
 #endif
-#include "NCrystal/internal/NCCFileUtils.hh"
+#include "NCrystal/internal/utils/NCCFileUtils.hh"
 
 #include "NCTestUtils/NCTestModUtils.hh"
 #include <cstring>

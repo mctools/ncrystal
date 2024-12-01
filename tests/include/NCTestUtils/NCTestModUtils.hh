@@ -55,7 +55,7 @@ namespace nctest {
 #define NCTEST_CTYPE_DICTIONARY NCTEST_CTYPES const char * nctest_ctypes_dictionary()
 
 #ifndef NCTESTMODUTILS_NO_NCRYSTAL_INCLUDE
-#  include "NCrystal/NCDefs.hh"
+#  include "NCrystal/core/NCDefs.hh"
 namespace NC = NCrystal;
 #endif
 

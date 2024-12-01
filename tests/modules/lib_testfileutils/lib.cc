@@ -20,7 +20,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCTestUtils/NCTestModUtils.hh"
-#include "NCrystal/internal/NCFileUtils.hh"
+#include "NCrystal/internal/utils/NCFileUtils.hh"
 #include <cstring>
 
 NCTEST_CTYPE_DICTIONARY
