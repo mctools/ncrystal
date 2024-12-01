@@ -9,7 +9,9 @@ _site
 #node_modules
 #package.json
 
+devel/simplebuild/simplebuild_cache/
 devel/simplebuild/autogen/
+
 ncrystal_python/ncrystal_python.egg-info/
 ncrystal_python/build/
 ncrystal_python/dist/
