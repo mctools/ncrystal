@@ -31,6 +31,8 @@ def chmod_x( path ):
 class LinkFile:
     #A file which is actually a symlink to another file
     def __init__( self, real_path, name = None ):
+        if not real_path.is_file():
+            raise RuntimeError(f'File not found: {real_path}')
         self.__name = name or real_path.name
         self.__path = real_path
 

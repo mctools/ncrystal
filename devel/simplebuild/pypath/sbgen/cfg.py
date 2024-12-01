@@ -25,9 +25,16 @@ class Cfg:
     def ncrystal_namespace(self):
         return 'dev'
 
+    def sbpkgname_ncrystal_comp(self, compname):
+        return 'NC%s'%compname
+
     @property
     def sbpkgname_ncrystal_lib(self):
-        return 'NCLib'
+        return self.sbpkgname_ncrystal_comp('cinterface')
+
+    @property
+    def sbpkgname_ncrystal_lib(self):
+        return self.sbpkgname_ncrystal_comp('cinterface')
 
     @property
     def sbpkgname_ncrystal_data(self):
@@ -39,7 +46,7 @@ class Cfg:
 
     @property
     def sbpkgname_ncrystal_cli(self):
-        return 'NCTools'
+        return 'NCCmd'
 
     @property
     def sbpkgname_ncrystal_examples(self):

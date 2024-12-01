@@ -40,8 +40,8 @@ def create_pkginfo( pkgname,
     add_file( f'pkgs/{pkgname}/pkg.info', content = f'package({c})\n' )
 
 def ncapi_contents():
-    c = dirs.srcroot.joinpath('include/NCrystal/ncapi.h').read_text()
-    c = c.replace('/* @NCRYSTAL_CMAKE_HOOK_FOR_ADDING_NAMESPACE@ */',
+    c = dirs.srcroot.joinpath('include/NCrystal/ncapi.h.in').read_text()
+    c = c.replace('/* @NCRYSTAL_HOOK_FOR_ADDING_DEFINES@ */',
 f"""
 #define NCRYSTAL_NAMESPACE_PROTECTION {cfg.ncrystal_namespace}
 #define NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
@@ -121,10 +121,23 @@ def define_files():
 
     #TODO: Wrap <reporoot>/tests as well.
 
+    #TODO: Absorb NCVersion into ncapi.h and NCDefs.hh (that way we can also
+    #avoid versions hardcoded in both NCVersion.hh and ncrystal.h, and the
+    #CMakeLists.txt files, and have just the version in VERSION +
+    #ncrystal_python/NCrystal/__init__.py. Idea: we could even avoid the latter
+    #if we make the sdists for ncrystal_python dynamically, (but also generate
+    #the pyproject.toml for them).
+
+    #TODO: Also autogenerate NCrystal.hh, adding all public includes? Problem
+    #is, we need both python and cmake code for it. Might be easier with a
+    #static one + a standalone test that verifies we did not forget anything.
+
     from . import dirs
 
     #NCrystal headers:
     add_file( 'extraincpath/NCrystal/ncapi.h', content=ncapi_contents() )
+    #FIXME: One custom extdep per pkg, and in an extraincpath, so we enforce the
+    #deps to be correct.
     create_custom_extdep( 'NCDevHeaders',
                           cflags = (f'-I{dirs.genroot}/extraincpath '
                                     f'-I{dirs.srcroot}/include '
@@ -132,13 +145,29 @@ def define_files():
                                     '-fno-math-errno') )
 
     #NCrystal source file compilation:
-    create_pkginfo( cfg.sbpkgname_ncrystal_lib,
-                    extdeps = ['DL','NCDevHeaders'],
-                    extra_cflags = [f'-I{dirs.srcroot}/src',
-                                    f'-DNCRYSTAL_DATADIR={dirs.datadir}'] )
-    for sf in (dirs.srcroot/'src').glob('*c'):
-        add_file( f'pkgs/{cfg.sbpkgname_ncrystal_lib}/libsrc/{sf.name}',
-                  link_target = sf )
+    from .ncrystalsrc import load_components
+    name2comp = load_components()
+    for name,comp in sorted(name2comp.items()):
+        #TODO: comp.srcdir_hdrs, comp.srcfiles
+        sbpkgname = cfg.sbpkgname_ncrystal_comp(name)
+        create_pkginfo( sbpkgname,
+                        extdeps = ['DL','NCDevHeaders'],#FIXME: DL only for comp factories
+                        pkg_deps = [ cfg.sbpkgname_ncrystal_comp(n)
+                                     for n in comp.direct_depnames ],
+                        extra_cflags = [f'-I{dirs.srcroot}/src',
+                                        f'-DNCRYSTAL_DATADIR={dirs.datadir}'] )#Fixme NCRYSTAL_DATADIR also only for factories
+        for sf in (comp.srcdir_hdrs+comp.srcfiles):
+            add_file( f'pkgs/{sbpkgname}/libsrc/{sf.name}', link_target = sf )
+
+
+
+    #create_pkginfo( cfg.sbpkgname_ncrystal_lib,
+    #                extdeps = ['DL','NCDevHeaders'],
+    #                extra_cflags = [f'-I{dirs.srcroot}/src',
+    #                                f'-DNCRYSTAL_DATADIR={dirs.datadir}'] )
+    #for sf in (dirs.srcroot/'src').glob('*c'):
+    #    add_file( f'pkgs/{cfg.sbpkgname_ncrystal_lib}/libsrc/{sf.name}',
+    #              link_target = sf )
 
     #NCrystalDev package (python module):
     create_pkginfo( 'NCrystalDev',pkg_deps=[cfg.sbpkgname_ncrystal_lib])
@@ -147,7 +176,7 @@ def define_files():
     add_file( 'pkgs/NCrystalDev/python/_is_sblddevel.py', content='' )
 
     #Commandline scripts:
-    create_pkginfo( 'NCTools', pkg_deps=['NCrystalDev'])
+    create_pkginfo( cfg.sbpkgname_ncrystal_cli, pkg_deps=['NCrystalDev'])
     for sf in (dirs.pysrcroot/'NCrystal').glob('_cli_*.py'):
         cliname = sf.name[len('_cli_'):-len('.py')]
         sbscriptname = 'tool' if cliname == 'nctool' else cliname
@@ -155,17 +184,17 @@ def define_files():
 import NCrystalDev.{sf.name} as mod
 mod.main()
 """
-        add_file( f'pkgs/NCTools/scripts/{sbscriptname}',
+        add_file( f'pkgs/{cfg.sbpkgname_ncrystal_cli}/scripts/{sbscriptname}',
                   content=content,
                   make_executable = True)
-    for subpath,fn in [('include/NCrystal/internal/NCCFileUtils.hh',
+    for subpath,fn in [('include/NCrystal/internal/utils/NCCFileUtils.hh',
                         'NCCFileUtils.h'),
-                       ('src/NCCFileUtils.cc','NCCFileUtils.c'),
+                       ('src/utils/NCCFileUtils.cc','NCCFileUtils.c'),
                        ('app_config/main.c','main.c')]:
         sf = dirs.srcroot / subpath
-        add_file( f'pkgs/NCTools/app_config/{fn}',
+        add_file( f'pkgs/{cfg.sbpkgname_ncrystal_cli}/app_config/{fn}',
                   link_target = sf )
-    add_file( 'pkgs/NCTools/app_config/ncconfig_autogen.h',
+    add_file( f'pkgs/{cfg.sbpkgname_ncrystal_cli}/app_config/ncconfig_autogen.h',
               content = ncconfig_h_contents() )
 
     #Data files (even though NCLib already knows the path via a define):
