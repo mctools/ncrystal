@@ -314,49 +314,27 @@ file_globsrc( SRCS_NC "src/*.cc")
 file_globsrc( HDRS_NCG4 "ncrystal_geant4/include/G4NCrystal/*.*")
 file_globsrc( SRCS_NCG4 "ncrystal_geant4/src/*.cc")
 
-#The ncapi.h header needs expansion of CMake variables, so we copy ALL header
-#files to a temporary directory and edit just that one file:
-#FIXME: Try to include in-place (apart from ncapi.h)
-set( ncrystal_core_configured_includedir "${PROJECT_BINARY_DIR}/ncrystal_core_include_configured" )
-file( MAKE_DIRECTORY "${ncrystal_core_configured_includedir}" )
 
-#TODO: The trailing "/" on "include/" below is crucial. Is this behaviour portable?
+include( "ncrystal_ncapi" )
+nccfgapp_create_ncapi_h( ncapi_include_path )
 
-file(
-  COPY "include/"
-  DESTINATION "${ncrystal_core_configured_includedir}"
-  FILES_MATCHING
-  PATTERN "*.h"
-  PATTERN "*.hh"
+# Detect available NCrystal components and how they depend on each other,
+# placing results in "ncpkg_*" variables. It also installs core header files and
+# sets up properties on the source files:
+include( "ncrystal_coresrc" )
+ncrystal_process_core_srcfiles()
+
+#We must additionally install a few special include files (ncapi.h, ncrystal.h,
+#NCrystal.hh):
+
+ncinstall(
+  FILES
+  "${ncapi_include_path}/NCrystal/ncapi.h"
+  "${PROJECT_SOURCE_DIR}/include/NCrystal/ncrystal.h" #redirects to cinterface/ncrystal.h
+  "${PROJECT_SOURCE_DIR}/include/NCrystal/NCrystal.hh" #includes all public non-C headers
+  DESTINATION
+  "${NCrystal_INCDIR}/NCrystal"
 )
-if ( NOT EXISTS "${ncrystal_core_configured_includedir}/NCrystal/NCDefs.hh"
-     OR NOT EXISTS "${ncrystal_core_configured_includedir}/NCrystal/internal/NCMath.hh" )
-  message( FATAL_ERROR "Problems copying over include files" )
-endif()
-file( RENAME
-  "${ncrystal_core_configured_includedir}/NCrystal/ncapi.h"
-  "${ncrystal_core_configured_includedir}/NCrystal/ncapi.h.in"
-  )
-if ( NCRYSTAL_NAMESPACE )
-  set( NCRYSTAL_CMAKE_HOOK_FOR_ADDING_NAMESPACE
-    " -- CMake definitions begin -- */\n#define NCRYSTAL_NAMESPACE_PROTECTION ${NCRYSTAL_NAMESPACE}\n/* -- CMake definitions end --" )
-else()
-  set( NCRYSTAL_CMAKE_HOOK_FOR_ADDING_NAMESPACE
-    " -- No definitions added by CMake -- " )
-endif()
-configure_file(
-  "${ncrystal_core_configured_includedir}/NCrystal/ncapi.h.in"
-  "${ncrystal_core_configured_includedir}/NCrystal/ncapi.h"
-  @ONLY
-)
-
-file_glob( HDRS_NC "${ncrystal_core_configured_includedir}/NCrystal/*.hh" )
-file_glob( HDRS_INTERNAL_NC "${ncrystal_core_configured_includedir}/NCrystal/internal/*.hh" )
-file_glob( tmp "${ncrystal_core_configured_includedir}/NCrystal/*.h" )
-list( APPEND HDRS_NC ${tmp} )
-if ( NOT HDRS_NC OR NOT HDRS_INTERNAL_NC )
-  message( FATAL_ERROR "Unexpected problem globbing for header files in ${ncrystal_core_configured_includedir}/" )
-endif()
 
 include(CheckCXXCompilerFlag)
 
@@ -451,7 +429,7 @@ if ( NOT NCRYSTAL_ENABLE_THREADS STREQUAL "OFF" )
 endif()
 
 #NCrystal library and header files, including optional built-in modules if enabled:
-add_library( NCrystal SHARED ${SRCS_NC} )
+add_library( NCrystal SHARED ${ncpkg_all_ncrystal_lib_srcfiles} )
 
 #Make sure client code will use at least c++11:
 target_compile_features( NCrystal INTERFACE cxx_std_11 )
@@ -506,9 +484,12 @@ endif()
 set_target_common_props( NCrystal )
 target_link_libraries( NCrystal PRIVATE ncrystal_common )
 target_include_directories(
-  NCrystal PRIVATE "${PROJECT_SOURCE_DIR}/src"
-  PUBLIC $<BUILD_INTERFACE:${ncrystal_core_configured_includedir}>
-         $<INSTALL_INTERFACE:${NCrystal_INCDIR}>
+  NCrystal
+  PRIVATE "${PROJECT_SOURCE_DIR}/src"
+  PUBLIC
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${ncapi_include_path}>
+  $<INSTALL_INTERFACE:${NCrystal_INCDIR}>
 )
 
 #Make sure we link in math functions correctly (typically the linker needs libm on unix, but nothing on Windows).
@@ -627,9 +608,6 @@ ncinstall(
   ARCHIVE DESTINATION ${NCrystal_LIBDIR}
   LIBRARY DESTINATION ${NCrystal_LIBDIR}
 )
-
-ncinstall(FILES ${HDRS_NC} DESTINATION ${NCrystal_INCDIR}/NCrystal)
-ncinstall(FILES ${HDRS_INTERNAL_NC} DESTINATION ${NCrystal_INCDIR}/NCrystal/internal)
 
 #Examples:
 if ( NCRYSTAL_ENABLE_EXAMPLES )
@@ -908,7 +886,7 @@ if ( DEFINED SKBUILD_PROJECT_NAME )
 endif()
 
 if ( NCRYSTAL_ENABLE_CFGAPP )
-  include( ncrystal_nccfgapp )
+  include( "ncrystal_nccfgapp" )
   create_ncrystal_config_app( ${nccfg_expects_shlibdir_override} )
 endif()
 

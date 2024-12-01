@@ -93,12 +93,12 @@ function( create_ncrystal_config_app expects_shlibdir_override )
     "${expects_shlibdir_override}"
   )
   configure_file(
-    "${PROJECT_SOURCE_DIR}/include/NCrystal/internal/NCCFileUtils.hh"
+    "${PROJECT_SOURCE_DIR}/include/NCrystal/internal/utils/NCCFileUtils.hh"
     "${workdir}/include/NCCFileUtils.h"
     COPYONLY
   )
   configure_file(
-    "${PROJECT_SOURCE_DIR}/src/NCCFileUtils.cc"
+    "${PROJECT_SOURCE_DIR}/src/utils/NCCFileUtils.cc"
     "${workdir}/NCCFileUtils.c"
     COPYONLY
   )
