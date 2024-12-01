@@ -1184,26 +1184,6 @@ extern "C" {
   NCRYSTAL_API void ncrystal_dealloc_doubleptr( double* );
 
   /* NCrystal version info:                                                        */
-#ifdef NCRYSTAL_VERSION_MAJOR
-#  undef NCRYSTAL_VERSION_MAJOR
-#endif
-#ifdef NCRYSTAL_VERSION_MINOR
-#  undef NCRYSTAL_VERSION_MINOR
-#endif
-#ifdef NCRYSTAL_VERSION_PATCH
-#  undef NCRYSTAL_VERSION_PATCH
-#endif
-#ifdef NCRYSTAL_VERSION
-#  undef NCRYSTAL_VERSION
-#endif
-#ifdef NCRYSTAL_VERSION_STR
-#  undef NCRYSTAL_VERSION_STR
-#endif
-#define NCRYSTAL_VERSION_MAJOR 3
-#define NCRYSTAL_VERSION_MINOR 9
-#define NCRYSTAL_VERSION_PATCH 7
-#define NCRYSTAL_VERSION   3009007 /* (1000000*MAJOR+1000*MINOR+PATCH)             */
-#define NCRYSTAL_VERSION_STR "3.9.7"
   NCRYSTAL_API int ncrystal_version(void); /* returns NCRYSTAL_VERSION                  */
   NCRYSTAL_API const char * ncrystal_version_str(void); /* returns NCRYSTAL_VERSION_STR */
 
