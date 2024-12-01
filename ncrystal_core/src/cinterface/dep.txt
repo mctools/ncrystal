@@ -1,0 +1,7 @@
+atomdb
+dyninfoutils
+extd_utils
+minimc
+misc
+ncmat
+tools
