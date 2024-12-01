@@ -23,9 +23,10 @@
 import sys
 import pathlib
 sys.path.insert(0,str(pathlib.Path(__file__).parent/'../pypath'))
-import common
+import common.toml
+import common.dirs
 
-if not common.can_parse_toml():
+if not common.toml.can_parse_toml():
     #Acceptable simplification to simply abort, since already we mostly have
     #python >=3.11 in dev envs, and CI certainly will catch it with python
     #>=3.11 somewhere.
@@ -33,7 +34,7 @@ if not common.can_parse_toml():
     raise SystemExit(0)
 
 def load_data(subpath):
-    d = common.parse_toml(common.reporoot / subpath)
+    d = common.toml.parse_toml(common.dirs.reporoot / subpath)
     #sneak in the source location:
     assert '__file__' not in d
     d['__srcloc__'] = subpath
@@ -144,7 +145,7 @@ def _check_project_scripts_impl( data, *, cli_scripts, extra ):
     from_toml = data['project']['scripts']
     expected = dict( e for e in extra )
     if cli_scripts:
-        for f in (common.reporoot
+        for f in (common.dirs.reporoot
                   / 'ncrystal_python/NCrystal').glob('_cli_*.py'):
             bn = f.name[:-3]
             n = bn[5:]

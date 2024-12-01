@@ -23,49 +23,8 @@
 import sys
 import pathlib
 sys.path.insert(0,str(pathlib.Path(__file__).parent/'../pypath'))
-import common.toml
-import common.dirs
+import common.ncrystalsrc
 
-def get_py_version( path ):
-    import ast
-    t = ( path ).read_text()
-    for line in t.splitlines():
-        if line.startswith('__version__'):
-            var,val = line.split('=')
-            assert var.rstrip()=='__version__'
-            return ast.literal_eval(val.strip())
-
-def get_toml_version( path ):
-    assert path.name == 'pyproject.toml'
-    return common.toml.parse_toml( path )['project']['version']
-
-def check_versions():
-    root = common.dirs.reporoot
-    versions = [
-        ( get_py_version, 'ncrystal_python/NCrystal/__init__.py' ),
-        ( get_toml_version, 'pyproject.toml' ),
-        ( get_toml_version, 'ncrystal_core/pyproject.toml' ),
-    ]
-
-    versions_found = []
-    subpathmaxlen = max(len(subpath) for fct, subpath in versions)
-
-    print("Extracted versions:")
-    for fct, subpath in versions:
-        v = fct( root / subpath )
-        print(f"   {subpath.ljust(subpathmaxlen)} : {v}")
-        versions_found.append(v)
-
-    if len(set(versions_found)) == 1:
-        print("All OK!")
-    else:
-        raise SystemExit('ERROR: Inconsistencies detected')
-
-    #TODO: ncrystal_core/CMakeLists.txt
-    #TODO: ncrystal_core/include/NCrystal/NCVersion.hh
-    #TODO: ncrystal_core/include/NCrystal/ncrystal.h
-    #TODO: Git describe! (if .git present)
-
-if __name__=='__main__':
-    check_versions()
-
+name2comp = common.ncrystalsrc.load_components()
+for n,c in sorted(name2comp.items()):
+    print(n,c.depnames)

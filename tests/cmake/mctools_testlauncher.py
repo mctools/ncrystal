@@ -133,7 +133,7 @@ Unix commands to diff and update:
 
     colordiff -y {qp(reflogfile)} {qp(newout)} | less -r
     diff {qp(reflogfile)} {qp(newout)}
-    cp {qp(reflogfile)} {qp(newout)}
+    cp {qp(newout)} {qp(reflogfile)}
 
 """)
 
