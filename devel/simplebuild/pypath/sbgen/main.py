@@ -41,6 +41,8 @@ def create_pkginfo( pkgname,
 
 def ncapi_contents():
     c = dirs.srcroot.joinpath('include/NCrystal/ncapi.h.in').read_text()
+    #NOTE: NCRYSTAL_NAMESPACED_ENVVARS since we also add
+    #_do_namespace_envvars.py below!!
     c = c.replace('/* @NCRYSTAL_HOOK_FOR_ADDING_DEFINES@ */',
 f"""
 #define NCRYSTAL_NAMESPACE_PROTECTION {cfg.ncrystal_namespace}
@@ -196,6 +198,10 @@ def define_files():
     #Special marker used by _locatelib.py:
     add_file( 'pkgs/NCrystalDev/python/_is_sblddevel.py', content='' )
 
+    #We added '#define NCRYSTAL_NAMESPACED_ENVVARS' in ncapi.h, so we also let
+    #the python layer know:
+    add_file( 'pkgs/NCrystalDev/python/_do_namespace_envvars.py', content='' )
+
     #Commandline scripts:
     create_pkginfo( cfg.sbpkgname_ncrystal_cli, pkg_deps=['NCrystalDev'])
     for sf in (dirs.pysrcroot/'NCrystal').glob('_cli_*.py'):
@@ -271,7 +277,6 @@ mod.main()
     add_compiled_examples( example_src_g4,
                            cfg.sbpkgname_ncrystal_geant4,
                            override_name = 'example' )
-
 
 def main():
     define_files()

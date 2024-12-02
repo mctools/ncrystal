@@ -31,8 +31,6 @@ def chmod_x( path ):
 class LinkFile:
     #A file which is actually a symlink to another file
     def __init__( self, real_path, name = None ):
-        if not real_path.is_file():
-            raise RuntimeError(f'File not found: {real_path}')
         self.__name = name or real_path.name
         self.__path = real_path
 
@@ -41,6 +39,8 @@ class LinkFile:
         return self.__name
 
     def create_in_dir( self, dir_path ):
+        if not self.__path.is_file():
+            raise RuntimeError(f'File not found: {real_path}')
         f = dir_path.joinpath(self.__name)
         if f.is_file():
             #Check if already valid:
@@ -122,6 +122,7 @@ def add_file( *a, **kw ):
     return f
 
 def create_files():
+    #First remove anything that disappared:
     import shutil
     flist = set()
     for f in all_files:
@@ -145,7 +146,7 @@ def create_files():
             else:
                 print( "Removing directory:",f)
                 shutil.rmtree(f)
-
+    #Now create all the necessary files, dirs, and symlinks:
     for f in all_files:
         f.create()
 

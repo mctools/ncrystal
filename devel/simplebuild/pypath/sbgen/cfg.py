@@ -30,7 +30,7 @@ class Cfg:
     #    return 'NC%s'%compname
 
     def sbpkgname_ncrystal_comp(self, compname):
-        orig="""NCAbsFact  NCBkgdExtCurve  NCCore          NCElIncScatter  NCFactories      NCFreeGas  NCInterfaces  NCPCBragg    NCScatFact  NCTools
+        orig="""NCAbsFact  NCBkgdExtCurve  NCCore          NCElIncScatter  NCFactories      NCFreeGas  NCInterfaces  NCPCBragg    NCScatFact  NCDump
 NCAbsOOV   NCCfgUtils      NCData          NCExperimental  NCFactory_Laz    NCGasMix   NCLCBragg     NCPubUtils   NCSAB         NCSCBragg   NCUtils
 NCAtomDB   NCCInterface    NCDynInfoUtils  NCExtdUtils     NCFactory_NCMAT  NCInfoBld  NCMiniMC      NCQuickFact  NCSABScatter  NCThreads   NCVDOS"""
         guess = dict( (e[2:].lower(),e) for e in orig.split() )
