@@ -316,8 +316,10 @@ namespace NCRYSTAL_NAMESPACE {
       nc_assert(!startswith(v,"NCRYSTAL_"));//common mistake
       GetEnvResult res;
 #if defined(NCRYSTAL_NAMESPACE_PROTECTION) && defined( NCRYSTAL_NAMESPACED_ENVVARS )
-      res.varname = ncrystal_xstr(NCRYSTAL_NAMESPACE_PROTECTION);
-      res.varname = upperCase( res.varname );
+      res.varname.reserve( 64 );
+      res.varname = "NCRYSTAL";
+      res.varname += upperCase(ncrystal_xstr(NCRYSTAL_NAMESPACE_PROTECTION));
+      res.varname += '_';
 #else
       res.varname = "NCRYSTAL_";
 #endif
