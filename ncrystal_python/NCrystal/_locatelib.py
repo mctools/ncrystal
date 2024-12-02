@@ -82,13 +82,16 @@ def _search():
     #
     #  3) Invoke "ncrystal-config --show libpath namespace" for the information.
     #
+    #  If simplebuild devel mode we allow env var overrides, but apart from that
+    #  always go straight to the ncrystal-config method.
 
-    #always invoke _detect_monolithic_installation() since it also detects
-    #broken installations.
+    # Always invoke _detect_monolithic_installation() since it also detects
+    # broken installations.
     verbose = False#fixme
     if verbose:
         from ._common import print
-        print('NCrystal._locatelib: Starting search for NCrystal shared library')
+        print('NCrystal._locatelib: Starting search for'
+              ' NCrystal shared library')
     is_monolithic = _detect_monolithic_installation()
     if verbose:
         print('NCrystal._locatelib: monolithic installation'
@@ -98,13 +101,18 @@ def _search():
     if verbose and v:
         print('NCrystal._locatelib: Succesfully searched via method: env vars')
 
-    if not v:
+    is_simplebuild_devel = ( pathlib.Path(__file__).parent
+                             .joinpath('_is_sblddevel.py').is_file() )
+
+    if not v and not is_simplebuild_devel:
         v = _search_core_info_mod( is_monolithic )
         if verbose and v:
             print('NCrystal._locatelib: Succesfully searched via method: pymod')
 
     if not v:
-        v = _search_nccfgapp()
+        v = _search_nccfgapp( 'sb_nccmd_config'
+                              if is_simplebuild_devel
+                              else 'ncrystal-config' )
         if verbose and v:
             print('NCrystal._locatelib: Succesfully searched'
                   ' via method: ncrystal-config')
@@ -181,10 +189,9 @@ def _search_core_info_mod( is_monolithic ):
     if mod:
         return mod.libpath(), mod.namespace(), mod.version()
 
-def _search_nccfgapp():
+def _search_nccfgapp( cmdname ):
     #Try to query ncrystal-config script:
     import subprocess
-    cmdname='ncrystal-config'
     res = subprocess.run([cmdname,'--show','shlibpath','namespace','version'],
                          capture_output=True)
     if res.returncode == 0:
