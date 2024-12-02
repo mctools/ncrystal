@@ -54,6 +54,11 @@ f"""
 #define NCRYSTAL_VERSION_PATCH {cfg.ncrystal_version_patch}
 #define NCRYSTAL_VERSION_STR "{cfg.ncrystal_version_str}"
 #define NCRYSTAL_VERSION {cfg.ncrystal_version_int}
+#ifndef NDEBUG
+// Specifically test aligned allocs in simplebuild debug mode:
+#  define NCRYSTAL_TRACKALIGNEDALLOC
+#endif
+
 """)
     return c
 
