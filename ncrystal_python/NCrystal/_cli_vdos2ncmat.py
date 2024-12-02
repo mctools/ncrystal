@@ -113,12 +113,15 @@ spectrum into format which is ready for inclusion in .ncmat files.
                         output file but print vdos_egrid and vdos_density lines
                         to stdout (for scripting)"""))
 
+    from ._common import expand_envname
+    dpienvvar = expand_envname('DPI')
     dpi_default=200
     parser.add_argument('--dpi', default=-1,type=int,
-                        help=wrap("""Change plot resolution. Set to 0 to leave
-                        matplotlib defaults alone.  (default value is %i, or
-                        whatever the NCRYSTAL_DPI
-                        env var is set to)."""%dpi_default))
+                        help=wrap(f"""Change plot resolution. Set to 0 to leave
+                        matplotlib defaults alone.  (default value is
+                        {dpi_default}, or whatever the {dpienvvar} env var is
+                        set to)."""))
+
     if return_parser:
         return parser
     args = parser.parse_args(arglist)
@@ -126,23 +129,11 @@ spectrum into format which is ready for inclusion in .ncmat files.
     if args.forceregular is None:
         parser.error('Missing argument (number of points) to --forceregular.')
 
-    if args.dpi>3000:
-        parser.error('Too high DPI value requested.')
     if args.dpi==-1:
-        import os
-        _=os.environ.get('NCRYSTAL_DPI',None)
-        if _:
-            try:
-                _=int(_)
-                if _<0:
-                    raise ValueError
-            except ValueError:
-                raise RuntimeError("ERROR: NCRYSTAL_DPI environment variable must be set to integer >=0")
-            if _>3000:
-                parser.error('Too high DPI value requested via NCRYSTAL_DPI environment variable.')
-            args.dpi=_
-        else:
-            args.dpi=dpi_default
+        from ._common import ncgetenv_int_nonneg
+        args.dpi = ncgetenv_int_nonneg('DPI',dpi_default)
+    if args.dpi > 3000:
+        parser.error('Too high DPI value requested.')
 
     if args.ref:
         args.ref = [item for sublist in args.ref for item in sublist]

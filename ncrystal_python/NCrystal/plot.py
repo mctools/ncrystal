@@ -425,9 +425,9 @@ def _plt_final(do_grid,
 _fakepyplot_mode_cache = [None]
 def _fakepyplot_mode():
     if _fakepyplot_mode_cache[0] is None:
-        import os
-        _ = os.environ.get('NCRYSTAL_FAKEPYPLOT')
-        if not _:
+        from ._common import ncgetenv
+        _ = ncgetenv('FAKEPYPLOT','')
+        if not _ or _=='0':
             res = False
         else:
             res = 'log_and_plot' if ( _ == 'log' ) else 'log_and_block'

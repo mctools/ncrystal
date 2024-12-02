@@ -218,8 +218,10 @@ def anytextdata_init( data, *, is_path, name ):
         raise NCBadInput('Invalid text data / text file data (got type %s)'%type(data))
     is_path = is_path if ( is_path is not None ) else ( '\n' not in data )
     if is_path:
-        import pathlib
-        p = pathlib.Path ( data )
+        from ._common import _lookup_existing_file
+        p = _lookup_existing_file( data )
+        if not p:
+            raise NCBadInput(f'Path not found: {data}')
         res_name = name or p.name
         res_content = p.read_text()
     else:

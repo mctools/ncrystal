@@ -158,6 +158,8 @@ def _search():
 
 def _search_env_overrides():
     import os
+    #NB: These two can NOT be namespaced. E.g. it will always be NCRYSTAL_LIB,
+    #and never e.g. NCRYSTAL<namespacehere>_LIB:
     lib = os.environ.get('NCRYSTAL_LIB')
     ns = os.environ.get('NCRYSTAL_LIB_NAMESPACE_PROTECTION','')
     if lib:

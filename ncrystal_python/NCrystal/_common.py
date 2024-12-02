@@ -41,6 +41,71 @@ def set_ncrystal_print_fct( fct ):
 def get_ncrystal_print_fct():
     return _stdprint[0]
 
+_cache_ns = [None]
+def get_namespace():
+    if _cache_ns[0] is None:
+        from ._locatelib import get_libpath_and_namespace as f
+        _p,_ns = f()
+        _cache_ns[0] = _ns
+    return _cache_ns[0]
+
+_cache_nsev = [None]
+def has_namespaced_envvars():
+    if _cache_nsev[0] is None:
+        import pathlib
+        _cache_nsev[0] = ( pathlib.Path(__file__).parent
+                           .joinpath('_do_namespace_envvars.py').is_file() )
+    return _cache_nsev[0]
+
+def expand_envname( name ):
+    assert not name.startswith('NCRYSTAL_')#common mistake
+    if has_namespaced_envvars():
+        return 'NCRYSTAL' + get_namespace().upper()+'_' + name
+    else:
+        return 'NCRYSTAL_' + name
+
+def ncgetenv( name, defval = None ):
+    import os
+    return os.environ.get( expand_envname(name), defval )
+
+def ncgetenv_bool( name ):
+    v = ncgetenv( name )
+    if v is None or v=='0':
+        return False
+    return True
+
+def ncgetenv_int( name, defval ):
+    assert isinstance( defval, int)
+    v = ncgetenv( name )
+    if v is None:
+        return defval
+    try:
+        v=int(v)
+    except ValueError:
+        n = expand_envname( name )
+        raise ValueError(f"ERROR: {n} environment variable must"
+                         " be integral value if set")
+    return v
+
+def ncgetenv_int_nonneg( name, defval ):
+    assert isinstance( defval, int) and defval >= 0
+    v = ncgetenv_int( name, defval )
+    if v < 0:
+        n = expand_envname( name )
+        raise ValueError(f"ERROR: {n} environment variable must"
+                         " be non-negative value if set")
+    return v
+
+def ncsetenv( name, val ):
+    import os
+    assert not name.startswith('NCRYSTAL_')#common mistake
+    varname = 'NCRYSTAL' + get_namespace().upper()+'_' + name
+    if val is None:
+        if varname in os.environ:
+            del os.environ[varname]
+    else:
+        os.environ[varname] = str(val)
+
 class modify_ncrystal_print_fct_ctxmgr:
     """Context manager for modifying the print function (for instance to block
     output temporarily)"""
@@ -349,6 +414,9 @@ def extract_path( s ):
     if hasattr( s, '__fspath__' ):
         return pathlib.Path(s)
     if isinstance( s, str ) and '\n' not in s:
+        res_try = _lookup_existing_file(s)
+        if res_try:
+            return res_try
         return pathlib.Path(s)
 
 def download_url( url, decode_as_utf8_str = True, wrap_exception = True ):
@@ -406,3 +474,25 @@ def write_text( path, content ):
                                   encoding = 'utf8',
                                   newline='\n' ) as fh:
         fh.write(content)
+
+def _lookup_existing_file( path ):
+    """Will wrap in pathlib.Path, except in simplebuild development mode where
+    it will try $SBLD_DATA_DIR/+path when the path is a string with a single
+    path separator. Returns None if unable to find an existing file at the
+    location, otherwise an absolute path to the file.
+
+    """
+    import pathlib
+    p = pathlib.Path( path ).expanduser()
+    if p.exists():
+        return p.absolute()
+    if ( isinstance( path, str )
+         and path.count('/')==1
+         and ( pathlib.Path(__file__).parent
+             .joinpath('_is_sblddevel.py').is_file() ) ):
+        import os
+        dd = os.environ.get('SBLD_DATA_DIR')
+        if dd:
+            p = pathlib.Path(dd).joinpath(path)
+            if p.exists():
+                return p.absolute()

@@ -24,6 +24,7 @@ import math
 from ._cliimpl import ( create_ArgumentParser,
                         cli_entry_point,
                         print, warn )
+from . import _common as nccommon
 
 @cli_entry_point
 def main( progname, arglist ):
@@ -43,7 +44,7 @@ def create_argparser_for_sphinx( progname ):
 #in unit tests we dont display interactive images and we reduce cpu consumption
 #by watching for special env var:
 def _is_unittest():
-    return bool(os.environ.get('NCRYSTAL_TOOL_UNITTESTS',''))
+    return nccommon.ncgetenv_bool('TOOL_UNITTESTS')
 
 #Function for importing required python modules which may be missing, to provide
 #a somewhat more helpful error to the user:
@@ -235,24 +236,11 @@ examples:
     if args.extract or args.plugins or args.doc or args.browse:
         return args
 
+    if args.dpi==-1:
+        args.dpi = nccommon.ncgetenv_int_nonneg('DPI',dpi_default)
+
     if args.dpi>3000:
         parser.error('Too high DPI value requested.')
-
-    if args.dpi==-1:
-        _=os.environ.get('NCRYSTAL_DPI',None)
-        if _:
-            try:
-                _=int(_)
-                if _<0:
-                    raise ValueError
-            except ValueError:
-                raise ValueError("ERROR: NCRYSTAL_DPI environment variable must be set to integer >=0")
-
-            if _>3000:
-                parser.error('Too high DPI value requested via NCRYSTAL_DPI environment variable.')
-            args.dpi=_
-        else:
-            args.dpi=dpi_default
 
     if args.test:
         if any((args.cfg,
@@ -394,9 +382,11 @@ def std_main( progname, arglist ):
         plot_xsect( cfgs, comp  = args.comp, absorption = args.absorption, pdf=args.pdf,
                     versus_energy=args.energy, xrange = args.xrange, logy = args.logy,
                     breakdown_by_phases = args.phases )
-        if len(cfgs)==1 and not bool(os.environ.get('NCRYSTAL_TOOL_NO2DSCATTER',0)):
+
+        if len(cfgs)==1 and not nccommon.ncgetenv_bool('TOOL_NO2DSCATTER'):
             plot_2d_scatangle( cfgs[0], comp = args.comp, pdf=args.pdf, versus_energy=args.energy, xrange = args.xrange )
-        if len(cfgs)==1 and not bool(os.environ.get('NCRYSTAL_TOOL_NOAUTOMCPLOT',0)):
+
+        if len(cfgs)==1 and not nccommon.ncgetenv_bool('TOOL_NOAUTOMCPLOT'):
             from . import _mmc as nc_mmc
             auto_params = nc_mmc.quick_diffraction_pattern_autoparams( cfgs[0].cfgstr )
             plot_mmc( cfgs[0].cfgstr,
@@ -1013,7 +1003,7 @@ def benchmark_mode( progname, arglist):
                         help="Number of threads in NCrystal's"
                         " factory thread pool.")
     args=parser.parse_args( arglist )
-    os.environ['NCRYSTAL_FACTORY_THREADS'] = str(args.threads)
+    nccommon.ncsetenv('FACTORY_THREADS',args.threads)
     from . import misc as nc_misc
     assert len(args.cfgstr)==1
     dt = nc_misc._benchloadcfg( args.cfgstr[0],

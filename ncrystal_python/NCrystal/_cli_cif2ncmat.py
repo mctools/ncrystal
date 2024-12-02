@@ -188,8 +188,7 @@ def _main_impl( args, do_quiet ):
 
     with nc_common.WarningSpy( block = do_quiet):
         if args.valplot:
-            import os
-            _unit_test = bool(os.environ.get('NCRYSTAL_CIF2NCMAT_UNITTEST_NOPLOT',False))
+            _unit_test = nc_common.ncgetenv_bool('CIF2NCMAT_UNITTEST_NOPLOT')
             pdf_target = None
             if args.output and args.output.lower().endswith('pdf'):
                 if args.output.lower() in ('pdf','.pdf'):

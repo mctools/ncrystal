@@ -72,6 +72,9 @@ pyversion = _sys.version_info[0:3]
 if pyversion < _minpyversion:
     raise RuntimeError('Unsupported python version %i.%i.%i detected (needs %i.%i.%i or later).'%(pyversion+_minpyversion))
 
+#NB: The following env var can NOT be namespaced. E.g. it will always be
+#NCRYSTAL_SLIMPYINIT and never e.g. NCRYSTAL<namespacehere>_SLIMPYINIT:
+
 if not _os.environ.get('NCRYSTAL_SLIMPYINIT'):
     from .api import * # noqa F403
 

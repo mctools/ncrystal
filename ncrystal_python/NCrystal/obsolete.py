@@ -24,7 +24,7 @@ Obsolete functions
 ##                                                                            ##
 ################################################################################
 
-import os as _os
+from ._common import ncgetenv_bool as _ncgetenv_bool
 
 def decodecfg_packfact(cfgstr):
     """OBSOLETE FUNCTION (always returns 1.0 now)."""
@@ -60,7 +60,7 @@ def enableCaching():
     raise RuntimeError('The enableCaching function has been removed. Users can'
                        +' instead call the clearCaches function if really needed to clear the caches.')
 
-if _os.environ.get('NCRYSTAL_NOPYOBSOLETE',None) is not None:
+if not _ncgetenv_bool('NOPYOBSOLETE'):
     _ = globals()
     for _k in [_k for _k in _.keys() if ( hasattr(_k,'startswith') and not _k.startswith('_') )]:
         del _[_k]

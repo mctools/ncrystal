@@ -72,10 +72,9 @@ class CIFSource:
             self.__name_override = o.__name_override
             return
         def _setfp( pth ):
-            import pathlib
             pth = pth.decode() if hasattr(pth,'decode') else pth
-            self.__fp = pathlib.Path( pth )
-            if not self.__fp.exists():
+            self.__fp = _nc_common._lookup_existing_file( pth )
+            if self.__fp is None:
                 #Try to look up via NCrystal's TextData infrastructure:
                 from .core import createTextData, NCFileNotFound
                 try:
@@ -1165,18 +1164,17 @@ def _use_local_cif_cache( fn, text_data = None, quiet = False ):
     #NB: This simple implementation use no locking to guard against race
     #conditions!!! But we do perform write+move instead of simply write, which
     #is a bit more "atomic".
-    import os
-    if os.environ.get('NCRYSTAL_ONLINEDB_FORBID_NETWORK'):
+    if _nc_common.ncgetenv_bool('ONLINEDB_FORBID_NETWORK'):
         def notfound():
+            n = _nc_common.expand_envname('ONLINEDB_FORBID_NETWORK')
             raise RuntimeError('Error: Trying to access remote DB but'
-                               ' NCRYSTAL_ONLINEDB_FORBID_NETWORK is set')
-        time_limit_hours = 24*7*365*1000#sure, bug me in 3023
+                               f' {n} is set')
+        time_limit_hours = 24*7*365*1000#revisit this in 3023
     else:
         def notfound():
             pass
         time_limit_hours = 24*7
-    import os
-    d = os.environ.get('NCRYSTAL_ONLINEDB_CACHEDIR')
+    d = _nc_common.ncgetenv('ONLINEDB_CACHEDIR')
     if not d:
         return notfound()
     import os.path
