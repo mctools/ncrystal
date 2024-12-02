@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/tools/NCDump.hh"
+#include "NCrystal/dump/NCDump.hh"
 #include "NCrystal/interfaces/NCInfo.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCString.hh"

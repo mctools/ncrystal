@@ -26,7 +26,7 @@
 ////////////////////////////////////////////////////
 
 #ifndef NCrystal_Dump_hh
-#  include "NCrystal/tools/NCDump.hh"
+#  include "NCrystal/dump/NCDump.hh"
 #endif
 #ifndef NCrystal_Defs_hh
 #  include "NCrystal/core/NCDefs.hh"

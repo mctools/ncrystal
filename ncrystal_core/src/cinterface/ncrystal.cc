@@ -30,7 +30,7 @@
 #include "NCrystal/factories/NCDataSources.hh"
 #include "NCrystal/internal/dyninfoutils/NCDynInfoUtils.hh"
 #include "NCrystal/internal/extd_utils/NCPlaneProvider.hh"
-#include "NCrystal/tools/NCDump.hh"
+#include "NCrystal/dump/NCDump.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/internal/utils/NCAtomUtils.hh"

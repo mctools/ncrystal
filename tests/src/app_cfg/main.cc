@@ -23,7 +23,7 @@
 #include "NCrystal/factories/NCDataSources.hh"
 #include "NCrystal/factories/NCFact.hh"
 #include "NCrystal/interfaces/NCSCOrientation.hh"
-#include "NCrystal/tools/NCDump.hh"
+#include "NCrystal/dump/NCDump.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/internal/utils/NCFileUtils.hh"
 #include <iostream>
