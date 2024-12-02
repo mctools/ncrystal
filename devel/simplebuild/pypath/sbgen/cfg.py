@@ -25,11 +25,12 @@ class Cfg:
     def ncrystal_namespace(self):
         return 'dev'
 
+    #FIXME: Cleanup:
     #def sbpkgname_ncrystal_comp(self, compname):
     #    return 'NC%s'%compname
 
     def sbpkgname_ncrystal_comp(self, compname):
-        orig="""NCAbsFact  NCBkgdExtCurve  NCCore          NCElIncScatter  NCFactories      NCFreeGas  NCInterfaces  NCPCBragg    NCrystalDev   NCScatFact  NCTools
+        orig="""NCAbsFact  NCBkgdExtCurve  NCCore          NCElIncScatter  NCFactories      NCFreeGas  NCInterfaces  NCPCBragg    NCScatFact  NCTools
 NCAbsOOV   NCCfgUtils      NCData          NCExperimental  NCFactory_Laz    NCGasMix   NCLCBragg     NCPubUtils   NCSAB         NCSCBragg   NCUtils
 NCAtomDB   NCCInterface    NCDynInfoUtils  NCExtdUtils     NCFactory_NCMAT  NCInfoBld  NCMiniMC      NCQuickFact  NCSABScatter  NCThreads   NCVDOS"""
         guess = dict( (e[2:].lower(),e) for e in orig.split() )
@@ -64,6 +65,10 @@ NCAtomDB   NCCInterface    NCDynInfoUtils  NCExtdUtils     NCFactory_NCMAT  NCIn
         return 'NCrystalDev'
 
     @property
+    def sbpkgname_ncrystal_ncrystalhh(self):
+        return 'NCrystalDev'
+
+    @property
     def sbpkgname_ncrystal_cli(self):
         return 'NCCmd'
 
@@ -91,6 +96,18 @@ NCAtomDB   NCCInterface    NCDynInfoUtils  NCExtdUtils     NCFactory_NCMAT  NCIn
     def ncrystal_version_int(self):
         return self.__version_int
 
+    @property
+    def ncrystal_version_major(self):
+        return self.__version_tuple[0]
+
+    @property
+    def ncrystal_version_minor(self):
+        return self.__version_tuple[1]
+
+    @property
+    def ncrystal_version_patch(self):
+        return self.__version_tuple[2]
+
     def __init__(self):
         import sys
         if len(sys.argv)<3:
@@ -102,10 +119,11 @@ NCAtomDB   NCCInterface    NCDynInfoUtils  NCExtdUtils     NCFactory_NCMAT  NCIn
 
         from .dirs import reporoot
         self.__version_str = (reporoot/'VERSION').read_text().strip()
-        version_tuple = tuple( int(i) for i in self.__version_str.split('.') )
-        self.__version_int = sum(int(i)*j for i,j in zip(version_tuple,(1000000,
-                                                                        1000,
-                                                                        1)))
+        self.__version_tuple = tuple( int(i)
+                                      for i in self.__version_str.split('.') )
+        self.__version_int = sum(int(i)*j
+                                 for i,j
+                                 in zip(self.__version_tuple,(1000000,1000,1)))
 
 
 cfg = Cfg()

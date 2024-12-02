@@ -46,13 +46,15 @@ class LinkFile:
             #Check if already valid:
             if f.is_symlink() and f.samefile( self.__path ):
                 return#already fine
+            print( "Removing outdated link:",f)
             f.unlink()
         elif f.is_symlink():
             #must be broken link
+            print( "Removing broken link:",f)
             f.unlink()
         dir_path.mkdir(parents=True, exist_ok=True)
         f.symlink_to( self.__path )
-        print( "Created (link):",f)
+        print( "Created link:",f)
 
 class ContentFile:
 
@@ -68,15 +70,22 @@ class ContentFile:
         f = dir_path.joinpath(self.__name)
         if f.is_file():
             #Check if already valid:
-            if not f.is_symlink() and f.read_text() == self.__content:
+            if f.is_symlink():
+                print( "Removing outdated link:",f)
+                f.unlink()
+            elif f.read_text() != self.__content:
+                print( "Updating contents of:",f)
+                f.write_text(self.__content)
+                return
+            else:
                 return#already fine
-            f.unlink()
         elif f.is_symlink():
-            #must be broken link
+            #Must be broken link
+            print( "Removing broken link:",f)
             f.unlink()
         dir_path.mkdir(parents=True, exist_ok=True)
         f.write_text(self.__content)
-        print( "Created:",f)
+        print( "Created file:",f)
 
 class File:
 
@@ -108,7 +117,9 @@ class File:
 
 all_files = []
 def add_file( *a, **kw ):
-    all_files.append( File( *a, **kw ) )
+    f = File( *a, **kw )
+    all_files.append( f )
+    return f
 
 def create_files():
     import shutil
@@ -126,8 +137,13 @@ def create_files():
         key=(str(f),f.is_dir())
         if key not in flist:
             if f.is_file():
+                if f.is_symlink():
+                    print( "Removing link:",f)
+                else:
+                    print( "Removing file:",f)
                 f.unlink()
             else:
+                print( "Removing directory:",f)
                 shutil.rmtree(f)
 
     for f in all_files:

@@ -47,6 +47,11 @@ f"""
 #define NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
 #define NCRYSTAL_NO_CMATH_CONSTANTS
 #define NCRYSTAL_NAMESPACED_ENVVARS
+#define NCRYSTAL_VERSION_MAJOR {cfg.ncrystal_version_major}
+#define NCRYSTAL_VERSION_MINOR {cfg.ncrystal_version_minor}
+#define NCRYSTAL_VERSION_PATCH {cfg.ncrystal_version_patch}
+#define NCRYSTAL_VERSION_STR "{cfg.ncrystal_version_str}"
+#define NCRYSTAL_VERSION {cfg.ncrystal_version_int}
 """)
     return c
 
@@ -135,23 +140,29 @@ def define_files():
     from . import dirs
 
     #NCrystal headers:
-    add_file( 'extraincpath/NCrystal/ncapi.h', content=ncapi_contents() )
+    ncapi_loc_in_genroot = 'extraincpath/NCrystal/ncapi.h'
+    fgen_ncapi = add_file( ncapi_loc_in_genroot,
+                           content=ncapi_contents() )
     #FIXME: One custom extdep per pkg, and in an extraincpath, so we enforce the
     #deps to be correct.
     create_custom_extdep( 'NCDevHeaders',
                           cflags = (f'-I{dirs.genroot}/extraincpath '
                                     f'-I{dirs.srcroot}/include '
-                                    f'-I{dirs.genroot}/extraincpath '
                                     '-fno-math-errno') )
 
     #NCrystal source file compilation:
     from .ncrystalsrc import load_components
     name2comp = load_components()
+    all_ncsbpkgs = []
     for name,comp in sorted(name2comp.items()):
         #TODO: comp.srcdir_hdrs, comp.srcfiles
         sbpkgname = cfg.sbpkgname_ncrystal_comp(name)
+        all_ncsbpkgs.append(sbpkgname)
+        extdeps = ['NCDevHeaders']
+        if name=='factories':
+            extdeps.append('DL')
         create_pkginfo( sbpkgname,
-                        extdeps = ['DL','NCDevHeaders'],#FIXME: DL only for comp factories
+                        extdeps = extdeps,
                         pkg_deps = [ cfg.sbpkgname_ncrystal_comp(n)
                                      for n in comp.direct_depnames ],
                         extra_cflags = [f'-I{dirs.srcroot}/src',
@@ -159,7 +170,15 @@ def define_files():
         for sf in (comp.srcdir_hdrs+comp.srcfiles):
             add_file( f'pkgs/{sbpkgname}/libsrc/{sf.name}', link_target = sf )
 
+        #For traditional simplebuild includes:
+        for sf in comp.hdrfiles or []:
+            add_file( f'pkgs/{sbpkgname}/libinc/{sf.name}', link_target = sf )
 
+    #Also symlink ncapi.h and NCrystal.hh:
+    add_file( 'pkgs/%s/libinc/ncapi.h'%cfg.sbpkgname_ncrystal_comp('core'),
+              link_target = dirs.genroot.joinpath(ncapi_loc_in_genroot) )
+    add_file( 'pkgs/%s/libinc/NCrystal.hh'%cfg.sbpkgname_ncrystal_ncrystalhh,
+              link_target = dirs.srcroot.joinpath('include/NCrystal/NCrystal.hh') )#fixme: autogen?
 
     #create_pkginfo( cfg.sbpkgname_ncrystal_lib,
     #                extdeps = ['DL','NCDevHeaders'],
@@ -170,9 +189,11 @@ def define_files():
     #              link_target = sf )
 
     #NCrystalDev package (python module):
-    create_pkginfo( 'NCrystalDev',pkg_deps=[cfg.sbpkgname_ncrystal_lib])
+    assert cfg.sbpkgname_ncrystal_lib in all_ncsbpkgs
+    create_pkginfo( 'NCrystalDev', pkg_deps=all_ncsbpkgs )
     for sf in (dirs.pysrcroot/'NCrystal').glob('*.py'):
         add_file( f'pkgs/NCrystalDev/python/{sf.name}', link_target = sf )
+    #Special marker used by _locatelib.py:
     add_file( 'pkgs/NCrystalDev/python/_is_sblddevel.py', content='' )
 
     #Commandline scripts:
@@ -181,7 +202,7 @@ def define_files():
         cliname = sf.name[len('_cli_'):-len('.py')]
         sbscriptname = 'tool' if cliname == 'nctool' else cliname
         content = f"""#!/usr/bin/env python3
-import NCrystalDev.{sf.name} as mod
+import NCrystalDev.{sf.stem} as mod
 mod.main()
 """
         add_file( f'pkgs/{cfg.sbpkgname_ncrystal_cli}/scripts/{sbscriptname}',
@@ -242,6 +263,11 @@ mod.main()
     for sf in (dirs.ncg4srcroot/'src').glob('*c'):
         add_file( f'pkgs/{cfg.sbpkgname_ncrystal_geant4}/libsrc/{sf.name}',
                   link_target = sf )
+
+    for sf in dirs.ncg4srcroot.joinpath('include/G4NCrystal').glob('*.hh'):
+        add_file( f'pkgs/{cfg.sbpkgname_ncrystal_geant4}/libinc/{sf.name}',
+                  link_target = sf )
+
     add_compiled_examples( example_src_g4,
                            cfg.sbpkgname_ncrystal_geant4,
                            override_name = 'example' )
