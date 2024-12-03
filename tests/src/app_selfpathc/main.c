@@ -18,45 +18,46 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef NCRYSTAL_PRETEND_EXPORTS
-// Let NCCFileUtils.hh know it is compiled into NCrystal, not some other
-// project.
-#  define NCRYSTAL_PRETEND_EXPORTS
-#endif
-#include "NCrystal/internal/utils/NCCFileUtils.hh"
+#include "NCrystal/ncapi.h"//For NCRYSTAL_SIMPLEBUILD_DEVEL_MODE define
+#include "NCCFileUtils.h"
 
 #include <stdio.h>
-
-namespace NC=NCrystal;
-
-#define ncrystal_xstr(a) ncrystal_str(a)
-#define ncrystal_str(a) #a
+#ifdef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
+#  include <stdlib.h>//for getenv
+#endif
 
 int main(int argc, char** argv) {
 
-  NC::mcu8str selfpath = NC::mctools_determine_exe_self_path( argc, argv );
+  mcu8str selfpath = mctools_determine_exe_self_path( argc, argv );
   printf("Self path:          \"%s\"\n",selfpath.c_str);
 
-  if ( !NC::mctools_is_file( &selfpath ) ) {
+  if ( !mctools_is_file( &selfpath ) ) {
     printf("ERROR: self path is not a file!\n");
     return 1;
   }
 
-  //Test versus the expected path. We get the expected path from CMake, which
-  //has set the MCTOOLS_TESTAPP_FILE define to a string with the path:
-
-  NC::mcu8str expected_selfpath =
-    NC::mcu8str_create_from_cstr( MCTOOLS_TESTAPP_FILE );
+#ifndef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
+  //CMake/CTest has provided MCTOOLS_TESTAPP_FILE with out location
+  mcu8str expected_selfpath
+    = mcu8str_create_from_cstr( MCTOOLS_TESTAPP_FILE );
+#else
+  //Expect in $SBLD_INSTALL_PREFIX/bin
+  const char * env_sbldinstdir = getenv("SBLD_INSTALL_PREFIX");
+  if (!env_sbldinstdir) {
+    printf("ERROR: SBLD_INSTALL_PREFIX not set!\n");
+    return 1;
+  }
+  mcu8str expected_selfpath = mcu8str_create_from_cstr( env_sbldinstdir );
+  mcu8str_append_cstr( &expected_selfpath, "/bin/sb_nctestapps_testselfpathc" );
+#endif
 
   //Note that CMake might have used forward instead of backwards slashes on
   //windows (e.g. "D:/a/some/where/selfpathc.exe" instead of
   //"D:\a\some\where\selfpathc.exe") so we should be sure to not get a spurious
   //failure here, by normalising:
 
-
-
   printf("Expected self path: \"%s\"\n",expected_selfpath.c_str);
-  if ( !NC::mctools_is_file( &expected_selfpath ) ) {
+  if ( !mctools_is_file( &expected_selfpath ) ) {
     printf("ERROR: expected self path is not a file!\n");
     return 1;
   }
@@ -64,11 +65,11 @@ int main(int argc, char** argv) {
   mctools_pathseps_generic(&selfpath);
   mctools_pathseps_generic(&expected_selfpath);
 
-  if ( !NC::mcu8str_equal(&selfpath,&expected_selfpath) ) {
+  if ( !mcu8str_equal(&selfpath,&expected_selfpath) ) {
     printf("ERROR: Mismatch!!\n");
     return 1;
   }
-  NC::mcu8str_dealloc( &selfpath );
-  NC::mcu8str_dealloc( &expected_selfpath );
+  mcu8str_dealloc( &selfpath );
+  mcu8str_dealloc( &expected_selfpath );
   return 0;
 }

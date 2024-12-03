@@ -18,35 +18,62 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/utils/NCFileUtils.hh"
-#include "NCrystal/internal/utils/NCMath.hh"//for isOneOf
-#include <iostream>
-namespace NC=NCrystal;
+#ifndef NCRYSTAL_PRETEND_EXPORTS
+#  define NCRYSTAL_PRETEND_EXPORTS
+#endif
+#include "NCrystal/internal/utils/NCCFileUtils.hh"
 
-int main( int argc, char ** argv )
-{
-  auto self_path = NC::determine_exe_self_path( argc, argv );
-  std::cout<<"determine_exe_self_path: "<<self_path<<std::endl;
-  if (!NC::file_exists(self_path)) {
-    std::cout<<"Error: did not exist!"<<std::endl;
+#include <cstdio>
+#ifdef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
+#  include <cstdlib>//for getenv
+#endif
+
+namespace NC = NCrystal;
+
+int main(int argc, char** argv) {
+
+  NC::mcu8str selfpath = NC::mctools_determine_exe_self_path( argc, argv );
+  printf("Self path:          \"%s\"\n",selfpath.c_str);
+
+  if ( !NC::mctools_is_file( &selfpath ) ) {
+    printf("ERROR: self path is not a file!\n");
     return 1;
   }
 
-  if (!NC::path_is_absolute(self_path)) {
-    std::cout<<"Error: was not absolute!"<<std::endl;
+#ifndef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
+  //CMake/CTest has provided MCTOOLS_TESTAPP_FILE with out location
+  NC::mcu8str expected_selfpath
+    = NC::mcu8str_create_from_cstr( MCTOOLS_TESTAPP_FILE );
+#else
+  //Expect in $SBLD_INSTALL_PREFIX/bin
+  const char * env_sbldinstdir = getenv("SBLD_INSTALL_PREFIX");
+  if (!env_sbldinstdir) {
+    printf("ERROR: SBLD_INSTALL_PREFIX not set!\n");
+    return 1;
+  }
+  NC::mcu8str expected_selfpath = NC::mcu8str_create_from_cstr( env_sbldinstdir );
+  NC::mcu8str_append_cstr( &expected_selfpath, "/bin/sb_nctestapps_testselfpath" );
+#endif
+
+  //Note that CMake might have used forward instead of backwards slashes on
+  //windows (e.g. "D:/a/some/where/selfpath.exe" instead of
+  //"D:\a\some\where\selfpath.exe") so we should be sure to not get a spurious
+  //failure here, by normalising:
+
+  printf("Expected self path: \"%s\"\n",expected_selfpath.c_str);
+  if ( !NC::mctools_is_file( &expected_selfpath ) ) {
+    printf("ERROR: expected self path is not a file!\n");
     return 1;
   }
 
-  nc_assert_always( NC::isOneOf( NC::basename(self_path),
-                                 "selfpath",
-                                 "selfpath.exe") );
+  NC::mctools_pathseps_generic(&selfpath);
+  NC::mctools_pathseps_generic(&expected_selfpath);
 
-  //  nc_assert_always( NC::basename(NC::dirname(self_path)) == "bin" );
-  //fixme use MCTOOLS_TESTAPP_FILE
-
-  //tryRealPath
-  //std::string normalise(const std::string& path);
-  std::cout<<"All looks OK"<<std::endl;
+  if ( !NC::mcu8str_equal(&selfpath,&expected_selfpath) ) {
+    printf("ERROR: Mismatch!!\n");
+    return 1;
+  }
+  NC::mcu8str_dealloc( &selfpath );
+  NC::mcu8str_dealloc( &expected_selfpath );
   return 0;
 }
-

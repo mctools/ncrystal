@@ -218,7 +218,7 @@ int main() {
   (void)s_never_cleaned;
   (void)s_never_cleaned2;
 
-  //FIXME: test mcu8str_is_ascii + file utilities
+  //FIXME: test mcu8str_is_ascii
 
   return 0;
 }
