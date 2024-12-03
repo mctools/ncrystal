@@ -40,7 +40,7 @@ class LinkFile:
 
     def create_in_dir( self, dir_path ):
         if not self.__path.is_file():
-            raise RuntimeError(f'File not found: {real_path}')
+            raise RuntimeError(f'File not found: {self.__path}')
         f = dir_path.joinpath(self.__name)
         if f.is_file():
             #Check if already valid:
@@ -137,11 +137,11 @@ def create_files():
     for f in dirs.genroot.rglob('**/*'):
         key=(str(f),f.is_dir())
         if key not in flist:
-            if f.is_file():
-                if f.is_symlink():
-                    print( "Removing link:",f)
-                else:
-                    print( "Removing file:",f)
+            if f.is_symlink():
+                print( "Removing link:",f)
+                f.unlink()
+            elif f.is_file():
+                print( "Removing file:",f)
                 f.unlink()
             else:
                 print( "Removing directory:",f)

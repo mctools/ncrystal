@@ -25,6 +25,8 @@ class Cfg:
     def ncrystal_namespace(self):
         return 'dev'
 
+    #Fixme why all the _ncrystal_ below.
+
     #FIXME: Cleanup:
     #def sbpkgname_ncrystal_comp(self, compname):
     #    return 'NC%s'%compname
@@ -34,7 +36,7 @@ class Cfg:
 NCAbsOOV   NCCfgUtils      NCData          NCExperimental  NCFactory_Laz    NCGasMix   NCLCBragg     NCPubUtils   NCSAB         NCSCBragg   NCUtils
 NCAtomDB   NCCInterface    NCDynInfoUtils  NCExtdUtils     NCFactory_NCMAT  NCInfoBld  NCMiniMC      NCQuickFact  NCSABScatter  NCThreads   NCVDOS"""
         guess = dict( (e[2:].lower(),e) for e in orig.split() )
-        if not compname in guess:
+        if compname not in guess:
             e = {'extd_utils':'NCExtdUtils',
                  'misc':'NCPubUtils',
                  'ncmat':'NCFactory_NCMAT',
@@ -48,9 +50,8 @@ NCAtomDB   NCCInterface    NCDynInfoUtils  NCExtdUtils     NCFactory_NCMAT  NCIn
             return e
         return guess[compname]
 
-    @property
-    def sbpkgname_ncrystal_lib(self):
-        return self.sbpkgname_ncrystal_comp('cinterface')
+    def sbpkgname_ncrystal_testlib(self, testlibname):
+        return f'TestLib_{testlibname}'#fixme NC prefix
 
     @property
     def sbpkgname_ncrystal_lib(self):

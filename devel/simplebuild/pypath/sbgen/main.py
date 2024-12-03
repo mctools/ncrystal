@@ -23,6 +23,7 @@ from .file import add_file, create_files
 from . import dirs
 from .cfg import cfg
 import os
+import itertools
 
 def create_pkginfo( pkgname,
                     extdeps = None,
@@ -148,13 +149,13 @@ def define_files():
 
     #NCrystal headers:
     ncapi_loc_in_genroot = 'extraincpath/NCrystal/ncapi.h'
-    fgen_ncapi = add_file( ncapi_loc_in_genroot,
-                           content=ncapi_contents() )
+    add_file( ncapi_loc_in_genroot, content=ncapi_contents() )
     #FIXME: One custom extdep per pkg, and in an extraincpath, so we enforce the
     #deps to be correct.
     create_custom_extdep( 'NCDevHeaders',
                           cflags = (f'-I{dirs.genroot}/extraincpath '
                                     f'-I{dirs.srcroot}/include '
+                                    '-DNCrystal_EXPORTS '#for NCCFileUtils.hh
                                     '-fno-math-errno') )
 
     #NCrystal source file compilation:
@@ -263,6 +264,41 @@ mod.main()
                     pkg_deps=[cfg.sbpkgname_ncrystal_lib] )
     add_compiled_examples(example_src,cfg.sbpkgname_ncrystal_examples)
 
+    #Test libs:
+    testlib_pkgnames = []
+    for testlibdir in dirs.testroot.joinpath('libs').glob('lib_*'):
+        tlname = testlibdir.name[4:]
+        pkgname = cfg.sbpkgname_ncrystal_testlib(tlname)
+        testlib_pkgnames.append(pkgname)
+        incdir = testlibdir.joinpath('include',f'TestLib_{tlname}')
+        create_pkginfo(pkgname,pkg_deps=[cfg.sbpkgname_ncrystal_ncrystalhh])
+        sfs_cpp = list(testlibdir.glob('*.cc'))
+        sfs_c = list(testlibdir.glob('*.c'))
+        sfs_priv_h = list(testlibdir.glob('*.hh' if sfs_cpp else '*.h'))
+        if sfs_cpp and sfs_c:
+            raise RuntimeError("can not mix languages in sbld pkgs"
+                               f" (problems in {testlibdir})")
+        for sf in itertools.chain((sfs_cpp or sfs_c),sfs_priv_h):
+            add_file( f'pkgs/{pkgname}/libsrc/{sf.name}',
+                      link_target = sf )
+
+        for sf in itertools.chain(incdir.glob('*.h'),incdir.glob('*.hh')):
+            add_file( f'pkgs/{pkgname}/libinc/{sf.name}',
+                      link_target = sf )
+            #~/work/repos/ncrystal/tests/libs/lib_fpe/include/TestLib_fpe/FPE.hh)
+
+    #Test apps:
+    create_pkginfo('NCTestApps',pkg_deps=testlib_pkgnames)
+    for testappdir in dirs.testroot.joinpath('src').glob('app_*'):
+        appname = testappdir.name[4:]
+        for sf in itertools.chain( testappdir.glob('*.h'),
+                                   testappdir.glob('*.hh'),
+                                   testappdir.glob('*.c'),
+                                   testappdir.glob('*.cc'),
+                                   testappdir.glob('test.log') ):
+            add_file( f'pkgs/NCTestApps/app_test{appname}/{sf.name}',
+                      link_target = sf )
+
     #Geant4 (until it moves elsewhere):
     create_custom_extdep( 'NCG4DevHeaders',
                           cflags = f'-I{dirs.ncg4srcroot}/include ' )
@@ -286,3 +322,4 @@ mod.main()
 def main():
     define_files()
     create_files()
+#TODO: Make globbing utils for multiple extensions + guard against names with '#' or '~'
