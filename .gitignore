@@ -1,25 +1,16 @@
 _site
 .DS_Store
-.jekyll
-.jekyll-metadata
-.bundle
-.sass-cache
-#Gemfile
-#Gemfile.lock
-#node_modules
-#package.json
 
-devel/simplebuild/simplebuild_cache/
-devel/simplebuild/autogen/
+/devel/simplebuild/simplebuild_cache/
+/devel/simplebuild/autogen/
 
-ncrystal_python/ncrystal_python.egg-info/
-ncrystal_python/build/
-ncrystal_python/dist/
-ncrystal_core/skbld_autogen/
-skbld_autogen/
-ncrystal_core/dist/
-dist/
-
+/ncrystal_python/ncrystal_python.egg-info/
+/ncrystal_python/build/
+/ncrystal_python/dist/
+/ncrystal_core/skbld_autogen/
+/skbld_autogen/
+/ncrystal_core/dist/
+/dist/
 __pycache__/
 
 /venv/
