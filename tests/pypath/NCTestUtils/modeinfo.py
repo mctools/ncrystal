@@ -23,6 +23,7 @@ _mode_is_sbld = [None]
 def is_simplebuild_mode():
     """Whether or not using simplebuild development mode"""
     if _mode_is_sbld[0] is None:
+        import pathlib
         _mode_is_sbld[0] = ( pathlib.Path(__file__).parent
                              .joinpath('_is_simplebuild.py').is_file() )
     return _mode_is_sbld[0]
