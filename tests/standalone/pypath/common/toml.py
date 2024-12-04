@@ -22,8 +22,11 @@
 def can_parse_toml():
     import sys
     if sys.version_info < (3, 11):
-        import importlib
-        return bool(importlib.util.find_spec('tomli'))
+        try:
+            import tomli
+            return True
+        except ImportError:
+            return False
     return True
 
 def parse_toml(path):

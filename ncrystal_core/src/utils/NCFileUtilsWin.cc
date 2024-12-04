@@ -22,7 +22,7 @@
 
 #ifdef NCRYSTAL_USE_WINDOWS_FILEUTILS
 
-#include "NCrystal/internal/NCString.hh"
+#include "NCrystal/internal/utils/NCString.hh"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
