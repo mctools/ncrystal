@@ -7,29 +7,22 @@ test strview3
 test char[13]
 test char[14]
 test char ptr
-SV(" bla bla 
-  	 
+SV(" bla bla   	 
 
  yi ha   ")::split() = [ "bla", "bla", "yi", "ha" ]
-SV(" bla bla 
-  	 
+SV(" bla bla   	 
 
- yi ha   ")::split(';') = [ " bla bla 
-  	 
+ yi ha   ")::split(';') = [ " bla bla   	 
 
  yi ha   " ]
-SV(" bla bla 
-  	 
+SV(" bla bla   	 
 
- yi ha   ")::splitTrimmed(';') = [ "bla bla 
-  	 
+ yi ha   ")::splitTrimmed(';') = [ "bla bla   	 
 
  yi ha" ]
-SV(" bla bla 
-  	 
+SV(" bla bla   	 
 
- yi ha   ")::splitTrimmedNoEmpty(';') = [ "bla bla 
-  	 
+ yi ha   ")::splitTrimmedNoEmpty(';') = [ "bla bla   	 
 
  yi ha" ]
 SV(" bla bla ; ha   ")::split() = [ "bla", "bla", ";", "ha" ]

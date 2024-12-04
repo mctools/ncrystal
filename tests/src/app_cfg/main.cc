@@ -898,7 +898,9 @@ void test_misc_leftovers()
 
 int main(int,char**) {
 
-  std::cout<<"NCrystal::getBuildNameSpace() = " << NCrystal::getBuildNameSpace() << std::endl;
+#ifdef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
+  nc_assert_always( std::string("dev") == NCrystal::getBuildNameSpace() );
+#endif
   std::cout<<"NCrystal::getVersion() = " << NCrystal::getVersion() << std::endl;
 
   NC::registerInMemoryStaticFileData("Al_fake.ncmat","#Just some fake file which exists and has no embedded config.\n");

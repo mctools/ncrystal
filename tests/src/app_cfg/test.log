@@ -1,4 +1,3 @@
-NCrystal::getBuildNameSpace() = 
 NCrystal::getVersion() = 3009007
 MatCfg("<anonymous-ncmat-data>;dcutoff=2;temp=600")
 NCMAT v2
