@@ -193,13 +193,37 @@ def _ctypes_create_fct( lib, fctname, restype, *argtypes ):
 def _normalise_testmod_name(name):
     return name if name.startswith('TestMod_') else f'TestMod_{name}'
 
+def is_simplebuild():
+    import pathlib
+    return ( pathlib.Path(__file__).parent
+             .joinpath('_is_simplebuild.py').is_file() )
+
 def _find_testmod(name):
-    tln = _normalise_testmod_name(name)
     import pathlib
     import os
+    tln = _normalise_testmod_name(name)
+    if is_simplebuild():
+        #Simplebuild development mode
+        return _find_testmod_sbld( tln )
+    #Normal cmake:
     locdir = pathlib.Path(os.environ.get('MCTOOLS_TESTMODULES_LOCDIR'))
     assert locdir.is_dir()
     f = locdir / f'module_loc_{tln}.txt'
     lib = pathlib.Path(f.read_text().strip())
     assert lib.is_file()
     return lib
+
+def _find_testmod_sbld( name ):
+    if name.startswith('TestMod_'):
+        name = name[8:]
+    name = name if name.startswith('NCTestMod_') else f'NCTestMod_{name}'
+    import pathlib
+    import os
+    d = pathlib.Path(os.environ['SBLD_LIB_DIR'])
+    assert d.is_dir()
+    bn = f'libPKG__{name}'
+    for e in ('so', 'dylib'):
+        f = d.joinpath(f'{bn}.{e}')
+        if f.is_file():
+            return f
+    raise RuntimeError(f'Could not find {bn}')

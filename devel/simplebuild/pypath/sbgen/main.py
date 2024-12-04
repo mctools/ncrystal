@@ -25,16 +25,90 @@ from .cfg import cfg
 import os
 import itertools
 
+_pydep2sblddep = { 'ase':'ASE',
+                   'gemmi':'Gemmi',
+                   'numpy':'Numpy',
+                   'pandas':'Pandas',
+                   'scipy':'Scipy',
+                   'spglib':'Spglib',#fixme: try to comment this line and check that all works
+                   'matplotlib':'matplotlib',
+                   'mpmath':'mpmath' }
+
+_pydeps2pkg_suffix = [ ( set(['numpy']), 'np' ),
+                       ( set(['numpy','matplotlib']), 'mpl' ),
+                       ( set(['numpy','mpmath']), 'mpmath' ),#FIXME: try to comment this line and check that all works
+                       ( set(['numpy','ase','spglib','gemmi']), 'asg' )
+                      ]
+
+def determine_testpkg_by_pydeps( pydeps ):
+    if not pydeps:
+        return 'NCTestPy', set()
+    #find shortest _pydeps2pkg_suffix which has all deps:
+    bestset = None
+    bestname = None
+    for kset, kname in _pydeps2pkg_suffix:
+        if pydeps <= kset and ( bestset is None or len(bestset)>len(kset)):
+            bestset = kset
+            bestname = kname
+    if bestset is None:
+        return None, pydeps#not possible, needs custom pkg later
+    return 'NCTestPy%s'%bestname, bestset
+
+def create_pkginfo_pytestpkg( pkgname,
+                              pydeps ):
+    create_pkginfo( pkgname,
+                    extdeps = [ get_dependency_from_pydep(e)
+                                for e in (pydeps or [])],
+                    pkg_deps = [cfg.sbpkgname_ncrystal_pymods] )
+
+_created_custom_pydeps = set()
+def get_dependency_from_pydep( pd):
+    s = _pydep2sblddep.get(pd)
+    if s is not None:
+        return s
+    #Need custom pydep
+    name = 'Py%s'%pd.capitalize()
+    if name in _created_custom_pydeps:
+        return name#already created
+    _created_custom_pydeps.add(name)
+    version_extractor = 'm.__version__'
+
+    content = """
+execute_process(
+    COMMAND "${Python_EXECUTABLE}" "-c"
+    "import @pd@ as m; print(@ve@)"
+    OUTPUT_VARIABLE tmp RESULT_VARIABLE tmp_ec
+    ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+if ("x${tmp_ec}" STREQUAL "x0")
+  set(HAS_@name@ 1)
+  string(STRIP "${tmp}" ExtDep_@name@_VERSION)
+  set(ExtDep_@name@_COMPILE_FLAGS "")
+  set(ExtDep_@name@_LINK_FLAGS "")
+else()
+  set(HAS_@name@ 0)
+endif()
+""".replace('@name@',name).replace('@pd@',pd).replace('@ve@',version_extractor )
+    add_file( dirs.genroot.joinpath('extdep_definitions',
+                                    f'ExtDep_{name}.cmake'),
+              content = content )
+    return name
+
+def extract_deps_from_needs(sf):
+    with sf.open('rt') as fh:
+        for l in fh:
+            if l.startswith('# NEEDS: '):
+                return set( l[9:].split() )
+
 def create_pkginfo( pkgname,
                     extdeps = None,
                     extra_cflags = None,
                     pkg_deps = None ):
     c = 'USEPKG ' if pkg_deps else ''
     if pkg_deps:
-        c+= ' '.join(pkg_deps)
+        c+= ' '.join(sorted(pkg_deps))
     if extdeps:
         c += ' USEEXT '
-        c+= ' '.join(extdeps)
+        c+= ' '.join(sorted(extdeps))
     if extra_cflags:
         c += ' EXTRA_COMPILE_FLAGS '
         c += ' '.join(extra_cflags)
@@ -198,7 +272,7 @@ def define_files():
 
     #NCrystalDev package (python module):
     assert cfg.sbpkgname_ncrystal_lib in all_ncsbpkgs
-    create_pkginfo( 'NCrystalDev', pkg_deps=all_ncsbpkgs )
+    create_pkginfo( 'NCrystalDev', pkg_deps=all_ncsbpkgs + ['NCData'] )
     for sf in (dirs.pysrcroot/'NCrystal').glob('*.py'):
         add_file( f'pkgs/NCrystalDev/python/{sf.name}', link_target = sf )
     #Special marker used by _locatelib.py:
@@ -261,16 +335,18 @@ mod.main()
                       make_executable=True )
 
     create_pkginfo( cfg.sbpkgname_ncrystal_examples,
-                    pkg_deps=[cfg.sbpkgname_ncrystal_lib] )
+                    pkg_deps = [cfg.sbpkgname_ncrystal_lib] )
     add_compiled_examples(example_src,cfg.sbpkgname_ncrystal_examples)
 
     #Test libs:
+    all_test_pkgs = []
     testlib_pkgnames = []
     for testlibdir in dirs.testroot.joinpath('libs').glob('lib_*'):
         tlname = testlibdir.name[4:]
         pkgname = cfg.sbpkgname_ncrystal_testlib(tlname)
         testlib_pkgnames.append(pkgname)
         incdir = testlibdir.joinpath('include',f'TestLib_{tlname}')
+        all_test_pkgs.append(pkgname)
         create_pkginfo(pkgname,pkg_deps=[cfg.sbpkgname_ncrystal_ncrystalhh])
         sfs_cpp = list(testlibdir.glob('*.cc'))
         sfs_c = list(testlibdir.glob('*.c'))
@@ -285,9 +361,9 @@ mod.main()
         for sf in itertools.chain(incdir.glob('*.h'),incdir.glob('*.hh')):
             add_file( f'pkgs/{pkgname}/libinc/{sf.name}',
                       link_target = sf )
-            #~/work/repos/ncrystal/tests/libs/lib_fpe/include/TestLib_fpe/FPE.hh)
 
     #Test apps:
+    all_test_pkgs.append('NCTestApps')
     create_pkginfo('NCTestApps',pkg_deps=testlib_pkgnames)
     for testappdir in dirs.testroot.joinpath('src').glob('app_*'):
         appname = testappdir.name[4:]
@@ -298,6 +374,78 @@ mod.main()
                                    testappdir.glob('test.log') ):
             add_file( f'pkgs/NCTestApps/app_test{appname}/{sf.name}',
                       link_target = sf )
+
+    #Test modules (shared libs for loading via python ctypes):
+    testmods_pkgnames = []
+    for moddir in dirs.testroot.joinpath('modules').glob('lib_*'):
+        tlname = moddir.name[4:]
+        pkgname = f'NCTestMod_{tlname}'
+        testmods_pkgnames.append(pkgname)
+        all_test_pkgs.append(pkgname)
+        create_pkginfo(pkgname,
+                       pkg_deps=[cfg.sbpkgname_ncrystal_ncrystalhh,
+                                 'NCTestUtils'])
+        for sf in itertools.chain( moddir.glob('*.h'),
+                                   moddir.glob('*.hh'),
+                                   moddir.glob('*.c'),
+                                   moddir.glob('*.cc') ):
+            add_file( f'pkgs/{pkgname}/libsrc/{sf.name}',
+                      link_target = sf )
+
+    #Python modules for test scripts and common headers:
+    pkgname = 'NCTestUtils'
+    create_pkginfo(pkgname)
+    all_test_pkgs.append(pkgname)
+    for sf in dirs.testroot.joinpath('pypath/NCTestUtils').glob('*.py'):
+        add_file( f'pkgs/{pkgname}/python/{sf.name}',
+                  link_target = sf )
+    for sf in itertools.chain( dirs.testroot.joinpath('include/NCTestUtils').glob('*.h'),
+                               dirs.testroot.joinpath('include/NCTestUtils').glob('*.hh') ):
+        add_file( f'pkgs/{pkgname}/libinc/{sf.name}',
+                  link_target = sf )
+    #Add special marker so it knows it is in sbld mode:
+    add_file( f'pkgs/{pkgname}/python/_is_simplebuild.py', content='')
+
+    #Finally the test scripts. Here we must parse the files and look for NEEDS
+    #lines to figure out which ones to include:
+    #depset_2_testpyscripts
+    pytest_pkgname2pydeps = {}
+    extrapkg_pydeps = set()
+    extrapkg_sflist = set()
+    for sf in dirs.testroot.joinpath('scripts').glob('*.py'):
+        pydeps = extract_deps_from_needs(sf)
+        pkgname, pkgpydeps = determine_testpkg_by_pydeps( pydeps )
+        if pkgname is None:
+            extrapkg_pydeps.update(pkgpydeps)
+            extrapkg_sflist.add(sf)
+            continue
+        if not pkgname in pytest_pkgname2pydeps:
+            pytest_pkgname2pydeps[pkgname] = pkgpydeps
+        else:
+            assert pytest_pkgname2pydeps[pkgname] == pkgpydeps
+        add_file( f'pkgs/{pkgname}/scripts/test{sf.stem}', link_target = sf,
+                  make_executable = True )
+            #FIXME REFLOGS
+
+    for pkgname, pydeps in pytest_pkgname2pydeps.items():
+        all_test_pkgs.append(pkgname)
+        create_pkginfo_pytestpkg( pkgname, pydeps )
+
+    #spillover:
+    if extrapkg_sflist:
+        assert extrapkg_pydeps
+        all_test_pkgs.append('NCTestPyExtra')
+        create_pkginfo_pytestpkg( 'NCTestPyExtra', extrapkg_pydeps )
+        for sf in extrapkg_sflist:
+            add_file( f'pkgs/NCTestPyExtra/scripts/test{sf.stem}',
+                      link_target = sf,
+                      make_executable = True )
+            #FIXME REFLOGS
+
+    #For --require:
+    create_pkginfo( 'NCTestAll', pkg_deps = all_test_pkgs )
+
+
 
     #Geant4 (until it moves elsewhere):
     create_custom_extdep( 'NCG4DevHeaders',

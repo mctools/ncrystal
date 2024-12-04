@@ -116,17 +116,21 @@ class File:
 
 
 all_files = []
+all_files_outpaths = set()
 def add_file( *a, **kw ):
     f = File( *a, **kw )
     all_files.append( f )
+    fp = f.full_path()
+    if fp in all_files_outpaths:
+        raise RuntimeError(f'Created {fp} more than once')
+    all_files_outpaths.add(fp)
     return f
 
 def create_files():
     #First remove anything that disappared:
     import shutil
     flist = set()
-    for f in all_files:
-        p = f.full_path()
+    for p in all_files_outpaths:
         is_dir = False
         while True:
             flist.add( ( str(p), is_dir ) )
