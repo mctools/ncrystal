@@ -23,7 +23,7 @@
 # NEEDS: numpy
 
 import NCTestUtils.enable_fpe
-from NCrystal.hfg2ncmat import hfg2ncmat
+from NCrystalDev.hfg2ncmat import hfg2ncmat
 
 def test(spec,formula,**kwargs):
     import pprint
@@ -42,7 +42,7 @@ def test(spec,formula,**kwargs):
     print(res)
 
 def test_fail( *args, **kwargs ):
-    from NCrystal.exceptions import NCBadInput
+    from NCrystalDev.exceptions import NCBadInput
     try:
         test(*args,**kwargs)
     except NCBadInput as e:
@@ -55,7 +55,7 @@ test('1xCHali+1xCHaro+1xCH2+1xCH3+1xNH+1xNH2+1xNH3+1xOH+1xSH','H15C4N3OS')
 test('5xCHaro+1xCHali+1xCH2','C8H8',density=0.99)
 test_fail('1xCH2','CH2s')
 
-from NCrystal.ncmat import NCMATComposer
+from NCrystalDev.ncmat import NCMATComposer
 c = NCMATComposer.from_hfg( '5xCHaro+1xCHali+1xCH2',
                             'C8H8',
                             density=0.99,

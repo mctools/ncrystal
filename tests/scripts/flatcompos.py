@@ -21,7 +21,7 @@
 ################################################################################
 
 import NCTestUtils.enable_fpe
-import NCrystal as NC
+import NCrystalDev as NC
 
 def test(cfgstr,bad=False,**fcargs):
     print(f'CFGSTR: >>>{cfgstr}<<<')

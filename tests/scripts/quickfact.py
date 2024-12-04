@@ -21,7 +21,7 @@
 ################################################################################
 
 import NCTestUtils.enable_fpe
-import NCrystal as NC
+import NCrystalDev as NC
 
 def test(cfgstr,expectBad = False):
     print("="*100)

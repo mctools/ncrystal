@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 
 ################################################################################
 ##                                                                            ##
@@ -20,36 +19,27 @@
 ##                                                                            ##
 ################################################################################
 
-import NCTestUtils.enable_fpe
-import NCrystalDev._common as nc_common
+_prefix = [None]
+def ncsetenv(k,v):
+    """Tests should use this to set NCrystal-environment variables,
+    since depending on the build system they might use different prefixes.
+    """
 
-def require(b):
-    if not b:
-        raise RuntimeError('check failed')
-
-for v in [(0.25,'1/4'),
-          (0.13137,'.13137'),
-          (0.75,'3/4'),
-          (-0.0,'0'),
-          (0.9999999999999,'.9999999999999'),
-          (0.999999999999999889,'.999999999999999889'),
-          (0.9999999999999999999889,'1'),
-          (0.00,'0')]:
-    vfmt = nc_common.prettyFmtValue(v[0])
-    print( f'nc_common.prettyFmtValue({v[0]}):',repr(vfmt))
-    require( vfmt == v[1] )
-    if '/' in vfmt:
-        _ = vfmt.split('/')
-        fmtval = int(_[0]) / int(_[1])
+    assert not k.startswith('NCRYSTAL')
+    import os
+    if _prefix[0] is None:
+        from .modeinfo import is_simplebuild_mode
+        if is_simplebuild_mode():
+            #In simplebuild devel mode we run with a namespace of 'dev' and the
+            #NCrystal lib is compiled with NCRYSTAL_NAMESPACED_ENVVARS:
+            _prefix[0] = 'NCRYSTALDEV_'
+        else:
+            #In CTests we don't use NCRYSTAL_NAMESPACED_ENVVARS (and normally
+            #not even a namespace):
+            _prefix[0] = 'NCRYSTAL_'
+    k = _prefix[0] + k
+    if v is None:
+        if k in os.environ:
+            del os.environ[k]
     else:
-        fmtval = float(vfmt)
-    require( abs(fmtval-v[0]) < 1e-6 )
-    require( (fmtval==1.0) == (v[0]==1.0) )
-    require( (fmtval==0.0) == (v[0]==0.0) )
-
-def testcf( c ):
-    print(f'format_chemform({c}):', repr(nc_common.format_chemform(c)) )
-
-testcf( [('Al',0.99),('Cr',0.005),('B10',0.005)] )
-testcf( [('Al',0.9),('Cr',0.1)])
-testcf( [('Al',1/3),('Cr',2/3)])
+        os.environ[k] = str(v)

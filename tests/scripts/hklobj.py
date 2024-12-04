@@ -23,7 +23,7 @@
 # NEEDS: numpy
 
 import NCTestUtils.enable_fpe
-import NCrystal as NC
+import NCrystalDev as NC
 
 print("test 1)")
 mat = NC.load('Al_sg225.ncmat')

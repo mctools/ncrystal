@@ -4,6 +4,8 @@ _site
 /devel/simplebuild/simplebuild_cache/
 /devel/simplebuild/autogen/
 
+.ruff_cache/
+
 /ncrystal_python/ncrystal_python.egg-info/
 /ncrystal_python/build/
 /ncrystal_python/dist/

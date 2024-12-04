@@ -23,7 +23,7 @@
 # NEEDS: numpy
 
 import NCTestUtils.enable_fpe # noqa F401
-import NCrystal as NC
+import NCrystalDev as NC
 
 def validate_cfgstr(cfgstr):
     info = NC.createInfo(cfgstr)

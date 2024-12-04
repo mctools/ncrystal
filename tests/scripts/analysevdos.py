@@ -23,7 +23,7 @@
 # NEEDS: numpy
 
 import NCTestUtils.enable_fpe
-import NCrystal as NC
+import NCrystalDev as NC
 
 # More robust testing:
 NC.removeAllDataSources()

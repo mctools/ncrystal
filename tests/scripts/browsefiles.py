@@ -21,7 +21,7 @@
 ################################################################################
 
 import NCTestUtils.enable_fpe
-import NCrystal as NC
+import NCrystalDev as NC
 
 #Testing presence of data "files", as well as their sorting.
 

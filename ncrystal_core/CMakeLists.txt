@@ -727,8 +727,6 @@ if ( NCRYSTAL_ENABLE_TESTING )
       set_target_properties(NCrystal PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
       target_compile_definitions(NCrystal PUBLIC NCRYSTAL_PREVENT_WINDLLEXPORT)
     endif()
-    #enable_testing()
-    #add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/tests")
   endif()
 endif()
 

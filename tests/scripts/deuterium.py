@@ -21,7 +21,7 @@
 ################################################################################
 
 import NCTestUtils.enable_fpe
-import NCrystal as NC
+import NCrystalDev as NC
 
 contents="""NCMAT v[[VERSION]]
 #NB: No spacegroup since the symmetry of the atoms below is unknown (to me)

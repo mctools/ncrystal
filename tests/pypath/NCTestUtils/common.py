@@ -23,7 +23,7 @@
    Various utilities to be used when implementing tests.
 """
 
-from NCrystal._testimpl import _work_in_tmpdir as work_in_tmpdir # noqa F401
+from NCrystalDev._testimpl import _work_in_tmpdir as work_in_tmpdir # noqa F401
 
 _is_windows = [None]
 def is_windows():
@@ -91,7 +91,7 @@ def print_text_file_with_snipping(content,
     else:
         for i in range(nstart):
             print(f'{prefix}{lines[i]}')
-        from NCrystal._common import _calc_md5hexdigest
+        from NCrystalDev._common import _calc_md5hexdigest
         md5 = _calc_md5hexdigest( '\n'.join(lines[nstart:-nend]) )
         def nleading_spaces( s ):
             return len(s)-len(s.lstrip(' '))
@@ -105,7 +105,7 @@ def print_text_file_with_snipping(content,
 
 def _resolve_print_fct(printfct):
     if printfct == 'ncrystal':
-        from NCrystal._common import print as ncprint
+        from NCrystalDev._common import print as ncprint
         return ncprint
     elif printfct is None:
         from builtins import print as biprint

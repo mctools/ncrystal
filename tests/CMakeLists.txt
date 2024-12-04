@@ -25,55 +25,48 @@ cmake_minimum_required(VERSION 3.28...3.30)
 
 project( NCrystalTests LANGUAGES CXX C )
 
-if ( NOT TARGET NCrystal AND NOT TARGET NCrystal::NCrystal )
-  if ( NOT NCrystal_DIR )
-    #Support pip-installed NCrystal:
-    execute_process(
-      COMMAND ncrystal-config --show cmakedir
-      OUTPUT_VARIABLE NCrystal_DIR
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-  endif()
-  message(
-    STATUS
-    "Testing against existing NCrystal installation in ${NCrystal_DIR}"
-  )
-  find_package( NCrystal 3.9.7 REQUIRED )
-  set( NCTESTS_STANDALONE ON )
-  set( nctests_ncrystallib_target "NCrystal::NCrystal" )
-else()
-  message(STATUS "Testing as part of the NCrystal build")
-  set( NCTESTS_STANDALONE OFF )
-  set( nctests_ncrystallib_target "NCrystal" )
+if ( NOT TARGET NCrystal )
+  message( FATAL_ERROR "Can only test as part of the NCrystal build" )
 endif()
+set( nctests_ncrystallib_target "NCrystal" )
 
 enable_testing()
 
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/cmake")
 include( mctools_testutils )
 
+#We want to symlink so that "import NCrystalDev" works instead of "import
+#NCrystal" for the tests (to reduce conflicts with NCrystal installed in the
+#environment). We copy instead as a fall-back (e.g. on Windows).
+
+set( nctest_pypath "${PROJECT_BINARY_DIR}/ncrystal_tests_pypath" )
+file( MAKE_DIRECTORY "${nctest_pypath}" )
+file( CREATE_LINK
+  "${NCrystalRoot_SOURCE_DIR}/ncrystal_python/NCrystal"
+  "${nctest_pypath}/NCrystalDev"
+  COPY_ON_ERROR
+  SYMBOLIC
+)
+
 set( nctest_pyenvmod "" )
-if ( NOT NCTESTS_STANDALONE )
-  list(
-    APPEND nctest_pyenvmod
-    "PYTHONPATH=path_list_prepend:${NCrystalRoot_SOURCE_DIR}/ncrystal_python"
-    "PYTHONPATH=path_list_prepend:${PROJECT_SOURCE_DIR}/pypath"
-  )
-  get_target_property(
-    tmp_ncrystal_libloc
-    "${nctests_ncrystallib_target}"
-    "LIBRARY_OUTPUT_DIRECTORY_Release"
-  )
-  list(
-    APPEND nctest_pyenvmod
-    "NCRYSTAL_LIB=set:$<TARGET_FILE:${nctests_ncrystallib_target}>"
-  )
-  if ( NOT NCRYSTAL_ENABLE_DATA STREQUAL "EMBED" )
-    list(
-      APPEND nctest_pyenvmod
-      "NCRYSTAL_DATADIR=set:${NCrystalRoot_SOURCE_DIR}/data"
-    )
-  endif()
+list(
+  APPEND nctest_pyenvmod
+  "PYTHONPATH=path_list_prepend:${nctest_pypath}"
+  "PYTHONPATH=path_list_prepend:${PROJECT_SOURCE_DIR}/pypath"
+)
+get_target_property(
+  tmp_ncrystal_libloc
+  "${nctests_ncrystallib_target}"
+  "LIBRARY_OUTPUT_DIRECTORY_Release"
+)
+list(
+  APPEND nctest_pyenvmod
+  "NCRYSTAL_LIB=set:$<TARGET_FILE:${nctests_ncrystallib_target}>"
+)
+
+if ( NOT NCRYSTAL_ENABLE_DATA STREQUAL "EMBED" )
+  list( APPEND nctest_pyenvmod
+        "NCRYSTAL_DATADIR=set:${NCrystalRoot_SOURCE_DIR}/data" )
 endif()
 
 list(
@@ -100,26 +93,16 @@ mctools_testutils_add_test_modules(
 
 set( nctest_appenvmod "" )
 if ( WIN32 )
-  if ( NCTESTS_STANDALONE )
-    #Do not get "dll not found" errors for the NCrystal library. Note that PATH
-    #plays the role of LD_LIBRARY_PATH on Windows (and there is seemingly not
-    #really any rpath-like solution).
-    list(
-      APPEND nctest_appenvmod
-      "PATH=path_list_prepend:${NCrystal_LIBDIR}"
-    )
-  else()
-    list(
-      APPEND nctest_appenvmod
-      "PATH=path_list_prepend:$<TARGET_FILE_DIR:${nctests_ncrystallib_target}>"
-    )
-  endif()
+  #Do not get "dll not found" errors for the NCrystal library. Note that PATH
+  #plays the role of LD_LIBRARY_PATH on Windows (and there is seemingly not
+  #really any rpath-like solution).
+  list(
+    APPEND nctest_appenvmod
+    "PATH=path_list_prepend:$<TARGET_FILE_DIR:${nctests_ncrystallib_target}>"
+  )
 endif()
 
-if (
-    NOT NCTESTS_STANDALONE
-    AND NOT NCRYSTAL_ENABLE_DATA STREQUAL "EMBED"
-  )
+if ( NOT NCRYSTAL_ENABLE_DATA STREQUAL "EMBED" )
   list(
     APPEND nctest_appenvmod
     "NCRYSTAL_DATADIR=set:${NCrystalRoot_SOURCE_DIR}/data"

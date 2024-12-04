@@ -29,7 +29,7 @@ __all__=[]
 
 import warnings
 def printWarnings( message, category, *args, **kwargs ):
-    import NCrystal._common as nc_common
+    import NCrystalDev._common as nc_common
     msg,cat = nc_common.WarningSpy._fmtwarning( message, category )
     print(f'CAUGHT ESCAPED WARNING ({cat}): {msg}')
 warnings.showwarning = printWarnings

@@ -27,9 +27,8 @@ from argparse import ArgumentError
 import NCTestUtils.enable_fpe
 import NCTestUtils.reprint_escaped_warnings
 import NCTestUtils.enable_testdatapath
+from NCTestUtils.env import ncsetenv
 
-import NCrystal as NC
-import NCrystal.cliutils as nc_cliutils
 import pathlib
 import os
 import contextlib
@@ -39,7 +38,7 @@ def create_fake_onlinedb_cache_dir():
     #create fake NCRYSTAL_ONLINEDB_CACHEDIR and populate with 3 entries, so we are
     #able to exercise codid:: and mpid:: capabilities in tests.
     d = pathlib.Path('fake_onlinedb_cachedir_testcif2ncmat')
-    os.environ['NCRYSTAL_ONLINEDB_CACHEDIR'] = str(d.resolve().absolute())
+    ncsetenv('ONLINEDB_CACHEDIR',str(d.resolve().absolute()))
     if d.is_dir():
         return
     d.mkdir(parents=True)
@@ -56,6 +55,7 @@ from NCTestUtils.common import ( print_text_file_with_snipping,
 #FIXME: Also test python API if not done elsewhere.
 
 def test_cli( args, *, nstart = 100, nend = 20, outfile = None, in_tmp_dir = True ):
+    import NCrystalDev.cliutils as nc_cliutils
     if isinstance(args,str):
         args = shlex.split(args)
     hr=f"============= CLI >>{shlex.join(args)}<< ===================="
@@ -72,8 +72,8 @@ def test_cli( args, *, nstart = 100, nend = 20, outfile = None, in_tmp_dir = Tru
     print('='*len(hr))
 
 def main():
-    os.environ['NCRYSTAL_CIF2NCMAT_UNITTEST_NOPLOT']='1'
-    os.environ['NCRYSTAL_ONLINEDB_FORBID_NETWORK']='1'
+    ncsetenv('CIF2NCMAT_UNITTEST_NOPLOT','1')
+    ncsetenv('ONLINEDB_FORBID_NETWORK','1')
     create_fake_onlinedb_cache_dir()
 
     test_cli(['--help'])

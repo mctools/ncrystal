@@ -95,9 +95,9 @@ endif()
 
 def extract_deps_from_needs(sf):
     with sf.open('rt') as fh:
-        for l in fh:
-            if l.startswith('# NEEDS: '):
-                return set( l[9:].split() )
+        for line in fh:
+            if line.startswith('# NEEDS: '):
+                return set( line[9:].split() )
 
 def create_pkginfo( pkgname,
                     extdeps = None,
@@ -392,7 +392,7 @@ mod.main()
             add_file( f'pkgs/{pkgname}/libsrc/{sf.name}',
                       link_target = sf )
 
-    #Python modules for test scripts and common headers:
+    #Python modules for test scripts, common headers, and data:
     pkgname = 'NCTestUtils'
     create_pkginfo(pkgname)
     all_test_pkgs.append(pkgname)
@@ -405,6 +405,11 @@ mod.main()
                   link_target = sf )
     #Add special marker so it knows it is in sbld mode:
     add_file( f'pkgs/{pkgname}/python/_is_simplebuild.py', content='')
+    for sf in dirs.testroot.joinpath('data').iterdir():
+        if sf.is_file() and '#' not in sf.name and '~' not in sf.name:
+            add_file( f'pkgs/{pkgname}/data/{sf.name}', link_target = sf )
+
+
 
     #Finally the test scripts. Here we must parse the files and look for NEEDS
     #lines to figure out which ones to include:
@@ -419,7 +424,7 @@ mod.main()
             extrapkg_pydeps.update(pkgpydeps)
             extrapkg_sflist.add(sf)
             continue
-        if not pkgname in pytest_pkgname2pydeps:
+        if pkgname not in pytest_pkgname2pydeps:
             pytest_pkgname2pydeps[pkgname] = pkgpydeps
         else:
             assert pytest_pkgname2pydeps[pkgname] == pkgpydeps

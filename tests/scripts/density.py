@@ -21,7 +21,7 @@
 ################################################################################
 
 import NCTestUtils.enable_fpe
-import NCrystal as NC
+import NCrystalDev as NC
 i1 = NC.createInfo("Ge_sg227.ncmat;temp=20K")
 i2 = NC.createInfo("Ge_sg227.ncmat;density=1.5x;temp=20K")
 print ( i1.uid )

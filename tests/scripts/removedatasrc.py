@@ -27,7 +27,7 @@ import NCTestUtils.enable_fpe
 
 import pathlib
 pathlib.Path('Al_sg225.ncmat').write_text("INVALID FILE DO NOT LOAD THIS")
-import NCrystal as NC
+import NCrystalDev as NC
 NC.removeAllDataSources()
 NC.enableStandardDataLibrary()
 NC.createInfo("Al_sg225.ncmat;dcutoff=-1")

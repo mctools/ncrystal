@@ -23,7 +23,7 @@
 #test NCrystal.test() + make sure it doesn't change RNG state
 
 import NCTestUtils.enable_fpe
-import NCrystal as NC
+import NCrystalDev as NC
 
 _rngstate1 = [99]
 def rng1():

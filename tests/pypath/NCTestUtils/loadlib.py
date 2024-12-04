@@ -139,9 +139,9 @@ def _decode_signature_str( signature, include_fct_name ):
 
 def _load_lib_with_ctypes( path ):
     assert path.is_file()
-    #NOTE: We import NCrystal.core to ensure NCrystal lib is already loaded,
+    #NOTE: We import NCrystal core to ensure NCrystal lib is already loaded,
     #because otherwise we can get DLL load errors on some platforms (Windows):
-    import NCrystal.core# noqa F401
+    import NCrystalDev.core# noqa F401
     try:
         lib = ctypes.CDLL(path)
     except TypeError:
@@ -161,7 +161,7 @@ def _ctypes_load_testmod( test_shlib_name ):
     return _load_lib_with_ctypes(libpath)
 
 def _ctypes_create_fct( lib, fctname, restype, *argtypes ):
-    from NCrystal._chooks import _str2cstr, _cstr2str
+    from NCrystalDev._chooks import _str2cstr, _cstr2str
 
     def resolve_type( tpe ):
         if tpe is None or tpe=='void':
@@ -193,16 +193,12 @@ def _ctypes_create_fct( lib, fctname, restype, *argtypes ):
 def _normalise_testmod_name(name):
     return name if name.startswith('TestMod_') else f'TestMod_{name}'
 
-def is_simplebuild():
-    import pathlib
-    return ( pathlib.Path(__file__).parent
-             .joinpath('_is_simplebuild.py').is_file() )
-
 def _find_testmod(name):
     import pathlib
     import os
+    from .modeinfo import is_simplebuild_mode
     tln = _normalise_testmod_name(name)
-    if is_simplebuild():
+    if is_simplebuild_mode():
         #Simplebuild development mode
         return _find_testmod_sbld( tln )
     #Normal cmake:

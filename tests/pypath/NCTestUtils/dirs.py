@@ -26,7 +26,12 @@
 
 def _find_data_dir():
     import pathlib
-    ddir = pathlib.Path(__file__).parent.parent.parent / 'data'
+    from .modeinfo import is_simplebuild_mode
+    if is_simplebuild_mode():
+        import os
+        ddir = pathlib.Path(os.environ['SBLD_DATA_DIR'])/'NCTestUtils'
+    else:
+        ddir = pathlib.Path(__file__).parent.parent.parent / 'data'
     assert ddir.is_dir()
     return ddir
 

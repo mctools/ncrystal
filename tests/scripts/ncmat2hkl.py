@@ -22,8 +22,8 @@
 
 # NEEDS: numpy
 
-import NCrystal as NC
-import NCrystal.cliutils as nc_cliutils
+import NCrystalDev as NC
+import NCrystalDev.cliutils as nc_cliutils
 import pathlib
 import contextlib
 import shlex
@@ -45,7 +45,7 @@ from NCTestUtils.common import ( print_text_file_with_snipping,
                                  fmt_args_as_str )
 
 def test_pyapi( cfgstr, fmt, nstart = 30, nend = 20 ):
-    from NCrystal.mcstasutils import cfgstr_2_hkl
+    from NCrystalDev.mcstasutils import cfgstr_2_hkl
     kwargs = dict(cfgstr=cfgstr,
                   tgtformat=fmt,
                   fp_format=f'%.{test_precision}g')

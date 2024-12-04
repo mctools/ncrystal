@@ -28,7 +28,7 @@ cmake \
 
 cmake --build "${TGT}/bld" --config "${THE_BUILD_TYPE}"
 echo "Build dir was: ${TGT}/bld"
-ctest
+ctest --build-config  "${THE_BUILD_TYPE}"  --output-on-failure --test-output-size-failed 10000 --test-output-truncation middle
 cmake --install "${TGT}/bld"
 echo "Build dir was: ${TGT}/bld"
 

@@ -23,10 +23,10 @@
 # NEEDS: numpy
 
 import NCTestUtils.enable_fpe
-import NCrystal as NC
-import NCrystal.cliutils as nc_cliutils
-from NCrystal.ncmat2cpp import ncmat2cpp
-from NCrystal.misc import AnyTextData
+import NCrystalDev as NC
+import NCrystalDev.cliutils as nc_cliutils
+from NCrystalDev.ncmat2cpp import ncmat2cpp
+from NCrystalDev.misc import AnyTextData
 
 from NCTestUtils.common import ( print_text_file_with_snipping,
                                  ensure_error,

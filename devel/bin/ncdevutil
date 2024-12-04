@@ -1,0 +1,170 @@
+#!/usr/bin/env python3
+import sys
+import pathlib
+sys.path.insert(0,str(pathlib.Path(__file__).parent.parent.parent
+                      /'tests/standalone/pypath'))
+from common.srciter import all_files_iter
+import fnmatch
+
+def parse_args():
+    import argparse
+    import textwrap
+    def wrap(t):
+        return textwrap.fill(' '.join(t.split()),width=77)
+
+    parser = argparse.ArgumentParser(description=""" Tool for listing, grepping,
+    replacing files in the ncrystal source repo. The default action is to list
+    files selected by the provided patterns.  """)
+    parser.add_argument( "PATTERN", nargs='*',
+                         help=wrap("""Patterns to select certain files. Either
+                         using wildcards on the file paths, or special keys like
+                         'py', 'cpp', etc."""))
+    parser.add_argument( "--grep", nargs='+',metavar='STR',
+                         help=wrap("""Grep according to patterns"""))
+    parser.add_argument( "--grepl", nargs='+',metavar='STR',
+                         help=wrap("""Grep and just list files with any hits"""))
+    parser.add_argument( "--replace", nargs=2,metavar=('FROMSTR','TOSTR'),
+                         help=wrap("""Perform replacement (case sensitive, no
+                         wild cards or regexp syntax)"""))
+    parser.add_argument( "--linefilter", nargs='+', metavar=('STR'),
+                         help=wrap("""Use with --replace to select only certain
+                         lines (of course lines must already have the FROMSTR in
+                         it, this is an additional restriction."""))
+    parser.add_argument( "--pathfilter", nargs='+', metavar=('STR'),
+                         help=wrap("""Use to operate only on certain subpaths of
+                         the repository (no wildcards allowed, but can be
+                         negated with !)."""))
+    args = parser.parse_args()
+    if sum((1 if e else 0) for e in (args.grepl,args.grep,args.replace))>1:
+        parser.error('inconsistent arguments')
+    if args.linefilter and not args.replace():
+        parser.error('inconsistent arguments')
+    return args
+
+class StrMatch:
+    def __init__( self, pattern ):
+        self._case_insensitive = False
+        if pattern.endswith('//i'):
+            self._case_insensitive = True
+            pattern = pattern[:-3].lower()
+        self._pattern = pattern
+        self._has_wildcards = any( c in pattern for c in '*?' )
+        if self._has_wildcards:
+            if not self._pattern.startswith('*'):
+                self._pattern = '*'+self._pattern
+            if not self._pattern.endswith('*'):
+                self._pattern += '*'
+    def do_match( self, s ):
+        if self._case_insensitive:
+            s = s.lower()
+        return ( fnmatch.fnmatchcase(s,self._pattern)
+                 if self._has_wildcards else
+                 ( self._pattern in s ) )
+
+def grep( f, pos_needles, neg_needles ):
+    with f.open('rt') as fh:
+        for line in fh:
+            if line.endswith('\n'):
+                line = line[:-1]
+                if ( ( not pos_needles
+                       or any( n.do_match(line) for n in pos_needles ) )
+                     and not any( n.do_match(line) for n in neg_needles ) ):
+                    yield line
+
+def iter_nonempty( iterable ):
+    return next(iterable, None) is not None
+
+def prepare_needles( needles ):
+    pos,neg=[],[]
+    for n in (needles or []):
+        if n.startswith('!'):
+            neg.append(StrMatch(n[1:]))
+        else:
+            pos.append(StrMatch(n))
+    return pos,neg
+
+def mode_grepl( files, needles ):
+    pos,neg = prepare_needles( needles)
+    for f in files:
+        if iter_nonempty(grep(f,pos,neg)):
+            print(f)
+
+def mode_grep( files, needles ):
+    pos,neg = prepare_needles( needles)
+    for f in files:
+        for line in grep(f,pos,neg):
+            print('%s:%s'%(f,line))
+
+def mode_replace( files, fromstr, tostr, needles ):
+    if fromstr == tostr:
+        return
+    pos,neg = prepare_needles( needles)
+    for f in files:
+        replacement_lines = set()
+        for line in grep(f,pos,neg):
+            if fromstr in line:
+                replacement_lines.add(line)
+        if replacement_lines:
+            content = f.read_text().splitlines()
+            n = 0
+            for i in range(len(content)):
+                if content[i] in replacement_lines:
+                    n += 1
+                    content[i] = content[i].replace(fromstr,tostr)
+            content.append('')#for join to add final newline
+            print(f"Replacing {n} lines in {f}")
+            f.write_text('\n'.join(content))
+
+def main():
+    args = parse_args()
+    files = all_files_iter( *args.PATTERN)
+    if args.pathfilter:
+        def filter_files(file_list):
+            from common.dirs import reporoot
+            pos,neg = [], []
+            for pf in args.pathfilter:
+                if pf.startswith('!'):
+                    tgt = neg
+                    pf = pf[1:]
+                else:
+                    tgt = pos
+                pf = pathlib.Path(pf).resolve().absolute()
+                if not pf.is_relative_to(reporoot):
+                    raise SystemExit(f'Path outside repo: {pf}')
+                if not pf.exists():
+                    raise SystemExit(f'Missing file: {pf}')
+                tgt.append( str(pf.relative_to(reporoot)) )
+
+            for f in file_list:
+                k = str(f.relative_to(reporoot))
+                ok = True
+                for n in neg:
+                    if k.startswith(n):
+                        ok = False
+                        break
+                if not ok:
+                    continue
+                if not pos:
+                    yield f
+                for p in pos:
+                    if k.startswith(p):
+                        yield f
+                        break
+        files = filter_files(files)
+
+    if args.grepl:
+        mode_grepl( files, args.grepl )
+    elif args.grep:
+        mode_grep( files, args.grep )
+    elif args.replace:
+        mode_replace( files,
+                      args.replace[0],
+                      args.replace[1],
+                      args.linefilter )
+    else:
+        #default (list selected):
+        for f in files:
+            print(f)
+
+if __name__ == '__main__':
+    main()

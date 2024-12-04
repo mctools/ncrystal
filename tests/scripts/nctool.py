@@ -26,9 +26,10 @@
 
 #import NCTestUtils.enable_fpe
 import NCTestUtils.reprint_escaped_warnings
-import NCrystal as NC
-import NCrystal.cliutils as nc_cliutils
-from NCrystal.misc import AnyTextData
+import NCrystalDev as NC
+import NCrystalDev.cliutils as nc_cliutils
+from NCrystalDev.misc import AnyTextData
+from NCTestUtils.env import ncsetenv
 
 from NCTestUtils.common import ( print_text_file_with_snipping,
                                  ensure_error,
@@ -97,8 +98,8 @@ def main():
                       'Could not find data: "missing.ncmat"'):
         test_cli(['missing.ncmat;temp=300K','--cfg'])
 
-    os.environ['NCRYSTAL_TOOL_UNITTESTS'] = '1'
-    os.environ['NCRYSTAL_DPI']='75'
+    ncsetenv('TOOL_UNITTESTS','1')
+    ncsetenv('DPI','75')
     test_cli(['--bench','Al_sg225.ncmat'])
     test_cli(['Al_sg225.ncmat;dcutoff=0.5;vdoslux=2'])
     test_cli(['Al_sg225.ncmat;dcutoff=0.5;vdoslux=2','-a','--energy','-x','1e-3:1e2'])

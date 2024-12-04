@@ -21,7 +21,7 @@
 ################################################################################
 
 import NCTestUtils.enable_fpe
-import NCrystal as NC
+import NCrystalDev as NC
 
 def compos2str( composition ):
     tl = lambda atomdata : ' [TopLevelAtomData]' if atomdata.isTopLevel() else ''

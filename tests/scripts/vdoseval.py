@@ -22,9 +22,9 @@
 
 # NEEDS: mpmath numpy
 
-import NCrystal as NC
-from NCrystal.vdos import analyseVDOS
-from NCrystal._numpy import _np_linspace
+import NCrystalDev as NC
+#from NCrystalDev.vdos import analyseVDOS
+from NCrystalDev._numpy import _np_linspace
 
 import mpmath
 mp = mpmath.mp
@@ -55,7 +55,7 @@ def integrate_vdos_mpmath(emin,emax,densities,
     return sumtrapez + contrib_parabola
 
 def integrate_vdos_ncrystal( emin,emax,densities ):
-    from NCrystal.vdos import analyseVDOS
+    from NCrystalDev.vdos import analyseVDOS
     d = analyseVDOS(emin=emin,
                     emax=emax,
                     density=densities,

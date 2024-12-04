@@ -22,8 +22,8 @@
 
 # NEEDS: numpy
 
-import NCrystal as NC
-import NCrystal.cliutils as nc_cliutils
+import NCrystalDev as NC
+import NCrystalDev.cliutils as nc_cliutils
 from NCTestUtils.common import ( print_text_file_with_snipping,
                                  ensure_error,
                                  work_in_tmpdir )

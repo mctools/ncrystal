@@ -49,7 +49,7 @@ def main():
     Al   410.3542
 """
 
-    import NCrystal as NC
+    import NCrystalDev as NC
     NC.removeAllDataSources()
     NC.registerInMemoryFileData('Al_nosg.ncmat',data)
     NC.registerInMemoryFileData('Al.ncmat',data+'@SPACEGROUP\n    225\n')

@@ -23,7 +23,7 @@
 # NEEDS: numpy
 
 import NCTestUtils.enable_fpe
-import NCrystal as NC
+import NCrystalDev as NC
 for a in NC.iterateAtomDB():
     print(a)
     print(repr(a.to_atomdb_str()))

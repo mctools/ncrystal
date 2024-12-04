@@ -22,7 +22,7 @@
 
 #test file with same element in different roles (here differing by MSD value)
 import NCTestUtils.enable_fpe
-import NCrystal as NC
+import NCrystalDev as NC
 import sys
 
 o = NC.directMultiCreate( """NCMAT v5
@@ -89,7 +89,7 @@ else:
 
 
 def teststrip(s):
-    from NCrystal._ncmatimpl import _stripCommentsAndPackNCMATData
+    from NCrystalDev._ncmatimpl import _stripCommentsAndPackNCMATData
     sys.stdout.write( '-'*40+' orig ' + '-'*40 +'\n' )
     sys.stdout.write( s.rawData if hasattr(s,'rawData') else s )
     sys.stdout.write( '-'*40+' packed ' + '-'*40 +'\n' )

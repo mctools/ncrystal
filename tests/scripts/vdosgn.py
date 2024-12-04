@@ -22,7 +22,7 @@
 
 # NEEDS: numpy mpmath
 
-import NCrystal as NC
+import NCrystalDev as NC
 from NCTestUtils.pwlindistmoments import PWLinDistMoments
 import mpmath
 mp = mpmath.mp

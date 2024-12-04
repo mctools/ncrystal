@@ -22,11 +22,11 @@
 
 # NEEDS: numpy
 
-import os
-os.environ['NCRYSTAL_DEBUG_VDOSREGULARISATION']='1'
-os.environ['NCRYSTAL_DEBUG_PHONON']='1'
+from NCTestUtils.env import ncsetenv
+ncsetenv('DEBUG_VDOSREGULARISATION','1')
+ncsetenv('DEBUG_PHONON','1')
 import NCTestUtils.enable_fpe # noqa F401
-import NCrystal as NC
+import NCrystalDev as NC
 
 def main():
     info = NC.createInfo('stdlib::BaO_sg225_BariumOxide.ncmat')

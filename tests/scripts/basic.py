@@ -25,7 +25,7 @@
 import NCTestUtils.enable_fpe # noqa F401
 from NCTestUtils.printnumpy import format_numpy_1darray_asfloat as npfmt
 from NCTestUtils.common import is_windows
-import NCrystal as NC
+import NCrystalDev as NC
 import pathlib
 import os
 import sys

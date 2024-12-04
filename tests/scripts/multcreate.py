@@ -21,16 +21,16 @@
 ################################################################################
 
 import NCTestUtils.enable_fpe # noqa F401
-import NCrystal as NC
+import NCrystalDev as NC
 
 def investigate_cross_sections(mat,lbl=None):
-    import NCrystal.misc as ncmisc
+    import NCrystalDev.misc as ncmisc
     matsrc = ncmisc.MaterialSource(mat)
     if lbl:
         matsrc.set_plotlabel(lbl)
 
     print(f"Scattering cross sections of {matsrc.plotlabel}")
-    from NCrystal.misc import detect_scattering_components
+    from NCrystalDev.misc import detect_scattering_components
     for comp in detect_scattering_components(matsrc):
         loaded=matsrc.load(f'comp={comp}')
         for wl in ( 0.5, 2.0, 5.0):

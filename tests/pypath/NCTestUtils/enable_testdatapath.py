@@ -27,7 +27,7 @@
 __all__=[]
 
 def _add_test_data():
-    from NCrystal.datasrc import addCustomSearchDirectory
+    from NCrystalDev.datasrc import addCustomSearchDirectory
     from .dirs import test_data_dir
     addCustomSearchDirectory( test_data_dir )
 

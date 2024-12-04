@@ -25,8 +25,8 @@
 # NEEDS: numpy
 
 import NCTestUtils.enable_fpe
-import NCrystal as NC
-import NCrystal.cliutils as nc_cliutils
+import NCrystalDev as NC
+import NCrystalDev.cliutils as nc_cliutils
 
 from NCTestUtils.common import ( ensure_error,
                                  work_in_tmpdir )

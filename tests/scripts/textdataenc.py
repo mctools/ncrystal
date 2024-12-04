@@ -21,7 +21,7 @@
 ################################################################################
 
 import NCTestUtils.enable_fpe
-import NCrystal as NC
+import NCrystalDev as NC
 
 # Test for line encodings (even just printing
 # getTextData('stdlib::somefile.ncmat').rawData gave problems on Windows before,

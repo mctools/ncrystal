@@ -19,4 +19,4 @@
 ##                                                                            ##
 ################################################################################
 
-# Tesing modules. Leave this __init__.py file empty to avoid side-effects.
+# Tesing modules. Leave this __init__.py file empty.
