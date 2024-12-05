@@ -29,12 +29,14 @@ _pydep2sblddep = { 'ase':'ASE',
                    'gemmi':'Gemmi',
                    'numpy':'Numpy',
                    'pandas':'Pandas',
+                   'toml':'PyToml',
                    'scipy':'Scipy',
                    'spglib':'Spglib',#fixme: try to comment this line and check that all works
                    'matplotlib':'matplotlib',
                    'mpmath':'mpmath' }
 
 _pydeps2pkg_suffix = [ ( set(['numpy']), 'np' ),
+                       ( set(['toml']), 'toml' ),
                        ( set(['numpy','matplotlib']), 'mpl' ),
                        ( set(['numpy','mpmath']), 'mpmath' ),#FIXME: try to comment this line and check that all works
                        ( set(['numpy','ase','spglib','gemmi']), 'asg' )

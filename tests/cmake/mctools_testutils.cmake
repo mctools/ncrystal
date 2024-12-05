@@ -134,12 +134,36 @@ function( mctools_testutils_internal_haspydep resvar pydep )
   #get unexpected stderr output in the middle of our tests later.
 
   mctools_testutils_internal_getpyexec( "pyexec" )
-  if ( "x${pydep}" STREQUAL "xmatplotlib" )
+
+  if ( "x${pydep}" STREQUAL "xtoml" )
+    #"tomllib" in python 3.11 and later (where it is ALWAYS present), otherwise
+    #require "tomli".
+    execute_process(
+      COMMAND "${pyexec}" "-c"
+      "import sys; print('tomllib' if sys.version_info[0:2]>=(3,11) else 'tomli')"
+      RESULT_VARIABLE "res" OUTPUT_VARIABLE "pymodtoimport"
+      OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET
+    )
+    if( NOT "x${res}" STREQUAL "x0" OR "x${pymodtoimport}" STREQUAL "x" )
+      message(
+        FATAL_ERROR "Problems invoking Python to"
+        " determine tomllib/tomli name"
+      )
+    endif()
+  elseif ( "x${pydep}" STREQUAL "xmatplotlib" )
+    #One advantage of importing matplotlib.pyplot and not just matplotlib, is
+    #that it triggers font cache building, so it won't clobber test output
+    #later.
     set( pymodtoimport "matplotlib.pyplot" )
   else()
     set( pymodtoimport "${pydep}" )
   endif()
-  message(STATUS "Testing for presence of python module: ${pydep}")
+  if ( "${pymodtoimport}" STREQUAL "${pydep}" )
+    set( "tmp" "${pydep}" )
+  else()
+    set( "tmp" "${pymodtoimport} (for ${pydep})" )
+  endif()
+  message(STATUS "Testing for presence of python module: ${tmp}")
   execute_process(
     COMMAND "${pyexec}" "-c" "import ${pymodtoimport}"
     RESULT_VARIABLE "res" OUTPUT_QUIET ERROR_QUIET
