@@ -83,7 +83,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   void mcu8str_dealloc( mcu8str* );
   void mcu8str_update_size( mcu8str* );//sets size to strlen(c_str) after
                                        //editing c_str manually
-  mcu8str mcu8str_create_empty();//empty path (safe to not deallocate)
+  mcu8str mcu8str_create_empty(void);//empty path (safe to not deallocate)
   mcu8str mcu8str_create( size_t prealloc_size );//fixme std::size_t if c++
   mcu8str mcu8str_create_from_staticbuffer( char * buf, size_t buflen );
   mcu8str mcu8str_create_from_cstr( const char * );
@@ -144,7 +144,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   int mctools_exists( const mcu8str* );//path exists
   int mctools_is_dir( const mcu8str* );//path exists and is directory
   int mctools_is_file( const mcu8str* );//path exists and is not a directory
-  mcu8str mctools_get_current_working_dir();//like unix getcwd
+  mcu8str mctools_get_current_working_dir(void);//like unix getcwd
 
   //Check if two files exist and are actually the same file (i.e. same inode on
   //same device) in the system. Returns false for directories:

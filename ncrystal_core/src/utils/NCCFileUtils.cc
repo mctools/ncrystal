@@ -75,7 +75,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 #  define STDNS
 #endif
 
-  mcu8str mcu8str_create_empty()
+  mcu8str mcu8str_create_empty(void)
   {
     static char dummy[4] = { 0, 0, 0, 0 };
     mcu8str s;
@@ -400,7 +400,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   DWORD GetFullPathNameW( const wchar_t*, DWORD, wchar_t*, wchar_t** );
   DWORD GetFileAttributesW( const wchar_t* );
   DWORD GetLongPathNameW( const wchar_t*, wchar_t*, DWORD);
-  DWORD GetLastError();
+  DWORD GetLastError(void);
   FILE * _wfopen( const wchar_t*,const wchar_t*);
   typedef struct { int dummy; } FILETIME;
   typedef struct {
@@ -510,7 +510,7 @@ namespace {
     }
 
     mcwinstr mc_winstr_create( STDNS size_t );
-    mcwinstr mc_winstr_create_empty();
+    mcwinstr mc_winstr_create_empty(void);
     void mc_winstr_dealloc( mcwinstr* );
 
     mcwinstr mc_u8str_to_winstr( const mcu8str* src )
@@ -707,7 +707,7 @@ namespace {
       return res;
     }
 
-    mcwinstr mc_winstr_create_empty()
+    mcwinstr mc_winstr_create_empty(void)
     {
       //empty (keep in allocated buffer for simplicity).
       return mc_winstr_create(0);
@@ -852,7 +852,7 @@ namespace {
 #endif
   }
 
-  mcu8str mctools_get_current_working_dir()
+  mcu8str mctools_get_current_working_dir(void)
   {
 #ifdef MC_IS_WINDOWS
     mcwinstr wpath = mc_winstr_create( ( MAX_PATH >= 260 ? MAX_PATH+1 : 261 ) );
