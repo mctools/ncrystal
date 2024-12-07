@@ -36,4 +36,4 @@ jobs:
       run: cd devel/simplebuild && sb
 
     - name: Launch simplebuild tests
-      run: cd devel/simplebuild && sb -t --testf="!sb_nclong*"
+      run: cd devel/simplebuild && sb -t --testexcerpts=500
