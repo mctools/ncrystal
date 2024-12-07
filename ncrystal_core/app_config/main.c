@@ -232,7 +232,7 @@ typedef struct
   int size;
 } nccfg_strlist;
 
-nccfg_strlist nccfg_show_item_list()
+nccfg_strlist nccfg_show_item_list(void)
 {
   //All options (synchronize with implementation of nccfg_show_item_lookup
   //function):

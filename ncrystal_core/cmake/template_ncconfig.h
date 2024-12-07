@@ -23,24 +23,24 @@
 //CMake variables are expanded. Then at CMake build time, the Generator
 //expressions are expanded.
 
-const char * nccfg_const_bin2libdir() { return "@NCrystal_relpath_BINDIR2LIBDIR@"; }
-const char * nccfg_const_bin2shlibdir() { return "@NCrystal_relpath_BINDIR2SHLIBDIR@"; }
-const char * nccfg_const_libname() { return "@NCrystal_libname_genexp@"; }//NB: generator expression
-const char * nccfg_const_shlibname() { return "@NCrystal_shlibname_genexp@"; }//NB: generator expression
-const char * nccfg_const_bin2libpath() { return "@NCrystal_relpath_BINDIR2LIBDIR@/@NCrystal_libname_genexp@"; }
-const char * nccfg_const_bin2shlibpath() { return "@NCrystal_relpath_BINDIR2SHLIBDIR@/@NCrystal_shlibname_genexp@"; }
-const char * nccfg_const_bin2datadir() { return "@NCrystal_relpath_BINDIR2DATADIR@"; }
-const char * nccfg_const_bin2incdir() { return "@NCrystal_relpath_BINDIR2INCDIR@"; }
-const char * nccfg_const_bin2cmakedir() { return "@NCrystal_relpath_BINDIR2CMAKEDIR@"; }
-const char * nccfg_const_version() { return "@NCrystal_VERSION@"; }
-const char * nccfg_const_intversion() { return "@nccfgapp_intversion@"; }
-const char * nccfg_const_builtinplugins() { return "@NCrystal_builtin_plugin_names@"; }
-const char * nccfg_const_namespace() { return "@NCRYSTAL_NAMESPACE@"; }
-const char * nccfg_const_cmakebuildtype() { return "$<CONFIG>"; }//NB: generator expression
-int nccfg_boolopt_data() { return @nccfgapp_has_data_01@; }
-int nccfg_boolopt_dynamic_plugins() { return @nccfgapp_has_dynload_01@; }
-int nccfg_boolopt_embed_data() { return @nccfgapp_has_dataembed_01@; }
-int nccfg_boolopt_examples() { return @nccfgapp_has_examples_01@; }
-int nccfg_boolopt_modify_rpath() { return @nccfgapp_has_modrpath_01@; }
-int nccfg_boolopt_threads() { return @nccfgapp_has_threads_01@; }
-int nccfg_boolopt_expects_shlibdir_override() { return @nccfgapp_expect_shlibdir_override_01@; }
+const char * nccfg_const_bin2libdir(void) { return "@NCrystal_relpath_BINDIR2LIBDIR@"; }
+const char * nccfg_const_bin2shlibdir(void) { return "@NCrystal_relpath_BINDIR2SHLIBDIR@"; }
+const char * nccfg_const_libname(void) { return "@NCrystal_libname_genexp@"; }//NB: generator expression
+const char * nccfg_const_shlibname(void) { return "@NCrystal_shlibname_genexp@"; }//NB: generator expression
+const char * nccfg_const_bin2libpath(void) { return "@NCrystal_relpath_BINDIR2LIBDIR@/@NCrystal_libname_genexp@"; }
+const char * nccfg_const_bin2shlibpath(void) { return "@NCrystal_relpath_BINDIR2SHLIBDIR@/@NCrystal_shlibname_genexp@"; }
+const char * nccfg_const_bin2datadir(void) { return "@NCrystal_relpath_BINDIR2DATADIR@"; }
+const char * nccfg_const_bin2incdir(void) { return "@NCrystal_relpath_BINDIR2INCDIR@"; }
+const char * nccfg_const_bin2cmakedir(void) { return "@NCrystal_relpath_BINDIR2CMAKEDIR@"; }
+const char * nccfg_const_version(void) { return "@NCrystal_VERSION@"; }
+const char * nccfg_const_intversion(void) { return "@nccfgapp_intversion@"; }
+const char * nccfg_const_builtinplugins(void) { return "@NCrystal_builtin_plugin_names@"; }
+const char * nccfg_const_namespace(void) { return "@NCRYSTAL_NAMESPACE@"; }
+const char * nccfg_const_cmakebuildtype(void) { return "$<CONFIG>"; }//NB: generator expression
+int nccfg_boolopt_data(void) { return @nccfgapp_has_data_01@; }
+int nccfg_boolopt_dynamic_plugins(void) { return @nccfgapp_has_dynload_01@; }
+int nccfg_boolopt_embed_data(void) { return @nccfgapp_has_dataembed_01@; }
+int nccfg_boolopt_examples(void) { return @nccfgapp_has_examples_01@; }
+int nccfg_boolopt_modify_rpath(void) { return @nccfgapp_has_modrpath_01@; }
+int nccfg_boolopt_threads(void) { return @nccfgapp_has_threads_01@; }
+int nccfg_boolopt_expects_shlibdir_override(void) { return @nccfgapp_expect_shlibdir_override_01@; }

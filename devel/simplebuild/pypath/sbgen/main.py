@@ -189,30 +189,30 @@ def ncconfig_h_contents():
                        CMAKEBUILDTYPE = cmakebuildtype,
                       )
     c = """
-const char * nccfg_const_bin2libdir() { return "../lib"; }
-const char * nccfg_const_bin2shlibdir() { return "../lib"; }
-const char * nccfg_const_libname() { return "libPKG__@NCLIBPKGNAME@.so"; }
-const char * nccfg_const_shlibname() { return "libPKG__@NCLIBPKGNAME@.so"; }
-const char * nccfg_const_bin2libpath()
+const char * nccfg_const_bin2libdir(void) { return "../lib"; }
+const char * nccfg_const_bin2shlibdir(void) { return "../lib"; }
+const char * nccfg_const_libname(void) { return "libPKG__@NCLIBPKGNAME@.so"; }
+const char * nccfg_const_shlibname(void) { return "libPKG__@NCLIBPKGNAME@.so"; }
+const char * nccfg_const_bin2libpath(void)
     { return "../lib/libPKG__@NCLIBPKGNAME@.so"; }
-const char * nccfg_const_bin2shlibpath()
+const char * nccfg_const_bin2shlibpath(void)
     { return "../lib/libPKG__@NCLIBPKGNAME@.so"; }
-const char * nccfg_const_bin2datadir() { return "../data/@NCDATAPKGNAME@"; }
-const char * nccfg_const_bin2incdir() { return "@NCBIN2INCDIR@"; }
-const char * nccfg_const_bin2cmakedir()
+const char * nccfg_const_bin2datadir(void) { return "../data/@NCDATAPKGNAME@"; }
+const char * nccfg_const_bin2incdir(void) { return "@NCBIN2INCDIR@"; }
+const char * nccfg_const_bin2cmakedir(void)
     { return "cmakedir/not/available/in/simplebuild/devel/mode"; }
-const char * nccfg_const_version() { return "@NCVERSION@"; }
-const char * nccfg_const_intversion() { return "@NCINTVERSION@"; }
-const char * nccfg_const_builtinplugins() { return ""; }
-const char * nccfg_const_namespace() { return "@NCNAMESPACE@"; }
-const char * nccfg_const_cmakebuildtype() { return "@CMAKEBUILDTYPE@"; }
-int nccfg_boolopt_data() { return 1; }
-int nccfg_boolopt_dynamic_plugins() { return 1; }
-int nccfg_boolopt_embed_data() { return 0; }
-int nccfg_boolopt_examples() { return 1; }
-int nccfg_boolopt_modify_rpath() { return 1; }
-int nccfg_boolopt_threads() { return 1; }
-int nccfg_boolopt_expects_shlibdir_override() { return 0; }
+const char * nccfg_const_version(void) { return "@NCVERSION@"; }
+const char * nccfg_const_intversion(void) { return "@NCINTVERSION@"; }
+const char * nccfg_const_builtinplugins(void) { return ""; }
+const char * nccfg_const_namespace(void) { return "@NCNAMESPACE@"; }
+const char * nccfg_const_cmakebuildtype(void) { return "@CMAKEBUILDTYPE@"; }
+int nccfg_boolopt_data(void) { return 1; }
+int nccfg_boolopt_dynamic_plugins(void) { return 1; }
+int nccfg_boolopt_embed_data(void) { return 0; }
+int nccfg_boolopt_examples(void) { return 1; }
+int nccfg_boolopt_modify_rpath(void) { return 1; }
+int nccfg_boolopt_threads(void) { return 1; }
+int nccfg_boolopt_expects_shlibdir_override(void) { return 0; }
 """
     for k,v in expandvars.items():
         c = c.replace('@%s@'%k,v)

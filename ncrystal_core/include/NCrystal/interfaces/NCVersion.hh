@@ -31,6 +31,11 @@
 #include "NCrystal/ncapi.h"
 #include <stdexcept>
 
+
+#ifndef NCRYSTAL_VERSION
+#  error "inconsistency detected"
+#endif
+
 namespace NCRYSTAL_NAMESPACE {
 
   //Function which returns NCRYSTAL_VERSION. If it does not, it indicates symbol
