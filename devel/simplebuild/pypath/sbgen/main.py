@@ -180,7 +180,14 @@ def ncconfig_h_contents():
                            reldbg = 'RelWithDebInfo',
                            release = 'Release' )[ cfg.sbld_mode ]
 
-    expandvars = dict( NCLIBPKGNAME = cfg.sbpkgname_ncrystal_lib,
+
+    libname = 'libPKG__%s'%cfg.sbpkgname_ncrystal_lib
+    import platform
+    if platform.system() == 'Darwin':
+        libname += '.dylib'
+    else:
+        libname += '.so'
+    expandvars = dict( NCLIBNAME = libname,
                        NCDATAPKGNAME = cfg.sbpkgname_ncrystal_data,
                        NCVERSION = cfg.ncrystal_version_str,
                        NCINTVERSION = str(cfg.ncrystal_version_int),
@@ -191,12 +198,12 @@ def ncconfig_h_contents():
     c = """
 const char * nccfg_const_bin2libdir(void) { return "../lib"; }
 const char * nccfg_const_bin2shlibdir(void) { return "../lib"; }
-const char * nccfg_const_libname(void) { return "libPKG__@NCLIBPKGNAME@.so"; }
-const char * nccfg_const_shlibname(void) { return "libPKG__@NCLIBPKGNAME@.so"; }
+const char * nccfg_const_libname(void) { return "@NCLIBNAME@"; }
+const char * nccfg_const_shlibname(void) { return "@NCLIBNAME@"; }
 const char * nccfg_const_bin2libpath(void)
-    { return "../lib/libPKG__@NCLIBPKGNAME@.so"; }
+    { return "../lib/@NCLIBNAME@"; }
 const char * nccfg_const_bin2shlibpath(void)
-    { return "../lib/libPKG__@NCLIBPKGNAME@.so"; }
+    { return "../lib/@NCLIBNAME@"; }
 const char * nccfg_const_bin2datadir(void) { return "../data/@NCDATAPKGNAME@"; }
 const char * nccfg_const_bin2incdir(void) { return "@NCBIN2INCDIR@"; }
 const char * nccfg_const_bin2cmakedir(void)
