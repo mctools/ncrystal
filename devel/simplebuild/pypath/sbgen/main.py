@@ -84,8 +84,8 @@ execute_process(
 if ("x${tmp_ec}" STREQUAL "x0")
   set(HAS_@name@ 1)
   string(STRIP "${tmp}" ExtDep_@name@_VERSION)
-  set(ExtDep_@name@_COMPILE_FLAGS "")
-  set(ExtDep_@name@_LINK_FLAGS "")
+  set(ExtDep_@name@_PREPEND_COMPILE_FLAGS "")
+  set(ExtDep_@name@_PREPEND_LINK_FLAGS "")
 else()
   set(HAS_@name@ 0)
 endif()
@@ -139,16 +139,37 @@ f"""
 """)
     return c
 
-def create_custom_extdep( name, cflags = '', ldflags = '' ):
+def create_custom_extdep( name, cflags = '', ldflags = '',
+                          is_not_syshdrs = True,
+                          includemap = None ):
+    outdir = dirs.genroot.joinpath('extdep_definitions')
+
     content=f"""
 set( HAS_{name} "1" )
 set( ExtDep_{name}_VERSION "{cfg.ncrystal_version_str}" )
 set( ExtDep_{name}_COMPILE_FLAGS "{cflags}")
 set( ExtDep_{name}_LINK_FLAGS "{ldflags}")
+
 """
-    add_file( dirs.genroot.joinpath('extdep_definitions',
-                                    f'ExtDep_{name}.cmake'),
-              content = content )
+    #Make sure we intercept headers from system-installed NCrystal (default
+    #priority is 1000):
+    content += (f'set( ExtDep_{name}_FLAGPRIORITY "100" )\n')
+
+    #Map includes like "NCrystal/core/NCBla.hh" to "NCCore/NCBla.hh"
+    if includemap:
+        incmapfilebn = f'extdep_incmap_{name}.txt'
+        content += (f'set( ExtDep_{name}_INCLUDEMAPFILE '
+                    '"${CMAKE_CURRENT_LIST_DIR}/%s" )\n'%incmapfilebn )
+        incmap_content = ''
+        for k,v in includemap:
+            incmap_content += f'{k} {v}\n'
+        add_file( outdir.joinpath(incmapfilebn), content = incmap_content )
+
+    if is_not_syshdrs:
+        #Do not add -isystem to our include paths:
+        content += 'set( ExtDep_{name}_IsNotSystemHeaders "ON" )\n'
+
+    add_file( outdir / f'ExtDep_{name}.cmake', content = content )
 
 def ncconfig_h_contents():
 
@@ -206,17 +227,6 @@ def define_files():
     #that case also make sure that python imports work with the module name
     #NCrystal and not just NCrystalDev.
 
-    #TODO: keep structure from original NCrystalDev repo : NCCore, NCUtils, etc.
-
-    #TODO: Wrap <reporoot>/tests as well.
-
-    #TODO: Absorb NCVersion into ncapi.h and NCDefs.hh (that way we can also
-    #avoid versions hardcoded in both NCVersion.hh and ncrystal.h, and the
-    #CMakeLists.txt files, and have just the version in VERSION +
-    #ncrystal_python/NCrystal/__init__.py. Idea: we could even avoid the latter
-    #if we make the sdists for ncrystal_python dynamically, (but also generate
-    #the pyproject.toml for them).
-
     #TODO: Also autogenerate NCrystal.hh, adding all public includes? Problem
     #is, we need both python and cmake code for it. Might be easier with a
     #static one + a standalone test that verifies we did not forget anything.
@@ -224,22 +234,15 @@ def define_files():
     from . import dirs
 
     #NCrystal headers:
-    ncapi_loc_in_genroot = 'extraincpath/NCrystal/ncapi.h'
+    ncapi_loc_in_genroot = 'incpath/NCrystal/ncapi.h'
     add_file( ncapi_loc_in_genroot, content=ncapi_contents() )
-    #FIXME: One custom extdep per pkg, and in an extraincpath, so we enforce the
-    #deps to be correct.
-    create_custom_extdep( 'NCDevHeaders',
-                          cflags = (f'-I{dirs.genroot}/extraincpath '
-                                    f'-I{dirs.srcroot}/include '
-                                    '-DNCrystal_EXPORTS '#for NCCFileUtils.hh
-                                    '-fno-math-errno') )
 
     #NCrystal source file compilation:
     from .ncrystalsrc import load_components
     name2comp = load_components()
     all_ncsbpkgs = []
+    includemap = []
     for name,comp in sorted(name2comp.items()):
-        #TODO: comp.srcdir_hdrs, comp.srcfiles
         sbpkgname = cfg.sbpkgname_ncrystal_comp(name)
         all_ncsbpkgs.append(sbpkgname)
         extdeps = ['NCDevHeaders']
@@ -250,27 +253,23 @@ def define_files():
                         pkg_deps = [ cfg.sbpkgname_ncrystal_comp(n)
                                      for n in comp.direct_depnames ],
                         extra_cflags = [f'-I{dirs.srcroot}/src',
-                                        f'-DNCRYSTAL_DATADIR={dirs.datadir}'] )#Fixme NCRYSTAL_DATADIR also only for factories
+                                        f'-DNCRYSTAL_DATADIR={dirs.datadir}'] )#Fixme NCRYSTAL_DATADIR only for factories
         for sf in (comp.srcdir_hdrs+comp.srcfiles):
             add_file( f'pkgs/{sbpkgname}/libsrc/{sf.name}', link_target = sf )
 
         #For traditional simplebuild includes:
         for sf in comp.hdrfiles or []:
+            includemap.append( ( str(sf.relative_to(dirs.srcincroot)), f'{sbpkgname}/{sf.name}' ) )
             add_file( f'pkgs/{sbpkgname}/libinc/{sf.name}', link_target = sf )
 
     #Also symlink ncapi.h and NCrystal.hh:
-    add_file( 'pkgs/%s/libinc/ncapi.h'%cfg.sbpkgname_ncrystal_comp('core'),
+    pkgname_core = cfg.sbpkgname_ncrystal_comp('core')
+    add_file( f'pkgs/{pkgname_core}/libinc/ncapi.h',
               link_target = dirs.genroot.joinpath(ncapi_loc_in_genroot) )
+    includemap.append( ( 'NCrystal/ncapi.h', f'{pkgname_core}/ncapi.h' ) )
+
     add_file( 'pkgs/%s/libinc/NCrystal.hh'%cfg.sbpkgname_ncrystal_ncrystalhh,
               link_target = dirs.srcroot.joinpath('include/NCrystal/NCrystal.hh') )#fixme: autogen?
-
-    #create_pkginfo( cfg.sbpkgname_ncrystal_lib,
-    #                extdeps = ['DL','NCDevHeaders'],
-    #                extra_cflags = [f'-I{dirs.srcroot}/src',
-    #                                f'-DNCRYSTAL_DATADIR={dirs.datadir}'] )
-    #for sf in (dirs.srcroot/'src').glob('*c'):
-    #    add_file( f'pkgs/{cfg.sbpkgname_ncrystal_lib}/libsrc/{sf.name}',
-    #              link_target = sf )
 
     #NCrystalDev package (python module):
     assert cfg.sbpkgname_ncrystal_lib in all_ncsbpkgs
@@ -312,6 +311,14 @@ mod.main()
         add_file( f'pkgs/{cfg.sbpkgname_ncrystal_data}/data/{sf.name}',
                   link_target = sf )
 
+    #FIXME: One custom extdep per pkg, and in an extra incpath, so we enforce
+    #the deps to be correct??.
+    create_custom_extdep( 'NCDevHeaders',
+                          includemap = includemap,
+                          cflags = (f'-I{dirs.genroot}/incpath '
+                                    f'-I{dirs.srcroot}/include '
+                                    '-DNCrystal_EXPORTS '#for NCCFileUtils.hh
+                                    '-fno-math-errno') )
     #Examples:
     example_src =[]
     example_src_g4 =[]
@@ -430,9 +437,11 @@ mod.main()
             pytest_pkgname2pydeps[pkgname] = pkgpydeps
         else:
             assert pytest_pkgname2pydeps[pkgname] == pkgpydeps
-        add_file( f'pkgs/{pkgname}/scripts/test{sf.stem}', link_target = sf,
-                  make_executable = True )
-            #FIXME REFLOGS
+        outfn = f'pkgs/{pkgname}/scripts/test{sf.stem}'
+        add_file( outfn, link_target = sf, make_executable = True )
+        reflog = sf.parent.joinpath(sf.stem+'.log')
+        if reflog.is_file():
+            add_file( outfn + '.log', link_target = reflog )
 
     for pkgname, pydeps in pytest_pkgname2pydeps.items():
         all_test_pkgs.append(pkgname)
@@ -444,19 +453,17 @@ mod.main()
         all_test_pkgs.append('NCTestPyExtra')
         create_pkginfo_pytestpkg( 'NCTestPyExtra', extrapkg_pydeps )
         for sf in extrapkg_sflist:
-            add_file( f'pkgs/NCTestPyExtra/scripts/test{sf.stem}',
-                      link_target = sf,
-                      make_executable = True )
-            #FIXME REFLOGS
+            outfn = f'pkgs/NCTestPyExtra/scripts/test{sf.stem}'
+            add_file( outfn, link_target = sf, make_executable = True )
+            reflog = sf.parent.joinpath(sf.stem+'.log')
+            if reflog.is_file():
+                add_file( outfn + '.log', link_target = reflog )
 
     #For --require:
     create_pkginfo( 'NCTestAll', pkg_deps = all_test_pkgs )
 
-
-
     #Geant4 (until it moves elsewhere):
-    create_custom_extdep( 'NCG4DevHeaders',
-                          cflags = f'-I{dirs.ncg4srcroot}/include ' )
+    includemap_g4 = []
     create_pkginfo( cfg.sbpkgname_ncrystal_geant4,
                     pkg_deps=[cfg.sbpkgname_ncrystal_lib],
                     extdeps = ['Geant4','NCG4DevHeaders'],
@@ -466,7 +473,10 @@ mod.main()
         add_file( f'pkgs/{cfg.sbpkgname_ncrystal_geant4}/libsrc/{sf.name}',
                   link_target = sf )
 
-    for sf in dirs.ncg4srcroot.joinpath('include/G4NCrystal').glob('*.hh'):
+    g4incroot = dirs.ncg4srcroot.joinpath('include')
+    for sf in g4incroot.joinpath('G4NCrystal').glob('*.hh'):
+        includemap_g4.append( ( str(sf.relative_to(g4incroot)),
+                                f'{cfg.sbpkgname_ncrystal_geant4}/{sf.name}' ) )
         add_file( f'pkgs/{cfg.sbpkgname_ncrystal_geant4}/libinc/{sf.name}',
                   link_target = sf )
 
@@ -474,7 +484,12 @@ mod.main()
                            cfg.sbpkgname_ncrystal_geant4,
                            override_name = 'example' )
 
+    create_custom_extdep( 'NCG4DevHeaders',
+                          includemap = includemap_g4,
+                          cflags = f'-I{dirs.ncg4srcroot}/include ' )
+
 def main():
     define_files()
     create_files()
+
 #TODO: Make globbing utils for multiple extensions + guard against names with '#' or '~'

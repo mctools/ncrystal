@@ -26,6 +26,13 @@ namespace NC = NCrystal;
 
 namespace {
 
+  std::string sanitise_whitespace( std::string s ) {
+    std::string s2 = std::move(s);
+    NC::strreplace( s2, "\r", "\\r" );
+    NC::strreplace( s2, "\n", "\\n" );
+    return s2;
+  }
+
   void test_varids() {
 
     //unsigned enumval_p = 0;
@@ -53,7 +60,7 @@ namespace {
 
     auto doTest_impl = [](const char*cstr,bool expectbad)
     {
-      std::cout<<"\n------> Parsing \""<<cstr<<"\":\n";
+      std::cout<<"\n------> Parsing \""<<sanitise_whitespace(cstr)<<"\":\n";
       try {
         auto l = NC::Cfg::CfgData();
         auto toplvl = CfgManip::applyStrCfg( l, cstr );
@@ -100,7 +107,7 @@ namespace {
     using NC::Cfg::CfgManip;
     auto doTest_impl = [](const char*cstr,bool expectbad)
     {
-      std::cout<<"\n------> Parsing \""<<cstr<<"\":\n";
+      std::cout<<"\n------> Parsing \""<<sanitise_whitespace(cstr)<<"\":\n";
       try {
         auto l = NC::Cfg::CfgData();
         auto toplvl = CfgManip::applyStrCfg(l,cstr);

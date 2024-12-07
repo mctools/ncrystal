@@ -23,6 +23,7 @@
 # NEEDS: numpy
 
 import NCTestUtils.enable_fpe # noqa F401
+from NCTestUtils.modeinfo import is_simplebuild_mode
 from NCTestUtils.printnumpy import format_numpy_1darray_asfloat as npfmt
 from NCTestUtils.common import is_windows
 import NCrystalDev as NC
@@ -50,7 +51,8 @@ for f in 'ekin2wl wl2ekin ekin2ksq wl2k wl2ksq'.split():
 datafile = "Al_sg225.ncmat"
 info = NC.createInfo(datafile)
 
-print('get_build_namespace=%s'%NC.get_build_namespace())
+if is_simplebuild_mode():
+    assert NC.get_build_namespace() == 'dev'
 
 def myprint(*args):
     sys.stdout.flush()

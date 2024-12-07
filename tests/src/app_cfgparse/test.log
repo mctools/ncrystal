@@ -77,8 +77,7 @@ sccutoff  ->  17  ->  sccutoff
   => cfgstr: atomdb=Al:is:Al27@B:is:B10;temp=500
   => .get_temp(): 500K
 
-------> Parsing "; ; 
-;	 ;atomdb=Al is Al27@B is B10":
+------> Parsing "; ; \r;	 ;atomdb=Al is Al27@B is B10":
   => Parsed 1 entries (+0 toplvl entries)
   => cfgstr: atomdb=Al:is:Al27@B:is:B10
   => .get_temp(): -1K
@@ -105,12 +104,10 @@ sccutoff  ->  17  ->  sccutoff
 ------> Parsing "vdoslux=2;atomdb={Al is Al27@B is B10}":
   => Got expected ERROR: NC::BadInput: Syntax error in parameter string: forbidden "{" character encountered.
 
-------> Parsing "vdoslux=2; ; ; ;  ;    ;;;;atomdb=  Al is Al27@B is B10 and lala ; ; ;vdoslux
-	=34":
+------> Parsing "vdoslux=2; ; ; ;  ;    ;;;;atomdb=  Al is Al27@B is B10 and lala ; ; ;vdoslux\n	=34":
   => Got expected ERROR: NC::BadInput: Invalid entry in atomdb cfg parameter in the line: "B:is:B10:and:lala". Error is: Invalid specification. Line has unsupported format: "B is B10 and lala"
 
-------> Parsing "vdoslux=2; ; ; ;  ;    ;;;;atomdb=  Al is Al27@B is B10 ; ; ;vdoslux
-	=3":
+------> Parsing "vdoslux=2; ; ; ;  ;    ;;;;atomdb=  Al is Al27@B is B10 ; ; ;vdoslux\n	=3":
   => Parsed 2 entries (+0 toplvl entries)
   => cfgstr: atomdb=Al:is:Al27@B:is:B10;vdoslux=3
   => .get_temp(): -1K
@@ -376,8 +373,7 @@ sccutoff  ->  17  ->  sccutoff
   => cfgstr: atomdb=Al:is:Al27@B:is:B10;temp=500
   => .get_temp(): 500K
 
-------> Parsing "; ; 
-;	 ;atomdb=Al is Al27@B is B10":
+------> Parsing "; ; \r;	 ;atomdb=Al is Al27@B is B10":
   => Parsed 1 entries (+0 toplvl entries)
   => cfgstr: atomdb=Al:is:Al27@B:is:B10
   => .get_temp(): -1K
@@ -401,8 +397,7 @@ sccutoff  ->  17  ->  sccutoff
   => cfgstr: atomdb=;dcutoff=0.5;temp=500
   => .get_temp(): 500K
 
-------> Parsing "vdoslux=2; ; ; ;  ;    ;;;;atomdb=  Al is Al27@B is B10  ; ; ;vdoslux
-	=3":
+------> Parsing "vdoslux=2; ; ; ;  ;    ;;;;atomdb=  Al is Al27@B is B10  ; ; ;vdoslux\n	=3":
   => Parsed 2 entries (+0 toplvl entries)
   => cfgstr: atomdb=Al:is:Al27@B:is:B10;vdoslux=3
   => .get_temp(): -1K
@@ -410,12 +405,10 @@ sccutoff  ->  17  ->  sccutoff
   => cfgstr: atomdb=Al:is:Al27@B:is:B10;temp=500;vdoslux=3
   => .get_temp(): 500K
 
-------> Parsing "vdoslux=2; ; ; ;  ;    ;;;;atomdb=  Al is Al27@B is B10 and ala ; ; ;vdoslux
-	=34":
+------> Parsing "vdoslux=2; ; ; ;  ;    ;;;;atomdb=  Al is Al27@B is B10 and ala ; ; ;vdoslux\n	=34":
   => Got expected ERROR: NC::BadInput: Invalid entry in atomdb cfg parameter in the line: "B:is:B10:and:ala". Error is: Invalid specification. Line has unsupported format: "B is B10 and ala"
 
-------> Parsing "vdoslux=2; ; ; ;  ;    ;;;;atomdb=  Al is Al27@B is B10 ; ; ;vdoslux
-	=34":
+------> Parsing "vdoslux=2; ; ; ;  ;    ;;;;atomdb=  Al is Al27@B is B10 ; ; ;vdoslux\n	=34":
   => Got expected ERROR: NC::BadInput: vdoslux must be an integral value from 0 to 5
 
 ------> Parsing "vdoslux=2; ; ; ;  ;    ;;;;atomdb=  Al is Al27@B is B10 ; ; ;vdoslux=3;temp=20.85C;dcutoff=0.6Aa":

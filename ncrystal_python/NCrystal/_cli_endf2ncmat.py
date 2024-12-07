@@ -119,21 +119,21 @@ def parse_endf6(src,name=None,selectfct=None):
         if not check:
             raise ValueError(f'{errprefix}: {errmsg}')
 
-    def parse_endf6_line(l):
-        require(len(l)>=75,"line too short")
-        content=l[0:66]
-        mat=int(l[66:70])
-        mf=int(l[70:72])
-        mt=int(l[72:75])
+    def parse_endf6_line(line):
+        require(len(line)>=75,"line too short")
+        content=line[0:66]
+        mat=int(line[66:70])
+        mf=int(line[70:72])
+        mt=int(line[72:75])
         return (content,mat,mf,mt)
 
     content,mat,mf,mt = parse_endf6_line(next(src))
     require((mat,mf,mt)==(1,0,0),'Not an ENDF-6 file?')
     global_header=content
     d={}#material -> material info
-    for l in src:
+    for line in src:
         #print(l)
-        content,mat,mf,mt = parse_endf6_line(l)
+        content,mat,mf,mt = parse_endf6_line(line)
         if mat<1:
             continue#Ignore dummy lines (section dividers, etc.)
         if selectfct and not selectfct(mat,mf,mt):
@@ -279,8 +279,8 @@ def format_endf_block_as_ncmatdyninfo_for_principal_element(parsed_endf_data,tem
     res += '  # For reference the description embedded in input ENDF file (section MF1,MT451) is repeated here:\n'
     res += '  #\n'
     header=parsed_endf_data['header']
-    for l in [header['global_header']]+header['infosection']:
-        res+=f'  #     --->{(" "+l).rstrip()}\n'
+    for line in [header['global_header']]+header['infosection']:
+        res+=f'  #     --->{(" "+line).rstrip()}\n'
 
     datablock = parsed_endf_data['result_datablocks'][block_idx]
     res+=f'  element  {elem_name}\n'
@@ -413,7 +413,7 @@ NCMAT v2
 @DENSITY
   1 g_per_cm3 #FIX{""}ME. Dummy number!!! (update or add unit cell sections and then remove @DENSITY section)
 """
-    args.filehdr = [l.rstrip() for l in _filehdrtxt.strip().splitlines()]
+    args.filehdr = [line.rstrip() for line in _filehdrtxt.strip().splitlines()]
 
     if not any('<<STDNOTICE>>' in line for line in args.filehdr):
         parser.error('ERROR: File specified with --filehdr should contain the string "<<STDNOTICE>>" on a separate line (just before the first data section)')

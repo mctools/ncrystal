@@ -27,6 +27,7 @@ genroot = tmp.joinpath('autogen')
 reporoot = tmp.parent.parent
 
 srcroot = reporoot.joinpath('ncrystal_core')
+srcincroot = reporoot.joinpath('ncrystal_core/include')
 testroot = reporoot.joinpath('tests')
 pysrcroot = reporoot.joinpath('ncrystal_python')
 exsrcroot = reporoot.joinpath('examples')

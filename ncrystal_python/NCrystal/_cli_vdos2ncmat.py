@@ -113,8 +113,12 @@ spectrum into format which is ready for inclusion in .ncmat files.
                         output file but print vdos_egrid and vdos_density lines
                         to stdout (for scripting)"""))
 
-    from ._common import expand_envname
-    dpienvvar = expand_envname('DPI')
+    #We could expand the env var name to account for any namespace:
+    #  from ._common import expand_envname
+    #  dpienvvar = expand_envname('DPI')
+    #But that will break the unit tests, so we just use:
+    dpienvvar = 'NCRYSTAL_DPI'
+
     dpi_default=200
     parser.add_argument('--dpi', default=-1,type=int,
                         help=wrap(f"""Change plot resolution. Set to 0 to leave

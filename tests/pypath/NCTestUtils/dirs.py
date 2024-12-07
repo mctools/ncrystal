@@ -24,14 +24,22 @@
 
 """
 
+from pathlib import Path as _Path
+
+ncrystal_repo_tests = ( _Path(__file__).resolve().absolute()
+                       .parent.parent.parent )
+
+ncrystal_repo_root = ncrystal_repo_tests.parent
+
+ncrystal_data_dir = ncrystal_repo_root.joinpath('data')
+
 def _find_data_dir():
-    import pathlib
     from .modeinfo import is_simplebuild_mode
     if is_simplebuild_mode():
         import os
-        ddir = pathlib.Path(os.environ['SBLD_DATA_DIR'])/'NCTestUtils'
+        ddir = _Path(os.environ['SBLD_DATA_DIR'])/'NCTestUtils'
     else:
-        ddir = pathlib.Path(__file__).parent.parent.parent / 'data'
+        ddir = ncrystal_repo_tests.joinpath('data')
     assert ddir.is_dir()
     return ddir
 

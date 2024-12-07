@@ -25,7 +25,7 @@
 // #define NCRYSTAL_VERSION_MAJOR (integer)
 // #define NCRYSTAL_VERSION_MINOR (integer)
 // #define NCRYSTAL_VERSION_PATCH (integer)
-// #define NCRYSTAL_VERSION  (integer = 1000000*MAJOR+1000*MINOR+PATCH) 
+// #define NCRYSTAL_VERSION  (integer = 1000000*MAJOR+1000*MINOR+PATCH)
 // #define NCRYSTAL_VERSION_STR (string ="major.minor.patch")
 
 #include "NCrystal/ncapi.h"
