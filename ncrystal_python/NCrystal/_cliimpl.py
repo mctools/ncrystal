@@ -79,7 +79,26 @@ def create_ArgumentParser( *args, **kwargs ):
     if f is not None:
         f(parser)
 
-    if _pyversion() < (3,9) and hasattr(parser.formatter_class,'_format_args'):
+    thepyversion = _pyversion()
+    if thepyversion < (3,13) and hasattr(parser,'_check_value'):
+        #Monkey patch object to have same _check_value as in 3.13
+        def _check_value( action, value):
+            # converted value must be one of the choices (if specified)
+            choices = action.choices
+            if choices is not None:
+                if isinstance(choices, str):
+                    choices = iter(choices)
+                if value not in choices:
+                    args = {'value': str(value),
+                            'choices': ', '.join(map(str, action.choices))}
+                    from gettext import gettext as _
+                    msg = _('invalid choice: %(value)r'
+                            ' (choose from %(choices)s)')
+                    from argparse import ArgumentError
+                    raise ArgumentError(action, msg % args)
+        parser._check_value = _check_value
+
+    if thepyversion < (3,9) and hasattr(parser.formatter_class,'_format_args'):
         #Monkey patch object to fix minor inconsistency in --help
         #formatting:
         orig_format_args = parser.formatter_class._format_args
@@ -96,7 +115,7 @@ def create_ArgumentParser( *args, **kwargs ):
             return orig_format_args(self,action,default_metavar)
         parser.formatter_class._format_args = _format_args
 
-    if _pyversion() < (3,13) and hasattr(parser.formatter_class,
+    if thepyversion < (3,13) and hasattr(parser.formatter_class,
                                          '_format_action_invocation'):
         #Monkey patch object to fix minor inconsistency in --help
         #formatting:

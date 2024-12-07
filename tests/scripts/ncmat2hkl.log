@@ -4200,7 +4200,7 @@ Caught expected RuntimeError('this converter does not handle configurations with
 ============= CLI >>stdlib::Al_sg225.ncmat --override-prec=10<< ====================
 Caught expected ArgumentError('Please specify output type with --format, either --format=laz or --format=lau (run with --help for details)')
 ============= CLI >>stdlib::Al_sg225.ncmat --format LAU --override-prec=10<< ====================
-Caught expected ArgumentError("argument --format/-f: invalid choice: 'LAU' (choose from 'laz', 'lau')")
+Caught expected ArgumentError("argument --format/-f: invalid choice: 'LAU' (choose from laz, lau)")
 ============= CLI >>'stdlib::Al_sg225.ncmat;dcutoff=0.6' --format lau -o dummy.lau --override-prec=10<< ====================
 Wrote dummy.lau
 OUTFILE># File created by NCrystal v3.9.7

@@ -176,7 +176,7 @@ def main():
         test_cli(['stdlib::Al_sg225.ncmat'])
     with ensure_error(ArgumentError,
                       ("argument --format/-f: invalid choice: 'LAU'"
-                       " (choose from 'laz', 'lau')")):
+                       " (choose from laz, lau)")):
         test_cli(['stdlib::Al_sg225.ncmat','--format','LAU'])
 
     with work_in_tmpdir():
