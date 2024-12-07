@@ -30,7 +30,7 @@ jobs:
         python-version: ${{ matrix.python }}
 
     - name: pip install deps
-      run: python -mpip install numpy matplotlib gemmi spglib ase mpmath tomli simple-build-dgcode
+      run: python -mpip install numpy matplotlib gemmi spglib ase mpmath tomli simple-build-dgcode pybind11
 
     - name: Build everything with simplebuild
       run: cd devel/simplebuild && sb
