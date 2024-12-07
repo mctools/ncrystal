@@ -1,0 +1,39 @@
+name: simplebuild
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '30 18 * * 0'  # 18:30 every Sunday
+jobs:
+  build:
+
+    strategy:
+      matrix:
+        include:
+          - { os: ubuntu-latest, CC: gcc,      CXX: g++,        python: '3.13' }
+          - { os: macos-latest,  CC: clang,    CXX: clang++,    python: "3.10" }
+
+    name: ${{ matrix.os }}.${{ matrix.CC }}.python-${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    env:
+      CC: ${{ matrix.CC }}
+      CXX: ${{ matrix.CXX }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python }}
+
+    - name: pip install deps
+      run: python -mpip install numpy matplotlib gemmi spglib ase mpmath tomli simple-build-dgcode
+
+    - name: Build everything with simplebuild
+      run: cd devel/simplebuild && sb
+
+    - name: Launch simplebuild tests
+      run: cd devel/simplebuild && sb -t --testf="!sb_nclong*"
