@@ -59,7 +59,7 @@ jobs:
 
     - name: Pip install dependencies
       run: |
-        python3 -m pip install numpy gemmi spglib ase mpmath matplotlib
+        python3 -m pip install numpy gemmi spglib ase mpmath matplotlib tomli
 
     - name: Configure CMake
       run: >
