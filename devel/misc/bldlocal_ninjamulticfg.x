@@ -21,6 +21,7 @@ cmake \
     -B "${TGT}/bld" \
     -DCMAKE_INSTALL_PREFIX="${TGT}/inst" \
     -DNCRYSTAL_ENABLE_EXAMPLES=ON \
+    -DNCRYSTAL_SKIP_INSTALL=ON \
     -DNCRYSTAL_ENABLE_GEANT4=OFF \
     -DNCRYSTAL_BUILD_STRICT=ON \
     -DNCRYSTAL_ENABLE_TESTING=ON \
@@ -41,6 +42,10 @@ ctest --build-config  "${THE_BUILD_TYPE}"  --output-on-failure --test-output-siz
 if [ "x${THE_OTHER_BUILD_TYPE}" != "x" ]; then
     ctest --build-config  "${THE_OTHER_BUILD_TYPE}"  --output-on-failure --test-output-size-failed 10000 --test-output-truncation middle
 fi
+
+
+
+
 #--verbose --extra-verbose
 cmake --install "${TGT}/bld"
 echo "Build dir was: ${TGT}/bld"

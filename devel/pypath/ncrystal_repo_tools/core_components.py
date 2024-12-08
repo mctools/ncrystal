@@ -19,9 +19,9 @@
 ##                                                                            ##
 ################################################################################
 
-import common.dirs
-srcroot = common.dirs.coreroot / 'src'
-incroot = common.dirs.coreroot / 'include/NCrystal'
+from .dirs import coreroot as _coreroot
+_srcroot = _coreroot / 'src'
+_incroot = _coreroot / 'include/NCrystal'
 
 class Component:
     def __lt__( self, o ):
@@ -29,15 +29,15 @@ class Component:
 
     def __init__(self, name ):
         self.name = name
-        self.srcdir = srcroot / name
+        self.srcdir = _srcroot / name
         assert self.srcdir.is_dir(), f"Not a directory: {self.srcdir}"
         depfile = self.srcdir/ 'dep.txt'
         assert depfile.exists(), f"not found: {depfile}"
         self.srcfiles = sorted(self.srcdir.glob('*.cc'))#ok with just a dep.txt and
                                                         #no actual src files
         self.srcdir_hdrs = sorted(self.srcdir.glob('*.hh'))
-        pub_hdrdir = incroot / name
-        internal_hdrdir = incroot / 'internal' / name
+        pub_hdrdir = _incroot / name
+        internal_hdrdir = _incroot / 'internal' / name
         if pub_hdrdir.exists() and internal_hdrdir.exists():
             raise RuntimeError('Can not have both '
                                f'{pub_hdrdir} and {internal_hdrdir}')
@@ -94,7 +94,7 @@ class Component:
 
 def load_components():
     name2comp = dict( (d.name ,Component( d.name ))
-                      for d in srcroot.iterdir()
+                      for d in _srcroot.iterdir()
                       if d.is_dir() )
     for n,c in name2comp.items():
         c._init_deps( name2comp )

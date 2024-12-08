@@ -22,33 +22,16 @@
 
 # NEEDS: toml
 
-def run( script_file ):
+def main():
+    from NCTestUtils.dirs import ncrystal_repo_root
     import sys
     import subprocess
-    rv = subprocess.run( [ sys.executable or 'python3',
-                           '-BI',
-                           script_file.resolve().absolute() ] )
-    return rv.returncode
-
-def run_all():
-    import pathlib
-    testdir = pathlib.Path(__file__).resolve().absolute().parent.parent
-    scripts =sorted(testdir.joinpath('standalone','scripts').glob('*.py'))
-    failures = []
-    print('='*80)
-    for sf in scripts:
-        print(f"==> Running standalone script: {sf.name}\n")
-        if run( sf ) != 0:
-            print(f"ERROR: Standalone script {sf.name} failed")
-            failures.append(sf.name)
-        print('='*80)
-
-    if failures:
-        print()
-        for f in failures:
-            print(f"   -> Ended in failure: {f}")
-        print()
-        raise SystemExit("Standalone test script failure")
+    ncdevtool = ncrystal_repo_root.joinpath('devel','bin','ncdevtool')
+    rv = subprocess.run( [ sys.executable or 'python3', '-BI',
+                           ncdevtool, '--check' ] )
+    if rv.returncode != 0:
+        raise SystemExit("Check failed")
+    print("All checks passed")
 
 if __name__ == '__main__':
-    run_all()
+    main()

@@ -23,7 +23,7 @@ def can_parse_toml():
     import sys
     if sys.version_info < (3, 11):
         try:
-            import tomli
+            import tomli # noqa F401
             return True
         except ImportError:
             return False

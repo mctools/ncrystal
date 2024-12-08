@@ -1,9 +1,5 @@
-#!/usr/bin/env python3
-import sys
-import pathlib
-sys.path.insert(0,str(pathlib.Path(__file__).parent.parent.parent
-                      /'tests/standalone/pypath'))
-from common.srciter import all_files_iter
+from .srciter import all_files_iter
+from .dirs import reporoot
 import fnmatch
 
 def parse_args():
@@ -12,13 +8,22 @@ def parse_args():
     def wrap(t):
         return textwrap.fill(' '.join(t.split()),width=77)
 
-    parser = argparse.ArgumentParser(description=""" Tool for listing, grepping,
-    replacing files in the ncrystal source repo. The default action is to list
-    files selected by the provided patterns.  """)
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawTextHelpFormatter,
+        description="""Tool which can be used by NCrystal developers in various
+        way, including for checking and editing files.""",
+    )
     parser.add_argument( "PATTERN", nargs='*',
                          help=wrap("""Patterns to select certain files. Either
                          using wildcards on the file paths, or special keys like
                          'py', 'cpp', etc."""))
+    parser.add_argument( "-c", "--check", nargs='*',metavar='CHECK',
+                         help=wrap("""Run various tests. Defaults to running
+                         all. Provide the name 'list' to simply see a list of
+                         available checks."""))
+    parser.add_argument( "-f","--find", action='store_true',
+                         help=wrap("""List all files matching the provided
+                         PATTERNs."""))
     parser.add_argument( "--grep", nargs='+',metavar='STR',
                          help=wrap("""Grep according to patterns"""))
     parser.add_argument( "--grepl", nargs='+',metavar='STR',
@@ -35,9 +40,17 @@ def parse_args():
                          the repository (no wildcards allowed, but can be
                          negated with !)."""))
     args = parser.parse_args()
-    if sum((1 if e else 0) for e in (args.grepl,args.grep,args.replace))>1:
-        parser.error('inconsistent arguments')
-    if args.linefilter and not args.replace():
+    nmodes = sum((1 if e else 0) for e in ( (args.check is not None),
+                                           args.find,
+                                           args.grepl,
+                                           args.grep,
+                                           args.replace))
+    if nmodes == 0:
+        parser.error('Please specify flags to select '
+                     'operation (run with -h to learn more)')
+    if ( nmodes>1
+         or ( (args.check is not None) and args.PATTERN )
+         or args.linefilter and not args.replace() ):
         parser.error('inconsistent arguments')
     return args
 
@@ -119,8 +132,8 @@ def main():
     args = parse_args()
     files = all_files_iter( *args.PATTERN)
     if args.pathfilter:
+        import pathlib
         def filter_files(file_list):
-            from common.dirs import reporoot
             pos,neg = [], []
             for pf in args.pathfilter:
                 if pf.startswith('!'):
@@ -161,10 +174,22 @@ def main():
                       args.replace[0],
                       args.replace[1],
                       args.linefilter )
-    else:
-        #default (list selected):
+    elif args.find:
+        #List selected:
         for f in files:
             print(f)
+    elif (args.check is not None):
+        from . import check_runner
+        if not args.check:
+            check_runner.run_all_checks()
+        elif 'list' in args.check:
+            for t in check_runner.get_available_checks_list():
+                print(t)
+        else:
+            for c in sorted(set(args.check)):
+                check_runner.run_check(c)
+    else:
+        raise RuntimeError('logic error: should have been caught in parser')
 
 if __name__ == '__main__':
     main()

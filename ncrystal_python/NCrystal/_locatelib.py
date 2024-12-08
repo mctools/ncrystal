@@ -158,9 +158,14 @@ def _search():
 
 def _search_env_overrides():
     import os
-    #NB: These two can NOT be namespaced. E.g. it will always be NCRYSTAL_LIB,
-    #and never e.g. NCRYSTAL<namespacehere>_LIB:
+    #NB: The next two variables can NOT be namespaced. E.g. it will always be
+    #NCRYSTAL_LIB, and never e.g. NCRYSTAL<NAMESPACEHERE>_LIB:
     lib = os.environ.get('NCRYSTAL_LIB')
+
+    #This second variable is hopefully not needed, since the namespace can
+    #hopefully be inferred from the shared library name, but we allow it as an
+    #ultimate fall-back option in case one is for some reason running with
+    #non-standard naming of the shared libraries:
     ns = os.environ.get('NCRYSTAL_LIB_NAMESPACE_PROTECTION','')
     if lib:
         if not ns and '.' in lib and 'NCrystal-' in lib:
@@ -168,7 +173,7 @@ def _search_env_overrides():
             #to set NCRYSTAL_LIB).
             ll = lib.split('.')[0]
             if 'NCrystal-' in ll:
-                ll = lib.split('NCrystal-')[-1]
+                ll = ll.split('NCrystal-')[-1]
                 if ll and 'NCrystal-' not in ll and '.' not in ll:
                     ns = ll
         lib = pathlib.Path(lib)

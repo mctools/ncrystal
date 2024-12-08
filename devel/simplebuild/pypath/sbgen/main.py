@@ -245,7 +245,7 @@ def define_files():
     add_file( ncapi_loc_in_genroot, content=ncapi_contents() )
 
     #NCrystal source file compilation:
-    from .ncrystalsrc import load_components
+    from ncrystal_repo_tools.core_components import load_components
     name2comp = load_components()
     all_ncsbpkgs = []
     includemap = []

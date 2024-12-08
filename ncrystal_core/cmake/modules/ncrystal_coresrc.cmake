@@ -161,7 +161,7 @@ function( ncrystal_detectsrc )
   endwhile()
 
   #Final results:
-  if ( ON )
+  if ( OFF )
     foreach( "pkgname" ${pkglist} )
       message(STATUS "COMPONENT: ${pkgname}")
       message(STATUS "   abitype : ${ncpkg__${pkgname}__apitype}" )

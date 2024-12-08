@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 
 ################################################################################
 ##                                                                            ##
@@ -20,21 +19,29 @@
 ##                                                                            ##
 ################################################################################
 
-import sys
-import pathlib
-sys.path.insert(0,str(pathlib.Path(__file__).parent/'../pypath'))
-import common.toml
-import common.dirs
+from .dirs import reporoot
 
-if not common.toml.can_parse_toml():
-    #Acceptable simplification to simply abort, since already we mostly have
-    #python >=3.11 in dev envs, and CI certainly will catch it with python
-    #>=3.11 somewhere.
-    print("Silent abort: tomli not present and python < 3.11")
-    raise SystemExit(0)
+toml_files =  dict( monolith = 'pyproject.toml',
+                    core = 'ncrystal_core/pyproject.toml',
+                    py = 'ncrystal_python/pyproject.toml' )
 
-def load_data(subpath):
-    d = common.toml.parse_toml(common.dirs.reporoot / subpath)
+_data_cache = {}
+def load_data( key ):
+    if key not in _data_cache:
+        _data_cache[key] = _actual_load_data( toml_files[key] )
+    return _data_cache[key]
+
+def _actual_load_data(subpath):
+    from .toml import parse_toml, can_parse_toml
+
+    if not can_parse_toml():
+        #Acceptable simplification to simply abort, since already we mostly have
+        #python >=3.11 in dev envs, and CI certainly will catch it with python
+        #>=3.11 somewhere.
+        print("Silent abort: tomli not present and python < 3.11")
+        raise SystemExit(0)
+
+    d = parse_toml(reporoot / subpath)
     #sneak in the source location:
     assert '__file__' not in d
     d['__srcloc__'] = subpath
@@ -43,10 +50,6 @@ def load_data(subpath):
 
 def describe( data ):
     return '<root>/%s'%data['__srcloc__']
-
-data_monolith = load_data( 'pyproject.toml' )
-data_core = load_data( 'ncrystal_core/pyproject.toml' )
-data_py = load_data( 'ncrystal_python/pyproject.toml' )
 
 def cmp_common_entries( keypath, dict1, dict2, allow_diff = [] ):
     d1, d2 = dict1, dict2
@@ -71,6 +74,11 @@ def cmp_common_entries( keypath, dict1, dict2, allow_diff = [] ):
 def check_metadata():
     #Check that there is consistency between the three pyproject.toml files,
     #except where expected.
+
+    data_monolith = load_data( 'monolith' )
+    data_core = load_data( 'core' )
+    data_py = load_data( 'py' )
+
 
     #Check that there are no unexpected sections:
     toplvlkeys = set(['build-system','project','tool','__srcloc__'])
@@ -112,6 +120,10 @@ def check_metadata():
 
 
 def check_all_project_scripts():
+    data_monolith = load_data( 'monolith' )
+    data_core = load_data( 'core' )
+    data_py = load_data( 'py' )
+
     extra_mono = [
         ('ncrystal-config',
          "_ncrystal_core_monolithic.info:_ncrystal_config_cli_wrapper"),
@@ -145,7 +157,7 @@ def _check_project_scripts_impl( data, *, cli_scripts, extra ):
     from_toml = data['project']['scripts']
     expected = dict( e for e in extra )
     if cli_scripts:
-        for f in (common.dirs.reporoot
+        for f in (reporoot
                   / 'ncrystal_python/NCrystal').glob('_cli_*.py'):
             bn = f.name[:-3]
             n = bn[5:]

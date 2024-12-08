@@ -19,12 +19,50 @@
 ##                                                                            ##
 ################################################################################
 
-import pathlib
+def get_py_version( path ):
+    import ast
+    t = ( path ).read_text()
+    for line in t.splitlines():
+        if line.startswith('__version__'):
+            var,val = line.split('=')
+            assert var.rstrip()=='__version__'
+            return ast.literal_eval(val.strip())
 
-reporoot = pathlib.Path(
-    __file__
-).absolute().resolve().parent.parent.parent.parent.parent
+def get_toml_version( path ):
+    from .toml import parse_toml
+    assert path.name == 'pyproject.toml'
+    return parse_toml( path )['project']['version']
 
-coreroot = reporoot / 'ncrystal_core'
-pyroot = reporoot / 'ncrystal_python'
-testroot = reporoot / 'tests'
+def check_versions():
+    from .dirs import reporoot
+
+    versions = [
+        ( get_py_version, 'ncrystal_python/NCrystal/__init__.py' ),
+        ( get_toml_version, 'pyproject.toml' ),
+        ( get_toml_version, 'ncrystal_core/pyproject.toml' ),
+    ]
+
+    versions_found = []
+    subpathmaxlen = max(len(subpath) for fct, subpath in versions)
+
+    print("Extracted versions:")
+    for fct, subpath in versions:
+        v = fct( reporoot / subpath )
+        print(f"   {subpath.ljust(subpathmaxlen)} : {v}")
+        versions_found.append(v)
+
+    if len(set(versions_found)) == 1:
+        print("All OK!")
+    else:
+        raise SystemExit('ERROR: Inconsistencies detected')
+
+    #TODO: ncrystal_core/CMakeLists.txt
+    #TODO: ncrystal_core/include/NCrystal/NCVersion.hh
+    #TODO: ncrystal_core/include/NCrystal/ncrystal.h
+    #TODO: Git describe! (if .git present)
+
+def main():
+    check_versions()
+
+if __name__=='__main__':
+    main()

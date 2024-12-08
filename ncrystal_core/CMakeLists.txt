@@ -95,6 +95,7 @@ if ( DEFINED SKBUILD_PROJECT_NAME )
   _ncrystal_option_force( NCRYSTAL_ENABLE_DATA "EMBED" )
   _ncrystal_option_force( NCRYSTAL_ENABLE_GEANT4 "OFF" )
   _ncrystal_option_force( NCRYSTAL_ENABLE_THREADS "ON" )
+  _ncrystal_option_force( NCRYSTAL_ENABLE_TESTING "OFF" )
   _ncrystal_option_force( CMAKE_INSTALL_LIBDIR "${nccore_pymodname}/data/lib" )
   _ncrystal_option_force( CMAKE_INSTALL_INCLUDEDIR "${nccore_pymodname}/data/include" )
   _ncrystal_option_force( CMAKE_INSTALL_DATADIR "${nccore_pymodname}/data/data" )
@@ -118,10 +119,41 @@ if ( DEFINED SKBUILD_PROJECT_NAME )
   endif()
 endif()
 
-if ( WIN32 AND NCRYSTAL_ENABLE_TESTING AND NOT NCRYSTAL_SKIP_INSTALL )
-  #Testing on windows needs us to export symbols from internal headers.
-  message( WARNING "NCRYSTAL_ENABLE_TESTING on Windows implies NCRYSTAL_SKIP_INSTALL=ON for safety" )
-  _ncrystal_option_force( NCRYSTAL_SKIP_INSTALL "ON" )
+if ( NCRYSTAL_ENABLE_TESTING )
+  #When testing we require a namespace of "test" which is intended to ensure
+  #that we never clash with a system-installed NCrystal version (for instance we
+  #had problems when a ctest executable picked up libNCrystal.so from the conda
+  #installed NCrystal, resulting in hard to debug errors).
+  #
+  #Additionally on windows we need to use the WINDOWS_EXPORT_ALL_SYMBOLS
+  #property, so the ctest binaries can access internal symbols.
+  #
+  #For both of these reasons we will for safety forbid actual installations with
+  #these settings, to avoid potential weird installations.
+  if ( NOT NCRYSTAL_SKIP_INSTALL )
+    message(
+      WARNING
+      "NCRYSTAL_ENABLE_TESTING implies NCRYSTAL_SKIP_INSTALL=ON for safety"
+    )
+    _ncrystal_option_force( NCRYSTAL_SKIP_INSTALL "ON" )
+  endif()
+  if ( NCRYSTAL_NAMESPACE AND NOT "x${NCRYSTAL_NAMESPACE}" STREQUAL "xtest" )
+    message(
+      FATAL_ERROR
+      "Do not set NCRYSTAL_NAMESPACE with NCRYSTAL_ENABLE_TESTING."
+    )
+  endif()
+    _ncrystal_option_force( NCRYSTAL_NAMESPACE "test" )
+else()
+  #Make sure the namespace "test" is only ever used by the
+  #NCRYSTAL_ENABLE_TESTING option (so no installation out there can have that
+  #namespace).
+  if ( "x${NCRYSTAL_NAMESPACE}" STREQUAL "xtest" )
+    message(
+      FATAL_ERROR
+      "The NCRYSTAL_NAMESPACE value \"test\" is reserved for internal usage."
+    )
+  endif()
 endif()
 
 function( ncinstall )
