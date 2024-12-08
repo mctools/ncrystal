@@ -6,6 +6,14 @@ on:
 
 jobs:
   build:
+    strategy:
+      matrix:
+        include:
+          #We can either run ctest or install+test, but not both in the same job:
+          - { mode: 'ctest'  }
+          - { mode: 'installtest'  }
+    name: ${{ matrix.mode }}
+
     runs-on: ubuntu-20.04
     #Note: August 2024 the intel oneapi compilers did not work on ubuntu-22.04
     #or ubuntu-latest. This is most likely because these platforms are using a
@@ -56,6 +64,10 @@ jobs:
         #But just because it seems to be something that might be useful. we do:
         export CC=$(which icx)
         export CXX=$(which icpx)
+        export NC_EXTRA_ARGS="-DNCRYSTAL_ENABLE_TESTING=ON -DMCTOOLS_REQUIRE_ALL_TEST_DEPS=ON -DNCRYSTAL_SKIP_INSTALL=ON"
+        if [ "${{ matrix.mode }}" != "ctest" ]; then
+            export NC_EXTRA_ARGS="-DNCRYSTAL_ENABLE_TESTING=OFF
+        fi
         cmake \
         -S ${{github.workspace}}/src \
         -B ${{github.workspace}}/build \
@@ -63,8 +75,7 @@ jobs:
         -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install \
         -DNCRYSTAL_ENABLE_EXAMPLES=ON \
         -DNCRYSTAL_BUILD_STRICT=ON \
-        -DNCRYSTAL_ENABLE_TESTING=ON \
-        -DMCTOOLS_REQUIRE_ALL_TEST_DEPS=ON
+        ${NC_EXTRA_ARGS}
 
 #Flags that we didn't need:
 #        -DIntelDPCPP_DIR="/opt/intel/oneapi/compiler/latest/linux/cmake/SYCL"
@@ -79,12 +90,15 @@ jobs:
         --config Release
 
     - name: CTest
+      if: matrix.mode == 'ctest'
       run: ( cd ${{github.workspace}}/build && ctest --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle )
 
     - name: Install
+      if: matrix.mode != 'ctest'
       run: source /opt/intel/oneapi/setvars.sh && cmake --install ${{github.workspace}}/build
 
     - name: Test installed
+      if: matrix.mode != 'ctest'
       run: |
         source /opt/intel/oneapi/setvars.sh
         set -eux
