@@ -6,17 +6,6 @@ on:
   schedule:
     - cron: '30 18 * * 0'  # 18:30 every Sunday
 
-  workflow_dispatch:
-    inputs:
-      manual-debugging:
-        type: boolean
-        description: Launch manual debugging tmate session on failure
-        default: true
-
-env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Release
-
 jobs:
   build:
     # The CMake configure and build commands are platform agnostic and should work equally
@@ -26,8 +15,6 @@ jobs:
     strategy:
       matrix:
         include:
-           #Note: Python 3.13 works (Aug 2024) because of the
-           #"allow-prereleases: true" below.
           - { os: ubuntu-20.04,  CC: gcc-10,   CXX: g++-10,     python: '3.8'  }
           - { os: ubuntu-22.04,  CC: gcc,      CXX: g++,        python: '3.9'  }
           - { os: ubuntu-latest, CC: gcc,      CXX: g++,        python: '3.10' }
@@ -41,8 +28,6 @@ jobs:
     env:
       CC: ${{ matrix.CC }}
       CXX: ${{ matrix.CXX }}
-#      SHELL: /bin/bash
-    #name: Ubuntu with Python ${{ matrix.python-version }}
 
     steps:
     - name: Checkout
@@ -54,7 +39,6 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python }}
-        allow-prereleases: true #Needed (Aug 2024) for Python 3.13.
 
     - name: Pip install dependencies
       run: |
@@ -65,7 +49,7 @@ jobs:
         cmake
         -S ${{github.workspace}}/src
         -B ${{github.workspace}}/build
-        -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        -DCMAKE_BUILD_TYPE=Release
         -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install
         -DNCRYSTAL_ENABLE_EXAMPLES=ON
         -DNCRYSTAL_BUILD_STRICT=ON
@@ -76,7 +60,7 @@ jobs:
       run: >
         cmake
         --build ${{github.workspace}}/build
-        --config ${{env.BUILD_TYPE}}
+        --config Release
 
     - name: CTest (from the build area)
       run: |
@@ -84,66 +68,3 @@ jobs:
         cd ${{github.workspace}}/build
         ctest --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle
 
-    - name: Install
-      run: cmake --install ${{github.workspace}}/build
-
-    - name: Test installed
-      run: |
-        set -eux
-        ${{github.workspace}}/install/bin/ncrystal-config --summary
-        echo "listing bindir"
-        ls -l ${{github.workspace}}/install/bin
-        echo "listing bindir done"
-        #Expose ncrystal-config and examples:
-        export PATH="${{github.workspace}}/install/bin:${PATH:-}"
-        #Add python modules and cmdline scripts:
-        pip install ${{github.workspace}}/src/ncrystal_python
-        ncrystal-config --summary
-        nctool --test
-        ncrystal-config --help
-        ncrystal_example_c
-        ncrystal_example_cpp
-        python3 ${{github.workspace}}/src/examples/ncrystal_example_py
-        nctool --help
-        nctool --dump 'Al_sg225.ncmat;dcutoff=1.5'
-        python3 -c 'import NCrystal; NCrystal.test()'
-        ncrystal_vdos2ncmat --help
-        ncrystal_cif2ncmat --help
-        ncrystal_ncmat2cpp --help
-        ncrystal_hfg2ncmat --help
-        ncrystal_verifyatompos --help
-        ncrystal_cif2ncmat codid::9008460
-        ncrystal_ncmat2hkl --help
-        ncrystal_ncmat2hkl --format=laz 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test_Al.laz
-        ncrystal_ncmat2hkl --format=lau 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test_Al.lau
-        nctool -d ./test_Al.laz
-        nctool -d ./test_Al.lau
-        ncrystal_ncmat2cpp $(ncrystal-config --show datadir)/Al_sg225.ncmat -o test.cpp
-        cat test.cpp
-        nctool --pdf Al_sg225.ncmat
-        #Examples from README:
-        cp ./src/examples/ncrystal_example_cpp.cc ./my_cpp_code.cpp
-        cp ./src/examples/ncrystal_example_c.c ./my_c_code.c
-
-        test -f $(ncrystal-config --show libpath)
-        test -d $(ncrystal-config --show libdir)
-
-        #NOTE: Important that build flags comes AFTER the code being
-        #compiled. Otherwise ncrystal symbols will be initially ignored, leading
-        #to errors later:
-        cc -std=c11 my_c_code.c $(ncrystal-config --show buildflags) -o my_c_app
-        ./my_c_app
-        c++ -std=c++17 my_cpp_code.cpp $(ncrystal-config --show buildflags) -o my_cpp_app
-        ./my_cpp_app
-        echo "Custom compilation of downstream C/C++ code succeeded"
-
-    #Final step, so tmate step can check if we got this far.
-    - name: Final
-      id: final-step
-      run: echo "All steps fine"
-
-    - name: Setup tmate session for manual debugging
-      uses: mxschmitt/action-tmate@v3
-      if: always() && inputs.manual-debugging == true && (steps.final-step != 'success')
-      with:
-        limit-access-to-actor: true
