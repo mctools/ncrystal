@@ -20,7 +20,6 @@ jobs:
 
     name: ${{ matrix.os }}.python-${{ matrix.python }}.${{ matrix.buildtype }}
     runs-on: ${{ matrix.os }}
-    env:
 
     steps:
     - name: Checkout
@@ -52,7 +51,7 @@ jobs:
       run: >
         cmake
         --build ./build
-        --config ${{env.BUILD_TYPE}}
+        --config ${{ matrix.buildtype }}
 
     - name: Install
       run: cmake --install ./build
