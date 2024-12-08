@@ -32,8 +32,17 @@ jobs:
     - name: pip install deps
       run: python -mpip install numpy matplotlib gemmi spglib ase mpmath tomli simple-build-dgcode pybind11
 
-    - name: Build everything with simplebuild
-      run: cd devel/simplebuild && sb
+    - name: simplebuild debug
+      run: SIMPLEBUILD_CFG=$PWD/devel/simplebuild/cfgs/simplebuild_debug.cfg sb
 
-    - name: Launch simplebuild tests
-      run: cd devel/simplebuild && sb -t --testexcerpts=500
+    - name: simplebuild debug tests
+      run: SIMPLEBUILD_CFG=$PWD/devel/simplebuild/cfgs/simplebuild_debug.cfg sb -t --testexcerpts=500 --requirepkg=NCTestAll
+
+    - name: simplebuild reldbg
+      run: SIMPLEBUILD_CFG=$PWD/devel/simplebuild/cfgs/simplebuild_reldbg.cfg sb
+
+    - name: simplebuild reldbg tests
+      run: SIMPLEBUILD_CFG=$PWD/devel/simplebuild/cfgs/simplebuild_reldbg.cfg sb -t --testexcerpts=500 --requirepkg=NCTestAll
+
+
+
