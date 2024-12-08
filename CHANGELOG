@@ -1,5 +1,61 @@
-v4.x.y 2024-09-??
-     * TODO update.
+
+v3.x.y 2024-09-??
+     * TODO: Header locations changed, except for ncapi.h, ncrystal.h and
+       NCrystal.hh. New headers are in subdirs indication their location in
+       internal NCrystal coding units ("core", "utils", ...)
+     * FIXME: Warn that anyone doing manual builds of NCrystal should read
+       INSTALL again, as it has been completely rewritten to reflect the new infrastructure.
+     * TODO: Support C++20 compilation
+     * TODO: Rename _mmc.py to mmc.py! And add docstrings.
+     * TODO: Rename PCBragg to PowderBragg!
+     * Redesign the SmallVector class to be never implicitly copyable and
+       instead introduce SmallVector_IC which is. This is needed for MS
+       VisualStudio support. Also make resize methods unavailable for
+       non-noexcept copy types.
+     * Redesign the Optional class to support VisualStudio compilation.
+     * Explictly add a few methods in NCTypes.hh which should otherwise be
+       implicitly available through the base class. This is needed for MS
+       VisualStudio support.
+     * Replace std::vector with SmallVector in HKLList to work around
+       VisualStudio issues.
+     * Various minor fixes of code to appease VisualStudio.
+     * Disable MMC verbose output messages also in Debug builds.
+     * Reimplement ScatterRequest and Absorption request without using CRTP,
+       which was confusing to VisualStudio.
+     * Prefer numpy.trapezoid over the deprecated numpy.trapz, to support Numpy
+       version 2.
+     * Return tuple of int rather than numpy.int32 objects for hkl_labels
+       provided by Info.hklObjects(), to support Numpy 2.
+     * Fix bug where Stirling's formula was used too early when expanding VDOS
+       to kernels. The relative error in SAB values due to this bug was
+       fortunately minor since our implementation of Stirling's formula used
+       many higher-order corrections and had an error of 4.670e-04 for n=1,
+       4.755e-07 for n=2, 6.882e-09 n=3. Still, due to S(alpha,beta) phase-space
+       constraints, some inelastic cross sections can change by as much as 0.5%
+       at very low energies due to this, although such large changes are
+       fortunately rare with most changes being 0.1% or less.
+     * Normalise newlines in TextData.rawData results, so the loaded string data
+       is identical irrespective of whether the files contain DOS or UNIX-like
+       line endings. As an added safety, any lone \r will also be converted to a
+       newline. Note that upon checkout, tools like Git might modify the line
+       endings of tracked .ncmat files, so NCrystal simply must accept both
+       kinds of files.
+     * TODO mention all the CLI infrastructure, and how they are all available
+       in the python api.
+     * ncmat2cpp --full option no longer supported (will now include comments
+       when embedding unless new --compact flag is given).
+     * Adding new ncrystal_mcstasunion script which is to be used instead of
+       calling 'python -mNCrystal.mcstasutils --union'.
+     * Moving the cfgstr_detect_components from the NCrystal.mcstasutils to the
+       NCrystal.misc module.
+     * Users of obsolete methods in the Python API will now receive warning
+       messages.
+     * Require Python 3.8 or later.
+     * Completely drop previously obsoleted scripts ncrystal_inspectfile and
+       ncrystal_onlinedb2ncmat.
+     * Minimum CMake version is now 3.16 (was 3.10).
+     * fixme: Mention new NCRYSTAL_ENABLE_TESTING impact on SKIP_INSTALL
+       and NAMESPACE.
 
 v3.9.7 2024-09-02
      * Fix bug in LoadedMaterial.xsect/.macroscopic_xsect methods.
