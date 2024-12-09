@@ -22,11 +22,13 @@
 import pathlib
 import fnmatch
 
-def all_files_iter( *patterns ):
+def all_files_iter( *patterns, root = None ):
     patternset = PatternSet( *expand_patterns( patterns ))
     gitignore = get_main_gitignore()
     from .dirs import reporoot
-    for f in _all_files_iter_impl( reporoot, patternset, gitignore ):
+    for f in _all_files_iter_impl( root or reporoot,
+                                   patternset,
+                                   gitignore ):
         yield f
 
 def _all_files_iter_impl( currentdir, patternset, gitignore ):
