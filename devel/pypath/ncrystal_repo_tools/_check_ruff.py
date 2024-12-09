@@ -19,15 +19,16 @@
 ##                                                                            ##
 ################################################################################
 
-import pathlib
+def main():
+    from .srciter import all_files_iter
+    import subprocess
+    #FIXME: No ignore list!!
+    rv = subprocess.run(['ruff','check','--ignore',
+                         'E402,F401,E731,E741'
+                         ]
+                        + list(all_files_iter('py')) )
+    if rv.returncode!=0:
+        raise SystemExit(1)
 
-reporoot = pathlib.Path(
-    __file__
-).absolute().resolve().parent.parent.parent.parent
-
-coreroot = reporoot / 'ncrystal_core'
-pyroot = reporoot / 'ncrystal_python'
-testroot = reporoot / 'tests'
-
-def is_empty_dir( path ):
-    return path.is_dir() and not any( True for p in path.iterdir() )
+if __name__=='__main__':
+    main()

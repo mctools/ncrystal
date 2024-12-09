@@ -111,31 +111,31 @@ class SinglePattern:
         else:
             return do_match_pattern( path, self.__pattern )
 
+special_patterns_db = {
+    'cpp':['*.hh','*.cc','*.hpp','*.cpp','*.icc'],
+    'c': ['*.h','*.c'],
+    'py': ['*.py','<fileinit>#!/usr/bin/env python'],
+    'bash': ['*.sh',
+             '<fileinit>#!/usr/bin/env bash',
+             '<fileinit>#!/bin/bash' ],
+    'txt':['*.log','*.md','*.txt','*.cfg',
+           'INSTALL','README','FILES','CHANGELOG','VERSION'],
+    'cmake':['*.cmake','*/CMakeLists.txt','*cmake*.txt'],
+    'toml':['*.toml'],
+    'yml':['*.yml','*.yaml'],
+    'ncmat':['*.ncmat'],
+}
+
 def expand_patterns( patterns ):
     match_patterns = []
     for p in patterns:
-
         if p.startswith('!'):
             p_special_key = p[1:]
             p_special_negated = True
         else:
             p_special_key = p
             p_special_negated = False
-        special_patterns = None
-        if p_special_key=='cpp':
-            special_patterns = ['*.hh','*.cc','*.hpp','*.cpp','*.icc']
-        elif p_special_key=='c':
-            special_patterns = ['*.h','*.c']
-        elif p_special_key=='py':
-            special_patterns = ['*.py','<fileinit>#!/usr/bin/env python']
-        elif p_special_key=='bash':
-            special_patterns = ['*.sh','<fileinit>#!/usr/bin/env bash']
-        elif p_special_key=='text':
-            special_patterns = ['*.log','*.md','*.txt','*.cfg',
-                               'INSTALL','README','FILES','CHANGELOG','VERSION']
-        elif p_special_key=='cmake':
-            special_patterns = ['*.cmake','*/CMakeLists.txt','*cmake*.txt']
-
+        special_patterns = special_patterns_db.get(p_special_key)
         if special_patterns:
             if p_special_negated:
                 match_patterns += ['!%s'%e for e in special_patterns ]

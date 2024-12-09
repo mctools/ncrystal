@@ -19,15 +19,28 @@
 ##                                                                            ##
 ################################################################################
 
-import pathlib
+from contextlib import contextmanager as _ctxmgr
 
-reporoot = pathlib.Path(
-    __file__
-).absolute().resolve().parent.parent.parent.parent
+def get_nprocs( nice_factor = 0.9 ):
+    import os
+    n = min(1024,max(1,len(os.sched_getaffinity(0))))
+    if n >= 4:
+        #Be nice, leave a tiny bit for other tasks on the machine:
+        n = round( n * 0.9 )
+    return n
 
-coreroot = reporoot / 'ncrystal_core'
-pyroot = reporoot / 'ncrystal_python'
-testroot = reporoot / 'tests'
 
-def is_empty_dir( path ):
-    return path.is_dir() and not any( True for p in path.iterdir() )
+@_ctxmgr
+def work_in_tmpdir():
+    """Context manager for working in a temporary directory (automatically
+    created+cleaned) and then switching back"""
+    import os
+    import tempfile
+    the_cwd = os.getcwd()
+    with tempfile.TemporaryDirectory() as tmpdir:
+        try:
+            os.chdir(tmpdir)
+            yield
+        finally:
+            os.chdir(the_cwd)#Important to leave tmpdir *before* deletion, to
+                             #avoid PermissionError on Windows.
