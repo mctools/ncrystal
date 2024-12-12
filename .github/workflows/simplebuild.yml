@@ -43,6 +43,3 @@ jobs:
 
     - name: simplebuild reldbg tests
       run: SIMPLEBUILD_CFG=$PWD/devel/simplebuild/cfgs/simplebuild_reldbg.cfg sb -t --testexcerpts=500 --requirepkg=NCTestAll
-
-
-
