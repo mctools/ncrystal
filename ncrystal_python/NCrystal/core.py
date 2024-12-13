@@ -1,9 +1,3 @@
-"""
-
-Module with core NCrystal functionality, including the OO classes (Info,
-Scatter, Absorption, TextData, AtomData) and related factory methods.
-
-"""
 
 ################################################################################
 ##                                                                            ##
@@ -24,6 +18,13 @@ Scatter, Absorption, TextData, AtomData) and related factory methods.
 ##  limitations under the License.                                            ##
 ##                                                                            ##
 ################################################################################
+
+"""
+
+Module with core NCrystal functionality, including the OO classes (Info,
+Scatter, Absorption, TextData, AtomData) and related factory methods.
+
+"""
 
 from .exceptions import ( NCrystalUserWarning, # noqa F401
                           NCException,

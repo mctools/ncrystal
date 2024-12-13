@@ -4,7 +4,7 @@ loop_
 _publ_author_name
 'Wyckoff R W G'
 _journal_name_full 'Crystal Structures'
-_journal_volume 1 
+_journal_volume 1
 _journal_year 1963
 _journal_page_first 7
 _journal_page_last 83

@@ -1,4 +1,3 @@
-"""Module with VDOS-related utilities"""
 
 ################################################################################
 ##                                                                            ##
@@ -19,6 +18,8 @@
 ##  limitations under the License.                                            ##
 ##                                                                            ##
 ################################################################################
+
+"""Module with VDOS-related utilities"""
 
 from .constants import constant_planck as _constant_planck
 from .constants import constant_boltzmann as _constant_boltzmann

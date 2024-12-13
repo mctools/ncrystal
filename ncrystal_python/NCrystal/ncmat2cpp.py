@@ -19,6 +19,8 @@
 ##                                                                            ##
 ################################################################################
 
+"""Module providing utilities for embedding text data in C++ code"""
+
 def ncmat2cpp( *input_files_or_text_data,
                quiet = False,
                cppfunctionname='registerData',

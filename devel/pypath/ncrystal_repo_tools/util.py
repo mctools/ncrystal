@@ -29,6 +29,22 @@ def get_nprocs( nice_factor = 0.9 ):
         n = round( n * 0.9 )
     return n
 
+@_ctxmgr
+def change_dir( path ):
+    """Context manager for working in a directory (automatically
+    created if doesn't exist) and then switching back"""
+    import pathlib
+    import os
+
+    the_cwd = os.getcwd()
+    p = pathlib.Path(path)
+    p.mkdir( parents = True, exist_ok = True )
+    try:
+        os.chdir( p )
+        yield
+    finally:
+        os.chdir( the_cwd )
+    return
 
 @_ctxmgr
 def work_in_tmpdir():
@@ -37,6 +53,7 @@ def work_in_tmpdir():
     import os
     import tempfile
     the_cwd = os.getcwd()
+
     with tempfile.TemporaryDirectory() as tmpdir:
         try:
             os.chdir(tmpdir)

@@ -1,8 +1,3 @@
-"""
-
-Obsolete functions
-
-"""
 
 ################################################################################
 ##                                                                            ##
@@ -23,6 +18,12 @@ Obsolete functions
 ##  limitations under the License.                                            ##
 ##                                                                            ##
 ################################################################################
+
+"""
+
+Obsolete functions
+
+"""
 
 from ._common import ncgetenv_bool as _ncgetenv_bool
 

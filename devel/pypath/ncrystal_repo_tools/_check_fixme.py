@@ -26,7 +26,13 @@ def main():
     hits = []
     for f in all_files_iter():
         n = 0
-        for line in f.read_text().splitlines():
+        try:
+            content = f.read_text()
+        except UnicodeDecodeError as e:
+            #FIXME: check if file is committed or not?
+            raise RuntimeError(f'Binary file: {f}') from e
+        print(f)
+        for line in content.splitlines():
             if search_str in line.lower():
                 n+=1
         if n:

@@ -1,11 +1,3 @@
-"""
-
-Utilities for NCMAT creation, most notably the NCMATComposer helper class which
-provides a pythonic and flexible object oriented interface for creating NCMAT
-data representing a given material, and for verifying, writing, registering, or
-loading said data.
-
-"""
 
 ################################################################################
 ##                                                                            ##
@@ -26,6 +18,15 @@ loading said data.
 ##  limitations under the License.                                            ##
 ##                                                                            ##
 ################################################################################
+
+"""
+
+Utilities for NCMAT creation, most notably the NCMATComposer helper class which
+provides a pythonic and flexible object oriented interface for creating NCMAT
+data representing a given material, and for verifying, writing, registering, or
+loading said data.
+
+"""
 
 class NCMATComposer:
     """Helper class for composing an NCrystal material.

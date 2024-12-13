@@ -36,7 +36,8 @@ def check_NCrystal_hh( content, incguards ):
     while i < len(lines):
         assert lines[i].startswith('#ifndef ')
         ig = lines[i][len('#ifndef '):]
-        assert ig in incguards
+        if ig not in incguards:
+            raise SystemExit(f'Forbidden include guard "{ig}" in NCrystal.hh')
         assert lines[i+1]=='#  include "%s"'%incguards[ig]
         assert lines[i+2]=='#endif'
         i += 3

@@ -25,7 +25,7 @@
 #include "NCrystal/internal/utils/NCEqRefl.hh"
 #include "NCrystal/internal/utils/NCMsg.hh"
 #include "NCrystal/internal/atomdb/NCAtomDBExtender.hh"
-#include "NCrystal/infobld/NCInfoBuilder.hh"
+#include "NCrystal/internal/infobld/NCInfoBuilder.hh"
 
 namespace NC = NCrystal;
 

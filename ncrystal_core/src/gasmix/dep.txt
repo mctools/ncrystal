@@ -1,1 +1,4 @@
 atomdb
+core
+interfaces
+utils

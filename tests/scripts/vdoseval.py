@@ -89,7 +89,7 @@ def extract_from_cfgstr(cfgstr, element = None):
     d['integral_vs_ref_deviation'] = float((d['ncvdoseval_integral']/d['ref_integral'])-mpf(1.0))
     #help(di)
     #raise SystemExit
-    d['displayLabel'] = di.atomData.displayLabel()#fixme: 
+    d['displayLabel'] = di.atomData.displayLabel()#fixme:
     return d
 
 def validate_cfgstr(cfgstr):

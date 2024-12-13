@@ -22,7 +22,7 @@
 #include "NCrystal/interfaces/NCRNG.hh"
 #include "NCrystal/interfaces/NCMsgCtrl.hh"
 #include "NCrystal/internal/utils/NCMsg.hh"
-#include "NCrystal/infobld/NCInfoBuilder.hh"
+#include "NCrystal/internal/infobld/NCInfoBuilder.hh"
 #include "NCrystal/factories/NCMatCfg.hh"
 #include "NCrystal/factories/NCFactImpl.hh"
 #include "NCrystal/factories/NCFact.hh"

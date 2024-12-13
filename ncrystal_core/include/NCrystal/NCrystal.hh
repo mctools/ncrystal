@@ -61,9 +61,6 @@
 #ifndef NCrystal_InfoTypes_hh
 #  include "NCrystal/interfaces/NCInfoTypes.hh"
 #endif
-#ifndef NCrystal_InfoBuilder_hh
-#  include "NCrystal/infobld/NCInfoBuilder.hh"
-#endif
 #ifndef NCrystal_SABData_hh
 #  include "NCrystal/interfaces/NCSABData.hh"
 #endif

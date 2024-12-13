@@ -1,8 +1,3 @@
-"""
-
-Implementation of the built-in unit tests.
-
-"""
 
 ################################################################################
 ##                                                                            ##
@@ -23,6 +18,8 @@ Implementation of the built-in unit tests.
 ##  limitations under the License.                                            ##
 ##                                                                            ##
 ################################################################################
+
+"""Implementation of the built-in unit tests."""
 
 __all__ = ['test','test_cmdline','test_cmake','test_extra','test_all']
 from ._common import print as _nc_print

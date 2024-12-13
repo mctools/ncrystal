@@ -1,6 +1,4 @@
 
-"""Internal module providing ctypes-based hooks into the compiled NCrystal shared library"""
-
 ################################################################################
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
@@ -20,6 +18,10 @@
 ##  limitations under the License.                                            ##
 ##                                                                            ##
 ################################################################################
+
+
+"""Internal module providing ctypes-based hooks into the compiled NCrystal
+shared library"""
 
 __all__ = ['_get_raw_cfcts','_str2cstr','_cstr2str']
 

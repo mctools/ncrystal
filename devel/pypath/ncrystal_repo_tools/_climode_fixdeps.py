@@ -19,58 +19,32 @@
 ##                                                                            ##
 ################################################################################
 
+def main( parser ):
+    parser.init( 'Update all ncrystal_core/src/dep.txt files based on'
+                 ' include statements actually seen in the package.' )
+    parser.add_argument(
+        '-n','--dryrun', action = 'store_true',
+        help='Show changes but do not modify anything'
+    )
+    args = parser.parse_args()
 
-"""Internal module providing ctypes-based hooks into the compiled NCrystal
-shared library"""
-
-__all__ = ['_np',
-           '_ensure_numpy',
-           '_np_linspace',
-           '_np_geomspace',
-           '_np_logspace',
-           '_np_trapezoid']
-
-try:
-    import numpy as _np
-except ImportError:
-    _np = None
-
-def _ensure_numpy():
-    if not _np:
-        from .exceptions import NCException
-        raise NCException("Numpy not available - array "
-                          "based functionality is unavailable")
-    return _np
-
-def _np_linspace(start,stop,num=50):
-    """linspace with reproducible endpoint value"""
-    _ensure_numpy()
-    assert num >= 2
-    l = _np.linspace(start,stop,num)
-    l[0] = start
-    l[-1] = stop
-    return l
-
-def _np_geomspace(start,stop,num=50):
-    """geomspace with reproducible endpoint value"""
-    _ensure_numpy()
-    assert num >= 2
-    l = _np.geomspace(start,stop,num)
-    l[0] = start
-    l[-1] = stop
-    return l
-
-def _np_logspace(start,stop,num=50):
-    """logspace with reproducible endpoint value"""
-    _ensure_numpy()
-    assert num >= 2
-    l = _np.logspace(start,stop,num)
-    l[0] = 10.0**start
-    l[-1] = 10.0**stop
-    return l
-
-def _np_trapezoid( *args, **kwargs ):
-    _ensure_numpy()
-    if hasattr(_np,'trapezoid'):
-        return _np.trapezoid( *args, **kwargs )
-    return _np.trapz( *args, **kwargs )
+    from .extract_includes import get_include_staments_from_file
+    from .core_components import load_components
+    for c in load_components( init_deps = False ).values():
+        deplist = set()
+        for f in c.all_file_iter():
+            for i in get_include_staments_from_file(f):
+                if not i.startswith('NCrystal/'):
+                    continue
+                p = i.split('/')
+                if len(p) == 4 and i.startswith('NCrystal/internal/'):
+                    deplist.add( p[2] )
+                elif len(p) == 3 and i.startswith('NCrystal/'):
+                    deplist.add( p[1] )
+        deptxt = '\n'.join(sorted(e for e in deplist if e != c.name)) + '\n'
+        if c.depfile.read_text() != deptxt:
+            if args.dryrun:
+                print("Would update",c.depfile)
+            else:
+                print("Updating",c.depfile)
+                c.depfile.write_text( deptxt )

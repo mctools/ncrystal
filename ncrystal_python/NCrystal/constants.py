@@ -1,10 +1,3 @@
-"""
-
-Various constants and neutron energy / wavelength / wavenumber conversions
-methods like for instance wl2ekin and ekin2wl. Note that all conversion
-functions can be used with numpy arrays in addition to scalar numbers.
-
-"""
 
 ################################################################################
 ##                                                                            ##
@@ -25,6 +18,14 @@ functions can be used with numpy arrays in addition to scalar numbers.
 ##  limitations under the License.                                            ##
 ##                                                                            ##
 ################################################################################
+
+"""
+
+Various constants and neutron energy / wavelength / wavenumber conversions
+methods like for instance wl2ekin and ekin2wl. Note that all conversion
+functions can be used with numpy arrays in addition to scalar numbers.
+
+"""
 
 #some constants (NB: Copied here from NCMath.hh - must keep synchronized!!):
 

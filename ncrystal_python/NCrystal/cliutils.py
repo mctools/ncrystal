@@ -1,8 +1,3 @@
-"""
-
-Module providing access to the ncrystal commandline tools via the Python API.
-
-"""
 
 ################################################################################
 ##                                                                            ##
@@ -23,6 +18,12 @@ Module providing access to the ncrystal commandline tools via the Python API.
 ##  limitations under the License.                                            ##
 ##                                                                            ##
 ################################################################################
+
+"""
+
+Module providing access to the ncrystal commandline tools via the Python API.
+
+"""
 
 #FIXME: Also include ncrystal-config in this list!
 

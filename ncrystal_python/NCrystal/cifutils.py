@@ -1,11 +1,3 @@
-"""Utilities for converting local or online CIF data to NCMAT data.
-
-Two utility classes (CIFSource and CIFLoader) are included, and along with the
-NCMATComposer they are used to implement the related cmd-line scripts (in
-particular ncrystal_cif2ncmat), but they can of course also be used directly via
-the Python API below by expert users.
-
-"""
 
 ################################################################################
 ##                                                                            ##
@@ -27,7 +19,18 @@ the Python API below by expert users.
 ##                                                                            ##
 ################################################################################
 
-__all__ = ['CIFSource','CIFLoader', 'produce_validation_plot','produce_validation_plots']
+"""Utilities for converting local or online CIF data to NCMAT data.
+
+Two utility classes (CIFSource and CIFLoader) are included, and along with the
+NCMATComposer they are used to implement the related cmd-line scripts (in
+particular ncrystal_cif2ncmat), but they can of course also be used directly via
+the Python API below by expert users.
+
+"""
+
+__all__ = ['CIFSource','CIFLoader',
+           'produce_validation_plot',
+           'produce_validation_plots']
 
 from . import _common as _nc_common
 from . import ncmat as _nc_ncmat

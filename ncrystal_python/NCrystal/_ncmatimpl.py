@@ -1,8 +1,3 @@
-"""
-
-Internal implementation details for NCMAT utilities in ncmat.py
-
-"""
 
 ################################################################################
 ##                                                                            ##
@@ -23,6 +18,12 @@ Internal implementation details for NCMAT utilities in ncmat.py
 ##  limitations under the License.                                            ##
 ##                                                                            ##
 ################################################################################
+
+"""
+
+Internal implementation details for NCMAT utilities in ncmat.py
+
+"""
 
 __all__ = []
 from . import core as _nc_core

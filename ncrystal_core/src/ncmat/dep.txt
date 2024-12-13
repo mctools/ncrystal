@@ -1,6 +1,10 @@
 atomdb
+cfgutils
+core
 extd_utils
 factories
 infobld
+interfaces
 sab
+utils
 vdos

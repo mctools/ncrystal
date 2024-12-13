@@ -1,16 +1,3 @@
-"""
-
-Meta-module providing the most commonly needed public API functions and classes
-from NCrystal in a single module. It can be used as:
-
-import NCrystal.api as NC
-
-Which will for now do the same as "import NCrystal as NC". However, it might be
-that we will eventually modify the default behaviour to not include anything
-when merely doing "import NCrystal", so the "import NCrystal.api as NC" will be
-more stable in the long rum.
-
-"""
 
 ################################################################################
 ##                                                                            ##
@@ -31,6 +18,20 @@ more stable in the long rum.
 ##  limitations under the License.                                            ##
 ##                                                                            ##
 ################################################################################
+
+"""
+
+Meta-module providing the most commonly needed public API functions and classes
+from NCrystal in a single module. It can be used as:
+
+import NCrystal.api as NC
+
+Which will for now do the same as "import NCrystal as NC". However, it might be
+that we will eventually modify the default behaviour to not include anything
+when merely doing "import NCrystal", so the "import NCrystal.api as NC" will be
+more stable in the long rum.
+
+"""
 
 #NB: reduce imported symbols here a bit in a future release (possibly by
 #wrapping the removed function and placing in obsolete.py);

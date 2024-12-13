@@ -21,7 +21,7 @@
 
 from .dirs import coreroot as _coreroot
 _srcroot = _coreroot / 'src'
-_incroot = _coreroot / 'include/NCrystal'
+_incroot = _coreroot / 'include'
 
 class Component:
     def __lt__( self, o ):
@@ -31,13 +31,12 @@ class Component:
         self.name = name
         self.srcdir = _srcroot / name
         assert self.srcdir.is_dir(), f"Not a directory: {self.srcdir}"
-        depfile = self.srcdir/ 'dep.txt'
-        assert depfile.exists(), f"not found: {depfile}"
-        self.srcfiles = sorted(self.srcdir.glob('*.cc'))#ok with just a dep.txt and
-                                                        #no actual src files
-        self.srcdir_hdrs = sorted(self.srcdir.glob('*.hh'))
-        pub_hdrdir = _incroot / name
-        internal_hdrdir = _incroot / 'internal' / name
+        self.depfile = self.srcdir/ 'dep.txt'
+        assert self.depfile.exists(), f"not found: {self.depfile}"
+        self.srcfiles = tuple(sorted(self.srcdir.glob('*.cc')))
+        self.local_hdrs = tuple(sorted(self.srcdir.glob('*.hh')))
+        pub_hdrdir = _incroot.joinpath('NCrystal',name)
+        internal_hdrdir = _incroot.joinpath('NCrystal','internal',name)
         if pub_hdrdir.exists() and internal_hdrdir.exists():
             raise RuntimeError('Can not have both '
                                f'{pub_hdrdir} and {internal_hdrdir}')
@@ -53,16 +52,23 @@ class Component:
             hdrdir = None
             self.is_internal = True
         if hdrdir is not None:
-            self.hdrfiles = sorted(list((hdrdir).glob('*.h'))
-                                   +list((hdrdir).glob('*.hh')))
+            self.hdrfiles = tuple(sorted(list((hdrdir).glob('*.h'))
+                                         +list((hdrdir).glob('*.hh'))))
             assert self.hdrfiles, f"empty dir: {hdrdir}"
         else:
-            self.hdrfiles = None
+            self.hdrfiles = tuple([])
 
-        self.direct_depnames = sorted(set(depfile.read_text().split()))
+        self.direct_depnames = sorted(set(self.depfile.read_text().split()))
         #To be filled later:
         self.deps = None
         self.depnames = None
+        self.direct_deps = None
+        _ispref = ( f'NCrystal/internal/{self.name}/'
+                    if self.is_internal
+                    else f'NCrystal/{self.name}/' )
+        self.__incstatements_to_pkg = set( _ispref + h.name
+                                           for h in
+                                           sorted( self.hdrfiles ) )
 
     def _init_deps( self, name2comp, block = None ):
         if self.deps is not None:
@@ -76,11 +82,13 @@ class Component:
         block.add(self.name)
         depnames = set()
         deps = []
+        direct_deps = []
         for dn in self.direct_depnames:
             dc = name2comp.get(dn)
             if dc is None:
                 raise RuntimeError(f'Unknown dependency "{dn}" in '
                                    f'component "{self.name}"')
+            direct_deps.append( dc )
             dc._init_deps( name2comp, block )
             if dn not in depnames:
                 depnames.add( dn )
@@ -91,11 +99,69 @@ class Component:
                     deps.append( dc2 )
         self.depnames = depnames
         self.deps = deps
+        self.direct_deps = set(direct_deps)
+        self._incstm_in_pkgincdir = None
+        self._incstm_in_pkgsrcdir = None
 
-def load_components():
-    name2comp = dict( (d.name ,Component( d.name ))
+    def calc_minimal_deps( self ):
+        #direct_deps with those deps provided indirectly removed
+        indirect_deps = set()
+        for d in self.direct_deps:
+            indirect_deps.update( d.deps )
+        return self.direct_deps - indirect_deps
+
+    def allowed_incs_in_pkgincdir( self ):
+        if self._incstm_in_pkgincdir is not None:
+            return self._incstm_in_pkgincdir
+        res = set()
+        #Always our own of course:
+        res.update( self.__incstatements_to_pkg )
+        for d in self.deps:
+            if not self.is_internal and d.is_internal:
+                #A non-internal pkg header can not include internal headers,
+                #because that would leak internal headers to public api!
+                continue
+            res.update( d.__incstatements_to_pkg )
+        self._incstm_in_pkgincdir = res
+        return res
+
+    def allowed_incs_in_pkgsrcdir( self ):
+        if self._incstm_in_pkgsrcdir is not None:
+            return self._incstm_in_pkgsrcdir
+        res = set()
+        #Always our own of course:
+        res.update( self.__incstatements_to_pkg )
+        #From all dep pkgs as well:
+        for d in self.deps:
+            res.update( d.__incstatements_to_pkg )
+        #And finally the local headers:
+        for h in ( self.local_hdrs or [] ):
+            res.add( h.name )
+        self._incstm_in_pkgsrcdir = res
+        return res
+
+    def all_file_iter( self ):
+        for filelist in [self.hdrfiles,self.srcfiles,self.local_hdrs]:
+            for f in filelist or []:
+                yield f
+
+    def sloc_count( self, headers_only = False ):
+        n = 0
+        files = self.hdrfiles if headers_only else self.all_file_iter()
+        for f in files:
+            n += len(f.read_text().splitlines())
+        return n
+
+def load_components( *, init_deps = True ):
+    name2comp = dict( (d.name, Component( d.name ))
                       for d in _srcroot.iterdir()
                       if d.is_dir() )
-    for n,c in name2comp.items():
-        c._init_deps( name2comp )
+    if init_deps:
+        for n,c in name2comp.items():
+            c._init_deps( name2comp )
     return name2comp
+
+if __name__=='__main__':
+    from pprint import pprint
+    n2c = load_components()
+    pprint(n2c['utils'].allowed_include_statements_in_pkg(True))

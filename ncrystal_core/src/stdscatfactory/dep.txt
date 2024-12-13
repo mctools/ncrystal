@@ -1,10 +1,13 @@
 bkgdextcurve
 dyninfoutils
 elincscatter
+extd_utils
 factories
 freegas
+interfaces
 lcbragg
 pcbragg
+sab
 sabscatter
 scbragg
-threads
+utils

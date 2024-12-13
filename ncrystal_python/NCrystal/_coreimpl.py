@@ -1,8 +1,3 @@
-"""
-
-Internal implementation details for functionality in core.py
-
-"""
 
 ################################################################################
 ##                                                                            ##
@@ -23,6 +18,12 @@ Internal implementation details for functionality in core.py
 ##  limitations under the License.                                            ##
 ##                                                                            ##
 ################################################################################
+
+"""
+
+Internal implementation details for functionality in core.py
+
+"""
 
 __all__ = []
 

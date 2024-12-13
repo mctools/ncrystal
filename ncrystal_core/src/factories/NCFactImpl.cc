@@ -23,7 +23,7 @@
 #include "NCrystal/internal/utils/NCFactoryUtils.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/internal/utils/NCFileUtils.hh"
-#include "NCrystal/infobld/NCInfoBuilder.hh"
+#include "NCrystal/internal/infobld/NCInfoBuilder.hh"
 #include "NCrystal/internal/cfgutils/NCCfgManip.hh"
 #include "NCrystal/internal/extd_utils/NCProcCompBldr.hh"
 #include "NCrystal/threads/NCFactThreads.hh"

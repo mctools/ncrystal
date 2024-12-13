@@ -1,11 +1,3 @@
-"""
-
-Experimental feature for more object-oriented and less efficient access to hkl
-lists.
-
-See also https://github.com/mctools/ncrystal/issues/164.
-
-"""
 
 ################################################################################
 ##                                                                            ##
@@ -26,6 +18,15 @@ See also https://github.com/mctools/ncrystal/issues/164.
 ##  limitations under the License.                                            ##
 ##                                                                            ##
 ################################################################################
+
+"""
+
+Experimental feature for more object-oriented and less efficient access to hkl
+lists.
+
+See also https://github.com/mctools/ncrystal/issues/164.
+
+"""
 
 class HKLEntry:
 

@@ -261,7 +261,7 @@ def define_files():
                                      for n in comp.direct_depnames ],
                         extra_cflags = [f'-I{dirs.srcroot}/src',
                                         f'-DNCRYSTAL_DATADIR={dirs.datadir}'] )#Fixme NCRYSTAL_DATADIR only for factories
-        for sf in (comp.srcdir_hdrs+comp.srcfiles):
+        for sf in (comp.local_hdrs+comp.srcfiles):
             add_file( f'pkgs/{sbpkgname}/libsrc/{sf.name}', link_target = sf )
 
         #For traditional simplebuild includes:

@@ -22,7 +22,7 @@
 #include "NCrystal/ncmat/NCParseNCMAT.hh"
 #include "NCrystal/ncmat/NCNCMATData.hh"
 #include "NCrystal/factories/NCFactImpl.hh"
-#include "NCrystal/infobld/NCInfoBuilder.hh"
+#include "NCrystal/internal/infobld/NCInfoBuilder.hh"
 #include "NCrystal/internal/atomdb/NCAtomDBExtender.hh"
 #include "NCrystal/internal/extd_utils/NCFillHKL.hh"
 #include "NCrystal/internal/utils/NCRotMatrix.hh"

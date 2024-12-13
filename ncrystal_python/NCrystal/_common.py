@@ -1,4 +1,3 @@
-"""Module with internal utilities used by several NCrystal modules"""
 
 ################################################################################
 ##                                                                            ##
@@ -19,6 +18,8 @@
 ##  limitations under the License.                                            ##
 ##                                                                            ##
 ################################################################################
+
+"""Module with internal utilities used by several NCrystal modules"""
 
 #Common print function for NCrystal modules (allowing one to capture and
 #redirect the output of NCrystal):

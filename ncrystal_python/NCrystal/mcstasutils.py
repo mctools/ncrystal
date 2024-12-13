@@ -1,11 +1,3 @@
-"""
-
-Module containing various McStas-related utilities, such as functions helping
-with automatic setup of McStas-Union materials from NCrystal cfg-strings, or
-production of .laz/.lau files for McStas components such as PowderN.comp or
-Single_crystal.comp (with reduced physics capabilities of course).
-
-"""
 
 ################################################################################
 ##                                                                            ##
@@ -26,6 +18,15 @@ Single_crystal.comp (with reduced physics capabilities of course).
 ##  limitations under the License.                                            ##
 ##                                                                            ##
 ################################################################################
+
+"""
+
+Module containing various McStas-related utilities, such as functions helping
+with automatic setup of McStas-Union materials from NCrystal cfg-strings, or
+production of .laz/.lau files for McStas components such as PowderN.comp or
+Single_crystal.comp (with reduced physics capabilities of course).
+
+"""
 
 from . import api as _NC
 from ._common import warn as _nc_warn

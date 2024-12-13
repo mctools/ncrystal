@@ -1,9 +1,3 @@
-"""
-
-Highly experimental "Mini-MC" framework for transforming NCrystal materials into
-actual scattering patterns.
-
-"""
 
 ################################################################################
 ##                                                                            ##
@@ -24,6 +18,13 @@ actual scattering patterns.
 ##  limitations under the License.                                            ##
 ##                                                                            ##
 ################################################################################
+
+"""
+
+Highly experimental "Mini-MC" framework for transforming NCrystal materials into
+actual scattering patterns.
+
+"""
 
 __all__ = ['runsim_diffraction_pattern',
            'quick_diffraction_pattern',

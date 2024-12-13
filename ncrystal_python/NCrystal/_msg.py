@@ -1,9 +1,3 @@
-"""
-
-Internal implementation details for NCrystal output handling (see also
-functions in _common.py).
-
-"""
 
 ################################################################################
 ##                                                                            ##
@@ -24,6 +18,13 @@ functions in _common.py).
 ##  limitations under the License.                                            ##
 ##                                                                            ##
 ################################################################################
+
+"""
+
+Internal implementation details for NCrystal output handling (see also
+functions in _common.py).
+
+"""
 
 def _default_pymsghandler( msg, msgtype ):
     from ._common import print

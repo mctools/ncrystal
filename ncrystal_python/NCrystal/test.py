@@ -1,8 +1,3 @@
-"""
-
-Module which is intended to trigger the built-in test from the command line by running python3 -m NCrystal.test
-
-"""
 
 ################################################################################
 ##                                                                            ##
@@ -23,6 +18,9 @@ Module which is intended to trigger the built-in test from the command line by r
 ##  limitations under the License.                                            ##
 ##                                                                            ##
 ################################################################################
+
+"""Module which is intended to trigger the built-in test from the command line
+by running python3 -m NCrystal.test"""
 
 from ._testimpl import ( test, test_cmdline, test_cmake,  # noqa F401
                          test_extra, test_all )           # noqa F401

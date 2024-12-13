@@ -1,4 +1,3 @@
-#include "TestLib_fpe/FPE.hh"
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
@@ -19,6 +18,8 @@
 //  limitations under the License.                                            //
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
+
+#include "TestLib_fpe/FPE.hh"
 
 #if defined(__APPLE__) || defined(_WIN32) || defined(WIN32)
 void NCTests::catch_fpe(){}
