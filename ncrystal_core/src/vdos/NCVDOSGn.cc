@@ -24,7 +24,7 @@
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCIter.hh"
 #include "NCrystal/internal/utils/NCString.hh"
-#include "NCrystal/internal/utils/NCFactoryJobs.hh"
+#include "NCrystal/internal/fact_utils/NCFactoryJobs.hh"
 #include "NCrystal/internal/utils/NCMsg.hh"
 #include <deque>
 

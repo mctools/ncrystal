@@ -84,6 +84,10 @@ class NCDevUtilsArgParser():
         self.__needs_wrap = False
         self.__args = args
 
+    def get_raw_args( self ):
+        #For special modes, not using the usual parser
+        return self.__args
+
     def init( self, descr, **kwargs ):
         assert 'prog' not in kwargs
         assert 'descr' not in kwargs

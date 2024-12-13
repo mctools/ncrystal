@@ -21,7 +21,7 @@
 #include "NCrystal/internal/sab/NCSABUCN.hh"
 #include "NCrystal/internal/sab/NCSABEval.hh"
 #include "NCrystal/internal/utils/NCString.hh"
-#include "NCrystal/internal/utils/NCFactoryUtils.hh"
+#include "NCrystal/internal/fact_utils/NCFactoryUtils.hh"
 #include "NCrystal/internal/utils/NCMsg.hh"
 
 namespace NC = NCrystal;

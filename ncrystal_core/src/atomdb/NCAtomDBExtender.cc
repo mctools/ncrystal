@@ -20,7 +20,7 @@
 
 #include "NCrystal/internal/atomdb/NCAtomDBExtender.hh"
 #include "NCrystal/internal/atomdb/NCAtomDB.hh"
-#include "NCrystal/internal/utils/NCFactoryUtils.hh"
+#include "NCrystal/internal/fact_utils/NCFactoryUtils.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/internal/utils/NCAtomUtils.hh"
 #include "NCrystal/internal/utils/NCMath.hh"

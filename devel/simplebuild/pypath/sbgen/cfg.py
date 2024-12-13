@@ -46,7 +46,9 @@ NCAtomDB   NCCInterface    NCDynInfoUtils  NCExtdUtils     NCFactory_NCMAT  NCIn
                  'elasincoh':'NCElIncScatter'
                  }.get(compname)
             if e is None:
-                raise SystemExit(compname)
+                e = 'NC' + ''.join(e.capitalize() for e in compname.split('_'))
+                #raise SystemExit('Could not determine sbld pkgname'
+                #                 f' for component: {compname}')
             return e
         return guess[compname]
 

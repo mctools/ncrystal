@@ -51,6 +51,7 @@ class Component:
         else:
             hdrdir = None
             self.is_internal = True
+        self.hdrdir = hdrdir
         if hdrdir is not None:
             self.hdrfiles = tuple(sorted(list((hdrdir).glob('*.h'))
                                          +list((hdrdir).glob('*.hh'))))
@@ -155,13 +156,8 @@ class Component:
 def load_components( *, init_deps = True ):
     name2comp = dict( (d.name, Component( d.name ))
                       for d in _srcroot.iterdir()
-                      if d.is_dir() )
+                      if d.is_dir() and '.' not in d.name )
     if init_deps:
         for n,c in name2comp.items():
             c._init_deps( name2comp )
     return name2comp
-
-if __name__=='__main__':
-    from pprint import pprint
-    n2c = load_components()
-    pprint(n2c['utils'].allowed_include_statements_in_pkg(True))

@@ -1,3 +1,6 @@
+#ifndef NCrystal_Skeleton_hh
+#define NCrystal_Skeleton_hh
+
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
@@ -18,42 +21,20 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/utils/NCFactoryUtils.hh"
-#include "NCrystal/internal/utils/NCString.hh"
-
-namespace NC = NCrystal;
+#include "NCrystal/core/NCDefs.hh"
 
 namespace NCRYSTAL_NAMESPACE {
-  namespace {
-    static std::atomic<bool> s_factoryVerbosity( ncgetenv_bool("DEBUG_FACTORY")
-                                                 || ncgetenv_bool("DEBUGFACTORY")
-                                                 || ncgetenv_bool("DEBUG_FACT")
-                                                 || ncgetenv_bool("DEBUGFACT") );
-  }
-}
 
-void NC::enableFactoryVerbosity( bool status )
-{
-  s_factoryVerbosity = status;
-}
+  //FIXME:: Put proper description here. Note that a few dummy methods are added
+  //below for inspiration. Replace as appropriate.
 
-bool NC::getFactoryVerbosity()
-{
-  return s_factoryVerbosity;
-}
+  class Skeleton : private MoveOnly {
+  public:
+    Skeleton( double );
+    double dummy() const noexcept;
+  private:
+    double m_dummy;
+  };
 
-#ifndef NCRYSTAL_DISABLE_THREADS
-#  include <thread>
-#  include <sstream>
-std::string NC::thread_details::currentThreadIDForPrint()
-{
-  std::ostringstream ss;
-  ss << std::this_thread::get_id();
-  return ss.str();
-}
-#else
-std::string NC::thread_details::currentThreadIDForPrint()
-{
-  return "<thread-id-unavailable>";
 }
 #endif

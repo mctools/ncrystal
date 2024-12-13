@@ -19,15 +19,29 @@
 ##                                                                            ##
 ################################################################################
 
-import pathlib
+def main( parser ):
+    parser.init( '''Run sbrun associated with the simplebuild setup in
+    <reporoot>/devel/simplebuild. This is mainly useful to run a command in that
+    environment without modifying the current environment, after first ensuring
+    that the build is up to date.''' )
+    #Fixme many more options here, for now hardcoding below
+    args = parser.get_raw_args()
+    #Special: Do not actually init or use the parser!
+    #args = parser.parse_args()
 
-devpymoddir = pathlib.Path(__file__).absolute().resolve().parent
-reporoot = devpymoddir.parent.parent.parent
-coreroot = reporoot / 'ncrystal_core'
-coreroot_include = coreroot / 'include'
-coreroot_src = coreroot / 'src'
-pyroot = reporoot / 'ncrystal_python'
-testroot = reporoot / 'tests'
+    import shutil
+    import subprocess
+    import os
+    from .dirs import reporoot
 
-def is_empty_dir( path ):
-    return path.is_dir() and not any( True for p in path.iterdir() )
+    sb = shutil.which('sbrun')
+    if not sb:
+        raise SystemExit('ERROR: Please install simple-build-system')
+
+
+    env = os.environ.copy()
+    env['SIMPLEBUILD_CFG'] = str(reporoot.joinpath('devel',
+                                                   'simplebuild',
+                                                   'simplebuild.cfg'))
+    ev = subprocess.run([sb]+args, env = env )
+    raise SystemExit(ev.returncode)

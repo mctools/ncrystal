@@ -21,7 +21,7 @@
 #include "NCrystal/internal/sab/NCSABFactory.hh"
 #include "NCrystal/internal/sab/NCSABIntegrator.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
-#include "NCrystal/internal/utils/NCFactoryUtils.hh"
+#include "NCrystal/internal/fact_utils/NCFactoryUtils.hh"
 
 namespace NC = NCrystal;
 

@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/utils/NCFactoryUtils.hh"
+#include "NCrystal/internal/fact_utils/NCFactoryUtils.hh"
 namespace NC = NCrystal;
 #include <vector>
 #include <iostream>
