@@ -108,7 +108,7 @@ class NCDevUtilsArgParser():
         assert self.__parser is not None
         if self.__needs_wrap:
             import textwrap
-            return textwrap.fill(msg,width=self.__helpw)
+            return textwrap.fill( ' '.join(msg.split()), width=self.__helpw )
         return msg
 
     def add_argument( self, *args, **kwargs ):

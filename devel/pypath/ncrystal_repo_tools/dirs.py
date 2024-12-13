@@ -26,6 +26,8 @@ reporoot = pathlib.Path(
 ).absolute().resolve().parent.parent.parent.parent
 
 coreroot = reporoot / 'ncrystal_core'
+coreroot_include = coreroot / 'include'
+coreroot_src = coreroot / 'src'
 pyroot = reporoot / 'ncrystal_python'
 testroot = reporoot / 'tests'
 

@@ -43,6 +43,7 @@ def run_all_checks():
 # Planned additional tests:
 #    * shebangs consistent
 #    * check files left outside dirs
+#    * use inspect module to find missing docstrings in modules and functions
 #
 # Work on _climode_*.py:
 #
