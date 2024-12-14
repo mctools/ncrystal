@@ -542,6 +542,22 @@ namespace NCRYSTAL_NAMESPACE {
   void nc_map_force_emplace( TMap&, const typename TMap::key_type&, Args&&... );
 
 
+  //isOneOf: To test an argument against multiple values, e.g. write
+  //isOneOf(a,"foo","bar","foobar) instead of
+  //a=="foo"||a=="bar"||a=="foobar". The search is linear from left to right, so
+  //is not meant for very large number of test cases:
+
+  template <class T1>
+  inline constexpr bool isOneOf(T1) {
+    return false;
+  }
+
+  template <class T1, class T2, class... Ts>
+  inline constexpr bool isOneOf(T1 needle, T2 haystack0, Ts... haystack_rest) {
+    //linear search (so best for very small searches)
+    return needle == haystack0 || isOneOf(needle, haystack_rest...);
+  }
+
   template<class T>
   class ValRange {
   public:

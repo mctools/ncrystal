@@ -22,6 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/core/NCImmutBuf.hh"
+#include "NCrystal/core/NCTypes.hh"
 #include "NCrystal/internal/utils/NCStrView.hh"
 #include "NCrystal/internal/utils/NCVector.hh"
 #include "NCrystal/core/NCVariant.hh"
@@ -441,8 +442,11 @@ namespace NCRYSTAL_NAMESPACE {
           throw_error();//part before the initial '@'.
         if ( parts[5] != StrView::make("lab") )
           throw_error();
-        if ( !isOneOf(parts[1],StrView::make("crys"),StrView::make("crys_hkl")) )
+
+        if ( ! ( parts[1]==StrView::make("crys")
+                 || parts[1] == StrView::make("crys_hkl")) )
           throw_error();
+
         const bool is_crystal_hkl = (parts[1]==StrView::make("crys_hkl"));
 
         LabAxis lab{no_init};

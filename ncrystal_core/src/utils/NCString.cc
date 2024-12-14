@@ -19,7 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/utils/NCString.hh"
-#include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/core/NCFmt.hh"
 #include <istream>
 #include <iomanip>
 namespace NC = NCrystal;
@@ -439,10 +439,10 @@ std::vector<uint8_t> NC::hexstr2bytes(const std::string& v) {
 
 void NC::streamJSON( std::ostream& os, double val )
 {
-  if ( ncisnan( val ) )
+  if ( std::isnan( val ) )
     NCRYSTAL_THROW(CalcError,"Can not represent not-a-number (NaN) values in JSON format!");
 
-  if ( ncisinf(val) ) {
+  if ( std::isinf(val) ) {
     //infinity is not supported in json, but at least the python json modules
     //parses an out of bounds value as such:
     os << ( val > 0 ? "1.0e99999" : "-1.0e99999" );

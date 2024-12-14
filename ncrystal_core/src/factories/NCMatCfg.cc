@@ -23,6 +23,7 @@
 #include "NCrystal/factories/NCFactImpl.hh"
 #include "NCrystal/interfaces/NCSCOrientation.hh"
 #include "NCrystal/internal/cfgutils/NCCfgManip.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
 #include <sstream>
 namespace NC = NCrystal;
 

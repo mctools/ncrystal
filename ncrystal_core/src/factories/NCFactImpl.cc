@@ -22,6 +22,7 @@
 #include "NCrystal/factories/NCPluginMgmt.hh"
 #include "NCrystal/internal/fact_utils/NCFactoryUtils.hh"
 #include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCFileUtils.hh"
 #include "NCrystal/internal/infobld/NCInfoBuilder.hh"
 #include "NCrystal/internal/cfgutils/NCCfgManip.hh"

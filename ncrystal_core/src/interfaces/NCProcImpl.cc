@@ -21,6 +21,7 @@
 #include "NCrystal/interfaces/NCProcImpl.hh"
 #include "NCrystal/internal/utils/NCRandUtils.hh"
 #include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
 
 namespace NC = NCrystal;
 namespace NCPI = NCrystal::ProcImpl;

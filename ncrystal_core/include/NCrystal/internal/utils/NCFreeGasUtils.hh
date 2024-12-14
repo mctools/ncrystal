@@ -24,6 +24,7 @@
 #include "NCrystal/core/NCTypes.hh"
 #include "NCrystal/internal/utils/NCKinUtils.hh"
 #include "NCrystal/internal/utils/NCVector.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
 
 ////////////////////////////////////////////////////////////////////////////////////
 //                                                                                //

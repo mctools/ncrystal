@@ -21,6 +21,7 @@
 #include "NCrystal/internal/gasmix/NCGasMixUtils.hh"
 #include "NCrystal/internal/utils/NCStrView.hh"
 #include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/atomdb/NCAtomDBExtender.hh"
 #include <sstream>
 namespace NC = NCrystal;

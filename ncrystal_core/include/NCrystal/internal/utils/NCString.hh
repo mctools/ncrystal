@@ -23,8 +23,7 @@
 
 //String-related utilities
 
-#include "NCrystal/internal/utils/NCMath.hh"
-#include "NCrystal/core/NCFmt.hh"
+#include "NCrystal/internal/utils/NCSpan.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

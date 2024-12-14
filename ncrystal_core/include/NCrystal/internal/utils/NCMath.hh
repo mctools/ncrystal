@@ -200,23 +200,6 @@ namespace NCRYSTAL_NAMESPACE {
     double m_sum = 0.0, m_correction = 0.0;
   };
 
-
-  //isOneOf: To test an argument against multiple values, e.g. write
-  //isOneOf(a,"foo","bar","foobar) instead of
-  //a=="foo"||a=="bar"||a=="foobar". The search is linear from left to right, so
-  //is not meant for very large number of test cases:
-
-  template <class T1>
-  inline constexpr bool isOneOf(T1) {
-    return false;
-  }
-
-  template <class T1, class T2, class... Ts>
-  inline constexpr bool isOneOf(T1 needle, T2 haystack0, Ts... haystack_rest) {
-    //linear search (so best for very small searches)
-    return needle == haystack0 || isOneOf(needle, haystack_rest...);
-  }
-
   template<typename T, typename Container>
   inline bool hasValue(const Container & c, const T & value)
   {

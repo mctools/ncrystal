@@ -108,7 +108,7 @@ namespace NCRYSTAL_NAMESPACE {
         auto val_dbl = val.value().toDbl();
         if ( !val_dbl.has_value() )
           NCRYSTAL_THROW2(BadInput,"Invalid value for parameter \""<<key<<"\"");
-        if ( ncisnanorinf(val_dbl.value()) )
+        if ( std::isnan(val_dbl.value()) || std::isinf(val_dbl.value()) )
           NCRYSTAL_THROW2(BadInput,"Invalid value for parameter \""<<key<<"\"");
         return val_dbl.value();
       }

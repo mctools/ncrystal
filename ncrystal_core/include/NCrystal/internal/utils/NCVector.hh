@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/core/NCDefs.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 
@@ -203,7 +203,7 @@ inline void NCrystal::Vector::normalise()
     return;//already normalised (normalising it again might change the values slightly)
   if (!themag2)
     NCRYSTAL_THROW(CalcError,"NCVector::normalise(): Can't scale null-vector.");
-  if (ncisinf(themag2))
+  if (std::isinf(themag2))
     NCRYSTAL_THROW(CalcError,"NCVector::normalise(): Can't scale vector with infinite length.");
   *this /= std::sqrt(themag2);
 }
@@ -235,7 +235,7 @@ inline double NCrystal::Vector::angle(const NCrystal::Vector& vec2) const
   if (!norm)
     NCRYSTAL_THROW(CalcError,"NCVector::angle(): Can't find angle to/from null-vector.");
   double result = dot(vec2) / norm;
-  return std::acos( ncmin(1.,ncmax(-1.,result)) );
+  return std::acos( std::min(1.,std::max(-1.,result)) );
 }
 
 inline double NCrystal::Vector::angle_highres(const NCrystal::Vector& vec2) const
@@ -262,7 +262,7 @@ inline constexpr bool NCrystal::Vector::isStrictNullVector() const noexcept
 
 inline bool NCrystal::Vector::isUnitVector(double tolerance) const
 {
-  return ncabs( mag2() - 1.0 ) < tolerance;
+  return std::abs( mag2() - 1.0 ) < tolerance;
 }
 
 #endif
