@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/utils/NCIofQHelper.hh"
+#include "NCrystal/internal/phys_utils/NCIofQHelper.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
 
 namespace NC = NCrystal;

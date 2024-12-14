@@ -21,7 +21,7 @@
 #include "NCrystal/internal/vdos/NCVDOSToScatKnl.hh"
 #include "NCrystal/internal/vdos/NCVDOSEval.hh"
 #include "NCrystal/internal/vdos/NCVDOSGn.hh"
-#include "NCrystal/internal/utils/NCKinUtils.hh"
+#include "NCrystal/internal/phys_utils/NCKinUtils.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/internal/utils/NCIter.hh"
 #include "NCrystal/internal/utils/NCMsg.hh"

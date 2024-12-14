@@ -22,7 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/core/NCTypes.hh"
-#include "NCrystal/internal/utils/NCGaussOnSphere.hh"
+#include "NCrystal/internal/phys_utils/NCGaussOnSphere.hh"
 #include "NCrystal/internal/utils/NCVector.hh"
 
 namespace NCRYSTAL_NAMESPACE {

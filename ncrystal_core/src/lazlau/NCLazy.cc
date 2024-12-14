@@ -22,7 +22,7 @@
 #include "NCrystal/internal/utils/NCStrView.hh"
 #include "NCrystal/internal/utils/NCLatticeUtils.hh"
 #include "NCrystal/internal/utils/NCAtomUtils.hh"
-#include "NCrystal/internal/utils/NCEqRefl.hh"
+#include "NCrystal/internal/phys_utils/NCEqRefl.hh"
 #include "NCrystal/internal/utils/NCMsg.hh"
 #include "NCrystal/internal/atomdb/NCAtomDBExtender.hh"
 #include "NCrystal/internal/infobld/NCInfoBuilder.hh"

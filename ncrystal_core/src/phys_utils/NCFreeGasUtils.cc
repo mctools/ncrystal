@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/utils/NCFreeGasUtils.hh"
+#include "NCrystal/internal/phys_utils/NCFreeGasUtils.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCRandUtils.hh"
 namespace NC=NCrystal;

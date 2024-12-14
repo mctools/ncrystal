@@ -20,7 +20,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/scbragg/NCSCBragg.hh"
-#include "NCrystal/internal/utils/NCGaussMos.hh"
+#include "NCrystal/internal/phys_utils/NCGaussMos.hh"
 #include "NCrystal/internal/utils/NCRandUtils.hh"
 #include "NCrystal/interfaces/NCSCOrientation.hh"
 #include "NCrystal/internal/utils/NCVector.hh"

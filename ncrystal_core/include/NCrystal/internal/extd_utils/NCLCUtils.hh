@@ -22,7 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/core/NCDefs.hh"
-#include "NCrystal/internal/utils/NCGaussMos.hh"
+#include "NCrystal/internal/phys_utils/NCGaussMos.hh"
 #include "NCrystal/internal/utils/NCVector.hh"
 #include "NCrystal/core/NCTypes.hh"
 

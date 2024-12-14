@@ -8,6 +8,7 @@ interfaces
 minimc
 misc
 ncmat
+phys_utils
 sab
 threads
 utils

@@ -23,7 +23,7 @@
 #include "NCrystal/internal/utils/NCRotMatrix.hh"
 #include "NCrystal/internal/utils/NCLatticeUtils.hh"
 #include "NCrystal/internal/utils/NCString.hh"
-#include "NCrystal/internal/utils/NCEqRefl.hh"
+#include "NCrystal/internal/phys_utils/NCEqRefl.hh"
 #include <bitset>
 
 namespace NC = NCrystal;

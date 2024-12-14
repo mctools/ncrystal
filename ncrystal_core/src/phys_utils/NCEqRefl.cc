@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/utils/NCEqRefl.hh"
+#include "NCrystal/internal/phys_utils/NCEqRefl.hh"
 namespace NC = NCrystal;
 
 struct NC::EqRefl::Helper {

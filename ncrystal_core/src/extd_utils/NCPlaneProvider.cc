@@ -22,7 +22,7 @@
 #include "NCrystal/internal/extd_utils/NCOrientUtils.hh"
 #include "NCrystal/interfaces/NCInfo.hh"
 #include "NCrystal/internal/utils/NCRotMatrix.hh"
-#include "NCrystal/internal/utils/NCEqRefl.hh"
+#include "NCrystal/internal/phys_utils/NCEqRefl.hh"
 
 namespace NC = NCrystal;
 

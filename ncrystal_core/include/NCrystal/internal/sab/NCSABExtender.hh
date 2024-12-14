@@ -22,7 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/core/NCDefs.hh"
-#include "NCrystal/internal/utils/NCFreeGasUtils.hh"
+#include "NCrystal/internal/phys_utils/NCFreeGasUtils.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

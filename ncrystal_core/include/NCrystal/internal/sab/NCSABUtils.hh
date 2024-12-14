@@ -22,7 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/utils/NCMath.hh"
-#include "NCrystal/internal/utils/NCKinUtils.hh"
+#include "NCrystal/internal/phys_utils/NCKinUtils.hh"
 #include "NCrystal/interfaces/NCSABData.hh"
 #include "NCrystal/internal/sab/NCScatKnlData.hh"
 

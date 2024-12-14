@@ -21,7 +21,7 @@
 #include "NCrystal/core/NCDefs.hh"
 #include "NCrystal/internal/extd_utils/NCLCUtils.hh"
 #include "NCrystal/internal/extd_utils/NCPlaneProvider.hh"
-#include "NCrystal/internal/utils/NCGaussMos.hh"
+#include "NCrystal/internal/phys_utils/NCGaussMos.hh"
 #include "NCrystal/internal/utils/NCRomberg.hh"
 #include "NCrystal/internal/utils/NCRandUtils.hh"
 #include "NCrystal/internal/utils/NCRotMatrix.hh"

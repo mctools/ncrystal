@@ -22,7 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/utils/NCVector.hh"
-#include "NCrystal/internal/utils/NCEqRefl.hh"
+#include "NCrystal/internal/phys_utils/NCEqRefl.hh"
 #include "NCrystal/internal/utils/NCSpan.hh"
 #include "NCrystal/interfaces/NCInfoTypes.hh"
 

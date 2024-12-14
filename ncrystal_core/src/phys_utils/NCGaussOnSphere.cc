@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/utils/NCGaussOnSphere.hh"
+#include "NCrystal/internal/phys_utils/NCGaussOnSphere.hh"
 #include "NCrystal/internal/utils/NCRomberg.hh"
 #include "NCrystal/internal/utils/NCRandUtils.hh"
 #include "NCrystal/internal/utils/NCMsg.hh"

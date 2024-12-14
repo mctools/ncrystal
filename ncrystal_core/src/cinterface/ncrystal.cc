@@ -34,9 +34,9 @@
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/internal/utils/NCAtomUtils.hh"
-#include "NCrystal/internal/utils/NCDebyeMSD.hh"
+#include "NCrystal/internal/phys_utils/NCDebyeMSD.hh"
 #include "NCrystal/internal/utils/NCLatticeUtils.hh"//TODO: might not be needed eventually
-#include "NCrystal/internal/utils/NCEqRefl.hh"//TODO: might not be needed eventually
+#include "NCrystal/internal/phys_utils/NCEqRefl.hh"//TODO: might not be needed eventually
 #include "NCrystal/internal/atomdb/NCAtomDB.hh"
 #include "NCrystal/internal/vdos/NCVDOSEval.hh"
 #include "NCrystal/internal/vdos/NCVDOSGn.hh"

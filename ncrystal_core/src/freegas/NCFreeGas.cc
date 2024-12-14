@@ -20,7 +20,7 @@
 
 #include "NCrystal/internal/freegas/NCFreeGas.hh"
 #include "NCrystal/internal/utils/NCRandUtils.hh"
-#include "NCrystal/internal/utils/NCFreeGasUtils.hh"
+#include "NCrystal/internal/phys_utils/NCFreeGasUtils.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 
 namespace NC = NCrystal;

@@ -2,4 +2,5 @@ atomdb
 factories
 infobld
 interfaces
+phys_utils
 utils
