@@ -28,7 +28,7 @@ def main_grep( parser ):
     grepfindreplace_addargs( parser, is_grep = True )
     args = parser.parse_args()
     pos,neg = prepare_needles( args.PATTERN)
-    files = iter_repo_files( args )
+    files = iter_repo_files( args.types, args.pathfilter )
     if args.list:
         for f in files:
             if iter_nonempty(grep(f,pos,neg)):
@@ -45,7 +45,7 @@ def main_grepl( parser ):
     grepfindreplace_addargs( parser, is_grep = True )
     args = parser.parse_args()
     pos,neg = prepare_needles( args.PATTERN )
-    for f in iter_repo_files( args ):
+    for f in iter_repo_files( args.types, args.pathfilter ):
         if iter_nonempty(grep(f,pos,neg)):
             print(f)
 
@@ -55,21 +55,18 @@ def main_find( parser ):
     )
     grepfindreplace_addargs( parser )
     args = parser.parse_args()
-    for f in iter_repo_files( args ):
+    for f in iter_repo_files( args.types, args.pathfilter ):
         print(f)
 
-def main_replace( parser ):
-    parser.init(
-        """Perform replacement (case sensitive,
-        no wild cards or regexp syntax)"""
-    )
-    grepfindreplace_addargs( parser, is_replace = True )
-    args = parser.parse_args()
-    pos,neg = prepare_needles( args.greppatterns )
-    fromstr, tostr = args.FROMSTR, args.TOSTR
+def do_replace( fromstr, tostr,
+                greppatterns = None,
+                types = None,
+                pathfilter = None ):
+    assert not isinstance( types, str ), "give list of strings not a string"
     if fromstr == tostr:
         return
-    for f in iter_repo_files( args ):
+    pos,neg = prepare_needles( greppatterns or [] )
+    for f in iter_repo_files( types, pathfilter ):
         replacement_lines = set()
         for line in grep(f,pos,neg):
             if fromstr in line:
@@ -89,6 +86,18 @@ def main_replace( parser ):
                           #trailing newlines anyway.
         print(f"Replacing {n} lines in {f}")
         f.write_text('\n'.join(content))
+
+def main_replace( parser ):
+    parser.init(
+        """Perform replacement (case sensitive,
+        no wild cards or regexp syntax)"""
+    )
+    grepfindreplace_addargs( parser, is_replace = True )
+    args = parser.parse_args()
+    do_replace( args.FROMSTR, args.TOSTR,
+                args.greppatterns,
+                args.types,
+                args.pathfilter )
 
 def grepfindreplace_addargs( parser, *, is_grep = False, is_replace = False ):
     assert not ( is_grep and is_replace )
@@ -177,12 +186,11 @@ def prepare_needles( needles ):
             pos.append(StrMatch(n))
     return pos,neg
 
-def iter_repo_files( args ):
-    #patterns is the patterns one can provide to srciter.all_files_iter, and the
+def iter_repo_files( types = None, pathfilter = None ):
+    #types is the patterns one can provide to srciter.all_files_iter, and the
     #pathfilter is an additional selection on the paths.
-    patterns = args.types or []
-    pathfilter = args.pathfilter
 
+    patterns = types or []
     if 'HELP' in patterns:
         from .srciter import special_patterns_db
         import shlex

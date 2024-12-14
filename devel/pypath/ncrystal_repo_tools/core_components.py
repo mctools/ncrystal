@@ -23,11 +23,20 @@ from .dirs import coreroot as _coreroot
 _srcroot = _coreroot / 'src'
 _incroot = _coreroot / 'include'
 
+def is_valid_component_name( s ):
+    return ( 3 <= len(s) <= 14
+             and s==s.lower()
+             and s.isidentifier()
+             and s[0].isalpha()
+             and s[-1].isalpha() )
+
 class Component:
     def __lt__( self, o ):
         return self.name < o.name
 
     def __init__(self, name ):
+        if not is_valid_component_name(name):
+            raise SystemExit(f'Not a valid component name: "{name}"')
         self.name = name
         self.srcdir = _srcroot / name
         assert self.srcdir.is_dir(), f"Not a directory: {self.srcdir}"
@@ -55,9 +64,12 @@ class Component:
         if hdrdir is not None:
             self.hdrfiles = tuple(sorted(list((hdrdir).glob('*.h'))
                                          +list((hdrdir).glob('*.hh'))))
-            assert self.hdrfiles, f"empty dir: {hdrdir}"
+            if not self.hdrfiles:
+                raise SystemExit(f'ERROR empty dir: {hdrdir}')
         else:
             self.hdrfiles = tuple([])
+
+        self.hdrfiles_icc = tuple([])#FIXME support?
 
         self.direct_depnames = sorted(set(self.depfile.read_text().split()))
         #To be filled later:
@@ -161,3 +173,24 @@ def load_components( *, init_deps = True ):
         for n,c in name2comp.items():
             c._init_deps( name2comp )
     return name2comp
+
+def fix_deps( dryrun = False ):
+    from .extract_includes import get_include_staments_from_file
+    for c in load_components( init_deps = False ).values():
+        deplist = set()
+        for f in c.all_file_iter():
+            for i in get_include_staments_from_file(f):
+                if not i.startswith('NCrystal/'):
+                    continue
+                p = i.split('/')
+                if len(p) == 4 and i.startswith('NCrystal/internal/'):
+                    deplist.add( p[2] )
+                elif len(p) == 3 and i.startswith('NCrystal/'):
+                    deplist.add( p[1] )
+        deptxt = '\n'.join(sorted(e for e in deplist if e != c.name)) + '\n'
+        if c.depfile.read_text() != deptxt:
+            if dryrun:
+                print("Would update",c.depfile)
+            else:
+                print("Updating",c.depfile)
+                c.depfile.write_text( deptxt )

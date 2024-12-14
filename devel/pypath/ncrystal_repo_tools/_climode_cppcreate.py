@@ -37,7 +37,7 @@ def main( parser ):
         .hh/.cc files in."""
     )
     parser.add_argument(
-        '-n','--new', choices = ('internal','public'), metavar='TYPE',
+        '--new', choices = ('internal','public'), metavar='TYPE',
         help="""Allow --comp to specify an new component which is not yet
         present. TYPE must be either 'internal' or 'public'."""
     )
@@ -45,11 +45,13 @@ def main( parser ):
 
     args = parser.parse_args()
 
-    if not args.comp or not args.comp.isidentifier():
+    from .core_components import ( load_components,
+                                   is_valid_component_name )
+    from .dirs import coreroot, devpymoddir
+
+    if not args.comp or not is_valid_component_name(args.comp):
         parser.error('Invalid component name')
 
-    from .core_components import load_components
-    from .dirs import coreroot, devpymoddir
 
     for f in coreroot.rglob(f'NC{args.name}.hh'):
         parser.error(f'ERROR: Chosen name conflicts with existing file: {f}')

@@ -30,24 +30,5 @@ def main( parser ):
         help='Show changes but do not modify anything'
     )
     args = parser.parse_args()
-
-    from .extract_includes import get_include_staments_from_file
-    from .core_components import load_components
-    for c in load_components( init_deps = False ).values():
-        deplist = set()
-        for f in c.all_file_iter():
-            for i in get_include_staments_from_file(f):
-                if not i.startswith('NCrystal/'):
-                    continue
-                p = i.split('/')
-                if len(p) == 4 and i.startswith('NCrystal/internal/'):
-                    deplist.add( p[2] )
-                elif len(p) == 3 and i.startswith('NCrystal/'):
-                    deplist.add( p[1] )
-        deptxt = '\n'.join(sorted(e for e in deplist if e != c.name)) + '\n'
-        if c.depfile.read_text() != deptxt:
-            if args.dryrun:
-                print("Would update",c.depfile)
-            else:
-                print("Updating",c.depfile)
-                c.depfile.write_text( deptxt )
+    from .core_components import fix_deps
+    fix_deps( dryrun = args.dryrun )
