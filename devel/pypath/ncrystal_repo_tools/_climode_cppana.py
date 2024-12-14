@@ -19,6 +19,10 @@
 ##                                                                            ##
 ################################################################################
 
+
+def short_description():
+    return 'Analyse C++ component dependencies based on include statements'
+
 def main( parser ):
     from .core_components import load_components
     from .extract_includes import get_include_staments_from_file as getinc

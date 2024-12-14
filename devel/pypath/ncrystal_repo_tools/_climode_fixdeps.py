@@ -19,6 +19,9 @@
 ##                                                                            ##
 ################################################################################
 
+def short_description():
+    return 'Update C++ component dependencies based on include statements'
+
 def main( parser ):
     parser.init( 'Update all ncrystal_core/src/dep.txt files based on'
                  ' include statements actually seen in the package.' )

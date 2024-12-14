@@ -36,7 +36,13 @@ def usage():
     example_mode = 'grep'
     assert example_mode in ml
     modelist_indent = '\n     '
-    modelist_str = modelist_indent + f'{modelist_indent}'.join(ml)
+    modelist_str=''
+    nadjust = max(len(mode) for mode in ml)
+    for mode in ml:
+        descr = get_module_short_description(mode)
+        ms = mode.ljust(nadjust)
+        modelist_str += f'{modelist_indent}{ms} : {descr}'
+    #modelist_str = modelist_indent + f'{modelist_indent}'.join(ml)
     print(f"""Usage:
 
   $> {theprogname} MODE <mode options>
@@ -50,13 +56,18 @@ available for a given mode. For example:
   $> {theprogname} {example_mode} --help
 """)
 
-def import_sibling_module( module_name ):
+def import_sibling_module( mode = None, module_name = None ):
+    assert int(mode is None)+int(module_name is None) == 1
+    module_name = module_name or '_climode_%s'%mode
     import importlib
     pkgarg = __name__
     if pkgarg == '__main__':
         #Make running as python -m <packagename>.<thismodule> work:
         pkgarg = '%s.foo'%__package__
     return importlib.import_module(f'..{module_name}',pkgarg)
+
+def get_module_short_description( mode ):
+    return import_sibling_module(mode=mode).short_description()
 
 def main():
     import sys
@@ -72,7 +83,7 @@ def main():
                                   modename = mode,
                                   args = sys.argv[2:] )
 
-    import_sibling_module('_climode_%s'%mode).main( parser )
+    import_sibling_module(mode=mode).main( parser )
 
 class NCDevUtilsArgParser():
 

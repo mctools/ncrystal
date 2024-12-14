@@ -19,6 +19,9 @@
 ##                                                                            ##
 ################################################################################
 
+def short_description():
+    return 'Build and test code with simplebuild'
+
 def main( parser ):
     parser.init( '''Launch simplebuild to build the files via
     <reporoot>/devel/simplebuild.''' )

@@ -19,6 +19,9 @@
 ##                                                                            ##
 ################################################################################
 
+def short_description():
+    return 'Build and test code with CMake'
+
 def main( parser ):
     parser.init( 'Launch CMake to build the files in ncrystal_core.' )
     #Fixme many more options here, for now hardcoding below

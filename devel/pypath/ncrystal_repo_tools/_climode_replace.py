@@ -19,6 +19,9 @@
 ##                                                                            ##
 ################################################################################
 
+def short_description():
+    return 'Replace strings in NCrystal files based on provided parameters'
+
 def main( parser ):
     from . import _cliutils_common as common
     common.main_replace( parser )

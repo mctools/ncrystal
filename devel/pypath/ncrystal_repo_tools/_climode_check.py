@@ -19,6 +19,9 @@
 ##                                                                            ##
 ################################################################################
 
+def short_description():
+    return 'Run static code checks (use before committing)'
+
 def main( parser ):
     parser.init( """Launch all or some of the various source code checks
     (defined in <reporoot>/devel/pypath/ncrystal_repo_tools/_check_*.py). The

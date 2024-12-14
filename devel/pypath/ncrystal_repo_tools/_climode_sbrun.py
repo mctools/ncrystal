@@ -19,6 +19,9 @@
 ##                                                                            ##
 ################################################################################
 
+def short_description():
+    return 'Build code and run command in simplebuild environment'
+
 def main( parser ):
     parser.init( '''Run sbrun associated with the simplebuild setup in
     <reporoot>/devel/simplebuild. This is mainly useful to run a command in that

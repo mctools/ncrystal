@@ -19,6 +19,9 @@
 ##                                                                            ##
 ################################################################################
 
+def short_description():
+    return 'Run command in simplebuild environment'
+
 def main( parser ):
     parser.init( '''Run sbenv associated with the simplebuild setup in
     <reporoot>/devel/simplebuild. This is mainly useful to run a command in that

@@ -19,6 +19,9 @@
 ##                                                                            ##
 ################################################################################
 
+def short_description():
+    return 'Visualise C++ components'
+
 def graph_to_dot( graph, fix_size = False ):
     s = ''
     s += 'digraph GG {\n'

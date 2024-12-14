@@ -19,6 +19,9 @@
 ##                                                                            ##
 ################################################################################
 
+def short_description():
+    return 'Create new C++ file from skeleton class'
+
 def main( parser ):
     parser.init( 'Create a new C++ class from a template.' )
 
