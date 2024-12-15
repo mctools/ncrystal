@@ -23,7 +23,6 @@
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/internal/utils/NCMsg.hh"
-#include "NCrystal/factories/NCMatCfg.hh"
 #include "NCrystal/internal/cfgutils/NCCfgManip.hh"
 #include "NCrystal/internal/extd_utils/NCPlaneProvider.hh"
 #include <sstream>
