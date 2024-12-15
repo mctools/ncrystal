@@ -61,3 +61,18 @@ def get_include_staments_from_file( path, *,
             if not ( ignore_exceptional and _is_exceptional( path, v ) ):
                 res.append( v )
     return set(res)
+
+def get_nccomp_include_statements( f, *, ignore_list = None ):
+    #Iterate over (incstatement,compname_of_inc_statement)
+    incs = get_include_staments_from_file( f )
+    res = set()
+    ignore_list
+    for i in incs:
+        comp = None
+        if i.startswith('NCrystal/internal/'):
+            comp = i.split('/')[2]
+        elif i.startswith('NCrystal/'):
+            comp = i.split('/')[1]
+        if comp and ( not ignore_list or comp not in ignore_list ):
+            res.add( ( i, comp ) )
+    return res

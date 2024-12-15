@@ -159,11 +159,12 @@ class Component:
                 yield f
 
     def sloc_count( self, headers_only = False ):
-        n = 0
         files = self.hdrfiles if headers_only else self.all_file_iter()
-        for f in files:
-            n += len(f.read_text().splitlines())
-        return n
+        return sum( file_calc_sloc_count(f) for f in files )
+
+def file_calc_sloc_count( f ):
+    #FIXME: Improve
+    return len(f.read_text().splitlines())
 
 def load_components( *, init_deps = True ):
     name2comp = dict( (d.name, Component( d.name ))

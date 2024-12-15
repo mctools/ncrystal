@@ -29,6 +29,9 @@ def graph_to_dot( graph, fix_size = False ):
 
     lbl2id = {}
     for n in graph.nodes:
+        if graph.node_is_hidden( n ):
+            print(f"IGNORING HIDDEN NODE {n['name']}")
+            continue
         n_id = len(lbl2id)
         lbl = n['name']
         lbl2id[ lbl ] = n_id
@@ -53,6 +56,9 @@ def graph_to_dot( graph, fix_size = False ):
         s += ns
 
     for a,b,info in graph.connections:
+        if graph.node_is_hidden( b ):
+            continue
+
         id_a, id_b = lbl2id[a], lbl2id[b]
         color = (info or {}).get( 'color', 'black' )
         s += f'    "node_{id_a}" -> "node_{id_b}" [ color="{color}" ]\n'
@@ -100,6 +106,11 @@ class Graph:
     def __init__(self):
         self.__nodes = dict()
         self.__connections = dict()
+        self.__hidden_nodes = set()
+
+    def node_is_hidden( self, node ):
+        name = node.get('name',node) if hasattr( node, 'get') else node
+        return name in self.__hidden_nodes
 
     def add_node( self, nodename, **options ):
         #assert fmt in ['default','disabled']
@@ -127,6 +138,16 @@ class Graph:
     def get_as_dot_content( self ):
         return graph_to_dot( self )
 
+    def hide_noclient_manydep_components( self, threshold ):
+        assert not self.__hidden_nodes, "already hid some nodes"
+        for n in self.__nodes:
+            if any( mother == n for mother,daughter in self.__connections ):
+                continue
+            if sum( 1 for mother,daughter in self.__connections
+                    if daughter == n) > threshold:
+                self.__hidden_nodes.add( n )
+
+
 def main( parser ):
     parser.init( 'Visualise src component dependencies.' )
     allowed_stats = ('none','sloc','files','headers','sloc_headers')
@@ -142,6 +163,11 @@ def main( parser ):
         '-a','--area', action='store_true',
         help="""Use with --stat to make the area of component graphics scale
         with the chosen statistics count."""
+    )
+    parser.add_argument(
+        '--prune', action='store_true',
+        help="""Prune to not display components with no clients and >=4
+        dependencies."""
     )
 
     args = parser.parse_args()
@@ -197,6 +223,9 @@ def main( parser ):
                        )
         for d in c.calc_minimal_deps():
             graph.add_connection(d.name,n, color = 'grey')
+
+    if args.prune:
+        graph.hide_noclient_manydep_components( threshold = 4 )
 
     #print( graph.get_as_dot_content())
     fmt = 'png'
