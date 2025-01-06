@@ -44,7 +44,7 @@ def check_NCrystal_hh( content, incguards ):
         del incguards[ig]
 
     expected_missing = ( 'NCrystal/NCrystal.hh',#self
-                         'NCrystal/factories/NCPluginBoilerplate.hh',
+                         'NCrystal/NCPluginBoilerplate.hh',
                          'NCrystal/ncrystal.h',
                          'NCrystal/cinterface/ncrystal.h'
                         )

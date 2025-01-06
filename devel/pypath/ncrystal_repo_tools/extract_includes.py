@@ -26,9 +26,9 @@ def _is_exceptional( f, incstatement ):
     if not f.is_relative_to( coreroot ):
         return False
     frel = str(f.relative_to( coreroot ))
-    if ( frel == 'include/NCrystal/factories/NCPluginBoilerplate.hh'
-         and incstatement == 'NCrystal/NCrystal.hh' ):
-        return True
+    #if ( frel == 'include/NCrystal/plugins/NCPluginBoilerplate.hh'
+    #     and incstatement == 'NCrystal/NCrystal.hh' ):
+    #    return True
     if ( frel == 'src/utils/NCCFileUtils.cc'
          and incstatement == 'NCCFileUtils.h' ):
         return True

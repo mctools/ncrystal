@@ -22,7 +22,7 @@
 
 #define NCPLUGIN_NAME Dummy
 #define NCPLUGIN_BOILERPLATE_CC
-#include "NCrystal/factories/NCPluginBoilerplate.hh"
+#include "NCrystal/NCPluginBoilerplate.hh"
 #include <iostream>
 
 void NCP::registerPlugin(){}

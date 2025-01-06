@@ -131,6 +131,7 @@ f"""
 #define NCRYSTAL_VERSION_PATCH {cfg.ncrystal_version_patch}
 #define NCRYSTAL_VERSION_STR "{cfg.ncrystal_version_str}"
 #define NCRYSTAL_VERSION {cfg.ncrystal_version_int}
+//Uncomment to debug deadlocks: #define NCRYSTAL_DEBUG_LOCKS
 #ifndef NDEBUG
 // Specifically test aligned allocs in simplebuild debug mode:
 #  define NCRYSTAL_TRACKALIGNEDALLOC
@@ -171,6 +172,14 @@ set( ExtDep_{name}_LINK_FLAGS "{ldflags}")
 
     add_file( outdir / f'ExtDep_{name}.cmake', content = content )
 
+def platform_so_ending():
+    import platform
+    return '.dylib' if platform.system() == 'Darwin' else '.so'
+
+def pkg_libname( pkgname ):
+    libname = 'libPKG__%s'%pkgname
+    return libname + platform_so_ending()
+
 def ncconfig_h_contents():
 
     bin2incdir = os.path.relpath( dirs.srcroot.joinpath('include'),
@@ -181,12 +190,7 @@ def ncconfig_h_contents():
                            release = 'Release' )[ cfg.sbld_mode ]
 
 
-    libname = 'libPKG__%s'%cfg.sbpkgname_ncrystal_lib
-    import platform
-    if platform.system() == 'Darwin':
-        libname += '.dylib'
-    else:
-        libname += '.so'
+    libname = pkg_libname(cfg.sbpkgname_ncrystal_lib)
     expandvars = dict( NCLIBNAME = libname,
                        NCDATAPKGNAME = cfg.sbpkgname_ncrystal_data,
                        NCVERSION = cfg.ncrystal_version_str,
@@ -224,6 +228,35 @@ int nccfg_boolopt_expects_shlibdir_override(void) { return 0; }
     for k,v in expandvars.items():
         c = c.replace('@%s@'%k,v)
     return c
+
+def create_testplugin_pkg(pkgname,pkg_deps):
+    create_pkginfo( pkgname,
+                    pkg_deps = pkg_deps,
+                    extra_cflags = ['-DNCPLUGIN_NAME=DummyPlugin'] )
+
+    p = dirs.exsrcroot.joinpath('plugin','src')
+    for sf in itertools.chain( p.glob('*.hh'), p.glob('*.cc') ):
+        add_file( f'pkgs/{pkgname}/libsrc/{sf.name}', link_target = sf )
+
+    _plname = pkg_libname( pkgname )
+    testload_content = """#!/usr/bin/env python3
+import os
+pl=os.environ['SBLD_LIB_DIR']+'/'+'<<PKGLIBNAME>>'
+if not os.path.exists(pl):
+    raise SystemExit(f'Not found: {pl}')
+os.environ['NCRYSTALDEV_PLUGIN_LIST']=pl
+import NCrystalDev as NC
+pls = [e for e in NC.browsePlugins() if e[0]=='DummyPlugin']
+if not pls:
+    raise SystemExit(f'Could not load DummyPlugin as expected')
+assert len(pls) == 1
+print(f'Loaded DummyPlugin from {pl}.')
+print('All ok')\n""".replace('<<PKGLIBNAME>>',_plname)
+    add_file( f'pkgs/{pkgname}/scripts/testload',
+              make_executable = True,
+              content = testload_content )
+
+    #FIXME: Also try to actually USE the test plugin!
 
 def define_files():
 
@@ -275,8 +308,9 @@ def define_files():
               link_target = dirs.genroot.joinpath(ncapi_loc_in_genroot) )
     includemap.append( ( 'NCrystal/ncapi.h', f'{pkgname_core}/ncapi.h' ) )
 
-    add_file( 'pkgs/%s/libinc/NCrystal.hh'%cfg.sbpkgname_ncrystal_ncrystalhh,
-              link_target = dirs.srcroot.joinpath('include/NCrystal/NCrystal.hh') )#fixme: autogen?
+    for fn in ['NCrystal.hh','NCPluginBoilerplate.hh']:
+        add_file( f'pkgs/{cfg.sbpkgname_ncrystal_ncrystalhh}/libinc/{fn}',
+                  link_target = dirs.srcroot.joinpath(f'include/NCrystal/{fn}') )
 
     #NCrystalDev package (python module):
     assert cfg.sbpkgname_ncrystal_lib in all_ncsbpkgs
@@ -356,6 +390,7 @@ mod.main()
 
     #Test libs:
     all_test_pkgs = []
+    #all_test_pkgs_needing_ncrystal = []
     testlib_pkgnames = []
     for testlibdir in dirs.testroot.joinpath('libs').glob('lib_*'):
         tlname = testlibdir.name[4:]
@@ -407,6 +442,16 @@ mod.main()
                                    moddir.glob('*.cc') ):
             add_file( f'pkgs/{pkgname}/libsrc/{sf.name}',
                       link_target = sf )
+
+    #Test plugin module:
+    all_test_pkgs.append( 'NCTestPlugin' )
+    create_testplugin_pkg( 'NCTestPlugin',
+                           pkg_deps = [ cfg.sbpkgname_ncrystal_ncrystalhh ] )
+
+    ##Exercise the CMake code versus an NCrystal installed into the test env:
+    #all_test_pkgs_needing_ncrystal.append( 'NCTestPlugin2' )
+    #create_testplugin_pkg( 'NCTestPlugin2',
+    #                       pkg_deps = [ cfg.sbpkgname_ncrystal_ncrystalhh ] )
 
     #Python modules for test scripts, common headers, and data:
     pkgname = 'NCTestUtils'

@@ -91,20 +91,6 @@ def print_comp_stats( comp,
             print('   %s%s'%(fmtpath_name(f),fmtinc_comps(f)))
             show_extra_incs(f)
 
-#    comp.srcdir
-#    comp.depfile
-#    comp.srcfiles
-#comp.local_hdrs
-#comp.is_internal
-#comp.hdrfiles
-#comp.direct_depnames
-#comp.deps
-#comp.depnames
-#comp.direct_deps
-#calc_minimal_deps
-#    def sloc_count( self, headers_only = False ):
-#
-
 def main( parser ):
     parser.init( """Provide information and statistics about particular C++
     component""" )
