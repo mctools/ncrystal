@@ -66,6 +66,5 @@ namespace NCRYSTAL_NAMESPACE {
 
 extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_stdabs_factory)()
 {
-  NC::FactImpl::registerFactory( std::make_unique<NC::NCStdAbsFact>(),
-                                 NC::FactImpl::RegPolicy::IGNORE_IF_EXISTS );
+  NC::FactImpl::registerFactory( std::make_unique<NC::NCStdAbsFact>() );
 }

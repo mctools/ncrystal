@@ -20,7 +20,7 @@
 
 #include "NCrystal/factories/NCFactImpl.hh"
 #include "NCrystal/factories/NCDataSources.hh"
-#include "NCrystal/ncmat/NCLoadNCMAT.hh"
+#include "NCrystal/internal/ncmat/NCLoadNCMAT.hh"
 namespace NC = NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {
@@ -48,7 +48,6 @@ namespace NCRYSTAL_NAMESPACE {
 
 extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_stdncmat_factory)()
 {
-  NC::FactImpl::registerFactory( std::make_unique<NC::NCMATFactory>(),
-                                 NC::FactImpl::RegPolicy::IGNORE_IF_EXISTS );
+  NC::FactImpl::registerFactory( std::make_unique<NC::NCMATFactory>() );
   NC::DataSources::addRecognisedFileExtensions("ncmat");
 }

@@ -8,5 +8,6 @@ infobld
 interfaces
 phys_utils
 sab
+text
 utils
 vdos

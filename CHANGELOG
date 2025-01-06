@@ -1,5 +1,9 @@
 
 v3.x.y 2024-09-??
+     * FactImpl::registerFactory function will now always raise an error
+       in case of name clashes with an existing registed factory.
+     * fixme: PluginBoilerplate header moved, have cmake generate
+       redirection header for now?
      * TODO: Header locations changed, except for ncapi.h, ncrystal.h and
        NCrystal.hh. New headers are in subdirs indication their location in
        internal NCrystal coding units ("core", "utils", ...)

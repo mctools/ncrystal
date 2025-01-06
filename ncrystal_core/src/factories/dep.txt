@@ -4,5 +4,7 @@ extd_utils
 fact_utils
 infobld
 interfaces
+plugins
+text
 threads
 utils

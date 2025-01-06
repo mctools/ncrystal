@@ -47,7 +47,7 @@ namespace NCRYSTAL_NAMESPACE {
     // are enabled by adding them to the NCRYSTAL_PLUGIN_LIST environment
     // variable, while the loading of builtin plugins is handled by NCrystal's
     // cmake configuration.
-
+    //
     //
     enum class PluginType { Dynamic, Builtin, Undefined };
     struct NCRYSTAL_API PluginInfo {

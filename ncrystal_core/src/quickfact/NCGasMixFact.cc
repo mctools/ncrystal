@@ -127,7 +127,7 @@ namespace NCRYSTAL_NAMESPACE {
 
 extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_quickgasmix_factory)()
 {
-  //Called from ncrystal_register_quick_factory(), to be part of the same "stdquick" plugin.
-  NC::FactImpl::registerFactory( std::make_unique<NC::QuickFactGasMix>(),
-                                 NC::FactImpl::RegPolicy::IGNORE_IF_EXISTS );
+  //Called from ncrystal_register_quick_factory(), to be part of the same
+  //"stdquick" plugin.
+  NC::FactImpl::registerFactory( std::make_unique<NC::QuickFactGasMix>() );
 }

@@ -18,9 +18,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/ncmat/NCLoadNCMAT.hh"
-#include "NCrystal/ncmat/NCParseNCMAT.hh"
-#include "NCrystal/ncmat/NCNCMATData.hh"
+#include "NCrystal/internal/ncmat/NCLoadNCMAT.hh"
+#include "NCrystal/internal/ncmat/NCParseNCMAT.hh"
+#include "NCrystal/internal/ncmat/NCNCMATData.hh"
 #include "NCrystal/factories/NCFactImpl.hh"
 #include "NCrystal/internal/infobld/NCInfoBuilder.hh"
 #include "NCrystal/internal/atomdb/NCAtomDBExtender.hh"

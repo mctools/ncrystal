@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/interfaces/NCTextData.hh"
+#include "NCrystal/text/NCTextData.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/internal/utils/NCFileUtils.hh"
 #include <sstream>

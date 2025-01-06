@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/ncmat/NCParseNCMAT.hh"
+#include "NCrystal/internal/ncmat/NCParseNCMAT.hh"
 #include "NCrystal/core/NCException.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/internal/utils/NCMath.hh"

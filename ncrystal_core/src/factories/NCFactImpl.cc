@@ -19,7 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/factories/NCFactImpl.hh"
-#include "NCrystal/factories/NCPluginMgmt.hh"
+#include "NCrystal/plugins/NCPluginMgmt.hh"
 #include "NCrystal/internal/fact_utils/NCFactoryUtils.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
@@ -212,7 +212,6 @@ namespace NCRYSTAL_NAMESPACE {
       public:
         void removeFactoryIfExists(const std::string& name)
         {
-          Plugins::ensurePluginsLoaded();
           NCRYSTAL_LOCK_GUARD(m_dbmutex);//lock while accessing m_db
           auto it(m_db.begin()), itE(m_db.end());
           for ( ; it!=itE; ++it ) {
@@ -228,7 +227,6 @@ namespace NCRYSTAL_NAMESPACE {
 
         bool hasFactory(const std::string& name)
         {
-          Plugins::ensurePluginsLoaded();
           NCRYSTAL_LOCK_GUARD(m_dbmutex);//lock while accessing m_db
           for ( auto& e : m_db )
             if ( name == e->name() )
@@ -243,25 +241,17 @@ namespace NCRYSTAL_NAMESPACE {
           return v;
         }
 
-        void addFactory(FactoryClassUPtr f, RegPolicy rp)
+        void addFactory(FactoryClassUPtr f)
         {
           nc_assert_always(!!f);
-          Plugins::ensurePluginsLoaded();
           std::string newname(f->name());
           NCRYSTAL_LOCK_GUARD(m_dbmutex);//lock while accessing m_db
           bool inserted(false);
           for ( auto& f_existing : m_db ) {
             if ( newname == f_existing->name() ) {
-              if ( rp == RegPolicy::ERROR_IF_EXISTS )
-                NCRYSTAL_THROW2(CalcError,"Trying to add "<<FactDef::name()<<" factory \""<<newname
-                                <<"\"but existing factory with that name is already registered"
-                                " and RegPolicy was set to ERROR_IF_EXISTS");
-              if ( rp == RegPolicy::IGNORE_IF_EXISTS )
-                return;//don't add!
-              nc_assert( rp == RegPolicy::OVERRIDE_IF_EXISTS );
-              f_existing = std::move( f );
-              inserted = true;
-              break;
+              NCRYSTAL_THROW2(CalcError,"Trying to add "<<FactDef::name()
+                              <<" factory \""<<newname <<"\"but existing"
+                              " factory with that name is already registered");
             }
           }
           if ( !inserted )
@@ -446,12 +436,12 @@ void NCF::removeTextDataFactoryIfExists( const std::string& name )
   return textDataDB().removeFactoryIfExists( name );
 }
 
-void NCF::registerFactory( std::unique_ptr<const TextDataFactory> f, RegPolicy rp ) { textDataDB().addFactory(std::move(f),rp); }
-void NCF::registerFactory( std::unique_ptr<const NCF::InfoFactory> f, NCF::RegPolicy rp ) { infoDB().addFactory(std::move(f),rp); }
-void NCF::registerFactory( std::unique_ptr<const NCF::ScatterFactory> f, NCF::RegPolicy rp ) { scatterDB().addFactory(std::move(f),rp); }
-void NCF::registerFactory( std::unique_ptr<const NCF::AbsorptionFactory> f, NCF::RegPolicy rp ) { absorptionDB().addFactory(std::move(f),rp); }
+void NCF::registerFactory( std::unique_ptr<const TextDataFactory> f ) { textDataDB().addFactory(std::move(f)); }
+void NCF::registerFactory( std::unique_ptr<const NCF::InfoFactory> f ) { infoDB().addFactory(std::move(f)); }
+void NCF::registerFactory( std::unique_ptr<const NCF::ScatterFactory> f ) { scatterDB().addFactory(std::move(f)); }
+void NCF::registerFactory( std::unique_ptr<const NCF::AbsorptionFactory> f ) { absorptionDB().addFactory(std::move(f)); }
 
-bool NCF::hasFactory( FactoryType ft, const std::string& name )
+bool NCF::currentlyHasFactory( FactoryType ft, const std::string& name )
 {
   switch(ft) {
   case FactoryType::TextData:
@@ -465,6 +455,12 @@ bool NCF::hasFactory( FactoryType ft, const std::string& name )
   };
   nc_assert_always(false);
   return false;//should not happen
+}
+
+bool NCF::hasFactory( FactoryType ft, const std::string& name )
+{
+  Plugins::ensurePluginsLoaded();
+  return currentlyHasFactory(ft, name);
 }
 
 std::vector<NC::shared_obj<const NCF::TextDataFactory>> NCF::getTextDataFactoryList() { return textDataDB().getFactoryList(); }

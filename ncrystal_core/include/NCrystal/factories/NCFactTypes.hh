@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/interfaces/NCTextData.hh"
+#include "NCrystal/text/NCTextData.hh"
 
 //////////////////////////////////////////////
 // Various types associated with factories. //

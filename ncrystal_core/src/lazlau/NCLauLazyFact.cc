@@ -24,12 +24,12 @@
 
 namespace NC = NCrystal;
 
-//////////////////////////////////////////////////////////////////
-//                                                              //
-// A small test factory providing an alternative .lau/.laz      //
-// reader (probably not fully functional).                      //
-//                                                              //
-//////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
+//                                                   //
+// A small test factory providing a simple .lau/.laz //
+// reader (probably not fully functional).           //
+//                                                   //
+///////////////////////////////////////////////////////
 
 namespace NCRYSTAL_NAMESPACE {
 
@@ -37,8 +37,7 @@ namespace NCRYSTAL_NAMESPACE {
 
     class AltLauFact final : public FactImpl::InfoFactory {
     public:
-      static constexpr auto the_factory_name = "stdlaz";
-      const char * name() const noexcept override { return the_factory_name; }
+      const char * name() const noexcept override { return "stdlaz"; }
 
       Priority query( const FactImpl::InfoRequest& request ) const override
       {
@@ -60,8 +59,7 @@ namespace NCRYSTAL_NAMESPACE {
 
 extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_stdlaz_factory)()
 {
-  if (!NC::FactImpl::hasInfoFactory(NC::AltLauFact::the_factory_name))
-    NC::FactImpl::registerFactory(std::make_unique<NC::AltLauFact>());
+  NC::FactImpl::registerFactory(std::make_unique<NC::AltLauFact>());
   NC::DataSources::addRecognisedFileExtensions("laz");
   NC::DataSources::addRecognisedFileExtensions("lau");
 }

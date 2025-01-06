@@ -22,7 +22,7 @@
 #include "NCrystal/factories/NCFactImpl.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/internal/utils/NCFileUtils.hh"
-#include "NCrystal/factories/NCPluginMgmt.hh"
+#include "NCrystal/plugins/NCPluginMgmt.hh"
 
 namespace NC = NCrystal;
 namespace NCD = NCrystal::DataSources;
@@ -40,6 +40,13 @@ namespace NCRYSTAL_NAMESPACE {
 
 namespace NCRYSTAL_NAMESPACE {
   namespace DataSources {
+    namespace {
+      static std::atomic<bool> s_was_called_enableAbsolutePaths = {false};
+      static std::atomic<bool> s_was_called_enableRelativePaths = {false};
+      static std::atomic<bool> s_was_called_enableStandardDataLibrary = {false};
+      static std::atomic<bool> s_was_called_enableStandardSearchPath = {false};
+    }
+
     using BrowseEntry = FactImpl::TextDataFactory::BrowseEntry;
 
     static const auto factNameStdLib = "stdlib";
@@ -71,9 +78,11 @@ namespace NCRYSTAL_NAMESPACE {
     };
   }
 }
+
+
 void NCD::enableAbsolutePaths( bool doEnable )
 {
-  Plugins::ensurePluginsLoaded();
+  s_was_called_enableAbsolutePaths.store(true);
   static std::atomic<bool> s_enabled = {false};
   if ( !setValue(s_enabled,doEnable).wasChanged )
     return;
@@ -251,7 +260,7 @@ namespace NCRYSTAL_NAMESPACE {
 
 void NCD::enableRelativePaths( bool doEnable )
 {
-  Plugins::ensurePluginsLoaded();
+  s_was_called_enableRelativePaths.store(true);
   static std::atomic<bool> s_enabled = {false};
   if ( !setValue(s_enabled,doEnable).wasChanged )
     return;
@@ -321,7 +330,7 @@ namespace NCRYSTAL_NAMESPACE {
 
 void NCD::enableStandardDataLibrary( bool doEnable, Optional<std::string> requested )
 {
-  Plugins::ensurePluginsLoaded();
+  s_was_called_enableStandardDataLibrary.store(true);
   if ( requested.has_value() ) {
     auto rp = tryRealPath( requested.value() );
     if ( !rp.empty() )
@@ -386,7 +395,6 @@ void NCD::enableStandardDataLibrary( bool doEnable, Optional<std::string> reques
 
 void NCD::addCustomSearchDirectory( std::string dirname, Priority pr )
 {
-  Plugins::ensurePluginsLoaded();
   if ( !pr.canServiceRequest() || pr.needsExplicitRequest() )
     NCRYSTAL_THROW(BadInput,"addCustomSearchDirectory needs ordinary priority value");
 
@@ -424,14 +432,14 @@ void NCD::addCustomSearchDirectory( std::string dirname, Priority pr )
     nc_assert(cdl.dirList.at(0).first.priority() > cdl.dirList.at(1).first.priority() );
   }
 
-  //(re)register factory:
-  FactImpl::registerFactory( std::make_unique<TDFact_CustomDirList>(),
-                             FactImpl::RegPolicy::OVERRIDE_IF_EXISTS );
+  //Make sure relevant factory is present:
+  if (!FactImpl::currentlyHasFactory( FactImpl::FactoryType::TextData,
+                                      factNameCustomSearchDirs) )
+    FactImpl::registerFactory( std::make_unique<TDFact_CustomDirList>() );
 }
 
 void NCD::removeCustomSearchDirectories()
 {
-  Plugins::ensurePluginsLoaded();
   auto & cdl = getCustomDirList();
   NCRYSTAL_LOCK_GUARD(cdl.mtx);
   cdl.dirList.clear();
@@ -440,7 +448,7 @@ void NCD::removeCustomSearchDirectories()
 
 void NCD::enableStandardSearchPath( bool doEnable )
 {
-  Plugins::ensurePluginsLoaded();
+  s_was_called_enableStandardSearchPath.store(true);
   static std::atomic<bool> s_enabled = {false};
   if ( !setValue(s_enabled,doEnable).wasChanged )
     return;
@@ -589,21 +597,27 @@ void NCD::registerNamedVirtualDataSource( const std::string& factoryName,
                                           std::map<std::string,TextDataSource>&& virtualFiles,
                                           Priority priority )
 {
-  Plugins::ensurePluginsLoaded();
   if ( !priority.canServiceRequest() )
     NCRYSTAL_THROW(BadInput,"Virtual data sources can not be added with Priority::Unable");
   for ( const auto& e : virtualFiles )
     validateVirtFilename(e.first);
-  FactImpl::registerFactory(std::make_unique<TDFact_VirtualDataSource>( factoryName,
-                                                                        std::move(virtualFiles),
-                                                                        priority ));
+
+  static std::mutex mtx;
+  NCRYSTAL_LOCK_GUARD(mtx);
+
+  auto new_fact = std::make_unique<TDFact_VirtualDataSource>( factoryName,
+                                                              std::move(virtualFiles),
+                                                              priority );
+  if ( FactImpl::currentlyHasFactory(FactImpl::FactoryType::TextData,
+                                     new_fact->name()) )
+    FactImpl::removeTextDataFactoryIfExists( new_fact->name() );
+  FactImpl::registerFactory( std::move(new_fact) );
 }
 
 void NCD::registerInMemoryFileData( std::string virtualFileName,
                                     std::string&& data,
                                     Priority priority )
 {
-  Plugins::ensurePluginsLoaded();
   registerVirtualDataSource( std::move(virtualFileName),
                              TextDataSource::createFromInMemData( RawStrData(std::move(data)) ),
                              priority );
@@ -613,7 +627,6 @@ void NCD::registerInMemoryStaticFileData( std::string virtualFileName,
                                           const char* static_data,
                                           Priority priority )
 {
-  Plugins::ensurePluginsLoaded();
   registerVirtualDataSource( std::move(virtualFileName),
                              TextDataSource::createFromInMemData( RawStrData(RawStrData::static_data_ptr_t(),
                                                                              static_data) ),
@@ -624,7 +637,6 @@ void NCD::registerVirtualFileAlias( std::string virtualFileName,
                                     std::string realAbsPathFileName,
                                     Priority priority )
 {
-  Plugins::ensurePluginsLoaded();
   if ( !priority.canServiceRequest() )
     NCRYSTAL_THROW(BadInput,"Virtual data sources can not be added with Priority::Unable");
   auto rp = tryRealPath( realAbsPathFileName );
@@ -648,7 +660,6 @@ namespace NCRYSTAL_NAMESPACE {
 
 void NCD::addRecognisedFileExtensions( std::string s )
 {
-  Plugins::ensurePluginsLoaded();
   if ( s.empty() )
     return;
   if ( s.at(0) == '.' )
@@ -703,16 +714,23 @@ std::vector<NCD::FileListEntry> NCD::listAvailableFiles()
 #ifndef NCRYSTAL_DISABLE_STDDATASOURCES
 extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_stddatasrc_factory)()
 {
-  NC::DataSources::enableAbsolutePaths(true);
-  NC::DataSources::enableRelativePaths(true);
-  NC::DataSources::enableStandardDataLibrary(true);
-  NC::DataSources::enableStandardSearchPath(true);
+  //Only load if not explicitly modified already:
+  if (!NC::DataSources::s_was_called_enableAbsolutePaths.load())
+    NC::DataSources::enableAbsolutePaths(true);
+
+  if (!NC::DataSources::s_was_called_enableRelativePaths.load())
+    NC::DataSources::enableRelativePaths(true);
+
+  if (!NC::DataSources::s_was_called_enableStandardDataLibrary.load())
+    NC::DataSources::enableStandardDataLibrary(true);
+
+  if (!NC::DataSources::s_was_called_enableStandardSearchPath.load())
+    NC::DataSources::enableStandardSearchPath(true);
 }
 #endif
 
 void NCD::removeAllDataSources()
 {
-  Plugins::ensurePluginsLoaded();
   enableAbsolutePaths(false);
   enableRelativePaths(false);
   enableStandardDataLibrary(false);

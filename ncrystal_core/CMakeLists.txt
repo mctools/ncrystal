@@ -357,14 +357,14 @@ include( "ncrystal_coresrc" )
 ncrystal_detectsrc()
 ncrystal_process_core_srcfiles()
 
-#We must additionally install a few special include files (ncapi.h, ncrystal.h,
-#NCrystal.hh):
+#We must additionally install a few special top-level include files:
 
 ncinstall(
   FILES
   "${ncapi_include_path}/NCrystal/ncapi.h"
   "${PROJECT_SOURCE_DIR}/include/NCrystal/ncrystal.h" #redirects to cinterface/ncrystal.h
   "${PROJECT_SOURCE_DIR}/include/NCrystal/NCrystal.hh" #includes all public non-C headers
+  "${PROJECT_SOURCE_DIR}/include/NCrystal/NCPluginBoilerplate.hh"
   DESTINATION
   "${NCrystal_INCDIR}/NCrystal"
 )

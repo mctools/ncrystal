@@ -20,13 +20,13 @@
 
 #include "NCrystal/cinterface/ncrystal.h"
 #include "NCrystal/interfaces/NCRNG.hh"
-#include "NCrystal/interfaces/NCMsgCtrl.hh"
+#include "NCrystal/misc/NCMsgCtrl.hh"
 #include "NCrystal/internal/utils/NCMsg.hh"
 #include "NCrystal/internal/infobld/NCInfoBuilder.hh"
 #include "NCrystal/factories/NCMatCfg.hh"
 #include "NCrystal/factories/NCFactImpl.hh"
 #include "NCrystal/factories/NCFact.hh"
-#include "NCrystal/factories/NCPluginMgmt.hh"
+#include "NCrystal/plugins/NCPluginMgmt.hh"
 #include "NCrystal/factories/NCDataSources.hh"
 #include "NCrystal/internal/dyninfoutils/NCDynInfoUtils.hh"
 #include "NCrystal/internal/extd_utils/NCPlaneProvider.hh"
@@ -45,7 +45,7 @@
 #include "NCrystal/internal/extd_utils/NCABIUtils.hh"
 #include "NCrystal/threads/NCFactThreads.hh"
 
-#include "NCrystal/ncmat/NCParseNCMAT.hh"
+#include "NCrystal/internal/ncmat/NCParseNCMAT.hh"
 #include "NCrystal/misc/NCCompositionUtils.hh"
 #include <cstdio>
 #include <chrono>
@@ -1455,6 +1455,8 @@ int ncrystal_has_factory( const char* name )
     if (NC::FactImpl::hasScatterFactory(name))
       return 1;
     if (NC::FactImpl::hasAbsorptionFactory(name))
+      return 1;
+    if (NC::FactImpl::hasTextDataFactory(name))
       return 1;
   } NCCATCH;
   return 0;

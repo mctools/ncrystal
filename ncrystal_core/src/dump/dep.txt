@@ -1,6 +1,5 @@
 cfgutils
 core
 extd_utils
-factories
 interfaces
 utils

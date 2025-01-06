@@ -407,6 +407,5 @@ namespace NCRYSTAL_NAMESPACE {
 
 extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_stdscat_factory)()
 {
-  if (!NC::FactImpl::hasScatterFactory("stdscat"))
-    NC::FactImpl::registerFactory(std::make_unique<NC::StdScatFact>());
+  NC::FactImpl::registerFactory(std::make_unique<NC::StdScatFact>());
 }

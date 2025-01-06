@@ -22,7 +22,13 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 //Header file which should be included by code creating plugins (and nowhere
-//else). It contains macros for creating required namespaces and symbols.
+//else). It contains macros for creating required namespaces and symbols. It
+//exists purely as a matter of convenience, to avoid duplicating code in a lot
+//of plugins, and to ensure all plugins have a C++ namespace which contains the
+//name of the plugin (to avoid symbol clashes). Of course, usage of the present
+//header file is not strictly required: the actual basic requirements of a
+//plugin is just a shared object (module) which defines two functions with
+//C-mangling: void ncplugin_register(void) and const char * ncplugin_getname().
 
 #ifndef NCPLUGIN_NAME
 #  error NCPLUGIN_NAME undefined

@@ -22,7 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/core/NCTypes.hh"
-#include "NCrystal/interfaces/NCTextData.hh"
+#include "NCrystal/text/NCTextData.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 

@@ -26,7 +26,7 @@
 #include "NCrystal/factories/NCFactTypes.hh"
 #include "NCrystal/interfaces/NCProcImpl.hh"
 #include "NCrystal/interfaces/NCInfo.hh"
-#include "NCrystal/interfaces/NCTextData.hh"
+#include "NCrystal/text/NCTextData.hh"
 
 /////////////////////////////////////////////////////////////////////////////////
 //                                                                             //
@@ -171,16 +171,22 @@ namespace NCRYSTAL_NAMESPACE {
       static ProcImpl::ProcPtr combineProcs(Args &&... args);
     };
 
-    /////////////////////////////////////////
-    // Access/manipulate factory registry: //
-    /////////////////////////////////////////
+    //////////////////////////////////
+    // Add to the factory registry: //
+    //////////////////////////////////
 
-    enum class RegPolicy { ERROR_IF_EXISTS, OVERRIDE_IF_EXISTS, IGNORE_IF_EXISTS };
-    NCRYSTAL_API void registerFactory( std::unique_ptr<const TextDataFactory>, RegPolicy = RegPolicy::OVERRIDE_IF_EXISTS );
-    NCRYSTAL_API void registerFactory( std::unique_ptr<const InfoFactory>, RegPolicy = RegPolicy::OVERRIDE_IF_EXISTS );
-    NCRYSTAL_API void registerFactory( std::unique_ptr<const ScatterFactory>, RegPolicy = RegPolicy::OVERRIDE_IF_EXISTS );
-    NCRYSTAL_API void registerFactory( std::unique_ptr<const AbsorptionFactory>, RegPolicy = RegPolicy::OVERRIDE_IF_EXISTS );
+    NCRYSTAL_API void registerFactory( std::unique_ptr<const TextDataFactory> );
+    NCRYSTAL_API void registerFactory( std::unique_ptr<const InfoFactory> );
+    NCRYSTAL_API void registerFactory( std::unique_ptr<const ScatterFactory> );
+    NCRYSTAL_API void registerFactory( std::unique_ptr<const AbsorptionFactory> );
 
+    /////////////////////////////////
+    // Query the factory registry: //
+    /////////////////////////////////
+
+    //The following functions will cause initial plugin list to be loaded if not
+    //already. Therefore they should NOT be used when registering factories in
+    //plugins (use the currentlyHasFactory function below instead if needed):
     NCRYSTAL_API bool hasFactory( FactoryType, const std::string& name );
     NCRYSTAL_API bool hasTextDataFactory( const std::string& name );
     NCRYSTAL_API bool hasInfoFactory( const std::string& name );
@@ -191,6 +197,12 @@ namespace NCRYSTAL_NAMESPACE {
     NCRYSTAL_API std::vector<shared_obj<const InfoFactory>> getInfoFactoryList();
     NCRYSTAL_API std::vector<shared_obj<const ScatterFactory>> getScatterFactoryList();
     NCRYSTAL_API std::vector<shared_obj<const AbsorptionFactory>> getAbsorptionFactoryList();
+
+    NCRYSTAL_API bool currentlyHasFactory( FactoryType, const std::string& name );
+
+    ////////////////////
+    // Miscellaneous: //
+    ////////////////////
 
     //Utility function for guessing data type from data (optionally also from
     //the file name). Returns empty string if unable. We might eventually make

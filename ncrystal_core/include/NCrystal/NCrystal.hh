@@ -47,13 +47,13 @@
 #  include "NCrystal/core/NCFmt.hh"
 #endif
 #ifndef NCrystal_PluginMgmt_hh
-#  include "NCrystal/factories/NCPluginMgmt.hh"
+#  include "NCrystal/plugins/NCPluginMgmt.hh"
 #endif
 #ifndef NCrystal_AtomData_hh
 #  include "NCrystal/interfaces/NCAtomData.hh"
 #endif
 #ifndef NCrystal_TextData_hh
-#  include "NCrystal/interfaces/NCTextData.hh"
+#  include "NCrystal/text/NCTextData.hh"
 #endif
 #ifndef NCrystal_Info_hh
 #  include "NCrystal/interfaces/NCInfo.hh"
@@ -73,15 +73,6 @@
 #ifndef NCrystal_SCOrientation_hh
 #  include "NCrystal/interfaces/NCSCOrientation.hh"
 #endif
-#ifndef NCrystal_LoadNCMAT_hh
-#  include "NCrystal/ncmat/NCLoadNCMAT.hh"
-#endif
-#ifndef NCrystal_NCMATData_hh
-#  include "NCrystal/ncmat/NCNCMATData.hh"
-#endif
-#ifndef NCrystal_ParseNCMAT_hh
-#  include "NCrystal/ncmat/NCParseNCMAT.hh"
-#endif
 #ifndef NCrystal_Version_hh
 #  include "NCrystal/interfaces/NCVersion.hh"
 #endif
@@ -95,7 +86,7 @@
 #  include "NCrystal/interfaces/NCProc.hh"
 #endif
 #ifndef NCrystal_MsgCtrl_hh
-#  include "NCrystal/interfaces/NCMsgCtrl.hh"
+#  include "NCrystal/misc/NCMsgCtrl.hh"
 #endif
 #ifndef NCrystal_FactTypes_hh
 #  include "NCrystal/factories/NCFactTypes.hh"

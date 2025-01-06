@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/factories/NCPluginMgmt.hh"
+#include "NCrystal/plugins/NCPluginMgmt.hh"
 #include "NCrystal/internal/utils/NCDynLoader.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/internal/utils/NCMsg.hh"
@@ -78,15 +78,13 @@ namespace NCRYSTAL_NAMESPACE {
   namespace Plugins {
     namespace {
       PluginInfo loadDynamicPluginImpl( std::string path_to_shared_lib,
-                                        std::string pluginName,
-                                        std::string regfctname )
+                                        std::string pluginName = "",
+                                        std::string regfctname = "ncplugin_register" )
       {
         PluginInfo pinfo;
         pinfo.pluginType = PluginType::Dynamic;
         pinfo.fileName = path_to_shared_lib;
         pinfo.pluginName = pluginName;
-
-        NCRYSTAL_LOCK_GUARD(getPluginMgmtMutex());
 
         if (ncgetenv_bool("DEBUG_PLUGIN"))
           NCRYSTAL_MSG("Attempting to loading dynamic library with plugin: "<<pinfo.fileName);
@@ -106,24 +104,33 @@ namespace NCRYSTAL_NAMESPACE {
 
         return pinfo;
       }
+
+      PluginInfo loadBuiltinPluginImpl( std::string pluginName,
+                                        std::function<void()> regfct )
+      {
+        PluginInfo pinfo;
+        pinfo.pluginType = PluginType::Builtin;
+        pinfo.pluginName = pluginName;
+        actualLoadPlugin( pinfo, std::move(regfct) );
+        return pinfo;
+      }
     }
   }
-}
-
-NCP::PluginInfo NCP::loadDynamicPlugin( std::string path_to_shared_lib )
-{
-  return loadDynamicPluginImpl( path_to_shared_lib, "", "ncplugin_register" );
 }
 
 NCP::PluginInfo NCP::loadBuiltinPlugin( std::string pluginName,
                                         std::function<void()> regfct )
 {
-  PluginInfo pinfo;
-  pinfo.pluginType = PluginType::Builtin;
-  pinfo.pluginName = pluginName;
   NCRYSTAL_LOCK_GUARD(getPluginMgmtMutex());
-  actualLoadPlugin( pinfo, std::move(regfct) );
-  return pinfo;
+  return loadBuiltinPluginImpl( std::move(pluginName),
+                                std::move(regfct) );
+
+}
+
+NCP::PluginInfo NCP::loadDynamicPlugin( std::string path_to_shared_lib )
+{
+  NCRYSTAL_LOCK_GUARD(getPluginMgmtMutex());
+  return loadDynamicPluginImpl( path_to_shared_lib );
 }
 
 std::vector<NCP::PluginInfo> NCP::loadedPlugins()
@@ -207,19 +214,11 @@ namespace NCRYSTAL_NAMESPACE {
 
 void NCP::ensurePluginsLoaded()
 {
-  static std::atomic<bool> first(true);
-  bool btrue(true);
-  if (!first.compare_exchange_strong(btrue,false))
-    return;//only the first call will proceed past this point. If we instead
-           //used a mutex, we would get a deadlock (e.g. when registerFactory
-           //calls ensurePluginsLoaded before checking that the new factory name
-           //is unique). The MT-safety of the calls below should be the same as
-           //for any other call to loadXXXPlugin.
-
-  static bool done = false;
-  if (done)
+  NCRYSTAL_LOCK_GUARD(getPluginMgmtMutex());
+  static bool first = true;
+  if (!first)
     return;
-  done = true;
+  first = false;
 
 #ifdef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
   //Standard plugins, dynamic in simplebuild mode, except for datasources:
@@ -241,30 +240,30 @@ void NCP::ensurePluginsLoaded()
 #endif
 
 #ifndef NCRYSTAL_DISABLE_STDDATASOURCES
-  loadBuiltinPlugin("stddatasrc",NCRYSTAL_APPLY_C_NAMESPACE(register_stddatasrc_factory));
+  loadBuiltinPluginImpl("stddatasrc",NCRYSTAL_APPLY_C_NAMESPACE(register_stddatasrc_factory));
 #endif
 #ifndef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
   //Standard plugins, always as builtin plugins:
 #  ifndef NCRYSTAL_DISABLE_STDSCAT
-  loadBuiltinPlugin("stdscat",NCRYSTAL_APPLY_C_NAMESPACE(register_stdscat_factory));
+  loadBuiltinPluginImpl("stdscat",NCRYSTAL_APPLY_C_NAMESPACE(register_stdscat_factory));
 #  endif
 #  ifndef NCRYSTAL_DISABLE_STDMPSCAT
-  loadBuiltinPlugin("stdmpscat",NCRYSTAL_APPLY_C_NAMESPACE(register_stdmpscat_factory));
+  loadBuiltinPluginImpl("stdmpscat",NCRYSTAL_APPLY_C_NAMESPACE(register_stdmpscat_factory));
 #  endif
 #  ifndef NCRYSTAL_DISABLE_EXPERIMENTALSCATFACT
-  loadBuiltinPlugin("stdexpscat",NCRYSTAL_APPLY_C_NAMESPACE(register_experimentalscatfact));
+  loadBuiltinPluginImpl("stdexpscat",NCRYSTAL_APPLY_C_NAMESPACE(register_experimentalscatfact));
 #  endif
 #  ifndef NCRYSTAL_DISABLE_STDLAZ
-  loadBuiltinPlugin("stdlaz",NCRYSTAL_APPLY_C_NAMESPACE(register_stdlaz_factory));
+  loadBuiltinPluginImpl("stdlaz",NCRYSTAL_APPLY_C_NAMESPACE(register_stdlaz_factory));
 #  endif
 #  ifndef NCRYSTAL_DISABLE_STDABS
-  loadBuiltinPlugin("stdabs",NCRYSTAL_APPLY_C_NAMESPACE(register_stdabs_factory));
+  loadBuiltinPluginImpl("stdabs",NCRYSTAL_APPLY_C_NAMESPACE(register_stdabs_factory));
 #  endif
 #  ifndef NCRYSTAL_DISABLE_NCMAT
-  loadBuiltinPlugin("stdncmat",NCRYSTAL_APPLY_C_NAMESPACE(register_stdncmat_factory));
+  loadBuiltinPluginImpl("stdncmat",NCRYSTAL_APPLY_C_NAMESPACE(register_stdncmat_factory));
 #  endif
 #  ifndef NCRYSTAL_DISABLE_QUICKFACT
-  loadBuiltinPlugin("stdquick",NCRYSTAL_APPLY_C_NAMESPACE(register_quick_factory));
+  loadBuiltinPluginImpl("stdquick",NCRYSTAL_APPLY_C_NAMESPACE(register_quick_factory));
 #  endif
 #endif
 
@@ -287,6 +286,27 @@ void NCP::ensurePluginsLoaded()
                  DynLoader::ScopeFlag::global ).doNotClose();
     }
 #endif
-    Plugins::loadDynamicPlugin(pluginlib);
+    Plugins::loadDynamicPluginImpl(pluginlib);
   }
+
+  auto required_plugins = ncgetenv("REQUIRED_PLUGINS");
+  if (!required_plugins.empty()) {
+    auto avail_plugins = getPLList();
+    for ( auto& required_plugin : split2(required_plugins,0,':') ) {
+      std::string found_ptypestr;
+      for ( auto& pinfo : avail_plugins ) {
+        if ( pinfo.pluginName == required_plugin ) {
+          found_ptypestr = ( pinfo.pluginType == PluginType::Dynamic
+                             ? "dynamic" : "builtin" );
+          break;
+        }
+      }
+      if (found_ptypestr.empty())
+        NCRYSTAL_THROW2( LogicError, "Required plugin was not loaded: \""
+                         << required_plugin << '"' );
+      NCRYSTAL_MSG("Required plugin \""<<required_plugin
+                   <<"\" was indeed available ("<<found_ptypestr<<").");
+    }
+  }
+
 }

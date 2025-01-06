@@ -1,6 +1,3 @@
-#ifndef NCrystal_ParseNCMAT_hh
-#define NCrystal_ParseNCMAT_hh
-
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
 //  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   //
@@ -21,26 +18,13 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/ncmat/NCNCMATData.hh"
-#include "NCrystal/interfaces/NCTextData.hh"
+#include "NCrystal/misc/NCMsgCtrl.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
 
-namespace NCRYSTAL_NAMESPACE {
+namespace NC = NCrystal;
 
-  //Parse NCMAT data. Will throw BadInput exceptions in case of problems.
-  //
-  //It will do some rudimentary syntax checking (including presence/absence of
-  //data sections and will call NCMATData::validate), but not a full validation
-  //of data (a more complete validation is typically carried out afterwards by
-  //the NCMAT Loader code).
-  //
-  //If doFinalValidation is false, the parser won't call NCMatData::validate()
-  //before returning (although some other validations will still take place
-  //during parsing). Calls with doFinalValidation=false should only happen if
-  //the calling code intends to call NCMatData::validate() on the returned data.
-
-  NCRYSTAL_API NCMATData parseNCMATData( const TextData&,
-                                         bool doFinalValidation = true );
-
+void NC::setMessageHandler( MsgHandlerFct_t fct )
+{
+  static_assert( std::is_same<MsgHandlerFct_t,Msg::MsgHandlerFct_t>::value, "");
+  Msg::setMsgHandler( std::move(fct) );
 }
-
-#endif

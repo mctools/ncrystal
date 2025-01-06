@@ -9,6 +9,7 @@ minimc
 misc
 ncmat
 phys_utils
+plugins
 sab
 threads
 utils
