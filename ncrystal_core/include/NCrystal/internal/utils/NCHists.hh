@@ -305,7 +305,7 @@ namespace NCRYSTAL_NAMESPACE {
     private:
 
       size_t valueToBin( double val ) {
-        nc_assert( !ncisnan(val) );
+        nc_assert( !std::isnan(val) );
         static_assert( nbins_overflow==0 || nbins_overflow==2,"");
         if ( nbins_overflow == 0 ) {
           auto idx = static_cast<size_t>( m_invDelta

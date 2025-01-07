@@ -437,7 +437,7 @@ namespace NCRYSTAL_NAMESPACE {
     inline DensityState TopLvlVar::getDensity() const
     {
       nc_assert( isDensity() );
-      nc_assert( m_dbl > 0.0 && !ncisinf(m_dbl) );
+      nc_assert( m_dbl > 0.0 && !std::isinf(m_dbl) );
       nc_assert( m_uint==0 || m_uint==1 || m_uint==2 );
       return DensityState{ static_cast<DensityState::Type>(m_uint), m_dbl };
     }
