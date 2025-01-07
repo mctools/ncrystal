@@ -48,7 +48,7 @@ jobs:
       #"building font cache" printouts on first imports.
     - name: pip install extra deps
       run: |
-        python3 -mpip install numpy matplotlib gemmi spglib ase mpmath
+        python3 -mpip install numpy matplotlib gemmi spglib ase==3.23.0 mpmath ruff
         python3 -c "import numpy; print('numpy imported ok')"
         python3 -c "import gemmi; print('gemmi imported ok')"
         python3 -c "import spglib; print('spglib imported ok')"

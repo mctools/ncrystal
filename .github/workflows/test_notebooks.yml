@@ -44,7 +44,8 @@ jobs:
         path: src_notebooks
 
     - name: Extra pip install for notebooks
-      run: python3 -m pip install numpy matplotlib spglib ase gemmi jupyterlab ipympl
+      #Pin ASE due to https://gitlab.com/ase/ase/-/issues/1597 breaking 3.24
+      run: python3 -m pip install numpy matplotlib spglib ase==3.23.0 gemmi jupyterlab ipympl
 
     - name: Test notebooks
       run: ./src_notebooks/.github/resources/run_notebooks.x

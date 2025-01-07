@@ -34,7 +34,7 @@ jobs:
     - name: pip install extra deps
       shell: cmd
       run: |
-        python -mpip install numpy matplotlib gemmi spglib ase mpmath
+        python -mpip install numpy matplotlib gemmi spglib ase==3.23.0 mpmath ruff
         if %errorlevel% neq 0 exit /b %errorlevel%
         python -c "import numpy; print('numpy imported ok')"
         if %errorlevel% neq 0 exit /b %errorlevel%

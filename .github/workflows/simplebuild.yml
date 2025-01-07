@@ -30,7 +30,8 @@ jobs:
         python-version: ${{ matrix.python }}
 
     - name: pip install deps
-      run: python -mpip install numpy matplotlib gemmi spglib ase mpmath tomli simple-build-dgcode pybind11
+      #Pin ASE due to https://gitlab.com/ase/ase/-/issues/1597 breaking 3.24
+      run: python -mpip install numpy matplotlib gemmi spglib ase==3.23.0 mpmath ruff tomli simple-build-dgcode pybind11
 
     - name: simplebuild debug
       run: SIMPLEBUILD_CFG=$PWD/devel/simplebuild/cfgs/simplebuild_debug.cfg sb

@@ -41,8 +41,8 @@ jobs:
         python-version: ${{ matrix.python }}
 
     - name: Pip install dependencies
-      run: |
-        python3 -m pip install numpy gemmi spglib ase mpmath matplotlib tomli
+      #Pin ASE due to https://gitlab.com/ase/ase/-/issues/1597 breaking 3.24
+      run: python3 -m pip install numpy gemmi spglib ase==3.23.0 mpmath ruff matplotlib tomli
 
     - name: Configure CMake
       run: >
