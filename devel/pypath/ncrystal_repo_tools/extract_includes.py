@@ -26,7 +26,7 @@ def _is_exceptional( f, incstatement ):
     from .util import path_is_relative_to
     if not path_is_relative_to( f, coreroot ):
         return False
-    frel = str(f.relative_to( coreroot ))
+    frel = str(f.relative_to( coreroot )).replace('\\','/')
     #if ( frel == 'include/NCrystal/plugins/NCPluginBoilerplate.hh'
     #     and incstatement == 'NCrystal/NCrystal.hh' ):
     #    return True

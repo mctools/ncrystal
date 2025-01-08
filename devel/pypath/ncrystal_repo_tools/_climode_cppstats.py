@@ -120,7 +120,7 @@ def main( parser ):
 
     from .core_components import load_components
     #from .extract_includes import get_include_staments_from_file as getinc
-    from .dirs import coreroot, coreroot_include
+    #from .dirs import coreroot, coreroot_include
 
     name2comp = load_components()
     if args.COMP not in name2comp:

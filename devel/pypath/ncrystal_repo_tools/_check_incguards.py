@@ -94,7 +94,9 @@ def main():
         assert l1 == f'#ifndef {ig}', f'Unexpected first line in {f}'
         assert l2 == f'#define {ig}'
         if not path_is_relative_to( f, incrootinternal ):
-            incguards_for_nchh.add( (str(f.relative_to(incroot)),ig) )
+            incguards_for_nchh.add(
+                (str(f.relative_to(incroot)).replace('\\','/'),ig)
+            )
 
     check_NCrystal_hh( f_NCrystal_hh.read_text(),
                        incguards_for_nchh )

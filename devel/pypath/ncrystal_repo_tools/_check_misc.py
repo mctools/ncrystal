@@ -45,13 +45,15 @@ def main():
     }
     for f in all_files_iter():
         lim = max_size_kb_log if f.suffix == '.log' else max_size_kb_other
-        lim = max_size_overrides.get( str(f.relative_to( reporoot )), lim )
+        lim = max_size_overrides.get(
+            str(f.relative_to( reporoot )).replace('\\','/'), lim
+        )
         size_kb =  len(f.read_bytes()) / 1024.
         if size_kb > lim:
             raise SystemExit(f'File too large ({size_kb:.2g} kb): {f}')
 
     for f in all_files_iter('!*.log'):
-        if str(f.relative_to(reporoot)) in ignore_list:
+        if str(f.relative_to(reporoot)).replace('\\','/') in ignore_list:
             continue
         #Check can always be read as utf8:
         content = f.read_text(encoding='utf8')
