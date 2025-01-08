@@ -144,10 +144,7 @@ std::vector<NCP::PluginInfo> NCP::loadedPlugins()
   return result;
 }
 
-//Support for .ncmat files is ALWAYS enabled by default, unless disabled with
-//the macro NCRYSTAL_DISABLE_NCMAT. Likewise, the standard scatter/absorption
-//factories are always enabled, unless respectively NCRYSTAL_DISABLE_STDSCAT,
-//NCRYSTAL_DISABLE_STDMPSCAT and NCRYSTAL_DISABLE_STDABS is defined.
+#ifndef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
 
 #ifndef NCRYSTAL_DISABLE_STDDATASOURCES
 extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_stddatasrc_factory)();
@@ -174,6 +171,7 @@ extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_quick_factory)();
 extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_experimentalscatfact)();
 #endif
 
+#endif
 
 //If NCRYSTAL_HAS_BUILTIN_PLUGINS is defined, it is assumed that the code is
 //being built with a void NCrystal::provideBuiltinPlugins() function defined in
@@ -229,6 +227,7 @@ void NCP::ensurePluginsLoaded()
     regfctname = std::string(ncrystal_xstr(NCRYSTAL_C_NAMESPACE)) + regfctname;
     loadDynamicPluginImpl( getSBLDPkgLib(pkgname), pluginname, regfctname);
   };
+  loadstdplugin("NCFactories","stddatasrc","register_stddatasrc_factory");
   loadstdplugin("NCScatFact","stdscat","register_stdscat_factory");
   loadstdplugin("NCScatFact","stdmpscat","register_stdmpscat_factory");
   loadstdplugin("NCExperimental","stdexpscat","register_experimentalscatfact");
@@ -239,11 +238,11 @@ void NCP::ensurePluginsLoaded()
   //loadstdplugin("NCNXSFactories","legacynxslaz","register_nxslaz_factories");
 #endif
 
-#ifndef NCRYSTAL_DISABLE_STDDATASOURCES
-  loadBuiltinPluginImpl("stddatasrc",NCRYSTAL_APPLY_C_NAMESPACE(register_stddatasrc_factory));
-#endif
 #ifndef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
   //Standard plugins, always as builtin plugins:
+#  ifndef NCRYSTAL_DISABLE_STDDATASOURCES
+  loadBuiltinPluginImpl("stddatasrc",NCRYSTAL_APPLY_C_NAMESPACE(register_stddatasrc_factory));
+#  endif
 #  ifndef NCRYSTAL_DISABLE_STDSCAT
   loadBuiltinPluginImpl("stdscat",NCRYSTAL_APPLY_C_NAMESPACE(register_stdscat_factory));
 #  endif

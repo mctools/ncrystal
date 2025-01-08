@@ -20,6 +20,7 @@
 
 #include "NCrystal/internal/fact_utils/NCFactoryJobs.hh"
 #ifndef NCRYSTAL_DISABLE_THREADS
+#  include "NCrystal/threads/NCFactThreads.hh"
 #  include <condition_variable>
 #  include <chrono>
 #endif
@@ -48,33 +49,6 @@ namespace NCRYSTAL_NAMESPACE {
     std::mutex m_mutex;
     std::condition_variable m_condvar;
   };
-
-  namespace detail {
-    using voidfct_t = std::function<void()>;
-    namespace {
-      struct FactJobsQueueAccess final : NoCopyMove {
-        std::mutex mtx;
-        std::function<void(voidfct_t)> job_queuefct;
-        std::function<voidfct_t()> get_pending_job_fct;
-      };
-      FactJobsQueueAccess& getThreadQueueInfo() {
-        static FactJobsQueueAccess db;
-        return db;
-      }
-    }
-
-    //NOTE: This next function is fwd declared in NCFactThreads.cc, and is used
-    //to avoid a requirement to link NCFactoryJobs.cc with libpthreads (or
-    //whatever), which is useful in the NCrystal development environment:
-    void setFactoryJobsHandler( std::function<void(voidfct_t)> job_queuefct,
-                                std::function<voidfct_t()> get_pending_job_fct )
-    {
-      auto& tqi = detail::getThreadQueueInfo();
-      NCRYSTAL_LOCK_GUARD(tqi.mtx);
-      tqi.job_queuefct = std::move(job_queuefct);
-      tqi.get_pending_job_fct = std::move(get_pending_job_fct);
-    }
-  }
 }
 
 NC::FactoryJobs::~FactoryJobs()
@@ -84,19 +58,12 @@ NC::FactoryJobs::~FactoryJobs()
 
 NC::FactoryJobs::FactoryJobs()
 {
-  std::function<void(voidfct_t)> job_queuefct;
-  std::function<voidfct_t()> get_pending_job_fct;
-  {
-    auto& tqi = detail::getThreadQueueInfo();
-    NCRYSTAL_LOCK_GUARD(tqi.mtx);
-    job_queuefct = tqi.job_queuefct;
-    get_pending_job_fct = tqi.get_pending_job_fct;
-  }
-  nc_assert( bool(job_queuefct) == bool(get_pending_job_fct) );
-  if ( job_queuefct ) {
+  auto fjh = FactoryThreadPool::detail::getFactoryJobsHandler();
+  nc_assert( bool(fjh.jobQueueFct) == bool(fjh.getPendingJobFct) );
+  if ( fjh.jobQueueFct ) {
     m_mt = new FactoryJobs::MTImpl;
-    m_mt->m_job_queuefct = std::move(job_queuefct);
-    m_mt->m_get_pending_job_fct = std::move(get_pending_job_fct);
+    m_mt->m_job_queuefct = std::move(fjh.jobQueueFct);
+    m_mt->m_get_pending_job_fct = std::move(fjh.getPendingJobFct);
   }
 }
 
@@ -152,12 +119,9 @@ void NC::FactoryJobs::waitAllMT()
 NC::FactoryJobs::voidfct_t NC::FactoryJobs::getGloballyPendingJob()
 {
   voidfct_t job;
-  auto& tqi = detail::getThreadQueueInfo();
-  {
-    NCRYSTAL_LOCK_GUARD(tqi.mtx);
-    if ( tqi.get_pending_job_fct )
-      job = tqi.get_pending_job_fct();
-  }
+  auto fjh = FactoryThreadPool::detail::getFactoryJobsHandler();
+  if ( fjh.getPendingJobFct )
+    job = fjh.getPendingJobFct();
   return job;
 }
 

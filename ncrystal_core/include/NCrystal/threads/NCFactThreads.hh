@@ -63,7 +63,21 @@ namespace NCRYSTAL_NAMESPACE {
     NCRYSTAL_API void queue( std::function<void()> );
 
   }
-
 }
 
+////////////////////////////
+// Inline implementations //
+////////////////////////////
+namespace NCRYSTAL_NAMESPACE {
+  namespace FactoryThreadPool {
+    namespace detail {
+      struct NCRYSTAL_API FactoryJobsHandler {
+        using voidfct_t = std::function<void()>;
+        std::function<void(voidfct_t)> jobQueueFct;
+        std::function<voidfct_t()> getPendingJobFct;
+      };
+      NCRYSTAL_API FactoryJobsHandler getFactoryJobsHandler();
+    }
+  }
+}
 #endif

@@ -25,45 +25,61 @@ namespace NC = NCrystal;
 
 void NC::FactoryThreadPool::enable( ThreadCount ) {}
 void NC::FactoryThreadPool::queue( std::function<void()> job ) { job(); }
+NC::FactoryThreadPool::detail::FactoryJobsHandler
+NC::FactoryThreadPool::detail::getFactoryJobsHandler() { return {}; }
 
 #else
 
 #include "NCThreadPool.hh"
 
 namespace NCRYSTAL_NAMESPACE {
+  namespace FactoryThreadPool {
+    namespace detail {
+      namespace {
+        struct FJH {
+          std::mutex mtx;
+          detail::FactoryJobsHandler fjh;
+        };
+
+        FJH& getFJH()
+        {
+          static FJH fjh;
+          return fjh;
+        }
+
+        void setFJH( detail::FactoryJobsHandler&& fjh )
+        {
+          auto& db = getFJH();
+          NCRYSTAL_LOCK_GUARD(db.mtx);
+          db.fjh = std::move(fjh);
+        }
+
+        std::atomic<bool>& getFactThreadsCalledAB()
+        {
+          static std::atomic<bool> called(false);
+          return called;
+        }
+
+        ThreadPool::ThreadPool& getTP() {
+          static ThreadPool::ThreadPool tp;
+          return tp;
+        }
+        using voidfct_t = std::function<void()>;//fixme repeated?
+        voidfct_t detail_get_pending_job()
+        {
+          return getTP().getPendingJob();
+        }
+      }//end anon namespace
+
+    }//end detail namespace
+  }
+
   namespace detail {
-    //NOTICE: This is an internal fwd declared function from NCFactoryJobs.cc:
-    using voidfct_t = std::function<void()>;
-    void setFactoryJobsHandler( std::function<void(voidfct_t)> job_queuefct,
-                                std::function<voidfct_t()> get_pending_job_fct );
-
-
-    std::atomic<bool>& getFactThreadsCalledAB()
-    {
-      static std::atomic<bool> called(false);
-      return called;
-    }
-
     //NOTICE: This thread-safe function will be called by NCFactImpl.cc and is
     //fwd declared there:
     bool factThreadsEnableCalledExplicitly()
     {
-      return getFactThreadsCalledAB().load();
-    }
-
-  }
-
-  namespace FactoryThreadPool {
-    namespace {
-      ThreadPool::ThreadPool& getTP() {
-        static ThreadPool::ThreadPool tp;
-        return tp;
-      }
-      using voidfct_t = std::function<void()>;
-      voidfct_t detail_get_pending_job()
-      {
-        return getTP().getPendingJob();
-      }
+      return FactoryThreadPool::detail::getFactThreadsCalledAB().load();
     }
   }
 }
@@ -73,20 +89,32 @@ void NC::FactoryThreadPool::enable( ThreadCount nthreads )
   if ( nthreads.indicatesAutoDetect() )
     nthreads = ThreadCount{ std::thread::hardware_concurrency() };
 
-  detail::getFactThreadsCalledAB().store(false);
+  detail::getFactThreadsCalledAB().store(true);
   unsigned n_extra_threads = nthreads.get() >= 2 ? nthreads.get() - 1 : 0;
   {
-    detail::setFactoryJobsHandler(nullptr,nullptr);
-    getTP().changeNumberOfThreads( n_extra_threads );
+    detail::setFJH( detail::FactoryJobsHandler{ nullptr, nullptr } );
+    //detail::setFactoryJobsHandler(nullptr,nullptr);
+    detail::getTP().changeNumberOfThreads( n_extra_threads );
     if ( n_extra_threads > 0 )
-      detail::setFactoryJobsHandler(::NC::FactoryThreadPool::queue,
-                                    ::NC::FactoryThreadPool::detail_get_pending_job);
+      detail::setFJH( detail::FactoryJobsHandler{
+          ::NC::FactoryThreadPool::queue,
+          ::NC::FactoryThreadPool::detail::detail_get_pending_job
+        } );
   }
 }
 
 void NC::FactoryThreadPool::queue( std::function<void()> job )
 {
-  getTP().queue( std::move(job) );
+  detail::getTP().queue( std::move(job) );
+}
+
+NC::FactoryThreadPool::detail::FactoryJobsHandler
+NC::FactoryThreadPool::detail::getFactoryJobsHandler()
+{
+  auto& db = getFJH();
+  NCRYSTAL_LOCK_GUARD(db.mtx);
+  FactoryJobsHandler fjh = db.fjh;
+  return fjh;
 }
 
 #endif

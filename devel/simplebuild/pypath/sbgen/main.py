@@ -56,6 +56,13 @@ def determine_testpkg_by_pydeps( pydeps ):
         return None, pydeps#not possible, needs custom pkg later
     return 'NCTestPy%s'%bestname, bestset
 
+def create_pkg_extratestscripts(pkgname):
+    import pathlib
+    create_pkginfo( pkgname )
+    for sf in sorted(pathlib.Path(__file__).parent.glob('_testscript_*.py')):
+        n = sf.stem[len('_testscript_'):]
+        add_file( f'pkgs/{pkgname}/scripts/test{n}', link_target = sf )
+
 def create_pkginfo_pytestpkg( pkgname,
                               pydeps ):
     create_pkginfo( pkgname,
@@ -510,6 +517,10 @@ mod.main()
             reflog = sf.parent.joinpath(sf.stem+'.log')
             if reflog.is_file():
                 add_file( outfn + '.log', link_target = reflog )
+
+    #Link local _testscripts_*.py as test scripts:
+    all_test_pkgs.append('NCExtraTestScripts')
+    create_pkg_extratestscripts('NCExtraTestScripts')
 
     #For --require:
     create_pkginfo( 'NCTestAll', pkg_deps = all_test_pkgs )
