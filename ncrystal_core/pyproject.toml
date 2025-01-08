@@ -19,8 +19,6 @@
 ##                                                                            ##
 ################################################################################
 
-#Fixme this file needs a lot more work.
-
 [project]
 name = "ncrystal-core"
 version = "3.9.7"
@@ -54,11 +52,8 @@ logging.level = "INFO"
 minimum-version = "build-system.requires"
 wheel.packages = ['skbld_autogen/_ncrystal_core']
 sdist.include = ["/src/","/include/","/cmake/",
-                 '/app_config/','/CMakeLists.txt','/pyproject.toml',#fixme: pyproject.toml likely not needed!
+                 '/app_config/','/CMakeLists.txt','/pyproject.toml',
                  '/skbld_autogen/'
                  ]
-#sdist.exclude = ['**~','skbld_autogen/NCrystal/_is_std.py~']#fixme does not work, we might have to carefully add more
-#                      #specifically in .include. Or perhaps a .gitignore in THIS directory as well?
-#wheel.exclude = ["**.pyx","**.pyc"] ??
 sdist.cmake = true
 wheel.py-api = "py3" # as close to "noarch" as possible (ABI3)

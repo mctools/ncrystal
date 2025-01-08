@@ -25,8 +25,6 @@ Module providing access to the ncrystal commandline tools via the Python API.
 
 """
 
-#FIXME: Also include ncrystal-config in this list!
-
 def cli_tool_list( canonical_names = True  ):
     """
     Get list of available NCrystal command line tools. The canonical_names flag
@@ -66,15 +64,9 @@ def run( toolname, *arguments ):
 
     $> ncrystal_ncmat2cpp Al_sg225.ncmat -o myal.cpp
 
- on the commandline with the provided
-    argument list. Returns results object without returncode, stdout, stderr,
-    exc_type, and exc_value attributes. In case of no errors, returncode will be
-    0 while exc_type and exc_type will both be None.
-
-    FIXME: What about ncrystal-config?
-
     """
-    #FIXME: Test that it gives a good experience in Jupyter
+    #FIXME: Also include ncrystal-config in this list!
+    #FIXME: Test that it gives a good experience in Jupyter (especially nctool)
 
     #FIXME: support + unit test various methods of invocation:
     #$> python -mNCrystal ncrystal_ncmat2cpp ...
@@ -82,9 +74,10 @@ def run( toolname, *arguments ):
     #$> python -mNCrystal nctool ...
     #$> python -mNCrystal ncrystal_nctool ... (NOPE?)
 
-    #FIXME: The embedded tests could verify that all of the command line script
-    #are available. That way, we would not forget to update the conda-forge
-    #recipe when adding a script.
+    #FIXME: We should have a test which verifies that all of the command line
+    #script are available, and invoke that test in the conda-forge recipe. That
+    #way, we would not forget to update the conda-forge recipe when adding a
+    #script.
 
     from ._cliimpl import _resolve_cmd_and_import_climod
     climod, argv = _resolve_cmd_and_import_climod( toolname, arguments )

@@ -49,7 +49,6 @@ def _is_unittest():
 #Function for importing required python modules which may be missing, to provide
 #a somewhat more helpful error to the user:
 def import_optpymod(name):
-    #Fixme: to _cliimpl.py ?
     import importlib
     errmsg = None
     try:
@@ -445,7 +444,7 @@ def import_npplt(pdf=False):
     #Maybe we should also ensure that all of our matplotlib plots simply return
     #standalone Figure() objects?
     #https://matplotlib.org/devdocs/gallery/user_interfaces/web_application_server_sgskip.html
-    global _npplt#Fixme use list trick instead
+    global _npplt
     if _npplt:
         #pdf par must be same as last call:
         if bool(pdf) != bool(_npplt[2] is not None):
@@ -1014,10 +1013,7 @@ def benchmark_mode( progname, arglist):
     print(f'{dt*1000.0:.2f}ms')
 
 def maybeThisIsConda():
-    #Fixme: to somewhere shared
     import os
     import sys
     return ( os.environ.get('CONDA_PREFIX',None) or
              os.path.exists(os.path.join(sys.base_prefix, 'conda-meta')) )
-
-#FIXME: test interactive usage of this tool in jupyter-lab via cliutils.run

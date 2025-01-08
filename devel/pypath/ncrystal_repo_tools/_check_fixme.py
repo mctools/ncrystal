@@ -31,7 +31,6 @@ def main():
         except UnicodeDecodeError as e:
             #FIXME: check if file is committed or not?
             raise RuntimeError(f'Binary file: {f}') from e
-        print(f)
         for line in content.splitlines():
             if search_str in line.lower():
                 n+=1
