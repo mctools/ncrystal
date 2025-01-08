@@ -48,7 +48,7 @@ jobs:
 
     - name: CMake cfg plugin
       run: >
-        cmake -S ./src -B ./build_plugin -DCMAKE_INSTALL_PREFIX=./install_plugin
+        cmake -S ./src/examples/plugin -B ./build_plugin -DCMAKE_INSTALL_PREFIX=./install_plugin
         -DCMAKE_INSTALL_LIBDIR=lib
         -DCMAKE_BUILD_TYPE=Release
         "-DNCrystal_DIR=$(./install/bin/ncrystal-config --show cmakedir)"
