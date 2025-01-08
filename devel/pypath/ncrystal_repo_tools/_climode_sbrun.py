@@ -20,31 +20,9 @@
 ################################################################################
 
 def short_description():
-    return 'Build code and run command in simplebuild environment'
+    from ._cliutils_sb import short_description_sb
+    return short_description_sb('sbrun',False)
 
 def main( parser ):
-    parser.init( '''Run sbrun associated with the simplebuild setup in
-    <reporoot>/devel/simplebuild. This is mainly useful to run a command in that
-    environment without modifying the current environment, after first ensuring
-    that the build is up to date.''' )
-    #Fixme many more options here, for now hardcoding below
-    args = parser.get_raw_args()
-    #Special: Do not actually init or use the parser!
-    #args = parser.parse_args()
-
-    import shutil
-    import subprocess
-    import os
-    from .dirs import reporoot
-
-    sb = shutil.which('sbrun')
-    if not sb:
-        raise SystemExit('ERROR: Please install simple-build-system')
-
-
-    env = os.environ.copy()
-    env['SIMPLEBUILD_CFG'] = str(reporoot.joinpath('devel',
-                                                   'simplebuild',
-                                                   'simplebuild.cfg'))
-    ev = subprocess.run([sb]+args, env = env )
-    raise SystemExit(ev.returncode)
+    from ._cliutils_sb import mainsb
+    mainsb( 'sbrun', False, parser )

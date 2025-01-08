@@ -21,8 +21,8 @@
 
 def short_description():
     from ._cliutils_sb import short_description_sb
-    return short_description_sb('sbenv',False)
+    return short_description_sb('sbenv',True)
 
 def main( parser ):
     from ._cliutils_sb import mainsb
-    mainsb( 'sbenv', False, parser )
+    mainsb( 'sbenv', True, parser )
