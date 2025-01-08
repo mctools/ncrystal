@@ -42,9 +42,9 @@ jobs:
     - name: Run NCrystal examples
       run: |
         ./install/bin/ncrystal-config -s
-        ./install/bin/ncrystal_example_customphysics"
-        ./install/bin/ncrystal_example_cpp"
-        ./install/bin/ncrystal_example_c"
+        ./install/bin/ncrystal_example_customphysics
+        ./install/bin/ncrystal_example_cpp
+        ./install/bin/ncrystal_example_c
 
     - name: CMake cfg plugin
       run: >
@@ -66,7 +66,7 @@ jobs:
         export NCRYSTAL_REQUIRED_PLUGINS="DummyPlugin"
         #Now run anything which triggers plugin-loading, to have the plugin-availability
         #test carried out:
-        ./install/bin/ncrystal_example_c"
+        ./install/bin/ncrystal_example_c
         echo "All ok"
 
     #FIXME: Add step which actualy USES the plugin as well!
