@@ -44,18 +44,27 @@ def get_include_staments_from_file( path, *,
 
     extractor = _include_extractor[0]
 
-    #For efficiency, initial dig through file using the grep command:
-    import subprocess
-    rv = subprocess.run( ['grep','.*#.*include.*"..*"',
-                          str(path.absolute())],
-                         capture_output = True )
-    #grep exit code of 1 simply indicates no hits
-    if rv.returncode not in (0,1) or rv.stderr:
-        raise RuntimeError('grep command failed')
-    if rv.returncode == 1:
-        return set()
+    import platform
+    if platform.system() != 'Windows':
+        #For efficiency, initial dig through file using the grep command:
+        import subprocess
+        rv = subprocess.run( ['grep','.*#.*include.*"..*"',
+                              str(path.absolute())],
+                             capture_output = True )
+        #grep exit code of 1 simply indicates no hits
+        if rv.returncode not in (0,1) or rv.stderr:
+            raise RuntimeError('grep command failed')
+        if rv.returncode == 1:
+            return set()
+        lines = rv.stdout.splitlines()
+    else:
+        #No grep on Windows, use slower fall back:
+        lines = []
+        for line in path.read_text().splitlines():
+            if 'include' in line:
+                lines.append(line)
     res = []
-    for line in rv.stdout.splitlines():
+    for line in lines:
         v = extractor(line)
         if v:
             v = v.groups()[1].decode('utf8')
