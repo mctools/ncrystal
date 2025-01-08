@@ -126,6 +126,22 @@ def add_file( *a, **kw ):
     all_files_outpaths.add(fp)
     return f
 
+def path_is_relative_to( p, pother ):
+    #Path.is_relative_to(..) was introduced in Python 3.9, this function lets us
+    #support python 3.8.
+    import pathlib
+    assert isinstance( p, pathlib.Path )
+    if hasattr(p,'is_relative_to'):
+        #Python 3.9+:
+        return p.is_relative_to(pother)
+    else:
+        #Python 3.8:
+        try:
+            p.relative_to(pother)
+            return True
+        except ValueError:
+            return False
+
 def create_files():
     #First remove anything that disappared:
     import shutil
@@ -136,7 +152,7 @@ def create_files():
             flist.add( ( str(p), is_dir ) )
             is_dir = True
             p = p.parent
-            if not p.is_relative_to(dirs.genroot):
+            if not path_is_relative_to(p,dirs.genroot):
                 break
     for f in dirs.genroot.rglob('**/*'):
         key=(str(f),f.is_dir())

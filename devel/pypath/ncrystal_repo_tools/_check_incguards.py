@@ -58,6 +58,8 @@ def check_NCrystal_hh( content, incguards ):
 def main():
     from .srciter import all_files_iter
     from .dirs import coreroot
+    from .util import path_is_relative_to
+
     incroot = coreroot.joinpath('include')
     incrootinternal = coreroot.joinpath('include/NCrystal/internal')
     incguards_seen = set()
@@ -91,7 +93,7 @@ def main():
         l1, l2 = get_first_two_lines(f)
         assert l1 == f'#ifndef {ig}', f'Unexpected first line in {f}'
         assert l2 == f'#define {ig}'
-        if not f.is_relative_to(incrootinternal):
+        if not path_is_relative_to( f, incrootinternal ):
             incguards_for_nchh.add( (str(f.relative_to(incroot)),ig) )
 
     check_NCrystal_hh( f_NCrystal_hh.read_text(),

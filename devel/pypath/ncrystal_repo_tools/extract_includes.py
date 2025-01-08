@@ -23,7 +23,8 @@ def _is_exceptional( f, incstatement ):
     if incstatement == 'NCrystal/ncapi.h':
         return True
     from .dirs import coreroot
-    if not f.is_relative_to( coreroot ):
+    from .util import path_is_relative_to
+    if not path_is_relative_to( f, coreroot ):
         return False
     frel = str(f.relative_to( coreroot ))
     #if ( frel == 'include/NCrystal/plugins/NCPluginBoilerplate.hh'

@@ -218,6 +218,8 @@ def iter_repo_files( types = None, pathfilter = None ):
     import pathlib
     def filter_files(file_list):
         from .dirs import reporoot
+        from .util import path_is_relative_to
+
         pos,neg = [], []
         for pf in pathfilter:
             if pf.startswith('!'):
@@ -226,7 +228,7 @@ def iter_repo_files( types = None, pathfilter = None ):
             else:
                 tgt = pos
             pf = pathlib.Path(pf).resolve().absolute()
-            if not pf.is_relative_to(reporoot):
+            if not path_is_relative_to(pf,reporoot):
                 raise SystemExit(f'Path outside repo: {pf}')
             if not pf.exists():
                 raise SystemExit(f'Missing file: {pf}')

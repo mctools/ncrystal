@@ -61,3 +61,19 @@ def work_in_tmpdir():
         finally:
             os.chdir(the_cwd)#Important to leave tmpdir *before* deletion, to
                              #avoid PermissionError on Windows.
+
+def path_is_relative_to( p, pother ):
+    #Path.is_relative_to(..) was introduced in Python 3.9, this function lets us
+    #support python 3.8.
+    import pathlib
+    assert isinstance( p, pathlib.Path )
+    if hasattr(p,'is_relative_to'):
+        #Python 3.9+:
+        return p.is_relative_to(pother)
+    else:
+        #Python 3.8:
+        try:
+            p.relative_to(pother)
+            return True
+        except ValueError:
+            return False

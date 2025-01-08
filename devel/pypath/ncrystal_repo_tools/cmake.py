@@ -69,8 +69,9 @@ class CMakeRunner:
                              + ( cmake_flags or [] ) )
         self.blddir = plPath(blddir).absolute()
         self.instdir = plPath(instdir).absolute()
-        assert not self.instdir.is_relative_to(self.blddir)
-        assert not self.blddir.is_relative_to(self.instdir)
+        from .util import path_is_relative_to
+        assert not path_is_relative_to( self.instdir, self.blddir )
+        assert not path_is_relative_to( self.blddir, self.instdir )
         self.force = force
         self.stage = 'none'
         self.cmake_cmd = cmake_cmd or shutil.which('cmake')
