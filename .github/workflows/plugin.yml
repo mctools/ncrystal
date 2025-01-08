@@ -61,9 +61,11 @@ jobs:
 
     - name: Test plugin load
       run: |
-        set -eu
+        set -eux
+        ls -l ./install_plugin/lib
         export NCRYSTAL_PLUGIN_LIST="$(cd ./install_plugin/lib; echo `pwd`/*NCPlugin_DummyPlugin*)"
         export NCRYSTAL_REQUIRED_PLUGINS="DummyPlugin"
+        env | grep NCRYSTAL
         #Now run anything which triggers plugin-loading, to have the plugin-availability
         #test carried out:
         ./install/bin/ncrystal_example_c
