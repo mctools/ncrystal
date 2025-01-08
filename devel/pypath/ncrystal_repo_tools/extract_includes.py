@@ -60,9 +60,9 @@ def get_include_staments_from_file( path, *,
     else:
         #No grep on Windows, use slower fall back:
         lines = []
-        for line in path.read_text().splitlines():
+        for line in path.read_text('utf8').splitlines():
             if 'include' in line:
-                lines.append(line)
+                lines.append(line.encode('utf8'))
     res = []
     for line in lines:
         v = extractor(line)
