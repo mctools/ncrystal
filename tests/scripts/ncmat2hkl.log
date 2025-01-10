@@ -58,7 +58,7 @@ STDOUT>
 
 
 ============= CLI >>--format=laz 'stdlib::Al_sg225.ncmat;dcutoff=0.6' --override-prec=10<< ====================
-STDOUT># File created by NCrystal v3.9.7
+STDOUT># File created by NCrystal v3.9.80
 STDOUT>#
 STDOUT># ncrystal_cfgstr "stdlib::Al_sg225.ncmat;dcutoff=0.6"
 STDOUT>#
@@ -242,7 +242,7 @@ SC XS max-abs-diff converted laz vs. original < 1e-07?: yes
 
 
 ============= CLI >>--format=lau 'stdlib::Al_sg225.ncmat;dcutoff=0.6' --override-prec=10<< ====================
-STDOUT># File created by NCrystal v3.9.7
+STDOUT># File created by NCrystal v3.9.80
 STDOUT>#
 STDOUT># ncrystal_cfgstr "stdlib::Al_sg225.ncmat;dcutoff=0.6"
 STDOUT>#
@@ -441,7 +441,7 @@ SC XS max-abs-diff converted lau vs. original < 1e-07?: yes
 
 
 ============= PyAPI >>cfgstr='stdlib::CaSiO3_sg2_Wollastonite.ncmat;dcutoff=3.2', fp_format='%.10g', tgtformat='laz'<< ====================
-res># File created by NCrystal v3.9.7
+res># File created by NCrystal v3.9.80
 res>#
 res># ncrystal_cfgstr "stdlib::CaSiO3_sg2_Wollastonite.ncmat;dcutoff=3.2"
 res>#
@@ -652,7 +652,7 @@ SC XS max-abs-diff converted laz vs. original < 1e-07?: yes
 
 
 ============= PyAPI >>cfgstr='stdlib::CaSiO3_sg2_Wollastonite.ncmat;dcutoff=3.2', fp_format='%.10g', tgtformat='lau'<< ====================
-res># File created by NCrystal v3.9.7
+res># File created by NCrystal v3.9.80
 res>#
 res># ncrystal_cfgstr "stdlib::CaSiO3_sg2_Wollastonite.ncmat;dcutoff=3.2"
 res>#
@@ -889,7 +889,7 @@ SC XS max-abs-diff converted lau vs. original < 1e-07?: yes
 
 ============= CLI >>--format=laz 'stdlib::Y2SiO5_sg15_YSO.ncmat;dcutoff=2.0' -o dummy.laz --override-prec=10<< ====================
 Wrote dummy.laz
-OUTFILE># File created by NCrystal v3.9.7
+OUTFILE># File created by NCrystal v3.9.80
 OUTFILE>#
 OUTFILE># ncrystal_cfgstr "stdlib::Y2SiO5_sg15_YSO.ncmat;dcutoff=2"
 OUTFILE>#
@@ -1130,7 +1130,7 @@ SC XS max-abs-diff converted laz vs. original < 1e-07?: yes
 
 ============= CLI >>--format=lau 'stdlib::Y2SiO5_sg15_YSO.ncmat;dcutoff=2.0' -o dummy.lau --override-prec=10<< ====================
 Wrote dummy.lau
-OUTFILE># File created by NCrystal v3.9.7
+OUTFILE># File created by NCrystal v3.9.80
 OUTFILE>#
 OUTFILE># ncrystal_cfgstr "stdlib::Y2SiO5_sg15_YSO.ncmat;dcutoff=2"
 OUTFILE>#
@@ -1337,7 +1337,7 @@ SC XS max-abs-diff converted lau vs. original < 1e-07?: yes
 
 
 ============= PyAPI >>cfgstr='stdlib::Mg2SiO4_sg62_MagnesiumSilicate.ncmat;dcutoff=1.2', fp_format='%.10g', tgtformat='laz'<< ====================
-res># File created by NCrystal v3.9.7
+res># File created by NCrystal v3.9.80
 res>#
 res># ncrystal_cfgstr "stdlib::Mg2SiO4_sg62_MagnesiumSilicate.ncmat;dcutoff=1.2"
 res>#
@@ -1544,7 +1544,7 @@ SC XS max-abs-diff converted laz vs. original < 1e-07?: yes
 
 
 ============= PyAPI >>cfgstr='stdlib::Mg2SiO4_sg62_MagnesiumSilicate.ncmat;dcutoff=1.2', fp_format='%.10g', tgtformat='lau'<< ====================
-res># File created by NCrystal v3.9.7
+res># File created by NCrystal v3.9.80
 res>#
 res># ncrystal_cfgstr "stdlib::Mg2SiO4_sg62_MagnesiumSilicate.ncmat;dcutoff=1.2"
 res>#
@@ -1751,7 +1751,7 @@ SC XS max-abs-diff converted lau vs. original < 1e-07?: yes
 
 
 ============= CLI >>--format=laz 'stdlib::PbO-alpha_sg129_Litharge.ncmat;dcutoff=0.9' --override-prec=10<< ====================
-STDOUT># File created by NCrystal v3.9.7
+STDOUT># File created by NCrystal v3.9.80
 STDOUT>#
 STDOUT># ncrystal_cfgstr "stdlib::PbO-alpha_sg129_Litharge.ncmat;dcutoff=0.9"
 STDOUT>#
@@ -2004,7 +2004,7 @@ SC XS max-abs-diff converted laz vs. original < 1e-07?: yes
 
 
 ============= CLI >>--format=lau 'stdlib::PbO-alpha_sg129_Litharge.ncmat;dcutoff=0.9' --override-prec=10<< ====================
-STDOUT># File created by NCrystal v3.9.7
+STDOUT># File created by NCrystal v3.9.80
 STDOUT>#
 STDOUT># ncrystal_cfgstr "stdlib::PbO-alpha_sg129_Litharge.ncmat;dcutoff=0.9"
 STDOUT>#
@@ -2236,7 +2236,7 @@ SC XS max-abs-diff converted lau vs. original < 1e-07?: yes
 
 
 ============= PyAPI >>cfgstr='stdlib::MgCO3_sg167_MagnesiumCarbonate.ncmat;dcutoff=1.0', fp_format='%.10g', tgtformat='laz'<< ====================
-res># File created by NCrystal v3.9.7
+res># File created by NCrystal v3.9.80
 res>#
 res># ncrystal_cfgstr "stdlib::MgCO3_sg167_MagnesiumCarbonate.ncmat;dcutoff=1"
 res>#
@@ -2464,7 +2464,7 @@ SC XS max-abs-diff converted laz vs. original < 1e-07?: yes
 
 
 ============= PyAPI >>cfgstr='stdlib::MgCO3_sg167_MagnesiumCarbonate.ncmat;dcutoff=1.0', fp_format='%.10g', tgtformat='lau'<< ====================
-res># File created by NCrystal v3.9.7
+res># File created by NCrystal v3.9.80
 res>#
 res># ncrystal_cfgstr "stdlib::MgCO3_sg167_MagnesiumCarbonate.ncmat;dcutoff=1"
 res>#
@@ -2687,7 +2687,7 @@ SC XS max-abs-diff converted lau vs. original < 1e-07?: yes
 
 
 ============= CLI >>--format=laz 'stdlib::Al2O3_sg167_Corundum.ncmat;dcutoff=1.5' --override-prec=10<< ====================
-STDOUT># File created by NCrystal v3.9.7
+STDOUT># File created by NCrystal v3.9.80
 STDOUT>#
 STDOUT># ncrystal_cfgstr "stdlib::Al2O3_sg167_Corundum.ncmat;dcutoff=1.5"
 STDOUT>#
@@ -2863,7 +2863,7 @@ SC XS max-abs-diff converted laz vs. original < 1e-07?: yes
 
 
 ============= CLI >>--format=lau 'stdlib::Al2O3_sg167_Corundum.ncmat;dcutoff=1.5' --override-prec=10<< ====================
-STDOUT># File created by NCrystal v3.9.7
+STDOUT># File created by NCrystal v3.9.80
 STDOUT>#
 STDOUT># ncrystal_cfgstr "stdlib::Al2O3_sg167_Corundum.ncmat;dcutoff=1.5"
 STDOUT>#
@@ -3059,7 +3059,7 @@ SC XS max-abs-diff converted lau vs. original < 1e-07?: yes
 
 
 ============= PyAPI >>cfgstr='stdlib::ZnO_sg186_ZincOxide.ncmat;dcutoff=0.5', fp_format='%.10g', tgtformat='laz'<< ====================
-res># File created by NCrystal v3.9.7
+res># File created by NCrystal v3.9.80
 res>#
 res># ncrystal_cfgstr "stdlib::ZnO_sg186_ZincOxide.ncmat;dcutoff=0.5"
 res>#
@@ -3262,7 +3262,7 @@ SC XS max-abs-diff converted laz vs. original < 1e-07?: yes
 
 
 ============= PyAPI >>cfgstr='stdlib::ZnO_sg186_ZincOxide.ncmat;dcutoff=0.5', fp_format='%.10g', tgtformat='lau'<< ====================
-res># File created by NCrystal v3.9.7
+res># File created by NCrystal v3.9.80
 res>#
 res># ncrystal_cfgstr "stdlib::ZnO_sg186_ZincOxide.ncmat;dcutoff=0.5"
 res>#
@@ -3466,7 +3466,7 @@ SC XS max-abs-diff converted lau vs. original < 1e-07?: yes
 
 ============= CLI >>--format=laz stdlib::C_sg194_pyrolytic_graphite.ncmat -o dummy.laz --override-prec=10<< ====================
 Wrote dummy.laz
-OUTFILE># File created by NCrystal v3.9.7
+OUTFILE># File created by NCrystal v3.9.80
 OUTFILE>#
 OUTFILE># ncrystal_cfgstr "stdlib::C_sg194_pyrolytic_graphite.ncmat;lcaxis=0,0,1"
 OUTFILE>#
@@ -3670,7 +3670,7 @@ SC XS max-abs-diff converted laz vs. original < 1e-07?: yes
 
 ============= CLI >>--format=lau stdlib::C_sg194_pyrolytic_graphite.ncmat -o dummy.lau --override-prec=10<< ====================
 Wrote dummy.lau
-OUTFILE># File created by NCrystal v3.9.7
+OUTFILE># File created by NCrystal v3.9.80
 OUTFILE>#
 OUTFILE># ncrystal_cfgstr "stdlib::C_sg194_pyrolytic_graphite.ncmat;lcaxis=0,0,1"
 OUTFILE>#
@@ -3877,7 +3877,7 @@ Caught expected RuntimeError('this converter does not handle non-crystalline mat
 
 
 ============= PyAPI >>cfgstr='virtual::Al.ncmat;dcutoff=0.8', fp_format='%.10g', tgtformat='laz'<< ====================
-res># File created by NCrystal v3.9.7
+res># File created by NCrystal v3.9.80
 res>#
 res># ncrystal_cfgstr "virtual::Al.ncmat;dcutoff=0.8"
 res>#
@@ -4014,7 +4014,7 @@ SC XS max-abs-diff converted laz vs. original < 1e-07?: yes
 
 
 ============= PyAPI >>cfgstr='virtual::Al.ncmat;dcutoff=0.8', fp_format='%.10g', tgtformat='lau'<< ====================
-res># File created by NCrystal v3.9.7
+res># File created by NCrystal v3.9.80
 res>#
 res># ncrystal_cfgstr "virtual::Al.ncmat;dcutoff=0.8"
 res>#
@@ -4203,7 +4203,7 @@ Caught expected ArgumentError('Please specify output type with --format, either 
 Caught expected ArgumentError("argument --format/-f: invalid choice: 'LAU' (choose from laz, lau)")
 ============= CLI >>'stdlib::Al_sg225.ncmat;dcutoff=0.6' --format lau -o dummy.lau --override-prec=10<< ====================
 Wrote dummy.lau
-OUTFILE># File created by NCrystal v3.9.7
+OUTFILE># File created by NCrystal v3.9.80
 OUTFILE>#
 OUTFILE># ncrystal_cfgstr "stdlib::Al_sg225.ncmat;dcutoff=0.6"
 OUTFILE>#

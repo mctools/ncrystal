@@ -13,7 +13,7 @@ if( NOT DEFINED "NCrystal_DIR" )
     OUTPUT_VARIABLE "NCrystal_DIR" OUTPUT_STRIP_TRAILING_WHITESPACE
   )
 endif()
-find_package( NCrystal 3.9.7 REQUIRED )#FIXME 4.0.0
+find_package( NCrystal 3.9.80 REQUIRED )
 
 function( ncrystal_srcfileglob varname pattern )
   #Glob while ignoring temporary files.

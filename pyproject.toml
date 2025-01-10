@@ -22,7 +22,7 @@
 
 [project]
 name = "ncrystal-monolithic-bundle"
-version = "3.9.7"
+version = "3.9.80"
 requires-python = ">=3.8"
 dependencies = [ 'numpy' ]
 readme = "README.md"

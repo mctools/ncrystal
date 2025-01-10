@@ -7,7 +7,7 @@ usage: nctool [-h] [--version] [-d] [--mc SRCCFG GEOMCFG] [--common CFG]
               [CFGSTR ...]
 
 The most common usage of this tool is to load input data (usually .ncmat files)
-with NCrystal (v3.9.7) and plot resulting isotropic cross sections for thermal
+with NCrystal (v3.9.80) and plot resulting isotropic cross sections for thermal
 neutrons. This is done by specifying one or more configurations ("cfg-strings"),
 which indicates data names (e.g. file names) and optionally cfg parameters
 (e.g. temperatures). Specifying more than one configuration, results in a single
