@@ -236,7 +236,6 @@ nccfg_strlist nccfg_show_item_list(void)
 {
   //All options (synchronize with implementation of nccfg_show_item_lookup
   //function):
-  //FIXME: sort??
   static const char *theitems[] = {
     "bindir",
     "build_type",

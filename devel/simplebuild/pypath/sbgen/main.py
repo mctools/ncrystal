@@ -58,7 +58,7 @@ def determine_testpkg_by_pydeps( pydeps ):
 
 def create_pkg_extratestscripts(pkgname):
     import pathlib
-    create_pkginfo( pkgname )
+    create_pkginfo( pkgname, pkg_deps = ['NCrystalDev','NCCmd'] )
     for sf in sorted(pathlib.Path(__file__).parent.glob('_testscript_*.py')):
         n = sf.stem[len('_testscript_'):]
         add_file( f'pkgs/{pkgname}/scripts/test{n}', link_target = sf )
