@@ -24,6 +24,7 @@
 
 import NCTestUtils.enable_fpe # noqa F401
 from NCrystalDev.hfg2ncmat import hfg2ncmat
+from NCrystalDev.ncmat import NCMATComposer
 
 def test(spec,formula,**kwargs):
     import pprint
@@ -55,7 +56,6 @@ test('1xCHali+1xCHaro+1xCH2+1xCH3+1xNH+1xNH2+1xNH3+1xOH+1xSH','H15C4N3OS')
 test('5xCHaro+1xCHali+1xCH2','C8H8',density=0.99)
 test_fail('1xCH2','CH2s')
 
-from NCrystalDev.ncmat import NCMATComposer
 c = NCMATComposer.from_hfg( '5xCHaro+1xCHali+1xCH2',
                             'C8H8',
                             density=0.99,

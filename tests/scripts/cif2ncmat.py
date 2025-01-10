@@ -28,7 +28,9 @@ import NCTestUtils.enable_fpe # noqa F401
 import NCTestUtils.reprint_escaped_warnings # noqa F401
 import NCTestUtils.enable_testdatapath # noqa F401
 from NCTestUtils.env import ncsetenv
-
+from NCTestUtils.common import ( print_text_file_with_snipping,
+                                 ensure_error,
+                                 work_in_tmpdir )
 import pathlib
 import contextlib
 import shlex
@@ -46,9 +48,6 @@ def create_fake_onlinedb_cache_dir():
         (d/f).write_text((test_data_dir/f'fake_{f}').read_text())
     #fixme also test with: mp_55_unrefined_conventional.cif and mp_55_unrefined_primitive.cif ?
 
-from NCTestUtils.common import ( print_text_file_with_snipping,
-                                 ensure_error,
-                                 work_in_tmpdir )
 
 #FIXME: Also test python API if not done elsewhere.
 

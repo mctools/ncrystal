@@ -26,10 +26,7 @@ def main():
     ruff = shutil.which('ruff')
     if not ruff:
         raise SystemExit('ERROR: ruff command not available')
-    #FIXME: No ignore list!!
-    rv = subprocess.run(['ruff','check','--ignore',
-                         'E402'
-                         ]
+    rv = subprocess.run(['ruff','check']
                         + list(all_files_iter('py')) )
     if rv.returncode!=0:
         raise SystemExit(1)

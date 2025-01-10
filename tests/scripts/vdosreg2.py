@@ -26,7 +26,7 @@ from NCTestUtils.env import ncsetenv
 ncsetenv('DEBUG_VDOSREGULARISATION','1')
 ncsetenv('DEBUG_PHONON','1')
 import NCTestUtils.enable_fpe # noqa F401
-import NCrystalDev as NC
+import NCrystalDev as NC # noqa E402
 
 def main():
     info = NC.createInfo('stdlib::BaO_sg225_BariumOxide.ncmat')

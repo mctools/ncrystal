@@ -24,6 +24,7 @@
 
 import NCTestUtils.enable_fpe # noqa F401
 import NCrystalDev as NC
+import numpy
 
 print("test 1)")
 mat = NC.load('Al_sg225.ncmat')
@@ -33,7 +34,6 @@ for e in mat.info.hklObjects():
         continue
     print(e)
 
-import numpy
 print("test 2)")
 
 for idx,e in enumerate(mat.info.hklObjects()):

@@ -24,10 +24,10 @@
 #the code below will load the wrong file from the local directory:
 
 import NCTestUtils.enable_fpe # noqa F401
-
-import pathlib
-pathlib.Path('Al_sg225.ncmat').write_text("INVALID FILE DO NOT LOAD THIS")
 import NCrystalDev as NC
+import pathlib
+
+pathlib.Path('Al_sg225.ncmat').write_text("INVALID FILE DO NOT LOAD THIS")
 NC.removeAllDataSources()
 NC.enableStandardDataLibrary()
 NC.createInfo("Al_sg225.ncmat;dcutoff=-1")

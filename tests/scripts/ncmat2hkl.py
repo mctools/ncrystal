@@ -27,6 +27,10 @@ import NCrystalDev.cliutils as nc_cliutils
 import pathlib
 import contextlib
 import shlex
+from NCTestUtils.common import ( print_text_file_with_snipping,
+                                 ensure_error,
+                                 work_in_tmpdir,
+                                 fmt_args_as_str )
 
 #default is to encode numbers in produced .laz/.lau files with 14 digits of
 #precision (%.14g), but for robustness of the unit test we reduce this in any
@@ -38,11 +42,6 @@ test_precision = 10
 #default FP precision of ncmat2hkl (test_precision=14), but we can't since then
 #we would get spurious test failures in the reflog diffing.:
 max_diff_lvl = 1e-7
-
-from NCTestUtils.common import ( print_text_file_with_snipping,
-                                 ensure_error,
-                                 work_in_tmpdir,
-                                 fmt_args_as_str )
 
 def test_pyapi( cfgstr, fmt, nstart = 30, nend = 20 ):
     from NCrystalDev.mcstasutils import cfgstr_2_hkl
