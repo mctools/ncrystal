@@ -144,7 +144,8 @@ def plot_xsect( material, *, mode='wl', do_show = True, do_newfig = True,
     if ymin is not None or ymax is not None:
         if ymin is not None and ymax is not None and not ymax>ymin:
             from ._common import warn
-            _fmt = lambda x : ( 'auto' if x is None else x )
+            def _fmt(x):
+                return ( 'auto' if x is None else x )
             warn('ymin/ymax parameters would lead to a plot range of'
                  f' [{ymin},{ymax}]. Reverting to [{_fmt(auto_ymin)},{_fmt(auto_ymax)}].')
             ymin,ymax = auto_ymin,auto_ymax

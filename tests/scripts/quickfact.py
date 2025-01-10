@@ -40,7 +40,9 @@ def test(cfgstr,expectBad = False):
     for line in td:
         print("---->",line)
     print()
-testbad = lambda cfgstr : test(cfgstr,True)
+
+def testbad(cfgstr):
+    return test(cfgstr,True)
 
 test('solid::Pb/+2.02e-30gcm3')
 test('solid::Pb/+2.02e-30gcm3')#same uid

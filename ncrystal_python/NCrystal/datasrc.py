@@ -189,7 +189,8 @@ def browseFiles(dump=False,factory=None):
     res.sort(key=sortkey)
     if dump:
         seen_names=set()
-        groupfct = lambda e : (e.factName,e.source,e.priority)
+        def groupfct( e ):
+            return (e.factName,e.source,e.priority)
         lastgroup = None
         pending=[]
         def print_pending():

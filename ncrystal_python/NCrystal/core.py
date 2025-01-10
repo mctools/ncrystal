@@ -1726,7 +1726,8 @@ class LoadedMaterial:
         return self.info.factor_macroscopic_xs * self.xsect( *args,**kwargs )
 
     def __str__(self):
-        fmt = lambda x : str(x) if x else 'n/a'
+        def fmt( x ):
+            return str(x) if x else 'n/a'
         return 'LoadedMaterial(Info=%s, Scatter=%s, Absorption=%s)'%( fmt(self.__i),
                                                                       fmt(self.__s),
                                                                       fmt(self.__a) )

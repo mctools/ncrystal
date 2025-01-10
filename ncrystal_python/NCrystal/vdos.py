@@ -194,7 +194,9 @@ class PhononDOSAnalyser:
         if fmt is None:
             from .misc import AnyVDOS
             from .core import Info
-            _is_anyvdos = lambda x : any( isinstance(data,e) for e in (AnyVDOS,Info.DI_VDOS,Info.DI_VDOSDebye) )
+            def _is_anyvdos(x):
+                return any( isinstance(data,e)
+                            for e in (AnyVDOS,Info.DI_VDOS,Info.DI_VDOSDebye) )
             if _is_anyvdos( data ):
                 fmt = 'anyvdos'
             elif data and hasattr(data,'__len__') and all( _is_anyvdos(e) for e in data ):
@@ -237,7 +239,9 @@ class PhononDOSAnalyser:
                 raise NCBadInput(f'DOS egrid has too few points (at least {nminpts} required).')
             if len(density) != len(egrid):
                 raise NCBadInput('DOS egrid and density arrays have different lengths.')
-            _is_grid = lambda a : _np.all(a[:-1] < a[1:])#stackoverflow question 47004506 but with < instead of <=
+            def _is_grid( a ):
+                return _np.all(a[:-1] < a[1:])#stackoverflow question 47004506
+                                              #but with < instead of <=
             if not _is_grid(egrid):
                 raise NCBadInput('DOS egrid does not consist of increasing unique values')
             if _np.isinf(egrid[-1]) or not egrid[-1] > 0.0:
@@ -383,7 +387,9 @@ class PhononDOSAnalyser:
             return self
         target_n = int(target_n)
         assert target_n >= 10
-        doregfct = lambda _e, _d : _do_regularise( egrid=_e, density=_d, n=target_n, quiet = quiet)
+        def doregfct( _e, _d ):
+            return _do_regularise( egrid=_e, density=_d,
+                                   n=target_n, quiet = quiet)
         o = self.__clone()
         oldlist = o.__d['doslist']
         newlist = []
@@ -623,7 +629,8 @@ class PhononDOSAnalyser:
 
         lblmap = self.__determine_lblmap( selected, ncmatcomposer, lblmap = lblmap, warn = warn )
         cutoff = ( self._parse_threshold( cutoff ) if cutoff is not None else None ) or 0.0
-        _access_egrid = lambda idx : self.__d['doslist'][idx][1]
+        def _access_egrid( idx ):
+            return self.__d['doslist'][idx][1]
         selected_needscutoff = [ idx for idx in selected if not _access_egrid(idx)[0] > cutoff ]
         if selected_needscutoff and not cutoff:
             #must autodetermine a suitable cutoff. We take it as 1% of the maximum egrid value:
@@ -935,7 +942,9 @@ def _read_quantumespresso( raw_text_data ):
         raise NCBadInput('Invalid input format. Expected at least 3 columns and 10 rows')
     npdos = ncols - 2
 
-    _get_col = lambda icol : rawdata[:,icol]
+    def _get_col( icol ):
+        return rawdata[:,icol]
+
     egrid = vdos_units_2_eV['1/cm'] * _get_col( 0 )
 
     doslist  = [ ( 'combined_dos', egrid, _get_col( 1 ) ) ]
@@ -972,7 +981,8 @@ def _do_regularise( egrid, density, n, quiet = False):
 
     emin,emax=egrid[0],egrid[-1]
     if quiet:
-        nc_print = lambda *a,**kw : None
+        def nc_print( *a,**kw ):
+            pass
     else:
         from ._common import print as nc_print
     nc_print('old range',emin,emax)

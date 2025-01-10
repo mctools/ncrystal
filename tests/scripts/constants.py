@@ -41,7 +41,8 @@ def reldiff( x, y ):
     return abs(x-y)/(max(1e-300,abs(x)+abs(y)))
 
 def require_flteq( x, y ):
-    okfct = lambda a,b : bool( reldiff( a, b ) < tol )
+    def okfct( a, b ):
+        return bool( reldiff( a, b ) < tol )
     tol = 1e-13
     if hasattr( x, '__len__' ):
         if not len(x) == len(y) or any( ( not okfct(a,b) ) for a,b in zip(x,y) ):

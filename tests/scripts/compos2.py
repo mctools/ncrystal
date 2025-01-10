@@ -24,7 +24,8 @@ import NCTestUtils.enable_fpe
 import NCrystalDev as NC
 
 def compos2str( composition ):
-    tl = lambda atomdata : ' [TopLevelAtomData]' if atomdata.isTopLevel() else ''
+    def tl(atomdata):
+        return ' [TopLevelAtomData]' if atomdata.isTopLevel() else ''
     return '[ %s ]'%(',\n  '.join('%g * %s%s'%(frac,str(atomdata),tl(atomdata)) for frac,atomdata in composition))
 
 def test(cfgstr):

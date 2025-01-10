@@ -545,7 +545,8 @@ class NCMATComposerImpl:
     def set_dyninfo_scatknl( self, label, *, alphagrid, betagrid, temperature,
                              sab = None, sab_scaled = None, egrid = None,
                              comment = None, fraction = None ):
-        present = lambda x : x is not None and _is_nonempty_array(x)
+        def present( x ):
+            return x is not None and _is_nonempty_array(x)
         if not present(sab) and not present(sab_scaled):
             raise _nc_core.NCBadInput('Missing either sab or sab_scaled arguments')
         if present(sab) and present(sab_scaled):
@@ -911,7 +912,8 @@ class NCMATComposerImpl:
         ms = MaterialSource( composer, cfg_params = cfg_params )
         loadedmat = ms.load()
         import sys
-        flush = lambda : ( sys.stdout.flush(),sys.stderr.flush() )
+        def flush():
+            ( sys.stdout.flush(),sys.stderr.flush() )
         flush()
         loadedmat.info.dump()
         flush()
@@ -1465,11 +1467,11 @@ def _decode_composition(label,*composition):
 
     _decodeflt = _nc_common._decodeflt
     #We want composition to end up in the final form: [(f0,name0),(f1,name1),...].
-    is_final_form = lambda c : ( all(hasattr(e,'__len__') for e in c)
-                                 and all(len(e)==2 for e in c)
-                                 and all(_decodeflt(e[0]) for e in c)
-                                 and all(hasattr(e[1],'split') for e in c) )
-
+    def is_final_form(c):
+        return ( all(hasattr(e,'__len__') for e in c)
+                 and all(len(e)==2 for e in c)
+                 and all(_decodeflt(e[0]) for e in c)
+                 and all(hasattr(e[1],'split') for e in c) )
 
     single_arg = composition[0] if len(composition)==1 else None
     if single_arg and is_final_form(single_arg):
@@ -1707,9 +1709,12 @@ def _lattice_params_to_vectors( a, b, c, alpha, beta, gamma ):
     return ( vect_a, vect_b, vect_c )
 
 def _lattice_vectors_to_params( vect_a, vect_b, vect_c, as_dict = True ):
-    mag = lambda v : math.sqrt( math.fsum(e**2 for e in v) )
-    dot = lambda v1,v2 : math.fsum(e1*e2 for e1,e2 in zip(v1,v2))
-    ang = lambda v1,v2 : math.acos( dot(v1,v2)/(mag(v1)*mag(v2)) )*180/math.pi
+    def mag( v ):
+        return math.sqrt( math.fsum(e**2 for e in v) )
+    def dot( v1,v2 ):
+        return math.fsum(e1*e2 for e1,e2 in zip(v1,v2))
+    def ang( v1,v2 ):
+        return math.acos( dot(v1,v2)/(mag(v1)*mag(v2)) )*180/math.pi
     a,b,c = mag(vect_a), mag(vect_b), mag(vect_c)
     alpha,beta,gamma = ang(vect_b,vect_c), ang(vect_a,vect_c), ang(vect_a,vect_b)
     if as_dict:
@@ -1720,11 +1725,14 @@ def _lattice_vectors_to_params( vect_a, vect_b, vect_c, as_dict = True ):
 def _snap_lattice_params( params_dict, relative_tolerance = 1e-6 ):
     log = []
     p = copy.deepcopy(params_dict)
-    rd = lambda x,y : abs(x-y)/(max(1e-300,abs(x)+abs(y)))
+    def rd( x,y ):
+        return abs(x-y)/(max(1e-300,abs(x)+abs(y)))
     super_tolerance = 1e-14#almost 64 bit FP prec
     assert relative_tolerance > super_tolerance
-    is_near = lambda x,y : rd(x,y) < relative_tolerance
-    is_super_near = lambda x,y : rd(x,y) < super_tolerance
+    def is_near( x,y ):
+        return rd(x,y) < relative_tolerance
+    def is_super_near( x,y ):
+        return rd(x,y) < super_tolerance
 
     #"snap" b,c to a,b and angles to 60/90/120:
     for l1,l2 in (('a','b'),('a','c'),('b','c')):
@@ -1746,8 +1754,10 @@ def _cellparams_to_spglib_lattice( cellsg ):
 
 def _reldiff_cellparams( c1, c2 ):
     #compares a,b,c,alpha,beta,gamma in the two cellsg arrays.
-    rd = lambda x,y : abs(x-y)/(max(1e-300,abs(x)+abs(y)))
-    rdf = lambda s : rd(c1[s],c2[s])
+    def rd( x,y ):
+        return abs(x-y)/(max(1e-300,abs(x)+abs(y)))
+    def rdf( s ):
+        return rd(c1[s],c2[s])
     return max( rdf(s) for s in ('a','b','c','alpha','beta','gamma') )
 
 def _reldiff_atompos( spglib_cell1, spglib_cell2 ):
@@ -1783,7 +1793,10 @@ def _reldiff_atompos( spglib_cell1, spglib_cell2 ):
 
     max_distsq_seen = None
     for idx in sorted(set(idxlist1)):
-        fixp = lambda p : (_remap_fract_pos(p[0]),_remap_fract_pos(p[1]),_remap_fract_pos(p[2]))
+        def fixp( p ):
+            return (_remap_fract_pos(p[0]),
+                    _remap_fract_pos(p[1]),
+                    _remap_fract_pos(p[2]))
         l1 = list( sorted( fixp(p) for i,p in zip(idxlist1,allpos1) if i == idx ) )#nb: fragile sort order!
         l2 = list( sorted( fixp(p) for i,p in zip(idxlist2,allpos2) if i == idx ) )#nb: fragile sort order!
         d = calc_maxdistsq( l1, l2 )
@@ -1942,7 +1955,8 @@ def _unit_cell_point_distsq( p1, p2 ):
     #take into account unit cell periodicity, so e.g. (a,b,epsilon) and
     #(a,b,1.0-epsilon) are actually only 2*epsilon from each other, not
     #1.0-epsilon.
-    remap = lambda x : x-math.floor(x)
+    def remap( x ):
+        return x-math.floor(x)
     d = [ abs(remap(e1)-remap(e2)) for e1,e2 in zip(p1,p2)]
     return math.fsum(  min(e,1.0-e)**2 for e in d )
 

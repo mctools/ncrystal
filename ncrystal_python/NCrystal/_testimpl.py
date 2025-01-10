@@ -474,7 +474,8 @@ def _actual_test_cmake( verbose = False, ignore_if_absent = False ):
     prfct('Using cmake command: %s'%cmakecmd)
 
 
-    _singleline2str = lambda x : ((x.decode() if hasattr(x,'decode') else x) or '').strip()
+    def _singleline2str( x ):
+        return ((x.decode() if hasattr(x,'decode') else x) or '').strip()
 
     _cmd = 'ncrystal-config --show cmakedir'
     ok, ncrystal_cmakedir = _run_cmd(_cmd)
