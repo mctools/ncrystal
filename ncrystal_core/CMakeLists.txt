@@ -189,11 +189,8 @@ else()
   endif()
 endif()
 if ( DEFINED NCRYSTAL_SKBUILD_MONOLITHIC )
-  #Add a namespace for safety (but not if testing, since tests are currently
-  #failing with non-empty namespaces (FIXME!!!!).
-  if ( NOT NCRYSTAL_ENABLE_TESTING )
-    set( NCRYSTAL_NAMESPACE "mono${NCRYSTAL_NAMESPACE}" )
-  endif()
+  #Add a namespace for safety
+  set( NCRYSTAL_NAMESPACE "mono${NCRYSTAL_NAMESPACE}" )
 endif()
 
 #Installation directories (try to follow standard conventions):

@@ -44,7 +44,7 @@ namespace NCRYSTAL_NAMESPACE {
       }
 
       void actualLoadPlugin( PluginInfo pinfo,
-                             std::function<void()> regfct )
+                             voidfct_t regfct )
       {
         //Mutex is already locked when this is called!
         nc_assert_always(pinfo.pluginType==PluginType::Dynamic||pinfo.pluginType==PluginType::Builtin);
@@ -106,7 +106,7 @@ namespace NCRYSTAL_NAMESPACE {
       }
 
       PluginInfo loadBuiltinPluginImpl( std::string pluginName,
-                                        std::function<void()> regfct )
+                                        voidfct_t regfct )
       {
         PluginInfo pinfo;
         pinfo.pluginType = PluginType::Builtin;
@@ -119,7 +119,7 @@ namespace NCRYSTAL_NAMESPACE {
 }
 
 NCP::PluginInfo NCP::loadBuiltinPlugin( std::string pluginName,
-                                        std::function<void()> regfct )
+                                        voidfct_t regfct )
 {
   NCRYSTAL_LOCK_GUARD(getPluginMgmtMutex());
   return loadBuiltinPluginImpl( std::move(pluginName),

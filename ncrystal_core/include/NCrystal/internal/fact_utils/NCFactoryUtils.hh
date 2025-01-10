@@ -88,7 +88,7 @@ namespace NCRYSTAL_NAMESPACE {
     void cleanup();
 
     //To automatically call a function whenever cleanup() is invoked:
-    void registerCleanupCallback(std::function<void()>);
+    void registerCleanupCallback(voidfct_t);
 
     //Statistics about the current cache:
     struct Stats { std::size_t nstrongrefs, nweakrefs; };
@@ -113,7 +113,7 @@ namespace NCRYSTAL_NAMESPACE {
     class StrongRefKeeper;
     StrongRefKeeper m_strongRefs;
     bool m_cleanupNeedsRegistry = true;
-    SmallVector<std::function<void()>,1,SVMode::LOWFOOTPRINT> m_cleanupCallbacks;
+    SmallVector<voidfct_t,1,SVMode::LOWFOOTPRINT> m_cleanupCallbacks;
   };
 
   ///////////////////////////////////////////////////////////////////////////
@@ -196,7 +196,7 @@ namespace NCRYSTAL_NAMESPACE {
   };
 
   template<class TKey,class TValue,unsigned N,class TKT>
-  inline void CachedFactoryBase<TKey,TValue,N,TKT>::registerCleanupCallback(std::function<void()> fn)
+  inline void CachedFactoryBase<TKey,TValue,N,TKT>::registerCleanupCallback(voidfct_t fn)
   {
     NCRYSTAL_LOCK_GUARD(m_mutex);
     m_cleanupCallbacks.push_back(fn);
@@ -236,7 +236,7 @@ namespace NCRYSTAL_NAMESPACE {
       if ( m_cleanupNeedsRegistry ) {
         //Unrelated, but needs to be done while m_mutex is locked.
         m_cleanupNeedsRegistry = false;
-        std::function<void()> fct_cleanup = [this](){ this->cleanup(); };
+        voidfct_t fct_cleanup = [this](){ this->cleanup(); };
         registerCacheCleanupFunction(fct_cleanup);
       }
 

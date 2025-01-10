@@ -24,7 +24,7 @@ namespace NC = NCrystal;
 #ifdef NCRYSTAL_DISABLE_THREADS
 
 void NC::FactoryThreadPool::enable( ThreadCount ) {}
-void NC::FactoryThreadPool::queue( std::function<void()> job ) { job(); }
+void NC::FactoryThreadPool::queue( voidfct_t job ) { job(); }
 NC::FactoryThreadPool::detail::FactoryJobsHandler
 NC::FactoryThreadPool::detail::getFactoryJobsHandler() { return {}; }
 
@@ -64,7 +64,7 @@ namespace NCRYSTAL_NAMESPACE {
           static ThreadPool::ThreadPool tp;
           return tp;
         }
-        using voidfct_t = std::function<void()>;//fixme repeated?
+
         voidfct_t detail_get_pending_job()
         {
           return getTP().getPendingJob();
@@ -103,7 +103,7 @@ void NC::FactoryThreadPool::enable( ThreadCount nthreads )
   }
 }
 
-void NC::FactoryThreadPool::queue( std::function<void()> job )
+void NC::FactoryThreadPool::queue( voidfct_t job )
 {
   detail::getTP().queue( std::move(job) );
 }

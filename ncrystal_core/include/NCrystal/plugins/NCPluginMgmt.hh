@@ -62,7 +62,7 @@ namespace NCRYSTAL_NAMESPACE {
     //Load plugins (returns the resulting plugin info):
     NCRYSTAL_API PluginInfo loadDynamicPlugin( std::string path_to_shared_lib );
     NCRYSTAL_API PluginInfo loadBuiltinPlugin( std::string pluginName,
-                                               std::function<void()> regfct );
+                                               voidfct_t regfct );
 
     //Query loaded plugins:
     NCRYSTAL_API std::vector<PluginInfo> loadedPlugins();

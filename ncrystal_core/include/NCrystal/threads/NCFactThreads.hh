@@ -60,7 +60,7 @@ namespace NCRYSTAL_NAMESPACE {
 
     //Schedule a job to be run. If a thread-pool was not enabled, the job will
     //simply be run immediately in the current thread.
-    NCRYSTAL_API void queue( std::function<void()> );
+    NCRYSTAL_API void queue( voidfct_t );
 
   }
 }
@@ -72,7 +72,6 @@ namespace NCRYSTAL_NAMESPACE {
   namespace FactoryThreadPool {
     namespace detail {
       struct NCRYSTAL_API FactoryJobsHandler {
-        using voidfct_t = std::function<void()>;
         std::function<void(voidfct_t)> jobQueueFct;
         std::function<voidfct_t()> getPendingJobFct;
       };

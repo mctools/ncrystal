@@ -541,6 +541,8 @@ namespace NCRYSTAL_NAMESPACE {
   template <class TMap, class ... Args>
   void nc_map_force_emplace( TMap&, const typename TMap::key_type&, Args&&... );
 
+  //Convenience:
+  using voidfct_t = std::function<void()>;
 
   //isOneOf: To test an argument against multiple values, e.g. write
   //isOneOf(a,"foo","bar","foobar) instead of

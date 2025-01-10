@@ -28,7 +28,7 @@ namespace NC = NCrystal;
 namespace NCRYSTAL_NAMESPACE {
   namespace {
     static std::mutex s_cacheCleanerMutex;
-    static std::vector<std::function<void()>> s_cacheCleanerMutexFcts;
+    static std::vector<voidfct_t> s_cacheCleanerMutexFcts;
   }
 }
 
@@ -39,7 +39,7 @@ void NC::clearCaches()
     f();
 }
 
-void NC::registerCacheCleanupFunction( std::function<void()> f )
+void NC::registerCacheCleanupFunction( voidfct_t f )
 {
   NCRYSTAL_LOCK_GUARD(s_cacheCleanerMutex);
   s_cacheCleanerMutexFcts.emplace_back(f);

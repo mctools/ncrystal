@@ -75,9 +75,6 @@ def test2():
                   '/some/where/../bla.txt',
                   'some/where/../bla.txt',
                   '../bla.txt',
-                  #FIXME: What about '/some/where/../bla.txt'? Should be
-                  #'/some/bla.txt'. But '../bla.txt' should keep the relative
-                  #path.
                   '/test/bla/'#pathlib.Path(..).name is 'bla' but
                               #os.path.basename is ''
                  ]

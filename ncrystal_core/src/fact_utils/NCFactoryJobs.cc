@@ -33,7 +33,7 @@ NC::FactoryJobs::~FactoryJobs() = default;
 NC::FactoryJobs::FactoryJobs() = default;
 void NC::FactoryJobs::queueMT( voidfct_t ) {}
 void NC::FactoryJobs::waitAllMT() {}
-NC::FactoryJobs::voidfct_t NC::FactoryJobs::getGloballyPendingJob()
+NC::voidfct_t NC::FactoryJobs::getGloballyPendingJob()
 {
   return {};
 }
@@ -99,7 +99,7 @@ void NC::FactoryJobs::waitAllMT()
     //inside the thread pool and thus consuming a thread already), let us
     //process a job from the thread pool, and then check again.
     nc_assert(m_mt->m_get_pending_job_fct);
-    std::function<void()> job = m_mt->m_get_pending_job_fct();
+    voidfct_t job = m_mt->m_get_pending_job_fct();
     if (job) {
       job();
       continue;
@@ -116,7 +116,7 @@ void NC::FactoryJobs::waitAllMT()
   }
 }
 
-NC::FactoryJobs::voidfct_t NC::FactoryJobs::getGloballyPendingJob()
+NC::voidfct_t NC::FactoryJobs::getGloballyPendingJob()
 {
   voidfct_t job;
   auto fjh = FactoryThreadPool::detail::getFactoryJobsHandler();

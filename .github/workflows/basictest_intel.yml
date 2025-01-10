@@ -137,8 +137,6 @@ jobs:
 
         test -f $(ncrystal-config --show libpath)
         test -d $(ncrystal-config --show libdir)
-        #FIXME: Why is this next line needed?!?
-        #export LD_LIBRARY_PATH="$(ncrystal-config --show libdir):${LD_LIBRARY_PATH:-}"
 
         #NOTE: Important that build flags comes AFTER the code being
         #compiled. Otherwise ncrystal symbols will be initially ignored, leading

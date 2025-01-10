@@ -133,9 +133,5 @@ def main():
                quiet = True
                )
 
-    #FIXME: It would be useful with a test that we can actually compile the
-    #output (but... we do use the functionality for embedding). Perhaps we need
-    #a special/dedicated CTest?
-
 if __name__ == '__main__':
     main()

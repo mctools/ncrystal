@@ -541,7 +541,7 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
   PairDD best = { kInfinity, 0.0 };
 
   while ( true ) {
-    nc_assert_always(k >= 1.0 );//fixme: cleanup asserts after debugging
+    nc_assert(k >= 1.0 );
     const double oldEmaxMinusEminDivEmin_mult_k = oldEmaxMinusEminDivEmin * k;
     const double m = std::floor(oldEmaxMinusEminDivEmin_mult_k);
     if ( m < 1.0 ) {
@@ -552,7 +552,7 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
     }
     const double binwidth = emin / k;
     double eps = oldEmaxMinusEmin - (m*binwidth);
-    nc_assert_always( eps >= -oldEmaxMinusEmin*1e-10 );
+    nc_assert( eps >= -oldEmaxMinusEmin*1e-10 );
     eps = ncmax(0.0, eps );
 
     const double kbest = best.second;
@@ -609,7 +609,7 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
     ++new_npts;
     new_emax = emin + new_binwidth * ( new_npts - 1 );
   }
-  nc_assert ( new_emax >= oldEmax);
+  nc_assert( new_emax >= oldEmax);
   if ( extra_verbose )
     NCRYSTAL_MSG("regulariseVDOSGrid new binwidth="
                  <<fmt(new_binwidth,"%.14g")
@@ -629,7 +629,7 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
   VectD newDensity;
   newDensity.reserve(new_npts);
   double orig_egrid_inverse_binwidth = 0.0;//0.0 means N/A
-  if ( orig_egrid.size() == 2 )// fixme: also use isLinearlySpacedGrid??
+  if ( orig_egrid.size() == 2 )//todo: also use isLinearlySpacedGrid??
     orig_egrid_inverse_binwidth = ( ( orig_density.size() - 1.0 )
                                     / (orig_egrid.back()-orig_egrid.front()) );
 

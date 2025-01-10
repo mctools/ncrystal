@@ -53,6 +53,11 @@ namespace {
     if ( buflen != str.buflen )
       throw std::runtime_error("Buflen check failed (not owned)");
   }
+  void require_true( bool val )
+  {
+    if ( !val )
+      throw std::runtime_error("Check failed");
+  }
   void cleanup( NC::mcu8str& str )
   {
     NC::mcu8str_dealloc( &str );
@@ -218,7 +223,12 @@ int main() {
   (void)s_never_cleaned;
   (void)s_never_cleaned2;
 
-  //FIXME: test mcu8str_is_ascii
+  {
+    auto s_ascii = NC::mcu8str_view_cstr("sdfsdf 4343 534 5<>!\n\t");
+    auto s_notascii = NC::mcu8str_view_cstr("sdfsdf 4343 534 5\xf0");
+    require_true(NC::mcu8str_is_ascii(&s_ascii));
+    require_true(!NC::mcu8str_is_ascii(&s_notascii));
+  }
 
   return 0;
 }

@@ -51,7 +51,6 @@ namespace NCRYSTAL_NAMESPACE {
 
     //Either run job fct immediately, or dispatch to an MT queue, as
     //appropriate:
-    using voidfct_t = std::function<void()>;
     void queue( voidfct_t job )
     {
       if ( isMT() )

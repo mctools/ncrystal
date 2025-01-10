@@ -26,8 +26,8 @@ NC::ThreadPool::ThreadPool::ThreadPool() = default;
 #ifdef NCRYSTAL_DISABLE_THREADS
 
 void NC::ThreadPool::ThreadPool::changeNumberOfThreads(unsigned) {}
-void NC::ThreadPool::ThreadPool::queue( std::function<void()> job) { job(); }
-std::function<void()> NC::ThreadPool::ThreadPool::getPendingJob() { return {}; }
+void NC::ThreadPool::ThreadPool::queue( voidfct_t job) { job(); }
+NC::voidfct_t NC::ThreadPool::ThreadPool::getPendingJob() { return {}; }
 NC::ThreadPool::ThreadPool::~ThreadPool() {}
 
 #else
@@ -63,12 +63,12 @@ void NC::ThreadPool::ThreadPool::changeNumberOfThreads( unsigned nthreads )
   }
 }
 
-std::function<void()> NC::ThreadPool::ThreadPool::getPendingJob()
+NC::voidfct_t NC::ThreadPool::ThreadPool::getPendingJob()
 {
   std::unique_lock<std::mutex> lock(m_mutex);
   if ( m_jobqueue.empty() )
     return nullptr;
-  std::function<void()> job = m_jobqueue.front();
+  voidfct_t job = m_jobqueue.front();
   m_jobqueue.pop();
   //NB: Not notifying anyone via m_condvar since we *removed* a job.
   return job;
@@ -99,7 +99,7 @@ void NC::ThreadPool::ThreadPool::threadWorkFct()
     //Wait for more jobs to be available in the queue OR m_threads_should_end to
     //be set. Note that we want our queue to always run all jobs, even if we are
     //trying to end all threads.
-    std::function<void()> job;
+    voidfct_t job;
     std::unique_lock<std::mutex> lock(m_mutex);
     m_condvar.wait( lock, [this]
     {
@@ -118,7 +118,7 @@ void NC::ThreadPool::ThreadPool::threadWorkFct()
   }
 }
 
-void NC::ThreadPool::ThreadPool::queue(std::function<void()> job)
+void NC::ThreadPool::ThreadPool::queue(voidfct_t job)
 {
   {
     std::unique_lock<std::mutex> lock(m_mutex);

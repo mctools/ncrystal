@@ -74,7 +74,7 @@ def do_replace( fromstr, tostr,
         if not replacement_lines:
             continue
         #At least one hit in the file!
-        content = f.read_text().splitlines()#fixme: deal with binary files
+        content = f.read_text().splitlines()#todo: deal with binary files
                                             #(unicodedecodeerror).
         n = 0
         for i in range(len(content)):

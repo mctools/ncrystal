@@ -50,10 +50,11 @@ namespace {
       return;
 
     //protect against secondary SIGFPE's:
-    static bool inHandler = false;//fixme atomic_bool!
-    if ( inHandler )
+    //Only on first call (to protect against secondary SIGFPE's):
+    static std::atomic<bool> first(true);
+    bool btrue(true);
+    if ( !first.compare_exchange_strong(btrue,false) )
       return;
-    inHandler = true;
 
     //flush pending output:
     std::cout.flush();

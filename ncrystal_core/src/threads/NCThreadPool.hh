@@ -40,18 +40,18 @@ namespace NCRYSTAL_NAMESPACE {
       ~ThreadPool();
 
       void changeNumberOfThreads( unsigned nthreads = 0 );
-      void queue( std::function<void()> );
+      void queue( voidfct_t );
 
       //To avoid deadlocks in case of recursive usage of the thread pool (jobs
       //queueing new jobs and waiting for them to finish), a thread might wish
       //to "help out" by running any pending jobs (returns an empty function if
       //there are no pending jobs). This requires very careful usage.
-      std::function<void()> getPendingJob();
+      voidfct_t getPendingJob();
 
 #ifndef NCRYSTAL_DISABLE_THREADS
     private:
       std::vector<std::thread> m_threads;
-      std::queue<std::function<void()>> m_jobqueue;
+      std::queue<voidfct_t> m_jobqueue;
       std::mutex m_mutex;
       std::condition_variable m_condvar;
       bool m_threads_should_end = true;
