@@ -104,7 +104,7 @@ function( mctools_testutils_add_tests_pyscripts scriptsdir envmod )
   endforeach()
 endfunction()
 
-#Fixme: a project with both mcpl and ncrystal subdirs would perhaps get a name
+#NB: a project with both mcpl and ncrystal subdirs would perhaps get a name
 #clash here? (of course in this particular case, that would be a feature)
 set_property(GLOBAL PROPERTY mctools_testutils_internal_pydepspresent "")
 set_property(GLOBAL PROPERTY mctools_testutils_internal_pydepsabsent "")

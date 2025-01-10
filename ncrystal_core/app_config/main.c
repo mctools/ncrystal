@@ -333,20 +333,19 @@ mcu8str nccfg_show_item_lookup( nccfgstate* state,
     int val = -1;
     if ( NCCFG_STREQUALCONST(item,"has_data") )
       val = nccfg_boolopt_data();
-    //fixme: else if
-    if ( NCCFG_STREQUALCONST(item,"has_dynamic_plugins") )
+    else if ( NCCFG_STREQUALCONST(item,"has_dynamic_plugins") )
       val = nccfg_boolopt_dynamic_plugins();
-    if ( NCCFG_STREQUALCONST(item,"has_embed_data") )
+    else if ( NCCFG_STREQUALCONST(item,"has_embed_data") )
       val = nccfg_boolopt_embed_data();
-    if ( NCCFG_STREQUALCONST(item,"has_examples") )
+    else if ( NCCFG_STREQUALCONST(item,"has_examples") )
       val = nccfg_boolopt_examples();
-    //if ( NCCFG_STREQUALCONST(item,"has_g4hooks") )
+    //else if ( NCCFG_STREQUALCONST(item,"has_g4hooks") )
     //  val = nccfg_boolopt_g4hooks();
-    if ( NCCFG_STREQUALCONST(item,"has_modify_rpath") )
+    else if ( NCCFG_STREQUALCONST(item,"has_modify_rpath") )
       val = nccfg_boolopt_modify_rpath();
-    if ( NCCFG_STREQUALCONST(item,"has_threads") )
+    else if ( NCCFG_STREQUALCONST(item,"has_threads") )
       val = nccfg_boolopt_threads();
-    if ( val != -1 )
+    else if ( val != -1 )
       return nccfg_bool2str( val );
   }
 

@@ -43,7 +43,7 @@ def test_cli( args, *, nstart = 30, nend = 20,
         if outfile not in ('stdout',None):
             content = pathlib.Path(outfile).read_text()
             print_text_file_with_snipping( content,
-                                           nstart=nstart,#FIXME
+                                           nstart=nstart,
                                            nend=nend,
                                            prefix='OUTFILE>')
     print('='*len(hr))
