@@ -353,13 +353,13 @@ class Info(RCBase):
 
     def __initPhases(self):
         assert self._phases is None and self._nphases > 1
-        l=[]
+        ll=[]
         for i in range(self._nphases):
             fraction = _ctypes.c_double()
             ph_info_raw = _rawfct['ncrystal_info_getphase'](self._rawobj,i,fraction)
             ph_info = Info( ('_rawobj_',ph_info_raw) )
-            l.append( ( float(fraction.value), ph_info ) )
-        self._phases = tuple(l)
+            ll.append( ( float(fraction.value), ph_info ) )
+        self._phases = tuple(ll)
         return self._phases
 
     def getPhases(self):
@@ -372,22 +372,22 @@ class Info(RCBase):
     def _initComp(self):
         assert self.__comp is None
         nc = _rawfct['ncrystal_info_ncomponents'](self._rawobj)
-        l = []
+        ll = []
         for icomp in range(nc):
             atomidx,fraction = _rawfct['ncrystal_info_getcomp'](self._rawobj,icomp)
             #NB: atomidx will be invalid in case of multiphase objects!
             if atomidx < 65535:
                 #Most likely a single-phase object with valid atomidx, we can
                 #use self._provideAtomData and share the AtomData objects also here on the python side:
-                l += [(fraction,self._provideAtomData(atomidx))]
+                ll += [(fraction,self._provideAtomData(atomidx))]
             else:
                 #Most likely a multi-phase object with invalid atomidx, we must
                 #create new AtomData objects, based on ncrystal_create_component_atomdata:
                 raw_ad = _rawfct['ncrystal_create_component_atomdata'](self._rawobj,icomp)
                 obj = AtomData(raw_ad)
                 assert not obj.isTopLevel()#does not appear directly on Info object
-                l += [(fraction,obj)]
-        self.__comp = l
+                ll += [(fraction,obj)]
+        self.__comp = ll
         return self.__comp
 
     def stateOfMatter(self):
@@ -700,13 +700,13 @@ class Info(RCBase):
             return self._atomidx
 
         def __str__(self):
-            l=[str(self.atomData.displayLabel()),str(self.__n)]
+            ll=[str(self.atomData.displayLabel()),str(self.__n)]
             if self.__dt>0.0:
-                l.append('DebyeT=%gK'%self.__dt if self.__dt else 'DebyeT=n/a')
+                ll.append('DebyeT=%gK'%self.__dt if self.__dt else 'DebyeT=n/a')
             if self.__msd>0.0:
-                l.append('MSD=%gAa^2'%self.__msd if self.__msd else 'MSD=n/a')
-            l.append('hasPositions=%s'%('yes' if self.__pos else 'no'))
-            return 'AtomInfo(%s)'%(', '.join(l))
+                ll.append('MSD=%gAa^2'%self.__msd if self.__msd else 'MSD=n/a')
+            ll.append('hasPositions=%s'%('yes' if self.__pos else 'no'))
+            return 'AtomInfo(%s)'%(', '.join(ll))
 
     def hasAtomInfo(self):
         """Whether or no getAtomInfo()/atominfos are available"""
@@ -751,7 +751,7 @@ class Info(RCBase):
         natoms = _rawfct['ncrystal_info_natominfo'](self._rawobj)
         hasmsd = bool(_rawfct['ncrystal_info_hasatommsd'](self._rawobj))
         hasperelemdt=False
-        l=[]
+        ll=[]
         self_weakref = _weakref.ref(self)
         for iatom in range(natoms):
             atomidx,n,dt,msd = _rawfct['ncrystal_info_getatominfo'](self._rawobj,iatom)
@@ -761,11 +761,11 @@ class Info(RCBase):
             pos=[]
             for ipos in range(n):
                 pos.append( _rawfct['ncrystal_info_getatompos'](self._rawobj,iatom,ipos) )
-            l.append( Info.AtomInfo( self_weakref,atomidx, n,
-                                    ( dt if ( dt and  dt>0.0) else None),
-                                    (msd if (msd and msd>0.0) else None),
-                                    pos) )
-        self.__atominfo = ( natoms>0, hasmsd, l, hasperelemdt )
+            ll.append( Info.AtomInfo( self_weakref,atomidx, n,
+                                      ( dt if ( dt and  dt>0.0) else None),
+                                      (msd if (msd and msd>0.0) else None),
+                                     pos) )
+        self.__atominfo = ( natoms>0, hasmsd, ll, hasperelemdt )
 
     def hasHKLInfo(self):
         """Whether or not material has lists of HKL-plane info available"""
@@ -834,7 +834,7 @@ class Info(RCBase):
         """Returns True if .hklInfoType() equals HKLInfoType.SymEqvGroup."""
         return self.hklInfoType() == HKLInfoType.SymEqvGroup
 
-    def dspacingFromHKL(self, h, k, l):
+    def dspacingFromHKL(self, h, k, l): # noqa E741
         """Convenience method, calculating the d-spacing of a given Miller
         index. Calling this incurs the overhead of creating a reciprocal lattice
         matrix from the structure info."""
@@ -1160,7 +1160,7 @@ class Info(RCBase):
     def getDynamicInfoList(self):
         """Get list of DynamicInfo objects (if available). One for each atom."""
         if self.__dyninfo is None:
-            l = []
+            ll = []
             self_weakref = _weakref.ref(self)
             for idx in range(int(_rawfct['ncrystal_info_ndyninfo'](self._rawobj))):
                 fr,tt,atomidx,ditype = _rawfct['ncrystal_dyninfo_base']((self._rawobj,idx))
@@ -1177,8 +1177,8 @@ class Info(RCBase):
                     di = Info.DI_VDOSDebye(*args)
                 else:
                     raise NCLogicError('Unknown DynInfo type id (%i)'%ditype.value)
-                l.append( di )
-            self.__dyninfo = l
+                ll.append( di )
+            self.__dyninfo = ll
         return self.__dyninfo
     dyninfos = property(getDynamicInfoList)
 
@@ -1320,19 +1320,19 @@ class Process(RCBase):
         #short printable:
         if short == 'printable':
             toplbl,comps=self.getSummary(short=True)
-            l=[ toplbl]
+            ll=[ toplbl]
             def add_lines( comps, indentlvl = 1 ):
                 ncomps = len(comps)
                 prefix = '   '*indentlvl
                 for i,(scale,(lbl,subcomps)) in enumerate(comps):
                     smb = r'\--' if i+1==ncomps else '|--'
                     scale_str = '' if scale==1.0 else f'{scale:g} * '
-                    l.append(f'{prefix}{smb} {scale_str}{lbl}')
+                    ll.append(f'{prefix}{smb} {scale_str}{lbl}')
                     if subcomps:
                         add_lines( subcomps, indentlvl + 1 )
             if comps:
                 add_lines( comps )
-            return l
+            return ll
 
         d=_rawfct['nc_dbg_proc'](self._rawobj)
         #full:
@@ -1797,14 +1797,14 @@ class TextData:
 
     def __init__(self,name):
         """create TextData object based on string (same as using createTextData(name))"""
-        l=_rawfct['nc_gettextdata'](name)
-        assert len(l)==5
-        self.__rd = l[0]
-        self.__uid = int(l[1])
-        self.__dsn = l[2]
-        self.__datatype= l[3]
+        ll=_rawfct['nc_gettextdata'](name)
+        assert len(ll)==5
+        self.__rd = ll[0]
+        self.__uid = int(ll[1])
+        self.__dsn = ll[2]
+        self.__datatype= ll[3]
         import pathlib
-        self.__rp = pathlib.Path(l[4]) if l[4] else None
+        self.__rp = pathlib.Path(ll[4]) if ll[4] else None
 
     @property
     def uid(self):
@@ -1866,8 +1866,8 @@ class TextData:
         from io import StringIO
         def chomp(x):
             return x[:-2] if x.endswith('\r\n') else (x[:-1] if x.endswith('\n') else x)
-        for l in StringIO(self.__rd):
-            yield chomp(l)
+        for e in StringIO(self.__rd):
+            yield chomp(e)
 
 def createTextData(name):
     """creates TextData objects based on requested name"""

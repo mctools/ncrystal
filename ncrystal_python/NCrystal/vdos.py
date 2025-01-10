@@ -310,9 +310,9 @@ class PhononDOSAnalyser:
         idx = self.__dosidx( old_label_or_idx )
         o = self.__clone()
         dl = list(o.__d['doslist'])
-        l = list(dl[idx])
-        l[0] = str(newlabel)
-        dl[idx] = tuple(l)
+        ll = list(dl[idx])
+        ll[0] = str(newlabel)
+        dl[idx] = tuple(ll)
         o.__d['doslist'] = tuple(dl)
         return o
 
@@ -716,17 +716,17 @@ class PhononDOSAnalyser:
 
     def __dosidx( self, label_or_idx ):
         import numbers
-        l = self.__d['doslist']
+        ll = self.__d['doslist']
         if isinstance(label_or_idx,numbers.Integral):
             i = int( label_or_idx )
-            if not 0 <= i < len(l):
+            if not 0 <= i < len(ll):
                 from .exceptions import NCBadInput
-                raise NCBadInput('Index out of range (%i is not in range 0..%i'%(i,len(l)-1))
+                raise NCBadInput('Index out of range (%i is not in range 0..%i'%(i,len(ll)-1))
             return i
-        _ = [i for i,(lbl,_,_) in enumerate(l) if lbl == label_or_idx ]
+        _ = [i for i,(lbl,_,_) in enumerate(ll) if lbl == label_or_idx ]
         if not _:
             from .exceptions import NCBadInput
-            _ = '","'.join(lbl for lbl,_,_ in l)
+            _ = '","'.join(lbl for lbl,_,_ in ll)
             raise NCBadInput('Invalid label "%s" (available labels are "%s")'%(label_or_idx,_))
         assert len(_) == 1
         return _[0]
@@ -735,12 +735,12 @@ class PhononDOSAnalyser:
         if not dos_labels_or_indices:
             return list( range( self.ndos ) ) if default_is_all else []
         res = []
-        for l in dos_labels_or_indices:
-            if not hasattr(l,'__len__') or hasattr(l,'startswith'):
+        for ll in dos_labels_or_indices:
+            if not hasattr(ll,'__len__') or hasattr(ll,'startswith'):
                 #single item
-                res.append( self.__dosidx( l ) )
+                res.append( self.__dosidx( ll ) )
             else:
-                res += [ self.__dosidx( e ) for e in l ]
+                res += [ self.__dosidx( e ) for e in ll ]
         return res
 
     def __sjolanderGn_args( self, selected, n=1, masses = None, temperature = 293.15 ):
@@ -884,7 +884,8 @@ class PhononDOSAnalyser:
             #use provided lblmap, but with a few sanity checks:
             composer_lbls = ncmatcomposer.get_labels()
             missing = set(lblmap.values()).difference(composer_lbls)
-            fmtlabellist = lambda l : ( '"%s"'%('", "'.join(l)) if l else '' )
+            def fmtlabellist(lbls):
+                return ( '"%s"'%('", "'.join(lbls)) if lbls else '' )
             if missing:
                 raise NCBadInput('Some values in lblmap are not present in provided'
                                  f' NCMATComposer object: {fmtlabellist(missing)} (the'
@@ -909,13 +910,13 @@ def _read_quantumespresso( raw_text_data ):
 
     def _get_header():
         out=[]
-        for l in _data_lines:
-            l = l.strip()
-            if not l:
+        for ll in _data_lines:
+            ll = ll.strip()
+            if not ll:
                 continue
-            if not l.startswith('#'):
+            if not ll.startswith('#'):
                 break
-            out.append( ' '.join(l[1:].split()) )
+            out.append( ' '.join(ll[1:].split()) )
         return out
 
     hdr = _get_header()

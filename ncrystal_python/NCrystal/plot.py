@@ -173,7 +173,7 @@ def plot_xsects( *materials, **plotkwargs ):
     col_ordered = _get_col_ordered()
     for i,m in enumerate(mats):
         plotkwargs['color'] = col_ordered[i%len(col_ordered)]
-        plotkwargs['labelfct'] = lambda l : m.plotlabel
+        plotkwargs['labelfct'] = lambda _ : m.plotlabel
         if i+1 == len(mats):
             #the last:
             plotkwargs['logy'] = do['logy']
@@ -205,12 +205,12 @@ def plot_vdos( *vdos, unit='meV',
 
     vdoslist = [ ( nc_misc.AnyVDOS(v),False) for v in vdos ]
     if show_orig_data:
-        l=[]
+        ll=[]
         for v,_ in vdoslist:
-            l.append( (v, False ) )
+            ll.append( (v, False ) )
             if v.has_orig:
-                l.append( (v, True ) )
-        vdoslist = l
+                ll.append( (v, True ) )
+        vdoslist = ll
 
     plt = _import_matplotlib_plt()
     if do_newfig:
@@ -471,9 +471,9 @@ def _import_matplotlib_pdfpages():
 def _find_highest_bragg_edge( info ):
     if info.isSinglePhase():
         return info.braggthreshold
-    l = [_find_highest_bragg_edge(p) for frac,p in info.phases]
-    l = [e for e in l if e]
-    return max(l) if l else None
+    ll = [_find_highest_bragg_edge(p) for frac,p in info.phases]
+    ll = [e for e in ll if e]
+    return max(ll) if ll else None
 
 def _estimate_longest_interesting_wavelength( info ):
     #longest wavelength of interest in material, for the purpose of plotting. In

@@ -159,13 +159,13 @@ def knownElementNames():
     values. The elements are ordered by increasing Z value. See also
     allElementNames()."""
     if __all_known_element_names[0] is None:
-        l=[]
+        ll=[]
         for a in iterateAtomDB():
             if a.isNaturalElement():
-                l.append( (a.Z(),a.elementName()) )
-        l = tuple( name for z,name in sorted(l) )
-        __all_known_element_names[0] = l
-        __all_known_element_names[1] = frozenset(l)
+                ll.append( (a.Z(),a.elementName()) )
+        ll = tuple( name for z,name in sorted(ll) )
+        __all_known_element_names[0] = ll
+        __all_known_element_names[1] = frozenset(ll)
     return __all_known_element_names[0]
 
 def isKnownElement( label ):

@@ -142,15 +142,15 @@ class FileListEntry:
         return '%s::%s'%(self.__f,self.__n)
 
     def __str__(self):
-        l=[]
+        ll=[]
         if self.__n:
-            l+=['name=%s'%self.__n]
+            ll+=['name=%s'%self.__n]
         if self.__s:
-            l+=['source=%s'%self.__s]
+            ll+=['source=%s'%self.__s]
         if self.__f:
-            l+=['factory=%s'%self.__f]
-        l+=['priority=%s'%self.__p]
-        return 'FileListEntry(%s)'%(', '.join(l))
+            ll+=['factory=%s'%self.__f]
+        ll+=['priority=%s'%self.__p]
+        return 'FileListEntry(%s)'%(', '.join(ll))
 
     def __lt__(self, other):
         if not isinstance(other, FileListEntry):

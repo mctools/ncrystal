@@ -125,10 +125,10 @@ def _actualtest( verbose ):
                      1  : (2, 0, 0, 6, 2.02479, 1.7317882793764163),
                      2  : (2, 2, 0, 12, 1.4317427394787092, 1.5757351418107877) }
     for idx,hkl in enumerate(al.hklList()):
-        h,k,l,mult,dsp,fsq = hkl
+        h,k,l_,mult,dsp,fsq = hkl
         require(idx<len(expected_hkl))
         e = expected_hkl[idx]
-        require( list(e)[0:4] == [h,k,l,mult] )
+        require( list(e)[0:4] == [h,k,l_,mult] )
         require_flteq(dsp, e[4])
         require_flteq(fsq, e[5])
 
@@ -334,9 +334,9 @@ def _fmtcall(fctname,args=tuple(),kwargs={}):
                 s = ' object at SNIPADDR'.join(_)
             return s
         return 'Object[%s]'%a.name if isinstance(a,CallInspector) else pruneaddr(repr(a))
-    l = [ _fmt(a) for a in args ]
-    l += [ '%s=%s'%(k,_fmt(v)) for k,v in sorted(kwargs.items()) ]
-    a=','.join(l)
+    ll = [ _fmt(a) for a in args ]
+    ll += [ '%s=%s'%(k,_fmt(v)) for k,v in sorted(kwargs.items()) ]
+    a=','.join(ll)
     return f'{fctname}({a})'
 
 def _create_pyplot_inspector( pass_calls_to_real_plt ):
@@ -494,11 +494,11 @@ def _actual_test_cmake( verbose = False, ignore_if_absent = False ):
         entry = quote(((entry.decode() if hasattr(entry,'decode') else entry) or '').strip())
         if not entry:
             return
-        l = [ entry ]
+        ll = [ entry ]
         orig = envdict.get(pathvar,'')
         if orig:
-            l.append( orig )
-        envdict[pathvar] = ':'.join(l)
+            ll.append( orig )
+        envdict[pathvar] = ':'.join(ll)
 
     import os
     cmake_env = os.environ.copy()

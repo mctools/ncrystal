@@ -19,8 +19,6 @@
 ##                                                                            ##
 ################################################################################
 
-#Fixme: currently fails for a lot of files!
-
 def do_check( files, allowed_file_hdr_list, *,
               allow_include_guards_if_hdr = False ):
 

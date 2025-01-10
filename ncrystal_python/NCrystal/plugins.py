@@ -38,12 +38,12 @@ def browsePlugins(dump=False):
     will be printed to stdout.
     """
     from ._chooks import _get_raw_cfcts
-    l=_get_raw_cfcts()['ncrystal_get_pluginlist']()
+    ll=_get_raw_cfcts()['ncrystal_get_pluginlist']()
     if not dump:
-        return l
+        return ll
     from ._common import print
-    print('NCrystal has %i plugins loaded.'%len(l))
-    for i in range(len(l)):
-        pluginname, filename, plugintype = l[i]
+    print('NCrystal has %i plugins loaded.'%len(ll))
+    for i in range(len(ll)):
+        pluginname, filename, plugintype = ll[i]
         print('==> %s (%s%s)'%(pluginname,plugintype,
                              ' from %s'%filename if filename else ''))

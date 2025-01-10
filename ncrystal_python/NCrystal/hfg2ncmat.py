@@ -193,8 +193,8 @@ contribution from hydrogen atoms (unless verbose=False).
     appname='ncrystal_hfg2ncmat'
 
     initial_comments='#\n'
-    for l in title.replace('\\n','\n').splitlines():
-        initial_comments+= f'# {l}\n' if l.strip() else '#\n'
+    for ll in title.replace('\\n','\n').splitlines():
+        initial_comments+= f'# {ll}\n' if ll.strip() else '#\n'
     initial_comments+='#'
 
     recordargs=[ f'--spec={spec}',

@@ -46,28 +46,28 @@ def _np_linspace(start,stop,num=50):
     """linspace with reproducible endpoint value"""
     _ensure_numpy()
     assert num >= 2
-    l = _np.linspace(start,stop,num)
-    l[0] = start
-    l[-1] = stop
-    return l
+    ll = _np.linspace(start,stop,num)
+    ll[0] = start
+    ll[-1] = stop
+    return ll
 
 def _np_geomspace(start,stop,num=50):
     """geomspace with reproducible endpoint value"""
     _ensure_numpy()
     assert num >= 2
-    l = _np.geomspace(start,stop,num)
-    l[0] = start
-    l[-1] = stop
-    return l
+    ll = _np.geomspace(start,stop,num)
+    ll[0] = start
+    ll[-1] = stop
+    return ll
 
 def _np_logspace(start,stop,num=50):
     """logspace with reproducible endpoint value"""
     _ensure_numpy()
     assert num >= 2
-    l = _np.logspace(start,stop,num)
-    l[0] = 10.0**start
-    l[-1] = 10.0**stop
-    return l
+    ll = _np.logspace(start,stop,num)
+    ll[0] = 10.0**start
+    ll[-1] = 10.0**stop
+    return ll
 
 def _np_trapezoid( *args, **kwargs ):
     _ensure_numpy()

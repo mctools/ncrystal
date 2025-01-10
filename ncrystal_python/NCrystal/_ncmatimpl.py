@@ -314,12 +314,14 @@ class NCMATComposerImpl:
                 z = _name2z(name)
                 if z:
                     yield z
-        l = []
+        ll = []
         for lbl in self.get_labels():
             if any( search_Z == z for z in lbl_zval_iter(lbl) ):
-                l.append( lbl )
+                ll.append( lbl )
 
-        return list(sorted(l)) if allow_multi else ( l[0] if len(l)==1 else None )
+        return ( list(sorted(ll))
+                 if allow_multi
+                 else ( ll[0] if len(ll)==1 else None ) )
 
     def get_state_of_matter( self ):
         return self.__params.get('state_of_matter')
@@ -404,7 +406,7 @@ class NCMATComposerImpl:
 
     def add_comments( self, comments, add_empty_line_divider ):
         is_str = isinstance(comments,str) or hasattr(comments,'split')
-        l = comments if not is_str else list(comments.splitlines())
+        ll = comments if not is_str else list(comments.splitlines())
 
         self.__dirty()#not strictly needed as comments do not affect loading
 
@@ -415,7 +417,7 @@ class NCMATComposerImpl:
                and self.__params['top_comments'][-1] ):
             self.__params['top_comments'].append('')
 
-        for e in l:
+        for e in ll:
             self.__params['top_comments'].append( self.__prunecomment(e) )
 
     def __prunecomment(self,c):
@@ -480,7 +482,7 @@ class NCMATComposerImpl:
                 raise _nc_core.NCBadInput(f'Invalid lattice parameters for cubic spacegroup ({spacegroup}): a={_sa}, b={_sb}, c={_sc}')
             if not ( c['alpha']==90 and c['beta']==90 and c['gamma']==90 ):
                 raise _nc_core.NCBadInput(f"Invalid lattice angles for cubic spacegroup ({spacegroup}): alpha={c['alpha']}, beta={c['beta']}, gamma={c['gamma']}")
-            l = f"""
+            ll = f"""
             @CELL
             cubic {_sa}
             """
@@ -492,17 +494,17 @@ class NCMATComposerImpl:
             elif _sb == _sc:
                 _sc = '!!'
 
-            l = f"""
+            ll = f"""
             @CELL
             lengths {_sa} {_sb} {_sc}
             angles {c['alpha']:g} {c['beta']:g} {c['gamma']:g}
             """
         if spacegroup:
-            l+=f"""
+            ll+=f"""
             @SPACEGROUP
             {spacegroup}
             """
-        return l
+        return ll
 
     def __add_dyninfo( self, label, fraction, dyninfo ):
         _checklabel(label)
@@ -691,16 +693,18 @@ class NCMATComposerImpl:
                                                 #Could we have spacegroup_hm as
                                                 #optional field in the cellsg
                                                 #array?
-            l = []
+            ll = []
             for pos, atomidx in zip(d['refined_cell'][1],d['refined_cell'][2]):
                 lbl = spglib_idx2lbl[atomidx]
-                l.append( (lbl,
+                ll.append( (lbl,
                            _remap_fract_pos(pos[0]),
                            _remap_fract_pos(pos[1]),
                            _remap_fract_pos(pos[2]) ) )
-            l.sort()
-            new_atompos = dict( (k,copy.deepcopy(v)) for k,v in atompos.items() if k!='pos' )
-            new_atompos['pos'] = l
+            ll.sort()
+            new_atompos = dict( (k,copy.deepcopy(v))
+                                for k,v in atompos.items()
+                                if k!='pos' )
+            new_atompos['pos'] = ll
             self.__dirty()
             self.__params['cellsg'] = new_cellsg
             self.__params['atompos'] = new_atompos
@@ -755,7 +759,7 @@ class NCMATComposerImpl:
     def __lines_atompos(self, lbl_map, atompos ):
         if not atompos:
             return ''
-        l=[]
+        ll=[]
         fmt = _nc_common.prettyFmtValue
         #NB: We sort on the val->string->val values, not the original
         #values. Because otherwise we get irreproducibilities when in
@@ -769,10 +773,12 @@ class NCMATComposerImpl:
             return float(p[0]) / float(p[1])
         for lbl,x,y,z in atompos['pos']:
             fx,fy,fz = fmt(x), fmt(y), fmt(z)
-            l.append( ( lbl_map.get(lbl,lbl), extractval(fx), extractval(fy), extractval(fz), fx, fy, fz ) )
-        l.sort()
+            ll.append( ( lbl_map.get(lbl,lbl),
+                         extractval(fx), extractval(fy), extractval(fz),
+                         fx, fy, fz ) )
+        ll.sort()
         out="@ATOMPOSITIONS\n"
-        for lbl,_,_,_,fx,fy,fz in l:
+        for lbl,_,_,_,fx,fy,fz in ll:
             out += f'{lbl} {fx} {fy} {fz}\n'
         return out
 
@@ -954,18 +960,18 @@ class NCMATComposerImpl:
 
         compos = self.__params.get('compositions')
         occumap = atompos['occumap'] if atompos else None
-        l = []
+        ll = []
         for lbl, weight in _lbl_counts:
             c = compos.get(lbl) if compos else None
             _occufactor = occumap.get(lbl,1.0) if occumap else 1.0
             if not c:
                 assert _nc_common.check_elem_or_isotope_marker( lbl ) is not None
-                l.append( (lbl, weight * _occufactor ) )
+                ll.append( (lbl, weight * _occufactor ) )
             else:
                 for frac,elemisomarker in c:
-                    l.append( (elemisomarker, weight * frac * _occufactor ) )
+                    ll.append( (elemisomarker, weight * frac * _occufactor ) )
         d = {}
-        for k,v in l:
+        for k,v in ll:
             if k in d:
                 d[k] += v
             else:
@@ -1067,39 +1073,39 @@ class NCMATComposerImpl:
 
         lbl_map,atomdb_lines = determine_labels_and_atomdb( self.__params, fractions = fractions )
 
-        l  = self.__lines_cellsg( cellsg )
-        l += self.__lines_atompos( lbl_map, atompos )
+        ll  = self.__lines_cellsg( cellsg )
+        ll += self.__lines_atompos( lbl_map, atompos )
         if density:
             _dval,_dunit = density
             _ncmat_dunit = {'g/cm3': 'g_per_cm3',
                             'kg/m3': 'kg_per_m3',
                             'atoms/Aa3': 'atoms_per_aa3' }[_dunit]
-            l+=f'@DENSITY\n{_dval} {_ncmat_dunit}\n'
+            ll+=f'@DENSITY\n{_dval} {_ncmat_dunit}\n'
 
         som = self.get_state_of_matter()
         if som is not None:
             assert som in ('solid','liquid','gas')
-            l += f'@STATEOFMATTER\n{som}\n'
+            ll += f'@STATEOFMATTER\n{som}\n'
 
         _t = self.__params.get('temperature',None)
         _v = '%.14g'%_t['value'] if _t else None
         if _t and ( _t['lock'] or _v != '293.15' ):
-            l += '@TEMPERATURE\n'
+            ll += '@TEMPERATURE\n'
             if not _t['lock']:
-                l += 'default '
-            l += f'{_v}\n'
+                ll += 'default '
+            ll += f'{_v}\n'
 
 
         if atomdb_lines:
-            l += '@ATOMDB\n'
-            l += '\n'.join(atomdb_lines)
-            l += '\n'
+            ll += '@ATOMDB\n'
+            ll += '\n'.join(atomdb_lines)
+            ll += '\n'
 
         secondary_phases = self.__params.get('secondary_phases')
         if secondary_phases:
-            l += '@OTHERPHASES\n'
+            ll += '@OTHERPHASES\n'
             for frac,cfgstr in secondary_phases:
-                l += f'{frac} {cfgstr}\n'
+                ll += f'{frac} {cfgstr}\n'
 
         custom_hardspheresans = self.__params.get('custom_hardspheresans')
         if custom_hardspheresans:
@@ -1107,25 +1113,27 @@ class NCMATComposerImpl:
                 raise _nc_core.NCBadInput('Material with hard-sphere SANS'
                                           ' enabled must have at least one'
                                           ' secondary phase added.')
-            l += '@CUSTOM_HARDSPHERESANS\n'
-            l += f'{custom_hardspheresans} #sphere radius in angstrom.\n'
+            ll += '@CUSTOM_HARDSPHERESANS\n'
+            ll += f'{custom_hardspheresans} #sphere radius in angstrom.\n'
 
         unofficial_hacks = self.__params.get('unofficial_hacks')
         if unofficial_hacks:
-            l += '@CUSTOM_UNOFFICIALHACKS\n'
+            ll += '@CUSTOM_UNOFFICIALHACKS\n'
             for e in unofficial_hacks:
-                l += ' '.join(e)+'\n'
+                ll += ' '.join(e)+'\n'
 
         for sn,cnt in sorted(self.__params.get('custom_sections',{}).items()):
-            l += f'@CUSTOM_{sn}\n'
-            l += cnt
+            ll += f'@CUSTOM_{sn}\n'
+            ll += cnt
             if not cnt.endswith('\n'):
-                l += '\n'
+                ll += '\n'
 
         #Dyninfo lines last, since they might contain huge arrays of data, and
         #people might only look at the top of the file:
-        ld, natoms_with_fallback_dyninfo = self.__lines_dyninfo( lbl_map, atompos_fractions or fractions )
-        l += ld
+        ld, natoms_with_fallback_dyninfo = (
+            self.__lines_dyninfo( lbl_map, atompos_fractions or fractions )
+        )
+        ll += ld
 
         out=["NCMAT v7"]
         comments = copy.deepcopy(self.__params.get('top_comments',[]))
@@ -1135,7 +1143,9 @@ class NCMATComposerImpl:
             if comments and comments[-1]:
                 comments.append('')
             comments += ['WARNING: Fallback (dummy) Debye temperature %s used for '%_
-                         +'%i atom%s!'%(natoms_with_fallback_dyninfo,'s' if natoms_with_fallback_dyninfo>1 else ''),'']
+                         +'%i atom%s!'%(
+                             natoms_with_fallback_dyninfo,
+                             's' if natoms_with_fallback_dyninfo>1 else ''),'']
 
         if did_verify_xtal_struct:
             comments += ['NOTICE: crystal structure was verified with spglib to be self-consistent.']
@@ -1196,7 +1206,7 @@ class NCMATComposerImpl:
         if out and out[-1] != '#':
             out += [ '#' ]
 
-        for e in l.splitlines():
+        for e in ll.splitlines():
             e=e.strip()
             if e.startswith('@'):
                 out.append(e)
@@ -1305,15 +1315,17 @@ def calc_mass( label, composition ):
         from .atomdata import atomDB
         return atomDB( composition[0][1] ).averageMassAMU()
     else:
-        l=[]
+        ll=[]
         fracs = []
         for frac, _lbl in composition:
             _ = _atomdb( _lbl )
             if not _:
                 return None
             fracs.append( frac )
-            l.append( frac * _.averageMassAMU() )
-        return math.fsum( l ) / math.fsum( fracs) #NB: sum(fracs) is likely already guaranteed 1 here, playing it safe
+            ll.append( frac * _.averageMassAMU() )
+        return math.fsum( ll ) / math.fsum( fracs) #NB: sum(fracs) is likely
+                                                   #already guaranteed 1 here,
+                                                   #playing it safe
 
 def _composerimpl_from_info( infoobj ):
     if isinstance(infoobj,_nc_core.Info):
@@ -1498,7 +1510,7 @@ def _decode_composition(label,*composition):
 
     #composition is now in the form: [(f0,name0),(f1,name1),...].
 
-    l=[]
+    ll=[]
 
     for frac_orig, ident in composition:
         frac_val = _decodeflt( frac_orig )
@@ -1509,14 +1521,14 @@ def _decode_composition(label,*composition):
         norm_ident = _nc_common.check_elem_or_isotope_marker( ident )
         if not norm_ident:
             raise _nc_core.NCBadInput(errmsg+': invalid element or isotope identifier "%s"'%ident)
-        l.append( ( frac_val, norm_ident ) )
-    fractot = math.fsum(f for f,lbl in l)
+        ll.append( ( frac_val, norm_ident ) )
+    fractot = math.fsum(f for f,lbl in ll)
     if abs(fractot-1.0)>1e-5:
         raise _nc_core.NCBadInput(errmsg+': fractions do not sum to 1')
 
     #Now merge identical entries and snap fraction sum to 1:
     d = {}
-    for fr,nme in l:
+    for fr,nme in ll:
         if nme not in d:
             d[nme] = [fr]
         else:
