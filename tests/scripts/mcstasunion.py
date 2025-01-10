@@ -24,16 +24,11 @@
 
 # NEEDS: numpy
 
-import NCTestUtils.enable_fpe
-import NCrystalDev as NC
+import NCTestUtils.enable_fpe # noqa F401
+#import NCrystalDev as NC
 import NCrystalDev.cliutils as nc_cliutils
 
-from NCTestUtils.common import ( ensure_error,
-                                 work_in_tmpdir )
-
-import pathlib
 import shlex
-import os
 
 _some_ncmat_data="""NCMAT v5
 # Here is a comment

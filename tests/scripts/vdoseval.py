@@ -24,7 +24,6 @@
 
 import NCrystalDev as NC
 #from NCrystalDev.vdos import analyseVDOS
-from NCrystalDev._numpy import _np_linspace
 
 import mpmath
 mp = mpmath.mp

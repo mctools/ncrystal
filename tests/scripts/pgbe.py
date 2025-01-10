@@ -24,7 +24,7 @@
 
 # Checks https://github.com/mctools/ncrystal/issues/171
 
-import NCTestUtils.enable_fpe
+import NCTestUtils.enable_fpe # noqa F401
 import NCrystalDev as NC
 import numpy as np
 wl_x = np.arange(0.0,10.0,0.01)

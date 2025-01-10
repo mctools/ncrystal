@@ -20,7 +20,7 @@
 ##                                                                            ##
 ################################################################################
 
-import NCTestUtils.enable_fpe
+import NCTestUtils.enable_fpe # noqa F401
 from NCTestUtils.loadlib import Lib
 from multiprocessing import Process, freeze_support
 import platform

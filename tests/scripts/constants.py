@@ -22,7 +22,7 @@
 
 # NEEDS: numpy
 
-import NCTestUtils.enable_fpe
+import NCTestUtils.enable_fpe # noqa F401
 import NCrystalDev.constants as ncc
 import math
 import numpy as np

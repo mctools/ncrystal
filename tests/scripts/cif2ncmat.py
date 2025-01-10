@@ -24,13 +24,12 @@
 
 from argparse import ArgumentError
 
-import NCTestUtils.enable_fpe
-import NCTestUtils.reprint_escaped_warnings
-import NCTestUtils.enable_testdatapath
+import NCTestUtils.enable_fpe # noqa F401
+import NCTestUtils.reprint_escaped_warnings # noqa F401
+import NCTestUtils.enable_testdatapath # noqa F401
 from NCTestUtils.env import ncsetenv
 
 import pathlib
-import os
 import contextlib
 import shlex
 
@@ -49,8 +48,7 @@ def create_fake_onlinedb_cache_dir():
 
 from NCTestUtils.common import ( print_text_file_with_snipping,
                                  ensure_error,
-                                 work_in_tmpdir,
-                                 fmt_args_as_str )
+                                 work_in_tmpdir )
 
 #FIXME: Also test python API if not done elsewhere.
 

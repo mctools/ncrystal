@@ -20,7 +20,7 @@
 ##                                                                            ##
 ################################################################################
 
-import NCTestUtils.enable_fpe
+import NCTestUtils.enable_fpe # noqa F401
 import NCrystalDev as NC
 
 #Testing presence of data "files", as well as their sorting.

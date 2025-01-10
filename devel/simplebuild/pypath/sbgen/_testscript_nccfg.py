@@ -20,8 +20,6 @@
 ##                                                                            ##
 ################################################################################
 
-import os
-import platform
 import pathlib
 import subprocess
 from simplebuild.cfg import dirs

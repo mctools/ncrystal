@@ -28,7 +28,7 @@ def main():
         raise SystemExit('ERROR: ruff command not available')
     #FIXME: No ignore list!!
     rv = subprocess.run(['ruff','check','--ignore',
-                         'E402,F401'
+                         'E402'
                          ]
                         + list(all_files_iter('py')) )
     if rv.returncode!=0:

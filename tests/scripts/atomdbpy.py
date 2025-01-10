@@ -22,7 +22,7 @@
 
 # NEEDS: numpy
 
-import NCTestUtils.enable_fpe
+import NCTestUtils.enable_fpe # noqa F401
 import NCrystalDev as NC
 for a in NC.iterateAtomDB():
     print(a)

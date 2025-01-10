@@ -21,7 +21,7 @@
 ################################################################################
 
 #test file with same element in different roles (here differing by MSD value)
-import NCTestUtils.enable_fpe
+import NCTestUtils.enable_fpe # noqa F401
 import NCrystalDev as NC
 import sys
 

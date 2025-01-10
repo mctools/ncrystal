@@ -22,7 +22,7 @@
 
 #test NCrystal.test() + make sure it doesn't change RNG state
 
-import NCTestUtils.enable_fpe
+import NCTestUtils.enable_fpe # noqa F401
 import NCrystalDev as NC
 
 _rngstate1 = [99]

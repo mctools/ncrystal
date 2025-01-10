@@ -22,7 +22,7 @@
 
 # NEEDS: numpy
 
-import NCTestUtils.enable_fpe
+import NCTestUtils.enable_fpe # noqa F401
 from NCrystalDev.hfg2ncmat import hfg2ncmat
 
 def test(spec,formula,**kwargs):

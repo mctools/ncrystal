@@ -24,21 +24,18 @@
 
 # NEEDS: numpy matplotlib
 
-#import NCTestUtils.enable_fpe
-import NCTestUtils.reprint_escaped_warnings
+#gives problems with matplotlib: import NCTestUtils.enable_fpe # noqa F401
+import NCTestUtils.reprint_escaped_warnings # noqa F401
 import NCrystalDev as NC
 import NCrystalDev.cliutils as nc_cliutils
-from NCrystalDev.misc import AnyTextData
+#from NCrystalDev.misc import AnyTextData
 from NCTestUtils.env import ncsetenv
 
-from NCTestUtils.common import ( print_text_file_with_snipping,
-                                 ensure_error,
-                                 work_in_tmpdir,
-                                 fmt_args_as_str )
+from NCTestUtils.common import ( ensure_error,
+                                 work_in_tmpdir )
 
 import pathlib
 import shlex
-import os
 
 _some_ncmat_data="""NCMAT v5
 # Here is a comment

@@ -20,7 +20,7 @@
 ##                                                                            ##
 ################################################################################
 
-import NCTestUtils.enable_fpe
+import NCTestUtils.enable_fpe # noqa F401
 
 import sys
 
