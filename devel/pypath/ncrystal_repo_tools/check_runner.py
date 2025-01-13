@@ -37,27 +37,3 @@ def run_check( name ):
 def run_all_checks():
     for c in get_available_checks_list():
         run_check(c)
-
-#fixme:
-#
-# Planned additional tests:
-#    * shebangs consistent
-#    * check files left outside dirs
-#    * use inspect module to find missing docstrings in modules and functions
-#
-# Work on _climode_*.py:
-#
-#    * plot dependency graphs (between components)
-#    * build the docs
-#    * launch the local cmake based builds into some dir
-#    * launch the ctests
-#
-# CI missing:
-#
-#    * exercising embedded data with e.g. tests.
-#    * cpp check
-#    * python coverage testing.
-#    * static tests
-#
-# Misc missing:
-#    * Restore .icc ?

@@ -97,7 +97,6 @@ def main( parser ):
 
     parser.init( """Move existing C++ files to different components.""" )
 
-    #fixme: .icc:
     parser.add_argument(
         'FILENAME',
         help="""File to move. Provide either like NCSomeFile.hh, NCSomeFile or

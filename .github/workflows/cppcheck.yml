@@ -10,7 +10,6 @@ jobs:
   build:
     strategy:
       matrix:
-        #fixme: strictflag: [11, 14, 17, 20, 23]
         strictflag: [11, 17]
         os: [ubuntu-latest, macos-latest,windows-latest]
 

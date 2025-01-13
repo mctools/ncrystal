@@ -35,7 +35,7 @@ def _ncrystal_config_cli_wrapper():
     a = sys.argv[:]
     a[0] = f
     if _has_shlib_in_scripts_dir:
-        #windows, must let the binary ncrystal-config know about the actual
+        #Windows, must let the binary ncrystal-config know about the actual
         #shlibpath:
         lp = libpath().parent
         a.append('+')
@@ -62,7 +62,6 @@ def libpath():
     return _cache_libpath[0]
 
 def _libpath_impl():
-    #fixme rename shlibpath ?
     import pathlib
     shlib_name = libname()
     if not _has_shlib_in_scripts_dir:

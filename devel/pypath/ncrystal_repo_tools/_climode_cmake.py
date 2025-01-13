@@ -25,7 +25,6 @@ def short_description():
 def main( parser ):
     from .cmake import cmakerunner_modes
     parser.init( 'Launch CMake to build the files in ncrystal_core.' )
-    #Fixme many more options here, for now hardcoding below
 
     parser.add_argument(
         '-b','--build-dir', metavar='DIR',

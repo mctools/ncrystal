@@ -1,6 +1,7 @@
 #FIXME Address all of the following for the release:
 
-* Reinstate header splits into .icc files.
+* Reinstate header splits into .icc files. This also needs support in ncdevtool
+  (e.g. cppmove mode).
 
 * Compile and test also dmsc:ncrystaldev pkgs.
 
@@ -12,3 +13,12 @@
     were all simply exported flatly in installations, where you would have a
     single NCrystal.hh, NCrystalInternal.hh, etc.  Issue: it might not be OK to
     include ALL header files in a single file?
+
+* consider more ncdevtool checks:
+    * shebangs consistent
+    * check files left outside dirs, check no .icc file without .hh file.
+    * use inspect module to find missing docstrings in modules and functions
+
+* CI missing:
+    * exercising embedded data with e.g. tests.
+    * python coverage testing.

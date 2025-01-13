@@ -81,7 +81,7 @@ def _search():
     #     ncrystal-core was installed via PyPI for instance).
     #     FIXME: still local _nclibpath for now!
     #
-    #  3) Invoke "ncrystal-config --show libpath namespace" for the information.
+    #  3) Invoke "ncrystal-config --show ..." for the information.
     #
     #  If simplebuild devel mode we allow env var overrides, but apart from that
     #  always go straight to the ncrystal-config method.
