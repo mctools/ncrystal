@@ -56,10 +56,12 @@
 #  include <string>
 #  include <fstream>
 namespace MCFILEUTILS_CPPNAMESPACE {
+  using mcu8str_size_t = std::size_t;
 #else
   //C mode
 #  include <stddef.h>
 #  include <stdio.h>
+  typedef size_t mcu8str_size_t;
 #endif
 
   //A string struct "mcu8str", for somewhat more convenient and safe string
@@ -84,8 +86,8 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   void mcu8str_update_size( mcu8str* );//sets size to strlen(c_str) after
                                        //editing c_str manually
   mcu8str mcu8str_create_empty(void);//empty path (safe to not deallocate)
-  mcu8str mcu8str_create( size_t prealloc_size );//fixme std::size_t if c++
-  mcu8str mcu8str_create_from_staticbuffer( char * buf, size_t buflen );
+  mcu8str mcu8str_create( mcu8str_size_t prealloc_size );
+  mcu8str mcu8str_create_from_staticbuffer( char * buf, mcu8str_size_t buflen );
   mcu8str mcu8str_create_from_cstr( const char * );
   mcu8str mcu8str_copy( const mcu8str* );
 
@@ -105,7 +107,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   void mcu8str_append( mcu8str* str, const mcu8str * otherstr );
   void mcu8str_swap( mcu8str* str1, mcu8str* str2 );
   void mcu8str_assign( mcu8str* dest, const mcu8str* src );
-  void mcu8str_reserve( mcu8str* str, size_t nsize );
+  void mcu8str_reserve( mcu8str* str, mcu8str_size_t nsize );
   void mcu8str_clear( mcu8str* );
   void mcu8str_append_cstr( mcu8str*, const char * );
   void mcu8str_replace( mcu8str*, char from, char to );
@@ -136,7 +138,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-  //Fixme: Make clear (also in naming) which functions are purely string based
+  //TODO: Make clear (also in naming) which functions are purely string based
   //and which are operating on the filesystem (e.g. a path-normalisation could
   //be purely string based, or it could actually resolve symlinks etc.)
 

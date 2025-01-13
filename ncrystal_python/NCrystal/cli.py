@@ -65,9 +65,6 @@ def run( toolname, *arguments ):
     $> ncrystal_ncmat2cpp Al_sg225.ncmat -o myal.cpp
 
     """
-    #FIXME: Also include ncrystal-config in this list!
-    #FIXME: Test that it gives a good experience in Jupyter (especially nctool)
-
     #FIXME: support + unit test various methods of invocation:
     #$> python -mNCrystal ncrystal_ncmat2cpp ...
     #$> python -mNCrystal ncmat2cpp ...
@@ -85,7 +82,6 @@ def run( toolname, *arguments ):
     from ._cliimpl import ( ctxmgr_modify_argparse_creation,
                             _cli_call_from_pyapi_ctx )
     try:
-        #Fixme: merge the two following context managers?:
         with _cli_call_from_pyapi_ctx():
             with ctxmgr_modify_argparse_creation(exit_on_error = False,
                                                  redirect_stdout_to_stderr = True):

@@ -100,7 +100,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
       STDNS free( buf_to_free );
   }
 
-  mcu8str mcu8str_create( size_t prealloc_size )
+  mcu8str mcu8str_create( mcu8str_size_t prealloc_size )
   {
     if ( prealloc_size == 0 )
       return mcu8str_create_empty();
@@ -125,7 +125,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   {
     if ( otherstr->size == 0 )
       return;
-    size_t newsize = str->size + otherstr->size;
+    mcu8str_size_t newsize = str->size + otherstr->size;
     if ( newsize + 1 > str->buflen )
       mcu8str_reserve( str, newsize );
     //memcpy ok since we handle the null char afterwards, there will be no
@@ -139,10 +139,10 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 
   void mcu8str_append_cstr( mcu8str* str, const char * c_str )
   {
-    const STDNS size_t o_size = STDNS strlen( c_str );
+    const mcu8str_size_t o_size = STDNS strlen( c_str );
     if ( o_size == 0 )
       return;
-    const STDNS size_t newsize = str->size + o_size;
+    const mcu8str_size_t newsize = str->size + o_size;
     if ( newsize + 1 > str->buflen )
       mcu8str_reserve( str, newsize );
     //memcpy ok since we handle the null char afterwards, there will be no
@@ -156,7 +156,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   {
     if ( ! *c_str )
       return mcu8str_create_empty();
-    const STDNS size_t o_size = STDNS strlen( c_str );
+    const mcu8str_size_t o_size = STDNS strlen( c_str );
     assert( o_size > 0 );
     mcu8str str = mcu8str_create( o_size );
     //str.c_str is newly allocated, so there can be no overlap:
@@ -246,7 +246,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     return newstr;
   }
 
-  void mcu8str_reserve( mcu8str* str, size_t nsize )
+  void mcu8str_reserve( mcu8str* str, mcu8str_size_t nsize )
   {
     if ( nsize +1 <= str->buflen )
       return;//already has enough
@@ -284,7 +284,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   }
 
   //Allow usage of static buffers:
-  mcu8str mcu8str_create_from_staticbuffer( char * buf, size_t buflen )
+  mcu8str mcu8str_create_from_staticbuffer( char * buf, mcu8str_size_t buflen )
   {
     assert(buflen > 0);
     mcu8str s;
@@ -494,8 +494,8 @@ namespace {
     //file.
     typedef struct {
       wchar_t * c_str;
-      STDNS size_t size;
-      STDNS size_t buflen;
+      mcu8str_size_t size;
+      mcu8str_size_t buflen;
     } mcwinstr;
 
     void mc_winstr_swap( mcwinstr* p1, mcwinstr* p2 )
@@ -509,7 +509,7 @@ namespace {
       p2->buflen = tmp.buflen;
     }
 
-    mcwinstr mc_winstr_create( STDNS size_t );
+    mcwinstr mc_winstr_create( mcu8str_size_t );
     mcwinstr mc_winstr_create_empty(void);
     void mc_winstr_dealloc( mcwinstr* );
 
@@ -535,14 +535,14 @@ namespace {
       if (!out_size)
         return mc_winstr_create_empty();//fixme: NCRYSTAL_THROW(BadInput,errmsg);
 
-      mcwinstr res = mc_winstr_create( (STDNS size_t)( out_size ) );
+      mcwinstr res = mc_winstr_create( (mcu8str_size_t)( out_size ) );
 
       wchar_t * out_data = res.c_str;
       //Same, but with out_data/out_size provided:
       int out_size2 = MultiByteToWideChar( CP_UTF8, 0,
                                            in_data, in_size,
                                            out_data, out_size );
-      if ( out_size != out_size2 || (STDNS size_t)out_size >= res.buflen ) {
+      if ( out_size != out_size2 || (mcu8str_size_t)out_size >= res.buflen ) {
         mc_winstr_dealloc( &res );
         return mc_winstr_create_empty();//fixme: NCRYSTAL_THROW(BadInput,errmsg);
       }
@@ -588,15 +588,15 @@ namespace {
       }
       if ( len < 4096 ) {
         out.c_str[len] = 0;
-        out.size = (STDNS size_t)len;
+        out.size = (mcu8str_size_t)len;
         return out;
       }
       mc_winstr_dealloc( &out );
       out = mc_winstr_create( len );
       len = GetLongPathNameW( sp->c_str, out.c_str, out.buflen );
-      if ( (STDNS size_t) len < out.buflen ) {
+      if ( (mcu8str_size_t) len < out.buflen ) {
         out.c_str[len] = 0;
-        out.size = (STDNS size_t)len;
+        out.size = (mcu8str_size_t)len;
         return out;
       } else {
         //should not happen
@@ -613,7 +613,7 @@ namespace {
         //return mcu8str_create_from_cstr("TESTRPERROR1: len_with_null_term <= 1");//fixme
         return mc_winstr_create_empty();//fixme: check all callers that they check for non-empty
       }
-      mcwinstr woutput = mc_winstr_create((STDNS size_t)(len_with_null_term-1));
+      mcwinstr woutput = mc_winstr_create((mcu8str_size_t)(len_with_null_term-1));
       DWORD len = GetFullPathNameW( wpath->c_str,
                                     (DWORD)woutput.buflen, woutput.c_str,
                                     NULL );
@@ -624,7 +624,7 @@ namespace {
       }
       //OK, update output size:
       woutput.c_str[len] = 0;
-      woutput.size = (STDNS size_t)len;
+      woutput.size = (mcu8str_size_t)len;
       //For some reason the above might have returned a path with short 8.3
       //filenames, so we expand once more (only works if file exists):
       if ( woutput.size > 0 ) {
@@ -684,7 +684,7 @@ namespace {
                                            in_data, in_size,
                                            out_data, out_size,
                                            NULL, NULL);
-      if ( out_size2 != out_size || (STDNS size_t)out_size >= res.buflen ) {
+      if ( out_size2 != out_size || (mcu8str_size_t)out_size >= res.buflen ) {
         mcu8str_dealloc(&res);
         return mcu8str_create_from_cstr(errmsg);//fixme: NCRYSTAL_THROW(BadInput,errmsg);
       }
@@ -713,7 +713,7 @@ namespace {
       return mc_winstr_create(0);
     }
 
-    mcwinstr mc_winstr_create( STDNS size_t size )
+    mcwinstr mc_winstr_create( mcu8str_size_t size )
     {
       mcwinstr str;
       str.c_str = (wchar_t*) STDNS malloc( sizeof(wchar_t)*(size + 1) );
@@ -857,13 +857,13 @@ namespace {
 #ifdef MC_IS_WINDOWS
     mcwinstr wpath = mc_winstr_create( ( MAX_PATH >= 260 ? MAX_PATH+1 : 261 ) );
     DWORD nsize = GetCurrentDirectoryW(wpath.buflen,wpath.c_str);
-    if ( (STDNS size_t)(nsize + 1) > wpath.buflen ) {
+    if ( (mcu8str_size_t)(nsize + 1) > wpath.buflen ) {
       //Use larger buffer and try again:
       mc_winstr_dealloc( &wpath );
       wpath = mc_winstr_create( nsize );
       nsize = GetCurrentDirectoryW(wpath.buflen,wpath.c_str);
     }
-    if ( nsize == 0 || (STDNS size_t )( nsize + 1 ) > wpath.buflen ) {
+    if ( nsize == 0 || (mcu8str_size_t )( nsize + 1 ) > wpath.buflen ) {
       //Error (fixme):
       mc_winstr_dealloc( &wpath );//check that we dealloc correctly everywhere
                                   //in this file in case of errors
@@ -912,15 +912,15 @@ namespace {
     //First try some platform specific methods not relying on argv0:
 #ifdef MC_IS_WINDOWS
     {
-      mcwinstr wpath = mc_winstr_create( (STDNS size_t)(MAX_PATH<32768
+      mcwinstr wpath = mc_winstr_create( (mcu8str_size_t)(MAX_PATH<32768
                                                         ?32768:MAX_PATH) +1 );
       DWORD nsize = GetModuleFileNameW(NULL, wpath.c_str, wpath.buflen );
-      if ( nsize == 0 || (STDNS size_t)(nsize + 2) >= wpath.buflen ) {//+2 is safety
+      if ( nsize == 0 || (mcu8str_size_t)(nsize + 2) >= wpath.buflen ) {//+2 is safety
         //failure:
         mc_winstr_dealloc( &wpath );
       } else {
         //success:
-        assert( (STDNS size_t)(nsize) <= wpath.size );
+        assert( (mcu8str_size_t)(nsize) <= wpath.size );
         wpath.c_str[nsize] = 0;//add null terminator
         wpath.size = nsize;
         mcu8str res = mc_winstr_to_u8str( &wpath );
@@ -967,9 +967,9 @@ namespace {
         mcu8str path = mcu8str_create_from_staticbuffer( buf, sizeof(buf) );
         //NB: ssize_t is from unistd.h, so never exists in std:: namespace.
         ssize_t len = readlink(filename, path.c_str, path.buflen-1 );
-        if ( len > 0 && (STDNS size_t)(len+1) < path.buflen ) {
+        if ( len > 0 && (mcu8str_size_t)(len+1) < path.buflen ) {
           path.c_str[len] = '\0';//readlink does not add terminating null char
-          path.size = (STDNS size_t)len;
+          path.size = (mcu8str_size_t)len;
           mcu8str_ensure_dynamic_buffer( &path );
           mctools_pathseps_platform(&path);
           return path;
@@ -1029,7 +1029,7 @@ namespace {
     mcwinstr resolvedpath = mc_winstr_create(4096);//fixme: test with super short buffer
     DWORD len = GetFinalPathNameByHandleW( fh1, resolvedpath.c_str,
                                            resolvedpath.buflen, 0 );
-    if ( (STDNS size_t)len >= resolvedpath.buflen ) {
+    if ( (mcu8str_size_t)len >= resolvedpath.buflen ) {
       //Too short buffer, try again:
       mc_winstr_dealloc(&resolvedpath);
       resolvedpath = mc_winstr_create(len);
@@ -1038,7 +1038,7 @@ namespace {
     }
     //Close the open file handle:
     CloseHandle( fh1 );
-    if ( len == 0 || (STDNS size_t)len >= resolvedpath.buflen ) {
+    if ( len == 0 || (mcu8str_size_t)len >= resolvedpath.buflen ) {
       //Failure, fall-back to unresolved absolute path:
       mc_winstr_dealloc(&resolvedpath);
       mcu8str output = mc_winstr_expand_to_fullpath_u8str( &wpath );
@@ -1340,30 +1340,30 @@ namespace {
     //not repeat them needlessley.
 
     //Selected ranges:
-    STDNS size_t iB1 = 0;
-    STDNS size_t iE1 = p1.size;
-    STDNS size_t iB2 = 0;
-    STDNS size_t iE2 = p2.size;
+    mcu8str_size_t iB1 = 0;
+    mcu8str_size_t iE1 = p1.size;
+    mcu8str_size_t iB2 = 0;
+    mcu8str_size_t iE2 = p2.size;
 
     if ( drive_letter1 && drive_letter1 == drive_letter2 )
       iB2 += 2;//skip common drive letter from p2
 
     //Strip repeated trailing slashes down to one trailing slash:
-    STDNS size_t minlen1 = ( drive_letter1 ? 3 : 1 );
+    mcu8str_size_t minlen1 = ( drive_letter1 ? 3 : 1 );
     while ( iE1-iB1 > minlen1
             && ( p1.c_str[iE1-1]=='/' || p1.c_str[iE1-1]=='\\' )
             && ( p1.c_str[iE1-2]=='/' || p1.c_str[iE1-2]=='\\' ) )
       --iE1;
 
-    STDNS size_t needs_slash = ( ( p1.c_str[iE1-1]=='/'
+    mcu8str_size_t needs_slash = ( ( p1.c_str[iE1-1]=='/'
                                    || p1.c_str[iE1-1]=='\\' ) ? 0 : 1 );
 
-    STDNS size_t s1 = iE1-iB1;
-    STDNS size_t s2 = iE2-iB2;
-    STDNS size_t newsize = s1 + s2 + needs_slash;
+    mcu8str_size_t s1 = iE1-iB1;
+    mcu8str_size_t s2 = iE2-iB2;
+    mcu8str_size_t newsize = s1 + s2 + needs_slash;
     mcu8str res =  mcu8str_create( newsize  );
     STDNS memcpy( res.c_str, p1.c_str, s1 );
-    STDNS size_t used = s1;
+    mcu8str_size_t used = s1;
     if ( needs_slash ) {
       res.c_str[used] = native_sep;
       ++used;
@@ -1399,7 +1399,7 @@ namespace {
       --it;
     if ( *it=='/' || *it=='\\' )
       ++it;
-    STDNS size_t bnsize = (STDNS size_t)(itE - it);
+    mcu8str_size_t bnsize = (mcu8str_size_t)(itE - it);
     if ( bnsize == 0 || ( bnsize==1 && *it=='.' ) )
       return mcu8str_create_empty();
     mcu8str res = mcu8str_create( bnsize );
@@ -1469,8 +1469,8 @@ namespace {
           mctools_pathseps_platform(&rhome);
           return rhome;
         }
-        const STDNS size_t home_size = STDNS strlen( home );
-        const STDNS size_t newsize = (STDNS size_t)(home_size + p.size - 1);
+        const mcu8str_size_t home_size = STDNS strlen( home );
+        const mcu8str_size_t newsize = (mcu8str_size_t)(home_size + p.size - 1);
         res = mcu8str_create( newsize );
         mcu8str_append_cstr(&res,home);
         mcu8str_append_cstr(&res, p.c_str + 1 );
@@ -1550,7 +1550,7 @@ namespace {
 
     //Apart from a potential drive_letter, the string at [it0,it) is now the
     //result:
-    STDNS size_t ressize = (STDNS size_t)(it-it0);
+    mcu8str_size_t ressize = (mcu8str_size_t)(it-it0);
 
     if ( ressize == 1 && *it0 == '.' ) {
       //special case, "." or "D:."

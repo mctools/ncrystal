@@ -435,11 +435,11 @@ _mpldpi=[None]
 _pdffilename='ncrystal.pdf'
 _npplt = None
 def import_npplt(pdf=False):
-    #FIXME: For interactive usage, we must have consistent global matplotlib
+    #TODO: For interactive usage, we must have consistent global matplotlib
     #manager for all of NCrystal, and we must use a context manager to switch to
     #the agg backend when we need pdf plots. We should also only every change
-    #rcParams with the matplotlib.pyplot.rc_context context manager.
-    #See also the discussion at: https://github.com/matplotlib/matplotlib/issues/26362
+    #rcParams with the matplotlib.pyplot.rc_context context manager.  See also
+    #the discussion at: https://github.com/matplotlib/matplotlib/issues/26362
 
     #Maybe we should also ensure that all of our matplotlib plots simply return
     #standalone Figure() objects?
@@ -480,7 +480,6 @@ def import_npplt(pdf=False):
     return _npplt
 
 #functions for creating labels and title:
-
 def _remove_common_keyvals(dicts):
     """remove any key from the passed dicts which exists with identical value in all
     the dicts. Returns a single dictionary with entries thus removed."""

@@ -102,8 +102,8 @@ Example invocations:
                      ' either --format=laz or --format=lau (run'
                      ' with --help for details)')
 
-    #FIXME: We could use a common function for the following logic (including
-    #the stdout logic). Perhaps we should simply have a special "type" for the
+    #TODO: We could use a common function for the following logic (including the
+    #stdout logic). Perhaps we should simply have a special "type" for the
     #argparse option? Also, in general --quiet and --force are connected to
     #--output.
 
@@ -166,9 +166,8 @@ def _main_impl( args, do_quiet, override_prec ):
         kwargs['fp_format'] = f'%.{override_prec}g'
 
     content_iter = mcstasutils.cfgstr_2_hkl( **kwargs )
-    #Fixme: common helper function?
+    #TODO: common helper function?
     if args.output is None or args.output == 'stdout':
-        #FIXME: use _common.print or sys.stdout.write?
         import sys
         for line in content_iter:
             sys.stdout.write(line + '\n')

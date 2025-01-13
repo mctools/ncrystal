@@ -47,7 +47,7 @@ Notably, command line scripts implemented in their _cli_*.py modules, should:
     @cli_entry_point
     def main( argv = None ):
 
-FIXME: We should have a unit test which checks for all of the above issues!
+TODO: We should have a unit test which checks for all of the above issues!
 
 """
 
@@ -234,25 +234,26 @@ def cli_entry_point(func):
     return mainfct
 
 def _resolve_cmd_and_import_climod( cmdname, arguments ):
-    #fixme to _cliimpl.py
     resolved_cmd = cli_tool_lookup_impl( cmdname )
     if resolved_cmd is None:
         from .exceptions import NCBadInput
         raise NCBadInput(f'Command line tool name "{cmdname}" not recognised')
     argv = [resolved_cmd['canonical_name']] + [a for a in arguments]
-
+    if resolved_cmd['short_name']=='config':
+        clipymodname = '_cliwrap_config'
+    else:
+        clipymodname = '_cli_%s'%resolved_cmd['short_name']
     import importlib
-    clipymodname = '_cli_%s'%resolved_cmd['short_name']
     climod = importlib.import_module(f'..{clipymodname}', __name__)
     assert hasattr(climod,'main')
     return climod, argv
-
 
 def cli_tool_list_impl( canonical_names = True  ):
     # Implementation of cli.cli_tool_list
     import pathlib
     short_names = [ f.name[5:-3] for f in
                     pathlib.Path(__file__).parent.glob('_cli_*.py') ]
+    short_names.append('config')
     short_names.sort()
     if short_names:
         return short_names
@@ -266,7 +267,6 @@ def cli_tool_lookup_impl( name ):
     #cases.
     if name == 'ncrystal-config':
         #Special case:
-        #FIXME: We don't actually have such a script here yet!
         short_name = 'config'
     elif name.startswith('ncrystal_'):
         short_name = name[9:]

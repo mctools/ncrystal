@@ -56,7 +56,8 @@ std::string NC::tryRealPath( const std::string& path )
 
 NC::Optional<std::string> NC::readEntireFileToString( const std::string& path )
 {
-  //FIXME: Give error on utf16/utf32 BOM, and skip past any utf8 BOM? See https://www.unicode.org/faq/utf_bom.html#BOM
+  //TODO: Give error on utf16/utf32 BOM, and skip past any utf8 BOM? See
+  //https://www.unicode.org/faq/utf_bom.html#BOM
 
   //Read entire file into a string while protecting against someone mistakenly
   //trying to open a multi-gigabyte file and bringing their machine to a slow
@@ -181,7 +182,7 @@ namespace NCRYSTAL_NAMESPACE {
 
         //Determine if absolute, i.e. starts with a pathsep:
         m_is_absolute = !filename.empty() && is_path_sep(filename[0]);
-        //^^^^^ fixme this is not always correct for windows shared drive paths??
+        //^^^^^ TODO: this is not always correct for windows shared drive paths??
 
         //Discard path seps at both ends:
         filename = trim_pathseps_from_edges( filename );
@@ -243,9 +244,10 @@ std::string NC::getfileext( const std::string& p )
 
 std::string NC::path_join(const std::string& p1, const std::string& p2)
 {
-#if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(_WIN32) || defined(__CYGWIN__)//fixme: to NCFileUtilsWin.cc
+#ifdef NCRYSTAL_USE_WINDOWS_FILEUTILS
   if ( contains(p1,'/') || contains(p2,'/') )
-    return p1+'/'+p2;//seems like user is already using forward slashes, so assume it is ok.
+    return p1+'/'+p2;//seems like user is already using forward slashes, so
+                     //assume it is ok.
   return p1+'\\'+p2;
 #else
   return p1+'/'+p2;

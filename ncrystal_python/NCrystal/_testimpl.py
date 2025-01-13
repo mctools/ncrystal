@@ -423,7 +423,6 @@ def _run_cmd( cmd, env = None ):
     return ok, output
 
 def _actual_test_cmdline( verbose ):
-    #FIXME: More robust to simply call via pyapi?
     prfct = _get_prfct( verbose )
     prfct('starting testing of cmd-line utilities')
     cmds = ['ncrystal-config --help',
