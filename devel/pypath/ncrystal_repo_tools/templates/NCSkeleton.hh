@@ -25,8 +25,8 @@
 
 namespace NCRYSTAL_NAMESPACE {
 
-  //FIXME:: Put proper description here. Note that a few dummy methods are added
-  //below for inspiration. Replace as appropriate.
+  //F-I-X-M-E:: Put proper description here. Note that a few dummy methods are
+  //added below for inspiration. Replace as appropriate.
 
   class Skeleton : private MoveOnly {
   public:

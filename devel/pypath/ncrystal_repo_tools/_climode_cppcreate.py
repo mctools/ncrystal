@@ -57,9 +57,13 @@ def main( parser ):
         parser.error(f'ERROR: Chosen name conflicts with existing file: {f}')
 
     name2comp = load_components()
+    compnames2comp = {}
+    for c in name2comp.values():
+        if c.name not in compnames2comp:
+            compnames2comp[c.name] = c
 
     files_to_create = []
-    if args.comp not in name2comp:
+    if args.comp not in compnames2comp:
         if not args.new:
             parser.error(f'Unknown component "{args.comp}" (supply '
                          '--new TYPE to create).')
@@ -71,13 +75,15 @@ def main( parser ):
         p_src = coreroot / f'src/{args.comp}'
         files_to_create.append( (p_src.joinpath('dep.txt'), 'core\n') )
     else:
-        comp = name2comp[args.name]
+        comp = compnames2comp[args.comp]
         p_hdr = comp.hdrdir
         p_src = comp.srcdir
 
     skelhh = devpymoddir.joinpath('templates/NCSkeleton.hh')
     skelcc = devpymoddir.joinpath('templates/NCSkeleton.cc')
-    txt_hh = skelhh.read_text().replace('Skeleton',args.name)
+    txt_hh = ( skelhh.read_text()
+               .replace('Skeleton',args.name)
+               .replace('F-I-X-M-E','FIX'+'ME') )
     txt_cc = ( skelcc.read_text()
                .replace('Skeleton',args.name)
                .replace('"INCLUDEPATH/',

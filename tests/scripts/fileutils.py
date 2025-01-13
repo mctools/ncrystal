@@ -22,7 +22,7 @@
 
 import NCTestUtils.enable_fpe # noqa F401
 from NCTestUtils.loadlib import Lib
-from NCTestUtils.common import ( #ensure_error,
+from NCTestUtils.common import ( ensure_error,
                                  explicit_unicode_str,
                                  is_windows )
 import pathlib
@@ -210,14 +210,11 @@ def test3():
         str(pathlib.Path('unicodedir_test\u4500abc').absolute()),
         '*') ,3,is_absolute = True)
 
-    #Fixme: we don't propagate C++ exceptions nicely:
-    #with ensure_error(RuntimeError,
-    #                  'ncglob only supports wildcards in the'
-    #                  ' last file or directory name'):
-    #    testglob('*ome_sub*/*.txt',2)
-    #so we do instead:
     print("Triggering expected error (hopefully):",flush=True)
-    lib.nctest_ncglob('some*sub_dir/a.txt')
+    with ensure_error(RuntimeError,
+                      'ncglob only supports wildcards in the'
+                      ' last file or directory name'):
+        lib.nctest_ncglob('some*sub_dir/a.txt')
 
     #Finally, test with paths longer than 260 chars:
     dummy_path = pathlib.Path('a'*150).joinpath('b'*150).joinpath('bla.txt')

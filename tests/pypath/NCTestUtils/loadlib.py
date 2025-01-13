@@ -53,7 +53,11 @@ class Lib:
             dictfct = _ctypes_create_fct( self.__lib,
                                           'nctest_ctypes_dictionary',
                                           ctypes.c_char_p )
-            for e in dictfct().split(';'):
+            dictfctlist = dictfct().split(';')
+            dictfctlist.append('const char * nctestdetail_get_lasterror()')
+            dictfctlist.append('void nctestdetail_clear_lasterror()')
+            dictfctlist.append('int nctestdetail_has_lasterror()')
+            for e in dictfctlist:
                 e=e.strip()
                 if e:
                     self.add_signature(e)
@@ -76,7 +80,8 @@ class Lib:
         fct = _ctypes_create_fct( self.__lib,
                                   fctname,
                                   restype,
-                                  *argtypes )
+                                  *argtypes,
+                                  libobj = self )
         #Fixme test: fct.__name__ = fctname
         assert not hasattr(self,fctname),f'Fct {repr(fctname)} already added!'
         self.__fcts.add( (fctname,restype,argtypes) )
@@ -160,8 +165,9 @@ def _ctypes_load_testmod( test_shlib_name ):
     libpath = _find_testmod(test_shlib_name)
     return _load_lib_with_ctypes(libpath)
 
-def _ctypes_create_fct( lib, fctname, restype, *argtypes ):
+def _ctypes_create_fct( lib, fctname, restype, *argtypes, libobj = None ):
     from NCrystalDev._chooks import _str2cstr, _cstr2str
+    do_check_errors = libobj and not fctname.startswith('nctestdetail_')
 
     def resolve_type( tpe ):
         if tpe is None or tpe=='void':
@@ -184,7 +190,13 @@ def _ctypes_create_fct( lib, fctname, restype, *argtypes ):
                 al.append( _str2cstr(a) )
             else:
                 al.append( a )
+        if do_check_errors:
+            libobj.nctestdetail_clear_lasterror()
         rv = rawfct( *al )
+        if do_check_errors and libobj.nctestdetail_has_lasterror():
+            errmsg = libobj.nctestdetail_get_lasterror()
+            libobj.nctestdetail_clear_lasterror()
+            raise RuntimeError(errmsg)
         if restype == ctypes.c_char_p:
             rv = _cstr2str( rv )
         return rv

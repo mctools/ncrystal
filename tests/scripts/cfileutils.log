@@ -1,4 +1,4 @@
-Library "TestMod_testcfileutils" (20 functions):
+Library "TestMod_testcfileutils" (23 functions):
   const char * nctest_absolute_path(const char *)
   const char * nctest_basename(const char *)
   const char * nctest_basename_view(const char *)
@@ -19,6 +19,9 @@ Library "TestMod_testcfileutils" (20 functions):
   const char * nctest_pathseps_generic(const char *)
   const char * nctest_pathseps_platform(const char *)
   const char * nctest_real_path(const char *)
+  void nctestdetail_clear_lasterror()
+  const char * nctestdetail_get_lasterror()
+  int nctestdetail_has_lasterror()
 Testing get_current_working_dir...
 ...get_current_working_dir ok
 0 Testing path "hello.txt":

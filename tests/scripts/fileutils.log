@@ -1,4 +1,4 @@
-Library "TestMod_testfileutils" (9 functions):
+Library "TestMod_testfileutils" (12 functions):
   const char * nctest_basename(const char *)
   const char * nctest_dirname(const char *)
   int nctest_file_exists(const char *)
@@ -8,6 +8,9 @@ Library "TestMod_testfileutils" (9 functions):
   const char * nctest_normalise(const char *)
   int nctest_path_is_absolute(const char *)
   const char * nctest_readEntireFileToString(const char *)
+  void nctestdetail_clear_lasterror()
+  const char * nctestdetail_get_lasterror()
+  int nctestdetail_has_lasterror()
 Testing ncgetcwd...
 ...ncgetcwd ok
 0 Testing path "C:\somewhere\bla.txt":
@@ -230,7 +233,7 @@ Testing ncglob('/SOMEWHERE/*'):
    *: '/SOMEWHERE/b.txt'
    *: '/SOMEWHERE/b\\u{2030}.ncmat'
 Triggering expected error (hopefully):
-NCTest ERROR (std::runtime_error): ncglob only supports wildcards in the last file or directory name
+Caught expected RuntimeError('ncglob only supports wildcards in the last file or directory name')
 Testing ncglob('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/bl*.txt'):
   --> Python glob got 1 results:
    *: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/bla.txt'

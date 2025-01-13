@@ -36,23 +36,44 @@
 #include <iostream>
 #include <cstdlib>
 #include <stdexcept>
+#include <sstream>
 
 namespace nctest {
   namespace {
+    inline std::string& detail_lastErrorBuffer()
+    {
+      static std::string buf;
+      return buf;
+    }
     inline void printErrAndExit(const std::exception &e) noexcept(true) {
+      std::ostringstream ss;
       const std::runtime_error* stdrte = dynamic_cast<const std::runtime_error*>(&e);
       if (stdrte)
-        std::cout<<"NCTest ERROR (std::runtime_error): "<<stdrte->what()<<std::endl;
+        ss << stdrte->what();
       else
-        std::cout<<"NCTest ERROR (unknown)"<<std::endl;
-      //std::exit(1); FIXME: What to do here? Perhaps revisit how we handle the
-      //exceptions in NCrystal's own chooks.
+        ss << "NCTest ERROR (unknown)";
+      detail_lastErrorBuffer() = std::move(ss).str();
     }
   }
 }
 #define NCCATCH catch (std::exception& e) { nctest::printErrAndExit(e); }
 
 #define NCTEST_CTYPE_DICTIONARY NCTEST_CTYPES const char * nctest_ctypes_dictionary()
+
+NCTEST_CTYPES const char * nctestdetail_get_lasterror()
+{
+  return nctest::detail_lastErrorBuffer().c_str();
+}
+
+NCTEST_CTYPES int nctestdetail_has_lasterror()
+{
+  return nctest::detail_lastErrorBuffer().empty() ? 0 : 1;
+}
+
+NCTEST_CTYPES void nctestdetail_clear_lasterror()
+{
+  nctest::detail_lastErrorBuffer().clear();
+}
 
 #ifndef NCTESTMODUTILS_NO_NCRYSTAL_INCLUDE
 #  include "NCrystal/core/NCDefs.hh"
