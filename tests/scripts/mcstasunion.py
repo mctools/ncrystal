@@ -20,15 +20,10 @@
 ##                                                                            ##
 ################################################################################
 
-#FIXME: Update NEEDS
-
-# NEEDS: numpy
-
 import NCTestUtils.enable_fpe # noqa F401
-#import NCrystalDev as NC
 import NCrystalDev.cli as nc_cli
-
 import shlex
+import pathlib
 
 _some_ncmat_data="""NCMAT v5
 # Here is a comment
@@ -40,8 +35,6 @@ _some_ncmat_data="""NCMAT v5
   type vdosdebye
   debye_temp 300
 """
-
-#FIXME: Also test python API, once we create one...
 
 def test_cli( *args ):
     print(f"============= CLI >>{shlex.join(args)}<< ====================")
@@ -59,7 +52,28 @@ def main():
              '*MgO_sg225_Periclase.ncmat;dcutoff=0.8>;temp=100K;vdoslux=0',
              '--split')
 
-    #FIXME also test the output when writing to files!!
+    test_cli('MyMat','Al_sg225.ncmat;temp=20K;vdoslux=0;dcutoff=0.5',
+             '-o','myblafile.c')
+
+    print("Contents of myblafile.c:",'='*40)
+    print(pathlib.Path('myblafile.c').read_text())
+
+    import NCrystalDev.mcstasutils as ncmu
+
+    print("TEST PyAPI1",'='*60)
+    o = ncmu.cfgstr_2_union_instrument_code(
+        cfgstr='Al_sg225.ncmat;temp=20K;vdoslux=0;dcutoff=0.5;inelas=0',
+        name='BlaBla',
+        split_by_physics = True
+    )
+    print(o)
+    print("TEST PyAPI2",'='*60)
+    o = ncmu.cfgstr_2_union_instrument_code(
+        cfgstr='Al_sg225.ncmat;temp=20K;vdoslux=0;dcutoff=0.5;inelas=0',
+        name='BlaBla',
+        split_by_physics = False
+    )
+    print(o)
 
 if __name__ == '__main__':
     main()
