@@ -90,9 +90,8 @@ namespace NCRYSTAL_NAMESPACE {
       std::string winimpl_wstr2str( const std::wstring& src )
       {
         const wchar_t * in_data = &src[0];
-        nc_assert_always( (std::size_t) src.size()
-                          < (std::size_t)std::numeric_limits<int>::max() );
-        in_size = static_cast<int>(src.size());
+        nc_assert_always( (std::size_t) src.size() < (std::size_t)INT_MAX );
+        int in_size = static_cast<int>(src.size());
         std::string res;
         if ( !in_size )
           return res;

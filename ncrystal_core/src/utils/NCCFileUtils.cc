@@ -36,7 +36,7 @@
 #  include <sys/stat.h>
 #endif
 
-//Fixme: something better?:
+//Not pretty, but it works:
 #if __cplusplus
 #  include "NCrystal/internal/utils/NCCFileUtils.hh"
 #else
@@ -377,7 +377,6 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 #  include <stdint.h>
 #endif
 
-//fixme: use NULL everywhere as needed
 #ifdef __cplusplus
 #  ifdef NULL
 #    undef NULL
@@ -418,7 +417,7 @@ namespace MCFILEUTILS_CPPNAMESPACE {
   //int PathIsRelativeW( const wchar_t* );
   int CompareFileTime( const FILETIME *,const FILETIME *);
   int _fileno( FILE * );
-  typedef void* HANDLE;//fixme, not sure about type
+  typedef void* HANDLE;
   int GetFileInformationByHandle( HANDLE, BY_HANDLE_FILE_INFORMATION* );
   DWORD GetFinalPathNameByHandleW( HANDLE, wchar_t*, DWORD, DWORD);
   void CloseHandle( HANDLE );
@@ -453,6 +452,30 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 #ifdef MCFILEUTILS_CPPNAMESPACE
 namespace {
 #endif
+  void mctools_impl_error( const char * msg )
+  {
+#ifdef __cplusplus
+    throw std::runtime_error(msg);
+#else
+    fprintf(stderr, "%s\n",msg);
+#endif
+  }
+
+#ifdef MC_IS_WINDOWS
+  int mctools_impl_str_size2int( mcu8str_size_t v )
+  {
+#  ifdef INT_MAX
+    const int lim = INT_MAX - 1;
+#  else
+    const int lim = 2147483646;
+#  endif
+    if ( v < lim && v + 1 < lim )
+      return (int)(v);
+    mctools_impl_error("str length out of range");
+    return 0;
+  }
+#endif
+
   int mctools_impl_has_winnamespace( const mcu8str * path )
   {
     return ( path->size >= 4 && path->c_str[2] == '?'
@@ -515,14 +538,13 @@ namespace {
 
     mcwinstr mc_u8str_to_winstr( const mcu8str* src )
     {
-      const int in_size = (int)( src->size );//fixme range check
+      const int in_size = mctools_impl_str_size2int( src->size );
 
       //First check for empty string:
       if ( !(src->c_str[0]) || in_size == 0 )
         return mc_winstr_create_empty();
 
       const char * in_data = src->c_str;
-      //fixme:nc_assert_always( src->size < INT_MAX );
       int out_size = MultiByteToWideChar( CP_UTF8,
                                           0,//Must be 0 for utf8
                                           in_data, in_size,
@@ -531,9 +553,10 @@ namespace {
                                           //"dry-run" + return needed size).
                                           );
       const char * errmsg = "Failed to convert UTF-8 string to UTF-16";
-      (void)errmsg;//fixme
-      if (!out_size)
-        return mc_winstr_create_empty();//fixme: NCRYSTAL_THROW(BadInput,errmsg);
+      if (!out_size) {
+        mctools_impl_error(errmsg);
+        return mc_winstr_create_empty();
+      }
 
       mcwinstr res = mc_winstr_create( (mcu8str_size_t)( out_size ) );
 
@@ -544,7 +567,8 @@ namespace {
                                            out_data, out_size );
       if ( out_size != out_size2 || (mcu8str_size_t)out_size >= res.buflen ) {
         mc_winstr_dealloc( &res );
-        return mc_winstr_create_empty();//fixme: NCRYSTAL_THROW(BadInput,errmsg);
+        mctools_impl_error(errmsg);
+        return mc_winstr_create_empty();
       }
       res.c_str[out_size] = 0;
       res.size = out_size;
@@ -607,11 +631,14 @@ namespace {
 
     mcwinstr mc_winstr_expand_to_fullpath( const mcwinstr* wpath )
     {
+      //nb: in case of problems might throw, prints to stderr or return empty
+      //string.
+
       DWORD len_with_null_term = GetFullPathNameW( wpath->c_str,
                                                    (DWORD)0, NULL, NULL );
       if ( len_with_null_term <= 1 ) {
-        //return mcu8str_create_from_cstr("TESTRPERROR1: len_with_null_term <= 1");//fixme
-        return mc_winstr_create_empty();//fixme: check all callers that they check for non-empty
+        mctools_impl_error( "Full path expansion with GetFullPathNameW failed" );
+        return mc_winstr_create_empty();
       }
       mcwinstr woutput = mc_winstr_create((mcu8str_size_t)(len_with_null_term-1));
       DWORD len = GetFullPathNameW( wpath->c_str,
@@ -619,8 +646,8 @@ namespace {
                                     NULL );
       if ( len+1 != len_with_null_term ) {
         mc_winstr_dealloc( &woutput );
-        //return mcu8str_create_from_cstr("TESTRPERROR2: len+1 != len_with_null_term");//fixme
-        return mc_winstr_create_empty();//fixme: check all callers that they check for non-empty
+        mctools_impl_error( "Full path expansion with GetFullPathNameW failed" );
+        return mc_winstr_create_empty();
       }
       //OK, update output size:
       woutput.c_str[len] = 0;
@@ -655,7 +682,8 @@ namespace {
 
     mcu8str mc_winstr_to_u8str( const mcwinstr* src )
     {
-      const int in_size = (int)( src->size );//fixme range check
+      const int in_size = mctools_impl_str_size2int( src->size );
+
       //First check for empty string (also for safeguard in case of deallocated
       //string):
       if ( !src->c_str[0] || in_size == 0 )
@@ -674,8 +702,11 @@ namespace {
                                           );
       //NB: out_size does not include 0 termination char!
       const char * errmsg = "Failed to convert UTF-16 string to UTF-8";
-      if (!out_size)
-        return mcu8str_create_from_cstr(errmsg);//fixme: NCRYSTAL_THROW(BadInput,errmsg);
+
+      if (!out_size) {
+        mctools_impl_error(errmsg);
+        return mcu8str_create_empty();
+      }
       mcu8str res = mcu8str_create( out_size );
       //res.resize( out_size );
       char * out_data = res.c_str;
@@ -686,7 +717,8 @@ namespace {
                                            NULL, NULL);
       if ( out_size2 != out_size || (mcu8str_size_t)out_size >= res.buflen ) {
         mcu8str_dealloc(&res);
-        return mcu8str_create_from_cstr(errmsg);//fixme: NCRYSTAL_THROW(BadInput,errmsg);
+        mctools_impl_error(errmsg);
+        return mcu8str_create_empty();
       }
       res.c_str[out_size] = 0;
       res.size = out_size;
@@ -695,6 +727,8 @@ namespace {
 
     mcu8str mc_winstr_expand_to_fullpath_u8str( const mcwinstr* wpath )
     {
+      //nb: in case of problems might throw, prints to stderr or return empty
+      //string.
       mcwinstr fp = mc_winstr_expand_to_fullpath( wpath );
       mcu8str res = mc_winstr_to_u8str( &fp );
       mc_winstr_dealloc(&fp);
@@ -864,9 +898,8 @@ namespace {
       nsize = GetCurrentDirectoryW(wpath.buflen,wpath.c_str);
     }
     if ( nsize == 0 || (mcu8str_size_t )( nsize + 1 ) > wpath.buflen ) {
-      //Error (fixme):
-      mc_winstr_dealloc( &wpath );//check that we dealloc correctly everywhere
-                                  //in this file in case of errors
+      mc_winstr_dealloc( &wpath );
+      mctools_impl_error("Failed to get current working directory");
       return mcu8str_create_empty();
     }
     wpath.c_str[nsize] = 0;
@@ -878,7 +911,7 @@ namespace {
     mctools_pathseps_platform( &res );
     return res;
 #else
-    char buf[4096];//almost always enough in first go (fixme: test with tiny value here)
+    char buf[4096];//almost always enough in first go
     mcu8str res = mcu8str_create_from_staticbuffer( buf, sizeof(buf) );
     while ( 1 ) {
       if ( getcwd( res.c_str, res.buflen ) ) {
@@ -887,23 +920,16 @@ namespace {
         mctools_pathseps_platform( &res );
         return res;
       }
-      if ( errno == ERANGE ) {
-        //Try again with larger buffer: (fixme do not do this forever)
+      if ( errno == ERANGE && res.buflen < 2000000 ) {
+        //Try again with larger buffer:
         mcu8str_clear( &res );
         mcu8str_reserve( &res, (res.buflen-1) * 2 );
       } else {
-        //FIXME: ERROR!!
         mcu8str_dealloc( &res );
-        return mcu8str_create_empty();//fixme
+        mctools_impl_error("Failed to get current working directory");
+        return mcu8str_create_empty();
       }
     }
-    //fixme: some of these? or perhaps use them in the calling code??? It might
-    // be easiest if we return error codes and let the calling code deal with
-    // error emission.
-
-    //NCRYSTAL_THROW(CalcError,"current working directory is too
-    // long"); NCRYSTAL_THROW(CalcError,"Could not determine current working
-    // directory");
 #endif
   }
 
@@ -913,7 +939,7 @@ namespace {
 #ifdef MC_IS_WINDOWS
     {
       mcwinstr wpath = mc_winstr_create( (mcu8str_size_t)(MAX_PATH<32768
-                                                        ?32768:MAX_PATH) +1 );
+                                                          ?32768:MAX_PATH) +1 );
       DWORD nsize = GetModuleFileNameW(NULL, wpath.c_str, wpath.buflen );
       if ( nsize == 0 || (mcu8str_size_t)(nsize + 2) >= wpath.buflen ) {//+2 is safety
         //failure:
@@ -932,7 +958,7 @@ namespace {
 #endif
 #ifdef MC_IS_APPLE
     {
-      mcu8str path = mcu8str_create( 4096 );//fixme try with tiny value here
+      mcu8str path = mcu8str_create( 4096 );
       STDNS uint32_t bufsize = path.buflen;
       int status = _NSGetExecutablePath( path.c_str, &bufsize );
       if ( status == -1 ) {
@@ -1004,6 +1030,7 @@ namespace {
 
   mcu8str mctools_real_path( const mcu8str* rawpath )
   {
+    //NB: Might return empty in case of errors.
     mcu8str path = mctools_impl_view_no_winnamespace(rawpath);
     if ( path.size == 0 )
       return mcu8str_create_empty();
@@ -1026,7 +1053,7 @@ namespace {
     }
 
     //We have an open handle fh1, use it to find the resolved path:
-    mcwinstr resolvedpath = mc_winstr_create(4096);//fixme: test with super short buffer
+    mcwinstr resolvedpath = mc_winstr_create(4096);
     DWORD len = GetFinalPathNameByHandleW( fh1, resolvedpath.c_str,
                                            resolvedpath.buflen, 0 );
     if ( (mcu8str_size_t)len >= resolvedpath.buflen ) {
@@ -1596,5 +1623,3 @@ namespace {
 #ifdef MCFILEUTILS_CPPNAMESPACE
 }
 #endif
-
-//Fixme: We should support (and test) windows paths starting with "\\?\"...

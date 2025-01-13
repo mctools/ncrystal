@@ -22,3 +22,6 @@
 * CI missing:
     * exercising embedded data with e.g. tests.
     * python coverage testing.
+
+* Support (and test) windows paths starting with "\\?\", as well as shared
+  directories starting with double slashes.

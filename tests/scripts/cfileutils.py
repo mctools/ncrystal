@@ -574,4 +574,3 @@ if __name__=='__main__':
             main()
 
 #fixme check with hardlinks + files without read permission
-#fixme test expand_path... and verify that \\?\ in front does not change results
