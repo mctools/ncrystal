@@ -30,13 +30,17 @@ def ncmat2cpp( *input_files_or_text_data,
                extra_includes=None,
                outfile = None,
                regfctname=None ):
-    """Function which can be used to embed the content of .ncmat files (or actually
-    any ASCII/UTF8 excoded text files) directly into a C++ library. It does so
-    by reading the files and creating C++ code which keeps the contents of the
-    files in static strings, and registers those strings with the NCrystal C++
-    API, using the original filename as key. Naturally, the resulting C++ code
-    should be stored in a file, and that file must be compiled along with the
-    rest of the users C++ code, and the enclosing function must be invoked.
+    """Function which can be used to embed the content of .ncmat files (or
+    actually any ASCII/UTF8 excoded text files) directly into a C++ library. It
+    does so by reading the files and creating C++ code which keeps the contents
+    of the files in static UTF8-encoded strings, and registers those strings
+    with the NCrystal C++ API, using the original filename as key. Naturally,
+    for this to work the resulting C++ code should be stored in a file, and that
+    file must be compiled along with the rest of the users C++ code, and the
+    enclosing function must be invoked.
+
+    Note that despite the name of this function, it can actually be used to
+    process any text string.
 
     If outfile is not None, the contents will be stored in that file. In any
     case, the C++ code will be returned as a string.
@@ -45,13 +49,11 @@ def ncmat2cpp( *input_files_or_text_data,
     file data will be assumed to be
     "NCrystal::registerInMemoryStaticFileData(const std::string&,const char*)".
 
-    FIXME EXPLAIN PARAMETERS (see _cli_ncmat2cpp argparse for descriptions). Be
-    sure to point out that despite the name of the module (ncmat2cpp), the
-    functionality can actually be used for any UTF-8 encoded text file.
+    For a meaning of the the other parameters, see 'ncrystal_ncmat2cpp --help'.
 
     """
     #NOTE: The above doc-string should be kept in sync with argparse help text
-    #in _cli_ncmat2cpp.py.
+    #in _ncmat2cpp_impl.py.
 
     #NOTE: ncrystal_ncmat2cpp is a special command-line script, since the
     #NCrystal CMake code needs to be able to invoke _cli_ncmat2cpp.py directly

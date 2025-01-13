@@ -272,15 +272,16 @@ void NCP::ensurePluginsLoaded()
 #endif
 
   //Dynamic custom plugins, as indicated by environment variable:
+  bool first_plugin = false;
   for ( auto& pluginlib : split2(ncgetenv("PLUGIN_LIST"),0,':') ) {
     trim(pluginlib);
     if (pluginlib.empty())
       continue;
 #ifdef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
-    //Fixme: std::atomic. Also, why are we loading ourselves?
-    static bool firstpl=true;
-    if (firstpl) {
-      firstpl=false;
+    //I am not 100% sure the following is still needed, but keeping it just in
+    //case for now:
+    if (first_plugin) {
+      first_plugin=false;
       DynLoader( getSBLDPkgLib("NCFactories"),
                  DynLoader::ScopeFlag::global ).doNotClose();
     }
