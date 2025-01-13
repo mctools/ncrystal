@@ -23,8 +23,10 @@ def short_description():
     return 'Build and test code with CMake'
 
 def main( parser ):
+    from .cmake import cmakerunner_modes
     parser.init( 'Launch CMake to build the files in ncrystal_core.' )
     #Fixme many more options here, for now hardcoding below
+
     parser.add_argument(
         '-b','--build-dir', metavar='DIR',
         help="""CMake build directory to use. By default will work in temporary
@@ -40,30 +42,48 @@ def main( parser ):
         help="""This flag will force any existing build and install dirs to be
         removed before running, instead of ending in an error."""
     )
+    assert 'ctest' in cmakerunner_modes
+    parser.add_argument(
+        '-m','--mode', type = str, choices = cmakerunner_modes,
+        default = 'ctest',
+        help="""Mode (default: ctest)."""
+    )
+    parser.add_argument(
+        '-j',type=int,default=0,
+        help="""Use this many processes (default: auto detect)."""
+    )
     args = parser.parse_args()
+
+    from .util import get_nprocs
+    nprocs = args.j or get_nprocs()
 
     needs_tmpdir = (not args.install_dir) or ( not args.build_dir )
     runner_args = dict( force = args.force,
-                        mode = 'ctest',
+                        mode = args.mode,
                         cmake_flags = None,
                         build_types = ['rel'],
                         generator = 'single',
-                        nprocs_bld = 12,
-                        nprocs_ctest = 2 )
+                        nprocs_bld = nprocs,
+                        nprocs_ctest = nprocs )
 
-    def do_work( blddir, instdir ):
+    def do_work( blddir, instdir, mode ):
         from .cmake import CMakeRunner
         c = CMakeRunner( blddir = blddir,
                          instdir = instdir,
                          **runner_args )
         c.do_cfg()
         c.do_build()
-        c.do_ctest()
+        if mode == 'ctest':
+            c.do_ctest()
+        elif mode == 'install':
+            c.do_install()
+            c.do_test_install()
 
     if needs_tmpdir:
         from .util import work_in_tmpdir
         with work_in_tmpdir():
             do_work( args.build_dir or './build',
-                     args.install_dir or '/install' )
+                     args.install_dir or '/install',
+                     args.mode )
     else:
-        do_work( args.build_dir, args.install_dir )
+        do_work( args.build_dir, args.install_dir, args.mode )

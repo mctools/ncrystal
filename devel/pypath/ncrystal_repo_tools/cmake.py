@@ -27,6 +27,8 @@ import shutil
 import platform
 from pathlib import Path as plPath
 
+cmakerunner_modes = ('ctest','install','buildonly')
+
 class CMakeRunner:
 
     def __init__( self, *,
@@ -63,7 +65,7 @@ class CMakeRunner:
         self.build_types = sorted(set(build_types))
         if self.generator == 'single':
             assert len(self.build_types)==1
-        assert mode in ('ctest','installtest','buildonly')
+        assert mode in cmakerunner_modes
         self.mode = mode
         self.cmake_flags = ( shlex.split(os.environ.get('CMAKE_ARGS',''))
                              + ( cmake_flags or [] ) )
@@ -78,16 +80,25 @@ class CMakeRunner:
         if self.mode == 'ctest':
             self.ctest_cmd = ctest_cmd or shutil.which('ctest')
 
-    def _invoke( self, cmdname, arg_list, cwd = None, env = None ):
+    def _invoke( self, cmdname, arg_list, cwd = None, env = None,
+                 capture_output = False ):
+        assert not isinstance(arg_list,str)
         assert plPath(self.cmake_cmd).is_file()
-        cmd = [cmdname]+list(str(e) for e in arg_list)
-        cmdstr = shlex.join(cmd)
+        cmd = [ str(cmdname) ] + [ str(e) for e in arg_list ]
+        cmdstr = shlex.join( cmd )
         print()
         print(f'LAUNCHING: {cmdstr}')
         print()
-        ec = subprocess.run(cmd,cwd=cwd,env=env)
-        if ec.returncode!=0:
+        rv = subprocess.run( cmd,
+                             cwd=cwd,
+                             env=env,
+                             capture_output=capture_output )
+        if rv.returncode!=0:
             raise RuntimeError(f'Command failed: {cmdstr}')
+        if capture_output:
+            if rv.stderr:
+                print(rv.stderr)
+            return rv.stdout
 
     def _bt2cmakebt( self, buildtype ):
         return { 'rel' : 'Release',
@@ -121,8 +132,8 @@ class CMakeRunner:
                 ] + self.cmake_flags
 
         self._msg(f'using build dir {self.blddir}')
-        if self.mode == 'installtest':
-            args.append('-DCMAKE_INSTALL_PREFIX=%s'%dirs.instdir)
+        if self.mode == 'install':
+            args.append('-DCMAKE_INSTALL_PREFIX=%s'%self.instdir)
             self._msg(f'using install dir {self.blddir}')
         elif self.mode == 'buildonly':
             pass
@@ -166,16 +177,26 @@ class CMakeRunner:
                           cwd = self.blddir )
 
     def do_install( self ):
-        assert self.mode == 'installtest'
+        assert self.mode == 'install'
         assert self.stage == 'bld'
         args = [ '--install', self.blddir ]
         for bt in self.build_types:
             self._invoke( self.cmake_cmd,
                           args + ['--config',self._bt2cmakebt(bt)] )
-        assert self.stage == 'install'
+        self.stage = 'install'
 
     def do_test_install( self ):
+        #Minimal test.
+        import pathlib
         assert self.stage == 'install'
-        assert self.mode == 'installtest'
-        #FIXME: Do something!
-        self._invoke( self.instdir/'bin/ncrystal-config', '-s' )
+        assert self.mode == 'install'
+        self._invoke( self.instdir/'bin/ncrystal-config', [ '-s' ] )
+        for p in ( 'libpath', 'shlibpath' ):
+            o = self._invoke( self.instdir/'bin/ncrystal-config', [ '--show',p ],
+                              capture_output = True)
+            lp = pathlib.Path(o.decode().strip())
+            if not lp.is_file():
+                raise SystemExit(f'File not found: {lp}')
+            else:
+                print("Verified existence of file at: "
+                      f"ncrystal-config  --show {p}")
