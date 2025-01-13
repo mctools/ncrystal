@@ -48,6 +48,12 @@ def main( parser ):
         help="""Mode (default: ctest)."""
     )
     parser.add_argument(
+        '-s','--strict', type = str,
+        choices = ('OFF','ON','11','14','17','20','23'),
+        default = '11',
+        help="""BUILD_STRICT mode (default: '11')."""
+    )
+    parser.add_argument(
         '-j',type=int,default=0,
         help="""Use this many processes (default: auto detect)."""
     )

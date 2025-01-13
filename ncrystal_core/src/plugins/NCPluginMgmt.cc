@@ -272,7 +272,9 @@ void NCP::ensurePluginsLoaded()
 #endif
 
   //Dynamic custom plugins, as indicated by environment variable:
+#ifdef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
   bool first_plugin = false;
+#endif
   for ( auto& pluginlib : split2(ncgetenv("PLUGIN_LIST"),0,':') ) {
     trim(pluginlib);
     if (pluginlib.empty())
