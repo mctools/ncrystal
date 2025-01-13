@@ -1,0 +1,58 @@
+name: cppcheck
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '13 15 * * 0'  # 13:15 every Sunday
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        #fixme: strictflag: [11, 14, 17, 20, 23]
+        strictflag: [11, 17]
+        os: [ubuntu-latest, macos-latest]
+
+    name: ${{ matrix.os }}.strict${{ matrix.strictflag }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        path: src
+
+    - name: Install cppcheck
+      run: pip install cppcheck
+
+    - name: show cppcheck version
+      run: cppcheck --version
+
+    - name: Install Ninja (Linux)
+      if: runner.os == 'Linux'
+      run: sudo apt-get install ninja-build
+
+    - name: Install Ninja (macOS)
+      if: runner.os == 'macOS'
+      run: brew install ninja
+
+    - name: Set CMAKE_GENERATOR (Linux/macOS)
+      if: runner.os != 'Windows'
+      run: echo "CMAKE_GENERATOR=Ninja Multi-Config" >> $GITHUB_ENV
+
+    - name: Configure CMake
+      run: >
+        cmake -S ./src -B ./build
+        "-DCMAKE_CXX_CPPCHECK=cppcheck;--error-exitcode=3;--inline-suppr;--check-level=exhaustive"
+        "-DCMAKE_C_CPPCHECK=cppcheck;--error-exitcode=3;--inline-suppr;--check-level=exhaustive"
+        -DNCRYSTAL_ENABLE_TESTING=ON
+        -DNCRYSTAL_ENABLE_EXAMPLES=ON
+        -DNCRYSTAL_BUILD_STRICT=${{ matrix.strictflag }}
+
+    - name: Build and cppcheck Release
+      run: cmake --build ./build --config Release
+
+#fixme: enable debug bld as well?
+#    - name: Build and cppcheck Debug
+#      run: cmake --build ./build --config Debug
