@@ -1382,25 +1382,24 @@ namespace NCRYSTAL_NAMESPACE {
   inline void COWPimpl<T>::releaseData()
   {
     if (!m_data)
-      return;//was moved-from
+      return;
 
     //Check refcount while holding lock, but release lock before deleting
     //m_impl!
-    bool dodelete(false);
+    Data * data_to_delete = nullptr;
     {
       NCRYSTAL_LOCK_GUARD(m_data->mtx);
       if ( m_data->refcount==1 ) {
         //we are the only object referring to m_data, and should remain so even
         //after releasing the lock, since we are the only remaining source of
         //m_data.
-        dodelete = true;
+        std::swap( data_to_delete, m_data );
       } else {
         --( m_data->refcount );
       }
     }
-    if (dodelete)
-      delete m_data;
-    m_data = nullptr;
+    if (data_to_delete)
+      delete data_to_delete;
   }
 
   template<class T>
