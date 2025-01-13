@@ -69,7 +69,7 @@ class Component:
         else:
             self.hdrfiles = tuple([])
 
-        self.hdrfiles_icc = tuple([])#FIXME support?
+        self.hdrfiles_icc = tuple([])#TODO: support?
 
         self.direct_depnames = sorted(set(self.depfile.read_text().split()))
         #To be filled later:
@@ -163,7 +163,7 @@ class Component:
         return sum( file_calc_sloc_count(f) for f in files )
 
 def file_calc_sloc_count( f ):
-    #FIXME: Improve
+    #TODO: Improve
     return len(f.read_text().splitlines())
 
 def load_components( *, init_deps = True ):

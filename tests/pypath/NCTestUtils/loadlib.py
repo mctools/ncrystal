@@ -82,7 +82,7 @@ class Lib:
                                   restype,
                                   *argtypes,
                                   libobj = self )
-        #Fixme test: fct.__name__ = fctname
+        fct.__name__ = fctname
         assert not hasattr(self,fctname),f'Fct {repr(fctname)} already added!'
         self.__fcts.add( (fctname,restype,argtypes) )
         setattr(self,fctname,fct)

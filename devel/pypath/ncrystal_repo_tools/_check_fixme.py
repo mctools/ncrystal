@@ -25,6 +25,10 @@ def main():
     from .dirs import reporoot
     hits = []
     for f in all_files_iter():
+        frel = str(f.relative_to(reporoot))
+        if frel == 'tests/scripts/vdos2ncmat.log':
+            #false positive!
+            continue
         n = 0
         try:
             content = f.read_text()
@@ -34,7 +38,7 @@ def main():
             if search_str in line.lower():
                 n+=1
         if n:
-            hits.append( ( n, str(f.relative_to(reporoot)) ) )
+            hits.append( ( n, frel ) )
     if hits:
         ntot = sum( n for n,f in hits )
         hits.append( (ntot, 'TOTAL' ) )

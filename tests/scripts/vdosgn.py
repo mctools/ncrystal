@@ -65,9 +65,10 @@ def main():
 
     PWLinDistMoments.unit_test(mp)
 
-    #Fixme: add many more here, so we have good coverage.
     for filename in ('Au_sg225',
-                     'Polyethylene_CH2'):
+                     'Polyethylene_CH2',
+                     'LiH_sg225_LithiumHydride',
+                     'C_sg194_pyrolytic_graphite' ):
         for temp in (10,600):
             for vdoslux in (0,3):
                 test(f'stdlib::{filename}.ncmat'

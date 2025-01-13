@@ -706,3 +706,711 @@ Distribution "G50" with:
   5th moment (std) : -31.21364
   6th moment (std) : 103.2892
   7th moment (std) : -479.8176
+
+--------------------------------------------------------------------------------
+Investigating "stdlib::LiH_sg225_LithiumHydride.ncmat;temp=10K;comp=inelas;vdoslux=0" / H
+--------------------------------------------------------------------------------
+
+Distribution "G1" with:
+  integral         : 1
+  mean             : -0.1002315
+  rms              : 0.02635939
+  skewness         : -9.4785
+  kurtosis         : -22.2516
+  5th moment (std) : -113.228
+  6th moment (std) : -420.0832
+  7th moment (std) : -1664.04
+Distribution "G2" with:
+  integral         : 1
+  mean             : -0.200463
+  rms              : 0.03727781
+  skewness         : -14.76863
+  kurtosis         : -24.29576
+  5th moment (std) : -121.1909
+  6th moment (std) : -412.0369
+  7th moment (std) : -1815.949
+Distribution "G5" with:
+  integral         : 1
+  mean             : -0.5011575
+  rms              : 0.05894166
+  skewness         : -24.64515
+  kurtosis         : -25.52175
+  5th moment (std) : -153.4721
+  6th moment (std) : -417.3334
+  7th moment (std) : -1850.894
+Distribution "G8" with:
+  integral         : 1
+  mean             : -0.8018521
+  rms              : 0.07455645
+  skewness         : -31.58292
+  kurtosis         : -25.8276
+  5th moment (std) : -181.8852
+  6th moment (std) : -419.8351
+  7th moment (std) : -1922.555
+Distribution "G20" with:
+  integral         : 1
+  mean             : -2.00463
+  rms              : 0.1178912
+  skewness         : -50.58097
+  kurtosis         : -26.1272
+  5th moment (std) : -268.0981
+  6th moment (std) : -422.7178
+  7th moment (std) : -2310.364
+Distribution "G50" with:
+  integral         : 1
+  mean             : -5.011575
+  rms              : 0.1863944
+  skewness         : -80.38806
+  kurtosis         : -26.25482
+  5th moment (std) : -411.5611
+  6th moment (std) : -424.121
+  7th moment (std) : -3161.264
+
+--------------------------------------------------------------------------------
+Investigating "stdlib::LiH_sg225_LithiumHydride.ncmat;temp=10K;comp=inelas;vdoslux=0" / Li
+--------------------------------------------------------------------------------
+
+Distribution "G1" with:
+  integral         : 1
+  mean             : -0.0371166
+  rms              : 0.01369772
+  skewness         : -8.522428
+  kurtosis         : 10.91183
+  5th moment (std) : -111.7206
+  6th moment (std) : 504.9325
+  7th moment (std) : -3760.18
+Distribution "G2" with:
+  integral         : 1
+  mean             : -0.07423319
+  rms              : 0.01937151
+  skewness         : -11.77439
+  kurtosis         : 9.087664
+  5th moment (std) : -101.4767
+  6th moment (std) : 271.5083
+  7th moment (std) : -1953.447
+Distribution "G5" with:
+  integral         : 1
+  mean             : -0.185583
+  rms              : 0.03062955
+  skewness         : -18.35276
+  kurtosis         : 7.992835
+  5th moment (std) : -116.3311
+  6th moment (std) : 151.0596
+  7th moment (std) : -1315.427
+Distribution "G8" with:
+  integral         : 1
+  mean             : -0.2969328
+  rms              : 0.03874341
+  skewness         : -23.13132
+  kurtosis         : 7.719345
+  5th moment (std) : -134.6097
+  6th moment (std) : 123.2548
+  7th moment (std) : -1286.03
+Distribution "G20" with:
+  integral         : 1
+  mean             : -0.7423319
+  rms              : 0.06126213
+  skewness         : -36.43986
+  kurtosis         : 7.44474
+  5th moment (std) : -193.886
+  6th moment (std) : 96.34555
+  7th moment (std) : -1542.406
+Distribution "G50" with:
+  integral         : 1
+  mean             : -1.85583
+  rms              : 0.09686776
+  skewness         : -57.53076
+  kurtosis         : 7.334632
+  5th moment (std) : -294.9686
+  6th moment (std) : 85.83885
+  7th moment (std) : -2173.934
+
+--------------------------------------------------------------------------------
+Investigating "stdlib::LiH_sg225_LithiumHydride.ncmat;temp=10K;comp=inelas;vdoslux=3" / H
+--------------------------------------------------------------------------------
+
+Distribution "G1" with:
+  integral         : 1
+  mean             : -0.1002315
+  rms              : 0.02635939
+  skewness         : -9.4785
+  kurtosis         : -22.2516
+  5th moment (std) : -113.228
+  6th moment (std) : -420.0832
+  7th moment (std) : -1664.04
+Distribution "G2" with:
+  integral         : 1
+  mean             : -0.200463
+  rms              : 0.03727781
+  skewness         : -14.76863
+  kurtosis         : -24.29576
+  5th moment (std) : -121.1909
+  6th moment (std) : -412.0369
+  7th moment (std) : -1815.949
+Distribution "G5" with:
+  integral         : 1
+  mean             : -0.5011575
+  rms              : 0.05894166
+  skewness         : -24.64515
+  kurtosis         : -25.52175
+  5th moment (std) : -153.4721
+  6th moment (std) : -417.3334
+  7th moment (std) : -1850.894
+Distribution "G8" with:
+  integral         : 1
+  mean             : -0.8018521
+  rms              : 0.07455645
+  skewness         : -31.58292
+  kurtosis         : -25.8276
+  5th moment (std) : -181.8852
+  6th moment (std) : -419.8351
+  7th moment (std) : -1922.555
+Distribution "G20" with:
+  integral         : 1
+  mean             : -2.00463
+  rms              : 0.1178912
+  skewness         : -50.58097
+  kurtosis         : -26.1272
+  5th moment (std) : -268.0981
+  6th moment (std) : -422.7178
+  7th moment (std) : -2310.364
+Distribution "G50" with:
+  integral         : 1
+  mean             : -5.011575
+  rms              : 0.1863944
+  skewness         : -80.38806
+  kurtosis         : -26.25482
+  5th moment (std) : -411.5611
+  6th moment (std) : -424.121
+  7th moment (std) : -3161.264
+
+--------------------------------------------------------------------------------
+Investigating "stdlib::LiH_sg225_LithiumHydride.ncmat;temp=10K;comp=inelas;vdoslux=3" / Li
+--------------------------------------------------------------------------------
+
+Distribution "G1" with:
+  integral         : 1
+  mean             : -0.0371166
+  rms              : 0.01369772
+  skewness         : -8.522428
+  kurtosis         : 10.91183
+  5th moment (std) : -111.7206
+  6th moment (std) : 504.9325
+  7th moment (std) : -3760.18
+Distribution "G2" with:
+  integral         : 1
+  mean             : -0.07423319
+  rms              : 0.01937151
+  skewness         : -11.77439
+  kurtosis         : 9.087664
+  5th moment (std) : -101.4767
+  6th moment (std) : 271.5083
+  7th moment (std) : -1953.447
+Distribution "G5" with:
+  integral         : 1
+  mean             : -0.185583
+  rms              : 0.03062955
+  skewness         : -18.35276
+  kurtosis         : 7.992835
+  5th moment (std) : -116.3311
+  6th moment (std) : 151.0596
+  7th moment (std) : -1315.427
+Distribution "G8" with:
+  integral         : 1
+  mean             : -0.2969328
+  rms              : 0.03874341
+  skewness         : -23.13132
+  kurtosis         : 7.719345
+  5th moment (std) : -134.6097
+  6th moment (std) : 123.2548
+  7th moment (std) : -1286.03
+Distribution "G20" with:
+  integral         : 1
+  mean             : -0.7423319
+  rms              : 0.06126213
+  skewness         : -36.43986
+  kurtosis         : 7.44474
+  5th moment (std) : -193.886
+  6th moment (std) : 96.34555
+  7th moment (std) : -1542.406
+Distribution "G50" with:
+  integral         : 1
+  mean             : -1.85583
+  rms              : 0.09686776
+  skewness         : -57.53076
+  kurtosis         : 7.334632
+  5th moment (std) : -294.9686
+  6th moment (std) : 85.83885
+  7th moment (std) : -2173.934
+
+--------------------------------------------------------------------------------
+Investigating "stdlib::LiH_sg225_LithiumHydride.ncmat;temp=600K;comp=inelas;vdoslux=0" / H
+--------------------------------------------------------------------------------
+
+Distribution "G1" with:
+  integral         : 1
+  mean             : -0.05474122
+  rms              : 0.06778798
+  skewness         : -1.54325
+  kurtosis         : -0.02283321
+  5th moment (std) : -5.849819
+  6th moment (std) : -12.84466
+  7th moment (std) : -46.1736
+Distribution "G2" with:
+  integral         : 1
+  mean             : -0.1094824
+  rms              : 0.09586668
+  skewness         : -2.804285
+  kurtosis         : 0.06835896
+  5th moment (std) : -11.54668
+  6th moment (std) : -18.70994
+  7th moment (std) : -86.16037
+Distribution "G5" with:
+  integral         : 1
+  mean             : -0.2737061
+  rms              : 0.1515789
+  skewness         : -5.023843
+  kurtosis         : 0.1231053
+  5th moment (std) : -23.11578
+  6th moment (std) : -23.68384
+  7th moment (std) : -164.252
+Distribution "G8" with:
+  integral         : 1
+  mean             : -0.4379298
+  rms              : 0.1917347
+  skewness         : -6.541229
+  kurtosis         : 0.1368303
+  5th moment (std) : -31.03569
+  6th moment (std) : -25.09729
+  7th moment (std) : -218.8518
+Distribution "G20" with:
+  integral         : 1
+  mean             : -1.094824
+  rms              : 0.3031701
+  skewness         : -10.63716
+  kurtosis         : 0.1509236
+  5th moment (std) : -52.07465
+  6th moment (std) : -26.57356
+  7th moment (std) : -365.2905
+Distribution "G50" with:
+  integral         : 1
+  mean             : -2.737061
+  rms              : 0.4793665
+  skewness         : -17.0049
+  kurtosis         : 0.1566886
+  5th moment (std) : -84.30798
+  6th moment (std) : -27.18107
+  7th moment (std) : -590.5728
+
+--------------------------------------------------------------------------------
+Investigating "stdlib::LiH_sg225_LithiumHydride.ncmat;temp=600K;comp=inelas;vdoslux=0" / Li
+--------------------------------------------------------------------------------
+
+Distribution "G1" with:
+  integral         : 1
+  mean             : -0.009493619
+  rms              : 0.03083284
+  skewness         : -0.6081376
+  kurtosis         : 1.765509
+  5th moment (std) : -2.154092
+  6th moment (std) : 5.547878
+  7th moment (std) : -14.66436
+Distribution "G2" with:
+  integral         : 1
+  mean             : -0.01898724
+  rms              : 0.04360422
+  skewness         : -1.083186
+  kurtosis         : 2.188416
+  5th moment (std) : -4.084214
+  6th moment (std) : 6.26223
+  7th moment (std) : -22.38535
+Distribution "G5" with:
+  integral         : 1
+  mean             : -0.0474681
+  rms              : 0.06894523
+  skewness         : -1.924343
+  kurtosis         : 2.442189
+  5th moment (std) : -8.51207
+  6th moment (std) : 7.743958
+  7th moment (std) : -51.27224
+Distribution "G8" with:
+  integral         : 1
+  mean             : -0.07594895
+  rms              : 0.08720916
+  skewness         : -2.501077
+  kurtosis         : 2.505613
+  5th moment (std) : -11.57526
+  6th moment (std) : 8.237535
+  7th moment (std) : -73.38914
+Distribution "G20" with:
+  integral         : 1
+  mean             : -0.1898724
+  rms              : 0.1378958
+  skewness         : -4.060223
+  kurtosis         : 2.569122
+  5th moment (std) : -19.67953
+  6th moment (std) : 8.781661
+  7th moment (std) : -132.2026
+Distribution "G50" with:
+  integral         : 1
+  mean             : -0.474681
+  rms              : 0.2180257
+  skewness         : -6.486911
+  kurtosis         : 2.594441
+  5th moment (std) : -32.03292
+  6th moment (std) : 9.011928
+  7th moment (std) : -220.5251
+
+--------------------------------------------------------------------------------
+Investigating "stdlib::LiH_sg225_LithiumHydride.ncmat;temp=600K;comp=inelas;vdoslux=3" / H
+--------------------------------------------------------------------------------
+
+Distribution "G1" with:
+  integral         : 1
+  mean             : -0.05474122
+  rms              : 0.06778798
+  skewness         : -1.54325
+  kurtosis         : -0.02283321
+  5th moment (std) : -5.849819
+  6th moment (std) : -12.84466
+  7th moment (std) : -46.1736
+Distribution "G2" with:
+  integral         : 1
+  mean             : -0.1094824
+  rms              : 0.09586668
+  skewness         : -2.804285
+  kurtosis         : 0.06835896
+  5th moment (std) : -11.54668
+  6th moment (std) : -18.70994
+  7th moment (std) : -86.16037
+Distribution "G5" with:
+  integral         : 1
+  mean             : -0.2737061
+  rms              : 0.1515789
+  skewness         : -5.023843
+  kurtosis         : 0.1231053
+  5th moment (std) : -23.11578
+  6th moment (std) : -23.68384
+  7th moment (std) : -164.252
+Distribution "G8" with:
+  integral         : 1
+  mean             : -0.4379298
+  rms              : 0.1917347
+  skewness         : -6.541229
+  kurtosis         : 0.1368303
+  5th moment (std) : -31.03569
+  6th moment (std) : -25.09729
+  7th moment (std) : -218.8518
+Distribution "G20" with:
+  integral         : 1
+  mean             : -1.094824
+  rms              : 0.3031701
+  skewness         : -10.63716
+  kurtosis         : 0.1509236
+  5th moment (std) : -52.07465
+  6th moment (std) : -26.57356
+  7th moment (std) : -365.2905
+Distribution "G50" with:
+  integral         : 1
+  mean             : -2.737061
+  rms              : 0.4793665
+  skewness         : -17.0049
+  kurtosis         : 0.1566886
+  5th moment (std) : -84.30798
+  6th moment (std) : -27.18107
+  7th moment (std) : -590.5728
+
+--------------------------------------------------------------------------------
+Investigating "stdlib::LiH_sg225_LithiumHydride.ncmat;temp=600K;comp=inelas;vdoslux=3" / Li
+--------------------------------------------------------------------------------
+
+Distribution "G1" with:
+  integral         : 1
+  mean             : -0.009493619
+  rms              : 0.03083284
+  skewness         : -0.6081376
+  kurtosis         : 1.765509
+  5th moment (std) : -2.154092
+  6th moment (std) : 5.547878
+  7th moment (std) : -14.66436
+Distribution "G2" with:
+  integral         : 1
+  mean             : -0.01898724
+  rms              : 0.04360422
+  skewness         : -1.083186
+  kurtosis         : 2.188416
+  5th moment (std) : -4.084214
+  6th moment (std) : 6.26223
+  7th moment (std) : -22.38535
+Distribution "G5" with:
+  integral         : 1
+  mean             : -0.0474681
+  rms              : 0.06894523
+  skewness         : -1.924343
+  kurtosis         : 2.442189
+  5th moment (std) : -8.51207
+  6th moment (std) : 7.743958
+  7th moment (std) : -51.27224
+Distribution "G8" with:
+  integral         : 1
+  mean             : -0.07594895
+  rms              : 0.08720916
+  skewness         : -2.501077
+  kurtosis         : 2.505613
+  5th moment (std) : -11.57526
+  6th moment (std) : 8.237535
+  7th moment (std) : -73.38914
+Distribution "G20" with:
+  integral         : 1
+  mean             : -0.1898724
+  rms              : 0.1378958
+  skewness         : -4.060223
+  kurtosis         : 2.569122
+  5th moment (std) : -19.67953
+  6th moment (std) : 8.781661
+  7th moment (std) : -132.2026
+Distribution "G50" with:
+  integral         : 1
+  mean             : -0.474681
+  rms              : 0.2180257
+  skewness         : -6.486911
+  kurtosis         : 2.594441
+  5th moment (std) : -32.03292
+  6th moment (std) : 9.011928
+  7th moment (std) : -220.5251
+
+--------------------------------------------------------------------------------
+Investigating "stdlib::C_sg194_pyrolytic_graphite.ncmat;temp=10K;comp=inelas;vdoslux=0" / C
+--------------------------------------------------------------------------------
+
+Distribution "G1" with:
+  integral         : 1
+  mean             : -0.07185903
+  rms              : 0.05539139
+  skewness         : -4.698613
+  kurtosis         : 6.783146
+  5th moment (std) : -20.88391
+  6th moment (std) : 40.79624
+  7th moment (std) : -102.7735
+Distribution "G2" with:
+  integral         : 1
+  mean             : -0.1437181
+  rms              : 0.07833499
+  skewness         : -6.074426
+  kurtosis         : 6.984748
+  5th moment (std) : -29.9513
+  6th moment (std) : 60.82175
+  7th moment (std) : -207.1064
+Distribution "G5" with:
+  integral         : 1
+  mean             : -0.3592952
+  rms              : 0.1238608
+  skewness         : -9.063159
+  kurtosis         : 7.105377
+  5th moment (std) : -45.59012
+  6th moment (std) : 71.36776
+  7th moment (std) : -331.3161
+Distribution "G8" with:
+  integral         : 1
+  mean             : -0.5748723
+  rms              : 0.1566716
+  skewness         : -11.29306
+  kurtosis         : 7.135742
+  5th moment (std) : -56.78897
+  6th moment (std) : 73.83515
+  7th moment (std) : -410.1732
+Distribution "G20" with:
+  integral         : 1
+  mean             : -1.437181
+  rms              : 0.2477215
+  skewness         : -17.58517
+  kurtosis         : 7.165838
+  5th moment (std) : -88.19813
+  6th moment (std) : 76.23013
+  7th moment (std) : -627.3682
+Distribution "G50" with:
+  integral         : 1
+  mean             : -3.592952
+  rms              : 0.3916872
+  skewness         : -27.63311
+  kurtosis         : 7.177712
+  5th moment (std) : -138.3549
+  6th moment (std) : 77.16641
+  7th moment (std) : -975.3102
+
+--------------------------------------------------------------------------------
+Investigating "stdlib::C_sg194_pyrolytic_graphite.ncmat;temp=10K;comp=inelas;vdoslux=3" / C
+--------------------------------------------------------------------------------
+
+Distribution "G1" with:
+  integral         : 1
+  mean             : -0.07185903
+  rms              : 0.05539139
+  skewness         : -4.698613
+  kurtosis         : 6.783146
+  5th moment (std) : -20.88391
+  6th moment (std) : 40.79624
+  7th moment (std) : -102.7735
+Distribution "G2" with:
+  integral         : 1
+  mean             : -0.1437181
+  rms              : 0.07833499
+  skewness         : -6.074426
+  kurtosis         : 6.984748
+  5th moment (std) : -29.9513
+  6th moment (std) : 60.82175
+  7th moment (std) : -207.1064
+Distribution "G5" with:
+  integral         : 1
+  mean             : -0.3592952
+  rms              : 0.1238608
+  skewness         : -9.063159
+  kurtosis         : 7.105377
+  5th moment (std) : -45.59012
+  6th moment (std) : 71.36776
+  7th moment (std) : -331.3161
+Distribution "G8" with:
+  integral         : 1
+  mean             : -0.5748723
+  rms              : 0.1566716
+  skewness         : -11.29306
+  kurtosis         : 7.135742
+  5th moment (std) : -56.78897
+  6th moment (std) : 73.83515
+  7th moment (std) : -410.1732
+Distribution "G20" with:
+  integral         : 1
+  mean             : -1.437181
+  rms              : 0.2477215
+  skewness         : -17.58517
+  kurtosis         : 7.165838
+  5th moment (std) : -88.19813
+  6th moment (std) : 76.23013
+  7th moment (std) : -627.3682
+Distribution "G50" with:
+  integral         : 1
+  mean             : -3.592952
+  rms              : 0.3916872
+  skewness         : -27.63311
+  kurtosis         : 7.177712
+  5th moment (std) : -138.3549
+  6th moment (std) : 77.16641
+  7th moment (std) : -975.3102
+
+--------------------------------------------------------------------------------
+Investigating "stdlib::C_sg194_pyrolytic_graphite.ncmat;temp=600K;comp=inelas;vdoslux=0" / C
+--------------------------------------------------------------------------------
+
+Distribution "G1" with:
+  integral         : 1
+  mean             : -0.01624463
+  rms              : 0.04643635
+  skewness         : -2.597722
+  kurtosis         : 9.294091
+  5th moment (std) : -30.41154
+  6th moment (std) : 117.7018
+  7th moment (std) : -414.038
+Distribution "G2" with:
+  integral         : 1
+  mean             : -0.03248927
+  rms              : 0.06567059
+  skewness         : -2.578983
+  kurtosis         : 7.230359
+  5th moment (std) : -24.34458
+  6th moment (std) : 87.8128
+  7th moment (std) : -356.0561
+Distribution "G5" with:
+  integral         : 1
+  mean             : -0.08122317
+  rms              : 0.103837
+  skewness         : -3.039005
+  kurtosis         : 5.991735
+  5th moment (std) : -22.10539
+  6th moment (std) : 64.86911
+  7th moment (std) : -265.0018
+Distribution "G8" with:
+  integral         : 1
+  mean             : -0.1299571
+  rms              : 0.1313431
+  skewness         : -3.515713
+  kurtosis         : 5.682314
+  5th moment (std) : -22.97667
+  6th moment (std) : 58.55103
+  7th moment (std) : -244.4174
+Distribution "G20" with:
+  integral         : 1
+  mean             : -0.3248927
+  rms              : 0.2076741
+  skewness         : -5.039482
+  kurtosis         : 5.372643
+  5th moment (std) : -28.57003
+  6th moment (std) : 51.99426
+  7th moment (std) : -250.0209
+Distribution "G50" with:
+  integral         : 1
+  mean             : -0.8122317
+  rms              : 0.3283676
+  skewness         : -7.63956
+  kurtosis         : 5.248658
+  5th moment (std) : -40.32023
+  6th moment (std) : 49.30416
+  7th moment (std) : -313.0677
+
+--------------------------------------------------------------------------------
+Investigating "stdlib::C_sg194_pyrolytic_graphite.ncmat;temp=600K;comp=inelas;vdoslux=3" / C
+--------------------------------------------------------------------------------
+
+Distribution "G1" with:
+  integral         : 1
+  mean             : -0.01624463
+  rms              : 0.04643635
+  skewness         : -2.597722
+  kurtosis         : 9.294091
+  5th moment (std) : -30.41154
+  6th moment (std) : 117.7018
+  7th moment (std) : -414.038
+Distribution "G2" with:
+  integral         : 1
+  mean             : -0.03248927
+  rms              : 0.06567059
+  skewness         : -2.578983
+  kurtosis         : 7.230359
+  5th moment (std) : -24.34458
+  6th moment (std) : 87.8128
+  7th moment (std) : -356.0561
+Distribution "G5" with:
+  integral         : 1
+  mean             : -0.08122317
+  rms              : 0.103837
+  skewness         : -3.039005
+  kurtosis         : 5.991735
+  5th moment (std) : -22.10539
+  6th moment (std) : 64.86911
+  7th moment (std) : -265.0018
+Distribution "G8" with:
+  integral         : 1
+  mean             : -0.1299571
+  rms              : 0.1313431
+  skewness         : -3.515713
+  kurtosis         : 5.682314
+  5th moment (std) : -22.97667
+  6th moment (std) : 58.55103
+  7th moment (std) : -244.4174
+Distribution "G20" with:
+  integral         : 1
+  mean             : -0.3248927
+  rms              : 0.2076741
+  skewness         : -5.039482
+  kurtosis         : 5.372643
+  5th moment (std) : -28.57003
+  6th moment (std) : 51.99426
+  7th moment (std) : -250.0209
+Distribution "G50" with:
+  integral         : 1
+  mean             : -0.8122317
+  rms              : 0.3283676
+  skewness         : -7.63956
+  kurtosis         : 5.248658
+  5th moment (std) : -40.32023
+  6th moment (std) : 49.30416
+  7th moment (std) : -313.0677

@@ -83,6 +83,9 @@ def analyseVDOS(emin,emax,density,temperature,atom_mass_amu):
     eV where appropriate.
     """
     from ._chooks import _get_raw_cfcts
+    from ._numpy import _np, _ensure_numpy
+    _ensure_numpy()
+    density = _np.asarray(density,dtype=float)
     return _get_raw_cfcts()['nc_vdoseval'](emin,emax,density,temperature,atom_mass_amu)
 
 def extractGn( vdos, n, mass_amu, temperature, scatxs = 1.0, expand_egrid = True ):

@@ -23,7 +23,6 @@
 # NEEDS: mpmath numpy
 
 import NCrystalDev as NC
-#from NCrystalDev.vdos import analyseVDOS
 
 import mpmath
 mp = mpmath.mp
@@ -60,7 +59,7 @@ def integrate_vdos_ncrystal( emin,emax,densities ):
                     density=densities,
                     temperature=100,#dummy
                     atom_mass_amu = 12.0,)#dummy
-    print(d)
+    return d['integral']
 
 def extract_from_cfgstr(cfgstr, element = None):
     info = NC.createInfo(cfgstr)
@@ -86,9 +85,7 @@ def extract_from_cfgstr(cfgstr, element = None):
     d['ref_integral_bins'] = calc_ref_integral(include_parabola=False)
     d['ref_integral_parabola'] = calc_ref_integral(include_bins=False)
     d['integral_vs_ref_deviation'] = float((d['ncvdoseval_integral']/d['ref_integral'])-mpf(1.0))
-    #help(di)
-    #raise SystemExit
-    d['displayLabel'] = di.atomData.displayLabel()#fixme:
+    d['displayLabel'] = di.atomData.displayLabel()
     return d
 
 def validate_cfgstr(cfgstr):
@@ -107,25 +104,12 @@ def validate_cfgstr(cfgstr):
     return not any_error
 
 def main():
-    #def analyseVDOS(emin,emax,density,temperature,atom_mass_amu):
-    #"""Analyse VDOS curve to extract mean-squared-displacements, Debye temperature,
-    #effective temperature, gamma0 and integral. Input VDOS must be defined via
-    #an array of density values, over an equidistant energy grid over [emin,emax]
-    #(in eV). Additionally, it is required that emin>0, and a parabolic trend
-    #towards (0,0) will be assumed for energies in [0,emin]. Units are kelvin and
-    #eV where appropriate.
-    #"""
+    iv_mpath = integrate_vdos_mpmath( 0.1, 0.2, [2.0,2.0],
+                                      include_parabola=True )
+    iv_ncrystal = integrate_vdos_ncrystal( 0.1, 0.2, [2.0,2.0] )
+    assert float( iv_ncrystal / iv_mpath - 1.0 ) < 1e-12
 
-    #integrate_vdos_mpmath
-
-    #emin = 0.001
-    #emax = 0.1
-    #density = [ 0.1, 0.4, 0.2, 0.7 ]
-    #print( integrate_vdos_mpmath( 0.1, 0.2, [2.0,2.0], include_parabola=True ) )
-    #import numpy
-    #print( integrate_vdos_ncrystal( 0.1, 0.2, numpy.asarray([2.0,2.0],dtype=float) ) )#fixme analyseVDOS should add numpy.asarray
-
-    cfgstrs = [f.fullKey for f in NC.browseFiles(factory='stdlib')]
+    cfgstrs = [ f.fullKey for f in NC.browseFiles(factory='stdlib') ]
     saw_errors = False
     for i,f in enumerate(sorted(cfgstrs)):
         if i%5 == 0:#skip some for speedup
@@ -134,21 +118,5 @@ def main():
     if saw_errors:
         print("Errors detected!")
         raise SystemExit(1)
-
-
-    #ref = extract_from_cfgstr('stdlib::KBr_sg225_PotassiumBromide.ncmat','K')
-
-
-
-    #d['integral_vs_ref_deviation']
-
-
-    #info = NC.createInfo('stdlib::KBr_sg225_PotassiumBromide.ncmat')
-    #di=info.findDynInfo('K')
-    #egrid,density = di.vdosData()
-    #di.analyseVDOS()['integral']
-    #import pprint
-    #pprint.pprint(ref)
-
 
 main()

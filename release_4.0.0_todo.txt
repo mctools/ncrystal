@@ -1,7 +1,7 @@
 #FIXME Address all of the following for the release:
 
 * Reinstate header splits into .icc files. This also needs support in ncdevtool
-  (e.g. cppmove mode).
+  (e.g. cppmove mode) and ncrystal_repo_tools/core_components.py
 
 * Compile and test also dmsc:ncrystaldev pkgs.
 
