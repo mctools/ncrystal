@@ -3,8 +3,7 @@ channels:
   - nodefaults
   - conda-forge
 dependencies:
-  #FIXME: py 3.11 while testing:
-  - python=3.11
+  - python
   - compilers
   - cmake
   - numpy
