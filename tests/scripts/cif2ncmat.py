@@ -52,14 +52,14 @@ def create_fake_onlinedb_cache_dir():
 #FIXME: Also test python API if not done elsewhere.
 
 def test_cli( args, *, nstart = 100, nend = 20, outfile = None, in_tmp_dir = True ):
-    import NCrystalDev.cliutils as nc_cliutils
+    import NCrystalDev.cli as nc_cli
     if isinstance(args,str):
         args = shlex.split(args)
     hr=f"============= CLI >>{shlex.join(args)}<< ===================="
     print(hr)
     ctx = work_in_tmpdir if in_tmp_dir else contextlib.nullcontext
     with ctx():
-        nc_cliutils.run('cif2ncmat',*args)
+        nc_cli.run('cif2ncmat',*args)
         if outfile not in ('stdout',None):
             content = pathlib.Path(outfile).read_text()
             print_text_file_with_snipping( content,

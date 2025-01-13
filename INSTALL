@@ -67,7 +67,7 @@ in separate packages. Currently, the packages are:
   - Command-line utilities
     - These commands (e.g. nctool, ncrystal_cif2ncmat, ...) are actually
       themselves written in Python, and can also be accessed from the Python API
-      itself via the NCrystal.cliutils module (FIXME rename -> NCrystal.cli)
+      itself via the NCrystal.cli module.
   - Note that this package can only be installed via Python installation tools
     like pip. Note additionally, that it does NOT technically depend on the
     ncrystal-core package, but of course does have a runtime requirement for

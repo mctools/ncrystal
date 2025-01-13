@@ -345,7 +345,7 @@ mcu8str nccfg_show_item_lookup( nccfgstate* state,
       val = nccfg_boolopt_modify_rpath();
     else if ( NCCFG_STREQUALCONST(item,"has_threads") )
       val = nccfg_boolopt_threads();
-    else if ( val != -1 )
+    if ( val != -1 )
       return nccfg_bool2str( val );
   }
 

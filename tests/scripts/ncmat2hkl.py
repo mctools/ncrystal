@@ -23,7 +23,7 @@
 # NEEDS: numpy
 
 import NCrystalDev as NC
-import NCrystalDev.cliutils as nc_cliutils
+import NCrystalDev.cli as nc_cli
 import pathlib
 import contextlib
 import shlex
@@ -80,7 +80,7 @@ def test_cli( args, *,
     created_content = None
     ctx = work_in_tmpdir if in_tmp_dir else contextlib.nullcontext
     with ctx(), cm_output:
-        nc_cliutils.run('ncmat2hkl',*args)
+        nc_cli.run('ncmat2hkl',*args)
         if outfile not in ('stdout',None):
             created_content = pathlib.Path(outfile).read_text()
             print_prefix = 'OUTFILE>'

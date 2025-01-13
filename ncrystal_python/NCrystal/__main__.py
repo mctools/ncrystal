@@ -35,7 +35,7 @@ Note that the two last commands above run the same command line script.
 
 def _print_usage():
     from ._common import print
-    from .cliutils import cli_tool_list
+    from .cli import cli_tool_list
     import textwrap
     usagestr = textwrap.dedent("""
     Usage: provide name and arguments of NCrystal commandline-tool to run.
@@ -89,7 +89,7 @@ def main():
         raise SystemExit(f'ERROR: {e}')
     if opt_unblock:
         #Run like in pyapi (in particular letting all exceptions escape):
-        from .cliutils import run
+        from .cli import run
         run( *argv )
     else:
         climod.main( argv )

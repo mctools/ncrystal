@@ -20,9 +20,9 @@
 ################################################################################
 
 """Internal utilities needed by command-line scripts in _cli_*.py and the
-utilities in cliutils.py. This is in particular needed to ensure that
-command-line tools can be invoked both on the command line itself, but also from
-a subprocess-free Python API via the
+utilities in cli.py. This is in particular needed to ensure that command-line
+tools can be invoked both on the command line itself, but also from a
+subprocess-free Python API via the
 
 Of course, features should as far as possible be available via a dedicated
 pythonic API. For instance, the hfg2ncmat.py module provides a pythonic API for
@@ -65,7 +65,7 @@ _argparse_postinitfct = [ None ]
 _argparse_extra_kwargs = [ None ]
 def create_ArgumentParser( *args, **kwargs ):
     """Always create argparse.ArgumentParser objects from this method, to ensure
-    output is redirected while invoking cmdline scripts with cliutils.run
+    output is redirected while invoking cmdline scripts with cli.run
     """
     from argparse import ArgumentParser
     for k,v in (_argparse_extra_kwargs[0] or {}).items():
@@ -249,7 +249,7 @@ def _resolve_cmd_and_import_climod( cmdname, arguments ):
 
 
 def cli_tool_list_impl( canonical_names = True  ):
-    # Implementation of cliutils.cli_tool_list
+    # Implementation of cli.cli_tool_list
     import pathlib
     short_names = [ f.name[5:-3] for f in
                     pathlib.Path(__file__).parent.glob('_cli_*.py') ]
@@ -260,7 +260,7 @@ def cli_tool_list_impl( canonical_names = True  ):
         return [ _map_shortname_2_canonical_name(sn) for sn in short_names ]
 
 def cli_tool_lookup_impl( name ):
-    # Implementation of cliutils.cli_tool_lookup
+    # Implementation of cli.cli_tool_lookup
 
     #Note: We basically have to treat only ncrystal-config and nctool as special
     #cases.

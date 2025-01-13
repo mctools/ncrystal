@@ -23,7 +23,7 @@
 # NEEDS: numpy
 
 import NCrystalDev as NC
-import NCrystalDev.cliutils as nc_cliutils
+import NCrystalDev.cli as nc_cli
 from NCTestUtils.common import ( print_text_file_with_snipping,
                                  ensure_error,
                                  work_in_tmpdir )
@@ -39,7 +39,7 @@ def test_cli( args, *, nstart = 30, nend = 20,
     print(hr)
     ctx = work_in_tmpdir if in_tmp_dir else contextlib.nullcontext
     with ctx():
-        nc_cliutils.run('vdos2ncmat',*args)
+        nc_cli.run('vdos2ncmat',*args)
         if outfile not in ('stdout',None):
             content = pathlib.Path(outfile).read_text()
             print_text_file_with_snipping( content,

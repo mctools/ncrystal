@@ -26,7 +26,7 @@
 
 import NCTestUtils.enable_fpe # noqa F401
 #import NCrystalDev as NC
-import NCrystalDev.cliutils as nc_cliutils
+import NCrystalDev.cli as nc_cli
 
 import shlex
 
@@ -45,7 +45,7 @@ _some_ncmat_data="""NCMAT v5
 
 def test_cli( *args ):
     print(f"============= CLI >>{shlex.join(args)}<< ====================")
-    nc_cliutils.run('mcstasunion',*args)
+    nc_cli.run('mcstasunion',*args)
     print("===========================================")
 
 def main():

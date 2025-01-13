@@ -751,9 +751,6 @@ namespace NCRYSTAL_NAMESPACE {
 #  endif
 #endif
 
-
-//Fixme: .icc files!:
-
 ////////////////////////////
 // Inline implementations //
 ////////////////////////////

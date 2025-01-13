@@ -27,7 +27,7 @@
 #gives problems with matplotlib: import NCTestUtils.enable_fpe # noqa F401
 import NCTestUtils.reprint_escaped_warnings # noqa F401
 import NCrystalDev as NC
-import NCrystalDev.cliutils as nc_cliutils
+import NCrystalDev.cli as nc_cli
 #from NCrystalDev.misc import AnyTextData
 from NCTestUtils.env import ncsetenv
 
@@ -52,7 +52,7 @@ _some_ncmat_data="""NCMAT v5
 
 def test_cli( args, *, nstart = 30, nend = 20 ):
     print(f"============= CLI >>{shlex.join(args)}<< ====================")
-    nc_cliutils.run('nctool',*args)
+    nc_cli.run('nctool',*args)
     print("===========================================")
 
 def main():

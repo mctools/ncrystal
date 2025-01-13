@@ -1,0 +1,12 @@
+#FIXME Address all of the following for the release:
+
+* Reinstate header splits into .icc files.
+
+* Think about completely dissuading people from including specific headers in
+  subdirs. Should we have an NCrystal/internal/CommonUtils.hh for plugins? Or AllInternal.hh?
+
+     Might be nice if each component was ONE subdir (with inc and src subdirs),
+    and they were included like "NCrystal/<compname>/bla.hh", but that these
+    were all simply exported flatly in installations, where you would have a
+    single NCrystal.hh, NCrystalInternal.hh, etc.  Issue: it might not be OK to
+    include ALL header files in a single file?

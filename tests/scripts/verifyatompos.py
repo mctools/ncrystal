@@ -23,7 +23,7 @@
 # NEEDS: numpy ase
 
 import NCrystalDev as NC
-import NCrystalDev.cliutils as nc_cliutils
+import NCrystalDev.cli as nc_cli
 from NCTestUtils.common import ensure_error
 import shlex
 
@@ -32,7 +32,7 @@ def test_cli( args ):
         args = shlex.split(args)
     hr=f"============= CLI >>{shlex.join(args)}<< ===================="
     print(hr)
-    nc_cliutils.run('verifyatompos',*args)
+    nc_cli.run('verifyatompos',*args)
     print('='*len(hr))
 
 def main():

@@ -49,6 +49,12 @@ if varnames_ordered != sorted(varnames_ordered):
 sbinst = dirs.installprefix
 reporoot = pathlib.Path(__file__).resolve().parent.parent.parent.parent.parent
 
+assert vars['has_data'] == 'ON'
+assert vars['has_dynamic_plugins'] == 'ON'
+assert vars['has_embed_data'] == 'OFF'
+assert vars['has_examples'] == 'ON'
+assert vars['has_modify_rpath'] == 'ON'
+assert vars['has_threads'] == 'ON'
 assert sbinst.joinpath('bin').samefile( vars['bindir'] )
 assert sbinst.joinpath('lib').samefile( vars['libdir'] )
 assert sbinst.joinpath('lib').samefile( vars['shlibdir'] )

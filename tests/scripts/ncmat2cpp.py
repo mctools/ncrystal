@@ -24,7 +24,7 @@
 
 import NCTestUtils.enable_fpe # noqa F401
 import NCrystalDev as NC
-import NCrystalDev.cliutils as nc_cliutils
+import NCrystalDev.cli as nc_cli
 from NCrystalDev.ncmat2cpp import ncmat2cpp
 from NCrystalDev.misc import AnyTextData
 
@@ -56,7 +56,7 @@ def test_pyapi( *filelist, nstart = 30, nend = 20, **kwargs ):
 
 def test_cli( args, outfile, *, nstart = 30, nend = 20 ):
     print(f"============= CLI >>{shlex.join(args)}<< ====================")
-    nc_cliutils.run('ncmat2cpp',*args)
+    nc_cli.run('ncmat2cpp',*args)
     if outfile not in ('stdout',None):
         cpp = pathlib.Path(outfile).read_text()
         print_text_file_with_snipping(cpp,nstart=nstart,nend=nend,prefix='CPP>')
