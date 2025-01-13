@@ -2,6 +2,8 @@
 
 * Reinstate header splits into .icc files.
 
+* Compile and test also dmsc:ncrystaldev pkgs.
+
 * Think about completely dissuading people from including specific headers in
   subdirs. Should we have an NCrystal/internal/CommonUtils.hh for plugins? Or AllInternal.hh?
 
