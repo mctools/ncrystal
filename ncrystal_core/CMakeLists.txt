@@ -293,7 +293,7 @@ if ( NCRYSTAL_MODIFY_RPATH )
     list( APPEND _nc_executable_rpath "$ORIGIN/${NCrystal_relpath_BINDIR2LIBDIR}" )
     list( APPEND _nc_libncg4_rpath $ORIGIN )
   else()
-    #On OSX, rpaths are absolute paths (todo: revisit if this is still the case)
+    #On OSX, rpaths are absolute paths:
     get_filename_component( tmp "${CMAKE_INSTALL_PREFIX}/${NCrystal_LIBDIR}" ABSOLUTE)
     list( APPEND _nc_executable_rpath  "${tmp}" )
     list( APPEND _nc_libncg4_rpath "${tmp}" )

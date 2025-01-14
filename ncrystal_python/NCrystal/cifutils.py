@@ -65,6 +65,10 @@ class CIFSource:
         self.__textdata = None
         self.__name_override = name
 
+        def check_status():
+            if ( not allow_fail ) and self.invalid:
+                raise _nc_core.NCBadInput('Could not detect CIF source type')
+
         #Check if data is CIFSource object or has one as a .cifsrc property (e.g. LoadedCIF, CIFAnalyser)
         o = getattr( data, 'cifsrc', None ) or data
         if isinstance(o,CIFSource):
@@ -91,37 +95,43 @@ class CIFSource:
                     if tdname and not self.__name_override:
                         self.__name_override = tdname
                     self.__fp = None
+            if not allow_fail and self.__fp is None:
+                raise _nc_core.NCBadInput('Could not detect CIF source type'
+                                          ' (tried to load from path, but'
+                                          ' could not locate "%s")'%pth)
 
         if hasattr(data,'__fspath__'):
-            return _setfp(data)
+            _setfp(data)
+            return check_status()
         if hasattr( data, 'startswith' ):
             str_to_sb = ( lambda s : s ) if not hasattr(data,'decode') else ( lambda s : s.encode() )
 
             if data.startswith(str_to_sb('codid::')) and data[7:].isdigit():
                 self.__codid = int(data[7:])
-                return
+                return check_status()
             if data.startswith(str_to_sb('mpid::')) and data[6:].isdigit():
                 self.__mpid = int(data[6:])
-                return
+                return check_status()
         if isinstance( data, str ):
             if '\n' in data.strip():
                 self.__textdata = data
             else:
                 _setfp(data)
-            return
+            return check_status()
         if isinstance( data, bytes ):
             if b'\n' in data.strip():
                 self.__textdata = data.decode()
             else:
                 _setfp(data)
-            return
-        if not allow_fail:
-            _nc_core.NCBadInput('Could not detect CIF source type')
+            return check_status()
+        check_status()
 
     @property
     def invalid( self ):
-        """Check if instance is invalid (only possible if constructed with allow_fail=True). """
-        return all(e is None for e in (self.__codid,self.__mpid,self.__fp,self.__textdata))
+        """Check if instance is invalid (only possible if constructed with
+        allow_fail=True). """
+        return all(e is None for e in (self.__codid,self.__mpid,
+                                       self.__fp,self.__textdata))
 
     @property
     def codid( self ):
@@ -180,7 +190,9 @@ class CIFSource:
         a materials project API key must be provided either via the mp_apikey
         parameter, or in the MATERIALSPROJECT_USER_API_KEY environment variable.
         """
-        assert not self.invalid
+        if self.invalid:
+            raise _nc_core.NCDataLoadError( 'Can not load_data'
+                                            ' from invalid CIF source' )
         if self.__textdata is not None:
             return self.__textdata
         if self.__fp is not None:

@@ -1642,6 +1642,56 @@ OUT>  fraction 1
 OUT>  type vdosdebye
 OUT>  debye_temp 300
 =================================================================
+============= CLI >>QE_pw_Al.out --via-ase --remap 'Al is 0.99 Al 0.01 Cr'<< ====================
+Attempting to load data via ASE
+Attempting to load CIF data with gemmi
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (possibly due to conversion from primitive cell)
+Verifying that resulting ncmat data can be loaded
+Writing autogen_Al99Cr_sg225.ncmat
+OUT>NCMAT v7
+OUT>#
+OUT># Al99Cr (cubic, SG-225)
+OUT>#
+OUT># Atoms per unit cell: 3.96xAl+0.04xCr
+OUT>#
+OUT># Structure converted (with NCrystal.cifutils module) from:
+OUT>#
+OUT>#   Anonymous CIF data
+OUT>#
+OUT>#   Note: With custom remappings: Al -> 0.99 Al 0.01 Cr
+OUT>#
+OUT># IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+OUT>#                   verified!  In particular the @DYNINFO sections might need
+OUT>#                   post-editing. Before distributing this file to other people,
+OUT>#                   please review this, amend the comments here to document,
+OUT>#                   anything done, and remove this notice.
+OUT>#
+OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
+OUT>#
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (possibly due to conversion from primitive cell)
+OUT>#
+OUT># WARNING: Fallback (dummy) Debye temperature value was used for 1 atom!
+OUT>#
+OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
+OUT>#
+OUT>@CELL
+OUT>  cubic 4.03635
+OUT>@SPACEGROUP
+OUT>  225
+OUT>@ATOMPOSITIONS
+OUT>  X1 0 0 0
+OUT>  X1 0 1/2 1/2
+OUT>  X1 1/2 0 1/2
+OUT>  X1 1/2 1/2 0
+OUT>@ATOMDB
+OUT>  X1 is 0.99 Al 0.01 Cr
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element X1
+OUT>  fraction 1
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+=================================================================================================
 ============= CLI >>dummy_D.cif<< ====================
 Attempting to load CIF data with gemmi
 Self-consistency of structure was verified by spglib
@@ -2816,3 +2866,87 @@ OUT>  fraction 1
 OUT>  type vdosdebye
 OUT>  debye_temp 300
 ===================================================================================================
+============= CLI >>mp_55_unrefined_conventional.cif<< ====================
+Attempting to load CIF data with gemmi
+Self-consistency of structure was verified by spglib
+Verifying that resulting ncmat data can be loaded
+Writing autogen_Sn_sg139.ncmat
+OUT>NCMAT v7
+OUT>#
+OUT># Sn (tetragonal, SG-139)
+OUT>#
+OUT># Atoms per unit cell: 2xSn
+OUT>#
+OUT># Structure converted (with NCrystal.cifutils module) from:
+OUT>#
+OUT>#   CIF file: mp_55_unrefined_conventional.cif
+OUT>#
+OUT># IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+OUT>#                   verified!  In particular the @DYNINFO sections might need
+OUT>#                   post-editing. Before distributing this file to other people,
+OUT>#                   please review this, amend the comments here to document,
+OUT>#                   anything done, and remove this notice.
+OUT>#
+OUT># WARNING: Fallback (dummy) Debye temperature value was used for 1 atom!
+OUT>#
+OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
+OUT>#
+OUT>@CELL
+OUT>  lengths 4.05838 !! 3.32152
+OUT>  angles 90 90 90
+OUT>@SPACEGROUP
+OUT>  139
+OUT>@ATOMPOSITIONS
+OUT>  Sn 0 0 0
+OUT>  Sn 1/2 1/2 1/2
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element Sn
+OUT>  fraction 1
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+===========================================================================
+============= CLI >>mp_55_unrefined_primitive.cif<< ====================
+Attempting to load CIF data with gemmi
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (possibly due to conversion from primitive cell)
+Verifying that resulting ncmat data can be loaded
+Writing autogen_Sn_sg139.ncmat
+OUT>NCMAT v7
+OUT>#
+OUT># Sn (tetragonal, SG-139)
+OUT>#
+OUT># Atoms per unit cell: 2xSn
+OUT>#
+OUT># Structure converted (with NCrystal.cifutils module) from:
+OUT>#
+OUT>#   CIF file: mp_55_unrefined_primitive.cif
+OUT>#
+OUT># IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+OUT>#                   verified!  In particular the @DYNINFO sections might need
+OUT>#                   post-editing. Before distributing this file to other people,
+OUT>#                   please review this, amend the comments here to document,
+OUT>#                   anything done, and remove this notice.
+OUT>#
+OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
+OUT>#
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (possibly due to conversion from primitive cell)
+OUT>#
+OUT># WARNING: Fallback (dummy) Debye temperature value was used for 1 atom!
+OUT>#
+OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
+OUT>#
+OUT>@CELL
+OUT>  lengths 4.05838 !! 3.32152
+OUT>  angles 90 90 90
+OUT>@SPACEGROUP
+OUT>  139
+OUT>@ATOMPOSITIONS
+OUT>  Sn 0 0 0
+OUT>  Sn 1/2 1/2 1/2
+OUT>@DYNINFO
+OUT>  # WARNING: Using fallback Debye temperature value!
+OUT>  element Sn
+OUT>  fraction 1
+OUT>  type vdosdebye
+OUT>  debye_temp 300
+========================================================================

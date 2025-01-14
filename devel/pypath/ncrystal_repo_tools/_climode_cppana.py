@@ -93,12 +93,12 @@ def main( parser ):
 
     def expand_includes( includes ):
         done = set()
-        todo = set( i for i in includes )
-        while todo:
-            i = todo.pop()
+        pending = set( i for i in includes )
+        while pending:
+            i = pending.pop()
             for i2 in motherincs[i]:
-                if i != i2 and i2 not in done and i2 not in todo:
-                    todo.add( i2 )
+                if i != i2 and i2 not in done and i2 not in pending:
+                    pending.add( i2 )
             done.add(i)
         return done
 

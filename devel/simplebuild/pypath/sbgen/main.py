@@ -296,7 +296,7 @@ def define_files():
         if name=='factories':
             extdeps.append('DL')
         tmp_extra_flags = [f'-I{dirs.srcroot}/src']
-        if comp=='factories':
+        if comp.name=='factories':
             tmp_extra_flags.append( f'-DNCRYSTAL_DATADIR={dirs.datadir}' )
         create_pkginfo( sbpkgname,
                         extdeps = extdeps,
@@ -488,6 +488,8 @@ mod.main()
     extrapkg_pydeps = set()
     extrapkg_sflist = set()
     for sf in dirs.testroot.joinpath('scripts').glob('*.py'):
+        if '#' in sf.name or '~' in sf.name:
+            continue
         pydeps = extract_deps_from_needs(sf)
         pkgname, pkgpydeps = determine_testpkg_by_pydeps( pydeps )
         if pkgname is None:

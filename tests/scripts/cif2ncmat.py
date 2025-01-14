@@ -46,8 +46,6 @@ def create_fake_onlinedb_cache_dir():
     from NCTestUtils.dirs import test_data_dir
     for f in ['cod_1000257.cif','cod_9005777.cif','mp_55.cif']:
         (d/f).write_text((test_data_dir/f'fake_{f}').read_text())
-    #fixme also test with: mp_55_unrefined_conventional.cif and mp_55_unrefined_primitive.cif ?
-
 
 #FIXME: Also test python API if not done elsewhere.
 
@@ -89,6 +87,9 @@ def main():
     test_cli('codid::9005777 --dynamics stdlib::CaSiO3_sg2_Wollastonite.ncmat',outfile='autogen_CaO3Si_sg2_cod9005777.ncmat')
     test_cli('codid::9005777 --showcif')
     test_cli('QE_pw_Al.out --via-ase',outfile='autogen_Al_sg225.ncmat')
+    test_cli(['QE_pw_Al.out','--via-ase','--remap','Al is 0.99 Al 0.01 Cr'],
+             outfile='autogen_Al99Cr_sg225.ncmat')
+
     test_cli('dummy_D.cif',outfile='autogen_C3D2_sg221.ncmat')
     test_cli(['dummy_D.cif','--remap','D is H'],outfile='autogen_C3H2_sg221.ncmat')
 
@@ -123,11 +124,8 @@ def main():
     test_cli(['Wyckoff1963_Sulphor_0011255.cif','--spacegroup','F d d d:1'],outfile='autogen_S_sg70.ncmat')
     test_cli(['Wyckoff1963_Sulphor_0011255.cif','--spacegroup','F d d d:2'],outfile='autogen_S_sg70.ncmat')
 
-    #FIXME ENABLE: test_cli(['campi_pw_Al.out','--via-ase','--remap','Al is 0.99 Al 0.01 Cr'],outfile='autogen_Al99Cr_sg225.ncmat') #FAILS FORMULA CHECK!!!!!!!!!!!
-
-#FIXME ENABLE THIS!:
-#cif2ncmat_showfileanddelete autogen_Al99Cr_sg225.ncmat $DATADIR/campi_pw_Al.out --via-ase --remap 'Al is 0.99 Al 0.01 Cr' #FAILS FORMULA CHECK!!!!!!!!!!!
-#
+    test_cli('mp_55_unrefined_conventional.cif',outfile='autogen_Sn_sg139.ncmat')
+    test_cli('mp_55_unrefined_primitive.cif',outfile='autogen_Sn_sg139.ncmat')
 
 if __name__ == '__main__':
     main()

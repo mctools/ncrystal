@@ -38,3 +38,6 @@
 * Create mother "ncrystal" python package + add optional dependencies in it.
 
 * "ncdevtool find" mode seems broken.
+
+* Open issue about migrating out ncrystal_geant4
+* Open issue about getting plugins to work with a single pip install

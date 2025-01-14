@@ -25,7 +25,6 @@ from ._cliimpl import ( create_ArgumentParser,
 
 def parseArgs( progname, arglist, return_parser=False ):
     import textwrap
-    #FIXME: Read text below again (with --help):
     helpw = 60
     descrw = helpw + 22
     descr=( textwrap.fill(
@@ -207,7 +206,7 @@ def _main_impl( args, do_quiet ):
                                                   pdf_target = pdf_target )
             return
         assert len(args.CIFFILE)==1
-        cifsrc = nc_cifutils.CIFSource( args.CIFFILE[0] )
+        cifsrc = nc_cifutils.CIFSource( args.CIFFILE[0], allow_fail = True )
         if args.via_ase:
             if not cifsrc.filepath:
                 ase_input_data = cifsrc.load_data( quiet = do_quiet )
@@ -220,11 +219,14 @@ def _main_impl( args, do_quiet ):
             else:
                 #ase_input_data = args.CIFFILE[0]
                 ase_format = None
-            ase_output_cifdata = nc_ncmatimpl._cifdata_via_ase( ase_input_data, ase_format = ase_format, quiet = do_quiet )
+            ase_output_cifdata = nc_ncmatimpl._cifdata_via_ase( ase_input_data,
+                                                                ase_format = ase_format,
+                                                                quiet = do_quiet )
             cifsrc = nc_cifutils.CIFSource( ase_output_cifdata )
+        if cifsrc.invalid:
+            raise SystemExit('Failed to load input')
 
         if args.showcif:
-            #FIXME: use _common.print?
             import sys
             sys.stdout.write( cifsrc.load_data() )
             return
@@ -258,9 +260,7 @@ def _main_impl( args, do_quiet ):
         from .core import directMultiCreate
         directMultiCreate(out,'vdoslux=0;dcutoff=0.2')
 
-    #Fixme: common helper function?
     if fn=='stdout':
-        #FIXME: use _common.print?
         import sys
         sys.stdout.write(out)
     else:

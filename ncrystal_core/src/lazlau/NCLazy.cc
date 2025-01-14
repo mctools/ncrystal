@@ -569,11 +569,14 @@ NC::InfoPtr NC::Lazy::buildInfoFromLazyData( const FactImpl::InfoRequest& req )
   return buildInfo( cfg, parsedData );
 }
 
-std::vector<NC::Lazy::HKLFsq> NC::Lazy::validateAndNormaliseHKLFsqList( int spacegroup,
-                                                                        const std::vector<HKLFsq>& orig )
+std::vector<NC::Lazy::HKLFsq>
+NC::Lazy::validateAndNormaliseHKLFsqList( int spacegroup,
+                                          const std::vector<HKLFsq>& orig )
 {
   nc_assert_always(spacegroup>=1&&spacegroup<=230);
-  std::vector<HKLFsq> l = orig;//todo: in principle this copying is a bit wasteful.
+  std::vector<HKLFsq> l = orig;//NB: in principle this copying is a bit
+                               //wasteful, but lazy files are not that important
+                               //anyway for us.
 
   std::stable_sort(l.begin(), l.end(),
                    [](const HKLFsq& a, const HKLFsq & b) -> bool
