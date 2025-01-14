@@ -23,3 +23,4 @@ ncrystal_geant4/....: Code for NCrystal-Geant4 hooks. Will eventually be
 examples/...........: Small standalone examples for using NCrystal, either from
                       the commandline, C, C++ or python applications or through
                       Geant4 simulations in C++.
+devel/..............: Developer utilities (including the ncdevtool command).
