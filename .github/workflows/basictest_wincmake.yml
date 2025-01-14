@@ -53,7 +53,7 @@ jobs:
         cmake -B build src
         -DNCRYSTAL_ENABLE_TESTING=ON
         -DNCRYSTAL_ENABLE_EXAMPLES=ON
-        -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+        -DNCRYSTAL_BUILD_STRICT=ON
         -DMCTOOLS_REQUIRE_ALL_TEST_DEPS=ON
 
       #NB: More verbosity by appending: "-- /verbosity:detailed":

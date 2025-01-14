@@ -376,10 +376,16 @@ ncinstall(
 
 include(CheckCXXCompilerFlag)
 
-set( NC_STRICT_COMP_FLAGS -Wall -Wextra -pedantic -Werror )#fixme different for windows
+if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+  set( NC_STRICT_COMP_FLAGS "/WX" "/W4" "/WD4324" )
+else()
+  set( NC_STRICT_COMP_FLAGS -Wall -Wextra -pedantic -Werror )
+endif()
+
 if ( NCRYSTAL_BUILD_STRICT )
   set( "CMAKE_COMPILE_WARNING_AS_ERROR" "ON" )
-  string( REPLACE ";" " " tmp "${NC_STRICT_COMP_FLAGS}" )# check_cxx_compiler_flag needs single argument
+  # turn list into space separted string for check_cxx_compiler_flag:
+  string( REPLACE ";" " " tmp "${NC_STRICT_COMP_FLAGS}" )
   check_cxx_compiler_flag( "${tmp}" ncrystal_compiler_supports_strict_comp_flags )
 endif()
 
