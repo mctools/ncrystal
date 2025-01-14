@@ -65,12 +65,6 @@ def run( toolname, *arguments ):
     $> ncrystal_ncmat2cpp Al_sg225.ncmat -o myal.cpp
 
     """
-    #FIXME: support + unit test various methods of invocation:
-    #$> python -mNCrystal ncrystal_ncmat2cpp ...
-    #$> python -mNCrystal ncmat2cpp ...
-    #$> python -mNCrystal nctool ...
-    #$> python -mNCrystal ncrystal_nctool ... (NOPE?)
-
     #FIXME: We should have a test which verifies that all of the command line
     #script are available, and invoke that test in the conda-forge recipe. That
     #way, we would not forget to update the conda-forge recipe when adding a

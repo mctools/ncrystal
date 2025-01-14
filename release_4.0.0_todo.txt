@@ -1,7 +1,8 @@
 #FIXME Address all of the following for the release:
 
 * Reinstate header splits into .icc files. This also needs support in ncdevtool
-  (e.g. cppmove mode) and ncrystal_repo_tools/core_components.py
+  (e.g. cppmove mode) and ncrystal_repo_tools/core_components.py. Perhaps we
+  need a new ncdevtool mode for doing the split?
 
 * Compile and test also dmsc:ncrystaldev pkgs.
 
@@ -27,3 +28,11 @@
   directories starting with double slashes.
 
 * pypi wheels: always build from sdist!
+
+* A CI test which builds and installs ncrystal core WITHOUT a
+  CMAKE_INSTALL_PREFIX. Since that can be weird. We should then also test in a
+  downstream project that everything from the find_package(NCrystal) is still correct.
+
+* Migrate more tests from ncdevtool repo
+
+* Create mother "ncrystal" python package + add optional dependencies in it.

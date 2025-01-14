@@ -80,6 +80,9 @@ jobs:
         ncrystal_vdos2ncmat --help
         ncrystal_cif2ncmat --help
         ncrystal_ncmat2cpp --help
+        python3 -m NCrystal ncmat2cpp --help
+        python3 -m NCrystal nctool --test
+        python3 -m NCrystal config -s
         ncrystal_hfg2ncmat --help
         ncrystal_verifyatompos --help
         ncrystal_cif2ncmat codid::9008460
