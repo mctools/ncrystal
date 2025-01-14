@@ -25,3 +25,5 @@
 
 * Support (and test) windows paths starting with "\\?\", as well as shared
   directories starting with double slashes.
+
+* pypi wheels: always build from sdist!

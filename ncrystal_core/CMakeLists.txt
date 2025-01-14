@@ -198,16 +198,11 @@ include(GNUInstallDirs)
 set(NCrystal_BINDIR "${CMAKE_INSTALL_BINDIR}")#e.g. <prefix>/bin>
 set(NCrystal_LIBDIR "${CMAKE_INSTALL_LIBDIR}")#e.g. <prefix>/lib>
 
-#FIXME: Use this for all relative paths below, for robustness!
-function( nc_find_bindir2other_relpath resultvar otherpath )
-  #The relative path at the installation stage from the NCrystal_BINDIR to
-  #otherpath
-  set( srcdir "${NCrystal_BINDIR}" )
-  set( tgtdir "${otherpath}" )
-  if ( NOT IS_ABSOLUTE "${srcdir}" )
+function( ncfind_relinstpath resultvar srcdir tgtdir )
+  if ( NOT srcdir OR NOT IS_ABSOLUTE "${srcdir}" )
     set( srcdir "${CMAKE_INSTALL_PREFIX}/${srcdir}" )
   endif()
-  if ( NOT IS_ABSOLUTE "${tgtdir}" )
+  if ( NOT tgtdir OR NOT IS_ABSOLUTE "${tgtdir}" )
     set( tgtdir "${CMAKE_INSTALL_PREFIX}/${tgtdir}" )
   endif()
   file(RELATIVE_PATH res "${srcdir}" "${tgtdir}")
@@ -242,21 +237,34 @@ endif()
 #Get a few relative paths, mostly for expansion in various installed files (we
 #use PROJECT_BINARY_DIR as prefix here, but it should not matter which as long
 #as it is an absolute path):
-file(RELATIVE_PATH NCrystal_relpath_BINDIR2LIBDIR   "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}"   "${PROJECT_BINARY_DIR}/${NCrystal_LIBDIR}")
-file(RELATIVE_PATH NCrystal_relpath_BINDIR2SHLIBDIR   "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}"   "${PROJECT_BINARY_DIR}/${NCrystal_SHLIBDIR}")
+
+ncfind_relinstpath( NCrystal_relpath_BINDIR2LIBDIR "${NCrystal_BINDIR}" "${NCrystal_LIBDIR}" )
+ncfind_relinstpath( NCrystal_relpath_BINDIR2SHLIBDIR "${NCrystal_BINDIR}"  "${NCrystal_SHLIBDIR}" )
+#file(RELATIVE_PATH NCrystal_relpath_BINDIR2LIBDIR   "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}"   "${PROJECT_BINARY_DIR}/${NCrystal_LIBDIR}")
+#file(RELATIVE_PATH NCrystal_relpath_BINDIR2SHLIBDIR   "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}"   "${PROJECT_BINARY_DIR}/${NCrystal_SHLIBDIR}")
 if ( NCRYSTAL_ENABLE_DATA STREQUAL "ON" )
-  file(RELATIVE_PATH NCrystal_relpath_BINDIR2DATADIR "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}"   "${PROJECT_BINARY_DIR}/${NCrystal_DATAROOT}/data")
+  ncfind_relinstpath( NCrystal_relpath_BINDIR2DATADIR "${NCrystal_BINDIR}" "${NCrystal_DATAROOT}/data" )
+  #file(RELATIVE_PATH NCrystal_relpath_BINDIR2DATADIR "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}"   "${PROJECT_BINARY_DIR}/${NCrystal_DATAROOT}/data")
 else()
   set(NCrystal_relpath_BINDIR2DATADIR "")
 endif()
-file(RELATIVE_PATH NCrystal_relpath_BINDIR2CMAKEDIR "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}"   "${PROJECT_BINARY_DIR}/${NCrystal_CMAKEDIR}")
-file(RELATIVE_PATH NCrystal_relpath_BINDIR2INCDIR   "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}"   "${PROJECT_BINARY_DIR}/${NCrystal_INCDIR}")
-#file(RELATIVE_PATH NCrystal_relpath_BINDIR2ROOT     "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}"   "${PROJECT_BINARY_DIR}/")
-file(RELATIVE_PATH NCrystal_relpath_CMAKEDIR2ROOT   "${PROJECT_BINARY_DIR}/${NCrystal_CMAKEDIR}" "${PROJECT_BINARY_DIR}/")
-file(RELATIVE_PATH NCrystal_relpath_CMAKEDIR2BINDIR   "${PROJECT_BINARY_DIR}/${NCrystal_CMAKEDIR}" "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}")
-file(RELATIVE_PATH NCrystal_relpath_CMAKEDIR2LIBDIR   "${PROJECT_BINARY_DIR}/${NCrystal_CMAKEDIR}" "${PROJECT_BINARY_DIR}/${NCrystal_LIBDIR}")
-file(RELATIVE_PATH NCrystal_relpath_CMAKEDIR2INCDIR   "${PROJECT_BINARY_DIR}/${NCrystal_CMAKEDIR}" "${PROJECT_BINARY_DIR}/${NCrystal_INCDIR}")
-file(RELATIVE_PATH NCrystal_relpath_CMAKEDIR2DATAFILESDIR   "${PROJECT_BINARY_DIR}/${NCrystal_CMAKEDIR}" "${PROJECT_BINARY_DIR}/${NCrystal_DATAFILESDIR}")
+ncfind_relinstpath( NCrystal_relpath_BINDIR2CMAKEDIR "${NCrystal_BINDIR}"  "${NCrystal_CMAKEDIR}" )
+ncfind_relinstpath( NCrystal_relpath_BINDIR2INCDIR "${NCrystal_BINDIR}"  "${NCrystal_INCDIR}" )
+#file(RELATIVE_PATH NCrystal_relpath_BINDIR2CMAKEDIR "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}"   "${PROJECT_BINARY_DIR}/${NCrystal_CMAKEDIR}")
+#file(RELATIVE_PATH NCrystal_relpath_BINDIR2INCDIR   "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}"   "${PROJECT_BINARY_DIR}/${NCrystal_INCDIR}")
+#REMOVED file(RELATIVE_PATH NCrystal_relpath_BINDIR2ROOT     "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}"   "${PROJECT_BINARY_DIR}/")
+ncfind_relinstpath( NCrystal_relpath_BINDIR2CMAKEDIR "${NCrystal_BINDIR}"  "${NCrystal_CMAKEDIR}" )
+ncfind_relinstpath( NCrystal_relpath_BINDIR2INCDIR "${NCrystal_BINDIR}"  "${NCrystal_INCDIR}" )
+ncfind_relinstpath( NCrystal_relpath_CMAKEDIR2ROOT "${NCrystal_CMAKEDIR}" "" )
+ncfind_relinstpath( NCrystal_relpath_CMAKEDIR2BINDIR "${NCrystal_BINDIR}" "" )
+ncfind_relinstpath( NCrystal_relpath_CMAKEDIR2LIBDIR "${NCrystal_LIBDIR}" "" )
+ncfind_relinstpath( NCrystal_relpath_CMAKEDIR2INCDIR "${NCrystal_INCDIR}" "" )
+ncfind_relinstpath( NCrystal_relpath_CMAKEDIR2DATAFILESDIR "${NCrystal_DATAFILESDIR}" "" )
+#file(RELATIVE_PATH NCrystal_relpath_CMAKEDIR2ROOT   "${PROJECT_BINARY_DIR}/${NCrystal_CMAKEDIR}" "${PROJECT_BINARY_DIR}/")
+#file(RELATIVE_PATH NCrystal_relpath_CMAKEDIR2BINDIR   "${PROJECT_BINARY_DIR}/${NCrystal_CMAKEDIR}" "${PROJECT_BINARY_DIR}/${NCrystal_BINDIR}")
+#file(RELATIVE_PATH NCrystal_relpath_CMAKEDIR2LIBDIR   "${PROJECT_BINARY_DIR}/${NCrystal_CMAKEDIR}" "${PROJECT_BINARY_DIR}/${NCrystal_LIBDIR}")
+#file(RELATIVE_PATH NCrystal_relpath_CMAKEDIR2INCDIR   "${PROJECT_BINARY_DIR}/${NCrystal_CMAKEDIR}" "${PROJECT_BINARY_DIR}/${NCrystal_INCDIR}")
+#file(RELATIVE_PATH NCrystal_relpath_CMAKEDIR2DATAFILESDIR   "${PROJECT_BINARY_DIR}/${NCrystal_CMAKEDIR}" "${PROJECT_BINARY_DIR}/${NCrystal_DATAFILESDIR}")
 
 #Dummy interface target for common properties. Note that the interface is always
 #built with C++11 compatible compiler (which CMake will choose from a wide
@@ -600,9 +608,6 @@ if ( NCRYSTAL_ENABLE_DATA STREQUAL "EMBED" )
     message( STATUS "Looking for python interpreter (needed when NCRYSTAL_ENABLE_DATA=EMBED).")
     find_package(Python3 3.8 REQUIRED COMPONENTS Interpreter)
     #Generate C++ code from the .ncmat files:
-    #Fixme: Would be nice if we could invoke _ncmat2cpp_impl.py directly from the
-    #ncrystal_python subdir? Otherwise we should add it to a list of files to be
-    #kept in sync automatically (along with LICENSE file perhaps).
     get_datafile_list( data_file_list )
     set( ncmat2cpppy "${PROJECT_SOURCE_DIR}/../ncrystal_python/NCrystal/_ncmat2cpp_impl.py" )
     if ( NOT EXISTS "${ncmat2cpppy}" )
