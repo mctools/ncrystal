@@ -25,16 +25,13 @@ class Cfg:
     def ncrystal_namespace(self):
         return 'dev'
 
-    #Fixme why all the _ncrystal_ below.
-
-    #FIXME: Cleanup:
-    #def sbpkgname_ncrystal_comp(self, compname):
-    #    return 'NC%s'%compname
-
-    def sbpkgname_ncrystal_comp(self, compname):
-        orig="""NCAbsFact  NCBkgdExtCurve  NCCore          NCElIncScatter  NCFactories      NCFreeGas  NCInterfaces  NCPCBragg    NCScatFact  NCDump
-NCAbsOOV   NCCfgUtils      NCData          NCExperimental  NCFactory_Laz    NCGasMix   NCLCBragg     NCPubUtils   NCSAB         NCSCBragg   NCUtils
-NCAtomDB   NCCInterface    NCDynInfoUtils  NCExtdUtils     NCFactory_NCMAT  NCInfoBld  NCMiniMC      NCQuickFact  NCSABScatter  NCThreads   NCVDOS"""
+    def sbpkgname_comp(self, compname):
+        orig = """NCAbsFact NCBkgdExtCurve NCCore NCElIncScatter NCFactories
+                NCFreeGas NCInterfaces NCPCBragg NCScatFact NCDump NCAbsOOV
+                NCCfgUtils NCData NCExperimental NCFactory_Laz NCGasMix
+                NCLCBragg NCPubUtils NCSAB NCSCBragg NCUtils NCAtomDB
+                NCCInterface NCDynInfoUtils NCExtdUtils NCFactory_NCMAT
+                NCInfoBld NCMiniMC NCQuickFact NCSABScatter NCThreads NCVDOS"""
         guess = dict( (e[2:].lower(),e) for e in orig.split() )
         if compname not in guess:
             e = {'extd_utils':'NCExtdUtils',
@@ -47,40 +44,38 @@ NCAtomDB   NCCInterface    NCDynInfoUtils  NCExtdUtils     NCFactory_NCMAT  NCIn
                  }.get(compname)
             if e is None:
                 e = 'NC' + ''.join(e.capitalize() for e in compname.split('_'))
-                #raise SystemExit('Could not determine sbld pkgname'
-                #                 f' for component: {compname}')
             return e
         return guess[compname]
 
-    def sbpkgname_ncrystal_testlib(self, testlibname):
-        return f'TestLib_{testlibname}'#fixme NC prefix
+    def sbpkgname_testlib(self, testlibname):
+        return f'TestLib_{testlibname}'#NB: no NC prefix
 
     @property
-    def sbpkgname_ncrystal_lib(self):
-        return self.sbpkgname_ncrystal_comp('cinterface')
+    def sbpkgname_lib(self):
+        return self.sbpkgname_comp('cinterface')
 
     @property
-    def sbpkgname_ncrystal_data(self):
+    def sbpkgname_data(self):
         return 'NCData'
 
     @property
-    def sbpkgname_ncrystal_pymods(self):
+    def sbpkgname_pymods(self):
         return 'NCrystalDev'
 
     @property
-    def sbpkgname_ncrystal_ncrystalhh(self):
+    def sbpkgname_ncrystalhh(self):
         return 'NCrystalDev'
 
     @property
-    def sbpkgname_ncrystal_cli(self):
+    def sbpkgname_cli(self):
         return 'NCCmd'
 
     @property
-    def sbpkgname_ncrystal_examples(self):
+    def sbpkgname_examples(self):
         return 'NCExamples'
 
     @property
-    def sbpkgname_ncrystal_geant4(self):
+    def sbpkgname_geant4(self):
         return 'NCG4'
 
     @property

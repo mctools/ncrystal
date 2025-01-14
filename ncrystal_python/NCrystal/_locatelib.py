@@ -72,14 +72,13 @@ def _search():
     #preference, we try:
     #
     #  1) The NCrystal_LIB environment variable (intended for specialised usage,
-    #     like CTests).
-    #     Note that an associated NCRYSTAL_LIB_NAMESPACE_PROTECTION variable must
-    #     be used for any namespace (fixme: decode the namespace from the
-    #     NCrystal_LIB file name?).
+    #     like CTests). Normally this variable is also enough for us to be able
+    #     to decode the NCrystal namespace protection used, if any. But if it
+    #     fails, one can use the NCRYSTAL_LIB_NAMESPACE_PROTECTION variable to
+    #     specify it explicitly.
     #
     #  2) Attempt to get the location via a python module providing it (in case
     #     ncrystal-core was installed via PyPI for instance).
-    #     FIXME: still local _nclibpath for now!
     #
     #  3) Invoke "ncrystal-config --show ..." for the information.
     #
@@ -88,7 +87,8 @@ def _search():
 
     # Always invoke _detect_monolithic_installation() since it also detects
     # broken installations.
-    verbose = False#fixme
+    import os
+    verbose = 'NCRYSTAL_DEBUG_LIBSEARCH' in os.environ
     if verbose:
         from ._common import print
         print('NCrystal._locatelib: Starting search for'

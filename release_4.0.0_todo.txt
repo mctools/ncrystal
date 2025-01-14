@@ -36,3 +36,5 @@
 * Migrate more tests from ncdevtool repo
 
 * Create mother "ncrystal" python package + add optional dependencies in it.
+
+* "ncdevtool find" mode seems broken.

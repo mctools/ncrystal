@@ -486,7 +486,7 @@ else()
   target_compile_definitions( NCrystal PRIVATE NCRYSTAL_DISABLE_THREADS )
 endif()
 
-#Libname for ncrystal-config, _nclibpath, etc.:
+#Libname:
 set( _tmp_basiclibname "NCrystal" )
 if ( NCRYSTAL_NAMESPACE )
   set( _tmp_basiclibname "${_tmp_basiclibname}-${NCRYSTAL_NAMESPACE}" )

@@ -31,14 +31,14 @@ _pydep2sblddep = { 'ase':'ASE',
                    'pandas':'Pandas',
                    'toml':'PyToml',
                    'scipy':'Scipy',
-                   'spglib':'Spglib',#fixme: try to comment this line and check that all works
+                   'spglib':'Spglib',
                    'matplotlib':'matplotlib',
                    'mpmath':'mpmath' }
 
 _pydeps2pkg_suffix = [ ( set(['numpy']), 'np' ),
                        ( set(['toml']), 'toml' ),
                        ( set(['numpy','matplotlib']), 'mpl' ),
-                       ( set(['numpy','mpmath']), 'mpmath' ),#FIXME: try to comment this line and check that all works
+                       ( set(['numpy','mpmath']), 'mpmath' ),
                        ( set(['numpy','ase','spglib','gemmi']), 'asg' )
                       ]
 
@@ -68,7 +68,7 @@ def create_pkginfo_pytestpkg( pkgname,
     create_pkginfo( pkgname,
                     extdeps = [ get_dependency_from_pydep(e)
                                 for e in (pydeps or [])],
-                    pkg_deps = [cfg.sbpkgname_ncrystal_pymods] )
+                    pkg_deps = [cfg.sbpkgname_pymods] )
 
 _created_custom_pydeps = set()
 def get_dependency_from_pydep( pd):
@@ -197,9 +197,9 @@ def ncconfig_h_contents():
                            release = 'Release' )[ cfg.sbld_mode ]
 
 
-    libname = pkg_libname(cfg.sbpkgname_ncrystal_lib)
+    libname = pkg_libname(cfg.sbpkgname_lib)
     expandvars = dict( NCLIBNAME = libname,
-                       NCDATAPKGNAME = cfg.sbpkgname_ncrystal_data,
+                       NCDATAPKGNAME = cfg.sbpkgname_data,
                        NCVERSION = cfg.ncrystal_version_str,
                        NCINTVERSION = str(cfg.ncrystal_version_int),
                        NCNAMESPACE = cfg.ncrystal_namespace,
@@ -290,17 +290,19 @@ def define_files():
     all_ncsbpkgs = []
     includemap = []
     for name,comp in sorted(name2comp.items()):
-        sbpkgname = cfg.sbpkgname_ncrystal_comp(name)
+        sbpkgname = cfg.sbpkgname_comp(name)
         all_ncsbpkgs.append(sbpkgname)
         extdeps = ['NCDevHeaders']
         if name=='factories':
             extdeps.append('DL')
+        tmp_extra_flags = [f'-I{dirs.srcroot}/src']
+        if comp=='factories':
+            tmp_extra_flags.append( f'-DNCRYSTAL_DATADIR={dirs.datadir}' )
         create_pkginfo( sbpkgname,
                         extdeps = extdeps,
-                        pkg_deps = [ cfg.sbpkgname_ncrystal_comp(n)
+                        pkg_deps = [ cfg.sbpkgname_comp(n)
                                      for n in comp.direct_depnames ],
-                        extra_cflags = [f'-I{dirs.srcroot}/src',
-                                        f'-DNCRYSTAL_DATADIR={dirs.datadir}'] )#Fixme NCRYSTAL_DATADIR only for factories
+                        extra_cflags = tmp_extra_flags )
         for sf in (comp.local_hdrs+comp.srcfiles):
             add_file( f'pkgs/{sbpkgname}/libsrc/{sf.name}', link_target = sf )
 
@@ -310,17 +312,17 @@ def define_files():
             add_file( f'pkgs/{sbpkgname}/libinc/{sf.name}', link_target = sf )
 
     #Also symlink ncapi.h and NCrystal.hh:
-    pkgname_core = cfg.sbpkgname_ncrystal_comp('core')
+    pkgname_core = cfg.sbpkgname_comp('core')
     add_file( f'pkgs/{pkgname_core}/libinc/ncapi.h',
               link_target = dirs.genroot.joinpath(ncapi_loc_in_genroot) )
     includemap.append( ( 'NCrystal/ncapi.h', f'{pkgname_core}/ncapi.h' ) )
 
     for fn in ['NCrystal.hh','NCPluginBoilerplate.hh']:
-        add_file( f'pkgs/{cfg.sbpkgname_ncrystal_ncrystalhh}/libinc/{fn}',
+        add_file( f'pkgs/{cfg.sbpkgname_ncrystalhh}/libinc/{fn}',
                   link_target = dirs.srcroot.joinpath(f'include/NCrystal/{fn}') )
 
     #NCrystalDev package (python module):
-    assert cfg.sbpkgname_ncrystal_lib in all_ncsbpkgs
+    assert cfg.sbpkgname_lib in all_ncsbpkgs
     create_pkginfo( 'NCrystalDev', pkg_deps=all_ncsbpkgs + ['NCData'] )
     for sf in (dirs.pysrcroot/'NCrystal').glob('*.py'):
         add_file( f'pkgs/NCrystalDev/python/{sf.name}', link_target = sf )
@@ -332,7 +334,7 @@ def define_files():
     add_file( 'pkgs/NCrystalDev/python/_do_namespace_envvars.py', content='' )
 
     #Commandline scripts:
-    create_pkginfo( cfg.sbpkgname_ncrystal_cli, pkg_deps=['NCrystalDev'])
+    create_pkginfo( cfg.sbpkgname_cli, pkg_deps=['NCrystalDev'])
     for sf in (dirs.pysrcroot/'NCrystal').glob('_cli_*.py'):
         cliname = sf.name[len('_cli_'):-len('.py')]
         sbscriptname = 'tool' if cliname == 'nctool' else cliname
@@ -340,7 +342,7 @@ def define_files():
 import NCrystalDev.{sf.stem} as mod
 mod.main()
 """
-        add_file( f'pkgs/{cfg.sbpkgname_ncrystal_cli}/scripts/{sbscriptname}',
+        add_file( f'pkgs/{cfg.sbpkgname_cli}/scripts/{sbscriptname}',
                   content=content,
                   make_executable = True)
     for subpath,fn in [('include/NCrystal/internal/utils/NCCFileUtils.hh',
@@ -348,15 +350,15 @@ mod.main()
                        ('src/utils/NCCFileUtils.cc','NCCFileUtils.c'),
                        ('app_config/main.c','main.c')]:
         sf = dirs.srcroot / subpath
-        add_file( f'pkgs/{cfg.sbpkgname_ncrystal_cli}/app_config/{fn}',
+        add_file( f'pkgs/{cfg.sbpkgname_cli}/app_config/{fn}',
                   link_target = sf )
-    add_file( f'pkgs/{cfg.sbpkgname_ncrystal_cli}/app_config/ncconfig_autogen.h',
+    add_file( f'pkgs/{cfg.sbpkgname_cli}/app_config/ncconfig_autogen.h',
               content = ncconfig_h_contents() )
 
     #Data files (even though NCLib already knows the path via a define):
-    create_pkginfo( cfg.sbpkgname_ncrystal_data )
+    create_pkginfo( cfg.sbpkgname_data )
     for sf in dirs.datadir.glob('*.ncmat'):
-        add_file( f'pkgs/{cfg.sbpkgname_ncrystal_data}/data/{sf.name}',
+        add_file( f'pkgs/{cfg.sbpkgname_data}/data/{sf.name}',
                   link_target = sf )
 
     #FIXME: One custom extdep per pkg, and in an extra incpath, so we enforce
@@ -391,9 +393,9 @@ mod.main()
                       content=f'#!/usr/bin/env bash\n{app_name}\n',
                       make_executable=True )
 
-    create_pkginfo( cfg.sbpkgname_ncrystal_examples,
-                    pkg_deps = [cfg.sbpkgname_ncrystal_lib] )
-    add_compiled_examples(example_src,cfg.sbpkgname_ncrystal_examples)
+    create_pkginfo( cfg.sbpkgname_examples,
+                    pkg_deps = [cfg.sbpkgname_lib] )
+    add_compiled_examples(example_src,cfg.sbpkgname_examples)
 
     #Test libs:
     all_test_pkgs = []
@@ -401,11 +403,11 @@ mod.main()
     testlib_pkgnames = []
     for testlibdir in dirs.testroot.joinpath('libs').glob('lib_*'):
         tlname = testlibdir.name[4:]
-        pkgname = cfg.sbpkgname_ncrystal_testlib(tlname)
+        pkgname = cfg.sbpkgname_testlib(tlname)
         testlib_pkgnames.append(pkgname)
         incdir = testlibdir.joinpath('include',f'TestLib_{tlname}')
         all_test_pkgs.append(pkgname)
-        create_pkginfo(pkgname,pkg_deps=[cfg.sbpkgname_ncrystal_ncrystalhh])
+        create_pkginfo(pkgname,pkg_deps=[cfg.sbpkgname_ncrystalhh])
         sfs_cpp = list(testlibdir.glob('*.cc'))
         sfs_c = list(testlibdir.glob('*.c'))
         sfs_priv_h = list(testlibdir.glob('*.hh' if sfs_cpp else '*.h'))
@@ -441,7 +443,7 @@ mod.main()
         testmods_pkgnames.append(pkgname)
         all_test_pkgs.append(pkgname)
         create_pkginfo(pkgname,
-                       pkg_deps=[cfg.sbpkgname_ncrystal_ncrystalhh,
+                       pkg_deps=[cfg.sbpkgname_ncrystalhh,
                                  'NCTestUtils'])
         for sf in itertools.chain( moddir.glob('*.h'),
                                    moddir.glob('*.hh'),
@@ -453,12 +455,12 @@ mod.main()
     #Test plugin module:
     all_test_pkgs.append( 'NCTestPlugin' )
     create_testplugin_pkg( 'NCTestPlugin',
-                           pkg_deps = [ cfg.sbpkgname_ncrystal_ncrystalhh ] )
+                           pkg_deps = [ cfg.sbpkgname_ncrystalhh ] )
 
     ##Exercise the CMake code versus an NCrystal installed into the test env:
     #all_test_pkgs_needing_ncrystal.append( 'NCTestPlugin2' )
     #create_testplugin_pkg( 'NCTestPlugin2',
-    #                       pkg_deps = [ cfg.sbpkgname_ncrystal_ncrystalhh ] )
+    #                       pkg_deps = [ cfg.sbpkgname_ncrystalhh ] )
 
     #Python modules for test scripts, common headers, and data:
     pkgname = 'NCTestUtils'
@@ -527,24 +529,24 @@ mod.main()
 
     #Geant4 (until it moves elsewhere):
     includemap_g4 = []
-    create_pkginfo( cfg.sbpkgname_ncrystal_geant4,
-                    pkg_deps=[cfg.sbpkgname_ncrystal_lib],
+    create_pkginfo( cfg.sbpkgname_geant4,
+                    pkg_deps=[cfg.sbpkgname_lib],
                     extdeps = ['Geant4','NCG4DevHeaders'],
                     extra_cflags = [f'-I{dirs.ncg4srcroot}/src'],
                    )
     for sf in (dirs.ncg4srcroot/'src').glob('*c'):
-        add_file( f'pkgs/{cfg.sbpkgname_ncrystal_geant4}/libsrc/{sf.name}',
+        add_file( f'pkgs/{cfg.sbpkgname_geant4}/libsrc/{sf.name}',
                   link_target = sf )
 
     g4incroot = dirs.ncg4srcroot.joinpath('include')
     for sf in g4incroot.joinpath('G4NCrystal').glob('*.hh'):
         includemap_g4.append( ( str(sf.relative_to(g4incroot)),
-                                f'{cfg.sbpkgname_ncrystal_geant4}/{sf.name}' ) )
-        add_file( f'pkgs/{cfg.sbpkgname_ncrystal_geant4}/libinc/{sf.name}',
+                                f'{cfg.sbpkgname_geant4}/{sf.name}' ) )
+        add_file( f'pkgs/{cfg.sbpkgname_geant4}/libinc/{sf.name}',
                   link_target = sf )
 
     add_compiled_examples( example_src_g4,
-                           cfg.sbpkgname_ncrystal_geant4,
+                           cfg.sbpkgname_geant4,
                            override_name = 'example' )
 
     create_custom_extdep( 'NCG4DevHeaders',
