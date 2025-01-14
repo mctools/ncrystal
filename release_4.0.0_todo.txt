@@ -46,3 +46,6 @@
 
 * Open issue about migrating out ncrystal_geant4
 * Open issue about getting plugins to work with a single pip install
+
+* A single CI which checks for fixmes. Then, during standard developement, one
+  can simply ignore that particular CI while temporarily adding fixmes.

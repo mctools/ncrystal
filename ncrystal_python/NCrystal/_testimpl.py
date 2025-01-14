@@ -436,7 +436,7 @@ def _test_cmdline_script_availablity( prfct ):
             raise RuntimeError(f'Command "{c} --help" did not run succesfully!')
 
 def _actual_test_cmdline( verbose ):
-    from .cli import cli_tool_list, cli_tool_lookup
+    from .cli import cli_tool_lookup
     import shlex
     prfct = _get_prfct( verbose )
     prfct('starting testing of cmd-line utilities')
