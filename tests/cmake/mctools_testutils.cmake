@@ -333,12 +333,19 @@ function(
       "$<TARGET_FILE:${bn}>"
       "${reflog}"
     )
-    if ( envmod )
-      set_property(
-        TEST "${testname}"
-        PROPERTY ENVIRONMENT_MODIFICATION "${envmod}"
+    #A bit controversial perhaps, but a pain to maintain windows tests
+    #otherwise:
+    if ( WIN32 )
+      list(
+        APPEND envmod
+        "PYTHONIOENCODING=set:UTF-8"
+        "PYTHONLEGACYWINDOWSSTDIO=set:UTF-8"
       )
     endif()
+    set_property(
+      TEST "${testname}"
+      PROPERTY ENVIRONMENT_MODIFICATION "${envmod}"
+    )
   endforeach()
 endfunction()
 

@@ -109,17 +109,9 @@ if ( NOT NCRYSTAL_ENABLE_DATA STREQUAL "EMBED" )
   )
 endif()
 
-#FIXME TEST: (should be in common module):
-list(
-  APPEND nctest_appenvmod
-  "PYTHONIOENCODING=set:UTF-8"
-  "PYTHONLEGACYWINDOWSSTDIO=set:UTF-8"
-)
-
 mctools_testutils_add_tests_apps(
   "${CMAKE_CURRENT_LIST_DIR}/src"
   "${nctests_ncrystallib_target}"
   "${nctests_extra_inc_dirs}"
   "${nctest_appenvmod}"
 )
-#FIXME: TODO Need python unit test which launches compiled app!
