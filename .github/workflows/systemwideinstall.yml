@@ -1,0 +1,45 @@
+name: systemwideinstall
+
+#Test which does not use CMAKE_INSTALL_PREFIX
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '14 15 * * 0'  # 14:15 every Sunday
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        path: src
+
+    - name: Configure
+      run: cmake -S ./src/ncrystal_core -B ./build -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build
+      run: cmake --build ./build
+
+    - name: Install
+      run: cmake --install ./build
+
+    - name: which ncrystal-config
+      run: which ncrystal-config
+
+    - name: ncrystal-config summary
+      run: ncrystal-config -s
+
+    - name: Pip install ncrystal_python
+      run: python3 -mpip install ./src/ncrystal_python
+
+    - name: Python test
+      run: python3 -mNCrystal nctool --test
