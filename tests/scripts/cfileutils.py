@@ -350,7 +350,7 @@ def test5( workdir ):
         fabs = f.absolute()
         fabs_resolved = f.resolve()
 
-        abs_path0 = lib.nctest_absolute_path( fabs_resolved )#fixme test more?
+        abs_path0 = lib.nctest_absolute_path( fabs_resolved )
         assert abs_path0
         assert lib.nctest_path_is_absolute(abs_path0)
 
@@ -429,7 +429,7 @@ def test5( workdir ):
         fabs_prev = fabs
 
 def test_dirsymlinks( workdir ):
-    #FIXME: Test symlink to dir here (with no printouts)
+    #todo: Test symlink to dir here (with no printouts)
     fd = workdir / 'somedir'
     fd.mkdir()
     ( workdir / 'bla.txt' ).write_text('bla')
@@ -573,4 +573,4 @@ if __name__=='__main__':
         with work_in_tmpdir():
             main()
 
-#fixme check with hardlinks + files without read permission
+#todo: check with hardlinks + files without read permission

@@ -35,15 +35,19 @@ def cli_tool_list( canonical_names = True  ):
     return cli_tool_list_impl( canonical_names = canonical_names )
 
 def cli_tool_lookup( name ):
-    """
-    Try to lookup command line tool name, accepting various aliases, to for
-    instance recognise both "ncmat2cpp" and "ncrystal_ncmat2cpp".
+    """Try to lookup command line tool name, accepting various aliases, to for
+    instance recognise both short names like "ncmat2cpp" and canonical names
+    like "ncrystal_ncmat2cpp".
 
-    Returns a dictionary with both a 'canonical_name' and 'short_name', where
-    the former is the name of the corresponding command-line script, and the
-    latter is the shortest name which can be used to identify the tool
+    Returns a dictionary with both a 'canonical_name', 'short_name', and
+    'shellcmd'. Here, the 'canonical_name' is the canonical name of the
+    corresponding command-line script in standard installations, the
+    'short_name' is the shortest name which can be used to identify the tool,
+    and 'shellcmd' is the actual name of the shell command in the present
+    installation.
 
     Returns None in case the name could not be resolved to an available tool.
+
     """
     from ._cliimpl import cli_tool_lookup_impl
     return cli_tool_lookup_impl( name )
@@ -65,10 +69,6 @@ def run( toolname, *arguments ):
     $> ncrystal_ncmat2cpp Al_sg225.ncmat -o myal.cpp
 
     """
-    #FIXME: We should have a test which verifies that all of the command line
-    #script are available, and invoke that test in the conda-forge recipe. That
-    #way, we would not forget to update the conda-forge recipe when adding a
-    #script.
 
     from ._cliimpl import _resolve_cmd_and_import_climod
     climod, argv = _resolve_cmd_and_import_climod( toolname, arguments )

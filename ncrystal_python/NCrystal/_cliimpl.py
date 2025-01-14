@@ -275,7 +275,22 @@ def cli_tool_lookup_impl( name ):
     if short_name not in cli_tool_list_impl( canonical_names=False ):
         return None
     return dict( short_name = short_name,
-                 canonical_name = _map_shortname_2_canonical_name(short_name) )
+                 canonical_name = _map_shortname_2_canonical_name(short_name),
+                 shellcmd = _map_shortname_2_shellcmd(short_name)
+                )
+
+def _map_shortname_2_shellcmd( short_name ):
+    import pathlib
+    is_simplebuild_devel = ( pathlib.Path(__file__).parent
+                             .joinpath('_is_sblddevel.py').is_file() )
+    if not is_simplebuild_devel:
+        return { 'config' : 'ncrystal-config',
+                 'nctool' : 'nctool' }.get( short_name,
+                                            f'ncrystal_{short_name}' )
+    else:
+        return { 'config' : 'sb_nccmd_config',
+                 'nctool' : 'sb_nccmd_tool' }.get( short_name,
+                                                   f'sb_nccmd_{short_name}' )
 
 def _map_shortname_2_canonical_name( short_name ):
     return { 'config' : 'ncrystal-config',

@@ -422,9 +422,25 @@ def _run_cmd( cmd, env = None ):
     sys.stderr.flush()
     return ok, output
 
+def _test_cmdline_script_availablity( prfct ):
+    import subprocess
+    import shutil
+    from .cli import cli_tool_list, cli_tool_lookup
+    for t in cli_tool_list():
+        c = cli_tool_lookup(t)['shellcmd']
+        prfct(f"Testing availability of command: {c}")
+        if not shutil.which(c):
+            raise RuntimeError(f'Command {c} not found!')
+        ev = subprocess.run( [c,'--help'], capture_output = True )
+        if ev.returncode != 0:
+            raise RuntimeError(f'Command "{c} --help" did not run succesfully!')
+
 def _actual_test_cmdline( verbose ):
+    from .cli import cli_tool_list, cli_tool_lookup
+    import shlex
     prfct = _get_prfct( verbose )
     prfct('starting testing of cmd-line utilities')
+    _test_cmdline_script_availablity( prfct )
     cmds = ['ncrystal-config --help',
             'ncrystal-config -s',
             'nctool --version',
@@ -439,6 +455,9 @@ def _actual_test_cmdline( verbose ):
             'ncrystal_verifyatompos --help',
             'ncrystal-config --show cmakedir']
     for cmd in cmds:
+        cmd = shlex.split(cmd)
+        cmd[0] = cli_tool_lookup( cmd[0] )['shellcmd']
+        cmd = shlex.join(cmd)
         prfct('Trying to run:',cmd)
         ok, output = _run_cmd(cmd)
         if not ok:
