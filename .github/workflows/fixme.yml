@@ -1,10 +1,10 @@
-name: ncdevtoolchecks
+name: 'fix''me'
 
 on:
   push:
   pull_request:
   schedule:
-    - cron: '30 19 * * 0'  # 19:30 every Sunday
+    - cron: '47 18 * * 0'  # 18:47 every Sunday
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,8 +18,5 @@ jobs:
       with:
         python-version: 3.13
 
-    - name: pip install deps
-      run: python -mpip install ruff tomli
-
     - name: checks
-      run: ./devel/bin/ncdevtool check -n "fix""me"
+      run: ./devel/bin/ncdevtool check "fix""me"

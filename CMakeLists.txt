@@ -75,5 +75,3 @@ if ( NCRYSTAL_SKBUILD_MONOLITHIC )
     )
   endif()
 endif()
-#FIXME: We need CI which tests that our sdist packages are not missing any
-#files. And from both monolithic and normal.

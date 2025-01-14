@@ -27,7 +27,7 @@
 * Support (and test) windows paths starting with "\\?\", as well as shared
   directories starting with double slashes.
 
-* pypi wheels: always build from sdist!
+* pypi wheels: always build from sdist! Also need CI which tests that sdist are complete.
 
 * Conda packages and so forth should try to run "python3 -mNCrystal.test cmdline
   verbose", to verify they remembered all entry points!
@@ -46,6 +46,3 @@
 
 * Open issue about migrating out ncrystal_geant4
 * Open issue about getting plugins to work with a single pip install
-
-* A single CI which checks for fixmes. Then, during standard developement, one
-  can simply ignore that particular CI while temporarily adding fixmes.
