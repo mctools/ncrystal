@@ -1,0 +1,25 @@
+name: ncdevtoolchecks
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '30 19 * * 0'  # 19:30 every Sunday
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.13
+
+    - name: pip install deps
+      run: python -mpip install ruff tomli pybind11 cppcheck
+
+    - name: checks
+      run: ./devel/bin/ncdevtool check -n fixme
