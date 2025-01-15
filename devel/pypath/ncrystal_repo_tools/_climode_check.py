@@ -49,6 +49,15 @@ def main( parser ):
             print(t)
         return
 
+    for c in args.CHECK:
+        if not c in all_checks:
+            candidates = [e for e in all_checks if ( c in e ) or ( e in c ) ]
+            advice=''
+            if len(candidates)==1:
+                advice = ' (perhaps you meant "%s"?)'%candidates[0]
+            raise SystemExit(f'Unknown check "{c}"{advice}. Run with --list '
+                             'to see available checks.')
+
     check_list = args.CHECK or all_checks
     if args.negate and args.CHECK:
         check_list = [ c for c in all_checks if c not in args.CHECK ]

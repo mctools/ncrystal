@@ -75,7 +75,7 @@ def _check_files( files, pattern  ):
         print('--------------------------------------')
     found = set()
     for f in reporoot.joinpath('devel','reqs').glob(pattern):
-        frel = str(f.relative_to(reporoot))
+        frel = str(f.relative_to(reporoot)).replace('\\','/')
         if frel not in files:
             raise SystemExit(f'ERROR: Excess file: {frel}')
         if not files[frel][1]==f.read_text():
