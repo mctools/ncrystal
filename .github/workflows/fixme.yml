@@ -1,4 +1,4 @@
-name: 'fix''me'
+name: fixme
 
 on:
   push:

@@ -24,11 +24,15 @@ def main():
     from .srciter import all_files_iter
     from .dirs import reporoot
     hits = []
+    #Ignore well-known false positives:
+    whitelist = {
+        'tests/scripts/vdos2ncmat.log' : 1,
+        '.github/workflows/fix'+'me.yml' : 1,
+        'ncrystal_core/src/phys_utils/NCFreeGasUtils.cc' : 1,
+    }
+    actually_ignored = []
     for f in all_files_iter():
         frel = str(f.relative_to(reporoot))
-        if frel == 'tests/scripts/vdos2ncmat.log':
-            #false positive!
-            continue
         n = 0
         try:
             content = f.read_text()
@@ -37,19 +41,37 @@ def main():
         for line in content.splitlines():
             if search_str in line.lower():
                 n+=1
+        nignore = whitelist.get(frel,0)
+        if n < nignore:
+            raise SystemExit(f"ERROR: More whitelisted {search_str}'s ("
+                             f"{nignore}) in {frel} than actually found ({n})")
+        n -= nignore
         if n:
             hits.append( ( n, frel ) )
-    if hits:
-        ntot = sum( n for n,f in hits )
-        hits.append( (ntot, 'TOTAL' ) )
-        hits.sort()
-        wn = max( len(str(n)) for n,f in hits )
-        for n,f in hits:
-            print( ' %s %s'%( str(n).rjust(wn), f ) )
+        if nignore:
+            actually_ignored.append( ( nignore, frel ) )
+    def print_list( hitlist, do_ignore ):
+        if not hitlist:
+            return 0
+        ntot = sum( n for n,f in hitlist )
+        hitlist.append( (ntot, 'TOTAL' ) )
+        hitlist.sort()
+        wn = max( len(str(n)) for n,f in hitlist )
+        for n,f in hitlist:
+            print( '     %s %s'%( str(n).rjust(wn), f ) )
         print()
-        print( f"ERROR: A total of {ntot} {search_str}'s found!")
-        raise SystemExit(1)
+        return ntot
+        if not do_ignore:
+            raise SystemExit(f"ERROR: A total of {ntot} {search_str}'s found!")
 
+    print(f"Whitelisted {search_str}'s:")
+    print()
+    print_list(actually_ignored,True)
+    print(f"Problematic {search_str}'s:")
+    print()
+    ntot = print_list(hits,False)
+    if hits:
+        raise SystemExit(f"ERROR: A total of {ntot} {search_str}'s found!")
 
 if __name__=='__main__':
     main()
