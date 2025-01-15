@@ -81,7 +81,6 @@ def _find_data( key, run_standalone ):
     name = td.dataSourceName if is_textdata else td.name
 
     if name is None:
-        #FIXME: Also an error if name contains special chars.
         from .exceptions import NCBadInput
         raise NCBadInput( 'Can not accept unnamed text data when'
                           ' converting to C++ code, since a string'
@@ -288,9 +287,17 @@ def files2cppcode(infiles,
                 if 'NCRYSTALMATCFG[' in line:
                     #special case: preserve NCRYSTALMATCFG
                     _=line.split('NCRYSTALMATCFG[',1)[1]
-                    #FIXME Proper exceptions:
-                    assert 'NCRYSTALMATCFG' not in _, "multiple NCRYSTALMATCFG entries in a single line"
-                    assert ']' in _, "NCRYSTALMATCFG[ entry without closing ] bracket"
+                    errmsg = None
+                    if 'NCRYSTALMATCFG' in _:
+                        errmsg = "multiple NCRYSTALMATCFG entries in a single line"
+                    elif ']' not in _:
+                        errmsg = "NCRYSTALMATCFG[ entry without closing ] bracket"
+                    if errmsg:
+                        if run_standalone:
+                            raise RuntimeError(errmsg)
+                        else:
+                            from .exceptions import NCBadInput
+                            raise NCBadInput(errmsg)
                     ncmatcfg=_.split(']',1)[0].strip()
                     ncmatcfg.encode('utf8')#Just a check
                 line=' '.join(line.split('#',1)[0].split())
@@ -414,7 +421,6 @@ def files2cppcode(infiles,
 
 #Sphinx doc function. Signature always the following:
 def create_argparser_for_sphinx( progname ):
-    #FIXME use and add to all _cli_*.py
     return parseArgs([progname],return_parser=True)
 
 def main( progname, arglist ):

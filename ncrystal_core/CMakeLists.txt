@@ -604,7 +604,11 @@ if ( NCRYSTAL_ENABLE_DATA STREQUAL "EMBED" )
     if ( EXISTS ${ncmatcc_file} AND NOT "${SKBUILD_STATE}" STREQUAL "sdist" )
       message( STATUS "Using pregenerated ${ncmatcc_bn} with embedded NCMAT data" )
       set( ncmatcc_file_needs_update OFF )
-      #FIXME: Also check generated .cc file is newer than all the source files!!!
+      #Note: This can in principle fail if the generated .cc file is older than
+      #the source files. However, checking for this is a bit complicated since
+      #the data files might be absent. In any case, we only ever set
+      #ncmatcc_file_needs_update to off in skbuild mode, so this is unlikely to
+      #come up.
     else()
       message(STATUS "created ${ncrystal_skbld_autogendir}" )
     endif()

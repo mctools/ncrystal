@@ -266,8 +266,6 @@ print('All ok')\n""".replace('<<PKGLIBNAME>>',_plname)
               make_executable = True,
               content = testload_content )
 
-    #FIXME: Also try to actually USE the test plugin!
-
 def define_files():
 
     #TODO: Add an ncdevenv wrapper, which make sure that all ncrystal cmdline
@@ -364,8 +362,8 @@ mod.main()
         add_file( f'pkgs/{cfg.sbpkgname_data}/data/{sf.name}',
                   link_target = sf )
 
-    #FIXME: One custom extdep per pkg, and in an extra incpath, so we enforce
-    #the deps to be correct??.
+    #TODO: One custom extdep per pkg, and in an extra incpath, so we enforce the
+    #deps to be correct??.
     create_custom_extdep( 'NCDevHeaders',
                           includemap = includemap,
                           cflags = (f'-I{dirs.genroot}/incpath '

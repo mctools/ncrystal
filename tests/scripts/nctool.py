@@ -20,8 +20,6 @@
 ##                                                                            ##
 ################################################################################
 
-#FIXME: Update NEEDS
-
 # NEEDS: numpy matplotlib
 
 #gives problems with matplotlib: import NCTestUtils.enable_fpe # noqa F401
@@ -47,8 +45,6 @@ _some_ncmat_data="""NCMAT v5
   type vdosdebye
   debye_temp 300
 """
-
-#FIXME: Also test python API, once we create one...
 
 def test_cli( args, *, nstart = 30, nend = 20 ):
     print(f"============= CLI >>{shlex.join(args)}<< ====================")

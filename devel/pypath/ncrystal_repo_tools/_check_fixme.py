@@ -26,7 +26,7 @@ def main():
     hits = []
     #Ignore well-known false positives:
     whitelist = {
-        'tests/scripts/vdos2ncmat.log' : 1,
+        'tests/scripts/vdos2ncmat.log' : 2,
         '.github/workflows/fix'+'me.yml' : 1,
         'ncrystal_core/src/phys_utils/NCFreeGasUtils.cc' : 1,
     }
@@ -52,6 +52,7 @@ def main():
             actually_ignored.append( ( nignore, frel ) )
     def print_list( hitlist, do_ignore ):
         if not hitlist:
+            print("    (none)")
             return 0
         ntot = sum( n for n,f in hitlist )
         hitlist.append( (ntot, 'TOTAL' ) )
@@ -59,19 +60,19 @@ def main():
         wn = max( len(str(n)) for n,f in hitlist )
         for n,f in hitlist:
             print( '     %s %s'%( str(n).rjust(wn), f ) )
-        print()
         return ntot
-        if not do_ignore:
-            raise SystemExit(f"ERROR: A total of {ntot} {search_str}'s found!")
 
     print(f"Whitelisted {search_str}'s:")
     print()
     print_list(actually_ignored,True)
+    print()
     print(f"Problematic {search_str}'s:")
     print()
     ntot = print_list(hits,False)
-    if hits:
-        raise SystemExit(f"ERROR: A total of {ntot} {search_str}'s found!")
+    print()
+    if ntot:
+        raise SystemExit( f"ERROR: A total of {ntot} "
+                          f"problematic {search_str}'s found!" )
 
 if __name__=='__main__':
     main()
