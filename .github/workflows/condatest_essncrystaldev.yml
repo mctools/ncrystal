@@ -1,0 +1,70 @@
+name: essncrystaldev-short
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '30 8 * * 2'  # 8:30 every Tuesday
+
+jobs:
+
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, CC: gcc,      CXX: g++,        python: '3.13' }
+          - { os: macos-latest,  CC: clang,    CXX: clang++,    python: "3.11" }
+    name: ${{ matrix.os }}.${{ matrix.CC }}.python-${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -el {0}
+    env:
+      CC: ${{ matrix.CC }}
+      CXX: ${{ matrix.CXX }}
+      CONDA_SOLVER: libmamba
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: ./src_co
+
+      - name: Checkout ncrystaldev
+        env: # Or as an environment variable
+          THEACCESSTOKEN: ${{ secrets.ACCESS_TOKEN_NCRYSTALDEV }}
+        run: |
+          set -eu
+          test "${THEACCESSTOKEN:-}" != "" || ( echo "Access token missing"; exit 1 )
+          git clone --depth=1 'https://usernamedoesnotmatter:'"${THEACCESSTOKEN}"'@git.esss.dk/ncrystal/ncrystaldev.git' ./src_testproject
+
+      - name: Set up conda env
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          activate-environment: ncrystal_all_combined
+          environment-file: ./src_co/devel/reqs/conda_all_combined.yml
+          auto-activate-base: false
+
+      - name: Install
+        run: |
+          set -eu
+          python3 -m pip install --no-deps ./src_co/ncrystal_core
+          ncrystal-config -s
+          python3 -m pip install --no-deps ./src_co/ncrystal_python
+          python3 -m NCrystal.test
+
+      - name: Build (release mode)
+        id: build-release-mode
+        run: |
+          set -eu
+          cd src_testproject
+          sb
+#
+#      - name: Launch unit tests (release mode)
+#        id: test-release-mode
+#        run: |
+#          set -eu
+#          cd src_testproject
+#          #NCLong* tests are run in a different workflow:
+#          sb -t --testexcerpts=100 --requirepkg=DGCodeRecommended,NCUtils,NCG4,NCTests,NCThreadVal,NCPerfVal --testfilter='!sb_nclong*'
+
