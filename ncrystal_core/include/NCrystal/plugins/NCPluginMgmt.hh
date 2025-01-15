@@ -48,7 +48,6 @@ namespace NCRYSTAL_NAMESPACE {
     // variable, while the loading of builtin plugins is handled by NCrystal's
     // cmake configuration.
     //
-    //
     enum class PluginType { Dynamic, Builtin, Undefined };
     struct NCRYSTAL_API PluginInfo {
       //Simple information about loaded plugin. For now this is just the path to
@@ -73,6 +72,14 @@ namespace NCRYSTAL_NAMESPACE {
     //global createXXX(..) functions from NCFactory.hh:
     NCRYSTAL_API void ensurePluginsLoaded();
 
+    //Plugins are free to register test functions, which can be used to test
+    //their usage (test_name should include the name of the plugin). Such
+    //functions should simpy throw an exception in case it want to indicate a
+    //test failure.:
+    NCRYSTAL_API void registerPluginTestFunction( std::string test_name,
+                                                  voidfct_t test_fct );
+    NCRYSTAL_API std::vector<std::pair<std::string,voidfct_t>>
+    getRegisteredPluginTestFunctions();
   }
 }
 

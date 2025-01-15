@@ -115,8 +115,8 @@ namespace NCRYSTAL_NAMESPACE {
     // content when inspected in a terminal can be either confusing, a potential
     // security issue, or both.
 
-    //When dereferenced, iterators provide each line as a std::string (with newline characters
-    //removed and properly null terminated content):
+    //When dereferenced, iterators provide each line as a std::string (with
+    //newline characters removed and properly null terminated content):
     class Iterator;
     Iterator begin() const;
     Iterator end() const;
@@ -125,6 +125,7 @@ namespace NCRYSTAL_NAMESPACE {
 
     //Raw access to underlying data:
     const RawStrData& rawData() const noexcept;
+    std::string rawDataCopy() const;
 
     //Construct by combining raw string data with optional meta-data, which are:
     //   1) A data type (e.g. "ncmat", "lau", ...) describing data format.
@@ -265,6 +266,13 @@ namespace NCRYSTAL_NAMESPACE {
   inline const std::string& TextData::dataType() const noexcept { return m_dt; }
   inline const Optional<std::string>& TextData::getLastKnownOnDiskLocation() const noexcept { return m_optOnDisk; }
   inline const RawStrData& TextData::rawData() const noexcept { return m_data; }
+  inline std::string TextData::rawDataCopy() const
+  {
+    return std::string( m_data.begin(),
+                        std::distance(m_data.begin(),m_data.end()) );
+  }
+
+
   inline ncconstexpr17 const TextDataUID& TextData::dataUID() const noexcept { return m_uid; }
 
   inline TextData::Iterator::Iterator(const char * data, is_end_t)

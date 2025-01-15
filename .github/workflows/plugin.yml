@@ -65,10 +65,9 @@ jobs:
         ls -l ./install_plugin/lib
         export NCRYSTAL_PLUGIN_LIST="$(cd ./install_plugin/lib; echo `pwd`/*NCPlugin_DummyPlugin*)"
         export NCRYSTAL_REQUIRED_PLUGINS="DummyPlugin"
-        env | grep NCRYSTAL
+        export NCRYSTAL_PLUGIN_RUNTESTS="1"
+        env | grep "NCRYSTAL"
         #Now run anything which triggers plugin-loading, to have the plugin-availability
         #test carried out:
         ./install/bin/ncrystal_example_c
         echo "All ok"
-
-    #FIXME: Add step which actualy USES the plugin as well!

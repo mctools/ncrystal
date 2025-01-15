@@ -89,7 +89,6 @@ NCP::PluginFactory::query( const NC::FactImpl::ScatterRequest& cfg ) const
 
   //Ok, we might be applicable. Load input data and check if is something we
   //want to handle:
-
   if ( ! PhysicsModel::isApplicable( cfg.info() ) )
     return NC::Priority::Unable;
 

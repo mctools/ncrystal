@@ -32,6 +32,31 @@ namespace NCRYSTAL_NAMESPACE {
   namespace Plugins {
 
     namespace {
+
+      struct PluginTestFctsDB {
+        std::vector<std::pair<std::string,voidfct_t>> fcts;
+        std::mutex mtx;
+      };
+
+      PluginTestFctsDB& getPluginTestFctsDB()
+      {
+        static PluginTestFctsDB db;
+        return db;
+      }
+
+      void runRegisteredPluginTestFunctions( std::size_t skip = 0 )
+      {
+        auto testfcts = getRegisteredPluginTestFunctions();
+        auto it = std::next(testfcts.begin(),skip);
+        auto itE = testfcts.end();
+        for ( ; it!=itE; ++it ) {
+          auto& e = *it;
+          NCRYSTAL_MSG("Launching plugin test function \""<<e.first<<"\":");
+          e.second();
+          NCRYSTAL_MSG("End of plugin test function \""<<e.first<<"\".");
+        }
+      }
+
       std::mutex& getPluginMgmtMutex()
       {
         static std::mutex mtx;
@@ -129,8 +154,18 @@ NCP::PluginInfo NCP::loadBuiltinPlugin( std::string pluginName,
 
 NCP::PluginInfo NCP::loadDynamicPlugin( std::string path_to_shared_lib )
 {
-  NCRYSTAL_LOCK_GUARD(getPluginMgmtMutex());
-  return loadDynamicPluginImpl( path_to_shared_lib );
+  PluginInfo res;
+  const bool run_test_functions = ncgetenv_bool("PLUGIN_RUNTESTS");
+  std::size_t ntestfcts = ( run_test_functions
+                            ? 0
+                            : getRegisteredPluginTestFunctions().size() );
+  {
+    NCRYSTAL_LOCK_GUARD(getPluginMgmtMutex());
+    res = loadDynamicPluginImpl( path_to_shared_lib );
+  }
+  if ( run_test_functions )
+    runRegisteredPluginTestFunctions( ntestfcts );
+  return res;
 }
 
 std::vector<NCP::PluginInfo> NCP::loadedPlugins()
@@ -201,7 +236,7 @@ namespace NCRYSTAL_NAMESPACE {
         lib+=".dylib";
       } else {
         NCRYSTAL_THROW2(FileNotFound,"Could not find"
-                        " sbl pkg library (\""
+                        " sbld pkg library (\""
                         <<pkgname<<"\"). Is the package enabled?");
       }
       return lib;
@@ -212,103 +247,133 @@ namespace NCRYSTAL_NAMESPACE {
 
 void NCP::ensurePluginsLoaded()
 {
-  NCRYSTAL_LOCK_GUARD(getPluginMgmtMutex());
-  static bool first = true;
-  if (!first)
-    return;
-  first = false;
+  bool run_test_functions = false;
+  std::size_t ntestfcts = 0;
+
+  {
+    NCRYSTAL_LOCK_GUARD(getPluginMgmtMutex());
+    static bool first = true;
+    if (!first)
+      return;
+    first = false;
+    run_test_functions = ncgetenv_bool("PLUGIN_RUNTESTS");
+    if ( run_test_functions )
+      ntestfcts = getRegisteredPluginTestFunctions().size();
 
 #ifdef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
-  //Standard plugins, dynamic in simplebuild mode, except for datasources:
-  auto loadstdplugin = []( const char* pkgname,
-                           const char* pluginname,
-                           std::string regfctname )
-  {
-    regfctname = std::string(ncrystal_xstr(NCRYSTAL_C_NAMESPACE)) + regfctname;
-    loadDynamicPluginImpl( getSBLDPkgLib(pkgname), pluginname, regfctname);
-  };
-  loadstdplugin("NCFactories","stddatasrc","register_stddatasrc_factory");
-  loadstdplugin("NCScatFact","stdscat","register_stdscat_factory");
-  loadstdplugin("NCScatFact","stdmpscat","register_stdmpscat_factory");
-  loadstdplugin("NCExperimental","stdexpscat","register_experimentalscatfact");
-  loadstdplugin("NCFactory_Laz","stdlaz","register_stdlaz_factory");
-  loadstdplugin("NCAbsFact","stdabs","register_stdabs_factory");
-  loadstdplugin("NCFactory_NCMAT","stdncmat","register_stdncmat_factory");
-  loadstdplugin("NCQuickFact","stdquick","register_quick_factory");
-  //loadstdplugin("NCNXSFactories","legacynxslaz","register_nxslaz_factories");
+    //Standard plugins, dynamic in simplebuild mode, except for datasources:
+    auto loadstdplugin = []( const char* pkgname,
+                             const char* pluginname,
+                             std::string regfctname )
+    {
+      regfctname = std::string(ncrystal_xstr(NCRYSTAL_C_NAMESPACE)) + regfctname;
+      loadDynamicPluginImpl( getSBLDPkgLib(pkgname), pluginname, regfctname);
+    };
+    loadstdplugin("NCFactories","stddatasrc","register_stddatasrc_factory");
+    loadstdplugin("NCScatFact","stdscat","register_stdscat_factory");
+    loadstdplugin("NCScatFact","stdmpscat","register_stdmpscat_factory");
+    loadstdplugin("NCExperimental","stdexpscat","register_experimentalscatfact");
+    loadstdplugin("NCFactory_Laz","stdlaz","register_stdlaz_factory");
+    loadstdplugin("NCAbsFact","stdabs","register_stdabs_factory");
+    loadstdplugin("NCFactory_NCMAT","stdncmat","register_stdncmat_factory");
+    loadstdplugin("NCQuickFact","stdquick","register_quick_factory");
+    //loadstdplugin("NCNXSFactories","legacynxslaz","register_nxslaz_factories");
 #endif
 
 #ifndef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
-  //Standard plugins, always as builtin plugins:
+    //Standard plugins, always as builtin plugins:
 #  ifndef NCRYSTAL_DISABLE_STDDATASOURCES
-  loadBuiltinPluginImpl("stddatasrc",NCRYSTAL_APPLY_C_NAMESPACE(register_stddatasrc_factory));
+    loadBuiltinPluginImpl("stddatasrc",NCRYSTAL_APPLY_C_NAMESPACE(register_stddatasrc_factory));
 #  endif
 #  ifndef NCRYSTAL_DISABLE_STDSCAT
-  loadBuiltinPluginImpl("stdscat",NCRYSTAL_APPLY_C_NAMESPACE(register_stdscat_factory));
+    loadBuiltinPluginImpl("stdscat",NCRYSTAL_APPLY_C_NAMESPACE(register_stdscat_factory));
 #  endif
 #  ifndef NCRYSTAL_DISABLE_STDMPSCAT
-  loadBuiltinPluginImpl("stdmpscat",NCRYSTAL_APPLY_C_NAMESPACE(register_stdmpscat_factory));
+    loadBuiltinPluginImpl("stdmpscat",NCRYSTAL_APPLY_C_NAMESPACE(register_stdmpscat_factory));
 #  endif
 #  ifndef NCRYSTAL_DISABLE_EXPERIMENTALSCATFACT
-  loadBuiltinPluginImpl("stdexpscat",NCRYSTAL_APPLY_C_NAMESPACE(register_experimentalscatfact));
+    loadBuiltinPluginImpl("stdexpscat",NCRYSTAL_APPLY_C_NAMESPACE(register_experimentalscatfact));
 #  endif
 #  ifndef NCRYSTAL_DISABLE_STDLAZ
-  loadBuiltinPluginImpl("stdlaz",NCRYSTAL_APPLY_C_NAMESPACE(register_stdlaz_factory));
+    loadBuiltinPluginImpl("stdlaz",NCRYSTAL_APPLY_C_NAMESPACE(register_stdlaz_factory));
 #  endif
 #  ifndef NCRYSTAL_DISABLE_STDABS
-  loadBuiltinPluginImpl("stdabs",NCRYSTAL_APPLY_C_NAMESPACE(register_stdabs_factory));
+    loadBuiltinPluginImpl("stdabs",NCRYSTAL_APPLY_C_NAMESPACE(register_stdabs_factory));
 #  endif
 #  ifndef NCRYSTAL_DISABLE_NCMAT
-  loadBuiltinPluginImpl("stdncmat",NCRYSTAL_APPLY_C_NAMESPACE(register_stdncmat_factory));
+    loadBuiltinPluginImpl("stdncmat",NCRYSTAL_APPLY_C_NAMESPACE(register_stdncmat_factory));
 #  endif
 #  ifndef NCRYSTAL_DISABLE_QUICKFACT
-  loadBuiltinPluginImpl("stdquick",NCRYSTAL_APPLY_C_NAMESPACE(register_quick_factory));
+    loadBuiltinPluginImpl("stdquick",NCRYSTAL_APPLY_C_NAMESPACE(register_quick_factory));
 #  endif
 #endif
 
-  //Static custom (builtin) plugins:
+    //Static custom (builtin) plugins:
 #ifdef NCRYSTAL_HAS_BUILTIN_PLUGINS
-  provideBuiltinPlugins();
+    provideBuiltinPlugins();
 #endif
 
-  //Dynamic custom plugins, as indicated by environment variable:
+    //Dynamic custom plugins, as indicated by environment variable:
 #ifdef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
-  bool first_plugin = false;
+    bool first_plugin = false;
 #endif
-  for ( auto& pluginlib : split2(ncgetenv("PLUGIN_LIST"),0,':') ) {
-    trim(pluginlib);
-    if (pluginlib.empty())
-      continue;
+    for ( auto& pluginlib : split2(ncgetenv("PLUGIN_LIST"),0,':') ) {
+      trim(pluginlib);
+      if (pluginlib.empty())
+        continue;
 #ifdef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
-    //I am not 100% sure the following is still needed, but keeping it just in
-    //case for now:
-    if (first_plugin) {
-      first_plugin=false;
-      DynLoader( getSBLDPkgLib("NCFactories"),
-                 DynLoader::ScopeFlag::global ).doNotClose();
-    }
-#endif
-    Plugins::loadDynamicPluginImpl(pluginlib);
-  }
-
-  auto required_plugins = ncgetenv("REQUIRED_PLUGINS");
-  if (!required_plugins.empty()) {
-    auto avail_plugins = getPLList();
-    for ( auto& required_plugin : split2(required_plugins,0,':') ) {
-      std::string found_ptypestr;
-      for ( auto& pinfo : avail_plugins ) {
-        if ( pinfo.pluginName == required_plugin ) {
-          found_ptypestr = ( pinfo.pluginType == PluginType::Dynamic
-                             ? "dynamic" : "builtin" );
-          break;
-        }
+      //I am not 100% sure the following is still needed, but keeping it just in
+      //case for now:
+      if (first_plugin) {
+        first_plugin=false;
+        DynLoader( getSBLDPkgLib("NCFactories"),
+                   DynLoader::ScopeFlag::global ).doNotClose();
       }
-      if (found_ptypestr.empty())
-        NCRYSTAL_THROW2( LogicError, "Required plugin was not loaded: \""
-                         << required_plugin << '"' );
-      NCRYSTAL_MSG("Required plugin \""<<required_plugin
-                   <<"\" was indeed available ("<<found_ptypestr<<").");
+#endif
+      Plugins::loadDynamicPluginImpl(pluginlib);
     }
-  }
 
+    auto required_plugins = ncgetenv("REQUIRED_PLUGINS");
+    if (!required_plugins.empty()) {
+      auto avail_plugins = getPLList();
+      for ( auto& required_plugin : split2(required_plugins,0,':') ) {
+        std::string found_ptypestr;
+        for ( auto& pinfo : avail_plugins ) {
+          if ( pinfo.pluginName == required_plugin ) {
+            found_ptypestr = ( pinfo.pluginType == PluginType::Dynamic
+                               ? "dynamic" : "builtin" );
+            break;
+          }
+        }
+        if (found_ptypestr.empty())
+          NCRYSTAL_THROW2( LogicError, "Required plugin was not loaded: \""
+                           << required_plugin << '"' );
+        NCRYSTAL_MSG("Required plugin \""<<required_plugin
+                     <<"\" was indeed available ("<<found_ptypestr<<").");
+      }
+    }
+  }//release mutex
+
+  if ( run_test_functions )
+    runRegisteredPluginTestFunctions( ntestfcts );
+}
+
+void NCP::registerPluginTestFunction( std::string test_name,
+                                      voidfct_t test_fct )
+{
+  auto& db = getPluginTestFctsDB();
+  NCRYSTAL_LOCK_GUARD( db.mtx );
+  db.fcts.emplace_back( std::move(test_name), std::move(test_fct) );
+}
+
+std::vector<std::pair<std::string,NC::voidfct_t>>
+NCP::getRegisteredPluginTestFunctions()
+{
+  std::vector<std::pair<std::string,NC::voidfct_t>> res;
+  {
+    auto& db = getPluginTestFctsDB();
+    NCRYSTAL_LOCK_GUARD( db.mtx );
+    res = db.fcts;
+  }
+  return res;
 }

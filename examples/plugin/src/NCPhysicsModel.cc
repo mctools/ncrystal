@@ -74,13 +74,6 @@ NCP::PhysicsModel::PhysicsModel( double sigma, double lambda_cutoff )
   : m_sigma(sigma),
     m_cutoffekin(NC::wl2ekin(lambda_cutoff))
 {
-  //Important note to developers who are using the infrastructure in the
-  //testcode/ subdirectory: If you change the number or types of the arguments
-  //for the constructor here, you should make sure to perform a corresponding
-  //change in three files in the testcode/ directory: _cbindings.py,
-  //__init__.py, and NCForPython.cc - that way you can still instantiate your
-  //model directly from your python test code).
-
   nc_assert( m_sigma > 0.0 );
   nc_assert( m_cutoffekin > 0.0);
 }

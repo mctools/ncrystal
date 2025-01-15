@@ -19,22 +19,16 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-//Define exported symbols used by NCrystal to activate the plugin. This is
-//mostly generic, except for the registerPlugin function which can potentially
-//be modified in some use-cases.
+#ifndef NCPlugin_TestPlugin_hh
+#define NCPlugin_TestPlugin_hh
 
-#define NCPLUGIN_BOILERPLATE_CC
 #include "NCrystal/NCPluginBoilerplate.hh"
 
-#include "NCPluginFactory.hh"
-#include "NCTestPlugin.hh"
+namespace NCPluginNamespace {
 
-void NCP::registerPlugin()
-{
-  //This function is required for the plugin to work. It should register
-  //factories, a potentially other stuff as appropriate for the plugin (like
-  //adding in-mem data files, adding test functions, ...).
-  NC::FactImpl::registerFactory(std::make_unique<NCP::PluginFactory>());
-  NC::Plugins::registerPluginTestFunction( std::string("test_") + pluginName(),
-                                           customPluginTest );
-};
+  //Function which can be called in order to test the plugin:
+  void customPluginTest();
+
+}
+
+#endif

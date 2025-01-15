@@ -1,5 +1,7 @@
 #FIXME Address all of the following for the release:
 
+* sb_devtools_gdb to simple-build-system??
+
 * Reinstate header splits into .icc files. This also needs support in ncdevtool
   (e.g. cppmove mode) and ncrystal_repo_tools/core_components.py. Perhaps we
   need a new ncdevtool mode for doing the split?

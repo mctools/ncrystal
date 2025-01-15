@@ -46,7 +46,7 @@ def _invoke( cmdname, args, env, block = False):
                         capture_output = block )
     if ev.returncode != 0:
         if block:
-            print( ev.stderr )
+            print( ev.stderr.decode() )
         raise SystemExit(ev.returncode)
 
 def mainsb( mode, is_debug, parser ):

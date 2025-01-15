@@ -65,6 +65,7 @@ echo "Plugin was installed in: ${TGT}/inst_plugin"
 
 export NCRYSTAL_PLUGIN_LIST=$(echo "${TGT}/inst_plugin/lib/libNCPlugin_DummyPlugin".*)
 export NCRYSTAL_REQUIRED_PLUGINS="DummyPlugin"
+export NCRYSTAL_PLUGIN_RUNTESTS=1
 #Now run anything which triggers plugin-loading, to have the plugin-availability
 #test carried out:
 ${TGT}/app_c

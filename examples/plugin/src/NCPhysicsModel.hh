@@ -29,12 +29,10 @@
 namespace NCPluginNamespace {
 
   //We implement the actual physics model in this completely custom C++ helper
-  //class. That decouples it from NCrystal interfaces (which is nice in case the
-  //NCrystal API changes at some point), and it makes it easy to directly
-  //instantiate and test the modelling implementation from standalone C++ code.
+  //class.
   //
-  //We mark the class as MoveOnly, to make sure it doesn't get copied around by
-  //accident (since it could easily end up having large data members).
+  //We mark the class as MoveOnly as a safeguard, as it is not really intended
+  //to be copied.
 
   class PhysicsModel final : public NC::MoveOnly {
   public:

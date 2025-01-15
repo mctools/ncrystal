@@ -251,13 +251,16 @@ import os
 pl=os.environ['SBLD_LIB_DIR']+'/'+'<<PKGLIBNAME>>'
 if not os.path.exists(pl):
     raise SystemExit(f'Not found: {pl}')
+os.environ['NCRYSTALDEV_DEBUG_PLUGIN']='1'
 os.environ['NCRYSTALDEV_PLUGIN_LIST']=pl
+os.environ['NCRYSTALDEV_PLUGIN_RUNTESTS']='1'
+os.environ['NCRYSTALDEV_REQUIRED_PLUGINS']='DummyPlugin'
 import NCrystalDev as NC
 pls = [e for e in NC.browsePlugins() if e[0]=='DummyPlugin']
 if not pls:
     raise SystemExit(f'Could not load DummyPlugin as expected')
 assert len(pls) == 1
-print(f'Loaded DummyPlugin from {pl}.')
+print(f'Verified loading of DummyPlugin from {pl}.')
 print('All ok')\n""".replace('<<PKGLIBNAME>>',_plname)
     add_file( f'pkgs/{pkgname}/scripts/testload',
               make_executable = True,
