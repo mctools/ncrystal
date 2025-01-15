@@ -50,7 +50,7 @@ def main( parser ):
         return
 
     for c in args.CHECK:
-        if not c in all_checks:
+        if c not in all_checks:
             candidates = [e for e in all_checks if ( c in e ) or ( e in c ) ]
             advice=''
             if len(candidates)==1:

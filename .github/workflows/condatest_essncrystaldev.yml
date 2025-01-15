@@ -54,5 +54,8 @@ jobs:
       - name: Build
         run: sb -v
 
+      - name: Run sb_nctests_testuids
+        run: sbenv sb_nctests_testuids
+
       - name: Launch tests
         run: sb -t --testexcerpts=500 --requirepkg=NCTestAll,NCTests --testfilter='!sb_nclong*'
