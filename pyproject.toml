@@ -19,9 +19,11 @@
 ##                                                                            ##
 ################################################################################
 
+#Quick and dirt monolithic package, combining the ncrystal_core, ncrystal_python
+#and ncrystal_metapkg subdirs into a single ncrystal package.
 
 [project]
-name = "ncrystal-monolithic-bundle"
+name = "ncrystal"
 version = "3.9.80"
 requires-python = ">=3.8"
 dependencies = [ 'numpy' ]
