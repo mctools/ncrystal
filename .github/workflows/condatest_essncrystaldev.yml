@@ -28,7 +28,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          path: ./src_co
+          path: ./src
 
       - name: Checkout ncrystaldev
         env: # Or as an environment variable
@@ -36,35 +36,23 @@ jobs:
         run: |
           set -eu
           test "${THEACCESSTOKEN:-}" != "" || ( echo "Access token missing"; exit 1 )
-          git clone --depth=1 'https://usernamedoesnotmatter:'"${THEACCESSTOKEN}"'@git.esss.dk/ncrystal/ncrystaldev.git' ./src_testproject
+          git clone --depth=1 'https://usernamedoesnotmatter:'"${THEACCESSTOKEN}"'@git.esss.dk/ncrystal/ncrystaldev.git' ./src_ncrystaldev
 
       - name: Set up conda env
         uses: conda-incubator/setup-miniconda@v3
         with:
           activate-environment: ncrystal_all_combined
-          environment-file: ./src_co/devel/reqs/conda_all_combined.yml
+          environment-file: ./src/devel/reqs/conda_all_combined.yml
           auto-activate-base: false
 
-      - name: Install
-        run: |
-          set -eu
-          python3 -m pip install --no-deps ./src_co/ncrystal_core
-          ncrystal-config -s
-          python3 -m pip install --no-deps ./src_co/ncrystal_python
-          python3 -m NCrystal.test
+      - name: Install more dependencies
+        run: conda install simple-build-dgcode zlib h5py
 
-      - name: Build (release mode)
-        id: build-release-mode
-        run: |
-          set -eu
-          cd src_testproject
-          sb
-#
-#      - name: Launch unit tests (release mode)
-#        id: test-release-mode
-#        run: |
-#          set -eu
-#          cd src_testproject
-#          #NCLong* tests are run in a different workflow:
-#          sb -t --testexcerpts=100 --requirepkg=DGCodeRecommended,NCUtils,NCG4,NCTests,NCThreadVal,NCPerfVal --testfilter='!sb_nclong*'
+      - name: Prepare simplebuild cfg
+        run: cp src/.github/resources/simplebuild_ncrystaldev.cfg ./simplebuild.cfg && mkdir dummy
 
+      - name: Build
+        run: sb -v
+
+      - name: Launch tests
+        run: sb -t --testexcerpts=500 --requirepkg=NCTestAll,NCTests --testfilter='!sb_nclong*'
