@@ -47,7 +47,7 @@ def create_fake_onlinedb_cache_dir():
     for f in ['cod_1000257.cif','cod_9005777.cif','mp_55.cif']:
         (d/f).write_text((test_data_dir/f'fake_{f}').read_text())
 
-#FIXME: Also test python API if not done elsewhere.
+#TODO: Also test python API if not done elsewhere.
 
 def test_cli( args, *, nstart = 100, nend = 20, outfile = None, in_tmp_dir = True ):
     import NCrystalDev.cli as nc_cli

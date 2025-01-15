@@ -23,7 +23,8 @@ from .dirs import reporoot
 
 toml_files =  dict( monolith = 'pyproject.toml',
                     core = 'ncrystal_core/pyproject.toml',
-                    py = 'ncrystal_python/pyproject.toml' )
+                    py = 'ncrystal_python/pyproject.toml',
+                    meta = 'ncrystal_metapkg/pyproject.toml' )
 
 _data_cache = {}
 def load_data( key ):
@@ -78,26 +79,43 @@ def check_metadata():
     data_monolith = load_data( 'monolith' )
     data_core = load_data( 'core' )
     data_py = load_data( 'py' )
+    data_meta = load_data( 'meta' )
 
 
     #Check that there are no unexpected sections:
-    toplvlkeys = set(['build-system','project','tool','__srcloc__'])
+    toplvlkeys_notool = set(['build-system','project','__srcloc__'])
+    toplvlkeys = toplvlkeys_notool.union( set(['tool']) )
     assert toplvlkeys == set( data_monolith.keys() )
     assert toplvlkeys == set( data_core.keys() )
     assert toplvlkeys == set( data_py.keys() )
+    assert toplvlkeys_notool == set( data_meta.keys() )
 
     #Check 'project' section
-    assert data_monolith['project']['version']==data_core['project']['version']
+    version = data_core['project']['version']
+    assert data_monolith['project']['version']==version
+    assert data_meta['project']['version']==version
     projkeys_monolith = set( data_monolith['project'].keys() )
     projkeys_core = set( data_core['project'].keys() )
     projkeys_py = set( data_py['project'].keys() )
+    projkeys_meta = set( data_meta['project'].keys() )
     assert 'dependencies' in projkeys_monolith
     assert 'dependencies' not in projkeys_core
     assert 'dependencies' in projkeys_py
+    assert 'dependencies' in projkeys_meta
+    assert ( set(data_meta['project']['dependencies'])
+             == set([f'ncrystal-core=={version}',
+                     f'ncrystal-python=={version}']) )
     assert ( projkeys_monolith - projkeys_core ) == set(['dependencies'])
     assert ( projkeys_core - projkeys_monolith ) == set([])
+    assert ( projkeys_core - projkeys_meta ) == set(['scripts'])
+    assert ( projkeys_meta - projkeys_core ) == set(['dependencies',
+                                                     'optional-dependencies'])
     assert ( projkeys_py - projkeys_monolith ) == set(['dynamic'])
     assert ( projkeys_monolith - projkeys_py ) == set(['version'])
+    assert ( projkeys_core - projkeys_meta ) == set(['scripts'])
+
+    cmp_common_entries( 'project', data_meta, data_core,
+                        allow_diff = ['name'] )
     cmp_common_entries( 'project', data_monolith, data_core,
                         allow_diff = ['name','scripts','description'] )
     cmp_common_entries( 'project', data_monolith, data_py,
@@ -106,6 +124,8 @@ def check_metadata():
 
     #Check 'build-system' section
     cmp_common_entries( 'build-system', data_monolith, data_core,
+                        allow_diff = [] )
+    cmp_common_entries( 'build-system', data_py, data_meta,
                         allow_diff = [] )
 
     #Check 'tool' section
@@ -123,6 +143,7 @@ def check_all_project_scripts():
     data_monolith = load_data( 'monolith' )
     data_core = load_data( 'core' )
     data_py = load_data( 'py' )
+    data_meta = load_data( 'meta' )
 
     extra_mono = [
         ('ncrystal-config',
@@ -145,6 +166,10 @@ def check_all_project_scripts():
                                         cli_scripts = False,
                                         extra = extra_core ):
         ok = False
+    if not _check_project_scripts_impl( data_meta,
+                                        cli_scripts = False,
+                                        extra = [] ):
+        ok = False
     if not ok:
         raise SystemExit('Failures detected in project.scripts')
 
@@ -154,7 +179,7 @@ def _check_project_scripts_impl( data, *, cli_scripts, extra ):
     #pyproject.toml files in check_metadata(), so here we simply have to verify
     #that ncrystal_python/project.toml has exactly 1 entry points for each of
     #the actual NCrystal/_cli_*.py modules.
-    from_toml = data['project']['scripts']
+    from_toml = data['project'].get('scripts',{})
     expected = dict( e for e in extra )
     if cli_scripts:
         for f in (reporoot

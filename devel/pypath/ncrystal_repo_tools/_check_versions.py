@@ -37,6 +37,18 @@ def get_toml_version( path ):
     assert path.name == 'pyproject.toml'
     return parse_toml( path )['project']['version']
 
+def check_ncrystal_metapkg_version( path ):
+    from .toml import parse_toml
+    assert path.name == 'pyproject.toml'
+    t = parse_toml( path )
+    d = t['project']['dependencies']
+    v = t['project']['version']
+    for pn in 'ncrystal-core','ncrystal-python':
+        e = f'{pn}=={v}'
+        if e not in d:
+            raise SystemExit(f'Missing pinned dependency on {e} in {path}')
+    return v
+
 def get_testcfglog_version( path ):
     #Look for single line like "NCrystal::getVersion() = 3009080"
     assert path.name == 'test.log'
@@ -90,6 +102,7 @@ def check_versions():
         ( get_py_version, 'ncrystal_python/NCrystal/__init__.py' ),
         ( get_toml_version, 'pyproject.toml' ),
         ( get_toml_version, 'ncrystal_core/pyproject.toml' ),
+        ( check_ncrystal_metapkg_version, 'ncrystal_metapkg/pyproject.toml' ),
         ( get_cmake_version, 'ncrystal_core/CMakeLists.txt' ),
         ( get_testcfglog_version, 'tests/src/app_cfg/test.log' ),
         ( get_testtoollog_version, 'tests/scripts/nctool.log' ),

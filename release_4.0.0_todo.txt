@@ -1,8 +1,12 @@
 #FIXME Address all of the following for the release:
 
+* Rename the monolithic package to "ncrystal" as well???
+
 * sb_devtools_gdb to simple-build-system??
 
-* Reinstate header splits into .icc files. This also needs support in ncdevtool
+* Are we 100% sure we are happy with the layout of files in ncrystal_core now?!??!?
+
+* Reinstate header splits into .icc files? This also needs support in ncdevtool
   (e.g. cppmove mode) and ncrystal_repo_tools/core_components.py. Perhaps we
   need a new ncdevtool mode for doing the split?
 
@@ -40,11 +44,10 @@
   CMAKE_INSTALL_PREFIX. Since that can be weird. We should then also test in a
   downstream project that everything from the find_package(NCrystal) is still correct.
 
-* Migrate more tests from ncdevtool repo
-
 * Create mother "ncrystal" python package + add optional dependencies in it.
 
 * "ncdevtool find" mode seems broken.
 
 * Open issue about migrating out ncrystal_geant4
 * Open issue about getting plugins to work with a single pip install
+* Open issue about migrating more tests from ncdevtool repo
