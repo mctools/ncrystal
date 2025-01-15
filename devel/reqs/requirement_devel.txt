@@ -1,0 +1,7 @@
+cppcheck
+mpmath
+numpy
+pybind11
+ruff
+simple-build-system
+tomli

@@ -1,0 +1,5 @@
+ase<3.24.0
+gemmi
+matplotlib
+numpy
+spglib
