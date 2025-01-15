@@ -1,0 +1,15 @@
+name: ncrystal_all
+channels:
+  - nodefaults
+  - conda-forge
+dependencies:
+  - python
+  - compilers
+  - cmake
+  - numpy
+  - pip
+  - ase<3.24.0
+  - gemmi
+  - matplotlib
+  - numpy
+  - spglib

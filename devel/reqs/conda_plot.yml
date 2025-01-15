@@ -1,0 +1,12 @@
+name: ncrystal_plot
+channels:
+  - nodefaults
+  - conda-forge
+dependencies:
+  - python
+  - compilers
+  - cmake
+  - numpy
+  - pip
+  - matplotlib
+  - numpy

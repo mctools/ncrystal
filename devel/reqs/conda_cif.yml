@@ -1,0 +1,14 @@
+name: ncrystal_cif
+channels:
+  - nodefaults
+  - conda-forge
+dependencies:
+  - python
+  - compilers
+  - cmake
+  - numpy
+  - pip
+  - ase<3.24.0
+  - gemmi
+  - numpy
+  - spglib

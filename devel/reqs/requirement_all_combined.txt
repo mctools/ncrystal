@@ -1,0 +1,11 @@
+ase<3.24.0
+cppcheck
+gemmi
+matplotlib
+mpmath
+numpy
+pybind11
+ruff
+simple-build-system
+spglib
+tomli

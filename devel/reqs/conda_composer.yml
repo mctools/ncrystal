@@ -1,0 +1,12 @@
+name: ncrystal_composer
+channels:
+  - nodefaults
+  - conda-forge
+dependencies:
+  - python
+  - compilers
+  - cmake
+  - numpy
+  - pip
+  - numpy
+  - spglib

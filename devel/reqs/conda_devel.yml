@@ -1,0 +1,17 @@
+name: ncrystal_devel
+channels:
+  - nodefaults
+  - conda-forge
+dependencies:
+  - python
+  - compilers
+  - cmake
+  - numpy
+  - pip
+  - cppcheck
+  - mpmath
+  - numpy
+  - pybind11
+  - ruff
+  - simple-build-system
+  - tomli

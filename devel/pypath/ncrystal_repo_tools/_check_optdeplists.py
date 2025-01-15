@@ -19,12 +19,10 @@
 ##                                                                            ##
 ################################################################################
 
-#[project.optional-dependencies]
-#composer = [ 'spglib' ]
-#cif = [ 'ase<3.24.0', 'gemmi', 'spglib' ]
-#plot = [ 'matplotlib' ]
-#all = [ 'ase<3.24.0', 'gemmi', 'spglib', 'matplotlib' ]
-#devel = [ 'simple-build-system', 'ruff', 'cppcheck', 'mpmath', 'tomli', 'pybind11' ]
+#Check that the optional dependencies in ncrystal_metapkg/pyproject.toml are
+#sensible, and that the devel/reqs/requirements_*.txt and devel/reqs/conda_*.yml
+#files are always kept in synch with what is specified in
+#ncrystal_metapkg/pyproject.toml.
 
 def get_base_deps():
     from .dirs import reporoot
@@ -67,42 +65,82 @@ def get_master_source():
     return t
 
 def produce_pipreqfile( deplist ):
-    return '\n'.join(sorted(set(deplist)))+'\n'
+    return deplist, '\n'.join(sorted(set(deplist)))+'\n'
 
-def check_pipreqfiles(src):
-    #FIXME: Missing global deps like numpy, which we should dig out of ncrystal_core+ncrystal_python. Also, add all_plus_devel with both combined?
-    base_deps = get_base_deps()
+def _check_files( files, pattern  ):
     from .dirs import reporoot
-    files = {}
-    for k,v in src.items():
-        frel = f'devel/reqs/requirement_{k}.txt'
-        assert not frel in files
-        files[frel] = produce_pipreqfile( set(v + list(base_deps)) )
     def print_expected_content(frel):
         print('-------- Expected content ------------')
-        print(files[frel],end='')
+        print(files[frel][1],end='')
         print('--------------------------------------')
     found = set()
-    for f in reporoot.joinpath('devel','reqs').glob('requirement_*.txt'):
+    for f in reporoot.joinpath('devel','reqs').glob(pattern):
         frel = str(f.relative_to(reporoot))
-        if not frel in files:
+        if frel not in files:
             raise SystemExit(f'ERROR: Excess file: {frel}')
-        if not files[frel]==f.read_text():
+        if not files[frel][1]==f.read_text():
             print(f'ERROR: Unexpected content in file: {frel}')
             print_expected_content(frel)
             raise SystemExit(1)
         found.add(frel)
     for frel in files:
-        if not frel in found:
+        if frel not in found:
             print(f'ERROR: Missing file: {frel}')
             print_expected_content(frel)
             raise SystemExit(1)
         print(f'  Verified {frel}')
 
+def check_pipreqfiles(src):
+    all_deps_combined = set()
+    base_deps = get_base_deps()
+    files = {}
+    for k,v in src.items():
+        frel = f'devel/reqs/requirement_{k}.txt'
+        assert frel not in files
+        deps = set(v + list(base_deps))
+        all_deps_combined.update(deps)
+        files[frel] = produce_pipreqfile( deps )
+    frel_all_combined = 'devel/reqs/requirement_all_combined.txt'
+    assert frel_all_combined not in files
+    files[frel_all_combined] = produce_pipreqfile( all_deps_combined )
+    _check_files(files,'requirement_*.txt')
+    return files
+
+def pip_2_conda_dep( depname ):
+    #NB: I am not sure that all version specifications are the same in
+    #pyproject.toml, requirements.txt and conda.yml. If not, we might be able to
+    #salvage something here.
+    return depname
+
+def produce_conda_env( name, deplist ):
+    res=f"""name: ncrystal_{name}
+channels:
+  - nodefaults
+  - conda-forge
+dependencies:
+  - python
+  - compilers
+  - cmake
+  - numpy
+  - pip
+"""
+    for n in sorted(deplist):
+        res += '  - %s\n'%pip_2_conda_dep(n)
+    return res
+
+def check_condaenvfiles(pipfiles):
+    files = {}
+    for frel, (deplist,_) in pipfiles.items():
+        name = frel.split('/')[-1].split('.')[0].split('_',1)[1]
+        frel = f'devel/reqs/conda_{name}.yml'
+        files[frel] = ( deplist, produce_conda_env( name, deplist ) )
+    _check_files(files,'conda_*.yml')
+    return files
+
 def main():
     src = get_master_source()
-    #Fixme: actually produce these files (+conda files) in devel/envs:
-    check_pipreqfiles(src)
+    files = check_pipreqfiles(src)
+    check_condaenvfiles(files)
 
 if __name__=='__main__':
     main()
