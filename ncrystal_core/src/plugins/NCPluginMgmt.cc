@@ -22,6 +22,7 @@
 #include "NCrystal/internal/utils/NCDynLoader.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/internal/utils/NCMsg.hh"
+#include "NCrystal/internal/utils/NCFileUtils.hh"
 
 //MT TODO: Do we need to make these thread-safe?
 
@@ -102,10 +103,34 @@ namespace NCRYSTAL_NAMESPACE {
 namespace NCRYSTAL_NAMESPACE {
   namespace Plugins {
     namespace {
+      std::string resolvePathToShlib( std::string path )
+      {
+        std::string found;
+        if ( endswith(path,".SODYLIB") ) {
+          //Special ending, allowing to try both .so/.dylib
+          std::string path_base = path.substr(0,path.size()-8);
+          for ( auto& e : { ".so", ".dylib", ".dll", ".DLL" } ) {
+            if ( file_exists( path_base + e ) ) {
+              found = path_base + e;
+              break;
+            }
+          }
+        } else {
+          if ( file_exists( path ) )
+            found = std::move(path);
+        }
+        if ( found.empty() )
+          NCRYSTAL_THROW2( BadInput, "Could not find dynamic plugin"
+                           " shared library: " << path );
+        return found;
+      }
+
       PluginInfo loadDynamicPluginImpl( std::string path_to_shared_lib,
                                         std::string pluginName = "",
                                         std::string regfctname = "ncplugin_register" )
       {
+        path_to_shared_lib = resolvePathToShlib(path_to_shared_lib);
+
         PluginInfo pinfo;
         pinfo.pluginType = PluginType::Dynamic;
         pinfo.fileName = path_to_shared_lib;
@@ -221,7 +246,6 @@ namespace NCRYSTAL_NAMESPACE {
 #endif
 
 #ifdef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
-#  include "NCrystal/internal/utils/NCFileUtils.hh"
 namespace NCRYSTAL_NAMESPACE {
   namespace {
     std::string getSBLDPkgLib(const char* pkgname) {
@@ -321,6 +345,7 @@ void NCP::ensurePluginsLoaded()
       trim(pluginlib);
       if (pluginlib.empty())
         continue;
+
 #ifdef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
       //I am not 100% sure the following is still needed, but keeping it just in
       //case for now:

@@ -72,7 +72,7 @@ def main():
             if '\t' in e:
                 raise SystemExit(f'TABs found in {f}')
             if e.endswith(' '):
-                raise SystemExit(f'Trailing spaces found in {f}')
+                raise SystemExit(f'Trailing spaces at end-of-line found in {f}')
         #count trailing whitespace:
         nws = 0
         nlines = len(lines)
