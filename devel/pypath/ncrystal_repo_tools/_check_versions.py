@@ -49,41 +49,6 @@ def check_ncrystal_metapkg_version( path ):
             raise SystemExit(f'Missing pinned dependency on {e} in {path}')
     return v
 
-def get_testcfglog_version( path ):
-    #Look for single line like "NCrystal::getVersion() = 3009080"
-    assert path.name == 'test.log'
-    assert path.parent.name == 'app_cfg'
-    lv = [ line for line in path.read_text().splitlines()
-           if line.startswith('NCrystal::getVersion() = ') ]
-    assert len(lv)==1
-    v = int( lv[0][len('NCrystal::getVersion() = '):].strip() )
-    vmajor = v // 1000000
-    vminor = (v%1000000)//1000
-    vpatch = v%1000
-    return f'{vmajor}.{vminor}.{vpatch}'
-
-def get_generictestlog_version( path ):
-    #Look for strings like "by NCrystal v3.9.80"
-    assert path.name.endswith('.log')
-    versions = set()
-    for line in path.read_text().splitlines():
-        if 'by NCrystal v' not in line:
-            continue
-        versions.add(line.split('by NCrystal v',1)[1].split()[0])
-    if len(versions)>1:
-        raise SystemExit(f'Multiple versions found in {path}: {versions}')
-    if not versions:
-        raise SystemExit(f'No versions found in {path}')
-    return versions.pop()
-
-def get_testtoollog_version( path ):
-    #Look for single string like "with NCrystal (v3.9.80)"
-    assert path.name == 'nctool.log'
-    lv = [ line for line in path.read_text().splitlines()
-           if 'with NCrystal (v' in line ]
-    assert len(lv)==1
-    return lv[0].split('with NCrystal (v',1)[1].split(')',1)[0]
-
 def get_cmake_version( path ):
     assert path.name == 'CMakeLists.txt'
     lv = [ line for line in path.read_text().splitlines()
@@ -104,10 +69,6 @@ def check_versions():
         ( get_toml_version, 'ncrystal_core/pyproject.toml' ),
         ( check_ncrystal_metapkg_version, 'ncrystal_metapkg/pyproject.toml' ),
         ( get_cmake_version, 'ncrystal_core/CMakeLists.txt' ),
-        ( get_testcfglog_version, 'tests/src/app_cfg/test.log' ),
-        ( get_testtoollog_version, 'tests/scripts/nctool.log' ),
-        ( get_generictestlog_version, 'tests/scripts/mcstasunion.log' ),
-        ( get_generictestlog_version, 'tests/scripts/ncmat2hkl.log' ),
     ]
 
     versions_found = []
@@ -124,10 +85,10 @@ def check_versions():
     else:
         raise SystemExit('ERROR: Inconsistencies detected')
 
-    #TODO: ncrystal_core/CMakeLists.txt
-    #TODO: ncrystal_core/include/NCrystal/NCVersion.hh
-    #TODO: ncrystal_core/include/NCrystal/ncrystal.h
-    #TODO: Git describe! (if .git present)
+    #fixme:
+    #    ncrystal_core/include/NCrystal/NCVersion.hh
+    #    ncrystal_core/include/NCrystal/ncrystal.h
+    #    Git describe! (if .git present)
 
 def main():
     check_versions()

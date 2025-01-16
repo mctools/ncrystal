@@ -1,5 +1,8 @@
 
 v4.0.0 2025-01-??
+     * Describe new versioning policy, only publish packages of even patch
+       numbers, odd patch numbers indicate development releases. We should have
+       CI which guards against odd version numbers in the main branch.
      * Plugins needs updating (include paths, and add usage of
        registerPluginTestFunction). NCRYSTAL_PLUGIN_RUNTESTS=1 and
        NCRYSTAL_PLUGIN_RUNTESTS (fixme). NB: NCRYSTAL_PLUGIN_LIST now accepts

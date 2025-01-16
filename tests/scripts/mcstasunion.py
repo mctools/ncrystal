@@ -21,6 +21,7 @@
 ################################################################################
 
 import NCTestUtils.enable_fpe # noqa F401
+from NCTestUtils.common import fix_ncrystal_version_printouts
 import NCrystalDev.cli as nc_cli
 import shlex
 import pathlib
@@ -42,6 +43,8 @@ def test_cli( *args ):
     print("===========================================")
 
 def main():
+    from NCrystalDev._common import print
+    fix_ncrystal_version_printouts()
     test_cli('--help')
     test_cli('--split','MyMat','Al_sg225.ncmat;temp=20K;vdoslux=0;dcutoff=0.5')
     test_cli('--split','MyMat','Al_sg225.ncmat;temp=20K;vdoslux=0;dcutoff=10.0')

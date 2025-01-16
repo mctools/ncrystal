@@ -118,3 +118,16 @@ def explicit_unicode_char(c):
     return c if 32<=ord(c)<=126 else r'\u{%s}'%(hex(ord(c))[2:])
 def explicit_unicode_str(s):
     return ''.join( explicit_unicode_char(c) for c in s)
+
+def fix_ncrystal_version_printouts( filtermap = None ):
+    import NCrystalDev._common as nc_common
+    import NCrystalDev as NC
+    orig = nc_common.get_ncrystal_print_fct()
+    if filtermap is None:
+        filtermap = ( 'NCrystal v%s'%NC.__version__,
+                      'NCrystal v<current>' )
+    def version_filter( s ):
+        return s.replace(*filtermap) if isinstance(s,str) else s
+    def newprint( *a, **kwargs ):
+        orig( *( version_filter(e) for e in a ), **kwargs)
+    nc_common.set_ncrystal_print_fct(newprint)

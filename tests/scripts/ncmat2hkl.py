@@ -23,6 +23,7 @@
 # NEEDS: numpy
 
 import NCrystalDev as NC
+from NCTestUtils.common import fix_ncrystal_version_printouts
 import NCrystalDev.cli as nc_cli
 import pathlib
 import contextlib
@@ -96,6 +97,7 @@ def test_cli( args, *,
     return created_content
 
 def main():
+    fix_ncrystal_version_printouts()
     import sys
     do_plot = '--plot' in sys.argv[1:]
     if do_plot:

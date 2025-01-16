@@ -901,7 +901,29 @@ int main(int,char**) {
 #ifdef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
   nc_assert_always( std::string("dev") == NCrystal::getBuildNameSpace() );
 #endif
-  std::cout<<"NCrystal::getVersion() = " << NCrystal::getVersion() << std::endl;
+  {
+    std::cout<<"Checking NCrystal::getVersion()"<<std::endl;
+    std::ostringstream ssversion;
+    ssversion << NCRYSTAL_VERSION_MAJOR
+              << '.' << NCRYSTAL_VERSION_MINOR
+              << '.' << NCRYSTAL_VERSION_PATCH;
+    std::string version_str = ssversion.str();
+    nc_assert_always( NCRYSTAL_VERSION == NCrystal::getVersion() );
+    nc_assert_always( version_str == NCRYSTAL_VERSION_STR );
+    //Just a few reasonable sanity checks:
+    static_assert( NCRYSTAL_VERSION >= 3009080, "" );
+    static_assert( NCRYSTAL_VERSION <= 9050099, "" );
+    static_assert( NCRYSTAL_VERSION_MAJOR >= 3
+                   && NCRYSTAL_VERSION_MAJOR <= 9, "" );
+    static_assert( NCRYSTAL_VERSION_MINOR >= 0
+                   && NCRYSTAL_VERSION_MINOR <= 50, "" );
+    static_assert( NCRYSTAL_VERSION_PATCH >= 0
+                   && NCRYSTAL_VERSION_PATCH <= 99, "");
+    static_assert( NCRYSTAL_VERSION / 1000000 == NCRYSTAL_VERSION_MAJOR, "");
+    static_assert( ( NCRYSTAL_VERSION / 1000 ) % 1000 == NCRYSTAL_VERSION_MINOR, "");
+    static_assert( NCRYSTAL_VERSION % 1000 == NCRYSTAL_VERSION_PATCH, "");
+
+  }
 
   NC::registerInMemoryStaticFileData("Al_fake.ncmat","#Just some fake file which exists and has no embedded config.\n");
   NC::registerInMemoryStaticFileData("Al_fake2.ncmat","#Another one.\n");

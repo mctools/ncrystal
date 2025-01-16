@@ -29,7 +29,8 @@ import NCrystalDev.cli as nc_cli
 #from NCrystalDev.misc import AnyTextData
 from NCTestUtils.env import ncsetenv
 
-from NCTestUtils.common import ( ensure_error,
+from NCTestUtils.common import ( fix_ncrystal_version_printouts,
+                                 ensure_error,
                                  work_in_tmpdir )
 
 import pathlib
@@ -52,6 +53,8 @@ def test_cli( args, *, nstart = 30, nend = 20 ):
     print("===========================================")
 
 def main():
+    fix_ncrystal_version_printouts( ( 'NCrystal (v%s)'%NC.__version__,
+                                      'NCrystal (v<current>)' ) )
     test_cli(['--help'])
 
     test_cli(['SrF2_sg225_StrontiumFluoride.ncmat','-d'])
