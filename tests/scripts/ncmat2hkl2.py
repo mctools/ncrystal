@@ -33,14 +33,24 @@ if do_plot:
     import matplotlib.pyplot as plt #noqa E402
 
 
-max_diff_lvl = 1e-10
+#default is to encode numbers in produced .laz/.lau files with 14 digits of
+#precision (%.14g), but for robustness of the unit test we reduce this in any
+#printed content to avoid spurious false positives due to FP instabilities:
+test_precision = 10
+
+max_diff_lvl = 1e-7
 
 def cfgstr2hkl(cfgstr,fmt):
     assert fmt in ('lau','laz')
     o = pathlib.Path('./tmp_redirected_output.txt')
     if o.is_file():
         o.unlink()
-    nccli.run('ncmat2hkl',f'--format={fmt}',cfgstr,'-o',o.name)
+    nccli.run( 'ncmat2hkl',
+               f'--override-prec={test_precision}',#hidden unit test option
+               f'--format={fmt}',
+               cfgstr,
+               '-o', o.name
+              )
     v = NC.__version__
     return o.read_text().replace(f'# File created by NCrystal v{v}',
                                  '# File created by NCrystal v<current>')
