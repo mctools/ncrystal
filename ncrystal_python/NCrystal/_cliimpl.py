@@ -139,14 +139,14 @@ def _pyversion():
 
 class ctxmgr_modify_argparse_creation:
 
-    def __init__(self, *, exit_on_error, redirect_stdout_to_stderr ):
+    def __init__(self, *, exit_on_error, redirect_stderr_to_stdout ):
         self.__exit_on_error = exit_on_error
-        self.__redirect_stdout_to_stderr = redirect_stdout_to_stderr
+        self.__redirect_stderr_to_stdout = redirect_stderr_to_stdout
 
     def __enter__(self):
         self.__orig_postinitfct = _argparse_postinitfct[0]
         orig_postinitfct = self.__orig_postinitfct
-        redirect_stdout_to_stderr = self.__redirect_stdout_to_stderr
+        redirect_stderr_to_stdout = self.__redirect_stderr_to_stdout
         exit_on_error = self.__exit_on_error
         def f(parser):
             if orig_postinitfct:
@@ -157,7 +157,7 @@ class ctxmgr_modify_argparse_creation:
                     raise ArgumentError(None,message)
                 parser.error = error
 
-            if not redirect_stdout_to_stderr:
+            if not redirect_stderr_to_stdout:
                 return
             #Monkey patch object to redirect stdout/stderr of argparse to
             #NCrystal's print handler.

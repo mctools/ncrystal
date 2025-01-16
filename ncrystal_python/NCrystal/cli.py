@@ -78,7 +78,7 @@ def run( toolname, *arguments ):
     try:
         with _cli_call_from_pyapi_ctx():
             with ctxmgr_modify_argparse_creation(exit_on_error = False,
-                                                 redirect_stdout_to_stderr = True):
+                                                 redirect_stderr_to_stdout = True):
                 climod.main( argv )
     except SystemExit as e:
         #Map SystemExit to either a clean return or a RuntimeError.
