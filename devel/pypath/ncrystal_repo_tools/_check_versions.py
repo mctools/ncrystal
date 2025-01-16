@@ -57,8 +57,6 @@ def get_cmake_version( path ):
     assert lv[0].startswith('project( NCrystal VERSION ')
     return lv[0][len('project( NCrystal VERSION '):].split()[0]
 
-#VERSION:3.9.80
-
 def check_versions():
     from .dirs import reporoot
 
@@ -84,11 +82,6 @@ def check_versions():
         print("All OK!")
     else:
         raise SystemExit('ERROR: Inconsistencies detected')
-
-    #fixme:
-    #    ncrystal_core/include/NCrystal/NCVersion.hh
-    #    ncrystal_core/include/NCrystal/ncrystal.h
-    #    Git describe! (if .git present)
 
 def main():
     check_versions()
