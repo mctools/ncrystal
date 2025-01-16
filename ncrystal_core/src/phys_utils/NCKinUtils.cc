@@ -35,10 +35,23 @@ NC::PairDD NC::convertAlphaBetaToDeltaEMu(double alpha, double beta, NeutronEner
   const double delta_e = beta * kT;
   const double ekinfinal = ekin.dbl() + delta_e;
   const double denom = 2.0*std::sqrt(ekin.dbl() * ekinfinal);
-  if ( !denom )
-    NCRYSTAL_THROW(CalcError,"convertAlphaBetaToDeltaEMu invalid for beta=-E/kT (calling code should revert to flat alpha/mu distribution near that limit)");
+  if ( !denom ) {
+    NCRYSTAL_THROW(CalcError,"convertAlphaBetaToDeltaEMu invalid for"
+                   " beta=-E/kT (calling code should revert to flat alpha/mu"
+                   " distribution near that limit)");
+  }
+#if 0
+  //original gave numerically imprecision in certain unit tests:
   double mu =  ( ekin.dbl() + ekinfinal - alpha*kT ) / denom;
-  nc_assert(ncabs(mu)<1.001);
-  mu = ncclamp(mu,-1.0, 1.0);
+#else
+  //Slightly slower version has better numerical stability:
+  StableSum sum;
+  sum.add(ekin.dbl());
+  sum.add(ekinfinal);
+  sum.add(-alpha*kT);
+  double mu = sum.sum() / denom;
+#endif
+  nc_assert( ncabs(mu) < 1.001 );
+  mu = ncclamp( mu, -1.0, 1.0 );
   return std::make_pair( delta_e, mu );
 }
