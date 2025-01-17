@@ -1,3 +1,4 @@
+
 ################################################################################
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
@@ -76,16 +77,31 @@ def _libpath_impl():
     #we look not only in the default scheme, but also in a few other preferred
     #schemes:
     import sysconfig
-    schemes = [ sysconfig.get_default_scheme() ]
-    for scheme_key in ['prefix','home','user']:
-        scheme = sysconfig.get_preferred_scheme(scheme_key)
-        if scheme not in schemes:
-            schemes.append(scheme)
+    schemes = []
+
+    if hasattr(sysconfig,'get_default_scheme'):
+        #py 3.10+
+        schemes += [ sysconfig.get_default_scheme() ]
+    else:
+        #py 3.9 or earlier
+        schemes += [ sysconfig._get_default_scheme() ]
+
+    if hasattr(sysconfig,'get_preferred_scheme'):
+        #py 3.10+
+        for scheme_key in ['prefix','home','user']:
+            scheme = sysconfig.get_preferred_scheme(scheme_key)
+            if scheme not in schemes:
+                schemes.append(scheme)
+    else:
+        #Tack on everything in py 3.9 or earlier:
+        schemes += list( sysconfig.get_scheme_names() )
+
     for scheme in schemes:
         p = pathlib.Path( sysconfig.get_path('scripts',scheme) )
         p = p.joinpath(shlib_name)
         if p.is_file():
             return p.absolute().resolve()
+
     #Error:
     ln = libname()
     raise RuntimeError('Unable to locate shared library (expected '

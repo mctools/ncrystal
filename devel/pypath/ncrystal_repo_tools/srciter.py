@@ -115,14 +115,14 @@ class SinglePattern:
 
 special_patterns_db = {
     'cpp':['*.hh','*.cc','*.hpp','*.cpp','*.icc'],
-    'c': ['*.h','*.c'],
-    'py': ['*.py','<fileinit>#!/usr/bin/env python'],
+    'c': ['*.h','*.c','*.h.in'],
+    'py': ['*.py','*.py.in','<fileinit>#!/usr/bin/env python'],
     'bash': ['*.sh',
              '<fileinit>#!/usr/bin/env bash',
              '<fileinit>#!/bin/bash' ],
     'txt':['*.log','*.md','*.txt','*.cfg',
            'INSTALL','README','FILES','CHANGELOG','VERSION'],
-    'cmake':['*.cmake','*/CMakeLists.txt','*cmake*.txt'],
+    'cmake':['*.cmake','*/CMakeLists.txt','*cmake*.txt','*.cmake.in'],
     'toml':['*.toml'],
     'yml':['*.yml','*.yaml'],
     'ncmat':['*.ncmat'],

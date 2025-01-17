@@ -116,7 +116,7 @@ namespace NCRYSTAL_NAMESPACE {
 #endif
 #if ( defined (_WIN32) || defined (WIN32) )
         if (!win_pluginmgr_cmd_exists())
-          return;
+          return result;
         auto out = executeCommandAndCaptureOutput( "ncrystal-pluginmanager" );
 #else
         auto out = executeCommandAndCaptureOutput( "ncrystal-pluginmanager 2>/dev/null" );

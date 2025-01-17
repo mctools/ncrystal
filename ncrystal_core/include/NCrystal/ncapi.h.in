@@ -1,5 +1,3 @@
-#ifndef ncrystal_api_h
-#define ncrystal_api_h
 
 /******************************************************************************/
 /*                                                                            */
@@ -20,6 +18,9 @@
 /*  limitations under the License.                                            */
 /*                                                                            */
 /******************************************************************************/
+
+#ifndef ncrystal_api_h
+#define ncrystal_api_h
 
 /******************************************************************************/
 /* Namespace and API macros for NCrystal, used to mark classes and functions  */

@@ -26,6 +26,9 @@ def do_check( files, allowed_file_hdr_list, *,
         return any(text.startswith(e) for e in allowed_file_hdr_list)
 
     def ok_with_incguard( f, text ):
+        suffix = f.suffix
+        if suffix.endswith('.in') and '.' in f.stem:
+            suffix = '.' + f.stem.split('.')[-1]
         if not allow_include_guards_if_hdr or f.suffix not in ('.h','.hh'):
             return False
         lines = text.splitlines()
