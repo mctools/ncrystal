@@ -84,6 +84,26 @@ namespace NCRYSTAL_NAMESPACE {
         return result;
       }
 
+#if ( defined (_WIN32) || defined (WIN32) )
+      bool win_pluginmgr_cmd_exists()
+      {
+        //Check PATH directly, since "2>/dev/null" does not work on windows.
+        const char * raw_path = std::getenv("PATH");
+        if (!raw_path)
+          return false;
+        std::string bn1( "ncrystal-pluginmanager.exe" );
+        std::string bn2( "ncrystal-pluginmanager.bat" );
+        for ( auto& e : StrView(raw_path).splitTrimmedNoEmpty(';') ) {
+          std::string dirname = e.to_string();
+          if ( file_exists( path_join(dirname,bn1) ) )
+            return true;
+          if ( file_exists( path_join(dirname,bn2) ) )
+            return true;
+        }
+        return false;
+      }
+#endif
+
       VectS queryPluginManagerCmd() {
         //Invokes ncrystal-pluginmanager to determine any plugins to use, thus
         //supporting the ability for "pip install ./my/plugin" to work
@@ -94,7 +114,13 @@ namespace NCRYSTAL_NAMESPACE {
         //as well?
         return result;
 #endif
+#if ( defined (_WIN32) || defined (WIN32) )
+        if (!win_pluginmgr_cmd_exists())
+          return;
         auto out = executeCommandAndCaptureOutput( "ncrystal-pluginmanager" );
+#else
+        auto out = executeCommandAndCaptureOutput( "ncrystal-pluginmanager 2>/dev/null" );
+#endif
         if (out.has_value()) {
           auto parts = StrView(out.value()).splitTrimmedNoEmpty(';');
           result.reserve(parts.size());

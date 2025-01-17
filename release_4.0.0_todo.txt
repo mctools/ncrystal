@@ -1,5 +1,13 @@
 #FIXME Address all of the following for the release:
 
+* We should have a way to determine what version of NCrystal a given plugin was
+  built against, so we can error on incompatibilities.
+
+
+* Postpone the "auto plugin" solution until later, but update (and CI test) the
+  template! Or remove the template, but have an ncdevtool mode for creating a
+  plugin? Or actually package up the plugin folder contents instead and ship?....
+
 * Rename the monolithic package to "ncrystal" as well???
 
 * sb_devtools_gdb to simple-build-system??
