@@ -1,0 +1,44 @@
+name: pyplugin
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '13 15 * * 0'  # 13:15 every Sunday
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest,windows-latest]
+
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        path: src
+
+    - name: Install ncrystal_core
+      run: pip install ./src/ncrystal_core
+
+    - name: Install ncrystal_pypluginmgr
+      run: pip install ./src/ncrystal_pypluginmgr
+
+    - name: Install plugin
+      #--no-build-isolation to prevent getting the ncrystal pkgs just installed
+      #to be taken from PyPI:
+      run: pip install ./src/examples/plugin --no-build-isolation
+
+    #FIXME: Just use python ctypes.dlopen to load the lib instead?
+    - name: Install ncrystal_python
+      run: pip install ./src/ncrystal_python
+
+    - name: Verify plugin loading
+      run: |
+        set -e
+        export NCRYSTAL_PLUGIN_RUNTESTS=1
+        export NCRYSTAL_REQUIRED_PLUGINS=DummyPlugin
+        nctool --plugins
