@@ -58,6 +58,52 @@ namespace NCRYSTAL_NAMESPACE {
         }
       }
 
+      Optional<std::string> executeCommandAndCaptureOutput( const char* cmd )
+      {
+        constexpr auto nbuf = 4096;//fixme verify with smaller
+        std::array<char, nbuf> buffer;
+        Optional<std::string> result;
+
+#if ( defined (_WIN32) || defined (WIN32) )
+        FILE* pipe = _popen(cmd, "r");
+#else
+        FILE* pipe = popen(cmd, "r");
+#endif
+        if (pipe) {
+          result.emplace();
+          while (fgets(buffer.data(), nbuf, pipe) != NULL)
+            result.value() += buffer.data();
+#if ( defined (_WIN32) || defined (WIN32) )
+          auto returnCode = _pclose(pipe);
+#else
+          auto returnCode = pclose(pipe);
+#endif
+          if ( returnCode != 0 )
+            result.reset();
+        }
+        return result;
+      }
+
+      VectS queryPluginManagerCmd() {
+        //Invokes ncrystal-pluginmanager to determine any plugins to use, thus
+        //supporting the ability for "pip install ./my/plugin" to work
+        //immediately with no further issues.
+        VectS result;
+#ifdef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
+        //Fixme: Should we actually try to exercise this function in simplebuild
+        //as well?
+        return result;
+#endif
+        auto out = executeCommandAndCaptureOutput( "ncrystal-pluginmanager" );
+        if (out.has_value()) {
+          auto parts = StrView(out.value()).splitTrimmedNoEmpty(';');
+          result.reserve(parts.size());
+          for ( auto& e : parts )
+            result.emplace_back( e.to_string() );
+        }
+        return result;
+      }
+
       std::mutex& getPluginMgmtMutex()
       {
         static std::mutex mtx;
@@ -341,10 +387,15 @@ void NCP::ensurePluginsLoaded()
 #ifdef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
     bool first_plugin = false;
 #endif
-    for ( auto& pluginlib : split2(ncgetenv("PLUGIN_LIST"),0,':') ) {
-      trim(pluginlib);
-      if (pluginlib.empty())
+    VectS dynplugin_list = queryPluginManagerCmd();
+    for ( auto& e : split2(ncgetenv("PLUGIN_LIST"),0,':') )
+      dynplugin_list.push_back( trim2(std::move(e)) );
+
+    std::set<std::string> dynplugins_already_loaded;
+    for ( auto& pluginlib : dynplugin_list ) {
+      if ( pluginlib.empty() || dynplugins_already_loaded.count(pluginlib) )
         continue;
+      dynplugins_already_loaded.insert(pluginlib);
 
 #ifdef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
       //I am not 100% sure the following is still needed, but keeping it just in
