@@ -66,7 +66,10 @@ def main():
             raise SystemExit(f'No trailing newline in {f}')
 
         #Check file has only ascii characters:
-        content.encode('ascii')
+        try:
+            content.encode('ascii')
+        except UnicodeEncodeError:
+            raise SystemExit(f'Non-ascii chars found in {f}')
         lines = content.splitlines()
         for e in lines:
             if '\t' in e:

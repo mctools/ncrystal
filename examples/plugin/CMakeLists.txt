@@ -1,10 +1,20 @@
-cmake_minimum_required(VERSION 3.28...3.30)
+cmake_minimum_required(VERSION 3.20...3.30)
 
 #Extract plugin name from ncplugin_name.txt:
 file( STRINGS "${CMAKE_CURRENT_LIST_DIR}/ncplugin_name.txt" NCPlugin_NAME LIMIT_COUNT 1)
 string(STRIP "${NCPlugin_NAME}" NCPlugin_NAME)
 
 project( "NCPlugin_${NCPlugin_NAME}" VERSION 0.0.1 LANGUAGES CXX)
+
+if ( DEFINED SKBUILD_PROJECT_NAME )
+  if ( NOT "${SKBUILD_PROJECT_NAME}" STREQUAL "ncplugin_${NCPlugin_NAME}" )
+    message(
+      FATAL_ERROR "Mismatch in plugin name hardcoded in "
+      " ncplugin_name.txt and pyproject.toml's project.name field."
+    )
+  endif()
+endif()
+
 
 #Must always build against NCrystal:
 if( NOT DEFINED "NCrystal_DIR" )
@@ -33,20 +43,27 @@ function( ncrystal_srcfileglob varname pattern )
   set( ${varname} ${tmp} PARENT_SCOPE )
 endfunction()
 
-function (
-    ncrystal_add_plugin_library
-    plugin_name
-    source_directory
-  )
-  ncrystal_srcfileglob( plugin_srcfiles "${source_directory}/*.cc" )
-  ncrystal_srcfileglob( plugin_hdrfiles  "${source_directory}/*.hh" )
-  set( pluglib "NCPlugin_${plugin_name}" )
-  add_library( ${pluglib} MODULE ${plugin_srcfiles} )
-  set_source_files_properties( ${plugin_srcfiles} PROPERTIES OBJECT_DEPENDS "${plugin_hdrfiles}" )
-  target_compile_definitions( ${pluglib} PRIVATE "NCPLUGIN_NAME=${plugin_name}" "NCRYSTAL_NO_CMATH_CONSTANTS" )
-  target_link_libraries( ${pluglib} PRIVATE NCrystal::NCrystal )
-  target_include_directories( ${pluglib} PRIVATE "${source_directory}" )
-  install( TARGETS ${pluglib} LIBRARY DESTINATION lib )
-endfunction()
+ncrystal_srcfileglob( plugin_srcfiles "${PROJECT_SOURCE_DIR}/src/*.cc" )
+ncrystal_srcfileglob( plugin_hdrfiles  "${PROJECT_SOURCE_DIR}/src/*.hh" )
+set( pluglib "NCPlugin_${NCPlugin_NAME}" )
+add_library( ${pluglib} MODULE ${plugin_srcfiles} )
+set_source_files_properties( ${plugin_srcfiles} PROPERTIES OBJECT_DEPENDS "${plugin_hdrfiles}" )
+target_compile_definitions( ${pluglib} PRIVATE "NCPLUGIN_NAME=${NCPlugin_NAME}" "NCRYSTAL_NO_CMATH_CONSTANTS" )
+target_link_libraries( ${pluglib} PRIVATE NCrystal::NCrystal )
+target_include_directories( ${pluglib} PRIVATE "${PROJECT_SOURCE_DIR}/src" )
 
-ncrystal_add_plugin_library( "${NCPlugin_NAME}" "${PROJECT_SOURCE_DIR}/src" )
+if ( DEFINED SKBUILD_PROJECT_NAME )
+  #Install in wheel platlib dir:
+  install(
+    TARGETS ${pluglib} LIBRARY
+    DESTINATION "${SKBUILD_PLATLIB_DIR}/ncplugin_${NCPlugin_NAME}/plugins"
+  )
+  #Also add an empty __init__.py:
+  file( TOUCH "${PROJECT_BINARY_DIR}/__init__.py" )
+  INSTALL(
+    FILES "${PROJECT_BINARY_DIR}/__init__.py"
+    DESTINATION "${SKBUILD_PLATLIB_DIR}/ncplugin_${NCPlugin_NAME}"
+  )
+else()
+  install( TARGETS ${pluglib} LIBRARY DESTINATION lib )
+endif()

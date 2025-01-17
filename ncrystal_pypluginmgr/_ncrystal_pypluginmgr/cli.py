@@ -19,33 +19,29 @@
 ##                                                                            ##
 ################################################################################
 
-# For checking some file that must be kept completely synchronised.
-
-def get_content( relpath ):
-    from .dirs import reporoot
-    print(f'    {relpath}')
-    return reporoot.joinpath(relpath).read_text()
-
-def check_same( reffile, *otherfiles ):
-    assert len(otherfiles) > 0
-    print('  Checking for same contents:')
-    ref = get_content( reffile )
-    for o in otherfiles:
-        if get_content(o) != ref:
-            print()
-            raise SystemExit('ERROR: Content differs')
-
 def main():
-    check_same( 'README.md',
-                'ncrystal_core/README.md',
-                'ncrystal_python/README.md',
-                'ncrystal_metapkg/README.md')
-    check_same( 'LICENSE',
-                'ncrystal_core/LICENSE',
-                'ncrystal_python/LICENSE',
-                'ncrystal_metapkg/LICENSE',
-                'ncrystal_pypluginmgr/LICENSE',
-                'examples/plugin/LICENSE' )
+    import pkgutil
+    names = [ name
+              for finder, name, ispkg
+              in pkgutil.iter_modules()
+              if name.startswith('ncplugin_') ]
+    if not names:
+        return
 
-if __name__=='__main__':
+    import importlib
+    from pathlib import Path
+
+    plugins = set()
+    for pymodname in names:
+        mod = importlib.import_module(pymodname)
+        for f in Path(mod.__file__).parent.joinpath('plugins').glob('*NCPlugin*.*'):
+            plugins.add( str(f.resolve().absolute()) )
+    print(';'.join(sorted(plugins)))
+
+if __name__ == '__main__':
     main()
+
+#
+#discovered_plugins = {
+#    name: importlib.import_module(name)
+# . ...

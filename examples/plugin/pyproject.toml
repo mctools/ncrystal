@@ -19,33 +19,19 @@
 ##                                                                            ##
 ################################################################################
 
-# For checking some file that must be kept completely synchronised.
+[project]
+name = "ncplugin-DummyPlugin"
+version = "0.0.1"
+license = {file = "LICENSE"}
+dependencies = [ "ncrystal-core>=3.9.80", "ncrystal-pypluginmgr" ]#fixme
 
-def get_content( relpath ):
-    from .dirs import reporoot
-    print(f'    {relpath}')
-    return reporoot.joinpath(relpath).read_text()
+[build-system]
+requires = ["scikit-build-core>=0.10", "ncrystal-core>=3.9.80" ]
+build-backend = "scikit_build_core.build"
 
-def check_same( reffile, *otherfiles ):
-    assert len(otherfiles) > 0
-    print('  Checking for same contents:')
-    ref = get_content( reffile )
-    for o in otherfiles:
-        if get_content(o) != ref:
-            print()
-            raise SystemExit('ERROR: Content differs')
-
-def main():
-    check_same( 'README.md',
-                'ncrystal_core/README.md',
-                'ncrystal_python/README.md',
-                'ncrystal_metapkg/README.md')
-    check_same( 'LICENSE',
-                'ncrystal_core/LICENSE',
-                'ncrystal_python/LICENSE',
-                'ncrystal_metapkg/LICENSE',
-                'ncrystal_pypluginmgr/LICENSE',
-                'examples/plugin/LICENSE' )
-
-if __name__=='__main__':
-    main()
+[tool.scikit-build]
+#cmake.verbose = true
+logging.level = "INFO"
+minimum-version = "build-system.requires"
+wheel.packages = []#handled by cmake
+wheel.py-api = "py3"

@@ -10,6 +10,7 @@ _site
 /ncrystal_metapkg/build/
 /ncrystal_metapkg/dist/
 /ncrystal_python/ncrystal_python.egg-info/
+/ncrystal_pypluginmgr/ncrystal_pypluginmgr.egg-info/
 /ncrystal_python/build/
 /ncrystal_python/dist/
 /ncrystal_core/skbld_autogen/
