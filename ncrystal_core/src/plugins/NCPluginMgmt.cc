@@ -109,9 +109,7 @@ namespace NCRYSTAL_NAMESPACE {
         //supporting the ability for "pip install ./my/plugin" to work
         //immediately with no further issues.
         VectS result;
-#ifdef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
-        //Fixme: Should we actually try to exercise this function in simplebuild
-        //as well?
+#ifdef NCRYSTAL_DISABLE_CMDLINEPLUGINMGR
         return result;
 #endif
 #if ( defined (_WIN32) || defined (WIN32) )
@@ -404,9 +402,12 @@ void NCP::ensurePluginsLoaded()
 #  endif
 #endif
 
+    const bool custom_plugins_ok = ncgetenv_bool("IGNORE_NONSTD_PLUGINS");
+
     //Static custom (builtin) plugins:
 #ifdef NCRYSTAL_HAS_BUILTIN_PLUGINS
-    provideBuiltinPlugins();
+    if (custom_plugins_ok)
+      provideBuiltinPlugins();
 #endif
 
     //Dynamic custom plugins, as indicated by environment variable:
@@ -416,6 +417,9 @@ void NCP::ensurePluginsLoaded()
     VectS dynplugin_list = queryPluginManagerCmd();
     for ( auto& e : split2(ncgetenv("PLUGIN_LIST"),0,':') )
       dynplugin_list.push_back( trim2(std::move(e)) );
+
+    if (!custom_plugins_ok)
+      dynplugin_list.clear();
 
     std::set<std::string> dynplugins_already_loaded;
     for ( auto& pluginlib : dynplugin_list ) {

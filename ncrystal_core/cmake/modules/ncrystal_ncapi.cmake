@@ -42,6 +42,11 @@ function( nccfgapp_create_ncapi_h resvar_includepath )
   if ( NCRYSTAL_NAMESPACE )
     string( APPEND ncapidefs "#define NCRYSTAL_NAMESPACE_PROTECTION ${NCRYSTAL_NAMESPACE}\n")
   endif()
+  if ( NCRYSTAL_ENABLE_TESTING )
+    #Prevent interference in case an ncrystal-pluginmanager command is in the
+    #environment:
+    string( APPEND ncapidefs "#define NCRYSTAL_DISABLE_CMDLINEPLUGINMGR\n")
+  endif()
   set( NCRYSTAL_HOOK_FOR_ADDING_DEFINES
     " -- CMake definitions begin -- */\n\n${ncapidefs}\n/* -- CMake definitions end --" )
   configure_file( "${srctemplate}" "${tgtfile}" @ONLY )

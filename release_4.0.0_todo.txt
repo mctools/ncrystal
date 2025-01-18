@@ -1,5 +1,8 @@
 #FIXME Address all of the following for the release:
 
+* Make sure pypi.yml omly triggers for even patch numbers (in addition, we
+  should only create even tags!).
+
 * We should have a way to determine what version of NCrystal a given plugin was
   built against, so we can error on incompatibilities.
 
