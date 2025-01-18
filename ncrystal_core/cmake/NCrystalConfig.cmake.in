@@ -32,7 +32,7 @@
 #very old version in their cmake_minimum_required statements (cf. github
 #discussion/issue #137):
 cmake_policy(PUSH)#NB: We POP at the end of this file.
-cmake_policy(VERSION 3.3...3.27)
+cmake_policy(VERSION 3.16...3.30)
 
 #Export a few directory paths (relocatable):
 set( NCrystal_CMAKEDIR "${CMAKE_CURRENT_LIST_DIR}" )
@@ -80,6 +80,34 @@ unset( _tmpnc_v )
 #Libname + old school NCrystal_LIBRARIES variable:
 set( NCrystal_LIBNAME "$<TARGET_FILE_NAME:NCrystal>" )#NB: generator expression
 set( NCrystal_LIBRARIES "${NCrystal_LIBDIR}/${NCrystal_LIBNAME}" )
+
+#Windows/scikitbuild mode needs fixup at the end of
+#NCrystalTargets-<lowercaseconfig>.cmake:
+if ( "@ncrystal_skbuild_shlib_in_wheel_scripts@" )
+  function( _ncrystal_fixup_ncrystaltargets )
+    execute_process(
+      COMMAND ncrystal-config --show libpath
+      OUTPUT_VARIABLE "_tmp_ncrystal_libpath" OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    #Relying a bit too much on internal CMake implementation details for
+    #comfort, but so far this is the only solution found:
+    set(
+      "_cmake_import_check_files_for_NCrystal::NCrystal"
+      "${_tmp_ncrystal_libpath}"
+      PARENT_SCOPE
+    )
+    get_filename_component( "tmp" "${CMAKE_CURRENT_LIST_FILE}" "NAME_WE")
+    string( REPLACE "-" ";" "tmp" "${tmp}" )
+    list(GET tmp -1 "tmp" )
+    string( TOUPPER "${tmp}" "tmp" )
+
+    set_target_properties(
+      "NCrystal::NCrystal" PROPERTIES
+      "IMPORTED_LOCATION_${tmp}"
+      "${_tmp_ncrystal_libpath}"
+    )
+  endfunction()
+endif()
 
 #The NCrystal targets (not including the G4NCrystal targets!):
 if(NOT TARGET NCrystal::NCrystal)

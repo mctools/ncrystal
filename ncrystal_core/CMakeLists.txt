@@ -209,11 +209,11 @@ function( ncfind_relinstpath resultvar srcdir tgtdir )
   set( "${resultvar}" "${res}" PARENT_SCOPE )
 endfunction()
 
+set(ncrystal_skbuild_shlib_in_wheel_scripts "OFF")
 if ( WIN32 )
   #dll's must be in %PATH% so we put them in bin (same as seems to be the way
   #most packages do it on conda-forge).
   set(NCrystal_SHLIBDIR "${NCrystal_BINDIR}")
-  set(ncrystal_skbuild_shlib_in_wheel_scripts "OFF")
   if ( DEFINED SKBUILD_PROJECT_NAME )
     #For wheels we will place the NCrystal.dll into the scripts folder, since
     #that seems to be the only way to get the dll onto the PATH.
@@ -745,8 +745,23 @@ if ( NCRYSTAL_GEANT4 )
 endif()
 
 #Package configuration files for downstream cmake projects:
-ncinstall( EXPORT NCrystalTargets FILE NCrystalTargets.cmake NAMESPACE NCrystal:: DESTINATION ${NCrystal_CMAKEDIR} )
+ncinstall( EXPORT NCrystalTargets FILE "NCrystalTargets.cmake" NAMESPACE NCrystal:: DESTINATION ${NCrystal_CMAKEDIR} )
 add_library(NCrystal::NCrystal ALIAS NCrystal)#always alias namespaces locally
+
+if ( ncrystal_skbuild_shlib_in_wheel_scripts )
+  #In python wheels on windows we put NCrystal.dll in the scripts directory,
+  #which moves around upon installation. To make the imported NCrystal::NCrystal
+  #target work, we need to fix the library location at the end of the generated
+  #NCrystalTargets-*.cmake. We put those fixups in a function in
+  #NCrystalConfig.cmake, and simply add a function call here:
+  install(CODE "
+file(
+  APPEND
+  \"${CMAKE_INSTALL_PREFIX}/${NCrystal_CMAKEDIR}/NCrystalTargets-$<LOWER_CASE:$<CONFIG>>.cmake\"
+  \"\n_ncrystal_fixup_ncrystaltargets()\n\"
+)
+")
+endif()
 
 if ( NCRYSTAL_GEANT4 )
   #Add G4NCrystal target in separate file:
