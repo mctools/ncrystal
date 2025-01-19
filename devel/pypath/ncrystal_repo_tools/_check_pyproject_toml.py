@@ -24,6 +24,7 @@ from .dirs import reporoot
 toml_files =  dict( monolith = 'pyproject.toml',
                     core = 'ncrystal_core/pyproject.toml',
                     py = 'ncrystal_python/pyproject.toml',
+                    plugmgr = 'ncrystal_pypluginmgr/pyproject.toml',
                     meta = 'ncrystal_metapkg/pyproject.toml' )
 
 _data_cache = {}
@@ -80,7 +81,7 @@ def check_metadata():
     data_core = load_data( 'core' )
     data_py = load_data( 'py' )
     data_meta = load_data( 'meta' )
-
+    data_plugmgr = load_data( 'plugmgr' )
 
     #Check that there are no unexpected sections:
     toplvlkeys_notool = set(['build-system','project','__srcloc__'])
@@ -89,6 +90,7 @@ def check_metadata():
     assert toplvlkeys == set( data_core.keys() )
     assert toplvlkeys == set( data_py.keys() )
     assert toplvlkeys_notool == set( data_meta.keys() )
+    assert toplvlkeys == set( data_plugmgr.keys() )
 
     #Check 'project' section
     version = data_core['project']['version']
@@ -98,10 +100,13 @@ def check_metadata():
     projkeys_core = set( data_core['project'].keys() )
     projkeys_py = set( data_py['project'].keys() )
     projkeys_meta = set( data_meta['project'].keys() )
+    projkeys_plugmgr = set( data_plugmgr['project'].keys() )
     assert 'dependencies' in projkeys_monolith
     assert 'dependencies' not in projkeys_core
     assert 'dependencies' in projkeys_py
     assert 'dependencies' in projkeys_meta
+    assert 'dependencies' in projkeys_plugmgr
+    assert data_plugmgr['project']['dependencies']==[]
     assert ( set(data_meta['project']['dependencies'])
              == set([f'ncrystal-core=={version}',
                      f'ncrystal-python=={version}']) )
@@ -116,6 +121,9 @@ def check_metadata():
 
     cmp_common_entries( 'project', data_meta, data_core,
                         allow_diff = ['name'] )
+    cmp_common_entries( 'project', data_py, data_plugmgr,
+                        allow_diff = ['name','description',
+                                      'dependencies','scripts'] )
     cmp_common_entries( 'project', data_monolith, data_core,
                         allow_diff = ['name','scripts','description'] )
     cmp_common_entries( 'project', data_monolith, data_py,
@@ -126,6 +134,8 @@ def check_metadata():
     cmp_common_entries( 'build-system', data_monolith, data_core,
                         allow_diff = [] )
     cmp_common_entries( 'build-system', data_py, data_meta,
+                        allow_diff = [] )
+    cmp_common_entries( 'build-system', data_py, data_plugmgr,
                         allow_diff = [] )
 
     #Check 'tool' section
@@ -144,6 +154,7 @@ def check_all_project_scripts():
     data_core = load_data( 'core' )
     data_py = load_data( 'py' )
     data_meta = load_data( 'meta' )
+    data_plugmgr = load_data( 'plugmgr' )
 
     extra_mono = [
         ('ncrystal-config',
@@ -152,6 +163,10 @@ def check_all_project_scripts():
     extra_core = [
         ('ncrystal-config',
          "_ncrystal_core.info:_ncrystal_config_cli_wrapper"),
+    ]
+    extra_plugmgr = [
+        ('ncrystal-pluginmanager',
+         "_ncrystal_pypluginmgr.cli:main"),
     ]
     ok = True
     if not _check_project_scripts_impl( data_py,
@@ -169,6 +184,10 @@ def check_all_project_scripts():
     if not _check_project_scripts_impl( data_meta,
                                         cli_scripts = False,
                                         extra = [] ):
+        ok = False
+    if not _check_project_scripts_impl( data_plugmgr,
+                                        cli_scripts = False,
+                                        extra = extra_plugmgr ):
         ok = False
     if not ok:
         raise SystemExit('Failures detected in project.scripts')

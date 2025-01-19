@@ -16,7 +16,7 @@ _site
 
 /ncrystal_pypluginmgr/ncrystal_pypluginmgr.egg-info/
 /ncrystal_pypluginmgr/build/
-/ncrystal_pypluginmgr/sdist/
+/ncrystal_pypluginmgr/dist/
 
 /ncrystal_core/skbld_autogen/
 /skbld_autogen/

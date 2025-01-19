@@ -6,7 +6,7 @@ dependencies = []
 authors = [
   { name="NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)" },
 ]
-description = "Library for thermal neutron transport in crystals and other materials."
+description = "Plugin manager for NCrystal."
 readme = "README.md"
 license = {file = "LICENSE"}
 classifiers = [
@@ -18,7 +18,6 @@ classifiers = [
 [project.urls]
 "Homepage" = "https://mctools.github.io/ncrystal/"
 "Bug Tracker" = "https://github.com/mctools/ncrystal/issues"
-
 
 [project.scripts]
 ncrystal-pluginmanager = "_ncrystal_pypluginmgr.cli:main"
