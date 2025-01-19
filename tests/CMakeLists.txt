@@ -19,7 +19,7 @@
 ################################################################################
 
 #Tests require newer cmake (NB: Synchronize minimum value with that found in the
-#check for NCRYSTAL_ENABLE_TESTING support in the top-level CMakeLists.txt
+#check for NCRYSTAL_ENABLE_TESTING support in the ncrystal_core/CMakeLists.txt
 #file):
 cmake_minimum_required(VERSION 3.28...3.30)
 

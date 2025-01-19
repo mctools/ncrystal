@@ -125,17 +125,29 @@ if ( NCRYSTAL_ENABLE_TESTING )
   #had problems when a ctest executable picked up libNCrystal.so from the conda
   #installed NCrystal, resulting in hard to debug errors).
   #
-  #Additionally on windows we need to use the WINDOWS_EXPORT_ALL_SYMBOLS
-  #property, so the ctest binaries can access internal symbols.
+  #Additionally on windows we need to use NCRYSTAL_WINEXPORTALL=ON so the ctest
+  #binaries can access internal symbols in the NCrystal library.
   #
   #For both of these reasons we will for safety forbid actual installations with
   #these settings, to avoid potential weird installations.
+  if( "${CMAKE_VERSION}" VERSION_LESS "3.28" )
+    #NB: Keep this minimum version value synchronised with the one on the top of
+    #tests/CMakeLists.txt
+    message( FATAL_ERROR "NCRYSTAL_ENABLE_TESTING requires cmake >= 3.28" )
+  endif()
   if ( NOT NCRYSTAL_SKIP_INSTALL )
     message(
       WARNING
       "NCRYSTAL_ENABLE_TESTING implies NCRYSTAL_SKIP_INSTALL=ON for safety"
     )
     _ncrystal_option_force( NCRYSTAL_SKIP_INSTALL "ON" )
+  endif()
+  if ( WIN32 AND NOT NCRYSTAL_WINEXPORTALL )
+    message(
+      WARNING
+      "NCRYSTAL_ENABLE_TESTING implies NCRYSTAL_WINEXPORTALL=ON in Windows"
+    )
+    _ncrystal_option_force( NCRYSTAL_WINEXPORTALL "ON" )
   endif()
   if ( NCRYSTAL_NAMESPACE AND NOT "x${NCRYSTAL_NAMESPACE}" STREQUAL "xtest" )
     message(
@@ -499,6 +511,16 @@ if ( NCRYSTAL_NAMESPACE )
 endif()
 set_target_properties( NCrystal PROPERTIES OUTPUT_NAME "${_tmp_basiclibname}" )
 
+#Export all symbols on windows if requested:
+if ( WIN32 AND NCRYSTAL_WINEXPORTALL )
+  #We must export all symbols in libNCrystal.so, even those from internal
+  #headers - since we also use internal files in our tests and plugins. We use
+  #NCRYSTAL_PREVENT_WINDLLEXPORT to avoid explicitly exporting any symbols in
+  #this case, since that triggers spurious warnings from VisualStudio.
+  set_target_properties( NCrystal PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS TRUE )
+  target_compile_definitions( NCrystal PUBLIC NCRYSTAL_PREVENT_WINDLLEXPORT )
+endif()
+
 # Dynamic library loading:
 
 # NCRYSTAL_ENABLE_DYNLOAD must be ON or OFF or IFAVAILABLE:
@@ -769,30 +791,11 @@ if ( NCRYSTAL_GEANT4 )
   add_library(NCrystal::G4NCrystal ALIAS G4NCrystal)#always alias namespaces locally
 endif()
 
-if ( NCRYSTAL_ENABLE_TESTING )
-  #NB: The enable_testing() call must occur before ANY add_subdirectory calls
-  #(including those further down this file).
-  if( "${CMAKE_VERSION}" VERSION_LESS "3.28" )
-    #NB: Keep this minimum version value synchronised with the one on the top of
-    #tests/CMakeLists.txt
-    message( FATAL_ERROR "NCRYSTAL_ENABLE_TESTING requires cmake >= 3.28" )
-  else()
-    #We must export all symbols in libNCrystal.so, even those from internal
-    #headers - since we also use internal files in our tests (for that reason we
-    #also forced NCRYSTAL_SKIP_INSTALL above). We use
-    #NCRYSTAL_PREVENT_WINDLLEXPORT to avoid explicitly exporting any symbols in
-    #this case, since that triggers spurious warnings from VisualStudio.
-    if ( WIN32 )
-      set_target_properties(NCrystal PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
-      target_compile_definitions(NCrystal PUBLIC NCRYSTAL_PREVENT_WINDLLEXPORT)
-    endif()
-  endif()
-endif()
-
 set(all_plugin_names_lc "stdscat;stdabs;stdncmat")
 set(NCrystal_builtin_plugin_names "")
 set(ncrystal_iplugin 0)
 foreach(pluginentry ${NCRYSTAL_BUILTIN_PLUGINS})
+  #Fixme stop supporting this mode.
   message( STATUS "Trying to add plugin: ${pluginentry}")
   parse_pluginentry("${pluginentry}")
   if (NOT pluginentry_islocal)

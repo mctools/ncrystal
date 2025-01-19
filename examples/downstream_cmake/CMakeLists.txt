@@ -1,4 +1,3 @@
-
 ################################################################################
 ##                                                                            ##
 ##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
@@ -19,44 +18,24 @@
 ##                                                                            ##
 ################################################################################
 
-[project]
-name = "ncrystal-core"
-version = "3.9.80"
-requires-python = ">=3.8"
-readme = "README.md"
-license = {file = "LICENSE"}
-authors = [
-  { name="NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)" },
-]
-description = "Library for thermal neutron transport in crystals and other materials."
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: Apache Software License",
-    "Operating System :: Unix",
-]
+cmake_minimum_required(VERSION 3.20...3.30)
 
-[project.urls]
-"Homepage" = "https://mctools.github.io/ncrystal/"
-"Bug Tracker" = "https://github.com/mctools/ncrystal/issues"
+project( ExampleNCrystalProject VERSION 0.0.1 LANGUAGES CXX C )
 
-[project.scripts]
-ncrystal-config = "_ncrystal_core.info:_ncrystal_config_cli_wrapper"
+#Find NCrystal:
 
-[build-system]
-requires = ["scikit-build-core>=0.10"]
-build-backend = "scikit_build_core.build"
+if( NOT DEFINED "NCrystal_DIR" )
+  #Need to invoke "ncrystal-config --show cmakedir" if we want to be able to
+  #work with ncrystal-core installed via python wheels:
+  execute_process(
+    COMMAND ncrystal-config --show cmakedir
+    OUTPUT_VARIABLE "NCrystal_DIR" OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+endif()
+find_package( NCrystal 3.9.80 REQUIRED )
 
-[tool.scikit-build]
-#cmake.verbose = true
-logging.level = "INFO"
-minimum-version = "build-system.requires"
-wheel.packages = ['skbld_autogen/_ncrystal_core']
-sdist.include = ["/src/","/include/","/cmake/",
-                 '/app_config/','/CMakeLists.txt','/pyproject.toml',
-                 '/skbld_autogen/'
-                 ]
-sdist.cmake = true
-wheel.py-api = "py3" # as close to "noarch" as possible (ABI3)
+#Add our own targets, and link to NCrystal::NCrystal as appropriate:
 
-[tool.scikit-build.cmake.define]
-NCRYSTAL_WINEXPORTALL = {env="NCRYSTAL_WINEXPORTALL", default="OFF"}
+add_executable( "testapp" "main.cc" )
+target_link_libraries( "testapp" NCrystal::NCrystal )
+install (TARGETS "testapp" RUNTIME DESTINATION bin)

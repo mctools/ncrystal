@@ -9,7 +9,7 @@ test -f "${SRCDIR}/ncrystal_core/include/NCrystal/ncapi.h.in"
 TGT="/tmp/${USER}/ncrystal_bldlocal_plugin"
 rm -rf "${TGT}/bld" "${TGT}/inst" "${TGT}/bld_plugin" "${TGT}/inst_plugin"
 mkdir -p "${TGT}/bld"
-cd "${TGT}/bld"
+cd "${TGT}"
 
 THE_BUILD_TYPE=Release
 cmake \
@@ -48,7 +48,7 @@ ${TGT}/app_c
 
 #Test plugin:
 mkdir -p "${TGT}/bld_plugin"
-cd "${TGT}/bld_plugin"
+#cd "${TGT}/bld_plugin"
 cmake \
     -S "${SRCDIR}/examples/plugin" \
     -B "${TGT}/bld_plugin" \
@@ -63,6 +63,7 @@ cmake --install "${TGT}/bld_plugin"
 echo "Plugin build dir was: ${TGT}/bld_plugin"
 echo "Plugin was installed in: ${TGT}/inst_plugin"
 
+#export LD_LIBRARY_PATH="$("${TGT}/inst/bin/ncrystal-config" --show libdir):${LD_LIBRARY_PATH}"
 export NCRYSTAL_PLUGIN_LIST=$(echo "${TGT}/inst_plugin/lib/libNCPlugin_DummyPlugin".*)
 export NCRYSTAL_REQUIRED_PLUGINS="DummyPlugin"
 export NCRYSTAL_PLUGIN_RUNTESTS=1

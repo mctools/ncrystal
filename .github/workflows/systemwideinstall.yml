@@ -48,3 +48,12 @@ jobs:
 
     - name: Python test
       run: python3 -mNCrystal nctool --test
+
+    - name: Downstream CMake
+      run: |
+        set -eu
+        mkdir bld_ds inst_ds
+        cmake -S ./examples/downstream_cmake -B ./bld_ds -DCMAKE_INSTALL_PREFIX=./inst_ds -DCMAKE_BUILD_TYPE=Debug
+        cmake --build ./bld_ds
+        cmake --install ./inst_ds
+        ./inst_ds/bin/testapp

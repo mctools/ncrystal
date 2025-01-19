@@ -24,9 +24,8 @@ jobs:
     - name: Check python version
       run: python --version
 
-
     - name: Install ncrystal_core
-      run: pip install ./src/ncrystal_core
+      run: pip install --config-settings=tool.scikit-build.cmake.define.NCRYSTAL_WINEXPORTALL=ON ./src/ncrystal_core
 
     - name: Install ncrystal_pypluginmgr
       run: pip install ./src/ncrystal_pypluginmgr

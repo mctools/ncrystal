@@ -33,19 +33,23 @@ def check_same( reffile, *otherfiles ):
     for o in otherfiles:
         if get_content(o) != ref:
             print()
-            raise SystemExit('ERROR: Content differs')
+            raise SystemExit(f'ERROR: Content of {o} and {reffile} differs')
 
 def main():
     check_same( 'README.md',
                 'ncrystal_core/README.md',
                 'ncrystal_python/README.md',
                 'ncrystal_metapkg/README.md')
+
     check_same( 'LICENSE',
                 'ncrystal_core/LICENSE',
                 'ncrystal_python/LICENSE',
                 'ncrystal_metapkg/LICENSE',
                 'ncrystal_pypluginmgr/LICENSE',
                 'examples/plugin/LICENSE' )
+
+    check_same( 'examples/ncrystal_example_cpp.cc',
+                'examples/downstream_cmake/main.cc' )
 
 if __name__=='__main__':
     main()

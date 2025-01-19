@@ -15,9 +15,10 @@ if ( DEFINED SKBUILD_PROJECT_NAME )
   endif()
 endif()
 
-
 #Must always build against NCrystal:
 if( NOT DEFINED "NCrystal_DIR" )
+  #Need to invoke "ncrystal-config --show cmakedir" if we want to be able to
+  #work with ncrystal-core installed via python wheels:
   execute_process(
     COMMAND ncrystal-config --show cmakedir
     OUTPUT_VARIABLE "NCrystal_DIR" OUTPUT_STRIP_TRAILING_WHITESPACE
