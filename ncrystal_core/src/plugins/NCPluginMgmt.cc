@@ -402,7 +402,7 @@ void NCP::ensurePluginsLoaded()
 #  endif
 #endif
 
-    const bool custom_plugins_ok = ncgetenv_bool("IGNORE_NONSTD_PLUGINS");
+    const bool custom_plugins_ok = ! ncgetenv_bool("STDPLUGINSONLY");
 
     //Static custom (builtin) plugins:
 #ifdef NCRYSTAL_HAS_BUILTIN_PLUGINS
