@@ -45,8 +45,9 @@ namespace NCRYSTAL_NAMESPACE {
     //
     // Normally the plugin interface is not accessed. Rather, dynamic plugins
     // are enabled by adding them to the NCRYSTAL_PLUGIN_LIST environment
-    // variable, while the loading of builtin plugins is handled by NCrystal's
-    // cmake configuration.
+    // variable or ensuring that an ncrystal-pluginmanager command returns them
+    // (using the pyproject.toml and CMake code in
+    // <ncrystalrepo>/examples/plugin is enough to ensure that).
     //
     enum class PluginType { Dynamic, Builtin, Undefined };
     struct NCRYSTAL_API PluginInfo {
@@ -66,10 +67,9 @@ namespace NCRYSTAL_NAMESPACE {
     //Query loaded plugins:
     NCRYSTAL_API std::vector<PluginInfo> loadedPlugins();
 
-    //Call this to ensure plugins (both builtin and those in
-    //NCRYSTAL_PLUGIN_LIST) are loaded. Multiple calls to this function will
-    //have no effect, and it will be called automatically when users query the
-    //global createXXX(..) functions from NCFactory.hh:
+    //Call this to ensure plugins are loaded. Multiple calls to this function
+    //will have no effect, and it will be called automatically when users query
+    //the global createXXX(..) functions from NCFactory.hh:
     NCRYSTAL_API void ensurePluginsLoaded();
 
     //Plugins are free to register test functions, which can be used to test

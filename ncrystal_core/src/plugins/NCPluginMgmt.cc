@@ -143,9 +143,11 @@ namespace NCRYSTAL_NAMESPACE {
                              voidfct_t regfct )
       {
         //Mutex is already locked when this is called!
-        nc_assert_always(pinfo.pluginType==PluginType::Dynamic||pinfo.pluginType==PluginType::Builtin);
+        nc_assert_always( pinfo.pluginType==PluginType::Dynamic
+                          || pinfo.pluginType==PluginType::Builtin );
         bool verbose = ncgetenv_bool("DEBUG_PLUGIN");
-        std::string ptypestr(pinfo.pluginType==PluginType::Dynamic?"dynamic":"builtin");
+        std::string ptypestr( pinfo.pluginType==PluginType::Dynamic
+                              ? "dynamic" : "builtin" );
         if (verbose)
           NCRYSTAL_MSG("Loading "<<ptypestr<<" plugin \""<<pinfo.pluginName<<"\".");
 
@@ -303,18 +305,6 @@ extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_experimentalscatfact)();
 
 #endif
 
-//If NCRYSTAL_HAS_BUILTIN_PLUGINS is defined, it is assumed that the code is
-//being built with a void NCrystal::provideBuiltinPlugins() function defined in
-//another module. The envisioned use-case is that plugins can be available in
-//two modes: 1) as a separate shared library with standard symbols for loading
-//the library, and 2) being built into a given NCrystal installation at compile
-//time.
-#ifdef NCRYSTAL_HAS_BUILTIN_PLUGINS
-namespace NCRYSTAL_NAMESPACE {
-  void provideBuiltinPlugins();
-}
-#endif
-
 #ifdef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
 namespace NCRYSTAL_NAMESPACE {
   namespace {
@@ -402,23 +392,20 @@ void NCP::ensurePluginsLoaded()
 #  endif
 #endif
 
-    const bool custom_plugins_ok = ! ncgetenv_bool("STDPLUGINSONLY");
-
-    //Static custom (builtin) plugins:
-#ifdef NCRYSTAL_HAS_BUILTIN_PLUGINS
-    if (custom_plugins_ok)
-      provideBuiltinPlugins();
-#endif
-
     //Dynamic custom plugins, as indicated by environment variable:
 #ifdef NCRYSTAL_SIMPLEBUILD_DEVEL_MODE
     bool first_plugin = false;
 #endif
+
+    //Get list of dynamic plugins to load via the ncrystal-pluginmanager command
+    //and NCRYSTAL_PLUGIN_LIST environment variables:
     VectS dynplugin_list = queryPluginManagerCmd();
     for ( auto& e : split2(ncgetenv("PLUGIN_LIST"),0,':') )
       dynplugin_list.push_back( trim2(std::move(e)) );
 
-    if (!custom_plugins_ok)
+    //However, NCRYSTAL_STDPLUGINSONLY=1 can be used to prevent any third party
+    //dynamic plugins:
+    if ( ncgetenv_bool("STDPLUGINSONLY") )
       dynplugin_list.clear();
 
     std::set<std::string> dynplugins_already_loaded;

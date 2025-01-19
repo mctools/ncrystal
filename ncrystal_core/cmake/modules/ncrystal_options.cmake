@@ -41,12 +41,6 @@ bool_option( NCRYSTAL_ENABLE_CFGAPP    "Whether to build and install the ncrysta
 bool_option( NCRYSTAL_WINEXPORTALL     "Whether WINDOWS_EXPORT_ALL_SYMBOLS should be set on NCrystal library" "OFF" )
 
 string_option(
-  NCRYSTAL_BUILTIN_PLUGINS
-  "Semicolon separated list of external plugins to statically embed in the NCrystal library (local paths to sources or git <repo_url:tag>)"
-  ""
-  )
-
-string_option(
   NCRYSTAL_NAMESPACE
   "Custom string to inject into library symbols (for complex environments with multple NCrystal installations)."
   ""

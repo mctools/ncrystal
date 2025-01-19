@@ -222,7 +222,6 @@ const char * nccfg_const_bin2cmakedir(void)
     { return "cmakedir/not/available/in/simplebuild/devel/mode"; }
 const char * nccfg_const_version(void) { return "@NCVERSION@"; }
 const char * nccfg_const_intversion(void) { return "@NCINTVERSION@"; }
-const char * nccfg_const_builtinplugins(void) { return ""; }
 const char * nccfg_const_namespace(void) { return "@NCNAMESPACE@"; }
 const char * nccfg_const_cmakebuildtype(void) { return "@CMAKEBUILDTYPE@"; }
 int nccfg_boolopt_data(void) { return 1; }

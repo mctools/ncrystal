@@ -34,7 +34,6 @@ const char * nccfg_const_bin2incdir(void) { return "@NCrystal_relpath_BINDIR2INC
 const char * nccfg_const_bin2cmakedir(void) { return "@NCrystal_relpath_BINDIR2CMAKEDIR@"; }
 const char * nccfg_const_version(void) { return "@NCrystal_VERSION@"; }
 const char * nccfg_const_intversion(void) { return "@nccfgapp_intversion@"; }
-const char * nccfg_const_builtinplugins(void) { return "@NCrystal_builtin_plugin_names@"; }
 const char * nccfg_const_namespace(void) { return "@NCRYSTAL_NAMESPACE@"; }
 const char * nccfg_const_cmakebuildtype(void) { return "$<CONFIG>"; }//NB: generator expression
 int nccfg_boolopt_data(void) { return @nccfgapp_has_data_01@; }

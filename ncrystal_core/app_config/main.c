@@ -240,7 +240,6 @@ nccfg_strlist nccfg_show_item_list(void)
     "bindir",
     "build_type",
     "buildflags",
-    "builtin_plugins",
     "cmakedir",
     "datadir",
     "has_data",
@@ -325,9 +324,6 @@ mcu8str nccfg_show_item_lookup( nccfgstate* state,
 
   if ( NCCFG_STREQUALCONST(item,"build_type") )
     return mcu8str_view_cstr(nccfg_const_cmakebuildtype());
-
-  if ( NCCFG_STREQUALCONST(item,"builtin_plugins") )
-    return mcu8str_view_cstr(nccfg_const_builtinplugins());
 
   if ( item[0] == 'h' ) {
     int val = -1;

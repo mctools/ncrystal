@@ -1,5 +1,8 @@
 
 v4.0.0 2025-01-??
+     * Now that the dynamic plugin support has been much improved, we can stop
+       supporting NCRYSTAL_BUILTIN_PLUGINS which was rather complicated to
+       maintain.
      * Describe new versioning policy, only publish packages of even patch
        numbers, odd patch numbers indicate development releases. We should have
        CI which guards against odd version numbers in the main branch.

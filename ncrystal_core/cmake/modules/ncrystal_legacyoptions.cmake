@@ -29,3 +29,10 @@ add_deprecated_boolvar( NCRYSTAL_ENABLE_SETUPSH "" "OFF" "" )
 add_deprecated_boolvar( NCRYSTAL_ENABLE_PYTHON "" "OFF" "" )
 add_deprecated_boolvar( NCRYSTAL_SKIP_PYMODINST "" "OFF" "" )
 add_deprecated_boolvar( NCRYSTAL_ENABLE_SOVERSION "" "OFF" "" )
+
+if ( DEFINED NCRYSTAL_BUILTIN_PLUGINS )
+  message( FATAL_ERROR "The NCRYSTAL_BUILTIN_PLUGINS variable is no longer"
+    " supported. All custom plugins should now be built separately from"
+    " NCrystal ifself and loaded dynamically. See the examples/plugin"
+    " directory for an updated plugin template." )
+endif()

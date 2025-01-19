@@ -1,5 +1,8 @@
 #FIXME Address all of the following for the release:
 
+* Make sure pull requests have check boxes on top with stuff like "did you add a
+  test", "did you mention any open issues this is linked to", etc.
+
 * Make sure pypi.yml omly triggers for even patch numbers (in addition, we
   should only create even tags!).
 
