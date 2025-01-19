@@ -9,12 +9,8 @@
 * We should have a way to determine what version of NCrystal a given plugin was
   built against, so we can error on incompatibilities.
 
-
-* Postpone the "auto plugin" solution until later, but update (and CI test) the
-  template! Or remove the template, but have an ncdevtool mode for creating a
-  plugin? Or actually package up the plugin folder contents instead and ship?....
-
-* Rename the monolithic package to "ncrystal" as well???
+* Update ncplugin_template with a readme which simply redirects to the new
+  documentation.
 
 * sb_devtools_gdb to simple-build-system??
 
@@ -24,7 +20,7 @@
   (e.g. cppmove mode) and ncrystal_repo_tools/core_components.py. Perhaps we
   need a new ncdevtool mode for doing the split?
 
-* Compile and test also dmsc:ncrystaldev pkgs.
+* Compile and test also dmsc:ncrystaldev nclong pkgs.
 
 * Think about completely dissuading people from including specific headers in
   subdirs. Should we have an NCrystal/internal/CommonUtils.hh for plugins? Or AllInternal.hh?
@@ -54,14 +50,8 @@
 
 * Prepare ncrystal-core, ncrystal-python, ncrystal packages.
 
-* A CI test which builds and installs ncrystal core WITHOUT a
-  CMAKE_INSTALL_PREFIX. Since that can be weird. We should then also test in a
-  downstream project that everything from the find_package(NCrystal) is still correct.
-
-* Create mother "ncrystal" python package + add optional dependencies in it.
-
 * "ncdevtool find" mode seems broken.
 
 * Open issue about migrating out ncrystal_geant4
-* Open issue about getting plugins to work with a single pip install
+* Open issue about migration all plugins.
 * Open issue about migrating more tests from ncdevtool repo

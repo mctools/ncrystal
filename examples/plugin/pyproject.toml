@@ -23,7 +23,7 @@
 name = "ncplugin-DummyPlugin"
 version = "0.0.1"
 license = {file = "LICENSE"}
-dependencies = [ "ncrystal-core>=3.9.80", "ncrystal-pypluginmgr" ]#fixme
+dependencies = [ "ncrystal-core>=3.9.80", "ncrystal-pypluginmgr" ]
 
 [build-system]
 requires = ["scikit-build-core>=0.10", "ncrystal-core>=3.9.80" ]
