@@ -57,6 +57,3 @@ sdist.include = ["/src/","/include/","/cmake/",
                  ]
 sdist.cmake = true
 wheel.py-api = "py3" # as close to "noarch" as possible (ABI3)
-
-[tool.scikit-build.cmake.define]
-NCRYSTAL_WINEXPORTALL = {env="NCRYSTAL_WINEXPORTALL", default="OFF"}
