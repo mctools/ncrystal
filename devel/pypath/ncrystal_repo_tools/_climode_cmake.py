@@ -41,6 +41,14 @@ def main( parser ):
         help="""This flag will force any existing build and install dirs to be
         removed before running, instead of ending in an error."""
     )
+    parser.add_argument(
+        '--multi', action='store_true',
+        help="""Will use multi generator mode even on unix (requires Ninja)."""
+    )
+    parser.add_argument(
+        '--dbg', action='store_true',
+        help="""Will use Debug mode rather than Release."""
+    )
     assert 'ctest' in cmakerunner_modes
     parser.add_argument(
         '-m','--mode', type = str, choices = cmakerunner_modes,
@@ -67,9 +75,12 @@ def main( parser ):
                         mode = args.mode,
                         cmake_flags = None,
                         build_types = ['rel'],
-                        generator = 'single',
                         nprocs_bld = nprocs,
                         nprocs_ctest = nprocs )
+    if args.multi:
+        runner_args['generator'] = 'multi'
+    if args.dbg:
+        runner_args['build_types'] = ['dbg']
 
     def do_work( blddir, instdir, mode ):
         from .cmake import CMakeRunner

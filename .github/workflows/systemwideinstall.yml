@@ -56,4 +56,4 @@ jobs:
         cmake -S ./src/examples/downstream_cmake -B ./bld_ds -DCMAKE_INSTALL_PREFIX=./inst_ds -DCMAKE_BUILD_TYPE=Debug
         cmake --build ./bld_ds
         cmake --install ./bld_ds
-        LD_LIBRARY_PATH="$(ncrystal-config --show libdir):${LD_LIBRARY_PATH}" ./inst_ds/bin/testapp
+        LD_LIBRARY_PATH="$(ncrystal-config --show libdir):${LD_LIBRARY_PATH:-}" ./inst_ds/bin/testapp

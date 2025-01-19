@@ -118,19 +118,26 @@ class CMakeRunner:
     def _msg( self, *a, **kw ):
         print('>>>> CMakeRunner:',*a,**kw)
 
+    def _prepare_dirs( self ):
+        assert self.stage=='none'
+        for dirname, thedir in ( ('Build',self.blddir),
+                                 ('Install',self.instdir) ):
+            if thedir.exists() and not dirs.is_empty_dir(thedir):
+                if self.force:
+                    if not dirs.is_empty_dir( thedir ):
+                        self._msg(f'forcefully removing {thedir}')
+                        shutil.rmtree(thedir)
+                else:
+                    raise RuntimeError(f'{dirname} dir already exists: {thedir}')
+
     def do_cfg( self ):
         assert self.stage=='none'
-        if self.blddir.exists():
-            if self.force:
-                if not dirs.is_empty_dir( self.blddir ):
-                    self._msg(f'forcefully removing {self.blddir}')
-                    shutil.rmtree(self.blddir)
-            else:
-                raise RuntimeError(f'Build dir already exists: {self.blddir}')
-        args = [ '-S',dirs.reporoot,
-                 '-B', self.blddir
-                ] + self.cmake_flags
-
+        self._prepare_dirs()
+        args = [ '-S',dirs.reporoot,'-B', self.blddir] + self.cmake_flags
+        if self.generator=='multi' and platform.system()!='Windows':
+            args += ['-G','Ninja Multi-Config']
+        elif self.generator=='single' and platform.system()=='Windows':
+            args += ['-G','Ninja']
         self._msg(f'using build dir {self.blddir}')
         if self.mode == 'install':
             args.append('-DCMAKE_INSTALL_PREFIX=%s'%self.instdir)
