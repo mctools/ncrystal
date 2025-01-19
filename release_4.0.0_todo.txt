@@ -1,5 +1,8 @@
 #FIXME Address all of the following for the release:
 
+* Finally grep for 3.9.80, etc., to make sure any >3.9.8x is actually pointing
+  at the last release candidate.
+
 * Make sure pull requests have check boxes on top with stuff like "did you add a
   test", "did you mention any open issues this is linked to", etc.
 
