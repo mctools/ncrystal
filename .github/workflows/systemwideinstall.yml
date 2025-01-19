@@ -53,7 +53,7 @@ jobs:
       run: |
         set -eu
         mkdir bld_ds inst_ds
-        cmake -S ./examples/downstream_cmake -B ./bld_ds -DCMAKE_INSTALL_PREFIX=./inst_ds -DCMAKE_BUILD_TYPE=Debug
+        cmake -S ./src/examples/downstream_cmake -B ./bld_ds -DCMAKE_INSTALL_PREFIX=./inst_ds -DCMAKE_BUILD_TYPE=Debug
         cmake --build ./bld_ds
-        cmake --install ./inst_ds
-        ./inst_ds/bin/testapp
+        cmake --install ./bld_ds
+        LD_LIBRARY_PATH="$(ncrystal-config --show libdir):${LD_LIBRARY_PATH}" ./inst_ds/bin/testapp

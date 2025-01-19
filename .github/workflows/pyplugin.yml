@@ -24,6 +24,7 @@ jobs:
     - name: Check python version
       run: python --version
 
+    #NB: The NCRYSTAL_WINEXPORTALL=ON flag is actually only needed for windows
     - name: Install ncrystal_core
       run: pip install --config-settings=cmake.define.NCRYSTAL_WINEXPORTALL=ON ./src/ncrystal_core
 
@@ -32,7 +33,7 @@ jobs:
 
     - name: Install plugin
       #--no-build-isolation to prevent getting the ncrystal pkgs just installed
-      #to be taken from PyPI:
+      #to instead be taken from PyPI:
       run: |
         pip install scikit_build_core
         pip install ./src/examples/plugin --no-build-isolation
