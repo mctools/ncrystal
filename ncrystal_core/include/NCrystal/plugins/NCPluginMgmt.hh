@@ -80,6 +80,11 @@ namespace NCRYSTAL_NAMESPACE {
                                                   voidfct_t test_fct );
     NCRYSTAL_API std::vector<std::pair<std::string,voidfct_t>>
     getRegisteredPluginTestFunctions();
+
+    namespace detail {
+      //For internal usage in NCDataSources.cc:
+      NCRYSTAL_API std::vector<PairSS> getPluginDataDirDB();
+    }
   }
 }
 

@@ -100,7 +100,8 @@ namespace NCRYSTAL_NAMESPACE {
     // registering the same directory more than once, will simply override the
     // previous registration.
 
-    NCRYSTAL_API void addCustomSearchDirectory( std::string dirname, Priority = Priority{default_priority_stdpath+1} );
+    NCRYSTAL_API void addCustomSearchDirectory( std::string dirname,
+                                                Priority = Priority{default_priority_stdpath+1} );
 
     //Remove all search directories added with addCustomSearchDirectory:
     NCRYSTAL_API void removeCustomSearchDirectories();
@@ -138,6 +139,11 @@ namespace NCRYSTAL_NAMESPACE {
     //entries in the NCRYSTAL_DATA_PATH environment variables with entries in
     //the compile time definition of the same name (in that order):
     NCRYSTAL_API void enableStandardSearchPath(bool = true);
+
+    //Whether or not to search data directories provided by plugins. These
+    //directories will in any case only be used when explicitly requested
+    //(e.g. "plugins::SomePlugin/somefile.ncmat").
+    NCRYSTAL_API void enablePluginSearchPaths(bool = true);
 
     // Disable all standard data sources, remove all TextData factories as well,
     // clear all registered virtual files and custom search directories. Finish

@@ -20,11 +20,12 @@
 ################################################################################
 
 def main():
+    modnameprefix = 'ncrystal_plugin_'
     import pkgutil
     names = [ name
               for finder, name, ispkg
               in pkgutil.iter_modules()
-              if name.startswith('ncplugin_') ]
+              if name.startswith(modnameprefix) ]
     if not names:
         return
 
@@ -32,16 +33,23 @@ def main():
     from pathlib import Path
 
     plugins = set()
+    datadirs = set()
     for pymodname in names:
         mod = importlib.import_module(pymodname)
-        for f in Path(mod.__file__).parent.joinpath('plugins').glob('*NCPlugin*.*'):
+        moddir = Path(mod.__file__).parent
+        for f in moddir.joinpath('plugins').glob('*NCPlugin*.*'):
             plugins.add( str(f.resolve().absolute()) )
-    print(';'.join(sorted(plugins)))
+        for datadir in moddir.glob('data*'):
+            if datadir.is_dir() and any( True for p in datadir.iterdir() ):
+                datadirs.add( (pymodname, str(datadir.resolve().absolute())) )
+
+    entries = []
+    for p in sorted(plugins):
+        entries.append( p )
+    nmnp = len(modnameprefix)
+    for n,d in sorted(datadirs):
+        entries.append( ':DATA:%s:%s'%(n[nmnp:],d) )
+    print( ';\n'.join(entries) )
 
 if __name__ == '__main__':
     main()
-
-#
-#discovered_plugins = {
-#    name: importlib.import_module(name)
-# . ...

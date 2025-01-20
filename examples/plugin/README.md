@@ -38,3 +38,6 @@ environment), in which case NCrystal will automatically discover the presence of
 the plugin and load it. So installing the plugin might be as simple as: `pip
 install <plugindir>` where `<plugindir>` is the directory in which the
 `pyproject.toml` and `CMakeLists.txt` files of the plugin resides.
+
+Finally, any .ncmat file placed inside the `data/` folder will be included in
+the plugin and automatically be made available to NCrystal users as well,

@@ -104,11 +104,18 @@ namespace NCRYSTAL_NAMESPACE {
       }
 #endif
 
-      VectS queryPluginManagerCmd() {
+      struct PlugMgrResults {
+        SmallVector<PairSS,4> plugin_datadirs;
+        VectS dynlibs;
+      };
+      PlugMgrResults queryPluginManagerCmd() {
         //Invokes ncrystal-pluginmanager to determine any plugins to use, thus
         //supporting the ability for "pip install ./my/plugin" to work
         //immediately with no further issues.
-        VectS result;
+        PlugMgrResults result;
+#ifdef NCRYSTAL_STDPLUGINSONLY
+        return result;
+#endif
 #ifdef NCRYSTAL_DISABLE_CMDLINEPLUGINMGR
         return result;
 #endif
@@ -121,9 +128,19 @@ namespace NCRYSTAL_NAMESPACE {
 #endif
         if (out.has_value()) {
           auto parts = StrView(out.value()).splitTrimmedNoEmpty(';');
-          result.reserve(parts.size());
-          for ( auto& e : parts )
-            result.emplace_back( e.to_string() );
+          for ( auto& e : parts ) {
+            if ( e.startswith(":DATA:") ) {
+              auto p = e.substr(6).splitTrimmedNoEmpty(':');
+              if ( p.size() != 2 )
+                NCRYSTAL_THROW2( BadInput,
+                                 "Invalid ncrystal-pluginmanager"
+                                 " output in entry \""<<e<<"\"" );
+              result.plugin_datadirs.emplace_back( p.at(0).to_string(),
+                                                          p.at(1).to_string() );
+            } else {
+              result.dynlibs.emplace_back( e.to_string() );
+            }
+          }
         }
         return result;
       }
@@ -167,6 +184,34 @@ namespace NCRYSTAL_NAMESPACE {
 
         if (verbose)
           NCRYSTAL_MSG("Done loading plugin \""<<pinfo.pluginName<<"\".");
+      }
+      struct PluginsDataDirDBState {
+        std::mutex mtx;
+        std::vector<PairSS> data;
+      };
+      PluginsDataDirDBState& getPluginDataDirDBState()
+      {
+        static PluginsDataDirDBState db;
+        return db;
+      }
+      void appendPluginDataDirDB( SmallVector<PairSS,4>&& new_entries )
+      {
+        if (new_entries.empty())
+          return;
+        auto& db = getPluginDataDirDBState();
+        NCRYSTAL_LOCK_GUARD(db.mtx);
+        db.data.reserve( db.data.size() + new_entries.size() );
+        for (auto& e : new_entries )
+          db.data.push_back( std::move(e) );
+      }
+
+    }//end anon namespace
+    namespace detail {
+      std::vector<PairSS> getPluginDataDirDB()
+      {
+        auto& db = getPluginDataDirDBState();
+        NCRYSTAL_LOCK_GUARD(db.mtx);
+        return db.data;
       }
     }
   }
@@ -399,14 +444,19 @@ void NCP::ensurePluginsLoaded()
 
     //Get list of dynamic plugins to load via the ncrystal-pluginmanager command
     //and NCRYSTAL_PLUGIN_LIST environment variables:
-    VectS dynplugin_list = queryPluginManagerCmd();
+    auto plugmgrcmd_results = queryPluginManagerCmd();
+    VectS dynplugin_list = std::move(plugmgrcmd_results.dynlibs);
     for ( auto& e : split2(ncgetenv("PLUGIN_LIST"),0,':') )
       dynplugin_list.push_back( trim2(std::move(e)) );
 
-    //However, NCRYSTAL_STDPLUGINSONLY=1 can be used to prevent any third party
-    //dynamic plugins:
+    //However, NCRYSTAL_STDPLUGINSONLY env var and define can be used to prevent
+    //any third party dynamic plugins:
+#if defined(NCRYSTAL_STDPLUGINSONLY) || defined(NCRYSTAL_DISABLE_DYNLOADER) //fixme cleanup these flags, and dont try if not enabled
+    dynplugin_list.clear();
+#else
     if ( ncgetenv_bool("STDPLUGINSONLY") )
       dynplugin_list.clear();
+#endif
 
     std::set<std::string> dynplugins_already_loaded;
     for ( auto& pluginlib : dynplugin_list ) {
@@ -445,6 +495,10 @@ void NCP::ensurePluginsLoaded()
                      <<"\" was indeed available ("<<found_ptypestr<<").");
       }
     }
+
+    //Data directories from ncrystal-pluginmanager:
+    appendPluginDataDirDB( std::move( plugmgrcmd_results.plugin_datadirs ) );
+
   }//release mutex
 
   if ( run_test_functions )

@@ -36,65 +36,8 @@ namespace NCRYSTAL_NAMESPACE {
       return { newvalue != oldval };
     }
   }
-}
-
-namespace NCRYSTAL_NAMESPACE {
   namespace DataSources {
-    namespace {
-      static std::atomic<bool> s_was_called_enableAbsolutePaths = {false};
-      static std::atomic<bool> s_was_called_enableRelativePaths = {false};
-      static std::atomic<bool> s_was_called_enableStandardDataLibrary = {false};
-      static std::atomic<bool> s_was_called_enableStandardSearchPath = {false};
-    }
-
     using BrowseEntry = FactImpl::TextDataFactory::BrowseEntry;
-
-    static const auto factNameStdLib = "stdlib";
-    static const auto factNameStdSearchPath = "stdpath";
-    static const auto factNameRelPath = "relpath";
-    static const auto factNameAbsPath = "abspath";
-    static const auto factNameVirtualFiles = "virtual";
-    static const auto factNameCustomSearchDirs = "customdirs";
-
-    class TDFact_AbsPath final : public FactImpl::TextDataFactory {
-    public:
-      const char * name() const noexcept override
-      {
-        return factNameAbsPath;
-      }
-      Priority query( const TextDataPath& p ) const override
-      {
-        return ( path_is_absolute(p.path()) && file_exists(p.path()) )
-          ? Priority{default_priority_abspath}
-          : Priority::Unable;
-      }
-      TextDataSource produce( const TextDataPath& p ) const override
-      {
-        nc_assert( path_is_absolute(p.path()) && file_exists(p.path()) );
-        return TextDataSource::createFromOnDiskPath( p.path() );
-      }
-      //Can't browse absolute paths:
-      std::vector<BrowseEntry> browse() const override { return {}; }
-    };
-  }
-}
-
-
-void NCD::enableAbsolutePaths( bool doEnable )
-{
-  s_was_called_enableAbsolutePaths.store(true);
-  static std::atomic<bool> s_enabled = {false};
-  if ( !setValue(s_enabled,doEnable).wasChanged )
-    return;
-  if ( !doEnable ) {
-    FactImpl::removeTextDataFactoryIfExists( factNameAbsPath );
-  } else {
-    FactImpl::registerFactory( std::make_unique<TDFact_AbsPath>() );
-  }
-}
-
-namespace NCRYSTAL_NAMESPACE {
-  namespace DataSources {
     std::vector<BrowseEntry> browseDir( const std::string& dirname, Priority priority ) {
       //Browse for known extensions in directory and any direct sub-dirs without
       //"." in the name.
@@ -124,6 +67,146 @@ namespace NCRYSTAL_NAMESPACE {
       out.shrink_to_fit();
       return out;
     }
+
+    namespace {
+      static std::atomic<bool> s_was_called_enableAbsolutePaths = {false};
+      static std::atomic<bool> s_was_called_enableRelativePaths = {false};
+      static std::atomic<bool> s_was_called_enableStandardDataLibrary = {false};
+      static std::atomic<bool> s_was_called_enableStandardSearchPath = {false};
+      static std::atomic<bool> s_was_called_enablePluginSearchPaths = {false};
+    }
+
+    static const auto factNameStdLib = "stdlib";
+    static const auto factNameStdSearchPath = "stdpath";
+    static const auto factNamePluginSearchPaths = "plugins";
+    static const auto factNameRelPath = "relpath";
+    static const auto factNameAbsPath = "abspath";
+    static const auto factNameVirtualFiles = "virtual";
+    static const auto factNameCustomSearchDirs = "customdirs";
+
+    class TDFact_AbsPath final : public FactImpl::TextDataFactory {
+    public:
+      const char * name() const noexcept override
+      {
+        return factNameAbsPath;
+      }
+      Priority query( const TextDataPath& p ) const override
+      {
+        return ( path_is_absolute(p.path()) && file_exists(p.path()) )
+          ? Priority{default_priority_abspath}
+          : Priority::Unable;
+      }
+      TextDataSource produce( const TextDataPath& p ) const override
+      {
+        nc_assert( path_is_absolute(p.path()) && file_exists(p.path()) );
+        return TextDataSource::createFromOnDiskPath( p.path() );
+      }
+      //Can't browse absolute paths:
+      std::vector<BrowseEntry> browse() const override { return {}; }
+    };
+
+    class TDFact_PluginDirs final : public FactImpl::TextDataFactory {
+      struct ParsedReq {
+        StrView plugin_name;
+        StrView file_name;
+      };
+      ParsedReq parsePath( const TextDataPath& p ) const
+      {
+        ParsedReq result;
+        StrView pathstr( p.path() );
+        if ( pathstr.contains_any(":#~\\") )
+          return result;
+        auto idx = pathstr.find("/");
+        if ( idx == StrView::npos )
+          return result;
+        auto pluginname = pathstr.substr(0,idx).trimmed();
+        auto filename = pathstr.substr(idx+1).trimmed();
+        if ( filename.empty() || pluginname.empty() || filename.contains('/') )
+          return result;
+        result.plugin_name = pluginname;
+        result.file_name = filename;
+        return result;
+      }
+      std::string lookupFile( const TextDataPath& p ) const
+      {
+        auto request = parsePath(p);
+        if (!request.plugin_name.has_value())
+          return {};
+        auto db = Plugins::detail::getPluginDataDirDB();
+        if ( db.empty() )
+          return {};
+        std::string filename = request.file_name.to_string();
+        for ( auto& e : db ) {
+          if ( request.plugin_name == e.first ) {
+            auto full_path = path_join( e.second, filename );
+            if ( file_exists( full_path ) )
+              return full_path;
+          }
+        }
+        return {};
+      }
+    public:
+      const char * name() const noexcept override
+      {
+        return factNamePluginSearchPaths;
+      }
+      Priority query( const TextDataPath& p ) const override
+      {
+        auto full_path = lookupFile(p);
+        return ( full_path.empty()
+                 ? Priority::Unable
+                 : Priority{Priority::OnlyOnExplicitRequest} );
+      }
+      TextDataSource produce( const TextDataPath& p ) const override
+      {
+        auto full_path = lookupFile(p);
+        if (full_path.empty())
+          NCRYSTAL_THROW2( DataLoadError,"File disappeared suddenly"
+                           " during request: " << p );
+        return TextDataSource::createFromOnDiskPath( full_path );
+      }
+      std::vector<BrowseEntry> browse() const override {
+        //In case a plugin has more than one directory with the same filename
+        //inside, we would only serve the first entry. We faithfully reproduce
+        //this in the browsed list, but also emit a warning:
+        std::vector<BrowseEntry> out;
+        std::set<PairSS> seen;
+        auto db = Plugins::detail::getPluginDataDirDB();
+        const auto priority = Priority{Priority::OnlyOnExplicitRequest};
+        for ( auto& db_entry : db ) {
+          for ( auto& be : browseDir( db_entry.second, priority ) ) {
+            PairSS key{ be.name, be.source };
+            if ( seen.count( key ) ) {
+              //fixme emit warning here
+              continue;
+            }
+            seen.insert(std::move(key));
+            be.name = db_entry.first + "/" + be.name;
+            out.push_back( std::move( be ) );
+          }
+        }
+        return out;
+      }
+    };
+  }
+}
+
+
+void NCD::enableAbsolutePaths( bool doEnable )
+{
+  s_was_called_enableAbsolutePaths.store(true);
+  static std::atomic<bool> s_enabled = {false};
+  if ( !setValue(s_enabled,doEnable).wasChanged )
+    return;
+  if ( !doEnable ) {
+    FactImpl::removeTextDataFactoryIfExists( factNameAbsPath );
+  } else {
+    FactImpl::registerFactory( std::make_unique<TDFact_AbsPath>() );
+  }
+}
+
+namespace NCRYSTAL_NAMESPACE {
+  namespace DataSources {
 
     class TDFact_RelPath final : public FactImpl::TextDataFactory {
       std::string resolve( const TextDataPath& p ) const {
@@ -446,6 +529,19 @@ void NCD::removeCustomSearchDirectories()
   FactImpl::removeTextDataFactoryIfExists(factNameCustomSearchDirs);
 }
 
+void NCD::enablePluginSearchPaths( bool doEnable )
+{
+  s_was_called_enablePluginSearchPaths.store(true);
+  static std::atomic<bool> s_enabled = {false};
+  if ( !setValue(s_enabled,doEnable).wasChanged )
+    return;
+  if ( !doEnable ) {
+    FactImpl::removeTextDataFactoryIfExists( factNamePluginSearchPaths );
+  } else {
+    FactImpl::registerFactory( std::make_unique<TDFact_PluginDirs>() );
+  }
+}
+
 void NCD::enableStandardSearchPath( bool doEnable )
 {
   s_was_called_enableStandardSearchPath.store(true);
@@ -726,6 +822,9 @@ extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_stddatasrc_factory)()
 
   if (!NC::DataSources::s_was_called_enableStandardSearchPath.load())
     NC::DataSources::enableStandardSearchPath(true);
+
+  if (!NC::DataSources::s_was_called_enablePluginSearchPaths.load())
+    NC::DataSources::enablePluginSearchPaths(true);
 }
 #endif
 

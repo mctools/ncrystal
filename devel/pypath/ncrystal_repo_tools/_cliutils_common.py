@@ -165,14 +165,17 @@ class StrMatch:
                  ( self._pattern in s ) )
 
 def grep( f, pos_needles, neg_needles ):
-    with f.open('rt') as fh:
-        for line in fh:
-            if line.endswith('\n'):
-                line = line[:-1]
-                if ( ( not pos_needles
-                       or any( n.do_match(line) for n in pos_needles ) )
-                     and not any( n.do_match(line) for n in neg_needles ) ):
-                    yield line
+    try:
+        with f.open('rt') as fh:
+            for line in fh:
+                if line.endswith('\n'):
+                    line = line[:-1]
+                    if ( ( not pos_needles
+                           or any( n.do_match(line) for n in pos_needles ) )
+                         and not any( n.do_match(line) for n in neg_needles ) ):
+                        yield line
+    except UnicodeDecodeError:
+        print('WARNING: Ignoring non-utf8 file %s'%f)
 
 def iter_nonempty( iterable ):
     return next(iterable, None) is not None

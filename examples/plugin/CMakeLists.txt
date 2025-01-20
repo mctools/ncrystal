@@ -6,7 +6,7 @@ string(STRIP "${NCPlugin_NAME}" NCPlugin_NAME)
 
 project( "NCPlugin_${NCPlugin_NAME}" VERSION 0.0.1 LANGUAGES CXX)
 
-set( ncplugin_data_file_pattern "data/*.nxs" )
+set( ncplugin_data_file_pattern "data/*.ncmat" )
 
 if ( DEFINED SKBUILD_PROJECT_NAME )
   if ( NOT "${SKBUILD_PROJECT_NAME}" STREQUAL "ncrystal_plugin_${NCPlugin_NAME}" )
@@ -64,7 +64,7 @@ endif()
 
 if ( DEFINED SKBUILD_PROJECT_NAME )
   #Install in wheel platlib dir:
-  set( pymoddir "${SKBUILD_PLATLIB_DIR}/ncplugin_${NCPlugin_NAME}")
+  set( pymoddir "${SKBUILD_PLATLIB_DIR}/ncrystal_plugin_${NCPlugin_NAME}")
   install( TARGETS ${pluglib} LIBRARY DESTINATION "${pymoddir}/plugins" )
   #Also add an empty __init__.py:
   file( TOUCH "${PROJECT_BINARY_DIR}/__init__.py" )
