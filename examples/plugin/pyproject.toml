@@ -20,7 +20,7 @@
 ################################################################################
 
 [project]
-name = "ncplugin-DummyPlugin"
+name = "ncrystal-plugin-DummyPlugin"
 version = "0.0.1"
 license = {file = "LICENSE"}
 dependencies = [ "ncrystal-core>=3.9.80", "ncrystal-pypluginmgr" ]

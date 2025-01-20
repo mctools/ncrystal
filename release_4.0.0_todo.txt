@@ -1,5 +1,13 @@
 #FIXME Address all of the following for the release:
 
+* Plugins should be able to easily provide files, via a data directory. So we
+  should most likely provide a utility function for that in
+  NCrystalConfig.cmake. Note that we should be able to provide them as on-disk
+  files, so we can use the plugin mechanism to provide extra data files. Or
+  perhaps the pluginmanager should simply recognise a data directory as well?
+
+* update year in copyright statements (also in e.g. nxslib plugin).
+
 * Finally grep for 3.9.80, etc., to make sure any >3.9.8x is actually pointing
   at the last release candidate.
 

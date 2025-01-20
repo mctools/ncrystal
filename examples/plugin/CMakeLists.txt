@@ -6,8 +6,10 @@ string(STRIP "${NCPlugin_NAME}" NCPlugin_NAME)
 
 project( "NCPlugin_${NCPlugin_NAME}" VERSION 0.0.1 LANGUAGES CXX)
 
+set( ncplugin_data_file_pattern "data/*.nxs" )
+
 if ( DEFINED SKBUILD_PROJECT_NAME )
-  if ( NOT "${SKBUILD_PROJECT_NAME}" STREQUAL "ncplugin_${NCPlugin_NAME}" )
+  if ( NOT "${SKBUILD_PROJECT_NAME}" STREQUAL "ncrystal_plugin_${NCPlugin_NAME}" )
     message(
       FATAL_ERROR "Mismatch in plugin name hardcoded in "
       " ncplugin_name.txt and pyproject.toml's project.name field."
@@ -53,18 +55,23 @@ target_compile_definitions( ${pluglib} PRIVATE "NCPLUGIN_NAME=${NCPlugin_NAME}" 
 target_link_libraries( ${pluglib} PRIVATE NCrystal::NCrystal )
 target_include_directories( ${pluglib} PRIVATE "${PROJECT_SOURCE_DIR}/src" )
 
+if ( ncplugin_data_file_pattern )
+  file(GLOB plugin_datafiles LIST_DIRECTORIES false CONFIGURE_DEPENDS
+    "${PROJECT_SOURCE_DIR}/${ncplugin_data_file_pattern}" )
+else()
+  set( plugin_datafiles "" )
+endif()
+
 if ( DEFINED SKBUILD_PROJECT_NAME )
   #Install in wheel platlib dir:
-  install(
-    TARGETS ${pluglib} LIBRARY
-    DESTINATION "${SKBUILD_PLATLIB_DIR}/ncplugin_${NCPlugin_NAME}/plugins"
-  )
+  set( pymoddir "${SKBUILD_PLATLIB_DIR}/ncplugin_${NCPlugin_NAME}")
+  install( TARGETS ${pluglib} LIBRARY DESTINATION "${pymoddir}/plugins" )
   #Also add an empty __init__.py:
   file( TOUCH "${PROJECT_BINARY_DIR}/__init__.py" )
-  INSTALL(
-    FILES "${PROJECT_BINARY_DIR}/__init__.py"
-    DESTINATION "${SKBUILD_PLATLIB_DIR}/ncplugin_${NCPlugin_NAME}"
-  )
+  INSTALL( FILES "${PROJECT_BINARY_DIR}/__init__.py" DESTINATION "${pymoddir}" )
+  #Special location for data files:
+  install( FILES ${plugin_datafiles} DESTINATION "${pymoddir}/data" )
 else()
   install( TARGETS ${pluglib} LIBRARY DESTINATION lib )
+  install( FILES ${plugin_datafiles} DESTINATION data )
 endif()
