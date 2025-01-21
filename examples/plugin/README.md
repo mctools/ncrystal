@@ -9,8 +9,9 @@ modifying as needed.
 First of all, decide on a name. In the example files, the name of the plugin is
 `DummyPlugin`, but this should of course be updated to something more
 appropriate. Once a suitable name has been chosen, be sure to update this files
-`ncplugin_name.txt` and `pyproject.toml`, and replace `DummyPlugin` with the name
-you have chosen.
+`ncplugin_name.txt` and `pyproject.toml`, and replace `DummyPlugin` with the
+name you have chosen. Additionally, the `@CUSTOM_DUMMYPLUGIN` section in any
+NCMAT files in the `data/` directory should also match the name of the plugin.
 
 After that, you should update the files in the `src/` folder to reflect the
 actual physics of your plugin. In the example, the plugin allows materials to
@@ -18,7 +19,9 @@ replace the usual incoherent-elastic models of NCrystal with a custom silly
 model in which incoherent-elastic physics has a cross section which is a
 step-function in energy (or wavelength), and all scatterings are isotropic and
 elastic. The plugin is activated for NCMAT files which have a
-@CUSTOM_DUMMYPLUGIN section. The primary files to modify are:
+@CUSTOM_DUMMYPLUGIN section with two numbers (the cross section below the
+wavelength theshold in barn, and the wavelength threshold in angstrom). The
+primary files to modify are:
 
   * `src/NCPhysicsModel.cc`: This is where the actual physics model is
     implemented.

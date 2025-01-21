@@ -90,8 +90,19 @@ void NCP::customPluginTest()
     double expected_xs = expected_xs_incelasonly + xs_base_noincelas.dbl();
     nc_assert_always( NC::floateq( expected_xs_incelasonly,
                                    xs_incelasonly.dbl() ) );
-    nc_assert_always( NC::floateq( expected_xs,
-                                   xs.dbl() ) );
+    nc_assert_always( NC::floateq( expected_xs, xs.dbl() ) );
+  }
+
+  //Also test the data file provided in the data/ subdirectory of our plugin:
+  auto scat_somefile
+    = NC::createScatter( "plugins::DummyPlugin/somefile.ncmat;comp=incoh_elas");
+
+  for ( auto& wlval : NC::linspace(0.1,3.1,16) ) {
+    auto wl = NC::NeutronWavelength( wlval );
+    auto xs = scat_somefile.crossSectionIsotropic( wl );
+    NCRYSTAL_MSG( "somefile.ncmat incoh-elas xs @ "<<wl<<" : "<<xs);
+    double expected_xs = ( wl.dbl() <= 4.0 ? 6.0 : 0.0 );
+    nc_assert_always( NC::floateq( expected_xs, xs.dbl() ) );
   }
 
   //Note: We do not test the scattering here for this simple dummy plugin.

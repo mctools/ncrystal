@@ -1,0 +1,18 @@
+NCMAT v7
+#
+# A silly vanadium (don't use this for actual work, use "stdlib::V_sg229.ncmat"
+# instead!).
+#
+@STATEOFMATTER
+  solid
+@DENSITY
+  6.1 g_per_cm3
+@DYNINFO
+  element  V
+  fraction 1
+  type     vdosdebye
+  debye_temp 300
+@CUSTOM_DUMMYPLUGIN
+  #Silly physics, incoherent elastic cross section of 6 barn below 4angstrom,
+  #and 0 above 4 angstrom:
+  6.0 4.0
