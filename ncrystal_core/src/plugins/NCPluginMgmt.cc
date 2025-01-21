@@ -497,7 +497,21 @@ void NCP::ensurePluginsLoaded()
     }
 
     //Data directories from ncrystal-pluginmanager:
-    appendPluginDataDirDB( std::move( plugmgrcmd_results.plugin_datadirs ) );
+    SmallVector<PairSS,4> ddirs = std::move( plugmgrcmd_results.plugin_datadirs );
+    //Data directories from env var:
+    for ( auto& e : split2(ncgetenv("PLUGIN_DATADIRS"),0,':') ) {
+      auto p = StrView(e).splitTrimmedNoEmpty('@');
+      if ( p.empty() )
+        continue;
+      if ( p.size()!=2 || p.at(0).empty() || p.at(1).empty() )
+        NCRYSTAL_THROW2( BadInput,
+                         "Invalid NCRYSTAL_PLUGIN_DATADIRS"
+                         " content in entry \""<<e<<"\"" );
+      ddirs.emplace_back( p.at(0).to_string(),
+                          p.at(1).to_string() );
+    }
+    appendPluginDataDirDB( std::move( ddirs ) );
+
 
   }//release mutex
 

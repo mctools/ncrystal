@@ -241,9 +241,13 @@ def create_testplugin_pkg(pkgname,pkg_deps):
                     pkg_deps = pkg_deps,
                     extra_cflags = ['-DNCPLUGIN_NAME=DummyPlugin'] )
 
-    p = dirs.exsrcroot.joinpath('plugin','src')
-    for sf in itertools.chain( p.glob('*.hh'), p.glob('*.cc') ):
+    p = dirs.exsrcroot.joinpath('plugin')
+    for sf in itertools.chain( p.joinpath('src').glob('*.hh'),
+                               p.joinpath('src').glob('*.cc') ):
         add_file( f'pkgs/{pkgname}/libsrc/{sf.name}', link_target = sf )
+    for sf in p.joinpath('data').glob('*.ncmat'):
+        add_file( f'pkgs/{pkgname}/data/{sf.name}', link_target = sf )
+
 
 def define_files():
 

@@ -37,6 +37,11 @@ def main():
     os.environ['NCRYSTALDEV_PLUGIN_LIST']=pl
     os.environ['NCRYSTALDEV_PLUGIN_RUNTESTS']='1'
     os.environ['NCRYSTALDEV_REQUIRED_PLUGINS']='DummyPlugin'
+    pl = os.environ['SBLD_DATA_DIR']+'/NCTestPlugin'
+    if not os.path.exists(pl):
+        raise SystemExit(f'Not found: {pl}')
+    os.environ['NCRYSTALDEV_PLUGIN_DATADIRS']=f'DummyPlugin@{pl}'
+
     for k,v in os.environ.items():
         if k.startswith('NCRYSTAL'):
             print(k,v)
