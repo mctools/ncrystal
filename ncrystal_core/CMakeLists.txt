@@ -88,20 +88,12 @@ function( _ncrystal_option_force varname value )
 endfunction()
 
 if ( DEFINED SKBUILD_PROJECT_NAME )
-  message( STATUS "scikit-build mode detected. Overriding various settings" )
-  _ncrystal_option_force( NCRYSTAL_ENABLE_EXAMPLES "OFF" )
-  _ncrystal_option_force( NCRYSTAL_ENABLE_DYNLOAD "ON" )
-  _ncrystal_option_force( NCRYSTAL_MODIFY_RPATH "OFF" )
-  _ncrystal_option_force( NCRYSTAL_ENABLE_DATA "EMBED" )
-  _ncrystal_option_force( NCRYSTAL_ENABLE_GEANT4 "OFF" )
-  _ncrystal_option_force( NCRYSTAL_ENABLE_THREADS "ON" )
-  _ncrystal_option_force( NCRYSTAL_ENABLE_TESTING "OFF" )
+  message( STATUS "scikit-build mode detected. Overriding some settings." )
   _ncrystal_option_force( CMAKE_INSTALL_LIBDIR "${nccore_pymodname}/data/lib" )
   _ncrystal_option_force( CMAKE_INSTALL_INCLUDEDIR "${nccore_pymodname}/data/include" )
   _ncrystal_option_force( CMAKE_INSTALL_DATADIR "${nccore_pymodname}/data/data" )
   _ncrystal_option_force( CMAKE_INSTALL_BINDIR "${nccore_pymodname}/data/bin" )
   set ( ncrystal_skbld_autogendir "${PROJECT_SOURCE_DIR}/skbld_autogen" )
-
   #Cleanup skbld_autogendir unless we are building FROM an sdist (or creating
   #one):
   if ( EXISTS "${ncrystal_skbld_autogendir}/is_sdist.txt"
@@ -461,7 +453,8 @@ function(set_target_common_props targetname)
   if ( STRICT_CSTD )
     set_target_properties( ${targetname} PROPERTIES C_STANDARD ${STRICT_CSTD} C_STANDARD_REQUIRED ON C_EXTENSIONS OFF)
   endif()
-  #Always disallow M_PI and friends in our own code (they are not portable):
+  #Always disallow M_PI and friends in our own code (they are not portable), but
+  #do not add to ncapi.h to avoid introducing issues in user code:
   target_compile_definitions( ${targetname} PRIVATE NCRYSTAL_NO_CMATH_CONSTANTS )
   if ( ncrystal_extra_private_compile_options )
     target_compile_options( ${targetname} PRIVATE ${ncrystal_extra_private_compile_options} )
@@ -515,36 +508,21 @@ set_target_properties( NCrystal PROPERTIES OUTPUT_NAME "${_tmp_basiclibname}" )
 if ( WIN32 AND NCRYSTAL_WINEXPORTALL )
   #We must export all symbols in libNCrystal.so, even those from internal
   #headers - since we also use internal files in our tests and plugins. We use
-  #NCRYSTAL_PREVENT_WINDLLEXPORT to avoid explicitly exporting any symbols in
-  #this case, since that triggers spurious warnings from VisualStudio.
+  #NCRYSTAL_PREVENT_WINDLLEXPORT (in ncrystal_ncapi.cmake) to avoid explicitly
+  #exporting any symbols in this case, since that triggers spurious warnings
+  #from VisualStudio.
   set_target_properties( NCrystal PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS TRUE )
-  target_compile_definitions( NCrystal PUBLIC NCRYSTAL_PREVENT_WINDLLEXPORT )#fixme why on earth public
 endif()
 
 # Dynamic library loading:
-
-# NCRYSTAL_ENABLE_DYNLOAD must be ON or OFF or IFAVAILABLE:
-if ( NCRYSTAL_ENABLE_DYNLOAD STREQUAL "IFAVAILABLE" )
-  if ( UNIX )
-    set( _ncrystal_actual_disable_dynload OFF )
-  else()
-    set( _ncrystal_actual_disable_dynload ON )
+if ( NCRYSTAL_ENABLE_DYNLOAD )
+  if ( UNIX AND CMAKE_DL_LIBS )
+    #Cf. https://gitlab.kitware.com/cmake/cmake/-/merge_requests/1642 for why we
+    #only do this on UNIX.
+    target_link_libraries( NCrystal PRIVATE ${CMAKE_DL_LIBS} )
   endif()
 else()
-  if ( NCRYSTAL_ENABLE_DYNLOAD STREQUAL ON )
-    set( _ncrystal_actual_disable_dynload OFF )
-  else()
-    set( _ncrystal_actual_disable_dynload ON )
-  endif()
-endif()
-
-if ( NOT _ncrystal_actual_disable_dynload AND CMAKE_DL_LIBS AND UNIX )
-  #Cf. https://gitlab.kitware.com/cmake/cmake/-/merge_requests/1642 for why we
-  #only do this on UNIX.
-  target_link_libraries( NCrystal PRIVATE ${CMAKE_DL_LIBS} )
-endif()
-if ( _ncrystal_actual_disable_dynload )
-  target_compile_definitions( NCrystal PRIVATE NCRYSTAL_DISABLE_DYNLOADER )
+  target_compile_definitions( NCrystal PRIVATE NCRYSTAL_DISABLE_DYNLOAD )
 endif()
 
 set_target_common_props( NCrystal )

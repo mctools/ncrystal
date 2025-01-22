@@ -113,11 +113,11 @@ namespace NCRYSTAL_NAMESPACE {
         //supporting the ability for "pip install ./my/plugin" to work
         //immediately with no further issues.
         PlugMgrResults result;
-#ifdef NCRYSTAL_STDPLUGINSONLY
-        return result;
+#ifdef NCRYSTAL_DISABLE_DYNLOAD
+        return result;//all plugin loading forbidden
 #endif
 #ifdef NCRYSTAL_DISABLE_CMDLINEPLUGINMGR
-        return result;
+        return result;//just the ncrystal-pluginmanager disabled
 #endif
 #if ( defined (_WIN32) || defined (WIN32) )
         if (!win_pluginmgr_cmd_exists())
@@ -456,14 +456,16 @@ void NCP::ensurePluginsLoaded()
     for ( auto& e : split2(ncgetenv("PLUGIN_LIST"),0,':') )
       dynplugin_list.push_back( trim2(std::move(e)) );
 
-    //However, NCRYSTAL_STDPLUGINSONLY env var and define can be used to prevent
-    //any third party dynamic plugins:
-#if defined(NCRYSTAL_STDPLUGINSONLY) || defined(NCRYSTAL_DISABLE_DYNLOADER) //fixme cleanup these flags, and dont try if not enabled
-    dynplugin_list.clear();
+    //However, NCRYSTAL_DISABLE_DYNLOAD env var and NCRYSTAL_DISABLE_DYNLOAD
+    //define can be used to prevent any third party dynamic plugins:
+#if defined(NCRYSTAL_DISABLE_DYNLOAD)
+    const bool cfg_disable_dynload = true;
 #else
-    if ( ncgetenv_bool("STDPLUGINSONLY") )
-      dynplugin_list.clear();
+    const bool cfg_disable_dynload = ncgetenv_bool("DISABLE_DYNLOAD");
+
 #endif
+    if ( cfg_disable_dynload )
+      dynplugin_list.clear();
 
     std::set<std::string> dynplugins_already_loaded;
     for ( auto& pluginlib : dynplugin_list ) {
@@ -518,8 +520,8 @@ void NCP::ensurePluginsLoaded()
       ddirs.emplace_back( p.at(0).to_string(),
                           p.at(1).to_string() );
     }
-    appendPluginDataDirDB( std::move( ddirs ) );
-
+    if ( !cfg_disable_dynload )
+      appendPluginDataDirDB( std::move( ddirs ) );
 
   }//release mutex
 

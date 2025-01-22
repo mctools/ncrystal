@@ -65,15 +65,29 @@ def main( parser ):
         '-j',type=int,default=0,
         help="""Use this many processes (default: auto detect)."""
     )
+    parser.add_argument(
+        '-c', '--cmake-args', nargs='+', action='append', default=[],
+        help="""List of strings which will be added as CMake arguments during
+                the configuration stage. Any leading '@' characters will be
+                removed before being passed on to CMake, which allows usage like
+                '-c @-DSOMEVAR=OFF' (otherwise one can do -c=-DSOMEVAR=OFF)."""
+    )
+
     args = parser.parse_args()
+    _ = []
+    for e in args.cmake_args:
+        for s in e:
+            _.append(s[1:] if s.startswith('@') else s)
+    args.cmake_args = _
 
     from .util import get_nprocs
     nprocs = args.j or get_nprocs()
 
     needs_tmpdir = (not args.install_dir) or ( not args.build_dir )
+
     runner_args = dict( force = args.force,
                         mode = args.mode,
-                        cmake_flags = None,
+                        cmake_flags = args.cmake_args,
                         build_types = ['rel'],
                         nprocs_bld = nprocs,
                         nprocs_ctest = nprocs )

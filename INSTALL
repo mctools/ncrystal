@@ -100,7 +100,10 @@ e.g.:
   $> pip install ./ncrystal_core
 
 It is beyond the scope of the present instructions to discuss the procedure of
-manual building with CMake. Simply note that it follows the usual procedure
+manual building with CMake, although it should be noted that you can also use
+modify CMake options when installing via pip (e.g. "pip install
+--config-settings=cmake.define.NCRYSTAL_ENABLE_DYNLOAD=OFF ncrystal-core". Those
+using CMake directly should simply note that it follows the usual procedure
 (e.g. supports CMAKE_INSTALL_PREFIX etc.). To get started, here is nonetheless
 how one might do it in BASH:
 

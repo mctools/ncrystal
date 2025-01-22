@@ -26,9 +26,8 @@
 #include <stdexcept>
 #include <string>
 
-//NCRYSTAL_DISABLE_DYNLOADER can be used to disable dynamic loading. This can be
-//used to disable the untested Windows code, which we honestly don't know if
-//will even compile.
+//NCRYSTAL_DISABLE_DYNLOAD can be used to disable dynamic loading (controlled
+//via CMake NCRYSTAL_ENABLE_DYNLOAD flag).
 
 #if ( defined (_WIN32) || defined (WIN32) ) && !defined (__CYGWIN__) && !defined (NCRYSTAL_WIN_LOADLIB)
 #  define NCRYSTAL_WIN_LOADLIB
@@ -48,7 +47,7 @@ namespace NC = NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {
   namespace {
-#ifndef NCRYSTAL_DISABLE_DYNLOADER
+#ifndef NCRYSTAL_DISABLE_DYNLOAD
     std::mutex& getMutex() {
       static std::mutex theMutex;
       return theMutex;
@@ -59,7 +58,7 @@ namespace NCRYSTAL_NAMESPACE {
   //Wrap dlsym. Returns { errormsg, address }. Success is indicated by errormsg.empty().
   std::pair<std::string,void *> implLookupSymbol( void* handle,  const std::string& symbol )
   {
-#ifdef NCRYSTAL_DISABLE_DYNLOADER
+#ifdef NCRYSTAL_DISABLE_DYNLOAD
     (void)handle;
     (void)symbol;
     return {std::string("NCrystal dynamic loading is disabled"),nullptr};
@@ -104,7 +103,7 @@ NC::DynLoader::DynLoader( const std::string& filename,
 {
   (void)lazyflag;
   (void)scopeflag;
-#ifndef NCRYSTAL_DISABLE_DYNLOADER
+#ifndef NCRYSTAL_DISABLE_DYNLOAD
   NCRYSTAL_LOCK_GUARD( getMutex() );
 #  ifdef NCRYSTAL_WIN_LOADLIB
   m_handle = (void*)LoadLibrary(filename.c_str());
@@ -122,7 +121,7 @@ NC::DynLoader::DynLoader( const std::string& filename,
 #  endif
 #endif
   if ( !m_handle ) {
-#ifdef NCRYSTAL_DISABLE_DYNLOADER
+#ifdef NCRYSTAL_DISABLE_DYNLOAD
     const char* errMsg = "NCrystal dynamic loading is disabled";
 #else
 #  ifdef NCRYSTAL_WIN_LOADLIB
@@ -143,7 +142,7 @@ NC::DynLoader::~DynLoader()
     return;
 
   const char* errMsg = nullptr;
-#ifdef NCRYSTAL_DISABLE_DYNLOADER
+#ifdef NCRYSTAL_DISABLE_DYNLOAD
   errMsg = "NCrystal dynamic loading is disabled";
 #else
   NCRYSTAL_LOCK_GUARD( getMutex() );

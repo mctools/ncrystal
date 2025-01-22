@@ -47,6 +47,11 @@ function( nccfgapp_create_ncapi_h resvar_includepath )
     #environment:
     string( APPEND ncapidefs "#define NCRYSTAL_DISABLE_CMDLINEPLUGINMGR\n")
   endif()
+  if ( WIN32 AND NCRYSTAL_WINEXPORTALL )
+    #prevent __declspec(dllexport/import) since compiling with CMake
+    #WINDOWS_EXPORT_ALL_SYMBOLS:
+    string( APPEND ncapidefs "#define NCRYSTAL_PREVENT_WINDLLEXPORT\n")
+  endif()
   set( NCRYSTAL_HOOK_FOR_ADDING_DEFINES
     " -- CMake definitions begin -- */\n\n${ncapidefs}\n/* -- CMake definitions end --" )
   configure_file( "${srctemplate}" "${tgtfile}" @ONLY )

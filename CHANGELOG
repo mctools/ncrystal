@@ -9,9 +9,11 @@ v4.0.0 2025-01-??
      * Plugins needs updating (include paths, and add usage of
        registerPluginTestFunction). NCRYSTAL_PLUGIN_RUNTESTS=1 and
        NCRYSTAL_PLUGIN_RUNTESTS (fixme). NB: NCRYSTAL_PLUGIN_LIST now accepts
-       .SODYLIB as cross-platform alias for .so/.dylib/.dll
-       Describe new template and auto-detection after pip install plugin.
-       Also describe NCRYSTAL_STDPLUGINSONLY=1.
+       .SODYLIB as cross-platform alias for .so/.dylib/.dll Describe new
+       template and auto-detection after pip install plugin.  Also describe
+       NCRYSTAL_DISABLE_DYNLOAD=1 env var, and how NCRYSTAL_ENABLE_DYNLOAD=OFF
+       cmake option can be used to forbid plugin loading now that we do not
+       allow builtin plugins.
      * Removed several long-obsolete CMake options. Also removed any options
        related to python code, since those are now installed without cmake.
      * Removed SOVERSION from produced libraries (due to github issue #186).

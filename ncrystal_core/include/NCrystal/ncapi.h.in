@@ -57,8 +57,8 @@
 #  undef NCRYSTAL_VERSION_STR
 #endif
 
-/* Next, the configuration system will set version numbers and a namespace if */
-/* any: */
+/* Next, the configuration system will set version numbers, a namespace if    */
+/* any, along with any other settings needing hardwiring here:                */
 
 /* @NCRYSTAL_HOOK_FOR_ADDING_DEFINES@ */
 

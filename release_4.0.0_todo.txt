@@ -66,3 +66,5 @@
 * Open issue about migrating out ncrystal_geant4
 * Open issue about migration all plugins.
 * Open issue about migrating more tests from ncdevtool repo
+
+* Double check jupyter notebooks (especially interactively rerunning, plus on colab).
