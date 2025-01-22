@@ -1,0 +1,68 @@
+name: openmc
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '30 8 * * 3'  # 8:30 every Wed
+
+jobs:
+
+  build:
+    strategy:
+      matrix:
+        include:
+#          - { os: ubuntu-latest, openmcbranch: "develop", python : "3.13" }
+          - { os: ubuntu-latest, openmcbranch: "master", python : "3.11" }
+
+    name: ${{ matrix.os }}.openmc-${{ matrix.openmcbranch }}.python-${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -el {0}
+    env:
+      CONDA_SOLVER: libmamba
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: ./src
+
+      - name: Checkout openmc
+        uses: actions/checkout@v4
+        with:
+          repository: openmc-dev/openmc
+          ref: ${{ matrix.openmcbranch }}
+          path: ./src_openmc
+
+      - name: Install ncrystal-core
+        run: pip install ./src/ncrystal_core
+
+      - name: Look around
+        run: ls -l ./src_openmc
+
+      - name: Instal extra openmc deps
+        run: sudo apt install libhdf5-dev libpng-dev
+
+      - name: Configure OpenMC with NCrystal enabled
+        run: |
+          mkdir build
+          mkdir install
+          #FIXME need PR upstream to avoid NCrystal_DIR here:
+          cmake -S ./src_openmc -B ./build \
+          -DCMAKE_INSTALL_PREFIX=./install \
+          -DOPENMC_USE_NCRYSTAL=ON \
+          -DNCrystal_DIR="$(ncrystal-config --show cmakedir)"
+
+      - name: Build OpenMC
+        run: cmake --build ./build
+
+      - name: Install OpenMC
+        run: cmake --install ./build
+
+      - name: Run openmc --help
+        run: ./install/bin/openmc --help
+
+      - name: Install OpenMC python
+        run: pip install ./src_openmc
+
