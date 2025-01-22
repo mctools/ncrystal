@@ -50,7 +50,7 @@ namespace NCPluginNamespace {
   void registerPlugin();
 }
 
-//For convenience we include the public NCrystal API and creates a few aliases:
+//For convenience we include the public NCrystal API and create a few aliases:
 #include "NCrystal/NCrystal.hh"
 
 namespace NC = NCrystal;
@@ -70,37 +70,24 @@ namespace NCPluginNamespace {
 //dynamic access to the plugin:
 #if defined(NCPLUGIN_BOILERPLATE_CC)
 //C-mangled hooks (only for dynamic plugins)
-#ifndef NCPLUGIN_ASBUILTIN
 #  if defined (_WIN32) || defined (__CYGWIN__) || defined (WIN32)
-#    ifndef NCRYSTAL_PREVENT_WINDLLEXPORT
-#      define ncpluginhh_export __declspec(dllexport)
-#    else
-#      define ncpluginhh_export
-#    endif
+#    define ncpluginhh_export __declspec(dllexport)
 #  elif defined(__GNUC__) || defined(__clang__)
 #    define ncpluginhh_export __attribute__ ((visibility ("default")))
 #  else
 #    define ncpluginhh_export
 #  endif
-#  ifdef NCPLUGIN_DO_REGISTERDATAFILES
-namespace NCPluginNamespace {
-  void registerDataFiles();//implementation provided elsewhere (by ncmat2cpp)
-}
-#  endif
+
 extern "C" {
   ncpluginhh_export void ncplugin_register()
   {
     NCP::registerPlugin();
-#  ifdef NCPLUGIN_DO_REGISTERDATAFILES
-    NCP::registerDataFiles();
-#  endif
   }
   ncpluginhh_export const char * ncplugin_getname()
   {
     return NCPLUGIN_NAME_CSTR;
   }
 }
-#endif
 
 const std::string& NCP::pluginName()
 {

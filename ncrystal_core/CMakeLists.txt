@@ -518,7 +518,7 @@ if ( WIN32 AND NCRYSTAL_WINEXPORTALL )
   #NCRYSTAL_PREVENT_WINDLLEXPORT to avoid explicitly exporting any symbols in
   #this case, since that triggers spurious warnings from VisualStudio.
   set_target_properties( NCrystal PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS TRUE )
-  target_compile_definitions( NCrystal PUBLIC NCRYSTAL_PREVENT_WINDLLEXPORT )
+  target_compile_definitions( NCrystal PUBLIC NCRYSTAL_PREVENT_WINDLLEXPORT )#fixme why on earth public
 endif()
 
 # Dynamic library loading:

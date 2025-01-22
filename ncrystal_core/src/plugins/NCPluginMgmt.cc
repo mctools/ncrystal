@@ -130,13 +130,20 @@ namespace NCRYSTAL_NAMESPACE {
           auto parts = StrView(out.value()).splitTrimmedNoEmpty(';');
           for ( auto& e : parts ) {
             if ( e.startswith(":DATA:") ) {
-              auto p = e.substr(6).splitTrimmedNoEmpty(':');
-              if ( p.size() != 2 )
+              //NB: Paths can contain ':' on windows (e.g. "C:...")
+              auto ee = e.substr(6);
+              auto idx = ee.find(':');
+              StrView p1, p2;
+              if ( idx != StrView::npos ) {
+                p1 = ee.substr(0,idx).trimmed();
+                p2 = ee.substr(idx+1).trimmed();
+              }
+              if ( !p1.has_value() || p1.empty() || p2.empty() )
                 NCRYSTAL_THROW2( BadInput,
                                  "Invalid ncrystal-pluginmanager"
                                  " output in entry \""<<e<<"\"" );
-              result.plugin_datadirs.emplace_back( p.at(0).to_string(),
-                                                          p.at(1).to_string() );
+              result.plugin_datadirs.emplace_back( p1.to_string(),
+                                                   p2.to_string() );
             } else {
               result.dynlibs.emplace_back( e.to_string() );
             }
@@ -499,6 +506,7 @@ void NCP::ensurePluginsLoaded()
     //Data directories from ncrystal-pluginmanager:
     SmallVector<PairSS,4> ddirs = std::move( plugmgrcmd_results.plugin_datadirs );
     //Data directories from env var:
+    //FIXME: Alternative to ':' since it does not work on windows
     for ( auto& e : split2(ncgetenv("PLUGIN_DATADIRS"),0,':') ) {
       auto p = StrView(e).splitTrimmedNoEmpty('@');
       if ( p.empty() )
