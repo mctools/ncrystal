@@ -91,7 +91,7 @@ jobs:
         ncrystal_ncmat2hkl --format=lau 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test_Al.lau
         nctool -d ./test_Al.laz
         nctool -d ./test_Al.lau
-        ncrystal_ncmat2cpp $(ncrystal-config --show datadir)/Al_sg225.ncmat -o test.cpp
+        ncrystal_ncmat2cpp stdlib::Al_sg225.ncmat -o test.cpp
         cat test.cpp
         nctool --pdf Al_sg225.ncmat
         #Examples from README:
