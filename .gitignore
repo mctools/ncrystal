@@ -14,6 +14,14 @@ _site
 /ncrystal_python/build/
 /ncrystal_python/dist/
 
+/examples/plugin_dataonly/ncrystal_plugin_DummyDataPlugin.egg-info/
+/examples/plugin_dataonly/build/
+/examples/plugin_dataonly/dist/
+
+/examples/plugin/ncrystal-plugin-DummyPlugin.egg-info/
+/examples/plugin/build/
+/examples/plugin/dist/
+
 /ncrystal_pypluginmgr/ncrystal_pypluginmgr.egg-info/
 /ncrystal_pypluginmgr/build/
 /ncrystal_pypluginmgr/dist/

@@ -64,6 +64,7 @@ jobs:
         set -eux
         ls -l ./install_plugin/lib
         export NCRYSTAL_PLUGIN_LIST="$(cd ./install_plugin/lib; echo `pwd`/*NCPlugin_DummyPlugin*)"
+        export NCRYSTAL_PLUGIN_DATADIRS="DummyPlugin@$PWD/install_plugin/data"
         export NCRYSTAL_REQUIRED_PLUGINS="DummyPlugin"
         export NCRYSTAL_PLUGIN_RUNTESTS="1"
         env | grep "NCRYSTAL"

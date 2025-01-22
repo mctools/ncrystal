@@ -10,7 +10,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest,windows-latest]
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
 
     name: ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -35,8 +35,18 @@ jobs:
       #--no-build-isolation to prevent getting the ncrystal pkgs just installed
       #to instead be taken from PyPI:
       run: |
-        pip install scikit_build_core
+        pip install scikit-build-core>=0.10
         pip install ./src/examples/plugin --no-build-isolation
+
+    - name: Install plugin_dataonly
+      #--no-build-isolation to prevent getting the ncrystal pkgs just installed
+      #to instead be taken from PyPI.
+      run: |
+        pip install setuptools>=64.0
+        pip install ./src/examples/plugin_dataonly --no-build-isolation
+
+    - name: Run ncrystal-pluginmanager
+      run: ncrystal-pluginmanager
 
     #FIXME: Just use python ctypes.dlopen to load the lib instead?
     - name: Install ncrystal_python
@@ -50,8 +60,33 @@ jobs:
         nctool --plugins
 
     - name: Verify plugin loading (windows)
-      if: runner.os != 'Windows'
+      if: runner.os == 'Windows'
       run: |
         set NCRYSTAL_PLUGIN_RUNTESTS=1
         set NCRYSTAL_REQUIRED_PLUGINS=DummyPlugin
         nctool --plugins
+
+    #The pure data plugin is not actually in NCrystal's list of plugins, since
+    #those are only the shared library plugins:
+    #- name: Verify plugin_dataonly loading (unix)
+    #  if: runner.os != 'Windows'
+    #  run: |
+    #    export NCRYSTAL_PLUGIN_RUNTESTS=1
+    #    export NCRYSTAL_REQUIRED_PLUGINS=DummyDataPlugin
+    #    nctool --plugins
+    #
+    #- name: Verify plugin_dataonly loading (windows)
+    #  if: runner.os == 'Windows'
+    #  run: |
+    #    set NCRYSTAL_PLUGIN_RUNTESTS=1
+    #    set NCRYSTAL_REQUIRED_PLUGINS=DummyDataPlugin
+    #    nctool --plugins
+
+    - name: Browse data files
+      run: nctool -b
+
+    - name: Verify plugin data files
+      run: nctool -d plugins::DummyPlugin/somefile.ncmat
+
+    - name: Verify plugin_dataonly data files
+      run: nctool -d plugins::DummyDataPlugin/dummy.ncmat
