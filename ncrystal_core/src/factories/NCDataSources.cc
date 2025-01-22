@@ -22,6 +22,7 @@
 #include "NCrystal/factories/NCFactImpl.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/internal/utils/NCFileUtils.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
 #include "NCrystal/plugins/NCPluginMgmt.hh"
 
 namespace NC = NCrystal;
@@ -176,12 +177,14 @@ namespace NCRYSTAL_NAMESPACE {
         for ( auto& db_entry : db ) {
           for ( auto& be : browseDir( db_entry.second, priority ) ) {
             PairSS key{ be.name, be.source };
+            std::string fullname = db_entry.first + "/" + be.name;
             if ( seen.count( key ) ) {
-              //fixme emit warning here
+              NCRYSTAL_WARN("Ignoring multiple results for plugin data file: "
+                            <<fullname)
               continue;
             }
             seen.insert(std::move(key));
-            be.name = db_entry.first + "/" + be.name;
+            be.name = std::move(fullname);
             out.push_back( std::move( be ) );
           }
         }

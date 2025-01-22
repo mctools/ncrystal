@@ -60,7 +60,7 @@ namespace NCRYSTAL_NAMESPACE {
 
       Optional<std::string> executeCommandAndCaptureOutput( const char* cmd )
       {
-        constexpr auto nbuf = 4096;//fixme verify with smaller
+        constexpr auto nbuf = 4096;
         std::array<char, nbuf> buffer;
         Optional<std::string> result;
 
