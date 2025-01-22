@@ -46,7 +46,8 @@ def main():
                 'ncrystal_python/LICENSE',
                 'ncrystal_metapkg/LICENSE',
                 'ncrystal_pypluginmgr/LICENSE',
-                'examples/plugin/LICENSE' )
+                'examples/plugin/LICENSE',
+                'examples/plugin_dataonly/LICENSE')
 
     check_same( 'examples/ncrystal_example_cpp.cc',
                 'examples/downstream_cmake/main.cc' )

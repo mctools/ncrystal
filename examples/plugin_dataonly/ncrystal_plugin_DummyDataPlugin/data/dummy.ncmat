@@ -1,0 +1,11 @@
+NCMAT v7
+# A not very useful data file, used as an example for this example plugin.
+@STATEOFMATTER
+  solid
+@DENSITY
+  1 g_per_cm3
+@DYNINFO
+  element  C
+  fraction 1
+  type     vdosdebye
+  debye_temp 300
