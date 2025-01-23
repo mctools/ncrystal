@@ -35,11 +35,16 @@ jobs:
           ref: ${{ matrix.openmcbranch }}
           path: ./src_openmc
 
+      - name: Checkout test data
+        env:
+          THEACCESSTOKEN: ${{ secrets.ACCESS_TOKEN_OPENMCTESTDATA }}
+        run: |
+          set -eu
+          test "${THEACCESSTOKEN:-}" != "" || ( echo "Access token missing"; exit 1 )
+          git clone --depth=1 'https://usernamedoesnotmatter:'"${THEACCESSTOKEN}"'@git.esss.dk/ncrystal/ncrystal-openmc-test-data.git' ./src_data
+
       - name: Install ncrystal-core
         run: pip install ./src/ncrystal_core
-
-      - name: Look around
-        run: ls -l ./src_openmc
 
       - name: Instal extra openmc deps
         run: sudo apt install libhdf5-dev libpng-dev
