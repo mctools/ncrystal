@@ -1,4 +1,9 @@
+* Verify wiki/Get-NCrystal.md (as it is referenced from e.g. openmc).
+
 #FIXME Address all of the following for the release:
+
+* Add a very temporary NCrystal/NCRNG.hh redirection header, to support openmc
+  until their next release?
 
 * Plugins should be able to easily provide files, via a data directory. So we
   should most likely provide a utility function for that in
@@ -68,3 +73,5 @@
 * Open issue about migrating more tests from ncdevtool repo
 
 * Double check jupyter notebooks (especially interactively rerunning, plus on colab).
+
+* Branch master to main (also update wiki).

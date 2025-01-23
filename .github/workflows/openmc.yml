@@ -49,6 +49,8 @@ jobs:
       - name: Instal extra openmc deps
         run: sudo apt install libhdf5-dev libpng-dev
 
+        #Instead of mpich libhdf5-dev, perhaps:libmpich-dev libhdf5-serial-dev libhdf5-mpich-dev
+
       - name: Configure OpenMC with NCrystal enabled
         run: |
           mkdir build

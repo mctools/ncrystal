@@ -48,7 +48,6 @@ requires = ["scikit-build-core>=0.10"]
 build-backend = "scikit_build_core.build"
 
 [tool.scikit-build]
-#cmake.verbose = true
 logging.level = "INFO"
 minimum-version = "build-system.requires"
 wheel.packages = ['skbld_autogen/NCrystal','ncrystal_core/skbld_autogen/_ncrystal_core_monolithic']

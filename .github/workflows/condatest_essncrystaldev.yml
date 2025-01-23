@@ -31,7 +31,7 @@ jobs:
           path: ./src
 
       - name: Checkout ncrystaldev
-        env: # Or as an environment variable
+        env:
           THEACCESSTOKEN: ${{ secrets.ACCESS_TOKEN_NCRYSTALDEV }}
         run: |
           set -eu
