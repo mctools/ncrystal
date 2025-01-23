@@ -46,7 +46,8 @@ def check_NCrystal_hh( content, incguards ):
     expected_missing = ( 'NCrystal/NCrystal.hh',#self
                          'NCrystal/NCPluginBoilerplate.hh',
                          'NCrystal/ncrystal.h',
-                         'NCrystal/cinterface/ncrystal.h'
+                         'NCrystal/cinterface/ncrystal.h',
+                         'NCrystal/NCRNG.hh'#deprecated header
                         )
 
     for ig, include in incguards.items():
@@ -67,6 +68,7 @@ def main():
     f_NCrystal_hh = incroot/'NCrystal/NCrystal.hh'
     f_ncrystal_h = incroot/'NCrystal/cinterface/ncrystal.h'
     f_ncrystal_h_redirect = incroot/'NCrystal/ncrystal.h'
+    f_NCRNG_redirection_hh = incroot/'NCrystal/NCRNG.hh'#deprecated header
 
     for f in all_files_iter('*.h','*.hh',root=incroot):
         is_c = ( f.suffix == '.h' )
@@ -87,6 +89,8 @@ def main():
             ig = 'ncrystal_redirection_h'
         elif f.samefile(f_ncrystal_h):
             ig = 'ncrystal_h'
+        elif f.samefile(f_NCRNG_redirection_hh):
+            ig = 'NCrystal_NCRNG_redirectionhdr_hh'
 
         assert ig not in incguards_seen, "duplicate include guard: %s"%repr(ig)
         incguards_seen.add(ig)

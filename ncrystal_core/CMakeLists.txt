@@ -373,6 +373,7 @@ ncinstall(
   "${ncapi_include_path}/NCrystal/ncapi.h"
   "${PROJECT_SOURCE_DIR}/include/NCrystal/ncrystal.h" #redirects to cinterface/ncrystal.h
   "${PROJECT_SOURCE_DIR}/include/NCrystal/NCrystal.hh" #includes all public non-C headers
+  "${PROJECT_SOURCE_DIR}/include/NCrystal/NCRNG.hh" #deprecated (kept for openmc compilation for now)
   "${PROJECT_SOURCE_DIR}/include/NCrystal/NCPluginBoilerplate.hh"
   DESTINATION
   "${NCrystal_INCDIR}/NCrystal"

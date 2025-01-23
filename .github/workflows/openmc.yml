@@ -66,3 +66,5 @@ jobs:
       - name: Install OpenMC python
         run: pip install ./src_openmc
 
+      - name: Import openmc
+        run: python3 -c 'import openmc'
