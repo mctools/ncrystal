@@ -40,6 +40,7 @@ jobs:
       if: runner.os != 'Windows'
       run: echo "CMAKE_GENERATOR=Ninja Multi-Config" >> $GITHUB_ENV
 
+      #NB: DNCRYSTAL_ENABLE_DATA!=EMBED since ncmat2cpp output of our data lib is too much for poor cppcheck
     - name: Configure CMake
       run: >
         cmake -S ./src -B ./build
@@ -47,6 +48,7 @@ jobs:
         "-DCMAKE_C_CPPCHECK=cppcheck;--error-exitcode=3;--inline-suppr;--check-level=exhaustive"
         -DNCRYSTAL_ENABLE_TESTING=ON
         -DNCRYSTAL_ENABLE_EXAMPLES=ON
+        -DNCRYSTAL_ENABLE_DATA=ON
         -DNCRYSTAL_BUILD_STRICT=${{ matrix.strictflag }}
 
     - name: Build and cppcheck Release

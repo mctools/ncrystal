@@ -328,11 +328,6 @@ if ( NCRYSTAL_MODIFY_RPATH )
 
 endif()
 
-# Look for input files. Apparently "file(GLOB ...)" is frowned upon by some
-# people. However, the only provided alternative (hardcode all your filenames)
-# is rather unappealing. We glob for files, but apply the CONFIGURE_DEPENDS
-# keyword when it is supported.
-
 function(file_globsrc output_var pattern)
   file(GLOB tmp LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/${pattern}" )
   set(${output_var} "${tmp}" PARENT_SCOPE)

@@ -74,6 +74,10 @@ def main():
     if len(sys.argv)<2 or sys.argv[1] in ('-h','--h','--he','--hel','--help'):
         usage()
         return
+    if len(sys.argv)==2 and sys.argv[1]=='--show-completion-list':
+        print( ' '.join(get_mode_list()) )
+        return
+
     mode = sys.argv[1]
     if mode not in get_mode_list():
         raise SystemExit(f'ERROR: Invalid mode "{mode}". Run without'
