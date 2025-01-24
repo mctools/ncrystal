@@ -20,21 +20,29 @@
 
 cmake_minimum_required(VERSION 3.16...3.27)
 
+#Detect skbuild mode (std/monolithic) if appropriate:
+
+if ( DEFINED SKBUILD_PROJECT_NAME )
+  set( NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE "OFF" )
+  set( nccore_pymodname "_ncrystal_core" )
+  if ( DEFINED NCRYSTAL_SKBUILD_MONOLITHIC )
+    if ( NCRYSTAL_SKBUILD_MONOLITHIC )
+      set ( NCRYSTAL_SKBUILD_MONOLITHIC "ON" )
+      set( nccore_pymodname "_ncrystal_core_monolithic" )
+    endif()
+  else()
+    set ( NCRYSTAL_SKBUILD_MONOLITHIC "OFF" )
+  endif()
+else()
+  set ( NCRYSTAL_SKBUILD_MONOLITHIC "OFF" )
+endif()
+
 # Respect value of CMAKE_BUILD_TYPE if already defined, otherwise fall back to
 # Release. In any case, expose CMAKE_BUILD_TYPE as an explicit cache variable
 # (gives drop-down list in gui). This must come before the call to
 # project(..). We do not do this in case the generator is multi-cfg, and we also
 # provide the hidden NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE option to not do it.
 #
-if ( DEFINED SKBUILD_PROJECT_NAME )
-  set( NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE "OFF" )
-  set( nccore_pymodname "_ncrystal_core" )
-  if ( NCRYSTAL_SKBUILD_MONOLITHIC )
-    set( nccore_pymodname "_ncrystal_core_monolithic" )
-  endif()
-else()
-  set ( NCRYSTAL_SKBUILD_MONOLITHIC "OFF" )
-endif()
 
 if( NOT NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE )
   get_property( gen_is_multicfg GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG )
@@ -192,7 +200,7 @@ else()
       )
   endif()
 endif()
-if ( DEFINED NCRYSTAL_SKBUILD_MONOLITHIC )
+if ( NCRYSTAL_SKBUILD_MONOLITHIC )
   #Add a namespace for safety
   set( NCRYSTAL_NAMESPACE "mono${NCRYSTAL_NAMESPACE}" )
 endif()

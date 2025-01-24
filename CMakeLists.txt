@@ -58,9 +58,9 @@ if ( NCRYSTAL_SKBUILD_MONOLITHIC )
 
   # Monolithic install, include Python modules, but change the name of the
   # _is_std.py file to _is_monolithic.py, so the code knows how it is being used
-  # (note we use separate files and not just variables inside files for this,
-  # because that allows us to detect broken installations where
-  # ncrystal-monolithic and ncrystal-python packages both clobber the same
+  # in this manner later (note we use separate files and not just variables
+  # inside files for this, because that allows us to detect broken installations
+  # where ncrystal-monolithic and ncrystal-python packages both clobber the same
   # directories.
 
   if ( NOT EXISTS "${ncrystal_skbld_autogendir}/NCrystal/_is_monolithic.py" )
