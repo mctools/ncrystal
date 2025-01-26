@@ -3,15 +3,15 @@ channels:
   - nodefaults
   - conda-forge
 dependencies:
-  - python
-  - compilers
+  - c-compiler
   - cmake
-  - numpy
-  - pip
   - cppcheck
+  - cxx-compiler
   - mpmath
-  - numpy
+  - numpy >=1.22
+  - pip
   - pybind11
+  - python
   - ruff
   - simple-build-system
   - tomli

@@ -3,7 +3,7 @@ cppcheck
 gemmi
 matplotlib
 mpmath
-numpy
+numpy>=1.22
 pybind11
 ruff
 simple-build-system

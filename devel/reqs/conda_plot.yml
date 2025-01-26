@@ -3,10 +3,10 @@ channels:
   - nodefaults
   - conda-forge
 dependencies:
-  - python
-  - compilers
+  - c-compiler
   - cmake
-  - numpy
-  - pip
+  - cxx-compiler
   - matplotlib
-  - numpy
+  - numpy >=1.22
+  - pip
+  - python

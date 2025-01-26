@@ -74,14 +74,22 @@ def _check_files( files, pattern  ):
         print(files[frel][1],end='')
         print('--------------------------------------')
     found = set()
+    updated_any = False
     for f in reporoot.joinpath('devel','reqs').glob(pattern):
         frel = str(f.relative_to(reporoot)).replace('\\','/')
         if frel not in files:
             raise SystemExit(f'ERROR: Excess file: {frel}')
         if not files[frel][1]==f.read_text():
-            print(f'ERROR: Unexpected content in file: {frel}')
-            print_expected_content(frel)
-            raise SystemExit(1)
+            import os
+            if not os.environ.get('NCRYSTAL_UPDATE_DEPS'):
+                print('ERROR: Unexpected content in file '
+                      f'(env var NCRYSTAL_UPDATE_DEPS=1 to update): {frel}')
+                print_expected_content(frel)
+                raise SystemExit(1)
+            else:
+                print(f'Updating {frel}')
+                f.write_text(files[frel][1])
+                updated_any = True
         found.add(frel)
     for frel in files:
         if frel not in found:
@@ -89,6 +97,9 @@ def _check_files( files, pattern  ):
             print_expected_content(frel)
             raise SystemExit(1)
         print(f'  Verified {frel}')
+    if updated_any:
+        raise SystemExit( "Abort: Updated some files (test "
+                          "should pass next time around)" )
 
 def check_pipreqfiles(src):
     all_deps_combined = set()
@@ -110,19 +121,19 @@ def pip_2_conda_dep( depname ):
     #NB: I am not sure that all version specifications are the same in
     #pyproject.toml, requirements.txt and conda.yml. If not, we might be able to
     #salvage something here.
-    return depname
+    return depname.replace('>',' >').replace('<',' <')
 
 def produce_conda_env( name, deplist ):
+    deplist = set(e for e in deplist)
+    for n in ['python','c-compiler','cxx-compiler','cmake','pip']:
+        if not any( n == d.split('>')[0].strip() for d in deplist ):
+            deplist.add( n )
+
     res=f"""name: ncrystal_{name}
 channels:
   - nodefaults
   - conda-forge
 dependencies:
-  - python
-  - compilers
-  - cmake
-  - numpy
-  - pip
 """
     for n in sorted(deplist):
         res += '  - %s\n'%pip_2_conda_dep(n)

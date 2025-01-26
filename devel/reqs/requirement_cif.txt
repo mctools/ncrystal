@@ -1,4 +1,4 @@
 ase<3.24.0
 gemmi
-numpy
+numpy>=1.22
 spglib

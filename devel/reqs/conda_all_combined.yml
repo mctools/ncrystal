@@ -3,18 +3,18 @@ channels:
   - nodefaults
   - conda-forge
 dependencies:
-  - python
-  - compilers
+  - ase <3.24.0
+  - c-compiler
   - cmake
-  - numpy
-  - pip
-  - ase<3.24.0
   - cppcheck
+  - cxx-compiler
   - gemmi
   - matplotlib
   - mpmath
-  - numpy
+  - numpy >=1.22
+  - pip
   - pybind11
+  - python
   - ruff
   - simple-build-system
   - spglib

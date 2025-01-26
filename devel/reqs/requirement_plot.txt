@@ -1,2 +1,2 @@
 matplotlib
-numpy
+numpy>=1.22
