@@ -1,0 +1,30 @@
+# A pyproject.toml for injecting an empty ncrystal-core package. In case
+# ncrystal-core is installed in a non-python aware fashion, installing this
+# empty ncrystal-core package can be used to ensure that subsequent pip
+# installations of packages needing ncrystal-core (like plugins for ncrystal)
+# will not cause pip to pull down ncrystal-core from pypi. Of course, this is
+# not bullet-proof, since "pip uninstall ncrystal-core" will only uninstall the
+# empty package, not all of ncrystal-core content.
+
+[build-system]
+requires = ["setuptools>=64.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ncrystal-core"
+version = "3.9.82"
+requires-python = ">=3.8"
+authors = [
+  { name="NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)" },
+]
+description = "Library for thermal neutron transport in crystals and other materials."
+readme = "README.md"
+license = {file = "LICENSE"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+]
+
+[project.urls]
+"Homepage" = "https://mctools.github.io/ncrystal/"
+"Bug Tracker" = "https://github.com/mctools/ncrystal/issues"

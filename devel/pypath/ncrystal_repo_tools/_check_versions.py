@@ -65,6 +65,7 @@ def check_versions():
         ( get_py_version, 'ncrystal_python/NCrystal/__init__.py' ),
         ( get_toml_version, 'pyproject.toml' ),
         ( get_toml_version, 'ncrystal_core/pyproject.toml' ),
+        ( get_toml_version, 'ncrystal_core/empty_pypkg/pyproject.toml' ),
         ( check_ncrystal_metapkg_version, 'ncrystal_metapkg/pyproject.toml' ),
         ( get_cmake_version, 'ncrystal_core/CMakeLists.txt' ),
     ]
