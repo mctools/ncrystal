@@ -32,7 +32,6 @@ description = "Library for thermal neutron transport in crystals and other mater
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: Apache Software License",
-    "Operating System :: Unix",
 ]
 
 [project.urls]

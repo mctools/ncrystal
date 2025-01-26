@@ -81,3 +81,6 @@
   tests it in a way that ensures they can be launched against an existing
   ncrystal installation. That way, it would be possible to verify any
   installation with "pip install ncrystal-test && ncrystal-test ".
+
+* 'black -x --line-length 80 --check' on all python files + associated ncdevtool
+  pyfmt mode??

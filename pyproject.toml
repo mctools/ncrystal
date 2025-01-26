@@ -36,7 +36,6 @@ description = "Package bundling both ncrystal-core and ncrystal-python (for deve
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: Apache Software License",
-    "Operating System :: Unix",
 ]
 
 [project.urls]
