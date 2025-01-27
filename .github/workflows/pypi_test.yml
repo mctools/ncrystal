@@ -30,7 +30,8 @@ jobs:
         id: version-number
         run: |
           set -eux
-          VERSIONSTR=$(./src/devel/bin/ncdevtool verifytag -p 'tktestX.Y.Z' --fail-if-devel --file-verify=VERSION)
+          #fixme: Add --fail-if-devel to next line once renaming 'tktest' to 'v'
+          VERSIONSTR=$(./src/devel/bin/ncdevtool verifytag -p 'tktestX.Y.Z' --file-verify=VERSION)
           echo "version_number=$VERSIONSTR" >> $GITHUB_OUTPUT
 
       - name: Echo tag version number
