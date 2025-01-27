@@ -74,7 +74,6 @@ def pencil_beam_model(cfg, E0, N):
     angular_binwdidth = np.radians(1.0)
     debye_cones = np.array([ 2.0*np.asin(wl/(2.0*hkl.d)) for hkl in NC.createInfo(cfg).hklObjects() if wl < 2.0*hkl.d ])
     angular_bins = np.sort(np.concatenate(([0,angular_binwdidth], debye_cones-0.5*angular_binwdidth, debye_cones+0.5*angular_binwdidth)))
-    print(angular_bins)
     
     tally1 = openmc.Tally(name="debye-scherrer cones")
     tally1.scores = ["current"]
@@ -100,7 +99,16 @@ def check_results(sp_file):
     values = df['mean'].values/(bin_high - bin_low)
     errors = df['std. dev.'].values/(bin_high - bin_low)
     assert np.shape(TRUE_VALUES) == np.shape(values), 'Wrong number of Debye-Scherrer cones'
-    return np.all(values > TRUE_VALUES-TRUE_ERRORS) and np.all(values < TRUE_VALUES+TRUE_ERRORS) 
+    test_result = np.all(values > TRUE_VALUES-TRUE_ERRORS) and np.all(values < TRUE_VALUES+TRUE_ERRORS)
+    if test_result:
+        print('OpenMC run succesful.')
+    else:
+        print('OpenMC run not succesful.')
+    print('Computed intensity for Debye-Scherrer cones:')
+    for true_pos,true_val,true_err,val,err in \
+            zip(TRUE_POSITIONS, TRUE_VALUES, TRUE_ERRORS, values, errors):
+        print(f' Cone at {np.rad2deg(true_pos):>5.1f} deg / Expected: {true_val:.2e} +/- {true_err:.2e} / Computed: : {val:.2e} +/- {err:.2e}')
+    return test_result 
 
 def plot_tally(sp_file):
     with openmc.StatePoint(sp_file) as sp:
@@ -143,7 +151,7 @@ def main():
     if is_interactive():
         plot_tally(sp_file)
         
-    assert check_results(sp_file), 'Statistically significant deviation from true values'
+    assert check_results(sp_file), 'Statistically significant deviation from expected values'
 
 if __name__ == '__main__':
     main()
