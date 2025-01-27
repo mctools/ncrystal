@@ -71,9 +71,10 @@ jobs:
     #Based on
     #https://github.com/pypa/cibuildwheel/blob/main/examples/github-minimal.yml,
     #where we should check if something needs updating once in a while.
-    name: ncrystal-core wheels @ ${{ matrix.os }}
+    name: ${{ matrix.os }} / ncrystal-core wheels
     needs: preparations
     strategy:
+      fail-fast: false
       matrix:
         # macos-13 is an intel runner, macos-14 is apple silicon
         os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-13, macos-14]
@@ -93,7 +94,12 @@ jobs:
           #Fixme: likely not needed:
           config-file: ./src/ncrystal_core/pyproject.toml
 
-      - name: list wheelhouse
+      - name: list wheelhouse (unix)
+        if: runner.os != 'Windows'
+        run: ls -l ./wheelhouse/
+
+      - name: list wheelhouse (windows)
+        if: runner.os == 'Windows'
         run: dir wheelhouse
 
       - uses: actions/upload-artifact@v4
