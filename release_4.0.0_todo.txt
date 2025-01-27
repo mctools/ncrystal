@@ -20,7 +20,7 @@
   test", "did you mention any open issues this is linked to", etc.
 
 * Make sure pypi.yml omly triggers for even patch numbers (in addition, we
-  should only create even tags!).
+  should only create even tags!). Document this policy.
 
 * We should have a way to determine what version of NCrystal a given plugin was
   built against, so we can error on incompatibilities.

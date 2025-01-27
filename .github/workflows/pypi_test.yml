@@ -32,6 +32,7 @@ jobs:
           set -eux
           #fixme: Add --fail-if-devel to next line once renaming 'tktest' to 'v'
           VERSIONSTR=$(./src/devel/bin/ncdevtool verifytag -p 'tktestX.Y.Z' --file-verify=VERSION)
+          #fixme: use for something later, to verify?
           echo "version_number=$VERSIONSTR" >> $GITHUB_OUTPUT
 
       - name: Echo tag version number
@@ -40,3 +41,82 @@ jobs:
         run: |
           echo A=$ENV_VERSION_NUMBER
           echo B=${{ steps.version-number.outputs.version_number }}
+
+##      - name: Generate setup matrix
+##        id: create-matrix
+##        run: |
+##          sudo apt-get install -y jq
+##          MATRIX=$(python3 -c "import subprocess, json; \
+##          linux_identifiers = subprocess.check_output('cibuildwheel --print-build-identifiers --platform linux', shell=True).decode().splitlines(); \
+##          macos_identifiers = subprocess.check_output('cibuildwheel --print-build-identifiers --platform macos', shell=True).decode().splitlines(); \
+##          setups = [{'os': 'ubuntu-latest', 'identifier': i} for i in linux_identifiers] + \
+##                   [{'os': 'macos-latest',  'identifier': i} for i in macos_identifiers]; \
+##          print(json.dumps(setups));")
+##          echo "setup_matrix={\"include\":$MATRIX}" >> $GITHUB_OUTPUT
+##          echo "setup_nr=$(echo "$MATRIX" | jq length)" >> $GITHUB_OUTPUT
+##          echo "manylinux_x86_64_setup_nr=$(cibuildwheel --print-build-identifiers --platform linux | grep -c manylinux_x86)" >> $GITHUB_OUTPUT
+##        env:
+##          CIBW_ARCHS_MACOS: "x86_64 arm64"
+##          CIBW_SKIP: ${{ inputs.CIBW_SKIP }}
+##          # CIBW_BUILD: cp39-* #TODO only for development
+##          # CIBW_BUILD: cp39-manylinux_x86_64 #TODO only for development
+##    outputs:
+##      setups: ${{ steps.create-matrix.outputs.setup_matrix }}
+##      setupNr: ${{ steps.create-matrix.outputs.setup_nr }}
+##      manylinux_x86_64_setupNr: ${{ steps.create-matrix.outputs.manylinux_x86_64_setup_nr }}
+##      versionNr: ${{ steps.version-number.outputs.version_number }}
+##      onTag: ${{ steps.check-for-tag.outputs.on_tag }}
+
+  build_core_wheels:
+    #Based on
+    #https://github.com/pypa/cibuildwheel/blob/main/examples/github-minimal.yml,
+    #where we should check if something needs updating once in a while.
+    name: ncrystal-core wheels @ ${{ matrix.os }}
+    needs: preparations
+    strategy:
+      matrix:
+        # macos-13 is an intel runner, macos-14 is apple silicon
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-13, macos-14]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: src
+
+      - uses: pypa/cibuildwheel@v2.22.0
+        #env:
+        #  CIBW_SOME_OPTION: value
+        #   ...
+        with:
+          package-dir: ./src/ncrystal_core
+          output-dir: wheelhouse
+          #Fixme: likely not needed:
+          config-file: ./src/ncrystal_core/pyproject.toml
+
+      - name: list wheelhouse
+        run: dir wheelhouse
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+          path: ./wheelhouse/*.whl
+
+  collect_output:
+    name: Collect all output
+    needs: [preparations, build_core_wheels]
+    #Run even if some build_core_wheels failed:
+    if: always() && needs.preparations.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist_all #unpacks all artifacts into dist_all/
+
+        #gh-action-pypi-publish expects a flat directory layout
+      - name: Move wheel files into dist_flattened
+        run: |
+            mkdir -p dist_flattened
+            find dist_all -type f -name "*.whl" -exec mv {} dist_flattened/ \;
+
+      - name: list collected files
+        run: ls -l ./dist_flattened
