@@ -22,9 +22,9 @@
 import numpy as np
 import openmc
 
-TRUE_VALUES = np.array([5.60481868e+01, 5.75019668e-04, 7.67958251e-01])
-TRUE_ERRORS = np.array([2.58956360e-03, 4.83597510e-06, 1.96171839e-03])
-TRUE_POSITIONS = np.array([0.00872665, 1.15202318, 2.29531971])
+REF_VALUES = np.array([5.60481868e+01, 5.75019668e-04, 7.67958251e-01])
+REF_ERRORS = np.array([2.58956360e-03, 4.83597510e-06, 1.96171839e-03])
+REF_POSITIONS = np.array([0.00872665, 1.15202318, 2.29531971])
 
 def is_interactive():
     import sys
@@ -34,7 +34,7 @@ def is_interactive():
 def pencil_beam_model(cfg, E0, N):
     """Return an openmc.Model() object for a monoenergetic pencil
      beam hitting a 1 mm sphere filled with the material defined by
-     the cfg string, and compute angular distribution for the 
+     the cfg string, and compute angular distribution for the
      Debye-Scherrer cones"""
 
     import NCrystal as NC
@@ -74,7 +74,7 @@ def pencil_beam_model(cfg, E0, N):
     angular_binwdidth = np.radians(1.0)
     debye_cones = np.array([ 2.0*np.asin(wl/(2.0*hkl.d)) for hkl in NC.createInfo(cfg).hklObjects() if wl < 2.0*hkl.d ])
     angular_bins = np.sort(np.concatenate(([0,angular_binwdidth], debye_cones-0.5*angular_binwdidth, debye_cones+0.5*angular_binwdidth)))
-    
+
     tally1 = openmc.Tally(name="debye-scherrer cones")
     tally1.scores = ["current"]
     filter1 = openmc.SurfaceFilter(sample_sphere)
@@ -98,17 +98,17 @@ def check_results(sp_file):
     bin_low = df['polar low [rad]'].values
     values = df['mean'].values/(bin_high - bin_low)
     errors = df['std. dev.'].values/(bin_high - bin_low)
-    assert np.shape(TRUE_VALUES) == np.shape(values), 'Wrong number of Debye-Scherrer cones'
-    test_result = np.all(values > TRUE_VALUES-TRUE_ERRORS) and np.all(values < TRUE_VALUES+TRUE_ERRORS)
+    assert np.shape(REF_VALUES) == np.shape(values), 'Wrong number of Debye-Scherrer cones'
+    test_result = np.all(values > REF_VALUES-REF_ERRORS) and np.all(values < REF_VALUES+REF_ERRORS)
     if test_result:
         print('OpenMC run succesful.')
     else:
         print('OpenMC run not succesful.')
     print('Computed intensity for Debye-Scherrer cones:')
-    for true_pos,true_val,true_err,val,err in \
-            zip(TRUE_POSITIONS, TRUE_VALUES, TRUE_ERRORS, values, errors):
-        print(f' Cone at {np.rad2deg(true_pos):>5.1f} deg / Expected: {true_val:.2e} +/- {true_err:.2e} / Computed: : {val:.2e} +/- {err:.2e}')
-    return test_result 
+    for REF_pos,REF_val,REF_err,val,err in \
+            zip(REF_POSITIONS, REF_VALUES, REF_ERRORS, values, errors):
+        print(f' Cone at {np.rad2deg(REF_pos):>5.1f} deg / Expected: {REF_val:.2e} +/- {REF_err:.2e} / Computed: : {val:.2e} +/- {err:.2e}')
+    return test_result
 
 def plot_tally(sp_file):
     with openmc.StatePoint(sp_file) as sp:
@@ -128,12 +128,12 @@ def plot_tally(sp_file):
     angdist_bins = bin_high
     angdist_values = df['mean'].values/(bin_high - bin_low)
     angdist_errors = df['std. dev.'].values/(bin_high - bin_low)
-    
+
     import matplotlib.pyplot as plt
     plt.figure()
     plt.step(np.rad2deg(bin_high), angdist_values)
     plt.errorbar(np.rad2deg(cone_positions), cone_values, yerr=cone_errors, fmt='.')
-    plt.errorbar(np.rad2deg(TRUE_POSITIONS), TRUE_VALUES, yerr=TRUE_ERRORS, fmt='.', label='True values')
+    plt.errorbar(np.rad2deg(REF_POSITIONS), REF_VALUES, yerr=REF_ERRORS, fmt='.', label='True values')
     plt.yscale('log')
     plt.ylabel('density')
     plt.xlabel('Polar angle [deg]')
@@ -141,16 +141,16 @@ def plot_tally(sp_file):
     plt.show()
 
 def main():
-    
+
     n_particles = 1000000
     E0 = 0.0045  # eV
     cfg = 'Al_sg225.ncmat'
     model = pencil_beam_model(cfg, E0, n_particles)
     sp_file = model.run()
-    
+
     if is_interactive():
         plot_tally(sp_file)
-        
+
     assert check_results(sp_file), 'Statistically significant deviation from expected values'
 
 if __name__ == '__main__':
