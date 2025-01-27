@@ -87,9 +87,11 @@ def main( parser ):
         match that extracted from the tag"""
     )
 
-
-
     args = parser.parse_args()
+
+    if 'X.Y.Z' not in args.pattern:
+        parser.error('Pattern must contain the string "X.Y.Z"')
+
     if args.tag:
         version_str = extract_version( args.pattern, args.tag )
         if not version_str:
