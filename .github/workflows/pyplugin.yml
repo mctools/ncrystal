@@ -36,14 +36,14 @@ jobs:
       #to instead be taken from PyPI:
       run: |
         pip install scikit-build-core>=0.10
-        pip install ./src/examples/plugin --no-build-isolation
+        pip install ./src/examples/plugin --no-deps --no-build-isolation
 
     - name: Install plugin_dataonly
       #--no-build-isolation to prevent getting the ncrystal pkgs just installed
       #to instead be taken from PyPI.
       run: |
         pip install setuptools>=64.0
-        pip install ./src/examples/plugin_dataonly --no-build-isolation
+        pip install ./src/examples/plugin_dataonly --no-deps --no-build-isolation
 
     - name: Run ncrystal-pluginmanager
       run: ncrystal-pluginmanager
