@@ -21,7 +21,7 @@ jobs:
           python-version: 3.12
 
       - name: Pip install packages for ncdevtool
-        run: pip install ruff
+        run: pip install ruff pyyaml
 
       - name: ncdevtool checks
         run: ./src/devel/bin/ncdevtool check -n fixme
@@ -32,20 +32,61 @@ jobs:
           set -eux
           #fixme: Add --fail-if-devel to next line once renaming 'tktest' to 'v'
           VERSIONSTR=$(./src/devel/bin/ncdevtool verifytag -p 'tktestX.Y.Z' --file-verify=VERSION)
-          #fixme: use for something later, to verify?
+          echo "Extracted version str: '${VERSIONSTR}'"
           echo "version_number=$VERSIONSTR" >> $GITHUB_OUTPUT
 
-      - name: Echo tag version number
-        env:
-          ENV_VERSION_NUMBER: ${{ steps.version-number.outputs.version_number }}
-        run: |
-          echo A=$ENV_VERSION_NUMBER
-          echo B=${{ steps.version-number.outputs.version_number }}
+    outputs:
+      ncrystalversion: ${{ steps.version-number.outputs.version_number }}
+
+  basic_functionality_test:
+    #Very basic testing only, we might have decided to publish a release even
+    #with some tests showing spurious failures or similar. However, we always
+    #tell users that "nctool --test" can be used to test that everything works,
+    #so at least that should always work.
+    needs: [ preparations ]
+    strategy:
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-13, macos-14]
+        #        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        #NOTICE: Keep synchronised with matrix platform list elsewhere in this file!!!!
+    name: ${{ matrix.os }} / test
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: src
+
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+
+      - name: Pip install ncrystal-core
+        run: pip install ./src/ncrystal_core
+
+      - name: Pip install ncrystal-python
+        run: pip install ./src/ncrystal_python
+
+      - name: Pip install ncrystal
+        run: pip install ./src/ncrystal_metapkg
+
+      - name: nctool tests
+        run: nctool --test
+
+      - name: cmdline presence tests
+        run: python -m "NCrystal.test" cmdline
+
+        #WARNING, this failed on windows:
+        #run: python -mNCrystal.test cmdline
 
   build_sdists:
     name: Build source distribution
     runs-on: ubuntu-latest
     needs: preparations
+    env:
+      SDIST_SUFFIX: "-${{ needs.preparations.outputs.ncrystalversion }}.tar.gz"
+
     steps:
       - uses: actions/checkout@v4
 
@@ -56,106 +97,141 @@ jobs:
         run: pipx run build --sdist ./ncrystal_python
 
       - name: build ncrystal-metapkg sdist
-        run: pipx run build --sdist ./ncrystal__metapkg
+        run: pipx run build --sdist ./ncrystal_metapkg
 
       - name: register ncrystal-core sdist
         uses: actions/upload-artifact@v4
         with:
           name: sdist-ncrystal-core
-          path: ./ncrystal_core/dist/ncrystal_core-*.tar.gz
+          path: ./ncrystal_core/dist/ncrystal_core${{ env.SDIST_SUFFIX }}
+          if-no-files-found: error
 
       - name: register ncrystal-python sdist
         uses: actions/upload-artifact@v4
         with:
           name: sdist-ncrystal-python
-          path: ./ncrystal_python/dist/ncrystal_python-*.tar.gz
+          path: ./ncrystal_python/dist/ncrystal_python${{ env.SDIST_SUFFIX }}
+          if-no-files-found: error
 
       - name: register ncrystal-metapkg sdist
         uses: actions/upload-artifact@v4
         with:
           name: sdist-ncrystal-metapkg
-          path: ./ncrystal_metapkg/dist/ncrystal-*.tar.gz
+          path: ./ncrystal_metapkg/dist/ncrystal${{ env.SDIST_SUFFIX }}
+          if-no-files-found: error
 
+    outputs:
+      sdistname_core: ncrystal_core${{ env.SDIST_SUFFIX }}
+      sdistname_python: ncrystal_python${{ env.SDIST_SUFFIX }}
+      sdistname_metapkg: ncrystal${{ env.SDIST_SUFFIX }}
 
-##      - name: Generate setup matrix
-##        id: create-matrix
-##        run: |
-##          sudo apt-get install -y jq
-##          MATRIX=$(python3 -c "import subprocess, json; \
-##          linux_identifiers = subprocess.check_output('cibuildwheel --print-build-identifiers --platform linux', shell=True).decode().splitlines(); \
-##          macos_identifiers = subprocess.check_output('cibuildwheel --print-build-identifiers --platform macos', shell=True).decode().splitlines(); \
-##          setups = [{'os': 'ubuntu-latest', 'identifier': i} for i in linux_identifiers] + \
-##                   [{'os': 'macos-latest',  'identifier': i} for i in macos_identifiers]; \
-##          print(json.dumps(setups));")
-##          echo "setup_matrix={\"include\":$MATRIX}" >> $GITHUB_OUTPUT
-##          echo "setup_nr=$(echo "$MATRIX" | jq length)" >> $GITHUB_OUTPUT
-##          echo "manylinux_x86_64_setup_nr=$(cibuildwheel --print-build-identifiers --platform linux | grep -c manylinux_x86)" >> $GITHUB_OUTPUT
-##        env:
-##          CIBW_ARCHS_MACOS: "x86_64 arm64"
-##          CIBW_SKIP: ${{ inputs.CIBW_SKIP }}
-##          # CIBW_BUILD: cp39-* #TODO only for development
-##          # CIBW_BUILD: cp39-manylinux_x86_64 #TODO only for development
-##    outputs:
-##      setups: ${{ steps.create-matrix.outputs.setup_matrix }}
-##      setupNr: ${{ steps.create-matrix.outputs.setup_nr }}
-##      manylinux_x86_64_setupNr: ${{ steps.create-matrix.outputs.manylinux_x86_64_setup_nr }}
-##      versionNr: ${{ steps.version-number.outputs.version_number }}
-##      onTag: ${{ steps.check-for-tag.outputs.on_tag }}
+  build_universal_wheels:
+    name: Build universal wheels
+    runs-on: ubuntu-latest
+    needs: [ preparations, build_sdists ]
+
+    steps:
+      - name: download ncrystal-python sdist
+        uses: actions/download-artifact@v4
+        with:
+          name: sdist-ncrystal-python
+          path: ./sdist-python
+
+      - name: download ncrystal-metapkg sdist
+        uses: actions/download-artifact@v4
+        with:
+          name: sdist-ncrystal-metapkg
+          path: ./sdist-metapkg
+
+      - name: build ncrystal-python universal wheel
+        run: |
+          set -eux
+          mkdir tmp_wheelbld_python
+          cd tmp_wheelbld_python
+          tar xf ../sdist-python/${{needs.build_sdists.outputs.sdistname_python }}
+          pipx run build --wheel ./ncrystal_python-${{ needs.preparations.outputs.ncrystalversion }} --outdir=../dist-ncrystal-python
+
+      - name: build ncrystal-metapkg universal wheel
+        run: |
+          set -eux
+          mkdir tmp_wheelbld_metapkg
+          cd tmp_wheelbld_metapkg
+          tar xf ../sdist-metapkg/${{needs.build_sdists.outputs.sdistname_metapkg }}
+          pipx run build --wheel ./ncrystal-${{ needs.preparations.outputs.ncrystalversion }} --outdir=../dist-ncrystal-metapkg
+
+      - name: register ncrystal-python universal wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheel-ncrystal-python
+          path: ./dist-ncrystal-python/ncrystal_python-${{ needs.preparations.outputs.ncrystalversion }}-py3-none-any.whl
+          if-no-files-found: error
+
+      - name: register ncrystal-metapkg universal wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheel-ncrystal-metapkg
+          path: ./dist-ncrystal-metapkg/ncrystal-${{ needs.preparations.outputs.ncrystalversion }}-py3-none-any.whl
+          if-no-files-found: error
 
   build_core_wheels:
     #Based on
     #https://github.com/pypa/cibuildwheel/blob/main/examples/github-minimal.yml,
-    #where we should check if something needs updating once in a while.
-    name: ${{ matrix.os }} / ncrystal-core wheels
+    #where we should check if something needs updating once in a while
+    #(especially with respect to the hardcoded matrix.os list.
     needs: [ preparations, build_sdists ]
     strategy:
-      fail-fast: false
+      #fixme: remove fail-fast: false?
+      #fail-fast: false
       matrix:
         # macos-13 is an intel runner, macos-14 is apple silicon
+        #fixme: we don't cover ubuntu-24.04-arm in our other ci
         os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-13, macos-14]
+        #        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        #NOTICE: Keep synchronised with matrix platform list elsewhere in this file!!!!
+    name: ${{ matrix.os }} / ncrystal-core wheels
     runs-on: ${{ matrix.os }}
-    steps:
 
-      - uses: actions/download-artifact@v4
+    env:
+      SDIST_PATH: "./sdist/${{ needs.build_sdists.outputs.sdistname_core }}"
+
+    steps:
+      - name: download ncrystal-core sdist
+        uses: actions/download-artifact@v4
         with:
           name: sdist-ncrystal-core
           path: ./sdist
 
-      - name: cibuildwheel
-        uses: pypa/cibuildwheel@v2.22.0
-        with:
-          package-dir: ./sdist/ncrystal-core-3.9.84.tar.gz
-          output-dir: wheelhouse
+      - name: Look in sdist dir (unix)
+        if: runner.os != 'Windows'
+        run: ls -l "${SDIST_PATH}"
 
-      # An additional step producing manylinux_2_28 wheels, with more modern C++
-      # support (and in particular cxxabi std::string's compatible with modern
-      # linux installations):
+      - name: Verify presence of sdist (unix)
+        if: runner.os != 'Windows'
+        run: test -f "${SDIST_PATH}"
+
+      # Run cibuildwheel. Both in default mode, and with additional steps for
+      # manylinux_2_28 wheels, with more modern C++ support (and in particular
+      # cxxabi std::string's compatible with modern linux installations):
       #
       # Note from cibuildwheel docs: "The default is scheduled to change in a
       # cibuildwheel release on or after 6th May 2025 - if you don't want the
       # new default, you should set the value to manylinux2014." So when that
-      # happens, we can remove the 2_28 step, and possibly check if there is
-      # something more modern to add:
+      # happens, we can remove the 2_28 step, or possibly swap it for 2_34 and
+      # manylinux2014:
 
-      - name: cibuildwheel manylinux_2_28
-       uses: pypa/cibuildwheel@v2.22.0
-        if: runner.os == 'Linux'
-        env:
-          CIBW_BUILD: "*manylinux*X86_64*"
-          CIBW_SKIP: "*i686*"
-          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
+      - name: cibuildwheel
+        uses: pypa/cibuildwheel@v2.22.0
         with:
-          package-dir: ./src/ncrystal_core
+          package-dir: ${{ env.SDIST_PATH }}
           output-dir: wheelhouse
 
-      - name: cibuildwheel manylinux_2_34
-       uses: pypa/cibuildwheel@v2.22.0
+      - name: cibuildwheel manylinux_2_28
+        uses: pypa/cibuildwheel@v2.22.0
         if: runner.os == 'Linux'
         env:
-          CIBW_BUILD: "*manylinux*X86_64*"
-          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_34
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
         with:
-          package-dir: ./src/ncrystal_core
+          package-dir: ${{ env.SDIST_PATH }}
           output-dir: wheelhouse
 
       - name: list wheelhouse (unix)
@@ -169,25 +245,177 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: ncrystal-core-wheels-${{ matrix.os }}-${{ strategy.job-index }}
-          path: ./wheelhouse/*.whl
+          path: ./wheelhouse/ncrystal_core-*.whl
+          if-no-files-found: error
 
   collect_output:
     name: Collect all output
-    needs: [preparations, build_sdists, build_core_wheels]
-    #Run even if some build_core_wheels failed:
-    if: always() && needs.preparations.result == 'success' && needs.build_sdists.result == 'success'
+    needs: [preparations, build_sdists, build_core_wheels, build_universal_wheels]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
         with:
           pattern: "ncrystal-core-wheels-*"
           path: ncrystal-core-wheels-raw #unpacks all artifacts into ncrystal-core-wheels-raw/
+          #fixme if we use merge-multiple: 'true', we might not have to do the
+          #find trick below
+
+      - name: Look in ncrystal-core-wheels-raw
+        run: find ./ncrystal-core-wheels-raw/
 
         #gh-action-pypi-publish expects a flat directory layout
-      - name: Move wheel files into dist_flattened
+      - name: Move core wheel files into dist_core
         run: |
-            mkdir -p dist_flattened
-            find ncrystal-core-wheels-raw -type f -name "*.whl" -exec mv {} dist_flattened/ \;
+            mkdir -p dist_core
+            find ./ncrystal-core-wheels-raw/ -type f -name "ncrystal_core-*.whl" -exec mv {} dist_core/ \;
 
       - name: list collected files
-        run: ls -l ./dist_flattened
+        run: ls -l ./dist_core
+
+      - name: download ncrystal-core sdist
+        uses: actions/download-artifact@v4
+        with:
+          name: sdist-ncrystal-core
+          path: ./dist_core
+
+      - name: download ncrystal-python universal wheel
+        uses: actions/download-artifact@v4
+        with:
+          name: wheel-ncrystal-python
+          path: ./dist_python
+
+      - name: download ncrystal-metapkg universal wheel
+        uses: actions/download-artifact@v4
+        with:
+          name: wheel-ncrystal-metapkg
+          path: ./dist_metapkg
+
+      - name: download ncrystal-python sdist
+        uses: actions/download-artifact@v4
+        with:
+          name: sdist-ncrystal-python
+          path: ./dist_python
+
+      - name: download ncrystal-metapkg sdist
+        uses: actions/download-artifact@v4
+        with:
+          name: sdist-ncrystal-metapkg
+          path: ./dist_metapkg
+
+      - name: List files
+        run: |
+          find ./dist_core
+          find ./dist_python
+          find ./dist_metapkg
+
+      - name: Verify presence of expected ncrystal-core files
+        shell: python
+        run: |
+          import pathlib
+          pdir = pathlib.Path('./dist_core').absolute()
+          expected_keys = [
+            "macosx_10_9_x86_64",
+            "macosx_11_0_arm64",
+            "manylinux_2_17_aarch64.manylinux2014_aarch64",
+            "manylinux_2_17_i686.manylinux2014_i686",
+            "manylinux_2_17_x86_64.manylinux2014_x86_64",
+            "manylinux_2_27_x86_64.manylinux_2_28_x86_64",
+            "musllinux_1_2_aarch64",
+            "musllinux_1_2_i686",
+            "musllinux_1_2_x86_64",
+            "win32",
+            "win_amd64",
+          ]
+          versionstr = '${{ needs.preparations.outputs.ncrystalversion }}'
+          prefix = f'ncrystal_core-{versionstr}-py3-none-'
+          expected_files = set([ f'{prefix}{key}.whl' for key in expected_keys ])
+          expected_files.add(f'ncrystal_core-{versionstr}.tar.gz')
+          actual_files = set(f.name for f in pdir.iterdir())
+          if expected_files - actual_files:
+            raise SystemExit('Missing files: %s'%sorted(expected_files - actual_files))
+          if actual_files - expected_files :
+            raise SystemExit('Unexpected files: %s'%sorted(actual_files - expected_files))
+          print("Found exactly the expected files:")
+          for f in sorted(expected_files):
+            print(f'  {f}')
+
+      - name: Verify presence of expected ncrystal-python files
+        run: |
+          set -eux
+          test -f ./dist_python/ncrystal_python-${{ needs.preparations.outputs.ncrystalversion }}.tar.gz"
+          test -f ./dist_python/ncrystal_python-${{ needs.preparations.outputs.ncrystalversion }}-py3-none-any.whl
+
+      - name: Verify presence of expected ncrystal-metapkg files
+        run: |
+          set -eux
+          test -f ./dist_metapkg/ncrystal-${{ needs.preparations.outputs.ncrystalversion }}.tar.gz"
+          test -f ./dist_metapkg/ncrystal-${{ needs.preparations.outputs.ncrystalversion }}-py3-none-any.whl
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: final-dist-ncrystal-core
+          path: ./dist_core
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: final-dist-ncrystal-python
+          path: ./dist_python
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: final-dist-ncrystal-metapkg
+          path: ./dist_metapkg
+          if-no-files-found: error
+
+  publish_to_pypi:
+    name: Publish to pypi
+    needs: [collect_output, basic_functionality_test]
+    runs-on: ubuntu-latest
+    #fixme: uncomment:
+    #permissions:
+    #  id-token: write # IMPORTANT: this permission is mandatory for trusted publishing
+    steps:
+      - name: download ncrystal-core dist
+        uses: actions/download-artifact@v4
+        with:
+          name: final-dist-ncrystal-core
+          path: ./dist_core
+
+      - name: download ncrystal-python dist
+        uses: actions/download-artifact@v4
+        with:
+          name: final-dist-ncrystal-python
+          path: ./dist_python
+
+      - name: download ncrystal-metapkg dist
+        uses: actions/download-artifact@v4
+        with:
+          name: final-dist-ncrystal-metapkg
+          path: ./dist_metapkg
+
+      - name: List files
+        run: |
+          find ./dist_core
+          find ./dist_python
+          find ./dist_metapkg
+
+##FIXME: Like this, or merge everything into a single ./dist ?:
+#      - name: Upload distribution to PyPI
+#        uses: pypa/gh-action-pypi-publish@v1.12.3
+#        with:
+#          packages-dir: ./dist_core
+#          verbose: 'true'
+#
+#      - name: Upload distribution to PyPI
+#        uses: pypa/gh-action-pypi-publish@v1.12.3
+#        with:
+#          packages-dir: ./dist_python
+#
+#          verbose: 'true'
+#      - name: Upload distribution to PyPI
+#        uses: pypa/gh-action-pypi-publish@v1.12.3
+#        with:
+#          packages-dir: ./dist_metapkg
+#          verbose: 'true'
