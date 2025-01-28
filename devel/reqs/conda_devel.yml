@@ -12,6 +12,7 @@ dependencies:
   - pip
   - pybind11
   - python
+  - pyyaml
   - ruff
   - simple-build-system
   - tomli

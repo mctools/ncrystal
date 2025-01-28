@@ -2,6 +2,7 @@ cppcheck
 mpmath
 numpy>=1.22
 pybind11
+pyyaml
 ruff
 simple-build-system
 tomli
