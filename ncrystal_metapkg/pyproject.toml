@@ -23,6 +23,7 @@ classifiers = [
 "Bug Tracker" = "https://github.com/mctools/ncrystal/issues"
 
 [project.optional-dependencies]
+#NB: We pin ASE due to https://gitlab.com/ase/ase/-/issues/1597 breaking 3.24
 composer = [ 'spglib' ]
 cif = [ 'ase<3.24.0', 'gemmi', 'spglib' ]
 plot = [ 'matplotlib' ]

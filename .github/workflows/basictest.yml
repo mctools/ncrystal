@@ -37,8 +37,7 @@ jobs:
         python-version: ${{ matrix.python }}
 
     - name: Pip install dependencies
-      #Pin ASE due to https://gitlab.com/ase/ase/-/issues/1597 breaking 3.24
-      run: python3 -m pip install numpy gemmi spglib ase==3.23.0 mpmath ruff matplotlib tomli
+      run: python -mpip install -r ./src/devel/reqs/requirement_all_combined.txt
 
     - name: Configure CMake
       run: >

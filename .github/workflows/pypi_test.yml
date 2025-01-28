@@ -21,7 +21,7 @@ jobs:
           python-version: 3.12
 
       - name: Pip install packages for ncdevtool
-        run: pip install ruff pyyaml
+        run: pip install -r ./src/devel/reqs/requirement_devel.txt
 
       - name: ncdevtool checks
         run: ./src/devel/bin/ncdevtool check -n fixme

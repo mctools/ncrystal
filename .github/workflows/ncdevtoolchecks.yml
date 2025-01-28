@@ -19,7 +19,7 @@ jobs:
         python-version: 3.13
 
     - name: pip install deps
-      run: python -mpip install ruff tomli
+      run: pip install -r ./devel/reqs/requirement_devel.txt
 
     - name: checks
       run: ./devel/bin/ncdevtool check -n "fix""me"
