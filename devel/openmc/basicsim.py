@@ -72,8 +72,12 @@ def pencil_beam_model(cfg, E0, N):
 
     wl = NC.ekin2wl(E0)
     angular_binwdidth = np.radians(1.0)
-    debye_cones = np.array([ 2.0*np.asin(wl/(2.0*hkl.d)) for hkl in NC.createInfo(cfg).hklObjects() if wl < 2.0*hkl.d ])
-    angular_bins = np.sort(np.concatenate(([0,angular_binwdidth], debye_cones-0.5*angular_binwdidth, debye_cones+0.5*angular_binwdidth)))
+    debye_cones = np.array([ 2.0*np.asin(wl/(2.0*hkl.d))
+                             for hkl in NC.createInfo(cfg).hklObjects()
+                             if wl < 2.0*hkl.d ])
+    angular_bins = np.sort(np.concatenate(([0,angular_binwdidth],
+                                           debye_cones-0.5*angular_binwdidth,
+                                           debye_cones+0.5*angular_binwdidth)))
 
     tally1 = openmc.Tally(name="debye-scherrer cones")
     tally1.scores = ["current"]
@@ -98,8 +102,10 @@ def check_results(sp_file):
     bin_low = df['polar low [rad]'].values
     values = df['mean'].values/(bin_high - bin_low)
     errors = df['std. dev.'].values/(bin_high - bin_low)
-    assert np.shape(REF_VALUES) == np.shape(values), 'Wrong number of Debye-Scherrer cones'
-    test_result = np.all(values > REF_VALUES-REF_ERRORS) and np.all(values < REF_VALUES+REF_ERRORS)
+    if np.shape(REF_VALUES) != np.shape(values):
+        raise SystemExit('Wrong number of Debye-Scherrer cones')
+    test_result = ( np.all(values > REF_VALUES-REF_ERRORS)
+                    and np.all(values < REF_VALUES+REF_ERRORS) )
     if test_result:
         print('OpenMC run succesful.')
     else:
@@ -107,7 +113,9 @@ def check_results(sp_file):
     print('Computed intensity for Debye-Scherrer cones:')
     for REF_pos,REF_val,REF_err,val,err in \
             zip(REF_POSITIONS, REF_VALUES, REF_ERRORS, values, errors):
-        print(f' Cone at {np.rad2deg(REF_pos):>5.1f} deg / Expected: {REF_val:.2e} +/- {REF_err:.2e} / Computed: : {val:.2e} +/- {err:.2e}')
+        print( f' Cone at {np.rad2deg(REF_pos):>5.1f} deg / '
+               f'Expected: {REF_val:.2e} +/- {REF_err:.2e} / '
+               f'Computed: : {val:.2e} +/- {err:.2e}' )
     return test_result
 
 def plot_tally(sp_file):
@@ -130,8 +138,14 @@ def plot_tally(sp_file):
     import matplotlib.pyplot as plt
     plt.figure()
     plt.step(np.rad2deg(bin_high), angdist_values)
-    plt.errorbar(np.rad2deg(cone_positions), cone_values, yerr=cone_errors, fmt='.')
-    plt.errorbar(np.rad2deg(REF_POSITIONS), REF_VALUES, yerr=REF_ERRORS, fmt='.', label='True values')
+    plt.errorbar( np.rad2deg(cone_positions),
+                  cone_values,
+                  yerr=cone_errors,
+                  fmt='.' )
+    plt.errorbar( np.rad2deg(REF_POSITIONS),
+                  REF_VALUES,
+                  yerr=REF_ERRORS,
+                  fmt='.', label='True values' )
     plt.yscale('log')
     plt.ylabel('density')
     plt.xlabel('Polar angle [deg]')
@@ -149,7 +163,9 @@ def main():
     if is_interactive():
         plot_tally(sp_file)
 
-    assert check_results(sp_file), 'Statistically significant deviation from expected values'
+    if not check_results(sp_file):
+        raise SystemExit( 'Statistically significant deviation '
+                          'from expected values' )
 
 if __name__ == '__main__':
     main()

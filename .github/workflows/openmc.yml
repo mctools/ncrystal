@@ -44,7 +44,7 @@ jobs:
       - name: Install ncrystal-core
         run: pip install ./src/ncrystal_core
 
-      - name: Instal extra openmc deps
+      - name: Install extra openmc deps
         run: sudo apt install libhdf5-dev libpng-dev
 
         #Instead of mpich libhdf5-dev, perhaps:libmpich-dev libhdf5-serial-dev libhdf5-mpich-dev
