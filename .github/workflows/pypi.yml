@@ -1,8 +1,9 @@
-name: pypi_test
+name: pypi
 
 on:
   push:
     tags:
+      #fixme tktest->v in entire file
       - 'tktest[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
@@ -180,8 +181,6 @@ jobs:
     #(especially with respect to the hardcoded matrix.os list.
     needs: [ preparations, build_sdists ]
     strategy:
-      #fixme: remove fail-fast: false?
-      #fail-fast: false
       matrix:
         # macos-13 is an intel runner, macos-14 is apple silicon
         #fixme: we don't cover ubuntu-24.04-arm in our other ci
