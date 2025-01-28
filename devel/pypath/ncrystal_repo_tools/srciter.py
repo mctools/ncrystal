@@ -23,7 +23,11 @@ import pathlib
 import fnmatch
 
 def _path_to_str( path ):
-    return str(path).replace('\\','/')#map win seps to unix
+    s = str(path).replace('\\','/')#map win seps to unix
+    if len(s)>=2 and s[1]==':':
+        #normalise windows drive letter casing
+        s = s[0].lower()+':'+s[2:]
+    return s
 
 def all_files_iter( *patterns, root = None ):
     patternset = PatternSet( *expand_patterns( patterns ))
