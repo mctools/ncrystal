@@ -126,7 +126,7 @@ def plot_tally(sp_file):
     bin_high = df['polar high [rad]'].values
     bin_low = df['polar low [rad]'].values
     angdist_values = df['mean'].values/(bin_high - bin_low)
-    
+
     import matplotlib.pyplot as plt
     plt.figure()
     plt.step(np.rad2deg(bin_high), angdist_values)
