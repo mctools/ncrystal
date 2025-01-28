@@ -342,13 +342,13 @@ jobs:
       - name: Verify presence of expected ncrystal-python files
         run: |
           set -eux
-          test -f ./dist_python/ncrystal_python-${{ needs.preparations.outputs.ncrystalversion }}.tar.gz"
+          test -f ./dist_python/ncrystal_python-${{ needs.preparations.outputs.ncrystalversion }}.tar.gz
           test -f ./dist_python/ncrystal_python-${{ needs.preparations.outputs.ncrystalversion }}-py3-none-any.whl
 
       - name: Verify presence of expected ncrystal-metapkg files
         run: |
           set -eux
-          test -f ./dist_metapkg/ncrystal-${{ needs.preparations.outputs.ncrystalversion }}.tar.gz"
+          test -f ./dist_metapkg/ncrystal-${{ needs.preparations.outputs.ncrystalversion }}.tar.gz
           test -f ./dist_metapkg/ncrystal-${{ needs.preparations.outputs.ncrystalversion }}-py3-none-any.whl
 
       - uses: actions/upload-artifact@v4
