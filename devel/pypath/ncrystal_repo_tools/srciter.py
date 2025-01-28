@@ -125,6 +125,7 @@ special_patterns_db = {
     'cmake':['*.cmake','*/CMakeLists.txt','*cmake*.txt','*.cmake.in'],
     'toml':['*.toml'],
     'yml':['*.yml','*.yaml'],
+    'yaml':['*.yml','*.yaml'],
     'ncmat':['*.ncmat'],
 }
 
