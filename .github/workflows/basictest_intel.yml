@@ -48,7 +48,7 @@ jobs:
       #"building font cache" printouts on first imports.
     - name: pip install extra deps
       run: |
-        python3 -mpip install ./src/devel/reqs/requirement_all_combined.txt
+        python3 -mpip install -r ./src/devel/reqs/requirement_all_combined.txt
         python3 -c "import numpy; print('numpy imported ok')"
         python3 -c "import gemmi; print('gemmi imported ok')"
         python3 -c "import spglib; print('spglib imported ok')"

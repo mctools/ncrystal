@@ -22,6 +22,13 @@
 def do_check( files, allowed_file_hdr_list, *,
               allow_include_guards_if_hdr = False ):
 
+    def ignore_path( frel ):
+        #Symlinked NCCFileUtils.* C files are really C++ in their default
+        #location, so just skip these files (otherwise we get spurious failures
+        #if the symlinks are broken for some reason):
+        return frel in [ 'tests/src/app_selfpathc/NCCFileUtils.h',
+                         'tests/src/app_selfpathc/NCCFileUtils.c' ]
+
     def text_ok( text ):
         return any(text.startswith(e) for e in allowed_file_hdr_list)
 
@@ -44,6 +51,11 @@ def do_check( files, allowed_file_hdr_list, *,
         if not text.strip():
             continue#allow empty files to not have license blurbs
         if not text_ok(text) and not ok_with_incguard(f,text):
+            from .dirs import reporoot
+            frel = str(f.relative_to(reporoot)).replace('\\','/')
+            if ignore_path( frel ):
+                print(f'  Ignoring known false positive: {frel}')
+                continue
             print('bad license blurb:',f)
             all_ok = False
     return all_ok
@@ -67,6 +79,7 @@ def main():
                    allow_include_guards_if_hdr = True )
     if not (c1 and c2 and c3):
         raise SystemExit('ERROR: license blurb issues detected.')
+    print("All ok!")
 
 if __name__=='__main__':
     main()
