@@ -22,6 +22,9 @@
 import pathlib
 import fnmatch
 
+def _path_to_str( path ):
+    return str(path).replace('\\','/')#map win seps to unix
+
 def all_files_iter( *patterns, root = None ):
     patternset = PatternSet( *expand_patterns( patterns ))
     gitignore = get_main_gitignore()
@@ -156,7 +159,7 @@ def do_match_pattern( path, pattern ):
         pattern = pattern[:-3]
     if hasattr(path,'__fspath__'):
         path = pathlib.Path(path)
-        s = str(path.absolute())
+        s = _path_to_str(path.absolute())
         if path.is_dir():
             s += '/'
     else:
@@ -178,7 +181,7 @@ class GitIgnoreFile:
         self.__patterns = _load_gitignore_patterns(gitignore_file)
 
     def is_ignored( self, path ):
-        s = str(path.absolute())
+        s = _path_to_str(path.absolute())
         is_dir = path.is_dir()
         is_matched_overall = False
         for is_negated,  dirs_only, pattern in self.__patterns:
@@ -223,9 +226,9 @@ def _load_gitignore_patterns( gitignore_file = None):
         if not line:
             continue
         if line.startswith('/'):
-            pattern = str(root) + line
+            pattern = _path_to_str(root) + line
         else:
-            pattern = str(root) + f'/*{line}'
+            pattern = _path_to_str(root) + f'/*{line}'
         patterns.append( ( is_negated,  dirs_only, pattern ) )
     return patterns
 
