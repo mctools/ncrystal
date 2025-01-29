@@ -16,7 +16,7 @@ dependencies:
   - pybind11
   - python
   - pyyaml
-  - ruff
-  - simple-build-system
+  - ruff >=0.8.0
+  - simple-build-system >=1.6.0
   - spglib
   - tomli
