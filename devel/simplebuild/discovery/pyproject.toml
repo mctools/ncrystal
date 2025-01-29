@@ -1,0 +1,7 @@
+[project]
+name = "simple-build-ncrystaldynamic"
+version = "0.0.1"
+
+[build-system]
+requires = ["setuptools>=64.0"]
+build-backend = "setuptools.build_meta"

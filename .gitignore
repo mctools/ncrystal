@@ -1,44 +1,23 @@
 _site
 .DS_Store
 
+/ncrystal_core/skbld_autogen/
+/skbld_autogen/
+/ncrystal_core/dist/
+
+*.egg-info/
+dist/
+build/
+__pycache__/
+
 /devel/simplebuild/simplebuild_cache/
 /devel/simplebuild/autogen/
 
 .ruff_cache/
 
-/ncrystal_metapkg/ncrystal.egg-info/
-/ncrystal_metapkg/build/
-/ncrystal_metapkg/dist/
-
-/ncrystal_python/ncrystal_python.egg-info/
-/ncrystal_python/build/
-/ncrystal_python/dist/
-
-/examples/plugin_dataonly/ncrystal_plugin_DummyDataPlugin.egg-info/
-/examples/plugin_dataonly/build/
-/examples/plugin_dataonly/dist/
-
-/examples/plugin/ncrystal-plugin-DummyPlugin.egg-info/
-/examples/plugin/build/
-/examples/plugin/dist/
-
-/ncrystal_pypluginmgr/ncrystal_pypluginmgr.egg-info/
-/ncrystal_pypluginmgr/build/
-/ncrystal_pypluginmgr/dist/
-
-/ncrystal_core/empty_pypkg/ncrystal_core.egg-info/
-/ncrystal_core/empty_pypkg/build/
-/ncrystal_core/empty_pypkg/dist/
-
-/ncrystal_core/skbld_autogen/
-/skbld_autogen/
-/ncrystal_core/dist/
-/dist/
-__pycache__/
-
 /venv/
 
-# Emacs
+# Emacs:
 *~
 \#*\#
 .\#*
