@@ -6,10 +6,12 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [windows-2019, windows-2022]
+        winexportall: [ "ON", "OFF" ]
+    name: ${{ matrix.os }}.winexportall=${{ matrix.winexportall }}
+    runs-on: ${{ matrix.os }}
 
     #windows-latest is windows-2022 (Nov 2024)
 
@@ -26,7 +28,7 @@ jobs:
 
     - name: Monolithic pip install of repo
       shell: cmd
-      run: python3 -m pip install .\src\
+      run: python3 -m pip install --config-settings=cmake.define.NCRYSTAL_WINEXPORTALL=${{ matrix.winexportall }}  .\src\
 
     - name: ncrystal-config summary
       shell: cmd
