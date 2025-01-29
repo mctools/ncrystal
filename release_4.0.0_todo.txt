@@ -5,13 +5,11 @@
 * Add a very temporary NCrystal/NCRNG.hh redirection header, to support openmc
   until their next release?
 
-* Plugins should be able to easily provide files, via a data directory. So we
-  should most likely provide a utility function for that in
-  NCrystalConfig.cmake. Note that we should be able to provide them as on-disk
-  files, so we can use the plugin mechanism to provide extra data files. Or
-  perhaps the pluginmanager should simply recognise a data directory as well?
-
 * update year in copyright statements (also in e.g. nxslib plugin).
+* Update ncplugin_template with a readme which simply redirects to the new
+  documentation.
+* We should have a way to determine what version of NCrystal a given plugin was
+  built against, so we can error on incompatibilities.
 
 * Finally grep for 3.9.80, etc., to make sure any >3.9.8x is actually pointing
   at the last release candidate.
@@ -21,12 +19,6 @@
 
 * Make sure pypi.yml omly triggers for even patch numbers (in addition, we
   should only create even tags!). Document this policy.
-
-* We should have a way to determine what version of NCrystal a given plugin was
-  built against, so we can error on incompatibilities.
-
-* Update ncplugin_template with a readme which simply redirects to the new
-  documentation.
 
 * sb_devtools_gdb to simple-build-system??
 
@@ -84,3 +76,5 @@
 
 * 'black -x --line-length 80 --check' on all python files + associated ncdevtool
   pyfmt mode??
+
+* Prepare simple-build-dgcode for new release.

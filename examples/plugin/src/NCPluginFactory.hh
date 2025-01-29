@@ -33,7 +33,6 @@ namespace NCPluginNamespace {
 
   class PluginFactory final : public NC::FactImpl::ScatterFactory {
   public:
-    //ScatFact = Factory<FactoryType::Scatter,ProcImpl::Process,ScatterRequest>
     const char * name() const noexcept override;
 
     NC::Priority query( const NC::FactImpl::ScatterRequest& ) const override;

@@ -22,9 +22,6 @@
 #include "NCPluginFactory.hh"
 #include "NCPhysicsModel.hh"
 
-// for randDirectionGivenScatterMu:
-#include "NCrystal/internal/utils/NCRandUtils.hh"
-
 namespace NCPluginNamespace {
 
   class PluginScatter final : public NC::ProcImpl::ScatterIsotropicMat {
