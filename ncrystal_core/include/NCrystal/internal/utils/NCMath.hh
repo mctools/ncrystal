@@ -183,7 +183,7 @@ namespace NCRYSTAL_NAMESPACE {
     double current_cosval() const { return m_c; }
     double current_sinval() const { return m_s; }
   private:
-    static const unsigned recalcfreq = 128;
+    static constexpr unsigned recalcfreq = 128;
     double m_c, m_s;
     double m_cd, m_sd;
     unsigned m_left, m_recalc;

@@ -195,7 +195,7 @@ namespace NCRYSTAL_NAMESPACE {
     double m_xsfact;
     void forceUpdateCache( Cache&, uint64_t discr_wl, uint64_t discr_c3 ) const;
     struct Overlay : private MoveOnly {
-      static const unsigned ndata = 8;
+      static constexpr unsigned ndata = 8;
       Overlay();
       ~Overlay();
       void clear();
