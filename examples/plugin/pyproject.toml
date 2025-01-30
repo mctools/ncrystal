@@ -23,14 +23,14 @@
 name = "ncrystal-plugin-DummyPlugin"
 version = "0.0.1"
 license = {file = "LICENSE"}
-dependencies = [ "ncrystal-core>=3.9.85", "ncrystal-pypluginmgr>=0.0.3" ]
+dependencies = [ "ncrystal-core>=3.9.86", "ncrystal-pypluginmgr>=0.0.4" ]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: Apache Software License",
 ]
 
 [build-system]
-requires = ["scikit-build-core>=0.10", "ncrystal-core>=3.9.85" ]
+requires = ["scikit-build-core>=0.10", "ncrystal-core>=3.9.86" ]
 build-backend = "scikit_build_core.build"
 
 [tool.scikit-build]
