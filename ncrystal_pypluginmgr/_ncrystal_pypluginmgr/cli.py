@@ -19,7 +19,7 @@
 ##                                                                            ##
 ################################################################################
 
-def main():
+def stdmode():
     modnameprefix = 'ncrystal_plugin_'
     import pkgutil
     names = [ name
@@ -50,6 +50,14 @@ def main():
     for n,d in sorted(datadirs):
         entries.append( ':DATA:%s:%s'%(n[nmnp:],d) )
     print( ';\n'.join(entries) )
+
+def main():
+    import sys
+    if len(sys.argv)==1:
+        stdmode()
+    else:
+        from . import _argmode
+        _argmode.main()
 
 if __name__ == '__main__':
     main()

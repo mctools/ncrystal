@@ -78,3 +78,6 @@
   pyfmt mode??
 
 * Prepare simple-build-dgcode for new release.
+
+* plugin docs should contain this info: https://github.com/highness-eu/ncplugin-CrysText/pull/1#issuecomment-2624392374
+* ncrystal_python pkg should use src/ subdir for NCrystal?
