@@ -10,10 +10,10 @@ updated to something more appropriate. Once a suitable name has been chosen, be
 sure to update this name in the `pyproject.toml` file, in the `project.name`
 field (i.e. replacing `DummyDataPlugin` with the name of your
 choice). Additionally, one should rename the directory
-`ncrystal_plugin_DummyDataPlugin`, once again replacing `DummyDataPlugin` with
-the name of your choice. The data files should go in a `data/` subdirectory of
-that directory (i.e. remove `dummy.ncmat` and put the files you wish to provide
-there).
+`src/ncrystal_plugin_DummyDataPlugin`, once again replacing `DummyDataPlugin`
+with the name of your choice. The data files should go in a `data/` subdirectory
+of that directory (i.e. remove `dummy.ncmat` and put the files you wish to
+provide there).
 
 To install and activate the plugin, one must simply use Python build tools to
 install the plugin (presumably in a Python or Conda environment), in which case
