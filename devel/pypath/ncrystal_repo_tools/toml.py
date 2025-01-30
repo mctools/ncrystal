@@ -29,7 +29,7 @@ def can_parse_toml():
             return False
     return True
 
-def parse_toml(path):
+def parse_toml(path,prefer_sys_exit = True):
     import sys
     if sys.version_info >= (3, 11):
         import tomllib as mod
@@ -37,5 +37,18 @@ def parse_toml(path):
         import tomli as mod
     import pathlib
     with pathlib.Path(path).open("rb") as f:
-        data = mod.load(f)
+        try:
+            data = mod.load(f)
+        except mod.TOMLDecodeError as e:
+            if not prefer_sys_exit:
+                raise
+            print()
+            print('TOMLDecodeError:')
+            print()
+            print(f'  File: {path}')
+            print()
+            print(f'  Problem: {e}')
+            print()
+            raise SystemExit(1)
+
     return data

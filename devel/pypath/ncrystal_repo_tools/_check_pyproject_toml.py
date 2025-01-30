@@ -35,20 +35,20 @@ def load_data( key ):
     return _data_cache[key]
 
 def _actual_load_data(subpath):
-    from .toml import parse_toml, can_parse_toml
+    from .toml import parse_toml
 
-    if not can_parse_toml():
-        #Acceptable simplification to simply abort, since already we mostly have
-        #python >=3.11 in dev envs, and CI certainly will catch it with python
-        #>=3.11 somewhere.
-        print("Silent abort: tomli not present and python < 3.11")
-        raise SystemExit(0)
+    #if not can_parse_toml():
+    #    #Acceptable simplification to simply abort, since already we mostly have
+    #    #python >=3.11 in dev envs, and CI certainly will catch it with python
+    #    #>=3.11 somewhere.
+    #    print("Silent abort: tomli not present and python < 3.11")
+    #    raise SystemExit(0)
 
     d = parse_toml(reporoot / subpath)
     #sneak in the source location:
     assert '__file__' not in d
     d['__srcloc__'] = subpath
-    print(f"Loaded: {describe(d)}")
+    print(f"  Loaded: {describe(d)}")
     return d
 
 def describe( data ):
@@ -238,7 +238,17 @@ def _check_project_scripts_impl( data, *, cli_scripts, extra ):
             print(f'ERROR: Unexpected line in {descr}:\n\n   {k}="{v}"\n')
     return False
 
+def check_all_toml_parsing():
+    from .srciter import all_files_iter
+    from .dirs import reporoot
+    from .toml import parse_toml
+    for f in all_files_iter('toml'):
+        print("  Trying to simply load %s"%f.relative_to(reporoot))
+        parse_toml(f)
+    print('all ok')
+
 def main():
+    check_all_toml_parsing()
     check_all_project_scripts()
     check_metadata()
     print("All OK!")

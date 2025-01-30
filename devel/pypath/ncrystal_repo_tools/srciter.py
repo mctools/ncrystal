@@ -122,6 +122,8 @@ class SinglePattern:
 
 special_patterns_db = {
     'cpp':['*.hh','*.cc','*.hpp','*.cpp','*.icc'],
+    'cxx':['*.hh','*.cc','*.hpp','*.cpp','*.icc'],
+    'c++':['*.hh','*.cc','*.hpp','*.cpp','*.icc'],
     'c': ['*.h','*.c','*.h.in'],
     'py': ['*.py','*.py.in','<fileinit>#!/usr/bin/env python'],
     'bash': ['*.sh',
@@ -230,10 +232,14 @@ def _load_gitignore_patterns( gitignore_file = None):
         if not line:
             continue
         if line.startswith('/'):
-            pattern = _path_to_str(root) + line
+            pattern1 = _path_to_str(root) + line
+            pattern2 = None
         else:
-            pattern = _path_to_str(root) + f'/*{line}'
-        patterns.append( ( is_negated,  dirs_only, pattern ) )
+            pattern1 = _path_to_str(root) + f'/*/{line}'
+            pattern2 = _path_to_str(root) + f'/{line}'
+        patterns.append( ( is_negated,  dirs_only, pattern1 ) )
+        if pattern2 is not None:
+            patterns.append( ( is_negated,  dirs_only, pattern2 ) )
     return patterns
 
 _main_gi = [None]
