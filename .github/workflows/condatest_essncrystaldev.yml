@@ -48,6 +48,12 @@ jobs:
       - name: Install more dependencies
         run: conda install simple-build-dgcode zlib h5py
 
+      - name: Install ncrystaldev simplebuild discovery package
+        run: pip install -e ./src_ncrystaldev/discovery
+
+      - name: Install ncrystaldynamic simplebuild discovery package
+        run: pip install -e ./src/devel/simplebuild/discovery
+
       - name: Prepare simplebuild cfg
         run: cp src/.github/resources/simplebuild_ncrystaldev.cfg ./simplebuild.cfg && mkdir dummy
 
