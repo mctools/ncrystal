@@ -38,8 +38,8 @@ def _prepare_data_and_check_errors( data ):
     #Prepares data in place, returns an error message in case of issues
     if not isinstance(data,dict):
         return "top-level info must be a dictionary"
-    known_keys = set(['repourl','gitref','repo_subdir','description'])
-    required_keys = set(['repourl','description'])
+    known_keys = set(['github_repo_key','gitref','repo_subdir','description'])
+    required_keys = set(['github_repo_key','description'])
     assert not (required_keys-known_keys)
     import textwrap
     for k0, v0 in data.items():
@@ -61,6 +61,15 @@ def _prepare_data_and_check_errors( data ):
                 return f'value for {k0}.{k1}={repr(v1)} is not a string'
         assert 'description' in v0
         v0['description'] = textwrap.fill(v0['description'],9999999)
+        if v0['github_repo_key'].count('/')!=1:
+            return f'invalid value for {k0}.github_repo_key'
+        assert 'repourl' not in v0
+        v0['repourl'] = 'https://github.com/%s'%v0['github_repo_key']
+        #Add some defaults:
+        if 'repo_subdir' not in v0:
+            v0['repo_subdir'] = ''
+        if 'gitref' not in v0:
+            v0['gitref'] = ''
 
 
 def main( parser ):

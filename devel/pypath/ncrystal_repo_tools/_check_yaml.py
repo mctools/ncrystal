@@ -28,6 +28,12 @@ def main():
         print("  Trying to load %s"%f.relative_to(reporoot))
         with f.open() as fh:
             yaml.safe_load(fh)
+
+    #Extra check of plugin database file:
+    from . import _climode_plugindb
+    print(f"  Extra verification of {_climode_plugindb.dbfilerelpath}")
+    _climode_plugindb.load_and_check_data()
+
     print('all ok')
 
 if __name__=='__main__':
