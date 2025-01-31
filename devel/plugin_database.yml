@@ -1,0 +1,30 @@
+SANSND:
+  repourl:
+    "https://github.com/mctools/ncplugin-template"
+   #fixme remove branch and change url to: "https://github.com/highness-eu/ncplugin-SANSND"
+  gitref: "ncplugin-CrysText-support-ncrystal4"
+  description: |
+    Small Angles Neutron Scattering for NanoDiamonds.
+
+nxslib:
+  repourl: "https://github.com/mctools/ncplugin_nxslib"
+  description: |
+    NCrystal plugin for loading .nxs files. Also includes a small database of
+    .nxs files.
+
+DummyPlugin:
+  repourl: "https://github.com/mctools/ncrystal"
+  repo_subdir: "examples/plugin"
+  description: |
+    A (silly) example shipped with ncrystal itself, serving as a template for
+    other plugins. This example shows how to create a plugin which actually
+    modifies scattering physics.
+
+DummyDataPlugin:
+  repourl: "https://github.com/mctools/ncrystal"
+  repo_subdir: "examples/plugin_dataonly"
+  description: |
+    A (silly) example shipped with ncrystal itself, serving as a template for
+    other plugins. This example shows how to create a plugin which only
+    provides a static set of NCMAT file.
+
