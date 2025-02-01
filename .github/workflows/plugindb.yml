@@ -227,6 +227,9 @@ jobs:
     - name: Install plugin
       run: pip install ./src_plugin --no-deps --no-build-isolation
 
+    - name: Pip list
+      run: pip list
+
     - name: Pip check
       run: pip check
 
