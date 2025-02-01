@@ -82,4 +82,18 @@ def main():
     if missing:
         raise SystemExit('ERROR: plugin missing (weird that it was'
                          ' not detected earlier: %s'%missing)
-    print("All ok")
+
+    import NCrystal.datasrc as nds
+    import NCrystal.core as nccore
+    files_to_test = []
+    for f in nds.browseFiles(factory='plugins'):
+        if f.name.split('/')[0] in testlist:
+            files_to_test.append( f.fullKey )
+    for f in files_to_test:
+        print(f'Testing load of "{f}"')
+        for fctname in ['createTextData','createInfo',
+                        'createScatter','createAbsorption']:
+            print(f'  -> {fctname}',flush=True)
+            getattr(nccore,fctname)( f )
+
+    print("All ok",flush=True)

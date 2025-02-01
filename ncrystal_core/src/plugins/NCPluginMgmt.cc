@@ -157,7 +157,7 @@ namespace NCRYSTAL_NAMESPACE {
         static std::mutex mtx;
         return mtx;
       }
-      std::vector<PluginInfo>& getPLList()
+      std::vector<PluginInfo>& getSharedLibPLList()
       {
         static std::vector<PluginInfo> thelist;
         return thelist;
@@ -175,7 +175,7 @@ namespace NCRYSTAL_NAMESPACE {
         if (verbose)
           NCRYSTAL_MSG("Loading "<<ptypestr<<" plugin \""<<pinfo.pluginName<<"\".");
 
-        for ( const auto& pl : getPLList() ) {
+        for ( const auto& pl : getSharedLibPLList() ) {
           if ( pl.pluginName == pinfo.pluginName )
             NCRYSTAL_THROW2(CalcError,"ERROR: attempting to load plugin named \""<<pinfo.pluginName<<"\" more than once!");
         }
@@ -187,7 +187,7 @@ namespace NCRYSTAL_NAMESPACE {
           throw;
         }
 
-        getPLList().push_back(pinfo);
+        getSharedLibPLList().push_back(pinfo);
 
         if (verbose)
           NCRYSTAL_MSG("Done loading plugin \""<<pinfo.pluginName<<"\".");
@@ -323,8 +323,30 @@ std::vector<NCP::PluginInfo> NCP::loadedPlugins()
   std::vector<NCP::PluginInfo> result;
   {
     NCRYSTAL_LOCK_GUARD(getPluginMgmtMutex());
-    result = getPLList();
+    result = getSharedLibPLList();
   }
+  std::vector<PairSS> datadirdb;
+  {
+    datadirdb = detail::getPluginDataDirDB();
+  }
+
+  for ( auto& e : datadirdb ) {
+    //Also add any purely static data plugins (i.e. pure python plugins):
+    bool found(false);
+    for ( auto& r : result ) {
+      if ( e.first == r.pluginName ) {
+        found = true;
+        break;
+      }
+    }
+    if ( !found ) {
+      result.emplace_back();
+      result.back().pluginName = e.first;
+      result.back().fileName = e.second;
+      result.back().pluginType = PluginType::Dynamic;
+    }
+  }
+
   return result;
 }
 
@@ -485,26 +507,6 @@ void NCP::ensurePluginsLoaded()
       Plugins::loadDynamicPluginImpl(pluginlib);
     }
 
-    auto required_plugins = ncgetenv("REQUIRED_PLUGINS");
-    if (!required_plugins.empty()) {
-      auto avail_plugins = getPLList();
-      for ( auto& required_plugin : split2(required_plugins,0,':') ) {
-        std::string found_ptypestr;
-        for ( auto& pinfo : avail_plugins ) {
-          if ( pinfo.pluginName == required_plugin ) {
-            found_ptypestr = ( pinfo.pluginType == PluginType::Dynamic
-                               ? "dynamic" : "builtin" );
-            break;
-          }
-        }
-        if (found_ptypestr.empty())
-          NCRYSTAL_THROW2( LogicError, "Required plugin was not loaded: \""
-                           << required_plugin << '"' );
-        NCRYSTAL_MSG("Required plugin \""<<required_plugin
-                     <<"\" was indeed available ("<<found_ptypestr<<").");
-      }
-    }
-
     //Data directories from ncrystal-pluginmanager:
     SmallVector<PairSS,4> ddirs = std::move( plugmgrcmd_results.plugin_datadirs );
     //Data directories from env var:
@@ -524,6 +526,26 @@ void NCP::ensurePluginsLoaded()
       appendPluginDataDirDB( std::move( ddirs ) );
 
   }//release mutex
+
+  auto required_plugins = ncgetenv("REQUIRED_PLUGINS");
+  if (!required_plugins.empty()) {
+    auto avail_plugins = loadedPlugins();
+    for ( auto& required_plugin : split2(required_plugins,0,':') ) {
+      std::string found_ptypestr;
+      for ( auto& pinfo : avail_plugins ) {
+        if ( pinfo.pluginName == required_plugin ) {
+          found_ptypestr = ( pinfo.pluginType == PluginType::Dynamic
+                             ? "dynamic" : "builtin" );
+          break;
+        }
+      }
+      if (found_ptypestr.empty())
+        NCRYSTAL_THROW2( LogicError, "Required plugin was not loaded: \""
+                         << required_plugin << '"' );
+      NCRYSTAL_MSG("Required plugin \""<<required_plugin
+                   <<"\" was indeed available ("<<found_ptypestr<<").");
+    }
+  }
 
   if ( run_test_functions )
     runRegisteredPluginTestFunctions( ntestfcts );
