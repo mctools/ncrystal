@@ -24,6 +24,11 @@
 ignore_list = set([
     'tests/data/QE_pw_Al.out',
 ])
+
+ignore_list_nonascii = set([
+    'devel/plugin_database.yml',
+])
+
 def main():
 
     from .srciter import all_files_iter
@@ -53,7 +58,8 @@ def main():
             raise SystemExit(f'File too large ({size_kb:.2g} kb): {f}')
 
     for f in all_files_iter('!*.log'):
-        if str(f.relative_to(reporoot)).replace('\\','/') in ignore_list:
+        frel = str(f.relative_to(reporoot)).replace('\\','/')
+        if frel in ignore_list:
             continue
         #Check can always be read as utf8:
         content = f.read_text(encoding='utf8')
@@ -66,10 +72,12 @@ def main():
             raise SystemExit(f'No trailing newline in {f}')
 
         #Check file has only ascii characters:
-        try:
-            content.encode('ascii')
-        except UnicodeEncodeError:
-            raise SystemExit(f'Non-ascii chars found in {f}')
+        if frel not in ignore_list_nonascii:
+            try:
+                content.encode('ascii')
+            except UnicodeEncodeError:
+                raise SystemExit(f'Non-ascii chars found in {f}')
+
         lines = content.splitlines()
         for e in lines:
             if '\t' in e:
