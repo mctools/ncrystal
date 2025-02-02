@@ -39,13 +39,23 @@ nxslib:
   gitref: "ncrystal_release4.0.0"
 
 WaterData:
+  is_on_pypi: true
   github_repo_key: "mctools/ncrystal-extra"
   repo_subdir: "pypkgs/ncrystal-plugin-WaterData"
-  #fixme remove gitref after merging to default branch:
-  gitref: "develop"
   description: |
     Extra NCMAT data files for light and heavy water, covering a wider range of
     temperatures compared to what is found in the NCrystal standard library.
 
     The data files were based on ENDF/B-VIII.0 CAB scattering kernels by
     J.I. Márquez Damián, et. al. (DOI:10.1016/j.anucene.2013.11.014).
+
+UraniumOxideData:
+  is_on_pypi: true
+  github_repo_key: "mctools/ncrystal-extra"
+  repo_subdir: "pypkgs/ncrystal-plugin-UraniumOxideData"
+  description: |
+    Extra NCMAT data files for Uranium Oxide (UO2), with phonon densities
+    optimised for various temperatures.
+
+    Phonon density curves in the files are taken from: G. Noguere, et al., 2020
+    (https://doi.org/10.1103/PhysRevB.102.134312).

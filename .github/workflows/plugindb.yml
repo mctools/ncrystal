@@ -128,7 +128,7 @@ jobs:
         GITHUB_OUTPUT = pathlib.Path(os.environ['GITHUB_OUTPUT'])
         ncdevtool = pathlib.Path('.').absolute().joinpath('src','devel','bin','ncdevtool')
         out = {}
-        for var in ['github_repo_key','repo_subdir','gitref','disable_tests']:
+        for var in ['github_repo_key','repo_subdir','gitref','disable_tests','is_on_pypi']:
             rv=subprocess.run([sys.executable,str(ncdevtool),'plugindb','-e',plugin_name,var],check=True,capture_output=True)
             out[var]=rv.stdout.decode().strip()
         if out["github_repo_key"] == 'mctools/ncrystal':
@@ -225,30 +225,6 @@ jobs:
     - name: Pip check
       run: pip check
 
-    #NB: Next step is actually not needed as long as we use --no-deps above:
-    - name: Verify plugin did not pin NCrystal version
-      shell: python
-      run: |
-        import subprocess
-        import pathlib
-        import sys
-        ncversion = pathlib.Path('.').joinpath('src','VERSION').read_text().strip()
-        def validate_version(pkgname,tgtversion):
-            o = subprocess.run([sys.executable,'-m','pip','show',pkgname],
-                               check = True,
-                               capture_output=True).stdout.decode()
-            v=None
-            for line in o.splitlines():
-                if line.startswith('Version:'):
-                    v = line[len('Version:'):].strip()
-                    break
-            if v != tgtversion:
-                raise SystemExit(f'ERROR: Expected {pkgname} '
-                                 f'version "{tgtversion}" but got "{v}"')
-        validate_version( 'ncrystal-core', ncversion )
-        validate_version( 'ncrystal-python', ncversion )
-        validate_version( 'ncrystal', ncversion )
-
     - name: Verify plugin package has expected name
       run: pip show "ncrystal-plugin-${{ matrix.plugin }}"
 
@@ -257,6 +233,29 @@ jobs:
 
     - name: Test plugin
       if: steps.pluginfo.outputs.disable_tests != ''
+      run: ncrystal-pluginmanager --test "${{ matrix.plugin }}"
+
+    - name: Uninstall plugin
+      run: pip uninstall "ncrystal-plugin-${{ matrix.plugin }}"
+
+    - name: Pip list
+      run: pip list
+
+    - name: Pip check
+      run: pip check
+
+    - name: Install plugin from PyPI
+      if: steps.pluginfo.outputs.is_on_pypi != ''
+      run: pip install "ncrystal-plugin-${{ matrix.plugin }}" --no-deps --no-build-isolation
+
+    - name: Pip list
+      run: pip list
+
+    - name: Pip check
+      run: pip check
+
+    - name: Test PyPI plugin
+      if: steps.pluginfo.outputs.is_on_pypi != '' && steps.pluginfo.outputs.disable_tests != ''
       run: ncrystal-pluginmanager --test "${{ matrix.plugin }}"
 
 #FIXME: cppcheck plugin?

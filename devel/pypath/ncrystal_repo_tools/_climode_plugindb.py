@@ -39,9 +39,9 @@ def _prepare_data_and_check_errors( data ):
     if not isinstance(data,dict):
         return "top-level info must be a dictionary"
     known_keys = set(['github_repo_key','gitref','repo_subdir','description',
-                      'disable_tests' ])
+                      'disable_tests', 'is_on_pypi' ])
     required_keys = set(['github_repo_key','description'])
-    boolean_keys = set(['disable_tests'])
+    boolean_keys = set(['disable_tests', 'is_on_pypi'])
     assert not ( boolean_keys - known_keys )
     assert not (required_keys-known_keys)
     import textwrap
