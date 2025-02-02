@@ -34,8 +34,17 @@ jobs:
         python-version: ${{ matrix.python }}
         allow-prereleases: true #Needed (Aug 2024) for Python 3.13.
 
-    - name: Pip install ncrystal
-      run: python3 -m pip install ./src_ncrystal/
+    - name: ncdevtool checks
+      run: ./src_ncrystal/devel/bin/ncdevtool check -n fixme
+
+    - name: Pip install ncrystal-core
+      run: python3 -m pip install ./src_ncrystal/ncrystal_core
+
+    - name: Pip install ncrystal-python
+      run: python3 -m pip install ./src_ncrystal/ncrystal_python
+
+    - name: Pip install ncrystal metapkg
+      run: python3 -m pip install ./src_ncrystal/ncrystal_metapkg
 
     - name: Checkout ncrystal-notebooks
       uses: actions/checkout@v4
@@ -43,9 +52,11 @@ jobs:
         repository: mctools/ncrystal-notebooks
         path: src_notebooks
 
-    - name: Extra pip install for notebooks
-      #Pin ASE due to https://gitlab.com/ase/ase/-/issues/1597 breaking 3.24
-      run: python3 -m pip install numpy matplotlib spglib ase==3.23.0 gemmi jupyterlab ipympl
+    - name: Pip install jupyterlab ipympl
+      run: python3 -m pip install jupyterlab ipympl
+
+    - name: Pip install optional ncrystal dependencies
+      run: python3 -m pip install -r ./src_ncrystal/devel/reqs/requirement_all.txt
 
     - name: Test notebooks
       run: ./src_notebooks/.github/resources/run_notebooks.x
