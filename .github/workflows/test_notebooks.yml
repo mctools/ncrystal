@@ -7,7 +7,20 @@ on:
     - cron: '30 21 * * 0'  # 21:30 every Sunday
 
 jobs:
+  ncdevtool_check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: src
+      - name: Pip install packages for ncdevtool
+        run: pip install -r ./src/devel/reqs/requirement_devel.txt
+      - name: ncdevtool checks
+        run: ./src/devel/bin/ncdevtool check -n fixme
+
   build:
+    needs: [ preparations ]
     strategy:
       matrix:
         include:
@@ -34,9 +47,6 @@ jobs:
         python-version: ${{ matrix.python }}
         allow-prereleases: true #Needed (Aug 2024) for Python 3.13.
 
-    - name: ncdevtool checks
-      run: ./src_ncrystal/devel/bin/ncdevtool check -n fixme
-
     - name: Pip install ncrystal-core
       run: python3 -m pip install ./src_ncrystal/ncrystal_core
 
@@ -45,6 +55,9 @@ jobs:
 
     - name: Pip install ncrystal metapkg
       run: python3 -m pip install ./src_ncrystal/ncrystal_metapkg
+
+    - name: nctool --test
+      run: nctool --test
 
     - name: Checkout ncrystal-notebooks
       uses: actions/checkout@v4

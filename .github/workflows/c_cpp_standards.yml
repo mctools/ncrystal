@@ -6,8 +6,22 @@ on:
   schedule:
     - cron: '10 15 * * 0'  # 10:15 every Sunday
 
+
 jobs:
+  ncdevtool_check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: src
+      - name: Pip install packages for ncdevtool
+        run: pip install -r ./src/devel/reqs/requirement_devel.txt
+      - name: ncdevtool checks
+        run: ./src/devel/bin/ncdevtool check -n fixme
+
   build:
+    needs: [ preparations ]
     strategy:
       matrix:
         strictflag: [11, 14, 17, 20, 23]
