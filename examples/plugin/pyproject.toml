@@ -23,7 +23,7 @@
 name = "ncrystal-plugin-DummyPlugin"
 version = "0.0.1"
 license = {file = "LICENSE"}
-dependencies = [ "ncrystal-core>=3.9.86", "ncrystal-pypluginmgr>=0.0.4" ]
+dependencies = [ "ncrystal-core>=3.9.87", "ncrystal-pypluginmgr>=0.0.5" ]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: Apache Software License",
