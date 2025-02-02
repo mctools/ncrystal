@@ -38,8 +38,11 @@ def _prepare_data_and_check_errors( data ):
     #Prepares data in place, returns an error message in case of issues
     if not isinstance(data,dict):
         return "top-level info must be a dictionary"
-    known_keys = set(['github_repo_key','gitref','repo_subdir','description'])
+    known_keys = set(['github_repo_key','gitref','repo_subdir','description',
+                      'disable_tests' ])
     required_keys = set(['github_repo_key','description'])
+    boolean_keys = set(['disable_tests'])
+    assert not ( boolean_keys - known_keys )
     assert not (required_keys-known_keys)
     import textwrap
     for k0, v0 in data.items():
@@ -57,8 +60,11 @@ def _prepare_data_and_check_errors( data ):
             return ( f'data base info for "{k0}" has '
                      f'unknown key: "{unknown.pop()}"' )
         for k1, v1 in v0.items():
-            if not isinstance(v1,str):
-                return f'value for {k0}.{k1}={repr(v1)} is not a string'
+            _type,_type_str = str, 'string'
+            if k1 in boolean_keys:
+                _type,_type_str = bool, 'bool'
+            if not isinstance(v1,_type):
+                return f'value for {k0}.{k1}={repr(v1)} is not a {_type_str}'
         assert 'description' in v0
         v0['description'] = textwrap.fill(v0['description'],9999999)
         if v0['github_repo_key'].count('/')!=1:
@@ -66,10 +72,13 @@ def _prepare_data_and_check_errors( data ):
         assert 'repourl' not in v0
         v0['repourl'] = 'https://github.com/%s'%v0['github_repo_key']
         #Add some defaults:
-        if 'repo_subdir' not in v0:
-            v0['repo_subdir'] = ''
-        if 'gitref' not in v0:
-            v0['gitref'] = ''
+        for bk in boolean_keys:
+            #Booleans should be marked as '1' if true and empty string '' else:
+            v0[bk] = '1' if v0.get(bk) else ''
+        #All known keys are set to empty strings if absent:
+        for k in known_keys:
+            if k not in v0:
+                v0[k] = ''
 
 
 def main( parser ):

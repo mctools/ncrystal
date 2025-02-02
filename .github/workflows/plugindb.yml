@@ -128,7 +128,7 @@ jobs:
         GITHUB_OUTPUT = pathlib.Path(os.environ['GITHUB_OUTPUT'])
         ncdevtool = pathlib.Path('.').absolute().joinpath('src','devel','bin','ncdevtool')
         out = {}
-        for var in ['github_repo_key','repo_subdir','gitref']:
+        for var in ['github_repo_key','repo_subdir','gitref','disable_tests']:
             rv=subprocess.run([sys.executable,str(ncdevtool),'plugindb','-e',plugin_name,var],check=True,capture_output=True)
             out[var]=rv.stdout.decode().strip()
         if out["github_repo_key"] == 'mctools/ncrystal':
@@ -196,12 +196,11 @@ jobs:
         name: wheels-ncrystal-${{ matrix.os }}
         path: ./dist
 
-    #NB: This covers all known plugins. If it will differ, we might want to
-    #simply parse the pyproject toml instead and validate that ncrystal pkgs are
-    #unpinned". That way we can remove the --no-deps --no-build-isolation
-    #further down.
     - name: Install numpy and build backends
       run: pip install numpy "setuptools>=64.0" "scikit-build-core>=0.10"
+      #                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      #NB: This covers all known plugins. If it will differ, we might want to
+      #    simply parse the pyproject toml instead and extract them dynamically:
 
     - name: Install ncrystal
       run: pip install --no-index --find-links dist ncrystal ncrystal-pypluginmgr
@@ -257,6 +256,7 @@ jobs:
       run: pip list
 
     - name: Test plugin
+      if: steps.pluginfo.outputs.disable_tests != ''
       run: ncrystal-pluginmanager --test "${{ matrix.plugin }}"
 
 #FIXME: cppcheck plugin?

@@ -1,28 +1,32 @@
+#fixme: We should also add contact information as well, and links to issue
+#trackers etc.
+
 DummyPlugin:
   github_repo_key: "mctools/ncrystal"
   repo_subdir: "examples/plugin"
   description: |
-    A (silly) example shipped with ncrystal itself, serving as a template for
-    other plugins. This example shows how to create a plugin which actually
+    A (silly) example from the NCrystal source repository, serving as a template
+    for other plugins. This example shows how to create a plugin which actually
     modifies scattering physics.
 
 DummyDataPlugin:
   github_repo_key: "mctools/ncrystal"
   repo_subdir: "examples/plugin_dataonly"
   description: |
-    A (silly) example shipped with ncrystal itself, serving as a template for
-    other plugins. This example shows how to create a plugin which only
-    provides a static set of NCMAT file.
+    A (silly) example from the NCrystal source repository, serving as a template
+    for other plugins. This example shows how to create a plugin which only
+    provides a static set of NCMAT files.
 
 CrysText:
   github_repo_key: "highness-eu/ncplugin-CrysText"
+  disable_tests: true # fixme: This should not be necessary!!!!
   description: |
-    Small Angles Neutron Scattering for NanoDiamonds.
+    A plugin providing texture models. Warning: The data files from this plugin
+    will currently fail to load as isotropic materials, needing `dir1`, `dir2`
+    and `mos` parameters. Additionally there are some known numerical issues.
 
 SANSND:
-   #fixme remove gitref and change key to: "highness-eu/ncplugin-SANSND"
-  github_repo_key: "mctools/ncplugin-template"
-  gitref: "ncplugin-fix-SANSND-for-ncrystal4"
+  github_repo_key: "highness-eu/ncplugin-SANSND"
   description: |
     Small Angles Neutron Scattering for NanoDiamonds.
 
