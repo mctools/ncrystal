@@ -31,7 +31,10 @@ void NCP::customPluginTest()
   //(which is what the nc_assert_always function does below, but feel free to
   //simply throw an exception directly).
 
-  NCRYSTAL_MSG("Testing plugin "<<pluginName());
+  //Note, emit all messages here and elsewhere in plugin code with NCPLUGIN_MSG
+  //(or NCPLUGIN_WARN for warnings), never raw usage of std::cout or printf!
+
+  NCPLUGIN_MSG("Testing plugin");
 
   //Create some test NCMAT data. For simplicity we will here base it on an
   //existing file, but add our @CUSTOMPLUGIN section (see NCPhysicsModel.cc for
@@ -53,9 +56,9 @@ void NCP::customPluginTest()
   }
 
   if ( true ) {
-    NCRYSTAL_MSG("Test NCMAT data begin:");
+    NCPLUGIN_MSG("Test NCMAT data begin:");
     NCRYSTAL_RAWOUT(testdata);
-    NCRYSTAL_MSG("Test NCMAT data end.");
+    NCPLUGIN_MSG("Test NCMAT data end.");
   }
 
   //Let us load and exercise this testdata. We do NOT want to register the
@@ -78,7 +81,7 @@ void NCP::customPluginTest()
 
     auto xs_base = scat_base.crossSectionIsotropic( wl );
     auto xs_base_noincelas = scat_base_noincelas.crossSectionIsotropic( wl );
-    NCRYSTAL_MSG( "xs @ "<<wl<<" : "
+    NCPLUGIN_MSG( "xs @ "<<wl<<" : "
                   <<xs_base<<" (base)"<<" "
                   <<xs<<" (new)"<<" "
                   <<xs_incelasonly<<" (new inc elas)"
@@ -100,12 +103,12 @@ void NCP::customPluginTest()
   for ( auto& wlval : NC::linspace(0.1,3.1,16) ) {
     auto wl = NC::NeutronWavelength( wlval );
     auto xs = scat_somefile.crossSectionIsotropic( wl );
-    NCRYSTAL_MSG( "somefile.ncmat incoh-elas xs @ "<<wl<<" : "<<xs);
+    NCPLUGIN_MSG( "somefile.ncmat incoh-elas xs @ "<<wl<<" : "<<xs);
     double expected_xs = ( wl.dbl() <= 4.0 ? 6.0 : 0.0 );
     nc_assert_always( NC::floateq( expected_xs, xs.dbl() ) );
   }
 
   //Note: We do not test the scattering here for this simple dummy plugin.
 
-  NCRYSTAL_MSG("All tests of plugin "<<pluginName()<<" were successful!");
+  NCPLUGIN_MSG("All tests of plugin were successful!");
 }
