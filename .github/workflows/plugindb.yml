@@ -236,7 +236,7 @@ jobs:
       run: ncrystal-pluginmanager --test "${{ matrix.plugin }}"
 
     - name: Uninstall plugin
-      run: pip uninstall "ncrystal-plugin-${{ matrix.plugin }}"
+      run: pip uninstall -y "ncrystal-plugin-${{ matrix.plugin }}"
 
     - name: Pip list
       run: pip list
