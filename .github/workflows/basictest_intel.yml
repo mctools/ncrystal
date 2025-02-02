@@ -14,7 +14,7 @@ jobs:
         with:
           path: src
       - name: Pip install packages for ncdevtool
-        run: pip install -r ./src/devel/reqs/requirement_devel.txt
+        run: pip install -r ./src/devel/reqs/requirements_devel.txt
       - name: ncdevtool checks
         run: ./src/devel/bin/ncdevtool check -n fixme
 
@@ -62,7 +62,7 @@ jobs:
       #"building font cache" printouts on first imports.
     - name: pip install extra deps
       run: |
-        python3 -mpip install -r ./src/devel/reqs/requirement_all_combined.txt
+        python3 -mpip install -r ./src/devel/reqs/requirements_all_and_devel.txt
         python3 -c "import numpy; print('numpy imported ok')"
         python3 -c "import gemmi; print('gemmi imported ok')"
         python3 -c "import spglib; print('spglib imported ok')"

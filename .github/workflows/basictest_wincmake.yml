@@ -34,7 +34,7 @@ jobs:
     - name: pip install extra deps
       shell: cmd
       run: |
-        python -mpip install -r .\src\devel\reqs\requirement_all_combined.txt
+        python -mpip install -r .\src\devel\reqs\requirements_all_and_devel.txt
         if %errorlevel% neq 0 exit /b %errorlevel%
         python -c "import numpy; print('numpy imported ok')"
         if %errorlevel% neq 0 exit /b %errorlevel%

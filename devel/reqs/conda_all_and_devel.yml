@@ -1,4 +1,4 @@
-name: ncrystal_all_combined
+name: ncrystal_all_and_devel
 channels:
   - nodefaults
   - conda-forge

@@ -37,7 +37,7 @@ jobs:
         python-version: ${{ matrix.python }}
 
     - name: Pip install dependencies
-      run: python -mpip install -r ./src/devel/reqs/requirement_all_combined.txt
+      run: python -mpip install -r ./src/devel/reqs/requirements_all_and_devel.txt
 
     - name: Configure CMake
       run: >

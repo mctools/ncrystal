@@ -30,7 +30,7 @@ jobs:
         python-version: ${{ matrix.python }}
 
     - name: pip install deps
-      run: python -mpip install -r ./devel/reqs/requirement_all_combined.txt
+      run: python -mpip install -r ./devel/reqs/requirements_all_and_devel.txt
 
     - name: simplebuild debug
       run: SIMPLEBUILD_CFG=$PWD/devel/simplebuild/cfgs/simplebuild_debug.cfg sb

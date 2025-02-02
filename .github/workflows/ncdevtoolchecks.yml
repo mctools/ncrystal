@@ -19,7 +19,7 @@ jobs:
         python-version: 3.13
 
     - name: pip install deps
-      run: pip install -r ./devel/reqs/requirement_devel.txt
+      run: pip install -r ./devel/reqs/requirements_devel.txt
 
     - name: checks
       run: ./devel/bin/ncdevtool check -n "fix""me"

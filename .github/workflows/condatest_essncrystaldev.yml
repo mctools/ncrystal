@@ -42,7 +42,7 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           activate-environment: ncrystal_all_combined
-          environment-file: ./src/devel/reqs/conda_all_combined.yml
+          environment-file: ./src/devel/reqs/conda_all_and_devel.yml
           auto-activate-base: false
 
       - name: Install more dependencies

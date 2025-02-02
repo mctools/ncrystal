@@ -106,15 +106,15 @@ def check_pipreqfiles(src):
     base_deps = get_base_deps()
     files = {}
     for k,v in src.items():
-        frel = f'devel/reqs/requirement_{k}.txt'
+        frel = f'devel/reqs/requirements_{k}.txt'
         assert frel not in files
         deps = set(v + list(base_deps))
         all_deps_combined.update(deps)
         files[frel] = produce_pipreqfile( deps )
-    frel_all_combined = 'devel/reqs/requirement_all_combined.txt'
+    frel_all_combined = 'devel/reqs/requirements_all_and_devel.txt'
     assert frel_all_combined not in files
     files[frel_all_combined] = produce_pipreqfile( all_deps_combined )
-    _check_files(files,'requirement_*.txt')
+    _check_files(files,'requirements_*.txt')
     return files
 
 def pip_2_conda_dep( depname ):

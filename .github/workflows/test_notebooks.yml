@@ -15,7 +15,7 @@ jobs:
         with:
           path: src
       - name: Pip install packages for ncdevtool
-        run: pip install -r ./src/devel/reqs/requirement_devel.txt
+        run: pip install -r ./src/devel/reqs/requirements_devel.txt
       - name: ncdevtool checks
         run: ./src/devel/bin/ncdevtool check -n fixme
 
@@ -69,7 +69,7 @@ jobs:
       run: python3 -m pip install jupyterlab ipympl
 
     - name: Pip install optional ncrystal dependencies
-      run: python3 -m pip install -r ./src_ncrystal/devel/reqs/requirement_all.txt
+      run: python3 -m pip install -r ./src_ncrystal/devel/reqs/requirements_all.txt
 
     - name: Test notebooks
       run: ./src_notebooks/.github/resources/run_notebooks.x
