@@ -20,7 +20,7 @@ jobs:
         run: ./src/devel/bin/ncdevtool check -n fixme
 
   build:
-    needs: [ preparations ]
+    needs: [ ncdevtool_check ]
     strategy:
       matrix:
         include:

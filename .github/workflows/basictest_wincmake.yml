@@ -5,7 +5,20 @@ on:
   pull_request:
 
 jobs:
+  ncdevtool_check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: src
+      - name: Pip install packages for ncdevtool
+        run: pip install -r ./src/devel/reqs/requirements_devel.txt
+      - name: ncdevtool checks
+        run: ./src/devel/bin/ncdevtool check -n fixme
+
   build:
+    needs: [ ncdevtool_check ]
     # More platform information available on:
     # https://github.com/actions/runner-images/blob/main/images/windows/Windows2022-Readme.md
     #

@@ -4,7 +4,6 @@ on:
   push:
   pull_request:
 
-
 jobs:
   ncdevtool_check:
     runs-on: ubuntu-latest
@@ -19,7 +18,7 @@ jobs:
         run: ./src/devel/bin/ncdevtool check -n fixme
 
   build:
-    needs: [ preparations ]
+    needs: [ ncdevtool_check ]
     strategy:
       matrix:
         os: [windows-2019, windows-2022]
