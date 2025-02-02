@@ -61,6 +61,26 @@ namespace NCRYSTAL_NAMESPACE {
   outputMsgMS( ::NCRYSTAL_NAMESPACE::Msg::detail::MsgStream() << msg, \
                ::NCRYSTAL_NAMESPACE::MsgType::RawOutput );
 
+#ifdef NCPLUGIN_NAME_CSTR
+    //The NCPLUGIN_MSG and NCPLUGIN_WARN macros are only available if you are in
+    //a plugin using NCPluginBoilerplate.hh, and should be preferred in such
+    //plugin code over NCRYSTAL_MSG and NCRYSTAL_WARN:
+#  ifdef NCPLUGIN_MSG
+#    undef NCPLUGIN_MSG
+#  endif
+#  ifdef NCPLUGIN_WARN
+#    undef NCPLUGIN_WARN
+#  endif
+#  define NCPLUGIN_MSG(msg) ::NCRYSTAL_NAMESPACE::Msg::detail:: \
+    outputMsgMS( ::NCRYSTAL_NAMESPACE::Msg::detail::MsgStream() \
+                   <<"plugin::" NCPLUGIN_NAME_CSTR ": "  << msg, \
+                 ::NCRYSTAL_NAMESPACE::MsgType::Info );
+#  define NCPLUGIN_WARN(msg) ::NCRYSTAL_NAMESPACE::Msg::detail:: \
+    outputMsgMS( ::NCRYSTAL_NAMESPACE::Msg::detail::MsgStream() \
+                   <<"plugin::" NCPLUGIN_NAME_CSTR ": "  << msg, \
+                 ::NCRYSTAL_NAMESPACE::MsgType::Warning );
+#endif
+
   }
 }
 
