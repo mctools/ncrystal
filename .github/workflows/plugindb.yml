@@ -23,17 +23,13 @@ jobs:
     - name: ncdevtool checks
       run: ./src/devel/bin/ncdevtool check -n fixme
 
-    #FIXME: Add one more complete ncrystal test here, before we launch all the
-    #jobs! (possibly in a separate job)
-
     - name: Generate plugin list
       id: generate-plugin-list
       run: echo "pluginlist=$(./src/devel/bin/ncdevtool plugindb --mode=listjson)" >> $GITHUB_OUTPUT
 
     outputs:
       pluginlist: ${{ steps.generate-plugin-list.outputs.pluginlist }}
-      platforms: '[ "ubuntu-latest" ]'
-#fixme      platforms: '[ "ubuntu-latest", "macos-latest", "windows-latest","ubuntu-24.04-arm", "macos-13" ]'
+      platforms: '[ "ubuntu-latest", "macos-latest", "windows-latest","ubuntu-24.04-arm", "macos-13" ]'
 
   build_ncrystal:
     needs: [ preparations ]
@@ -85,9 +81,6 @@ jobs:
 
     - name: Test ncrystal
       run: nctool --test
-
-
-#fixme: we can build ncrystal wheel on just one platform, and then upload it as artifact
 
   checkplugin:
     needs: [ preparations, build_ncrystal ]
@@ -207,7 +200,7 @@ jobs:
     #simply parse the pyproject toml instead and validate that ncrystal pkgs are
     #unpinned". That way we can remove the --no-deps --no-build-isolation
     #further down.
-    - name: Install numpy and  build backends
+    - name: Install numpy and build backends
       run: pip install numpy "setuptools>=64.0" "scikit-build-core>=0.10"
 
     - name: Install ncrystal
@@ -233,6 +226,7 @@ jobs:
     - name: Pip check
       run: pip check
 
+    #NB: Next step is actually not needed as long as we use --no-deps above:
     - name: Verify plugin did not pin NCrystal version
       shell: python
       run: |
@@ -264,3 +258,5 @@ jobs:
 
     - name: Test plugin
       run: ncrystal-pluginmanager --test "${{ matrix.plugin }}"
+
+#FIXME: cppcheck plugin?
