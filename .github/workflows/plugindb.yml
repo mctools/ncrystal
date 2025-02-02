@@ -232,7 +232,7 @@ jobs:
       run: pip list
 
     - name: Test plugin
-      if: steps.pluginfo.outputs.disable_tests != ''
+      if: steps.pluginfo.outputs.disable_tests == ''
       run: ncrystal-pluginmanager --test "${{ matrix.plugin }}"
 
     - name: Uninstall plugin
@@ -255,7 +255,7 @@ jobs:
       run: pip check
 
     - name: Test PyPI plugin
-      if: steps.pluginfo.outputs.is_on_pypi != '' && steps.pluginfo.outputs.disable_tests != ''
+      if: steps.pluginfo.outputs.is_on_pypi != '' && steps.pluginfo.outputs.disable_tests == ''
       run: ncrystal-pluginmanager --test "${{ matrix.plugin }}"
 
 #FIXME: cppcheck plugin?
