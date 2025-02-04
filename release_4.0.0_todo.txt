@@ -2,10 +2,6 @@
 
 #FIXME Address all of the following for the release:
 
-* Add a very temporary NCrystal/NCRNG.hh redirection header, to support openmc
-  until their next release?
-
-* update year in copyright statements (also in e.g. nxslib plugin).
 * Update ncplugin_template with a readme which simply redirects to the new
   documentation.
 * We should have a way to determine what version of NCrystal a given plugin was
@@ -22,22 +18,7 @@
 
 * sb_devtools_gdb to simple-build-system??
 
-* Are we 100% sure we are happy with the layout of files in ncrystal_core now?!??!?
-
-* Reinstate header splits into .icc files? This also needs support in ncdevtool
-  (e.g. cppmove mode) and ncrystal_repo_tools/core_components.py. Perhaps we
-  need a new ncdevtool mode for doing the split?
-
 * Compile and test also dmsc:ncrystaldev nclong pkgs.
-
-* Think about completely dissuading people from including specific headers in
-  subdirs. Should we have an NCrystal/internal/CommonUtils.hh for plugins? Or AllInternal.hh?
-
-     Might be nice if each component was ONE subdir (with inc and src subdirs),
-    and they were included like "NCrystal/<compname>/bla.hh", but that these
-    were all simply exported flatly in installations, where you would have a
-    single NCrystal.hh, NCrystalInternal.hh, etc.  Issue: it might not be OK to
-    include ALL header files in a single file?
 
 * consider more ncdevtool checks:
     * shebangs consistent
@@ -45,18 +26,12 @@
     * use inspect module to find missing docstrings in modules and functions
 
 * CI missing:
-    * exercising embedded data with e.g. tests.
     * python coverage testing.
+
+* check open ncrystal issues.
 
 * Support (and test) windows paths starting with "\\?\", as well as shared
   directories starting with double slashes.
-
-* pypi wheels: always build from sdist! Also need CI which tests that sdist are complete.
-
-* Conda packages and so forth should try to run "python3 -mNCrystal.test cmdline
-  verbose", to verify they remembered all entry points!
-
-* Prepare ncrystal-core, ncrystal-python, ncrystal packages.
 
 * "ncdevtool find" mode seems broken.
 
@@ -72,17 +47,14 @@
   which globs up stuff from tests/ (and possibly examples), and repackage the
   tests it in a way that ensures they can be launched against an existing
   ncrystal installation. That way, it would be possible to verify any
-  installation with "pip install ncrystal-test && ncrystal-test ".
+  installation with "pip install ncrystal-test && ncrystal-test ". At the very
+  least, we could do this for pure-python tests.
 
 * 'black -x --line-length 80 --check' on all python files + associated ncdevtool
-  pyfmt mode??
-
-* Prepare simple-build-dgcode for new release.
+  pyfmt mode?? clang-format on c++ files?
 
 * plugin docs should contain this info: https://github.com/highness-eu/ncplugin-CrysText/pull/1#issuecomment-2624392374
-* ncrystal_python pkg should use src/ subdir for NCrystal?
 * notify debian/freebsd people about new packaging.
-
 
 conda install ncrystal-all
 conda install ncrystal-plugin-support
