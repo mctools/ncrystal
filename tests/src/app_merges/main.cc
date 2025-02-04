@@ -20,7 +20,7 @@
 
 #include "NCrystal/NCrystal.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
-#include "NCrystal/internal/pcbragg/NCPowderBragg.hh"
+#include "NCrystal/internal/powderbragg/NCPowderBragg.hh"
 #include "NCrystal/internal/elincscatter/NCElIncScatter.hh"
 
 #include <iostream>
@@ -57,7 +57,7 @@ int main() {
     auto pcb2 = NC::makeSO<NC::PowderBragg>( v0_times_natoms_2, std::move(planes2) );
     auto pcb_merged = pcb1->createMerged(pcb2,1.0,1.0);
 
-    std::string fn = "testpcbraggmerge.txt";
+    std::string fn = "testpowderbraggmerge.txt";
     std::cout<<"Writing "<<fn<<" (visualise with sb_ncperfval_plottxtfile script)"<<std::endl;
     std::ofstream fh(fn);
     fh << "# NB: Visualise this file with sb_ncperfval_plottxtfile\n";
@@ -122,7 +122,7 @@ int main() {
       fh << wl << " "<< xs1 << " "<< xs2 << " "<<(xs1+xs2) << " "<<xs_merged<< std::endl;
     }
   }
-  //TODO: unit test e.g. pcbragg empty cases, and scale factors.
+  //TODO: unit test e.g. powderbragg empty cases, and scale factors.
 
   return 0;
 }

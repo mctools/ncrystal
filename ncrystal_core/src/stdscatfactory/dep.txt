@@ -6,7 +6,7 @@ factories
 freegas
 interfaces
 lcbragg
-pcbragg
+powderbragg
 sab
 sabscatter
 scbragg

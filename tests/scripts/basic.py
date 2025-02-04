@@ -69,14 +69,14 @@ myprint("XSectFree : %g"%info.getXSectFree())
 myprint("Density : %g"%info.getDensity())
 myprint("Structure : %s"%(', '.join('%s=%.12g'%(k,v) for k,v in sorted(info.getStructureInfo().items())) if info.hasStructureInfo() else '<n/a>'))
 
-calc_pcbragg = NC.createScatter(datafile+";inelas=0;incoh_elas=0")
-xs = calc_pcbragg.crossSectionIsotropic(NC.wl2ekin(4.0))
-myprint("Aluminium %s diffraction cross-section @ 4.0Aa: %g barn"%(calc_pcbragg.name,xs))
+calc_powderbragg = NC.createScatter(datafile+";inelas=0;incoh_elas=0")
+xs = calc_powderbragg.crossSectionIsotropic(NC.wl2ekin(4.0))
+myprint("Aluminium %s diffraction cross-section @ 4.0Aa: %g barn"%(calc_powderbragg.name,xs))
 
 wls=np.linspace(1.0,4.0,4)
-myprint("Aluminium %s diffraction cross-section @ [%s]Aa: [%s] barn"%(calc_pcbragg.name,
+myprint("Aluminium %s diffraction cross-section @ [%s]Aa: [%s] barn"%(calc_powderbragg.name,
                                                                       (', '.join('%g'%e for e in wls)),
-                                                                      (', '.join('%g'%e for e in calc_pcbragg.xsect(wl=wls)))))
+                                                                      (', '.join('%g'%e for e in calc_powderbragg.xsect(wl=wls)))))
 
 
 calc_bkgd = NC.createScatter(datafile+";bragg=false")

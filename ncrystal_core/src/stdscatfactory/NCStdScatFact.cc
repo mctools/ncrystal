@@ -24,7 +24,7 @@
 #include "NCrystal/interfaces/NCProcImpl.hh"
 #include "NCrystal/interfaces/NCInfo.hh"
 #include "NCrystal/interfaces/NCSCOrientation.hh"
-#include "NCrystal/internal/pcbragg/NCPowderBragg.hh"
+#include "NCrystal/internal/powderbragg/NCPowderBragg.hh"
 #include "NCrystal/internal/scbragg/NCSCBragg.hh"
 #include "NCrystal/internal/lcbragg/NCLCBragg.hh"
 #include "NCrystal/internal/bkgdextcurve/NCBkgdExtCurve.hh"
