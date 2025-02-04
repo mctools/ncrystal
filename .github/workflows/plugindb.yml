@@ -21,7 +21,7 @@ jobs:
       run: pip install -r ./src/devel/reqs/requirements_devel.txt
 
     - name: ncdevtool checks
-      run: ./src/devel/bin/ncdevtool check -n fixme
+      run: ./src/devel/bin/ncdevtool check -n "fix""me"
 
     - name: Generate plugin list
       id: generate-plugin-list
