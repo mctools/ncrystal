@@ -217,9 +217,14 @@ jobs:
       # new default, you should set the value to manylinux2014." So when that
       # happens, we can remove the 2_28 step, or possibly swap it for 2_34 and
       # manylinux2014:
+      #
+      # Additionally, also try to make windows-arm64 wheels through cross
+      # compilation.
 
       - name: cibuildwheel
         uses: pypa/cibuildwheel@v2.22.0
+        env:
+          CIBW_ARCHS_WINDOWS: "auto ARM64"
         with:
           package-dir: ${{ env.SDIST_PATH }}
           output-dir: wheelhouse
@@ -229,6 +234,7 @@ jobs:
         if: runner.os == 'Linux'
         env:
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
+          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
         with:
           package-dir: ${{ env.SDIST_PATH }}
           output-dir: wheelhouse
@@ -315,15 +321,17 @@ jobs:
           expected_keys = [
             "macosx_10_9_x86_64",
             "macosx_11_0_arm64",
-            "manylinux_2_17_aarch64.manylinux2014_aarch64",
             "manylinux_2_17_i686.manylinux2014_i686",
             "manylinux_2_17_x86_64.manylinux2014_x86_64",
             "manylinux_2_27_x86_64.manylinux_2_28_x86_64",
-            "musllinux_1_2_aarch64",
+            "manylinux_2_17_aarch64.manylinux2014_aarch64",
+            "manylinux_2_27_aarch64.manylinux_2_28_aarch64",
             "musllinux_1_2_i686",
             "musllinux_1_2_x86_64",
+            "musllinux_1_2_aarch64",
             "win32",
             "win_amd64",
+            "win_arm64",
           ]
           versionstr = '${{ needs.preparations.outputs.ncrystalversion }}'
           prefix = f'ncrystal_core-{versionstr}-py3-none-'
