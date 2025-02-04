@@ -34,7 +34,7 @@ jobs:
 
     - name: Pip install dependencies
       #Pin ASE due to https://gitlab.com/ase/ase/-/issues/1597 breaking 3.24
-      run: python3 -m pip install -r requirements_all_and_devel.txt
+      run: python3 -m pip install -r ./src/devel/reqs/requirements_all_and_devel.txt
 
     - name: Configure CMake
       run: >
