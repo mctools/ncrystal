@@ -9,8 +9,12 @@ CHANGELOG           : Release notes.
 INSTALL             : Instructions for installation and building.
 FILES               : This file.
 data/...............: Material data files in NCrystals native format (.ncmat).
-ncrystal_core/......: The core NCrystal code implemented in C++.
-ncrystal_python/....: NCrystal python modules.
+ncrystal_core/......: ncrystal-core package with C++ code, CMake code for
+                      building it, and the ncrystal-config cmdline application.
+ncrystal_python/....: ncrystal-python package with NCrystal python modules.
+ncrystal_metapkg/...: NCrystal metapackage "ncrystal"
+ncrystal_pypluginmgr: Source the ncrystal-pypluginmgr package, needed by dynamic
+                      plugins.
 CMakeLists.txt......: Configuration file for building and installing via CMake
                       (but see instructions in INSTALL first).
 pyproject.toml......: Support building and installing via standard Python
@@ -18,9 +22,13 @@ pyproject.toml......: Support building and installing via standard Python
 docs/...............: Extra documentation. Currently this is just ncmat_doc.md
                       with a thorough description of the NCMAT format.
 tests/..............: Files and infrastructure for CTest-based tests.
-ncrystal_geant4/....: Code for NCrystal-Geant4 hooks. Will eventually be
-                      migrated to reside in another repository.
 examples/...........: Small standalone examples for using NCrystal, either from
                       the commandline, C, C++ or python applications or through
                       Geant4 simulations in C++.
-devel/..............: Developer utilities (including the ncdevtool command).
+                      Also included are templates for external plugins.
+devel/..............: Developer utilities (including the ncdevtool command). It
+                      also includes infrastructure for building with
+                      simple-build-system, environment files, and the database
+                      of external plugins.
+ncrystal_geant4/....: Code for NCrystal-Geant4 hooks. Will eventually be
+                      migrated to reside in another repository.
