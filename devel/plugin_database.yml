@@ -31,12 +31,10 @@ SANSND:
     Small Angles Neutron Scattering for NanoDiamonds.
 
 nxslib:
-  #fixme remove gitref after merging to default branch:
   github_repo_key: "mctools/ncplugin_nxslib"
   description: |
     NCrystal plugin for loading .nxs files. Also includes a small database of
     .nxs files.
-  gitref: "ncrystal_release4.0.0"
 
 WaterData:
   is_on_pypi: true
