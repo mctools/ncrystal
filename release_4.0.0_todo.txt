@@ -81,5 +81,8 @@
 
 * plugin docs should contain this info: https://github.com/highness-eu/ncplugin-CrysText/pull/1#issuecomment-2624392374
 * ncrystal_python pkg should use src/ subdir for NCrystal?
+* notify debian/freebsd people about new packaging.
 
-* rename devel/reqs/requirement_* to devel/reqs/requirements_.*
+
+conda install ncrystal-all
+conda install ncrystal-plugin-support
