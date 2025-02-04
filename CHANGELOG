@@ -1,17 +1,13 @@
-
 v4.0.0 2025-02-06
-
      * This milestone release primarily brings new supported user platforms and
        a huge restructuring of the environment in which NCrystal is developed
        and tested. In addition, it also brings many minor fixes, and an updated
        and improved infrastructure for NCrystal plugins.
-
      * As the perhaps biggest user-visible feature, NCrystal now also supports
        usage on Windows! This support is NOT considered experimental, and
        Windows users can now install the "ncrystal" package via tools like pip
        and conda and expect the same features on both the command-line and in
        the Python/C/C++ APIs as Unix users have had in the past.
-
      * As another user-visible feature, it is now possible to install optional
        NCrystal plugins via a simple "pip install", and have NCrystal
        automatically and seamlessly pick up and load the plugin. We are
@@ -22,13 +18,11 @@ v4.0.0 2025-02-06
        files for light and heavy water at different temperatures. These files
        were in the past deemed too large for the NCrystal standard data library,
        but can now be easily made, without the need for manual download.
-
      * In addition to Windows support, the NCrystal code-base has also been
        updated to support a variety of other compilers and other
        dependencies. This notably includes support for the Intel OneAPI
        compilers, but also C++20, Python 3.13, Numpy 2, and of course Microsoft
        VisualStudio. Drop support for Python 3.6 and 3.7. FIXME CI test py3.8!
-
      * As part of the efforts to make NCrystal command-line tools easily work on
        Windows, the various commandline tools of NCrystal (nctool,
        ncrystal_cif2ncmat, ncrystal_hfg2ncmat, etc.), are now better integrated
@@ -40,7 +34,6 @@ v4.0.0 2025-02-06
        line. One notable difference is that the code will run in the same
        process, meaning that any virtual files registed in memory will also be
        available to these tools.
-
      * NCrystal packaging was updated. Users should still simply install a
        package from PyPI or conda-forge named "ncrystal", but behind the scenes,
        the formerly monolithic package named "ncrystal" has been split into
@@ -56,7 +49,6 @@ v4.0.0 2025-02-06
        ncrystal-config). Finally, the package named "ncrystal" is simply a
        meta-package which depends on both "ncrystal-core" and "ncrystal-python",
        and ensures that they will be installed in compatible versions.
-
      * The ncrystal repository at https://github.com/mctools/ncrystal is now
        finally maintained like any other open source project, with good CI and
        testing coverage, ready to accept PRs, and so on. This actually marks a
@@ -74,7 +66,6 @@ v4.0.0 2025-02-06
        repo at GitHub is the true upstream source of NCrystal code, and it also
        includes a large number of tests which can be invoked via CTest or the
        simple-build-system.
-
      * The Python and cmdline API should be mostly unchanged by this release,
        and likewise the C++ and C APIs are mostly the same, although a few
        container classes were modified to support Microsoft and Intel
@@ -85,7 +76,6 @@ v4.0.0 2025-02-06
        NCrystal4 is NOT ABI compatible with earlier versions of NCrystal, and
        will require recompilation of downstream code. Code only using the C-API
        in "NCrystal/ncrystal.h" would on the other hand be ABI compatible.
-
      * The new "ncrystal" PyPI package now comes with optional dependencies
        listed. At the time of writing this is: "plot" which installs
        dependencies required by various plotting functions in the NCrystal
@@ -99,16 +89,11 @@ v4.0.0 2025-02-06
        NCrystal Python or cmdline APIs. Another category, "devel", is intended
        for NCrystal developers and CI pipelines, and adds additional packages
        needed for such work.
-
      * Adding new ncrystal_mcstasunion script which is to be used instead of
        calling 'python -mNCrystal.mcstasutils --union'.
-
-        *************************************************************************
-
      * The rest of this changelog will list a range of other improvements and
        bug fixes that are also a part of this release, but which might be of
        less general interest.
-
      * As part of the update, NCrystal now uses modern pyproject.toml files
        where appropriate, and scikit-build-core as opposed to scikit-build. One
        side-effect of all of this is also that the NCrystal PyPI wheels are now
@@ -118,7 +103,6 @@ v4.0.0 2025-02-06
        explosion in the number of NCrystal packages which has until now been
        (number-of-binary-platforms)*(number-of-python-versions), with a
        corresponding strain on resources at GitHub, PyPI and conda-forge.
-
      * This release introduces the "ncdevtool" command-line utility for usage by
        NCrystal developers. It is technically an executable python script
        residing in the <root>/devel/bin folder, which should be added to the
@@ -130,13 +114,11 @@ v4.0.0 2025-02-06
        simple-build-system respectively, and "ncdevtool check" runs a series of
        very fast static checks on the repository (including notably static
        checking of all python files with ruff).
-
      * Although many tests have been ported from the historical repository at
        ESS-DMSC, many still remain due to having dependencies on
        simple-build-dgcode, or because they need to be reviewed for license
        issues. For that reason, the CI at GitHub will for now also exercise the
        remaining tests in the ESS-DMSC repository.
-
      * As described in a previous item, plugin support was updated. This means
        that all existing plugins must be migrated to follow the new layout as
        indicated by the examples in in <root>/examples/plugin (for compiled
@@ -144,18 +126,15 @@ v4.0.0 2025-02-06
        <root>/examples/plugin_dataonly (for static plugins merely providing more
        NCMAT files). After a plugin has been installed, it can be tested with
        the command "ncrystal-pluginmanager NameOfPlugin".
-
      * For users wishing to ensure that their installation of NCrystal can NOT
        load any plugins, they can either set the environment variable
        NCRYSTAL_DISABLE_DYNLOAD=1 (for enforcing this at runtime), or configure
        and build ncrystal-core with the CMake option
        -DNCRYSTAL_ENABLE_DYNLOAD=OFF (for enforcing this at build time).
-
      * Now that the plugin system has matured, we have removed the
        NCRYSTAL_BUILTIN_PLUGINS CMake option, which could previously be used to
        build a plugin into the NCrystal library itself. From now on, only
        dynamical runtime loading of plugins are supported.
-
      * Fixed code bug where Stirling's formula was used too early when expanding
        VDOS to kernels. The relative error in SAB values due to this bug was
        fortunately minor since our implementation of Stirling's formula used
@@ -164,45 +143,32 @@ v4.0.0 2025-02-06
        constraints, some inelastic cross sections can change by as much as 0.5%
        at very low energies due to this, although such large changes are
        fortunately rare with most changes being 0.1% or less.
-
      * Removed SOVERSION from produced libraries (due to github issue #186).
-
      * Removed several long-obsolete CMake options for ncrystal-core. Also
        removed any options related to Python code, since ncrystal-core now does
        not contain any Python modules or scripts.
-
      * FactImpl::registerFactory function will now always raise an error
        in case of name clashes with an existing registed factory.
-
      * The NCrystal SmallVector C++ class was written to to be never implicitly
        copyable and instead SmallVector_IC was introduced, which is implicitly
        copyable. This was needed for MS VisualStudio support. The resize methods
        on the class were made unavailable for non-noexcept copy types.
-
      * The NCrystal Optional class was redesigned to support VisualStudio
        compilation.
-
      * Explictly added a few methods in NCTypes.hh which should otherwise be
        implicitly available through the base class. This was needed for MS
        VisualStudio support.
-
      * Replaced std::vector with SmallVector in HKLList to work around
        VisualStudio issues.
-
      * Reimplement ScatterRequest and Absorption request without using CRTP,
        which was confusing to VisualStudio.
-
      * Various other minor fixes of code to appease both VisualStudio and Intel
        OneAPI compilers.
-
      * Disable MiniMC verbose output messages also in Debug builds.
-
      * Prefer numpy.trapezoid over the deprecated numpy.trapz, to support Numpy
        version 2.
-
      * Return tuple of int rather than numpy.int32 objects for hkl_labels
        provided by Info.hklObjects(), to support Numpy 2.
-
      * Normalise newlines in TextData.rawData results, so the loaded string data
        is identical irrespective of whether the files contain DOS or UNIX-like
        line endings. As an added safety, any lone \r will also be converted to a
@@ -210,26 +176,21 @@ v4.0.0 2025-02-06
        endings of tracked .ncmat files, so NCrystal will be able to accept both
        kinds of files (as for the case of NCMAT, this is also specified as being
        supported by the format).
-
      * ncrystal_ncmat2cpp --full option no longer supported (will now always
        include comments when embedding unless new --compact flag is given).
-
      * Moving the cfgstr_detect_components from the NCrystal.mcstasutils to the
        NCrystal.misc module.
-
      * Users of obsolete methods in the Python API will now receive warning
        messages.
-
      * Completely drop previously obsoleted commands ncrystal_inspectfile and
        ncrystal_onlinedb2ncmat, in favour of nctool and ncrystal_cif2ncmat
        respectively.
-
      * Minimum CMake version is now 3.16 (was 3.10).
-
      * The PCBragg algorithm was renamed to PowderBragg, to better reflect the
        physics involved.
-
-     * fixme: Rename _mmc.py to mmc.py! And add docstrings.
+     * The NCrystal._mcc Python module was renamed to NCrystal.mmc, to better
+       reflect its non-internal nature. For the time being, the NCrystal._mcc
+       will also be kept around for backwards compatibility.
 
 
 v3.9.7 2024-09-02
