@@ -15,8 +15,8 @@ facilitate integration into existing simulation frameworks such as OpenMC
 code or via command-line tools. While the C++ library is designed with a high
 degree of flexibility in mind for developers, typical end-user configuration is
 deliberately kept simple and uniform across various applications and APIs - this
-for instance allows tuning and validation of a particular crystal setup to be
-performed in one tool before it is then deployed in another.
+for instance allows tuning and validation of a particular material configuration
+to be performed in one tool before it is then deployed in another.
 
 In addition to code and tools, the NCrystal distribution also includes a set of
 validated data files, covering many crystals important at neutron scattering
@@ -106,7 +106,7 @@ done, with a C and a C++ app respectively:
    c++ -std=c++17 ${LDFLAGS} ${CXXFLAGS} my_cpp_code.cpp -o my_cpp_app
 
 If using the NCrystal-Geant4 interfaces, you should also add "-lG4NCrystal" to
-the link flags.
+the link flags.FIXME.
 
 Then, in your code you can access the relevant APIs with with statements like:
 
@@ -250,7 +250,7 @@ the correct settings for doing so. Thus, you can always invoke "ncrystal-config
 active. Depending on how you installed McStas, NCrystal is most likely already
 available. If not, you can try one of the following ways of enabling it:
 
-   $> conda install -c conda-forge ncrystal [if you are in a conda-forge env]
+   $> conda install conda-forge::ncrystal [if you are in a conda-forge env]
    $> python3 -mpip install ncrystal [for non-conda users]
    $> . $MCSTAS/setup.sh [obsolete way]
 
