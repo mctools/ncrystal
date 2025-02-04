@@ -85,7 +85,7 @@ myprint("Aluminium Bkgd cross-section @ 4.0Aa: %g barn"%xs)
 
 calc_scomp = NC.createScatter(datafile)
 xs = calc_scomp.crossSectionIsotropic(NC.wl2ekin(4.0))
-myprint("Aluminium Bkgd+PCBragg cross-section @ 4.0Aa: %g barn"%xs)
+myprint("Aluminium Bkgd+PowderBragg cross-section @ 4.0Aa: %g barn"%xs)
 
 xs_abs = NC.createAbsorption(datafile).crossSectionIsotropic(NC.wl2ekin(4.0))
 myprint("Aluminium absorption cross-section @ 4.0Aa: %g barn"%xs_abs)

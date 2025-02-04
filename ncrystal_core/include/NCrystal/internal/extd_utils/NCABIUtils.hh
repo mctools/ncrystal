@@ -66,7 +66,7 @@ namespace NCRYSTAL_NAMESPACE {
           return true;
         } else {
           std::string name(p.name());
-          return ( name == "PCBragg"
+          return ( name == "PowderBragg"
                    || name == "LCBragg"
                    || name == "SCBragg"
                    || name == "ElIncScatter"

@@ -299,9 +299,9 @@ void NCPI::ProcComposition::addComponent( NCPI::ProcPtr process, double scale )
     if ( true ) {
       //Check for processes which can be merged for efficiency (absorbing
       //non-unit scales in the process). This can for example be used to combine
-      //multiple PCBragg instances into one more efficient one which has just
-      //one internal hkl list to search - this is potentially quite useful for
-      //multiphase materials:
+      //multiple PowderBragg instances into one more efficient one which has
+      //just one internal hkl list to search - this is potentially quite useful
+      //for multiphase materials:
       auto merged_process = e.process->createMerged( *process, e.scale, scale );
       if ( merged_process != nullptr ) {
         e.process = std::move(merged_process);

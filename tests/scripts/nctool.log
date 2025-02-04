@@ -599,7 +599,7 @@ NCMAT v5
 ==> Scattering process (code level objects):
                            ProcComposition(3 components, isotropic)
                               |-- ElIncScatter(nelements=1;max_contrib=0.0082barn)
-                              |-- PCBragg(nplanes=169;2dmax=4.67605Aa;max_contrib=1.67034barn)
+                              |-- PowderBragg(nplanes=169;2dmax=4.67605Aa;max_contrib=1.67034barn)
                               \-- SABScatter(nalpha=400;nbeta=800;Emax=5eV;T=300K;M=26.9815u;sigma_free=1.39667barn)
 ===========================================
 ============= CLI >>'missing.ncmat;temp=300K' --cfg<< ====================
@@ -629,7 +629,7 @@ Caught expected NCFileNotFound('Could not find data: "missing.ncmat"')
 ==> Scattering process (code level objects):
                            ProcComposition(3 components, isotropic)
                               |-- ElIncScatter(nelements=1;max_contrib=0.0082barn)
-                              |-- PCBragg(nplanes=22;2dmax=4.67605Aa;max_contrib=1.67315barn)
+                              |-- PowderBragg(nplanes=22;2dmax=4.67605Aa;max_contrib=1.67315barn)
                               \-- SABScatter(nalpha=200;nbeta=400;Emax=3eV;T=293.15K;M=26.9815u;sigma_free=1.39667barn)
 ===========================================
 ============= CLI >>'Al_sg225.ncmat;dcutoff=0.5;vdoslux=2' -a --energy -x 1e-3:1e2<< ====================
@@ -640,7 +640,7 @@ Caught expected NCFileNotFound('Could not find data: "missing.ncmat"')
 ==> Scattering process (code level objects):
                            ProcComposition(3 components, isotropic)
                               |-- ElIncScatter(nelements=1;max_contrib=0.0082barn)
-                              |-- PCBragg(nplanes=22;2dmax=4.67605Aa;max_contrib=1.67315barn)
+                              |-- PowderBragg(nplanes=22;2dmax=4.67605Aa;max_contrib=1.67315barn)
                               \-- SABScatter(nalpha=200;nbeta=400;Emax=3eV;T=293.15K;M=26.9815u;sigma_free=1.39667barn)
 ===========================================
 ============= CLI >>--mc<< ====================
@@ -718,7 +718,7 @@ interactive plot being launched.
 ==> Absorption process (code level objects):
                            AbsOOV(sigma_2200=0.231barn)
 ==> Scattering process (code level objects):
-                           PCBragg(nplanes=22;2dmax=4.67605Aa;max_contrib=1.67315barn)
+                           PowderBragg(nplanes=22;2dmax=4.67605Aa;max_contrib=1.67315barn)
 ===========================================
 ============= CLI >>--cfg 'Al_sg225.ncmat;dcutoff=0.5;vdoslux=2' --bragg<< ====================
 ==> Debugging cfg-string: "Al_sg225.ncmat;dcutoff=0.5;vdoslux=2"
@@ -727,7 +727,7 @@ interactive plot being launched.
 ==> Absorption process (code level objects):
                            AbsOOV(sigma_2200=0.231barn)
 ==> Scattering process (code level objects):
-                           PCBragg(nplanes=22;2dmax=4.67605Aa;max_contrib=1.67315barn)
+                           PowderBragg(nplanes=22;2dmax=4.67605Aa;max_contrib=1.67315barn)
 ===========================================
 ============= CLI >>--cfg 'Al_sg225.ncmat;dcutoff=0.5;vdoslux=2' --incoh_elas<< ====================
 ==> Debugging cfg-string: "Al_sg225.ncmat;dcutoff=0.5;vdoslux=2"
@@ -756,7 +756,7 @@ interactive plot being launched.
 ==> Scattering process (code level objects):
                            ProcComposition(2 components, isotropic)
                               |-- ElIncScatter(nelements=1;max_contrib=0.0082barn)
-                              \-- PCBragg(nplanes=22;2dmax=4.67605Aa;max_contrib=1.67315barn)
+                              \-- PowderBragg(nplanes=22;2dmax=4.67605Aa;max_contrib=1.67315barn)
 ===========================================
 ============= CLI >>--cfg 'Al_sg225.ncmat;dcutoff=0.5;vdoslux=2' --inelastic<< ====================
 ==> Debugging cfg-string: "Al_sg225.ncmat;dcutoff=0.5;vdoslux=2"
@@ -779,7 +779,7 @@ interactive plot being launched.
 ==> Scattering process (code level objects):
                            ProcComposition(3 components, isotropic)
                               |-- ElIncScatter(nelements=1;max_contrib=0.0082barn)
-                              |-- PCBragg(nplanes=53;2dmax=4.67605Aa;max_contrib=1.39782barn)
+                              |-- PowderBragg(nplanes=53;2dmax=4.67605Aa;max_contrib=1.39782barn)
                               \-- SABScatter(nalpha=100;nbeta=200;Emax=1eV;T=1000K;M=26.9815u;sigma_free=1.39667barn)
 Caught expected RuntimeError('Currently we do not support switching back and forth between pdf plotting in the same process (see also https://github.com/mctools/ncrystal/issues/202)')
 ============= CLI >>--cfg 'phases<0.65*Al_sg225.ncmat&0.35*MgO_sg225_Periclase.ncmat>;temp=100K'<< ====================
@@ -790,7 +790,7 @@ Caught expected RuntimeError('Currently we do not support switching back and for
 ==> Scattering process (code level objects):
                            ProcComposition(5 components, isotropic)
                               |-- ElIncScatter(nelements=3;max_contrib=0.0239527barn)
-                              |-- PCBragg(nplanes=969;2dmax=4.86244Aa;max_contrib=2.6496barn)
+                              |-- PowderBragg(nplanes=969;2dmax=4.86244Aa;max_contrib=2.6496barn)
                               |-- 0.244607 * SABScatter(nalpha=400;nbeta=800;Emax=5eV;T=100K;M=15.9993u;sigma_free=3.74537barn)
                               |-- 0.244607 * SABScatter(nalpha=400;nbeta=800;Emax=5eV;T=100K;M=24.3051u;sigma_free=3.42069barn)
                               \-- 0.510787 * SABScatter(nalpha=400;nbeta=800;Emax=5eV;T=100K;M=26.9815u;sigma_free=1.39667barn)
@@ -803,7 +803,7 @@ Caught expected RuntimeError('Currently we do not support switching back and for
 ==> Scattering process (code level objects):
                            ProcComposition(5 components, isotropic)
                               |-- ElIncScatter(nelements=3;max_contrib=0.0239527barn)
-                              |-- PCBragg(nplanes=969;2dmax=4.86244Aa;max_contrib=2.6496barn)
+                              |-- PowderBragg(nplanes=969;2dmax=4.86244Aa;max_contrib=2.6496barn)
                               |-- 0.244607 * SABScatter(nalpha=400;nbeta=800;Emax=5eV;T=100K;M=15.9993u;sigma_free=3.74537barn)
                               |-- 0.244607 * SABScatter(nalpha=400;nbeta=800;Emax=5eV;T=100K;M=24.3051u;sigma_free=3.42069barn)
                               \-- 0.510787 * SABScatter(nalpha=400;nbeta=800;Emax=5eV;T=100K;M=26.9815u;sigma_free=1.39667barn)

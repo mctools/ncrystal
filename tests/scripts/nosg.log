@@ -748,7 +748,7 @@ HKL planes (d_lower = 0.4 Aa, d_upper = inf Aa):
 
 ProcComposition(3 components, isotropic)
    |-- ElIncScatter(nelements=1;max_contrib=0.0082barn)
-   |-- PCBragg(nplanes=35;2dmax=4.67605Aa;max_contrib=1.672barn)
+   |-- PowderBragg(nplanes=35;2dmax=4.67605Aa;max_contrib=1.672barn)
    \-- SABScatter(nalpha=50;nbeta=100;Emax=0.5eV;T=293.15K;M=26.9815u;sigma_free=1.39667barn)
 
 ====================================================================================================
@@ -759,5 +759,5 @@ ProcComposition(3 components, isotropic)
 
 ProcComposition(3 components, isotropic)
    |-- ElIncScatter(nelements=1;max_contrib=0.0082barn)
-   |-- PCBragg(nplanes=35;2dmax=4.67605Aa;max_contrib=1.672barn)
+   |-- PowderBragg(nplanes=35;2dmax=4.67605Aa;max_contrib=1.672barn)
    \-- SABScatter(nalpha=50;nbeta=100;Emax=0.5eV;T=293.15K;M=26.9815u;sigma_free=1.39667barn)

@@ -6,11 +6,11 @@
 16
 ProcComposition(3 components, isotropic)
    |-- ElIncScatter(nelements=1;max_contrib=0.0082barn)
-   |-- PCBragg(nplanes=493;2dmax=4.67605Aa;max_contrib=1.76263barn)
+   |-- PowderBragg(nplanes=493;2dmax=4.67605Aa;max_contrib=1.76263barn)
    \-- SABScatter(nalpha=400;nbeta=800;Emax=5eV;T=20K;M=26.9815u;sigma_free=1.39667barn)
 ProcComposition(3 components, isotropic)
    |-- ElIncScatter(nelements=1;max_contrib=0.0082barn)
-   |-- PCBragg(nplanes=493;2dmax=4.67605Aa;max_contrib=1.76263barn)
+   |-- PowderBragg(nplanes=493;2dmax=4.67605Aa;max_contrib=1.76263barn)
    \-- SABScatter(nalpha=400;nbeta=800;Emax=5eV;T=20K;M=26.9815u;sigma_free=1.39667barn)
 
 ----------------------------------------------------------------------------------------------------

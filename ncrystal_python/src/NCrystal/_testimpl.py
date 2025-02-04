@@ -138,7 +138,7 @@ def _actualtest( verbose ):
     #and to avoid consuming random numbers from other streams.
     alpc = NC.createScatterIndependentRNG(_cfgstr2)
     prfct('Verifying loaded Scatter object')
-    require( alpc.name == 'PCBragg' )
+    require( alpc.name == 'PowderBragg' )
     require( isinstance(alpc.name,str) )
     require( alpc.refCount() in (1,2) )
     require( type(alpc.refCount()) == int ) # noqa E721

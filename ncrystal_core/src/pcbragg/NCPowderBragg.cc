@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/pcbragg/NCPCBragg.hh"
+#include "NCrystal/internal/pcbragg/NCPowderBragg.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCRandUtils.hh"
 #include "NCrystal/internal/utils/NCString.hh"
@@ -28,10 +28,10 @@ namespace NC = NCrystal;
 namespace NCRYSTAL_NAMESPACE {
   namespace {
     constexpr double dspacing_merge_tolerance = 1e-11;
-    class CachePCBragg : public CacheBase {
+    class CachePowderBragg : public CacheBase {
     public:
       void invalidateCache() override { ekin.dbl() = -1.0; }
-      CachePCBragg() { ekin.dbl() = -1.0; }
+      CachePowderBragg() { ekin.dbl() = -1.0; }
       bool cacheOK( NeutronEnergy eee ) const
       {
         nc_assert( eee.dbl() > 0.0 );
@@ -55,16 +55,17 @@ namespace NCRYSTAL_NAMESPACE {
   }
 }
 
-void NC::PCBragg::init( const StructureInfo& si, VectDFM&& data )
+void NC::PowderBragg::init( const StructureInfo& si, VectDFM&& data )
 {
   nc_assert_always(si.n_atoms>0);
   nc_assert_always(si.volume>0);
   if (!(si.volume>0) || !(si.n_atoms>=1) )
-    NCRYSTAL_THROW(BadInput,"Passed structure info object has invalid volume or n_atoms fields.");
+    NCRYSTAL_THROW(BadInput,"Passed structure info object has"
+                   " invalid volume or n_atoms fields.");
   init(si.volume * si.n_atoms, std::move(data));
 }
 
-void NC::PCBragg::init( double v0_times_natoms, VectDFM&& origdata )
+void NC::PowderBragg::init( double v0_times_natoms, VectDFM&& origdata )
 {
   if (!(v0_times_natoms>0) )
     NCRYSTAL_THROW(BadInput,"v0_times_natoms is not a positive number.");
@@ -82,7 +83,8 @@ void NC::PCBragg::init( double v0_times_natoms, VectDFM&& origdata )
   double prev_dsp = -kInfinity;
   for (;it!=itE;++it) {
     if (!(it->first>0.0))
-      NCRYSTAL_THROW(CalcError,"Inconsistent plane data implies non-positive (or NaN) d_spacing.");
+      NCRYSTAL_THROW(CalcError,"Inconsistent plane data implies "
+                     "non-positive (or NaN) d_spacing.");
     if ( ncabs(prev_dsp-it->first) < dspacing_merge_tolerance ) {
       double c = it->first * it->second * xsectfact;
       fdmsum2.add(c);
@@ -107,22 +109,23 @@ void NC::PCBragg::init( double v0_times_natoms, VectDFM&& origdata )
   nc_assert( m_threshold.get() > 0.0 );
 }
 
-NC::PCBragg::PCBragg( const StructureInfo& si, VectDFM&&  data)
+NC::PowderBragg::PowderBragg( const StructureInfo& si, VectDFM&&  data)
 {
   init(si,std::move(data));
 }
 
-NC::PCBragg::PCBragg( double v0_times_natoms, VectDFM&&  data)
+NC::PowderBragg::PowderBragg( double v0_times_natoms, VectDFM&&  data)
 {
   init(v0_times_natoms,std::move(data));
 }
 
-NC::PCBragg::PCBragg(const Info&ci)
+NC::PowderBragg::PowderBragg(const Info&ci)
 {
   if (!ci.hasHKLInfo())
     NCRYSTAL_THROW(MissingInfo,"Passed Info object lacks HKL information.");
   if (!ci.hasStructureInfo())
-    NCRYSTAL_THROW(MissingInfo,"Passed Info object lacks Structure information.");
+    NCRYSTAL_THROW(MissingInfo,
+                   "Passed Info object lacks Structure information.");
   const auto& hklList = ci.hklList();
   VectDFM data;
   data.reserve(hklList.size());
@@ -130,7 +133,8 @@ NC::PCBragg::PCBragg(const Info&ci)
   for ( const auto& hkl : hklList ) {
     double f = hkl.fsquared * hkl.multiplicity;
     if (f<0)
-      NCRYSTAL_THROW(CalcError,"Inconsistent data implies negative |F|^2*multiplicity.");
+      NCRYSTAL_THROW(CalcError,
+                     "Inconsistent data implies negative |F|^2*multiplicity.");
     if (data.empty()||data.back().first!=hkl.dspacing) {
       data.emplace_back(hkl.dspacing,f);
     } else {
@@ -140,12 +144,12 @@ NC::PCBragg::PCBragg(const Info&ci)
   init(ci.getStructureInfo(),std::move(data));
 }
 
-NC::EnergyDomain NC::PCBragg::domain() const noexcept
+NC::EnergyDomain NC::PowderBragg::domain() const noexcept
 {
   return { m_threshold, NeutronEnergy{kInfinity} };
 }
 
-std::size_t NC::PCBragg::findLastValidPlaneIdx( NC::NeutronEnergy ekin) const {
+std::size_t NC::PowderBragg::findLastValidPlaneIdx( NC::NeutronEnergy ekin) const {
   //Quick binary search to find index of the plane with the smallest d-spacing
   //satisfying wl<=2d, but in energy-space: Finding the index of the plane with
   //the largest value of ekin2wl(2d) satisfying ekin>=ekin2wl(2d).  We already
@@ -153,24 +157,27 @@ std::size_t NC::PCBragg::findLastValidPlaneIdx( NC::NeutronEnergy ekin) const {
   nc_assert( !ncisnan(ekin.dbl()) );
   nc_assert( ekin >= m_threshold );
   nc_assert( std::isfinite( ekin.dbl() ) );
-  return (std::upper_bound(m_2dE.begin() + 1,m_2dE.end(),ekin.get()) - m_2dE.begin()) - 1;
+  return (std::upper_bound(m_2dE.begin() + 1,
+                           m_2dE.end(),
+                           ekin.get()) - m_2dE.begin()) - 1;
 }
 
 
-NC::CrossSect NC::PCBragg::crossSectionIsotropic( NC::CachePtr& cp, NC::NeutronEnergy ekin ) const
+NC::CrossSect NC::PowderBragg::crossSectionIsotropic( NC::CachePtr& cp,
+                                                      NC::NeutronEnergy ekin ) const
 {
   if ( ekin < m_threshold || !std::isfinite(ekin.dbl()) )
     return CrossSect{0.0};
-  auto& cache = accessCache<CachePCBragg>(cp);
+  auto& cache = accessCache<CachePowderBragg>(cp);
   if (!cache.cacheOK(ekin))
     cache.updateCache( ekin, findLastValidPlaneIdx(ekin) );
   nc_assert(cache.lastValidPlaneIdx<m_fdm_commul.size());
   return CrossSect{ m_fdm_commul[cache.lastValidPlaneIdx] * cache.inv_ekin };
 }
 
-NC::CosineScatAngle NC::PCBragg::genScatterMu( RNG& rng,
-                                               NeutronEnergy ekin,
-                                               std::size_t last_valid_idx) const
+NC::CosineScatAngle NC::PowderBragg::genScatterMu( RNG& rng,
+                                                   NeutronEnergy ekin,
+                                                   std::size_t last_valid_idx) const
 {
   nc_assert( ekin >= m_threshold );
   nc_assert( std::isfinite( ekin.dbl() ) );
@@ -192,33 +199,38 @@ NC::CosineScatAngle NC::PCBragg::genScatterMu( RNG& rng,
   return CosineScatAngle{mu};
 }
 
-NC::ScatterOutcomeIsotropic NC::PCBragg::sampleScatterIsotropic( NC::CachePtr& cp,
-                                                                 NC::RNG& rng,
-                                                                 NC::NeutronEnergy ekin ) const
+NC::ScatterOutcomeIsotropic NC::PowderBragg::sampleScatterIsotropic( NC::CachePtr& cp,
+                                                                     NC::RNG& rng,
+                                                                     NC::NeutronEnergy ekin ) const
 {
   //elastic: ekin unchanged
   if ( ekin < m_threshold || !std::isfinite(ekin.dbl()) ) {
     //scatterings not possible here
     return { ekin, CosineScatAngle{1.0} };
   } else {
-    auto& cache = accessCache<CachePCBragg>(cp);
+    auto& cache = accessCache<CachePowderBragg>(cp);
     if (!cache.cacheOK(ekin))
       cache.updateCache( ekin, findLastValidPlaneIdx(ekin) );
     return { ekin, genScatterMu(rng,ekin,cache.lastValidPlaneIdx) };
   }
 }
 
-std::shared_ptr<NC::ProcImpl::Process> NC::PCBragg::createMerged( const Process& oraw, double scale1, double scale2 ) const
+std::shared_ptr<NC::ProcImpl::Process> NC::PowderBragg::createMerged( const Process& oraw,
+                                                                      double scale1,
+                                                                      double scale2 ) const
 {
   nc_assert(scale1>0.0);
   nc_assert(scale2>0.0);
-  auto optr = dynamic_cast<const PCBragg*>(&oraw);
+  auto optr = dynamic_cast<const PowderBragg*>(&oraw);
   if (!optr)
     return nullptr;
   auto& o = *optr;
 
-  auto result = std::make_shared<PCBragg>( no_init );//empty instance
-  auto fixThreshold = [&result]() { result->m_threshold = NeutronEnergy{ result->m_2dE.front() }; };
+  auto result = std::make_shared<PowderBragg>( no_init );//empty instance
+  auto fixThreshold = [&result]()
+  {
+    result->m_threshold = NeutronEnergy{ result->m_2dE.front() };
+  };
 
   //transfer "a" (2dE) and "b" (fdm_commul) vectors, sorted by a:
   VectD& new_a = result->m_2dE;
@@ -270,7 +282,9 @@ std::shared_ptr<NC::ProcImpl::Process> NC::PCBragg::createMerged( const Process&
   };
 
   StableSum new_commulFDMSum;
-  auto appendFDMPoint = [&new_commulFDMSum,&extractFDM,&new_b]( const VectD& commulFDM, std::size_t idx, double scale )
+  auto appendFDMPoint = [&new_commulFDMSum,&extractFDM,&new_b]( const VectD& commulFDM,
+                                                                std::size_t idx,
+                                                                double scale )
   {
     new_commulFDMSum.add( scale * extractFDM(commulFDM,idx) );
     new_b.push_back(new_commulFDMSum.sum());
@@ -316,7 +330,7 @@ std::shared_ptr<NC::ProcImpl::Process> NC::PCBragg::createMerged( const Process&
   return fixThreshold(), result;
 }
 
-NC::Optional<std::string> NC::PCBragg::specificJSONDescription() const
+NC::Optional<std::string> NC::PowderBragg::specificJSONDescription() const
 {
   //Determine max_contrib by looking at the peaks m_2dE:
   double max_contrib(0.0);
@@ -335,23 +349,24 @@ NC::Optional<std::string> NC::PCBragg::specificJSONDescription() const
   }
   streamJSONDictEntry( ss, "nhkl", m_2dE.size() );
   streamJSONDictEntry( ss, "max_contrib", max_contrib );
-  streamJSONDictEntry( ss, "2dmax", m_threshold.wavelength().dbl(), JSONDictPos::LAST );
+  streamJSONDictEntry( ss, "2dmax", m_threshold.wavelength().dbl(),
+                       JSONDictPos::LAST );
   return ss.str();
 }
 
 #ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
 
 std::pair<NC::CrossSect,NC::ScatterOutcome>
-NC::PCBragg::evalXSAndSampleScatter( CachePtr& cp, RNG& rng,
-                                     NeutronEnergy ekin,
-                                     const NeutronDirection& dir ) const
+NC::PowderBragg::evalXSAndSampleScatter( CachePtr& cp, RNG& rng,
+                                         NeutronEnergy ekin,
+                                         const NeutronDirection& dir ) const
 {
   if ( ekin < m_threshold || !std::isfinite(ekin.dbl()) ) {
     nc_assert( ekin.dbl()>=0.0 );
     return { CrossSect{0.0},
              { ekin, dir } };
   } else {
-    auto& cache = accessCache<CachePCBragg>(cp);
+    auto& cache = accessCache<CachePowderBragg>(cp);
     if (!cache.cacheOK(ekin))
       cache.updateCache( ekin, findLastValidPlaneIdx(ekin) );
     auto mu = genScatterMu(rng,ekin,cache.lastValidPlaneIdx);
@@ -365,15 +380,15 @@ NC::PCBragg::evalXSAndSampleScatter( CachePtr& cp, RNG& rng,
 }
 
 std::pair<NC::CrossSect,NC::ScatterOutcomeIsotropic>
-NC::PCBragg::evalXSAndSampleScatterIsotropic(CachePtr& cp, RNG& rng,
-                                             NeutronEnergy ekin ) const
+NC::PowderBragg::evalXSAndSampleScatterIsotropic(CachePtr& cp, RNG& rng,
+                                                 NeutronEnergy ekin ) const
 {
   if ( ekin < m_threshold || !std::isfinite(ekin.dbl()) ) {
     nc_assert( ekin.dbl()>=0.0 );
     return { CrossSect{0.0},
              { ekin, CosineScatAngle{1.0} } };
   } else {
-    auto& cache = accessCache<CachePCBragg>(cp);
+    auto& cache = accessCache<CachePowderBragg>(cp);
     if (!cache.cacheOK(ekin))
       cache.updateCache( ekin, findLastValidPlaneIdx(ekin) );
     return { CrossSect{ m_fdm_commul[cache.lastValidPlaneIdx] * cache.inv_ekin },
@@ -381,8 +396,9 @@ NC::PCBragg::evalXSAndSampleScatterIsotropic(CachePtr& cp, RNG& rng,
   }
 }
 
-void NC::PCBragg::evalManyXSIsotropic( CachePtr&, const double* ekin, std::size_t N,
-                                       double* out_xs ) const
+void NC::PowderBragg::evalManyXSIsotropic( CachePtr&, const double* ekin,
+                                           std::size_t N,
+                                           double* out_xs ) const
 {
   for ( std::size_t i = 0; i < N; ++i ) {
     if ( ekin[i] < m_threshold.dbl() || !std::isfinite(ekin[i]) ) {

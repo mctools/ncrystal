@@ -20,7 +20,7 @@
 
 #include "NCrystal/NCrystal.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
-#include "NCrystal/internal/pcbragg/NCPCBragg.hh"
+#include "NCrystal/internal/pcbragg/NCPowderBragg.hh"
 #include "NCrystal/internal/elincscatter/NCElIncScatter.hh"
 
 #include <iostream>
@@ -45,16 +45,16 @@ int main() {
     nc_assert_always( NC::ncabs( (xs1.dbl() + xs2.dbl()) - xs_merged.dbl() ) < 1e-15 );
   }
 
-  ///////////////////////////////// PCBragg /////////////////////////////////////////////
+  ///////////////////////////////// PowderBragg /////////////////////////////////////////////
   {
     //Fake hkl lists (VectDFM is vector of (d-spacing,fsq*mult) pairs):
     const double v0_times_natoms_1  = 1.0;
     const double v0_times_natoms_2  = 1.2;
-    NC::PCBragg::VectDFM planes1 = { {0.2,500.0},  { 0.4, 20.0 }, { 2.0, 0.5 }, { 2.4+1e-12, 0.1 }, { 4.5, 0.3 } };
-    NC::PCBragg::VectDFM planes2 = { {0.05,30000.1}, { 2.4, 1.0 }, { 5.0, 0.1 } };
+    NC::PowderBragg::VectDFM planes1 = { {0.2,500.0},  { 0.4, 20.0 }, { 2.0, 0.5 }, { 2.4+1e-12, 0.1 }, { 4.5, 0.3 } };
+    NC::PowderBragg::VectDFM planes2 = { {0.05,30000.1}, { 2.4, 1.0 }, { 5.0, 0.1 } };
 
-    auto pcb1 = NC::makeSO<NC::PCBragg>( v0_times_natoms_1, std::move(planes1) );
-    auto pcb2 = NC::makeSO<NC::PCBragg>( v0_times_natoms_2, std::move(planes2) );
+    auto pcb1 = NC::makeSO<NC::PowderBragg>( v0_times_natoms_1, std::move(planes1) );
+    auto pcb2 = NC::makeSO<NC::PowderBragg>( v0_times_natoms_2, std::move(planes2) );
     auto pcb_merged = pcb1->createMerged(pcb2,1.0,1.0);
 
     std::string fn = "testpcbraggmerge.txt";
@@ -66,7 +66,7 @@ int main() {
       NC::CachePtr dummy;
       return sc->crossSectionIsotropic( dummy, NC::NeutronWavelength{thewl} ).dbl();
     };
-    fh << "# colnames = PCBragg1 ; PCBragg2 ; PCBragg1+PCBragg2 ; PCBragg_merged \n";
+    fh << "# colnames = PowderBragg1 ; PowderBragg2 ; PowderBragg1+PowderBragg2 ; PowderBragg_merged \n";
     fh << "# plotstyle = - \n";
     fh << "# alpha = 0.4 \n";
     fh << "# xlabel = angstrom \n";

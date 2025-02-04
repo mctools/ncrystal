@@ -27,7 +27,7 @@ class Cfg:
 
     def sbpkgname_comp(self, compname):
         orig = """NCAbsFact NCBkgdExtCurve NCCore NCElIncScatter NCFactories
-                NCFreeGas NCInterfaces NCPCBragg NCScatFact NCDump NCAbsOOV
+                NCFreeGas NCInterfaces NCPowderBragg NCScatFact NCDump NCAbsOOV
                 NCCfgUtils NCData NCExperimental NCFactory_Laz NCGasMix
                 NCLCBragg NCPubUtils NCSAB NCSCBragg NCUtils NCAtomDB
                 NCCInterface NCDynInfoUtils NCExtdUtils NCFactory_NCMAT

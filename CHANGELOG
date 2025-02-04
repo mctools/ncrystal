@@ -226,8 +226,10 @@ v4.0.0 2025-02-06
 
      * Minimum CMake version is now 3.16 (was 3.10).
 
+     * The PCBragg algorithm was renamed to PowderBragg, to better reflect the
+       physics involved.
+
      * fixme: Rename _mmc.py to mmc.py! And add docstrings.
-     * fixme: Rename PCBragg to PowderBragg!
 
 
 v3.9.7 2024-09-02

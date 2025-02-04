@@ -29,10 +29,10 @@ XSectAbsorp : 0.231
 XSectFree : 1.39667
 Density : 2.69865
 Structure : a=4.04958, alpha=90, b=4.04958, beta=90, c=4.04958, gamma=90, n_atoms=4, spacegroup=225, volume=66.4094599932
-Aluminium PCBragg diffraction cross-section @ 4.0Aa: 1.63244 barn
-Aluminium PCBragg diffraction cross-section @ [1, 2, 3, 4]Aa: [0.72722, 1.09644, 0.918245, 1.63244] barn
+Aluminium PowderBragg diffraction cross-section @ 4.0Aa: 1.63244 barn
+Aluminium PowderBragg diffraction cross-section @ [1, 2, 3, 4]Aa: [0.72722, 1.09644, 0.918245, 1.63244] barn
 Aluminium Bkgd cross-section @ 4.0Aa: 0.136214 barn
-Aluminium Bkgd+PCBragg cross-section @ 4.0Aa: 1.76865 barn
+Aluminium Bkgd+PowderBragg cross-section @ 4.0Aa: 1.76865 barn
 Aluminium absorption cross-section @ 4.0Aa: 0.513848 barn
 Germanium ScatFactSC cross-section @ 4.0Aa and (1.0, 0.15, 0.7): 0.600084 barn
 ... same with xsect method: 0.600084 barn

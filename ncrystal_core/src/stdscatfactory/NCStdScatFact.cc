@@ -24,7 +24,7 @@
 #include "NCrystal/interfaces/NCProcImpl.hh"
 #include "NCrystal/interfaces/NCInfo.hh"
 #include "NCrystal/interfaces/NCSCOrientation.hh"
-#include "NCrystal/internal/pcbragg/NCPCBragg.hh"
+#include "NCrystal/internal/pcbragg/NCPowderBragg.hh"
 #include "NCrystal/internal/scbragg/NCSCBragg.hh"
 #include "NCrystal/internal/lcbragg/NCLCBragg.hh"
 #include "NCrystal/internal/bkgdextcurve/NCBkgdExtCurve.hh"
@@ -81,12 +81,15 @@ namespace NCRYSTAL_NAMESPACE {
     void prepareLoop() override { m_pp->prepareLoop(); m_withheldPlanes.clear(); }
     bool canProvide() const override { return m_pp->canProvide(); }
     bool hasPlanesWithheldInLastLoop() const { return !m_withheldPlanes.empty(); };
-    PCBragg::VectDFM&& consumePlanesWithheldInLastLoop() { return std::move(m_withheldPlanes); };
+    PowderBragg::VectDFM&& consumePlanesWithheldInLastLoop()
+    {
+      return std::move(m_withheldPlanes);
+    };
 
   private:
     std::unique_ptr<PlaneProvider> m_pp;
     double m_dcut;
-    PCBragg::VectDFM m_withheldPlanes;
+    PowderBragg::VectDFM m_withheldPlanes;
   };
 
   class StdScatFact : public FactImpl::ScatterFactory {
@@ -173,12 +176,13 @@ namespace NCRYSTAL_NAMESPACE {
             }
             if ( ppwcutoff && ppwcutoff->hasPlanesWithheldInLastLoop() ) {
               nc_assert_always(info.hasStructureInfo());
-              cl.emplace_back(makeSO<PCBragg>(info.getStructureInfo(),ppwcutoff->consumePlanesWithheldInLastLoop()));
+              cl.emplace_back(makeSO<PowderBragg>(info.getStructureInfo(),
+                                                  ppwcutoff->consumePlanesWithheldInLastLoop()));
             }
             return cl;
           });
         } else {
-          components.addfct( [&info](){ return makeSO<PCBragg>(info); } );
+          components.addfct( [&info](){ return makeSO<PowderBragg>(info); } );
           //NB: Layered polycrystals get same treatment as unlayered
           //polycrystals in our current modelling.
         }
