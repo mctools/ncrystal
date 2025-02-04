@@ -218,7 +218,7 @@ def _check_project_scripts_impl( data, *, cli_scripts, extra ):
     expected = dict( e for e in extra )
     if cli_scripts:
         for f in (reporoot
-                  / 'ncrystal_python/NCrystal').glob('_cli_*.py'):
+                  / 'ncrystal_python/src/NCrystal').glob('_cli_*.py'):
             bn = f.name[:-3]
             n = bn[5:]
             n = f'ncrystal_{n}' if n!='nctool' else n

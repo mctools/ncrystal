@@ -62,7 +62,7 @@ def check_versions():
 
     versions = [
         ( get_versionfile_version, 'VERSION' ),
-        ( get_py_version, 'ncrystal_python/NCrystal/__init__.py' ),
+        ( get_py_version, 'ncrystal_python/src/NCrystal/__init__.py' ),
         ( get_toml_version, 'pyproject.toml' ),
         ( get_toml_version, 'ncrystal_core/pyproject.toml' ),
         ( get_toml_version, 'ncrystal_core/empty_pypkg/pyproject.toml' ),

@@ -308,7 +308,7 @@ def define_files():
     #NCrystalDev package (python module):
     assert cfg.sbpkgname_lib in all_ncsbpkgs
     create_pkginfo( 'NCrystalDev', pkg_deps=all_ncsbpkgs + ['NCData'] )
-    for sf in (dirs.pysrcroot/'NCrystal').glob('*.py'):
+    for sf in (dirs.pysrcroot/'src/NCrystal').glob('*.py'):
         add_file( f'pkgs/NCrystalDev/python/{sf.name}', link_target = sf )
     #Special marker used by _locatelib.py:
     add_file( 'pkgs/NCrystalDev/python/_is_sblddevel.py', content='' )
@@ -319,7 +319,7 @@ def define_files():
 
     #Commandline scripts:
     create_pkginfo( cfg.sbpkgname_cli, pkg_deps=['NCrystalDev'])
-    for sf in (dirs.pysrcroot/'NCrystal').glob('_cli_*.py'):
+    for sf in (dirs.pysrcroot/'src/NCrystal').glob('_cli_*.py'):
         cliname = sf.name[len('_cli_'):-len('.py')]
         sbscriptname = 'tool' if cliname == 'nctool' else cliname
         content = f"""#!/usr/bin/env python3

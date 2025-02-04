@@ -586,7 +586,7 @@ if ( NCRYSTAL_ENABLE_DATA STREQUAL "EMBED" )
     find_package(Python3 3.8 REQUIRED COMPONENTS Interpreter)
     #Generate C++ code from the .ncmat files:
     get_datafile_list( data_file_list )
-    set( ncmat2cpppy "${PROJECT_SOURCE_DIR}/../ncrystal_python/NCrystal/_ncmat2cpp_impl.py" )
+    set( ncmat2cpppy "${PROJECT_SOURCE_DIR}/../ncrystal_python/src/NCrystal/_ncmat2cpp_impl.py" )
     if ( NOT EXISTS "${ncmat2cpppy}" )
       message( FATAL_ERROR "Missing file: ${ncmat2cpppy}" )
     endif()

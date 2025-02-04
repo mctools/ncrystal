@@ -42,10 +42,10 @@ def main():
         'CHANGELOG' : 150,
         'ncrystal_core/include/NCrystal/cinterface/ncrystal.h' : 100,
         'ncrystal_core/src/cinterface/ncrystal.cc' : 100,
-        'ncrystal_python/NCrystal/_hfgdata.py' : 70,
-        'ncrystal_python/NCrystal/_ncmatimpl.py' : 150,
-        'ncrystal_python/NCrystal/cifutils.py' : 100,
-        'ncrystal_python/NCrystal/core.py' : 100,
+        'ncrystal_python/src/NCrystal/_hfgdata.py' : 70,
+        'ncrystal_python/src/NCrystal/_ncmatimpl.py' : 150,
+        'ncrystal_python/src/NCrystal/cifutils.py' : 100,
+        'ncrystal_python/src/NCrystal/core.py' : 100,
         'tests/data/QE_pw_Al.out' : 2000,
     }
     for f in all_files_iter():

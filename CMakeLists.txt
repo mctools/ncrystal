@@ -65,7 +65,7 @@ if ( NCRYSTAL_SKBUILD_MONOLITHIC )
 
   if ( NOT EXISTS "${ncrystal_skbld_autogendir}/NCrystal/_is_monolithic.py" )
     file(
-      COPY "${PROJECT_SOURCE_DIR}/ncrystal_python/NCrystal"
+      COPY "${PROJECT_SOURCE_DIR}/ncrystal_python/src/NCrystal"
       DESTINATION "${ncrystal_skbld_autogendir}"
     )
     file(

@@ -42,7 +42,7 @@ include( mctools_testutils )
 set( nctest_pypath "${PROJECT_BINARY_DIR}/ncrystal_tests_pypath" )
 file( MAKE_DIRECTORY "${nctest_pypath}" )
 file( CREATE_LINK
-  "${NCrystalRoot_SOURCE_DIR}/ncrystal_python/NCrystal"
+  "${NCrystalRoot_SOURCE_DIR}/ncrystal_python/src/NCrystal"
   "${nctest_pypath}/NCrystalDev"
   COPY_ON_ERROR
   SYMBOLIC
