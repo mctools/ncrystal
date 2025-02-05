@@ -305,7 +305,7 @@ Note that this script exists for the benefit of experts only. Most users are
 recommended to simply download and use one of the pre-converted files shipped
 with NCrystal or found at:
 
-    https://github.com/mctools/ncrystal-extra/tree/master/data
+    https://github.com/mctools/ncrystal-extra/tree/HEAD/data
 
 Only information for NCMAT @DYNINFO sections are extracted from ENDF files, so
 it is recommended to provide the initial parts of the target NCMAT file in a

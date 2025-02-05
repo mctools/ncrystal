@@ -89,8 +89,26 @@ v4.0.0 2025-02-06
        NCrystal Python or cmdline APIs. Another category, "devel", is intended
        for NCrystal developers and CI pipelines, and adds additional packages
        needed for such work.
-     * Adding new ncrystal_mcstasunion script which is to be used instead of
-       calling 'python -mNCrystal.mcstasutils --union'.
+     * Finally, notice that keeping in line with general trends at github, the
+       default branch of the ncrystal repository is named main rather than
+       master, from this point on. For a little while we will try to keep the
+       master branch alive, in case of any hardwired usage of the branch name
+       "master" somewhere, but this will not be the case for long. This change
+       does not, however, change the fact that we will in general try to keep
+       default branch (now: main), synchronised with the main release (apart
+       possibly from minor documentation and CI fixes), and keep the "develop"
+       branch as the main branch to target with pull requests between releases.
+       NOTE: Any local clones of the ncrystal code repository should be updated
+       to reflect this change. If there is no local interesting content in the
+       clone, one option is to remove the local clone and get a fresh one from
+       github. Otherwise, GitHub advices the following four commands to "repair"
+       your local clones (experts only):
+         git branch -m master main
+         git fetch origin
+         git branch -u origin/main main
+         git remote set-head origin -a
+     * Added a new ncrystal_mcstasunion command-line script which is to be used
+       instead of calling 'python -mNCrystal.mcstasutils --union'.
      * The rest of this changelog will list a range of other improvements and
        bug fixes that are also a part of this release, but which might be of
        less general interest.

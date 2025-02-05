@@ -30,7 +30,7 @@ Please find more information about NCrystal at the website:
 
 In particular, a small example using the NCrystal python module can be found at:
 
-   https://github.com/mctools/ncrystal/blob/master/examples/ncrystal_example_py
+   https://github.com/mctools/ncrystal/blob/HEAD/examples/ncrystal_example_py
 
 A substantial effort went into developing NCrystal. If you use it for your work,
 we would appreciate it if you would use the following reference in your work:

@@ -22,7 +22,7 @@ NCMAT v4
 # wishing slightly more realism, files with specific VDOS for all the listed
 # temperatures are also available at:
 #
-# https://github.com/mctools/ncrystal-extra/tree/master/data/validated
+# https://github.com/mctools/ncrystal-extra/tree/HEAD/data/validated
 #
 @CELL
   cubic 5.4682

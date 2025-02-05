@@ -41,8 +41,6 @@
 
 * Double check jupyter notebooks (especially interactively rerunning, plus on colab).
 
-* Branch master to main (also update wiki).
-
 * One item which we can open an issue for: create ncrystal_test/ meta package
   which globs up stuff from tests/ (and possibly examples), and repackage the
   tests it in a way that ensures they can be launched against an existing

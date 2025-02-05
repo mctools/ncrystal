@@ -12,7 +12,7 @@ NCMAT v5
 #       623.6K
 #
 # In case your local installation does not provide all these files, they can be
-# downloaded from: https://github.com/mctools/ncrystal-extra/tree/master/data
+# downloaded from: https://github.com/mctools/ncrystal-extra/tree/HEAD/data
 #
 @STATEOFMATTER
   liquid
