@@ -106,9 +106,7 @@ def main( parser ):
 
     parser.add_argument(
         'TARGETCOMP',
-        help="""TargetFile to move. Provide either like NCSomeFile.hh, NCSomeFile or
-        SomeFile. Will move all associated files (.hh/.cc/.icc) and also update
-        include statements and dependencies in all components."""
+        help="""Target component."""
     )
     parser.add_argument(
         '--new', choices = ('internal','public'), metavar='TYPE',

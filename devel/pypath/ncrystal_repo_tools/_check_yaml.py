@@ -32,8 +32,9 @@ def main():
     #Extra check of plugin database file:
     from . import _climode_plugindb
     print(f"  Extra verification of {_climode_plugindb.dbfilerelpath}")
-    _climode_plugindb.load_and_check_data()
-
+    pdb_data = _climode_plugindb.load_and_check_data()
+    s = _climode_plugindb._produce_wiki( pdb_data )
+    assert len(s.splitlines())>20
     print('all ok')
 
 if __name__=='__main__':
