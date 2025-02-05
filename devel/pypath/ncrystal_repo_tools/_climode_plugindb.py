@@ -37,7 +37,7 @@ def load_and_check_data():
 def _add_piptargets_srcurls_etc( pluginname, info ):
 
     pypkgname = f'ncrystal-plugin-{pluginname}'
-    repo_baseurl = f'https://github.com/{info['github_repo_key']}'
+    repo_baseurl = 'https://github.com/%s'%info['github_repo_key']
     if not info['gitref'] and not info['repo_subdir']:
         src_url = repo_baseurl
     else:
