@@ -258,4 +258,4 @@ jobs:
       if: steps.pluginfo.outputs.is_on_pypi != '' && steps.pluginfo.outputs.disable_tests == ''
       run: ncrystal-pluginmanager --test "${{ matrix.plugin }}"
 
-#FIXME: cppcheck plugin?
+#FIXME: cppcheck plugin? And test the pip install git+... urls work.
