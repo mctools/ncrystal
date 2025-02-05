@@ -1,7 +1,5 @@
 name: basictest
 
-#fixme: Also a debug build.
-
 on:
   push:
   pull_request:
@@ -26,16 +24,16 @@ jobs:
     strategy:
       matrix:
         include:
-          - { os: ubuntu-24.04-arm,  CC: gcc-11,   CXX: g++-11,     python: '3.12'  }
-          - { os: ubuntu-20.04,  CC: gcc-10,   CXX: g++-10,     python: '3.8'  }
-          - { os: ubuntu-22.04,  CC: gcc,      CXX: g++,        python: '3.9'  }
-          - { os: ubuntu-latest, CC: gcc,      CXX: g++,        python: '3.10' }
-          - { os: ubuntu-latest, CC: clang,    CXX: clang++,    python: '3.11' }
-          - { os: ubuntu-latest, CC: gcc-12,   CXX: g++-12,     python: '3.12' }
-          - { os: ubuntu-latest, CC: gcc,      CXX: g++,        python: '3.13' }
-          - { os: macos-latest,  CC: clang,    CXX: clang++,    python: "3.12" }
-          - { os: macos-13,      CC: clang,    CXX: clang++,    python: "3.11" }
-    name: ${{ matrix.os }}.${{ matrix.CC }}.python-${{ matrix.python }}
+          - { os: ubuntu-24.04-arm,  CC: gcc-11,   CXX: g++-11,     python: '3.12', buildtype: 'Release' }
+          - { os: ubuntu-20.04,      CC: gcc-10,   CXX: g++-10,     python: '3.8',  buildtype: 'Release' }
+          - { os: ubuntu-22.04,      CC: gcc,      CXX: g++,        python: '3.9',  buildtype: 'Release' }
+          - { os: ubuntu-latest,     CC: gcc,      CXX: g++,        python: '3.10', buildtype: 'Debug' }
+          - { os: ubuntu-latest,     CC: clang,    CXX: clang++,    python: '3.11', buildtype: 'Debug' }
+          - { os: ubuntu-latest,     CC: gcc-12,   CXX: g++-12,     python: '3.12', buildtype: 'Release' }
+          - { os: ubuntu-latest,     CC: gcc,      CXX: g++,        python: '3.13', buildtype: 'Release' }
+          - { os: macos-latest,      CC: clang,    CXX: clang++,    python: "3.12", buildtype: 'Release' }
+          - { os: macos-13,          CC: clang,    CXX: clang++,    python: "3.11", buildtype: 'Release' }
+    name: ${{ matrix.os }}.${{ matrix.CC }}.python-${{ matrix.python }}-${{ matrix.buildtype }}
     runs-on: ${{ matrix.os }}
     env:
       CC: ${{ matrix.CC }}
@@ -60,7 +58,7 @@ jobs:
         cmake
         -S ${{github.workspace}}/src
         -B ${{github.workspace}}/build
-        -DCMAKE_BUILD_TYPE=Release
+        -DCMAKE_BUILD_TYPE=${{ matrix.buildtype }}
         -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install
         -DNCRYSTAL_ENABLE_EXAMPLES=ON
         -DNCRYSTAL_BUILD_STRICT=ON
@@ -71,7 +69,7 @@ jobs:
       run: >
         cmake
         --build ${{github.workspace}}/build
-        --config Release
+        --config ${{ matrix.buildtype }}
 
     - name: CTest (from the build area)
       run: |

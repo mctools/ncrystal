@@ -25,7 +25,7 @@ v4.0.0 2025-02-06
        updated to support a variety of other compilers and other
        dependencies. This notably includes support for the Intel OneAPI
        compilers, but also C++20, Python 3.13, Numpy 2, and of course Microsoft
-       VisualStudio. Drop support for Python 3.6 and 3.7. FIXME CI test py3.8!
+       VisualStudio. Drop support for Python 3.6 and 3.7.
      * As part of the efforts to make NCrystal command-line tools easily work on
        Windows, the various commandline tools of NCrystal (nctool,
        ncrystal_cif2ncmat, ncrystal_hfg2ncmat, etc.), are now better integrated
