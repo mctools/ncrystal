@@ -316,9 +316,18 @@ inline bool NCrystal::intervalsOverlap( const PairDD& x, const PairDD& y )
 
 inline NCrystal::PairDD NCrystal::sincos_2pix( double x )
 {
+#if defined(__GNUC__)
+  //Original code triggers gcc warning on arm, like discussed on
+  //https://stackoverflow.com/questions/77729813
   PairDD res;
   sincos_02pi((x-std::floor(x))*k2Pi,res.second,res.first);
   return res;
+#else
+  //So we do this instead, and hope the compiler will anyway optimize correctly:
+  double a, b;
+  sincos_02pi((x-std::floor(x))*k2Pi,b,a);
+  return { a, b };
+#endif
 }
 
 inline NCrystal::PairDD NCrystal::sincos_fast( double x )

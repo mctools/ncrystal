@@ -22,6 +22,7 @@
 #include "NCrystal/core/NCException.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
+#include <climits>//for CHAR_MIN
 #include <sstream>
 #if nc_cplusplus >= 201703L
 #  include <functional>//for std::invoke
@@ -450,9 +451,17 @@ void NC::NCMATParser::parseLine( const std::string& line,
 
   //Check no illegal control codes occur in comments:
   for (;c!=cE;++c) {
-    if ( ( *c>=32 && *c!=127 ) || *c < 0 )
-      continue;//ok ascii or (possibly) multibyte utf-8 chars. More advanced utf-8 analysis
-               //needs rather complicated code (we could do it of course...).
+#if CHAR_MIN != 0
+    //signed char (most platforms):
+    if ( ( *c>=32 && *c!=127 ) || *c < 0 )//high bit set means <0
+#else
+    //unsigned char (arm):
+    if ( *c>=32 && *c!=127  )//high bit set mins >=128
+#endif
+      continue;//ok ascii or (possibly) multibyte utf-8 chars. More advanced
+               //utf-8 analysis needs rather complicated code (we could do it of
+               //course...).
+
     if ( isOneOf(*c,'\t','\n') )
       continue;//ok
     if (*c=='\r') {

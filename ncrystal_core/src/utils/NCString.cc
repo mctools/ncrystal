@@ -24,8 +24,9 @@
 #include <iomanip>
 namespace NC = NCrystal;
 
-std::string NC::displayCharSafeQuoted( char ch, char quote_char )
+std::string NC::displayCharSafeQuoted( char ch_raw, char quote_char )
 {
+  signed char ch = *reinterpret_cast<signed char*>(&ch_raw);
   std::ostringstream os;
   os << quote_char;
   if ( ch == quote_char )

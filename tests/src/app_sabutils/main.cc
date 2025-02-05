@@ -183,7 +183,12 @@ int main()
 
   nc_assert_always(outb==V({-4, -1, 0, 1, 4}));
   nc_assert_always(outsab==V({4.111, 4.333, 4.777, 1.111, 1.333, 1.777, 0.111, 0.333, 0.777, 1.111, 1.333, 1.777, 4.111, 4.333, 4.777}));
-  nc_assert_always(V(outsab.begin()+6,outsab.end()) == insab);
+
+  nc_assert_always( outsab.size() == insab.size() + 6);
+  for ( std::size_t i = 0; i < insab.size(); ++ i) {
+    nc_assert_always( insab.at(i) == outsab.at(i+6) );
+  }
+
   printrange(outb);
   printrange(outsab);
 
