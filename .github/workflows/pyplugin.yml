@@ -47,39 +47,14 @@ jobs:
     - name: Run ncrystal-pluginmanager
       run: ncrystal-pluginmanager
 
-    #FIXME: Just use python ctypes.dlopen to load the lib instead?
     - name: Install ncrystal_python
       run: pip install ./src/ncrystal_python
 
     - name: Verify plugin loading (unix)
-      if: runner.os != 'Windows'
-      run: |
-        export NCRYSTAL_PLUGIN_RUNTESTS=1
-        export NCRYSTAL_REQUIRED_PLUGINS=DummyPlugin
-        nctool --plugins
+      run: ncrystal-pluginmanager --test DummyPlugin
 
-    - name: Verify plugin loading (windows)
-      if: runner.os == 'Windows'
-      run: |
-        set NCRYSTAL_PLUGIN_RUNTESTS=1
-        set NCRYSTAL_REQUIRED_PLUGINS=DummyPlugin
-        nctool --plugins
-
-    #The pure data plugin is not actually in NCrystal's list of plugins, since
-    #those are only the shared library plugins:
-    #- name: Verify plugin_dataonly loading (unix)
-    #  if: runner.os != 'Windows'
-    #  run: |
-    #    export NCRYSTAL_PLUGIN_RUNTESTS=1
-    #    export NCRYSTAL_REQUIRED_PLUGINS=DummyDataPlugin
-    #    nctool --plugins
-    #
-    #- name: Verify plugin_dataonly loading (windows)
-    #  if: runner.os == 'Windows'
-    #  run: |
-    #    set NCRYSTAL_PLUGIN_RUNTESTS=1
-    #    set NCRYSTAL_REQUIRED_PLUGINS=DummyDataPlugin
-    #    nctool --plugins
+    - name: Verify plugin loading (unix)
+      run: ncrystal-pluginmanager --test DummyPluginData
 
     - name: Browse data files
       run: nctool -b
