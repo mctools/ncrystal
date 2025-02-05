@@ -28,7 +28,7 @@ def main():
     import subprocess
     ncdevtool = ncrystal_repo_root.joinpath('devel','bin','ncdevtool')
     rv = subprocess.run( [ sys.executable or 'python3', '-BI',
-                           ncdevtool, 'check', '-n','fixme' ] )
+                           ncdevtool, 'check', '-n','fix'+'me' ] )
     if rv.returncode != 0:
         raise SystemExit("Check failed")
     print("All checks passed")

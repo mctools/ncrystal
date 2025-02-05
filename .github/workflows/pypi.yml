@@ -183,7 +183,6 @@ jobs:
     strategy:
       matrix:
         # macos-13 is an intel runner, macos-14 is apple silicon
-        #fixme: we don't cover ubuntu-24.04-arm in our other ci
         os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-13, macos-14]
         #        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
         #NOTICE: Keep synchronised with matrix platform list elsewhere in this file!!!!

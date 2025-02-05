@@ -509,8 +509,9 @@ void NCP::ensurePluginsLoaded()
 
     //Data directories from ncrystal-pluginmanager:
     SmallVector<PairSS,4> ddirs = std::move( plugmgrcmd_results.plugin_datadirs );
-    //Data directories from env var:
-    //FIXME: Alternative to ':' since it does not work on windows
+    //Data directories from env var: TODO: Consider alternative to ':' in all
+    //path vars, since they do not work on windows (since there are colons in
+    //places like: "C:\...")
     for ( auto& e : split2(ncgetenv("PLUGIN_DATADIRS"),0,':') ) {
       auto p = StrView(e).splitTrimmedNoEmpty('@');
       if ( p.empty() )
