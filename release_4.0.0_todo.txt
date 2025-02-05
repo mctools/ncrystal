@@ -29,7 +29,7 @@
 
 * "ncdevtool find" mode seems broken.
 
-* Open issue about migrating out ncrystal_geant4
+* Open issue about ncrystal-geant4 in the new location.
 
 * Open issue about migration all plugins.
 

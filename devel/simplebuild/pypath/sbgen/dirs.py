@@ -32,6 +32,5 @@ testroot = reporoot.joinpath('tests')
 pysrcroot = reporoot.joinpath('ncrystal_python')
 exsrcroot = reporoot.joinpath('examples')
 datadir = reporoot.joinpath('data')
-ncg4srcroot = reporoot.joinpath('ncrystal_geant4')
 
 del tmp

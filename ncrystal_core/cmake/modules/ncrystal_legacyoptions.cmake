@@ -36,3 +36,8 @@ if ( DEFINED NCRYSTAL_BUILTIN_PLUGINS )
     " NCrystal ifself and loaded dynamically. See the examples/plugin"
     " directory for an updated plugin template." )
 endif()
+if ( DEFINED NCRYSTAL_ENABLE_GEANT4 )
+  message( FATAL_ERROR "The NCRYSTAL_ENABLE_GEANT4 variable is no longer"
+    " supported. The geant4 bindings have moved out of NCrystal and into"
+    " https://github.com/mctools/ncrystal-geant4." )
+endif()

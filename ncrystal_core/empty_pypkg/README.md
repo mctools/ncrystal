@@ -88,16 +88,17 @@ $> nctool 'Al_sg225.ncmat;temp=10C'
 
 
 
-Using the NCrystal installation from C++ (including Geant4), C or Python code
+Using the NCrystal installation from C++, C or Python code
 -----------------------------------------------------------------------------
 
-If you wish to use NCrystal from Python code, there is no special setup
-needed. If you on the other hand wish to use NCrystal from your compiled C++ or
-C code, you must put appropriate build flags. The recommended way is using CMake
-to do this (see next section), but otherwise you must ensure that the NCrystal
-header files are in your compiler's include path, and that the NCrystal library
-is linked correctly. Here are some examples of how this could for instance be
-done, with a C and a C++ app respectively:
+If you wish to use NCrystal from Python code, there is no special setup needed,
+assuming NCrystal was installed correctly (cf. INSTALL.md). If you on the other
+hand wish to use NCrystal from your compiled C++ or C code, you must put
+appropriate build flags. The recommended way is using CMake to do this (see next
+section), but otherwise you must ensure that the NCrystal header files are in
+your compiler's include path, and that the NCrystal library is linked
+correctly. Here are some examples of how this could for instance be done, with a
+C and a C++ app respectively:
 
    export LDFLAGS="${LDFLAGS:-} -Wl,-rpath,$(ncrystal-config --show libdir) $(ncrystal-config --show libpath)"
    export CFLAGS="${CFLAGS:-} -I$(ncrystal-config --show includedir)"
@@ -105,22 +106,17 @@ done, with a C and a C++ app respectively:
    cc -std=c11 ${LDFLAGS} ${CFLAGS} my_c_code.c -o my_c_app
    c++ -std=c++17 ${LDFLAGS} ${CXXFLAGS} my_cpp_code.cpp -o my_cpp_app
 
-If using the NCrystal-Geant4 interfaces, you should also add "-lG4NCrystal" to
-the link flags.FIXME.
-
 Then, in your code you can access the relevant APIs with with statements like:
 
   #include "NCrystal/NCrystal.hh"     // C++ code, core NCrystal
-  #include "G4NCrystal/G4NCrystal.hh" // C++ code, for Geant4 users
   #include "NCrystal/ncrystal.h"      // C code
   import NCrystal                     ## Python code
 
 In the ./examples/ directory of your NCrystal distribution that you got after
 downloading and unpacking the NCrystal source tar-ball, you will find small
-examples of code using NCrystal. For C++/C and Geant4, there is currently no
-documentation beyond the header files and examples. In the case of Python, there
-is integrated documentation available via the usual "help" function, accessed
-with:
+examples of code using NCrystal. For C++/C, there is currently no documentation
+beyond the header files and examples. In the case of Python, there is integrated
+documentation available via the usual "help" function, accessed with:
 
   import NCrystal
   help(NCrystal)
@@ -148,10 +144,10 @@ CMake code for a small project using NCrystal might look like the following
 
   cmake_minimum_required(VERSION 3.10...3.26)
   project(MyExampleProject LANGUAGES CXX)
-  execute_process( COMMAND ncrystal-config --show cmakedir
+  execute_process( COMMAND "ncrystal-config" "--show" "cmakedir"
                    OUTPUT_VARIABLE NCrystal_DIR
                    OUTPUT_STRIP_TRAILING_WHITESPACE )
-  find_package(NCrystal REQUIRED)
+  find_package(NCrystal 4.0.0 REQUIRED)
   add_executable(exampleapp "${PROJECT_SOURCE_DIR}/exampleapp.cc")
   target_link_libraries( exampleapp NCrystal::NCrystal )
   install( TARGETS exampleapp DESTINATION bin )
@@ -161,22 +157,21 @@ required before the code can work in an environment where the NCrystal CMake
 modules are not automatically injected into the CMake package search path (this
 notably includes NCrystal installed via "pip install ncrystal").
 
-If the NCrystal-Geant4 bindings are needed, they must be explicitly requested,
-and the NCrystal::G4NCrystal target added as a dependency for downstream code:
-
-  find_package(NCrystal REQUIRED COMPONENTS GEANT4BINDINGS )
-  target_link_libraries( exampleapp NCrystal::G4NCrystal )
-
-This will of course fail if NCrystal was not build with Geant4 support
-(i.e. configured with -DNCRYSTAL_ENABLE_GEANT4=ON). Note: currently (August
-2024), NCrystal conda and pip packages are built *without* Geant4 support.
 
 
+Using the NCrystal with Geant4
+------------------------------
 
-Using the NCrystal installation from OpenMC
------------------------------------------------------------------------------
+The instructions for the NCrystal-Geant4 bindings are currently being
+updated. Once complete, they will appear on
+https://github.com/mctools/ncrystal-geant4
 
-Using NCrystal materials in openmc is supported since OpenMC release 13.3, and
+
+
+Using NCrystal with OpenMC
+--------------------------
+
+Using NCrystal materials in OpenMc is supported since OpenMC release 13.3, and
 uses a nice simple syntax in the Python API:
 
 ```
@@ -233,8 +228,8 @@ the sections:
 
 
 
-Using the NCrystal installation from McStas
------------------------------------------------------------------------------
+Using NCrystal with McStas
+--------------------------
 
 NOTE: The following discussion concerns the modern McStas 3 branch, and might in
 particular not be 100% accurate for releases earlier than McStas 3.3 (probably
@@ -252,7 +247,6 @@ available. If not, you can try one of the following ways of enabling it:
 
    $> conda install conda-forge::ncrystal [if you are in a conda-forge env]
    $> python3 -mpip install ncrystal [for non-conda users]
-   $> . $MCSTAS/setup.sh [obsolete way]
 
 It is beyond the scope for this README to provide a full documentation of
 McStas, or the Union sub-system, but if you are using McStasScript to compose
@@ -290,4 +284,5 @@ For more documentation about the NCrystal_sample component, run:
 
 $> mcdoc NCrystal_sample
 
-Or consult the documentation online at https://www.mcstas.org/download/components/
+Or consult the documentation online at
+https://www.mcstas.org/download/components/

@@ -27,9 +27,8 @@ include( ncrystal_utils )
 #be set to ON to stop NCrystal from fiddling with the CMAKE_BUILD_TYPE.
 
 bool_option( NCRYSTAL_ENABLE_EXAMPLES  "Whether to build and install various examples." "OFF" )
-enum_option( NCRYSTAL_ENABLE_GEANT4    "Whether to build the G4 hooks." "OFF" "ON" "IFAVAILABLE" )#fixme rip out
 enum_option( NCRYSTAL_ENABLE_DATA      "Whether to include the standard data library files (possibly EMBED'ed into the binary)." "EMBED" "ON" "OFF" )
-bool_option( NCRYSTAL_MODIFY_RPATH     "Whether to try to set RPATH in installed binaries (if disabled all special RPATH handling is skipped)." "ON" )#FIXME skbuild different
+bool_option( NCRYSTAL_MODIFY_RPATH     "Whether to try to set RPATH in installed binaries (if disabled all special RPATH handling is skipped)." "ON" )
 bool_option( NCRYSTAL_ENABLE_DYNLOAD   "Enable dynamic plugin loading capabilities." "ON" )
 enum_option( NCRYSTAL_BUILD_STRICT     "Stricter build (primarily for testing). Can optionally select specific C++ standard." "OFF" "ON" "11" "14" "17" "20" "23" )
 bool_option( NCRYSTAL_ENABLE_CPACK     "Includes CPack and sets relevant meta-data." "OFF" )

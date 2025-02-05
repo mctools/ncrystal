@@ -286,35 +286,32 @@ ncfind_relinstpath( NCrystal_relpath_CMAKEDIR2DATAFILESDIR "${NCrystal_DATAFILES
 add_library( ncrystal_common INTERFACE )
 target_compile_features( ncrystal_common INTERFACE cxx_std_11 )
 
-#Properties for executables and G4NCrystal library (can't transfer all
-#properties via INTERFACE targets, so we need this variable-based workaround):
+#Properties for executables (can't transfer all properties via INTERFACE
+#targets, so we need this variable-based workaround):
 set( _nc_executable_rpath "")
-set( _nc_libncg4_rpath "")
 
 if ( NCRYSTAL_MODIFY_RPATH )
   #Set RPATH properties. For some annoying reason, this is not possible to do
   #via interface targets, so we have to use a variable-based workaround:
 
   if ( NOT DEFINED CMAKE_INSTALL_RPATH_USE_LINK_PATH )
-    #TODO: Figure out if we really need this (perhaps only for geant4 targets?)
+    #TODO: Figure out if we really need this (perhaps it was only needed for
+    #geant4 targets?)
     set( CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE )
   endif()
   if( NOT APPLE )
     #Relocatable RPATHS: $ORIGIN in RPATH (including the $-char!!)  means the
     #location of the binary requiring the dependency:
     list( APPEND _nc_executable_rpath "$ORIGIN/${NCrystal_relpath_BINDIR2LIBDIR}" )
-    list( APPEND _nc_libncg4_rpath $ORIGIN )
   else()
     #On OSX, rpaths are absolute paths:
     get_filename_component( tmp "${CMAKE_INSTALL_PREFIX}/${NCrystal_LIBDIR}" ABSOLUTE)
     list( APPEND _nc_executable_rpath  "${tmp}" )
-    list( APPEND _nc_libncg4_rpath "${tmp}" )
   endif()
 
   if ( DEFINED ENV{CONDA_PREFIX} AND EXISTS "$ENV{CONDA_PREFIX}/lib" )
     #In a conda environment we add $CONDA_PREFIX/lib to the rpath:
     list( APPEND _nc_executable_rpath "$ENV{CONDA_PREFIX}/lib" )
-    list( APPEND _nc_libncg4_rpath "$ENV{CONDA_PREFIX}/lib" )
   endif()
 
   #Test if compiler supports -Wl,--disable-new-dtags. If it does, apply it
@@ -355,9 +352,6 @@ function( get_datafile_list output_var )
   set( ${output_var} "${tmp}" PARENT_SCOPE )
 endfunction()
 file_globsrc( SRCS_NC "src/*.cc")
-file_globsrc( HDRS_NCG4 "ncrystal_geant4/include/G4NCrystal/*.*")
-file_globsrc( SRCS_NCG4 "ncrystal_geant4/src/*.cc")
-
 
 include( "ncrystal_ncapi" )
 nccfgapp_create_ncapi_h( ncapi_include_path )
@@ -636,81 +630,6 @@ if ( NCRYSTAL_ENABLE_EXAMPLES )
   endforeach()
 endif()
 
-#G4NCrystal
-set( NCRYSTAL_GEANT4 OFF )
-if ( NOT NCRYSTAL_ENABLE_GEANT4 STREQUAL "OFF" )
-  find_package(Geant4)
-  if( Geant4_FOUND )
-    set( NCRYSTAL_GEANT4 ON )
-  else()
-    if ( NOT NCRYSTAL_ENABLE_GEANT4 STREQUAL "IFAVAILABLE" )
-      message( FATAL_ERROR "NCRYSTAL_ENABLE_GEANT4 set to ON but failed to enable Geant4 support (set to IFAVAILABLE or OFF to proceed without Geant4 support)." )
-    endif()
-  endif()
-endif()
-
-if ( NCRYSTAL_GEANT4 )
-  set( _tmp_basiclibnameg4 "G4NCrystal" )
-  add_library(G4NCrystal SHARED ${SRCS_NCG4})
-  if ( NCRYSTAL_NAMESPACE )
-    #Since we didn't implement the namespace for the G4NCrystal C++ namespace as
-    #well, it is best to error out here. Once we have migrated to new and better
-    #(and standalone) NCrystal-Geant4 hooks, they should certainly also have an
-    #option for namespace protection there.
-    message( WARNING "The NCRYSTAL_NAMESPACE feature is not actually fully implemented for the NCRYSTAL_GEANT4 extension (please get in touch if you have a different need)" )
-    set( _tmp_basiclibnameg4 "${_tmp_basiclibnameg4}-${NCRYSTAL_NAMESPACE}" )
-    set_target_properties( G4NCrystal PROPERTIES OUTPUT_NAME "${_tmp_basiclibnameg4}" )
-  endif()
-  set(G4NCrystal_LIBNAME "${CMAKE_SHARED_LIBRARY_PREFIX}${_tmp_basiclibnameg4}${CMAKE_SHARED_LIBRARY_SUFFIX}")
-  #Make sure client code will use at least c++11:
-  target_compile_features( G4NCrystal INTERFACE cxx_std_11 )
-  set_target_common_props( G4NCrystal )
-  target_include_directories(G4NCrystal
-    PUBLIC
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ncrystal_geant4/include>
-    $<INSTALL_INTERFACE:${NCrystal_INCDIR}>
-    )
-
-  ncinstall(TARGETS G4NCrystal EXPORT G4NCrystalTargets DESTINATION ${NCrystal_LIBDIR} )
-
-  ncinstall(FILES ${HDRS_NCG4} DESTINATION ${NCrystal_INCDIR}/G4NCrystal)
-  #Transfer G4 flags uncovered by find_package(Geant4) call:
-  #TODO: This should really use Geant4 targets once all known users move to
-  #newer Geant4 release (G4 10.6?):
-  target_compile_definitions(G4NCrystal PUBLIC ${Geant4_DEFINITIONS})
-  target_link_libraries( G4NCrystal PUBLIC NCrystal ${Geant4_LIBRARIES} PRIVATE ncrystal_common )
-  if ( NOT "x${_nc_libncg4_rpath}" STREQUAL "x" )
-    set_target_properties( G4NCrystal PROPERTIES INSTALL_RPATH "${_nc_libncg4_rpath}" )
-  endif()
-  target_include_directories(G4NCrystal SYSTEM PUBLIC ${Geant4_INCLUDE_DIRS})
-  set(Geant4_CXX_FLAGS_aslist ${Geant4_CXX_FLAGS})
-  separate_arguments(Geant4_CXX_FLAGS_aslist)
-  target_compile_options(G4NCrystal PUBLIC ${Geant4_CXX_FLAGS_aslist})
-  #Check if compiler supports -Wno-overloaded-virtual. If so, we add it as a
-  #public flag on the G4NCrystal target. This is because of Geant4 adds
-  #-Wno-overloaded-virtual, and Geant4 v10.4 headers gives that warning with
-  #gcc8/gcc9.
-  check_cxx_compiler_flag( -Wno-overloaded-virtual ncrystal_compiler_supports_no_overloaded_virtual_flag )
-  if ( ncrystal_compiler_supports_no_overloaded_virtual_flag )
-    target_compile_options( G4NCrystal PUBLIC -Wno-overloaded-virtual )
-  endif()
-
-  #examples if needed:
-  if ( NCRYSTAL_ENABLE_EXAMPLES )
-    file_globsrc( EXAMPLES_NCG4 "../examples/ncrystal_example_g4*.cc")
-    foreach(ex ${EXAMPLES_NCG4})
-      get_filename_component(exbn "${ex}" NAME_WE)
-      add_executable(${exbn} "${ex}")
-      set_target_common_props( ${exbn} )
-      target_link_libraries(${exbn} G4NCrystal ncrystal_common )
-      if ( NOT "x${_nc_executable_rpath}" STREQUAL "x" )
-        set_target_properties(${exbn} PROPERTIES INSTALL_RPATH "${_nc_executable_rpath}" )
-      endif()
-      ncinstall(TARGETS ${exbn} DESTINATION ${NCrystal_BINDIR} )
-    endforeach()
-  endif()
-endif()
-
 #Package configuration files for downstream cmake projects:
 ncinstall( EXPORT NCrystalTargets FILE "NCrystalTargets.cmake" NAMESPACE NCrystal:: DESTINATION ${NCrystal_CMAKEDIR} )
 add_library(NCrystal::NCrystal ALIAS NCrystal)#always alias namespaces locally
@@ -728,12 +647,6 @@ file(
   \"\n_ncrystal_fixup_ncrystaltargets()\n\"
 )
 ")
-endif()
-
-if ( NCRYSTAL_GEANT4 )
-  #Add G4NCrystal target in separate file:
-  ncinstall( EXPORT G4NCrystalTargets FILE G4NCrystalTargets.cmake NAMESPACE NCrystal:: DESTINATION ${NCrystal_CMAKEDIR} )
-  add_library(NCrystal::G4NCrystal ALIAS G4NCrystal)#always alias namespaces locally
 endif()
 
 #NB: Important we do any configure_file AFTER all variables used have been set!

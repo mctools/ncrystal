@@ -75,10 +75,6 @@ class Cfg:
         return 'NCExamples'
 
     @property
-    def sbpkgname_geant4(self):
-        return 'NCG4'
-
-    @property
     def sbld_instdir(self):
         return self.__instdir
 

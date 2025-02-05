@@ -30,7 +30,6 @@ jobs:
         cmake -S ./src -B ./build -DCMAKE_INSTALL_PREFIX=./install
         -DCMAKE_BUILD_TYPE=Release
         -DNCRYSTAL_ENABLE_EXAMPLES=ON
-        -DNCRYSTAL_ENABLE_GEANT4=OFF
         -DNCRYSTAL_BUILD_STRICT=ON
 
     - name: Build NCrystal

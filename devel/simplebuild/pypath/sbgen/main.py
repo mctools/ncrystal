@@ -354,13 +354,7 @@ mod.main()
                                     '-DNCrystal_EXPORTS '#for NCCFileUtils.hh
                                     '-fno-math-errno') )
     #Examples:
-    example_src =[]
-    example_src_g4 =[]
-    for f in dirs.exsrcroot.glob('*.c*'):
-        if 'g4sim' in f.name:
-            example_src_g4.append(f)
-        else:
-            example_src.append(f)
+    example_src =sorted(dirs.exsrcroot.glob('*.c*'))
 
     def add_compiled_examples(filelist,pkgname,*,override_name = None):
         if override_name:
@@ -512,32 +506,6 @@ mod.main()
 
     #For --require:
     create_pkginfo( 'NCTestAll', pkg_deps = all_test_pkgs )
-
-    #Geant4 (until it moves elsewhere):
-    includemap_g4 = []
-    create_pkginfo( cfg.sbpkgname_geant4,
-                    pkg_deps=[cfg.sbpkgname_lib],
-                    extdeps = ['Geant4','NCG4DevHeaders'],
-                    extra_cflags = [f'-I{dirs.ncg4srcroot}/src'],
-                   )
-    for sf in (dirs.ncg4srcroot/'src').glob('*c'):
-        add_file( f'pkgs/{cfg.sbpkgname_geant4}/libsrc/{sf.name}',
-                  link_target = sf )
-
-    g4incroot = dirs.ncg4srcroot.joinpath('include')
-    for sf in g4incroot.joinpath('G4NCrystal').glob('*.hh'):
-        includemap_g4.append( ( str(sf.relative_to(g4incroot)),
-                                f'{cfg.sbpkgname_geant4}/{sf.name}' ) )
-        add_file( f'pkgs/{cfg.sbpkgname_geant4}/libinc/{sf.name}',
-                  link_target = sf )
-
-    add_compiled_examples( example_src_g4,
-                           cfg.sbpkgname_geant4,
-                           override_name = 'example' )
-
-    create_custom_extdep( 'NCG4DevHeaders',
-                          includemap = includemap_g4,
-                          cflags = f'-I{dirs.ncg4srcroot}/include ' )
 
 def main():
     define_files()

@@ -23,12 +23,9 @@ docs/...............: Extra documentation. Currently this is just ncmat_doc.md
                       with a thorough description of the NCMAT format.
 tests/..............: Files and infrastructure for CTest-based tests.
 examples/...........: Small standalone examples for using NCrystal, either from
-                      the commandline, C, C++ or python applications or through
-                      Geant4 simulations in C++.
+                      the commandline, C, C++ or Python applications.
                       Also included are templates for external plugins.
 devel/..............: Developer utilities (including the ncdevtool command). It
                       also includes infrastructure for building with
                       simple-build-system, environment files, and the database
                       of external plugins.
-ncrystal_geant4/....: Code for NCrystal-Geant4 hooks. Will eventually be
-                      migrated to reside in another repository.
