@@ -1,5 +1,7 @@
 name: basictest
 
+#fixme: Also a debug build.
+
 on:
   push:
   pull_request:

@@ -1,14 +1,10 @@
-* Verify wiki/Get-NCrystal.md (as it is referenced from e.g. openmc).
-
 #FIXME Address all of the following for the release:
 
-* Update ncplugin_template with a readme which simply redirects to the new
-  documentation.
+* McStas needs PR to work with new release on Windows. Also we should retire the
+  CMake code there related to windows.
+
 * We should have a way to determine what version of NCrystal a given plugin was
   built against, so we can error on incompatibilities.
-
-* Finally grep for 3.9.80, etc., to make sure any >3.9.8x is actually pointing
-  at the last release candidate.
 
 * Make sure pull requests have check boxes on top with stuff like "did you add a
   test", "did you mention any open issues this is linked to", etc.
@@ -28,15 +24,15 @@
 * CI missing:
     * python coverage testing.
 
-* check open ncrystal issues.
-
 * Support (and test) windows paths starting with "\\?\", as well as shared
   directories starting with double slashes.
 
 * "ncdevtool find" mode seems broken.
 
 * Open issue about migrating out ncrystal_geant4
+
 * Open issue about migration all plugins.
+
 * Open issue about migrating more tests from ncdevtool repo
 
 * Double check jupyter notebooks (especially interactively rerunning, plus on colab).

@@ -7,7 +7,10 @@ v4.0.0 2025-02-06
        usage on Windows! This support is NOT considered experimental, and
        Windows users can now install the "ncrystal" package via tools like pip
        and conda and expect the same features on both the command-line and in
-       the Python/C/C++ APIs as Unix users have had in the past.
+       the Python/C/C++ APIs as Unix users have had in the past. Of course,
+       there might be bugs or issues to iron out, so please help us test out the
+       new release on Windows and file issues at
+       https://github.com/mctools/ncrystal/issues as appropriate!
      * As another user-visible feature, it is now possible to install optional
        NCrystal plugins via a simple "pip install", and have NCrystal
        automatically and seamlessly pick up and load the plugin. We are
@@ -209,7 +212,6 @@ v4.0.0 2025-02-06
      * The NCrystal._mcc Python module was renamed to NCrystal.mmc, to better
        reflect its non-internal nature. For the time being, the NCrystal._mcc
        will also be kept around for backwards compatibility.
-
 
 v3.9.7 2024-09-02
      * Fix bug in LoadedMaterial.xsect/.macroscopic_xsect methods.
