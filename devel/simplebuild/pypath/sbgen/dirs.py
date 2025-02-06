@@ -34,3 +34,6 @@ exsrcroot = reporoot.joinpath('examples')
 datadir = reporoot.joinpath('data')
 
 del tmp
+
+def is_empty_dir( path ):
+    return path.is_dir() and not any( True for p in path.iterdir() )

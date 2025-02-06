@@ -442,7 +442,6 @@ mod.main()
 
     #Python modules for test scripts, common headers, and data:
     pkgname = 'NCTestUtils'
-    create_pkginfo(pkgname)
     all_test_pkgs.append(pkgname)
     for sf in dirs.testroot.joinpath('pypath/NCTestUtils').glob('*.py'):
         add_file( f'pkgs/{pkgname}/python/{sf.name}',
@@ -453,11 +452,22 @@ mod.main()
                   link_target = sf )
     #Add special marker so it knows it is in sbld mode:
     add_file( f'pkgs/{pkgname}/python/_is_simplebuild.py', content='')
+    extra_data_pkgs = []
     for sf in dirs.testroot.joinpath('data').iterdir():
         if sf.is_file() and '#' not in sf.name and '~' not in sf.name:
             add_file( f'pkgs/{pkgname}/data/{sf.name}', link_target = sf )
+        if sf.is_dir() and not dirs.is_empty_dir( sf ):
+            pkgname_edp = f'NCTestData_{sf.name}'
+            extra_data_pkgs.append( (pkgname_edp, sf)  )
 
+    create_pkginfo( pkgname,
+                    pkg_deps = [pn for pn,_ in extra_data_pkgs] )
 
+    for pkgname, srcdir in extra_data_pkgs:
+        create_pkginfo( pkgname )
+        for sf in srcdir.iterdir():
+            if sf.is_file() and '#' not in sf.name and '~' not in sf.name:
+                add_file( f'pkgs/{pkgname}/data/{sf.name}', link_target = sf )
 
     #Finally the test scripts. Here we must parse the files and look for NEEDS
     #lines to figure out which ones to include:

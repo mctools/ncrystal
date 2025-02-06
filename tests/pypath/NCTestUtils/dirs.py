@@ -44,3 +44,14 @@ def _find_data_dir():
     return ddir
 
 test_data_dir = _find_data_dir()
+
+def get_named_test_data_dir(name):
+    #name of subdir of /tests/data
+    from .modeinfo import is_simplebuild_mode
+    if is_simplebuild_mode():
+        import os
+        ddir = _Path(os.environ['SBLD_DATA_DIR'])/f'NCTestData_{name}'
+    else:
+        ddir = ncrystal_repo_tests.joinpath('data',name)
+    assert ddir.is_dir()
+    return ddir

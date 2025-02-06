@@ -22,11 +22,9 @@
 
 import NCTestUtils.enable_fpe # noqa F401
 from NCTestUtils.loadlib import Lib
+from NCTestUtils.dirs import get_named_test_data_dir
 import NCrystalDev.exceptions as nc_exceptions
 import pathlib
-#from NCTestUtils.common import ( work_in_tmpdir,
-#                                 #explicit_unicode_str,
-#                                )
 
 lib = Lib('ncmat')
 lib.dump()
@@ -74,8 +72,7 @@ def testall( verbose ):
         if expect_badinput:
             try:
                 tryParseNCMATData( data )
-            except ( nc_exceptions.NCBadInput,
-                     nc_exceptions.NCDataLoadError ) as e:
+            except nc_exceptions.NCBadInput as e:
                 print(f'==> Correct! {e.__class__.__name__}: {e}')
             except:
                 print ('==> Ended in wrong type of exception!')
@@ -98,34 +95,21 @@ def testall( verbose ):
         #print_sep('Test %i done'%i)
     print()
     #doall = '--all' in sys.argv[1:]
-    files = []
-    #FIXMEfiles = (sorted(pathlib.Path(os.environ['SBLD_DATA_DIR']).glob('NCData/*.ncmat'))
-    #FIXME         +sorted(pathlib.Path(os.environ['SBLD_DATA_DIR']).glob('NCDataRefNC1/*.ncmat'))
-    #FIXME         +sorted(pathlib.Path(os.environ['SBLD_DATA_DIR']).glob('NCDataRefNC2d5/*.ncmat'))
-    #FIXME         )
 
-    #bad = False
-    for p in files:
-        tryParseNCMATFromPath(p)
-#
-#        #if p.name in {'CF2_sg14.ncmat','Al.ncmat'}:
-#        #    #some actual bad file
-#        #    continue
-#        #if '@VDOS' in p.read_text() or '@SCATTERINGKERNEL' in p.read_text():
-#        #    continue
-#        sf = "%s/%s"%(p.parent.name,p.name) if not doall else str(p)
-#        print("Now loading %s"%sf,end='')
-#        ec=subprocess.run(['sb_nctests_parsencmat',str(p)],stdout=subprocess.PIPE,stderr=subprocess.STDOUT).returncode
-#        if ec!=0:
-#            bad=True
-#            print("  <========== FAILED!!!!!!")
-#        else:
-#            print()
-#
-#    if not doall:
-#        print()
-#        print ('Checked all NCData/*.ncmat files (supply --all to test ALL .ncmat files instead)!!\n')
-#
+    for testdirname in ('refnc1','refnc2d5'):
+        testdir = get_named_test_data_dir(testdirname)
+        for f in sorted(testdir.glob('*.ncmat')):
+            print(f"Loading {testdirname}/{f.name}")
+            tryParseNCMATFromPath( f )
+
+    from NCrystalDev.datasrc import browseFiles
+    from NCrystalDev import createTextData
+    for f in browseFiles(factory='stdlib'):
+        print(f"Loading {f.fullKey}")
+        data = createTextData(f.fullKey).rawData
+        tryParseNCMATData( data )
+
+
     print()
     print('\nAll tests completed succesfully!')
 

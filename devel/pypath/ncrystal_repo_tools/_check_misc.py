@@ -37,8 +37,9 @@ def main():
     max_size_kb_log = 300
     max_size_kb_other = 60
     max_size_overrides = {
-        'data/LiquidWaterH2O_T293.6K.ncmat':600,
-        'data/LiquidHeavyWaterD2O_T293.6K.ncmat':1600,
+        'data/LiquidWaterH2O_T293.6K.ncmat' : 600,
+        'data/LiquidHeavyWaterD2O_T293.6K.ncmat' : 1600,
+        'tests/data/refnc2d5/LiquidWaterH2O_T293.6K.ncmat' : 530,
         'CHANGELOG' : 150,
         'ncrystal_core/include/NCrystal/cinterface/ncrystal.h' : 100,
         'ncrystal_core/src/cinterface/ncrystal.cc' : 100,
@@ -82,7 +83,9 @@ def main():
         for e in lines:
             if '\t' in e:
                 raise SystemExit(f'TABs found in {f}')
-            if e.endswith(' '):
+            if ( e.endswith(' ')
+                 and not frel.startswith('tests/data/refnc1/')
+                 and not frel.startswith('tests/data/refnc2d5/') ):
                 raise SystemExit(f'Trailing spaces at end-of-line found in {f}')
         #count trailing whitespace:
         nws = 0
