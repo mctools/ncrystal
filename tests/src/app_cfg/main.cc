@@ -547,7 +547,7 @@ void test_density () {
 }
 
 
-std::string filterDGCODEPath( std::string s ) {
+std::string filterPWD( std::string s ) {
   NC::strreplace(s, NC::ncgetcwd(), "${PWD}");
   return s;
 }
@@ -566,7 +566,7 @@ void openBadInput(const std::string& filename, bool doCreateInfo = false )
     }
   catch (NC::Error::BadInput&e)
     {
-      std::cout<<"NCrystal::"<<e.getTypeName()<< ": "<<filterDGCODEPath(e.what()) << std::endl;
+      std::cout<<"NCrystal::"<<e.getTypeName()<< ": "<<filterPWD(e.what()) << std::endl;
       return;
     }
   NCRYSTAL_THROW2(LogicError,"Did not end in BadInput exception as expected (\""<<filename<<"\")")

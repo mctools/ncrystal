@@ -31,7 +31,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                         //
-// All Exceptions from Crystal code will be of type NCrystal::Error::ErrType, where        //
+// All Exceptions from NCrystal code will be of type NCrystal::Error::ErrType, where       //
 // ErrType will be one of:                                                                 //
 //                                                                                         //
 //   FileNotFound  : Could not find specified input file                                   //
