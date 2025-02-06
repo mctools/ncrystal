@@ -1,0 +1,20 @@
+NCMAT v1
+#converted from the cif file of the entry 0011243 in the AMCSD
+#reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+#comment: The Debye temperature is derived from the Debye-waller factor at 293K compiled in the supplement of Acta Cryst., A52, p. 456-470, 1996
+@CELL
+    lengths 5.4307 5.4307 5.4307 
+    angles 90. 90. 90. 
+@SPACEGROUP
+    227
+@ATOMPOSITIONS
+    Si 0.5 0.5 0.
+    Si 0.25 0.75 0.75
+    Si 0.5 0. 0.5
+    Si 0.25 0.25 0.25
+    Si 0. 0.5 0.5
+    Si 0.75 0.75 0.25
+    Si 0. 0. 0.
+    Si 0.75 0.25 0.75
+@DEBYETEMPERATURE
+    Si   517.6978

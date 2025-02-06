@@ -1,0 +1,20 @@
+NCMAT v1
+#converted from the cif file of the entry 0000501 in the AMCSD
+#reference: Hazen R M, American Mineralogist, vol. 61, p. 266-271, 1976.
+@CELL
+    lengths 4.211 4.211 4.211 
+    angles 90. 90. 90. 
+@SPACEGROUP
+    225
+@ATOMPOSITIONS
+    Mg 0. 0.5 0.5
+    O 0.5 0. 0.
+    Mg 0. 0. 0.
+    O 0.5 0.5 0.5
+    Mg 0.5 0.5 0.
+    O 0. 0. 0.5
+    Mg 0.5 0. 0.5
+    O 0. 0.5 0.
+@DEBYETEMPERATURE
+    Mg   682.7075
+    O   828.5571

@@ -1,0 +1,20 @@
+NCMAT v1
+#reference: Pallavi Ghalsasi, Prasanna S. Ghalsasi, Inorganic Chemistry, vol. 50, p. 86-89, 2011.
+@CELL
+    lengths 4.739 4.739 5.1875 
+    angles 90. 90. 120. 
+@SPACEGROUP
+    152
+@ATOMPOSITIONS
+    F 0.4164 0.2671 0.21312
+    F 0.7329 0.1493 0.546453333333
+    F 0.8507 0.5836 0.879786666667
+    F 0.2671 0.4164 0.78688
+    F 0.1493 0.7329 0.453546666667
+    F 0.5836 0.8507 0.120213333333
+    Be 0.47 0. 0.333333333333
+    Be 0. 0.47 0.666666666667
+    Be 0.53 0.53 0.
+@DEBYETEMPERATURE
+    Be   546.6974
+    F   296.3770

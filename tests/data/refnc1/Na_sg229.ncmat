@@ -1,0 +1,14 @@
+NCMAT v1
+#converted from the cif file of the entry 0011223 in the AMCSD
+#reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+#comment: The Debye temperature is derived from the Debye-waller factor at 293K compiled in the supplement of Acta Cryst., A52, p. 456-470, 1996
+@CELL
+    lengths 4.2906 4.2906 4.2906 
+    angles 90. 90. 90. 
+@SPACEGROUP
+    229
+@ATOMPOSITIONS
+    Na 0. 0. 0.
+    Na 0.5 0.5 0.5
+@DEBYETEMPERATURE
+    Na   148.8323

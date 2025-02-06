@@ -1,0 +1,21 @@
+NCMAT v1
+#converted from the cif file of the entry 0006212 in the AMCSD
+#reference: Antao S M, Hassan I, Wang J, Lee P L, Toby B H, The Canadian Mineralogist, vol. 46, p. 1501-1509, 2008.
+@CELL
+    lengths 4.913437 4.913437 5.405118 
+    angles 90. 90. 120. 
+@SPACEGROUP
+    154
+@ATOMPOSITIONS
+    Si 0.47 0. 0.666666666667
+    Si 0. 0.47 0.333333333333
+    Si 0.53 0.53 0.
+    O 0.4146 0.2678 0.78543
+    O 0.2678 0.4146 0.21457
+    O 0.7322 0.1468 0.452096666667
+    O 0.5854 0.8532 0.881236666667
+    O 0.8532 0.5854 0.118763333333
+    O 0.1468 0.7322 0.547903333333
+@DEBYETEMPERATURE
+    Si   515.5240
+    O   515.1032

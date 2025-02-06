@@ -1,0 +1,24 @@
+NCMAT v1
+#converted from the cif file of the entry 0014675 in the AMCSD
+#reference: Trucano P, Chen R, Nature, vol. 258, p. 136-137, 1975.
+#comment: 
+#Validated against EXFOR subentries 11359002,21149003 and 13761003
+#(see https://github.com/mctools/ncrystal/wiki/Data-library)
+#It is suitable to model large mosaicity graphite monochromators or analysers.
+#
+#A "magic comment" which ensures that NCrystal will model this as an anisotropic
+#layered crystal, rotated around the third lattice axis: NCRYSTALMATCFG[lcaxis=0,0,1]
+#
+
+@CELL
+    lengths 2.464 2.464 6.711 
+    angles 90. 90. 120. 
+@SPACEGROUP
+    194
+@ATOMPOSITIONS
+    C 0. 0. 0.25
+    C 0. 0. 0.75
+    C 0.333333333333 0.666666666667 0.25
+    C 0.666666666667 0.333333333333 0.75
+@DEBYETEMPERATURE
+    C   740.5678

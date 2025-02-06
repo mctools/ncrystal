@@ -1,0 +1,52 @@
+NCMAT v2
+#Nickel (fcc)
+#
+#Crystal structure was converted from the cif file of the entry 0011153 in the AMCSD.
+#Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+#
+#The Debye temperature derived from the Debye-waller factor at 293K compiled in
+#the supplement of Acta Cryst., A52, p. 456-470 (1996) is 412.1K. However, a
+#slightly lower value of 380K is used here, in order for the resulting cross
+#sections to better reproduce experimental measurements of total cross
+#section. The measurements used for comparison were R.G.Allen, et al. (1954,
+#EXFOR id 11762002) and H.Palevsky (1954, EXFOR id 11355002).
+#
+#The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
+#software from Figure 4 of:
+#
+#   "Neutron scattering measurements of phonons in nickel at elevated temperatures"
+#   M. Kresch, O. Delaire, R. Stevens, J. Y. Y. Lin, and B. Fultz
+#   Phys. Rev. B 75, 104301 - Published 9 March 2007
+#   https://doi.org/10.1103/PhysRevB.75.104301
+#
+@CELL
+  lengths 3.52387 3.52387 3.52387
+  angles 90 90 90
+@SPACEGROUP
+  225
+@ATOMPOSITIONS
+  Ni 0   1/2 1/2
+  Ni 0   0   0
+  Ni 1/2 1/2 0
+  Ni 1/2 0   1/2
+@DEBYETEMPERATURE
+  Ni 380
+@DYNINFO
+  element  Ni
+  fraction 1
+  type     vdos
+  vdos_egrid .0064985 .040403717391304
+  vdos_density .0525808 .0562783 .0599758 .0637698 .0691785 .0745871 .0799957
+    .0866669 .0938268 .100987 .108146 .115718 .123611 .131504 .139397 .148361
+    .158016 .167672 .177327 .188141 .200517 .212892 .223246 .233057 .242869
+    .255322 .274338 .292488 .309284 .327356 .346221 .366238 .386704 .409335
+    .43281 .463668 .501558 .540444 .579583 .614962 .648799 .683449 .71009
+    .732932 .754141 .769714 .788943 .81341 .835547 .851681 .866629 .877797
+    .888966 .901865 .917394 .930814 .940392 .950017 .953643 .957269 .960879
+    .971223 .984151 .98565 .98277 .968501 .948574 .917165 .876951 .826715
+    .783465 .754911 .729428 .705829 .679632 .653435 .627238 .599813 .57853
+    .560846 .543689 .526532 .518519 .515389 .528105 .54696 .578411 .621971
+    .679249 .756609 .842965 .91355 .967906 .994185 1 .975011 .931534 .877429
+    .795948 .687172 .600803 .507847 .436485 .35685 .282313 .2252 .180645 .140935
+    .104461 .0821725 .0684938 .0572877 .0469448 .0397425 .0354069 .0384485
+    .0437456 .0410459 .0207608 .00321169 0

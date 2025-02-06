@@ -1,0 +1,63 @@
+NCMAT v2
+#Lead (Pb)
+#
+#Crystal structure was converted from the cif file of the entry 0011154 in the AMCSD.
+#Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+#
+#The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
+#software from Figure 1 of:
+#
+#   "Phonon density states in lead"
+#   G. Gilat, Solid State Communications, Vol. 3, pp. 101-103, 1965.
+#   https://doi.org/10.1016/0038-1098(65)90232-2
+#
+#The Debye temperature derived from the Debye-waller factor at 293K compiled in
+#the supplement of Acta Cryst., A52, p. 456-470, 1996 is 87.5K. On the other
+#hand, Introduction to Solid State Physics (Charles Kittel, 2004), provides a
+#value of 105K. Experimental data (EXFOR 14141002, G. Muhrer), indicates a flat
+#total cross section for wavelengths lower than 1.5Aa. A result reproduced by
+#NCrystal (v2.0) if using the average of the numbers as the Debye temperature,
+#(87.5K+105K)/2~=96K, but not if using either of the values 87.5K and 105K. A
+#value of 96K also seems consistent with the VDOS spectrum, and thus in general
+#seems to be a reasonable choice.
+#
+@CELL
+  lengths 4.9505 4.9505 4.9505
+  angles 90 90 90
+@SPACEGROUP
+  225
+@ATOMPOSITIONS
+  Pb 1/2 1/2 1/2
+  Pb 1/2 0   0
+  Pb 0   1/2 0
+  Pb 0   0   1/2
+@DEBYETEMPERATURE
+  Pb 96
+@DYNINFO
+  element  Pb
+  fraction 1
+  type     vdos
+  vdos_egrid .00115759 .009508775
+  vdos_density .0164391 .0181779 .0199167 .0216544 .0233835 .0251126 .0271535
+    .0294455 .0317376 .0340888 .0364649 .0393493 .0424824 .0457834 .0493122
+    .0530308 .0570704 .0617238 .0679636 .0747084 .0815044 .0876863 .0927762
+    .0978193 .102803 .10762 .112296 .116971 .121615 .126248 .13088 .135817
+    .140959 .146116 .151544 .156972 .1624 .167828 .17328 .178882 .184485 .190087
+    .196044 .201944 .2078 .213656 .219441 .225181 .230922 .237807 .244212
+    .257336 .26893 .275729 .280483 .285393 .290365 .294779 .299166 .303451
+    .307731 .313047 .318963 .324406 .329822 .33587 .342121 .349071 .356138
+    .363206 .370273 .377377 .38413 .390445 .397156 .40433 .412464 .423265
+    .433924 .445808 .458005 .470884 .484576 .498943 .514505 .531324 .549019
+    .567523 .589175 .621986 .66547 .710365 .811791 .889547 .950323 1 .99666
+    .949965 .893265 .827317 .774241 .740664 .703412 .678256 .659688 .64419
+    .633014 .622798 .610811 .599484 .585728 .5704 .550908 .493581 .338902
+    .309655 .298163 .293106 .295199 .298034 .302045 .306482 .311756 .317229
+    .322798 .328661 .334754 .341194 .347812 .354184 .360098 .366013 .373411
+    .381009 .38881 .396628 .404753 .4134 .424471 .435573 .446986 .458596 .471098
+    .485188 .496609 .486217 .443675 .416312 .394476 .377196 .35971 .343876
+    .32938 .31694 .305284 .298375 .292217 .28678 .283478 .280972 .281158 .28599
+    .291337 .296723 .302464 .311616 .331082 .355731 .38227 .492122 .552212
+    .643331 .677196 .704118 .73493 .773232 .803954 .824915 .833375 .83183
+    .818769 .814565 .822175 .81453 .76559 .712565 .553025 .420122 .408556
+    .403396 .401582 .400044 .397945 .394919 .389989 .383703 .376817 .36704
+    .354115 .325522 .250927 .00160974 0

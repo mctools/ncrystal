@@ -1,0 +1,64 @@
+NCMAT v2
+#Pyrolytic Graphite (HOPG if used as single crystal, suitable to model large
+#mosaicity graphite monochromators or analysers).
+#
+#Crystal structure was converted from the cif file of the entry 0014675 in the AMCSD.
+#Additional reference: Trucano P, Chen R, Nature, vol. 258, p. 136-137, 1975.
+#
+#The VDOS is the same as used to generate the scattering kernels shipped with
+#the ENDF/B-VIII release (extracted from the file tsl-crystalline-graphite.leapr).
+#
+#With the addition of a VDOS curve in NCrystal v2.0.0, the Debye temperature was
+#increased slightly from its former value (740.6K in NCrystal v1.0.0), in order
+#to better reproduce total cross sections observed in data at short
+#wavelengths. The resulting inelastic cross sections at long wavelengths seems
+#to still be too low when comparing with measurements, which one can speculate
+#as being a sign that the incoherent approximation is not very good for this
+#strongly coherently scattering material, and that there are strong coherent
+#effects in single-phonon scattering. This might be solved in the future by
+#adding support for coherent scattering kernels. The experimental data used for
+#comparison was R.B.Walton, et al. (1960, EXFOR id 11359002) and P.A.Egelstaff
+#(1957, EXFOR id 21149003).
+#
+#Finally here is "magic comment" which ensures that NCrystal will model this as
+#an anisotropic layered crystal, rotated around the third lattice axis:
+#NCRYSTALMATCFG[lcaxis=0,0,1]
+@CELL
+  lengths 2.464 2.464 6.711
+  angles 90 90 120
+@SPACEGROUP
+  194
+@ATOMPOSITIONS
+  C 0   0   1/4
+  C 0   0   3/4
+  C 1/3 2/3 1/4
+  C 2/3 1/3 3/4
+@DEBYETEMPERATURE
+  C 840
+@DYNINFO
+  element C
+  fraction 1
+  type vdos
+  vdos_egrid .001 .2
+  vdos_density .00309353 .00794698 .0141481 .0208237 .0283104 .0362997 .0423721
+    .0495059 .056153 .0642826 .071264 .0806098 .0893965 .102372 .115595 .130668
+    .152203 .179365 .219154 .273286 .218029 .200013 .190266 .184251 .182032
+    .17833 .175926 .179949 .177758 .176972 .180969 .181485 .18296 .18523 .189594
+    .192805 .19599 .196178 .202293 .205029 .207887 .214359 .215189 .219913
+    .228341 .226387 .236094 .241831 .24696 .25506 .265063 .272429 .281992 .29391
+    .311849 .337053 .369871 .456491 .506091 .40162 .230909 .202774 .18931
+    .174114 .163587 .152437 .144301 .152529 .174171 .198147 .226285 .252915
+    .285801 .326294 .386921 .484573 .641818 .674101 .615264 .524236 .480167
+    .45512 .428462 .422442 .413551 .401039 .396001 .392968 .38571 .384238
+    .379749 .382103 .376636 .378938 .376893 .372721 .369655 .382403 .383139
+    .37844 .385972 .400144 .406228 .427897 .447305 .474171 .52221 .282231
+    .137091 .133718 .130441 .130065 .130931 .126409 .128377 .122807 .130644
+    .129636 .127476 .128087 .126488 .12789 .125484 .0873798 .0920572 .0960012
+    .0973327 .0975992 .100134 .102128 .10631 .106026 .111238 .113677 .115097
+    .119976 .120118 .122706 .130783 .130849 .134766 .142561 .1443 .148359
+    .152492 .159142 .166635 .172798 .185415 .205184 .189264 .150803 .149006
+    .148597 .152717 .154729 .151346 .155224 .156941 .157002 .155699 .161196
+    .158282 .163972 .154623 .143037 .171981 .188703 .621008 .859091 .770705
+    .753829 .806613 1 .959911 .637302 .531013 .476125 .43781 .417543 .400867
+    .38582 .370983 .367645 .36121 .359361 .361592 .359231 .361276 .366002
+    .369424 .380428 .397168 .420602 .450652 .505492 .711627 .926181 .384246 0

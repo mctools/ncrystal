@@ -1,0 +1,58 @@
+NCMAT v2
+#Tungsten (W). BCC.
+#
+#Crystal structure was converted from the cif file of the entry 0011236 in the AMCSD.
+#Additional reference: Wyckoff R W G, Crystal Structures, vol. 1, p. 7-83, 1963.
+#
+#The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
+#software from Figure 2 of:
+#
+#   "Effect of the variation of the electronic density of states of zirconium and
+#    tungsten on their respective thermal conductivity evolution with temperature"
+#   Jean-Paul Crocombette et al 2015 J. Phys.: Condens. Matter 27 165501
+#   https://doi.org/10.1088/0953-8984/27/16/165501
+#
+#Finally, the Debye temperature derived from the Debye-waller factor at 293K
+#compiled in the supplement of Acta Cryst., A52, p. 456-470, 1996, is
+#345.1K. However, in the Crocombette 2015 paper from which the VDOS is taken, a
+#value of 399K is predicted (and compared to a measurement indicating
+#400K). Thus we use a value of 399K.
+#
+#It should be noted that Crocombette-2015 argues that VDOS curve is not perfect
+#at higher frequencies. If a more convincing VDOS curve is one day available,
+#the one below could be replaced. However, the realism of even a rough VDOS
+#curve is much better than the alternative of a Debye spectrum.
+#
+@CELL
+  lengths 3.16469 3.16469 3.16469
+  angles 90 90 90
+@SPACEGROUP
+  229
+@ATOMPOSITIONS
+  W 0   0   0
+  W 1/2 1/2 1/2
+@DEBYETEMPERATURE
+  W 399.0
+@DYNINFO
+  element  W
+  fraction 1
+  type     vdos
+  vdos_egrid .0043216486367601 .022719524261825
+  vdos_density .0101232 .0106726 .0112219 .0117713 .0123206 .01287 .0137012
+    .014817 .0159328 .0169083 .0176627 .0184171 .0191714 .0199258 .0208968
+    .022024 .0231511 .0242783 .0254054 .0262972 .0271617 .0280262 .0288907
+    .0301908 .0322817 .0343725 .0361933 .037844 .0394947 .0408034 .0419572
+    .0431111 .0448462 .0468532 .0488602 .0509592 .0531709 .0553827 .0578469
+    .0607227 .0635985 .0664451 .0681503 .0698556 .0715974 .0753734 .0791494
+    .0829254 .0867013 .0898169 .0927909 .0957649 .099457 .10464 .109823 .114727
+    .119604 .124523 .130037 .13555 .141239 .147541 .153997 .160713 .167429
+    .175785 .186076 .195625 .204629 .215631 .227534 .241537 .255596 .270479
+    .288007 .307803 .330597 .357823 .392835 .428167 .47862 .533955 .602948
+    .693166 .779083 .876573 .95458 .995439 1 .984201 .952981 .911956 .874782
+    .838143 .80706 .773017 .745801 .724059 .708034 .694877 .681772 .66824
+    .654367 .638154 .615735 .586958 .555114 .522993 .491376 .463629 .442637
+    .424899 .408618 .394621 .383561 .376408 .369704 .365996 .36497 .366525
+    .373129 .383969 .398185 .419085 .449694 .483974 .529851 .588045 .643678
+    .702483 .761529 .823197 .854896 .858506 .836259 .766754 .67909 .572288
+    .471922 .349923 .2528 .172083 .107368 .0621739 .0362051 .0214826 .0117393
+    .00678491 .00186939 0

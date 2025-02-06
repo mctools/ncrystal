@@ -1,0 +1,18 @@
+NCMAT v1
+#converted from the cif file of the entry 0009326 in the AMCSD
+#reference: Kirfel A, Eichhorn K, Acta Crystallographica, Section A, vol. 46, p. 271-284, 1990.
+@CELL
+    lengths 4.2685 4.2685 4.2685 
+    angles 90. 90. 90. 
+@SPACEGROUP
+    224
+@ATOMPOSITIONS
+    Cu 0.25 0.25 0.25
+    Cu 0.75 0.25 0.75
+    Cu 0.25 0.75 0.75
+    Cu 0.75 0.75 0.25
+    O 0. 0. 0.
+    O 0.5 0.5 0.5
+@DEBYETEMPERATURE
+    O   385.6682
+    Cu   189.1925
