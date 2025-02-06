@@ -1,0 +1,969 @@
+Library "TestMod_ncmat" (4 functions):
+  const char * nctest_tryParseNCMAT(const char *)
+  void nctestdetail_clear_lasterror()
+  const char * nctestdetail_get_lasterror()
+  int nctestdetail_has_lasterror()
+
+
+==> Test 0
+==> Ok.
+
+
+==> Test 1
+==> Ok.
+
+
+==> Test 2
+==> Ok.
+
+
+==> Test 3
+==> Ok.
+
+
+==> Test 4
+==> Ok.
+
+
+==> Test 5
+==> Ok.
+
+
+==> Test 6
+==> Ok.
+
+
+==> Test 7
+==> Ok.
+
+
+==> Test 8
+==> Correct! NCBadInput: Invalid entry in @ATOMDB section in the line: "X 10.0u 1fm 2b 5b". Error is: Invalid specification (label "X" is a custom marker, but those are not allowed in data entry lines)
+
+
+==> Test 9
+==> Ok.
+
+
+==> Test 10
+==> Correct! NCBadInput: Invalid entry in @ATOMDB section in the line: "X 10.0u 1fm 2b 5b". Error is: Invalid specification (label "X" is a custom marker, but those are not allowed in data entry lines)
+
+
+==> Test 11
+==> Correct! NCBadInput: "(anonymous TextData, 109bytes, type=ncmat)": Invalid element name "Bg" [in line 10]
+
+
+==> Test 12
+==> Correct! NCBadInput: "(anonymous TextData, 109bytes, type=ncmat)": Invalid element name "Bg" [in line 10]
+
+
+==> Test 13
+==> Correct! NCBadInput: "(anonymous TextData, 109bytes, type=ncmat)": Invalid element name "Bg" [in line 10]
+
+
+==> Test 14
+==> Correct! NCBadInput: "(anonymous TextData, 108bytes, type=ncmat)": Element "D" is not supported in NCMAT v1 files (requires NCMAT v2 or later) [in line 10]
+
+
+==> Test 15
+==> Ok.
+
+
+==> Test 16
+==> Ok.
+
+
+==> Test 17
+==> Correct! NCBadInput: "(anonymous TextData, 108bytes, type=ncmat)": Invalid element name "T" (general isotope markers are only supported from NCMAT v3). [in line 10]
+
+
+==> Test 18
+==> Correct! NCBadInput: "(anonymous TextData, 108bytes, type=ncmat)": Invalid element name "T" (general isotope markers are only supported from NCMAT v3). [in line 10]
+
+
+==> Test 19
+==> Ok.
+
+
+==> Test 20
+==> Correct! NCBadInput: "(anonymous TextData, 110bytes, type=ncmat)": Invalid element name "He3" (general isotope markers are only supported from NCMAT v3). [in line 10]
+
+
+==> Test 21
+==> Correct! NCBadInput: "(anonymous TextData, 110bytes, type=ncmat)": Invalid element name "He3" (general isotope markers are only supported from NCMAT v3). [in line 10]
+
+
+==> Test 22
+==> Ok.
+
+
+==> Test 23
+==> Correct! NCBadInput: "(anonymous TextData, 111bytes, type=ncmat)": Invalid element name "He03" [in line 10]
+
+
+==> Test 24
+==> Correct! NCBadInput: "(anonymous TextData, 111bytes, type=ncmat)": Invalid element name "He03" [in line 10]
+
+
+==> Test 25
+==> Correct! NCBadInput: "(anonymous TextData, 111bytes, type=ncmat)": Invalid element name "He03" [in line 10]
+
+
+==> Test 26
+==> Correct! NCBadInput: "(anonymous TextData, 110bytes, type=ncmat)": Invalid element name "Bg3" [in line 10]
+
+
+==> Test 27
+==> Correct! NCBadInput: "(anonymous TextData, 110bytes, type=ncmat)": Invalid element name "Bg3" [in line 10]
+
+
+==> Test 28
+==> Correct! NCBadInput: "(anonymous TextData, 110bytes, type=ncmat)": Invalid element name "Bg3" [in line 10]
+
+
+==> Test 29
+==> Correct! NCBadInput: "(anonymous TextData, 108bytes, type=ncmat)": Invalid element name "X" (custom markers X, X1, X2, ..., X99 are only supported from NCMAT v3). [in line 10]
+
+
+==> Test 30
+==> Correct! NCBadInput: "(anonymous TextData, 108bytes, type=ncmat)": Invalid element name "X" (custom markers X, X1, X2, ..., X99 are only supported from NCMAT v3). [in line 10]
+
+
+==> Test 31
+==> Correct! NCBadInput: (anonymous TextData, 108bytes, type=ncmat) custom marker "X" is used but has no definition in the @ATOMDB section
+
+
+==> Test 32
+==> Correct! NCBadInput: "(anonymous TextData, 133bytes, type=ncmat)": Invalid element name "X" (custom markers X, X1, X2, ..., X99 are only supported from NCMAT v3). [in line 10]
+
+
+==> Test 33
+==> Correct! NCBadInput: "(anonymous TextData, 133bytes, type=ncmat)": Invalid element name "X" (custom markers X, X1, X2, ..., X99 are only supported from NCMAT v3). [in line 10]
+
+
+==> Test 34
+==> Correct! NCBadInput: Invalid entry in @ATOMDB section in the line: "X 10.0u 1fm 2b 5b". Error is: Invalid specification (label "X" is a custom marker, but those are not allowed in data entry lines)
+
+
+==> Test 35
+==> Ok.
+
+
+==> Test 36
+==> Correct! NCBadInput: "(anonymous TextData, 110bytes, type=ncmat)": Invalid element name "X17" (custom markers X, X1, X2, ..., X99 are only supported from NCMAT v3). [in line 10]
+
+
+==> Test 37
+==> Correct! NCBadInput: "(anonymous TextData, 110bytes, type=ncmat)": Invalid element name "X17" (custom markers X, X1, X2, ..., X99 are only supported from NCMAT v3). [in line 10]
+
+
+==> Test 38
+==> Correct! NCBadInput: (anonymous TextData, 110bytes, type=ncmat) custom marker "X17" is used but has no definition in the @ATOMDB section
+
+
+==> Test 39
+==> Correct! NCBadInput: Invalid entry in @ATOMDB section in the line: "X17 10.0u 1fm 2b 5b". Error is: Invalid specification (label "X17" is a custom marker, but those are not allowed in data entry lines)
+
+
+==> Test 40
+==> Ok.
+
+
+==> Test 41
+==> Correct! NCBadInput: "(anonymous TextData, 110bytes, type=ncmat)": Invalid element name "X99" (custom markers X, X1, X2, ..., X99 are only supported from NCMAT v3). [in line 10]
+
+
+==> Test 42
+==> Correct! NCBadInput: "(anonymous TextData, 110bytes, type=ncmat)": Invalid element name "X99" (custom markers X, X1, X2, ..., X99 are only supported from NCMAT v3). [in line 10]
+
+
+==> Test 43
+==> Correct! NCBadInput: (anonymous TextData, 110bytes, type=ncmat) custom marker "X99" is used but has no definition in the @ATOMDB section
+
+
+==> Test 44
+==> Correct! NCBadInput: Invalid entry in @ATOMDB section in the line: "X99 10.0u 1fm 2b 5b". Error is: Invalid specification (label "X99" is a custom marker, but those are not allowed in data entry lines)
+
+
+==> Test 45
+==> Correct! NCBadInput: "(anonymous TextData, 139bytes, type=ncmat)": Invalid element name "Po45" [in line 10]
+
+
+==> Test 46
+==> Ok.
+
+
+==> Test 47
+==> Correct! NCBadInput: "(anonymous TextData, 111bytes, type=ncmat)": Invalid element name "X100" [in line 10]
+
+
+==> Test 48
+==> Correct! NCBadInput: "(anonymous TextData, 111bytes, type=ncmat)": Invalid element name "X100" [in line 10]
+
+
+==> Test 49
+==> Correct! NCBadInput: "(anonymous TextData, 111bytes, type=ncmat)": Invalid element name "X100" [in line 10]
+
+
+==> Test 50
+==> Correct! NCBadInput: "(anonymous TextData, 111bytes, type=ncmat)": Invalid element name "X117" [in line 10]
+
+
+==> Test 51
+==> Correct! NCBadInput: "(anonymous TextData, 111bytes, type=ncmat)": Invalid element name "X117" [in line 10]
+
+
+==> Test 52
+==> Correct! NCBadInput: "(anonymous TextData, 111bytes, type=ncmat)": Invalid element name "X117" [in line 10]
+
+
+==> Test 53
+==> Correct! NCBadInput: "(anonymous TextData, 110bytes, type=ncmat)": Invalid element name "X01" [in line 10]
+
+
+==> Test 54
+==> Correct! NCBadInput: "(anonymous TextData, 110bytes, type=ncmat)": Invalid element name "X01" [in line 10]
+
+
+==> Test 55
+==> Correct! NCBadInput: "(anonymous TextData, 110bytes, type=ncmat)": Invalid element name "X01" [in line 10]
+
+
+==> Test 56
+==> Correct! NCBadInput: "(anonymous TextData, 133bytes, type=ncmat)": Element "D" is not supported in NCMAT v1 files (requires NCMAT v2 or later) [in line 10]
+
+
+==> Test 57
+==> Correct! NCBadInput: "(anonymous TextData, 133bytes, type=ncmat)": Invalid element name "T" (general isotope markers are only supported from NCMAT v3). [in line 10]
+
+
+==> Test 58
+==> Correct! NCBadInput: "(anonymous TextData, 133bytes, type=ncmat)": has @ATOMDB section which is not supported in the indicated NCMAT format version, "NCMAT v2". It is only available starting with "NCMAT v3".
+
+
+==> Test 59
+==> Correct! NCBadInput: "(anonymous TextData, 133bytes, type=ncmat)": Invalid element name "T" (general isotope markers are only supported from NCMAT v3). [in line 10]
+
+
+==> Test 60
+==> Ok.
+
+
+==> Test 61
+==> Ok.
+
+
+==> Test 62
+==> Ok.
+
+
+==> Test 63
+==> Ok.
+
+
+==> Test 64
+==> Correct! NCBadInput: "(anonymous TextData, 134bytes, type=ncmat)": Invalid element name "J" [in line 12]
+
+
+==> Test 65
+==> Correct! NCBadInput: Empty data: "(anonymous TextData, 0bytes, type=ncmat)"
+
+
+==> Test 66
+==> Correct! NCBadInput: "(anonymous TextData, 1bytes, type=ncmat)": is not in NCMAT format: The first 5 characters in the first line must be "NCMAT"
+
+
+==> Test 67
+==> Correct! NCBadInput: (anonymous TextData, 17bytes, type=ncmat) invalid section configuration for data claiming to be in legacy NCMAT version 1 (missing section with cell info)
+
+
+==> Test 68
+==> Correct! NCBadInput: "(anonymous TextData, 3bytes, type=ncmat)": is not in NCMAT format: The first 5 characters in the first line must be "NCMAT"
+
+
+==> Test 69
+==> Correct! NCBadInput: "(anonymous TextData, 26bytes, type=ncmat)": has comments in the first line, which is not allowed in the NCMAT v1 format
+
+
+==> Test 70
+==> Correct! NCBadInput: (anonymous TextData, 22bytes, type=ncmat) missing information about both unit cell and material dynamics so can not provide any interesting physics and can not even deduce the basic material composition
+
+
+==> Test 71
+==> Correct! NCBadInput: "(anonymous TextData, 9bytes, type=ncmat)": is not in NCMAT format: The first 5 characters in the first line must be "NCMAT"
+
+
+==> Test 72
+==> Correct! NCBadInput: "(anonymous TextData, 12bytes, type=ncmat)": is missing clear NCMAT format version designation in the first line, which should look like e.g. "NCMAT v1".
+
+
+==> Test 73
+==> Correct! NCBadInput: "(anonymous TextData, 10bytes, type=ncmat)": is in an NCMAT format version, "v17", which is not recognised by this installation of NCrystal
+
+
+==> Test 74
+==> Correct! NCBadInput: "(anonymous TextData, 40bytes, type=ncmat)": should not have non-comment entries before the first section (found "bla" in line 3)
+
+
+==> Test 75
+==> Correct! NCBadInput: "(anonymous TextData, 32bytes, type=ncmat)": found "lala" where "lengths" or "angles" keyword was expected in @CELL section in line 3
+
+
+==> Test 76
+==> Correct! NCBadInput: "(anonymous TextData, 51bytes, type=ncmat)": vector "lengths" is a null-vector in line 4
+
+
+==> Test 77
+==> Correct! NCBadInput: (anonymous TextData, 37bytes, type=ncmat) invalid lattice angle specified (problem in the @CELL section ending in line 3)
+
+
+==> Test 78
+==> Correct! NCBadInput: (anonymous TextData, 37bytes, type=ncmat) invalid lattice length specified (problem in the @CELL section ending in line 3)
+
+
+==> Test 79
+==> Correct! NCBadInput: (anonymous TextData, 75bytes, type=ncmat) cell section is missing "lengths" data (problem in the @CELL section ending in line 5)
+
+
+==> Test 80
+==> Correct! NCBadInput: "(anonymous TextData, 118bytes, type=ncmat)": has comments in the first line, which is not allowed in the NCMAT v1 format
+
+
+==> Test 81
+==> Correct! NCBadInput: "(anonymous TextData, 118bytes, type=ncmat)": has comments in a place which is not allowed in the NCMAT v1 format (must only appear before the first data section and with the # marker at the beginning of the line).
+
+
+==> Test 82
+==> Correct! NCBadInput: "(anonymous TextData, 118bytes, type=ncmat)": has comments in a place which is not allowed in the NCMAT v1 format (must only appear before the first data section and with the # marker at the beginning of the line).
+
+
+==> Test 83
+==> Correct! NCBadInput: "(anonymous TextData, 119bytes, type=ncmat)": has comments in a place which is not allowed in the NCMAT v1 format (must only appear before the first data section and with the # marker at the beginning of the line).
+
+
+==> Test 84
+==> Correct! NCBadInput: "(anonymous TextData, 118bytes, type=ncmat)": has comments in a place which is not allowed in the NCMAT v1 format (must only appear before the first data section and with the # marker at the beginning of the line).
+
+
+==> Test 85
+==> Correct! NCBadInput: "(anonymous TextData, 23bytes, type=ncmat)": has @SomeName section which is not a supported section name.
+
+
+==> Test 86
+==> Correct! NCBadInput: "(anonymous TextData, 28bytes, type=ncmat)": Invalid element name "bla" [in line 3]
+
+
+==> Test 87
+==> Correct! NCBadInput: "(anonymous TextData, 27bytes, type=ncmat)": wrong number of data entries after element name "He" in line 3 (expected three numbers)
+
+
+==> Test 88
+==> Correct! NCBadInput: "(anonymous TextData, 36bytes, type=ncmat)": Invalid element name "0.0" [in line 3]
+
+
+==> Test 89
+==> Correct! NCBadInput: "(anonymous TextData, 55bytes, type=ncmat)": problem while decoding position parameter #2 for element "He" in line 4 : Invalid number in string is not a double: "zero"
+
+
+==> Test 90
+==> Correct! NCBadInput: (anonymous TextData, 41bytes, type=ncmat) invalid section configuration for data claiming to be in legacy NCMAT version 1 (missing section with cell info)
+
+
+==> Test 91
+==> Correct! NCBadInput: "(anonymous TextData, 61bytes, type=ncmat)": no element positions specified in @ATOMPOSITIONS section (expected in line 2)
+
+
+==> Test 92
+==> Correct! NCBadInput: (anonymous TextData, 108bytes, type=ncmat) invalid lattice angles specified (perhaps they are in radians instead of the expected degrees?) (problem in the @CELL section ending in line 9)
+
+
+==> Test 93
+==> Ok.
+
+
+==> Test 94
+==> Ok.
+
+
+==> Test 95
+==> Correct! NCBadInput: "(anonymous TextData, 23bytes, type=ncmat)": no spacegroup number specified in @SPACEGROUP section (expected in line 3)
+
+
+==> Test 96
+==> Correct! NCBadInput: (anonymous TextData, 24bytes, type=ncmat) invalid section configuration for data claiming to be in legacy NCMAT version 1 (missing section with cell info)
+
+
+==> Test 97
+==> Correct! NCBadInput: "(anonymous TextData, 32bytes, type=ncmat)": multiple entries specified in @SPACEGROUP section in line 3 (requires just a single number)
+
+
+==> Test 98
+==> Correct! NCBadInput: "(anonymous TextData, 30bytes, type=ncmat)": problem while decoding spacegroup parameter in line 3 : Invalid number in string is not an integer: "pb+3mbla"
+
+
+==> Test 99
+==> Correct! NCBadInput: "(anonymous TextData, 21bytes, type=ncmat)": no spacegroup number specified in @SPACEGROUP section (expected in line 2)
+
+
+==> Test 100
+==> Correct! NCBadInput: "(anonymous TextData, 27bytes, type=ncmat)": no spacegroup number specified in @SPACEGROUP section (expected in line 2)
+
+
+==> Test 101
+==> Correct! NCBadInput: "(anonymous TextData, 25bytes, type=ncmat)": multiple entries specified in @SPACEGROUP section in line 4 (requires just a single number)
+
+
+==> Test 102
+==> Correct! NCBadInput: (anonymous TextData, 23bytes, type=ncmat) invalid section configuration for data claiming to be in legacy NCMAT version 1 (missing section with cell info)
+
+
+==> Test 103
+==> Correct! NCBadInput: (anonymous TextData, 25bytes, type=ncmat) invalid section configuration for data claiming to be in legacy NCMAT version 1 (missing section with cell info)
+
+
+==> Test 104
+==> Correct! NCBadInput: "(anonymous TextData, 41bytes, type=ncmat)": multiple @SPACEGROUP sections are not allowed (line 4)
+
+
+==> Test 105
+==> Correct! NCBadInput: "(anonymous TextData, 39bytes, type=ncmat)": invalid entries found after global Debye temperature was already specified (offending entries are in line 4)
+
+
+==> Test 106
+==> Correct! NCBadInput: "(anonymous TextData, 42bytes, type=ncmat)": invalid entries found after global Debye temperature was already specified (offending entries are in line 4)
+
+
+==> Test 107
+==> Correct! NCBadInput: (anonymous TextData, 33bytes, type=ncmat) invalid section configuration for data claiming to be in legacy NCMAT version 1 (missing section with cell info)
+
+
+==> Test 108
+==> Correct! NCBadInput: (anonymous TextData, 44bytes, type=ncmat) invalid section configuration for data claiming to be in legacy NCMAT version 1 (missing section with cell info)
+
+
+==> Test 109
+==> Correct! NCBadInput: "(anonymous TextData, 36bytes, type=ncmat)": Invalid element name "SI" [in line 3]
+
+
+==> Test 110
+==> Correct! NCBadInput: "(anonymous TextData, 37bytes, type=ncmat)": Invalid element name "Sii" [in line 3]
+
+
+==> Test 111
+==> Correct! NCBadInput: "(anonymous TextData, 35bytes, type=ncmat)": Invalid element name "c" [in line 3]
+
+
+==> Test 112
+==> Correct! NCBadInput: (anonymous TextData, 35bytes, type=ncmat) invalid section configuration for data claiming to be in legacy NCMAT version 1 (missing section with cell info)
+
+
+==> Test 113
+==> Correct! NCBadInput: (anonymous TextData, 36bytes, type=ncmat) invalid section configuration for data claiming to be in legacy NCMAT version 1 (missing section with cell info)
+
+
+==> Test 114
+==> Correct! NCBadInput: "(anonymous TextData, 41bytes, type=ncmat)": invalid entries found in line 4 (missing element name or temperature?)
+
+
+==> Test 115
+==> Correct! NCBadInput: "(anonymous TextData, 22bytes, type=ncmat)": contains invalid character at position 6 in line 2. Only regular ASCII characters (including spaces) are allowed outside comments (comments can be UTF-8)
+
+
+==> Test 116
+==> Correct! NCBadInput: "(anonymous TextData, 207bytes, type=ncmat)": has comments in the first line, which is not allowed in the NCMAT v1 format
+
+
+==> Test 117
+==> Ok.
+
+
+==> Test 118
+==> Correct! NCBadInput: Data with ancient pre-OSX Mac line-endings is explicitly not allowed!
+
+
+==> Test 119
+==> Correct! NCBadInput: Data with ancient pre-OSX Mac line-endings is explicitly not allowed!
+
+
+==> Test 120
+==> Ok.
+
+
+==> Test 121
+==> Correct! NCBadInput: Data with ancient pre-OSX Mac line-endings is explicitly not allowed!
+
+
+==> Test 122
+==> Ok.
+
+
+==> Test 123
+==> Correct! NCBadInput: "(anonymous TextData, 157bytes, type=ncmat)": has @DYNINFO section which is not supported in the indicated NCMAT format version, "NCMAT v1". It is only available starting with "NCMAT v2".
+
+
+==> Test 124
+==> Correct! NCBadInput: "(anonymous TextData, 163bytes, type=ncmat)": does not provide exactly one argument to keyword "element" in line 13
+
+
+==> Test 125
+==> Correct! NCBadInput: "(anonymous TextData, 157bytes, type=ncmat)": Invalid element name "Hej" [in line 13]
+
+
+==> Test 126
+==> Correct! NCBadInput: (anonymous TextData, 156bytes, type=ncmat) element (Si) specified in dynamic info sections does not appear in the list of atom positions
+
+
+==> Test 127
+==> Correct! NCBadInput: (anonymous TextData, 156bytes, type=ncmat) the fractions specified in the dyninfo sections do not add up to unity
+
+
+==> Test 128
+==> Ok.
+
+
+==> Test 129
+==> Correct! NCBadInput: (anonymous TextData, 202bytes, type=ncmat) same element (Al) specified in two different dynamic info sections
+
+
+==> Test 130
+==> Correct! NCBadInput: "(anonymous TextData, 119bytes, type=ncmat)": no input found in @DYNINFO section (expected in line 12)
+
+
+==> Test 131
+==> Correct! NCBadInput: (anonymous TextData, 240bytes, type=ncmat) the fraction for Al specified in the dyninfo section differs from the same fraction calculated from the number of each atom appearing in the list of atompositions (they almost do, but more precision is required - note that it is possible to specify fractions like 2/3 in NCMAT files instead of numbers like 0.666667)
+
+
+==> Test 132
+==> Ok.
+
+
+==> Test 133
+==> Ok.
+
+
+==> Test 134
+==> Correct! NCBadInput: (anonymous TextData, 37bytes, type=ncmat) missing information about both unit cell and material dynamics so can not provide any interesting physics and can not even deduce the basic material composition
+
+
+==> Test 135
+==> Correct! NCBadInput: (anonymous TextData, 33bytes, type=ncmat) missing information about both unit cell and material dynamics so can not provide any interesting physics and can not even deduce the basic material composition
+
+
+==> Test 136
+==> Correct! NCBadInput: (anonymous TextData, 33bytes, type=ncmat) missing information about both unit cell and material dynamics so can not provide any interesting physics and can not even deduce the basic material composition
+
+
+==> Test 137
+==> Correct! NCBadInput: "(anonymous TextData, 40bytes, type=ncmat)": invalid density unit in line 3
+
+
+==> Test 138
+==> Correct! NCBadInput: "(anonymous TextData, 18bytes, type=ncmat)": no input found in @DENSITY section (expected in line 2)
+
+
+==> Test 139
+==> Correct! NCBadInput: "(anonymous TextData, 37bytes, type=ncmat)": wrong number of entries on line 3 in @DENSITY section
+
+
+==> Test 140
+==> Ok.
+
+
+==> Test 141
+==> Correct! NCBadInput: "(anonymous TextData, 108bytes, type=ncmat)": Element "D" is not supported in NCMAT v1 files (requires NCMAT v2 or later) [in line 10]
+
+
+==> Test 142
+==> Correct! NCBadInput: "(anonymous TextData, 109bytes, type=ncmat)": Invalid element name "H2" (general isotope markers are only supported from NCMAT v3). [in line 10]
+
+
+==> Test 143
+==> Ok.
+
+
+==> Test 144
+==> Ok.
+
+
+==> Test 145
+==> Ok.
+
+
+==> Test 146
+==> Ok.
+
+
+==> Test 147
+==> Ok.
+
+
+==> Test 148
+==> Ok.
+
+
+==> Test 149
+==> Correct! NCBadInput: "(anonymous TextData, 2782bytes, type=ncmat)": is not in NCMAT format: The first 5 characters in the first line must be "NCMAT"
+
+
+==> Test 150
+==> Correct! NCBadInput: "(anonymous TextData, 230bytes, type=ncmat)": Unexpected content in line 16: {some_vdos}
+
+
+==> Test 151
+==> Ok.
+
+
+==> Test 152
+==> Correct! NCBadInput: (anonymous TextData, 546bytes, type=ncmat) In NCMAT formats before v4, Debye temperature information is required for all crystalline materials with a unit cell defined.
+
+
+==> Test 153
+==> Ok.
+
+
+==> Test 154
+==> Ok.
+
+
+==> Test 155
+==> Correct! NCBadInput: "(anonymous TextData, 564bytes, type=ncmat)": missing data in @DEBYETEMPERATURE section (expected in line 11)
+
+
+==> Test 156
+==> Correct! NCBadInput: "(anonymous TextData, 568bytes, type=ncmat)": Global Debye temperatures are not allowed in NCMAT v4 or later (problem in line 12)
+
+
+==> Test 157
+==> Ok.
+
+
+==> Test 158
+==> Ok.
+
+
+==> Test 159
+==> Ok.
+
+
+==> Test 160
+==> Ok.
+
+
+==> Test 161
+==> Correct! NCBadInput: (anonymous TextData, 644bytes, type=ncmat) element O in crystal does not have sufficient information to estimate mean-squared atomic displacements. Either a VDOS in a @DYNINFO section with type=vdos (or type=vdosdebye from NCMAT v5+) or an entry in the @DEBYETEMPERATURE section is required.
+
+
+==> Test 162
+==> Ok.
+
+
+==> Test 163
+==> Correct! NCBadInput: (anonymous TextData, 617bytes, type=ncmat) element O in crystal does not have sufficient information to estimate mean-squared atomic displacements. Either a VDOS in a @DYNINFO section with type=vdos (or type=vdosdebye from NCMAT v5+) or an entry in the @DEBYETEMPERATURE section is required.
+
+
+==> Test 164
+==> Ok.
+
+
+==> Test 165
+==> Ok.
+
+
+==> Test 166
+==> Ok.
+
+
+==> Test 167
+==> Correct! NCBadInput: "(anonymous TextData, 92bytes, type=ncmat)": "cubic" keyword in @CELL section requires NCMAT v4 or later. Problem in line 5
+
+
+==> Test 168
+==> Correct! NCBadInput: "(anonymous TextData, 92bytes, type=ncmat)": "cubic" keyword in @CELL section requires NCMAT v4 or later. Problem in line 5
+
+
+==> Test 169
+==> Correct! NCBadInput: "(anonymous TextData, 92bytes, type=ncmat)": "cubic" keyword in @CELL section requires NCMAT v4 or later. Problem in line 5
+
+
+==> Test 170
+==> Correct! NCBadInput: "(anonymous TextData, 92bytes, type=ncmat)": found "Cubic" where "lengths",  "angles", or  "cubic" keyword was expected in @CELL section in line 5
+
+
+==> Test 171
+==> Correct! NCBadInput: "(anonymous TextData, 92bytes, type=ncmat)": The "cubic" keyword is not allowed in the @CELL section if the @SPACEGROUP section indicates a non-cubic group (cubic space group numbers are 195..230 which does not include the provided number: 194)
+
+
+==> Test 172
+==> Correct! NCBadInput: "(anonymous TextData, 90bytes, type=ncmat)": The "cubic" keyword is not allowed in the @CELL section if the @SPACEGROUP section indicates a non-cubic group (cubic space group numbers are 195..230 which does not include the provided number: 1)
+
+
+==> Test 173
+==> Correct! NCBadInput: "(anonymous TextData, 101bytes, type=ncmat)": problem while decoding "cubic" parameter in line 5 : invalid value or value out of range
+
+
+==> Test 174
+==> Correct! NCBadInput: "(anonymous TextData, 91bytes, type=ncmat)": problem while decoding "cubic" parameter in line 5 : invalid value or value out of range
+
+
+==> Test 175
+==> Correct! NCBadInput: "(anonymous TextData, 112bytes, type=ncmat)": The "cubic" keyword can not be provided at the same time as the "lengths" keyword in the @CELL section in line 6
+
+
+==> Test 176
+==> Ok.
+
+
+==> Test 177
+==> Ok.
+
+
+==> Test 178
+==> Correct! NCBadInput: "(anonymous TextData, 101bytes, type=ncmat)": Usage of "!!" to repeat previous length value can not be used for the first value (in line 3)
+
+
+==> Test 179
+==> Correct! NCBadInput: "(anonymous TextData, 102bytes, type=ncmat)": Usage of "!!" to repeat previous value can only be used for "lengths" keyword, not "angles" (in line 4)
+
+
+==> Test 180
+==> Correct! NCBadInput: "(anonymous TextData, 101bytes, type=ncmat)": Usage of "!!" to repeat previous length value requires NCMAT v4 or later (in line 3)
+
+
+==> Test 181
+==> Ok.
+
+
+==> Test 182
+==> Correct! NCBadInput: debye_temp keyword in @DYNINFO section of type vdosdebye is only allowed in NCMAT v5 or later (problem found in the @DYNINFO section ending in line 11)
+
+
+==> Test 183
+==> Correct! NCBadInput: debye_temp keyword in @DYNINFO section of type vdosdebye is only allowed in NCMAT v5 or later (problem found in the @DYNINFO section ending in line 11)
+
+
+==> Test 184
+==> Correct! NCBadInput: debye_temp keyword in @DYNINFO section of type vdosdebye is only allowed in NCMAT v5 or later (problem found in the @DYNINFO section ending in line 11)
+
+
+==> Test 185
+==> Correct! NCBadInput: "(anonymous TextData, 144bytes, type=ncmat)": has @DYNINFO section which is not supported in the indicated NCMAT format version, "NCMAT v1". It is only available starting with "NCMAT v2".
+
+
+==> Test 186
+==> Correct! NCBadInput: "(anonymous TextData, 162bytes, type=ncmat)": keyword "debye_temp" is specified a second time in line 12
+
+
+==> Test 187
+==> Correct! NCBadInput: "(anonymous TextData, 144bytes, type=ncmat)": problem while decoding vector entry #2 in line 11 : Invalid number in string is not a double: "sdfsf"
+
+
+==> Test 188
+==> Correct! NCBadInput: "(anonymous TextData, 146bytes, type=ncmat)": problem while decoding vector entry #3 in line 11 : Invalid number in string is not a double: "K"
+
+
+==> Test 189
+==> Correct! NCBadInput: "(anonymous TextData, 145bytes, type=ncmat)": problem while decoding vector entry #2 in line 11 : Invalid number in string is not a double: "200.0K"
+
+
+==> Test 190
+==> Correct! NCBadInput: debye_temp keyword not followed by exactly one parameter (problem found in the @DYNINFO section ending in line 11)
+
+
+==> Test 191
+==> Correct! NCBadInput: @DYNINFO sections of type vdosdebye can not have a debye_temp entry when there is a @DEBYETEMPERATURE section in the file.
+
+
+==> Test 192
+==> Ok.
+
+
+==> Test 193
+==> Correct! NCBadInput: @DYNINFO sections of type vdosdebye requires Debye temperature to be specified. Either in the same section via the debye_temp keyword (requires NCMAT v5+) or in the @DEBYETEMPERATURE section.
+
+
+==> Test 194
+==> Correct! NCBadInput: "(anonymous TextData, 81bytes, type=ncmat)": invalid density value in line 7
+
+
+==> Test 195
+==> Correct! NCBadInput: "(anonymous TextData, 95bytes, type=ncmat)": too many lines in @DENSITY section in line 8
+
+
+==> Test 196
+==> Correct! NCBadInput: "(anonymous TextData, 99bytes, type=ncmat)": multiple entries specified in @SPACEGROUP section in line 8 (requires just a single number)
+
+
+==> Test 197
+==> Correct! NCBadInput: "(anonymous TextData, 94bytes, type=ncmat)": keyword "fraction" is specified a second time in line 4
+
+
+==> Test 198
+==> Correct! NCBadInput: "(anonymous TextData, 93bytes, type=ncmat)": keyword "element" is specified a second time in line 5
+
+
+==> Test 199
+==> Correct! NCBadInput: "(anonymous TextData, 96bytes, type=ncmat)": keyword "type" is specified a second time in line 6
+
+
+==> Test 200
+==> Correct! NCBadInput: "(anonymous TextData, 117bytes, type=ncmat)": keyword "debye_temp" is specified a second time in line 7
+
+
+==> Test 201
+==> Correct! NCBadInput: Invalid (at least for this type of dynamic info) field "debye_temp" specified (problem found in the @DYNINFO section ending in line 6)
+
+
+==> Test 202
+==> Correct! NCBadInput: "(anonymous TextData, 254bytes, type=ncmat)": keyword "vdos_density" is specified a second time in line 8
+
+
+==> Test 203
+==> Correct! NCBadInput: "(anonymous TextData, 199bytes, type=ncmat)": keyword "vdos_egrid" is specified a second time in line 7
+
+
+==> Test 204
+==> Ok.
+
+
+==> Test 205
+==> Correct! NCBadInput: (anonymous TextData, 198bytes, type=ncmat) Invalid @STATEOFMATTER value. Presence of @DYNINFO section with VDOS implies that the material must be a solid
+
+
+==> Test 206
+==> Correct! NCBadInput: (anonymous TextData, 201bytes, type=ncmat) Invalid @STATEOFMATTER value. Presence of @DYNINFO section with VDOS implies that the material must be a solid
+
+
+==> Test 207
+==> Ok.
+
+
+==> Test 208
+==> Ok.
+
+
+==> Test 209
+==> Ok.
+
+
+==> Test 210
+==> Correct! NCBadInput: "(anonymous TextData, 105bytes, type=ncmat)": invalid state of matter type specified in @STATEOFMATTER section in line 3 (must be "solid", "liquid", or "gas")
+
+
+==> Test 211
+==> Correct! NCBadInput: "(anonymous TextData, 104bytes, type=ncmat)": has @STATEOFMATTER section which is not supported in the indicated NCMAT format version, "NCMAT v4". It is only available starting with "NCMAT v5".
+
+
+==> Test 212
+==> Correct! NCBadInput: "(anonymous TextData, 112bytes, type=ncmat)": too many lines in @STATEOFMATTER section in line 4
+
+
+==> Test 213
+==> Correct! NCBadInput: "(anonymous TextData, 110bytes, type=ncmat)": too many lines in @STATEOFMATTER section in line 4
+
+
+==> Test 214
+==> Correct! NCBadInput: "(anonymous TextData, 127bytes, type=ncmat)": multiple @STATEOFMATTER sections are not allowed (line 8)
+
+
+==> Test 215
+==> Ok.
+
+
+==> Test 216
+==> Correct! NCBadInput: "(anonymous TextData, 173bytes, type=ncmat)": multiple @OTHERPHASES sections are not allowed (line 14)
+
+
+==> Test 217
+==> Correct! NCBadInput: "(anonymous TextData, 153bytes, type=ncmat)": contains invalid character at position 16 in line 13. Only regular ASCII characters (including spaces) are allowed outside comments (comments can be UTF-8)
+
+
+==> Test 218
+==> Correct! NCBadInput: "(anonymous TextData, 170bytes, type=ncmat)": invalid volume fraction "dcutoff" specified in @OTHERPHASES section in line 14 (must be a floating point number greater than 0.0 and less than 1.0)
+
+
+==> Test 219
+==> Ok.
+
+
+==> Test 220
+==> Ok.
+
+
+==> Test 221
+==> Ok.
+
+
+==> Test 222
+==> Ok.
+
+
+==> Test 223
+==> Ok.
+
+
+==> Test 224
+==> Ok.
+
+
+==> Test 225
+==> Ok.
+
+
+==> Test 226
+==> Ok.
+
+
+==> Test 227
+==> Ok.
+
+
+==> Test 228
+==> Ok.
+
+
+==> Test 229
+==> Correct! NCBadInput: "(anonymous TextData, 133bytes, type=ncmat)": wrong number of entries on line 13 in @OTHERPHASES section
+
+
+==> Test 230
+==> Ok.
+
+
+==> Test 231
+==> Ok.
+
+
+==> Test 232
+==> Ok.
+
+
+==> Test 233
+==> Ok.
+
+
+==> Test 234
+==> Correct! NCBadInput: "(anonymous TextData, 141bytes, type=ncmat)": out of range temperature value in line 13
+
+
+==> Test 235
+==> Correct! NCBadInput: "(anonymous TextData, 130bytes, type=ncmat)": out of range temperature value in line 13
+
+
+==> Test 236
+==> Correct! NCBadInput: "(anonymous TextData, 131bytes, type=ncmat)": out of range temperature value in line 13
+
+
+==> Test 237
+==> Ok.
+
+
+==> Test 238
+==> Correct! NCBadInput: "(anonymous TextData, 745bytes, type=ncmat)": problem while decoding vector entry #2 in line 17 : Invalid number in string is not a double: "bla"
+
+
+==> Test 239
+==> Correct! NCBadInput: (anonymous TextData, 846bytes, type=ncmat) temperature values specified in @TEMPERATURE and @DYNINFO sections are different
+
+
+
+All tests completed succesfully!
