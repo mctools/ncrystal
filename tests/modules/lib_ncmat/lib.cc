@@ -27,7 +27,8 @@
 NCTEST_CTYPE_DICTIONARY
 {
   return
-    "const char * nctest_tryParseNCMAT( const char * )"
+    "const char * nctest_tryParseNCMAT( const char * );"
+    "const char * nctest_getTextDataLines( const char * );"
     ;
 }
 
@@ -36,12 +37,13 @@ NCTEST_CTYPES const char * nctest_tryParseNCMAT( const char * data )
   //Returns ExceptionName::ExceptionMsg in case of exceptions, otherwise empty
   //string.
   static char buf[1048576];//1MB, plenty for tests
-  std::ostringstream ss;
+  buf[0] = '\0';
   try {
     auto td = NC::TextData( NC::RawStrData ( std::string(data) ),
                             NC::TextData::DataType{"ncmat"} );
     NC::parseNCMATData( td );
   } catch ( std::exception& e ) {
+    std::ostringstream ss;
     auto ncerr = dynamic_cast<const NC::Error::Exception *>(&e);
     if ( ncerr ) {
       ss << "NC"<<ncerr->getTypeName();
@@ -51,10 +53,32 @@ NCTEST_CTYPES const char * nctest_tryParseNCMAT( const char * data )
               : "std::exception" );
     }
     ss <<"@@@"<<e.what();
+    std::string res_str = ss.str();
+    if ( !res_str.empty() )
+      std::strncat(buf,res_str.data(),res_str.size());
   }
-  auto ssres = ss.str();
+  return &buf[0];
+}
+
+NCTEST_CTYPES const char * nctest_getTextDataLines( const char * data )
+{
+  static char buf[1048576];//1MB, plenty for tests
   buf[0] = '\0';
-  if ( !ssres.empty() )
-    std::strncat(buf,ssres.data(),ssres.size());
+  try {
+    std::string res_str;
+    std::ostringstream ss;
+    auto td = NC::TextData( NC::RawStrData ( std::string(data) ),
+                            NC::TextData::DataType{"txt"} );
+    bool first=true;
+    for ( auto& line : td ) {
+      if ( !first )
+        ss << "<@@@@>";
+      first = false;
+      ss << line;
+    }
+    res_str = ss.str();
+    if ( !res_str.empty() )
+      std::strncat(buf,res_str.data(),res_str.size());
+  } NCCATCH;
   return &buf[0];
 }

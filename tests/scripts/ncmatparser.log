@@ -1,8 +1,13 @@
-Library "TestMod_ncmat" (4 functions):
+Library "TestMod_ncmat" (5 functions):
+  const char * nctest_getTextDataLines(const char *)
   const char * nctest_tryParseNCMAT(const char *)
   void nctestdetail_clear_lasterror()
   const char * nctestdetail_get_lasterror()
   int nctestdetail_has_lasterror()
+['Line1', 'Line2']
+['Line1', 'Line2']
+['Line1', 'Line2']
+['Line', 'dav']
 
 
 ==> Test 0

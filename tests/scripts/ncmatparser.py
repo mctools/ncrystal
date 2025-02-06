@@ -29,6 +29,7 @@ import pathlib
 lib = Lib('ncmat')
 lib.dump()
 assert hasattr(lib,'nctest_tryParseNCMAT')
+assert hasattr(lib,'nctest_getTextDataLines')
 
 def tryParseNCMATData( data ):
     res = lib.nctest_tryParseNCMAT( data )
@@ -47,10 +48,20 @@ def tryParseNCMATData( data ):
 def tryParseNCMATFromPath( path ):
     return tryParseNCMATData( pathlib.Path(path).read_text() )
 
-def main( verbose ):
-    testall(verbose = verbose)
+def loadTextDataLines( data ):
+    return lib.nctest_getTextDataLines(data).split('<@@@@>')
 
-def testall( verbose ):
+def main( verbose ):
+    testtextdata(verbose = verbose)
+    testncmat(verbose = verbose)
+
+def testtextdata( verbose ):
+    print(loadTextDataLines("""Line1\nLine2"""))
+    print(loadTextDataLines("""Line1\r\nLine2"""))
+    print(loadTextDataLines(b"""Line1\nLine2"""))
+    print(loadTextDataLines(b"""Line\r\ndav"""))
+
+def testncmat( verbose ):
     def print_sep(*args):
         print((('==== '+' '.join(args)+' ') if args else '').ljust(120,'='))
 
