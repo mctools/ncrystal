@@ -416,8 +416,8 @@ Positions like 0.666667 can now be more precisely described via fractions like
 ## Other changes for NCMAT v2 ##
 
 Comments can now appear anywhere in the file, even at the end of other lines
-(except the first). Any parts of the line after the `#` should simply be ignored
-by the parser.
+(including the first). Any parts of the line after the `#` will simply be
+ignored by the parser.
 
 ## Effects of @DYNINFO sections on inelastic NCrystal physics modelling #
 
