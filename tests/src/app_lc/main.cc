@@ -45,7 +45,9 @@ void testlc(const std::string& cfg)
     NC::NeutronEnergy ekin = NC::NeutronWavelength{*it};
     auto xs = scat.crossSection(ekin, neutron_dir );
     printf( "xs@%geV (%g Aa): %g\n", ekin.dbl(), *it, xs.dbl() );
-    if(xs&& !(std::next(it,3)<wls.end()) )//todo: why this weird thinning?
+    if(xs&& !(std::next(it,3)<wls.end()) )//todo: why this weird requirement? we
+                                          //only want to sample the final 3
+                                          //wavelengths?
     {
       for (unsigned j=0;j<5;++j) {
         auto outcome = scat.sampleScatter( ekin , neutron_dir );

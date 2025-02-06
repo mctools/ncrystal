@@ -115,9 +115,9 @@ def testncmat( verbose ):
 
     from NCrystalDev.datasrc import browseFiles
     from NCrystalDev import createTextData
-    for f in browseFiles(factory='stdlib'):
-        print(f"Loading {f.fullKey}")
-        data = createTextData(f.fullKey).rawData
+    for f in sorted(f.fullKey for f in  browseFiles(factory='stdlib')):
+        print(f"Loading {f}")
+        data = createTextData(f).rawData
         tryParseNCMATData( data )
 
 
