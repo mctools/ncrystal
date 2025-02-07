@@ -296,7 +296,7 @@ void NC::NCMATParser::parseFile( TextData::Iterator itLine, TextData::Iterator i
 #if nc_cplusplus >= 201703L
       std::invoke(itSection->second,*this,parts,lineno-1);
 #else
-      NCPARSENCMAT_CALL_MEMBER_FN(this,itSection->second)(parts,lineno);
+      NCPARSENCMAT_CALL_MEMBER_FN(this,itSection->second)(parts,lineno-1);
 #endif
 
       //Guard against repeating an existing section (unless DYNINFO or custom sections, where it is allowed)
@@ -361,7 +361,7 @@ void NC::NCMATParser::parseFile( TextData::Iterator itLine, TextData::Iterator i
 #if nc_cplusplus >= 201703L
   std::invoke(itSection->second,*this,parts,lineno);
 #else
-  NCPARSENCMAT_CALL_MEMBER_FN(this,itSection->second)(parts,lineno+1);
+  NCPARSENCMAT_CALL_MEMBER_FN(this,itSection->second)(parts,lineno);
 #endif
 
 }

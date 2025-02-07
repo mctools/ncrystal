@@ -218,6 +218,8 @@ v4.0.0 2025-02-06
      * The NCrystal._mcc Python module was renamed to NCrystal.mmc, to better
        reflect its non-internal nature. For the time being, the NCrystal._mcc
        will also be kept around for backwards compatibility.
+     * Fix bug where line numbers in error messages from the NCMAT parser could
+       be off by one.
 
 v3.9.7 2024-09-02
      * Fix bug in LoadedMaterial.xsect/.macroscopic_xsect methods.
