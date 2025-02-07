@@ -492,7 +492,8 @@ function( mctools_testutils_internal_addtest name cmd_file reflog )
   endforeach()
   set_property( TEST "${name}" PROPERTY WORKING_DIRECTORY "${wd}" )
 
-  #Default to 60 second timeout, to detect hanging jobs (exact value to be
-  #revisited):
-  set_property( TEST "${name}" PROPERTY TIMEOUT 60 )
+  #Set a timeout to prevent hanging jobs and test times getting out of hand
+  #(exact values can be revisited). We allow longer jobs in Debug mode:
+  set_property( TEST "${name}" PROPERTY TIMEOUT "$<IF:$<CONFIG:Debug>,120,40>" )
+  #TODO: Support tests/costs.txt for adding cost properties to tests?
 endfunction()

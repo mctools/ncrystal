@@ -55,9 +55,10 @@ def test(cfgstr):
         def calcgn(n):
             return di.extract_Gn(n, expand_egrid=False, without_xsect=True)
         for n in [ 1, 2, 5, 8, 20, 50 ]:
+            #FIXME: This is slow, since we redo the whole procedure for each n!
+            #We should provide a way to get multiple Gns in one call to the C++
+            #layer! This actually makes the test very slow for Debug builds!
             egrid,d = calcgn(n)
-            #print(len(d))
-            #continue
             PWLinDistMoments(mp,egrid,d).dump(7,fp_format='%.7g',title=f'G{n}')
             #di.plot_Gn(n,without_xsect=True)
 
