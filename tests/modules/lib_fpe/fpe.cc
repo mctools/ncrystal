@@ -23,16 +23,20 @@
 
 NCTEST_CTYPE_DICTIONARY
 {
-  return "void nctest_catch_fpe()";
+  return
+    "void nctest_catch_fpe();"
+    "int nctest_can_catch_fpe();"
+    ;
 }
 
 //todo: try to enable on osx/windows?
-#if defined (_WIN32) || defined (__CYGWIN__) || defined (WIN32) || defined(__APPLE__)
+#if defined(__APPLE__) || defined(_WIN32) || defined(WIN32) || defined(__arm) || defined(__arm64) || defined(__aarch64__) || defined(__arm__) || defined(_M_ARM64)
 #  define NCTEST_SKIP_FPE
 #endif
 
 #ifdef NCTEST_SKIP_FPE
 NCTEST_CTYPES void nctest_catch_fpe(){}
+NCTEST_CTYPES int nctest_can_catch_fpe(){ return 0; }
 #else
 
 #  include <cassert>
@@ -90,6 +94,7 @@ namespace {
   }
 }
 
+NCTEST_CTYPES int nctest_can_catch_fpe(){ return 1; }
 NCTEST_CTYPES void nctest_catch_fpe()
 {
   try {

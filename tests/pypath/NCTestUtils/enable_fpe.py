@@ -26,10 +26,16 @@
 
 __all__=[]
 
+_can_catch = [False]
+def is_catching_fpe():
+    return _can_catch[0]
+
 def _enable_fpe():
     from .loadlib import Lib
     lib = Lib('fpe')
     lib.nctest_catch_fpe()
+    if lib.nctest_can_catch_fpe():
+        _can_catch[0] = True
     return lib
 
 __keepalive = _enable_fpe()

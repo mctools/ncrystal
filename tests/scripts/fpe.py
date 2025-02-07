@@ -56,7 +56,18 @@ def div_in_subproc( a, b ):
 def main():
     div_in_subproc( 1.0,2.0)
     div_in_subproc( 10.0,2.0 )
-    if platform.system().lower() not in ('windows','darwin'):
+
+    can_catch_fpe = NCTestUtils.enable_fpe.is_catching_fpe()
+
+    if platform.system().lower() in ('windows','darwin'):
+        assert not can_catch_fpe
+    else:
+        if 'intel' in platform.processor().lower():
+            assert can_catch_fpe
+        elif 'aarch64' in platform.processor().lower():
+            assert not can_catch_fpe
+
+    if can_catch_fpe:
         div_in_subproc( 1.0, 0.0 )
 
 if __name__ == '__main__':
