@@ -44,13 +44,20 @@ void NC::validateScatKnlData( const NC::ScatKnlDataView& data )
     NCRYSTAL_THROW(BadInput,"Scatter kernel data has invalid boundXS");
   }
 
-  for (const auto& e : {std::make_pair(&data.alphaGrid,xlabel),std::make_pair(&data.betaGrid,ylabel)}) {
-    if ( e.first->size() < 5 )
-      NCRYSTAL_THROW2(BadInput,"Scatter kernel data has invalid "<<e.second<<" grid (must have at least 5 entries)");
-    if ( e.first->size() > 65534 )
-      NCRYSTAL_THROW2(BadInput,"Scatter kernel data has invalid "<<e.second<<" grid (must have at most 65534 entries)");
-    if ( !nc_is_grid(*e.first) )
-      NCRYSTAL_THROW2(BadInput,"Scatter kernel data has invalid "<<e.second<<" grid (must consist of sorted, unique, regular numbers)");
+  {
+    auto al = std::make_pair(&data.alphaGrid,xlabel);
+    auto bl = std::make_pair(&data.betaGrid,ylabel);
+    for (const auto& e : {al,bl}) {
+      if ( e.first->size() < 5 )
+        NCRYSTAL_THROW2(BadInput,"Scatter kernel data has invalid "
+                        <<e.second<<" grid (must have at least 5 entries)");
+      if ( e.first->size() > 65534 )
+        NCRYSTAL_THROW2(BadInput,"Scatter kernel data has invalid "
+                        <<e.second<<" grid (must have at most 65534 entries)");
+      if ( !nc_is_grid(*e.first) )
+        NCRYSTAL_THROW2(BadInput,"Scatter kernel data has invalid "
+                        <<e.second<<" grid (must consist of sorted, unique, regular numbers)");
+    }
   }
 
   if (! ( data.alphaGrid.front() > 0.0 ) )
