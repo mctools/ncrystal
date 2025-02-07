@@ -52,3 +52,5 @@
 
 conda install ncrystal-all
 conda install ncrystal-plugin-support
+
+* Update wiki to point at HEAD rather than master
