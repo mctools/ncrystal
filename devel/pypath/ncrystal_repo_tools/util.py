@@ -31,7 +31,7 @@ def get_nprocs( nice_factor = 0.9 ):
     n = min(1024,max(1,n))
     if n >= 4:
         #Be nice, leave a tiny bit for other tasks on the machine:
-        n = round( n * 0.9 )
+        n = round( n * nice_factor )
     return n
 
 @_ctxmgr
