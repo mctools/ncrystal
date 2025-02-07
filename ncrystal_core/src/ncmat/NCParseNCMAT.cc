@@ -22,7 +22,6 @@
 #include "NCrystal/core/NCException.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
-#include <climits>//for CHAR_MIN
 #include <sstream>
 #if nc_cplusplus >= 201703L
 #  include <functional>//for std::invoke
@@ -32,6 +31,27 @@
 namespace NC = NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {
+
+  namespace {
+
+    constexpr bool highBitIsSet( char c ) noexcept
+    {
+      //Remember char might be signed or unsigned! So this might mean a value
+      //>=128, or it might mean a negative value.
+      return c & '\x80';
+    }
+    static_assert( highBitIsSet( (char)(128) ), "" );
+    static_assert( highBitIsSet( (char)(255) ), "" );
+    static_assert( highBitIsSet( (char)(140) ), "" );
+    static_assert( highBitIsSet( (char)(221) ), "" );
+    static_assert( !highBitIsSet( (char)(0) ), "" );
+    static_assert( !highBitIsSet( (char)(127) ), "" );
+    static_assert( !highBitIsSet( (char)(1) ), "" );
+    static_assert( !highBitIsSet( (char)(32) ), "" );
+    static_assert( !highBitIsSet( (char)(90) ), "" );
+    static_assert( !highBitIsSet( '\x7F' ), "" );
+    static_assert( highBitIsSet( '\xFF' ), "" );
+  }
 
   class NCMATParser {
   public:
@@ -372,14 +392,15 @@ void NC::NCMATParser::parseLine( const std::string& line,
   //34 : " (valid char)
   //35 : # (valid char)
   //36-126 : all valid chars
-  //127-255: forbidden (127 is control char, others are not ASCII but could indicate UTF-8 multibyte char)
+  //127: forbidden control char.
+  //negative or 128-255: forbidden (but could indicate UTF-8 multibyte char).
 
   parts.clear();
   const char * c = &line[0];
   const char * cE = c + line.size();
   const char * partbegin = nullptr;
   for (;c!=cE;++c) {
-    if ( *c < 127 && ( *c > 32 && *c != '#') ) {
+    if ( *c > 32 && *c < 127 && *c != '#') {
       //A regular character which should go in the parts vector
       if (!partbegin)
         partbegin = c;
@@ -451,19 +472,17 @@ void NC::NCMATParser::parseLine( const std::string& line,
 
   //Check no illegal control codes occur in comments:
   for (;c!=cE;++c) {
-#if CHAR_MIN != 0
-    //signed char (most platforms):
-    if ( ( *c>=32 && *c!=127 ) || *c < 0 )//high bit set means <0
-#else
-    //unsigned char (arm):
-    if ( *c>=32 && *c!=127  )//high bit set mins >=128
-#endif
-      continue;//ok ascii or (possibly) multibyte utf-8 chars. More advanced
-               //utf-8 analysis needs rather complicated code (we could do it of
-               //course...).
+    if ( *c>=32 && *c!=127 )
+      continue;//ascii printable character
+
+    if ( highBitIsSet( *c ) )
+      continue;//possibly part of a multibyte utf-8 char, and not a control
+               //char. More advanced utf-8 analysis needs rather complicated
+               //code (we could do it of course...).
 
     if ( isOneOf(*c,'\t','\n') )
       continue;//ok
+
     if (*c=='\r') {
       if ( (c+1)!=cE && *(c+1)!='\n' ) {
         NCRYSTAL_THROW2(BadInput,descr()<<": contains invalid character at position "
