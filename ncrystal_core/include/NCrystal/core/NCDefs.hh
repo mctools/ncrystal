@@ -979,12 +979,12 @@ namespace NCRYSTAL_NAMESPACE {
   template<class TOther>
   ncconstexpr17 TOther& StronglyTypedFixedVector<Derived,TValue,N>::as() noexcept
   {
-    //Due to the common base FixedVector<TValue,N> class keeping all
-    //data, and the various checks in ensureCompatible, this should be
-    //safe. There is a small loophole in the standard for making the cast UB,
-    //but unless compilers will go out of their way to make life miserable for
-    //us of no reason at all, we should be safe. In any case, compilation or the
-    //very first usage of NCrystal should break down horribly and visibly if we
+    //Due to the common base FixedVector<TValue,N> class keeping all data, and
+    //the various checks in ensureCompatible, this should be safe. There is a
+    //small loophole in the standard for making the cast UB, but unless
+    //compilers will go out of their way to make life miserable for us for no
+    //reason at all, we should be safe. In any case, compilation or the very
+    //first runtime usage should hopefully break down horribly and visibly if we
     //ever encounter such a compiler.
     ensureCompatible<TOther>();
     return *reinterpret_cast<TOther*>(this);
