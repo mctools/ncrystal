@@ -37,8 +37,13 @@ def main( parser ):
         import os
         import pathlib
         p = pathlib.Path(os.environ['GITHUB_ENV'])
-        s  = f'CMAKE_BUILD_PARALLEL_LEVEL={n}\n'
-        #s += f'CTEST_PARALLEL_LEVEL={n}\n'
+        kv = []
+        kv.append( ('CMAKE_BUILD_PARALLEL_LEVEL',str(n) ) )
+        #kv.append( ('CTEST_PARALLEL_LEVEL',str(n) ) )
+        s = ''
+        for k,v in kv:
+            print(f"Appending {k}={v} to " "${GITHUB_ENV}")
+            s += f'{k}={v}\n'
         with p.open('at') as fh:
             fh.write(s)
     else:
