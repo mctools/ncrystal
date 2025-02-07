@@ -23,6 +23,8 @@
 import NCTestUtils.enable_fpe # noqa F401
 from NCTestUtils.loadlib import Lib
 from NCTestUtils.dirs import get_named_test_data_dir
+from NCTestUtils.common import ensure_error
+
 import NCrystalDev.exceptions as nc_exceptions
 import pathlib
 
@@ -52,8 +54,66 @@ def loadTextDataLines( data ):
     return lib.nctest_getTextDataLines(data).split('<@@@@>')
 
 def main( verbose ):
+    test_lineno()
     testtextdata(verbose = verbose)
     testncmat(verbose = verbose)
+
+def test_lineno():
+    #Problematic @CELL section ends in line 3
+    data_lines1  = [
+        b'NCMAT v7',
+        b'@CELL',
+        b'lengths 0.1 0.2 0.2',#Problematic @CELL section ends in line 3
+
+        b''
+    ]
+    data_lines2  = [
+        b'NCMAT v7',
+        b'@CELL',
+        b'lengths 0.1 0.2 0.2',#Problematic @CELL section ends in line 3
+        b'@TEMPERATURE',
+        b'  270'
+    ]
+    data_lines3  = [
+        b'NCMAT v7',
+        b'@CELL',
+        b'lengths 0.2 0.2 -0.2',#error in line three, detected at end of sect.
+        b'angles 90 90 120',#@CELL section ends in line 4
+        b'@TEMPERATURE',
+        b'  270'
+    ]
+    data_lines4  = [
+        b'NCMAT v7',
+        b'@CELL',
+        b'lengths 0.2 0.2 0.2 0.2',#error in line three detected in line.
+        b'angles 90 90 120',
+        b'@TEMPERATURE',
+        b'  270'
+    ]
+    def expected_errmsg( nbytes, n ):
+        if n == 4:
+            return (f'"(anonymous TextData, {nbytes}bytes, type=ncmat)":'
+                    ' wrong number of data entries after "lengths"'
+                    ' keyword in line 3 (expected three numbers)')
+            return 'bla'
+        cell_section_end_line = 4 if (idata+1 == 3) else 3
+        varname = 'length' if (idata+1 == 3) else 'angle'
+        return (f'(anonymous TextData, {nbytes}bytes,'
+                f' type=ncmat) invalid lattice {varname}'
+                ' specified (problem in the @CELL section ending'
+                f' in line {cell_section_end_line})')
+
+    for idata,data_lines in enumerate([data_lines1,
+                                       data_lines2,
+                                       data_lines3,
+                                       data_lines4]):
+        for newline in [b'\n', b'\r\n']:
+            data = newline.join(data_lines)
+            print(f"==> data_lines{idata+1} lineno test with"
+                  " newline markers %s:"%repr(newline))
+            emsg = expected_errmsg( len(data), idata + 1 )
+            with ensure_error(nc_exceptions.NCBadInput,emsg):
+                tryParseNCMATData( data )
 
 def testtextdata( verbose ):
     print(loadTextDataLines("""Line1\nLine2"""))
@@ -62,6 +122,7 @@ def testtextdata( verbose ):
     print(loadTextDataLines(b"""Line\r\ndav"""))
 
 def testncmat( verbose ):
+
     def print_sep(*args):
         print((('==== '+' '.join(args)+' ') if args else '').ljust(120,'='))
 

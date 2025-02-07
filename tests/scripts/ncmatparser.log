@@ -4,6 +4,22 @@ Library "TestMod_ncmat" (5 functions):
   void nctestdetail_clear_lasterror()
   const char * nctestdetail_get_lasterror()
   int nctestdetail_has_lasterror()
+==> data_lines1 lineno test with newline markers b'\n':
+Caught expected NCBadInput('(anonymous TextData, 35bytes, type=ncmat) invalid lattice angle specified (problem in the @CELL section ending in line 3)')
+==> data_lines1 lineno test with newline markers b'\r\n':
+Caught expected NCBadInput('(anonymous TextData, 38bytes, type=ncmat) invalid lattice angle specified (problem in the @CELL section ending in line 3)')
+==> data_lines2 lineno test with newline markers b'\n':
+Caught expected NCBadInput('(anonymous TextData, 53bytes, type=ncmat) invalid lattice angle specified (problem in the @CELL section ending in line 3)')
+==> data_lines2 lineno test with newline markers b'\r\n':
+Caught expected NCBadInput('(anonymous TextData, 57bytes, type=ncmat) invalid lattice angle specified (problem in the @CELL section ending in line 3)')
+==> data_lines3 lineno test with newline markers b'\n':
+Caught expected NCBadInput('(anonymous TextData, 71bytes, type=ncmat) invalid lattice length specified (problem in the @CELL section ending in line 4)')
+==> data_lines3 lineno test with newline markers b'\r\n':
+Caught expected NCBadInput('(anonymous TextData, 76bytes, type=ncmat) invalid lattice length specified (problem in the @CELL section ending in line 4)')
+==> data_lines4 lineno test with newline markers b'\n':
+Caught expected NCBadInput('"(anonymous TextData, 74bytes, type=ncmat)": wrong number of data entries after "lengths" keyword in line 3 (expected three numbers)')
+==> data_lines4 lineno test with newline markers b'\r\n':
+Caught expected NCBadInput('"(anonymous TextData, 79bytes, type=ncmat)": wrong number of data entries after "lengths" keyword in line 3 (expected three numbers)')
 ['Line1', 'Line2']
 ['Line1', 'Line2']
 ['Line1', 'Line2']
