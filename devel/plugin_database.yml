@@ -4,7 +4,7 @@
 DummyPlugin:
   github_repo_key: "mctools/ncrystal"
   repo_subdir: "examples/plugin"
-  gitref: tk_volatile # fixme
+  gitref: develop # todo remove
   description: |
     A (silly) example from the NCrystal source repository, serving as a template
     for other plugins. This example shows how to create a plugin which actually
@@ -13,7 +13,7 @@ DummyPlugin:
 DummyDataPlugin:
   github_repo_key: "mctools/ncrystal"
   repo_subdir: "examples/plugin_dataonly"
-  gitref: tk_volatile # fixme
+  gitref: develop # todo remove
   description: |
     A (silly) example from the NCrystal source repository, serving as a template
     for other plugins. This example shows how to create a plugin which only
@@ -21,7 +21,7 @@ DummyDataPlugin:
 
 CrysText:
   github_repo_key: "highness-eu/ncplugin-CrysText"
-  disable_tests: true # fixme: This should not be necessary!!!!
+  disable_tests: true # todo: remove once fixed.
   description: |
     A plugin providing texture models. Warning: The data files from this plugin
     will currently fail to load as isotropic materials, needing `dir1`, `dir2`

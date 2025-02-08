@@ -1,9 +1,11 @@
 name: pypi
 
+#TODO: For NCrystal4:
+# * tktest->v in entire file and add --fail-if-devel to line with verifytag
+# * Uncomment the permissions: id-token: write, and the final pypi upload
 on:
   push:
     tags:
-      #fixme tktest->v in entire file
       - 'tktest[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
@@ -31,7 +33,6 @@ jobs:
         id: version-number
         run: |
           set -eux
-          #fixme: Add --fail-if-devel to next line once renaming 'tktest' to 'v'
           VERSIONSTR=$(./src/devel/bin/ncdevtool verifytag -p 'tktestX.Y.Z' --file-verify=VERSION)
           echo "Extracted version str: '${VERSIONSTR}'"
           echo "version_number=$VERSIONSTR" >> $GITHUB_OUTPUT
@@ -264,7 +265,7 @@ jobs:
         with:
           pattern: "ncrystal-core-wheels-*"
           path: ncrystal-core-wheels-raw #unpacks all artifacts into ncrystal-core-wheels-raw/
-          #fixme if we use merge-multiple: 'true', we might not have to do the
+          #Todo if we use merge-multiple: 'true', we might not have to do the
           #find trick below
 
       - name: Look in ncrystal-core-wheels-raw
@@ -382,7 +383,7 @@ jobs:
     name: Publish to pypi
     needs: [collect_output, basic_functionality_test]
     runs-on: ubuntu-latest
-    #fixme: uncomment:
+    #todo: uncomment:
     #permissions:
     #  id-token: write # IMPORTANT: this permission is mandatory for trusted publishing
     steps:
@@ -410,21 +411,19 @@ jobs:
           find ./dist_python
           find ./dist_metapkg
 
-##FIXME: Like this, or merge everything into a single ./dist ?:
+      - name: Combine in one dir
+        run: |
+          mkdir ./dist_final
+          cp ./dist_core/ncrystal_core-* ./dist_final
+          cp ./dist_python/ncrystal_python-* ./dist_final
+          cp ./dist_metapkg/ncrystal-* ./dist_final
+
+      - name: List files
+        run: find ./dist_final
+
 #      - name: Upload distribution to PyPI
 #        uses: pypa/gh-action-pypi-publish@v1.12.3
 #        with:
-#          packages-dir: ./dist_core
-#          verbose: 'true'
+#          packages-dir: ./dist_final
+#          verbose: true
 #
-#      - name: Upload distribution to PyPI
-#        uses: pypa/gh-action-pypi-publish@v1.12.3
-#        with:
-#          packages-dir: ./dist_python
-#
-#          verbose: 'true'
-#      - name: Upload distribution to PyPI
-#        uses: pypa/gh-action-pypi-publish@v1.12.3
-#        with:
-#          packages-dir: ./dist_metapkg
-#          verbose: 'true'
