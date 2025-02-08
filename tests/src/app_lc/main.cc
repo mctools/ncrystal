@@ -51,9 +51,20 @@ void testlc(const std::string& cfg)
     {
       for (unsigned j=0;j<5;++j) {
         auto outcome = scat.sampleScatter( ekin , neutron_dir );
-        auto v_out = outcome.direction.as<NC::Vector>();
-        printf("scatter: (%g,%g,%g)=%gdeg de=%g \n", v_out[0] , v_out[1], v_out[2],
-               neutron_dir.as<NC::Vector>().angle(v_out)*NC::kToDeg, (outcome.ekin.dbl()-ekin.dbl()) );
+        NC::Vector v_out = outcome.direction.as<NC::Vector>();
+        //Weird bug seen on arm, where the following printouts were not correct
+        //with v_out, but were OK with outcome.direction! I am wondering if it
+        //is related to the slight UB behaviour in our vector .as<..>?
+        nc_assert_always( v_out[0] == outcome.direction[0] );
+        nc_assert_always( v_out[1] == outcome.direction[1] );
+        nc_assert_always( v_out[2] == outcome.direction[2] );
+        const double angle_deg = neutron_dir.as<NC::Vector>().angle(v_out)*NC::kToDeg;
+        printf("scatter: (%g,%g,%g)=%gdeg de=%g \n",
+               outcome.direction[0],
+               outcome.direction[1],
+               outcome.direction[2],
+               angle_deg,
+               (outcome.ekin.dbl()-ekin.dbl()) );
       }
     }
   }
