@@ -23,6 +23,9 @@ jobs:
       with:
         path: src
 
+    - name: Enable parallel cmake
+      run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
+
     - name: Configure
       run: cmake -S ./src/ncrystal_core -B ./build -DCMAKE_BUILD_TYPE=Release
 

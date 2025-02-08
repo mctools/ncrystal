@@ -56,6 +56,9 @@ jobs:
     - name: install oneAPI runtime libs
       run: sudo apt install intel-oneapi-runtime-libs
 
+    - name: Enable parallel cmake
+      run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
+
       #NB: We don't test matplotlib import here in the next step, since we want
       #to make sure that our CTest infrastructure correctly avoids problems from
       #"building font cache" printouts on first imports.

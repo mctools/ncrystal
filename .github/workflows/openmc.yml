@@ -41,6 +41,9 @@ jobs:
           ref: ${{ matrix.openmcbranch }}
           path: ./src_openmc
 
+      - name: Enable parallel cmake
+        run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
+
       - name: Install ncrystal-core
         run: pip install ./src/ncrystal_core
 

@@ -36,10 +36,12 @@ jobs:
       with:
         path: src
 
+    - name: Enable parallel cmake
+      run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
+
     - name: Install Ninja (Linux)
       if: runner.os == 'Linux'
       run: sudo apt-get install ninja-build
-
 
     - name: Install Ninja (macOS)
       if: runner.os == 'macOS'

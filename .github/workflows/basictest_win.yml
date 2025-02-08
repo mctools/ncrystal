@@ -39,6 +39,9 @@ jobs:
       with:
         python-version: 3.11
 
+    - name: Enable parallel cmake
+      run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
+
     - name: Monolithic pip install of repo
       shell: cmd
       run: python3 -m pip install --config-settings=cmake.define.NCRYSTAL_WINEXPORTALL=${{ matrix.winexportall }}  .\src\

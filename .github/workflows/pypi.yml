@@ -63,6 +63,9 @@ jobs:
         with:
           python-version: 3.12
 
+      - name: Enable parallel cmake
+        run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
+
       - name: Pip install ncrystal-core
         run: pip install ./src/ncrystal_core
 

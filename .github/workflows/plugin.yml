@@ -25,6 +25,9 @@ jobs:
       with:
         path: src
 
+    - name: Enable parallel cmake
+      run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
+
     - name: CMake cfg NCrystal
       run: >
         cmake -S ./src -B ./build -DCMAKE_INSTALL_PREFIX=./install

@@ -24,6 +24,9 @@ jobs:
     - name: Check python version
       run: python --version
 
+    - name: Enable parallel cmake
+      run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
+
     - name: Install ncrystal_core
       run: pip install ./src/ncrystal_core
 

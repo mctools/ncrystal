@@ -35,6 +35,9 @@ jobs:
       with:
         path: src
 
+    - name: Enable parallel cmake
+      run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
+
     - name: Install cppcheck
       run: pip install cppcheck
 

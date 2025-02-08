@@ -29,6 +29,9 @@ jobs:
       with:
         python-version: ${{ matrix.python }}
 
+    - name: Enable parallel cmake
+      run: python ./devel/bin/ncdevtool nprocs --enable-github-parallel
+
     - name: pip install deps
       run: python -mpip install -r ./devel/reqs/requirements_all_and_devel.txt
 
