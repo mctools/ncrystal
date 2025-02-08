@@ -75,5 +75,8 @@ jobs:
       run: python3 -m pip install -r ./src_ncrystal/devel/reqs/requirements_all.txt
 
     - name: Test notebooks
+      env:
+        #TODO: Remove after NCrystal 4 is out and notebooks are updated:
+        NCNOTEBOOKS_FORCE_SKIP_PLUGIN_NB: '1'
       run: ./src_notebooks/.github/resources/run_notebooks.x
 
