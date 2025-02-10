@@ -32,7 +32,7 @@ if( NOT DEFINED "NCrystal_DIR" )
     OUTPUT_VARIABLE "NCrystal_DIR" OUTPUT_STRIP_TRAILING_WHITESPACE
   )
 endif()
-find_package( NCrystal 3.9.85 REQUIRED )
+find_package( NCrystal 4.0.0 REQUIRED )
 
 #Add our own targets, and link to NCrystal::NCrystal as appropriate:
 

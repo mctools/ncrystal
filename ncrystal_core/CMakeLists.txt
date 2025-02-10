@@ -651,22 +651,33 @@ endif()
 
 #NB: Important we do any configure_file AFTER all variables used have been set!
 include(CMakePackageConfigHelpers)
-write_basic_package_version_file( "${PROJECT_BINARY_DIR}/NCrystalConfigVersion.cmake"
-                                  VERSION ${NCrystal_VERSION} COMPATIBILITY SameMajorVersion )
+#NB: We choose COMPATIBILITY AnyNewerVersion, since we mostly aim for API (but
+#not ABI) compatiblity even when bumping major versions. Otherwise client code
+#would break whenever we update major versions:
+write_basic_package_version_file(
+  "${PROJECT_BINARY_DIR}/NCrystalConfigVersion.cmake"
+  VERSION ${NCrystal_VERSION} COMPATIBILITY AnyNewerVersion
+)
 
 #First generated a configured version of the template:
-configure_file( "${PROJECT_SOURCE_DIR}/cmake/NCrystalConfig.cmake.in"
-  "${PROJECT_BINARY_DIR}/NCrystalConfig.cmake.pregen.in" @ONLY )
+configure_file(
+  "${PROJECT_SOURCE_DIR}/cmake/NCrystalConfig.cmake.in"
+  "${PROJECT_BINARY_DIR}/NCrystalConfig.cmake.pregen.in" @ONLY
+)
 
 #At build-time, generate the actual files needed for inclusion, expanding any
 #generator-expressions:
-file( GENERATE
+file(
+  GENERATE
   OUTPUT "${PROJECT_BINARY_DIR}/NCrystalConfig.cmake"
   INPUT "${PROJECT_BINARY_DIR}/NCrystalConfig.cmake.pregen.in"
 )
 
-ncinstall( FILES "${PROJECT_BINARY_DIR}/NCrystalConfigVersion.cmake" "${PROJECT_BINARY_DIR}/NCrystalConfig.cmake"
-         DESTINATION ${NCrystal_CMAKEDIR} )
+ncinstall(
+  FILES "${PROJECT_BINARY_DIR}/NCrystalConfigVersion.cmake"
+  "${PROJECT_BINARY_DIR}/NCrystalConfig.cmake"
+  DESTINATION ${NCrystal_CMAKEDIR}
+)
 
 set( nccfg_expects_shlibdir_override OFF )
 if ( DEFINED SKBUILD_PROJECT_NAME )
