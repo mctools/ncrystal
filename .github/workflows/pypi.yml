@@ -1,12 +1,9 @@
 name: pypi
 
-#TODO: For NCrystal4:
-# * tktest->v in entire file and add --fail-if-devel to line with verifytag
-# * Uncomment the permissions: id-token: write, and the final pypi upload
 on:
   push:
     tags:
-      - 'tktest[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
   preparations:
@@ -33,7 +30,7 @@ jobs:
         id: version-number
         run: |
           set -eux
-          VERSIONSTR=$(./src/devel/bin/ncdevtool verifytag -p 'tktestX.Y.Z' --file-verify=VERSION)
+          VERSIONSTR=$(./src/devel/bin/ncdevtool verifytag -p --fail-if-devel 'vX.Y.Z' --file-verify=VERSION)
           echo "Extracted version str: '${VERSIONSTR}'"
           echo "version_number=$VERSIONSTR" >> $GITHUB_OUTPUT
 
@@ -383,9 +380,8 @@ jobs:
     name: Publish to pypi
     needs: [collect_output, basic_functionality_test]
     runs-on: ubuntu-latest
-    #todo: uncomment:
-    #permissions:
-    #  id-token: write # IMPORTANT: this permission is mandatory for trusted publishing
+    permissions:
+      id-token: write # IMPORTANT: this permission is mandatory for trusted publishing
     steps:
       - name: download ncrystal-core dist
         uses: actions/download-artifact@v4
@@ -421,9 +417,8 @@ jobs:
       - name: List files
         run: find ./dist_final
 
-#      - name: Upload distribution to PyPI
-#        uses: pypa/gh-action-pypi-publish@v1.12.3
-#        with:
-#          packages-dir: ./dist_final
-#          verbose: true
-#
+      - name: Upload distribution to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.12.3
+        with:
+          packages-dir: ./dist_final
+          verbose: true
