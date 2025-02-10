@@ -30,7 +30,7 @@ jobs:
         id: version-number
         run: |
           set -eux
-          VERSIONSTR=$(./src/devel/bin/ncdevtool verifytag -p --fail-if-devel 'vX.Y.Z' --file-verify=VERSION)
+          VERSIONSTR=$(./src/devel/bin/ncdevtool verifytag --fail-if-devel -p 'vX.Y.Z' --file-verify=VERSION)
           echo "Extracted version str: '${VERSIONSTR}'"
           echo "version_number=$VERSIONSTR" >> $GITHUB_OUTPUT
 
