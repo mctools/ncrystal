@@ -12,6 +12,10 @@ running the command:
 conda install conda-forge::ncrystal
 ```
 
+![Conda Version](https://img.shields.io/conda/v/conda-forge/ncrystal)
+![Conda Platform](https://img.shields.io/conda/pn/conda-forge/ncrystal-core)
+![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/ncrystal)
+
 For consistency, it is recommended that your conda environment ONLY uses
 packages from the conda-forge channel.
 
@@ -21,6 +25,9 @@ like pip, via the command:
 ```
 pip install ncrystal
 ```
+
+![PyPI - Version](https://img.shields.io/pypi/v/ncrystal)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/ncrystal)
 
 Some additional and optional packages are required for certain optional NCrystal
 capabilities, which are not always needed by all users (for instance,
@@ -37,12 +44,15 @@ pip install ncrystal[all] # all of the above
 ```
 
 In addition to PyPI and conda-forge, other distribution channels for NCrystal
-exist. Examples are platform specific packages for Debian/Ubuntu and
-FreeBSD. However, these are not tested directly by NCrystal developers, so we
-can not make any guarantee as to their correctness. Furthermore, while PyPI and
-conda-forge packages of NCrystal are usually ready within a few hours after a
-new NCrystal release, ensuring that these packages represent the most updated
-version of NCrystal.
+exist. Examples are platform specific packages for Debian/Ubuntu (![Debian
+package](https://img.shields.io/debian/v/ncrystal) ![Ubuntu Package
+Version](https://img.shields.io/ubuntu/v/ncrystal)) and FreeBSD (packaged as
+[ncrystal](https://www.freshports.org/science/ncrystal) and
+[py-ncrystal](https://www.freshports.org/science/py-ncrystal/). However, *these
+are not tested directly by NCrystal developers*, so we can not make any
+guarantee as to their correctness. Furthermore, PyPI and conda-forge packages of
+NCrystal are usually ready within a few hours after a new NCrystal release,
+ensuring that these packages represent the most updated version of NCrystal.
 
 To test if an installation of NCrystal works, you should be able to run the
 command `nctool --test`. You can also run `ncrystal-config -s`,
