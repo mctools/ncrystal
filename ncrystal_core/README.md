@@ -1,6 +1,10 @@
 NCrystal : A library for thermal neutron transport in crystals and other materials
 ----------------------------------------------------------------------------------
 
+![PyPI - Version](https://img.shields.io/pypi/v/ncrystal)
+![Conda Version](https://img.shields.io/conda/vn/conda-forge/ncrystal)
+![Conda Platform](https://img.shields.io/conda/pn/conda-forge/ncrystal-core)
+
 This is a source distribution of NCrystal, a library and associated tools which
 enables calculations for Monte Carlo simulations of thermal neutrons in crystals
 and other materials. Supported is a range of physics including both coherent,
