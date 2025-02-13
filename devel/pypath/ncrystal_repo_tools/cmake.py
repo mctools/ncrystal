@@ -133,7 +133,7 @@ class CMakeRunner:
     def do_cfg( self ):
         assert self.stage=='none'
         self._prepare_dirs()
-        args = [ '-S',dirs.reporoot,'-B', self.blddir] + self.cmake_flags
+        args = [ '-S',dirs.reporoot,'-B', self.blddir]
         if self.generator=='multi' and platform.system()!='Windows':
             args += ['-G','Ninja Multi-Config']
         elif self.generator=='single' and platform.system()=='Windows':
@@ -154,6 +154,7 @@ class CMakeRunner:
             assert len(self.build_types)==1
             args.append('-DCMAKE_BUILD_TYPE=%s'%self._bt2cmakebt(self.build_types[0]))
 
+        args += self.cmake_flags
         self._invoke( self.cmake_cmd, args )
         self.stage='cfg'
 
