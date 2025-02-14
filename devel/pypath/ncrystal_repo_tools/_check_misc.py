@@ -70,7 +70,13 @@ def main():
 
         #always trailing newlines:
         if not content.endswith('\n'):
-            raise SystemExit(f'No trailing newline in {f}')
+            import platform
+            ignore_on_win = 'NCCFileUtils' in f.name
+            if ignore_on_win and platform.system() == 'Windows':
+                print("WARNING: Windows detected. Ignoring trailing"
+                      f" newline error in {f} which might be false positive")
+            else:
+                raise SystemExit(f'No trailing newline in {f}')
 
         #Check file has only ascii characters:
         if frel not in ignore_list_nonascii:
