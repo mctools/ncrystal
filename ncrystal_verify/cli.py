@@ -57,6 +57,9 @@ def run_test( script ):
     import os
     env = os.environ.copy()
     prepend_to_path_var( env, 'PYTHONPATH', pypath )
+    #Needed for windows, leaving them on all the time for now:
+    env['PYTHONIOENCODING']='UTF-8'
+    env['PYTHONLEGACYWINDOWSSTDIO']='UTF-8'
     with work_in_tmpdir():
         rv = subprocess.run( [sys.executable, str(script)],
                              env = env,
