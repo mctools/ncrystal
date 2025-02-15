@@ -1,0 +1,93 @@
+name: latestconda
+on:
+  schedule:
+    - cron: '30 10 * * 2'  # 10:30 every Tuesday
+  workflow_dispatch:
+  push:
+
+jobs:
+  build:
+    strategy:
+      #fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-24.04-arm } #arm
+          - { os: ubuntu-latest } #intel
+          - { os: macos-latest } #arm
+          - { os: macos-13 } #intel
+          - { os: windows-latest }
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -el {0}
+    env:
+      CONDA_SOLVER: libmamba
+
+    steps:
+      - name: Prepare conda yml
+        shell: python
+        run: |
+          from textwrap import dedent
+          import pathlib
+          pathlib.Path('theenv.yml').write_text(dedent(
+          """
+          name: theenv
+          channels:
+            - nodefaults
+            - conda-forge
+          dependencies:
+            - python
+            - pip
+            - ncrystal >=4.0.0
+          """
+          ))
+
+      - name: Set up conda env
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          activate-environment: theenv
+          environment-file: ./theenv.yml
+          auto-activate-base: false
+
+      - name: Inspect environment
+        run: |
+          conda info
+          conda list
+          ncrystal-config -s
+          nctool --test
+
+      #fixme:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: tk_volatile
+          path: ./src_co
+
+      - name: Install ncrystal-verify
+        run: pip install ./src_co/ncrystal_verify
+
+      - name: Run ncrystal-verify
+        run: ncrystal-verify -m all
+
+      - name: Install more optional dependencies
+        run: conda install -c conda-forge spglib "ase<3.24.0" matplotlib spglib mpmath
+
+      - name: Install gemmi
+        if: matrix.os != 'ubuntu-24.04-arm'
+        run: conda install -c conda-forge gemmi
+
+      - name: Inspect environment
+        run: |
+          conda info
+          conda list
+          ncrystal-config -s
+          nctool --test
+
+      - name: Run ncrystal-verify again with all deps
+        if: matrix.os != 'ubuntu-24.04-arm'
+        run: ncrystal-verify
+
+      - name: Run ncrystal-verify again with all deps except gemmi
+        if: matrix.os == 'ubuntu-24.04-arm'
+        run: ncrystal-verify -m gemmi
