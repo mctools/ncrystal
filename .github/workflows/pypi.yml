@@ -73,14 +73,20 @@ jobs:
       - name: Pip install ncrystal
         run: pip install ./src/ncrystal_metapkg
 
+      - name: Pip install ncrystal-verify
+        run: pip install ./src/ncrystal_verify
+
       - name: nctool tests
         run: nctool --test
 
       - name: cmdline presence tests
         run: python -m "NCrystal.test" cmdline
 
-        #WARNING, this failed on windows:
-        #run: python -mNCrystal.test cmdline
+      - name: Pip install extra deps
+        run: pip install -r ./src/devel/reqs/requirements_all_and_devel.txt
+
+      - name: ncrystal-verify
+        run: ncrystal-verify
 
   build_sdists:
     name: Build source distribution
@@ -100,6 +106,9 @@ jobs:
 
       - name: build ncrystal-metapkg sdist
         run: pipx run build --sdist ./ncrystal_metapkg
+
+      - name: build ncrystal-verify sdist
+        run: pipx run build --sdist ./ncrystal_verify
 
       - name: register ncrystal-core sdist
         uses: actions/upload-artifact@v4
@@ -122,10 +131,18 @@ jobs:
           path: ./ncrystal_metapkg/dist/ncrystal${{ env.SDIST_SUFFIX }}
           if-no-files-found: error
 
+      - name: register ncrystal-verify sdist
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdist-ncrystal-verify
+          path: ./ncrystal_verify/dist/ncrystal_verify${{ env.SDIST_SUFFIX }}
+          if-no-files-found: error
+
     outputs:
       sdistname_core: ncrystal_core${{ env.SDIST_SUFFIX }}
       sdistname_python: ncrystal_python${{ env.SDIST_SUFFIX }}
       sdistname_metapkg: ncrystal${{ env.SDIST_SUFFIX }}
+      sdistname_verify: ncrystal_verify${{ env.SDIST_SUFFIX }}
 
   build_universal_wheels:
     name: Build universal wheels
@@ -145,6 +162,12 @@ jobs:
           name: sdist-ncrystal-metapkg
           path: ./sdist-metapkg
 
+      - name: download ncrystal-verify sdist
+        uses: actions/download-artifact@v4
+        with:
+          name: sdist-ncrystal-verify
+          path: ./sdist-verify
+
       - name: build ncrystal-python universal wheel
         run: |
           set -eux
@@ -161,6 +184,14 @@ jobs:
           tar xf ../sdist-metapkg/${{needs.build_sdists.outputs.sdistname_metapkg }}
           pipx run build --wheel ./ncrystal-${{ needs.preparations.outputs.ncrystalversion }} --outdir=../dist-ncrystal-metapkg
 
+      - name: build ncrystal-verify universal wheel
+        run: |
+          set -eux
+          mkdir tmp_wheelbld_verify
+          cd tmp_wheelbld_verify
+          tar xf ../sdist-verify/${{needs.build_sdists.outputs.sdistname_verify }}
+          pipx run build --wheel ./ncrystal_verify-${{ needs.preparations.outputs.ncrystalversion }} --outdir=../dist-ncrystal-verify
+
       - name: register ncrystal-python universal wheel
         uses: actions/upload-artifact@v4
         with:
@@ -173,6 +204,13 @@ jobs:
         with:
           name: wheel-ncrystal-metapkg
           path: ./dist-ncrystal-metapkg/ncrystal-${{ needs.preparations.outputs.ncrystalversion }}-py3-none-any.whl
+          if-no-files-found: error
+
+      - name: register ncrystal-verify universal wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheel-ncrystal-verify
+          path: ./dist-ncrystal-verify/ncrystal_verify-${{ needs.preparations.outputs.ncrystalversion }}-py3-none-any.whl
           if-no-files-found: error
 
   build_core_wheels:
@@ -295,6 +333,12 @@ jobs:
           name: wheel-ncrystal-metapkg
           path: ./dist_metapkg
 
+      - name: download ncrystal-verify universal wheel
+        uses: actions/download-artifact@v4
+        with:
+          name: wheel-ncrystal-verify
+          path: ./dist_verify
+
       - name: download ncrystal-python sdist
         uses: actions/download-artifact@v4
         with:
@@ -307,11 +351,18 @@ jobs:
           name: sdist-ncrystal-metapkg
           path: ./dist_metapkg
 
+      - name: download ncrystal-verify sdist
+        uses: actions/download-artifact@v4
+        with:
+          name: sdist-ncrystal-verify
+          path: ./dist_verify
+
       - name: List files
         run: |
           find ./dist_core
           find ./dist_python
           find ./dist_metapkg
+          find ./dist_verify
 
       - name: Verify presence of expected ncrystal-core files
         shell: python
@@ -358,6 +409,12 @@ jobs:
           test -f ./dist_metapkg/ncrystal-${{ needs.preparations.outputs.ncrystalversion }}.tar.gz
           test -f ./dist_metapkg/ncrystal-${{ needs.preparations.outputs.ncrystalversion }}-py3-none-any.whl
 
+      - name: Verify presence of expected ncrystal-verify files
+        run: |
+          set -eux
+          test -f ./dist_verify/ncrystal_verify-${{ needs.preparations.outputs.ncrystalversion }}.tar.gz
+          test -f ./dist_verify/ncrystal_verify-${{ needs.preparations.outputs.ncrystalversion }}-py3-none-any.whl
+
       - uses: actions/upload-artifact@v4
         with:
           name: final-dist-ncrystal-core
@@ -374,6 +431,12 @@ jobs:
         with:
           name: final-dist-ncrystal-metapkg
           path: ./dist_metapkg
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: final-dist-ncrystal-verify
+          path: ./dist_verify
           if-no-files-found: error
 
   publish_to_pypi:
@@ -401,11 +464,18 @@ jobs:
           name: final-dist-ncrystal-metapkg
           path: ./dist_metapkg
 
+      - name: download ncrystal-verify dist
+        uses: actions/download-artifact@v4
+        with:
+          name: final-dist-ncrystal-verify
+          path: ./dist_verify
+
       - name: List files
         run: |
           find ./dist_core
           find ./dist_python
           find ./dist_metapkg
+          find ./dist_verify
 
       - name: Combine in one dir
         run: |
@@ -413,6 +483,7 @@ jobs:
           cp ./dist_core/ncrystal_core-* ./dist_final
           cp ./dist_python/ncrystal_python-* ./dist_final
           cp ./dist_metapkg/ncrystal-* ./dist_final
+          cp ./dist_verify/ncrystal_verify-* ./dist_final
 
       - name: List files
         run: find ./dist_final
