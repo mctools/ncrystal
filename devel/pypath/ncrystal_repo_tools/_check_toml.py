@@ -26,7 +26,9 @@ toml_files =  dict( monolith = 'pyproject.toml',
                     coreempty = 'ncrystal_core/empty_pypkg/pyproject.toml',
                     py = 'ncrystal_python/pyproject.toml',
                     plugmgr = 'ncrystal_pypluginmgr/pyproject.toml',
-                    meta = 'ncrystal_metapkg/pyproject.toml' )
+                    meta = 'ncrystal_metapkg/pyproject.toml',
+                    verify = 'ncrystal_verify/pyproject.toml',
+                   )
 
 _data_cache = {}
 def load_data( key ):
@@ -83,6 +85,7 @@ def check_metadata():
     data_coreempty = load_data( 'coreempty' )
     data_py = load_data( 'py' )
     data_meta = load_data( 'meta' )
+    data_verify = load_data( 'verify' )
     data_plugmgr = load_data( 'plugmgr' )
 
     #Check that there are no unexpected sections:
@@ -94,32 +97,40 @@ def check_metadata():
     assert toplvlkeys == set( data_py.keys() )
     assert toplvlkeys_notool == set( data_meta.keys() )
     assert toplvlkeys == set( data_plugmgr.keys() )
+    assert toplvlkeys == set( data_verify.keys() )
 
     #Check 'project' section
     version = data_core['project']['version']
     assert data_coreempty['project']['version']==version
     assert data_monolith['project']['version']==version
     assert data_meta['project']['version']==version
+    assert data_verify['project']['version']==version
     projkeys_monolith = set( data_monolith['project'].keys() )
     projkeys_core = set( data_core['project'].keys() )
     projkeys_coreempty = set( data_coreempty['project'].keys() )
     projkeys_py = set( data_py['project'].keys() )
     projkeys_meta = set( data_meta['project'].keys() )
     projkeys_plugmgr = set( data_plugmgr['project'].keys() )
+    projkeys_verify = set( data_verify['project'].keys() )
     assert 'dependencies' in projkeys_monolith
     assert 'dependencies' not in projkeys_core
     assert 'dependencies' not in projkeys_coreempty
     assert 'dependencies' in projkeys_py
     assert 'dependencies' in projkeys_meta
     assert 'dependencies' in projkeys_plugmgr
+    assert 'dependencies' in projkeys_verify
     assert data_plugmgr['project']['dependencies']==[]
 
     assert ( set(data_meta['project']['dependencies'])
              == set([f'ncrystal-core=={version}',
                      f'ncrystal-python=={version}']) )
+    assert ( set(data_verify['project']['dependencies'])
+             == set([f'ncrystal-python=={version}']) )
     assert ( projkeys_monolith - projkeys_core ) == set(['dependencies'])
     assert ( projkeys_core - projkeys_monolith ) == set([])
     assert ( projkeys_core - projkeys_meta ) == set(['scripts'])
+    assert ( projkeys_core - projkeys_verify ) == set([])
+    assert ( projkeys_verify - projkeys_core ) == set(['dependencies'])
     assert ( projkeys_meta - projkeys_core ) == set(['dependencies',
                                                      'optional-dependencies'])
     assert ( projkeys_py - projkeys_monolith ) == set(['dynamic'])
@@ -130,6 +141,7 @@ def check_metadata():
 
     cmp_common_entries( 'project', data_coreempty, data_core )
     cmp_common_entries( 'build-system', data_coreempty, data_py )
+    cmp_common_entries( 'build-system', data_core, data_verify )
     assert ( data_coreempty['build-system'] == data_py['build-system'] )
 
     cmp_common_entries( 'project', data_coreempty, data_core,
@@ -137,6 +149,8 @@ def check_metadata():
 
     cmp_common_entries( 'project', data_meta, data_core,
                         allow_diff = ['name'] )
+    cmp_common_entries( 'project', data_core, data_verify,
+                        allow_diff = ['scripts','name'])
     cmp_common_entries( 'project', data_py, data_plugmgr,
                         allow_diff = ['name','description',
                                       'dependencies','scripts'] )

@@ -18,6 +18,7 @@
 ##  limitations under the License.                                            ##
 ##                                                                            ##
 ################################################################################
+
 """
 
    Module providing directories needed during testing.
@@ -26,20 +27,17 @@
 
 from pathlib import Path as _Path
 
-ncrystal_repo_tests = ( _Path(__file__).resolve().absolute()
-                       .parent.parent.parent )
-
-ncrystal_repo_root = ncrystal_repo_tests.parent
-
-ncrystal_data_dir = ncrystal_repo_root.joinpath('data')
+_pymoddir = _Path(__file__).resolve().absolute().parent
 
 def _find_data_dir():
-    from .modeinfo import is_simplebuild_mode
+    from .modeinfo import is_simplebuild_mode, is_ncrystalverify_mode
     if is_simplebuild_mode():
         import os
         ddir = _Path(os.environ['SBLD_DATA_DIR'])/'NCTestUtils'
+    elif is_ncrystalverify_mode():
+        ddir = _pymoddir.parent.parent.joinpath('data')
     else:
-        ddir = ncrystal_repo_tests.joinpath('data')
+        ddir = _pymoddir.parent.parent.joinpath('data')
     assert ddir.is_dir()
     return ddir
 
@@ -47,11 +45,13 @@ test_data_dir = _find_data_dir()
 
 def get_named_test_data_dir(name):
     #name of subdir of /tests/data
-    from .modeinfo import is_simplebuild_mode
+    from .modeinfo import is_simplebuild_mode, is_ncrystalverify_mode
     if is_simplebuild_mode():
         import os
         ddir = _Path(os.environ['SBLD_DATA_DIR'])/f'NCTestData_{name}'
+    elif is_ncrystalverify_mode():
+        ddir = _pymoddir.parent.parent.joinpath('data',name)
     else:
-        ddir = ncrystal_repo_tests.joinpath('data',name)
+        ddir = _pymoddir.parent.parent.joinpath('data',name)
     assert ddir.is_dir()
     return ddir

@@ -2,6 +2,7 @@ _site
 .DS_Store
 
 /ncrystal_core/skbld_autogen/
+/ncrystal_verify/skbld_autogen/
 /skbld_autogen/
 /ncrystal_core/dist/
 

@@ -40,7 +40,9 @@ def main():
                 'ncrystal_core/README.md',
                 'ncrystal_core/empty_pypkg/README.md',
                 'ncrystal_python/README.md',
-                'ncrystal_metapkg/README.md')
+                'ncrystal_metapkg/README.md',
+                'ncrystal_verify/README.md',
+               )
 
     check_same( 'LICENSE',
                 'ncrystal_core/LICENSE',
@@ -48,6 +50,7 @@ def main():
                 'ncrystal_python/LICENSE',
                 'ncrystal_metapkg/LICENSE',
                 'ncrystal_pypluginmgr/LICENSE',
+                'ncrystal_verify/LICENSE',
                 'examples/plugin/LICENSE',
                 'examples/plugin_dataonly/LICENSE')
 

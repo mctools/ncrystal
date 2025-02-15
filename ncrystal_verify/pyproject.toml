@@ -19,4 +19,40 @@
 ##                                                                            ##
 ################################################################################
 
-# Testing modules. Leave this __init__.py file empty.
+[project]
+name = "ncrystal-verify"
+version = "4.0.1"
+requires-python = ">=3.8"
+#Not ncrystal-core, since we want to allow testing of manually built
+#installations, where ncrystal-core might be installed in a non pip-aware
+#manner:
+dependencies = [ 'ncrystal-python==4.0.1' ]
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+  { name="NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)" },
+]
+description = "Library for thermal neutron transport in crystals and other materials."
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+]
+
+[project.urls]
+"Homepage" = "https://mctools.github.io/ncrystal/"
+"Bug Tracker" = "https://github.com/mctools/ncrystal/issues"
+
+[project.scripts]
+ncrystal-verify = "_ncrystal_verify._cli:main"
+
+[build-system]
+requires = ["scikit-build-core>=0.10"]
+build-backend = "scikit_build_core.build"
+
+[tool.scikit-build]
+logging.level = "INFO"
+minimum-version = "build-system.requires"
+wheel.packages = ['skbld_autogen/_ncrystal_verify']
+sdist.include = ['/CMakeLists.txt','/pyproject.toml','/skbld_autogen/']
+sdist.cmake = true
+wheel.py-api = "py3" # as close to "noarch" as possible (ABI3)

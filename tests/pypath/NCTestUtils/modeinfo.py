@@ -27,3 +27,7 @@ def is_simplebuild_mode():
         _mode_is_sbld[0] = ( pathlib.Path(__file__).parent
                              .joinpath('_is_simplebuild.py').is_file() )
     return _mode_is_sbld[0]
+
+def is_ncrystalverify_mode():
+    """Whether or not exported as part of ncrystal-verify package"""
+    return False
