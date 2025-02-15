@@ -66,10 +66,8 @@ def run_test( script ):
                               )
         if rv.returncode != 0:
             print(" .. failed !")
-            print('stdout:')
-            print(rv.stdout.decode())
-            print('stderr:')
-            print(rv.stderr.decode())
+            print_lines_with_snipping(rv.stdout,prefix='stdout: ')
+            print_lines_with_snipping(rv.stderr,prefix='stderr: ')
             raise SystemExit(1)
         else:
             logfile = script_path.parent.joinpath('%s.log'%name)
@@ -85,14 +83,23 @@ def run_test( script ):
             print(" .. success")
 
 
+def as_lines( s ):
+    return ( s.decode('utf8','backslashreplace')
+             if isinstance(s,bytes)
+             else s ).splitlines(keepends=True)
+
+def print_lines_with_snipping( b, prefix ):
+    lines = as_lines(b)
+    n1,n2 = 20,80
+    if len(lines)>n1+n2+20:
+        lines = ( lines[0:n1]
+                  + ['<SNIPPED %i lines>'%(len(lines)-n1-n2)]
+                  +lines[-n2:] )
+    print(prefix + prefix.join(lines))
+
 def calc_diff_output( a, b, beforetxt, aftertxt ):
     if a == b:
         return ''
-    def as_lines( s ):
-        return ( s.decode('utf8','backslashreplace')
-                 if isinstance(s,bytes)
-                 else s ).splitlines(keepends=True)
-
     import difflib
     ud = difflib.unified_diff( as_lines(a), as_lines(b),
                                fromfile=beforetxt, tofile=aftertxt )
