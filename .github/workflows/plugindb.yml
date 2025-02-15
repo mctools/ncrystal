@@ -85,6 +85,18 @@ jobs:
     - name: Test ncrystal
       run: nctool --test
 
+    - name: Install ncrystal-verify
+      run: pip install ./src/ncrystal_verify
+
+    - name: Pip check
+      run: pip check
+
+    - name: Install extra test deps
+      run: pip install -r ./src/devel/reqs/requirements_all_and_devel.txt
+
+    - name: Launch ncrystal-verify
+      run: ncrystal-verify
+
   checkplugin:
     needs: [ preparations, build_ncrystal ]
 
