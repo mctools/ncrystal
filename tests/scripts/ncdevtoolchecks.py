@@ -23,10 +23,14 @@
 # NEEDS: toml
 
 def main():
-    from NCTestUtils.dirs import ncrystal_repo_root
+    import pathlib
     import sys
     import subprocess
-    ncdevtool = ncrystal_repo_root.joinpath('devel','bin','ncdevtool')
+
+    reporoot = pathlib.Path(__file__).resolve().parent.parent.parent
+    ncdevtool = reporoot.joinpath('devel','bin','ncdevtool')
+    assert ncdevtool.is_file()
+
     rv = subprocess.run( [ sys.executable or 'python3', '-BI',
                            ncdevtool, 'check', '-n','fix'+'me' ] )
     if rv.returncode != 0:
