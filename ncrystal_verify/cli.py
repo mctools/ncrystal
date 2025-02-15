@@ -139,8 +139,6 @@ def prepare_needs( scripts ):
                 #use optional module tomli in 3.10 and earlier:
                 modtoimport = 'tomli'
         try:
-            if modtoimport=='gemmi':
-                raise ModuleNotFoundError
             importlib.import_module(modtoimport)
         except ModuleNotFoundError:
             absent.add( dep )
@@ -267,8 +265,10 @@ def main():
 
     nbad = failures + dep_skipped_bad
     if nbad:
-        raise SystemExit(f'ERROR: Problems with {nbad} tests.')
+        print(f'ERROR: Problems with {nbad} tests.')
+        raise SystemExit(1)
     if not successes:
-        raise SystemExit('ERROR: Requires at least a '
-                         'single test to run succesfully.')
+        print('ERROR: Requires at least a '
+              'single test to run succesfully.')
+        raise SystemExit(1)
     print('All selected tests ran successfully.')
