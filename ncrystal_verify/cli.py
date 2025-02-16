@@ -84,10 +84,17 @@ def run_test( script ):
             print(" .. success")
     return True #success
 
+def normalise_eolmarkers( s ):
+    return ( s[:-2]+'\n' ) if s.endswith('\r\n') else s
+
 def as_lines( s ):
-    return ( s.decode('utf8','backslashreplace')
-             if isinstance(s,bytes)
-             else s ).splitlines(keepends=True)
+    #Safe decode with EOL normalisation to avoid spurious failures on windows:
+    lines = ( s.decode('utf8','backslashreplace')
+              if isinstance(s,bytes)
+              else s ).splitlines(keepends=True)
+    if not any( e.endswith('\r\n') for e in lines ):
+        return lines
+    return [ normalise_eolmarkers(e) for e in lines ]
 
 def print_lines_with_snipping( b, prefix ):
     lines = as_lines(b)
