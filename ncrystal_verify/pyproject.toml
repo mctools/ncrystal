@@ -56,3 +56,4 @@ wheel.packages = ['skbld_autogen/_ncrystal_verify']
 sdist.include = ['/CMakeLists.txt','/pyproject.toml','/skbld_autogen/']
 sdist.cmake = true
 wheel.py-api = "py3" # as close to "noarch" as possible (ABI3)
+wheel.platlib = false # Wheels are pure, CMake is only used to invoke generate.py
