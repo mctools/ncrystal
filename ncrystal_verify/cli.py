@@ -60,6 +60,9 @@ def run_test( script ):
     #Needed for windows, leaving them on all the time for now:
     env['PYTHONIOENCODING']='UTF-8'
     env['PYTHONLEGACYWINDOWSSTDIO']='UTF-8'
+    #Make sure we ignore any plugins in the environment, or we might get
+    #spurious test failures:
+    env['NCRYSTAL_DISABLE_DYNLOAD']='1'
     with work_in_tmpdir():
         rv = subprocess.run( [sys.executable, str(script)],
                              env = env,
