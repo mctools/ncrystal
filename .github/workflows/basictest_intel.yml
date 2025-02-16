@@ -115,6 +115,8 @@ jobs:
 
     - name: Test installed
       if: matrix.mode != 'ctest'
+      env:
+        NCRYSTAL_ONLINEDB_FORBID_NETWORK: 1
       run: |
         source /opt/intel/oneapi/setvars.sh
         set -eux
@@ -136,7 +138,10 @@ jobs:
         ncrystal_ncmat2cpp --help
         ncrystal_hfg2ncmat --help
         ncrystal_verifyatompos --help
-        ncrystal_cif2ncmat codid::9008460
+        export NCRYSTAL_ONLINEDB_CACHEDIR="$PWD/codidcache"
+        mkdir -p "${NCRYSTAL_ONLINEDB_CACHEDIR}"
+        cp ./src/tests/data/fake_cod_9005777.cif "${NCRYSTAL_ONLINEDB_CACHEDIR}/cod_9005777.cif"
+        ncrystal_cif2ncmat codid::9005777
         ncrystal_ncmat2hkl --help
         ncrystal_ncmat2hkl --format=laz 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test_Al.laz
         ncrystal_ncmat2hkl --format=lau 'Al_sg225.ncmat;temp=250K;dcutoff=0.75' -o test_Al.lau
