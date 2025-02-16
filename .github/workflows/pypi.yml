@@ -144,8 +144,8 @@ jobs:
       sdistname_metapkg: ncrystal${{ env.SDIST_SUFFIX }}
       sdistname_verify: ncrystal_verify${{ env.SDIST_SUFFIX }}
 
-  build_universal_wheels:
-    name: Build universal wheels
+  build_pure_wheels:
+    name: Build pure wheels
     runs-on: ubuntu-latest
     needs: [ preparations, build_sdists ]
 
@@ -168,7 +168,7 @@ jobs:
           name: sdist-ncrystal-verify
           path: ./sdist-verify
 
-      - name: build ncrystal-python universal wheel
+      - name: build ncrystal-python pure wheel
         run: |
           set -eux
           mkdir tmp_wheelbld_python
@@ -176,7 +176,7 @@ jobs:
           tar xf ../sdist-python/${{needs.build_sdists.outputs.sdistname_python }}
           pipx run build --wheel ./ncrystal_python-${{ needs.preparations.outputs.ncrystalversion }} --outdir=../dist-ncrystal-python
 
-      - name: build ncrystal-metapkg universal wheel
+      - name: build ncrystal-metapkg pure wheel
         run: |
           set -eux
           mkdir tmp_wheelbld_metapkg
@@ -184,7 +184,7 @@ jobs:
           tar xf ../sdist-metapkg/${{needs.build_sdists.outputs.sdistname_metapkg }}
           pipx run build --wheel ./ncrystal-${{ needs.preparations.outputs.ncrystalversion }} --outdir=../dist-ncrystal-metapkg
 
-      - name: build ncrystal-verify universal wheel
+      - name: build ncrystal-verify pure wheel
         run: |
           set -eux
           mkdir tmp_wheelbld_verify
@@ -192,21 +192,21 @@ jobs:
           tar xf ../sdist-verify/${{needs.build_sdists.outputs.sdistname_verify }}
           pipx run build --wheel ./ncrystal_verify-${{ needs.preparations.outputs.ncrystalversion }} --outdir=../dist-ncrystal-verify
 
-      - name: register ncrystal-python universal wheel
+      - name: register ncrystal-python pure wheel
         uses: actions/upload-artifact@v4
         with:
           name: wheel-ncrystal-python
           path: ./dist-ncrystal-python/ncrystal_python-${{ needs.preparations.outputs.ncrystalversion }}-py3-none-any.whl
           if-no-files-found: error
 
-      - name: register ncrystal-metapkg universal wheel
+      - name: register ncrystal-metapkg pure wheel
         uses: actions/upload-artifact@v4
         with:
           name: wheel-ncrystal-metapkg
           path: ./dist-ncrystal-metapkg/ncrystal-${{ needs.preparations.outputs.ncrystalversion }}-py3-none-any.whl
           if-no-files-found: error
 
-      - name: register ncrystal-verify universal wheel
+      - name: register ncrystal-verify pure wheel
         uses: actions/upload-artifact@v4
         with:
           name: wheel-ncrystal-verify
@@ -293,7 +293,7 @@ jobs:
 
   collect_output:
     name: Collect all output
-    needs: [preparations, build_sdists, build_core_wheels, build_universal_wheels]
+    needs: [preparations, build_sdists, build_core_wheels, build_pure_wheels]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
@@ -321,19 +321,19 @@ jobs:
           name: sdist-ncrystal-core
           path: ./dist_core
 
-      - name: download ncrystal-python universal wheel
+      - name: download ncrystal-python pure wheel
         uses: actions/download-artifact@v4
         with:
           name: wheel-ncrystal-python
           path: ./dist_python
 
-      - name: download ncrystal-metapkg universal wheel
+      - name: download ncrystal-metapkg pure wheel
         uses: actions/download-artifact@v4
         with:
           name: wheel-ncrystal-metapkg
           path: ./dist_metapkg
 
-      - name: download ncrystal-verify universal wheel
+      - name: download ncrystal-verify pure wheel
         uses: actions/download-artifact@v4
         with:
           name: wheel-ncrystal-verify
