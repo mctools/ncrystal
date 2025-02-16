@@ -57,15 +57,8 @@ jobs:
           ncrystal-config -s
           nctool --test
 
-      #fixme:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: tk_volatile
-          path: ./src_co
-
       - name: Install ncrystal-verify
-        run: pip install ./src_co/ncrystal_verify
+        run: pip install ncrystal-verify
 
       - name: Run ncrystal-verify
         run: ncrystal-verify -m all
