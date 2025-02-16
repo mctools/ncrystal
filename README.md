@@ -104,17 +104,21 @@ your compiler's include path, and that the NCrystal library is linked
 correctly. Here are some examples of how this could for instance be done, with a
 C and a C++ app respectively:
 
-   export LDFLAGS="${LDFLAGS:-} -Wl,-rpath,$(ncrystal-config --show libdir) $(ncrystal-config --show libpath)"
-   export CFLAGS="${CFLAGS:-} -I$(ncrystal-config --show includedir)"
-   export CXXFLAGS="${CXXFLAGS:-} -I$(ncrystal-config --show includedir)"
-   cc -std=c11 ${LDFLAGS} ${CFLAGS} my_c_code.c -o my_c_app
-   c++ -std=c++17 ${LDFLAGS} ${CXXFLAGS} my_cpp_code.cpp -o my_cpp_app
+```
+export LDFLAGS="${LDFLAGS:-} -Wl,-rpath,$(ncrystal-config --show libdir) $(ncrystal-config --show libpath)"
+export CFLAGS="${CFLAGS:-} -I$(ncrystal-config --show includedir)"
+export CXXFLAGS="${CXXFLAGS:-} -I$(ncrystal-config --show includedir)"
+cc -std=c11 ${LDFLAGS} ${CFLAGS} my_c_code.c -o my_c_app
+c++ -std=c++17 ${LDFLAGS} ${CXXFLAGS} my_cpp_code.cpp -o my_cpp_app
+```
 
 Then, in your code you can access the relevant APIs with with statements like:
 
-  #include "NCrystal/NCrystal.hh"     // C++ code, core NCrystal
-  #include "NCrystal/ncrystal.h"      // C code
-  import NCrystal                     ## Python code
+```
+#include "NCrystal/NCrystal.hh"     // C++ code, core NCrystal
+#include "NCrystal/ncrystal.h"      // C code
+import NCrystal                     ## Python code
+```
 
 In the ./examples/ directory of your NCrystal distribution that you got after
 downloading and unpacking the NCrystal source tar-ball, you will find small
@@ -122,8 +126,10 @@ examples of code using NCrystal. For C++/C, there is currently no documentation
 beyond the header files and examples. In the case of Python, there is integrated
 documentation available via the usual "help" function, accessed with:
 
-  import NCrystal
-  help(NCrystal)
+```
+import NCrystal
+help(NCrystal)
+```
 
 There are also several jupyter-lab notebooks showcasing the NCrystal python API
 at https://github.com/mctools/ncrystal-notebooks
@@ -186,13 +192,13 @@ which when used in a complete OpenMC project, results in the following material
 entry being added to the `materials.xml` produced:
 
 ```
-  <material cfg="Polyethylene_CH2.ncmat;temp=50C" id="1" temperature="323.15">
-    <density units="g/cm3" value="0.92" />
-    <nuclide ao="0.66656284" name="H1" />
-    <nuclide ao="0.00010382666666666666" name="H2" />
-    <nuclide ao="0.32964066666666664" name="C12" />
-    <nuclide ao="0.003692666666666666" name="C13" />
-  </material>
+<material cfg="Polyethylene_CH2.ncmat;temp=50C" id="1" temperature="323.15">
+  <density units="g/cm3" value="0.92" />
+  <nuclide ao="0.66656284" name="H1" />
+  <nuclide ao="0.00010382666666666666" name="H2" />
+  <nuclide ao="0.32964066666666664" name="C12" />
+  <nuclide ao="0.003692666666666666" name="C13" />
+</material>
 ```
 
 Temperature, density and material composition were all created automatically
@@ -222,13 +228,13 @@ A few issues might warrent attention:
 
 For more information, please consult the user guide at:
 
-   https://docs.openmc.org/
+* https://docs.openmc.org/
 
 In particular note the sections concerning installation and usage of NCrystal in
 the sections:
 
-  https://docs.openmc.org/en/stable/usersguide/install.html
-  https://docs.openmc.org/en/stable/usersguide/materials.html
+* https://docs.openmc.org/en/stable/usersguide/install.html
+* https://docs.openmc.org/en/stable/usersguide/materials.html
 
 
 
@@ -249,27 +255,35 @@ the correct settings for doing so. Thus, you can always invoke "ncrystal-config
 active. Depending on how you installed McStas, NCrystal is most likely already
 available. If not, you can try one of the following ways of enabling it:
 
-   $> conda install conda-forge::ncrystal [if you are in a conda-forge env]
-   $> python3 -mpip install ncrystal [for non-conda users]
+```
+$> conda install conda-forge::ncrystal [if you are in a conda-forge env]
+$> python3 -mpip install ncrystal [for non-conda users]
+```
 
 It is beyond the scope for this README to provide a full documentation of
 McStas, or the Union sub-system, but if you are using McStasScript to compose
 your instruments, you can add NCrystal materials into your Union geometry using
 code like:
 
-  from mcstasscript.tools.ncrystal_union import add_ncrystal_union_material
-  add_ncrystal_union_material(instr, name="myAl", cfgstr="Al_sg225.ncmat;temp=10C")
+```
+from mcstasscript.tools.ncrystal_union import add_ncrystal_union_material
+add_ncrystal_union_material(instr, name="myAl", cfgstr="Al_sg225.ncmat;temp=10C")
+```
 
 This creates the material and gives it the name "myAl", which you must later
 attach to a particular Union volume, like for instance:
 
-  myvol.set_parameters(radius=0.01, yheight=0.01,
-                       material_string='"myAl"', priority=1)
+```
+myvol.set_parameters(radius=0.01, yheight=0.01,
+                     material_string='"myAl"', priority=1)
+```
 
 If you are instead hand-editing your instrument files, you can generate code
 which defines Union materials from an NCrystal cfg-string by invoking:
 
+```
 $> python3 -mNCrystal.mcstasutils --union myAl 'Al_sg225.ncmat;temp=250K'
+```
 
 It should be noted that McStas 3.3 also provides a new SHELL syntax which can
 also be used to faciliate this invocation from with a classic .instr file.
