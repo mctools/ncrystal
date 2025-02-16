@@ -420,14 +420,23 @@ def extract_path( s ):
             return res_try
         return pathlib.Path(s)
 
-def download_url( url, decode_as_utf8_str = True, wrap_exception = True ):
+def download_url( url,
+                  decode_as_utf8_str = True,
+                  wrap_exception = True,
+                  timeout = None,
+                  quiet_network_fail = False ):
+    """Download the provided url. The timeout value is in seconds if given.
+    Returns None on network failure if quiet_network_fail is True.
+    """
     import urllib.request
     import urllib.error
     try:
         req = urllib.request.Request(url)
-        with urllib.request.urlopen(req) as response:
+        with urllib.request.urlopen(req, timeout = timeout ) as response:
             data = response.read()
     except urllib.error.URLError as e:
+        if quiet_network_fail:
+            return None
         if wrap_exception:
             from .exceptions import NCException
             raise NCException(f'Error downloading url "{url}": {e}')

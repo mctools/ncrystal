@@ -1239,7 +1239,26 @@ def _cod_get_cifdata( codid, quiet = False ):
         return c
     if not quiet:
         _nc_common.print(f"Querying the Crystallography Open Database for entry {codid}")
-    result = _nc_common.download_url( "https://www.crystallography.net/cod/%i.cif"%(codid) )
+
+    mirror_urls = [
+        "https://www.crystallography.net/cod/%i.cif",#canonical first
+        'https://qiserver.ugr.es/cod/%i.cif',
+    ]
+
+    result = None
+    while result is None:
+        #Fail gently and try next mirror - except for the last attempt.
+        url = mirror_urls.pop(0)%codid
+        result = _nc_common.download_url( url,
+                                          timeout = 10.0,
+                                          quiet_network_fail = bool(mirror_urls) )
+        if result or not mirror_urls:
+            break
+        nextdescr = '/'.join(mirror_urls[0].split('/')[0:-1])+'/'
+        _nc_common.print(f'Retrival failed. Trying mirror at: {nextdescr}')
+
+    assert result is not None
+
     if len(_cod_cache)==10:
         _cod_cache.pop(0)
     _cod_cache.append( (codid, result ) )

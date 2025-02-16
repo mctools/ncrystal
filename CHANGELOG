@@ -1,3 +1,13 @@
+v4.0.1 (work in progress)
+     * Retrieval of CIF files from the Crystallography Open Database now tries a
+       backup mirror location at https://qiserver.ugr.es/cod/ if the primary
+       server is down.
+     * Introduce new ncrystal-verify package at PyPI which when installed
+       provides a command ncrystal-verify, which can be used to more thoroughly
+       verify a particular NCrystal installation. This package is experimental
+       for now, and documentation will only refer to it once it matures a bit
+       more.
+
 v4.0.0 2025-02-06
      * This milestone release primarily brings new supported user platforms and
        a huge restructuring of the environment in which NCrystal is developed
