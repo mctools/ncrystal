@@ -4,7 +4,6 @@
 DummyPlugin:
   github_repo_key: "mctools/ncrystal"
   repo_subdir: "examples/plugin"
-  gitref: develop # todo remove
   description: |
     A (silly) example from the NCrystal source repository, serving as a template
     for other plugins. This example shows how to create a plugin which actually
@@ -13,7 +12,6 @@ DummyPlugin:
 DummyDataPlugin:
   github_repo_key: "mctools/ncrystal"
   repo_subdir: "examples/plugin_dataonly"
-  gitref: develop # todo remove
   description: |
     A (silly) example from the NCrystal source repository, serving as a template
     for other plugins. This example shows how to create a plugin which only
