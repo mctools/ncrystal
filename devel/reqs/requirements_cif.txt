@@ -1,4 +1,3 @@
 ase<3.24.0
-gemmi
-numpy>=1.22
-spglib
+gemmi>=0.6.1
+spglib>=2.1.0

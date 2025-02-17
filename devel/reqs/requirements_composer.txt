@@ -1,2 +1,1 @@
-numpy>=1.22
-spglib
+spglib>=2.1.0

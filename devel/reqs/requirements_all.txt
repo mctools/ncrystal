@@ -1,5 +1,4 @@
 ase<3.24.0
-gemmi
-matplotlib
-numpy>=1.22
-spglib
+gemmi>=0.6.1
+matplotlib>=3.6.0
+spglib>=2.1.0

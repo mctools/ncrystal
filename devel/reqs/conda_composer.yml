@@ -6,7 +6,7 @@ dependencies:
   - c-compiler
   - cmake
   - cxx-compiler
-  - numpy >=1.22
+  - make
   - pip
   - python
-  - spglib
+  - spglib >=2.1.0

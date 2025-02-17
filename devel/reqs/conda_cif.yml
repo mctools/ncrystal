@@ -3,12 +3,12 @@ channels:
   - nodefaults
   - conda-forge
 dependencies:
-  - ase <3.24.0
   - c-compiler
   - cmake
   - cxx-compiler
-  - gemmi
-  - numpy >=1.22
+  - make
   - pip
   - python
-  - spglib
+  - ase <3.24.0
+  - gemmi >=0.6.1
+  - spglib >=2.1.0

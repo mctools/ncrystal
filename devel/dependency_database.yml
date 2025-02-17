@@ -1,0 +1,98 @@
+# We need to specify dependencies in many different files (various
+# pyproject.toml files, requirements.txt files, conda.yml files, conda meta.yaml
+# recipes, ...). To keep everything synchronized, we define all the
+# relationships in this one file, along with any version constraints
+# (interdependency on ncrystal-* pkgs will always happen with exact version
+# pinning).
+
+packages:
+  ncrystal-mono:
+    tomlfiles:
+      - pyproject.toml
+    deps:
+      BASE:
+        - numpy #TODO: rather say : "ADD ncrystal-python::BASE" "ADD ncrystal-core::BASE"
+  ncrystal-metapkg:
+    tomlfiles:
+      - ncrystal_metapkg/pyproject.toml
+    deps:
+      BASE:
+        - ncrystal-core
+        - ncrystal-python
+      plot:
+        - matplotlib
+      composer:
+        - spglib
+      cif:
+        - ADD composer
+        - gemmi
+        - ase
+      all:
+        - ADD plot
+        - ADD cif
+        - ADD composer
+      devel:
+        - simple-build-system
+        - ruff
+        - pyyaml
+        - cppcheck
+        - toml
+        - "CMD <python> <reporoot>/devel/bin/ncdevtool depdb --mode testdeps2json"
+  ncrystal-core:
+    tomlfiles:
+      - ncrystal_core/pyproject.toml
+      - ncrystal_core/empty_pypkg/pyproject.toml
+  ncrystal-python:
+    tomlfiles:
+      - ncrystal_python/pyproject.toml
+    deps:
+      BASE:
+        - numpy
+  ncrystal-pypluginmgr:
+    tomlfiles:
+      - ncrystal_pypluginmgr/pyproject.toml
+  ncrystal-verify:
+    tomlfiles:
+      - ncrystal_verify/pyproject.toml
+    deps:
+      BASE:
+        - ncrystal-python
+      all:
+        - "CMD <python> <reporoot>/ncrystal_verify/generate.py --gather-scripts-deps"
+
+dependencies:
+  toml:
+    min_version: "2.0.0"
+    import_check: tomli
+    pypi_pkgname: tomli
+    conda_pkgname: tomli
+    in_pystdlib_from: "3.11"
+  ase:
+    max_version: "<3.24.0"
+    import_check: ase.io
+  matplotlib:
+    min_version: "3.6.0"
+    import_check: matplotlib.pyplot
+  numpy:
+    min_version: "1.22"
+  spglib:
+    min_version: "2.1.0"
+  gemmi:
+    min_version: "0.6.1"
+  ruff:
+    min_version: "0.8.1"
+    cmd_check: ruff
+  #pybind11:
+  #  min_version: "2.11.0"
+  mpmath:
+    min_version: "1.3.0"
+  cppcheck:
+    import_check: null
+    cmd_check: cppcheck
+  pyyaml:
+    import_check: yaml
+    pypi_pkgname: PyYAML
+    conda_pkgname: pyyaml
+    min_version: "6.0.0"
+  simple-build-system:
+    min_version: "1.6.0"

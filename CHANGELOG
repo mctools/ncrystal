@@ -11,6 +11,10 @@ v4.0.1 (work in progress)
        "intversion" (e.g. 4000001) and not the version (4.0.1).  Note that
        "ncrystal-config --show intversion" was not affected by the bug and
        correctly printed the intversion.
+     * Dependency management of the various packages in the ncrystal ecosystem
+       is now maintained via one central file, devel/dependency_database.yml,
+       with unit tests ensuring it is applied correctly in static files across
+       the repository.
 
 v4.0.0 2025-02-06
      * This milestone release primarily brings new supported user platforms and
