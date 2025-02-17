@@ -1243,6 +1243,7 @@ def _cod_get_cifdata( codid, quiet = False ):
     mirror_urls = [
         "https://www.crystallography.net/cod/%i.cif",#canonical first
         'https://qiserver.ugr.es/cod/%i.cif',
+        'http://cod.ibt.lt/cod/%i.cif',
     ]
 
     result = None
