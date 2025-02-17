@@ -57,3 +57,6 @@ sdist.include = ['/CMakeLists.txt','/pyproject.toml','/skbld_autogen/']
 sdist.cmake = true
 wheel.py-api = "py3" # as close to "noarch" as possible (ABI3)
 wheel.platlib = false # Wheels are pure, CMake is only used to invoke generate.py
+
+[project.optional-dependencies]
+all = [ 'ase<3.24.0', 'gemmi', 'spglib', 'matplotlib', 'mpmath', 'numpy>=1.22' ]

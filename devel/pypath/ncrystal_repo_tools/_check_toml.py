@@ -130,7 +130,8 @@ def check_metadata():
     assert ( projkeys_core - projkeys_monolith ) == set([])
     assert ( projkeys_core - projkeys_meta ) == set(['scripts'])
     assert ( projkeys_core - projkeys_verify ) == set([])
-    assert ( projkeys_verify - projkeys_core ) == set(['dependencies'])
+    assert ( projkeys_verify - projkeys_core ) == set(['dependencies',
+                                                       'optional-dependencies'])
     assert ( projkeys_meta - projkeys_core ) == set(['dependencies',
                                                      'optional-dependencies'])
     assert ( projkeys_py - projkeys_monolith ) == set(['dynamic'])

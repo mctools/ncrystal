@@ -42,8 +42,15 @@ def read_pyfile_filtered( f ):
     return ''.join( filter_py_line(e) for e in
                     f.read_text().splitlines(keepends=True) )
 
-def handle_scripts( testinfo, tgtdir ):
-    tgtdir.mkdir( parents = True, exist_ok = True )
+def handle_scripts( testinfo, tgtdir = None ):
+    if tgtdir:
+        import builtins
+        print = builtins.print
+        tgtdir.mkdir( parents = True, exist_ok = True )
+    else:
+        def print(*a,**kw):
+            pass
+    needs = set()
     for name, info in sorted(testinfo['scripts'].items()):
         if name=='ncdevtoolchecks':
             print(f' .. skipping script: {name}')
@@ -53,6 +60,13 @@ def handle_scripts( testinfo, tgtdir ):
                 print(f' .. skipping non-pure script: {name}')
                 continue
             print(f" .. using script: {name}")
+            if not tgtdir:
+                #Don't write anything, just gather needs
+                for line in info['pyfile'].read_text().splitlines():
+                    if line.startswith('# NEEDS: '):
+                        needs.update(set(line[len('# NEEDS: '):].split()))
+                        break
+                continue
             tgtdir.joinpath(f'{name}.py').write_text(
                 read_pyfile_filtered( info['pyfile'] )
             )
@@ -60,6 +74,7 @@ def handle_scripts( testinfo, tgtdir ):
                 tgtdir.joinpath(f'{name}.log').write_text(
                     info['logfile'].read_text()
                 )
+    return needs
 
 def handle_pymods( testinfo, tgtdir ):
     for modname, pyfiles in sorted(testinfo['testmods'].items()):
@@ -93,14 +108,21 @@ def main():
     srcroot = pathlib.Path(__file__).parent
     reporoot = srcroot.parent
     sys.path.insert(0,str(reporoot.joinpath('devel','pypath')))
+    from ncrystal_repo_tools.testinfo import load as testinfo_load
+    testinfo = testinfo_load()
+
+    if '--gather-scripts-deps' in sys.argv[1:]:
+        #Special mode needed to verify dependency list in pyproject.toml
+        needs = handle_scripts( testinfo, None )
+        import json
+        print( json.dumps( sorted(needs) ) )
+        return
+
     tgt = srcroot.joinpath('skbld_autogen','_ncrystal_verify')
     assert not tgt.exists(), f"Assume cleaned target dir {tgt}"
     tgt.mkdir(parents=True)
     tgt.joinpath('__init__.py').touch()
     tgt.joinpath('_cli.py').write_text( srcroot.joinpath('cli.py').read_text() )
-
-    from ncrystal_repo_tools.testinfo import load
-    testinfo = load()
 
     handle_scripts( testinfo, tgt.joinpath('data','scripts') )
     handle_pymods( testinfo, tgt.joinpath('data','pypath') )
