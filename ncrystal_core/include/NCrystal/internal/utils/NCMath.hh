@@ -98,8 +98,9 @@ namespace NCRYSTAL_NAMESPACE {
   //Functions which remaps arguments and calls sincos_02pi for a potential
   //factor of 3 speedup. To be conservative we do not retrofit this into the
   //sincos(..)  function above (yet).:
-  PairDD sincos_2pix( double x );//Returns { sin(2*pi*x), cos(2*pi*x) }
-  PairDD sincos_fast( double );//Returns { sin(x), cos(x) }
+  struct sincosval_t { double sin, cos; };
+  sincosval_t sincos_2pix( double );//Returns { sin(2*pi*x), cos(2*pi*x) }
+  sincosval_t sincos_fast( double );//Returns { sin(x), cos(x) }
 
   //Approximations for exponential function (errors is 0.7e-10 or better):
   double exp_negarg_approx(double x);//error smaller than 0.7e-10, negative arguments only (slightly faster)
@@ -314,23 +315,17 @@ inline bool NCrystal::intervalsOverlap( const PairDD& x, const PairDD& y )
   return intervalsOverlap( x.first, x.second, y.first, y.second );
 }
 
-inline NCrystal::PairDD NCrystal::sincos_2pix( double x )
+inline NCrystal::sincosval_t NCrystal::sincos_2pix( double x )
 {
-#if defined(__GNUC__)
-  //Original code triggers gcc warning on arm, like discussed on
-  //https://stackoverflow.com/questions/77729813
-  PairDD res;
-  sincos_02pi((x-std::floor(x))*k2Pi,res.second,res.first);
+  //NB: We used to simply return PairDD but that triggers annoying gcc warning
+  //on arm, like discussed on https://stackoverflow.com/questions/77729813
+  //. Moving to a custom struct solves the issue.
+  sincosval_t res;
+  sincos_02pi((x-std::floor(x))*k2Pi,res.cos,res.sin);
   return res;
-#else
-  //So we do this instead, and hope the compiler will anyway optimize correctly:
-  double a, b;
-  sincos_02pi((x-std::floor(x))*k2Pi,b,a);
-  return { a, b };
-#endif
 }
 
-inline NCrystal::PairDD NCrystal::sincos_fast( double x )
+inline NCrystal::sincosval_t NCrystal::sincos_fast( double x )
 {
   return sincos_2pix( x * kInv2Pi );
 }

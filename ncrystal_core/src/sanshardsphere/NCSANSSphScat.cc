@@ -81,15 +81,14 @@ NC::CrossSect NC::SANSSphereScatter::crossSectionIsotropic(CachePtr&, NeutronEne
     if ( rksq > 1e20 )
       return CrossSect{ 0.0 };//guard against infinities
     const double fourrk=4.0*rk;
-    double sin4rk,cos4rk;
-    std::tie(sin4rk,cos4rk) = sincos_fast(fourrk);
+    auto sincos_4rk = sincos_fast(fourrk);
     const double rk4 = rksq * rksq;
     //Using StableSum in case some large terms cancel out:
     StableSum sum;
     sum.add(32.0*rk4);
     sum.add( - 8.0*rksq);
-    sum.add(fourrk*sin4rk);
-    sum.add(cos4rk);
+    sum.add(fourrk*sincos_4rk.sin);
+    sum.add(sincos_4rk.cos);
     sum.add(-1.0);
     return CrossSect{ m_scale * sum.sum() / ( rksq * rk4 ) };
     //    return CrossSect{ m_scale * ( 32.0*rk4 - 8.0*rksq + fourrk*sin4rk + cos4rk - 1.0 ) / (rksq * rk4) };
@@ -135,9 +134,8 @@ namespace NCRYSTAL_NAMESPACE {
         constexpr double c0 = 0.1111111111111111111111111;// 1/9
         return x * (c0+y*(c1+y*(c2+y*(c3+y*(c4+y*(c5+y*(c6+y*(c7+y*(c8+y*(c9+y*c10))))))))));
       } else {
-        double sinx,cosx;
-        std::tie(sinx,cosx) = sincos_fast(x);
-        return ncsquare(sinx-x*cosx) / ( xsq*xsq*x );
+        auto sincos_x = sincos_fast(x);
+        return ncsquare(sincos_x.sin-x*sincos_x.cos) / ( xsq*xsq*x );
       }
     }
 

@@ -370,10 +370,9 @@ NC::HKLList NC::calculateHKLPlanes( const StructureInfo& structureInfo,
             //that actually translates into an overall speedup of a factor of 3
             //(measured in NCrystal v2.7.0)!
             const double phase_div2pi = hkl.dot(pos);
-            double sp,cp;
-            std::tie(sp,cp) = sincos_2pix(phase_div2pi);
-            cpsum.add(cp);
-            spsum.add(sp);
+            auto spcp = sincos_2pix(phase_div2pi);
+            cpsum.add(spcp.cos);
+            spsum.add(spcp.sin);
           }
           real.add(cpsum.sum() * factor);
           imag.add(spsum.sum() * factor);
@@ -659,10 +658,9 @@ NC::HKLList NC::detail::calculateHKLPlanesWithSymEqRefl( const StructureInfo& st
             //that actually translates into an overall speedup of a factor of 3
             //(measured in NCrystal v2.7.0)!
             const double phase_div2pi = hkl.dot(pos);
-            double sp,cp;
-            std::tie(sp,cp) = sincos_2pix(phase_div2pi);
-            cpsum.add(cp);
-            spsum.add(sp);
+            auto spcp = sincos_2pix(phase_div2pi);
+            cpsum.add(spcp.cos);
+            spsum.add(spcp.sin);
           }
           real.add(cpsum.sum() * factor);
           imag.add(spsum.sum() * factor);
