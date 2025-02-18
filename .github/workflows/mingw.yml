@@ -51,7 +51,7 @@ jobs:
       env:
         CC: gcc
         CXX: g++
-      run: python3 -m pip install  .\src\ncrystal_core
+      run: python3 -m pip install  ./src
 
     - name: ncrystal-config summary
       shell: cmd
