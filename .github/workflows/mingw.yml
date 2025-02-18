@@ -35,19 +35,20 @@ jobs:
       with:
         path: src
 
-#    - name: Set up MinGW
-#      uses: egor-tensin/setup-mingw@v2
+    - uses: msys2/setup-msys2@v2
+
 
 #    - name: Setup python
 #      uses: actions/setup-python@v5
 #      with:
 #        python-version: 3.11
 #
+
     - name: Enable parallel cmake
       run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
 
     - name: Monolithic pip install of repo
-      shell: bash
+      shell: msys2 {0}
       env:
         CC: gcc
         CXX: g++
