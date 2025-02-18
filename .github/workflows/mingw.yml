@@ -29,200 +29,32 @@ jobs:
 
     #windows-latest is windows-2022 (Nov 2024)
 
+    defaults:
+      run:
+        shell: msys2 {0}
+
     steps:
+    - uses: msys2/setup-msys2@v2
+
     - name: Checkout
       uses: actions/checkout@v4
       with:
         path: src
 
-    - uses: msys2/setup-msys2@v2
+    - name: Enable parallel cmake
+      run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
 
+    - name: Monolithic pip install of repo
+      env:
+        CC: gcc
+        CXX: g++
+      run: python -m pip install -v  ./src
+
+    - name: ncrystal-config summary
+      run: ncrystal-config --summary
 
 #    - name: Setup python
 #      uses: actions/setup-python@v5
 #      with:
 #        python-version: 3.11
 #
-
-    - name: Enable parallel cmake
-      run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
-
-    - name: Monolithic pip install of repo
-      shell: msys2 {0}
-      env:
-        CC: gcc
-        CXX: g++
-      run: python3 -m pip install -v  ./src
-
-    - name: ncrystal-config summary
-      shell: cmd
-      run: ncrystal-config --summary
-
-    - name: tree ncrystalcoremonopkg
-      shell: cmd
-      run: |
-        tree /F /A C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_ncrystal_core_monolithic
-        echo Tree done
-
-    - name: pip install extra deps
-      shell: cmd
-      run: |
-        python -mpip install -r .\src\devel\reqs\requirements_all_and_devel.txt
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        python -c "import numpy; print('numpy imported ok')"
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        python -c "import gemmi; print('gemmi imported ok')"
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        python -c "import spglib; print('spglib imported ok')"
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        python -c "import ase; print('ase imported ok')"
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        python -c "import mpmath; print('mpmath imported ok')"
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        python -c "import matplotlib.pyplot; print('matplotlib imported ok')"
-        if %errorlevel% neq 0 exit /b %errorlevel%
-
-    - name: Various commandline tests
-      shell: cmd
-      run: |
-        ncrystal-config --summary
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        ncrystal-config --help
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        python3 -c "import NCrystal; NCrystal.test()"
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        python3 -c "import NCrystal as n; mat=n.load('Al_sg225.ncmat;temp=350K'); mat.dump()"
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        nctool --test
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        nctool --dump Al_sg225.ncmat
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        python3 -mNCrystal nctool --test
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        python3 ./src/examples/ncrystal_example_py
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        ncrystal_vdos2ncmat --help
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        ncrystal_cif2ncmat --help
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        ncrystal_ncmat2cpp --help
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        ncrystal_hfg2ncmat --help
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        ncrystal_verifyatompos --help
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        ncrystal_cif2ncmat codid::9008460
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        ncrystal_ncmat2hkl --help
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        ncrystal_ncmat2hkl --format=laz "Al_sg225.ncmat;temp=250K;dcutoff=0.75" -o test_Al.laz
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        ncrystal_ncmat2hkl --format=lau "Al_sg225.ncmat;temp=250K;dcutoff=0.75" -o test_Al.lau
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        nctool -d ./test_Al.laz
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        nctool -d ./test_Al.lau
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        ncrystal_ncmat2cpp stdlib::Al_sg225.ncmat -o test.cpp
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        cat test.cpp
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        nctool --pdf Al_sg225.ncmat
-        if %errorlevel% neq 0 exit /b %errorlevel%
-
-    #Two ways of enabling cl.exe and other tools. One is via an external action...:
-    - name: Setup VS in shell
-      uses: ilammy/msvc-dev-cmd@v1
-    #...but a simpler one might be to simply invoke the correct vcvars64.bat
-    #file first, like...:
-    #
-    #    - name: whatever
-    #      shell: cmd
-    #      run: |
-    #        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-    #        cl /help
-    #
-    #...but since we also want to support VS 2019, we use the above action for now
-
-    - name: Test downstream compilation and build flags
-      shell: cmd
-      run: |
-
-        echo "Set BUILDFLAGS variable via ncrystal-config --show buildflags"
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        ncrystal-config --show buildflags > buildflags.txt
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        set /p BUILDFLAGS=<buildflags.txt
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        echo "Got:" %BUILDFLAGS%
-        if %errorlevel% neq 0 exit /b %errorlevel%
-
-        echo "Copying C and C++ examples"
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        copy .\src\examples\ncrystal_example_cpp.cc my_cpp_code.cpp
-        if %errorlevel% neq 0 exit /b %errorlevel%
-
-        copy .\src\examples\ncrystal_example_c.c my_c_code.c
-        if %errorlevel% neq 0 exit /b %errorlevel%
-
-        echo "Compiling C code"
-        cl my_c_code.c %BUILDFLAGS%
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        echo "Custom compilation of downstream C code succeeded"
-
-        echo "Compiling C++ code"
-        cl my_cpp_code.cpp %BUILDFLAGS% /EHsc
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        echo "Custom compilation of downstream C++ code succeeded"
-
-        echo "Set NCSHLIBDIR variable via ncrystal-config --show shlibdir"
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        ncrystal-config --show shlibdir > ncshlibdir.txt
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        set /p NCSHLIBDIR=<ncshlibdir.txt
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        echo "Got:" NCSHLIBDIR
-        if %errorlevel% neq 0 exit /b %errorlevel%
-
-        echo "Running C app"
-        my_c_code.exe
-        if %errorlevel% neq 0 exit /b %errorlevel%
-
-        echo "Running C++ app"
-        my_cpp_code.exe
-        if %errorlevel% neq 0 exit /b %errorlevel%
-
-        echo "Compiling C code again (c11)"
-        cl my_c_code.c %BUILDFLAGS% /std:c11
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        echo "Custom compilation of downstream C code succeeded"
-
-        echo "Compiling C code again (c17)"
-        cl my_c_code.c %BUILDFLAGS% /std:c17
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        echo "Custom compilation of downstream C code succeeded"
-
-        echo "Compiling C code again (clatest)"
-        cl my_c_code.c %BUILDFLAGS% /std:c17
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        echo "Custom compilation of downstream C code succeeded"
-
-        echo "Compiling C++ code again (c++14)"
-        cl my_cpp_code.cpp %BUILDFLAGS% /std:c++14 /EHsc
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        echo "Custom compilation of downstream C++ code succeeded"
-
-        echo "Compiling C++ code again (c++17)"
-        cl my_cpp_code.cpp %BUILDFLAGS% /std:c++17 /EHsc
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        echo "Custom compilation of downstream C++ code succeeded"
-
-        echo "Compiling C++ code again (c++20)"
-        cl my_cpp_code.cpp %BUILDFLAGS% /std:c++20 /EHsc
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        echo "Custom compilation of downstream C++ code succeeded"
-
-        echo "Compiling C++ code again (c++latest)"
-        cl my_cpp_code.cpp %BUILDFLAGS% /std:c++20 /EHsc
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        echo "Custom compilation of downstream C++ code succeeded"
