@@ -448,7 +448,7 @@ int mainprog( nccfgstate* state )
   }
 
   if ( mode == NCCFG_MODE_INTVERSION ) {
-    printf("%s\n",nccfg_const_version());
+    printf("%s\n",nccfg_const_intversion());
   } else if ( mode == NCCFG_MODE_VERSION ) {
     printf("%s\n",nccfg_const_version());
   } else if ( mode == NCCFG_MODE_HELP ) {
