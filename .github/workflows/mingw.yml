@@ -51,7 +51,7 @@ jobs:
       env:
         CC: gcc
         CXX: g++
-      run: python3 -m pip install --config-settings=cmake.define.NCRYSTAL_WINEXPORTALL=${{ matrix.winexportall }}  .\src\
+      run: python3 -m pip install  .\src\ncrystal_core
 
     - name: ncrystal-config summary
       shell: cmd
