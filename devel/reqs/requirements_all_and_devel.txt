@@ -5,6 +5,7 @@ gemmi>=0.6.1
 matplotlib>=3.6.0
 mpmath>=1.3.0
 numpy>=1.22
+pybind11>=2.11.0
 ruff>=0.8.1
 simple-build-system>=1.6.0
 spglib>=2.1.0

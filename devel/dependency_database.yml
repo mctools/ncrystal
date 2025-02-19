@@ -33,6 +33,7 @@ packages:
         - ADD composer
       devel:
         - simple-build-system
+        - pybind11
         - ruff
         - pyyaml
         - cppcheck
@@ -96,3 +97,5 @@ dependencies:
     min_version: "6.0.0"
   simple-build-system:
     min_version: "1.6.0"
+  pybind11:
+    min_version: "2.11.0"
