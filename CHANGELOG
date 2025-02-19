@@ -1,4 +1,4 @@
-v4.0.1 (work in progress)
+v4.0.2 2025-02-19
      * Retrieval of CIF files from the Crystallography Open Database now tries a
        backup mirror location at https://qiserver.ugr.es/cod/ if the primary
        server is down.
@@ -8,15 +8,15 @@ v4.0.1 (work in progress)
        for now, and documentation will only refer to it once it matures a bit
        more.
      * The command "ncrystal-config --intversion" now correctly prints the
-       "intversion" (e.g. 4000001) and not the version (4.0.1).  Note that
+       "intversion" (e.g. 4000002) and not the "version" (4.0.2).  Note that
        "ncrystal-config --show intversion" was not affected by the bug and
-       correctly printed the intversion.
+       correctly printed the intversion also previously.
      * Dependency management of the various packages in the ncrystal ecosystem
        is now maintained via one central file, devel/dependency_database.yml,
        with unit tests ensuring it is applied correctly in static files across
        the repository.
 
-v4.0.0 2025-02-06
+v4.0.0 2025-02-10
      * This milestone release primarily brings new supported user platforms and
        a huge restructuring of the environment in which NCrystal is developed
        and tested. In addition, it also brings many minor fixes, and an updated
