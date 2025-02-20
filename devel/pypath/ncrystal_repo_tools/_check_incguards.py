@@ -53,7 +53,7 @@ def check_NCrystal_hh( content, incguards ):
     for ig, include in incguards.items():
         if include in expected_missing:
             continue
-        raise SystemExit(f'NCrystal misses correct include for {include}')
+        raise SystemExit(f'NCrystal.hh misses correct include for {include}')
     assert len(incguards) == len(expected_missing)
 
 def main():
