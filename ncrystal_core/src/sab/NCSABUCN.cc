@@ -376,8 +376,8 @@ namespace NCRYSTAL_NAMESPACE {
                    randIsotropicScatterMu(rng) };
         } else {
           auto demu = convertAlphaBetaToDeltaEMu( alphabeta, ekin, kT );
-          return { NeutronEnergy{ ncmax(0.0,ekin.dbl() + demu.first) },
-                   CosineScatAngle{demu.second} };
+          return { NeutronEnergy{ ncmax(0.0,ekin.dbl() + demu.deltaE) },
+                   CosineScatAngle{demu.mu} };
         }
       };
 

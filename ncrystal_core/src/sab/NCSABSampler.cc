@@ -227,5 +227,6 @@ NC::PairDD NC::SABSampler::sampleDeltaEMu(NeutronEnergy ekin, RNG& rng) const
   auto alphabeta = sampleAlphaBeta(ekin,rng);
   if ( NC::muIsotropicAtBeta(alphabeta.second,ekin.get()/m_kT) )
     return std::make_pair( alphabeta.second*m_kT, rng.generate()*2.0 - 1.0 );
-  return convertAlphaBetaToDeltaEMu(alphabeta,ekin,m_kT);
+  auto res = convertAlphaBetaToDeltaEMu(alphabeta,ekin,m_kT);
+  return { res.deltaE, res.mu };
 }

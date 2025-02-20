@@ -31,8 +31,9 @@ namespace NCRYSTAL_NAMESPACE {
   //Get deltaE and mu=cos(scattering_angle) from (alpha,beta). It is recommended
   //to check muIsotropicAtBeta before calling this (for numerical safety, but it
   //might also save the effort of sampling alpha).
-  PairDD convertAlphaBetaToDeltaEMu(double alpha, double beta, NeutronEnergy ekin, double kT );
-  PairDD convertAlphaBetaToDeltaEMu(PairDD alphabeta, NeutronEnergy ekin, double kT );
+  struct DeltaEMuVal_t { double deltaE, mu; };
+  DeltaEMuVal_t convertAlphaBetaToDeltaEMu(double alpha, double beta, NeutronEnergy ekin, double kT );
+  DeltaEMuVal_t convertAlphaBetaToDeltaEMu(PairDD alphabeta, NeutronEnergy ekin, double kT );
 
   //Get kinematically accessible alpha region for given ekin/kT and beta:
   double getAlphaMinus( double ekin_div_kT, double beta );
@@ -75,7 +76,7 @@ namespace NCRYSTAL_NAMESPACE {
 ////////////////////////////
 
 namespace NCRYSTAL_NAMESPACE {
-  inline PairDD convertAlphaBetaToDeltaEMu( PairDD alphabeta, NeutronEnergy ekin, double kT )
+  inline DeltaEMuVal_t convertAlphaBetaToDeltaEMu( PairDD alphabeta, NeutronEnergy ekin, double kT )
   {
     return convertAlphaBetaToDeltaEMu(alphabeta.first,alphabeta.second,ekin,kT);
   }

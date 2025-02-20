@@ -152,7 +152,11 @@ namespace NCRYSTAL_NAMESPACE {
       //that it triggered various code-paths resulting in -m_c_real<beta<-m_c.
       return std::make_pair(beta*m_kT,rng.generate()*2.0-1.0);
     }
-    return convertAlphaBetaToDeltaEMu(sampleAlpha(beta,rng),beta,NeutronEnergy{m_c*m_kT},m_kT);
+    auto res = convertAlphaBetaToDeltaEMu( sampleAlpha(beta,rng),
+                                           beta,
+                                           NeutronEnergy{m_c*m_kT},
+                                           m_kT );
+    return { res.deltaE, res.mu };
   }
 
 }
