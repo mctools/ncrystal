@@ -45,7 +45,7 @@ namespace NCRYSTAL_NAMESPACE {
         return reinterpret_cast<PubScatterProcess*>( new ScatterProcess(cfgstr) );
       }
 
-      void freeScatter( PubScatterProcess * sp ) const override//fixme deallocate?
+      void deallocateScatter( PubScatterProcess * sp ) const override
       {
         delete reinterpret_cast<ScatterProcess*>(sp);
       }

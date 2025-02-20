@@ -1,0 +1,19 @@
+ Al: xs(0.5 Aa) = 1.392459 barn/atom
+ Al: xs(1 Aa) = 1.373013 barn/atom
+ Al: xs(1.5 Aa) = 1.371523 barn/atom
+ Al: xs(2 Aa) = 1.294561 barn/atom
+ Al: xs(2.5 Aa) = 1.110977 barn/atom
+ Al: xs(3 Aa) = 1.05894 barn/atom
+ Al: xs(3.5 Aa) = 1.385972 barn/atom
+ Al: xs(4 Aa) = 1.76865 barn/atom
+ Al: xs(4.5 Aa) = 1.403056 barn/atom
+ Al: xs(5 Aa) = 0.1432867 barn/atom
+ Al: xs(5.5 Aa) = 0.1487311 barn/atom
+ Al: xs(6 Aa) = 0.1549858 barn/atom
+ GeSC: xs(1.54 Aa, dir1) = 591.0263 barn/atom
+ GeSC: xs(1.54 Aa, dir2) = 1.667601 barn/atom
+Neutron state: (wl=1.54 u=(0, 1, 1)
+Neutron state: (wl=1.54 u=(0.44452, 0.70709, 0.54993)
+Neutron state: (wl=1.54 u=(1.0321e-05, 0.70708, 0.70714)
+Neutron state: (wl=1.54 u=(-0.44452, 0.70692, -0.55015)
+Neutron state: (wl=1.54 u=(1.41e-05, 0.70694, -0.70727)
