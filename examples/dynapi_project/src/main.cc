@@ -18,16 +18,22 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/dynapi/NCDynAPIFactory.hh"
-#include "NCDynAPI_Type1_v1_impl.hh"
+#include "ncrystal_load.hh"
+#include <iostream>
+#include <vector>
 
-void * ncrystal_access_dynamic_api( unsigned interface_id )
+int main()
 {
-  using t1v1 = NCrystal::DynAPI::Type1_v1_Impl;
-  if ( interface_id == t1v1::interface_id ) {
-    static std::shared_ptr<const t1v1> sp_t1v1 = std::make_shared<t1v1>();
-    return (void*)(&sp_t1v1);
+  NCrystalScatProc scat_al("Al_sg225.ncmat;temp=200K");
+  std::vector<double> wls = { 0.5, 1.0, 1.5, 2.0, 2.5, 3.0,
+                              3.5, 4.0, 4.5, 5.0, 5.5, 6.0 };
+  for ( auto wl : wls  ) {
+    NCrystalScatProc::NeutronState n;
+    n.ekin = 0.081804209605330899 / ( wl*wl );
+    n.ux = 1.0;
+    n.uy = 0.0;
+    n.uz = 0.0;
+    std::cout<<" xs("<<wl<<" Aa) = "<<scat_al.crossSection( n )<<std::endl;
   }
-
-  return nullptr;
+  return 0;
 }

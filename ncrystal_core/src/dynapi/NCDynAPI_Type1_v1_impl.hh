@@ -26,9 +26,9 @@ namespace NCRYSTAL_NAMESPACE {
 
   namespace DynAPI {
 
-    class Type1_v1_Impl final : public ::NCrystalDynamicAPI::DynApi_Type1_v1 {
+    class Type1_v1_Impl final : public ::NCrystalDynamicAPI::DynAPI_Type1_v1 {
     public:
-      using PubScatterProcess = ::NCrystalDynamicAPI::DynApi_Type1_v1::ScatterProcess;
+      using PubScatterProcess = ::NCrystalDynamicAPI::DynAPI_Type1_v1::ScatterProcess;
 
       struct ScatterProcess
       {
@@ -39,15 +39,14 @@ namespace NCRYSTAL_NAMESPACE {
         ProcImpl::ProcPtr procptr;
       };
 
-
-      PubScatterProcess * createScatter( const char * cfgstr ) const override
+      const PubScatterProcess * createScatter( const char * cfgstr ) const override
       {
         return reinterpret_cast<PubScatterProcess*>( new ScatterProcess(cfgstr) );
       }
 
-      void deallocateScatter( PubScatterProcess * sp ) const override
+      void deallocateScatter( const PubScatterProcess * sp ) const override
       {
-        delete reinterpret_cast<ScatterProcess*>(sp);
+        delete reinterpret_cast<const ScatterProcess*>(sp);
       }
 
       double crossSectionUncached( const PubScatterProcess& pub_sp,

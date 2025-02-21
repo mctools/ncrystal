@@ -27,7 +27,7 @@
 #include <iomanip>
 
 int main() {
-  auto dynapi = NCrystal::createDynAPI<NCrystalDynamicAPI::DynApi_Type1_v1>();
+  auto dynapi = NCrystal::createDynAPI<NCrystalDynamicAPI::DynAPI_Type1_v1>();
   nc_assert_always( dynapi != nullptr );
 
   auto scat_al = dynapi->createScatter(  "stdlib::Al_sg225.ncmat" );
@@ -144,6 +144,5 @@ int main() {
 
   dynapi->deallocateScatter(  scat_al );
   dynapi->deallocateScatter(  scat_scge );
-  delete dynapi;
   return 0;
 }
