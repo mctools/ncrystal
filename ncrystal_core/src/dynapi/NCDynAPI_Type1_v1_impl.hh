@@ -33,15 +33,22 @@ namespace NCRYSTAL_NAMESPACE {
       struct ScatterProcess
       {
         ScatterProcess( const char * cfgstr )
-          : procptr( FactImpl::createScatter( cfgstr ) )
-        {
-        }
+          : procptr( FactImpl::createScatter( cfgstr ) ) {}
+        ScatterProcess( ProcImpl::ProcPtr pp )
+          : procptr( std::move(pp) ) {}
         ProcImpl::ProcPtr procptr;
       };
 
       const PubScatterProcess * createScatter( const char * cfgstr ) const override
       {
         return reinterpret_cast<PubScatterProcess*>( new ScatterProcess(cfgstr) );
+      }
+
+      const PubScatterProcess * cloneScatter( const PubScatterProcess * psp ) const override
+      {
+        return reinterpret_cast<PubScatterProcess*>
+          ( new ScatterProcess
+            ( reinterpret_cast<const ScatterProcess*>( psp )->procptr) );
       }
 
       void deallocateScatter( const PubScatterProcess * sp ) const override

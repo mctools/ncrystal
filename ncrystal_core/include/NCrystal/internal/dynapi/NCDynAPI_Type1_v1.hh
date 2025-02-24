@@ -66,6 +66,7 @@ namespace NCrystalDynamicAPI {
 
     class ScatterProcess;
     virtual const ScatterProcess * createScatter( const char * cfgstr ) const = 0;
+    virtual const ScatterProcess * cloneScatter( const ScatterProcess * ) const = 0;
     virtual void deallocateScatter( const ScatterProcess * ) const = 0;
 
     //NB: Cross section units returned are barn/atom:
