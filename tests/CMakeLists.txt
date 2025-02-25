@@ -79,15 +79,25 @@ mctools_testutils_add_tests_pyscripts(
   "${CMAKE_CURRENT_LIST_DIR}/scripts" "${nctest_pyenvmod}"
 )
 
+set( nctests_extra_link_libs "${nctests_ncrystallib_target}" )
+
+#backtrace from FPE tests need -lexecinfo on FreeBSD:
+find_package(Backtrace)
+if( Backtrace_FOUND AND Backtrace_LIBRARY )
+  #NB: From cmake 3.30, the FindBacktrace modules also provides a proper target
+  #(Backtrace::Backtrace) which we should eventually use instead.
+  list( APPEND nctests_extra_link_libs "${Backtrace_LIBRARY}" )
+endif()
+
 set( nctests_extra_inc_dirs PUBLIC "${CMAKE_CURRENT_LIST_DIR}/include" )
 mctools_testutils_add_test_libs(
   "${CMAKE_CURRENT_LIST_DIR}/libs"
-  "${nctests_ncrystallib_target}"
+  "${nctests_extra_link_libs}"
   "${nctests_extra_inc_dirs}"
 )
 mctools_testutils_add_test_modules(
   "${CMAKE_CURRENT_LIST_DIR}/modules"
-  "${nctests_ncrystallib_target}"
+  "${nctests_extra_link_libs}"
   "${nctests_extra_inc_dirs}"
 )
 
@@ -111,7 +121,7 @@ endif()
 
 mctools_testutils_add_tests_apps(
   "${CMAKE_CURRENT_LIST_DIR}/src"
-  "${nctests_ncrystallib_target}"
+  "${nctests_extra_link_libs}"
   "${nctests_extra_inc_dirs}"
   "${nctest_appenvmod}"
 )
