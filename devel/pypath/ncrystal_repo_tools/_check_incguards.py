@@ -26,6 +26,10 @@
 def get_first_two_lines( f ):
     return f.read_text().splitlines()[0:2]
 
+def include_is_virtualapi(include):
+    p = include.split('/')
+    return len(p)==3 and p[0:2]==['NCrystal','virtualapi']
+
 def check_NCrystal_hh( content, incguards ):
     incguards = dict( (ig,include) for (include,ig) in incguards )
     lines = content.splitlines()
@@ -50,11 +54,15 @@ def check_NCrystal_hh( content, incguards ):
                          'NCrystal/NCRNG.hh'#deprecated header
                         )
 
+    nvirtualapi = 0
     for ig, include in incguards.items():
+        if include_is_virtualapi(include):
+            nvirtualapi += 1
+            continue
         if include in expected_missing:
             continue
         raise SystemExit(f'NCrystal.hh misses correct include for {include}')
-    assert len(incguards) == len(expected_missing)
+    assert len(incguards) == len(expected_missing) + nvirtualapi
 
 def main():
     from .srciter import all_files_iter
@@ -98,9 +106,9 @@ def main():
         assert l1 == f'#ifndef {ig}', f'Unexpected first line in {f}'
         assert l2 == f'#define {ig}'
         if not path_is_relative_to( f, incrootinternal ):
-            incguards_for_nchh.add(
-                (str(f.relative_to(incroot)).replace('\\','/'),ig)
-            )
+            include = str(f.relative_to(incroot)).replace('\\','/')
+            if not include_is_virtualapi(include):
+                incguards_for_nchh.add( (include,ig) )
 
     check_NCrystal_hh( f_NCrystal_hh.read_text(),
                        incguards_for_nchh )

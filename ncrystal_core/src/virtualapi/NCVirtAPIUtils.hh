@@ -22,7 +22,7 @@
 #include <functional>
 
 namespace NCRYSTAL_NAMESPACE {
-  namespace DynAPIUtils {
+  namespace VirtAPIUtils {
 
     class RNGWrapper : public RNGStream {
       //Intended for the case where a provider function clearly outlives the

@@ -1,3 +1,22 @@
+v4.0.3 (work in progress)
+     * Added a new "virtual API", which allows NCrystal to be used as a runtime
+       plugin in downstream applications, through usage of relevant abstract C++
+       interfaces in a set of "virtual api" headers, which are guaranteed to
+       remain stable across all NCrystal versions. A factory function is
+       provided which can instantiate these interfaces, and it is available with
+       C-bindings so downstream application can invoke it at runtime via either
+       dlopen+dlsym or LoadLibrary+GetProcAddress, depending on a platform.  For
+       now only one such "virtual api" header is provided, intended for usage in
+       the OpenMC project.
+     * An example project using NCrystal in this manner is provided in
+       examples/virtualapi_project.
+     * As an added bonus, applications desiring absolute ABI stability from
+       NCrystal, can use the new "virtual API" interfaces to obtain that. This
+       is true, even for applications with a more typical build-time dependency
+       on NCrystal, and do not wish to open the NCrystal library dynamically at
+       runtime. Currently the only actual example of such usage can be found in
+       tests/src/app_vapit1v1/main.cc.
+
 v4.0.2 2025-02-19
      * Retrieval of CIF files from the Crystallography Open Database now tries a
        backup mirror location at https://qiserver.ugr.es/cod/ if the primary

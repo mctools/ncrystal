@@ -18,8 +18,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/dynapi/NCDynAPIFactory.hh"
-#include "NCrystal/internal/dynapi/NCDynAPI_Type1_v1.hh"
+#include "NCrystal/virtualapi/NCVirtAPIFactory.hh"
+#include "NCrystal/virtualapi/NCVirtAPI_Type1_v1.hh"
 #include <iostream>
 #include <vector>
 #include <cmath>
@@ -27,31 +27,30 @@
 #include <iomanip>
 
 int main() {
-  auto dynapi = NCrystal::createDynAPI<NCrystalDynamicAPI::DynAPI_Type1_v1>();
-  nc_assert_always( dynapi != nullptr );
+  auto virtapi = NCrystal::createVirtAPI<NCrystalVirtualAPI::VirtAPI_Type1_v1>();
+  nc_assert_always( virtapi != nullptr );
 
-  auto scat_al = dynapi->createScatter(  "stdlib::Al_sg225.ncmat" );
-  auto scat_scge = dynapi->createScatter( "stdlib::Ge_sg227.ncmat"
-                                          ";dcutoff=0.5;mos=40.0arcsec"
-                                          ";dir1=@crys_hkl:5,1,1@lab:0,0,1"
-                                          ";dir2=@crys_hkl:0,-1,1@lab:0,1,0" );
+  auto scat_al = virtapi->createScatter(  "stdlib::Al_sg225.ncmat" );
+  auto scat_scge = virtapi->createScatter( "stdlib::Ge_sg227.ncmat"
+                                           ";dcutoff=0.5;mos=40.0arcsec"
+                                           ";dir1=@crys_hkl:5,1,1@lab:0,0,1"
+                                           ";dir2=@crys_hkl:0,-1,1@lab:0,1,0" );
+  auto scat_al2 = virtapi->cloneScatter( scat_al );
 
   std::vector<double> wls = { 0.5, 1.0, 1.5, 2.0, 2.5, 3.0,
                               3.5, 4.0, 4.5, 5.0, 5.5, 6.0 };
-  std::vector<double> refvals_xs_al = {
-    1.39245855,
-    1.37301271,
-    1.37152295,
-    1.29456141,
-    1.11097728,
-    1.05893956,
-    1.38597156,
-    1.76864975,
-    1.40305622,
-    0.143286738,
-    0.148731135,
-    0.154985793
-  };
+  std::vector<double> refvals_xs_al = { 1.39245855,
+                                        1.37301271,
+                                        1.37152295,
+                                        1.29456141,
+                                        1.11097728,
+                                        1.05893956,
+                                        1.38597156,
+                                        1.76864975,
+                                        1.40305622,
+                                        0.143286738,
+                                        0.148731135,
+                                        0.154985793 };
 
   auto require_flteq = [](double a, double b)
   {
@@ -75,9 +74,11 @@ int main() {
     return std::sqrt( 0.081804209605330899 / ekin );
   };
   auto it_refval = refvals_xs_al.begin();
+  int i = 0;
   for ( auto wl : wls  ) {
-    double xs = dynapi->crossSectionUncached( *scat_al, wl2ekin(wl),
-                                              dir[0], dir[1], dir[2] );
+    double xs = virtapi->crossSectionUncached( * (i++%2==0?scat_al:scat_al2),
+                                               wl2ekin(wl),
+                                               dir[0], dir[1], dir[2] );
     std::cout<<" Al: xs(" << wl << " Aa) = "
              << std::setprecision(7)<<xs << " barn/atom" << std::endl;
     require_flteq( *it_refval++, xs );
@@ -86,16 +87,16 @@ int main() {
 
   {
     double wl = 1.540;
-    double xs = dynapi->crossSectionUncached( *scat_scge, wl2ekin(wl),
-                                              0.0, 1.0, 1.0 );
+    double xs = virtapi->crossSectionUncached( *scat_scge, wl2ekin(wl),
+                                               0.0, 1.0, 1.0 );
     std::cout<<" GeSC: xs(" << wl << " Aa, dir1) = "
              << std::setprecision(7)<<xs << " barn/atom" << std::endl;
     require_flteq( 591.0263476502018, xs );
   }
   {
     double wl = 1.540;
-    double xs = dynapi->crossSectionUncached( *scat_scge, wl2ekin(wl),
-                                              1.0, 1.0, 0.0 );
+    double xs = virtapi->crossSectionUncached( *scat_scge, wl2ekin(wl),
+                                               1.0, 1.0, 0.0 );
     std::cout<<" GeSC: xs(" << wl << " Aa, dir2) = "
              << std::setprecision(7)<<xs << " barn/atom" << std::endl;
     require_flteq( 1.667600586136298, xs );
@@ -128,21 +129,22 @@ int main() {
     };
 
     print_state();
-    dynapi->sampleScatterUncached( *scat_scge, fakerng,
-                                   ekin, dir_x, dir_y, dir_z );
+    virtapi->sampleScatterUncached( *scat_scge, fakerng,
+                                    ekin, dir_x, dir_y, dir_z );
     print_state();
-    dynapi->sampleScatterUncached( *scat_scge, fakerng,
-                                   ekin, dir_x, dir_y, dir_z );
+    virtapi->sampleScatterUncached( *scat_scge, fakerng,
+                                    ekin, dir_x, dir_y, dir_z );
     print_state();
-    dynapi->sampleScatterUncached( *scat_scge, fakerng,
-                                   ekin, dir_x, dir_y, dir_z );
+    virtapi->sampleScatterUncached( *scat_scge, fakerng,
+                                    ekin, dir_x, dir_y, dir_z );
     print_state();
-    dynapi->sampleScatterUncached( *scat_scge, fakerng,
-                                   ekin, dir_x, dir_y, dir_z );
+    virtapi->sampleScatterUncached( *scat_scge, fakerng,
+                                    ekin, dir_x, dir_y, dir_z );
     print_state();
   }
 
-  dynapi->deallocateScatter(  scat_al );
-  dynapi->deallocateScatter(  scat_scge );
+  virtapi->deallocateScatter(  scat_al );
+  virtapi->deallocateScatter(  scat_al2 );
+  virtapi->deallocateScatter(  scat_scge );
   return 0;
 }

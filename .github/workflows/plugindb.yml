@@ -276,13 +276,13 @@ jobs:
       if: steps.pluginfo.outputs.is_on_pypi != '' && steps.pluginfo.outputs.disable_tests == ''
       run: ncrystal-pluginmanager --test "${{ matrix.plugin }}"
 
-  build_dynapi_app:
+  build_virtapi_app:
     needs: [ preparations ]
     strategy:
       matrix:
         os: ${{ fromJson(needs.preparations.outputs.platforms) }}
 
-    name: Build dynapi app @ ${{ matrix.os }}
+    name: Build virtapi app @ ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -292,38 +292,38 @@ jobs:
         path: src
 
     - name: Cfg app
-      run: cmake "-DCMAKE_INSTALL_PREFIX=dynapiapp" "-DCMAKE_BIN_DIR=bin" -S ./src/examples/dynapi_project -B ./build_dynapiapp
+      run: cmake "-DCMAKE_INSTALL_PREFIX=virtapiapp" "-DCMAKE_BIN_DIR=bin" -S ./src/examples/virtualapi_project -B ./build_virtapiapp
 
-    - name: Build and install dynapi-app
-      run: cmake --build ./build_dynapiapp --config Release
+    - name: Build and install virtapi-app
+      run: cmake --build ./build_virtapiapp --config Release
 
-    - name: Install dynapi-app
-      run: cmake --install ./build_dynapiapp --config Release
+    - name: Install virtapi-app
+      run: cmake --install ./build_virtapiapp --config Release
 
     - name: Look around
       if: runner.os == 'Windows'
-      run: tree /F ./dynapiapp
+      run: tree /F ./virtapiapp
 
     - uses: actions/upload-artifact@v4
       with:
-        name: dynapi-app-${{ matrix.os }}
-        path: ./dynapiapp/bin/ncrystal-dynapi-example*
+        name: virtapi-app-${{ matrix.os }}
+        path: ./virtapiapp/bin/ncrystal-virtapi-example*
         if-no-files-found: error
 
-  launch_dynapi_app:
-    needs: [ preparations, build_dynapi_app, build_ncrystal ]
+  launch_virtapi_app:
+    needs: [ preparations, build_virtapi_app, build_ncrystal ]
     strategy:
       matrix:
         os: ${{ fromJson(needs.preparations.outputs.platforms) }}
 
-    name: Launch dynapi app @ ${{ matrix.os }}
+    name: Launch virtapi app @ ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
 
     steps:
-    - name: download dynapi app
+    - name: download virtapi app
       uses: actions/download-artifact@v4
       with:
-        name: dynapi-app-${{ matrix.os }}
+        name: virtapi-app-${{ matrix.os }}
         path: ./app
 
     - name: download ncrystal wheels
@@ -340,14 +340,14 @@ jobs:
 
     - name: Look around
       if: runner.os != 'Windows'
-      run: ls -l ./app/ncrystal-dynapi-example
+      run: ls -l ./app/ncrystal-virtapi-example
 
     - name: Fix permissions
       if: runner.os != 'Windows'
-      run: chmod +x ./app/ncrystal-dynapi-example
+      run: chmod +x ./app/ncrystal-virtapi-example
 
     - name: Launch app
-      run: ./app/ncrystal-dynapi-example
+      run: ./app/ncrystal-virtapi-example
 
     - name: Launch app and check output
       shell: python
@@ -368,7 +368,7 @@ jobs:
           'xs(5.5 Aa) = 0.0839121',
           'xs(6 Aa) = 0.0870308',
         ]
-        cmd = list(pathlib.Path('.').joinpath('app').glob('ncrystal-dynapi-example*'))[0]
+        cmd = list(pathlib.Path('.').joinpath('app').glob('ncrystal-virtapi-example*'))[0]
         assert cmd.is_file()
         rv = subprocess.run(cmd,capture_output=True,check=True)
         assert rv.returncode==0 and not rv.stderr

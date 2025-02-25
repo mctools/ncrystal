@@ -21,17 +21,17 @@
 cmake_minimum_required(VERSION 3.20...3.31)
 
 # Note: There is no find_package(NCrystal) in this file, since the point of this
-# example is to show how one can access NCrystal features via a dynamic plugin
-# mechanism at run-time.
+# example is to show how one can access NCrystal features via a plugin mechanism
+# at run-time.
 
-project( ExampleNCrystalDynAPIProject VERSION 0.0.1 LANGUAGES CXX )
+project( ExampleProject VERSION 0.0.1 LANGUAGES CXX )
 
-add_executable( "ncrystal-dynapi-example" "src/main.cc" "src/ncrystal_load.cc" )
+add_executable( "ncrystal-virtapi-example" "src/main.cc" "src/ncrystal_load.cc" )
 if ( UNIX AND CMAKE_DL_LIBS )
-  target_link_libraries( "ncrystal-dynapi-example" PRIVATE ${CMAKE_DL_LIBS} )
+  target_link_libraries( "ncrystal-virtapi-example" PRIVATE ${CMAKE_DL_LIBS} )
 endif()
 
 #Require C++11:
-target_compile_features( "ncrystal-dynapi-example" PUBLIC cxx_std_11 )
+target_compile_features( "ncrystal-virtapi-example" PUBLIC cxx_std_11 )
 
-install (TARGETS "ncrystal-dynapi-example" RUNTIME DESTINATION bin)
+install (TARGETS "ncrystal-virtapi-example" RUNTIME DESTINATION bin)

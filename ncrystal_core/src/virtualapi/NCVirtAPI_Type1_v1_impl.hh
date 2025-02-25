@@ -18,17 +18,17 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/dynapi/NCDynAPI_Type1_v1.hh"
+#include "NCrystal/virtualapi/NCVirtAPI_Type1_v1.hh"
 #include "NCrystal/factories/NCFactImpl.hh"
-#include "NCDynAPIUtils.hh"
+#include "NCVirtAPIUtils.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 
-  namespace DynAPI {
+  namespace VirtAPI {
 
-    class Type1_v1_Impl final : public ::NCrystalDynamicAPI::DynAPI_Type1_v1 {
+    class Type1_v1_Impl final : public ::NCrystalVirtualAPI::VirtAPI_Type1_v1 {
     public:
-      using PubScatterProcess = ::NCrystalDynamicAPI::DynAPI_Type1_v1::ScatterProcess;
+      using PubScatterProcess = ::NCrystalVirtualAPI::VirtAPI_Type1_v1::ScatterProcess;
 
       struct ScatterProcess
       {
@@ -84,7 +84,7 @@ namespace NCRYSTAL_NAMESPACE {
         auto sp = reinterpret_cast<const ScatterProcess*>(&pub_sp);
         CachePtr dummycache;//<--- Fully MT safe, fully inefficient. To be
                             //revisited in a future api version!
-        DynAPIUtils::RNGWrapper rng( &rng_fct );
+        VirtAPIUtils::RNGWrapper rng( &rng_fct );
         auto out = sp->procptr->sampleScatter( dummycache, rng,
                                                NeutronEnergy{ neutron_ekin_eV },
                                                NeutronDirection( neutron_dir_ux,

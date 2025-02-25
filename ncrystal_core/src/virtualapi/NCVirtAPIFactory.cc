@@ -18,12 +18,12 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/dynapi/NCDynAPIFactory.hh"
-#include "NCDynAPI_Type1_v1_impl.hh"
+#include "NCrystal/virtualapi/NCVirtAPIFactory.hh"
+#include "NCVirtAPI_Type1_v1_impl.hh"
 
-void * ncrystal_access_dynamic_api( unsigned interface_id )
+void * ncrystal_access_virtual_api( unsigned interface_id )
 {
-  using t1v1 = NCrystal::DynAPI::Type1_v1_Impl;
+  using t1v1 = NCrystal::VirtAPI::Type1_v1_Impl;
   if ( interface_id == t1v1::interface_id ) {
     static std::shared_ptr<const t1v1> sp_t1v1 = std::make_shared<t1v1>();
     return (void*)(&sp_t1v1);
