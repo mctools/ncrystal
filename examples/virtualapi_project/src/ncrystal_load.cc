@@ -140,7 +140,7 @@ namespace {
   {
     if ( !db.ncrystal_access_virtapi_fct ) {
       auto cfg = query_ncrystal_config();
-      if ( !cfg.intversion >= 4000003 )
+      if ( ! (cfg.intversion >= 4000003) )
         throw std::runtime_error("Could not locate a functioning and"
                                  " recent enough NCrystal installation.");
 #ifdef NCLOAD_WINDOWS

@@ -62,28 +62,34 @@ namespace NCrystalVirtualAPI {
   class VirtAPI_Type1_v1 {
   public:
 
-    //This Virtual API was introduced in NCrystal 4.1.0.
-
-    static constexpr unsigned interface_id = 1001;//1000*typenumber+version
+    // This Virtual API was introduced in NCrystal 4.1.0.
+    //
+    // Notes about this Virtual API:
+    //
+    // * This methods available in this interface was chosen to be "just enough"
+    //   for what is needed for usage in OpenMC. Since OpenMC extracts material
+    //   composition and density via the Python API, and handles absorption
+    //   elsewhere, such information was left out.
+    // * Units in this interface are barn/atom for cross sections, and eV for
+    //   neutron energy.
+    // * The "neutron" parameter below is a pointer to an array of length 4,
+    //   with values (ekin,ux,uy,uz) where (ux,uy,uz) is the direction of the
+    //   neutron. When sampling, this array is modified directly.
+    // * Due to concerns about multi-thread safety when used in OpenMC, this API
+    //   does not allow for client-side caching control (for simplicity and
+    //   MT safety).
 
     class ScatterProcess;
     virtual const ScatterProcess * createScatter( const char * cfgstr ) const = 0;
     virtual const ScatterProcess * cloneScatter( const ScatterProcess * ) const = 0;
     virtual void deallocateScatter( const ScatterProcess * ) const = 0;
-
-    //NB: Cross section units returned are barn/atom:
     virtual double crossSectionUncached( const ScatterProcess&,
-                                         double neutron_ekin_eV,
-                                         double neutron_dir_ux,
-                                         double neutron_dir_uy,
-                                         double neutron_dir_uz ) const = 0;
+                                         const double* neutron ) const = 0;
     virtual void sampleScatterUncached( const ScatterProcess&,
                                         std::function<double()>& rng,
-                                        double& neutron_ekin_eV,
-                                        double& neutron_dir_ux,
-                                        double& neutron_dir_uy,
-                                        double& neutron_dir_uz ) const = 0;
-
+                                        double* neutron ) const = 0;
+    //Plumbing:
+    static constexpr unsigned interface_id = 1001;//1000*typenumber+version
     virtual ~VirtAPI_Type1_v1() = default;
     VirtAPI_Type1_v1() = default;
     VirtAPI_Type1_v1( const VirtAPI_Type1_v1& ) = delete;

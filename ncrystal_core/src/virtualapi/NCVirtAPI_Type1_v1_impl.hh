@@ -57,43 +57,36 @@ namespace NCRYSTAL_NAMESPACE {
       }
 
       double crossSectionUncached( const PubScatterProcess& pub_sp,
-                                   double neutron_ekin_eV,
-                                   double neutron_dir_ux,
-                                   double neutron_dir_uy,
-                                   double neutron_dir_uz ) const override
+                                   const double* n ) const override
       {
         auto sp = reinterpret_cast<const ScatterProcess*>(&pub_sp);
         CachePtr dummycache;//<--- Fully MT safe, fully inefficient. To be
                             //revisited in a future api version!
         return sp->procptr->crossSection( dummycache,
-                                          NeutronEnergy{ neutron_ekin_eV },
-                                          NeutronDirection( neutron_dir_ux,
-                                                            neutron_dir_uy,
-                                                            neutron_dir_uz ) ).dbl();
+                                          NeutronEnergy{ n[0] },
+                                          NeutronDirection( n[1], n[2], n[3] )
+                                          ).dbl();
 
 
       }
 
       void sampleScatterUncached( const PubScatterProcess& pub_sp,
                                   std::function<double()>& rng_fct,
-                                  double& neutron_ekin_eV,
-                                  double& neutron_dir_ux,
-                                  double& neutron_dir_uy,
-                                  double& neutron_dir_uz ) const override
+                                  double* n ) const override
       {
         auto sp = reinterpret_cast<const ScatterProcess*>(&pub_sp);
         CachePtr dummycache;//<--- Fully MT safe, fully inefficient. To be
                             //revisited in a future api version!
         VirtAPIUtils::RNGWrapper rng( &rng_fct );
         auto out = sp->procptr->sampleScatter( dummycache, rng,
-                                               NeutronEnergy{ neutron_ekin_eV },
-                                               NeutronDirection( neutron_dir_ux,
-                                                                 neutron_dir_uy,
-                                                                 neutron_dir_uz ) );
-        neutron_ekin_eV = out.ekin.dbl();
-        neutron_dir_ux = out.direction[0];
-        neutron_dir_uy = out.direction[1];
-        neutron_dir_uz = out.direction[2];
+                                               NeutronEnergy{ n[0] },
+                                               NeutronDirection( n[1],
+                                                                 n[2],
+                                                                 n[3] ) );
+        n[0] = out.ekin.dbl();
+        n[1] = out.direction[0];
+        n[2] = out.direction[1];
+        n[3] = out.direction[2];
       }
     };
   }

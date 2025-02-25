@@ -76,9 +76,9 @@ int main() {
   auto it_refval = refvals_xs_al.begin();
   int i = 0;
   for ( auto wl : wls  ) {
+    double neutron[4] = { wl2ekin(wl), dir[0], dir[1], dir[2] };
     double xs = virtapi->crossSectionUncached( * (i++%2==0?scat_al:scat_al2),
-                                               wl2ekin(wl),
-                                               dir[0], dir[1], dir[2] );
+                                               neutron );
     std::cout<<" Al: xs(" << wl << " Aa) = "
              << std::setprecision(7)<<xs << " barn/atom" << std::endl;
     require_flteq( *it_refval++, xs );
@@ -87,16 +87,16 @@ int main() {
 
   {
     double wl = 1.540;
-    double xs = virtapi->crossSectionUncached( *scat_scge, wl2ekin(wl),
-                                               0.0, 1.0, 1.0 );
+    double neutron[4] = { wl2ekin(wl), 0.0, 1.0, 1.0 };
+    double xs = virtapi->crossSectionUncached( *scat_scge, neutron );
     std::cout<<" GeSC: xs(" << wl << " Aa, dir1) = "
              << std::setprecision(7)<<xs << " barn/atom" << std::endl;
     require_flteq( 591.0263476502018, xs );
   }
   {
     double wl = 1.540;
-    double xs = virtapi->crossSectionUncached( *scat_scge, wl2ekin(wl),
-                                               1.0, 1.0, 0.0 );
+    double neutron[4] = { wl2ekin(wl), 1.0, 1.0, 0.0 };
+    double xs = virtapi->crossSectionUncached( *scat_scge, neutron );
     std::cout<<" GeSC: xs(" << wl << " Aa, dir2) = "
              << std::setprecision(7)<<xs << " barn/atom" << std::endl;
     require_flteq( 1.667600586136298, xs );
@@ -114,32 +114,25 @@ int main() {
     fakerng();
     fakerng();
     const double wl0 = 1.540;
-    double ekin = wl2ekin(wl0);
-    double dir_x = 0.0;
-    double dir_y = 1.0;
-    double dir_z = 1.0;
-    auto print_state = [&ekin, &dir_x, &dir_y, &dir_z, &ekin2wl]
+    double neutron[4] = { wl2ekin(wl0), 0.0, 1.0, 1.0 };
+    auto print_state = [&neutron, &ekin2wl]
     {
       std::cout<<"Neutron state: (wl="
                <<std::setprecision(5)
-               << ekin2wl(ekin)
-               <<" u=("<<dir_x
-               <<", "<<dir_y
-               <<", "<<dir_z<<")"<<std::endl;
+               << ekin2wl(neutron[0])
+               <<" u=("<<neutron[1]
+               <<", "<<neutron[2]
+               <<", "<<neutron[3]<<")"<<std::endl;
     };
 
     print_state();
-    virtapi->sampleScatterUncached( *scat_scge, fakerng,
-                                    ekin, dir_x, dir_y, dir_z );
+    virtapi->sampleScatterUncached( *scat_scge, fakerng, neutron );
     print_state();
-    virtapi->sampleScatterUncached( *scat_scge, fakerng,
-                                    ekin, dir_x, dir_y, dir_z );
+    virtapi->sampleScatterUncached( *scat_scge, fakerng, neutron );
     print_state();
-    virtapi->sampleScatterUncached( *scat_scge, fakerng,
-                                    ekin, dir_x, dir_y, dir_z );
+    virtapi->sampleScatterUncached( *scat_scge, fakerng, neutron );
     print_state();
-    virtapi->sampleScatterUncached( *scat_scge, fakerng,
-                                    ekin, dir_x, dir_y, dir_z );
+    virtapi->sampleScatterUncached( *scat_scge, fakerng, neutron );
     print_state();
   }
 

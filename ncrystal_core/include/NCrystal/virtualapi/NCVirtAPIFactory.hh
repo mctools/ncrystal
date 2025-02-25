@@ -22,15 +22,20 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 // Factory function ncrystal_access_virtual_api function which can be used to
-// instantiate a given virtual api. This function has C-bindings since it is
-// meant to be accessible via dlopen or GetProcAddress. Note also that it is
-// namespaced when NCrystal is built with namespaced symbols (e.g. if the
-// namespace is "myns", then the actual symbol to dlopen is
-// "ncrystalmyns_access_virtual_api"). The intention is for client applications
-// to use the ncrystal-config command to get both the path to the NCrystal
-// shared library and the NCrystal symbol namespace (they might also opt to get
-// the NCrystal version if they wish for whatever reason to impose runtime
-// restrictions on the version of NCrystal).
+// instantiate a given virtual api.
+//
+// This function has C-bindings since it is meant to be accessible via dlopen or
+// GetProcAddress. Note also that it is namespaced when NCrystal is built with
+// namespaced symbols (e.g. if the namespace is "myns", then the actual symbol
+// to dlopen is "ncrystalmyns_access_virtual_api").
+//
+// The intention is for client applications to use the ncrystal-config command
+// to get both the path to the NCrystal shared library and the NCrystal symbol
+// namespace (they might also opt to get the NCrystal version if they wish for
+// whatever reason to impose runtime restrictions on the version of NCrystal).
+//
+// Note that the Virtual API infrastructure was first introduced in NCrystal
+// release v4.1.0.
 
 #include "NCrystal/core/NCException.hh"
 #include <memory>
