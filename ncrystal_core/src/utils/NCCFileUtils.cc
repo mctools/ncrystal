@@ -24,11 +24,14 @@
 #  define MC_IS_WINDOWS
 #endif
 #ifndef MC_IS_WINDOWS
-#  ifndef _POSIX_C_SOURCE
-#    define _POSIX_C_SOURCE 200809L
-#  endif
-#  ifndef _XOPEN_SOURCE
-#    define _XOPEN_SOURCE 500
+#  ifndef __FreeBSD__
+     //These cause problems on freebsd:
+#    ifndef _POSIX_C_SOURCE
+#      define _POSIX_C_SOURCE 200809L
+#    endif
+#    ifndef _XOPEN_SOURCE
+#      define _XOPEN_SOURCE 500
+#    endif
 #  endif
 #  include <unistd.h>
 #  include <limits.h>
