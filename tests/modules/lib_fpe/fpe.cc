@@ -30,7 +30,7 @@ NCTEST_CTYPE_DICTIONARY
 }
 
 //todo: try to enable on osx/windows?
-#if defined(__APPLE__) || defined(_WIN32) || defined(WIN32) || defined(__arm) || defined(__arm64) || defined(__aarch64__) || defined(__arm__) || defined(_M_ARM64)
+#if defined(__APPLE__) || defined(_WIN32) || defined(WIN32) || defined(__arm) || defined(__arm64) || defined(__aarch64__) || defined(__arm__) || defined(_M_ARM64) || defined(__FreeBSD__)
 #  define NCTEST_SKIP_FPE
 #endif
 
