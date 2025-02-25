@@ -20,6 +20,8 @@
 ##                                                                            ##
 ################################################################################
 
+# NEEDS: numpy
+
 import NCTestUtils.enable_fpe # noqa F401
 from NCTestUtils.loadlib import Lib
 from NCTestUtils.dirs import get_named_test_data_dir
