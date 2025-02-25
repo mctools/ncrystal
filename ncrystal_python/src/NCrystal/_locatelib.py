@@ -200,8 +200,12 @@ def _search_core_info_mod( is_monolithic ):
 def _search_nccfgapp( cmdname ):
     #Try to query ncrystal-config script:
     import subprocess
-    res = subprocess.run([cmdname,'--show','shlibpath','namespace','version'],
-                         capture_output=True)
+    try:
+        res = subprocess.run([cmdname,'--show','shlibpath','namespace','version'],
+                             capture_output=True)
+    except FileNotFoundError:
+        return None
+
     if res.returncode == 0:
         lines = res.stdout.decode('utf8').splitlines()
         if len(lines) == 3:
