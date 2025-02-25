@@ -1,6 +1,7 @@
 v4.1.1 (work in progress)
      * Explicitly link test apps and libraries against CMake's Backtrace_Library
        in order to support FreeBSD.
+     * Add pyyaml as dependency of tests/scripts/ncdevtoolchecks.py
 
 v4.1.0 2025-02-25
      * Added a new "virtual API", which allows NCrystal to be used as a runtime

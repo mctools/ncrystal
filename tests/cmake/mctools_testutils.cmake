@@ -155,6 +155,8 @@ function( mctools_testutils_internal_haspydep resvar pydep )
     #that it triggers font cache building, so it won't clobber test output
     #later.
     set( pymodtoimport "matplotlib.pyplot" )
+  elseif ( "x${pydep}" STREQUAL "xpyyaml" )
+    set( pymodtoimport "yaml" )
   else()
     set( pymodtoimport "${pydep}" )
   endif()
