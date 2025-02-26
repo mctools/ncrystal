@@ -1,6 +1,6 @@
-v4.1.1 (work in progress)
-     * Improve support for FreeBSD by running builds and CTests in CI on that
-       platform.
+v4.1.2 2025-02-26
+     * Improve support for FreeBSD by actually running builds and CTests in CI
+       on that platform, and fix the few issues uncovered by this.
      * Avoid _POSIX_C_SOURCE and _XOPEN_SOURCE on FreeBSD.
      * Explicitly link test apps and libraries against the backtrace library
        found by CMake.

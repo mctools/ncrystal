@@ -21,7 +21,7 @@
 
 [project]
 name = "ncrystal-core"
-version = "4.1.1"
+version = "4.1.2"
 requires-python = ">=3.8"
 readme = "README.md"
 license = {file = "LICENSE"}
