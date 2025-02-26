@@ -71,6 +71,7 @@ def create_pkginfo_pytestpkg( pkgname,
                     pkg_deps = [cfg.sbpkgname_pymods] )
 
 _created_custom_pydeps = set()
+_depdb = [None]
 def get_dependency_from_pydep( pd):
     s = _pydep2sblddep.get(pd)
     if s is not None:
@@ -80,23 +81,36 @@ def get_dependency_from_pydep( pd):
     if name in _created_custom_pydeps:
         return name#already created
     _created_custom_pydeps.add(name)
-    version_extractor = 'm.__version__'
 
+    if _depdb[0] is None:
+        from ncrystal_repo_tools.depdb import load_depdb
+        _depdb[0] = load_depdb()['dependencies']
+    pytestcode = None
+    pymodname = _depdb[0][pd].get('import_check')
+    cmdcheck = _depdb[0][pd].get('cmd_check')
+    if not pymodname and cmdcheck:
+        pytestcode = ("import shutil; raise SystemExit(0 if "
+                      f"shutil.which('{cmdcheck}') else 1)")
+    if not pytestcode:
+        pymodname = pymodname or pd
+        pytestcode = f"import {pymodname} as m; print(m.__version__)"
     content = """
 execute_process(
-    COMMAND "${Python_EXECUTABLE}" "-c"
-    "import @pd@ as m; print(@ve@)"
+    COMMAND "${Python_EXECUTABLE}" "-c" "@pytestcode@"
     OUTPUT_VARIABLE tmp RESULT_VARIABLE tmp_ec
     ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 if ("x${tmp_ec}" STREQUAL "x0")
   set(HAS_@name@ 1)
   string(STRIP "${tmp}" ExtDep_@name@_VERSION)
+  if ( NOT ExtDep_@name@_VERSION )
+    set( ExtDep_@name@_VERSION "0.0.0" )
+  endif()
   set(ExtDep_@name@_PREPEND_COMPILE_FLAGS "")
   set(ExtDep_@name@_PREPEND_LINK_FLAGS "")
 else()
   set(HAS_@name@ 0)
 endif()
-""".replace('@name@',name).replace('@pd@',pd).replace('@ve@',version_extractor )
+""".replace('@name@',name).replace('@pytestcode@',pytestcode)
     add_file( dirs.genroot.joinpath('extdep_definitions',
                                     f'ExtDep_{name}.cmake'),
               content = content )

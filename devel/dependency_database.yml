@@ -73,7 +73,7 @@ dependencies:
     import_check: ase.io
   matplotlib:
     min_version: "3.6.0"
-    import_check: matplotlib.pyplot
+    import_check: "matplotlib.pyplot"
   numpy:
     min_version: "1.22"
   spglib:
@@ -82,6 +82,7 @@ dependencies:
     min_version: "0.6.1"
   ruff:
     min_version: "0.8.1"
+    import_check: null
     cmd_check: ruff
   #pybind11:
   #  min_version: "2.11.0"

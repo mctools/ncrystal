@@ -20,7 +20,7 @@
 ##                                                                            ##
 ################################################################################
 
-# NEEDS: toml pyyaml
+# NEEDS: toml pyyaml ruff
 
 def main():
     import pathlib
