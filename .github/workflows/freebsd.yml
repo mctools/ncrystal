@@ -1,4 +1,4 @@
-name: bsd
+name: freebsd
 
 on:
   push:
@@ -40,3 +40,31 @@ jobs:
             cmake --build ./build --config Release --parallel 2
             cd ./build
             ctest --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle
+
+  pipinst:
+    needs: [ ncdevtool_check ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: src
+
+      - name: FreeBSD
+        uses: cross-platform-actions/action@v0.26.0
+        with:
+          operating_system: freebsd
+          version: '14.2'
+          run: |
+            sudo pkg install -y cmake python3 py311-numpy py311-mpmath py311-matplotlib py311-ase py311-gemmi py311-spglib py311-pyyaml ruff
+            ./src/devel/bin/ncdevtool check -n "fix""me"
+            python3 -mpip install ./src/ncrystal_python
+            python3 -mpip check
+            python3 -mpip install ./src/ncrystal_core
+            python3 -mpip check
+            nctool --test
+            python3 -mpip install ./src/ncrystal_metapkg
+            python3 -mpip check
+            python3 -mpip install ./src/ncrystal_verify
+            python3 -mpip check
+            ncrystal-verify
