@@ -135,6 +135,9 @@ function( mctools_testutils_internal_haspydep resvar pydep )
 
   mctools_testutils_internal_getpyexec( "pyexec" )
 
+  set( cmdtocheckflags "" )
+  set( cmdtocheck "" )
+
   if ( "x${pydep}" STREQUAL "xtoml" )
     #"tomllib" in python 3.11 and later (where it is ALWAYS present), otherwise
     #require "tomli".
@@ -157,19 +160,36 @@ function( mctools_testutils_internal_haspydep resvar pydep )
     set( pymodtoimport "matplotlib.pyplot" )
   elseif ( "x${pydep}" STREQUAL "xpyyaml" )
     set( pymodtoimport "yaml" )
+  elseif ( "x${pydep}" STREQUAL "xruff" )
+    set( pymodtoimport "" )
+    set( cmdtocheck "ruff" )
+    set( cmdtocheckflags "--version" )
   else()
     set( pymodtoimport "${pydep}" )
   endif()
-  if ( "${pymodtoimport}" STREQUAL "${pydep}" )
-    set( "tmp" "${pydep}" )
+  if ( pymodtoimport )
+    if ( "${pymodtoimport}" STREQUAL "${pydep}" )
+      set( "tmp" "${pydep}" )
+    else()
+      set( "tmp" "${pymodtoimport} (for ${pydep})" )
+    endif()
+    message(STATUS "Testing for presence of python module: ${tmp}")
+    execute_process(
+      COMMAND "${pyexec}" "-c" "import ${pymodtoimport}"
+      RESULT_VARIABLE "res" OUTPUT_QUIET ERROR_QUIET
+    )
   else()
-    set( "tmp" "${pymodtoimport} (for ${pydep})" )
+    if ( "${cmdtocheck}" STREQUAL "${pydep}" )
+      set( "tmp" "${pydep}" )
+    else()
+      set( "tmp" "${cmdtocheck} (for ${pydep})" )
+    endif()
+    message(STATUS "Testing for presence of command: ${tmp})")
+    execute_process(
+      COMMAND "${cmdtocheck}" ${cmdtocheckflags}
+      RESULT_VARIABLE "res" OUTPUT_QUIET ERROR_QUIET
+    )
   endif()
-  message(STATUS "Testing for presence of python module: ${tmp}")
-  execute_process(
-    COMMAND "${pyexec}" "-c" "import ${pymodtoimport}"
-    RESULT_VARIABLE "res" OUTPUT_QUIET ERROR_QUIET
-  )
   if( "x${res}" STREQUAL "x0" )
     set_property(
       GLOBAL PROPERTY mctools_testutils_internal_pydepspresent
