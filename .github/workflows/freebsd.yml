@@ -28,12 +28,18 @@ jobs:
         with:
           path: src
 
+      - name: Enable parallel cmake
+        run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
+
       - name: FreeBSD
         uses: cross-platform-actions/action@v0.26.0
         with:
+          environment_variables: CMAKE_BUILD_PARALLEL_LEVEL CTEST_PARALLEL_LEVEL
           operating_system: freebsd
           version: '14.2'
           run: |
+            echo "CMAKE_BUILD_PARALLEL_LEVEL=${CMAKE_BUILD_PARALLEL_LEVEL}"
+            echo "CTEST_PARALLEL_LEVEL=${CTEST_PARALLEL_LEVEL}"
             sudo pkg install -y cmake python3 py311-numpy py311-mpmath py311-matplotlib py311-ase py311-gemmi py311-spglib py311-pyyaml ruff
             ./src/devel/bin/ncdevtool check -n "fix""me"
             cmake -S ./src -B ./build -DCMAKE_BUILD_TYPE=Release -DNCRYSTAL_BUILD_STRICT=ON -DNCRYSTAL_ENABLE_TESTING=ON -DMCTOOLS_REQUIRE_ALL_TEST_DEPS=ON
@@ -50,21 +56,37 @@ jobs:
         with:
           path: src
 
+      - name: Enable parallel cmake
+        run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
+
       - name: FreeBSD
         uses: cross-platform-actions/action@v0.26.0
         with:
+          environment_variables: CMAKE_BUILD_PARALLEL_LEVEL CTEST_PARALLEL_LEVEL
           operating_system: freebsd
           version: '14.2'
           run: |
-            sudo pkg install -y cmake python3 py311-numpy py311-mpmath py311-matplotlib py311-ase py311-gemmi py311-spglib py311-pyyaml ruff
+            echo "CMAKE_BUILD_PARALLEL_LEVEL=${CMAKE_BUILD_PARALLEL_LEVEL}"
+            echo "CTEST_PARALLEL_LEVEL=${CTEST_PARALLEL_LEVEL}"
+            sudo pkg install -y cmake python3 py311-pip py311-scikit-build-core py311-numpy py311-mpmath py311-matplotlib py311-ase py311-gemmi py311-spglib py311-pyyaml ruff
+            #Make sure pip --user bin dir is in PATH:
+            PATH="/home/runner/.local/bin:${PATH}"
+            export PATH
+            echo "PATH IS NOW: ${PATH}"
             ./src/devel/bin/ncdevtool check -n "fix""me"
-            python3 -mpip install ./src/ncrystal_python
+            python3 -mpip install --user ./src/ncrystal_python
+            python3 -mpip show ncrystal-python
+            ls -l /home/runner/.local/bin
+            which nctool
             python3 -mpip check
-            python3 -mpip install ./src/ncrystal_core
+            python3 -mpip install --user -v ./src/ncrystal_core
+            python3 -mpip show ncrystal-core
             python3 -mpip check
             nctool --test
-            python3 -mpip install ./src/ncrystal_metapkg
+            python3 -mpip install --user ./src/ncrystal_metapkg
+            python3 -mpip show ncrystal
             python3 -mpip check
-            python3 -mpip install ./src/ncrystal_verify
+            python3 -mpip install --user ./src/ncrystal_verify
+            python3 -mpip show ncrystal-verify
             python3 -mpip check
             ncrystal-verify
