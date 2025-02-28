@@ -23,7 +23,7 @@ cmake_minimum_required(VERSION 3.16...3.27)
 #Detect skbuild mode (std/monolithic) if appropriate:
 
 if ( DEFINED SKBUILD_PROJECT_NAME )
-  set( NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE "OFF" )
+  set( NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE "ON" )
   set( nccore_pymodname "_ncrystal_core" )
   if ( DEFINED NCRYSTAL_SKBUILD_MONOLITHIC )
     if ( NCRYSTAL_SKBUILD_MONOLITHIC )
