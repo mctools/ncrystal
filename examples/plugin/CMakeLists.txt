@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20...3.30)
+cmake_minimum_required(VERSION 3.20...3.31)
 
 #Extract plugin name from ncplugin_name.txt:
 file( STRINGS "${CMAKE_CURRENT_LIST_DIR}/ncplugin_name.txt" NCPlugin_NAME LIMIT_COUNT 1)

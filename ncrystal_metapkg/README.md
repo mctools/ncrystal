@@ -152,7 +152,7 @@ line).
 CMake code for a small project using NCrystal might look like the following
 (assume that exampleapp.cc below includes the NCrystal/NCrystal.hh header):
 
-  cmake_minimum_required(VERSION 3.10...3.26)
+  cmake_minimum_required(VERSION 3.16...3.31)
   project(MyExampleProject LANGUAGES CXX)
   execute_process( COMMAND "ncrystal-config" "--show" "cmakedir"
                    OUTPUT_VARIABLE NCrystal_DIR
