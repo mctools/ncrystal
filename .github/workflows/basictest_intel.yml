@@ -59,6 +59,11 @@ jobs:
     - name: Enable parallel cmake
       run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
 
+    - name: Setup python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.10
+
       #NB: We don't test matplotlib import here in the next step, since we want
       #to make sure that our CTest infrastructure correctly avoids problems from
       #"building font cache" printouts on first imports.
