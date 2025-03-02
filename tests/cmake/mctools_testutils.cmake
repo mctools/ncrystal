@@ -138,6 +138,8 @@ function( mctools_testutils_internal_haspydep resvar pydep )
   set( cmdtocheckflags "" )
   set( cmdtocheck "" )
 
+  set( skip_status_msg OFF )
+
   if ( "x${pydep}" STREQUAL "xtoml" )
     #"tomllib" in python 3.11 and later (where it is ALWAYS present), otherwise
     #require "tomli".
@@ -160,6 +162,10 @@ function( mctools_testutils_internal_haspydep resvar pydep )
     set( pymodtoimport "matplotlib.pyplot" )
   elseif ( "x${pydep}" STREQUAL "xpyyaml" )
     set( pymodtoimport "yaml" )
+  elseif ( "x${pydep}" STREQUAL "xcmake" )
+    #cmake is of course present since we are running cmake...
+    set( pymodtoimport "" )
+    set( cmdtocheck "" )
   elseif ( "x${pydep}" STREQUAL "xruff" )
     set( pymodtoimport "" )
     set( cmdtocheck "ruff" )
@@ -178,7 +184,7 @@ function( mctools_testutils_internal_haspydep resvar pydep )
       COMMAND "${pyexec}" "-c" "import ${pymodtoimport}"
       RESULT_VARIABLE "res" OUTPUT_QUIET ERROR_QUIET
     )
-  else()
+  elseif( cmdtocheck )
     if ( "${cmdtocheck}" STREQUAL "${pydep}" )
       set( "tmp" "${pydep}" )
     else()
@@ -189,6 +195,10 @@ function( mctools_testutils_internal_haspydep resvar pydep )
       COMMAND "${cmdtocheck}" ${cmdtocheckflags}
       RESULT_VARIABLE "res" OUTPUT_QUIET ERROR_QUIET
     )
+  else()
+    #Nothing to check (e.g. cmake):
+    set( res 0 )
+    set( skip_status_msg ON )
   endif()
   if( "x${res}" STREQUAL "x0" )
     set_property(
@@ -196,14 +206,18 @@ function( mctools_testutils_internal_haspydep resvar pydep )
       "${known_present};${pydep}"
     )
     set( "${resvar}" "ON" PARENT_SCOPE )
-    message(STATUS "... PRESENT.")
+    if ( NOT skip_status_msg )
+      message(STATUS "... PRESENT.")
+    endif()
   else()
     set_property(
       GLOBAL PROPERTY mctools_testutils_internal_pydepsabsent
       "${known_absent};${pydep}"
     )
     set( "${resvar}" "OFF" PARENT_SCOPE )
-    message(STATUS "... ABSENT.")
+    if ( NOT skip_status_msg )
+      message(STATUS "... ABSENT.")
+    endif()
   endif()
 endfunction()
 

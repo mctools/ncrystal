@@ -1,6 +1,17 @@
 v4.1.3 (work in progress)
+     * Allow tests specific to ncrystal-verify, which validates the
+       environment. For now this is used to add a test of downstream CMake
+       projects.
+     * ncrystal-verify gets -v/--verbose option for always showing the test
+       output.
+     * Add the possibility of using CTests from ncrystal_core (i.e. without any
+       sort of intermingling with ncrystal_python/ and tests/). This is mostly
+       intended for packaging testing, where it might be useful to build
+       ncrystal-core completely independent from other packages. For now there
+       is only a single test application there, but at least it is a start (it
+       is not intended that there should be a large amount of such tests
+       anyway).
      * Update cmake_minimum_required statements in CMake code.
-     * ...
 
 v4.1.2 2025-02-26
      * Improve support for FreeBSD by actually running builds and CTests in CI

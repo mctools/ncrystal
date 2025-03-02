@@ -39,6 +39,10 @@ bool_option( NCRYSTAL_ENABLE_TESTING   "Whether to enable the CTest-based tests 
 bool_option( NCRYSTAL_ENABLE_CFGAPP    "Whether to build and install the ncrystal-config command" "ON" )
 bool_option( NCRYSTAL_WINEXPORTALL     "Whether WINDOWS_EXPORT_ALL_SYMBOLS should be set on NCrystal library" "ON" )
 
+bool_option( NCRYSTAL_ENABLE_TESTING   "Whether to enable the CTest-based tests in the tests subdirectory." "OFF" )
+bool_option( NCRYSTAL_ENABLE_CORE_TESTING   "Enable the few CTests fully contained within the ncrystal_core project." "OFF" )
+
+
 string_option(
   NCRYSTAL_NAMESPACE
   "Custom string to inject into library symbols (for complex environments with multple NCrystal installations)."

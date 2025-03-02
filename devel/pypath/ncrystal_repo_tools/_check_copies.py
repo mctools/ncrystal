@@ -57,5 +57,15 @@ def main():
     check_same( 'examples/ncrystal_example_cpp.cc',
                 'examples/downstream_cmake/main.cc' )
 
+    #NB: For ncrystal-verify we combine the more robust
+    #ncrystal_core/app_test/main.cc with the CMake file from the downstream
+    #example.
+    check_same( 'ncrystal_core/app_test/main.cc',
+                'ncrystal_verify/extra/data/downstream_cmake_main.cc',
+                'tests/src/app_cpp/main.cc',
+               )
+    check_same( 'examples/downstream_cmake/CMakeLists.txt',
+                'ncrystal_verify/extra/data/downstream_cmake_CMakeLists.txt' )
+
 if __name__=='__main__':
     main()

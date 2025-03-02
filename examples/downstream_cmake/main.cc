@@ -118,10 +118,12 @@ int main() {
 
   wl = NC::NeutronWavelength{1.540};
   xsect = sc.crossSection( wl, { 0.0, 1.0, 1.0 } );
-  std::cout << "single crystal Ge x-sect at "<<wl<<" Aa is "<<xsect<<" barn (orientation 1)"<<std::endl;
+  std::cout << "singlecrystal Ge x-sect at "<<wl<<" Aa is "
+            <<xsect<<" barn (orientation 1)"<<std::endl;
 
   xsect = sc.crossSection( wl, { 1.0, 1.0, 0.0 } );
-  std::cout << "singlecrystal Ge x-sect at "<<wl<<" Aa is "<<xsect<<" barn (orientation 2)"<<std::endl;
+  std::cout << "singlecrystal Ge x-sect at "<<wl<<" Aa is "
+            <<xsect<<" barn (orientation 2)"<<std::endl;
 
   auto outcome1 = sc.sampleScatter( wl, { 0.0, 1.0, 1.0 } );
   std::cout << "A random scattering in orientation 1 gives: "

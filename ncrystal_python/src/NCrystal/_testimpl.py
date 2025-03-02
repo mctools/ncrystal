@@ -19,11 +19,10 @@
 ##                                                                            ##
 ################################################################################
 
-"""Implementation of the built-in unit tests."""
+"""Implementation of the built-in tests."""
 
-__all__ = ['test','test_cmdline','test_cmake','test_extra','test_all']
+__all__ = ['test','test_cmdline','test_all']
 from ._common import print as _nc_print
-import contextlib as _contextlib
 
 def test( verbose = False ):
     """Quick test that NCrystal works as expected in the current installation."""
@@ -38,28 +37,10 @@ def test_cmdline( verbose = False ):
     if verbose!='quiet':
         _nc_print("Tests completed succesfully")
 
-def test_cmake( verbose = False ):
-    """Quick test that the NCrystal installation supports down-stream CMake/C++
-    projects (possibly after using ncrystal-config to get CMAKE_PREFIX_PATH and
-    (DY)LD_LIBRARY_PATHS setup).
-    """
-    _actual_test_cmake( verbose = verbose, ignore_if_absent = False )
-    if verbose!='quiet':
-        _nc_print("Tests completed succesfully")
-
-def test_extra( verbose = False ):
-    """Run both test() and test_cmdline(). If CMake is present, also run test_cmake()."""
-    _actualtest( verbose = verbose )
-    _actual_test_cmdline( verbose = verbose )
-    _actual_test_cmake( verbose = verbose, ignore_if_absent = True )
-    if verbose!='quiet':
-        _nc_print("Tests completed succesfully")
-
 def test_all( verbose = False ):
-    """Run both test(), test_cmdline(), and test_cmake()."""
+    """Run both test() and test_cmdline()."""
     _actualtest( verbose = verbose )
     _actual_test_cmdline( verbose = verbose )
-    _actual_test_cmake( verbose = verbose, ignore_if_absent = False )
     if verbose!='quiet':
         _nc_print("Tests completed succesfully")
 
@@ -396,22 +377,13 @@ def _create_pdfpages_inspector( real_pdfpages ):
                           realobj = real_pdfpages,
                           subfcts = [ ('__call__',dict(subfcts=['savefig','close'])) ] )
 
-def _run_cmd( cmd, env = None ):
+def _run_cmd( cmd ):
     import sys
     import subprocess
     sys.stdout.flush()
     sys.stderr.flush()
-    if env and sys.platform == 'darwin':
-        #osx's system protection #$%#^ is so damn annoying:
-        for name in ['DYLD_LIBRARY_PATH','LD_LIBRARY_PATH']:
-            v = env.get(name)
-            if v is not None:
-                from shlex import quote
-                #NB: "export A=B" is posix, not bash, so hopefully OK on all OSX
-                #shells:
-                cmd = 'export %s=%s && %s'%(name,quote(v),cmd)
     try:
-        p = subprocess.Popen( cmd, shell=True, env=env,
+        p = subprocess.Popen( cmd, shell=True,
                               stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE )
         output = p.communicate()[0]
@@ -463,117 +435,3 @@ def _actual_test_cmdline( verbose ):
         if not ok:
             raise RuntimeError('Command failed: %s'%cmd)
     prfct('testing of cmd-line utilities done')
-
-@_contextlib.contextmanager
-def _work_in_tmpdir():
-    """Context manager for working in a temporary directory (automatically created+cleaned) and then switching back"""
-    import os
-    import tempfile
-    the_cwd = os.getcwd()
-    with tempfile.TemporaryDirectory() as tmpdir:
-        try:
-            os.chdir(tmpdir)
-            yield
-        finally:
-            os.chdir(the_cwd)#Important to leave tmpdir *before* deletion, to
-                             #avoid PermissionError on Windows.
-
-def _actual_test_cmake( verbose = False, ignore_if_absent = False ):
-    prfct = _get_prfct( verbose )
-    prfct('starting testing of compiled downstream cmake-based projects')
-    import shutil
-    cmakecmd = shutil.which('cmake')
-    if not cmakecmd:
-        if ignore_if_absent:
-            prfct('Skipping CMake test since "cmake" command not found.')
-            return
-        raise RuntimeError('cmake command not found')
-
-    prfct('Using cmake command: %s'%cmakecmd)
-
-
-    def _singleline2str( x ):
-        return ((x.decode() if hasattr(x,'decode') else x) or '').strip()
-
-    _cmd = 'ncrystal-config --show cmakedir'
-    ok, ncrystal_cmakedir = _run_cmd(_cmd)
-    if not ok:
-        raise RuntimeError('Command failed: %s'%_cmd)
-    ncrystal_cmakedir = _singleline2str(ncrystal_cmakedir)
-    prfct('ncrystal-config gives cmakedir: %s'%ncrystal_cmakedir)
-    _cmd = 'ncrystal-config --show libdir'
-    ok, ncrystal_libdir = _run_cmd(_cmd)
-    if not ok:
-        raise RuntimeError('Command failed: %s'%_cmd)
-    ncrystal_libdir = _singleline2str(ncrystal_libdir)
-    prfct('ncrystal-config gives libdir: %s'%ncrystal_libdir)
-
-    def prepend_to_path( envdict, pathvar, entry ):
-        from shlex import quote
-        entry = quote(((entry.decode() if hasattr(entry,'decode') else entry) or '').strip())
-        if not entry:
-            return
-        ll = [ entry ]
-        orig = envdict.get(pathvar,'')
-        if orig:
-            ll.append( orig )
-        envdict[pathvar] = ':'.join(ll)
-
-    import os
-    cmake_env = os.environ.copy()
-    runtime_env = os.environ.copy()
-    prfct('Testing with cmakedir added to CMAKE_PREFIX_PATH and libdir added to (DY)LD_LIBRARY_PATH')
-    prepend_to_path( cmake_env, 'CMAKE_PREFIX_PATH', ncrystal_cmakedir )
-    prepend_to_path( runtime_env, 'LD_LIBRARY_PATH', ncrystal_libdir )
-    prepend_to_path( runtime_env, 'DYLD_LIBRARY_PATH', ncrystal_libdir )
-    def runcmake(args,apply_CMAKE_ARGS=True):
-        cmake_args = cmake_env.get('CMAKE_ARGS','') if apply_CMAKE_ARGS else ''
-        cmd=f'{cmakecmd} {cmake_args} {args}'
-        ok, output = _run_cmd(cmd, env=cmake_env)
-        prfct(f'Launching: {cmd}')
-        if not ok:
-            raise RuntimeError(f'Test command failed: {cmd}')
-
-    downstream_cmake = """
-cmake_minimum_required(VERSION 3.10...3.24)
-project(MyExampleProject LANGUAGES CXX)
-find_package(NCrystal REQUIRED)
-file(WRITE "${PROJECT_BINARY_DIR}/cppsrc.cpp" "
-#include \\"NCrystal/NCrystal.hh\\"
-#include <iostream>
-int main() {
-  auto pc = NCrystal::createScatter( \\"Al_sg225.ncmat;dcutoff=0.5;temp=25C\\" );
-  auto wl = NCrystal::NeutronWavelength{1.8};
-  auto xsect = pc.crossSectionIsotropic( wl );
-  std::cout << \\"Powder Al x-sect at \\" << wl << \\" is \\" << xsect << std::endl;
-  return 0;
-}
-")
-add_executable(exampleapp "${PROJECT_BINARY_DIR}/cppsrc.cpp")
-target_link_libraries( exampleapp NCrystal::NCrystal )
-install( TARGETS exampleapp DESTINATION bin )
-"""
-
-    import pathlib
-    with _work_in_tmpdir():
-        td = pathlib.Path('.').absolute()
-        ( td / 'src' ).mkdir()
-        ( td / 'src' / 'CMakeLists.txt' ).write_text(downstream_cmake)
-        ( td  / 'bld' ).mkdir()
-        os.chdir( td / 'bld' )
-        runcmake('../src -DCMAKE_INSTALL_PREFIX=../install')
-        runcmake('--build . --target install --config Release',apply_CMAKE_ARGS=False)
-        os.chdir( td )
-        app = ( td / 'install' / 'bin' / 'exampleapp' )
-        if not app.exists():
-            raise RuntimeError('Could not produce example app in downstream cmake project')
-        prfct(f'Launching: {app}')
-        ok, output = _run_cmd(str(app),env=runtime_env)
-        if not ok:
-            raise RuntimeError('Could not launch example app compiled in downstream cmake project')
-        #envrun = os.environ.copy()
-        expected_output='Powder Al x-sect at 1.8Aa is 1.44816barn'
-        if not output.decode().strip()==expected_output:
-            raise RuntimeError('Example app compiled in downstream cmake project produces unexpected output')
-        prfct('App produced expected output')
-    prfct('testing of compiled downstream cmake-based projects done')

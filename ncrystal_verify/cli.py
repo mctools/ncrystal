@@ -47,7 +47,7 @@ def prepend_to_path_var( env, varname, val ):
         env[varname] = val
 
 
-def run_test( script ):
+def run_test( script, verbose ):
     name = script.stem
     print(" .. running test %s"%name)
     pypath = script.parent.parent.joinpath('pypath')
@@ -68,10 +68,14 @@ def run_test( script ):
                              env = env,
                              capture_output = True,
                               )
+        def print_output():
+            snip = not verbose
+            print_lines_with_snipping(rv.stdout,prefix='stdout: ', snip = snip)
+            print_lines_with_snipping(rv.stderr,prefix='stderr: ', snip = snip)
+
         if rv.returncode != 0:
             print(" .. failed !")
-            print_lines_with_snipping(rv.stdout,prefix='stdout: ')
-            print_lines_with_snipping(rv.stderr,prefix='stderr: ')
+            print_output()
             return False
         else:
             logfile = script.parent.joinpath('%s.log'%name)
@@ -84,6 +88,8 @@ def run_test( script ):
                     print('Log file differs!')
                     print(diff)
                     return False
+            if verbose:
+                print_output()
             print(" .. success")
     return True #success
 
@@ -99,9 +105,11 @@ def as_lines( s ):
         return lines
     return [ normalise_eolmarkers(e) for e in lines ]
 
-def print_lines_with_snipping( b, prefix ):
+def print_lines_with_snipping( b, prefix, snip = True ):
+    if not b:
+        return
     lines = as_lines(b)
-    n1,n2 = 20,80
+    n1,n2 = (20,80) if snip else (999999999, 999999999)
     if len(lines)>n1+n2+20:
         lines = ( lines[0:n1]
                   + ['<SNIPPED %i lines>'%(len(lines)-n1-n2)]
@@ -126,6 +134,8 @@ def extract_needs_statement( pyfile ):
 
 def prepare_needs( scripts ):
     import importlib
+    import shutil
+
     script2dep = {}
     alldeps = set()
     for script in scripts:
@@ -137,6 +147,11 @@ def prepare_needs( scripts ):
             alldeps.update( needs )
     absent = set()
     for dep in sorted(alldeps):
+        if dep in ['ruff','cmake']:
+            #just a command of the same name:
+            if not shutil.which(dep):
+                absent.add( dep )
+            continue
         modtoimport = dep
         if dep=='matplotlib':
             modtoimport = 'matplotlib.pyplot'
@@ -183,6 +198,11 @@ def parse_args():
                             names, and only run these tests (default is to run
                             all). Specify this flag multiple times or use
                             comma-separation to list more than one pattern""" )
+                        )
+
+    parser.add_argument('-v','--verbose', action='store_true',
+                        help=wrap(
+                            """Always print all output of tests.""" )
                         )
 
     args = parser.parse_args()
@@ -242,7 +262,7 @@ def main():
                 dep_skipped_bad += 1
                 print(" .. can not run test %s (missing: %s)"%(name,' '.join(missing)))
         else:
-            if not run_test(script):
+            if not run_test(script,args.verbose):
                 failures += 1
             else:
                 successes += 1

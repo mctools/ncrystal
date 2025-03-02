@@ -102,6 +102,25 @@ def handle_datadirs( testinfo, tgtdir ):
         d.mkdir(parents=True,exist_ok=True)
         d.joinpath( f.name ).write_bytes( f.read_bytes() )
 
+def safe_copy_file( f, targetdir ):
+    tf = targetdir.joinpath(f.name)
+    if tf.exists():
+        raise SystemExit(f'ERROR: Multiple sources for {tf}')
+    targetdir.mkdir(parents=True,exist_ok=True)
+    tf.write_bytes(f.read_bytes())
+
+def handle_extra_scripts( srcdir, targetdir ):
+    for f in srcdir.glob('*.py'):
+        safe_copy_file( f, targetdir )
+    for f in srcdir.glob('*.log'):
+        safe_copy_file( f, targetdir )
+
+def handle_extra_data( srcdir, targetdir ):
+    for f in srcdir.glob('*'):
+        if '~' in f.name or '#' in f.name:
+            continue
+        safe_copy_file( f, targetdir )
+
 def main():
     import sys
     import pathlib
@@ -127,6 +146,11 @@ def main():
     handle_scripts( testinfo, tgt.joinpath('data','scripts') )
     handle_pymods( testinfo, tgt.joinpath('data','pypath') )
     handle_datadirs( testinfo, tgt.joinpath('data','data') )
+
+    handle_extra_scripts( srcroot.joinpath('extra','scripts'),
+                          tgt.joinpath('data','scripts') )
+    handle_extra_data( srcroot.joinpath('extra','data'),
+                       tgt.joinpath('data','data') )
 
 if __name__ == '__main__':
     main()

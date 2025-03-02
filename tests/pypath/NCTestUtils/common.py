@@ -23,7 +23,21 @@
    Various utilities to be used when implementing tests.
 """
 
-from NCrystalDev._testimpl import _work_in_tmpdir as work_in_tmpdir # noqa F401
+import contextlib as _contextlib
+@_contextlib.contextmanager
+def work_in_tmpdir():
+    """Context manager for working in a temporary directory (automatically
+    created+cleaned) and then switching back"""
+    import os
+    import tempfile
+    the_cwd = os.getcwd()
+    with tempfile.TemporaryDirectory() as tmpdir:
+        try:
+            os.chdir(tmpdir)
+            yield
+        finally:
+            os.chdir(the_cwd)#Important to leave tmpdir *before* deletion, to
+                             #avoid PermissionError on Windows.
 
 _is_windows = [None]
 def is_windows():

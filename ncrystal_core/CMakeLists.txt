@@ -119,6 +119,17 @@ if ( DEFINED SKBUILD_PROJECT_NAME )
   endif()
 endif()
 
+if ( NCRYSTAL_ENABLE_TESTING AND NCRYSTAL_ENABLE_CORE_TESTING )
+  message( FATAL_ERROR
+    "Enabling both NCRYSTAL_ENABLE_TESTING"
+    " and NCRYSTAL_ENABLE_CORE_TESTING is not supported" )
+endif()
+
+if ( NCRYSTAL_ENABLE_CORE_TESTING )
+  enable_testing()
+  include(ncrystal_coretests)
+endif()
+
 if ( NCRYSTAL_ENABLE_TESTING )
   #When testing we require a namespace of "test" which is intended to ensure
   #that we never clash with a system-installed NCrystal version (for instance we
