@@ -50,6 +50,12 @@ def main():
     import shlex
     import platform
     import os
+    is_osx = False
+    is_win = False
+    if platform.system() == 'Darwin':
+        is_osx = True
+    elif platform.system() == 'Windows':
+        is_win = True
 
     print('starting testing of compiled downstream cmake-based projects')
     cmakecmd = shutil.which('cmake')
@@ -60,7 +66,7 @@ def main():
     print('Using cmake command: %s'%cmakecmd)
     ncrystal_libdir = get_ncrystal_shlibdir()
 
-    def prepend_to_path( envdict, pathvar, entry ):
+    def prepend_to_path( envdict, pathvar, entry, sep = ':' ):
         entry = str(entry)
         if not entry:
             return
@@ -68,11 +74,15 @@ def main():
         orig = envdict.get(pathvar,'')
         if orig:
             ll.append( orig )
-        envdict[pathvar] = ':'.join(ll)
+        envdict[pathvar] = sep.join(ll)
     runtime_env = os.environ.copy()
-    prepend_to_path( runtime_env, 'LD_LIBRARY_PATH', ncrystal_libdir )
-    prepend_to_path( runtime_env, 'DYLD_LIBRARY_PATH', ncrystal_libdir )
-    print('Testing with libdir added to (DY)LD_LIBRARY_PATH')
+    if is_win:
+        prepend_to_path( runtime_env, 'PATH', ncrystal_libdir, sep = ';' )
+    elif is_osx:
+        prepend_to_path( runtime_env, 'DYLD_LIBRARY_PATH', ncrystal_libdir )
+    else:
+        prepend_to_path( runtime_env, 'LD_LIBRARY_PATH', ncrystal_libdir )
+    print('Testing with libdir added to relevant path variable')
 
     with work_in_tmpdir():
         td = pathlib.Path('.').absolute()
@@ -95,19 +105,19 @@ def main():
                          '--install',str(blddir),
                          '--config','Release'], check=True )
 
-        app = instdir.joinpath('bin','testapp' )
+        app = instdir.joinpath('bin',
+                               ('testapp.exe' if is_win else 'testapp') )
         if not app.exists():
             raise RuntimeError('Could not produce test app'
                                ' in downstream CMake project')
         print(f'Launching: {app}')
-        if platform.system() == 'Darwin':
+        if is_osx:
             #osx's system protection #$%#^ is so damn annoying:
-            cmd=str(app)
-            for name in ['DYLD_LIBRARY_PATH','LD_LIBRARY_PATH']:
-                v = runtime_env.get(name)
-                if v is not None:
-                    v = shlex.quote(v)
-                    cmd = f'export {name}={v} && {cmd}'
+            cmd=shlex.quote(str(app))
+            v = runtime_env.get('DYLD_LIBRARY_PATH')
+            if v is not None:
+                v = shlex.quote(v)
+                cmd = f'export DYLD_LIBRARY_PATH={v} && {cmd}'
             subprocess.run(cmd,shell=True,check=True,env=runtime_env)
         else:
             subprocess.run([str(app)],check=True,env=runtime_env)
