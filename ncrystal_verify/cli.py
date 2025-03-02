@@ -124,7 +124,6 @@ def calc_diff_output( a, b, beforetxt, aftertxt ):
                                fromfile=beforetxt, tofile=aftertxt )
     return ''.join(ud)
 
-
 def extract_needs_statement( pyfile ):
     with pyfile.open('rt') as fh:
         for line in fh:
@@ -132,7 +131,33 @@ def extract_needs_statement( pyfile ):
                 return set(line[len('# NEEDS: '):].split())
     return None
 
-def prepare_needs( scripts ):
+def try_cfg_with_cmake_project(verbose):
+    #Return true if able to use CMake with C and CXX compilers.
+    import shutil
+    import subprocess
+    import pathlib
+    cmake_cmd = shutil.which('cmake')
+    if not cmake_cmd:
+        return False
+    with work_in_tmpdir():
+        td = pathlib.Path('.')
+        src=td.joinpath('src')
+        src.mkdir()
+        bld=td.joinpath('bld')
+        bld.mkdir()
+        src.joinpath('main.cpp').write_text('int main() { return 0; }\n')
+        src.joinpath('CMakeLists.txt').write_text(
+            'cmake_minimum_required(VERSION 3.16...3.31)\n'
+            'project( NCrystalTestCompilers LANGUAGES C CXX )\n'
+            'add_executable( myapp "main.cpp")\n'
+        )
+        print(end='',flush=True)
+        rv = subprocess.run([cmake_cmd,'-S','src','-B','bld'],
+                            capture_output=not verbose)
+        print(end='',flush=True)
+    return rv.returncode == 0
+
+def prepare_needs( scripts, verbose ):
     import importlib
     import shutil
 
@@ -147,10 +172,21 @@ def prepare_needs( scripts ):
             alldeps.update( needs )
     absent = set()
     for dep in sorted(alldeps):
-        if dep in ['ruff','cmake']:
-            #just a command of the same name:
-            if not shutil.which(dep):
+        deppretty = 'cmake (with compilers)' if dep=='cmake' else dep
+        print(f"Checking for presence of {deppretty}...",end='',flush=True)
+        def mark( ok ):
+            if ok:
+                print(' yes')
+            else:
                 absent.add( dep )
+                print(' no')
+        if dep == 'cmake':
+            #special, must try to tiny cmake project with C and C++
+            mark(try_cfg_with_cmake_project(verbose))
+            continue
+        if dep in ['ruff']:
+            #just a command of the same name:
+            mark(shutil.which(dep))
             continue
         modtoimport = dep
         if dep=='matplotlib':
@@ -163,10 +199,12 @@ def prepare_needs( scripts ):
             else:
                 #use optional module tomli in 3.10 and earlier:
                 modtoimport = 'tomli'
+        ok = True
         try:
             importlib.import_module(modtoimport)
         except ModuleNotFoundError:
-            absent.add( dep )
+            ok = False
+        mark(ok)
     return dict( absent = absent,
                  script2dep = script2dep )
 
@@ -232,7 +270,7 @@ def main():
     datadir = pathlib.Path(__file__).parent.joinpath('data')
     scripts = sorted( datadir.joinpath('scripts').glob('*.py'),
                       key = lambda p : (p.name, p) )
-    depinfo = prepare_needs( scripts )
+    depinfo = prepare_needs( scripts, args.verbose )
     jobs = []
 
     for script in scripts:
