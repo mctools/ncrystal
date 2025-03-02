@@ -49,7 +49,7 @@ jobs:
     - name: Setup python
       uses: actions/setup-python@v5
       with:
-        python-version: 3.12
+        python-version: '3.12'
 
     - name: Enable parallel cmake
       run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
@@ -118,7 +118,7 @@ jobs:
     - name: Setup python
       uses: actions/setup-python@v5
       with:
-        python-version: 3.12
+        python-version: '3.12'
 
     - name: Check python version
       run: python --version

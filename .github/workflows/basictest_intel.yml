@@ -62,7 +62,7 @@ jobs:
     - name: Setup python
       uses: actions/setup-python@v5
       with:
-        python-version: 3.10
+        python-version: '3.10'
 
       #NB: We don't test matplotlib import here in the next step, since we want
       #to make sure that our CTest infrastructure correctly avoids problems from

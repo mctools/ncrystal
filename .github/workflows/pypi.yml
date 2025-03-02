@@ -18,7 +18,7 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.12
+          python-version: '3.12'
 
       - name: Pip install packages for ncdevtool
         run: pip install -r ./src/devel/reqs/requirements_devel.txt
@@ -59,7 +59,7 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.12
+          python-version: '3.12'
 
       - name: Enable parallel cmake
         run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
