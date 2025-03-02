@@ -52,7 +52,7 @@ jobs:
         -S ./src
         -B ./build
         -DCMAKE_BUILD_TYPE=Debug
-        -DCMAKE_INSTALL_PREFIX=./install
+        "-DCMAKE_INSTALL_PREFIX=./install"
         -DCMAKE_INSTALL_BINDIR=bin
         -DCMAKE_INSTALL_LIBDIR=lib
         -DNCRYSTAL_ENABLE_CORE_TESTING=ON
@@ -61,10 +61,10 @@ jobs:
       run: cmake --build ./build --config Debug
 
     - name: CTest ncrystal_core
-      run: ctest --test-dir ./build
+      run: ctest --test-dir ./build --build-config Debug
 
     - name: CMake install
-      run: cmake --install ./build
+      run: cmake --install ./build --config Debug
 
     - name: Pip install ncrystal-python
       run: pip install ./src/ncrystal_python
@@ -73,6 +73,7 @@ jobs:
       if: runner.os != 'Windows'
       run: |
         export PATH="${PWD}/install/bin:${PATH}"
+        echo "PATH=${PATH}" >> $GITHUB_ENV
         echo "LD_LIBRARY_PATH=$(ncrystal-config --show shlibdir):${LD_LIBRARY_PATH}" >> $GITHUB_ENV
         echo "DYLD_LIBRARY_PATH=$(ncrystal-config --show shlibdir):${DYLD_LIBRARY_PATH}" >> $GITHUB_ENV
 

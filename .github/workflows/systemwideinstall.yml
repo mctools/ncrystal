@@ -63,8 +63,18 @@ jobs:
         export DYLD_LIBRARY_PATH="$(ncrystal-config --show libdir):${DYLD_LIBRARY_PATH:-}"
         ./inst_ds/bin/testapp
 
-    - name: Pip install ncrystal-verify
+    - name: Pip install ncrystal_verify (Linux)
+      if: runner.os == 'Linux'
       run: python3 -mpip install "./src/ncrystal_verify[all]"
+
+    - name: Pip install spglib patch for py3.13 (macOS)
+      #Workaround for https://github.com/spglib/spglib/issues/553
+      if: runner.os == 'macOS'
+      run: sudo python3 -mpip install --break-system-packages git+https://github.com/tkittel/spglib.git
+
+    - name: Pip install ncrystal_verify (macOS)
+      if: runner.os == 'macOS'
+      run: sudo python3 -mpip install --break-system-packages "./src/ncrystal_verify[all]"
 
     - name: Launch ncrystal-verify
       run: ncrystal-verify

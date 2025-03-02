@@ -86,13 +86,10 @@ jobs:
       run: nctool --test
 
     - name: Install ncrystal-verify
-      run: pip install ./src/ncrystal_verify
+      run: pip install "./src/ncrystal_verify[all]"
 
     - name: Pip check
       run: pip check
-
-    - name: Install extra test deps
-      run: pip install -r ./src/devel/reqs/requirements_all_and_devel.txt
 
     - name: Launch ncrystal-verify
       run: ncrystal-verify
