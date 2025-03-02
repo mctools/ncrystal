@@ -62,3 +62,9 @@ jobs:
         export LD_LIBRARY_PATH="$(ncrystal-config --show libdir):${LD_LIBRARY_PATH:-}"
         export DYLD_LIBRARY_PATH="$(ncrystal-config --show libdir):${DYLD_LIBRARY_PATH:-}"
         ./inst_ds/bin/testapp
+
+    - name: Pip install ncrystal-verify
+      run: python3 -mpip install "./src/ncrystal_verify[all]"
+
+    - name: Launch ncrystal-verify
+      run: ncrystal-verify
