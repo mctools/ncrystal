@@ -134,8 +134,10 @@ def extract_needs_statement( pyfile ):
 def try_cfg_with_cmake_project(verbose):
     #Return true if able to use CMake with C and CXX compilers.
     import shutil
+    import shlex
     import subprocess
     import pathlib
+    import os
     cmake_cmd = shutil.which('cmake')
     if not cmake_cmd:
         return False
@@ -152,7 +154,8 @@ def try_cfg_with_cmake_project(verbose):
             'add_executable( myapp "main.cpp")\n'
         )
         print(end='',flush=True)
-        rv = subprocess.run([cmake_cmd,'-S','src','-B','bld'],
+        rv = subprocess.run(([cmake_cmd,'-S','src','-B','bld']
+                             +shlex.split(os.environ.get('CMAKE_ARGS',''))),
                             capture_output=not verbose)
         print(end='',flush=True)
     return rv.returncode == 0
