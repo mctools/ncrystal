@@ -37,12 +37,10 @@ def check_same( reffile, *otherfiles ):
 
 def main():
     check_same( 'README.md',
-                'ncrystal_core/README.md',
-                'ncrystal_core/empty_pypkg/README.md',
-                'ncrystal_python/README.md',
-                'ncrystal_metapkg/README.md',
-                'ncrystal_verify/README.md',
-               )
+                'ncrystal_metapkg/README.md' )
+
+    check_same( 'ncrystal_core/README.md',
+                'ncrystal_core/empty_pypkg/README.md' )
 
     check_same( 'LICENSE',
                 'ncrystal_core/LICENSE',

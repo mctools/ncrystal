@@ -106,12 +106,13 @@ in separate packages. Currently, the packages are:
   - CMake configuration files:
     - Enables downstream CMake-based projects to use NCrystal via CMake
       `find_package(NCrystal)` calls (but see the file
-      `<reporoot>/downstream_cmake/CMakeLists.txt` for how such `find_package`
-      calls should actually be written to work with pip install'ed NCrystal.
+      `<reporoot>/examples/downstream_cmake/CMakeLists.txt` for how such
+      `find_package` calls should actually be written to work with pip install'ed
+      NCrystal.
 - `ncrystal-python`:
   - The NCrystal python module.
     - This allows you to do `import NCrystal` and use the Python API of NCrystal.
-  - Command-line utilities
+  - Command-line utilities.
     - These commands (e.g. `nctool`, `ncrystal_cif2ncmat`, ...) are actually
       themselves written in Python, and can also be accessed from the Python API
       itself via the NCrystal.cli module.
@@ -119,16 +120,16 @@ in separate packages. Currently, the packages are:
     installation tools like pip. Note additionally, that it does NOT technically
     depend on the `ncrystal-core` package, but of course does have a runtime
     requirement for it. This setup is intended to allow advanced deployment
-    mechanisms where a manual CMake-based build of ncrystal-core is paired with
-    a pip-based installation of ncrystal-python.
+    mechanisms where a manual CMake-based build of `ncrystal-core` is paired with
+    a pip-based installation of `ncrystal-python`.
   - For convenience, this package has a dependency on `numpy`.
 - `ncrystal`:
   - This is a meta-package with no actual contents, but it depends on both the
     `ncrystal-core` and `ncrystal-python` packages, and thus provide a complete
     and self-consistent NCrystal installation when users use a package manager
     to install "ncrystal".
-  - Note that the pinning in this package ensures that ncrystal-core and
-    ncrystal-python packages are always installed in the same versions. Thus, if
+  - Note that the pinning in this package ensures that `ncrystal-core` and
+    `ncrystal-python` packages are always installed in the same versions. Thus, if
     you install `ncrystal` version 4.0.1, you will always get `ncrystal-core`
     version 4.0.1 and `ncrystal-python` version 4.0.1 as well.
 
@@ -204,13 +205,14 @@ it to locate the binary shared library from `ncrystal-core`.
 Quick and dirty monolithic installations
 ----------------------------------------
 
-If you are using Python and pip and simply wish to quick build and install a
-particular revision of NCrystal into that environment, and you don't want to
-have to care about the finer details of `ncrystal-core` and `ncrystal-python`
-above, you can do so by simply pointing a `pip install` command at the *root*
-(and thus *not* the `./ncrystal_core` or `./ncrystal_python` folders) of the
-NCrystal git repository. Here are some examples, which also show how one might
-choose a particular version tag og branch name:
+It is not actually recommended to do so, but if you are using Python and pip and
+simply wish to quick build and install a particular revision of NCrystal into
+that environment, and you don't want to have to care about the finer details of
+`ncrystal-core` and `ncrystal-python` above, you can do so by simply pointing a
+`pip install` command at the *root* (and thus *not* the `./ncrystal_core` or
+`./ncrystal_python` folders) of the NCrystal git repository. Here are some
+examples, which also show how one might choose a particular version tag og
+branch name:
 
 ```
 pip install git+https://github.com/mctools/ncrystal
@@ -219,8 +221,8 @@ pip install git+https://github.com/mctools/ncrystal@develop
 ```
 
 This will install a single package called `ncrystal-monolithic-bundle` into your
-environment, which contains the contents of both ncrystal-core and
-ncrystal-python. If in a conda environment, be sure you have the appropriate
+environment, which contains the contents of both `ncrystal-core` and
+`ncrystal-python`. If in a conda environment, be sure you have the appropriate
 build tools installed *in that environment* (e.g. the `cxx-compiler`, `cmake`,
 etc. packages -- please find the full list earlier in this file).
 
