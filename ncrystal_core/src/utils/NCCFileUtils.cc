@@ -949,7 +949,7 @@ namespace {
         mc_winstr_dealloc( &wpath );
       } else {
         //success:
-        assert( (mcu8str_size_t)(nsize) <= wpath.size );
+        assert( (mcu8str_size_t)(nsize)+2 <= wpath.buflen );//+2 is safety
         wpath.c_str[nsize] = 0;//add null terminator
         wpath.size = nsize;
         mcu8str res = mc_winstr_to_u8str( &wpath );
