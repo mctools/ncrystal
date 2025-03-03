@@ -30,6 +30,7 @@ jobs:
 
     name: ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
 
     steps:
 
@@ -43,13 +44,16 @@ jobs:
       with:
         path: src
 
+    - name: Show CMake version
+      run: cmake --version
+
     - name: Enable parallel cmake
       run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
 
     - name: CMake cfg ncrystal-core
       run: >
         cmake
-        -S ./src
+        -S ./src/ncrystal_core
         -B ./build
         -DCMAKE_BUILD_TYPE=Debug
         "-DCMAKE_INSTALL_PREFIX=./install"
@@ -61,7 +65,8 @@ jobs:
       run: cmake --build ./build --config Debug
 
     - name: CTest ncrystal_core
-      run: ctest --test-dir ./build --build-config Debug
+      run: ctest --test-dir ./build --build-config Debug --no-tests=error --output-on-failure
+      timeout-minutes: 1
 
     - name: CMake install
       run: cmake --install ./build --config Debug
@@ -91,6 +96,7 @@ jobs:
       run: ncrystal-config -s
 
     - name: nctool test
+      timeout-minutes: 1
       run: nctool --test
 
     - name: Pip install ncrystal-verify

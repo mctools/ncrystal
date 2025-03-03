@@ -33,6 +33,7 @@ function( ncrystal_core_setup_tests )
   add_executable( "coretestapp" "${NCrystal_SOURCE_DIR}/app_test/main.cc" )
   target_link_libraries( "coretestapp" PRIVATE NCrystal::NCrystal )
   add_test( NAME "coretestapp" COMMAND "coretestapp" )
+  set_property( TEST "coretestapp" PROPERTY TIMEOUT "$<IF:$<CONFIG:Debug>,20,7>" )
 endfunction()
 
 ncrystal_core_setup_tests()
