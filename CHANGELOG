@@ -1,4 +1,4 @@
-v4.1.3 (work in progress)
+v4.1.4 2025-03-03
      * README files for the ncrystal-core, ncrystal-python, and ncrystal-verify
        packages are no longer identical to the main README file, but has content
        more appropriate for the specific sub-package.
