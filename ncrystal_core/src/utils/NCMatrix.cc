@@ -42,32 +42,42 @@ NCrystal::Matrix NCrystal::operator*(const NCrystal::Matrix& m1, const NCrystal:
 
 void NCrystal::Matrix::rref(double epsilon)
 {
+  const unsigned rowcount = m_rowcount;
+  const unsigned colcount = m_colcount;
+  nc_assert( m_data.size() == rowcount * colcount );
   unsigned r = 0;
-  for (unsigned c = 0; c < m_colcount && r < m_rowcount; ++c) {
-    int j = r;
-    for (unsigned i = r+1; i < m_rowcount; ++i) {
+  for (unsigned c = 0; c < colcount && r < rowcount; ++c) {
+    unsigned j = r;
+    for (unsigned i = r+1; i < rowcount; ++i) {
+      nc_assert( c < 1000 && r < 1000 && i < 1000 );
       if (ncabs((*this)[i][c]) > ncabs((*this)[j][c]))
         j = i;
     }
+    nc_assert( j < rowcount && c < colcount );
     if (ncabs((*this)[j][c]) < epsilon)
       continue;
-    std::swap_ranges(m_data.begin() + j*m_colcount,
-        m_data.begin() + j*m_colcount + m_colcount,
-        m_data.begin() + r*m_colcount);
+    nc_assert( j < rowcount && r < colcount );
+    if ( r != j ) {
+      double * a = m_data.begin() + j*colcount;
+      double * aE = a + colcount;
+      double * b = m_data.begin() + r*colcount;
+      for ( ; a!=aE; ++a, ++b )
+        std::swap(*a,*b);
+    }
+    nc_assert( (*this)[r][c] );
     double s = 1.0 / (*this)[r][c];
-    for (unsigned jj = 0; jj < m_colcount; ++jj)
-      m_data[r*m_colcount + jj] *= s;
-    for (unsigned i = 0; i < m_rowcount; ++i) {
+    for (unsigned jj = 0; jj < colcount; ++jj)
+      m_data[r*colcount + jj] *= s;
+    for (unsigned i = 0; i < rowcount; ++i) {
       if (i != r) {
         double t = (*this)[i][c];
-        for (unsigned jj = 0; jj < m_colcount; ++jj)
-          m_data[i*m_colcount + jj] -= t * (*this)[r][jj];
+        for (unsigned jj = 0; jj < colcount; ++jj)
+          m_data[i*colcount + jj] -= t * (*this)[r][jj];
       }
     }
     ++r;
   }
 }
-
 
 void NCrystal::Matrix::inv(double epsilon  )
 {
@@ -79,7 +89,7 @@ void NCrystal::Matrix::inv(double epsilon  )
   const auto newsize = m_rowcount*tmp_colcount;
   new_data.reserve_hint(newsize);
   for ( unsigned i = 0; i < newsize; ++i )
-    new_data.emplace_back();
+    new_data.emplace_back(0.0);
 
   for (unsigned i = 0; i < m_rowcount; ++i) {
     for (unsigned j = 0; j < m_colcount ; ++j) {
@@ -92,6 +102,7 @@ void NCrystal::Matrix::inv(double epsilon  )
     new_data[(m_rowcount-j) * tmp_colcount + tmp_colcount-j] = 1.;
   }
 
+  //Todo: this is not at all exception safe:
   new_data.swap(m_data);
   m_colcount *= 2;
   rref(epsilon);
@@ -103,9 +114,7 @@ void NCrystal::Matrix::inv(double epsilon  )
       m_data[i * (m_colcount) + j]= new_data[i * (tmp_colcount) + j+ m_colcount] ;
     }
   }
-
 }
-
 
 NCrystal::Matrix NCrystal::Matrix::getInv(double epsilon) const
 {
@@ -113,7 +122,6 @@ NCrystal::Matrix NCrystal::Matrix::getInv(double epsilon) const
   mat.inv(epsilon);
   return mat;
 }
-
 
 std::ostream& NCrystal::operator << (std::ostream & o, const NCrystal::Matrix& matrix)
 {

@@ -17,6 +17,8 @@ v4.1.3 (work in progress)
      * Update cmake_minimum_required statements in CMake code.
      * Fix faulty assert statement in NCCFileUtils.cc.
      * More numerically stable rotation matrix determinant calculations.
+     * Stop using std::swap_ranges on identical ranges, since this is undefined
+       behaviour and gave issues on Windows.
 
 v4.1.2 2025-02-26
      * Improve support for FreeBSD by actually running builds and CTests in CI
