@@ -111,16 +111,19 @@ namespace NCRYSTAL_NAMESPACE {
 
   inline const Vector& RotMatrix::colX() const
   {
+    nc_assert( m_colcount==3 && m_rowcount==3 );
     return *reinterpret_cast<const Vector*>((*this)[0]);
   }
 
   inline const Vector& RotMatrix::colY() const
   {
+    nc_assert( m_colcount==3 && m_rowcount==3 );
     return *reinterpret_cast<const Vector*>((*this)[1]);
   }
 
   inline const Vector& RotMatrix::colZ() const
   {
+    nc_assert( m_colcount==3 && m_rowcount==3 );
     return *reinterpret_cast<const Vector*>((*this)[2]);
   }
 
@@ -132,7 +135,7 @@ namespace NCRYSTAL_NAMESPACE {
     nc_assert(m_data.capacity()==9);
     //SmallVector does not have m_data.resize(9,0.0):
     for ( unsigned i = 0; i < 9; ++i )
-      m_data.emplace_back();
+      m_data.emplace_back( 0.0 );
   }
 
   inline RotMatrix::RotMatrix(RotMatrix && mtx)
@@ -141,6 +144,8 @@ namespace NCRYSTAL_NAMESPACE {
   }
   inline RotMatrix& RotMatrix::operator=(RotMatrix&& mtx)
   {
+    nc_assert( m_colcount==3 && m_rowcount==3 );
+    nc_assert( mtx.m_colcount==3 && mtx.m_rowcount==3 );
     Matrix::operator=(std::move(mtx));
     return *this;
   }
@@ -149,9 +154,12 @@ namespace NCRYSTAL_NAMESPACE {
   {
     if (mtx.nRows()!=3||mtx.nCols()!=3)
       NCRYSTAL_THROW(BadInput,"Can only convert 3x3 Matrix to RotMatrix");
+    nc_assert( m_colcount==3 && m_rowcount==3 );
+
   }
   inline RotMatrix& RotMatrix::operator=(Matrix&& mtx)
   {
+    nc_assert( m_colcount==3 && m_rowcount==3 );
     if (mtx.nRows()!=3||mtx.nCols()!=3)
       NCRYSTAL_THROW(BadInput,"Can only convert 3x3 Matrix to RotMatrix");
     Matrix::operator=(std::move(mtx));

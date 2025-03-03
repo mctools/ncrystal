@@ -93,9 +93,9 @@ void NCrystal::Matrix::inv(double epsilon  )
   }
 
   new_data.swap(m_data);
-  m_colcount *=2;
+  m_colcount *= 2;
   rref(epsilon);
-  m_colcount /=2;
+  m_colcount /= 2;
   new_data.swap(m_data);
 
   for (unsigned i = 0; i < m_rowcount; ++i) {

@@ -65,7 +65,20 @@ double NCrystal::RotMatrix::determinant() const
 {
   nc_assert_always(m_data.size()==9);
   const double * m = &m_data[0];
-  return m[0]*(m[4]*m[8]-m[5]*m[7]) + m[1]*(m[5]*m[6]-m[3]*m[8]) + m[2]*(m[3]*m[7]-m[4]*m[6]);
+#if 1
+  StableSum sum;
+  sum.add(  m[0]*m[4]*m[8] );
+  sum.add( -m[0]*m[5]*m[7] );
+  sum.add(  m[1]*m[5]*m[6] );
+  sum.add( -m[1]*m[3]*m[8] );
+  sum.add(  m[2]*m[3]*m[7] );
+  sum.add( -m[2]*m[4]*m[6] );
+  return sum.sum();
+#else
+  return ( m[0]*(m[4]*m[8]-m[5]*m[7])
+           + m[1]*(m[5]*m[6]-m[3]*m[8])
+           + m[2]*(m[3]*m[7]-m[4]*m[6]) );
+#endif
 }
 
 void NCrystal::rotateToFrame( double sinab, double cosab, const Vector& a, const Vector& b, Vector&v, RNG * rng )
