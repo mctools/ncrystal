@@ -157,7 +157,6 @@ namespace {
       symbol += "_access_virtual_api";
 
 #ifdef NCLOAD_WINDOWS
-      FARPROC fproc;
       void * addr = (void *)(intptr_t)GetProcAddress(handle,
                                                      symbol.c_str());
       if (!addr)
