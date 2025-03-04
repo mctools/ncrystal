@@ -44,8 +44,7 @@ jobs:
             ./src/devel/bin/ncdevtool check -n "fix""me"
             cmake -S ./src -B ./build -DCMAKE_BUILD_TYPE=Release -DNCRYSTAL_BUILD_STRICT=ON -DNCRYSTAL_ENABLE_TESTING=ON -DMCTOOLS_REQUIRE_ALL_TEST_DEPS=ON
             cmake --build ./build --config Release --parallel 2
-            cd ./build
-            ctest --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle
+            ctest --test-dir ./build --build-config Release --no-tests=error --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle
 
   pipinst:
     needs: [ ncdevtool_check ]

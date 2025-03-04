@@ -112,7 +112,7 @@ jobs:
 
     - name: CTest
       if: matrix.mode == 'ctest'
-      run: ( cd ${{github.workspace}}/build && ctest --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle )
+      run: ctest --test-dir ./build --no-tests=error --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle
 
     - name: Install
       if: matrix.mode != 'ctest'

@@ -80,9 +80,6 @@ jobs:
         --build ${{github.workspace}}/build
         --config ${{ matrix.buildtype }}
 
-    - name: CTest (from the build area)
-      run: |
-        set -eux
-        cd ${{github.workspace}}/build
-        ctest --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle
+    - name: CTest
+      run: ctest --test-dir ./build --no-tests=error --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle
 

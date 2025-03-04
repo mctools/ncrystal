@@ -79,9 +79,4 @@ jobs:
 
       #NB more verbosity by appending: "-VV":
     - name: Run CTests
-      shell: cmd
-      run: |
-        cd build
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        ctest --build-config Release --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle
-        if %errorlevel% neq 0 exit /b %errorlevel%
+      run: ctest --test-dir ./build  --build-config Release --no-tests=error --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle
