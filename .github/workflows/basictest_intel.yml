@@ -27,8 +27,10 @@ jobs:
           - { mode: 'installtest'  }
     name: ${{ matrix.mode }}
 
-    runs-on: ubuntu-20.04
-    #Note: August 2024 the intel oneapi compilers did not work on ubuntu-22.04
+    runs-on: ubuntu-22.04
+    #Note March 2025: ubuntu-20.04 was retired, so updated to next oldest
+    #                 (ubuntu-22.04). This time it seemed to work!
+    #Old note: August 2024 the intel oneapi compilers did not work on ubuntu-22.04
     #or ubuntu-latest. This is most likely because these platforms are using a
     #too new c++ library from gcc, for which the intel compilers have not been
     #updated. Or something like that.

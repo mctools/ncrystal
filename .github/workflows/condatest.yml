@@ -33,13 +33,11 @@ jobs:
       #fail-fast: false
       matrix:
         include:
-          - { os: ubuntu-20.04 }
+          - { os: ubuntu-24.04-arm }
           - { os: ubuntu-22.04 }
           - { os: ubuntu-latest }
           - { os: macos-latest }
           - { os: macos-13 }
-#          - { os: macos-13 }
-#          - { os: macos-14 }
     name: ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     defaults:
