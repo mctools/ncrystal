@@ -79,7 +79,6 @@ namespace {
 
   ncrystal_config query_ncrystal_config()
   {
-    char buffer[4096];
 #ifdef NCLOAD_WINDOWS
     FILE* pipe = _popen("ncrystal-config --show "
                         "intversion shlibpath namespace", "r");
@@ -110,7 +109,6 @@ namespace {
     };
 
     ncrystal_config res;
-    bool all_ok(true);
     if ( !readLine(res.shlibpath)
          || !(res.intversion = parseIntVersion( res.shlibpath ))
          || !readLine( res.shlibpath )
