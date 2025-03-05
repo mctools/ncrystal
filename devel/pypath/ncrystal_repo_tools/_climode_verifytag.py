@@ -64,7 +64,7 @@ def main( parser ):
 
     parser.add_argument(
         '-t','--tag', metavar='TAG', default='',
-        help="""Tag to analyse. If not provided, a "git describe" command will
+        help="""Tag to analyse. If not provided, a "git tag --points-at HEAD" command will
         be invoked on the repo, requiring the tag to match the --tagpattern and
         to be on the current commit (HEAD)."""
     )

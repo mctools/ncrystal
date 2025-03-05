@@ -54,8 +54,8 @@ wheel.packages = ['skbld_autogen/NCrystal','ncrystal_core/skbld_autogen/_ncrysta
 #      not allow us to ignore emacs backup files *~.
 sdist.include = ['ncrystal_core/skbld_autogen/','skbld_autogen/NCrystal/*.py']
 sdist.exclude = [
-              '/ncrystal_python/','ncrystal_geant4/',
-              '/tests/','/.github/','.gitignore','docs/','data/'
+              '/ncrystal_python/','/ncrystal_pypluginmgr/','/ncrystal_verify/',
+              '/tests/','/.github/','/.gitignore','/docs/','/data/','/devel/'
 ]
 sdist.cmake = true
 wheel.py-api = "py3" # as close to "noarch" as possible (ABI3)
