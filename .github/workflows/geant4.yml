@@ -1,4 +1,4 @@
-name: conda
+name: geant4
 on:
   push:
   pull_request:
@@ -101,4 +101,7 @@ jobs:
         run: cmake --install ./bldexample
 
       - name: Run example
-        run: ./instexample/bin/myapp
+        run:
+          LD_LIBRARY_PATH=$(ncrystal-config --show shlibdir)
+          DYLD_LIBRARY_PATH=$(ncrystal-config --show shlibdir)
+          ./instexample/bin/myapp
