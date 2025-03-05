@@ -1,0 +1,11 @@
+name: ncg4
+channels:
+  - nodefaults
+  - conda-forge
+dependencies:
+  - python==3.12
+  - compilers
+  - cmake
+  - make
+  - expat #TODO: Still needed? Maybe not after geant4 11.3.0
+  - pip
