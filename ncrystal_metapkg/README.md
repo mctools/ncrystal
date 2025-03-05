@@ -172,9 +172,9 @@ notably includes NCrystal installed via "pip install ncrystal").
 Using the NCrystal with Geant4
 ------------------------------
 
-The instructions for the NCrystal-Geant4 bindings are currently being
-updated. Once complete, they will appear on
-https://github.com/mctools/ncrystal-geant4
+The NCrystal-Geant4 bindings are developed separately in the ncrystal-geant4
+package. Refer to https://github.com/mctools/ncrystal-geant4 for more
+information.
 
 
 
