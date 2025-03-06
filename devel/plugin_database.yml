@@ -28,7 +28,7 @@ SANSND:
   description: |
     A plugin to provide small angle neutron scattering for nanodiamonds.
 
-    Models and benchmarking are described in 
+    Models and benchmarking are described in
     N. Rizzi, et al. (DOI:10.1080/00295639.2023.2196926).
 
 nxslib:
