@@ -23,13 +23,19 @@ CrysText:
     A plugin providing texture models. Note that this plugin has some known
     numerical issues and is slow for shorter wavelengths.
 
+MagScat:
+  github_repo_key: "highness-eu/ncplugin-MagScat"
+  description: |
+    A plugin providing paramagnetic scattering in O2-clathrates, based on
+    formulas by O. Zimmer (https://doi.org/10.1103/PhysRevC.93.035503).
+
 SANSND:
   github_repo_key: "highness-eu/ncplugin-SANSND"
   description: |
     A plugin to provide small angle neutron scattering for nanodiamonds.
 
     Models and benchmarking are described in
-    N. Rizzi, et al. (DOI:10.1080/00295639.2023.2196926).
+    N. Rizzi, et al. (https://doi.org/10.1080/00295639.2023.2196926).
 
 nxslib:
   github_repo_key: "mctools/ncplugin_nxslib"
@@ -46,7 +52,7 @@ WaterData:
     temperatures compared to what is found in the NCrystal standard library.
 
     The data files were based on ENDF/B-VIII.0 CAB scattering kernels by
-    J.I. Márquez Damián, et. al. (DOI:10.1016/j.anucene.2013.11.014).
+    J.I. Márquez Damián, et. al. (https://doi.org/10.1016/j.anucene.2013.11.014).
 
 UraniumOxideData:
   is_on_pypi: true
