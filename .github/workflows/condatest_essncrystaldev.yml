@@ -1,7 +1,8 @@
 name: essncrystaldev-short
 on:
+  #NOTE: We do not run this on pull requests since the secret needed for
+  #checkout below is not available in that context.
   push:
-  pull_request:
   schedule:
     - cron: '30 8 * * 2'  # 8:30 every Tuesday
 
@@ -21,7 +22,6 @@ jobs:
   build:
     needs: [ ncdevtool_check ]
     strategy:
-      fail-fast: false
       matrix:
         include:
           - { os: ubuntu-latest, CC: gcc,      CXX: g++,        python: '3.13' }
