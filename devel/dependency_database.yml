@@ -27,10 +27,13 @@ packages:
         - ADD composer
         - gemmi
         - ase
+      endf:
+        - endf-parserpy
       all:
         - ADD plot
         - ADD cif
         - ADD composer
+        - ADD endf
       devel:
         - simple-build-system
         - pybind11
@@ -103,3 +106,5 @@ dependencies:
     min_version: "1.6.0"
   pybind11:
     min_version: "2.11.0"
+  endf-parserpy:
+    min_version: "0.12.0"

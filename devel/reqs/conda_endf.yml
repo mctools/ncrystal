@@ -1,4 +1,4 @@
-name: ncrystal_all
+name: ncrystal_endf
 channels:
   - nodefaults
   - conda-forge
@@ -9,8 +9,4 @@ dependencies:
   - make
   - pip
   - python
-  - ase <3.24.0
   - endf-parserpy >=0.12.0
-  - gemmi >=0.6.1
-  - matplotlib >=3.6.0
-  - spglib >=2.1.0
