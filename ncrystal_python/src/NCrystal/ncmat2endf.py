@@ -38,12 +38,9 @@ import numpy as np
 import scipy.interpolate as scint
 from datetime import datetime
 import warnings
-
-try:
-    import NCrystal as NC
-except ImportError:
-    raise SystemExit('Could not import NCrystal. Check the package was correctly installed, with a version equal or higher than 3.9.7.\nhttps://github.com/mctools/ncrystal/wiki')
-assert NC.version_num >=  3009007, "Too old NCrystal found. Version 3.9.7 or above required"
+from . import core as nc_core
+from . import constants as nc_constants
+from . import vdos as nc_vdos
 
 try:
     import endf_parserpy
@@ -161,7 +158,7 @@ class ElementData():
         """
         self._sigma_i = ad.incoherentXS()
         self._sigma_free = ad.freeScatteringXS()
-        self._awr = ad.averageMassAMU() / NC.constants.const_neutron_mass_amu
+        self._awr = ad.averageMassAMU() / nc_constants.const_neutron_mass_amu
         self._dwi = []
         self._alpha = np.array([])
         self._beta = np.array([])
@@ -307,7 +304,7 @@ class NuclearData():
         """
         self._temperatures = np.sort(np.asarray(temperatures))
         self._ncmat_fn = ncmat_fn
-        mat = NC.load(ncmat_fn+f';vdoslux={vdoslux}')
+        mat = nc_core.load(ncmat_fn+f';vdoslux={vdoslux}')
         self._composition = mat.info.composition
         self._elements = {}
         self._ncrystal_comments = None
@@ -385,11 +382,11 @@ class NuclearData():
 
     def _get_alpha_beta_grid(self):
         T = self._temperatures[0]
-        m = NC.load(f'{self._ncmat_fn};temp={T}K;vdoslux={self._vdoslux}')
+        m = nc_core.load(f'{self._ncmat_fn};temp={T}K;vdoslux={self._vdoslux}')
         kT = kT0*T/T0 # eV
         for di in m.info.dyninfos:
             element_name = di.atomData.displayLabel()
-            if type(di) in [NC.core.Info.DI_VDOS, NC.core.Info.DI_VDOSDebye]:
+            if type(di) in [nc_core.Info.DI_VDOS, nc_core.Info.DI_VDOSDebye]:
                 sctknl = di.loadKernel(vdoslux=self._vdoslux)
                 self._elements[element_name].alpha = sctknl['alpha']*kT/kT0
                 self._elements[element_name].beta_total = sctknl['beta']*kT/kT0
@@ -402,11 +399,11 @@ class NuclearData():
             # to debug libraries.
             #
             for T in self._temperatures[1:]:
-                m = NC.load(f'{self._ncmat_fn};temp={T}K;vdoslux={self._vdoslux}')
+                m = nc_core.load(f'{self._ncmat_fn};temp={T}K;vdoslux={self._vdoslux}')
                 kT = kT0*T/T0 # eV
                 for di in m.info.dyninfos:
                     element_name = di.atomData.displayLabel()
-                    if type(di) in [NC.core.Info.DI_VDOS, NC.core.Info.DI_VDOSDebye]:
+                    if type(di) in [nc_core.Info.DI_VDOS, nc_core.Info.DI_VDOSDebye]:
                         sctknl = di.loadKernel(vdoslux=self._vdoslux)
                         self._elements[element_name].alpha = np.unique(np.concatenate((self._elements[element_name].alpha, sctknl['alpha']*kT/kT0)))
                         self._elements[element_name].beta_total = np.unique(np.concatenate((self._elements[element_name].beta_total, sctknl['beta']*kT/kT0)))
@@ -426,14 +423,14 @@ class NuclearData():
 
     def _get_elastic_data(self, elastic_mode):
         for T in self._temperatures:
-            m = NC.load(f'{self._ncmat_fn};temp={T}K;vdoslux={self._vdoslux};comp=bragg;dcutoff=0.1')
+            m = nc_core.load(f'{self._ncmat_fn};temp={T}K;vdoslux={self._vdoslux};comp=bragg;dcutoff=0.1')
             if m.info.hasAtomInfo():
                 #
                 # Load coherent elastic data
                 #
                 if T == self._temperatures[0]:
                     # Find unique Bragg edges, as represented in ENDF-6 floats
-                    edges = np.array([NC.wl2ekin(2.0*e.dspacing) for e in m.info.hklObjects()])
+                    edges = np.array([nc_constants.wl2ekin(2.0*e.dspacing) for e in m.info.hklObjects()])
                     self._edges = np.unique(_endf_roundoff(edges))
                     # Coherent scattering XS is evaluated between edges
                     eps = 1e-3
@@ -444,11 +441,11 @@ class NuclearData():
             #
             for di in m.info.dyninfos:
                 element_name = di.atomData.displayLabel()
-                if type(di) in [NC.core.Info.DI_VDOS, NC.core.Info.DI_VDOSDebye]:
+                if type(di) in [nc_core.Info.DI_VDOS, nc_core.Info.DI_VDOSDebye]:
                     emin = di.vdosData()[0][0]
                     emax = di.vdosData()[0][1]
                     rho = di.vdosData()[1]
-                    res = NC.analyseVDOS(emin, emax, rho, di.temperature, di.atomData.averageMassAMU())
+                    res = nc_vdos.analyseVDOS(emin, emax, rho, di.temperature, di.atomData.averageMassAMU())
                     #
                     # Load incoherent elastic data
                     #
@@ -523,10 +520,10 @@ class NuclearData():
 
     def _get_inelastic_data(self):
         for T in self._temperatures:
-            m = NC.load(f'{self._ncmat_fn};temp={T}K')
+            m = nc_core.load(f'{self._ncmat_fn};temp={T}K')
             for di in m.info.dyninfos:
                 element_name = di.atomData.displayLabel()
-                if type(di) in [NC.core.Info.DI_VDOS, NC.core.Info.DI_VDOSDebye]:
+                if type(di) in [nc_core.Info.DI_VDOS, nc_core.Info.DI_VDOSDebye]:
                     #
                     # Load incoherent inelastic data
                     #
@@ -551,14 +548,14 @@ class NuclearData():
                     emin = di.vdosData()[0][0]
                     emax = di.vdosData()[0][1]
                     rho = di.vdosData()[1]
-                    res = NC.analyseVDOS(emin, emax, rho, di.temperature, di.atomData.averageMassAMU())
+                    res = nc_vdos.analyseVDOS(emin, emax, rho, di.temperature, di.atomData.averageMassAMU())
                     self._elements[element_name]._teff.append(res['teff'])
                 else:
                     self._elements[element_name]._sab = None
                     self._elements[element_name]._teff = None
     def _get_ncrystal_comments(self):
         line_list = []
-        for line in NC.createTextData(self._ncmat_fn).rawData.split('\n')[:]:
+        for line in nc_core.createTextData(self._ncmat_fn).rawData.split('\n')[:]:
             if len(line) > 0 and line[0] == '#':
                 line_list.append(line[1:])
         self._ncrystal_comments = _wrap_string("\n".join(line_list),66)
@@ -892,7 +889,7 @@ class EndfFile():
         description.append(''.ljust(66))
         description.append(data.ncmat_fn.center(66))
         description.append(''.ljust(66))
-        description.append(f' using NCrystal {NC.__version__} and endf-parserpy {endf_parserpy.__version__} [2] with the '.ljust(66))
+        description.append(f' using NCrystal {nc_core.get_version()} and endf-parserpy {endf_parserpy.__version__} [2] with the '.ljust(66))
         description.append(' following options:'.ljust(66))
         description.append(''.ljust(66))
         for line in self._parameter_description:
