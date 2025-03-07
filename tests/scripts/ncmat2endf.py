@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 ################################################################################
 ##                                                                            ##
@@ -19,46 +20,31 @@
 ##                                                                            ##
 ################################################################################
 
-[project]
-name = "ncrystal-verify"
-version = "4.1.9"
-requires-python = ">=3.8"
-#Not ncrystal-core, since we want to allow testing of manually built
-#installations, where ncrystal-core might be installed in a non pip-aware
-#manner:
-dependencies = [ 'ncrystal-python==4.1.9' ]
-readme = "README.md"
-license = {file = "LICENSE"}
-authors = [
-  { name="NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)" },
-]
-description = "Library for thermal neutron transport in crystals and other materials."
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: Apache Software License",
-]
+# NEEDS: numpy ase endf_parserpy
 
-[project.urls]
-"Homepage" = "https://mctools.github.io/ncrystal/"
-"Bug Tracker" = "https://github.com/mctools/ncrystal/issues"
+import NCTestUtils.enable_fpe # noqa F401
+from NCrystalDev.ncmat2endf import ncmat2endf, EndfParameters
 
-[project.scripts]
-ncrystal-verify = "_ncrystal_verify._cli:main"
+def test(cfg,name,**kwargs):
+    import pprint
+    print()
+    print()
+    print()
+    print('-'*80)
+    if 'force_save' not in kwargs:
+        kwargs['force_save'] = True
+    kwargs['ncmat_fn']=cfg
+    kwargs['name']=name
+    pprint.pprint(kwargs)
+    res=ncmat2endf(**kwargs)
+    print(res)
+    # TODO: replace this with a proper test
+    for endf_fn, frac in res:
+        print(f"Created file {endf_fn} with fraction {frac}")
+        with open(endf_fn) as f:
+            lines = [next(f) for _ in range(100)]
+        print("".join(lines))
 
-[build-system]
-requires = ["scikit-build-core>=0.10"]
-build-backend = "scikit_build_core.build"
-
-[tool.scikit-build]
-logging.level = "INFO"
-minimum-version = "build-system.requires"
-wheel.packages = ['skbld_autogen/_ncrystal_verify']
-sdist.include = ['/CMakeLists.txt','/pyproject.toml','/skbld_autogen/']
-sdist.cmake = true
-wheel.py-api = "py3" # as close to "noarch" as possible (ABI3)
-wheel.platlib = false # Wheels are pure, CMake is only used to invoke generate.py
-
-[project.optional-dependencies]
-all = ['ase<3.24.0', 'gemmi>=0.6.1', 'matplotlib>=3.6.0',
-       'mpmath>=1.3.0', 'numpy>=1.22', 'spglib>=2.1.0',
-       'endf_parserpy>=0.11.0']
+endf_defaults = EndfParameters()
+test('Al_sg225.ncmat', 'Al', endf_defaults, temperatures=[350])
+test('Polyethylene_CH2.ncmat', 'CH2', endf_defaults, temperatures=[293.6, 350], mat_numbers={"C":37, "H": 38})
