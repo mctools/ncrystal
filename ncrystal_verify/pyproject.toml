@@ -60,5 +60,4 @@ wheel.platlib = false # Wheels are pure, CMake is only used to invoke generate.p
 
 [project.optional-dependencies]
 all = ['ase<3.24.0', 'gemmi>=0.6.1', 'matplotlib>=3.6.0',
-       'mpmath>=1.3.0', 'numpy>=1.22', 'spglib>=2.1.0',
-       'endf_parserpy>=0.11.0']
+       'mpmath>=1.3.0', 'numpy>=1.22', 'spglib>=2.1.0']
