@@ -20,7 +20,8 @@
 ##                                                                            ##
 ################################################################################
 
-# NEEDS: numpy ase endf_parserpy
+# fixme: ase is only here temporarily to allow scipy usage
+# NEEDS: numpy ase endf-parserpy
 
 import NCTestUtils.enable_fpe # noqa F401
 from NCrystalDev.ncmat2endf import ncmat2endf, EndfParameters

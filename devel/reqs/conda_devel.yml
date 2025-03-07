@@ -11,6 +11,7 @@ dependencies:
   - python
   - ase <3.24.0
   - cppcheck
+  - endf-parserpy >=0.12.0
   - gemmi >=0.6.1
   - matplotlib >=3.6.0
   - mpmath >=1.3.0
