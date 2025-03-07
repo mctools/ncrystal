@@ -90,7 +90,7 @@ def check_env_files(db, *, fix = False):
             reqsdir.joinpath(fn).unlink()
     if tgt-actual:
         if not fix:
-            error(f'Missing files in {reqsdir_rel}: {actual-tgt}')
+            error(f'Missing files in {reqsdir_rel}: {tgt-actual}')
         for fn in tgt-actual:
             print(f"Creating {reqsdir_rel}/{fn}")
             reqsdir.joinpath(fn).write_text(expected[fn])
