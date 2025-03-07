@@ -23,12 +23,6 @@ CrysText:
     A plugin providing texture models. Note that this plugin has some known
     numerical issues and is slow for shorter wavelengths.
 
-MagScat:
-  github_repo_key: "highness-eu/ncplugin-MagScat"
-  description: |
-    A plugin providing paramagnetic scattering in O2-clathrates, based on
-    formulas by O. Zimmer (https://doi.org/10.1103/PhysRevC.93.035503).
-
 SANSND:
   github_repo_key: "highness-eu/ncplugin-SANSND"
   description: |
@@ -78,3 +72,21 @@ BzScope:
     foregoing the incoherent approximation. The actual upstream location of this
     plugin is https://code.ihep.ac.cn/cinema-developers/ncplugin-bzscope but the
     plugin at that location has yet to be migrated to NCrystal4.
+
+GraphiticData:
+  is_on_pypi: true
+  github_repo_key: "highness-eu/ncmat-graphitic"
+  description: |
+    NCMAT data files for graphite oxides and fullerite (C60).
+
+ClathrateHydrateData:
+  github_repo_key: "highness-eu/ncmat-clathrates"
+  description: |
+    NCMAT data files of various clathrate hydrates, including paramagnetic
+    effects of scattering on enclathrated O2 via the MagScat plugin.
+
+MagScat:
+  github_repo_key: "highness-eu/ncplugin-MagScat"
+  description: |
+    A plugin providing paramagnetic scattering in O2-clathrates, based on
+    formulas by O. Zimmer (https://doi.org/10.1103/PhysRevC.93.035503).
