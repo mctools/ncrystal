@@ -120,11 +120,27 @@ jobs:
     - name: Check python version
       run: python --version
 
+
+    - name: Create pip constraints
+      #Make sure that no other version of NCrystal might get dragged in:
+      shell: python
+      run: |
+        from pathlib import Path
+        v = Path('./src/VERSION').read_text().strip()
+        c = [
+        f'ncrystal=={v}',
+        f'ncrystal-core=={v}',
+        f'ncrystal-python=={v}',
+        f'ncrystal-verify=={v}',
+        ''
+        ]
+        v = Path('./constraints.txt').write_text('\n'.join(c))
+
     - name: Enable parallel cmake
       run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
 
     - name: Pip install pyyaml for ncdevtool
-      run: pip install pyyaml
+      run: pip install -c "constraints.txt" pyyaml
 
     #We want to make sure that the plugin code ends up in ./src_plugin, no matter if it is:
     #  1) A remote repo with the plugin at the root
@@ -212,13 +228,13 @@ jobs:
         path: ./dist
 
     - name: Install numpy and build backends
-      run: pip install numpy "setuptools>=64.0" "scikit-build-core>=0.10"
+      run: pip install -c "constraints.txt" numpy "setuptools>=64.0" "scikit-build-core>=0.10"
       #                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
       #NB: This covers all known plugins. If it will differ, we might want to
       #    simply parse the pyproject toml instead and extract them dynamically:
 
     - name: Install ncrystal
-      run: pip install --no-index --find-links dist ncrystal ncrystal-pypluginmgr
+      run: pip install -c "constraints.txt" --no-index --find-links dist ncrystal ncrystal-pypluginmgr
 
     - name: Pip check
       run: pip check
@@ -232,7 +248,7 @@ jobs:
       #Note: we do not add --no-index or --no-deps here, since we want to allow
       #the plugin to use whatever plugin backend it desires.
     - name: Install plugin
-      run: pip install ./src_plugin --no-deps --no-build-isolation
+      run: pip install -c "constraints.txt" ./src_plugin --no-build-isolation
 
     - name: Pip list
       run: pip list
@@ -261,7 +277,7 @@ jobs:
 
     - name: Install plugin from PyPI
       if: steps.pluginfo.outputs.is_on_pypi != ''
-      run: pip install "ncrystal-plugin-${{ matrix.plugin }}" --no-deps --no-build-isolation
+      run: pip install -c "constraints.txt" "ncrystal-plugin-${{ matrix.plugin }}" --no-build-isolation
 
     - name: Pip list
       run: pip list
