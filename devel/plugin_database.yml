@@ -66,12 +66,13 @@ UraniumOxideData:
     (https://doi.org/10.1103/PhysRevB.102.134312).
 
 BzScope:
-  github_repo_key: "tkittel/ncplugin-bzscope"
+  github_repo_key: "mctools/ncrystal-plugin-BzScope"
   description: |
-    A plugin providing coherent inelastic kernels for isotropic materials, thus
+    A plugin allowing coherent inelastic kernels for isotropic materials, thus
     foregoing the incoherent approximation. The actual upstream location of this
-    plugin is https://code.ihep.ac.cn/cinema-developers/ncplugin-bzscope but the
-    plugin at that location has yet to be migrated to NCrystal4.
+    plugin is https://code.ihep.ac.cn/cinema-developers/ncplugin-bzscope but we
+    also keep a mirror at the provided GitHub location in order to reduce
+    network latency issues.
 
 GraphiticData:
   is_on_pypi: true
