@@ -41,6 +41,10 @@ jobs:
           ref: ${{ matrix.openmcbranch }}
           path: ./src_openmc
 
+      - name: Fake openmc tags
+        working-directory: src_openmc
+        run: git tag v0.0.0
+
       - name: Enable parallel cmake
         run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
 
