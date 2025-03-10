@@ -49,16 +49,13 @@ file( CREATE_LINK
 )
 
 set( nctest_pyenvmod "" )
+
 list(
   APPEND nctest_pyenvmod
   "PYTHONPATH=path_list_prepend:${nctest_pypath}"
   "PYTHONPATH=path_list_prepend:${PROJECT_SOURCE_DIR}/pypath"
 )
-get_target_property(
-  tmp_ncrystal_libloc
-  "${nctests_ncrystallib_target}"
-  "LIBRARY_OUTPUT_DIRECTORY_Release"
-)
+
 list(
   APPEND nctest_pyenvmod
   "NCRYSTAL_LIB=set:$<TARGET_FILE:${nctests_ncrystallib_target}>"
