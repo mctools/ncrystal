@@ -71,11 +71,6 @@ jobs:
     - name: Pip install jupyterlab ipympl
       run: python3 -m pip install jupyterlab ipympl
 
-    - name: Pip install spglib patch for py3.13
-      #Workaround for https://github.com/spglib/spglib/issues/553
-      if: matrix.python == '3.13'
-      run: python -mpip install git+https://github.com/tkittel/spglib.git
-
     - name: Pip install optional ncrystal dependencies
       run: python3 -m pip install -r ./src_ncrystal/devel/reqs/requirements_all.txt
 

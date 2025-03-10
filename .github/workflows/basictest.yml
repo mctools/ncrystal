@@ -53,11 +53,6 @@ jobs:
       with:
         python-version: ${{ matrix.python }}
 
-    - name: Pip install spglib patch for py3.13
-      #Workaround for https://github.com/spglib/spglib/issues/553
-      if: matrix.python == '3.13'
-      run: python -mpip install git+https://github.com/tkittel/spglib.git
-
     - name: Pip install dependencies
       run: python -mpip install -r ./src/devel/reqs/requirements_all_and_devel.txt
 

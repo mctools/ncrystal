@@ -35,11 +35,6 @@ jobs:
     - name: Enable parallel cmake
       run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
 
-    - name: Pip install spglib patch for py3.13
-      #Workaround for https://github.com/spglib/spglib/issues/553
-      if: matrix.python == '3.13'
-      run: python -mpip install git+https://github.com/tkittel/spglib.git
-
     - name: Pip install dependencies
       run: python3 -m pip install -r ./src/devel/reqs/requirements_all_and_devel.txt
 
