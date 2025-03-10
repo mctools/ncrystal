@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         include:
-#          - { os: ubuntu-latest, openmcbranch: "develop", python : "3.13" }
+          - { os: ubuntu-latest, openmcbranch: "develop", python : "3.13" }
           - { os: ubuntu-latest, openmcbranch: "master", python : "3.11" }
 
     name: ${{ matrix.os }}.openmc-${{ matrix.openmcbranch }}.python-${{ matrix.python }}
@@ -44,24 +44,16 @@ jobs:
       - name: Enable parallel cmake
         run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
 
-      - name: Install ncrystal-core
-        run: pip install ./src/ncrystal_core
-
       - name: Install extra openmc deps
         run: sudo apt install libhdf5-dev libpng-dev
 
         #Instead of mpich libhdf5-dev, perhaps:libmpich-dev libhdf5-serial-dev libhdf5-mpich-dev
 
-      - name: Configure OpenMC with NCrystal enabled
+      - name: Configure OpenMC
         run: |
           mkdir build
           mkdir install
-          #TODO Once https://github.com/openmc-dev/openmc/pull/3274 is resolved
-          #(and some time passes), we can avoid NCrystal_DIR here:
-          cmake -S ./src_openmc -B ./build \
-          -DCMAKE_INSTALL_PREFIX=./install \
-          -DOPENMC_USE_NCRYSTAL=ON \
-          -DNCrystal_DIR="$(ncrystal-config --show cmakedir)"
+          cmake -S ./src_openmc -B ./build -DCMAKE_INSTALL_PREFIX=./install
 
       - name: Build OpenMC
         run: cmake --build ./build
@@ -86,6 +78,9 @@ jobs:
 
       - name: Install ncrystal-python
         run: pip install ./src/ncrystal_python
+
+      - name: Install ncrystal-core
+        run: pip install ./src/ncrystal_core
 
       - name: Setup OpenMC environment
         run: |
