@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 SRCDIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
 set -e
 set -u
