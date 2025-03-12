@@ -50,6 +50,7 @@ def run( app_file, reflogfile = None ):
     sys.stderr.flush()
     r = subprocess.run( cmd,
                         encoding=ENCODING,
+                        errors='backslashreplace',
                         capture_output = True,
                         cwd = wd )
     sys.stdout.flush()
