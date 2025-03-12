@@ -41,9 +41,13 @@ import warnings
 from . import core as nc_core
 from . import constants as nc_constants
 from . import vdos as nc_vdos
+from ._common import print
 
 try:
-    import endf_parserpy
+    # TODO: temporary fix to avoid syntax warning from endf-parserpy
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore",category=SyntaxWarning)
+        import endf_parserpy
     from endf_parserpy.interpreter.fortran_utils import read_fort_floats
     from endf_parserpy.interpreter.fortran_utils import write_fort_floats
 except ImportError:
