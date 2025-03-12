@@ -45,6 +45,7 @@ from ._common import print
 
 try:
     # TODO: temporary fix to avoid syntax warning from endf-parserpy
+    # https://github.com/IAEA-NDS/endf-parserpy/issues/10
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore",category=SyntaxWarning)
         import endf_parserpy
