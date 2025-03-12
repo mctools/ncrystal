@@ -170,6 +170,8 @@ function( mctools_testutils_internal_haspydep resvar pydep )
     set( pymodtoimport "matplotlib.pyplot" )
   elseif ( "x${pydep}" STREQUAL "xpyyaml" )
     set( pymodtoimport "yaml" )
+  elseif ( "x${pydep}" STREQUAL "xendf-parserpy" )
+    set( pymodtoimport "endf_parserpy" )
   elseif ( "x${pydep}" STREQUAL "xcmake" )
     #cmake is of course present since we are running cmake...
     set( pymodtoimport "" )
