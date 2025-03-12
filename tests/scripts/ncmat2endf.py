@@ -26,7 +26,7 @@
 import NCTestUtils.enable_fpe # noqa F401
 from NCrystalDev.ncmat2endf import ncmat2endf, EndfParameters
 
-def test(cfg,name,**kwargs):
+def test( cfg, name, endf_parameters, **kwargs ):
     import pprint
     print()
     print()
@@ -36,6 +36,7 @@ def test(cfg,name,**kwargs):
         kwargs['force_save'] = True
     kwargs['ncmat_fn']=cfg
     kwargs['name']=name
+    kwargs['endf_parameters']=endf_parameters
     pprint.pprint(kwargs)
     res=ncmat2endf(**kwargs)
     print(res)
