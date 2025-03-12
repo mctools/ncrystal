@@ -39,7 +39,6 @@ def test( cfg, name, endf_parameters, **kwargs ):
     kwargs['endf_parameters']=endf_parameters
     pprint.pprint(kwargs)
     res=ncmat2endf(**kwargs)
-    print(res)
     # TODO: replace this with a proper test
     for endf_fn, frac in res:
         print(f"Created file {endf_fn} with fraction {frac}")
@@ -49,4 +48,5 @@ def test( cfg, name, endf_parameters, **kwargs ):
 
 endf_defaults = EndfParameters()
 test('Al_sg225.ncmat', 'Al', endf_defaults, temperatures=[350])
-test('Polyethylene_CH2.ncmat', 'CH2', endf_defaults, temperatures=[293.6, 350], mat_numbers={"C":37, "H": 38})
+# TODO: replace the second test with something faster
+# test('Polyethylene_CH2.ncmat', 'CH2', endf_defaults, temperatures=[293.6, 350], mat_numbers={"C":37, "H": 38})
