@@ -25,8 +25,25 @@
 
 import NCTestUtils.enable_fpe # noqa F401
 from NCrystalDev.ncmat2endf import ncmat2endf, EndfParameters
+import math
+import warnings
 
-def test( cfg, name, endf_parameters, **kwargs ):
+def reldiff( x, y ):
+    if math.isinf(x):
+        return float('inf') if ( not math.isinf(y) or ( ( x>0 ) != ( y>0 ) ) ) else 0.0
+    return abs(x-y)/(max(1e-300,abs(x)+abs(y)))
+
+def require_flteq( x, y ):
+    def okfct( a, b ):
+        return bool( reldiff( a, b ) < tol )
+    tol = 1e-13
+    if hasattr( x, '__len__' ):
+        if not len(x) == len(y) or any( ( not okfct(a,b) ) for a,b in zip(x,y) ):
+            raise RuntimeError(f'numpy flteq failed for arrays x={x} and y={y}!')
+    elif not okfct(x,y):
+        raise RuntimeError(f'require_flteq( x={x}, y={y} ) failed!')
+
+def test( cfg, name, endf_parameters, ref_teff=None, ref_parsed=None, **kwargs ):
     import pprint
     print()
     print()
@@ -38,15 +55,40 @@ def test( cfg, name, endf_parameters, **kwargs ):
     kwargs['name']=name
     kwargs['endf_parameters']=endf_parameters
     pprint.pprint(kwargs)
-    res=ncmat2endf(**kwargs)
-    # TODO: replace this with a proper test
+    with warnings.catch_warnings():
+        # Suppress warnings from ncmat2endf
+        warnings.filterwarnings("ignore",category=UserWarning)
+        res=ncmat2endf(**kwargs)
     for endf_fn, frac in res:
         print(f"Created file {endf_fn} with fraction {frac}")
         with open(endf_fn) as f:
             lines = [next(f) for _ in range(100)]
         print("".join(lines))
+        if ref_teff:
+            if endf_fn not in ref_teff.keys():
+                raise RuntimeError(f'No reference Teff data for {endf_fn}')
+            from endf_parserpy import EndfParser
+            parser = EndfParser(cache_dir=False)
+            endf_dic = parser.parsefile(endf_fn)
+            teff = endf_dic[7][4]['teff0_table']['Teff0']
+            print(teff, ref_teff[endf_fn])
+            require_flteq(teff, ref_teff[endf_fn])
+        if ref_parsed:
+            if endf_fn not in ref_parsed.keys():
+                raise RuntimeError(f'No reference parsed ENDF sections for {endf_fn}')
+            from endf_parserpy import EndfParser, list_parsed_sections
+            parser = EndfParser(cache_dir=False)
+            endf_dic = parser.parsefile(endf_fn)
+            parsed = " ".join([" ".join(str(x) for x in _)
+                               for _ in list_parsed_sections(endf_dic)])
+            if parsed != ref_parsed[endf_fn]:
+                raise RuntimeError(f'ENDF sections {parsed} expected but sections {ref_parsed[endf_fn]} found')
 
 endf_defaults = EndfParameters()
-test('Al_sg225.ncmat', 'Al', endf_defaults, temperatures=[350])
-# TODO: replace the second test with something faster
-# test('Polyethylene_CH2.ncmat', 'CH2', endf_defaults, temperatures=[293.6, 350], mat_numbers={"C":37, "H": 38})
+test('Al_sg225.ncmat', 'Al', endf_defaults,
+     ref_teff={'tsl_Al.endf':[320.6363, 372.8392]}, ref_parsed={'tsl_Al.endf':'0 0 1 451 7 2 7 4'},
+     temperatures=[293.6, 350], vdoslux=1)
+test('Polyethylene_CH2.ncmat', 'CH2', endf_defaults,
+     ref_teff={'tsl_H_in_CH2.endf':[1208.168], 'tsl_C_in_CH2.endf':[667.5967]},
+     ref_parsed={'tsl_H_in_CH2.endf':'0 0 1 451 7 2 7 4', 'tsl_C_in_CH2.endf':'0 0 1 451 7 2 7 4'},
+     temperatures=[293.6], mat_numbers={"C":37, "H": 38}, vdoslux=1)
