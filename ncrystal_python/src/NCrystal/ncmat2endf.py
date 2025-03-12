@@ -53,10 +53,10 @@ assert version_num >=  1100, "Too old endf-parserpy found. Version 0.11.0 or abo
 
 
 available_elastic_modes = ('greater', 'scaled', 'mixed')
-mass_neutron = 1.04540751e-4 #  eV*ps^2*Angstrom^-2
-hbar = 0.658211951e-3 # eV*ps
-kT0 = 0.0253 # eV
+mass_neutron = nc_constants.const_neutron_mass_amu*nc_constants.constant_dalton2eVc2/((nc_constants.constant_c*1e-12)**2) # eV*ps^2*Angstrom^-2
+hbar = nc_constants.constant_planck/nc_constants.k2Pi*1e12 # eV*ps
 T0 = 293.6 # K
+kT0 = nc_constants.constant_boltzmann*T0 # eV
 
 def _endf_roundoff(x):
     """Limit the precision of a float to what can be represented in an ENDF-6 file
