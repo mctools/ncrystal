@@ -953,7 +953,8 @@ class EndfFile():
         d['NVER'] = endf_parameters.nver
         d['TEMP'] = 0.0
         d['LDRV'] = 0
-        d['HSUB/1'] = f'----{endf_parameters.libname:18s}MATERIAL {mat:4d}'.ljust(66)
+        d['HSUB/1'] = f'----{endf_parameters.libname:18s}MATERIAL {mat:4d}'
+        d['HSUB/1'].ljust(66)
         d['HSUB/2'] =  '-----THERMAL NEUTRON SCATTERING DATA'.ljust(66)
         d['HSUB/3'] =  '------ENDF-6 FORMAT'.ljust(66)
         d['NXC'] = 1
@@ -966,43 +967,47 @@ class EndfFile():
                   'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DEC')
         edate= f'EVAL-{months[now.month-1]}{now.strftime("%y")}'
         ddate= f'DIST-{months[now.month-1]}{now.strftime("%y")}'
-        rdate= f'REV{endf_parameters.lrel:1d}-{months[now.month-1]}{now.strftime("%y")}'
+        rdate= f'REV{endf_parameters.lrel:1d}-'+\
+               f'{months[now.month-1]}{now.strftime("%y")}'
         d['EDATE'] = edate
         d['DDATE'] = ddate
         d['RDATE'] = rdate
         d['ENDATE'] = endf_parameters.endate.ljust(8)
-        description = []
-        description.append(66*'*')
-        description.append('')
-        description.append(' This file was converted from the following NCMAT [1] file:')
-        description.append('')
-        description.append(data.ncmat_fn.center(66))
-        description.append('')
-        description.append(f' using NCrystal {nc_core.get_version()} and endf-parserpy {endf_parserpy.__version__} [2] with the ')
-        description.append(' following options:')
-        description.append('')
+        desc = []
+        desc.append(66*'*')
+        desc.append('')
+        desc.append(' This file was converted from '+
+                           'the following NCMAT [1] file:')
+        desc.append('')
+        desc.append(data.ncmat_fn.center(66))
+        desc.append('')
+        desc.append(f' using NCrystal {nc_core.get_version()} and '+
+                           f'endf-parserpy {endf_parserpy.__version__} '+
+                            '[2] with the ')
+        desc.append(' following options:')
+        desc.append('')
         for line in self._parameter_description:
-            description.append(line)
-        description.append('')
-        description.append(' Temperatures:')
+            desc.append(line)
+        desc.append('')
+        desc.append(' Temperatures:')
         for T in data.temperatures:
-            description.append(f'       {T:.2f} K')
-        description.append('')
-        description.append('References:')
-        description.append('[1] https://github.com/mctools/ncrystal')
-        description.append('[2] https://endf-parserpy.readthedocs.io/en/latest/')
-        description.append('')
-        description.append(66*'*')
-        description.append('')
-        description.append('Comments from NCMAT file:')
-        description.append('')
+            desc.append(f'       {T:.2f} K')
+        desc.append('')
+        desc.append('References:')
+        desc.append('[1] https://github.com/mctools/ncrystal')
+        desc.append('[2] https://endf-parserpy.readthedocs.io/en/latest/')
+        desc.append('')
+        desc.append(66*'*')
+        desc.append('')
+        desc.append('Comments from NCMAT file:')
+        desc.append('')
         for line in data.ncrystal_comments.split('\n'):
-            description.append(line)
-        # description.append('')
-        description.append(66*'*')
-        description = [_.ljust(66) for _ in description]
-        d['DESCRIPTION'] = {k:v for k, v in enumerate(description, start=1)}
-        d['NWD'] = 5+len(description)
+            desc.append(line)
+        # desc.append('')
+        desc.append(66*'*')
+        desc = [_.ljust(66) for _ in desc]
+        d['DESCRIPTION'] = {k:v for k, v in enumerate(desc, start=1)}
+        d['NWD'] = 5+len(desc)
         d['MFx/1'] = 1
         d['MTx/1'] = 451
         d['NCx/1'] = 5
@@ -1020,7 +1025,8 @@ class EndfFile():
         if not outfile.parent.is_dir():
             raise SystemExit('Error: output directory does not exist:'
                              f' { outfile.parent }')
-        text = '\n'.join(self._parser.write(self._endf_dict, zero_as_blank=True))
+        text = '\n'.join(self._parser.write(self._endf_dict,
+                                            zero_as_blank=True))
         nc_write_text(outfile,text)
 
 class EndfParameters():
@@ -1160,11 +1166,16 @@ def ncmat2endf( ncmat_fn,
 
     elastic_mode : str
         Treatment mode for the elastic component
-        "greater" = only the greater ellastic component (coherent or incoherent) is saved
-        "mixed"   = both the coherent and incoherent inelastic components are saved
-        "scaled"  = for monoatomic scatterers, the major component is saved, scaled to the total bound XS
-                    for polyatomic scatterers, coherent scattering for the whole system is assigned to the
-                    atom with minimum incoherent cross section, and its incoherent contribution is distributed
+        "greater" = only the greater ellastic component
+                    (coherent or incoherent) is saved
+        "mixed"   = both the coherent and incoherent inelastic
+                    components are saved
+        "scaled"  = for monoatomic scatterers, the major component is
+                    saved, scaled to the total bound XS
+                    for polyatomic scatterers, coherent scattering for
+                    the whole system is assigned to the
+                    atom with minimum incoherent cross section, and its
+                    incoherent contribution is distributed
                     among the other atoms
 
     include_gif: boolean
@@ -1182,23 +1193,31 @@ def ncmat2endf( ncmat_fn,
     Returns
     -------
     file_names: list of (str, float)
-        List of tuples contanining the ENDF-6 files and their fraction in the composition
+        List of tuples contanining the ENDF-6 files and
+        their fraction in the composition
 
     """
     if verbosity > 0 and endf_parameters.lasym > 0:
-        print(f'Creating non standard S(a,b) with LASYM = {endf_parameters.lasym}')
+        # TODO: replace with a warning
+        print( 'Creating non standard S(a,b)'+
+               f' with LASYM = {endf_parameters.lasym}')
 
     if type(temperatures) in [int, float]:
         temperatures = (temperatures,)
 
     if len(temperatures) > 1:
-        warnings.warn('Multiple temperatures requested. Although this is supported, '
-        +'it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. '
-        +'The (alpha,beta) grid for first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated.', stacklevel=2)
+        warnings.warn('Multiple temperatures requested.'+
+                      'Although this is supported, '+
+                      'it is not recommended because NCrystal generates '+
+                      'a custom (alpha,beta) grid for each temperature. '+
+                      'The (alpha,beta) grid for first temperature will '+
+                      'be used, and S(alpha, beta) for other temperatures '+
+                      'will be interpolated.', stacklevel=2)
     if verbosity > 0:
         print('Get nuclear data...')
 
-    data = NuclearData(ncmat_fn, temperatures, elastic_mode, vdoslux, verbosity)
+    data = NuclearData(ncmat_fn, temperatures,
+                       elastic_mode, vdoslux, verbosity)
 
     if mat_numbers is not None:
         n = len(mat_numbers)
@@ -1220,9 +1239,12 @@ def ncmat2endf( ncmat_fn,
     for frac, ad in data.composition:
         sym = ad.displayLabel()
         mat = 999 if mat_numbers is None else mat_numbers[sym]
-        endf_fn = f'tsl_{name}.endf' if sym == name else f'tsl_{sym}_in_{name}.endf'
+        endf_fn = f'tsl_{name}.endf'\
+                  if sym == name else f'tsl_{sym}_in_{name}.endf'
         if data.elements[sym].sab_total is not None:
-            endf_file = EndfFile(sym, data, mat, endf_parameters, include_gif, isotopic_expansion, parameter_description, verbosity)
+            endf_file = EndfFile(sym, data, mat, endf_parameters,
+                                 include_gif,isotopic_expansion,
+                                 parameter_description, verbosity)
             endf_file.write(endf_fn, force_save)
             file_names.append((endf_fn, frac))
         else:
