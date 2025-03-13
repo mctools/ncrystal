@@ -412,7 +412,7 @@ class NuclearData():
         kT = kT0*T/T0 # eV
         for di in m.info.dyninfos:
             element = di.atomData.displayLabel()
-            if type(di) in [nc_core.Info.DI_VDOS, nc_core.Info.DI_VDOSDebye]:
+            if type(di) in (nc_core.Info.DI_VDOS, nc_core.Info.DI_VDOSDebye):
                 sctknl = di.loadKernel(vdoslux=self._vdoslux)
                 self._elements[element].alpha = sctknl['alpha']*kT/kT0
                 self._elements[element].beta_total = sctknl['beta']*kT/kT0
@@ -431,11 +431,9 @@ class NuclearData():
                 kT = kT0*T/T0 # eV
                 for di in m.info.dyninfos:
                     element = di.atomData.displayLabel()
-                    if type(di) in (nc_core.Info.DI_VDOS,
-                                    nc_core.Info.DI_VDOSDebye):
-                        sctknl = di.loadKernel(vdoslux=self._vdoslux)
-                        self._elements[element].alpha = np.unique(np.concatenate((self._elements[element].alpha, sctknl['alpha']*kT/kT0)))
-                        self._elements[element].beta_total = np.unique(np.concatenate((self._elements[element].beta_total, sctknl['beta']*kT/kT0)))
+                    sctknl = di.loadKernel(vdoslux=self._vdoslux)
+                    self._elements[element].alpha = np.unique(np.concatenate((self._elements[element].alpha, sctknl['alpha']*kT/kT0)))
+                    self._elements[element].beta_total = np.unique(np.concatenate((self._elements[element].beta_total, sctknl['beta']*kT/kT0)))
         for frac, ad in self._composition:
             element = ad.displayLabel()
             #
