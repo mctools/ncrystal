@@ -800,9 +800,11 @@ class EndfFile():
             if endf_parameters.lasym == 0:
                 # S(a,b)*exp(-b/2) for negative beta
                 sab_sym = sab_total*detailed_balance_factor
-                sab_sym2 = sab_sym[np.where(beta_grid<=0)] # get negative branch of S(a,b)
+                # get negative branch of S(a,b)
+                sab_sym2 = sab_sym[np.where(beta_grid<=0)]
                 sab_sym2.shape = (len(beta), len(alpha))
-                sab_sym3 = sab_sym2[::-1,:]  # Invert S(a,b) for negative beta
+                # Invert S(a,b) for negative beta
+                sab_sym3 = sab_sym2[::-1,:]
                 sab_data.append(sab_sym3.transpose())
                 continue
 
@@ -814,7 +816,8 @@ class EndfFile():
 
             d['T0'] = temperatures[0]
             d['beta'] = {k:v for k, v in enumerate(beta,start=1)}
-            d['LT'] = {k:len(temperatures)-1 for k, v in enumerate(beta,start=1)}
+            d['LT'] = {k:len(temperatures)-1
+                       for k, v in enumerate(beta,start=1)}
             d['T'] = {k:v for k,v in enumerate(temperatures[1:], start=1)}
             d['LI'] = {k:4 for k,v in enumerate(temperatures[1:], start=1)}
             d['NP'] = len(alpha)
@@ -853,7 +856,8 @@ class EndfFile():
 
             d['T0'] = temperatures[0]
             d['beta'] = {k:v for k, v in enumerate(beta,start=1)}
-            d['LT'] = {k:len(temperatures)-1 for k, v in enumerate(beta,start=1)}
+            d['LT'] = {k:len(temperatures)-1
+                       for k, v in enumerate(beta,start=1)}
             d['T'] = {k:v for k,v in enumerate(temperatures[1:], start=1)}
             d['LI'] = {k:4 for k,v in enumerate(temperatures[1:], start=1)}
             d['NP'] = len(alpha)
@@ -888,7 +892,8 @@ class EndfFile():
         d['teff0_table/INT'] = [2]
         if self._include_gif:
             if self._isotopic_expansion:
-                raise NotImplementedError('Isotopic expansion not yet implemented')
+                raise NotImplementedError('Isotopic expansion'+
+                                          ' not yet implemented')
             else:
                 self._endf_dict['7/451'] = {}
                 d = self._endf_dict['7/451']
@@ -917,7 +922,8 @@ class EndfFile():
             Element to write
 
         data : dictionary
-            Dictionary containing the nuclear data extrated by get_nuclear_data()
+            Dictionary containing the nuclear data
+            extrated by get_nuclear_data()
 
         self._verbosity : int
             Level of verbosity of the output (0: quiet)
@@ -956,7 +962,8 @@ class EndfFile():
         d['AUTH'] = endf_parameters.auth.ljust(33)
         d['REF'] = endf_parameters.reference.ljust(21)
         now = datetime.now()
-        months = ('JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DEC')
+        months = ('JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+                  'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DEC')
         edate= f'EVAL-{months[now.month-1]}{now.strftime("%y")}'
         ddate= f'DIST-{months[now.month-1]}{now.strftime("%y")}'
         rdate= f'REV{endf_parameters.lrel:1d}-{months[now.month-1]}{now.strftime("%y")}'
@@ -966,33 +973,34 @@ class EndfFile():
         d['ENDATE'] = endf_parameters.endate.ljust(8)
         description = []
         description.append(66*'*')
-        description.append(''.ljust(66))
-        description.append(' This file was converted from the following NCMAT [1] file:'.ljust(66))
-        description.append(''.ljust(66))
+        description.append('')
+        description.append(' This file was converted from the following NCMAT [1] file:')
+        description.append('')
         description.append(data.ncmat_fn.center(66))
-        description.append(''.ljust(66))
-        description.append(f' using NCrystal {nc_core.get_version()} and endf-parserpy {endf_parserpy.__version__} [2] with the '.ljust(66))
-        description.append(' following options:'.ljust(66))
-        description.append(''.ljust(66))
+        description.append('')
+        description.append(f' using NCrystal {nc_core.get_version()} and endf-parserpy {endf_parserpy.__version__} [2] with the ')
+        description.append(' following options:')
+        description.append('')
         for line in self._parameter_description:
             description.append(line)
-        description.append(''.ljust(66))
-        description.append(' Temperatures:'.ljust(66))
+        description.append('')
+        description.append(' Temperatures:')
         for T in data.temperatures:
-            description.append(f'       {T:.2f} K'.ljust(66))
-        description.append(''.ljust(66))
-        description.append('References:'.ljust(66))
-        description.append('[1] https://github.com/mctools/ncrystal'.ljust(66))
-        description.append('[2] https://endf-parserpy.readthedocs.io/en/latest/'.ljust(66))
-        description.append(''.ljust(66))
+            description.append(f'       {T:.2f} K')
+        description.append('')
+        description.append('References:')
+        description.append('[1] https://github.com/mctools/ncrystal')
+        description.append('[2] https://endf-parserpy.readthedocs.io/en/latest/')
+        description.append('')
         description.append(66*'*')
-        description.append(''.ljust(66))
-        description.append('Comments from NCMAT file:'.ljust(66))
-        description.append(''.ljust(66))
+        description.append('')
+        description.append('Comments from NCMAT file:')
+        description.append('')
         for line in data.ncrystal_comments.split('\n'):
-            description.append(line.ljust(66))
-        # description.append(''.ljust(66))
+            description.append(line)
+        # description.append('')
         description.append(66*'*')
+        description = [_.ljust(66) for _ in description]
         d['DESCRIPTION'] = {k:v for k, v in enumerate(description, start=1)}
         d['NWD'] = 5+len(description)
         d['MFx/1'] = 1
@@ -1200,13 +1208,13 @@ def ncmat2endf( ncmat_fn,
         assert n==0, 'Incorrect material number assignement'
 
     parameter_description = []
-    parameter_description.append(f'  smin:{endf_parameters.smin}'.ljust(66))
-    parameter_description.append(f'  emax:{endf_parameters.emax}'.ljust(66))
-    parameter_description.append(f'  lasym:{endf_parameters.lasym}'.ljust(66))
-    parameter_description.append(f'  include_gif:{include_gif}'.ljust(66))
-    parameter_description.append(f'  vdoslux:{vdoslux}'.ljust(66))
-    parameter_description.append(f'  isotopic_expansion:{isotopic_expansion}'.ljust(66))
-    parameter_description.append(f'  elastic_mode:{elastic_mode}'.ljust(66))
+    parameter_description.append(f'  smin:{endf_parameters.smin}')
+    parameter_description.append(f'  emax:{endf_parameters.emax}')
+    parameter_description.append(f'  lasym:{endf_parameters.lasym}')
+    parameter_description.append(f'  include_gif:{include_gif}')
+    parameter_description.append(f'  vdoslux:{vdoslux}')
+    parameter_description.append(f'  isotopic_expansion:{isotopic_expansion}')
+    parameter_description.append(f'  elastic_mode:{elastic_mode}')
 
     file_names = []
     for frac, ad in data.composition:
