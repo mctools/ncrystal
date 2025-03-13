@@ -181,10 +181,10 @@ class ElementData():
         self._sab_total = []
         self._teff = []
         self._elastic = None
-        self._element_name = ad.displayLabel()
+        self._sym = ad.displayLabel()
         Z = '{:3d}'.format(ad.Z())
         A = '   ' if ad.isNaturalElement() else '{:3d}'.format(ad.A())
-        sym = self._get_symbol(self._element_name).ljust(2)
+        sym = self._get_symbol(self._sym).ljust(2)
         self._zsymam = '{:3s}-{:2s}-{:3s}'.format(Z,sym,A)
         self._za = ad.Z()*1000+ad.A()
 
@@ -324,7 +324,7 @@ class NuclearData():
         self._ncmat_fn = ncmat_fn
         mat = nc_core.load(ncmat_fn+f';vdoslux={vdoslux}')
         self._composition = mat.info.composition
-        self._elements = {}
+        self._elems = {}
         self._ncrystal_comments = None
         self._vdoslux = vdoslux
         self._verbosity = verbosity
@@ -336,8 +336,8 @@ class NuclearData():
             raise ValueError(f'Elastic mode {elastic_mode}'+
                              f' not in {available_elastic_modes}')
         for frac, ad in self._composition:
-            element = ad.displayLabel()
-            self._elements[element] = ElementData(ad)
+            sym = ad.displayLabel()
+            self._elems[sym] = ElementData(ad)
         if mat.info.hasAtomInfo():
             self._edges = []
             self._sigmaE = []
@@ -351,15 +351,15 @@ class NuclearData():
             #
             self._designated_coherent_atom = None
             for frac, ad in self._composition:
-                element = ad.displayLabel()
+                sym = ad.displayLabel()
                 if (frac/(1.0-frac)*ad.incoherentXS() <
                     self._incoherent_fraction or
                     self._incoherent_fraction == -1):
                     self._incoherent_fraction = (frac/
                                                  (1.0-frac)*ad.incoherentXS())
-                    self._designated_coherent_atom = element
+                    self._designated_coherent_atom = sym
             if self._verbosity > 1:
-                print(f'Designated incoherent: {element}')
+                print(f'Designated incoherent: {sym}')
         self._get_alpha_beta_grid()
         self._get_elastic_data(elastic_mode)
         self._get_inelastic_data()
@@ -386,10 +386,10 @@ class NuclearData():
 
     @property
     def elements(self):
-        return self._elements
+        return self._elems
     @elements.setter
     def elements(self, x):
-        self._elements = x
+        self._elems = x
 
     @property
     def edges(self):
@@ -411,11 +411,11 @@ class NuclearData():
         m = nc_core.load(cfg)
         kT = kT0*T/T0 # eV
         for di in m.info.dyninfos:
-            element = di.atomData.displayLabel()
+            sym = di.atomData.displayLabel()
             if type(di) in (nc_core.Info.DI_VDOS, nc_core.Info.DI_VDOSDebye):
                 sctknl = di.loadKernel(vdoslux=self._vdoslux)
-                self._elements[element].alpha = sctknl['alpha']*kT/kT0
-                self._elements[element].beta_total = sctknl['beta']*kT/kT0
+                self._elems[sym].alpha = sctknl['alpha']*kT/kT0
+                self._elems[sym].beta_total = sctknl['beta']*kT/kT0
             else:
                 raise NotImplementedError('Conversion supported only for VDOS'+
                                           ' and VDOSDebye dyninfos')
@@ -430,23 +430,23 @@ class NuclearData():
                 m = nc_core.load(cfg)
                 kT = kT0*T/T0 # eV
                 for di in m.info.dyninfos:
-                    element = di.atomData.displayLabel()
+                    sym = di.atomData.displayLabel()
                     sctknl = di.loadKernel(vdoslux=self._vdoslux)
-                    self._elements[element].alpha = np.unique(np.concatenate((self._elements[element].alpha, sctknl['alpha']*kT/kT0)))
-                    self._elements[element].beta_total = np.unique(np.concatenate((self._elements[element].beta_total, sctknl['beta']*kT/kT0)))
+                    self._elems[sym].alpha = np.unique(np.concatenate((self._elems[sym].alpha, sctknl['alpha']*kT/kT0)))
+                    self._elems[sym].beta_total = np.unique(np.concatenate((self._elems[sym].beta_total, sctknl['beta']*kT/kT0)))
         for frac, ad in self._composition:
-            element = ad.displayLabel()
+            sym = ad.displayLabel()
             #
             # Remove points that cannot be represented in ENDF data
             #
-            self._elements[element].alpha = np.unique(_endf_roundoff(self._elements[element].alpha))
-            self._elements[element].beta_total = np.unique(_endf_roundoff(self._elements[element].beta_total))
-            x = self._elements[element].beta_total[np.where(self._elements[element].beta_total<=0)] # get negative beta
-            self._elements[element].beta = -x[::-1] # Invert beta and change sign
-            self._elements[element].beta[0] = 0.0
+            self._elems[sym].alpha = np.unique(_endf_roundoff(self._elems[sym].alpha))
+            self._elems[sym].beta_total = np.unique(_endf_roundoff(self._elems[sym].beta_total))
+            x = self._elems[sym].beta_total[np.where(self._elems[sym].beta_total<=0)] # get negative beta
+            self._elems[sym].beta = -x[::-1] # Invert beta and change sign
+            self._elems[sym].beta[0] = 0.0
             if self._verbosity > 2:
-                print(f'>>> alpha points: {len(self._elements[element].alpha)}, alpha range: ({np.min(self._elements[element].alpha*kT0/kT)}, {np.max(self._elements[element].alpha*kT0/kT)})')
-                print(f'>>> beta points: {len(self._elements[element].beta)}, beta range: ({np.min(self._elements[element].beta*kT0/kT)}, {np.max(self._elements[element].beta*kT0/kT)})')
+                print(f'>>> alpha points: {len(self._elems[sym].alpha)}, alpha range: ({np.min(self._elems[sym].alpha*kT0/kT)}, {np.max(self._elems[sym].alpha*kT0/kT)})')
+                print(f'>>> beta points: {len(self._elems[sym].beta)}, beta range: ({np.min(self._elems[sym].beta*kT0/kT)}, {np.max(self._elems[sym].beta*kT0/kT)})')
 
     def _get_elastic_data(self, elastic_mode):
         for T in self._temperatures:
@@ -467,7 +467,7 @@ class NuclearData():
                 self._sigmaE.append(sigmaE)
             #
             for di in m.info.dyninfos:
-                element = di.atomData.displayLabel()
+                sym = di.atomData.displayLabel()
                 if type(di) in [nc_core.Info.DI_VDOS, nc_core.Info.DI_VDOSDebye]:
                     emin = di.vdosData()[0][0]
                     emax = di.vdosData()[0][1]
@@ -478,7 +478,7 @@ class NuclearData():
                     #
                     if m.info.stateOfMatter().name == 'Solid':
                         msd = res['msd']
-                        self._elements[element].dwi.append(msd*2*mass_neutron/hbar**2)
+                        self._elems[sym].dwi.append(msd*2*mass_neutron/hbar**2)
         if self._verbosity > 1:
             print('>> Prepare elastic approximations')
         if elastic_mode == 'scaled' and self._incoherent_fraction < 1e-6:
@@ -486,84 +486,84 @@ class NuclearData():
             if self._verbosity>1:
                 print('>> Scaled elastic mode requested but all elements are coherent.')
         for frac, ad in self._composition:
-            element = ad.displayLabel()
+            sym = ad.displayLabel()
             if elastic_mode == 'mixed': # iel = 100
                 if (self._sigmaE is None):      # mixed elastic requested but only incoherent available
                     if self._verbosity>1:
-                        print(f'>> Mixed elastic mode for {element} but no Bragg edges found: incoherent approximation')
-                    self._elements[element].sigma_i = (ad.incoherentXS() + ad.coherentXS())
-                    self._elements[element].elastic = 'incoherent'
+                        print(f'>> Mixed elastic mode for {sym} but no Bragg edges found: incoherent approximation')
+                    self._elems[sym].sigma_i = (ad.incoherentXS() + ad.coherentXS())
+                    self._elems[sym].elastic = 'incoherent'
                 else:
                     if self._verbosity>1:
-                        print(f'>> Mixed elastic mode for {element}')
-                    self._elements[element].elastic = 'mixed'
+                        print(f'>> Mixed elastic mode for {sym}')
+                    self._elems[sym].elastic = 'mixed'
             if elastic_mode == 'greater': # iel = 98
                 if (ad.incoherentXS() > ad.coherentXS())  or (self._sigmaE is None):
                     if self._verbosity>1:
-                        print(f'>> Principal elastic mode for {element}: incoherent')
+                        print(f'>> Principal elastic mode for {sym}: incoherent')
                     self._edges = None
                     self._sigmaE = None
-                    self._elements[element].elastic = 'incoherent'
+                    self._elems[sym].elastic = 'incoherent'
                 else:
                     if self._verbosity>1:
-                        print(f'>> Principal elastic mode for {element}: coherent')
-                    self._elements[element].sigma_i =  None
-                    self._elements[element].dwi =  None
-                    self._elements[element].elastic = 'coherent'
+                        print(f'>> Principal elastic mode for {sym}: coherent')
+                    self._elems[sym].sigma_i =  None
+                    self._elems[sym].dwi =  None
+                    self._elems[sym].elastic = 'coherent'
             elif elastic_mode == 'scaled':
                 if len(self._composition) == 1: # iel = 99, single atomic case
                     if (ad.incoherentXS() > ad.coherentXS()) or (self._sigmaE is None):
                         if self._verbosity>1:
-                            print(f'>> Scaled elastic mode for single atom {element}: incoherent')
+                            print(f'>> Scaled elastic mode for single atom {sym}: incoherent')
                         self._edges = None
                         self._sigmaE = None
-                        self._elements[element].sigma_i = (ad.incoherentXS() + ad.coherentXS())
-                        self._elements[element].elastic = 'incoherent'
+                        self._elems[sym].sigma_i = (ad.incoherentXS() + ad.coherentXS())
+                        self._elems[sym].elastic = 'incoherent'
                     else:
                         if self._verbosity>1:
-                            print(f'>> Scaled elastic mode for single atom {element}: coherent')
-                        self._elements[element].sigma_i =  None
-                        self._elements[element].dwi =  None
-                        self._elements[element].elastic = 'coherent'
+                            print(f'>> Scaled elastic mode for single atom {sym}: coherent')
+                        self._elems[sym].sigma_i =  None
+                        self._elems[sym].dwi =  None
+                        self._elems[sym].elastic = 'coherent'
                         self._sigmaE = [x*(ad.incoherentXS() + ad.coherentXS())/ad.coherentXS() for x in self._sigmaE]
                 elif (self._sigmaE is None):      # iel = 99, incoherent approximation
                     if self._verbosity>1:
-                        print(f'>> Scaled elastic mode for {element}: incoherent approximation')
-                    self._elements[element].sigma_i = (ad.incoherentXS() + ad.coherentXS())
-                    self._elements[element].elastic = 'incoherent'
+                        print(f'>> Scaled elastic mode for {sym}: incoherent approximation')
+                    self._elems[sym].sigma_i = (ad.incoherentXS() + ad.coherentXS())
+                    self._elems[sym].elastic = 'incoherent'
                 else:                              # iel = 99, multi atomic case
-                    if element == self._designated_coherent_atom:
+                    if sym == self._designated_coherent_atom:
                         if self._verbosity>1:
-                            print(f'>> Scaled elastic mode for {element} in compound: designated coherent atom, dividing by frac^2={frac**2}')
-                        self._elements[element].sigma_i =  None
-                        self._elements[element].dwi =  None
-                        self._elements[element].elastic = 'coherent'
+                            print(f'>> Scaled elastic mode for {sym} in compound: designated coherent atom, dividing by frac^2={frac**2}')
+                        self._elems[sym].sigma_i =  None
+                        self._elems[sym].dwi =  None
+                        self._elems[sym].elastic = 'coherent'
                         self._sigmaE = [x/frac for x in self._sigmaE]
                     else:
                         if self._verbosity>1:
-                            print(f'>> Scaled elastic mode for {element} in compound: incoherent')
-                        self._elements[element].elastic = 'incoherent'
-                        self._elements[element].sigma_i = (1.0+self._incoherent_fraction/ad.incoherentXS())*self._elements[element].sigma_i
+                            print(f'>> Scaled elastic mode for {sym} in compound: incoherent')
+                        self._elems[sym].elastic = 'incoherent'
+                        self._elems[sym].sigma_i = (1.0+self._incoherent_fraction/ad.incoherentXS())*self._elems[sym].sigma_i
 
     def _get_inelastic_data(self):
         for T in self._temperatures:
             m = nc_core.load(f'{self._ncmat_fn};temp={T}K')
             for di in m.info.dyninfos:
-                element = di.atomData.displayLabel()
+                sym = di.atomData.displayLabel()
                 if type(di) in [nc_core.Info.DI_VDOS, nc_core.Info.DI_VDOSDebye]:
                     #
                     # Load incoherent inelastic data
                     #
                     sctknl = di.loadKernel(vdoslux=self._vdoslux)
                     if self._verbosity > 2:
-                        print(f'>>> Interpolating T={T}K for {element}')
+                        print(f'>>> Interpolating T={T}K for {sym}')
 
                     alpha = sctknl['alpha']
                     beta = sctknl['beta']
                     sab = sctknl['sab']
                     sab.shape = (len(beta), len(alpha))
                     kT = kT0/T0*T # eV
-                    alpha_grid, beta_grid = np.meshgrid(self._elements[element]._alpha*kT0/kT, self._elements[element]._beta_total*kT0/kT)
+                    alpha_grid, beta_grid = np.meshgrid(self._elems[sym]._alpha*kT0/kT, self._elems[sym]._beta_total*kT0/kT)
                     points0 = np.column_stack((alpha_grid.ravel(), beta_grid.ravel()))
                     #
                     # We need to interpolate S(a,b) because the NCrystal grid might contain numbers that cannot be represented
@@ -571,15 +571,15 @@ class NuclearData():
                     #
                     sab_int = scint.interpn((alpha, beta), sab.transpose(), points0, bounds_error=False, fill_value=0.0, method='linear')
                     sab_int.shape = np.shape(alpha_grid)
-                    self._elements[element]._sab_total.append(sab_int)
+                    self._elems[sym]._sab_total.append(sab_int)
                     emin = di.vdosData()[0][0]
                     emax = di.vdosData()[0][1]
                     rho = di.vdosData()[1]
                     res = nc_vdos.analyseVDOS(emin, emax, rho, di.temperature, di.atomData.averageMassAMU())
-                    self._elements[element]._teff.append(res['teff'])
+                    self._elems[sym]._teff.append(res['teff'])
                 else:
-                    self._elements[element]._sab = None
-                    self._elements[element]._teff = None
+                    self._elems[sym]._sab = None
+                    self._elems[sym]._teff = None
     def _get_ncrystal_comments(self):
         line_list = []
         for line in nc_core.createTextData(self._ncmat_fn).rawData.split('\n')[:]:
@@ -626,7 +626,7 @@ class EndfFile():
         """
         self._endf_dict = endf_parserpy.EndfDict()
         self._parser = endf_parserpy.EndfParser(explain_missing_variable=True, cache_dir=False)
-        self._element_name = element
+        self._sym = element
         self._mat = mat
         assert ((not isotopic_expansion) or include_gif), "Isotopic expansion requires generalized information file, use --gif"
         self._include_gif = include_gif
@@ -657,14 +657,14 @@ class EndfFile():
         """
         if self._verbosity > 1:
             print('> Generate MF7')
-        awr = data.elements[self._element_name].awr
+        awr = data.elements[self._sym].awr
         mat = self._mat
-        za = data.elements[self._element_name].za
+        za = data.elements[self._sym].za
         temperatures = data.temperatures
         #
         # Prepare dictionary for thermal elastic reaction
         #
-        elastic = data.elements[self._element_name].elastic
+        elastic = data.elements[self._sym].elastic
         if elastic is not None:
             self._endf_dict['7/2'] = {}
             d = self._endf_dict['7/2']
@@ -691,13 +691,13 @@ class EndfFile():
                 d['LI'] = 2
                 d['NP'] = len(edges)
             if elastic in ['incoherent', 'mixed']:
-                d['SB'] = data.elements[self._element_name].sigma_i
-                d['Wp']  = data.elements[self._element_name].dwi
+                d['SB'] = data.elements[self._sym].sigma_i
+                d['Wp']  = data.elements[self._sym].dwi
                 d['Tint'] = temperatures.tolist()
                 d['INT'] = [2]
                 d['NBT'] = [len(temperatures)]
             lthr_values = {'coherent':1, 'incoherent':2, 'mixed':3}
-            d['LTHR'] = lthr_values[data.elements[self._element_name].elastic]
+            d['LTHR'] = lthr_values[data.elements[self._sym].elastic]
         #
         # Prepare dictionary for thermal inelastic reaction
         #
@@ -711,21 +711,21 @@ class EndfFile():
         d['LLN'] = 0 # linear S is stored
         d['NI'] = 6
         d['NS'] = 0
-        d['B'] = {1:data.elements[self._element_name].sigma_free,
+        d['B'] = {1:data.elements[self._sym].sigma_free,
                   2:endf_parameters.emax,
                   3:awr,
                   4:endf_parameters.emax,
                   5:0,                                # unused
                   6:1                                 # natom
                  }
-        alpha = data.elements[self._element_name].alpha
-        beta = data.elements[self._element_name].beta
+        alpha = data.elements[self._sym].alpha
+        beta = data.elements[self._sym].beta
         sab_data = []
-        for sab_total, T in zip(data.elements[self._element_name].sab_total, temperatures):
+        for sab_total, T in zip(data.elements[self._sym].sab_total, temperatures):
             kT = T/T0*kT0
-            alpha_grid, beta_grid = np.meshgrid(alpha*kT0/kT, data.elements[self._element_name].beta_total*kT0/kT)
+            alpha_grid, beta_grid = np.meshgrid(alpha*kT0/kT, data.elements[self._sym].beta_total*kT0/kT)
             if (endf_parameters.lasym == 0) or (endf_parameters.lasym == 1):
-                sym = np.exp(beta_grid/2)
+                detailed_balance_factor = np.exp(beta_grid/2)
             if endf_parameters.lasym == 3:
                 # S(a,b) for all beta
                 sab_data.append(sab_total.transpose())
@@ -739,12 +739,12 @@ class EndfFile():
                 continue
             if endf_parameters.lasym == 1:
                 # S(a,b)*exp(-b/2) for all beta
-                sab_sym = sab_total*sym
+                sab_sym = sab_total*detailed_balance_factor
                 sab_data.append(sab_sym.transpose())
                 continue
             if endf_parameters.lasym == 0:
                 # S(a,b)*exp(-b/2) for negative beta
-                sab_sym = sab_total*sym
+                sab_sym = sab_total*detailed_balance_factor
                 sab_sym2 = sab_sym[np.where(beta_grid<=0)] # get negative branch of S(a,b)
                 sab_sym2.shape = (len(beta), len(alpha))
                 sab_sym3 = sab_sym2[::-1,:]  # Invert S(a,b) for negative beta
@@ -789,8 +789,8 @@ class EndfFile():
             d['S'] = S2
         elif (endf_parameters.lasym == 1) or (endf_parameters.lasym == 3):
             # Save S(a,b) or S(a,b)*exp(-b/2) for all beta
-            alpha = data.elements[self._element_name].alpha
-            beta = data.elements[self._element_name].beta_total
+            alpha = data.elements[self._sym].alpha
+            beta = data.elements[self._sym].beta_total
 
             d['NB'] = len(beta)
             d['beta_interp/NBT'] = [len(beta)]
@@ -827,7 +827,7 @@ class EndfFile():
                         S2[q][j] = {k: v for k,v in enumerate(sab, start =1)}
             d['S'] = S2
 
-        d['teff0_table/Teff0'] = data.elements[self._element_name].teff
+        d['teff0_table/Teff0'] = data.elements[self._sym].teff
         d['teff0_table/Tint'] = temperatures.tolist()
         d['teff0_table/NBT'] = [len(temperatures)]
         d['teff0_table/INT'] = [2]
@@ -846,7 +846,7 @@ class EndfFile():
                 d['ZAI'] = {1:{1:za}}
                 d['LISI'] = {1:{1:0}}
                 d['AFI'] = {1:{1:1.0}}
-                d['SFI'] = {1:{1:data.elements[self._element_name].sigma_free}}
+                d['SFI'] = {1:{1:data.elements[self._sym].sigma_free}}
                 d['AWRI'] = {1:{1:awr}}
 
     def _createMF1(self, data, endf_parameters):
@@ -867,10 +867,10 @@ class EndfFile():
         self._verbosity : int
             Level of verbosity of the output (0: quiet)
         """
-        awr = data.elements[self._element_name].awr
+        awr = data.elements[self._sym].awr
         mat = self._mat
-        za = data.elements[self._element_name].za
-        zsymam = data.elements[self._element_name].zsymam
+        za = data.elements[self._sym].za
+        zsymam = data.elements[self._sym].zsymam
         self._endf_dict['1/451'] = {}
         d = self._endf_dict['1/451']
         d['MAT'] = mat
@@ -1155,11 +1155,11 @@ def ncmat2endf( ncmat_fn,
 
     file_names = []
     for frac, ad in data.composition:
-        element = ad.displayLabel()
-        mat = 999 if mat_numbers is None else mat_numbers[element]
-        endf_fn = f'tsl_{name}.endf' if element == name else f'tsl_{element}_in_{name}.endf'
-        if data.elements[element].sab_total is not None:
-            endf_file = EndfFile(element, data, mat, endf_parameters, include_gif, isotopic_expansion, parameter_description, verbosity)
+        sym = ad.displayLabel()
+        mat = 999 if mat_numbers is None else mat_numbers[sym]
+        endf_fn = f'tsl_{name}.endf' if sym == name else f'tsl_{sym}_in_{name}.endf'
+        if data.elements[sym].sab_total is not None:
+            endf_file = EndfFile(sym, data, mat, endf_parameters, include_gif, isotopic_expansion, parameter_description, verbosity)
             endf_file.write(endf_fn, force_save)
             file_names.append((endf_fn, frac))
         else:
