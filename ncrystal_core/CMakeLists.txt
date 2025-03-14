@@ -397,7 +397,7 @@ endif()
 
 if ( NCRYSTAL_BUILD_STRICT )
   set( "CMAKE_COMPILE_WARNING_AS_ERROR" "ON" )
-  # turn list into space separted string for check_cxx_compiler_flag:
+  # turn list into space separated string for check_cxx_compiler_flag:
   string( REPLACE ";" " " tmp "${NC_STRICT_COMP_FLAGS}" )
   check_cxx_compiler_flag( "${tmp}" ncrystal_compiler_supports_strict_comp_flags )
 endif()
