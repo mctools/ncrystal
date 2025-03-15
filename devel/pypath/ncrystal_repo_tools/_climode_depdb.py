@@ -31,6 +31,8 @@ def gathertestdeps():
     from .dirs import testroot
     needs = set()
     for s in testroot.joinpath('scripts').glob('*.py'):
+        if '#' in s.name or '~' in s.name:
+            continue
         with s.open('rt') as fh:
             for line in fh:
                 if line.startswith('# NEEDS:'):
