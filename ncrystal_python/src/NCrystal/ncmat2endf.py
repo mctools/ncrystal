@@ -37,11 +37,11 @@ __all__ = [ 'ncmat2endf']
 import numpy as np
 import scipy.interpolate as scint
 from datetime import datetime
-import warnings
 from . import core as nc_core
 from . import constants as nc_constants
 from . import vdos as nc_vdos
-from ._common import print
+from ._common import ( print,
+                       warn )
 
 try:
     # TODO: temporary fix to avoid syntax warning from endf-parserpy
@@ -504,19 +504,15 @@ class NuclearData():
             print('>> Prepare elastic approximations')
         if elastic_mode == 'scaled' and self._incoherent_fraction < 1e-6:
             elastic_mode = 'greater'
-            # TODO: replace this by a warning
-            if self._verbosity>1:
-                print('>> Scaled elastic mode requested'+
-                      'but all elements are coherent.')
+            warn('Scaled elastic mode requested'+
+                 'but all elements are coherent.')
         for frac, ad in self._composition:
             sym = ad.displayLabel()
             if elastic_mode == 'mixed': # iel = 100
                 if (self._sigmaE is None):
                     # mixed elastic requested but only incoherent available
-                    # TODO: replace this by a warning
-                    if self._verbosity>1:
-                        print(f'>> Mixed elastic mode for {sym} but no '+
-                               'Bragg edges found: incoherent approximation')
+                    warn(f'Mixed elastic mode for {sym} but no '+
+                           'Bragg edges found: incoherent approximation')
                     self._elems[sym].sigma_i = (ad.incoherentXS() +
                                                 ad.coherentXS())
                     self._elems[sym].elastic = 'incoherent'
@@ -1197,22 +1193,20 @@ def ncmat2endf( ncmat_fn,
         their fraction in the composition
 
     """
-    if verbosity > 0 and endf_parameters.lasym > 0:
-        # TODO: replace with a warning
-        print( 'Creating non standard S(a,b)'+
-               f' with LASYM = {endf_parameters.lasym}')
+    if endf_parameters.lasym > 0:
+        warn( 'Creating non standard S(a,b)'+
+             f' with LASYM = {endf_parameters.lasym}')
 
     if type(temperatures) in [int, float]:
         temperatures = (temperatures,)
 
     if len(temperatures) > 1:
-        warnings.warn('Multiple temperatures requested.'+
-                      'Although this is supported, '+
-                      'it is not recommended because NCrystal generates '+
-                      'a custom (alpha,beta) grid for each temperature. '+
-                      'The (alpha,beta) grid for first temperature will '+
-                      'be used, and S(alpha, beta) for other temperatures '+
-                      'will be interpolated.', stacklevel=2)
+        warn('Multiple temperatures requested. Although this is supported, '+
+             'it is not recommended because NCrystal generates '+
+             'a custom (alpha,beta) grid for each temperature. '+
+             'The (alpha,beta) grid for first temperature will '+
+             'be used, and S(alpha, beta) for other temperatures '+
+             'will be interpolated.')
     if verbosity > 0:
         print('Get nuclear data...')
 
