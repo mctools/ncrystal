@@ -56,8 +56,10 @@ def import_endfparserpy():
                          'was correctly installed. This can be done with:'
                          'pip install ncrystal[endf], '
                          'pip install ncrystal[all], '
-                         'pip install endf_parserpy, or'
-                         'conda install -c conda-forge endf_parserpy.')
+                         'pip install endf_parserpy if NCrystal was installed'
+                         'with pip, or'
+                         'conda install -c conda-forge endf_parserpy if'
+                         'NCrystal was installed with conda.')
     return endf_parserpy
 
 available_elastic_modes = ('greater', 'scaled', 'mixed')
