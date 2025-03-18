@@ -347,7 +347,7 @@ class NuclearData():
         verbosity : integer
             Level of verbosity for the output
         """
-        self._temperatures = _np.sort(_np.asarray(temperatures))
+        self._temperatures = temperatures
         self._ncmat_fn = ncmat_fn
         mat = nc_core.load(ncmat_fn+f';vdoslux={vdoslux}')
         self._composition = mat.info.composition
@@ -1235,6 +1235,7 @@ def ncmat2endf( ncmat_fn,
 
     if type(temperatures) in [int, float]:
         temperatures = (temperatures,)
+    temperatures = _np.sort(_np.asarray(temperatures, dtype=float))
 
     if len(temperatures) > 1:
         warn('Multiple temperatures requested. Although this is supported, '
