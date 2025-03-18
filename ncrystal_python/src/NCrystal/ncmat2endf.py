@@ -103,6 +103,23 @@ def _endf_roundoff(x):
     return _np.array(read_fort_floats(write_fort_floats(x, {'width':11}),
                                      n=len(x),read_opts={'width':11}))
 
+def _endf_clean(x):
+    """Return an array of unique floats that can be represented
+       in an ENDF-6 file
+
+    Parameters
+    ----------
+    x : Iterable of float
+        Array to process
+
+    Returns
+    -------
+    numpy array
+        Processed array
+
+    """
+    return _np.unique(_endf_roundoff(x))
+
 def _wrap_string(inp, lim=66):
     """Return string with lines wrapped to a given width.
 
@@ -420,6 +437,25 @@ class NuclearData():
     def sigmaE(self, x):
         self._sigmaE = x
 
+    def _combine_alpha_beta_grids(self):
+        #
+        # Combine (alpha, beta) grids from different temperatures
+        # into a single grid. This usually results in a huge grid and
+        # it is only kept as an option to debug libraries.
+        #
+        for T in self._temperatures[1:]:
+            cfg = f'{self._ncmat_fn};temp={T}K;vdoslux={self._vdoslux}'
+            m = nc_core.load(cfg)
+            for di in m.info.dyninfos:
+                sym = di.atomData.displayLabel()
+                sctknl = di.loadKernel(vdoslux=self._vdoslux)
+                self._elems[sym].alpha = _np.unique(_np.concatenate((
+                                         self._elems[sym].alpha,
+                                         sctknl['alpha']*T/T0)))
+                self._elems[sym].beta_total = _np.unique(_np.concatenate((
+                                         self._elems[sym].beta_total,
+                                         sctknl['beta']*T/T0)))
+
     def _get_alpha_beta_grid(self):
         T = self._temperatures[0]
         cfg = f'{self._ncmat_fn};temp={T}K;vdoslux={self._vdoslux}'
@@ -435,36 +471,19 @@ class NuclearData():
                 raise NotImplementedError('Conversion supported only for VDOS'+
                                           ' and VDOSDebye dyninfos')
         if self._combine_temperatures:
-            #
-            # Combine (alpha, beta) grids from different temperatures
-            # into a single grid. This usually results in a huge grid and
-            # it is only kept as an option to debug libraries.
-            #
-            for T in self._temperatures[1:]:
-                cfg = f'{self._ncmat_fn};temp={T}K;vdoslux={self._vdoslux}'
-                m = nc_core.load(cfg)
-                kT = kT0*T/T0 # eV
-                for di in m.info.dyninfos:
-                    sym = di.atomData.displayLabel()
-                    sctknl = di.loadKernel(vdoslux=self._vdoslux)
-                    _ =  _np.unique(_np.concatenate((self._elems[sym].alpha,
-                                                   sctknl['alpha']*kT/kT0)))
-                    self._elems[sym].alpha = _
-                    _ = _np.unique(_np.concatenate((self._elems[sym].beta_total,
-                                                   sctknl['beta']*kT/kT0)))
-                    self._elems[sym].beta_total = _
+            self._combine_alpha_beta_grids()
+
         for frac, ad in self._composition:
             sym = ad.displayLabel()
             #
             # Remove points that cannot be represented in ENDF data
             #
-            _ = _np.unique(_endf_roundoff(self._elems[sym].alpha))
-            self._elems[sym].alpha = _
-            _ = _np.unique(_endf_roundoff(self._elems[sym].beta_total))
-            self._elems[sym].beta_total = _
-            x = self._elems[sym].beta_total[
+            self._elems[sym].alpha = _endf_clean(self._elems[sym].alpha)
+            self._elems[sym].beta_total = _endf_clean(self._elems[sym].
+                                                      beta_total)
+            _ = self._elems[sym].beta_total[
                 _np.where(self._elems[sym].beta_total<=0)] # get negative beta
-            self._elems[sym].beta = -x[::-1] # Invert beta and change sign
+            self._elems[sym].beta = -_[::-1] # Invert beta and change sign
             self._elems[sym].beta[0] = 0.0
             if self._verbosity > 2:
                 print(f'>>> alpha points: {len(self._elems[sym].alpha)}, '+
@@ -483,12 +502,11 @@ class NuclearData():
             # Find unique Bragg edges, as represented in ENDF-6 floats
             edges = _np.array([nc_constants.wl2ekin(2.0*e.dspacing)
                               for e in m.info.hklObjects()])
-            self._edges = _np.unique(_endf_roundoff(edges))
+            self._edges = _endf_clean(edges)
             # Coherent scattering XS is evaluated between edges
             eps = 1e-3
-            _ = _np.concatenate((self._edges[:-1]**(1-eps)*
-                              self._edges[1:]**eps, [self._edges[-1]]))
-            self._evalpoints = _
+            self._evalpoints = _np.concatenate((self._edges[:-1]**(1-eps)*
+                               self._edges[1:]**eps, [self._edges[-1]]))
         sigmaE = _endf_roundoff(m.scatter.xsect(self._evalpoints)
                                 *self._evalpoints)
         assert _np.all(sigmaE[:-1] <= sigmaE[1:]),\
@@ -597,12 +615,30 @@ class NuclearData():
                             print(f'>> Scaled elastic mode for {sym} '+
                                    'in compound: incoherent')
                         self._elems[sym].elastic = 'incoherent'
-                        _ = ((1.0+self._incoherent_fraction/ad.incoherentXS())*
-                             self._elems[sym].sigma_i)
-                        self._elems[sym].sigma_i = _
+                        self._elems[sym].sigma_i = ((1.0+
+                                                     self._incoherent_fraction/
+                                                     ad.incoherentXS())*
+                                                    self._elems[sym].sigma_i)
+
+    def _interpolate_sab(self, a, b, s, sym, T):
+        #
+        # Interpolate S(a,b) because the NCrystal grid might
+        # contain numbers that cannot be represented
+        # as distinct FORTRAN reals in the ENDF-6 file
+        #
+        import scipy.interpolate as scint
+        s.shape = (len(b), len(a))
+        aint, bint = _np.meshgrid(self._elems[sym]._alpha*T0/T,
+                                  self._elems[sym]._beta_total*T0/T)
+        sab_int = scint.interpn((a, b),
+                                s.transpose(),
+                                _np.column_stack((aint.ravel(), bint.ravel())),
+                                bounds_error=False, fill_value=0.0,
+                                method='linear')
+        sab_int.shape = _np.shape(aint)
+        return sab_int
 
     def _get_inelastic_data(self):
-        import scipy.interpolate as scint
         for T in self._temperatures:
             m = nc_core.load(f'{self._ncmat_fn};temp={T}K')
             for di in m.info.dyninfos:
@@ -617,21 +653,7 @@ class NuclearData():
                 alpha = sctknl['alpha']
                 beta = sctknl['beta']
                 sab = sctknl['sab']
-                sab.shape = (len(beta), len(alpha))
-                kT = kT0/T0*T # eV
-                _ = _np.meshgrid(self._elems[sym]._alpha*kT0/kT,
-                                self._elems[sym]._beta_total*kT0/kT)
-                alpha_grid, beta_grid = _
-                #
-                # We need to interpolate S(a,b) because the NCrystal grid might
-                # contain numbers that cannot be represented
-                # as distinct FORTRAN reals in the ENDF-6 file
-                #
-                _ = _np.column_stack((alpha_grid.ravel(), beta_grid.ravel()))
-                sab_int = scint.interpn((alpha, beta), sab.transpose(), _,
-                                        bounds_error=False, fill_value=0.0,
-                                        method='linear')
-                sab_int.shape = _np.shape(alpha_grid)
+                sab_int = self._interpolate_sab(alpha, beta, sab, sym, T )
                 self._elems[sym]._sab_total.append(sab_int)
                 emin = di.vdosData()[0][0]
                 emax = di.vdosData()[0][1]
@@ -641,10 +663,10 @@ class NuclearData():
                 self._elems[sym]._teff.append(res['teff'])
 
     def _get_ncrystal_comments(self):
-        _ = [line[1:] for line in
+        comments = [line[1:] for line in
              nc_core.createTextData(self._ncmat_fn).rawData.split('\n')[:]
              if (len(line) > 0 and line[0] == '#')]
-        self._ncrystal_comments = _wrap_string("\n".join(_),66)
+        self._ncrystal_comments = _wrap_string("\n".join(comments),66)
 
 class EndfFile():
     r"""Creates thermal ENDF file.
@@ -787,13 +809,11 @@ class EndfFile():
                  }
         alpha = data.elements[self._sym].alpha
         beta = data.elements[self._sym].beta
+        beta_total = data.elements[self._sym].beta_total
         sab_data = []
         for sab_total, T in zip(data.elements[self._sym].sab_total,
                                 temperatures):
-            kT = T/T0*kT0
-            _ = _np.meshgrid(alpha*kT0/kT,
-                            data.elements[self._sym].beta_total*kT0/kT)
-            alpha_grid, beta_grid = _
+            _, beta_grid = _np.meshgrid(alpha*T0/T, beta_total*T0/T)
             if (endf_parameters.lasym == 0) or (endf_parameters.lasym == 1):
                 detailed_balance_factor = _np.exp(beta_grid/2)
             if endf_parameters.lasym == 3:
