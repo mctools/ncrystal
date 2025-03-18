@@ -52,15 +52,10 @@ def import_endfparserpy():
         #from endf_parserpy.interpreter.fortran_utils import read_fort_floats
         #from endf_parserpy.interpreter.fortran_utils import write_fort_floats
     except ImportError:
-        raise SystemExit('Could not import endf_parserpy. Check the package '+
-                         'was correctly installed, with a version equal or '+
-                         'higher than 0.11.0.\n'+
+        raise SystemExit('Could not import endf_parserpy. Check the package '
+                         'was correctly installed, with a version equal or '
+                         'higher than 0.11.0.\n'
                          'https://endf-parserpy.readthedocs.io/')
-    version_num = sum([int(x)*10**(3*n)
-                       for x,n in zip(endf_parserpy.__version__.split('.'),
-                       reversed(range(3)))])
-    assert version_num >=  1100, 'Too old endf-parserpy found. '+\
-                                 'Version 0.11.0 or above required'
     return endf_parserpy
 
 available_elastic_modes = ('greater', 'scaled', 'mixed')
@@ -96,9 +91,9 @@ def _endf_roundoff(x):
                  fortran_utils import ( read_fort_floats,
                                         write_fort_floats )
     except ImportError:
-        raise SystemExit('Could not import endf_parserpy. Check the package '+
-                         'was correctly installed, with a version equal or '+
-                         'higher than 0.11.0.\n'+
+        raise SystemExit('Could not import endf_parserpy. Check the package '
+                         'was correctly installed, with a version equal or '
+                         'higher than 0.11.0.\n'
                          'https://endf-parserpy.readthedocs.io/')
     return _np.array(read_fort_floats(write_fort_floats(x, {'width':11}),
                                      n=len(x),read_opts={'width':11}))
@@ -365,7 +360,7 @@ class NuclearData():
         # True: combine all temperatures
         self._combine_temperatures = False
         if elastic_mode not in available_elastic_modes:
-            raise ValueError(f'Elastic mode {elastic_mode}'+
+            raise ValueError(f'Elastic mode {elastic_mode}'
                              f' not in {available_elastic_modes}')
         for frac, ad in self._composition:
             sym = ad.displayLabel()
@@ -468,7 +463,7 @@ class NuclearData():
                 self._elems[sym].alpha = sctknl['alpha']*kT/kT0
                 self._elems[sym].beta_total = sctknl['beta']*kT/kT0
             else:
-                raise NotImplementedError('Conversion supported only for VDOS'+
+                raise NotImplementedError('Conversion supported only for VDOS'
                                           ' and VDOSDebye dyninfos')
         if self._combine_temperatures:
             self._combine_alpha_beta_grids()
@@ -486,12 +481,12 @@ class NuclearData():
             self._elems[sym].beta = -_[::-1] # Invert beta and change sign
             self._elems[sym].beta[0] = 0.0
             if self._verbosity > 2:
-                print(f'>>> alpha points: {len(self._elems[sym].alpha)}, '+
-                       'alpha range: '+
-                      f'({_np.min(self._elems[sym].alpha*kT0/kT)}'+
+                print(f'>>> alpha points: {len(self._elems[sym].alpha)}, '
+                       'alpha range: '
+                      f'({_np.min(self._elems[sym].alpha*kT0/kT)}'
                       f', {_np.max(self._elems[sym].alpha*kT0/kT)})')
-                print(f'>>> beta points: {len(self._elems[sym].beta)}, '+
-                      f'beta range: ({_np.min(self._elems[sym].beta*kT0/kT)},'+
+                print(f'>>> beta points: {len(self._elems[sym].beta)}, '
+                      f'beta range: ({_np.min(self._elems[sym].beta*kT0/kT)},'
                       f' {_np.max(self._elems[sym].beta*kT0/kT)})')
 
     def _get_coherent_elastic(self, m, T):
@@ -538,14 +533,14 @@ class NuclearData():
             print('>> Prepare elastic approximations')
         if elastic_mode == 'scaled' and self._incoherent_fraction < 1e-6:
             elastic_mode = 'greater'
-            warn('Scaled elastic mode requested'+
+            warn('Scaled elastic mode requested'
                  'but all elements are coherent.')
         for frac, ad in self._composition:
             sym = ad.displayLabel()
             if elastic_mode == 'mixed': # iel = 100
                 if (self._sigmaE is None):
                     # mixed elastic requested but only incoherent available
-                    warn(f'Mixed elastic mode for {sym} but no '+
+                    warn(f'Mixed elastic mode for {sym} but no '
                            'Bragg edges found: incoherent approximation')
                     self._elems[sym].sigma_i = (ad.incoherentXS() +
                                                 ad.coherentXS())
@@ -558,7 +553,7 @@ class NuclearData():
                 if ((ad.incoherentXS() > ad.coherentXS()) or
                     (self._sigmaE is None)):
                     if self._verbosity>1:
-                        print( '>> Principal elastic mode '+
+                        print( '>> Principal elastic mode '
                               f'for {sym}: incoherent')
                     self._edges = None
                     self._sigmaE = None
@@ -574,7 +569,7 @@ class NuclearData():
                     if ((ad.incoherentXS() > ad.coherentXS()) or
                         (self._sigmaE is None)):
                         if self._verbosity>1:
-                            print( '>> Scaled elastic mode for '+
+                            print( '>> Scaled elastic mode for '
                                   f'single atom {sym}: incoherent')
                         self._edges = None
                         self._sigmaE = None
@@ -583,7 +578,7 @@ class NuclearData():
                         self._elems[sym].elastic = 'incoherent'
                     else:
                         if self._verbosity>1:
-                            print( '>> Scaled elastic mode for '+
+                            print( '>> Scaled elastic mode for '
                                   f'single atom {sym}: coherent')
                         self._elems[sym].sigma_i =  None
                         self._elems[sym].dwi =  None
@@ -594,7 +589,7 @@ class NuclearData():
                 elif (self._sigmaE is None):
                     # iel = 99, incoherent approximation
                     if self._verbosity>1:
-                        print(f'>> Scaled elastic mode for {sym}: '+
+                        print(f'>> Scaled elastic mode for {sym}: '
                                'incoherent approximation')
                     self._elems[sym].sigma_i = (ad.incoherentXS() +
                                                 ad.coherentXS())
@@ -603,8 +598,8 @@ class NuclearData():
                     # iel = 99, multi atomic case
                     if sym == self._designated_coherent_atom:
                         if self._verbosity>1:
-                            print(f'>> Scaled elastic mode for {sym} in '+
-                                   'compound: designated coherent atom, '+
+                            print(f'>> Scaled elastic mode for {sym} in '
+                                   'compound: designated coherent atom, '
                                   f'dividing by frac^2={frac**2}')
                         self._elems[sym].sigma_i =  None
                         self._elems[sym].dwi =  None
@@ -612,7 +607,7 @@ class NuclearData():
                         self._sigmaE = [x/frac for x in self._sigmaE]
                     else:
                         if self._verbosity>1:
-                            print(f'>> Scaled elastic mode for {sym} '+
+                            print(f'>> Scaled elastic mode for {sym} '
                                    'in compound: incoherent')
                         self._elems[sym].elastic = 'incoherent'
                         self._elems[sym].sigma_i = ((1.0+
@@ -928,7 +923,7 @@ class EndfFile():
         d['teff0_table/INT'] = [2]
         if self._include_gif:
             if self._isotopic_expansion:
-                raise NotImplementedError('Isotopic expansion'+
+                raise NotImplementedError('Isotopic expansion'
                                           ' not yet implemented')
             else:
                 self._endf_dict['7/451'] = {}
@@ -1013,13 +1008,13 @@ class EndfFile():
         desc = []
         desc.append(66*'*')
         desc.append('')
-        desc.append(' This file was converted from '+
-                           'the following NCMAT [1] file:')
+        desc.append(' This file was converted from '
+                    'the following NCMAT [1] file:')
         desc.append('')
         desc.append(data.ncmat_fn.center(66))
         desc.append('')
-        desc.append(f' using NCrystal {nc_core.get_version()} and '+
-                           f'endf-parserpy {self._endf_parserpy_version} '+
+        desc.append(f' using NCrystal {nc_core.get_version()} and '
+                           f'endf-parserpy {self._endf_parserpy_version} '
                             '[2] with the ')
         desc.append(' following options:')
         desc.append('')
@@ -1235,18 +1230,18 @@ def ncmat2endf( ncmat_fn,
 
     """
     if endf_parameters.lasym > 0:
-        warn( 'Creating non standard S(a,b)'+
+        warn( 'Creating non standard S(a,b)'
              f' with LASYM = {endf_parameters.lasym}')
 
     if type(temperatures) in [int, float]:
         temperatures = (temperatures,)
 
     if len(temperatures) > 1:
-        warn('Multiple temperatures requested. Although this is supported, '+
-             'it is not recommended because NCrystal generates '+
-             'a custom (alpha,beta) grid for each temperature. '+
-             'The (alpha,beta) grid for first temperature will '+
-             'be used, and S(alpha, beta) for other temperatures '+
+        warn('Multiple temperatures requested. Although this is supported, '
+             'it is not recommended because NCrystal generates '
+             'a custom (alpha,beta) grid for each temperature. '
+             'The (alpha,beta) grid for first temperature will '
+             'be used, and S(alpha, beta) for other temperatures '
              'will be interpolated.')
     if verbosity > 0:
         print('Get nuclear data...')
