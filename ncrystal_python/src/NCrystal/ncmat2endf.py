@@ -34,34 +34,34 @@ syntaxis of the ENDF-6 file.
 
 __all__ = [ 'ncmat2endf']
 
-import numpy as np
-import scipy.interpolate as scint
-from datetime import datetime
+from ._numpy import _np
 from . import core as nc_core
 from . import constants as nc_constants
 from . import vdos as nc_vdos
 from ._common import ( print,
                        warn )
 
-try:
-    # TODO: temporary fix to avoid syntax warning from endf-parserpy
-    # https://github.com/IAEA-NDS/endf-parserpy/issues/10
-    import warnings
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore",category=SyntaxWarning)
-        import endf_parserpy
-    from endf_parserpy.interpreter.fortran_utils import read_fort_floats
-    from endf_parserpy.interpreter.fortran_utils import write_fort_floats
-except ImportError:
-    raise SystemExit('Could not import endf_parserpy. Check the package was'+
-                     'correctly installed, with a version equal or higher'+
-                     'than 0.11.0.\nhttps://endf-parserpy.readthedocs.io/')
-version_num = sum([int(x)*10**(3*n)
-                   for x,n in zip(endf_parserpy.__version__.split('.'),
-                   reversed(range(3)))])
-assert version_num >=  1100, 'Too old endf-parserpy found. '+\
-                             'Version 0.11.0 or above required'
-
+def import_endfparserpy():
+    try:
+        # TODO: temporary fix to avoid syntax warning from endf-parserpy
+        # https://github.com/IAEA-NDS/endf-parserpy/issues/10
+        import warnings
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore",category=SyntaxWarning)
+            import endf_parserpy
+        #from endf_parserpy.interpreter.fortran_utils import read_fort_floats
+        #from endf_parserpy.interpreter.fortran_utils import write_fort_floats
+    except ImportError:
+        raise SystemExit('Could not import endf_parserpy. Check the package '+
+                         'was correctly installed, with a version equal or '+
+                         'higher than 0.11.0.\n'+
+                         'https://endf-parserpy.readthedocs.io/')
+    version_num = sum([int(x)*10**(3*n)
+                       for x,n in zip(endf_parserpy.__version__.split('.'),
+                       reversed(range(3)))])
+    assert version_num >=  1100, 'Too old endf-parserpy found. '+\
+                                 'Version 0.11.0 or above required'
+    return endf_parserpy
 
 available_elastic_modes = ('greater', 'scaled', 'mixed')
 mass_neutron = (nc_constants.const_neutron_mass_amu*
@@ -86,7 +86,21 @@ def _endf_roundoff(x):
         Processed array
 
     """
-    return np.array(read_fort_floats(write_fort_floats(x, {'width':11}),
+    try:
+        # TODO: temporary fix to avoid syntax warning from endf-parserpy
+        # https://github.com/IAEA-NDS/endf-parserpy/issues/10
+        import warnings
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore",category=SyntaxWarning)
+            from endf_parserpy.interpreter.\
+                 fortran_utils import ( read_fort_floats,
+                                        write_fort_floats )
+    except ImportError:
+        raise SystemExit('Could not import endf_parserpy. Check the package '+
+                         'was correctly installed, with a version equal or '+
+                         'higher than 0.11.0.\n'+
+                         'https://endf-parserpy.readthedocs.io/')
+    return _np.array(read_fort_floats(write_fort_floats(x, {'width':11}),
                                      n=len(x),read_opts={'width':11}))
 
 def _wrap_string(inp, lim=66):
@@ -176,9 +190,9 @@ class ElementData():
         self._sigma_free = ad.freeScatteringXS()
         self._awr = ad.averageMassAMU() / nc_constants.const_neutron_mass_amu
         self._dwi = []
-        self._alpha = np.array([])
-        self._beta = np.array([])
-        self._beta_total = np.array([])
+        self._alpha = _np.array([])
+        self._beta = _np.array([])
+        self._beta_total = _np.array([])
         self._sab_total = []
         self._teff = []
         self._elastic = None
@@ -321,7 +335,7 @@ class NuclearData():
         verbosity : integer
             Level of verbosity for the output
         """
-        self._temperatures = np.sort(np.asarray(temperatures))
+        self._temperatures = _np.sort(_np.asarray(temperatures))
         self._ncmat_fn = ncmat_fn
         mat = nc_core.load(ncmat_fn+f';vdoslux={vdoslux}')
         self._composition = mat.info.composition
@@ -433,32 +447,33 @@ class NuclearData():
                 for di in m.info.dyninfos:
                     sym = di.atomData.displayLabel()
                     sctknl = di.loadKernel(vdoslux=self._vdoslux)
-                    _ =  np.unique(np.concatenate((self._elems[sym].alpha,
+                    _ =  _np.unique(_np.concatenate((self._elems[sym].alpha,
                                                    sctknl['alpha']*kT/kT0)))
                     self._elems[sym].alpha = _
-                    _ = np.unique(np.concatenate((self._elems[sym].beta_total,
-                                                  sctknl['beta']*kT/kT0)))
+                    _ = _np.unique(_np.concatenate((self._elems[sym].beta_total,
+                                                   sctknl['beta']*kT/kT0)))
                     self._elems[sym].beta_total = _
         for frac, ad in self._composition:
             sym = ad.displayLabel()
             #
             # Remove points that cannot be represented in ENDF data
             #
-            _ = np.unique(_endf_roundoff(self._elems[sym].alpha))
+            _ = _np.unique(_endf_roundoff(self._elems[sym].alpha))
             self._elems[sym].alpha = _
-            _ = np.unique(_endf_roundoff(self._elems[sym].beta_total))
+            _ = _np.unique(_endf_roundoff(self._elems[sym].beta_total))
             self._elems[sym].beta_total = _
             x = self._elems[sym].beta_total[
-                np.where(self._elems[sym].beta_total<=0)] # get negative beta
+                _np.where(self._elems[sym].beta_total<=0)] # get negative beta
             self._elems[sym].beta = -x[::-1] # Invert beta and change sign
             self._elems[sym].beta[0] = 0.0
             if self._verbosity > 2:
                 print(f'>>> alpha points: {len(self._elems[sym].alpha)}, '+
-                      f'alpha range: ({np.min(self._elems[sym].alpha*kT0/kT)}'+
-                      f', {np.max(self._elems[sym].alpha*kT0/kT)})')
+                       'alpha range: '+
+                      f'({_np.min(self._elems[sym].alpha*kT0/kT)}'+
+                      f', {_np.max(self._elems[sym].alpha*kT0/kT)})')
                 print(f'>>> beta points: {len(self._elems[sym].beta)}, '+
-                      f'beta range: ({np.min(self._elems[sym].beta*kT0/kT)},'+
-                      f' {np.max(self._elems[sym].beta*kT0/kT)})')
+                      f'beta range: ({_np.min(self._elems[sym].beta*kT0/kT)},'+
+                      f' {_np.max(self._elems[sym].beta*kT0/kT)})')
 
     def _get_coherent_elastic(self, m, T):
         #
@@ -466,17 +481,17 @@ class NuclearData():
         #
         if T == self._temperatures[0]:
             # Find unique Bragg edges, as represented in ENDF-6 floats
-            edges = np.array([nc_constants.wl2ekin(2.0*e.dspacing)
+            edges = _np.array([nc_constants.wl2ekin(2.0*e.dspacing)
                               for e in m.info.hklObjects()])
-            self._edges = np.unique(_endf_roundoff(edges))
+            self._edges = _np.unique(_endf_roundoff(edges))
             # Coherent scattering XS is evaluated between edges
             eps = 1e-3
-            _ = np.concatenate((self._edges[:-1]**(1-eps)*
+            _ = _np.concatenate((self._edges[:-1]**(1-eps)*
                               self._edges[1:]**eps, [self._edges[-1]]))
             self._evalpoints = _
         sigmaE = _endf_roundoff(m.scatter.xsect(self._evalpoints)
                                 *self._evalpoints)
-        assert np.all(sigmaE[:-1] <= sigmaE[1:]),\
+        assert _np.all(sigmaE[:-1] <= sigmaE[1:]),\
                'Sigma*E in Bragg edges not cummulative'
         self._sigmaE.append(sigmaE)
 
@@ -587,6 +602,7 @@ class NuclearData():
                         self._elems[sym].sigma_i = _
 
     def _get_inelastic_data(self):
+        import scipy.interpolate as scint
         for T in self._temperatures:
             m = nc_core.load(f'{self._ncmat_fn};temp={T}K')
             for di in m.info.dyninfos:
@@ -603,7 +619,7 @@ class NuclearData():
                 sab = sctknl['sab']
                 sab.shape = (len(beta), len(alpha))
                 kT = kT0/T0*T # eV
-                _ = np.meshgrid(self._elems[sym]._alpha*kT0/kT,
+                _ = _np.meshgrid(self._elems[sym]._alpha*kT0/kT,
                                 self._elems[sym]._beta_total*kT0/kT)
                 alpha_grid, beta_grid = _
                 #
@@ -611,11 +627,11 @@ class NuclearData():
                 # contain numbers that cannot be represented
                 # as distinct FORTRAN reals in the ENDF-6 file
                 #
-                _ = np.column_stack((alpha_grid.ravel(), beta_grid.ravel()))
+                _ = _np.column_stack((alpha_grid.ravel(), beta_grid.ravel()))
                 sab_int = scint.interpn((alpha, beta), sab.transpose(), _,
                                         bounds_error=False, fill_value=0.0,
                                         method='linear')
-                sab_int.shape = np.shape(alpha_grid)
+                sab_int.shape = _np.shape(alpha_grid)
                 self._elems[sym]._sab_total.append(sab_int)
                 emin = di.vdosData()[0][0]
                 emax = di.vdosData()[0][1]
@@ -623,6 +639,7 @@ class NuclearData():
                 res = nc_vdos.analyseVDOS(emin, emax, rho, di.temperature,
                                           di.atomData.averageMassAMU())
                 self._elems[sym]._teff.append(res['teff'])
+
     def _get_ncrystal_comments(self):
         _ = [line[1:] for line in
              nc_core.createTextData(self._ncmat_fn).rawData.split('\n')[:]
@@ -668,9 +685,11 @@ class EndfFile():
         verbosity : int
             Level of verbosity of the output (0: quiet)
         """
+        endf_parserpy = import_endfparserpy()
         self._endf_dict = endf_parserpy.EndfDict()
         self._parser = endf_parserpy.EndfParser(explain_missing_variable=True,
                                                 cache_dir=False)
+        self._endf_parserpy_version = endf_parserpy.__version__
         self._sym = element
         self._mat = mat
         assert ((not isotopic_expansion) or include_gif),\
@@ -772,11 +791,11 @@ class EndfFile():
         for sab_total, T in zip(data.elements[self._sym].sab_total,
                                 temperatures):
             kT = T/T0*kT0
-            _ = np.meshgrid(alpha*kT0/kT,
+            _ = _np.meshgrid(alpha*kT0/kT,
                             data.elements[self._sym].beta_total*kT0/kT)
             alpha_grid, beta_grid = _
             if (endf_parameters.lasym == 0) or (endf_parameters.lasym == 1):
-                detailed_balance_factor = np.exp(beta_grid/2)
+                detailed_balance_factor = _np.exp(beta_grid/2)
             if endf_parameters.lasym == 3:
                 # S(a,b) for all beta
                 sab_data.append(sab_total.transpose())
@@ -784,7 +803,7 @@ class EndfFile():
             if endf_parameters.lasym == 2:
                 # S(a,b) for negative beta
                 # get negative branch of S(a,b)
-                sab_sym2 = sab_total[np.where(beta_grid<=0)]
+                sab_sym2 = sab_total[_np.where(beta_grid<=0)]
                 sab_sym2.shape = (len(beta), len(alpha))
                 sab_sym3 = sab_sym2[::-1,:]  # Invert S(a,b) for negative beta
                 sab_data.append(sab_sym3.transpose())
@@ -798,7 +817,7 @@ class EndfFile():
                 # S(a,b)*exp(-b/2) for negative beta
                 sab_sym = sab_total*detailed_balance_factor
                 # get negative branch of S(a,b)
-                sab_sym2 = sab_sym[np.where(beta_grid<=0)]
+                sab_sym2 = sab_sym[_np.where(beta_grid<=0)]
                 sab_sym2.shape = (len(beta), len(alpha))
                 # Invert S(a,b) for negative beta
                 sab_sym3 = sab_sym2[::-1,:]
@@ -925,6 +944,7 @@ class EndfFile():
         self._verbosity : int
             Level of verbosity of the output (0: quiet)
         """
+        from datetime import datetime
         awr = data.elements[self._sym].awr
         mat = self._mat
         za = data.elements[self._sym].za
@@ -979,7 +999,7 @@ class EndfFile():
         desc.append(data.ncmat_fn.center(66))
         desc.append('')
         desc.append(f' using NCrystal {nc_core.get_version()} and '+
-                           f'endf-parserpy {endf_parserpy.__version__} '+
+                           f'endf-parserpy {self._endf_parserpy_version} '+
                             '[2] with the ')
         desc.append(' following options:')
         desc.append('')
