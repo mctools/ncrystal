@@ -53,9 +53,13 @@ def import_endfparserpy():
         #from endf_parserpy.interpreter.fortran_utils import write_fort_floats
     except ImportError:
         raise SystemExit('Could not import endf_parserpy. Check the package '
-                         'was correctly installed, with a version equal or '
-                         'higher than 0.11.0.\n'
-                         'https://endf-parserpy.readthedocs.io/')
+                         'was correctly installed. This can be done with:'
+                         'pip install ncrystal[endf], '
+                         'pip install ncrystal[all], '
+                         'pip install endf_parserpy if NCrystal was installed'
+                         'with pip, or'
+                         'conda install -c conda-forge endf_parserpy if'
+                         'NCrystal was installed with conda.')
     return endf_parserpy
 
 available_elastic_modes = ('greater', 'scaled', 'mixed')
