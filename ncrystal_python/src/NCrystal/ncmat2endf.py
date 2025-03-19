@@ -512,6 +512,7 @@ class NuclearData():
 
     def _get_elastic_data(self, elastic_mode):
         for T in self._temperatures:
+            # TODO: change load to createInfo()
             cfg = (f'{self._ncmat_fn};temp={T}K;vdoslux={self._vdoslux};'
                    'comp=bragg;dcutoff=0.1')
             m = nc_core.load(cfg)
@@ -661,7 +662,7 @@ class NuclearData():
 
     def _get_ncrystal_comments(self):
         comments = [line[1:] for line in
-             nc_core.createTextData(self._ncmat_fn).rawData.split('\n')[:]
+             nc_core.createTextData(self._ncmat_fn)
              if (len(line) > 0 and line[0] == '#')]
         self._ncrystal_comments = _wrap_string("\n".join(comments),66)
 
