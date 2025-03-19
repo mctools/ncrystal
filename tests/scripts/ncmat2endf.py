@@ -51,7 +51,7 @@ def test( cfg, name, endf_parameters, ref_teff=None, ref_parsed=None, **kwargs )
     print('-'*80)
     if 'force_save' not in kwargs:
         kwargs['force_save'] = True
-    kwargs['ncmat_fn']=cfg
+    kwargs['ncmat_cfg']=cfg
     kwargs['name']=name
     kwargs['endf_parameters']=endf_parameters
     pprint.pprint(kwargs)
@@ -85,10 +85,10 @@ def test( cfg, name, endf_parameters, ref_teff=None, ref_parsed=None, **kwargs )
                 raise RuntimeError(f'ENDF sections {parsed} expected but sections {ref_parsed[endf_fn]} found')
 
 endf_defaults = EndfParameters()
-test('Al_sg225.ncmat', 'Al', endf_defaults,
+test('Al_sg225.ncmat;vdoslux=1', 'Al', endf_defaults,
      ref_teff={'tsl_Al.endf':[320.6363, 372.8392]}, ref_parsed={'tsl_Al.endf':'0 0 1 451 7 2 7 4'},
-     temperatures=[293.6, 350], vdoslux=1)
-test('Polyethylene_CH2.ncmat', 'CH2', endf_defaults,
+     temperatures=[293.6, 350])
+test('Polyethylene_CH2.ncmat;vdoslux=1', 'CH2', endf_defaults,
      ref_teff={'tsl_H_in_CH2.endf':[1208.168], 'tsl_C_in_CH2.endf':[667.5967]},
      ref_parsed={'tsl_H_in_CH2.endf':'0 0 1 451 7 2 7 4', 'tsl_C_in_CH2.endf':'0 0 1 451 7 2 7 4'},
-     temperatures=[293.6], mat_numbers={"C":37, "H": 38}, vdoslux=1)
+     temperatures=[293.6], mat_numbers={"C":37, "H": 38})

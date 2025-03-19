@@ -38,8 +38,10 @@ from ._numpy import _np
 from . import core as nc_core
 from . import constants as nc_constants
 from . import vdos as nc_vdos
+from . import cfgstr as nc_cfgstr
 from ._common import ( print,
                        warn )
+from . import exceptions as nc_exceptions
 
 def import_endfparserpy():
     try:
@@ -321,8 +323,8 @@ class NuclearData():
         Comments in the ncmat file
     temperatures : iterable of flotat
         List of temperatures to process
-    ncmat_fn : string
-        NCrystal ncmat filename to convert
+    ncmat_cfg : string
+        NCrystal cfg string to convert
     composition : iterable of tuples (float, NCrystal AtomData)
         Composition of the material
     elements : iterable of ElementData
@@ -333,30 +335,27 @@ class NuclearData():
         XS*E for the Bragg edges for each temperature
     """
 
-    def __init__(self, ncmat_fn, temperatures, elastic_mode,
-                 vdoslux=3, verbosity=1):
+    def __init__(self, ncmat_cfg, temperatures, elastic_mode, verbosity=1):
         r"""
         Parameters
         ----------
-        ncmat_fn : string
-            NCrystal ncmat filename to convert
+        ncmat_cfg : string
+            NCrystal cfg string to convert
         temperatures : iterable of float
             List of temperatures to process
         elastic_mode : string
             Elastic approximation used in the material
             (greater, scaled or mixed)
-        vdoslux : integer
-            Level of luxury to generate data in NCrystal
         verbosity : integer
             Level of verbosity for the output
         """
         self._temperatures = temperatures
-        self._ncmat_fn = ncmat_fn
-        info_obj = nc_core.createInfo(ncmat_fn+f';vdoslux={vdoslux}')
+        self._ncmat_cfg = ncmat_cfg
+        info_obj = nc_core.createInfo(ncmat_cfg)
         self._composition = info_obj.composition
         self._elems = {}
         self._ncrystal_comments = None
-        self._vdoslux = vdoslux
+        self._vdoslux = nc_cfgstr.decodecfg_vdoslux(ncmat_cfg)
         self._verbosity = verbosity
         # _combine_temperatures:
         # False: use (alpha, beta) grid for lowest temperature
@@ -404,8 +403,8 @@ class NuclearData():
         return self._temperatures
 
     @property
-    def ncmat_fn(self):
-        return self._ncmat_fn
+    def ncmat_cfg(self):
+        return self._ncmat_cfg
 
     @property
     def composition(self):
@@ -442,7 +441,7 @@ class NuclearData():
         # it is only kept as an option to debug libraries.
         #
         for T in self._temperatures[1:]:
-            cfg = f'{self._ncmat_fn};temp={T}K;vdoslux={self._vdoslux}'
+            cfg = self._ncmat_cfg+f';temp={T}K'
             info_obj = nc_core.createInfo(cfg)
             for di in info_obj.dyninfos:
                 sym = di.atomData.displayLabel()
@@ -456,7 +455,7 @@ class NuclearData():
 
     def _get_alpha_beta_grid(self):
         T = self._temperatures[0]
-        cfg = f'{self._ncmat_fn};temp={T}K;vdoslux={self._vdoslux}'
+        cfg = self._ncmat_cfg+f';temp={T}K'
         info_obj = nc_core.createInfo(cfg)
         for di in info_obj.dyninfos:
             sym = di.atomData.displayLabel()
@@ -512,8 +511,8 @@ class NuclearData():
 
     def _get_elastic_data(self, elastic_mode):
         for T in self._temperatures:
-            cfg = (f'{self._ncmat_fn};temp={T}K;vdoslux={self._vdoslux};'
-                   'comp=bragg;dcutoff=0.1')
+            cfg = (self._ncmat_cfg+f';temp={T}K'
+                   ';comp=bragg;dcutoff=0.1')
             mat = nc_core.load(cfg)
             info_obj = mat.info
             if info_obj.hasAtomInfo():
@@ -536,7 +535,7 @@ class NuclearData():
             print('>> Prepare elastic approximations')
         if elastic_mode == 'scaled' and self._incoherent_fraction < 1e-6:
             elastic_mode = 'greater'
-            warn('Scaled elastic mode requested'
+            warn('Scaled elastic mode requested '
                  'but all elements are coherent.')
         for frac, ad in self._composition:
             sym = ad.displayLabel()
@@ -638,7 +637,8 @@ class NuclearData():
 
     def _get_inelastic_data(self):
         for T in self._temperatures:
-            info_obj = nc_core.createInfo(f'{self._ncmat_fn};temp={T}K')
+            cfg = self._ncmat_cfg+f';temp={T}K'
+            info_obj = nc_core.createInfo(cfg)
             for di in info_obj.dyninfos:
                 sym = di.atomData.displayLabel()
                 #
@@ -661,9 +661,11 @@ class NuclearData():
                 self._elems[sym]._teff.append(res['teff'])
 
     def _get_ncrystal_comments(self):
-        comments = [line[1:] for line in
-             nc_core.createTextData(self._ncmat_fn)
-             if (len(line) > 0 and line[0] == '#')]
+        # TODO: handle multi phase materials
+        ncmat_fn = nc_cfgstr.decodeCfg(self._ncmat_cfg)['data_name']
+        td = nc_core.createTextData(ncmat_fn)
+        from ._ncmatimpl import _extractInitialHeaderCommentsFromNCMATData
+        comments = _extractInitialHeaderCommentsFromNCMATData(td)
         self._ncrystal_comments = _wrap_string("\n".join(comments),66)
 
 class EndfFile():
@@ -1014,7 +1016,7 @@ class EndfFile():
         desc.append(' This file was converted from '
                     'the following NCMAT [1] file:')
         desc.append('')
-        desc.append(data.ncmat_fn.center(66))
+        desc.append(data.ncmat_cfg.center(66))
         desc.append('')
         desc.append(f' using NCrystal {nc_core.get_version()} and '
                            f'endf-parserpy {self._endf_parserpy_version} '
@@ -1175,7 +1177,7 @@ class EndfParameters():
     def lasym(self, x):
         self._lasym = x
 
-def ncmat2endf( ncmat_fn,
+def ncmat2endf( ncmat_cfg,
                 name,
                 endf_parameters,
                 temperatures=(293.6,),
@@ -1183,14 +1185,13 @@ def ncmat2endf( ncmat_fn,
                 elastic_mode='scaled',
                 include_gif=False,
                 isotopic_expansion=False,
-                vdoslux=3,
                 force_save=False,
                 verbosity=1):
     """Generates a set of ENDF-6 formatted files for a given NCMAT file.
 
     Parameters
     ----------
-    ncmat_fn : str
+    ncmat_cfg : str
         Filename of the ncmat file to convert
 
     temperatures : float or iterable of float
@@ -1219,9 +1220,6 @@ def ncmat2endf( ncmat_fn,
     isotopic_expansion: boolean
         Expand the information in MF=7/MT=451 in isotopes
 
-    vdoslux : integer
-        Level of luxury to generate data in NCrystal
-
     verbosity : int
         Level of verbosity of the output (0: quiet)
 
@@ -1232,13 +1230,17 @@ def ncmat2endf( ncmat_fn,
         their fraction in the composition
 
     """
+    info_obj = nc_core.createInfo(ncmat_cfg)
+    if not info_obj.isSinglePhase():
+        raise nc_exceptions.NCBadInput('Only single phase materials supported')
     if endf_parameters.lasym > 0:
         warn( 'Creating non standard S(a,b)'
              f' with LASYM = {endf_parameters.lasym}')
-
     if type(temperatures) in [int, float]:
         temperatures = (temperatures,)
     temperatures = _np.sort(_np.asarray(temperatures, dtype=float))
+
+    vdoslux = nc_cfgstr.decodecfg_vdoslux(ncmat_cfg)
 
     if len(temperatures) > 1:
         warn('Multiple temperatures requested. Although this is supported, '
@@ -1250,8 +1252,8 @@ def ncmat2endf( ncmat_fn,
     if verbosity > 0:
         print('Get nuclear data...')
 
-    data = NuclearData(ncmat_fn, temperatures,
-                       elastic_mode, vdoslux, verbosity)
+    data = NuclearData(ncmat_cfg, temperatures,
+                       elastic_mode, verbosity)
 
     if mat_numbers is not None:
         n = len(mat_numbers)

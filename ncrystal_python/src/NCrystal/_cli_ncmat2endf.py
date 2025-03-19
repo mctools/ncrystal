@@ -53,7 +53,7 @@ the ENDF-6 file.
     import json
 
     parser.add_argument('input',
-                        help='NCMAT file to convert')
+                        help='NCMAT cfg string to convert')
     parser.add_argument('-n', '--name',
                         help='name of the compound in the NCMAT file')
     parser.add_argument('-t', '--temperatures',
@@ -66,9 +66,6 @@ the ENDF-6 file.
     parser.add_argument('-v', '--verbosity',
                         help='controls how verbose should be the output',
                         type=int, default=1)
-    parser.add_argument('-l', '--luxury',
-                        help='set the NCrystal vdoslux parameter used to generate the library. 3 is normal, 4 is fine and 5 is very fine.',
-                        type=int, default=3, choices=range(1, 6))
     parser.add_argument('-g', '--gif',
                         help='include the generalized information file (MF=7/MT=451)',
                         action='store_true')
@@ -111,13 +108,12 @@ def main( progname, arglist ):
     from .ncmat2endf import EndfParameters, ncmat2endf
     endf_defaults = EndfParameters()
     args = _parseArgs( endf_defaults, progname, arglist )
-    fn = args.input
+    ncmat_cfg = args.input
     name = args.name
     temperatures = args.temperatures
     elastic_mode = args.elastic_mode
     verbosity = args.verbosity
     mat_numbers = args.mats
-    vdoslux = args.luxury
     include_gif = args.gif
     isotopic_expansion = args.isotopic
     params = EndfParameters()
@@ -128,8 +124,8 @@ def main( progname, arglist ):
     params.nlib = args.nlib
     params.lasym = args.lasym
 
-    file_names = ncmat2endf(fn, name, params, temperatures, mat_numbers, elastic_mode,
-                            include_gif, isotopic_expansion, vdoslux, args.force, verbosity)
+    file_names = ncmat2endf(ncmat_cfg, name, params, temperatures, mat_numbers, elastic_mode,
+                            include_gif, isotopic_expansion, args.force, verbosity)
     if verbosity > 0:
         print('Files created:')
         for fn, frac in file_names:
