@@ -68,7 +68,6 @@ mass_neutron = (nc_constants.const_neutron_mass_amu*
                ((nc_constants.constant_c*1e-12)**2)) # eV*ps^2*Angstrom^-2
 hbar = nc_constants.constant_planck/nc_constants.k2Pi*1e12 # eV*ps
 T0 = 293.6 # K
-kT0 = nc_constants.constant_boltzmann*T0 # eV
 
 def _endf_roundoff(x):
     """Limit the precision of a float to what can be represented
@@ -459,13 +458,12 @@ class NuclearData():
         T = self._temperatures[0]
         cfg = f'{self._ncmat_fn};temp={T}K;vdoslux={self._vdoslux}'
         m = nc_core.load(cfg)
-        kT = kT0*T/T0 # eV
         for di in m.info.dyninfos:
             sym = di.atomData.displayLabel()
             if type(di) in (nc_core.Info.DI_VDOS, nc_core.Info.DI_VDOSDebye):
                 sctknl = di.loadKernel(vdoslux=self._vdoslux)
-                self._elems[sym].alpha = sctknl['alpha']*kT/kT0
-                self._elems[sym].beta_total = sctknl['beta']*kT/kT0
+                self._elems[sym].alpha = sctknl['alpha']*T/T0
+                self._elems[sym].beta_total = sctknl['beta']*T/T0
             else:
                 raise NotImplementedError('Conversion supported only for VDOS'
                                           ' and VDOSDebye dyninfos')
@@ -487,11 +485,11 @@ class NuclearData():
             if self._verbosity > 2:
                 print(f'>>> alpha points: {len(self._elems[sym].alpha)}, '
                        'alpha range: '
-                      f'({_np.min(self._elems[sym].alpha*kT0/kT)}'
-                      f', {_np.max(self._elems[sym].alpha*kT0/kT)})')
+                      f'({_np.min(self._elems[sym].alpha*T0/T)}'
+                      f', {_np.max(self._elems[sym].alpha*T0/T)})')
                 print(f'>>> beta points: {len(self._elems[sym].beta)}, '
-                      f'beta range: ({_np.min(self._elems[sym].beta*kT0/kT)},'
-                      f' {_np.max(self._elems[sym].beta*kT0/kT)})')
+                      f'beta range: ({_np.min(self._elems[sym].beta*T0/T)},'
+                      f' {_np.max(self._elems[sym].beta*T0/T)})')
 
     def _get_coherent_elastic(self, m, T):
         #
@@ -794,7 +792,7 @@ class EndfFile():
         d['MAT'] = mat
         d['ZA'] = za
         d['AWR'] = awr
-        d['LAT'] =  1 # (alpha, beta) grid written for kT0 = 0.0253 eV
+        d['LAT'] =  1 # (alpha, beta) grid written for 0.0253 eV
         d['LASYM'] = endf_parameters.lasym # symmetric/asymmetric S(a,b)
         d['LLN'] = 0 # linear S is stored
         d['NI'] = 6
