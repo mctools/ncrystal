@@ -512,8 +512,8 @@ class NuclearData():
 
     def _get_elastic_data(self, elastic_mode):
         for T in self._temperatures:
-            cfg = f'{self._ncmat_fn};temp={T}K;vdoslux={self._vdoslux};'+\
-                   'comp=bragg;dcutoff=0.1'
+            cfg = (f'{self._ncmat_fn};temp={T}K;vdoslux={self._vdoslux};'
+                   'comp=bragg;dcutoff=0.1')
             m = nc_core.load(cfg)
             if m.info.hasAtomInfo():
                 self._get_coherent_elastic(m, T)
@@ -711,9 +711,9 @@ class EndfFile():
         self._endf_parserpy_version = endf_parserpy.__version__
         self._sym = element
         self._mat = mat
-        assert ((not isotopic_expansion) or include_gif),\
-                'Isotopic expansion requires generalized information file'+\
-                ', use --gif'
+        assert ((not isotopic_expansion) or include_gif),(
+                'Isotopic expansion requires generalized information file'
+                ', use --gif' )
         self._include_gif = include_gif
         self._isotopic_expansion = isotopic_expansion
         self._parameter_description = parameter_description
@@ -1001,8 +1001,8 @@ class EndfFile():
                   'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DEC')
         edate= f'EVAL-{months[now.month-1]}{now.strftime("%y")}'
         ddate= f'DIST-{months[now.month-1]}{now.strftime("%y")}'
-        rdate= f'REV{endf_parameters.lrel:1d}-'+\
-               f'{months[now.month-1]}{now.strftime("%y")}'
+        rdate= ( f'REV{endf_parameters.lrel:1d}-'
+                 f'{months[now.month-1]}{now.strftime("%y")}' )
         d['EDATE'] = edate
         d['DDATE'] = ddate
         d['RDATE'] = rdate
