@@ -1180,7 +1180,7 @@ class EndfParameters():
 def ncmat2endf( ncmat_cfg,
                 name,
                 endf_parameters,
-                temperatures=(293.6,),
+                temperatures=None,
                 mat_numbers=None,
                 elastic_mode='scaled',
                 include_gif=False,
@@ -1195,7 +1195,9 @@ def ncmat2endf( ncmat_cfg,
         Filename of the ncmat file to convert
 
     temperatures : float or iterable of float
-        Temperatures in Kelvin to generate the nuclear data
+        Temperatures in Kelvin to generate the nuclear data,
+        in addition to the temperature defined in the cfg string.
+        (The default temperature in the cfg string is 293.15 K)
 
     mat_numbers : dict of str to int
         Material number for each element
@@ -1236,12 +1238,19 @@ def ncmat2endf( ncmat_cfg,
     if endf_parameters.lasym > 0:
         warn( 'Creating non standard S(a,b)'
              f' with LASYM = {endf_parameters.lasym}')
-    if type(temperatures) in [int, float]:
-        temperatures = (temperatures,)
-    temperatures = _np.sort(_np.asarray(temperatures, dtype=float))
 
-    vdoslux = nc_cfgstr.decodecfg_vdoslux(ncmat_cfg)
-
+    base_temp = info_obj.dyninfos[0].temperature
+    if temperatures is None:
+        temperatures = []
+    else:
+        if type(temperatures) in [int, float]:
+            temperatures = (temperatures,)
+    temperatures = _np.asarray(temperatures, dtype=float)
+    if base_temp in temperatures:
+        raise nc_exceptions.NCBadInput('temperatures parameter must not '
+                                       'include the temperature defined '
+                                       'in the cfg string')
+    temperatures = _np.sort(_np.append(temperatures, base_temp))
     if len(temperatures) > 1:
         warn('Multiple temperatures requested. Although this is supported, '
              'it is not recommended because NCrystal generates '
@@ -1249,6 +1258,9 @@ def ncmat2endf( ncmat_cfg,
              'The (alpha,beta) grid for first temperature will '
              'be used, and S(alpha, beta) for other temperatures '
              'will be interpolated.')
+
+    vdoslux = nc_cfgstr.decodecfg_vdoslux(ncmat_cfg)
+
     if verbosity > 0:
         print('Get nuclear data...')
 
