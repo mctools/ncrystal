@@ -86,9 +86,9 @@ def test( cfg, name, endf_parameters, ref_teff=None, ref_parsed=None, **kwargs )
 
 endf_defaults = EndfParameters()
 test('Al_sg225.ncmat;vdoslux=1', 'Al', endf_defaults,
-     ref_teff={'tsl_Al.endf':[320.6363, 372.8392]}, ref_parsed={'tsl_Al.endf':'0 0 1 451 7 2 7 4'},
-     temperatures=[293.6, 350])
+     ref_teff={'tsl_Al.endf':[320.2258, 372.8392]}, ref_parsed={'tsl_Al.endf':'0 0 1 451 7 2 7 4'},
+     temperatures=[350])
 test('Polyethylene_CH2.ncmat;vdoslux=1', 'CH2', endf_defaults,
-     ref_teff={'tsl_H_in_CH2.endf':[1208.168], 'tsl_C_in_CH2.endf':[667.5967]},
+     ref_teff={'tsl_H_in_CH2.endf':[1208.094], 'tsl_C_in_CH2.endf':[667.3864]},
      ref_parsed={'tsl_H_in_CH2.endf':'0 0 1 451 7 2 7 4', 'tsl_C_in_CH2.endf':'0 0 1 451 7 2 7 4'},
-     temperatures=[293.6], mat_numbers={"C":37, "H": 38})
+     mat_numbers={"C":37, "H": 38})
