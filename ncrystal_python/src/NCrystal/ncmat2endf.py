@@ -352,8 +352,8 @@ class NuclearData():
         """
         self._temperatures = temperatures
         self._ncmat_fn = ncmat_fn
-        mat = nc_core.load(ncmat_fn+f';vdoslux={vdoslux}')
-        self._composition = mat.info.composition
+        info_obj = nc_core.createInfo(ncmat_fn+f';vdoslux={vdoslux}')
+        self._composition = info_obj.composition
         self._elems = {}
         self._ncrystal_comments = None
         self._vdoslux = vdoslux
@@ -368,7 +368,7 @@ class NuclearData():
         for frac, ad in self._composition:
             sym = ad.displayLabel()
             self._elems[sym] = ElementData(ad)
-        if mat.info.hasAtomInfo():
+        if info_obj.hasAtomInfo():
             self._edges = []
             self._sigmaE = []
         else:
@@ -443,8 +443,8 @@ class NuclearData():
         #
         for T in self._temperatures[1:]:
             cfg = f'{self._ncmat_fn};temp={T}K;vdoslux={self._vdoslux}'
-            m = nc_core.load(cfg)
-            for di in m.info.dyninfos:
+            info_obj = nc_core.createInfo(cfg)
+            for di in info_obj.dyninfos:
                 sym = di.atomData.displayLabel()
                 sctknl = di.loadKernel(vdoslux=self._vdoslux)
                 self._elems[sym].alpha = _np.unique(_np.concatenate((
@@ -457,8 +457,8 @@ class NuclearData():
     def _get_alpha_beta_grid(self):
         T = self._temperatures[0]
         cfg = f'{self._ncmat_fn};temp={T}K;vdoslux={self._vdoslux}'
-        m = nc_core.load(cfg)
-        for di in m.info.dyninfos:
+        info_obj = nc_core.createInfo(cfg)
+        for di in info_obj.dyninfos:
             sym = di.atomData.displayLabel()
             if type(di) in (nc_core.Info.DI_VDOS, nc_core.Info.DI_VDOSDebye):
                 sctknl = di.loadKernel(vdoslux=self._vdoslux)
@@ -512,14 +512,14 @@ class NuclearData():
 
     def _get_elastic_data(self, elastic_mode):
         for T in self._temperatures:
-            # TODO: change load to createInfo()
             cfg = (f'{self._ncmat_fn};temp={T}K;vdoslux={self._vdoslux};'
                    'comp=bragg;dcutoff=0.1')
-            m = nc_core.load(cfg)
-            if m.info.hasAtomInfo():
-                self._get_coherent_elastic(m, T)
+            mat = nc_core.load(cfg)
+            info_obj = mat.info
+            if info_obj.hasAtomInfo():
+                self._get_coherent_elastic(mat, T)
             #
-            for di in m.info.dyninfos:
+            for di in info_obj.dyninfos:
                 sym = di.atomData.displayLabel()
                 emin = di.vdosData()[0][0]
                 emax = di.vdosData()[0][1]
@@ -529,7 +529,7 @@ class NuclearData():
                 #
                 # Load incoherent elastic data
                 #
-                if m.info.stateOfMatter().name == 'Solid':
+                if info_obj.stateOfMatter().name == 'Solid':
                     msd = res['msd']
                     self._elems[sym].dwi.append(msd*2*mass_neutron/hbar**2)
         if self._verbosity > 1:
@@ -638,8 +638,8 @@ class NuclearData():
 
     def _get_inelastic_data(self):
         for T in self._temperatures:
-            m = nc_core.load(f'{self._ncmat_fn};temp={T}K')
-            for di in m.info.dyninfos:
+            info_obj = nc_core.createInfo(f'{self._ncmat_fn};temp={T}K')
+            for di in info_obj.dyninfos:
                 sym = di.atomData.displayLabel()
                 #
                 # Load incoherent inelastic data
