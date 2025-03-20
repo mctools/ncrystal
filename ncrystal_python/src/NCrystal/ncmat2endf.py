@@ -333,6 +333,9 @@ class NuclearData():
         Energies for the Bragg edges for each temperature
     sigmaE : iterable of numpy array
         XS*E for the Bragg edges for each temperature
+    elastic_mode: string
+        Elastic approximation used in the material
+        (greater, scaled or mixed)
     """
 
     def __init__(self, ncmat_cfg, temperatures, elastic_mode, verbosity=1):
@@ -357,13 +360,11 @@ class NuclearData():
         self._ncrystal_comments = None
         self._vdoslux = nc_cfgstr.decodecfg_vdoslux(ncmat_cfg)
         self._verbosity = verbosity
+        self._elastic_mode = elastic_mode
         # _combine_temperatures:
         # False: use (alpha, beta) grid for lowest temperature
         # True: combine all temperatures
         self._combine_temperatures = False
-        if elastic_mode not in available_elastic_modes:
-            raise ValueError(f'Elastic mode {elastic_mode}'
-                             f' not in {available_elastic_modes}')
         for frac, ad in self._composition:
             sym = ad.displayLabel()
             self._elems[sym] = ElementData(ad)
@@ -390,7 +391,7 @@ class NuclearData():
             if self._verbosity > 1:
                 print(f'Designated incoherent: {sym}')
         self._get_alpha_beta_grid()
-        self._get_elastic_data(elastic_mode)
+        self._get_elastic_data()
         self._get_inelastic_data()
         self._get_ncrystal_comments()
 
@@ -433,6 +434,10 @@ class NuclearData():
     @sigmaE.setter
     def sigmaE(self, x):
         self._sigmaE = x
+
+    @property
+    def elastic_mode(self):
+        return self._elastic_mode
 
     def _combine_alpha_beta_grids(self):
         #
@@ -509,7 +514,7 @@ class NuclearData():
                'Sigma*E in Bragg edges not cummulative'
         self._sigmaE.append(sigmaE)
 
-    def _get_elastic_data(self, elastic_mode):
+    def _get_elastic_data(self):
         for T in self._temperatures:
             cfg = (self._ncmat_cfg+f';temp={T}K'
                    ';comp=bragg;dcutoff=0.1')
@@ -533,21 +538,21 @@ class NuclearData():
                     self._elems[sym].dwi.append(msd*2*mass_neutron/hbar**2)
         if self._verbosity > 1:
             print('>> Prepare elastic approximations')
-        if ( elastic_mode == 'scaled' ):
+        if ( self._elastic_mode == 'scaled' ):
             if len(self._composition) == 1:
-                elastic_mode = 'greater'
+                self._elastic_mode = 'greater'
                 warn('Scaled elastic mode requested '
                      'but only one element present. '
                      '"greater" option will be used instead.')
             else:
                 if self._incoherent_fraction < 1e-6:
-                    elastic_mode = 'greater'
+                    self._elastic_mode = 'greater'
                     warn('Scaled elastic mode requested '
                          'but all elements are coherent. '
                          '"greater" option will be used instead.')
         for frac, ad in self._composition:
             sym = ad.displayLabel()
-            if elastic_mode == 'mixed': # iel = 100
+            if self._elastic_mode == 'mixed': # iel = 100
                 if (self._sigmaE is None):
                     # mixed elastic requested but only incoherent available
                     warn(f'Mixed elastic mode for {sym} but no '
@@ -559,7 +564,7 @@ class NuclearData():
                     if self._verbosity>1:
                         print(f'>> Mixed elastic mode for {sym}')
                     self._elems[sym].elastic = 'mixed'
-            if elastic_mode == 'greater': # iel = 98
+            if self._elastic_mode == 'greater': # iel = 98
                 if ((ad.incoherentXS() > ad.coherentXS()) or
                     (self._sigmaE is None)):
                     if self._verbosity>1:
@@ -574,7 +579,7 @@ class NuclearData():
                     self._elems[sym].sigma_i =  None
                     self._elems[sym].dwi =  None
                     self._elems[sym].elastic = 'coherent'
-            elif elastic_mode == 'scaled':
+            elif self._elastic_mode == 'scaled':
                 if len(self._composition) == 1: # iel = 99, single atomic case
                     if ((ad.incoherentXS() > ad.coherentXS()) or
                         (self._sigmaE is None)):
@@ -972,6 +977,7 @@ class EndfFile():
         self._verbosity : int
             Level of verbosity of the output (0: quiet)
         """
+
         from datetime import datetime
         awr = data.elements[self._sym].awr
         mat = self._mat
@@ -1021,8 +1027,8 @@ class EndfFile():
         desc = []
         desc.append(66*'*')
         desc.append('')
-        desc.append(' This file was converted from '
-                    'the following NCMAT [1] file:')
+        desc.append(' This file was converted from the following ')
+        desc.append(' NCrystal cfg string [1]:')
         desc.append('')
         desc.append(data.ncmat_cfg.center(66))
         desc.append('')
@@ -1031,8 +1037,12 @@ class EndfFile():
                             '[2] with the ')
         desc.append(' following options:')
         desc.append('')
-        for line in self._parameter_description:
-            desc.append(line)
+        desc.append(f'  smin:{endf_parameters.smin}')
+        desc.append(f'  emax:{endf_parameters.emax}')
+        desc.append(f'  lasym:{endf_parameters.lasym}')
+        desc.append(f'  include_gif:{self._include_gif}')
+        desc.append(f'  isotopic_expansion:{self._isotopic_expansion}')
+        desc.append(f'  elastic_mode:{data.elastic_mode}')
         desc.append('')
         desc.append(' Temperatures:')
         for T in data.temperatures:
@@ -1048,7 +1058,6 @@ class EndfFile():
         desc.append('')
         for line in data.ncrystal_comments.split('\n'):
             desc.append(line)
-        # desc.append('')
         desc.append(66*'*')
         desc = [_.ljust(66) for _ in desc]
         d['DESCRIPTION'] = {k:v for k, v in enumerate(desc, start=1)}
@@ -1212,7 +1221,7 @@ def ncmat2endf( ncmat_cfg,
 
     elastic_mode : str
         Treatment mode for the elastic component
-        "greater" = only the greater ellastic component
+        "greater" = only the greater elastic component
                     (coherent or incoherent) is saved
         "mixed"   = both the coherent and incoherent inelastic
                     components are saved
@@ -1240,6 +1249,9 @@ def ncmat2endf( ncmat_cfg,
         their fraction in the composition
 
     """
+    if elastic_mode not in available_elastic_modes:
+        raise nc_exceptions.NCBadInput(f'Elastic mode {elastic_mode}'
+                                       f' not in ({available_elastic_modes})')
     info_obj = nc_core.createInfo(ncmat_cfg)
     if not info_obj.isSinglePhase():
         raise nc_exceptions.NCBadInput('Only single phase materials supported')
@@ -1269,8 +1281,6 @@ def ncmat2endf( ncmat_cfg,
     if _np.any(temperatures<=0):
         raise nc_exceptions.NCBadInput('Non positive temperatures')
 
-    vdoslux = nc_cfgstr.decodecfg_vdoslux(ncmat_cfg)
-
     if verbosity > 0:
         print('Get nuclear data...')
 
@@ -1284,15 +1294,6 @@ def ncmat2endf( ncmat_cfg,
                 n = n - 1
         assert n==0, 'Incorrect material number assignement'
 
-    parameter_description = []
-    parameter_description.append(f'  smin:{endf_parameters.smin}')
-    parameter_description.append(f'  emax:{endf_parameters.emax}')
-    parameter_description.append(f'  lasym:{endf_parameters.lasym}')
-    parameter_description.append(f'  include_gif:{include_gif}')
-    parameter_description.append(f'  vdoslux:{vdoslux}')
-    parameter_description.append(f'  isotopic_expansion:{isotopic_expansion}')
-    parameter_description.append(f'  elastic_mode:{elastic_mode}')
-
     file_names = []
     for frac, ad in data.composition:
         sym = ad.displayLabel()
@@ -1302,7 +1303,7 @@ def ncmat2endf( ncmat_cfg,
         if data.elements[sym].sab_total is not None:
             endf_file = EndfFile(sym, data, mat, endf_parameters,
                                  include_gif,isotopic_expansion,
-                                 parameter_description, verbosity)
+                                 verbosity)
             endf_file.write(endf_fn, force_save)
             file_names.append((endf_fn, frac))
         else:
