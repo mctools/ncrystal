@@ -58,7 +58,7 @@ the ENDF-6 file.
                         help='name of the compound in the NCMAT file')
     parser.add_argument('-t', '--temperatures',
                         nargs='+',
-                        help='additional temperatures to process', type=float, default=[293.6])
+                        help='additional temperatures to process', type=float)
     parser.add_argument('-e', '--elastic_mode',
                         help='approximation used for the elastic component', type=str,
                         choices=available_elastic_modes,
