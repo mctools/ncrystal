@@ -479,13 +479,9 @@ class NuclearData():
         info_obj = nc_core.createInfo(cfg)
         for di in info_obj.dyninfos:
             sym = di.atomData.displayLabel()
-            if type(di) in (nc_core.Info.DI_VDOS, nc_core.Info.DI_VDOSDebye):
-                sctknl = di.loadKernel(vdoslux=self._vdoslux)
-                self._elems[sym].alpha = sctknl['alpha']*T/T0
-                self._elems[sym].beta_total = sctknl['beta']*T/T0
-            else:
-                raise NotImplementedError('Conversion supported only for VDOS'
-                                          ' and VDOSDebye dyninfos')
+            sctknl = di.loadKernel(vdoslux=self._vdoslux)
+            self._elems[sym].alpha = sctknl['alpha']*T/T0
+            self._elems[sym].beta_total = sctknl['beta']*T/T0
         if self._combine_temperatures:
             self._combine_alpha_beta_grids()
 
@@ -566,15 +562,15 @@ class NuclearData():
                          '"greater" option will be used instead.')
         for frac, ad in self._composition:
             sym = ad.displayLabel()
+            if ( self._sigmaE is None and
+                 self._elems[sym].dwi is None ):
+                warn('No coherent elastic data or '
+                     'incoherent elastic data found: '
+                     'only inelastic data will be written')
+                self._elems[sym].elastic = None
+                continue
             if self._elastic_mode == 'mixed': # iel = 100
-                if (self._sigmaE is None and
-                     self._elems[sym].dwi is None):
-                    warn(f'Mixed elastic mode for {sym} but no '
-                           'incoherent elastic data or '
-                           'incoherent elastic data found: '
-                           'only inelastic data will be written')
-                    self._elems[sym].elastic = None
-                elif (self._sigmaE is None):
+                if (self._sigmaE is None):
                     # mixed elastic requested but only incoherent available
                     warn(f'Mixed elastic mode for {sym} but no '
                            'Bragg edges found: incoherent approximation')
@@ -1293,7 +1289,8 @@ def ncmat2endf( ncmat_cfg,
             temperatures = (temperatures,)
     temperatures = _np.asarray(temperatures, dtype=float)
     if base_temp in temperatures:
-        raise nc_exceptions.NCBadInput('temperatures parameter must not '
+        raise nc_exceptions.NCBadInput('Repeated temperatures: '
+                                       'temperatures parameter must not '
                                        'include the temperature defined '
                                        'in the cfg string')
     temperatures = _np.sort(_np.append(temperatures, base_temp))
@@ -1317,6 +1314,13 @@ def ncmat2endf( ncmat_cfg,
         raise nc_exceptions.NCBadInput('SANS cannot be '
                                        'represented in the ENDF format and '
                                        'is not supported' )
+    if not check_component(ncmat_cfg, 'inelas'):
+        raise nc_exceptions.NCBadInput('MF7/MT4 is mandatory in an ENDF file '
+                                       'but no inelastic data found' )
+    for di in info_obj.dyninfos:
+        if type(di) not in (nc_core.Info.DI_VDOS, nc_core.Info.DI_VDOSDebye):
+            raise NotImplementedError('Conversion supported only for VDOS'
+                                      ' and VDOSDebye dyninfos')
 
     data = NuclearData(ncmat_cfg, temperatures,
                        elastic_mode, verbosity)
