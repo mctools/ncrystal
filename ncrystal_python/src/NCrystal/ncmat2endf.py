@@ -533,10 +533,18 @@ class NuclearData():
                     self._elems[sym].dwi.append(msd*2*mass_neutron/hbar**2)
         if self._verbosity > 1:
             print('>> Prepare elastic approximations')
-        if elastic_mode == 'scaled' and self._incoherent_fraction < 1e-6:
-            elastic_mode = 'greater'
-            warn('Scaled elastic mode requested '
-                 'but all elements are coherent.')
+        if ( elastic_mode == 'scaled' ):
+            if len(self._composition) == 1:
+                elastic_mode = 'greater'
+                warn('Scaled elastic mode requested '
+                     'but only one element present. '
+                     '"greater" option will be used instead.')
+            else:
+                if self._incoherent_fraction < 1e-6:
+                    elastic_mode = 'greater'
+                    warn('Scaled elastic mode requested '
+                         'but all elements are coherent. '
+                         '"greater" option will be used instead.')
         for frac, ad in self._composition:
             sym = ad.displayLabel()
             if elastic_mode == 'mixed': # iel = 100
