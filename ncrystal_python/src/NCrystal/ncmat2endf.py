@@ -165,6 +165,9 @@ def _wrap_string(inp, lim=66):
                 word_list.append(" ".join(current_line_words))
     return('\n'.join(word_list))
 
+def check_component(cfgstr, comp):
+    return not nc_core.createScatter(cfgstr+f';comp={comp}').isNull()
+
 class ElementData():
     r"""Container for nuclear data for a single element or isotope.
 
@@ -361,6 +364,16 @@ class NuclearData():
         self._vdoslux = nc_cfgstr.decodecfg_vdoslux(ncmat_cfg)
         self._verbosity = verbosity
         self._elastic_mode = elastic_mode
+        self._enable_coh_elas = ( check_component(ncmat_cfg, 'coh_elas') and
+                                  info_obj.hasAtomInfo() )
+        if not self._enable_coh_elas:
+            warn('Coherent elastic component disabled')
+        self._enable_incoh_elas = check_component(ncmat_cfg, 'incoh_elas')
+        if not self._enable_incoh_elas:
+            warn('Incoherent elastic component disabled')
+        self._enable_inelas = check_component(ncmat_cfg, 'inelas')
+        if not self._enable_inelas:
+            warn('Inelastic component disabled')
         # _combine_temperatures:
         # False: use (alpha, beta) grid for lowest temperature
         # True: combine all temperatures
@@ -368,7 +381,7 @@ class NuclearData():
         for frac, ad in self._composition:
             sym = ad.displayLabel()
             self._elems[sym] = ElementData(ad)
-        if info_obj.hasAtomInfo():
+        if self._enable_coh_elas:
             self._edges = []
             self._sigmaE = []
         else:
@@ -390,9 +403,11 @@ class NuclearData():
                     self._designated_coherent_atom = sym
             if self._verbosity > 1:
                 print(f'Designated incoherent: {sym}')
-        self._get_alpha_beta_grid()
+        if self._enable_inelas:
+            self._get_alpha_beta_grid()
+            self._get_inelastic_data()
+
         self._get_elastic_data()
-        self._get_inelastic_data()
         self._get_ncrystal_comments()
 
     @property
@@ -495,10 +510,12 @@ class NuclearData():
                       f'beta range: ({_np.min(self._elems[sym].beta*T0/T)},'
                       f' {_np.max(self._elems[sym].beta*T0/T)})')
 
-    def _get_coherent_elastic(self, m, T):
+    def _get_coherent_elastic(self, T):
         #
         # Load coherent elastic data
         #
+        cfg = (self._ncmat_cfg+f';temp={T}K;comp=bragg')
+        m = nc_core.load(cfg)
         if T == self._temperatures[0]:
             # Find unique Bragg edges, as represented in ENDF-6 floats
             edges = _np.array([nc_constants.wl2ekin(2.0*e.dspacing)
@@ -516,36 +533,33 @@ class NuclearData():
 
     def _get_elastic_data(self):
         for T in self._temperatures:
-            cfg = (self._ncmat_cfg+f';temp={T}K'
-                   ';comp=bragg')
-            mat = nc_core.load(cfg)
-            info_obj = mat.info
-            if info_obj.hasAtomInfo():
-                self._get_coherent_elastic(mat, T)
-            #
-            for di in info_obj.dyninfos:
-                sym = di.atomData.displayLabel()
-                emin = di.vdosData()[0][0]
-                emax = di.vdosData()[0][1]
-                rho = di.vdosData()[1]
-                res = nc_vdos.analyseVDOS(emin, emax, rho, di.temperature,
-                                          di.atomData.averageMassAMU())
-                #
-                # Load incoherent elastic data
-                #
-                if info_obj.stateOfMatter().name == 'Solid':
+            if self._enable_coh_elas:
+                self._get_coherent_elastic(T)
+            if self._enable_incoh_elas:
+                cfg = self._ncmat_cfg+f';temp={T}K'
+                info_obj = nc_core.createInfo(cfg)
+                for di in info_obj.dyninfos:
+                    sym = di.atomData.displayLabel()
+                    emin = di.vdosData()[0][0]
+                    emax = di.vdosData()[0][1]
+                    rho = di.vdosData()[1]
+                    res = nc_vdos.analyseVDOS(emin, emax, rho, di.temperature,
+                                              di.atomData.averageMassAMU())
+                    #
+                    # Load incoherent elastic data
+                    #
                     msd = res['msd']
                     self._elems[sym].dwi.append(msd*2*mass_neutron/hbar**2)
+            else:
+                for frac, ad in self._composition:
+                    sym = ad.displayLabel()
+                    self._elems[sym].sigma_i =  None
+                    self._elems[sym].dwi =  None
         if self._verbosity > 1:
             print('>> Prepare elastic approximations')
         if ( self._elastic_mode == 'scaled' ):
-            if len(self._composition) == 1:
-                self._elastic_mode = 'greater'
-                warn('Scaled elastic mode requested '
-                     'but only one element present. '
-                     '"greater" option will be used instead.')
-            else:
-                if self._incoherent_fraction < 1e-6:
+            if ( len(self._composition) > 1 and
+                 self._incoherent_fraction < 1e-6 ):
                     self._elastic_mode = 'greater'
                     warn('Scaled elastic mode requested '
                          'but all elements are coherent. '
@@ -553,13 +567,25 @@ class NuclearData():
         for frac, ad in self._composition:
             sym = ad.displayLabel()
             if self._elastic_mode == 'mixed': # iel = 100
-                if (self._sigmaE is None):
+                if (self._sigmaE is None and
+                     self._elems[sym].dwi is None):
+                    warn(f'Mixed elastic mode for {sym} but no '
+                           'incoherent elastic data or '
+                           'incoherent elastic data found: '
+                           'only inelastic data will be written')
+                    self._elems[sym].elastic = None
+                elif (self._sigmaE is None):
                     # mixed elastic requested but only incoherent available
                     warn(f'Mixed elastic mode for {sym} but no '
                            'Bragg edges found: incoherent approximation')
                     self._elems[sym].sigma_i = (ad.incoherentXS() +
                                                 ad.coherentXS())
                     self._elems[sym].elastic = 'incoherent'
+                elif (self._elems[sym].dwi is None):
+                    warn(f'Mixed elastic mode for {sym} but no '
+                           'incoherent elastic data found: '
+                           'coherent approximation')
+                    self._elems[sym].elastic = 'coherent'
                 else:
                     if self._verbosity>1:
                         print(f'>> Mixed elastic mode for {sym}')
@@ -1244,7 +1270,7 @@ def ncmat2endf( ncmat_cfg,
 
     Returns
     -------
-    file_names: list of (str, float)
+    output_composition: list of (str, float)
         List of tuples contanining the ENDF-6 files and
         their fraction in the composition
 
@@ -1280,9 +1306,17 @@ def ncmat2endf( ncmat_cfg,
              'will be interpolated.')
     if _np.any(temperatures<=0):
         raise nc_exceptions.NCBadInput('Non positive temperatures')
-
     if verbosity > 0:
         print('Get nuclear data...')
+
+    if nc_core.createScatter(ncmat_cfg).isOriented():
+        raise nc_exceptions.NCBadInput('Oriented materials cannot be '
+                                       'represented in the ENDF format and '
+                                       'are not supported' )
+    if check_component(ncmat_cfg, 'sans'):
+        raise nc_exceptions.NCBadInput('SANS cannot be '
+                                       'represented in the ENDF format and '
+                                       'is not supported' )
 
     data = NuclearData(ncmat_cfg, temperatures,
                        elastic_mode, verbosity)
@@ -1292,9 +1326,11 @@ def ncmat2endf( ncmat_cfg,
         for frac, ad in data.composition:
             if ad.displayLabel() in mat_numbers.keys():
                 n = n - 1
-        assert n==0, 'Incorrect material number assignement'
+        if n != 0:
+            raise nc_exceptions.NCBadInput('Incorrect material number '
+                                           'assignement')
 
-    file_names = []
+    output_composition = []
     for frac, ad in data.composition:
         sym = ad.displayLabel()
         mat = 999 if mat_numbers is None else mat_numbers[sym]
@@ -1305,8 +1341,8 @@ def ncmat2endf( ncmat_cfg,
                                  include_gif,isotopic_expansion,
                                  verbosity)
             endf_file.write(endf_fn, force_save)
-            file_names.append((endf_fn, frac))
+            output_composition.append((endf_fn, frac))
         else:
             if verbosity > 0:
                 print(f'Scattering kernel not available for: {endf_fn}')
-    return(file_names)
+    return(output_composition)
