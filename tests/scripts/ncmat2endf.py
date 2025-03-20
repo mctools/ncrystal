@@ -25,6 +25,7 @@
 
 import NCTestUtils.enable_fpe # noqa F401
 from NCrystalDev.ncmat2endf import ncmat2endf, EndfParameters
+from NCrystalDev.exceptions import NCBadInput
 import math
 import warnings
 
@@ -84,7 +85,39 @@ def test( cfg, name, endf_parameters, ref_teff=None, ref_parsed=None, **kwargs )
             if parsed != ref_parsed[endf_fn]:
                 raise RuntimeError(f'ENDF sections {parsed} expected but sections {ref_parsed[endf_fn]} found')
 
+def test_fail( e, *args, **kwargs ):
+    try:
+        test(*args,**kwargs)
+    except NCBadInput as e:
+        print("FAILED (as expected): %s"%e)
+        return
+    raise SystemExit('Did not fail as expected')
+
 endf_defaults = EndfParameters()
+
+#
+# Error handling tests
+#
+
+# Oriented materials not supported
+test_fail( NCBadInput, 'Ge_sg227.ncmat;dcutoff=0.5;mos=40arcsec;'
+           'dir1=@crys_hkl:5,1,1@lab:0,0,1;'
+           'dir2=@crys_hkl:0,-1,1@lab:0,1,0', 'Ge', endf_defaults)
+# Wrong material number assignement
+test_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', 'Al', endf_defaults, mat_numbers={"Ge":99})
+# Negative temperatures
+test_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', 'Al', endf_defaults, temperatures=[-100])
+# Repeated temperatures
+test_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', 'Al', endf_defaults, temperatures=[293.15])
+# No inelastic
+test_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1;comp=coh_elas', 'Al', endf_defaults)
+# Wrong elastic mode
+test_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', 'Al', endf_defaults, elastic_mode='something wrong')
+
+#
+# Library production tests
+#
+
 test('Al_sg225.ncmat;vdoslux=1', 'Al', endf_defaults,
      ref_teff={'tsl_Al.endf':[320.2258, 372.8392]}, ref_parsed={'tsl_Al.endf':'0 0 1 451 7 2 7 4'},
      temperatures=[350])
@@ -92,3 +125,4 @@ test('Polyethylene_CH2.ncmat;vdoslux=1', 'CH2', endf_defaults,
      ref_teff={'tsl_H_in_CH2.endf':[1208.094], 'tsl_C_in_CH2.endf':[667.3864]},
      ref_parsed={'tsl_H_in_CH2.endf':'0 0 1 451 7 2 7 4', 'tsl_C_in_CH2.endf':'0 0 1 451 7 2 7 4'},
      mat_numbers={"C":37, "H": 38})
+
