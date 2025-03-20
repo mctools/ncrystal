@@ -1258,6 +1258,8 @@ def ncmat2endf( ncmat_cfg,
              'The (alpha,beta) grid for first temperature will '
              'be used, and S(alpha, beta) for other temperatures '
              'will be interpolated.')
+    if _np.any(temperatures<=0):
+        raise nc_exceptions.NCBadInput('Non positive temperatures')
 
     vdoslux = nc_cfgstr.decodecfg_vdoslux(ncmat_cfg)
 
