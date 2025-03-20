@@ -517,7 +517,7 @@ class NuclearData():
     def _get_elastic_data(self):
         for T in self._temperatures:
             cfg = (self._ncmat_cfg+f';temp={T}K'
-                   ';comp=bragg;dcutoff=0.1')
+                   ';comp=bragg')
             mat = nc_core.load(cfg)
             info_obj = mat.info
             if info_obj.hasAtomInfo():
@@ -1027,8 +1027,8 @@ class EndfFile():
         desc = []
         desc.append(66*'*')
         desc.append('')
-        desc.append(' This file was converted from the following ')
-        desc.append(' NCrystal cfg string [1]:')
+        desc.append(' This file was converted from the following NCrystal cfg')
+        desc.append(' string [1]:')
         desc.append('')
         desc.append(data.ncmat_cfg.center(66))
         desc.append('')
