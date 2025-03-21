@@ -25,7 +25,7 @@ from ._cliimpl import ( create_ArgumentParser,
 
 def _parseArgs( endf_defaults, progname, arglist, return_parser=False ):
     from argparse import RawTextHelpFormatter
-
+    #FIXME: check before final merge
     #NOTE: Keep the description below synchronised with doc-string of the
     #ncmat2endf python API function:
     descr="""
