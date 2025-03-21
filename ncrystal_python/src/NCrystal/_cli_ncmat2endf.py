@@ -56,7 +56,12 @@ syntax of the ENDF-6 file.
     parser.add_argument('input',
                         help='NCMAT cfg string to convert')
     parser.add_argument('-n', '--name',
-                        help='name of the compound in the NCMAT file')
+                        help=('name of the compound to be processed. '
+                              'ENDF files will be named '
+                              'tsl_element_in_name.endf for compounds '
+                              'or tsl_element.endf for elements. E.g. '
+                              'tsl_H_in_CH2.endf or tsl_Cu.endf'))
+    #TODO: move this argument to an "advanced options" category
     parser.add_argument('-t', '--temperatures',
                         nargs='+',
                         help='additional temperatures to process', type=float)
