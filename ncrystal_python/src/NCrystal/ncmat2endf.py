@@ -1185,7 +1185,7 @@ class EndfParameters():
     def lasym(self, x):
         self._lasym = x
 
-def ncmat2endf( ncmat_cfg,
+def ncmat2endf( ncmat_cfg, *,
                 material_name='NCrystalMaterial',
                 endf_parameters=EndfParameters(),
                 temperatures=None,
