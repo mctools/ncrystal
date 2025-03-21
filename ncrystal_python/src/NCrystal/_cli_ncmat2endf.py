@@ -124,9 +124,10 @@ def main( progname, arglist ):
     params.nlib = args.nlib
     params.lasym = args.lasym
 
-    file_names = ncmat2endf(ncmat_cfg, name, params, temperatures, mat_numbers, elastic_mode,
+    output_composition = ncmat2endf(ncmat_cfg, name, params, temperatures, mat_numbers, elastic_mode,
                             include_gif, isotopic_expansion, args.force, verbosity)
     if verbosity > 0:
         print('Files created:')
-        for fn, frac in file_names:
-            print(f'  {fn}')
+        for fn, frac in output_composition:
+            print(f'  {fn} with fraction {frac}')
+
