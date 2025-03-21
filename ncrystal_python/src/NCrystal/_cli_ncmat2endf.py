@@ -22,7 +22,7 @@
 from ._cliimpl import ( create_ArgumentParser,
                         cli_entry_point )
 
-def _parseArgs( endf_defaults, progname, arglist, return_parser=False ):
+def _parseArgs( progname, arglist, return_parser=False ):
     from argparse import RawTextHelpFormatter
     #FIXME: check before final merge
     #NOTE: Keep the description below synchronised with doc-string of the
@@ -57,6 +57,7 @@ https://endf-parserpy.readthedocs.io/en/latest/
         description=descr,
         formatter_class=RawTextHelpFormatter)
     from .ncmat2endf import available_elastic_modes
+    from .ncmat2endf import EndfParameters
     import json
 
     parser.add_argument('input',
@@ -86,7 +87,7 @@ https://endf-parserpy.readthedocs.io/en/latest/
     parser.add_argument('--smin',
                         help='set the minimum value of S(alpha, beta) stored '
                              'in MF7/MT4', type=float,
-                        default=endf_defaults.smin)
+                        default=EndfParameters().smin)
     parser.add_argument('-f', '--force',action='store_true',
                         help=("overwrite existing file "
                               "if it already exists"))
@@ -102,7 +103,7 @@ def create_argparser_for_sphinx( progname ):
 def main( progname, arglist ):
     from .ncmat2endf import EndfParameters, ncmat2endf
     endf_defaults = EndfParameters()
-    args = _parseArgs( endf_defaults, progname, arglist )
+    args = _parseArgs( progname, arglist )
     params = EndfParameters()
     params.smin = args.smin
 
