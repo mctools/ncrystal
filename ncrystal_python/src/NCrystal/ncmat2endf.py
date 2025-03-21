@@ -286,8 +286,8 @@ class NuclearData():
 
     Attributes
     ----------
-    ncrystal_comments : string
-        Comments in the ncmat file
+    comments : lit of string
+        Comments about the origin of the data
     temperatures : iterable of flotat
         List of temperatures to process
     ncmat_cfg : string
@@ -324,7 +324,7 @@ class NuclearData():
         info_obj = nc_core.createInfo(ncmat_cfg)
         self._composition = info_obj.composition
         self._elems = {}
-        self._ncrystal_comments = None
+        self._comments = None
         self._vdoslux = nc_cfgstr.decodecfg_vdoslux(ncmat_cfg)
         self._verbosity = verbosity
         self._elastic_mode = elastic_mode
@@ -376,8 +376,8 @@ class NuclearData():
         self._get_ncrystal_comments()
 
     @property
-    def ncrystal_comments(self):
-        return self._ncrystal_comments
+    def comments(self):
+        return self._comments
 
     @property
     def temperatures(self):
@@ -667,12 +667,12 @@ class NuclearData():
         from ._ncmatimpl import _extractInitialHeaderCommentsFromNCMATData
         from textwrap import wrap
         comments = _extractInitialHeaderCommentsFromNCMATData(td)
-        self._ncrystal_comments = []
+        self._comments = []
         for paragraph in '\n'.join(comments).split('\n'):
             if paragraph == '':
-                self._ncrystal_comments += ['']
+                self._comments += ['']
             else:
-                self._ncrystal_comments += wrap(paragraph.lstrip(),
+                self._comments += wrap(paragraph.lstrip(),
                                                 width=66,
                                                 break_long_words=False)
 
@@ -1048,7 +1048,7 @@ class EndfFile():
         desc.append('')
         desc.append('Comments from NCMAT file:')
         desc.append('')
-        for line in data.ncrystal_comments:
+        for line in data.comments:
             desc.append(line)
         desc.append(66*'*')
         desc = [_.ljust(66) for _ in desc]
