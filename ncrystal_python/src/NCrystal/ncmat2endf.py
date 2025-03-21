@@ -21,14 +21,18 @@
 
 """
 
-Utility for creating a set of ENDF-6 thermal scattering files from a .ncmat
-file. Parameters for the ENDF-6 file can be defined as arguments. It  allows to
-handle multiple temperatures in one ENDF-6 file, but this is not
-recommended, because NCrystal computes an optimal (alpha, beta) grid for each
-material and temperature.
+Script for creating a set of ENDF-6 thermal scattering files from a .ncmat
+file. Basic paramters are supported as arguments, but additional parameters
+for the ENDF-6 can be set by using the Python API and pasing a custom
+EndfParameters object.
 
-This utility uses the endf-parserpy package from IAEA to format and check the
-syntaxis of the ENDF-6 file.
+The script allows to handle multiple temperatures in one ENDF-6 file,
+but this is not recommended, because NCrystal computes an optimal (alpha, beta)
+ grid for each material and temperature, while the ENDF format imposes the
+ same grid on all temperatures.
+
+Ths script uses the endf-parserpy package from IAEA to format and check the
+syntax of the ENDF-6 file.
 
 """
 
@@ -1353,4 +1357,10 @@ def ncmat2endf( ncmat_cfg,
         else:
             if verbosity > 0:
                 print(f'Scattering kernel not available for: {endf_fn}')
+
+    if verbosity > 0:
+        print('Files created:')
+        for fn, frac in output_composition:
+            print(f'  {fn} with fraction {frac}')
+
     return(output_composition)
