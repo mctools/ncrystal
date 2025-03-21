@@ -38,9 +38,11 @@ from ._numpy import _np
 from . import core as nc_core
 from . import constants as nc_constants
 from . import vdos as nc_vdos
+from . import misc as nc_misc
 from . import cfgstr as nc_cfgstr
 from ._common import ( print,
-                       warn )
+                       warn,
+                       write_text )
 from . import exceptions as nc_exceptions
 
 def import_endfparserpy():
@@ -164,9 +166,6 @@ def _wrap_string(inp, lim=66):
             if current_line_words:
                 word_list.append(" ".join(current_line_words))
     return('\n'.join(word_list))
-
-def check_component(cfgstr, comp):
-    return not nc_core.createScatter(cfgstr+f';comp={comp}').isNull()
 
 class ElementData():
     r"""Container for nuclear data for a single element or isotope.
@@ -364,14 +363,15 @@ class NuclearData():
         self._vdoslux = nc_cfgstr.decodecfg_vdoslux(ncmat_cfg)
         self._verbosity = verbosity
         self._elastic_mode = elastic_mode
-        self._enable_coh_elas = ( check_component(ncmat_cfg, 'coh_elas') and
+        scattering_components = nc_misc.detect_scattering_components(ncmat_cfg)
+        self._enable_coh_elas = ( 'coh_elas' in scattering_components and
                                   info_obj.hasAtomInfo() )
         if not self._enable_coh_elas:
             warn('Coherent elastic component disabled')
-        self._enable_incoh_elas = check_component(ncmat_cfg, 'incoh_elas')
+        self._enable_incoh_elas = ( 'incoh_elas' in scattering_components )
         if not self._enable_incoh_elas:
             warn('Incoherent elastic component disabled')
-        self._enable_inelas = check_component(ncmat_cfg, 'inelas')
+        self._enable_inelas = ( 'inelas' in scattering_components )
         if not self._enable_inelas:
             warn('Inelastic component disabled')
         # _combine_temperatures:
@@ -1088,7 +1088,6 @@ class EndfFile():
 
     def write(self, endf_fn, force_save):
         import pathlib
-        from ._common import write_text as nc_write_text
         if self._verbosity > 0:
             print(f'Write ENDF file {endf_fn}...')
         outfile = pathlib.Path(endf_fn)
@@ -1100,7 +1099,7 @@ class EndfFile():
                              f' { outfile.parent }')
         text = '\n'.join(self._parser.write(self._endf_dict,
                                             zero_as_blank=True))
-        nc_write_text(outfile,text)
+        write_text(outfile,text)
 
 class EndfParameters():
     """Parameters for the ENDF-6 file
@@ -1307,11 +1306,12 @@ def ncmat2endf( ncmat_cfg,
         raise nc_exceptions.NCBadInput('Oriented materials cannot be '
                                        'represented in the ENDF format and '
                                        'are not supported' )
-    if check_component(ncmat_cfg, 'sans'):
+    scattering_components = nc_misc.detect_scattering_components(ncmat_cfg)
+    if 'sans' in scattering_components:
         raise nc_exceptions.NCBadInput('SANS cannot be '
                                        'represented in the ENDF format and '
                                        'is not supported' )
-    if not check_component(ncmat_cfg, 'inelas'):
+    if 'inelas' not in scattering_components:
         raise nc_exceptions.NCBadInput('MF7/MT4 is mandatory in an ENDF file '
                                        'but no inelastic data found' )
     for di in info_obj.dyninfos:
