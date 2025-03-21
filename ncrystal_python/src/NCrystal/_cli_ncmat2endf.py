@@ -102,7 +102,6 @@ def create_argparser_for_sphinx( progname ):
 @cli_entry_point
 def main( progname, arglist ):
     from .ncmat2endf import EndfParameters, ncmat2endf
-    endf_defaults = EndfParameters()
     args = _parseArgs( progname, arglist )
     params = EndfParameters()
     params.smin = args.smin

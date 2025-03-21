@@ -143,11 +143,11 @@ class ElementData():
         positive beta grid
     beta_total : numpy array
         asymmetric beta grid
-    sab : iterable of numpy array
+    sab : list of numpy array
         symmetric S(alpha, beta) table
-    dwi : iterable of float
+    dwi : numpy array
         Debye-Waller integral
-    teff : iterable of float
+    teff : numpy array
         Effective temperatures for short collision time approximation
     elastic : string
         Elastic approximation used in the element
@@ -286,19 +286,19 @@ class NuclearData():
 
     Attributes
     ----------
-    comments : lit of string
+    comments : list of string
         Comments about the origin of the data
-    temperatures : iterable of flotat
+    temperatures : list or tuple of float
         List of temperatures to process
     ncmat_cfg : string
         NCrystal cfg string to convert
-    composition : iterable of tuples (float, NCrystal AtomData)
+    composition : list of (float, NCrystal AtomData)
         Composition of the material
-    elements : iterable of ElementData
+    elements : dictionary
         Nuclear data for each of the elements of isotopes in the materal
-    edges : iterable of numpy array
+    edges : list numpy array
         Energies for the Bragg edges for each temperature
-    sigmaE : iterable of numpy array
+    sigmaE : list numpy array
         XS*E for the Bragg edges for each temperature
     elastic_mode: string
         Elastic approximation used in the material
@@ -311,7 +311,7 @@ class NuclearData():
         ----------
         ncmat_cfg : string
             NCrystal cfg string to convert
-        temperatures : iterable of float
+        temperatures : list or tuple of float
             List of temperatures to process
         elastic_mode : string
             Elastic approximation used in the material
@@ -319,7 +319,7 @@ class NuclearData():
         verbosity : integer
             Level of verbosity for the output
         """
-        self._temperatures = temperatures
+        self._temperatures = tuple(temperatures)
         self._ncmat_cfg = ncmat_cfg
         info_obj = nc_core.createInfo(ncmat_cfg)
         self._composition = info_obj.composition
@@ -787,7 +787,7 @@ class EndfFile():
             if elastic in ['incoherent', 'mixed']:
                 d['SB'] = data.elements[self._sym].sigma_i
                 d['Wp']  = data.elements[self._sym].dwi
-                d['Tint'] = temperatures.tolist()
+                d['Tint'] = list(temperatures)
                 d['INT'] = [2]
                 d['NBT'] = [len(temperatures)]
             lthr_values = {'coherent':1, 'incoherent':2, 'mixed':3}
@@ -928,7 +928,7 @@ class EndfFile():
             d['S'] = S2
 
         d['teff0_table/Teff0'] = data.elements[self._sym].teff
-        d['teff0_table/Tint'] = temperatures.tolist()
+        d['teff0_table/Tint'] = list(temperatures)
         d['teff0_table/NBT'] = [len(temperatures)]
         d['teff0_table/INT'] = [2]
         if self._include_gif:
@@ -1211,8 +1211,8 @@ def ncmat2endf( ncmat_cfg, *,
         Parameters for the ENDF file.
         https://www.nndc.bnl.gov/endfdocs/ENDF-102-2023.pdf
 
-    temperatures : float or iterable of float
-        Temperatures in Kelvin to generate the nuclear data,
+    temperatures : int, float, tuple or list
+        Temperature(s) in Kelvin to generate the nuclear data,
         in addition to the temperature defined in the cfg string.
         (The default temperature in the cfg string is 293.15 K)
 
@@ -1264,17 +1264,27 @@ def ncmat2endf( ncmat_cfg, *,
 
     base_temp = info_obj.dyninfos[0].temperature
     if temperatures is None:
-        temperatures = []
+        temperatures = tuple()
     else:
-        if type(temperatures) in [int, float]:
+        if type(temperatures) in (int, float):
             temperatures = (temperatures,)
-    temperatures = _np.asarray(temperatures, dtype=float)
+        elif type(temperatures) in (list, tuple):
+            if any(type(T) not in (int, float) for T in temperatures):
+                raise nc_exceptions.NCBadInput('Something wrong with the '
+                                               'temperatures parameter: '
+                                               f'({temperatures})')
+            else:
+                temperatures = tuple(float( T ) for T in temperatures )
+        else:
+            raise nc_exceptions.NCBadInput('temperatures parameter: '
+                                           'should be a list or tuple '
+                                           'of float or int')
     if base_temp in temperatures:
         raise nc_exceptions.NCBadInput('Repeated temperatures: '
                                        'temperatures parameter must not '
                                        'include the temperature defined '
                                        'in the cfg string')
-    temperatures = _np.sort(_np.append(temperatures, base_temp))
+    temperatures = sorted(temperatures + (base_temp,))
     if len(temperatures) > 1:
         warn('Multiple temperatures requested. Although this is supported, '
              'it is not recommended because NCrystal generates '
@@ -1282,7 +1292,7 @@ def ncmat2endf( ncmat_cfg, *,
              'The (alpha,beta) grid for first temperature will '
              'be used, and S(alpha, beta) for other temperatures '
              'will be interpolated.')
-    if _np.any(temperatures<=0):
+    if any( T<=0 for T in temperatures ):
         raise nc_exceptions.NCBadInput('Non positive temperatures')
     if verbosity > 0:
         print('Get nuclear data...')
