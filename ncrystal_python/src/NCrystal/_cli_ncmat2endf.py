@@ -42,6 +42,12 @@ but this is not recommended, because NCrystal computes an optimal (alpha, beta)
 Ths script uses the endf-parserpy package from IAEA to format and check the
 syntax of the ENDF-6 file.
 
+G. Schnabel, D. L. Aldama, R. Capote, "How to explain ENDF-6 to computers:
+A formal ENDF format description language", arXiv:2312.08249,
+DOI:10.48550/arXiv.2312.08249
+
+https://endf-parserpy.readthedocs.io/en/latest/
+
 """
     parser = create_ArgumentParser(prog = progname,
                                    description=descr,
