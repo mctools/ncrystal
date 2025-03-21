@@ -132,51 +132,6 @@ def _endf_clean(x):
     """
     return _np.unique(_endf_roundoff(x))
 
-def _wrap_string(inp, lim=66):
-    """Return string with lines wrapped to a given width.
-
-    Parameters
-    ----------
-    inp : str
-        String to wrap
-
-    lim : int
-        Maximum line width
-
-    Returns
-    -------
-    s: str
-        Output string with lines wrapped
-
-    """
-    word_list = []
-    for line in inp.split("\n"):
-        if line == "":
-            word_list.append('')
-            continue
-
-        total_width = 0
-        current_line_words = []
-
-        if len(line.split()) == 1:
-            word = line.split()[0]
-            num_segments = len(word) // lim
-            for i in range(num_segments):
-                word_list.append(word[i*lim:(i+1)*lim])
-            word_list.append(word[num_segments*lim:])
-        else:
-            for word in line.split():
-                if total_width + len(word) + 1 <= lim:
-                    current_line_words.append(word)
-                    total_width += len(word) + 1
-                else:
-                    word_list.append(" ".join(current_line_words))
-                    current_line_words = [word]
-                    total_width = len(word)
-            if current_line_words:
-                word_list.append(" ".join(current_line_words))
-    return('\n'.join(word_list))
-
 class ElementData():
     r"""Container for nuclear data for a single element or isotope.
 
@@ -710,8 +665,16 @@ class NuclearData():
         ncmat_fn = nc_cfgstr.decodeCfg(self._ncmat_cfg)['data_name']
         td = nc_core.createTextData(ncmat_fn)
         from ._ncmatimpl import _extractInitialHeaderCommentsFromNCMATData
+        from textwrap import wrap
         comments = _extractInitialHeaderCommentsFromNCMATData(td)
-        self._ncrystal_comments = _wrap_string("\n".join(comments),66)
+        self._ncrystal_comments = []
+        for paragraph in '\n'.join(comments).split('\n'):
+            if paragraph == '':
+                self._ncrystal_comments += ['']
+            else:
+                self._ncrystal_comments += wrap(paragraph.lstrip(),
+                                                width=66,
+                                                break_long_words=False)
 
 class EndfFile():
     r"""Creates thermal ENDF file.
@@ -1085,7 +1048,7 @@ class EndfFile():
         desc.append('')
         desc.append('Comments from NCMAT file:')
         desc.append('')
-        for line in data.ncrystal_comments.split('\n'):
+        for line in data.ncrystal_comments:
             desc.append(line)
         desc.append(66*'*')
         desc = [_.ljust(66) for _ in desc]
