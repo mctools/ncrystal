@@ -20,8 +20,7 @@
 ################################################################################
 
 from ._cliimpl import ( create_ArgumentParser,
-                        cli_entry_point,
-                        print )
+                        cli_entry_point )
 
 def _parseArgs( endf_defaults, progname, arglist, return_parser=False ):
     from argparse import RawTextHelpFormatter
@@ -31,12 +30,14 @@ def _parseArgs( endf_defaults, progname, arglist, return_parser=False ):
     descr="""
 
 Script for creating a set of ENDF-6 thermal scattering files from a .ncmat
-file. Parameters for the ENDF-6 file can be defined with command line
-arguments or changing the endf_defaults dictionary in the script.
+file. Basic paramters are supported as arguments, but additional parameters
+for the ENDF-6 can be set by using the Python API and pasing a custom
+EndfParameters object.
 
 The script allows to handle multiple temperatures in one ENDF-6 file,
 but this is not recommended, because NCrystal computes an optimal (alpha, beta)
- grid for each material and temperature.
+ grid for each material and temperature, while the ENDF format imposes the
+ same grid on all temperatures.
 
 Ths script uses the endf-parserpy package from IAEA to format and check the
 syntax of the ENDF-6 file.
@@ -66,36 +67,15 @@ syntax of the ENDF-6 file.
     parser.add_argument('-v', '--verbosity',
                         help='controls how verbose should be the output',
                         type=int, default=1)
-    parser.add_argument('-g', '--gif',
-                        help=('include the generalized information file'
-                              ' (MF=7/MT=451)'),
-                        action='store_true')
-    parser.add_argument('-i', '--isotopic',
-                        help='expand each scatterer element into its isotopes',
-                        action='store_true')
     parser.add_argument('-m', '--mats',
                         help=('JSON dictionary containing material number '
                               'assignement for each element, e.g. \'{"C":37, '
-                              '"H": 38}\'',
+                              '"H": 38}\''),
                         type=json.loads)
-    parser.add_argument('--alab',
-                        help='set the ALAB parameter in MF1/MT451', type=str,
-                        default=endf_defaults.alab)
-    parser.add_argument('--auth',
-                        help='set the AUTH parameter in MF1/MT451', type=str,
-                        default=endf_defaults.auth)
-    parser.add_argument('--libname',
-                        help='set the LIBNAME parameter in MF1/MT451',
-                        type=str, default=endf_defaults.libname)
-    parser.add_argument('--nlib',
-                        help='set the NLIB parameter in MF1/MT451', type=str,
-                        default=endf_defaults.nlib)
     parser.add_argument('--smin',
                         help='set the minimum value of S(alpha, beta) stored '
                              'in MF7/MT4', type=float,
                         default=endf_defaults.smin)
-    parser.add_argument('--lasym', help='Write symmetric S(a,b) table',
-                       type=int, default=0, choices=range(0, 4))
     parser.add_argument('-f', '--force',action='store_true',
                         help=("overwrite existing file "
                               "if it already exists."))
@@ -112,27 +92,11 @@ def main( progname, arglist ):
     from .ncmat2endf import EndfParameters, ncmat2endf
     endf_defaults = EndfParameters()
     args = _parseArgs( endf_defaults, progname, arglist )
-    ncmat_cfg = args.input
-    name = args.name
-    temperatures = args.temperatures
-    elastic_mode = args.elastic_mode
-    verbosity = args.verbosity
-    mat_numbers = args.mats
-    include_gif = args.gif
-    isotopic_expansion = args.isotopic
     params = EndfParameters()
-    params.alab = args.alab
-    params.auth = args.auth
     params.smin = args.smin
-    params.libname = args.libname
-    params.nlib = args.nlib
-    params.lasym = args.lasym
 
-    output_composition = ncmat2endf(ncmat_cfg, name, params, temperatures,
-                                    mat_numbers, elastic_mode, include_gif,
-                                    isotopic_expansion, args.force, verbosity)
-    if verbosity > 0:
-        print('Files created:')
-        for fn, frac in output_composition:
-            print(f'  {fn} with fraction {frac}')
+    _ = ncmat2endf(args.input, args.name, params,
+                                    args.temperatures,
+                                    args.mats, args.elastic_mode,
+                                    args.force, args.verbosity)
 
