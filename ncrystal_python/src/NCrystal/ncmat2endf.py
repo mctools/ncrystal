@@ -174,9 +174,9 @@ class ElementData():
         self._sigma_free = ad.freeScatteringXS()
         self._awr = ad.averageMassAMU() / nc_constants.const_neutron_mass_amu
         self._dwi = []
-        self._alpha = _np.array([])
-        self._beta = _np.array([])
-        self._beta_total = _np.array([])
+        self._alpha = _np.empty(dtype=float)
+        self._beta = _np.empty(dtype=float)
+        self._beta_total = _np.empty(dtype=float)
         self._sab_total = []
         self._teff = []
         self._elastic = None
