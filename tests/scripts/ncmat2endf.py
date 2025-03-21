@@ -24,14 +24,15 @@
 # NEEDS: numpy ase endf-parserpy
 
 import NCTestUtils.enable_fpe # noqa F401
-from NCrystalDev.ncmat2endf import ncmat2endf, EndfParameters
+from NCrystalDev.ncmat2endf import ncmat2endf
 from NCrystalDev.exceptions import NCBadInput
 import math
 import warnings
 
 def reldiff( x, y ):
     if math.isinf(x):
-        return float('inf') if ( not math.isinf(y) or ( ( x>0 ) != ( y>0 ) ) ) else 0.0
+        return ( float('inf') if ( not math.isinf(y) or
+               ( ( x>0 ) != ( y>0 ) ) ) else 0.0 )
     return abs(x-y)/(max(1e-300,abs(x)+abs(y)))
 
 def require_flteq( x, y ):
@@ -39,12 +40,14 @@ def require_flteq( x, y ):
         return bool( reldiff( a, b ) < tol )
     tol = 1e-13
     if hasattr( x, '__len__' ):
-        if not len(x) == len(y) or any( ( not okfct(a,b) ) for a,b in zip(x,y) ):
-            raise RuntimeError(f'numpy flteq failed for arrays x={x} and y={y}!')
+        if ( not len(x) == len(y) or
+             any( ( not okfct(a,b) ) for a,b in zip(x,y) )):
+            raise RuntimeError('numpy flteq failed for arrays '
+                              f'x={x} and y={y}!')
     elif not okfct(x,y):
         raise RuntimeError(f'require_flteq( x={x}, y={y} ) failed!')
 
-def test( cfg, name, endf_parameters, ref_teff=None, ref_parsed=None, **kwargs ):
+def test( cfg, ref_teff=None, ref_parsed=None, **kwargs ):
     import pprint
     print()
     print()
@@ -53,8 +56,6 @@ def test( cfg, name, endf_parameters, ref_teff=None, ref_parsed=None, **kwargs )
     if 'force_save' not in kwargs:
         kwargs['force_save'] = True
     kwargs['ncmat_cfg']=cfg
-    kwargs['name']=name
-    kwargs['endf_parameters']=endf_parameters
     pprint.pprint(kwargs)
     with warnings.catch_warnings():
         # Suppress warnings from ncmat2endf
@@ -76,14 +77,16 @@ def test( cfg, name, endf_parameters, ref_teff=None, ref_parsed=None, **kwargs )
             require_flteq(teff, ref_teff[endf_fn])
         if ref_parsed:
             if endf_fn not in ref_parsed.keys():
-                raise RuntimeError(f'No reference parsed ENDF sections for {endf_fn}')
+                raise RuntimeError( 'No reference parsed ENDF sections for '
+                                   f'{endf_fn}')
             from endf_parserpy import EndfParser, list_parsed_sections
             parser = EndfParser(cache_dir=False)
             endf_dic = parser.parsefile(endf_fn)
             parsed = " ".join([" ".join(str(x) for x in _)
                                for _ in list_parsed_sections(endf_dic)])
             if parsed != ref_parsed[endf_fn]:
-                raise RuntimeError(f'ENDF sections {parsed} expected but sections {ref_parsed[endf_fn]} found')
+                raise RuntimeError( 'ENDF sections {parsed} expected but '
+                                   f'sections {ref_parsed[endf_fn]} found')
 
 def test_fail( e, *args, **kwargs ):
     try:
@@ -93,8 +96,6 @@ def test_fail( e, *args, **kwargs ):
         return
     raise SystemExit('Did not fail as expected')
 
-endf_defaults = EndfParameters()
-
 #
 # Error handling tests
 #
@@ -102,27 +103,31 @@ endf_defaults = EndfParameters()
 # Oriented materials not supported
 test_fail( NCBadInput, 'Ge_sg227.ncmat;dcutoff=0.5;mos=40arcsec;'
            'dir1=@crys_hkl:5,1,1@lab:0,0,1;'
-           'dir2=@crys_hkl:0,-1,1@lab:0,1,0', 'Ge', endf_defaults)
+           'dir2=@crys_hkl:0,-1,1@lab:0,1,0')
 # Wrong material number assignement
-test_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', 'Al', endf_defaults, mat_numbers={"Ge":99})
+test_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', mat_numbers={"Ge":99})
 # Negative temperatures
-test_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', 'Al', endf_defaults, temperatures=[-100])
+test_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', temperatures=[-100])
 # Repeated temperatures
-test_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', 'Al', endf_defaults, temperatures=[293.15])
+test_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', temperatures=[293.15])
 # No inelastic
-test_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1;comp=coh_elas', 'Al', endf_defaults)
+test_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1;comp=coh_elas')
 # Wrong elastic mode
-test_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', 'Al', endf_defaults, elastic_mode='something wrong')
+test_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1',
+           elastic_mode='something wrong')
 
 #
 # Library production tests
 #
 
-test('Al_sg225.ncmat;vdoslux=1', 'Al', endf_defaults,
-     ref_teff={'tsl_Al.endf':[320.2258, 372.8392]}, ref_parsed={'tsl_Al.endf':'0 0 1 451 7 2 7 4'},
+test('Al_sg225.ncmat;vdoslux=1', material_name='Al',
+     ref_teff={'tsl_Al.endf':[320.2258, 372.8392]},
+     ref_parsed={'tsl_Al.endf':'0 0 1 451 7 2 7 4'},
      temperatures=[350])
-test('Polyethylene_CH2.ncmat;vdoslux=1', 'CH2', endf_defaults,
-     ref_teff={'tsl_H_in_CH2.endf':[1208.094], 'tsl_C_in_CH2.endf':[667.3864]},
-     ref_parsed={'tsl_H_in_CH2.endf':'0 0 1 451 7 2 7 4', 'tsl_C_in_CH2.endf':'0 0 1 451 7 2 7 4'},
+test('Polyethylene_CH2.ncmat;vdoslux=1', material_name='CH2',
+     ref_teff={'tsl_H_in_CH2.endf':[1208.094],
+               'tsl_C_in_CH2.endf':[667.3864]},
+     ref_parsed={'tsl_H_in_CH2.endf':'0 0 1 451 7 2 7 4',
+                 'tsl_C_in_CH2.endf':'0 0 1 451 7 2 7 4'},
      mat_numbers={"C":37, "H": 38})
 

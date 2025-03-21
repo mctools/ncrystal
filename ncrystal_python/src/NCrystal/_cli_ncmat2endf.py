@@ -89,7 +89,7 @@ https://endf-parserpy.readthedocs.io/en/latest/
                         default=endf_defaults.smin)
     parser.add_argument('-f', '--force',action='store_true',
                         help=("overwrite existing file "
-                              "if it already exists."))
+                              "if it already exists"))
     if return_parser:
         return parser
     args=parser.parse_args(arglist)

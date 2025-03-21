@@ -1223,8 +1223,8 @@ class EndfParameters():
         self._lasym = x
 
 def ncmat2endf( ncmat_cfg,
-                name,
-                endf_parameters,
+                material_name='NCrystalMaterial',
+                endf_parameters=EndfParameters(),
                 temperatures=None,
                 mat_numbers=None,
                 elastic_mode='scaled',
@@ -1238,6 +1238,15 @@ def ncmat2endf( ncmat_cfg,
     ----------
     ncmat_cfg : str
         Filename of the ncmat file to convert
+
+    material_name : str
+        name of the compound to be processed. ENDF files will be named
+        tsl_element_in_name.endf for compounds or tsl_element.endf for
+        elements. E.g. tsl_H_in_CH2.endf or tsl_Cu.endf
+
+    endf_parameters : EndfParameters
+        Parameters for the ENDF file.
+        https://www.nndc.bnl.gov/endfdocs/ENDF-102-2023.pdf
 
     temperatures : float or iterable of float
         Temperatures in Kelvin to generate the nuclear data,
@@ -1266,6 +1275,9 @@ def ncmat2endf( ncmat_cfg,
 
     isotopic_expansion: boolean
         Expand the information in MF=7/MT=451 in isotopes
+
+    force_save: boolean
+        Overwrite existing file if it already exists.
 
     verbosity : int
         Level of verbosity of the output (0: quiet)
@@ -1352,8 +1364,9 @@ def ncmat2endf( ncmat_cfg,
     for frac, ad in data.composition:
         sym = ad.displayLabel()
         mat = 999 if mat_numbers is None else mat_numbers[sym]
-        endf_fn = f'tsl_{name}.endf'\
-                  if sym == name else f'tsl_{sym}_in_{name}.endf'
+        endf_fn = ( f'tsl_{material_name}.endf'
+                   if sym == material_name
+                   else f'tsl_{sym}_in_{material_name}.endf' )
         if data.elements[sym].sab_total is not None:
             endf_file = EndfFile(sym, data, mat, endf_parameters,
                                  include_gif,isotopic_expansion,
