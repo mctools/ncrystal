@@ -749,9 +749,6 @@ class EndfFile():
         self._endf_parserpy_version = endf_parserpy.__version__
         self._sym = element
         self._mat = mat
-        assert ((not isotopic_expansion) or include_gif),(
-                'Isotopic expansion requires generalized information file'
-                ', use --gif' )
         self._include_gif = include_gif
         self._isotopic_expansion = isotopic_expansion
         self._parameter_description = parameter_description
@@ -963,8 +960,8 @@ class EndfFile():
         d['teff0_table/INT'] = [2]
         if self._include_gif:
             if self._isotopic_expansion:
-                raise NotImplementedError('Isotopic expansion'
-                                          ' not yet implemented')
+                # TODO: implement isotopic expansion
+                pass
             else:
                 self._endf_dict['7/451'] = {}
                 d = self._endf_dict['7/451']
@@ -1321,6 +1318,13 @@ def ncmat2endf( ncmat_cfg,
         if type(di) not in (nc_core.Info.DI_VDOS, nc_core.Info.DI_VDOSDebye):
             raise NotImplementedError('Conversion supported only for VDOS'
                                       ' and VDOSDebye dyninfos')
+    if (isotopic_expansion and not include_gif):
+        raise nc_exceptions.NCBadInput( 'Isotopic expansion requires '
+                                        'generalized information file, '
+                                        'use --gif' )
+    if (isotopic_expansion and include_gif):
+        # TODO: remove when implemented
+        raise NotImplementedError('Isotopic expansion not yet implemented')
 
     data = NuclearData(ncmat_cfg, temperatures,
                        elastic_mode, verbosity)
