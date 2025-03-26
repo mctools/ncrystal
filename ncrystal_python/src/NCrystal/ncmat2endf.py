@@ -625,8 +625,8 @@ class NuclearData():
         #
         import scipy.interpolate as scint
         s.shape = (len(b), len(a))
-        aint, bint = _np.meshgrid(self._elems[sym]._alpha*T0/T,
-                                  self._elems[sym]._beta_total*T0/T)
+        aint, bint = _np.meshgrid(self._elems[sym].alpha*T0/T,
+                                  self._elems[sym].beta_total*T0/T)
         sab_int = scint.interpn((a, b),
                                 s.transpose(),
                                 _np.column_stack((aint.ravel(), bint.ravel())),
@@ -652,13 +652,13 @@ class NuclearData():
                 beta = sctknl['beta']
                 sab = sctknl['sab']
                 sab_int = self._interpolate_sab(alpha, beta, sab, sym, T )
-                self._elems[sym]._sab_total.append(sab_int)
+                self._elems[sym].sab_total.append(sab_int)
                 emin = di.vdosData()[0][0]
                 emax = di.vdosData()[0][1]
                 rho = di.vdosData()[1]
                 res = nc_vdos.analyseVDOS(emin, emax, rho, di.temperature,
                                           di.atomData.averageMassAMU())
-                self._elems[sym]._teff.append(res['teff'])
+                self._elems[sym].teff.append(res['teff'])
 
     def _get_ncrystal_comments(self):
         # TODO: handle multi phase materials
