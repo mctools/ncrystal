@@ -26,6 +26,7 @@
 import NCTestUtils.enable_fpe # noqa F401
 from NCrystalDev.ncmat2endf import ncmat2endf
 from NCrystalDev.exceptions import NCBadInput
+from NCTestUtils.common import print_text_file_with_snipping
 import math
 import warnings
 
@@ -64,8 +65,11 @@ def test( cfg, ref_teff=None, ref_parsed=None, **kwargs ):
     for endf_fn, frac in res:
         print(f"Created file {endf_fn} with fraction {frac}")
         with open(endf_fn) as f:
-            lines = [next(f) for _ in range(100)]
-        print("".join(lines))
+            text = "".join(f.readlines())
+            print_text_file_with_snipping(text,
+                                          nstart=100,
+                                          nend=25,
+                                          prefix='endf>')
         if ref_teff:
             if endf_fn not in ref_teff.keys():
                 raise RuntimeError(f'No reference Teff data for {endf_fn}')
