@@ -970,7 +970,6 @@ class EndfFile():
             Level of verbosity of the output (0: quiet)
         """
 
-        from datetime import datetime
         awr = data.elements[self._sym].awr
         mat = self._mat
         za = data.elements[self._sym].za
@@ -1005,16 +1004,13 @@ class EndfFile():
         d['ALAB'] = endf_parameters.alab.ljust(11)
         d['AUTH'] = endf_parameters.auth.ljust(33)
         d['REF'] = endf_parameters.reference.ljust(21)
-        now = datetime.now()
-        months = ('JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-                  'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DEC')
-        edate= f'EVAL-{months[now.month-1]}{now.strftime("%y")}'
-        ddate= f'DIST-{months[now.month-1]}{now.strftime("%y")}'
-        rdate= ( f'REV{endf_parameters.lrel:1d}-'
-                 f'{months[now.month-1]}{now.strftime("%y")}' )
-        d['EDATE'] = edate
-        d['DDATE'] = ddate
-        d['RDATE'] = rdate
+        d['EDATE'] = ( 'EVAL-MMMYY' if endf_parameters.edate is None else
+                                      'EVAL-'+endf_parameters.edate )
+        d['DDATE'] = ( 'DIST-MMMYY' if endf_parameters.ddate is None else
+                                      'DIST-'+endf_parameters.ddate )
+        d['RDATE'] = ( 'REV0-MMMYY' if endf_parameters.rdate is None else
+                                      f'REV{endf_parameters.lrel:1d}-'+
+                                      endf_parameters.rdate )
         d['ENDATE'] = endf_parameters.endate.ljust(8)
         desc = []
         desc.append(66*'*')
@@ -1121,6 +1117,9 @@ class EndfParameters():
         self._lrel = 0
         self._smin = 1e-100
         self._emax = 5.0
+        self._edate = None
+        self._rdate = None
+        self._ddate = None
         self._lasym = 0 # Symmetric S(a,b) as default
 
     @property
@@ -1184,6 +1183,33 @@ class EndfParameters():
     @lasym.setter
     def lasym(self, x):
         self._lasym = x
+
+    @property
+    def edate(self):
+        return self._edate
+    @edate.setter
+    def edate(self, x):
+        assert isinstance(x, str)
+        assert len(x)<5
+        self._edate = x.ljust(5)
+
+    @property
+    def ddate(self):
+        return self._ddate
+    @ddate.setter
+    def ddate(self, x):
+        assert isinstance(x, str)
+        assert len(x)<5
+        self._ddate = x.ljust(5)
+
+    @property
+    def rdate(self):
+        return self._rdate
+    @rdate.setter
+    def rdate(self, x):
+        assert isinstance(x, str)
+        assert len(x)<5
+        self._rdate = x.ljust(5)
 
 def ncmat2endf( ncmat_cfg, *,
                 material_name='NCrystalMaterial',
