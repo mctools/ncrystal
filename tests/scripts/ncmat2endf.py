@@ -31,6 +31,7 @@ from NCTestUtils.common import print_text_file_with_snipping
 import math
 
 def reldiff( x, y ):
+    # FIXME: Add these functions to NCTestUtils
     if math.isinf(x):
         return ( float('inf') if ( not math.isinf(y) or
                ( ( x>0 ) != ( y>0 ) ) ) else 0.0 )
