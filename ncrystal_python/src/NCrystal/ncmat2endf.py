@@ -625,6 +625,7 @@ class NuclearData():
         # contain numbers that cannot be represented
         # as distinct FORTRAN reals in the ENDF-6 file
         #
+        # FIXME: replace scipy interpolation with other implementation
         import scipy.interpolate as scint
         s.shape = (len(b), len(a))
         aint, bint = _np.meshgrid(self._elems[sym].alpha*T0/T,
