@@ -1189,8 +1189,8 @@ class EndfParameters():
         return self._edate
     @edate.setter
     def edate(self, x):
-        assert isinstance(x, str)
-        assert len(x)<5
+        assert isinstance(x, str), 'EDATE must be a string'
+        assert len(x)<=5, 'EDATE must be 5 characters or shorter'
         self._edate = x.ljust(5)
 
     @property
@@ -1198,8 +1198,8 @@ class EndfParameters():
         return self._ddate
     @ddate.setter
     def ddate(self, x):
-        assert isinstance(x, str)
-        assert len(x)<5
+        assert isinstance(x, str), 'DDATE must be a string'
+        assert len(x)<=5, 'DDATE must be 5 characters or shorter'
         self._ddate = x.ljust(5)
 
     @property
@@ -1207,8 +1207,8 @@ class EndfParameters():
         return self._rdate
     @rdate.setter
     def rdate(self, x):
-        assert isinstance(x, str)
-        assert len(x)<5
+        assert isinstance(x, str), 'RDATE must be a string'
+        assert len(x)<=5, 'RDATE must be 5 characters or shorter'
         self._rdate = x.ljust(5)
 
 def ncmat2endf( ncmat_cfg, *,
@@ -1220,6 +1220,7 @@ def ncmat2endf( ncmat_cfg, *,
                 include_gif=False,
                 isotopic_expansion=False,
                 force_save=False,
+                set_date_to_now=False,
                 verbosity=1):
     """Generates a set of ENDF-6 formatted files for a given NCMAT file.
 
@@ -1268,6 +1269,9 @@ def ncmat2endf( ncmat_cfg, *,
     force_save: boolean
         Overwrite existing file if it already exists.
 
+    set_date_to_now: boolean
+        Set ENDF6 fields EDATE, DDATE and RDATE to current month and year.
+
     verbosity : int
         Level of verbosity of the output (0: quiet)
 
@@ -1278,6 +1282,22 @@ def ncmat2endf( ncmat_cfg, *,
         their fraction in the composition
 
     """
+    if set_date_to_now:
+        if any(_ is not None for _ in (endf_parameters.edate,
+                                       endf_parameters.ddate,
+                                       endf_parameters.rdate)):
+            raise nc_exceptions.NCBadInput('Option set_date_to_now not'
+                                       ' compatible with dates in'
+                                       ' endf_parameters')
+        else:
+            from datetime import datetime
+            now = datetime.now()
+            months = ('JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+                      'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DEC')
+            endf_parameters.edate = months[now.month-1] + now.strftime("%y")
+            endf_parameters.ddate = months[now.month-1] + now.strftime("%y")
+            endf_parameters.rdate = months[now.month-1] + now.strftime("%y")
+
     if elastic_mode not in available_elastic_modes:
         raise nc_exceptions.NCBadInput(f'Elastic mode {elastic_mode}'
                                        f' not in ({available_elastic_modes})')

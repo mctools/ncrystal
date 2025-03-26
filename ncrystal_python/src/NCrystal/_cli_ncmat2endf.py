@@ -91,6 +91,9 @@ https://endf-parserpy.readthedocs.io/en/latest/
     parser.add_argument('-f', '--force',action='store_true',
                         help=("overwrite existing file "
                               "if it already exists"))
+    parser.add_argument('--set_date_to_now',action='store_true',
+                        help=('Set ENDF6 fields EDATE, DDATE and RDATE'
+                              ' to current month and year.'))
     if return_parser:
         return parser
     args=parser.parse_args(arglist)
@@ -113,5 +116,6 @@ def main( progname, arglist ):
                    mat_numbers=args.mats,
                    elastic_mode=args.elastic_mode,
                    force_save=args.force,
+                   set_date_to_now=args.set_date_to_now,
                    verbosity=args.verbosity)
 
