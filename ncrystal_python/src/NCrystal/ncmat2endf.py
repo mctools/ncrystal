@@ -425,6 +425,8 @@ class NuclearData():
         # into a single grid. This usually results in a huge grid and
         # it is only kept as an option to debug libraries.
         #
+        warn('Combining (alpha, beta) grids from different temperatures.'
+             ' This usually results in a huge grid.')
         for T in self._temperatures[1:]:
             cfg = self._ncmat_cfg+f';temp={T}K'
             info_obj = nc_core.createInfo(cfg)
