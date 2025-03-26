@@ -305,7 +305,7 @@ class NuclearData():
         (greater, scaled or mixed)
     """
 
-    def __init__(self, ncmat_cfg, temperatures, elastic_mode, verbosity=1):
+    def __init__(self, *, ncmat_cfg, temperatures, elastic_mode, verbosity=1):
         r"""
         Parameters
         ----------
@@ -1352,8 +1352,6 @@ def ncmat2endf( ncmat_cfg, *,
              'will be interpolated.')
     if any( T<=0 for T in temperatures ):
         raise nc_exceptions.NCBadInput('Non positive temperatures')
-    if verbosity > 0:
-        print('Get nuclear data...')
 
     if nc_core.createScatter(ncmat_cfg).isOriented():
         raise nc_exceptions.NCBadInput('Oriented materials cannot be '
@@ -1379,8 +1377,13 @@ def ncmat2endf( ncmat_cfg, *,
         # TODO: remove when implemented
         raise NotImplementedError('Isotopic expansion not yet implemented')
 
-    data = NuclearData(ncmat_cfg, temperatures,
-                       elastic_mode, verbosity)
+    if type(verbosity) is not int:
+        raise nc_exceptions.NCBadInput('Verbosity parameter'
+                                       ' must be an integer')
+    if verbosity > 0:
+        print('Get nuclear data...')
+    data = NuclearData(ncmat_cfg=ncmat_cfg, temperatures=temperatures,
+                       elastic_mode=elastic_mode, verbosity=verbosity)
 
     if mat_numbers is not None:
         n = len(mat_numbers)
