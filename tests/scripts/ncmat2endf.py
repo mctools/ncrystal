@@ -49,7 +49,9 @@ def require_flteq( x, y ):
     elif not okfct(x,y):
         raise RuntimeError(f'require_flteq( x={x}, y={y} ) failed!')
 
-def test( cfg, ref_teff=None, ref_parsed=None, **kwargs ):
+def test( cfg, ref_teff=None,
+          ref_parsed=None, ref_bragg_edges=None,
+          **kwargs ):
     import pprint
     print()
     print()
@@ -89,6 +91,17 @@ def test( cfg, ref_teff=None, ref_parsed=None, **kwargs ):
             if parsed != ref_parsed[endf_fn]:
                 raise RuntimeError( 'ENDF sections {parsed} expected but '
                                    f'sections {ref_parsed[endf_fn]} found')
+        if ref_bragg_edges:
+            if endf_fn not in ref_bragg_edges.keys():
+                raise RuntimeError( 'No reference Bragg edges for '
+                                   f'{endf_fn}')
+            parser = EndfParser(cache_dir=False)
+            endf_dic = parser.parsefile(endf_fn)
+            ref_Eint, ref_S0 = ref_bragg_edges[endf_fn]
+            Eint = tuple(endf_dic[7][2]['S_T0_table']['Eint'][:len(ref_Eint)])
+            S0 = tuple(endf_dic[7][2]['S_T0_table']['S'][:len(ref_S0)])
+            require_flteq(Eint, ref_Eint)
+            require_flteq(S0, ref_S0)
 
 def test_fail( e, *args, **kwargs ):
     try:
@@ -122,10 +135,21 @@ test_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1',
 # Library production tests
 #
 
+ref_Eint = (0.003741252, 0.004988336, 0.009976672, 0.01371792, 0.01496501,
+            0.01995334, 0.0236946, 0.02494168, 0.02993002, 0.03367127,
+            0.03990669, 0.04364794, 0.04489502, 0.04988336, 0.05362461,
+            0.05487169, 0.05986003, 0.06360128, 0.06484837, 0.0698367)
+ref_S0 = (0.005134741, 0.00839204, 0.01258346, 0.01924357, 0.02131949,
+          0.02254634, 0.02674178, 0.03073558, 0.03405288, 0.03793785,
+          0.03912707, 0.04336451, 0.04591494, 0.04767616, 0.04925869,
+          0.05078662, 0.05123031, 0.05363637, 0.05479998, 0.05684046)
+
 test('Al_sg225.ncmat;vdoslux=1', material_name='Al',
      ref_teff={'tsl_Al.endf':[320.2258, 372.8392]},
      ref_parsed={'tsl_Al.endf':'0 0 1 451 7 2 7 4'},
-     temperatures=[350])
+     ref_bragg_edges={'tsl_Al.endf':(ref_Eint, ref_S0)},
+     temperatures=[350], elastic_mode='scaled')
+
 test('Polyethylene_CH2.ncmat;vdoslux=1', material_name='CH2',
      ref_teff={'tsl_H_in_CH2.endf':[1208.094],
                'tsl_C_in_CH2.endf':[667.3864]},
