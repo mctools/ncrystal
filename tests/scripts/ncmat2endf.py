@@ -24,11 +24,11 @@
 # NEEDS: numpy ase endf-parserpy
 
 import NCTestUtils.enable_fpe # noqa F401
+import NCTestUtils.reprint_escaped_warnings # noqa F401
 from NCrystalDev.ncmat2endf import ncmat2endf
 from NCrystalDev.exceptions import NCBadInput
 from NCTestUtils.common import print_text_file_with_snipping
 import math
-import warnings
 
 def reldiff( x, y ):
     if math.isinf(x):
@@ -58,10 +58,7 @@ def test( cfg, ref_teff=None, ref_parsed=None, **kwargs ):
         kwargs['force_save'] = True
     kwargs['ncmat_cfg']=cfg
     pprint.pprint(kwargs)
-    with warnings.catch_warnings():
-        # Suppress warnings from ncmat2endf
-        warnings.filterwarnings("ignore",category=UserWarning)
-        res=ncmat2endf(**kwargs)
+    res = ncmat2endf(**kwargs)
     for endf_fn, frac in res:
         print(f"Created file {endf_fn} with fraction {frac}")
         with open(endf_fn) as f:
