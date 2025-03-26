@@ -685,9 +685,9 @@ class EndfFile():
     write(endf_fn)
         Write ENDF file.
     """
-    def __init__(self, element, data, mat, endf_parameters,
+    def __init__(self, element, data, mat, endf_parameters, *,
                  include_gif=False, isotopic_expansion=False,
-                 parameter_description=None, verbosity=1):
+                 verbosity=1):
         r"""
         Parameters
         ----------
@@ -709,9 +709,6 @@ class EndfFile():
         isotopic_expansion: boolean
             Expand the information in MF=7/MT=451 in isotopes
 
-        parameter_description: iterable of string
-            List of parameters used to generate the file
-
         verbosity : int
             Level of verbosity of the output (0: quiet)
         """
@@ -724,7 +721,6 @@ class EndfFile():
         self._mat = mat
         self._include_gif = include_gif
         self._isotopic_expansion = isotopic_expansion
-        self._parameter_description = parameter_description
         self._verbosity = verbosity
         self._endf_dict['0/0'] = {}
         self._endf_dict['0/0']['MAT'] = self._mat
@@ -736,6 +732,7 @@ class EndfFile():
     def _createMF7(self, data, endf_parameters):
         """Creates MF=7 file of a thermal ENDF file.
            See ENDF-102, sect. 7.
+           https://www.nndc.bnl.gov/endfdocs/ENDF-102-2023.pdf
 
         Parameters
         ----------
@@ -953,6 +950,7 @@ class EndfFile():
     def _createMF1(self, data, endf_parameters):
         """Creates MF=1 file of a thermal ENDF file.
            See ENDF-102, sect. 1.
+           https://www.nndc.bnl.gov/endfdocs/ENDF-102-2023.pdf
 
         Parameters
         ----------
@@ -1072,6 +1070,8 @@ class EndfFile():
 
 class EndfParameters():
     """Parameters for the ENDF-6 file
+       For more information see the ENDF-6 format manual:
+       https://www.nndc.bnl.gov/endfdocs/ENDF-102-2023.pdf
 
     Attributes
     ----------
@@ -1104,6 +1104,18 @@ class EndfParameters():
 
     endate: string
         Master File entry date in the form YYYYMMDD.
+
+    edate: string
+        Evaluation date in the form MMMYY.
+
+    ddate: string
+        Distribution date in the form MMMYY.
+
+    rdate: string
+        Revision date in the form MMMYY.
+
+    lasym : int
+        Flag indicating whether an asymmetric S(a,b) is given.
     """
 
     def __init__(self):
@@ -1388,8 +1400,9 @@ def ncmat2endf( ncmat_cfg, *,
                    else f'tsl_{sym}_in_{material_name}.endf' )
         if data.elements[sym].sab_total is not None:
             endf_file = EndfFile(sym, data, mat, endf_parameters,
-                                 include_gif,isotopic_expansion,
-                                 verbosity)
+                                 include_gif=include_gif,
+                                 isotopic_expansion=isotopic_expansion,
+                                 verbosity=verbosity)
             endf_file.write(endf_fn, force_save)
             output_composition.append((endf_fn, frac))
         else:
