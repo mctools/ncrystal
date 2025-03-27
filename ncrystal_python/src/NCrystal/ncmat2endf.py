@@ -181,35 +181,9 @@ class ElementData():
         self._sab_total = []
         self._teff = []
         self._elastic = None
-        self._sym = ad.displayLabel()
-        Z = '{:3d}'.format(ad.Z())
-        A = '   ' if ad.isNaturalElement() else '{:3d}'.format(ad.A())
-        sym = self._get_symbol(self._sym).ljust(2)
-        self._zsymam = '{:3s}-{:2s}-{:3s}'.format(Z,sym,A)
-        self._za = ad.Z()*1000+ad.A()
-
-    def _get_symbol(self, isotope_name):
-        """Get element symbol from isotope name. E.g. Be9 -> Be
-
-        Parameters
-        ==========
-        isotope_name: string
-
-        Returns
-        ==========
-        element_symbol: string
-
-        """
-
-        symbol = ''
-        for c in isotope_name:
-            if ((ord(c) >= 97 and ord(c) <= 122) or
-                (ord(c) >= 65 and ord(c) <= 90)):
-                symbol += c
-            else:
-                break
-        return symbol
-
+        self._sym = ad.elementName()
+        self._zsymam = '{:3d}-'.format(ad.Z()) + self._sym.ljust(2)+'    '
+        self._za = ad.Z()*1000
 
     @property
     def alpha(self):
@@ -345,7 +319,12 @@ class NuclearData():
         # True: combine all temperatures
         self._combine_temperatures = False
         for frac, ad in self._composition:
-            sym = ad.displayLabel()
+            if not ad.isNaturalElement():
+                # TODO: properly handle isolated isotopes and enriched
+                #       elements
+                raise NotImplementedError('Conversion supported only for'
+                                          ' natural elements')
+            sym = ad.elementName()
             self._elems[sym] = ElementData(ad)
         if self._enable_coh_elas:
             self._edges = []
@@ -360,7 +339,7 @@ class NuclearData():
             #
             self._designated_coherent_atom = None
             for frac, ad in self._composition:
-                sym = ad.displayLabel()
+                sym = ad.elementName()
                 if (frac/(1.0-frac)*ad.incoherentXS() <
                     self._incoherent_fraction or
                     self._incoherent_fraction == -1):
@@ -420,7 +399,7 @@ class NuclearData():
             cfg = self._ncmat_cfg+f';temp={T}K'
             info_obj = nc_core.createInfo(cfg)
             for di in info_obj.dyninfos:
-                sym = di.atomData.displayLabel()
+                sym = di.atomData.elementName()
                 sctknl = di.loadKernel(vdoslux=self._vdoslux)
                 self._elems[sym].alpha = _np.unique(_np.concatenate((
                                          self._elems[sym].alpha,
@@ -434,7 +413,7 @@ class NuclearData():
         cfg = self._ncmat_cfg+f';temp={T}K'
         info_obj = nc_core.createInfo(cfg)
         for di in info_obj.dyninfos:
-            sym = di.atomData.displayLabel()
+            sym = di.atomData.elementName()
             sctknl = di.loadKernel(vdoslux=self._vdoslux)
             self._elems[sym].alpha = sctknl['alpha']*T/T0
             self._elems[sym].beta_total = sctknl['beta']*T/T0
@@ -442,7 +421,7 @@ class NuclearData():
             self._combine_alpha_beta_grids()
 
         for frac, ad in self._composition:
-            sym = ad.displayLabel()
+            sym = ad.elementName()
             #
             # Remove points that cannot be represented in ENDF data
             #
@@ -491,7 +470,7 @@ class NuclearData():
                 cfg = self._ncmat_cfg+f';temp={T}K'
                 info_obj = nc_core.createInfo(cfg)
                 for di in info_obj.dyninfos:
-                    sym = di.atomData.displayLabel()
+                    sym = di.atomData.elementName()
                     emin = di.vdosData()[0][0]
                     emax = di.vdosData()[0][1]
                     rho = di.vdosData()[1]
@@ -504,7 +483,7 @@ class NuclearData():
                     self._elems[sym].dwi.append(msd*2*mass_neutron/hbar**2)
             else:
                 for frac, ad in self._composition:
-                    sym = ad.displayLabel()
+                    sym = ad.elementName()
                     self._elems[sym].sigma_i =  None
                     self._elems[sym].dwi =  None
         if self._verbosity > 1:
@@ -517,7 +496,7 @@ class NuclearData():
                          'but all elements are coherent. '
                          '"greater" option will be used instead.')
         for frac, ad in self._composition:
-            sym = ad.displayLabel()
+            sym = ad.elementName()
             if ( self._sigmaE is None and
                  self._elems[sym].dwi is None ):
                 warn('No coherent elastic data or '
@@ -632,7 +611,7 @@ class NuclearData():
             cfg = self._ncmat_cfg+f';temp={T}K'
             info_obj = nc_core.createInfo(cfg)
             for di in info_obj.dyninfos:
-                sym = di.atomData.displayLabel()
+                sym = di.atomData.elementName()
                 #
                 # Load incoherent inelastic data
                 #
@@ -1361,7 +1340,7 @@ def ncmat2endf( ncmat_cfg, *,
     if mat_numbers is not None:
         n = len(mat_numbers)
         for frac, ad in data.composition:
-            if ad.displayLabel() in mat_numbers.keys():
+            if ad.elementName() in mat_numbers.keys():
                 n = n - 1
         if n != 0:
             raise nc_exceptions.NCBadInput('Incorrect material number '
@@ -1369,7 +1348,7 @@ def ncmat2endf( ncmat_cfg, *,
 
     output_composition = []
     for frac, ad in data.composition:
-        sym = ad.displayLabel()
+        sym = ad.elementName()
         mat = 999 if mat_numbers is None else mat_numbers[sym]
         endf_fn = ( f'tsl_{material_name}.endf'
                    if sym == material_name
