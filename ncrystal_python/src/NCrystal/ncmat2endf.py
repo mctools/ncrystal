@@ -51,9 +51,9 @@ from . import constants as nc_constants
 from . import vdos as nc_vdos
 from . import misc as nc_misc
 from . import cfgstr as nc_cfgstr
-from ._common import ( print,
-                       warn,
-                       write_text )
+from ._common import print as ncprint
+from ._common import warn as ncwarn
+from ._common import write_text as ncwrite_text
 from . import exceptions as nc_exceptions
 
 def import_endfparserpy():
@@ -307,13 +307,13 @@ class NuclearData():
         self._enable_coh_elas = ( 'coh_elas' in scattering_components and
                                   info_obj.hasAtomInfo() )
         if not self._enable_coh_elas:
-            warn('Coherent elastic component disabled')
+            ncwarn('Coherent elastic component disabled')
         self._enable_incoh_elas = ( 'incoh_elas' in scattering_components )
         if not self._enable_incoh_elas:
-            warn('Incoherent elastic component disabled')
+            ncwarn('Incoherent elastic component disabled')
         self._enable_inelas = ( 'inelas' in scattering_components )
         if not self._enable_inelas:
-            warn('Inelastic component disabled')
+            ncwarn('Inelastic component disabled')
         # _combine_temperatures:
         # False: use (alpha, beta) grid for lowest temperature
         # True: combine all temperatures
@@ -347,7 +347,7 @@ class NuclearData():
                                                  (1.0-frac)*ad.incoherentXS())
                     self._designated_coherent_atom = sym
             if self._verbosity > 1:
-                print(f'Designated incoherent: {sym}')
+                ncprint(f'Designated incoherent: {sym}')
         if self._enable_inelas:
             self._get_alpha_beta_grid()
             self._get_inelastic_data()
@@ -393,8 +393,8 @@ class NuclearData():
         # into a single grid. This usually results in a huge grid and
         # it is only kept as an option to debug libraries.
         #
-        warn('Combining (alpha, beta) grids from different temperatures.'
-             ' This usually results in a huge grid.')
+        ncwarn('Combining (alpha, beta) grids from different temperatures.'
+               ' This usually results in a huge grid.')
         for T in self._temperatures[1:]:
             cfg = self._ncmat_cfg+f';temp={T}K'
             info_obj = nc_core.createInfo(cfg)
@@ -433,13 +433,13 @@ class NuclearData():
             self._elems[sym].beta = -_[::-1] # Invert beta and change sign
             self._elems[sym].beta[0] = 0.0
             if self._verbosity > 2:
-                print(f'>>> alpha points: {len(self._elems[sym].alpha)}, '
-                       'alpha range: '
-                      f'({_np.min(self._elems[sym].alpha*T0/T)}'
-                      f', {_np.max(self._elems[sym].alpha*T0/T)})')
-                print(f'>>> beta points: {len(self._elems[sym].beta)}, '
-                      f'beta range: ({_np.min(self._elems[sym].beta*T0/T)},'
-                      f' {_np.max(self._elems[sym].beta*T0/T)})')
+                ncprint(f'>>> alpha points: {len(self._elems[sym].alpha)}, '
+                         'alpha range: '
+                        f'({_np.min(self._elems[sym].alpha*T0/T)}'
+                        f', {_np.max(self._elems[sym].alpha*T0/T)})')
+                ncprint(f'>>> beta points: {len(self._elems[sym].beta)}, '
+                        f'beta range: ({_np.min(self._elems[sym].beta*T0/T)},'
+                        f' {_np.max(self._elems[sym].beta*T0/T)})')
 
     def _get_coherent_elastic(self, T):
         #
@@ -487,52 +487,52 @@ class NuclearData():
                     self._elems[sym].sigma_i =  None
                     self._elems[sym].dwi =  None
         if self._verbosity > 1:
-            print('>> Prepare elastic approximations')
+            ncprint('>> Prepare elastic approximations')
         if ( self._elastic_mode == 'scaled' ):
             if ( len(self._composition) > 1 and
                  self._incoherent_fraction < 1e-6 ):
                     self._elastic_mode = 'greater'
-                    warn('Scaled elastic mode requested '
-                         'but all elements are coherent. '
-                         '"greater" option will be used instead.')
+                    ncwarn('Scaled elastic mode requested '
+                           'but all elements are coherent. '
+                           '"greater" option will be used instead.')
         for frac, ad in self._composition:
             sym = ad.elementName()
             if ( self._sigmaE is None and
                  self._elems[sym].dwi is None ):
-                warn('No coherent elastic data or '
-                     'incoherent elastic data found: '
-                     'only inelastic data will be written')
+                ncwarn('No coherent elastic data or '
+                       'incoherent elastic data found: '
+                       'only inelastic data will be written')
                 self._elems[sym].elastic = None
                 continue
             if self._elastic_mode == 'mixed': # iel = 100
                 if (self._sigmaE is None):
                     # mixed elastic requested but only incoherent available
-                    warn(f'Mixed elastic mode for {sym} but no '
-                           'Bragg edges found: incoherent approximation')
+                    ncwarn(f'Mixed elastic mode for {sym} but no '
+                            'Bragg edges found: incoherent approximation')
                     self._elems[sym].sigma_i = (ad.incoherentXS() +
                                                 ad.coherentXS())
                     self._elems[sym].elastic = 'incoherent'
                 elif (self._elems[sym].dwi is None):
-                    warn(f'Mixed elastic mode for {sym} but no '
-                           'incoherent elastic data found: '
-                           'coherent approximation')
+                    ncwarn(f'Mixed elastic mode for {sym} but no '
+                            'incoherent elastic data found: '
+                            'coherent approximation')
                     self._elems[sym].elastic = 'coherent'
                 else:
                     if self._verbosity>1:
-                        print(f'>> Mixed elastic mode for {sym}')
+                        ncprint(f'>> Mixed elastic mode for {sym}')
                     self._elems[sym].elastic = 'mixed'
             if self._elastic_mode == 'greater': # iel = 98
                 if ((ad.incoherentXS() > ad.coherentXS()) or
                     (self._sigmaE is None)):
                     if self._verbosity>1:
-                        print( '>> Principal elastic mode '
-                              f'for {sym}: incoherent')
+                        ncprint( '>> Principal elastic mode '
+                                f'for {sym}: incoherent')
                     self._edges = None
                     self._sigmaE = None
                     self._elems[sym].elastic = 'incoherent'
                 else:
                     if self._verbosity>1:
-                        print(f'>> Principal elastic mode for {sym}: coherent')
+                        ncprint(f'>> Principal elastic mode for {sym}: coherent')
                     self._elems[sym].sigma_i =  None
                     self._elems[sym].dwi =  None
                     self._elems[sym].elastic = 'coherent'
@@ -541,8 +541,8 @@ class NuclearData():
                     if ((ad.incoherentXS() > ad.coherentXS()) or
                         (self._sigmaE is None)):
                         if self._verbosity>1:
-                            print( '>> Scaled elastic mode for '
-                                  f'single atom {sym}: incoherent')
+                            ncprint( '>> Scaled elastic mode for '
+                                    f'single atom {sym}: incoherent')
                         self._edges = None
                         self._sigmaE = None
                         self._elems[sym].sigma_i = (ad.incoherentXS() +
@@ -550,8 +550,8 @@ class NuclearData():
                         self._elems[sym].elastic = 'incoherent'
                     else:
                         if self._verbosity>1:
-                            print( '>> Scaled elastic mode for '
-                                  f'single atom {sym}: coherent')
+                            ncprint( '>> Scaled elastic mode for '
+                                    f'single atom {sym}: coherent')
                         self._elems[sym].sigma_i =  None
                         self._elems[sym].dwi =  None
                         self._elems[sym].elastic = 'coherent'
@@ -561,7 +561,7 @@ class NuclearData():
                 elif (self._sigmaE is None):
                     # iel = 99, incoherent approximation
                     if self._verbosity>1:
-                        print(f'>> Scaled elastic mode for {sym}: '
+                        ncprint(f'>> Scaled elastic mode for {sym}: '
                                'incoherent approximation')
                     self._elems[sym].sigma_i = (ad.incoherentXS() +
                                                 ad.coherentXS())
@@ -570,17 +570,17 @@ class NuclearData():
                     # iel = 99, multi atomic case
                     if sym == self._designated_coherent_atom:
                         if self._verbosity>1:
-                            print(f'>> Scaled elastic mode for {sym} in '
-                                   'compound: designated coherent atom, '
-                                  f'dividing by frac^2={frac**2}')
+                            ncprint(f'>> Scaled elastic mode for {sym} in '
+                                     'compound: designated coherent atom, '
+                                    f'dividing by frac^2={frac**2}')
                         self._elems[sym].sigma_i =  None
                         self._elems[sym].dwi =  None
                         self._elems[sym].elastic = 'coherent'
                         self._sigmaE = [x/frac for x in self._sigmaE]
                     else:
                         if self._verbosity>1:
-                            print(f'>> Scaled elastic mode for {sym} '
-                                   'in compound: incoherent')
+                            ncprint(f'>> Scaled elastic mode for {sym} '
+                                     'in compound: incoherent')
                         self._elems[sym].elastic = 'incoherent'
                         self._elems[sym].sigma_i = ((1.0+
                                                      self._incoherent_fraction/
@@ -617,7 +617,7 @@ class NuclearData():
                 #
                 sctknl = di.loadKernel(vdoslux=self._vdoslux)
                 if self._verbosity > 2:
-                    print(f'>>> Interpolating T={T}K for {sym}')
+                    ncprint(f'>>> Interpolating T={T}K for {sym}')
 
                 alpha = sctknl['alpha']
                 beta = sctknl['beta']
@@ -708,7 +708,7 @@ class EndfFile():
            https://www.nndc.bnl.gov/endfdocs/ENDF-102-2023.pdf
         """
         if self._verbosity > 1:
-            print('> Generate MF7')
+            ncprint('> Generate MF7')
         mat = self._mat
         data = self._data
         awr = data.elements[self._sym].awr
@@ -1007,7 +1007,7 @@ class EndfFile():
     def write(self, endf_fn, force_save):
         import pathlib
         if self._verbosity > 0:
-            print(f'Write ENDF file {endf_fn}...')
+            ncprint(f'Write ENDF file {endf_fn}...')
         outfile = pathlib.Path(endf_fn)
         if outfile.exists() and not force_save:
             raise SystemExit('Error: output file already exists'
@@ -1017,7 +1017,7 @@ class EndfFile():
                              f' { outfile.parent }')
         text = '\n'.join(self._parser.write(self._endf_dict,
                                             zero_as_blank=True))
-        write_text(outfile,text)
+        ncwrite_text(outfile,text)
 
 class EndfParameters():
     """Parameters for the ENDF-6 file
@@ -1269,8 +1269,8 @@ def ncmat2endf( ncmat_cfg, *,
     if not info_obj.isSinglePhase():
         raise nc_exceptions.NCBadInput('Only single phase materials supported')
     if endf_parameters.lasym > 0:
-        warn( 'Creating non standard S(a,b)'
-             f' with LASYM = {endf_parameters.lasym}')
+        ncwarn( 'Creating non standard S(a,b)'
+               f' with LASYM = {endf_parameters.lasym}')
 
     base_temp = info_obj.dyninfos[0].temperature
     if temperatures is None:
@@ -1296,12 +1296,12 @@ def ncmat2endf( ncmat_cfg, *,
                                        'in the cfg string')
     temperatures = sorted(temperatures + (base_temp,))
     if len(temperatures) > 1:
-        warn('Multiple temperatures requested. Although this is supported, '
-             'it is not recommended because NCrystal generates '
-             'a custom (alpha,beta) grid for each temperature. '
-             'The (alpha,beta) grid for first temperature will '
-             'be used, and S(alpha, beta) for other temperatures '
-             'will be interpolated.')
+        ncwarn('Multiple temperatures requested. Although this is supported, '
+               'it is not recommended because NCrystal generates '
+               'a custom (alpha,beta) grid for each temperature. '
+               'The (alpha,beta) grid for first temperature will '
+               'be used, and S(alpha, beta) for other temperatures '
+               'will be interpolated.')
     if any( T<=0 for T in temperatures ):
         raise nc_exceptions.NCBadInput('Non positive temperatures')
 
@@ -1333,7 +1333,7 @@ def ncmat2endf( ncmat_cfg, *,
         raise nc_exceptions.NCBadInput('Verbosity parameter'
                                        ' must be an integer')
     if verbosity > 0:
-        print('Get nuclear data...')
+        ncprint('Get nuclear data...')
     data = NuclearData(ncmat_cfg=ncmat_cfg, temperatures=temperatures,
                        elastic_mode=elastic_mode, verbosity=verbosity)
 
@@ -1362,11 +1362,11 @@ def ncmat2endf( ncmat_cfg, *,
             output_composition.append((endf_fn, frac))
         else:
             if verbosity > 0:
-                print(f'Scattering kernel not available for: {endf_fn}')
+                ncprint(f'Scattering kernel not available for: {endf_fn}')
 
     if verbosity > 0:
-        print('Files created:')
+        ncprint('Files created:')
         for fn, frac in output_composition:
-            print(f'  {fn} with fraction {frac}')
+            ncprint(f'  {fn} with fraction {frac}')
 
     return(output_composition)
