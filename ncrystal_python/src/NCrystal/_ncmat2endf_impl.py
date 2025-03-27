@@ -680,60 +680,63 @@ class EndfFile():
         self._createMF7()
         endf_parserpy.update_directory(self._endf_dict, self._parser)
 
-    def _createMF7(self):
-        """Creates MF=7 file of a thermal ENDF file.
-           See ENDF-102, sect. 7.
-           https://www.nndc.bnl.gov/endfdocs/ENDF-102-2023.pdf
+    def _createMF7MT2(self, elastic):
         """
-        if self._verbosity > 1:
-            ncprint('> Generate MF7')
+        Creates endf-parserpy dictionary for MF=7 file,
+        MT=2 reaction (thermal elastic) of a thermal ENDF file
+        """
+
+        mat = self._mat
+        data = self._data
+        awr = data.elements[self._sym].awr
+        za = data.elements[self._sym].za
+        temperatures = data.temperatures
+        self._endf_dict['7/2'] = {}
+        d = self._endf_dict['7/2']
+        d['MAT'] = mat
+        d['ZA'] = za
+        d['AWR'] = awr
+        if elastic in ['coherent', 'mixed']:
+            edges  = data.edges
+            sigmaE = data.sigmaE[0]
+            d['T0'] = temperatures[0]
+            d['LT'] = len(temperatures)-1
+            d['S_T0_table'] = {}
+            d['S_T0_table']['NBT'] = [len(edges)]
+            d['S_T0_table']['INT'] = [1]
+            d['S_T0_table']['Eint'] = edges.tolist()
+            d['S_T0_table']['S'] = sigmaE.tolist()
+            d['T'] = {k: v for k, v in
+                      enumerate(temperatures[1:], start=1)}
+            S = {}
+            for q, v in enumerate(edges, start=1):
+                S[q] = {}
+                for i,v in enumerate(temperatures[1:], start=1):
+                    S[q][i] = data.sigmaE[i][q-1]
+            d['S'] = S
+            d['LI'] = 2
+            d['NP'] = len(edges)
+        if elastic in ['incoherent', 'mixed']:
+            d['SB'] = data.elements[self._sym].sigma_i
+            d['Wp']  = data.elements[self._sym].dwi
+            d['Tint'] = list(temperatures)
+            d['INT'] = [2]
+            d['NBT'] = [len(temperatures)]
+        lthr_values = {'coherent':1, 'incoherent':2, 'mixed':3}
+        d['LTHR'] = lthr_values[data.elements[self._sym].elastic]
+
+    def _createMF7MT4(self):
+        """
+        Creates endf-parserpy dictionary for MF=7 file,
+        MT=4 reaction (thermal inelastic) of a thermal ENDF file
+        """
+
         mat = self._mat
         data = self._data
         awr = data.elements[self._sym].awr
         endf_parameters = self._endf_parameters
         za = data.elements[self._sym].za
         temperatures = data.temperatures
-        #
-        # Prepare dictionary for thermal elastic reaction
-        #
-        elastic = data.elements[self._sym].elastic
-        if elastic is not None:
-            self._endf_dict['7/2'] = {}
-            d = self._endf_dict['7/2']
-            d['MAT'] = mat
-            d['ZA'] = za
-            d['AWR'] = awr
-            if elastic in ['coherent', 'mixed']:
-                edges  = data.edges
-                sigmaE = data.sigmaE[0]
-                d['T0'] = temperatures[0]
-                d['LT'] = len(temperatures)-1
-                d['S_T0_table'] = {}
-                d['S_T0_table']['NBT'] = [len(edges)]
-                d['S_T0_table']['INT'] = [1]
-                d['S_T0_table']['Eint'] = edges.tolist()
-                d['S_T0_table']['S'] = sigmaE.tolist()
-                d['T'] = {k: v for k, v in
-                          enumerate(temperatures[1:], start=1)}
-                S = {}
-                for q, v in enumerate(edges, start=1):
-                    S[q] = {}
-                    for i,v in enumerate(temperatures[1:], start=1):
-                        S[q][i] = data.sigmaE[i][q-1]
-                d['S'] = S
-                d['LI'] = 2
-                d['NP'] = len(edges)
-            if elastic in ['incoherent', 'mixed']:
-                d['SB'] = data.elements[self._sym].sigma_i
-                d['Wp']  = data.elements[self._sym].dwi
-                d['Tint'] = list(temperatures)
-                d['INT'] = [2]
-                d['NBT'] = [len(temperatures)]
-            lthr_values = {'coherent':1, 'incoherent':2, 'mixed':3}
-            d['LTHR'] = lthr_values[data.elements[self._sym].elastic]
-        #
-        # Prepare dictionary for thermal inelastic reaction
-        #
         self._endf_dict['7/4'] = {}
         d = self._endf_dict['7/4']
         d['MAT'] = mat
@@ -870,6 +873,29 @@ class EndfFile():
         d['teff0_table/Tint'] = list(temperatures)
         d['teff0_table/NBT'] = [len(temperatures)]
         d['teff0_table/INT'] = [2]
+
+    def _createMF7(self):
+        """Creates MF=7 file of a thermal ENDF file.
+           See ENDF-102, sect. 7.
+           https://www.nndc.bnl.gov/endfdocs/ENDF-102-2023.pdf
+        """
+        if self._verbosity > 1:
+            ncprint('> Generate MF7')
+        mat = self._mat
+        data = self._data
+        awr = data.elements[self._sym].awr
+        za = data.elements[self._sym].za
+        #
+        # Prepare dictionary for thermal elastic reaction
+        #
+        elastic = data.elements[self._sym].elastic
+        if elastic is not None:
+            self._createMF7MT2(elastic)
+        #
+        # Prepare dictionary for thermal inelastic reaction
+        #
+        self._createMF7MT4()
+
         if self._include_gif:
             if self._isotopic_expansion:
                 # TODO: implement isotopic expansion
@@ -888,6 +914,44 @@ class EndfFile():
                 d['AFI'] = {1:{1:1.0}}
                 d['SFI'] = {1:{1:data.elements[self._sym].sigma_free}}
                 d['AWRI'] = {1:{1:awr}}
+
+    def _createMF1MT451description(self, data, endf_parameters):
+        desc = []
+        desc.append(66*'*')
+        desc.append('')
+        desc.append(' This file was converted from the following NCrystal cfg')
+        desc.append(' string [1]:')
+        desc.append('')
+        desc.append(data.ncmat_cfg.center(66))
+        desc.append('')
+        desc.append(f' using NCrystal {nc_core.get_version()} and '
+                           f'endf-parserpy {self._endf_parserpy_version} '
+                            '[2] with the ')
+        desc.append(' following options:')
+        desc.append('')
+        desc.append(f'  smin:{endf_parameters.smin}')
+        desc.append(f'  emax:{endf_parameters.emax}')
+        desc.append(f'  lasym:{endf_parameters.lasym}')
+        desc.append(f'  include_gif:{self._include_gif}')
+        desc.append(f'  isotopic_expansion:{self._isotopic_expansion}')
+        desc.append(f'  elastic_mode:{data.elastic_mode}')
+        desc.append('')
+        desc.append(' Temperatures:')
+        for T in data.temperatures:
+            desc.append(f'       {T:.2f} K')
+        desc.append('')
+        desc.append('References:')
+        desc.append('[1] https://github.com/mctools/ncrystal')
+        desc.append('[2] https://endf-parserpy.readthedocs.io/en/latest/')
+        desc.append('')
+        desc.append(66*'*')
+        desc.append('')
+        desc.append('Comments from NCMAT file:')
+        desc.append('')
+        for line in data.comments:
+            desc.append(line)
+        desc.append(66*'*')
+        return [_.ljust(66) for _ in desc]
 
     def _createMF1(self):
         """Creates MF=1 file of a thermal ENDF file.
@@ -939,42 +1003,7 @@ class EndfFile():
                                       f'REV{endf_parameters.lrel:1d}-'+
                                       endf_parameters.rdate )
         d['ENDATE'] = endf_parameters.endate.ljust(8)
-        desc = []
-        desc.append(66*'*')
-        desc.append('')
-        desc.append(' This file was converted from the following NCrystal cfg')
-        desc.append(' string [1]:')
-        desc.append('')
-        desc.append(data.ncmat_cfg.center(66))
-        desc.append('')
-        desc.append(f' using NCrystal {nc_core.get_version()} and '
-                           f'endf-parserpy {self._endf_parserpy_version} '
-                            '[2] with the ')
-        desc.append(' following options:')
-        desc.append('')
-        desc.append(f'  smin:{endf_parameters.smin}')
-        desc.append(f'  emax:{endf_parameters.emax}')
-        desc.append(f'  lasym:{endf_parameters.lasym}')
-        desc.append(f'  include_gif:{self._include_gif}')
-        desc.append(f'  isotopic_expansion:{self._isotopic_expansion}')
-        desc.append(f'  elastic_mode:{data.elastic_mode}')
-        desc.append('')
-        desc.append(' Temperatures:')
-        for T in data.temperatures:
-            desc.append(f'       {T:.2f} K')
-        desc.append('')
-        desc.append('References:')
-        desc.append('[1] https://github.com/mctools/ncrystal')
-        desc.append('[2] https://endf-parserpy.readthedocs.io/en/latest/')
-        desc.append('')
-        desc.append(66*'*')
-        desc.append('')
-        desc.append('Comments from NCMAT file:')
-        desc.append('')
-        for line in data.comments:
-            desc.append(line)
-        desc.append(66*'*')
-        desc = [_.ljust(66) for _ in desc]
+        desc = self._createMF1MT451description(data, endf_parameters)
         d['DESCRIPTION'] = {k:v for k, v in enumerate(desc, start=1)}
         d['NWD'] = 5+len(desc)
         d['MFx/1'] = 1
