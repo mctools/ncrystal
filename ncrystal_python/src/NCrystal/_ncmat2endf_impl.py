@@ -88,9 +88,13 @@ def _endf_roundoff(x):
                                         write_fort_floats )
     except ImportError:
         raise SystemExit('Could not import endf_parserpy. Check the package '
-                         'was correctly installed, with a version equal or '
-                         'higher than 0.11.0.\n'
-                         'https://endf-parserpy.readthedocs.io/')
+                         'was correctly installed. This can be done with:'
+                         'pip install ncrystal[endf], '
+                         'pip install ncrystal[all], '
+                         'pip install endf_parserpy if NCrystal was installed'
+                         'with pip, or'
+                         'conda install -c conda-forge endf_parserpy if'
+                         'NCrystal was installed with conda.')
     return _np.array(read_fort_floats(write_fort_floats(x, {'width':11}),
                                      n=len(x),read_opts={'width':11}))
 
