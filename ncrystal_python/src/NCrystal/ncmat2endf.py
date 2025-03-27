@@ -390,30 +390,18 @@ class NuclearData():
     @property
     def composition(self):
         return self._composition
-    @composition.setter
-    def composition(self, x):
-        self._composition = x
 
     @property
     def elements(self):
         return self._elems
-    @elements.setter
-    def elements(self, x):
-        self._elems = x
 
     @property
     def edges(self):
         return self._edges
-    @edges.setter
-    def edges(self, x):
-        self._edges = x
 
     @property
     def sigmaE(self):
         return self._sigmaE
-    @sigmaE.setter
-    def sigmaE(self, x):
-        self._sigmaE = x
 
     @property
     def elastic_mode(self):
@@ -721,6 +709,8 @@ class EndfFile():
                                                 cache_dir=False)
         self._endf_parserpy_version = endf_parserpy.__version__
         self._sym = element
+        self._data = data
+        self._endf_parameters = endf_parameters
         self._mat = mat
         self._include_gif = include_gif
         self._isotopic_expansion = isotopic_expansion
@@ -728,30 +718,21 @@ class EndfFile():
         self._endf_dict['0/0'] = {}
         self._endf_dict['0/0']['MAT'] = self._mat
         self._endf_dict['0/0']['TAPEDESCR'] = 'Created with ncmat2endf'
-        self._createMF1(data, endf_parameters)
-        self._createMF7(data, endf_parameters)
+        self._createMF1()
+        self._createMF7()
         endf_parserpy.update_directory(self._endf_dict, self._parser)
 
-    def _createMF7(self, data, endf_parameters):
+    def _createMF7(self):
         """Creates MF=7 file of a thermal ENDF file.
            See ENDF-102, sect. 7.
            https://www.nndc.bnl.gov/endfdocs/ENDF-102-2023.pdf
-
-        Parameters
-        ----------
-        data : NuclearData
-            Nuclear data for the material
-
-        endf_parameters : EndfParameters
-            Parameters for the ENDF-6 file
-
-        verbosity : int
-            Level of verbosity of the output (0: quiet)
         """
         if self._verbosity > 1:
             print('> Generate MF7')
-        awr = data.elements[self._sym].awr
         mat = self._mat
+        data = self._data
+        awr = data.elements[self._sym].awr
+        endf_parameters = self._endf_parameters
         za = data.elements[self._sym].za
         temperatures = data.temperatures
         #
@@ -950,29 +931,16 @@ class EndfFile():
                 d['SFI'] = {1:{1:data.elements[self._sym].sigma_free}}
                 d['AWRI'] = {1:{1:awr}}
 
-    def _createMF1(self, data, endf_parameters):
+    def _createMF1(self):
         """Creates MF=1 file of a thermal ENDF file.
            See ENDF-102, sect. 1.
            https://www.nndc.bnl.gov/endfdocs/ENDF-102-2023.pdf
-
-        Parameters
-        ----------
-        endf_dict:
-            endf-parserpy dictionary
-
-        element : str
-            Element to write
-
-        data : dictionary
-            Dictionary containing the nuclear data
-            extrated by get_nuclear_data()
-
-        self._verbosity : int
-            Level of verbosity of the output (0: quiet)
         """
 
-        awr = data.elements[self._sym].awr
         mat = self._mat
+        data = self._data
+        awr = data.elements[self._sym].awr
+        endf_parameters = self._endf_parameters
         za = data.elements[self._sym].za
         zsymam = data.elements[self._sym].zsymam
         self._endf_dict['1/451'] = {}
@@ -1085,10 +1053,10 @@ class EndfParameters():
         Minimum value of S(alpha, beta) to be stored in the file
 
     libname : string
-        Name of the library
+        Name of the nuclear data library
 
     nlib : int
-        Library identifier (e.g. NLIB= 0 for ENDF/B).
+        Nuclear data library identifier (e.g. NLIB= 0 for ENDF/B).
 
     auth : string
         Author(s) name(s).
@@ -1100,10 +1068,10 @@ class EndfParameters():
         Upper limit of the energy range for evaluation (eV).
 
     lrel : int
-        Library release number.
+        Nuclear data library release number.
 
     nver : int
-        Library version number.
+        Nuclear data library version number.
 
     endate: string
         Master File entry date in the form YYYYMMDD.
