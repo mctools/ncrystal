@@ -44,7 +44,8 @@ https://endf-parserpy.readthedocs.io/en/latest/
 
 __all__ = [ 'ncmat2endf']
 
-from ._numpy import _np
+from ._numpy import ( _np,
+                      _ensure_numpy )
 from . import core as nc_core
 from . import constants as nc_constants
 from . import vdos as nc_vdos
@@ -1265,6 +1266,7 @@ def ncmat2endf( ncmat_cfg, *,
         their fraction in the composition
 
     """
+    _ensure_numpy()
     if set_date_to_now:
         if any(_ is not None for _ in (endf_parameters.edate,
                                        endf_parameters.ddate,
