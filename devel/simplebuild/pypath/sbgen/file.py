@@ -95,6 +95,8 @@ class File:
                   link_target = None,
                   make_executable = False ):
         f = dirs.genroot.joinpath(path_in_genroot)
+        assert '#' not in f.name
+        assert '!' not in f.name
         self._dir = f.parent
         self._exe = make_executable
         if content is not None:

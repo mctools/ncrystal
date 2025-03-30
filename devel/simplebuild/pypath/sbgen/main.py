@@ -56,10 +56,17 @@ def determine_testpkg_by_pydeps( pydeps ):
         return None, pydeps#not possible, needs custom pkg later
     return 'NCTestPy%s'%bestname, bestset
 
+def pglob( path, *pattern ):
+    assert len(pattern)>=1
+    gens = list( ( e for e in path.glob(pat)
+                   if not ( '#' in e.name or '~' in e.name ) )
+                 for pat in pattern )
+    return sorted( itertools.chain( *gens ) )
+
 def create_pkg_extratestscripts(pkgname):
     import pathlib
     create_pkginfo( pkgname, pkg_deps = ['NCrystalDev','NCCmd'] )
-    for sf in sorted(pathlib.Path(__file__).parent.glob('_testscript_*.py')):
+    for sf in pglob(pathlib.Path(__file__).parent,'_testscript_*.py'):
         n = sf.stem[len('_testscript_'):]
         add_file( f'pkgs/{pkgname}/scripts/test{n}', link_target = sf )
 
@@ -256,10 +263,9 @@ def create_testplugin_pkg(pkgname,pkg_deps):
                     extra_cflags = ['-DNCPLUGIN_NAME=DummyPlugin'] )
 
     p = dirs.exsrcroot.joinpath('plugin')
-    for sf in itertools.chain( p.joinpath('src').glob('*.hh'),
-                               p.joinpath('src').glob('*.cc') ):
+    for sf in pglob(p.joinpath('src'),'*.hh','*.cc'):
         add_file( f'pkgs/{pkgname}/libsrc/{sf.name}', link_target = sf )
-    for sf in p.joinpath('data').glob('*.ncmat'):
+    for sf in pglob(p.joinpath('data'),'*.ncmat'):
         add_file( f'pkgs/{pkgname}/data/{sf.name}', link_target = sf )
 
 
@@ -324,7 +330,7 @@ def define_files():
     #NCrystalDev package (python module):
     assert cfg.sbpkgname_lib in all_ncsbpkgs
     create_pkginfo( 'NCrystalDev', pkg_deps=all_ncsbpkgs + ['NCData'] )
-    for sf in (dirs.pysrcroot/'src/NCrystal').glob('*.py'):
+    for sf in pglob(dirs.pysrcroot/'src/NCrystal','*.py'):
         add_file( f'pkgs/NCrystalDev/python/{sf.name}', link_target = sf )
     #Special marker used by _locatelib.py:
     add_file( 'pkgs/NCrystalDev/python/_is_sblddevel.py', content='' )
@@ -335,7 +341,7 @@ def define_files():
 
     #Commandline scripts:
     create_pkginfo( cfg.sbpkgname_cli, pkg_deps=['NCrystalDev'])
-    for sf in (dirs.pysrcroot/'src/NCrystal').glob('_cli_*.py'):
+    for sf in pglob(dirs.pysrcroot/'src/NCrystal','_cli_*.py'):
         cliname = sf.name[len('_cli_'):-len('.py')]
         sbscriptname = 'tool' if cliname == 'nctool' else cliname
         content = f"""#!/usr/bin/env python3
@@ -357,7 +363,7 @@ mod.main()
 
     #Data files (even though NCLib already knows the path via a define):
     create_pkginfo( cfg.sbpkgname_data )
-    for sf in dirs.datadir.glob('*.ncmat'):
+    for sf in pglob(dirs.datadir,'*.ncmat'):
         add_file( f'pkgs/{cfg.sbpkgname_data}/data/{sf.name}',
                   link_target = sf )
 
@@ -370,7 +376,7 @@ mod.main()
                                     '-DNCrystal_EXPORTS '#for NCCFileUtils.hh
                                     '-fno-math-errno') )
     #Examples:
-    example_src =sorted(dirs.exsrcroot.glob('*.c*'))
+    example_src =pglob(dirs.exsrcroot,'*.c*')
 
     def add_compiled_examples(filelist,pkgname,*,override_name = None):
         if override_name:
@@ -395,43 +401,38 @@ mod.main()
     all_test_pkgs = []
     #all_test_pkgs_needing_ncrystal = []
     testlib_pkgnames = []
-    for testlibdir in dirs.testroot.joinpath('libs').glob('lib_*'):
+    for testlibdir in pglob(dirs.testroot.joinpath('libs'),'lib_*'):
         tlname = testlibdir.name[4:]
         pkgname = cfg.sbpkgname_testlib(tlname)
         testlib_pkgnames.append(pkgname)
         incdir = testlibdir.joinpath('include',f'TestLib_{tlname}')
         all_test_pkgs.append(pkgname)
         create_pkginfo(pkgname,pkg_deps=[cfg.sbpkgname_ncrystalhh])
-        sfs_cpp = list(testlibdir.glob('*.cc'))
-        sfs_c = list(testlibdir.glob('*.c'))
-        sfs_priv_h = list(testlibdir.glob('*.hh' if sfs_cpp else '*.h'))
+        sfs_cpp = pglob(testlibdir,'*.cc')
+        sfs_c = pglob(testlibdir,'*.c')
+        sfs_priv_h = pglob(testlibdir,'*.hh' if sfs_cpp else '*.h')
         if sfs_cpp and sfs_c:
             raise RuntimeError("can not mix languages in sbld pkgs"
                                f" (problems in {testlibdir})")
         for sf in itertools.chain((sfs_cpp or sfs_c),sfs_priv_h):
-            add_file( f'pkgs/{pkgname}/libsrc/{sf.name}',
-                      link_target = sf )
+            assert '#' not in sf.name
+            add_file( f'pkgs/{pkgname}/libsrc/{sf.name}', link_target = sf )
 
-        for sf in itertools.chain(incdir.glob('*.h'),incdir.glob('*.hh')):
-            add_file( f'pkgs/{pkgname}/libinc/{sf.name}',
-                      link_target = sf )
+        for sf in pglob(incdir,'*.h','*.hh'):
+            add_file( f'pkgs/{pkgname}/libinc/{sf.name}', link_target = sf )
 
     #Test apps:
     all_test_pkgs.append('NCTestApps')
     create_pkginfo('NCTestApps',pkg_deps=testlib_pkgnames)
-    for testappdir in dirs.testroot.joinpath('src').glob('app_*'):
+    for testappdir in pglob(dirs.testroot.joinpath('src'),'app_*'):
         appname = testappdir.name[4:]
-        for sf in itertools.chain( testappdir.glob('*.h'),
-                                   testappdir.glob('*.hh'),
-                                   testappdir.glob('*.c'),
-                                   testappdir.glob('*.cc'),
-                                   testappdir.glob('test.log') ):
+        for sf in pglob( testappdir, '*.h','*.hh','*.c','*.cc','test.log'):
             add_file( f'pkgs/NCTestApps/app_test{appname}/{sf.name}',
                       link_target = sf )
 
     #Test modules (shared libs for loading via python ctypes):
     testmods_pkgnames = []
-    for moddir in dirs.testroot.joinpath('modules').glob('lib_*'):
+    for moddir in pglob(dirs.testroot.joinpath('modules'),'lib_*'):
         tlname = moddir.name[4:]
         pkgname = f'NCTestMod_{tlname}'
         testmods_pkgnames.append(pkgname)
@@ -439,10 +440,10 @@ mod.main()
         create_pkginfo(pkgname,
                        pkg_deps=[cfg.sbpkgname_ncrystalhh,
                                  'NCTestUtils'])
-        for sf in itertools.chain( moddir.glob('*.h'),
-                                   moddir.glob('*.hh'),
-                                   moddir.glob('*.c'),
-                                   moddir.glob('*.cc') ):
+        for sf in itertools.chain( pglob( moddir, '*.h'),
+                                   pglob( moddir, '*.hh'),
+                                   pglob( moddir, '*.c'),
+                                   pglob( moddir, '*.cc') ):
             add_file( f'pkgs/{pkgname}/libsrc/{sf.name}',
                       link_target = sf )
 
@@ -459,11 +460,12 @@ mod.main()
     #Python modules for test scripts, common headers, and data:
     pkgname = 'NCTestUtils'
     all_test_pkgs.append(pkgname)
-    for sf in dirs.testroot.joinpath('pypath/NCTestUtils').glob('*.py'):
+    for sf in pglob(dirs.testroot.joinpath('pypath/NCTestUtils'),'*.py'):
         add_file( f'pkgs/{pkgname}/python/{sf.name}',
                   link_target = sf )
-    for sf in itertools.chain( dirs.testroot.joinpath('include/NCTestUtils').glob('*.h'),
-                               dirs.testroot.joinpath('include/NCTestUtils').glob('*.hh') ):
+    for sf in itertools.chain(
+            pglob(dirs.testroot.joinpath('include/NCTestUtils'),'*.h'),
+            pglob(dirs.testroot.joinpath('include/NCTestUtils'),'*.hh') ):
         add_file( f'pkgs/{pkgname}/libinc/{sf.name}',
                   link_target = sf )
     #Add special marker so it knows it is in sbld mode:
@@ -491,9 +493,7 @@ mod.main()
     pytest_pkgname2pydeps = {}
     extrapkg_pydeps = set()
     extrapkg_sflist = set()
-    for sf in dirs.testroot.joinpath('scripts').glob('*.py'):
-        if '#' in sf.name or '~' in sf.name:
-            continue
+    for sf in pglob(dirs.testroot.joinpath('scripts'),'*.py'):
         pydeps = extract_deps_from_needs(sf)
         pkgname, pkgpydeps = determine_testpkg_by_pydeps( pydeps )
         if pkgname is None:
@@ -536,5 +536,3 @@ mod.main()
 def main():
     define_files()
     create_files()
-
-#TODO: Make globbing utils for multiple extensions + guard against names with '#' or '~'

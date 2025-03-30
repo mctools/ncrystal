@@ -42,8 +42,12 @@ class Component:
         assert self.srcdir.is_dir(), f"Not a directory: {self.srcdir}"
         self.depfile = self.srcdir/ 'dep.txt'
         assert self.depfile.exists(), f"not found: {self.depfile}"
-        self.srcfiles = tuple(sorted(self.srcdir.glob('*.cc')))
-        self.local_hdrs = tuple(sorted(self.srcdir.glob('*.hh')))
+        def globsafe( path, pattern ):
+            for e in path.glob(pattern):
+                if '#' not in e.name and '~' not in e.name:
+                    yield e
+        self.srcfiles = tuple(sorted(globsafe(self.srcdir,'*.cc')))
+        self.local_hdrs = tuple(sorted(globsafe(self.srcdir,'*.hh')))
         pub_hdrdir = _incroot.joinpath('NCrystal',name)
         internal_hdrdir = _incroot.joinpath('NCrystal','internal',name)
         if pub_hdrdir.exists() and internal_hdrdir.exists():
@@ -62,8 +66,8 @@ class Component:
             self.is_internal = True
         self.hdrdir = hdrdir
         if hdrdir is not None:
-            self.hdrfiles = tuple(sorted(list((hdrdir).glob('*.h'))
-                                         +list((hdrdir).glob('*.hh'))))
+            self.hdrfiles = tuple(sorted(list(globsafe(hdrdir,'*.h'))
+                                         +list(globsafe(hdrdir,'*.hh'))))
             if not self.hdrfiles:
                 raise SystemExit(f'ERROR empty dir: {hdrdir}')
         else:
