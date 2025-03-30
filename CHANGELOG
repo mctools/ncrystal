@@ -1,4 +1,5 @@
 v4.1.5 (work in progress
+     * Fix bug which prevented more than 32 phases in multiphase materials.
      * Remove two leftover lines at top of LICENSE files. Now they are exactly
        the same as the file at http://www.apache.org/licenses/LICENSE-2.0.
 

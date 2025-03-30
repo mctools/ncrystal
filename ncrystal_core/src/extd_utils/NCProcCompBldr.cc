@@ -103,18 +103,21 @@ NC::Utils::ProcCompBldr::ComponentList NC::Utils::ProcCompBldr::finalise()
         res.emplace_back(std::move(e));
   };
 
-  for ( unsigned i = 0; i < m_impl->m_comps_buf_size; ++i ) {
+  const char * errmsg = ( "ProcCompBldr did not receive expected"
+                          " component list from job" );
+  unsigned stdsize = ( m_impl->m_comps_buf_size > Impl::comps_buf_maxsize
+                       ? Impl::comps_buf_maxsize : m_impl->m_comps_buf_size );
+
+  for ( unsigned i = 0; i < stdsize; ++i ) {
     if ( !m_impl->m_comps[i].has_value() )
-      NCRYSTAL_THROW(LogicError,"ProcCompBldr did not receive expected"
-                     " component list from job");
+      NCRYSTAL_THROW(LogicError,errmsg);
     nc_assert_always( m_impl->m_comps[i].has_value() );
     transferEntries( m_impl->m_comps[i].value() );
   }
   //Overflow:
   for ( auto& cl : m_impl->m_extra_comps ) {
     if (!cl.has_value())
-      NCRYSTAL_THROW(LogicError,"ProcCompBldr did not receive expected"
-                     " component list from job");
+      NCRYSTAL_THROW(LogicError,errmsg);
     transferEntries( cl.value() );
   }
   m_impl->m_comps_buf_size = 0;
