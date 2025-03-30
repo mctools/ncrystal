@@ -1,3 +1,6 @@
+v4.1.7 (work in progress)
+     * ...
+
 v4.1.6 2025-03-30
      * Fix bug which prevented more than 32 phases in multiphase materials
        (github issue #252).
