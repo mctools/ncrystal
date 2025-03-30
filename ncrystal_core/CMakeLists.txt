@@ -396,6 +396,8 @@ else()
 endif()
 
 if ( NCRYSTAL_BUILD_STRICT )
+  #Set globally warnings -> errors (although only has an effect in CMake 3.24 or
+  #later):
   set( "CMAKE_COMPILE_WARNING_AS_ERROR" "ON" )
   # turn list into space separated string for check_cxx_compiler_flag:
   string( REPLACE ";" " " tmp "${NC_STRICT_COMP_FLAGS}" )

@@ -1,0 +1,163 @@
+NCrystal WARNING: Discarding 204 edges of provided kernel data due to missing S values.
+NCrystal WARNING: Discarding 120 edges of provided kernel data due to missing S values.
+NCrystal WARNING: Discarding 52 edges of provided kernel data due to missing S values.
+----------------------------------------------------------------------------------------------------
+------------------------------------   NCrystal Material Info   ------------------------------------
+----------------------------------------------------------------------------------------------------
+Data source: <multiphase>
+----------------------------------------------------------------------------------------------------
+Density : 2.26274 g/cm3, 0.113423 atoms/Aa^3
+----------------------------------------------------------------------------------------------------
+Composition (by mole): 0.00784348% H 8.9854e-07% H2 5.78913e-05% Li6 0.000704848% Li7 1.96845e-05% B10 7.92344e-05% B11 99.9244% C 0.00392219% O 0.0587521% O16 2.23338e-05% O17 1.72413e-06% S32 1.38034e-08% S33 7.79139e-08% S34 3.63239e-10% S36 0.000339488% Cl35 0.000108507% Cl37 0.0023767% Ca40 1.58629e-05% Ca42 3.30982e-06% Ca43 5.11424e-05% Ca44 9.80683e-08% Ca46 4.5847e-06% Ca48 9.06982e-06% Ti46 8.17933e-06% Ti47 8.10463e-05% Ti48 5.94768e-06% Ti49 5.69474e-06% Ti50 1.12496e-07% V50 4.48878e-05% V51 1.60152e-05% Cr50 0.000308834% Cr52 3.50186e-05% Cr53 8.71699e-06% Cr54 8.28743e-05% Mn55 3.26922e-05% Fe54 0.0005132% Fe56 1.18525e-05% Fe57 1.57726e-06% Fe58 1.16779e-05% Co59 6.14054e-05% Ni58 2.36533e-05% Ni60 1.02823e-06% Ni61 3.27835e-06% Ni62 8.34894e-07% Ni64 5.08846e-06% Ag107 4.72751e-06% Ag109 6.0637e-08% Cd106 4.31734e-08% Cd108 6.05883e-07% Cd110 6.20915e-07% Cd111 1.17054e-06% Cd112 5.92789e-07% Cd113 1.39364e-06% Cd114 3.63331e-07% Cd116 1.66557e-07% Eu151 1.81823e-07% Eu153 6.73342e-10% Gd152 7.33939e-09% Gd154 4.98269e-08% Gd155 6.89166e-08% Gd156 5.26893e-08% Gd157 8.36295e-08% Gd158 7.35959e-08% Gd160 1.95475e-10% Dy156 3.25795e-10% Dy158 7.6236e-09% Dy160 6.16074e-08% Dy161 8.31098e-08% Dy162 8.11224e-08% Dy163 9.18086e-08% Dy164
+----------------------------------------------------------------------------------------------------
+Composition (by mass): 0.00065807% H 1.50637e-07% H2 2.89849e-05% Li6 0.000411622% Li7 1.64059e-05% B10 7.26084e-05% B11 99.9% C 0.00522328% O 0.0782201% O16 3.16011e-05% O17 4.58833e-06% S32 3.78825e-08% S33 2.20291e-07% S34 1.08746e-09% S36 0.00098814% Cl35 0.000333866% Cl37 0.00790571% Ca40 5.5401e-05% Ca42 1.1835e-05% Ca43 0.000187114% Ca44 3.75113e-07% Ca46 1.82993e-05% Ca48 3.46914e-05% Ti46 3.19656e-05% Ti47 0.000323457% Ti48 2.42323e-05% Ti49 2.36743e-05% Ti50 4.67693e-07% V50 0.000190342% V51 6.65804e-05% Cr50 0.00133519% Cr52 0.000154313% Cr53 3.91365e-05% Cr54 0.000378971% Mn55 0.000146779% Fe54 0.00238937% Fe56 5.61703e-05% Fe57 7.60579e-06% Fe58 5.72848e-05% Co59 0.000296117% Ni58 0.000117993% Ni60 5.21484e-06% Ni61 1.68989e-05% Ni62 4.44258e-06% Ni64 4.52791e-05% Ag107 4.28541e-05% Ag109 5.34532e-07% Cd106 3.87764e-07% Cd108 5.54257e-06% Cd110 5.73184e-06% Cd111 1.09028e-05% Cd112 5.57089e-06% Cd113 1.3213e-05% Cd114 3.50523e-06% Cd116 2.09229e-06% Eu151 2.31435e-06% Eu153 8.51458e-09% Gd152 9.4031e-08% Gd154 6.42528e-07% Gd155 8.94427e-07% Gd156 6.88216e-07% Gd157 1.09931e-06% Gd158 9.79691e-07% Gd160 2.53699e-09% Dy156 4.28259e-09% Dy158 1.01482e-07% Dy160 8.2523e-07% Dy161 1.12017e-06% Dy162 1.10015e-06% Dy163 1.25272e-06% Dy164
+----------------------------------------------------------------------------------------------------
+Atom data:
+   H     = H(cohSL=-3.739fm cohXS=1.75679barn incXS=80.26barn absXS=0.3326barn mass=1.00798u Z=1)
+   H2    = H2(cohSL=6.671fm cohXS=5.59232barn incXS=2.05barn absXS=0.000519barn mass=2.0141u Z=1 A=2)
+   Li6   = Li6(cohSL=2fm cohXS=0.502655barn incXS=0.46barn absXS=940barn mass=6.01512u Z=3 A=6)
+   Li7   = Li7(cohSL=-2.22fm cohXS=0.619321barn incXS=0.78barn absXS=0.0454barn mass=7.016u Z=3 A=7)
+   B10   = B10(cohSL=-0.1fm cohXS=0.00125664barn incXS=3barn absXS=3835barn mass=10.0129u Z=5 A=10)
+   B11   = B11(cohSL=6.65fm cohXS=5.55716barn incXS=0.21barn absXS=0.0055barn mass=11.0093u Z=5 A=11)
+   C     = C(cohSL=6.646fm cohXS=5.55048barn incXS=0.001barn absXS=0.0035barn mass=12.011u Z=6)
+   O     = O(cohSL=5.803fm cohXS=4.2317barn incXS=0.0008barn absXS=0.00019barn mass=15.9993u Z=8)
+   O16   = O16(cohSL=5.803fm cohXS=4.2317barn incXS=0barn absXS=0.0001barn mass=15.9949u Z=8 A=16)
+   O17   = O17(cohSL=5.78fm cohXS=4.19822barn incXS=0.004barn absXS=0.236barn mass=16.9991u Z=8 A=17)
+   S32   = S32(cohSL=2.804fm cohXS=0.98802barn incXS=0barn absXS=0.54barn mass=31.9721u Z=16 A=32)
+   S33   = S33(cohSL=4.74fm cohXS=2.82336barn incXS=0.3barn absXS=0.54barn mass=32.9715u Z=16 A=33)
+   S34   = S34(cohSL=3.48fm cohXS=1.52184barn incXS=0barn absXS=0.227barn mass=33.9679u Z=16 A=34)
+   S36   = S36(cohSL=3fm cohXS=1.13097barn incXS=0barn absXS=0.15barn mass=35.9671u Z=16 A=36)
+   Cl35  = Cl35(cohSL=11.65fm cohXS=17.0554barn incXS=4.7barn absXS=44.1barn mass=34.9689u Z=17 A=35)
+   Cl37  = Cl37(cohSL=3.08fm cohXS=1.1921barn incXS=0.001barn absXS=0.433barn mass=36.9659u Z=17 A=37)
+   Ca40  = Ca40(cohSL=5.90962fm cohXS=4.38864barn incXS=0barn absXS=0.41barn mass=39.9626u Z=20 A=40)
+   Ca42  = Ca42(cohSL=3.36fm cohXS=1.41869barn incXS=0barn absXS=0.68barn mass=41.9586u Z=20 A=42)
+   Ca43  = Ca43(cohSL=-1.56fm cohXS=0.305815barn incXS=0.5barn absXS=6.2barn mass=42.9588u Z=20 A=43)
+   Ca44  = Ca44(cohSL=1.42fm cohXS=0.253388barn incXS=0barn absXS=0.88barn mass=43.9555u Z=20 A=44)
+   Ca46  = Ca46(cohSL=3.6fm cohXS=1.6286barn incXS=0barn absXS=0.74barn mass=45.9537u Z=20 A=46)
+   Ca48  = Ca48(cohSL=0.39fm cohXS=0.0191134barn incXS=0barn absXS=1.09barn mass=47.9525u Z=20 A=48)
+   Ti46  = Ti46(cohSL=4.93fm cohXS=3.05424barn incXS=0barn absXS=0.59barn mass=45.9526u Z=22 A=46)
+   Ti47  = Ti47(cohSL=3.63fm cohXS=1.65586barn incXS=1.5barn absXS=1.7barn mass=46.9518u Z=22 A=47)
+   Ti48  = Ti48(cohSL=-6.08fm cohXS=4.64533barn incXS=0barn absXS=7.84barn mass=47.9479u Z=22 A=48)
+   Ti49  = Ti49(cohSL=1.04fm cohXS=0.135918barn incXS=3.3barn absXS=2.2barn mass=48.9479u Z=22 A=49)
+   Ti50  = Ti50(cohSL=6.18fm cohXS=4.7994barn incXS=0barn absXS=0.179barn mass=49.9448u Z=22 A=50)
+   V50   = V50(cohSL=7.6fm cohXS=7.25834barn incXS=0.5barn absXS=60barn mass=49.9472u Z=23 A=50)
+   V51   = V51(cohSL=-0.402fm cohXS=0.0203078barn incXS=5.07barn absXS=4.9barn mass=50.944u Z=23 A=51)
+   Cr50  = Cr50(cohSL=-4.5fm cohXS=2.54469barn incXS=0barn absXS=15.8barn mass=49.946u Z=24 A=50)
+   Cr52  = Cr52(cohSL=4.92fm cohXS=3.04187barn incXS=0barn absXS=0.76barn mass=51.9405u Z=24 A=52)
+   Cr53  = Cr53(cohSL=-4.2fm cohXS=2.21671barn incXS=5.93barn absXS=18.1barn mass=52.9406u Z=24 A=53)
+   Cr54  = Cr54(cohSL=4.55fm cohXS=2.60155barn incXS=0barn absXS=0.36barn mass=53.9389u Z=24 A=54)
+   Mn55  = Mn55(cohSL=-3.73fm cohXS=1.74835barn incXS=0.4barn absXS=13.3barn mass=54.938u Z=25 A=55)
+   Fe54  = Fe54(cohSL=4.2fm cohXS=2.21671barn incXS=0barn absXS=2.25barn mass=53.9396u Z=26 A=54)
+   Fe56  = Fe56(cohSL=9.94fm cohXS=12.416barn incXS=0barn absXS=2.59barn mass=55.9349u Z=26 A=56)
+   Fe57  = Fe57(cohSL=2.3fm cohXS=0.664761barn incXS=0.3barn absXS=2.48barn mass=56.9354u Z=26 A=57)
+   Fe58  = Fe58(cohSL=15fm cohXS=28.2743barn incXS=0barn absXS=1.28barn mass=57.9333u Z=26 A=58)
+   Co59  = Co59(cohSL=2.49fm cohXS=0.779128barn incXS=4.8barn absXS=37.18barn mass=58.9332u Z=27 A=59)
+   Ni58  = Ni58(cohSL=14.4fm cohXS=26.0576barn incXS=0barn absXS=4.6barn mass=57.9353u Z=28 A=58)
+   Ni60  = Ni60(cohSL=2.8fm cohXS=0.985203barn incXS=0barn absXS=2.9barn mass=59.9308u Z=28 A=60)
+   Ni61  = Ni61(cohSL=7.6fm cohXS=7.25834barn incXS=1.9barn absXS=2.5barn mass=60.9311u Z=28 A=61)
+   Ni62  = Ni62(cohSL=-8.7fm cohXS=9.51149barn incXS=0barn absXS=14.5barn mass=61.9283u Z=28 A=62)
+   Ni64  = Ni64(cohSL=-0.37fm cohXS=0.0172034barn incXS=0barn absXS=1.52barn mass=63.928u Z=28 A=64)
+   Ag107 = Ag107(cohSL=7.555fm cohXS=7.17264barn incXS=0.13barn absXS=37.6barn mass=106.905u Z=47 A=107)
+   Ag109 = Ag109(cohSL=4.165fm cohXS=2.17992barn incXS=0.32barn absXS=91barn mass=108.905u Z=47 A=109)
+   Cd106 = Cd106(cohSL=5fm cohXS=3.14159barn incXS=0barn absXS=1barn mass=105.906u Z=48 A=106)
+   Cd108 = Cd108(cohSL=5.4fm cohXS=3.66435barn incXS=0barn absXS=1.1barn mass=107.904u Z=48 A=108)
+   Cd110 = Cd110(cohSL=5.9fm cohXS=4.37435barn incXS=0barn absXS=11barn mass=109.903u Z=48 A=110)
+   Cd111 = Cd111(cohSL=6.5fm cohXS=5.30929barn incXS=0.3barn absXS=24barn mass=110.904u Z=48 A=111)
+   Cd112 = Cd112(cohSL=6.4fm cohXS=5.14719barn incXS=0barn absXS=2.2barn mass=111.903u Z=48 A=112)
+   Cd113 = Cd113(cohSL=-8fm cohXS=8.04248barn incXS=0.3barn absXS=20600barn mass=112.904u Z=48 A=113)
+   Cd114 = Cd114(cohSL=7.5fm cohXS=7.06858barn incXS=0barn absXS=0.34barn mass=113.903u Z=48 A=114)
+   Cd116 = Cd116(cohSL=6.3fm cohXS=4.98759barn incXS=0barn absXS=0.075barn mass=115.905u Z=48 A=116)
+   Eu151 = Eu151(cohSL=6.13fm cohXS=4.72205barn incXS=3.1barn absXS=9100barn mass=150.92u Z=63 A=151)
+   Eu153 = Eu153(cohSL=8.22fm cohXS=8.4909barn incXS=1.3barn absXS=312barn mass=152.921u Z=63 A=153)
+   Gd152 = Gd152(cohSL=10fm cohXS=12.5664barn incXS=0barn absXS=735barn mass=151.92u Z=64 A=152)
+   Gd154 = Gd154(cohSL=10fm cohXS=12.5664barn incXS=0barn absXS=85barn mass=153.921u Z=64 A=154)
+   Gd155 = Gd155(cohSL=6fm cohXS=4.52389barn incXS=25barn absXS=61100barn mass=154.923u Z=64 A=155)
+   Gd156 = Gd156(cohSL=6.3fm cohXS=4.98759barn incXS=0barn absXS=1.5barn mass=155.922u Z=64 A=156)
+   Gd157 = Gd157(cohSL=-1.14fm cohXS=0.163313barn incXS=394barn absXS=259000barn mass=156.924u Z=64 A=157)
+   Gd158 = Gd158(cohSL=9fm cohXS=10.1788barn incXS=0barn absXS=2.2barn mass=157.924u Z=64 A=158)
+   Gd160 = Gd160(cohSL=9.15fm cohXS=10.5209barn incXS=0barn absXS=0.77barn mass=159.927u Z=64 A=160)
+   Dy156 = Dy156(cohSL=6.1fm cohXS=4.67595barn incXS=0barn absXS=33barn mass=155.924u Z=66 A=156)
+   Dy158 = Dy158(cohSL=6fm cohXS=4.52389barn incXS=0barn absXS=43barn mass=157.924u Z=66 A=158)
+   Dy160 = Dy160(cohSL=6.7fm cohXS=5.64104barn incXS=0barn absXS=56barn mass=159.925u Z=66 A=160)
+   Dy161 = Dy161(cohSL=10.3fm cohXS=13.3317barn incXS=3barn absXS=600barn mass=160.927u Z=66 A=161)
+   Dy162 = Dy162(cohSL=-1.4fm cohXS=0.246301barn incXS=0barn absXS=194barn mass=161.927u Z=66 A=162)
+   Dy163 = Dy163(cohSL=5fm cohXS=3.14159barn incXS=0.21barn absXS=124barn mass=162.929u Z=66 A=163)
+   Dy164 = Dy164(cohSL=49.4fm cohXS=306.665barn incXS=0barn absXS=2840barn mass=163.929u Z=66 A=164)
+----------------------------------------------------------------------------------------------------
+Averaged quantities:
+   Atomic mass               : 12.014u
+   Absorption XS at 2200m/s  : 0.00535212 barn
+   Free scattering XS        : 4.7253 barn
+   Scattering length density : 7.53644 10^-6/Aa^2
+----------------------------------------------------------------------------------------------------
+Multi-phase material with 69 phases:
+  0) 99.9794% (volume) 99.9244% (mole)    99.9% (mass): C
+  1) 5.77146e-07% (volume) 5.08846e-06% (mole) 4.52791e-05% (mass): Ag107
+  2) 5.36207e-07% (volume) 4.72751e-06% (mole) 4.28541e-05% (mass): Ag109
+  3) 2.23267e-06% (volume) 1.96845e-05% (mole) 1.64059e-05% (mass): B10
+  4) 8.98698e-06% (volume) 7.92344e-05% (mole) 7.26084e-05% (mass): B11
+  5) 0.000269571% (volume) 0.0023767% (mole) 0.00790571% (mass): Ca40
+  6) 1.79921e-06% (volume) 1.58629e-05% (mole) 5.5401e-05% (mass): Ca42
+  7) 3.75408e-07% (volume) 3.30982e-06% (mole) 1.1835e-05% (mass): Ca43
+  8) 5.80071e-06% (volume) 5.11424e-05% (mole) 0.000187114% (mass): Ca44
+  9) 1.11232e-08% (volume) 9.80683e-08% (mole) 3.75113e-07% (mass): Ca46
+  10) 5.20008e-07% (volume) 4.5847e-06% (mole) 1.82993e-05% (mass): Ca48
+  11) 6.87761e-09% (volume) 6.0637e-08% (mole) 5.34532e-07% (mass): Cd106
+  12) 4.89684e-09% (volume) 4.31734e-08% (mole) 3.87764e-07% (mass): Cd108
+  13) 6.87208e-08% (volume) 6.05883e-07% (mole) 5.54257e-06% (mass): Cd110
+  14) 7.04259e-08% (volume) 6.20915e-07% (mole) 5.73184e-06% (mass): Cd111
+  15) 1.32765e-07% (volume) 1.17054e-06% (mole) 1.09028e-05% (mass): Cd112
+  16) 6.72357e-08% (volume) 5.92789e-07% (mole) 5.57089e-06% (mass): Cd113
+  17) 1.5807e-07% (volume) 1.39364e-06% (mole) 1.3213e-05% (mass): Cd114
+  18) 4.12099e-08% (volume) 3.63331e-07% (mole) 3.50523e-06% (mass): Cd116
+  19) 3.85056e-05% (volume) 0.000339488% (mole) 0.00098814% (mass): Cl35
+  20) 1.23071e-05% (volume) 0.000108507% (mole) 0.000333866% (mass): Cl37
+  21) 1.32454e-06% (volume) 1.16779e-05% (mole) 5.72848e-05% (mass): Co59
+  22) 1.81648e-06% (volume) 1.60152e-05% (mole) 6.65804e-05% (mass): Cr50
+  23) 3.50287e-05% (volume) 0.000308834% (mole) 0.00133519% (mass): Cr52
+  24) 3.9719e-06% (volume) 3.50186e-05% (mole) 0.000154313% (mass): Cr53
+  25) 9.88705e-07% (volume) 8.71699e-06% (mole) 3.91365e-05% (mass): Cr54
+  26) 2.21713e-11% (volume) 1.95475e-10% (mole) 2.53699e-09% (mass): Dy156
+  27) 3.69525e-11% (volume) 3.25795e-10% (mole) 4.28259e-09% (mass): Dy158
+  28) 8.64689e-10% (volume) 7.6236e-09% (mole) 1.01482e-07% (mass): Dy160
+  29) 6.98767e-09% (volume) 6.16074e-08% (mole) 8.2523e-07% (mass): Dy161
+  30) 9.42653e-09% (volume) 8.31098e-08% (mole) 1.12017e-06% (mass): Dy162
+  31) 9.20111e-09% (volume) 8.11224e-08% (mole) 1.10015e-06% (mass): Dy163
+  32) 1.04132e-08% (volume) 9.18086e-08% (mole) 1.25272e-06% (mass): Dy164
+  33) 1.88913e-08% (volume) 1.66557e-07% (mole) 2.09229e-06% (mass): Eu151
+  34) 2.06228e-08% (volume) 1.81823e-07% (mole) 2.31435e-06% (mass): Eu153
+  35) 3.70803e-06% (volume) 3.26922e-05% (mole) 0.000146779% (mass): Fe54
+  36) 5.82085e-05% (volume) 0.0005132% (mole) 0.00238937% (mass): Fe56
+  37) 1.34435e-06% (volume) 1.18525e-05% (mole) 5.61703e-05% (mass): Fe57
+  38) 1.78897e-07% (volume) 1.57726e-06% (mole) 7.60579e-06% (mass): Fe58
+  39) 7.63722e-11% (volume) 6.73342e-10% (mole) 8.51458e-09% (mass): Gd152
+  40) 8.32453e-10% (volume) 7.33939e-09% (mole) 9.4031e-08% (mass): Gd154
+  41) 5.6515e-09% (volume) 4.98269e-08% (mole) 6.42528e-07% (mass): Gd155
+  42) 7.81671e-09% (volume) 6.89166e-08% (mole) 8.94427e-07% (mass): Gd156
+  43) 5.97616e-09% (volume) 5.26893e-08% (mole) 6.88216e-07% (mass): Gd157
+  44) 9.48548e-09% (volume) 8.36295e-08% (mole) 1.09931e-06% (mass): Gd158
+  45) 8.34744e-09% (volume) 7.35959e-08% (mole) 9.79691e-07% (mass): Gd160
+  46) 6.56619e-06% (volume) 5.78913e-05% (mole) 2.89849e-05% (mass): Li6
+  47) 7.99458e-05% (volume) 0.000704848% (mole) 0.000411622% (mass): Li7
+  48) 9.39982e-06% (volume) 8.28743e-05% (mole) 0.000378971% (mass): Mn55
+  49) 6.96476e-06% (volume) 6.14054e-05% (mole) 0.000296117% (mass): Ni58
+  50) 2.68282e-06% (volume) 2.36533e-05% (mole) 0.000117993% (mass): Ni60
+  51) 1.16624e-07% (volume) 1.02823e-06% (mole) 5.21484e-06% (mass): Ni61
+  52) 3.71839e-07% (volume) 3.27835e-06% (mole) 1.68989e-05% (mass): Ni62
+  53) 9.46959e-08% (volume) 8.34894e-07% (mole) 4.44258e-06% (mass): Ni64
+  54) 1.95556e-07% (volume) 1.72413e-06% (mole) 4.58833e-06% (mass): S32
+  55) 1.56562e-09% (volume) 1.38034e-08% (mole) 3.78825e-08% (mass): S33
+  56) 8.8372e-09% (volume) 7.79139e-08% (mole) 2.20291e-07% (mass): S34
+  57) 4.11996e-11% (volume) 3.63239e-10% (mole) 1.08746e-09% (mass): S36
+  58) 1.02872e-06% (volume) 9.06982e-06% (mole) 3.46914e-05% (mass): Ti46
+  59) 9.27721e-07% (volume) 8.17933e-06% (mole) 3.19656e-05% (mass): Ti47
+  60) 9.19248e-06% (volume) 8.10463e-05% (mole) 0.000323457% (mass): Ti48
+  61) 6.74602e-07% (volume) 5.94768e-06% (mole) 2.42323e-05% (mass): Ti49
+  62) 6.45912e-07% (volume) 5.69474e-06% (mole) 2.36743e-05% (mass): Ti50
+  63) 1.27596e-08% (volume) 1.12496e-07% (mole) 4.67693e-07% (mass): V50
+  64) 5.09129e-06% (volume) 4.48878e-05% (mole) 0.000190342% (mass): V51
+  65) 0.0133306% (volume) 0.0117652% (mole) 0.00588075% (mass): H / O
+  66) 1.53327e-06% (volume) 1.34781e-06% (mole) 7.48941e-07% (mass): D / O
+  67) 0.00666382% (volume) 0.0587521% (mole) 0.0782201% (mass): O16
+  68) 2.53315e-06% (volume) 2.23338e-05% (mole) 3.16011e-05% (mass): O17
+----------------------------------------------------------------------------------------------------
