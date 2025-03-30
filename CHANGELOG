@@ -3,6 +3,8 @@ v4.1.5 (work in progress)
        (github issue #252).
      * Remove two leftover lines at top of LICENSE files. Now they are exactly
        the same as the file at http://www.apache.org/licenses/LICENSE-2.0.
+     * Remove space in NCDefs.hh in `operator ""_s` which introduced compilation
+       warning with Intel OneAPI compiler version 2025.1.
 
 v4.1.4 2025-03-03
      * README files for the ncrystal-core, ncrystal-python, and ncrystal-verify

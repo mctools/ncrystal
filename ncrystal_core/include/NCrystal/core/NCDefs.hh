@@ -132,7 +132,7 @@ namespace NCRYSTAL_NAMESPACE {
   //C++14 provides string_literals, allowing "hello"s as a shorthand for
   //std::string("hello",5). As C++11 does not support this, we implement our
   //own, "hello"_s variant.
-  inline std::string operator "" _s(const char* c, std::size_t n) { return std::string(c,n); }
+  inline std::string operator ""_s(const char* c, std::size_t n) { return std::string(c,n); }
 
   //Use to mark variables as used and thus to avoid compiler warnings. This
   //should only be used in exceptional cases to workaround compiler issues, or
