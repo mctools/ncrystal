@@ -9,13 +9,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           path: src
           fetch-tags: true
 
       - name: Setup python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55 # v5.5.0
         with:
           python-version: '3.12'
 
@@ -75,12 +75,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           path: src
 
       - name: Setup python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55 # v5.5.0
         with:
           python-version: '3.12'
 
@@ -119,7 +119,7 @@ jobs:
       SDIST_SUFFIX: "-${{ needs.preparations.outputs.ncrystalversion }}.tar.gz"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: build ncrystal-core sdist
         run: pipx run build --sdist ./ncrystal_core
@@ -134,28 +134,28 @@ jobs:
         run: pipx run build --sdist ./ncrystal_verify
 
       - name: register ncrystal-core sdist
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: sdist-ncrystal-core
           path: ./ncrystal_core/dist/ncrystal_core${{ env.SDIST_SUFFIX }}
           if-no-files-found: error
 
       - name: register ncrystal-python sdist
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: sdist-ncrystal-python
           path: ./ncrystal_python/dist/ncrystal_python${{ env.SDIST_SUFFIX }}
           if-no-files-found: error
 
       - name: register ncrystal-metapkg sdist
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: sdist-ncrystal-metapkg
           path: ./ncrystal_metapkg/dist/ncrystal${{ env.SDIST_SUFFIX }}
           if-no-files-found: error
 
       - name: register ncrystal-verify sdist
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: sdist-ncrystal-verify
           path: ./ncrystal_verify/dist/ncrystal_verify${{ env.SDIST_SUFFIX }}
@@ -174,19 +174,19 @@ jobs:
 
     steps:
       - name: download ncrystal-python sdist
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
         with:
           name: sdist-ncrystal-python
           path: ./sdist-python
 
       - name: download ncrystal-metapkg sdist
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
         with:
           name: sdist-ncrystal-metapkg
           path: ./sdist-metapkg
 
       - name: download ncrystal-verify sdist
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
         with:
           name: sdist-ncrystal-verify
           path: ./sdist-verify
@@ -216,21 +216,21 @@ jobs:
           pipx run build --wheel ./ncrystal_verify-${{ needs.preparations.outputs.ncrystalversion }} --outdir=../dist-ncrystal-verify
 
       - name: register ncrystal-python pure wheel
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: wheel-ncrystal-python
           path: ./dist-ncrystal-python/ncrystal_python-${{ needs.preparations.outputs.ncrystalversion }}-py3-none-any.whl
           if-no-files-found: error
 
       - name: register ncrystal-metapkg pure wheel
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: wheel-ncrystal-metapkg
           path: ./dist-ncrystal-metapkg/ncrystal-${{ needs.preparations.outputs.ncrystalversion }}-py3-none-any.whl
           if-no-files-found: error
 
       - name: register ncrystal-verify pure wheel
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: wheel-ncrystal-verify
           path: ./dist-ncrystal-verify/ncrystal_verify-${{ needs.preparations.outputs.ncrystalversion }}-py3-none-any.whl
@@ -256,7 +256,7 @@ jobs:
 
     steps:
       - name: download ncrystal-core sdist
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
         with:
           name: sdist-ncrystal-core
           path: ./sdist
@@ -283,7 +283,7 @@ jobs:
       # compilation.
 
       - name: cibuildwheel
-        uses: pypa/cibuildwheel@v2.23.1
+        uses: pypa/cibuildwheel@3b00f25c4aa0ba197213e27735fb15a3ea3fc25c # v2.23.1
         env:
           CIBW_ARCHS_WINDOWS: "auto ARM64"
         with:
@@ -291,7 +291,7 @@ jobs:
           output-dir: wheelhouse
 
       - name: cibuildwheel manylinux_2_28
-        uses: pypa/cibuildwheel@v2.23.1
+        uses: pypa/cibuildwheel@3b00f25c4aa0ba197213e27735fb15a3ea3fc25c # v2.23.1
         if: runner.os == 'Linux'
         env:
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
@@ -308,7 +308,7 @@ jobs:
         if: runner.os == 'Windows'
         run: dir wheelhouse
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: ncrystal-core-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./wheelhouse/ncrystal_core-*.whl
@@ -319,7 +319,7 @@ jobs:
     needs: [preparations, build_sdists, build_core_wheels, build_pure_wheels]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
         with:
           pattern: "ncrystal-core-wheels-*"
           path: ncrystal-core-wheels-raw #unpacks all artifacts into ncrystal-core-wheels-raw/
@@ -339,43 +339,43 @@ jobs:
         run: ls -l ./dist_core
 
       - name: download ncrystal-core sdist
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
         with:
           name: sdist-ncrystal-core
           path: ./dist_core
 
       - name: download ncrystal-python pure wheel
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
         with:
           name: wheel-ncrystal-python
           path: ./dist_python
 
       - name: download ncrystal-metapkg pure wheel
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
         with:
           name: wheel-ncrystal-metapkg
           path: ./dist_metapkg
 
       - name: download ncrystal-verify pure wheel
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
         with:
           name: wheel-ncrystal-verify
           path: ./dist_verify
 
       - name: download ncrystal-python sdist
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
         with:
           name: sdist-ncrystal-python
           path: ./dist_python
 
       - name: download ncrystal-metapkg sdist
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
         with:
           name: sdist-ncrystal-metapkg
           path: ./dist_metapkg
 
       - name: download ncrystal-verify sdist
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
         with:
           name: sdist-ncrystal-verify
           path: ./dist_verify
@@ -438,25 +438,25 @@ jobs:
           test -f ./dist_verify/ncrystal_verify-${{ needs.preparations.outputs.ncrystalversion }}.tar.gz
           test -f ./dist_verify/ncrystal_verify-${{ needs.preparations.outputs.ncrystalversion }}-py3-none-any.whl
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: final-dist-ncrystal-core
           path: ./dist_core
           if-no-files-found: error
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: final-dist-ncrystal-python
           path: ./dist_python
           if-no-files-found: error
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: final-dist-ncrystal-metapkg
           path: ./dist_metapkg
           if-no-files-found: error
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: final-dist-ncrystal-verify
           path: ./dist_verify
@@ -470,25 +470,25 @@ jobs:
       id-token: write # IMPORTANT: this permission is mandatory for trusted publishing
     steps:
       - name: download ncrystal-core dist
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
         with:
           name: final-dist-ncrystal-core
           path: ./dist_core
 
       - name: download ncrystal-python dist
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
         with:
           name: final-dist-ncrystal-python
           path: ./dist_python
 
       - name: download ncrystal-metapkg dist
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
         with:
           name: final-dist-ncrystal-metapkg
           path: ./dist_metapkg
 
       - name: download ncrystal-verify dist
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
         with:
           name: final-dist-ncrystal-verify
           path: ./dist_verify
@@ -513,7 +513,7 @@ jobs:
 
       - name: Upload distribution to PyPI (if not dryrun)
         if: needs.preparations.outputs.dryrun == '0'
-        uses: pypa/gh-action-pypi-publish@v1.12.4
+        uses: pypa/gh-action-pypi-publish@7f25271a4aa483500f742f9492b2ab5648d61011 # v1.12.4
         with:
           packages-dir: ./dist_final
           verbose: true
