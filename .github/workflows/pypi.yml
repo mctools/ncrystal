@@ -513,7 +513,7 @@ jobs:
 
       - name: Upload distribution to PyPI (if not dryrun)
         if: needs.preparations.outputs.dryrun == '0'
-        uses: pypa/gh-action-pypi-publish@7f25271a4aa483500f742f9492b2ab5648d61011
+        uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc
         with:
           packages-dir: ./dist_final
           verbose: true
