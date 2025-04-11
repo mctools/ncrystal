@@ -90,7 +90,7 @@ NC::PairDD NC::SAB::SABSamplerAtE_Alg1::sampleAlphaBeta(double ekin_div_kT, RNG&
           break;//reject
         alphaval = sampleAlpha(m_ibetaOffset, rng.generate());
         auto alims = getAlphaLimits(-m_firstBinKinematicEndpointValue,beta);
-        if ( valueInInterval(alims,alphaval) )
+        if ( valueInInterval(alims.first,alims.second,alphaval) )
           break;
         constexpr auto nsampletriesm1 = nsampletries - 1;
         if ( iii == nsampletriesm1 ) {

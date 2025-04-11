@@ -483,8 +483,11 @@ void NC::SABUtils::activeGridRanges( const NC::SABData& data,
 
   for (auto&& beta : enumerate(data.betaGrid())) {
     double alow(-1.0),aupp(-2.0);
-    if ( beta.val > -ekin_div_kT )
-      std::tie(alow,aupp) = getAlphaLimits( ekin_div_kT, beta.val );
+    if ( beta.val > -ekin_div_kT ) {
+      auto alims = getAlphaLimits( ekin_div_kT, beta.val );
+      alow = alims.first;
+      aupp = alims.second;
+    }
     if ( agrid_back <= alow || agrid_front >= aupp || aupp < alow ) {
       //No kinematically accessible alpha grid ranges at this beta point (or
       //energy is so ultra low that numerical imprecision led to aupp=alow) .

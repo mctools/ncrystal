@@ -882,8 +882,9 @@ double NC::FreeGasSampler::sampleAlpha( double beta, RNG& rng ) const
 
   nc_assert( beta >= -m_c*1.001 );
   beta = ncmax( -m_c, beta );
-  double am, ap;
-  std::tie(am,ap) = getAlphaLimits( m_c, beta );
+  auto alims = getAlphaLimits( m_c, beta );
+  double am = alims.first;
+  double ap = alims.second;
   if (am==ap)
     return am;
 

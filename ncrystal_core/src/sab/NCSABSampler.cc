@@ -203,7 +203,11 @@ NC::PairDD NC::SABSampler::sampleAlphaBeta(NeutronEnergy ekin, RNG& rng) const
     if (beta<-ekin_div_kT)
       continue;
     double alow,aupp;
-    std::tie(alow,aupp) = getAlphaLimits( ekin_div_kT, beta );
+    {
+      auto alims = getAlphaLimits( ekin_div_kT, beta );
+      alow = alims.first;
+      aupp = alims.second;
+    }
     if (valueInInterval(alow,aupp,alpha))
       return { alpha, beta };
     if (ultra_small_ekin_mode) {

@@ -105,7 +105,8 @@ NC::EnergyDomain NC::LCBraggRndmRot::domain() const noexcept
 
 void NC::LCBraggRndmRot::updateCache(Cache& cache, NeutronEnergy ekin, const Vector& indir) const
 {
-  cache.neutron_state = std::make_pair(ekin,indir);
+  cache.neutron_state.first = ekin;
+  cache.neutron_state.second = indir;
   cache.rotations.reserve(m_nsample);
   cache.xscommul.reserve(m_nsample);
   cache.rotations.clear();
@@ -144,10 +145,13 @@ NC::ScatterOutcome NC::LCBraggRndmRot::sampleScatter(CachePtr&cp, RNG& rng, Neut
   const Vector indir = indir_nd.as<Vector>().unit();
   auto& cache = accessCache<Cache>(cp);
 
-  if (cache.rotations.empty()||cache.neutron_state!=std::make_pair(ekin,indir)) {
-    //trigger generation of random directions and calculate cross sections:
-    updateCache(cache,ekin,indir);
-  }
+  if ( cache.rotations.empty()
+       || cache.neutron_state.first != ekin
+       || cache.neutron_state.second != indir )
+    {
+      //trigger generation of random directions and calculate cross sections:
+      updateCache(cache,ekin,indir);
+    }
   nc_assert(!cache.xscommul.empty());
 
   if (!cache.xscommul.back()) {

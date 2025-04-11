@@ -235,7 +235,7 @@ namespace NCRYSTAL_NAMESPACE {
 
       }
       template <class TData>
-      Optional<TData> trimToKB( const TData& data_orig, double ekin_div_kT, PairDD blim_at_a0, PairDD blim_at_a1 )
+      Optional<TData> trimToKB( const TData& data_orig, double ekin_div_kT, BetaLimits_t blim_at_a0, BetaLimits_t blim_at_a1 )
       {
         //Todo: Just "inplace_splitAtBeta etc. and avoid this Optional + dataptr stuff!
 

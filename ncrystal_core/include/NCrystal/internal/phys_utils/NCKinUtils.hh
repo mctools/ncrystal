@@ -41,7 +41,8 @@ namespace NCRYSTAL_NAMESPACE {
 
   //It is faster to get both (alpha-,alpha+) at once (returns (1.0,-1.0) if not
   //kinematically accessible, i.e. beta<-E/kT):
-  PairDD getAlphaLimits( double ekin_div_kT, double beta );
+  struct AlphaLimits_t { double first, second; };
+  AlphaLimits_t getAlphaLimits( double ekin_div_kT, double beta );
 
   //Get { alpha-, alpha+, and alpha+ - alpha- } in numerically stable manner:
   struct AlphaLimitsWithDiff { double aminus, aplus, adiff; };
@@ -52,7 +53,8 @@ namespace NCRYSTAL_NAMESPACE {
   double getBetaPlus( double ekin_div_kT, double alpha );
 
   //It is again faster to get both (beta-,beta+) at once:
-  PairDD getBetaLimits( double ekin_div_kT, double alpha );
+  struct BetaLimits_t { double first, second; };
+  BetaLimits_t getBetaLimits( double ekin_div_kT, double alpha );
 
   //Near kinematic endpoint. alpha-, alpha, and alpha+ might become numerically
   //indistinguishable at floating point precision, but mu=cos(scattering_angle)
@@ -103,14 +105,14 @@ namespace NCRYSTAL_NAMESPACE {
   }
 
   //Get kinematically accessible alpha region for given ekin/kT and beta:
-  inline PairDD getAlphaLimits( double ekin_div_kT, double beta )
+  inline AlphaLimits_t getAlphaLimits( double ekin_div_kT, double beta )
   {
     nc_assert( ekin_div_kT >= 0.0 );
     nc_assert( !std::isnan(beta) );
     const double kk = ekin_div_kT + beta;
     if ( !(kk >= 0.0) ) {
       //kinematically forbidden
-      return std::make_pair(1.0,-1.0);
+      return {1.0,-1.0};
     }
     const double a = kk + ekin_div_kT;
     const double b = 2.0*std::sqrt( ekin_div_kT * kk );
@@ -118,7 +120,7 @@ namespace NCRYSTAL_NAMESPACE {
                             ? detail::alphaMinusTaylor( ekin_div_kT, beta )
                             : std::max(0.0,a - b) );
     nc_assert( a+b >= aminus );
-    return std::make_pair( aminus, a + b );
+    return { aminus, a + b };
   }
 
   inline AlphaLimitsWithDiff getAlphaLimitsWithDiff( double ekin_div_kT, double beta )
@@ -195,7 +197,7 @@ namespace NCRYSTAL_NAMESPACE {
     return alpha + 2*std::sqrt(ekin_div_kT*alpha);
   }
 
-  inline PairDD getBetaLimits( double ekin_div_kT, double alpha )
+  inline BetaLimits_t getBetaLimits( double ekin_div_kT, double alpha )
   {
     nc_assert(ekin_div_kT>=0);
     nc_assert(alpha>=0);

@@ -436,7 +436,11 @@ std::pair<NS::SABIntegrator::Impl::SamplerAtE_uptr,double> NS::SABIntegrator::Im
     nc_assert( beta.val >= -ekin_div_kT );
     nc_assert( beta.idx < alpharanges.size() );
     double alow,aupp;
-    std::tie(alow,aupp) = getAlphaLimits(ekin_div_kT, beta.val);
+    {
+      auto alims = getAlphaLimits(ekin_div_kT, beta.val);
+      alow = alims.first;
+      aupp = alims.second;
+    }
 
     nc_assert( aupp >= alow );//since beta>=-E/kT this must be the case
 

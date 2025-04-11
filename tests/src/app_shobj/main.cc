@@ -166,6 +166,7 @@ int main()
   {
     auto spA = std::make_unique<A>();
     A* a = spA.get();
+    (void)a;
     bool gotexpectederror(false);
     try {
 #if nc_cplusplus >= 201703L
