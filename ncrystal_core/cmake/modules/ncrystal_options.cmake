@@ -21,7 +21,7 @@
 
 include_guard()
 
-include( ncrystal_utils )
+include( mctools_utils )
 
 #All supported options are defined below. Additionally note that there is a
 #hidden option (for experts) called NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE" which can
