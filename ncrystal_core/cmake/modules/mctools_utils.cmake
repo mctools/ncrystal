@@ -98,7 +98,7 @@ endmacro()
 function( mctools_determine_strict_comp_flags resvar )
   string(
     SHA256 cacheid
-    "${CMAKE_C_COMPILER_ID};${CMAKE_CXX_COMPILER_ID};${MCTOOLS_EXTRA_STRICT_COMP_FLAGS_MSVC}"
+    "${CMAKE_C_COMPILER_ID};${MCTOOLS_EXTRA_STRICT_COMP_FLAGS_MSVC}"
   )
   set( cachevar "MCTOOLS_STRICT_COMPFLAGS_CACHED_${cacheid}" )
   if ( DEFINED "${cachevar}" )
@@ -187,30 +187,28 @@ function( mctools_detect_math_libs resvar )
 endfunction()
 
 function( mctools_detect_extra_cflags resvar )
-  string(
-    SHA256 cacheid
-    "${CMAKE_C_COMPILER_ID};${CMAKE_CXX_COMPILER_ID}"
-  )
+  #We assume that these flags are identical for C and C++.
+  string( SHA256 cacheid "${CMAKE_C_COMPILER_ID};" )
   set( cachevar "MCTOOLS_EXTRA_CFLAGS_CACHED_${cacheid}" )
   if ( DEFINED "${cachevar}" )
     set( "${resvar}" "${${cachevar}}" PARENT_SCOPE )
     return()
   endif()
-  include(CheckCXXCompilerFlag)
+  include(CheckCCompilerFlag)
   set( flags "" )
-  if ( "x${CMAKE_CXX_COMPILER_ID}" STREQUAL "xIntelLLVM" )
+  if ( "x${CMAKE_C_COMPILER_ID}" STREQUAL "xIntelLLVM" )
     #Intel defaults to the equivalent of -ffast-math, revert back to proper math:
     list( APPEND flags "-fp-model=precise" )
-  elseif( "${CMAKE_VERSION}" VERSION_LESS "3.20" AND "x${CMAKE_CXX_COMPILER_ID}" STREQUAL "xClang" )
+  elseif( "${CMAKE_VERSION}" VERSION_LESS "3.20" AND "x${CMAKE_C_COMPILER_ID}" STREQUAL "xClang" )
     #Older cmake had the llvm-based intel compiler classified as "Clang". In
     #this case, we check whether or not the -fp-model=precise flag is supported
     #or not:
-    check_cxx_compiler_flag( -fp-model=precise tmp )
+    check_c_compiler_flag( -fp-model=precise tmp )
     if ( tmp )
       list( APPEND flags "-fp-model=precise" )
     endif()
   endif()
-  check_cxx_compiler_flag( "-fno-math-errno" tmp )
+  check_c_compiler_flag( "-fno-math-errno" tmp )
   if ( tmp )
     list( APPEND flags "-fno-math-errno" )
   endif()
