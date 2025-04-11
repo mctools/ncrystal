@@ -169,15 +169,17 @@ class CMakeRunner:
                           args + ['--config',self._bt2cmakebt(bt)] )
         self.stage = 'bld'
 
-    def do_ctest( self ):
+    def do_ctest( self, extra_args = None ):
         assert self.mode == 'ctest'
         assert self.stage == 'bld'
         nprocs = self._determine_nprocs( self.nprocs_ctest,
                                          'CTEST_PARALLEL_LEVEL' )
         args = [ '--output-on-failure',
+                 '--no-tests=error',
                  '--test-output-size-failed', '10000',
                  '--test-output-truncation', 'middle',
-                 '--parallel',nprocs ]
+                 '--parallel',nprocs,
+                ] + ( extra_args or [] )
 
         for bt in self.build_types:
             self._invoke( self.ctest_cmd,
