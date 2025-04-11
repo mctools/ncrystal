@@ -293,8 +293,8 @@ ncfind_relinstpath( NCrystal_relpath_CMAKEDIR2DATAFILESDIR "${NCrystal_DATAFILES
 #Dummy interface target for common properties. Note that the interface is always
 #built with C++11 compatible compiler (which CMake will choose from a wide
 #variety depending on platform and other targets,
-#i.e. C++11/C++14/C++17/gnu++11/...). The NCRYSTAL_BUILD_STRICT option only affects
-#private non-transitive properties.
+#i.e. C++11/C++14/C++17/gnu++11/...).
+
 add_library( ncrystal_common INTERFACE )
 target_compile_features( ncrystal_common INTERFACE cxx_std_11 )
 
@@ -388,22 +388,9 @@ ncinstall(
   "${NCrystal_INCDIR}/NCrystal"
 )
 
-include(CheckCXXCompilerFlag)
-
-if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-  set( NC_STRICT_COMP_FLAGS "/WX" "/W4" "/WD4324" )
-else()
-  set( NC_STRICT_COMP_FLAGS -Wall -Wextra -pedantic -Werror )
-endif()
-
-if ( NCRYSTAL_BUILD_STRICT )
-  #Set globally warnings -> errors (although only has an effect in CMake 3.24 or
-  #later):
-  set( "CMAKE_COMPILE_WARNING_AS_ERROR" "ON" )
-  # turn list into space separated string for check_cxx_compiler_flag:
-  string( REPLACE ";" " " tmp "${NC_STRICT_COMP_FLAGS}" )
-  check_cxx_compiler_flag( "${tmp}" ncrystal_compiler_supports_strict_comp_flags )
-endif()
+include( mctools_utils )
+#On Windows we always disable warning 4324 due to spurious results.
+set( MCTOOLS_EXTRA_STRICT_COMP_FLAGS_MSVC "/WD4324")
 
 set( STRICT_CPPSTD OFF )
 set( STRICT_CSTD OFF )
@@ -439,6 +426,7 @@ if ( NCRYSTAL_BUILD_STRICT )
   endif()
 endif()
 
+#FIXME: -fp-model=precise stuff to common function in mctools_utils.cmake
 set( ncrystal_extra_private_compile_options "" )
 if ( "x${CMAKE_CXX_COMPILER_ID}" STREQUAL "xIntelLLVM" )
   #Intel defaults to the equivalent of -ffast-math, revert back to proper math:
@@ -447,6 +435,7 @@ elseif( "${CMAKE_VERSION}" VERSION_LESS "3.20" AND "x${CMAKE_CXX_COMPILER_ID}" S
   #Older cmake had the llvm-based intel compiler classified as "Clang". In
   #this case, we check whether or not the -fp-model=precise flag is supported
   #or not:
+  include(CheckCXXCompilerFlag)
   check_cxx_compiler_flag( -fp-model=precise ncrystal_compiler_supports_fpmodelprecise )
   if ( ncrystal_compiler_supports_fpmodelprecise )
     set( ncrystal_extra_private_compile_options -fp-model=precise )
@@ -454,26 +443,32 @@ elseif( "${CMAKE_VERSION}" VERSION_LESS "3.20" AND "x${CMAKE_CXX_COMPILER_ID}" S
 endif()
 
 function(set_target_common_props targetname)
-  #Set private non-transitive properties. If strict builds are enabled, this can
-  #enforce no warnings and compilation with a specific standards.
-  if ( NCRYSTAL_BUILD_STRICT AND ncrystal_compiler_supports_strict_comp_flags )
-    target_compile_options( ${targetname} PRIVATE ${NC_STRICT_COMP_FLAGS} )
-  endif()
+  mctools_apply_strict_comp_properties( ${targetname} )
   if ( STRICT_CPPSTD )
-    set_target_properties( ${targetname} PROPERTIES CXX_STANDARD ${STRICT_CPPSTD} CXX_STANDARD_REQUIRED ON CXX_EXTENSIONS OFF)
+    set_target_properties(
+      ${targetname}
+      PROPERTIES CXX_STANDARD ${STRICT_CPPSTD}
+      CXX_STANDARD_REQUIRED ON CXX_EXTENSIONS OFF
+    )
   endif()
   if ( STRICT_CSTD )
-    set_target_properties( ${targetname} PROPERTIES C_STANDARD ${STRICT_CSTD} C_STANDARD_REQUIRED ON C_EXTENSIONS OFF)
+    set_target_properties(
+      ${targetname}
+      PROPERTIES C_STANDARD ${STRICT_CSTD}
+      C_STANDARD_REQUIRED ON C_EXTENSIONS OFF)
   endif()
   #Always disallow M_PI and friends in our own code (they are not portable), but
   #do not add to ncapi.h to avoid introducing issues in user code:
   target_compile_definitions( ${targetname} PRIVATE NCRYSTAL_NO_CMATH_CONSTANTS )
   if ( ncrystal_extra_private_compile_options )
-    target_compile_options( ${targetname} PRIVATE ${ncrystal_extra_private_compile_options} )
+    target_compile_options(
+      ${targetname}
+      PRIVATE ${ncrystal_extra_private_compile_options} )
   endif()
 endfunction()
 
 #Can we use -fno-math-errno when building the NCrystal library?
+include(CheckCXXCompilerFlag)
 check_cxx_compiler_flag( -fno-math-errno ncrystal_compiler_supports_nomatherrno_flag )
 
 set( ncrystal_threads_lib OFF )

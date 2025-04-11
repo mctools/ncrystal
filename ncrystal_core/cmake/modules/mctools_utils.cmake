@@ -94,3 +94,52 @@ macro( string_option varname docstr defaultvalue )
   set( "${varname}" "${defaultvalue}" CACHE STRING "${docstr}" )
   list( APPEND _${PROJECT_NAME}_all_opts_vals "${${varname}}" )
 endmacro()
+
+function( mctools_determine_strict_comp_flags resvar )
+  string(
+    SHA256 cacheid
+    "${CMAKE_C_COMPILER_ID};${CMAKE_CXX_COMPILER_ID};${MCTOOLS_EXTRA_STRICT_COMP_FLAGS_MSVC}"
+  )
+  set( cachevar "MCTOOLS_STRICT_COMPFLAGS_CACHED_${cacheid}" )
+  if ( DEFINED "${cachevar}" )
+    set( "${resvar}" "${${cachevar}}" PARENT_SCOPE )
+    return()
+  endif()
+  if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
+    set( flags "/WX" "/W4" )
+    if ( MCTOOLS_EXTRA_STRICT_COMP_FLAGS_MSVC )
+      #Meant for injecting specific flags to be disabled, like "/WD1234":
+      list( APPEND flags ${MCTOOLS_EXTRA_STRICT_COMP_FLAGS_MSVC} )
+    endif()
+  else()
+    set( flags -Wall -Wextra -pedantic -Werror )
+  endif()
+  include(CheckCCompilerFlag)
+  # turn list into space separated string for check_c_compiler_flag:
+  string( REPLACE ";" " " tmp "${flags}" )
+  check_c_compiler_flag( "${tmp}" flagsok )#assuming same for C and C++
+  if ( NOT flagsok )
+    set( flags "" )
+    message(WARNING "Could not enable strict compilation flags")
+  endif()
+  set(
+    "${cachevar}" "${flags}"
+    CACHE INTERNAL "caching strict flags" FORCE
+  )
+  set( ${resvar} "${flags}" PARENT_SCOPE )
+endfunction()
+
+function( mctools_apply_strict_comp_properties targetname )
+  if( "${CMAKE_VERSION}" VERSION_GREATER_EQUAL "3.24" )
+    set_target_properties(
+      ${targetname} PROPERTIES COMPILE_WARNING_AS_ERROR ON
+    )
+  endif()
+  mctools_determine_strict_comp_flags( strictflags )
+  if ( strictflags )
+    set_property(
+      TARGET ${targetname}
+      APPEND PROPERTY COMPILE_OPTIONS "${strictflags}"
+    )
+  endif()
+endfunction()
