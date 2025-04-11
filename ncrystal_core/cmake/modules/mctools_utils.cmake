@@ -144,9 +144,6 @@ function( mctools_apply_strict_comp_properties targetname )
   endif()
 endfunction()
 
-#fixme: also -fp-model=precise and -fno-math-errno in one common function (for
-#private properties only).
-
 function( mctools_detect_math_libs resvar )
   #Make sure we link in math functions correctly (typically the linker needs
   #libm on unix, but nothing on Windows). Sets the list of libraries to link in
@@ -187,4 +184,39 @@ function( mctools_detect_math_libs resvar )
     CACHE INTERNAL "caching math libs" FORCE
   )
   set( ${resvar} "${result}" PARENT_SCOPE )
+endfunction()
+
+function( mctools_detect_extra_cflags resvar )
+  string(
+    SHA256 cacheid
+    "${CMAKE_C_COMPILER_ID};${CMAKE_CXX_COMPILER_ID}"
+  )
+  set( cachevar "MCTOOLS_EXTRA_CFLAGS_CACHED_${cacheid}" )
+  if ( DEFINED "${cachevar}" )
+    set( "${resvar}" "${${cachevar}}" PARENT_SCOPE )
+    return()
+  endif()
+  include(CheckCXXCompilerFlag)
+  set( flags "" )
+  if ( "x${CMAKE_CXX_COMPILER_ID}" STREQUAL "xIntelLLVM" )
+    #Intel defaults to the equivalent of -ffast-math, revert back to proper math:
+    list( APPEND flags "-fp-model=precise" )
+  elseif( "${CMAKE_VERSION}" VERSION_LESS "3.20" AND "x${CMAKE_CXX_COMPILER_ID}" STREQUAL "xClang" )
+    #Older cmake had the llvm-based intel compiler classified as "Clang". In
+    #this case, we check whether or not the -fp-model=precise flag is supported
+    #or not:
+    check_cxx_compiler_flag( -fp-model=precise tmp )
+    if ( tmp )
+      list( APPEND flags "-fp-model=precise" )
+    endif()
+  endif()
+  check_cxx_compiler_flag( "-fno-math-errno" tmp )
+  if ( tmp )
+    list( APPEND flags "-fno-math-errno" )
+  endif()
+  set(
+    "${cachevar}" "${flags}"
+    CACHE INTERNAL "caching strict flags" FORCE
+  )
+  set( ${resvar} "${flags}" PARENT_SCOPE )
 endfunction()

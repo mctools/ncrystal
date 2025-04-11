@@ -426,22 +426,6 @@ if ( NCRYSTAL_BUILD_STRICT )
   endif()
 endif()
 
-#FIXME: -fp-model=precise stuff to common function in mctools_utils.cmake
-set( ncrystal_extra_private_compile_options "" )
-if ( "x${CMAKE_CXX_COMPILER_ID}" STREQUAL "xIntelLLVM" )
-  #Intel defaults to the equivalent of -ffast-math, revert back to proper math:
-  set( ncrystal_extra_private_compile_options -fp-model=precise )
-elseif( "${CMAKE_VERSION}" VERSION_LESS "3.20" AND "x${CMAKE_CXX_COMPILER_ID}" STREQUAL "xClang" )
-  #Older cmake had the llvm-based intel compiler classified as "Clang". In
-  #this case, we check whether or not the -fp-model=precise flag is supported
-  #or not:
-  include(CheckCXXCompilerFlag)
-  check_cxx_compiler_flag( -fp-model=precise ncrystal_compiler_supports_fpmodelprecise )
-  if ( ncrystal_compiler_supports_fpmodelprecise )
-    set( ncrystal_extra_private_compile_options -fp-model=precise )
-  endif()
-endif()
-
 function(set_target_common_props targetname)
   mctools_apply_strict_comp_properties( ${targetname} )
   if ( STRICT_CPPSTD )
@@ -457,19 +441,15 @@ function(set_target_common_props targetname)
       PROPERTIES C_STANDARD ${STRICT_CSTD}
       C_STANDARD_REQUIRED ON C_EXTENSIONS OFF)
   endif()
+
   #Always disallow M_PI and friends in our own code (they are not portable), but
   #do not add to ncapi.h to avoid introducing issues in user code:
   target_compile_definitions( ${targetname} PRIVATE NCRYSTAL_NO_CMATH_CONSTANTS )
-  if ( ncrystal_extra_private_compile_options )
-    target_compile_options(
-      ${targetname}
-      PRIVATE ${ncrystal_extra_private_compile_options} )
-  endif()
-endfunction()
 
-#Can we use -fno-math-errno when building the NCrystal library?
-include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag( -fno-math-errno ncrystal_compiler_supports_nomatherrno_flag )
+  #Extra flags (e.g. for intel compiler support):
+  mctools_detect_extra_cflags( tmp )
+  target_compile_options( ${targetname} PRIVATE ${tmp} )
+endfunction()
 
 set( ncrystal_threads_lib OFF )
 if ( NOT NCRYSTAL_ENABLE_THREADS STREQUAL "OFF" )
@@ -489,10 +469,6 @@ add_library( NCrystal SHARED ${ncpkg_all_ncrystal_lib_srcfiles} )
 
 #Make sure client code will use at least c++11:
 target_compile_features( NCrystal INTERFACE cxx_std_11 )
-
-if ( ncrystal_compiler_supports_nomatherrno_flag )
-  target_compile_options( NCrystal PRIVATE -fno-math-errno )
-endif()
 
 if ( ncrystal_threads_lib )
   message( STATUS "Thread support will be enabled.")
