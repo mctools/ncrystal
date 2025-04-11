@@ -55,9 +55,10 @@ def main( parser ):
         default = 'ctest',
         help="""Mode (default: ctest)."""
     )
+
     parser.add_argument(
         '-s','--strict', type = str,
-        choices = ('OFF','ON','11','14','17','20','23'),
+        choices = ('NOTOUCH','OFF','ON','11','14','17','20','23'),
         default = '11',
         help="""BUILD_STRICT mode (default: '11')."""
     )
@@ -78,6 +79,8 @@ def main( parser ):
     for e in args.cmake_args:
         for s in e:
             _.append(s[1:] if s.startswith('@') else s)
+    if args.strict != 'NOTOUCH' :
+        _.append( f'-DNCRYSTAL_BUILD_STRICT={args.strict}' )
     args.cmake_args = _
 
     from .util import get_nprocs
