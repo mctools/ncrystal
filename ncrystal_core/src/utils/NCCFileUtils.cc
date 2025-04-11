@@ -155,9 +155,12 @@ namespace MCFILEUTILS_CPPNAMESPACE {
 
   mcu8str mcu8str_create( mcu8str_size_t prealloc_size )
   {
+    MCTOOLS_STATIC_ASSERT( sizeof(int)==sizeof(unsigned) );
+    MCTOOLS_STATIC_ASSERT( sizeof(size_t)>=sizeof(unsigned) );
     MCTOOLS_STATIC_ASSERT( sizeof(unsigned)>=4 );
-    MCTOOLS_STATIC_ASSERT( sizeof(size_t)>=8 );
-    MCTOOLS_STATIC_ASSERT( sizeof(void*)>=8 );
+    MCTOOLS_STATIC_ASSERT( sizeof(size_t)>=4 );
+    MCTOOLS_STATIC_ASSERT( sizeof(void*)>=4 );
+
     if ( prealloc_size == 0 )
       return mcu8str_create_empty();
     mcu8str s;
@@ -814,7 +817,7 @@ namespace {
     {
       MCTOOLS_STATIC_ASSERT( sizeof(DWORD)==sizeof(uint32_t) );
       MCTOOLS_STATIC_ASSERT( sizeof(unsigned)>=sizeof(uint32_t) );
-      MCTOOLS_STATIC_ASSERT( sizeof(size_t)>=sizeof(uint64_t) );
+      MCTOOLS_STATIC_ASSERT( sizeof(size_t)>=sizeof(uint32_t) );
       mcwinstr str;
       str.c_str = (wchar_t*)( MCTOOLS_STROKFORUINT(size)
                               ?  STDNS malloc( sizeof(wchar_t)*(size + 1) )
@@ -824,8 +827,10 @@ namespace {
         throw std::bad_alloc();
 #else
         fprintf(stderr, "ERROR: Memory allocation failed in mc_winstr_create\n");
+        exit(EXIT_FAILURE);
 #endif
-        return mc_winstr_create_empty();
+        //gives (correctly but annoyingly) unreachable warning with MSVC
+        //return mc_winstr_create_empty();
       }
       str.c_str[0] = 0;
       str.size = 0;
