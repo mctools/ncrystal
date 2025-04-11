@@ -1,4 +1,8 @@
 v4.1.7 (work in progress)
+     * Aligh common utilities with MCPL project (specifically CMake code, test
+       code, and C file utils).
+     * Fix potentially uninitialised variable in pyrolythic graphite model (in
+       the move constructor of the LCHelper::Overlay class).
      * ...
 
 v4.1.6 2025-03-30

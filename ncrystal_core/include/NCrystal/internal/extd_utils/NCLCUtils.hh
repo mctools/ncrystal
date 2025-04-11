@@ -196,11 +196,11 @@ namespace NCRYSTAL_NAMESPACE {
     void forceUpdateCache( Cache&, uint64_t discr_wl, uint64_t discr_c3 ) const;
     struct Overlay : private MoveOnly {
       static constexpr unsigned ndata = 8;
-      Overlay();
+      Overlay() = default;
       ~Overlay();
       void clear();
       void prepareNullArray();
-      float * data;
+      float * data = nullptr;
       double nonCommulVal(unsigned i) const;
       Overlay(Overlay&& o);
       Overlay& operator=(Overlay&& o);
@@ -270,9 +270,8 @@ namespace NCRYSTAL_NAMESPACE {
   {
     //Starts in same state as after calling Cache::reset()
   }
-  inline LCHelper::Overlay::Overlay() : data(0) {}
   inline LCHelper::Overlay::~Overlay() { delete[] data; }
-  inline void LCHelper::Overlay::clear() { delete[] data; data = 0; }
+  inline void LCHelper::Overlay::clear() { delete[] data; data = nullptr; }
   inline void LCHelper::Overlay::prepareNullArray() { if (!data) { data = new float[ndata]; } std::memset(data,0,sizeof(float)*ndata); }
   inline double LCHelper::Overlay::nonCommulVal(unsigned i) const { nc_assert(i<ndata); return i ? data[i]-(double)data[i-1] : (double)data[i]; }
   inline LCHelper::Overlay::Overlay(LCHelper::Overlay&& o) { std::swap(data,o.data); }
