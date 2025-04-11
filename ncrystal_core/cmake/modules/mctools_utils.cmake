@@ -143,3 +143,48 @@ function( mctools_apply_strict_comp_properties targetname )
     )
   endif()
 endfunction()
+
+#fixme: also -fp-model=precise and -fno-math-errno in one common function (for
+#private properties only).
+
+function( mctools_detect_math_libs resvar )
+  #Make sure we link in math functions correctly (typically the linker needs
+  #libm on unix, but nothing on Windows). Sets the list of libraries to link in
+  #resvar.
+  string( SHA256 cacheid "${CMAKE_C_COMPILER_ID}" )
+  set( cachevar "MCTOOLS_MATH_LIBS_CACHED_${cacheid}" )
+  if ( DEFINED "${cachevar}" )
+    set( "${resvar}" "${${cachevar}}" PARENT_SCOPE )
+    return()
+  endif()
+  set( result "" )
+  set(
+    TMP_TESTLIBMSRC
+    "#include <math.h>\nint main(int argc,char** argv) { (void)argv;double a=(exp)(argc+1.0); return (int)(a*0.1); }\n"
+  )
+  set( TMP_TESTDIR "${PROJECT_BINARY_DIR}/test_libm_${cacheid}" )
+  file( WRITE ${TMP_TESTDIR}/test.c "${TMP_TESTLIBMSRC}" )
+  try_compile(
+    ALWAYS_HAS_MATH "${TMP_TESTDIR}" "${TMP_TESTDIR}/test.c"
+  )
+  if ( NOT ALWAYS_HAS_MATH )
+    set( TMP_TESTDIR "${PROJECT_BINARY_DIR}/test_libm2_${cacheid}" )
+    file(WRITE ${TMP_TESTDIR}/test.c "${TMP_TESTLIBMSRC}")
+    try_compile(
+      MATH_NEEDS_LIBM "${TMP_TESTDIR}" "${TMP_TESTDIR}/test.c" LINK_LIBRARIES m
+    )
+    if (MATH_NEEDS_LIBM)
+      set( result "m" )
+    else()
+      message(
+        FATAL_ERROR
+        "Could not figure out link flags needed to enable math functions"
+      )
+    endif()
+  endif()
+  set(
+    "${cachevar}" "${result}"
+    CACHE INTERNAL "caching math libs" FORCE
+  )
+  set( ${resvar} "${result}" PARENT_SCOPE )
+endfunction()

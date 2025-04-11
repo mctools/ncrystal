@@ -32,6 +32,8 @@
 
 include_guard()
 
+include( mctools_utils )
+
 set(
   "mctools_launcher_file"
   "${CMAKE_CURRENT_LIST_DIR}/mctools_testlauncher.py"
@@ -222,7 +224,6 @@ function( mctools_testutils_internal_haspydep resvar pydep )
   endif()
 endfunction()
 
-
 function( mctools_testutils_internal_missingpydeps resvar pydeps )
   set( missing "")
   foreach( pydep ${pydeps} )
@@ -271,7 +272,7 @@ function(
       set( libprefix "TestLib_" )
     endif()
     set( name "${libprefix}${bn}" )
-    mctools_testutils_internal_getsrcfiles( srcfiles "${libdir}" is_module )
+    mctools_testutils_internal_getsrcfiles( srcfiles is_cxx "${libdir}" is_module )
     mctools_testutils_internal_detectlibdeps( "deplist" "${srcfiles}" )
     foreach( dep ${deplist} )
       if ( NOT "x${dep}" STREQUAL "x${bn}" )
@@ -282,6 +283,9 @@ function(
     if ( is_module )
       #Shared library to be loaded by python ctypes
       add_library( ${name} MODULE ${srcfiles} )
+      if ( is_cxx )
+        target_compile_features( ${name} PRIVATE cxx_std_11 )
+      endif()
       set_target_properties(
         ${name} PROPERTIES
         CXX_VISIBILITY_PRESET "hidden"
@@ -300,6 +304,7 @@ function(
 
     target_link_libraries( ${name} PRIVATE ${extra_link_libs} )
     target_include_directories( ${name} ${extra_inc_dirs} )
+    mctools_apply_strict_comp_properties( ${name} )
 
     if ( EXISTS "${libdir}/include" )
       if ( is_module )
@@ -341,9 +346,12 @@ function(
   foreach(appdir ${appdirs})
     get_filename_component(bn "${appdir}" NAME_WE)
     string(SUBSTRING "${bn}" 4 -1 "bn")
-    mctools_testutils_internal_getsrcfiles( srcfiles "${appdir}" "OFF" )
+    mctools_testutils_internal_getsrcfiles( srcfiles is_cxx "${appdir}" "OFF" )
     add_executable( ${bn} ${srcfiles})
-
+    if ( is_cxx )
+      target_compile_features( ${bn} PRIVATE cxx_std_11 )
+    endif()
+    mctools_apply_strict_comp_properties( ${bn} )
     mctools_testutils_internal_detectlibdeps( "deplist" "${srcfiles}" "" )
     foreach( dep ${deplist} )
       target_link_libraries( ${bn} PRIVATE "TestLib_${dep}" )
@@ -478,7 +486,8 @@ function( mctools_testutils_internal_detectpydeps resvar pyfile )
   set( "${resvar}" "${deplist}" PARENT_SCOPE )
 endfunction()
 
-function( mctools_testutils_internal_getsrcfiles resvar_srcfiles dir is_module )
+function( mctools_testutils_internal_getsrcfiles
+    resvar_srcfiles resvar_iscxx dir is_module  )
   file(
     GLOB srcfiles_cxx LIST_DIRECTORIES false CONFIGURE_DEPENDS
     "${dir}/*.cc"
@@ -490,8 +499,13 @@ function( mctools_testutils_internal_getsrcfiles resvar_srcfiles dir is_module )
   if ( NOT srcfiles_cxx AND NOT srcfiles_c )
     message(FATAL_ERROR "No source files found in ${dir}")
   endif()
-  set_source_files_properties(${srcfiles_cxx} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${srcfiles_c} PROPERTIES LANGUAGE C)
+  if ( srcfiles_cxx AND srcfiles_c )
+    message(FATAL_ERROR "Both C and C++ source files found in ${dir}")
+  endif()
+  set_source_files_properties(
+    ${srcfiles_c}
+    PROPERTIES LANGUAGE C
+  )
   if ( is_module )
     set_source_files_properties(
       ${srcfiles_cxx} ${srcfiles_c}
@@ -510,9 +524,27 @@ function( mctools_testutils_internal_getsrcfiles resvar_srcfiles dir is_module )
   list( APPEND res ${srcfiles_cxx} )
   list( APPEND res ${srcfiles_c} )
   set( ${resvar_srcfiles} "${res}" PARENT_SCOPE )
+  if ( srcfiles_cxx )
+    set( ${resvar_iscxx} "ON" PARENT_SCOPE )
+  else()
+    set( ${resvar_iscxx} "OFF" PARENT_SCOPE )
+  endif()
 endfunction()
 
 function( mctools_testutils_internal_addtest name cmd_file reflog )
+  #Make number of tests added available in global variable (need to use internal
+  #cache var since there might be nested function calls, so PARENT_SCOPE is not
+  #enough):
+  if ( NOT DEFINED mctools_tests_count )
+    set( tmpcount "1" )
+  else()
+    math( EXPR tmpcount "${mctools_tests_count}+1" )
+  endif()
+  set(
+    mctools_tests_count "${tmpcount}"
+    CACHE INTERNAL "number of tests added" FORCE
+  )
+  #Wrap all tests in our launcher script:
   mctools_testutils_internal_getpyexec( "pyexec" )
   add_test(
     NAME "${name}"
@@ -531,6 +563,6 @@ function( mctools_testutils_internal_addtest name cmd_file reflog )
 
   #Set a timeout to prevent hanging jobs and test times getting out of hand
   #(exact values can be revisited). We allow longer jobs in Debug mode:
-  set_property( TEST "${name}" PROPERTY TIMEOUT "$<IF:$<CONFIG:Debug>,120,40>" )
+  set_property( TEST "${name}" PROPERTY TIMEOUT "$<IF:$<CONFIG:Debug>,480,240>" )
   #TODO: Support tests/costs.txt for adding cost properties to tests?
 endfunction()
