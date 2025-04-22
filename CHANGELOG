@@ -3,6 +3,11 @@ v4.1.7 (work in progress)
        code, and C file utils).
      * Fix potentially uninitialised variable in pyrolythic graphite model (in
        the move constructor of the LCHelper::Overlay class).
+     * Python API: The vdos.extractKnl function now optionally supports a
+       targetEmax parameter, and returns suggestedEmax amongst the results.
+     * C API: Replace the ncrystal_raw_vdos2knl function with
+       ncrystal_raw_vdos2kernel, which supports target_emax/suggested_emax
+       parameters. the old function is for now still available.
      * ...
 
 v4.1.6 2025-03-30

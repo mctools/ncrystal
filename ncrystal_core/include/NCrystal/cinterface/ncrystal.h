@@ -521,6 +521,10 @@ extern "C" {
 #  undef ncrystal_raw_vdos2knl
 #endif
 #define ncrystal_raw_vdos2knl NCRYSTAL_APPLY_C_NAMESPACE(raw_vdos2knl)
+#ifdef ncrystal_raw_vdos2kernel
+#  undef ncrystal_raw_vdos2kernel
+#endif
+#define ncrystal_raw_vdos2kernel NCRYSTAL_APPLY_C_NAMESPACE(raw_vdos2kernel)
 #ifdef ncrystal_ref
 #  undef ncrystal_ref
 #endif
@@ -868,24 +872,33 @@ extern "C" {
                                           unsigned* res_gn_npts,
                                           double** res_gn_vals );
 
-  /* Expand VDOS to scattering kernel with Sjolander's method, functions directly */
-  /* from VDOS curves. The alpha, beta, and sab arrays should be freed with       */
-  /* ncrystal_dealloc_doubleptr after usage. The order_weight_fct can optionally  */
-  /* be used to change the contribution of a given Gn order to the kernel.        */
-  NCRYSTAL_API void ncrystal_raw_vdos2knl( const double* vdos_egrid,
-                                           const double* vdos_density,
-                                           unsigned vdos_egrid_npts,
-                                           unsigned vdos_density_npts,
-                                           double scattering_xs,
-                                           double mass_amu,
-                                           double temperature,
-                                           unsigned vdoslux,
-                                           double (*order_weight_fct)( unsigned order ),
-                                           unsigned* nalpha,
-                                           unsigned* nbeta,
-                                           double** alpha,
-                                           double** beta,
-                                           double** sab );
+  /* Expand VDOS to scattering kernel with Sjolander's method, directly from  */
+  /* VDOS curves. The alpha, beta, and sab arrays should be freed with        */
+  /* ncrystal_dealloc_doubleptr after usage. The order_weight_fct can         */
+  /* optionally be used to change the contribution of a given Gn order to the */
+  /* kernel (otherwise pass in a NULL ptr). The target_emax parameter will be */
+  /* used to specifically request a target_emax value for the expansion (set  */
+  /* to 0 to use a value based on the vdoslux parameter). The suggested_emax  */
+  /* parameter will return the actual emax value supported by the returned    */
+  /* kernel, unless an order_weight_fct is provided in which case 0 is always */
+  /* returned. It might be lower than the target value, which can normally    */
+  /* happen if the temperature is very low or the target emax was very high.  */
+  NCRYSTAL_API void ncrystal_raw_vdos2kernel( const double* vdos_egrid,
+                                              const double* vdos_density,
+                                              unsigned vdos_egrid_npts,
+                                              unsigned vdos_density_npts,
+                                              double scattering_xs,
+                                              double mass_amu,
+                                              double temperature,
+                                              unsigned vdoslux,
+                                              double (*order_weight_fct)( unsigned order ),
+                                              unsigned* nalpha,
+                                              unsigned* nbeta,
+                                              double** alpha,
+                                              double** beta,
+                                              double** sab,
+                                              double target_emax,
+                                              double* suggested_emax );
 
   /* Access vdos data for ditype 3.                                                */
   NCRYSTAL_API void ncrystal_dyninfo_extract_vdos( ncrystal_info_t,
@@ -1293,6 +1306,22 @@ extern "C" {
                                               double * results_dirz,
                                               double * results_dekin );
 
+
+  /* Same as ncrystal_raw_vdos2knl but without target_emax/suggested_emax: */
+  NCRYSTAL_API void ncrystal_raw_vdos2knl( const double* vdos_egrid,
+                                           const double* vdos_density,
+                                           unsigned vdos_egrid_npts,
+                                           unsigned vdos_density_npts,
+                                           double scattering_xs,
+                                           double mass_amu,
+                                           double temperature,
+                                           unsigned vdoslux,
+                                           double (*order_weight_fct)( unsigned order ),
+                                           unsigned* nalpha,
+                                           unsigned* nbeta,
+                                           double** alpha,
+                                           double** beta,
+                                           double** sab );
 
   /* Run the experimental embedded simulation engine for diffraction patterns. */
   /* Depending on the tally_detail_lvl, various results are returned in the    */

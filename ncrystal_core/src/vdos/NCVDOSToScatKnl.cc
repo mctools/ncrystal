@@ -871,7 +871,7 @@ NC::ScatKnlData NC::createScatteringKernel( const VDOSData& vdosdata,
                           " value is too high, vdoslux too low, the temperature too high, or the VDOS is very unusual).");
       } while (sabPointWithinAlphaPlusCurve(targetEmax_reduced*invkT,alphaRange.first,betaRange.second));
       if (V2SKDetail::s_verbose)
-        NCRYSTAL_MSG("VDOS2SK Could only reach Emax="<<targetEmax_reduced<<"eV and not the requested Emax="<<targetEmax<<"K");
+        NCRYSTAL_WARN("VDOS2SK Could only reach Emax="<<targetEmax_reduced<<"eV and not the requested Emax="<<targetEmax<<"K");
       targetEmax_div_kT = targetEmax_reduced * invkT;
       targetEmax = targetEmax_reduced;
       break;

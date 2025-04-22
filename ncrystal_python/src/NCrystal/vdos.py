@@ -103,7 +103,8 @@ def extractGn( vdos, n, mass_amu, temperature, scatxs = 1.0, expand_egrid = True
         return _np_linspace( emin, emax, len(Gn) ), Gn
 
 def extractKnl( vdos, mass_amu, temperature, vdoslux = 3, scatxs = 1.0,
-                order_weight_fct = None, plot = False, **plotkwargs ):
+                order_weight_fct = None, target_emax = None,
+                plot = False, **plotkwargs ):
     """Expand the VDOS to a scattering kernel, based on the provided
     parameters.
 
@@ -112,14 +113,37 @@ def extractKnl( vdos, mass_amu, temperature, vdoslux = 3, scatxs = 1.0,
     order). It must be a function taking a single parameter n (the order), and
     return a floating point value (the weight).
 
+    The target_emax parameter can be used to override the Emax value (eV)
+    targeted by the expansion, which will otherwise be based on the vdoslux
+    value.
+
+    The results will include alpha, beta, and sab arrays, as well as a
+    suggested_emax value (eV) which provides the actual Emax value of the
+    kernel. The latter will be None if an order_weight_function is provided.
+
     If plot=True, the extracted kernel will be plotted with the
     NCrystal.plot.plot_knl function.
+
     """
     from .misc import AnyVDOS
     v = AnyVDOS(vdos)
     from ._chooks import _get_raw_cfcts
-    a,b,sab = _get_raw_cfcts()['raw_vdos2knl'](v.egrid(),v.dos(),scatxs, mass_amu, temperature, vdoslux, order_weight_fct )
-    k = dict(alpha=a, beta=b, sab=sab, mass_amu=mass_amu,temperature=temperature,scatxs=scatxs)
+    f = _get_raw_cfcts()['raw_vdos2knl']
+    a, b, sab, suggested_emax = f( v.egrid(),
+                                   v.dos(),
+                                   scatxs,
+                                   mass_amu,
+                                   temperature,
+                                   vdoslux,
+                                   order_weight_fct,
+                                   target_emax )
+    k = dict( alpha = a,
+              beta = b,
+              sab = sab,
+              mass_amu = mass_amu,
+              temperature = temperature,
+              scatxs = scatxs,
+              suggested_emax = suggested_emax )
     if plot:
         from .plot import plot_knl
         plot_knl( k, **plotkwargs )

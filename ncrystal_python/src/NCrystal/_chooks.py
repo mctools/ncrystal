@@ -319,12 +319,24 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
     functions['raw_vdos2gn'] = raw_vdos2gn
 
     _ORDERWEIGHTFCTTYPE = ctypes.CFUNCTYPE( _dbl, _uint )
-    _raw_vdos2knl = _wrap('ncrystal_raw_vdos2knl',None,(_dblp,_dblp,_uint,_uint,_dbl,_dbl,_dbl,_uint,_ORDERWEIGHTFCTTYPE,_uintp,_uintp,_dblpp,_dblpp,_dblpp),hide=True)
-    def raw_vdos2knl( egrid, density, scatxs, mass_amu, temperature, vdoslux, order_weight_fct ):
+    _raw_vdos2knl = _wrap('ncrystal_raw_vdos2kernel',None,
+                          (_dblp,_dblp,_uint,_uint,_dbl,_dbl,_dbl,_uint,
+                           _ORDERWEIGHTFCTTYPE,_uintp,_uintp,_dblpp,_dblpp,
+                           _dblpp,_dbl,_dblp),
+                          hide=True)
+    def raw_vdos2knl( egrid, density, scatxs, mass_amu, temperature,
+                      vdoslux, order_weight_fct, target_emax ):
         _ensure_numpy()
-        _egrid,_density = _np.asarray(egrid,dtype=float),_np.asarray(density,dtype=float)
-        _s,_m,_t,_vdl = _dbl(float(scatxs)),_dbl(float(mass_amu)),_dbl(float(temperature)),_uint(int(vdoslux))
-        nalpha, nbeta,agrid, bgrid, sab = _uint(), _uint(),_dblp(), _dblp(), _dblp()
+        _egrid = _np.asarray(egrid,dtype=float)
+        _density = _np.asarray(density,dtype=float)
+        _s = _dbl(float(scatxs))
+        _m = _dbl(float(mass_amu))
+        _t = _dbl(float(temperature))
+        _vdl = _uint(int(vdoslux))
+        _tgtemax = target_emax or 0.0
+        _tgtemax = _dbl( float(_tgtemax if _tgtemax>0.0 else 0.0 ) )
+        nalpha, nbeta, suggest_emax = _uint(), _uint(), _dbl()
+        agrid, bgrid, sab = _dblp(), _dblp(), _dblp()
         if order_weight_fct:
             def owf(order):
                 return float(order_weight_fct( int(order.value
@@ -336,11 +348,13 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
             _owf = ctypes.cast(None, _ORDERWEIGHTFCTTYPE)
         _raw_vdos2knl( ndarray_to_dblp(_egrid), ndarray_to_dblp(_density),
                        _uint(len(_egrid)),_uint(len(_density)),
-                       _s,_m,_t,_vdl,_owf,nalpha, nbeta,
-                       ctypes.byref(agrid), ctypes.byref(bgrid), ctypes.byref(sab) )
+                       _s,_m,_t,_vdl,_owf, nalpha, nbeta,
+                       ctypes.byref(agrid), ctypes.byref(bgrid), ctypes.byref(sab),
+                       _tgtemax, suggest_emax )
         return ( _cptr_to_nparray( agrid, nalpha ),
                  _cptr_to_nparray( bgrid, nbeta ),
-                 _cptr_to_nparray( sab, nalpha.value * nbeta.value ) )
+                 _cptr_to_nparray( sab, nalpha.value * nbeta.value ),
+                 float( suggest_emax.value ) or None )
     functions['raw_vdos2knl'] = raw_vdos2knl
 
     def ncrystal_dyninfo_base(key):

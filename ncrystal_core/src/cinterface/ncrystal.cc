@@ -779,16 +779,57 @@ void ncrystal_raw_vdos2knl( const double* vdos_egrid,
                             double** beta,
                             double** sab )
 {
+  //obsolete fct:
+  double target_emax = 0.0;
+  double suggested_emax;
+  ncrystal_raw_vdos2kernel( vdos_egrid,
+                            vdos_density,
+                            vdos_egrid_npts,
+                            vdos_density_npts,
+                            scattering_xs,
+                            mass_amu,
+                            temperature,
+                            vdoslux,
+                            order_weight_fct,
+                            nalpha,
+                            nbeta,
+                            alpha,
+                            beta,
+                            sab,
+                            target_emax,
+                            &suggested_emax );
+}
+
+void ncrystal_raw_vdos2kernel( const double* vdos_egrid,
+                               const double* vdos_density,
+                               unsigned vdos_egrid_npts,
+                               unsigned vdos_density_npts,
+                               double scattering_xs,
+                               double mass_amu,
+                               double temperature,
+                               unsigned vdoslux,
+                               double (*order_weight_fct)( unsigned order ),
+                               unsigned* nalpha,
+                               unsigned* nbeta,
+                               double** alpha,
+                               double** beta,
+                               double** sab,
+                               double target_emax,
+                               double* suggested_emax )
+{
   try {
+    *suggested_emax = 0.0;
     auto vdosData = ncc::createVDOSDataFromRaw( vdos_egrid, vdos_density,
                                                 vdos_egrid_npts, vdos_density_npts,
                                                 scattering_xs, mass_amu, temperature );
-    const double targetEmax = 0.0;//if 0, will depend on luxlvl. Error if set to unachievable value.
     auto ttpars = NC::VDOSGn::TruncAndThinningChoices::Default;
-    auto knldata = NC::createScatteringKernel( vdosData, vdoslux, targetEmax, ttpars, order_weight_fct );
+    auto knldata = NC::createScatteringKernel( vdosData, vdoslux, target_emax, ttpars, order_weight_fct );
     auto sabdata = NC::SABUtils::transformKernelToStdFormat( std::move(knldata) );
-    //NB: We ignore sabdata.suggestedEmax(), since order_weight_fct might anyway
-    //have screwed with it.
+    if ( !order_weight_fct ) {
+      // Only set suggested_emax if not using order_weight_fct, since it makes
+      // it unpredictable:
+      *suggested_emax = sabdata.suggestedEmax();
+    }
     auto na = sabdata.alphaGrid().size();
     double * arr_a = new double[na];
     std::copy( sabdata.alphaGrid().begin(), sabdata.alphaGrid().end(), arr_a );
