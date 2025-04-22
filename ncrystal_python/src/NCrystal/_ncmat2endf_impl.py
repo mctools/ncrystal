@@ -369,6 +369,18 @@ class NuclearData():
     def elastic_mode(self):
         return self._elastic_mode
 
+    def _loadKernel( self, di ):
+        from .vdos import extractKnl
+        #Note: using the extractKnl function rather than di.loadKernel means
+        #that there will be no reduction of vdoslux for VDOSDebye objects. This
+        #is why we use this function here, since ENDF files need the higher
+        #energy range of the resulting sab.
+        return extractKnl( vdos = di,
+                           mass_amu = di.atomData.averageMassAMU(),
+                           temperature = di.temperature,
+                           scatxs = 1.0,#fixme: double check if 1.0 is appropriate here
+                           vdoslux = self._vdoslux )
+
     def _combine_alpha_beta_grids(self):
         #
         # Combine (alpha, beta) grids from different temperatures
@@ -382,7 +394,7 @@ class NuclearData():
             info_obj = nc_core.createInfo(cfg)
             for di in info_obj.dyninfos:
                 sym = di.atomData.elementName()
-                sctknl = di.loadKernel(vdoslux=self._vdoslux)
+                sctknl = self._loadKernel(di)
                 self._elems[sym].alpha = _np.unique(_np.concatenate((
                                          self._elems[sym].alpha,
                                          sctknl['alpha']*T/T0)))
@@ -396,7 +408,7 @@ class NuclearData():
         info_obj = nc_core.createInfo(cfg)
         for di in info_obj.dyninfos:
             sym = di.atomData.elementName()
-            sctknl = di.loadKernel(vdoslux=self._vdoslux)
+            sctknl = self._loadKernel(di)
             self._elems[sym].alpha = sctknl['alpha']*T/T0
             self._elems[sym].beta_total = sctknl['beta']*T/T0
         if self._combine_temperatures:
@@ -597,7 +609,7 @@ class NuclearData():
                 #
                 # Load incoherent inelastic data
                 #
-                sctknl = di.loadKernel(vdoslux=self._vdoslux)
+                sctknl = self._loadKernel(di)
                 if self._verbosity > 2:
                     ncprint(f'>>> Interpolating T={T}K for {sym}')
 
