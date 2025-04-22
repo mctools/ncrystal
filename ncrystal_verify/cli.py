@@ -194,7 +194,9 @@ def prepare_needs( scripts, verbose ):
         modtoimport = dep
         if dep=='matplotlib':
             modtoimport = 'matplotlib.pyplot'
-        if dep=='toml':
+        elif dep=='endf-parserpy':
+            modtoimport = 'endf_parserpy'
+        elif dep=='toml':
             import sys
             if sys.version_info[0:2] >= (3,11):
                 #tomllib always present in 3.11+
