@@ -262,7 +262,8 @@ class NuclearData():
         (greater, scaled or mixed)
     """
 
-    def __init__(self, *, ncmat_cfg, temperatures, elastic_mode, verbosity=1):
+    def __init__(self, *, ncmat_cfg, temperatures, elastic_mode,
+                          requested_emax, verbosity=1):
         r"""
         Parameters
         ----------
@@ -283,6 +284,7 @@ class NuclearData():
         self._elems = {}
         self._comments = None
         self._vdoslux = nc_cfgstr.decodecfg_vdoslux(ncmat_cfg)
+        self._requested_emax = requested_emax
         self._verbosity = verbosity
         self._elastic_mode = elastic_mode
         scattering_components = nc_misc.detect_scattering_components(ncmat_cfg)
@@ -379,6 +381,7 @@ class NuclearData():
                            mass_amu = di.atomData.averageMassAMU(),
                            temperature = di.temperature,
                            scatxs = 1.0,#fixme: double check if 1.0 is appropriate here
+                           target_emax = self._requested_emax,
                            vdoslux = self._vdoslux )
 
     def _combine_alpha_beta_grids(self):
