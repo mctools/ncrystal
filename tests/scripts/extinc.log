@@ -1,0 +1,50 @@
+Library "TestMod_extinction" (5 functions):
+  double nctest_calcSabineA(double)
+  double nctest_calcSabineB(double)
+  void nctestdetail_clear_lasterror()
+  const char * nctestdetail_get_lasterror()
+  int nctestdetail_has_lasterror()
+   calcSabineA(0) = 1
+   calcSabineA(1e-99) = 1
+   calcSabineA(1e-20) = 1
+   calcSabineA(0.001) = 0.99900066633347
+   calcSabineA(0.1) = 0.90634623461009
+   calcSabineA(0.199) = 0.82496977974369
+   calcSabineA(0.2) = 0.8241998849109
+   calcSabineA(0.201) = 0.82343098086978
+   calcSabineA(0.299) = 0.7526582646796
+   calcSabineA(0.3) = 0.75198060650996
+   calcSabineA(0.301) = 0.75130380446225
+   calcSabineA(0.3) = 0.75198060650996
+   calcSabineA(0.7) = 0.538145025756
+   calcSabineA(0.9) = 0.4637228398769
+   calcSabineA(20) = 0.025
+   calcSabineA(1000) = 0.0005
+   calcSabineA(100000) = 5e-06
+   calcSabineA(10000000000) = 5e-11
+   calcSabineA(1e+50) = 5e-51
+   calcSabineA(1e+99) = 5e-100
+   calcSabineA(1e+198) = 5e-199
+   calcSabineA(1e+300) = 5e-301
+   calcSabineB(0) = 1
+   calcSabineB(1e-99) = 1
+   calcSabineB(1e-20) = 1
+   calcSabineB(0.001) = 0.99966666668889
+   calcSabineB(0.1) = 0.96668886774601
+   calcSabineB(0.199) = 0.93384113320813
+   calcSabineB(0.2) = 0.93351043656053
+   calcSabineB(0.201) = 0.93317976624379
+   calcSabineB(0.299) = 0.90092234041052
+   calcSabineB(0.3) = 0.90059490301159
+   calcSabineB(0.301) = 0.90026750449107
+   calcSabineB(0.3) = 0.90059490301159
+   calcSabineB(0.7) = 0.7739497927688
+   calcSabineB(0.9) = 0.7150438580811
+   calcSabineB(20) = 0.05
+   calcSabineB(1000) = 0.001
+   calcSabineB(100000) = 1e-05
+   calcSabineB(10000000000) = 1e-10
+   calcSabineB(1e+50) = 1e-50
+   calcSabineB(1e+99) = 1e-99
+   calcSabineB(1e+198) = 1e-198
+   calcSabineB(1e+300) = 1e-300
