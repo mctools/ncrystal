@@ -368,7 +368,9 @@ def ncmat2endf( ncmat_cfg, *,
         ncprint('Get nuclear data...')
     from ._ncmat2endf_impl import NuclearData
     data = NuclearData(ncmat_cfg=ncmat_cfg, temperatures=temperatures,
-                       elastic_mode=elastic_mode, verbosity=verbosity)
+                       elastic_mode=elastic_mode,
+                       requested_emax=endf_parameters.emax,
+                       verbosity=verbosity)
 
     if mat_numbers is not None:
         n = len(mat_numbers)
