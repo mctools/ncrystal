@@ -35,6 +35,8 @@ namespace NCRYSTAL_NAMESPACE {
 
     double calcSabineA( double y );//Sabine 6.4.5.6
     double calcSabineB( double y );//Sabine 6.4.5.7
+    double calcSabineEl( double x, double y );//Sabine 6.4.5.3-4
+    double calcSabineEb( double x, double y );//Sabine 6.4.5.5
 
   }
 

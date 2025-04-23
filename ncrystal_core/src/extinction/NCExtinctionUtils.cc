@@ -98,3 +98,42 @@ double NCE::calcSabineB( double y )
   }
 
 }
+
+double NCE::calcSabineEl( double x, double y )
+{
+  nc_assert( y>=0.0 );
+  nc_assert( std::isfinite(y) );
+  nc_assert( x>=0.0 );
+  nc_assert( std::isfinite(x) );
+
+  const double expmy = std::exp(-y);
+  //Note that the following is not our own Taylor expansions, but the formula as
+  //presented in Sabine 6.4.5.3-5.
+  if ( x <= 1.0 ) {
+    constexpr double c1 = -1./2.;
+    constexpr double c2 = 1./4.;
+    constexpr double c3 = -5./48.;
+    constexpr double c4 = 7./192.;
+    return expmy * ( 1.0 + x*(c1+x*(c2+x*(c3+x*c4))) );
+  } else {
+    constexpr double c1 = -1./8.;
+    constexpr double c2 = -3./128.;
+    constexpr double c3 = -15./1024.;
+    constexpr double k = 2.0 * kInvSqrt2Pi; // = sqrt(2/pi)
+    const double invx = 1.0 / x;
+    return ( k*expmy*std::sqrt(invx) ) * ( 1.0+invx*(c1+invx*(c2+invx*c3)) );
+  }
+}
+
+double NCE::calcSabineEb( double x, double y )
+{
+  nc_assert( y>=0.0 );
+  nc_assert( std::isfinite(y) );
+  nc_assert( x>=0.0 );
+  nc_assert( std::isfinite(x) );
+
+  const double A = calcSabineA( y );
+  const double B = calcSabineB( y );
+
+  return A / std::sqrt( 1.0 + B * x );
+}

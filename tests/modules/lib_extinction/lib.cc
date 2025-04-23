@@ -29,6 +29,8 @@ NCTEST_CTYPE_DICTIONARY
   return
     "double nctest_calcSabineA( double );"
     "double nctest_calcSabineB( double );"
+    "double nctest_calcSabineEl( double, double );"
+    "double nctest_calcSabineEb( double, double );"
     ;
 }
 
@@ -40,4 +42,15 @@ NCTEST_CTYPES double nctest_calcSabineA( double y )
 NCTEST_CTYPES double nctest_calcSabineB( double y )
 {
   return NCE::calcSabineB(y);
+}
+
+
+NCTEST_CTYPES double nctest_calcSabineEl( double x, double y )
+{
+  return NCE::calcSabineEl(x,y);
+}
+
+NCTEST_CTYPES double nctest_calcSabineEb( double x, double y )
+{
+  return NCE::calcSabineEb(x,y);
 }
