@@ -1,0 +1,408 @@
+
+################################################################################
+##                                                                            ##
+##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
+##                                                                            ##
+##  Copyright 2015-2025 NCrystal developers                                   ##
+##                                                                            ##
+##  Licensed under the Apache License, Version 2.0 (the "License");           ##
+##  you may not use this file except in compliance with the License.          ##
+##  You may obtain a copy of the License at                                   ##
+##                                                                            ##
+##      http://www.apache.org/licenses/LICENSE-2.0                            ##
+##                                                                            ##
+##  Unless required by applicable law or agreed to in writing, software       ##
+##  distributed under the License is distributed on an "AS IS" BASIS,         ##
+##  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  ##
+##  See the License for the specific language governing permissions and       ##
+##  limitations under the License.                                            ##
+##                                                                            ##
+################################################################################
+
+"""
+
+Script for creating a set of ENDF-6 thermal scattering files from a .ncmat
+file. Basic paramters are supported as arguments, but additional parameters
+for the ENDF-6 can be set by using the Python API and pasing a custom
+EndfParameters object.
+
+The script allows to handle multiple temperatures in one ENDF-6 file,
+but this is not recommended, because NCrystal computes an optimal (alpha, beta)
+ grid for each material and temperature, while the ENDF format imposes the
+ same grid on all temperatures.
+
+Ths script uses the endf-parserpy package from IAEA to format and check the
+syntax of the ENDF-6 file.
+
+G. Schnabel, D. L. Aldama, R. Capote, "How to explain ENDF-6 to computers:
+A formal ENDF format description language", arXiv:2312.08249,
+DOI:10.48550/arXiv.2312.08249
+
+https://endf-parserpy.readthedocs.io/en/latest/
+
+"""
+
+available_elastic_modes = ('greater', 'scaled', 'mixed')
+
+class EndfParameters():
+    """Parameters for the ENDF-6 file
+       For more information see the ENDF-6 format manual:
+       https://www.nndc.bnl.gov/endfdocs/ENDF-102-2023.pdf
+
+    Attributes
+    ----------
+    alab : string
+        Mnemonic for the originating laboratory
+
+    smin : float
+        Minimum value of S(alpha, beta) to be stored in the file
+
+    libname : string
+        Name of the nuclear data library
+
+    nlib : int
+        Nuclear data library identifier (e.g. NLIB= 0 for ENDF/B).
+
+    auth : string
+        Author(s) name(s).
+
+    reference : string
+        Primary reference for the evaluation.
+
+    emax : float
+        Upper limit of the energy range for evaluation (eV).
+
+    lrel : int
+        Nuclear data library release number.
+
+    nver : int
+        Nuclear data library version number.
+
+    endate: string
+        Master File entry date in the form YYYYMMDD.
+
+    edate: string
+        Evaluation date in the form MMMYY.
+
+    ddate: string
+        Distribution date in the form MMMYY.
+
+    rdate: string
+        Revision date in the form MMMYY.
+
+    lasym : int
+        Flag indicating whether an asymmetric S(a,b) is given.
+    """
+
+    def __init__(self):
+        self._alab = 'MyLAB'
+        self._auth = 'NCrystal'
+        self._reference = 'REFERENCE'
+        self._nver = 1
+        self._libname = 'MyLib'
+        self._endate = 'YYYYMMDD'
+        self._nlib = 0
+        self._lrel = 0
+        self._smin = 1e-100
+        self._emax = 5.0
+        self._edate = None
+        self._rdate = None
+        self._ddate = None
+        self._lasym = 0 # Symmetric S(a,b) as default
+
+    @property
+    def alab(self):
+        return self._alab
+    @alab.setter
+    def alab(self, x):
+        self._alab = x
+
+    @property
+    def smin(self):
+        return self._smin
+    @smin.setter
+    def smin(self, x):
+        self._smin = x
+
+    @property
+    def libname(self):
+        return self._libname
+    @libname.setter
+    def libname(self, x):
+        self._libname = x
+
+    @property
+    def nlib(self):
+        return self._nlib
+    @nlib.setter
+    def nlib(self, x):
+        self._nlib = x
+
+    @property
+    def auth(self):
+        return self._auth
+    @auth.setter
+    def auth(self, x):
+        self._auth = x
+
+    @property
+    def reference(self):
+        return self._reference
+
+    @property
+    def emax(self):
+        return self._emax
+
+    @property
+    def lrel(self):
+        return self._lrel
+
+    @property
+    def nver(self):
+        return self._nver
+
+    @property
+    def endate(self):
+        return self._endate
+
+    @property
+    def lasym(self):
+        return self._lasym
+    @lasym.setter
+    def lasym(self, x):
+        self._lasym = x
+
+    @property
+    def edate(self):
+        return self._edate
+    @edate.setter
+    def edate(self, x):
+        assert isinstance(x, str), 'EDATE must be a string'
+        assert len(x)<=5, 'EDATE must be 5 characters or shorter'
+        self._edate = x.ljust(5)
+
+    @property
+    def ddate(self):
+        return self._ddate
+    @ddate.setter
+    def ddate(self, x):
+        assert isinstance(x, str), 'DDATE must be a string'
+        assert len(x)<=5, 'DDATE must be 5 characters or shorter'
+        self._ddate = x.ljust(5)
+
+    @property
+    def rdate(self):
+        return self._rdate
+    @rdate.setter
+    def rdate(self, x):
+        assert isinstance(x, str), 'RDATE must be a string'
+        assert len(x)<=5, 'RDATE must be 5 characters or shorter'
+        self._rdate = x.ljust(5)
+
+def ncmat2endf( ncmat_cfg, *,
+                material_name='NCrystalMaterial',
+                endf_parameters=EndfParameters(),
+                temperatures=None,
+                mat_numbers=None,
+                elastic_mode='scaled',
+                include_gif=False,
+                isotopic_expansion=False,
+                force_save=False,
+                set_date_to_now=False,
+                verbosity=1):
+    """Generates a set of ENDF-6 formatted files for a given NCMAT file.
+
+    Parameters
+    ----------
+    ncmat_cfg : str
+        Filename of the ncmat file to convert
+
+    material_name : str
+        name of the compound to be processed. ENDF files will be named
+        tsl_element_in_name.endf for compounds or tsl_element.endf for
+        elements. E.g. tsl_H_in_CH2.endf or tsl_Cu.endf
+
+    endf_parameters : EndfParameters
+        Parameters for the ENDF file.
+        https://www.nndc.bnl.gov/endfdocs/ENDF-102-2023.pdf
+
+    temperatures : int, float, tuple or list
+        Temperature(s) in Kelvin to generate the nuclear data,
+        in addition to the temperature defined in the cfg string.
+        (The default temperature in the cfg string is 293.15 K)
+
+    mat_numbers : dict of str to int
+        Material number for each element
+
+    elastic_mode : str
+        Treatment mode for the elastic component
+        "greater" = only the greater elastic component
+                    (coherent or incoherent) is saved
+        "mixed"   = both the coherent and incoherent inelastic
+                    components are saved
+        "scaled"  = for monoatomic scatterers, the major component is
+                    saved, scaled to the total bound XS
+                    for polyatomic scatterers, coherent scattering for
+                    the whole system is assigned to the
+                    atom with minimum incoherent cross section, and its
+                    incoherent contribution is distributed
+                    among the other atoms
+
+    include_gif: boolean
+        Include the generalized information in MF=7/MT=451 in isotopes
+
+    isotopic_expansion: boolean
+        Expand the information in MF=7/MT=451 in isotopes
+
+    force_save: boolean
+        Overwrite existing file if it already exists.
+
+    set_date_to_now: boolean
+        Set ENDF6 fields EDATE, DDATE and RDATE to current month and year.
+
+    verbosity : int
+        Level of verbosity of the output (0: quiet)
+
+    Returns
+    -------
+    output_composition: list of (str, float)
+        List of tuples contanining the ENDF-6 files and
+        their fraction in the composition
+
+    """
+    from ._numpy import _ensure_numpy
+    from . import exceptions as nc_exceptions
+    from . import core as nc_core
+    from . import misc as nc_misc
+    from ._common import warn as ncwarn
+    from ._common import print as ncprint
+
+    _ensure_numpy()
+    if set_date_to_now:
+        if any(_ is not None for _ in (endf_parameters.edate,
+                                       endf_parameters.ddate,
+                                       endf_parameters.rdate)):
+            raise nc_exceptions.NCBadInput('Option set_date_to_now not'
+                                       ' compatible with dates in'
+                                       ' endf_parameters')
+        else:
+            from datetime import datetime
+            now = datetime.now()
+            months = ('JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+                      'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DEC')
+            endf_parameters.edate = months[now.month-1] + now.strftime("%y")
+            endf_parameters.ddate = months[now.month-1] + now.strftime("%y")
+            endf_parameters.rdate = months[now.month-1] + now.strftime("%y")
+
+    if elastic_mode not in available_elastic_modes:
+        raise nc_exceptions.NCBadInput(f'Elastic mode {elastic_mode}'
+                                       f' not in ({available_elastic_modes})')
+    info_obj = nc_core.createInfo(ncmat_cfg)
+    if not info_obj.isSinglePhase():
+        raise nc_exceptions.NCBadInput('Only single phase materials supported')
+    if endf_parameters.lasym > 0:
+        ncwarn( 'Creating non standard S(a,b)'
+               f' with LASYM = {endf_parameters.lasym}')
+
+    base_temp = info_obj.dyninfos[0].temperature
+    if temperatures is None:
+        temperatures = tuple()
+    else:
+        if type(temperatures) in (int, float):
+            temperatures = (temperatures,)
+        elif type(temperatures) in (list, tuple):
+            if any(type(T) not in (int, float) for T in temperatures):
+                raise nc_exceptions.NCBadInput('Something wrong with the '
+                                               'temperatures parameter: '
+                                               f'({temperatures})')
+            else:
+                temperatures = tuple(float( T ) for T in temperatures )
+        else:
+            raise nc_exceptions.NCBadInput('temperatures parameter: '
+                                           'should be a list or tuple '
+                                           'of float or int')
+    if base_temp in temperatures:
+        raise nc_exceptions.NCBadInput('Repeated temperatures: '
+                                       'temperatures parameter must not '
+                                       'include the temperature defined '
+                                       'in the cfg string')
+    temperatures = sorted(temperatures + (base_temp,))
+    if len(temperatures) > 1:
+        ncwarn('Multiple temperatures requested. Although this is supported, '
+               'it is not recommended because NCrystal generates '
+               'a custom (alpha,beta) grid for each temperature. '
+               'The (alpha,beta) grid for first temperature will '
+               'be used, and S(alpha, beta) for other temperatures '
+               'will be interpolated.')
+    if any( T<=0 for T in temperatures ):
+        raise nc_exceptions.NCBadInput('Non positive temperatures')
+
+    if nc_core.createScatter(ncmat_cfg).isOriented():
+        raise nc_exceptions.NCBadInput('Oriented materials cannot be '
+                                       'represented in the ENDF format and '
+                                       'are not supported' )
+    scattering_components = nc_misc.detect_scattering_components(ncmat_cfg)
+    if 'sans' in scattering_components:
+        raise nc_exceptions.NCBadInput('SANS cannot be '
+                                       'represented in the ENDF format and '
+                                       'is not supported' )
+    if 'inelas' not in scattering_components:
+        raise nc_exceptions.NCBadInput('MF7/MT4 is mandatory in an ENDF file '
+                                       'but no inelastic data found' )
+    for di in info_obj.dyninfos:
+        if type(di) not in (nc_core.Info.DI_VDOS, nc_core.Info.DI_VDOSDebye):
+            raise NotImplementedError('Conversion supported only for VDOS'
+                                      ' and VDOSDebye dyninfos')
+    if (isotopic_expansion and not include_gif):
+        raise nc_exceptions.NCBadInput( 'Isotopic expansion requires '
+                                        'generalized information file, '
+                                        'use --gif' )
+    if (isotopic_expansion and include_gif):
+        # TODO: remove when implemented
+        raise NotImplementedError('Isotopic expansion not yet implemented')
+
+    if type(verbosity) is not int:
+        raise nc_exceptions.NCBadInput('Verbosity parameter'
+                                       ' must be an integer')
+    if verbosity > 0:
+        ncprint('Get nuclear data...')
+    from ._ncmat2endf_impl import NuclearData
+    data = NuclearData(ncmat_cfg=ncmat_cfg, temperatures=temperatures,
+                       elastic_mode=elastic_mode,
+                       requested_emax=endf_parameters.emax,
+                       verbosity=verbosity)
+
+    if mat_numbers is not None:
+        n = len(mat_numbers)
+        for frac, ad in data.composition:
+            if ad.elementName() in mat_numbers.keys():
+                n = n - 1
+        if n != 0:
+            raise nc_exceptions.NCBadInput('Incorrect material number '
+                                           'assignement')
+
+    output_composition = []
+    from ._ncmat2endf_impl import EndfFile
+    for frac, ad in data.composition:
+        sym = ad.elementName()
+        mat = 999 if mat_numbers is None else mat_numbers[sym]
+        endf_fn = ( f'tsl_{material_name}.endf'
+                   if sym == material_name
+                   else f'tsl_{sym}_in_{material_name}.endf' )
+        if data.elements[sym].sab_total is not None:
+            endf_file = EndfFile(sym, data, mat, endf_parameters,
+                                 include_gif=include_gif,
+                                 isotopic_expansion=isotopic_expansion,
+                                 verbosity=verbosity)
+            endf_file.write(endf_fn, force_save)
+            output_composition.append((endf_fn, frac))
+        else:
+            if verbosity > 0:
+                ncprint(f'Scattering kernel not available for: {endf_fn}')
+
+    if verbosity > 0:
+        ncprint('Files created:')
+        for fn, frac in output_composition:
+            ncprint(f'  {fn} with fraction {frac}')
+
+    return(output_composition)
