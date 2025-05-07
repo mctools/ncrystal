@@ -58,19 +58,19 @@ namespace nctest {
 }
 #define NCCATCH catch (std::exception& e) { nctest::printErrAndExit(e); }
 
-#define NCTEST_CTYPE_DICTIONARY NCTEST_CTYPES const char * nctest_ctypes_dictionary()
+#define NCTEST_CTYPE_DICTIONARY NCTEST_CTYPES const char * nctest_ctypes_dictionary(void)
 
-NCTEST_CTYPES const char * nctestdetail_get_lasterror()
+NCTEST_CTYPES const char * nctestdetail_get_lasterror(void)
 {
   return nctest::detail_lastErrorBuffer().c_str();
 }
 
-NCTEST_CTYPES int nctestdetail_has_lasterror()
+NCTEST_CTYPES int nctestdetail_has_lasterror(void)
 {
   return nctest::detail_lastErrorBuffer().empty() ? 0 : 1;
 }
 
-NCTEST_CTYPES void nctestdetail_clear_lasterror()
+NCTEST_CTYPES void nctestdetail_clear_lasterror(void)
 {
   nctest::detail_lastErrorBuffer().clear();
 }

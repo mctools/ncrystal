@@ -696,7 +696,7 @@ NC::VectD NC::setupBetaGrid( const NC::VDOSGn& Gn, double betaMax, unsigned vdos
       //gaps in the beta points, which when can lead to numerical artifacts when
       //a scattering kernel is later integrated and sampled. If at some point
       //(TODO!) we implement better integration/sampling algorithms, we can
-      //hopefully stop doing this - and perhaps also stop needing the n1_near
+      //hopefully stop doing this - and perhaps also stop needing the n1_near0
       //values.
       unsigned n_for_gaps = ( ( n1_spectrum > 30 && evals_G1.size()-n1_spectrum > 10 )
                               ? std::max<unsigned>(5,static_cast<unsigned>(n1_spectrum*0.1+0.5))
