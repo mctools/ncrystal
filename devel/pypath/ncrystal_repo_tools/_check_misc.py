@@ -63,7 +63,10 @@ def main():
         if frel in ignore_list:
             continue
         #Check can always be read as utf8:
-        content = f.read_text(encoding='utf8')
+        try:
+            content = f.read_text(encoding='utf8')
+        except UnicodeDecodeError as e:
+            raise SystemExit(f'Not unicode ({e}): {f}')
         if len(content)==0:
             #never check empty files
             continue
