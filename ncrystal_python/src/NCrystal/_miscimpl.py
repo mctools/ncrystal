@@ -342,13 +342,34 @@ def _anyvdos_init( class_AnyVDOS, anyvdos_extract_d, data, fmt, label ):
     return MappingProxyType( d )
 
 def detect_scatcomps( standard_comp_types, matsrc ):
+    from .exceptions import NCBadInput, NCCalcError
     if matsrc.is_preloaded:
         from .exceptions import NCBadInput
         raise NCBadInput('detect_scattering_components can not be used'
                          ' with preloaded material sources')
     res=[]
     for ct in standard_comp_types:
-        _ = matsrc.load( extra_cfg_params = f'vdoslux=0;comp={ct}', doInfo = False, doAbsorption = False )
-        if not _.scatter.isNull():
+        def load(extra = None):
+            p = f'comp={ct}'
+            if extra is not None:
+                p += f';{extra}'
+            return matsrc.load( extra_cfg_params = p,
+                                doInfo = False,
+                                doAbsorption = False )
+        m = None
+        if ct == 'inelas':
+            #For inelas component first we try to see if we can get away with
+            #using a potentially smaller vdoslux than is actually used. This is
+            #not a great solution, but in the absence of deeper changes to
+            #NCrystal processes, this seems a reasonable compromise.
+            try:
+                m = load('vdoslux=0')
+            except NCCalcError as e:
+                if not str(e).startswith('VDOS expansion too slow'):
+                    raise e
+                m = None
+        if not m:
+            m = load()
+        if not m.scatter.isNull():
             res.append(ct)
     return res

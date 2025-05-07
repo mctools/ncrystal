@@ -8,6 +8,12 @@ v4.1.7 (work in progress)
      * C API: Replace the ncrystal_raw_vdos2knl function with
        ncrystal_raw_vdos2kernel, which supports target_emax/suggested_emax
        parameters. the old function is for now still available.
+     * Python API: The NCrystal.misc.detect_scattering_components will no longer
+       provide spurious failures due to testing with vdoslux=0 when probing the
+       inelastic components. It will still try vdoslux=0 first, but in case it
+       fails due to the VDOS expansion being too slow for the vdoslux=0
+       settings, it will retry with unchanged vdoslux settings (related to
+       github issue #262).
      * ...
 
 v4.1.6 2025-03-30
