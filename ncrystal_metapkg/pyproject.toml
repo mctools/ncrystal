@@ -25,9 +25,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ncrystal"
-version = "4.1.7"
+version = "4.1.8"
 requires-python = ">=3.8"
-dependencies = [ 'ncrystal-core==4.1.7', 'ncrystal-python==4.1.7' ]
+dependencies = [ 'ncrystal-core==4.1.8', 'ncrystal-python==4.1.8' ]
 authors = [
   { name="NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)" },
 ]

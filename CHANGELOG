@@ -1,4 +1,4 @@
-v4.1.7 (work in progress)
+v4.1.8 2025-05-07
      * Aligh common utilities with MCPL project (specifically CMake code, test
        code, and C file utils).
      * Fix potentially uninitialised variable in pyrolythic graphite model (in
@@ -14,7 +14,6 @@ v4.1.7 (work in progress)
        fails due to the VDOS expansion being too slow for the vdoslux=0
        settings, it will retry with unchanged vdoslux settings (related to
        github issue #262).
-     * ...
 
 v4.1.6 2025-03-30
      * Fix bug which prevented more than 32 phases in multiphase materials

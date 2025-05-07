@@ -71,7 +71,7 @@ list( APPEND
   _project_metadata HOMEPAGE_URL
   "https://github.com/mctools/ncrystal" )
 
-project( NCrystal VERSION 4.1.7 ${_project_metadata} )
+project( NCrystal VERSION 4.1.8 ${_project_metadata} )
 
 unset( _project_metadata )
 
