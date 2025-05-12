@@ -350,15 +350,15 @@ namespace NCRYSTAL_NAMESPACE {
 
   class NCRYSTAL_API Length final : public EncapsulatedValue<Length> {
   public:
-    //Length (in meters) used for macroscopic length scales like geometries and
-    //particle positions. Although, this is the same type of unit as
+    //Length (in meters) used for length scales like geometries, particle
+    //positions, and grain sizes. Although, this is the same type of unit as
     //NeutronWavelength, we keep the two uses in separate types with separate
     //default units (but we provide explicit conversion options):
     using EncapsulatedValue::EncapsulatedValue;
     Length() = default;//for VSCode
     static constexpr const char * unit() noexcept { return "m"; }
     void validate() const;
-    //Automatic conversions from/to NeutronWavelengthwavelength:
+    //Automatic conversions from/to neutron wavelength:
     explicit constexpr Length(NeutronWavelength wl) noexcept;
     ncnodiscard17 constexpr NeutronWavelength as_wavelength() const noexcept;
     //Related numeric definitions of the chosen numerical values:
@@ -416,6 +416,22 @@ namespace NCRYSTAL_NAMESPACE {
     bool operator==(const OrientDir&o) const noexcept { return crystal == o.crystal && lab == o.lab; }
   };
   NCRYSTAL_API std::ostream& operator<<( std::ostream&, const OrientDir& );
+
+  class NCRYSTAL_API ExtinctionCfgData : private MoveOnly {
+    //Class encapsulating parameters related to primary or (grain-level)
+    //secondary extinction. For ABI stability reasons, this class does not
+    //provide the actual decoded extinction parameters directly, but only exists
+    //to provide a type-safe way to transport the data around. Refer to the
+    //ExtinctionCfg class for actually decoded data access.
+  public:
+    const std::string& rawData() const { return m_data; }
+    ExtinctionCfgData( std::string&& data );
+    ExtinctionCfgData() = default;
+    ExtinctionCfgData( ExtinctionCfgData&& );
+    ExtinctionCfgData& operator=( ExtinctionCfgData&& );
+  private:
+    std::string m_data;
+  };
 
   class NCRYSTAL_API LCAxis final : public StronglyTypedFixedVector<LCAxis,double,3> {
     //Layered crystal axis (e.g. (0,0,1) in pyrolytic graphite).
@@ -981,6 +997,22 @@ namespace NCRYSTAL_NAMESPACE {
   inline bool HKL::operator==(const HKL&o) const noexcept
   {
     return  h==o.h && k==o.k && l==o.l;
+  }
+
+  inline ExtinctionCfgData::ExtinctionCfgData( std::string&& data )
+    : m_data( std::move(data) )
+  {
+  }
+
+  inline ExtinctionCfgData::ExtinctionCfgData( ExtinctionCfgData&& o )
+    : m_data(std::move(o.m_data))
+  {
+  }
+
+  inline ExtinctionCfgData& ExtinctionCfgData::operator=( ExtinctionCfgData&& o )
+  {
+    std::swap(m_data,o.m_data);
+    return *this;
   }
 
   inline std::ostream& operator<<(std::ostream& os, const DataSourceName& dsn)

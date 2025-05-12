@@ -22,6 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/cfgutils/NCCfgTypes.hh"
+#include "NCrystal/internal/cfgutils/NCExtinctionCfg.hh"
 #include "NCrystal/internal/utils/NCAtomUtils.hh"
 
 namespace NCRYSTAL_NAMESPACE {
@@ -104,6 +105,29 @@ namespace NCRYSTAL_NAMESPACE {
         if ( !(value >= 0.0) )
           NCRYSTAL_THROW2(BadInput,name<<" must be >=0.0");
         return value;
+      }
+    };
+
+    struct vardef_extinction final : public ValStr<vardef_extinction> {
+      static constexpr auto name = "extinction";
+      static constexpr auto group = VarGroupId::ScatterExtra;
+      static constexpr auto description =
+        "Fixme: todo. Mention rough physical meaning and how it is used..";
+      static constexpr value_type default_value() { return StrView::make(""); }
+      static Variant<StrView,std::string> str2val( StrView sv )
+      {
+        if ( sv.empty() )
+          return sv;
+        if ( sv.trimmed().empty() ) {
+          return std::string();
+        }
+        auto ecfg = ExtinctionCfg( ExtinctionCfgData( sv.to_string() ) );
+        if (!ecfg.enabled())
+          return std::string();
+        auto reencoded = ecfg.encode();
+        if ( sv == reencoded.rawData() )
+          return sv;
+        return reencoded.rawData();
       }
     };
 
@@ -657,6 +681,7 @@ namespace NCRYSTAL_NAMESPACE {
       make_varinfo<vardef_dir1>(),
       make_varinfo<vardef_dir2>(),
       make_varinfo<vardef_dirtol>(),
+      make_varinfo<vardef_extinction>(),
       make_varinfo<vardef_incoh_elas>(),
       make_varinfo<vardef_inelas>(),
       make_varinfo<vardef_infofactory>(),
@@ -683,6 +708,7 @@ namespace NCRYSTAL_NAMESPACE {
       dcutoff = constexpr_varName2Idx("dcutoff"),
       dcutoffup = constexpr_varName2Idx("dcutoffup"),
       dirtol = constexpr_varName2Idx("dirtol"),
+      extinction = constexpr_varName2Idx("extinction"),
       mosprec = constexpr_varName2Idx("mosprec"),
       vdoslux = constexpr_varName2Idx("vdoslux"),
       lcmode = constexpr_varName2Idx("lcmode"),
