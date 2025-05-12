@@ -36,6 +36,7 @@ namespace {
   void test_varids() {
 
     //unsigned enumval_p = 0;
+    //fixme: also extinction?
     for (auto& p : { "bad","density","phasechoice","atomdb","dcutoff","dcutoffup","infofactory","temp",
                     "absnfactory", "bkgd", "bragg", "coh_elas", "elas", "incoh_elas", "inelas",
                     "vdoslux", "scatfactory", "dir1", "dir2", "dirtol",
