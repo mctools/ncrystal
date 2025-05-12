@@ -48,8 +48,8 @@ additionally also use the following reference in your work:
 
 For detailed usage conditions and licensing of this open source project, see:
 
-   https://github.com/mctools/ncrystal/blob/master/NOTICE
-   https://github.com/mctools/ncrystal/blob/master/LICENSE
+   https://github.com/mctools/ncrystal/blob/HEAD/NOTICE
+   https://github.com/mctools/ncrystal/blob/HEAD/LICENSE
 
 """
 
