@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/extinction/NCExtinctionUtils.hh"
+#include "NCrystal/internal/extn_utils/NCExtnUtils.hh"
 
 namespace NC = NCrystal;
 namespace NCE = NCrystal::Extinction;

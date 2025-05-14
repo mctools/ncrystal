@@ -20,7 +20,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCTestUtils/NCTestModUtils.hh"
-#include "NCrystal/internal/extinction/NCExtinctionUtils.hh"
+#include "NCrystal/internal/extn_utils/NCExtinctionUtils.hh"
 
 namespace NCE = NCrystal::Extinction;
 
