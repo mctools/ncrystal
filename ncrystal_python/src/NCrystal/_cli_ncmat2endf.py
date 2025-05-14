@@ -66,32 +66,39 @@ DOI:10.48550/arXiv.2312.08249
                               'tsl_element_in_name.endf for compounds '
                               'or tsl_element.endf for elements. E.g. '
                               'tsl_H_in_CH2.endf or tsl_Cu.endf'))
-    #TODO: move this argument to an "advanced options" category
-    parser.add_argument('-t', '--temperatures',
-                        nargs='+',
-                        help='additional temperatures to process', type=float)
+    parser.add_argument('-v', '--verbosity',
+                        help='controls how verbose should be the output',
+                        type=int, default=1)
+    parser.add_argument('-f', '--force',action='store_true',
+                        help=("overwrite existing file "
+                              "if it already exists"))
     parser.add_argument('-e', '--elastic_mode',
                         help='approximation used for the elastic component',
                         type=str, choices=available_elastic_modes,
                         default='scaled')
-    parser.add_argument('-v', '--verbosity',
-                        help='controls how verbose should be the output',
-                        type=int, default=1)
+
+
+    #fixme: remove these, but add --metadata which takes json dict:
+    parser.add_argument('--set_date_to_now',action='store_true',
+                        help=('Set ENDF6 fields EDATE, DDATE and RDATE'
+                              ' to current month and year.'))
     parser.add_argument('-m', '--mats',
                         help=('JSON dictionary containing material number '
-                              'assignement for each element, e.g. \'{"C":37, '
+                              'assignment for each element, e.g. \'{"C":37, '
                               '"H": 38}\''),
                         type=json.loads)
+
+    #fixme: these should be marked as expert-only (also, add options controlling
+    #emax, smin, lasym)
+    parser.add_argument('-t', '--temperatures',
+                        nargs='+',
+                        type=float,
+                        help='''additional temperatures to process (fixme:
+                        mention bad idea?)''')
     parser.add_argument('--smin',
                         help='set the minimum value of S(alpha, beta) stored '
                              'in MF7/MT4', type=float,
                         default=EndfParameters().smin)
-    parser.add_argument('-f', '--force',action='store_true',
-                        help=("overwrite existing file "
-                              "if it already exists"))
-    parser.add_argument('--set_date_to_now',action='store_true',
-                        help=('Set ENDF6 fields EDATE, DDATE and RDATE'
-                              ' to current month and year.'))
     if return_parser:
         return parser
     args=parser.parse_args(arglist)
