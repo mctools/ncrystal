@@ -25,6 +25,8 @@ Internal implementation of ncmat2endf.py
 
 """
 
+#fixme: EndfParameters -> EndfMetaData in this file as well
+
 from ._numpy import _np
 from . import core as nc_core
 from . import constants as nc_constants
@@ -34,14 +36,20 @@ from . import cfgstr as nc_cfgstr
 from ._common import print as ncprint
 from ._common import warn as ncwarn
 from ._common import write_text as ncwrite_text
+print = ncprint
 
 mass_neutron = (nc_constants.const_neutron_mass_amu*
                nc_constants.constant_dalton2eVc2/
                ((nc_constants.constant_c*1e-12)**2)) # eV*ps^2*Angstrom^-2
-hbar = nc_constants.constant_planck/nc_constants.k2Pi*1e12 # eV*ps
-T0 = 293.6 # K
 
+hbar = nc_constants.constant_planck/nc_constants.k2Pi*1e12 # eV*ps
+T0 = 293.6 # K (FIXME: does it make sense to hardwire at a particular value,
+           #    which btw. is not the default NCrystal temperature).
+
+_cacheimport=[None]
 def import_endfparserpy():
+    if _cacheimport[0] is not None:
+        return _cacheimport[0]
     try:
         # TODO: temporary fix to avoid syntax warning from endf-parserpy
         # https://github.com/IAEA-NDS/endf-parserpy/issues/10
@@ -49,8 +57,8 @@ def import_endfparserpy():
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore",category=SyntaxWarning)
             import endf_parserpy
-        #from endf_parserpy.interpreter.fortran_utils import read_fort_floats
-        #from endf_parserpy.interpreter.fortran_utils import write_fort_floats
+            from endf_parserpy.interpreter.fortran_utils import read_fort_floats
+            from endf_parserpy.interpreter.fortran_utils import write_fort_floats
     except ImportError:
         raise SystemExit('Could not import endf_parserpy. Check the package '
                          'was correctly installed. This can be done with:'
@@ -60,7 +68,8 @@ def import_endfparserpy():
                          'with pip, or'
                          'conda install -c conda-forge endf_parserpy if'
                          'NCrystal was installed with conda.')
-    return endf_parserpy
+    _cacheimport[0] = ( endf_parserpy,read_fort_floats,write_fort_floats)
+    return _cacheimport[0]
 
 def _endf_roundoff(x):
     """Limit the precision of a float to what can be represented
@@ -77,24 +86,7 @@ def _endf_roundoff(x):
         Processed array
 
     """
-    try:
-        # TODO: temporary fix to avoid syntax warning from endf-parserpy
-        # https://github.com/IAEA-NDS/endf-parserpy/issues/10
-        import warnings
-        with warnings.catch_warnings():
-            warnings.filterwarnings("ignore",category=SyntaxWarning)
-            from endf_parserpy.interpreter.\
-                 fortran_utils import ( read_fort_floats,
-                                        write_fort_floats )
-    except ImportError:
-        raise SystemExit('Could not import endf_parserpy. Check the package '
-                         'was correctly installed. This can be done with:'
-                         'pip install ncrystal[endf], '
-                         'pip install ncrystal[all], '
-                         'pip install endf_parserpy if NCrystal was installed'
-                         'with pip, or'
-                         'conda install -c conda-forge endf_parserpy if'
-                         'NCrystal was installed with conda.')
+    _,read_fort_floats,write_fort_floats = import_endfparserpy()
     return _np.array(read_fort_floats(write_fort_floats(x, {'width':11}),
                                      n=len(x),read_opts={'width':11}))
 
@@ -683,10 +675,8 @@ class EndfFile():
         verbosity : int
             Level of verbosity of the output (0: quiet)
         """
-        endf_parserpy = import_endfparserpy()
-        self._endf_dict = endf_parserpy.EndfDict()
-        self._parser = endf_parserpy.EndfParser(explain_missing_variable=True,
-                                                cache_dir=False)
+        endf_parserpy,_,_ = import_endfparserpy()
+
         self._endf_parserpy_version = endf_parserpy.__version__
         self._sym = element
         self._data = data
@@ -695,12 +685,13 @@ class EndfFile():
         self._include_gif = include_gif
         self._isotopic_expansion = isotopic_expansion
         self._verbosity = verbosity
+        self._endf_dict = endf_parserpy.EndfDict()
         self._endf_dict['0/0'] = {}
         self._endf_dict['0/0']['MAT'] = self._mat
         self._endf_dict['0/0']['TAPEDESCR'] = 'Created with ncmat2endf'
         self._createMF1()
         self._createMF7()
-        endf_parserpy.update_directory(self._endf_dict, self._parser)
+        self._parser = None
 
     def _createMF7MT2(self, elastic):
         """
@@ -1044,7 +1035,51 @@ class EndfFile():
         if not outfile.parent.is_dir():
             raise SystemExit('Error: output directory does not exist:'
                              f' { outfile.parent }')
+
+        if is_unit_test[0]:
+            self.dump_endf_dict()
+            return
+
+        if self._parser is None:
+            endf_parserpy,_,_ = import_endfparserpy()
+            self._parser = endf_parserpy.EndfParser(
+                explain_missing_variable=True,
+                cache_dir=False
+            )
+            endf_parserpy.update_directory(self._endf_dict, self._parser)
+
         text = '\n'.join(self._parser.write(self._endf_dict,
                                             zero_as_blank=True))
         ncwrite_text(outfile,text)
 
+    def dump_endf_dict( self ):
+        ncprint('DUMPING endf dict begin')
+        _dump_dict(self._endf_dict,prefix='  ')
+        ncprint('DUMPING endf dict end')
+
+def _dump_dict( d, prefix, lvl = 1 ):
+    if not hasattr(d,'items'):
+        s = repr(d)
+        if len(s) > 80:
+            s = s[0:35]+'<<SNIP>>'+s[-35:]
+        ncprint(f'{prefix}{s}')
+        return
+
+    ld = list(d.items())#fixme: sorted(..) ?
+    keys_all_digits = all( str(k).isdigit() for k,v in ld)
+    nlim = 30 if lvl<2 else 15
+    if not keys_all_digits:
+        nlim = 100
+    for i,(k,v) in enumerate(ld):
+        if len(ld)>nlim and nlim//3<i<len(ld)-nlim//3:
+            if i== (nlim//3) + 1:
+                ncprint(f'{prefix}<..SNIP..>')
+            continue
+        vs = repr(v)
+        if len(vs) < 80:
+            ncprint(f'{prefix}{repr(k)} -> {vs}')
+        else:
+            ncprint(f'{prefix}{repr(k)} ->')
+            _dump_dict(v,prefix+'    ',lvl=lvl+1)
+
+is_unit_test = [False]

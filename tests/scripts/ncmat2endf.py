@@ -30,6 +30,10 @@ from NCrystalDev.exceptions import NCBadInput
 from NCTestUtils.common import print_text_file_with_snipping
 import math
 
+#FIXME: Add tests with:
+#  import NCrystalDev._ncmat2endf_impl as ncmat2endf_impl
+#  ncmat2endf_impl.is_unit_test[0] = True # just print final dict
+
 def reldiff( x, y ):
     # FIXME: Add these functions to NCTestUtils
     if math.isinf(x):
