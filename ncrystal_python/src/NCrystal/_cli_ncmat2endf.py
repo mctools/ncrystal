@@ -34,10 +34,10 @@ file. Basic paramters are supported as arguments, but additional parameters
 for the ENDF-6 can be set by using the Python API and pasing a custom
 EndfParameters object.
 
-The script allows to handle multiple temperatures in one ENDF-6 file,
-but this is not recommended, because NCrystal computes an optimal (alpha, beta)
- grid for each material and temperature, while the ENDF format imposes the
- same grid on all temperatures.
+The script allows to handle multiple temperatures in one ENDF-6 file, but this
+is not recommended, because NCrystal computes an optimal (alpha, beta) grid for
+each material and temperature, while the ENDF format imposes the same grid on
+all temperatures.
 
 Ths script uses the endf-parserpy package from IAEA to format and check the
 syntax of the ENDF-6 file.
@@ -45,8 +45,6 @@ syntax of the ENDF-6 file.
 G. Schnabel, D. L. Aldama, R. Capote, "How to explain ENDF-6 to computers:
 A formal ENDF format description language", arXiv:2312.08249,
 DOI:10.48550/arXiv.2312.08249
-
-https://endf-parserpy.readthedocs.io/en/latest/
 
 """
     parser = create_ArgumentParser(prog = progname,

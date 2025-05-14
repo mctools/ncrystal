@@ -21,41 +21,36 @@
 
 """
 
-Script for creating a set of ENDF-6 thermal scattering files from a .ncmat
-file. Basic paramters are supported as arguments, but additional parameters
-for the ENDF-6 can be set by using the Python API and pasing a custom
-EndfParameters object.
+Module for creating a set of ENDF-6 thermal scattering files from a .ncmat
+file. Most important parameters are supported as arguments, but additional
+metadata parameters for the ENDF-6 format can be set by using the Python API and
+pasing a custom EndfMetaData object or dictionary.
 
-The script allows to handle multiple temperatures in one ENDF-6 file,
+The module allows to handle multiple temperatures in one ENDF-6 file,
 but this is not recommended, because NCrystal computes an optimal (alpha, beta)
  grid for each material and temperature, while the ENDF format imposes the
  same grid on all temperatures.
 
-Ths script uses the endf-parserpy package from IAEA to format and check the
+Ths module uses the endf-parserpy package from IAEA to format and check the
 syntax of the ENDF-6 file.
 
 G. Schnabel, D. L. Aldama, R. Capote, "How to explain ENDF-6 to computers:
 A formal ENDF format description language", arXiv:2312.08249,
 DOI:10.48550/arXiv.2312.08249
 
-https://endf-parserpy.readthedocs.io/en/latest/
-
 """
 
 available_elastic_modes = ('greater', 'scaled', 'mixed')
 
-class EndfParameters():
-    """Parameters for the ENDF-6 file
-       For more information see the ENDF-6 format manual:
-       https://www.nndc.bnl.gov/endfdocs/ENDF-102-2023.pdf
+class EndfMetaData():
+    """Optional MetaData Parameters for the ENDF-6 file describing the origin and
+       authorship of the file.  For more information see the ENDF-6 format
+       manual: https://www.nndc.bnl.gov/endfdocs/ENDF-102-2023.pdf
 
     Attributes
     ----------
     alab : string
         Mnemonic for the originating laboratory
-
-    smin : float
-        Minimum value of S(alpha, beta) to be stored in the file
 
     libname : string
         Name of the nuclear data library
@@ -69,9 +64,6 @@ class EndfParameters():
     reference : string
         Primary reference for the evaluation.
 
-    emax : float
-        Upper limit of the energy range for evaluation (eV).
-
     lrel : int
         Nuclear data library release number.
 
@@ -79,136 +71,198 @@ class EndfParameters():
         Nuclear data library version number.
 
     endate: string
-        Master File entry date in the form YYYYMMDD.
+        Master File entry date in the form YYYYMMDD. The special string "NOW"
+        can be used to select the current date.
 
-    edate: string
-        Evaluation date in the form MMMYY.
+    edate: string Evaluation date in the form MMMYY. The special string "NOW"
+        can be used to select the current date.
 
-    ddate: string
-        Distribution date in the form MMMYY.
+    ddate: string Distribution date in the form MMMYY. The special string "NOW"
+        can be used to select the current date.
 
     rdate: string
-        Revision date in the form MMMYY.
+        Revision date in the form MMMYY. The special string "NOW" can be used to
+        select the current date.
+
+    #FIXME: Move these 3 parameters out of the metadata class:
+
+    smin : float (fixme: should not be here??)
+        Minimum value of S(alpha, beta) to be stored in the file
+
+    emax : float
+        Upper limit of the energy range for evaluation (eV).
 
     lasym : int
         Flag indicating whether an asymmetric S(a,b) is given.
+
     """
 
     def __init__(self):
-        self._alab = 'MyLAB'
-        self._auth = 'NCrystal'
-        self._reference = 'REFERENCE'
-        self._nver = 1
-        self._libname = 'MyLib'
-        self._endate = 'YYYYMMDD'
-        self._nlib = 0
-        self._lrel = 0
-        self._smin = 1e-100
-        self._emax = 5.0
-        self._edate = None
-        self._rdate = None
-        self._ddate = None
-        self._lasym = 0 # Symmetric S(a,b) as default
+        #fixme: to _ncmat2endf_impl.py. And encoding all data in dictionary will
+        #make the rest of the class easier.
+        self.__alab = 'MyLAB'
+        self.__auth = 'NCrystal'
+        self.__reference = 'REFERENCE'
+        self.__nver = 1
+        self.__libname = 'MyLib'
+        self.__endate = 'YYYYMMDD'
+        self.__nlib = 0
+        self.__lrel = 0
+        self.__edate = 'MMMYY'
+        self.__rdate = 'MMMYY'
+        self.__ddate = 'MMMYY'
+
+        #Ensure that all "NOW" dates will be evaluated from the same datetime
+        #instance by capturing it here in init:
+        from datetime import datetime
+        now = datetime.now()
+        now_MMMYY = now.strftime('%b%y').upper()
+        now_MMMMYYDD = now.strftime('%Y%m%d')
+        def fmtdate(val, fmt):
+            if not isinstance( val, str ):
+                from .exceptions import NCBadInput
+                raise NCBadInput('ENDF date value must be a string')
+            assert fmt in ('MMMYY','MMMMYYDD')
+            if val.lower()=='now':
+                return now_MMMYY if fmt == 'MMMYY' else now_MMMMYYDD
+            if len(fmt) != len(val):
+                from .exceptions import NCBadInput
+                raise NCBadInput('ENDF date value is not in expected'
+                                 f' format ("NOW" or "{fmt}")')
+            #NB: We could sanitize the string even more if we wanted...
+            return val
+        self.__fmtdate = fmtdate
+
+        #fixme: to be removed from this class:
+        self.__smin = 1e-100
+        self.__emax = 5.0
+        self.__lasym = 0 # Symmetric S(a,b) as default
 
     @property
     def alab(self):
-        return self._alab
-    @alab.setter
-    def alab(self, x):
-        self._alab = x
+        return self.__alab
 
-    @property
-    def smin(self):
-        return self._smin
-    @smin.setter
-    def smin(self, x):
-        self._smin = x
+    def set_alab(self, x):
+        self.__alab = x
 
     @property
     def libname(self):
-        return self._libname
-    @libname.setter
-    def libname(self, x):
-        self._libname = x
+        return self.__libname
+
+    def set_libname(self, x):
+        self.__libname = x
 
     @property
     def nlib(self):
-        return self._nlib
-    @nlib.setter
-    def nlib(self, x):
-        self._nlib = x
+        return self.__nlib
+
+    def set_nlib(self, x):
+        self.__nlib = x
 
     @property
     def auth(self):
-        return self._auth
-    @auth.setter
-    def auth(self, x):
-        self._auth = x
+        return self.__auth
+
+    def set_auth(self, x):
+        self.__auth = x
 
     @property
     def reference(self):
-        return self._reference
+        return self.__reference
 
-    @property
-    def emax(self):
-        return self._emax
+    def set_reference( self, x ):
+        self.__reference = x
 
     @property
     def lrel(self):
-        return self._lrel
+        return self.__lrel
+
+    def set_lrel(self,x):
+        self.__lrel = x
 
     @property
     def nver(self):
-        return self._nver
+        return self.__nver
+
+    def set_nver(self, x):
+        self.__nver = x
+
+    def set_all_dates_as_now(self):
+        self.set_endate('NOW')
+        self.set_edate('NOW')
+        self.set_ddate('NOW')
+        self.set_rdate('NOW')
 
     @property
     def endate(self):
-        return self._endate
+        return self.__endate
 
     @property
-    def lasym(self):
-        return self._lasym
-    @lasym.setter
-    def lasym(self, x):
-        self._lasym = x
+    def set_endate(self, x ):
+        self.__endate = self.__fmtdate(x, 'YYYYMMDD')
 
     @property
     def edate(self):
-        return self._edate
-    @edate.setter
-    def edate(self, x):
-        assert isinstance(x, str), 'EDATE must be a string'
-        assert len(x)<=5, 'EDATE must be 5 characters or shorter'
-        self._edate = x.ljust(5)
+        return self.__edate
+
+    def set_edate(self, x):
+        self.__edate = self.__fmtdate(x, 'MMMDD')
 
     @property
     def ddate(self):
-        return self._ddate
-    @ddate.setter
-    def ddate(self, x):
-        assert isinstance(x, str), 'DDATE must be a string'
-        assert len(x)<=5, 'DDATE must be 5 characters or shorter'
-        self._ddate = x.ljust(5)
+        return self.__ddate
+
+    def set_ddate(self, x):
+        self.__ddate = self.__fmtdate(x, 'MMMDD')
 
     @property
     def rdate(self):
-        return self._rdate
-    @rdate.setter
-    def rdate(self, x):
-        assert isinstance(x, str), 'RDATE must be a string'
-        assert len(x)<=5, 'RDATE must be 5 characters or shorter'
-        self._rdate = x.ljust(5)
+        return self.__rdate
+
+    def set_rdate(self, x):
+        self.__ddate = self.__fmtdate(x, 'MMMDD')
+
+    def update_from_dict(self,d):
+        """fixme: todo. Mention that the special key-value 'date':'NOW' or
+        'date':'YYYYMMDD' can be used as a shorthand for setting all dates to
+        that value (todo implement)"""
+        if not hasattr(d,'items'):
+            from .exceptions import NCBadInput
+            raise NCBadInput('Parameter must be a dict')
+        for k,v in d.items():
+            setfct=getattr(self,f'set_{k}',None)
+            if not setfct:
+                from .exceptions import NCBadInput
+                raise NCBadInput('fixme')
+            setfct(v)
+
+    #fixme: to be removed from this class:
+    @property
+    def smin(self):
+        return self.__smin
+    def set_smin(self, x):
+        self.__smin = x
+    @property
+    def emax(self):
+        return self.__emax
+    def set_emax( self, x ):
+        self.__emax = x
+    @property
+    def lasym(self):
+        return self.__lasym
+    def set_lasym(self, x):
+        self.__lasym = x
 
 def ncmat2endf( ncmat_cfg, *,
                 material_name='NCrystalMaterial',
-                endf_parameters=EndfParameters(),
+                endf_metadata=None,
                 temperatures=None,
-                mat_numbers=None,
+                mat_numbers=None,#fixme: to EndfMetaData
                 elastic_mode='scaled',
                 include_gif=False,
                 isotopic_expansion=False,
                 force_save=False,
-                set_date_to_now=False,
+                set_date_to_now=False,#fixme: remove
                 verbosity=1):
     """Generates a set of ENDF-6 formatted files for a given NCMAT file.
 
@@ -222,8 +276,8 @@ def ncmat2endf( ncmat_cfg, *,
         tsl_element_in_name.endf for compounds or tsl_element.endf for
         elements. E.g. tsl_H_in_CH2.endf or tsl_Cu.endf
 
-    endf_parameters : EndfParameters
-        Parameters for the ENDF file.
+    endf_metadata : EndfMetaData object or a dictionary
+        Metadata parameters for the ENDF file.
         https://www.nndc.bnl.gov/endfdocs/ENDF-102-2023.pdf
 
     temperatures : int, float, tuple or list
@@ -270,29 +324,22 @@ def ncmat2endf( ncmat_cfg, *,
         their fraction in the composition
 
     """
-    from ._numpy import _ensure_numpy
     from . import exceptions as nc_exceptions
     from . import core as nc_core
     from . import misc as nc_misc
     from ._common import warn as ncwarn
     from ._common import print as ncprint
-
+    from ._numpy import _ensure_numpy
     _ensure_numpy()
+
+    if not endf_metadata:
+        endf_metadata = EndfMetaData()
+    elif not isinstance(endf_metadata,EndfMetaData):
+        endf_metadata = EndfMetaData()
+        endf_metadata.update_from_dict(endf_metadata)
+
     if set_date_to_now:
-        if any(_ is not None for _ in (endf_parameters.edate,
-                                       endf_parameters.ddate,
-                                       endf_parameters.rdate)):
-            raise nc_exceptions.NCBadInput('Option set_date_to_now not'
-                                       ' compatible with dates in'
-                                       ' endf_parameters')
-        else:
-            from datetime import datetime
-            now = datetime.now()
-            months = ('JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-                      'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DEC')
-            endf_parameters.edate = months[now.month-1] + now.strftime("%y")
-            endf_parameters.ddate = months[now.month-1] + now.strftime("%y")
-            endf_parameters.rdate = months[now.month-1] + now.strftime("%y")
+        endf_metadata.set_all_dates_as_now()
 
     if elastic_mode not in available_elastic_modes:
         raise nc_exceptions.NCBadInput(f'Elastic mode {elastic_mode}'
@@ -300,9 +347,9 @@ def ncmat2endf( ncmat_cfg, *,
     info_obj = nc_core.createInfo(ncmat_cfg)
     if not info_obj.isSinglePhase():
         raise nc_exceptions.NCBadInput('Only single phase materials supported')
-    if endf_parameters.lasym > 0:
+    if endf_metadata.lasym > 0:
         ncwarn( 'Creating non standard S(a,b)'
-               f' with LASYM = {endf_parameters.lasym}')
+               f' with LASYM = {endf_metadata.lasym}')
 
     base_temp = info_obj.dyninfos[0].temperature
     if temperatures is None:
@@ -369,7 +416,7 @@ def ncmat2endf( ncmat_cfg, *,
     from ._ncmat2endf_impl import NuclearData
     data = NuclearData(ncmat_cfg=ncmat_cfg, temperatures=temperatures,
                        elastic_mode=elastic_mode,
-                       requested_emax=endf_parameters.emax,
+                       requested_emax=endf_metadata.emax,
                        verbosity=verbosity)
 
     if mat_numbers is not None:
@@ -390,7 +437,7 @@ def ncmat2endf( ncmat_cfg, *,
                    if sym == material_name
                    else f'tsl_{sym}_in_{material_name}.endf' )
         if data.elements[sym].sab_total is not None:
-            endf_file = EndfFile(sym, data, mat, endf_parameters,
+            endf_file = EndfFile(sym, data, mat, endf_metadata,
                                  include_gif=include_gif,
                                  isotopic_expansion=isotopic_expansion,
                                  verbosity=verbosity)
