@@ -60,7 +60,7 @@ DOI:10.48550/arXiv.2312.08249
 
     parser.add_argument('input',
                         help='NCMAT cfg string to convert')
-    parser.add_argument('-n', '--name',
+    parser.add_argument('-n', '--name',#fixme: --compound-name ?
                         help=('name of the compound to be processed. '
                               'ENDF files will be named '
                               'tsl_element_in_name.endf for compounds '
@@ -73,10 +73,9 @@ DOI:10.48550/arXiv.2312.08249
                         help=("overwrite existing file "
                               "if it already exists"))
     parser.add_argument('-e', '--elastic_mode',
-                        help='approximation used for the elastic component',
+                        help='approximation used for the elastic component',#fixme: consider docs, perhaps refer to njoy-ncrystal paper?
                         type=str, choices=available_elastic_modes,
                         default='scaled')
-
 
     #fixme: remove these, but add --metadata which takes json dict:
     parser.add_argument('--set_date_to_now',action='store_true',
@@ -89,7 +88,7 @@ DOI:10.48550/arXiv.2312.08249
                         type=json.loads)
 
     #fixme: these should be marked as expert-only (also, add options controlling
-    #emax, smin, lasym)
+    #emax, lasym)
     parser.add_argument('-t', '--temperatures',
                         nargs='+',
                         type=float,
@@ -99,6 +98,9 @@ DOI:10.48550/arXiv.2312.08249
                         help='set the minimum value of S(alpha, beta) stored '
                              'in MF7/MT4', type=float,
                         default=EndfParameters().smin)
+
+    #fixme: test the cli
+
     if return_parser:
         return parser
     args=parser.parse_args(arglist)

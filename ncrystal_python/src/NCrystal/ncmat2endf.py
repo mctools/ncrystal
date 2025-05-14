@@ -73,6 +73,7 @@ class EndfMetaData():
     endate: string
         Master File entry date in the form YYYYMMDD. The special string "NOW"
         can be used to select the current date.
+        FIXME: Should this date NOT be set to current date along with the others?
 
     edate: string Evaluation date in the form MMMYY. The special string "NOW"
         can be used to select the current date.
@@ -83,6 +84,8 @@ class EndfMetaData():
     rdate: string
         Revision date in the form MMMYY. The special string "NOW" can be used to
         select the current date.
+
+    FIXME: Add parameter for material number assignment.
 
     #FIXME: Move these 3 parameters out of the metadata class:
 
@@ -427,6 +430,9 @@ def ncmat2endf( ncmat_cfg, *,
         if n != 0:
             raise nc_exceptions.NCBadInput('Incorrect material number '
                                            'assignement')
+
+    if material_name is None:
+        material_name = 'UnknownCompound'
 
     output_composition = []
     from ._ncmat2endf_impl import EndfFile
