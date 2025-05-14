@@ -1,0 +1,459 @@
+
+
+
+--------------------------------------------------------------------------------
+{'force_save': True,
+ 'ncmat_cfg': 'Ge_sg227.ncmat;dcutoff=0.5;mos=40arcsec;dir1=@crys_hkl:5,1,1@lab:0,0,1;dir2=@crys_hkl:0,-1,1@lab:0,1,0'}
+FAILED (as expected): Oriented materials cannot be represented in the ENDF format and are not supported
+
+
+
+--------------------------------------------------------------------------------
+{'force_save': True,
+ 'mat_numbers': {'Ge': 99},
+ 'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
+Get nuclear data...
+FAILED (as expected): Incorrect material number assignement
+
+
+
+--------------------------------------------------------------------------------
+{'force_save': True,
+ 'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1',
+ 'temperatures': [-100]}
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. The (alpha,beta) grid for first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated.
+FAILED (as expected): Non positive temperatures
+
+
+
+--------------------------------------------------------------------------------
+{'force_save': True,
+ 'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1',
+ 'temperatures': [293.15]}
+FAILED (as expected): Repeated temperatures: temperatures parameter must not include the temperature defined in the cfg string
+
+
+
+--------------------------------------------------------------------------------
+{'force_save': True, 'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1;comp=coh_elas'}
+FAILED (as expected): MF7/MT4 is mandatory in an ENDF file but no inelastic data found
+
+
+
+--------------------------------------------------------------------------------
+{'elastic_mode': 'something wrong',
+ 'force_save': True,
+ 'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
+FAILED (as expected): Elastic mode something wrong not in (('greater', 'scaled', 'mixed'))
+
+
+
+--------------------------------------------------------------------------------
+{'elastic_mode': 'scaled',
+ 'force_save': True,
+ 'material_name': 'Al',
+ 'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1',
+ 'temperatures': [350]}
+Get nuclear data...
+Write ENDF file tsl_Al.endf...
+Files created:
+  tsl_Al.endf with fraction 1.0
+Created file tsl_Al.endf with fraction 1.0
+endf>Created with ncmat2endf                                            999 0  0    0
+endf> 1.300000+4 2.674975+1         -1          0          0          0 999 1451    1
+endf> 0.000000+0 0.000000+0          0          0          0          6 999 1451    2
+endf> 1.000000+0 5.000000+0          0          0         12          1 999 1451    3
+endf> 0.000000+0 0.000000+0          0          0         63          3 999 1451    4
+endf> 13-Al     MyLAB      EVAL-MMMYY NCrystal                          999 1451    5
+endf> REFERENCE            DIST-MMMYY REV0-MMMYY            YYYYMMDD    999 1451    6
+endf>----MyLib             MATERIAL  999                                999 1451    7
+endf>-----THERMAL NEUTRON SCATTERING DATA                               999 1451    8
+endf>------ENDF-6 FORMAT                                                999 1451    9
+endf>****************************************************************** 999 1451   10
+endf>                                                                   999 1451   11
+endf> This file was converted from the following NCrystal cfg           999 1451   12
+endf> string [1]:                                                       999 1451   13
+endf>                                                                   999 1451   14
+endf>                     Al_sg225.ncmat;vdoslux=1                      999 1451   15
+endf>                                                                   999 1451   16
+endf> using NCrystal 4.1.9 and endf-parserpy 0.12.0 [2] with the        999 1451   17
+endf> following options:                                                999 1451   18
+endf>                                                                   999 1451   19
+endf>  smin:1e-100                                                      999 1451   20
+endf>  emax:5.0                                                         999 1451   21
+endf>  lasym:0                                                          999 1451   22
+endf>  include_gif:False                                                999 1451   23
+endf>  isotopic_expansion:False                                         999 1451   24
+endf>  elastic_mode:scaled                                              999 1451   25
+endf>                                                                   999 1451   26
+endf> Temperatures:                                                     999 1451   27
+endf>       293.15 K                                                    999 1451   28
+endf>       350.00 K                                                    999 1451   29
+endf>                                                                   999 1451   30
+endf>References:                                                        999 1451   31
+endf>[1] https://github.com/mctools/ncrystal                            999 1451   32
+endf>[2] https://endf-parserpy.readthedocs.io/en/latest/                999 1451   33
+endf>                                                                   999 1451   34
+endf>****************************************************************** 999 1451   35
+endf>                                                                   999 1451   36
+endf>Comments from NCMAT file:                                          999 1451   37
+endf>                                                                   999 1451   38
+endf>                                                                   999 1451   39
+endf>Aluminium (Al, fcc, cubic, SG-225 / Fm-3m)                         999 1451   40
+endf>                                                                   999 1451   41
+endf>Under usual conditions this phase exists from 0 to 933K.           999 1451   42
+endf>                                                                   999 1451   43
+endf>Structure converted with ncrystal_onlinedb2ncmat from:             999 1451   44
+endf>                                                                   999 1451   45
+endf>"Second edition. Interscience Publishers,                          999 1451   46
+endf>New York, Cubic closest packed, ccp, structure"                    999 1451   47
+endf>Wyckoff R W G (1963)                                               999 1451   48
+endf>Crystallography Open Database entry 9008460                        999 1451   49
+endf>https://www.crystallography.net/cod/9008460.html                   999 1451   50
+endf>                                                                   999 1451   51
+endf>This crystal structure is also compatible with structure obtained  999 1451   52
+endf>from:                                                              999 1451   53
+endf>                                                                   999 1451   54
+endf>https://www.crystallography.net/cod/9012428.html                   999 1451   55
+endf>https://www.crystallography.net/cod/9011602.html                   999 1451   56
+endf>https://www.crystallography.net/cod/9012002.html                   999 1451   57
+endf>                                                                   999 1451   58
+endf>The VDOS curve was extracted by T. Kittelmann using the engauge    999 1451   59
+endf>digitizer                                                          999 1451   60
+endf>software from Figure 1 of:                                         999 1451   61
+endf>                                                                   999 1451   62
+endf>"First principles phonon calculations in materials science"        999 1451   63
+endf>A. Togo and I. Tanaka, Scripta Materialia 108 (2015) 1-5           999 1451   64
+endf>https://doi.org/10.1016/j.scriptamat.2015.07.021                   999 1451   65
+endf>                                                                   999 1451   66
+endf>****************************************************************** 999 1451   67
+endf>                                1        451         70          0 999 1451   68
+endf>                                7          2         90          0 999 1451   69
+endf>                                7          4       6974          0 999 1451   70
+endf>                                                                   999 1  099999
+endf>                                                                   999 0  0    0
+endf> 1.300000+4 2.674975+1          1          0          0          0 999 7  2    1
+endf> 2.931500+2 0.000000+0          1          0          1        171 999 7  2    2
+endf>        171          1                                             999 7  2    3
+endf> 3.741252-3 5.134741-3 4.988336-3 8.392040-3 9.976672-3 1.258346-2 999 7  2    4
+endf> 1.371792-2 1.924357-2 1.496501-2 2.131949-2 1.995334-2 2.254634-2 999 7  2    5
+endf> 2.369460-2 2.674178-2 2.494168-2 3.073558-2 2.993002-2 3.405288-2 999 7  2    6
+endf> 3.367127-2 3.793785-2 3.990669-2 3.912707-2 4.364794-2 4.336451-2 999 7  2    7
+endf> 4.489502-2 4.591494-2 4.988336-2 4.767616-2 5.362461-2 4.925869-2 999 7  2    8
+endf> 5.487169-2 5.078662-2 5.986003-2 5.123031-2 6.360128-2 5.363637-2 999 7  2    9
+endf> 6.484837-2 5.479998-2 6.983670-2 5.684046-2 7.357795-2 5.961847-2 999 7  2   10
+endf> 7.981337-2 5.981600-2 8.355463-2 6.053541-2 8.480171-2 6.193030-2 999 7  2   11
+endf> 8.979005-2 6.285536-2 9.353130-2 6.416889-2 9.477838-2 6.471507-2 999 7  2   12
+endf> 9.976672-2 6.519944-2 1.035080-1 6.652852-2 1.047551-1 6.738874-2 999 7  2   13
+endf> 1.097434-1 6.777109-2 1.134846-1 6.847166-2 1.197201-1 6.877474-2 999 7  2   14
+endf> 1.234613-1 6.960885-2 1.247084-1 6.994659-2 1.296967-1 7.066980-2 999 7  2   15
+endf> 1.334380-1 7.133404-2 1.346851-1 7.162104-2 1.434147-1 7.197467-2 999 7  2   16
+endf> 1.446617-1 7.249052-2 1.496501-1 7.279816-2 1.533913-1 7.308125-2 999 7  2   17
+endf> 1.596267-1 7.314291-2 1.633680-1 7.371067-2 1.646151-1 7.393163-2 999 7  2   18
+endf> 1.696034-1 7.412970-2 1.733447-1 7.440350-2 1.745918-1 7.458112-2 999 7  2   19
+endf> 1.795801-1 7.468073-2 1.833213-1 7.485216-2 1.845684-1 7.492368-2 999 7  2   20
+endf> 1.895568-1 7.511630-2 1.932980-1 7.535326-2 1.995334-1 7.540507-2 999 7  2   21
+endf> 2.032747-1 7.545289-2 2.045218-1 7.563916-2 2.095101-1 7.572288-2 999 7  2   22
+endf> 2.132514-1 7.591616-2 2.144984-1 7.595380-2 2.194868-1 7.598767-2 999 7  2   23
+endf> 2.232280-1 7.614406-2 2.244751-1 7.623546-2 2.294634-1 7.629029-2 999 7  2   24
+endf> 2.332047-1 7.634097-2 2.394401-1 7.634838-2 2.431814-1 7.643053-2 999 7  2   25
+endf> 2.444285-1 7.647556-2 2.494168-1 7.653864-2 2.531580-1 7.660532-2 999 7  2   26
+endf> 2.544051-1 7.663779-2 2.593935-1 7.665242-2 2.631347-1 7.669304-2 999 7  2   27
+endf> <<<SNIPPED 7017 LINES, MD5=0cf08160ad2f67f2e44391c3fc40d407>>>
+endf> 3.500000+2 7.672367+1          4          0        100          0 999 7  4 6954
+endf> 0.000000+0 0.000000+0 0.000000+0 0.000000+0 0.000000+0 0.000000+0 999 7  4 6955
+endf> 0.000000+0 0.000000+0 0.000000+0 0.000000+0 0.000000+0 0.000000+0 999 7  4 6956
+endf> 0.000000+0 0.000000+0 0.000000+0 0.000000+0 0.000000+0 0.000000+0 999 7  4 6957
+endf> 0.000000+0 0.000000+0 0.000000+0 0.000000+0 0.000000+0 0.000000+0 999 7  4 6958
+endf> 0.000000+0 0.000000+0 0.000000+0 0.000000+0 0.000000+0 0.000000+0 999 7  4 6959
+endf> 0.000000+0 0.000000+0 0.000000+0 0.000000+0 0.000000+0 0.000000+0 999 7  4 6960
+endf> 0.000000+0 0.000000+0 0.000000+0 0.000000+0 0.000000+0 0.000000+0 999 7  4 6961
+endf> 0.000000+0 0.000000+0 0.000000+0 0.000000+0 0.000000+0 0.000000+0 999 7  4 6962
+endf> 0.000000+0 0.000000+0 6.66832-98 1.41619-94 1.47234-91 1.52525-87 999 7  4 6963
+endf> 1.13409-84 2.70953-82 3.86116-80 3.77466-78 2.71016-76 7.09141-74 999 7  4 6964
+endf> 5.00752-72 2.04888-70 6.23657-69 1.52648-67 1.24459-65 6.09847-64 999 7  4 6965
+endf> 2.07268-63 1.21704-61 9.71867-60 6.98991-58 4.44145-56 2.41060-54 999 7  4 6966
+endf> 1.03642-52 2.67938-51 4.69588-50 2.43567-48 1.13356-46 4.70635-45 999 7  4 6967
+endf> 1.73286-43 5.62466-42 1.59947-40 3.95713-39 8.44044-38 1.52918-36 999 7  4 6968
+endf> 2.28088-35 2.56916-34 2.42810-33 3.85094-32 5.51588-31 7.13961-30 999 7  4 6969
+endf> 8.33955-29 8.76458-28 8.25502-27 6.93636-26 5.17411-25 3.40807-24 999 7  4 6970
+endf> 1.97016-23 9.92237-23 4.53356-22 2.31488-21 0.000000+0 0.000000+0 999 7  4 6971
+endf> 0.000000+0 0.000000+0          0          0          1          2 999 7  4 6972
+endf>          2          2                                             999 7  4 6973
+endf> 2.931500+2 3.202258+2 3.500000+2 3.728392+2                       999 7  4 6974
+endf>                                                                   999 7  099999
+endf>                                                                   999 0  0    0
+endf>                                                                     0 0  0    0
+endf>                                                                    -1 0  0    0
+[320.2258, 372.8392] [320.2258, 372.8392]
+
+
+
+--------------------------------------------------------------------------------
+{'force_save': True,
+ 'mat_numbers': {'C': 37, 'H': 38},
+ 'material_name': 'CH2',
+ 'ncmat_cfg': 'Polyethylene_CH2.ncmat;vdoslux=1'}
+Get nuclear data...
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled
+Write ENDF file tsl_H_in_CH2.endf...
+Write ENDF file tsl_C_in_CH2.endf...
+Files created:
+  tsl_H_in_CH2.endf with fraction 0.6666666666666666
+  tsl_C_in_CH2.endf with fraction 0.3333333333333333
+Created file tsl_H_in_CH2.endf with fraction 0.6666666666666666
+endf>Created with ncmat2endf                                             38 0  0    0
+endf> 1.000000+3 9.993170-1         -1          0          0          0  38 1451    1
+endf> 0.000000+0 0.000000+0          0          0          0          6  38 1451    2
+endf> 1.000000+0 5.000000+0          0          0         12          1  38 1451    3
+endf> 0.000000+0 0.000000+0          0          0         76          3  38 1451    4
+endf>  1-H      MyLAB      EVAL-MMMYY NCrystal                           38 1451    5
+endf> REFERENCE            DIST-MMMYY REV0-MMMYY            YYYYMMDD     38 1451    6
+endf>----MyLib             MATERIAL   38                                 38 1451    7
+endf>-----THERMAL NEUTRON SCATTERING DATA                                38 1451    8
+endf>------ENDF-6 FORMAT                                                 38 1451    9
+endf>******************************************************************  38 1451   10
+endf>                                                                    38 1451   11
+endf> This file was converted from the following NCrystal cfg            38 1451   12
+endf> string [1]:                                                        38 1451   13
+endf>                                                                    38 1451   14
+endf>                 Polyethylene_CH2.ncmat;vdoslux=1                   38 1451   15
+endf>                                                                    38 1451   16
+endf> using NCrystal 4.1.9 and endf-parserpy 0.12.0 [2] with the         38 1451   17
+endf> following options:                                                 38 1451   18
+endf>                                                                    38 1451   19
+endf>  smin:1e-100                                                       38 1451   20
+endf>  emax:5.0                                                          38 1451   21
+endf>  lasym:0                                                           38 1451   22
+endf>  include_gif:False                                                 38 1451   23
+endf>  isotopic_expansion:False                                          38 1451   24
+endf>  elastic_mode:scaled                                               38 1451   25
+endf>                                                                    38 1451   26
+endf> Temperatures:                                                      38 1451   27
+endf>       293.15 K                                                     38 1451   28
+endf>                                                                    38 1451   29
+endf>References:                                                         38 1451   30
+endf>[1] https://github.com/mctools/ncrystal                             38 1451   31
+endf>[2] https://endf-parserpy.readthedocs.io/en/latest/                 38 1451   32
+endf>                                                                    38 1451   33
+endf>******************************************************************  38 1451   34
+endf>                                                                    38 1451   35
+endf>Comments from NCMAT file:                                           38 1451   36
+endf>                                                                    38 1451   37
+endf>                                                                    38 1451   38
+endf>Polyethylene (PE).                                                  38 1451   39
+endf>                                                                    38 1451   40
+endf>Note: This file models amorphous polyethylene, and the density      38 1451   41
+endf>value has been                                                      38 1451   42
+endf>set as 0.92, but could vary up to 5% in a given material.           38 1451   43
+endf>                                                                    38 1451   44
+endf>The VDOS curves were calculated using VASP DFT[1], with Phonopy[2]  38 1451   45
+endf>and                                                                 38 1451   46
+endf>OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics      38 1451   47
+endf>group.  The                                                         38 1451   48
+endf>calculation used an orthorombic unit cell with space group Pnma     38 1451   49
+endf>(62) (specific                                                      38 1451   50
+endf>PE structure taken from [4]). and the calculation was done on       38 1451   51
+endf>3x5x9 k-point                                                       38 1451   52
+endf>grid.                                                               38 1451   53
+endf>                                                                    38 1451   54
+endf>The performance was validated against measurements (Granada-1987    38 1451   55
+endf>and                                                                 38 1451   56
+endf>Lee-2020), and as an added sanity check it was verified that        38 1451   57
+endf>results were                                                        38 1451   58
+endf>consistent with a Polyethylene NCMAT file created with the          38 1451   59
+endf>ncrystal_hfg2ncmat                                                  38 1451   60
+endf>command (i.e. the hydrogen VDOS was consistent with one derived     38 1451   61
+endf>via the method                                                      38 1451   62
+endf>of G. Romanelli et. al (2021), doi:10.1088/1361-648X/abfc13).       38 1451   63
+endf>                                                                    38 1451   64
+endf>References:                                                         38 1451   65
+endf>[1]: G. Kresse and J. Furthm"uller, Phys. Rev. B 54 , 11 169        38 1451   66
+endf>(1996.)                                                             38 1451   67
+endf>[2]: "First principles phonon calculations in materials science",   38 1451   68
+endf>Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)          38 1451   69
+endf>[3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J.,        38 1451   70
+endf>"Calculation                                                        38 1451   71
+endf>of the Thermal Neutron Scattering Cross-Section of Solids Using     38 1451   72
+endf>OCLIMAX".                                                           38 1451   73
+endf>Journal of Chemical Theory and Computation 2020, 16 (8),            38 1451   74
+endf>5212-5217.                                                          38 1451   75
+endf>[4]: "Materials Data on H2C (SG:62) by Materials Project"           38 1451   76
+endf>Persson, Kristin (2016).DOI: 10.17188/1316749                       38 1451   77
+endf>https://www.materialsproject.org/materials/mp-985782/               38 1451   78
+endf>                                                                    38 1451   79
+endf>******************************************************************  38 1451   80
+endf>                                1        451         83          0  38 1451   81
+endf>                                7          2          4          0  38 1451   82
+endf>                                7          4       4976          0  38 1451   83
+endf>                                                                    38 1  099999
+endf>                                                                    38 0  0    0
+endf> 1.000000+3 9.993170-1          2          0          0          0  38 7  2    1
+endf> 8.201679+1 0.000000+0          0          0          1          1  38 7  2    2
+endf>          1          2                                              38 7  2    3
+endf> 2.931500+2 2.290490+1                                              38 7  2    4
+endf>                                                                    38 7  099999
+endf> 1.000000+3 9.993170-1          0          1          0          0  38 7  4    1
+endf> 0.000000+0 0.000000+0          0          0          6          0  38 7  4    2
+endf> 2.049019+1 5.000000+0 9.993170-1 5.000000+0 0.000000+0 1.000000+0  38 7  4    3
+endf> 0.000000+0 0.000000+0          0          0          1        138  38 7  4    4
+endf>        138          4                                              38 7  4    5
+endf> 2.931500+2 0.000000+0          0          0          1        100  38 7  4    6
+endf>        100          4                                              38 7  4    7
+endf> 1.72679-50 0.000000+0 1.72679-10 5.33657-11 3.197760-2 9.795936-3  38 7  4    8
+endf> 6.395520-2 1.941942-2 1.279104-1 3.815372-2 1.918655-1 5.621266-2  38 7  4    9
+endf> <<<SNIPPED 4946 LINES, MD5=1bba8901cefafbcd6c782f728b708c69>>>
+endf> 8.777851+0 3.17474-64 9.281498+0 7.93419-64 9.785145+0 1.88398-63  38 7  4 4956
+endf> 1.028880+1 4.27401-63 1.079244+1 9.30700-63 1.179973+1 3.96441-62  38 7  4 4957
+endf> 1.280703+1 1.49455-61 1.381433+1 5.08587-61 1.482161+1 1.58615-60  38 7  4 4958
+endf> 1.582891+1 4.58822-60 1.683621+1 1.24283-59 1.784350+1 3.17685-59  38 7  4 4959
+endf> 1.885080+1 7.71225-59 1.985809+1 1.78759-58 2.086538+1 3.97374-58  38 7  4 4960
+endf> 2.187268+1 8.50453-58 2.287997+1 1.75812-57 2.388727+1 3.52082-57  38 7  4 4961
+endf> 2.489456+1 6.84743-57 2.590185+1 1.29616-56 2.835880+1 5.55178-56  38 7  4 4962
+endf> 3.104880+1 2.36390-55 3.399395+1 9.98511-55 3.721848+1 4.17426-54  38 7  4 4963
+endf> 4.074886+1 1.72241-53 4.461413+1 6.99363-53 4.884604+1 2.78470-52  38 7  4 4964
+endf> 5.347938+1 1.08311-51 5.855220+1 4.09702-51 6.410622+1 1.49974-50  38 7  4 4965
+endf> 7.018707+1 5.28305-50 7.684472+1 1.77971-49 8.413389+1 5.69314-49  38 7  4 4966
+endf> 9.211448+1 1.71577-48 1.008521+2 4.82874-48 1.104185+2 1.25656-47  38 7  4 4967
+endf> 1.208923+2 2.99028-47 1.323596+2 6.42798-47 1.449148+2 1.23117-46  38 7  4 4968
+endf> 1.586608+2 2.06928-46 1.737106+2 3.00079-46 1.901881+2 3.68481-46  38 7  4 4969
+endf> 2.082285+2 3.75250-46 2.279802+2 3.09711-46 2.496055+2 2.01965-46  38 7  4 4970
+endf> 2.732821+2 1.01181-46 2.992044+2 3.77590-47 3.275856+2 1.01457-47  38 7  4 4971
+endf> 3.586591+2 1.88759-48 3.926800+2 2.24150-49 4.299280+2 1.25749-50  38 7  4 4972
+endf> 4.707091+2 1.86646-52                                              38 7  4 4973
+endf> 0.000000+0 0.000000+0          0          0          1          1  38 7  4 4974
+endf>          1          2                                              38 7  4 4975
+endf> 2.931500+2 1.208094+3                                              38 7  4 4976
+endf>                                                                    38 7  099999
+endf>                                                                    38 0  0    0
+endf>                                                                     0 0  0    0
+endf>                                                                    -1 0  0    0
+[1208.094] [1208.094]
+Created file tsl_C_in_CH2.endf with fraction 0.3333333333333333
+endf>Created with ncmat2endf                                             37 0  0    0
+endf> 6.000000+3 1.190786+1         -1          0          0          0  37 1451    1
+endf> 0.000000+0 0.000000+0          0          0          0          6  37 1451    2
+endf> 1.000000+0 5.000000+0          0          0         12          1  37 1451    3
+endf> 0.000000+0 0.000000+0          0          0         76          3  37 1451    4
+endf>  6-C      MyLAB      EVAL-MMMYY NCrystal                           37 1451    5
+endf> REFERENCE            DIST-MMMYY REV0-MMMYY            YYYYMMDD     37 1451    6
+endf>----MyLib             MATERIAL   37                                 37 1451    7
+endf>-----THERMAL NEUTRON SCATTERING DATA                                37 1451    8
+endf>------ENDF-6 FORMAT                                                 37 1451    9
+endf>******************************************************************  37 1451   10
+endf>                                                                    37 1451   11
+endf> This file was converted from the following NCrystal cfg            37 1451   12
+endf> string [1]:                                                        37 1451   13
+endf>                                                                    37 1451   14
+endf>                 Polyethylene_CH2.ncmat;vdoslux=1                   37 1451   15
+endf>                                                                    37 1451   16
+endf> using NCrystal 4.1.9 and endf-parserpy 0.12.0 [2] with the         37 1451   17
+endf> following options:                                                 37 1451   18
+endf>                                                                    37 1451   19
+endf>  smin:1e-100                                                       37 1451   20
+endf>  emax:5.0                                                          37 1451   21
+endf>  lasym:0                                                           37 1451   22
+endf>  include_gif:False                                                 37 1451   23
+endf>  isotopic_expansion:False                                          37 1451   24
+endf>  elastic_mode:scaled                                               37 1451   25
+endf>                                                                    37 1451   26
+endf> Temperatures:                                                      37 1451   27
+endf>       293.15 K                                                     37 1451   28
+endf>                                                                    37 1451   29
+endf>References:                                                         37 1451   30
+endf>[1] https://github.com/mctools/ncrystal                             37 1451   31
+endf>[2] https://endf-parserpy.readthedocs.io/en/latest/                 37 1451   32
+endf>                                                                    37 1451   33
+endf>******************************************************************  37 1451   34
+endf>                                                                    37 1451   35
+endf>Comments from NCMAT file:                                           37 1451   36
+endf>                                                                    37 1451   37
+endf>                                                                    37 1451   38
+endf>Polyethylene (PE).                                                  37 1451   39
+endf>                                                                    37 1451   40
+endf>Note: This file models amorphous polyethylene, and the density      37 1451   41
+endf>value has been                                                      37 1451   42
+endf>set as 0.92, but could vary up to 5% in a given material.           37 1451   43
+endf>                                                                    37 1451   44
+endf>The VDOS curves were calculated using VASP DFT[1], with Phonopy[2]  37 1451   45
+endf>and                                                                 37 1451   46
+endf>OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics      37 1451   47
+endf>group.  The                                                         37 1451   48
+endf>calculation used an orthorombic unit cell with space group Pnma     37 1451   49
+endf>(62) (specific                                                      37 1451   50
+endf>PE structure taken from [4]). and the calculation was done on       37 1451   51
+endf>3x5x9 k-point                                                       37 1451   52
+endf>grid.                                                               37 1451   53
+endf>                                                                    37 1451   54
+endf>The performance was validated against measurements (Granada-1987    37 1451   55
+endf>and                                                                 37 1451   56
+endf>Lee-2020), and as an added sanity check it was verified that        37 1451   57
+endf>results were                                                        37 1451   58
+endf>consistent with a Polyethylene NCMAT file created with the          37 1451   59
+endf>ncrystal_hfg2ncmat                                                  37 1451   60
+endf>command (i.e. the hydrogen VDOS was consistent with one derived     37 1451   61
+endf>via the method                                                      37 1451   62
+endf>of G. Romanelli et. al (2021), doi:10.1088/1361-648X/abfc13).       37 1451   63
+endf>                                                                    37 1451   64
+endf>References:                                                         37 1451   65
+endf>[1]: G. Kresse and J. Furthm"uller, Phys. Rev. B 54 , 11 169        37 1451   66
+endf>(1996.)                                                             37 1451   67
+endf>[2]: "First principles phonon calculations in materials science",   37 1451   68
+endf>Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)          37 1451   69
+endf>[3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J.,        37 1451   70
+endf>"Calculation                                                        37 1451   71
+endf>of the Thermal Neutron Scattering Cross-Section of Solids Using     37 1451   72
+endf>OCLIMAX".                                                           37 1451   73
+endf>Journal of Chemical Theory and Computation 2020, 16 (8),            37 1451   74
+endf>5212-5217.                                                          37 1451   75
+endf>[4]: "Materials Data on H2C (SG:62) by Materials Project"           37 1451   76
+endf>Persson, Kristin (2016).DOI: 10.17188/1316749                       37 1451   77
+endf>https://www.materialsproject.org/materials/mp-985782/               37 1451   78
+endf>                                                                    37 1451   79
+endf>******************************************************************  37 1451   80
+endf>                                1        451         83          0  37 1451   81
+endf>                                7          2          4          0  37 1451   82
+endf>                                7          4       4688          0  37 1451   83
+endf>                                                                    37 1  099999
+endf>                                                                    37 0  0    0
+endf> 6.000000+3 1.190786+1          2          0          0          0  37 7  2    1
+endf> 5.551480+0 0.000000+0          0          0          1          1  37 7  2    2
+endf>          1          2                                              37 7  2    3
+endf> 2.931500+2 1.414355+1                                              37 7  2    4
+endf>                                                                    37 7  099999
+endf> 6.000000+3 1.190786+1          0          1          0          0  37 7  4    1
+endf> 0.000000+0 0.000000+0          0          0          6          0  37 7  4    2
+endf> 4.724629+0 5.000000+0 1.190786+1 5.000000+0 0.000000+0 1.000000+0  37 7  4    3
+endf> 0.000000+0 0.000000+0          0          0          1        130  37 7  4    4
+endf>        130          4                                              37 7  4    5
+endf> 2.931500+2 0.000000+0          0          0          1        100  37 7  4    6
+endf>        100          4                                              37 7  4    7
+endf> 2.34682-51 1.92214-50 2.34682-11 1.92214-10 4.345958-3 3.516090-2  37 7  4    8
+endf> 8.691917-3 6.946522-2 1.738383-2 1.355740-1 2.607574-2 1.984629-1  37 7  4    9
+endf> <<<SNIPPED 4658 LINES, MD5=a9888b21536bd384dcb1e7a42e2403ac>>>
+endf> 9.191696-1 0.000000+0 1.056067+0 0.000000+0 1.192965+0 0.000000+0  37 7  4 4668
+endf> 1.329863+0 0.000000+0 1.466761+0 0.000000+0 1.603658+0 1.45171-99  37 7  4 4669
+endf> 1.740556+0 4.49243-97 1.877454+0 8.62363-95 2.014352+0 1.09814-92  37 7  4 4670
+endf> 2.151249+0 9.78896-91 2.288147+0 6.38665-89 2.425044+0 3.16198-87  37 7  4 4671
+endf> 2.561942+0 1.22452-85 2.698839+0 3.80511-84 2.835737+0 9.69838-83  37 7  4 4672
+endf> 2.972635+0 2.06569-81 3.109533+0 3.73677-80 3.246431+0 5.82248-79  37 7  4 4673
+endf> 3.383328+0 7.91115-78 3.520226+0 9.47670-77 3.861128+0 2.82093-74  37 7  4 4674
+endf> 4.235044+0 7.32567-72 4.645171+0 1.63829-69 5.095014+0 3.11046-67  37 7  4 4675
+endf> 5.588421+0 4.93906-65 6.129610+0 6.45042-63 6.723209+0 6.80670-61  37 7  4 4676
+endf> 7.374292+0 5.69228-59 8.088427+0 3.69714-57 8.871723+0 1.82572-55  37 7  4 4677
+endf> 9.730870+0 6.70615-54 1.067321+1 1.79468-52 1.170682+1 3.43784-51  37 7  4 4678
+endf> 1.284052+1 4.66466-50 1.408401+1 4.50616-49 1.544793+1 3.20504-48  37 7  4 4679
+endf> 1.694392+1 1.80787-47 1.858479+1 8.98292-47 2.038456+1 4.30100-46  37 7  4 4680
+endf> 2.235863+1 2.06713-45 2.452386+1 1.00544-44 2.689878+1 4.94373-44  37 7  4 4681
+endf> 2.950369+1 2.45025-43 3.236085+1 1.21986-42 3.549472+1 6.07482-42  37 7  4 4682
+endf> 3.893207+1 3.01084-41 4.270230+1 1.47616-40 4.683763+1 7.10821-40  37 7  4 4683
+endf> 5.137344+1 3.33415-39 5.634850+1 1.50852-38 6.180536+1 6.51053-38  37 7  4 4684
+endf> 6.779066+1 2.64049-37                                              37 7  4 4685
+endf> 0.000000+0 0.000000+0          0          0          1          1  37 7  4 4686
+endf>          1          2                                              37 7  4 4687
+endf> 2.931500+2 6.673864+2                                              37 7  4 4688
+endf>                                                                    37 7  099999
+endf>                                                                    37 0  0    0
+endf>                                                                     0 0  0    0
+endf>                                                                    -1 0  0    0
+[667.3864] [667.3864]
