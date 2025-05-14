@@ -277,6 +277,9 @@ class NuclearData():
         verbosity : integer
             Level of verbosity for the output
         """
+        # fixme: warn if temp not set explicitly in the cfg string???
+
+
         self._temperatures = tuple(temperatures)
         self._ncmat_cfg = ncmat_cfg
         info_obj = nc_core.createInfo(ncmat_cfg)
