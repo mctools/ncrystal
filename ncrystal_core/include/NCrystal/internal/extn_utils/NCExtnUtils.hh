@@ -1,5 +1,5 @@
-#ifndef NCrystal_ExtinctionUtils_hh
-#define NCrystal_ExtinctionUtils_hh
+#ifndef NCrystal_ExtnUtils_hh
+#define NCrystal_ExtnUtils_hh
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
