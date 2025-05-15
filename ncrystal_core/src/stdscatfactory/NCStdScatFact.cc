@@ -25,6 +25,7 @@
 #include "NCrystal/interfaces/NCInfo.hh"
 #include "NCrystal/interfaces/NCSCOrientation.hh"
 #include "NCrystal/internal/powderbragg/NCPowderBragg.hh"
+#include "NCrystal/internal/powderbragg/NCPowderBraggUtils.hh"
 #include "NCrystal/internal/scbragg/NCSCBragg.hh"
 #include "NCrystal/internal/lcbragg/NCLCBragg.hh"
 #include "NCrystal/internal/bkgdextcurve/NCBkgdExtCurve.hh"
@@ -35,6 +36,8 @@
 #include "NCrystal/internal/sab/NCSABUCN.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/internal/extd_utils/NCProcCompBldr.hh"
+#include "NCrystal/internal/cfgutils/NCExtinctionCfg.hh"
+#include "NCrystal/internal/extn_scatter/NCExtnFactory.hh"
 
 namespace NC = NCrystal;
 
@@ -150,6 +153,9 @@ namespace NCRYSTAL_NAMESPACE {
       if ( cfg.get_coh_elas() && info.isCrystalline() ) {
         nc_assert(info.hasHKLInfo());
         if (cfg.isSingleCrystal()) {
+          if ( cfg.has_extinction() )
+            NCRYSTAL_WARN("Extinction models are still not implemented"
+                          " for oriented materials");
           components.addfct_cl( [&cfg,&info]()
           {
             ProcImpl::ProcComposition::ComponentList cl;
@@ -176,15 +182,29 @@ namespace NCRYSTAL_NAMESPACE {
             }
             if ( ppwcutoff && ppwcutoff->hasPlanesWithheldInLastLoop() ) {
               nc_assert_always(info.hasStructureInfo());
-              cl.emplace_back(makeSO<PowderBragg>(info.getStructureInfo(),
-                                                  ppwcutoff->consumePlanesWithheldInLastLoop()));
+              cl.emplace_back(makeSO<PowderBragg>( PowderBraggUtils::prepareData( info.getStructureInfo(),
+                                                                                  ppwcutoff->consumePlanesWithheldInLastLoop() ) ) );
             }
             return cl;
           });
         } else {
-          components.addfct( [&info](){ return makeSO<PowderBragg>(info); } );
-          //NB: Layered polycrystals get same treatment as unlayered
-          //polycrystals in our current modelling.
+          bool needs_regular_powderbragg = true;
+          if ( cfg.has_extinction() ) {
+            auto extn_cfg = makeSO<Cfg::ExtinctionCfg>( cfg.get_extinction() );
+            if ( extn_cfg->enabled() ) {
+              needs_regular_powderbragg = false;
+              components.addfct( [&info,extn_cfg]()
+              {
+                return Extinction::createIsotropicExtnProc( PowderBraggUtils::prepareData(info),
+                                                            extn_cfg );
+              });
+            }
+          }
+          if ( needs_regular_powderbragg )
+            components.addfct( [&info]()
+            {
+              return makeSO<PowderBragg>(PowderBraggUtils::prepareData(info));
+            });
         }
       }
 
