@@ -36,7 +36,8 @@ namespace NCRYSTAL_NAMESPACE {
                           " extinction cfg string: \""<<sv<<"\"");
         return NullOpt;
       }
-      //For simplicity we ignore the returned ValDbl_ShortStrOrigRep.
+      //For simplicity we ignore the returned ValDbl_ShortStrOrigRep (fixme:
+      //that's not good enough for re-encoding, we should store it!)
       return Length{ pv.value().first * Length::angstrom };
     }
   }
@@ -70,7 +71,7 @@ NC::ExtinctionCfgData NC::Cfg::ExtinctionCfg::encode() const
   if (!enabled())
     return {};
   std::ostringstream ss;
-  constexpr double conv_meter2angstrom = Length::angstrom / Length::meter;
+  constexpr double conv_meter2angstrom = Length::meter / Length::angstrom;
   ss << fmt( m_scale.value().get() * conv_meter2angstrom );
   return { std::move(ss).str() };
 }
