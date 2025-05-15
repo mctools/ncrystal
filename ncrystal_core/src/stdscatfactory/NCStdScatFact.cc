@@ -154,8 +154,8 @@ namespace NCRYSTAL_NAMESPACE {
         nc_assert(info.hasHKLInfo());
         if (cfg.isSingleCrystal()) {
           if ( cfg.has_extinction() )
-            NCRYSTAL_WARN("Extinction models are still not implemented"
-                          " for oriented materials");
+            NCRYSTAL_THROW2(BadInput,"Extinction models are still not"
+                            "  implemented for oriented materials.");
           components.addfct_cl( [&cfg,&info]()
           {
             ProcImpl::ProcComposition::ComponentList cl;
