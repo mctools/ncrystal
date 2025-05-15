@@ -23,6 +23,7 @@
 
 #include "NCrystal/interfaces/NCInfo.hh"
 #include "NCrystal/interfaces/NCProcImpl.hh"
+#include "NCrystal/internal/utils/NCExtraTypes.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 
@@ -35,16 +36,9 @@ namespace NCRYSTAL_NAMESPACE {
 
     const char * name() const noexcept override { return "PowderBragg"; }
 
-    //Constructor:
+    //Constructors (see NCPowderBraggUtils.hh for how to prepare MergedData):
+    PowderBragg( PowderBraggInput::MergedData&& );
     PowderBragg( const Info& );
-
-    //Specialised constructors taking (dspacing,fsquared*multiplicity) pairs.
-    //Either needs structure info, or just v0*n_atoms, unit cell volume in Aa^3
-    //and number atoms per unit cell:
-
-    using VectDFM = std::vector<PairDD>;
-    PowderBragg( const StructureInfo&, VectDFM&& );
-    PowderBragg( double v0_times_natoms, VectDFM&& );
 
     //There is a maximum wavelength at which Bragg diffraction is possible, so
     //lower energy bound will reflect this (upper bound is infinity):
@@ -61,8 +55,6 @@ namespace NCRYSTAL_NAMESPACE {
                                            double scale_other ) const override;
 
 
-    //Empty, no planes:
-    PowderBragg( no_init_t ) {}
 
 #ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
     bool isPureElasticScatter() const override { return true; }
@@ -91,8 +83,7 @@ namespace NCRYSTAL_NAMESPACE {
     NeutronEnergy m_threshold = NeutronEnergy{kInfinity};
     VectD m_2dE;
     VectD m_fdm_commul;
-    void init( const StructureInfo&, VectDFM&& );
-    void init( double v0_times_natoms, VectDFM&& );
+    void init( PowderBraggInput::MergedData&& );
   };
 
 }
