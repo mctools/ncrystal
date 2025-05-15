@@ -19,6 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/powderbragg/NCPowderBragg.hh"
+#include "NCrystal/internal/powderbragg/NCPowderBraggUtils.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCRandUtils.hh"
 #include "NCrystal/internal/utils/NCString.hh"
@@ -55,46 +56,40 @@ namespace NCRYSTAL_NAMESPACE {
   }
 }
 
-void NC::PowderBragg::init( const StructureInfo& si, VectDFM&& data )
+void NC::PowderBragg::init( PowderBraggInput::MergedData&& input )
 {
-  nc_assert_always(si.n_atoms>0);
-  nc_assert_always(si.volume>0);
-  if (!(si.volume>0) || !(si.n_atoms>=1) )
-    NCRYSTAL_THROW(BadInput,"Passed structure info object has"
-                   " invalid volume or n_atoms fields.");
-  init(si.volume * si.n_atoms, std::move(data));
-}
-
-void NC::PowderBragg::init( double v0_times_natoms, VectDFM&& origdata )
-{
-  if (!(v0_times_natoms>0) )
+  const double v0_times_natoms = input.cell.volume * input.cell.n_atoms;
+  if ( !std::isfinite(v0_times_natoms) || !(v0_times_natoms>0) )
     NCRYSTAL_THROW(BadInput,"v0_times_natoms is not a positive number.");
+
+  using PlaneList = PowderBraggInput::MergedData::PlaneList;
+  PlaneList data = std::move(input.planes);
+
+  if ( data.empty() )
+    return;
   double xsectfact = 0.5/v0_times_natoms;
   xsectfact *= wl2ekin(1.0);//Adjust units so we can get cross sections through
                             //multiplication with 1/ekin instead of wl^2.
-  VectDFM data = std::move(origdata);
-  std::sort(data.begin(),data.end(),std::greater<PairDD>());
-  VectD v2dE;
+  VectD v2dE, fdm_commul;
   v2dE.reserve(data.size());
-  VectD fdm_commul;
   fdm_commul.reserve(data.size());
   StableSum fdmsum2;
-  VectDFM::const_iterator it(data.begin()),itE(data.end());
+  PlaneList::const_iterator it(data.begin()),itE(data.end());
   double prev_dsp = -kInfinity;
   for (;it!=itE;++it) {
-    if (!(it->first>0.0))
+    if (!(it->dsp>0.0))
       NCRYSTAL_THROW(CalcError,"Inconsistent plane data implies "
                      "non-positive (or NaN) d_spacing.");
-    if ( ncabs(prev_dsp-it->first) < dspacing_merge_tolerance ) {
-      double c = it->first * it->second * xsectfact;
+    if ( ncabs(prev_dsp-it->dsp) < dspacing_merge_tolerance ) {
+      double c = it->dsp * it->fsqmult * xsectfact;
       fdmsum2.add(c);
       fdm_commul.back() = fdmsum2.sum();
     } else {
-      prev_dsp = it->first;
-      double c = it->first * it->second * xsectfact;
+      prev_dsp = it->dsp;
+      double c = it->dsp * it->fsqmult * xsectfact;
       fdmsum2.add(c);
       fdm_commul.push_back(fdmsum2.sum());
-      v2dE.push_back(wl2ekin(2.0*it->first));
+      v2dE.push_back(wl2ekin(2.0*it->dsp));
     }
   }
   if (fdm_commul.empty()||fdm_commul.back()<=0.0) {
@@ -109,39 +104,15 @@ void NC::PowderBragg::init( double v0_times_natoms, VectDFM&& origdata )
   nc_assert( m_threshold.get() > 0.0 );
 }
 
-NC::PowderBragg::PowderBragg( const StructureInfo& si, VectDFM&&  data)
+NC::PowderBragg::PowderBragg( PowderBraggInput::MergedData&& data )
 {
-  init(si,std::move(data));
+  PowderBraggUtils::checkData(data);;
+  init( std::move(data) );
 }
 
-NC::PowderBragg::PowderBragg( double v0_times_natoms, VectDFM&&  data)
+NC::PowderBragg::PowderBragg( const Info& info )
+  : PowderBragg( PowderBraggUtils::prepareMergedData( info) )
 {
-  init(v0_times_natoms,std::move(data));
-}
-
-NC::PowderBragg::PowderBragg(const Info&ci)
-{
-  if (!ci.hasHKLInfo())
-    NCRYSTAL_THROW(MissingInfo,"Passed Info object lacks HKL information.");
-  if (!ci.hasStructureInfo())
-    NCRYSTAL_THROW(MissingInfo,
-                   "Passed Info object lacks Structure information.");
-  const auto& hklList = ci.hklList();
-  VectDFM data;
-  data.reserve(hklList.size());
-
-  for ( const auto& hkl : hklList ) {
-    double f = hkl.fsquared * hkl.multiplicity;
-    if (f<0)
-      NCRYSTAL_THROW(CalcError,
-                     "Inconsistent data implies negative |F|^2*multiplicity.");
-    if (data.empty()||data.back().first!=hkl.dspacing) {
-      data.emplace_back(hkl.dspacing,f);
-    } else {
-      data.back().second += f;
-    }
-  }
-  init(ci.getStructureInfo(),std::move(data));
 }
 
 NC::EnergyDomain NC::PowderBragg::domain() const noexcept
@@ -226,7 +197,10 @@ std::shared_ptr<NC::ProcImpl::Process> NC::PowderBragg::createMerged( const Proc
     return nullptr;
   auto& o = *optr;
 
-  auto result = std::make_shared<PowderBragg>( no_init );//empty instance
+  //Little trick to start with an empty instance (the weird cell data won't be
+  //kept anywhere):
+  auto result = std::make_shared<PowderBragg>( PowderBraggUtils::prepareMergedData( PowderBraggUtils::prepareCellData(1.0,1),
+                                                                                    PowderBraggInput::MergedData::PlaneList() ) );
   auto fixThreshold = [&result]()
   {
     result->m_threshold = NeutronEnergy{ result->m_2dE.front() };
@@ -341,7 +315,6 @@ NC::Optional<std::string> NC::PowderBragg::specificJSONDescription() const
   std::ostringstream ss;
   {
     std::ostringstream tmp;
-    nc_assert(!m_2dE.empty());
     tmp << "nplanes="<<m_2dE.size()
         <<";2dmax="<<m_threshold.wavelength()
         << ";max_contrib="<<CrossSect{max_contrib};
