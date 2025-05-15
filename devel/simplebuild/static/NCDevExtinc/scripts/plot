@@ -33,28 +33,99 @@ if not NCenv:
     raise SystemExit('This script needs the CrysExtn plugin'
                      ' available in the environent')
 
-def create_data( base, custom = None ):
-    key = base if base.startswith('stdlib::') else f'stdlib::{base}'
+def create_data( ncmatkey, plugin_lines = None ):
+    key = ncmatkey if ncmatkey.startswith('stdlib::') else f'stdlib::{ncmatkey}'
     #Always taking base material from NCrystalDev for consistency:
-    td = NC.createTextData(key)
-    return ( f'{td.rawData}\n@CUSTOM_CRYSEXTN\n{custom}'
-             if custom else str(td.rawData) )
+    td = str(NC.createTextData(key).rawData)
+    if plugin_lines:
+        td += '@CUSTOM_CRYSEXTN\n'
+        for pl in plugin_lines:
+            td += f'{pl}\n'
+    return td
 
 def load( ncmod, ncmatdata, cfg_params ):
+    #print(ncmatdata)
+    print("TKTEST0 directload ",cfg_params)
     return ncmod.directLoad(ncmatdata,
                             dtype='ncmat',
                             cfg_params=cfg_params,
                             doAbsorption=False)
 
-base = 'stdlib::Be_sg194.ncmat'
-common = 'dcutoff=1.5;comp=bragg'
+def test( ncmatkey, *, dcutoff, block_size_Aa ):
+    extra_cfg = f'dcutoff={dcutoff};comp=bragg'
+    # Model option 0:
+    #    format (single line): "Sabine_uncorr {l} {Gg} {L} {tilt_option=rect|tri}".
+    #    => res_option = 0
+    #    note: rect is the sabine El/Eb from 6.4.9.2, Gg and L only matters for secondary extinction.
+    #
+    plugin_lines = [f'Sabine_uncorr {block_size_Aa} 0.0 0.0 rect']
 
-mat_dev = load(NC,create_data(base),common)
-mat_ref = load(NCenv,create_data(base,
-                                 custom='BC_pure  0  1000  100000  Gauss'),
-               common)
+    mat_dev = load( NC,
+                    create_data( ncmatkey ),
+                    f'{extra_cfg};extinction={block_size_Aa}' )
 
-wls = np.linspace(0.5,6.0,1000)
-plt.plot(wls,mat_dev.xsect(wl=wls),label='devel')
-plt.plot(wls,mat_ref.xsect(wl=wls),label='ref')
-plt.show()
+    mat_ref = load( NCenv,
+                    create_data( ncmatkey, plugin_lines = plugin_lines ),
+                    extra_cfg )
+
+    mat_noextn = load( NCenv,
+                       create_data( ncmatkey ),
+                       extra_cfg )
+
+    wls = np.linspace(0.0,6.0,20000)
+    #wls = np.concatenate( (wls, np.linspace(2.14,2.142,10000)), axis=0 )
+    wls.sort()
+    plt.plot(wls,mat_dev.xsect(wl=wls),label='TK devel')
+    plt.plot(wls,mat_ref.xsect(wl=wls),label='SX ref',ls=':',
+             lw=4,color='red',alpha=0.5)
+    plt.plot(wls,mat_noextn.xsect(wl=wls),label='no extinction',ls=':',
+             lw=4,color='orange',alpha=0.5)
+
+    plt.xlabel('\u00C5')
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+
+
+def plot_El():
+    #Plot Sabine rect El for y=0, to show discontinuity.
+    xa = np.linspace(0.0, 1.0,10000)
+    xb = np.linspace(1.0, 20.0,10000)
+    xab = np.linspace(xa[0],xb[-1],len(xa)+len(xb)-1)
+
+    def El_smallx(x):
+        return 1-x/2+x**2/4-5*x**3/48+7*x**4/192
+
+    def El_largex(x):
+        return np.sqrt(2.0/(np.pi*x))*(
+            np.ones(len(x))-1.0/(8.0*x) -3.0/(128.0*(x**2)) - 15./(1024.*(x**3))
+        )
+
+    #Also double-check the C++ implementation:
+    from NCTestUtils.loadlib import Lib
+    lib = Lib('extinction')
+    def ncrystalcpp_El_at_y0( x ):
+        return lib.nctest_calcSabineEl( x, 0.0 )
+    f = np.vectorize( ncrystalcpp_El_at_y0 )
+
+    plt.plot(xa,El_smallx(x=xa),label='Sabine 6.4.5.3 (El for x<=1)',color='yellow')
+    plt.plot(xb,El_largex(x=xb),label='Sabine 6.4.5.4 (El for x>1)',color='red')
+    plt.plot(xab,f(x=xab),label='NCrystal C++ El',ls=':',lw=3,color='black',alpha=0.8)
+
+    plt.xlabel('x')
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+
+def main():
+    test( 'stdlib::Be_sg194.ncmat',
+          dcutoff=0.05,
+          block_size_Aa = 100000.0
+         )
+    #plot_El()
+
+if __name__=='__main__':
+    main()
+
