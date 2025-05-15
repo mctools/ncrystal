@@ -21,6 +21,7 @@
 #include "NCrystal/NCrystal.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/powderbragg/NCPowderBragg.hh"
+#include "NCrystal/internal/powderbragg/NCPowderBraggUtils.hh"
 #include "NCrystal/internal/elincscatter/NCElIncScatter.hh"
 
 #include <iostream>
@@ -48,13 +49,25 @@ int main() {
   ///////////////////////////////// PowderBragg /////////////////////////////////////////////
   {
     //Fake hkl lists (VectDFM is vector of (d-spacing,fsq*mult) pairs):
-    const double v0_times_natoms_1  = 1.0;
-    const double v0_times_natoms_2  = 1.2;
-    NC::PowderBragg::VectDFM planes1 = { {0.2,500.0},  { 0.4, 20.0 }, { 2.0, 0.5 }, { 2.4+1e-12, 0.1 }, { 4.5, 0.3 } };
-    NC::PowderBragg::VectDFM planes2 = { {0.05,30000.1}, { 2.4, 1.0 }, { 5.0, 0.1 } };
+    NC::PowderBraggInput::CellData cell1;
+    NC::PowderBraggInput::CellData cell2;
+    cell1.volume = 1.0;
+    cell1.n_atoms = 1;
+    cell2.volume = 1.2;
+    cell2.n_atoms = 1;
 
-    auto pcb1 = NC::makeSO<NC::PowderBragg>( v0_times_natoms_1, std::move(planes1) );
-    auto pcb2 = NC::makeSO<NC::PowderBragg>( v0_times_natoms_2, std::move(planes2) );
+    using VectDFM = NC::PowderBraggInput::MergedData::PlaneList;
+    VectDFM planes1 = { {0.2,500.0},  { 0.4, 20.0 }, { 2.0, 0.5 },
+                        { 2.4+1e-12, 0.1 }, { 4.5, 0.3 } };
+    VectDFM planes2 = { {0.05,30000.1}, { 2.4, 1.0 }, { 5.0, 0.1 } };
+
+    auto data1 =  NC::PowderBraggUtils::prepareMergedData( cell1,
+                                                           std::move(planes1) );
+    auto data2 =  NC::PowderBraggUtils::prepareMergedData( cell1,
+                                                           std::move(planes2) );
+
+    auto pcb1 = NC::makeSO<NC::PowderBragg>( std::move(data1) );
+    auto pcb2 = NC::makeSO<NC::PowderBragg>( std::move(data2) );
     auto pcb_merged = pcb1->createMerged(pcb2,1.0,1.0);
 
     std::string fn = "testpowderbraggmerge.txt";

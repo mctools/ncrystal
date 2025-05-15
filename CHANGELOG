@@ -1,4 +1,7 @@
-v4.2.13 (work-in-progress)
+v4.2.13 (work in progress)
+     * fixme: mention new PowderBragg constructors and infrastructure for
+       setting up input data for such processes.
+     * Fixme: update with everything about the new extinction features.
      * ...
 
 v4.2.12 2026-01-05
