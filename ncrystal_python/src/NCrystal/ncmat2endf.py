@@ -71,9 +71,7 @@ class EndfMetaData():
         Nuclear data library version number.
 
     endate: string
-        Master File entry date in the form YYYYMMDD. The special string "NOW"
-        can be used to select the current date.
-        FIXME: Should this date NOT be set to current date along with the others?
+        Master File entry date in the form YYYYMMDD. 
 
     edate: string Evaluation date in the form MMMYY. The special string "NOW"
         can be used to select the current date.
@@ -108,7 +106,7 @@ class EndfMetaData():
         self.__reference = 'REFERENCE'
         self.__nver = 1
         self.__libname = 'MyLib'
-        self.__endate = 'YYYYMMDD'
+        self.__endate = ''
         self.__nlib = 0
         self.__lrel = 0
         self.__edate = 'MMMYY'
@@ -120,19 +118,17 @@ class EndfMetaData():
         from datetime import datetime
         now = datetime.now()
         now_MMMYY = now.strftime('%b%y').upper()
-        now_MMMMYYDD = now.strftime('%Y%m%d')
         def fmtdate(val, fmt):
             if not isinstance( val, str ):
                 from .exceptions import NCBadInput
                 raise NCBadInput('ENDF date value must be a string')
-            assert fmt in ('MMMYY','MMMMYYDD')
+            assert fmt == 'MMMYY'
             if val.lower()=='now':
-                return now_MMMYY if fmt == 'MMMYY' else now_MMMMYYDD
+                return now_MMMYY
             if len(fmt) != len(val):
                 from .exceptions import NCBadInput
                 raise NCBadInput('ENDF date value is not in expected'
                                  f' format ("NOW" or "{fmt}")')
-            #NB: We could sanitize the string even more if we wanted...
             return val
         self.__fmtdate = fmtdate
 
@@ -191,7 +187,6 @@ class EndfMetaData():
         self.__nver = x
 
     def set_all_dates_as_now(self):
-        self.set_endate('NOW')
         self.set_edate('NOW')
         self.set_ddate('NOW')
         self.set_rdate('NOW')
@@ -201,29 +196,25 @@ class EndfMetaData():
         return self.__endate
 
     @property
-    def set_endate(self, x ):
-        self.__endate = self.__fmtdate(x, 'YYYYMMDD')
-
-    @property
     def edate(self):
         return self.__edate
 
     def set_edate(self, x):
-        self.__edate = self.__fmtdate(x, 'MMMDD')
+        self.__edate = self.__fmtdate(x, 'MMMYY')
 
     @property
     def ddate(self):
         return self.__ddate
 
     def set_ddate(self, x):
-        self.__ddate = self.__fmtdate(x, 'MMMDD')
+        self.__ddate = self.__fmtdate(x, 'MMMYY')
 
     @property
     def rdate(self):
         return self.__rdate
 
     def set_rdate(self, x):
-        self.__ddate = self.__fmtdate(x, 'MMMDD')
+        self.__ddate = self.__fmtdate(x, 'MMMYY')
 
     def update_from_dict(self,d):
         """fixme: todo. Mention that the special key-value 'date':'NOW' or
