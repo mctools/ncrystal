@@ -56,13 +56,15 @@ namespace NCRYSTAL_NAMESPACE {
   }
 }
 
-void NC::PowderBragg::init( PreparedPowderInputData&& ppidata )
+void NC::PowderBragg::init( PowderBraggInput::MergedData&& input )
 {
-  const double v0_times_natoms = ppidata.v0_times_natoms;
-  VectDFM data = std::move(ppidata.d_fm_list);
-
-  if (!(v0_times_natoms>0) )
+  const double v0_times_natoms = input.cell.volume * input.cell.n_atoms;
+  if ( !std::isfinite(v0_times_natoms) || !(v0_times_natoms>0) )
     NCRYSTAL_THROW(BadInput,"v0_times_natoms is not a positive number.");
+
+  using PlaneList = PowderBraggInput::MergedData::PlaneList;
+  PlaneList data = std::move(input.planes);
+
   if ( data.empty() )
     return;
   double xsectfact = 0.5/v0_times_natoms;
@@ -72,22 +74,22 @@ void NC::PowderBragg::init( PreparedPowderInputData&& ppidata )
   v2dE.reserve(data.size());
   fdm_commul.reserve(data.size());
   StableSum fdmsum2;
-  VectDFM::const_iterator it(data.begin()),itE(data.end());
+  PlaneList::const_iterator it(data.begin()),itE(data.end());
   double prev_dsp = -kInfinity;
   for (;it!=itE;++it) {
-    if (!(it->first>0.0))
+    if (!(it->dsp>0.0))
       NCRYSTAL_THROW(CalcError,"Inconsistent plane data implies "
                      "non-positive (or NaN) d_spacing.");
-    if ( ncabs(prev_dsp-it->first) < dspacing_merge_tolerance ) {
-      double c = it->first * it->second * xsectfact;
+    if ( ncabs(prev_dsp-it->dsp) < dspacing_merge_tolerance ) {
+      double c = it->dsp * it->fsqmult * xsectfact;
       fdmsum2.add(c);
       fdm_commul.back() = fdmsum2.sum();
     } else {
-      prev_dsp = it->first;
-      double c = it->first * it->second * xsectfact;
+      prev_dsp = it->dsp;
+      double c = it->dsp * it->fsqmult * xsectfact;
       fdmsum2.add(c);
       fdm_commul.push_back(fdmsum2.sum());
-      v2dE.push_back(wl2ekin(2.0*it->first));
+      v2dE.push_back(wl2ekin(2.0*it->dsp));
     }
   }
   if (fdm_commul.empty()||fdm_commul.back()<=0.0) {
@@ -102,30 +104,14 @@ void NC::PowderBragg::init( PreparedPowderInputData&& ppidata )
   nc_assert( m_threshold.get() > 0.0 );
 }
 
-NC::PowderBragg::PowderBragg( no_init_t )
-  : PowderBragg( PowderBraggUtils::prepareData( no_init ) )
-{
-}
-
-NC::PowderBragg::PowderBragg( PreparedPowderInputData&& data )
+NC::PowderBragg::PowderBragg( PowderBraggInput::MergedData&& data )
 {
   PowderBraggUtils::checkData(data);;
   init( std::move(data) );
 }
 
-
-NC::PowderBragg::PowderBragg( const StructureInfo& si, VectDFM&& data)
-  : PowderBragg( PowderBraggUtils::prepareData( si, std::move(data) ) )
-{
-}
-
-NC::PowderBragg::PowderBragg( double v0_times_natoms, VectDFM&& data)
-  : PowderBragg( PowderBraggUtils::prepareData( v0_times_natoms,std::move(data)) )
-{
-}
-
 NC::PowderBragg::PowderBragg( const Info& info )
-  : PowderBragg( PowderBraggUtils::prepareData( info) )
+  : PowderBragg( PowderBraggUtils::prepareMergedData( info) )
 {
 }
 
@@ -211,7 +197,10 @@ std::shared_ptr<NC::ProcImpl::Process> NC::PowderBragg::createMerged( const Proc
     return nullptr;
   auto& o = *optr;
 
-  auto result = std::make_shared<PowderBragg>( no_init );//empty instance
+  //Little trick to start with an empty instance (the weird cell data won't be
+  //kept anywhere):
+  auto result = std::make_shared<PowderBragg>( PowderBraggUtils::prepareMergedData( PowderBraggUtils::prepareCellData(1.0,1),
+                                                                                    PowderBraggInput::MergedData::PlaneList() ) );
   auto fixThreshold = [&result]()
   {
     result->m_threshold = NeutronEnergy{ result->m_2dE.front() };

@@ -32,15 +32,37 @@ namespace NCRYSTAL_NAMESPACE {
     //materials. This is intended for usage by both ideal powder models or
     //models with extinction.
 
-    ncnodiscard17 PreparedPowderInputData prepareData( const Info& );
-    ncnodiscard17 PreparedPowderInputData prepareData( const StructureInfo&,
-                                                       VectDFM&& );
-    ncnodiscard17 PreparedPowderInputData prepareData( double v0_times_natoms,
-                                                       VectDFM&& );
-    ncnodiscard17 PreparedPowderInputData prepareData( no_init_t );//no planes
+    using CellData = PowderBraggInput::CellData;
+    using PIMergedData = PowderBraggInput::MergedData;
+    using PIData = PowderBraggInput::Data;
 
-    void sortData( PreparedPowderInputData& );
-    void checkData( const PreparedPowderInputData& );//NCBadInput if problems
+    CellData prepareCellData( double volume, unsigned n_atoms );
+    CellData prepareCellData( const StructureInfo& );
+
+    ncnodiscard17 PIMergedData prepareMergedData( const Info& );
+    ncnodiscard17 PIMergedData prepareMergedData( const StructureInfo&,
+                                                  PIMergedData::PlaneList&& );
+    ncnodiscard17 PIMergedData prepareMergedData( const CellData&,
+                                                  PIMergedData::PlaneList&& );
+
+    ncnodiscard17 PIData prepareData( const Info& );
+    ncnodiscard17 PIData prepareData( const StructureInfo&,
+                                      PIData::PlaneList&& );
+    ncnodiscard17 PIData prepareData( const CellData&,
+                                      PIData::PlaneList&& );
+
+    ncnodiscard17 PIMergedData prepareMergedData( const PIData& );
+
+    //Sort the plane list so larger d-spacing comes first.
+    void sortData( PIMergedData& );
+    void sortData( PIData& );
+    void sortData( PIMergedData::PlaneList& );
+    void sortData( PIData::PlaneList& );
+
+    //NCBadInput if problems:
+    void checkData( const PIMergedData& );
+    void checkData( const PIData& );
+    void checkData( const CellData& );
 
   }
 }
