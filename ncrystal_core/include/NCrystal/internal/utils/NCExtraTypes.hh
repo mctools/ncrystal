@@ -31,19 +31,44 @@
 
 namespace NCRYSTAL_NAMESPACE {
 
-  using VectDFM = std::vector<PairDD>;
+  namespace PowderBraggInput {
 
-  struct PreparedPowderInputData : private MoveOnly {
+    //Common data structures which should contain everything (and not much more)
+    //needed for Bragg diffraction powder processes. The MergedData struct
+    //contains |F|^2 and plane multiplicity already combined by multiplication,
+    //while the Data struct keeps them separate. A MergedData object has enough
+    //information for an ideal Bragg powder model without extinction, while a
+    //model including extinction will need a Data object instead.
 
-    //Vector of (d-spacing,fsquared*multiplicity) pairs, sorted so larger
-    //d-spacing values come first:
-    VectDFM d_fm_list;
+    struct CellData {
+      //For Powder Bragg processes, not much knowledge is needed about the cell,
+      //since the structure factors already encapsulate most of the information
+      //about the atoms:
+      double volume = 0.0;//Aa^3
+      unsigned n_atoms = 0.0;//Number of atoms per unit cell
+    };
 
-    //V0 is the unit cell volume in Aa^3 and n_atoms is the number of atoms
-    //per unit cell. We only need their multiplied value:
-    double v0_times_natoms;
+    template<class TPlane>
+    struct DataImpl : private MoveOnly {
+      using plane_t = TPlane;
+      using PlaneList = std::vector<TPlane>;
+      PlaneList planes;
+      CellData cell;
+    };
 
-  };
+    struct Plane {
+      double dsp ;//d-spacing [Angstrom]
+      double fsq;//structure factor squared [barn]
+      double mult;//multiplicity [integral, in double for efficiency]
+    };
+    using Data = DataImpl<Plane>;
+
+    struct MergedPlane {
+      double dsp;//d-spacing [Angstrom]
+      double fsqmult;//structure factor squared times multiplicity [barn]
+    };
+    using MergedData = DataImpl<MergedPlane>;
+  }
 
 }
 

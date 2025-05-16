@@ -36,17 +36,9 @@ namespace NCRYSTAL_NAMESPACE {
 
     const char * name() const noexcept override { return "PowderBragg"; }
 
-    //Constructor:
-    PowderBragg( PreparedPowderInputData&& );
-
-    //Other constructors are in principle already covered by
-    //PreparedPowderInputData, but keeping them for now for backwards
-    //compatiblity:
-    using VectDFM = std::vector<PairDD>;
-    PowderBragg( double v0_times_natoms, VectDFM&& );
-    PowderBragg( const StructureInfo&, VectDFM&& );
+    //Constructors (see NCPowderBraggUtils.hh for how to prepare MergedData):
+    PowderBragg( PowderBraggInput::MergedData&& );
     PowderBragg( const Info& );
-    PowderBragg( no_init_t );//Empty, no planes
 
     //There is a maximum wavelength at which Bragg diffraction is possible, so
     //lower energy bound will reflect this (upper bound is infinity):
@@ -91,7 +83,7 @@ namespace NCRYSTAL_NAMESPACE {
     NeutronEnergy m_threshold = NeutronEnergy{kInfinity};
     VectD m_2dE;
     VectD m_fdm_commul;
-    void init( PreparedPowderInputData&& );
+    void init( PowderBraggInput::MergedData&& );
   };
 
 }
