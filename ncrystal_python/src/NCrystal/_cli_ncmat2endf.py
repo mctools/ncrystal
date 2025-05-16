@@ -118,7 +118,7 @@ def main( progname, arglist ):
 
     _ = ncmat2endf(args.input,
                    material_name=args.name,
-                   endf_parameters=params,
+                   endf_metadata=params,
                    temperatures=args.temperatures,
                    mat_numbers=args.mats,
                    elastic_mode=args.elastic_mode,
