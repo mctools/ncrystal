@@ -114,7 +114,7 @@ def main( progname, arglist ):
     from .ncmat2endf import EndfMetaData, ncmat2endf
     args = _parseArgs( progname, arglist )
     params = EndfMetaData()
-    params.smin = args.smin
+    params.set_smin(args.smin)
 
     _ = ncmat2endf(args.input,
                    material_name=args.name,
