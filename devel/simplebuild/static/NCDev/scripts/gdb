@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+
+set -u
+DORUN=0
+if [ $# != 0 ]; then
+    if [ "x$1" == "xrun" ]; then
+        DORUN=1
+        shift 1
+    fi
+fi
+
+if [ $# == 0 -o "x$1" == "x--help" -o "x$1" == "x-h" ]; then
+    echo Usage:
+    echo
+    echo `basename $0` "[run] COMMAND [ARGS]"
+    echo
+    echo "Run COMMAND with the specified arguments under GDB."
+    echo
+    echo "COMMAND can be either a binary or a python script in your PATH."
+    echo "If 'run' is specified the process will be launched immediately."
+    exit 1
+fi
+if [ -f $1 ]; then
+    CMD=$1
+else
+    CMD=`which $1`
+    if [ $? != 0 ]; then
+        echo "ERROR: Unknown command $1"
+        exit 1
+    fi
+fi
+
+#-L to file cmd means "follow symlinks"
+file -L $CMD|grep -qi "Python script"
+if [ $? == 0 ]; then
+    ISPY=1
+else
+    ISPY=0
+fi
+
+if [ $ISPY == 1 ]; then
+    #In principle we should do the following to use -dbg version of python for
+    #better stack-traces:
+    #  PYCMD=$(which python3-dbg||which python3)
+    #But it is perhaps not always working nicely with venv's, so we stick to
+    #just python for now:
+    PYCMD=$(which python3)
+    CMD="$PYCMD $CMD"
+fi
+shift 1
+
+NAME=gdb
+if [ ! -d /proc ]; then
+    #assume OSX and go for lldb instead to avoid codesign hassles
+    NAME=lldb
+    echo "WARNING: Not on linux so will attempt to use lldb rather than gdb. See command differences on https://lldb.llvm.org/lldb-gdb.html"
+fi
+EXECUTABLE=`which $NAME 2>/dev/null`
+if [ $? != 0 ]; then
+    echo "Error: command '$NAME' not found on system. Please install."
+    exit 1
+fi
+
+
+if [ $NAME == gdb ]; then
+    if [ $DORUN == 1 ]; then
+        DORUN=' -ex run'
+    else
+        DORUN=''
+    fi
+    #Run after setting HISTSIZE=200 due to gdb bug (fixed upstream june 2015)
+    HISTSIZE=200 $NAME -quiet -ex 'set breakpoint pending on' \
+            -ex 'catch throw' \
+            -ex 'set history save on' \
+            -ex 'set history filename ~/.gdb_history' \
+            -ex 'set history size 200'$DORUN \
+            --args $CMD "$@"
+    EC=$?
+else
+    if [ $DORUN == 1 ]; then
+        #lldb needs commands in a file. Create tmp directory with hopefully safe autocleanup:
+        mytempfile() {
+            tempprefix=$(basename "$0")
+            mktemp /tmp/${tempprefix}.XXXXXX
+        }
+        MYCMDFILE=$(mytempfile)
+        trap 'rm -f $MYCMDFILE' EXIT
+        echo "run" > $MYCMDFILE
+        $NAME -s $MYCMDFILE -- $CMD "$@"
+    else
+        $NAME -- $CMD "$@"
+    fi
+    EC=$?
+fi
+echo "$NAME ended with exit code: $EC"
