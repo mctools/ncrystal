@@ -37,7 +37,7 @@ namespace NCRYSTAL_NAMESPACE {
       //(based on Sabine's model with rectangular tilt function). (fixme revisit
       //description).
 
-      ExtnScatterSimple( PreparedPowderInputData&& data, Length domainSize );
+      ExtnScatterSimple( PowderBraggInput::Data&& data, Length domainSize );
 
       const char * name() const noexcept override { return "ExtnScatterSimple"; }
       EnergyDomain domain() const noexcept override;
@@ -49,6 +49,8 @@ namespace NCRYSTAL_NAMESPACE {
       Optional<std::string> specificJSONDescription() const override;
     private:
       NeutronEnergy m_threshold = NeutronEnergy{kInfinity};
+      PowderBraggInput::Data m_data;
+      double m_domainSizeAa;
     };
 
   }

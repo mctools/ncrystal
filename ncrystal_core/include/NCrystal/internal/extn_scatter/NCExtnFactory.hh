@@ -34,7 +34,7 @@ namespace NCRYSTAL_NAMESPACE {
     // Create Bragg diffraction with Extinction effects in an isotropic
     // material. The ExtinctionCfg should indicate that Extinction is enabled,
     // or an exception will be thrown.
-    ProcImpl::ProcPtr createIsotropicExtnProc( PreparedPowderInputData&&,
+    ProcImpl::ProcPtr createIsotropicExtnProc( PowderBraggInput::Data&&,
                                                const Cfg::ExtinctionCfg& );
   }
 

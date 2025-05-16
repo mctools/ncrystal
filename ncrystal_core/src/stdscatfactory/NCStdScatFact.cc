@@ -65,17 +65,23 @@ namespace NCRYSTAL_NAMESPACE {
     virtual ~PlaneProviderWCutOff() {}
 
     Optional<Plane> getNextPlane() override {
-      //double& dspacing, double& fsq, Vector& demi_normal
       Optional<Plane> res;
       while ( ( res = m_pp->getNextPlane() ).has_value() ) {
         if ( res.value().dspacing>=m_dcut ) {
           return res;
         } else {
-          const double fsq = res.value().fsq * 2;//getNextPlane provides demi-normals, e.g. only half of the normals.
-          if (m_withheldPlanes.empty()||m_withheldPlanes.back().first!=res.value().dspacing)
-            m_withheldPlanes.emplace_back(res.value().dspacing,fsq);
-          else
-            m_withheldPlanes.back().second += fsq;
+          const double fsq = res.value().fsq * 2;//getNextPlane provides
+                                                 //demi-normals, e.g. only half
+                                                 //of the normals hence a factor
+                                                 //of 2 here.
+          if ( m_withheldPlanes.empty()
+               || m_withheldPlanes.back().dsp != res.value().dspacing ) {
+            m_withheldPlanes.emplace_back();
+            m_withheldPlanes.back().dsp = res.value().dspacing;
+            m_withheldPlanes.back().fsqmult = fsq;
+          } else {
+            m_withheldPlanes.back().fsqmult += fsq;
+          }
         }
       }
       return NullOpt;
@@ -84,7 +90,7 @@ namespace NCRYSTAL_NAMESPACE {
     void prepareLoop() override { m_pp->prepareLoop(); m_withheldPlanes.clear(); }
     bool canProvide() const override { return m_pp->canProvide(); }
     bool hasPlanesWithheldInLastLoop() const { return !m_withheldPlanes.empty(); };
-    PowderBragg::VectDFM&& consumePlanesWithheldInLastLoop()
+    PowderBraggInput::MergedData::PlaneList&& consumePlanesWithheldInLastLoop()
     {
       return std::move(m_withheldPlanes);
     };
@@ -92,7 +98,7 @@ namespace NCRYSTAL_NAMESPACE {
   private:
     std::unique_ptr<PlaneProvider> m_pp;
     double m_dcut;
-    PowderBragg::VectDFM m_withheldPlanes;
+    PowderBraggInput::MergedData::PlaneList m_withheldPlanes;
   };
 
   class StdScatFact : public FactImpl::ScatterFactory {
@@ -182,8 +188,8 @@ namespace NCRYSTAL_NAMESPACE {
             }
             if ( ppwcutoff && ppwcutoff->hasPlanesWithheldInLastLoop() ) {
               nc_assert_always(info.hasStructureInfo());
-              cl.emplace_back(makeSO<PowderBragg>( PowderBraggUtils::prepareData( info.getStructureInfo(),
-                                                                                  ppwcutoff->consumePlanesWithheldInLastLoop() ) ) );
+              cl.emplace_back(makeSO<PowderBragg>( PowderBraggUtils::prepareMergedData( info.getStructureInfo(),
+                                                                                        ppwcutoff->consumePlanesWithheldInLastLoop() ) ) );
             }
             return cl;
           });
@@ -203,7 +209,7 @@ namespace NCRYSTAL_NAMESPACE {
           if ( needs_regular_powderbragg )
             components.addfct( [&info]()
             {
-              return makeSO<PowderBragg>(PowderBraggUtils::prepareData(info));
+              return makeSO<PowderBragg>(PowderBraggUtils::prepareMergedData(info));
             });
         }
       }

@@ -24,7 +24,7 @@
 namespace NC = NCrystal;
 namespace NCE = NCrystal::Extinction;
 
-NC::ProcImpl::ProcPtr NCE::createIsotropicExtnProc( PreparedPowderInputData&& data,
+NC::ProcImpl::ProcPtr NCE::createIsotropicExtnProc( PowderBraggInput::Data&& data,
                                                     const Cfg::ExtinctionCfg& ecfg )
 {
   if ( !ecfg.enabled() )
