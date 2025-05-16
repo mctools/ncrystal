@@ -330,6 +330,7 @@ def ncmat2endf( ncmat_cfg, *,
     from . import exceptions as nc_exceptions
     from . import core as nc_core
     from . import misc as nc_misc
+    from . import cfgstr as nc_cfgstr
     from ._common import warn as ncwarn
     from ._common import print as ncprint
     from ._numpy import _ensure_numpy
@@ -355,10 +356,10 @@ def ncmat2endf( ncmat_cfg, *,
                f' with LASYM = {endf_metadata.lasym}')
 
     base_temp = info_obj.dyninfos[0].temperature
-    if all(['temp' not in _ for _ in nc_cfgstr.decodeCfg(cfgstr)['pars']]):
+    if all(['temp' not in _ for _ in nc_cfgstr.decodeCfg(ncmat_cfg)['pars']]):
         ncwarn( 'Temperature not explicitly given in the cfg-string, '
                f' using T = {base_temp:.2f}')
-    
+
     if temperatures is None:
         temperatures = tuple()
     else:
