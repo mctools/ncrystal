@@ -43,8 +43,7 @@ mass_neutron = (nc_constants.const_neutron_mass_amu*
                ((nc_constants.constant_c*1e-12)**2)) # eV*ps^2*Angstrom^-2
 
 hbar = nc_constants.constant_planck/nc_constants.k2Pi*1e12 # eV*ps
-T0 = 293.6 # K (FIXME: does it make sense to hardwire at a particular value,
-           #    which btw. is not the default NCrystal temperature).
+T0 = 293.6 # K - Reference temperature for LAT=1 in ENDF-6 MF=7/MT=4
 
 _cacheimport=[None]
 def import_endfparserpy():
