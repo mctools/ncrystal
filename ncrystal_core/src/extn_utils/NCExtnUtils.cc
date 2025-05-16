@@ -31,6 +31,8 @@ double NCE::calcSabineA( double y )
 
   if ( y < 0.2 ) {
     //Taylor expand
+    if ( y == 0.0 )
+      return 1.0;
 
     // The function exp(-y)*sinh(y)/y = (1-exp(-2y))/(2y) must be evaluated with
     // a Taylor expansion near y=0.
@@ -73,8 +75,10 @@ double NCE::calcSabineB( double y )
 
   if ( y < 0.3 ) {
     //Taylor expand
+    if ( y == 0.0 )
+      return 1.0;
 
-    // The function exp(-y)*sinh(y)/y = (1-exp(-2y))/(2y) must be evaluated with
+    // The function 1/y-exp(-y)*sinh(y) must be evaluated with
     // a Taylor expansion near y=0.
     // For the record we simply got the Taylor coefficients with sagemath:
     // > sage: f=1/y-exp(-y)/sinh(y)
@@ -106,7 +110,7 @@ double NCE::calcSabineEl( double x, double y )
   nc_assert( x>=0.0 );
   nc_assert( std::isfinite(x) );
 
-  const double expmy = std::exp(-y);
+  const double expmy = y == 0.0 ? 1.0 : std::exp(-y);
   //Note that the following is not our own Taylor expansions, but the formula as
   //presented in Sabine 6.4.5.3-5.
   if ( x <= 1.0 ) {
@@ -131,6 +135,9 @@ double NCE::calcSabineEb( double x, double y )
   nc_assert( std::isfinite(y) );
   nc_assert( x>=0.0 );
   nc_assert( std::isfinite(x) );
+
+  if ( y == 0.0 )
+    return 1.0 / std::sqrt( 1.0 + x );
 
   const double A = calcSabineA( y );
   const double B = calcSabineB( y );

@@ -21,17 +21,24 @@
 #include "NCrystal/internal/extn_scatter/NCExtnScatterSimple.hh"
 #include "NCrystal/interfaces/NCInfo.hh"
 #include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/extn_utils/NCExtnUtils.hh"
 
 namespace NC = NCrystal;
 namespace NCE = NCrystal::Extinction;
 
-NCE::ExtnScatterSimple::ExtnScatterSimple( PreparedPowderInputData&& data,
+NCE::ExtnScatterSimple::ExtnScatterSimple( PowderBraggInput::Data&& data,
                                            Length domainSize )
+  : m_domainSizeAa( domainSize.get()/Length::angstrom )
 {
-  if ( data.d_fm_list.empty() )
+  if ( !std::isfinite(m_domainSizeAa) || !( m_domainSizeAa > 0.0 ) )
+    NCRYSTAL_THROW2(BadInput,"Invalid domain Size: "<<domainSize);
+
+  if ( data.planes.empty() )
     return;
-  m_threshold = NeutronEnergy{ wl2ekin(2.0*data.d_fm_list.front().first) };
-  (void)domainSize;//fixme
+
+  m_threshold = NeutronEnergy{ wl2ekin(2.0*data.planes.front().dsp) };
+  m_data = std::move(data);
 }
 
 NC::EnergyDomain NCE::ExtnScatterSimple::domain() const noexcept
@@ -42,7 +49,33 @@ NC::EnergyDomain NCE::ExtnScatterSimple::domain() const noexcept
 NC::CrossSect NCE::ExtnScatterSimple::crossSectionIsotropic( CachePtr&,
                                                              NeutronEnergy ekin ) const
 {
-  return CrossSect{ ekin < m_threshold ? 0.0 : 1.0  };
+  if ( ekin < m_threshold )
+    return CrossSect{ 0.0 };
+
+  const double sabine_y = 0.0;//mu = 0 in this simple model
+  // const double A = calcSabineA( sabine_y );//todo: cache if y!=0 is an option
+  // const double B = calcSabineB( sabine_y );
+  auto wl = ekin.wavelength();
+  const double v0 = m_data.cell.volume;
+  const double kkk = ncsquare(wl.get()*m_domainSizeAa/v0);//(unit is Aa^-2)
+
+  double wlhalf = wl.get()*0.5;
+  const double factor = ncsquare(wl.get())/(2.0*m_data.cell.volume*m_data.cell.n_atoms);
+  StableSum contrib;
+  for ( auto& e : m_data.planes ) {
+    if ( e.dsp < wlhalf )
+      break;
+    double sabine_x = kkk * e.fsq * 1e-8;//1e-8 to convert fsq from barn to to Angstrom^2 (fixme absorb on kkk)
+
+    double El = calcSabineEl( sabine_x, sabine_y );//fixme: y=0 version, and versions taking cached A+B
+    double Eb = calcSabineEb( sabine_x, sabine_y );
+
+    double sinth_sq = std::min<double>(1.0,ncsquare(0.5 * wl.get() / e.dsp));
+    double costh_sq = std::max<double>(1.0 - sinth_sq,0.0);
+    double extinction_correction = El * costh_sq + Eb * sinth_sq;
+    contrib.add( e.dsp * e.fsq * e.mult * extinction_correction  );
+  }
+  return CrossSect{ factor * contrib.sum()  };//fixme dummy fudge factor
 }
 
 NC::ScatterOutcomeIsotropic
