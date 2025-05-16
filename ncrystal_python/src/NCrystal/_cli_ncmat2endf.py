@@ -32,7 +32,7 @@ def _parseArgs( progname, arglist, return_parser=False ):
 Script for creating a set of ENDF-6 thermal scattering files from a .ncmat
 file. Basic paramters are supported as arguments, but additional parameters
 for the ENDF-6 can be set by using the Python API and pasing a custom
-EndfParameters object.
+EndfMetaData object.
 
 The script allows to handle multiple temperatures in one ENDF-6 file, but this
 is not recommended, because NCrystal computes an optimal (alpha, beta) grid for
@@ -55,7 +55,7 @@ DOI:10.48550/arXiv.2312.08249
         description=descr,
         formatter_class=RawTextHelpFormatter)
     from .ncmat2endf import available_elastic_modes
-    from .ncmat2endf import EndfParameters
+    from .ncmat2endf import EndfMetaData
     import json
 
     parser.add_argument('input',
@@ -97,7 +97,7 @@ DOI:10.48550/arXiv.2312.08249
     parser.add_argument('--smin',
                         help='set the minimum value of S(alpha, beta) stored '
                              'in MF7/MT4', type=float,
-                        default=EndfParameters().smin)
+                        default=EndfMetaData().smin)
 
     #fixme: test the cli
 
@@ -111,9 +111,9 @@ def create_argparser_for_sphinx( progname ):
 
 @cli_entry_point
 def main( progname, arglist ):
-    from .ncmat2endf import EndfParameters, ncmat2endf
+    from .ncmat2endf import EndfMetaData, ncmat2endf
     args = _parseArgs( progname, arglist )
-    params = EndfParameters()
+    params = EndfMetaData()
     params.smin = args.smin
 
     _ = ncmat2endf(args.input,
