@@ -60,8 +60,8 @@ DOI:10.48550/arXiv.2312.08249
 
     parser.add_argument('input',
                         help='NCMAT cfg string to convert')
-    parser.add_argument('-n', '--name',#fixme: --compound-name ?
-                        help=('name of the compound to be processed. '
+    parser.add_argument('-m', '--material_name',
+                        help=('name of the material to be processed. '
                               'ENDF files will be named '
                               'tsl_element_in_name.endf for compounds '
                               'or tsl_element.endf for elements. E.g. '
@@ -117,7 +117,7 @@ def main( progname, arglist ):
     params.set_smin(args.smin)
 
     _ = ncmat2endf(args.input,
-                   material_name=args.name,
+                   material_name=args.material_name,
                    endf_metadata=params,
                    temperatures=args.temperatures,
                    mat_numbers=args.mats,

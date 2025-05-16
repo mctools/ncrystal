@@ -71,7 +71,7 @@ class EndfMetaData():
         Nuclear data library version number.
 
     endate: string
-        Master File entry date in the form YYYYMMDD. 
+        Master File entry date in the form YYYYMMDD.
 
     edate: string Evaluation date in the form MMMYY. The special string "NOW"
         can be used to select the current date.
