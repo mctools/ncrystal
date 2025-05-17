@@ -45,7 +45,7 @@ jobs:
       - name: Determine version number
         id: version-number
         env:
-          IS_DRYRUN: ${{ steps.dryrun_check.outputs.status == '1' }}
+          IS_DRYRUN: ${{ steps.dryrun_check.outputs.status }}
         run: |
           set -eux
           if [ "x${IS_DRYRUN}" == "x0" ]; then
