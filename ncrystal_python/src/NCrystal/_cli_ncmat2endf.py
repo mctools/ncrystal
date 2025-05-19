@@ -71,8 +71,8 @@ DOI:10.48550/arXiv.2312.08249
                         help='controls how verbose should be the output',
                         type=int, default=1)
     parser.add_argument('-f', '--force',action='store_true',
-                        help=("overwrite existing file "
-                              "if it already exists"))
+                        help=('overwrite existing file '
+                              'if it already exists'))
     parser.add_argument('-e', '--elastic_mode',
                         help=('approximation used for the elastic component.',
                               ' An explanation of these modes is given in:',
@@ -100,6 +100,12 @@ DOI:10.48550/arXiv.2312.08249
                         help='maximum energy for the scatterig kernel',
                         type=float,
                         default=default_emax_value)
+    parser.add_argument('--asymmetric_sab',action='store_true',
+                        help=('store S(a,b) without the detailed balance'
+                              ' factor exp(beta/2)'))
+    parser.add_argument('--total_sab',action='store_true',
+                        help=('store S(a,b) branches for positive and '
+                              ' negative beta'))
 
     #fixme: test the cli
 
@@ -118,6 +124,11 @@ def main( progname, arglist ):
     metadata = EndfMetaData()
     if args.set_date_to_now:
         metadata.set_all_dates_as_now()
+    lasym = 0
+    if args.total_sab:
+        lasym = 1
+    if args.asymmetric_sab:
+        lasym += 2
 
     _ = ncmat2endf(args.input,
                    material_name=args.material_name,
@@ -127,5 +138,6 @@ def main( progname, arglist ):
                    force_save=args.force,
                    smin=args.smin,
                    emax=args.emax,
+                   lasym=lasym,
                    verbosity=args.verbosity)
 
