@@ -417,22 +417,6 @@ namespace NCRYSTAL_NAMESPACE {
   };
   NCRYSTAL_API std::ostream& operator<<( std::ostream&, const OrientDir& );
 
-  class NCRYSTAL_API ExtinctionCfgData : private MoveOnly {
-    //Class encapsulating parameters related to primary or (grain-level)
-    //secondary extinction. For ABI stability reasons, this class does not
-    //provide the actual decoded extinction parameters directly, but only exists
-    //to provide a type-safe way to transport the data around. Refer to the
-    //ExtinctionCfg class for actually decoded data access.
-  public:
-    const std::string& rawData() const { return m_data; }
-    ExtinctionCfgData( std::string&& data );
-    ExtinctionCfgData() = default;
-    ExtinctionCfgData( ExtinctionCfgData&& );
-    ExtinctionCfgData& operator=( ExtinctionCfgData&& );
-  private:
-    std::string m_data;
-  };
-
   class NCRYSTAL_API LCAxis final : public StronglyTypedFixedVector<LCAxis,double,3> {
     //Layered crystal axis (e.g. (0,0,1) in pyrolytic graphite).
   public:
@@ -547,10 +531,12 @@ namespace NCRYSTAL_NAMESPACE {
       //technical reasons.
 
       namespace varbuf_calc {
-        //Typically VarBuf will end up with alignment of 8, object size of 32,
-        //and a local buffer of 27. However, for portability and robustness we
-        //express the requirements for all supported types and combine
-        //appropriately:
+        //VarBuf objects are opague data structures in which we can pass around
+        //parsed cfg objects.  Typically VarBuf will end up with alignment of 8,
+        //object size of 32, and a local buffer of 27. However, for portability
+        //and robustness we express the requirements for all supported types and
+        //combine appropriately:
+
         static constexpr auto ValDbl_buf_align = alignof(double);
         static constexpr auto ValDbl_buf_minsize = sizeof(double) + 16;
         static constexpr auto ValInt_buf_align = alignof(int64_t);
@@ -586,6 +572,22 @@ namespace NCRYSTAL_NAMESPACE {
       ncconstexpr17 const detail::VarBufVector& operator()() const noexcept { return m_data; }
       ncconstexpr17 detail::VarBufVector& operator()() noexcept { return m_data; }
     };
+
+    class ExtinctionCfgData {
+    public:
+      //Opague cfg data, with all the details hidden for ABI stability
+      //reasons. Except that one can check if extinction is enabled or not:
+      //Needs the ExtinctingCfg object from (fixme).hh
+      bool enabled() const { return !m_data.empty(); }
+
+      //Implementation detail, do not use:
+      detail::VarBuf& detail_accessRawData() { return m_data; }//fixme: better access control?
+      const detail::VarBuf& detail_accessRawData() const { return m_data; }//fixme: better access control?
+      ExtinctionCfgData( no_init_t ) : m_data( NullOpt ) {}//NB: Also hide this
+    private:
+      detail::VarBuf m_data;//Holds an ExtinctionCfg object.
+    };
+
   }
 }
 
@@ -997,22 +999,6 @@ namespace NCRYSTAL_NAMESPACE {
   inline bool HKL::operator==(const HKL&o) const noexcept
   {
     return  h==o.h && k==o.k && l==o.l;
-  }
-
-  inline ExtinctionCfgData::ExtinctionCfgData( std::string&& data )
-    : m_data( std::move(data) )
-  {
-  }
-
-  inline ExtinctionCfgData::ExtinctionCfgData( ExtinctionCfgData&& o )
-    : m_data(std::move(o.m_data))
-  {
-  }
-
-  inline ExtinctionCfgData& ExtinctionCfgData::operator=( ExtinctionCfgData&& o )
-  {
-    std::swap(m_data,o.m_data);
-    return *this;
   }
 
   inline std::ostream& operator<<(std::ostream& os, const DataSourceName& dsn)

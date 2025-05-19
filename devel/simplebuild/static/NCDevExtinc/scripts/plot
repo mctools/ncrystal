@@ -60,17 +60,21 @@ def test( ncmatkey, *, dcutoff, block_size_Aa ):
     #
     plugin_lines = [f'Sabine_uncorr {block_size_Aa} 0.0 0.0 rect']
 
+    print("ARGH 0 ")
     mat_dev = load( NC,
                     create_data( ncmatkey ),
-                    f'{extra_cfg};extinction={block_size_Aa}' )
+                    f'{extra_cfg};extn={block_size_Aa}' )
+    print("ARGH 1 ")
 
     mat_ref = load( NCenv,
                     create_data( ncmatkey, plugin_lines = plugin_lines ),
                     extra_cfg )
+    print("ARGH 2 ")
 
     mat_noextn = load( NCenv,
                        create_data( ncmatkey ),
                        extra_cfg )
+    print("ARGH 3 ")
 
     wls = np.linspace(0.0,6.0,20000)
     #wls = np.concatenate( (wls, np.linspace(2.14,2.142,10000)), axis=0 )
@@ -102,6 +106,7 @@ def plot_El():
             np.ones(len(x))-1.0/(8.0*x) -3.0/(128.0*(x**2)) - 15./(1024.*(x**3))
         )
 
+
     #Also double-check the C++ implementation:
     from NCTestUtils.loadlib import Lib
     lib = Lib('extinction')
@@ -110,21 +115,26 @@ def plot_El():
     f = np.vectorize( ncrystalcpp_El_at_y0 )
 
     plt.plot(xa,El_smallx(x=xa),label='Sabine 6.4.5.3 (El for x<=1)',color='yellow')
+    print("HEJSA")
     plt.plot(xb,El_largex(x=xb),label='Sabine 6.4.5.4 (El for x>1)',color='red')
+    print("HEJSA2")
     plt.plot(xab,f(x=xab),label='NCrystal C++ El',ls=':',lw=3,color='black',alpha=0.8)
+    print("HEJSA3")
 
     plt.xlabel('x')
     plt.legend()
     plt.grid()
+    print("HEJSA4")
     plt.show()
+    print("HEJSA5")
 
 
 def main():
+    plot_El()
     test( 'stdlib::Be_sg194.ncmat',
           dcutoff=0.05,
           block_size_Aa = 100000.0
          )
-    #plot_El()
 
 if __name__=='__main__':
     main()

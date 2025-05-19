@@ -18,23 +18,16 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/extn_scatter/NCExtnFactory.hh"
-#include "NCrystal/internal/extn_scatter/NCExtnScatterSimple.hh"
+#include "NCrystal/factories/NCMatCfg.hh"
+#include <iostream>
+namespace NC=NCrystal;
 
-namespace NC = NCrystal;
-namespace NCE = NCrystal::Extinction;
 
-NC::ProcImpl::ProcPtr NCE::createIsotropicExtnProc( PowderBraggInput::Data&& data,
-                                                    const Cfg::ExtinctionCfg& ecfg )
-{
-  if ( !ecfg.enabled() )
-    NCRYSTAL_THROW(BadInput,"createIsotropicExtnProc called "
-                   "without extinction being enabled");
-
-  nc_assert_always(ecfg.has_sabine());//fixme
-
-  auto& cfg_sabine = ecfg.get_sabine();
-  nc_assert_always(!cfg_sabine.secondary.has_value());//fixme
-
-  return makeSO<ExtnScatterSimple>( std::move(data), cfg_sabine.blockSize );
+int main() {
+  std::cout<<"TESTa"<<std::endl;
+  auto cfg = NC::MatCfg("Al_sg225.ncmat;extn=10e-6m");
+  std::cout<<"TESTb"<<std::endl;
+  std::cout<<cfg<<std::endl;
+  std::cout<<"TESTc"<<std::endl;
+  return 0;
 }

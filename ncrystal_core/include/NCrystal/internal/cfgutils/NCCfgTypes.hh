@@ -23,6 +23,7 @@
 
 #include "NCrystal/core/NCImmutBuf.hh"
 #include "NCrystal/core/NCTypes.hh"
+#include "NCrystal/internal/cfgutils/NCExtinctionCfg.hh"
 #include "NCrystal/internal/utils/NCStrView.hh"
 #include "NCrystal/internal/utils/NCVector.hh"
 #include "NCrystal/core/NCVariant.hh"
@@ -52,7 +53,8 @@ namespace NCRYSTAL_NAMESPACE {
                         " for parameter \""<<varname<<"\"");
       return ( v == 0.0 ? 0.0 : v );
     }
-    using ValDbl_ShortStrOrigRep = ShortStr<VarBuf::buffer_local_size - sizeof(double)>;
+    using ValDbl_ShortStrOrigRep = ShortStr<VarBuf::buffer_local_size
+                                            - sizeof(double)>;
     struct units_notavail {
       static constexpr auto actual_unit = nullptr;
       static void listAvailableUnits(std::ostream&){}
@@ -638,6 +640,45 @@ namespace NCRYSTAL_NAMESPACE {
           NCRYSTAL_THROW2(BadInput,"Syntax error - invalid value \""
                           <<str<<"\" provided for parameter \""<<Derived::name<<"\"");
         return set_val( varid, opt_val.value() );
+      }
+    };
+
+    template <class Derived>
+    class ValExtinction : public ValBase<Derived,ExtinctionCfg> {
+    public:
+      static_assert(alignof(VarBuf)%alignof(ExtinctionCfg)==0,"");
+      using Base = ValExtinction;
+      static constexpr auto value_type_descr = "extinction parameters";
+
+      static ExtinctionCfg get_val( const VarBuf& buf )
+      {
+        return ExtinctionCfg( ExtinctionCfg::detail_from_varbuf_t(), buf );
+      }
+
+      static int cmp( const VarBuf& a, const VarBuf& b )
+      {
+        const ExtinctionCfg& extn_a = get_val(a);
+        const ExtinctionCfg& extn_b = get_val(b);
+        return extn_a.cmp(extn_b);
+      }
+
+      static VarBuf set_val( VarId varid, const ExtinctionCfg& value ) {
+        return value.detail_to_varbuf( varid );
+      }
+
+      static void stream_val( std::ostream& os, const VarBuf& buf )
+      {
+        get_val(buf).stream(os);
+      }
+
+      static void asJSONObject( std::ostream& os, const VarBuf& buf )
+      {
+        get_val(buf).streamJSON(os);
+      }
+
+      static VarBuf from_str( VarId varid, StrView sv_in ) {
+        standardInputStrSanityCheck(Derived::name,sv_in);
+        return set_val( varid, ExtinctionCfg( sv_in ) );
       }
     };
 

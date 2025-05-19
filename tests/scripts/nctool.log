@@ -230,7 +230,7 @@ Advanced parameters related to scattering processes (single crystals):
   dir1
   dir2
   dirtol
-  extinction
+  extn
   lcaxis
   lcmode
   mos
@@ -438,11 +438,10 @@ Advanced parameters related to scattering processes (single crystals):
                  in the primary direction. When this parameter is set, the
                  parameters mos, dir1, and dir2 must also be provided.
 
-  extinction:
-    Type: string
-    Default value: ""
-    Description: Fixme: todo. Mention rough physical meaning and how it is
-                 used..
+  extn:
+    Type: extinction parameters
+    No default value.
+    Description: Extinction (fixme).
 
   lcaxis:
     Type: vector (3D)

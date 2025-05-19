@@ -196,7 +196,7 @@ namespace NCRYSTAL_NAMESPACE {
         } else {
           bool needs_regular_powderbragg = true;
           if ( cfg.has_extinction() ) {
-            auto extn_cfg = makeSO<Cfg::ExtinctionCfg>( cfg.get_extinction() );
+            auto extn_cfg = makeSO<Cfg::ExtinctionCfg>( cfg.get_extinction() );//fixme: just do copy-by-val
             if ( extn_cfg->enabled() ) {
               needs_regular_powderbragg = false;
               components.addfct( [&info,extn_cfg]()

@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+proggiven=$1
+prog=`which $1`
+if [ $? != 0 ]; then
+    echo "Error: Command not found: $1"
+    exit 1
+fi
+#-L to file cmd means "follow symlinks"
+file -L $prog|grep -qi "Python script"
+if [ $? == 0 ]; then
+    ISPY=1
+else
+    ISPY=0
+fi
+
+if [ "x${CONDA_PREFIX:-}" != "x" ]; then
+    lp="${CONDA_PREFIX}/lib/libprofiler.so"
+    PPROFCMD="${CONDA_PREFIX}/bin/pprof"
+    if [ ! -f "${lp}" -o ! -f "${PPROFCMD}" ]; then
+        echo "Error: You are in a conda environment but I did not find CONDA_PREFIX/lib/libprofiler.so and CONDA_PREFIX/bin/pprof. Did you install the gperftools conda package?"
+        exit 1
+    fi
+else
+    lp=/usr/lib64/libprofiler.so
+    if [ ! -f $lp ]; then
+        lp=/usr/lib/libprofiler.so
+    fi
+    if [ ! -f $lp ]; then
+        lp=/usr/lib/x86_64-linux-gnu/libprofiler.so
+    fi
+    if [ ! -f $lp ]; then
+        echo "Error: neither /usr/lib64/libprofiler.so nor /usr/lib/libprofiler.so nor /usr/lib/x86_64-linux-gnu/libprofiler.so exists. Did you install gperftools?"
+        exit 1
+    fi
+    PPROFCMD="$(which google-pprof || echo $(which pprof))"
+    if [ "x$PPROFCMD" == "x" ]; then
+        echo "Error: neither google-pprof nor pprof commands found..."
+        exit 1
+    fi
+fi
+shift 1
+if [ $ISPY == 1 ]; then
+    CPUPROFILE=cpu.prof  LD_PRELOAD=$lp `which python3` $prog "$@"
+    proggiven=python3
+else
+    CPUPROFILE=cpu.prof LD_PRELOAD=$lp $prog "$@"
+fi
+EC=$?
+echo "::: Profiled command exited with exit code $EC, profiling dumped to cpu.prof."
+echo ":::"
+echo "::: Example things you might do with cpu.prof:"
+echo ":::"
+echo "::: $PPROFCMD --callgrind \`which $proggiven\` cpu.prof > cpu.callgrind && kcachegrind cpu.callgrind"
+echo "::: $PPROFCMD --dot \`which $proggiven\` cpu.prof|dot -Tpdf > callgraph.pdf"
+echo "::: $PPROFCMD --text \`which $proggiven\` cpu.prof"
+echo ":::"
+echo "::: Hints for getting good profiling results:"
+echo "::: 1) Build with: mode='relwithdebug' (TODO: simplebuild should support this!!)"
+echo "::: 2) Make sure your app runs the critical code again and again for a long time."
+echo "::: 3) Sampling frequency (hz) is set with CPUPROFILE_FREQUENCY (default is 100)."

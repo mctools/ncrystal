@@ -95,7 +95,7 @@ namespace NCRYSTAL_NAMESPACE {
 
       //Parameters (advanced: single crystal, ucn, ...):
       bool has_extinction() const;
-      ExtinctionCfgData get_extinction() const;
+      Cfg::ExtinctionCfgData get_extinction() const;
       MosaicityFWHM get_mos() const;
       OrientDir get_dir1() const;
       OrientDir get_dir2() const;

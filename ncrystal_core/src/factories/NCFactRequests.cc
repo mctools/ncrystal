@@ -158,12 +158,11 @@ double NCF::ScatterRequest::get_mosprec() const { return CfgManip::get_mosprec(r
 double NCF::ScatterRequest::get_sccutoff() const { return CfgManip::get_sccutoff(rawCfgData()); }
 bool NCF::ScatterRequest::has_extinction() const
 {
-  return !CfgManip::get_extinction_strview(rawCfgData()).empty();
+  return CfgManip::get_extn(rawCfgData()).enabled();
 }
-NC::ExtinctionCfgData NCF::ScatterRequest::get_extinction() const
+NC::Cfg::ExtinctionCfgData NCF::ScatterRequest::get_extinction() const
 {
-  auto sv = CfgManip::get_extinction_strview(rawCfgData());
-  return NC::ExtinctionCfgData( sv.to_string() );
+  return CfgManip::get_extn(rawCfgData());
 }
 double NCF::ScatterRequest::get_dirtol() const { return CfgManip::get_dirtol(rawCfgData()); }
 const NC::LCAxis& NCF::ScatterRequest::get_lcaxis() const { return CfgManip::get_lcaxis(rawCfgData()); }

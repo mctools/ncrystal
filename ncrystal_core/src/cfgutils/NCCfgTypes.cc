@@ -104,7 +104,7 @@ void NC::Cfg::units_temperature::listAvailableUnits(std::ostream& os)
 }
 void NC::Cfg::units_length::listAvailableUnits(std::ostream& os)
 {
-  os << "Aa [default], nm, mm, cm, m";//fixme: micron as well?
+  os << "Aa [default], nm, mm, cm, m";//fixme: micron as well? (um)
 }
 void NC::Cfg::units_angle::listAvailableUnits(std::ostream& os)
 {

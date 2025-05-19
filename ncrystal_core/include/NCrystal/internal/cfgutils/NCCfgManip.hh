@@ -174,11 +174,16 @@ namespace NCRYSTAL_NAMESPACE {
       static double get_sccutoff(const CfgData& data) { return getValue<vardef_sccutoff>(data); }
       static void set_sccutoff( CfgData& data, double val ) { setValue<vardef_sccutoff>(data,val); }
 
-      static StrView get_extinction_strview(const CfgData& data) { return getValue<vardef_extinction>(data); }
-      static void set_extinction( CfgData& data, const ExtinctionCfgData& val ) { setValue<vardef_extinction>(data,val.rawData()); }
-      static void set_extinction( CfgData& data, StrView val ) { setValue<vardef_extinction>(data,val); }
-      static void set_extinction_stdstr( CfgData& data, const std::string& val ) { setValue<vardef_extinction,std::string>(data,val); }
-      static void set_extinction_cstr( CfgData& data, const char * val ) { setValue<vardef_extinction,const char *>(data,val); }
+      static ExtinctionCfgData get_extn(const CfgData& data) {
+        const VarBuf* buf = searchBuf( data, detail::VarId::extn );
+        //fixme: better interface than this:
+        if ( !buf || buf->empty() )
+          return { no_init };
+        ExtinctionCfgData res{ no_init };
+        res.detail_accessRawData() = *buf;//cost is mostly a shared pointer copy
+        return res;
+      }
+      static void set_extn( CfgData& data, const ExtinctionCfg& val ) { setValue<vardef_extn>(data,val); }
 
       static int get_vdoslux(const CfgData& data) { return static_cast<int>( getValue<vardef_vdoslux>(data) ); }
       static void set_vdoslux( CfgData& data, int val ) { setValue<vardef_vdoslux>( data, static_cast<std::int64_t>(val) ); }
