@@ -31,8 +31,9 @@ from NCTestUtils.common import print_text_file_with_snipping
 import math
 
 #FIXME: Add tests with:
-#  import NCrystalDev._ncmat2endf_impl as ncmat2endf_impl
-#  ncmat2endf_impl.is_unit_test[0] = True # just print final dict
+import NCrystalDev._ncmat2endf_impl as ncmat2endf_impl
+ncmat2endf_impl.unit_test_chop_svals[0] = True
+#ncmat2endf_impl.is_unit_test[0] = True # just print final dict
 
 def reldiff( x, y ):
     # FIXME: Add these functions to NCTestUtils
@@ -71,8 +72,8 @@ def test( cfg, ref_teff=None,
         with open(endf_fn) as f:
             text = "".join(f.readlines())
             print_text_file_with_snipping(text,
-                                          nstart=100,
-                                          nend=25,
+                                          nstart=140,
+                                          nend=70,
                                           prefix='endf>')
         if ref_teff:
             if endf_fn not in ref_teff.keys():

@@ -824,7 +824,7 @@ class EndfFile():
                 S1[j]['NBT'] = [len(alpha)]
                 S1[j]['INT'] = [4]
                 S1[j]['alpha'] = (alpha/awr).tolist()
-                S1[j]['S'] = sab[:,j-1].tolist()
+                S1[j]['S'] = _tidy_sab_list(sab[:,j-1].tolist())
             d['S_table'] = S1
 
             S2 = {}
@@ -838,6 +838,7 @@ class EndfFile():
                                 if sval < endf_parameters.smin:
                                     sval = 0.0
                                 sab.append(sval)
+                        sab = _tidy_sab_list(sab)
                         S2[q][j] = {k: v for k,v in enumerate(sab, start =1)}
             d['S'] = S2
         elif (endf_parameters.lasym == 1) or (endf_parameters.lasym == 3):
@@ -864,7 +865,7 @@ class EndfFile():
                 S1[j]['NBT'] = [len(alpha)]
                 S1[j]['INT'] = [4]
                 S1[j]['alpha'] = (alpha/awr).tolist()
-                S1[j]['S'] = sab[:,j-1].tolist()
+                S1[j]['S'] = _tidy_sab_list(sab[:,j-1].tolist())
             d['S_table'] = S1
 
             S2 = {}
@@ -878,6 +879,7 @@ class EndfFile():
                                 if sval < endf_parameters.smin:
                                     sval = 0.0
                                 sab.append(sval)
+                        sab = _tidy_sab_list(sab)
                         S2[q][j] = {k: v for k,v in enumerate(sab, start =1)}
             d['S'] = S2
 
@@ -1081,4 +1083,16 @@ def _dump_dict( d, prefix, lvl = 1 ):
             ncprint(f'{prefix}{repr(k)} ->')
             _dump_dict(v,prefix+'    ',lvl=lvl+1)
 
+def _tidy_sab_list( s_values ):
+    if not unit_test_chop_svals[0]:
+        return s_values
+    _npf = _np.float64
+    def _chop(x):
+        assert 0.0 <= x <= 1e99
+        return x if x>1e-20 else float('%.4g'%x)
+    return  [ _chop(x) for x in s_values ]
+
 is_unit_test = [False]
+
+
+unit_test_chop_svals = [False]
