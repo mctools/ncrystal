@@ -109,6 +109,7 @@ class EndfMetaData():
         self.__endate = ''
         self.__nlib = 0
         self.__lrel = 0
+        self.__mat_numbers = None
         self.__edate = 'MMMYY'
         self.__rdate = 'MMMYY'
         self.__ddate = 'MMMYY'
@@ -192,6 +193,21 @@ class EndfMetaData():
         self.set_rdate('NOW')
 
     @property
+    def mat_numbers(self):
+        return self.__mat_numbers
+    def set_mat_numbers(self, x):
+        if not hasattr(x,'items'):
+            from .exceptions import NCBadInput
+            raise NCBadInput('mat_numbers must be a dict')
+        for k,v in x.items():
+            if type(k) is not str or type(v) is not int:
+                from .exceptions import NCBadInput
+                raise NCBadInput('mat_numbers must be a dict with str keys',
+                                 ' (element labels) and int values',
+                                 ' (material values)' )
+        self.__mat_numbers = x
+
+    @property
     def endate(self):
         return self.__endate
 
@@ -251,7 +267,6 @@ def ncmat2endf( ncmat_cfg, *,
                 material_name='NCrystalMaterial',
                 endf_metadata=None,
                 temperatures=None,
-                mat_numbers=None,#fixme: to EndfMetaData
                 elastic_mode='scaled',
                 include_gif=False,
                 isotopic_expansion=False,
@@ -278,9 +293,6 @@ def ncmat2endf( ncmat_cfg, *,
         Temperature(s) in Kelvin to generate the nuclear data,
         in addition to the temperature defined in the cfg string.
         (The default temperature in the cfg string is 293.15 K)
-
-    mat_numbers : dict of str to int
-        Material number for each element
 
     elastic_mode : str
         Treatment mode for the elastic component
@@ -418,10 +430,10 @@ def ncmat2endf( ncmat_cfg, *,
                        requested_emax=endf_metadata.emax,
                        verbosity=verbosity)
 
-    if mat_numbers is not None:
-        n = len(mat_numbers)
+    if endf_metadata.mat_numbers is not None:
+        n = len(endf_metadata.mat_numbers)
         for frac, ad in data.composition:
-            if ad.elementName() in mat_numbers.keys():
+            if ad.elementName() in endf_metadata.mat_numbers.keys():
                 n = n - 1
         if n != 0:
             raise nc_exceptions.NCBadInput('Incorrect material number '
@@ -434,7 +446,8 @@ def ncmat2endf( ncmat_cfg, *,
     from ._ncmat2endf_impl import EndfFile
     for frac, ad in data.composition:
         sym = ad.elementName()
-        mat = 999 if mat_numbers is None else mat_numbers[sym]
+        mat = ( 999 if endf_metadata.mat_numbers is None
+                    else endf_metadata.mat_numbers[sym])
         endf_fn = ( f'tsl_{material_name}.endf'
                    if sym == material_name
                    else f'tsl_{sym}_in_{material_name}.endf' )

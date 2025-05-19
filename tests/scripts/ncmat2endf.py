@@ -26,6 +26,7 @@
 import NCTestUtils.enable_fpe # noqa F401
 import NCTestUtils.reprint_escaped_warnings # noqa F401
 from NCrystalDev.ncmat2endf import ncmat2endf
+from NCrystalDev.ncmat2endf import EndfMetaData
 from NCrystalDev.exceptions import NCBadInput
 from NCTestUtils.common import print_text_file_with_snipping
 import math
@@ -125,7 +126,9 @@ test_fail( NCBadInput, 'Ge_sg227.ncmat;dcutoff=0.5;mos=40arcsec;'
            'dir1=@crys_hkl:5,1,1@lab:0,0,1;'
            'dir2=@crys_hkl:0,-1,1@lab:0,1,0')
 # Wrong material number assignement
-test_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', mat_numbers={"Ge":99})
+metadata = EndfMetaData()
+metadata.set_mat_numbers( {"Ge":99} )
+test_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', endf_metadata=metadata)
 # Negative temperatures
 test_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', temperatures=[-100])
 # Repeated temperatures
@@ -155,10 +158,12 @@ test('Al_sg225.ncmat;vdoslux=1', material_name='Al',
      ref_bragg_edges={'tsl_Al.endf':(ref_Eint, ref_S0)},
      temperatures=[350], elastic_mode='scaled')
 
+metadata = EndfMetaData()
+metadata.set_mat_numbers( {"C":37, "H": 38} )
 test('Polyethylene_CH2.ncmat;vdoslux=1', material_name='CH2',
      ref_teff={'tsl_H_in_CH2.endf':[1208.094],
                'tsl_C_in_CH2.endf':[667.3864]},
      ref_parsed={'tsl_H_in_CH2.endf':'0 0 1 451 7 2 7 4',
                  'tsl_C_in_CH2.endf':'0 0 1 451 7 2 7 4'},
-     mat_numbers={"C":37, "H": 38})
+     endf_metadata=metadata)
 
