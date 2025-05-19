@@ -647,7 +647,7 @@ class EndfFile():
     """
     def __init__(self, element, data, mat, endf_metadata, *,
                  include_gif=False, isotopic_expansion=False,
-                 smin=None, verbosity=1):
+                 smin=None, emax=None, verbosity=1):
         r"""
         Parameters
         ----------
@@ -684,6 +684,8 @@ class EndfFile():
         self._verbosity = verbosity
         assert smin, 'smin not set'
         self._smin = smin
+        assert emax, 'emax not set'
+        self._emax = emax
         self._endf_dict = endf_parserpy.EndfDict()
         self._endf_dict['0/0'] = {}
         self._endf_dict['0/0']['MAT'] = self._mat
@@ -760,9 +762,9 @@ class EndfFile():
         d['NI'] = 6
         d['NS'] = 0
         d['B'] = {1:data.elements[self._sym].sigma_free,
-                  2:endf_metadata.emax,
+                  2:self._emax,
                   3:awr,
-                  4:endf_metadata.emax,
+                  4:self._emax,
                   5:0,                                # unused
                   6:1                                 # natom
                  }
@@ -969,7 +971,7 @@ class EndfFile():
         desc.append(' with the following options:')
         desc.append('')
         desc.append(f'  smin:{self._smin}')
-        desc.append(f'  emax:{endf_metadata.emax}')
+        desc.append(f'  emax:{self._emax}')
         desc.append(f'  lasym:{endf_metadata.lasym}')
         desc.append(f'  include_gif:{self._include_gif}')
         desc.append(f'  isotopic_expansion:{self._isotopic_expansion}')
@@ -1021,7 +1023,7 @@ class EndfFile():
         d['STA'] = 0
         d['NFOR'] = 6
         d['AWI'] = 1.0
-        d['EMAX'] = endf_metadata.emax
+        d['EMAX'] = self._emax
         d['LREL'] = endf_metadata.lrel
         d['NSUB'] = 12
         d['NVER'] = endf_metadata.nver

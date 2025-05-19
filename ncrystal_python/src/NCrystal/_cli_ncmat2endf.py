@@ -54,7 +54,9 @@ DOI:10.48550/arXiv.2312.08249
     parser = create_ArgumentParser(
         description=descr,
         formatter_class=RawTextHelpFormatter)
-    from .ncmat2endf import available_elastic_modes, default_smin_value
+    from .ncmat2endf import ( available_elastic_modes,
+                              default_smin_value,
+                              default_emax_value )
     import json
 
     parser.add_argument('input',
@@ -84,8 +86,7 @@ DOI:10.48550/arXiv.2312.08249
                         help=('Set ENDF6 fields EDATE, DDATE and RDATE'
                               ' to current month and year.'))
 
-    #fixme: these should be marked as expert-only (also, add options controlling
-    #emax, lasym)
+    #fixme: these should be marked as expert-only (also, add lasym)
     parser.add_argument('-t', '--temperatures',
                         nargs='+',
                         type=float,
@@ -95,6 +96,10 @@ DOI:10.48550/arXiv.2312.08249
                         help='set the minimum value of S(alpha, beta) stored '
                              'in MF7/MT4', type=float,
                         default=default_smin_value)
+    parser.add_argument('--emax',
+                        help='maximum energy for the scatterig kernel',
+                        type=float,
+                        default=default_emax_value)
 
     #fixme: test the cli
 
@@ -121,5 +126,6 @@ def main( progname, arglist ):
                    elastic_mode=args.elastic_mode,
                    force_save=args.force,
                    smin=args.smin,
+                   emax=args.emax,
                    verbosity=args.verbosity)
 
