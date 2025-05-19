@@ -85,12 +85,7 @@ class EndfMetaData():
         Revision date in the form MMMYY. The special string "NOW" can be used to
         select the current date.
 
-    FIXME: Add parameter for material number assignment.
-
-    #FIXME: Move these 3 parameters out of the metadata class:
-
-    lasym : int
-        Flag indicating whether an asymmetric S(a,b) is given.
+    FIXME: Update docstring
 
     """
 
@@ -128,9 +123,6 @@ class EndfMetaData():
                                  f' format ("NOW" or "{fmt}")')
             return val
         self.__fmtdate = fmtdate
-
-        #fixme: to be removed from this class:
-        self.__lasym = 0 # Symmetric S(a,b) as default
 
     def __repr__(self):
         s = ('EndfMetaData object: '+
@@ -256,13 +248,6 @@ class EndfMetaData():
                 raise NCBadInput('fixme')
             setfct(v)
 
-    #fixme: to be removed from this class:
-    @property
-    def lasym(self):
-        return self.__lasym
-    def set_lasym(self, x):
-        self.__lasym = x
-
 def ncmat2endf( ncmat_cfg, *,
                 material_name='NCrystalMaterial',
                 endf_metadata=None,
@@ -273,6 +258,7 @@ def ncmat2endf( ncmat_cfg, *,
                 force_save=False,
                 smin=default_smin_value,
                 emax=default_emax_value,
+                lasym=0,
                 verbosity=1):
     """Generates a set of ENDF-6 formatted files for a given NCMAT file.
 
@@ -349,7 +335,7 @@ def ncmat2endf( ncmat_cfg, *,
     info_obj = nc_core.createInfo(ncmat_cfg)
     if not info_obj.isSinglePhase():
         raise nc_exceptions.NCBadInput('Only single phase materials supported')
-    if endf_metadata.lasym > 0:
+    if lasym > 0:
         ncwarn( 'Creating non standard S(a,b)'
                f' with LASYM = {endf_metadata.lasym}')
 
@@ -450,8 +436,7 @@ def ncmat2endf( ncmat_cfg, *,
             endf_file = EndfFile(sym, data, mat, endf_metadata,
                                  include_gif=include_gif,
                                  isotopic_expansion=isotopic_expansion,
-                                 smin=smin,
-                                 emax=emax,
+                                 smin=smin, emax=emax, lasym=lasym,
                                  verbosity=verbosity)
             endf_file.write(endf_fn, force_save)
             output_composition.append((endf_fn, frac))

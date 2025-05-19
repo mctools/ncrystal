@@ -647,7 +647,7 @@ class EndfFile():
     """
     def __init__(self, element, data, mat, endf_metadata, *,
                  include_gif=False, isotopic_expansion=False,
-                 smin=None, emax=None, verbosity=1):
+                 smin=None, emax=None, lasym=None, verbosity=1):
         r"""
         Parameters
         ----------
@@ -682,10 +682,12 @@ class EndfFile():
         self._include_gif = include_gif
         self._isotopic_expansion = isotopic_expansion
         self._verbosity = verbosity
-        assert smin, 'smin not set'
+        assert smin is not None, 'smin not set'
         self._smin = smin
-        assert emax, 'emax not set'
+        assert emax is not None, 'emax not set'
         self._emax = emax
+        assert lasym is not None, 'lasym not set'
+        self._lasym = lasym
         self._endf_dict = endf_parserpy.EndfDict()
         self._endf_dict['0/0'] = {}
         self._endf_dict['0/0']['MAT'] = self._mat
@@ -748,7 +750,6 @@ class EndfFile():
         mat = self._mat
         data = self._data
         awr = data.elements[self._sym].awr
-        endf_metadata = self._endf_metadata
         za = data.elements[self._sym].za
         temperatures = data.temperatures
         self._endf_dict['7/4'] = {}
@@ -757,7 +758,7 @@ class EndfFile():
         d['ZA'] = za
         d['AWR'] = awr
         d['LAT'] =  1 # (alpha, beta) grid written for 0.0253 eV
-        d['LASYM'] = endf_metadata.lasym # symmetric/asymmetric S(a,b)
+        d['LASYM'] = self._lasym # symmetric/asymmetric S(a,b)
         d['LLN'] = 0 # linear S is stored
         d['NI'] = 6
         d['NS'] = 0
@@ -775,13 +776,13 @@ class EndfFile():
         for sab_total, T in zip(data.elements[self._sym].sab_total,
                                 temperatures):
             _, beta_grid = _np.meshgrid(alpha*T0/T, beta_total*T0/T)
-            if (endf_metadata.lasym == 0) or (endf_metadata.lasym == 1):
+            if (self._lasym == 0) or (self._lasym == 1):
                 detailed_balance_factor = _np.exp(beta_grid/2)
-            if endf_metadata.lasym == 3:
+            if self._lasym == 3:
                 # S(a,b) for all beta
                 sab_data.append(sab_total.transpose())
                 continue
-            if endf_metadata.lasym == 2:
+            if self._lasym == 2:
                 # S(a,b) for negative beta
                 # get negative branch of S(a,b)
                 sab_sym2 = sab_total[_np.where(beta_grid<=0)]
@@ -789,12 +790,12 @@ class EndfFile():
                 sab_sym3 = sab_sym2[::-1,:]  # Invert S(a,b) for negative beta
                 sab_data.append(sab_sym3.transpose())
                 continue
-            if endf_metadata.lasym == 1:
+            if self._lasym == 1:
                 # S(a,b)*exp(-b/2) for all beta
                 sab_sym = sab_total*detailed_balance_factor
                 sab_data.append(sab_sym.transpose())
                 continue
-            if endf_metadata.lasym == 0:
+            if self._lasym == 0:
                 # S(a,b)*exp(-b/2) for negative beta
                 sab_sym = sab_total*detailed_balance_factor
                 # get negative branch of S(a,b)
@@ -805,7 +806,7 @@ class EndfFile():
                 sab_data.append(sab_sym3.transpose())
                 continue
 
-        if (endf_metadata.lasym == 0) or (endf_metadata.lasym == 2):
+        if (self._lasym == 0) or (self._lasym == 2):
             # Save S(a,b) or S(a,b)*exp(-b/2) for negative beta
             d['NB'] = len(beta)
             d['beta_interp/NBT'] = [len(beta)]
@@ -843,7 +844,7 @@ class EndfFile():
                         sab = _tidy_sab_list(sab)
                         S2[q][j] = {k: v for k,v in enumerate(sab, start =1)}
             d['S'] = S2
-        elif (endf_metadata.lasym == 1) or (endf_metadata.lasym == 3):
+        elif (self._lasym == 1) or (self._lasym == 3):
             # Save S(a,b) or S(a,b)*exp(-b/2) for all beta
             alpha = data.elements[self._sym].alpha
             beta = data.elements[self._sym].beta_total
@@ -972,7 +973,7 @@ class EndfFile():
         desc.append('')
         desc.append(f'  smin:{self._smin}')
         desc.append(f'  emax:{self._emax}')
-        desc.append(f'  lasym:{endf_metadata.lasym}')
+        desc.append(f'  lasym:{self._lasym}')
         desc.append(f'  include_gif:{self._include_gif}')
         desc.append(f'  isotopic_expansion:{self._isotopic_expansion}')
         desc.append(f'  elastic_mode:{data.elastic_mode}')
