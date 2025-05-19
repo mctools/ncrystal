@@ -54,8 +54,7 @@ DOI:10.48550/arXiv.2312.08249
     parser = create_ArgumentParser(
         description=descr,
         formatter_class=RawTextHelpFormatter)
-    from .ncmat2endf import available_elastic_modes
-    from .ncmat2endf import EndfMetaData
+    from .ncmat2endf import available_elastic_modes, default_smin_value
     import json
 
     parser.add_argument('input',
@@ -75,7 +74,7 @@ DOI:10.48550/arXiv.2312.08249
     parser.add_argument('-e', '--elastic_mode',
                         help=('approximation used for the elastic component.',
                               ' An explanation of these modes is given in:',
-                              'https://doi.org/10.1016/j.nima.2021.166227')
+                              'https://doi.org/10.1016/j.nima.2021.166227'),
                         type=str, choices=available_elastic_modes,
                         default='scaled')
     parser.add_argument('--metadata',
@@ -95,7 +94,7 @@ DOI:10.48550/arXiv.2312.08249
     parser.add_argument('--smin',
                         help='set the minimum value of S(alpha, beta) stored '
                              'in MF7/MT4', type=float,
-                        default=EndfMetaData().smin)
+                        default=default_smin_value)
 
     #fixme: test the cli
 
@@ -111,15 +110,15 @@ def create_argparser_for_sphinx( progname ):
 def main( progname, arglist ):
     from .ncmat2endf import EndfMetaData, ncmat2endf
     args = _parseArgs( progname, arglist )
-    params = EndfMetaData()
-    params.set_smin(args.smin)
+    metadata = EndfMetaData()
 
     _ = ncmat2endf(args.input,
                    material_name=args.material_name,
-                   endf_metadata=params.metadata,
+                   endf_metadata=metadata.metadata,
                    temperatures=args.temperatures,
                    elastic_mode=args.elastic_mode,
                    force_save=args.force,
                    set_date_to_now=args.set_date_to_now,
+                   smin=args.smin,
                    verbosity=args.verbosity)
 

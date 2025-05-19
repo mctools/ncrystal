@@ -647,7 +647,7 @@ class EndfFile():
     """
     def __init__(self, element, data, mat, endf_metadata, *,
                  include_gif=False, isotopic_expansion=False,
-                 verbosity=1):
+                 smin=None, verbosity=1):
         r"""
         Parameters
         ----------
@@ -682,6 +682,8 @@ class EndfFile():
         self._include_gif = include_gif
         self._isotopic_expansion = isotopic_expansion
         self._verbosity = verbosity
+        assert smin, 'smin not set'
+        self._smin = smin
         self._endf_dict = endf_parserpy.EndfDict()
         self._endf_dict['0/0'] = {}
         self._endf_dict['0/0']['MAT'] = self._mat
@@ -689,6 +691,7 @@ class EndfFile():
         self._createMF1()
         self._createMF7()
         self._parser = None
+
 
     def _createMF7MT2(self, elastic):
         """
@@ -816,7 +819,7 @@ class EndfFile():
             d['NP'] = len(alpha)
             S1 = {}
             sab = sab_data[0]
-            sab[sab < endf_metadata.smin] = 0.0
+            sab[sab < self._smin] = 0.0
             for j,v in enumerate(beta, start=1):
                 S1[j] = {}
                 S1[j]['NBT'] = [len(alpha)]
@@ -833,7 +836,7 @@ class EndfFile():
                         sab = []
                         for i,v in enumerate(temperatures[1:], start=1):
                                 sval = sab_data[i][q-1,j-1]
-                                if sval < endf_metadata.smin:
+                                if sval < self._smin:
                                     sval = 0.0
                                 sab.append(sval)
                         sab = _tidy_sab_list(sab)
@@ -857,7 +860,7 @@ class EndfFile():
             d['NP'] = len(alpha)
             S1 = {}
             sab = sab_data[0]
-            sab[sab < endf_metadata.smin] = 0.0
+            sab[sab < self._smin] = 0.0
             for j,v in enumerate(beta, start=1):
                 S1[j] = {}
                 S1[j]['NBT'] = [len(alpha)]
@@ -874,7 +877,7 @@ class EndfFile():
                         sab = []
                         for i,v in enumerate(temperatures[1:], start=1):
                                 sval = sab_data[i][q-1,j-1]
-                                if sval < endf_metadata.smin:
+                                if sval < self._smin:
                                     sval = 0.0
                                 sab.append(sval)
                         sab = _tidy_sab_list(sab)
@@ -966,7 +969,7 @@ class EndfFile():
         desc.append(f' and endf-parserpy [2] {ep_version} ')
         desc.append(' with the following options:')
         desc.append('')
-        desc.append(f'  smin:{endf_metadata.smin}')
+        desc.append(f'  smin:{self._smin}')
         desc.append(f'  emax:{endf_metadata.emax}')
         desc.append(f'  lasym:{endf_metadata.lasym}')
         desc.append(f'  include_gif:{self._include_gif}')
