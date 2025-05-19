@@ -25,8 +25,6 @@ Internal implementation of ncmat2endf.py
 
 """
 
-#fixme: EndfParameters -> EndfMetaData in this file as well
-
 from ._numpy import _np
 from . import core as nc_core
 from . import constants as nc_constants
@@ -647,7 +645,7 @@ class EndfFile():
     write(endf_fn)
         Write ENDF file.
     """
-    def __init__(self, element, data, mat, endf_parameters, *,
+    def __init__(self, element, data, mat, endf_metadata, *,
                  include_gif=False, isotopic_expansion=False,
                  verbosity=1):
         r"""
@@ -662,8 +660,8 @@ class EndfFile():
         mat: int
             ENDF material number
 
-        endf_parameters : EndfParameters
-            Parameters for the ENDF-6 file
+        endf_metadata : EndfMetaData
+            Metadata for the ENDF-6 file
 
         include_gif: boolean
             Include the generalized information in MF=7/MT=451 in isotopes
@@ -679,7 +677,7 @@ class EndfFile():
         self._endf_parserpy_version = endf_parserpy.__version__
         self._sym = element
         self._data = data
-        self._endf_parameters = endf_parameters
+        self._endf_metadata = endf_metadata
         self._mat = mat
         self._include_gif = include_gif
         self._isotopic_expansion = isotopic_expansion
@@ -746,7 +744,7 @@ class EndfFile():
         mat = self._mat
         data = self._data
         awr = data.elements[self._sym].awr
-        endf_parameters = self._endf_parameters
+        endf_metadata = self._endf_metadata
         za = data.elements[self._sym].za
         temperatures = data.temperatures
         self._endf_dict['7/4'] = {}
@@ -755,14 +753,14 @@ class EndfFile():
         d['ZA'] = za
         d['AWR'] = awr
         d['LAT'] =  1 # (alpha, beta) grid written for 0.0253 eV
-        d['LASYM'] = endf_parameters.lasym # symmetric/asymmetric S(a,b)
+        d['LASYM'] = endf_metadata.lasym # symmetric/asymmetric S(a,b)
         d['LLN'] = 0 # linear S is stored
         d['NI'] = 6
         d['NS'] = 0
         d['B'] = {1:data.elements[self._sym].sigma_free,
-                  2:endf_parameters.emax,
+                  2:endf_metadata.emax,
                   3:awr,
-                  4:endf_parameters.emax,
+                  4:endf_metadata.emax,
                   5:0,                                # unused
                   6:1                                 # natom
                  }
@@ -773,13 +771,13 @@ class EndfFile():
         for sab_total, T in zip(data.elements[self._sym].sab_total,
                                 temperatures):
             _, beta_grid = _np.meshgrid(alpha*T0/T, beta_total*T0/T)
-            if (endf_parameters.lasym == 0) or (endf_parameters.lasym == 1):
+            if (endf_metadata.lasym == 0) or (endf_metadata.lasym == 1):
                 detailed_balance_factor = _np.exp(beta_grid/2)
-            if endf_parameters.lasym == 3:
+            if endf_metadata.lasym == 3:
                 # S(a,b) for all beta
                 sab_data.append(sab_total.transpose())
                 continue
-            if endf_parameters.lasym == 2:
+            if endf_metadata.lasym == 2:
                 # S(a,b) for negative beta
                 # get negative branch of S(a,b)
                 sab_sym2 = sab_total[_np.where(beta_grid<=0)]
@@ -787,12 +785,12 @@ class EndfFile():
                 sab_sym3 = sab_sym2[::-1,:]  # Invert S(a,b) for negative beta
                 sab_data.append(sab_sym3.transpose())
                 continue
-            if endf_parameters.lasym == 1:
+            if endf_metadata.lasym == 1:
                 # S(a,b)*exp(-b/2) for all beta
                 sab_sym = sab_total*detailed_balance_factor
                 sab_data.append(sab_sym.transpose())
                 continue
-            if endf_parameters.lasym == 0:
+            if endf_metadata.lasym == 0:
                 # S(a,b)*exp(-b/2) for negative beta
                 sab_sym = sab_total*detailed_balance_factor
                 # get negative branch of S(a,b)
@@ -803,7 +801,7 @@ class EndfFile():
                 sab_data.append(sab_sym3.transpose())
                 continue
 
-        if (endf_parameters.lasym == 0) or (endf_parameters.lasym == 2):
+        if (endf_metadata.lasym == 0) or (endf_metadata.lasym == 2):
             # Save S(a,b) or S(a,b)*exp(-b/2) for negative beta
             d['NB'] = len(beta)
             d['beta_interp/NBT'] = [len(beta)]
@@ -818,7 +816,7 @@ class EndfFile():
             d['NP'] = len(alpha)
             S1 = {}
             sab = sab_data[0]
-            sab[sab < endf_parameters.smin] = 0.0
+            sab[sab < endf_metadata.smin] = 0.0
             for j,v in enumerate(beta, start=1):
                 S1[j] = {}
                 S1[j]['NBT'] = [len(alpha)]
@@ -835,13 +833,13 @@ class EndfFile():
                         sab = []
                         for i,v in enumerate(temperatures[1:], start=1):
                                 sval = sab_data[i][q-1,j-1]
-                                if sval < endf_parameters.smin:
+                                if sval < endf_metadata.smin:
                                     sval = 0.0
                                 sab.append(sval)
                         sab = _tidy_sab_list(sab)
                         S2[q][j] = {k: v for k,v in enumerate(sab, start =1)}
             d['S'] = S2
-        elif (endf_parameters.lasym == 1) or (endf_parameters.lasym == 3):
+        elif (endf_metadata.lasym == 1) or (endf_metadata.lasym == 3):
             # Save S(a,b) or S(a,b)*exp(-b/2) for all beta
             alpha = data.elements[self._sym].alpha
             beta = data.elements[self._sym].beta_total
@@ -859,7 +857,7 @@ class EndfFile():
             d['NP'] = len(alpha)
             S1 = {}
             sab = sab_data[0]
-            sab[sab < endf_parameters.smin] = 0.0
+            sab[sab < endf_metadata.smin] = 0.0
             for j,v in enumerate(beta, start=1):
                 S1[j] = {}
                 S1[j]['NBT'] = [len(alpha)]
@@ -876,7 +874,7 @@ class EndfFile():
                         sab = []
                         for i,v in enumerate(temperatures[1:], start=1):
                                 sval = sab_data[i][q-1,j-1]
-                                if sval < endf_parameters.smin:
+                                if sval < endf_metadata.smin:
                                     sval = 0.0
                                 sab.append(sval)
                         sab = _tidy_sab_list(sab)
@@ -929,7 +927,7 @@ class EndfFile():
                 d['SFI'] = {1:{1:data.elements[self._sym].sigma_free}}
                 d['AWRI'] = {1:{1:awr}}
 
-    def _createMF1MT451description(self, data, endf_parameters):
+    def _createMF1MT451description(self, data, endf_metadata):
         desc = []
         desc.append(66*'*')
         desc.append('')
@@ -968,9 +966,9 @@ class EndfFile():
         desc.append(f' and endf-parserpy [2] {ep_version} ')
         desc.append(' with the following options:')
         desc.append('')
-        desc.append(f'  smin:{endf_parameters.smin}')
-        desc.append(f'  emax:{endf_parameters.emax}')
-        desc.append(f'  lasym:{endf_parameters.lasym}')
+        desc.append(f'  smin:{endf_metadata.smin}')
+        desc.append(f'  emax:{endf_metadata.emax}')
+        desc.append(f'  lasym:{endf_metadata.lasym}')
         desc.append(f'  include_gif:{self._include_gif}')
         desc.append(f'  isotopic_expansion:{self._isotopic_expansion}')
         desc.append(f'  elastic_mode:{data.elastic_mode}')
@@ -1003,7 +1001,7 @@ class EndfFile():
         mat = self._mat
         data = self._data
         awr = data.elements[self._sym].awr
-        endf_parameters = self._endf_parameters
+        endf_metadata = self._endf_metadata
         za = data.elements[self._sym].za
         zsymam = data.elements[self._sym].zsymam
         self._endf_dict['1/451'] = {}
@@ -1013,7 +1011,7 @@ class EndfFile():
         d['AWR'] = awr
         d['LRP'] = -1
         d['LFI'] = 0
-        d['NLIB'] = endf_parameters.nlib
+        d['NLIB'] = endf_metadata.nlib
         d['NMOD'] = 0
         d['ELIS'] = 0
         d['LIS'] = 0
@@ -1021,30 +1019,30 @@ class EndfFile():
         d['STA'] = 0
         d['NFOR'] = 6
         d['AWI'] = 1.0
-        d['EMAX'] = endf_parameters.emax
-        d['LREL'] = endf_parameters.lrel
+        d['EMAX'] = endf_metadata.emax
+        d['LREL'] = endf_metadata.lrel
         d['NSUB'] = 12
-        d['NVER'] = endf_parameters.nver
+        d['NVER'] = endf_metadata.nver
         d['TEMP'] = 0.0
         d['LDRV'] = 0
-        d['HSUB/1'] = f'----{endf_parameters.libname:18s}MATERIAL {mat:4d}'
+        d['HSUB/1'] = f'----{endf_metadata.libname:18s}MATERIAL {mat:4d}'
         d['HSUB/1'].ljust(66)
         d['HSUB/2'] =  '-----THERMAL NEUTRON SCATTERING DATA'.ljust(66)
         d['HSUB/3'] =  '------ENDF-6 FORMAT'.ljust(66)
         d['NXC'] = 1
         d['ZSYMAM'] = zsymam.ljust(11)
-        d['ALAB'] = endf_parameters.alab.ljust(11)
-        d['AUTH'] = endf_parameters.auth.ljust(33)
-        d['REF'] = endf_parameters.reference.ljust(21)
-        d['EDATE'] = ( 'EVAL-MMMYY' if endf_parameters.edate is None else
-                                      'EVAL-'+endf_parameters.edate )
-        d['DDATE'] = ( 'DIST-MMMYY' if endf_parameters.ddate is None else
-                                      'DIST-'+endf_parameters.ddate )
-        d['RDATE'] = ( 'REV0-MMMYY' if endf_parameters.rdate is None else
-                                      f'REV{endf_parameters.lrel:1d}-'+
-                                      endf_parameters.rdate )
-        d['ENDATE'] = endf_parameters.endate.ljust(8)
-        desc = self._createMF1MT451description(data, endf_parameters)
+        d['ALAB'] = endf_metadata.alab.ljust(11)
+        d['AUTH'] = endf_metadata.auth.ljust(33)
+        d['REF'] = endf_metadata.reference.ljust(21)
+        d['EDATE'] = ( 'EVAL-MMMYY' if endf_metadata.edate is None else
+                                      'EVAL-'+endf_metadata.edate )
+        d['DDATE'] = ( 'DIST-MMMYY' if endf_metadata.ddate is None else
+                                      'DIST-'+endf_metadata.ddate )
+        d['RDATE'] = ( 'REV0-MMMYY' if endf_metadata.rdate is None else
+                                      f'REV{endf_metadata.lrel:1d}-'+
+                                      endf_metadata.rdate )
+        d['ENDATE'] = endf_metadata.endate.ljust(8)
+        desc = self._createMF1MT451description(data, endf_metadata)
         d['DESCRIPTION'] = {k:v for k, v in enumerate(desc, start=1)}
         d['NWD'] = 5+len(desc)
         d['MFx/1'] = 1
