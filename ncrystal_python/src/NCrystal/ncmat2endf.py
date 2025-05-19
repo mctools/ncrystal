@@ -42,6 +42,7 @@ DOI:10.48550/arXiv.2312.08249
 
 available_elastic_modes = ('greater', 'scaled', 'mixed')
 default_smin_value = 1e-100
+default_emax_value = 5.0
 
 class EndfMetaData():
     """Optional MetaData Parameters for the ENDF-6 file describing the origin and
@@ -88,9 +89,6 @@ class EndfMetaData():
 
     #FIXME: Move these 3 parameters out of the metadata class:
 
-    emax : float
-        Upper limit of the energy range for evaluation (eV).
-
     lasym : int
         Flag indicating whether an asymmetric S(a,b) is given.
 
@@ -132,7 +130,6 @@ class EndfMetaData():
         self.__fmtdate = fmtdate
 
         #fixme: to be removed from this class:
-        self.__emax = 5.0
         self.__lasym = 0 # Symmetric S(a,b) as default
 
     def __repr__(self):
@@ -261,11 +258,6 @@ class EndfMetaData():
 
     #fixme: to be removed from this class:
     @property
-    def emax(self):
-        return self.__emax
-    def set_emax( self, x ):
-        self.__emax = x
-    @property
     def lasym(self):
         return self.__lasym
     def set_lasym(self, x):
@@ -280,6 +272,7 @@ def ncmat2endf( ncmat_cfg, *,
                 isotopic_expansion=False,
                 force_save=False,
                 smin=default_smin_value,
+                emax=default_emax_value,
                 verbosity=1):
     """Generates a set of ENDF-6 formatted files for a given NCMAT file.
 
@@ -429,7 +422,7 @@ def ncmat2endf( ncmat_cfg, *,
     from ._ncmat2endf_impl import NuclearData
     data = NuclearData(ncmat_cfg=ncmat_cfg, temperatures=temperatures,
                        elastic_mode=elastic_mode,
-                       requested_emax=endf_metadata.emax,
+                       requested_emax=emax,
                        verbosity=verbosity)
 
     if endf_metadata.mat_numbers is not None:
@@ -458,6 +451,7 @@ def ncmat2endf( ncmat_cfg, *,
                                  include_gif=include_gif,
                                  isotopic_expansion=isotopic_expansion,
                                  smin=smin,
+                                 emax=emax,
                                  verbosity=verbosity)
             endf_file.write(endf_fn, force_save)
             output_composition.append((endf_fn, frac))
