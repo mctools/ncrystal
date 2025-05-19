@@ -10,7 +10,7 @@ FAILED (as expected): Oriented materials cannot be represented in the ENDF forma
 
 
 --------------------------------------------------------------------------------
-{'endf_metadata': <NCrystalDev.ncmat2endf.EndfMetaData object at 0x7f7f067ee5d0>,
+{'endf_metadata': EndfMetaData object: ALAB:MyLAB, AUTH:NCrystal, REFERENCE:REFERENCE, NLIB:0, NVER:1, LIBNAME:MyLib, LREL:0, MAT_NUMBERS:{'Ge': 99}, ENDATE:, EDATE:MMMYY, RDATE:MMMYY, DDATE:MMMYY,
  'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
 Get nuclear data...
@@ -277,7 +277,7 @@ endf>                                                                    -1 0  0
 
 
 --------------------------------------------------------------------------------
-{'endf_metadata': <NCrystalDev.ncmat2endf.EndfMetaData object at 0x7f7eed339590>,
+{'endf_metadata': EndfMetaData object: ALAB:MyLAB, AUTH:NCrystal, REFERENCE:REFERENCE, NLIB:0, NVER:1, LIBNAME:MyLib, LREL:0, MAT_NUMBERS:{'C': 37, 'H': 38}, ENDATE:, EDATE:MMMYY, RDATE:MMMYY, DDATE:MMMYY,
  'force_save': True,
  'material_name': 'CH2',
  'ncmat_cfg': 'Polyethylene_CH2.ncmat;vdoslux=1'}

@@ -138,6 +138,22 @@ class EndfMetaData():
         self.__emax = 5.0
         self.__lasym = 0 # Symmetric S(a,b) as default
 
+    def __repr__(self):
+        s = ('EndfMetaData object: '+
+            f'ALAB:{self.alab}, '+
+            f'AUTH:{self.auth}, '+
+            f'REFERENCE:{self.reference}, '+
+            f'NLIB:{self.nlib}, '+
+            f'NVER:{self.nver}, '+
+            f'LIBNAME:{self.libname}, '+
+            f'LREL:{self.lrel}, '+
+            f'MAT_NUMBERS:{self.mat_numbers}, '+
+            f'ENDATE:{self.endate}, '+
+            f'EDATE:{self.edate}, '+
+            f'RDATE:{self.rdate}, '+
+            f'DDATE:{self.ddate}')
+        return s
+
     @property
     def alab(self):
         return self.__alab
