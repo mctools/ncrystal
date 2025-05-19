@@ -76,16 +76,12 @@ DOI:10.48550/arXiv.2312.08249
                         help='approximation used for the elastic component',#fixme: consider docs, perhaps refer to njoy-ncrystal paper?
                         type=str, choices=available_elastic_modes,
                         default='scaled')
-
-    #fixme: remove these, but add --metadata which takes json dict:
+    parser.add_argument('--metadata',
+                        help=('JSON dictionary containing ENDF-6 metadata'),
+                        type=json.loads)
     parser.add_argument('--set_date_to_now',action='store_true',
                         help=('Set ENDF6 fields EDATE, DDATE and RDATE'
                               ' to current month and year.'))
-    parser.add_argument('-m', '--mats',
-                        help=('JSON dictionary containing material number '
-                              'assignment for each element, e.g. \'{"C":37, '
-                              '"H": 38}\''),
-                        type=json.loads)
 
     #fixme: these should be marked as expert-only (also, add options controlling
     #emax, lasym)
@@ -118,9 +114,8 @@ def main( progname, arglist ):
 
     _ = ncmat2endf(args.input,
                    material_name=args.material_name,
-                   endf_metadata=params,
+                   endf_metadata=params.metadata,
                    temperatures=args.temperatures,
-                   mat_numbers=args.mats,
                    elastic_mode=args.elastic_mode,
                    force_save=args.force,
                    set_date_to_now=args.set_date_to_now,

@@ -936,12 +936,37 @@ class EndfFile():
         desc.append(' This file was converted from the following NCrystal cfg')
         desc.append(' string [1]:')
         desc.append('')
-        desc.append(data.ncmat_cfg.center(66))
+
+        if len(data.ncmat_cfg) < 60:
+            desc.append(f'"{data.ncmat_cfg}"'.center(66))
+        else:
+            cfg_parts = data.ncmat_cfg.split(';')
+            cfg_lines = []
+            from textwrap import wrap
+            for part in cfg_parts:
+                cfg_lines += wrap(part.lstrip(),
+                                  width=60,
+                                  break_long_words=True)
+                cfg_lines[-1] += ';'
+            if len(cfg_lines) == 1:
+                desc.append(f'  "{cfg_lines[0]}"')
+            elif len(cfg_lines) == 2:
+                desc.append(f'  "{cfg_lines[0]}')
+                desc.append(f'   {cfg_lines[-1]}"')
+            elif len(cfg_lines) > 1:
+                desc.append(f'  "{cfg_lines[0]}')
+                desc.extend(f'   {_}' for _ in cfg_lines[1:-1])
+                desc.append(f'   {cfg_lines[-1]}"')
+
         desc.append('')
-        desc.append(f' using NCrystal {nc_core.get_version()} and '
-                           f'endf-parserpy {self._endf_parserpy_version} '
-                            '[2] with the ')
-        desc.append(' following options:')
+        nc_version = nc_core.get_version()
+        ep_version = self._endf_parserpy_version
+        if unit_test_chop_svals[0]:
+            nc_version = 'NCVERSION'
+            ep_version = 'EPVERSION'
+        desc.append(f' using NCrystal {nc_version} ')
+        desc.append(f' and endf-parserpy [2] {ep_version} ')
+        desc.append(' with the following options:')
         desc.append('')
         desc.append(f'  smin:{endf_parameters.smin}')
         desc.append(f'  emax:{endf_parameters.emax}')
@@ -965,6 +990,8 @@ class EndfFile():
         for line in data.comments:
             desc.append(line)
         desc.append(66*'*')
+        for _ in desc:
+            assert len(_) <= 66
         return [_.ljust(66) for _ in desc]
 
     def _createMF1(self):
@@ -1089,7 +1116,15 @@ def _tidy_sab_list( s_values ):
     _npf = _np.float64
     def _chop(x):
         assert 0.0 <= x <= 1e99
-        return x if x>1e-20 else float('%.4g'%x)
+        if x > 1e-20:
+            return x
+        if x > 1e-20:
+            return float('%.4g'%x)
+        if x > 1e-60:
+            return float('%.3g'%x)
+        if x > 1e-80:
+            return float('%.2g'%x)
+        return float('%.1g'%x)
     return  [ _chop(x) for x in s_values ]
 
 is_unit_test = [False]
