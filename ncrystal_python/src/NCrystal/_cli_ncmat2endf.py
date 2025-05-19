@@ -111,6 +111,8 @@ def main( progname, arglist ):
     from .ncmat2endf import EndfMetaData, ncmat2endf
     args = _parseArgs( progname, arglist )
     metadata = EndfMetaData()
+    if args.set_date_to_now:
+        metadata.set_all_dates_as_now()
 
     _ = ncmat2endf(args.input,
                    material_name=args.material_name,
@@ -118,7 +120,6 @@ def main( progname, arglist ):
                    temperatures=args.temperatures,
                    elastic_mode=args.elastic_mode,
                    force_save=args.force,
-                   set_date_to_now=args.set_date_to_now,
                    smin=args.smin,
                    verbosity=args.verbosity)
 

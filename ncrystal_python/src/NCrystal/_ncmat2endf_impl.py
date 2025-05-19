@@ -692,7 +692,6 @@ class EndfFile():
         self._createMF7()
         self._parser = None
 
-
     def _createMF7MT2(self, elastic):
         """
         Creates endf-parserpy dictionary for MF=7 file,
