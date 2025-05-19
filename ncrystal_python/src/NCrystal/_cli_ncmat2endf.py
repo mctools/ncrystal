@@ -86,7 +86,7 @@ DOI:10.48550/arXiv.2312.08249
                         help=('Set ENDF6 fields EDATE, DDATE and RDATE'
                               ' to current month and year.'))
 
-    #fixme: these should be marked as expert-only (also, add lasym)
+    #fixme: these should be marked as expert-only
     parser.add_argument('-t', '--temperatures',
                         nargs='+',
                         type=float,
