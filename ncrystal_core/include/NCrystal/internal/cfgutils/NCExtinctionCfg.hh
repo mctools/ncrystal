@@ -35,7 +35,7 @@ namespace NCRYSTAL_NAMESPACE {
     namespace detail {
       struct TV_ph2 {};
       struct TV_ph3 {};
-    };
+    }
 
     template<class T1, class T2 = detail::TV_ph2, class T3 = detail::TV_ph3>
     class TrivialVariant {
@@ -157,7 +157,7 @@ namespace NCRYSTAL_NAMESPACE {
         return *reinterpret_cast<TData*>(m_data);
       }
 
-      bool empty() const { !m_hasData; }
+      bool empty() const { return !m_hasData; }
       //char * rawData() const { return &m_data[0]; }
 
       TrivialOptional& operator=( const TData& o )
@@ -237,6 +237,8 @@ namespace NCRYSTAL_NAMESPACE {
         ValDbl_ShortStrOrigRep strrep;//starts with null byte if not available
       };
       struct SabineData {
+        SabineData( const ExtnCfg_Sabine& o ) : obj(o) {}
+        SabineData() = default;
         ExtnCfg_Sabine obj;
         ValDbl_ShortStrOrigRep origstr_blockSize = NullOpt;
         ValDbl_ShortStrOrigRep origstr_grainSize = NullOpt;
