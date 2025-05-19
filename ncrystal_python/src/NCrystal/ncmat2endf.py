@@ -279,7 +279,6 @@ def ncmat2endf( ncmat_cfg, *,
                 include_gif=False,
                 isotopic_expansion=False,
                 force_save=False,
-                set_date_to_now=False,#fixme: remove
                 smin=default_smin_value,
                 verbosity=1):
     """Generates a set of ENDF-6 formatted files for a given NCMAT file.
@@ -326,9 +325,6 @@ def ncmat2endf( ncmat_cfg, *,
     force_save: boolean
         Overwrite existing file if it already exists.
 
-    set_date_to_now: boolean
-        Set ENDF6 fields EDATE, DDATE and RDATE to current month and year.
-
     verbosity : int
         Level of verbosity of the output (0: quiet)
 
@@ -353,9 +349,6 @@ def ncmat2endf( ncmat_cfg, *,
     elif not isinstance(endf_metadata,EndfMetaData):
         endf_metadata = EndfMetaData()
         endf_metadata.update_from_dict(endf_metadata)
-
-    if set_date_to_now:
-        endf_metadata.set_all_dates_as_now()
 
     if elastic_mode not in available_elastic_modes:
         raise nc_exceptions.NCBadInput(f'Elastic mode {elastic_mode}'
