@@ -22,6 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/core/NCTypes.hh"
+#include "NCrystal/internal/utils/NCStrView.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 
@@ -101,7 +102,7 @@ namespace NCRYSTAL_NAMESPACE {
         return *reinterpret_cast<Tn*>(m_data);
       }
 
-      bool empty() const { m_content == 0; }
+      bool empty() const { return m_content == 0; }
 
       template<class Tn>
       TrivialVariant& operator=( const Tn& o )
@@ -144,7 +145,7 @@ namespace NCRYSTAL_NAMESPACE {
 
       void clear() { m_hasData = false; }
       void reset() { clear(); }
-      bool has_value() const { m_hasData; }
+      bool has_value() const { return m_hasData; }
       const TData& value() const
       {
         nc_assert(has_value());
@@ -267,7 +268,7 @@ namespace NCRYSTAL_NAMESPACE {
       ExtinctionCfg( StrView );
 
       //Non-enabled object:
-      ExtinctionCfg( no_init_t ) : m_data( NullOpt ) {}//fixme =default??
+      ExtinctionCfg( no_init_t ) : m_data( NullOpt ) { nc_assert_always(!enabled()); }//fixme =default??
 
       //Re-encode in form for cfg-string or JSON:
       void stream( std::ostream& ) const;
@@ -278,8 +279,8 @@ namespace NCRYSTAL_NAMESPACE {
       void disable() { m_data.reset(); }
 
       //Assign to specific models:
-      ExtinctionCfg( const ExtnCfg_Sabine& sb ) : m_data(SabineData{ sb }) {}
-      ExtinctionCfg& operator=( const ExtnCfg_Sabine& sb ) { m_data = SabineData{ sb }; return *this; }//fixme inline
+      ExtinctionCfg( const ExtnCfg_Sabine& sb ) : m_data(SabineData{ sb }) {nc_assert_always(enabled()); }
+      ExtinctionCfg& operator=( const ExtnCfg_Sabine& sb ) { m_data = SabineData{ sb }; nc_assert_always(enabled());return *this; }//fixme inline
 
       ExtinctionCfg( const ExtinctionCfg& ) = default;
       ExtinctionCfg& operator=( const ExtinctionCfg& ) = default;

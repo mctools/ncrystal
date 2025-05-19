@@ -19,15 +19,26 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/factories/NCMatCfg.hh"
+#include "NCrystal/internal/cfgutils/NCExtinctionCfg.hh"
 #include <iostream>
 namespace NC=NCrystal;
 
-
 int main() {
   std::cout<<"TESTa"<<std::endl;
+  NC::Cfg::ExtinctionCfg ecfg( NC::StrView("10e-6m") );//fixme why StrView??
+  std::cout<<"BLA:";
+  ecfg.stream(std::cout);
+  std::cout<<":"<<std::endl;
+
+
+
+
+// cfgutils/NCExtinctionCfg.hh
+
   auto cfg = NC::MatCfg("Al_sg225.ncmat;extn=10e-6m");
-  std::cout<<"TESTb"<<std::endl;
+//   auto ecfg =
+//  std::cout<<"TESTb"<< cfg.get_extn()<<std::endl;
   std::cout<<cfg<<std::endl;
-  std::cout<<"TESTc"<<std::endl;
+   std::cout<<"TESTc"<<std::endl;
   return 0;
 }

@@ -107,14 +107,14 @@ namespace NCRYSTAL_NAMESPACE {
 
 NCC::ExtinctionCfg::ExtinctionCfg( const ExtinctionCfgData&& data )
   : ExtinctionCfg( detail_from_varbuf_t(), data.detail_accessRawData() )
-
 {
- }
+}
 
 NCC::ExtinctionCfg::ExtinctionCfg( StrView sv )
 {
+  nc_assert_always(!enabled());
   //Fixme: For now just support the simplest sabine model of only primary
-  //extinction.
+  //extinction. We should probably also support an empty strview giving !enabled()
 
   auto pv_blockSize = Cfg::units_length::parse(sv);
   if ( !pv_blockSize.has_value() )
@@ -125,6 +125,7 @@ NCC::ExtinctionCfg::ExtinctionCfg( StrView sv )
   SabineData& data = m_data.value<SabineData>();
   data.obj.blockSize = Length{ pv_blockSize.value().first * Length::angstrom };
   data.origstr_blockSize = pv_blockSize.value().second;
+  nc_assert_always(enabled());
 }
 
 int NCC::ExtinctionCfg::cmp( const ExtinctionCfg& o ) const {
@@ -140,6 +141,7 @@ int NCC::ExtinctionCfg::cmp( const ExtinctionCfg& o ) const {
 
 void NCC::ExtinctionCfg::stream( std::ostream& os ) const
 {
+
   if ( !enabled() )
     return;//stream as empty string
   if ( has_sabine() ) {
@@ -166,12 +168,14 @@ NCC::ExtinctionCfg::ExtinctionCfg( detail_from_varbuf_t,
 {
   if ( buf.empty() ) {
     m_data.clear();
+    nc_assert_always(!enabled());
     return;
   }
   static_assert(std::is_trivially_destructible<data_t>::value,"");
   static_assert(std::is_trivially_copyable<data_t>::value,"");
   static_assert(detail::varbuf_calc::buf_align % alignof(data_t) == 0,"");
   memcpy( (char*)&m_data, buf.data(), sizeof(data_t) );
+  nc_assert_always(enabled());//fixme: not 100% sure here
 }
 
 NCC::detail::VarBuf NCC::ExtinctionCfg::detail_to_varbuf( detail::VarId varid ) const
