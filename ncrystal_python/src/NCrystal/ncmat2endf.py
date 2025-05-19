@@ -41,6 +41,7 @@ DOI:10.48550/arXiv.2312.08249
 """
 
 available_elastic_modes = ('greater', 'scaled', 'mixed')
+default_smin_value = 1e-100
 
 class EndfMetaData():
     """Optional MetaData Parameters for the ENDF-6 file describing the origin and
@@ -87,9 +88,6 @@ class EndfMetaData():
 
     #FIXME: Move these 3 parameters out of the metadata class:
 
-    smin : float (fixme: should not be here??)
-        Minimum value of S(alpha, beta) to be stored in the file
-
     emax : float
         Upper limit of the energy range for evaluation (eV).
 
@@ -134,7 +132,6 @@ class EndfMetaData():
         self.__fmtdate = fmtdate
 
         #fixme: to be removed from this class:
-        self.__smin = 1e-100
         self.__emax = 5.0
         self.__lasym = 0 # Symmetric S(a,b) as default
 
@@ -264,11 +261,6 @@ class EndfMetaData():
 
     #fixme: to be removed from this class:
     @property
-    def smin(self):
-        return self.__smin
-    def set_smin(self, x):
-        self.__smin = x
-    @property
     def emax(self):
         return self.__emax
     def set_emax( self, x ):
@@ -288,6 +280,7 @@ def ncmat2endf( ncmat_cfg, *,
                 isotopic_expansion=False,
                 force_save=False,
                 set_date_to_now=False,#fixme: remove
+                smin=default_smin_value,
                 verbosity=1):
     """Generates a set of ENDF-6 formatted files for a given NCMAT file.
 
@@ -471,6 +464,7 @@ def ncmat2endf( ncmat_cfg, *,
             endf_file = EndfFile(sym, data, mat, endf_metadata,
                                  include_gif=include_gif,
                                  isotopic_expansion=isotopic_expansion,
+                                 smin=smin,
                                  verbosity=verbosity)
             endf_file.write(endf_fn, force_save)
             output_composition.append((endf_fn, frac))
