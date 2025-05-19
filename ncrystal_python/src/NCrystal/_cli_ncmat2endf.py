@@ -73,7 +73,9 @@ DOI:10.48550/arXiv.2312.08249
                         help=("overwrite existing file "
                               "if it already exists"))
     parser.add_argument('-e', '--elastic_mode',
-                        help='approximation used for the elastic component',#fixme: consider docs, perhaps refer to njoy-ncrystal paper?
+                        help=('approximation used for the elastic component.',
+                              ' An explanation of these modes is given in:',
+                              'https://doi.org/10.1016/j.nima.2021.166227')
                         type=str, choices=available_elastic_modes,
                         default='scaled')
     parser.add_argument('--metadata',
