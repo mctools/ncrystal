@@ -22,6 +22,7 @@
 
 # fixme: ase is only here temporarily to allow scipy usage
 # fixme: split into different tests
+# fixme: add test that reads S(a,b), computes and compares XS
 # NEEDS: numpy ase endf-parserpy
 
 import NCTestUtils.enable_fpe # noqa F401
@@ -40,7 +41,7 @@ ncmat2endf_impl.unit_test_chop_svals[0] = True
 #ncmat2endf_impl.is_unit_test[0] = True # just print final dict
 
 def reldiff( x, y ):
-    # FIXME: Add these functions to NCTestUtils
+    # FIXME: Add these functions to NCTestUtils. This could be a TODO
     if math.isinf(x):
         return ( float('inf') if ( not math.isinf(y) or
                ( ( x>0 ) != ( y>0 ) ) ) else 0.0 )
