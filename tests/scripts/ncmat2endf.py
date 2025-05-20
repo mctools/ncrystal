@@ -23,6 +23,7 @@
 # fixme: ase is only here temporarily to allow scipy usage
 # fixme: split into different tests
 # fixme: add test that reads S(a,b), computes and compares XS
+# fixme: add tests that dump the data before calling endf-parserpy
 # NEEDS: numpy ase endf-parserpy
 
 import NCTestUtils.enable_fpe # noqa F401
