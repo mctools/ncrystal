@@ -285,6 +285,7 @@ endf>                                                                   999 0  0
 endf>                                                                     0 0  0    0
 endf>                                                                    -1 0  0    0
 [320.2258, 372.8392] [320.2258, 372.8392]
+NCrystal WARNING: Discarding 2 edges of provided kernel data due to missing S values.
 
 
 
