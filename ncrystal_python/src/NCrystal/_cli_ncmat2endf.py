@@ -141,7 +141,7 @@ def main( progname, arglist ):
 
     _ = ncmat2endf(args.input,
                    material_name=args.material_name,
-                   endf_metadata=metadata.metadata,
+                   endf_metadata=metadata,
                    temperatures=args.temperatures,
                    elastic_mode=args.elastic_mode,
                    force_save=args.force,
