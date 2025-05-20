@@ -21,6 +21,7 @@
 ################################################################################
 
 # fixme: ase is only here temporarily to allow scipy usage
+# fixme: split into different tests
 # NEEDS: numpy ase endf-parserpy
 
 import NCTestUtils.enable_fpe # noqa F401
@@ -29,6 +30,8 @@ from NCrystalDev.ncmat2endf import ncmat2endf
 from NCrystalDev.ncmat2endf import EndfMetaData
 from NCrystalDev.exceptions import NCBadInput
 from NCTestUtils.common import print_text_file_with_snipping
+import NCrystalDev.cli as nc_cli
+import shlex
 import math
 
 #FIXME: Add tests with:
@@ -54,6 +57,14 @@ def require_flteq( x, y ):
                               f'x={x} and y={y}!')
     elif not okfct(x,y):
         raise RuntimeError(f'require_flteq( x={x}, y={y} ) failed!')
+
+def test_cli( args ):
+    if isinstance(args,str):
+        args = shlex.split(args)
+    hr=f"============= CLI >>{shlex.join(args)}<< ===================="
+    print(hr)
+    nc_cli.run('ncmat2endf',*args)
+    print('='*len(hr))
 
 def test( cfg, ref_teff=None,
           ref_parsed=None, ref_bragg_edges=None,
@@ -138,6 +149,13 @@ test_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1;comp=coh_elas')
 # Wrong elastic mode
 test_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1',
            elastic_mode='something wrong')
+
+#
+# CLI tests
+#
+
+test_cli('"stdlib::Al_sg225.ncmat;temp=350K;vdoslux=1"'
+         ' --verbosity 5 -m Al -f -e greater')
 
 #
 # Library production tests
