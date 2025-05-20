@@ -86,25 +86,34 @@ DOI:10.48550/arXiv.2312.08249
                         help=('Set ENDF6 fields EDATE, DDATE and RDATE'
                               ' to current month and year.'))
 
-    #fixme: these should be marked as expert-only
     parser.add_argument('-t', '--temperatures',
                         nargs='+',
                         type=float,
-                        help='''additional temperatures to process (fixme:
-                        mention bad idea?)''')
+                        help=' (EXPERT ONLY)'
+                             ' additional temperatures to process.'
+                             ' If additional temperatures are provided,'
+                             ' ncmat2endf will interpolate the S(a,b) into'
+                             ' a grid for the first temperature. This should'
+                             ' be done with care. It is preferred to run'
+                             ' each temperature independently using the temp='
+                             ' keyword in the cfg string.'   )
     parser.add_argument('--smin',
-                        help='set the minimum value of S(alpha, beta) stored '
+                        help=' (EXPERT ONLY)'
+                             ' set the minimum value of S(alpha, beta) stored '
                              'in MF7/MT4', type=float,
                         default=default_smin_value)
     parser.add_argument('--emax',
-                        help='maximum energy for the scatterig kernel',
+                        help=' (EXPERT ONLY)'
+                             ' maximum energy for the scatterig kernel',
                         type=float,
                         default=default_emax_value)
     parser.add_argument('--asymmetric_sab',action='store_true',
-                        help=('store S(a,b) without the detailed balance'
-                              ' factor exp(beta/2)'))
+                        help=(' (EXPERT ONLY)'
+                             ' store S(a,b) without the detailed balance'
+                             ' factor exp(beta/2).'))
     parser.add_argument('--total_sab',action='store_true',
-                        help=('store S(a,b) branches for positive and '
+                        help=(' (EXPERT ONLY)'
+                             ' store S(a,b) branches for positive and '
                               ' negative beta'))
 
     #fixme: test the cli
