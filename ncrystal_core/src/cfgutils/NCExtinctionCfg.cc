@@ -110,24 +110,6 @@ NCC::ExtinctionCfg::ExtinctionCfg( const ExtinctionCfgData&& data )
 {
 }
 
-NCC::ExtinctionCfg::ExtinctionCfg( StrView sv )
-{
-  nc_assert_always(!enabled());
-  //Fixme: For now just support the simplest sabine model of only primary
-  //extinction. We should probably also support an empty strview giving !enabled()
-
-  auto pv_blockSize = Cfg::units_length::parse(sv);
-  if ( !pv_blockSize.has_value() )
-    NCRYSTAL_THROW2(BadInput,"Invalid block size length value in"
-                    " extinction cfg string: \""<<sv<<"\"");
-
-  m_data = SabineData();
-  SabineData& data = m_data.value<SabineData>();
-  data.obj.blockSize = Length{ pv_blockSize.value().first * Length::angstrom };
-  data.origstr_blockSize = pv_blockSize.value().second;
-  nc_assert_always(enabled());
-}
-
 int NCC::ExtinctionCfg::cmp( const ExtinctionCfg& o ) const {
 
   //fixme, just considering blocksize for now for simplicity:
@@ -137,30 +119,6 @@ int NCC::ExtinctionCfg::cmp( const ExtinctionCfg& o ) const {
     return 0;//identical (because we only have one value type so far, fixme)
   nc_assert_always( has_sabine() && o.has_sabine() );
   return detail_cmp_sabine( get_sabine(), o.get_sabine() );
-}
-
-void NCC::ExtinctionCfg::stream( std::ostream& os ) const
-{
-
-  if ( !enabled() )
-    return;//stream as empty string
-  if ( has_sabine() ) {
-    auto& m = m_data.value<SabineData>();
-    nc_assert_always( !m.obj.secondary.has_value() && "fixme: sabine secondary streaming not implemented yet" );
-    if ( !m.origstr_blockSize.empty() )
-      os << m.origstr_blockSize;
-    else
-      os << m.obj.blockSize.as_wavelength();//as_wavelength to easily get units of Aa.
-  } else {
-    nc_assert_always( !enabled() );
-    //disabled means empty string.
-  }
-
-}
-
-void NCC::ExtinctionCfg::streamJSON( std::ostream& os ) const
-{
-  os << "FIXME-ExtinctionCfg-JSON-streaming-not-implemented";
 }
 
 NCC::ExtinctionCfg::ExtinctionCfg( detail_from_varbuf_t,
@@ -186,4 +144,48 @@ NCC::detail::VarBuf NCC::ExtinctionCfg::detail_to_varbuf( detail::VarId varid ) 
   return VarBuf( reinterpret_cast<const char*>(&m_data),
                  sizeof(data_t),
                  varid );
+}
+
+
+
+NCC::ExtinctionCfg::ExtinctionCfg( StrView sv )
+{
+  nc_assert_always(!enabled());
+  //Fixme: For now just support the simplest sabine model of only primary
+  //extinction. We should probably also support an empty strview giving !enabled()
+
+  auto pv_blockSize = Cfg::units_length::parse(sv);
+  if ( !pv_blockSize.has_value() )
+    NCRYSTAL_THROW2(BadInput,"Invalid block size length value in"
+                    " extinction cfg string: \""<<sv<<"\"");
+
+  m_data = SabineData();
+  SabineData& data = m_data.value<SabineData>();
+  data.obj.blockSize = Length{ pv_blockSize.value().first * Length::angstrom };
+  data.origstr_blockSize = pv_blockSize.value().second;
+  nc_assert_always(enabled());
+}
+
+void NCC::ExtinctionCfg::stream( std::ostream& os ) const
+{
+
+  if ( !enabled() )
+    return;//stream as empty string
+  if ( has_sabine() ) {
+    auto& m = m_data.value<SabineData>();
+    nc_assert_always( !m.obj.secondary.has_value() && "fixme: sabine secondary streaming not implemented yet" );
+    if ( !m.origstr_blockSize.empty() )
+      os << m.origstr_blockSize;
+    else
+      os << m.obj.blockSize.as_wavelength();//as_wavelength to easily get units of Aa.
+  } else {
+    nc_assert_always( !enabled() );
+    //disabled means empty string.
+  }
+
+}
+
+void NCC::ExtinctionCfg::streamJSON( std::ostream& os ) const
+{
+  os << "FIXME-ExtinctionCfg-JSON-streaming-not-implemented";
 }
