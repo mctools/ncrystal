@@ -22,7 +22,6 @@
 
 # fixme: ase is only here temporarily to allow scipy usage
 # fixme: split into different tests
-# fixme: add test that reads S(a,b), computes and compares XS
 # fixme: add tests that dump the data before calling endf-parserpy
 # NEEDS: numpy ase endf-parserpy
 
@@ -32,6 +31,7 @@ from NCrystalDev.ncmat2endf import ncmat2endf
 from NCrystalDev.ncmat2endf import EndfMetaData
 from NCrystalDev.exceptions import NCBadInput
 from NCTestUtils.common import print_text_file_with_snipping
+from NCrystalDev._numpy import _np
 import NCrystalDev.cli as nc_cli
 import shlex
 import math
@@ -48,10 +48,9 @@ def reldiff( x, y ):
                ( ( x>0 ) != ( y>0 ) ) ) else 0.0 )
     return abs(x-y)/(max(1e-300,abs(x)+abs(y)))
 
-def require_flteq( x, y ):
+def require_flteq( x, y, tol = 1e-13 ):
     def okfct( a, b ):
         return bool( reldiff( a, b ) < tol )
-    tol = 1e-13
     if hasattr( x, '__len__' ):
         if ( not len(x) == len(y) or
              any( ( not okfct(a,b) ) for a,b in zip(x,y) )):
@@ -70,6 +69,7 @@ def test_cli( args ):
 
 def test( cfg, ref_teff=None,
           ref_parsed=None, ref_bragg_edges=None,
+          compare_xsec=False,
           **kwargs ):
     import pprint
     print()
@@ -121,6 +121,15 @@ def test( cfg, ref_teff=None,
             S0 = tuple(endf_dic[7][2]['S_T0_table']['S'][:len(ref_S0)])
             require_flteq(Eint, ref_Eint)
             require_flteq(S0, ref_S0)
+    if compare_xsec:
+        E = _np.geomspace(1e-5, 5.0, 1000)
+        xs_test = _np.zeros(_np.shape(E))
+        for endf_fn, frac in res:
+            xs_test += frac*get_scatxs_from_endf(endf_fn, E)
+        from NCrystal import load as nc_load
+        m = nc_load(cfg+';comp=inelas')
+        xs = m.scatter.xsect(E)
+        require_flteq(xs, xs_test, tol=0.02)
 
 def test_fail( e, *args, **kwargs ):
     try:
@@ -129,6 +138,41 @@ def test_fail( e, *args, **kwargs ):
         print("FAILED (as expected): %s"%e)
         return
     raise SystemExit('Did not fail as expected')
+
+def get_scatxs_from_endf(endf_fn, E=None):
+    """
+    Computes scattering XS from first temperature in ENDF-6 TSL file
+    """
+    from endf_parserpy import EndfParser
+    from NCrystal import NCMATComposer, atomDB
+
+    parser = EndfParser(cache_dir=False)
+    endf_dic = parser.parsefile(endf_fn)
+    T0 = 293.6
+    emax = endf_dic[1][451]['EMAX']
+    za = endf_dic[1][451]['ZA']
+    label = atomDB(Z=int(za/1000)).elementName()
+    awr = endf_dic[7][4]['AWR']
+    lat = endf_dic[7][4]['LAT']
+    S_table =  endf_dic[7][4]['S_table']
+    S = _np.array([v['S'] for k,v in S_table.items()])
+    T = endf_dic[7][4]['teff0_table']['Tint'][0]
+    beta = _np.array([ v for k, v in endf_dic[7][4]['beta'].items()])
+    alpha = _np.array(S_table[1]['alpha'])*awr
+    if lat == 1:
+        beta = beta*T0/T
+        alpha = alpha*T0/T
+    c_test = NCMATComposer()
+    c_test.set_dyninfo_scatknl(label,
+                               alphagrid=alpha,
+                               betagrid=beta,
+                               temperature=T,
+                               sab_scaled=S,
+                               fraction=1.0)
+    c_test.set_density(1.0,'g/cm3')
+    m = c_test.load()
+    E = _np.geomspace(1e-5, emax, 1000) if E is None else E
+    return m.scatter.xsect(E)
 
 #
 # Error handling tests
@@ -176,7 +220,7 @@ test('Al_sg225.ncmat;vdoslux=1', material_name='Al',
      ref_teff={'tsl_Al.endf':[320.2258, 372.8392]},
      ref_parsed={'tsl_Al.endf':'0 0 1 451 7 2 7 4'},
      ref_bragg_edges={'tsl_Al.endf':(ref_Eint, ref_S0)},
-     temperatures=[350], elastic_mode='scaled')
+     temperatures=[350], elastic_mode='scaled', compare_xsec=True)
 
 metadata = EndfMetaData()
 metadata.set_mat_numbers( {"C":37, "H": 38} )
