@@ -116,8 +116,6 @@ DOI:10.48550/arXiv.2312.08249
                              ' store S(a,b) branches for positive and '
                               ' negative beta'))
 
-    #fixme: test the cli
-
     if return_parser:
         return parser
     args=parser.parse_args(arglist)
