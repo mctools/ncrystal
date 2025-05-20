@@ -27,17 +27,18 @@ def _parseArgs( progname, arglist, return_parser=False ):
     #FIXME: check before final merge
     #NOTE: Keep the description below synchronised with doc-string of the
     #ncmat2endf python API function:
+    #FIXME: why don't we just get the doc-string here?
     descr="""
 
 Script for creating a set of ENDF-6 thermal scattering files from a .ncmat
-file. Basic paramters are supported as arguments, but additional parameters
-for the ENDF-6 can be set by using the Python API and pasing a custom
-EndfMetaData object.
+file. Most important parameters are supported as arguments, but additional
+metadata parameters for the ENDF-6 format can be set by using the Python API and
+pasing a custom EndfMetaData object or dictionary.
 
-The script allows to handle multiple temperatures in one ENDF-6 file, but this
-is not recommended, because NCrystal computes an optimal (alpha, beta) grid for
-each material and temperature, while the ENDF format imposes the same grid on
-all temperatures.
+The script allows to handle multiple temperatures in one ENDF-6 file,
+but this is not recommended, because NCrystal computes an optimal (alpha, beta)
+ grid for each material and temperature, while the ENDF format imposes the
+ same grid on all temperatures.
 
 Ths script uses the endf-parserpy package from IAEA to format and check the
 syntax of the ENDF-6 file.
@@ -47,6 +48,7 @@ A formal ENDF format description language", arXiv:2312.08249,
 DOI:10.48550/arXiv.2312.08249
 
 """
+
     parser = create_ArgumentParser(prog = progname,
                                    description=descr,
                                    formatter_class=RawTextHelpFormatter)
