@@ -59,34 +59,38 @@ DOI:10.48550/arXiv.2312.08249
                               default_emax_value )
     import json
 
-    parser.add_argument('input',
+    required_args = parser.add_argument_group('required arguments')
+    required_args.add_argument('input',
                         help='NCMAT cfg string to convert')
-    parser.add_argument('-m', '--material_name',
+
+    basic_args = parser.add_argument_group('optional arguments')
+    basic_args.add_argument('-m', '--material_name',
                         help=('name of the material to be processed. '
                               'ENDF files will be named '
                               'tsl_element_in_name.endf for compounds '
                               'or tsl_element.endf for elements. E.g. '
                               'tsl_H_in_CH2.endf or tsl_Cu.endf'))
-    parser.add_argument('-v', '--verbosity',
+    basic_args.add_argument('-v', '--verbosity',
                         help='controls how verbose should be the output',
                         type=int, default=1)
-    parser.add_argument('-f', '--force',action='store_true',
+    basic_args.add_argument('-f', '--force',action='store_true',
                         help=('overwrite existing file '
                               'if it already exists'))
-    parser.add_argument('-e', '--elastic_mode',
-                        help=('approximation used for the elastic component.',
-                              ' An explanation of these modes is given in:',
+    basic_args.add_argument('-e', '--elastic_mode',
+                        help=('approximation used for the elastic component.'
+                              ' An explanation of these modes is given in:'
                               'https://doi.org/10.1016/j.nima.2021.166227'),
                         type=str, choices=available_elastic_modes,
                         default='scaled')
-    parser.add_argument('--metadata',
+    basic_args.add_argument('--metadata',
                         help=('JSON dictionary containing ENDF-6 metadata'),
                         type=json.loads)
-    parser.add_argument('--set_date_to_now',action='store_true',
+    basic_args.add_argument('--set_date_to_now',action='store_true',
                         help=('Set ENDF6 fields EDATE, DDATE and RDATE'
                               ' to current month and year.'))
 
-    parser.add_argument('-t', '--temperatures',
+    expert_args = parser.add_argument_group('advanced optional arguments')
+    expert_args.add_argument('-t', '--temperatures',
                         nargs='+',
                         type=float,
                         help=' (EXPERT ONLY)'
@@ -97,21 +101,21 @@ DOI:10.48550/arXiv.2312.08249
                              ' be done with care. It is preferred to run'
                              ' each temperature independently using the temp='
                              ' keyword in the cfg string.'   )
-    parser.add_argument('--smin',
+    expert_args.add_argument('--smin',
                         help=' (EXPERT ONLY)'
                              ' set the minimum value of S(alpha, beta) stored '
                              'in MF7/MT4', type=float,
                         default=default_smin_value)
-    parser.add_argument('--emax',
+    expert_args.add_argument('--emax',
                         help=' (EXPERT ONLY)'
                              ' maximum energy for the scatterig kernel',
                         type=float,
                         default=default_emax_value)
-    parser.add_argument('--asymmetric_sab',action='store_true',
+    expert_args.add_argument('--asymmetric_sab',action='store_true',
                         help=(' (EXPERT ONLY)'
                              ' store S(a,b) without the detailed balance'
                              ' factor exp(beta/2).'))
-    parser.add_argument('--total_sab',action='store_true',
+    expert_args.add_argument('--total_sab',action='store_true',
                         help=(' (EXPERT ONLY)'
                              ' store S(a,b) branches for positive and '
                               ' negative beta'))
