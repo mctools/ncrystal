@@ -33,39 +33,54 @@ namespace NCRYSTAL_NAMESPACE {
 
   namespace Cfg {
 
-    //Fwd. declare type from NCCfgTypes.hh:
-    using ValDbl_ShortStrOrigRep = ShortStr<detail::VarBuf::buffer_local_size
-                                            - sizeof(double)>;
-    struct ExtnCfg_Sabine {
-      Length blockSize; // l
-      struct ScndExtn {
-        enum class TiltType { Rectangular, Triangular };
-        TiltType tilt_type = TiltType::Rectangular;
-        double blockSpread; // G or g
-        Length grainSize; // L
-        bool use_correlated_model = true;
+    //Fwd. declare type from NCCfgTypes.hh (fixme):
+    using ValDbl_ShortStrOrigRep = ShortStr<detail::VarBuf::buffer_local_size-sizeof(double)>;
+
+    namespace detail {
+      using StrOrigRep = ValDbl_ShortStrOrigRep;
+
+      template<class TData, int NStrReps>
+      struct ParsedDataHolder {
+        TData obj;
       };
-      Utils::TrivialOptional<ScndExtn> secondary;
-      static_assert(std::is_trivially_destructible<ScndExtn>::value,"");
-      static_assert(std::is_trivially_copyable<ScndExtn>::value,"");
-      static_assert(std::is_trivially_destructible<Utils::TrivialOptional<ScndExtn>>::value,"");
-      static_assert(std::is_trivially_copyable<Utils::TrivialOptional<ScndExtn>>::value,"");
+    }
+
+    template<class TClass>
+    struct FPValHolder {
+      TClass value;
+      detail::StrOrigRep detail_orig_str_rep;
+    };
+
+    struct ExtnCfg_Generic {
+      FPValHolder<Length> domainSize;
+      struct Grain {
+        FPValHolder<Length> grainSize;
+        FPValHolder<double> angularSpread;
+      };
+      Utils::TrivialOptional<Grain> grain;
+    };
+
+    struct ExtnCfg_Sabine {
+      ExtnCfg_Generic generic;//the common parts (including str reps)
+      //Extra parameters for secondary extinction:
+      enum class TiltType { Rectangular, Triangular };
+      TiltType tilt_type = TiltType::Rectangular;
+      bool use_correlated_model = true;
     };
 
     class ExtinctionCfg final {
-      struct DblVar {
-        double value;
-        ValDbl_ShortStrOrigRep strrep;
-      };
-      struct SabineData {
-        SabineData( const ExtnCfg_Sabine& o ) : obj(o) {}
-        SabineData() = default;
-        ExtnCfg_Sabine obj;
-        ValDbl_ShortStrOrigRep origstr_blockSize = NullOpt;
-        ValDbl_ShortStrOrigRep origstr_grainSize = NullOpt;
-        ValDbl_ShortStrOrigRep origstr_blockSpread = NullOpt;
-      };
-      using data_t = Utils::TrivialVariant<SabineData>;
+      // struct SabineData {
+      //   SabineData( const ExtnCfg_Sabine& o ) : obj(o) {}
+      //   SabineData() = default;
+      //   ExtnCfg_Sabine obj;
+      //   ValDbl_ShortStrOrigRep origstr_blockSize = NullOpt;
+      //   ValDbl_ShortStrOrigRep origstr_grainSize = NullOpt;
+      //   ValDbl_ShortStrOrigRep origstr_blockSpread = NullOpt;
+      // };
+      using data_t = Utils::TrivialVariant<ExtnCfg_Sabine>;
+
+      //        SabineData>;
+      //      ValDbl_ShortStrOrigRep m_common_strreps[3];
       data_t m_data = NullOpt;
       static_assert(std::is_trivially_destructible<data_t>::value,"");
       static_assert(std::is_trivially_copyable<data_t>::value,"");
@@ -77,14 +92,14 @@ namespace NCRYSTAL_NAMESPACE {
 
       //Specific models:
       bool has_sabine() const {
-        return m_data.has_value<SabineData>();
+        return m_data.has_value<ExtnCfg_Sabine>();
       }
 
       const ExtnCfg_Sabine& get_sabine() const {
-        if ( !m_data.has_value<SabineData>() )
+        if ( !m_data.has_value<ExtnCfg_Sabine>() )
           NCRYSTAL_THROW(BadInput,"ExtinctionCfg::get_sabine called but Sabine"
                          " model not available. Check .has_sabine() first.");
-        return m_data.value<SabineData>().obj;
+        return m_data.value<ExtnCfg_Sabine>();
       }
 
       //From cfg-string value:
@@ -102,8 +117,8 @@ namespace NCRYSTAL_NAMESPACE {
       void disable() { m_data.reset(); }
 
       //Assign to specific models:
-      ExtinctionCfg( const ExtnCfg_Sabine& sb ) : m_data(SabineData{ sb }) {nc_assert_always(enabled()); }
-      ExtinctionCfg& operator=( const ExtnCfg_Sabine& sb ) { m_data = SabineData{ sb }; nc_assert_always(enabled());return *this; }//fixme inline
+      ExtinctionCfg( const ExtnCfg_Sabine& sb ) : m_data(sb) {nc_assert_always(enabled()); }
+      ExtinctionCfg& operator=( const ExtnCfg_Sabine& sb ) { m_data = sb; nc_assert_always(enabled());return *this; }//fixme inline
 
       ExtinctionCfg( const ExtinctionCfg& ) = default;
       ExtinctionCfg& operator=( const ExtinctionCfg& ) = default;

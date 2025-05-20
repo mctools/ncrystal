@@ -34,7 +34,7 @@ NC::ProcImpl::ProcPtr NCE::createIsotropicExtnProc( PowderBraggInput::Data&& dat
   nc_assert_always(ecfg.has_sabine());//fixme
 
   auto& cfg_sabine = ecfg.get_sabine();
-  nc_assert_always(!cfg_sabine.secondary.has_value());//fixme
+  nc_assert_always(!cfg_sabine.generic.grain.has_value());//fixme
 
-  return makeSO<ExtnScatterSimple>( std::move(data), cfg_sabine.blockSize );
+  return makeSO<ExtnScatterSimple>( std::move(data), cfg_sabine.generic.domainSize.value );
 }

@@ -28,82 +28,140 @@ namespace NCC = NCrystal::Cfg;
 
 namespace NCRYSTAL_NAMESPACE {
   namespace Cfg {
+
     namespace {
+
+      using ParsedDbl = std::pair<double,ValDbl_ShortStrOrigRep>;
+      using KeyValVect = SmallVector<std::pair<StrView,StrView>,4>;
+
+      template<class TParser>
+      ParsedDbl parseDbl( StrView sv, StrView context )
+      {
+        auto pv = TParser::parse(sv);
+        if ( !pv.has_value() )
+          NCRYSTAL_THROW2(BadInput,"Invalid "<<context<<" value in"
+                          " extinction cfg string: \""<<sv<<"\"");
+        return pv.value();
+      }
+
+      FPValHolder<Length> parseLength( StrView sv, StrView context )
+      {
+        auto pd = parseDbl<units_length>(sv,context);
+        FPValHolder<Length> res;
+        res.value = Length{ pd.first * Length::angstrom };
+        res.detail_orig_str_rep = pd.second;
+        return res;
+      }
+
+      FPValHolder<double> parseAngle( StrView sv, StrView context )
+      {
+        auto pd = parseDbl<units_angle>(sv,context);
+        FPValHolder<double> res;
+        res.value = pd.first;
+        res.detail_orig_str_rep = pd.second;
+        return res;
+      }
+
+      // struct CommonValues {
+      //   ParsedDbl domainSize;
+      //   struct Grain {
+      //     ParsedDbl grainSize;
+      //     ParsedDbl angularSpread;
+      //   };
+      //   Optional<Grain> grain;
+      // };
+
+      ExtnCfg_Generic parseGenericValues( const SmallVector<StrView,3>& v ) {
+        nc_assert(v.size()==1||v.size()==3);
+        ExtnCfg_Generic res;
+        res.domainSize = parseLength( v.front(), "domain size (length)" );
+
+        if ( v.size() == 3 ) {
+          res.grain.emplace();
+          res.grain.value().grainSize = parseLength( v.at(1),
+                                                     "grain size (length)" );
+          res.grain.value().angularSpread = parseAngle( v.at(2),
+                                                        "block spread (angle)" );//fixme: fix terminology
+        }
+        return res;
+      }
+
+      int detail_cmp_strrep( const detail::StrOrigRep& a,
+                             const detail::StrOrigRep& b )
+      {
+        if ( a.empty() && b.empty() )
+          return 0;
+        if ( a.empty() )
+          return -1;
+        if ( b.empty() )
+          return 1;
+        auto sva = a.to_view();
+        auto svb = b.to_view();
+        return ( sva == svb ? 0 : ( sva<svb ? -1 : 1 ) );
+      }
+
+      int detail_cmp_strrep( const FPValHolder<Length>& a,
+                             const FPValHolder<Length>& b )
+      {
+        if ( !( a.value == b.value ) )
+          return a.value < b.value ? -1 : 1;
+        return detail_cmp_strrep( a.detail_orig_str_rep,
+                                  b.detail_orig_str_rep );
+      }
+
+      int detail_cmp_generic( const ExtnCfg_Generic& a, const ExtnCfg_Generic& b )
+      {
+        nc_assert_always( !a.grain.has_value()
+                          && !b.grain.has_value()
+                          && "fixme: secondary cmp not implemented yet" );
+        return detail_cmp_strrep( a.domainSize, b.domainSize );
+      }
 
       int detail_cmp_sabine( const ExtnCfg_Sabine& a, const ExtnCfg_Sabine& b )
       {
-        nc_assert_always( !a.secondary.has_value()
-                          && !b.secondary.has_value()
-                          && "fixme: sabine secondary cmp not implemented yet" );
-        if ( a.blockSize != b.blockSize )
-          return ( a.blockSize < b.blockSize ? -1 : 1 );
-        // auto sv_a = a.origstr_blockSize.to_view();
-        // auto sv_b = b.origstr_blockSize.to_view();
-        // if ( sv_a != sv_b )
-        //   return ( sv_a < sv_b ? -1 : 1 );
+        int r = detail_cmp_generic( a.generic, b.generic );
+        if ( r )
+          return r;
+        if ( a.tilt_type != b.tilt_type )
+          return a.tilt_type < b.tilt_type ? -1 : 1;
+        if ( a.use_correlated_model != b.use_correlated_model )
+          return a.use_correlated_model ? -1 : 1;
         return 0;
+      }
+
+
+      void detail_stream_generic( std::ostream& os, const ExtnCfg_Generic& m )
+      {
+        if ( m.domainSize.detail_orig_str_rep.empty() )
+          os << fmt(m.domainSize.value.get()/Length::angstrom);
+        else
+          os << m.domainSize.detail_orig_str_rep;//fixme: check if orig is better? Or already checked?
+        nc_assert_always(!m.grain.has_value() && "streaming secondary not implemented fixme");
+      }
+
+      ExtnCfg_Sabine initModelSabine( const ExtnCfg_Generic& generic,
+                                      const KeyValVect& keyvals )
+      {
+        //Fixme: For now, we simply do not support any models:
+        if ( !keyvals.empty() )
+          NCRYSTAL_THROW2(BadInput,
+                          "Error in extinction cfg for model \"sabine\". "
+                          "Keyword \""<<keyvals.front().first
+                          <<"\" is not supported by this model");
+
+        if ( generic.grain.has_value() )
+          NCRYSTAL_THROW(BadInput,
+                         "Secondary extinction for model \"sabine\" "//fixme: do not hardwire model name everywhere.
+                         "is not implemented yet.");
+        //        generic.domainSize
+        ExtnCfg_Sabine cfg_sabine;
+        cfg_sabine.generic = generic;
+        //fixme: also tilt_type and use_correlated_model;
+        return cfg_sabine;
       }
     }
   }
 }
-// ExtinctionCfg( const ExtnCfg_Sabine& sb )
-//   : m_data(sb)
-// {
-// }
-
-// NCC::ExtinctionCfg& NCC::ExtinctionCfg::operator=( const ExtnCfg_Sabine& sb)
-// {
-//   m_data = sb;
-//   return *this;
-// }
-
-// namespace NCRYSTAL_NAMESPACE {
-//   namespace Cfg {
-//     namespace {
-//       Optional<Length> parseLength( const StrView& sv, bool allow_fail = false )
-//       {
-//         auto pv = Cfg::units_length::parse(sv);
-//         if ( !pv.has_value() ) {
-//           if (!allow_fail)
-//             NCRYSTAL_THROW2(BadInput,"Invalid length value in"
-//                             " extinction cfg string: \""<<sv<<"\"");
-//           return NullOpt;
-//         }
-//         //For simplicity we ignore the returned ValDbl_ShortStrOrigRep (fixme:
-//         //that's not good enough for re-encoding, we should store it!)
-//         return Length{ pv.value().first * Length::angstrom };
-//       }
-//     }
-//   }
-// }
-
-// NC::Cfg::ExtinctionCfg::ExtinctionCfg( const ExtinctionCfgData& indata)
-// {
-//   auto raw = StrView(indata.rawData()).trimmed();
-//   if ( raw.empty() )
-//     return;
-//   {
-//     StrView::size_type ibad
-//       = raw.find_first_of(Cfg::forbidden_chars_value_strreps);
-//     if ( ibad < raw.size() ) {
-//       NCRYSTAL_THROW2(BadInput,"Forbidden characters in extinction cfg"
-//                       " string: '"<<raw[ibad]<<"'");
-//     }
-//   }
-//   auto scale = parseLength(raw);
-//   nc_assert_always(scale.has_value());
-//   m_scale = scale.value();
-// }
-
-// NC::ExtinctionCfgData NC::Cfg::ExtinctionCfg::encode() const
-// {
-//   if (!enabled())
-//     return {};
-//   std::ostringstream ss;
-//   constexpr double conv_meter2angstrom = Length::meter / Length::angstrom;
-//   ss << fmt( m_scale.value().get() * conv_meter2angstrom );
-//   return { std::move(ss).str() };
-// }
 
 NCC::ExtinctionCfg::ExtinctionCfg( const ExtinctionCfgData&& data )
   : ExtinctionCfg( detail_from_varbuf_t(), data.detail_accessRawData() )
@@ -154,15 +212,97 @@ NCC::ExtinctionCfg::ExtinctionCfg( StrView sv )
   //Fixme: For now just support the simplest sabine model of only primary
   //extinction. We should probably also support an empty strview giving !enabled()
 
-  auto pv_blockSize = Cfg::units_length::parse(sv);
-  if ( !pv_blockSize.has_value() )
-    NCRYSTAL_THROW2(BadInput,"Invalid block size length value in"
-                    " extinction cfg string: \""<<sv<<"\"");
+  //Parse syntax like:
+  //
+  //   "10um"
+  //   "10um/100um/1deg"
+  //   "10um/100um/1deg/mdl:sabine/corr:1"
+  //
+  // * Entries are separated by '/'.  An entry with a colon must be a key-value
+  //   entry of the form '<key>:<value>', other entries are pure values.
+  //
+  // * There must be exactly 1 or 3 pure values. If 1, it is assumed to be the
+  //   domain size. If 3, it is domain size followed by grain size and
+  //   mosaicity. The meaning and accepted range of these parameters might be
+  //   slightly different depending on the model.
+  //
+  // * The allowed key-value entries will depend on the model which can itself
+  //   be determined by a key "mdl". If "mdl" is not set explicitly, it will
+  //   default to "sabine".
+  //
+  // * We allow (and ignore) empty parts between '/' separators.
+  //
+  // * We do not allow duplicate keys, and all pure value entries must come
+  //   before any key-value entries.
 
-  m_data = SabineData();
-  SabineData& data = m_data.value<SabineData>();
-  data.obj.blockSize = Length{ pv_blockSize.value().first * Length::angstrom };
-  data.origstr_blockSize = pv_blockSize.value().second;
+  auto parts = sv.splitTrimmedNoEmpty('/');
+  SmallVector<StrView,3> parts_pureval;
+  KeyValVect parts_keyval;
+  for ( auto& e : parts ) {
+    if ( e.contains(':') ) {
+      //key-value (check for duplicate keys already):
+      auto kv = e.splitTrimmed<2>(':');
+      if ( kv.size() != 2 || kv.front().empty() || kv.back().empty() ) {
+        NCRYSTAL_THROW2(BadInput,
+                        "Syntax error in extinction cfg \""<<sv
+                        <<"\": Bad syntax in entry \""<<e<<"\".");
+        auto key = kv.front();
+        auto val = kv.back();
+        for ( auto& existing : parts_keyval ) {
+          if ( existing.first == key )
+            NCRYSTAL_THROW2(BadInput,
+                            "Syntax error in extinction cfg \""<<sv
+                            <<"\": Repeated key \""<<key<<"\".");
+        }
+        parts_keyval.emplace_back( key, val );
+      }
+    } else {
+      //pure value:
+      if ( !parts_keyval.empty() )
+        NCRYSTAL_THROW2(BadInput,
+                        "Syntax error in extinction cfg \""<<sv<<"\": Pure"
+                        " value entries must come before key:value entries.");
+      parts_pureval.push_back( e );
+    }
+  }
+
+  //Handle the pure values:
+  if ( !isOneOf(parts_pureval.size(),1,3) )
+    NCRYSTAL_THROW2(BadInput,
+                    "Syntax error in extinction cfg \""<<sv
+                    <<"\": Must have exactly 1 or 3 value entries");
+  auto common = parseGenericValues( parts_pureval );
+
+  //Determine model and extract other key,val parameters:
+  StrView model = "sabine";
+  decltype(parts_keyval) parts_keyval_nomodel;
+  for ( auto& e : parts_keyval ) {
+    if ( e.first == "mdl" ) {
+      model = e.second;
+    } else {
+      parts_keyval_nomodel.push_back(e);
+    }
+  }
+
+  //Fixme: Do we perhaps want to force an explicit "mdl:" specification if any
+  //key-value entries are specified??
+
+  //Finally, it is time to initialise a model!
+  if ( model == "sabine" ) {
+    m_data = initModelSabine( common, parts_keyval_nomodel );
+
+
+  //   SabineData& data = m_data.value<SabineData>();
+  // data.obj.blockSize = Length{ pv_blockSize.value().first * Length::angstrom };
+  // data.origstr_blockSize = pv_blockSize.value().second;
+  } else {
+    NCRYSTAL_THROW2(BadInput,
+                    "Syntax error in extinction cfg \""<<sv
+                    <<"\": Unknown model \""<<model<<"\".");
+
+  }
+
+
   nc_assert_always(enabled());
 }
 
@@ -172,15 +312,15 @@ void NCC::ExtinctionCfg::stream( std::ostream& os ) const
   if ( !enabled() )
     return;//stream as empty string
   if ( has_sabine() ) {
-    auto& m = m_data.value<SabineData>();
-    nc_assert_always( !m.obj.secondary.has_value() && "fixme: sabine secondary streaming not implemented yet" );
-    if ( !m.origstr_blockSize.empty() )
-      os << m.origstr_blockSize;
-    else
-      os << m.obj.blockSize.as_wavelength();//as_wavelength to easily get units of Aa.
+    auto& m = get_sabine();
+    detail_stream_generic( os, m.generic );
+    if ( m.tilt_type == ExtnCfg_Sabine::TiltType::Triangular )
+      os << "/tilt:tri";//rect is default
+    if (!m.use_correlated_model)
+      os << "/corr:0";//1 by default
   } else {
-    nc_assert_always( !enabled() );
     //disabled means empty string.
+    nc_assert_always( !enabled() );
   }
 
 }

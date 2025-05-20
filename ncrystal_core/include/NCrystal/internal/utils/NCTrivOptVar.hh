@@ -175,6 +175,14 @@ namespace NCRYSTAL_NAMESPACE {
         m_hasData = true;
         return *this;
       }
+
+      template<typename... Args>
+      void emplace( Args&& ...args )
+      {
+        new(&m_data) TData(std::forward<Args>(args)...);
+        m_hasData = true;
+      }
+
     };
     static_assert(std::is_trivially_destructible<TrivialOptional<double>>::value,"");
     static_assert(std::is_trivially_copyable<TrivialOptional<double>>::value,"");
