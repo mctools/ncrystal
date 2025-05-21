@@ -391,9 +391,11 @@ class NuclearData():
                 self._elems[sym].alpha = _np.unique(_np.concatenate((
                                          self._elems[sym].alpha,
                                          sctknl['alpha']*T/T0)))
-                self._elems[sym].beta_total = _np.unique(_np.concatenate((
-                                         self._elems[sym].beta_total,
-                                         sctknl['beta']*T/T0)))
+                self._elems[sym].beta_total = _np.unique(
+                    _np.concatenate(
+                        ( self._elems[sym].beta_total, sctknl['beta']*T/T0 )
+                    )
+                )
 
     def _get_alpha_beta_grid(self):
         T = self._temperatures[0]
@@ -420,13 +422,15 @@ class NuclearData():
             self._elems[sym].beta = -_[::-1] # Invert beta and change sign
             self._elems[sym].beta[0] = 0.0
             if self._verbosity > 2:
+                def fmt(x):
+                    return '%.4g'%x
                 ncprint(f'>>> alpha points: {len(self._elems[sym].alpha)}, '
                          'alpha range: '
-                        f'({_np.min(self._elems[sym].alpha*T0/T)}'
-                        f', {_np.max(self._elems[sym].alpha*T0/T)})')
+                        f'({fmt(_np.min(self._elems[sym].alpha*T0/T))}'
+                        f', {fmt(_np.max(self._elems[sym].alpha*T0/T))})')
                 ncprint(f'>>> beta points: {len(self._elems[sym].beta)}, '
-                        f'beta range: ({_np.min(self._elems[sym].beta*T0/T)},'
-                        f' {_np.max(self._elems[sym].beta*T0/T)})')
+                        f'beta range: ({fmt(_np.min(self._elems[sym].beta*T0/T))},'
+                        f' {fmt(_np.max(self._elems[sym].beta*T0/T))})')
 
     def _get_coherent_elastic(self, T):
         #
@@ -580,7 +584,7 @@ class NuclearData():
         # contain numbers that cannot be represented
         # as distinct FORTRAN reals in the ENDF-6 file
         #
-        # FIXME: replace scipy interpolation with other implementation (this could be a TODO)
+        # FIXME: replace scipy interpolation with other implementation
         import scipy.interpolate as scint
         s.shape = (len(b), len(a))
         aint, bint = _np.meshgrid(self._elems[sym].alpha*T0/T,
@@ -630,9 +634,9 @@ class NuclearData():
             if paragraph == '':
                 self._comments += ['']
             else:
-                self._comments += wrap(paragraph.lstrip(),
-                                                width=66,
-                                                break_long_words=False)
+                self._comments += wrap( paragraph.lstrip(),
+                                        width=66,
+                                        break_long_words=False )
 
 class EndfFile():
     r"""Creates thermal ENDF file.
@@ -811,7 +815,7 @@ class EndfFile():
             d['beta_interp/INT'] = [4]
 
             d['T0'] = temperatures[0]
-            d['beta'] = {k:v for k, v in enumerate(beta,start=1)}
+            d['beta'] = {k:_tidy_beta(v) for k, v in enumerate(beta,start=1)}
             d['LT'] = {k:len(temperatures)-1
                        for k, v in enumerate(beta,start=1)}
             d['T'] = {k:v for k,v in enumerate(temperatures[1:], start=1)}
@@ -824,7 +828,7 @@ class EndfFile():
                 S1[j] = {}
                 S1[j]['NBT'] = [len(alpha)]
                 S1[j]['INT'] = [4]
-                S1[j]['alpha'] = (alpha/awr).tolist()
+                S1[j]['alpha'] = _tidy_alpha_list( (alpha/awr).tolist() )
                 S1[j]['S'] = _tidy_sab_list(sab[:,j-1].tolist())
             d['S_table'] = S1
 
@@ -852,7 +856,7 @@ class EndfFile():
             d['beta_interp/INT'] = [4]
 
             d['T0'] = temperatures[0]
-            d['beta'] = {k:v for k, v in enumerate(beta,start=1)}
+            d['beta'] = {k:_tidy_beta(v) for k, v in enumerate(beta,start=1)}
             d['LT'] = {k:len(temperatures)-1
                        for k, v in enumerate(beta,start=1)}
             d['T'] = {k:v for k,v in enumerate(temperatures[1:], start=1)}
@@ -865,7 +869,7 @@ class EndfFile():
                 S1[j] = {}
                 S1[j]['NBT'] = [len(alpha)]
                 S1[j]['INT'] = [4]
-                S1[j]['alpha'] = (alpha/awr).tolist()
+                S1[j]['alpha'] = _tidy_alpha_list((alpha/awr).tolist())
                 S1[j]['S'] = _tidy_sab_list(sab[:,j-1].tolist())
             d['S_table'] = S1
 
@@ -1111,26 +1115,31 @@ def _dump_dict( d, prefix, lvl = 1 ):
             ncprint(f'{prefix}{repr(k)} ->')
             _dump_dict(v,prefix+'    ',lvl=lvl+1)
 
+def _tidy_beta( x ):
+    if not unit_test_chop_svals[0]:
+        return x
+    assert 0.0 <= x <= 1e99
+    return float('%.6g'%x)
+
+def _tidy_alpha_list( a_values ):
+    if not unit_test_chop_svals[0]:
+        return a_values
+    def _chop(x):
+        assert 0.0 <= x <= 1e99
+        return float('%.1g'%x)
+    return  [ _chop(x) for x in a_values ]
+
 def _tidy_sab_list( s_values ):
     if not unit_test_chop_svals[0]:
         return s_values
-    _npf = _np.float64
     def _chop(x):
         assert 0.0 <= x <= 1e99
-        if x > 1e-1:
-            return x
-        if x > 1e-8:
-            return float('%.5g'%x)
-        if x > 1e-20:
-            return float('%.4g'%x)
-        if x > 1e-30:
-            return float('%.3g'%x)
-        if x > 1e-40:
-            return float('%.2g'%x)
+        #Have to be rather harsh unfortunately:
+        if x < 1e-3:
+            return 0.0
         return float('%.1g'%x)
     return  [ _chop(x) for x in s_values ]
 
 is_unit_test = [False]
-
 
 unit_test_chop_svals = [False]
