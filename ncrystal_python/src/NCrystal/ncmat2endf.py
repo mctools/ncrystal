@@ -418,7 +418,7 @@ def ncmat2endf( ncmat_cfg, *,
                 n = n - 1
         if n != 0:
             raise nc_exceptions.NCBadInput('Incorrect material number '
-                                           'assignement')
+                                           'assignment')
 
     if material_name is None:
         material_name = 'UnknownCompound'
