@@ -1117,13 +1117,15 @@ def _tidy_sab_list( s_values ):
     _npf = _np.float64
     def _chop(x):
         assert 0.0 <= x <= 1e99
-        if x > 1e-20:
+        if x > 1e-1:
             return x
+        if x > 1e-8:
+            return float('%.5g'%x)
         if x > 1e-20:
             return float('%.4g'%x)
-        if x > 1e-60:
+        if x > 1e-30:
             return float('%.3g'%x)
-        if x > 1e-80:
+        if x > 1e-40:
             return float('%.2g'%x)
         return float('%.1g'%x)
     return  [ _chop(x) for x in s_values ]
