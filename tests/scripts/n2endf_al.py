@@ -21,47 +21,26 @@
 ################################################################################
 
 # fixme: ase is only here temporarily to allow scipy usage
-# fixme: add tests that dump the data before calling endf-parserpy
 # NEEDS: numpy ase endf-parserpy
 
 import NCTestUtils.enable_fpe # noqa F401
 import NCTestUtils.reprint_escaped_warnings # noqa F401
-
-from NCrystalDev.exceptions import NCBadInput
-from NCrystalDev.ncmat2endf import EndfMetaData
-from NCTestUtils.ncmat2endf_utils import ( test_cfg_fail,
-                                           test_cli )
-
+from NCTestUtils.ncmat2endf_utils import test_cfg
 import NCrystalDev._ncmat2endf_impl as ncmat2endf_impl
 ncmat2endf_impl.unit_test_chop_svals[0] = True
 
+ref_Eint = (0.003741252, 0.004988336, 0.009976672, 0.01371792, 0.01496501,
+            0.01995334, 0.0236946, 0.02494168, 0.02993002, 0.03367127,
+            0.03990669, 0.04364794, 0.04489502, 0.04988336, 0.05362461,
+            0.05487169, 0.05986003, 0.06360128, 0.06484837, 0.0698367)
+ref_S0 = (0.005134741, 0.00839204, 0.01258346, 0.01924357, 0.02131949,
+          0.02254634, 0.02674178, 0.03073558, 0.03405288, 0.03793785,
+          0.03912707, 0.04336451, 0.04591494, 0.04767616, 0.04925869,
+          0.05078662, 0.05123031, 0.05363637, 0.05479998, 0.05684046)
 
-#
-# Error handling tests
-#
-
-# Oriented materials not supported
-test_cfg_fail( NCBadInput, 'Ge_sg227.ncmat;dcutoff=0.5;mos=40arcsec;'
-               'dir1=@crys_hkl:5,1,1@lab:0,0,1;'
-               'dir2=@crys_hkl:0,-1,1@lab:0,1,0')
-# Wrong material number assignment
-metadata = EndfMetaData()
-metadata.set_mat_numbers( {"Ge":99} )
-test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', endf_metadata=metadata)
-# Negative temperatures
-test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', temperatures=[-100])
-# Repeated temperatures
-test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', temperatures=[293.15])
-# No inelastic
-test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1;comp=coh_elas')
-# Wrong elastic mode
-test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1',
-               elastic_mode='something wrong')
-
-#
-# CLI tests
-#
-
-test_cli('"stdlib::Al_sg225.ncmat;temp=350K;vdoslux=1"'
-         ' --verbosity 5 -m Al -f -e greater')
+test_cfg('Al_sg225.ncmat;vdoslux=1', material_name='Al',
+         ref_teff={'tsl_Al.endf':[320.2258, 372.8392]},
+         ref_parsed={'tsl_Al.endf':'0 0 1 451 7 2 7 4'},
+         ref_bragg_edges={'tsl_Al.endf':(ref_Eint, ref_S0)},
+         temperatures=[350], elastic_mode='scaled', compare_xsec=False)
 
