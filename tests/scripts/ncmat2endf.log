@@ -49,8 +49,8 @@ FAILED (as expected): MF7/MT4 is mandatory in an ENDF file but no inelastic data
 FAILED (as expected): Elastic mode something wrong not in (('greater', 'scaled', 'mixed'))
 ============= CLI >>'stdlib::Al_sg225.ncmat;temp=350K;vdoslux=1' --verbosity 5 -m Al -f -e greater<< ====================
 Get nuclear data...
->>> alpha points: 100, alpha range: (5.957605371428572e-50, 692.1654393142858)
->>> beta points: 123, beta range: (0.0, 66.14609190857144)
+>>> alpha points: 100, alpha range: (5.958e-50, 692.2)
+>>> beta points: 123, beta range: (0, 66.15)
 >>> Interpolating T=350.0K for Al
 >> Prepare elastic approximations
 >> Principal elastic mode for Al: coherent
