@@ -26,42 +26,17 @@
 
 import NCTestUtils.enable_fpe # noqa F401
 import NCTestUtils.reprint_escaped_warnings # noqa F401
-
-from NCrystalDev.exceptions import NCBadInput
-from NCrystalDev.ncmat2endf import EndfMetaData
-from NCTestUtils.ncmat2endf_utils import ( test_cfg_fail,
-                                           test_cli )
-
+from NCTestUtils.ncmat2endf_utils import test_cfg
 import NCrystalDev._ncmat2endf_impl as ncmat2endf_impl
+from NCrystalDev.ncmat2endf import EndfMetaData
 ncmat2endf_impl.unit_test_chop_svals[0] = True
 
-
-#
-# Error handling tests
-#
-
-# Oriented materials not supported
-test_cfg_fail( NCBadInput, 'Ge_sg227.ncmat;dcutoff=0.5;mos=40arcsec;'
-               'dir1=@crys_hkl:5,1,1@lab:0,0,1;'
-               'dir2=@crys_hkl:0,-1,1@lab:0,1,0')
-# Wrong material number assignment
 metadata = EndfMetaData()
-metadata.set_mat_numbers( {"Ge":99} )
-test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', endf_metadata=metadata)
-# Negative temperatures
-test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', temperatures=[-100])
-# Repeated temperatures
-test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', temperatures=[293.15])
-# No inelastic
-test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1;comp=coh_elas')
-# Wrong elastic mode
-test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1',
-               elastic_mode='something wrong')
-
-#
-# CLI tests
-#
-
-test_cli('"stdlib::Al_sg225.ncmat;temp=350K;vdoslux=1"'
-         ' --verbosity 5 -m Al -f -e greater')
+metadata.set_mat_numbers( {"C":37, "H": 38} )
+test_cfg('Polyethylene_CH2.ncmat;vdoslux=1', material_name='CH2',
+         ref_teff={'tsl_H_in_CH2.endf':[1208.094],
+                   'tsl_C_in_CH2.endf':[667.3864]},
+         ref_parsed={'tsl_H_in_CH2.endf':'0 0 1 451 7 2 7 4',
+                     'tsl_C_in_CH2.endf':'0 0 1 451 7 2 7 4'},
+         endf_metadata=metadata)
 
