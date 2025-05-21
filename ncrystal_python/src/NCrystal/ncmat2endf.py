@@ -245,7 +245,8 @@ class EndfMetaData():
             setfct=getattr(self,f'set_{k}',None)
             if not setfct:
                 from .exceptions import NCBadInput
-                raise NCBadInput('fixme')
+                raise NCBadInput(f'Key "{k}" in dict is not a'
+                                 ' supported EndfMetaData key')
             setfct(v)
 
 def ncmat2endf( ncmat_cfg, *,

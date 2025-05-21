@@ -145,3 +145,21 @@ def fix_ncrystal_version_printouts( filtermap = None ):
     def newprint( *a, **kwargs ):
         orig( *( version_filter(e) for e in a ), **kwargs)
     nc_common.set_ncrystal_print_fct(newprint)
+
+def reldiff( x, y ):
+    import math
+    if math.isinf(x):
+        return ( float('inf') if ( not math.isinf(y) or
+               ( ( x>0 ) != ( y>0 ) ) ) else 0.0 )
+    return abs(x-y)/(max(1e-300,abs(x)+abs(y)))
+
+def require_flteq( x, y, tol = 1e-13 ):
+    def okfct( a, b ):
+        return bool( reldiff( a, b ) < tol )
+    if hasattr( x, '__len__' ):
+        if ( not len(x) == len(y) or
+             any( ( not okfct(a,b) ) for a,b in zip(x,y) )):
+            raise RuntimeError('numpy flteq failed for arrays '
+                              f'x={x} and y={y}!')
+    elif not okfct(x,y):
+        raise RuntimeError(f'require_flteq( x={x}, y={y} ) failed!')
