@@ -22,11 +22,11 @@
 
 from NCrystalDev.ncmat2endf import ncmat2endf
 from NCrystalDev.exceptions import NCBadInput
-from NCTestUtils.common import print_text_file_with_snipping
 from NCrystalDev._numpy import _np
 import NCrystalDev.cli as nc_cli
-import shlex
-import math
+
+from .common import ( print_text_file_with_snipping,
+                      require_flteq )
 
 def test_cfg( cfg, ref_teff=None,
               ref_parsed=None, ref_bragg_edges=None,
@@ -100,6 +100,7 @@ def test_cfg_fail( e, *args, **kwargs ):
     raise SystemExit('Did not fail as expected')
 
 def test_cli( args ):
+    import shlex
     if isinstance(args,str):
         args = shlex.split(args)
     hr=f"============= CLI >>{shlex.join(args)}<< ===================="
@@ -141,21 +142,3 @@ def get_scatxs_from_endf(endf_fn, E=None):
     m = c_test.load()
     E = _np.geomspace(1e-5, emax, 1000) if E is None else E
     return m.scatter.xsect(E)
-
-def reldiff( x, y ):
-    # FIXME: Add these functions to NCTestUtils. This could be a TODO
-    if math.isinf(x):
-        return ( float('inf') if ( not math.isinf(y) or
-               ( ( x>0 ) != ( y>0 ) ) ) else 0.0 )
-    return abs(x-y)/(max(1e-300,abs(x)+abs(y)))
-
-def require_flteq( x, y, tol = 1e-13 ):
-    def okfct( a, b ):
-        return bool( reldiff( a, b ) < tol )
-    if hasattr( x, '__len__' ):
-        if ( not len(x) == len(y) or
-             any( ( not okfct(a,b) ) for a,b in zip(x,y) )):
-            raise RuntimeError('numpy flteq failed for arrays '
-                              f'x={x} and y={y}!')
-    elif not okfct(x,y):
-        raise RuntimeError(f'require_flteq( x={x}, y={y} ) failed!')
