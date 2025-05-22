@@ -30,8 +30,23 @@ import NCrystalDev._ncmat2endf_impl as ncmat2endf_impl
 from NCrystalDev.ncmat2endf import EndfMetaData
 ncmat2endf_impl.unit_test_chop_svals[0] = True
 
+d = {'mat_numbers':{"C":37, "H": 38},
+     'edate':'JUL01',
+     'ddate':'JUL01',
+     'rdate':'JUL01',
+     'alab':'TestLab',
+     'libname':'TestLib',
+     'auth': 'Jane Doe',
+     'reference': 'Aaaaaa, et al.',
+     'nlib': 0,
+     'nver': 4
+}
+m = EndfMetaData()
+m.update_from_dict(d)
+
 metadata = EndfMetaData()
 metadata.set_mat_numbers( {"C":37, "H": 38} )
+
 test_cfg('Polyethylene_CH2.ncmat;vdoslux=1', material_name='CH2',
          ref_teff={'tsl_H_in_CH2.endf':[1208.094],
                    'tsl_C_in_CH2.endf':[667.3864]},
