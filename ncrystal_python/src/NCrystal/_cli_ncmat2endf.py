@@ -91,6 +91,8 @@ DOI:10.48550/arXiv.2312.08249
                         help=('Set ENDF6 fields EDATE, DDATE and RDATE'
                               ' to current month and year.'))
 
+    # FIXME: show these arguments only for --expert-help
+    # FIXME: check help wrapping
     expert_args = parser.add_argument_group('advanced optional arguments')
     expert_args.add_argument('-t', '--temperatures',
                         nargs='+',
