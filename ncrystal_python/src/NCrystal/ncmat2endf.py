@@ -327,8 +327,9 @@ def ncmat2endf( ncmat_cfg, *,
     if not endf_metadata:
         endf_metadata = EndfMetaData()
     elif not isinstance(endf_metadata,EndfMetaData):
-        endf_metadata = EndfMetaData()
-        endf_metadata.update_from_dict(endf_metadata)
+        _ = EndfMetaData()
+        _.update_from_dict(endf_metadata)
+        endf_metadata = _
 
     if elastic_mode not in available_elastic_modes:
         raise nc_exceptions.NCBadInput(f'Elastic mode {elastic_mode}'
