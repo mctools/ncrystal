@@ -20,8 +20,7 @@
 ##                                                                            ##
 ################################################################################
 
-# fixme: ase is only here temporarily to allow scipy usage
-# NEEDS: numpy ase endf-parserpy
+# NEEDS: numpy endf-parserpy
 
 import NCTestUtils.enable_fpe # noqa F401
 import NCTestUtils.reprint_escaped_warnings # noqa F401
