@@ -42,6 +42,9 @@ def test_cfg( cfg, ref_teff=None,
     kwargs['ncmat_cfg']=cfg
     pprint.pprint(kwargs)
     res = ncmat2endf(**kwargs)
+    if compare_xsec:
+        E = _np.geomspace(1e-5, 5.0, 1000)
+        xs_test = _np.zeros(_np.shape(E))
     for endf_fn, frac in res:
         print(f"Created file {endf_fn} with fraction {frac}")
         with open(endf_fn) as f:
@@ -81,11 +84,9 @@ def test_cfg( cfg, ref_teff=None,
             S0 = tuple(endf_dic[7][2]['S_T0_table']['S'][:len(ref_S0)])
             require_flteq(Eint, ref_Eint)
             require_flteq(S0, ref_S0)
-    if compare_xsec:
-        E = _np.geomspace(1e-5, 5.0, 1000)
-        xs_test = _np.zeros(_np.shape(E))
-        for endf_fn, frac in res:
+        if compare_xsec:
             xs_test += frac*get_scatxs_from_endf(endf_fn, E)
+    if compare_xsec:
         from NCrystal import load as nc_load
         m = nc_load(cfg+';comp=inelas')
         xs = m.scatter.xsect(E)
@@ -128,6 +129,7 @@ def get_scatxs_from_endf(endf_fn, E=None):
     T = endf_dic[7][4]['teff0_table']['Tint'][0]
     beta = _np.array([ v for k, v in endf_dic[7][4]['beta'].items()])
     alpha = _np.array(S_table[1]['alpha'])*awr
+    print(alpha)
     if lat == 1:
         beta = beta*T0/T
         alpha = alpha*T0/T
