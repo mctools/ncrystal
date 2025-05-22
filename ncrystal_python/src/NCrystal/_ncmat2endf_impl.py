@@ -578,25 +578,6 @@ class NuclearData():
                                                      ad.incoherentXS())*
                                                     self._elems[sym].sigma_i)
 
-    def _interpolate_sab(self, a, b, s, sym, T):
-        #
-        # Interpolate S(a,b) because the NCrystal grid might
-        # contain numbers that cannot be represented
-        # as distinct FORTRAN reals in the ENDF-6 file
-        #
-        # FIXME: replace scipy interpolation with other implementation
-        import scipy.interpolate as scint
-        s.shape = (len(b), len(a))
-        aint, bint = _np.meshgrid(self._elems[sym].alpha*T0/T,
-                                  self._elems[sym].beta_total*T0/T)
-        sab_int = scint.interpn((a, b),
-                                s.transpose(),
-                                _np.column_stack((aint.ravel(), bint.ravel())),
-                                bounds_error=False, fill_value=0.0,
-                                method='linear')
-        sab_int.shape = _np.shape(aint)
-        return sab_int
-
     def _get_inelastic_data(self):
         for T in self._temperatures:
             cfg = self._ncmat_cfg+f';temp={T}K'
@@ -613,7 +594,15 @@ class NuclearData():
                 alpha = sctknl['alpha']
                 beta = sctknl['beta']
                 sab = sctknl['sab']
-                sab_int = self._interpolate_sab(alpha, beta, sab, sym, T )
+                #
+                # Interpolate S(a,b) because the NCrystal grid might
+                # contain numbers that cannot be represented
+                # as distinct FORTRAN reals in the ENDF-6 file
+                #
+                sab.shape = (beta.size, alpha.size)
+                sab_int = _interp2d(self._elems[sym].alpha*T0/T,
+                          self._elems[sym].beta_total*T0/T,
+                          alpha, beta, sab.transpose()).transpose()
                 self._elems[sym].sab_total.append(sab_int)
                 emin = di.vdosData()[0][0]
                 emax = di.vdosData()[0][1]
@@ -1115,6 +1104,77 @@ def _dump_dict( d, prefix, lvl = 1 ):
             ncprint(f'{prefix}{repr(k)} ->')
             _dump_dict(v,prefix+'    ',lvl=lvl+1)
 
+def _interp2d(x, y, x0, y0, z0=None):
+    """
+    Bilinear interpolation on irregular cartesian grids
+    """
+    if isinstance(x, (int, float)):
+        x =_np.array([x])
+    if isinstance(y, (int, float)):
+        y =_np.array([y])
+    if isinstance(y0, list):
+        y =_np.array(y)
+    if isinstance(x, list):
+        x =_np.array(x)
+    if isinstance(y0, list):
+        y =_np.array(y)
+    if isinstance(x0, list):
+        x0 =_np.array(x0)
+    if isinstance(y0, list):
+        y0 =_np.array(y0)
+
+    Nx = x0.size
+    Ny = y0.size
+    assert isinstance(z0,_np.ndarray)
+    assert _np.shape(z0) == (Nx, Ny)
+    assert Nx>1 and Ny >1
+
+    # Create matrix of x and y coordinates
+    xx, yy =_np.meshgrid(x, y, indexing='ij')
+
+    # find neighbour points
+    i2 =_np.searchsorted(x0, x)
+    outside =_np.where(i2 > Nx - 1)
+    i2[outside] = Nx - 2
+    i1 = i2 - 1
+    i1[outside] = Nx - 2
+    i1[_np.where(i1 < 0)] = 0
+
+    j2 =_np.searchsorted(y0, y)
+    outside =_np.where(j2 > Ny - 1)
+    j2[outside] = Ny - 2
+    j1 = j2 - 1
+    j1[outside] = Ny - 2
+    j1[_np.where(j1 < 0)] = 0
+
+    # get corner values
+    ii1, jj1 =_np.meshgrid(i1, j1, indexing='ij')
+    xx1, yy1 =_np.meshgrid(x0[i1], y0[j1], indexing='ij')
+    ii2, jj2 =_np.meshgrid(i2, j2, indexing='ij')
+    xx2, yy2 =_np.meshgrid(x0[i2], y0[j2], indexing='ij')
+
+    ii11, jj11 =_np.meshgrid(i1, j1, indexing='ij')
+    ii12, jj12 =_np.meshgrid(i1, j2, indexing='ij')
+    ii21, jj21 =_np.meshgrid(i2, j1, indexing='ij')
+    ii22, jj22 =_np.meshgrid(i2, j2, indexing='ij')
+
+    z11 = z0[ii11, jj11]
+    z12 = z0[ii12, jj12]
+    z21 = z0[ii21, jj21]
+    z22 = z0[ii22, jj22]
+
+    # get deltas
+    dxx, dyy =_np.meshgrid(_np.diff(x0)[i1],_np.diff(y0)[j1], indexing='ij')
+    assert _np.all(dxx>0)
+    assert _np.all(dyy>0)
+
+    z = 1.0/(dxx*dyy)*(z11*(yy2 - yy)*(xx2 - xx) +
+                       z21*(yy2 - yy)*(xx - xx1) +
+                       z12*(yy - yy1)*(xx2 - xx) +
+                       z22*(yy - yy1)*(xx - xx1))
+    return z
+
+
 def _tidy_beta( x ):
     if not unit_test_chop_svals[0]:
         return x
@@ -1143,3 +1203,4 @@ def _tidy_sab_list( s_values ):
 is_unit_test = [False]
 
 unit_test_chop_svals = [False]
+
