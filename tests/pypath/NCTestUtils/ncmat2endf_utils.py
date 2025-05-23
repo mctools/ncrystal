@@ -19,12 +19,17 @@
 ##                                                                            ##
 ################################################################################
 
-
 from NCrystalDev.ncmat2endf import ncmat2endf
 from NCrystalDev._ncmat2endf_impl import _endf_clean
 from NCrystalDev.exceptions import NCBadInput
 from NCrystalDev._numpy import _np
+
 import NCrystalDev.cli as nc_cli
+import NCrystalDev.core as nc_core
+import NCrystalDev.constants as nc_constants
+import NCrystalDev.atomdata as nc_atomdata
+import NCrystalDev.vdos as nc_vdos
+import NCrystalDev.ncmat as nc_ncmat
 
 from .common import ( print_text_file_with_snipping,
                       require_flteq )
@@ -43,7 +48,6 @@ def test_cfg( cfg, check_teff=False,
     kwargs['ncmat_cfg']=cfg
     pprint.pprint(kwargs)
     temperatures = None
-    import NCrystal.core as nc_core
     temperatures = (nc_core.createInfo(cfg).dyninfos[0].temperature,)
     if 'temperatures' in kwargs:
         temperatures = temperatures+tuple(kwargs['temperatures'])
@@ -69,8 +73,7 @@ def test_cfg( cfg, check_teff=False,
         if check_teff:
             teff = endf_dic[7][4]['teff0_table']['Teff0']
             za = endf_dic[1][451]['ZA']
-            from NCrystal import atomDB
-            label = atomDB(Z=int(za/1000)).elementName()
+            label = nc_atomdata.atomDB(Z=int(za/1000)).elementName()
             teff_vals = [_endf_clean([compute_teff(cfg+f';temp={T}',
                                       label)])[0]
                          for T in temperatures]
@@ -87,21 +90,18 @@ def test_cfg( cfg, check_teff=False,
         if check_edge_positions:
             # fixme: check edge intensities. This might require creating a
             #        NuclearData() object to take into account the
-            #        elastoc_mode
+            #        elastic_mode
             edges = compute_bragg_edges(cfg)
             Eint = tuple(endf_dic[7][2]['S_T0_table']['Eint'])
             require_flteq(Eint, edges)
         if compare_xsec:
             xs_test += frac*get_scatxs_from_endf(endf_fn, E)
     if compare_xsec:
-        from NCrystal import load as nc_load
-        m = nc_load(cfg+';comp=inelas')
+        m = nc_core.load(cfg+';comp=inelas')
         xs = m.scatter.xsect(E)
         require_flteq(xs, xs_test, tol=0.02)
 
 def compute_teff(cfg, label):
-    import NCrystal.core as nc_core
-    import NCrystal.vdos as nc_vdos
     info_obj = nc_core.createInfo(cfg)
     di = info_obj.findDynInfo(label)
     emin = di.vdosData()[0][0]
@@ -112,8 +112,6 @@ def compute_teff(cfg, label):
     return res['teff']
 
 def compute_bragg_edges(cfg):
-    import NCrystal.core as nc_core
-    import NCrystal.constants as nc_constants
     m = nc_core.load(cfg)
     # Find unique Bragg edges, as represented in ENDF-6 floats
     edges = _endf_clean([nc_constants.wl2ekin(2.0*e.dspacing)
@@ -143,14 +141,13 @@ def get_scatxs_from_endf(endf_fn, E=None):
     Computes scattering XS from first temperature in ENDF-6 TSL file
     """
     from endf_parserpy import EndfParser
-    from NCrystal import NCMATComposer, atomDB
 
     parser = EndfParser(cache_dir=False)
     endf_dic = parser.parsefile(endf_fn)
     T0 = 293.6
     emax = endf_dic[1][451]['EMAX']
     za = endf_dic[1][451]['ZA']
-    label = atomDB(Z=int(za/1000)).elementName()
+    label = nc_atomdata.atomDB(Z=int(za/1000)).elementName()
     awr = endf_dic[7][4]['AWR']
     lat = endf_dic[7][4]['LAT']
     S_table =  endf_dic[7][4]['S_table']
@@ -162,7 +159,7 @@ def get_scatxs_from_endf(endf_fn, E=None):
     if lat == 1:
         beta = beta*T0/T
         alpha = alpha*T0/T
-    c_test = NCMATComposer()
+    c_test = nc_ncmat.NCMATComposer()
     c_test.set_dyninfo_scatknl(label,
                                alphagrid=alpha,
                                betagrid=beta,
