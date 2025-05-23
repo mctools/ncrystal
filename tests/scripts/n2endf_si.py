@@ -42,5 +42,6 @@ d = {'mat_numbers':{"Si":37},
 m = EndfMetaData()
 m.update_from_dict(d)
 
-test_cfg('Si_sg227.ncmat;comp=inelas;vdoslux=1', elastic_mode='scaled', endf_metadata=d, compare_xsec=True)
+test_cfg('Si_sg227.ncmat;vdoslux=1', elastic_mode='scaled',
+          check_edge_positions=True, endf_metadata=d, compare_xsec=True)
 
