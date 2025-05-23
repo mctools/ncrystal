@@ -48,8 +48,7 @@ metadata = EndfMetaData()
 metadata.set_mat_numbers( {"C":37, "H": 38} )
 
 test_cfg('Polyethylene_CH2.ncmat;vdoslux=1', material_name='CH2',
-         ref_teff={'tsl_H_in_CH2.endf':[1208.094],
-                   'tsl_C_in_CH2.endf':[667.3864]},
+         check_teff=True,
          ref_parsed={'tsl_H_in_CH2.endf':'0 0 1 451 7 2 7 4',
                      'tsl_C_in_CH2.endf':'0 0 1 451 7 2 7 4'},
          endf_metadata=metadata)
