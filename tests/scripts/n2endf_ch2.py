@@ -20,7 +20,6 @@
 ##                                                                            ##
 ################################################################################
 
-# fixme: add tests that dump the data before calling endf-parserpy
 # NEEDS: numpy endf-parserpy
 
 import NCTestUtils.enable_fpe # noqa F401

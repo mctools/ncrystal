@@ -23,10 +23,6 @@ from ._cliimpl import ( create_ArgumentParser,
                         cli_entry_point )
 
 def _parseArgs( progname, arglist, return_parser=False ):
-    #FIXME: check before final merge
-    #NOTE: Keep the description below synchronised with doc-string of the
-    #ncmat2endf python API function:
-    #FIXME: why don't we just get the doc-string here?
 
     from argparse import RawTextHelpFormatter
     import textwrap
@@ -44,7 +40,7 @@ def _parseArgs( progname, arglist, return_parser=False ):
         """
         G. Schnabel, D. L. Aldama, R. Capote,
         https://doi.org/10.48550/arXiv.2312.08249
-        """
+        """,
         """
         Note that while the handling of multiple temperatures in one ENDF-6
         file is supported via the --temperatures keyword, it is not
@@ -53,6 +49,15 @@ def _parseArgs( progname, arglist, return_parser=False ):
         the same grid on all temperatures.
         """,
         ]
+
+    # NOTICE ^^^^^^^^^^^
+    #
+    # When updating ncmat2endf there are 2 main doc texts that have to be
+    # checked for updates:
+    #
+    #  1) The ncmat2endf function doc-string in ncmat2endf.py
+    #  2) The ncmat2endf CLI --help text in _cli_ncmat2endf.py
+    #
 
     descr = '\n\n'.join(textwrap.fill(' '.join(e.strip().split()),descrw)
                         for e in descr_sections)
@@ -84,6 +89,7 @@ def _parseArgs( progname, arglist, return_parser=False ):
     def wrap(t):
         return textwrap.fill(t,width=helpw)
 
+    #FIXME: mention available_elastic_modes
     from .ncmat2endf import ( available_elastic_modes,
                               default_smin_value,
                               default_emax_value )
@@ -109,8 +115,8 @@ def _parseArgs( progname, arglist, return_parser=False ):
                     default='scaled')
     ba.add_argument(longopt_metadata,
                     help=wrap('JSON dictionary containing ENDF-6'
-                              ' metadata (fixme more?)'),
-                    type=json.loads)
+                              f' metadata. Run with {longopt_metadata}=help '
+                              'for more information.'))
     ba.add_argument(longopt_datenow,action='store_true',
                     help=wrap('Set ENDF6 fields EDATE, DDATE and RDATE'
                               ' to current month and year.'))
@@ -125,8 +131,6 @@ def _parseArgs( progname, arglist, return_parser=False ):
                     help=wrap('Overwrite existing output files if'
                               ' they already exists (danger!)'))
 
-    # FIXME: show these arguments only for --expert-help
-    # FIXME: check help wrapping
     expert_args = parser.add_argument_group('Advanced expert-only arguments')
     expert_args.add_argument('-t', '--temperatures',metavar='TVALS',
                              nargs='+',
@@ -154,10 +158,27 @@ def _parseArgs( progname, arglist, return_parser=False ):
 
     if return_parser:
         return parser
+
+    #Avoid annoying CFGSTR-missing error when ppl use --mdata=help:
+    is_mdata_help = False
+    if f'{longopt_metadata}=help' in arglist:
+        is_mdata_help = True
+    elif longopt_metadata in arglist and 'help' in arglist:
+        if arglist.index(longopt_metadata)+1==arglist.index('help'):
+            is_mdata_help=True
+    if is_mdata_help:
+        arglist = [f'{longopt_metadata}=help','dummy']
+
     args=parser.parse_args(arglist)
-    if args.mdata and not isinstance(args.mdata,dict):
-        parser.error(f'Argument to {longopt_metadata} must be a JSON'
-                     ' dictionary of key, value pairs')
+    if args.mdata:
+        if args.mdata == 'help':
+            from .ncmat2endf import _show_metadata_doc
+            _show_metadata_doc()
+            raise SystemExit(0)
+        args.mdata = json.loads(args.mdata)
+        if not isinstance(args.mdata,dict):
+            parser.error(f'Argument to {longopt_metadata} must be a JSON'
+                         ' dictionary of key, value pairs')
 
     #map verbosity to 0...3 needed for Python api:
     if args.quiet:

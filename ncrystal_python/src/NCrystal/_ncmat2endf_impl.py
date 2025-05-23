@@ -214,14 +214,9 @@ class NuclearData():
             if not ad.isNaturalElement():
                 # TODO: properly handle isolated isotopes and enriched
                 #       elements
-
-                #FIXME NotImplementedError not suitable. Also the message below
-                #should not just say "Conversion" without context, since it is
-                #confusing (user's can't tell if NCrystal in general only
-                #supports natural elements, of it is is specific to endf).
-
-                raise NotImplementedError('Conversion supported only for'
-                                          ' natural elements')
+                from .exceptions import NCBadInput
+                raise NCBadInput('Conversion to ENDF is currently supported'
+                                 ' only for natural elements')
             sym = ad.elementName()
             self._elems[sym] = ElementData(ad)
         if self._enable_coh_elas:
@@ -294,7 +289,7 @@ class NuclearData():
         return extractKnl( vdos = di,
                            mass_amu = di.atomData.averageMassAMU(),
                            temperature = di.temperature,
-                           scatxs = 1.0,#fixme: double check if 1.0 is appropriate here
+                           scatxs = 1.0,# seems to be the right thing
                            target_emax = self._requested_emax,
                            vdoslux = self._vdoslux )
 
@@ -982,7 +977,7 @@ def _dump_dict( d, prefix, lvl = 1 ):
         ncprint(f'{prefix}{s}')
         return
 
-    ld = list(d.items())#fixme: sorted(..) ?
+    ld = list(d.items())
     keys_all_digits = all( str(k).isdigit() for k,v in ld)
     nlim = 30 if lvl<2 else 15
     if not keys_all_digits:
