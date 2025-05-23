@@ -41,6 +41,9 @@ def test_cfg( cfg, ref_teff=None,
         kwargs['force_save'] = True
     kwargs['ncmat_cfg']=cfg
     pprint.pprint(kwargs)
+    temperatures = None
+    if 'temperatures' in kwargs:
+        temperatures = kwargs['temperatures']
     res = ncmat2endf(**kwargs)
     if compare_xsec:
         E = _np.geomspace(1e-5, 5.0, 1000)
@@ -81,9 +84,16 @@ def test_cfg( cfg, ref_teff=None,
                                    f'{endf_fn}')
             ref_Eint, ref_S0 = ref_bragg_edges[endf_fn]
             Eint = tuple(endf_dic[7][2]['S_T0_table']['Eint'][:len(ref_Eint)])
-            S0 = tuple(endf_dic[7][2]['S_T0_table']['S'][:len(ref_S0)])
+            S0 = tuple(endf_dic[7][2]['S_T0_table']['S'][:len(ref_Eint)])
             require_flteq(Eint, ref_Eint)
-            require_flteq(S0, ref_S0)
+            require_flteq(S0, ref_S0[0])
+            if temperatures:
+                Slist = tuple(tuple(S for k, S in Sdict.items())
+                              for tindex, Sdict in
+                              endf_dic[7][2]['S'].items())
+                for v1,v2 in zip(Slist[:len(ref_Eint)], ref_S0[1]):
+                    v1 = tuple(v1)
+                    require_flteq(v1, v2)
         if compare_xsec:
             xs_test += frac*get_scatxs_from_endf(endf_fn, E)
     if compare_xsec:
