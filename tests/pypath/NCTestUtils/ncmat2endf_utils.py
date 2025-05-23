@@ -21,6 +21,7 @@
 
 
 from NCrystalDev.ncmat2endf import ncmat2endf
+from NCrystalDev._ncmat2endf_impl import _endf_clean
 from NCrystalDev.exceptions import NCBadInput
 from NCrystalDev._numpy import _np
 import NCrystalDev.cli as nc_cli
@@ -28,7 +29,7 @@ import NCrystalDev.cli as nc_cli
 from .common import ( print_text_file_with_snipping,
                       require_flteq )
 
-def test_cfg( cfg, ref_teff=None,
+def test_cfg( cfg, check_teff=None,
               ref_parsed=None, ref_bragg_edges=None,
               compare_xsec=False,
              **kwargs ):
@@ -42,8 +43,10 @@ def test_cfg( cfg, ref_teff=None,
     kwargs['ncmat_cfg']=cfg
     pprint.pprint(kwargs)
     temperatures = None
+    import NCrystal.core as nc_core
+    temperatures = (nc_core.createInfo(cfg).dyninfos[0].temperature,)
     if 'temperatures' in kwargs:
-        temperatures = kwargs['temperatures']
+        temperatures = temperatures+tuple(kwargs['temperatures'])
     res = ncmat2endf(**kwargs)
     if compare_xsec:
         E = _np.geomspace(1e-5, 5.0, 1000)
@@ -58,17 +61,20 @@ def test_cfg( cfg, ref_teff=None,
                                           prefix='endf>')
         parser, endf_dic = None, None
         EndfParser, list_parsed_sections = None, None
-        if ref_teff or ref_parsed or ref_bragg_edges:
+        if check_teff or ref_parsed or ref_bragg_edges:
             from endf_parserpy import EndfParser, list_parsed_sections
             parser = EndfParser(cache_dir=False)
             endf_dic = parser.parsefile(endf_fn)
 
-        if ref_teff:
-            if endf_fn not in ref_teff.keys():
-                raise RuntimeError(f'No reference Teff data for {endf_fn}')
+        if check_teff:
             teff = endf_dic[7][4]['teff0_table']['Teff0']
-            print(teff, ref_teff[endf_fn])
-            require_flteq(teff, ref_teff[endf_fn])
+            za = endf_dic[1][451]['ZA']
+            from NCrystal import atomDB
+            label = atomDB(Z=int(za/1000)).elementName()
+            teff_vals = [_endf_clean([compute_teff(cfg+f';temp={T}', label)])[0]
+                         for T in temperatures]
+            require_flteq(teff, teff_vals)
+
         if ref_parsed:
             if endf_fn not in ref_parsed.keys():
                 raise RuntimeError( 'No reference parsed ENDF sections for '
@@ -101,6 +107,18 @@ def test_cfg( cfg, ref_teff=None,
         m = nc_load(cfg+';comp=inelas')
         xs = m.scatter.xsect(E)
         require_flteq(xs, xs_test, tol=0.02)
+
+def compute_teff(cfg, label):
+    import NCrystal.core as nc_core
+    import NCrystal.vdos as nc_vdos
+    info_obj = nc_core.createInfo(cfg)
+    di = info_obj.findDynInfo(label)
+    emin = di.vdosData()[0][0]
+    emax = di.vdosData()[0][1]
+    rho = di.vdosData()[1]
+    res = nc_vdos.analyseVDOS(emin, emax, rho, di.temperature,
+                              di.atomData.averageMassAMU())
+    return res['teff']
 
 def test_cfg_fail( e, *args, **kwargs ):
     try:

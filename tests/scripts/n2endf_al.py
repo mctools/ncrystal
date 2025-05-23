@@ -28,6 +28,7 @@ from NCTestUtils.ncmat2endf_utils import test_cfg
 import NCrystalDev._ncmat2endf_impl as ncmat2endf_impl
 ncmat2endf_impl.unit_test_chop_svals[0] = True
 
+# fixme: Replace with NCrystal values
 ref_Eint = (0.003741252, 0.004988336, 0.009976672, 0.01371792, 0.01496501,
             0.01995334, 0.0236946, 0.02494168, 0.02993002, 0.03367127,
             0.03990669, 0.04364794, 0.04489502, 0.04988336, 0.05362461,
@@ -43,7 +44,7 @@ ref_S0 = ((0.005134741, 0.00839204, 0.01258346, 0.01924357, 0.02131949,
             (0.04719598,), (0.04914274,), (0.05008033,), (0.05169737,)))
 
 test_cfg('Al_sg225.ncmat;vdoslux=1', material_name='Al',
-         ref_teff={'tsl_Al.endf':[320.2258, 372.8392]},
+         check_teff=True,
          ref_parsed={'tsl_Al.endf':'0 0 1 451 7 2 7 4'},
          ref_bragg_edges={'tsl_Al.endf':(ref_Eint, ref_S0)},
          temperatures=[350], elastic_mode='scaled', compare_xsec=False)

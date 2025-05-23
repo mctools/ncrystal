@@ -226,7 +226,6 @@ endf>                                                                    38 7  0
 endf>                                                                    38 0  0    0
 endf>                                                                     0 0  0    0
 endf>                                                                    -1 0  0    0
-[1208.094] [1208.094]
 Created file tsl_C_in_CH2.endf with fraction 0.3333333333333333
 endf>Created with ncmat2endf                                             37 0  0    0
 endf> 6.000000+3 1.190786+1         -1          0          0          0  37 1451    1
@@ -439,4 +438,3 @@ endf>                                                                    37 7  0
 endf>                                                                    37 0  0    0
 endf>                                                                     0 0  0    0
 endf>                                                                    -1 0  0    0
-[667.3864] [667.3864]
