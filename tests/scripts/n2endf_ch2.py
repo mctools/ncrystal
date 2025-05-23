@@ -52,4 +52,3 @@ test_cfg('Polyethylene_CH2.ncmat;vdoslux=1', material_name='CH2',
          ref_parsed={'tsl_H_in_CH2.endf':'0 0 1 451 7 2 7 4',
                      'tsl_C_in_CH2.endf':'0 0 1 451 7 2 7 4'},
          endf_metadata=metadata)
-

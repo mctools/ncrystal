@@ -13,7 +13,7 @@ FAILED (as expected): Oriented materials cannot be represented in the ENDF forma
 {'endf_metadata': EndfMetaData object: ALAB:MyLAB, AUTH:NCrystal, REFERENCE:REFERENCE, NLIB:0, NVER:1, LIBNAME:MyLib, LREL:0, MAT_NUMBERS:{'Ge': 99}, ENDATE:, EDATE:MMMYY, RDATE:MMMYY, DDATE:MMMYY,
  'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
-Get nuclear data...
+Initialise nuclear data...
 FAILED (as expected): Incorrect material number assignment
 
 
@@ -47,8 +47,8 @@ FAILED (as expected): MF7/MT4 is mandatory in an ENDF file but no inelastic data
  'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
 FAILED (as expected): Elastic mode something wrong not in (('greater', 'scaled', 'mixed'))
-============= CLI >>'stdlib::Al_sg225.ncmat;temp=350K;vdoslux=1' --verbosity 5 -m Al -f -e greater<< ====================
-Get nuclear data...
+============= CLI >>'stdlib::Al_sg225.ncmat;temp=350K;vdoslux=1' -vvv -m Al -f -e greater<< ====================
+Initialise nuclear data...
 >>> alpha points: 100, alpha range: (5.958e-50, 692.2)
 >>> beta points: 123, beta range: (0, 66.15)
 >>> Interpolating T=350.0K for Al
@@ -58,4 +58,4 @@ Get nuclear data...
 Write ENDF file tsl_Al.endf...
 Files created:
   tsl_Al.endf with fraction 1.0
-=========================================================================================================================
+================================================================================================================

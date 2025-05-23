@@ -183,7 +183,8 @@ class NuclearData():
     # Container for nuclear data for a material.
     #
     def __init__(self, *, ncmat_cfg, temperatures, elastic_mode,
-                          requested_emax, verbosity=1):
+                          requested_emax, verbosity ):
+
         self._temperatures = tuple(temperatures)
         self._ncmat_cfg = ncmat_cfg
         info_obj = nc_core.createInfo(ncmat_cfg)
@@ -213,6 +214,12 @@ class NuclearData():
             if not ad.isNaturalElement():
                 # TODO: properly handle isolated isotopes and enriched
                 #       elements
+
+                #FIXME NotImplementedError not suitable. Also the message below
+                #should not just say "Conversion" without context, since it is
+                #confusing (user's can't tell if NCrystal in general only
+                #supports natural elements, of it is is specific to endf).
+
                 raise NotImplementedError('Conversion supported only for'
                                           ' natural elements')
             sym = ad.elementName()

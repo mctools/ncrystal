@@ -27,6 +27,8 @@ import NCTestUtils.reprint_escaped_warnings # noqa F401
 from NCTestUtils.ncmat2endf_utils import test_cfg
 from NCrystalDev.ncmat2endf import EndfMetaData
 
+#FIXME: This script currently leaves version numbers in the output!
+
 d = {'mat_numbers':{"Si":37},
      'edate':'JUL01',
      'ddate':'JUL01',
