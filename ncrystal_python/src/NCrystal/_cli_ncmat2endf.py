@@ -23,110 +23,148 @@ from ._cliimpl import ( create_ArgumentParser,
                         cli_entry_point )
 
 def _parseArgs( progname, arglist, return_parser=False ):
-    from argparse import RawTextHelpFormatter
     #FIXME: check before final merge
     #NOTE: Keep the description below synchronised with doc-string of the
     #ncmat2endf python API function:
     #FIXME: why don't we just get the doc-string here?
-    descr="""
 
-Script for creating a set of ENDF-6 thermal scattering files from a .ncmat
-file. Most important parameters are supported as arguments, but additional
-metadata parameters for the ENDF-6 format can be set by using the Python API and
-pasing a custom EndfMetaData object or dictionary.
+    from argparse import RawTextHelpFormatter
+    import textwrap
 
-The script allows to handle multiple temperatures in one ENDF-6 file,
-but this is not recommended, because NCrystal computes an optimal (alpha, beta)
- grid for each material and temperature, while the ENDF format imposes the
- same grid on all temperatures.
+    helpw = 60
+    descrw = helpw + 22
+    descr_sections = [
+        """Script for creating a set of ENDF-6 thermal scattering files for the
+        material described by a particular NCrystal cfg-string.
+        """,
+        """
+        The script uses the endf-parserpy package from IAEA to format and check
+        the syntax of the ENDF-6 file:
+        """,
+        """
+        G. Schnabel, D. L. Aldama, R. Capote,
+        https://doi.org/10.48550/arXiv.2312.08249
+        """
+        """
+        Note that while the handling of multiple temperatures in one ENDF-6
+        file is supported via the --temperatures keyword, it is not
+        recommended. This is because NCrystal computes an optimal (alpha, beta)
+        grid for each material and temperature, while the ENDF format imposes
+        the same grid on all temperatures.
+        """,
+        ]
 
-Ths script uses the endf-parserpy package from IAEA to format and check the
-syntax of the ENDF-6 file.
+    descr = '\n\n'.join(textwrap.fill(' '.join(e.strip().split()),descrw)
+                        for e in descr_sections)
+    descr += f"""\n\nExample invocations:
 
-G. Schnabel, D. L. Aldama, R. Capote, "How to explain ENDF-6 to computers:
-A formal ENDF format description language", arXiv:2312.08249,
-DOI:10.48550/arXiv.2312.08249
+    $> {progname} 'Al_sg225.ncmat;temp=350K'
+    $> {progname} (fixme more examples here)
+    """
 
-"""
+    metavar_elastic = 'MODE'
+    metavar_matname = 'NAME'
+    metavar_metadata = 'DATA'
+    longopt_elastic = '--elas'
+    longopt_metadata = '--mdata'
+    longopt_matname = '--mat'
+    longopt_datenow = '--date-now'
+    usagestr = (
+        f'{progname} CFGSTR [{longopt_elastic} {metavar_elastic}]'
+        + f' [{longopt_matname} {metavar_matname}]'
+        + f' [{longopt_metadata} {metavar_metadata}]\n'
+        + (' '*(len(progname)+8))
+        + '[<<additional options described below>>]'
+    )
 
-    parser = create_ArgumentParser(prog = progname,
-                                   description=descr,
-                                   formatter_class=RawTextHelpFormatter)
+    parser = create_ArgumentParser( prog = progname,
+                                    description=descr.strip()+'\n',
+                                    usage=usagestr,
+                                    formatter_class=RawTextHelpFormatter )
+    def wrap(t):
+        return textwrap.fill(t,width=helpw)
 
-    parser = create_ArgumentParser(
-        description=descr,
-        formatter_class=RawTextHelpFormatter)
     from .ncmat2endf import ( available_elastic_modes,
                               default_smin_value,
                               default_emax_value )
     import json
 
     required_args = parser.add_argument_group('required arguments')
-    required_args.add_argument('input',
-                        help='NCMAT cfg string to convert')
+    required_args.add_argument('CFGSTR',
+                               help=wrap('NCrystal cfg-string defining the'
+                                         ' material.'))
 
-    basic_args = parser.add_argument_group('optional arguments')
-    basic_args.add_argument('-m', '--material_name',
-                        help=('name of the material to be processed. '
-                              'ENDF files will be named '
-                              'tsl_element_in_name.endf for compounds '
-                              'or tsl_element.endf for elements. E.g. '
-                              'tsl_H_in_CH2.endf or tsl_Cu.endf'))
-    basic_args.add_argument('-v', '--verbosity',
-                        help='controls how verbose should be the output',
-                        type=int, default=1)
-    basic_args.add_argument('-f', '--force',action='store_true',
-                        help=('overwrite existing file '
-                              'if it already exists'))
-    basic_args.add_argument('-e', '--elastic_mode',
-                        help=('approximation used for the elastic component.'
+    ba = parser.add_argument_group('Commonly used arguments')
+    ba.add_argument( '-m', longopt_matname, metavar=metavar_matname,
+                     help=wrap('Name of the material to be processed. '
+                               'ENDF files will be named '
+                               'tsl_element_in_name.endf for compounds '
+                               'or tsl_element.endf for elements. E.g. '
+                               'tsl_H_in_CH2.endf or tsl_Cu.endf'))
+    ba.add_argument('-e', longopt_elastic,metavar=metavar_elastic,
+                    help=wrap('Approximation used for the elastic component.'
                               ' An explanation of these modes is given in:'
-                              'https://doi.org/10.1016/j.nima.2021.166227'),
-                        type=str, choices=available_elastic_modes,
-                        default='scaled')
-    basic_args.add_argument('--metadata',
-                        help=('JSON dictionary containing ENDF-6 metadata'),
-                        type=json.loads)
-    basic_args.add_argument('--set_date_to_now',action='store_true',
-                        help=('Set ENDF6 fields EDATE, DDATE and RDATE'
+                              ' https://doi.org/10.1016/j.nima.2021.166227'),
+                    type=str, choices=available_elastic_modes,
+                    default='scaled')
+    ba.add_argument(longopt_metadata,
+                    help=wrap('JSON dictionary containing ENDF-6'
+                              ' metadata (fixme more?)'),
+                    type=json.loads)
+    ba.add_argument(longopt_datenow,action='store_true',
+                    help=wrap('Set ENDF6 fields EDATE, DDATE and RDATE'
                               ' to current month and year.'))
+
+    parser.add_argument('-v','--verbose', action='count',default=0,
+                        help=wrap('Increase verbosity. Specify twice'
+                                  ' for additional verbosity.'))
+    parser.add_argument('--quiet','-q',default=False,action='store_true',
+                        help=wrap('Silence non-error output'
+                                  ' (automatic if --output=stdout).'))
+    ba.add_argument('-f', '--force',action='store_true',
+                    help=wrap('Overwrite existing output files if'
+                              ' they already exists (danger!)'))
 
     # FIXME: show these arguments only for --expert-help
     # FIXME: check help wrapping
-    expert_args = parser.add_argument_group('advanced optional arguments')
-    expert_args.add_argument('-t', '--temperatures',
-                        nargs='+',
-                        type=float,
-                        help=' (EXPERT ONLY)'
-                             ' additional temperatures to process.'
-                             ' If additional temperatures are provided,'
-                             ' ncmat2endf will interpolate the S(a,b) into'
-                             ' a grid for the first temperature. This should'
-                             ' be done with care. It is preferred to run'
-                             ' each temperature independently using the temp='
-                             ' keyword in the cfg string.'   )
-    expert_args.add_argument('--smin',
-                        help=' (EXPERT ONLY)'
-                             ' set the minimum value of S(alpha, beta) stored '
-                             'in MF7/MT4', type=float,
-                        default=default_smin_value)
+    expert_args = parser.add_argument_group('Advanced expert-only arguments')
+    expert_args.add_argument('-t', '--temperatures',metavar='TVALS',
+                             nargs='+',
+                             type=float,
+                             help=wrap('Additional temperatures to process. As'
+                                       ' noted above this is not normally'
+                                       ' recommended, and it is preferred'
+                                       ' to invoke the script for each'
+                                       ' temperature independently using the'
+                                       '  "temp" keyword in the cfg-string.') )
+    expert_args.add_argument('--smin',metavar='VALUE',
+                             type=float, default=default_smin_value,
+                             help=wrap('Set the minimum value'
+                                       ' of S(alpha, beta) stored in MF7/MT4'))
     expert_args.add_argument('--emax',
-                        help=' (EXPERT ONLY)'
-                             ' maximum energy for the scatterig kernel',
-                        type=float,
-                        default=default_emax_value)
-    expert_args.add_argument('--asymmetric_sab',action='store_true',
-                        help=(' (EXPERT ONLY)'
-                             ' store S(a,b) without the detailed balance'
-                             ' factor exp(beta/2).'))
-    expert_args.add_argument('--total_sab',action='store_true',
-                        help=(' (EXPERT ONLY)'
-                             ' store S(a,b) branches for positive and '
-                              ' negative beta'))
+                             type=float, default=default_emax_value,
+                             help=wrap('Maximum neutron energy covered by'
+                                       ' the scattering kernel')
+                             )
+    expert_args.add_argument('--asymsab',action='store_true',
+                             help=wrap('Store S(a,b) in asymmetric form.'))
+    expert_args.add_argument('--totsab',action='store_true',
+                             help=wrap('Store S(a,b) branches for positive'
+                                       ' and negative beta'))
 
     if return_parser:
         return parser
     args=parser.parse_args(arglist)
+    if args.mdata and not isinstance(args.mdata,dict):
+        parser.error(f'Argument to {longopt_metadata} must be a JSON'
+                     ' dictionary of key, value pairs')
+
+    #map verbosity to 0...3 needed for Python api:
+    if args.quiet:
+        if args.verbose:
+            parser.error('Inconsistent usage of --quiet and --verbose flags')
+    else:
+        args.verbose = min( 3, args.verbose+1 )
     return args
 
 def create_argparser_for_sphinx( progname ):
@@ -134,25 +172,35 @@ def create_argparser_for_sphinx( progname ):
 
 @cli_entry_point
 def main( progname, arglist ):
-    from .ncmat2endf import EndfMetaData, ncmat2endf
     args = _parseArgs( progname, arglist )
+    if args.quiet:
+        from ._common import ( modify_ncrystal_print_fct_ctxmgr,
+                               WarningSpy )
+        with modify_ncrystal_print_fct_ctxmgr('block'):
+            with WarningSpy( block = True ):
+                _main_impl(args)
+    else:
+        _main_impl(args)
+
+def _main_impl( args ):
+    from .ncmat2endf import EndfMetaData, ncmat2endf
     metadata = EndfMetaData()
-    if args.set_date_to_now:
+    if args.mdata:
+        metadata.update_from_dict(args.mdata)
+    if args.date_now:
         metadata.set_all_dates_as_now()
     lasym = 0
-    if args.total_sab:
+    if args.totsab:
         lasym = 1
-    if args.asymmetric_sab:
+    if args.asymsab:
         lasym += 2
-
-    _ = ncmat2endf(args.input,
-                   material_name=args.material_name,
-                   endf_metadata=metadata,
-                   temperatures=args.temperatures,
-                   elastic_mode=args.elastic_mode,
-                   force_save=args.force,
-                   smin=args.smin,
-                   emax=args.emax,
-                   lasym=lasym,
-                   verbosity=args.verbosity)
-
+    ncmat2endf( args.CFGSTR,
+                material_name = args.mat,
+                endf_metadata = metadata,
+                temperatures = args.temperatures,
+                elastic_mode = args.elas,
+                force_save = args.force,
+                smin = args.smin,
+                emax = args.emax,
+                lasym = lasym,
+                verbosity = args.verbose )

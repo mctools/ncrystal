@@ -62,5 +62,6 @@ test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1',
 #
 
 test_cli('"stdlib::Al_sg225.ncmat;temp=350K;vdoslux=1"'
-         ' --verbosity 5 -m Al -f -e greater')
+         ' -vvv -m Al -f -e greater')
 
+#fixme: more

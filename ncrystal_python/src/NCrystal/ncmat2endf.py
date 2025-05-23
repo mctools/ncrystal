@@ -24,7 +24,7 @@
 Module for creating a set of ENDF-6 thermal scattering files from a .ncmat
 file. Most important parameters are supported as arguments, but additional
 metadata parameters for the ENDF-6 format can be set by using the Python API and
-pasing a custom EndfMetaData object or dictionary.
+passing a custom EndfMetaData object or dictionary.
 
 The module allows to handle multiple temperatures in one ENDF-6 file,
 but this is not recommended, because NCrystal computes an optimal (alpha, beta)
@@ -260,7 +260,7 @@ def ncmat2endf( ncmat_cfg, *,
                 smin=default_smin_value,
                 emax=default_emax_value,
                 lasym=0,
-                verbosity=1):
+                verbosity = 1 ):
     """Generates a set of ENDF-6 formatted files for a given NCMAT file.
 
     Parameters
@@ -306,7 +306,7 @@ def ncmat2endf( ncmat_cfg, *,
         Overwrite existing file if it already exists.
 
     verbosity : int
-        Level of verbosity of the output (0: quiet)
+        Level of verbosity of the output (0: quiet, max value: 3)
 
     Returns
     -------
@@ -315,6 +315,7 @@ def ncmat2endf( ncmat_cfg, *,
         their fraction in the composition
 
     """
+
     from . import exceptions as nc_exceptions
     from . import core as nc_core
     from . import misc as nc_misc
@@ -323,6 +324,11 @@ def ncmat2endf( ncmat_cfg, *,
     from ._common import print as ncprint
     from ._numpy import _ensure_numpy
     _ensure_numpy()
+
+    if not isinstance(verbosity,int) or not ( 0<=verbosity<=3):
+        raise nc_exceptions.NCBadInput('Invalid value of verbosity parameter'
+                                       ' (expects value 0, 1, 2, or 3):'
+                                       f' {verbosity}')
 
     if not endf_metadata:
         endf_metadata = EndfMetaData()
@@ -402,13 +408,11 @@ def ncmat2endf( ncmat_cfg, *,
         # TODO: remove when implemented
         raise NotImplementedError('Isotopic expansion not yet implemented')
 
-    if type(verbosity) is not int:
-        raise nc_exceptions.NCBadInput('Verbosity parameter'
-                                       ' must be an integer')
     if verbosity > 0:
-        ncprint('Get nuclear data...')
+        ncprint('Initialise nuclear data...')
     from ._ncmat2endf_impl import NuclearData
-    data = NuclearData(ncmat_cfg=ncmat_cfg, temperatures=temperatures,
+    data = NuclearData(ncmat_cfg=ncmat_cfg,
+                       temperatures=temperatures,
                        elastic_mode=elastic_mode,
                        requested_emax=emax,
                        verbosity=verbosity)
