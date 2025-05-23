@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 ################################################################################
 ##                                                                            ##
@@ -19,41 +20,30 @@
 ##                                                                            ##
 ################################################################################
 
-[build-system]
-requires = ["setuptools>=64.0"]
-build-backend = "setuptools.build_meta"
+# NEEDS: numpy endf-parserpy
 
-[tool.setuptools.dynamic]
-version = {attr = "NCrystal.__version__"}
+import NCTestUtils.enable_fpe # noqa F401
+import NCTestUtils.reprint_escaped_warnings # noqa F401
+from NCTestUtils.ncmat2endf_utils import test_cfg
+from NCrystalDev.ncmat2endf import EndfMetaData
 
-[project]
-name = "ncrystal-python"
-dynamic = [ 'version' ]
-requires-python = ">=3.8"
-dependencies = [ 'numpy>=1.22' ]
-authors = [
-  { name="NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)" },
-]
-description = "Library for thermal neutron transport in crystals and other materials."
-readme = "README.md"
-license = {file = "LICENSE"}
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: Apache Software License",
-]
+#FIXME: This script currently leaves version numbers in the output!
 
-[project.urls]
-"Homepage" = "https://mctools.github.io/ncrystal/"
-"Bug Tracker" = "https://github.com/mctools/ncrystal/issues"
+d = {'mat_numbers':{"Si":37},
+     'edate':'JUL01',
+     'ddate':'JUL01',
+     'rdate':'JUL01',
+     'alab':'TestLab',
+     'libname':'TestLib',
+     'auth': 'Jane Doe',
+     'reference': 'Aaaaaa, et al.',
+     'nlib': 0,
+     'nver': 4
+}
 
-[project.scripts]
-nctool = "NCrystal._cli_nctool:main"
-ncrystal_cif2ncmat = "NCrystal._cli_cif2ncmat:main"
-ncrystal_endf2ncmat = "NCrystal._cli_endf2ncmat:main"
-ncrystal_hfg2ncmat = "NCrystal._cli_hfg2ncmat:main"
-ncrystal_mcstasunion = "NCrystal._cli_mcstasunion:main"
-ncrystal_ncmat2endf = "NCrystal._cli_ncmat2endf:main"
-ncrystal_ncmat2cpp = "NCrystal._cli_ncmat2cpp:main"
-ncrystal_ncmat2hkl = "NCrystal._cli_ncmat2hkl:main"
-ncrystal_vdos2ncmat = "NCrystal._cli_vdos2ncmat:main"
-ncrystal_verifyatompos = "NCrystal._cli_verifyatompos:main"
+m = EndfMetaData()
+m.update_from_dict(d)
+
+test_cfg('Si_sg227.ncmat;vdoslux=1', elastic_mode='scaled',
+          check_edge_positions=True, endf_metadata=d, compare_xsec=True)
+

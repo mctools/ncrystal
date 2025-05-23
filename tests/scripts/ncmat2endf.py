@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 ################################################################################
 ##                                                                            ##
@@ -19,41 +20,48 @@
 ##                                                                            ##
 ################################################################################
 
-[build-system]
-requires = ["setuptools>=64.0"]
-build-backend = "setuptools.build_meta"
+# NEEDS: numpy endf-parserpy
 
-[tool.setuptools.dynamic]
-version = {attr = "NCrystal.__version__"}
+import NCTestUtils.enable_fpe # noqa F401
+import NCTestUtils.reprint_escaped_warnings # noqa F401
 
-[project]
-name = "ncrystal-python"
-dynamic = [ 'version' ]
-requires-python = ">=3.8"
-dependencies = [ 'numpy>=1.22' ]
-authors = [
-  { name="NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)" },
-]
-description = "Library for thermal neutron transport in crystals and other materials."
-readme = "README.md"
-license = {file = "LICENSE"}
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: Apache Software License",
-]
+from NCrystalDev.exceptions import NCBadInput
+from NCrystalDev.ncmat2endf import EndfMetaData
+from NCTestUtils.ncmat2endf_utils import ( test_cfg_fail,
+                                           test_cli )
 
-[project.urls]
-"Homepage" = "https://mctools.github.io/ncrystal/"
-"Bug Tracker" = "https://github.com/mctools/ncrystal/issues"
+import NCrystalDev._ncmat2endf_impl as ncmat2endf_impl
+ncmat2endf_impl.unit_test_chop_svals[0] = True
 
-[project.scripts]
-nctool = "NCrystal._cli_nctool:main"
-ncrystal_cif2ncmat = "NCrystal._cli_cif2ncmat:main"
-ncrystal_endf2ncmat = "NCrystal._cli_endf2ncmat:main"
-ncrystal_hfg2ncmat = "NCrystal._cli_hfg2ncmat:main"
-ncrystal_mcstasunion = "NCrystal._cli_mcstasunion:main"
-ncrystal_ncmat2endf = "NCrystal._cli_ncmat2endf:main"
-ncrystal_ncmat2cpp = "NCrystal._cli_ncmat2cpp:main"
-ncrystal_ncmat2hkl = "NCrystal._cli_ncmat2hkl:main"
-ncrystal_vdos2ncmat = "NCrystal._cli_vdos2ncmat:main"
-ncrystal_verifyatompos = "NCrystal._cli_verifyatompos:main"
+
+#
+# Error handling tests
+#
+
+# Oriented materials not supported
+test_cfg_fail( NCBadInput, 'Ge_sg227.ncmat;dcutoff=0.5;mos=40arcsec;'
+               'dir1=@crys_hkl:5,1,1@lab:0,0,1;'
+               'dir2=@crys_hkl:0,-1,1@lab:0,1,0')
+# Wrong material number assignment
+metadata = EndfMetaData()
+metadata.set_mat_numbers( {"Ge":99} )
+test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', endf_metadata=metadata)
+# Negative temperatures
+test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', temperatures=[-100])
+# Repeated temperatures
+test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', temperatures=[293.15])
+# No inelastic
+test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1;comp=coh_elas')
+# Wrong elastic mode
+test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1',
+               elastic_mode='something wrong')
+
+#
+# CLI tests
+#
+
+test_cli('"stdlib::Al_sg225.ncmat;temp=350K;vdoslux=1"'
+         ' -vvv -m Al -f -e greater')
+
+#fixme: more CLI tests
+#fixme: add tests that dump the data before calling endf-parserpy

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 ################################################################################
 ##                                                                            ##
@@ -19,41 +20,17 @@
 ##                                                                            ##
 ################################################################################
 
-[build-system]
-requires = ["setuptools>=64.0"]
-build-backend = "setuptools.build_meta"
+# NEEDS: numpy endf-parserpy
 
-[tool.setuptools.dynamic]
-version = {attr = "NCrystal.__version__"}
+import NCTestUtils.enable_fpe # noqa F401
+import NCTestUtils.reprint_escaped_warnings # noqa F401
+from NCTestUtils.ncmat2endf_utils import test_cfg
+import NCrystalDev._ncmat2endf_impl as ncmat2endf_impl
+ncmat2endf_impl.unit_test_chop_svals[0] = True
 
-[project]
-name = "ncrystal-python"
-dynamic = [ 'version' ]
-requires-python = ">=3.8"
-dependencies = [ 'numpy>=1.22' ]
-authors = [
-  { name="NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)" },
-]
-description = "Library for thermal neutron transport in crystals and other materials."
-readme = "README.md"
-license = {file = "LICENSE"}
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: Apache Software License",
-]
+test_cfg('Al_sg225.ncmat;vdoslux=1', material_name='Al',
+         check_teff=True,
+         ref_parsed={'tsl_Al.endf':'0 0 1 451 7 2 7 4'},
+         check_edge_positions=True,
+         temperatures=[350], elastic_mode='scaled', compare_xsec=False)
 
-[project.urls]
-"Homepage" = "https://mctools.github.io/ncrystal/"
-"Bug Tracker" = "https://github.com/mctools/ncrystal/issues"
-
-[project.scripts]
-nctool = "NCrystal._cli_nctool:main"
-ncrystal_cif2ncmat = "NCrystal._cli_cif2ncmat:main"
-ncrystal_endf2ncmat = "NCrystal._cli_endf2ncmat:main"
-ncrystal_hfg2ncmat = "NCrystal._cli_hfg2ncmat:main"
-ncrystal_mcstasunion = "NCrystal._cli_mcstasunion:main"
-ncrystal_ncmat2endf = "NCrystal._cli_ncmat2endf:main"
-ncrystal_ncmat2cpp = "NCrystal._cli_ncmat2cpp:main"
-ncrystal_ncmat2hkl = "NCrystal._cli_ncmat2hkl:main"
-ncrystal_vdos2ncmat = "NCrystal._cli_vdos2ncmat:main"
-ncrystal_verifyatompos = "NCrystal._cli_verifyatompos:main"
