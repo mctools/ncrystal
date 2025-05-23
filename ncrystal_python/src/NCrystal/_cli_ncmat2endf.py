@@ -23,9 +23,12 @@ from ._cliimpl import ( create_ArgumentParser,
                         cli_entry_point )
 
 def _parseArgs( progname, arglist, return_parser=False ):
-
+    from .ncmat2endf import ( available_elastic_modes,
+                              default_smin_value,
+                              default_emax_value )
     from argparse import RawTextHelpFormatter
     import textwrap
+    import json
 
     helpw = 60
     descrw = helpw + 22
@@ -89,12 +92,6 @@ def _parseArgs( progname, arglist, return_parser=False ):
     def wrap(t):
         return textwrap.fill(t,width=helpw)
 
-    #FIXME: mention available_elastic_modes
-    from .ncmat2endf import ( available_elastic_modes,
-                              default_smin_value,
-                              default_emax_value )
-    import json
-
     required_args = parser.add_argument_group('required arguments')
     required_args.add_argument('CFGSTR',
                                help=wrap('NCrystal cfg-string defining the'
@@ -107,19 +104,25 @@ def _parseArgs( progname, arglist, return_parser=False ):
                                'tsl_element_in_name.endf for compounds '
                                'or tsl_element.endf for elements. E.g. '
                                'tsl_H_in_CH2.endf or tsl_Cu.endf'))
+    elasmode_default = 'scaled'
+    assert elasmode_default in available_elastic_modes
+    elasmode_other = list(e for e in available_elastic_modes if e!=elasmode_default )
+    assert len(elasmode_other)==2
     ba.add_argument('-e', longopt_elastic,metavar=metavar_elastic,
-                    help=wrap('Approximation used for the elastic component.'
-                              ' An explanation of these modes is given in:'
-                              ' https://doi.org/10.1016/j.nima.2021.166227'),
+                    help=wrap('Approximation used for the elastic component'
+                              f' (default "{elasmode_default}, other options'
+                              f' are "{elasmode_other[0]}" and'
+                              f' "{elasmode_other[1]}").'
+                              ' See DOI:10.1016/j.nima.2021.166227 for meaning of modes.'),
                     type=str, choices=available_elastic_modes,
-                    default='scaled')
+                    default=elasmode_default)
     ba.add_argument(longopt_metadata,
                     help=wrap('JSON dictionary containing ENDF-6'
                               f' metadata. Run with {longopt_metadata}=help '
                               'for more information.'))
     ba.add_argument(longopt_datenow,action='store_true',
                     help=wrap('Set ENDF6 fields EDATE, DDATE and RDATE'
-                              ' to current month and year.'))
+                              ' to current date.'))
 
     parser.add_argument('-v','--verbose', action='count',default=0,
                         help=wrap('Increase verbosity. Specify twice'
@@ -128,8 +131,8 @@ def _parseArgs( progname, arglist, return_parser=False ):
                         help=wrap('Silence non-error output'
                                   ' (automatic if --output=stdout).'))
     ba.add_argument('-f', '--force',action='store_true',
-                    help=wrap('Overwrite existing output files if'
-                              ' they already exists (danger!)'))
+                    help=wrap('Overwrite output files if'
+                              ' they already exist (danger!)'))
 
     expert_args = parser.add_argument_group('Advanced expert-only arguments')
     expert_args.add_argument('-t', '--temperatures',metavar='TVALS',
