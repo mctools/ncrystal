@@ -20,7 +20,6 @@
 ##                                                                            ##
 ################################################################################
 
-# fixme: add tests that dump the data before calling endf-parserpy
 # NEEDS: numpy endf-parserpy
 
 import NCTestUtils.enable_fpe # noqa F401
@@ -64,4 +63,5 @@ test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1',
 test_cli('"stdlib::Al_sg225.ncmat;temp=350K;vdoslux=1"'
          ' -vvv -m Al -f -e greater')
 
-#fixme: more
+#fixme: more CLI tests
+#fixme: add tests that dump the data before calling endf-parserpy
