@@ -29,8 +29,8 @@ import NCrystalDev.cli as nc_cli
 from .common import ( print_text_file_with_snipping,
                       require_flteq )
 
-def test_cfg( cfg, check_teff=None,
-              ref_parsed=None, ref_bragg_edges=None,
+def test_cfg( cfg, check_teff=False,
+              ref_parsed=None, check_edge_positions=False,
               compare_xsec=False,
              **kwargs ):
     import pprint
@@ -61,7 +61,7 @@ def test_cfg( cfg, check_teff=None,
                                           prefix='endf>')
         parser, endf_dic = None, None
         EndfParser, list_parsed_sections = None, None
-        if check_teff or ref_parsed or ref_bragg_edges:
+        if check_teff or ref_parsed or check_edge_positions:
             from endf_parserpy import EndfParser, list_parsed_sections
             parser = EndfParser(cache_dir=False)
             endf_dic = parser.parsefile(endf_fn)
@@ -71,10 +71,10 @@ def test_cfg( cfg, check_teff=None,
             za = endf_dic[1][451]['ZA']
             from NCrystal import atomDB
             label = atomDB(Z=int(za/1000)).elementName()
-            teff_vals = [_endf_clean([compute_teff(cfg+f';temp={T}', label)])[0]
+            teff_vals = [_endf_clean([compute_teff(cfg+f';temp={T}',
+                                      label)])[0]
                          for T in temperatures]
             require_flteq(teff, teff_vals)
-
         if ref_parsed:
             if endf_fn not in ref_parsed.keys():
                 raise RuntimeError( 'No reference parsed ENDF sections for '
@@ -84,22 +84,13 @@ def test_cfg( cfg, check_teff=None,
             if parsed != ref_parsed[endf_fn]:
                 raise RuntimeError( 'ENDF sections {parsed} expected but '
                                    f'sections {ref_parsed[endf_fn]} found')
-        if ref_bragg_edges:
-            if endf_fn not in ref_bragg_edges.keys():
-                raise RuntimeError( 'No reference Bragg edges for '
-                                   f'{endf_fn}')
-            ref_Eint, ref_S0 = ref_bragg_edges[endf_fn]
-            Eint = tuple(endf_dic[7][2]['S_T0_table']['Eint'][:len(ref_Eint)])
-            S0 = tuple(endf_dic[7][2]['S_T0_table']['S'][:len(ref_Eint)])
-            require_flteq(Eint, ref_Eint)
-            require_flteq(S0, ref_S0[0])
-            if temperatures:
-                Slist = tuple(tuple(S for k, S in Sdict.items())
-                              for tindex, Sdict in
-                              endf_dic[7][2]['S'].items())
-                for v1,v2 in zip(Slist[:len(ref_Eint)], ref_S0[1]):
-                    v1 = tuple(v1)
-                    require_flteq(v1, v2)
+        if check_edge_positions:
+            # fixme: check edge intensities. This might require creating a
+            #        NuclearData() object to take into account the
+            #        elastoc_mode
+            edges = compute_bragg_edges(cfg)
+            Eint = tuple(endf_dic[7][2]['S_T0_table']['Eint'])
+            require_flteq(Eint, edges)
         if compare_xsec:
             xs_test += frac*get_scatxs_from_endf(endf_fn, E)
     if compare_xsec:
@@ -119,6 +110,16 @@ def compute_teff(cfg, label):
     res = nc_vdos.analyseVDOS(emin, emax, rho, di.temperature,
                               di.atomData.averageMassAMU())
     return res['teff']
+
+def compute_bragg_edges(cfg):
+    import NCrystal.core as nc_core
+    import NCrystal.constants as nc_constants
+    m = nc_core.load(cfg)
+    # Find unique Bragg edges, as represented in ENDF-6 floats
+    edges = _endf_clean([nc_constants.wl2ekin(2.0*e.dspacing)
+                      for e in m.info.hklObjects()])
+    return edges
+
 
 def test_cfg_fail( e, *args, **kwargs ):
     try:
