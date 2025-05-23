@@ -69,79 +69,30 @@ def import_endfparserpy():
     return _cacheimport[0]
 
 def _endf_roundoff(x):
-    """Limit the precision of a float to what can be represented
-       in an ENDF-6 file
-
-    Parameters
-    ----------
-    x : Iterable of float
-        Array to process
-
-    Returns
-    -------
-    numpy array
-        Processed array
-
-    """
+    #
+    # Limit the precision of a float to what can be represented
+    # in an ENDF-6 file
+    #
+    # Receives an  Iterable of float
+    #
     _,read_fort_floats,write_fort_floats = import_endfparserpy()
     return _np.array(read_fort_floats(write_fort_floats(x, {'width':11}),
                                      n=len(x),read_opts={'width':11}))
 
 def _endf_clean(x):
-    """Return an array of unique floats that can be represented
-       in an ENDF-6 file
-
-    Parameters
-    ----------
-    x : Iterable of float
-        Array to process
-
-    Returns
-    -------
-    numpy array
-        Processed array
-
-    """
+    #
+    # Return an array of unique floats that can be represented
+    #   in an ENDF-6 file
+    #
+    # Receives an  Iterable of float
+    #
     return _np.unique(_endf_roundoff(x))
 
 class ElementData():
-    r"""Container for nuclear data for a single element or isotope.
-
-    Attributes
-    ----------
-    alpha : numpy array
-        alpha grid
-    beta : numpy array
-        positive beta grid
-    beta_total : numpy array
-        asymmetric beta grid
-    sab : list of numpy array
-        symmetric S(alpha, beta) table
-    dwi : numpy array
-        Debye-Waller integral
-    teff : numpy array
-        Effective temperatures for short collision time approximation
-    elastic : string
-        Elastic approximation used in the element
-        (coherent, incoherent or mixed)
-    awr : float
-        Atomic mass in neutron mass units
-    za : int
-        ZAID (Z*1000 + A)
-    zsymam : float
-        Text representation of the element or isotope
-    sigma_i : float
-        Incoherent bound atom cross section
-    sigma_free : float
-        Scattering free atom cross section
-    """
-
+    #
+    # Container for nuclear data for a single element or isotope.
+    #
     def __init__(self, ad):
-        r"""
-        Parameters
-        ----------
-        ad : NCrystal AtomData
-        """
         self._sigma_i = ad.incoherentXS()
         self._sigma_free = ad.freeScatteringXS()
         self._awr = ad.averageMassAMU() / nc_constants.const_neutron_mass_amu
@@ -228,45 +179,11 @@ class ElementData():
         self._sigma_i = x
 
 class NuclearData():
-    r"""Container for nuclear data for a material.
-
-    Attributes
-    ----------
-    comments : list of string
-        Comments about the origin of the data
-    temperatures : list or tuple of float
-        List of temperatures to process
-    ncmat_cfg : string
-        NCrystal cfg string to convert
-    composition : list of (float, NCrystal AtomData)
-        Composition of the material
-    elements : dictionary
-        Nuclear data for each of the elements of isotopes in the materal
-    edges : list numpy array
-        Energies for the Bragg edges for each temperature
-    sigmaE : list numpy array
-        XS*E for the Bragg edges for each temperature
-    elastic_mode: string
-        Elastic approximation used in the material
-        (greater, scaled or mixed)
-    """
-
+    #
+    # Container for nuclear data for a material.
+    #
     def __init__(self, *, ncmat_cfg, temperatures, elastic_mode,
                           requested_emax, verbosity=1):
-        r"""
-        Parameters
-        ----------
-        ncmat_cfg : string
-            NCrystal cfg string to convert
-        temperatures : list or tuple of float
-            List of temperatures to process
-        elastic_mode : string
-            Elastic approximation used in the material
-            (greater, scaled or mixed)
-        verbosity : integer
-            Level of verbosity for the output
-        """
-
         self._temperatures = tuple(temperatures)
         self._ncmat_cfg = ncmat_cfg
         info_obj = nc_core.createInfo(ncmat_cfg)
@@ -628,41 +545,13 @@ class NuclearData():
                                         break_long_words=False )
 
 class EndfFile():
-    r"""Creates thermal ENDF file.
-       using endf-parserpy
-
-    Methods
-    ----------
-    write(endf_fn)
-        Write ENDF file.
-    """
+    #
+    # Container for data for a therma ENDF file.
+    # Includes a write() method to create the file using endf-parserpy
+    #
     def __init__(self, element, data, mat, endf_metadata, *,
                  include_gif=False, isotopic_expansion=False,
                  smin=None, emax=None, lasym=None, verbosity=1):
-        r"""
-        Parameters
-        ----------
-        element : string
-            Element to be output
-
-        data : NuclearData
-            Nuclear data for the material
-
-        mat: int
-            ENDF material number
-
-        endf_metadata : EndfMetaData
-            Metadata for the ENDF-6 file
-
-        include_gif: boolean
-            Include the generalized information in MF=7/MT=451 in isotopes
-
-        isotopic_expansion: boolean
-            Expand the information in MF=7/MT=451 in isotopes
-
-        verbosity : int
-            Level of verbosity of the output (0: quiet)
-        """
         endf_parserpy,_,_ = import_endfparserpy()
 
         self._endf_parserpy_version = endf_parserpy.__version__
@@ -688,11 +577,10 @@ class EndfFile():
         self._parser = None
 
     def _createMF7MT2(self, elastic):
-        """
-        Creates endf-parserpy dictionary for MF=7 file,
-        MT=2 reaction (thermal elastic) of a thermal ENDF file
-        """
-
+        #
+        # Creates endf-parserpy dictionary for MF=7 file,
+        # MT=2 reaction (thermal elastic) of a thermal ENDF file
+        #
         mat = self._mat
         data = self._data
         awr = data.elements[self._sym].awr
@@ -733,11 +621,10 @@ class EndfFile():
         d['LTHR'] = lthr_values[data.elements[self._sym].elastic]
 
     def _createMF7MT4(self):
-        """
-        Creates endf-parserpy dictionary for MF=7 file,
-        MT=4 reaction (thermal inelastic) of a thermal ENDF file
-        """
-
+        #
+        # Creates endf-parserpy dictionary for MF=7 file,
+        # MT=4 reaction (thermal inelastic) of a thermal ENDF file
+        #
         mat = self._mat
         data = self._data
         awr = data.elements[self._sym].awr
@@ -883,10 +770,11 @@ class EndfFile():
         d['teff0_table/INT'] = [2]
 
     def _createMF7(self):
-        """Creates MF=7 file of a thermal ENDF file.
-           See ENDF-102, sect. 7.
-           https://www.nndc.bnl.gov/endfdocs/ENDF-102-2023.pdf
-        """
+        #
+        # Creates MF=7 file of a thermal ENDF file.
+        #  See ENDF-102, sect. 7.
+        #  https://www.nndc.bnl.gov/endfdocs/ENDF-102-2023.pdf
+        #
         if self._verbosity > 1:
             ncprint('> Generate MF7')
         mat = self._mat
@@ -989,11 +877,11 @@ class EndfFile():
         return [_.ljust(66) for _ in desc]
 
     def _createMF1(self):
-        """Creates MF=1 file of a thermal ENDF file.
-           See ENDF-102, sect. 1.
-           https://www.nndc.bnl.gov/endfdocs/ENDF-102-2023.pdf
-        """
-
+        #
+        # Creates MF=1 file of a thermal ENDF file.
+        #    See ENDF-102, sect. 1.
+        #    https://www.nndc.bnl.gov/endfdocs/ENDF-102-2023.pdf
+        #
         mat = self._mat
         data = self._data
         awr = data.elements[self._sym].awr
@@ -1105,9 +993,11 @@ def _dump_dict( d, prefix, lvl = 1 ):
             _dump_dict(v,prefix+'    ',lvl=lvl+1)
 
 def _interp2d(x, y, x0, y0, z0=None):
-    """
-    Bilinear interpolation on irregular cartesian grids
-    """
+    #
+    # Bilinear interpolation on irregular cartesian grids
+    # Interpolates a 2D array z0, with coordinates given by 1D arrays x0, y0
+    # into a grid defined by 1D arrays x and y
+    #
     if isinstance(x, (int, float)):
         x =_np.array([x])
     if isinstance(y, (int, float)):
