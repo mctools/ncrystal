@@ -44,6 +44,12 @@ jobs:
         with:
           path: ./src
 
+      - name: Checkout test data
+        uses: actions/checkout@v4
+        with:
+          repository: mctools/ncrystal-testdata-openmc
+          path: ./src_data
+
       - name: Prepare conda yml
         shell: python
         run: |
@@ -104,6 +110,15 @@ jobs:
       - run: openmc --version
       - run: python3 -c 'import openmc'
       - run: which njoy
+
+      - name: Prepare OpenMc data
+        run: python3 ./src_data/prepare_data.py
+
+      - name: View generated OpenMC cross_sections.xml
+        run: cat ./src_data/cross_sections.xml
+
+      - name: Set OPENMC_CROSS_SECTIONS
+        run: echo "OPENMC_CROSS_SECTIONS=$PWD/src_data/cross_sections.xml" >> $GITHUB_ENV
 
       #Invoke the actual test in an empty directory:
       - run: mkdir run
