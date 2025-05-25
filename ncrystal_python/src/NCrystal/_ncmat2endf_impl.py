@@ -969,6 +969,248 @@ class EndfFile():
         _dump_dict(self._endf_dict,prefix='  ')
         ncprint('DUMPING endf dict end')
 
+
+def _impl_ncmat2endf( *,
+                      ncmat_cfg,
+                      material_name,
+                      endf_metadata,
+                      temperatures,
+                      elastic_mode,
+                      include_gif,
+                      isotopic_expansion,
+                      force_save,
+                      smin,
+                      emax,
+                      lasym,
+                      verbosity ):
+    from . import exceptions as nc_exceptions
+    from . import core as nc_core
+    from . import misc as nc_misc
+    from . import cfgstr as nc_cfgstr
+    from ._common import warn as ncwarn
+    from ._common import print as ncprint
+    from ._numpy import _ensure_numpy
+    _ensure_numpy()
+
+    if not isinstance(verbosity,int) or not ( 0<=verbosity<=3):
+        raise nc_exceptions.NCBadInput('Invalid value of verbosity parameter'
+                                       ' (expects value 0, 1, 2, or 3):'
+                                       f' {verbosity}')
+
+    from .ncmat2endf import ( EndfMetaData,
+                              available_elastic_modes )
+
+    if not endf_metadata:
+        endf_metadata = EndfMetaData()
+    elif not isinstance(endf_metadata,EndfMetaData):
+        _ = EndfMetaData()
+        _.update_from_dict(endf_metadata)
+        endf_metadata = _
+
+    if elastic_mode not in available_elastic_modes:
+        raise nc_exceptions.NCBadInput(f'Elastic mode {elastic_mode}'
+                                       f' not in ({available_elastic_modes})')
+    info_obj = nc_core.createInfo(ncmat_cfg)
+    if not info_obj.isSinglePhase():
+        raise nc_exceptions.NCBadInput('Only single phase materials supported')
+    if lasym > 0:
+        ncwarn( 'Creating non standard S(a,b)'
+               f' with LASYM = {endf_metadata.lasym}')
+
+    base_temp = info_obj.dyninfos[0].temperature
+    if all(['temp' not in _ for _ in nc_cfgstr.decodeCfg(ncmat_cfg)['pars']]):
+        ncwarn( 'Temperature not explicitly given in the cfg-string, '
+               f' using T = {base_temp:.2f}')
+
+    if temperatures is None:
+        temperatures = tuple()
+    else:
+        if type(temperatures) in (int, float):
+            temperatures = (temperatures,)
+        elif type(temperatures) in (list, tuple):
+            if any(type(T) not in (int, float) for T in temperatures):
+                raise nc_exceptions.NCBadInput('Something wrong with the '
+                                               'temperatures parameter: '
+                                               f'({temperatures})')
+            else:
+                temperatures = tuple(float( T ) for T in temperatures )
+        else:
+            raise nc_exceptions.NCBadInput('temperatures parameter: '
+                                           'should be a list or tuple '
+                                           'of float or int')
+    if base_temp in temperatures:
+        raise nc_exceptions.NCBadInput('Repeated temperatures: '
+                                       'temperatures parameter must not '
+                                       'include the temperature defined '
+                                       'in the cfg string')
+    temperatures = sorted(temperatures + (base_temp,))
+    if len(temperatures) > 1:
+        ncwarn('Multiple temperatures requested. Although this is supported, '
+               'it is not recommended because NCrystal generates '
+               'a custom (alpha,beta) grid for each temperature. '
+               'The (alpha,beta) grid for first temperature will '
+               'be used, and S(alpha, beta) for other temperatures '
+               'will be interpolated.')
+    if any( T<=0 for T in temperatures ):
+        raise nc_exceptions.NCBadInput('Non positive temperatures')
+
+    if nc_core.createScatter(ncmat_cfg).isOriented():
+        raise nc_exceptions.NCBadInput('Oriented materials cannot be '
+                                       'represented in the ENDF format and '
+                                       'are not supported' )
+    scattering_components = nc_misc.detect_scattering_components(ncmat_cfg)
+    if 'sans' in scattering_components:
+        raise nc_exceptions.NCBadInput('SANS cannot be '
+                                       'represented in the ENDF format and '
+                                       'is not supported' )
+    if 'inelas' not in scattering_components:
+        raise nc_exceptions.NCBadInput('MF7/MT4 is mandatory in an ENDF file '
+                                       'but no inelastic data found' )
+    for di in info_obj.dyninfos:
+        if type(di) not in (nc_core.Info.DI_VDOS, nc_core.Info.DI_VDOSDebye):
+            raise nc_exceptions.NCBadInput('Conversion to ENDF supported only '
+                                           'for VDOS and VDOSDebye dyninfos')
+    if (isotopic_expansion and not include_gif):
+        raise nc_exceptions.NCBadInput( 'Isotopic expansion requires '
+                                        'generalized information file, '
+                                        'use --gif' )
+    if (isotopic_expansion and include_gif):
+        raise nc_exceptions.NCBadInput('Isotopic expansion in conversion to'
+                                       ' ENDF is not yet supported')
+
+    if verbosity > 0:
+        ncprint('Initialise nuclear data...')
+
+    data = NuclearData(ncmat_cfg=ncmat_cfg,
+                       temperatures=temperatures,
+                       elastic_mode=elastic_mode,
+                       requested_emax=emax,
+                       verbosity=verbosity)
+
+    if endf_metadata.mat_numbers is not None:
+        n = len(endf_metadata.mat_numbers)
+        for frac, ad in data.composition:
+            if ad.elementName() in endf_metadata.mat_numbers.keys():
+                n = n - 1
+        if n != 0:
+            raise nc_exceptions.NCBadInput('Incorrect material number '
+                                           'assignment')
+
+    if material_name is None:
+        material_name = 'UnknownCompound'
+
+    output_composition = []
+    for frac, ad in data.composition:
+        sym = ad.elementName()
+        mat = ( 999 if not endf_metadata.mat_numbers
+                else endf_metadata.mat_numbers.get(sym))
+        if mat is None:
+            raise nc_exceptions.NCBadInput('Incorrect material number '
+                                           f'assignment for symbol "{sym}"')
+        endf_fn = ( f'tsl_{material_name}.endf'
+                   if sym == material_name
+                   else f'tsl_{sym}_in_{material_name}.endf' )
+        if data.elements[sym].sab_total is not None:
+            endf_file = EndfFile(sym, data, mat, endf_metadata,
+                                 include_gif=include_gif,
+                                 isotopic_expansion=isotopic_expansion,
+                                 smin=smin, emax=emax, lasym=lasym,
+                                 verbosity=verbosity)
+            endf_file.write(endf_fn, force_save)
+            output_composition.append((endf_fn, frac))
+        else:
+            if verbosity > 0:
+                ncprint(f'Scattering kernel not available for: {endf_fn}')
+
+    if verbosity > 0:
+        ncprint('Files created:')
+        for fn, frac in output_composition:
+            ncprint(f'  {fn} with fraction {frac}')
+
+    return output_composition
+
+
+_metadata_definitions = dict(
+    ALAB = dict( defval = 'MyLAB' ),
+    AUTH = dict( defval = 'NCrystal' ),
+    LIBNAME = dict( defval = 'MyLib' ),
+    NLIB = dict( datatype = int, defval = 0 ),
+    REFERENCE = dict( defval = 'REFERENCE' ),
+    LREL = dict( datatype = int, defval = 0 ),
+    NVER = dict( datatype = int, defval = 1 ),
+    MAT_NUMBERS = dict( datatype = 'matnumbers', defval = {} ),
+    ENDATE = dict ( defval = '' ),
+    EDATE = dict( datatype = 'datestr', defval = 'MMMYY' ),
+    DDATE = dict( datatype = 'datestr', defval = 'MMMYY' ),
+    RDATE = dict( datatype = 'datestr',
+                  defval = 'MMMYY' ),
+)
+
+def _impl_get_metadata_params_and_docs(self):
+    """fixme"""
+    #Fixme: also mention default values? Or hide this??
+    d = {}
+    from .ncmat2endf import EndfMetaData
+    for k, v in _metadata_definitions.items():
+        doc = getattr(EndfMetaData,k).__doc__
+        doc = doc or 'missing'#FIXME remove this after adding doc-strings
+        assert doc is not None
+        d[k] = doc
+    return d
+
+def _impl_emd_set( now_MMMYY, data, param, value,  ):
+    k, v = param.upper(), value
+    md = _metadata_definitions.get(k)
+    if not md:
+        from nc_exceptions import NCBadInput
+        raise NCBadInput(f'Invalid EndfMetaData parameter "{k}"')
+    if v is None:
+        v = md['defval']
+        assert v is not None
+        data[k] = v
+        return
+
+    if isinstance(v,str):
+        for e in ['"',"'",'`']:
+            if e in v:
+                raise NCBadInput(f'Forbidden character {e} in value '
+                                 f'of EndfMetaData parameter "{k}"')
+
+    datatype = md.get('datatype',str)
+
+    if isinstance(datatype,str) and datatype == 'datestr':
+        if not isinstance( v, str ):
+            from .exceptions import NCBadInput
+            raise NCBadInput('ENDF date value must be a string')
+            if v.lower()=='now':
+                v = now_MMMYY
+            if len('MMMYY') != len(v):
+                from .exceptions import NCBadInput
+                raise NCBadInput('ENDF date value is not in expected'
+                                 ' format, which is either special value'
+                                 ' "NOW" or a date in the format "MMMYY"'
+                                 ' (e.g. "Jun25").')
+        data[k] = v
+        return
+
+    if isinstance(datatype,str) and datatype == 'matnumbers':
+        if not hasattr(v,'items'):
+            from .exceptions import NCBadInput
+            raise NCBadInput('mat_numbers must be a dict')
+        for kk,vv in v.items():
+            if type(kk) is not str or type(vv) is not int:
+                from .exceptions import NCBadInput
+                raise NCBadInput('mat_numbers must be a dict from element',
+                                 ' labels (str) to material values (int)' )
+        data[k] = v
+        return
+
+    if not isinstance( v, datatype ):
+        from nc_exceptions import NCBadInput
+        raise NCBadInput(f'EndfMetaData parameter "{k}" data '
+                         f'must be of type {datatype.__name__}')
+    data[k] = v
+
 def _dump_dict( d, prefix, lvl = 1 ):
     if not hasattr(d,'items'):
         s = repr(d)
@@ -1065,7 +1307,6 @@ def _interp2d(x, y, x0, y0, z0=None):
                        z12*(yy - yy1)*(xx2 - xx) +
                        z22*(yy - yy1)*(xx - xx1))
     return z
-
 
 def _tidy_beta( x ):
     if not unit_test_chop_svals[0]:
