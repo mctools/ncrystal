@@ -1146,16 +1146,13 @@ _metadata_definitions = dict(
                   defval = 'MMMYY' ),
 )
 
-def _impl_get_metadata_params_and_docs(self):
-    """fixme"""
-    #Fixme: also mention default values? Or hide this??
+def _impl_get_metadata_params_and_docs():
     d = {}
     from .ncmat2endf import EndfMetaData
     for k, v in _metadata_definitions.items():
-        doc = getattr(EndfMetaData,k).__doc__
-        doc = doc or 'missing'#FIXME remove this after adding doc-strings
+        doc = getattr(EndfMetaData,k.lower()).__doc__
         assert doc is not None
-        d[k] = doc
+        d[k] = ' '.join(doc.strip().split())
     return d
 
 def _impl_emd_set( now_MMMYY, data, param, value,  ):

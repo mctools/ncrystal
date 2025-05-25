@@ -141,98 +141,12 @@ class EndfMetaData():
 
     """
 
-    @property
-    def alab(self):
-        """Mnemonic for the originating laboratory."""
-        return self.get('alab')
-
-    @property
-    def libname(self):
-        """Name of the nuclear data library."""
-        return self.get('libname')
-
-    @property
-    def nlib(self):
-        """Nuclear data library identifier (e.g. NLIB=0 for ENDF/B)."""
-        return self.get('nlib')
-
-    @property
-    def auth(self):
-        """Author(s) name(s)."""
-        return self.get('auth')
-
-    @property
-    def reference(self):
-        """Primary reference for the evaluation."""
-        return self.get('reference')
-
-    @property
-    def lrel(self):
-        """Nuclear data library release number."""
-        return self.get('lrel')
-
-    @property
-    def nver(self):
-        """Nuclear data library version number."""
-        return self.get('nver')
-
-    @property
-    def mat_numbers(self):
-        """Fixme add doc string."""
-        return self.get('mat_numbers')
-
-    @property
-    def endate(self):
-        """Master File entry date in the form YYYYMMDD."""
-        #fixme: ^^^ Mention if this is only for ENDF-B ?
-        return self.get('endate')
-
-    @property
-    def edate(self):
-        """Evaluation date in the form MMMYY. The special string "NOW"
-        can be used to select the current date."""
-        return self.get('edate')
-
-    @property
-    def ddate(self):
-        """Distribution date in the form MMMYY. The special string "NOW"
-        can be used to select the current date."""
-        return self.get('ddate')
-
-    @property
-    def rdate(self):
-        """Revision date in the form MMMYY. The special string "NOW" can be used
-        to select the current date."""
-        return self.get('rdate')
-
-    def set_value( self, param, value ):
-        """fixme... also None selects default"""
-        from ._ncmat2endf_impl import _impl_emd_set
-        _impl_emd_set( self.__now_MMMYY, self.__data, param, value )
-
-    def set_all_dates_as_now(self):
-        """Set edate, ddate and rdate to the current date"""
-        for k in 'edate', 'ddate', 'rdate':
-            self.set_value(k,'NOW')
-
-    def get( self, param ):
-        """fixme"""
-        v = self.__data.get(param.upper(),None)
-        if v is None:
-            from nc_exceptions import NCBadInput
-            raise NCBadInput(f'Invalid EndfMetaData parameter "{param}"')
-        return v
-
-    def update_from_dict( self, data ):
-        """fixme"""
-        #fixme: also add "to_dict" method?
-        if isinstance(data,EndfMetaData):
-            return self.update_from_dict( data.__data )
-        for k,v in data.items():
-            self.set_value( k,v )
-
     def __init__(self, data = None):
-        """fixme"""
+        """Initialise new EndfMetaData object, with default values of all
+        parameters. If a data object is given in the form of a dictionary of
+        (key,value) pairs, or another EndfMetaData object, the associated values
+        will be updated accordingly.
+        """
         from datetime import datetime
         import copy
         from ._ncmat2endf_impl import _metadata_definitions
@@ -242,13 +156,116 @@ class EndfMetaData():
         if data:
             self.update_from_dict(data)
 
-    def as_json( self ):
-        """fixme"""
+    @property
+    def alab(self):
+        """Mnemonic for the originating laboratory."""
+        return self.get_value('alab')
+
+    @property
+    def libname(self):
+        """Name of the nuclear data library."""
+        return self.get_value('libname')
+
+    @property
+    def nlib(self):
+        """Nuclear data library identifier (e.g. NLIB=0 for ENDF/B)."""
+        return self.get_value('nlib')
+
+    @property
+    def auth(self):
+        """Author(s) name(s)."""
+        return self.get_value('auth')
+
+    @property
+    def reference(self):
+        """Primary reference for the evaluation."""
+        return self.get_value('reference')
+
+    @property
+    def lrel(self):
+        """Nuclear data library release number."""
+        return self.get_value('lrel')
+
+    @property
+    def nver(self):
+        """Nuclear data library version number."""
+        return self.get_value('nver')
+
+    @property
+    def mat_numbers(self):
+        """Fixme add doc string."""
+        return self.get_value('mat_numbers')
+
+    @property
+    def endate(self):
+        """Master File entry date in the form YYYYMMDD (only used for ENDF-B
+        releases)."""
+        #fixme: ^^^ double-check this doc-string.
+        return self.get_value('endate')
+
+    @property
+    def edate(self):
+        """Evaluation date in the form MMMYY. The special string "NOW"
+        can be used to select the current date."""
+        return self.get_value('edate')
+
+    @property
+    def ddate(self):
+        """Distribution date in the form MMMYY. The special string "NOW"
+        can be used to select the current date."""
+        return self.get_value('ddate')
+
+    @property
+    def rdate(self):
+        """Revision date in the form MMMYY. The special string "NOW" can be used
+        to select the current date."""
+        return self.get_value('rdate')
+
+    def set_value( self, name, value ):
+        """Set value of named parameter (naming is case insensitive). The
+        special value None can be used to revert a parameter to its default
+        value."""
+        from ._ncmat2endf_impl import _impl_emd_set
+        _impl_emd_set( self.__now_MMMYY, self.__data, name, value )
+
+    def set_all_dates_as_now(self):
+        """Set edate, ddate and rdate to the current date"""
+        for k in 'edate', 'ddate', 'rdate':
+            self.set_value(k,'NOW')
+
+    def get_value( self, name ):
+        """Get value of parameter (naming is case insensitive)."""
+        v = self.__data.get(name.upper(),None)
+        if v is None:
+            from nc_exceptions import NCBadInput
+            raise NCBadInput(f'Invalid EndfMetaData parameter "{name}"')
+        return v
+
+    def update_from_dict( self, data ):
+        """Update parameters based on (key,value) pairs in dict. This is the
+        same as calling .set_value(key,value) for all the entries. This method
+        can also be called with data being an EndfMetaData object (essentially
+        updating all values)."""
+        if isinstance(data,EndfMetaData):
+            return self.update_from_dict( data.__data )
+        for k,v in data.items():
+            self.set_value( k,v )
+
+    def to_dict( self ):
+        """Returns dictionary with (key,value) pairs of all parameters and their
+        values."""
+        import copy
+        return copy.deepcopy( self.__data )
+
+    def to_json( self ):
+        """Returns string containing a JSON encoded dictionary with (key,value)
+        pairs of all parameters and their values.
+        """
         import json
         return json.dumps( self.__data )
 
     def __repr__(self):
-        return '%s(%s)'%( self.__class__.__name__, self.as_json() )
+        return '%s(%s)'%( self.__class__.__name__, self.to_json() )
 
     def __str__(self):
         return repr(self)

@@ -45,7 +45,12 @@ test_cfg_fail( NCBadInput, 'Ge_sg227.ncmat;dcutoff=0.5;mos=40arcsec;'
 # Wrong material number assignment
 metadata = EndfMetaData()
 metadata.set_value('MAT_NUMBERS', {"Ge":99} )
-#fixme: test that repr(EndfMetaData) can again be evaluated as metadata object (implement cmp operators to check).
+
+#test a few conversion functions, including that repr(metadata) can be evaluated
+#as EndfMetaData object:
+assert EndfMetaData(metadata).to_json() == metadata.to_json()
+assert EndfMetaData(metadata.to_dict()).to_json() == metadata.to_json()
+assert eval(repr(metadata)).to_json() == metadata.to_json() # round trip
 
 test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', endf_metadata=metadata)
 
