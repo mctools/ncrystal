@@ -10,7 +10,7 @@ FAILED (as expected): Oriented materials cannot be represented in the ENDF forma
 
 
 --------------------------------------------------------------------------------
-{'endf_metadata': EndfMetaData object: ALAB:MyLAB, AUTH:NCrystal, REFERENCE:REFERENCE, NLIB:0, NVER:1, LIBNAME:MyLib, LREL:0, MAT_NUMBERS:{'Ge': 99}, ENDATE:, EDATE:MMMYY, RDATE:MMMYY, DDATE:MMMYY,
+{'endf_metadata': EndfMetaData({"ALAB": "MyLAB", "AUTH": "NCrystal", "LIBNAME": "MyLib", "NLIB": 0, "REFERENCE": "REFERENCE", "LREL": 0, "NVER": 1, "MAT_NUMBERS": {"Ge": 99}, "ENDATE": "", "EDATE": "MMMYY", "DDATE": "MMMYY", "RDATE": "MMMYY"}),
  'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
 Initialise nuclear data...

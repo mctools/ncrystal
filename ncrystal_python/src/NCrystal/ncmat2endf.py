@@ -237,8 +237,11 @@ def ncmat2endf( ncmat_cfg, *,
     from ._ncmat2endf_impl import EndfFile
     for frac, ad in data.composition:
         sym = ad.elementName()
-        mat = ( 999 if endf_metadata.mat_numbers is None
-                    else endf_metadata.mat_numbers[sym])
+        mat = ( 999 if not endf_metadata.mat_numbers
+                else endf_metadata.mat_numbers.get(sym))
+        if mat is None:
+            raise nc_exceptions.NCBadInput('Incorrect material number '
+                                           f'assignment for symbol "{sym}"')
         endf_fn = ( f'tsl_{material_name}.endf'
                    if sym == material_name
                    else f'tsl_{sym}_in_{material_name}.endf' )
@@ -261,227 +264,324 @@ def ncmat2endf( ncmat_cfg, *,
 
     return(output_composition)
 
+
+_metadata_definitions = dict(
+    ALAB = dict( doc = "Mnemonic for the originating laboratory.",
+                 defval = 'MyLAB' ),
+    AUTH = dict( doc = "Author(s) name(s).",
+                 defval = 'NCrystal' ),
+    LIBNAME = dict( doc = "Name of the nuclear data library.",
+                    defval = 'MyLib' ),
+    NLIB = dict( datatype = int,
+                 doc = "Nuclear data library identifier (e.g. NLIB=0 for ENDF/B).",
+                 defval = 0 ),
+    REFERENCE = dict( doc = "Primary reference for the evaluation.",
+                      defval = 'REFERENCE' ),
+    LREL = dict( datatype = int,
+                 doc = "Nuclear data library release number.",
+                 defval = 0 ),
+    NVER = dict( datatype = int,
+                 doc = "Nuclear data library version number.",
+                 defval = 1 ),
+    MAT_NUMBERS = dict( datatype = 'matnumbers',#dict of (str,int) to be more precise
+                        doc = "MISSING? FIXME... should this parameter really be on this class?", #or at least remove the underscore for consistency?
+                        defval = {} ),
+    ENDATE = dict ( doc = 'Master File entry date in the form YYYYMMDD.',
+                    defval = '' ),
+    EDATE = dict( datatype = 'datestr',
+                  doc = ('Evaluation date in the form MMMYY. The special string'
+                         ' "NOW" can be used to select the current date.'),
+                  defval = 'MMMYY' ),
+    DDATE = dict( datatype = 'datestr',
+                  doc = ('Distribution date in the form MMMYY. The special'
+                         ' string "NOW" can be used to select the current'
+                         ' date.'),
+                  defval = 'MMMYY' ),
+    RDATE = dict( datatype = 'datestr',
+                  doc = ('Revision date in the form MMMYY. The special'
+                         ' string "NOW" can be used to select the current'
+                         ' date.'),
+                  defval = 'MMMYY' ),
+)
+
+#def _add_attribs_EMD():
+#    for k, v in _metadata_definitions.items():
+#        EndfMetaData.
+#
+#_add_attribs_EMD()
+#del _add_attribs_EMD
+
+def _impl_emd_set( now_MMMYY, data, param, value,  ):
+    k, v = param.upper(), value
+    md = _metadata_definitions.get(k)
+    if not md:
+        from nc_exceptions import NCBadInput
+        raise NCBadInput(f'Invalid EndfMetaData parameter "{k}"')
+    if v is None:
+        v = md['defval']
+        assert v is not None
+        data[k] = v
+        return
+
+    if isinstance(v,str):
+        for e in ['"',"'",'`']:
+            if e in v:
+                raise NCBadInput(f'Forbidden character {e} in value '
+                                 f'of EndfMetaData parameter "{k}"')
+
+    datatype = md.get('datatype',str)
+
+    if isinstance(datatype,str) and datatype == 'datestr':
+        if not isinstance( v, str ):
+            from .exceptions import NCBadInput
+            raise NCBadInput('ENDF date value must be a string')
+            if v.lower()=='now':
+                v = now_MMMYY
+            if len('MMMYY') != len(v):
+                from .exceptions import NCBadInput
+                raise NCBadInput('ENDF date value is not in expected'
+                                 ' format, which is either special value'
+                                 ' "NOW" or a date in the format "MMMYY"'
+                                 ' (e.g. "Jun25").')
+        data[k] = v
+        return
+
+    if isinstance(datatype,str) and datatype == 'matnumbers':
+        if not hasattr(v,'items'):
+            from .exceptions import NCBadInput
+            raise NCBadInput('mat_numbers must be a dict')
+        for kk,vv in v.items():
+            if type(kk) is not str or type(vv) is not int:
+                from .exceptions import NCBadInput
+                raise NCBadInput('mat_numbers must be a dict from element',
+                                 ' labels (str) to material values (int)' )
+        data[k] = v
+        return
+
+    if not isinstance( v, datatype ):
+        from nc_exceptions import NCBadInput
+        raise NCBadInput(f'EndfMetaData parameter "{k}" data '
+                         f'must be of type {datatype.__name__}')
+    data[k] = v
+
 class EndfMetaData():
-    """Optional MetaData Parameters for the ENDF-6 file describing the origin and
-       authorship of the file.  For more information see the ENDF-6 format
+    """Optional MetaData Parameters for the ENDF-6 file describing the origin
+       and authorship of the file. For more information see the ENDF-6 format
        manual: https://www.nndc.bnl.gov/endfdocs/ENDF-102-2023.pdf
-
-    Attributes
-    ----------
-    alab : string
-        Mnemonic for the originating laboratory
-
-    libname : string
-        Name of the nuclear data library
-
-    nlib : int
-        Nuclear data library identifier (e.g. NLIB= 0 for ENDF/B).
-
-    auth : string
-        Author(s) name(s).
-
-    reference : string
-        Primary reference for the evaluation.
-
-    lrel : int
-        Nuclear data library release number.
-
-    nver : int
-        Nuclear data library version number.
-
-    endate: string
-        Master File entry date in the form YYYYMMDD.
-
-    edate: string Evaluation date in the form MMMYY. The special string "NOW"
-        can be used to select the current date.
-
-    ddate: string Distribution date in the form MMMYY. The special string "NOW"
-        can be used to select the current date.
-
-    rdate: string
-        Revision date in the form MMMYY. The special string "NOW" can be used to
-        select the current date.
 
     """
 
-    def __init__(self):
+    def get( self, param ):
+        """fixme"""
+        v = self.__data.get(param.upper(),None)
+        if v is None:
+            from nc_exceptions import NCBadInput
+            raise NCBadInput(f'Invalid EndfMetaData parameter "{param}"')
+        return v
+
+    def set_value( self, param, value ):
+        """fixme... also None selects default"""
+        _impl_emd_set( self.__now_MMMYY, self.__data, param, value )
+
+    def update_from_dict( self, data ):
+        if isinstance(data,EndfMetaData):
+            return self.update_from_dict( data.__data )
+        for k,v in data.items():
+            self.set_value( k,v )
+
+    def __init__(self, data = None):
         #fixme: to _ncmat2endf_impl.py. And encoding all data in dictionary will
         #make the rest of the class easier.
-        self.__alab = 'MyLAB'
-        self.__auth = 'NCrystal'
-        self.__reference = 'REFERENCE'
-        self.__nver = 1
-        self.__libname = 'MyLib'
-        self.__endate = ''
-        self.__nlib = 0
-        self.__lrel = 0
-        self.__mat_numbers = None
-        self.__edate = 'MMMYY'
-        self.__rdate = 'MMMYY'
-        self.__ddate = 'MMMYY'
+
+        #fixme: all set_... methods should double-check that types are correct.
+
+        import copy
+        self.__data = dict( (k,copy.deepcopy(v['defval']))#fixme: def mat_numbers is a non-immutable type, check that it does not make trouble
+                            for k,v in _metadata_definitions.items() )
 
         #Ensure that all "NOW" dates will be evaluated from the same datetime
         #instance by capturing it here in init:
         from datetime import datetime
         now = datetime.now()
-        now_MMMYY = now.strftime('%b%y').upper()
-        def fmtdate(val, fmt):
-            if not isinstance( val, str ):
-                from .exceptions import NCBadInput
-                raise NCBadInput('ENDF date value must be a string')
-            assert fmt == 'MMMYY'
-            if val.lower()=='now':
-                return now_MMMYY
-            if len(fmt) != len(val):
-                from .exceptions import NCBadInput
-                raise NCBadInput('ENDF date value is not in expected'
-                                 f' format ("NOW" or "{fmt}")')
-            return val
-        self.__fmtdate = fmtdate
+        self.__now_MMMYY = now.strftime('%b%y').upper()
+#        def fmtdate(val, fmt):
+#            if not isinstance( val, str ):
+#                from .exceptions import NCBadInput
+#                raise NCBadInput('ENDF date value must be a string')
+#            assert fmt == 'MMMYY'
+#            if val.lower()=='now':
+#                return now_MMMYY
+#            if len(fmt) != len(val):
+#                from .exceptions import NCBadInput
+#                raise NCBadInput('ENDF date value is not in expected'
+#                                 f' format ("NOW" or "{fmt}")')
+#            return val
+#        self.__fmtdate = fmtdate
+#
+        if data:
+            self.update_from_dict(data)
+
+#        self.__alab = 'MyLAB'
+#        self.__auth = 'NCrystal'
+#        self.__reference = 'REFERENCE'
+#        self.__nver = 1
+#        self.__libname = 'MyLib'
+#        self.__endate = ''
+#        self.__nlib = 0
+#        self.__lrel = 0
+#        self.__mat_numbers = None
+#        self.__edate = 'MMMYY'
+#        self.__rdate = 'MMMYY'
+#        self.__ddate = 'MMMYY'
+#
+
+    #fixme: repr should format json dict, __str__ instead?
+
+    def as_json( self ):
+        import json
+        return json.dumps( self.__data )
 
     def __repr__(self):
-        s = ('EndfMetaData object: '+
-            f'ALAB:{self.alab}, '+
-            f'AUTH:{self.auth}, '+
-            f'REFERENCE:{self.reference}, '+
-            f'NLIB:{self.nlib}, '+
-            f'NVER:{self.nver}, '+
-            f'LIBNAME:{self.libname}, '+
-            f'LREL:{self.lrel}, '+
-            f'MAT_NUMBERS:{self.mat_numbers}, '+
-            f'ENDATE:{self.endate}, '+
-            f'EDATE:{self.edate}, '+
-            f'RDATE:{self.rdate}, '+
-            f'DDATE:{self.ddate}')
-        return s
+        return '%s(%s)'%(
+            self.__class__.__name__,
+            self.as_json()
+        )
+#        return '%s({%s})'%(
+#            self.__class__.__name__,
+#            ', '.join(f'{repr(k.upper())}:{repr(v)}' for k,v in self.__data.items() )
+#        )
+#
+    def __str__(self):
+        return repr(self)
+
+
+#        s = ('EndfMetaData object: '+
+#            f'ALAB:{self.alab}, '+
+#            f'AUTH:{self.auth}, '+
+#            f'REFERENCE:{self.reference}, '+
+#            f'NLIB:{self.nlib}, '+
+#            f'NVER:{self.nver}, '+
+#            f'LIBNAME:{self.libname}, '+
+#            f'LREL:{self.lrel}, '+
+#            f'MAT_NUMBERS:{self.mat_numbers}, '+
+#            f'ENDATE:{self.endate}, '+
+#            f'EDATE:{self.edate}, '+
+#            f'RDATE:{self.rdate}, '+
+#            f'DDATE:{self.ddate}')
+#        return s
 
     @property
     def alab(self):
-        """fixme docstrings down here"""
-        return self.__alab
-
-    def set_alab(self, x):
-        self.__alab = x
+        """Mnemonic for the originating laboratory."""
+        return self.get('alab')
 
     @property
     def libname(self):
-        return self.__libname
-
-    def set_libname(self, x):
-        self.__libname = x
+        """Name of the nuclear data library."""
+        return self.get('libname')
 
     @property
     def nlib(self):
-        return self.__nlib
-
-    def set_nlib(self, x):
-        self.__nlib = x
+        """Nuclear data library identifier (e.g. NLIB= 0 for ENDF/B)."""
+        return self.get('nlib')
 
     @property
     def auth(self):
-        return self.__auth
-
-    def set_auth(self, x):
-        self.__auth = x
+        """Author(s) name(s)."""
+        return self.get('auth')
 
     @property
     def reference(self):
-        return self.__reference
-
-    def set_reference( self, x ):
-        self.__reference = x
+        """Primary reference for the evaluation."""
+        return self.get('reference')
 
     @property
     def lrel(self):
-        return self.__lrel
-
-    def set_lrel(self,x):
-        self.__lrel = x
+        """Nuclear data library release number."""
+        return self.get('lrel')
 
     @property
     def nver(self):
-        return self.__nver
-
-    def set_nver(self, x):
-        self.__nver = x
+        """Nuclear data library version number."""
+        return self.get('nver')
 
     def set_all_dates_as_now(self):
-        self.set_edate('NOW')
-        self.set_ddate('NOW')
-        self.set_rdate('NOW')
+        """Set edate, ddate and rdate to the current date"""
+        self.set_value('edate','NOW')
+        self.set_value('ddate','NOW')
+        self.set_value('rdate','NOW')
 
     @property
     def mat_numbers(self):
-        return self.__mat_numbers
-    def set_mat_numbers(self, x):
-        if not hasattr(x,'items'):
-            from .exceptions import NCBadInput
-            raise NCBadInput('mat_numbers must be a dict')
-        for k,v in x.items():
-            if type(k) is not str or type(v) is not int:
-                from .exceptions import NCBadInput
-                raise NCBadInput('mat_numbers must be a dict with str keys',
-                                 ' (element labels) and int values',
-                                 ' (material values)' )
-        self.__mat_numbers = x
+        return self.get('mat_numbers')
+
+    #def set_mat_numbers(self, x):
+    #    if not hasattr(x,'items'):
+    #        from .exceptions import NCBadInput
+    #        raise NCBadInput('mat_numbers must be a dict')
+    #    for k,v in x.items():
+    #        if type(k) is not str or type(v) is not int:
+    #            from .exceptions import NCBadInput
+    #            raise NCBadInput('mat_numbers must be a dict with str keys',
+    #                             ' (element labels) and int values',
+    #                             ' (material values)' )
+    #    self.__mat_numbers = x
 
     @property
     def endate(self):
-        return self.__endate
+        """Master File entry date in the form YYYYMMDD."""
+        #fixme: ^^^ mention if this is only for ENDF-B ?
+        return self.get('endate')
 
     @property
     def edate(self):
-        """fixme"""
-        return self.__edate
+        """Evaluation date in the form MMMYY. The special string "NOW"
+        can be used to select the current date."""
+        return self.get('edate')
 
-    def set_edate(self, x):
-        self.__edate = self.__fmtdate(x, 'MMMYY')
+#    def set_edate(self, x):
+#        self.__edate = self.__fmtdate(x, 'MMMYY')
 
     @property
     def ddate(self):
-        return self.__ddate
+        """Distribution date in the form MMMYY. The special string "NOW"
+        can be used to select the current date."""
+        return self.get('ddate')
 
-    def set_ddate(self, x):
-        self.__ddate = self.__fmtdate(x, 'MMMYY')
+    #def set_ddate(self, x):
+    #    self.__ddate = self.__fmtdate(x, 'MMMYY')
 
     @property
     def rdate(self):
-        return self.__rdate
+        """Revision date in the form MMMYY. The special string "NOW" can be used
+        to select the current date."""
+        return self.get('rdate')
 
-    def set_rdate(self, x):
-        self.__ddate = self.__fmtdate(x, 'MMMYY')
+    #def set_rdate(self, x):
+    #    self.__ddate = self.__fmtdate(x, 'MMMYY')
 
-    def update_from_dict(self,d):
-        """fixme: todo. Mention that the special key-value 'date':'NOW' or
-        'date':'YYYYMMDD' can be used as a shorthand for setting all dates to
-        that value (todo implement)"""
-        if not hasattr(d,'items'):
-            from .exceptions import NCBadInput
-            raise NCBadInput('Parameter must be a dict')
-        for k,v in d.items():
-            setfct=getattr(self,f'set_{k}',None)
-            if not setfct:
-                from .exceptions import NCBadInput
-                raise NCBadInput(f'Key "{k}" in dict is not a'
-                                 ' supported EndfMetaData key')
-            setfct(v)
+    #def update_from_dict(self,d):
+    #
+    #    """fixme: todo. Mention that the special key-value 'date':'NOW' or
+    #    'date':'YYYYMMDD' can be used as a shorthand for setting all dates to
+    #    that value (todo implement)"""
+    #    if not hasattr(d,'items'):
+    #        from .exceptions import NCBadInput
+    #        raise NCBadInput('Parameter must be a dict')
+    #    for k,v in d.items():
+    #        setfct=getattr(self,f'set_{k}',None)
+    #        if not setfct:
+    #            from .exceptions import NCBadInput
+    #            raise NCBadInput(f'Key "{k}" in dict is not a'
+    #                             ' supported EndfMetaData key')
+    #        setfct(v)
 
     def get_param_and_docs(self):
+        #Fixme: also mention default values?
         d = {}
-        for k in sorted(k[4:] for k in dir(self) if k.startswith('set_')):
-            if k in ['all_dates_as_now']:
-                continue
+        for k, v in _metadata_definitions.items():
             doc = getattr(EndfMetaData,k).__doc__
             doc = doc or 'missing'#FIXME remove this after adding doc-strings
             assert doc is not None
             d[k] = doc
         return d
-
-def _show_metadata_doc():
-    #Fixme: Better implementation with examples of how to use from CLI.
-    d = EndfMetaData().get_param_and_docs()
-    for k,v in sorted(d.items()):
-        print( k,v )
-
-if __name__=='__main__':
-    _show_metadata_doc()

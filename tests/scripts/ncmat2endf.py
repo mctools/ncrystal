@@ -44,8 +44,11 @@ test_cfg_fail( NCBadInput, 'Ge_sg227.ncmat;dcutoff=0.5;mos=40arcsec;'
                'dir2=@crys_hkl:0,-1,1@lab:0,1,0')
 # Wrong material number assignment
 metadata = EndfMetaData()
-metadata.set_mat_numbers( {"Ge":99} )
+metadata.set_value('MAT_NUMBERS', {"Ge":99} )
+#fixme: test that repr(EndfMetaData) can again be evaluated as metadata object (implement cmp operators to check).
+
 test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', endf_metadata=metadata)
+
 # Negative temperatures
 test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', temperatures=[-100])
 # Repeated temperatures

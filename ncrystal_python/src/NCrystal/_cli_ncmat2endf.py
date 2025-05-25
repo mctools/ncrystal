@@ -22,6 +22,8 @@
 from ._cliimpl import ( create_ArgumentParser,
                         cli_entry_point )
 
+longopt_metadata = '--mdata'
+
 def _parseArgs( progname, arglist, return_parser=False ):
     from .ncmat2endf import ( available_elastic_modes,
                               default_smin_value,
@@ -74,7 +76,6 @@ def _parseArgs( progname, arglist, return_parser=False ):
     metavar_matname = 'NAME'
     metavar_metadata = 'DATA'
     longopt_elastic = '--elas'
-    longopt_metadata = '--mdata'
     longopt_matname = '--mat'
     longopt_datenow = '--date-now'
     usagestr = (
@@ -175,8 +176,7 @@ def _parseArgs( progname, arglist, return_parser=False ):
     args=parser.parse_args(arglist)
     if args.mdata:
         if args.mdata == 'help':
-            from .ncmat2endf import _show_metadata_doc
-            _show_metadata_doc()
+            show_metadata_doc()
             raise SystemExit(0)
         args.mdata = json.loads(args.mdata)
         if not isinstance(args.mdata,dict):
@@ -228,3 +228,35 @@ def _main_impl( args ):
                 emax = args.emax,
                 lasym = lasym,
                 verbosity = args.verbose )
+
+def show_metadata_doc():
+    from .ncmat2endf import EndfMetaData
+    from ._common import print
+    import textwrap
+
+    d = EndfMetaData().get_param_and_docs()
+    assert 'libname' in d
+    assert 'alab' in d
+    txt = [
+        f"""Meta-data for ENDF can be provided by the {longopt_metadata} option,
+        by specifying a JSON dictionary like:
+        """.strip(),
+        ("""
+        %s='{ "libname" : "MySuperLib", "alab" : "MySuperLab" }'
+        """%longopt_metadata).strip(),
+        """
+        The list of supported meta-data keys and their meaning is:
+        """
+    ]
+    w = 80
+    txt = '\n\n'.join(textwrap.fill(' '.join(e.strip().split()),w)
+                      for e in txt) + '\n\n'
+
+
+    kmax = max(len(k) for k in d)
+    for k, v in d.items():
+        s = f'   {k.rjust(kmax)} : '
+        for i,e in enumerate(textwrap.fill( v, width=w-len(s) ).splitlines()):
+            txt += ('' if i else s) + e.ljust( w ) + '\n'
+        txt += '\n'
+    print( txt )
