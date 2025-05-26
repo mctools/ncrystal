@@ -125,4 +125,4 @@ jobs:
 
       - name: Run devel/ci/endf.x test script
         working-directory: run
-        run: ../src/devel/ci/endf.x
+        run: python3 ../src/devel/ci/endf.py
