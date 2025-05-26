@@ -30,13 +30,14 @@ import NCrystalDev.constants as nc_constants
 import NCrystalDev.atomdata as nc_atomdata
 import NCrystalDev.vdos as nc_vdos
 import NCrystalDev.ncmat as nc_ncmat
+import NCrystalDev._ncmat2endf_impl as ncmat2endf_impl
 
 from .common import ( print_text_file_with_snipping,
                       require_flteq )
 
 def test_cfg( cfg, check_teff=False,
               ref_parsed=None, check_edge_positions=False,
-              compare_xsec=False,
+              compare_xsec=False, dump_file=False,
              **kwargs ):
     import pprint
     print()
@@ -57,12 +58,13 @@ def test_cfg( cfg, check_teff=False,
         xs_test = _np.zeros(_np.shape(E))
     for endf_fn, frac in res:
         print(f"Created file {endf_fn} with fraction {frac}")
-        with open(endf_fn) as f:
-            text = "".join(f.readlines())
-            print_text_file_with_snipping(text,
-                                          nstart=140,
-                                          nend=70,
-                                          prefix='endf>')
+        if dump_file:
+            with open(endf_fn) as f:
+                text = "".join(f.readlines())
+                print_text_file_with_snipping(text,
+                                              nstart=140,
+                                              nend=70,
+                                              prefix='endf>')
         parser, endf_dic = None, None
         EndfParser, list_parsed_sections = None, None
         if check_teff or ref_parsed or check_edge_positions:

@@ -26,8 +26,11 @@ import NCTestUtils.enable_fpe # noqa F401
 import NCTestUtils.reprint_escaped_warnings # noqa F401
 from NCTestUtils.ncmat2endf_utils import test_cfg
 from NCrystalDev.ncmat2endf import EndfMetaData
-
-#FIXME: This script currently leaves version numbers in the output!
+import NCrystalDev._ncmat2endf_impl as ncmat2endf_impl
+ncmat2endf_impl.unit_test_not_write_version[0] = True
+# We need precision to compute the XS, but it would produce
+# differences in the least significant digits
+ncmat2endf_impl.unit_test_dump[0] = False
 
 d = {'mat_numbers':{"Si":37},
      'edate':'JUL01',
@@ -45,5 +48,6 @@ m = EndfMetaData()
 m.update_from_dict(d)
 
 test_cfg('Si_sg227.ncmat;vdoslux=1', elastic_mode='scaled',
-          check_edge_positions=True, endf_metadata=d, compare_xsec=True)
+          check_edge_positions=True, endf_metadata=d,
+          compare_xsec=True, dump_file=False)
 
