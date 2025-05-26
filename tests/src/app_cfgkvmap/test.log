@@ -1,0 +1,45 @@
+m: CfgKeyValMap( varid=10)
+{}
+m2: CfgKeyValMap( varid=10)
+{}
+Got expected NCBadInput error: CfgKeyValMap::getValue invalid key "sddslkf234324cd3"
+m: CfgKeyValMap( varid=10, "a": "b", "foo": "bar")
+{"a":"b","foo":"bar"}
+m2: CfgKeyValMap( varid=10, "a": "b", "foo": "bar")
+{"a":"b","foo":"bar"}
+Got expected NCBadInput error: CfgKeyValMap::getValue invalid key "sddslkf234324cd3"
+m: CfgKeyValMap( varid=10, "foo": "bar")
+{"foo":"bar"}
+m2: CfgKeyValMap( varid=10, "foo": "bar")
+{"foo":"bar"}
+Got expected NCBadInput error: CfgKeyValMap::getValue invalid key "sddslkf234324cd3"
+Got expected NCBadInput error: CfgKeyValMap::encode duplicate key "foo"
+Got expected NCBadInput error: CfgKeyValMap::encode invalid key "fo o"
+Got expected NCBadInput error: CfgKeyValMap::encode invalid key "fo-o"
+Got expected NCBadInput error: CfgKeyValMap::encode invalid chars in value for key "foo"
+m: CfgKeyValMap( varid=10, "foo": "bar 1.e24324 +- dsfsdf")
+{"foo":"bar 1.e24324 +- dsfsdf"}
+m2: CfgKeyValMap( varid=10, "foo": "bar 1.e24324 +- dsfsdf")
+{"foo":"bar 1.e24324 +- dsfsdf"}
+Got expected NCBadInput error: CfgKeyValMap::getValue invalid key "sddslkf234324cd3"
+m: CfgKeyValMap( varid=10, "a": "b", "a1": "b", "a10": "b", "a11": "b", "a12": "b", "a14": "b", "a2": "b", "a3": "b", "a4": "b", "a5": "b", "a6": "b", "a7": "b", "a8": "b", "a9": "b", "foo": "bar")
+{"a":"b","a1":"b","a10":"b","a11":"b","a12":"b","a14":"b","a2":"b","a3":"b","a4":"b","a5":"b","a6":"b","a7":"b","a8":"b","a9":"b","foo":"bar"}
+m2: CfgKeyValMap( varid=10, "a": "b", "a1": "b", "a10": "b", "a11": "b", "a12": "b", "a14": "b", "a2": "b", "a3": "b", "a4": "b", "a5": "b", "a6": "b", "a7": "b", "a8": "b", "a9": "b", "foo": "bar")
+{"a":"b","a1":"b","a10":"b","a11":"b","a12":"b","a14":"b","a2":"b","a3":"b","a4":"b","a5":"b","a6":"b","a7":"b","a8":"b","a9":"b","foo":"bar"}
+Got expected NCBadInput error: CfgKeyValMap::getValue invalid key "sddslkf234324cd3"
+m: CfgKeyValMap( varid=10, "aaa": "aaaval", "bbb": "bbbval")
+{"aaa":"aaaval","bbb":"bbbval"}
+m2: CfgKeyValMap( varid=10, "aaa": "aaaval", "bbb": "bbbval")
+{"aaa":"aaaval","bbb":"bbbval"}
+Got expected NCBadInput error: CfgKeyValMap::getValue invalid key "sddslkf234324cd3"
+m: CfgKeyValMap( varid=10, "aaa": "aaaval", "bbb": "bbbval")
+{"aaa":"aaaval","bbb":"bbbval"}
+m2: CfgKeyValMap( varid=10, "aaa": "aaaval", "bbb": "bbbval")
+{"aaa":"aaaval","bbb":"bbbval"}
+Got expected NCBadInput error: CfgKeyValMap::getValue invalid key "sddslkf234324cd3"
+m: CfgKeyValMap( varid=10, "foo11111111111111111111111111111111111111111111111111122222222222222222222222222222222222222222222222222222222333333333333333333333333333333333333333333333333333333333344444444444444444444444444444444444444444444444444444444445555555555555555555555555555555555555555555555555555555555": "baraaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbcccccccccccccccccccccccccccccccccccccccccccccccccccccccccc")
+{"foo11111111111111111111111111111111111111111111111111122222222222222222222222222222222222222222222222222222222333333333333333333333333333333333333333333333333333333333344444444444444444444444444444444444444444444444444444444445555555555555555555555555555555555555555555555555555555555":"baraaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbcccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"}
+m2: CfgKeyValMap( varid=10, "foo11111111111111111111111111111111111111111111111111122222222222222222222222222222222222222222222222222222222333333333333333333333333333333333333333333333333333333333344444444444444444444444444444444444444444444444444444444445555555555555555555555555555555555555555555555555555555555": "baraaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbcccccccccccccccccccccccccccccccccccccccccccccccccccccccccc")
+{"foo11111111111111111111111111111111111111111111111111122222222222222222222222222222222222222222222222222222222333333333333333333333333333333333333333333333333333333333344444444444444444444444444444444444444444444444444444444445555555555555555555555555555555555555555555555555555555555":"baraaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbcccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"}
+Got expected NCBadInput error: CfgKeyValMap::getValue invalid key "sddslkf234324cd3"
+mdd: CfgKeyValMap( varid=17, "aaa": "bbb")
