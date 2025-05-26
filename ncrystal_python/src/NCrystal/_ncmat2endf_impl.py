@@ -1088,10 +1088,10 @@ def _impl_ncmat2endf( *,
                        requested_emax=emax,
                        verbosity=verbosity)
 
-    if endf_metadata.mat_numbers is not None:
-        n = len(endf_metadata.mat_numbers)
+    if endf_metadata.matnum is not None:
+        n = len(endf_metadata.matnum)
         for frac, ad in data.composition:
-            if ad.elementName() in endf_metadata.mat_numbers.keys():
+            if ad.elementName() in endf_metadata.matnum.keys():
                 n = n - 1
         if n != 0:
             raise nc_exceptions.NCBadInput('Incorrect material number '
@@ -1103,8 +1103,8 @@ def _impl_ncmat2endf( *,
     output_composition = []
     for frac, ad in data.composition:
         sym = ad.elementName()
-        mat = ( 999 if not endf_metadata.mat_numbers
-                else endf_metadata.mat_numbers.get(sym))
+        mat = ( 999 if not endf_metadata.matnum
+                else endf_metadata.matnum.get(sym))
         if mat is None:
             raise nc_exceptions.NCBadInput('Incorrect material number '
                                            f'assignment for symbol "{sym}"')
@@ -1139,7 +1139,7 @@ _metadata_definitions = dict(
     REFERENCE = dict( defval = 'REFERENCE' ),
     LREL = dict( datatype = int, defval = 0 ),
     NVER = dict( datatype = int, defval = 1 ),
-    MAT_NUMBERS = dict( datatype = 'matnumbers', defval = {} ),
+    MATNUM = dict( datatype = 'matnumbers', defval = {} ),
     ENDATE = dict ( defval = '' ),
     EDATE = dict( datatype = 'datestr', defval = 'MMMYY' ),
     DDATE = dict( datatype = 'datestr', defval = 'MMMYY' ),
@@ -1160,7 +1160,7 @@ def _impl_emd_set( now_MMMYY, data, param, value,  ):
     k, v = param.upper(), value
     md = _metadata_definitions.get(k)
     if not md:
-        from nc_exceptions import NCBadInput
+        from .exceptions import NCBadInput
         raise NCBadInput(f'Invalid EndfMetaData parameter "{k}"')
     if v is None:
         v = md['defval']
@@ -1194,17 +1194,17 @@ def _impl_emd_set( now_MMMYY, data, param, value,  ):
     if isinstance(datatype,str) and datatype == 'matnumbers':
         if not hasattr(v,'items'):
             from .exceptions import NCBadInput
-            raise NCBadInput('mat_numbers must be a dict')
+            raise NCBadInput('MATNUM must be a dict')
         for kk,vv in v.items():
             if type(kk) is not str or type(vv) is not int:
                 from .exceptions import NCBadInput
-                raise NCBadInput('mat_numbers must be a dict from element',
+                raise NCBadInput('MATNUM must be a dict from element',
                                  ' labels (str) to material values (int)' )
         data[k] = v
         return
 
     if not isinstance( v, datatype ):
-        from nc_exceptions import NCBadInput
+        from .exceptions import NCBadInput
         raise NCBadInput(f'EndfMetaData parameter "{k}" data '
                          f'must be of type {datatype.__name__}')
     data[k] = v

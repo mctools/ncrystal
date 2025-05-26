@@ -192,9 +192,9 @@ class EndfMetaData():
         return self.get_value('nver')
 
     @property
-    def mat_numbers(self):
+    def matnum(self):
         """Fixme add doc string."""
-        return self.get_value('mat_numbers')
+        return self.get_value('matnum')
 
     @property
     def endate(self):

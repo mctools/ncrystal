@@ -32,6 +32,7 @@ def _parseArgs( progname, arglist, return_parser=False ):
     from argparse import RawTextHelpFormatter
     import textwrap
     import json
+    import shlex
 
     helpw = 60
     descrw = helpw + 22
@@ -65,28 +66,38 @@ def _parseArgs( progname, arglist, return_parser=False ):
     #  2) The ncmat2endf CLI --help text in _cli_ncmat2endf.py
     #
 
-    descr = '\n\n'.join(textwrap.fill(' '.join(e.strip().split()),descrw)
-                        for e in descr_sections)
-    txt1 = '{"mat_numbers":{"Si":99}}'
-    txt2 = '{"mat_numbers":{"Zn":101, "O":102}}'
-    txt3 = '{"mat_numbers":{"Bi":200}}'
-    descr = f"""\n\nExample invocations:
-
-    $> {progname} 'Al_sg225.ncmat;temp=350K'
-    $> {progname} 'Si_sg227.ncmat' -m Si --mdata '{txt1}' -f --date-now
-    $> {progname} 'ZnO_sg186_ZincOxide.ncmat' -m ZnO \\
-                  --mdata '{txt2}' -e scaled
-    $> {progname} 'Bi_sg166.ncmat;comp=inelas;temp=77K' -m Bi \\
-                  --mdata '{txt3}'
-
-    """
-
     metavar_elastic = 'MODE'
     metavar_matname = 'NAME'
     metavar_metadata = 'DATA'
     longopt_elastic = '--elas'
     longopt_matname = '--mat'
-    longopt_datenow = '--date-now'
+    longopt_datenow = '--now'
+    prognmws = ' '*len(progname)
+
+    descr = '\n\n'.join(textwrap.fill(' '.join(e.strip().split()),descrw)
+                        for e in descr_sections)
+
+    shq = shlex.quote
+    ex_mdata_si = shq(json.dumps({"MATNUM":{"Si":99}}))
+    ex_mdata_zno = shq(json.dumps({"MATNUM":{"Zn":101, "O":102}}))
+    ex_mdata_bi = shq(json.dumps({"MATNUM":{"Bi":200}}))
+
+
+    descr = f"""\n\nExample invocations:
+
+    $> {progname} {shq('Al_sg225.ncmat;temp=350K')}
+
+    $> {progname} {shq('Si_sg227.ncmat;temp=293.6K')} -m Si \\
+       {prognmws} {longopt_metadata} {ex_mdata_si} {longopt_datenow}
+
+    $> {progname} {shq('ZnO_sg186_ZincOxide.ncmat;temp=293.15K')} -m ZnO \\
+       {prognmws} {longopt_metadata} {ex_mdata_zno} -e scaled
+
+    $> {progname} {shq('Bi_sg166.ncmat;comp=inelas;temp=77K')} -m Bi \\
+       {prognmws} {longopt_metadata} {ex_mdata_bi} --force
+
+    """
+
     usagestr = (
         f'{progname} CFGSTR [{longopt_elastic} {metavar_elastic}]'
         + f' [{longopt_matname} {metavar_matname}]'
@@ -220,7 +231,7 @@ def _main_impl( args ):
     metadata = EndfMetaData()
     if args.mdata:
         metadata.update_from_dict(args.mdata)
-    if args.date_now:
+    if args.now:
         metadata.set_all_dates_as_now()
     lasym = 0
     if args.totsab:

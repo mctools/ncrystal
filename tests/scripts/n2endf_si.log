@@ -8,7 +8,7 @@
                    'ddate': 'JUL01',
                    'edate': 'JUL01',
                    'libname': 'TestLib',
-                   'mat_numbers': {'Si': 37},
+                   'matnum': {'Si': 37},
                    'nlib': 0,
                    'nver': 4,
                    'rdate': 'JUL01',
