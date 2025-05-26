@@ -203,7 +203,7 @@ def _parseArgs( progname, arglist, return_parser=False ):
             parser.error(f'Argument to {longopt_metadata} must be a JSON'
                          ' dictionary of key, value pairs')
 
-    #map verbosity to 0...3 needed for Python api:
+    #map verbosity to 0...3 needed for Python API:
     if args.quiet:
         if args.verbose:
             parser.error('Inconsistent usage of --quiet and --verbose flags')

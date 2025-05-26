@@ -106,7 +106,7 @@ def ncmat2endf( ncmat_cfg, *,
     Returns
     -------
     output_composition: list of (str, float)
-        List of tuples contanining the ENDF-6 files and
+        List of tuples containing the ENDF-6 files and
         their fraction in the composition
 
     """
@@ -236,8 +236,8 @@ class EndfMetaData():
     def get_value( self, name ):
         """Get value of parameter (naming is case insensitive)."""
         v = self.__data.get(name.upper(),None)
-        if v is None:
-            from nc_exceptions import NCBadInput
+        if v is None and not name.upper() in self.__data:
+            from .exceptions import NCBadInput
             raise NCBadInput(f'Invalid EndfMetaData parameter "{name}"')
         return v
 
@@ -247,7 +247,7 @@ class EndfMetaData():
         can also be called with data being an EndfMetaData object (essentially
         updating all values)."""
         if isinstance(data,EndfMetaData):
-            return self.update_from_dict( data.__data )
+            return self.update_from_dict( data.to_dict() )
         for k,v in data.items():
             self.set_value( k,v )
 
