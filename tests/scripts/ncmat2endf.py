@@ -47,7 +47,7 @@ metadata = EndfMetaData()
 metadata.set_value('MATNUM', {"Ge":99} )
 
 #test a few conversion functions, including that repr(metadata) can be evaluated
-#as EndfMetaData object:
+#as an EndfMetaData object:
 assert EndfMetaData(metadata).to_json() == metadata.to_json()
 assert EndfMetaData(metadata.to_dict()).to_json() == metadata.to_json()
 assert eval(repr(metadata)).to_json() == metadata.to_json() # round trip

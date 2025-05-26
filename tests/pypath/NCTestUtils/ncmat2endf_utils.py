@@ -58,12 +58,12 @@ def test_cfg( cfg, check_teff=False,
     for endf_fn, frac in res:
         print(f"Created file {endf_fn} with fraction {frac}")
         if dump_file:
-            with open(endf_fn) as f:
-                text = "".join(f.readlines())
-                print_text_file_with_snipping(text,
-                                              nstart=140,
-                                              nend=70,
-                                              prefix='endf>')
+            import pathlib
+            text = pathlib.Path(endf_fn).read_text()
+            print_text_file_with_snipping(text,
+                                          nstart=140,
+                                          nend=70,
+                                          prefix='endf>')
         parser, endf_dic = None, None
         EndfParser, list_parsed_sections = None, None
         if check_teff or ref_parsed or check_edge_positions:
@@ -86,7 +86,7 @@ def test_cfg( cfg, check_teff=False,
             parsed = " ".join([" ".join(str(x) for x in _)
                                for _ in list_parsed_sections(endf_dic)])
             if parsed != ref_parsed[endf_fn]:
-                raise RuntimeError( 'ENDF sections {parsed} expected but '
+                raise RuntimeError(f'ENDF sections {parsed} expected but '
                                    f'sections {ref_parsed[endf_fn]} found')
         if check_edge_positions:
             # fixme: check edge intensities. This might require creating a

@@ -101,7 +101,7 @@ jobs:
           conda list
           which ncrystal-config || echo no-ncrystal-found
 
-      #Install NCrystal and quicky verify we have all the pieces:
+      #Install NCrystal and quickly verify we have all the pieces:
       - run: pip install ./src/ncrystal_python
       - run: pip install ./src/ncrystal_core
       - run: pip install ./src/ncrystal_verify

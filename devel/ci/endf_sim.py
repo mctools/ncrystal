@@ -27,10 +27,13 @@ REF_ERRORS = np.array([2.58956360e-03, 4.83597510e-06, 1.96171839e-03])
 REF_POSITIONS = np.array([0.00872665, 1.15202318, 2.29531971])
 
 
-def convert_endf_tsl_to_ace(endf_tsl, material_name=None, ace_name=None, suffix='.00', ace_filename=None, temp=None, emax=None, zaids=None, njoy_exec='njoy'):
+def convert_endf_tsl_to_ace(endf_tsl, material_name=None, ace_name=None,
+                            suffix='.00', ace_filename=None, temp=None,
+                            emax=None, zaids=None, njoy_exec='njoy'):
     import os
     import subprocess
     import shutil
+    import pathlib
     import endf_parserpy
 
     natural_isotopes={
@@ -119,7 +122,8 @@ def convert_endf_tsl_to_ace(endf_tsl, material_name=None, ace_name=None, suffix=
     92000: "92000 92234 92235 92238"}
 
     def create_dummy_endf_file(filename):
-        parser = endf_parserpy.EndfParser(print_cache_info=False, cache_dir=False)
+        parser = endf_parserpy.EndfParser( print_cache_info=False,
+                                           cache_dir=False )
         endf_dict = endf_parserpy.EndfDict()
         endf_dict['1/451'] = {}
         p = endf_dict['1/451']
@@ -188,7 +192,8 @@ def convert_endf_tsl_to_ace(endf_tsl, material_name=None, ace_name=None, suffix=
         parser.writefile(filename, endf_dict, overwrite=True)
 
     def delete_tapes():
-        for fn in ['tape20', 'tape22', 'tape23', 'tape31', 'tape41', 'tape51', 'tape61', 'output']:
+        for fn in ['tape20', 'tape22', 'tape23', 'tape31',
+                   'tape41', 'tape51', 'tape61', 'output']:
             try:
                 os.remove(fn)
             except OSError:
@@ -197,7 +202,11 @@ def convert_endf_tsl_to_ace(endf_tsl, material_name=None, ace_name=None, suffix=
     parser = endf_parserpy.EndfParser(print_cache_info=False, cache_dir=False)
     endf_dic = parser.parsefile(endf_tsl)
     temperatures = endf_dic[7][4]['teff0_table']['Tint']
-    assert (len(suffix) == 3 and suffix[0]=='.' and suffix[1:] == f'{int(suffix[1:]):02d}') or (len(suffix) == 2 and suffix == f'{int(suffix):02d}'), 'Wrong suffix'
+    assert ( (len(suffix) == 3
+              and suffix[0]=='.'
+              and suffix[1:] == f'{int(suffix[1:]):02d}')
+             or (len(suffix) == 2
+                 and suffix == f'{int(suffix):02d}') ), 'Wrong suffix'
     if len(suffix) == 2:
         suffix = f'.{int(suffix):02d}'
     if temp is None:
@@ -222,19 +231,27 @@ def convert_endf_tsl_to_ace(endf_tsl, material_name=None, ace_name=None, suffix=
     if zaids is None:
         if (451 in endf_dic[7].keys()):
             # If MF=7/MT=451 is present, use the isotopic decomposition
-            isotope_list = [str(int(v2)) for k1, v1 in endf_dic[7][451]['ZAI'].items() for k2,v2 in v1.items()]
+            isotope_list = [ str(int(v2))
+                             for k1,v1 in endf_dic[7][451]['ZAI'].items()
+                             for k2,v2 in v1.items() ]
             zaids = ' '.join(isotope_list)
         else:
             # If not, use the decomposition in natural isotopes
-            zaids = natural_isotopes[za] if za in natural_isotopes.keys() else f"{za}"
+            zaids = ( natural_isotopes[za]
+                      if za in natural_isotopes.keys()
+                      else f"{za}" )
     if emax is None:
         emax = endf_dic[1][451]['EMAX']
         if emax <= 0:
             emax = 5.0
     no_zaids=len(zaids.split(" "))
     ace_name = f'{za}' if ace_name is None else ace_name
-    ace_filename=f"{ace_name}-{temp}K.ace" if ace_filename is None else ace_filename
-    xsdir_filename= ace_filename[:-4]+'.xsdir' if  ace_filename[-4:] == '.ace' else ace_filename+'.xsdir'
+    ace_filename = ( f"{ace_name}-{temp}K.ace"
+                     if ace_filename is None
+                     else ace_filename )
+    xsdir_filename = ( ace_filename[:-4]+'.xsdir'
+                       if ace_filename[-4:] == '.ace'
+                       else ace_filename+'.xsdir' )
     material_name = endf_tsl if material_name is None else material_name
     txt=f"""reconr
 20 22 /
@@ -268,15 +285,14 @@ stop
     result = subprocess.run([njoy_exec], input=txt, capture_output=True, text=True)
     assert result.stdout.find('error')==-1, f'Error in NJOY:\n{result.stdout}'
     assert result.returncode == 0, f'NJOY not executed correctly\n{result.stderr}'
-    assert os.path.isfile('tape51') and os.path.isfile('tape61'), 'NJOY could not produce the ACE file'
+    assert ( os.path.isfile('tape51')
+             and os.path.isfile('tape61') ), 'NJOY could not produce the ACE file'
 
     shutil.move('tape51', ace_filename)
-    with open('tape61', 'r') as f:
-        txt = ''.join(f.readlines())
+    txt = pathlib.Path('tape61').read_text()
     txt = txt.replace('filename', ace_filename)
     txt = txt.replace('route', '0')
-    with open(xsdir_filename, 'w') as f:
-        f.write(txt)
+    pathlib.Path(xsdir_filename).write_text(txt)
     delete_tapes()
     return ace_filename, xsdir_filename
 
@@ -468,7 +484,7 @@ def main():
 
     if not check_results(spfile1, spfile2):
         raise SystemExit( 'Significant deviation '
-                           'betwenn NCrystal and ncmat2endf' )
+                           'between NCrystal and ncmat2endf' )
 
 if __name__ == '__main__':
     main()
