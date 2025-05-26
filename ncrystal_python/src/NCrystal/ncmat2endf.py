@@ -236,7 +236,7 @@ class EndfMetaData():
     def get_value( self, name ):
         """Get value of parameter (naming is case insensitive)."""
         v = self.__data.get(name.upper(),None)
-        if v is None and not name.upper() in self.__data:
+        if v is None and name.upper() not in self.__data:
             from .exceptions import NCBadInput
             raise NCBadInput(f'Invalid EndfMetaData parameter "{name}"')
         return v

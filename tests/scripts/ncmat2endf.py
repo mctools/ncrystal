@@ -70,6 +70,14 @@ test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1',
 
 test_cli('"stdlib::Al_sg225.ncmat;temp=350K;vdoslux=1"'
          ' -vvv -m Al -f -e greater')
+test_cli('-h')
+test_cli('--mdata=help')
+test_cli('--mdata','help')
 
-#fixme: more CLI tests
+#fixme: more CLI tests:
+#test_cli('"stdlib::Al_sg225.ncmat;temp=350K;vdoslux=1"'
+#         ' -q -m Al -f -e greater')
+#--mdata, --now, --quiet, totsab/asymsab
+#test fail: --mdata with bad json data, both quiet and verbose
+
 #fixme: add tests that dump the data before calling endf-parserpy

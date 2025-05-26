@@ -274,5 +274,5 @@ def gen_metadata_doc():
     for k, v in d.items():
         s = f'   {k.rjust(kmax)} : '
         for i,e in enumerate(textwrap.fill( v, width=w-len(s) ).splitlines()):
-            txt += (' '*len(s) if i else s) + e.ljust( w ) + '\n'
+            txt += (' '*len(s) if i else s) + e + '\n'
     return txt
