@@ -463,7 +463,7 @@ def main():
     spfile = model.run(output=True)
     os.rename(spfile, spfile2)
 
-    if is_interactive:
+    if is_interactive():
         plot_tallies(spfile1, spfile2)
 
     if not check_results(spfile1, spfile2):
