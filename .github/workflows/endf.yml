@@ -123,6 +123,6 @@ jobs:
       #Invoke the actual test in an empty directory:
       - run: mkdir run
 
-      - name: Run devel/ci/endf.x test script
+      - name: Run devel/ci/endf_sim.py test script
         working-directory: run
-        run: python3 ../src/devel/ci/endf.py
+        run: python3 ../src/devel/ci/endf_sim.py
