@@ -67,10 +67,18 @@ def _parseArgs( progname, arglist, return_parser=False ):
 
     descr = '\n\n'.join(textwrap.fill(' '.join(e.strip().split()),descrw)
                         for e in descr_sections)
-    descr += f"""\n\nExample invocations:
+    txt1 = '{"mat_numbers":{"Si":99}}'
+    txt2 = '{"mat_numbers":{"Zn":101, "O":102}}'
+    txt3 = '{"mat_numbers":{"Bi":200}}'
+    descr = f"""\n\nExample invocations:
 
     $> {progname} 'Al_sg225.ncmat;temp=350K'
-    $> {progname} (fixme more examples here)
+    $> {progname} 'Si_sg227.ncmat' -m Si --mdata '{txt1}' -f --date-now
+    $> {progname} 'ZnO_sg186_ZincOxide.ncmat' -m ZnO \\
+                  --mdata '{txt2}' -e scaled
+    $> {progname} 'Bi_sg166.ncmat;comp=inelas;temp=77K' -m Bi \\
+                  --mdata '{txt3}'
+
     """
 
     metavar_elastic = 'MODE'
