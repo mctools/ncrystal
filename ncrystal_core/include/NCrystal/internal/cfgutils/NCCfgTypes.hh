@@ -45,7 +45,7 @@ namespace NCRYSTAL_NAMESPACE {
 
     enum class VarGroupId { Info, ScatterBase, ScatterExtra, Absorption };
 
-    //A few utilities for doubles:
+    //Common utilities:
     inline double sanitiseDblValue(double v,const char * varname) {
       if ( std::isnan(v) )
         NCRYSTAL_THROW2(BadInput,"NAN (not-a-number) value provided"
@@ -62,6 +62,40 @@ namespace NCRYSTAL_NAMESPACE {
 
     void standardInputStrSanityCheck( const char * parname, StrView strrep );
 
+    class CfgKeyValMap final : private MoveOnly {
+    public:
+      //Immutable class which can be used to represent a key-value map and its
+      //encoding into a VarBuf. Note that a DecodedData object is a view object
+      //with associated lifetime issues.
+      using DecodedData = SmallVector_IC<std::pair<StrView,StrView>,6>;
+      using EncodedData = VarBuf;//by design we encode as a VarBuf
+      //Constructors and encoding / decoding infrastructure:
+      static EncodedData encode( const DecodedData&, VarId );
+      CfgKeyValMap( const EncodedData& );
+      CfgKeyValMap( const DecodedData&, VarId );
+      const DecodedData& decoded() const { return m_dec; }
+      const EncodedData& encoded() const { return m_enc; }
+      VarId varId() const { return m_enc.metaData(); }
+      //Convenience methods:
+      StrView getValue( StrView key ) const;
+      StrView getValue( StrView key, StrView defval ) const;
+      bool hasValue( StrView key ) const;
+      std::size_t size() const { return m_dec.size(); }
+
+      //Check if any key is not in a list (returns invalid obj if all in list):
+      void stream( std::ostream& ) const;//Simple streaming, not necessarily as
+                                         //found in a cfg-string of the
+                                         //associated parameter.
+      void streamJSON( std::ostream& ) const;
+    private:
+      EncodedData m_enc;//NB: encoded data first, to ensure alignment of class
+                        //and VarBuf is the same.
+      DecodedData m_dec;
+      //Private for safety to not encourage lifetime issues:
+      static DecodedData decode( const EncodedData& );
+    };
+
+    //Base class for types of cfg entries:
     template <class Derived, class TValueType>
     class ValBase {
     public:
