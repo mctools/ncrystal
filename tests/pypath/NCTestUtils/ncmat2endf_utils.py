@@ -30,7 +30,6 @@ import NCrystalDev.constants as nc_constants
 import NCrystalDev.atomdata as nc_atomdata
 import NCrystalDev.vdos as nc_vdos
 import NCrystalDev.ncmat as nc_ncmat
-import NCrystalDev._ncmat2endf_impl as ncmat2endf_impl
 
 from .common import ( print_text_file_with_snipping,
                       require_flteq )
