@@ -128,10 +128,10 @@ def test_cfg_fail( e, *args, **kwargs ):
         return
     raise SystemExit('Did not fail as expected')
 
-def test_cli( args ):
+def test_cli( *args ):
     import shlex
-    if isinstance(args,str):
-        args = shlex.split(args)
+    if len(args)==1 and isinstance(args[0],str):
+        args = shlex.split(args[0])
     hr=f"============= CLI >>{shlex.join(args)}<< ===================="
     print(hr)
     nc_cli.run('ncmat2endf',*args)
