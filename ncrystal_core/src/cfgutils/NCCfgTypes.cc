@@ -19,6 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/cfgutils/NCCfgTypes.hh"
+#include "NCrystal/internal/utils/NCString.hh"
 
 namespace NC = NCrystal;
 
@@ -182,4 +183,172 @@ void NC::Cfg::standardInputStrSanityCheck( const char * parname, StrView strrep 
   if ( badchar_strrep.has_value() )
     NCRYSTAL_THROW2(BadInput,"Forbidden character "<<badchar_strrep.value()
                     <<" in "<<parname<<" parameter value!");
+}
+
+
+namespace NCRYSTAL_NAMESPACE {
+  namespace Cfg {
+    namespace {
+
+      uint32_t consumeUI32( const char*& buf )
+      {
+        uint32_t v = *reinterpret_cast<const uint32_t*>(buf);
+        buf += sizeof(uint32_t);
+        return v;
+
+      }
+
+      StrView consumeSV( const char*& buf )
+      {
+        uint32_t len = consumeUI32(buf);
+        StrView v{ buf, (std::size_t)len  };
+        buf += len;
+        return v;
+      }
+
+      using CKVM_Buf = std::vector<char>;//fixme SmallVector<char,512> gives
+                                         //compilation errors (and not just the
+                                         //obvious .reserve thing)...
+      void streamBuf( CKVM_Buf& buf, const char * it, std::size_t n )
+      {
+        for ( std::size_t i = 0; i < n; ++i ) {
+          char val = *it++;
+          buf.push_back( val );
+        }
+      }
+
+      void streamUI32( CKVM_Buf& buf, uint32_t v )
+      {
+        const char * b = reinterpret_cast<const char*>(&v);
+        streamBuf( buf, b, sizeof(uint32_t) );
+      }
+
+      void streamSV( CKVM_Buf& buf, const StrView& sv )
+      {
+        auto n = sv.size();
+        nc_assert_always( n < 1000000000 );
+        streamUI32( buf, (uint32_t)n );
+        streamBuf( buf, sv.data(), n );
+      }
+
+    }
+
+    //NOTICE: Constructors are carefully written to ensure that the StrView's in
+    //m_dec refer to data in m_enc, and also that m_dec is sorted!
+    CfgKeyValMap::CfgKeyValMap( const EncodedData& d )
+      : m_enc(d)
+    {
+      m_dec = decode( m_enc );//decoding must refer to the object on m_enc, not
+                              //the original "d", since there might have been a
+                              //copy of the data storage area (if VarBuf does
+                              //not use remote storage).
+    }
+
+    CfgKeyValMap::CfgKeyValMap( const DecodedData& d, VarId v )
+      : CfgKeyValMap( encode( d, v ) )
+    {
+    }
+
+    CfgKeyValMap::DecodedData CfgKeyValMap::decode( const EncodedData& data )
+    {
+      DecodedData res;
+      const char * buf = data.data();
+      uint32_t ndata = consumeUI32(buf);
+      for ( uint32_t idata = 0; idata < ndata; ++idata ) {
+        auto key = consumeSV(buf);
+        auto val = consumeSV(buf);
+        res.emplace_back( key, val );
+      }
+      nc_assert_always( std::is_sorted( res.begin(), res.end() ) );//fixme _always
+      return res;
+    }
+
+    CfgKeyValMap::EncodedData CfgKeyValMap::encode( const DecodedData& raw,
+                                                    VarId varId )
+    {
+      DecodedData data = raw;
+      std::stable_sort( data.begin(), data.end() );
+      CKVM_Buf buf;
+      buf.reserve(512);
+      nc_assert_always( data.size() < 1000000000 );
+      streamUI32( buf, (uint32_t)data.size() );
+      for ( auto i : ncrange( data.size() ) ) {
+        const auto& sv_key = data.at(i).first;
+        //sanity check key and ensure uniqueness:
+        if ( sv_key.empty()
+             ||!sv_key.contains_only("abcdefghijklmnopqrstuvwxyz_0123456789"))
+          NCRYSTAL_THROW2(BadInput, "CfgKeyValMap::encode invalid key \""
+                          <<sv_key<<"\"");
+        for ( auto j : ncrange(i) ) {
+          if ( sv_key == data.at(j).first )
+            NCRYSTAL_THROW2(BadInput, "CfgKeyValMap::encode duplicate key \""
+                            <<data.at(i).first<<"\"");
+        }
+        //sanity check value:
+        const auto& sv_val = data.at(i).second;
+        if (!sv_val.isSimpleASCII( StrView::AllowTabs::No,
+                                   StrView::AllowNewLine::No ))
+          NCRYSTAL_THROW2(BadInput, "CfgKeyValMap::encode invalid chars in"
+                          " value for key \""<<data.at(i).first<<"\"");
+        //stream key and value:
+        streamSV( buf, sv_key );
+        streamSV( buf, sv_val );
+      }
+      return VarBuf( buf.data(), buf.size(), varId );
+    }
+
+    void CfgKeyValMap::stream( std::ostream& os ) const
+    {
+      os << "CfgKeyValMap( varid="
+         << static_cast<std::underlying_type<VarId>::type>(varId());
+      for ( auto& e : m_dec )
+        os<<", \""<<e.first<<"\": \""<<e.second<<"\"";
+      os << ")";
+    }
+
+    void CfgKeyValMap::streamJSON( std::ostream& os ) const
+    {
+      os << '{';
+      bool first(true);
+      for ( auto& e : m_dec ) {
+        if ( first )
+          first = false;
+        else
+          os << ',';
+        ::NCrystal::streamJSON(os,e.first);
+        os << ':';
+        ::NCrystal::streamJSON(os,e.second);
+      }
+      os << '}';
+    }
+
+    StrView CfgKeyValMap::getValue( StrView key ) const
+    {
+      //datasets are normally tiny => just do a linear search.
+      for ( auto& e : m_dec )
+        if ( e.first == key )
+          return e.second;
+      NCRYSTAL_THROW2(BadInput,
+                      "CfgKeyValMap::getValue invalid key \""<<key<<"\"");
+    }
+
+    StrView CfgKeyValMap::getValue( StrView key, StrView defval ) const
+    {
+      //datasets are normally tiny => just do a linear search.
+      for ( auto& e : m_dec )
+        if ( e.first == key )
+          return e.second;
+      return defval;
+    }
+
+    bool CfgKeyValMap::hasValue( StrView key ) const
+    {
+      //datasets are normally tiny => just do a linear search.
+      for ( auto& e : m_dec )
+        if ( e.first == key )
+          return true;
+      return false;
+    }
+
+  }
 }
