@@ -845,7 +845,7 @@ class EndfFile():
         desc.append('')
         nc_version = nc_core.get_version()
         ep_version = self._endf_parserpy_version
-        if unit_test_chop_svals[0]:
+        if unit_test_chop_svals[0] or unit_test_not_write_version[0]:
             nc_version = 'NCVERSION'
             ep_version = 'EPVERSION'
         desc.append(f' using NCrystal {nc_version} ')
@@ -949,7 +949,8 @@ class EndfFile():
                              f' { outfile.parent }')
 
         if is_unit_test[0]:
-            self.dump_endf_dict()
+            if unit_test_dump[0]:
+                self.dump_endf_dict()
             return
 
         if self._parser is None:
@@ -1333,4 +1334,8 @@ def _tidy_sab_list( s_values ):
 is_unit_test = [False]
 
 unit_test_chop_svals = [False]
+
+unit_test_not_write_version = [False]
+
+unit_test_dump = [False]
 
