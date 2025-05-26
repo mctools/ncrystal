@@ -1180,14 +1180,14 @@ def _impl_emd_set( now_MMMYY, data, param, value,  ):
         if not isinstance( v, str ):
             from .exceptions import NCBadInput
             raise NCBadInput('ENDF date value must be a string')
-            if v.lower()=='now':
-                v = now_MMMYY
-            if len('MMMYY') != len(v):
-                from .exceptions import NCBadInput
-                raise NCBadInput('ENDF date value is not in expected'
-                                 ' format, which is either special value'
-                                 ' "NOW" or a date in the format "MMMYY"'
-                                 ' (e.g. "Jun25").')
+        if v.lower()=='now':
+            v = now_MMMYY
+        if len('MMMYY') != len(v):
+            from .exceptions import NCBadInput
+            raise NCBadInput('ENDF date value is not in expected'
+                             ' format, which is either special value'
+                             ' "NOW" or a date in the format "MMMYY"'
+                             ' (e.g. "Jun25").')
         data[k] = v
         return
 
