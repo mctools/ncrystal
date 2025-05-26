@@ -44,7 +44,7 @@ test_cfg_fail( NCBadInput, 'Ge_sg227.ncmat;dcutoff=0.5;mos=40arcsec;'
                'dir2=@crys_hkl:0,-1,1@lab:0,1,0')
 # Wrong material number assignment
 metadata = EndfMetaData()
-metadata.set_value('MAT_NUMBERS', {"Ge":99} )
+metadata.set_value('MATNUM', {"Ge":99} )
 
 #test a few conversion functions, including that repr(metadata) can be evaluated
 #as EndfMetaData object:

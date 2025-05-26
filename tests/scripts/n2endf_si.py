@@ -32,7 +32,7 @@ ncmat2endf_impl.unit_test_not_write_version[0] = True
 # differences in the least significant digits
 ncmat2endf_impl.unit_test_dump[0] = False
 
-d = {'mat_numbers':{"Si":37},
+d = {'matnum':{"Si":37},
      'edate':'JUL01',
      'ddate':'JUL01',
      'rdate':'JUL01',
