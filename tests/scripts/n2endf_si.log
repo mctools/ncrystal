@@ -14,6 +14,7 @@
                    'rdate': 'JUL01',
                    'reference': 'Aaaaaa, et al.'},
  'force_save': True,
+ 'include_gif': True,
  'ncmat_cfg': 'Si_sg227.ncmat;vdoslux=1;incoh_elas=false'}
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string,  using T = 293.15
 Initialise nuclear data...

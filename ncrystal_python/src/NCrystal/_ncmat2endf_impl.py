@@ -1006,13 +1006,24 @@ def _impl_ncmat2endf( *,
     if elastic_mode not in available_elastic_modes:
         raise nc_exceptions.NCBadInput(f'Elastic mode {elastic_mode}'
                                        f' not in ({available_elastic_modes})')
-    info_obj = nc_core.createInfo(ncmat_cfg)
-    if not info_obj.isSinglePhase():
-        raise nc_exceptions.NCBadInput('Only single phase materials supported')
     if lasym > 0:
         ncwarn( 'Creating non standard S(a,b)'
                f' with LASYM = {lasym}')
-
+    if nc_core.createScatter(ncmat_cfg).isOriented():
+        raise nc_exceptions.NCBadInput('Oriented materials cannot be '
+                                       'represented in the ENDF format and '
+                                       'are not supported' )
+    scattering_components = nc_misc.detect_scattering_components(ncmat_cfg)
+    if 'sans' in scattering_components:
+        raise nc_exceptions.NCBadInput('SANS cannot be '
+                                       'represented in the ENDF format and '
+                                       'is not supported' )
+    info_obj = nc_core.createInfo(ncmat_cfg)
+    if not info_obj.isSinglePhase():
+        raise nc_exceptions.NCBadInput('Only single phase materials supported')
+    if 'inelas' not in scattering_components:
+        raise nc_exceptions.NCBadInput('MF7/MT4 is mandatory in an ENDF file '
+                                       'but no inelastic data found' )
     base_temp = info_obj.dyninfos[0].temperature
     if all(['temp' not in _ for _ in nc_cfgstr.decodeCfg(ncmat_cfg)['pars']]):
         ncwarn( 'Temperature not explicitly given in the cfg-string, '
@@ -1049,19 +1060,6 @@ def _impl_ncmat2endf( *,
                'will be interpolated.')
     if any( T<=0 for T in temperatures ):
         raise nc_exceptions.NCBadInput('Non positive temperatures')
-
-    if nc_core.createScatter(ncmat_cfg).isOriented():
-        raise nc_exceptions.NCBadInput('Oriented materials cannot be '
-                                       'represented in the ENDF format and '
-                                       'are not supported' )
-    scattering_components = nc_misc.detect_scattering_components(ncmat_cfg)
-    if 'sans' in scattering_components:
-        raise nc_exceptions.NCBadInput('SANS cannot be '
-                                       'represented in the ENDF format and '
-                                       'is not supported' )
-    if 'inelas' not in scattering_components:
-        raise nc_exceptions.NCBadInput('MF7/MT4 is mandatory in an ENDF file '
-                                       'but no inelastic data found' )
     for di in info_obj.dyninfos:
         if type(di) not in (nc_core.Info.DI_VDOS, nc_core.Info.DI_VDOSDebye):
             raise nc_exceptions.NCBadInput('Conversion to ENDF supported only '
@@ -1100,23 +1098,20 @@ def _impl_ncmat2endf( *,
         sym = ad.elementName()
         mat = ( 999 if not endf_metadata.matnum
                 else endf_metadata.matnum.get(sym))
-        if mat is None:
-            raise nc_exceptions.NCBadInput('Incorrect material number '
-                                           f'assignment for symbol "{sym}"')
+        assert mat is not None, ('Incorrect material number '
+                                 f'assignment for symbol "{sym}"')
         endf_fn = ( f'tsl_{material_name}.endf'
                    if sym == material_name
                    else f'tsl_{sym}_in_{material_name}.endf' )
-        if data.elements[sym].sab_total is not None:
-            endf_file = EndfFile(sym, data, mat, endf_metadata,
-                                 include_gif=include_gif,
-                                 isotopic_expansion=isotopic_expansion,
-                                 smin=smin, emax=emax, lasym=lasym,
-                                 verbosity=verbosity)
-            endf_file.write(endf_fn, force_save)
-            output_composition.append((endf_fn, frac))
-        else:
-            if verbosity > 0:
-                ncprint(f'Scattering kernel not available for: {endf_fn}')
+        assert data.elements[sym].sab_total is not None, ('Scattering kernel'
+                                            f' not available for: {endf_fn}')
+        endf_file = EndfFile(sym, data, mat, endf_metadata,
+                             include_gif=include_gif,
+                             isotopic_expansion=isotopic_expansion,
+                             smin=smin, emax=emax, lasym=lasym,
+                             verbosity=verbosity)
+        endf_file.write(endf_fn, force_save)
+        output_composition.append((endf_fn, frac))
 
     if verbosity > 0:
         ncprint('Files created:')

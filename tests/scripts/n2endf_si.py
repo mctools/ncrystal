@@ -49,5 +49,5 @@ m.update_from_dict(d)
 
 test_cfg('Si_sg227.ncmat;vdoslux=1;incoh_elas=false', elastic_mode='scaled',
           check_edge_positions=True, endf_metadata=d,
-          compare_xsec=True, dump_file=False)
+          compare_xsec=True, dump_file=False, include_gif=True)
 
