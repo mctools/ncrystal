@@ -51,3 +51,17 @@ test_cfg('Si_sg227.ncmat;vdoslux=1;incoh_elas=false', elastic_mode='scaled',
           check_edge_positions=True, endf_metadata=d,
           compare_xsec=True, dump_file=False, include_gif=True)
 
+ncmat2endf_impl.unit_test_chop_svals[0] = True
+ncmat2endf_impl.is_unit_test[0] = True
+ncmat2endf_impl.unit_test_dump[0] = True
+
+test_cfg('SiO2-alpha_sg154_AlphaQuartz.ncmat', elastic_mode='scaled',
+          check_edge_positions=False,
+          compare_xsec=False, dump_file=False, include_gif=True, verbosity=3)
+test_cfg('SiO2-alpha_sg154_AlphaQuartz.ncmat', elastic_mode='greater',
+          check_edge_positions=False, verbosity=3,
+          compare_xsec=False, dump_file=False, include_gif=True)
+test_cfg('SiO2-alpha_sg154_AlphaQuartz.ncmat', elastic_mode='greater',
+          check_edge_positions=False, verbosity=3, temperatures=400,
+          compare_xsec=False, dump_file=False, include_gif=True, lasym=3)
+

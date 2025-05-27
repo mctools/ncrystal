@@ -33,6 +33,8 @@ from NCTestUtils.ncmat2endf_utils import ( test_cfg_fail,
 from NCrystalDev.exceptions import NCBadInput
 import NCrystalDev.ncmat as nc_ncmat
 import NCrystalDev._ncmat2endf_impl as ncmat2endf_impl
+from pathlib import Path
+from NCrystalDev._numpy import _np
 
 # Check setting the date to now without logging the current date
 metadata = EndfMetaData()
@@ -104,6 +106,28 @@ test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1', include_gif=True,
 d = {'WRONGPARAM':0}
 test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1',
                endf_metadata=d)
+# Invalid symbol in metadata
+d = {'ALAB':r'WRONGSYMBOL"'}
+test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1',
+               endf_metadata=d)
+# Invalid material number assignement
+d = {'MATNUM': 0}
+test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1',
+               endf_metadata=d)
+d = {'MATNUM': {'Al':'0'}}
+test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1',
+               endf_metadata=d)
+# Try to set wrong parameter for dates
+d = {'EDATE':'WRONGDATE'}
+test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1',
+               endf_metadata=d)
+d = {'EDATE':0}
+test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1',
+               endf_metadata=d)
+# Invalid data type for metadata
+d = {'ALAB':0}
+test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1',
+               endf_metadata=d)
 # Try to read wrong parameter from metadata
 try:
     metadata.get_value('WRONGPARAM')
@@ -119,6 +143,63 @@ test_cli_fail( '"stdlib::Al_sg225.ncmat"',
               '--mdata', 'WRONGINPUT', exception_type=ArgumentError )
 # Multiphase material
 test_cli_fail( '"phases<0.1*Al_sg225.ncmat&0.9*Si_sg227.ncmat>"')
+# File already exists
+Path('tsl_Al.endf').touch()
+test_cli_fail('"stdlib::Al_sg225.ncmat;vdoslux=1"'
+         ' -q -m Al -e mixed --totsab', exception_type=RuntimeError)
+test_cli_fail('"stdlib::Al_sg225.ncmat;vdoslux=1"'
+         ' -q -m Al -e scaled --asymsab', exception_type=RuntimeError)
+#
+# Unit tests
+#
+assert (ncmat2endf_impl._interp2d(0.5,1,[0,1],[0,1],
+        _np.array([[0,0],[1,1]]))[0,0] == 0.5)
+assert (ncmat2endf_impl._interp2d([1],[0.5],[0,1],[0,1],
+        _np.array([[0,1],[0,1]]))[0,0] == 0.5)
+cfg = 'ThO2_sg225_ThoriumDioxide.ncmat;vdoslux=1'
+data = ncmat2endf_impl.NuclearData(ncmat_cfg=cfg,
+                                   temperatures=(293.15,),
+                                   elastic_mode='scaled',
+                                   requested_emax=1.0,
+                                   verbosity=3)
+cfg = 'SiO2-alpha_sg154_AlphaQuartz.ncmat;comp=inelas'
+data = ncmat2endf_impl.NuclearData(ncmat_cfg=cfg,
+                                   temperatures=(293.15,),
+                                   elastic_mode='scaled',
+                                   requested_emax=1.0,
+                                   verbosity=3)
+cfg = 'Al_sg225.ncmat;coh_elas=false'
+data = ncmat2endf_impl.NuclearData(ncmat_cfg=cfg,
+                                   temperatures=(293.15,),
+                                   elastic_mode='mixed',
+                                   requested_emax=1.0,
+                                   verbosity=3)
+cfg = 'Al_sg225.ncmat;coh_elas=false'
+data = ncmat2endf_impl.NuclearData(ncmat_cfg=cfg,
+                                   temperatures=(293.15,),
+                                   elastic_mode='greater',
+                                   requested_emax=1.0,
+                                   verbosity=3)
+cfg = 'Al_sg225.ncmat;incoh_elas=false'
+data = ncmat2endf_impl.NuclearData(ncmat_cfg=cfg,
+                                   temperatures=(293.15, 300),
+                                   elastic_mode='mixed',
+                                   requested_emax=1.0,
+                                   verbosity=3)
+data._combine_temperatures = True
+data._get_alpha_beta_grid()
+cfg = 'V_sg229.ncmat;vdoslux=1'
+data = ncmat2endf_impl.NuclearData(ncmat_cfg=cfg,
+                                   temperatures=(293.15,),
+                                   elastic_mode='scaled',
+                                   requested_emax=1.0,
+                                   verbosity=3)
+cfg = 'SiO2-alpha_sg154_AlphaQuartz.ncmat;coh_elas=false'
+data = ncmat2endf_impl.NuclearData(ncmat_cfg=cfg,
+                                   temperatures=(293.15,),
+                                   elastic_mode='scaled',
+                                   requested_emax=1.0,
+                                   verbosity=3)
 #
 # CLI tests
 #

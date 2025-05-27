@@ -996,6 +996,9 @@ def _impl_ncmat2endf( *,
     from .ncmat2endf import ( EndfMetaData,
                               available_elastic_modes )
 
+    if material_name is None:
+        material_name = 'UnknownCompound'
+
     if not endf_metadata:
         endf_metadata = EndfMetaData()
     elif not isinstance(endf_metadata,EndfMetaData):
@@ -1090,9 +1093,6 @@ def _impl_ncmat2endf( *,
             raise nc_exceptions.NCBadInput('Incorrect material number '
                                            'assignment')
 
-    if material_name is None:
-        material_name = 'UnknownCompound'
-
     output_composition = []
     for frac, ad in data.composition:
         sym = ad.elementName()
@@ -1161,6 +1161,7 @@ def _impl_emd_set( now_MMMYY, data, param, value,  ):
     if isinstance(v,str):
         for e in ['"',"'",'`']:
             if e in v:
+                from .exceptions import NCBadInput
                 raise NCBadInput(f'Forbidden character {e} in value '
                                  f'of EndfMetaData parameter "{k}"')
 
@@ -1199,7 +1200,7 @@ def _impl_emd_set( now_MMMYY, data, param, value,  ):
                          f'must be of type {datatype.__name__}')
     data[k] = v
 
-def _dump_dict( d, prefix, lvl = 1 ):
+def _dump_dict( d, prefix, lvl = 1, snip_output=True ):
     if not hasattr(d,'items'):
         s = repr(d)
         if len(s) > 80:
@@ -1213,7 +1214,7 @@ def _dump_dict( d, prefix, lvl = 1 ):
     if not keys_all_digits:
         nlim = 100
     for i,(k,v) in enumerate(ld):
-        if len(ld)>nlim and nlim//3<i<len(ld)-nlim//3:
+        if len(ld)>nlim and nlim//3<i<len(ld)-nlim//3 and snip_output:
             if i== (nlim//3) + 1:
                 ncprint(f'{prefix}<..SNIP..>')
             continue
@@ -1222,7 +1223,8 @@ def _dump_dict( d, prefix, lvl = 1 ):
             ncprint(f'{prefix}{repr(k)} -> {vs}')
         else:
             ncprint(f'{prefix}{repr(k)} ->')
-            _dump_dict(v,prefix+'    ',lvl=lvl+1)
+            snip_output = ( False if k == 'DESCRIPTION' else snip_output )
+            _dump_dict(v,prefix+'    ',lvl=lvl+1, snip_output=snip_output)
 
 def _interp2d(x, y, x0, y0, z0=None):
     #
