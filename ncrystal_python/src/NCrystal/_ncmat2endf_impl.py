@@ -827,15 +827,9 @@ class EndfFile():
                                   width=60,
                                   break_long_words=True)
                 cfg_lines[-1] += ';'
-            if len(cfg_lines) == 1:
-                desc.append(f'  "{cfg_lines[0][:-1]}"')
-            elif len(cfg_lines) == 2:
-                desc.append(f'  "{cfg_lines[0]}')
-                desc.append(f'   {cfg_lines[-1][:-1]}"')
-            elif len(cfg_lines) > 1:
-                desc.append(f'  "{cfg_lines[0]}')
-                desc.extend(f'   {_}' for _ in cfg_lines[1:-1])
-                desc.append(f'   {cfg_lines[-1][:-1]}"')
+            desc.append(f'  "{cfg_lines[0]}')
+            desc.extend(f'   {_}' for _ in cfg_lines[1:-1])
+            desc.append(f'   {cfg_lines[-1][:-1]}"')
 
         desc.append('')
         nc_version = nc_core.get_version()
