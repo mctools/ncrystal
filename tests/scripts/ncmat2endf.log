@@ -116,6 +116,54 @@ FAILED (as expected): Isotopic expansion in conversion to ENDF is not yet suppor
  'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
 FAILED (as expected): Invalid EndfMetaData parameter "WRONGPARAM"
+
+
+
+--------------------------------------------------------------------------------
+{'endf_metadata': {'ALAB': 'WRONGSYMBOL"'},
+ 'force_save': True,
+ 'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
+FAILED (as expected): Forbidden character " in value of EndfMetaData parameter "ALAB"
+
+
+
+--------------------------------------------------------------------------------
+{'endf_metadata': {'MATNUM': 0},
+ 'force_save': True,
+ 'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
+FAILED (as expected): MATNUM must be a dict
+
+
+
+--------------------------------------------------------------------------------
+{'endf_metadata': {'MATNUM': {'Al': '0'}},
+ 'force_save': True,
+ 'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
+FAILED (as expected): ('MATNUM must be a dict from element', ' labels (str) to material values (int)')
+
+
+
+--------------------------------------------------------------------------------
+{'endf_metadata': {'EDATE': 'WRONGDATE'},
+ 'force_save': True,
+ 'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
+FAILED (as expected): ENDF date value is not in expected format, which is either special value "NOW" or a date in the format "MMMYY" (e.g. "Jun25").
+
+
+
+--------------------------------------------------------------------------------
+{'endf_metadata': {'EDATE': 0},
+ 'force_save': True,
+ 'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
+FAILED (as expected): ENDF date value must be a string
+
+
+
+--------------------------------------------------------------------------------
+{'endf_metadata': {'ALAB': 0},
+ 'force_save': True,
+ 'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
+FAILED (as expected): EndfMetaData parameter "ALAB" data must be of type str
 FAILED (as expected): Trying to read invalid EndfMetaData parameter "WRONGPARAM"
 ============= CLI >>'"stdlib::Al_sg225.ncmat"' -v -q<< ====================
 FAILED (as expected): Inconsistent usage of --quiet and --verbose flags
@@ -123,6 +171,66 @@ FAILED (as expected): Inconsistent usage of --quiet and --verbose flags
 FAILED (as expected): Argument to --mdata must be a JSON dictionary of key, value pairs
 ============= CLI >>'phases<0.1*Al_sg225.ncmat&0.9*Si_sg227.ncmat>'<< ====================
 FAILED (as expected): Only single phase materials supported
+============= CLI >>'stdlib::Al_sg225.ncmat;vdoslux=1' -q -m Al -e mixed --totsab<< ====================
+FAILED (as expected): Error: output file already exists (run with --force to overwrite)
+============= CLI >>'stdlib::Al_sg225.ncmat;vdoslux=1' -q -m Al -e scaled --asymsab<< ====================
+FAILED (as expected): Error: output file already exists (run with --force to overwrite)
+Designated incoherent: Th
+>>> alpha points: 100, alpha range: (1.563e-49, 179.4)
+>>> beta points: 116, beta range: (0, 36.95)
+>>> alpha points: 100, alpha range: (2.641e-49, 176)
+>>> beta points: 102, beta range: (0, 11.99)
+>>> Interpolating T=293.15K for O
+>>> Interpolating T=293.15K for Th
+>> Prepare elastic approximations
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Scaled elastic mode requested but all elements are coherent. "greater" option will be used instead.
+>> Principal elastic mode for O: coherent
+>> Principal elastic mode for Th: coherent
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Incoherent elastic component disabled
+Designated incoherent: Si
+>>> alpha points: 400, alpha range: (6.91e-50, 198.7)
+>>> beta points: 464, beta range: (0, 39.98)
+>>> alpha points: 400, alpha range: (1.342e-49, 198.7)
+>>> beta points: 464, beta range: (0, 39.98)
+>>> Interpolating T=293.15K for O
+>>> Interpolating T=293.15K for Si
+>> Prepare elastic approximations
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): No coherent elastic data or incoherent elastic data found: only inelastic data will be written
+>>> alpha points: 400, alpha range: (8.364e-50, 198.7)
+>>> beta points: 429, beta range: (0, 34.93)
+>>> Interpolating T=293.15K for Al
+>> Prepare elastic approximations
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Mixed elastic mode for Al but no Bragg edges found: incoherent approximation
+>>> alpha points: 400, alpha range: (8.364e-50, 198.7)
+>>> beta points: 429, beta range: (0, 34.93)
+>>> Interpolating T=293.15K for Al
+>> Prepare elastic approximations
+>> Principal elastic mode for Al: incoherent
+>>> alpha points: 400, alpha range: (8.364e-50, 198.7)
+>>> beta points: 429, beta range: (0, 34.93)
+>>> Interpolating T=293.15K for Al
+>>> Interpolating T=300K for Al
+>> Prepare elastic approximations
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Mixed elastic mode for Al but no incoherent elastic data found: coherent approximation
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Combining (alpha, beta) grids from different temperatures. This usually results in a huge grid.
+>>> alpha points: 800, alpha range: (8.192e-50, 199.4)
+>>> beta points: 790, beta range: (0, 35.07)
+>>> alpha points: 100, alpha range: (1.178e-49, 179)
+>>> beta points: 102, beta range: (0, 21.77)
+>>> Interpolating T=293.15K for V
+>> Prepare elastic approximations
+>> Scaled elastic mode for single atom V: incoherent
+Designated incoherent: Si
+>>> alpha points: 400, alpha range: (6.91e-50, 198.7)
+>>> beta points: 464, beta range: (0, 39.98)
+>>> alpha points: 400, alpha range: (1.342e-49, 198.7)
+>>> beta points: 464, beta range: (0, 39.98)
+>>> Interpolating T=293.15K for O
+>>> Interpolating T=293.15K for Si
+>> Prepare elastic approximations
+>> Scaled elastic mode for O: incoherent approximation
+>> Scaled elastic mode for Si: incoherent approximation
 ============= CLI >>'stdlib::Al_sg225.ncmat;temp=350K;vdoslux=1' -vvv -m Al -f -e greater '--mdata={"ALAB": "MyLab"}'<< ====================
 Initialise nuclear data...
 >>> alpha points: 100, alpha range: (5.958e-50, 692.2)
@@ -239,6 +347,7 @@ The list of supported meta-data keys and their meaning is:
 =======================================================
 ============= CLI >>'stdlib::Al_sg225.ncmat;vdoslux=1' -vvv -m Al -f -e scaled --totsab --asymsab<< ====================
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Creating non standard S(a,b) with LASYM = 3
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string,  using T = 293.15
 Initialise nuclear data...
 >>> alpha points: 100, alpha range: (8.364e-50, 821.4)
 >>> beta points: 129, beta range: (0, 76.84)
