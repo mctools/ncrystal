@@ -198,8 +198,8 @@ class NuclearData():
         if not self._enable_incoh_elas:
             ncwarn('Incoherent elastic component disabled')
         self._enable_inelas = ( 'inelas' in scattering_components )
-        if not self._enable_inelas:
-            ncwarn('Inelastic component disabled')
+        assert self._enable_inelas, ( 'Inelastic component always'
+                                     ' must be present for ENDF output')
         # _combine_temperatures:
         # False: use (alpha, beta) grid for lowest temperature
         # True: combine all temperatures
