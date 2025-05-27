@@ -164,7 +164,6 @@ def get_scatxs_from_endf(endf_fn, E=None):
     T = endf_dic[7][4]['teff0_table']['Tint'][0]
     beta = _np.array([ v for k, v in endf_dic[7][4]['beta'].items()])
     alpha = _np.array(S_table[1]['alpha'])*awr
-    print(alpha)
     if lat == 1:
         beta = beta*T0/T
         alpha = alpha*T0/T
