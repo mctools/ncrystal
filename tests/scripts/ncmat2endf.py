@@ -112,10 +112,11 @@ except NCBadInput as e:
 else:
     raise SystemExit('Did not fail as expected')
 # Incompatible arguments in CLI
-test_cli_fail( ArgumentError, '"stdlib::Al_sg225.ncmat"', '-v', '-q')
+test_cli_fail( '"stdlib::Al_sg225.ncmat"', '-v', '-q',
+              exception_type=ArgumentError)
 # Wrong metadata in CLI
-test_cli_fail( ArgumentError, '"stdlib::Al_sg225.ncmat"',
-              '--mdata', 'WRONGINPUT')
+test_cli_fail( '"stdlib::Al_sg225.ncmat"',
+              '--mdata', 'WRONGINPUT', exception_type=ArgumentError )
 # Multiphase material
 test_cli_fail( '"phases<0.1*Al_sg225.ncmat&0.9*Si_sg227.ncmat>"')
 #

@@ -123,18 +123,18 @@ def compute_bragg_edges(cfg):
     return edges
 
 
-def test_cfg_fail( expected_exception_type=NCBadInput, *args, **kwargs ):
+def test_cfg_fail( *args, exception_type=NCBadInput, **kwargs ):
     try:
         test_cfg(*args,**kwargs)
-    except expected_exception_type as e:
+    except exception_type as e:
         print("FAILED (as expected): %s"%e)
         return
     raise SystemExit('Did not fail as expected')
 
-def test_cli_fail( expected_exception_type=NCBadInput, *args, **kwargs ):
+def test_cli_fail( *args, exception_type=NCBadInput, **kwargs ):
     try:
         test_cli(*args,**kwargs)
-    except expected_exception_type as e:
+    except exception_type as e:
         print("FAILED (as expected): %s"%e)
         return
     raise SystemExit('Did not fail as expected')
