@@ -131,9 +131,6 @@ class ElementData():
     @property
     def sab_total(self):
         return self._sab_total
-    @sab_total.setter
-    def sab_total(self, x):
-        self._sab_total = x
 
     @property
     def dwi(self):
@@ -145,9 +142,6 @@ class ElementData():
     @property
     def teff(self):
         return self._teff
-    @teff.setter
-    def teff(self, x):
-        self._teff = x
 
     @property
     def elastic(self):
