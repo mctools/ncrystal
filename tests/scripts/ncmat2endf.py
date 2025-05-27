@@ -63,6 +63,8 @@ test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1;comp=coh_elas')
 # Wrong elastic mode
 test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1',
                elastic_mode='something wrong')
+# Conversion implemented only for natural elements
+test_cfg_fail( NCBadInput, 'MgD2_sg136_MagnesiumDeuteride.ncmat;vdoslux=1')
 
 #
 # CLI tests
