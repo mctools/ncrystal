@@ -238,7 +238,8 @@ class EndfMetaData():
         v = self.__data.get(name.upper(),None)
         if v is None and name.upper() not in self.__data:
             from .exceptions import NCBadInput
-            raise NCBadInput(f'Invalid EndfMetaData parameter "{name}"')
+            raise NCBadInput('Trying to read invalid EndfMetaData'
+                             f' parameter "{name}"')
         return v
 
     def update_from_dict( self, data ):

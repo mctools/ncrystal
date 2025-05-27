@@ -34,6 +34,17 @@ import NCrystalDev._ncmat2endf_impl as ncmat2endf_impl
 ncmat2endf_impl.unit_test_chop_svals[0] = True
 
 
+# Check setting the date to now without logging the current date
+metadata = EndfMetaData()
+metadata.set_all_dates_as_now()
+MONTHS = ('jan', 'feb', 'mar', 'apr', 'may', 'jun',
+          'jul', 'ago', 'sep', 'oct', 'nov', 'dec')
+assert metadata.edate[:3].lower() in MONTHS
+assert int(metadata.edate[3:].lower()) >= 00
+assert int(metadata.rdate[3:].lower()) <= 99
+assert metadata.edate.lower() == metadata.ddate.lower()
+assert metadata.edate.lower() == metadata.rdate.lower()
+
 #
 # Error handling tests
 #
@@ -51,6 +62,7 @@ metadata.set_value('MATNUM', {"Ge":99} )
 assert EndfMetaData(metadata).to_json() == metadata.to_json()
 assert EndfMetaData(metadata.to_dict()).to_json() == metadata.to_json()
 assert eval(repr(metadata)).to_json() == metadata.to_json() # round trip
+print(metadata)
 
 test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', endf_metadata=metadata)
 
@@ -65,7 +77,17 @@ test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1',
                elastic_mode='something wrong')
 # Conversion implemented only for natural elements
 test_cfg_fail( NCBadInput, 'MgD2_sg136_MagnesiumDeuteride.ncmat;vdoslux=1')
-
+# Try to set wrong parameter in metadata
+d = {'WRONGPARAM':0}
+test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1',
+               endf_metadata=d)
+# Try to read wrong parameter from metadata
+try:
+    metadata.get_value('WRONGPARAM')
+except NCBadInput as e:
+    print("FAILED (as expected): %s"%e)
+else:
+    raise SystemExit('Did not fail as expected')
 #
 # CLI tests
 #

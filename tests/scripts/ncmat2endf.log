@@ -47,6 +47,22 @@ FAILED (as expected): MF7/MT4 is mandatory in an ENDF file but no inelastic data
  'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
 FAILED (as expected): Elastic mode something wrong not in (('greater', 'scaled', 'mixed'))
+
+
+
+--------------------------------------------------------------------------------
+{'force_save': True,
+ 'ncmat_cfg': 'MgD2_sg136_MagnesiumDeuteride.ncmat;vdoslux=1'}
+Initialise nuclear data...
+FAILED (as expected): Conversion to ENDF is currently supported only for natural elements
+
+
+
+--------------------------------------------------------------------------------
+{'endf_metadata': {'WRONGPARAM': 0},
+ 'force_save': True,
+ 'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
+FAILED (as expected): Invalid EndfMetaData parameter "WRONGPARAM"
 ============= CLI >>'stdlib::Al_sg225.ncmat;temp=350K;vdoslux=1' -vvv -m Al -f -e greater<< ====================
 Initialise nuclear data...
 >>> alpha points: 100, alpha range: (5.958e-50, 692.2)
