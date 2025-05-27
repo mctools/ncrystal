@@ -49,7 +49,10 @@ def test_cfg( cfg, check_teff=False,
     temperatures = None
     temperatures = (nc_core.createInfo(cfg).dyninfos[0].temperature,)
     if 'temperatures' in kwargs:
-        temperatures = temperatures+tuple(kwargs['temperatures'])
+        if isinstance(kwargs['temperatures'], (int, float)):
+            temperatures = temperatures+(kwargs['temperatures'],)
+        else:
+            temperatures = temperatures+tuple(kwargs['temperatures'])
     res = ncmat2endf(**kwargs)
     if compare_xsec:
         E = _np.geomspace(1e-5, 5.0, 1000)
@@ -119,18 +122,18 @@ def compute_bragg_edges(cfg):
     return edges
 
 
-def test_cfg_fail( exception, *args, **kwargs ):
+def test_cfg_fail( expected_exception, *args, **kwargs ):
     try:
         test_cfg(*args,**kwargs)
-    except exception as e:
+    except expected_exception as e:
         print("FAILED (as expected): %s"%e)
         return
     raise SystemExit('Did not fail as expected')
 
-def test_cli_fail( exception, *args, **kwargs ):
+def test_cli_fail( expected_exception, *args, **kwargs ):
     try:
         test_cli(*args,**kwargs)
-    except exception as e:
+    except expected_exception as e:
         print("FAILED (as expected): %s"%e)
         return
     raise SystemExit('Did not fail as expected')

@@ -4,7 +4,6 @@
 --------------------------------------------------------------------------------
 {'force_save': True,
  'ncmat_cfg': 'Ge_sg227.ncmat;dcutoff=0.5;mos=40arcsec;dir1=@crys_hkl:5,1,1@lab:0,0,1;dir2=@crys_hkl:0,-1,1@lab:0,1,0'}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string,  using T = 293.15
 FAILED (as expected): Oriented materials cannot be represented in the ENDF format and are not supported
 EndfMetaData({"ALAB": "MyLAB", "AUTH": "NCrystal", "LIBNAME": "MyLib", "NLIB": 0, "REFERENCE": "REFERENCE", "LREL": 0, "NVER": 1, "MATNUM": {"Ge": 99}, "ENDATE": "", "EDATE": "MMMYY", "DDATE": "MMMYY", "RDATE": "MMMYY"})
 
@@ -14,6 +13,7 @@ EndfMetaData({"ALAB": "MyLAB", "AUTH": "NCrystal", "LIBNAME": "MyLib", "NLIB": 0
 {'endf_metadata': EndfMetaData({"ALAB": "MyLAB", "AUTH": "NCrystal", "LIBNAME": "MyLib", "NLIB": 0, "REFERENCE": "REFERENCE", "LREL": 0, "NVER": 1, "MATNUM": {"Ge": 99}, "ENDATE": "", "EDATE": "MMMYY", "DDATE": "MMMYY", "RDATE": "MMMYY"}),
  'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string,  using T = 293.15
 Initialise nuclear data...
 FAILED (as expected): Incorrect material number assignment
 
@@ -44,6 +44,14 @@ FAILED (as expected): MF7/MT4 is mandatory in an ENDF file but no inelastic data
 
 
 --------------------------------------------------------------------------------
+{'force_save': True,
+ 'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1',
+ 'verbosity': 'WRONGVALUE'}
+FAILED (as expected): Invalid value of verbosity parameter (expects value 0, 1, 2, or 3): WRONGVALUE
+
+
+
+--------------------------------------------------------------------------------
 {'elastic_mode': 'something wrong',
  'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
@@ -60,6 +68,50 @@ FAILED (as expected): Conversion to ENDF is currently supported only for natural
 
 
 --------------------------------------------------------------------------------
+{'force_save': True,
+ 'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1',
+ 'temperatures': 'WRONGVALUE'}
+FAILED (as expected): temperatures parameter: should be a list or tuple of float or int
+
+
+
+--------------------------------------------------------------------------------
+{'force_save': True,
+ 'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1',
+ 'temperatures': ['WRONGVALUE']}
+FAILED (as expected): Something wrong with the temperatures parameter: (['WRONGVALUE'])
+============= CLI >>Al_with_SANS.ncmat<< ====================
+NCrystal WARNING: Loading NCMAT data which has @CUSTOM_ section(s). This is OK if intended.
+FAILED (as expected): SANS cannot be represented in the ENDF format and is not supported
+
+
+
+--------------------------------------------------------------------------------
+{'force_save': True, 'ncmat_cfg': 'freegas::Ar/2.5e-5perAa3;vdoslux=1'}
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string,  using T = 293.15
+FAILED (as expected): Conversion to ENDF supported only for VDOS and VDOSDebye dyninfos
+
+
+
+--------------------------------------------------------------------------------
+{'force_save': True,
+ 'include_gif': False,
+ 'isotopic_expansion': True,
+ 'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
+FAILED (as expected): Isotopic expansion requires generalized information file, use --gif
+
+
+
+--------------------------------------------------------------------------------
+{'force_save': True,
+ 'include_gif': True,
+ 'isotopic_expansion': True,
+ 'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
+FAILED (as expected): Isotopic expansion in conversion to ENDF is not yet supported
+
+
+
+--------------------------------------------------------------------------------
 {'endf_metadata': {'WRONGPARAM': 0},
  'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
@@ -69,6 +121,8 @@ FAILED (as expected): Trying to read invalid EndfMetaData parameter "WRONGPARAM"
 FAILED (as expected): Inconsistent usage of --quiet and --verbose flags
 ============= CLI >>'"stdlib::Al_sg225.ncmat"' --mdata WRONGINPUT<< ====================
 FAILED (as expected): Argument to --mdata must be a JSON dictionary of key, value pairs
+============= CLI >>'phases<0.1*Al_sg225.ncmat&0.9*Si_sg227.ncmat>'<< ====================
+FAILED (as expected): Only single phase materials supported
 ============= CLI >>'stdlib::Al_sg225.ncmat;temp=350K;vdoslux=1' -vvv -m Al -f -e greater '--mdata={"ALAB": "MyLab"}'<< ====================
 Initialise nuclear data...
 >>> alpha points: 100, alpha range: (5.958e-50, 692.2)
