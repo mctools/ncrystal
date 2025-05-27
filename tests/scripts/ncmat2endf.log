@@ -6,6 +6,7 @@
  'ncmat_cfg': 'Ge_sg227.ncmat;dcutoff=0.5;mos=40arcsec;dir1=@crys_hkl:5,1,1@lab:0,0,1;dir2=@crys_hkl:0,-1,1@lab:0,1,0'}
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string,  using T = 293.15
 FAILED (as expected): Oriented materials cannot be represented in the ENDF format and are not supported
+EndfMetaData({"ALAB": "MyLAB", "AUTH": "NCrystal", "LIBNAME": "MyLib", "NLIB": 0, "REFERENCE": "REFERENCE", "LREL": 0, "NVER": 1, "MATNUM": {"Ge": 99}, "ENDATE": "", "EDATE": "MMMYY", "DDATE": "MMMYY", "RDATE": "MMMYY"})
 
 
 
@@ -63,7 +64,12 @@ FAILED (as expected): Conversion to ENDF is currently supported only for natural
  'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
 FAILED (as expected): Invalid EndfMetaData parameter "WRONGPARAM"
-============= CLI >>'stdlib::Al_sg225.ncmat;temp=350K;vdoslux=1' -vvv -m Al -f -e greater<< ====================
+FAILED (as expected): Trying to read invalid EndfMetaData parameter "WRONGPARAM"
+============= CLI >>'"stdlib::Al_sg225.ncmat"' -v -q<< ====================
+FAILED (as expected): Inconsistent usage of --quiet and --verbose flags
+============= CLI >>'"stdlib::Al_sg225.ncmat"' --mdata WRONGINPUT<< ====================
+FAILED (as expected): Argument to --mdata must be a JSON dictionary of key, value pairs
+============= CLI >>'stdlib::Al_sg225.ncmat;temp=350K;vdoslux=1' -vvv -m Al -f -e greater '--mdata={"ALAB": "MyLab"}'<< ====================
 Initialise nuclear data...
 >>> alpha points: 100, alpha range: (5.958e-50, 692.2)
 >>> beta points: 123, beta range: (0, 66.15)
@@ -74,7 +80,7 @@ Initialise nuclear data...
 Write ENDF file tsl_Al.endf...
 Files created:
   tsl_Al.endf with fraction 1.0
-================================================================================================================
+============================================================================================================================================
 ============= CLI >>-h<< ====================
 usage: ncrystal_ncmat2endf CFGSTR [--elas MODE] [--mat NAME] [--mdata DATA]
                            [<<additional options described below>>]
@@ -129,7 +135,7 @@ Advanced expert-only arguments:
 Meta-data for ENDF can be provided by the --mdata option, by specifying a JSON
 dictionary like:
 
-  --mdata='{ "LIBNAME" : "MySuperLib", "ALAB" : "MySuperLab" }
+  --mdata='{ "LIBNAME" : "MySuperLib", "ALAB" : "MySuperLab" }'
 
 The list of supported meta-data keys and their meaning is:
 
@@ -155,7 +161,7 @@ The list of supported meta-data keys and their meaning is:
 Meta-data for ENDF can be provided by the --mdata option, by specifying a JSON
 dictionary like:
 
-  --mdata='{ "LIBNAME" : "MySuperLib", "ALAB" : "MySuperLab" }
+  --mdata='{ "LIBNAME" : "MySuperLib", "ALAB" : "MySuperLab" }'
 
 The list of supported meta-data keys and their meaning is:
 
@@ -177,3 +183,22 @@ The list of supported meta-data keys and their meaning is:
                used to select the current date.
 
 =======================================================
+============= CLI >>'stdlib::Al_sg225.ncmat;vdoslux=1' -vvv -m Al -f -e scaled --totsab --asymsab<< ====================
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Creating non standard S(a,b) with LASYM = 3
+Initialise nuclear data...
+>>> alpha points: 100, alpha range: (8.364e-50, 821.4)
+>>> beta points: 129, beta range: (0, 76.84)
+>>> Interpolating T=293.15K for Al
+>> Prepare elastic approximations
+>> Scaled elastic mode for single atom Al: coherent
+> Generate MF7
+Write ENDF file tsl_Al.endf...
+Files created:
+  tsl_Al.endf with fraction 1.0
+========================================================================================================================
+============= CLI >>'stdlib::Al_sg225.ncmat;vdoslux=1' -m Al -f --now<< ====================
+Initialise nuclear data...
+Write ENDF file tsl_Al.endf...
+Files created:
+  tsl_Al.endf with fraction 1.0
+============================================================================================

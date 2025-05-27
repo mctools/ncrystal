@@ -26,13 +26,13 @@ import NCTestUtils.enable_fpe # noqa F401
 import NCTestUtils.reprint_escaped_warnings # noqa F401
 
 from NCrystalDev.exceptions import NCBadInput
+from argparse import ArgumentError
 from NCrystalDev.ncmat2endf import EndfMetaData
 from NCTestUtils.ncmat2endf_utils import ( test_cfg_fail,
+                                           test_cli_fail,
                                            test_cli )
 
 import NCrystalDev._ncmat2endf_impl as ncmat2endf_impl
-ncmat2endf_impl.unit_test_chop_svals[0] = True
-
 
 # Check setting the date to now without logging the current date
 metadata = EndfMetaData()
@@ -88,15 +88,26 @@ except NCBadInput as e:
     print("FAILED (as expected): %s"%e)
 else:
     raise SystemExit('Did not fail as expected')
+# Incompatible arguments in CLI
+test_cli_fail( ArgumentError, '"stdlib::Al_sg225.ncmat"', '-v', '-q')
+# Wrong metadata in CLI
+test_cli_fail( ArgumentError, '"stdlib::Al_sg225.ncmat"',
+              '--mdata', 'WRONGINPUT')
+
 #
 # CLI tests
 #
 
+ncmat2endf_impl.unit_test_chop_svals[0] = True
 test_cli('"stdlib::Al_sg225.ncmat;temp=350K;vdoslux=1"'
-         ' -vvv -m Al -f -e greater')
+         ' -vvv -m Al -f -e greater'
+        r""" --mdata='{"ALAB": "MyLab"}'""")
 test_cli('-h')
 test_cli('--mdata=help')
 test_cli('--mdata','help')
+test_cli('"stdlib::Al_sg225.ncmat;vdoslux=1"'
+         ' -vvv -m Al -f -e scaled --totsab --asymsab')
+test_cli('"stdlib::Al_sg225.ncmat;vdoslux=1" -m Al -f --now')
 
 #fixme: more CLI tests:
 #test_cli('"stdlib::Al_sg225.ncmat;temp=350K;vdoslux=1"'
