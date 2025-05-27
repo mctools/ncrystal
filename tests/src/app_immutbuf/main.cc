@@ -72,6 +72,8 @@ void test_specific_immutbuf()
   using B = NC::ImmutableBuffer<LOCALBUF_MINSIZE,BUF_ALIGN,TMetaData>;
   inspectBufferType<B>();
 
+  B obj_empty{ NC::NullOpt };
+  nc_assert_always(obj_empty.empty());
   auto testdata = [](const char* thedata, std::size_t len) {
     std::cout<<"  ==> Testing with data of length "<<len<<std::endl;
     B b(thedata,len,TMetaData());
@@ -85,6 +87,7 @@ void test_specific_immutbuf()
     nc_assert_always(0==std::memcmp(thedata,b2.data(),len));
     nc_assert_always( ( len > B::buffer_local_size ) == ( b.data() == b2.data() ) );//same address if and only if remote
     B b3(std::move(b2));//move construct [ b2 object is now moved-from! ]
+    nc_assert_always( b2.empty() );
     nc_assert_always(0==std::memcmp(thedata,b.data(),len));
     nc_assert_always(0==std::memcmp(thedata,b3.data(),len));
     nc_assert_always( ( len > B::buffer_local_size ) == ( b.data() == b3.data() ) );//same address if and only if remote

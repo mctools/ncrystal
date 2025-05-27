@@ -50,8 +50,11 @@ namespace NCRYSTAL_NAMESPACE {
   //                                                                             //
   /////////////////////////////////////////////////////////////////////////////////
 
-  template< std::size_t LOCALBUF_MINSIZE = 15, std::size_t BUF_ALIGNMENT=1, class TMetaData = NullOptType >
+  template< std::size_t LOCALBUF_MINSIZE = 15,
+            std::size_t BUF_ALIGNMENT = 1,
+            class TMetaData = NullOptType >
   class ImmutableBuffer final {
+
     class RemoteBuf;
     using TRemotePtr = std::shared_ptr<const RemoteBuf>;
   public:
@@ -64,14 +67,17 @@ namespace NCRYSTAL_NAMESPACE {
     //Use this constructor if TMetaData IS provided:
     ImmutableBuffer( const char * src, size_type len, TMetaData md );
 
-    //Use these constructors if it is needed to construct unset objects ( this
-    //is normally only sensible if the object is soon after filled by move or
-    //copy assignment). Any MetaData object will be default constructed.:
+    //Use these constructors if it is needed to construct unset (empty) objects
+    //(normally the object will later be filled by move or copy assignment). Any
+    //MetaData object will be default constructed.:
     ImmutableBuffer( NullOptType );
 
-    //Access data:
+    //Access data (only if not empty or moved-from):
     const char * data() const ncnoexceptndebug;
     const TMetaData& metaData() const ncnoexceptndebug;
+
+    //Empty if moved-from or constructed with NullOpt argument:
+    constexpr bool empty() const noexcept { return this->isEmpty(); }
 
     //When the calling code is certain that the data fits in the local buffer
     //(i.e. len provided to constructor was <= buffer_local_size ), the
@@ -79,7 +85,7 @@ namespace NCRYSTAL_NAMESPACE {
     //usage will trigger a runtime exception:
     const char * dataAssertLocal() const ncnoexceptndebug;
 
-    //Destructor (does no work unless in remote mode):
+    //Destructor (noop if not in remote mode):
     ~ImmutableBuffer();
 
     //Both copy and move semantics are supported. When the buffer is local, this
@@ -216,7 +222,7 @@ namespace NCRYSTAL_NAMESPACE {
     nc_assert( len < 1000000000 );//we take >1GB is sign of invalid len parameter (e.g. result of integer overflow).
     if ( len > buffer_local_size ) {
       static_assert(sizeof(TRemotePtr)+1<=sizeof(m_data), "");
-      new(&m_data[0]) TRemotePtr(std::move(std::make_shared<const RemoteBuf>(src,len)));
+      new(&m_data[0]) TRemotePtr(std::make_shared<const RemoteBuf>(src,len));
       m_data[_detail_pos_mode] = (char)1;//remote mode
     } else {
       std::memcpy(&m_data[0],src,len);
