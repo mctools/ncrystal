@@ -25,12 +25,12 @@
 import NCTestUtils.enable_fpe # noqa F401
 import NCTestUtils.reprint_escaped_warnings # noqa F401
 
-from NCrystalDev.exceptions import NCBadInput
 from argparse import ArgumentError
 from NCrystalDev.ncmat2endf import EndfMetaData
 from NCTestUtils.ncmat2endf_utils import ( test_cfg_fail,
                                            test_cli_fail,
                                            test_cli )
+from NCrystalDev.exceptions import NCBadInput
 import NCrystalDev.ncmat as nc_ncmat
 import NCrystalDev._ncmat2endf_impl as ncmat2endf_impl
 
@@ -50,7 +50,7 @@ assert metadata.edate.lower() == metadata.rdate.lower()
 #
 
 # Oriented materials not supported
-test_cfg_fail( NCBadInput, 'Ge_sg227.ncmat;dcutoff=0.5;mos=40arcsec;'
+test_cfg_fail( 'Ge_sg227.ncmat;dcutoff=0.5;mos=40arcsec;'
                'dir1=@crys_hkl:5,1,1@lab:0,0,1;'
                'dir2=@crys_hkl:0,-1,1@lab:0,1,0')
 # Wrong material number assignment
@@ -65,44 +65,44 @@ assert EndfMetaData(metadata.to_dict()).to_json() == metadata.to_json()
 assert eval(repr(metadata)).to_json() == metadata.to_json() # round trip
 print(metadata)
 
-test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', endf_metadata=metadata)
+test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1', endf_metadata=metadata)
 
 # Negative temperatures
-test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', temperatures=[-100])
+test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1', temperatures=[-100])
 # Repeated temperatures
-test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', temperatures=[293.15])
+test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1', temperatures=[293.15])
 # No inelastic
-test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1;comp=coh_elas')
+test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1;comp=coh_elas')
 # Wrong verbosity parameter
-test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', verbosity='WRONGVALUE')
+test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1', verbosity='WRONGVALUE')
 # Wrong elastic mode
-test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1',
+test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1',
                elastic_mode='something wrong')
 # Conversion implemented only for natural elements
-test_cfg_fail( NCBadInput, 'MgD2_sg136_MagnesiumDeuteride.ncmat;vdoslux=1')
+test_cfg_fail( 'MgD2_sg136_MagnesiumDeuteride.ncmat;vdoslux=1')
 # Wrong temperature parameter
-test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1',
+test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1',
                temperatures='WRONGVALUE')
-test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1',
+test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1',
                temperatures=['WRONGVALUE'])
 # SANS not supported (currently being caught as multiphase)
 c=nc_ncmat.NCMATComposer('Al_sg225.ncmat')
 c.add_secondary_phase(0.01,'void.ncmat')
 c.add_hard_sphere_sans_model(50)
 c.write('Al_with_SANS.ncmat')
-test_cli_fail( NCBadInput, 'Al_with_SANS.ncmat')
+test_cli_fail( 'Al_with_SANS.ncmat')
 # Conversion only supported for VDOS and VDOSDebye dyninfos
-test_cfg_fail( NCBadInput, 'freegas::Ar/2.5e-5perAa3;vdoslux=1')
+test_cfg_fail( 'freegas::Ar/2.5e-5perAa3;vdoslux=1')
 # Isotopic expansion requires generalized information file
-test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', include_gif=False,
+test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1', include_gif=False,
                isotopic_expansion=True)
 # Isotopic expansion not implemented
-test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1', include_gif=True,
+test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1', include_gif=True,
                isotopic_expansion=True)
 
 # Try to set wrong parameter in metadata
 d = {'WRONGPARAM':0}
-test_cfg_fail( NCBadInput, 'Al_sg225.ncmat;vdoslux=1',
+test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1',
                endf_metadata=d)
 # Try to read wrong parameter from metadata
 try:
@@ -117,7 +117,7 @@ test_cli_fail( ArgumentError, '"stdlib::Al_sg225.ncmat"', '-v', '-q')
 test_cli_fail( ArgumentError, '"stdlib::Al_sg225.ncmat"',
               '--mdata', 'WRONGINPUT')
 # Multiphase material
-test_cli_fail( NCBadInput, '"phases<0.1*Al_sg225.ncmat&0.9*Si_sg227.ncmat>"')
+test_cli_fail( '"phases<0.1*Al_sg225.ncmat&0.9*Si_sg227.ncmat>"')
 #
 # CLI tests
 #

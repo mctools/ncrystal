@@ -22,6 +22,7 @@
 from NCrystalDev.ncmat2endf import ncmat2endf
 from NCrystalDev._ncmat2endf_impl import _endf_clean
 from NCrystalDev._numpy import _np
+from NCrystalDev.exceptions import NCBadInput
 
 import NCrystalDev.cli as nc_cli
 import NCrystalDev.core as nc_core
@@ -122,18 +123,18 @@ def compute_bragg_edges(cfg):
     return edges
 
 
-def test_cfg_fail( expected_exception, *args, **kwargs ):
+def test_cfg_fail( expected_exception_type=NCBadInput, *args, **kwargs ):
     try:
         test_cfg(*args,**kwargs)
-    except expected_exception as e:
+    except expected_exception_type as e:
         print("FAILED (as expected): %s"%e)
         return
     raise SystemExit('Did not fail as expected')
 
-def test_cli_fail( expected_exception, *args, **kwargs ):
+def test_cli_fail( expected_exception_type=NCBadInput, *args, **kwargs ):
     try:
         test_cli(*args,**kwargs)
-    except expected_exception as e:
+    except expected_exception_type as e:
         print("FAILED (as expected): %s"%e)
         return
     raise SystemExit('Did not fail as expected')
