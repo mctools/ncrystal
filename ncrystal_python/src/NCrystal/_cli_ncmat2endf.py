@@ -198,10 +198,15 @@ def _parseArgs( progname, arglist, return_parser=False ):
         if args.mdata == 'help':
             print(gen_metadata_doc())
             raise SystemExit(0)
-        args.mdata = json.loads(args.mdata)
-        if not isinstance(args.mdata,dict):
+        try:
+            args.mdata = json.loads(args.mdata)
+        except json.JSONDecodeError:
             parser.error(f'Argument to {longopt_metadata} must be a JSON'
                          ' dictionary of key, value pairs')
+        else:
+            if not isinstance(args.mdata,dict):
+                parser.error(f'Argument to {longopt_metadata} must be a JSON'
+                             ' dictionary of key, value pairs')
 
     #map verbosity to 0...3 needed for Python API:
     if args.quiet:
@@ -266,7 +271,7 @@ def gen_metadata_doc():
         option, by specifying a JSON dictionary like:"""
     )
     txt+=('''\n\n  %s='{ "LIBNAME" : "MySuperLib"'''%longopt_metadata
-          +''', "ALAB" : "MySuperLab" }\n\n''')
+          +''', "ALAB" : "MySuperLab" }'\n\n''')
     txt += section('The list of supported meta-data'
                    ' keys and their meaning is:')
     txt += '\n\n'

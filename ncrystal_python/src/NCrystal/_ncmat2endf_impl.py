@@ -734,7 +734,8 @@ class EndfFile():
             d['beta_interp/INT'] = [4]
 
             d['T0'] = temperatures[0]
-            d['beta'] = {k:_tidy_beta(v) for k, v in enumerate(beta,start=1)}
+            d['beta'] = {k:_tidy_beta(v, allow_negative=True)
+                         for k, v in enumerate(beta,start=1)}
             d['LT'] = {k:len(temperatures)-1
                        for k, v in enumerate(beta,start=1)}
             d['T'] = {k:v for k,v in enumerate(temperatures[1:], start=1)}
@@ -1016,7 +1017,7 @@ def _impl_ncmat2endf( *,
         raise nc_exceptions.NCBadInput('Only single phase materials supported')
     if lasym > 0:
         ncwarn( 'Creating non standard S(a,b)'
-               f' with LASYM = {endf_metadata.lasym}')
+               f' with LASYM = {lasym}')
 
     base_temp = info_obj.dyninfos[0].temperature
     if all(['temp' not in _ for _ in nc_cfgstr.decodeCfg(ncmat_cfg)['pars']]):
@@ -1306,10 +1307,13 @@ def _interp2d(x, y, x0, y0, z0=None):
                        z22*(yy - yy1)*(xx - xx1))
     return z
 
-def _tidy_beta( x ):
+def _tidy_beta( x, allow_negative=False):
     if not unit_test_chop_svals[0]:
         return x
-    assert 0.0 <= x <= 1e99
+    if allow_negative:
+        assert -1e99 <= x <= 1e99
+    else:
+        assert 0.0 <= x <= 1e99
     return float('%.6g'%x)
 
 def _tidy_alpha_list( a_values ):
