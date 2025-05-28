@@ -198,14 +198,15 @@ class EndfMetaData():
 
     @property
     def matnum(self):
-        """Fixme add doc string."""
+        """ENDF-6 MAT number assignement. Dictionary with string keys and int
+           values that maps element symbols to MAT numbers, e.g. {'Ge':99}.
+           See report ENDF-102 Appendix C for numbering recommendations."""
         return self.get_value('matnum')
 
     @property
     def endate(self):
-        """Master File entry date in the form YYYYMMDD (only used for ENDF-B
+        """Master File entry date in the form YYYYMMDD (only used for ENDF/B
         releases)."""
-        #fixme: ^^^ double-check this doc-string.
         return self.get_value('endate')
 
     @property
