@@ -1,0 +1,21 @@
+Initialise nuclear data...
+ERROR: Could not import endf_parserpy.
+
+       Please check that the endf-parserpy package was correctly installed.
+
+       Examples of how to do this:
+
+          $> conda install -c conda-forge endf_parserpy
+             (always prefer this if using Conda)
+
+          $> pip install ncrystal[endf]
+             (best way if not using Conda and NCrystal was itself installed via pip)
+
+          $> pip install ncrystal[all]
+             (same as previous but provides even more optional dependencies)
+
+          $> pip install endf_parserpy
+             (might work in other cases if you at least can use pip for dependencies)
+
+
+Caught expected ImportError('Could not import endf_parserpy')
