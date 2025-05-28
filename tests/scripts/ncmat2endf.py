@@ -200,20 +200,30 @@ data = ncmat2endf_impl.NuclearData(ncmat_cfg=cfg,
                                    elastic_mode='scaled',
                                    requested_emax=1.0,
                                    verbosity=3)
+
 #
 # CLI tests
 #
 
 ncmat2endf_impl.unit_test_chop_svals[0] = True
+if Path('tsl_Al.endf').is_file():
+    Path('tsl_Al.endf').unlink()
 test_cli('"stdlib::Al_sg225.ncmat;temp=350K;vdoslux=1"'
          ' -vvv -m Al -f -e greater'
         r""" --mdata='{"ALAB": "MyLab"}'""")
+assert Path('tsl_Al.endf').is_file()
+Path('tsl_Al.endf').unlink()
 test_cli('-h')
 test_cli('--mdata=help')
 test_cli('--mdata','help')
+assert not Path('tsl_Al.endf').is_file()
 test_cli('"stdlib::Al_sg225.ncmat;vdoslux=1"'
          ' -vvv -m Al -f -e scaled --totsab --asymsab')
-test_cli('"stdlib::Al_sg225.ncmat;vdoslux=1" -m Al -f --now')
+assert Path('tsl_Al.endf').is_file()
+assert not Path('some/out/dir/tsl_Al.endf').is_file()
+test_cli('"stdlib::Al_sg225.ncmat;vdoslux=1" -m Al -f --now --dir=some/out/dir')
+assert Path('some/out/dir/tsl_Al.endf').is_file()
+
 
 #fixme: more CLI tests:
 #test_cli('"stdlib::Al_sg225.ncmat;temp=350K;vdoslux=1"'
