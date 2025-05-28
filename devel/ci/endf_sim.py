@@ -431,7 +431,7 @@ def generate_library(cfg):
     from NCrystal import ncmat2endf
     import os
 
-    res = ncmat2endf.ncmat2endf(cfg, material_name='Al', force_save=True)
+    res = ncmat2endf.ncmat2endf(cfg, force_save=True)
     endf_fn, frac = res[0]
     assert endf_fn =='tsl_Al.endf'
 
