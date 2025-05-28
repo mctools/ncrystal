@@ -25,11 +25,11 @@ function in this module for more details.
 """
 
 available_elastic_modes = ('greater', 'scaled', 'mixed')
-default_smin_value = 1e-100
+default_smin_value = 1e-100 #fixme: why not disable by default?
 default_emax_value = 5.0
 
 def ncmat2endf( ncmat_cfg, *,
-                material_name='NCrystalMaterial',
+                material_name=None,
                 endf_metadata=None,
                 othertemps=None,
                 elastic_mode='scaled',
@@ -65,7 +65,13 @@ def ncmat2endf( ncmat_cfg, *,
         Filename of the ncmat file to convert
 
     material_name : str
-        name of the compound to be processed. ENDF files will be named
+        Name of the compound to be processed, to be used in the names of the
+        produced ENDF files (e.g. the "CH2" in "tsl_H_in_CH2.endf"). For
+        monoatomic materials this will default to nothing (e.g. "tsl_Al.endf"),
+        and to "UnknownCompound" for polyatomic materials
+        ("tsl_Al_in_UnknownCompound.endf").
+
+ . ENDF files will be named
         tsl_element_in_name.endf for compounds or tsl_element.endf for
         elements. E.g. tsl_H_in_CH2.endf or tsl_Cu.endf
 
@@ -197,9 +203,11 @@ class EndfMetaData():
 
     @property
     def matnum(self):
-        """ENDF-6 MAT number assignement. Dictionary with string keys and int
-           values that maps element symbols to MAT numbers, e.g. {'Ge':99}.
-           See report ENDF-102 Appendix C for numbering recommendations."""
+        """ENDF-6 MAT number assignment. Dictionary with string keys and int
+           values that maps element symbols to MAT numbers, such as
+           {"Zn":101,"O":102}. When setting this parameter it is also allowed
+           to use a single string formatted like "Zn:101,O:102" See the report
+           ENDF-102 Appendix C for numbering recommendations."""
         return self.get_value('matnum')
 
     @property

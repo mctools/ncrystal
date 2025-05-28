@@ -1001,9 +1001,6 @@ def _impl_ncmat2endf( *,
     from .ncmat2endf import ( EndfMetaData,
                               available_elastic_modes )
 
-    if material_name is None:
-        material_name = 'UnknownCompound'
-
     if not endf_metadata:
         endf_metadata = EndfMetaData()
     elif not isinstance(endf_metadata,EndfMetaData):
@@ -1098,6 +1095,12 @@ def _impl_ncmat2endf( *,
             raise nc_exceptions.NCBadInput('Incorrect material number '
                                            'assignment')
 
+    if material_name is None:
+        #Default depends on whether or not it is a monoatomic material:
+        material_name = ( None
+                          if len(data.composition) == 1
+                          else 'UnknownCompound' )
+
     output_composition = []
     for frac, ad in data.composition:
         sym = ad.elementName()
@@ -1105,8 +1108,8 @@ def _impl_ncmat2endf( *,
                 else endf_metadata.matnum.get(sym))
         assert mat is not None, ('Incorrect material number '
                                  f'assignment for symbol "{sym}"')
-        endf_fn = ( f'tsl_{material_name}.endf'
-                    if sym == material_name
+        endf_fn = ( f'tsl_{sym}.endf'
+                    if not material_name
                     else f'tsl_{sym}_in_{material_name}.endf' )
         assert data.elements[sym].sab_total is not None, ('Scattering kernel'
                                             f' not available for: {endf_fn}')
@@ -1152,10 +1155,10 @@ def _impl_get_metadata_params_and_docs():
     return d
 
 def _impl_emd_set( now_MMMYY, data, param, value,  ):
+    from .exceptions import NCBadInput
     k, v = param.upper(), value
     md = _metadata_definitions.get(k)
     if not md:
-        from .exceptions import NCBadInput
         raise NCBadInput(f'Invalid EndfMetaData parameter "{k}"')
     if v is None:
         v = md['defval']
@@ -1166,7 +1169,6 @@ def _impl_emd_set( now_MMMYY, data, param, value,  ):
     if isinstance(v,str):
         for e in ['"',"'",'`']:
             if e in v:
-                from .exceptions import NCBadInput
                 raise NCBadInput(f'Forbidden character {e} in value '
                                  f'of EndfMetaData parameter "{k}"')
 
@@ -1174,12 +1176,10 @@ def _impl_emd_set( now_MMMYY, data, param, value,  ):
 
     if isinstance(datatype,str) and datatype == 'datestr':
         if not isinstance( v, str ):
-            from .exceptions import NCBadInput
             raise NCBadInput('ENDF date value must be a string')
         if v.lower()=='now':
             v = now_MMMYY
         if len('MMMYY') != len(v):
-            from .exceptions import NCBadInput
             raise NCBadInput('ENDF date value is not in expected'
                              ' format, which is either special value'
                              ' "NOW" or a date in the format "MMMYY"'
@@ -1188,19 +1188,30 @@ def _impl_emd_set( now_MMMYY, data, param, value,  ):
         return
 
     if isinstance(datatype,str) and datatype == 'matnumbers':
+        if not hasattr(v,'items') and isinstance(v,str):
+            d = {}
+            for e in v.split(','):
+                p = [_.strip() for _ in e.split(':')]
+                if ( not len(p)==2 or not p[0] or not p[1]
+                     or not p[1].isdigit() ):
+                    raise NCBadInput(f'Invalid MATNUM value {repr(v)}:'
+                                     ' must be a dict or string with a'
+                                     ' format like "Zn:101,O:102".')
+                d[p[0].upper()]=int(p[1])
+            v = d
         if not hasattr(v,'items'):
-            from .exceptions import NCBadInput
             raise NCBadInput('MATNUM must be a dict')
         for kk,vv in v.items():
             if type(kk) is not str or type(vv) is not int:
-                from .exceptions import NCBadInput
                 raise NCBadInput('MATNUM must be a dict from element',
                                  ' labels (str) to material values (int)' )
         data[k] = v
         return
 
+    if isinstance(v,str) and datatype is int and v.isdigit():
+        v = int(v)
+
     if not isinstance( v, datatype ):
-        from .exceptions import NCBadInput
         raise NCBadInput(f'EndfMetaData parameter "{k}" data '
                          f'must be of type {datatype.__name__}')
     data[k] = v

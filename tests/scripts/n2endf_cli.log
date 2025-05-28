@@ -1,4 +1,4 @@
-============= CLI >>'stdlib::Al_sg225.ncmat;temp=350K;vdoslux=1' -vvv -m Al -f -e greater '--mdata={"ALAB": "MyLab"}'<< ====================
+============= CLI >>'stdlib::Al_sg225.ncmat;temp=350K;vdoslux=1' -vvv -n Al -f -e greater '--mdata={"ALAB": "MyLab"}'<< ====================
 Initialise nuclear data...
 >>> alpha points: 100, alpha range: (5.958e-50, 692.2)
 >>> beta points: 123, beta range: (0, 66.15)
@@ -6,12 +6,12 @@ Initialise nuclear data...
 >> Prepare elastic approximations
 >> Principal elastic mode for Al: coherent
 > Generate MF7
-Write ENDF file tsl_Al.endf...
+Write ENDF file tsl_Al_in_Al.endf...
 Files created:
-  tsl_Al.endf with fraction 1.0
+  tsl_Al_in_Al.endf with fraction 1.0
 ============================================================================================================================================
 ============= CLI >>-h<< ====================
-usage: ncrystal_ncmat2endf CFGSTR [--elas MODE] [--mat NAME] [--mdata DATA]
+usage: ncrystal_ncmat2endf CFGSTR [--elas MODE] [--name NAME] [--mdata DATA]
                            [<<additional options described below>>]
 
 Script for creating a set of ENDF-6 thermal scattering files for the material
@@ -29,16 +29,14 @@ while the ENDF format imposes the same grid on all temperatures.
 
 Example invocations:
 
-    $> ncrystal_ncmat2endf 'Al_sg225.ncmat;temp=350K'
+    $> ncrystal_ncmat2endf  "Al_sg225.ncmat;temp=350K"
 
-    $> ncrystal_ncmat2endf 'Si_sg227.ncmat;temp=293.6K' -m Si \
-                           --mdata '{"MATNUM": {"Si": 99}}' --now
+    $> ncrystal_ncmat2endf  "Si_sg227.ncmat;temp=293.6K" -m Si:99 --now
 
-    $> ncrystal_ncmat2endf 'ZnO_sg186_ZincOxide.ncmat;temp=293.15K' -m ZnO \
-                           --mdata '{"MATNUM": {"Zn": 101, "O": 102}}' -e scaled
+    $> ncrystal_ncmat2endf  "ZnO_sg186_ZincOxide.ncmat;temp=293.15K" -n ZnO -e \
+                            scaled -m "Zn:101,O:102"
 
-    $> ncrystal_ncmat2endf 'Bi_sg166.ncmat;comp=inelas;temp=77K' -m Bi \
-                           --mdata '{"MATNUM": {"Bi": 200}}' --force
+    $> ncrystal_ncmat2endf  "Bi_sg166.ncmat;comp=inelas;temp=77K" -m "AUTH:J. Doe"
 
 options:
   -h, --help            show this help message and exit
@@ -49,16 +47,16 @@ required arguments:
   CFGSTR                NCrystal cfg-string defining the material.
 
 Commonly used arguments:
-  -m, --mat NAME        Name of the material to be processed. ENDF files will be
-                        named tsl_element_in_name.endf for compounds or
-                        tsl_element.endf for elements. E.g. tsl_H_in_CH2.endf or
-                        tsl_Cu.endf
+  -n, --name NAME       Name of the material to be processed.If set ENDF files will
+                        be named tsl_element_in_<NAME>.endf.
   -e, --elas MODE       Approximation used for the elastic component (default
                         "scaled, other options are "greater" and "mixed"). See
                         DOI:10.1016/j.nima.2021.166227 for meaning of modes.
   --mdata MDATA         JSON dictionary containing ENDF-6 metadata. Run with
                         --mdata=help for more information.
-  --now                 Set ENDF6 fields EDATE, DDATE and RDATE to current date.
+  -m KEY:VAL [KEY:VAL ...]
+                        Add metadata entries. Run with --mdata=help for more info.
+  --now                 Set metadata fields EDATE, DDATE and RDATE to current date.
   -d, --dir PATH        Directory for output files (default: current).
   -f, --force           Overwrite output files if they already exist (danger!)
 
@@ -66,7 +64,7 @@ Advanced expert-only arguments:
   --othertemps TVALS [TVALS ...]
                         Additional temperatures to process. As noted above this is
                         not normally recommended, and it is preferred to invoke the
-                        script for each temperature independently using the  "temp"
+                        script for each temperature independently using the "temp"
                         keyword in the cfg-string.
   --smin VALUE          Set the minimum value of S(alpha, beta) stored in MF7/MT4
   --emax EMAX           Maximum neutron energy covered by the scattering kernel
@@ -80,6 +78,10 @@ dictionary like:
 
   --mdata='{ "LIBNAME" : "MySuperLib", "ALAB" : "MySuperLab" }'
 
+Or by adding individual items with the -m option like:
+
+  -m LIBNAME:MySuperLib -m AUTH:"J. Chadwick"
+
 The list of supported meta-data keys and their meaning is:
 
         ALAB : Mnemonic for the originating laboratory.
@@ -89,10 +91,11 @@ The list of supported meta-data keys and their meaning is:
    REFERENCE : Primary reference for the evaluation.
         LREL : Nuclear data library release number.
         NVER : Nuclear data library version number.
-      MATNUM : ENDF-6 MAT number assignement. Dictionary with string keys and
-               int values that maps element symbols to MAT numbers, e.g.
-               {'Ge':99}. See report ENDF-102 Appendix C for numbering
-               recommendations.
+      MATNUM : ENDF-6 MAT number assignment. Dictionary with string keys and int
+               values that maps element symbols to MAT numbers, such as
+               {"Zn":101,"O":102}. When setting this parameter it is also
+               allowed to use a single string formatted like "Zn:101,O:102" See
+               the report ENDF-102 Appendix C for numbering recommendations.
       ENDATE : Master File entry date in the form YYYYMMDD (only used for ENDF/B
                releases).
        EDATE : Evaluation date in the form MMMYY. The special string "NOW" can
@@ -109,6 +112,10 @@ dictionary like:
 
   --mdata='{ "LIBNAME" : "MySuperLib", "ALAB" : "MySuperLab" }'
 
+Or by adding individual items with the -m option like:
+
+  -m LIBNAME:MySuperLib -m AUTH:"J. Chadwick"
+
 The list of supported meta-data keys and their meaning is:
 
         ALAB : Mnemonic for the originating laboratory.
@@ -118,10 +125,11 @@ The list of supported meta-data keys and their meaning is:
    REFERENCE : Primary reference for the evaluation.
         LREL : Nuclear data library release number.
         NVER : Nuclear data library version number.
-      MATNUM : ENDF-6 MAT number assignement. Dictionary with string keys and
-               int values that maps element symbols to MAT numbers, e.g.
-               {'Ge':99}. See report ENDF-102 Appendix C for numbering
-               recommendations.
+      MATNUM : ENDF-6 MAT number assignment. Dictionary with string keys and int
+               values that maps element symbols to MAT numbers, such as
+               {"Zn":101,"O":102}. When setting this parameter it is also
+               allowed to use a single string formatted like "Zn:101,O:102" See
+               the report ENDF-102 Appendix C for numbering recommendations.
       ENDATE : Master File entry date in the form YYYYMMDD (only used for ENDF/B
                releases).
        EDATE : Evaluation date in the form MMMYY. The special string "NOW" can
@@ -132,7 +140,7 @@ The list of supported meta-data keys and their meaning is:
                used to select the current date.
 
 =======================================================
-============= CLI >>'stdlib::Al_sg225.ncmat;vdoslux=1' -vvv -m Al -f -e scaled --totsab --asymsab<< ====================
+============= CLI >>'stdlib::Al_sg225.ncmat;vdoslux=1' -vvv -f -e scaled --totsab --asymsab<< ====================
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Creating non standard S(a,b) with LASYM = 3
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string,  using T = 293.15
 Initialise nuclear data...
@@ -145,10 +153,10 @@ Initialise nuclear data...
 Write ENDF file tsl_Al.endf...
 Files created:
   tsl_Al.endf with fraction 1.0
-========================================================================================================================
-============= CLI >>'stdlib::Al_sg225.ncmat;vdoslux=1' -m Al -f --now --dir=some/out/dir<< ====================
+==================================================================================================================
+============= CLI >>'stdlib::Al_sg225.ncmat;vdoslux=1' -f --now --dir=some/out/dir<< ====================
 Initialise nuclear data...
 Write ENDF file tsl_Al.endf...
 Files created:
   tsl_Al.endf with fraction 1.0
-===============================================================================================================
+=========================================================================================================

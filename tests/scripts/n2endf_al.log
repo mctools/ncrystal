@@ -6,14 +6,14 @@
  'force_save': True,
  'material_name': 'Al',
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1',
- 'temperatures': 350}
+ 'othertemps': 350}
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string,  using T = 293.15
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. The (alpha,beta) grid for first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated.
 Initialise nuclear data...
-Write ENDF file tsl_Al.endf...
+Write ENDF file tsl_Al_in_Al.endf...
 Files created:
-  tsl_Al.endf with fraction 1.0
-Created file tsl_Al.endf with fraction 1.0
+  tsl_Al_in_Al.endf with fraction 1.0
+Created (or not) file tsl_Al_in_Al.endf with fraction 1
 endf>Created with ncmat2endf                                            999 0  0    0
 endf> 1.300000+4 2.674975+1         -1          0          0          0 999 1451    1
 endf> 0.000000+0 0.000000+0          0          0          0          6 999 1451    2
@@ -233,7 +233,7 @@ endf>                                                                    -1 0  0
  'force_save': True,
  'material_name': 'AlN',
  'ncmat_cfg': 'AlN_sg186_AluminumNitride.ncmat;vdoslux=1',
- 'temperatures': 350,
+ 'othertemps': 350,
  'verbosity': 3}
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string,  using T = 293.15
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. The (alpha,beta) grid for first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated.
@@ -1061,8 +1061,8 @@ DUMPING endf dict end
 Files created:
   tsl_N_in_AlN.endf with fraction 0.5
   tsl_Al_in_AlN.endf with fraction 0.5
-Created file tsl_N_in_AlN.endf with fraction 0.5
-Created file tsl_Al_in_AlN.endf with fraction 0.5
+Created (or not) file tsl_N_in_AlN.endf with fraction 0.5
+Created (or not) file tsl_Al_in_AlN.endf with fraction 0.5
 
 
 
@@ -1613,8 +1613,8 @@ DUMPING endf dict end
 Files created:
   tsl_O_in_Al2O3.endf with fraction 0.6
   tsl_Al_in_Al2O3.endf with fraction 0.4
-Created file tsl_O_in_Al2O3.endf with fraction 0.6
-Created file tsl_Al_in_Al2O3.endf with fraction 0.4
+Created (or not) file tsl_O_in_Al2O3.endf with fraction 0.6
+Created (or not) file tsl_Al_in_Al2O3.endf with fraction 0.4
 
 
 
@@ -1623,7 +1623,7 @@ Created file tsl_Al_in_Al2O3.endf with fraction 0.4
  'force_save': True,
  'material_name': 'Al4C3',
  'ncmat_cfg': 'Al4C3_sg166_AluminiumCarbide.ncmat;vdoslux=1',
- 'temperatures': 350,
+ 'othertemps': 350,
  'verbosity': 3}
 Initialise nuclear data...
 >>> alpha points: 100, alpha range: (1.694e-49, 815.8)
@@ -2464,8 +2464,8 @@ DUMPING endf dict end
 Files created:
   tsl_C_in_Al4C3.endf with fraction 0.42857142857142855
   tsl_Al_in_Al4C3.endf with fraction 0.5714285714285714
-Created file tsl_C_in_Al4C3.endf with fraction 0.42857142857142855
-Created file tsl_Al_in_Al4C3.endf with fraction 0.5714285714285714
+Created (or not) file tsl_C_in_Al4C3.endf with fraction 0.428571
+Created (or not) file tsl_Al_in_Al4C3.endf with fraction 0.571429
 
 
 
@@ -2475,7 +2475,7 @@ Created file tsl_Al_in_Al4C3.endf with fraction 0.5714285714285714
  'material_name': 'Al',
  'ncmat_cfg': 'Al_sg225.ncmat;temp=300K;temp=300K;temp=300K;temp=300K;temp=300K;temp=300K;temp=300K;temp=300K;temp=300K;temp=300K;vdoslux=1'}
 Initialise nuclear data...
-Write ENDF file tsl_Al.endf...
+Write ENDF file tsl_Al_in_Al.endf...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 999, 'TAPEDESCR': 'Created with ncmat2endf'}}
   1 ->
@@ -2743,8 +2743,8 @@ DUMPING endf dict begin
           'teff0_table' -> {'Teff0': [326.48577571790037], 'Tint': [300.0], 'NBT': [1], 'INT': [2]}
 DUMPING endf dict end
 Files created:
-  tsl_Al.endf with fraction 1.0
-Created file tsl_Al.endf with fraction 1.0
+  tsl_Al_in_Al.endf with fraction 1.0
+Created (or not) file tsl_Al_in_Al.endf with fraction 1
 
 
 
@@ -2755,7 +2755,7 @@ Created file tsl_Al.endf with fraction 1.0
  'ncmat_cfg': 'Al_with_a_Very_Very_Ver_Very_Very_Very_Very_Ver_Very_Very_Long.ncmat'}
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string,  using T = 293.15
 Initialise nuclear data...
-Write ENDF file tsl_Al.endf...
+Write ENDF file tsl_Al_in_Al.endf...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 999, 'TAPEDESCR': 'Created with ncmat2endf'}}
   1 ->
@@ -2994,8 +2994,8 @@ DUMPING endf dict begin
           'teff0_table' -> {'Teff0': [320.2258463450402], 'Tint': [293.15], 'NBT': [1], 'INT': [2]}
 DUMPING endf dict end
 Files created:
-  tsl_Al.endf with fraction 1.0
-Created file tsl_Al.endf with fraction 1.0
+  tsl_Al_in_Al.endf with fraction 1.0
+Created (or not) file tsl_Al_in_Al.endf with fraction 1
 
 
 
@@ -3005,7 +3005,7 @@ Created file tsl_Al.endf with fraction 1.0
  'material_name': 'Al',
  'ncmat_cfg': 'Al_with_a_Very_Very_Ver_Very_Very_Very_Very_Ver_Very_Very_Very_Very_Ver_Very_Very_Long_Name.ncmat;temp=300K;vdoslux=1'}
 Initialise nuclear data...
-Write ENDF file tsl_Al.endf...
+Write ENDF file tsl_Al_in_Al.endf...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 999, 'TAPEDESCR': 'Created with ncmat2endf'}}
   1 ->
@@ -3246,5 +3246,5 @@ DUMPING endf dict begin
           'teff0_table' -> {'Teff0': [326.48577571790037], 'Tint': [300.0], 'NBT': [1], 'INT': [2]}
 DUMPING endf dict end
 Files created:
-  tsl_Al.endf with fraction 1.0
-Created file tsl_Al.endf with fraction 1.0
+  tsl_Al_in_Al.endf with fraction 1.0
+Created (or not) file tsl_Al_in_Al.endf with fraction 1

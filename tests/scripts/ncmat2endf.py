@@ -109,7 +109,7 @@ test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1',
 d = {'ALAB':r'WRONGSYMBOL"'}
 test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1',
                endf_metadata=d)
-# Invalid material number assignement
+# Invalid material number assignment
 d = {'MATNUM': 0}
 test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1',
                endf_metadata=d)
@@ -143,11 +143,11 @@ test_cli_fail( '"stdlib::Al_sg225.ncmat"',
 # Multiphase material
 test_cli_fail( '"phases<0.1*Al_sg225.ncmat&0.9*Si_sg227.ncmat>"')
 # File already exists
-Path('tsl_Al.endf').touch()
+Path('tsl_Al_in_Bla.endf').touch()
 test_cli_fail('"stdlib::Al_sg225.ncmat;vdoslux=1"'
-         ' -q -m Al -e mixed --totsab', exception_type=RuntimeError)
+              ' -q -n Bla -e mixed --totsab', exception_type=RuntimeError)
 test_cli_fail('"stdlib::Al_sg225.ncmat;vdoslux=1"'
-         ' -q -m Al -e scaled --asymsab', exception_type=RuntimeError)
+              ' -q -n Bla -e scaled --asymsab', exception_type=RuntimeError)
 #
 # Unit tests
 #

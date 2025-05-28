@@ -32,7 +32,7 @@ ncmat2endf_impl.unit_test_chop_svals[0] = True
 
 test_cfg('Al_sg225.ncmat;vdoslux=1', material_name='Al',
          check_teff=True,
-         ref_parsed={'tsl_Al.endf':'0 0 1 451 7 2 7 4'},
+         ref_parsed={'tsl_Al_in_Al.endf':'0 0 1 451 7 2 7 4'},
          check_edge_positions=True,
          othertemps=350, elastic_mode='scaled', compare_xsec=False,
          dump_file=True)
