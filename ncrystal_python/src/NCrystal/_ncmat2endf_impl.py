@@ -568,6 +568,7 @@ class EndfFile():
         self._endf_metadata = endf_metadata
         self._mat = mat
         self._include_gif = include_gif
+        assert not isotopic_expansion, "isotopic_expansion not supported yet"
         self._isotopic_expansion = isotopic_expansion
         self._verbosity = verbosity
         assert smin is not None, 'smin not set'
@@ -802,23 +803,20 @@ class EndfFile():
         self._createMF7MT4()
 
         if self._include_gif:
-            if self._isotopic_expansion:
-                # TODO: implement isotopic expansion
-                pass
-            else:
-                self._endf_dict['7/451'] = {}
-                d = self._endf_dict['7/451']
-                d['MAT'] = mat
-                d['ZA'] = za
-                d['AWR'] = awr
-                d['NA'] = 1
-                d['NAS'] = 1
-                d['NI'] = {1:1}
-                d['ZAI'] = {1:{1:za}}
-                d['LISI'] = {1:{1:0}}
-                d['AFI'] = {1:{1:1.0}}
-                d['SFI'] = {1:{1:data.elements[self._sym].sigma_free}}
-                d['AWRI'] = {1:{1:awr}}
+            assert not self._isotopic_expansion
+            self._endf_dict['7/451'] = {}
+            d = self._endf_dict['7/451']
+            d['MAT'] = mat
+            d['ZA'] = za
+            d['AWR'] = awr
+            d['NA'] = 1
+            d['NAS'] = 1
+            d['NI'] = {1:1}
+            d['ZAI'] = {1:{1:za}}
+            d['LISI'] = {1:{1:0}}
+            d['AFI'] = {1:{1:1.0}}
+            d['SFI'] = {1:{1:data.elements[self._sym].sigma_free}}
+            d['AWRI'] = {1:{1:awr}}
 
     def _createMF1MT451description(self, data, endf_metadata):
         desc = []
@@ -943,10 +941,12 @@ class EndfFile():
             ncprint(f'Write ENDF file {endf_fn}...')
         outfile = pathlib.Path(endf_fn)
         if outfile.exists() and not force_save:
-            raise SystemExit('Error: output file already exists'
+            from .exceptions import NCBadInput
+            raise NCBadInput('Error: output file already exists'
                              ' (run with --force to overwrite)')
         if not outfile.parent.is_dir():
-            raise SystemExit('Error: output directory does not exist:'
+            from .exceptions import NCBadInput
+            raise NCBadInput('Error: output directory does not exist:'
                              f' { outfile.parent }')
 
         if is_unit_test[0]:
@@ -1077,7 +1077,7 @@ def _impl_ncmat2endf( *,
         raise nc_exceptions.NCBadInput( 'Isotopic expansion requires '
                                         'generalized information file, '
                                         'use --gif' )
-    if (isotopic_expansion and include_gif):
+    elif isotopic_expansion:
         raise nc_exceptions.NCBadInput('Isotopic expansion in conversion to'
                                        ' ENDF is not yet supported')
 
@@ -1107,8 +1107,8 @@ def _impl_ncmat2endf( *,
         assert mat is not None, ('Incorrect material number '
                                  f'assignment for symbol "{sym}"')
         endf_fn = ( f'tsl_{material_name}.endf'
-                   if sym == material_name
-                   else f'tsl_{sym}_in_{material_name}.endf' )
+                    if sym == material_name
+                    else f'tsl_{sym}_in_{material_name}.endf' )
         assert data.elements[sym].sab_total is not None, ('Scattering kernel'
                                             f' not available for: {endf_fn}')
         endf_file = EndfFile(sym, data, mat, endf_metadata,
