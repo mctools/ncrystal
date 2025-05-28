@@ -22,7 +22,7 @@ FAILED (as expected): Incorrect material number assignment
 --------------------------------------------------------------------------------
 {'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1',
- 'temperatures': [-100]}
+ 'othertemps': [-100]}
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string,  using T = 293.15
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. The (alpha,beta) grid for first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated.
 FAILED (as expected): Non positive temperatures
@@ -32,8 +32,8 @@ FAILED (as expected): Non positive temperatures
 --------------------------------------------------------------------------------
 {'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1',
- 'temperatures': [293.15]}
-FAILED (as expected): Repeated temperatures: temperatures parameter must not include the temperature defined in the cfg string
+ 'othertemps': [293.15]}
+FAILED (as expected): Repeated temperatures: othertemps parameter must not include the temperature defined in the cfg string
 
 
 
@@ -70,16 +70,16 @@ FAILED (as expected): Conversion to ENDF is currently supported only for natural
 --------------------------------------------------------------------------------
 {'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1',
- 'temperatures': 'WRONGVALUE'}
-FAILED (as expected): temperatures parameter: should be a list or tuple of float or int
+ 'othertemps': 'WRONGVALUE'}
+FAILED (as expected): othertemps parameter: should be a list or tuple of float or int
 
 
 
 --------------------------------------------------------------------------------
 {'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1',
- 'temperatures': ['WRONGVALUE']}
-FAILED (as expected): Something wrong with the temperatures parameter: (['WRONGVALUE'])
+ 'othertemps': ['WRONGVALUE']}
+FAILED (as expected): Something wrong with the othertemps parameter: (['WRONGVALUE'])
 ============= CLI >>Al_with_SANS.ncmat<< ====================
 NCrystal WARNING: Loading NCMAT data which has @CUSTOM_ section(s). This is OK if intended.
 FAILED (as expected): SANS cannot be represented in the ENDF format and is not supported

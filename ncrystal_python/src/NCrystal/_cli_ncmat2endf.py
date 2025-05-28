@@ -34,6 +34,15 @@ def _parseArgs( progname, arglist, return_parser=False ):
     import json
     import shlex
 
+    metavar_elastic = 'MODE'
+    metavar_matname = 'NAME'
+    metavar_metadata = 'DATA'
+    longopt_elastic = '--elas'
+    longopt_matname = '--mat'
+    longopt_datenow = '--now'
+    longopt_othertemps = '--othertemps'
+
+
     helpw = 60
     descrw = helpw + 22
     descr_sections = [
@@ -48,9 +57,9 @@ def _parseArgs( progname, arglist, return_parser=False ):
         G. Schnabel, D. L. Aldama, R. Capote,
         https://doi.org/10.48550/arXiv.2312.08249
         """,
-        """
+        f"""
         Note that while the handling of multiple temperatures in one ENDF-6
-        file is supported via the --temperatures keyword, it is not
+        file is supported via the {longopt_othertemps} keyword, it is not
         recommended. This is because NCrystal computes an optimal (alpha, beta)
         grid for each material and temperature, while the ENDF format imposes
         the same grid on all temperatures.
@@ -66,12 +75,6 @@ def _parseArgs( progname, arglist, return_parser=False ):
     #  2) The ncmat2endf CLI --help text in _cli_ncmat2endf.py
     #
 
-    metavar_elastic = 'MODE'
-    metavar_matname = 'NAME'
-    metavar_metadata = 'DATA'
-    longopt_elastic = '--elas'
-    longopt_matname = '--mat'
-    longopt_datenow = '--now'
     prognmws = ' '*len(progname)
 
     descr = '\n\n'.join(textwrap.fill(' '.join(e.strip().split()),descrw)
@@ -83,7 +86,7 @@ def _parseArgs( progname, arglist, return_parser=False ):
     ex_mdata_bi = shq(json.dumps({"MATNUM":{"Bi":200}}))
 
 
-    descr = f"""\n\nExample invocations:
+    descr += f"""\n\nExample invocations:
 
     $> {progname} {shq('Al_sg225.ncmat;temp=350K')}
 
@@ -151,8 +154,7 @@ def _parseArgs( progname, arglist, return_parser=False ):
                         help=wrap('Increase verbosity. Specify twice'
                                   ' for additional verbosity.'))
     parser.add_argument('--quiet','-q',default=False,action='store_true',
-                        help=wrap('Silence non-error output'
-                                  ' (automatic if --output=stdout).'))
+                        help=wrap('Silence non-error output.'))
     ba.add_argument('-d', '--dir', default = '.', metavar='PATH', dest='outdir',
                     help=wrap('Directory for output files (default: current).'))
     ba.add_argument('-f', '--force',action='store_true',
@@ -160,7 +162,7 @@ def _parseArgs( progname, arglist, return_parser=False ):
                               ' they already exist (danger!)'))
 
     expert_args = parser.add_argument_group('Advanced expert-only arguments')
-    expert_args.add_argument('-t', '--temperatures',metavar='TVALS',
+    expert_args.add_argument(longopt_othertemps,metavar='TVALS',
                              nargs='+',
                              type=float,
                              help=wrap('Additional temperatures to process. As'
@@ -250,7 +252,7 @@ def _main_impl( args ):
     ncmat2endf( args.CFGSTR,
                 material_name = args.mat,
                 endf_metadata = metadata,
-                temperatures = args.temperatures,
+                othertemps = args.othertemps,
                 elastic_mode = args.elas,
                 force_save = args.force,
                 smin = args.smin,

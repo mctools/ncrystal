@@ -31,7 +31,7 @@ default_emax_value = 5.0
 def ncmat2endf( ncmat_cfg, *,
                 material_name='NCrystalMaterial',
                 endf_metadata=None,
-                temperatures=None,
+                othertemps=None,
                 elastic_mode='scaled',
                 include_gif=False,
                 isotopic_expansion=False,
@@ -47,10 +47,10 @@ def ncmat2endf( ncmat_cfg, *,
     additional metadata parameters for the ENDF-6 format can be set by using
     the Python API and passing a custom EndfMetaData object or dictionary.
 
-    The function allows to handle multiple temperatures in one ENDF-6 file, but
-    this is not recommended, because NCrystal computes an optimal (alpha, beta)
-    grid for each material and temperature, while the ENDF format imposes the
-    same grid on all temperatures.
+    The function allows to handle multiple temperatures in one ENDF-6 file via
+    the othertemps parameter, but this is not recommended, because NCrystal
+    computes an optimal (alpha, beta) grid for each material and temperature,
+    while the ENDF format imposes the same grid on all temperatures.
 
     This function uses the endf-parserpy package from IAEA to format and check
     the syntax of the ENDF-6 file.
@@ -73,10 +73,9 @@ def ncmat2endf( ncmat_cfg, *,
         Metadata parameters for the ENDF file.
         https://www.nndc.bnl.gov/endfdocs/ENDF-102-2023.pdf
 
-    temperatures : int, float, tuple or list
+    othertemps : int, float, tuple or list
         Temperature(s) in Kelvin to generate the nuclear data,
         in addition to the temperature defined in the cfg string.
-        (The default temperature in the cfg string is 293.15 K)
 
     elastic_mode : str
         Treatment mode for the elastic component
@@ -128,7 +127,7 @@ def ncmat2endf( ncmat_cfg, *,
     return _impl_ncmat2endf( ncmat_cfg = ncmat_cfg,
                              material_name = material_name,
                              endf_metadata = endf_metadata,
-                             temperatures = temperatures,
+                             othertemps = othertemps,
                              elastic_mode = elastic_mode,
                              include_gif = include_gif,
                              isotopic_expansion = isotopic_expansion,

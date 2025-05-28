@@ -14,6 +14,19 @@ Files created:
 usage: ncrystal_ncmat2endf CFGSTR [--elas MODE] [--mat NAME] [--mdata DATA]
                            [<<additional options described below>>]
 
+Script for creating a set of ENDF-6 thermal scattering files for the material
+described by a particular NCrystal cfg-string.
+
+The script uses the endf-parserpy package from IAEA to format and check the syntax
+of the ENDF-6 file:
+
+G. Schnabel, D. L. Aldama, R. Capote, https://doi.org/10.48550/arXiv.2312.08249
+
+Note that while the handling of multiple temperatures in one ENDF-6 file is
+supported via the --othertemps keyword, it is not recommended. This is because
+NCrystal computes an optimal (alpha, beta) grid for each material and temperature,
+while the ENDF format imposes the same grid on all temperatures.
+
 Example invocations:
 
     $> ncrystal_ncmat2endf 'Al_sg225.ncmat;temp=350K'
@@ -30,7 +43,7 @@ Example invocations:
 options:
   -h, --help            show this help message and exit
   -v, --verbose         Increase verbosity. Specify twice for additional verbosity.
-  --quiet, -q           Silence non-error output (automatic if --output=stdout).
+  --quiet, -q           Silence non-error output.
 
 required arguments:
   CFGSTR                NCrystal cfg-string defining the material.
@@ -50,7 +63,7 @@ Commonly used arguments:
   -f, --force           Overwrite output files if they already exist (danger!)
 
 Advanced expert-only arguments:
-  -t, --temperatures TVALS [TVALS ...]
+  --othertemps TVALS [TVALS ...]
                         Additional temperatures to process. As noted above this is
                         not normally recommended, and it is preferred to invoke the
                         script for each temperature independently using the  "temp"
