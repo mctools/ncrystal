@@ -127,14 +127,16 @@ def _parseArgs( progname, arglist, return_parser=False ):
                                'tsl_H_in_CH2.endf or tsl_Cu.endf'))
     elasmode_default = 'scaled'
     assert elasmode_default in available_elastic_modes
-    elasmode_other = list(e for e in available_elastic_modes if e!=elasmode_default )
+    elasmode_other = list(e for e in available_elastic_modes
+                          if e != elasmode_default )
     assert len(elasmode_other)==2
     ba.add_argument('-e', longopt_elastic,metavar=metavar_elastic,
                     help=wrap('Approximation used for the elastic component'
                               f' (default "{elasmode_default}, other options'
                               f' are "{elasmode_other[0]}" and'
                               f' "{elasmode_other[1]}").'
-                              ' See DOI:10.1016/j.nima.2021.166227 for meaning of modes.'),
+                              ' See DOI:10.1016/j.nima.2021.166227 for'
+                              ' meaning of modes.'),
                     type=str, choices=available_elastic_modes,
                     default=elasmode_default)
     ba.add_argument(longopt_metadata,
@@ -151,6 +153,8 @@ def _parseArgs( progname, arglist, return_parser=False ):
     parser.add_argument('--quiet','-q',default=False,action='store_true',
                         help=wrap('Silence non-error output'
                                   ' (automatic if --output=stdout).'))
+    ba.add_argument('-d', '--dir', default = '.', metavar='PATH', dest='outdir',
+                    help=wrap('Directory for output files (default: current).'))
     ba.add_argument('-f', '--force',action='store_true',
                     help=wrap('Overwrite output files if'
                               ' they already exist (danger!)'))
@@ -252,7 +256,8 @@ def _main_impl( args ):
                 smin = args.smin,
                 emax = args.emax,
                 lasym = lasym,
-                verbosity = args.verbose )
+                verbosity = args.verbose,
+                outdir = args.outdir )
 
 def gen_metadata_doc():
     from ._ncmat2endf_impl import _impl_get_metadata_params_and_docs

@@ -279,6 +279,7 @@ Commonly used arguments:
   --mdata MDATA         JSON dictionary containing ENDF-6 metadata. Run with
                         --mdata=help for more information.
   --now                 Set ENDF6 fields EDATE, DDATE and RDATE to current date.
+  -d, --dir PATH        Directory for output files (default: current).
   -f, --force           Overwrite output files if they already exist (danger!)
 
 Advanced expert-only arguments:
@@ -359,9 +360,9 @@ Write ENDF file tsl_Al.endf...
 Files created:
   tsl_Al.endf with fraction 1.0
 ========================================================================================================================
-============= CLI >>'stdlib::Al_sg225.ncmat;vdoslux=1' -m Al -f --now<< ====================
+============= CLI >>'stdlib::Al_sg225.ncmat;vdoslux=1' -m Al -f --now --dir=some/out/dir<< ====================
 Initialise nuclear data...
 Write ENDF file tsl_Al.endf...
 Files created:
   tsl_Al.endf with fraction 1.0
-============================================================================================
+===============================================================================================================

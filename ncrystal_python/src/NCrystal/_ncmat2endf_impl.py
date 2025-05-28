@@ -935,20 +935,18 @@ class EndfFile():
         d['NCx/1'] = 5
         d['MOD/1'] = d['NMOD']
 
-    def write(self, endf_fn, force_save):
+    def write(self, endf_fn, force_save, outdir ):
         import pathlib
+        outfile = pathlib.Path(outdir).joinpath( pathlib.Path(endf_fn) )
+        outfile.parent.mkdir(exist_ok = True, parents = True)
+
         if self._verbosity > 0:
-            ncprint(f'Write ENDF file {endf_fn}...')
-        outfile = pathlib.Path(endf_fn)
+            ncprint(f'Write ENDF file {outfile.name}...')
         if outfile.exists() and not force_save:
             from .exceptions import NCBadInput
             raise NCBadInput('Error: output file already exists'
                              ' (run with --force to overwrite)')
-        if not outfile.parent.is_dir():
-            from .exceptions import NCBadInput
-            raise NCBadInput('Error: output directory does not exist:'
-                             f' { outfile.parent }')
-
+        assert outfile.parent.is_dir()
         if is_unit_test[0]:
             if unit_test_dump[0]:
                 self.dump_endf_dict()
@@ -984,6 +982,7 @@ def _impl_ncmat2endf( *,
                       smin,
                       emax,
                       lasym,
+                      outdir,
                       verbosity ):
     from . import exceptions as nc_exceptions
     from . import core as nc_core
@@ -1116,7 +1115,7 @@ def _impl_ncmat2endf( *,
                              isotopic_expansion=isotopic_expansion,
                              smin=smin, emax=emax, lasym=lasym,
                              verbosity=verbosity)
-        endf_file.write(endf_fn, force_save)
+        endf_file.write( endf_fn, force_save, outdir = outdir )
         output_composition.append((endf_fn, frac))
 
     if verbosity > 0:

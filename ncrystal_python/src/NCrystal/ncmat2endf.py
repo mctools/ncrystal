@@ -39,6 +39,7 @@ def ncmat2endf( ncmat_cfg, *,
                 smin=default_smin_value,
                 emax=default_emax_value,
                 lasym=0,
+                outdir = '.',
                 verbosity = 1 ):
     """
     Generates a set of ENDF-6 thermal scattering files from an NCMAT
@@ -92,22 +93,25 @@ def ncmat2endf( ncmat_cfg, *,
                     among the other atoms
 
     include_gif: boolean
-        Include the generalized information in MF=7/MT=451 in isotopes
+        Include the generalized information in MF=7/MT=451 in isotopes.
 
     isotopic_expansion: boolean
-        Expand the information in MF=7/MT=451 in isotopes
+        Expand the information in MF=7/MT=451 in isotopes.
 
     force_save: boolean
         Overwrite existing file if it already exists.
 
+    outdir : str, path
+        Directory for output files.
+
     verbosity : int
-        Level of verbosity of the output (0: quiet, max value: 3)
+        Level of verbosity of the output (0: quiet, max value: 3).
 
     Returns
     -------
     output_composition: list of (str, float)
         List of tuples containing the ENDF-6 files and
-        their fraction in the composition
+        their fraction in the composition.
 
     """
 
@@ -132,6 +136,7 @@ def ncmat2endf( ncmat_cfg, *,
                              smin = smin,
                              emax = emax,
                              lasym = lasym,
+                             outdir = outdir,
                              verbosity = verbosity )
 
 class EndfMetaData():
