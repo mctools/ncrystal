@@ -34,7 +34,7 @@ test_cfg('Al_sg225.ncmat;vdoslux=1', material_name='Al',
          check_teff=True,
          ref_parsed={'tsl_Al.endf':'0 0 1 451 7 2 7 4'},
          check_edge_positions=True,
-         temperatures=350, elastic_mode='scaled', compare_xsec=False,
+         othertemps=350, elastic_mode='scaled', compare_xsec=False,
          dump_file=True)
 
 ncmat2endf_impl.unit_test_chop_svals[0] = True
@@ -42,13 +42,13 @@ ncmat2endf_impl.is_unit_test[0] = True
 ncmat2endf_impl.unit_test_dump[0] = True
 
 test_cfg('AlN_sg186_AluminumNitride.ncmat;vdoslux=1', material_name='AlN',
-         temperatures=350, elastic_mode='scaled', compare_xsec=False,
+         othertemps=350, elastic_mode='scaled', compare_xsec=False,
          dump_file=False, verbosity=3)
 test_cfg('Al2O3_sg167_Corundum.ncmat;vdoslux=1', material_name='Al2O3',
          elastic_mode='mixed', compare_xsec=False,
          dump_file=False, verbosity=3)
 test_cfg('Al4C3_sg166_AluminiumCarbide.ncmat;vdoslux=1', material_name='Al4C3',
-         temperatures=350, elastic_mode='greater', compare_xsec=False,
+         othertemps=350, elastic_mode='greater', compare_xsec=False,
          dump_file=False, verbosity=3)
 # Long config strings
 test_cfg('Al_sg225.ncmat;temp=300K;temp=300K;temp=300K;'

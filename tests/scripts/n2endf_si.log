@@ -1183,7 +1183,7 @@ Created file tsl_Si_in_NCrystalMaterial.endf with fraction 0.3333333333333333
  'include_gif': True,
  'lasym': 3,
  'ncmat_cfg': 'SiO2-alpha_sg154_AlphaQuartz.ncmat',
- 'temperatures': 400,
+ 'othertemps': 400,
  'verbosity': 3}
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Creating non standard S(a,b) with LASYM = 3
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. The (alpha,beta) grid for first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated.

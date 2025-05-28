@@ -69,9 +69,9 @@ print(metadata)
 test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1', endf_metadata=metadata)
 
 # Negative temperatures
-test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1', temperatures=[-100])
+test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1', othertemps=[-100])
 # Repeated temperatures
-test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1', temperatures=[293.15])
+test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1', othertemps=[293.15])
 # No inelastic
 test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1;comp=coh_elas')
 # Wrong verbosity parameter
@@ -83,9 +83,9 @@ test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1',
 test_cfg_fail( 'MgD2_sg136_MagnesiumDeuteride.ncmat;vdoslux=1')
 # Wrong temperature parameter
 test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1',
-               temperatures='WRONGVALUE')
+               othertemps='WRONGVALUE')
 test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1',
-               temperatures=['WRONGVALUE'])
+               othertemps=['WRONGVALUE'])
 # SANS not supported (currently being caught as multiphase)
 c=nc_ncmat.NCMATComposer('Al_sg225.ncmat')
 c.add_secondary_phase(0.01,'void.ncmat')

@@ -974,7 +974,7 @@ def _impl_ncmat2endf( *,
                       ncmat_cfg,
                       material_name,
                       endf_metadata,
-                      temperatures,
+                      othertemps,
                       elastic_mode,
                       include_gif,
                       isotopic_expansion,
@@ -1037,28 +1037,28 @@ def _impl_ncmat2endf( *,
         ncwarn( 'Temperature not explicitly given in the cfg-string, '
                f' using T = {base_temp:.2f}')
 
-    if temperatures is None:
-        temperatures = tuple()
+    if othertemps is None:
+        othertemps = tuple()
     else:
-        if type(temperatures) in (int, float):
-            temperatures = (temperatures,)
-        elif type(temperatures) in (list, tuple):
-            if any(type(T) not in (int, float) for T in temperatures):
+        if type(othertemps) in (int, float):
+            othertemps = (othertemps,)
+        elif type(othertemps) in (list, tuple):
+            if any(type(T) not in (int, float) for T in othertemps):
                 raise nc_exceptions.NCBadInput('Something wrong with the '
-                                               'temperatures parameter: '
-                                               f'({temperatures})')
+                                               'othertemps parameter: '
+                                               f'({othertemps})')
             else:
-                temperatures = tuple(float( T ) for T in temperatures )
+                othertemps = tuple(float( T ) for T in othertemps )
         else:
-            raise nc_exceptions.NCBadInput('temperatures parameter: '
+            raise nc_exceptions.NCBadInput('othertemps parameter: '
                                            'should be a list or tuple '
                                            'of float or int')
-    if base_temp in temperatures:
+    if base_temp in othertemps:
         raise nc_exceptions.NCBadInput('Repeated temperatures: '
-                                       'temperatures parameter must not '
+                                       'othertemps parameter must not '
                                        'include the temperature defined '
                                        'in the cfg string')
-    temperatures = sorted(temperatures + (base_temp,))
+    temperatures = sorted(othertemps + (base_temp,))
     if len(temperatures) > 1:
         ncwarn('Multiple temperatures requested. Although this is supported, '
                'it is not recommended because NCrystal generates '
