@@ -309,8 +309,11 @@ The list of supported meta-data keys and their meaning is:
    REFERENCE : Primary reference for the evaluation.
         LREL : Nuclear data library release number.
         NVER : Nuclear data library version number.
-      MATNUM : Fixme add doc string.
-      ENDATE : Master File entry date in the form YYYYMMDD (only used for ENDF-B
+      MATNUM : ENDF-6 MAT number assignement. Dictionary with string keys and
+               int values that maps element symbols to MAT numbers, e.g.
+               {'Ge':99}. See report ENDF-102 Appendix C for numbering
+               recommendations.
+      ENDATE : Master File entry date in the form YYYYMMDD (only used for ENDF/B
                releases).
        EDATE : Evaluation date in the form MMMYY. The special string "NOW" can
                be used to select the current date.
@@ -335,8 +338,11 @@ The list of supported meta-data keys and their meaning is:
    REFERENCE : Primary reference for the evaluation.
         LREL : Nuclear data library release number.
         NVER : Nuclear data library version number.
-      MATNUM : Fixme add doc string.
-      ENDATE : Master File entry date in the form YYYYMMDD (only used for ENDF-B
+      MATNUM : ENDF-6 MAT number assignement. Dictionary with string keys and
+               int values that maps element symbols to MAT numbers, e.g.
+               {'Ge':99}. See report ENDF-102 Appendix C for numbering
+               recommendations.
+      ENDATE : Master File entry date in the form YYYYMMDD (only used for ENDF/B
                releases).
        EDATE : Evaluation date in the form MMMYY. The special string "NOW" can
                be used to select the current date.
