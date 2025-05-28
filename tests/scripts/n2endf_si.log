@@ -19,10 +19,10 @@
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string,  using T = 293.15
 Initialise nuclear data...
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Incoherent elastic component disabled
-Write ENDF file tsl_Si_in_NCrystalMaterial.endf...
+Write ENDF file tsl_Si.endf...
 Files created:
-  tsl_Si_in_NCrystalMaterial.endf with fraction 1.0
-Created file tsl_Si_in_NCrystalMaterial.endf with fraction 1.0
+  tsl_Si.endf with fraction 1.0
+Created (or not) file tsl_Si.endf with fraction 1
 NCrystal WARNING: Discarding 1 edges of provided kernel data due to missing S values.
 
 
@@ -46,7 +46,7 @@ Designated incoherent: Si
 >> Scaled elastic mode for O in compound: designated coherent atom, dividing by frac^2=0.4444444444444444
 >> Scaled elastic mode for Si in compound: incoherent
 > Generate MF7
-Write ENDF file tsl_O_in_NCrystalMaterial.endf...
+Write ENDF file tsl_O_in_UnknownCompound.endf...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 999, 'TAPEDESCR': 'Created with ncmat2endf'}}
   1 ->
@@ -326,7 +326,7 @@ DUMPING endf dict begin
           'AWRI' -> {1: {1: 15.861863003473815}}
 DUMPING endf dict end
 > Generate MF7
-Write ENDF file tsl_Si_in_NCrystalMaterial.endf...
+Write ENDF file tsl_Si_in_UnknownCompound.endf...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 999, 'TAPEDESCR': 'Created with ncmat2endf'}}
   1 ->
@@ -586,10 +586,10 @@ DUMPING endf dict begin
           'AWRI' -> {1: {1: 27.84424051648219}}
 DUMPING endf dict end
 Files created:
-  tsl_O_in_NCrystalMaterial.endf with fraction 0.6666666666666666
-  tsl_Si_in_NCrystalMaterial.endf with fraction 0.3333333333333333
-Created file tsl_O_in_NCrystalMaterial.endf with fraction 0.6666666666666666
-Created file tsl_Si_in_NCrystalMaterial.endf with fraction 0.3333333333333333
+  tsl_O_in_UnknownCompound.endf with fraction 0.6666666666666666
+  tsl_Si_in_UnknownCompound.endf with fraction 0.3333333333333333
+Created (or not) file tsl_O_in_UnknownCompound.endf with fraction 0.666667
+Created (or not) file tsl_Si_in_UnknownCompound.endf with fraction 0.333333
 
 
 
@@ -610,7 +610,7 @@ Initialise nuclear data...
 >> Principal elastic mode for O: coherent
 >> Principal elastic mode for Si: coherent
 > Generate MF7
-Write ENDF file tsl_O_in_NCrystalMaterial.endf...
+Write ENDF file tsl_O_in_UnknownCompound.endf...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 999, 'TAPEDESCR': 'Created with ncmat2endf'}}
   1 ->
@@ -890,7 +890,7 @@ DUMPING endf dict begin
           'AWRI' -> {1: {1: 15.861863003473815}}
 DUMPING endf dict end
 > Generate MF7
-Write ENDF file tsl_Si_in_NCrystalMaterial.endf...
+Write ENDF file tsl_Si_in_UnknownCompound.endf...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 999, 'TAPEDESCR': 'Created with ncmat2endf'}}
   1 ->
@@ -1170,10 +1170,10 @@ DUMPING endf dict begin
           'AWRI' -> {1: {1: 27.84424051648219}}
 DUMPING endf dict end
 Files created:
-  tsl_O_in_NCrystalMaterial.endf with fraction 0.6666666666666666
-  tsl_Si_in_NCrystalMaterial.endf with fraction 0.3333333333333333
-Created file tsl_O_in_NCrystalMaterial.endf with fraction 0.6666666666666666
-Created file tsl_Si_in_NCrystalMaterial.endf with fraction 0.3333333333333333
+  tsl_O_in_UnknownCompound.endf with fraction 0.6666666666666666
+  tsl_Si_in_UnknownCompound.endf with fraction 0.3333333333333333
+Created (or not) file tsl_O_in_UnknownCompound.endf with fraction 0.666667
+Created (or not) file tsl_Si_in_UnknownCompound.endf with fraction 0.333333
 
 
 
@@ -1200,7 +1200,7 @@ Initialise nuclear data...
 >> Principal elastic mode for O: coherent
 >> Principal elastic mode for Si: coherent
 > Generate MF7
-Write ENDF file tsl_O_in_NCrystalMaterial.endf...
+Write ENDF file tsl_O_in_UnknownCompound.endf...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 999, 'TAPEDESCR': 'Created with ncmat2endf'}}
   1 ->
@@ -1629,7 +1629,7 @@ DUMPING endf dict begin
           'AWRI' -> {1: {1: 15.861863003473815}}
 DUMPING endf dict end
 > Generate MF7
-Write ENDF file tsl_Si_in_NCrystalMaterial.endf...
+Write ENDF file tsl_Si_in_UnknownCompound.endf...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 999, 'TAPEDESCR': 'Created with ncmat2endf'}}
   1 ->
@@ -2058,7 +2058,7 @@ DUMPING endf dict begin
           'AWRI' -> {1: {1: 27.84424051648219}}
 DUMPING endf dict end
 Files created:
-  tsl_O_in_NCrystalMaterial.endf with fraction 0.6666666666666666
-  tsl_Si_in_NCrystalMaterial.endf with fraction 0.3333333333333333
-Created file tsl_O_in_NCrystalMaterial.endf with fraction 0.6666666666666666
-Created file tsl_Si_in_NCrystalMaterial.endf with fraction 0.3333333333333333
+  tsl_O_in_UnknownCompound.endf with fraction 0.6666666666666666
+  tsl_Si_in_UnknownCompound.endf with fraction 0.3333333333333333
+Created (or not) file tsl_O_in_UnknownCompound.endf with fraction 0.666667
+Created (or not) file tsl_Si_in_UnknownCompound.endf with fraction 0.333333

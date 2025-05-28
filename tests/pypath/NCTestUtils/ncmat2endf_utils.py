@@ -30,7 +30,6 @@ import NCrystalDev.constants as nc_constants
 import NCrystalDev.atomdata as nc_atomdata
 import NCrystalDev.vdos as nc_vdos
 import NCrystalDev.ncmat as nc_ncmat
-
 from .common import ( print_text_file_with_snipping,
                       require_flteq )
 
@@ -47,19 +46,18 @@ def test_cfg( cfg, check_teff=False,
         kwargs['force_save'] = True
     kwargs['ncmat_cfg']=cfg
     pprint.pprint(kwargs)
-    temperatures = None
-    temperatures = (nc_core.createInfo(cfg).dyninfos[0].temperature,)
-    if 'temperatures' in kwargs:
-        if isinstance(kwargs['temperatures'], (int, float)):
-            temperatures = temperatures+(kwargs['temperatures'],)
+    temperatures = [nc_core.createInfo(cfg).dyninfos[0].temperature]
+    if 'othertemps' in kwargs:
+        if isinstance(kwargs['othertemps'], (int, float)):
+            temperatures.append( kwargs['othertemps'] )
         else:
-            temperatures = temperatures+tuple(kwargs['temperatures'])
+            temperatures += list( t for t in kwargs['othertemps'] )
     res = ncmat2endf(**kwargs)
     if compare_xsec:
         E = _np.geomspace(1e-5, 5.0, 1000)
         xs_test = _np.zeros(_np.shape(E))
     for endf_fn, frac in res:
-        print(f"Created file {endf_fn} with fraction {frac}")
+        print(f"Created (or not) file {endf_fn} with fraction {frac:g}")
         if dump_file:
             import pathlib
             text = pathlib.Path(endf_fn).read_text()

@@ -171,9 +171,9 @@ FAILED (as expected): Inconsistent usage of --quiet and --verbose flags
 FAILED (as expected): Argument to --mdata must be a JSON dictionary of key, value pairs
 ============= CLI >>'phases<0.1*Al_sg225.ncmat&0.9*Si_sg227.ncmat>'<< ====================
 FAILED (as expected): Only single phase materials supported
-============= CLI >>'stdlib::Al_sg225.ncmat;vdoslux=1' -q -m Al -e mixed --totsab<< ====================
+============= CLI >>'stdlib::Al_sg225.ncmat;vdoslux=1' -q -n Bla -e mixed --totsab<< ====================
 FAILED (as expected): Error: output file already exists (run with --force to overwrite)
-============= CLI >>'stdlib::Al_sg225.ncmat;vdoslux=1' -q -m Al -e scaled --asymsab<< ====================
+============= CLI >>'stdlib::Al_sg225.ncmat;vdoslux=1' -q -n Bla -e scaled --asymsab<< ====================
 FAILED (as expected): Error: output file already exists (run with --force to overwrite)
 Designated incoherent: Th
 >>> alpha points: 100, alpha range: (1.563e-49, 179.4)

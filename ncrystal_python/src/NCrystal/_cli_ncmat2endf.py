@@ -23,6 +23,22 @@ from ._cliimpl import ( create_ArgumentParser,
                         cli_entry_point )
 
 longopt_metadata = '--mdata'
+metavar_elastic = 'MODE'
+metavar_matname = 'NAME'
+metavar_metadata = 'DATA'
+longopt_elastic = '--elas'
+longopt_matname = '--name'
+longopt_datenow = '--now'
+longopt_othertemps = '--othertemps'
+
+#Examples here so they can be unit tested (fixme: make sure we do this!):
+examples = [
+    ['Al_sg225.ncmat;temp=350K'],
+    ['Si_sg227.ncmat;temp=293.6K','-m','Si:99',longopt_datenow],
+    ['ZnO_sg186_ZincOxide.ncmat;temp=293.15K','-n','ZnO',
+     '-e','scaled','-m','Zn:101,O:102'],
+    ['Bi_sg166.ncmat;comp=inelas;temp=77K','-m','AUTH:J. Doe']
+]
 
 def _parseArgs( progname, arglist, return_parser=False ):
     from .ncmat2endf import ( available_elastic_modes,
@@ -33,15 +49,6 @@ def _parseArgs( progname, arglist, return_parser=False ):
     import textwrap
     import json
     import shlex
-
-    metavar_elastic = 'MODE'
-    metavar_matname = 'NAME'
-    metavar_metadata = 'DATA'
-    longopt_elastic = '--elas'
-    longopt_matname = '--mat'
-    longopt_datenow = '--now'
-    longopt_othertemps = '--othertemps'
-
 
     helpw = 60
     descrw = helpw + 22
@@ -75,31 +82,34 @@ def _parseArgs( progname, arglist, return_parser=False ):
     #  2) The ncmat2endf CLI --help text in _cli_ncmat2endf.py
     #
 
-    prognmws = ' '*len(progname)
-
     descr = '\n\n'.join(textwrap.fill(' '.join(e.strip().split()),descrw)
                         for e in descr_sections)
 
-    shq = shlex.quote
-    ex_mdata_si = shq(json.dumps({"MATNUM":{"Si":99}}))
-    ex_mdata_zno = shq(json.dumps({"MATNUM":{"Zn":101, "O":102}}))
-    ex_mdata_bi = shq(json.dumps({"MATNUM":{"Bi":200}}))
+    def exquote(e):
+        #prefer " for quoting (for Windows compatibility)
+        e = shlex.quote(e)
+        if '"' not in e and "'" in e:
+            e = e.replace("'",'"')
+        if '"' not in e and ',' in e:
+            #Add some quotes that shlex did not think necessary:
+            e = '"%s"'%e
+        return e
 
-
-    descr += f"""\n\nExample invocations:
-
-    $> {progname} {shq('Al_sg225.ncmat;temp=350K')}
-
-    $> {progname} {shq('Si_sg227.ncmat;temp=293.6K')} -m Si \\
-       {prognmws} {longopt_metadata} {ex_mdata_si} {longopt_datenow}
-
-    $> {progname} {shq('ZnO_sg186_ZincOxide.ncmat;temp=293.15K')} -m ZnO \\
-       {prognmws} {longopt_metadata} {ex_mdata_zno} -e scaled
-
-    $> {progname} {shq('Bi_sg166.ncmat;comp=inelas;temp=77K')} -m Bi \\
-       {prognmws} {longopt_metadata} {ex_mdata_bi} --force
-
-    """
+    descr += "\n\nExample invocations:\n\n"
+    exw = descrw - len(progname) - 7
+    expre=f'    $> {progname} '
+    for example in examples:
+        s=['']
+        for e in example:
+            e = exquote(e)
+            if len(s[-1]+e) > exw:
+                s[-1] += ' \\'
+                s.append('')
+            s[-1] += ' %s'%e
+        descr += '%s%s\n'%(expre,s[0])
+        for e in s[1:]:
+            descr += '%s%s\n'%(' '*len(expre),e)
+        descr += '\n'
 
     usagestr = (
         f'{progname} CFGSTR [{longopt_elastic} {metavar_elastic}]'
@@ -122,12 +132,10 @@ def _parseArgs( progname, arglist, return_parser=False ):
                                          ' material.'))
 
     ba = parser.add_argument_group('Commonly used arguments')
-    ba.add_argument( '-m', longopt_matname, metavar=metavar_matname,
-                     help=wrap('Name of the material to be processed. '
-                               'ENDF files will be named '
-                               'tsl_element_in_name.endf for compounds '
-                               'or tsl_element.endf for elements. E.g. '
-                               'tsl_H_in_CH2.endf or tsl_Cu.endf'))
+    ba.add_argument( '-n', longopt_matname, metavar=metavar_matname,
+                     help=wrap('Name of the material to be processed.'
+                               'If set ENDF files will be named '
+                               f'tsl_element_in_<{metavar_matname}>.endf.'))
     elasmode_default = 'scaled'
     assert elasmode_default in available_elastic_modes
     elasmode_other = list(e for e in available_elastic_modes
@@ -142,12 +150,15 @@ def _parseArgs( progname, arglist, return_parser=False ):
                               ' meaning of modes.'),
                     type=str, choices=available_elastic_modes,
                     default=elasmode_default)
-    ba.add_argument(longopt_metadata,
+    ba.add_argument(longopt_metadata,default={},
                     help=wrap('JSON dictionary containing ENDF-6'
                               f' metadata. Run with {longopt_metadata}=help '
                               'for more information.'))
+    ba.add_argument('-m',metavar='KEY:VAL',action='append', nargs='+',
+                    help=wrap('Add metadata entries. Run with '
+                              f'{longopt_metadata}=help for more info.'))
     ba.add_argument(longopt_datenow,action='store_true',
-                    help=wrap('Set ENDF6 fields EDATE, DDATE and RDATE'
+                    help=wrap('Set metadata fields EDATE, DDATE and RDATE'
                               ' to current date.'))
 
     parser.add_argument('-v','--verbose', action='count',default=0,
@@ -170,7 +181,7 @@ def _parseArgs( progname, arglist, return_parser=False ):
                                        ' recommended, and it is preferred'
                                        ' to invoke the script for each'
                                        ' temperature independently using the'
-                                       '  "temp" keyword in the cfg-string.') )
+                                       ' "temp" keyword in the cfg-string.') )
     expert_args.add_argument('--smin',metavar='VALUE',
                              type=float, default=default_smin_value,
                              help=wrap('Set the minimum value'
@@ -213,6 +224,14 @@ def _parseArgs( progname, arglist, return_parser=False ):
             if not isinstance(args.mdata,dict):
                 parser.error(f'Argument to {longopt_metadata} must be a JSON'
                              ' dictionary of key, value pairs')
+    assert isinstance(args.mdata,dict)
+    for ee in args.m or []:
+        for e in ee:
+            kv = list(_.strip() for _ in e.split(':',1))
+            if not len(kv)==2 or not kv[0]:
+                parser.error(f'Invalid parameter for -m: {repr(e)}')
+            args.mdata[kv[0]] = kv[1]
+    args.m = None
 
     #map verbosity to 0...3 needed for Python API:
     if args.quiet:
@@ -250,7 +269,7 @@ def _main_impl( args ):
     if args.asymsab:
         lasym += 2
     ncmat2endf( args.CFGSTR,
-                material_name = args.mat,
+                material_name = args.name,
                 endf_metadata = metadata,
                 othertemps = args.othertemps,
                 elastic_mode = args.elas,
@@ -279,6 +298,10 @@ def gen_metadata_doc():
     )
     txt+=('''\n\n  %s='{ "LIBNAME" : "MySuperLib"'''%longopt_metadata
           +''', "ALAB" : "MySuperLab" }'\n\n''')
+    txt += section(
+        """Or by adding individual items with the -m option like:"""
+    )
+    txt+=('''\n\n  -m LIBNAME:MySuperLib -m AUTH:"J. Chadwick"\n\n''')
     txt += section('The list of supported meta-data'
                    ' keys and their meaning is:')
     txt += '\n\n'
