@@ -48,6 +48,12 @@ jobs:
     - name: Enable parallel cmake
       run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
 
+    #As of May 2025 there are no prebuilt endf-parserpy pkgs for linux-arm. To
+    #avoid 10min long pip installs, we set INSTALL_ENDF_PARSERPY_CPP=no:
+    - name: Set INSTALL_ENDF_PARSERPY_CPP=no
+      if: matrix.os == 'ubuntu-24.04-arm'
+      run: echo "INSTALL_ENDF_PARSERPY_CPP=no" >> $GITHUB_ENV
+
     - name: Setup python
       uses: actions/setup-python@v5
       with:
