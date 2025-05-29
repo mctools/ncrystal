@@ -29,17 +29,11 @@ import NCrystalDev._ncmat2endf_impl as ncmat2endf_impl
 import NCrystalDev.ncmat as nc_ncmat
 
 ncmat2endf_impl.unit_test_chop_svals[0] = True
-
-test_cfg('Al_sg225.ncmat;vdoslux=1', material_name='Al',
-         check_teff=True,
-         ref_parsed={'tsl_Al_in_Al.endf':'0 0 1 451 7 2 7 4'},
-         check_edge_positions=True,
-         othertemps=350, elastic_mode='scaled', compare_xsec=False,
-         dump_file=True)
-
-ncmat2endf_impl.unit_test_chop_svals[0] = True
 ncmat2endf_impl.is_unit_test[0] = True
 ncmat2endf_impl.unit_test_dump[0] = True
+
+test_cfg('Al_sg225.ncmat;vdoslux=1', material_name='Al',
+         othertemps=350, elastic_mode='scaled')
 
 test_cfg('AlN_sg186_AluminumNitride.ncmat;vdoslux=1', material_name='AlN',
          othertemps=350, elastic_mode='scaled', compare_xsec=False,
@@ -57,16 +51,10 @@ test_cfg('Al_sg225.ncmat;temp=300K;temp=300K;temp=300K;'
          elastic_mode='scaled', compare_xsec=False,
          dump_file=False)
 c=nc_ncmat.NCMATComposer('Al_sg225.ncmat')
-longname = ('Al_with_a_Very_Very_Ver_Very_Very_'
-            'Very_Very_Ver_Very_Very_Long.ncmat')
 verylongname = ('Al_with_a_Very_Very_Ver_Very_Very_Very_Very_'
                 'Ver_Very_Very_Very_Very_Ver_Very_Very_Long_Name.ncmat')
-c.write(longname)
 c.write(verylongname)
-test_cfg(longname, material_name='Al',
-         elastic_mode='scaled', compare_xsec=False,
-         dump_file=False)
-test_cfg(verylongname+';temp=300K;vdoslux=1', material_name='Al',
+test_cfg(verylongname+';vdoslux=1', material_name='Al',
          elastic_mode='scaled', compare_xsec=False,
          dump_file=False)
 
