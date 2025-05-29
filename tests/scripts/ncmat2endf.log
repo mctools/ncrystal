@@ -13,7 +13,7 @@ EndfMetaData({"ALAB": "MyLAB", "AUTH": "NCrystal", "LIBNAME": "MyLib", "NLIB": 0
 {'endf_metadata': EndfMetaData({"ALAB": "MyLAB", "AUTH": "NCrystal", "LIBNAME": "MyLib", "NLIB": 0, "REFERENCE": "REFERENCE", "LREL": 0, "NVER": 1, "MATNUM": {"Ge": 99}, "ENDATE": "", "EDATE": "MMMYY", "DDATE": "MMMYY", "RDATE": "MMMYY"}),
  'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string,  using T = 293.15
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15
 Initialise nuclear data...
 FAILED (as expected): Incorrect material number assignment
 
@@ -23,8 +23,8 @@ FAILED (as expected): Incorrect material number assignment
 {'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1',
  'othertemps': [-100]}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string,  using T = 293.15
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. The (alpha,beta) grid for first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated.
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. Thus the (alpha,beta) grid for the first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated onto it.
 FAILED (as expected): Non positive temperatures
 
 
@@ -88,7 +88,7 @@ FAILED (as expected): SANS cannot be represented in the ENDF format and is not s
 
 --------------------------------------------------------------------------------
 {'force_save': True, 'ncmat_cfg': 'freegas::Ar/2.5e-5perAa3;vdoslux=1'}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string,  using T = 293.15
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15
 FAILED (as expected): Conversion to ENDF supported only for VDOS and VDOSDebye dyninfos
 
 

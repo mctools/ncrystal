@@ -16,7 +16,7 @@
  'force_save': True,
  'include_gif': True,
  'ncmat_cfg': 'Si_sg227.ncmat;vdoslux=1;incoh_elas=false'}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string,  using T = 293.15
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15
 Initialise nuclear data...
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Incoherent elastic component disabled
 Write ENDF file tsl_Si.endf...
@@ -33,7 +33,7 @@ NCrystal WARNING: Discarding 1 edges of provided kernel data due to missing S va
  'include_gif': True,
  'ncmat_cfg': 'SiO2-alpha_sg154_AlphaQuartz.ncmat',
  'verbosity': 3}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string,  using T = 293.15
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15
 Initialise nuclear data...
 Designated incoherent: Si
 >>> alpha points: 400, alpha range: (6.91e-50, 840.6)
@@ -1186,7 +1186,7 @@ Created (or not) file tsl_Si_in_UnknownCompound.endf with fraction 0.333333
  'othertemps': 400,
  'verbosity': 3}
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Creating non standard S(a,b) with LASYM = 3
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. The (alpha,beta) grid for first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated.
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. Thus the (alpha,beta) grid for the first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated onto it.
 Initialise nuclear data...
 >>> alpha points: 400, alpha range: (6.91e-50, 840.6)
 >>> beta points: 621, beta range: (0, 149.8)
