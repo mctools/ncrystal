@@ -351,6 +351,9 @@ class NuclearData():
             if self._verbosity > 2:
                 def fmt(x):
                     return '%.4g'%x
+                if unit_test_chop_svals[0]:
+                    def fmt(x):
+                        return '%.3g'%x
                 ncprint(f'>>> alpha points: {len(self._elems[sym].alpha)}, '
                          'alpha range: '
                         f'({fmt(_np.min(self._elems[sym].alpha*T0/T))}'

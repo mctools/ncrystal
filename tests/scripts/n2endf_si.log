@@ -36,10 +36,10 @@ NCrystal WARNING: Discarding 1 edges of provided kernel data due to missing S va
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15
 Initialise nuclear data...
 Designated incoherent: Si
->>> alpha points: 400, alpha range: (6.91e-50, 840.6)
->>> beta points: 621, beta range: (0, 149.8)
->>> alpha points: 400, alpha range: (1.342e-49, 840.9)
->>> beta points: 601, beta range: (0, 126.4)
+>>> alpha points: 400, alpha range: (6.91e-50, 841)
+>>> beta points: 621, beta range: (0, 150)
+>>> alpha points: 400, alpha range: (1.34e-49, 841)
+>>> beta points: 601, beta range: (0, 126)
 >>> Interpolating T=293.15K for O
 >>> Interpolating T=293.15K for Si
 >> Prepare elastic approximations
@@ -600,10 +600,10 @@ Created (or not) file tsl_Si_in_UnknownCompound.endf with fraction 0.333333
  'ncmat_cfg': 'SiO2-alpha_sg154_AlphaQuartz.ncmat',
  'verbosity': 3}
 Initialise nuclear data...
->>> alpha points: 400, alpha range: (6.91e-50, 840.6)
->>> beta points: 621, beta range: (0, 149.8)
->>> alpha points: 400, alpha range: (1.342e-49, 840.9)
->>> beta points: 601, beta range: (0, 126.4)
+>>> alpha points: 400, alpha range: (6.91e-50, 841)
+>>> beta points: 621, beta range: (0, 150)
+>>> alpha points: 400, alpha range: (1.34e-49, 841)
+>>> beta points: 601, beta range: (0, 126)
 >>> Interpolating T=293.15K for O
 >>> Interpolating T=293.15K for Si
 >> Prepare elastic approximations
@@ -1188,10 +1188,10 @@ Created (or not) file tsl_Si_in_UnknownCompound.endf with fraction 0.333333
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Creating non standard S(a,b) with LASYM = 3
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. Thus the (alpha,beta) grid for the first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated onto it.
 Initialise nuclear data...
->>> alpha points: 400, alpha range: (6.91e-50, 840.6)
->>> beta points: 621, beta range: (0, 149.8)
->>> alpha points: 400, alpha range: (1.342e-49, 840.9)
->>> beta points: 601, beta range: (0, 126.4)
+>>> alpha points: 400, alpha range: (6.91e-50, 841)
+>>> beta points: 621, beta range: (0, 150)
+>>> alpha points: 400, alpha range: (1.34e-49, 841)
+>>> beta points: 601, beta range: (0, 126)
 >>> Interpolating T=293.15K for O
 >>> Interpolating T=293.15K for Si
 >>> Interpolating T=400K for O

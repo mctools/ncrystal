@@ -432,10 +432,10 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given i
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. Thus the (alpha,beta) grid for the first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated onto it.
 Initialise nuclear data...
 Designated incoherent: Al
->>> alpha points: 100, alpha range: (2.194e-49, 820.4)
->>> beta points: 150, beta range: (0, 131.3)
->>> alpha points: 100, alpha range: (2.329e-49, 822.7)
->>> beta points: 142, beta range: (0, 90.25)
+>>> alpha points: 100, alpha range: (2.19e-49, 820)
+>>> beta points: 150, beta range: (0, 131)
+>>> alpha points: 100, alpha range: (2.33e-49, 823)
+>>> beta points: 142, beta range: (0, 90.2)
 >>> Interpolating T=293.15K for N
 >>> Interpolating T=293.15K for Al
 >>> Interpolating T=350K for N
@@ -1266,10 +1266,10 @@ Created (or not) file tsl_Al_in_AlN.endf with fraction 0.5
  'ncmat_cfg': 'Al2O3_sg167_Corundum.ncmat;vdoslux=1',
  'verbosity': 3}
 Initialise nuclear data...
->>> alpha points: 100, alpha range: (2.359e-49, 821.2)
->>> beta points: 148, beta range: (0, 117.6)
->>> alpha points: 100, alpha range: (2.45e-49, 822.7)
->>> beta points: 142, beta range: (0, 88.89)
+>>> alpha points: 100, alpha range: (2.36e-49, 821)
+>>> beta points: 148, beta range: (0, 118)
+>>> alpha points: 100, alpha range: (2.45e-49, 823)
+>>> beta points: 142, beta range: (0, 88.9)
 >>> Interpolating T=293.15K for O
 >>> Interpolating T=293.15K for Al
 >> Prepare elastic approximations
@@ -1819,9 +1819,9 @@ Created (or not) file tsl_Al_in_Al2O3.endf with fraction 0.4
  'othertemps': 350,
  'verbosity': 3}
 Initialise nuclear data...
->>> alpha points: 100, alpha range: (1.694e-49, 815.8)
->>> beta points: 151, beta range: (0, 139.5)
->>> alpha points: 100, alpha range: (1.588e-49, 822.6)
+>>> alpha points: 100, alpha range: (1.69e-49, 816)
+>>> beta points: 151, beta range: (0, 140)
+>>> alpha points: 100, alpha range: (1.59e-49, 823)
 >>> beta points: 141, beta range: (0, 86.3)
 >>> Interpolating T=293.15K for C
 >>> Interpolating T=293.15K for Al

@@ -1,7 +1,7 @@
 ============= CLI >>'stdlib::Al_sg225.ncmat;temp=350K;vdoslux=1' -vvv -n Al -f -e greater '--mdata={"ALAB": "MyLab"}'<< ====================
 Initialise nuclear data...
->>> alpha points: 100, alpha range: (5.958e-50, 692.2)
->>> beta points: 123, beta range: (0, 66.15)
+>>> alpha points: 100, alpha range: (5.96e-50, 692)
+>>> beta points: 123, beta range: (0, 66.1)
 >>> Interpolating T=350.0K for Al
 >> Prepare elastic approximations
 >> Principal elastic mode for Al: coherent
@@ -144,8 +144,8 @@ The list of supported meta-data keys and their meaning is:
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Creating non standard S(a,b) with LASYM = 3
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15
 Initialise nuclear data...
->>> alpha points: 100, alpha range: (8.364e-50, 821.4)
->>> beta points: 129, beta range: (0, 76.84)
+>>> alpha points: 100, alpha range: (8.36e-50, 821)
+>>> beta points: 129, beta range: (0, 76.8)
 >>> Interpolating T=293.15K for Al
 >> Prepare elastic approximations
 >> Scaled elastic mode for single atom Al: coherent
