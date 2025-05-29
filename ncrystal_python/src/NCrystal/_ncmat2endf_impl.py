@@ -1032,9 +1032,14 @@ def _impl_ncmat2endf( *,
         raise nc_exceptions.NCBadInput('MF7/MT4 is mandatory in an ENDF file '
                                        'but no inelastic data found' )
     base_temp = info_obj.dyninfos[0].temperature
-    if all(['temp' not in _ for _ in nc_cfgstr.decodeCfg(ncmat_cfg)['pars']]):
-        ncwarn( 'Temperature not explicitly given in the cfg-string, '
-               f' using T = {base_temp:.2f}')
+    decoded_cfg = nc_cfgstr.decodeCfg(ncmat_cfg)
+    assert decoded_cfg['format'] == 'NCrystal-MatCfg-v1'
+    if not decoded_cfg['ismultiphase']:
+        #decoded_cfg could (perhaps?) register as multiphase even if the Info
+        #obj does not, although it would have to be a very obscure case!
+        if not any( k=='temp' for k,v in decoded_cfg.get('pars',[]) ):
+            ncwarn( 'Temperature not explicitly given in the cfg-string,'
+                    f' using T = {base_temp:.2f}')
 
     if othertemps is None:
         othertemps = tuple()
@@ -1062,9 +1067,9 @@ def _impl_ncmat2endf( *,
         ncwarn('Multiple temperatures requested. Although this is supported, '
                'it is not recommended because NCrystal generates '
                'a custom (alpha,beta) grid for each temperature. '
-               'The (alpha,beta) grid for first temperature will '
+               'Thus the (alpha,beta) grid for the first temperature will '
                'be used, and S(alpha, beta) for other temperatures '
-               'will be interpolated.')
+               'will be interpolated onto it.')
     if any( T<=0 for T in temperatures ):
         raise nc_exceptions.NCBadInput('Non positive temperatures')
     for di in info_obj.dyninfos:

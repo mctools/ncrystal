@@ -142,7 +142,7 @@ The list of supported meta-data keys and their meaning is:
 =======================================================
 ============= CLI >>'stdlib::Al_sg225.ncmat;vdoslux=1' -vvv -f -e scaled --totsab --asymsab<< ====================
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Creating non standard S(a,b) with LASYM = 3
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string,  using T = 293.15
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15
 Initialise nuclear data...
 >>> alpha points: 100, alpha range: (8.364e-50, 821.4)
 >>> beta points: 129, beta range: (0, 76.84)
