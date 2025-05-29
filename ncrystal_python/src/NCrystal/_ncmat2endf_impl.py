@@ -88,8 +88,10 @@ def _endf_roundoff(x):
     # Receives an  Iterable of float
     #
     _,read_fort_floats,write_fort_floats = import_endfparserpy()
-    return _np.array(read_fort_floats(write_fort_floats(x, {'width':11}),
-                                     n=len(x),read_opts={'width':11}))
+    return _np.array(read_fort_floats( write_fort_floats(x, {'width':11}),
+                                       n=len(x),
+                                       read_opts={'width':11}),
+                     dtype = float)
 
 def _endf_clean(x):
     #
@@ -98,7 +100,7 @@ def _endf_clean(x):
     #
     # Receives an  Iterable of float
     #
-    return _np.unique(_endf_roundoff(x))
+    return _np.unique(_endf_roundoff(x) )
 
 class ElementData():
     #
@@ -616,7 +618,7 @@ class EndfFile():
             for q, v in enumerate(edges, start=1):
                 S[q] = {}
                 for i,v in enumerate(temperatures[1:], start=1):
-                    S[q][i] = data.sigmaE[i][q-1]
+                    S[q][i] = float( data.sigmaE[i][q-1] )
             d['S'] = S
             d['LI'] = 2
             d['NP'] = len(edges)
@@ -729,7 +731,7 @@ class EndfFile():
                                     sval = 0.0
                                 sab.append(sval)
                         sab = _tidy_sab_list(sab)
-                        S2[q][j] = {k: v for k,v in enumerate(sab, start =1)}
+                        S2[q][j] = {k: float(v) for k,v in enumerate(sab, start =1)}
             d['S'] = S2
         elif (self._lasym == 1) or (self._lasym == 3):
             # Save S(a,b) or S(a,b)*exp(-b/2) for all beta
@@ -771,7 +773,7 @@ class EndfFile():
                                     sval = 0.0
                                 sab.append(sval)
                         sab = _tidy_sab_list(sab)
-                        S2[q][j] = {k: v for k,v in enumerate(sab, start =1)}
+                        S2[q][j] = {k: float(v) for k,v in enumerate(sab, start =1)}
             d['S'] = S2
 
         d['teff0_table/Teff0'] = data.elements[self._sym].teff
@@ -1332,6 +1334,7 @@ def _tidy_alpha_list( a_values ):
     return  [ _chop(x) for x in a_values ]
 
 def _tidy_sab_list( s_values ):
+    s_values = [ float(e) for e in s_values ]
     if not unit_test_chop_svals[0]:
         return s_values
     def _chop(x):
