@@ -1328,7 +1328,7 @@ def _tidy_beta( x, allow_negative=False):
         assert -1e99 <= x <= 1e99
     else:
         assert 0.0 <= x <= 1e99
-    return float('%.4g'%x)
+    return float('%.3g'%x)
 
 def _tidy_alpha_list( a_values ):
     if not unit_test_chop_svals[0]:
