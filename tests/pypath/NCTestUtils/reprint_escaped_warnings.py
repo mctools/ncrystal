@@ -20,8 +20,8 @@
 ################################################################################
 """
 
-Catch escaped warnings and print them without a stack tracke (since the stack
-traces tend to make the test output irreprodicible.
+Catch escaped warnings and print them without a stack trace (since stack traces
+tend to make test output reproducible).
 
 """
 
