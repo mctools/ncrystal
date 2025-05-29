@@ -25,14 +25,16 @@
 def main():
     import pathlib
     import textwrap
-    pathlib.Path('endf_parserpy.py').write_text(
+    pathlib.Path('fakepypath/endf_parserpy').mkdir(parents=True)
+    pathlib.Path('fakepypath/endf_parserpy/__init__.py').write_text(
         textwrap.dedent(
             """
             raise ImportError('I am a bad endf_parserpy module')
             """
         )
     )
-
+    import sys
+    sys.path.insert(0,str(pathlib.Path('fakepypath').absolute()))
     from NCrystalDev.cli import run as ncrun
     from NCTestUtils.common import ensure_error
     with ensure_error(ImportError,'Could not import endf_parserpy'):
