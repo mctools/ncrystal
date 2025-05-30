@@ -7,8 +7,8 @@
  'material_name': 'Al',
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1',
  'othertemps': 350}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. Thus the (alpha,beta) grid for the first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated onto it.
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#1]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. Thus the (alpha,beta) grid for the first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated onto it. [warn#2]
 Initialise nuclear data...
 Write ENDF file tsl_Al_in_Al.endf...
 DUMPING endf dict begin
@@ -428,8 +428,8 @@ Created (or not) file tsl_Al_in_Al.endf with fraction 1
  'ncmat_cfg': 'AlN_sg186_AluminumNitride.ncmat;vdoslux=1',
  'othertemps': 350,
  'verbosity': 3}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. Thus the (alpha,beta) grid for the first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated onto it.
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#3]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. Thus the (alpha,beta) grid for the first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated onto it. [warn#4]
 Initialise nuclear data...
 Designated incoherent: Al
 >>> alpha points: 100, alpha range: (2.19e-49, 820)
@@ -1265,6 +1265,7 @@ Created (or not) file tsl_Al_in_AlN.endf with fraction 0.5
  'material_name': 'Al2O3',
  'ncmat_cfg': 'Al2O3_sg167_Corundum.ncmat;vdoslux=1',
  'verbosity': 3}
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#5]
 Initialise nuclear data...
 >>> alpha points: 100, alpha range: (2.36e-49, 821)
 >>> beta points: 148, beta range: (0, 118)
@@ -1818,6 +1819,8 @@ Created (or not) file tsl_Al_in_Al2O3.endf with fraction 0.4
  'ncmat_cfg': 'Al4C3_sg166_AluminiumCarbide.ncmat;vdoslux=1',
  'othertemps': 350,
  'verbosity': 3}
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#6]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. Thus the (alpha,beta) grid for the first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated onto it. [warn#7]
 Initialise nuclear data...
 >>> alpha points: 100, alpha range: (1.69e-49, 816)
 >>> beta points: 151, beta range: (0, 140)
@@ -2946,7 +2949,7 @@ Created (or not) file tsl_Al_in_Al.endf with fraction 1
  'force_save': True,
  'material_name': 'Al',
  'ncmat_cfg': 'Al_with_a_Very_Very_Ver_Very_Very_Very_Very_Ver_Very_Very_Very_Very_Ver_Very_Very_Long_Name.ncmat;vdoslux=1'}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#8]
 Initialise nuclear data...
 Write ENDF file tsl_Al_in_Al.endf...
 DUMPING endf dict begin

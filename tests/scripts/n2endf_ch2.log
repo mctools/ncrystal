@@ -6,9 +6,9 @@
  'force_save': True,
  'material_name': 'CH2',
  'ncmat_cfg': 'Polyethylene_CH2.ncmat;vdoslux=1'}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#1]
 Initialise nuclear data...
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled [warn#2]
 Write ENDF file tsl_H_in_CH2.endf...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 38, 'TAPEDESCR': 'Created with ncmat2endf'}}

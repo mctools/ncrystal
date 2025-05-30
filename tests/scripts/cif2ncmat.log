@@ -161,16 +161,16 @@ OC3 0.27350 0.51260 0.09310
 ============= CLI >>codid::9005777 --nomerge<< ====================
 Getting cod_9005777.cif from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR
 Attempting to load CIF data with gemmi
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA1"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA2"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA3"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB1"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB2"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB3"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC1"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC2"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC3"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 55.9001% level)
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA1" [warn#1]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA2" [warn#2]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA3" [warn#3]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB1" [warn#4]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB2" [warn#5]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB3" [warn#6]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC1" [warn#7]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC2" [warn#8]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC3" [warn#9]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 55.9001% level) [warn#10]
 Verifying that resulting ncmat data can be loaded
 Writing autogen_CaO3Si_sg2_cod9005777.ncmat
 OUT>NCMAT v7
@@ -196,16 +196,16 @@ OUT>#                   anything done, and remove this notice.
 OUT>#
 OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
 OUT>#
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3"
-OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 55.9001% level)
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1" [warn#1]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2" [warn#2]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3" [warn#3]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1" [warn#4]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2" [warn#5]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3" [warn#6]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1" [warn#7]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2" [warn#8]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3" [warn#9]
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 55.9001% level) [warn#10]
 OUT>#
 OUT># WARNING: Fallback (dummy) Debye temperature values were used for 15 atoms!
 OUT>#
@@ -357,16 +357,16 @@ OUT>  debye_temp 300
 ============= CLI >>codid::9005777<< ====================
 Getting cod_9005777.cif from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR
 Attempting to load CIF data with gemmi
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA1"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA2"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA3"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB1"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB2"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB3"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC1"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC2"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC3"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 29.36% level)
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA1" [warn#11]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA2" [warn#12]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA3" [warn#13]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB1" [warn#14]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB2" [warn#15]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB3" [warn#16]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC1" [warn#17]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC2" [warn#18]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC3" [warn#19]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 29.36% level) [warn#20]
 Verifying that resulting ncmat data can be loaded
 Writing autogen_CaO3Si_sg2_cod9005777.ncmat
 OUT>NCMAT v7
@@ -392,16 +392,16 @@ OUT>#                   anything done, and remove this notice.
 OUT>#
 OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
 OUT>#
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3"
-OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level)
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1" [warn#11]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2" [warn#12]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3" [warn#13]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1" [warn#14]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2" [warn#15]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3" [warn#16]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1" [warn#17]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2" [warn#18]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3" [warn#19]
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level) [warn#20]
 OUT>#
 OUT># WARNING: Fallback (dummy) Debye temperature values were used for 3 atoms!
 OUT>#
@@ -465,16 +465,16 @@ OUT>  debye_temp 300
 ============= CLI >>codid::9005777 --uisotemp=50<< ====================
 Getting cod_9005777.cif from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR
 Attempting to load CIF data with gemmi
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA1"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA2"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA3"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB1"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB2"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB3"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC1"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC2"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC3"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 29.36% level)
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA1" [warn#21]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA2" [warn#22]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA3" [warn#23]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB1" [warn#24]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB2" [warn#25]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB3" [warn#26]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC1" [warn#27]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC2" [warn#28]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC3" [warn#29]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 29.36% level) [warn#30]
 Verifying that resulting ncmat data can be loaded
 Writing autogen_CaO3Si_sg2_cod9005777.ncmat
 OUT>NCMAT v7
@@ -500,16 +500,16 @@ OUT>#                   anything done, and remove this notice.
 OUT>#
 OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
 OUT>#
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3"
-OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level)
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1" [warn#21]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2" [warn#22]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3" [warn#23]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1" [warn#24]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2" [warn#25]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3" [warn#26]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1" [warn#27]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2" [warn#28]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3" [warn#29]
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level) [warn#30]
 OUT>#
 OUT># WARNING: Fallback (dummy) Debye temperature values were used for 3 atoms!
 OUT>#
@@ -573,16 +573,16 @@ OUT>  debye_temp 300
 ============= CLI >>codid::9005777 --debyetemp=50<< ====================
 Getting cod_9005777.cif from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR
 Attempting to load CIF data with gemmi
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA1"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA2"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA3"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB1"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB2"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB3"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC1"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC2"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC3"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 29.36% level)
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA1" [warn#31]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA2" [warn#32]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA3" [warn#33]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB1" [warn#34]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB2" [warn#35]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB3" [warn#36]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC1" [warn#37]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC2" [warn#38]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC3" [warn#39]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 29.36% level) [warn#40]
 Verifying that resulting ncmat data can be loaded
 Writing autogen_CaO3Si_sg2_cod9005777.ncmat
 OUT>NCMAT v7
@@ -608,16 +608,16 @@ OUT>#                   anything done, and remove this notice.
 OUT>#
 OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
 OUT>#
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3"
-OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level)
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1" [warn#31]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2" [warn#32]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3" [warn#33]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1" [warn#34]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2" [warn#35]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3" [warn#36]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1" [warn#37]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2" [warn#38]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3" [warn#39]
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level) [warn#40]
 OUT>#
 OUT># WARNING: Fallback (dummy) Debye temperature values were used for 3 atoms!
 OUT>#
@@ -682,20 +682,20 @@ OUT>  debye_temp 50
 Getting cod_1000257.cif from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR
 Attempting to load CIF data with gemmi
 Self-consistency of structure was verified by spglib
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "F" since uiso_temperature parameter value is not provided
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for F ignored (u11=0.0074, u12=0, u13=0, u22=0.0286, u23=0, u33=0.0177)
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "F" since uiso_temperature parameter value is not provided
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for F ignored (u11=0.0229, u12=0, u13=0, u22=0.0207, u23=0.0016, u33=0.0109)
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "F" since uiso_temperature parameter value is not provided
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for F ignored (u11=0.0162, u12=0.0051, u13=0.0011, u22=0.0188, u23=-0.0108, u33=0.029)
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "Fe" since uiso_temperature parameter value is not provided
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Fe ignored (u11=0.009, u12=0, u13=0, u22=0.0084, u23=0.0025, u33=0.0083)
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "Na" since uiso_temperature parameter value is not provided
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Na ignored (u11=0.0236, u12=0, u13=0, u22=0.0568, u23=0.0189, u33=0.019)
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "Na" since uiso_temperature parameter value is not provided
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Na ignored (u11=0.0223, u12=0, u13=-0.0036, u22=0.023, u23=0, u33=0.0667)
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "Ni" since uiso_temperature parameter value is not provided
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082)
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "F" since uiso_temperature parameter value is not provided [warn#41]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for F ignored (u11=0.0074, u12=0, u13=0, u22=0.0286, u23=0, u33=0.0177) [warn#42]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "F" since uiso_temperature parameter value is not provided [warn#43]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for F ignored (u11=0.0229, u12=0, u13=0, u22=0.0207, u23=0.0016, u33=0.0109) [warn#44]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "F" since uiso_temperature parameter value is not provided [warn#45]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for F ignored (u11=0.0162, u12=0.0051, u13=0.0011, u22=0.0188, u23=-0.0108, u33=0.029) [warn#46]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "Fe" since uiso_temperature parameter value is not provided [warn#47]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Fe ignored (u11=0.009, u12=0, u13=0, u22=0.0084, u23=0.0025, u33=0.0083) [warn#48]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "Na" since uiso_temperature parameter value is not provided [warn#49]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Na ignored (u11=0.0236, u12=0, u13=0, u22=0.0568, u23=0.0189, u33=0.019) [warn#50]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "Na" since uiso_temperature parameter value is not provided [warn#51]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Na ignored (u11=0.0223, u12=0, u13=-0.0036, u22=0.023, u23=0, u33=0.0667) [warn#52]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "Ni" since uiso_temperature parameter value is not provided [warn#53]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082) [warn#54]
 Verifying that resulting ncmat data can be loaded
 Writing autogen_F7FeNa2Ni_sg74_cod1000257.ncmat
 OUT>NCMAT v7
@@ -723,17 +723,20 @@ OUT>#                   anything done, and remove this notice.
 OUT>#
 OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
 OUT>#
-OUT>#   (3x) NCrystalUserWarning :  ignoring uiso info present in CIF input for "F" since uiso_temperature parameter value is not provided
-OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0074, u12=0, u13=0, u22=0.0286, u23=0, u33=0.0177)
-OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0229, u12=0, u13=0, u22=0.0207, u23=0.0016, u33=0.0109)
-OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0162, u12=0.0051, u13=0.0011, u22=0.0188, u23=-0.0108, u33=0.029)
-OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "Fe" since uiso_temperature parameter value is not provided
-OUT>#   NCrystalUserWarning : Anisotropic displacement for Fe ignored (u11=0.009, u12=0, u13=0, u22=0.0084, u23=0.0025, u33=0.0083)
-OUT>#   (2x) NCrystalUserWarning :  ignoring uiso info present in CIF input for "Na" since uiso_temperature parameter value is not provided
-OUT>#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0236, u12=0, u13=0, u22=0.0568, u23=0.0189, u33=0.019)
-OUT>#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0223, u12=0, u13=-0.0036, u22=0.023, u23=0, u33=0.0667)
-OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "Ni" since uiso_temperature parameter value is not provided
-OUT>#   NCrystalUserWarning : Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082)
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "F" since uiso_temperature parameter value is not provided [warn#41]
+OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0074, u12=0, u13=0, u22=0.0286, u23=0, u33=0.0177) [warn#42]
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "F" since uiso_temperature parameter value is not provided [warn#43]
+OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0229, u12=0, u13=0, u22=0.0207, u23=0.0016, u33=0.0109) [warn#44]
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "F" since uiso_temperature parameter value is not provided [warn#45]
+OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0162, u12=0.0051, u13=0.0011, u22=0.0188, u23=-0.0108, u33=0.029) [warn#46]
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "Fe" since uiso_temperature parameter value is not provided [warn#47]
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Fe ignored (u11=0.009, u12=0, u13=0, u22=0.0084, u23=0.0025, u33=0.0083) [warn#48]
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "Na" since uiso_temperature parameter value is not provided [warn#49]
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0236, u12=0, u13=0, u22=0.0568, u23=0.0189, u33=0.019) [warn#50]
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "Na" since uiso_temperature parameter value is not provided [warn#51]
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0223, u12=0, u13=-0.0036, u22=0.023, u23=0, u33=0.0667) [warn#52]
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "Ni" since uiso_temperature parameter value is not provided [warn#53]
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082) [warn#54]
 OUT>#
 OUT># WARNING: Fallback (dummy) Debye temperature values were used for 7 atoms!
 OUT>#
@@ -842,13 +845,13 @@ OUT>  debye_temp 300
 Getting cod_1000257.cif from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR
 Attempting to load CIF data with gemmi
 Self-consistency of structure was verified by spglib
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for F ignored (u11=0.0074, u12=0, u13=0, u22=0.0286, u23=0, u33=0.0177)
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for F ignored (u11=0.0229, u12=0, u13=0, u22=0.0207, u23=0.0016, u33=0.0109)
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for F ignored (u11=0.0162, u12=0.0051, u13=0.0011, u22=0.0188, u23=-0.0108, u33=0.029)
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Fe ignored (u11=0.009, u12=0, u13=0, u22=0.0084, u23=0.0025, u33=0.0083)
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Na ignored (u11=0.0236, u12=0, u13=0, u22=0.0568, u23=0.0189, u33=0.019)
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Na ignored (u11=0.0223, u12=0, u13=-0.0036, u22=0.023, u23=0, u33=0.0667)
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082)
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for F ignored (u11=0.0074, u12=0, u13=0, u22=0.0286, u23=0, u33=0.0177) [warn#55]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for F ignored (u11=0.0229, u12=0, u13=0, u22=0.0207, u23=0.0016, u33=0.0109) [warn#56]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for F ignored (u11=0.0162, u12=0.0051, u13=0.0011, u22=0.0188, u23=-0.0108, u33=0.029) [warn#57]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Fe ignored (u11=0.009, u12=0, u13=0, u22=0.0084, u23=0.0025, u33=0.0083) [warn#58]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Na ignored (u11=0.0236, u12=0, u13=0, u22=0.0568, u23=0.0189, u33=0.019) [warn#59]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Na ignored (u11=0.0223, u12=0, u13=-0.0036, u22=0.023, u23=0, u33=0.0667) [warn#60]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082) [warn#61]
 Verifying that resulting ncmat data can be loaded
 Writing autogen_F7FeNa2Ni_sg74_cod1000257.ncmat
 OUT>NCMAT v7
@@ -876,13 +879,13 @@ OUT>#                   anything done, and remove this notice.
 OUT>#
 OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
 OUT>#
-OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0074, u12=0, u13=0, u22=0.0286, u23=0, u33=0.0177)
-OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0229, u12=0, u13=0, u22=0.0207, u23=0.0016, u33=0.0109)
-OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0162, u12=0.0051, u13=0.0011, u22=0.0188, u23=-0.0108, u33=0.029)
-OUT>#   NCrystalUserWarning : Anisotropic displacement for Fe ignored (u11=0.009, u12=0, u13=0, u22=0.0084, u23=0.0025, u33=0.0083)
-OUT>#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0236, u12=0, u13=0, u22=0.0568, u23=0.0189, u33=0.019)
-OUT>#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0223, u12=0, u13=-0.0036, u22=0.023, u23=0, u33=0.0667)
-OUT>#   NCrystalUserWarning : Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082)
+OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0074, u12=0, u13=0, u22=0.0286, u23=0, u33=0.0177) [warn#55]
+OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0229, u12=0, u13=0, u22=0.0207, u23=0.0016, u33=0.0109) [warn#56]
+OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0162, u12=0.0051, u13=0.0011, u22=0.0188, u23=-0.0108, u33=0.029) [warn#57]
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Fe ignored (u11=0.009, u12=0, u13=0, u22=0.0084, u23=0.0025, u33=0.0083) [warn#58]
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0236, u12=0, u13=0, u22=0.0568, u23=0.0189, u33=0.019) [warn#59]
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0223, u12=0, u13=-0.0036, u22=0.023, u23=0, u33=0.0667) [warn#60]
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082) [warn#61]
 OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
 OUT>#
 OUT>@CELL
@@ -988,20 +991,20 @@ OUT>  debye_temp 144.673
 Getting cod_1000257.cif from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR
 Attempting to load CIF data with gemmi
 Self-consistency of structure was verified by spglib
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "F" since uiso_temperature parameter value is not provided
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for F ignored (u11=0.0074, u12=0, u13=0, u22=0.0286, u23=0, u33=0.0177)
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "F" since uiso_temperature parameter value is not provided
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for F ignored (u11=0.0229, u12=0, u13=0, u22=0.0207, u23=0.0016, u33=0.0109)
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "F" since uiso_temperature parameter value is not provided
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for F ignored (u11=0.0162, u12=0.0051, u13=0.0011, u22=0.0188, u23=-0.0108, u33=0.029)
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "Fe" since uiso_temperature parameter value is not provided
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Fe ignored (u11=0.009, u12=0, u13=0, u22=0.0084, u23=0.0025, u33=0.0083)
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "Na" since uiso_temperature parameter value is not provided
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Na ignored (u11=0.0236, u12=0, u13=0, u22=0.0568, u23=0.0189, u33=0.019)
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "Na" since uiso_temperature parameter value is not provided
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Na ignored (u11=0.0223, u12=0, u13=-0.0036, u22=0.023, u23=0, u33=0.0667)
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "Ni" since uiso_temperature parameter value is not provided
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082)
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "F" since uiso_temperature parameter value is not provided [warn#62]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for F ignored (u11=0.0074, u12=0, u13=0, u22=0.0286, u23=0, u33=0.0177) [warn#63]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "F" since uiso_temperature parameter value is not provided [warn#64]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for F ignored (u11=0.0229, u12=0, u13=0, u22=0.0207, u23=0.0016, u33=0.0109) [warn#65]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "F" since uiso_temperature parameter value is not provided [warn#66]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for F ignored (u11=0.0162, u12=0.0051, u13=0.0011, u22=0.0188, u23=-0.0108, u33=0.029) [warn#67]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "Fe" since uiso_temperature parameter value is not provided [warn#68]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Fe ignored (u11=0.009, u12=0, u13=0, u22=0.0084, u23=0.0025, u33=0.0083) [warn#69]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "Na" since uiso_temperature parameter value is not provided [warn#70]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Na ignored (u11=0.0236, u12=0, u13=0, u22=0.0568, u23=0.0189, u33=0.019) [warn#71]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "Na" since uiso_temperature parameter value is not provided [warn#72]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Na ignored (u11=0.0223, u12=0, u13=-0.0036, u22=0.023, u23=0, u33=0.0667) [warn#73]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "Ni" since uiso_temperature parameter value is not provided [warn#74]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082) [warn#75]
 Verifying that resulting ncmat data can be loaded
 Writing autogen_F7FeNa2Ni_sg74_cod1000257.ncmat
 OUT>NCMAT v7
@@ -1029,17 +1032,20 @@ OUT>#                   anything done, and remove this notice.
 OUT>#
 OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
 OUT>#
-OUT>#   (3x) NCrystalUserWarning :  ignoring uiso info present in CIF input for "F" since uiso_temperature parameter value is not provided
-OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0074, u12=0, u13=0, u22=0.0286, u23=0, u33=0.0177)
-OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0229, u12=0, u13=0, u22=0.0207, u23=0.0016, u33=0.0109)
-OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0162, u12=0.0051, u13=0.0011, u22=0.0188, u23=-0.0108, u33=0.029)
-OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "Fe" since uiso_temperature parameter value is not provided
-OUT>#   NCrystalUserWarning : Anisotropic displacement for Fe ignored (u11=0.009, u12=0, u13=0, u22=0.0084, u23=0.0025, u33=0.0083)
-OUT>#   (2x) NCrystalUserWarning :  ignoring uiso info present in CIF input for "Na" since uiso_temperature parameter value is not provided
-OUT>#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0236, u12=0, u13=0, u22=0.0568, u23=0.0189, u33=0.019)
-OUT>#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0223, u12=0, u13=-0.0036, u22=0.023, u23=0, u33=0.0667)
-OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "Ni" since uiso_temperature parameter value is not provided
-OUT>#   NCrystalUserWarning : Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082)
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "F" since uiso_temperature parameter value is not provided [warn#62]
+OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0074, u12=0, u13=0, u22=0.0286, u23=0, u33=0.0177) [warn#63]
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "F" since uiso_temperature parameter value is not provided [warn#64]
+OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0229, u12=0, u13=0, u22=0.0207, u23=0.0016, u33=0.0109) [warn#65]
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "F" since uiso_temperature parameter value is not provided [warn#66]
+OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0162, u12=0.0051, u13=0.0011, u22=0.0188, u23=-0.0108, u33=0.029) [warn#67]
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "Fe" since uiso_temperature parameter value is not provided [warn#68]
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Fe ignored (u11=0.009, u12=0, u13=0, u22=0.0084, u23=0.0025, u33=0.0083) [warn#69]
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "Na" since uiso_temperature parameter value is not provided [warn#70]
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0236, u12=0, u13=0, u22=0.0568, u23=0.0189, u33=0.019) [warn#71]
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "Na" since uiso_temperature parameter value is not provided [warn#72]
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0223, u12=0, u13=-0.0036, u22=0.023, u23=0, u33=0.0667) [warn#73]
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "Ni" since uiso_temperature parameter value is not provided [warn#74]
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082) [warn#75]
 OUT>#
 OUT># WARNING: Fallback (dummy) Debye temperature values were used for 7 atoms!
 OUT>#
@@ -1148,13 +1154,13 @@ OUT>  debye_temp 150
 Getting cod_1000257.cif from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR
 Attempting to load CIF data with gemmi
 Self-consistency of structure was verified by spglib
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for F ignored (u11=0.0074, u12=0, u13=0, u22=0.0286, u23=0, u33=0.0177)
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for F ignored (u11=0.0229, u12=0, u13=0, u22=0.0207, u23=0.0016, u33=0.0109)
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for F ignored (u11=0.0162, u12=0.0051, u13=0.0011, u22=0.0188, u23=-0.0108, u33=0.029)
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Fe ignored (u11=0.009, u12=0, u13=0, u22=0.0084, u23=0.0025, u33=0.0083)
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Na ignored (u11=0.0236, u12=0, u13=0, u22=0.0568, u23=0.0189, u33=0.019)
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Na ignored (u11=0.0223, u12=0, u13=-0.0036, u22=0.023, u23=0, u33=0.0667)
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082)
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for F ignored (u11=0.0074, u12=0, u13=0, u22=0.0286, u23=0, u33=0.0177) [warn#76]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for F ignored (u11=0.0229, u12=0, u13=0, u22=0.0207, u23=0.0016, u33=0.0109) [warn#77]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for F ignored (u11=0.0162, u12=0.0051, u13=0.0011, u22=0.0188, u23=-0.0108, u33=0.029) [warn#78]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Fe ignored (u11=0.009, u12=0, u13=0, u22=0.0084, u23=0.0025, u33=0.0083) [warn#79]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Na ignored (u11=0.0236, u12=0, u13=0, u22=0.0568, u23=0.0189, u33=0.019) [warn#80]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Na ignored (u11=0.0223, u12=0, u13=-0.0036, u22=0.023, u23=0, u33=0.0667) [warn#81]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082) [warn#82]
 Verifying that resulting ncmat data can be loaded
 Writing autogen_F7FeNa2Ni_sg74_cod1000257.ncmat
 OUT>NCMAT v7
@@ -1182,13 +1188,13 @@ OUT>#                   anything done, and remove this notice.
 OUT>#
 OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
 OUT>#
-OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0074, u12=0, u13=0, u22=0.0286, u23=0, u33=0.0177)
-OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0229, u12=0, u13=0, u22=0.0207, u23=0.0016, u33=0.0109)
-OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0162, u12=0.0051, u13=0.0011, u22=0.0188, u23=-0.0108, u33=0.029)
-OUT>#   NCrystalUserWarning : Anisotropic displacement for Fe ignored (u11=0.009, u12=0, u13=0, u22=0.0084, u23=0.0025, u33=0.0083)
-OUT>#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0236, u12=0, u13=0, u22=0.0568, u23=0.0189, u33=0.019)
-OUT>#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0223, u12=0, u13=-0.0036, u22=0.023, u23=0, u33=0.0667)
-OUT>#   NCrystalUserWarning : Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082)
+OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0074, u12=0, u13=0, u22=0.0286, u23=0, u33=0.0177) [warn#76]
+OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0229, u12=0, u13=0, u22=0.0207, u23=0.0016, u33=0.0109) [warn#77]
+OUT>#   NCrystalUserWarning : Anisotropic displacement for F ignored (u11=0.0162, u12=0.0051, u13=0.0011, u22=0.0188, u23=-0.0108, u33=0.029) [warn#78]
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Fe ignored (u11=0.009, u12=0, u13=0, u22=0.0084, u23=0.0025, u33=0.0083) [warn#79]
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0236, u12=0, u13=0, u22=0.0568, u23=0.0189, u33=0.019) [warn#80]
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Na ignored (u11=0.0223, u12=0, u13=-0.0036, u22=0.023, u23=0, u33=0.0667) [warn#81]
+OUT>#   NCrystalUserWarning : Anisotropic displacement for Ni ignored (u11=0.0068, u12=0, u13=0.0011, u22=0.0066, u23=0, u33=0.0082) [warn#82]
 OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
 OUT>#
 OUT>@CELL
@@ -1423,16 +1429,16 @@ OUT>     .0462663 .0247447 .0118274 .00659815 .00298692 0
 ============= CLI >>codid::9005777 --dynamics stdlib::CaSiO3_sg2_Wollastonite.ncmat<< ====================
 Getting cod_9005777.cif from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR
 Attempting to load CIF data with gemmi
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA1"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA2"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA3"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB1"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB2"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB3"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC1"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC2"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC3"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 29.36% level)
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA1" [warn#83]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA2" [warn#84]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA3" [warn#85]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB1" [warn#86]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB2" [warn#87]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB3" [warn#88]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC1" [warn#89]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC2" [warn#90]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC3" [warn#91]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 29.36% level) [warn#92]
 Verifying that resulting ncmat data can be loaded
 Writing autogen_CaO3Si_sg2_cod9005777.ncmat
 OUT>NCMAT v7
@@ -1458,16 +1464,16 @@ OUT>#                   anything done, and remove this notice.
 OUT>#
 OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
 OUT>#
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3"
-OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level)
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1" [warn#83]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2" [warn#84]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3" [warn#85]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1" [warn#86]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2" [warn#87]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3" [warn#88]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1" [warn#89]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2" [warn#90]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3" [warn#91]
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level) [warn#92]
 OUT># NOTICE: crystal structure was verified with spglib to be self-consistent.
 OUT>#
 OUT>@CELL
@@ -1599,7 +1605,7 @@ OC3 0.27350 0.51260 0.09310
 ============= CLI >>QE_pw_Al.out --via-ase<< ====================
 Attempting to load data via ASE
 Attempting to load CIF data with gemmi
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (possibly due to conversion from primitive cell)
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (possibly due to conversion from primitive cell) [warn#93]
 Verifying that resulting ncmat data can be loaded
 Writing autogen_Al_sg225.ncmat
 OUT>NCMAT v7
@@ -1620,7 +1626,7 @@ OUT>#                   anything done, and remove this notice.
 OUT>#
 OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
 OUT>#
-OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (possibly due to conversion from primitive cell)
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (possibly due to conversion from primitive cell) [warn#93]
 OUT>#
 OUT># WARNING: Fallback (dummy) Debye temperature value was used for 1 atom!
 OUT>#
@@ -1645,7 +1651,7 @@ OUT>  debye_temp 300
 ============= CLI >>QE_pw_Al.out --via-ase --remap 'Al is 0.99 Al 0.01 Cr'<< ====================
 Attempting to load data via ASE
 Attempting to load CIF data with gemmi
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (possibly due to conversion from primitive cell)
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (possibly due to conversion from primitive cell) [warn#94]
 Verifying that resulting ncmat data can be loaded
 Writing autogen_Al99Cr_sg225.ncmat
 OUT>NCMAT v7
@@ -1668,7 +1674,7 @@ OUT>#                   anything done, and remove this notice.
 OUT>#
 OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
 OUT>#
-OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (possibly due to conversion from primitive cell)
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (possibly due to conversion from primitive cell) [warn#94]
 OUT>#
 OUT># WARNING: Fallback (dummy) Debye temperature value was used for 1 atom!
 OUT>#
@@ -1695,8 +1701,8 @@ OUT>  debye_temp 300
 ============= CLI >>dummy_D.cif<< ====================
 Attempting to load CIF data with gemmi
 Self-consistency of structure was verified by spglib
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "C" since uiso_temperature parameter value is not provided
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "H2" since uiso_temperature parameter value is not provided
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "C" since uiso_temperature parameter value is not provided [warn#95]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "H2" since uiso_temperature parameter value is not provided [warn#96]
 Verifying that resulting ncmat data can be loaded
 Writing autogen_C3D2_sg221.ncmat
 OUT>NCMAT v7
@@ -1717,8 +1723,8 @@ OUT>#                   anything done, and remove this notice.
 OUT>#
 OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
 OUT>#
-OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "C" since uiso_temperature parameter value is not provided
-OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "H2" since uiso_temperature parameter value is not provided
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "C" since uiso_temperature parameter value is not provided [warn#95]
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "H2" since uiso_temperature parameter value is not provided [warn#96]
 OUT>#
 OUT># WARNING: Fallback (dummy) Debye temperature values were used for 2 atoms!
 OUT>#
@@ -1750,8 +1756,8 @@ OUT>  debye_temp 300
 ============= CLI >>dummy_D.cif --remap 'D is H'<< ====================
 Attempting to load CIF data with gemmi
 Self-consistency of structure was verified by spglib
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "C" since uiso_temperature parameter value is not provided
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "H" since uiso_temperature parameter value is not provided
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "C" since uiso_temperature parameter value is not provided [warn#97]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "H" since uiso_temperature parameter value is not provided [warn#98]
 Verifying that resulting ncmat data can be loaded
 Writing autogen_C3H2_sg221.ncmat
 OUT>NCMAT v7
@@ -1774,8 +1780,8 @@ OUT>#                   anything done, and remove this notice.
 OUT>#
 OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
 OUT>#
-OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "C" since uiso_temperature parameter value is not provided
-OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "H" since uiso_temperature parameter value is not provided
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "C" since uiso_temperature parameter value is not provided [warn#97]
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "H" since uiso_temperature parameter value is not provided [warn#98]
 OUT>#
 OUT># WARNING: Fallback (dummy) Debye temperature values were used for 2 atoms!
 OUT>#
@@ -1813,8 +1819,8 @@ Caught expected ArgumentError('Conflicting options')
 ============= CLI >>dummy_D.cif --remap 'D is 0.6 H 0.4 D'<< ====================
 Attempting to load CIF data with gemmi
 Self-consistency of structure was verified by spglib
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "C" since uiso_temperature parameter value is not provided
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "0.6 H 0.4 D" since uiso_temperature parameter value is not provided
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "C" since uiso_temperature parameter value is not provided [warn#99]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ignoring uiso info present in CIF input for "0.6 H 0.4 D" since uiso_temperature parameter value is not provided [warn#100]
 Verifying that resulting ncmat data can be loaded
 Writing autogen_C15D4H6_sg221.ncmat
 OUT>NCMAT v7
@@ -1837,8 +1843,8 @@ OUT>#                   anything done, and remove this notice.
 OUT>#
 OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
 OUT>#
-OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "C" since uiso_temperature parameter value is not provided
-OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "0.6 H 0.4 D" since uiso_temperature parameter value is not provided
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "C" since uiso_temperature parameter value is not provided [warn#99]
+OUT>#   NCrystalUserWarning : ignoring uiso info present in CIF input for "0.6 H 0.4 D" since uiso_temperature parameter value is not provided [warn#100]
 OUT>#
 OUT># WARNING: Fallback (dummy) Debye temperature values were used for 2 atoms!
 OUT>#
@@ -1888,7 +1894,7 @@ NCMAT v7
 #
 # Notice: The following WARNINGS were emitted when loading the CIF data:
 #
-#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level)
+#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level) [warn#101]
 #
 # WARNING: Fallback (dummy) Debye temperature values were used for 3 atoms!
 #
@@ -1999,16 +2005,16 @@ OUT>     .0462663 .0247447 .0118274 .00659815 .00298692 0
 ============= CLI >>codid::9005777 --atomdata 'Si 28.09u::4.1491fm 0.004b 0.171b'<< ====================
 Getting cod_9005777.cif from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR
 Attempting to load CIF data with gemmi
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA1"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA2"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA3"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB1"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB2"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB3"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC1"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC2"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC3"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 29.36% level)
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA1" [warn#102]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA2" [warn#103]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA3" [warn#104]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB1" [warn#105]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB2" [warn#106]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB3" [warn#107]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC1" [warn#108]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC2" [warn#109]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC3" [warn#110]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 29.36% level) [warn#111]
 Verifying that resulting ncmat data can be loaded
 Writing autogen_CaO3Si_sg2_cod9005777.ncmat
 OUT>NCMAT v7
@@ -2034,16 +2040,16 @@ OUT>#                   anything done, and remove this notice.
 OUT>#
 OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
 OUT>#
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3"
-OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level)
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1" [warn#102]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2" [warn#103]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3" [warn#104]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1" [warn#105]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2" [warn#106]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3" [warn#107]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1" [warn#108]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2" [warn#109]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3" [warn#110]
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level) [warn#111]
 OUT>#
 OUT># WARNING: Fallback (dummy) Debye temperature values were used for 3 atoms!
 OUT>#
@@ -2109,16 +2115,16 @@ OUT>  debye_temp 300
 ============= CLI >>codid::9005777 --atomdata 'Si 28.09u 0fm 0b 0b'<< ====================
 Getting cod_9005777.cif from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR
 Attempting to load CIF data with gemmi
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA1"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA2"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA3"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB1"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB2"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB3"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC1"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC2"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC3"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 29.36% level)
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA1" [warn#112]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA2" [warn#113]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA3" [warn#114]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB1" [warn#115]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB2" [warn#116]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB3" [warn#117]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC1" [warn#118]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC2" [warn#119]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC3" [warn#120]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 29.36% level) [warn#121]
 Verifying that resulting ncmat data can be loaded
 Writing autogen_CaO3Si_sg2_cod9005777.ncmat
 OUT>NCMAT v7
@@ -2144,16 +2150,16 @@ OUT>#                   anything done, and remove this notice.
 OUT>#
 OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
 OUT>#
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3"
-OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level)
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1" [warn#112]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2" [warn#113]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3" [warn#114]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1" [warn#115]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2" [warn#116]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3" [warn#117]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1" [warn#118]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2" [warn#119]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3" [warn#120]
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level) [warn#121]
 OUT>#
 OUT># WARNING: Fallback (dummy) Debye temperature values were used for 3 atoms!
 OUT>#
@@ -2221,16 +2227,16 @@ Caught expected ArgumentError('invalid --atomdata syntax in "Si 28.09 0fm 0b 0b"
 ============= CLI >>codid::9005777 --atomdata 'Si 28.09u 0fm 0b 0b' --atomdata 'Ca 128.09u 0fm 0b 0b'<< ====================
 Getting cod_9005777.cif from local file cache in $NCRYSTAL_ONLINEDB_CACHEDIR
 Attempting to load CIF data with gemmi
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA1"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA2"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA3"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB1"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB2"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB3"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC1"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC2"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC3"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 29.36% level)
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA1" [warn#122]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA2" [warn#123]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OA3" [warn#124]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB1" [warn#125]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB2" [warn#126]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OB3" [warn#127]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC1" [warn#128]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC2" [warn#129]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Assuming atomic symbol "O" based on CIF label "OC3" [warn#130]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 29.36% level) [warn#131]
 Verifying that resulting ncmat data can be loaded
 Writing autogen_CaO3Si_sg2_cod9005777.ncmat
 OUT>NCMAT v7
@@ -2256,16 +2262,16 @@ OUT>#                   anything done, and remove this notice.
 OUT>#
 OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
 OUT>#
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2"
-OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3"
-OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level)
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA1" [warn#122]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA2" [warn#123]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OA3" [warn#124]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB1" [warn#125]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB2" [warn#126]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OB3" [warn#127]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC1" [warn#128]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC2" [warn#129]
+OUT>#   NCrystalUserWarning : Assuming atomic symbol "O" based on CIF label "OC3" [warn#130]
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 29.36% level) [warn#131]
 OUT>#
 OUT># WARNING: Fallback (dummy) Debye temperature values were used for 3 atoms!
 OUT>#
@@ -2349,8 +2355,8 @@ UNITTEST: Would invoke nc_cifutils.produce_validation_plots with pdf_target= bla
 ============================================================================================================
 ============= CLI >>Wyckoff1963_Sulphor_0011255.cif<< ====================
 Attempting to load CIF data with gemmi
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): SG-70 available in multiple choices ("F d d d:1", "F d d d:2") and which one was not encoded explicitly in the _space_group_name_H-M_alt CIF field. Consider overriding the space group explicitly when loading this file.
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 16.9826% level)
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): SG-70 available in multiple choices ("F d d d:1", "F d d d:2") and which one was not encoded explicitly in the _space_group_name_H-M_alt CIF field. Consider overriding the space group explicitly when loading this file. [warn#132]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 16.9826% level) [warn#133]
 Verifying that resulting ncmat data can be loaded
 Writing autogen_S_sg70.ncmat
 OUT>NCMAT v7
@@ -2372,8 +2378,8 @@ OUT>#                   anything done, and remove this notice.
 OUT>#
 OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
 OUT>#
-OUT>#   NCrystalUserWarning : SG-70 available in multiple choices ("F d d d:1", "F d d d:2") and which one was not encoded explicitly in the _space_group_name_H-M_alt CIF field. Consider overriding the space group explicitly when loading this file.
-OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 16.9826% level)
+OUT>#   NCrystalUserWarning : SG-70 available in multiple choices ("F d d d:1", "F d d d:2") and which one was not encoded explicitly in the _space_group_name_H-M_alt CIF field. Consider overriding the space group explicitly when loading this file. [warn#132]
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 16.9826% level) [warn#133]
 OUT>#
 OUT># WARNING: Fallback (dummy) Debye temperature value was used for 1 atom!
 OUT>#
@@ -2522,8 +2528,8 @@ OUT>  debye_temp 300
 ==========================================================================
 ============= CLI >>Wyckoff1963_Sulphor_0011255.cif --spacegroup 'F d d d:1'<< ====================
 Attempting to load CIF data with gemmi
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Overriding spacegroup to "F d d d:1" due to explicit request
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 16.9826% level)
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Overriding spacegroup to "F d d d:1" due to explicit request [warn#134]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 16.9826% level) [warn#135]
 Verifying that resulting ncmat data can be loaded
 Writing autogen_S_sg70.ncmat
 OUT>NCMAT v7
@@ -2545,8 +2551,8 @@ OUT>#                   anything done, and remove this notice.
 OUT>#
 OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
 OUT>#
-OUT>#   NCrystalUserWarning : Overriding spacegroup to "F d d d:1" due to explicit request
-OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 16.9826% level)
+OUT>#   NCrystalUserWarning : Overriding spacegroup to "F d d d:1" due to explicit request [warn#134]
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 16.9826% level) [warn#135]
 OUT>#
 OUT># WARNING: Fallback (dummy) Debye temperature value was used for 1 atom!
 OUT>#
@@ -2695,8 +2701,8 @@ OUT>  debye_temp 300
 ===================================================================================================
 ============= CLI >>Wyckoff1963_Sulphor_0011255.cif --spacegroup 'F d d d:2'<< ====================
 Attempting to load CIF data with gemmi
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Overriding spacegroup to "F d d d:2" due to explicit request
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 16.9826% level)
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Overriding spacegroup to "F d d d:2" due to explicit request [warn#136]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (at the 16.9826% level) [warn#137]
 Verifying that resulting ncmat data can be loaded
 Writing autogen_S_sg70.ncmat
 OUT>NCMAT v7
@@ -2718,8 +2724,8 @@ OUT>#                   anything done, and remove this notice.
 OUT>#
 OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
 OUT>#
-OUT>#   NCrystalUserWarning : Overriding spacegroup to "F d d d:2" due to explicit request
-OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 16.9826% level)
+OUT>#   NCrystalUserWarning : Overriding spacegroup to "F d d d:2" due to explicit request [warn#136]
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (at the 16.9826% level) [warn#137]
 OUT>#
 OUT># WARNING: Fallback (dummy) Debye temperature value was used for 1 atom!
 OUT>#
@@ -2908,7 +2914,7 @@ OUT>  debye_temp 300
 ===========================================================================
 ============= CLI >>mp_55_unrefined_primitive.cif<< ====================
 Attempting to load CIF data with gemmi
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (possibly due to conversion from primitive cell)
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Structure received major corrections by spglib (possibly due to conversion from primitive cell) [warn#138]
 Verifying that resulting ncmat data can be loaded
 Writing autogen_Sn_sg139.ncmat
 OUT>NCMAT v7
@@ -2929,7 +2935,7 @@ OUT>#                   anything done, and remove this notice.
 OUT>#
 OUT># Notice: The following WARNINGS were emitted when loading the CIF data:
 OUT>#
-OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (possibly due to conversion from primitive cell)
+OUT>#   NCrystalUserWarning : Structure received major corrections by spglib (possibly due to conversion from primitive cell) [warn#138]
 OUT>#
 OUT># WARNING: Fallback (dummy) Debye temperature value was used for 1 atom!
 OUT>#

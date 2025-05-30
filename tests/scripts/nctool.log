@@ -809,6 +809,6 @@ Caught expected RuntimeError('Currently we do not support switching back and for
                               \-- 0.510787 * SABScatter(nalpha=400;nbeta=800;Emax=5eV;T=100K;M=26.9815u;sigma_free=1.39667barn)
 ===========================================
 ============= CLI >>'Al_sg225.ncmat;temp=10 K;vdoslux=1' 'Al_sg225.ncmat;vdoslux=1;temp=10K' --common dcutoff=1.0Aa --liny<< ====================
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Configuration specified more than once: "Al_sg225.ncmat;dcutoff=1;temp=10;vdoslux=1"
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Comparing identical setups?
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Configuration specified more than once: "Al_sg225.ncmat;dcutoff=1;temp=10;vdoslux=1" [warn#1]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Comparing identical setups? [warn#2]
 ===========================================
