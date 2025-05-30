@@ -23,9 +23,9 @@
 Catch escaped warnings and print them without a stack trace (since stack traces
 tend to make test output reproducible).
 
-Additionally, use the NCrystalDev._common._add_warn_counts_to_msgs hook to
-ensure that any NCrystal warnings gets a running warning count appended to the
-message, to prevent the warning framework from silencing repeated warnings.
+Additionally, use the _add_warn_counts_to_msgs hook to ensure that any NCrystal
+warnings gets a running warning count appended to the message, to prevent the
+warning framework from silencing repeated warnings.
 
 """
 

@@ -26,16 +26,17 @@ def script_ok_as_pure_python( name, fh ):
             return False
     return True
 
-def filter_py_line( line ):
-    if 'NCrystalDev' not in line:
-        return line
+def filter_py_line( origline ):
+    if 'NCrystalDev' not in origline:
+        return origline
+    line = origline
     if 'import NCrystalDev.' in line:
         line = line.replace('import NCrystalDev.','import NCrystal.')
     elif 'from NCrystalDev.' in line:
         line = line.replace('from NCrystalDev.','from NCrystal.')
     elif 'import NCrystalDev' in line:
         line =  line.replace('import NCrystalDev','import NCrystal')
-    assert 'NCrystalDev' not in line
+    assert 'NCrystalDev' not in line, f'Bad import in: {line}'
     return line
 
 def read_pyfile_filtered( f ):
