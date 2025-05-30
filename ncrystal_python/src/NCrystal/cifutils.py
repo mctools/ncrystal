@@ -917,7 +917,7 @@ def _impl_create_ncmat_composer_internal( cifloader, *, uiso_temperature, skip_d
             if uiso is not None:
                 assert uiso>0.0
                 if uiso_temperature is None:
-                    _nc_common.warn(f'ignoring uiso info present in CIF input for "{composstr}" since uiso_temperature parameter value is not provided\n')
+                    _nc_common.warn(f'ignoring uiso info present in CIF input for "{composstr}" since uiso_temperature parameter value is not provided')
                 else:
                     ncmat.set_dyninfo_msd( lbl, msd=uiso, temperature=uiso_temperature )
             _aniso = a.get('aniso',None)
