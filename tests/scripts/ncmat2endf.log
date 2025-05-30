@@ -226,8 +226,8 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): Mixed elastic mode for Al but no i
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Combining (alpha, beta) grids from different temperatures. This usually results in a huge grid. [warn#25]
 >>> alpha points: 800, alpha range: (8.192e-50, 199.4)
 >>> beta points: 790, beta range: (0, 35.07)
->>> alpha points: 100, alpha range: (1.178e-49, 179)
->>> beta points: 102, beta range: (0, 21.77)
+>>> alpha points: 100, alpha range: (1.18e-49, 179)
+>>> beta points: 102, beta range: (0, 21.8)
 >>> Interpolating T=293.15K for V
 >> Prepare elastic approximations
 >> Scaled elastic mode for single atom V: incoherent

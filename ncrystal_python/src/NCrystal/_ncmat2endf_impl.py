@@ -344,18 +344,22 @@ class NuclearData():
             self._elems[sym].beta = -_[::-1] # Invert beta and change sign
             self._elems[sym].beta[0] = 0.0
             if self._verbosity > 2:
-                def fmt(x):
+                def fmta(x):
                     return '%.4g'%x
-                if unit_test_chop_svals[0]:
-                    def fmt(x):
+                def fmtb(x):
+                    return '%.4g'%x
+                if unit_test_chop_vals[0]:
+                    def fmta(x):
                         return '%.3g'%x
-                ncprint(f'>>> alpha points: {len(self._elems[sym].alpha)}, '
-                         'alpha range: '
-                        f'({fmt(_np.min(self._elems[sym].alpha*T0/T))}'
-                        f', {fmt(_np.max(self._elems[sym].alpha*T0/T))})')
-                ncprint(f'>>> beta points: {len(self._elems[sym].beta)}, '
-                        f'beta range: ({fmt(_np.min(self._elems[sym].beta*T0/T))},'
-                        f' {fmt(_np.max(self._elems[sym].beta*T0/T))})')
+                    def fmtb(x):
+                        if x > 50:
+                            return '%.2g'%x
+                        return '%.3g'%x
+                a,b = self._elems[sym].alpha, self._elems[sym].beta
+                ncprint(f'>>> alpha points: {len(a)}, alpha range: '
+                        f'({fmta(_np.min(a*T0/T))}, {fmta(_np.max(a*T0/T))})')
+                ncprint(f'>>> beta points: {len(b)}, beta range: '
+                        f'({fmtb(_np.min(b*T0/T))}, {fmtb(_np.max(b*T0/T))})')
 
     def _get_coherent_elastic(self, T):
         #
@@ -396,7 +400,9 @@ class NuclearData():
                     # Load incoherent elastic data
                     #
                     msd = res['msd']
-                    self._elems[sym].dwi.append(msd*2*mass_neutron/hbar**2)
+                    self._elems[sym].dwi.append(
+                        _tidy_teffwp( msd*2*mass_neutron/hbar**2 )
+                    )
             else:
                 for frac, ad in self._composition:
                     sym = ad.elementName()
@@ -534,7 +540,7 @@ class NuclearData():
                 rho = di.vdosData()[1]
                 res = nc_vdos.analyseVDOS(emin, emax, rho, di.temperature,
                                           di.atomData.averageMassAMU())
-                self._elems[sym].teff.append(res['teff'])
+                self._elems[sym].teff.append( _tidy_teffwp( res['teff'] ) )
 
     def _get_ncrystal_comments(self):
         # TODO: handle multi phase materials
@@ -844,7 +850,7 @@ class EndfFile():
         desc.append('')
         nc_version = nc_core.get_version()
         ep_version = self._endf_parserpy_version
-        if unit_test_chop_svals[0] or unit_test_not_write_version[0]:
+        if unit_test_chop_vals[0] or unit_test_not_write_version[0]:
             nc_version = 'NCVERSION'
             ep_version = 'EPVERSION'
         desc.append(f' using NCrystal {nc_version} ')
@@ -947,8 +953,8 @@ class EndfFile():
             raise NCBadInput('Error: output file already exists'
                              ' (run with --force to overwrite)')
         assert outfile.parent.is_dir()
-        if is_unit_test[0]:
-            if unit_test_dump[0]:
+        if unit_test_abort_write[0]:
+            if unit_test_abort_write[0] == 'dump':
                 self.dump_endf_dict()
             return
 
@@ -1320,25 +1326,33 @@ def _interp2d(x, y, x0, y0, z0=None):
     return z
 
 def _tidy_beta( x, allow_negative=False):
-    if not unit_test_chop_svals[0]:
+    if not unit_test_chop_vals[0]:
         return x
     if allow_negative:
         assert -1e99 <= x <= 1e99
     else:
         assert 0.0 <= x <= 1e99
+    if x > 80:
+        return float('%.2g'%x)
     return float('%.3g'%x)
 
 def _tidy_alpha_list( a_values ):
-    if not unit_test_chop_svals[0]:
+    if not unit_test_chop_vals[0]:
         return a_values
     def _chop(x):
         assert 0.0 <= x <= 1e99
         return float('%.1g'%x)
     return  [ _chop(x) for x in a_values ]
 
+def _tidy_teffwp( x ):
+    if not unit_test_chop_vals[0]:
+        return x
+    assert 0.0 < x <= 1e99
+    return float('%.13g'%x)
+
 def _tidy_sab_list( s_values ):
     s_values = [ float(e) for e in s_values ]
-    if not unit_test_chop_svals[0]:
+    if not unit_test_chop_vals[0]:
         return s_values
     def _chop(x):
         assert 0.0 <= x <= 1e99
@@ -1348,11 +1362,6 @@ def _tidy_sab_list( s_values ):
         return float('%.1g'%x)
     return  [ _chop(x) for x in s_values ]
 
-is_unit_test = [False]
-
-unit_test_chop_svals = [False]
-
+unit_test_abort_write = [False]
+unit_test_chop_vals = [False]
 unit_test_not_write_version = [False]
-
-unit_test_dump = [False]
-

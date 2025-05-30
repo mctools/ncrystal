@@ -188,15 +188,20 @@ data = ncmat2endf_impl.NuclearData(ncmat_cfg=cfg,
 data._combine_temperatures = True
 data._get_alpha_beta_grid()
 cfg = 'V_sg229.ncmat;vdoslux=1'
-data = ncmat2endf_impl.NuclearData(ncmat_cfg=cfg,
-                                   temperatures=(293.15,),
-                                   elastic_mode='scaled',
-                                   requested_emax=1.0,
-                                   verbosity=3)
-cfg = 'SiO2-alpha_sg154_AlphaQuartz.ncmat;coh_elas=false'
+
+ncmat2endf_impl.unit_test_chop_vals[0] = True
+
 data = ncmat2endf_impl.NuclearData(ncmat_cfg=cfg,
                                    temperatures=(293.15,),
                                    elastic_mode='scaled',
                                    requested_emax=1.0,
                                    verbosity=3)
 
+ncmat2endf_impl.unit_test_chop_vals[0] = False
+
+cfg = 'SiO2-alpha_sg154_AlphaQuartz.ncmat;coh_elas=false'
+data = ncmat2endf_impl.NuclearData(ncmat_cfg=cfg,
+                                   temperatures=(293.15,),
+                                   elastic_mode='scaled',
+                                   requested_emax=1.0,
+                                   verbosity=3)

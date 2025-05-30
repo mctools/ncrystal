@@ -27,9 +27,8 @@ import NCTestUtils.reprint_escaped_warnings # noqa F401
 from NCTestUtils.ncmat2endf_utils import test_cfg
 import NCrystalDev._ncmat2endf_impl as ncmat2endf_impl
 from NCrystalDev.ncmat2endf import EndfMetaData
-ncmat2endf_impl.unit_test_chop_svals[0] = True
-ncmat2endf_impl.is_unit_test[0] = True
-ncmat2endf_impl.unit_test_dump[0] = True
+ncmat2endf_impl.unit_test_chop_vals[0] = True
+ncmat2endf_impl.unit_test_abort_write[0] = 'dump'
 
 d = {'matnum':{"C":37, "H": 38},
      'edate':'JUL01',

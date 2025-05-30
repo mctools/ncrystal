@@ -37,9 +37,9 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given i
 Initialise nuclear data...
 Designated incoherent: Si
 >>> alpha points: 400, alpha range: (6.91e-50, 841)
->>> beta points: 621, beta range: (0, 150)
+>>> beta points: 621, beta range: (0, 1.5e+02)
 >>> alpha points: 400, alpha range: (1.34e-49, 841)
->>> beta points: 601, beta range: (0, 126)
+>>> beta points: 601, beta range: (0, 1.3e+02)
 >>> Interpolating T=293.15K for O
 >>> Interpolating T=293.15K for Si
 >> Prepare elastic approximations
@@ -210,10 +210,10 @@ DUMPING endf dict begin
               5 -> 1.96e-42
               6 -> 1.14e-39
               <..SNIP..>
-              617 -> 148.0
-              618 -> 149.0
-              619 -> 149.0
-              620 -> 149.0
+              617 -> 150.0
+              618 -> 150.0
+              619 -> 150.0
+              620 -> 150.0
               621 -> 150.0
           'LT' ->
               1 -> 0
@@ -311,7 +311,7 @@ DUMPING endf dict begin
                   'S' ->
                       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,<<SNIP>> 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
           'S' -> {}
-          'teff0_table' -> {'Teff0': [491.96188914258386], 'Tint': [293.15], 'NBT': [1], 'INT': [2]}
+          'teff0_table' -> {'Teff0': [491.9618891426], 'Tint': [293.15], 'NBT': [1], 'INT': [2]}
       451 ->
           'MAT' -> 999
           'ZA' -> 8000
@@ -444,7 +444,7 @@ DUMPING endf dict begin
           'ZA' -> 14000
           'AWR' -> 27.84424051648219
           'SB' -> 0.0056
-          'Wp' -> [2.950391409918116]
+          'Wp' -> [2.950391409918]
           'Tint' -> [293.15]
           'INT' -> [2]
           'NBT' -> [1]
@@ -470,11 +470,11 @@ DUMPING endf dict begin
               5 -> 2.63e-43
               6 -> 7.82e-41
               <..SNIP..>
-              597 -> 125.0
-              598 -> 125.0
-              599 -> 126.0
-              600 -> 126.0
-              601 -> 126.0
+              597 -> 130.0
+              598 -> 130.0
+              599 -> 130.0
+              600 -> 130.0
+              601 -> 130.0
           'LT' ->
               1 -> 0
               2 -> 0
@@ -571,7 +571,7 @@ DUMPING endf dict begin
                   'S' ->
                       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,<<SNIP>> 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
           'S' -> {}
-          'teff0_table' -> {'Teff0': [512.8592725537457], 'Tint': [293.15], 'NBT': [1], 'INT': [2]}
+          'teff0_table' -> {'Teff0': [512.8592725537], 'Tint': [293.15], 'NBT': [1], 'INT': [2]}
       451 ->
           'MAT' -> 999
           'ZA' -> 14000
@@ -602,9 +602,9 @@ Created (or not) file tsl_Si_in_UnknownCompound.endf with fraction 0.333333
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#4]
 Initialise nuclear data...
 >>> alpha points: 400, alpha range: (6.91e-50, 841)
->>> beta points: 621, beta range: (0, 150)
+>>> beta points: 621, beta range: (0, 1.5e+02)
 >>> alpha points: 400, alpha range: (1.34e-49, 841)
->>> beta points: 601, beta range: (0, 126)
+>>> beta points: 601, beta range: (0, 1.3e+02)
 >>> Interpolating T=293.15K for O
 >>> Interpolating T=293.15K for Si
 >> Prepare elastic approximations
@@ -775,10 +775,10 @@ DUMPING endf dict begin
               5 -> 1.96e-42
               6 -> 1.14e-39
               <..SNIP..>
-              617 -> 148.0
-              618 -> 149.0
-              619 -> 149.0
-              620 -> 149.0
+              617 -> 150.0
+              618 -> 150.0
+              619 -> 150.0
+              620 -> 150.0
               621 -> 150.0
           'LT' ->
               1 -> 0
@@ -876,7 +876,7 @@ DUMPING endf dict begin
                   'S' ->
                       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,<<SNIP>> 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
           'S' -> {}
-          'teff0_table' -> {'Teff0': [491.96188914258386], 'Tint': [293.15], 'NBT': [1], 'INT': [2]}
+          'teff0_table' -> {'Teff0': [491.9618891426], 'Tint': [293.15], 'NBT': [1], 'INT': [2]}
       451 ->
           'MAT' -> 999
           'ZA' -> 8000
@@ -1055,11 +1055,11 @@ DUMPING endf dict begin
               5 -> 2.63e-43
               6 -> 7.82e-41
               <..SNIP..>
-              597 -> 125.0
-              598 -> 125.0
-              599 -> 126.0
-              600 -> 126.0
-              601 -> 126.0
+              597 -> 130.0
+              598 -> 130.0
+              599 -> 130.0
+              600 -> 130.0
+              601 -> 130.0
           'LT' ->
               1 -> 0
               2 -> 0
@@ -1156,7 +1156,7 @@ DUMPING endf dict begin
                   'S' ->
                       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,<<SNIP>> 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
           'S' -> {}
-          'teff0_table' -> {'Teff0': [512.8592725537457], 'Tint': [293.15], 'NBT': [1], 'INT': [2]}
+          'teff0_table' -> {'Teff0': [512.8592725537], 'Tint': [293.15], 'NBT': [1], 'INT': [2]}
       451 ->
           'MAT' -> 999
           'ZA' -> 14000
@@ -1191,9 +1191,9 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given i
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. Thus the (alpha,beta) grid for the first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated onto it. [warn#7]
 Initialise nuclear data...
 >>> alpha points: 400, alpha range: (6.91e-50, 841)
->>> beta points: 621, beta range: (0, 150)
+>>> beta points: 621, beta range: (0, 1.5e+02)
 >>> alpha points: 400, alpha range: (1.34e-49, 841)
->>> beta points: 601, beta range: (0, 126)
+>>> beta points: 601, beta range: (0, 1.3e+02)
 >>> Interpolating T=293.15K for O
 >>> Interpolating T=293.15K for Si
 >>> Interpolating T=400K for O
@@ -1613,7 +1613,7 @@ DUMPING endf dict begin
                   799 -> {1: 0.0}
                   800 -> {1: 0.0}
           'teff0_table' ->
-              'Teff0' -> [491.96188914258386, 562.3802745290583]
+              'Teff0' -> [491.9618891426, 562.3802745291]
               'Tint' -> [293.15, 400]
               'NBT' -> [2]
               'INT' -> [2]
@@ -2042,7 +2042,7 @@ DUMPING endf dict begin
                   799 -> {1: 0.0}
                   800 -> {1: 0.0}
           'teff0_table' ->
-              'Teff0' -> [512.8592725537457, 577.5315769839254]
+              'Teff0' -> [512.8592725537, 577.5315769839]
               'Tint' -> [293.15, 400]
               'NBT' -> [2]
               'INT' -> [2]

@@ -28,9 +28,8 @@ from NCTestUtils.ncmat2endf_utils import test_cfg
 import NCrystalDev._ncmat2endf_impl as ncmat2endf_impl
 import NCrystalDev.ncmat as nc_ncmat
 
-ncmat2endf_impl.unit_test_chop_svals[0] = True
-ncmat2endf_impl.is_unit_test[0] = True
-ncmat2endf_impl.unit_test_dump[0] = True
+ncmat2endf_impl.unit_test_chop_vals[0] = True
+ncmat2endf_impl.unit_test_abort_write[0] = 'dump'
 
 test_cfg('Al_sg225.ncmat;vdoslux=1', material_name='Al',
          othertemps=350, elastic_mode='scaled')
