@@ -10,7 +10,7 @@ dependencies:
   - pip
   - python
   - ase <3.24.0
-  - endf-parserpy >=0.12.0
+  - endf-parserpy >=0.13.0
   - gemmi >=0.6.1
   - matplotlib >=3.6.0
   - spglib >=2.1.0

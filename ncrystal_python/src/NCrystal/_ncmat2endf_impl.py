@@ -48,14 +48,9 @@ def import_endfparserpy():
     if _cacheimport[0] is not None:
         return _cacheimport[0]
     try:
-        # TODO: temporary fix to avoid syntax warning from endf-parserpy
-        # https://github.com/IAEA-NDS/endf-parserpy/issues/10
-        import warnings
-        with warnings.catch_warnings():
-            warnings.filterwarnings("ignore",category=SyntaxWarning)
-            import endf_parserpy
-            from endf_parserpy.interpreter.fortran_utils import read_fort_floats
-            from endf_parserpy.interpreter.fortran_utils import write_fort_floats
+        import endf_parserpy
+        from endf_parserpy.interpreter.fortran_utils import read_fort_floats
+        from endf_parserpy.interpreter.fortran_utils import write_fort_floats
     except ImportError as e:
         ncprint('ERROR: Could not import endf_parserpy.\n\n'
                 '       Please check that the endf-parserpy package was'
