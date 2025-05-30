@@ -34,7 +34,7 @@ from pathlib import Path
 # CLI tests
 #
 
-ncmat2endf_impl.unit_test_chop_svals[0] = True
+ncmat2endf_impl.unit_test_chop_vals[0] = True
 if Path('tsl_Al.endf').is_file():
     Path('tsl_Al.endf').unlink()
 test_cli('"stdlib::Al_sg225.ncmat;temp=350K;vdoslux=1"'

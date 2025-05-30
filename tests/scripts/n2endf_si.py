@@ -30,7 +30,6 @@ import NCrystalDev._ncmat2endf_impl as ncmat2endf_impl
 ncmat2endf_impl.unit_test_not_write_version[0] = True
 # We need precision to compute the XS, but it would produce
 # differences in the least significant digits
-ncmat2endf_impl.unit_test_dump[0] = False
 
 d = {'matnum':{"Si":37},
      'edate':'JUL01',
@@ -53,9 +52,8 @@ test_cfg('Si_sg227.ncmat;vdoslux=1;incoh_elas=false', elastic_mode='scaled',
           check_teff=True,
           compare_xsec=True, dump_file=False, include_gif=True)
 
-ncmat2endf_impl.unit_test_chop_svals[0] = True
-ncmat2endf_impl.is_unit_test[0] = True
-ncmat2endf_impl.unit_test_dump[0] = True
+ncmat2endf_impl.unit_test_chop_vals[0] = True
+ncmat2endf_impl.unit_test_abort_write[0] = 'dump'
 
 test_cfg('SiO2-alpha_sg154_AlphaQuartz.ncmat', elastic_mode='scaled',
           check_edge_positions=False,

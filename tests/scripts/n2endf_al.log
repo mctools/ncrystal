@@ -410,7 +410,7 @@ DUMPING endf dict begin
                   128 -> {1: 0.0}
                   129 -> {1: 0.0}
           'teff0_table' ->
-              'Teff0' -> [320.2258463450402, 372.83915075936]
+              'Teff0' -> [320.225846345, 372.8391507594]
               'Tint' -> [293.15, 350]
               'NBT' -> [2]
               'INT' -> [2]
@@ -433,9 +433,9 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. A
 Initialise nuclear data...
 Designated incoherent: Al
 >>> alpha points: 100, alpha range: (2.19e-49, 820)
->>> beta points: 150, beta range: (0, 131)
+>>> beta points: 150, beta range: (0, 1.3e+02)
 >>> alpha points: 100, alpha range: (2.33e-49, 823)
->>> beta points: 142, beta range: (0, 90.2)
+>>> beta points: 142, beta range: (0, 90)
 >>> Interpolating T=293.15K for N
 >>> Interpolating T=293.15K for Al
 >>> Interpolating T=350K for N
@@ -560,7 +560,7 @@ DUMPING endf dict begin
           'ZA' -> 7000
           'AWR' -> 13.88643821456795
           'SB' -> 0.5082
-          'Wp' -> [1.8040448594628224, 2.018458299177573]
+          'Wp' -> [1.804044859463, 2.018458299178]
           'Tint' -> [293.15, 350]
           'INT' -> [2]
           'NBT' -> [2]
@@ -586,11 +586,11 @@ DUMPING endf dict begin
               5 -> 2.33e-16
               6 -> 6.64e-05
               <..SNIP..>
-              146 -> 127.0
-              147 -> 128.0
-              148 -> 129.0
+              146 -> 130.0
+              147 -> 130.0
+              148 -> 130.0
               149 -> 130.0
-              150 -> 131.0
+              150 -> 130.0
           'LT' ->
               1 -> 1
               2 -> 1
@@ -832,7 +832,7 @@ DUMPING endf dict begin
                   149 -> {1: 0.0}
                   150 -> {1: 0.0}
           'teff0_table' ->
-              'Teff0' -> [491.0256794459375, 522.9002649902319]
+              'Teff0' -> [491.0256794459, 522.9002649902]
               'Tint' -> [293.15, 350]
               'NBT' -> [2]
               'INT' -> [2]
@@ -1000,11 +1000,11 @@ DUMPING endf dict begin
               5 -> 2.33e-16
               6 -> 6.64e-05
               <..SNIP..>
-              138 -> 86.7
-              139 -> 87.6
-              140 -> 88.4
-              141 -> 89.3
-              142 -> 90.1
+              138 -> 87.0
+              139 -> 88.0
+              140 -> 88.0
+              141 -> 89.0
+              142 -> 90.0
           'LT' ->
               1 -> 1
               2 -> 1
@@ -1246,7 +1246,7 @@ DUMPING endf dict begin
                   141 -> {1: 0.0}
                   142 -> {1: 0.0}
           'teff0_table' ->
-              'Teff0' -> [401.216736392181, 443.3578990073224]
+              'Teff0' -> [401.2167363922, 443.3578990073]
               'Tint' -> [293.15, 350]
               'NBT' -> [2]
               'INT' -> [2]
@@ -1268,9 +1268,9 @@ Created (or not) file tsl_Al_in_AlN.endf with fraction 0.5
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#5]
 Initialise nuclear data...
 >>> alpha points: 100, alpha range: (2.36e-49, 821)
->>> beta points: 148, beta range: (0, 118)
+>>> beta points: 148, beta range: (0, 1.2e+02)
 >>> alpha points: 100, alpha range: (2.45e-49, 823)
->>> beta points: 142, beta range: (0, 88.9)
+>>> beta points: 142, beta range: (0, 89)
 >>> Interpolating T=293.15K for O
 >>> Interpolating T=293.15K for Al
 >> Prepare elastic approximations
@@ -1411,7 +1411,7 @@ DUMPING endf dict begin
           'LI' -> 2
           'NP' -> 19068
           'SB' -> 0.0008
-          'Wp' -> [1.6779690711284527]
+          'Wp' -> [1.677969071128]
           'Tint' -> [293.15]
           'INT' -> [2]
           'NBT' -> [1]
@@ -1437,11 +1437,11 @@ DUMPING endf dict begin
               5 -> 1.33e-15
               6 -> 0.00068
               <..SNIP..>
-              144 -> 113.0
-              145 -> 114.0
-              146 -> 115.0
-              147 -> 116.0
-              148 -> 117.0
+              144 -> 110.0
+              145 -> 110.0
+              146 -> 120.0
+              147 -> 120.0
+              148 -> 120.0
           'LT' ->
               1 -> 0
               2 -> 0
@@ -1538,7 +1538,7 @@ DUMPING endf dict begin
                   'S' ->
                       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,<<SNIP>> 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
           'S' -> {}
-          'teff0_table' -> {'Teff0': [437.8327869152347], 'Tint': [293.15], 'NBT': [1], 'INT': [2]}
+          'teff0_table' -> {'Teff0': [437.8327869152], 'Tint': [293.15], 'NBT': [1], 'INT': [2]}
 DUMPING endf dict end
 > Generate MF7
 Write ENDF file tsl_Al_in_Al2O3.endf...
@@ -1675,7 +1675,7 @@ DUMPING endf dict begin
           'LI' -> 2
           'NP' -> 19068
           'SB' -> 0.0082
-          'Wp' -> [1.6159018327016657]
+          'Wp' -> [1.615901832702]
           'Tint' -> [293.15]
           'INT' -> [2]
           'NBT' -> [1]
@@ -1701,11 +1701,11 @@ DUMPING endf dict begin
               5 -> 1.11e-15
               6 -> 0.000532
               <..SNIP..>
-              138 -> 85.4
-              139 -> 86.3
-              140 -> 87.1
-              141 -> 87.9
-              142 -> 88.8
+              138 -> 85.0
+              139 -> 86.0
+              140 -> 87.0
+              141 -> 88.0
+              142 -> 89.0
           'LT' ->
               1 -> 0
               2 -> 0
@@ -1802,7 +1802,7 @@ DUMPING endf dict begin
                   'S' ->
                       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,<<SNIP>> 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
           'S' -> {}
-          'teff0_table' -> {'Teff0': [392.07523863077853], 'Tint': [293.15], 'NBT': [1], 'INT': [2]}
+          'teff0_table' -> {'Teff0': [392.0752386308], 'Tint': [293.15], 'NBT': [1], 'INT': [2]}
 DUMPING endf dict end
 Files created:
   tsl_O_in_Al2O3.endf with fraction 0.6
@@ -1823,9 +1823,9 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given i
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. Thus the (alpha,beta) grid for the first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated onto it. [warn#7]
 Initialise nuclear data...
 >>> alpha points: 100, alpha range: (1.69e-49, 816)
->>> beta points: 151, beta range: (0, 140)
+>>> beta points: 151, beta range: (0, 1.4e+02)
 >>> alpha points: 100, alpha range: (1.59e-49, 823)
->>> beta points: 141, beta range: (0, 86.3)
+>>> beta points: 141, beta range: (0, 86)
 >>> Interpolating T=293.15K for C
 >>> Interpolating T=293.15K for Al
 >>> Interpolating T=350K for C
@@ -1994,11 +1994,11 @@ DUMPING endf dict begin
               5 -> 2.47e-16
               6 -> 7.19e-05
               <..SNIP..>
-              147 -> 135.0
-              148 -> 136.0
-              149 -> 137.0
-              150 -> 138.0
-              151 -> 139.0
+              147 -> 130.0
+              148 -> 140.0
+              149 -> 140.0
+              150 -> 140.0
+              151 -> 140.0
           'LT' ->
               1 -> 1
               2 -> 1
@@ -2240,7 +2240,7 @@ DUMPING endf dict begin
                   150 -> {1: 0.0}
                   151 -> {1: 0.0}
           'teff0_table' ->
-              'Teff0' -> [485.68388137143074, 518.3198250203627]
+              'Teff0' -> [485.6838813714, 518.3198250204]
               'Tint' -> [293.15, 350]
               'NBT' -> [2]
               'INT' -> [2]
@@ -2406,11 +2406,11 @@ DUMPING endf dict begin
               5 -> 1.62e-16
               6 -> 4.1e-05
               <..SNIP..>
-              137 -> 82.9
-              138 -> 83.7
-              139 -> 84.5
-              140 -> 85.4
-              141 -> 86.2
+              137 -> 83.0
+              138 -> 84.0
+              139 -> 85.0
+              140 -> 85.0
+              141 -> 86.0
           'LT' ->
               1 -> 1
               2 -> 1
@@ -2652,7 +2652,7 @@ DUMPING endf dict begin
                   140 -> {1: 0.0}
                   141 -> {1: 0.0}
           'teff0_table' ->
-              'Teff0' -> [373.76773412156103, 419.41674886018984]
+              'Teff0' -> [373.7677341216, 419.4167488602]
               'Tint' -> [293.15, 350]
               'NBT' -> [2]
               'INT' -> [2]
@@ -2936,7 +2936,7 @@ DUMPING endf dict begin
                   'S' ->
                       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,<<SNIP>> 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
           'S' -> {}
-          'teff0_table' -> {'Teff0': [326.48577571790037], 'Tint': [300.0], 'NBT': [1], 'INT': [2]}
+          'teff0_table' -> {'Teff0': [326.4857757179], 'Tint': [300.0], 'NBT': [1], 'INT': [2]}
 DUMPING endf dict end
 Files created:
   tsl_Al_in_Al.endf with fraction 1.0
@@ -3188,7 +3188,7 @@ DUMPING endf dict begin
                   'S' ->
                       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,<<SNIP>> 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
           'S' -> {}
-          'teff0_table' -> {'Teff0': [320.2258463450402], 'Tint': [293.15], 'NBT': [1], 'INT': [2]}
+          'teff0_table' -> {'Teff0': [320.225846345], 'Tint': [293.15], 'NBT': [1], 'INT': [2]}
 DUMPING endf dict end
 Files created:
   tsl_Al_in_Al.endf with fraction 1.0
