@@ -130,7 +130,15 @@ def warn(msg):
     """Emit NCrystalUserWarning via standard warnings.warn function"""
     from .exceptions import NCrystalUserWarning
     import warnings
-    warnings.warn( NCrystalUserWarning(str(msg)), stacklevel = 2 )
+    m = str(msg)
+    if _add_warn_counts_to_msgs[0]:
+        _add_warn_counts_to_msgs[1] += 1
+        m = '%s [warn#%i]'%(m,_add_warn_counts_to_msgs[1])
+    warnings.warn( NCrystalUserWarning(m), stacklevel = 2 )
+
+#Hook to avoid repeated warnings to be silenced during unit tests, by appending
+#a warning number to them:
+_add_warn_counts_to_msgs = [False,0]
 
 class WarningSpy:
     """Context manager which spies on any warnings emitted via warnings

@@ -141,8 +141,8 @@ The list of supported meta-data keys and their meaning is:
 
 =======================================================
 ============= CLI >>'stdlib::Al_sg225.ncmat;vdoslux=1' -vvv -f -e scaled --totsab --asymsab<< ====================
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Creating non standard S(a,b) with LASYM = 3
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Creating non standard S(a,b) with LASYM = 3 [warn#1]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#2]
 Initialise nuclear data...
 >>> alpha points: 100, alpha range: (8.36e-50, 821)
 >>> beta points: 129, beta range: (0, 76.8)
@@ -155,6 +155,7 @@ Files created:
   tsl_Al.endf with fraction 1.0
 ==================================================================================================================
 ============= CLI >>'stdlib::Al_sg225.ncmat;vdoslux=1' -f --now --dir=some/out/dir<< ====================
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#3]
 Initialise nuclear data...
 Write ENDF file tsl_Al.endf...
 Files created:
