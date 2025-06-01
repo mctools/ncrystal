@@ -31,10 +31,10 @@ Example invocations:
 
     $> ncrystal_ncmat2endf  "Al_sg225.ncmat;temp=350K"
 
-    $> ncrystal_ncmat2endf  "Si_sg227.ncmat;temp=293.6K" -m Si:99 --now
+    $> ncrystal_ncmat2endf  "Si_sg227.ncmat;temp=293.6K" -m MATNUM:Si:99 --now
 
     $> ncrystal_ncmat2endf  "ZnO_sg186_ZincOxide.ncmat;temp=293.15K" -n ZnO -e \
-                            scaled -m "Zn:101,O:102"
+                            scaled -m "MATNUM:Zn:101,O:102"
 
     $> ncrystal_ncmat2endf  "Bi_sg166.ncmat;comp=inelas;temp=77K" -m "AUTH:J. Doe"
 
