@@ -23,9 +23,9 @@ jobs:
       matrix:
         include:
           #We can either run ctest or install+test, but not both in the same job:
-          - { mode: 'ctest'  }
-          - { mode: 'installtest'  }
-    name: ${{ matrix.mode }}
+          - { mode: 'ctest', buildtype: 'Debug'  }
+          - { mode: 'installtest', buildtype: 'Release'  }
+    name: ${{ matrix.mode }}-${{ matrix.buildtype }}
 
     runs-on: ubuntu-22.04
     #Note March 2025: ubuntu-20.04 was retired, so updated to next oldest
@@ -94,7 +94,7 @@ jobs:
         cmake \
         -S ${{github.workspace}}/src \
         -B ${{github.workspace}}/build \
-        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_BUILD_TYPE=${{ matrix.buildtype }} \
         -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install \
         -DNCRYSTAL_ENABLE_EXAMPLES=ON \
         -DNCRYSTAL_BUILD_STRICT=ON \
@@ -110,7 +110,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh &&
         cmake
         --build ${{github.workspace}}/build
-        --config Release
+        --config ${{ matrix.buildtype }}
 
     - name: CTest
       if: matrix.mode == 'ctest'
