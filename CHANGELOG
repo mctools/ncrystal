@@ -2,6 +2,7 @@ v4.1.9 (work in progress)
      * Remove lingering references to the old master branch.
      * Add safeguard against rare FPE with what looks like an issue with the
        Intel OneAPI compiler during integration of S(alpha,beta).
+     * Add infrastructure for accessting test data from C++ test apps"
      * Add various developer utility scripts (valgrind, gdb, gperfcpu, vtune) in
        devel/simplebuild/static/NCDev pkg.
      * ...

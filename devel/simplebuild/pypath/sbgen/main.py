@@ -423,7 +423,8 @@ mod.main()
 
     #Test apps:
     all_test_pkgs.append('NCTestApps')
-    create_pkginfo('NCTestApps',pkg_deps=testlib_pkgnames)
+    create_pkginfo( 'NCTestApps',
+                    pkg_deps = ['NCTestUtils'] + testlib_pkgnames )
     for testappdir in pglob(dirs.testroot.joinpath('src'),'app_*'):
         appname = testappdir.name[4:]
         for sf in pglob( testappdir, '*.h','*.hh','*.c','*.cc','test.log'):

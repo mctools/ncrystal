@@ -104,7 +104,11 @@ mctools_testutils_add_test_modules(
   "${nctests_extra_inc_dirs}"
 )
 
-set( nctest_appenvmod "" )
+set(
+  nctest_appenvmod
+  "NCRYSTALTEST_DATADIR=set:${NCrystalRoot_SOURCE_DIR}/tests/data"
+ )
+
 if ( WIN32 )
   #Do not get "dll not found" errors for the NCrystal library. Note that PATH
   #plays the role of LD_LIBRARY_PATH on Windows (and there is seemingly not

@@ -19,15 +19,18 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/text/NCTextData.hh"
+#include "NCTestUtils/NCTestFindData.hh"
 #include <iostream>
 namespace NC = NCrystal;
 
-namespace {
-
-}
-
 int main()
 {
+  //Test nctest::find_test_data here, just to test it somewhere (asserts
+  //internally that files are found):
+  nctest::find_test_data("dummy_D.cif");
+  nctest::find_test_data("refnc1","Al_sg225.ncmat");
+
+  //The actual textdata test:
   static_assert(std::is_constructible<std::string,const char*>::value,"");
   static_assert(std::is_constructible<NC::DataSourceName,const char*>::value,"");
   static_assert(std::is_convertible<const char*,std::string>::value,"");
