@@ -1332,7 +1332,7 @@ def _tidy_beta( x, allow_negative=False):
         assert -1e99 <= x <= 1e99
     else:
         assert 0.0 <= x <= 1e99
-    if x > 80:
+    if x > 8:
         return float('%.2g'%x)
     return float('%.3g'%x)
 
@@ -1357,7 +1357,7 @@ def _tidy_sab_list( s_values ):
     def _chop(x):
         assert 0.0 <= x <= 1e99
         #Have to be rather harsh unfortunately:
-        if x < 1e-3:
+        if x < 1e-2:
             return 0.0
         return float('%.1g'%x)
     return  [ _chop(x) for x in s_values ]

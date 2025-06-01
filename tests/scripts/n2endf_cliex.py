@@ -37,7 +37,7 @@ def main():
     import copy
     for arglist in copy.deepcopy(cli_example_list):
         assert '.ncmat' in arglist[0]
-        arglist[0] += ';vdoslux=1'
+        arglist[0] += ';vdoslux=0'
         test_cli(*arglist)
 
 if __name__ == '__main__':
