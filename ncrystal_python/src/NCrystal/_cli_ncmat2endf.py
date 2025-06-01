@@ -31,12 +31,12 @@ longopt_matname = '--name'
 longopt_datenow = '--now'
 longopt_othertemps = '--othertemps'
 
-#Examples here so they can be unit tested (fixme: make sure we do this!):
+#Examples here so they can be unit tested:
 examples = [
     ['Al_sg225.ncmat;temp=350K'],
-    ['Si_sg227.ncmat;temp=293.6K','-m','Si:99',longopt_datenow],
+    ['Si_sg227.ncmat;temp=293.6K','-m','MATNUM:Si:99',longopt_datenow],
     ['ZnO_sg186_ZincOxide.ncmat;temp=293.15K','-n','ZnO',
-     '-e','scaled','-m','Zn:101,O:102'],
+     '-e','scaled','-m','MATNUM:Zn:101,O:102'],
     ['Bi_sg166.ncmat;comp=inelas;temp=77K','-m','AUTH:J. Doe']
 ]
 
@@ -154,7 +154,8 @@ def _parseArgs( progname, arglist, return_parser=False ):
                     help=wrap('JSON dictionary containing ENDF-6'
                               f' metadata. Run with {longopt_metadata}=help '
                               'for more information.'))
-    ba.add_argument('-m',metavar='KEY:VAL',action='append', nargs='+',
+    ba.add_argument('-m',metavar='KEY:VAL', dest='mdata_kvlist',
+                    action='append', nargs='+',
                     help=wrap('Add metadata entries. Run with '
                               f'{longopt_metadata}=help for more info.'))
     ba.add_argument(longopt_datenow,action='store_true',
@@ -225,7 +226,7 @@ def _parseArgs( progname, arglist, return_parser=False ):
                 parser.error(f'Argument to {longopt_metadata} must be a JSON'
                              ' dictionary of key, value pairs')
     assert isinstance(args.mdata,dict)
-    for ee in args.m or []:
+    for ee in args.mdata_kvlist or []:
         for e in ee:
             kv = list(_.strip() for _ in e.split(':',1))
             if not len(kv)==2 or not kv[0]:

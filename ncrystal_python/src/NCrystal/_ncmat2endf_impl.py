@@ -1208,7 +1208,7 @@ def _impl_emd_set( now_MMMYY, data, param, value,  ):
                     raise NCBadInput(f'Invalid MATNUM value {repr(v)}:'
                                      ' must be a dict or string with a'
                                      ' format like "Zn:101,O:102".')
-                d[p[0].upper()]=int(p[1])
+                d[p[0]]=int(p[1])
             v = d
         if not hasattr(v,'items'):
             raise NCBadInput('MATNUM must be a dict')
