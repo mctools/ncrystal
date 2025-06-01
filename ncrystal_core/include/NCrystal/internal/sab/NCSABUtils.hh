@@ -175,18 +175,21 @@ inline double NCrystal::SABUtils::interpolate_loglin_fallbacklinlin(double a, do
 
 inline double NCrystal::SABUtils::interpolate_loglin_fallbacklinlin_fast(double a, double fa, double b, double fb, double x, double logfa, double logfb)
 {
-  nc_assert ( fa>=0.0 && fb >= 0.0 );
-  nc_assert ( x >= a && x <= b );
-  nc_assert ( !ncisnan(logfa) && !ncisnan(logfb) );
+  nc_assert( fa>=0.0 && fb >= 0.0 );
+  nc_assert( x >= a && x <= b );
+  nc_assert( !ncisnan(logfa) && !ncisnan(logfb) );
+  nc_assert( ( b-a ) > 0.0 );
+  const double bma = b - a;
+  nc_assert( bma > 0.0 );
   const double midpoint = 0.5 * ( b + a );
   const bool linlin_mode = ( fa*fb == 0.0 );
   if ( x < midpoint ) {
     //choose form most numerically stable for x near a
-    const double r = (x-a) / (b-a);
+    const double r = (x-a) / bma;
     return ( linlin_mode ? ( fa + (fb-fa)*r ) : std::exp(logfa+(logfb-logfa)*r) );
   } else {
     //choose form most numerically stable for x near b
-    const double s = (b-x) / (b-a);
+    const double s = (b-x) / bma;
     return ( linlin_mode ? ( fb + (fa-fb)*s ) : std::exp(logfb+(logfa-logfb)*s) );
   }
 }
