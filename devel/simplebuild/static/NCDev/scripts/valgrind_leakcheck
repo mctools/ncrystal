@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+prog=`which $1`
+if [ $? != 0 ]; then
+    echo "Error: Command not found: $1"
+    exit 1
+fi
+shift 1
+
+EXTRASUP=""
+
+valgrind --tool=memcheck --leak-check=full --show-reachable=yes --track-fds=yes --show-reachable=yes --malloc-fill=0x80 --free-fill=0x7f --trace-children=yes $prog "$@"
+# --suppressions=$SBLD_DATA_DIR/DevTools/valgrind_suppressions.txt${EXTRASUP}

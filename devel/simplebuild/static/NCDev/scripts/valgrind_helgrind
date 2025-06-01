@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+prog=`which $1`
+if [ $? != 0 ]; then
+    echo "Error: Command not found: $1"
+    exit 1
+fi
+shift 1
+export PYTHONMALLOC=malloc
+valgrind --tool=helgrind --trace-children=yes $prog "$@"
+# --suppressions=$SBLD_DATA_DIR/DevTools/valgrind_suppressions.txt

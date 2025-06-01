@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+
+if [ "$#" -lt 2 ]; then
+    echo "Usage:"
+    echo
+    echo "$0 <vtunemode> <other vtuneflags and mycmd>"
+    echo
+    echo "Assumes intel oneAPI basekit is available with activation script /opt/intel/oneapi/setvars.sh "
+    echo
+    echo "WARNING: This script is rather new (May 2024) and might not be very robust at present."
+    echo
+    echo "Learn about vtune modes by running 'vtune --help collect' (after sourcing the above script)"
+    echo
+    echo "WARNING: This script will invoke sudo and run vtune and your command with superuser priviledges."
+    echo "         THIS IS POTENTIALLY DANGEROUS AND AT THE USERS OWN RESPONSIBILITY."
+    echo
+    echo "Examples (many more vtunemodes are avaiable):"
+    echo
+    echo "$0 threading -- mycmd myarg0 myarg1"
+    echo "$0 hotspots -- mycmd myarg0 myarg1"
+    echo "$0 hpc-performance -- mycmd myarg0 myarg1"
+    exit 0
+fi
+
+if [ "x$USER" == "xroot" ]; then
+    echo "Do not run this command as root, it will invoke sudo later and ask for your password."
+    exit 1
+fi
+vtunemode="$1"
+shift 1
+
+if [ -d ./tmp_vtune_results_misc/ ]; then
+    rm -rf ./tmp_vtune_results_misc/
+fi
+mkdir ./tmp_vtune_results_misc
+touch ./tmp_vtune_results_misc/_the_original_env.txt
+env | while IFS= read -r line; do
+  value=${line#*=}
+  name=${line%%=*}
+  printf 'export %q=%q' "$name" "$value" >> ./tmp_vtune_results_misc/_the_original_env.txt
+  echo >> ./tmp_vtune_results_misc/_the_original_env.txt
+done
+
+echo '#!/usr/bin/env bash' > ./tmp_vtune_results_misc/_the_run_script.x
+chmod +x ./tmp_vtune_results_misc/_the_run_script.x
+echo 'rm -rf ./tmp_vtune_results/' >> ./tmp_vtune_results_misc/_the_run_script.x
+echo 'set -o allexport && source ./tmp_vtune_results_misc/_the_original_env.txt && set +o allexport' >> ./tmp_vtune_results_misc/_the_run_script.x
+_dummy=$#
+_dummy=$((_dummy - 1))
+_printf_fmt=''
+for i in `seq $_dummy`; do
+    _printf_fmt="${_printf_fmt} %q"
+done
+CMDFORMATTED=$(printf "${_printf_fmt}" vtune --collect "$vtunemode" --result-dir=./tmp_vtune_results/ -- "$@")
+echo 'if [ "x${ONEAPI_ROOT:-}" == "x" ]; then . /opt/intel/oneapi/setvars.sh; fi'  >> ./tmp_vtune_results_misc/_the_run_script.x
+echo "echo Launching: ${CMDFORMATTED}" >> ./tmp_vtune_results_misc/_the_run_script.x
+echo "${CMDFORMATTED}" >> ./tmp_vtune_results_misc/_the_run_script.x
+echo 'EC=$?'  >>./tmp_vtune_results_misc/_the_run_script.x
+echo 'echo "Command finished with exit code $EC"' >>./tmp_vtune_results_misc/_the_run_script.x
+echo 'if [ -d ./tmp_vtune_results/ ]; then chown -R $USER ./tmp_vtune_results/; fi'  >>./tmp_vtune_results_misc/_the_run_script.x
+echo 'exit $EC'  >>./tmp_vtune_results_misc/_the_run_script.x
+set -eu
+sudo ./tmp_vtune_results_misc/_the_run_script.x
+echo
+echo "All done. Analyse results with:"
+echo
+echo "(. /opt/intel/oneapi/setvars.sh && vtune-gui ./tmp_vtune_results/) &"
+echo
