@@ -188,6 +188,7 @@ class NuclearData():
     def __init__(self, *, ncmat_cfg, temperatures, elastic_mode,
                           requested_emax, verbosity ):
 
+        self.__di2knlcache = {}
         self._temperatures = tuple(temperatures)
         self._ncmat_cfg = ncmat_cfg
         info_obj = nc_core.createInfo(ncmat_cfg)
@@ -283,18 +284,37 @@ class NuclearData():
     def elastic_mode(self):
         return self._elastic_mode
 
-    def _loadKernel( self, di ):
+    def _loadKernel( self, di, infoobj_uid ):
+        uid = ( infoobj_uid, di.atomIndex )
+        cacheobj = self.__di2knlcache.get(uid)
+        if cacheobj is not None:
+            return cacheobj
+
         from .vdos import extractKnl
         #Note: using the extractKnl function rather than di.loadKernel means
         #that there will be no reduction of vdoslux for VDOSDebye objects. This
         #is why we use this function here, since ENDF files need the higher
         #energy range of the resulting sab.
-        return extractKnl( vdos = di,
-                           mass_amu = di.atomData.averageMassAMU(),
-                           temperature = di.temperature,
-                           scatxs = 1.0,# seems to be the right thing
-                           target_emax = self._requested_emax,
-                           vdoslux = self._vdoslux )
+
+        kwargs = dict( vdos = di,
+                       mass_amu = di.atomData.averageMassAMU(),
+                       temperature = di.temperature,
+                       scatxs = 1.0,# seems to be the right thing
+                       vdoslux = self._vdoslux )
+
+        k = extractKnl( target_emax = None, **kwargs )
+        emax0 = k.get('suggested_emax',0.0)
+
+        req_emax = self._requested_emax
+        if abs(emax0-req_emax) > 1e-9*abs(emax0+req_emax):
+            k = extractKnl( target_emax = req_emax, **kwargs )
+            lbl = di.atomData.displayLabel()
+            ncwarn(f'The extracted kernel for "{lbl}" would normally cover'
+                   f' energies up to Emax={emax0:g}eV with the provided'
+                   ' cfg-string but a value of'
+                   f' Emax={req_emax:g}eV was enforced.')
+        self.__di2knlcache[uid] = k
+        return k
 
     def _combine_alpha_beta_grids(self):
         #
@@ -309,7 +329,7 @@ class NuclearData():
             info_obj = nc_core.createInfo(cfg)
             for di in info_obj.dyninfos:
                 sym = di.atomData.elementName()
-                sctknl = self._loadKernel(di)
+                sctknl = self._loadKernel(di, info_obj.uid )
                 self._elems[sym].alpha = _np.unique(_np.concatenate((
                                          self._elems[sym].alpha,
                                          sctknl['alpha']*T/T0)))
@@ -325,7 +345,7 @@ class NuclearData():
         info_obj = nc_core.createInfo(cfg)
         for di in info_obj.dyninfos:
             sym = di.atomData.elementName()
-            sctknl = self._loadKernel(di)
+            sctknl = self._loadKernel(di,info_obj.uid)
             self._elems[sym].alpha = sctknl['alpha']*T/T0
             self._elems[sym].beta_total = sctknl['beta']*T/T0
         if self._combine_temperatures:
@@ -518,7 +538,7 @@ class NuclearData():
                 #
                 # Load incoherent inelastic data
                 #
-                sctknl = self._loadKernel(di)
+                sctknl = self._loadKernel(di,info_obj.uid)
                 if self._verbosity > 2:
                     ncprint(f'>>> Interpolating T={T}K for {sym}')
 

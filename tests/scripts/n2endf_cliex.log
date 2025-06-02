@@ -1,5 +1,6 @@
 ============= CLI >>'Al_sg225.ncmat;temp=350K;vdoslux=0'<< ====================
 Initialise nuclear data...
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=0.5eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#1]
 Write ENDF file tsl_Al.endf...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 999, 'TAPEDESCR': 'Created with ncmat2endf'}}
@@ -261,6 +262,7 @@ Files created:
 ===============================================================================
 ============= CLI >>'Si_sg227.ncmat;temp=293.6K;vdoslux=0' -m MATNUM:Si:99 --now<< ====================
 Initialise nuclear data...
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Si" would normally cover energies up to Emax=0.5eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#2]
 Write ENDF file tsl_Si.endf...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 99, 'TAPEDESCR': 'Created with ncmat2endf'}}
@@ -512,6 +514,8 @@ Files created:
 =======================================================================================================
 ============= CLI >>'ZnO_sg186_ZincOxide.ncmat;temp=293.15K;vdoslux=0' -n ZnO -e scaled -m MATNUM:Zn:101,O:102<< ====================
 Initialise nuclear data...
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "O" would normally cover energies up to Emax=0.5eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#3]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Zn" would normally cover energies up to Emax=0.5eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#4]
 Write ENDF file tsl_O_in_ZnO.endf...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 102, 'TAPEDESCR': 'Created with ncmat2endf'}}
@@ -1022,9 +1026,10 @@ Files created:
 =====================================================================================================================================
 ============= CLI >>'Bi_sg166.ncmat;comp=inelas;temp=77K;vdoslux=0' -m 'AUTH:J. Doe'<< ====================
 Initialise nuclear data...
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled [warn#1]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Incoherent elastic component disabled [warn#2]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): No coherent elastic data or incoherent elastic data found: only inelastic data will be written [warn#3]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled [warn#5]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Incoherent elastic component disabled [warn#6]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Bi" would normally cover energies up to Emax=0.5eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#7]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): No coherent elastic data or incoherent elastic data found: only inelastic data will be written [warn#8]
 Write ENDF file tsl_Bi.endf...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 999, 'TAPEDESCR': 'Created with ncmat2endf'}}
