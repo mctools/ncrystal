@@ -10,6 +10,8 @@
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#1]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. Thus the (alpha,beta) grid for the first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated onto it. [warn#2]
 Initialise nuclear data...
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#3]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#4]
 Write ENDF file tsl_Al_in_Al.endf...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 999, 'TAPEDESCR': 'Created with ncmat2endf'}}
@@ -428,17 +430,21 @@ Created (or not) file tsl_Al_in_Al.endf with fraction 1
  'ncmat_cfg': 'AlN_sg186_AluminumNitride.ncmat;vdoslux=1',
  'othertemps': 350,
  'verbosity': 3}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#3]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. Thus the (alpha,beta) grid for the first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated onto it. [warn#4]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#5]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. Thus the (alpha,beta) grid for the first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated onto it. [warn#6]
 Initialise nuclear data...
 Designated incoherent: Al
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "N" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#7]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#8]
 >>> alpha points: 100, alpha range: (2.19e-49, 820)
 >>> beta points: 150, beta range: (0, 1.3e+02)
 >>> alpha points: 100, alpha range: (2.33e-49, 823)
 >>> beta points: 142, beta range: (0, 90)
 >>> Interpolating T=293.15K for N
 >>> Interpolating T=293.15K for Al
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "N" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#9]
 >>> Interpolating T=350K for N
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#10]
 >>> Interpolating T=350K for Al
 >> Prepare elastic approximations
 >> Scaled elastic mode for N in compound: incoherent
@@ -1265,8 +1271,10 @@ Created (or not) file tsl_Al_in_AlN.endf with fraction 0.5
  'material_name': 'Al2O3',
  'ncmat_cfg': 'Al2O3_sg167_Corundum.ncmat;vdoslux=1',
  'verbosity': 3}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#5]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#11]
 Initialise nuclear data...
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "O" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#12]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#13]
 >>> alpha points: 100, alpha range: (2.36e-49, 821)
 >>> beta points: 148, beta range: (0, 1.2e+02)
 >>> alpha points: 100, alpha range: (2.45e-49, 823)
@@ -1819,16 +1827,20 @@ Created (or not) file tsl_Al_in_Al2O3.endf with fraction 0.4
  'ncmat_cfg': 'Al4C3_sg166_AluminiumCarbide.ncmat;vdoslux=1',
  'othertemps': 350,
  'verbosity': 3}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#6]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. Thus the (alpha,beta) grid for the first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated onto it. [warn#7]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#14]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. Thus the (alpha,beta) grid for the first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated onto it. [warn#15]
 Initialise nuclear data...
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "C" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#16]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#17]
 >>> alpha points: 100, alpha range: (1.69e-49, 816)
 >>> beta points: 151, beta range: (0, 1.4e+02)
 >>> alpha points: 100, alpha range: (1.59e-49, 823)
 >>> beta points: 141, beta range: (0, 86)
 >>> Interpolating T=293.15K for C
 >>> Interpolating T=293.15K for Al
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "C" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#18]
 >>> Interpolating T=350K for C
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#19]
 >>> Interpolating T=350K for Al
 >> Prepare elastic approximations
 >> Principal elastic mode for C: coherent
@@ -2671,6 +2683,7 @@ Created (or not) file tsl_Al_in_Al4C3.endf with fraction 0.571429
  'material_name': 'Al',
  'ncmat_cfg': 'Al_sg225.ncmat;temp=300K;temp=300K;temp=300K;temp=300K;temp=300K;temp=300K;temp=300K;temp=300K;temp=300K;temp=300K;vdoslux=1'}
 Initialise nuclear data...
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#20]
 Write ENDF file tsl_Al_in_Al.endf...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 999, 'TAPEDESCR': 'Created with ncmat2endf'}}
@@ -2949,8 +2962,9 @@ Created (or not) file tsl_Al_in_Al.endf with fraction 1
  'force_save': True,
  'material_name': 'Al',
  'ncmat_cfg': 'Al_with_a_Very_Very_Ver_Very_Very_Very_Very_Ver_Very_Very_Very_Very_Ver_Very_Very_Long_Name.ncmat;vdoslux=1'}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#8]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#21]
 Initialise nuclear data...
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#22]
 Write ENDF file tsl_Al_in_Al.endf...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 999, 'TAPEDESCR': 'Created with ncmat2endf'}}

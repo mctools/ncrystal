@@ -33,7 +33,7 @@ default_smin_value = 1e-100
 
 #ENDF users expect an emax value of 5eV. Note that we will emit a warning if
 #this value does not align with the Emax value that would have been normally
-#produced from the cfg-string (fixme: add this warning).
+#produced from the cfg-string.
 default_emax_value = 5.0
 
 def ncmat2endf( ncmat_cfg, *,
