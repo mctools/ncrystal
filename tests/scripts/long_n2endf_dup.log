@@ -1,0 +1,27 @@
+
+
+
+--------------------------------------------------------------------------------
+{'elastic_mode': 'scaled',
+ 'endf_metadata': {'alab': 'TestLab',
+                   'auth': 'Jane Doe',
+                   'ddate': 'JUL01',
+                   'edate': 'JUL01',
+                   'libname': 'TestLib',
+                   'matnum': {'Si': 37},
+                   'nlib': 0,
+                   'nver': 4,
+                   'rdate': 'JUL01',
+                   'reference': 'Aaaaaa, et al.'},
+ 'force_save': True,
+ 'include_gif': True,
+ 'ncmat_cfg': 'Si_sg227.ncmat;vdoslux=1;incoh_elas=false'}
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#1]
+Initialise nuclear data...
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Incoherent elastic component disabled [warn#2]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Si" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#3]
+Write ENDF file tsl_Si.endf...
+Files created:
+  tsl_Si.endf with fraction 1.0
+Created (or not) file tsl_Si.endf with fraction 1
+NCrystal WARNING: Discarding 1 edges of provided kernel data due to missing S values.
