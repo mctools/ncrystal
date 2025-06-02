@@ -308,3 +308,13 @@ N C M A T v5
 # bla bla
 @CELL
  cubic 200
+Comments raw:
+  >>'   bla bla NCRYSTALMATCFG[temp=300'
+  >>'       foo'
+  >>'   bla bla'
+Comments dedent:
+  >>'bla bla NCRYSTALMATCFG[temp=300'
+  >>'    foo'
+  >>'bla bla'
+Comments raw:
+Comments dedent:

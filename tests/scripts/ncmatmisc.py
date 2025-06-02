@@ -109,3 +109,26 @@ teststrip("""N C M A T v5
 @CELL
  cubic 200
 """)
+
+
+def testcomments(s):
+    import NCrystalDev._ncmatimpl as n
+    f = n._extractInitialHeaderCommentsFromNCMATData
+    print("Comments raw:")
+    for c in f(s,dedent=False):
+        print('  >>%s'%repr(c))
+    print("Comments dedent:")
+    for c in f(s,dedent=True):
+        print('  >>%s'%repr(c))
+
+testcomments("""NCMAT v5
+#   bla bla NCRYSTALMATCFG[temp=300
+#       foo
+#   bla bla
+@CELL
+ cubic 200
+""")
+testcomments("""NCMAT v5
+@CELL
+ cubic 200
+""")
