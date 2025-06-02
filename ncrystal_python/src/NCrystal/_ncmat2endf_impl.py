@@ -222,6 +222,13 @@ class NuclearData():
                 raise NCBadInput('Conversion to ENDF is currently supported'
                                  ' only for natural elements')
             sym = ad.elementName()
+            if sym in self._elems:
+                from .exceptions import NCBadInput
+                raise NCBadInput('Conversion to ENDF is not currently supported'
+                                 ' for materials where the same element has'
+                                 ' multiple dynamic roles (problematic'
+                                 f' element: {sym})')
+
             self._elems[sym] = ElementData(ad)
         if self._enable_coh_elas:
             self._edges = []
