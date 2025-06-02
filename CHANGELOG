@@ -5,6 +5,13 @@ v4.1.9 (work in progress)
      * Add infrastructure for accessting test data from C++ test apps"
      * Add various developer utility scripts (valgrind, gdb, gperfcpu, vtune) in
        devel/simplebuild/static/NCDev pkg.
+     * Support longer tests in tests/scripts dir. Those tests with filenames
+       starting with "long_" will now only be enabled under certain
+       conditions. Depending on the context, this can be done by in various
+       manners. If using CMake+CTest, set -DNCRYSTAL_TEST_ENABLE_LONG=ON. If
+       using the simplebuild developer mode, add the option --long to any of the
+       ncdevtool sb* commands. Finally, if using ncrystal-verify, use the new
+       --long flag.
      * ...
 
 v4.1.8 2025-05-07

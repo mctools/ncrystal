@@ -78,8 +78,25 @@ list(
   "PYTHONLEGACYWINDOWSSTDIO=set:UTF-8"
 )
 
+option(
+  NCRYSTAL_TEST_ENABLE_LONG
+  "Enable certain longer tests as part of CTest suite"
+  OFF
+)
+
+if ( NCRYSTAL_TEST_ENABLE_LONG )
+  set( nctest_ignore_pattern "" )
+  message( STATUS "Enabling longer tests as well" )
+else()
+  set( nctest_ignore_pattern "^long_.*$" )
+  message(
+    STATUS
+    "Disabling longer tests. Set NCRYSTAL_TEST_ENABLE_LONG=ON to enable."
+  )
+endif()
+
 mctools_testutils_add_tests_pyscripts(
-  "${CMAKE_CURRENT_LIST_DIR}/scripts" "${nctest_pyenvmod}"
+  "${CMAKE_CURRENT_LIST_DIR}/scripts" "${nctest_pyenvmod}" "${nctest_ignore_pattern}"
 )
 
 set( nctests_extra_link_libs "${nctests_ncrystallib_target}" )

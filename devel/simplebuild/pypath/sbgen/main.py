@@ -488,6 +488,8 @@ mod.main()
             if sf.is_file() and '#' not in sf.name and '~' not in sf.name:
                 add_file( f'pkgs/{pkgname}/data/{sf.name}', link_target = sf )
 
+    allow_long_tests = bool(os.environ.get('NCDEVSBL_ALLOW_LONG_TESTS'))
+
     #Finally the test scripts. Here we must parse the files and look for NEEDS
     #lines to figure out which ones to include:
     #depset_2_testpyscripts
@@ -495,6 +497,8 @@ mod.main()
     extrapkg_pydeps = set()
     extrapkg_sflist = set()
     for sf in pglob(dirs.testroot.joinpath('scripts'),'*.py'):
+        if not allow_long_tests and sf.name.startswith('long_'):
+            continue
         pydeps = extract_deps_from_needs(sf)
         pkgname, pkgpydeps = determine_testpkg_by_pydeps( pydeps )
         if pkgname is None:

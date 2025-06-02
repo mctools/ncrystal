@@ -55,6 +55,11 @@ def main( parser ):
         default = 'ctest',
         help="""Mode (default: ctest)."""
     )
+    parser.add_argument(
+        '--long', action='store_true',dest='longtests',
+        help="""Use this to enable long tests (sets
+                -DNCRYSTAL_TEST_ENABLE_LONG=ON)."""
+    )
 
     parser.add_argument(
         '-s','--strict', type = str,
@@ -88,6 +93,10 @@ def main( parser ):
             _.append(s[1:] if s.startswith('@') else s)
     if args.strict != 'NOTOUCH' :
         _.append( f'-DNCRYSTAL_BUILD_STRICT={args.strict}' )
+    if args.longtests:
+        if args.mode != 'ctest':
+            parser.error('--long option only meaningful in ctest mode')
+        _.append('-DNCRYSTAL_TEST_ENABLE_LONG=ON')
     args.cmake_args = _
 
     _ = []

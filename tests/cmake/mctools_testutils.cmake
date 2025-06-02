@@ -55,7 +55,7 @@ if ( NOT DEFINED MCTOOLS_TESTUTILS_PYTHON_EXECUTABLE
   set( MCTOOLS_TESTUTILS_PYTHON_EXECUTABLE "auto" )
 endif()
 
-function( mctools_testutils_add_tests_pyscripts scriptsdir envmod )
+function( mctools_testutils_add_tests_pyscripts scriptsdir envmod ignorepattern )
   file(
     GLOB pyscriptlist
     LIST_DIRECTORIES false
@@ -86,6 +86,11 @@ function( mctools_testutils_add_tests_pyscripts scriptsdir envmod )
     else()
       set( reflog "" )
       set( testname "py_${bn}" )
+    endif()
+
+    if ( ignorepattern AND "${bn}" MATCHES "${ignorepattern}" )
+      message( STATUS "Skipping test ${testname}" )
+      continue()
     endif()
 
     if ( missingdeps )

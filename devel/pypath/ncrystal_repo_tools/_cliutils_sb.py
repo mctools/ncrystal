@@ -30,7 +30,7 @@ def short_description_sb( mode, is_debug ):
         sb = 'Build and test code with simplebuild',
         sbrun =  'Build code and run command in simplebuild environment',
     )[mode]
-    return '%s (using %s).'%(d,_cfgfilename( is_debug ))
+    return '%s (using %s, initial --long for more tests).'%(d,_cfgfilename( is_debug ))
 
 def _find_sbcmd( cmdname ):
     import shutil
@@ -53,10 +53,18 @@ def mainsb( mode, is_debug, parser ):
     import os
     from .dirs import reporoot
     args = parser.get_raw_args()
+    allow_long_tests = False
+    if args and args[0] == '--long':
+        allow_long_tests = True
+        args = args[1:]
+
     sbcfg = reporoot.joinpath('devel','simplebuild','cfgs',
                               _cfgfilename( is_debug ))
     env = os.environ.copy()
     env['SIMPLEBUILD_CFG'] = str(sbcfg)
+    if allow_long_tests:
+        env['NCDEVSBL_ALLOW_LONG_TESTS'] = '1'
+
     if mode == 'sb':
         _invoke( 'unwrapped_simplebuild', args, env )
     elif mode == 'sbenv':

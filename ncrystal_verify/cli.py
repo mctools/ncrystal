@@ -246,6 +246,11 @@ def parse_args():
                             """Always print all output of tests.""" )
                         )
 
+    parser.add_argument('-l','--long', action='store_true',dest='longtests',
+                        help=wrap(
+                            """Enable longer tests as well.""" )
+                        )
+
     args = parser.parse_args()
 
     def flatten_to_set( list_of_strs ):
@@ -273,6 +278,16 @@ def main():
     datadir = pathlib.Path(__file__).parent.joinpath('data')
     scripts = sorted( datadir.joinpath('scripts').glob('*.py'),
                       key = lambda p : (p.name, p) )
+    nhidden = 0
+    if not args.longtests:
+        _ = []
+        for s in scripts:
+            if not s.name.startswith('long_'):
+                _.append(s)
+        nhidden = len(scripts)-len(_)
+        assert nhidden > 0, "no long tests defined"
+        scripts = _
+
     depinfo = prepare_needs( scripts, args.verbose )
     jobs = []
 
@@ -326,6 +341,9 @@ def main():
     for s,n in stats:
         print('   %s:  %s'%(s.rjust(w1),str(n).rjust(w2)))
     print()
+
+    if nhidden:
+        print("Note: Additional tests can be enabled with the --long flag.\n")
 
     assert ntot == ( successes
                      + failures
