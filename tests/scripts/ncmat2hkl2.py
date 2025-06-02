@@ -138,4 +138,3 @@ test_cfgstr( 'stdlib::PbO-alpha_sg129_Litharge.ncmat;dcutoff=0.9' )
 test_cfgstr( 'stdlib::MgCO3_sg167_MagnesiumCarbonate.ncmat;dcutoff=1.0' )
 test_cfgstr( 'stdlib::Al2O3_sg167_Corundum.ncmat;dcutoff=1.5')
 test_cfgstr( 'stdlib::ZnO_sg186_ZincOxide.ncmat;dcutoff=0.5' )
-
