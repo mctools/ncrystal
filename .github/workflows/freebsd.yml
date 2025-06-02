@@ -46,7 +46,7 @@ jobs:
             INSTALL_ENDF_PARSERPY_CPP=no
             export INSTALL_ENDF_PARSERPY_CPP
             python3 -mpip install --user endf-parserpy
-            cmake -S ./src -B ./build -DCMAKE_BUILD_TYPE=Release -DNCRYSTAL_BUILD_STRICT=ON -DNCRYSTAL_ENABLE_TESTING=ON -DMCTOOLS_REQUIRE_ALL_TEST_DEPS=ON
+            cmake -S ./src -B ./build -DCMAKE_BUILD_TYPE=Release -DNCRYSTAL_BUILD_STRICT=ON -DNCRYSTAL_ENABLE_TESTING=ON -DMCTOOLS_REQUIRE_ALL_TEST_DEPS=ON -DNCRYSTAL_TEST_ENABLE_LONG=ON
             cmake --build ./build --config Release --parallel 2
             ctest --test-dir ./build --build-config Release --no-tests=error --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle
 
@@ -96,5 +96,5 @@ jobs:
             INSTALL_ENDF_PARSERPY_CPP=no
             export INSTALL_ENDF_PARSERPY_CPP
             python3 -mpip install --user endf-parserpy
-            ncrystal-verify
+            ncrystal-verify --long
             #--allow-missing endf-parserpy

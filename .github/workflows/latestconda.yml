@@ -64,11 +64,7 @@ jobs:
         run: ncrystal-verify -m all
 
       - name: Install more optional dependencies
-        run: conda install -c conda-forge spglib "ase<3.24.0" matplotlib spglib mpmath
-
-      - name: Install gemmi
-        if: matrix.os != 'ubuntu-24.04-arm'
-        run: conda install -c conda-forge gemmi
+        run: conda install -c conda-forge spglib "ase<3.24.0" matplotlib spglib mpmath gemmi endf-parserpy
 
       - name: Inspect environment
         run: |
@@ -77,10 +73,5 @@ jobs:
           ncrystal-config -s
           nctool --test
 
-      - name: Run ncrystal-verify again with all deps
-        if: matrix.os != 'ubuntu-24.04-arm'
-        run: ncrystal-verify
-
-      - name: Run ncrystal-verify again with all deps except gemmi
-        if: matrix.os == 'ubuntu-24.04-arm'
-        run: ncrystal-verify -m gemmi
+      - name: Run ncrystal-verify again with all deps and long tests
+        run: ncrystal-verify --long

@@ -87,7 +87,7 @@ jobs:
         #But just because it seems to be something that might be useful. we do:
         export CC=$(which icx)
         export CXX=$(which icpx)
-        export NC_EXTRA_ARGS="-DNCRYSTAL_ENABLE_TESTING=ON -DMCTOOLS_REQUIRE_ALL_TEST_DEPS=ON -DNCRYSTAL_SKIP_INSTALL=ON"
+        export NC_EXTRA_ARGS="-DNCRYSTAL_ENABLE_TESTING=ON -DMCTOOLS_REQUIRE_ALL_TEST_DEPS=ON -DNCRYSTAL_SKIP_INSTALL=ON -DNCRYSTAL_TEST_ENABLE_LONG=ON"
         if [ "x${{ matrix.mode }}" != "xctest" ]; then
             export NC_EXTRA_ARGS="-DNCRYSTAL_ENABLE_TESTING=OFF"
         fi
