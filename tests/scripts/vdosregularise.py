@@ -51,5 +51,4 @@ def main():
     for i,f in enumerate(sorted(cfgstrs)):
         validate_cfgstr(f)
 
-
 main()

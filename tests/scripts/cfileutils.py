@@ -28,12 +28,6 @@ from NCTestUtils.common import ( work_in_tmpdir,
 import pathlib
 import os
 
-#import builtins
-#def print(*a,**kw):
-#    sys.stdout.flush()
-#    builtins.print(*a,**kw)
-#    sys.stdout.flush()
-
 native_sep = '\\' if is_windows() else '/'
 nonnative_sep = '/' if is_windows() else '\\'
 

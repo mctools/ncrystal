@@ -51,4 +51,3 @@ for cfg in ( ('phases<0.9*stdlib::Al_sg225.ncma'
         s = ncm.cfgstr_2_union_instrument_code( **args )
         print( s.replace(f'NCrystal v{ncversion} via',
                          'NCrystal v<current> via',) )
-

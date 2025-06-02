@@ -35,4 +35,3 @@ test_cfg('Al_sg225.ncmat;vdoslux=1', material_name='Al',
          check_edge_positions=True,
          othertemps=350, elastic_mode='scaled', compare_xsec=False,
          dump_file=True)
-

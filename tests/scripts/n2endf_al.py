@@ -56,4 +56,3 @@ c.write(verylongname)
 test_cfg(verylongname+';vdoslux=1', material_name='Al',
          elastic_mode='scaled', compare_xsec=False,
          dump_file=False)
-

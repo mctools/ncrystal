@@ -133,4 +133,3 @@ except NC.NCBadInput as e:
     print("Loading bad.ncmat gives expected error:",e)
 else:
     raise SystemExit("Did not get expected error")
-

@@ -63,9 +63,7 @@ def test(cfgstr):
             #di.plot_Gn(n,without_xsect=True)
 
 def main():
-
     PWLinDistMoments.unit_test(mp)
-
     for filename in ('Au_sg225',
                      'Polyethylene_CH2',
                      'LiH_sg225_LithiumHydride',
@@ -76,9 +74,6 @@ def main():
                      f';temp={temp:g}K'
                      ';comp=inelas'
                      f';vdoslux={vdoslux}')
-
-
-
 
 if __name__ == '__main__':
     main()

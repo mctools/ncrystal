@@ -61,4 +61,3 @@ else:
     print()
     pprint.pprint(files_sorted_order)
     raise SystemExit("ERROR: Inconsistent sorting order observed!!")
-

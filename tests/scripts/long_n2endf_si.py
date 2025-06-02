@@ -64,4 +64,3 @@ test_cfg('SiO2-alpha_sg154_AlphaQuartz.ncmat', elastic_mode='greater',
 test_cfg('SiO2-alpha_sg154_AlphaQuartz.ncmat', elastic_mode='greater',
           check_edge_positions=False, verbosity=3, othertemps=400,
           compare_xsec=False, dump_file=False, include_gif=True, lasym=3)
-
