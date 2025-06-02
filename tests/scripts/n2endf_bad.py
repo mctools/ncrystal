@@ -29,6 +29,8 @@ from argparse import ArgumentError
 from NCrystalDev.ncmat2endf import EndfMetaData
 from NCTestUtils.ncmat2endf_utils import ( test_cfg_fail,
                                            test_cli_fail )
+from NCTestUtils.dirs import test_data_dir
+
 from NCrystalDev.exceptions import NCBadInput
 import NCrystalDev.ncmat as nc_ncmat
 import NCrystalDev._ncmat2endf_impl as ncmat2endf_impl
@@ -148,6 +150,13 @@ test_cli_fail('"stdlib::Al_sg225.ncmat;vdoslux=1"'
               ' -q -n Bla -e mixed --totsab', exception_type=RuntimeError)
 test_cli_fail('"stdlib::Al_sg225.ncmat;vdoslux=1"'
               ' -q -n Bla -e scaled --asymsab', exception_type=RuntimeError)
+
+Path('Al_multirole.ncmat').write_text(
+    test_data_dir.joinpath('Al_multirole.ncmat').read_text()
+)
+
+test_cli_fail('Al_multirole.ncmat')
+
 #
 # Unit tests
 #

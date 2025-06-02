@@ -182,6 +182,10 @@ FAILED (as expected): Only single phase materials supported
 FAILED (as expected): Error: output file already exists (run with --force to overwrite)
 ============= CLI >>'stdlib::Al_sg225.ncmat;vdoslux=1' -q -n Bla -e scaled --asymsab<< ====================
 FAILED (as expected): Error: output file already exists (run with --force to overwrite)
+============= CLI >>Al_multirole.ncmat<< ====================
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#18]
+Initialise nuclear data...
+FAILED (as expected): Conversion to ENDF is not currently supported for materials where the same element has multiple dynamic roles (problematic element: Al)
 Designated incoherent: Th
 >>> alpha points: 100, alpha range: (1.563e-49, 179.4)
 >>> beta points: 116, beta range: (0, 36.95)
@@ -190,14 +194,14 @@ Designated incoherent: Th
 >>> Interpolating T=293.15K for O
 >>> Interpolating T=293.15K for Th
 >> Prepare elastic approximations
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Scaled elastic mode requested but all elements are coherent. "greater" option will be used instead. [warn#18]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Scaled elastic mode requested but all elements are coherent. "greater" option will be used instead. [warn#19]
 >> Principal elastic mode for O: coherent
 >> Principal elastic mode for Th: coherent
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled [warn#19]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Incoherent elastic component disabled [warn#20]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled [warn#20]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Incoherent elastic component disabled [warn#21]
 Designated incoherent: Si
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "O" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#21]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Si" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#22]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "O" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#22]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Si" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#23]
 >>> alpha points: 400, alpha range: (6.91e-50, 198.7)
 >>> beta points: 464, beta range: (0, 39.98)
 >>> alpha points: 400, alpha range: (1.342e-49, 198.7)
@@ -205,32 +209,32 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Si" woul
 >>> Interpolating T=293.15K for O
 >>> Interpolating T=293.15K for Si
 >> Prepare elastic approximations
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): No coherent elastic data or incoherent elastic data found: only inelastic data will be written [warn#23]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): No coherent elastic data or incoherent elastic data found: only inelastic data will be written [warn#24]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled [warn#25]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#26]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): No coherent elastic data or incoherent elastic data found: only inelastic data will be written [warn#25]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled [warn#26]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#27]
 >>> alpha points: 400, alpha range: (8.364e-50, 198.7)
 >>> beta points: 429, beta range: (0, 34.93)
 >>> Interpolating T=293.15K for Al
 >> Prepare elastic approximations
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Mixed elastic mode for Al but no Bragg edges found: incoherent approximation [warn#27]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled [warn#28]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#29]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Mixed elastic mode for Al but no Bragg edges found: incoherent approximation [warn#28]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled [warn#29]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#30]
 >>> alpha points: 400, alpha range: (8.364e-50, 198.7)
 >>> beta points: 429, beta range: (0, 34.93)
 >>> Interpolating T=293.15K for Al
 >> Prepare elastic approximations
 >> Principal elastic mode for Al: incoherent
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Incoherent elastic component disabled [warn#30]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#31]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Incoherent elastic component disabled [warn#31]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#32]
 >>> alpha points: 400, alpha range: (8.364e-50, 198.7)
 >>> beta points: 429, beta range: (0, 34.93)
 >>> Interpolating T=293.15K for Al
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#32]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#33]
 >>> Interpolating T=300K for Al
 >> Prepare elastic approximations
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Mixed elastic mode for Al but no incoherent elastic data found: coherent approximation [warn#33]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Combining (alpha, beta) grids from different temperatures. This usually results in a huge grid. [warn#34]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Mixed elastic mode for Al but no incoherent elastic data found: coherent approximation [warn#34]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Combining (alpha, beta) grids from different temperatures. This usually results in a huge grid. [warn#35]
 >>> alpha points: 800, alpha range: (8.192e-50, 199.4)
 >>> beta points: 790, beta range: (0, 35.07)
 >>> alpha points: 100, alpha range: (1.18e-49, 179)
@@ -238,10 +242,10 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): Combining (alpha, beta) grids from
 >>> Interpolating T=293.15K for V
 >> Prepare elastic approximations
 >> Scaled elastic mode for single atom V: incoherent
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled [warn#35]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled [warn#36]
 Designated incoherent: Si
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "O" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#36]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Si" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#37]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "O" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#37]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Si" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#38]
 >>> alpha points: 400, alpha range: (6.91e-50, 198.7)
 >>> beta points: 464, beta range: (0, 39.98)
 >>> alpha points: 400, alpha range: (1.342e-49, 198.7)
