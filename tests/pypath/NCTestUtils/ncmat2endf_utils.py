@@ -90,7 +90,7 @@ def test_cfg( cfg, check_teff=False,
                 raise RuntimeError(f'ENDF sections {parsed} expected but '
                                    f'sections {ref_parsed[endf_fn]} found')
         if check_edge_positions:
-            # fixme: check edge intensities. This might require creating a
+            # TODO: check edge intensities. This might require creating a
             #        NuclearData() object to take into account the
             #        elastic_mode
             edges = compute_bragg_edges(cfg)
