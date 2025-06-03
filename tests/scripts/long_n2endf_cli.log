@@ -9,7 +9,8 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" woul
 > Generate MF7
 Write ENDF file tsl_Al_in_Al.endf...
 Files created:
-  tsl_Al_in_Al.endf with fraction 1.0
+  tsl_Al_in_Al.endf : Al with fraction 1
+Suggested material density: 2.698645518 g/cm^3
 ============================================================================================================================================
 ============= CLI >>-h<< ====================
 usage: ncrystal_ncmat2endf CFGSTR [--elas MODE] [--name NAME] [--mdata DATA]
@@ -154,7 +155,8 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" woul
 > Generate MF7
 Write ENDF file tsl_Al.endf...
 Files created:
-  tsl_Al.endf with fraction 1.0
+  tsl_Al.endf : Al with fraction 1
+Suggested material density: 2.698645518 g/cm^3
 ==================================================================================================================
 ============= CLI >>'stdlib::Al_sg225.ncmat;vdoslux=1' -f --now --dir=some/out/dir<< ====================
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#5]
@@ -162,5 +164,6 @@ Initialise nuclear data...
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#6]
 Write ENDF file tsl_Al.endf...
 Files created:
-  tsl_Al.endf with fraction 1.0
+  tsl_Al.endf : Al with fraction 1
+Suggested material density: 2.698645518 g/cm^3
 =========================================================================================================

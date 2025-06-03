@@ -22,6 +22,7 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): ENDF output will not contain any i
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Si" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#3]
 Write ENDF file tsl_Si.endf...
 Files created:
-  tsl_Si.endf with fraction 1.0
+  tsl_Si.endf : Si with fraction 1
+Suggested material density: 2.329452891 g/cm^3
 Created (or not) file tsl_Si.endf with fraction 1
 NCrystal WARNING: Discarding 1 edges of provided kernel data due to missing S values.

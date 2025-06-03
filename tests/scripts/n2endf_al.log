@@ -419,7 +419,7 @@ DUMPING endf dict begin
               'INT' -> [2]
 DUMPING endf dict end
 Files created:
-  tsl_Al_in_Al.endf with fraction 1.0
+  tsl_Al_in_Al.endf : Al with fraction 1
 Created (or not) file tsl_Al_in_Al.endf with fraction 1
 
 
@@ -1261,8 +1261,8 @@ DUMPING endf dict begin
               'INT' -> [2]
 DUMPING endf dict end
 Files created:
-  tsl_N_in_AlN.endf with fraction 0.5
-  tsl_Al_in_AlN.endf with fraction 0.5
+  tsl_N_in_AlN.endf : N with fraction 1/2
+  tsl_Al_in_AlN.endf : Al with fraction 1/2
 Created (or not) file tsl_N_in_AlN.endf with fraction 0.5
 Created (or not) file tsl_Al_in_AlN.endf with fraction 0.5
 
@@ -1818,8 +1818,9 @@ DUMPING endf dict begin
           'teff0_table' -> {'Teff0': [392.0752386308], 'Tint': [293.15], 'NBT': [1], 'INT': [2]}
 DUMPING endf dict end
 Files created:
-  tsl_O_in_Al2O3.endf with fraction 0.6
-  tsl_Al_in_Al2O3.endf with fraction 0.4
+  tsl_O_in_Al2O3.endf : O with fraction 3/5
+  tsl_Al_in_Al2O3.endf : Al with fraction 2/5
+Suggested material density: 3.991215758 g/cm^3
 Created (or not) file tsl_O_in_Al2O3.endf with fraction 0.6
 Created (or not) file tsl_Al_in_Al2O3.endf with fraction 0.4
 
@@ -2677,8 +2678,8 @@ DUMPING endf dict begin
               'INT' -> [2]
 DUMPING endf dict end
 Files created:
-  tsl_C_in_Al4C3.endf with fraction 0.42857142857142855
-  tsl_Al_in_Al4C3.endf with fraction 0.5714285714285714
+  tsl_C_in_Al4C3.endf : C with fraction 3/7
+  tsl_Al_in_Al4C3.endf : Al with fraction 4/7
 Created (or not) file tsl_C_in_Al4C3.endf with fraction 0.428571
 Created (or not) file tsl_Al_in_Al4C3.endf with fraction 0.571429
 
@@ -2949,7 +2950,8 @@ DUMPING endf dict begin
           'teff0_table' -> {'Teff0': [326.4857757179], 'Tint': [300.0], 'NBT': [1], 'INT': [2]}
 DUMPING endf dict end
 Files created:
-  tsl_Al_in_Al.endf with fraction 1.0
+  tsl_Al_in_Al.endf : Al with fraction 1
+Suggested material density: 2.698645518 g/cm^3
 Created (or not) file tsl_Al_in_Al.endf with fraction 1
 
 
@@ -3204,5 +3206,6 @@ DUMPING endf dict begin
           'teff0_table' -> {'Teff0': [320.225846345], 'Tint': [293.15], 'NBT': [1], 'INT': [2]}
 DUMPING endf dict end
 Files created:
-  tsl_Al_in_Al.endf with fraction 1.0
+  tsl_Al_in_Al.endf : Al with fraction 1
+Suggested material density: 2.698645518 g/cm^3
 Created (or not) file tsl_Al_in_Al.endf with fraction 1
