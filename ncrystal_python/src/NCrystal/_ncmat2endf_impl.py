@@ -917,8 +917,10 @@ class EndfFile():
             desc.append(line)
         desc.append(66*'*')
         for _ in desc:
-            assert len(_) <= 66
-        return [_.ljust(66) for _ in desc]
+            if len(_) > 66:
+                ncwarn('The following line in the description is'
+                       f' too long and will be cropped: {_}"')
+        return [_[:66].ljust(66) for _ in desc]
 
     def _createMF1(self):
         #
