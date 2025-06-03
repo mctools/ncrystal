@@ -259,7 +259,8 @@ DUMPING endf dict begin
           'teff0_table' -> {'Teff0': [372.8391507594], 'Tint': [350.0], 'NBT': [1], 'INT': [2]}
 DUMPING endf dict end
 Files created:
-  tsl_Al.endf with fraction 1.0
+  tsl_Al.endf : Al with fraction 1
+Suggested material density: 2.698645518 g/cm^3
 ===============================================================================
 ============= CLI >>'Si_sg227.ncmat;temp=293.6K;vdoslux=0' -m MATNUM:Si:99 --now<< ====================
 Initialise nuclear data...
@@ -512,7 +513,8 @@ DUMPING endf dict begin
           'teff0_table' -> {'Teff0': [361.5184189407], 'Tint': [293.6], 'NBT': [1], 'INT': [2]}
 DUMPING endf dict end
 Files created:
-  tsl_Si.endf with fraction 1.0
+  tsl_Si.endf : Si with fraction 1
+Suggested material density: 2.329452891 g/cm^3
 =======================================================================================================
 ============= CLI >>'ZnO_sg186_ZincOxide.ncmat;temp=293.15K;vdoslux=0' -n ZnO -e scaled -m MATNUM:Zn:101,O:102<< ====================
 Initialise nuclear data...
@@ -1025,8 +1027,9 @@ DUMPING endf dict begin
           'teff0_table' -> {'Teff0': [317.8549800286], 'Tint': [293.15], 'NBT': [1], 'INT': [2]}
 DUMPING endf dict end
 Files created:
-  tsl_O_in_ZnO.endf with fraction 0.5
-  tsl_Zn_in_ZnO.endf with fraction 0.5
+  tsl_O_in_ZnO.endf : O with fraction 1/2
+  tsl_Zn_in_ZnO.endf : Zn with fraction 1/2
+Suggested material density: 5.663552228 g/cm^3
 =====================================================================================================================================
 ============= CLI >>'Bi_sg166.ncmat;comp=inelas;temp=77K;vdoslux=0' -m 'AUTH:J. Doe'<< ====================
 Initialise nuclear data...
@@ -1275,5 +1278,6 @@ DUMPING endf dict begin
           'teff0_table' -> {'Teff0': [88.84747874936], 'Tint': [77.0], 'NBT': [1], 'INT': [2]}
 DUMPING endf dict end
 Files created:
-  tsl_Bi.endf with fraction 1.0
+  tsl_Bi.endf : Bi with fraction 1
+Suggested material density: 9.80750368 g/cm^3
 ===========================================================================================================

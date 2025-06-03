@@ -14,7 +14,7 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" woul
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#4]
 Write ENDF file tsl_Al_in_Al.endf...
 Files created:
-  tsl_Al_in_Al.endf with fraction 1.0
+  tsl_Al_in_Al.endf : Al with fraction 1
 Created (or not) file tsl_Al_in_Al.endf with fraction 1
 endf>Created with ncmat2endf                                            999 0  0    0
 endf> 1.300000+4 2.674975+1         -1          0          0          0 999 1451    1
