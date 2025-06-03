@@ -142,8 +142,8 @@ The list of supported meta-data keys and their meaning is:
 
 =======================================================
 ============= CLI >>'stdlib::Al_sg225.ncmat;vdoslux=1' -vvv -f -e scaled --totsab --asymsab<< ====================
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Creating non standard S(a,b) with LASYM = 3 [warn#2]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#3]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#2]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Creating non standard S(a,b) with LASYM = 3 [warn#3]
 Initialise nuclear data...
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#4]
 >>> alpha points: 100, alpha range: (8.36e-50, 821)
@@ -157,7 +157,7 @@ Files created:
   tsl_Al.endf with fraction 1.0
 ==================================================================================================================
 ============= CLI >>'stdlib::Al_sg225.ncmat;vdoslux=1' -f --now --dir=some/out/dir<< ====================
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#5]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#5]
 Initialise nuclear data...
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#6]
 Write ENDF file tsl_Al.endf...

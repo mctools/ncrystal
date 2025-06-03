@@ -29,8 +29,6 @@ from ._numpy import _np
 from . import core as nc_core
 from . import constants as nc_constants
 from . import vdos as nc_vdos
-from . import misc as nc_misc
-from . import cfgstr as nc_cfgstr
 from ._common import print as ncprint
 from ._common import warn as ncwarn
 from ._common import write_text as ncwrite_text
@@ -188,20 +186,19 @@ class NuclearData():
     def __init__(self, *, ncmat_cfg, temperatures, elastic_mode,
                           requested_emax, verbosity ):
 
+        self.__loaded = _decodecfg_and_loadobjs( ncmat_cfg )
+        del ncmat_cfg
         self.__di2knlcache = {}
         self._temperatures = tuple(temperatures)
-        self._ncmat_cfg = ncmat_cfg
-        info_obj = nc_core.createInfo(ncmat_cfg)
-        self._composition = info_obj.composition
         self._elems = {}
         self._comments = None
-        self._vdoslux = nc_cfgstr.decodecfg_vdoslux(ncmat_cfg)
         self._requested_emax = requested_emax
         self._verbosity = verbosity
         self._elastic_mode = elastic_mode
-        scattering_components = nc_misc.detect_scattering_components(ncmat_cfg)
+        scattering_components = self.__loaded['scat_comps']
+        #fixme: the next variable actually means "hkl lists" not simply "coh_elas"
         self._enable_coh_elas = ( 'coh_elas' in scattering_components and
-                                  info_obj.hasAtomInfo() )
+                                  self.__loaded['info_obj'].hasAtomInfo() )
         if not self._enable_coh_elas:
             ncwarn('Coherent elastic component disabled')
         self._enable_incoh_elas = ( 'incoh_elas' in scattering_components )
@@ -214,7 +211,7 @@ class NuclearData():
         # False: use (alpha, beta) grid for lowest temperature
         # True: combine all temperatures
         self._combine_temperatures = False
-        for frac, ad in self._composition:
+        for frac, ad in self.composition:
             if not ad.isNaturalElement():
                 # TODO: properly handle isolated isotopes and enriched
                 #       elements
@@ -237,12 +234,12 @@ class NuclearData():
             self._edges = None
             self._sigmaE = None
         self._incoherent_fraction = -1
-        if (len(self._composition) > 1) and (elastic_mode == 'scaled'):
+        if len(self.composition) > 1 and elastic_mode == 'scaled':
             #
             # Find element with minimum incoherent contribution.
             #
             self._designated_coherent_atom = None
-            for frac, ad in self._composition:
+            for frac, ad in self.composition:
                 sym = ad.elementName()
                 if (frac/(1.0-frac)*ad.incoherentXS() <
                     self._incoherent_fraction or
@@ -269,11 +266,11 @@ class NuclearData():
 
     @property
     def ncmat_cfg(self):
-        return self._ncmat_cfg
+        return self.__loaded['cfgstr']
 
     @property
     def composition(self):
-        return self._composition
+        return self.__loaded['info_obj'].composition
 
     @property
     def elements(self):
@@ -307,7 +304,7 @@ class NuclearData():
                        mass_amu = di.atomData.averageMassAMU(),
                        temperature = di.temperature,
                        scatxs = 1.0,# seems to be the right thing
-                       vdoslux = self._vdoslux )
+                       vdoslux = self.__loaded['vdoslux'] )
 
         k = extractKnl( target_emax = None, **kwargs )
         emax0 = k.get('suggested_emax',0.0)
@@ -332,7 +329,7 @@ class NuclearData():
         ncwarn('Combining (alpha, beta) grids from different temperatures.'
                ' This usually results in a huge grid.')
         for T in self._temperatures[1:]:
-            cfg = self._ncmat_cfg+f';temp={T}K'
+            cfg = self.ncmat_cfg+f';temp={T}K'
             info_obj = nc_core.createInfo(cfg)
             for di in info_obj.dyninfos:
                 sym = di.atomData.elementName()
@@ -348,7 +345,7 @@ class NuclearData():
 
     def _get_alpha_beta_grid(self):
         T = self._temperatures[0]
-        cfg = self._ncmat_cfg+f';temp={T}K'
+        cfg = self.ncmat_cfg+f';temp={T}K'
         info_obj = nc_core.createInfo(cfg)
         for di in info_obj.dyninfos:
             sym = di.atomData.elementName()
@@ -358,7 +355,7 @@ class NuclearData():
         if self._combine_temperatures:
             self._combine_alpha_beta_grids()
 
-        for frac, ad in self._composition:
+        for frac, ad in self.composition:
             sym = ad.elementName()
             #
             # Remove points that cannot be represented in ENDF data
@@ -390,9 +387,9 @@ class NuclearData():
 
     def _get_coherent_elastic(self, T):
         #
-        # Load coherent elastic data
+        # Load coherent elastic data (fixme: clarify what is mean with coh-elas here)
         #
-        cfg = (self._ncmat_cfg+f';temp={T}K;comp=bragg')
+        cfg = (self.ncmat_cfg+f';temp={T}K;comp=bragg')
         m = nc_core.load(cfg)
         if T == self._temperatures[0]:
             # Find unique Bragg edges, as represented in ENDF-6 floats
@@ -410,11 +407,14 @@ class NuclearData():
         self._sigmaE.append(sigmaE)
 
     def _get_elastic_data(self):
+        #
+        # (fixme: clarify what is mean with elastic here)
+        #
         for T in self._temperatures:
             if self._enable_coh_elas:
                 self._get_coherent_elastic(T)
             if self._enable_incoh_elas:
-                cfg = self._ncmat_cfg+f';temp={T}K'
+                cfg = self.ncmat_cfg+f';temp={T}K'
                 info_obj = nc_core.createInfo(cfg)
                 for di in info_obj.dyninfos:
                     sym = di.atomData.elementName()
@@ -431,20 +431,20 @@ class NuclearData():
                         _tidy_teffwp( msd*2*mass_neutron/hbar**2 )
                     )
             else:
-                for frac, ad in self._composition:
+                for frac, ad in self.composition:
                     sym = ad.elementName()
                     self._elems[sym].sigma_i =  None
                     self._elems[sym].dwi =  None
         if self._verbosity > 1:
             ncprint('>> Prepare elastic approximations')
         if ( self._elastic_mode == 'scaled' ):
-            if ( len(self._composition) > 1 and
+            if ( len(self.composition) > 1 and
                  self._incoherent_fraction < 1e-6 ):
                     self._elastic_mode = 'greater'
                     ncwarn('Scaled elastic mode requested '
                            'but all elements are coherent. '
                            '"greater" option will be used instead.')
-        for frac, ad in self._composition:
+        for frac, ad in self.composition:
             sym = ad.elementName()
             if ( self._sigmaE is None and
                  self._elems[sym].dwi is None ):
@@ -486,7 +486,7 @@ class NuclearData():
                     self._elems[sym].dwi =  None
                     self._elems[sym].elastic = 'coherent'
             elif self._elastic_mode == 'scaled':
-                if len(self._composition) == 1: # iel = 99, single atomic case
+                if len(self.composition) == 1: # iel = 99, single atomic case
                     if ((ad.incoherentXS() > ad.coherentXS()) or
                         (self._sigmaE is None)):
                         if self._verbosity>1:
@@ -538,7 +538,7 @@ class NuclearData():
 
     def _get_inelastic_data(self):
         for T in self._temperatures:
-            cfg = self._ncmat_cfg+f';temp={T}K'
+            cfg = self.ncmat_cfg+f';temp={T}K'
             info_obj = nc_core.createInfo(cfg)
             for di in info_obj.dyninfos:
                 sym = di.atomData.elementName()
@@ -571,7 +571,7 @@ class NuclearData():
 
     def _get_ncrystal_comments(self):
         # TODO: handle multi phase materials
-        ncmat_fn = nc_cfgstr.decodeCfg(self._ncmat_cfg)['data_name']
+        ncmat_fn = self.__loaded['cfgstr_decoded']['data_name']
         td = nc_core.createTextData(ncmat_fn)
         from ._ncmatimpl import _extractInitialHeaderCommentsFromNCMATData
         from textwrap import wrap
@@ -1003,6 +1003,77 @@ class EndfFile():
         ncprint('DUMPING endf dict end')
 
 
+def _decodecfg_and_loadobjs( cfgstr ):
+    #We want to load Info and Scatter objects, but also normalise the cfg-string
+    #and extract related items like vdoslux and scattering components. However,
+    #with the caveat that we want the temperature to be contained in the final
+    #cfg-string, and emit a warning if it was absent in the initial cfgstr. Will
+    #throw exceptions in case of multiphase materials.
+
+    def is_already_loaded_obj( x ):
+        if not isinstance(x,dict):
+            return False
+        expected = set(['info_obj','scat_obj','cfgstr','cfgstr_decoded','temp',
+                        'scat_comps','vdoslux'])
+        return set(x.keys()) == expected
+
+    if is_already_loaded_obj( cfgstr ):
+        return cfgstr #nothing to do, already loaded
+
+    from .cfgstr import normaliseCfg, decodeCfg, decodecfg_vdoslux
+    from .misc import detect_scattering_components
+
+    def cfg_has_explicit_temp( cstr ):
+        # Due to the possibility of cfg-strings embedded in NCMAT data, we use
+        # the following manner of detection:
+        assert '>' not in cstr, "logic error (unecpected multiphase syntax)"
+        return any ( (''.join(e.strip().split())).startswith('temp=')
+                    for e in cstr.split(';')[1:] )
+
+    def _decode_cfg( cstr ):
+        dc = decodeCfg(cstr)
+        assert dc['format'] == 'NCrystal-MatCfg-v1'
+        return dc
+
+    def fmtfp( v ):
+        s = '%.14g'%v
+        return s if float(s) == v else '%.17g'%v
+
+    multiphase_errmsg = 'Only single phase materials supported'
+    if _decode_cfg(cfgstr)['ismultiphase']:
+        from .exceptions import NCBadInput
+        raise NCBadInput(multiphase_errmsg)
+
+    info0 = nc_core.createInfo(cfgstr)
+    temp = info0.getTemperature()
+    del info0
+
+    warn_missing_explicit_temp = not cfg_has_explicit_temp( cfgstr )
+
+    norm_cfg = normaliseCfg( cfgstr )
+    del cfgstr
+    if not cfg_has_explicit_temp( norm_cfg ):
+        norm_cfg += f';temp={fmtfp(temp)}'
+
+    d = {}
+    d['info_obj'] = nc_core.createInfo(norm_cfg)
+    if not d['info_obj'].isSinglePhase():
+        from .exceptions import NCBadInput
+        raise NCBadInput(multiphase_errmsg)
+    d['scat_obj'] = nc_core.createScatter(norm_cfg)
+    d['cfgstr'] = norm_cfg
+    d['cfgstr_decoded'] = _decode_cfg(norm_cfg)
+    d['temp'] = temp
+    d['scat_comps'] = detect_scattering_components( norm_cfg )
+    d['vdoslux'] = decodecfg_vdoslux( norm_cfg )
+
+    if warn_missing_explicit_temp:
+        ncwarn( 'Temperature not explicitly given in the cfg-string,'
+                f' using T={fmtfp(temp)}K')
+
+    assert is_already_loaded_obj( d )
+    return d
+
 def _impl_ncmat2endf( *,
                       ncmat_cfg,
                       material_name,
@@ -1017,22 +1088,22 @@ def _impl_ncmat2endf( *,
                       lasym,
                       outdir,
                       verbosity ):
-    from . import exceptions as nc_exceptions
+    from .exceptions import NCBadInput
     from . import core as nc_core
-    from . import misc as nc_misc
-    from . import cfgstr as nc_cfgstr
     from ._common import warn as ncwarn
     from ._common import print as ncprint
     from ._numpy import _ensure_numpy
+    from .ncmat2endf import ( EndfMetaData,
+                              available_elastic_modes )
     _ensure_numpy()
 
     if not isinstance(verbosity,int) or not ( 0<=verbosity<=3):
-        raise nc_exceptions.NCBadInput('Invalid value of verbosity parameter'
-                                       ' (expects value 0, 1, 2, or 3):'
-                                       f' {verbosity}')
+        raise NCBadInput('Invalid value of verbosity parameter (expects '
+                         f'value 0, 1, 2, or 3): {verbosity}')
 
-    from .ncmat2endf import ( EndfMetaData,
-                              available_elastic_modes )
+    loaded = _decodecfg_and_loadobjs( ncmat_cfg )
+    del ncmat_cfg
+
 
     if not endf_metadata:
         endf_metadata = EndfMetaData()
@@ -1042,35 +1113,26 @@ def _impl_ncmat2endf( *,
         endf_metadata = _
 
     if elastic_mode not in available_elastic_modes:
-        raise nc_exceptions.NCBadInput(f'Elastic mode {elastic_mode}'
-                                       f' not in ({available_elastic_modes})')
+        raise NCBadInput(f'Elastic mode {repr(elastic_mode)}'
+                         f' not in ({available_elastic_modes})')
     if lasym > 0:
         ncwarn( 'Creating non standard S(a,b)'
                f' with LASYM = {lasym}')
-    if nc_core.createScatter(ncmat_cfg).isOriented():
-        raise nc_exceptions.NCBadInput('Oriented materials cannot be '
-                                       'represented in the ENDF format and '
-                                       'are not supported' )
-    scattering_components = nc_misc.detect_scattering_components(ncmat_cfg)
-    if 'sans' in scattering_components:
-        raise nc_exceptions.NCBadInput('SANS cannot be '
-                                       'represented in the ENDF format and '
-                                       'is not supported' )
-    info_obj = nc_core.createInfo(ncmat_cfg)
-    if not info_obj.isSinglePhase():
-        raise nc_exceptions.NCBadInput('Only single phase materials supported')
-    if 'inelas' not in scattering_components:
-        raise nc_exceptions.NCBadInput('MF7/MT4 is mandatory in an ENDF file '
-                                       'but no inelastic data found' )
-    base_temp = info_obj.dyninfos[0].temperature
-    decoded_cfg = nc_cfgstr.decodeCfg(ncmat_cfg)
-    assert decoded_cfg['format'] == 'NCrystal-MatCfg-v1'
-    if not decoded_cfg['ismultiphase']:
-        #decoded_cfg could (perhaps?) register as multiphase even if the Info
-        #obj does not, although it would have to be a very obscure case!
-        if not any( k=='temp' for k,v in decoded_cfg.get('pars',[]) ):
-            ncwarn( 'Temperature not explicitly given in the cfg-string,'
-                    f' using T = {base_temp:.2f}')
+    if loaded['scat_obj'].isOriented():
+        raise NCBadInput('Oriented materials cannot be represented in the'
+                         ' ENDF format and are not supported' )
+    supported_comps = ['inelas','coh_elas','incoh_elas']
+    unsupported_comps = set(loaded['scat_comps']) - set(supported_comps)
+    if unsupported_comps:
+        c = list(unsupported_comps)[0]
+        raise NCBadInput(f'Materials with scattering component "{c}" can not'
+                         ' be represented in the ENDF format')
+
+    if 'inelas' not in loaded['scat_comps']:
+        raise NCBadInput('MF7/MT4 is mandatory in an ENDF file '
+                         'but no inelastic data found' )
+
+    base_temp = loaded['temp']
 
     if othertemps is None:
         othertemps = tuple()
@@ -1079,20 +1141,16 @@ def _impl_ncmat2endf( *,
             othertemps = (othertemps,)
         elif type(othertemps) in (list, tuple):
             if any(type(T) not in (int, float) for T in othertemps):
-                raise nc_exceptions.NCBadInput('Something wrong with the '
-                                               'othertemps parameter: '
-                                               f'({othertemps})')
+                raise NCBadInput('Something wrong with the othertemps'
+                                 f' parameter: ({othertemps})')
             else:
                 othertemps = tuple(float( T ) for T in othertemps )
         else:
-            raise nc_exceptions.NCBadInput('othertemps parameter: '
-                                           'should be a list or tuple '
-                                           'of float or int')
+            raise NCBadInput('othertemps parameter: should be a list or tuple '
+                             'of float or int')
     if base_temp in othertemps:
-        raise nc_exceptions.NCBadInput('Repeated temperatures: '
-                                       'othertemps parameter must not '
-                                       'include the temperature defined '
-                                       'in the cfg string')
+        raise NCBadInput('Repeated temperatures: othertemps parameter must not '
+                         'include the temperature defined in the cfg string')
     temperatures = sorted(othertemps + (base_temp,))
     if len(temperatures) > 1:
         ncwarn('Multiple temperatures requested. Although this is supported, '
@@ -1101,24 +1159,26 @@ def _impl_ncmat2endf( *,
                'Thus the (alpha,beta) grid for the first temperature will '
                'be used, and S(alpha, beta) for other temperatures '
                'will be interpolated onto it.')
+
     if any( T<=0 for T in temperatures ):
-        raise nc_exceptions.NCBadInput('Non positive temperatures')
-    for di in info_obj.dyninfos:
+        raise NCBadInput('Non positive temperatures')
+
+    for di in loaded['info_obj'].dyninfos:
         if type(di) not in (nc_core.Info.DI_VDOS, nc_core.Info.DI_VDOSDebye):
-            raise nc_exceptions.NCBadInput('Conversion to ENDF supported only '
-                                           'for VDOS and VDOSDebye dyninfos')
+            raise NCBadInput('Conversion to ENDF supported only '
+                             'for VDOS and VDOSDebye dyninfos')
+
     if (isotopic_expansion and not include_gif):
-        raise nc_exceptions.NCBadInput( 'Isotopic expansion requires '
-                                        'generalized information file, '
-                                        'use --gif' )
-    elif isotopic_expansion:
-        raise nc_exceptions.NCBadInput('Isotopic expansion in conversion to'
-                                       ' ENDF is not yet supported')
+        raise NCBadInput( 'Isotopic expansion requires generalized information'
+                          ' file, use --gif' )
+    if isotopic_expansion:
+        raise NCBadInput('Isotopic expansion in conversion to ENDF is not'
+                         ' yet supported')
 
     if verbosity > 0:
         ncprint('Initialise nuclear data...')
 
-    data = NuclearData(ncmat_cfg=ncmat_cfg,
+    data = NuclearData(ncmat_cfg=loaded,
                        temperatures=temperatures,
                        elastic_mode=elastic_mode,
                        requested_emax=emax,
@@ -1130,8 +1190,7 @@ def _impl_ncmat2endf( *,
             if ad.elementName() in endf_metadata.matnum.keys():
                 n = n - 1
         if n != 0:
-            raise nc_exceptions.NCBadInput('Incorrect material number '
-                                           'assignment')
+            raise NCBadInput('Incorrect material number assignment')
 
     if material_name is None:
         #Default depends on whether or not it is a monoatomic material:

@@ -7,7 +7,7 @@
  'material_name': 'Al',
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1',
  'othertemps': 350}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#1]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#1]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. Thus the (alpha,beta) grid for the first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated onto it. [warn#2]
 Initialise nuclear data...
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#3]
@@ -55,7 +55,7 @@ DUMPING endf dict begin
               3 -> ' This file was converted from the following NCrystal cfg          '
               4 -> ' string [1]:                                                      '
               5 -> '                                                                  '
-              6 -> '                    "Al_sg225.ncmat;vdoslux=1"                    '
+              6 -> '              "Al_sg225.ncmat;vdoslux=1;temp=293.15"              '
               7 -> '                                                                  '
               8 -> ' using NCrystal NCVERSION                                         '
               9 -> ' and endf-parserpy [2] EPVERSION                                  '
@@ -430,7 +430,7 @@ Created (or not) file tsl_Al_in_Al.endf with fraction 1
  'ncmat_cfg': 'AlN_sg186_AluminumNitride.ncmat;vdoslux=1',
  'othertemps': 350,
  'verbosity': 3}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#5]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#5]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. Thus the (alpha,beta) grid for the first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated onto it. [warn#6]
 Initialise nuclear data...
 Designated incoherent: Al
@@ -493,7 +493,7 @@ DUMPING endf dict begin
               3 -> ' This file was converted from the following NCrystal cfg          '
               4 -> ' string [1]:                                                      '
               5 -> '                                                                  '
-              6 -> '           "AlN_sg186_AluminumNitride.ncmat;vdoslux=1"            '
+              6 -> '     "AlN_sg186_AluminumNitride.ncmat;vdoslux=1;temp=293.15"      '
               7 -> '                                                                  '
               8 -> ' using NCrystal NCVERSION                                         '
               9 -> ' and endf-parserpy [2] EPVERSION                                  '
@@ -887,7 +887,7 @@ DUMPING endf dict begin
               3 -> ' This file was converted from the following NCrystal cfg          '
               4 -> ' string [1]:                                                      '
               5 -> '                                                                  '
-              6 -> '           "AlN_sg186_AluminumNitride.ncmat;vdoslux=1"            '
+              6 -> '     "AlN_sg186_AluminumNitride.ncmat;vdoslux=1;temp=293.15"      '
               7 -> '                                                                  '
               8 -> ' using NCrystal NCVERSION                                         '
               9 -> ' and endf-parserpy [2] EPVERSION                                  '
@@ -1271,7 +1271,7 @@ Created (or not) file tsl_Al_in_AlN.endf with fraction 0.5
  'material_name': 'Al2O3',
  'ncmat_cfg': 'Al2O3_sg167_Corundum.ncmat;vdoslux=1',
  'verbosity': 3}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#11]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#11]
 Initialise nuclear data...
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "O" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#12]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#13]
@@ -1328,7 +1328,7 @@ DUMPING endf dict begin
               3 -> ' This file was converted from the following NCrystal cfg          '
               4 -> ' string [1]:                                                      '
               5 -> '                                                                  '
-              6 -> '              "Al2O3_sg167_Corundum.ncmat;vdoslux=1"              '
+              6 -> '        "Al2O3_sg167_Corundum.ncmat;vdoslux=1;temp=293.15"        '
               7 -> '                                                                  '
               8 -> ' using NCrystal NCVERSION                                         '
               9 -> ' and endf-parserpy [2] EPVERSION                                  '
@@ -1592,7 +1592,7 @@ DUMPING endf dict begin
               3 -> ' This file was converted from the following NCrystal cfg          '
               4 -> ' string [1]:                                                      '
               5 -> '                                                                  '
-              6 -> '              "Al2O3_sg167_Corundum.ncmat;vdoslux=1"              '
+              6 -> '        "Al2O3_sg167_Corundum.ncmat;vdoslux=1;temp=293.15"        '
               7 -> '                                                                  '
               8 -> ' using NCrystal NCVERSION                                         '
               9 -> ' and endf-parserpy [2] EPVERSION                                  '
@@ -1827,7 +1827,7 @@ Created (or not) file tsl_Al_in_Al2O3.endf with fraction 0.4
  'ncmat_cfg': 'Al4C3_sg166_AluminiumCarbide.ncmat;vdoslux=1',
  'othertemps': 350,
  'verbosity': 3}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#14]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#14]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. Thus the (alpha,beta) grid for the first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated onto it. [warn#15]
 Initialise nuclear data...
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "C" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#16]
@@ -1889,7 +1889,7 @@ DUMPING endf dict begin
               3 -> ' This file was converted from the following NCrystal cfg          '
               4 -> ' string [1]:                                                      '
               5 -> '                                                                  '
-              6 -> '          "Al4C3_sg166_AluminiumCarbide.ncmat;vdoslux=1"          '
+              6 -> '    "Al4C3_sg166_AluminiumCarbide.ncmat;vdoslux=1;temp=293.15"    '
               7 -> '                                                                  '
               8 -> ' using NCrystal NCVERSION                                         '
               9 -> ' and endf-parserpy [2] EPVERSION                                  '
@@ -2301,7 +2301,7 @@ DUMPING endf dict begin
               3 -> ' This file was converted from the following NCrystal cfg          '
               4 -> ' string [1]:                                                      '
               5 -> '                                                                  '
-              6 -> '          "Al4C3_sg166_AluminiumCarbide.ncmat;vdoslux=1"          '
+              6 -> '    "Al4C3_sg166_AluminiumCarbide.ncmat;vdoslux=1;temp=293.15"    '
               7 -> '                                                                  '
               8 -> ' using NCrystal NCVERSION                                         '
               9 -> ' and endf-parserpy [2] EPVERSION                                  '
@@ -2727,71 +2727,60 @@ DUMPING endf dict begin
               3 -> ' This file was converted from the following NCrystal cfg          '
               4 -> ' string [1]:                                                      '
               5 -> '                                                                  '
-              6 -> '  "Al_sg225.ncmat;                                                '
-              7 -> '   temp=300K;                                                     '
-              8 -> '   temp=300K;                                                     '
-              9 -> '   temp=300K;                                                     '
-              10 -> '   temp=300K;                                                     '
-              11 -> '   temp=300K;                                                     '
-              12 -> '   temp=300K;                                                     '
-              13 -> '   temp=300K;                                                     '
-              14 -> '   temp=300K;                                                     '
-              15 -> '   temp=300K;                                                     '
-              16 -> '   temp=300K;                                                     '
-              17 -> '   vdoslux=1"                                                     '
+              6 -> '               "Al_sg225.ncmat;temp=300;vdoslux=1"                '
+              7 -> '                                                                  '
+              8 -> ' using NCrystal NCVERSION                                         '
+              9 -> ' and endf-parserpy [2] EPVERSION                                  '
+              10 -> ' with the following options:                                      '
+              11 -> '                                                                  '
+              12 -> '  smin:1e-100                                                     '
+              13 -> '  emax:5.0                                                        '
+              14 -> '  lasym:0                                                         '
+              15 -> '  include_gif:False                                               '
+              16 -> '  isotopic_expansion:False                                        '
+              17 -> '  elastic_mode:scaled                                             '
               18 -> '                                                                  '
-              19 -> ' using NCrystal NCVERSION                                         '
-              20 -> ' and endf-parserpy [2] EPVERSION                                  '
-              21 -> ' with the following options:                                      '
-              22 -> '                                                                  '
-              23 -> '  smin:1e-100                                                     '
-              24 -> '  emax:5.0                                                        '
-              25 -> '  lasym:0                                                         '
-              26 -> '  include_gif:False                                               '
-              27 -> '  isotopic_expansion:False                                        '
-              28 -> '  elastic_mode:scaled                                             '
+              19 -> ' Temperatures:                                                    '
+              20 -> '       300.00 K                                                   '
+              21 -> '                                                                  '
+              22 -> 'References:                                                       '
+              23 -> '[1] https://github.com/mctools/ncrystal                           '
+              24 -> '[2] https://endf-parserpy.readthedocs.io/en/latest/               '
+              25 -> '                                                                  '
+              26 -> '******************************************************************'
+              27 -> '                                                                  '
+              28 -> 'Comments from NCMAT file:                                         '
               29 -> '                                                                  '
-              30 -> ' Temperatures:                                                    '
-              31 -> '       300.00 K                                                   '
+              30 -> '                                                                  '
+              31 -> 'Aluminium (Al, fcc, cubic, SG-225 / Fm-3m)                        '
               32 -> '                                                                  '
-              33 -> 'References:                                                       '
-              34 -> '[1] https://github.com/mctools/ncrystal                           '
-              35 -> '[2] https://endf-parserpy.readthedocs.io/en/latest/               '
+              33 -> 'Under usual conditions this phase exists from 0 to 933K.          '
+              34 -> '                                                                  '
+              35 -> 'Structure converted with ncrystal_onlinedb2ncmat from:            '
               36 -> '                                                                  '
-              37 -> '******************************************************************'
-              38 -> '                                                                  '
-              39 -> 'Comments from NCMAT file:                                         '
-              40 -> '                                                                  '
-              41 -> '                                                                  '
-              42 -> 'Aluminium (Al, fcc, cubic, SG-225 / Fm-3m)                        '
-              43 -> '                                                                  '
-              44 -> 'Under usual conditions this phase exists from 0 to 933K.          '
+              37 -> '"Second edition. Interscience Publishers,                         '
+              38 -> 'New York, Cubic closest packed, ccp, structure"                   '
+              39 -> 'Wyckoff R W G (1963)                                              '
+              40 -> 'Crystallography Open Database entry 9008460                       '
+              41 -> 'https://www.crystallography.net/cod/9008460.html                  '
+              42 -> '                                                                  '
+              43 -> 'This crystal structure is also compatible with structure obtained '
+              44 -> 'from:                                                             '
               45 -> '                                                                  '
-              46 -> 'Structure converted with ncrystal_onlinedb2ncmat from:            '
-              47 -> '                                                                  '
-              48 -> '"Second edition. Interscience Publishers,                         '
-              49 -> 'New York, Cubic closest packed, ccp, structure"                   '
-              50 -> 'Wyckoff R W G (1963)                                              '
-              51 -> 'Crystallography Open Database entry 9008460                       '
-              52 -> 'https://www.crystallography.net/cod/9008460.html                  '
+              46 -> 'https://www.crystallography.net/cod/9012428.html                  '
+              47 -> 'https://www.crystallography.net/cod/9011602.html                  '
+              48 -> 'https://www.crystallography.net/cod/9012002.html                  '
+              49 -> '                                                                  '
+              50 -> 'The VDOS curve was extracted by T. Kittelmann using the engauge   '
+              51 -> 'digitizer                                                         '
+              52 -> 'software from Figure 1 of:                                        '
               53 -> '                                                                  '
-              54 -> 'This crystal structure is also compatible with structure obtained '
-              55 -> 'from:                                                             '
-              56 -> '                                                                  '
-              57 -> 'https://www.crystallography.net/cod/9012428.html                  '
-              58 -> 'https://www.crystallography.net/cod/9011602.html                  '
-              59 -> 'https://www.crystallography.net/cod/9012002.html                  '
-              60 -> '                                                                  '
-              61 -> 'The VDOS curve was extracted by T. Kittelmann using the engauge   '
-              62 -> 'digitizer                                                         '
-              63 -> 'software from Figure 1 of:                                        '
-              64 -> '                                                                  '
-              65 -> '"First principles phonon calculations in materials science"       '
-              66 -> 'A. Togo and I. Tanaka, Scripta Materialia 108 (2015) 1-5          '
-              67 -> 'https://doi.org/10.1016/j.scriptamat.2015.07.021                  '
-              68 -> '                                                                  '
-              69 -> '******************************************************************'
-          'NWD' -> 74
+              54 -> '"First principles phonon calculations in materials science"       '
+              55 -> 'A. Togo and I. Tanaka, Scripta Materialia 108 (2015) 1-5          '
+              56 -> 'https://doi.org/10.1016/j.scriptamat.2015.07.021                  '
+              57 -> '                                                                  '
+              58 -> '******************************************************************'
+          'NWD' -> 63
           'MFx' -> {1: 1}
           'MTx' -> {1: 451}
           'NCx' -> {1: 5}
@@ -2962,7 +2951,7 @@ Created (or not) file tsl_Al_in_Al.endf with fraction 1
  'force_save': True,
  'material_name': 'Al',
  'ncmat_cfg': 'Al_with_a_Very_Very_Ver_Very_Very_Very_Very_Ver_Very_Very_Very_Very_Ver_Very_Very_Long_Name.ncmat;vdoslux=1'}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#21]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#21]
 Initialise nuclear data...
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#22]
 Write ENDF file tsl_Al_in_Al.endf...
@@ -3010,41 +2999,42 @@ DUMPING endf dict begin
               5 -> '                                                                  '
               6 -> '  "Al_with_a_Very_Very_Ver_Very_Very_Very_Very_Ver_Very_Very_Ve   '
               7 -> '   ry_Very_Ver_Very_Very_Long_Name.ncmat;                         '
-              8 -> '   vdoslux=1"                                                     '
-              9 -> '                                                                  '
-              10 -> ' using NCrystal NCVERSION                                         '
-              11 -> ' and endf-parserpy [2] EPVERSION                                  '
-              12 -> ' with the following options:                                      '
-              13 -> '                                                                  '
-              14 -> '  smin:1e-100                                                     '
-              15 -> '  emax:5.0                                                        '
-              16 -> '  lasym:0                                                         '
-              17 -> '  include_gif:False                                               '
-              18 -> '  isotopic_expansion:False                                        '
-              19 -> '  elastic_mode:scaled                                             '
-              20 -> '                                                                  '
-              21 -> ' Temperatures:                                                    '
-              22 -> '       293.15 K                                                   '
-              23 -> '                                                                  '
-              24 -> 'References:                                                       '
-              25 -> '[1] https://github.com/mctools/ncrystal                           '
-              26 -> '[2] https://endf-parserpy.readthedocs.io/en/latest/               '
-              27 -> '                                                                  '
-              28 -> '******************************************************************'
-              29 -> '                                                                  '
-              30 -> 'Comments from NCMAT file:                                         '
-              31 -> '                                                                  '
-              32 -> 'Autogenerated by NCMATComposer                                    '
-              33 -> '                                                                  '
-              34 -> 'Al (cubic, SG-225)                                                '
-              35 -> '                                                                  '
-              36 -> 'Atoms per unit cell: 4xAl                                         '
-              37 -> '                                                                  '
-              38 -> 'NOTICE: crystal structure was verified with spglib to be self-    '
-              39 -> 'consistent.                                                       '
-              40 -> '                                                                  '
-              41 -> '******************************************************************'
-          'NWD' -> 46
+              8 -> '   vdoslux=1;                                                     '
+              9 -> '   temp=293.15"                                                   '
+              10 -> '                                                                  '
+              11 -> ' using NCrystal NCVERSION                                         '
+              12 -> ' and endf-parserpy [2] EPVERSION                                  '
+              13 -> ' with the following options:                                      '
+              14 -> '                                                                  '
+              15 -> '  smin:1e-100                                                     '
+              16 -> '  emax:5.0                                                        '
+              17 -> '  lasym:0                                                         '
+              18 -> '  include_gif:False                                               '
+              19 -> '  isotopic_expansion:False                                        '
+              20 -> '  elastic_mode:scaled                                             '
+              21 -> '                                                                  '
+              22 -> ' Temperatures:                                                    '
+              23 -> '       293.15 K                                                   '
+              24 -> '                                                                  '
+              25 -> 'References:                                                       '
+              26 -> '[1] https://github.com/mctools/ncrystal                           '
+              27 -> '[2] https://endf-parserpy.readthedocs.io/en/latest/               '
+              28 -> '                                                                  '
+              29 -> '******************************************************************'
+              30 -> '                                                                  '
+              31 -> 'Comments from NCMAT file:                                         '
+              32 -> '                                                                  '
+              33 -> 'Autogenerated by NCMATComposer                                    '
+              34 -> '                                                                  '
+              35 -> 'Al (cubic, SG-225)                                                '
+              36 -> '                                                                  '
+              37 -> 'Atoms per unit cell: 4xAl                                         '
+              38 -> '                                                                  '
+              39 -> 'NOTICE: crystal structure was verified with spglib to be self-    '
+              40 -> 'consistent.                                                       '
+              41 -> '                                                                  '
+              42 -> '******************************************************************'
+          'NWD' -> 47
           'MFx' -> {1: 1}
           'MTx' -> {1: 451}
           'NCx' -> {1: 5}

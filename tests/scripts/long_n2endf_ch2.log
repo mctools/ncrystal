@@ -7,7 +7,7 @@
  'include_gif': True,
  'material_name': 'CH2',
  'ncmat_cfg': 'Polyethylene_CH2.ncmat;vdoslux=1'}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#1]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#1]
 Initialise nuclear data...
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled [warn#2]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "H" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#3]
@@ -33,7 +33,7 @@ endf>                                                                    38 1451
 endf> This file was converted from the following NCrystal cfg            38 1451   12
 endf> string [1]:                                                        38 1451   13
 endf>                                                                    38 1451   14
-endf>                "Polyethylene_CH2.ncmat;vdoslux=1"                  38 1451   15
+endf>          "Polyethylene_CH2.ncmat;vdoslux=1;temp=293.15"            38 1451   15
 endf>                                                                    38 1451   16
 endf> using NCrystal NCVERSION                                           38 1451   17
 endf> and endf-parserpy [2] EPVERSION                                    38 1451   18
@@ -245,7 +245,7 @@ endf>                                                                    37 1451
 endf> This file was converted from the following NCrystal cfg            37 1451   12
 endf> string [1]:                                                        37 1451   13
 endf>                                                                    37 1451   14
-endf>                "Polyethylene_CH2.ncmat;vdoslux=1"                  37 1451   15
+endf>          "Polyethylene_CH2.ncmat;vdoslux=1;temp=293.15"            37 1451   15
 endf>                                                                    37 1451   16
 endf> using NCrystal NCVERSION                                           37 1451   17
 endf> and endf-parserpy [2] EPVERSION                                    37 1451   18
