@@ -34,6 +34,10 @@ from ._common import warn as ncwarn
 from ._common import write_text as ncwrite_text
 print = ncprint
 
+#Materials with other processes than the following must be validated by experts
+#before conversion to ENDF can be supported:
+allowed_scat_proc_names = set( ['ElIncScatter', 'PowderBragg', 'SABScatter'] )
+
 mass_neutron = (nc_constants.const_neutron_mass_amu*
                nc_constants.constant_dalton2eVc2/
                ((nc_constants.constant_c*1e-12)**2)) # eV*ps^2*Angstrom^-2
@@ -183,6 +187,13 @@ class NuclearData():
     #
     # Container for nuclear data for a material.
     #
+
+    # NOTE: The terminology "coh elas" in this class is ENDF-parlance, refering
+    #       to Bragg diffraction. Similarly "incoh elas" is used to indicate
+    #       incoherent-elastic (as sum of Debye-Waller factors) AND/OR
+    #       coherent-elastic approximated via the incoherent approximation to
+    #       the shape of incoherent-elastic.
+
     def __init__(self, *, ncmat_cfg, temperatures, elastic_mode,
                           requested_emax, verbosity ):
 
@@ -196,14 +207,15 @@ class NuclearData():
         self._verbosity = verbosity
         self._elastic_mode = elastic_mode
         scattering_components = self.__loaded['scat_comps']
-        #fixme: the next variable actually means "hkl lists" not simply "coh_elas"
         self._enable_coh_elas = ( 'coh_elas' in scattering_components and
                                   self.__loaded['info_obj'].hasAtomInfo() )
         if not self._enable_coh_elas:
-            ncwarn('Coherent elastic component disabled')
+            ncwarn('ENDF output will not contain a Bragg diffraction'
+                   ' component')
         self._enable_incoh_elas = ( 'incoh_elas' in scattering_components )
         if not self._enable_incoh_elas:
-            ncwarn('Incoherent elastic component disabled')
+            ncwarn('ENDF output will not contain any incoherent elastic '
+                   'component')
         self._enable_inelas = ( 'inelas' in scattering_components )
         assert self._enable_inelas, ( 'Inelastic component always'
                                      ' must be present for ENDF output')
@@ -387,7 +399,7 @@ class NuclearData():
 
     def _get_coherent_elastic(self, T):
         #
-        # Load coherent elastic data (fixme: clarify what is mean with coh-elas here)
+        # Load coherent elastic data (Bragg diffraction)
         #
         cfg = (self.ncmat_cfg+f';temp={T}K;comp=bragg')
         m = nc_core.load(cfg)
@@ -407,9 +419,6 @@ class NuclearData():
         self._sigmaE.append(sigmaE)
 
     def _get_elastic_data(self):
-        #
-        # (fixme: clarify what is mean with elastic here)
-        #
         for T in self._temperatures:
             if self._enable_coh_elas:
                 self._get_coherent_elastic(T)
@@ -470,7 +479,7 @@ class NuclearData():
                     if self._verbosity>1:
                         ncprint(f'>> Mixed elastic mode for {sym}')
                     self._elems[sym].elastic = 'mixed'
-            if self._elastic_mode == 'greater': # iel = 98
+            elif self._elastic_mode == 'greater': # iel = 98
                 if ((ad.incoherentXS() > ad.coherentXS()) or
                     (self._sigmaE is None)):
                     if self._verbosity>1:
@@ -1133,7 +1142,6 @@ def _impl_ncmat2endf( *,
                          'but no inelastic data found' )
 
     base_temp = loaded['temp']
-
     if othertemps is None:
         othertemps = tuple()
     else:
@@ -1174,6 +1182,18 @@ def _impl_ncmat2endf( *,
     if isotopic_expansion:
         raise NCBadInput('Isotopic expansion in conversion to ENDF is not'
                          ' yet supported')
+
+    if loaded['scat_obj'].isNull():
+        raise NCBadInput('Material configuration indicates no active'
+                         ' scattering processes to convert')
+
+    scat_proc_names = set( _get_scat_proc_names(loaded['scat_obj']) )
+    unsupported_scat_procs = scat_proc_names - allowed_scat_proc_names
+    if unsupported_scat_procs:
+        raise NCBadInput('Material configuration indicates scattering'
+                         ' processes which has not been vetted for conversion'
+                         ' to the ENDF format'
+                         ': "%s"'%('", "'.join(sorted(unsupported_scat_procs))))
 
     if verbosity > 0:
         ncprint('Initialise nuclear data...')
@@ -1410,6 +1430,13 @@ def _interp2d(x, y, x0, y0, z0=None):
                        z12*(yy - yy1)*(xx2 - xx) +
                        z22*(yy - yy1)*(xx - xx1))
     return z
+
+def _get_scat_proc_names( scat_obj ):
+    d = scat_obj.getSummary()
+    if d['name'] != 'ProcComposition':
+        return [ d['name'] ]
+    return sorted( dd['name']
+                   for frac,dd in d['specific']['components'] )
 
 def _tidy_beta( x, allow_negative=False):
     if not unit_test_chop_vals[0]:

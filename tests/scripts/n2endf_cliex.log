@@ -1026,8 +1026,8 @@ Files created:
 =====================================================================================================================================
 ============= CLI >>'Bi_sg166.ncmat;comp=inelas;temp=77K;vdoslux=0' -m 'AUTH:J. Doe'<< ====================
 Initialise nuclear data...
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled [warn#5]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Incoherent elastic component disabled [warn#6]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ENDF output will not contain a Bragg diffraction component [warn#5]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ENDF output will not contain any incoherent elastic component [warn#6]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Bi" would normally cover energies up to Emax=0.5eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#7]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): No coherent elastic data or incoherent elastic data found: only inelastic data will be written [warn#8]
 Write ENDF file tsl_Bi.endf...
