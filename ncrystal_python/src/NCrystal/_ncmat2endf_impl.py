@@ -864,8 +864,8 @@ class EndfFile():
         desc = []
         desc.append(66*'*')
         desc.append('')
-        desc.append(' This file was converted from the following NCrystal cfg')
-        desc.append(' string [1]:')
+        desc.append(' This file was converted from the following NCrystal [1,2]')
+        desc.append(' cfg-string:')
         desc.append('')
 
         if len(data.ncmat_cfg) < 60:
@@ -890,7 +890,7 @@ class EndfFile():
             nc_version = 'NCVERSION'
             ep_version = 'EPVERSION'
         desc.append(f' using NCrystal {nc_version} ')
-        desc.append(f' and endf-parserpy [2] {ep_version} ')
+        desc.append(f' and endf-parserpy [3] {ep_version} ')
         desc.append(' with the following options:')
         desc.append('')
         desc.append(f'  smin:{self._smin}')
@@ -906,7 +906,8 @@ class EndfFile():
         desc.append('')
         desc.append('References:')
         desc.append('[1] https://github.com/mctools/ncrystal')
-        desc.append('[2] https://endf-parserpy.readthedocs.io/en/latest/')
+        desc.append('[2] https://doi.org/10.1016/j.cpc.2019.07.015')
+        desc.append('[3] https://endf-parserpy.readthedocs.io/en/latest/')
         desc.append('')
         desc.append(66*'*')
         desc.append('')
