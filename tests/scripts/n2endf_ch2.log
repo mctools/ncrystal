@@ -6,7 +6,7 @@
  'force_save': True,
  'material_name': 'CH2',
  'ncmat_cfg': 'Polyethylene_CH2.ncmat;vdoslux=1'}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#1]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#1]
 Initialise nuclear data...
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled [warn#2]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "H" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#3]
@@ -54,7 +54,7 @@ DUMPING endf dict begin
               3 -> ' This file was converted from the following NCrystal cfg          '
               4 -> ' string [1]:                                                      '
               5 -> '                                                                  '
-              6 -> '                "Polyethylene_CH2.ncmat;vdoslux=1"                '
+              6 -> '          "Polyethylene_CH2.ncmat;vdoslux=1;temp=293.15"          '
               7 -> '                                                                  '
               8 -> ' using NCrystal NCVERSION                                         '
               9 -> ' and endf-parserpy [2] EPVERSION                                  '
@@ -304,7 +304,7 @@ DUMPING endf dict begin
               3 -> ' This file was converted from the following NCrystal cfg          '
               4 -> ' string [1]:                                                      '
               5 -> '                                                                  '
-              6 -> '                "Polyethylene_CH2.ncmat;vdoslux=1"                '
+              6 -> '          "Polyethylene_CH2.ncmat;vdoslux=1;temp=293.15"          '
               7 -> '                                                                  '
               8 -> ' using NCrystal NCVERSION                                         '
               9 -> ' and endf-parserpy [2] EPVERSION                                  '

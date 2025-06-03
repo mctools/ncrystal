@@ -7,7 +7,7 @@
  'material_name': 'Al',
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1',
  'othertemps': 350}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#1]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#1]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. Thus the (alpha,beta) grid for the first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated onto it. [warn#2]
 Initialise nuclear data...
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#3]
@@ -31,7 +31,7 @@ endf>                                                                   999 1451
 endf> This file was converted from the following NCrystal cfg           999 1451   12
 endf> string [1]:                                                       999 1451   13
 endf>                                                                   999 1451   14
-endf>                    "Al_sg225.ncmat;vdoslux=1"                     999 1451   15
+endf>              "Al_sg225.ncmat;vdoslux=1;temp=293.15"               999 1451   15
 endf>                                                                   999 1451   16
 endf> using NCrystal NCVERSION                                          999 1451   17
 endf> and endf-parserpy [2] EPVERSION                                   999 1451   18

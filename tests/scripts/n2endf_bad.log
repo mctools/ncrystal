@@ -4,6 +4,7 @@
 --------------------------------------------------------------------------------
 {'force_save': True,
  'ncmat_cfg': 'Ge_sg227.ncmat;dcutoff=0.5;mos=40arcsec;dir1=@crys_hkl:5,1,1@lab:0,0,1;dir2=@crys_hkl:0,-1,1@lab:0,1,0'}
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#1]
 FAILED (as expected): Oriented materials cannot be represented in the ENDF format and are not supported
 EndfMetaData({"ALAB": "MyLAB", "AUTH": "NCrystal", "LIBNAME": "MyLib", "NLIB": 0, "REFERENCE": "REFERENCE", "LREL": 0, "NVER": 1, "MATNUM": {"Ge": 99}, "ENDATE": "", "EDATE": "MMMYY", "DDATE": "MMMYY", "RDATE": "MMMYY"})
 
@@ -13,9 +14,9 @@ EndfMetaData({"ALAB": "MyLAB", "AUTH": "NCrystal", "LIBNAME": "MyLib", "NLIB": 0
 {'endf_metadata': EndfMetaData({"ALAB": "MyLAB", "AUTH": "NCrystal", "LIBNAME": "MyLib", "NLIB": 0, "REFERENCE": "REFERENCE", "LREL": 0, "NVER": 1, "MATNUM": {"Ge": 99}, "ENDATE": "", "EDATE": "MMMYY", "DDATE": "MMMYY", "RDATE": "MMMYY"}),
  'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#1]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#2]
 Initialise nuclear data...
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#2]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#3]
 FAILED (as expected): Incorrect material number assignment
 
 
@@ -24,8 +25,8 @@ FAILED (as expected): Incorrect material number assignment
 {'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1',
  'othertemps': [-100]}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#3]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. Thus the (alpha,beta) grid for the first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated onto it. [warn#4]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#4]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Multiple temperatures requested. Although this is supported, it is not recommended because NCrystal generates a custom (alpha,beta) grid for each temperature. Thus the (alpha,beta) grid for the first temperature will be used, and S(alpha, beta) for other temperatures will be interpolated onto it. [warn#5]
 FAILED (as expected): Non positive temperatures
 
 
@@ -34,13 +35,14 @@ FAILED (as expected): Non positive temperatures
 {'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1',
  'othertemps': [293.15]}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#5]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#6]
 FAILED (as expected): Repeated temperatures: othertemps parameter must not include the temperature defined in the cfg string
 
 
 
 --------------------------------------------------------------------------------
 {'force_save': True, 'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1;comp=coh_elas'}
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#7]
 FAILED (as expected): MF7/MT4 is mandatory in an ENDF file but no inelastic data found
 
 
@@ -57,14 +59,15 @@ FAILED (as expected): Invalid value of verbosity parameter (expects value 0, 1, 
 {'elastic_mode': 'something wrong',
  'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
-FAILED (as expected): Elastic mode something wrong not in (('greater', 'scaled', 'mixed'))
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#8]
+FAILED (as expected): Elastic mode 'something wrong' not in (('greater', 'scaled', 'mixed'))
 
 
 
 --------------------------------------------------------------------------------
 {'force_save': True,
  'ncmat_cfg': 'MgD2_sg136_MagnesiumDeuteride.ncmat;vdoslux=1'}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#6]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#9]
 Initialise nuclear data...
 FAILED (as expected): Conversion to ENDF is currently supported only for natural elements
 
@@ -74,7 +77,7 @@ FAILED (as expected): Conversion to ENDF is currently supported only for natural
 {'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1',
  'othertemps': 'WRONGVALUE'}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#7]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#10]
 FAILED (as expected): othertemps parameter: should be a list or tuple of float or int
 
 
@@ -83,17 +86,18 @@ FAILED (as expected): othertemps parameter: should be a list or tuple of float o
 {'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1',
  'othertemps': ['WRONGVALUE']}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#8]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#11]
 FAILED (as expected): Something wrong with the othertemps parameter: (['WRONGVALUE'])
 ============= CLI >>Al_with_SANS.ncmat<< ====================
 NCrystal WARNING: Loading NCMAT data which has @CUSTOM_ section(s). This is OK if intended.
-FAILED (as expected): SANS cannot be represented in the ENDF format and is not supported
+NCrystal WARNING: Loading NCMAT data which has @CUSTOM_ section(s). This is OK if intended.
+FAILED (as expected): Only single phase materials supported
 
 
 
 --------------------------------------------------------------------------------
 {'force_save': True, 'ncmat_cfg': 'freegas::Ar/2.5e-5perAa3;vdoslux=1'}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#9]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#12]
 FAILED (as expected): Conversion to ENDF supported only for VDOS and VDOSDebye dyninfos
 
 
@@ -103,7 +107,7 @@ FAILED (as expected): Conversion to ENDF supported only for VDOS and VDOSDebye d
  'include_gif': False,
  'isotopic_expansion': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#10]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#13]
 FAILED (as expected): Isotopic expansion requires generalized information file, use --gif
 
 
@@ -113,7 +117,7 @@ FAILED (as expected): Isotopic expansion requires generalized information file, 
  'include_gif': True,
  'isotopic_expansion': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#11]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#14]
 FAILED (as expected): Isotopic expansion in conversion to ENDF is not yet supported
 
 
@@ -122,6 +126,7 @@ FAILED (as expected): Isotopic expansion in conversion to ENDF is not yet suppor
 {'endf_metadata': {'WRONGPARAM': 0},
  'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#15]
 FAILED (as expected): Invalid EndfMetaData parameter "WRONGPARAM"
 
 
@@ -130,6 +135,7 @@ FAILED (as expected): Invalid EndfMetaData parameter "WRONGPARAM"
 {'endf_metadata': {'ALAB': 'WRONGSYMBOL"'},
  'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#16]
 FAILED (as expected): Forbidden character " in value of EndfMetaData parameter "ALAB"
 
 
@@ -138,6 +144,7 @@ FAILED (as expected): Forbidden character " in value of EndfMetaData parameter "
 {'endf_metadata': {'MATNUM': 0},
  'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#17]
 FAILED (as expected): MATNUM must be a dict
 
 
@@ -146,6 +153,7 @@ FAILED (as expected): MATNUM must be a dict
 {'endf_metadata': {'MATNUM': {'Al': '0'}},
  'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#18]
 FAILED (as expected): ('MATNUM must be a dict from element', ' labels (str) to material values (int)')
 
 
@@ -154,6 +162,7 @@ FAILED (as expected): ('MATNUM must be a dict from element', ' labels (str) to m
 {'endf_metadata': {'EDATE': 'WRONGDATE'},
  'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#19]
 FAILED (as expected): ENDF date value is not in expected format, which is either special value "NOW" or a date in the format "MMMYY" (e.g. "Jun25").
 
 
@@ -162,6 +171,7 @@ FAILED (as expected): ENDF date value is not in expected format, which is either
 {'endf_metadata': {'EDATE': 0},
  'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#20]
 FAILED (as expected): ENDF date value must be a string
 
 
@@ -170,6 +180,7 @@ FAILED (as expected): ENDF date value must be a string
 {'endf_metadata': {'ALAB': 0},
  'force_save': True,
  'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1'}
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#21]
 FAILED (as expected): EndfMetaData parameter "ALAB" data must be of type str
 FAILED (as expected): Trying to read invalid EndfMetaData parameter "WRONGPARAM"
 ============= CLI >>'"stdlib::Al_sg225.ncmat"' -v -q<< ====================
@@ -183,9 +194,10 @@ FAILED (as expected): Error: output file already exists (run with --force to ove
 ============= CLI >>'stdlib::Al_sg225.ncmat;vdoslux=1' -q -n Bla -e scaled --asymsab<< ====================
 FAILED (as expected): Error: output file already exists (run with --force to overwrite)
 ============= CLI >>Al_multirole.ncmat<< ====================
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T = 293.15 [warn#18]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#28]
 Initialise nuclear data...
 FAILED (as expected): Conversion to ENDF is not currently supported for materials where the same element has multiple dynamic roles (problematic element: Al)
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#29]
 Designated incoherent: Th
 >>> alpha points: 100, alpha range: (1.563e-49, 179.4)
 >>> beta points: 116, beta range: (0, 36.95)
@@ -194,14 +206,15 @@ Designated incoherent: Th
 >>> Interpolating T=293.15K for O
 >>> Interpolating T=293.15K for Th
 >> Prepare elastic approximations
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Scaled elastic mode requested but all elements are coherent. "greater" option will be used instead. [warn#19]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Scaled elastic mode requested but all elements are coherent. "greater" option will be used instead. [warn#30]
 >> Principal elastic mode for O: coherent
 >> Principal elastic mode for Th: coherent
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled [warn#20]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Incoherent elastic component disabled [warn#21]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#31]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled [warn#32]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Incoherent elastic component disabled [warn#33]
 Designated incoherent: Si
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "O" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#22]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Si" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#23]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "O" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#34]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Si" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#35]
 >>> alpha points: 400, alpha range: (6.91e-50, 198.7)
 >>> beta points: 464, beta range: (0, 39.98)
 >>> alpha points: 400, alpha range: (1.342e-49, 198.7)
@@ -209,43 +222,48 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Si" woul
 >>> Interpolating T=293.15K for O
 >>> Interpolating T=293.15K for Si
 >> Prepare elastic approximations
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): No coherent elastic data or incoherent elastic data found: only inelastic data will be written [warn#24]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): No coherent elastic data or incoherent elastic data found: only inelastic data will be written [warn#25]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled [warn#26]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#27]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): No coherent elastic data or incoherent elastic data found: only inelastic data will be written [warn#36]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): No coherent elastic data or incoherent elastic data found: only inelastic data will be written [warn#37]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#38]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled [warn#39]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#40]
 >>> alpha points: 400, alpha range: (8.364e-50, 198.7)
 >>> beta points: 429, beta range: (0, 34.93)
 >>> Interpolating T=293.15K for Al
 >> Prepare elastic approximations
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Mixed elastic mode for Al but no Bragg edges found: incoherent approximation [warn#28]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled [warn#29]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#30]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Mixed elastic mode for Al but no Bragg edges found: incoherent approximation [warn#41]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#42]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled [warn#43]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#44]
 >>> alpha points: 400, alpha range: (8.364e-50, 198.7)
 >>> beta points: 429, beta range: (0, 34.93)
 >>> Interpolating T=293.15K for Al
 >> Prepare elastic approximations
 >> Principal elastic mode for Al: incoherent
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Incoherent elastic component disabled [warn#31]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#32]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#45]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Incoherent elastic component disabled [warn#46]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#47]
 >>> alpha points: 400, alpha range: (8.364e-50, 198.7)
 >>> beta points: 429, beta range: (0, 34.93)
 >>> Interpolating T=293.15K for Al
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#33]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#48]
 >>> Interpolating T=300K for Al
 >> Prepare elastic approximations
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Mixed elastic mode for Al but no incoherent elastic data found: coherent approximation [warn#34]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Combining (alpha, beta) grids from different temperatures. This usually results in a huge grid. [warn#35]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Mixed elastic mode for Al but no incoherent elastic data found: coherent approximation [warn#49]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Combining (alpha, beta) grids from different temperatures. This usually results in a huge grid. [warn#50]
 >>> alpha points: 800, alpha range: (8.192e-50, 199.4)
 >>> beta points: 790, beta range: (0, 35.07)
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#51]
 >>> alpha points: 100, alpha range: (1.18e-49, 179)
 >>> beta points: 102, beta range: (0, 21.8)
 >>> Interpolating T=293.15K for V
 >> Prepare elastic approximations
 >> Scaled elastic mode for single atom V: incoherent
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled [warn#36]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#52]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled [warn#53]
 Designated incoherent: Si
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "O" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#37]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Si" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#38]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "O" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#54]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Si" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#55]
 >>> alpha points: 400, alpha range: (6.91e-50, 198.7)
 >>> beta points: 464, beta range: (0, 39.98)
 >>> alpha points: 400, alpha range: (1.342e-49, 198.7)
