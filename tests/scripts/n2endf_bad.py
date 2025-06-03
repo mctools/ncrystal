@@ -214,3 +214,12 @@ data = ncmat2endf_impl.NuclearData(ncmat_cfg=cfg,
                                    elastic_mode='scaled',
                                    requested_emax=1.0,
                                    verbosity=3)
+
+
+#Exercise fall-back check against non-vetted scattering models:
+#NOTE: KEEP THIS TEST LAST IN THE FILE
+stash = ncmat2endf_impl.allowed_scat_proc_names
+ncmat2endf_impl.allowed_scat_proc_names.remove('ElIncScatter')
+ncmat2endf_impl.allowed_scat_proc_names.add('ElIncScatterFooBar')
+test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1;temp=200K' )
+ncmat2endf_impl.allowed_scat_proc_names = stash

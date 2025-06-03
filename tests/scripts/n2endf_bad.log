@@ -210,8 +210,8 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): Scaled elastic mode requested but 
 >> Principal elastic mode for O: coherent
 >> Principal elastic mode for Th: coherent
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#31]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled [warn#32]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Incoherent elastic component disabled [warn#33]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ENDF output will not contain a Bragg diffraction component [warn#32]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ENDF output will not contain any incoherent elastic component [warn#33]
 Designated incoherent: Si
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "O" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#34]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Si" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#35]
@@ -225,7 +225,7 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Si" woul
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): No coherent elastic data or incoherent elastic data found: only inelastic data will be written [warn#36]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): No coherent elastic data or incoherent elastic data found: only inelastic data will be written [warn#37]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#38]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled [warn#39]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ENDF output will not contain a Bragg diffraction component [warn#39]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#40]
 >>> alpha points: 400, alpha range: (8.364e-50, 198.7)
 >>> beta points: 429, beta range: (0, 34.93)
@@ -233,7 +233,7 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" woul
 >> Prepare elastic approximations
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Mixed elastic mode for Al but no Bragg edges found: incoherent approximation [warn#41]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#42]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled [warn#43]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ENDF output will not contain a Bragg diffraction component [warn#43]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#44]
 >>> alpha points: 400, alpha range: (8.364e-50, 198.7)
 >>> beta points: 429, beta range: (0, 34.93)
@@ -241,7 +241,7 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" woul
 >> Prepare elastic approximations
 >> Principal elastic mode for Al: incoherent
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#45]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Incoherent elastic component disabled [warn#46]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ENDF output will not contain any incoherent elastic component [warn#46]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#47]
 >>> alpha points: 400, alpha range: (8.364e-50, 198.7)
 >>> beta points: 429, beta range: (0, 34.93)
@@ -260,7 +260,7 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given i
 >> Prepare elastic approximations
 >> Scaled elastic mode for single atom V: incoherent
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#52]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): Coherent elastic component disabled [warn#53]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): ENDF output will not contain a Bragg diffraction component [warn#53]
 Designated incoherent: Si
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "O" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#54]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Si" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#55]
@@ -273,3 +273,9 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Si" woul
 >> Prepare elastic approximations
 >> Scaled elastic mode for O: incoherent approximation
 >> Scaled elastic mode for Si: incoherent approximation
+
+
+
+--------------------------------------------------------------------------------
+{'force_save': True, 'ncmat_cfg': 'Al_sg225.ncmat;vdoslux=1;temp=200K'}
+FAILED (as expected): Material configuration indicates scattering processes which has not been vetted for conversion to the ENDF format: "ElIncScatter"
