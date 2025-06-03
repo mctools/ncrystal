@@ -22,7 +22,7 @@ endf>Created with ncmat2endf                                             38 0  0
 endf> 1.000000+3 9.993170-1         -1          0          0          0  38 1451    1
 endf> 0.000000+0 0.000000+0          0          0          0          6  38 1451    2
 endf> 1.000000+0 5.000000+0          0          0         12          1  38 1451    3
-endf> 0.000000+0 0.000000+0          0          0         77          4  38 1451    4
+endf> 0.000000+0 0.000000+0          0          0         78          4  38 1451    4
 endf>  1-H      MyLAB      EVAL-MMMYY NCrystal                           38 1451    5
 endf> REFERENCE            DIST-MMMYY REV0-MMMYY                         38 1451    6
 endf>----MyLib             MATERIAL   38                                 38 1451    7
@@ -30,13 +30,13 @@ endf>-----THERMAL NEUTRON SCATTERING DATA                                38 1451
 endf>------ENDF-6 FORMAT                                                 38 1451    9
 endf>******************************************************************  38 1451   10
 endf>                                                                    38 1451   11
-endf> This file was converted from the following NCrystal cfg            38 1451   12
-endf> string [1]:                                                        38 1451   13
+endf> This file was converted from the following NCrystal [1,2]          38 1451   12
+endf> cfg-string:                                                        38 1451   13
 endf>                                                                    38 1451   14
 endf>          "Polyethylene_CH2.ncmat;vdoslux=1;temp=293.15"            38 1451   15
 endf>                                                                    38 1451   16
 endf> using NCrystal NCVERSION                                           38 1451   17
-endf> and endf-parserpy [2] EPVERSION                                    38 1451   18
+endf> and endf-parserpy [3] EPVERSION                                    38 1451   18
 endf> with the following options:                                        38 1451   19
 endf>                                                                    38 1451   20
 endf>  smin:1e-100                                                       38 1451   21
@@ -51,59 +51,60 @@ endf>       293.15 K                                                     38 1451
 endf>                                                                    38 1451   30
 endf>References:                                                         38 1451   31
 endf>[1] https://github.com/mctools/ncrystal                             38 1451   32
-endf>[2] https://endf-parserpy.readthedocs.io/en/latest/                 38 1451   33
-endf>                                                                    38 1451   34
-endf>******************************************************************  38 1451   35
-endf>                                                                    38 1451   36
-endf>Comments from NCMAT file:                                           38 1451   37
-endf>                                                                    38 1451   38
+endf>[2] https://doi.org/10.1016/j.cpc.2019.07.015                       38 1451   33
+endf>[3] https://endf-parserpy.readthedocs.io/en/latest/                 38 1451   34
+endf>                                                                    38 1451   35
+endf>******************************************************************  38 1451   36
+endf>                                                                    38 1451   37
+endf>Comments from NCMAT file:                                           38 1451   38
 endf>                                                                    38 1451   39
-endf>Polyethylene (PE).                                                  38 1451   40
-endf>                                                                    38 1451   41
-endf>Note: This file models amorphous polyethylene, and the density      38 1451   42
-endf>value has been                                                      38 1451   43
-endf>set as 0.92, but could vary up to 5% in a given material.           38 1451   44
-endf>                                                                    38 1451   45
-endf>The VDOS curves were calculated using VASP DFT[1], with Phonopy[2]  38 1451   46
-endf>and                                                                 38 1451   47
-endf>OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics      38 1451   48
-endf>group.  The                                                         38 1451   49
-endf>calculation used an orthorombic unit cell with space group Pnma     38 1451   50
-endf>(62) (specific                                                      38 1451   51
-endf>PE structure taken from [4]). and the calculation was done on       38 1451   52
-endf>3x5x9 k-point                                                       38 1451   53
-endf>grid.                                                               38 1451   54
-endf>                                                                    38 1451   55
-endf>The performance was validated against measurements (Granada-1987    38 1451   56
-endf>and                                                                 38 1451   57
-endf>Lee-2020), and as an added sanity check it was verified that        38 1451   58
-endf>results were                                                        38 1451   59
-endf>consistent with a Polyethylene NCMAT file created with the          38 1451   60
-endf>ncrystal_hfg2ncmat                                                  38 1451   61
-endf>command (i.e. the hydrogen VDOS was consistent with one derived     38 1451   62
-endf>via the method                                                      38 1451   63
-endf>of G. Romanelli et. al (2021), doi:10.1088/1361-648X/abfc13).       38 1451   64
-endf>                                                                    38 1451   65
-endf>References:                                                         38 1451   66
-endf>[1]: G. Kresse and J. Furthm"uller, Phys. Rev. B 54 , 11 169        38 1451   67
-endf>(1996.)                                                             38 1451   68
-endf>[2]: "First principles phonon calculations in materials science",   38 1451   69
-endf>Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)          38 1451   70
-endf>[3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J.,        38 1451   71
-endf>"Calculation                                                        38 1451   72
-endf>of the Thermal Neutron Scattering Cross-Section of Solids Using     38 1451   73
-endf>OCLIMAX".                                                           38 1451   74
-endf>Journal of Chemical Theory and Computation 2020, 16 (8),            38 1451   75
-endf>5212-5217.                                                          38 1451   76
-endf>[4]: "Materials Data on H2C (SG:62) by Materials Project"           38 1451   77
-endf>Persson, Kristin (2016).DOI: 10.17188/1316749                       38 1451   78
-endf>https://www.materialsproject.org/materials/mp-985782/               38 1451   79
-endf>                                                                    38 1451   80
-endf>******************************************************************  38 1451   81
-endf>                                1        451         85          0  38 1451   82
-endf>                                7          2          4          0  38 1451   83
-endf>                                7          4       4976          0  38 1451   84
-endf>                                7        451          3          0  38 1451   85
+endf>                                                                    38 1451   40
+endf>Polyethylene (PE).                                                  38 1451   41
+endf>                                                                    38 1451   42
+endf>Note: This file models amorphous polyethylene, and the density      38 1451   43
+endf>value has been                                                      38 1451   44
+endf>set as 0.92, but could vary up to 5% in a given material.           38 1451   45
+endf>                                                                    38 1451   46
+endf>The VDOS curves were calculated using VASP DFT[1], with Phonopy[2]  38 1451   47
+endf>and                                                                 38 1451   48
+endf>OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics      38 1451   49
+endf>group.  The                                                         38 1451   50
+endf>calculation used an orthorombic unit cell with space group Pnma     38 1451   51
+endf>(62) (specific                                                      38 1451   52
+endf>PE structure taken from [4]). and the calculation was done on       38 1451   53
+endf>3x5x9 k-point                                                       38 1451   54
+endf>grid.                                                               38 1451   55
+endf>                                                                    38 1451   56
+endf>The performance was validated against measurements (Granada-1987    38 1451   57
+endf>and                                                                 38 1451   58
+endf>Lee-2020), and as an added sanity check it was verified that        38 1451   59
+endf>results were                                                        38 1451   60
+endf>consistent with a Polyethylene NCMAT file created with the          38 1451   61
+endf>ncrystal_hfg2ncmat                                                  38 1451   62
+endf>command (i.e. the hydrogen VDOS was consistent with one derived     38 1451   63
+endf>via the method                                                      38 1451   64
+endf>of G. Romanelli et. al (2021), doi:10.1088/1361-648X/abfc13).       38 1451   65
+endf>                                                                    38 1451   66
+endf>References:                                                         38 1451   67
+endf>[1]: G. Kresse and J. Furthm"uller, Phys. Rev. B 54 , 11 169        38 1451   68
+endf>(1996.)                                                             38 1451   69
+endf>[2]: "First principles phonon calculations in materials science",   38 1451   70
+endf>Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)          38 1451   71
+endf>[3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J.,        38 1451   72
+endf>"Calculation                                                        38 1451   73
+endf>of the Thermal Neutron Scattering Cross-Section of Solids Using     38 1451   74
+endf>OCLIMAX".                                                           38 1451   75
+endf>Journal of Chemical Theory and Computation 2020, 16 (8),            38 1451   76
+endf>5212-5217.                                                          38 1451   77
+endf>[4]: "Materials Data on H2C (SG:62) by Materials Project"           38 1451   78
+endf>Persson, Kristin (2016).DOI: 10.17188/1316749                       38 1451   79
+endf>https://www.materialsproject.org/materials/mp-985782/               38 1451   80
+endf>                                                                    38 1451   81
+endf>******************************************************************  38 1451   82
+endf>                                1        451         86          0  38 1451   83
+endf>                                7          2          4          0  38 1451   84
+endf>                                7          4       4976          0  38 1451   85
+endf>                                7        451          3          0  38 1451   86
 endf>                                                                    38 1  099999
 endf>                                                                    38 0  0    0
 endf> 1.000000+3 9.993170-1          2          0          0          0  38 7  2    1
@@ -157,8 +158,7 @@ endf>        100          4                                              38 7  4
 endf> 2.00000-50 0.000000+0 2.00000-10 0.000000+0 3.000000-2 0.000000+0  38 7  4   44
 endf> 6.000000-2 0.000000+0 1.000000-1 2.000000-2 2.000000-1 3.000000-2  38 7  4   45
 endf> 3.000000-1 4.000000-2 3.000000-1 5.000000-2 4.000000-1 5.000000-2  38 7  4   46
-endf> 4.000000-1 6.000000-2 5.000000-1 7.000000-2 6.000000-1 8.000000-2  38 7  4   47
-endf> <<<SNIPPED 4867 LINES, MD5=48c6c762e9a24bfabaef2666fc7ec32c>>>
+endf> <<<SNIPPED 4868 LINES, MD5=19f0c2a90ecb6c6eb681218c45d7bc8e>>>
 endf> 3.000000+0 0.000000+0 3.000000+0 0.000000+0 3.000000+0 0.000000+0  38 7  4 4915
 endf> 4.000000+0 0.000000+0 4.000000+0 0.000000+0 5.000000+0 0.000000+0  38 7  4 4916
 endf> 5.000000+0 0.000000+0 5.000000+0 0.000000+0 6.000000+0 0.000000+0  38 7  4 4917
@@ -234,7 +234,7 @@ endf>Created with ncmat2endf                                             37 0  0
 endf> 6.000000+3 1.190786+1         -1          0          0          0  37 1451    1
 endf> 0.000000+0 0.000000+0          0          0          0          6  37 1451    2
 endf> 1.000000+0 5.000000+0          0          0         12          1  37 1451    3
-endf> 0.000000+0 0.000000+0          0          0         77          4  37 1451    4
+endf> 0.000000+0 0.000000+0          0          0         78          4  37 1451    4
 endf>  6-C      MyLAB      EVAL-MMMYY NCrystal                           37 1451    5
 endf> REFERENCE            DIST-MMMYY REV0-MMMYY                         37 1451    6
 endf>----MyLib             MATERIAL   37                                 37 1451    7
@@ -242,13 +242,13 @@ endf>-----THERMAL NEUTRON SCATTERING DATA                                37 1451
 endf>------ENDF-6 FORMAT                                                 37 1451    9
 endf>******************************************************************  37 1451   10
 endf>                                                                    37 1451   11
-endf> This file was converted from the following NCrystal cfg            37 1451   12
-endf> string [1]:                                                        37 1451   13
+endf> This file was converted from the following NCrystal [1,2]          37 1451   12
+endf> cfg-string:                                                        37 1451   13
 endf>                                                                    37 1451   14
 endf>          "Polyethylene_CH2.ncmat;vdoslux=1;temp=293.15"            37 1451   15
 endf>                                                                    37 1451   16
 endf> using NCrystal NCVERSION                                           37 1451   17
-endf> and endf-parserpy [2] EPVERSION                                    37 1451   18
+endf> and endf-parserpy [3] EPVERSION                                    37 1451   18
 endf> with the following options:                                        37 1451   19
 endf>                                                                    37 1451   20
 endf>  smin:1e-100                                                       37 1451   21
@@ -263,59 +263,60 @@ endf>       293.15 K                                                     37 1451
 endf>                                                                    37 1451   30
 endf>References:                                                         37 1451   31
 endf>[1] https://github.com/mctools/ncrystal                             37 1451   32
-endf>[2] https://endf-parserpy.readthedocs.io/en/latest/                 37 1451   33
-endf>                                                                    37 1451   34
-endf>******************************************************************  37 1451   35
-endf>                                                                    37 1451   36
-endf>Comments from NCMAT file:                                           37 1451   37
-endf>                                                                    37 1451   38
+endf>[2] https://doi.org/10.1016/j.cpc.2019.07.015                       37 1451   33
+endf>[3] https://endf-parserpy.readthedocs.io/en/latest/                 37 1451   34
+endf>                                                                    37 1451   35
+endf>******************************************************************  37 1451   36
+endf>                                                                    37 1451   37
+endf>Comments from NCMAT file:                                           37 1451   38
 endf>                                                                    37 1451   39
-endf>Polyethylene (PE).                                                  37 1451   40
-endf>                                                                    37 1451   41
-endf>Note: This file models amorphous polyethylene, and the density      37 1451   42
-endf>value has been                                                      37 1451   43
-endf>set as 0.92, but could vary up to 5% in a given material.           37 1451   44
-endf>                                                                    37 1451   45
-endf>The VDOS curves were calculated using VASP DFT[1], with Phonopy[2]  37 1451   46
-endf>and                                                                 37 1451   47
-endf>OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics      37 1451   48
-endf>group.  The                                                         37 1451   49
-endf>calculation used an orthorombic unit cell with space group Pnma     37 1451   50
-endf>(62) (specific                                                      37 1451   51
-endf>PE structure taken from [4]). and the calculation was done on       37 1451   52
-endf>3x5x9 k-point                                                       37 1451   53
-endf>grid.                                                               37 1451   54
-endf>                                                                    37 1451   55
-endf>The performance was validated against measurements (Granada-1987    37 1451   56
-endf>and                                                                 37 1451   57
-endf>Lee-2020), and as an added sanity check it was verified that        37 1451   58
-endf>results were                                                        37 1451   59
-endf>consistent with a Polyethylene NCMAT file created with the          37 1451   60
-endf>ncrystal_hfg2ncmat                                                  37 1451   61
-endf>command (i.e. the hydrogen VDOS was consistent with one derived     37 1451   62
-endf>via the method                                                      37 1451   63
-endf>of G. Romanelli et. al (2021), doi:10.1088/1361-648X/abfc13).       37 1451   64
-endf>                                                                    37 1451   65
-endf>References:                                                         37 1451   66
-endf>[1]: G. Kresse and J. Furthm"uller, Phys. Rev. B 54 , 11 169        37 1451   67
-endf>(1996.)                                                             37 1451   68
-endf>[2]: "First principles phonon calculations in materials science",   37 1451   69
-endf>Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)          37 1451   70
-endf>[3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J.,        37 1451   71
-endf>"Calculation                                                        37 1451   72
-endf>of the Thermal Neutron Scattering Cross-Section of Solids Using     37 1451   73
-endf>OCLIMAX".                                                           37 1451   74
-endf>Journal of Chemical Theory and Computation 2020, 16 (8),            37 1451   75
-endf>5212-5217.                                                          37 1451   76
-endf>[4]: "Materials Data on H2C (SG:62) by Materials Project"           37 1451   77
-endf>Persson, Kristin (2016).DOI: 10.17188/1316749                       37 1451   78
-endf>https://www.materialsproject.org/materials/mp-985782/               37 1451   79
-endf>                                                                    37 1451   80
-endf>******************************************************************  37 1451   81
-endf>                                1        451         85          0  37 1451   82
-endf>                                7          2          4          0  37 1451   83
-endf>                                7          4       4688          0  37 1451   84
-endf>                                7        451          3          0  37 1451   85
+endf>                                                                    37 1451   40
+endf>Polyethylene (PE).                                                  37 1451   41
+endf>                                                                    37 1451   42
+endf>Note: This file models amorphous polyethylene, and the density      37 1451   43
+endf>value has been                                                      37 1451   44
+endf>set as 0.92, but could vary up to 5% in a given material.           37 1451   45
+endf>                                                                    37 1451   46
+endf>The VDOS curves were calculated using VASP DFT[1], with Phonopy[2]  37 1451   47
+endf>and                                                                 37 1451   48
+endf>OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics      37 1451   49
+endf>group.  The                                                         37 1451   50
+endf>calculation used an orthorombic unit cell with space group Pnma     37 1451   51
+endf>(62) (specific                                                      37 1451   52
+endf>PE structure taken from [4]). and the calculation was done on       37 1451   53
+endf>3x5x9 k-point                                                       37 1451   54
+endf>grid.                                                               37 1451   55
+endf>                                                                    37 1451   56
+endf>The performance was validated against measurements (Granada-1987    37 1451   57
+endf>and                                                                 37 1451   58
+endf>Lee-2020), and as an added sanity check it was verified that        37 1451   59
+endf>results were                                                        37 1451   60
+endf>consistent with a Polyethylene NCMAT file created with the          37 1451   61
+endf>ncrystal_hfg2ncmat                                                  37 1451   62
+endf>command (i.e. the hydrogen VDOS was consistent with one derived     37 1451   63
+endf>via the method                                                      37 1451   64
+endf>of G. Romanelli et. al (2021), doi:10.1088/1361-648X/abfc13).       37 1451   65
+endf>                                                                    37 1451   66
+endf>References:                                                         37 1451   67
+endf>[1]: G. Kresse and J. Furthm"uller, Phys. Rev. B 54 , 11 169        37 1451   68
+endf>(1996.)                                                             37 1451   69
+endf>[2]: "First principles phonon calculations in materials science",   37 1451   70
+endf>Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)          37 1451   71
+endf>[3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J.,        37 1451   72
+endf>"Calculation                                                        37 1451   73
+endf>of the Thermal Neutron Scattering Cross-Section of Solids Using     37 1451   74
+endf>OCLIMAX".                                                           37 1451   75
+endf>Journal of Chemical Theory and Computation 2020, 16 (8),            37 1451   76
+endf>5212-5217.                                                          37 1451   77
+endf>[4]: "Materials Data on H2C (SG:62) by Materials Project"           37 1451   78
+endf>Persson, Kristin (2016).DOI: 10.17188/1316749                       37 1451   79
+endf>https://www.materialsproject.org/materials/mp-985782/               37 1451   80
+endf>                                                                    37 1451   81
+endf>******************************************************************  37 1451   82
+endf>                                1        451         86          0  37 1451   83
+endf>                                7          2          4          0  37 1451   84
+endf>                                7          4       4688          0  37 1451   85
+endf>                                7        451          3          0  37 1451   86
 endf>                                                                    37 1  099999
 endf>                                                                    37 0  0    0
 endf> 6.000000+3 1.190786+1          2          0          0          0  37 7  2    1
@@ -369,8 +370,7 @@ endf>        100          4                                              37 7  4
 endf> 2.00000-51 0.000000+0 2.00000-11 0.000000+0 4.000000-3 2.000000-2  37 7  4   44
 endf> 9.000000-3 3.000000-2 2.000000-2 7.000000-2 3.000000-2 1.000000-1  37 7  4   45
 endf> 3.000000-2 1.000000-1 4.000000-2 2.000000-1 5.000000-2 2.000000-1  37 7  4   46
-endf> 6.000000-2 2.000000-1 6.000000-2 2.000000-1 7.000000-2 2.000000-1  37 7  4   47
-endf> <<<SNIPPED 4579 LINES, MD5=6cc01dcafc3f587d6e7ae50941013359>>>
+endf> <<<SNIPPED 4580 LINES, MD5=205a89ed8482bfbfc713a104cc5751d9>>>
 endf> 3.000000-1 0.000000+0 3.000000-1 0.000000+0 3.000000-1 0.000000+0  37 7  4 4627
 endf> 4.000000-1 0.000000+0 4.000000-1 0.000000+0 5.000000-1 0.000000+0  37 7  4 4628
 endf> 5.000000-1 0.000000+0 6.000000-1 0.000000+0 6.000000-1 0.000000+0  37 7  4 4629

@@ -20,7 +20,7 @@ endf>Created with ncmat2endf                                            999 0  0
 endf> 1.300000+4 2.674975+1         -1          0          0          0 999 1451    1
 endf> 0.000000+0 0.000000+0          0          0          0          6 999 1451    2
 endf> 1.000000+0 5.000000+0          0          0         12          1 999 1451    3
-endf> 0.000000+0 0.000000+0          0          0         64          3 999 1451    4
+endf> 0.000000+0 0.000000+0          0          0         65          3 999 1451    4
 endf> 13-Al     MyLAB      EVAL-MMMYY NCrystal                          999 1451    5
 endf> REFERENCE            DIST-MMMYY REV0-MMMYY                        999 1451    6
 endf>----MyLib             MATERIAL  999                                999 1451    7
@@ -28,13 +28,13 @@ endf>-----THERMAL NEUTRON SCATTERING DATA                               999 1451
 endf>------ENDF-6 FORMAT                                                999 1451    9
 endf>****************************************************************** 999 1451   10
 endf>                                                                   999 1451   11
-endf> This file was converted from the following NCrystal cfg           999 1451   12
-endf> string [1]:                                                       999 1451   13
+endf> This file was converted from the following NCrystal [1,2]         999 1451   12
+endf> cfg-string:                                                       999 1451   13
 endf>                                                                   999 1451   14
 endf>              "Al_sg225.ncmat;vdoslux=1;temp=293.15"               999 1451   15
 endf>                                                                   999 1451   16
 endf> using NCrystal NCVERSION                                          999 1451   17
-endf> and endf-parserpy [2] EPVERSION                                   999 1451   18
+endf> and endf-parserpy [3] EPVERSION                                   999 1451   18
 endf> with the following options:                                       999 1451   19
 endf>                                                                   999 1451   20
 endf>  smin:1e-100                                                      999 1451   21
@@ -50,44 +50,45 @@ endf>       350.00 K                                                    999 1451
 endf>                                                                   999 1451   31
 endf>References:                                                        999 1451   32
 endf>[1] https://github.com/mctools/ncrystal                            999 1451   33
-endf>[2] https://endf-parserpy.readthedocs.io/en/latest/                999 1451   34
-endf>                                                                   999 1451   35
-endf>****************************************************************** 999 1451   36
-endf>                                                                   999 1451   37
-endf>Comments from NCMAT file:                                          999 1451   38
-endf>                                                                   999 1451   39
+endf>[2] https://doi.org/10.1016/j.cpc.2019.07.015                      999 1451   34
+endf>[3] https://endf-parserpy.readthedocs.io/en/latest/                999 1451   35
+endf>                                                                   999 1451   36
+endf>****************************************************************** 999 1451   37
+endf>                                                                   999 1451   38
+endf>Comments from NCMAT file:                                          999 1451   39
 endf>                                                                   999 1451   40
-endf>Aluminium (Al, fcc, cubic, SG-225 / Fm-3m)                         999 1451   41
-endf>                                                                   999 1451   42
-endf>Under usual conditions this phase exists from 0 to 933K.           999 1451   43
-endf>                                                                   999 1451   44
-endf>Structure converted with ncrystal_onlinedb2ncmat from:             999 1451   45
-endf>                                                                   999 1451   46
-endf>"Second edition. Interscience Publishers,                          999 1451   47
-endf>New York, Cubic closest packed, ccp, structure"                    999 1451   48
-endf>Wyckoff R W G (1963)                                               999 1451   49
-endf>Crystallography Open Database entry 9008460                        999 1451   50
-endf>https://www.crystallography.net/cod/9008460.html                   999 1451   51
-endf>                                                                   999 1451   52
-endf>This crystal structure is also compatible with structure obtained  999 1451   53
-endf>from:                                                              999 1451   54
-endf>                                                                   999 1451   55
-endf>https://www.crystallography.net/cod/9012428.html                   999 1451   56
-endf>https://www.crystallography.net/cod/9011602.html                   999 1451   57
-endf>https://www.crystallography.net/cod/9012002.html                   999 1451   58
-endf>                                                                   999 1451   59
-endf>The VDOS curve was extracted by T. Kittelmann using the engauge    999 1451   60
-endf>digitizer                                                          999 1451   61
-endf>software from Figure 1 of:                                         999 1451   62
-endf>                                                                   999 1451   63
-endf>"First principles phonon calculations in materials science"        999 1451   64
-endf>A. Togo and I. Tanaka, Scripta Materialia 108 (2015) 1-5           999 1451   65
-endf>https://doi.org/10.1016/j.scriptamat.2015.07.021                   999 1451   66
-endf>                                                                   999 1451   67
-endf>****************************************************************** 999 1451   68
-endf>                                1        451         71          0 999 1451   69
-endf>                                7          2         90          0 999 1451   70
-endf>                                7          4       6974          0 999 1451   71
+endf>                                                                   999 1451   41
+endf>Aluminium (Al, fcc, cubic, SG-225 / Fm-3m)                         999 1451   42
+endf>                                                                   999 1451   43
+endf>Under usual conditions this phase exists from 0 to 933K.           999 1451   44
+endf>                                                                   999 1451   45
+endf>Structure converted with ncrystal_onlinedb2ncmat from:             999 1451   46
+endf>                                                                   999 1451   47
+endf>"Second edition. Interscience Publishers,                          999 1451   48
+endf>New York, Cubic closest packed, ccp, structure"                    999 1451   49
+endf>Wyckoff R W G (1963)                                               999 1451   50
+endf>Crystallography Open Database entry 9008460                        999 1451   51
+endf>https://www.crystallography.net/cod/9008460.html                   999 1451   52
+endf>                                                                   999 1451   53
+endf>This crystal structure is also compatible with structure obtained  999 1451   54
+endf>from:                                                              999 1451   55
+endf>                                                                   999 1451   56
+endf>https://www.crystallography.net/cod/9012428.html                   999 1451   57
+endf>https://www.crystallography.net/cod/9011602.html                   999 1451   58
+endf>https://www.crystallography.net/cod/9012002.html                   999 1451   59
+endf>                                                                   999 1451   60
+endf>The VDOS curve was extracted by T. Kittelmann using the engauge    999 1451   61
+endf>digitizer                                                          999 1451   62
+endf>software from Figure 1 of:                                         999 1451   63
+endf>                                                                   999 1451   64
+endf>"First principles phonon calculations in materials science"        999 1451   65
+endf>A. Togo and I. Tanaka, Scripta Materialia 108 (2015) 1-5           999 1451   66
+endf>https://doi.org/10.1016/j.scriptamat.2015.07.021                   999 1451   67
+endf>                                                                   999 1451   68
+endf>****************************************************************** 999 1451   69
+endf>                                1        451         72          0 999 1451   70
+endf>                                7          2         90          0 999 1451   71
+endf>                                7          4       6974          0 999 1451   72
 endf>                                                                   999 1  099999
 endf>                                                                   999 0  0    0
 endf> 1.300000+4 2.674975+1          1          0          0          0 999 7  2    1
@@ -155,8 +156,7 @@ endf> 5.071159-3 8.274790-3 1.232923-2 1.869190-2 2.066690-2 2.181487-2 999 7  2
 endf> 2.569196-2 2.936742-2 3.236999-2 3.584283-2 3.688405-2 4.054818-2 999 7  2   63
 endf> 4.274442-2 4.423605-2 4.555975-2 4.683249-2 4.719598-2 4.914274-2 999 7  2   64
 endf> 5.008033-2 5.169737-2 5.387163-2 5.402305-2 5.456771-2 5.561939-2 999 7  2   65
-endf> 5.630535-2 5.726731-2 5.766564-2 5.801308-2 5.895461-2 5.956147-2 999 7  2   66
-endf> <<<SNIPPED 6933 LINES, MD5=57a95b397c46c77f6a2e00faad3feade>>>
+endf> <<<SNIPPED 6934 LINES, MD5=6f12ec0ef67d071f793f94434972d63e>>>
 endf> 0.000000+0 0.000000+0 0.000000+0 0.000000+0 0.000000+0 0.000000+0 999 7  4 6909
 endf> 0.000000+0 0.000000+0 0.000000+0 0.000000+0 0.000000+0 0.000000+0 999 7  4 6910
 endf> 0.000000+0 0.000000+0 0.000000+0 0.000000+0 0.000000+0 0.000000+0 999 7  4 6911
