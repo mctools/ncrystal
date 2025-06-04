@@ -22,11 +22,6 @@
 import numpy as np
 import openmc
 
-REF_VALUES = np.array([5.60481868e+01, 5.75019668e-04, 7.67958251e-01])
-REF_ERRORS = np.array([2.58956360e-03, 4.83597510e-06, 1.96171839e-03])
-REF_POSITIONS = np.array([0.00872665, 1.15202318, 2.29531971])
-
-
 def convert_endf_tsl_to_ace(endf_tsl, material_name=None, ace_name=None,
                             suffix='.00', ace_filename=None, temp=None,
                             emax=None, zaids=None, njoy_exec='njoy'):
@@ -408,10 +403,6 @@ def plot_tallies(spfile1, spfile2):
                       yerr=cone_errors,
                       fmt='.' )
         results[spfile] = angdist_values
-    plt.errorbar( np.rad2deg(REF_POSITIONS),
-                  REF_VALUES,
-                  yerr=REF_ERRORS,
-                  fmt='.', label='True values' )
     plt.yscale('log')
     plt.ylabel('density')
     plt.xlabel('Polar angle [deg]')
@@ -426,57 +417,61 @@ def plot_tallies(spfile1, spfile2):
     plt.xlabel('Polar angle [deg]')
     plt.show()
 
-def generate_library(cfg):
+def convert_openmc_ncrystal_to_ace(cfg, matname, elastic_mode):
+    m = openmc.Material()
+
     # Generate ENDF-6 file
     from NCrystal import ncmat2endf
     import os
-
-    res = ncmat2endf.ncmat2endf(cfg, force=True)
-    assert len(res['files'])==1
-
-    endf_fn = res['files'][0]['file']
-    assert endf_fn =='tsl_Al.endf'
-
-    # Process ENDF-6 file into ACE file
-    ace_fn, xsdir_fn = convert_endf_tsl_to_ace(endf_fn)
 
     outxml = os.environ['OPENMC_CROSS_SECTIONS']
     openmc_datalib = openmc.data.DataLibrary.from_xml(outxml)
     from pathlib import Path
     reporoot = Path(outxml).parent
     h5outdir = reporoot.joinpath('tmp_conv_data')
+    res = ncmat2endf.ncmat2endf(cfg, material_name=matname,
+                              force=True, elastic_mode=elastic_mode)
+    m.temperature = float(res['temperature'])
+    m.set_density('g/cc', res['density'])
 
-    f_ace = Path(ace_fn)
-    # Convert to HDF5 and register data file
-    f_h5 = h5outdir.joinpath( '%s.h5'%f_ace.stem )
-    try:
-        os.remove(f_h5)
-    except OSError:
-        pass
-    assert not f_h5.is_file() and f_h5.parent.is_dir()
-    openmc.data.ThermalScattering.from_ace(f_ace, name='c_Al').export_to_hdf5(f_h5)
-    print(f"Generated {f_h5}")
-    openmc_datalib.register_file(f_h5)
+    for entry in res['files']:
+        m.add_element(entry['component'], entry['fraction'], 'ao')
+        endf_fn = entry['file']
+        name = endf_fn.replace('.endf', '').replace('tsl_', 'c_')
+        ace_fn = name+f'-{m.temperature:.1f}K.ace'
+        print(f'Converting {endf_fn} to {ace_fn}')
+        # Process ENDF-6 file into ACE file
+        ace_fn, xsdir_fn = convert_endf_tsl_to_ace(endf_fn, ace_filename=ace_fn)
+        f_ace = Path(ace_fn)
+        # Convert to HDF5 and register data file
+        print(f'Adding {name} to the library...')
+        f_h5 = h5outdir.joinpath( '%s.h5'%f_ace.stem )
+        try:
+            os.remove(f_h5)
+        except OSError:
+            pass
+        assert not f_h5.is_file() and f_h5.parent.is_dir()
+        openmc.data.ThermalScattering.from_ace(f_ace, name=name).export_to_hdf5(f_h5)
+        print(f"Generated {f_h5}")
+        openmc_datalib.register_file(f_h5)
+        m.add_s_alpha_beta(name)
     openmc_datalib.export_to_xml(outxml)
+    return m
 
 def main():
     n_particles = 10000000
     E0 = 0.0045  # eV
     cfg = 'Al_sg225.ncmat'
+    matname = 'Al-metal'
+    import os
+    spfile1, spfile2 = 'results_ncrystal.h5', 'results_ncmat2endf.h5'
 
     m1 = openmc.Material.from_ncrystal(cfg)
     model = pencil_beam_model(m1, cfg, E0, n_particles)
     spfile = model.run(output=True)
-    import os
-    spfile1, spfile2 = 'results_ncrystal.h5', 'results_ncmat2endf.h5'
     os.rename(spfile, spfile1)
 
-    generate_library(cfg)
-    m2 = openmc.Material()
-    m2.add_nuclide('Al27', 1.0)
-    m2.set_density('g/cc', m1.density)
-    m2.add_s_alpha_beta('c_Al')
-    m2.temperature = m1.temperature
+    m2 = convert_openmc_ncrystal_to_ace(cfg, matname, 'mixed')
     model = pencil_beam_model(m2, cfg, E0, n_particles)
     spfile = model.run(output=True)
     os.rename(spfile, spfile2)
