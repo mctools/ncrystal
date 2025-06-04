@@ -15,6 +15,10 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" woul
 Write ENDF file tsl_Al_in_Al.endf ...
 Files created:
   tsl_Al_in_Al.endf : Al with fraction 1
+ncmat2endf fct returned:
+{'density': 2.698645517692,
+ 'files': [{'component': 'Al', 'file': 'tsl_Al_in_Al.endf', 'fraction': 1.0}],
+ 'temperature': [293.15, 350]}
 Created (or not) file tsl_Al_in_Al.endf with fraction 1
 endf>Created with ncmat2endf                                            999 0  0    0
 endf> 1.300000+4 2.674975+1         -1          0          0          0 999 1451    1

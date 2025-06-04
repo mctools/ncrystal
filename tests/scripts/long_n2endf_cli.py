@@ -50,5 +50,8 @@ test_cli('"stdlib::Al_sg225.ncmat;vdoslux=1"'
          ' -vvv -f -e scaled --totsab --asymsab')
 assert Path('tsl_Al.endf').is_file()
 assert not Path('some/out/dir/tsl_Al.endf').is_file()
-test_cli('"stdlib::Al_sg225.ncmat;vdoslux=1" -f --now --dir=some/out/dir')
+test_cli('"stdlib::Al_sg225.ncmat;vdoslux=1" -f --now --dir=some/out/dir'
+         ' --index mymat.json')
 assert Path('some/out/dir/tsl_Al.endf').is_file()
+print("Content of mymat.json:")
+print(Path("mymat.json").read_text())

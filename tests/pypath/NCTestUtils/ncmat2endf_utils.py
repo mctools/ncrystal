@@ -53,10 +53,25 @@ def test_cfg( cfg, check_teff=False,
         else:
             temperatures += list( t for t in kwargs['othertemps'] )
     res = ncmat2endf(**kwargs)
+    import copy
+    #tidy up FP values for test reproducibility
+    def chop( d, key ):
+        assert key in d and isinstance(d[key],float)
+        d[key] = float('%.13g'%d[key])
+    res_print = copy.deepcopy(res)
+    chop(res_print,'density')
+    for f in res_print['files']:
+        chop(f,'fraction')
+    print('ncmat2endf fct returned:')
+    pprint.pprint(res_print)
+
     if compare_xsec:
         E = _np.geomspace(1e-5, 5.0, 1000)
         xs_test = _np.zeros(_np.shape(E))
-    for endf_fn, frac in res:
+    for filedata in res['files']:
+        endf_fn = filedata['file']
+        frac = filedata['fraction']
+        #component = res['component']
         print(f"Created (or not) file {endf_fn} with fraction {frac:g}")
         if dump_file:
             import pathlib

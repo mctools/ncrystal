@@ -60,6 +60,7 @@ Commonly used arguments:
                         Add metadata entries. Run with --mdata=help for more info.
   --now                 Set metadata fields EDATE, DDATE and RDATE to current date.
   -d, --dir PATH        Directory for output files (default: current).
+  -i, --index FILE      Story summary of output in FILE (JSON format).
   -f, --force           Overwrite output files if they already exist (danger!)
 
 Advanced expert-only arguments:
@@ -158,7 +159,7 @@ Files created:
   tsl_Al.endf : Al with fraction 1
 Suggested material density: 2.698645518 g/cm^3
 ==================================================================================================================
-============= CLI >>'stdlib::Al_sg225.ncmat;vdoslux=1' -f --now --dir=some/out/dir<< ====================
+============= CLI >>'stdlib::Al_sg225.ncmat;vdoslux=1' -f --now --dir=some/out/dir --index mymat.json<< ====================
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#5]
 Initialise nuclear data...
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#6]
@@ -166,4 +167,18 @@ Write ENDF file tsl_Al.endf ...
 Files created:
   tsl_Al.endf : Al with fraction 1
 Suggested material density: 2.698645518 g/cm^3
-=========================================================================================================
+Writing index file: mymat.json
+============================================================================================================================
+Content of mymat.json:
+{
+    "density": 2.6986455176922477,
+    "temperature": 293.15,
+    "files": [
+        {
+            "file": "tsl_Al.endf",
+            "fraction": 1.0,
+            "component": "Al"
+        }
+    ]
+}
+
