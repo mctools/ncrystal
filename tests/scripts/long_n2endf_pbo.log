@@ -35,5 +35,5 @@ ncmat2endf fct returned:
             'fraction': 0.5}],
  'temperature': 293.15}
 Created (or not) file tsl_O_in_PbO-alpha.endf with fraction 0.5
-Created (or not) file tsl_Pb_in_PbO-alpha.endf with fraction 0.5
 NCrystal WARNING: Discarding 1 edges of provided kernel data due to missing S values.
+Created (or not) file tsl_Pb_in_PbO-alpha.endf with fraction 0.5
