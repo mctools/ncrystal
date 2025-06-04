@@ -49,8 +49,7 @@ def ncmat2endf( ncmat_cfg, *,
                 lasym=0,
                 outdir = '.',
                 verbosity = 1 ):
-    """
-    Generates a set of ENDF-6 thermal scattering files from an NCMAT
+    """Generates a set of ENDF-6 thermal scattering files from an NCMAT
     cfg-string. Most important parameters are supported as arguments, but
     additional metadata parameters for the ENDF-6 format can be set by using
     the Python API and passing a custom EndfMetaData object or dictionary.
@@ -122,9 +121,30 @@ def ncmat2endf( ncmat_cfg, *,
 
     Returns
     -------
-    output_composition: list of (str, float)
-        List of tuples containing the ENDF-6 files and
-        their fraction in the composition.
+    summary: dict
+        Returns a dictionary with information about the produced files, their
+        fractions, temperature(s) [K] and density [g/cm3]. Example:
+
+            {
+                "density": 3.9912157584832233,
+                "temperature": 293.15,
+                "files": [
+                    {
+                        "file": "tsl_O_in_Al2O3.endf",
+                        "fraction": 0.6,
+                        "component": "O"
+                    },
+                    {
+                        "file": "tsl_Al_in_Al2O3.endf",
+                        "fraction": 0.4,
+                        "component": "Al"
+                    }
+                ]
+            }
+
+        If running with more than one temperature, the "temperature" value will
+        be a list of temperatures instead, while the density will always be that
+        of the base temperature material.
 
     """
 

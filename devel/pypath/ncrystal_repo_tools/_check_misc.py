@@ -46,6 +46,7 @@ def main():
         'ncrystal_python/src/NCrystal/_hfgdata.py' : 70,
         'ncrystal_python/src/NCrystal/_ncmatimpl.py' : 150,
         'ncrystal_python/src/NCrystal/cifutils.py' : 100,
+        'ncrystal_python/src/NCrystal/_ncmat2endf_impl.py' : 80,
         'ncrystal_python/src/NCrystal/core.py' : 100,
         'tests/data/QE_pw_Al.out' : 2000,
     }

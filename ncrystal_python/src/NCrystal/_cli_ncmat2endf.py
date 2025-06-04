@@ -169,6 +169,9 @@ def _parseArgs( progname, arglist, return_parser=False ):
                         help=wrap('Silence non-error output.'))
     ba.add_argument('-d', '--dir', default = '.', metavar='PATH', dest='outdir',
                     help=wrap('Directory for output files (default: current).'))
+    ba.add_argument('-i','--index', default = '',
+                    metavar='FILE', dest='jsonindex',
+                    help=wrap('Story summary of output in FILE (JSON format).'))
     ba.add_argument('-f', '--force',action='store_true',
                     help=wrap('Overwrite output files if'
                               ' they already exist (danger!)'))
@@ -240,6 +243,20 @@ def _parseArgs( progname, arglist, return_parser=False ):
             parser.error('Inconsistent usage of --quiet and --verbose flags')
     else:
         args.verbose = min( 3, args.verbose+1 )
+
+    if args.jsonindex:
+        import pathlib
+        args.jsonindex = pathlib.Path(args.jsonindex)
+        if args.jsonindex.is_file():
+            if not args.force:
+                parser.error('File already exists (run with --force to'
+                             f' overwrite): {args.jsonindex}')
+            args.jsonindex.unlink()
+            assert not args.jsonindex.is_file()
+        if not args.jsonindex.parent.is_dir():
+            parser.error('Directory does not exist: {args.jsonindex.parent}')
+        args.jsonindex = args.jsonindex.absolute()
+
     return args
 
 def create_argparser_for_sphinx( progname ):
@@ -269,17 +286,22 @@ def _main_impl( args ):
         lasym = 1
     if args.asymsab:
         lasym += 2
-    ncmat2endf( args.CFGSTR,
-                material_name = args.name,
-                endf_metadata = metadata,
-                othertemps = args.othertemps,
-                elastic_mode = args.elas,
-                force = args.force,
-                smin = args.smin,
-                emax = args.emax,
-                lasym = lasym,
-                verbosity = args.verbose,
-                outdir = args.outdir )
+    r = ncmat2endf( args.CFGSTR,
+                    material_name = args.name,
+                    endf_metadata = metadata,
+                    othertemps = args.othertemps,
+                    elastic_mode = args.elas,
+                    force = args.force,
+                    smin = args.smin,
+                    emax = args.emax,
+                    lasym = lasym,
+                    verbosity = args.verbose,
+                    outdir = args.outdir )
+    if args.jsonindex:
+        import json
+        r_json = json.dumps( r, indent = 4 ).rstrip() + '\n'
+        print(f'Writing index file: {args.jsonindex.name}')
+        args.jsonindex.write_text( r_json )
 
 def gen_metadata_doc():
     from ._ncmat2endf_impl import _impl_get_metadata_params_and_docs

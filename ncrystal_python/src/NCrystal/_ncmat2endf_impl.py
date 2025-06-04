@@ -1302,16 +1302,27 @@ def _impl_ncmat2endf( *,
         endf_file.write( endf_fn, force = force, outdir = outdir )
         output_composition.append( (endf_fn, frac, sym) )
 
+    density = loaded['info_obj'].density
     if verbosity > 0:
         ncprint('Files created:')
         from ._common import prettyFmtValue as pfmt
         for fn, frac, sym in output_composition:
             ncprint(f'  {fn} : {sym} with fraction {pfmt(frac)}')
         if len(temperatures)==1:
-            ncprint('Suggested material density: '
-                    '%.10g g/cm^3'%loaded['info_obj'].density)
+            ncprint('Suggested material density: %.10g g/cm^3'%density)
 
-    return [ (fn,frac) for fn,frac,_ in output_composition ]
+    return dict(
+        density = density,
+        temperature = ( temperatures[0]
+                        if len(temperatures)==1
+                        else temperatures ),
+        files = list(
+            dict( file = endf_fn,
+                  fraction = frac,
+                  component = sym )
+            for endf_fn, frac, sym in output_composition
+        )
+    )
 
 
 _metadata_definitions = dict(
