@@ -416,6 +416,10 @@ DUMPING endf dict begin
 DUMPING endf dict end
 Files created:
   tsl_Al_in_Al.endf : Al with fraction 1
+ncmat2endf fct returned:
+{'density': 2.698645517692,
+ 'files': [{'component': 'Al', 'file': 'tsl_Al_in_Al.endf', 'fraction': 1.0}],
+ 'temperature': [293.15, 350]}
 Created (or not) file tsl_Al_in_Al.endf with fraction 1
 
 
@@ -1243,6 +1247,11 @@ DUMPING endf dict end
 Files created:
   tsl_N_in_AlN.endf : N with fraction 1/2
   tsl_Al_in_AlN.endf : Al with fraction 1/2
+ncmat2endf fct returned:
+{'density': 3.263309424081,
+ 'files': [{'component': 'N', 'file': 'tsl_N_in_AlN.endf', 'fraction': 0.5},
+           {'component': 'Al', 'file': 'tsl_Al_in_AlN.endf', 'fraction': 0.5}],
+ 'temperature': [293.15, 350]}
 Created (or not) file tsl_N_in_AlN.endf with fraction 0.5
 Created (or not) file tsl_Al_in_AlN.endf with fraction 0.5
 
@@ -1791,6 +1800,13 @@ Files created:
   tsl_O_in_Al2O3.endf : O with fraction 3/5
   tsl_Al_in_Al2O3.endf : Al with fraction 2/5
 Suggested material density: 3.991215758 g/cm^3
+ncmat2endf fct returned:
+{'density': 3.991215758483,
+ 'files': [{'component': 'O', 'file': 'tsl_O_in_Al2O3.endf', 'fraction': 0.6},
+           {'component': 'Al',
+            'file': 'tsl_Al_in_Al2O3.endf',
+            'fraction': 0.4}],
+ 'temperature': 293.15}
 Created (or not) file tsl_O_in_Al2O3.endf with fraction 0.6
 Created (or not) file tsl_Al_in_Al2O3.endf with fraction 0.4
 
@@ -2634,6 +2650,15 @@ DUMPING endf dict end
 Files created:
   tsl_C_in_Al4C3.endf : C with fraction 3/7
   tsl_Al_in_Al4C3.endf : Al with fraction 4/7
+ncmat2endf fct returned:
+{'density': 2.991295432522,
+ 'files': [{'component': 'C',
+            'file': 'tsl_C_in_Al4C3.endf',
+            'fraction': 0.4285714285714},
+           {'component': 'Al',
+            'file': 'tsl_Al_in_Al4C3.endf',
+            'fraction': 0.5714285714286}],
+ 'temperature': [293.15, 350]}
 Created (or not) file tsl_C_in_Al4C3.endf with fraction 0.428571
 Created (or not) file tsl_Al_in_Al4C3.endf with fraction 0.571429
 
@@ -2902,6 +2927,10 @@ DUMPING endf dict end
 Files created:
   tsl_Al_in_Al.endf : Al with fraction 1
 Suggested material density: 2.698645518 g/cm^3
+ncmat2endf fct returned:
+{'density': 2.698645517692,
+ 'files': [{'component': 'Al', 'file': 'tsl_Al_in_Al.endf', 'fraction': 1.0}],
+ 'temperature': 300.0}
 Created (or not) file tsl_Al_in_Al.endf with fraction 1
 
 
@@ -3157,4 +3186,8 @@ DUMPING endf dict end
 Files created:
   tsl_Al_in_Al.endf : Al with fraction 1
 Suggested material density: 2.698645518 g/cm^3
+ncmat2endf fct returned:
+{'density': 2.698645517692,
+ 'files': [{'component': 'Al', 'file': 'tsl_Al_in_Al.endf', 'fraction': 1.0}],
+ 'temperature': 293.15}
 Created (or not) file tsl_Al_in_Al.endf with fraction 1

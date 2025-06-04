@@ -24,6 +24,10 @@ Write ENDF file tsl_Si.endf ...
 Files created:
   tsl_Si.endf : Si with fraction 1
 Suggested material density: 2.329452891 g/cm^3
+ncmat2endf fct returned:
+{'density': 2.329452890843,
+ 'files': [{'component': 'Si', 'file': 'tsl_Si.endf', 'fraction': 1.0}],
+ 'temperature': 293.15}
 Created (or not) file tsl_Si.endf with fraction 1
 NCrystal WARNING: Discarding 1 edges of provided kernel data due to missing S values.
 
@@ -575,6 +579,15 @@ Files created:
   tsl_O_in_UnknownCompound.endf : O with fraction 2/3
   tsl_Si_in_UnknownCompound.endf : Si with fraction 1/3
 Suggested material density: 2.64864309 g/cm^3
+ncmat2endf fct returned:
+{'density': 2.648643089615,
+ 'files': [{'component': 'O',
+            'file': 'tsl_O_in_UnknownCompound.endf',
+            'fraction': 0.6666666666667},
+           {'component': 'Si',
+            'file': 'tsl_Si_in_UnknownCompound.endf',
+            'fraction': 0.3333333333333}],
+ 'temperature': 293.15}
 Created (or not) file tsl_O_in_UnknownCompound.endf with fraction 0.666667
 Created (or not) file tsl_Si_in_UnknownCompound.endf with fraction 0.333333
 
@@ -1145,6 +1158,15 @@ Files created:
   tsl_O_in_UnknownCompound.endf : O with fraction 2/3
   tsl_Si_in_UnknownCompound.endf : Si with fraction 1/3
 Suggested material density: 2.64864309 g/cm^3
+ncmat2endf fct returned:
+{'density': 2.648643089615,
+ 'files': [{'component': 'O',
+            'file': 'tsl_O_in_UnknownCompound.endf',
+            'fraction': 0.6666666666667},
+           {'component': 'Si',
+            'file': 'tsl_Si_in_UnknownCompound.endf',
+            'fraction': 0.3333333333333}],
+ 'temperature': 293.15}
 Created (or not) file tsl_O_in_UnknownCompound.endf with fraction 0.666667
 Created (or not) file tsl_Si_in_UnknownCompound.endf with fraction 0.333333
 
@@ -2018,5 +2040,14 @@ DUMPING endf dict end
 Files created:
   tsl_O_in_UnknownCompound.endf : O with fraction 2/3
   tsl_Si_in_UnknownCompound.endf : Si with fraction 1/3
+ncmat2endf fct returned:
+{'density': 2.648643089615,
+ 'files': [{'component': 'O',
+            'file': 'tsl_O_in_UnknownCompound.endf',
+            'fraction': 0.6666666666667},
+           {'component': 'Si',
+            'file': 'tsl_Si_in_UnknownCompound.endf',
+            'fraction': 0.3333333333333}],
+ 'temperature': [293.15, 400]}
 Created (or not) file tsl_O_in_UnknownCompound.endf with fraction 0.666667
 Created (or not) file tsl_Si_in_UnknownCompound.endf with fraction 0.333333

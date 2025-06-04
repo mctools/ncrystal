@@ -432,7 +432,9 @@ def generate_library(cfg):
     import os
 
     res = ncmat2endf.ncmat2endf(cfg, force=True)
-    endf_fn, frac = res[0]
+    assert len(res['files'])==1
+
+    endf_fn = res['files'][0]['file']
     assert endf_fn =='tsl_Al.endf'
 
     # Process ENDF-6 file into ACE file
