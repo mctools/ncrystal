@@ -42,8 +42,8 @@ def test_cfg( cfg, check_teff=False,
     print()
     print()
     print('-'*80)
-    if 'force_save' not in kwargs:
-        kwargs['force_save'] = True
+    if 'force' not in kwargs:
+        kwargs['force'] = True
     kwargs['ncmat_cfg']=cfg
     pprint.pprint(kwargs)
     temperatures = [nc_core.createInfo(cfg).dyninfos[0].temperature]

@@ -3,7 +3,7 @@
 
 --------------------------------------------------------------------------------
 {'endf_metadata': EndfMetaData({"ALAB": "MyLAB", "AUTH": "NCrystal", "LIBNAME": "MyLib", "NLIB": 0, "REFERENCE": "REFERENCE", "LREL": 0, "NVER": 1, "MATNUM": {"C": 37, "H": 38}, "ENDATE": "", "EDATE": "MMMYY", "DDATE": "MMMYY", "RDATE": "MMMYY"}),
- 'force_save': True,
+ 'force': True,
  'material_name': 'CH2',
  'ncmat_cfg': 'Polyethylene_CH2.ncmat;vdoslux=1'}
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#1]
@@ -11,7 +11,7 @@ Initialise nuclear data...
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): ENDF output will not contain a Bragg diffraction component [warn#2]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "H" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#3]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "C" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#4]
-Write ENDF file tsl_H_in_CH2.endf...
+Write ENDF file tsl_H_in_CH2.endf ...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 38, 'TAPEDESCR': 'Created with ncmat2endf'}}
   1 ->
@@ -79,50 +79,37 @@ DUMPING endf dict begin
               28 -> '                                                                  '
               29 -> 'Comments from NCMAT file:                                         '
               30 -> '                                                                  '
-              31 -> '                                                                  '
-              32 -> 'Polyethylene (PE).                                                '
-              33 -> '                                                                  '
-              34 -> 'Note: This file models amorphous polyethylene, and the density    '
-              35 -> 'value has been                                                    '
-              36 -> 'set as 0.92, but could vary up to 5% in a given material.         '
-              37 -> '                                                                  '
-              38 -> 'The VDOS curves were calculated using VASP DFT[1], with Phonopy[2]'
-              39 -> 'and                                                               '
-              40 -> 'OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics    '
-              41 -> 'group.  The                                                       '
-              42 -> 'calculation used an orthorombic unit cell with space group Pnma   '
-              43 -> '(62) (specific                                                    '
-              44 -> 'PE structure taken from [4]). and the calculation was done on     '
-              45 -> '3x5x9 k-point                                                     '
-              46 -> 'grid.                                                             '
-              47 -> '                                                                  '
-              48 -> 'The performance was validated against measurements (Granada-1987  '
-              49 -> 'and                                                               '
-              50 -> 'Lee-2020), and as an added sanity check it was verified that      '
-              51 -> 'results were                                                      '
-              52 -> 'consistent with a Polyethylene NCMAT file created with the        '
-              53 -> 'ncrystal_hfg2ncmat                                                '
-              54 -> 'command (i.e. the hydrogen VDOS was consistent with one derived   '
-              55 -> 'via the method                                                    '
-              56 -> 'of G. Romanelli et. al (2021), doi:10.1088/1361-648X/abfc13).     '
-              57 -> '                                                                  '
-              58 -> 'References:                                                       '
-              59 -> '[1]: G. Kresse and J. Furthm"uller, Phys. Rev. B 54 , 11 169      '
-              60 -> '(1996.)                                                           '
-              61 -> '[2]: "First principles phonon calculations in materials science", '
-              62 -> 'Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)        '
-              63 -> '[3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J.,      '
-              64 -> '"Calculation                                                      '
-              65 -> 'of the Thermal Neutron Scattering Cross-Section of Solids Using   '
-              66 -> 'OCLIMAX".                                                         '
-              67 -> 'Journal of Chemical Theory and Computation 2020, 16 (8),          '
-              68 -> '5212-5217.                                                        '
-              69 -> '[4]: "Materials Data on H2C (SG:62) by Materials Project"         '
-              70 -> 'Persson, Kristin (2016).DOI: 10.17188/1316749                     '
-              71 -> 'https://www.materialsproject.org/materials/mp-985782/             '
-              72 -> '                                                                  '
-              73 -> '******************************************************************'
-          'NWD' -> 78
+              31 -> 'Polyethylene (PE).                                                '
+              32 -> '                                                                  '
+              33 -> 'Note: This file models amorphous polyethylene, and the density    '
+              34 -> 'value has been set as 0.92, but could vary up to 5% in a given    '
+              35 -> 'material.                                                         '
+              36 -> '                                                                  '
+              37 -> 'The VDOS curves were calculated using VASP DFT[1], with Phonopy[2]'
+              38 -> 'and OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics'
+              39 -> 'group.  The calculation used an orthorombic unit cell with space  '
+              40 -> 'group Pnma (62) (specific PE structure taken from [4]). and the   '
+              41 -> 'calculation was done on 3x5x9 k-point grid.                       '
+              42 -> '                                                                  '
+              43 -> 'The performance was validated against measurements (Granada-1987  '
+              44 -> 'and Lee-2020), and as an added sanity check it was verified that  '
+              45 -> 'results were consistent with a Polyethylene NCMAT file created    '
+              46 -> 'with the ncrystal_hfg2ncmat command (i.e. the hydrogen VDOS was   '
+              47 -> 'consistent with one derived via the method of G. Romanelli et. al '
+              48 -> '(2021), doi:10.1088/1361-648X/abfc13).                            '
+              49 -> '                                                                  '
+              50 -> 'References: [1]: G. Kresse and J. Furthm"uller, Phys. Rev. B 54 , '
+              51 -> '11 169 (1996.) [2]: "First principles phonon calculations in      '
+              52 -> 'materials science", Atsushi Togo and Isao Tanaka, Scr. Mater.,    '
+              53 -> '108, 1-5 (2015) [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-    '
+              54 -> 'Cuesta, A. J., "Calculation of the Thermal Neutron Scattering     '
+              55 -> 'Cross-Section of Solids Using OCLIMAX". Journal of Chemical Theory'
+              56 -> 'and Computation 2020, 16 (8), 5212-5217. [4]: "Materials Data on  '
+              57 -> 'H2C (SG:62) by Materials Project" Persson, Kristin (2016).DOI:    '
+              58 -> '10.17188/1316749                                                  '
+              59 -> 'https://www.materialsproject.org/materials/mp-985782/             '
+              60 -> '******************************************************************'
+          'NWD' -> 65
           'MFx' -> {1: 1}
           'MTx' -> {1: 451}
           'NCx' -> {1: 5}
@@ -262,7 +249,7 @@ DUMPING endf dict begin
           'S' -> {}
           'teff0_table' -> {'Teff0': [1208.094190532], 'Tint': [293.15], 'NBT': [1], 'INT': [2]}
 DUMPING endf dict end
-Write ENDF file tsl_C_in_CH2.endf...
+Write ENDF file tsl_C_in_CH2.endf ...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 37, 'TAPEDESCR': 'Created with ncmat2endf'}}
   1 ->
@@ -330,50 +317,37 @@ DUMPING endf dict begin
               28 -> '                                                                  '
               29 -> 'Comments from NCMAT file:                                         '
               30 -> '                                                                  '
-              31 -> '                                                                  '
-              32 -> 'Polyethylene (PE).                                                '
-              33 -> '                                                                  '
-              34 -> 'Note: This file models amorphous polyethylene, and the density    '
-              35 -> 'value has been                                                    '
-              36 -> 'set as 0.92, but could vary up to 5% in a given material.         '
-              37 -> '                                                                  '
-              38 -> 'The VDOS curves were calculated using VASP DFT[1], with Phonopy[2]'
-              39 -> 'and                                                               '
-              40 -> 'OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics    '
-              41 -> 'group.  The                                                       '
-              42 -> 'calculation used an orthorombic unit cell with space group Pnma   '
-              43 -> '(62) (specific                                                    '
-              44 -> 'PE structure taken from [4]). and the calculation was done on     '
-              45 -> '3x5x9 k-point                                                     '
-              46 -> 'grid.                                                             '
-              47 -> '                                                                  '
-              48 -> 'The performance was validated against measurements (Granada-1987  '
-              49 -> 'and                                                               '
-              50 -> 'Lee-2020), and as an added sanity check it was verified that      '
-              51 -> 'results were                                                      '
-              52 -> 'consistent with a Polyethylene NCMAT file created with the        '
-              53 -> 'ncrystal_hfg2ncmat                                                '
-              54 -> 'command (i.e. the hydrogen VDOS was consistent with one derived   '
-              55 -> 'via the method                                                    '
-              56 -> 'of G. Romanelli et. al (2021), doi:10.1088/1361-648X/abfc13).     '
-              57 -> '                                                                  '
-              58 -> 'References:                                                       '
-              59 -> '[1]: G. Kresse and J. Furthm"uller, Phys. Rev. B 54 , 11 169      '
-              60 -> '(1996.)                                                           '
-              61 -> '[2]: "First principles phonon calculations in materials science", '
-              62 -> 'Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)        '
-              63 -> '[3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J.,      '
-              64 -> '"Calculation                                                      '
-              65 -> 'of the Thermal Neutron Scattering Cross-Section of Solids Using   '
-              66 -> 'OCLIMAX".                                                         '
-              67 -> 'Journal of Chemical Theory and Computation 2020, 16 (8),          '
-              68 -> '5212-5217.                                                        '
-              69 -> '[4]: "Materials Data on H2C (SG:62) by Materials Project"         '
-              70 -> 'Persson, Kristin (2016).DOI: 10.17188/1316749                     '
-              71 -> 'https://www.materialsproject.org/materials/mp-985782/             '
-              72 -> '                                                                  '
-              73 -> '******************************************************************'
-          'NWD' -> 78
+              31 -> 'Polyethylene (PE).                                                '
+              32 -> '                                                                  '
+              33 -> 'Note: This file models amorphous polyethylene, and the density    '
+              34 -> 'value has been set as 0.92, but could vary up to 5% in a given    '
+              35 -> 'material.                                                         '
+              36 -> '                                                                  '
+              37 -> 'The VDOS curves were calculated using VASP DFT[1], with Phonopy[2]'
+              38 -> 'and OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics'
+              39 -> 'group.  The calculation used an orthorombic unit cell with space  '
+              40 -> 'group Pnma (62) (specific PE structure taken from [4]). and the   '
+              41 -> 'calculation was done on 3x5x9 k-point grid.                       '
+              42 -> '                                                                  '
+              43 -> 'The performance was validated against measurements (Granada-1987  '
+              44 -> 'and Lee-2020), and as an added sanity check it was verified that  '
+              45 -> 'results were consistent with a Polyethylene NCMAT file created    '
+              46 -> 'with the ncrystal_hfg2ncmat command (i.e. the hydrogen VDOS was   '
+              47 -> 'consistent with one derived via the method of G. Romanelli et. al '
+              48 -> '(2021), doi:10.1088/1361-648X/abfc13).                            '
+              49 -> '                                                                  '
+              50 -> 'References: [1]: G. Kresse and J. Furthm"uller, Phys. Rev. B 54 , '
+              51 -> '11 169 (1996.) [2]: "First principles phonon calculations in      '
+              52 -> 'materials science", Atsushi Togo and Isao Tanaka, Scr. Mater.,    '
+              53 -> '108, 1-5 (2015) [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-    '
+              54 -> 'Cuesta, A. J., "Calculation of the Thermal Neutron Scattering     '
+              55 -> 'Cross-Section of Solids Using OCLIMAX". Journal of Chemical Theory'
+              56 -> 'and Computation 2020, 16 (8), 5212-5217. [4]: "Materials Data on  '
+              57 -> 'H2C (SG:62) by Materials Project" Persson, Kristin (2016).DOI:    '
+              58 -> '10.17188/1316749                                                  '
+              59 -> 'https://www.materialsproject.org/materials/mp-985782/             '
+              60 -> '******************************************************************'
+          'NWD' -> 65
           'MFx' -> {1: 1}
           'MTx' -> {1: 451}
           'NCx' -> {1: 5}

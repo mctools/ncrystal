@@ -13,14 +13,14 @@
                    'nver': 4,
                    'rdate': 'JUL01',
                    'reference': 'Aaaaaa, et al.'},
- 'force_save': True,
+ 'force': True,
  'include_gif': True,
  'ncmat_cfg': 'Si_sg227.ncmat;vdoslux=1;incoh_elas=false'}
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#1]
 Initialise nuclear data...
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): ENDF output will not contain any incoherent elastic component [warn#2]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Si" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#3]
-Write ENDF file tsl_Si.endf...
+Write ENDF file tsl_Si.endf ...
 Files created:
   tsl_Si.endf : Si with fraction 1
 Suggested material density: 2.329452891 g/cm^3
@@ -31,7 +31,7 @@ NCrystal WARNING: Discarding 1 edges of provided kernel data due to missing S va
 
 --------------------------------------------------------------------------------
 {'elastic_mode': 'scaled',
- 'force_save': True,
+ 'force': True,
  'include_gif': True,
  'ncmat_cfg': 'SiO2-alpha_sg154_AlphaQuartz.ncmat',
  'verbosity': 3}
@@ -48,7 +48,7 @@ Designated incoherent: Si
 >> Scaled elastic mode for O in compound: designated coherent atom, dividing by frac^2=0.4444444444444444
 >> Scaled elastic mode for Si in compound: incoherent
 > Generate MF7
-Write ENDF file tsl_O_in_UnknownCompound.endf...
+Write ENDF file tsl_O_in_UnknownCompound.endf ...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 999, 'TAPEDESCR': 'Created with ncmat2endf'}}
   1 ->
@@ -116,47 +116,38 @@ DUMPING endf dict begin
               28 -> '                                                                  '
               29 -> 'Comments from NCMAT file:                                         '
               30 -> '                                                                  '
-              31 -> '                                                                  '
-              32 -> 'Alpha-Quartz (SiO2, trigonal, SG-154 / P3_221)                    '
-              33 -> '                                                                  '
-              34 -> 'Under usual conditions this phase exists from 0 to 850K.          '
-              35 -> '                                                                  '
-              36 -> 'Structure converted with ncrystal_onlinedb2ncmat from:            '
-              37 -> '                                                                  '
-              38 -> '"State-of-the-art high-resolution powder x-ray diffraction        '
-              39 -> '(HRPXRD) illustrated with Rietveld structure refinement of        '
-              40 -> 'quartz, sodalite,  tremolite, and meionite"                       '
-              41 -> 'Antao, S. M., et al. (2008)                                       '
-              42 -> 'DOI: https://dx.doi.org/10.3749/canmin.46.5.1501                  '
-              43 -> 'Crystallography Open Database entry 9013321                       '
-              44 -> 'https://www.crystallography.net/cod/9013321.html                  '
-              45 -> '                                                                  '
-              46 -> 'This crystal structure is also compatible with structure obtained '
-              47 -> 'from:                                                             '
-              48 -> '                                                                  '
-              49 -> 'https://www.crystallography.net/cod/2100188.html                  '
-              50 -> 'https://www.crystallography.net/cod/5000035.html                  '
-              51 -> '                                                                  '
-              52 -> 'The VDOS curves were calculated using VASP DFT[1], with Phonopy[2]'
-              53 -> 'and                                                               '
-              54 -> 'OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics    '
-              55 -> 'group.                                                            '
-              56 -> '                                                                  '
-              57 -> 'References:                                                       '
-              58 -> '[1]: G. Kresse and J. Furthm"uller, Phys. Rev. B 54 , 11 169      '
-              59 -> '(1996.)                                                           '
-              60 -> '[2]: "First principles phonon calculations in materials science", '
-              61 -> 'Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)        '
-              62 -> '[3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J.,      '
-              63 -> '"Calculation                                                      '
-              64 -> 'of the Thermal Neutron Scattering Cross-Section of Solids Using   '
-              65 -> 'OCLIMAX".                                                         '
-              66 -> 'Journal of Chemical Theory and Computation 2020, 16 (8),          '
-              67 -> '5212-5217.                                                        '
-              68 -> '                                                                  '
-              69 -> '                                                                  '
-              70 -> '******************************************************************'
-          'NWD' -> 75
+              31 -> 'Alpha-Quartz (SiO2, trigonal, SG-154 / P3_221)                    '
+              32 -> '                                                                  '
+              33 -> 'Under usual conditions this phase exists from 0 to 850K.          '
+              34 -> '                                                                  '
+              35 -> 'Structure converted with ncrystal_onlinedb2ncmat from:            '
+              36 -> '                                                                  '
+              37 -> '"State-of-the-art high-resolution powder x-ray diffraction        '
+              38 -> '(HRPXRD) illustrated with Rietveld structure refinement of quartz,'
+              39 -> 'sodalite,  tremolite, and meionite" Antao, S. M., et al. (2008)   '
+              40 -> 'DOI: https://dx.doi.org/10.3749/canmin.46.5.1501 Crystallography  '
+              41 -> 'Open Database entry 9013321                                       '
+              42 -> 'https://www.crystallography.net/cod/9013321.html                  '
+              43 -> '                                                                  '
+              44 -> 'This crystal structure is also compatible with structure obtained '
+              45 -> 'from:                                                             '
+              46 -> '                                                                  '
+              47 -> 'https://www.crystallography.net/cod/2100188.html                  '
+              48 -> 'https://www.crystallography.net/cod/5000035.html                  '
+              49 -> '                                                                  '
+              50 -> 'The VDOS curves were calculated using VASP DFT[1], with Phonopy[2]'
+              51 -> 'and OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics'
+              52 -> 'group.                                                            '
+              53 -> '                                                                  '
+              54 -> 'References: [1]: G. Kresse and J. Furthm"uller, Phys. Rev. B 54 , '
+              55 -> '11 169 (1996.) [2]: "First principles phonon calculations in      '
+              56 -> 'materials science", Atsushi Togo and Isao Tanaka, Scr. Mater.,    '
+              57 -> '108, 1-5 (2015) [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-    '
+              58 -> 'Cuesta, A. J., "Calculation of the Thermal Neutron Scattering     '
+              59 -> 'Cross-Section of Solids Using OCLIMAX". Journal of Chemical Theory'
+              60 -> 'and Computation 2020, 16 (8), 5212-5217.                          '
+              61 -> '******************************************************************'
+          'NWD' -> 66
           'MFx' -> {1: 1}
           'MTx' -> {1: 451}
           'NCx' -> {1: 5}
@@ -329,7 +320,7 @@ DUMPING endf dict begin
           'AWRI' -> {1: {1: 15.861863003473815}}
 DUMPING endf dict end
 > Generate MF7
-Write ENDF file tsl_Si_in_UnknownCompound.endf...
+Write ENDF file tsl_Si_in_UnknownCompound.endf ...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 999, 'TAPEDESCR': 'Created with ncmat2endf'}}
   1 ->
@@ -397,47 +388,38 @@ DUMPING endf dict begin
               28 -> '                                                                  '
               29 -> 'Comments from NCMAT file:                                         '
               30 -> '                                                                  '
-              31 -> '                                                                  '
-              32 -> 'Alpha-Quartz (SiO2, trigonal, SG-154 / P3_221)                    '
-              33 -> '                                                                  '
-              34 -> 'Under usual conditions this phase exists from 0 to 850K.          '
-              35 -> '                                                                  '
-              36 -> 'Structure converted with ncrystal_onlinedb2ncmat from:            '
-              37 -> '                                                                  '
-              38 -> '"State-of-the-art high-resolution powder x-ray diffraction        '
-              39 -> '(HRPXRD) illustrated with Rietveld structure refinement of        '
-              40 -> 'quartz, sodalite,  tremolite, and meionite"                       '
-              41 -> 'Antao, S. M., et al. (2008)                                       '
-              42 -> 'DOI: https://dx.doi.org/10.3749/canmin.46.5.1501                  '
-              43 -> 'Crystallography Open Database entry 9013321                       '
-              44 -> 'https://www.crystallography.net/cod/9013321.html                  '
-              45 -> '                                                                  '
-              46 -> 'This crystal structure is also compatible with structure obtained '
-              47 -> 'from:                                                             '
-              48 -> '                                                                  '
-              49 -> 'https://www.crystallography.net/cod/2100188.html                  '
-              50 -> 'https://www.crystallography.net/cod/5000035.html                  '
-              51 -> '                                                                  '
-              52 -> 'The VDOS curves were calculated using VASP DFT[1], with Phonopy[2]'
-              53 -> 'and                                                               '
-              54 -> 'OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics    '
-              55 -> 'group.                                                            '
-              56 -> '                                                                  '
-              57 -> 'References:                                                       '
-              58 -> '[1]: G. Kresse and J. Furthm"uller, Phys. Rev. B 54 , 11 169      '
-              59 -> '(1996.)                                                           '
-              60 -> '[2]: "First principles phonon calculations in materials science", '
-              61 -> 'Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)        '
-              62 -> '[3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J.,      '
-              63 -> '"Calculation                                                      '
-              64 -> 'of the Thermal Neutron Scattering Cross-Section of Solids Using   '
-              65 -> 'OCLIMAX".                                                         '
-              66 -> 'Journal of Chemical Theory and Computation 2020, 16 (8),          '
-              67 -> '5212-5217.                                                        '
-              68 -> '                                                                  '
-              69 -> '                                                                  '
-              70 -> '******************************************************************'
-          'NWD' -> 75
+              31 -> 'Alpha-Quartz (SiO2, trigonal, SG-154 / P3_221)                    '
+              32 -> '                                                                  '
+              33 -> 'Under usual conditions this phase exists from 0 to 850K.          '
+              34 -> '                                                                  '
+              35 -> 'Structure converted with ncrystal_onlinedb2ncmat from:            '
+              36 -> '                                                                  '
+              37 -> '"State-of-the-art high-resolution powder x-ray diffraction        '
+              38 -> '(HRPXRD) illustrated with Rietveld structure refinement of quartz,'
+              39 -> 'sodalite,  tremolite, and meionite" Antao, S. M., et al. (2008)   '
+              40 -> 'DOI: https://dx.doi.org/10.3749/canmin.46.5.1501 Crystallography  '
+              41 -> 'Open Database entry 9013321                                       '
+              42 -> 'https://www.crystallography.net/cod/9013321.html                  '
+              43 -> '                                                                  '
+              44 -> 'This crystal structure is also compatible with structure obtained '
+              45 -> 'from:                                                             '
+              46 -> '                                                                  '
+              47 -> 'https://www.crystallography.net/cod/2100188.html                  '
+              48 -> 'https://www.crystallography.net/cod/5000035.html                  '
+              49 -> '                                                                  '
+              50 -> 'The VDOS curves were calculated using VASP DFT[1], with Phonopy[2]'
+              51 -> 'and OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics'
+              52 -> 'group.                                                            '
+              53 -> '                                                                  '
+              54 -> 'References: [1]: G. Kresse and J. Furthm"uller, Phys. Rev. B 54 , '
+              55 -> '11 169 (1996.) [2]: "First principles phonon calculations in      '
+              56 -> 'materials science", Atsushi Togo and Isao Tanaka, Scr. Mater.,    '
+              57 -> '108, 1-5 (2015) [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-    '
+              58 -> 'Cuesta, A. J., "Calculation of the Thermal Neutron Scattering     '
+              59 -> 'Cross-Section of Solids Using OCLIMAX". Journal of Chemical Theory'
+              60 -> 'and Computation 2020, 16 (8), 5212-5217.                          '
+              61 -> '******************************************************************'
+          'NWD' -> 66
           'MFx' -> {1: 1}
           'MTx' -> {1: 451}
           'NCx' -> {1: 5}
@@ -600,7 +582,7 @@ Created (or not) file tsl_Si_in_UnknownCompound.endf with fraction 0.333333
 
 --------------------------------------------------------------------------------
 {'elastic_mode': 'greater',
- 'force_save': True,
+ 'force': True,
  'include_gif': True,
  'ncmat_cfg': 'SiO2-alpha_sg154_AlphaQuartz.ncmat',
  'verbosity': 3}
@@ -616,7 +598,7 @@ Initialise nuclear data...
 >> Principal elastic mode for O: coherent
 >> Principal elastic mode for Si: coherent
 > Generate MF7
-Write ENDF file tsl_O_in_UnknownCompound.endf...
+Write ENDF file tsl_O_in_UnknownCompound.endf ...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 999, 'TAPEDESCR': 'Created with ncmat2endf'}}
   1 ->
@@ -684,47 +666,38 @@ DUMPING endf dict begin
               28 -> '                                                                  '
               29 -> 'Comments from NCMAT file:                                         '
               30 -> '                                                                  '
-              31 -> '                                                                  '
-              32 -> 'Alpha-Quartz (SiO2, trigonal, SG-154 / P3_221)                    '
-              33 -> '                                                                  '
-              34 -> 'Under usual conditions this phase exists from 0 to 850K.          '
-              35 -> '                                                                  '
-              36 -> 'Structure converted with ncrystal_onlinedb2ncmat from:            '
-              37 -> '                                                                  '
-              38 -> '"State-of-the-art high-resolution powder x-ray diffraction        '
-              39 -> '(HRPXRD) illustrated with Rietveld structure refinement of        '
-              40 -> 'quartz, sodalite,  tremolite, and meionite"                       '
-              41 -> 'Antao, S. M., et al. (2008)                                       '
-              42 -> 'DOI: https://dx.doi.org/10.3749/canmin.46.5.1501                  '
-              43 -> 'Crystallography Open Database entry 9013321                       '
-              44 -> 'https://www.crystallography.net/cod/9013321.html                  '
-              45 -> '                                                                  '
-              46 -> 'This crystal structure is also compatible with structure obtained '
-              47 -> 'from:                                                             '
-              48 -> '                                                                  '
-              49 -> 'https://www.crystallography.net/cod/2100188.html                  '
-              50 -> 'https://www.crystallography.net/cod/5000035.html                  '
-              51 -> '                                                                  '
-              52 -> 'The VDOS curves were calculated using VASP DFT[1], with Phonopy[2]'
-              53 -> 'and                                                               '
-              54 -> 'OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics    '
-              55 -> 'group.                                                            '
-              56 -> '                                                                  '
-              57 -> 'References:                                                       '
-              58 -> '[1]: G. Kresse and J. Furthm"uller, Phys. Rev. B 54 , 11 169      '
-              59 -> '(1996.)                                                           '
-              60 -> '[2]: "First principles phonon calculations in materials science", '
-              61 -> 'Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)        '
-              62 -> '[3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J.,      '
-              63 -> '"Calculation                                                      '
-              64 -> 'of the Thermal Neutron Scattering Cross-Section of Solids Using   '
-              65 -> 'OCLIMAX".                                                         '
-              66 -> 'Journal of Chemical Theory and Computation 2020, 16 (8),          '
-              67 -> '5212-5217.                                                        '
-              68 -> '                                                                  '
-              69 -> '                                                                  '
-              70 -> '******************************************************************'
-          'NWD' -> 75
+              31 -> 'Alpha-Quartz (SiO2, trigonal, SG-154 / P3_221)                    '
+              32 -> '                                                                  '
+              33 -> 'Under usual conditions this phase exists from 0 to 850K.          '
+              34 -> '                                                                  '
+              35 -> 'Structure converted with ncrystal_onlinedb2ncmat from:            '
+              36 -> '                                                                  '
+              37 -> '"State-of-the-art high-resolution powder x-ray diffraction        '
+              38 -> '(HRPXRD) illustrated with Rietveld structure refinement of quartz,'
+              39 -> 'sodalite,  tremolite, and meionite" Antao, S. M., et al. (2008)   '
+              40 -> 'DOI: https://dx.doi.org/10.3749/canmin.46.5.1501 Crystallography  '
+              41 -> 'Open Database entry 9013321                                       '
+              42 -> 'https://www.crystallography.net/cod/9013321.html                  '
+              43 -> '                                                                  '
+              44 -> 'This crystal structure is also compatible with structure obtained '
+              45 -> 'from:                                                             '
+              46 -> '                                                                  '
+              47 -> 'https://www.crystallography.net/cod/2100188.html                  '
+              48 -> 'https://www.crystallography.net/cod/5000035.html                  '
+              49 -> '                                                                  '
+              50 -> 'The VDOS curves were calculated using VASP DFT[1], with Phonopy[2]'
+              51 -> 'and OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics'
+              52 -> 'group.                                                            '
+              53 -> '                                                                  '
+              54 -> 'References: [1]: G. Kresse and J. Furthm"uller, Phys. Rev. B 54 , '
+              55 -> '11 169 (1996.) [2]: "First principles phonon calculations in      '
+              56 -> 'materials science", Atsushi Togo and Isao Tanaka, Scr. Mater.,    '
+              57 -> '108, 1-5 (2015) [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-    '
+              58 -> 'Cuesta, A. J., "Calculation of the Thermal Neutron Scattering     '
+              59 -> 'Cross-Section of Solids Using OCLIMAX". Journal of Chemical Theory'
+              60 -> 'and Computation 2020, 16 (8), 5212-5217.                          '
+              61 -> '******************************************************************'
+          'NWD' -> 66
           'MFx' -> {1: 1}
           'MTx' -> {1: 451}
           'NCx' -> {1: 5}
@@ -897,7 +870,7 @@ DUMPING endf dict begin
           'AWRI' -> {1: {1: 15.861863003473815}}
 DUMPING endf dict end
 > Generate MF7
-Write ENDF file tsl_Si_in_UnknownCompound.endf...
+Write ENDF file tsl_Si_in_UnknownCompound.endf ...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 999, 'TAPEDESCR': 'Created with ncmat2endf'}}
   1 ->
@@ -965,47 +938,38 @@ DUMPING endf dict begin
               28 -> '                                                                  '
               29 -> 'Comments from NCMAT file:                                         '
               30 -> '                                                                  '
-              31 -> '                                                                  '
-              32 -> 'Alpha-Quartz (SiO2, trigonal, SG-154 / P3_221)                    '
-              33 -> '                                                                  '
-              34 -> 'Under usual conditions this phase exists from 0 to 850K.          '
-              35 -> '                                                                  '
-              36 -> 'Structure converted with ncrystal_onlinedb2ncmat from:            '
-              37 -> '                                                                  '
-              38 -> '"State-of-the-art high-resolution powder x-ray diffraction        '
-              39 -> '(HRPXRD) illustrated with Rietveld structure refinement of        '
-              40 -> 'quartz, sodalite,  tremolite, and meionite"                       '
-              41 -> 'Antao, S. M., et al. (2008)                                       '
-              42 -> 'DOI: https://dx.doi.org/10.3749/canmin.46.5.1501                  '
-              43 -> 'Crystallography Open Database entry 9013321                       '
-              44 -> 'https://www.crystallography.net/cod/9013321.html                  '
-              45 -> '                                                                  '
-              46 -> 'This crystal structure is also compatible with structure obtained '
-              47 -> 'from:                                                             '
-              48 -> '                                                                  '
-              49 -> 'https://www.crystallography.net/cod/2100188.html                  '
-              50 -> 'https://www.crystallography.net/cod/5000035.html                  '
-              51 -> '                                                                  '
-              52 -> 'The VDOS curves were calculated using VASP DFT[1], with Phonopy[2]'
-              53 -> 'and                                                               '
-              54 -> 'OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics    '
-              55 -> 'group.                                                            '
-              56 -> '                                                                  '
-              57 -> 'References:                                                       '
-              58 -> '[1]: G. Kresse and J. Furthm"uller, Phys. Rev. B 54 , 11 169      '
-              59 -> '(1996.)                                                           '
-              60 -> '[2]: "First principles phonon calculations in materials science", '
-              61 -> 'Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)        '
-              62 -> '[3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J.,      '
-              63 -> '"Calculation                                                      '
-              64 -> 'of the Thermal Neutron Scattering Cross-Section of Solids Using   '
-              65 -> 'OCLIMAX".                                                         '
-              66 -> 'Journal of Chemical Theory and Computation 2020, 16 (8),          '
-              67 -> '5212-5217.                                                        '
-              68 -> '                                                                  '
-              69 -> '                                                                  '
-              70 -> '******************************************************************'
-          'NWD' -> 75
+              31 -> 'Alpha-Quartz (SiO2, trigonal, SG-154 / P3_221)                    '
+              32 -> '                                                                  '
+              33 -> 'Under usual conditions this phase exists from 0 to 850K.          '
+              34 -> '                                                                  '
+              35 -> 'Structure converted with ncrystal_onlinedb2ncmat from:            '
+              36 -> '                                                                  '
+              37 -> '"State-of-the-art high-resolution powder x-ray diffraction        '
+              38 -> '(HRPXRD) illustrated with Rietveld structure refinement of quartz,'
+              39 -> 'sodalite,  tremolite, and meionite" Antao, S. M., et al. (2008)   '
+              40 -> 'DOI: https://dx.doi.org/10.3749/canmin.46.5.1501 Crystallography  '
+              41 -> 'Open Database entry 9013321                                       '
+              42 -> 'https://www.crystallography.net/cod/9013321.html                  '
+              43 -> '                                                                  '
+              44 -> 'This crystal structure is also compatible with structure obtained '
+              45 -> 'from:                                                             '
+              46 -> '                                                                  '
+              47 -> 'https://www.crystallography.net/cod/2100188.html                  '
+              48 -> 'https://www.crystallography.net/cod/5000035.html                  '
+              49 -> '                                                                  '
+              50 -> 'The VDOS curves were calculated using VASP DFT[1], with Phonopy[2]'
+              51 -> 'and OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics'
+              52 -> 'group.                                                            '
+              53 -> '                                                                  '
+              54 -> 'References: [1]: G. Kresse and J. Furthm"uller, Phys. Rev. B 54 , '
+              55 -> '11 169 (1996.) [2]: "First principles phonon calculations in      '
+              56 -> 'materials science", Atsushi Togo and Isao Tanaka, Scr. Mater.,    '
+              57 -> '108, 1-5 (2015) [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-    '
+              58 -> 'Cuesta, A. J., "Calculation of the Thermal Neutron Scattering     '
+              59 -> 'Cross-Section of Solids Using OCLIMAX". Journal of Chemical Theory'
+              60 -> 'and Computation 2020, 16 (8), 5212-5217.                          '
+              61 -> '******************************************************************'
+          'NWD' -> 66
           'MFx' -> {1: 1}
           'MTx' -> {1: 451}
           'NCx' -> {1: 5}
@@ -1188,7 +1152,7 @@ Created (or not) file tsl_Si_in_UnknownCompound.endf with fraction 0.333333
 
 --------------------------------------------------------------------------------
 {'elastic_mode': 'greater',
- 'force_save': True,
+ 'force': True,
  'include_gif': True,
  'lasym': 3,
  'ncmat_cfg': 'SiO2-alpha_sg154_AlphaQuartz.ncmat',
@@ -1210,7 +1174,7 @@ Initialise nuclear data...
 >> Principal elastic mode for O: coherent
 >> Principal elastic mode for Si: coherent
 > Generate MF7
-Write ENDF file tsl_O_in_UnknownCompound.endf...
+Write ENDF file tsl_O_in_UnknownCompound.endf ...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 999, 'TAPEDESCR': 'Created with ncmat2endf'}}
   1 ->
@@ -1279,47 +1243,38 @@ DUMPING endf dict begin
               29 -> '                                                                  '
               30 -> 'Comments from NCMAT file:                                         '
               31 -> '                                                                  '
-              32 -> '                                                                  '
-              33 -> 'Alpha-Quartz (SiO2, trigonal, SG-154 / P3_221)                    '
-              34 -> '                                                                  '
-              35 -> 'Under usual conditions this phase exists from 0 to 850K.          '
-              36 -> '                                                                  '
-              37 -> 'Structure converted with ncrystal_onlinedb2ncmat from:            '
-              38 -> '                                                                  '
-              39 -> '"State-of-the-art high-resolution powder x-ray diffraction        '
-              40 -> '(HRPXRD) illustrated with Rietveld structure refinement of        '
-              41 -> 'quartz, sodalite,  tremolite, and meionite"                       '
-              42 -> 'Antao, S. M., et al. (2008)                                       '
-              43 -> 'DOI: https://dx.doi.org/10.3749/canmin.46.5.1501                  '
-              44 -> 'Crystallography Open Database entry 9013321                       '
-              45 -> 'https://www.crystallography.net/cod/9013321.html                  '
-              46 -> '                                                                  '
-              47 -> 'This crystal structure is also compatible with structure obtained '
-              48 -> 'from:                                                             '
-              49 -> '                                                                  '
-              50 -> 'https://www.crystallography.net/cod/2100188.html                  '
-              51 -> 'https://www.crystallography.net/cod/5000035.html                  '
-              52 -> '                                                                  '
-              53 -> 'The VDOS curves were calculated using VASP DFT[1], with Phonopy[2]'
-              54 -> 'and                                                               '
-              55 -> 'OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics    '
-              56 -> 'group.                                                            '
-              57 -> '                                                                  '
-              58 -> 'References:                                                       '
-              59 -> '[1]: G. Kresse and J. Furthm"uller, Phys. Rev. B 54 , 11 169      '
-              60 -> '(1996.)                                                           '
-              61 -> '[2]: "First principles phonon calculations in materials science", '
-              62 -> 'Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)        '
-              63 -> '[3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J.,      '
-              64 -> '"Calculation                                                      '
-              65 -> 'of the Thermal Neutron Scattering Cross-Section of Solids Using   '
-              66 -> 'OCLIMAX".                                                         '
-              67 -> 'Journal of Chemical Theory and Computation 2020, 16 (8),          '
-              68 -> '5212-5217.                                                        '
-              69 -> '                                                                  '
-              70 -> '                                                                  '
-              71 -> '******************************************************************'
-          'NWD' -> 76
+              32 -> 'Alpha-Quartz (SiO2, trigonal, SG-154 / P3_221)                    '
+              33 -> '                                                                  '
+              34 -> 'Under usual conditions this phase exists from 0 to 850K.          '
+              35 -> '                                                                  '
+              36 -> 'Structure converted with ncrystal_onlinedb2ncmat from:            '
+              37 -> '                                                                  '
+              38 -> '"State-of-the-art high-resolution powder x-ray diffraction        '
+              39 -> '(HRPXRD) illustrated with Rietveld structure refinement of quartz,'
+              40 -> 'sodalite,  tremolite, and meionite" Antao, S. M., et al. (2008)   '
+              41 -> 'DOI: https://dx.doi.org/10.3749/canmin.46.5.1501 Crystallography  '
+              42 -> 'Open Database entry 9013321                                       '
+              43 -> 'https://www.crystallography.net/cod/9013321.html                  '
+              44 -> '                                                                  '
+              45 -> 'This crystal structure is also compatible with structure obtained '
+              46 -> 'from:                                                             '
+              47 -> '                                                                  '
+              48 -> 'https://www.crystallography.net/cod/2100188.html                  '
+              49 -> 'https://www.crystallography.net/cod/5000035.html                  '
+              50 -> '                                                                  '
+              51 -> 'The VDOS curves were calculated using VASP DFT[1], with Phonopy[2]'
+              52 -> 'and OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics'
+              53 -> 'group.                                                            '
+              54 -> '                                                                  '
+              55 -> 'References: [1]: G. Kresse and J. Furthm"uller, Phys. Rev. B 54 , '
+              56 -> '11 169 (1996.) [2]: "First principles phonon calculations in      '
+              57 -> 'materials science", Atsushi Togo and Isao Tanaka, Scr. Mater.,    '
+              58 -> '108, 1-5 (2015) [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-    '
+              59 -> 'Cuesta, A. J., "Calculation of the Thermal Neutron Scattering     '
+              60 -> 'Cross-Section of Solids Using OCLIMAX". Journal of Chemical Theory'
+              61 -> 'and Computation 2020, 16 (8), 5212-5217.                          '
+              62 -> '******************************************************************'
+          'NWD' -> 67
           'MFx' -> {1: 1}
           'MTx' -> {1: 451}
           'NCx' -> {1: 5}
@@ -1640,7 +1595,7 @@ DUMPING endf dict begin
           'AWRI' -> {1: {1: 15.861863003473815}}
 DUMPING endf dict end
 > Generate MF7
-Write ENDF file tsl_Si_in_UnknownCompound.endf...
+Write ENDF file tsl_Si_in_UnknownCompound.endf ...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 999, 'TAPEDESCR': 'Created with ncmat2endf'}}
   1 ->
@@ -1709,47 +1664,38 @@ DUMPING endf dict begin
               29 -> '                                                                  '
               30 -> 'Comments from NCMAT file:                                         '
               31 -> '                                                                  '
-              32 -> '                                                                  '
-              33 -> 'Alpha-Quartz (SiO2, trigonal, SG-154 / P3_221)                    '
-              34 -> '                                                                  '
-              35 -> 'Under usual conditions this phase exists from 0 to 850K.          '
-              36 -> '                                                                  '
-              37 -> 'Structure converted with ncrystal_onlinedb2ncmat from:            '
-              38 -> '                                                                  '
-              39 -> '"State-of-the-art high-resolution powder x-ray diffraction        '
-              40 -> '(HRPXRD) illustrated with Rietveld structure refinement of        '
-              41 -> 'quartz, sodalite,  tremolite, and meionite"                       '
-              42 -> 'Antao, S. M., et al. (2008)                                       '
-              43 -> 'DOI: https://dx.doi.org/10.3749/canmin.46.5.1501                  '
-              44 -> 'Crystallography Open Database entry 9013321                       '
-              45 -> 'https://www.crystallography.net/cod/9013321.html                  '
-              46 -> '                                                                  '
-              47 -> 'This crystal structure is also compatible with structure obtained '
-              48 -> 'from:                                                             '
-              49 -> '                                                                  '
-              50 -> 'https://www.crystallography.net/cod/2100188.html                  '
-              51 -> 'https://www.crystallography.net/cod/5000035.html                  '
-              52 -> '                                                                  '
-              53 -> 'The VDOS curves were calculated using VASP DFT[1], with Phonopy[2]'
-              54 -> 'and                                                               '
-              55 -> 'OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics    '
-              56 -> 'group.                                                            '
-              57 -> '                                                                  '
-              58 -> 'References:                                                       '
-              59 -> '[1]: G. Kresse and J. Furthm"uller, Phys. Rev. B 54 , 11 169      '
-              60 -> '(1996.)                                                           '
-              61 -> '[2]: "First principles phonon calculations in materials science", '
-              62 -> 'Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)        '
-              63 -> '[3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J.,      '
-              64 -> '"Calculation                                                      '
-              65 -> 'of the Thermal Neutron Scattering Cross-Section of Solids Using   '
-              66 -> 'OCLIMAX".                                                         '
-              67 -> 'Journal of Chemical Theory and Computation 2020, 16 (8),          '
-              68 -> '5212-5217.                                                        '
-              69 -> '                                                                  '
-              70 -> '                                                                  '
-              71 -> '******************************************************************'
-          'NWD' -> 76
+              32 -> 'Alpha-Quartz (SiO2, trigonal, SG-154 / P3_221)                    '
+              33 -> '                                                                  '
+              34 -> 'Under usual conditions this phase exists from 0 to 850K.          '
+              35 -> '                                                                  '
+              36 -> 'Structure converted with ncrystal_onlinedb2ncmat from:            '
+              37 -> '                                                                  '
+              38 -> '"State-of-the-art high-resolution powder x-ray diffraction        '
+              39 -> '(HRPXRD) illustrated with Rietveld structure refinement of quartz,'
+              40 -> 'sodalite,  tremolite, and meionite" Antao, S. M., et al. (2008)   '
+              41 -> 'DOI: https://dx.doi.org/10.3749/canmin.46.5.1501 Crystallography  '
+              42 -> 'Open Database entry 9013321                                       '
+              43 -> 'https://www.crystallography.net/cod/9013321.html                  '
+              44 -> '                                                                  '
+              45 -> 'This crystal structure is also compatible with structure obtained '
+              46 -> 'from:                                                             '
+              47 -> '                                                                  '
+              48 -> 'https://www.crystallography.net/cod/2100188.html                  '
+              49 -> 'https://www.crystallography.net/cod/5000035.html                  '
+              50 -> '                                                                  '
+              51 -> 'The VDOS curves were calculated using VASP DFT[1], with Phonopy[2]'
+              52 -> 'and OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics'
+              53 -> 'group.                                                            '
+              54 -> '                                                                  '
+              55 -> 'References: [1]: G. Kresse and J. Furthm"uller, Phys. Rev. B 54 , '
+              56 -> '11 169 (1996.) [2]: "First principles phonon calculations in      '
+              57 -> 'materials science", Atsushi Togo and Isao Tanaka, Scr. Mater.,    '
+              58 -> '108, 1-5 (2015) [3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-    '
+              59 -> 'Cuesta, A. J., "Calculation of the Thermal Neutron Scattering     '
+              60 -> 'Cross-Section of Solids Using OCLIMAX". Journal of Chemical Theory'
+              61 -> 'and Computation 2020, 16 (8), 5212-5217.                          '
+              62 -> '******************************************************************'
+          'NWD' -> 67
           'MFx' -> {1: 1}
           'MTx' -> {1: 451}
           'NCx' -> {1: 5}

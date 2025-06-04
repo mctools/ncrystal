@@ -274,7 +274,7 @@ def _main_impl( args ):
                 endf_metadata = metadata,
                 othertemps = args.othertemps,
                 elastic_mode = args.elas,
-                force_save = args.force,
+                force = args.force,
                 smin = args.smin,
                 emax = args.emax,
                 lasym = lasym,

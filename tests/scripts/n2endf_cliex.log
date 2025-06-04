@@ -1,7 +1,7 @@
 ============= CLI >>'Al_sg225.ncmat;temp=350K;vdoslux=0'<< ====================
 Initialise nuclear data...
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=0.5eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#1]
-Write ENDF file tsl_Al.endf...
+Write ENDF file tsl_Al.endf ...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 999, 'TAPEDESCR': 'Created with ncmat2endf'}}
   1 ->
@@ -69,36 +69,32 @@ DUMPING endf dict begin
               28 -> '                                                                  '
               29 -> 'Comments from NCMAT file:                                         '
               30 -> '                                                                  '
-              31 -> '                                                                  '
-              32 -> 'Aluminium (Al, fcc, cubic, SG-225 / Fm-3m)                        '
-              33 -> '                                                                  '
-              34 -> 'Under usual conditions this phase exists from 0 to 933K.          '
-              35 -> '                                                                  '
-              36 -> 'Structure converted with ncrystal_onlinedb2ncmat from:            '
-              37 -> '                                                                  '
-              38 -> '"Second edition. Interscience Publishers,                         '
-              39 -> 'New York, Cubic closest packed, ccp, structure"                   '
-              40 -> 'Wyckoff R W G (1963)                                              '
-              41 -> 'Crystallography Open Database entry 9008460                       '
-              42 -> 'https://www.crystallography.net/cod/9008460.html                  '
-              43 -> '                                                                  '
-              44 -> 'This crystal structure is also compatible with structure obtained '
-              45 -> 'from:                                                             '
-              46 -> '                                                                  '
-              47 -> 'https://www.crystallography.net/cod/9012428.html                  '
-              48 -> 'https://www.crystallography.net/cod/9011602.html                  '
-              49 -> 'https://www.crystallography.net/cod/9012002.html                  '
-              50 -> '                                                                  '
-              51 -> 'The VDOS curve was extracted by T. Kittelmann using the engauge   '
-              52 -> 'digitizer                                                         '
-              53 -> 'software from Figure 1 of:                                        '
-              54 -> '                                                                  '
-              55 -> '"First principles phonon calculations in materials science"       '
-              56 -> 'A. Togo and I. Tanaka, Scripta Materialia 108 (2015) 1-5          '
-              57 -> 'https://doi.org/10.1016/j.scriptamat.2015.07.021                  '
-              58 -> '                                                                  '
-              59 -> '******************************************************************'
-          'NWD' -> 64
+              31 -> 'Aluminium (Al, fcc, cubic, SG-225 / Fm-3m)                        '
+              32 -> '                                                                  '
+              33 -> 'Under usual conditions this phase exists from 0 to 933K.          '
+              34 -> '                                                                  '
+              35 -> 'Structure converted with ncrystal_onlinedb2ncmat from:            '
+              36 -> '                                                                  '
+              37 -> '"Second edition. Interscience Publishers, New York, Cubic closest '
+              38 -> 'packed, ccp, structure" Wyckoff R W G (1963) Crystallography Open '
+              39 -> 'Database entry 9008460                                            '
+              40 -> 'https://www.crystallography.net/cod/9008460.html                  '
+              41 -> '                                                                  '
+              42 -> 'This crystal structure is also compatible with structure obtained '
+              43 -> 'from:                                                             '
+              44 -> '                                                                  '
+              45 -> 'https://www.crystallography.net/cod/9012428.html                  '
+              46 -> 'https://www.crystallography.net/cod/9011602.html                  '
+              47 -> 'https://www.crystallography.net/cod/9012002.html                  '
+              48 -> '                                                                  '
+              49 -> 'The VDOS curve was extracted by T. Kittelmann using the engauge   '
+              50 -> 'digitizer software from Figure 1 of:                              '
+              51 -> '                                                                  '
+              52 -> '"First principles phonon calculations in materials science" A.    '
+              53 -> 'Togo and I. Tanaka, Scripta Materialia 108 (2015) 1-5             '
+              54 -> 'https://doi.org/10.1016/j.scriptamat.2015.07.021                  '
+              55 -> '******************************************************************'
+          'NWD' -> 60
           'MFx' -> {1: 1}
           'MTx' -> {1: 451}
           'NCx' -> {1: 5}
@@ -265,7 +261,7 @@ Suggested material density: 2.698645518 g/cm^3
 ============= CLI >>'Si_sg227.ncmat;temp=293.6K;vdoslux=0' -m MATNUM:Si:99 --now<< ====================
 Initialise nuclear data...
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Si" would normally cover energies up to Emax=0.5eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#2]
-Write ENDF file tsl_Si.endf...
+Write ENDF file tsl_Si.endf ...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 99, 'TAPEDESCR': 'Created with ncmat2endf'}}
   1 ->
@@ -333,26 +329,21 @@ DUMPING endf dict begin
               28 -> '                                                                  '
               29 -> 'Comments from NCMAT file:                                         '
               30 -> '                                                                  '
-              31 -> '                                                                  '
-              32 -> 'Silicon (diamond-like structure)                                  '
-              33 -> '                                                                  '
-              34 -> 'Crystal structure was converted from the cif file of the entry    '
-              35 -> '0011243 in the AMCSD.                                             '
-              36 -> 'Additional reference: Wyckoff R W G, Crystal Structures, vol. 1,  '
-              37 -> 'p. 7-83, 1963.                                                    '
-              38 -> 'https://www.crystallography.net/cod/9008565.html                  '
-              39 -> '                                                                  '
-              40 -> 'The VDOS curve was extracted by T. Kittelmann using the engauge   '
-              41 -> 'digitizer                                                         '
-              42 -> 'software from Figure 6 of:                                        '
-              43 -> '                                                                  '
-              44 -> '"Thermal Expansion Anomaly Regulated by Entropy"                  '
-              45 -> 'Liu, Z., Wang, Y. & Shang, S.                                     '
-              46 -> 'Sci Rep 4, 7043 (2015).                                           '
-              47 -> 'https://doi.org/10.1038/srep07043                                 '
-              48 -> '                                                                  '
-              49 -> '******************************************************************'
-          'NWD' -> 54
+              31 -> 'Silicon (diamond-like structure)                                  '
+              32 -> '                                                                  '
+              33 -> 'Crystal structure was converted from the cif file of the entry    '
+              34 -> '0011243 in the AMCSD. Additional reference: Wyckoff R W G, Crystal'
+              35 -> 'Structures, vol. 1, p. 7-83, 1963.                                '
+              36 -> 'https://www.crystallography.net/cod/9008565.html                  '
+              37 -> '                                                                  '
+              38 -> 'The VDOS curve was extracted by T. Kittelmann using the engauge   '
+              39 -> 'digitizer software from Figure 6 of:                              '
+              40 -> '                                                                  '
+              41 -> '"Thermal Expansion Anomaly Regulated by Entropy" Liu, Z., Wang, Y.'
+              42 -> '& Shang, S. Sci Rep 4, 7043 (2015).                               '
+              43 -> 'https://doi.org/10.1038/srep07043                                 '
+              44 -> '******************************************************************'
+          'NWD' -> 49
           'MFx' -> {1: 1}
           'MTx' -> {1: 451}
           'NCx' -> {1: 5}
@@ -520,7 +511,7 @@ Suggested material density: 2.329452891 g/cm^3
 Initialise nuclear data...
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "O" would normally cover energies up to Emax=0.5eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#3]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Zn" would normally cover energies up to Emax=0.5eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#4]
-Write ENDF file tsl_O_in_ZnO.endf...
+Write ENDF file tsl_O_in_ZnO.endf ...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 102, 'TAPEDESCR': 'Created with ncmat2endf'}}
   1 ->
@@ -588,42 +579,34 @@ DUMPING endf dict begin
               28 -> '                                                                  '
               29 -> 'Comments from NCMAT file:                                         '
               30 -> '                                                                  '
-              31 -> '                                                                  '
-              32 -> 'Zinc Oxide (ZnO, hexagonal, SG-186 / P6_3mc)                      '
-              33 -> '                                                                  '
-              34 -> 'Valid temperatures for this structure are 0 to 2200 K.            '
-              35 -> '                                                                  '
-              36 -> 'Structure converted with ncrystal_onlinedb2ncmat from:            '
-              37 -> '                                                                  '
-              38 -> '"Anharmonic thermal vibrations in ZnO  Model: 2-c, at T = 473 K"  '
-              39 -> 'Kihara, K. and Donnay, G. (1985)                                  '
-              40 -> 'Crystallography Open Database entry 9004179                       '
-              41 -> 'https://www.crystallography.net/cod/9004179.html                  '
-              42 -> '                                                                  '
-              43 -> 'This crystal structure is also compatible with structure obtained '
-              44 -> 'from                                                              '
-              45 -> 'https://www.materialsproject.org/materials/mp-2133                '
-              46 -> '                                                                  '
-              47 -> 'The VDOS curves were calculated using Phonopy[1] input files      '
-              48 -> 'from[2] and                                                       '
-              49 -> 'OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics    '
-              50 -> 'group.                                                            '
-              51 -> '                                                                  '
-              52 -> 'References:                                                       '
-              53 -> '[1]: "First principles phonon calculations in materials science", '
-              54 -> 'Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)        '
-              55 -> '[2]: Kyoto University database of phonon calculations.            '
-              56 -> 'Files for ZnO taken from:                                         '
-              57 -> 'http://phonondb.mtl.kyoto-u.ac.jp/ph20180417/d002/mp-2133.html    '
-              58 -> '[3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J.,      '
-              59 -> '"Calculation                                                      '
-              60 -> 'of the Thermal Neutron Scattering Cross-Section of Solids Using   '
-              61 -> 'OCLIMAX".                                                         '
-              62 -> 'Journal of Chemical Theory and Computation 2020, 16 (8),          '
-              63 -> '5212-5217.                                                        '
-              64 -> '                                                                  '
-              65 -> '******************************************************************'
-          'NWD' -> 70
+              31 -> 'Zinc Oxide (ZnO, hexagonal, SG-186 / P6_3mc)                      '
+              32 -> '                                                                  '
+              33 -> 'Valid temperatures for this structure are 0 to 2200 K.            '
+              34 -> '                                                                  '
+              35 -> 'Structure converted with ncrystal_onlinedb2ncmat from:            '
+              36 -> '                                                                  '
+              37 -> '"Anharmonic thermal vibrations in ZnO  Model: 2-c, at T = 473 K"  '
+              38 -> 'Kihara, K. and Donnay, G. (1985) Crystallography Open Database    '
+              39 -> 'entry 9004179 https://www.crystallography.net/cod/9004179.html    '
+              40 -> '                                                                  '
+              41 -> 'This crystal structure is also compatible with structure obtained '
+              42 -> 'from https://www.materialsproject.org/materials/mp-2133           '
+              43 -> '                                                                  '
+              44 -> 'The VDOS curves were calculated using Phonopy[1] input files      '
+              45 -> 'from[2] and OCLIMAX[3] software by Kemal Ramic from ESS Spallation'
+              46 -> 'Physics group.                                                    '
+              47 -> '                                                                  '
+              48 -> 'References: [1]: "First principles phonon calculations in         '
+              49 -> 'materials science", Atsushi Togo and Isao Tanaka, Scr. Mater.,    '
+              50 -> '108, 1-5 (2015) [2]: Kyoto University database of phonon          '
+              51 -> 'calculations. Files for ZnO taken from:                           '
+              52 -> 'http://phonondb.mtl.kyoto-u.ac.jp/ph20180417/d002/mp-2133.html    '
+              53 -> '[3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J.,      '
+              54 -> '"Calculation of the Thermal Neutron Scattering Cross-Section of   '
+              55 -> 'Solids Using OCLIMAX". Journal of Chemical Theory and Computation '
+              56 -> '2020, 16 (8), 5212-5217.                                          '
+              57 -> '******************************************************************'
+          'NWD' -> 62
           'MFx' -> {1: 1}
           'MTx' -> {1: 451}
           'NCx' -> {1: 5}
@@ -783,7 +766,7 @@ DUMPING endf dict begin
           'S' -> {}
           'teff0_table' -> {'Teff0': [405.1226110813], 'Tint': [293.15], 'NBT': [1], 'INT': [2]}
 DUMPING endf dict end
-Write ENDF file tsl_Zn_in_ZnO.endf...
+Write ENDF file tsl_Zn_in_ZnO.endf ...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 101, 'TAPEDESCR': 'Created with ncmat2endf'}}
   1 ->
@@ -851,42 +834,34 @@ DUMPING endf dict begin
               28 -> '                                                                  '
               29 -> 'Comments from NCMAT file:                                         '
               30 -> '                                                                  '
-              31 -> '                                                                  '
-              32 -> 'Zinc Oxide (ZnO, hexagonal, SG-186 / P6_3mc)                      '
-              33 -> '                                                                  '
-              34 -> 'Valid temperatures for this structure are 0 to 2200 K.            '
-              35 -> '                                                                  '
-              36 -> 'Structure converted with ncrystal_onlinedb2ncmat from:            '
-              37 -> '                                                                  '
-              38 -> '"Anharmonic thermal vibrations in ZnO  Model: 2-c, at T = 473 K"  '
-              39 -> 'Kihara, K. and Donnay, G. (1985)                                  '
-              40 -> 'Crystallography Open Database entry 9004179                       '
-              41 -> 'https://www.crystallography.net/cod/9004179.html                  '
-              42 -> '                                                                  '
-              43 -> 'This crystal structure is also compatible with structure obtained '
-              44 -> 'from                                                              '
-              45 -> 'https://www.materialsproject.org/materials/mp-2133                '
-              46 -> '                                                                  '
-              47 -> 'The VDOS curves were calculated using Phonopy[1] input files      '
-              48 -> 'from[2] and                                                       '
-              49 -> 'OCLIMAX[3] software by Kemal Ramic from ESS Spallation Physics    '
-              50 -> 'group.                                                            '
-              51 -> '                                                                  '
-              52 -> 'References:                                                       '
-              53 -> '[1]: "First principles phonon calculations in materials science", '
-              54 -> 'Atsushi Togo and Isao Tanaka, Scr. Mater., 108, 1-5 (2015)        '
-              55 -> '[2]: Kyoto University database of phonon calculations.            '
-              56 -> 'Files for ZnO taken from:                                         '
-              57 -> 'http://phonondb.mtl.kyoto-u.ac.jp/ph20180417/d002/mp-2133.html    '
-              58 -> '[3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J.,      '
-              59 -> '"Calculation                                                      '
-              60 -> 'of the Thermal Neutron Scattering Cross-Section of Solids Using   '
-              61 -> 'OCLIMAX".                                                         '
-              62 -> 'Journal of Chemical Theory and Computation 2020, 16 (8),          '
-              63 -> '5212-5217.                                                        '
-              64 -> '                                                                  '
-              65 -> '******************************************************************'
-          'NWD' -> 70
+              31 -> 'Zinc Oxide (ZnO, hexagonal, SG-186 / P6_3mc)                      '
+              32 -> '                                                                  '
+              33 -> 'Valid temperatures for this structure are 0 to 2200 K.            '
+              34 -> '                                                                  '
+              35 -> 'Structure converted with ncrystal_onlinedb2ncmat from:            '
+              36 -> '                                                                  '
+              37 -> '"Anharmonic thermal vibrations in ZnO  Model: 2-c, at T = 473 K"  '
+              38 -> 'Kihara, K. and Donnay, G. (1985) Crystallography Open Database    '
+              39 -> 'entry 9004179 https://www.crystallography.net/cod/9004179.html    '
+              40 -> '                                                                  '
+              41 -> 'This crystal structure is also compatible with structure obtained '
+              42 -> 'from https://www.materialsproject.org/materials/mp-2133           '
+              43 -> '                                                                  '
+              44 -> 'The VDOS curves were calculated using Phonopy[1] input files      '
+              45 -> 'from[2] and OCLIMAX[3] software by Kemal Ramic from ESS Spallation'
+              46 -> 'Physics group.                                                    '
+              47 -> '                                                                  '
+              48 -> 'References: [1]: "First principles phonon calculations in         '
+              49 -> 'materials science", Atsushi Togo and Isao Tanaka, Scr. Mater.,    '
+              50 -> '108, 1-5 (2015) [2]: Kyoto University database of phonon          '
+              51 -> 'calculations. Files for ZnO taken from:                           '
+              52 -> 'http://phonondb.mtl.kyoto-u.ac.jp/ph20180417/d002/mp-2133.html    '
+              53 -> '[3]: Cheng, Y. Q.; Kolesnikov, A. I.; Ramirez-Cuesta, A. J.,      '
+              54 -> '"Calculation of the Thermal Neutron Scattering Cross-Section of   '
+              55 -> 'Solids Using OCLIMAX". Journal of Chemical Theory and Computation '
+              56 -> '2020, 16 (8), 5212-5217.                                          '
+              57 -> '******************************************************************'
+          'NWD' -> 62
           'MFx' -> {1: 1}
           'MTx' -> {1: 451}
           'NCx' -> {1: 5}
@@ -1037,7 +1012,7 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): ENDF output will not contain a Bra
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): ENDF output will not contain any incoherent elastic component [warn#6]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Bi" would normally cover energies up to Emax=0.5eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#7]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): No coherent elastic data or incoherent elastic data found: only inelastic data will be written [warn#8]
-Write ENDF file tsl_Bi.endf...
+Write ENDF file tsl_Bi.endf ...
 DUMPING endf dict begin
   0 -> {0: {'MAT': 999, 'TAPEDESCR': 'Created with ncmat2endf'}}
   1 ->
@@ -1110,44 +1085,38 @@ DUMPING endf dict begin
               33 -> '                                                                  '
               34 -> 'Comments from NCMAT file:                                         '
               35 -> '                                                                  '
-              36 -> '                                                                  '
-              37 -> 'Bismuth (Bi, trigonal, SG-166 / R-3m)                             '
-              38 -> '                                                                  '
-              39 -> 'Under usual conditions this phase exists from 0 to 500K.          '
-              40 -> '                                                                  '
-              41 -> 'Structure converted with ncrystal_onlinedb2ncmat from:            '
-              42 -> '                                                                  '
-              43 -> '"The crystal structure of Bi and of solid solutions               '
-              44 -> 'of Pb, Sn, Sb and Te in Bi"                                       '
-              45 -> 'Cucka, P. and Barrett, C.S.                                       '
-              46 -> 'Acta Cryst. (1962). 15, 865-872                                   '
-              47 -> 'DOI: https://doi.org/10.1107/S0365110X62002297                    '
-              48 -> 'Crystallography Open Database entry 2310889                       '
-              49 -> 'https://www.crystallography.net/cod/2310889.html                  '
+              36 -> 'Bismuth (Bi, trigonal, SG-166 / R-3m)                             '
+              37 -> '                                                                  '
+              38 -> 'Under usual conditions this phase exists from 0 to 500K.          '
+              39 -> '                                                                  '
+              40 -> 'Structure converted with ncrystal_onlinedb2ncmat from:            '
+              41 -> '                                                                  '
+              42 -> '"The crystal structure of Bi and of solid solutions of Pb, Sn, Sb '
+              43 -> 'and Te in Bi" Cucka, P. and Barrett, C.S. Acta Cryst. (1962). 15, '
+              44 -> '865-872 DOI: https://doi.org/10.1107/S0365110X62002297            '
+              45 -> 'Crystallography Open Database entry 2310889                       '
+              46 -> 'https://www.crystallography.net/cod/2310889.html                  '
+              47 -> '                                                                  '
+              48 -> 'This crystal structure is also compatible with structures obtained'
+              49 -> 'from:                                                             '
               50 -> '                                                                  '
-              51 -> 'This crystal structure is also compatible with structures obtained'
-              52 -> 'from:                                                             '
-              53 -> '                                                                  '
-              54 -> 'https://www.crystallography.net/cod/5000215.html                  '
-              55 -> 'https://www.crystallography.net/cod/7123351.html                  '
-              56 -> 'https://www.crystallography.net/cod/7123352.html                  '
-              57 -> 'https://www.crystallography.net/cod/9008576.html                  '
-              58 -> '                                                                  '
-              59 -> 'Note that while https://www.materialsproject.org/ seems to contain'
-              60 -> 'many                                                              '
-              61 -> 'Bismuth structures, they are mutually incompatible and none seem  '
-              62 -> 'to be                                                             '
-              63 -> 'compatible with the crystal structure here.                       '
-              64 -> '                                                                  '
-              65 -> 'Reference for VDOS curve:                                         '
-              66 -> '                                                                  '
-              67 -> '"Evaluation of coherent and incoherent thermal neutron            '
-              68 -> 'scattering cross-sections for polycrystalline bismuth"            '
-              69 -> 'Keinert, J. , Kaefer, S., Mattes, M.                              '
-              70 -> 'Kerntechnik (1987), ISSN 0932-3902, v. 57(4), p. 233-236          '
-              71 -> '                                                                  '
-              72 -> '******************************************************************'
-          'NWD' -> 77
+              51 -> 'https://www.crystallography.net/cod/5000215.html                  '
+              52 -> 'https://www.crystallography.net/cod/7123351.html                  '
+              53 -> 'https://www.crystallography.net/cod/7123352.html                  '
+              54 -> 'https://www.crystallography.net/cod/9008576.html                  '
+              55 -> '                                                                  '
+              56 -> 'Note that while https://www.materialsproject.org/ seems to contain'
+              57 -> 'many Bismuth structures, they are mutually incompatible and none  '
+              58 -> 'seem to be compatible with the crystal structure here.            '
+              59 -> '                                                                  '
+              60 -> 'Reference for VDOS curve:                                         '
+              61 -> '                                                                  '
+              62 -> '"Evaluation of coherent and incoherent thermal neutron scattering '
+              63 -> 'cross-sections for polycrystalline bismuth" Keinert, J. , Kaefer, '
+              64 -> 'S., Mattes, M. Kerntechnik (1987), ISSN 0932-3902, v. 57(4), p.   '
+              65 -> '233-236                                                           '
+              66 -> '******************************************************************'
+          'NWD' -> 71
           'MFx' -> {1: 1}
           'MTx' -> {1: 451}
           'NCx' -> {1: 5}
