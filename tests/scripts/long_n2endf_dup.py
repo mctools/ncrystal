@@ -27,7 +27,7 @@ import NCTestUtils.reprint_escaped_warnings # noqa F401
 from NCTestUtils.ncmat2endf_utils import test_cfg
 from NCrystalDev.ncmat2endf import EndfMetaData
 
-d = {'matnum':{"Si":37},
+d = {'matnum':{"Pb":91, "O":94},
      'edate':'JUL01',
      'ddate':'JUL01',
      'rdate':'JUL01',
@@ -42,7 +42,8 @@ d = {'matnum':{"Si":37},
 m = EndfMetaData()
 m.update_from_dict(d)
 
-#fixme: some other polyatomic material since we already test Si here.
-test_cfg('Si_sg227.ncmat;vdoslux=1;incoh_elas=false', elastic_mode='scaled',
+test_cfg( 'PbO-alpha_sg129_Litharge.ncmat',
+          elastic_mode='mixed', material_name='PbO-alpha',
           check_edge_positions=True, endf_metadata=d,
           compare_xsec=True, dump_file=False, include_gif=True)
+

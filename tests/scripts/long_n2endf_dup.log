@@ -2,31 +2,38 @@
 
 
 --------------------------------------------------------------------------------
-{'elastic_mode': 'scaled',
+{'elastic_mode': 'mixed',
  'endf_metadata': {'alab': 'TestLab',
                    'auth': 'Jane Doe',
                    'ddate': 'JUL01',
                    'edate': 'JUL01',
                    'libname': 'TestLib',
-                   'matnum': {'Si': 37},
+                   'matnum': {'O': 94, 'Pb': 91},
                    'nlib': 0,
                    'nver': 4,
                    'rdate': 'JUL01',
                    'reference': 'Aaaaaa, et al.'},
  'force': True,
  'include_gif': True,
- 'ncmat_cfg': 'Si_sg227.ncmat;vdoslux=1;incoh_elas=false'}
+ 'material_name': 'PbO-alpha',
+ 'ncmat_cfg': 'PbO-alpha_sg129_Litharge.ncmat'}
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#1]
 Initialise nuclear data...
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): ENDF output will not contain any incoherent elastic component [warn#2]
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Si" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#3]
-Write ENDF file tsl_Si.endf ...
+Write ENDF file tsl_O_in_PbO-alpha.endf ...
+Write ENDF file tsl_Pb_in_PbO-alpha.endf ...
 Files created:
-  tsl_Si.endf : Si with fraction 1
-Suggested material density: 2.329452891 g/cm^3
+  tsl_O_in_PbO-alpha.endf : O with fraction 1/2
+  tsl_Pb_in_PbO-alpha.endf : Pb with fraction 1/2
+Suggested material density: 9.435756452 g/cm^3
 ncmat2endf fct returned:
-{'density': 2.329452890843,
- 'files': [{'component': 'Si', 'file': 'tsl_Si.endf', 'fraction': 1.0}],
+{'density': 9.435756451654,
+ 'files': [{'component': 'O',
+            'file': 'tsl_O_in_PbO-alpha.endf',
+            'fraction': 0.5},
+           {'component': 'Pb',
+            'file': 'tsl_Pb_in_PbO-alpha.endf',
+            'fraction': 0.5}],
  'temperature': 293.15}
-Created (or not) file tsl_Si.endf with fraction 1
+Created (or not) file tsl_O_in_PbO-alpha.endf with fraction 0.5
+Created (or not) file tsl_Pb_in_PbO-alpha.endf with fraction 0.5
 NCrystal WARNING: Discarding 1 edges of provided kernel data due to missing S values.
