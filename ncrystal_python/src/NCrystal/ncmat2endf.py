@@ -43,7 +43,7 @@ def ncmat2endf( ncmat_cfg, *,
                 elastic_mode='scaled',
                 include_gif=False,
                 isotopic_expansion=False,
-                force_save=False,
+                force=False,
                 smin=default_smin_value,
                 emax=default_emax_value,
                 lasym=0,
@@ -111,7 +111,7 @@ def ncmat2endf( ncmat_cfg, *,
     isotopic_expansion: boolean
         Expand the information in MF=7/MT=451 in isotopes.
 
-    force_save: boolean
+    force: boolean
         Overwrite existing file if it already exists.
 
     outdir : str, path
@@ -145,7 +145,7 @@ def ncmat2endf( ncmat_cfg, *,
                              elastic_mode = elastic_mode,
                              include_gif = include_gif,
                              isotopic_expansion = isotopic_expansion,
-                             force_save = force_save,
+                             force = force,
                              smin = smin,
                              emax = emax,
                              lasym = lasym,

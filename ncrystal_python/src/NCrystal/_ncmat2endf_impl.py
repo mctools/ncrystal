@@ -44,6 +44,8 @@ mass_neutron = (nc_constants.const_neutron_mass_amu*
 
 hbar = nc_constants.constant_planck/nc_constants.k2Pi*1e12 # eV*ps
 T0 = 293.6 # K - Reference temperature for LAT=1 in ENDF-6 MF=7/MT=4
+ENDF_DESCR_MAXW = 66
+
 
 _cacheimport=[None]
 def import_endfparserpy():
@@ -202,7 +204,6 @@ class NuclearData():
         self.__di2knlcache = {}
         self._temperatures = tuple(temperatures)
         self._elems = {}
-        self._comments = None
         self._requested_emax = requested_emax
         self._verbosity = verbosity
         self._elastic_mode = elastic_mode
@@ -266,7 +267,7 @@ class NuclearData():
             self._get_inelastic_data()
 
         self._get_elastic_data()
-        self._get_ncrystal_comments()
+        self._extract_ncrystal_comments()
 
     @property
     def comments(self):
@@ -578,21 +579,67 @@ class NuclearData():
                                           di.atomData.averageMassAMU())
                 self._elems[sym].teff.append( _tidy_teffwp( res['teff'] ) )
 
-    def _get_ncrystal_comments(self):
+    def _extract_ncrystal_comments( self ):
         # TODO: handle multi phase materials
         ncmat_fn = self.__loaded['cfgstr_decoded']['data_name']
         td = nc_core.createTextData(ncmat_fn)
         from ._ncmatimpl import _extractInitialHeaderCommentsFromNCMATData
         from textwrap import wrap
-        comments = _extractInitialHeaderCommentsFromNCMATData(td)
-        self._comments = []
-        for paragraph in '\n'.join(comments).split('\n'):
-            if paragraph == '':
-                self._comments += ['']
+        raw = _extractInitialHeaderCommentsFromNCMATData(td)
+
+        #We need to rewrap for ENDF_DESCR_MAXW. The following gymnastics allow
+        #us to identify each "paragraph" of text:
+
+        paragraphs = []
+        current_pg = []
+        for line in raw:
+            line = line.strip()
+            if not line:
+                if not current_pg:
+                    continue#ignore leading or multiple empty lines
+                paragraphs.append( ' '.join(current_pg) )
+                current_pg = []
+                continue
+
+            # Detect and shorten horisontal ascii art lines like the following,
+            # and give them their own paragraph entry:
+            #
+            #  --------------------------------------------
+            #  ++++++++++++ Stuff here ++++++++++++++++++++
+            #
+            is_hr, line =  _detect_and_short_horisontal_ruler_in_line( line )
+
+            if is_hr:
+                #HR. Flush previous paragraph and add hr line as its own:
+                if current_pg:
+                    paragraphs.append( ' '.join(current_pg) )
+                    current_pg = []
+                paragraphs.append( line )
+
             else:
-                self._comments += wrap( paragraph.lstrip(),
-                                        width=66,
-                                        break_long_words=False )
+                #Just add the line to the current paragraph:
+                current_pg.append( line )
+
+        if current_pg:
+            paragraphs.append( ' '.join(current_pg) )
+
+        wrapped_pgs = []
+        for pg in paragraphs:
+            if len(pg) > ENDF_DESCR_MAXW:
+                pg = '\n'.join(wrap( pg,
+                                     width=ENDF_DESCR_MAXW,
+                                     break_long_words=False ))
+            assert isinstance(pg,str)
+            wrapped_pgs.append( pg )
+
+        res = []
+        for pg in wrapped_pgs:
+            if res:
+                res.append('')
+            res += pg.splitlines()
+        self._comments = res
+
+
 
 class EndfFile():
     #
@@ -862,14 +909,14 @@ class EndfFile():
 
     def _createMF1MT451description(self, data, endf_metadata):
         desc = []
-        desc.append(66*'*')
+        desc.append(ENDF_DESCR_MAXW*'*')
         desc.append('')
         desc.append(' This file was converted from the following NCrystal [1,2]')
         desc.append(' cfg-string:')
         desc.append('')
 
-        if len(data.ncmat_cfg) < 60:
-            desc.append(f'"{data.ncmat_cfg}"'.center(66))
+        if len(data.ncmat_cfg) < ENDF_DESCR_MAXW-6:
+            desc.append(f'"{data.ncmat_cfg}"'.center(ENDF_DESCR_MAXW))
         else:
             cfg_parts = data.ncmat_cfg.split(';')
             cfg_lines = []
@@ -909,18 +956,32 @@ class EndfFile():
         desc.append('[2] https://doi.org/10.1016/j.cpc.2019.07.015')
         desc.append('[3] https://endf-parserpy.readthedocs.io/en/latest/')
         desc.append('')
-        desc.append(66*'*')
+        desc.append(ENDF_DESCR_MAXW*'*')
         desc.append('')
         desc.append('Comments from NCMAT file:')
         desc.append('')
         for line in data.comments:
             desc.append(line)
-        desc.append(66*'*')
-        for _ in desc:
-            if len(_) > 66:
-                ncwarn('The following line in the description is'
-                       f' too long and will be cropped: {_}"')
-        return [_[:66].ljust(66) for _ in desc]
+        desc.append(ENDF_DESCR_MAXW*'*')
+
+        if any( len(line) > ENDF_DESCR_MAXW for line in desc ):
+            longmarker = '+LINECONT+'
+            ncwarn( 'Desciption contains lines too long for ENDF. Will break '
+                    f'lines and use "{longmarker}" to mark line continuations' )
+            newdesc = []
+            for line in desc:
+                if len(line)<=ENDF_DESCR_MAXW:
+                    newdesc.append( line )
+                    continue
+                newdesc.append( line[:ENDF_DESCR_MAXW] )
+                s = line[ENDF_DESCR_MAXW:]
+                while s:
+                    s = longmarker + s
+                    newdesc.append( s[:ENDF_DESCR_MAXW] )
+                    s = s[ENDF_DESCR_MAXW:]
+            desc = newdesc
+        assert max( len(line) for line in desc) <= ENDF_DESCR_MAXW
+        return [ line.ljust(ENDF_DESCR_MAXW) for line in desc ]
 
     def _createMF1(self):
         #
@@ -956,9 +1017,9 @@ class EndfFile():
         d['TEMP'] = 0.0
         d['LDRV'] = 0
         d['HSUB/1'] = f'----{endf_metadata.libname:18s}MATERIAL {mat:4d}'
-        d['HSUB/1'].ljust(66)
-        d['HSUB/2'] =  '-----THERMAL NEUTRON SCATTERING DATA'.ljust(66)
-        d['HSUB/3'] =  '------ENDF-6 FORMAT'.ljust(66)
+        d['HSUB/1'].ljust(ENDF_DESCR_MAXW)
+        d['HSUB/2'] =  '-----THERMAL NEUTRON SCATTERING DATA'.ljust(ENDF_DESCR_MAXW)
+        d['HSUB/3'] =  '------ENDF-6 FORMAT'.ljust(ENDF_DESCR_MAXW)
         d['NXC'] = 1
         d['ZSYMAM'] = zsymam.ljust(11)
         d['ALAB'] = endf_metadata.alab.ljust(11)
@@ -980,17 +1041,17 @@ class EndfFile():
         d['NCx/1'] = 5
         d['MOD/1'] = d['NMOD']
 
-    def write(self, endf_fn, force_save, outdir ):
+    def write(self, endf_fn, *, force, outdir ):
         import pathlib
         outfile = pathlib.Path(outdir).joinpath( pathlib.Path(endf_fn) )
         outfile.parent.mkdir(exist_ok = True, parents = True)
 
         if self._verbosity > 0:
-            ncprint(f'Write ENDF file {outfile.name}...')
-        if outfile.exists() and not force_save:
+            ncprint(f'Write ENDF file {outfile.name} ...')
+        if outfile.exists() and not force:
             from .exceptions import NCBadInput
             raise NCBadInput('Error: output file already exists'
-                             ' (run with --force to overwrite)')
+                             ' (run with force=True or --force to overwrite)')
         assert outfile.parent.is_dir()
         if unit_test_abort_write[0]:
             if unit_test_abort_write[0] == 'dump':
@@ -1094,7 +1155,7 @@ def _impl_ncmat2endf( *,
                       elastic_mode,
                       include_gif,
                       isotopic_expansion,
-                      force_save,
+                      force,
                       smin,
                       emax,
                       lasym,
@@ -1238,7 +1299,7 @@ def _impl_ncmat2endf( *,
                              isotopic_expansion=isotopic_expansion,
                              smin=smin, emax=emax, lasym=lasym,
                              verbosity=verbosity)
-        endf_file.write( endf_fn, force_save, outdir = outdir )
+        endf_file.write( endf_fn, force = force, outdir = outdir )
         output_composition.append( (endf_fn, frac, sym) )
 
     if verbosity > 0:
@@ -1481,6 +1542,25 @@ def _tidy_sab_list( s_values ):
             return 0.0
         return float('%.1g'%x)
     return  [ _chop(x) for x in s_values ]
+
+def _detect_and_short_horisontal_ruler_in_line( line, hr_chars = '+-=~*^#' ):
+    # Not the greatest implementation:
+    is_hr = False
+    _hrtries = 1000
+    while _hrtries > 0 and any( 16*c in line for c in hr_chars ):
+        is_hr = True
+        while _hrtries > 0 and len(line) > ENDF_DESCR_MAXW:
+            _hrtries -= 1
+            _norig = len(line)
+            for c in hr_chars:
+                line = line.replace(16*c,8*c,1)
+                if len(line)<ENDF_DESCR_MAXW:
+                    _hrtries = 0
+                    break
+            if _norig == len(line):
+                _hrtries = 0
+                break#did not help, give up
+    return is_hr, line
 
 unit_test_abort_write = [False]
 unit_test_chop_vals = [False]
