@@ -544,21 +544,32 @@ class NCMATComposerImpl:
 
     def set_dyninfo_scatknl( self, label, *, alphagrid, betagrid, temperature,
                              sab = None, sab_scaled = None, egrid = None,
-                             comment = None, fraction = None ):
+                             comment = None, fraction = None, trim_edges = False ):
         def present( x ):
             return x is not None and _is_nonempty_array(x)
         if not present(sab) and not present(sab_scaled):
             raise _nc_core.NCBadInput('Missing either sab or sab_scaled arguments')
         if present(sab) and present(sab_scaled):
             raise _nc_core.NCBadInput('Do not specify both sab and sab_scaled')
+        if trim_edges:
+            from ._sabutils import trim_knl_edges
+            s = sab or sab_scaled
+            alphagrid, betagrid, s = trim_knl_edges( alphagrid = alphagrid,
+                                                     betagrid = betagrid,
+                                                     sab = sab or sab_scaled )
+            if sab is not None:
+                sab = s
+            else:
+                assert sab_scaled is not None
+                sab_scaled = s
         self.__add_dyninfo( label, fraction, dict( ditype='scatknl',
-                                                       temperature = float(temperature),
-                                                       egrid = _copyarray_or_None(egrid),
-                                                       sab = _copyarray_or_None(sab),
-                                                       sab_scaled = _copyarray_or_None(sab_scaled),
-                                                       alphagrid = _copyarray_or_None(alphagrid),
-                                                       betagrid = _copyarray_or_None(betagrid),
-                                                       comment = None if not comment else self.__prunecomment(comment) ) )
+                                                   temperature = float(temperature),
+                                                   egrid = _copyarray_or_None(egrid),
+                                                   sab = _copyarray_or_None(sab),
+                                                   sab_scaled = _copyarray_or_None(sab_scaled),
+                                                   alphagrid = _copyarray_or_None(alphagrid),
+                                                   betagrid = _copyarray_or_None(betagrid),
+                                                   comment = None if not comment else self.__prunecomment(comment) ) )
 
     def set_dyninfo_msd( self, label, *, msd, temperature, comment, fraction ):
         self.__add_dyninfo( label, fraction, dict( ditype='msd',
