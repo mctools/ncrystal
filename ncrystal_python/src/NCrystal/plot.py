@@ -242,8 +242,9 @@ def plot_vdos( *vdos, unit='meV',
     plt.ylabel('VDOS (arbitrary units)')
     _plt_final(do_grid,do_legend,do_show,logy=logy,plt=plt)
 
-def plot_knl( kernel, do_newfig = True, do_show = True, do_grid = True, logz=False, phasespace_curves = None,
-              clim=None, xlim = None, ylim = None):
+def plot_knl( kernel, do_newfig = True, do_show = True,
+              do_grid = True, logz=False, phasespace_curves = None,
+              clim=None, xlim = None, ylim = None, cmap = 'jet' ):
     """Quick plot (with matplotlib) showing the requested scattering kernel in
     in S(alpha,beta) format). The kernel is assume to be a dictionary with keys
     'alpha', 'beta', and 'sab' associated with values being numpy arrays
@@ -294,7 +295,6 @@ def plot_knl( kernel, do_newfig = True, do_show = True, do_grid = True, logz=Fal
         sab = _np.log(sab)
     sab=sab.reshape((nb,na))
 
-    cmap = 'jet'#fallback for some special options
     #sab_max = sab.max()
     quadmesh = plt.pcolormesh( x,y,sab, clim=clim,cmap=cmap )
 
@@ -302,7 +302,9 @@ def plot_knl( kernel, do_newfig = True, do_show = True, do_grid = True, logz=Fal
         #in case we are running under NCRYSTAL_FAKEPYPLOT=log, we are dealing
         #with a wrapped object - which we can not pass directly to matplotlib
         #classes.
-        return o.the_real_inspected_object if hasattr(o,'the_real_inspected_object') else o
+        return ( o.the_real_inspected_object
+                 if hasattr(o,'the_real_inspected_object')
+                 else o )
 
     plt.colorbar(_real_mpl_object(quadmesh))
     if clim:
