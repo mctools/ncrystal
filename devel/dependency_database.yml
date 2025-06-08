@@ -72,7 +72,10 @@ dependencies:
     conda_pkgname: tomli
     in_pystdlib_from: "3.11"
   ase:
-    max_version: "<3.24.0"
+    #Note: ASE 3.24.0 is broken due tohttps://gitlab.com/ase/ase/-/issues/1597,
+    #but 3.23.0 is the last version working on Python 8. For simplicity we for
+    #now simply require 3.23.0 and hope to avoid 3.24.0.
+    min_version: "3.23.0"
     import_check: ase.io
   matplotlib:
     min_version: "3.6.0"
