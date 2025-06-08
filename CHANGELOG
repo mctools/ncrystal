@@ -12,6 +12,7 @@ v4.1.9 (work in progress)
        using the simplebuild developer mode, add the option --long to any of the
        ncdevtool sb* commands. Finally, if using ncrystal-verify, use the new
        --long flag.
+     * NCrystal.plot.plot_knl gets cmap argument, passed on to pcolormesh..
      * ...
 
 v4.1.8 2025-05-07
