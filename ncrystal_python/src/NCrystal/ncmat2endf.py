@@ -37,16 +37,16 @@ default_smin_value = 1e-100
 default_emax_value = 5.0
 
 def ncmat2endf( ncmat_cfg, *,
-                material_name=None,
-                endf_metadata=None,
-                othertemps=None,
-                elastic_mode='scaled',
-                include_gif=False,
-                isotopic_expansion=False,
-                force=False,
-                smin=default_smin_value,
-                emax=default_emax_value,
-                lasym=0,
+                material_name = None,
+                endf_metadata = None,
+                othertemps = None,
+                elastic_mode = 'scaled',
+                include_gif = False,
+                isotopic_expansion = False,
+                force = False,
+                smin = default_smin_value,
+                emax = default_emax_value,
+                lasym = 0,
                 outdir = '.',
                 verbosity = 1 ):
     """Generates a set of ENDF-6 thermal scattering files from an NCMAT

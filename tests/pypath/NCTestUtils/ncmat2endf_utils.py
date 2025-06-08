@@ -112,7 +112,7 @@ def test_cfg( cfg, check_teff=False,
             Eint = tuple(endf_dic[7][2]['S_T0_table']['Eint'])
             require_flteq(Eint, edges)
         if compare_xsec:
-            xs_test += frac*get_scatxs_from_endf(endf_fn, E)
+            xs_test += frac*get_scatxs_from_endf(endf_fn, E=E)
     if compare_xsec:
         m = nc_core.load(cfg+';comp=inelas')
         xs = m.scatter.xsect(E)
@@ -162,7 +162,7 @@ def test_cli( *args ):
     nc_cli.run('ncmat2endf',*args)
     print('='*len(hr))
 
-def get_scatxs_from_endf(endf_fn, E=None):
+def get_scatxs_from_endf(endf_fn, *, E ):
     """
     Computes scattering XS from first temperature in ENDF-6 TSL file
     """
@@ -171,7 +171,10 @@ def get_scatxs_from_endf(endf_fn, E=None):
     parser = EndfParser(cache_dir=False)
     endf_dic = parser.parsefile(endf_fn)
     T0 = 293.6
-    emax = endf_dic[1][451]['EMAX']
+    if E is None:
+        emax = endf_dic[1][451]['EMAX']
+        E = _np.geomspace(1e-5, emax, 1000)
+
     za = endf_dic[1][451]['ZA']
     label = nc_atomdata.atomDB(Z=int(za/1000)).elementName()
     awr = endf_dic[7][4]['AWR']
@@ -185,13 +188,18 @@ def get_scatxs_from_endf(endf_fn, E=None):
         beta = beta*T0/T
         alpha = alpha*T0/T
     c_test = nc_ncmat.NCMATComposer()
-    c_test.set_dyninfo_scatknl(label,
-                               alphagrid=alpha,
-                               betagrid=beta,
-                               temperature=T,
-                               sab_scaled=S,
-                               fraction=1.0)
+
+    #NB: Setting trim_edges=True is important to avoid warnings about SAB edge
+    #trimming (which might fluctuate due to numerical issues and the imposition
+    #of smin):
+    c_test.set_dyninfo_scatknl( label,
+                                alphagrid=alpha,
+                                betagrid=beta,
+                                temperature=T,
+                                sab_scaled=S,
+                                fraction=1.0,
+                                trim_edges = True )
+
     c_test.set_density(1.0,'g/cm3')
     m = c_test.load()
-    E = _np.geomspace(1e-5, emax, 1000) if E is None else E
     return m.scatter.xsect(E)
