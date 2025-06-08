@@ -38,11 +38,11 @@ print = ncprint
 #before conversion to ENDF can be supported:
 allowed_scat_proc_names = set( ['ElIncScatter', 'PowderBragg', 'SABScatter'] )
 
-mass_neutron = (nc_constants.const_neutron_mass_amu*
-               nc_constants.constant_dalton2eVc2/
-               ((nc_constants.constant_c*1e-12)**2)) # eV*ps^2*Angstrom^-2
+mass_neutron = ( nc_constants.const_neutron_mass_amu*
+                 nc_constants.constant_dalton2eVc2/
+                 ((nc_constants.constant_c*1e-12)**2) ) # eV*ps^2*Angstrom^-2
 
-hbar = nc_constants.constant_planck/nc_constants.k2Pi*1e12 # eV*ps
+hbar = nc_constants.constant_planck / nc_constants.k2Pi * 1e12 # eV*ps
 T0 = 293.6 # K - Reference temperature for LAT=1 in ENDF-6 MF=7/MT=4
 ENDF_DESCR_MAXW = 66
 
@@ -646,9 +646,12 @@ class EndfFile():
     # Container for data for a therma ENDF file.
     # Includes a write() method to create the file using endf-parserpy
     #
-    def __init__(self, element, data, mat, endf_metadata, *,
-                 include_gif=False, isotopic_expansion=False,
-                 smin=None, emax=None, lasym=None, verbosity=1):
+    def __init__( self, element, data, mat, endf_metadata, *,
+                  smin, emax, lasym, include_gif = False,
+                  isotopic_expansion = False, verbosity = 1 ):
+
+        assert smin is not None and emax is not None and lasym is not None
+
         endf_parserpy,_,_ = import_endfparserpy()
 
         self._endf_parserpy_version = endf_parserpy.__version__
@@ -660,11 +663,8 @@ class EndfFile():
         assert not isotopic_expansion, "isotopic_expansion not supported yet"
         self._isotopic_expansion = isotopic_expansion
         self._verbosity = verbosity
-        assert smin is not None, 'smin not set'
         self._smin = smin
-        assert emax is not None, 'emax not set'
         self._emax = emax
-        assert lasym is not None, 'lasym not set'
         self._lasym = lasym
         self._endf_dict = endf_parserpy.EndfDict()
         self._endf_dict['0/0'] = {}
