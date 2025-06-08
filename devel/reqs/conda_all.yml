@@ -9,7 +9,7 @@ dependencies:
   - make
   - pip
   - python
-  - ase <3.24.0
+  - ase >=3.23.0
   - endf-parserpy >=0.13.0
   - gemmi >=0.6.1
   - matplotlib >=3.6.0
