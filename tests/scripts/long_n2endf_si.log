@@ -29,7 +29,6 @@ ncmat2endf fct returned:
  'files': [{'component': 'Si', 'file': 'tsl_Si.endf', 'fraction': 1.0}],
  'temperature': 293.15}
 Created (or not) file tsl_Si.endf with fraction 1
-NCrystal WARNING: Discarding 1 edges of provided kernel data due to missing S values.
 
 
 
