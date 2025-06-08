@@ -425,7 +425,8 @@ class NCMATComposer:
 
     def set_dyninfo_scatknl( self, label, *, alphagrid, betagrid, temperature,
                              sab = None, sab_scaled = None, egrid = None,
-                             fraction = None, comment = None ):
+                             fraction = None, comment = None,
+                             trim_edges = False ):
         """Set dynamics of component to be modelled by the provided 2D
         S(alpha,beta) ("sab") scattering kernel. Such kernels are
         temperature-dependent, so one must also specify the temperature for
@@ -435,7 +436,10 @@ class NCMATComposer:
         kernels, they can not be used with crystalline materials at all, and are
         in principle not suitable for amorphous solids either, as even
         incoherent-elastic contributions will be absent. Thus, this modelling is
-        mainly intended for liquids or gasses.
+        mainly intended for liquids or gasses. If trim_edges is True, any rows
+        or columns at the edge of the S(alpha,beta) table consisting strictly
+        of zeroes will be trimmed off (with the exception that the lower
+        alpha-edge is almost left alone).
         """
         return self.__impl.set_dyninfo_scatknl( label = label,
                                                 alphagrid = alphagrid,
@@ -445,7 +449,8 @@ class NCMATComposer:
                                                 sab_scaled = sab_scaled,
                                                 egrid = egrid,
                                                 comment = comment,
-                                                fraction = fraction )
+                                                fraction = fraction,
+                                                trim_edges = trim_edges )
 
     def set_dyninfo_freegas( self, label, *, fraction = None, comment = None ):
         """Set dynamics of component to be modelled by a free gas description (a gas

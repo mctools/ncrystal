@@ -1,10 +1,10 @@
 v4.1.9 (work in progress)
-     * Remove lingering references to the old master branch.
+     * NCMATComposer.set_dyninfo_scatknl now supports new keyword argument
+       "trim_edges", which if set will cause any rows or columns at the edge of
+       the S(alpha,beta) table consisting strictly of zeroes to be trimmed off
+       (with the exception that the lower alpha-edge is almost left alone).
      * Add safeguard against rare FPE with what looks like an issue with the
        Intel OneAPI compiler during integration of S(alpha,beta).
-     * Add infrastructure for accessting test data from C++ test apps"
-     * Add various developer utility scripts (valgrind, gdb, gperfcpu, vtune) in
-       devel/simplebuild/static/NCDev pkg.
      * Support longer tests in tests/scripts dir. Those tests with filenames
        starting with "long_" will now only be enabled under certain
        conditions. Depending on the context, this can be done by in various
@@ -12,7 +12,11 @@ v4.1.9 (work in progress)
        using the simplebuild developer mode, add the option --long to any of the
        ncdevtool sb* commands. Finally, if using ncrystal-verify, use the new
        --long flag.
+     * Remove lingering references to the old master branch.
      * NCrystal.plot.plot_knl gets cmap argument, passed on to pcolormesh..
+     * Add infrastructure for accessing test data from C++ test apps"
+     * Add various developer utility scripts (valgrind, gdb, gperfcpu, vtune) in
+       devel/simplebuild/static/NCDev pkg.
      * ...
 
 v4.1.8 2025-05-07
