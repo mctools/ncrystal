@@ -1,4 +1,4 @@
-v4.1.9 (work in progress)
+v4.2.0 2025-06-11
      * Add ncmat2endf functionality as a CLI script ncrystal_ncmat2endf and
        Python API access in the NCrystal.ncmat2endf module (github issue
        #183). This new feature allows for automatic export of NCrystal models
@@ -31,10 +31,9 @@ v4.1.9 (work in progress)
      * Add infrastructure for accessing test data from C++ test apps.
      * Add various developer utility scripts (valgrind, gdb, gperfcpu, vtune) in
        devel/simplebuild/static/NCDev pkg.
-     * ...
 
 v4.1.8 2025-05-07
-     * Aligh common utilities with MCPL project (specifically CMake code, test
+     * Align common utilities with MCPL project (specifically CMake code, test
        code, and C file utils).
      * Fix potentially uninitialised variable in pyrolythic graphite model (in
        the move constructor of the LCHelper::Overlay class).
