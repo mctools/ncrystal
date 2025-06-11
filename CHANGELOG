@@ -1,4 +1,15 @@
 v4.1.9 (work in progress)
+     * Add ncmat2endf functionality as a CLI script ncrystal_ncmat2endf and
+       Python API access in the NCrystal.ncmat2endf module (github issue
+       #183). This new feature allows for automatic export of NCrystal models
+       into the ENDF-6 format. This ENDF (Evaluated Nuclear Data File) format is
+       the traditional data format used in the Nuclear Data community, and
+       ncmat2endf thus exists as a service to users of any nuclear radiation
+       transport codes that do not currently have a direct integration with
+       NCrystal, but who nonetheless wishes to take advantage of the material
+       composition tools and larger data library of NCrystal.  For more
+       information about this exciting new feature, please refer to the wiki
+       page at https://github.com/mctools/ncrystal/wiki/ncmat2endf .
      * Remove upper pinning on ASE version which had been needed until ASE
        3.25.0 was released due to https://gitlab.com/ase/ase/-/issues/1597.
      * NCMATComposer.set_dyninfo_scatknl now supports new keyword argument
@@ -15,8 +26,9 @@ v4.1.9 (work in progress)
        ncdevtool sb* commands. Finally, if using ncrystal-verify, use the new
        --long flag.
      * Remove lingering references to the old master branch.
-     * NCrystal.plot.plot_knl gets cmap argument, passed on to pcolormesh..
-     * Add infrastructure for accessing test data from C++ test apps"
+     * NCrystal.plot.plot_knl gets cmap argument, passed on to matplotlib's
+       pcolormesh function.
+     * Add infrastructure for accessing test data from C++ test apps.
      * Add various developer utility scripts (valgrind, gdb, gperfcpu, vtune) in
        devel/simplebuild/static/NCDev pkg.
      * ...
