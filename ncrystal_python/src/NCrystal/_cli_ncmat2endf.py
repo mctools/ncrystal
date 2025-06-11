@@ -188,12 +188,13 @@ def _parseArgs( progname, arglist, return_parser=False ):
                                        ' "temp" keyword in the cfg-string.') )
     expert_args.add_argument('--smin',metavar='VALUE',
                              type=float, default=default_smin_value,
-                             help=wrap('Set the minimum value'
-                                       ' of S(alpha, beta) stored in MF7/MT4'))
+                             help=wrap('Minimum value of S(alpha, beta) stored'
+                                       f' (default: {default_smin_value})'))
     expert_args.add_argument('--emax',
                              type=float, default=default_emax_value,
                              help=wrap('Maximum neutron energy covered by'
-                                       ' the scattering kernel')
+                                       ' the kernels'
+                                       f' (default: {default_emax_value:g}eV)')
                              )
     expert_args.add_argument('--asymsab',action='store_true',
                              help=wrap('Store S(a,b) in asymmetric form.'))
