@@ -69,8 +69,8 @@ Advanced expert-only arguments:
                         not normally recommended, and it is preferred to invoke the
                         script for each temperature independently using the "temp"
                         keyword in the cfg-string.
-  --smin VALUE          Set the minimum value of S(alpha, beta) stored in MF7/MT4
-  --emax EMAX           Maximum neutron energy covered by the scattering kernel
+  --smin VALUE          Minimum value of S(alpha, beta) stored (default: 1e-100)
+  --emax EMAX           Maximum neutron energy covered by the kernels (default: 5eV)
   --asymsab             Store S(a,b) in asymmetric form.
   --totsab              Store S(a,b) branches for positive and negative beta
 
