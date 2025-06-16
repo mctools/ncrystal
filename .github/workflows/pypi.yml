@@ -107,6 +107,12 @@ jobs:
       - name: cmdline presence tests
         run: python -m "NCrystal.test" cmdline
 
+      #As of June 2025 there are no prebuilt endf-parserpy pkgs for linux-arm. To
+      #avoid 15min long pip installs, we set INSTALL_ENDF_PARSERPY_CPP=no:
+      - name: Set INSTALL_ENDF_PARSERPY_CPP=no
+        if: matrix.os == 'ubuntu-24.04-arm'
+        run: echo "INSTALL_ENDF_PARSERPY_CPP=no" >> $GITHUB_ENV
+
       - name: Pip install extra deps
         run: pip install -r ./src/devel/reqs/requirements_all_and_devel.txt
 
