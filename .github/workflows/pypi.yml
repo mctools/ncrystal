@@ -272,14 +272,7 @@ jobs:
         run: test -f "${SDIST_PATH}"
 
       # Run cibuildwheel. Both in default mode, and with additional steps for
-      # manylinux_2_28 wheels, with more modern C++ support (and in particular
-      # cxxabi std::string's compatible with modern linux installations):
-      #
-      # Note from cibuildwheel docs: "The default is scheduled to change in a
-      # cibuildwheel release on or after 6th May 2025 - if you don't want the
-      # new default, you should set the value to manylinux2014." So when that
-      # happens, we can remove the 2_28 step, or possibly swap it for 2_34 and
-      # manylinux2014:
+      # manylinux2014 wheels.
       #
       # Additionally, also try to make windows-arm64 wheels through cross
       # compilation.
@@ -292,12 +285,12 @@ jobs:
           package-dir: ${{ env.SDIST_PATH }}
           output-dir: wheelhouse
 
-      - name: cibuildwheel manylinux_2_28
+      - name: cibuildwheel manylinux2014
         uses: pypa/cibuildwheel@5f22145df44122af0f5a201f93cf0207171beca7
         if: runner.os == 'Linux'
         env:
-          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
-          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
+          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux2014
         with:
           package-dir: ${{ env.SDIST_PATH }}
           output-dir: wheelhouse
@@ -397,12 +390,10 @@ jobs:
           expected_keys = [
             "macosx_10_9_x86_64",
             "macosx_11_0_arm64",
-            "manylinux_2_17_i686.manylinux2014_i686",
-            "manylinux_2_17_x86_64.manylinux2014_x86_64",
+            "manylinux2014_aarch64.manylinux_2_17_aarch64",
+            "manylinux2014_x86_64.manylinux_2_17_x86_64",
             "manylinux_2_27_x86_64.manylinux_2_28_x86_64",
-            "manylinux_2_17_aarch64.manylinux2014_aarch64",
             "manylinux_2_27_aarch64.manylinux_2_28_aarch64",
-            "musllinux_1_2_i686",
             "musllinux_1_2_x86_64",
             "musllinux_1_2_aarch64",
             "win32",
