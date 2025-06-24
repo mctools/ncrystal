@@ -1,3 +1,6 @@
+v4.2.1 (work in progress)
+     * ...
+
 v4.2.0 2025-06-11
      * Add ncmat2endf functionality as a CLI script ncrystal_ncmat2endf and
        Python API access in the NCrystal.ncmat2endf module (github issue
