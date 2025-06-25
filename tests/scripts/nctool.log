@@ -230,6 +230,7 @@ Advanced parameters related to scattering processes (single crystals):
   dir1
   dir2
   dirtol
+  extn
   lcaxis
   lcmode
   mos
@@ -436,6 +437,11 @@ Advanced parameters related to scattering processes (single crystals):
                  up a single crystal monochromator where one is only interested
                  in the primary direction. When this parameter is set, the
                  parameters mos, dir1, and dir2 must also be provided.
+
+  extn:
+    Type: exctinction parameters
+    No default value.
+    Description: Extinction (fixme).
 
   lcaxis:
     Type: vector (3D)
