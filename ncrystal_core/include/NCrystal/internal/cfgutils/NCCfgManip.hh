@@ -174,6 +174,9 @@ namespace NCRYSTAL_NAMESPACE {
       static double get_sccutoff(const CfgData& data) { return getValue<vardef_sccutoff>(data); }
       static void set_sccutoff( CfgData& data, double val ) { setValue<vardef_sccutoff>(data,val); }
 
+      static Cfg::ExtnCfg get_extn( const CfgData& );
+      static void set_extn( CfgData&, const ExtnCfg& );
+
       static int get_vdoslux(const CfgData& data) { return static_cast<int>( getValue<vardef_vdoslux>(data) ); }
       static void set_vdoslux( CfgData& data, int val ) { setValue<vardef_vdoslux>( data, static_cast<std::int64_t>(val) ); }
 
