@@ -559,6 +559,7 @@ namespace NCRYSTAL_NAMESPACE {
       enum class VarId : std::uint32_t;//only fwd decl here
       using VarBuf = ImmutableBuffer<varbuf_calc::buf_minsize,varbuf_calc::buf_align,VarId>;
       using VarBufVector = SmallVector_IC<VarBuf,7,SVMode::FASTACCESS>;
+      class ExtnCfgBuilder;
     }
 
     class CfgManip;
@@ -571,6 +572,20 @@ namespace NCRYSTAL_NAMESPACE {
       detail::VarBufVector m_data;
       ncconstexpr17 const detail::VarBufVector& operator()() const noexcept { return m_data; }
       ncconstexpr17 detail::VarBufVector& operator()() noexcept { return m_data; }
+    };
+
+    class ExtnCfg final {
+    public:
+      //Opague extinction cfg data, with all the details hidden for ABI
+      //stability reasons. Except that one can check if extinction is enabled or
+      //not, and convert it to and from a string representation (and stream it):
+      ExtnCfg( NullOptType ) {}
+      ExtnCfg( const char * );
+      bool enabled() const { return !m_varbuf.empty(); }
+      std::string to_string() const;
+    private:
+      detail::VarBuf m_varbuf = NullOpt;
+      friend class detail::ExtnCfgBuilder;
     };
   }
 }
@@ -1000,6 +1015,11 @@ namespace NCRYSTAL_NAMESPACE {
     if ( *m_str != dsn )
       m_str = makeSO<std::string>(std::move(dsn));
     return *this;
+  }
+
+  inline std::ostream& operator<<(std::ostream& os, const Cfg::ExtnCfg& e)
+  {
+    return os << "ExtnCfg(\"" << e.to_string() << "\")";
   }
 
   inline bool DensityState::operator==( const DensityState& o ) const
