@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+
+################################################################################
+##                                                                            ##
+##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
+##                                                                            ##
+##  Copyright 2015-2025 NCrystal developers                                   ##
+##                                                                            ##
+##  Licensed under the Apache License, Version 2.0 (the "License");           ##
+##  you may not use this file except in compliance with the License.          ##
+##  You may obtain a copy of the License at                                   ##
+##                                                                            ##
+##      http://www.apache.org/licenses/LICENSE-2.0                            ##
+##                                                                            ##
+##  Unless required by applicable law or agreed to in writing, software       ##
+##  distributed under the License is distributed on an "AS IS" BASIS,         ##
+##  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  ##
+##  See the License for the specific language governing permissions and       ##
+##  limitations under the License.                                            ##
+##                                                                            ##
+################################################################################
+
+import matplotlib.pyplot as plt
+import numpy as np
+import NCrystalDev as NC
+
+try:
+    import NCrystal as NCenv
+    if not any(name=='CrysExtn' for name,_,_ in NCenv.browsePlugins()):
+        NCenv = None
+except ImportError:
+    NCenv = None
+if not NCenv:
+    raise SystemExit('This script needs the CrysExtn plugin'
+                     ' available in the environent')
+
+def create_data( ncmatkey, plugin_lines = None ):
+    key = ncmatkey if ncmatkey.startswith('stdlib::') else f'stdlib::{ncmatkey}'
+    #Always taking base material from NCrystalDev for consistency:
+    td = str(NC.createTextData(key).rawData)
+    if plugin_lines:
+        td += '@CUSTOM_CRYSEXTN\n'
+        for pl in plugin_lines:
+            td += f'{pl}\n'
+    return td
+
+def load( ncmod, ncmatdata, cfg_params ):
+    return ncmod.directLoad(ncmatdata,
+                            dtype='ncmat',
+                            cfg_params=cfg_params,
+                            doAbsorption=False)
+
+def test( ncmatkey, *, dcutoff, block_size_Aa ):
+    extra_cfg = f'dcutoff={dcutoff};comp=bragg'
+    # Model option 0:
+    #    format (single line): "Sabine_uncorr {l} {Gg} {L} {tilt_option=rect|tri}".
+    #    => res_option = 0
+    #    note: rect is the sabine El/Eb from 6.4.9.2, Gg and L only matters for secondary extinction.
+    #
+    plugin_lines = [f'Sabine_uncorr {block_size_Aa} 0.0 0.0 rect']
+
+    mat_dev = load( NC,
+                    create_data( ncmatkey ),
+                    f'{extra_cfg};extn={block_size_Aa}' )
+
+    mat_ref = load( NCenv,
+                    create_data( ncmatkey, plugin_lines = plugin_lines ),
+                    extra_cfg )
+
+    mat_noextn = load( NCenv,
+                       create_data( ncmatkey ),
+                       extra_cfg )
+
+    wls = np.linspace(0.0,6.0,20000)
+    #wls = np.concatenate( (wls, np.linspace(2.14,2.142,10000)), axis=0 )
+    wls.sort()
+    plt.plot(wls,mat_dev.xsect(wl=wls),label='NCrystal (devel)')
+    plt.plot(wls,mat_ref.xsect(wl=wls),label='CrysExtn plugin',ls=':',
+             lw=4,color='red',alpha=0.5)
+    plt.plot(wls,mat_noextn.xsect(wl=wls),label='no extinction',ls=':',
+             lw=4,color='orange',alpha=0.5)
+
+    plt.xlabel('\u00C5')
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+def main():
+    test( 'stdlib::Be_sg194.ncmat',
+          #dcutoff=0.05,
+          dcutoff = 1.9,
+          block_size_Aa = 100000
+         )
+
+if __name__=='__main__':
+    main()
