@@ -52,7 +52,8 @@ namespace NCRYSTAL_NAMESPACE {
                         " for parameter \""<<varname<<"\"");
       return ( v == 0.0 ? 0.0 : v );
     }
-    using ValDbl_ShortStrOrigRep = ShortStr<VarBuf::buffer_local_size - sizeof(double)>;
+    using ValDbl_ShortStrOrigRep = ShortStr<VarBuf::buffer_local_size
+                                            - sizeof(double)>;
     struct units_notavail {
       static constexpr auto actual_unit = nullptr;
       static void listAvailableUnits(std::ostream&){}
@@ -141,7 +142,7 @@ namespace NCRYSTAL_NAMESPACE {
       // 3) Store str-rep in last bytes if and only if it fits there (and when
       //    setting from string, prefer the original version only if it is shorter).
       // 4) When sorting, first sort the double value, then presence and
-      //    contentsof str-reps.
+      //    contents of str-reps.
       // 5) When streaming and strrep is missing, generate it with the same
       //    method call as during setting.
 

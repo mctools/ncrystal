@@ -202,7 +202,10 @@ namespace NCRYSTAL_NAMESPACE {
   inline detail_FmtDbl fmt( double val ) { return { val, nullptr }; }
   inline detail_FmtDbl fmt( double val, const char * fmtstr ) { return { val, fmtstr }; }
   inline detail_FmtDbl fmtg( double val ) { return { val, "%g" }; }
-  inline std::ostream& operator<<( std::ostream& os , const detail_FmtDbl& fd ) { return os << dbl2shortstr( fd.val, fd.fmtstr ); }
+  inline std::ostream& operator<<( std::ostream& os , const detail_FmtDbl& fd )
+  {
+    return os << dbl2shortstr( fd.val, fd.fmtstr );
+  }
 
   inline detail_FmtDblFrac fmt_frac( double val ) { return { val, nullptr }; }
   inline detail_FmtDblFrac fmt_frac( double val, const char * fmtstr ) { return { val, fmtstr }; }

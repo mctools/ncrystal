@@ -350,15 +350,15 @@ namespace NCRYSTAL_NAMESPACE {
 
   class NCRYSTAL_API Length final : public EncapsulatedValue<Length> {
   public:
-    //Length (in meters) used for macroscopic length scales like geometries and
-    //particle positions. Although, this is the same type of unit as
+    //Length (in meters) used for length scales like geometries, particle
+    //positions, and grain sizes. Although, this is the same type of unit as
     //NeutronWavelength, we keep the two uses in separate types with separate
     //default units (but we provide explicit conversion options):
     using EncapsulatedValue::EncapsulatedValue;
     Length() = default;//for VSCode
     static constexpr const char * unit() noexcept { return "m"; }
     void validate() const;
-    //Automatic conversions from/to NeutronWavelengthwavelength:
+    //Automatic conversions from/to neutron wavelength:
     explicit constexpr Length(NeutronWavelength wl) noexcept;
     ncnodiscard17 constexpr NeutronWavelength as_wavelength() const noexcept;
     //Related numeric definitions of the chosen numerical values:
@@ -531,10 +531,12 @@ namespace NCRYSTAL_NAMESPACE {
       //technical reasons.
 
       namespace varbuf_calc {
-        //Typically VarBuf will end up with alignment of 8, object size of 32,
-        //and a local buffer of 27. However, for portability and robustness we
-        //express the requirements for all supported types and combine
-        //appropriately:
+        //VarBuf objects are opague data structures in which we can pass around
+        //parsed cfg objects.  Typically VarBuf will end up with alignment of 8,
+        //object size of 32, and a local buffer of 27. However, for portability
+        //and robustness we express the requirements for all supported types and
+        //combine appropriately:
+
         static constexpr auto ValDbl_buf_align = alignof(double);
         static constexpr auto ValDbl_buf_minsize = sizeof(double) + 16;
         static constexpr auto ValInt_buf_align = alignof(int64_t);

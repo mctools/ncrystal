@@ -28,7 +28,7 @@ namespace NCRYSTAL_NAMESPACE {
   /////////////////////////////////////////////////////////////////////////////////
   //                                                                             //
   // CfgManip: Internal helper class which is responsible for parsing parameter  //
-  // strings and maintaining lists of set variables in a CfgDataobject (cf.      //
+  // strings and maintaining lists of set variables in a CfgData object (cf.     //
   // NCCfgVars.hh for variable definitions).                                     //
   //                                                                             //
   // The internal data in CfgData objects is essentially just a heterogenic      //
