@@ -211,6 +211,7 @@ namespace NCRYSTAL_NAMESPACE {
     void set_mos( MosaicityFWHM );
     void set_mosprec( double );
     void set_sccutoff( double );
+    void set_extn( const Cfg::ExtnCfg& );
     void set_dirtol( double );
     void set_coh_elas( bool );
     void set_incoh_elas( bool );
@@ -265,6 +266,7 @@ namespace NCRYSTAL_NAMESPACE {
     MosaicityFWHM get_mos() const;
     double get_mosprec() const;
     double get_sccutoff() const;
+    Cfg::ExtnCfg get_extn() const;
     double get_dirtol() const;
     const LCAxis& get_lcaxis() const;
     std::string get_infofactory() const;
