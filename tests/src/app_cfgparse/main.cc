@@ -38,7 +38,7 @@ namespace {
     //unsigned enumval_p = 0;
     for (auto& p : { "bad","density","phasechoice","atomdb","dcutoff","dcutoffup","infofactory","temp",
                     "absnfactory", "bkgd", "bragg", "coh_elas", "elas", "incoh_elas", "inelas",
-                    "vdoslux", "scatfactory", "dir1", "dir2", "dirtol",
+                    "vdoslux", "scatfactory", "dir1", "dir2", "dirtol","extn",
                     "lcaxis", "lcmode", "mos", "mosprec", "sccutoff"} ) {
       auto pstr = NC::StrView(p);
       auto vid = NC::Cfg::varIdFromName( pstr );
