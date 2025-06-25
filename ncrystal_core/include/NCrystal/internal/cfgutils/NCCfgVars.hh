@@ -343,6 +343,20 @@ namespace NCRYSTAL_NAMESPACE {
       }
     };
 
+    struct vardef_extn final : public ValKVMap<vardef_extn> {
+      static constexpr auto name = "extn";
+      static constexpr auto group = VarGroupId::ScatterExtra;
+      static constexpr auto value_type_descr = "exctinction parameters";
+
+      static constexpr auto description =
+        "Extinction (fixme)."
+        ;
+
+      static constexpr NullOptType default_value() { return NullOpt; }
+      static void stream_tocfgstr( std::ostream&, const CfgKeyValMap& );
+      static VarBuf from_str( VarId, StrView );
+    };
+
     class FactNameRequest {
     public:
       //Book-keeping class, tracking requests for a specific named factory
@@ -657,6 +671,7 @@ namespace NCRYSTAL_NAMESPACE {
       make_varinfo<vardef_dir1>(),
       make_varinfo<vardef_dir2>(),
       make_varinfo<vardef_dirtol>(),
+      make_varinfo<vardef_extn>(),
       make_varinfo<vardef_incoh_elas>(),
       make_varinfo<vardef_inelas>(),
       make_varinfo<vardef_infofactory>(),
@@ -683,6 +698,7 @@ namespace NCRYSTAL_NAMESPACE {
       dcutoff = constexpr_varName2Idx("dcutoff"),
       dcutoffup = constexpr_varName2Idx("dcutoffup"),
       dirtol = constexpr_varName2Idx("dirtol"),
+      extn = constexpr_varName2Idx("extn"),
       mosprec = constexpr_varName2Idx("mosprec"),
       vdoslux = constexpr_varName2Idx("vdoslux"),
       lcmode = constexpr_varName2Idx("lcmode"),

@@ -404,19 +404,19 @@ std::string NC::Cfg::ExtnCfg::to_string() const
   return ss.str();
 }
 
-//#include "NCrystal/internal/cfgutils/NCCfgVars.hh"
+#include "NCrystal/internal/cfgutils/NCCfgVars.hh"
 NC::Cfg::ExtnCfg::ExtnCfg( const char * strval )
 {
   auto sv = StrView(strval?strval:"").trimmed();
   if ( !sv.empty() )
-    m_varbuf = Extn::decode_cfgstr( VarId{0}/*fixme VarId::extn*/, sv ).encoded();
+    m_varbuf = Extn::decode_cfgstr( VarId::extn, sv ).encoded();
 }
 
 NC::Cfg::ExtnCfg NCCE::createExtnCfgFromVarBuf( VarBuf&& vb )
 {
   ExtnCfg res{ NullOpt };
   if ( !vb.empty() ) {
-    //fixme nc_assert_always( vb.metaData() == VarId::extn );
+    nc_assert_always( vb.metaData() == VarId::extn );//fixme: also assert if vb.empty!
     detail::ExtnCfgBuilder::accessVarBuf(res) = std::move(vb);
   }
   return res;

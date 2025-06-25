@@ -156,6 +156,8 @@ NC::OrientDir NCF::ScatterRequest::get_dir1() const { return CfgManip::get_dir1(
 NC::OrientDir NCF::ScatterRequest::get_dir2() const { return CfgManip::get_dir2(rawCfgData()); }
 double NCF::ScatterRequest::get_mosprec() const { return CfgManip::get_mosprec(rawCfgData()); }
 double NCF::ScatterRequest::get_sccutoff() const { return CfgManip::get_sccutoff(rawCfgData()); }
+bool NCF::ScatterRequest::has_extn() const { return CfgManip::get_extn(rawCfgData()).enabled(); }
+NC::Cfg::ExtnCfg NCF::ScatterRequest::get_extn() const { return CfgManip::get_extn(rawCfgData()); }
 double NCF::ScatterRequest::get_dirtol() const { return CfgManip::get_dirtol(rawCfgData()); }
 const NC::LCAxis& NCF::ScatterRequest::get_lcaxis() const { return CfgManip::get_lcaxis(rawCfgData()); }
 std::int_least32_t NCF::ScatterRequest::get_lcmode() const { return CfgManip::get_lcmode(rawCfgData()); }

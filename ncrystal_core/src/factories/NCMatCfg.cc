@@ -914,6 +914,7 @@ double NC::MatCfg::get_dcutoffup() const { return CfgManip::get_dcutoffup( m_imp
 NC::MosaicityFWHM NC::MatCfg::get_mos() const { return CfgManip::get_mos( m_impl->readVar(Cfg::VarId::mos) ); }
 double NC::MatCfg::get_mosprec() const { return CfgManip::get_mosprec( m_impl->readVar(Cfg::VarId::mosprec) ); }
 double NC::MatCfg::get_sccutoff() const { return CfgManip::get_sccutoff( m_impl->readVar(Cfg::VarId::sccutoff) ); }
+NC::Cfg::ExtnCfg NC::MatCfg::get_extn() const { return CfgManip::get_extn( m_impl->readVar(Cfg::VarId::extn) ); }
 double NC::MatCfg::get_dirtol() const { return CfgManip::get_dirtol( m_impl->readVar(Cfg::VarId::dirtol) ); }
 bool NC::MatCfg::get_coh_elas() const { return CfgManip::get_coh_elas( m_impl->readVar(Cfg::VarId::coh_elas) ); }
 bool NC::MatCfg::get_incoh_elas() const { return CfgManip::get_incoh_elas( m_impl->readVar(Cfg::VarId::incoh_elas) ); }
@@ -931,6 +932,7 @@ void NC::MatCfg::set_dcutoffup( double v ) { m_impl.modify()->setVar( v, &CfgMan
 void NC::MatCfg::set_mos( MosaicityFWHM v ) { m_impl.modify()->setVar( v, &CfgManip::set_mos ); }
 void NC::MatCfg::set_mosprec( double v ) { m_impl.modify()->setVar( v, &CfgManip::set_mosprec ); }
 void NC::MatCfg::set_sccutoff( double v ) { m_impl.modify()->setVar( v, &CfgManip::set_sccutoff ); }
+void NC::MatCfg::set_extn( const Cfg::ExtnCfg& v ) { m_impl.modify()->setVar( v, &CfgManip::set_extn ); }
 void NC::MatCfg::set_dirtol( double v ) { m_impl.modify()->setVar( v, &CfgManip::set_dirtol ); }
 void NC::MatCfg::set_coh_elas( bool v ) { m_impl.modify()->setVar( v, &CfgManip::set_coh_elas ); }
 void NC::MatCfg::set_incoh_elas( bool v ) { m_impl.modify()->setVar( v, &CfgManip::set_incoh_elas ); }
