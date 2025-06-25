@@ -221,7 +221,7 @@ Test loading of :>>>phases<0.1*unicodedir_test䔀abc{{NATIVEPATHSEP}}Al_sg225.nc
                                  'of elements and isotopes will be ignored).',
                   'name': 'atomdb',
                   'type': 'string'},
-                 {'allowed_input_units': 'Aa [default], nm, mm, cm, m',
+                 {'allowed_input_units': 'Aa [default], nm, mu, mm, cm, m',
                   'default_value': 0.0,
                   'default_value_str': '0',
                   'description': 'Crystal planes with d-spacing below this '
@@ -232,7 +232,7 @@ Test loading of :>>>phases<0.1*unicodedir_test䔀abc{{NATIVEPATHSEP}}Al_sg225.nc
                   'name': 'dcutoff',
                   'type': 'floating point number',
                   'unit': 'Aa'},
-                 {'allowed_input_units': 'Aa [default], nm, mm, cm, m',
+                 {'allowed_input_units': 'Aa [default], nm, mu, mm, cm, m',
                   'default_value': inf,
                   'default_value_str': 'inf',
                   'description': 'Crystal planes with d-spacing above this '
@@ -493,7 +493,7 @@ Test loading of :>>>phases<0.1*unicodedir_test䔀abc{{NATIVEPATHSEP}}Al_sg225.nc
                                  'crystals.',
                   'name': 'mosprec',
                   'type': 'floating point number'},
-                 {'allowed_input_units': 'Aa [default], nm, mm, cm, m',
+                 {'allowed_input_units': 'Aa [default], nm, mu, mm, cm, m',
                   'default_value': 0.4,
                   'default_value_str': '0.4',
                   'description': 'Single-crystal modelling cutoff. Crystal '

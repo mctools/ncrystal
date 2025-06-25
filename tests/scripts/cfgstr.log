@@ -43,6 +43,15 @@ Decoding cfg 'Al_sg225.ncmat;temp=293.15K; vdoslux =3;dcutoff=   0.1 nm':
     'pars': [['dcutoff', 1.0], ['temp', 293.15], ['vdoslux', 3]],
     'phasechoices': [],
     'density': {'type': 'scalefactor', 'value': 1.0}}
+Decoding cfg 'Al_sg225.ncmat;temp=293.15K; vdoslux =3;dcutoff=   0.001 mu':
+{   'format': 'NCrystal-MatCfg-v1',
+    'ismultiphase': False,
+    'data_name': 'Al_sg225.ncmat',
+    'textdata_uid': '1',
+    'textdata_type': 'ncmat',
+    'pars': [['dcutoff', 10.0], ['temp', 293.15], ['vdoslux', 3]],
+    'phasechoices': [],
+    'density': {'type': 'scalefactor', 'value': 1.0}}
 Decoding cfg 'Al_sg225.ncmat;temp=300K':
 {   'format': 'NCrystal-MatCfg-v1',
     'ismultiphase': False,

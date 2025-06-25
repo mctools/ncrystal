@@ -34,6 +34,7 @@ def main():
                'Al_sg225.ncmat;temp=300K',
                'Al_sg225.ncmat;temp=20C',
                'Al_sg225.ncmat;temp=293.15K; vdoslux =3;dcutoff=   0.1 nm',
+               'Al_sg225.ncmat;temp=293.15K; vdoslux =3;dcutoff=   0.001 mu',
                'Al_sg225.ncmat;temp=300K',
                'C_sg194_pyrolytic_graphite.ncmat',#embedded cfg
                ('phases<0.7*C_sg227_Diamond.ncmat&0.28*solid::V/6.12gcm3'

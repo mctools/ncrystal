@@ -270,7 +270,7 @@ Base parameters:
 
   dcutoff:
     Type: floating point number
-    Allowed input units: Aa [default], nm, mm, cm, m
+    Allowed input units: Aa [default], nm, mu, mm, cm, m
     Default value: 0 Aa
     Description: Crystal planes with d-spacing below this value will be ignored.
                  The special value of 0 implies an automatic selection of this
@@ -279,7 +279,7 @@ Base parameters:
 
   dcutoffup:
     Type: floating point number
-    Allowed input units: Aa [default], nm, mm, cm, m
+    Allowed input units: Aa [default], nm, mu, mm, cm, m
     Default value: inf Aa
     Description: Crystal planes with d-spacing above this value will be ignored.
 
@@ -476,7 +476,7 @@ Advanced parameters related to scattering processes (single crystals):
 
   sccutoff:
     Type: floating point number
-    Allowed input units: Aa [default], nm, mm, cm, m
+    Allowed input units: Aa [default], nm, mu, mm, cm, m
     Default value: 0.4 Aa
     Description: Single-crystal modelling cutoff. Crystal planes with d-spacing
                  below this value will be approximated as having infinite

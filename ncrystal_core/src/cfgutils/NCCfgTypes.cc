@@ -104,7 +104,7 @@ void NC::Cfg::units_temperature::listAvailableUnits(std::ostream& os)
 }
 void NC::Cfg::units_length::listAvailableUnits(std::ostream& os)
 {
-  os << "Aa [default], nm, mm, cm, m";
+  os << "Aa [default], nm, mu, mm, cm, m";
 }
 void NC::Cfg::units_angle::listAvailableUnits(std::ostream& os)
 {
@@ -125,8 +125,8 @@ NC::Optional<std::pair<double,NC::Cfg::ValDbl_ShortStrOrigRep>> NC::Cfg::units_l
       p.origStrRep = ValDbl_ShortStrOrigRep( osv.substr(0,osv.size()-uAa.size()) );
   } else if ( p.unit == StrView::make("nm") ) {
     p.value *= 10.0;
-  } else if ( p.unit == StrView::make("nm") ) {
-    p.value *= 10.0;
+  } else if ( p.unit == StrView::make("mu") ) {
+    p.value *= 1e4;
   } else if ( p.unit == StrView::make("mm") ) {
     p.value *= 1e7;
   } else if ( p.unit == StrView::make("cm") ) {
