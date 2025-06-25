@@ -2,6 +2,7 @@ bkgdextcurve
 dyninfoutils
 elincscatter
 extd_utils
+extn_scatter
 factories
 freegas
 interfaces
