@@ -676,6 +676,53 @@ namespace NCRYSTAL_NAMESPACE {
       }
     };
 
+    template <class Derived>
+    class ValKVMap : public ValBase<Derived,CfgKeyValMap> {
+    public:
+      //For values where we want the underlying values to be parsed into a
+      //key-value map, but where the actual parsing to/from a cfg-string should
+      //be customised. First use-case for this is extinction.
+      static_assert(alignof(VarBuf)%alignof(CfgKeyValMap)==0,"");
+      using Base = ValKVMap;
+
+      static CfgKeyValMap get_val( const VarBuf& buf )
+      {
+        return CfgKeyValMap( buf );
+      }
+
+      static int cmp( const VarBuf& buf_a, const VarBuf& buf_b )
+      {
+        const auto& map_a = get_val(buf_a);
+        const auto& map_b = get_val(buf_b);
+        const auto& a = map_a.decoded();
+        const auto& b = map_b.decoded();
+        return a < b ? -1 : ( a == b ? 0 : 1 );
+      }
+
+      static VarBuf set_val( VarId varid, const CfgKeyValMap& value ) {
+        nc_assert_always( value.varId() == varid );
+        return value.encoded();
+      }
+
+      static void stream_val( std::ostream& os, const VarBuf& buf )
+      {
+        //delegate cfgstring i/o to Derived
+        Derived::stream_tocfgstr( os, get_val(buf) );
+      }
+
+      static void asJSONObject( std::ostream& os, const VarBuf& buf )
+      {
+        //JSON output is for now simply the key-value pairs (fixme??):
+        get_val(buf).streamJSON(os);
+      }
+
+      static VarBuf from_str( VarId varid, StrView sv_in ) {
+        //delegate cfgstring i/o to Derived
+        standardInputStrSanityCheck(Derived::name,sv_in);
+        return CfgKeyValMap::encode( Derived::decode_cfgstr(sv_in), varid );
+      }
+    };
+
     using VarFromStrFct = VarBuf(*)(VarId, StrView);
     using StreamVarFct  = void(*)(std::ostream&, const VarBuf&);
     using BufCmpFct = int(*)(const VarBuf&,const VarBuf&);
