@@ -47,6 +47,11 @@ namespace NCRYSTAL_NAMESPACE {
   static_assert(std::is_move_constructible<SmallVector<int,1,SVMode::LOWFOOTPRINT>>::value,"");
   static_assert(std::is_move_assignable<SmallVector<int,1,SVMode::FASTACCESS>>::value,"");
   static_assert(std::is_move_assignable<SmallVector<int,1,SVMode::LOWFOOTPRINT>>::value,"");
+
+  static_assert(std::is_copy_constructible<Cfg::ExtnCfg>::value,"");
+  static_assert(std::is_copy_assignable<Cfg::ExtnCfg>::value,"");
+  static_assert(std::is_move_constructible<Cfg::ExtnCfg>::value,"");
+  static_assert(std::is_move_assignable<Cfg::ExtnCfg>::value,"");
 }
 
 NC::DataSourceName::DataSourceName()
