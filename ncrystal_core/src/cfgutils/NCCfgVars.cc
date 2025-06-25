@@ -19,6 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/cfgutils/NCCfgVars.hh"
+#include "NCrystal/internal/cfgutils/NCCfgExtn.hh"
 
 namespace NC = NCrystal;
 
@@ -393,4 +394,15 @@ namespace NCRYSTAL_NAMESPACE {
       static_assert(check_varlist_sorted(),"");
     }
   }
+}
+
+NC::Cfg::VarBuf NC::Cfg::vardef_extn::from_str( VarId varid, StrView sv )
+{
+  return Extn::decode_cfgstr( varid, sv ).encoded();
+}
+
+void NC::Cfg::vardef_extn::stream_tocfgstr( std::ostream& os,
+                                            const CfgKeyValMap& data )
+{
+  Extn::stream_to_cfgstr( os, data );
 }

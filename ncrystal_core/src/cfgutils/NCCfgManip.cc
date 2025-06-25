@@ -480,3 +480,22 @@ void NC::Cfg::CfgManip::checkParamConsistency_Absorption( const CfgData& )
   //Currently all Absorption parameters can be set independently without
   //consistency constraints.
 }
+
+#include "NCrystal/internal/cfgutils/NCCfgExtn.hh"
+
+NC::Cfg::ExtnCfg NC::Cfg::CfgManip::get_extn( const CfgData& data ) {
+  const VarBuf* buf = searchBuf( data, detail::VarId::extn );
+  if ( !buf || buf->empty() )
+    return NullOpt;
+  return Extn::createExtnCfgFromVarBuf( VarBuf( *buf ) );
+}
+
+void NC::Cfg::CfgManip::set_extn( CfgData& data, const ExtnCfg& val )
+{
+  const detail::VarBuf& varbuf = Extn::accessInternalVarBuf( val );
+  //fixme: next check could fail if not enabled! We should ensure empty
+  //varbufs have the right varid as well. Perhaps this is related to
+  //setting ";extn=" (empty) to disable extinction.
+  nc_assert_always( varbuf.metaData() == VarId::extn );
+  setValue<vardef_extn>( data, CfgKeyValMap( varbuf ) );
+}

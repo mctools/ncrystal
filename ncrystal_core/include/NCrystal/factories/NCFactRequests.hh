@@ -94,6 +94,8 @@ namespace NCRYSTAL_NAMESPACE {
       std::string get_scatfactory() const;
 
       //Parameters (advanced: single crystal, ucn, ...):
+      bool has_extn() const;
+      Cfg::ExtnCfg get_extn() const;
       MosaicityFWHM get_mos() const;
       OrientDir get_dir1() const;
       OrientDir get_dir2() const;
