@@ -455,6 +455,12 @@ Test loading of :>>>phases<0.1*unicodedir_test䔀abc{{NATIVEPATHSEP}}Al_sg225.nc
                  {'allowed_input_units': None,
                   'default_value': None,
                   'default_value_str': None,
+                  'description': 'Extinction (fixme).',
+                  'name': 'extn',
+                  'type': 'exctinction parameters'},
+                 {'allowed_input_units': None,
+                  'default_value': None,
+                  'default_value_str': None,
                   'description': 'Symmetry axis of anisotropic layered '
                                  'crystals with a layout similar to pyrolytic '
                                  'graphite (PG). The axis must be provided in '
