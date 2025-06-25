@@ -1,4 +1,8 @@
 v4.2.1 (work in progress)
+     * Fix issue where MatCfg::get_ucnmode_str returned internal StrView
+       class. This now returns std::string. This change is not considered ABI
+       breaking, since no-one could have used the method without also including
+       internal header files.
      * ...
 
 v4.2.0 2025-06-11
