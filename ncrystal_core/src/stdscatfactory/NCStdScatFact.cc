@@ -25,6 +25,7 @@
 #include "NCrystal/interfaces/NCInfo.hh"
 #include "NCrystal/interfaces/NCSCOrientation.hh"
 #include "NCrystal/internal/powderbragg/NCPowderBragg.hh"
+#include "NCrystal/internal/powderbragg/NCPowderBraggUtils.hh"
 #include "NCrystal/internal/scbragg/NCSCBragg.hh"
 #include "NCrystal/internal/lcbragg/NCLCBragg.hh"
 #include "NCrystal/internal/bkgdextcurve/NCBkgdExtCurve.hh"
@@ -35,6 +36,7 @@
 #include "NCrystal/internal/sab/NCSABUCN.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/internal/extd_utils/NCProcCompBldr.hh"
+#include "NCrystal/internal/extn_scatter/NCExtnFactory.hh"
 
 namespace NC = NCrystal;
 
@@ -62,17 +64,23 @@ namespace NCRYSTAL_NAMESPACE {
     virtual ~PlaneProviderWCutOff() {}
 
     Optional<Plane> getNextPlane() override {
-      //double& dspacing, double& fsq, Vector& demi_normal
       Optional<Plane> res;
       while ( ( res = m_pp->getNextPlane() ).has_value() ) {
         if ( res.value().dspacing>=m_dcut ) {
           return res;
         } else {
-          const double fsq = res.value().fsq * 2;//getNextPlane provides demi-normals, e.g. only half of the normals.
-          if (m_withheldPlanes.empty()||m_withheldPlanes.back().first!=res.value().dspacing)
-            m_withheldPlanes.emplace_back(res.value().dspacing,fsq);
-          else
-            m_withheldPlanes.back().second += fsq;
+          const double fsq = res.value().fsq * 2;//getNextPlane provides
+                                                 //demi-normals, e.g. only half
+                                                 //of the normals hence a factor
+                                                 //of 2 here.
+          if ( m_withheldPlanes.empty()
+               || m_withheldPlanes.back().dsp != res.value().dspacing ) {
+            m_withheldPlanes.emplace_back();
+            m_withheldPlanes.back().dsp = res.value().dspacing;
+            m_withheldPlanes.back().fsqmult = fsq;
+          } else {
+            m_withheldPlanes.back().fsqmult += fsq;
+          }
         }
       }
       return NullOpt;
@@ -81,7 +89,7 @@ namespace NCRYSTAL_NAMESPACE {
     void prepareLoop() override { m_pp->prepareLoop(); m_withheldPlanes.clear(); }
     bool canProvide() const override { return m_pp->canProvide(); }
     bool hasPlanesWithheldInLastLoop() const { return !m_withheldPlanes.empty(); };
-    PowderBragg::VectDFM&& consumePlanesWithheldInLastLoop()
+    PowderBraggInput::MergedData::PlaneList&& consumePlanesWithheldInLastLoop()
     {
       return std::move(m_withheldPlanes);
     };
@@ -89,7 +97,7 @@ namespace NCRYSTAL_NAMESPACE {
   private:
     std::unique_ptr<PlaneProvider> m_pp;
     double m_dcut;
-    PowderBragg::VectDFM m_withheldPlanes;
+    PowderBraggInput::MergedData::PlaneList m_withheldPlanes;
   };
 
   class StdScatFact : public FactImpl::ScatterFactory {
@@ -150,6 +158,9 @@ namespace NCRYSTAL_NAMESPACE {
       if ( cfg.get_coh_elas() && info.isCrystalline() ) {
         nc_assert(info.hasHKLInfo());
         if (cfg.isSingleCrystal()) {
+          if ( cfg.has_extn() )
+            NCRYSTAL_THROW2(BadInput,"Extinction models are still not"
+                            "  implemented for oriented materials.");
           components.addfct_cl( [&cfg,&info]()
           {
             ProcImpl::ProcComposition::ComponentList cl;
@@ -176,15 +187,27 @@ namespace NCRYSTAL_NAMESPACE {
             }
             if ( ppwcutoff && ppwcutoff->hasPlanesWithheldInLastLoop() ) {
               nc_assert_always(info.hasStructureInfo());
-              cl.emplace_back(makeSO<PowderBragg>(info.getStructureInfo(),
-                                                  ppwcutoff->consumePlanesWithheldInLastLoop()));
+              cl.emplace_back(makeSO<PowderBragg>( PowderBraggUtils::prepareMergedData( info.getStructureInfo(),
+                                                                                        ppwcutoff->consumePlanesWithheldInLastLoop() ) ) );
             }
             return cl;
           });
         } else {
-          components.addfct( [&info](){ return makeSO<PowderBragg>(info); } );
-          //NB: Layered polycrystals get same treatment as unlayered
-          //polycrystals in our current modelling.
+          bool needs_regular_powderbragg = true;
+          auto extn_cfg = cfg.get_extn();
+          if ( extn_cfg.enabled() ) {
+            needs_regular_powderbragg = false;
+            components.addfct( [&info,extn_cfg]()
+            {
+              return Extn::createIsotropicExtnProc( PowderBraggUtils::prepareData(info),
+                                                    extn_cfg );
+            });
+          }
+          if ( needs_regular_powderbragg )
+            components.addfct( [&info]()
+            {
+              return makeSO<PowderBragg>(PowderBraggUtils::prepareMergedData(info));
+            });
         }
       }
 
