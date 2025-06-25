@@ -28,6 +28,25 @@ namespace {
   using PV = std::vector<P>;
   using KVMap = NC::Cfg::CfgKeyValMap;
 
+  template <typename TIter>
+  void simpleBubbleSort( TIter itB, TIter itE ) {
+    //We should just do std::stable_sort( itB, itE ); but the intel compiler was
+    //being annoying.
+
+    if ( itB == itE )
+      return;
+    bool did_swap;
+    do {
+      did_swap = false;
+      for ( auto it = itB; it != std::prev(itE); ++it ) {
+        if (*it > *std::next(it)) {
+          std::iter_swap(it, std::next(it));
+          did_swap = true;
+        }
+      }
+    } while ( did_swap );
+  }
+
   void test( PV data_holder )
   {
     KVMap::DecodedData data;
@@ -53,7 +72,8 @@ namespace {
 
 
     KVMap::DecodedData data_sorted = data;
-    std::stable_sort( data_sorted.begin(), data_sorted.end() );
+    //std::stable_sort( data_sorted.begin(), data_sorted.end() );
+    simpleBubbleSort( data_sorted.begin(), data_sorted.end() );
     nc_assert_always( m2.decoded() == data_sorted );
     nc_assert_always( m2.varId() == dummy_varid );
     nc_assert_always( m.decoded() == data_sorted );
