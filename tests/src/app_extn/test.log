@@ -1,0 +1,36 @@
+MatCfg("Al_sg225.ncmat;extn=10e-6m")
+
+TESTING "extn=10e-6m"
+  Normalised: "10e-6m"
+  Base: "ExtnCfg_Base(1e-05m/mdl:sabine)"
+  Sabine: "ExtnCfg_Sabine(tilt:rec/corr:1)"
+
+TESTING "extn=1e-5m"
+  Normalised: "1e-5m"
+  Base: "ExtnCfg_Base(1e-05m/mdl:sabine)"
+  Sabine: "ExtnCfg_Sabine(tilt:rec/corr:1)"
+
+TESTING "extn=1"
+  Normalised: "1"
+  Base: "ExtnCfg_Base(1e-10m/mdl:sabine)"
+  Sabine: "ExtnCfg_Sabine(tilt:rec/corr:1)"
+
+TESTING "extn=0.01mm/1mm/2deg"
+  Normalised: "0.01mm/1mm/2deg"
+  Base: "ExtnCfg_Base(1e-05m/0.001m/0.0349066/mdl:sabine)"
+  Sabine: "ExtnCfg_Sabine(tilt:rec/corr:1)"
+
+TESTING "extn=   0.01   mm  /   1  mm   / 2.0   deg  "
+  Normalised: "0.01mm/1mm/2.0deg"
+  Base: "ExtnCfg_Base(1e-05m/0.001m/0.0349066/mdl:sabine)"
+  Sabine: "ExtnCfg_Sabine(tilt:rec/corr:1)"
+
+TESTING "extn=   0.01   mm  /   1  mm   / .123456789123456789123456789   deg  "
+  Normalised: "0.01mm/1mm/0.002154727454144645"
+  Base: "ExtnCfg_Base(1e-05m/0.001m/0.00215473/mdl:sabine)"
+  Sabine: "ExtnCfg_Sabine(tilt:rec/corr:1)"
+
+TESTING "extn=   0.01   mm  /   1  mm   / .123456789123456789123456789   rad  "
+  Normalised: "0.01mm/1mm/0.12345678912345678"
+  Base: "ExtnCfg_Base(1e-05m/0.001m/0.123457/mdl:sabine)"
+  Sabine: "ExtnCfg_Sabine(tilt:rec/corr:1)"

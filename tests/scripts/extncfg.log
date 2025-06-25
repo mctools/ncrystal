@@ -1,0 +1,66 @@
+
+---> Testing 2.0:
+extn decoded json:
+{'domain_size': '2.0'}
+Normalisation of extn="2.0" gave "2.0"
+
+---> Testing 2:
+extn decoded json:
+{'domain_size': '2'}
+Normalisation of extn="2" gave "2"
+
+---> Testing 0.1:
+extn decoded json:
+{'domain_size': '0.1'}
+Normalisation of extn="0.1" gave "0.1"
+
+---> Testing 0.1Aa:
+extn decoded json:
+{'domain_size': '0.1'}
+Normalisation of extn="0.1Aa" gave "0.1"
+
+---> Testing 0.1 m:
+extn decoded json:
+{'domain_size': '0.1m'}
+Normalisation of extn="0.1 m" gave "0.1m"
+
+---> Testing 0.1m2:
+Caught expected NCBadInput('Invalid domain size (length) length value in cfg-string: "0.1m2"')
+
+---> Testing 1e-6m/mdl:sabine:
+extn decoded json:
+{'domain_size': '1e-6m', 'mdl': 'sabine'}
+Normalisation of extn="1e-6m/mdl:sabine" gave "1e-6m/mdl:sabine"
+
+---> Testing 1e-6m:
+extn decoded json:
+{'domain_size': '1e-6m'}
+Normalisation of extn="1e-6m" gave "1e-6m"
+
+---> Testing 2.0/mdl:default:
+Caught expected NCBadInput('Syntax error in extinction cfg "2.0/mdl:default": Unknown model "default".')
+
+---> Testing 2.0/mdl:sabine/corr:1:
+extn decoded json:
+{'domain_size': '2.0', 'mdl': 'sabine'}
+Normalisation of extn="2.0/mdl:sabine/corr:1" gave "2.0/mdl:sabine"
+
+---> Testing 2.0/mdl:sabine/corr:0:
+extn decoded json:
+{'corr': '0', 'domain_size': '2.0', 'mdl': 'sabine'}
+Normalisation of extn="2.0/mdl:sabine/corr:0" gave "2.0/mdl:sabine/corr:0"
+
+---> Testing 2.0/mdl:sabine/tilt:rec:
+extn decoded json:
+{'domain_size': '2.0', 'mdl': 'sabine'}
+Normalisation of extn="2.0/mdl:sabine/tilt:rec" gave "2.0/mdl:sabine"
+
+---> Testing 2.0/mdl:sabine/tilt:tri:
+extn decoded json:
+{'domain_size': '2.0', 'mdl': 'sabine', 'tilt': 'tri'}
+Normalisation of extn="2.0/mdl:sabine/tilt:tri" gave "2.0/mdl:sabine/tilt:tri"
+
+---> Testing 2.00000000000000000000000  /   mdl:sabine  / tilt:tri :
+extn decoded json:
+{'domain_size': '2', 'mdl': 'sabine', 'tilt': 'tri'}
+Normalisation of extn="2.00000000000000000000000  /   mdl:sabine  / tilt:tri " gave "2/mdl:sabine/tilt:tri"
