@@ -45,14 +45,14 @@ def ref_calcSabineB(y):
     #Evaluate 1/y - exp(-y)/sinh(y) for y>=0
     return mpf(1)/y - mp.exp(-y)/mp.sinh(y)
 
-def ref_calcSabineEb(x,y):
+def ref_calcSabineEb(x,y=0.0):
     x = mpf(x)
     y = mpf(y)
     A = ref_calcSabineA( y )
     B = ref_calcSabineB( y )
     return A / mp.sqrt( mpf(1) + B * x )
 
-def ref_calcSabineEl(x,y):
+def ref_calcSabineEl(x,y=0.0):
     x = mpf(x)
     y = mpf(y)
     if x <= mpf(1):
@@ -95,11 +95,24 @@ def testAB():
 
     for y in yvals:
         for x in xvals:
-            cmp(lib.nctest_calcSabineEb, ref_calcSabineEb,x,"calcSabineEb", x2 = y)
+            cmp(lib.nctest_calcSabineEb, ref_calcSabineEb,x,
+                "calcSabineEb", x2 = y)
 
     for y in yvals:
         for x in xvals:
-            cmp(lib.nctest_calcSabineEl, ref_calcSabineEl,x,"calcSabineEl", x2 = y)
+            cmp(lib.nctest_calcSabineEl, ref_calcSabineEl,x,
+                "calcSabineEl", x2 = y)
+
+    for y in yvals:
+        for x in xvals:
+            cmp(lib.nctest_calcSabineEb_CachedAB, ref_calcSabineEb,x,
+                "calcSabineEb_CachedAB", x2 = y)
+
+    for x in xvals:
+        cmp( lib.nctest_calcSabineEb_y0, ref_calcSabineEb,x,"calcSabineEb_y0" )
+
+    for x in xvals:
+        cmp( lib.nctest_calcSabineEl_y0, ref_calcSabineEl,x,"calcSabineEl_y0" )
 
 def main():
     testAB()
