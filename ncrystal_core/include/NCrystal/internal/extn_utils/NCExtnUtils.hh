@@ -31,7 +31,7 @@ namespace NCRYSTAL_NAMESPACE {
   // Sabine, T. M. "The flow of radiation in a real crystal." (2006): 609-616.
   // doi: 10.1107/97809553602060000603
 
-  namespace Extinction {
+  namespace Extn {
 
     double calcSabineA( double y );//Sabine 6.4.5.6
     double calcSabineB( double y );//Sabine 6.4.5.7
