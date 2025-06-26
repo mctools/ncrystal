@@ -22,7 +22,7 @@
 #include "NCTestUtils/NCTestModUtils.hh"
 #include "NCrystal/internal/extn_utils/NCExtnUtils.hh"
 
-namespace NCE = NCrystal::Extinction;
+namespace NCE = NCrystal::Extn;
 
 NCTEST_CTYPE_DICTIONARY
 {
