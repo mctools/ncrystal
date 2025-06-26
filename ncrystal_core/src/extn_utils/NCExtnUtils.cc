@@ -21,7 +21,7 @@
 #include "NCrystal/internal/extn_utils/NCExtnUtils.hh"
 
 namespace NC = NCrystal;
-namespace NCE = NCrystal::Extinction;
+namespace NCE = NCrystal::Extn;
 
 double NCE::calcSabineA( double y )
 {
