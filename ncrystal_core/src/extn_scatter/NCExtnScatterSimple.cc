@@ -52,9 +52,6 @@ NC::CrossSect NCE::ExtnScatterSimple::crossSectionIsotropic( CachePtr&,
   if ( ekin < m_threshold )
     return CrossSect{ 0.0 };
 
-  //Fixme: decide on namespace!
-  using Extinction::calcSabineEl;
-  using Extinction::calcSabineEb;
 
   const double sabine_y = 0.0;//mu = 0 in this simple model
   // const double A = calcSabineA( sabine_y );//todo: cache if y!=0 is an option
