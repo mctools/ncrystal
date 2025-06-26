@@ -33,12 +33,44 @@ namespace NCRYSTAL_NAMESPACE {
 
   namespace Extn {
 
-    double calcSabineA( double y );//Sabine 6.4.5.6
-    double calcSabineB( double y );//Sabine 6.4.5.7
     double calcSabineEl( double x, double y );//Sabine 6.4.5.3-4
     double calcSabineEb( double x, double y );//Sabine 6.4.5.5
 
+    //Same but y=0 or Eb with pre-calculated A+B factors:
+    double calcSabineEl_y0( double x );
+    double calcSabineEb_y0( double x );
+    double calcSabineA( double y );//Sabine 6.4.5.6
+    double calcSabineB( double y );//Sabine 6.4.5.7
+    double calcSabineEb_cachedAB( double x, double A, double B );
   }
 
 }
+
+////////////////////////////
+// Inline implementations //
+////////////////////////////
+
+inline double NCrystal::Extn::calcSabineEl( double x, double y )
+{
+  nc_assert( y>=0.0 );
+  nc_assert( std::isfinite(y) );
+  return std::exp(-y)*calcSabineEl_y0(x);
+}
+
+inline double NCrystal::Extn::calcSabineEb_y0( double x )
+{
+  nc_assert( x>=0.0 );
+  nc_assert( std::isfinite(x) );
+  return 1.0 / std::sqrt( 1.0 + x );
+}
+
+inline double NCrystal::Extn::calcSabineEb_cachedAB( double x,
+                                                     double A,
+                                                     double B )
+{
+  nc_assert( x>=0.0 );
+  nc_assert( std::isfinite(x) );
+  return A / std::sqrt( 1.0 + B * x );
+}
+
 #endif
