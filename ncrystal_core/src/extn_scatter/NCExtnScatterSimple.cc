@@ -52,10 +52,8 @@ NC::CrossSect NCE::ExtnScatterSimple::crossSectionIsotropic( CachePtr&,
   if ( ekin < m_threshold )
     return CrossSect{ 0.0 };
 
+  //NB: Sabine mu=y=0 in this simple model.
 
-  const double sabine_y = 0.0;//mu = 0 in this simple model
-  // const double A = calcSabineA( sabine_y );//todo: cache if y!=0 is an option
-  // const double B = calcSabineB( sabine_y );
   auto wl = ekin.wavelength();
   const double v0 = m_data.cell.volume;
   const double kkk = ncsquare(wl.get()*m_domainSizeAa/v0);//(unit is Aa^-2)
@@ -68,15 +66,15 @@ NC::CrossSect NCE::ExtnScatterSimple::crossSectionIsotropic( CachePtr&,
       break;
     double sabine_x = kkk * e.fsq * 1e-8;//1e-8 to convert fsq from barn to to Angstrom^2 (fixme absorb on kkk)
 
-    double El = calcSabineEl( sabine_x, sabine_y );//fixme: y=0 version, and versions taking cached A+B
-    double Eb = calcSabineEb( sabine_x, sabine_y );
+    double El = calcSabineEl_y0( sabine_x );
+    double Eb = calcSabineEb_y0( sabine_x );
 
     double sinth_sq = std::min<double>(1.0,ncsquare(0.5 * wl.get() / e.dsp));
     double costh_sq = std::max<double>(1.0 - sinth_sq,0.0);
     double extinction_correction = El * costh_sq + Eb * sinth_sq;
     contrib.add( e.dsp * e.fsq * e.mult * extinction_correction  );
   }
-  return CrossSect{ factor * contrib.sum()  };//fixme dummy fudge factor
+  return CrossSect{ factor * contrib.sum()  };
 }
 
 NC::ScatterOutcomeIsotropic
