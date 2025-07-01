@@ -1,0 +1,91 @@
+#!/usr/bin/env python3
+
+################################################################################
+##                                                                            ##
+##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
+##                                                                            ##
+##  Copyright 2015-2025 NCrystal developers                                   ##
+##                                                                            ##
+##  Licensed under the Apache License, Version 2.0 (the "License");           ##
+##  you may not use this file except in compliance with the License.          ##
+##  You may obtain a copy of the License at                                   ##
+##                                                                            ##
+##      http://www.apache.org/licenses/LICENSE-2.0                            ##
+##                                                                            ##
+##  Unless required by applicable law or agreed to in writing, software       ##
+##  distributed under the License is distributed on an "AS IS" BASIS,         ##
+##  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  ##
+##  See the License for the specific language governing permissions and       ##
+##  limitations under the License.                                            ##
+##                                                                            ##
+################################################################################
+
+from NCTestUtils.loadlib import Lib
+import matplotlib.pyplot as plt
+import numpy as np
+import mpmath
+mp = mpmath.mp
+mp.dps = 50
+mpf = mp.mpf
+lib = Lib('extinction')
+
+@np.vectorize
+def mpmath_sabine_original_El( x, y = 0 ):
+    # mpmathe val of Sabine's  eq. 6.4.5.3 and 6.4.5.4.
+    x, y = mpf(x), mpf(y)
+    if x <= mpf(1):
+        return mp.exp( -y ) * ( mpf(1)-mpf('1/2')*x+mpf('1/4')*x**2
+                                -mpf('5/48')*x**3+mpf('7/192')*x**4 )
+    return mp.exp( -y ) * mp.sqrt(mpf(2)/(mp.pi*x))*(
+        mpf(1)-mpf(1)/(8*x) - mpf(3)/(128*(x**2)) - mpf(15)/(1024*(x**3))
+    )
+
+@np.vectorize
+def mpmath_improved_El( x, y = 0 ):
+    # Redoing Sabine's calculations leading to eq. 6.4.5.3 and 6.4.5.4, I (TK)
+    # found the following exact form:
+    #
+    # El = exp(-y) * exp(-x) * ( I0(x)+I1(x) )
+    #
+    # Where I0(x) and I1(x) are the modified bessel functions of the first kind,
+    # for nu=0 and nu=1 respectively. In mpmath these are given as besseli(0,x)
+    # and besseli(1,x) (in sagemath the function name is bessel_I).
+    x, y = mpf(x), mpf(y)
+    return mp.exp( -y ) * mp.exp( -x ) * ( mp.besseli(0,x) + mp.besseli(1,x) )
+
+def main():
+    #Plot Sabine rect El for y=0, to show discontinuity.
+    n = 2000
+    xa = np.linspace(0.0, 1.0,n)
+    xb = np.linspace(1.0+1e-14, 10.0,n+1)
+    xab = np.concatenate((xa,xb))
+
+    #Also double-check the C++ implementation:
+    plt.plot(xa,mpmath_sabine_original_El(x=xa),label='Sabine 6.4.5.3 (El for x<=1, mpmath)',color='yellow')
+    plt.plot(xb,mpmath_sabine_original_El(x=xb),label='Sabine 6.4.5.4 (El for x>1, mpmath)',color='red')
+
+    y_ref = mpmath_improved_El(xab)
+    y_sabine = np.vectorize( lib.nctest_calcSabineEl_y0 )(xab)
+    y_sabineoriginal = np.vectorize( lib.nctest_calcSabineElOriginal_y0 )(xab)
+
+    plt.plot(xab, y_ref,label='TK Improved formula (mpmath reference)',color='black')
+    plt.plot(xab,y_sabine,label='Sabine formulas (improved version, NCrystal C++)',ls=':',lw=3,color='green',alpha=0.8)
+    plt.plot(xab,y_sabineoriginal,label='Sabine formulas (original, NCrystal C++)',ls=':',lw=3,color='orange',alpha=0.8)
+    plt.xlabel('x')
+    plt.xlim(xab[0],xab[-1])
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+    plt.plot(xab, np.abs(y_sabine/y_ref-1.0), label='Sabine formulas (improved version, NCrystal C++)',color='green')
+    plt.plot(xab, np.abs(y_sabineoriginal/y_ref-1.0), label='Sabine formulas (original, NCrystal C++)',color='orange')
+    plt.semilogy()
+    plt.xlabel('x')
+    plt.title('Accuracy (compared with mpmath evaluation of the exact formula)')
+    plt.xlim(xab[0],xab[-1])
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+if __name__=='__main__':
+    main()
