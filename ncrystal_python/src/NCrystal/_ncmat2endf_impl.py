@@ -1524,7 +1524,9 @@ def _tidy_beta( x, allow_negative=False):
         assert -1e99 <= x <= 1e99
     else:
         assert 0.0 <= x <= 1e99
-    if x > 8:
+    if x < -120:
+        return float('%.1g'%x)
+    if abs(x) > 8:
         return float('%.2g'%x)
     return float('%.3g'%x)
 
