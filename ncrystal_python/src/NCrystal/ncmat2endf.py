@@ -185,12 +185,12 @@ class EndfMetaData():
         (key,value) pairs, or another EndfMetaData object, the associated values
         will be updated accordingly.
         """
-        from datetime import datetime
+        from ._common import _datetime_now
         import copy
         from ._ncmat2endf_impl import _metadata_definitions
         self.__data = dict( (k,copy.deepcopy(v['defval']))
                             for k,v in _metadata_definitions.items() )
-        self.__now_MMMYY = datetime.now().strftime('%b%y').upper()
+        self.__now_MMMYY = _datetime_now().strftime('%b%y').upper()
         if data:
             self.update_from_dict(data)
 

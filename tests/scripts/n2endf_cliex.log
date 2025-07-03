@@ -294,9 +294,9 @@ DUMPING endf dict begin
           'ALAB' -> 'MyLAB      '
           'AUTH' -> 'NCrystal                         '
           'REF' -> 'REFERENCE            '
-          'EDATE' -> 'EVAL-JUN25'
-          'DDATE' -> 'DIST-JUN25'
-          'RDATE' -> 'REV0-JUN25'
+          'EDATE' -> 'EVAL-AUG17'
+          'DDATE' -> 'DIST-AUG17'
+          'RDATE' -> 'REV0-AUG17'
           'ENDATE' -> '        '
           'DESCRIPTION' ->
               1 -> '******************************************************************'

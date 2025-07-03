@@ -23,6 +23,7 @@ from NCrystalDev.ncmat2endf import ncmat2endf
 from NCrystalDev._ncmat2endf_impl import _endf_clean
 from NCrystalDev._numpy import _np
 from NCrystalDev.exceptions import NCBadInput
+from NCrystalDev._common import fixed_fake_datetime_now
 
 import NCrystalDev.cli as nc_cli
 import NCrystalDev.core as nc_core
@@ -33,6 +34,7 @@ import NCrystalDev.ncmat as nc_ncmat
 from .common import ( print_text_file_with_snipping,
                       require_flteq )
 
+@fixed_fake_datetime_now
 def test_cfg( cfg, check_teff=False,
               ref_parsed=None, check_edge_positions=False,
               compare_xsec=False, dump_file=False,
@@ -152,7 +154,7 @@ def test_cli_fail( *args, exception_type=NCBadInput, **kwargs ):
         return
     raise SystemExit('Did not fail as expected')
 
-
+@fixed_fake_datetime_now
 def test_cli( *args ):
     import shlex
     if len(args)==1 and isinstance(args[0],str):

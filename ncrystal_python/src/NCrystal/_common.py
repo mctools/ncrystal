@@ -514,3 +514,29 @@ def _lookup_existing_file( path ):
             p = pathlib.Path(dd).joinpath(path)
             if p.exists():
                 return p.absolute()
+
+_override_datetime_now = [ None ]
+def _datetime_now():
+    """Returns datetime.datetime.now() but possibly intercepted for unit tests"""
+    import datetime
+    n = datetime.datetime.now()
+    return _override_datetime_now[0] or n
+
+class FixedFakeDatetimeNow():
+    # Context manager to be used in unit tests to modify the returned value from
+    # the datetime_now function below, to a fixed value.
+    def __enter__(self):
+        import datetime
+        self.__orig = _override_datetime_now[0]
+        _override_datetime_now[0] = datetime.datetime( 2017, 8, 29, 13, 40,
+                                                       tzinfo
+                                                       = datetime.timezone.utc )
+    def __exit__(self,*args,**kwargs):
+        _override_datetime_now[0] = self.__orig
+
+def fixed_fake_datetime_now(f):
+    #To be used as a decorator
+    def fw(*a, **kw):
+        with FixedFakeDatetimeNow():
+            return f(*a, **kw)
+    return fw
