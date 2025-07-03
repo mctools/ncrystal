@@ -21,7 +21,7 @@ jobs:
     needs: [ ncdevtool_check ]
     strategy:
       matrix:
-        os: [windows-2019, windows-2022]
+        os: [windows-2022, windows-2025]
         winexportall: [ "ON", "OFF" ]
     name: ${{ matrix.os }}.winexportall=${{ matrix.winexportall }}
     runs-on: ${{ matrix.os }}
