@@ -85,6 +85,21 @@ namespace NCRYSTAL_NAMESPACE {
     //Original recipe for El as it appeared in Sabine's paper:
     double calcSabineElOriginal( double x, double y );
     double calcSabineElOriginal_y0( double x );
+
+    //We also provide evaluations of the secondary extinction factors in the
+    //uncorrelated model, for both rectangular and triangular tilt functions:
+    double calcSabineEl_ScndRect( double x, double y );//Sabine 6.4.9.2
+    double calcSabineEb_ScndRect( double x, double y );//Sabine 6.4.9.3
+    double calcSabineEl_ScndTriang( double x, double y );//Sabine 6.4.9.4
+    double calcSabineEb_ScndTriang( double x, double y );//Sabine 6.4.9.5
+
+    //Same but y=0 or Eb with pre-calculated A(y) and B(y) factors:
+    double calcSabineEl_ScndRect_y0( double x );
+    double calcSabineEb_ScndRect_y0( double x );
+    double calcSabineEl_ScndTriang_y0( double x );
+    double calcSabineEb_ScndTriang_y0( double x );
+    double calcSabineEb_ScndRect_cachedAB( double x, double A, double B );
+    double calcSabineEb_ScndTriang_cachedAB( double x, double A, double B );
   }
 
 }
@@ -120,6 +135,10 @@ inline double NCrystal::Extn::calcSabineEb_cachedAB( double x,
 {
   nc_assert( x>=0.0 );
   nc_assert( std::isfinite(x) );
+  nc_assert( A>=0.0 );
+  nc_assert( std::isfinite(A) );
+  nc_assert( B>=0.0 );
+  nc_assert( std::isfinite(B) );
   return A / std::sqrt( 1.0 + B * x );
 }
 
@@ -132,6 +151,69 @@ inline double NCrystal::Extn::calcSabineEb( double x, double y )
   return calcSabineA( y ) / std::sqrt( 1.0 + calcSabineB( y ) * x );
 }
 
+inline double NCrystal::Extn::calcSabineEb_ScndRect_y0( double x )
+{
+  nc_assert( x>=0.0 );
+  nc_assert( std::isfinite(x) );
+  return 1.0 / ( 1.0 + x );
+}
 
+inline double NCrystal::Extn::calcSabineEl_ScndRect( double x, double y )
+{
+  nc_assert( y>=0.0 );
+  nc_assert( std::isfinite(y) );
+  return std::exp(-y)*calcSabineEl_ScndRect_y0(x);
+}
+
+inline double NCrystal::Extn::calcSabineEb_ScndRect_cachedAB( double x,
+                                                              double A,
+                                                              double B )
+{
+  nc_assert( x>=0.0 );
+  nc_assert( std::isfinite(x) );
+  nc_assert( A>=0.0 );
+  nc_assert( std::isfinite(A) );
+  nc_assert( B>=0.0 );
+  nc_assert( std::isfinite(B) );
+  return A / ( 1.0 + B*x );
+}
+
+inline double NCrystal::Extn::calcSabineEb_ScndRect( double x, double y )
+{
+  nc_assert( x>=0.0 );
+  nc_assert( std::isfinite(x) );
+  const double A = calcSabineA( y );
+  const double B = calcSabineB( y );
+  return A / ( 1.0 + B*x );
+}
+
+inline double NCrystal::Extn::calcSabineEl_ScndTriang( double x, double y )
+{
+  nc_assert( y>=0.0 );
+  nc_assert( std::isfinite(y) );
+  return std::exp(-y)*calcSabineEl_ScndTriang_y0(x);
+}
+
+inline double NCrystal::Extn::calcSabineEb_ScndTriang_cachedAB( double x,
+                                                                double A,
+                                                                double B )
+{
+  nc_assert( x>=0.0 );
+  nc_assert( std::isfinite(x) );
+  nc_assert( A>=0.0 );
+  nc_assert( std::isfinite(A) );
+  nc_assert( B>=0.0 );
+  nc_assert( std::isfinite(B) );
+  return A * calcSabineEb_ScndTriang_y0( B * x );
+}
+
+inline double NCrystal::Extn::calcSabineEb_ScndTriang( double x, double y )
+{
+  nc_assert( x>=0.0 );
+  nc_assert( std::isfinite(x) );
+  const double A = calcSabineA( y );
+  const double B = calcSabineB( y );
+  return A * calcSabineEb_ScndTriang_y0( B * x );
+}
 
 #endif
