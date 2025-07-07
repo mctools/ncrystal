@@ -25,7 +25,7 @@
 from NCTestUtils.loadlib import Lib
 import mpmath
 mp = mpmath.mp
-mp.dps = 200
+mp.dps = 140
 mpf = mp.mpf
 import NCTestUtils.enable_fpe # noqa F401
 
@@ -36,7 +36,9 @@ def ref_calcSabineA(y):
     y = mpf(y)
     if y == mpf(0):
         return mpf(1)
-    return mp.exp(-y)*mp.sinh(y)/y
+    #return mp.exp(-y)*mp.sinh(y)/y
+    a = -2*y
+    return mp.expm1(a)/a
 
 def ref_calcSabineB(y):
     y = mpf(y)
@@ -79,10 +81,46 @@ def ref_exact_El( x, y = 0 ):
     x, y = mpf(x), mpf(y)
     return mp.exp( -y ) * mp.exp( -x ) * ( mp.besseli(0,x) + mp.besseli(1,x) )
 
+def ref_El_ScndRect( x, y = 0 ):
+    #Sabine 6.4.9.2
+    x, y = mpf(x), mpf(y)
+    t = mp.exp( -y )
+    if x == 0:
+        return t
+    return mp.exp( -y ) * ( mp.expm1( -2 * x ) ) / ( -2 * x )
+
+def ref_Eb_ScndRect( x, y = 0 ):
+    #Sabine 6.4.9.3
+    x, y = mpf(x), mpf(y)
+    if y == 0:
+        return mpf(1)/(x+1)
+    A = ref_calcSabineA( y )
+    B = ref_calcSabineB( y )
+    return A/(x*B+1)
+
+def ref_El_ScndTriang( x, y = 0 ):
+    #Sabine 6.4.9.4
+    x, y = mpf(x), mpf(y)
+    t = mp.exp( -y )
+    if x != 0:
+        t *= (mpf(1)+(mpf(1)/(2*x))*(mp.expm1(-2*x)))/x
+    return t
+
+def ref_Eb_ScndTriang( x, y = 0 ):
+    #Sabine 6.4.9.5
+    x, y = mpf(x), mpf(y)
+    if x==0:
+        return mpf(1)
+    if y == 0:
+        return (2/x**2)*(x-mp.log1p(x))
+    A = ref_calcSabineA( y )
+    B = ref_calcSabineB( y )
+    return (2*A/(B*x)**2)*(B*x-mp.log1p(abs(B*x)))
+
 def cmp( fct, reffct, x, fctname, x2 = None, rel_eps=1e-15, abs_eps=1e-99,
-         fmtstr_res='%.14g' ):
+         fmtstr_res='%.13g' ):
     def fmt(v):
-        return f'{float(v):.14g}'
+        return f'{float(v):.13g}'
     argstr = fmt(x) if x2 is None else '%s, %s'%(fmt(x), fmt(x2))
     args = (x,) if x2 is None else (x,x2)
     y = mpf(fct(*args))
@@ -138,6 +176,35 @@ def testAB():
             eps = 1e-6
         cmp( lib.nctest_calcSabineEl_y0, ref_exact_El,x,
              "calcSabineEl_y0", rel_eps=eps )#, fmtstr_res='%.6g' )
+
+    for x in xvals:
+        cmp( lib.nctest_calcSabineEl_ScndRect_y0,
+             ref_El_ScndRect,
+             x,"calcSabineEl_ScndRect_y0")
+
+    for x in xvals:
+        cmp( lib.nctest_calcSabineEb_ScndRect_y0,
+             ref_Eb_ScndRect,
+             x,"calcSabineEb_ScndRect_y0")
+
+    for x in xvals:
+        cmp( lib.nctest_calcSabineEl_ScndTriang_y0,
+             ref_El_ScndTriang,
+             x,"calcSabineEl_ScndTriang_y0")
+
+    for x in xvals:
+        cmp( lib.nctest_calcSabineEb_ScndTriang_y0,
+             ref_Eb_ScndTriang,
+             x,"calcSabineEb_ScndTriang_y0" )
+
+    for fref, fname in [ (ref_El_ScndRect, 'calcSabineEl_ScndRect'),
+                         (ref_Eb_ScndRect, 'calcSabineEb_ScndRect'),
+                         (ref_Eb_ScndRect, 'calcSabineEb_ScndRect_cachedAB'),
+                         (ref_El_ScndTriang, 'calcSabineEl_ScndTriang'),
+                         (ref_Eb_ScndTriang, 'calcSabineEb_ScndTriang'),
+                         (ref_Eb_ScndTriang, 'calcSabineEb_ScndTriang_cachedAB') ]:
+        for x, y in zip( xvals, yvals ):
+            cmp( getattr(lib,f'nctest_{fname}'),fref, x,fname, x2=y)
 
 def main():
     testAB()
