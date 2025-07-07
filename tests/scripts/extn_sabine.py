@@ -175,7 +175,6 @@ def testAB():
         cmp( lib.nctest_calcSabineEl_y0, ref_exact_El,x,
              "calcSabineEl_y0", rel_eps=eps )#, fmtstr_res='%.6g' )
 
-
     for x in xvals:
         cmp( lib.nctest_calcSabineEl_ScndRect_y0,
              ref_El_ScndRect,
@@ -196,7 +195,14 @@ def testAB():
              ref_Eb_ScndTriang,
              x,"calcSabineEb_ScndTriang_y0" )
 
-
+    for fref, fname in [ (ref_El_ScndRect, 'calcSabineEl_ScndRect'),
+                         (ref_Eb_ScndRect, 'calcSabineEb_ScndRect'),
+                         (ref_Eb_ScndRect, 'calcSabineEb_ScndRect_cachedAB'),
+                         (ref_El_ScndTriang, 'calcSabineEl_ScndTriang'),
+                         (ref_Eb_ScndTriang, 'calcSabineEb_ScndTriang'),
+                         (ref_Eb_ScndTriang, 'calcSabineEb_ScndTriang_cachedAB') ]:
+        for x, y in zip( xvals, yvals ):
+            cmp( getattr(lib,f'nctest_{fname}'),fref, x,fname, x2=y)
 
 def main():
     testAB()
