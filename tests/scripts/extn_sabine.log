@@ -1,12 +1,16 @@
-Library "TestMod_extinction" (12 functions):
+Library "TestMod_extinction" (16 functions):
   double nctest_calcSabineA(double)
   double nctest_calcSabineB(double)
   double nctest_calcSabineEb(double, double)
   double nctest_calcSabineEb_CachedAB(double, double)
+  double nctest_calcSabineEb_ScndRect_y0(double)
+  double nctest_calcSabineEb_ScndTriang_y0(double)
   double nctest_calcSabineEb_y0(double)
   double nctest_calcSabineEl(double, double)
   double nctest_calcSabineElOriginal(double, double)
   double nctest_calcSabineElOriginal_y0(double)
+  double nctest_calcSabineEl_ScndRect_y0(double)
+  double nctest_calcSabineEl_ScndTriang_y0(double)
   double nctest_calcSabineEl_y0(double)
   void nctestdetail_clear_lasterror()
   const char * nctestdetail_get_lasterror()
@@ -1504,3 +1508,87 @@ Library "TestMod_extinction" (12 functions):
    calcSabineEl_y0(10) = 0.24909601921058
    calcSabineEl_y0(1e+50) = 7.9788456080287e-26
    calcSabineEl_y0(1e+300) = 7.9788456080287e-151
+   calcSabineEl_ScndRect_y0(0) = 1
+   calcSabineEl_ScndRect_y0(1e-99) = 1
+   calcSabineEl_ScndRect_y0(0.1) = 0.90634623461009
+   calcSabineEl_ScndRect_y0(0.5) = 0.63212055882856
+   calcSabineEl_ScndRect_y0(0.999999) = 0.43233265537893
+   calcSabineEl_ScndRect_y0(1) = 0.43233235838169
+   calcSabineEl_ScndRect_y0(1.0000001) = 0.43233232868199
+   calcSabineEl_ScndRect_y0(1.3) = 0.35604862376372
+   calcSabineEl_ScndRect_y0(1.5) = 0.31673764387738
+   calcSabineEl_ScndRect_y0(1.57) = 0.30468700703759
+   calcSabineEl_ScndRect_y0(1.6) = 0.29976181125676
+   calcSabineEl_ScndRect_y0(2) = 0.24542109027782
+   calcSabineEl_ScndRect_y0(2.5) = 0.19865241060018
+   calcSabineEl_ScndRect_y0(4) = 0.12495806717151
+   calcSabineEl_ScndRect_y0(5) = 0.099995460007024
+   calcSabineEl_ScndRect_y0(6) = 0.083332821315637
+   calcSabineEl_ScndRect_y0(6.39) = 0.078247040959008
+   calcSabineEl_ScndRect_y0(6.4) = 0.078124784314643
+   calcSabineEl_ScndRect_y0(10) = 0.049999999896942
+   calcSabineEl_ScndRect_y0(1e+50) = 5e-51
+   calcSabineEl_ScndRect_y0(1e+300) = 5e-301
+   calcSabineEb_ScndRect_y0(0) = 1
+   calcSabineEb_ScndRect_y0(1e-99) = 1
+   calcSabineEb_ScndRect_y0(0.1) = 0.90909090909091
+   calcSabineEb_ScndRect_y0(0.5) = 0.66666666666667
+   calcSabineEb_ScndRect_y0(0.999999) = 0.50000025000013
+   calcSabineEb_ScndRect_y0(1) = 0.5
+   calcSabineEb_ScndRect_y0(1.0000001) = 0.499999975
+   calcSabineEb_ScndRect_y0(1.3) = 0.43478260869565
+   calcSabineEb_ScndRect_y0(1.5) = 0.4
+   calcSabineEb_ScndRect_y0(1.57) = 0.38910505836576
+   calcSabineEb_ScndRect_y0(1.6) = 0.38461538461538
+   calcSabineEb_ScndRect_y0(2) = 0.33333333333333
+   calcSabineEb_ScndRect_y0(2.5) = 0.28571428571429
+   calcSabineEb_ScndRect_y0(4) = 0.2
+   calcSabineEb_ScndRect_y0(5) = 0.16666666666667
+   calcSabineEb_ScndRect_y0(6) = 0.14285714285714
+   calcSabineEb_ScndRect_y0(6.39) = 0.13531799729364
+   calcSabineEb_ScndRect_y0(6.4) = 0.13513513513514
+   calcSabineEb_ScndRect_y0(10) = 0.090909090909091
+   calcSabineEb_ScndRect_y0(1e+50) = 1e-50
+   calcSabineEb_ScndRect_y0(1e+300) = 1e-300
+   calcSabineEl_ScndTriang_y0(0) = 1
+   calcSabineEl_ScndTriang_y0(1e-99) = 1
+   calcSabineEl_ScndTriang_y0(0.1) = 0.93653765389909
+   calcSabineEl_ScndTriang_y0(0.5) = 0.73575888234288
+   calcSabineEl_ScndTriang_y0(0.999999) = 0.56766791228898
+   calcSabineEl_ScndTriang_y0(1) = 0.56766764161831
+   calcSabineEl_ScndTriang_y0(1.0000001) = 0.56766761455125
+   calcSabineEl_ScndTriang_y0(1.3) = 0.49534721248945
+   calcSabineEl_ScndTriang_y0(1.5) = 0.45550823741508
+   calcSabineEl_ScndTriang_y0(1.57) = 0.44287451781045
+   calcSabineEl_ScndTriang_y0(1.6) = 0.43764886796452
+   calcSabineEl_ScndTriang_y0(2) = 0.37728945486109
+   calcSabineEl_ScndTriang_y0(2.5) = 0.32053903575993
+   calcSabineEl_ScndTriang_y0(4) = 0.21876048320712
+   calcSabineEl_ScndTriang_y0(5) = 0.1800009079986
+   calcSabineEl_ScndTriang_y0(6) = 0.15277786311406
+   calcSabineEl_ScndTriang_y0(6.39) = 0.14424928936479
+   calcSabineEl_ScndTriang_y0(6.4) = 0.14404300245084
+   calcSabineEl_ScndTriang_y0(10) = 0.095000000010306
+   calcSabineEl_ScndTriang_y0(1e+50) = 1e-50
+   calcSabineEl_ScndTriang_y0(1e+300) = 1e-300
+   calcSabineEb_ScndTriang_y0(0) = 1
+   calcSabineEb_ScndTriang_y0(1e-99) = 1
+   calcSabineEb_ScndTriang_y0(0.1) = 0.93796403913503
+   calcSabineEb_ScndTriang_y0(0.5) = 0.75627913513468
+   calcSabineEb_ScndTriang_y0(0.999999) = 0.61370586629148
+   calcSabineEb_ScndTriang_y0(1) = 0.61370563888011
+   calcSabineEb_ScndTriang_y0(1.0000001) = 0.61370561613898
+   calcSabineEb_ScndTriang_y0(1.3) = 0.55277026871585
+   calcSabineEb_ScndTriang_y0(1.5) = 0.51885268277853
+   calcSabineEb_ScndTriang_y0(1.57) = 0.5080077091102
+   calcSabineEb_ScndTriang_y0(1.6) = 0.50350668357232
+   calcSabineEb_ScndTriang_y0(2) = 0.45069385566595
+   calcSabineEb_ScndTriang_y0(2.5) = 0.39911585008148
+   calcSabineEb_ScndTriang_y0(4) = 0.29882026094574
+   calcSabineEb_ScndTriang_y0(5) = 0.25665924246176
+   calcSabineEb_ScndTriang_y0(6) = 0.22522721394137
+   calcSabineEb_ScndTriang_y0(6.39) = 0.21502064625821
+   calcSabineEb_ScndTriang_y0(6.4) = 0.21477148436474
+   calcSabineEb_ScndTriang_y0(10) = 0.15204209454403
+   calcSabineEb_ScndTriang_y0(1e+50) = 2e-50
+   calcSabineEb_ScndTriang_y0(1e+300) = 0

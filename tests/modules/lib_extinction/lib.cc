@@ -36,6 +36,10 @@ NCTEST_CTYPE_DICTIONARY
     "double nctest_calcSabineEb_CachedAB( double, double );"
     "double nctest_calcSabineElOriginal( double, double );"
     "double nctest_calcSabineElOriginal_y0( double );"
+    "double nctest_calcSabineEl_ScndRect_y0( double );"
+    "double nctest_calcSabineEb_ScndRect_y0( double );"
+    "double nctest_calcSabineEl_ScndTriang_y0( double );"
+    "double nctest_calcSabineEb_ScndTriang_y0( double );"
     ;
 }
 
@@ -85,4 +89,24 @@ NCTEST_CTYPES double nctest_calcSabineElOriginal( double x, double y )
 NCTEST_CTYPES double nctest_calcSabineElOriginal_y0( double x )
 {
   return NCE::calcSabineElOriginal_y0(x);
+}
+
+NCTEST_CTYPES double nctest_calcSabineEl_ScndRect_y0( double x )
+{
+  return NCE::calcSabineEl_ScndRect_y0(x);
+}
+
+NCTEST_CTYPES double nctest_calcSabineEb_ScndRect_y0( double x )
+{
+  return NCE::calcSabineEb_ScndRect_y0(x);
+}
+
+NCTEST_CTYPES double nctest_calcSabineEl_ScndTriang_y0( double x )
+{
+  return NCE::calcSabineEl_ScndTriang_y0(x);
+}
+
+NCTEST_CTYPES double nctest_calcSabineEb_ScndTriang_y0( double x )
+{
+  return NCE::calcSabineEb_ScndTriang_y0(x);
 }
