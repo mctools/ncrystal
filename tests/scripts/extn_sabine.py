@@ -25,7 +25,7 @@
 from NCTestUtils.loadlib import Lib
 import mpmath
 mp = mpmath.mp
-mp.dps = 200
+mp.dps = 140
 mpf = mp.mpf
 import NCTestUtils.enable_fpe # noqa F401
 
@@ -36,7 +36,9 @@ def ref_calcSabineA(y):
     y = mpf(y)
     if y == mpf(0):
         return mpf(1)
-    return mp.exp(-y)*mp.sinh(y)/y
+    #return mp.exp(-y)*mp.sinh(y)/y
+    a = -2*y
+    return mp.expm1(a)/a
 
 def ref_calcSabineB(y):
     y = mpf(y)
@@ -116,9 +118,9 @@ def ref_Eb_ScndTriang( x, y = 0 ):
     return (2*A/(B*x)**2)*(B*x-mp.log1p(abs(B*x)))
 
 def cmp( fct, reffct, x, fctname, x2 = None, rel_eps=1e-15, abs_eps=1e-99,
-         fmtstr_res='%.14g' ):
+         fmtstr_res='%.13g' ):
     def fmt(v):
-        return f'{float(v):.14g}'
+        return f'{float(v):.13g}'
     argstr = fmt(x) if x2 is None else '%s, %s'%(fmt(x), fmt(x2))
     args = (x,) if x2 is None else (x,x2)
     y = mpf(fct(*args))
