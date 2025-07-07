@@ -40,6 +40,12 @@ NCTEST_CTYPE_DICTIONARY
     "double nctest_calcSabineEb_ScndRect_y0( double );"
     "double nctest_calcSabineEl_ScndTriang_y0( double );"
     "double nctest_calcSabineEb_ScndTriang_y0( double );"
+    "double nctest_calcSabineEl_ScndRect(double, double);"
+    "double nctest_calcSabineEb_ScndRect(double, double);"
+    "double nctest_calcSabineEl_ScndTriang(double, double);"
+    "double nctest_calcSabineEb_ScndTriang(double, double);"
+    "double nctest_calcSabineEb_ScndRect_cachedAB(double, double);"
+    "double nctest_calcSabineEb_ScndTriang_cachedAB(double, double);"
     ;
 }
 
@@ -52,7 +58,6 @@ NCTEST_CTYPES double nctest_calcSabineB( double y )
 {
   return NCE::calcSabineB(y);
 }
-
 
 NCTEST_CTYPES double nctest_calcSabineEl( double x, double y )
 {
@@ -109,4 +114,38 @@ NCTEST_CTYPES double nctest_calcSabineEl_ScndTriang_y0( double x )
 NCTEST_CTYPES double nctest_calcSabineEb_ScndTriang_y0( double x )
 {
   return NCE::calcSabineEb_ScndTriang_y0(x);
+}
+
+NCTEST_CTYPES double nctest_calcSabineEl_ScndRect( double x, double y )
+{
+  return NCE::calcSabineEl_ScndRect( x, y );
+}
+
+NCTEST_CTYPES double nctest_calcSabineEb_ScndRect( double x, double y )
+{
+  return NCE::calcSabineEb_ScndRect( x, y );
+}
+
+NCTEST_CTYPES double nctest_calcSabineEl_ScndTriang( double x, double y )
+{
+  return NCE::calcSabineEl_ScndTriang( x, y );
+}
+
+NCTEST_CTYPES double nctest_calcSabineEb_ScndTriang( double x, double y )
+{
+  return NCE::calcSabineEb_ScndTriang( x, y );
+}
+
+NCTEST_CTYPES double nctest_calcSabineEb_ScndRect_cachedAB( double x, double y )
+{
+  double A = NCE::calcSabineA( y );
+  double B = NCE::calcSabineB( y );
+  return NCE::calcSabineEb_ScndRect_cachedAB( x, A, B );
+}
+
+NCTEST_CTYPES double nctest_calcSabineEb_ScndTriang_cachedAB( double x, double y )
+{
+  double A = NCE::calcSabineA( y );
+  double B = NCE::calcSabineB( y );
+  return NCE::calcSabineEb_ScndTriang_cachedAB( x, A, B );
 }
