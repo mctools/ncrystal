@@ -79,6 +79,42 @@ def ref_exact_El( x, y = 0 ):
     x, y = mpf(x), mpf(y)
     return mp.exp( -y ) * mp.exp( -x ) * ( mp.besseli(0,x) + mp.besseli(1,x) )
 
+def ref_El_ScndRect( x, y = 0 ):
+    #Sabine 6.4.9.2
+    x, y = mpf(x), mpf(y)
+    t = mp.exp( -y )
+    if x == 0:
+        return t
+    return mp.exp( -y ) * ( mp.expm1( -2 * x ) ) / ( -2 * x )
+
+def ref_Eb_ScndRect( x, y = 0 ):
+    #Sabine 6.4.9.3
+    x, y = mpf(x), mpf(y)
+    if y == 0:
+        return mpf(1)/(x+1)
+    A = ref_calcSabineA( y )
+    B = ref_calcSabineB( y )
+    return A/(x*B+1)
+
+def ref_El_ScndTriang( x, y = 0 ):
+    #Sabine 6.4.9.4
+    x, y = mpf(x), mpf(y)
+    t = mp.exp( -y )
+    if x != 0:
+        t *= (mpf(1)+(mpf(1)/(2*x))*(mp.expm1(-2*x)))/x
+    return t
+
+def ref_Eb_ScndTriang( x, y = 0 ):
+    #Sabine 6.4.9.5
+    x, y = mpf(x), mpf(y)
+    if x==0:
+        return mpf(1)
+    if y == 0:
+        return (2/x**2)*(x-mp.log1p(x))
+    A = ref_calcSabineA( y )
+    B = ref_calcSabineB( y )
+    return (2*A/(B*x)**2)*(B*x-mp.log1p(abs(B*x)))
+
 def cmp( fct, reffct, x, fctname, x2 = None, rel_eps=1e-15, abs_eps=1e-99,
          fmtstr_res='%.14g' ):
     def fmt(v):
@@ -138,6 +174,29 @@ def testAB():
             eps = 1e-6
         cmp( lib.nctest_calcSabineEl_y0, ref_exact_El,x,
              "calcSabineEl_y0", rel_eps=eps )#, fmtstr_res='%.6g' )
+
+
+    for x in xvals:
+        cmp( lib.nctest_calcSabineEl_ScndRect_y0,
+             ref_El_ScndRect,
+             x,"calcSabineEl_ScndRect_y0")
+
+    for x in xvals:
+        cmp( lib.nctest_calcSabineEb_ScndRect_y0,
+             ref_Eb_ScndRect,
+             x,"calcSabineEb_ScndRect_y0")
+
+    for x in xvals:
+        cmp( lib.nctest_calcSabineEl_ScndTriang_y0,
+             ref_El_ScndTriang,
+             x,"calcSabineEl_ScndTriang_y0")
+
+    for x in xvals:
+        cmp( lib.nctest_calcSabineEb_ScndTriang_y0,
+             ref_Eb_ScndTriang,
+             x,"calcSabineEb_ScndTriang_y0" )
+
+
 
 def main():
     testAB()

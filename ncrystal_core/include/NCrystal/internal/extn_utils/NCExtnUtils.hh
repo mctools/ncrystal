@@ -85,6 +85,15 @@ namespace NCRYSTAL_NAMESPACE {
     //Original recipe for El as it appeared in Sabine's paper:
     double calcSabineElOriginal( double x, double y );
     double calcSabineElOriginal_y0( double x );
+
+    //We also provide evaluations of the secondary extinction factors in the
+    //uncorrelated model, for both rectangular and triangular tilt functions:
+    double calcSabineEl_ScndRect_y0( double x );//Sabine 6.4.9.2 [y=0]
+    double calcSabineEb_ScndRect_y0( double x );//Sabine 6.4.9.3 [y=0]
+    double calcSabineEl_ScndTriang_y0( double x );//Sabine 6.4.9.4 [y=0]
+    double calcSabineEb_ScndTriang_y0( double x );//Sabine 6.4.9.5 [y=0]
+
+
   }
 
 }
@@ -132,6 +141,12 @@ inline double NCrystal::Extn::calcSabineEb( double x, double y )
   return calcSabineA( y ) / std::sqrt( 1.0 + calcSabineB( y ) * x );
 }
 
+inline double NCrystal::Extn::calcSabineEb_ScndRect_y0( double x )
+{
+  nc_assert( x>=0.0 );
+  nc_assert( std::isfinite(x) );
+  return 1.0 / ( 1.0 + x );
+}
 
 
 #endif
