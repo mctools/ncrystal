@@ -1,4 +1,10 @@
 v4.2.3 (work in progress)
+     * Add B4C_sg166_BoronCarbide.ncmat, representing the crystal structure of
+       ideal B12C3 boron-carbide (github issues #162 and #207). Dynamics are
+       approximated with Debye temperatures.
+     * Add BO3H3_sg2_BoricAcid.ncmat, representing ortho boric acid. This
+       includes both crystal structure and phonon DOS curves (github issue
+       #284).
      * ...
 
 v4.2.2 2025-07-03

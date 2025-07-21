@@ -1087,6 +1087,8 @@ Loading stdlib::AlN_sg186_AluminumNitride.ncmat
 Loading stdlib::Al_sg225.ncmat
 Loading stdlib::Ar_Gas_STP.ncmat
 Loading stdlib::Au_sg225.ncmat
+Loading stdlib::B4C_sg166_BoronCarbide.ncmat
+Loading stdlib::BO3H3_sg2_BoricAcid.ncmat
 Loading stdlib::BaF2_sg225_BariumFluoride.ncmat
 Loading stdlib::BaO_sg225_BariumOxide.ncmat
 Loading stdlib::Ba_sg229.ncmat

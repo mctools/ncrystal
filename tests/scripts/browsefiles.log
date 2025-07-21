@@ -10,6 +10,8 @@ stdlib::AlN_sg186_AluminumNitride.ncmat
 stdlib::Al_sg225.ncmat
 stdlib::Ar_Gas_STP.ncmat
 stdlib::Au_sg225.ncmat
+stdlib::B4C_sg166_BoronCarbide.ncmat
+stdlib::BO3H3_sg2_BoricAcid.ncmat
 stdlib::BaF2_sg225_BariumFluoride.ncmat
 stdlib::BaO_sg225_BariumOxide.ncmat
 stdlib::Ba_sg229.ncmat
@@ -183,6 +185,8 @@ stdlib::AlN_sg186_AluminumNitride.ncmat
 stdlib::Al_sg225.ncmat
 stdlib::Ar_Gas_STP.ncmat
 stdlib::Au_sg225.ncmat
+stdlib::B4C_sg166_BoronCarbide.ncmat
+stdlib::BO3H3_sg2_BoricAcid.ncmat
 stdlib::BaF2_sg225_BariumFluoride.ncmat
 stdlib::BaO_sg225_BariumOxide.ncmat
 stdlib::Ba_sg229.ncmat

@@ -40,6 +40,21 @@ Validating VDOS regularisation of stdlib::Al_sg225.ncmat / Al:
 Validating VDOS regularisation of stdlib::Au_sg225.ncmat / Au:
   egrid [meV]: 3.1017507465 .. 19.2308546283 (79 points)
   density: [0.0744879, 0.0837989, 0.0949721, .., 0.217877, 0.0502793, 0]
+Validating VDOS regularisation of stdlib::B4C_sg166_BoronCarbide.ncmat / B:
+  egrid [meV]: 40.50145241 .. 81.00290482 (20 points)
+  density: [0.25, 0.2770083102493, 0.3054016620499, .., 0.89750692521, 0.94806094183, 1]
+Validating VDOS regularisation of stdlib::B4C_sg166_BoronCarbide.ncmat / C:
+  egrid [meV]: 33.176721655 .. 66.35344331 (20 points)
+  density: [0.25, 0.2770083102493, 0.3054016620499, .., 0.89750692521, 0.94806094183, 1]
+Validating VDOS regularisation of stdlib::BO3H3_sg2_BoricAcid.ncmat / H:
+  egrid [meV]: 7.8048052254619 .. 400.97186845811 (404 points)
+  density: [0.0293535, 0.0348007, 0.0402479, .., 0.101315, 0.0305683, 0]
+Validating VDOS regularisation of stdlib::BO3H3_sg2_BoricAcid.ncmat / B:
+  egrid [meV]: 9.45751457662 .. 381.84715103103 (316 points)
+  density: [0.157969, 0.14382, 0.122874, .., 0.0169276, 0.00274405, 0]
+Validating VDOS regularisation of stdlib::BO3H3_sg2_BoricAcid.ncmat / O:
+  egrid [meV]: 6.2550027581343 .. 401.57117707222 (317 points)
+  density: [0.164541, 0.288527, 0.427289, .., 0.0128201, 0.00881866, 0]
 Validating VDOS regularisation of stdlib::BaF2_sg225_BariumFluoride.ncmat / F:
   egrid [meV]: 5.24982 .. 43.005792906977 (4949 points)
   density: [0.0108218, 0.01084491222505, 0.01086802445009, .., 0.00025150061841, 0.00022768770102, 0]
