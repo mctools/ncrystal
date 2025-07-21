@@ -1,0 +1,79 @@
+NCMAT v7
+#
+# BH3O3 (triclinic, SG-2)
+#
+# Atoms per unit cell: 4xB+12xH+12xO
+#
+# Structure converted (with NCrystal.cifutils module) from:
+#
+#   "The crystal lattice of boric acid, BO3H3"
+#   Zachariasen, W. H. [Zeitschrift fur Kristallographie, 1934]
+#   Crystallography Open Database entry 9014010
+#   https://www.crystallography.net/cod/9014010.html
+#
+# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+#                   verified!  In particular the @DYNINFO sections might need
+#                   post-editing. Before distributing this file to other people,
+#                   please review this, amend the comments here to document,
+#                   anything done, and remove this notice.
+#
+# Notice: The following WARNINGS were emitted when loading the CIF data:
+#
+#   NCrystalUserWarning : Structure received major corrections by spglib (at the 51.5335% level)
+#
+# WARNING: Fallback (dummy) Debye temperature values were used for 3 atoms!
+#
+# NOTICE: crystal structure was verified with spglib to be self-consistent.
+#
+@CELL
+  lengths 6.57 7.05 !!
+  angles 60 78.83 76.2704
+@SPACEGROUP
+  2
+@ATOMPOSITIONS
+  B 1/4 .236 .445
+  B 1/4 .569 .778
+  B 3/4 .431 .222
+  B 3/4 .764 .555
+  H 1/4 .236 .111
+  H 1/4 .236 .774
+  H 1/4 .569 .112
+  H 1/4 .569 .441
+  H 1/4 .903 .444
+  H 1/4 .903 .778
+  H 3/4 .097 .222
+  H 3/4 .097 .556
+  H 3/4 .431 .559
+  H 3/4 .431 .888
+  H 3/4 .764 .226
+  H 3/4 .764 .889
+  O 1/4 1/8 .333
+  O 1/4 1/8 .665
+  O 1/4 .347 .889
+  O 1/4 .458 .332
+  O 1/4 .681 .555
+  O 1/4 .681 .888
+  O 3/4 .319 .112
+  O 3/4 .319 .445
+  O 3/4 .542 .668
+  O 3/4 .653 .111
+  O 3/4 7/8 .335
+  O 3/4 7/8 .667
+@DYNINFO
+  # WARNING: Using fallback Debye temperature value!
+  element B
+  fraction 1/7
+  type vdosdebye
+  debye_temp 300
+@DYNINFO
+  # WARNING: Using fallback Debye temperature value!
+  element H
+  fraction 3/7
+  type vdosdebye
+  debye_temp 2500
+@DYNINFO
+  # WARNING: Using fallback Debye temperature value!
+  element O
+  fraction 3/7
+  type vdosdebye
+  debye_temp 300

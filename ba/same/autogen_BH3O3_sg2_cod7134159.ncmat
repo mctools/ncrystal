@@ -1,0 +1,161 @@
+NCMAT v7
+#
+# BH3O3 (triclinic, SG-2)
+#
+# Atoms per unit cell: 4xB+12xH+12xO
+#
+# Structure converted (with NCrystal.cifutils module) from:
+#
+#   "Boric Acid as Supramolecular Graphite"
+#   Das, Susobhan, et al. [Chemical Communications, 2025]
+#   DOI: https://dx.doi.org/10.1039/D4CC05586A
+#   CIF creation method: Olex2 1.5
+#   (compiled 2024.02.16 svn.r378c4104 for OlexSys, GUI svn.r6928)
+#   CIF creation date: 2024-12-19
+#   Crystallography Open Database entry 7134159
+#   https://www.crystallography.net/cod/7134159.html
+#
+# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+#                   verified!  In particular the @DYNINFO sections might need
+#                   post-editing. Before distributing this file to other people,
+#                   please review this, amend the comments here to document,
+#                   anything done, and remove this notice.
+#
+# Notice: The following WARNINGS were emitted when loading the CIF data:
+#
+#   NCrystalUserWarning : Anisotropic displacement for B ignored (u11=0.0196, u12=0.0032, u13=0.0027, u22=0.0107, u23=0.0054, u33=0.012)
+#   NCrystalUserWarning : Anisotropic displacement for B ignored (u11=0.0215, u12=0.0048, u13=0.0045, u22=0.0113, u23=0.0062, u33=0.0124)
+#   NCrystalUserWarning : Anisotropic displacement for O ignored (u11=0.0309, u12=0.0068, u13=0.0054, u22=0.0107, u23=0.0051, u33=0.01)
+#   NCrystalUserWarning : Anisotropic displacement for O ignored (u11=0.031, u12=0.008, u13=0.0052, u22=0.012, u23=0.0055, u33=0.0096)
+#   NCrystalUserWarning : Anisotropic displacement for O ignored (u11=0.034, u12=0.0057, u13=0.0055, u22=0.0102, u23=0.0057, u33=0.0107)
+#   NCrystalUserWarning : Anisotropic displacement for O ignored (u11=0.0335, u12=0.0086, u13=0.0077, u22=0.0128, u23=0.0079, u33=0.0123)
+#   NCrystalUserWarning : Anisotropic displacement for O ignored (u11=0.0359, u12=0.0071, u13=0.0053, u22=0.011, u23=0.0046, u33=0.0087)
+#   NCrystalUserWarning : Anisotropic displacement for O ignored (u11=0.0359, u12=0.0101, u13=0.0082, u22=0.0136, u23=0.0075, u33=0.0121)
+# NOTICE: crystal structure was verified with spglib to be self-consistent.
+#
+@CELL
+  lengths 6.3573 7.0201 7.0339
+  angles 119.81 92.53 101.447
+@SPACEGROUP
+  2
+@ATOMPOSITIONS
+  X1 .2611 .6909 .7419
+  X1 .7389 .3091 .2581
+  X10 .2434 .629 .124
+  X10 .2465 .408 .695
+  X10 .7535 .592 .305
+  X10 .7566 .371 .876
+  X11 .2564 .7865 .96459
+  X11 .7436 .2135 .03541
+  X12 .2482 .2271 .1733
+  X12 .7518 .7729 .8267
+  X13 .25149 .4648 .6144
+  X13 .74851 .5352 .3856
+  X2 .2397 .3514 .0733
+  X2 .7603 .6486 .9267
+  X3 .2366 .57417 .1991
+  X3 .7634 .42583 .8009
+  X4 .2708 .8204 .6461
+  X4 .7292 .1796 .3539
+  X5 .237 .2536 .84999
+  X5 .763 .7464 .15001
+  X6 .2608 37/40 .0212
+  X6 .7392 3/40 .9788
+  X7 .2534 .308 .307
+  X7 .7466 .692 .693
+  X8 .2616 .741 .513
+  X8 .7384 .259 .487
+  X9 .2584 .121 .7974
+  X9 .7416 .879 .2026
+@ATOMDB
+  X1 is B
+  X2 is B
+  X3 is O
+  X4 is O
+  X5 is O
+  X6 is H
+  X7 is H
+  X8 is H
+  X9 is H
+  X10 is H
+  X11 is O
+  X12 is O
+  X13 is O
+@DYNINFO
+  # Debye temperature value derived from msd=0.0144Aa^2 @ T=167K (mass=10.81u)
+  element X1
+  fraction 1/14
+  type vdosdebye
+  debye_temp 450
+@DYNINFO
+  # Debye temperature value derived from msd=0.0148Aa^2 @ T=167K (mass=10.81u)
+  element X2
+  fraction 1/14
+  type vdosdebye
+  debye_temp 450
+@DYNINFO
+  # Debye temperature value derived from msd=0.0183Aa^2 @ T=167K (mass=15.9993u)
+  element X3
+  fraction 1/14
+  type vdosdebye
+  debye_temp 270
+@DYNINFO
+  # Debye temperature value derived from msd=0.0185Aa^2 @ T=167K (mass=15.9993u)
+  element X4
+  fraction 1/14
+  type vdosdebye
+  debye_temp 270
+@DYNINFO
+  # Debye temperature value derived from msd=0.0194Aa^2 @ T=167K (mass=15.9993u)
+  element X5
+  fraction 1/14
+  type vdosdebye
+  debye_temp 270
+@DYNINFO
+  # Debye temperature value derived from msd=0.025Aa^2 @ T=167K (mass=1.00798u)
+  element X6
+  fraction 1/14
+  type vdosdebye
+  debye_temp 2500
+@DYNINFO
+  # Debye temperature value derived from msd=0.026Aa^2 @ T=167K (mass=1.00798u)
+  element X7
+  fraction 1/14
+  type vdosdebye
+  debye_temp 2500
+@DYNINFO
+  # Debye temperature value derived from msd=0.028Aa^2 @ T=167K (mass=1.00798u)
+  element X8
+  fraction 1/14
+  type vdosdebye
+  debye_temp 2500
+@DYNINFO
+  # Debye temperature value derived from msd=0.029Aa^2 @ T=167K (mass=1.00798u)
+  element X9
+  fraction 1/14
+  type vdosdebye
+  debye_temp 2500
+@DYNINFO
+  # Debye temperature value derived from msd=0.027Aa^2 @ T=167K (mass=1.00798u)
+  element X10
+  fraction 1/7
+  type vdosdebye
+  debye_temp 2500
+@DYNINFO
+  # Debye temperature value derived from msd=0.017Aa^2 @ T=167K (mass=15.9993u)
+  element X11
+  fraction 1/14
+  type vdosdebye
+  debye_temp 270
+@DYNINFO
+  # Debye temperature value derived from msd=0.0171Aa^2 @ T=167K (mass=15.9993u)
+  element X12
+  fraction 1/14
+  type vdosdebye
+  debye_temp 270
+@DYNINFO
+  # Debye temperature value derived from msd=0.0181Aa^2 @ T=167K (mass=15.9993u)
+  element X13
+  fraction 1/14
+  type vdosdebye
+  debye_temp 270

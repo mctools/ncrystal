@@ -1,0 +1,77 @@
+NCMAT v7
+#
+# BH3O3 (triclinic, SG-2)
+#
+# Atoms per unit cell: 4xB+12xH+12xO
+#
+# Structure converted (with NCrystal.cifutils module) from:
+#
+#   The Materials Project
+#   https://www.materialsproject.org/materials/mp-23791
+#
+# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+#                   verified!  In particular the @DYNINFO sections might need
+#                   post-editing. Before distributing this file to other people,
+#                   please review this, amend the comments here to document,
+#                   anything done, and remove this notice.
+#
+# Notice: The following WARNINGS were emitted when loading the CIF data:
+#
+#   PydanticDeprecatedSince20 : Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+#
+# WARNING: Fallback (dummy) Debye temperature values were used for 3 atoms!
+#
+# NOTICE: crystal structure was verified with spglib to be self-consistent.
+#
+@CELL
+  lengths 6.22547 6.89885 6.91276
+  angles 119.773 92.6995 101.164
+@SPACEGROUP
+  2
+@ATOMPOSITIONS
+  B .23931347 .30889112 .75767064
+  B .2605818 .64861442 .42627266
+  B .7394182 .35138558 .57372734
+  B .76068653 .69110888 .24232936
+  H .24127294 .26753633 .02417077
+  H .24407523 .04431432 .44938156
+  H .24858188 .68717464 .15699336
+  H .24982787 .91171118 .73219385
+  H .25777155 .62195737 .8013244
+  H .25844473 .33938746 .38407835
+  H .74155527 .66061254 .61592165
+  H .74222845 .37804263 .1986756
+  H .75017213 .08828882 .26780615
+  H .75141812 .31282536 .84300664
+  H .75592477 .95568568 .55061844
+  H .75872706 .73246367 .97582923
+  O .23019105 .17925872 .85711315
+  O .24301423 .21000656 .53048993
+  O .24784 .53911936 .88537047
+  O .25187947 .77373839 .32325204
+  O .26269981 .7496272 .65406064
+  O .26424356 .42170298 .29989089
+  O .73575644 .57829702 .70010911
+  O .73730019 .2503728 .34593936
+  O .74812053 .22626161 .67674796
+  O .75216 .46088064 .11462953
+  O .75698577 .78999344 .46951007
+  O .76980895 .82074128 .14288685
+@DYNINFO
+  # WARNING: Using fallback Debye temperature value!
+  element B
+  fraction 1/7
+  type vdosdebye
+  debye_temp 450
+@DYNINFO
+  # WARNING: Using fallback Debye temperature value!
+  element H
+  fraction 3/7
+  type vdosdebye
+  debye_temp 2500
+@DYNINFO
+  # WARNING: Using fallback Debye temperature value!
+  element O
+  fraction 3/7
+  type vdosdebye
+  debye_temp 270

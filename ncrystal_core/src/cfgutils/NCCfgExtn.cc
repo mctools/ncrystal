@@ -364,6 +364,8 @@ std::ostream& NCCE::operator<<(std::ostream& os, const ExtnCfg_Base& cfg )
 
 std::ostream& NCCE::operator<<(std::ostream& os, const ExtnCfg_Sabine& cfg )
 {
+  // os << "ExtnCfg_Sabine(:"
+
   os << "ExtnCfg_Sabine(tilt:"
      << ( cfg.tilt == ExtnCfg_Sabine::Tilt::Rectangular ? "rec" : "tri" )
      << "/corr:"

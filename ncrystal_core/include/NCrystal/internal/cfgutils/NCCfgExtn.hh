@@ -65,6 +65,10 @@ namespace NCRYSTAL_NAMESPACE {
       // Additional parameters for specific models:
 
       struct ExtnCfg_Sabine {
+        // enum class Secondary { Correlated,
+        //                        UncorrelatedRectangularTilt,
+        //                        UncorrelatedTriangularTilt };
+
         enum class Tilt { Rectangular, Triangular };
         enum class Correlation { Correlated, Uncorrelated };
         Tilt tilt = Tilt::Rectangular;

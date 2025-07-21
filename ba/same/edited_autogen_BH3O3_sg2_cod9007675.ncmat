@@ -1,0 +1,138 @@
+NCMAT v7
+#
+# BH3O3 (triclinic, SG-2)
+#
+# Atoms per unit cell: 4xB+12xH+12xO
+#
+# Structure converted (with NCrystal.cifutils module) from:
+#
+#   "Electron density of orthoboric acid determined by X-ray diffraction at
+#    105 K and ab initio calculations
+#    Note: multipole refinement"
+#   Gajhede, M., et al. [Acta Crystallographica, Section B, 1986]
+#   DOI: https://dx.doi.org/10.1107/S0108768186097720
+#   Crystallography Open Database entry 9007675
+#   https://www.crystallography.net/cod/9007675.html
+#
+# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+#                   verified!  In particular the @DYNINFO sections might need
+#                   post-editing. Before distributing this file to other people,
+#                   please review this, amend the comments here to document,
+#                   anything done, and remove this notice.
+#
+# Notice: The following WARNINGS were emitted when loading the CIF data:
+#
+#   NCrystalUserWarning : Structure received major corrections by spglib (at the 49.6192% level)
+# NOTICE: crystal structure was verified with spglib to be self-consistent.
+#
+@CELL
+  lengths 6.3472 7.0187 7.035
+  angles 119.76 92.49 101.46
+@SPACEGROUP
+  2
+@ATOMPOSITIONS
+  B .26038 .64844 .42648
+  B .73962 .35156 .57352
+  X10 .2542 .9012 .7201
+  X10 .7458 .0988 .2799
+  X11 .2362 .2619 .013
+  X11 .7638 .7381 .987
+  X12 .2513 .058 .463
+  X12 .7487 .942 .537
+  X2 .25137 .77245 .32657
+  X2 .74863 .22755 .67343
+  X2 .24336 .21313 .53531
+  X2 .75664 .78687 .46469
+  B .2394 .30894 .75823
+  B .7606 .69106 .24177
+  X3 .24873 .53531 .8853
+  X3 .75127 .46469 .1147
+  X3 .22874 .17974 .85407
+  X3 .77126 .82026 .14593
+  X5 .26327 .74654 .65032
+  X5 .73673 .25346 .34968
+  X6 .26361 .42559 .30116
+  X6 .73639 .57441 .69884
+  X7 .2631 .6106 .8022
+  X7 .7369 .3894 .1978
+  X8 .2582 .6848 .1714
+  X8 .7418 .3152 .8286
+  X9 .2662 .3606 .3931
+  X9 .7338 .6394 .6069
+@ATOMDB
+  X2 is O
+  X3 is O
+  X5 is O
+  X6 is O
+  X7 is H
+  X8 is H
+  X9 is H
+  X10 is H
+  X11 is H
+  X12 is H
+@DYNINFO
+  # Debye temperature value derived from msd=0.01Aa^2 @ T=105K (mass=10.81u)
+  element B
+  fraction 1/7
+  type vdosdebye
+  debye_temp 451.193
+@DYNINFO
+  # Debye temperature value derived from msd=0.012Aa^2 @ T=105K (mass=15.9993u)
+  element X2
+  fraction 1/7
+  type vdosdebye
+  debye_temp 312.506
+@DYNINFO
+  # Debye temperature value derived from msd=0.013Aa^2 @ T=105K (mass=15.9993u)
+  element X3
+  fraction 1/7
+  type vdosdebye
+  debye_temp 297.865
+@DYNINFO
+  # Debye temperature value derived from msd=0.014Aa^2 @ T=105K (mass=15.9993u)
+  element X5
+  fraction 1/14
+  type vdosdebye
+  debye_temp 285.079
+@DYNINFO
+  # Debye temperature value derived from msd=0.123Aa^2 @ T=105K (mass=15.9993u)
+  element X6
+  fraction 1/14
+  type vdosdebye
+  debye_temp 88.986
+@DYNINFO
+  # Debye temperature value derived from msd=0.007Aa^2 @ T=105K (mass=1.00798u)
+  element X7
+  fraction 1/14
+  type vdosdebye
+  debye_temp 5170.23
+@DYNINFO
+  # Debye temperature value derived from msd=0.009Aa^2 @ T=105K (mass=1.00798u)
+  element X8
+  fraction 1/14
+  type vdosdebye
+  debye_temp 4028.34
+@DYNINFO
+  # Debye temperature value derived from msd=0.013Aa^2 @ T=105K (mass=1.00798u)
+  element X9
+  fraction 1/14
+  type vdosdebye
+  debye_temp 2802.09
+@DYNINFO
+  # Debye temperature value derived from msd=0.016Aa^2 @ T=105K (mass=1.00798u)
+  element X10
+  fraction 1/14
+  type vdosdebye
+  debye_temp 2287.14
+@DYNINFO
+  # Debye temperature value derived from msd=0.018Aa^2 @ T=105K (mass=1.00798u)
+  element X11
+  fraction 1/14
+  type vdosdebye
+  debye_temp 2040.15
+@DYNINFO
+  # Debye temperature value derived from msd=0.019Aa^2 @ T=105K (mass=1.00798u)
+  element X12
+  fraction 1/14
+  type vdosdebye
+  debye_temp 1936.42

@@ -1,0 +1,8 @@
+slide 2: "Existed" -> "Existing"
+slide 3: word missing after "by introducing extra" ?
+slide 6: Inconsistent colouring of links (the "[1]" for ASE is red, the rest are black).
+slide 11: Just a question: Not sure I understand what "Taylor expansion near En=0" you refer to for NCrystal? Just curious if we are talking about the same?
+slide 13: Just a question: Which symmetry assumption are we talking about in NCrystal? Isotropic displacements?
+slide 15: Just a remark: The lowered Bragg contribution in data in your left plot is almost certainly due to extinction effects, which are known to be very prevalent in beryllium (and which will soon be modelled also by NCrystal).
+slide 15: right plot: I think it is fair to say BzScope agrees with OCLIMAX, but does the plot also support the statement that it agrees with data??
+slide 15: Again inconsistent colouring of links in the list (the "[1]" and "[2]" are red, the "[3]" is not).

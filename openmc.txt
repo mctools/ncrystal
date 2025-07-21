@@ -1,0 +1,20 @@
+I would feel more comfortable if the file handles etcs. would use the same
+structs as in mcpl.h (if nothing else, it is a bit confusing why they wouldn't).
+
+error message should mention conda as well as pip
+
+If I understand correctly, you now emit a fatal error if you run on an mcpl file containing a particle type not supported by OpenMC. That is not in general not how we recommend applications to consume MCPL files, since it makes it harder to interchange files between applications. Instead we recommend that any unsupported particles encountered are skipped over, but that the application emits some sort of diagnositics message to warn the user (this could perhaps be a final summary message or warning).
+
+As an example, Providing an MCPL file to McStas which contains both neutrons and gammas from a moderator simulation, McStas will use the neutrons and merely warn the user that so and so many particles were ignored.
+
+The alternative is that users will have to pre-filter MCPL files depending on the application in which they want them to be used, and at that point they become a bit less "universally interchangeable".
+
+
+dlclose: please do not!
+
+
+Btw., "np1" into stat:sum: ?
+
+
+
+bacon, milk shake

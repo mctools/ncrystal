@@ -1,0 +1,130 @@
+NCMAT v7
+#
+# C5.976B38.634 (trigonal, SG-166)
+#
+# Atoms per unit cell: 38.634xB+5.976xC
+#
+# Structure converted (with NCrystal.cifutils module) from:
+#
+#   "Boron carbide, B~13-<i>x~</i>C~2-<i>y~</i> (<i>x</i> = 0.12, <i>y</i> =
+#    0.01)"
+#   Sologub, Oksana, et al. [Acta Crystallographica Section E, 2012]
+#   DOI: https://dx.doi.org/10.1107/S1600536812033132
+#   Crystallography Open Database entry 2235962
+#   https://www.crystallography.net/cod/2235962.html
+#
+# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+#                   verified!  In particular the @DYNINFO sections might need
+#                   post-editing. Before distributing this file to other people,
+#                   please review this, amend the comments here to document,
+#                   anything done, and remove this notice.
+#
+# Notice: The following WARNINGS were emitted when loading the CIF data:
+#
+#   NCrystalUserWarning : Overriding spacegroup to "R -3 m:H" due to explicit request
+#   NCrystalUserWarning : Anisotropic displacement for 0.042 C 0.958 B ignored (u11=0.0056, u12=0.0028, u13=-0.0001, u22=0.0056, u23=0.0001, u33=0.0047)
+#   NCrystalUserWarning : Anisotropic displacement for B ignored (u11=0.0099, u12=0.0049, u13=0, u22=0.0099, u23=0, u33=0.016)
+#   NCrystalUserWarning : Anisotropic displacement for B ignored (u11=0.0041, u12=0.0021, u13=0, u22=0.0041, u23=0, u33=0.013)
+#   NCrystalUserWarning : Anisotropic displacement for B ignored (u11=0.0046, u12=0.0015, u13=-0.0003, u22=0.0046, u23=0.0003, u33=0.0059)
+#   NCrystalUserWarning : Anisotropic displacement for C ignored (u11=0.0041, u12=0.0021, u13=0, u22=0.0041, u23=0, u33=0.013)
+#   NCrystalUserWarning : Support for site_occupancy is highly experimental. Do *not* attempt to directly override value with the "density" cfg-parameter for this material (unless it is to simply scale it)
+# NOTICE: crystal structure was verified with spglib to be self-consistent.
+#
+@CELL
+  lengths 5.653 !! 12.156
+  angles 90 90 120
+@SPACEGROUP
+  166
+@ATOMPOSITIONS
+  B .00672 .50336 .80768
+  B .16330666666666667 .32661333333333333 .14101333333333333
+  B .16330666666666667 .83669333333333333 .14101333333333333
+  B .17002666666666667 .34005333333333333 .52565333333333333
+  B .17002666666666667 .82997333333333333 .52565333333333333
+  B .32661333333333333 .16330666666666667 .85898666666666667
+  B .34005333333333333 .17002666666666667 .47434666666666667
+  B .49664 .50336 .80768
+  B .49664 .99328 .80768
+  B .50336 .00672 .19232
+  B .50336 .49664 .19232
+  B .65994666666666667 .82997333333333333 .52565333333333333
+  B .67338666666666667 .83669333333333333 .14101333333333333
+  B .82997333333333333 .17002666666666667 .47434666666666667
+  B .82997333333333333 .65994666666666667 .47434666666666667
+  B .83669333333333333 .16330666666666667 .85898666666666667
+  B .83669333333333333 .67338666666666667 .85898666666666667
+  B .99328 .49664 .19232
+  X1 .10758666666666667 .21517333333333333 .38631333333333333
+  X1 .10758666666666667 .89241333333333333 .38631333333333333
+  X1 .11816 .55908 .05298
+  X1 .21517333333333333 .10758666666666667 .61368666666666667
+  X1 .22574666666666667 .45149333333333333 .28035333333333333
+  X1 .22574666666666667 .77425333333333333 .28035333333333333
+  X1 .44092 .55908 .05298
+  X1 .44092 .88184 .05298
+  X1 .45149333333333333 .22574666666666667 .71964666666666667
+  X1 .54850666666666667 .77425333333333333 .28035333333333333
+  X1 .55908 .11816 .94702
+  X1 .55908 .44092 .94702
+  X1 .77425333333333333 .22574666666666667 .71964666666666667
+  X1 .77425333333333333 .54850666666666667 .71964666666666667
+  X1 .78482666666666667 .89241333333333333 .38631333333333333
+  X1 .88184 .44092 .94702
+  X1 .89241333333333333 .10758666666666667 .61368666666666667
+  X1 .89241333333333333 .78482666666666667 .61368666666666667
+  X2 0 0 0
+  X2 1/3 2/3 2/3
+  X2 2/3 1/3 1/3
+  X3 0 0 .079
+  X3 0 0 .921
+  X3 1/3 2/3 .58766666666666667
+  X3 1/3 2/3 .74566666666666667
+  X3 2/3 1/3 .25433333333333333
+  X3 2/3 1/3 .41233333333333333
+  X4 0 0 .1177
+  X4 0 0 .8823
+  X4 1/3 2/3 .54896666666666667
+  X4 1/3 2/3 .78436666666666667
+  X4 2/3 1/3 .21563333333333333
+  X4 2/3 1/3 .45103333333333333
+@ATOMDB
+  #Note: Emulating site_occupancy=0.87 for B by hijacking Og299 to play the role as "sterile B".
+  #Note: Emulating site_occupancy=0.13 for B by hijacking Og298 to play the role as "sterile B".
+  #Note: Emulating site_occupancy=0.87 for C by hijacking Og297 to play the role as "sterile C".
+  Og297 12.0110369031873u 0fm 0b 0b
+  Og298 10.8100315052u 0fm 0b 0b
+  Og299 10.8100315052u 0fm 0b 0b
+  X1 is 0.958 B 0.042 C
+  X2 is 0.87 B 0.13 Og299
+  X3 is 0.13 B 0.87 Og298
+  X4 is 0.87 C 0.13 Og297
+@DYNINFO
+  # Debye temperature value derived from msd=0.0053Aa^2 @ T=293K (mass=10.8605u)
+  element X1
+  fraction 6/17
+  type vdosdebye
+  debye_temp 972.879
+@DYNINFO
+  # Debye temperature value derived from msd=0.0118Aa^2 @ T=293K (mass=10.81u)
+  element X2
+  fraction 1/17
+  type vdosdebye
+  debye_temp 610.721
+@DYNINFO
+  # Debye temperature value derived from msd=0.0071Aa^2 @ T=293K (mass=10.81u)
+  element X3
+  fraction 2/17
+  type vdosdebye
+  debye_temp 816.849
+@DYNINFO
+  # Debye temperature value derived from msd=0.0054Aa^2 @ T=293K (mass=10.81u)
+  element B
+  fraction 6/17
+  type vdosdebye
+  debye_temp 964.409
+@DYNINFO
+  # Debye temperature value derived from msd=0.0071Aa^2 @ T=293K (mass=12.011u)
+  element X4
+  fraction 2/17
+  type vdosdebye
+  debye_temp 767.787

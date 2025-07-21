@@ -1,0 +1,79 @@
+NCMAT v7
+#
+# Orthoboric acid, B(OH)3 (triclinic, SG-2)
+#
+# Atoms per unit cell: 4xB+12xH+12xO
+#
+# Structure converted (with NCrystal.cifutils module) from:
+#
+#   "Electron density of orthoboric acid determined by X-ray diffraction at
+#    105 K and ab initio calculations
+#    Note: multipole refinement"
+#   Gajhede, M., et al. [Acta Crystallographica, Section B, 1986]
+#   DOI: https://dx.doi.org/10.1107/S0108768186097720
+#   Crystallography Open Database entry 9007675
+#   https://www.crystallography.net/cod/9007675.html
+#
+# Notice: The following WARNINGS were emitted when loading the CIF data:
+#
+#   NCrystalUserWarning : Structure received major corrections by spglib (at the 49.6192% level)
+#
+# Notice: crystal structure was verified with spglib to be self-consistent.
+#
+# FIXME: SIMPLIFIED BY TK
+@CELL
+  lengths 6.3472 7.0187 7.035
+  angles 119.76 92.49 101.46
+@SPACEGROUP
+  2
+@ATOMPOSITIONS
+  B .26038 .64844 .42648
+  B .73962 .35156 .57352
+  H .2542 .9012 .7201
+  H .7458 .0988 .2799
+  H .2362 .2619 .013
+  H .7638 .7381 .987
+  H .2513 .058 .463
+  H .7487 .942 .537
+  O .25137 .77245 .32657
+  O .74863 .22755 .67343
+  O .24336 .21313 .53531
+  O .75664 .78687 .46469
+  B .2394 .30894 .75823
+  B .7606 .69106 .24177
+  O .24873 .53531 .8853
+  O .75127 .46469 .1147
+  O .22874 .17974 .85407
+  O .77126 .82026 .14593
+  O .26327 .74654 .65032
+  O .73673 .25346 .34968
+  O .26361 .42559 .30116
+  O .73639 .57441 .69884
+  H .2631 .6106 .8022
+  H .7369 .3894 .1978
+  H .2582 .6848 .1714
+  H .7418 .3152 .8286
+  H .2662 .3606 .3931
+  H .7338 .6394 .6069
+@ATOMDB
+  H is H
+  H is H
+  H is H
+  H is H
+  H is H
+  H is H
+@DYNINFO
+  element B
+  fraction 1/7
+  type vdosdebye
+  debye_temp 450
+@DYNINFO
+  element O
+  fraction 3/7
+  type vdosdebye
+  debye_temp 270
+@DYNINFO
+  element H
+  fraction 3/7
+  type vdosdebye
+  debye_temp 2500

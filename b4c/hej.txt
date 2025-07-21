@@ -1,0 +1,20 @@
+   B      = B(cohSL=5.3fm cohXS=3.52989barn incXS=1.7barn absXS=767barn mass=10.81u Z=5)
+   Mix(a) = Mix{87%B+13%Og299}(cohSL=4.611fm cohXS=2.67178barn incXS=1.87823barn absXS=667.29barn mass=10.81u)
+   Mix(b) = Mix{87%C+13%Og297}(cohSL=5.78202fm cohXS=4.20116barn incXS=0.628629barn absXS=0.003045barn mass=12.011u)
+   Mix(c) = Mix{87%Og298+13%B}(cohSL=0.689fm cohXS=0.0596552barn incXS=0.620231barn absXS=99.71barn mass=10.81u)
+   Mix(d) = Mix{95.8%B+4.2%C}(cohSL=5.35653fm cohXS=3.6056barn incXS=1.6378barn absXS=734.786barn mass=10.8605u)
+----------------------------------------------------------------------------------------------------
+Atoms in unit cell (total 51):
+1.0*18 B T_Debye=964.409K
+0.87*3 B T_Debye=610.721K
+0.13*6 B T_Debye=816.849K
+==> 21.39 B T_Debye = 915.871249649369
+
+0.87*6 C atoms [T_Debye=767.787K, MSD=0.0071026Aa^2]
+
+96% B + 4% C
+     18 Mix(d) atoms [T_Debye=972.879K, MSD=0.00530163Aa^2]
+
+
+940 B
+770 C

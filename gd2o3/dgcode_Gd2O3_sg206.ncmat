@@ -1,0 +1,117 @@
+NCMAT v5
+#
+# Gd2O3 (cubic, SG-206 / Ia-3)
+#
+# Structure converted with ncrystal_onlinedb2ncmat from:
+#
+#    "Refinement of atomic positions in bixbyite oxides using perturbed angular  correlation spectroscopy"
+#    Bartos, A., et al. (1993)
+#    Crystallography Open Database entry 2106881
+#    https://www.crystallography.net/cod/2106881.html
+#
+# Post-conversion edits by T. Kittelmann:
+#
+# After the conversion from the online DB mentioned above, the lattice length
+# was increased from 10.79 to 11.085... in order to better reproduce the density
+# value of 7.07g/cm3. This might not necessarily be correct (there might instead
+# be a void phase), but the absorption anyway DWARFS the scattering in this
+# material, so a slight change in Bragg edge positions are irrelevant. Finally,
+# the Debye temperatures are simply based on dummy values of 300K. Again, it
+# doesn't really matter since all that matters for this material is absorption.
+#
+@CELL
+#  Modified to get 7.07 g/cm3. Was originally "cubic 10.79".
+  cubic 11.085427645851416
+@SPACEGROUP
+  206
+@ATOMPOSITIONS
+  Gd 1/4 1/4 1/4
+  Gd 3/4 1/4 1/4
+  Gd 1/4 3/4 1/4
+  Gd 3/4 3/4 1/4
+  Gd 1/4 3/4 3/4
+  Gd 3/4 3/4 3/4
+  Gd 3/4 1/4 3/4
+  Gd 1/4 1/4 3/4
+  Gd .96856 0 1/4
+  Gd .03144 1/2 1/4
+  Gd 1/4 .96856 0
+  Gd 3/4 .53144 0
+  Gd 1/4 .03144 1/2
+  Gd 3/4 .46856 1/2
+  Gd 0 1/4 .96856
+  Gd 0 3/4 .53144
+  Gd 1/2 3/4 .46856
+  Gd .03144 0 3/4
+  Gd .96856 1/2 3/4
+  Gd 3/4 .03144 0
+  Gd 1/4 .46856 0
+  Gd 3/4 .96856 1/2
+  Gd 1/4 .53144 1/2
+  Gd 0 3/4 .03144
+  Gd 0 1/4 .46856
+  Gd 1/2 1/4 .53144
+  Gd .46856 1/2 3/4
+  Gd .53144 0 3/4
+  Gd 1/2 1/4 .03144
+  Gd .53144 1/2 1/4
+  Gd .46856 0 1/4
+  Gd 1/2 3/4 .96856
+  O .3915 .1524 .3809
+  O .6085 .3476 .3809
+  O .3915 .8476 .1191
+  O .6085 .6524 .1191
+  O .3809 .3915 .1524
+  O .6191 .1085 .1524
+  O .3809 .6085 .3476
+  O .6191 .8915 .3476
+  O .1524 .3809 .3915
+  O .1524 .6191 .1085
+  O .8476 .8809 .1085
+  O .3476 .6191 .8915
+  O .6085 .8476 .6191
+  O .3915 .6524 .6191
+  O .6085 .1524 .8809
+  O .3915 .3476 .8809
+  O .6191 .6085 .8476
+  O .3809 .8915 .8476
+  O .6191 .3915 .6524
+  O .3809 .1085 .6524
+  O .8476 .6191 .6085
+  O .8476 .3809 .8915
+  O .1524 .1191 .8915
+  O .6524 .3809 .1085
+  O .8915 .6524 .8809
+  O .1085 .8476 .8809
+  O .8915 .3476 .6191
+  O .1085 .1524 .6191
+  O .8809 .8915 .6524
+  O .1191 .6085 .6524
+  O .8809 .1085 .8476
+  O .1191 .3915 .8476
+  O .6524 .8809 .8915
+  O .6524 .1191 .6085
+  O .3476 .3809 .6085
+  O .8476 .1191 .3915
+  O .1085 .3476 .1191
+  O .8915 .1524 .1191
+  O .1085 .6524 .3809
+  O .8915 .8476 .3809
+  O .1191 .1085 .3476
+  O .8809 .3915 .3476
+  O .1191 .8915 .1524
+  O .8809 .6085 .1524
+  O .3476 .1191 .1085
+  O .3476 .8809 .3915
+  O .6524 .6191 .3915
+  O .1524 .8809 .6085
+@DYNINFO
+  element  Gd
+  fraction 2/5
+  type     vdosdebye
+  debye_temp 300 # WARNING: Dummy fall-back value added here!!
+@DYNINFO
+  element  O
+  fraction 3/5
+  type     vdosdebye
+  debye_temp 300 # WARNING: Dummy fall-back value added here!!

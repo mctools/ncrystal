@@ -1,0 +1,122 @@
+NCMAT v7
+#
+# Gd2O3 (cubic, SG-206)
+#
+# Atoms per unit cell: 32xGd+48xO
+#
+# Structure converted (with NCrystal.cifutils module) from:
+#
+#   The Materials Project
+#   https://www.materialsproject.org/materials/mp-504886
+#
+# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+#                   verified!  In particular the @DYNINFO sections might need
+#                   post-editing. Before distributing this file to other people,
+#                   please review this, amend the comments here to document,
+#                   anything done, and remove this notice.
+#
+# Notice: The following WARNINGS were emitted when loading the CIF data:
+#
+#   PydanticDeprecatedSince20 : Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+#
+# WARNING: Fallback (dummy) Debye temperature values were used for 2 atoms!
+#
+# NOTICE: crystal structure was verified with spglib to be self-consistent.
+#
+@CELL
+  cubic 10.806
+@SPACEGROUP
+  206
+@ATOMPOSITIONS
+  Gd 0 1/4 .4683059
+  Gd 0 1/4 .9683059
+  Gd 0 3/4 .0316941
+  Gd 0 3/4 .5316941
+  Gd .0316941 0 3/4
+  Gd .0316941 1/2 1/4
+  Gd 1/4 .0316941 1/2
+  Gd 1/4 1/4 1/4
+  Gd 1/4 1/4 3/4
+  Gd 1/4 .4683059 0
+  Gd 1/4 .5316941 1/2
+  Gd 1/4 3/4 1/4
+  Gd 1/4 3/4 3/4
+  Gd 1/4 .9683059 0
+  Gd .4683059 0 1/4
+  Gd .4683059 1/2 3/4
+  Gd 1/2 1/4 .0316941
+  Gd 1/2 1/4 .5316941
+  Gd 1/2 3/4 .4683059
+  Gd 1/2 3/4 .9683059
+  Gd .5316941 0 3/4
+  Gd .5316941 1/2 1/4
+  Gd 3/4 .0316941 0
+  Gd 3/4 1/4 1/4
+  Gd 3/4 1/4 3/4
+  Gd 3/4 .4683059 1/2
+  Gd 3/4 .5316941 0
+  Gd 3/4 3/4 1/4
+  Gd 3/4 3/4 3/4
+  Gd 3/4 .9683059 1/2
+  Gd .9683059 0 1/4
+  Gd .9683059 1/2 3/4
+  O .109296995 .150858945 .620563215
+  O .109296995 .349141055 .120563215
+  O .109296995 .650858945 .379436785
+  O .109296995 .849141055 .879436785
+  O .120563215 .109296995 .349141055
+  O .120563215 .390703005 .849141055
+  O .120563215 .609296995 .650858945
+  O .120563215 .890703005 .150858945
+  O .150858945 .120563215 .890703005
+  O .150858945 .379436785 .390703005
+  O .150858945 .620563215 .109296995
+  O .150858945 .879436785 .609296995
+  O .349141055 .120563215 .109296995
+  O .349141055 .379436785 .609296995
+  O .349141055 .620563215 .890703005
+  O .349141055 .879436785 .390703005
+  O .379436785 .109296995 .650858945
+  O .379436785 .390703005 .150858945
+  O .379436785 .609296995 .349141055
+  O .379436785 .890703005 .849141055
+  O .390703005 .150858945 .379436785
+  O .390703005 .349141055 .879436785
+  O .390703005 .650858945 .620563215
+  O .390703005 .849141055 .120563215
+  O .609296995 .150858945 .879436785
+  O .609296995 .349141055 .379436785
+  O .609296995 .650858945 .120563215
+  O .609296995 .849141055 .620563215
+  O .620563215 .109296995 .150858945
+  O .620563215 .390703005 .650858945
+  O .620563215 .609296995 .849141055
+  O .620563215 .890703005 .349141055
+  O .650858945 .120563215 .609296995
+  O .650858945 .379436785 .109296995
+  O .650858945 .620563215 .390703005
+  O .650858945 .879436785 .890703005
+  O .849141055 .120563215 .390703005
+  O .849141055 .379436785 .890703005
+  O .849141055 .620563215 .609296995
+  O .849141055 .879436785 .109296995
+  O .879436785 .109296995 .849141055
+  O .879436785 .390703005 .349141055
+  O .879436785 .609296995 .150858945
+  O .879436785 .890703005 .650858945
+  O .890703005 .150858945 .120563215
+  O .890703005 .349141055 .620563215
+  O .890703005 .650858945 .879436785
+  O .890703005 .849141055 .379436785
+@DYNINFO
+  # WARNING: Using fallback Debye temperature value!
+  element Gd
+  fraction 2/5
+  type vdosdebye
+  debye_temp 300
+@DYNINFO
+  # WARNING: Using fallback Debye temperature value!
+  element O
+  fraction 3/5
+  type vdosdebye
+  debye_temp 300
