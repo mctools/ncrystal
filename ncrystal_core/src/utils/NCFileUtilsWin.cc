@@ -200,18 +200,67 @@ namespace NCRYSTAL_NAMESPACE {
       return winimpl_wstr2str( wres );
     }
 
-    VectS ncglob_impl( const std::string& pattern_utf8 )
+    bool match_wpattern( const wchar_t* thestr, const wchar_t* pattern ) {
+      const wchar_t *f = thestr;
+      const wchar_t *p = pattern;
+      while (*f) {
+        if (*p == L'*') {
+          // '*' in pattern
+          ++p;
+          if (*p == L'\0')
+            return true;//always match the rest on final '*' in pattern
+          //Ok, if end of thestr matches rest of pattern:
+          while (*f) {
+            if (match_wpattern(f, p))
+              return true;
+            ++f;
+          }
+          return false;
+        } else if (*p == L'?') {
+          // '?' means match any single char
+          ++f;
+          ++p;
+        } else if (*f == *p) {
+          // chars match
+          ++f;
+          ++p;
+        } else {
+          // chars do not match
+          return false;
+        }
+      }
+      // End of thestr, check if pattern is done apart from trailing '*':
+      while (*p == L'*')
+        ++p;
+      return *p == L'\0';
+    }
+
+    VectS ncglob_impl( const std::string& pattern_dirname_utf8,
+                       const std::string& pattern_utf8 )
     {
-      std::wstring wpattern;
-      if ( contains( pattern_utf8, '/' ) ) {
-        std::string pfix = pattern_utf8;
-        for ( auto& c : pfix )
+      auto to_wstr_winseps = []( const std::string& s )
+      {
+        if ( !contains( s, '/' ) )
+          return winimpl_str2wstr( s );
+        std::string s2 = s;
+        for ( auto& c : s2 )
           if ( c == '/' )
             c = '\\';
-        wpattern = winimpl_str2wstr( pfix );
-      } else {
-        wpattern = winimpl_str2wstr( pattern_utf8 );
+        return winimpl_str2wstr( s2 );
+      };
+
+      std::wstring wpattern = to_wstr_winseps( pattern_utf8 );
+      std::wstring wpattern_filepart;
+      {
+        auto tmp = wpattern.rfind(L'\\');
+        if ( tmp == std::wstring::npos ) {
+          wpattern_filepart = wpattern;
+        } else {
+          nc_assert_always( tmp + 1 < wpattern.size() );
+          wpattern_filepart = wpattern.substr(tmp+1);
+        }
       }
+
       VectS result;
       WIN32_FIND_DATAW fdata;
       constexpr auto dwAdditionalFlags = ( FIND_FIRST_EX_CASE_SENSITIVE
@@ -233,15 +282,20 @@ namespace NCRYSTAL_NAMESPACE {
         } else {
           NCRYSTAL_THROW2(CalcError,"Unexpected error (code "<<last_error
                           <<") while globbing via windows"
-                          " FindFirstFileW function");
+                          " FindFirstFileExW function");
         }
         return result;
       }
       while (true) {
-        std::wstring hitw( fdata.cFileName );
-        std::string hit_utf8 = winimpl_wstr2str( hitw );
-        if ( !hit_utf8.empty() && hit_utf8 != "." && hit_utf8!=".." )
-          result.push_back(hit_utf8);
+        //We need to double-check and make sure the hit was not just on the 8.3
+        //name (which can for instance match "myfile.ncmat" against a pattern
+        //"*.ncm" which would be a mistake):
+        if ( match_wpattern( fdata.cFileName, wpattern_filepart.c_str() ) ) {
+          std::wstring hitw( fdata.cFileName );
+          std::string hit_utf8 = winimpl_wstr2str( hitw );
+          if ( !hit_utf8.empty() && hit_utf8 != "." && hit_utf8!=".." )
+            result.push_back(hit_utf8);
+        }
         if (!FindNextFileW(fh, &fdata))
           break;
       }

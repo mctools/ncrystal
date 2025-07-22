@@ -31,7 +31,8 @@ namespace NCRYSTAL_NAMESPACE {
     std::ifstream open_ifstream_from_path( const std::string&,
                                            std::ios_base::openmode
                                            = std::ios_base::in);
-    VectS ncglob_impl(const std::string&);
+    VectS ncglob_impl(const std::string&,
+                      const std::string&);
     std::string get_current_working_dir();
     std::string get_self_exe_path_windows();
     std::string get_absolute_path(std::string);

@@ -5,6 +5,8 @@ v4.2.3 (work in progress)
      * Add BO3H3_sg2_BoricAcid.ncmat, representing ortho boric acid. This
        includes both crystal structure and phonon DOS curves (github issue
        #284).
+     * Guard file globbing on Windows against false matching short 8.3 format
+       filenames (i.e. *.ncm should never match *.ncmat)..
      * ...
 
 v4.2.2 2025-07-03

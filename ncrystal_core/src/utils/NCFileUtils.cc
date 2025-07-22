@@ -319,7 +319,7 @@ NC::VectS NC::ncglob( const std::string& pattern )
   }
   //Ok, some actual work:
 #ifdef NCRYSTAL_USE_WINDOWS_FILEUTILS
-  VectS res = WinFileUtils::ncglob_impl(pattern);
+  VectS res = WinFileUtils::ncglob_impl(path_dirname,pattern);
   //Windows globbing only gives the filenames, we have to re-inject the
   //dirnames:
   if ( !path_dirname.empty() ) {
