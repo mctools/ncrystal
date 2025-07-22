@@ -125,6 +125,16 @@ ekin2wl:
 inf
 0.0
 [ 1.8089136  inf  0 ]
+::NCrystalTest:: starting standard Python-API testing
+::NCrystalTest:: Trying to createInfo("stdlib::Al_sg225.ncmat;dcutoff=1.4")
+::NCrystalTest:: Verifying loaded Info object
+::NCrystalTest:: Trying to createScatter("stdlib::Al_sg225.ncmat;dcutoff=1.4;incoh_elas=0;inelas=0")
+::NCrystalTest:: Verifying loaded Scatter object
+::NCrystalTest:: Trying to createScatterIndependentRNG("stdlib::Ni_sg225.ncmat;dcutoff=0.6;vdoslux=2",2543577)
+::NCrystalTest:: Verifying loaded Scatter object
+::NCrystalTest:: Trying to createScatterIndependentRNG("stdlib::Ge_sg227.ncmat;dcutoff=0.5;mos=40.0arcsec;dir1=@crys_hkl:5,1,1@lab:0,0,1;dir2=@crys_hkl:0,-1,1@lab:0,1,0",3453455)
+::NCrystalTest:: Verifying loaded Scatter object
+::NCrystalTest:: standard Python-API testing done
 Tests completed succesfully
 
 ---> testing fast Bragg threshold detection:

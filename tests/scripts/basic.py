@@ -215,7 +215,7 @@ myprint(NC.ekin2wl(float('inf')))
 myprint(npfmt(NC.ekin2wl(np.asarray([0.025,0.0,float('inf')]))))
 
 #Integrated unit test:
-NC.test()
+NC.test(verbose=True)
 
 
 #getBraggThreshold:
