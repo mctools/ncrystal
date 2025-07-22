@@ -141,9 +141,9 @@ namespace MCFILEUTILS_CPPNAMESPACE {
     //safe strlen which guarantees result can fit in an unsigned integer (or
     //less, when 0<nmax<UINT_MAX is provided).
     if ( nmax == 0 )
-      nmax = ( UINT_MAX > PTRDIFF_MAX ? PTRDIFF_MAX : UINT_MAX );
+      nmax = ( UINT_MAX > PTRDIFF_MAX ? PTRDIFF_MAX - 1 : UINT_MAX -1 );
 
-    if ( nmax > PTRDIFF_MAX )
+    if ( ( nmax + 1 ) > PTRDIFF_MAX || ( nmax + 1 ) > UINT_MAX )
       mctools_impl_error("str length out of range");
 
     const char * nullchr = (const char *) STDNS memchr( c_str, '\0', nmax );

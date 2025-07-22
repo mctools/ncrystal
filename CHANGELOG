@@ -14,6 +14,8 @@ v4.2.3 (work in progress)
        objects. This is safer, but is not actually believed to have caused any
        issues since the pointers in question were not accessed in the class
        destructor.
+     * Fix MSCV compilation warning related to memchr usage (seen on
+       windows-2025 runners on GitHub).
      * ...
 
 v4.2.2 2025-07-03
