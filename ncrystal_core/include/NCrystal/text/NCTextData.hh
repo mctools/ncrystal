@@ -67,9 +67,9 @@ namespace NCRYSTAL_NAMESPACE {
     RawStrData( shared_obj<std::string>, const DataSourceName& );
 
     RawStrData( const RawStrData& ) = default;
-    RawStrData( RawStrData&& ) = default;
     RawStrData& operator=( const RawStrData& ) = default;
-    RawStrData& operator=( RawStrData&& ) = default;
+    RawStrData( RawStrData&& ) noexcept;
+    RawStrData& operator=( RawStrData&& ) noexcept;
 
     ncconstexpr17 const char * begin() const noexcept { return m_b; }
     ncconstexpr17 const char * end() const noexcept { return m_e; }
@@ -86,7 +86,8 @@ namespace NCRYSTAL_NAMESPACE {
     static uint64_t checkSumFromRawStringData(const char*begin, const char*end);
 
   private:
-    const char *m_b, *m_e;
+    const char *m_b = nullptr;
+    const char *m_e = nullptr;
     optional_shared_obj<std::string> m_s;
   };
 
@@ -251,13 +252,29 @@ namespace NCRYSTAL_NAMESPACE {
   {
   }
 
+
+  inline RawStrData& RawStrData::operator=( RawStrData&& o ) noexcept
+  {
+    std::swap(m_b,o.m_b);
+    std::swap(m_e,o.m_e);
+    std::swap(m_s,o.m_s);
+    return *this;
+  }
+
+  inline RawStrData::RawStrData( RawStrData&& o ) noexcept
+  {
+    *this = o;
+  }
+
   inline bool RawStrData::hasSameContent( const std::string& ss ) const
   {
+    nc_assert( m_b && m_e );//must not be moved-from
     return hasSameContent( ss.c_str(), std::next(ss.c_str(),ss.size()) );
   }
 
   inline bool RawStrData::hasSameContent( const RawStrData& o ) const
   {
+    nc_assert( m_b && m_e );//must not be moved-from
     return ( ( m_b == o.m_b && m_e == o.m_e )
              ? true//trivially referring to exact same data
              : hasSameContent( o.m_b, o.m_e ) );//more careful analysis needed

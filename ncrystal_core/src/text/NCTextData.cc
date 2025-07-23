@@ -117,11 +117,13 @@ uint64_t NC::RawStrData::checkSumFromRawStringData(const char* c_begin, const ch
 
 uint64_t NC::RawStrData::calcCheckSum() const
 {
+  nc_assert_always( m_b && m_e );//must not be moved-from
   return checkSumFromRawStringData(m_b,m_e);
 }
 
 bool NC::RawStrData::hasSameContent( const char* dataBegin, const char* dataEnd ) const
 {
+  nc_assert( m_b && m_e );//must not be moved-from
   auto it = m_b;
   auto itE = m_e;
   auto it2 = dataBegin;
