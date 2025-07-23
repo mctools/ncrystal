@@ -46,7 +46,10 @@ def test_all( verbose = False ):
 
 def _get_prfct( verbose ):
     if verbose and verbose != 'quiet':
-        return lambda *a, **kw : _nc_print('::NCrystalTest::',*a,**kw)
+        def prt(  *a, **kw ):
+            kw['flush'] = True
+            return _nc_print('::NCrystalTest::',*a,**kw)
+        return prt
     else:
         return lambda *a, **kw : None
 
