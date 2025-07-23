@@ -104,13 +104,17 @@ void NC::TextData::verifyOnDiskFileUnchanged() const
 
 uint64_t NC::RawStrData::checkSumFromRawStringData(const char* c_begin, const char* c_end)
 {
-  //Very simply checksum alg, using randomly generated initial value (which will
+  nc_assert( c_begin != nullptr );
+  nc_assert( c_end != nullptr );
+  nc_assert( c_end >= c_begin );
+  //Very simple checksum alg, using randomly generated initial value (which will
   //be the checksum of an empty range):
-  uint_fast64_t checksum(static_cast<uint64_t>(0x2254a62a1af0a16bull));
+  std::uint_fast64_t checksum
+    = static_cast<std::uint_fast64_t>( 0x2254a62a1af0a16bull );
   unsigned shift = 0;
   for ( ;c_begin!=c_end; ++c_begin ) {
-    checksum += ( static_cast<unsigned char>(*c_begin) << shift);
-    shift = ( shift + 8) % 64;
+    checksum += ( static_cast<std::uint_fast64_t>(*c_begin) << shift);
+    shift = ( shift + 8 ) % 64;
   }
   return static_cast<uint64_t>(checksum);
 }

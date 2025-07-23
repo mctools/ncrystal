@@ -7,6 +7,9 @@ v4.2.3 (work in progress)
        #284).
      * Guard file globbing on Windows against false matching short 8.3 format
        filenames (i.e. *.ncm should never match *.ncmat)..
+     * Fix type-casting issue in RawStrData::calcCheckSum which caused obscure
+       and hard to track down bus errors or seg-faults on macOS Intel
+       (issue seen in macos-13 runners on GitHub).
      * Update RawStrData move operators to avoid dangling pointers in moved-from
        objects. This is safer, but is not actually believed to have caused any
        issues since the pointers in question were not accessed in the class
