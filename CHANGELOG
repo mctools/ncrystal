@@ -5,6 +5,10 @@ v4.2.3 (work in progress)
      * Add BO3H3_sg2_BoricAcid.ncmat, representing ortho boric acid. This
        includes both crystal structure and phonon DOS curves (github issue
        #284).
+     * Update ncmat2endf functionality to work with endf-parserpy
+       0.14.x. However, since ENDF output changes slightly in endf-parserpy
+       0.14.x and endf-parserpy conda-forge pkgs are not ready yet, NCrystal's
+       dependency on endf-parserpy is for now pinned to <0.14.
      * Guard file globbing on Windows against false matching short 8.3 format
        filenames (i.e. *.ncm should never match *.ncmat)..
      * Fix type-casting issue in RawStrData::calcCheckSum which caused obscure

@@ -1060,7 +1060,12 @@ class EndfFile():
 
         if self._parser is None:
             endf_parserpy,_,_ = import_endfparserpy()
-            self._parser = endf_parserpy.EndfParser(
+            if hasattr(endf_parserpy,'EndfParserPy'):
+                EndfParserPy = endf_parserpy.EndfParserPy
+            else:
+                #legacy endf-parserpy 0.13.x support
+                EndfParserPy = endf_parserpy.EndfParser
+            self._parser = EndfParserPy(
                 explain_missing_variable=True,
                 cache_dir=False
             )

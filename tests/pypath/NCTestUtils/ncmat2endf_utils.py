@@ -83,10 +83,17 @@ def test_cfg( cfg, check_teff=False,
                                           nend=70,
                                           prefix='endf>')
         parser, endf_dic = None, None
-        EndfParser, list_parsed_sections = None, None
+        list_parsed_sections = None
         if check_teff or ref_parsed or check_edge_positions:
-            from endf_parserpy import EndfParser, list_parsed_sections
-            parser = EndfParser(cache_dir=False)
+            import endf_parserpy
+            from endf_parserpy import list_parsed_sections
+            if hasattr(endf_parserpy,'EndfParserPy'):
+                EndfParserPy = endf_parserpy.EndfParserPy
+            else:
+                #legacy endf-parserpy 0.13.x support
+                EndfParserPy = endf_parserpy.EndfParser
+
+            parser = EndfParserPy(cache_dir=False)
             endf_dic = parser.parsefile(endf_fn)
 
         if check_teff:
@@ -168,9 +175,12 @@ def get_scatxs_from_endf(endf_fn, *, E ):
     """
     Computes scattering XS from first temperature in ENDF-6 TSL file
     """
-    from endf_parserpy import EndfParser
-
-    parser = EndfParser(cache_dir=False)
+    import endf_parserpy
+    if hasattr(endf_parserpy,'EndfParserPy'):
+        EndfParserPy = endf_parserpy.EndfParserPy
+    else:
+        EndfParserPy = endf_parserpy.EndfParser
+    parser = EndfParserPy(cache_dir=False)
     endf_dic = parser.parsefile(endf_fn)
     T0 = 293.6
     if E is None:

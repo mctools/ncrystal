@@ -45,7 +45,7 @@ jobs:
             #Install deps not available as FreeBSD package:
             INSTALL_ENDF_PARSERPY_CPP=no
             export INSTALL_ENDF_PARSERPY_CPP
-            python3 -mpip install --user endf-parserpy
+            python3 -mpip install --user "endf-parserpy<=0.13.99"
             cmake -S ./src -B ./build -DCMAKE_BUILD_TYPE=Release -DNCRYSTAL_BUILD_STRICT=ON -DNCRYSTAL_ENABLE_TESTING=ON -DMCTOOLS_REQUIRE_ALL_TEST_DEPS=ON -DNCRYSTAL_TEST_ENABLE_LONG=ON
             cmake --build ./build --config Release --parallel 2
             ctest --test-dir ./build --build-config Release --no-tests=error --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle
@@ -95,6 +95,6 @@ jobs:
             #Install deps not available as FreeBSD package:
             INSTALL_ENDF_PARSERPY_CPP=no
             export INSTALL_ENDF_PARSERPY_CPP
-            python3 -mpip install --user endf-parserpy
+            python3 -mpip install --user "endf-parserpy<=0.13.99"
             ncrystal-verify --long
             #--allow-missing endf-parserpy
