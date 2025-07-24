@@ -1,4 +1,4 @@
-v4.2.3 (work in progress)
+v4.2.4 2025-07-24
      * Add B4C_sg166_BoronCarbide.ncmat, representing the crystal structure of
        ideal B12C3 boron-carbide (github issues #162 and #207). Dynamics are
        approximated with Debye temperatures.
@@ -22,7 +22,6 @@ v4.2.3 (work in progress)
        windows-2025 runners on GitHub).
      * Improve debugging efforts by adding a new simple C++ based material
        loading test and increase verbosity and buffer flushing of some tests.
-     * ...
 
 v4.2.2 2025-07-03
      * Support the unit "mu" (micron) in cfg-string length specifications.
