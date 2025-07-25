@@ -68,7 +68,7 @@ jobs:
             - cxx-compiler
             - njoy2016 >=2016.78
             - openmc >=0.15.2
-            - endf-parserpy <=0.13.99
+            - endf-parserpy >=0.14.3
             - numpy
             - cmake
             - make
