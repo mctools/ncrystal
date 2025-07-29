@@ -157,6 +157,9 @@ double NC::GaussMos::calcCrossSections( InteractionPars& ip,
   double xssum(0.0);
   const double cptsq = ip.m_cos_perfect_theta_sq;
   const double cta = m_gos.getCosTruncangle();
+
+  //Fixme: idea to make this faster: Do the fast pre-check in SIMD? That will
+  //potentially allowing us to skip past larger groups of inactive planes.
   for(;it!=itE;++it) {
     const Vector& normal = *it;
     const double dot = normal.dot(indir);

@@ -18,44 +18,36 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/extn_scatter/NCExtnFactory.hh"
-#include "NCrystal/internal/cfgutils/NCCfgExtn.hh"
-#include "NCrystal/internal/extn_scatter/NCExtnScatter.hh"
-#include "NCrystal/internal/extn_utils/NCExtnSabine.hh"
+#if 0//fixme
+
+#include "NCrystal/internal/extn_utils/NCExtnEval.hh"
 
 namespace NC = NCrystal;
 namespace NCE = NCrystal::Extn;
 
-NC::ProcImpl::ProcPtr NCE::createIsotropicExtnProc( PowderBraggInput::Data&& data,
-                                                    const Cfg::ExtnCfg& extncfg_obj )
+std::vector<NCE::FDMBasket> NCE::vectorizeFDM( const PowderBraggInput::Data& data )
 {
-  if ( !extncfg_obj.enabled() )
-    NCRYSTAL_THROW(BadInput,"createIsotropicExtnProc called "
-                   "without extinction being enabled");
-
-  Cfg::CfgKeyValMap ecfg_kvmap{ Cfg::Extn::accessInternalVarBuf(extncfg_obj) };
-
-  using Cfg::Extn::Model;
-  using Cfg::Extn::ExtnCfg_Base;
-  using Cfg::Extn::ExtnCfg_Sabine;
-
-  auto mdl_base = ExtnCfg_Base::decode(ecfg_kvmap);
-  //if ( oocfg_base.model == Model::BlaBla ) {
-  //  ...
-  // } else
-  {
-    if ( mdl_base.model != Model::Sabine )
-      NCRYSTAL_THROW(BadInput,"Unsupported extinction model encountered");
-    auto mdl_sabine = ExtnCfg_Sabine::decode(ecfg_kvmap);
-    (void)mdl_sabine;//fixme
-    // if ( mdl_sabine.tilt != ExtnCfg_Sabine::Tilt::Rectangular )
-    //   NCRYSTAL_THROW(BadInput,"Sabine extinction model only implemented"
-    //                  " for rectangular tilt model currently");
-    if ( mdl_base.grain.has_value() )
-      NCRYSTAL_THROW(BadInput,"Sabine extinction model does not"
-                     " yet implement secondary extinction");
-
-    return ExtnScatter<SabineMdlPurePrimary>::createSO( std::move(data),
-                                                        mdl_base.domainSize );
+  std::vector<FDMBasket> res;
+  unsigned i = FDMBasket::count;
+  for ( auto& e : data.planes ) {
+    if ( i >= FDMBasket::count ) {
+      res.emplace_back();
+      i = 0;
+    }
+    auto& b = res.back();
+    b.fsq[i] = e.fsq;
+    b.inv2dsp[i] = 1.0 / (2.0 * e.dsp);
+    b.fdm[i] = e.fsq * e.dsp * e.mult;
+    ++i;
   }
+  //Fill remainder of last basket with dummy entries having Fsq=0:
+  while ( i < FDMBasket::count ) {
+    auto& b = res.back();
+    b.fsq[i] = 0.0;
+    b.inv2dsp[i] = 1.0;
+    b.fdm[i] = 0.0;
+    ++i;
+  }
+  return res;
 }
+#endif

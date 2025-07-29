@@ -37,7 +37,8 @@ namespace NCRYSTAL_NAMESPACE {
       //(based on Sabine's model with rectangular tilt function). (fixme revisit
       //description).
 
-      ExtnScatterSimple( PowderBraggInput::Data&& data, Length domainSize );
+      ExtnScatterSimple( PowderBraggInput::Data&& data,
+                         Length domainSize );
 
       const char * name() const noexcept override { return "ExtnScatterSimple"; }
       EnergyDomain domain() const noexcept override;
