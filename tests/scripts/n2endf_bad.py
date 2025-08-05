@@ -41,7 +41,11 @@ from NCrystalDev._numpy import _np
 metadata = EndfMetaData()
 metadata.set_all_dates_as_now()
 MONTHS = ('jan', 'feb', 'mar', 'apr', 'may', 'jun',
-          'jul', 'ago', 'sep', 'oct', 'nov', 'dec')
+          'jul', 'aug', 'sep', 'oct', 'nov', 'dec')
+
+if metadata.edate[:3].lower() not in MONTHS:
+    raise RuntimeError('Bad edate: "%s"'%metadata.edate[:3])
+
 assert metadata.edate[:3].lower() in MONTHS
 assert int(metadata.edate[3:].lower()) >= 00
 assert int(metadata.rdate[3:].lower()) <= 99
