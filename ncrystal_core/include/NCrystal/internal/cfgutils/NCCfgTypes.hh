@@ -712,11 +712,13 @@ namespace NCRYSTAL_NAMESPACE {
 
       static void asJSONObject( std::ostream& os, const VarBuf& buf )
       {
+        //fixme: needed on base? Or make it clear that this is a default impl only?
         //JSON output is for now simply the key-value pairs (fixme??):
         get_val(buf).streamJSON(os);
       }
 
       static VarBuf from_str( VarId varid, StrView sv_in ) {
+        //fixme: why is this method also on vardef_extn??
         //delegate cfgstring i/o to Derived
         standardInputStrSanityCheck(Derived::name,sv_in);
         return CfgKeyValMap::encode( Derived::decode_cfgstr(sv_in), varid );

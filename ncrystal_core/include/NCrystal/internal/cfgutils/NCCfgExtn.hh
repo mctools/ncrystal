@@ -55,6 +55,7 @@ namespace NCRYSTAL_NAMESPACE {
         Length domainSize;
         struct Grain {
           Length grainSize;
+          //fixme: should be MosaicityFWHM type:
           double angularSpread;//spread of domains inside a grain
         };
         Optional<Grain> grain;
@@ -65,6 +66,7 @@ namespace NCRYSTAL_NAMESPACE {
       // Additional parameters for specific models:
 
       struct ExtnCfg_Sabine {
+        //fixme replace 2 2-state enums with single 3-state enum:
         // enum class Secondary { Correlated,
         //                        UncorrelatedRectangularTilt,
         //                        UncorrelatedTriangularTilt };
@@ -76,6 +78,13 @@ namespace NCRYSTAL_NAMESPACE {
         static ExtnCfg_Sabine decode( const CfgKeyValMap& );
       };
 
+
+      ////////////////////////////////////////////////
+      // For maximum flexiblity, JSON encoding provided both detailed
+      // information available on the decoded ExtnCfg_xxx objects above, as well
+      // as information about the corresponding cfg-string value.  Fixme: should
+      // we additionally also provide e.g. the Sabine g-value etc.?
+      void stream_to_json( std::ostream&, const CfgKeyValMap& );
 
       ////////////////////////////////////////////////
       // Stream adapters:

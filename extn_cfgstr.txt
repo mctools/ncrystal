@@ -1,0 +1,90 @@
+
+The "extn" parameter can by used to enable extinction effects, arising when the
+microscopic blocks of perfect crystals (also known as coherent domains or
+crystallites) reaches a significant size, resulting in interference between
+direct and diffracted neutron waves. In addition to this primary extinction
+effect, one might also have secondary extinction effects arising from multiple
+scattering within a single grain, when the orientation of the crystallites
+within a grain are correlated appropriately (e.g. with a mosaic spread around a
+common orientation). The grain size is thus strictly larger than the block size
+in this scenario. Different models exists with which to describe these effects,
+and each model will have slightly different parameters available. Please refer
+to LINKTODOCHERE for the full
+
+Different The syntax
+
+The secondary extinction effect modelled in this manner is thus very similar to
+the extinction effects
+
+
+
+
+@mdl: string for selecting a model. Default value is "sabine".
+
+The choice of @mdl determines which other parameters are available, although
+@blksz is always there and required.
+
+The special case of a string with no @ and no : characters will be interpreted
+as a single length value, the @blksz with @mbld=sabine.
+
+@blksz: short for "block size", length unit.
+
+`@mdl:sabine`:  (the default model)
+=================================
+
+The default model, bla bla.
+Bla bla bla bla.
+
+Simple way for specifying l or l+gG+L:
+
+"bla.ncmat;extn=10um" (simplest primary extinction, sabine model with 10um domain size).
+"bla.ncmat;extn=10um/100um/1deg" (simplest way to specify scnd extinction model: sabine+rect+corr))
+"bla.ncmat;extn=-/100um/1deg" (simplest way to specify pure scnd extinction model, sabine+rect))
+
+
+
+
+l=0 means "no primary" and L=0 means "no secondary". Might raise error if not
+possible. (we could allow the string '-' to mean 0 in this sense)
+
+This effectively sets: { Length blockSize, Optional<Length GrainSize, Mosaicity>}
+
+After this, we can use keywords (note that cr always needs gG+L, and that red
+never support these):
+
+/sabine[_rect|_tri][_corr|uncorr]/
+/bc[_gauss|lorentz|fresnel]/
+/cr/
+/red/<valR>/<vall>/<valc>
+
+
+    //   Length bendingRadius // R;
+    //   Length mfpElasDeformedRegions; // l
+    //   Optional<double> deformationGradient; // c
+
+
+"bla.ncmat;extn=10um"
+"bla.ncmat;extn=10um/bc"
+
+"bla.ncmat;extn=@mdl:sabine@blksz:10um" : Sabine primary extinction model.
+
+"bla.ncmat;extn=@mdl:sabine@blksz:5um@mos:1e-3deg@grnsz:100um" : Sabine secondary extinction model.
+
+"bla.ncmat;extn=@mdl:sabine@blksz:5um@mos:1e-3deg@grnsz:100um@corr:0" : Sabine secondary extinction model (uncorrelated).
+
+"bla.ncmat;extn=@mdl:sabine@blksz:5um@mos:1e-3deg@grnsz:100um@tiltmdl:rect@corr:0" : Sabine secondary extinction model (uncorrelated).
+
+
+
+
+Consider: Crystallite sizes are also interesting if  SMALL (scherrer equation).
+
+Perhaps crystallite size (blksz?) should be a separate parameter, which is
+always required for extinction models? If set, NCrystal will by itself determine
+if a extinction model or some other model is required to be automatically enabled..
+
+
+ coherent diffraction domain ('particle size')
+
+
+"... is the mean size of the ordered (crystalline) domains, which may be smaller or equal to the grain size, which may be smaller or equal to the particle size;"
