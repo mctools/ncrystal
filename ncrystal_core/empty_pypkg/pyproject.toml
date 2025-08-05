@@ -33,7 +33,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ncrystal-core"
-version = "4.2.7"
+version = "4.2.8"
 requires-python = ">=3.8"
 authors = [
   { name="NCrystal developers (Thomas Kittelmann, Xiao Xiao Cai)" },
