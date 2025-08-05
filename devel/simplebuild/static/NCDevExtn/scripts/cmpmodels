@@ -95,8 +95,8 @@ if __name__=='__main__':
     main()
 
 
-g = 1/(2*sigma*sqrt(pi))
-FWHM = sqrt(8ln(2))*sigma
+#g = 1/(2*sigma*sqrt(pi))
+#FWHM = sqrt(8ln(2))*sigma
 
-g^-1 = 2*sqrt(pi)/sqrt(8ln2())*FWHM = sqrt( pi / (2ln2) )*FWHM
-g = sqrt( (2ln2) / pi ) / FWHM
+#g^-1 = 2*sqrt(pi)/sqrt(8ln2())*FWHM = sqrt( pi / (2ln2) )*FWHM
+#g = sqrt( (2ln2) / pi ) / FWHM
