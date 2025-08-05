@@ -406,3 +406,8 @@ void NC::Cfg::vardef_extn::stream_tocfgstr( std::ostream& os,
 {
   Extn::stream_to_cfgstr( os, data );
 }
+
+void NC::Cfg::vardef_extn::asJSONObject( std::ostream& os, const VarBuf& buf )
+{
+  Extn::stream_to_json( os, get_val(buf) );
+}

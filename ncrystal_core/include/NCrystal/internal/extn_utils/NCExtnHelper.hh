@@ -79,9 +79,10 @@ namespace NCRYSTAL_NAMESPACE {
         for ( auto& plane : m_planes ) {
           if ( plane.dsp < wlhalf )
             break;
-          contrib.add( plane.fdm * TModel::extinctionFactor( m_modelData,
-                                                             neutronData,
-                                                             plane ) );
+          const double E = TModel::extinctionFactor( m_modelData,
+                                                     neutronData,
+                                                     plane );
+          contrib.add( plane.fdm * ncclamp( E, 0.0, 1.0 ) );
         }
         return CrossSect{ contrib.sum() * m_xsectfact / ekin.get() };
       }
@@ -103,9 +104,10 @@ namespace NCRYSTAL_NAMESPACE {
         for ( auto& plane : m_planes ) {
           if ( plane.dsp < wlhalf )
             break;
-          contrib.add( plane.fdm * TModel::extinctionFactor( m_modelData,
-                                                             neutronData,
-                                                             plane ) );
+          const double E = TModel::extinctionFactor( m_modelData,
+                                                     neutronData,
+                                                     plane );
+          contrib.add( plane.fdm * ncclamp( E, 0.0, 1.0 ) );
           tmp.push_back( contrib.sum() );
         }
         std::swap( out, tmp );

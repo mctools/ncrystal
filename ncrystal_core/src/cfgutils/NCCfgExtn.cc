@@ -423,3 +423,89 @@ NC::Cfg::ExtnCfg NCCE::createExtnCfgFromVarBuf( VarBuf&& vb )
   }
   return res;
 }
+
+void NCCE::stream_to_json( std::ostream& os, const CfgKeyValMap& data )
+{
+  std::string cfgstr_val;
+  {
+    std::ostringstream tmp;
+    stream_to_cfgstr( tmp, data);
+    cfgstr_val = std::move(tmp).str();
+  }
+  auto oo_base = ExtnCfg_Base::decode( data );
+
+  streamJSONDictEntry( os, "encoded", cfgstr_val, JSONDictPos::FIRST);
+  os << ',';
+  streamJSON( os, "decoded" );
+  os << ':';
+  {
+    streamJSONDictEntry( os, "domainSize",
+                         oo_base.domainSize.get() / Length::angstrom,
+                         JSONDictPos::FIRST );
+    os << ',';
+    streamJSON( os, "grain" );
+    os << ':';
+    auto& grain = oo_base.grain;
+    if ( !grain.has_value() ) {
+      streamJSON( os, json_null_t{} );
+    } else {
+      streamJSONDictEntry( os, "grainSize",
+                           grain.value().grainSize.get() / Length::angstrom,
+                           JSONDictPos::FIRST );
+      streamJSONDictEntry( os, "angularSpread",
+                           grain.value().angularSpread,
+                           JSONDictPos::LAST );
+    }
+    //Length domainSize;
+    os << ',';
+    streamJSON( os, "model" );
+    os << ':';
+    if ( oo_base.model == Model::Sabine ) {
+      auto oo_sabine = ExtnCfg_Sabine::decode( data );
+      streamJSONDictEntry( os, "name", "sabine", JSONDictPos::FIRST);
+      streamJSONDictEntry( os, "tilt",
+                           ( oo_sabine.tilt
+                             == ExtnCfg_Sabine::Tilt::Rectangular
+                             ? "rec" : "tri" ) );
+      streamJSONDictEntry( os, "correlated",
+                           ( oo_sabine.correlation
+                             == ExtnCfg_Sabine::Correlation::Correlated
+                             ? "yes" : "no" ),
+                           JSONDictPos::LAST );//fixme: json bool?
+    } else {
+      NCRYSTAL_THROW(LogicError,"JSON streaming not implemented for extn model");
+    }
+    os << '}';
+  }
+  os << '}';
+
+// streamJSONDictEntry
+//   streamJSONDictEntry( os, "basic", cfgstr_val,
+//                        JSONDictPos::LAST);
+
+//   streamJSON( os, cfgstr.str() );
+
+//         Model model;
+//         Length domainSize;
+//         struct Grain {
+//           Length grainSize;
+//           double angularSpread;//spread of domains inside a grain
+//         };
+//         Optional<Grain> grain;
+
+
+
+  //auto oo_sabine = ExtnCfg_sabine::decode( data );
+
+
+  //streamJSON( os, "foobar" );
+
+//   Extn::stream_to_cfgstr( os, data );
+// CfgKeyValMap( buf )
+//   //  Extn::stream_to_json( os, get_val(buf) );
+//   //  CfgKeyValMap( buf ).streamJSON(os);
+
+  //        static ExtnCfg_Base decode( const CfgKeyValMap& );
+
+
+}

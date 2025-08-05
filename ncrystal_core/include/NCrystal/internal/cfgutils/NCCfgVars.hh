@@ -355,6 +355,7 @@ namespace NCRYSTAL_NAMESPACE {
       static constexpr NullOptType default_value() { return NullOpt; }
       static void stream_tocfgstr( std::ostream&, const CfgKeyValMap& );
       static VarBuf from_str( VarId, StrView );
+      static void asJSONObject( std::ostream&, const VarBuf& );
     };
 
     class FactNameRequest {

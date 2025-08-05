@@ -1,0 +1,48 @@
+NCMAT v7
+#
+# F2Ni (tetragonal, SG-136)
+#
+# Atoms per unit cell: 4xF+2xNi
+#
+# Structure converted (with NCrystal.cifutils module) from:
+#
+#   "Second edition. Interscience Publishers, New York, New York
+#    Rutile structure"
+#   Wyckoff, R. W. G. [Crystal Structures, 1963]
+#   Crystallography Open Database entry 9009077
+#   https://www.crystallography.net/cod/9009077.html
+#
+# IMPORTANT NOTICE: This is a mostly automatic conversion which has not been
+#                   verified!  In particular the @DYNINFO sections might need
+#                   post-editing. Before distributing this file to other people,
+#                   please review this, amend the comments here to document,
+#                   anything done, and remove this notice.
+#
+# WARNING: Fallback (dummy) Debye temperature values were used for 2 atoms!
+#
+# NOTICE: crystal structure was verified with spglib to be self-consistent.
+#
+@CELL
+  lengths 4.6506 !! 3.0836
+  angles 90 90 90
+@SPACEGROUP
+  136
+@ATOMPOSITIONS
+  F .198 .802 1/2
+  F .302 .302 0
+  F .698 .698 0
+  F .802 .198 1/2
+  Ni 0 0 0
+  Ni 1/2 1/2 1/2
+@DYNINFO
+  # WARNING: Using fallback Debye temperature value!
+  element F
+  fraction 2/3
+  type vdosdebye
+  debye_temp 300
+@DYNINFO
+  # WARNING: Using fallback Debye temperature value!
+  element Ni
+  fraction 1/3
+  type vdosdebye
+  debye_temp 300

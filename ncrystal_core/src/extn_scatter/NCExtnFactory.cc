@@ -51,11 +51,30 @@ NC::ProcImpl::ProcPtr NCE::createIsotropicExtnProc( PowderBraggInput::Data&& dat
     // if ( mdl_sabine.tilt != ExtnCfg_Sabine::Tilt::Rectangular )
     //   NCRYSTAL_THROW(BadInput,"Sabine extinction model only implemented"
     //                  " for rectangular tilt model currently");
-    if ( mdl_base.grain.has_value() )
-      NCRYSTAL_THROW(BadInput,"Sabine extinction model does not"
-                     " yet implement secondary extinction");
+    if ( !mdl_base.grain.has_value() )
+      return ExtnScatter<SabineMdlPurePrimary>::createSO( std::move(data),
+                                                          mdl_base.domainSize );
 
-    return ExtnScatter<SabineMdlPurePrimary>::createSO( std::move(data),
-                                                        mdl_base.domainSize );
+    auto& grain = mdl_base.grain.value();
+    if (mdl_sabine.correlation == ExtnCfg_Sabine::Correlation::Correlated ) {
+      return ExtnScatter<SabineMdlCorrelatedScnd>::createSO( std::move(data),
+                                                             mdl_base.domainSize,
+                                                             grain.grainSize,
+                                                             MosaicityFWHM { grain.angularSpread } //fixme cast
+                                                             );
+    }
+    if (mdl_sabine.tilt == ExtnCfg_Sabine::Tilt::Rectangular ) {
+      return ExtnScatter<SabineMdlUncorrelatedScnd_Rec>::createSO( std::move(data),
+                                                                   mdl_base.domainSize,
+                                                                   grain.grainSize,
+                                                                   MosaicityFWHM { grain.angularSpread } //fixme cast
+                                                                   );
+    } else {
+      return ExtnScatter<SabineMdlUncorrelatedScnd_Tri>::createSO( std::move(data),
+                                                                   mdl_base.domainSize,
+                                                                   grain.grainSize,
+                                                                   MosaicityFWHM { grain.angularSpread } //fixme cast
+                                                                   );
+    }
   }
 }

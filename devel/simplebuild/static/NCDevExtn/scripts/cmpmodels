@@ -24,26 +24,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import NCrystalDev as NC
 
-try:
-    import NCrystal as NCenv
-    if not any(name=='CrysExtn' for name,_,_ in NCenv.browsePlugins()):
-        NCenv = None
-except ImportError:
-    NCenv = None
-if not NCenv:
-    raise SystemExit('This script needs the CrysExtn plugin'
-                     ' available in the environent')
-
-def create_data( ncmatkey, plugin_lines = None ):
-    key = ncmatkey if ncmatkey.startswith('stdlib::') else f'stdlib::{ncmatkey}'
-    #Always taking base material from NCrystalDev for consistency:
-    td = str(NC.createTextData(key).rawData)
-    if plugin_lines:
-        td += '@CUSTOM_CRYSEXTN\n'
-        for pl in plugin_lines:
-            td += f'{pl}\n'
-    return td
-
 def load( ncmod, ncmatdata, cfg_params ):
     return ncmod.directLoad(ncmatdata,
                             dtype='ncmat',
@@ -91,41 +71,6 @@ def test( ncmatkey, *, dcutoff, extncfg ):
     plt.grid()
     plt.show()
 
-def extncfg_2_plugincfg( extncfg ):
-    #Use dummy material just for looking at the cfg string:
-    p = NC.decodeCfg(f'stdlib::Al_sg225.ncmat;extn={extncfg}').get("pars",[])
-    p = [v for k,v in p if k=='extn']
-    assert len(p)==1
-    p = p[0]
-    d = p['decoded']
-    #print(p['decoded'].keys())
-
-    par_l = d['domainSize']
-    mdl = d['model']
-    assert mdl['name']=='sabine'#fixme support more.
-    if not d['grain']:
-        return f'Sabine_uncorr {par_l} 0.0 0.0 rect'
-    print(d)
-    par_L = d['grain']['grainSize']
-    kTwoSqrtPi = 3.5449077018110318
-    kFWHM2Sigma  = 0.42466090014400952136075141705144480985757# 1/sqrt(8ln(2))
-
-    stddev = d['grain']['angularSpread'] * kFWHM2Sigma
-    assert d['model']['correlated'] in ('yes','no')
-    if d['model']['correlated'] == 'yes':
-        par_g = 1.0 / ( kTwoSqrtPi * stddev )
-        return f'Sabine_corr {par_l}  {par_g}  {par_L}'
-    if d['model']['tilt'] == 'rec':
-        k = 0.2886751345948129 #1/sqrt(12)
-        par_G = k / stddev
-        mdl_name = 'rect'
-    else:
-        assert d['model']['tilt'] == 'tri'
-        k = 0.4082482904638631 #1/sqrt(6)
-        par_G = k / stddev
-        mdl_name = 'tri'
-    return f'Sabine_uncorr {par_l}  {par_G}  {par_L} {mdl_name}'
-
 
 def main():
     cfg = '10mu'
@@ -148,3 +93,10 @@ def main():
 
 if __name__=='__main__':
     main()
+
+
+g = 1/(2*sigma*sqrt(pi))
+FWHM = sqrt(8ln(2))*sigma
+
+g^-1 = 2*sqrt(pi)/sqrt(8ln2())*FWHM = sqrt( pi / (2ln2) )*FWHM
+g = sqrt( (2ln2) / pi ) / FWHM
