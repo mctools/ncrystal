@@ -38,10 +38,12 @@ void test_extncfg( const char * cfgstrval )
 
   auto extncfg_base = NCCE::ExtnCfg_Base::decode( cfgdata );
   std::cout <<"  Base: \""<<extncfg_base<<"\""<<std::endl;
-  nc_assert_always( extncfg_base.model == NCCE::Model::Sabine );
   if ( extncfg_base.model == NCCE::Model::Sabine ) {
     auto extncfg_sabine = NCCE::ExtnCfg_Sabine::decode( cfgdata );
     std::cout <<"  Sabine: \""<<extncfg_sabine<<"\""<<std::endl;
+  } else if ( extncfg_base.model == NCCE::Model::BC ) {
+    auto extncfg_bc = NCCE::ExtnCfg_BC::decode( cfgdata );
+    std::cout <<"  BC: \""<<extncfg_bc<<"\""<<std::endl;
   } else {
     nc_assert_always(false);//new model, need to add tests.
   }
@@ -59,6 +61,11 @@ int main() {
   test_extncfg("   0.01   mm  /   1  mm   / 2.0   deg  ");
   test_extncfg("   0.01   mm  /   1  mm   / .123456789123456789123456789   deg  ");
   test_extncfg("   0.01   mm  /   1  mm   / .123456789123456789123456789   rad  ");
+
+  test_extncfg("10mu/mdl:bc");
+  test_extncfg("10mu/mdl:bc/yp:cls");
+  test_extncfg("10mu/mdl:bc/yp:ucls");
+  test_extncfg("10mu/mdl:bc/yp:lux");
 
   //fixme: many more tests!
 

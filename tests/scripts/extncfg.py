@@ -77,6 +77,21 @@ def main():
     t("2.0/mdl:sabine/tilt:tri","2.0/mdl:sabine/tilt:tri")
     t("2.00000000000000000000000  /   mdl:sabine  / tilt:tri ","2/mdl:sabine/tilt:tri")
 
+    t("3.0mu/mdl:bc","3.0mu/mdl:bc")
+    t("3.0Aa/mdl:bc","3.0/mdl:bc")
+    t("3.0Aa/mdl:bc/yp:cls","3.0/mdl:bc/yp:cls")
+    t("3.0Aa/mdl:bc/yp:ucls","3.0/mdl:bc/yp:ucls")
+    t("3.0Aa/mdl:bc/yp:lux","3.0/mdl:bc")#the default
+
+    with ensure_error( NCBadInput,
+                       'Syntax error in extinction cfg "2.0/mdl:bc/yp:bla": '
+                       'Value of "yp" must be "lux", "cls", or "ucls".' ):
+        t("2.0/mdl:bc/yp:bla",None)
+
+    with ensure_error( NCBadInput,
+                       'Syntax error in extinction cfg "2.0/mdl:bc/foo:bar": '
+                       'Model "bc" does not support a "foo" parameter.' ):
+        t("2.0/mdl:bc/foo:bar",None)
 
 if __name__ == '__main__':
     main()

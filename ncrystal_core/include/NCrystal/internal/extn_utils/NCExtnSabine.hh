@@ -417,8 +417,110 @@ namespace NCRYSTAL_NAMESPACE {
     using SabineMdlUncorrelatedScnd_Rec = SabineMdlUncorrelatedScnd<true>;
     using SabineMdlUncorrelatedScnd_Tri = SabineMdlUncorrelatedScnd<false>;
 
+    //fixme: adding non-Sabine models here for now, needs cleanup or file
+    //renaming later.
 
+    enum class BC_YpParameterisation { Classic1974, ClassicUpdated2025, Lux2025 };
+    template<BC_YpParameterisation TModel = BC_YpParameterisation::Lux2025>
+    struct BCMdlPurePrimary final {
 
+      struct ModelData {
+        double k1;//unit is [ 1/(barn * Aa^2) ]
+      };
+
+      static ModelData initModelData( const PowderBraggInput::CellData& cell,
+                                      Length blockSize )
+      {
+        ModelData res;
+        double blksz_Aa = blockSize.get() / Length::angstrom;
+        //To get k1 in units of 1/(barn*Aa^2) we must multiply with
+        //barn/Aa^2 = 1e-8:
+        res.k1 = ( 2.0 / 3.0 ) * ncsquare( blksz_Aa / cell.volume ) * 1e-8;
+        return res;
+      }
+
+      struct NeutronData {
+        double wlsq;  // [Aa^2]
+        double factor_fsq2x; // [fixme]
+      };
+
+      static NeutronData initNeutronData( const ModelData& md,
+                                          NeutronEnergy ekin )
+      {
+        NeutronData res;
+        res.wlsq = ekin2wlsq( ekin.get() );
+        res.factor_fsq2x = res.wlsq * md.k1;
+        return res;
+      }
+
+      struct PlaneData {
+        //Fields required by all models:
+        double dsp;
+        double fdm;
+        //Other fields, as needed by this particular model:
+        double fsq;//structure factor squared [barn]
+        double inv2dsp_squared; // = (2*dspacing)^(-2)
+      };
+
+      static PlaneData initPlaneData( const PowderBraggInput::Plane& p )
+      {
+        PlaneData res;
+        res.dsp = p.dsp;
+        res.fdm = p.fsq * p.dsp * p.mult;
+        res.fsq = p.fsq;
+        res.inv2dsp_squared = ncsquare( 1.0 / ( 2.0 * p.dsp ) );
+        return res;
+      }
+
+      static double extinctionFactor( const ModelData& /*used through neutron data*/,
+                                      const NeutronData& n,
+                                      const PlaneData& p )
+      {
+        const double bc_x = n.factor_fsq2x * p.fsq;
+        const double sinth_sq = n.wlsq * p.inv2dsp_squared;
+
+        constexpr bool is_classic = (TModel == BC_YpParameterisation::Classic1974);
+        constexpr bool is_updatedclassic = (TModel == BC_YpParameterisation::ClassicUpdated2025);
+        constexpr bool is_lux2025 = (TModel == BC_YpParameterisation::Lux2025);
+        constexpr bool is_any_classic = ( is_classic || is_updatedclassic );
+
+        if ( is_any_classic ) {
+          const double cos2th = 1.0 - 2.0 * sinth_sq;
+          double A, B;
+          if ( is_classic ) {
+            A = 0.20 + 0.45 * cos2th;
+            B = 0.22 - 0.12 * ncsquare(0.5 - cos2th);
+          } else {
+            nc_assert(is_updatedclassic);
+            A = 0.559 + 0.537 * cos2th;
+            B = 0.604 - 0.222 * ncsquare(0.5 - cos2th);
+          }
+          double t = 1. + B * bc_x;
+          if ( std::fabs( t ) < 1e-20 )
+            t = ( t > 0 ? 1e-20 : -1e-20 );
+          const double u = 1. + 2. * bc_x + ncsquare( bc_x ) * A / t;
+          return 1. / std::sqrt(std::max<double>(1.0,u));//fixme: clamp u to
+                                                         //[1,..] to avoid
+                                                         //extinction factors
+                                                         //larger than 1 (and to
+                                                         //avoid FPEs in this
+                                                         //line).
+        } else {
+          //fixme: to utils header?:
+          nc_assert(is_lux2025);
+          const double inv1px = 1.0 / ( 1.0 + bc_x );
+          const double s = std::sqrt(sinth_sq);
+          const double A = 0.8968+s*(-0.2928+s*(2.528+s*(-11.21+s*(21.07+s*(-20.17+7.32*s)))));
+          const double B = 0.4697+s*(-0.1688+s*(5.37+s*(-20.68+s*(40.52+s*(-38.09+12.89*s)))));
+          const double C = -0.7486+s*(-0.5671+s*(-1.248+s*(17.56+s*(-47.8+s*(59.14-26.61*s)))));
+          const double t = 1. + bc_x * ( B + C * inv1px );
+          nc_assert_always( t > 0.0 );//fixme _always
+          const double u = 1. + 2. * bc_x + ( ncsquare( bc_x ) * A - 0.1 * bc_x ) / t;
+          nc_assert_always(u>=0.0);//fixme _always
+          return 1. / std::sqrt(u);
+        }
+      }
+    };
 
   }
 }

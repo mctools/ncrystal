@@ -34,3 +34,23 @@ TESTING "extn=   0.01   mm  /   1  mm   / .123456789123456789123456789   rad  "
   Normalised: "0.01mm/1mm/0.12345678912345678"
   Base: "ExtnCfg_Base(1e-05m/0.001m/0.123457/mdl:sabine)"
   Sabine: "ExtnCfg_Sabine(tilt:rec/corr:1)"
+
+TESTING "extn=10mu/mdl:bc"
+  Normalised: "10mu/mdl:bc"
+  Base: "ExtnCfg_Base(1e-05m/mdl:bc)"
+  BC: "ExtnCfg_BC(yp:lux)"
+
+TESTING "extn=10mu/mdl:bc/yp:cls"
+  Normalised: "10mu/mdl:bc/yp:cls"
+  Base: "ExtnCfg_Base(1e-05m/mdl:bc)"
+  BC: "ExtnCfg_BC(yp:cls)"
+
+TESTING "extn=10mu/mdl:bc/yp:ucls"
+  Normalised: "10mu/mdl:bc/yp:ucls"
+  Base: "ExtnCfg_Base(1e-05m/mdl:bc)"
+  BC: "ExtnCfg_BC(yp:ucls)"
+
+TESTING "extn=10mu/mdl:bc/yp:lux"
+  Normalised: "10mu/mdl:bc"
+  Base: "ExtnCfg_Base(1e-05m/mdl:bc)"
+  BC: "ExtnCfg_BC(yp:lux)"

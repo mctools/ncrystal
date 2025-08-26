@@ -38,16 +38,12 @@ NC::ProcImpl::ProcPtr NCE::createIsotropicExtnProc( PowderBraggInput::Data&& dat
   using Cfg::Extn::Model;
   using Cfg::Extn::ExtnCfg_Base;
   using Cfg::Extn::ExtnCfg_Sabine;
+  using Cfg::Extn::ExtnCfg_BC;
 
   auto mdl_base = ExtnCfg_Base::decode(ecfg_kvmap);
-  //if ( oocfg_base.model == Model::BlaBla ) {
-  //  ...
-  // } else
-  {
-    if ( mdl_base.model != Model::Sabine )
-      NCRYSTAL_THROW(BadInput,"Unsupported extinction model encountered");
+  if ( mdl_base.model == Model::Sabine ) {
+
     auto mdl_sabine = ExtnCfg_Sabine::decode(ecfg_kvmap);
-    (void)mdl_sabine;//fixme
     // if ( mdl_sabine.tilt != ExtnCfg_Sabine::Tilt::Rectangular )
     //   NCRYSTAL_THROW(BadInput,"Sabine extinction model only implemented"
     //                  " for rectangular tilt model currently");
@@ -76,5 +72,20 @@ NC::ProcImpl::ProcPtr NCE::createIsotropicExtnProc( PowderBraggInput::Data&& dat
                                                                    MosaicityFWHM { grain.angularSpread } //fixme cast
                                                                    );
     }
+  } else if ( mdl_base.model == Model::BC ) {
+    auto mdl_bc = ExtnCfg_BC::decode(ecfg_kvmap);
+    if ( mdl_base.grain.has_value() )
+      NCRYSTAL_THROW(BadInput,"BC model for now only supports pure primary extinction");//fixme
+    using BC_cls = BCMdlPurePrimary<BC_YpParameterisation::Classic1974>;
+    using BC_ucls = BCMdlPurePrimary<BC_YpParameterisation::ClassicUpdated2025>;
+    using BC_lux = BCMdlPurePrimary<BC_YpParameterisation::Lux2025>;
+    if ( mdl_bc.ypform == ExtnCfg_BC::YpForm::Lux2025 )
+      return ExtnScatter<BC_lux>::createSO( std::move(data), mdl_base.domainSize );
+    if ( mdl_bc.ypform == ExtnCfg_BC::YpForm::ClassicUpdated2025 )
+      return ExtnScatter<BC_ucls>::createSO( std::move(data), mdl_base.domainSize );
+    nc_assert_always( mdl_bc.ypform == ExtnCfg_BC::YpForm::Classic1974 );
+    return ExtnScatter<BC_cls>::createSO( std::move(data), mdl_base.domainSize );
+  } else {
+    NCRYSTAL_THROW(BadInput,"Unsupported extinction model encountered");
   }
 }

@@ -1,27 +1,42 @@
 
 ---> Testing 2.0:
 extn decoded json:
-{'domain_size': '2.0'}
+{'decoded': {'domainSize': 2.0,
+             'grain': None,
+             'model': {'correlated': 'yes', 'name': 'sabine', 'tilt': 'rec'}},
+ 'encoded': '2.0'}
 Normalisation of extn="2.0" gave "2.0"
 
 ---> Testing 2:
 extn decoded json:
-{'domain_size': '2'}
+{'decoded': {'domainSize': 2.0,
+             'grain': None,
+             'model': {'correlated': 'yes', 'name': 'sabine', 'tilt': 'rec'}},
+ 'encoded': '2'}
 Normalisation of extn="2" gave "2"
 
 ---> Testing 0.1:
 extn decoded json:
-{'domain_size': '0.1'}
+{'decoded': {'domainSize': 0.1,
+             'grain': None,
+             'model': {'correlated': 'yes', 'name': 'sabine', 'tilt': 'rec'}},
+ 'encoded': '0.1'}
 Normalisation of extn="0.1" gave "0.1"
 
 ---> Testing 0.1Aa:
 extn decoded json:
-{'domain_size': '0.1'}
+{'decoded': {'domainSize': 0.1,
+             'grain': None,
+             'model': {'correlated': 'yes', 'name': 'sabine', 'tilt': 'rec'}},
+ 'encoded': '0.1'}
 Normalisation of extn="0.1Aa" gave "0.1"
 
 ---> Testing 0.1 m:
 extn decoded json:
-{'domain_size': '0.1m'}
+{'decoded': {'domainSize': 1000000000.0,
+             'grain': None,
+             'model': {'correlated': 'yes', 'name': 'sabine', 'tilt': 'rec'}},
+ 'encoded': '0.1m'}
 Normalisation of extn="0.1 m" gave "0.1m"
 
 ---> Testing 0.1m2:
@@ -29,12 +44,18 @@ Caught expected NCBadInput('Invalid domain size (length) length value in cfg-str
 
 ---> Testing 1e-6m/mdl:sabine:
 extn decoded json:
-{'domain_size': '1e-6m', 'mdl': 'sabine'}
+{'decoded': {'domainSize': 10000.0,
+             'grain': None,
+             'model': {'correlated': 'yes', 'name': 'sabine', 'tilt': 'rec'}},
+ 'encoded': '1e-6m/mdl:sabine'}
 Normalisation of extn="1e-6m/mdl:sabine" gave "1e-6m/mdl:sabine"
 
 ---> Testing 1e-6m:
 extn decoded json:
-{'domain_size': '1e-6m'}
+{'decoded': {'domainSize': 10000.0,
+             'grain': None,
+             'model': {'correlated': 'yes', 'name': 'sabine', 'tilt': 'rec'}},
+ 'encoded': '1e-6m'}
 Normalisation of extn="1e-6m" gave "1e-6m"
 
 ---> Testing 2.0/mdl:default:
@@ -42,25 +63,86 @@ Caught expected NCBadInput('Syntax error in extinction cfg "2.0/mdl:default": Un
 
 ---> Testing 2.0/mdl:sabine/corr:1:
 extn decoded json:
-{'domain_size': '2.0', 'mdl': 'sabine'}
+{'decoded': {'domainSize': 2.0,
+             'grain': None,
+             'model': {'correlated': 'yes', 'name': 'sabine', 'tilt': 'rec'}},
+ 'encoded': '2.0/mdl:sabine'}
 Normalisation of extn="2.0/mdl:sabine/corr:1" gave "2.0/mdl:sabine"
 
 ---> Testing 2.0/mdl:sabine/corr:0:
 extn decoded json:
-{'corr': '0', 'domain_size': '2.0', 'mdl': 'sabine'}
+{'decoded': {'domainSize': 2.0,
+             'grain': None,
+             'model': {'correlated': 'no', 'name': 'sabine', 'tilt': 'rec'}},
+ 'encoded': '2.0/mdl:sabine/corr:0'}
 Normalisation of extn="2.0/mdl:sabine/corr:0" gave "2.0/mdl:sabine/corr:0"
 
 ---> Testing 2.0/mdl:sabine/tilt:rec:
 extn decoded json:
-{'domain_size': '2.0', 'mdl': 'sabine'}
+{'decoded': {'domainSize': 2.0,
+             'grain': None,
+             'model': {'correlated': 'yes', 'name': 'sabine', 'tilt': 'rec'}},
+ 'encoded': '2.0/mdl:sabine'}
 Normalisation of extn="2.0/mdl:sabine/tilt:rec" gave "2.0/mdl:sabine"
 
 ---> Testing 2.0/mdl:sabine/tilt:tri:
 extn decoded json:
-{'domain_size': '2.0', 'mdl': 'sabine', 'tilt': 'tri'}
+{'decoded': {'domainSize': 2.0,
+             'grain': None,
+             'model': {'correlated': 'yes', 'name': 'sabine', 'tilt': 'tri'}},
+ 'encoded': '2.0/mdl:sabine/tilt:tri'}
 Normalisation of extn="2.0/mdl:sabine/tilt:tri" gave "2.0/mdl:sabine/tilt:tri"
 
 ---> Testing 2.00000000000000000000000  /   mdl:sabine  / tilt:tri :
 extn decoded json:
-{'domain_size': '2', 'mdl': 'sabine', 'tilt': 'tri'}
+{'decoded': {'domainSize': 2.0,
+             'grain': None,
+             'model': {'correlated': 'yes', 'name': 'sabine', 'tilt': 'tri'}},
+ 'encoded': '2/mdl:sabine/tilt:tri'}
 Normalisation of extn="2.00000000000000000000000  /   mdl:sabine  / tilt:tri " gave "2/mdl:sabine/tilt:tri"
+
+---> Testing 3.0mu/mdl:bc:
+extn decoded json:
+{'decoded': {'domainSize': 30000.0,
+             'grain': None,
+             'model': {'name': 'bc', 'yp': 'lux'}},
+ 'encoded': '3.0mu/mdl:bc'}
+Normalisation of extn="3.0mu/mdl:bc" gave "3.0mu/mdl:bc"
+
+---> Testing 3.0Aa/mdl:bc:
+extn decoded json:
+{'decoded': {'domainSize': 3.0,
+             'grain': None,
+             'model': {'name': 'bc', 'yp': 'lux'}},
+ 'encoded': '3.0/mdl:bc'}
+Normalisation of extn="3.0Aa/mdl:bc" gave "3.0/mdl:bc"
+
+---> Testing 3.0Aa/mdl:bc/yp:cls:
+extn decoded json:
+{'decoded': {'domainSize': 3.0,
+             'grain': None,
+             'model': {'name': 'bc', 'yp': 'cls'}},
+ 'encoded': '3.0/mdl:bc/yp:cls'}
+Normalisation of extn="3.0Aa/mdl:bc/yp:cls" gave "3.0/mdl:bc/yp:cls"
+
+---> Testing 3.0Aa/mdl:bc/yp:ucls:
+extn decoded json:
+{'decoded': {'domainSize': 3.0,
+             'grain': None,
+             'model': {'name': 'bc', 'yp': 'ucls'}},
+ 'encoded': '3.0/mdl:bc/yp:ucls'}
+Normalisation of extn="3.0Aa/mdl:bc/yp:ucls" gave "3.0/mdl:bc/yp:ucls"
+
+---> Testing 3.0Aa/mdl:bc/yp:lux:
+extn decoded json:
+{'decoded': {'domainSize': 3.0,
+             'grain': None,
+             'model': {'name': 'bc', 'yp': 'lux'}},
+ 'encoded': '3.0/mdl:bc'}
+Normalisation of extn="3.0Aa/mdl:bc/yp:lux" gave "3.0/mdl:bc"
+
+---> Testing 2.0/mdl:bc/yp:bla:
+Caught expected NCBadInput('Syntax error in extinction cfg "2.0/mdl:bc/yp:bla": Value of "yp" must be "lux", "cls", or "ucls".')
+
+---> Testing 2.0/mdl:bc/foo:bar:
+Caught expected NCBadInput('Syntax error in extinction cfg "2.0/mdl:bc/foo:bar": Model "bc" does not support a "foo" parameter.')
