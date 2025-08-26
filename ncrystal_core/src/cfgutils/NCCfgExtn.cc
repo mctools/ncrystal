@@ -120,6 +120,19 @@ namespace NCRYSTAL_NAMESPACE {
         {
           return parseValImpl<TParser>(sv,context).first;
         }
+
+
+
+        const char * ypform2cstr(const ExtnCfg_BC::YpForm& yp )
+        {
+          if ( yp == ExtnCfg_BC::YpForm::Lux2025 )
+            return "lux";
+          if ( yp == ExtnCfg_BC::YpForm::ClassicUpdated2025 )
+            return "ucls";
+          nc_assert_always( yp == ExtnCfg_BC::YpForm::Classic1974 );
+          return "cls";
+        }
+
       }
     }
   }
@@ -265,6 +278,24 @@ NC::Cfg::CfgKeyValMap NCCE::decode_cfgstr( VarId varid, StrView sv )
     if ( val_corr.has_value() && val_corr != "1" )
       res.emplace_back("corr",val_corr);
 
+  } else if ( model == "bc" ) {
+    StrView val_yp;
+    for ( auto& kv : parts_keyval_nomodel ) {
+      if ( kv.first == "yp" ) {
+        if ( kv.second != "lux" && kv.second != "cls" && kv.second != "ucls")
+          NCRYSTAL_THROW2( BadInput,
+                           "Syntax error in extinction cfg \""<<sv<<"\": Value"
+                           " of \"yp\" must be \"lux\", \"cls\", or \"ucls\"." );
+        val_yp = kv.second;
+      } else {
+        NCRYSTAL_THROW2( BadInput,
+                         "Syntax error in extinction cfg \""<<sv<<"\": "
+                         "Model \""<<model<<"\" does not support a \""
+                         <<kv.first<<"\" parameter." );
+      }
+    }
+    if ( val_yp.has_value() && val_yp != "lux" )
+      res.emplace_back("yp",val_yp);
   } else if ( model.has_value() ) {
     NCRYSTAL_THROW2(BadInput,
                     "Syntax error in extinction cfg \""<<sv
@@ -332,6 +363,8 @@ NCCE::ExtnCfg_Base NCCE::ExtnCfg_Base::decode( const CfgKeyValMap& data )
   auto mdl = data.getValue( key_model, NullOpt );
   if ( !mdl.has_value() || mdl == "sabine" ) {
     res.model = Model::Sabine;
+  } else if ( mdl == "bc" ) {
+    res.model = Model::BC;
   } else {
     nc_assert_always( !mdl.has_value() );//unknown model
   }
@@ -349,6 +382,23 @@ NCCE::ExtnCfg_Sabine NCCE::ExtnCfg_Sabine::decode( const CfgKeyValMap& data )
   return res;
 }
 
+
+NCCE::ExtnCfg_BC NCCE::ExtnCfg_BC::decode( const CfgKeyValMap& data )
+{
+  verify_model_name( data, "bc" );
+  ExtnCfg_BC res;
+  auto ypstr = data.getValue( "yp", "lux" );
+  if ( ypstr == "lux" ) {
+    res.ypform = YpForm::Lux2025;
+  } else if ( ypstr == "cls" ) {
+    res.ypform = YpForm::Classic1974;
+  } else {
+    nc_assert_always( ypstr == "ucls" );
+    res.ypform = YpForm::ClassicUpdated2025;
+  }
+  return res;
+}
+
 std::ostream& NCCE::operator<<(std::ostream& os, const ExtnCfg_Base& cfg )
 {
   os << "ExtnCfg_Base(";
@@ -357,8 +407,13 @@ std::ostream& NCCE::operator<<(std::ostream& os, const ExtnCfg_Base& cfg )
     os << '/' << cfg.grain.value().grainSize
        << '/' << cfg.grain.value().angularSpread;
   }
-  nc_assert_always( cfg.model == Model::Sabine );
-  os << "/mdl:sabine)";
+  if ( cfg.model == Model::Sabine ) {
+    os << "/mdl:sabine)";
+  } else if ( cfg.model == Model::BC ) {
+    os << "/mdl:bc)";
+  } else {
+    nc_assert_always(false);
+  }
   return os;
 }
 
@@ -372,6 +427,14 @@ std::ostream& NCCE::operator<<(std::ostream& os, const ExtnCfg_Sabine& cfg )
      << ( cfg.correlation
           == ExtnCfg_Sabine::Correlation::Correlated ? '1' : '0' )
      << ')';
+  return os;
+}
+
+
+
+std::ostream& NCCE::operator<<(std::ostream& os, const ExtnCfg_BC& cfg )
+{
+  os << "ExtnCfg_BC(yp:" << ypform2cstr( cfg.ypform ) << ')';
   return os;
 }
 
@@ -472,40 +535,17 @@ void NCCE::stream_to_json( std::ostream& os, const CfgKeyValMap& data )
                              == ExtnCfg_Sabine::Correlation::Correlated
                              ? "yes" : "no" ),
                            JSONDictPos::LAST );//fixme: json bool?
+
+
+    } else if ( oo_base.model == Model::BC ) {
+      auto oo_bc = ExtnCfg_BC::decode( data );
+      streamJSONDictEntry( os, "name", "bc", JSONDictPos::FIRST);
+      streamJSONDictEntry( os, "yp", ypform2cstr( oo_bc.ypform ),
+                           JSONDictPos::LAST );
     } else {
       NCRYSTAL_THROW(LogicError,"JSON streaming not implemented for extn model");
     }
     os << '}';
   }
   os << '}';
-
-// streamJSONDictEntry
-//   streamJSONDictEntry( os, "basic", cfgstr_val,
-//                        JSONDictPos::LAST);
-
-//   streamJSON( os, cfgstr.str() );
-
-//         Model model;
-//         Length domainSize;
-//         struct Grain {
-//           Length grainSize;
-//           double angularSpread;//spread of domains inside a grain
-//         };
-//         Optional<Grain> grain;
-
-
-
-  //auto oo_sabine = ExtnCfg_sabine::decode( data );
-
-
-  //streamJSON( os, "foobar" );
-
-//   Extn::stream_to_cfgstr( os, data );
-// CfgKeyValMap( buf )
-//   //  Extn::stream_to_json( os, get_val(buf) );
-//   //  CfgKeyValMap( buf ).streamJSON(os);
-
-  //        static ExtnCfg_Base decode( const CfgKeyValMap& );
-
-
 }

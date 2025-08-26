@@ -48,7 +48,7 @@ namespace NCRYSTAL_NAMESPACE {
       ////////////////////////////////////////////////
       // General parameters for any model:
 
-      enum class Model { Sabine };
+      enum class Model { Sabine, BC };
 
       struct ExtnCfg_Base {
         Model model;
@@ -78,6 +78,13 @@ namespace NCRYSTAL_NAMESPACE {
         static ExtnCfg_Sabine decode( const CfgKeyValMap& );
       };
 
+      struct ExtnCfg_BC {
+        enum class YpForm { Lux2025 = 0,
+                            ClassicUpdated2025 = 1,
+                            Classic1974 = 2 };
+        YpForm ypform = YpForm::Lux2025;
+        static ExtnCfg_BC decode( const CfgKeyValMap& );
+      };
 
       ////////////////////////////////////////////////
       // For maximum flexiblity, JSON encoding provided both detailed
@@ -90,6 +97,7 @@ namespace NCRYSTAL_NAMESPACE {
       // Stream adapters:
       std::ostream& operator<<(std::ostream&, const ExtnCfg_Base& );
       std::ostream& operator<<(std::ostream&, const ExtnCfg_Sabine& );
+      std::ostream& operator<<(std::ostream&, const ExtnCfg_BC& );
 
     }
 
