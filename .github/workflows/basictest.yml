@@ -55,7 +55,7 @@ jobs:
       run: echo "INSTALL_ENDF_PARSERPY_CPP=no" >> $GITHUB_ENV
 
     - name: Setup python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python }}
 

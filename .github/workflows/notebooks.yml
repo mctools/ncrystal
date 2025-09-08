@@ -40,7 +40,7 @@ jobs:
         path: src_ncrystal
 
     - name: Setup python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python }}
         #allow-prereleases: true #Needed (Aug 2024) for Python 3.13, might need
