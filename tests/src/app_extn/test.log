@@ -45,10 +45,10 @@ TESTING "extn=10mu/mdl:bc/yp:cls"
   Base: "ExtnCfg_Base(1e-05m/mdl:bc)"
   BC: "ExtnCfg_BC(yp:cls)"
 
-TESTING "extn=10mu/mdl:bc/yp:ucls"
-  Normalised: "10mu/mdl:bc/yp:ucls"
+TESTING "extn=10mu/mdl:bc/yp:std"
+  Normalised: "10mu/mdl:bc/yp:std"
   Base: "ExtnCfg_Base(1e-05m/mdl:bc)"
-  BC: "ExtnCfg_BC(yp:ucls)"
+  BC: "ExtnCfg_BC(yp:std)"
 
 TESTING "extn=10mu/mdl:bc/yp:lux"
   Normalised: "10mu/mdl:bc"

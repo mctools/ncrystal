@@ -64,7 +64,7 @@ int main() {
 
   test_extncfg("10mu/mdl:bc");
   test_extncfg("10mu/mdl:bc/yp:cls");
-  test_extncfg("10mu/mdl:bc/yp:ucls");
+  test_extncfg("10mu/mdl:bc/yp:std");
   test_extncfg("10mu/mdl:bc/yp:lux");
 
   //fixme: many more tests!

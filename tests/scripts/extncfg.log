@@ -125,13 +125,13 @@ extn decoded json:
  'encoded': '3.0/mdl:bc/yp:cls'}
 Normalisation of extn="3.0Aa/mdl:bc/yp:cls" gave "3.0/mdl:bc/yp:cls"
 
----> Testing 3.0Aa/mdl:bc/yp:ucls:
+---> Testing 3.0Aa/mdl:bc/yp:std:
 extn decoded json:
 {'decoded': {'domainSize': 3.0,
              'grain': None,
-             'model': {'name': 'bc', 'yp': 'ucls'}},
- 'encoded': '3.0/mdl:bc/yp:ucls'}
-Normalisation of extn="3.0Aa/mdl:bc/yp:ucls" gave "3.0/mdl:bc/yp:ucls"
+             'model': {'name': 'bc', 'yp': 'std'}},
+ 'encoded': '3.0/mdl:bc/yp:std'}
+Normalisation of extn="3.0Aa/mdl:bc/yp:std" gave "3.0/mdl:bc/yp:std"
 
 ---> Testing 3.0Aa/mdl:bc/yp:lux:
 extn decoded json:
@@ -142,7 +142,7 @@ extn decoded json:
 Normalisation of extn="3.0Aa/mdl:bc/yp:lux" gave "3.0/mdl:bc"
 
 ---> Testing 2.0/mdl:bc/yp:bla:
-Caught expected NCBadInput('Syntax error in extinction cfg "2.0/mdl:bc/yp:bla": Value of "yp" must be "lux", "cls", or "ucls".')
+Caught expected NCBadInput('Syntax error in extinction cfg "2.0/mdl:bc/yp:bla": Value of "yp" must be "std", "lux", or "cls".')
 
 ---> Testing 2.0/mdl:bc/foo:bar:
 Caught expected NCBadInput('Syntax error in extinction cfg "2.0/mdl:bc/foo:bar": Model "bc" does not support a "foo" parameter.')
