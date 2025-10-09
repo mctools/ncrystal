@@ -1,5 +1,5 @@
 #ifndef NCrystal_ExtnHelper_hh
-#define NCrystal_ExtnSabine_hh
+#define NCrystal_ExtnHelper_hh
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //

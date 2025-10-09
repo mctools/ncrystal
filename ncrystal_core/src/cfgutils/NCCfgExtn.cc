@@ -127,8 +127,8 @@ namespace NCRYSTAL_NAMESPACE {
         {
           if ( yp == ExtnCfg_BC::YpForm::Lux2025 )
             return "lux";
-          if ( yp == ExtnCfg_BC::YpForm::ClassicUpdated2025 )
-            return "ucls";
+          if ( yp == ExtnCfg_BC::YpForm::Std2025 )
+            return "std";
           nc_assert_always( yp == ExtnCfg_BC::YpForm::Classic1974 );
           return "cls";
         }
@@ -282,10 +282,10 @@ NC::Cfg::CfgKeyValMap NCCE::decode_cfgstr( VarId varid, StrView sv )
     StrView val_yp;
     for ( auto& kv : parts_keyval_nomodel ) {
       if ( kv.first == "yp" ) {
-        if ( kv.second != "lux" && kv.second != "cls" && kv.second != "ucls")
+        if ( kv.second != "std" && kv.second != "lux" && kv.second != "cls")
           NCRYSTAL_THROW2( BadInput,
                            "Syntax error in extinction cfg \""<<sv<<"\": Value"
-                           " of \"yp\" must be \"lux\", \"cls\", or \"ucls\"." );
+                           " of \"yp\" must be \"std\", \"lux\", or \"cls\"." );
         val_yp = kv.second;
       } else {
         NCRYSTAL_THROW2( BadInput,
@@ -393,8 +393,8 @@ NCCE::ExtnCfg_BC NCCE::ExtnCfg_BC::decode( const CfgKeyValMap& data )
   } else if ( ypstr == "cls" ) {
     res.ypform = YpForm::Classic1974;
   } else {
-    nc_assert_always( ypstr == "ucls" );
-    res.ypform = YpForm::ClassicUpdated2025;
+    nc_assert_always( ypstr == "std" );
+    res.ypform = YpForm::Std2025;
   }
   return res;
 }

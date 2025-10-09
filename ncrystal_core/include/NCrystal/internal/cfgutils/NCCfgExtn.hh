@@ -79,10 +79,10 @@ namespace NCRYSTAL_NAMESPACE {
       };
 
       struct ExtnCfg_BC {
-        enum class YpForm { Lux2025 = 0,
-                            ClassicUpdated2025 = 1,
+        enum class YpForm { Std2025 = 0,
+                            Lux2025 = 1,
                             Classic1974 = 2 };
-        YpForm ypform = YpForm::Lux2025;
+        YpForm ypform = YpForm::Std2025;
         static ExtnCfg_BC decode( const CfgKeyValMap& );
       };
 

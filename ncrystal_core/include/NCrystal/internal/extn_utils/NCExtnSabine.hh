@@ -1,5 +1,5 @@
-#ifndef NCrystal_ExtnSabineMdl_hh
-#define NCrystal_ExtnSabineMdl_hh
+#ifndef NCrystal_ExtnSabine_hh
+#define NCrystal_ExtnSabine_hh
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
@@ -25,6 +25,7 @@
 #include "NCrystal/internal/utils/NCExtraTypes.hh"
 #include "NCrystal/internal/utils/NCMsg.hh"//fixme
 #include "NCrystal/internal/extn_utils/NCExtnUtils.hh"
+#include "NCrystal/internal/extn_utils/NCExtnBC2025.hh"//fixme: untangle from sabine hdr
 //#include "NCrystal/internal/extn_utils/NCExtnEval.hh"
 
 namespace NCRYSTAL_NAMESPACE {
@@ -40,6 +41,17 @@ namespace NCRYSTAL_NAMESPACE {
 
   namespace Extn {
 
+    //In Sabine's 1988 comparison paper, he finds in section 10.b that to yield
+    //consistent results, his definition of x must be exactly twice of that of
+    //the Becker-Coppens x-value. Since the Becker-Coppens x-definition contains
+    //a geometric factor of 2/3 compared to the standard Sabine x definition, we
+    //modify the Sabine x value by a factor of 4/3. Since x \propto blocksize^2,
+    //this means block-sizes fitted with the Sabine model will change by a
+    //factor of sqrt(3)/2!=93%.
+    //Fixme: consider this some more. Especially how it should be used in
+    //secondary extinction models.
+    constexpr static double sabine_x_extra_factor = 4./3.;
+
     struct SabineMdlPurePrimary final {
 
       struct ModelData {
@@ -54,7 +66,7 @@ namespace NCRYSTAL_NAMESPACE {
 
         //To get k1 in units of 1/(barn*Aa^2) we must multiply with
         //barn/Aa^2 = 1e-8:
-        res.k1 = ncsquare( blksz_Aa / cell.volume ) * 1e-8;
+        res.k1 = sabine_x_extra_factor* ncsquare( blksz_Aa / cell.volume ) * 1e-8;
         return res;
       }
 
@@ -95,7 +107,9 @@ namespace NCRYSTAL_NAMESPACE {
                                       const NeutronData& n,
                                       const PlaneData& p )
       {
-        const double sabine_x = n.factor_fsq2x * p.fsq;
+        double sabine_x = n.factor_fsq2x * p.fsq;
+        sabine_x /= sabine_x_extra_factor;
+        sabine_x *= 1.0/std::sqrt(1e-14+n.wlsq * p.inv2dsp_squared);//fixme
         const double El = calcSabineEl_y0( sabine_x );
         const double Eb = calcSabineEb_y0( sabine_x );
         const double sinth_sq = n.wlsq * p.inv2dsp_squared;
@@ -147,6 +161,7 @@ namespace NCRYSTAL_NAMESPACE {
         //To get k2 in units of 1/(barn*Aa^3) we must multiply with
         //barn/angstrom^2 = 1e-8:
         NCRYSTAL_MSG("TKTEST cell.volume = "<<cell.volume);
+        //fixme: not sure if sabine_x_extra_factor should be used here????
         res.k2 = g * 1e-8 * ( grnsz_Aa - blksz_Aa ) / ncsquare(cell.volume);//fixme square????
         return res;
       }
@@ -263,7 +278,8 @@ namespace NCRYSTAL_NAMESPACE {
         };
         const double costh_sq = std::max<double>(0.0,1.0 - sinth_sq);
         const double costh = std::sqrt(costh_sq);
-        const double sabine_x = ncsquare( n.k1_mult_wl * p.f
+        //fixme: sabine_x_extra_factor for secondary models???
+        const double sabine_x = sabine_x_extra_factor * ncsquare( n.k1_mult_wl * p.f
                                           + n.k2_mult_wlsq * p.fsq * p.dsp / costh);//fixme absorp 2 on k2, and cache fsq*dsp?
 
         //wl/sin2th = wl/2*sinth*costh = wl/(2*(wl/2d)*costh) = d/costh
@@ -331,7 +347,7 @@ namespace NCRYSTAL_NAMESPACE {
         //To get k1 in units of 1/(barn*Aa^2) we must multiply with
         //barn/Aa^2 = 1e-8:
         ModelData res;
-        res.k1 = ncsquare( blksz_Aa / cell.volume ) * 1e-8;
+        res.k1 = sabine_x_extra_factor * ncsquare( blksz_Aa / cell.volume ) * 1e-8;
 
         //Secondary extinction:
         const double G = ( IS_RECTANGULAR
@@ -341,6 +357,7 @@ namespace NCRYSTAL_NAMESPACE {
         //G = 500.0;//fixme
         NCRYSTAL_MSG("TKTEST G="<<G);
 
+        //NB: Not using sabine_x_extra_factor here?!?
         //Factor of 1e-8 is to get k1 in units of 1/(barn*Aa^3):
         res.k2 = 1e-8 * G * ncsquare( 1.0 / cell.volume ) * grnsz_Aa; //FIXME: consider (grnsz_Aa-blksz_Aa) ??
         return res;
@@ -420,7 +437,7 @@ namespace NCRYSTAL_NAMESPACE {
     //fixme: adding non-Sabine models here for now, needs cleanup or file
     //renaming later.
 
-    enum class BC_YpParameterisation { Classic1974, ClassicUpdated2025, Lux2025 };
+    enum class BC_YpParameterisation { Classic1974, Std2025, Lux2025 };
     template<BC_YpParameterisation TModel = BC_YpParameterisation::Lux2025>
     struct BCMdlPurePrimary final {
 
@@ -440,7 +457,7 @@ namespace NCRYSTAL_NAMESPACE {
       }
 
       struct NeutronData {
-        double wlsq;  // [Aa^2]
+        double wl;  // [Aa]
         double factor_fsq2x; // [fixme]
       };
 
@@ -448,8 +465,9 @@ namespace NCRYSTAL_NAMESPACE {
                                           NeutronEnergy ekin )
       {
         NeutronData res;
-        res.wlsq = ekin2wlsq( ekin.get() );
-        res.factor_fsq2x = res.wlsq * md.k1;
+        const double wlsq = ekin2wlsq( ekin.get() );
+        res.wl = std::sqrt(wlsq);
+        res.factor_fsq2x = wlsq * md.k1;
         return res;
       }
 
@@ -459,7 +477,7 @@ namespace NCRYSTAL_NAMESPACE {
         double fdm;
         //Other fields, as needed by this particular model:
         double fsq;//structure factor squared [barn]
-        double inv2dsp_squared; // = (2*dspacing)^(-2)
+        double inv2dsp; // = 1/(2*dspacing)
       };
 
       static PlaneData initPlaneData( const PowderBraggInput::Plane& p )
@@ -468,7 +486,8 @@ namespace NCRYSTAL_NAMESPACE {
         res.dsp = p.dsp;
         res.fdm = p.fsq * p.dsp * p.mult;
         res.fsq = p.fsq;
-        res.inv2dsp_squared = ncsquare( 1.0 / ( 2.0 * p.dsp ) );
+        nc_assert( p.dsp > 0.0 );
+        res.inv2dsp = 1.0 / ( 2.0 * p.dsp );
         return res;
       }
 
@@ -476,52 +495,33 @@ namespace NCRYSTAL_NAMESPACE {
                                       const NeutronData& n,
                                       const PlaneData& p )
       {
-        const double bc_x = n.factor_fsq2x * p.fsq;
-        const double sinth_sq = n.wlsq * p.inv2dsp_squared;
-
         constexpr bool is_classic = (TModel == BC_YpParameterisation::Classic1974);
-        constexpr bool is_updatedclassic = (TModel == BC_YpParameterisation::ClassicUpdated2025);
+        constexpr bool is_std2025 = (TModel == BC_YpParameterisation::Std2025);
         constexpr bool is_lux2025 = (TModel == BC_YpParameterisation::Lux2025);
-        constexpr bool is_any_classic = ( is_classic || is_updatedclassic );
+        static_assert( is_classic || is_std2025 || is_lux2025, "" );
 
-        if ( is_any_classic ) {
-          const double cos2th = 1.0 - 2.0 * sinth_sq;
-          double A, B;
-          if ( is_classic ) {
-            A = 0.20 + 0.45 * cos2th;
-            B = 0.22 - 0.12 * ncsquare(0.5 - cos2th);
-          } else {
-            nc_assert(is_updatedclassic);
-            A = 0.559 + 0.537 * cos2th;
-            B = 0.604 - 0.222 * ncsquare(0.5 - cos2th);
-          }
+        const double bc_x = n.factor_fsq2x * p.fsq;
+        const double sintheta = n.wl * p.inv2dsp;
+        if ( is_std2025 ) {
+          return BC2025::y_primary( bc_x, sintheta );
+        } else if ( is_lux2025 ) {
+          return BC2025::y_primary_lux( bc_x, sintheta );
+        } else {
+          nc_assert( is_classic );
+          const double cos2th = 1.0 - 2.0 * ncsquare(sintheta);
+          const double A = 0.20 + 0.45 * cos2th;
+          const double B = 0.22 - 0.12 * ncsquare(0.5 - cos2th);
           double t = 1. + B * bc_x;
+          //guard against zero division:
           if ( std::fabs( t ) < 1e-20 )
             t = ( t > 0 ? 1e-20 : -1e-20 );
           const double u = 1. + 2. * bc_x + ncsquare( bc_x ) * A / t;
-          return 1. / std::sqrt(std::max<double>(1.0,u));//fixme: clamp u to
-                                                         //[1,..] to avoid
-                                                         //extinction factors
-                                                         //larger than 1 (and to
-                                                         //avoid FPEs in this
-                                                         //line).
-        } else {
-          //fixme: to utils header?:
-          nc_assert(is_lux2025);
-          const double inv1px = 1.0 / ( 1.0 + bc_x );
-          const double s = std::sqrt(sinth_sq);
-          const double A = 0.8968+s*(-0.2928+s*(2.528+s*(-11.21+s*(21.07+s*(-20.17+7.32*s)))));
-          const double B = 0.4697+s*(-0.1688+s*(5.37+s*(-20.68+s*(40.52+s*(-38.09+12.89*s)))));
-          const double C = -0.7486+s*(-0.5671+s*(-1.248+s*(17.56+s*(-47.8+s*(59.14-26.61*s)))));
-          const double t = 1. + bc_x * ( B + C * inv1px );
-          nc_assert_always( t > 0.0 );//fixme _always
-          const double u = 1. + 2. * bc_x + ( ncsquare( bc_x ) * A - 0.1 * bc_x ) / t;
-          nc_assert_always(u>=0.0);//fixme _always
-          return 1. / std::sqrt(u);
+          //guard against sqrt of negative numbers, and ensure values are at
+          //most 1:
+          return 1. / std::sqrt(std::max<double>(1.0,u));
         }
       }
     };
-
   }
 }
 
