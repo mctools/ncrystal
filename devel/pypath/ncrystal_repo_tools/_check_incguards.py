@@ -104,7 +104,7 @@ def main():
         incguards_seen.add(ig)
         l1, l2 = get_first_two_lines(f)
         assert l1 == f'#ifndef {ig}', f'Unexpected first line in {f}'
-        assert l2 == f'#define {ig}'
+        assert l2 == f'#define {ig}', f'Unexpected include guard in {f}'
         if not path_is_relative_to( f, incrootinternal ):
             include = str(f.relative_to(incroot)).replace('\\','/')
             if not include_is_virtualapi(include):
