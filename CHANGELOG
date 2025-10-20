@@ -1,11 +1,10 @@
-v4.2.9 (work in progress)
+v4.2.10 2025-10-20
      * Add doInfo, doScatter, and doAbsorption flags to the NCMATComposer.load
        method (github issue #280).
      * Add more dedicated unit tests for NCMATComposer.
      * Add missing include in NCrystal/internal/utils/NCHists.hh.
      * Expose internal Hist1D utility Python class in new (still internal)
        _hist.py module, for potential usage in unit testing.
-     * ...
 
 v4.2.8 2025-07-25
      * Fix spurious test failure in py_rl_n2endf_bad test.
