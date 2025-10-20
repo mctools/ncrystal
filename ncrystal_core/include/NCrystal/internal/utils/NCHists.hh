@@ -22,6 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/core/NCDefs.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCSpan.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 
