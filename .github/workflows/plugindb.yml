@@ -85,6 +85,11 @@ jobs:
     - name: Test ncrystal
       run: nctool --test
 
+      #workaround (cf. https://github.com/IAEA-NDS/endf-parserpy/issues/42):
+    - name: Set INSTALL_ENDF_PARSERPY_CPP=no
+      if: matrix.os == 'macos-13'
+      run: echo "INSTALL_ENDF_PARSERPY_CPP=no" >> $GITHUB_ENV
+
     - name: Install ncrystal-verify
       run: pip install "./src/ncrystal_verify[all]"
 
