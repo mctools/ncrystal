@@ -20,8 +20,8 @@ DummyDataPlugin:
 CrysText:
   github_repo_key: "highness-eu/ncplugin-CrysText"
   description: |
-    A plugin providing texture models. Note that this plugin has some known
-    numerical issues and is slow for shorter wavelengths.
+    A plugin providing texture models. Note that this plugin is slow for shorter
+    wavelengths.
 
 SANSND:
   github_repo_key: "highness-eu/ncplugin-SANSND"
