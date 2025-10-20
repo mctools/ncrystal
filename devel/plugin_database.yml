@@ -91,3 +91,11 @@ MagScat:
   description: |
     A plugin providing paramagnetic scattering in O2-clathrates, based on
     formulas by O. Zimmer (https://doi.org/10.1103/PhysRevC.93.035503).
+
+LiquidHeliumData:
+  github_repo_key: "dddijulio/ncrystal-plugin-LiquidHelium"
+  description: |
+    A plugin providing super critical helium near 1K, based on
+    https://doi.org/10.1016/j.nima.2023.168284 (for details refer to comments on
+    https://github.com/mctools/ncrystal/issues/279 and
+    https://github.com/dddijulio/ncrystal-plugin-LiquidHelium).
