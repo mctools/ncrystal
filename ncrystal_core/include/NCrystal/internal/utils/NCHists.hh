@@ -38,6 +38,7 @@ namespace NCRYSTAL_NAMESPACE {
 
     namespace detail {
       struct EmptyVect {
+        using value_type = double;
         void resize(std::size_t, double) {};
         constexpr bool empty() const { return true; }
         constexpr double operator[](std::size_t) const { return 0.0; }

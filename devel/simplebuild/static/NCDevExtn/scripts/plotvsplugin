@@ -102,30 +102,34 @@ def extncfg_2_plugincfg( extncfg ):
 
     par_l = d['domainSize']
     mdl = d['model']
-    assert mdl['name']=='sabine'#fixme support more.
-    if not d['grain']:
-        return f'Sabine_uncorr {par_l} 0.0 0.0 rect'
-    print(d)
-    par_L = d['grain']['grainSize']
-    kTwoSqrtPi = 3.5449077018110318
-    kFWHM2Sigma  = 0.42466090014400952136075141705144480985757# 1/sqrt(8ln(2))
+    if mdl['name']=='sabine':
+        if not d['grain']:
+            return f'Sabine_uncorr {par_l} 0.0 0.0 rect'
+        print(d)
+        par_L = d['grain']['grainSize']
+        kTwoSqrtPi = 3.5449077018110318
+        kFWHM2Sigma  = 0.42466090014400952136075141705144480985757# 1/sqrt(8ln(2))
 
-    stddev = d['grain']['angularSpread'] * kFWHM2Sigma
-    assert d['model']['correlated'] in ('yes','no')
-    if d['model']['correlated'] == 'yes':
-        par_g = 1.0 / ( kTwoSqrtPi * stddev )
-        return f'Sabine_corr {par_l}  {par_g}  {par_L}'
-    if d['model']['tilt'] == 'rec':
-        k = 0.2886751345948129 #1/sqrt(12)
-        par_G = k / stddev
-        mdl_name = 'rect'
+        stddev = d['grain']['angularSpread'] * kFWHM2Sigma
+        assert d['model']['correlated'] in ('yes','no')
+        if d['model']['correlated'] == 'yes':
+            par_g = 1.0 / ( kTwoSqrtPi * stddev )
+            return f'Sabine_corr {par_l}  {par_g}  {par_L}'
+        if d['model']['tilt'] == 'rec':
+            k = 0.2886751345948129 #1/sqrt(12)
+            par_G = k / stddev
+            mdl_name = 'rect'
+        else:
+            assert d['model']['tilt'] == 'tri'
+            k = 0.4082482904638631 #1/sqrt(6)
+            par_G = k / stddev
+            mdl_name = 'tri'
+        return f'Sabine_uncorr {par_l}  {par_G}  {par_L} {mdl_name}'
+    elif mdl['name']=='bc':
+        assert not d['grain'],  "Only pure primary BC models so far"
+        return f'BC_pure  {par_l}  0.0  0.0  Gauss'
     else:
-        assert d['model']['tilt'] == 'tri'
-        k = 0.4082482904638631 #1/sqrt(6)
-        par_G = k / stddev
-        mdl_name = 'tri'
-    return f'Sabine_uncorr {par_l}  {par_G}  {par_L} {mdl_name}'
-
+        raise RuntimeError('Unkown model: %s'%mdl['name'])
 
 def main():
     cfg = '10mu'
