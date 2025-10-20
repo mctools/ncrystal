@@ -912,9 +912,17 @@ class NCMATComposerImpl:
                                self.create_ncmat( cfg_params = cfg_params ) )
         return p
 
-    def load(self,cfg_params,force ):
-        if force or self.__loadcache is None or self.__loadcache[0] != cfg_params:
-            self.__loadcache = ( cfg_params, _nc_core.directLoad( self.create_ncmat(), cfg_params ) )
+    def load( self, cfg_params, force,
+              doInfo = True, doScatter = True, doAbsorption = True ):
+        key = ( cfg_params, doInfo, doScatter, doAbsorption )
+        if force or self.__loadcache is None or self.__loadcache[0] != key:
+            self.__loadcache = ( key,
+                                 _nc_core.directLoad( self.create_ncmat(),
+                                                      cfg_params = cfg_params,
+                                                      dtype = 'ncmat',
+                                                      doInfo = doInfo,
+                                                      doScatter = doScatter,
+                                                      doAbsorption = doAbsorption) )
         return self.__loadcache[1]
 
     def plot_xsect( self, composer, cfg_params, kwargs_plot_xsect ):

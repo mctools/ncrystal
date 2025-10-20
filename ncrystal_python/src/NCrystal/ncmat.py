@@ -662,15 +662,21 @@ class NCMATComposer:
         return self.__impl.register_as( virtual_filename = virtual_filename,
                                         cfg_params = cfg_params )
 
-    def load(self, cfg_params = None, *, force = False ):
+    def load( self, cfg_params = None, *, force = False,
+              doInfo = True, doScatter = True, doAbsorption = True ):
         """Will create NCMAT and load it with the directLoad(..) function of the
         NCrystal.core module. The cfg_params parameter can be used to apply cfg
         parameters (e.g. cfg_params="temp=200K;dcutoff=0.1")., while force=True
         will prevent the NCMATComposer from simply returning a previously loaded
         material (usually one should just leave the default force=False value
-        untouched).
+        untouched). The doInfo / doScatter / doAbsorption flags can be used to
+        only load selected objects for a potential speedup.
         """
-        return self.__impl.load( cfg_params = cfg_params, force = force )
+        return self.__impl.load( cfg_params = cfg_params,
+                                 force = force,
+                                 doInfo = doInfo,
+                                 doScatter = doScatter,
+                                 doAbsorption = doAbsorption )
 
     def plot_xsect( self, cfg_params = None, **kwargs_plot_xsect ):
         """

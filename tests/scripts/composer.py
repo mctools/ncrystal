@@ -36,6 +36,13 @@ def main():
     c_gas_ncmat = c_gas()
     print(c_gas_ncmat)
 
+    print("\nc_gas.load(doScatter=False,doAbsorption=False).dump() ::\n")
+    c_gas.load(doScatter=False,doAbsorption=False).dump()
+    print("\nc_gas.load(doInfo=False,doAbsorption=False).dump() ::\n")
+    c_gas.load(doInfo=False,doAbsorption=False).dump()
+    print("\nc_gas.load(doInfo=False,doScatter=False).dump() ::\n")
+    c_gas.load(doInfo=False,doScatter=False).dump()
+    print("\nc_gas.load().dump() ::\n")
     c_gas.load().dump()
     c_gas.write('mysillygas.ncmat')
     assert pathlib.Path('mysillygas.ncmat').read_text() == c_gas_ncmat

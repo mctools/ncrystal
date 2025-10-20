@@ -1763,7 +1763,12 @@ def directLoad( data, cfg_params='', *, dtype='',
         if len(p)>=2 and p[-1] and p[-1].isalpha() and p[-1] not in ('gz','tgz','bz2','zip','tar'):
             dtype = dtype
 
-    rawi,raws,rawa = _rawfct['multicreate_direct'](content,dtype,cfg_params,doInfo,doScatter,doAbsorption)
+    rawi,raws,rawa = _rawfct['multicreate_direct']( content,
+                                                    dtype,
+                                                    cfg_params,
+                                                    doInfo,
+                                                    doScatter,
+                                                    doAbsorption )
     info = Info( ('_rawobj_',rawi) ) if rawi else None
     scatter = Scatter( ('_rawobj_',raws) ) if raws else None
     absorption = Absorption( ('_rawobj_',rawa) ) if rawa else None
