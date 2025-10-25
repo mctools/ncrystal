@@ -31,12 +31,13 @@ namespace NCRYSTAL_NAMESPACE {
 
         //fixme: revisit. These are not usually user-visible, but will show up
         //in JSON dumps. So they should still be sensible and correspond to keys
-        //in the cfg-string.
+        //in the cfg-string.  We also need to make sure to use consistent
+        //terminology everywhere for domain/grain sizes, etc.
 
-        constexpr auto key_model = StrView::make("mdl");//fixme "block_size"
-        constexpr auto key_domainsize = StrView::make("domain_size");//fixme "block_size"
-        constexpr auto key_grainsize = StrView::make("grain_size");//fixme: grain_size.
-        constexpr auto key_angspread = StrView::make("angularspread");//fixme "block_spread"
+        constexpr auto key_model = StrView::make("mdl");
+        constexpr auto key_domainsize = StrView::make("domain_size");//fixme "block_size" ?
+        constexpr auto key_grainsize = StrView::make("grain_size");
+        constexpr auto key_angspread = StrView::make("angular_spread");//fixme "block_spread" ?
 
         constexpr auto default_model = StrView::make("sabine");
 
@@ -120,6 +121,17 @@ namespace NCRYSTAL_NAMESPACE {
         {
           return parseValImpl<TParser>(sv,context).first;
         }
+
+        const char * recipeVersion2cstr(const ExtnCfg_BC::RecipeVersion& rv )
+        {
+          if ( rv == ExtnCfg_BC::RecipeVersion::Lux2025 )
+            return "lux";
+          if ( rv == ExtnCfg_BC::RecipeVersion::Std2025 )
+            return "std";
+          nc_assert_always( rv == ExtnCfg_BC::RecipeVersion::Classic1974 );
+          return "cls";
+        }
+
       }
     }
   }
@@ -129,8 +141,7 @@ NC::Cfg::CfgKeyValMap NCCE::decode_cfgstr( VarId varid, StrView sv )
 {
   CfgKeyValMap::DecodedData res;
 
-  //Fixme: For now just support the simplest sabine model of only primary
-  //extinction. We should probably also support an empty strview giving !enabled()
+  //Fixme: We should probably also support an empty strview giving !enabled()
 
   //Parse syntax like:
   //
@@ -204,7 +215,7 @@ NC::Cfg::CfgKeyValMap NCCE::decode_cfgstr( VarId varid, StrView sv )
   FlexShortStr valbuf_as;
   if ( parts_pureval.size() == 3 ) {
     valbuf_gs = parseValToStr<ValParserLength>( parts_pureval.at(1), "grain size (length)" );
-    valbuf_as = parseValToStr<ValParserAngle>( parts_pureval.at(2), "block spread (angle)" );//fixme: fix terminology
+    valbuf_as = parseValToStr<ValParserAngle>( parts_pureval.at(2), "domain spread (angle)" );//fixme: fix terminology
     res.emplace_back(key_grainsize,valbuf_gs.to_view());
     res.emplace_back(key_angspread,valbuf_as.to_view());
   }
@@ -265,6 +276,24 @@ NC::Cfg::CfgKeyValMap NCCE::decode_cfgstr( VarId varid, StrView sv )
     if ( val_corr.has_value() && val_corr != "1" )
       res.emplace_back("corr",val_corr);
 
+  } else if ( model == "bc" ) {
+    StrView val_recipeVersion;
+    for ( auto& kv : parts_keyval_nomodel ) {
+      if ( kv.first == "rec" ) {
+        if ( kv.second != "std" && kv.second != "lux" && kv.second != "cls")
+          NCRYSTAL_THROW2( BadInput,
+                           "Syntax error in extinction cfg \""<<sv<<"\": Value"
+                           " of \"rec\" must be \"std\", \"lux\", or \"cls\"." );
+        val_recipeVersion = kv.second;
+      } else {
+        NCRYSTAL_THROW2( BadInput,
+                         "Syntax error in extinction cfg \""<<sv<<"\": "
+                         "Model \""<<model<<"\" does not support a \""
+                         <<kv.first<<"\" parameter." );
+      }
+    }
+    if ( val_recipeVersion.has_value() && val_recipeVersion != "lux" )
+      res.emplace_back("rec",val_recipeVersion);
   } else if ( model.has_value() ) {
     NCRYSTAL_THROW2(BadInput,
                     "Syntax error in extinction cfg \""<<sv
@@ -327,11 +356,14 @@ NCCE::ExtnCfg_Base NCCE::ExtnCfg_Base::decode( const CfgKeyValMap& data )
     res.grain.emplace();
     auto pv = units_length::parse(data.getValue( key_grainsize ));
     res.grain.value().grainSize = parseVal<ValParserLength>( data.getValue( key_grainsize ) );
-    res.grain.value().angularSpread = parseVal<ValParserAngle>( data.getValue( key_angspread ) );
+    res.grain.value().angularSpread
+      = MosaicityFWHM{ parseVal<ValParserAngle>( data.getValue( key_angspread ) ) };
   }
   auto mdl = data.getValue( key_model, NullOpt );
   if ( !mdl.has_value() || mdl == "sabine" ) {
     res.model = Model::Sabine;
+  } else if ( mdl == "bc" ) {
+    res.model = Model::BC;
   } else {
     nc_assert_always( !mdl.has_value() );//unknown model
   }
@@ -349,16 +381,38 @@ NCCE::ExtnCfg_Sabine NCCE::ExtnCfg_Sabine::decode( const CfgKeyValMap& data )
   return res;
 }
 
+
+NCCE::ExtnCfg_BC NCCE::ExtnCfg_BC::decode( const CfgKeyValMap& data )
+{
+  verify_model_name( data, "bc" );
+  ExtnCfg_BC res;
+  auto recstr = data.getValue( "rec", "lux" );
+  if ( recstr == "lux" ) {
+    res.recipeVersion = RecipeVersion::Lux2025;
+  } else if ( recstr == "cls" ) {
+    res.recipeVersion = RecipeVersion::Classic1974;
+  } else {
+    nc_assert_always( recstr == "std" );
+    res.recipeVersion = RecipeVersion::Std2025;
+  }
+  return res;
+}
+
 std::ostream& NCCE::operator<<(std::ostream& os, const ExtnCfg_Base& cfg )
 {
   os << "ExtnCfg_Base(";
   os << cfg.domainSize;
   if ( cfg.grain.has_value() ) {
     os << '/' << cfg.grain.value().grainSize
-       << '/' << cfg.grain.value().angularSpread;
+       << '/' << cfg.grain.value().angularSpread.get();
   }
-  nc_assert_always( cfg.model == Model::Sabine );
-  os << "/mdl:sabine)";
+  if ( cfg.model == Model::Sabine ) {
+    os << "/mdl:sabine)";
+  } else if ( cfg.model == Model::BC ) {
+    os << "/mdl:bc)";
+  } else {
+    nc_assert_always(false);
+  }
   return os;
 }
 
@@ -370,6 +424,12 @@ std::ostream& NCCE::operator<<(std::ostream& os, const ExtnCfg_Sabine& cfg )
      << ( cfg.correlation
           == ExtnCfg_Sabine::Correlation::Correlated ? '1' : '0' )
      << ')';
+  return os;
+}
+
+std::ostream& NCCE::operator<<(std::ostream& os, const ExtnCfg_BC& cfg )
+{
+  os << "ExtnCfg_BC(rec:" << recipeVersion2cstr( cfg.recipeVersion ) << ')';
   return os;
 }
 
@@ -420,4 +480,67 @@ NC::Cfg::ExtnCfg NCCE::createExtnCfgFromVarBuf( VarBuf&& vb )
     detail::ExtnCfgBuilder::accessVarBuf(res) = std::move(vb);
   }
   return res;
+}
+
+void NCCE::stream_to_json( std::ostream& os, const CfgKeyValMap& data )
+{
+  std::string cfgstr_val;
+  {
+    std::ostringstream tmp;
+    stream_to_cfgstr( tmp, data);
+    cfgstr_val = std::move(tmp).str();
+  }
+  auto oo_base = ExtnCfg_Base::decode( data );
+
+  streamJSONDictEntry( os, "encoded", cfgstr_val, JSONDictPos::FIRST);
+  os << ',';
+  streamJSON( os, "decoded" );
+  os << ':';
+  {
+    streamJSONDictEntry( os, "domainSize",
+                         oo_base.domainSize.get() / Length::angstrom,
+                         JSONDictPos::FIRST );
+    os << ',';
+    streamJSON( os, "grain" );
+    os << ':';
+    auto& grain = oo_base.grain;
+    if ( !grain.has_value() ) {
+      streamJSON( os, json_null_t{} );
+    } else {
+      streamJSONDictEntry( os, "grainSize",
+                           grain.value().grainSize.get() / Length::angstrom,
+                           JSONDictPos::FIRST );
+      streamJSONDictEntry( os, "angularSpread",
+                           grain.value().angularSpread.get(),
+                           JSONDictPos::LAST );
+    }
+    //Length domainSize;
+    os << ',';
+    streamJSON( os, "model" );
+    os << ':';
+    if ( oo_base.model == Model::Sabine ) {
+      auto oo_sabine = ExtnCfg_Sabine::decode( data );
+      streamJSONDictEntry( os, "name", "sabine", JSONDictPos::FIRST);
+      streamJSONDictEntry( os, "tilt",
+                           ( oo_sabine.tilt
+                             == ExtnCfg_Sabine::Tilt::Rectangular
+                             ? "rec" : "tri" ) );
+      streamJSONDictEntry( os, "correlated",
+                           ( oo_sabine.correlation
+                             == ExtnCfg_Sabine::Correlation::Correlated
+                             ? "yes" : "no" ),
+                           JSONDictPos::LAST );//fixme: json bool?
+
+
+    } else if ( oo_base.model == Model::BC ) {
+      auto oo_bc = ExtnCfg_BC::decode( data );
+      streamJSONDictEntry( os, "name", "bc", JSONDictPos::FIRST);
+      streamJSONDictEntry( os, "recipeVersion", recipeVersion2cstr( oo_bc.recipeVersion ),
+                           JSONDictPos::LAST );
+    } else {
+      NCRYSTAL_THROW(LogicError,"JSON streaming not implemented for extn model");
+    }
+    os << '}';
+  }
+  os << '}';
 }

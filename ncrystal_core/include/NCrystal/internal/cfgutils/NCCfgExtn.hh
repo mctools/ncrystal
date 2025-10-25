@@ -48,14 +48,14 @@ namespace NCRYSTAL_NAMESPACE {
       ////////////////////////////////////////////////
       // General parameters for any model:
 
-      enum class Model { Sabine };
+      enum class Model { Sabine, BC };
 
       struct ExtnCfg_Base {
         Model model;
         Length domainSize;
         struct Grain {
           Length grainSize;
-          double angularSpread;//spread of domains inside a grain
+          MosaicityFWHM angularSpread;//spread of domains inside a grain
         };
         Optional<Grain> grain;
         static ExtnCfg_Base decode( const CfgKeyValMap& );
@@ -65,6 +65,11 @@ namespace NCRYSTAL_NAMESPACE {
       // Additional parameters for specific models:
 
       struct ExtnCfg_Sabine {
+        //fixme replace 2 2-state enums with single 3-state enum:
+        // enum class Secondary { Correlated,
+        //                        UncorrelatedRectangularTilt,
+        //                        UncorrelatedTriangularTilt };
+
         enum class Tilt { Rectangular, Triangular };
         enum class Correlation { Correlated, Uncorrelated };
         Tilt tilt = Tilt::Rectangular;
@@ -72,11 +77,26 @@ namespace NCRYSTAL_NAMESPACE {
         static ExtnCfg_Sabine decode( const CfgKeyValMap& );
       };
 
+      struct ExtnCfg_BC {
+        enum class RecipeVersion { Std2025 = 0,
+                                   Lux2025 = 1,
+                                   Classic1974 = 2 };
+        RecipeVersion recipeVersion = RecipeVersion::Std2025;
+        static ExtnCfg_BC decode( const CfgKeyValMap& );
+      };
+
+      ////////////////////////////////////////////////
+      // For maximum flexiblity, JSON encoding provided both detailed
+      // information available on the decoded ExtnCfg_xxx objects above, as well
+      // as information about the corresponding cfg-string value.  Fixme: should
+      // we additionally also provide e.g. the Sabine g-value etc.?
+      void stream_to_json( std::ostream&, const CfgKeyValMap& );
 
       ////////////////////////////////////////////////
       // Stream adapters:
       std::ostream& operator<<(std::ostream&, const ExtnCfg_Base& );
       std::ostream& operator<<(std::ostream&, const ExtnCfg_Sabine& );
+      std::ostream& operator<<(std::ostream&, const ExtnCfg_BC& );
 
     }
 
