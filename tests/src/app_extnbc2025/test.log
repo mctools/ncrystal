@@ -1,0 +1,5 @@
+Testing bc2025_y_primary + bc2025_y_primary_lux
+Testing bc2025_y_scndgauss + bc2025_y_scndgauss_lux
+Testing bc2025_y_scndlorentz + bc2025_y_scndlorentz_lux
+Testing bc2025_y_scndfresnel + bc2025_y_scndfresnel_lux
+All tests completed
