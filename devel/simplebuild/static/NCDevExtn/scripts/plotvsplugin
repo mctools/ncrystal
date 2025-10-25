@@ -50,18 +50,23 @@ def load( ncmod, ncmatdata, cfg_params ):
                             cfg_params=cfg_params,
                             doAbsorption=False)
 
-def test( ncmatkey, *, dcutoff, block_size_Aa ):
+
+def test( ncmatkey, *, dcutoff, extncfg ):
     extra_cfg = f'dcutoff={dcutoff};comp=bragg'
     # Model option 0:
     #    format (single line): "Sabine_uncorr {l} {Gg} {L} {tilt_option=rect|tri}".
     #    => res_option = 0
     #    note: rect is the sabine El/Eb from 6.4.9.2, Gg and L only matters for secondary extinction.
     #
-    plugin_lines = [f'Sabine_uncorr {block_size_Aa} 0.0 0.0 rect']
 
+    print(f"Testing extn={extncfg}")
+    plugin_lines = [extncfg_2_plugincfg( extncfg )]
+    print("Corresponding to plugin lines:")
+    for pl in plugin_lines:
+        print('  ',pl)
     mat_dev = load( NC,
                     create_data( ncmatkey ),
-                    f'{extra_cfg};extn={block_size_Aa}' )
+                    f'{extra_cfg};extn={extncfg}' )
 
     mat_ref = load( NCenv,
                     create_data( ncmatkey, plugin_lines = plugin_lines ),
@@ -71,6 +76,7 @@ def test( ncmatkey, *, dcutoff, block_size_Aa ):
                        create_data( ncmatkey ),
                        extra_cfg )
 
+    #wls = np.linspace(3.9605,3.96052,200000)#fixme
     wls = np.linspace(0.0,6.0,20000)
     #wls = np.concatenate( (wls, np.linspace(2.14,2.142,10000)), axis=0 )
     wls.sort()
@@ -85,11 +91,63 @@ def test( ncmatkey, *, dcutoff, block_size_Aa ):
     plt.grid()
     plt.show()
 
+def extncfg_2_plugincfg( extncfg ):
+    #Use dummy material just for looking at the cfg string:
+    p = NC.decodeCfg(f'stdlib::Al_sg225.ncmat;extn={extncfg}').get("pars",[])
+    p = [v for k,v in p if k=='extn']
+    assert len(p)==1
+    p = p[0]
+    d = p['decoded']
+    #print(p['decoded'].keys())
+
+    par_l = d['domainSize']
+    mdl = d['model']
+    if mdl['name']=='sabine':
+        if not d['grain']:
+            return f'Sabine_uncorr {par_l} 0.0 0.0 rect'
+        print(d)
+        par_L = d['grain']['grainSize']
+        kTwoSqrtPi = 3.5449077018110318
+        kFWHM2Sigma  = 0.42466090014400952136075141705144480985757# 1/sqrt(8ln(2))
+
+        stddev = d['grain']['angularSpread'] * kFWHM2Sigma
+        assert d['model']['correlated'] in ('yes','no')
+        if d['model']['correlated'] == 'yes':
+            par_g = 1.0 / ( kTwoSqrtPi * stddev )
+            return f'Sabine_corr {par_l}  {par_g}  {par_L}'
+        if d['model']['tilt'] == 'rec':
+            k = 0.2886751345948129 #1/sqrt(12)
+            par_G = k / stddev
+            mdl_name = 'rect'
+        else:
+            assert d['model']['tilt'] == 'tri'
+            k = 0.4082482904638631 #1/sqrt(6)
+            par_G = k / stddev
+            mdl_name = 'tri'
+        return f'Sabine_uncorr {par_l}  {par_G}  {par_L} {mdl_name}'
+    elif mdl['name']=='bc':
+        assert not d['grain'],  "Only pure primary BC models so far"
+        return f'BC_pure  {par_l}  0.0  0.0  Gauss'
+    else:
+        raise RuntimeError('Unkown model: %s'%mdl['name'])
+
 def main():
+    cfg = '10mu'
+    import sys
+    args = sys.argv[1:]
+    if args:
+        assert len(args)==1
+        cfg = args[0]
+    extncfg_2_plugincfg(cfg)
+#ncdevtool sbrun python3 -c 'import NCrystalDev as n; print(n.decodeCfg("Al_sg225.ncmat;extn=10mu/100mu/1deg")["pars"])'
+
+
+
+
     test( 'stdlib::Be_sg194.ncmat',
           #dcutoff=0.05,
           dcutoff = 1.9,
-          block_size_Aa = 100000
+          extncfg = cfg
          )
 
 if __name__=='__main__':
