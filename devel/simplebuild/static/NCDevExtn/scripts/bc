@@ -1,0 +1,146 @@
+#!/usr/bin/env python3
+
+################################################################################
+##                                                                            ##
+##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
+##                                                                            ##
+##  Copyright 2015-2025 NCrystal developers                                   ##
+##                                                                            ##
+##  Licensed under the Apache License, Version 2.0 (the "License");           ##
+##  you may not use this file except in compliance with the License.          ##
+##  You may obtain a copy of the License at                                   ##
+##                                                                            ##
+##      http://www.apache.org/licenses/LICENSE-2.0                            ##
+##                                                                            ##
+##  Unless required by applicable law or agreed to in writing, software       ##
+##  distributed under the License is distributed on an "AS IS" BASIS,         ##
+##  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  ##
+##  See the License for the specific language governing permissions and       ##
+##  limitations under the License.                                            ##
+##                                                                            ##
+################################################################################
+
+import matplotlib.pyplot as plt
+import numpy as np
+#import NCrystalDev as NC
+import math
+from NCDevExtn.bcyp import BCYPCalc, bc_std_yp_of_x
+
+def calc_table( theta_deg, xvals ):
+    calc = BCYPCalc( theta_deg )
+    return dict( (x, calc.calc_yp(x) ) for x in xvals )
+
+def plot_cmp_std_bc():
+    theta_vals = [ 0, 10, 30, 60, 70, 80, 90 ]
+
+
+    xvals = np.linspace( 1e-3, 200, 1000 )
+    nvals_direct = 10
+    xvals_direct = np.linspace( xvals[0], xvals[-1], nvals_direct )
+
+    def sinth_2_deg( sinth ):
+        return math.asin(0.80)*180./math.pi
+    theta_vals = [ 2.86, 17.5, 53, 64, 80.0, 90.0 ]#fixme
+    theta_vals = [ 80 ]#fixme
+    xvals_direct = [ 0.1, 0.5, 1.0, 1.5, 4.0, 8.0, 12.0, 18.0, 30.0, 40.0, 80., 120., 160. ]#fixme
+
+    import matplotlib
+    cmap = matplotlib.colormaps['Spectral']
+    for theta in theta_vals:
+        print(f"Treating theta={theta}...")
+        color = cmap( 1.0 - theta / 90.0 )
+        plt.plot( xvals,
+                  bc_std_yp_of_x(theta)(xvals),
+                  label=f"BC std recipe (theta={theta:g})",
+                  color = color )
+        direct = [v for k,v in calc_table( theta, xvals_direct ).items()]
+
+        plt.plot( xvals_direct,
+                  direct,
+                  '+',
+                  label=f"BC direct integration (theta={theta:g})",
+                  color = color )
+
+    plt.grid()
+    plt.legend()
+    plt.xlabel('x')
+    plt.ylabel('yp')
+    plt.xlim(0.0, xvals[-1])
+    plt.ylim(0.0, 1.1)
+    plt.show()
+
+def main():
+    plot_cmp_std_bc()
+    return
+
+
+    for x, v in calc_table( 90, [ 0.1, 1.0, 20.0, 30.0 ] ).items():
+        print( '%g'%x, '\t', round(v*1e4) )
+
+
+
+#    raise SystemExit
+
+#    print( phi0(0.1-1e-14) )
+#    print( phi0(0.1+1e-14) )
+#    print( phipi(0.1-1e-14) )
+#    print( phipi(0.1+1e-14) )
+#
+#
+##    thetavals = [ 10, 45, 80 ]
+##    xvals = [ 0.1, 5.0, 20.0 ]
+#    thetavals = [ 45.0 ]
+#    xvals = [ 1.0 ]
+#    etavals = np.linspace(-20.0,20.0,1000)
+#
+#    plt.plot( etavals, np.vectorize(f_of_eta)(etavals) )
+#    plt.title('f(eta)')
+#    plt.show()
+#
+#    srvals = np.linspace(1.0,10000.0,1000)#FIXME 0 division error
+#    plt.plot( srvals, np.vectorize(phi0)(srvals), label='phi0(sr)' )
+#    plt.plot( srvals, np.vectorize(phipi)(srvals), label='phipi(sr)' )
+#    plt.loglog()
+#    plt.grid()
+#    plt.legend()
+#    plt.show()
+#
+#    for sinth in [0.1, 0.5, 1.0]:
+#        plt.plot( srvals,
+#                  np.vectorize(lambda sr : phi(sr,sinth))(srvals),
+#                  label=f'phipi(sr,sintheta={sinth:g})' )
+#    plt.loglog()
+#    plt.grid()
+#    plt.legend()
+#    plt.show()
+#
+
+#    raise SystemExit(0)
+
+
+#    for theta in thetavals:
+#        for x in xvals:
+#            def i(eta):
+#                return integrand_eq36( eta, x,
+#                                       mp.sin( theta*(mp.pi/mpf(180)) ) )
+#            plt.plot( etavals, np.vectorize(i)(etavals),
+#                      label = f'theta = {theta:g}, x = {x:g}')
+#    plt.legend()
+#    plt.show()
+#
+if __name__=='__main__':
+    main()
+
+
+#Large eta:  f(eta)  ~   1/eta^2
+#Large sr:   phi0(sr) ~ 1/sr
+#Large sr:   phipi(sr) ~ 1/sr
+#Large sr:   phipi(sr*C)-phi0(sr*C)  ~  1/sr
+#Large sr:   phi(sr) ~= 1/sr
+#Large eta:  f(eta)*phi(x*f(eta)) ~= eta^(-2) * phi( x * eta^(-2) ) != eta^(-2) * eta^2 ~= constant
+
+
+
+# B10:
+#
+#  volume integral of 1/(1+sigma*l)

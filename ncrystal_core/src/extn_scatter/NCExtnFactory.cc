@@ -19,8 +19,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/extn_scatter/NCExtnFactory.hh"
-#include "NCrystal/internal/extn_scatter/NCExtnScatterSimple.hh"
 #include "NCrystal/internal/cfgutils/NCCfgExtn.hh"
+#include "NCrystal/internal/extn_scatter/NCExtnScatter.hh"
+#include "NCrystal/internal/extn_utils/NCExtnSabine.hh"
 
 namespace NC = NCrystal;
 namespace NCE = NCrystal::Extn;
@@ -37,21 +38,54 @@ NC::ProcImpl::ProcPtr NCE::createIsotropicExtnProc( PowderBraggInput::Data&& dat
   using Cfg::Extn::Model;
   using Cfg::Extn::ExtnCfg_Base;
   using Cfg::Extn::ExtnCfg_Sabine;
+  using Cfg::Extn::ExtnCfg_BC;
 
   auto mdl_base = ExtnCfg_Base::decode(ecfg_kvmap);
-  //if ( oocfg_base.model == Model::BlaBla ) {
-  //  ...
-  // } else
-  {
-    if ( mdl_base.model != Model::Sabine )
-      NCRYSTAL_THROW(BadInput,"Unsupported extinction model encountered");
+  if ( mdl_base.model == Model::Sabine ) {
+
     auto mdl_sabine = ExtnCfg_Sabine::decode(ecfg_kvmap);
-    if ( mdl_sabine.tilt != ExtnCfg_Sabine::Tilt::Rectangular )
-      NCRYSTAL_THROW(BadInput,"Sabine extinction model only implemented"
-                     " for rectangular tilt model currently");
+    // if ( mdl_sabine.tilt != ExtnCfg_Sabine::Tilt::Rectangular )
+    //   NCRYSTAL_THROW(BadInput,"Sabine extinction model only implemented"
+    //                  " for rectangular tilt model currently");
+    if ( !mdl_base.grain.has_value() )
+      return ExtnScatter<SabineMdlPurePrimary>::createSO( std::move(data),
+                                                          mdl_base.domainSize );
+
+    auto& grain = mdl_base.grain.value();
+    if (mdl_sabine.correlation == ExtnCfg_Sabine::Correlation::Correlated ) {
+      return ExtnScatter<SabineMdlCorrelatedScnd>::createSO( std::move(data),
+                                                             mdl_base.domainSize,
+                                                             grain.grainSize,
+                                                             grain.angularSpread
+                                                             );
+    }
+    if (mdl_sabine.tilt == ExtnCfg_Sabine::Tilt::Rectangular ) {
+      return ExtnScatter<SabineMdlUncorrelatedScnd_Rec>::createSO( std::move(data),
+                                                                   mdl_base.domainSize,
+                                                                   grain.grainSize,
+                                                                   grain.angularSpread
+                                                                   );
+    } else {
+      return ExtnScatter<SabineMdlUncorrelatedScnd_Tri>::createSO( std::move(data),
+                                                                   mdl_base.domainSize,
+                                                                   grain.grainSize,
+                                                                   grain.angularSpread
+                                                                   );
+    }
+  } else if ( mdl_base.model == Model::BC ) {
+    auto mdl_bc = ExtnCfg_BC::decode(ecfg_kvmap);
     if ( mdl_base.grain.has_value() )
-      NCRYSTAL_THROW(BadInput,"Sabine extinction model does not"
-                     " yet implement secondary extinction");
-    return makeSO<ExtnScatterSimple>( std::move(data), mdl_base.domainSize );
+      NCRYSTAL_THROW(BadInput,"BC model for now only supports pure primary extinction");//fixme
+    using BC_cls = BCMdlPurePrimary<BC_YpParameterisation::Classic1974>;
+    using BC_std = BCMdlPurePrimary<BC_YpParameterisation::Std2025>;
+    using BC_lux = BCMdlPurePrimary<BC_YpParameterisation::Lux2025>;
+    if ( mdl_bc.recipeVersion == ExtnCfg_BC::RecipeVersion::Std2025 )
+      return ExtnScatter<BC_std>::createSO( std::move(data), mdl_base.domainSize );
+    if ( mdl_bc.recipeVersion == ExtnCfg_BC::RecipeVersion::Lux2025 )
+      return ExtnScatter<BC_lux>::createSO( std::move(data), mdl_base.domainSize );
+    nc_assert_always( mdl_bc.recipeVersion == ExtnCfg_BC::RecipeVersion::Classic1974 );
+    return ExtnScatter<BC_cls>::createSO( std::move(data), mdl_base.domainSize );
+  } else {
+    NCRYSTAL_THROW(BadInput,"Unsupported extinction model encountered");
   }
 }
