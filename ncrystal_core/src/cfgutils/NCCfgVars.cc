@@ -398,6 +398,7 @@ namespace NCRYSTAL_NAMESPACE {
 
 NC::Cfg::VarBuf NC::Cfg::vardef_extn::from_str( VarId varid, StrView sv )
 {
+  standardInputStrSanityCheck(name,sv);
   return Extn::decode_cfgstr( varid, sv ).encoded();
 }
 

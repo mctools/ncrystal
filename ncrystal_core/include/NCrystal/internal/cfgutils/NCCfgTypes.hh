@@ -710,17 +710,23 @@ namespace NCRYSTAL_NAMESPACE {
         Derived::stream_tocfgstr( os, get_val(buf) );
       }
 
-      static void asJSONObject( std::ostream& os, const VarBuf& buf )
-      {
-        //JSON output is for now simply the key-value pairs (fixme??):
-        get_val(buf).streamJSON(os);
-      }
+#if 0
+      //NOTE: We could have from_str and asJSONObject static methods defined
+      //here, but they are not actually used in vardef_extn (the only derived
+      //class so far), so for good measure we ifdef them out for now.
 
       static VarBuf from_str( VarId varid, StrView sv_in ) {
         //delegate cfgstring i/o to Derived
         standardInputStrSanityCheck(Derived::name,sv_in);
         return CfgKeyValMap::encode( Derived::decode_cfgstr(sv_in), varid );
       }
+
+      static void asJSONObject( std::ostream& os, const VarBuf& buf )
+      {
+        //JSON output as key-value pairs.
+        get_val(buf).streamJSON(os);
+      }
+#endif
     };
 
     using VarFromStrFct = VarBuf(*)(VarId, StrView);
