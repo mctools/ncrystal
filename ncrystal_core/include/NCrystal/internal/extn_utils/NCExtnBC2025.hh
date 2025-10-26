@@ -23,6 +23,21 @@
 
 #include "NCrystal/core/NCDefs.hh"
 
+////////////////////////////////////////////////////////////////////////////////
+// Updated recipes evaluating the models described in:                        //
+//                                                                            //
+// P. J. Becker and P. Coppens Acta Cryst. (1974). A30, 129-147               //
+// https://doi.org/10.1107/S0567739474000337                                  //
+//                                                                            //
+// However, the original 1974 recipes were flawed, so we use updated "BC2025" //
+// recipes from:                                                              //
+//                                                                            //
+// "Revisiting Becker-Coppens (1974): Updated Recipes for Estimating          //
+// Extinction Factors in Spherical Crystallites",                             //
+// T. Kittelmann et al., 2025 (in preparation)                                //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
 namespace NCRYSTAL_NAMESPACE {
   namespace Extn {
     namespace BC2025 {
