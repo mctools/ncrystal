@@ -49,6 +49,16 @@ namespace NCRYSTAL_NAMESPACE {
         return makeSO<ExtnScatter<TModel>>( std::move(helper) );
       }
 
+      template<typename ...Args>
+      static shared_obj<ExtnScatter> createSO( typename TModel::ModelData&& modelData,
+                                               const PowderBraggInput::Data& data )
+      {
+        auto helper = ExtnHelper<TModel>( std::move(modelData),
+                                          data.cell,
+                                          data.planes );
+        return makeSO<ExtnScatter<TModel>>( std::move(helper) );
+      }
+
       using TExtnHelper = ExtnHelper<TModel>;
       ExtnScatter( TExtnHelper&& helper )
         : m_helper(std::move(helper))
