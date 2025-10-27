@@ -181,19 +181,19 @@ jobs:
 
     steps:
       - name: download ncrystal-python sdist
-        uses: actions/download-artifact@de96f4613b77ec03b5cf633e7c350c32bd3c5660
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
         with:
           name: sdist-ncrystal-python
           path: ./sdist-python
 
       - name: download ncrystal-metapkg sdist
-        uses: actions/download-artifact@de96f4613b77ec03b5cf633e7c350c32bd3c5660
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
         with:
           name: sdist-ncrystal-metapkg
           path: ./sdist-metapkg
 
       - name: download ncrystal-verify sdist
-        uses: actions/download-artifact@de96f4613b77ec03b5cf633e7c350c32bd3c5660
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
         with:
           name: sdist-ncrystal-verify
           path: ./sdist-verify
@@ -263,7 +263,7 @@ jobs:
 
     steps:
       - name: download ncrystal-core sdist
-        uses: actions/download-artifact@de96f4613b77ec03b5cf633e7c350c32bd3c5660
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
         with:
           name: sdist-ncrystal-core
           path: ./sdist
@@ -319,7 +319,7 @@ jobs:
     needs: [preparations, build_sdists, build_core_wheels, build_pure_wheels]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@de96f4613b77ec03b5cf633e7c350c32bd3c5660
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
         with:
           pattern: "ncrystal-core-wheels-*"
           path: ncrystal-core-wheels-raw #unpacks all artifacts into ncrystal-core-wheels-raw/
@@ -339,43 +339,43 @@ jobs:
         run: ls -l ./dist_core
 
       - name: download ncrystal-core sdist
-        uses: actions/download-artifact@de96f4613b77ec03b5cf633e7c350c32bd3c5660
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
         with:
           name: sdist-ncrystal-core
           path: ./dist_core
 
       - name: download ncrystal-python pure wheel
-        uses: actions/download-artifact@de96f4613b77ec03b5cf633e7c350c32bd3c5660
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
         with:
           name: wheel-ncrystal-python
           path: ./dist_python
 
       - name: download ncrystal-metapkg pure wheel
-        uses: actions/download-artifact@de96f4613b77ec03b5cf633e7c350c32bd3c5660
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
         with:
           name: wheel-ncrystal-metapkg
           path: ./dist_metapkg
 
       - name: download ncrystal-verify pure wheel
-        uses: actions/download-artifact@de96f4613b77ec03b5cf633e7c350c32bd3c5660
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
         with:
           name: wheel-ncrystal-verify
           path: ./dist_verify
 
       - name: download ncrystal-python sdist
-        uses: actions/download-artifact@de96f4613b77ec03b5cf633e7c350c32bd3c5660
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
         with:
           name: sdist-ncrystal-python
           path: ./dist_python
 
       - name: download ncrystal-metapkg sdist
-        uses: actions/download-artifact@de96f4613b77ec03b5cf633e7c350c32bd3c5660
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
         with:
           name: sdist-ncrystal-metapkg
           path: ./dist_metapkg
 
       - name: download ncrystal-verify sdist
-        uses: actions/download-artifact@de96f4613b77ec03b5cf633e7c350c32bd3c5660
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
         with:
           name: sdist-ncrystal-verify
           path: ./dist_verify
@@ -468,25 +468,25 @@ jobs:
       id-token: write # IMPORTANT: this permission is mandatory for trusted publishing
     steps:
       - name: download ncrystal-core dist
-        uses: actions/download-artifact@de96f4613b77ec03b5cf633e7c350c32bd3c5660
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
         with:
           name: final-dist-ncrystal-core
           path: ./dist_core
 
       - name: download ncrystal-python dist
-        uses: actions/download-artifact@de96f4613b77ec03b5cf633e7c350c32bd3c5660
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
         with:
           name: final-dist-ncrystal-python
           path: ./dist_python
 
       - name: download ncrystal-metapkg dist
-        uses: actions/download-artifact@de96f4613b77ec03b5cf633e7c350c32bd3c5660
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
         with:
           name: final-dist-ncrystal-metapkg
           path: ./dist_metapkg
 
       - name: download ncrystal-verify dist
-        uses: actions/download-artifact@de96f4613b77ec03b5cf633e7c350c32bd3c5660
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
         with:
           name: final-dist-ncrystal-verify
           path: ./dist_verify
