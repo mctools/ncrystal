@@ -18,43 +18,36 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/NCrystal.hh"
-#include "NCrystal/internal/utils/NCStrView.hh"
-#include <iostream>
+#if 0//fixme
+
+#include "NCrystal/internal/extn_utils/NCExtnEval.hh"
 
 namespace NC = NCrystal;
+namespace NCE = NCrystal::Extn;
 
-void testcfg( const char * cfgstr )
+std::vector<NCE::FDMBasket> NCE::vectorizeFDM( const PowderBraggInput::Data& data )
 {
-  std::cout<<">>> Calling createInfo(\""<<cfgstr<<"\")"<<std::endl;
-  auto info = NC::FactImpl::createInfo(cfgstr);
-  std::cout<<">>> Calling dump(info)"<<std::endl;
-  NC::dump( std::cout, info );
-  std::cout<<">>> Dump complete"<<std::endl;
-
-  std::cout<<">>> Calling createScatter(\""<<cfgstr<<"\")"<<std::endl;
-  auto scat = NC::FactImpl::createScatter(cfgstr);
-  (void)scat;
-
-  std::cout<<">>> Calling createAbsorption(\""<<cfgstr<<"\")"<<std::endl;
-  auto absn = NC::FactImpl::createAbsorption(cfgstr);
-  (void)absn;
+  std::vector<FDMBasket> res;
+  unsigned i = FDMBasket::count;
+  for ( auto& e : data.planes ) {
+    if ( i >= FDMBasket::count ) {
+      res.emplace_back();
+      i = 0;
+    }
+    auto& b = res.back();
+    b.fsq[i] = e.fsq;
+    b.inv2dsp[i] = 1.0 / (2.0 * e.dsp);
+    b.fdm[i] = e.fsq * e.dsp * e.mult;
+    ++i;
+  }
+  //Fill remainder of last basket with dummy entries having Fsq=0:
+  while ( i < FDMBasket::count ) {
+    auto& b = res.back();
+    b.fsq[i] = 0.0;
+    b.inv2dsp[i] = 1.0;
+    b.fdm[i] = 0.0;
+    ++i;
+  }
+  return res;
 }
-
-int main()
-{
-  //Loading a few simple materials in this non-Python test is useful for various
-  //debugging scenarios:
-  testcfg("stdlib::Be_sg194.ncmat;extn=0mu/mdl:bc/rec:std");
-  testcfg("stdlib::Al_sg225.ncmat");
-  testcfg("stdlib::Al_sg225.ncmat;dcutoff=0.6;vdoslux=2");
-  testcfg("stdlib::Ni_sg225.ncmat");
-  testcfg("stdlib::Ni_sg225.ncmat;dcutoff=0.6;vdoslux=2");
-  testcfg("Polyethylene_CH2.ncmat;density=0.95gcm3");
-  testcfg("gasmix::air/-10C/0.8atm/0.30relhumidity");
-  testcfg("Ge_sg227.ncmat;mos=20.0arcmin;dir1=@crys_hkl:5,1,1"
-          "@lab:0,0,1;dir2=@crys_hkl:0,-1,1@lab:0,1,0");
-  testcfg("phases<0.1*PbS_sg225_LeadSulfide.ncmat"
-          "&0.9*Epoxy_Araldite506_C18H20O3.ncmat>;temp=296K");
-  return 0;
-}
+#endif

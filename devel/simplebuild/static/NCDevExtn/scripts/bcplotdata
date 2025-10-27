@@ -1,0 +1,592 @@
+#!/usr/bin/env python3
+
+################################################################################
+##                                                                            ##
+##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
+##                                                                            ##
+##  Copyright 2015-2025 NCrystal developers                                   ##
+##                                                                            ##
+##  Licensed under the Apache License, Version 2.0 (the "License");           ##
+##  you may not use this file except in compliance with the License.          ##
+##  You may obtain a copy of the License at                                   ##
+##                                                                            ##
+##      http://www.apache.org/licenses/LICENSE-2.0                            ##
+##                                                                            ##
+##  Unless required by applicable law or agreed to in writing, software       ##
+##  distributed under the License is distributed on an "AS IS" BASIS,         ##
+##  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  ##
+##  See the License for the specific language governing permissions and       ##
+##  limitations under the License.                                            ##
+##                                                                            ##
+################################################################################
+
+import numpy as np
+import json
+import pathlib
+import gzip
+import matplotlib
+import matplotlib.pyplot as plt
+import scipy.optimize
+import math
+kDeg2Rad = math.pi/180
+
+def load_data( datafile ):
+    f = pathlib.Path(datafile)
+    if not f.is_file():
+        raise SystemExit(f'File not found: {datafile}')
+    def npify( data ):
+        data['xvals'] = np.asarray(data['xvals'],dtype=float)
+        t = data['theta_2_ypvals']
+        #print(t)
+        for th in list(t.keys()):
+            t[th] = np.asarray(t[th],dtype=float)
+        return data
+    if f.name.endswith('.gz'):
+        with gzip.open(f, 'r') as fh:
+            return npify(json.loads(fh.read().decode('utf8')))
+    else:
+        with f.open('rt') as fh:
+            return npify(json.load(fh))
+
+def plot_data( data ):
+    xvals = data['xvals']
+
+    show_raw_data = False
+
+    AB = {}
+    for theta_degree_str, ypvals in data['theta_2_ypvals'].items():
+        theta_degree = float(theta_degree_str)#NB: JSON keys MUST be strings
+        color = th2color(theta_degree)
+        lbl = f'theta={theta_degree:g} deg'
+        if int(theta_degree) != theta_degree or int(theta_degree)%10!=0:
+            lbl = None
+        AB[theta_degree_str] = fit_curve(xvals,ypvals)
+        #plt.plot(xvals,np.vectorize(yp_curve1)(xvals,*params),
+        #         color='black',lw=5,zorder=999)
+        if show_raw_data:
+            plt.plot(xvals,ypvals,color=color,
+                     label=lbl)
+    if show_raw_data:
+        plt.legend()
+        plt.semilogx()
+        plt.grid()
+        plt.ylabel('yp')
+        plt.xlabel('x')
+        plt.ylim(0.0,1.0)
+        #plt.xlim(0.0,xvals[-1])
+        plt.show()
+
+    Avals = []
+    Bvals = []
+    Avals_eq38 = []
+    Bvals_eq38 = []
+    thvals = []
+    for theta_degree_str in sorted(data['theta_2_ypvals'].keys(),
+                                   key = lambda k : float(k) ):
+        thvals.append(float(theta_degree_str))
+        a,b = AB[theta_degree_str]
+        Avals.append(a)
+        Bvals.append(b)
+
+        cos2th = math.cos(2*float(theta_degree_str)*kDeg2Rad)
+        Avals_eq38.append( 0.20 + 0.45*cos2th )
+        Bvals_eq38.append( 0.22 - 0.12*(0.5-cos2th)**2 )
+
+    thvals = np.asarray( thvals, dtype = float )
+    Avals = np.asarray( Avals, dtype = float )
+    Bvals = np.asarray( Bvals, dtype = float )
+    Avals_eq38 = np.asarray( Avals_eq38, dtype = float )
+    Bvals_eq38 = np.asarray( Bvals_eq38, dtype = float )
+
+    def fct_A( theta_degree, a1, a2 ):
+        cos2th = math.cos(2*theta_degree*kDeg2Rad)
+        return a1+a2*cos2th
+    (new_a1, new_a2),_ = scipy.optimize.curve_fit( np.vectorize(fct_A),
+                                                   thvals, Avals,
+                                                   p0 = [0.2, 0.45] )
+    def fct_B( theta_degree, b1, b2 ):
+        cos2th = math.cos(2*theta_degree*kDeg2Rad)
+        return b1+b2*(0.5-cos2th)**2
+    (new_b1, new_b2),_ = scipy.optimize.curve_fit( np.vectorize(fct_B),
+                                                   thvals, Bvals,
+                                                   p0 = [0.22, -0.12] )
+
+#GOOD    better_fct_B_p0 = [0.22, -0.12, 0.0]
+#GOOD    def better_fct_B( theta_degree, b1, b2, b3 ):
+#GOOD        c = math.cos(2*theta_degree*kDeg2Rad)
+#GOOD        return b1+b2*(0.5-c)**2 + b3*(0.5-c)**3
+
+    better_fct_B_p0 = [0.22, -0.12, 0.0]
+    def better_fct_B( theta_degree, b1, b2, b3 ):
+        c = math.cos(2*theta_degree*kDeg2Rad)
+        return b1+b2*(0.5-c)**2 + b3*(0.5-c)**3
+
+#GOOD    better_fct_A_p0 = [0.2,0.45,0.5,0.5]
+#GOOD    def better_fct_A( theta_degree, a1, a2, a3, a4 ):
+#GOOD        c = math.cos(2*theta_degree*kDeg2Rad)
+#GOOD        c -= a4
+#GOOD        return a1 + a2*c + a3*c**3
+
+    better_fct_A_p0 = [0.2,0.45,0.5]
+    def better_fct_A( theta_degree, a1, a2, a3 ):
+        c = math.cos(2*theta_degree*kDeg2Rad)
+        return a1 + a2*(c-0.2) + a3*(c-0.2)**3
+
+
+    res_better_B,_ = scipy.optimize.curve_fit( np.vectorize(better_fct_B),
+                                               thvals, Bvals,
+                                               p0 = better_fct_B_p0)
+    res_better_A,_ = scipy.optimize.curve_fit( np.vectorize(better_fct_A),
+                                               thvals, Avals,
+                                               p0 = better_fct_A_p0)
+
+    for xvals, xlabel in [ ( thvals, 'theta [degree]' ),
+                           ( np.cos(thvals*(2*np.pi/180.)), 'cos(2*theta)' ) ]:
+
+        plt.plot( xvals, Avals, label = 'A (optimal at each theta)', color='blue')
+        plt.plot( xvals,
+                  np.vectorize(fct_A)(thvals,new_a1,new_a2),
+                  label = 'A (eq. 38 with new constants)',
+                  color='blue',linestyle='--')
+        plt.plot( xvals,
+                  np.vectorize(better_fct_A)(thvals,*res_better_A),
+                  label = 'A (alternative to eq. 38)',
+                  color='green',linestyle='-.')
+
+        plt.plot( xvals, Bvals, label = 'B (optimal at each theta)',color='magenta')
+        plt.plot( xvals,
+                  np.vectorize(fct_B)(thvals,new_b1,new_b2),
+                  label = 'B (eq. 38 with new constants)',
+                  color='magenta',linestyle='--')
+        plt.plot( xvals,
+                  np.vectorize(better_fct_B)(thvals,*res_better_B),
+                  label = 'B (alternative to eq. 38)',
+                  color='green',linestyle='-.')
+        print('better_A pars:',res_better_A)
+        print('better_B pars:',res_better_B)
+
+
+        print(f'new a1 = {new_a1:g}, a2 = {new_a2:g}')
+        print(f'new b1 = {new_b1:g}, b2 = {new_b2:g}')
+
+
+        plt.plot( xvals, Avals_eq38, label = 'A (eq. 38)',color='red')
+        plt.plot( xvals, Bvals_eq38, label = 'B (eq. 38)',color='orange')
+
+        plt.grid()
+        plt.xlabel(xlabel)
+        plt.legend()
+        plt.show()
+
+
+def safediv( a, b ):
+    return a/b if abs(b)>1e-99 else 1e99
+
+def yp_curve1( x, *params, safe = True ):
+    div = safediv
+    if not safe:
+        def div( a, b ):
+            return a / b if b else float('nan')
+    A, B = params
+    k = 1 + B*x
+    k2 = 1.0+2.0*x+div(A*x*x,k)
+    return div( 1.0, math.sqrt(max( 0.0, k2 )) )
+
+def fit_curve( xvals, ypvals ):
+    res = scipy.optimize.curve_fit(np.vectorize(yp_curve1),
+                                   xvals, ypvals, p0 = [0.5, 0.2] )
+    params = list(float(v) for v in res[0])
+    #print(params)
+    #print('A=%g, B=%g'%tuple(params))
+    return params
+
+_cmap = matplotlib.colormaps['Spectral']
+def th2color( theta_degree ):
+    return _cmap( 1.0 - float( theta_degree ) / 90.0 )
+
+def get_select_pts( data, pick_pts ):
+    return sorted( (float(th),yp) for th,yp in data['theta_2_ypvals'].items()
+                   if any(abs(float(th)-e)<1e-10 for e in pick_pts ) )
+
+def plot_newfcts( data ):
+    xvals = data['xvals']
+    th_and_yp = get_select_pts( data, (0, 10, 30,45,60,70,80,90) )
+    offset = 0.0
+    show_bestAB_at_each_point = False
+    show_proposed_luxrecipe = True
+    show_updatedrecipe = True
+    show_originalrecipe = False
+
+    for theta_degree, ypvals in th_and_yp:
+        color = th2color(theta_degree)
+        lbl = f'$\\theta={theta_degree:g}\\degree$'
+        plt.plot( xvals, ypvals + offset,
+                  label = lbl, color = color )
+        #papers curve:
+        cos2th = math.cos( 2*theta_degree*kDeg2Rad )
+        if show_originalrecipe:
+            A = 0.20 + 0.45*cos2th
+            B = 0.22 - 0.12*(0.5-cos2th)**2
+            plt.plot( xvals,
+                      np.vectorize(lambda x : yp_curve1(x,A,B,safe=False))(xvals) + offset,
+                      label = lbl+' (BCs original recipe)',
+                      color = color, ls = '--' )
+
+        if show_bestAB_at_each_point:
+            A, B = fit_curve(xvals,ypvals)
+            plt.plot( xvals,
+                      np.vectorize(lambda x : yp_curve1(x,A,B,safe=False))(xvals) + offset,
+                      label = lbl+' (best A+B at each $\\theta$)',
+                      color = color, ls = '-.' )
+
+        if show_updatedrecipe:
+            A = 0.524255 + 0.505151 *cos2th
+            B = 0.568505 - 0.206324*(0.5-cos2th)**2
+            plt.plot( xvals,
+                      np.vectorize(lambda x : yp_curve1(x,A,B,safe=False))(xvals) + offset,
+                      label = lbl+' (our updated recipe)',
+                      color = color, ls = '--' )
+        if show_proposed_luxrecipe:
+            A = proposed_A_of_theta( theta_degree )
+            B = proposed_B_of_theta( theta_degree )
+            C = proposed_C_of_theta( theta_degree )
+            plt.plot( xvals,
+                      np.vectorize(lambda x : yp_proposed_curve(x,A,B,C))(xvals) + offset,
+                      label = lbl+' (our new lux recipe)',
+                      color = color, ls = ':', lw=3 )
+        offset += 0.2
+    plt.legend()
+    plt.xlabel('x')
+    plt.ylabel('yp')
+    plt.semilogx()
+    plt.title("NOTE: Curves offset by multiple of 0.2")
+    plt.grid()
+    plt.show()
+
+def yp_eq37curve( x, *params ):
+    if x is None:
+        return 'BC Eq. 37', [0.5,0.2]
+    return yp_curve1(x,*params)
+
+def yp_newcurve1( x, *params ):
+    if x is None:
+        return 'NEW1', [0.5,0.2,2.0]
+    A, B,C = params
+    k = 1 + B*x
+    k2 = 1.0+2.0*x+safediv(A*(x**C),k)
+    #return safediv( 1.0, math.sqrt(max( 0.0, k2 )) )
+    return safediv( 1.0, max( 0.0, k2 )**(1/C) )
+
+def yp_newcurve2( x, *params ):
+    if x is None:
+        return 'NEW2', [0.5,0.2,1.5]
+    A, B, C = params
+    k = 1 + B*x
+    k2 = 1.0+2.0*x+safediv(A*x*x+C*x,k)
+    #return safediv( 1.0, math.sqrt(max( 0.0, k2 )) )
+    return safediv( 1.0, math.sqrt(max( 0.0, k2 )) )
+
+def yp_newcurve3( x, *params ):
+    if x is None:
+        return 'NEW3', [0.5,0.2,1.5,1.0]
+    A, B, C, D = params
+    k = 1 + B*x+D/x
+    k2 = 1.0+2.0*x+safediv(A*x*x+C*x,k)
+    #return safediv( 1.0, math.sqrt(max( 0.0, k2 )) )
+    return safediv( 1.0, max( 0.0, k2 )**0.5 )
+
+def yp_newcurve4( x, *params ):
+    if x is None:
+        return 'NEW4', [0.5,0.2,1.0]
+    A, B, D = params
+    k = 1 + B*x - D / x
+    k2 = 1.0+2.0*x+safediv(A*x*x,k)
+    #return safediv( 1.0, math.sqrt(max( 0.0, k2 )) )
+    return safediv( 1.0, max( 0.0, k2 )**0.5 )
+
+def orig_curve( theta_degree, xvals ):
+    c = math.cos( 2 * theta_degree * kDeg2Rad )
+    x = xvals
+    A = 0.20 +0.45*c
+    B = 0.22 -0.12*(0.5-c)**2
+    y = ((A*x*x / (1 + B*x)) + 2*x)
+    y += 1.0
+    return y**(-0.5)
+
+def orig_curve_newfit( theta_degree, xvals ):
+    c = math.cos( 2 * theta_degree * kDeg2Rad )
+    x = xvals
+    A = 0.524255 + 0.505151 * c
+    B = 0.568505 - 0.206324 * (0.5-c)**2
+    y = ((A*x*x / (1 + B*x)) + 2*x)
+    y += 1.0
+    return y**(-0.5)
+
+def proposed_luxrecipe( theta_degree, xvals ):
+    A = proposed_A_of_theta( theta_degree )
+    B = proposed_B_of_theta( theta_degree )
+    C = proposed_C_of_theta( theta_degree )
+    return np.vectorize( lambda x : yp_proposed_curve(x,A,B,C)) ( xvals )
+
+def try_various_fits( data ):
+    xvals = data['xvals']
+    #th_and_yp = get_select_pts( data, [0,10,20,30,40,50,60,70,80,90] )#fixme more
+    #th_and_yp = get_select_pts( data, [0,90] )#fixme more
+    th_and_yp = get_select_pts( data, [10,30,60,90] )#fixme more
+
+    #'--', '-.', '-', ':'
+    newcurves = [ #( yp_eq37curve, ':' ),
+                  #( yp_newcurve1, '-.' ),
+                  ( yp_newcurve2, '--' ),#<<--- lux choice!
+#                  ( yp_newcurve3, '--' ), #BEST but 4 params and problematic fits?
+#                  ( yp_newcurve4, '-.' ),
+                 ]
+    focus_curve = newcurves[-1][0]
+
+    def truncfloat(val,ndigits):
+        return float( (f'%.{ndigits}g')%val )
+
+    curvename, p0 = focus_curve(None)
+    thvals = []
+    pars = []
+    focus_paramfit_pars = []
+    for p in p0:
+        pars.append([])
+
+    def generic_paramfit( theta, A, B, C, D ):
+        u = math.cos(2*theta*kDeg2Rad)
+        #return A + B*u + C*u**2 + D*u**3# + E*u**4
+        return A + B*u + C*u**2 - D*u**3
+        #u = math.cos(2*theta*kDeg2Rad)
+        #return A + B*u + C*u**2 + D*u**5# + E*u**4
+        #return A + B*u + C*(u-0.5)**2 + D*u**3# + E*u**4
+
+    for theta_degree_str, ypvals in data['theta_2_ypvals'].items():
+        theta_degree = float(theta_degree_str)#NB: JSON keys MUST be strings
+        thvals.append(theta_degree)
+        color = th2color(theta_degree)
+        lbl = f'theta={theta_degree:g} deg'
+        if int(theta_degree) != theta_degree or int(theta_degree)%10!=0:
+            lbl = None
+        res = scipy.optimize.curve_fit( np.vectorize(focus_curve),
+                                        xvals, ypvals, p0 = p0 )
+        for i, p in enumerate(res[0]):
+            pars[i].append(p)
+
+    thvals = np.asarray(thvals,dtype=float)
+    for i in range(len(p0)):
+        par_name = 'ABCDEFGHIJKL'[i]
+        parvals = np.asarray(pars[i],dtype=float)
+        plt.plot( thvals, parvals, label=par_name)
+        res = scipy.optimize.curve_fit( np.vectorize(generic_paramfit),
+                                        thvals, parvals, p0 = [0.5,0.5,0.5,0.5] )
+        parvals_fit = np.vectorize(lambda th : generic_paramfit(th,*res[0]))(thvals)
+        trunc_res = [ truncfloat(e,4) for e in res[0] ]
+        parvals_fit_trunc = np.vectorize(lambda th : generic_paramfit(th,*trunc_res))(thvals)
+        plt.plot( thvals, parvals_fit, ls=':', label='FIT')
+        plt.plot( thvals,parvals_fit_trunc,ls='-.', label='FIT (3 digits)')
+        #print( res[0] )
+        print( trunc_res )
+        focus_paramfit_pars.append( trunc_res )
+    plt.grid()
+    plt.legend()
+    plt.show()
+
+    fig, axs = plt.subplots(2, 1, sharex=True)
+    fig.subplots_adjust(hspace=0)
+    ax, axdiff = axs
+
+    offset = 0
+    offset_step = 0.0
+    for theta_degree, ypvals in th_and_yp:
+        color = th2color(theta_degree)
+        lbl = f'$\\theta={theta_degree:g}\\degree$'
+        ref_yvals = ypvals
+        ax.plot( xvals, ypvals + offset,
+                  label = lbl, color = color, alpha=0.5 )
+
+        all_curves = list(n for n in newcurves)
+        focus_paramvals = []
+        for p in focus_paramfit_pars:
+            focus_paramvals.append( generic_paramfit( theta_degree, *p ) )
+        def focus_curve_from_fit( x ):
+            if x is None:
+                name, _ = focus_curve(None)
+                return name+'-FITTED', []
+            return focus_curve( x, *focus_paramvals )
+
+        all_curves.append( ( focus_curve_from_fit, '-' ) )
+        for icurve, (curvefct, ls) in enumerate(all_curves):
+            curvename, p0 = curvefct(None)
+            if p0:
+                res = scipy.optimize.curve_fit( np.vectorize(curvefct),
+                                                xvals, ypvals, p0 = p0 )
+                print(res[0])
+            else:
+                res = [[]]
+            yvals = np.vectorize(lambda x : curvefct(x,*res[0]))(xvals)
+            yvals_diff = yvals - ref_yvals
+            ilbl = lbl+f' ({curvename} best fit)'
+            curve_args = dict( label = ilbl,
+                               color = color,
+                               ls = ls,
+                               alpha = 0.5,
+                               lw = 4 )
+            ax.plot( xvals, yvals + offset, **curve_args)
+            axdiff.plot(xvals,yvals_diff,**curve_args)
+
+        offset += offset_step
+
+    #for theta_degree, ypvals in th_and_yp:
+        y_orig_newfit = orig_curve_newfit(theta_degree,xvals)
+        y_proposed_lux = proposed_luxrecipe(theta_degree,xvals)
+        if False:
+            y_orig = orig_curve(theta_degree,xvals)
+            curve_args['label'] = lbl + '(ORIG BC)'
+            curve_args['ls'] = ':'
+            axdiff.plot(xvals,y_orig-ref_yvals,**curve_args)
+        curve_args['label'] = lbl + '(ORIG BC NEW FIT VALS)'
+        curve_args['ls'] = '-.'
+        axdiff.plot(xvals,y_orig_newfit-ref_yvals,**curve_args)
+        curve_args['label'] = lbl + '(PROPOSED LUX RECIPE)'
+        curve_args['ls'] = ':'
+        curve_args['lw'] = 10
+        axdiff.plot(xvals,y_proposed_lux-ref_yvals,**curve_args)
+
+    ax.legend()
+    ax.set_xlabel('x')
+    ax.set_ylabel('yp')
+    ax.semilogx()
+    if offset_step:
+        plt.title(f"NOTE: Curves offset by multiple of {offset_step:g}")
+    ax.grid()
+    axdiff.grid()
+    plt.show()
+
+
+def yp_proposed_curve( x, A, B, C ):
+    k = 1 + B*x
+    k2 = 1.0+2.0*x+safediv(A*x*x+C*x,k)
+    return safediv( 1.0, math.sqrt(max( 0.0, k2 )) )
+
+def proposed_A_of_theta( theta ):
+    s = math.sin( theta*kDeg2Rad )
+    p = [ 1.43104513, 0.54865635, -2.0986641, 0.47876959,
+          -1.90465035, 1.64309585, 0.080287 ]
+    return p[0]+s*(p[1]+s*(p[2]+s*(p[3]+s*(p[4]+s*(p[5]+s*p[6])))))
+
+def proposed_B_of_theta( theta ):
+    s = math.sin( theta*kDeg2Rad )
+    p = [ 0.68128725, 0.38739368, 2.82429673, -10.98617868,
+          21.27658706, -22.93989463, 9.12660847 ]
+    return p[0]+s*(p[1]+s*(p[2]+s*(p[3]+s*(p[4]+s*(p[5]+s*p[6])))))
+
+def proposed_C_of_theta( theta ):
+    s = math.sin( theta*kDeg2Rad )
+    p = [ -0.19676502, -0.08773561, 0.33719042, 0.04878878,
+          -0.77321204, 1.14592446, -0.59146134 ]
+    return p[0]+s*(p[1]+s*(p[2]+s*(p[3]+s*(p[4]+s*(p[5]+s*p[6])))))
+
+
+
+def toarray( a ):
+    return np.asarray(a,dtype=float)
+
+def investigate_proposed_curve( data ):
+    f = np.vectorize(yp_proposed_curve)
+    xvals = data['xvals']
+
+    optimalA = []
+    optimalB = []
+    optimalC = []
+    thvals = []
+
+    for theta_degree_str, ypvals in data['theta_2_ypvals'].items():
+        thvals.append(float(theta_degree_str))
+        (A,B,C),_ = scipy.optimize.curve_fit(f,xvals, ypvals,
+                                             p0 = [1.0,1.0,1.0] )
+        optimalA.append(A)
+        optimalB.append(B)
+        optimalC.append(C)
+
+    thvals = toarray(thvals)
+    optimalA = toarray(optimalA)
+    optimalB = toarray(optimalB)
+    optimalC = toarray(optimalC)
+
+    #Let us fit and visualise proposed forms:
+    fctA_p0 = [ 1.0, ] * 7
+    @np.vectorize
+    def fctA( theta, p0, p1, p2,p3,p4,p5,p6 ):
+        u = math.sin( theta*kDeg2Rad )
+        return p0 + p1*u + p2*u**2 + p3*u**3 +p4*u**4 +p5*u**5 + p6*u**6
+    res_fctA,_ = scipy.optimize.curve_fit( fctA, thvals, optimalA, p0 = fctA_p0 )
+    print('fctA(theta) pars:',res_fctA)
+
+    fctB_p0 = [ 1.0, ]*7
+    @np.vectorize
+    def fctB( theta, p0, p1, p2, p3, p4, p5, p6 ):
+        u = math.sin( theta*kDeg2Rad )
+        return p0 + p1*u + p2*u**2 + p3*u**3 + p4*u**4 + p5*u**5 + p6*u**6
+#works in cos2th    def fctB( theta, p1, p2, p3,p4,p5 ):
+#works in cos2th        u = math.cos( 2*theta*kDeg2Rad )
+#works in cos2th        u -= 0.42
+#works in cos2th        return p1 + p2*u**2 + p3*u**4 + p4*u**5 + p5*u**6
+    res_fctB,_ = scipy.optimize.curve_fit( fctB, thvals, optimalB, p0 = fctB_p0 )
+    print('fctB(theta) pars:',res_fctB)
+
+    fctC_p0 = [ 1.0, ] * 7
+    @np.vectorize
+    def fctC( theta, p0, p1, p2, p3, p4, p5, p6 ):
+        u = math.sin( theta*kDeg2Rad )
+        return p0 + p1*u + p2*u**2 + p3*u**3 + p4*u**4 + p5*u**5 + p6*u**6
+    res_fctC,_ = scipy.optimize.curve_fit( fctC, thvals, optimalC, p0 = fctC_p0 )
+    print('fctC(theta) pars:',res_fctC)
+
+
+
+    for xvals, xlabel in [ ( thvals, 'theta [degree]' ),
+                           ( np.cos(thvals*(2*np.pi/180.)), 'cos(2*theta)' ),
+                           ( np.sin(thvals*(np.pi/180.)), 'sin(theta)' ),
+                          ]:
+
+        plt.plot( xvals, optimalA, label = 'A (optimal at each theta)',
+                  color='blue')
+        plt.plot( xvals, fctA(thvals,*res_fctA),
+                  label = 'proposed A(theta)',
+                  color='blue',linestyle='--',lw=3)
+
+        plt.plot( xvals, optimalB, label = 'B (optimal at each theta)',
+                  color='green')
+        plt.plot( xvals, fctB(thvals,*res_fctB),
+                  label = 'proposed B(theta)',
+                  color='green',linestyle='--',lw=3)
+
+        plt.plot( xvals, optimalC, label = 'C (optimal at each theta)',
+                  color='red')
+        plt.plot( xvals, fctC(thvals,*res_fctC),
+                  label = 'proposed C(theta)',
+                  color='red',linestyle='--',lw=3)
+
+        plt.grid()
+        plt.xlabel(xlabel)
+        plt.legend()
+        plt.show()
+
+def main():
+    import sys
+    data = load_data( sys.argv[1] )
+    #import pprint
+    #pprint.pprint(data)
+    if True:
+        plot_data( data )#fixme
+    if True:
+        plot_newfcts( data )
+    if True:
+        try_various_fits( data )
+    if True:
+        investigate_proposed_curve( data )
+
+if __name__=='__main__':
+    main()
+
