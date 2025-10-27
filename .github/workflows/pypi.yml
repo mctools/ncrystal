@@ -141,28 +141,28 @@ jobs:
         run: pipx run build --sdist ./ncrystal_verify
 
       - name: register ncrystal-core sdist
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
         with:
           name: sdist-ncrystal-core
           path: ./ncrystal_core/dist/ncrystal_core${{ env.SDIST_SUFFIX }}
           if-no-files-found: error
 
       - name: register ncrystal-python sdist
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
         with:
           name: sdist-ncrystal-python
           path: ./ncrystal_python/dist/ncrystal_python${{ env.SDIST_SUFFIX }}
           if-no-files-found: error
 
       - name: register ncrystal-metapkg sdist
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
         with:
           name: sdist-ncrystal-metapkg
           path: ./ncrystal_metapkg/dist/ncrystal${{ env.SDIST_SUFFIX }}
           if-no-files-found: error
 
       - name: register ncrystal-verify sdist
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
         with:
           name: sdist-ncrystal-verify
           path: ./ncrystal_verify/dist/ncrystal_verify${{ env.SDIST_SUFFIX }}
@@ -223,21 +223,21 @@ jobs:
           pipx run build --wheel ./ncrystal_verify-${{ needs.preparations.outputs.ncrystalversion }} --outdir=../dist-ncrystal-verify
 
       - name: register ncrystal-python pure wheel
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
         with:
           name: wheel-ncrystal-python
           path: ./dist-ncrystal-python/ncrystal_python-${{ needs.preparations.outputs.ncrystalversion }}-py3-none-any.whl
           if-no-files-found: error
 
       - name: register ncrystal-metapkg pure wheel
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
         with:
           name: wheel-ncrystal-metapkg
           path: ./dist-ncrystal-metapkg/ncrystal-${{ needs.preparations.outputs.ncrystalversion }}-py3-none-any.whl
           if-no-files-found: error
 
       - name: register ncrystal-verify pure wheel
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
         with:
           name: wheel-ncrystal-verify
           path: ./dist-ncrystal-verify/ncrystal_verify-${{ needs.preparations.outputs.ncrystalversion }}-py3-none-any.whl
@@ -308,7 +308,7 @@ jobs:
         if: runner.os == 'Windows'
         run: dir wheelhouse
 
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
         with:
           name: ncrystal-core-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./wheelhouse/ncrystal_core-*.whl
@@ -436,25 +436,25 @@ jobs:
           test -f ./dist_verify/ncrystal_verify-${{ needs.preparations.outputs.ncrystalversion }}.tar.gz
           test -f ./dist_verify/ncrystal_verify-${{ needs.preparations.outputs.ncrystalversion }}-py3-none-any.whl
 
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
         with:
           name: final-dist-ncrystal-core
           path: ./dist_core
           if-no-files-found: error
 
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
         with:
           name: final-dist-ncrystal-python
           path: ./dist_python
           if-no-files-found: error
 
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
         with:
           name: final-dist-ncrystal-metapkg
           path: ./dist_metapkg
           if-no-files-found: error
 
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
         with:
           name: final-dist-ncrystal-verify
           path: ./dist_verify
