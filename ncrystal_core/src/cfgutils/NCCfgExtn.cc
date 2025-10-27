@@ -40,6 +40,7 @@ namespace NCRYSTAL_NAMESPACE {
         constexpr auto key_angspread = StrView::make("angular_spread");//fixme "block_spread" ?
 
         constexpr auto default_model = StrView::make("sabine");
+        constexpr auto default_bcmodel_recipeversion = StrView::make("std");
 
         void verify_model_name( const CfgKeyValMap& data, StrView name )
         {
@@ -62,19 +63,23 @@ namespace NCRYSTAL_NAMESPACE {
                                                                  ValDbl_ShortStrOrigRep::max_strlen );
         using FlexShortStr = ShortStr<flexstr_max_len+1>;
 
-        struct ValParserLength {
+        template<bool ALLOW_ZERO = false>
+        struct ValParserLengthImpl {
           using base_parser = units_length;
           using res_type_t = Length;
           static constexpr auto type_name = "length";
           static Length validateAndEncode( double raw_val, StrView context )
           {
             double val = raw_val * Length::angstrom;
-            if ( !std::isfinite(val) || !(val>0.0) )
+            if ( !std::isfinite(val) || !( ALLOW_ZERO ? val>=0.0 : val > 0.0 ) )
               NCRYSTAL_THROW2(BadInput,"Invalid "<<context<<' '<<type_name
                               <<" value in extinction cfg: \""<<raw_val<<"\"");
             return Length{ val };
           }
         };
+        using ValParserLength = ValParserLengthImpl<false>;
+        using ValParserLengthAllowZero = ValParserLengthImpl<true>;
+
 
         struct ValParserAngle {
           using base_parser = units_angle;
@@ -124,10 +129,11 @@ namespace NCRYSTAL_NAMESPACE {
 
         const char * recipeVersion2cstr(const ExtnCfg_BC::RecipeVersion& rv )
         {
-          if ( rv == ExtnCfg_BC::RecipeVersion::Lux2025 )
-            return "lux";
+          //fixme: move to header with enum
           if ( rv == ExtnCfg_BC::RecipeVersion::Std2025 )
             return "std";
+          if ( rv == ExtnCfg_BC::RecipeVersion::Lux2025 )
+            return "lux";
           nc_assert_always( rv == ExtnCfg_BC::RecipeVersion::Classic1974 );
           return "cls";
         }
@@ -169,6 +175,10 @@ NC::Cfg::CfgKeyValMap NCCE::decode_cfgstr( VarId varid, StrView sv )
   //
   // * We do not allow duplicate keys, and all pure value entries must come
   //   before any key-value entries.
+  //
+  // * Pure secondary extinction is supported by setting the domain size to 0,
+  //   as in "0/100um/1deg", but a zero domain is not allowed without secondary
+  //   extinction enabled.
 
   auto parts = sv.splitTrimmedNoEmpty('/');
   SmallVector<StrView,3> parts_pureval;
@@ -208,8 +218,15 @@ NC::Cfg::CfgKeyValMap NCCE::decode_cfgstr( VarId varid, StrView sv )
                     <<"\": Must have exactly 1 or 3 value entries");
   }
 
-  FlexShortStr valbuf_ds
-    = parseValToStr<ValParserLength>( parts_pureval.at(0), "domain size (length)" );
+  FlexShortStr valbuf_ds;
+  Length domain_size;
+  {
+    auto r = parseValImpl<ValParserLengthAllowZero>( parts_pureval.at(0),
+                                                     "domain size (length)" );
+    valbuf_ds = r.first;
+    domain_size = r.second;
+  }
+
   res.emplace_back(key_domainsize,valbuf_ds.to_view());
   FlexShortStr valbuf_gs;
   FlexShortStr valbuf_as;
@@ -218,6 +235,13 @@ NC::Cfg::CfgKeyValMap NCCE::decode_cfgstr( VarId varid, StrView sv )
     valbuf_as = parseValToStr<ValParserAngle>( parts_pureval.at(2), "domain spread (angle)" );//fixme: fix terminology
     res.emplace_back(key_grainsize,valbuf_gs.to_view());
     res.emplace_back(key_angspread,valbuf_as.to_view());
+  } else {
+    //No secondary extinction. In this case, domain_size = 0 is not allowed.
+    if ( !(domain_size.get()>0) )
+      NCRYSTAL_THROW2(BadInput,
+                      "Syntax error in extinction cfg \""<<sv
+                      <<"\": domain size of 0 is only allowed"
+                      " in case of three value entries");
   }
   parts_pureval.clear();
 
@@ -292,7 +316,8 @@ NC::Cfg::CfgKeyValMap NCCE::decode_cfgstr( VarId varid, StrView sv )
                          <<kv.first<<"\" parameter." );
       }
     }
-    if ( val_recipeVersion.has_value() && val_recipeVersion != "lux" )
+    if ( val_recipeVersion.has_value()
+         && val_recipeVersion != default_bcmodel_recipeversion )
       res.emplace_back("rec",val_recipeVersion);
   } else if ( model.has_value() ) {
     NCRYSTAL_THROW2(BadInput,
@@ -350,7 +375,7 @@ NCCE::ExtnCfg_Base NCCE::ExtnCfg_Base::decode( const CfgKeyValMap& data )
   //can assert that all will decode correctly.
   ExtnCfg_Base res;
   {
-    res.domainSize = parseVal<ValParserLength>( data.getValue( key_domainsize ) );
+    res.domainSize = parseVal<ValParserLengthAllowZero>( data.getValue( key_domainsize ) );
   }
   if ( data.hasValue(key_grainsize) ) {
     res.grain.emplace();
@@ -386,14 +411,14 @@ NCCE::ExtnCfg_BC NCCE::ExtnCfg_BC::decode( const CfgKeyValMap& data )
 {
   verify_model_name( data, "bc" );
   ExtnCfg_BC res;
-  auto recstr = data.getValue( "rec", "lux" );
-  if ( recstr == "lux" ) {
-    res.recipeVersion = RecipeVersion::Lux2025;
-  } else if ( recstr == "cls" ) {
-    res.recipeVersion = RecipeVersion::Classic1974;
-  } else {
-    nc_assert_always( recstr == "std" );
+  auto recstr = data.getValue( "rec", default_bcmodel_recipeversion );
+  if ( recstr == "std" ) {
     res.recipeVersion = RecipeVersion::Std2025;
+  } else if ( recstr == "lux" ) {
+    res.recipeVersion = RecipeVersion::Lux2025;
+  } else {
+    nc_assert_always( recstr == "cls" );
+    res.recipeVersion = RecipeVersion::Classic1974;
   }
   return res;
 }

@@ -1,0 +1,58 @@
+
+
+Best solution: The vectorised eval is falling back to other eval (via template,
+not virtual function?). But our main models will all implement the vectorised
+method.
+
+
+BEST SOLUTION: Be able to BOTH
+
+
+
+
+extinction models: a function (dhkl, F2, ekin, EXTNMDLPARAMS) -> E_hkl(ekin)
+
+
+-----------------------------------
+DETAILED-MODEL:
+cross-section: Eval E_hkl(ekin) for all planes, add up with std powder factors for contrib_hkl(ekin).
+scatter sampling: Pick plane based on contrib_hkl(ekin).  SO WE NEED A CACHE!!!!!!!!
+
+
+-----------------------------------
+FAST-MODEL (for low-dspacing and low-fsq planes):
+cross-section: cached xs(ekin) curve based on DETAILED-MODEL evaluation of contrib_hkl(ekin)
+
+Does it perhaps make sense to use std powder xs-curve, and then cache the
+correction factor? E_combined(ekin) ?
+
+scatter sampling: Pick plane based on standard powder model without extinction,
+                  then evaluate E_hkl(ekin) and use for rejection.
+                  ===> Ok with vectorized E_hkl(ekin) calc, since we anyway
+                       might need >1 plane. But keep Nvectorisation low!!
+                       Probably just 2.
+                  ===> Better with non-vectorised
+
+------------------------------------
+Future single-crystal model:
+
+Just use detailed model. However, best if we can evaluate single. Should we
+simply require both vectorised and non-vectorised eval function???
+
+
+-----------------------------------
+
+We might benefit from model being able to determine E_hkl_max (which for Sabine
+would be max(El(ekin),Eb(ekin)).
+
+Or perhaps rather E_hkl_min(...). To determine which planes go where. But to
+begin with, we can make some ad-hoc model based on d-spacing (and perhaps
+f-squared). I think we should always have the longest 20(?) d-spacing edges in the
+detailed model, just for simplicity. PROBLEM: Changing the dcufupper could then
+move some planes between fast and detailed models. The value 20 should be
+configurable (-1: all fast, 0 -> all detailed). This can be part of the "extn"
+parameter since that is already a scatter parameter. We might need some "lux"
+parameter as well in general?
+
+The value "20" should be a multiple of our vectorisation. So perhaps a power of
+2 would be best?

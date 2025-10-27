@@ -77,7 +77,7 @@ def test( ncmatkey, *, dcutoff, extncfg ):
                        extra_cfg )
 
     #wls = np.linspace(3.9605,3.96052,200000)#fixme
-    wls = np.linspace(0.0,6.0,20000)
+    wls = np.linspace(0.0,6.0,20)#fixme
     #wls = np.concatenate( (wls, np.linspace(2.14,2.142,10000)), axis=0 )
     wls.sort()
     plt.plot(wls,mat_dev.xsect(wl=wls),label='NCrystal (devel)')
@@ -102,14 +102,14 @@ def extncfg_2_plugincfg( extncfg ):
 
     par_l = d['domainSize']
     mdl = d['model']
+    kTwoSqrtPi = 3.5449077018110318
+    kFWHM2Sigma  = 0.42466090014400952136075141705144480985757# 1/sqrt(8ln(2))
+
     if mdl['name']=='sabine':
         if not d['grain']:
             return f'Sabine_uncorr {par_l} 0.0 0.0 rect'
         print(d)
         par_L = d['grain']['grainSize']
-        kTwoSqrtPi = 3.5449077018110318
-        kFWHM2Sigma  = 0.42466090014400952136075141705144480985757# 1/sqrt(8ln(2))
-
         stddev = d['grain']['angularSpread'] * kFWHM2Sigma
         assert d['model']['correlated'] in ('yes','no')
         if d['model']['correlated'] == 'yes':
@@ -126,8 +126,16 @@ def extncfg_2_plugincfg( extncfg ):
             mdl_name = 'tri'
         return f'Sabine_uncorr {par_l}  {par_G}  {par_L} {mdl_name}'
     elif mdl['name']=='bc':
-        assert not d['grain'],  "Only pure primary BC models so far"
-        return f'BC_pure  {par_l}  0.0  0.0  Gauss'
+        print(d)
+        if not d['grain']:
+            return f'BC_pure  {par_l}  0.0  0.0  Gauss'
+        scndtype='Gauss'#FIXMEFIXME
+        par_L = d['grain']['grainSize']
+        stddev = d['grain']['angularSpread'] * kFWHM2Sigma
+        par_g = 1.0 / ( kTwoSqrtPi * stddev )
+        if not par_l:
+            return f'BC_pure  {par_l}  {par_g}  {par_L}  {scndtype}'
+        assert False, "mix models not supported yet"
     else:
         raise RuntimeError('Unkown model: %s'%mdl['name'])
 

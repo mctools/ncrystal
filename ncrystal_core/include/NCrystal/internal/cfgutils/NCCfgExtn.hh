@@ -52,7 +52,7 @@ namespace NCRYSTAL_NAMESPACE {
 
       struct ExtnCfg_Base {
         Model model;
-        Length domainSize;
+        Length domainSize;//fixme: we allow zero, but an Optional<Length> would be better in this case.
         struct Grain {
           Length grainSize;
           MosaicityFWHM angularSpread;//spread of domains inside a grain
@@ -81,7 +81,9 @@ namespace NCRYSTAL_NAMESPACE {
         enum class RecipeVersion { Std2025 = 0,
                                    Lux2025 = 1,
                                    Classic1974 = 2 };
+        enum class SecondaryModel { Gauss, Lorentz, Fresnel };
         RecipeVersion recipeVersion = RecipeVersion::Std2025;
+        SecondaryModel secondaryModel = SecondaryModel::Gauss;//fixme parse and allow to change
         static ExtnCfg_BC decode( const CfgKeyValMap& );
       };
 
