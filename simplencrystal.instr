@@ -1,0 +1,81 @@
+/*******************************************************************************
+* Instrument: NCrystal_simple
+*
+* %I
+* Written by: Thomas Kittelmann (thomas.kittelmann@ess.eu)
+* Date: 2025-11-04
+* Origin: ESS
+* %INSTRUMENT_SITE: NCrystal
+*
+
+* A very simple instrument, in which one can play around with an NCrystal
+* cfg-string defining a sample, as well as the incoming neutron wavelength. The
+* output is a histogram of angles. This can for instance be used to compare
+* scattering patterns from NCrystal inside McStas with patterns generated with
+* the standalone NCrystal "MiniMC" tool. To see the MiniMC pattern, one might for instance
+* run: nctool --mc "1.8Aa" "2cm" "Be_sg194.ncmat;temp=80K"
+*
+* %D
+* Simple instrument with an NCrystal_sample and a collected angular scattering
+* pattern.
+*
+* Example: lambda=3.5
+*
+* %P
+* lambda: [Aa] Incoming neutron wavelemgth.
+* sample_cfg: [string] NCrystal cfg-string decribing the sample.
+*
+* %L
+* <reference/HTML link>
+*
+* %E
+*******************************************************************************/
+DEFINE INSTRUMENT template_simple(  lambda = 1.8,
+                                    string sample_cfg="Be_sg194.ncmat;temp=80K")
+DECLARE
+%{
+%}
+
+USERVARS
+%{
+%}
+
+INITIALIZE
+%{
+%}
+
+TRACE
+
+COMPONENT origin = Progress_bar()
+AT (0, 0, 0) RELATIVE ABSOLUTE
+
+COMPONENT source = Source_simple(
+    lambda0=lambda,
+    dlambda=0.001,
+    focus_yh=0.01,
+    focus_xw=0.01
+)
+AT (0, 0, 0) RELATIVE PREVIOUS
+
+COMPONENT sample = NCrystal_sample(
+    cfg=sample_cfg,
+    yheight=0.05,
+    radius=0.01
+)
+AT (0, 0, 10) RELATIVE PREVIOUS
+
+COMPONENT beamstop = Beamstop()
+AT (0, 0, 0.4) RELATIVE sample
+
+COMPONENT monitor_nd = Monitor_nD(
+    radius=1,
+    yheight=0.1,
+    options="banana theta limits=[10,170] bins=161"
+)
+AT (0, 0, 0) RELATIVE sample
+
+FINALLY
+%{
+%}
+
+END
