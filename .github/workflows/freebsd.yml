@@ -32,7 +32,7 @@ jobs:
         run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
 
       - name: FreeBSD
-        uses: cross-platform-actions/action@v0.29.0
+        uses: cross-platform-actions/action@v0.30.0
         with:
           environment_variables: CMAKE_BUILD_PARALLEL_LEVEL CTEST_PARALLEL_LEVEL
           operating_system: freebsd
@@ -63,7 +63,7 @@ jobs:
         run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
 
       - name: FreeBSD
-        uses: cross-platform-actions/action@v0.29.0
+        uses: cross-platform-actions/action@v0.30.0
         with:
           environment_variables: CMAKE_BUILD_PARALLEL_LEVEL CTEST_PARALLEL_LEVEL
           operating_system: freebsd
