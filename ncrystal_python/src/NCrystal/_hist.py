@@ -95,7 +95,7 @@ class Hist1D:
         if e_low == e_high:
             return ( 0.0, 0.0 )
         assert e_low >= 0
-        assert e_low < e_high < self.nbins
+        assert e_low < e_high <= self.nbins
         return self.integrate_bins( e_low, e_high - 1 )
 
     def integrate_bins( self, bin_low = None, bin_up = None ):
