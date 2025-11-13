@@ -70,6 +70,44 @@ namespace NCRYSTAL_NAMESPACE {
     using MergedData = DataImpl<MergedPlane>;
   }
 
+  namespace Extn {
+
+    //Various types related to extinction models, to be used both in
+    //configuration and extinction components. Here BC is shorthand of
+    //Becker-Coppens.
+
+    enum class BC_RecipeVersion { Std2025 = 0,
+                                  Lux2025 = 1,
+                                  Classic1974 = 2,
+                                  Default = Std2025 };
+    enum class BC_Component{ P = 0, G = 1, L = 2, F = 3,
+                             Primary = P, ScndGauss = G,
+                             ScndLorentz = L, ScndFresnel = F };
+    enum class BC_ScndXDef { Standard,  //Standard BC X_G/X_L
+                             TypeI,     //Standard, but dropping terms to enforce TypeI
+                             TypeII,    //Standard, but dropping terms to enforce TypeII
+                             Decoupled, //Decoupling X_G/X_L from the domain
+                                        //size, reducing domain-size effects to
+                                        //a point-like effect absorbed on F^2
+                                        //through primary extinction
+                             Default = Decoupled };
+
+    enum class BC_ScndComponent { G = 1, L = 2, F = 3,
+                                  ScndGauss = G,
+                                  ScndLorentz = L,
+                                  ScndFresnel = F,
+                                  Gauss = G,
+                                  Lorentz = L,
+                                  Fresnel = F,
+                                  Default = G };//fixme: decide if L is better.
+    inline constexpr BC_Component as_BC_Component( BC_ScndComponent sc )
+    {
+      return ( sc==BC_ScndComponent::G? BC_Component::G
+               : ( sc == BC_ScndComponent::L
+                   ? BC_Component::L : BC_Component::F ) );
+    }
+
+  }
 }
 
 #endif

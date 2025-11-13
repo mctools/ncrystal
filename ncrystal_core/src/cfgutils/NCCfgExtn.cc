@@ -41,6 +41,7 @@ namespace NCRYSTAL_NAMESPACE {
 
         constexpr auto default_model = StrView::make("sabine");
         constexpr auto default_bcmodel_recipeversion = StrView::make("std");
+        static_assert( BC_RecipeVersion::Default == BC_RecipeVersion::Std2025, "");
 
         void verify_model_name( const CfgKeyValMap& data, StrView name )
         {

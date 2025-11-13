@@ -29,15 +29,40 @@ namespace NCE = NCrystal::Extn;
 namespace NCRYSTAL_NAMESPACE {
   namespace Extn {
     namespace {
+
       template<class TXCalc,class TYCalc, typename ...Args>
-      inline shared_obj<ExtnScatter<GenericModel<TXCalc,TYCalc>>>
+      inline NC::ProcImpl::ProcPtr
       factCreate( PowderBraggInput::Data&& data, Args&& ...args )
       {
         auto modelData = TXCalc::initModelData( data.cell,
                                                 std::forward<Args>(args)... );
-        return ExtnScatter<GenericModel<TXCalc,TYCalc>>::createSO( std::move(modelData),
-                                                                   std::move(data) );
+        return ExtnScatter<GenericModel_1Comp<TXCalc,TYCalc>>::createSO( std::move(modelData),
+                                                                         std::move(data) );
       }
+
+      template<class TXCalc,class TYCalc,
+               class TXCalcScnd, class TYCalcScnd, typename ...Args>
+      inline NC::ProcImpl::ProcPtr
+      factCreate2Comp( PowderBraggInput::Data&& data, Length domainSize, Args&& ...args )
+      {
+        using GM = GenericModel_2Comp<TXCalc,TYCalc,TXCalcScnd,TYCalcScnd>;
+        typename GM::ModelData md;
+        md.prim = TXCalc::initModelData( data.cell, domainSize );
+
+
+        md.scnd = TXCalcScnd::initModelData( data.cell,
+#ifdef NCRYSTAL_BCSCNDX_ALA_SHUQI
+                                             domainSize,
+#endif
+                                             std::forward<Args>(args)... );
+        return ExtnScatter<GM>::createSO( std::move(md), std::move(data) );
+      }
+
+      template<BC_RecipeVersion RecipeVersion>
+      NC::ProcImpl::ProcPtr factCreateBCRecipe( PowderBraggInput::Data&& data,
+                                                ExtnCfg_BC
+
+
     }
   }
 }
@@ -97,6 +122,7 @@ NC::ProcImpl::ProcPtr NCE::createIsotropicExtnProc( PowderBraggInput::Data&& dat
 
     const bool has_primary = mdl_base.domainSize.get() > 0.0;//fixme should be .has_value()
     const bool has_secondary = mdl_base.grain.has_value();//fixme should be .has_value()
+    nc_assert_always( has_primary || has_secondary );
 
     if ( has_primary && !has_secondary ) {
       //BC primary models, no secondary
@@ -110,30 +136,59 @@ NC::ProcImpl::ProcPtr NCE::createIsotropicExtnProc( PowderBraggInput::Data&& dat
       default:
         nc_assert_always(false);
       };
-    } else if ( has_secondary && !has_primary ) {
-      //BC secondary models, no primary
+    } else {
+      //BC secondary models.
+      nc_assert_always( has_secondary && mdl_base.grain.has_value() );
+      auto& gr = mdl_base.grain.value();
       if ( mdl_bc.secondaryModel != ExtnCfg_BC::SecondaryModel::Gauss )
         NCRYSTAL_THROW(BadInput,"BC model only has Gaussian secondary for now");//fixme
-      auto& gr = mdl_base.grain.value();
-      switch( mdl_bc.recipeVersion ) {
-      case ExtnCfg_BC::RecipeVersion::Std2025:
-        return factCreate<BCXCalc_G,BCEval<BC_M::G,BC_RecipeVersion::Std2025>>(std::move(data),
-                                                                               gr.grainSize,
-                                                                               gr.angularSpread);
-      case ExtnCfg_BC::RecipeVersion::Lux2025:
-        return factCreate<BCXCalc_G,BCEval<BC_M::G,BC_RecipeVersion::Lux2025>>(std::move(data),
-                                                                               gr.grainSize,
-                                                                               gr.angularSpread);
-      case ExtnCfg_BC::RecipeVersion::Classic1974:
-        return factCreate<BCXCalc_G,BCEval<BC_M::G,BC_RecipeVersion::Classic1974>>(std::move(data),
-                                                                                   gr.grainSize,
-                                                                                   gr.angularSpread);
-      default:
-        nc_assert_always(false);
-      };
-    } else {
-      nc_assert( has_primary && has_secondary );
-      NCRYSTAL_THROW(BadInput,"BC model for now does not support primary+secondary extinction");//fixme
+      if ( !has_primary ) {
+        //Pure secondary:
+        switch( mdl_bc.recipeVersion ) {
+        case ExtnCfg_BC::RecipeVersion::Std2025:
+          return factCreate<BCXCalc_G,BCEval<BC_M::G,BC_RecipeVersion::Std2025>>(std::move(data),
+#ifdef NCRYSTAL_BCSCNDX_ALA_SHUQI
+                                                                                 mdl_base.domainSize,
+#endif
+                                                                                 gr.grainSize,
+                                                                                 gr.angularSpread);
+        case ExtnCfg_BC::RecipeVersion::Lux2025:
+          return factCreate<BCXCalc_G,BCEval<BC_M::G,BC_RecipeVersion::Lux2025>>(std::move(data),
+#ifdef NCRYSTAL_BCSCNDX_ALA_SHUQI
+                                                                                 mdl_base.domainSize,
+#endif
+                                                                                 gr.grainSize,
+                                                                                 gr.angularSpread);
+        case ExtnCfg_BC::RecipeVersion::Classic1974:
+          return factCreate<BCXCalc_G,BCEval<BC_M::G,BC_RecipeVersion::Classic1974>>(std::move(data),
+#ifdef NCRYSTAL_BCSCNDX_ALA_SHUQI
+                                                                                     mdl_base.domainSize,
+#endif
+                                                                                     gr.grainSize,
+                                                                                     gr.angularSpread);
+        default:
+          nc_assert_always(false);
+        };
+      } else {
+        //Both primary and secondary
+        //FIXME:
+        switch( mdl_bc.recipeVersion ) {
+        case ExtnCfg_BC::RecipeVersion::Std2025:
+          return factCreate2Comp< BCXCalc_P, BCEval<BC_M::P,BC_RecipeVersion::Std2025>,
+                                  BCXCalc_G, BCEval<BC_M::G,BC_RecipeVersion::Std2025>
+                                  >(std::move(data),mdl_base.domainSize,gr.grainSize,gr.angularSpread);
+        case ExtnCfg_BC::RecipeVersion::Lux2025:
+          return factCreate2Comp< BCXCalc_P, BCEval<BC_M::P,BC_RecipeVersion::Lux2025>,
+                                  BCXCalc_G, BCEval<BC_M::G,BC_RecipeVersion::Lux2025>
+                                  >(std::move(data),mdl_base.domainSize,gr.grainSize,gr.angularSpread);
+        case ExtnCfg_BC::RecipeVersion::Classic1974:
+          return factCreate2Comp< BCXCalc_P, BCEval<BC_M::P,BC_RecipeVersion::Classic1974>,
+                                  BCXCalc_G, BCEval<BC_M::G,BC_RecipeVersion::Classic1974>
+                                  >(std::move(data),mdl_base.domainSize,gr.grainSize,gr.angularSpread);
+        default:
+          nc_assert_always(false);
+        };
+      }
     }
 //     if ( mdl_bc.recipeVersion == ExtnCfg_BC::RecipeVersion::Lux2025 )
 //       return factCreate<BCXCalc_P,BCEval<BC_M::P,BC_RecipeVersion::Lux2025>(mdl_base.domainSize);

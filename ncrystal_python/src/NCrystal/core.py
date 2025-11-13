@@ -802,7 +802,7 @@ class Info(RCBase):
 
         Example usage:
 
-        for e in info._hklObjects:
+        for e in info.hklObjects():
             #help( e );break #<- uncomment for usage info
             print( e )#<- a quick look
             print( e.hkl_label, e.mult, e.d, e.f2 )

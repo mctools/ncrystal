@@ -59,54 +59,142 @@ def test( ncmatkey, *, dcutoff, extncfg ):
     #    note: rect is the sabine El/Eb from 6.4.9.2, Gg and L only matters for secondary extinction.
     #
 
-    print(f"Testing extn={extncfg}")
-    plugin_lines = [extncfg_2_plugincfg( extncfg )]
-    print("Corresponding to plugin lines:")
-    for pl in plugin_lines:
-        print('  ',pl)
-    mat_dev = load( NC,
-                    create_data( ncmatkey ),
-                    f'{extra_cfg};extn={extncfg}' )
+    p = decode_extncfg(extncfg)
+    extncfgs = []
+    mdl_name = p['decoded']['model']['name']
+    if mdl_name=='bc':
+        for m in ('cls','lux'):
+            extncfgs.append( p['encoded'].replace('/rec:%s'%p['decoded']['model']
+                                                  ['recipeVersion'],f'/rec:{m}') )
+    else:
+        extncfgs.append( p['encoded'] )
 
-    mat_ref = load( NCenv,
-                    create_data( ncmatkey, plugin_lines = plugin_lines ),
-                    extra_cfg )
+    print(f"Testing extn={extncfgs[0]}")
+    plugin_lines = []
+    def add_plugin_lines(*a,**kw):
+        ll = extncfg_2_plugincfg( *a, **kw )
+        if ll is None:
+            return
+        ll = [ll]
+        print("CHECKING",ll)
+        if ll not in plugin_lines:
+            plugin_lines.append(ll)
+
+    for forcemix in (True,False):
+        add_plugin_lines( extncfgs[0], force_plugin_mix_mode=forcemix )
+
+    if mdl_name=='bc':
+        #Explicitly add _pure curves
+        add_plugin_lines( extncfgs[0], ignore_primary = True )
+        add_plugin_lines( extncfgs[0], ignore_secondary = True )
+        add_plugin_lines( extncfgs[0], bc_force_type1_secondary = True )
+        add_plugin_lines( extncfgs[0], bc_force_type2_secondary = True )
+
+    for il,ll in enumerate(plugin_lines):
+        print(f"Corresponding to plugin lines (variant {il+1}):")
+        for pl in ll:
+            print('  ',pl)
+
 
     mat_noextn = load( NCenv,
                        create_data( ncmatkey ),
                        extra_cfg )
 
     #wls = np.linspace(3.9605,3.96052,200000)#fixme
-    wls = np.linspace(0.0,6.0,20)#fixme
+    wls = np.linspace(0.0,4.5,10000)#fixme
     #wls = np.concatenate( (wls, np.linspace(2.14,2.142,10000)), axis=0 )
     wls.sort()
-    plt.plot(wls,mat_dev.xsect(wl=wls),label='NCrystal (devel)')
-    plt.plot(wls,mat_ref.xsect(wl=wls),label='CrysExtn plugin',ls=':',
-             lw=4,color='red',alpha=0.5)
-    plt.plot(wls,mat_noextn.xsect(wl=wls),label='no extinction',ls=':',
-             lw=4,color='orange',alpha=0.5)
+
+
+
+    colors = list(e for e in plt.get_cmap('Set1').colors)
+    linestyles = [ (1, 1),     # Short dash
+                   (5, 2),     # Longer dash
+                   (5, 1),     # Longer dash with shorter gap
+                   (1, 1, 2, 1), # Dash-dot pattern
+                   (10, 5, 1, 5), # Long dash with long gap
+                   (3, 1, 1, 1), # Variably spaced dashes
+                   ]
+
+    for extncfg in extncfgs:
+        mat_dev = load( NC,
+                        create_data( ncmatkey ),
+                        f'{extra_cfg};extn={extncfg}' )
+        plt.plot(wls,mat_dev.xsect(wl=wls),label=f'NCrystal "{extncfg}" (devel)',
+                 color = colors.pop(0))
+
+
+    for ll in plugin_lines:
+        mat_ref = load( NCenv,
+                        create_data( ncmatkey, plugin_lines = ll ),
+                        extra_cfg )
+        plt.plot(wls,mat_ref.xsect(wl=wls),
+                 label='CrysExtn plugin (%s)'%'\n'.join(ll),
+                 dashes=linestyles.pop(0),
+                 lw=4,#alpha=0.5,
+                 color = colors.pop(0))#,color='red'
+
+
+    plt.plot(wls,mat_noextn.xsect(wl=wls),label='no extinction',ls='-',
+             lw=4,color='gray',alpha=0.2,zorder=0.1)
 
     plt.xlabel('\u00C5')
     plt.legend()
     plt.grid()
+    for pl in plugin_lines:
+        print('  ',pl)
+    plt.ylim(0)
     plt.show()
 
-def extncfg_2_plugincfg( extncfg ):
-    #Use dummy material just for looking at the cfg string:
+def decode_extncfg( extncfg ):
     p = NC.decodeCfg(f'stdlib::Al_sg225.ncmat;extn={extncfg}').get("pars",[])
     p = [v for k,v in p if k=='extn']
     assert len(p)==1
-    p = p[0]
+    return p[0]
+
+def extncfg_2_plugincfg( extncfg, *,
+                         force_plugin_mix_mode = False,
+                         bc_force_type2_secondary = False,
+                         bc_force_type1_secondary = False,
+                         ignore_primary = False,
+                         ignore_secondary = False ):
+    assert sum( int(e) for e in [ bc_force_type2_secondary,
+                                  bc_force_type1_secondary,
+                                  ignore_primary,
+                                  ignore_secondary ] ) in (0,1)
+
+    #Use dummy material just for looking at the cfg string:
+    p = decode_extncfg(extncfg)
     d = p['decoded']
     #print(p['decoded'].keys())
 
-    par_l = d['domainSize']
+    has_secondary = bool( d['grain'] )
+    has_primary = bool(d['domainSize'])
+    assert has_primary or has_secondary
+    if ignore_primary:
+        has_primary = False
+    if ignore_secondary:
+        has_secondary = False
+    if not (has_primary or has_secondary):
+        return
+    if bc_force_type2_secondary:
+        if d['model']['name']!='bc':
+            return
+        if not (has_primary and has_secondary):
+            return
+    if bc_force_type1_secondary:
+        if d['model']['name']!='bc':
+            return
+        if not (has_primary and has_secondary):
+            return
+
+    par_l = d['domainSize'] if has_primary else 0.0
     mdl = d['model']
     kTwoSqrtPi = 3.5449077018110318
     kFWHM2Sigma  = 0.42466090014400952136075141705144480985757# 1/sqrt(8ln(2))
 
     if mdl['name']=='sabine':
-        if not d['grain']:
+        if not has_secondary:
             return f'Sabine_uncorr {par_l} 0.0 0.0 rect'
         print(d)
         par_L = d['grain']['grainSize']
@@ -126,16 +214,19 @@ def extncfg_2_plugincfg( extncfg ):
             mdl_name = 'tri'
         return f'Sabine_uncorr {par_l}  {par_G}  {par_L} {mdl_name}'
     elif mdl['name']=='bc':
-        print(d)
-        if not d['grain']:
+        if not has_secondary:
             return f'BC_pure  {par_l}  0.0  0.0  Gauss'
         scndtype='Gauss'#FIXMEFIXME
         par_L = d['grain']['grainSize']
         stddev = d['grain']['angularSpread'] * kFWHM2Sigma
         par_g = 1.0 / ( kTwoSqrtPi * stddev )
-        if not par_l:
+        if bc_force_type1_secondary:
+            return f'BC_pure  {par_l}  0.0  {par_L}  {scndtype}'
+        if not par_l and not force_plugin_mix_mode:
             return f'BC_pure  {par_l}  {par_g}  {par_L}  {scndtype}'
-        assert False, "mix models not supported yet"
+        if bc_force_type2_secondary:
+            return f'BC_pure  0.0  {par_g}  {par_L}  {scndtype}'
+        return f'BC_mix  {par_l}  {par_g}  {par_L}  {scndtype}'
     else:
         raise RuntimeError('Unkown model: %s'%mdl['name'])
 
@@ -144,9 +235,8 @@ def main():
     import sys
     args = sys.argv[1:]
     if args:
-        assert len(args)==1
         cfg = args[0]
-    extncfg_2_plugincfg(cfg)
+        #extncfg_2_plugincfg(cfg,do_force_mix)
 #ncdevtool sbrun python3 -c 'import NCrystalDev as n; print(n.decodeCfg("Al_sg225.ncmat;extn=10mu/100mu/1deg")["pars"])'
 
 

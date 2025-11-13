@@ -71,7 +71,7 @@ namespace NCRYSTAL_NAMESPACE {
 
       CrossSect xsect_NoCache( NeutronEnergy ekin ) const
       {
-        if ( ekin < m_threshold )
+        if ( ekin < m_threshold || ncisinf(ekin.get()) )
           return CrossSect{ 0.0 };
         auto neutronData = TModel::initNeutronData( m_modelData, ekin );
         auto wlhalf = ekin.wavelength().get() * 0.5;
@@ -92,7 +92,7 @@ namespace NCRYSTAL_NAMESPACE {
       void updatePlaneCommulContribs( NeutronEnergy ekin,
                                       std::vector<double>& out ) const
       {
-        if ( ekin < m_threshold ) {
+        if ( ekin < m_threshold || ncisinf(ekin.get()) ) {
           out.clear();
           return;
         }
@@ -146,7 +146,7 @@ namespace NCRYSTAL_NAMESPACE {
 
       CosineScatAngle sampleScatMu_NoCache( RNG& rng, NeutronEnergy ekin ) const
       {
-        if ( ekin < m_threshold )
+        if ( ekin < m_threshold || ncisinf(ekin.get()) )
           return CosineScatAngle{1.0};
         //Must do it the hard way and use temporary vector.
         std::vector<double> contribs;
