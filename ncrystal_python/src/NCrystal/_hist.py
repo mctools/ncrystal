@@ -32,6 +32,11 @@ import math
 class Hist1D:
 
     def __init__( self, data ):
+        """Initialise histogram. This is intended to be using data provided by
+        the C++ histogram's toJSON() method, or from the .to_dict() or
+        .to_json() of this Python Hist1D class itself
+        """
+
         if data=='_no_init_':
             return
         _ensure_numpy()
@@ -63,7 +68,7 @@ class Hist1D:
             raise NCBadInput('Inconsistent input: all of rms/mean/minfilled'
                              '/maxfilled stats must be available if any is.')
 
-        self.__title = data['title']
+        self.__title = data.get('title')
         hb = data['bindata']
         self.__flow_under = float_or_None(hb.get('underflow'))
         self.__flow_over = float_or_None(hb.get('overflow'))
@@ -105,12 +110,6 @@ class Hist1D:
         initialise a Hist1D object again."""
         import json
         return json.dumps( self.to_dict( json_compat = True ) )
-
-    def set_title( self, title ):
-        """Sets the title and returns self."""
-        assert isinstance(title,str)
-        self.__title = title
-        return self
 
     def clone( self, rebin_factor = 1 ):
         """Clone object. This is useful to keep the original histogram intact in
@@ -339,7 +338,6 @@ class Hist1D:
                  self.__flow_over_errorsq is None )
 
     def add_contents( self, other_hist ):
-
         """Add the contents of other histogram to this histogram. The two
         histograms should have compatible binnings and over/underflow
         settings. Statistics will be updated if available on both histograms,
@@ -463,32 +461,48 @@ class Hist1D:
         add_if_not_None('overflow',self.__flow_over)
         return d
 
+
+    @property
+    def content( self ):
+        """Return numpy array of bin contents."""
+        return self.__y
+
     @property
     def errors( self ):
+        """Return numpy array of bin errors."""
         if self.__yerr is None:
             self.__yerr = _np.sqrt( self.errors_squared )
         return self.__yerr
 
     @property
     def errors_squared( self ):
+        """Return numpy array of bin errors squared."""
         return ( self.__yerrsq
                  if self.__yerrsq is not None
                  else self.__y )
 
-    @property
-    def content( self ):
-        return self.__y
+
+    def set_title( self, title ):
+        """Sets the title and returns self."""
+        assert isinstance(title,str)
+        self.__title = title
+        return self
 
     @property
     def title( self ):
+        """The title assigned to the histogram, or None if no title was
+        assigned. The title can be modified via the set_title method
+        """
         return self.__title
 
     @property
     def xmin( self ):
+        """The lower edge of the bin range."""
         return self.__xmin
 
     @property
     def xmax( self ):
+        """The upper edge of the bin range."""
         return self.__xmax
 
     @property
@@ -498,14 +512,17 @@ class Hist1D:
 
     @property
     def binwidth( self ):
+        """Binwidth."""
         return (self.__xmax-self.__xmin)/self.__nbins
 
     @property
     def nbins( self ):
+        """Number of bins."""
         return self.__nbins
 
     @property
     def bincenters( self ):
+        """Create and return a numpy array of bin centers."""
         halfbw = 0.5*self.binwidth
         return _np_linspace(self.__xmin+halfbw,
                             self.__xmax-halfbw,
@@ -513,6 +530,7 @@ class Hist1D:
 
     @property
     def binedges( self ):
+        """Create and return a numpy array of bin edges."""
         return _np_linspace(self.__xmin,
                             self.__xmax,
                             self.__nbins+1)
@@ -530,7 +548,6 @@ class Hist1D:
         contents to True or False can be used to explicitly override this.  If
         highres is True, all floating point numbers will be printed with full
         precision.
-
         """
         if contents == 'auto':
             contents = self.nbins <= 50
@@ -602,6 +619,11 @@ class Hist1D:
         return cx,cy
 
     def errorbar_args( self, style = True, **kwargs ):
+        """Return a kwargs dictionary suitable for using with the matplotlib
+        errorbar function. If style is False, no parameters related to plotting
+        style or colouring are included. Any excess kwargs are simply passed
+        along to the returned dictionary.
+        """
         d = {'x':self.bincenters,
              'y':self.content,'xerr':0.5*self.binwidth,
              'yerr':self.errors }
@@ -613,7 +635,11 @@ class Hist1D:
         d.update(kwargs)
         return d
 
-    def bar_args( self, style = True, **kwargs ):
+    def bar_args( self, **kwargs ):
+        """Return a kwargs dictionary suitable for using with the matplotlib bar
+        function. Any excess kwargs are simply passed along to the returned
+        dictionary.
+        """
         d = {'x' : self.binedges[:-1],
              'height': self.content,
              'width': self.binwidth,
@@ -622,12 +648,18 @@ class Hist1D:
         d.update(kwargs)
         return d
 
-    def plot( self, *args, **kwargs ):
-        """Alias for .plot_hist method."""
+    def plot_hist( self, *args, **kwargs ):
+        """Alias for the .plot() method."""
         return self.plot_hist(*args,**kwargs)
 
-    def plot_hist( self, plt=None, axis=None, style=True, label=None,
+    def plot( self, plt=None, axis=None, label=None,
                    show_errors=True, do_show = True, set_xlim = True ):
+        """Produce a matplotlib plot of the histogram. If plt is None,
+        matplotlib.pyplot is used. If axis is None, plt.gca() is used. Unless
+        do_show is False, plt.show() wil be called ultimately. The show_errors,
+        label, and set_xlim are all boolean flags whose affects are hopefully
+        self explanatory.
+        """
         if not plt and not axis:
             from .plot import _import_matplotlib_plt
             plt = _import_matplotlib_plt()
