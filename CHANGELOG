@@ -1,4 +1,7 @@
 v4.2.13 (work-in-progress)
+     * Fix several issues in the C++ templates used to implement the histograms
+       used by the MiniMC framework. These issues all concerned features not
+       actually used by the MiniMC in past releases (fixes github issue #300).
      * Minor bugfix in histogram objects returned by the MiniMC framework. The
        integrate(..) method of these objects now supports integration to include
        the last bin.
