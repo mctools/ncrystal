@@ -39,7 +39,7 @@ void NC::Hists::RunningStats1D::merge( const RunningStats1D& o )
   }
 
   //Both had something, do a proper merge:
-#if NCRYSTAL_HIST_ROOT_STYLE_RMS
+#ifdef NCRYSTAL_HIST_ROOT_STYLE_RMS
   m_rms_state += o.m_rms_state;
 #else
   const double w1(m_sumw);//s1
@@ -60,7 +60,7 @@ void NC::Hists::RunningStats1D::merge( const RunningStats1D& o )
 void NC::Hists::RunningStats1D::registerNValues( double val, std::size_t N )
 {
   update_maxmin(val);
-#if NCRYSTAL_HIST_ROOT_STYLE_RMS
+#ifdef NCRYSTAL_HIST_ROOT_STYLE_RMS
   m_rms_state += N * val*val;
 #else
   const double dN = static_cast<double>(N);
@@ -94,12 +94,14 @@ double NC::Hists::RunningStats1D::calcRMSSq() const
 {
   if (!hasData())
     NCRYSTAL_THROW(CalcError,"RMS not well defined in empty histograms");
+  nc_assert( m_sumw > 0.0 );
 #ifdef NCRYSTAL_HIST_ROOT_STYLE_RMS
   //Unstable calculation:
-  return m_rms_state / m_sumw - (m_sumwx*m_sumwx)/(m_sumw*m_sumw);
+  const double rms2 = m_rms_state / m_sumw - (m_sumwx*m_sumwx)/(m_sumw*m_sumw);
 #else
-  double rms2 = m_rms_state / m_sumw;
-  nc_assert( std::isfinite(rms2) && rms2 >= 0.0 );
-  return rms2;
+  const double rms2 = m_rms_state / m_sumw;
 #endif
+  nc_assert_always( !ncisnan(rms2) );
+  nc_assert_always( std::isfinite(rms2) && rms2 >= 0.0 );
+  return rms2;
 }
