@@ -24,6 +24,9 @@ def script_ok_as_pure_python( name, fh ):
         line = line.split('#',1)[0]
         if 'NCTestUtils.loadlib' in line:
             return False
+        #The NCTestUtils.hists modules use NCTestUtils.loadlib internally:
+        if 'NCTestUtils.hists' in line:
+            return False
     return True
 
 def filter_py_line( origline ):
