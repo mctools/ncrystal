@@ -8,6 +8,8 @@ v4.2.13 (work-in-progress)
      * Minor bugfix in histogram objects returned by the MiniMC framework. The
        integrate(..) method of these objects now supports integration to include
        the last bin.
+     * Add small unscientific but completely reproducible RNG for Python unit
+       tests.
      * ...
 
 v4.2.12 2026-01-05
