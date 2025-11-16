@@ -1,0 +1,736 @@
+Library "TestMod_hists" (7 functions):
+  uint nctest_hist1d_book(uint, double, double, int, int)
+  uint nctest_hist1d_fill(uint, double)
+  uint nctest_hist1d_fillw(uint, double, double)
+  const char * nctest_hist1d_tojson(uint)
+  void nctestdetail_clear_lasterror()
+  const char * nctestdetail_get_lasterror()
+  int nctestdetail_has_lasterror()
+JSON: {"title":"","stats":{"integral":1.0,"rms":0.0,"mean":12.34,"minfilled":12.34,"maxfilled":12.34},"bindata":{"xmin":0.0,"xmax":100.0,"nbins":5,"content":[1.0,0.0,0.0,0.0,0.0],"errorsq":[1.0,0.0,0.0,0.0,0.0]}}
+Hist1D(nbins=5,xmin=0,xmax=100):
+  title     : <none>
+  integral  : 1
+  mean      : 12.34
+  rms       : 0
+  minfilled : 12.34
+  maxfilled : 12.34
+  content[ibin=0] : 1 +- 1
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 0 +- 0
+Hist1D(nbins=5,xmin=0,xmax=100):
+  title     : <none>
+  integral  : 2
+  mean      : 50
+  rms       : 40
+  minfilled : 10
+  maxfilled : 90
+  underflow : 0 +- 0
+  overflow  : 0 +- 0
+  content[ibin=0] : 1 +- 1
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 1 +- 1
+Hist1D(nbins=5,xmin=0,xmax=100):
+  title     : <none>
+  integral  : 3
+  mean      : 3.33333e+98
+  rms       : 4.71405e+98
+  minfilled : -10
+  maxfilled : 1e+99
+  underflow : 1 +- 1
+  overflow  : 2 +- 1.41421
+  content[ibin=0] : 0 +- 0
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 0 +- 0
+Hist1D(nbins=5,xmin=0,xmax=100):
+  title     : <none>
+  integral  : 1
+  mean      : 110
+  rms       : 0
+  minfilled : 110
+  maxfilled : 110
+  content[ibin=0] : 0 +- 0
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 1 +- 1
+Hist1D(nbins=5,xmin=0,xmax=100):
+  title     : <none>
+  integral  : 0.04
+  mean      : 2.5e+98
+  rms       : 4.33013e+98
+  minfilled : -10
+  maxfilled : 1e+99
+  underflow : 0.01 +- 0.01
+  overflow  : 0.02 +- 0.0141421
+  content[ibin=0] : 0 +- 0
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0.01 +- 0.01
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 0 +- 0
+Hist1D(nbins=5,xmin=0,xmax=100):
+  title     : <none>
+  integral  : 0.06
+  mean      : 50
+  rms       : 48.9898
+  minfilled : -10
+  maxfilled : 110
+  underflow : 0.02 +- 0.0141421
+  overflow  : 0.02 +- 0.0141421
+  content[ibin=0] : 0 +- 0
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0.02 +- 0.0141421
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 0 +- 0
+Hist1D(nbins=5,xmin=0,xmax=100):
+  title     : <none>
+  integral  : 0.06
+  mean      : 50
+  rms       : 48.9898
+  minfilled : -10
+  maxfilled : 110
+  underflow : 0.02 +- 0.0141421
+  overflow  : 0.02 +- 0.0141421
+h1.bindata:  {'xmin': 0.0, 'xmax': 100.0, 'nbins': 5, 'content': [0.0, 0.0, 0.02, 0.0, 0.0], 'errorsq': [0.0, 0.0, 0.0002, 0.0, 0.0], 'underflow_errorsq': 0.0002, 'overflow_errorsq': 0.0002, 'underflow': 0.02, 'overflow': 0.02}
+h1.stats:  {'integral': 0.06, 'rms': 48.98979485566356, 'mean': 50.0, 'minfilled': -10.0, 'maxfilled': 110.0}
+h1.to_dict:  {'stats': {'integral': 0.06, 'rms': 48.98979485566356, 'mean': 50.0, 'minfilled': -10.0, 'maxfilled': 110.0}, 'title': 'My Title', 'bindata': {'xmin': 0.0, 'xmax': 100.0, 'nbins': 5, 'content': [0.0, 0.0, 0.02, 0.0, 0.0], 'errorsq': [0.0, 0.0, 0.0002, 0.0, 0.0], 'underflow_errorsq': 0.0002, 'overflow_errorsq': 0.0002, 'underflow': 0.02, 'overflow': 0.02}}
+h1.to_json:  {"stats": {"integral": 0.06, "rms": 48.98979485566356, "mean": 50.0, "minfilled": -10.0, "maxfilled": 110.0}, "title": "My Title", "bindata": {"xmin": 0.0, "xmax": 100.0, "nbins": 5, "content": [0.0, 0.0, 0.02, 0.0, 0.0], "errorsq": [0.0, 0.0, 0.0002, 0.0, 0.0], "underflow_errorsq": 0.0002, "overflow_errorsq": 0.0002, "underflow": 0.02, "overflow": 0.02}}
+p-value: 1
+Hist1D(nbins=20,xmin=-10,xmax=10):
+  title     : Foo title
+  integral  : 1.901
+  mean      : 4.99211
+  rms       : 20.8387
+  minfilled : -200
+  maxfilled : 200
+  content[ibin=0] : 0.051 +- 0.05001
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 0.01 +- 0.01
+  content[ibin=5] : 0 +- 0
+  content[ibin=6] : 0 +- 0
+  content[ibin=7] : 0 +- 0
+  content[ibin=8] : 0 +- 0
+  content[ibin=9] : 0.25 +- 0.180278
+  content[ibin=10] : 0 +- 0
+  content[ibin=11] : 0 +- 0
+  content[ibin=12] : 0 +- 0
+  content[ibin=13] : 1 +- 1
+  content[ibin=14] : 0.5 +- 0.5
+  content[ibin=15] : 0 +- 0
+  content[ibin=16] : 0 +- 0
+  content[ibin=17] : 0 +- 0
+  content[ibin=18] : 0.04 +- 0.04
+  content[ibin=19] : 0.05 +- 0.0360555
+Hist1D(nbins=5,xmin=-10,xmax=10):
+  title     : Foo title
+  integral  : 1.901
+  mean      : 4.99211
+  rms       : 20.8387
+  minfilled : -200
+  maxfilled : 200
+  content[ibin=0] : 0.051 +- 0.05001
+  content[ibin=1] : 0.01 +- 0.01
+  content[ibin=2] : 0.25 +- 0.180278
+  content[ibin=3] : 1.5 +- 1.11803
+  content[ibin=4] : 0.09 +- 0.0538516
+Integrate (expects 0.05 +- 0.0360555): 0.05 +- 0.0360555
+Integrate (expects 0.09 +- 0.0538516): 0.09 +- 0.0538516
+Integrate (expects 0.04 +- 0.04): 0.04 +- 0.04
+Integrate (expects 0.09 +- 0.0538516): 0.09 +- 0.0538516
+Integrate (expects 0.051 +- 0.05001): 0.051 +- 0.05001
+Integrate (expects 0.051 +- 0.05001): 0.051 +- 0.05001
+Integrate (expects 0 +- 0): 0 +- 0
+Integrate (expects 0 +- 0): 0 +- 0
+Integrate (expects 1.5 +- 1.11803): 1.5 +- 1.11803
+Integrate (expects 1 +- 1): 1 +- 1
+Integrate (expects 0.5 +- 0.5): 0.5 +- 0.5
+Integrate (expects 0.05 +- 0.0360555): 0.05 +- 0.0360555
+Integrate (expects 0.061 +- 0.051): 0.061 +- 0.051
+Integrate (expects 0.26 +- 0.180555): 0.26 +- 0.180555
+Integrate (expects 0.061 +- 0.051): 0.061 +- 0.051
+Integrate (expects 1.5 +- 1.11803): 1.5 +- 1.11803
+Integrate (expects 1.59 +- 1.11933): 1.59 +- 1.11933
+Integrate (expects 1.59 +- 1.11933): 1.59 +- 1.11933
+Integrate (expects 1.59 +- 1.11933): 1.59 +- 1.11933
+Integrate (expects 0 +- 0): 0 +- 0
+Integrate (expects 1.901 +- 1.1349): 1.901 +- 1.1349
+Caught expected NCBadInput('Invalid integration range requested.')
+Caught expected NCBadInput('Invalid bin range requested.')
+Caught expected NCBadInput('Value 3.01 does not correspond exactly to a bin edge within the tolerance.')
+Hist1D(nbins=20,xmin=-10,xmax=10):
+  title     : same but not clamping overflows
+  integral  : 1.901
+  mean      : 4.99211
+  rms       : 20.8387
+  minfilled : -200
+  maxfilled : 200
+  underflow : 0.001 +- 0.001
+  overflow  : 0.02 +- 0.02
+  content[ibin=0] : 0.05 +- 0.05
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 0.01 +- 0.01
+  content[ibin=5] : 0 +- 0
+  content[ibin=6] : 0 +- 0
+  content[ibin=7] : 0 +- 0
+  content[ibin=8] : 0 +- 0
+  content[ibin=9] : 0.25 +- 0.180278
+  content[ibin=10] : 0 +- 0
+  content[ibin=11] : 0 +- 0
+  content[ibin=12] : 0 +- 0
+  content[ibin=13] : 1 +- 1
+  content[ibin=14] : 0.5 +- 0.5
+  content[ibin=15] : 0 +- 0
+  content[ibin=16] : 0 +- 0
+  content[ibin=17] : 0 +- 0
+  content[ibin=18] : 0.04 +- 0.04
+  content[ibin=19] : 0.03 +- 0.03
+Hist1D(nbins=5,xmin=-10,xmax=10):
+  title     : same but not clamping overflows
+  integral  : 1.901
+  mean      : 4.99211
+  rms       : 20.8387
+  minfilled : -200
+  maxfilled : 200
+  underflow : 0.001 +- 0.001
+  overflow  : 0.02 +- 0.02
+  content[ibin=0] : 0.05 +- 0.05
+  content[ibin=1] : 0.01 +- 0.01
+  content[ibin=2] : 0.25 +- 0.180278
+  content[ibin=3] : 1.5 +- 1.11803
+  content[ibin=4] : 0.07 +- 0.05
+Integrate (expects 0.03 +- 0.03): 0.03 +- 0.03
+Integrate (expects 0.07 +- 0.05): 0.07 +- 0.05
+Integrate (expects 0.04 +- 0.04): 0.04 +- 0.04
+Integrate (expects 0.09 +- 0.0538516): 0.09 +- 0.0538516
+Integrate (expects 0.05 +- 0.05): 0.05 +- 0.05
+Integrate (expects 0.051 +- 0.05001): 0.051 +- 0.05001
+Integrate (expects 0.001 +- 0.001): 0.001 +- 0.001
+Integrate (expects 0 +- 0): 0 +- 0
+Integrate (expects 1.5 +- 1.11803): 1.5 +- 1.11803
+Integrate (expects 1 +- 1): 1 +- 1
+Integrate (expects 0.5 +- 0.5): 0.5 +- 0.5
+Integrate (expects 0.03 +- 0.03): 0.03 +- 0.03
+Integrate (expects 0.061 +- 0.051): 0.061 +- 0.051
+Integrate (expects 0.26 +- 0.180555): 0.26 +- 0.180555
+Integrate (expects 0.06 +- 0.0509902): 0.06 +- 0.0509902
+Integrate (expects 1.5 +- 1.11803): 1.5 +- 1.11803
+Integrate (expects 1.59 +- 1.11933): 1.59 +- 1.11933
+Integrate (expects 1.57 +- 1.11915): 1.57 +- 1.11915
+Integrate (expects 1.57 +- 1.11915): 1.57 +- 1.11915
+Integrate (expects 0 +- 0): 0 +- 0
+Integrate (expects 1.901 +- 1.1349): 1.901 +- 1.1349
+Hist1D(nbins=5,xmin=-10,xmax=10):
+  title     : same but not clamping overflows
+  integral  : 1.901
+  mean      : 4.99211
+  rms       : 20.8387
+  minfilled : -200
+  maxfilled : 200
+  underflow : 0.001 +- 0.001
+  overflow  : 0.02 +- 0.02
+  content[ibin=0] : 0.05 +- 0.05
+  content[ibin=1] : 0.01 +- 0.01
+  content[ibin=2] : 0.25 +- 0.180278
+  content[ibin=3] : 1.5 +- 1.11803
+  content[ibin=4] : 0.07 +- 0.05
+(array([-10.,  -6.,  -6.,  -2.,  -2.,   2.,   2.,   6.,   6.,  10.]), array([0.05, 0.05, 0.01, 0.01, 0.25, 0.25, 1.5 , 1.5 , 0.07, 0.07]))
+{'x': array([-8., -4.,  0.,  4.,  8.]), 'y': array([0.05, 0.01, 0.25, 1.5 , 0.07]), 'xerr': 2.0, 'yerr': array([0.05      , 0.01      , 0.18027756, 1.11803399, 0.05      ]), 'fmt': '.', 'mec': 'black', 'mfc': 'black', 'ecolor': 'black', 'elinewidth': 1.0}
+{'x': array([-10.,  -6.,  -2.,   2.,   6.]), 'height': array([0.05, 0.01, 0.25, 1.5 , 0.07]), 'width': 4.0, 'align': 'edge'}
+Hist1D(nbins=20,xmin=-10,xmax=10):
+  title     : Target of add_contents
+  integral  : 0
+  mean      : <n/a>
+  rms       : <n/a>
+  minfilled : <n/a>
+  maxfilled : <n/a>
+  underflow : 0 +- 0
+  overflow  : 0 +- 0
+  content[ibin=0] : 0 +- 0
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 0 +- 0
+  content[ibin=5] : 0 +- 0
+  content[ibin=6] : 0 +- 0
+  content[ibin=7] : 0 +- 0
+  content[ibin=8] : 0 +- 0
+  content[ibin=9] : 0 +- 0
+  content[ibin=10] : 0 +- 0
+  content[ibin=11] : 0 +- 0
+  content[ibin=12] : 0 +- 0
+  content[ibin=13] : 0 +- 0
+  content[ibin=14] : 0 +- 0
+  content[ibin=15] : 0 +- 0
+  content[ibin=16] : 0 +- 0
+  content[ibin=17] : 0 +- 0
+  content[ibin=18] : 0 +- 0
+  content[ibin=19] : 0 +- 0
+Hist1D(nbins=20,xmin=-10,xmax=10):
+  title     : same but not clamping overflows
+  integral  : 1.901
+  mean      : 4.99211
+  rms       : 20.8387
+  minfilled : -200
+  maxfilled : 200
+  underflow : 0.001 +- 0.001
+  overflow  : 0.02 +- 0.02
+  content[ibin=0] : 0.05 +- 0.05
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 0.01 +- 0.01
+  content[ibin=5] : 0 +- 0
+  content[ibin=6] : 0 +- 0
+  content[ibin=7] : 0 +- 0
+  content[ibin=8] : 0 +- 0
+  content[ibin=9] : 0.25 +- 0.180278
+  content[ibin=10] : 0 +- 0
+  content[ibin=11] : 0 +- 0
+  content[ibin=12] : 0 +- 0
+  content[ibin=13] : 1 +- 1
+  content[ibin=14] : 0.5 +- 0.5
+  content[ibin=15] : 0 +- 0
+  content[ibin=16] : 0 +- 0
+  content[ibin=17] : 0 +- 0
+  content[ibin=18] : 0.04 +- 0.04
+  content[ibin=19] : 0.03 +- 0.03
+Hist1D(nbins=20,xmin=-10,xmax=10):
+  title     : Target of add_contents
+  integral  : 1.901
+  mean      : 4.99211
+  rms       : 20.8387
+  minfilled : -200
+  maxfilled : 200
+  underflow : 0.001 +- 0.001
+  overflow  : 0.02 +- 0.02
+  content[ibin=0] : 0.05 +- 0.05
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 0.01 +- 0.01
+  content[ibin=5] : 0 +- 0
+  content[ibin=6] : 0 +- 0
+  content[ibin=7] : 0 +- 0
+  content[ibin=8] : 0 +- 0
+  content[ibin=9] : 0.25 +- 0.180278
+  content[ibin=10] : 0 +- 0
+  content[ibin=11] : 0 +- 0
+  content[ibin=12] : 0 +- 0
+  content[ibin=13] : 1 +- 1
+  content[ibin=14] : 0.5 +- 0.5
+  content[ibin=15] : 0 +- 0
+  content[ibin=16] : 0 +- 0
+  content[ibin=17] : 0 +- 0
+  content[ibin=18] : 0.04 +- 0.04
+  content[ibin=19] : 0.03 +- 0.03
+Hist1D(nbins=20,xmin=-10,xmax=10):
+  title     : <none>
+  integral  : 10
+  mean      : 0.98
+  rms       : 89.614
+  minfilled : -200
+  maxfilled : 200
+  underflow : 1 +- 1
+  overflow  : 1 +- 1
+  content[ibin=0] : 1 +- 1
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 1 +- 1
+  content[ibin=5] : 0 +- 0
+  content[ibin=6] : 0 +- 0
+  content[ibin=7] : 0 +- 0
+  content[ibin=8] : 0 +- 0
+  content[ibin=9] : 2 +- 1.41421
+  content[ibin=10] : 0 +- 0
+  content[ibin=11] : 0 +- 0
+  content[ibin=12] : 0 +- 0
+  content[ibin=13] : 1 +- 1
+  content[ibin=14] : 1 +- 1
+  content[ibin=15] : 0 +- 0
+  content[ibin=16] : 0 +- 0
+  content[ibin=17] : 0 +- 0
+  content[ibin=18] : 1 +- 1
+  content[ibin=19] : 1 +- 1
+Integrate (expects 1 +- 1): 1 +- 1
+Integrate (expects 2 +- 1.41421): 2 +- 1.41421
+Integrate (expects 3 +- 1.73205): 3 +- 1.73205
+Integrate (expects 1 +- 1): 1 +- 1
+Integrate (expects 1 +- 1): 1 +- 1
+Integrate (expects 10 +- 3.16228): 10 +- 3.16228
+Integrate (expects 1 +- 1): 1 +- 1
+Integrate (expects 2 +- 1.41421): 2 +- 1.41421
+Integrate (expects 2 +- 1.41421): 2 +- 1.41421
+Integrate (expects 5 +- 2.23607): 5 +- 2.23607
+Integrate (expects 7 +- 2.64575): 7 +- 2.64575
+Integrate (expects 10 +- 3.16228): 10 +- 3.16228
+Integrate (expects 8 +- 2.82843): 8 +- 2.82843
+Integrate (expects 9 +- 3): 9 +- 3
+Integrate (expects 9 +- 3): 9 +- 3
+Integrate (expects 5 +- 2.23607): 5 +- 2.23607
+SPY plt.gca() called
+SPY axis.bar called with kwargs: {'x': array([-10.,  -9.,  -8.,  -7.,  -6.,  -5.,  -4.,  -3.,  -2.,  -1.,   0.,
+         1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.]), 'height': array([1., 0., 0., 0., 1., 0., 0., 0., 0., 2., 0., 0., 0., 1., 1., 0., 0.,
+       0., 1., 1.]), 'width': 1.0, 'align': 'edge', 'label': None}
+SPY axis.errorbar called with kwargs: {'x': array([-9.5, -8.5, -7.5, -6.5, -5.5, -4.5, -3.5, -2.5, -1.5, -0.5,  0.5,
+        1.5,  2.5,  3.5,  4.5,  5.5,  6.5,  7.5,  8.5,  9.5]), 'y': array([1., 0., 0., 0., 1., 0., 0., 0., 0., 2., 0., 0., 0., 1., 1., 0., 0.,
+       0., 1., 1.]), 'xerr': 0.5, 'yerr': array([1.        , 0.        , 0.        , 0.        , 1.        ,
+       0.        , 0.        , 0.        , 0.        , 1.41421356,
+       0.        , 0.        , 0.        , 1.        , 1.        ,
+       0.        , 0.        , 0.        , 1.        , 1.        ]), 'fmt': '.', 'mec': 'black', 'mfc': 'black', 'ecolor': 'black', 'elinewidth': 1.0}
+SPY axis.set_xlim called with args: (-10.000001, 10.000001)
+SPY plt.show() called
+Hist1D(nbins=6,xmin=-3,xmax=3):
+  title     : <none>
+  integral  : 2
+  mean      : 0.5
+  rms       : 1
+  minfilled : -0.5
+  maxfilled : 1.5
+  content[ibin=0] : 0 +- 0
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 1 +- 1
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 1 +- 1
+  content[ibin=5] : 0 +- 0
+Hist1D(nbins=6,xmin=-3,xmax=3):
+  title     : <none>
+  integral  : 2
+  mean      : -100.25
+  rms       : 99.75
+  minfilled : -200
+  maxfilled : -0.5
+  content[ibin=0] : 1 +- 1
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 1 +- 1
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 0 +- 0
+  content[ibin=5] : 0 +- 0
+Hist1D(nbins=6,xmin=-3,xmax=3):
+  title     : <none>
+  integral  : 4
+  mean      : -49.875
+  rms       : 86.6786
+  minfilled : -200
+  maxfilled : 1.5
+  content[ibin=0] : 1 +- 1
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 2 +- 1.41421
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 1 +- 1
+  content[ibin=5] : 0 +- 0
+Hist1D(nbins=6,xmin=-3,xmax=3):
+  title     : <none>
+  integral  : 2
+  mean      : 0.5
+  rms       : 1
+  minfilled : -0.5
+  maxfilled : 1.5
+  content[ibin=0] : 0 +- 0
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 1 +- 1
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 1 +- 1
+  content[ibin=5] : 0 +- 0
+Hist1D(nbins=6,xmin=-3,xmax=3):
+  title     : <none>
+  integral  : 1
+  mean      : 200
+  rms       : 0
+  minfilled : 200
+  maxfilled : 200
+  content[ibin=0] : 0 +- 0
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 0 +- 0
+  content[ibin=5] : 1 +- 1
+Hist1D(nbins=6,xmin=-3,xmax=3):
+  title     : <none>
+  integral  : 3
+  mean      : 67
+  rms       : 94.0487
+  minfilled : -0.5
+  maxfilled : 200
+  content[ibin=0] : 0 +- 0
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 1 +- 1
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 1 +- 1
+  content[ibin=5] : 1 +- 1
+Hist1D(nbins=6,xmin=-3,xmax=3):
+  title     : <none>
+  integral  : 3
+  mean      : 67
+  rms       : 94.04874622591556488
+  minfilled : -0.5
+  maxfilled : 200
+  content[ibin=0] : 0 +- 0
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 1 +- 1
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 1 +- 1
+  content[ibin=5] : 1 +- 1
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+{'nbins': 6, 'xmin': -3.0, 'xmax': 3.0, 'allow_weights': True, 'clamp_overflows': True}
+  -> Stat: integral = 1.1 (ref) 1.1 (hist) OK
+  -> Stat: mean = 3.36364 (ref) 3.36364 (hist) OK
+  -> Stat: rms = 1.14992 (ref) 1.14992 (hist) OK
+  -> Stat: integral = 3.7 (ref) 3.7 (hist) OK
+  -> Stat: mean = -14.5946 (ref) -14.5946 (hist) OK
+  -> Stat: rms = 37.5916 (ref) 37.5916 (hist) OK
+Hist1D(nbins=6,xmin=-3,xmax=3):
+  title     : <none>
+  integral  : 4.8
+  mean      : -10.4792
+  rms       : 33.8609
+  minfilled : -100
+  maxfilled : 5
+  content[ibin=0] : 0.6 +- 0.6
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 2.1 +- 2.0025
+  content[ibin=5] : 2.1 +- 1.01489
+  -> Stat: integral = 4.8 (ref) 4.8 (hist) OK
+  -> Stat: mean = -10.4792 (ref) -10.4792 (hist) OK
+  -> Stat: rms = 33.8609 (ref) 33.8609 (hist) OK
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+{'nbins': 6, 'xmin': -3.0, 'xmax': 3.0, 'allow_weights': False, 'clamp_overflows': True}
+  -> Stat: integral = 3 (ref) 3 (hist) OK
+  -> Stat: mean = 3 (ref) 3 (hist) OK
+  -> Stat: rms = 1.63299 (ref) 1.63299 (hist) OK
+  -> Stat: integral = 5 (ref) 5 (hist) OK
+  -> Stat: mean = -17.76 (ref) -17.76 (hist) OK
+  -> Stat: rms = 41.1396 (ref) 41.1396 (hist) OK
+Hist1D(nbins=6,xmin=-3,xmax=3):
+  title     : <none>
+  integral  : 8
+  mean      : -9.975
+  rms       : 34.0559
+  minfilled : -100
+  maxfilled : 5
+  content[ibin=0] : 1 +- 1
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 2 +- 1.41421
+  content[ibin=5] : 5 +- 2.23607
+  -> Stat: integral = 8 (ref) 8 (hist) OK
+  -> Stat: mean = -9.975 (ref) -9.975 (hist) OK
+  -> Stat: rms = 34.0559 (ref) 34.0559 (hist) OK
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+{'nbins': 6, 'xmin': -3.0, 'xmax': 3.0, 'allow_weights': True, 'clamp_overflows': False}
+  -> Stat: integral = 1.1 (ref) 1.1 (hist) OK
+  -> Stat: mean = 3.36364 (ref) 3.36364 (hist) OK
+  -> Stat: rms = 1.14992 (ref) 1.14992 (hist) OK
+  -> Stat: integral = 3.7 (ref) 3.7 (hist) OK
+  -> Stat: mean = -14.5946 (ref) -14.5946 (hist) OK
+  -> Stat: rms = 37.5916 (ref) 37.5916 (hist) OK
+Hist1D(nbins=6,xmin=-3,xmax=3):
+  title     : <none>
+  integral  : 4.8
+  mean      : -10.4792
+  rms       : 33.8609
+  minfilled : -100
+  maxfilled : 5
+  underflow : 0.6 +- 0.6
+  overflow  : 0.7 +- 0.5
+  content[ibin=0] : 0 +- 0
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 2.1 +- 2.0025
+  content[ibin=5] : 1.4 +- 0.883176
+  -> Stat: integral = 4.8 (ref) 4.8 (hist) OK
+  -> Stat: mean = -10.4792 (ref) -10.4792 (hist) OK
+  -> Stat: rms = 33.8609 (ref) 33.8609 (hist) OK
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+{'nbins': 6, 'xmin': -3.0, 'xmax': 3.0, 'allow_weights': False, 'clamp_overflows': False}
+  -> Stat: integral = 3 (ref) 3 (hist) OK
+  -> Stat: mean = 3 (ref) 3 (hist) OK
+  -> Stat: rms = 1.63299 (ref) 1.63299 (hist) OK
+  -> Stat: integral = 5 (ref) 5 (hist) OK
+  -> Stat: mean = -17.76 (ref) -17.76 (hist) OK
+  -> Stat: rms = 41.1396 (ref) 41.1396 (hist) OK
+Hist1D(nbins=6,xmin=-3,xmax=3):
+  title     : <none>
+  integral  : 8
+  mean      : -9.975
+  rms       : 34.0559
+  minfilled : -100
+  maxfilled : 5
+  underflow : 1 +- 1
+  overflow  : 2 +- 1.41421
+  content[ibin=0] : 0 +- 0
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 2 +- 1.41421
+  content[ibin=5] : 3 +- 1.73205
+  -> Stat: integral = 8 (ref) 8 (hist) OK
+  -> Stat: mean = -9.975 (ref) -9.975 (hist) OK
+  -> Stat: rms = 34.0559 (ref) 34.0559 (hist) OK
+h vs. h_compat p-value: 0.106643
+h vs. h_slightcompat p-value: 0.371924
+Caught expected NCCalcError('check_compat failed: p-value is not greater than 0.05.')
+h vs. h_incompat p-value: 0.0000000000
+Caught expected NCBadInput('chisquare_dist: incompatible histogram integrals.')
+Caught expected NCBadInput('chisquare_dist: incompatible binnings.')
+Caught expected NCBadInput('chisquare_dist: incompatible overflow settings.')
+Caught expected NCBadInput('histogram scale factor out of range.')
+Caught expected NCBadInput('histogram scale factor out of range.')
+Caught expected NCBadInput('histogram scale factor out of range.')
+Hist1D(nbins=5,xmin=0,xmax=1):
+  title     : <none>
+  integral  : 6
+  mean      : -1.13333
+  rms       : 9.26259
+  minfilled : -20
+  maxfilled : 11
+  underflow : 1 +- 1
+  overflow  : 1 +- 1
+  content[ibin=0] : 1 +- 1
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 3 +- 1.73205
+  content[ibin=4] : 0 +- 0
+Hist1D(nbins=5,xmin=0,xmax=1):
+  title     : <none>
+  integral  : 60
+  mean      : -1.13333
+  rms       : 9.26259
+  minfilled : -20
+  maxfilled : 11
+  underflow : 10 +- 10
+  overflow  : 10 +- 10
+  content[ibin=0] : 10 +- 10
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 30 +- 17.3205
+  content[ibin=4] : 0 +- 0
+Caught expected NCBadInput('incompatible binning (100,0.1,100.1) vs. (100,0.1,99.1).')
+Caught expected NCBadInput('incompatible under/overflow settings.')
+Hist1D(nbins=5,xmin=0,xmax=1):
+  title     : <none>
+  integral  : 60
+  mean      : -1.13333
+  rms       : 9.26259
+  minfilled : -20
+  maxfilled : 11
+  underflow : 10 +- 10
+  overflow  : 10 +- 10
+  content[ibin=0] : 10 +- 10
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 30 +- 17.3205
+  content[ibin=4] : 0 +- 0
+Caught expected NCBadInput('Inconsistent input: both under and overflow must be available if one of them is.')
+Caught expected NCBadInput('Inconsistent input: both under and overflow error^2 info must be available if one of them is.')
+Caught expected NCBadInput('Inconsistent input: both under and overflow must be available if one of them is.')
+Caught expected NCBadInput('Inconsistent input: both under and overflow error^2 info must be available if one of them is.')
+Caught expected NCBadInput('Inconsistent input: all of rms/mean/minfilled/maxfilled stats must be available if any is.')
+Caught expected NCBadInput('Inconsistent input: all of rms/mean/minfilled/maxfilled stats must be available if any is.')
+Caught expected NCBadInput('Inconsistent input: all of rms/mean/minfilled/maxfilled stats must be available if any is.')
+Caught expected NCBadInput('Inconsistent input: all of rms/mean/minfilled/maxfilled stats must be available if any is.')
+Hist1D(nbins=5,xmin=0,xmax=1):
+  title     : <none>
+  integral  : 6
+  mean      : -1.13333
+  rms       : 9.26259
+  minfilled : -20
+  maxfilled : 11
+  underflow : 1 +- 1
+  overflow  : 1 +- 1
+  content[ibin=0] : 1 +- 1
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 3 +- 1.73205
+  content[ibin=4] : 0 +- 0
+Hist1D(nbins=5,xmin=0,xmax=1):
+  title     : <none>
+  integral  : 6
+  mean      : -1.13333
+  rms       : 9.26259
+  minfilled : -20
+  maxfilled : 11
+  underflow : 1 +- 1
+  overflow  : 1 +- 1
+  content[ibin=0] : 1 +- 1
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 3 +- 1.73205
+  content[ibin=4] : 0 +- 0
+Hist1D(nbins=5,xmin=0,xmax=1):
+  title     : <none>
+  integral  : 12
+  mean      : -1.13333
+  rms       : 9.26259
+  minfilled : -20
+  maxfilled : 11
+  underflow : 2 +- 1.41421
+  overflow  : 2 +- 1.41421
+  content[ibin=0] : 2 +- 1.41421
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 6 +- 2.44949
+  content[ibin=4] : 0 +- 0
+Hist1D(nbins=5,xmin=0,xmax=1):
+  title     : <none>
+  integral  : 6
+  mean      : -1.13333
+  rms       : 9.26259
+  minfilled : -20
+  maxfilled : 11
+  underflow : 1 +- 1
+  overflow  : 1 +- 1
+  content[ibin=0] : 1 +- 1
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 3 +- 1.73205
+  content[ibin=4] : 0 +- 0
+Hist1D(nbins=5,xmin=0,xmax=1):
+  title     : <none>
+  integral  : 6
+  mean      : -1.13333
+  rms       : 9.26259
+  minfilled : -20
+  maxfilled : 11
+  underflow : 1 +- 1
+  overflow  : 1 +- 1
+  content[ibin=0] : 1 +- 1
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 3 +- 1.73205
+  content[ibin=4] : 0 +- 0
+Hist1D(nbins=5,xmin=0,xmax=1):
+  title     : <none>
+  integral  : 12
+  mean      : -1.13333
+  rms       : 9.26259
+  minfilled : -20
+  maxfilled : 11
+  underflow : 2 +- 1.41421
+  overflow  : 2 +- 1.41421
+  content[ibin=0] : 2 +- 1.41421
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 6 +- 2.44949
+  content[ibin=4] : 0 +- 0
