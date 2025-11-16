@@ -1,4 +1,7 @@
 v4.2.13 (work-in-progress)
+     * Make the Python Histogram classes returned by the MiniMC framework much
+       more feature complete, adding several features intended to make
+       subsequent data analysis easier.
      * Fix several issues in the C++ templates used to implement the histograms
        used by the MiniMC framework. These issues all concerned features not
        actually used by the MiniMC in past releases (fixes github issue #300).
