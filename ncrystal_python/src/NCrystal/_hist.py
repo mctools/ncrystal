@@ -749,8 +749,10 @@ class Hist1D:
         p_value = min( 1.0, max( 0.0, p_value ) )
         ok = ( p_value >= p_value_threshold )
         if check and not ok:
-            raise NCCalcError(f'check_compat failed: p-value={p_value:g}'
-                             f' is not greater than {p_value_threshold:g}.')
+            #fmt for unit test reproducibility
+            fmt='p-value=%g'%p_value if p_value>=1e-6 else 'p-value'
+            raise NCCalcError(f'check_compat failed: {fmt}'
+                             f' is not greater than {p_value_threshold}.')
         if return_pval:
             return p_value
         return ok
