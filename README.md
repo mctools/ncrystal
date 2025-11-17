@@ -23,9 +23,10 @@ for instance allows tuning and validation of a particular material configuration
 to be performed in one tool before it is then deployed in another.
 
 In addition to code and tools, the NCrystal distribution also includes a set of
-validated data files, covering many crystals important at neutron scattering
-facilities. For more information about the properties and validity of each file,
-users are referred to the dedicated page at:
+validated data files, covering many crystalline and amorphous materials
+important at neutron scattering facilities. For more information about the
+properties and validity of each file, users are referred to the dedicated page
+at:
 
   https://github.com/mctools/ncrystal/wiki/Data-library
 
