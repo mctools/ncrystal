@@ -12,6 +12,7 @@ v4.2.13 (work-in-progress)
        tests.
      * Add comprehensive (>99% coverage) unit test for python histograms.
      * NCRandUtils.hh: Add randPointInUnitCircle utility.
+     * Fix flawed asserts preventing proper MiniMC usage in debug builds.
      * ...
 
 v4.2.12 2026-01-05
