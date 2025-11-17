@@ -39,8 +39,9 @@ namespace NCRYSTAL_NAMESPACE {
     enum class ThreadedUsage { Single, Multi };
 
     namespace detail {
-      void propagateDistance( NeutronBasket& nb, Span<const double> distances,
-                              std::size_t offset = 0 ) ncnoexceptndebug;
+      void propagateDistance( NeutronBasket& nb,
+                              std::size_t basket_offset,
+                              const double * distances ) ncnoexceptndebug;
     }
 
     template<class TBasket>
@@ -119,9 +120,11 @@ namespace NCRYSTAL_NAMESPACE {
         if ( i_first_hole != NeutronBasket::N )
           b.neutrons.nused = i_first_hole;
 
+        nc_assert( offset <= b.neutrons.nused );
+
         //Now we should propagate all the neutrons that were not already inside
         //the volume:
-        detail::propagateDistance( b.neutrons, dist_results, offset );
+        detail::propagateDistance( b.neutrons, offset, dist_results );
 
         //And finally, return any neutrons that missed as a result, after
         //marking them as having missed the target.

@@ -53,16 +53,17 @@ namespace NCRYSTAL_NAMESPACE {
   }
 }
 
-void NC::MiniMC::detail::propagateDistance( NeutronBasket& nb, Span<const double> distances,
-                                            std::size_t offset ) ncnoexceptndebug
+void NC::MiniMC::detail::propagateDistance( NeutronBasket& nb,
+                                            std::size_t basket_offset,
+                                            const double* distances ) ncnoexceptndebug
 {
-  nc_assert(offset+distances.size() == nb.size());
-  propagateDistanceImpl( nb.x + offset,
-                         nb.y + offset,
-                         nb.z + offset,
-                         nb.ux + offset,
-                         nb.uy + offset,
-                         nb.uz + offset,
-                         distances.data(),
-                         nb.size()- + offset );
+  nc_assert( basket_offset <= nb.size());
+  propagateDistanceImpl( nb.x + basket_offset,
+                         nb.y + basket_offset,
+                         nb.z + basket_offset,
+                         nb.ux + basket_offset,
+                         nb.uy + basket_offset,
+                         nb.uz + basket_offset,
+                         distances,
+                         nb.size() - basket_offset );
 }

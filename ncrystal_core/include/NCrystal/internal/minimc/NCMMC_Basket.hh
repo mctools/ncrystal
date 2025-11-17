@@ -77,7 +77,6 @@ namespace NCRYSTAL_NAMESPACE {
 
       void copyEntryFromOther( const NeutronBasket& o, std::size_t i_o, std::size_t i ) ncnoexceptndebug
       {
-        nc_assert( this != &o );
         x[i] = o.x[i_o];
         y[i] = o.y[i_o];
         z[i] = o.z[i_o];
