@@ -44,6 +44,9 @@ namespace NCRYSTAL_NAMESPACE {
   //Sample a random point on the unit circle:
   PairDD randPointOnUnitCircle( RNG& );
 
+  //Sample a random point inside the unit circle:
+  PairDD randPointInUnitCircle( RNG& );
+
   //Sample one or two independent values from a unit Gaussian:
   double randNorm( RNG& );
   void randNorm( RNG&, double&g1, double&g2);
@@ -238,6 +241,16 @@ inline bool NCrystal::RandXRSRImpl::coinflip() noexcept
   //Test one of the high bits, stay far away from the 3 lowest:
   constexpr uint64_t onebit = 0x1000000000000000ull;
   return onebit & genUInt64WithBadLowerBits();
+}
+
+inline NCrystal::PairDD NCrystal::randPointInUnitCircle( RNG& rng )
+{
+  double a,b;
+  do {
+    a = -1.0+rng.generate()*2.0;
+    b = -1.0+rng.generate()*2.0;
+  } while ( a*a + b*b > 1.0 );
+  return { a, b };
 }
 
 #endif
