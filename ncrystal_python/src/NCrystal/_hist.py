@@ -25,7 +25,7 @@
 
 __all__ = ['Hist1D']
 
-from ._numpy import _np, _ensure_numpy, _np_linspace, _np_trapezoid
+from ._numpy import _np, _ensure_numpy, _np_linspace
 from .exceptions import NCBadInput, NCCalcError
 import math
 
@@ -712,7 +712,7 @@ class Hist1D:
         return self
 
     def check_compat( self, other_hist,
-                      p_value_threshold = 0.05,
+                      threshold = 0.05,
                       force_norm = True,
                       return_pval = False,
                       check=False ):
@@ -722,37 +722,28 @@ class Hist1D:
         do not have identical statistics (integral). A high p-value indicates
         that the histogram contents are likely to come from the same underlying
         distribution. By default, the calculated p-value is compared against the
-        p_value_threshold and True is returned if it is higher, False if it is
+        threshold and True is returned if it is higher, False if it is
         lower. If return_pval is True, the p-value is instead returned. If check
         is True, a CalcError exception is raised in case the p-value fails to
-        exceed p_value_threshold.
+        exceed threshold.
 
         Note, if you are running N histogram comparisons (e.g. in a test suite),
         and you want to have a p=5% chance of false positive in case you
         e.g. change the random seed of the test suite, you should use a
-        p_value_threshold of roughly p/N=0.05/N (this is called Bonferroni
+        threshold of roughly p/N=0.05/N (this is called Bonferroni
         correction and was confirmed to work well with simple Monte Carlo test).
         """
-        def chisq_cdf( x, k ):
-            #Could have used scipy.stats.chi2.cdf if we used scipy.
-            if x<=0:
-                return 0.0
-            xx = _np_linspace(0.0,x,10000)
-            c = (1.0 / (2.0 ** (0.5*k) * math.gamma(0.5*k)))
-            yy = c * ( (xx ** (0.5*k - 1.0)) * _np.exp(- 0.5 * xx) )
-            return _np_trapezoid( yy, xx )
-
         chisq, k = self.chisquare_dist( other_hist,
                                         force_norm = force_norm )
-        p_value = 1.0 - chisq_cdf(chisq, k)
+        p_value = 1.0 - _chisq_cdf(chisq, k)
         assert -1e-6 <= p_value <= 1.0+1e-6
         p_value = min( 1.0, max( 0.0, p_value ) )
-        ok = ( p_value >= p_value_threshold )
+        ok = ( p_value >= threshold )
         if check and not ok:
             #fmt for unit test reproducibility
             fmt='p-value=%g'%p_value if p_value>=1e-6 else 'p-value'
             raise NCCalcError(f'check_compat failed: {fmt}'
-                             f' is not greater than {p_value_threshold}.')
+                             f' is not greater than {threshold}.')
         if return_pval:
             return p_value
         return ok
@@ -810,3 +801,20 @@ class Hist1D:
             chi_squared += ( a + b )
 
         return ( chi_squared, max( 1, n - 1) )
+
+def _chisq_cdf( x, k ):
+    """Chi-squared CDF function. Similar to scipy scipy.stats.chi2.cdf, but with
+    a slightly lower precision."""
+    if x<=1e-10*k:
+        return 0.0
+    if k==1:
+        return math.erf(math.sqrt(x/2))
+    if k==2:
+        return 1.0 - math.exp(-0.5*x)
+    #Approx. of Luisa Canal (2005), https://math.stackexchange.com/a/4915053
+    #We use it all the way down to k=3, but it seems to be OK for our purposes.
+    u = x / k
+    t = math.fsum([u**(1/6),-(1/2)*u**(1/3),+(1/3)*u**(1/2),
+                   -5/6,(1/(9*k)),(7/(648*k*k)),-(25/(2187*k*k*k))])
+    s = math.fsum([(2/(18*k)),(2/(162*k*k)),-(74/(11664*k*k*k))])
+    return 0.5*(1.0+math.erf(t/math.sqrt(s)))
