@@ -161,6 +161,7 @@ Integrate (expects 1.59 +- 1.11933): 1.59 +- 1.11933
 Integrate (expects 1.59 +- 1.11933): 1.59 +- 1.11933
 Integrate (expects 0 +- 0): 0 +- 0
 Integrate (expects 1.901 +- 1.1349): 1.901 +- 1.1349
+Caught expected NCBadInput('Can not rebin nbins=20 with rebin_factor=3 (rebin_factor must be a divisor of nbins).')
 Caught expected NCBadInput('Invalid integration range requested.')
 Caught expected NCBadInput('Invalid bin range requested.')
 Caught expected NCBadInput('Value 3.01 does not correspond exactly to a bin edge within the tolerance.')
@@ -377,18 +378,15 @@ Integrate (expects 8 +- 2.82843): 8 +- 2.82843
 Integrate (expects 9 +- 3): 9 +- 3
 Integrate (expects 9 +- 3): 9 +- 3
 Integrate (expects 5 +- 2.23607): 5 +- 2.23607
-SPY plt.gca() called
-SPY axis.bar called with kwargs: {'x': array([-10.,  -9.,  -8.,  -7.,  -6.,  -5.,  -4.,  -3.,  -2.,  -1.,   0.,
-         1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.]), 'height': array([1., 0., 0., 0., 1., 0., 0., 0., 0., 2., 0., 0., 0., 1., 1., 0., 0.,
-       0., 1., 1.]), 'width': 1.0, 'align': 'edge', 'label': None}
-SPY axis.errorbar called with kwargs: {'x': array([-9.5, -8.5, -7.5, -6.5, -5.5, -4.5, -3.5, -2.5, -1.5, -0.5,  0.5,
-        1.5,  2.5,  3.5,  4.5,  5.5,  6.5,  7.5,  8.5,  9.5]), 'y': array([1., 0., 0., 0., 1., 0., 0., 0., 0., 2., 0., 0., 0., 1., 1., 0., 0.,
-       0., 1., 1.]), 'xerr': 0.5, 'yerr': array([1.        , 0.        , 0.        , 0.        , 1.        ,
+CALLING plt.gca()
+CALLING ResultOf[plt.gca(..)].bar(align='edge',alpha=None,color=None,height=array([1., 0., 0., 0., 1., 0., 0., 0., 0., 2., 0., 0., 0., 1., 1., 0., 0.,
+       0., 1., 1.]),label=None,width=1.0,x=['-10.0', '-9.0', '-8.0', '...', '7.0', '8.0', '9.0'])
+CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label=None,mec='black',mfc='black',x=['-9.5', '-8.5', '-7.5', '...', '7.5', '8.5', '9.5'],xerr=0.5,y=['1.0', '0.0', '0.0', '...', '0.0', '1.0', '1.0'],yerr=array([1.        , 0.        , 0.        , 0.        , 1.        ,
        0.        , 0.        , 0.        , 0.        , 1.41421356,
        0.        , 0.        , 0.        , 1.        , 1.        ,
-       0.        , 0.        , 0.        , 1.        , 1.        ]), 'fmt': '.', 'mec': 'black', 'mfc': 'black', 'ecolor': 'black', 'elinewidth': 1.0}
-SPY axis.set_xlim called with args: (-10.000001, 10.000001)
-SPY plt.show() called
+       0.        , 0.        , 0.        , 1.        , 1.        ]))
+CALLING ResultOf[plt.gca(..)].set_xlim(-10.0,10.0)
+CALLING plt.show()
 Hist1D(nbins=6,xmin=-3,xmax=3):
   title     : <none>
   integral  : 2
@@ -589,7 +587,7 @@ Hist1D(nbins=6,xmin=-3,xmax=3):
   -> Stat: mean = -9.975 (ref) -9.975 (hist) OK
   -> Stat: rms = 34.0559 (ref) 34.0559 (hist) OK
 h vs. h_compat p-value: 0.106643
-h vs. h_slightcompat p-value: 0.371924
+h vs. h_slightcompat p-value: 0.371925
 Caught expected NCCalcError('check_compat failed: p-value is not greater than 0.05.')
 h vs. h_incompat p-value: 0.0000000000
 Caught expected NCBadInput('chisquare_dist: incompatible histogram integrals.')

@@ -27,9 +27,12 @@ from NCrystalDev._hist import Hist1D
 from NCTestUtils.hists import Hist1Dcpp
 from NCTestUtils.randutils import TestRNG
 from NCTestUtils.common import ensure_error
+from NCTestUtils.env import ncsetenv
 import math
 
-def main():
+def main(do_plot):
+    if not do_plot:
+        ncsetenv('FAKEPYPLOT','1')
 
     h = Hist1Dcpp( 5, 0.0, 100.0, clamp_overflows=True )
     h.fill( 12.34 )
@@ -147,6 +150,11 @@ def main():
     testinteg(h1,[1.0,0.5,0.04,0.03,0.02],0.0,120.0)
     testinteg(h1,[],3.0000000001,3.00000001)
     testinteg(h1,[0.001,0.05,0.01,0.1,0.15,1.0,0.5,0.04,0.03,0.02],None,None)
+
+    with ensure_error(NCBadInput,
+                      'Can not rebin nbins=20 with rebin_factor=3 '
+                      '(rebin_factor must be a divisor of nbins).'):
+        h1.rebin(3)
 
     with ensure_error(NCBadInput,
                       'Invalid integration range requested.'):
@@ -277,22 +285,7 @@ def main():
     h4.add_contents(h4b)
     assert tmp == h4.to_json()
 
-    class FakeAxis:
-        def bar( self, **kwargs ):
-            print("SPY axis.bar called with kwargs: %s"%kwargs)
-        def errorbar( self, **kwargs ):
-            print("SPY axis.errorbar called with kwargs: %s"%str(kwargs))
-        def set_xlim( self, *a ):
-            print("SPY axis.set_xlim called with args: %s"%str(a))
-
-    class FakePLT:
-        def gca(self):
-            print("SPY plt.gca() called")
-            return FakeAxis()
-        def show(self):
-            print("SPY plt.show() called")
-
-    h3.plot( plt=FakePLT() )
+    h3.plot()
 
     h5 = Hist1Dcpp( 6, -3.0, 3.0,
                     allow_weights = True, clamp_overflows=True )
@@ -572,6 +565,6 @@ def main():
     h1.add_contents(h2)
     h1.dump()
 
-
 if __name__ == '__main__':
-    main()
+    import sys
+    main(do_plot = '--plot' in sys.argv[1:])
