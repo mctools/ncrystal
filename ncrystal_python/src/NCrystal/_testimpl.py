@@ -334,6 +334,8 @@ def _create_pyplot_inspector( pass_calls_to_real_plt ):
             return 'Array(shape=%s,content=%s)'%(x.shape,shorten(x.flatten()))
         if isinstance(x,str) or not hasattr(x,'__len__'):
             return x
+        if len(x)==0:
+            return x
         #Fewer digits to guard against annoying test errors:
         maxxval = max(x)
         def _fmtthislistval(val):
@@ -364,15 +366,28 @@ def _create_pyplot_inspector( pass_calls_to_real_plt ):
             return _fmtcall(name, plot_args,plot_kwargs)
         return fmtcall_pltplot
 
+    csf = _create_shortening_fmtcall
+
+    fill_between = ( 'fill_between', dict( fmtcall=csf(3)) )
+    plot = ( 'plot', dict( fmtcall=csf(2,('x','y'))) )
+    bar = ( 'bar', dict( fmtcall=csf(1,('x',))) )
+    errorbar = ( 'errorbar', dict( fmtcall=csf(3,('x','y','yerr',))) )
+
+    pltaxisfcts = [fill_between, plot, bar, errorbar,'semilogx','semilogy' ]
+
     return CallInspector( name = 'plt',
                           realobj = realplt,
-                          subfcts = [ 'title','xlabel','ylabel','semilogx','semilogy',
+                          subfcts = [ 'title','xlabel','ylabel',
                                       'legend','grid','show','figure',
                                       'savefig','ylim','xlim','colorbar',
-                                      'tight_layout','close',
-                                      ( 'plot', dict( fmtcall=_create_shortening_fmtcall(2,('x','y')) ) ),
+                                      'xticks','suptitle','tight_layout',
+                                      'close',
+                                      *pltaxisfcts,
                                       ( 'pcolormesh',dict( subfcts=['set_clim'],
-                                                           fmtcall=_create_shortening_fmtcall(3) ) ),
+                                                           fmtcall=csf(3)) ),
+                                      ( 'gca',dict( subfcts=[*pltaxisfcts,
+                                                             'set_ylim',
+                                                             'set_xlim'] ) ),
                                      ] )
 
 def _create_pdfpages_inspector( real_pdfpages ):
