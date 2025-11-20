@@ -112,9 +112,10 @@ class Hist1D:
         return json.dumps( self.to_dict( json_compat = True ) )
 
     def clone( self, rebin_factor = 1 ):
-        """Clone object. This is useful to keep the original histogram intact in
-        case of subsequent operations on the histogram is desired, such as
-        rebinning."""
+        """Return clone of object . This is useful to keep the original
+        histogram intact in case of subsequent operations on the histogram is
+        desired, such as rebinning.
+        """
         c = Hist1D('_no_init_')
         c.__stat_integral = self.__stat_integral
         c.__stat_rms = self.__stat_rms
@@ -414,7 +415,10 @@ class Hist1D:
     def rebin( self, rebin_factor ):
         """Reduce granularity of binnings in histogram by provided factor, which
         must be a divisor in the current number of bins. Returns self."""
-        assert self.__nbins % rebin_factor == 0
+        if not rebin_factor>=1 or not self.__nbins % rebin_factor == 0:
+            raise NCBadInput( f'Can not rebin nbins={self.__nbins} with '
+                              f'rebin_factor={rebin_factor} (rebin_factor'
+                              ' must be a divisor of nbins).' )
         if rebin_factor == 1:
             return self
         def _dorebin(x):
@@ -650,29 +654,54 @@ class Hist1D:
 
     def plot_hist( self, *args, **kwargs ):
         """Alias for the .plot() method."""
-        return self.plot_hist(*args,**kwargs)
+        return self.plot(*args,**kwargs)
 
     def plot( self, plt=None, axis=None, label=None,
-                   show_errors=True, do_show = True, set_xlim = True ):
+              show_errors=True, do_show = True, set_xlim = True,
+              logy = False, error_bands = None, alpha = None, color = None ):
         """Produce a matplotlib plot of the histogram. If plt is None,
         matplotlib.pyplot is used. If axis is None, plt.gca() is used. Unless
         do_show is False, plt.show() wil be called ultimately. The show_errors,
-        label, and set_xlim are all boolean flags whose affects are hopefully
-        self explanatory.
+        label, set_xlim, alpha, and color are all options whose affects are
+        hopefully self explanatory to users with experience in matplotlib.
+
+        If error bands is set to a positive value, the curve and errors are
+        instead shown as a coloured band spanning y_i +- error_bands*yerr_i.
+
+        Returns plt object used.
         """
         if not plt and not axis:
             from .plot import _import_matplotlib_plt
             plt = _import_matplotlib_plt()
         if not axis:
             axis = plt.gca()
-        axis.bar(**self.bar_args(label=label))
-        if show_errors:
-            axis.errorbar(**self.errorbar_args())
+        if error_bands:
+            #need to repeat last entry for proper error band visualisation of
+            #the last bin:
+            def repeat_last( x ):
+                return _np.concatenate( (x, _np.asarray( [x[-1]],
+                                                         dtype=x.dtype ) ) )
+            cc = repeat_last(self.content)
+            ee = repeat_last(self.errors)*error_bands
+            fill_between_args = dict( x = self.binedges, step = 'post',
+                                      y1 = cc - ee, y2 = cc + ee )
+            axis.fill_between(**fill_between_args,alpha=alpha,color=color,
+                              label=label)
+        else:
+            if color != 'none':
+                axis.bar( **self.bar_args( label = label ),
+                          alpha=alpha, color=color )
+            if show_errors:
+                axis.errorbar(**self.errorbar_args(),alpha=alpha,
+                              label = label if color=='none' else None)
         xmin,xmax,binwidth = self.xmin, self.xmax, self.binwidth
         if set_xlim:
             axis.set_xlim(xmin-1e-6*binwidth,xmax+1e-6*binwidth)
+        if logy:
+            axis.semilogy()
         if do_show and plt:
             plt.show()
+        return plt
 
     def scale( self, factor ):
         """Scale contents by a positive factor and return self. This also
