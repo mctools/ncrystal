@@ -14,6 +14,13 @@ v4.2.13 (work-in-progress)
        tests.
      * Add comprehensive (>99% coverage) unit test for python histograms.
      * NCRandUtils.hh: Add randPointInUnitCircle utility.
+     * Add testing utilities for easy monitoring that MiniMC output for a
+       particular cfg-string does not change in a statistically significant
+       manner. This includes utilities for easy inspection and maintenance of
+       the tests in case of detected discrepancies.
+     * Add ChiSquared-CDF approximation functions, needed for histogram
+       comparisons to yield approximate p-values without introducing a new
+       dependency like scipy.
      * Fix flawed asserts preventing proper MiniMC usage in debug builds.
      * ...
 
