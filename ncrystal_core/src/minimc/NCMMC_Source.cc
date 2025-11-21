@@ -138,6 +138,7 @@ namespace NCRYSTAL_NAMESPACE {
       };
 
       class SourceConstant final : public Source {
+        //A source which always fires the same neutron state.
         StatCount m_stat;
         Length m_x;
         Length m_y;
@@ -202,6 +203,126 @@ namespace NCRYSTAL_NAMESPACE {
         }
       };
 
+
+      class SourceUniformCircularBeam final : public Source {
+        //A source which fires a monochromatic beam of neutrons, with a circular
+        //and uniform beam profile. Energy and radius are both required
+        //parameters.
+        StatCount m_stat;
+        //Length m_x, m_y, m_z;//beam center
+        Vector m_center;//beam center
+        NeutronDirection m_dir;//beam direction
+        Vector m_a, m_b;//basis vectors orthogonal to m_dir;
+        NeutronEnergy m_ekin;
+        Length m_radius;//for metadata
+      public:
+
+        SourceUniformCircularBeam( std::size_t n,
+                                   NeutronEnergy ekin,
+                                   Length radius,
+                                   Length x = Length{0},
+                                   Length y = Length{0},
+                                   Length z = Length{0},
+                                   NeutronDirection direction = NeutronDirection{0.0,0.0,1.0} )
+          : m_stat(n), m_center{ x.get(), y.get(), z.get() },
+            m_dir( direction.as<Vector>().unit().as<NeutronDirection>() ),
+            m_ekin(ekin),
+            m_radius(radius)
+        {
+          const Vector& vdir = m_dir.as<Vector>();
+          if ( m_radius.get() > 0.0 ) {
+            //We must find m_a and m_b as basis vectors of the disk on which to
+            //generate neutrons:
+            //-> First find a unit vector not too colinear with dir:
+            m_a.set( 1.0, 0.0, 0.0 );
+            if ( m_a.dot(vdir) > 0.8 )
+              m_a.set( 0.0, 1.0, 0.0 );
+            if ( m_a.dot(vdir) > 0.8 )
+              m_a.set( 0.0, 0.0, 1.0 );
+            nc_assert_always( m_a.dot(vdir) <= 0.8 );
+            //Now use the cross product to ensure full orthogonality:
+            m_a = vdir.cross(m_a).unit();
+            //m_b is now easy:
+            m_b = vdir.cross(m_a).unit();
+            nc_assert_always( vdir.isOrthogonal( m_a ) );
+            nc_assert_always( vdir.isOrthogonal( m_b ) );
+            nc_assert_always( m_a.isOrthogonal( m_b ) );
+            //Finally apply radius
+            m_a *= m_radius.get();
+            m_b *= m_radius.get();
+          }
+          NCRYSTAL_DEBUGMMCMSG("SourceUniformCircularBeam(center="
+                               <<m_center<<", dir="<<m_dir<<", ekin="<<m_ekin
+                               <<", r="<<m_radius
+                               <<", a="<<m_a<<", b="<<m_b);
+        }
+
+        SourceMetaData metaData() const override
+        {
+
+          SourceMetaData md;
+          {
+            std::ostringstream ss;
+            ss << "SourceUniformCircularBeam("<<m_ekin<<", r="<<m_radius
+               <<", pos=["<< Length{m_center.x()}
+              <<", "<< Length{m_center.y()}
+              <<", "<< Length{m_center.z()}<<"], dir="<<m_dir<<")";
+            md.description = ss.str();
+          }
+          md.concurrent = true;
+          m_stat.apply( md );
+          return md;
+        }
+
+        bool particlesMightBeOutside( const Geometry& geom ) const override
+        {
+          if ( m_radius.get() > 0.0 ) {
+            //FIXME: Improve this?
+            return true;
+          } else {
+            //special case r=0:
+            return !geom.pointIsInside( m_center );
+          }
+        }
+
+        void fillBasket( RNG& rng, NeutronBasket& nb ) override
+        {
+          auto counts = m_stat.updateBasketCounts( nb );
+          NCRYSTAL_DEBUGMMCMSG("Source Filling n="<<(counts.N-counts.i0));
+
+          if ( m_radius.get() > 0.0 ) {
+            //Randomised positions:
+            double a, b;
+            for ( std::size_t i = counts.i0; i < counts.N; ++i ) {
+              std::tie(a,b) = randPointInUnitCircle(rng);
+              auto p = m_center + m_a * a + m_b * b;
+              nb.x[i] = p[0];
+              nb.y[i] = p[1];
+              nb.z[i] = p[2];
+            }
+          } else {
+            //special case r=0:
+            for ( std::size_t i = counts.i0; i < counts.N; ++i )
+              nb.x[i] = m_center[0];
+            for ( std::size_t i = counts.i0; i < counts.N; ++i )
+              nb.y[i] = m_center[1];
+            for ( std::size_t i = counts.i0; i < counts.N; ++i )
+              nb.z[i] = m_center[2];
+          }
+          //Direction, weight, and energy are all constant:
+          for ( std::size_t i = counts.i0; i < counts.N; ++i )
+            nb.ux[i] = m_dir[0];
+          for ( std::size_t i = counts.i0; i < counts.N; ++i )
+            nb.uy[i] = m_dir[1];
+          for ( std::size_t i = counts.i0; i < counts.N; ++i )
+            nb.uz[i] = m_dir[2];
+          for ( std::size_t i = counts.i0; i < counts.N; ++i )
+            nb.w[i] = 1.0;
+          for ( std::size_t i = counts.i0; i < counts.N; ++i )
+            nb.ekin[i] = m_ekin.dbl();
+        }
+      };
+
       SourcePtr createSourceImpl( const char * raw_srcstr )
       {
         namespace PMC = parseMMCCfg;
@@ -226,6 +347,16 @@ namespace NCRYSTAL_NAMESPACE {
                                          NeutronDirection{ PMC::getValue_dbl(tokens,"ux"),
                                                            PMC::getValue_dbl(tokens,"uy"),
                                                            PMC::getValue_dbl(tokens,"uz") } );
+        } else if ( src_name == "circular" ) {
+          PMC::applyDefaults( tokens, common_defaults );
+          PMC::applyDefaults( tokens, "x=0;y=0;z=0;ux=0;uy=0;uz=1;n=1e6" );
+          PMC::checkNoUnknown(tokens,"ekin;wl;n;w;;x;y;z;ux;uy;uz;r","source");
+          return makeSO<SourceUniformCircularBeam>( PMC::getValue_sizet(tokens,"n"),
+                                                    PMC::getValue_Energy( tokens, common_default_energy ),
+                                                    Length{ PMC::getValue_dbl(tokens,"r") },
+                                                    Length{ PMC::getValue_dbl(tokens,"x") },
+                                                    Length{ PMC::getValue_dbl(tokens,"y") },
+                                                    Length{ PMC::getValue_dbl(tokens,"z") } );
         } else if ( src_name == "isotropic" ) {
           PMC::applyDefaults( tokens, common_defaults );
           PMC::applyDefaults( tokens, "x=0;y=0;z=0;n=1e6" );

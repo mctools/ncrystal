@@ -1,4 +1,12 @@
 v4.2.13 (work-in-progress)
+     * Add new source generator "circular" for the MiniMC framework, which
+       allows modelling of a circular beam. Specifically, neutrons can be
+       generated uniformly on a disk of a given radius whose normal coincides
+       with the neutron direction. In the case where the radius is 0, this
+       generator has identical output to the "constant" generator. The advantage
+       of this new generator is that it can be used to illuminate a spherical
+       sample uniformly, and is for instance intended for investigation of
+       extinction effects in diffraction with spherical grains.
      * Make the Python Histogram classes returned by the MiniMC framework much
        more feature complete, adding several features intended to make
        subsequent data analysis easier.
