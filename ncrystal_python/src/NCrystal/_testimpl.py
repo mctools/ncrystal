@@ -372,8 +372,8 @@ def _create_pyplot_inspector( pass_calls_to_real_plt ):
     plot = ( 'plot', dict( fmtcall=csf(2,('x','y'))) )
     bar = ( 'bar', dict( fmtcall=csf(1,('x',))) )
     errorbar = ( 'errorbar', dict( fmtcall=csf(3,('x','y','yerr',))) )
-
     pltaxisfcts = [fill_between, plot, bar, errorbar,'semilogx','semilogy' ]
+    get_figure = ( 'get_figure',dict( subfcts=['suptitle'] ) )
 
     return CallInspector( name = 'plt',
                           realobj = realplt,
@@ -386,6 +386,11 @@ def _create_pyplot_inspector( pass_calls_to_real_plt ):
                                       ( 'pcolormesh',dict( subfcts=['set_clim'],
                                                            fmtcall=csf(3)) ),
                                       ( 'gca',dict( subfcts=[*pltaxisfcts,
+                                                             get_figure,
+                                                             'set_title',
+                                                             'set_xticks',
+                                                             'set_xlabel',
+                                                             'set_ylabel',
                                                              'set_ylim',
                                                              'set_xlim'] ) ),
                                      ] )
