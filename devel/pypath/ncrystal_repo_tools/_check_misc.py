@@ -73,7 +73,7 @@ def main():
             continue
 
         #always trailing newlines:
-        if not content.endswith('\n'):
+        if not content.endswith('\n') and not f.name.endswith('.json'):
             import platform
             ignore_on_win = 'NCCFileUtils' in f.name
             if ignore_on_win and platform.system() == 'Windows':
