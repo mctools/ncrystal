@@ -26,6 +26,8 @@ __all__ = ['runsim_diffraction_pattern',
            'quick_diffraction_pattern',
            'quick_diffraction_pattern_autoparams']
 
+from .exceptions import NCBadInput
+
 def runsim_diffraction_pattern( cfgstr, *,
                                 geomcfg,
                                 srccfg,
@@ -53,16 +55,17 @@ def runsim_diffraction_pattern( cfgstr, *,
 
     """
     assert tally_detail_lvl in (0,1,2)
-    from ._numpy import _np, _ensure_numpy, _np_linspace
+
+    from ._numpy import _ensure_numpy
     _ensure_numpy()
 
     nthreads = 9999 if nthreads=='auto' else min(9999,max(1,int(nthreads)))
 
-    setup_info = dict( nthreads = nthreads,
-                       tally_detail_lvl = tally_detail_lvl,
-                       material_cfgstr = cfgstr,
-                       geomcfg = geomcfg,
-                       srccfg = srccfg )
+    setup_info = dict( nthreads = int(nthreads),
+                       tally_detail_lvl = int(tally_detail_lvl),
+                       material_cfgstr = str(cfgstr),
+                       geomcfg = str(geomcfg),
+                       srccfg = str(srccfg) )
 
     from ._chooks import _get_raw_cfcts
     _rawfct = _get_raw_cfcts()
@@ -125,11 +128,9 @@ def _parse_unit(valstr,unitmap):
 def _parse_energy( valstr ):
     v,u,uv = _parse_unit( valstr, _energy_units )
     if v is not None and u is None and uv is None:
-        from .exceptions import NCBadInput
         raise NCBadInput('Invalid energy specification (missing unit'
                          f' like Aa or eV): "{valstr}"')
     if v is None:
-        from .exceptions import NCBadInput
         raise NCBadInput(f'Invalid energy specification: "{valstr}"')
     if u is not None and u.lower() in ('aa','angstrom'):
         from .constants import wl2ekin
@@ -140,12 +141,10 @@ def _parse_energy( valstr ):
 def _parse_length( valstr, mfp = None ):
     v,u,uv = _parse_unit( valstr, _length_units )
     if v is not None and u is None and uv is None:
-        from .exceptions import NCBadInput
         _ex0="mfp" if mfp is not None else "mm"
         raise NCBadInput('Invalid length specification (missing unit like '
                          f'{_ex0} or cm): "{valstr}"')
     if v is None:
-        from .exceptions import NCBadInput
         raise NCBadInput(f'Invalid length specification: "{valstr}"')
     if u=='mfp':
         if mfp is None:
@@ -163,29 +162,41 @@ def _macroxs_if_isotropic( mat, **xsect_kwargs ):
                     * mat.scatter.xsect( **xsect_kwargs )
                     / _parse_length('1cm') ) )
 
+def _approx_mfp_as_length_string( mat, **xsect_kwargs ):
+    macroxs_scatter = _macroxs_if_isotropic( mat, **xsect_kwargs )
+    if not macroxs_scatter:
+        return '1cm', 0.01#fallback
+    else:
+        mfp_scatter = 1.0 / macroxs_scatter
+        return ( _encode_length_to_str(mfp_scatter,round2digits=True),
+                 mfp_scatter )
+
+def _encode_length_to_str( length_meters, round2digits = False ):
+    assert length_meters>=0.0
+    if not length_meters:
+        return '0mm'
+    unit_mm = _parse_length('1mm')
+    unit_cm = _parse_length('1cm')
+    if round2digits:
+        def roundval(x):
+            return float('%.2g'%x)
+    else:
+        def roundval(x):
+            return x
+    if length_meters <= unit_cm:
+        return f'{roundval(length_meters/unit_mm):.14g}mm'
+    unit_m = _parse_length('1m')
+    assert unit_m == 1.0
+    if length_meters <= unit_m:
+        return f'{roundval(length_meters/unit_cm):.14g}cm'
+    return f'{roundval(length_meters/unit_m):.14g}m'
+
 def quick_diffraction_pattern_autoparams( cfgstr ):
     from .core import load as ncload
     mat = ncload( cfgstr )
-
     neutron_wl = 1.8 # todo: depend on e.g. Bragg threshold?
-
-    unit_mm = _parse_length('1mm')
-    unit_cm = _parse_length('1cm')
-    unit_m = _parse_length('1m')
-    assert unit_m == 1.0
-    macroxs_scatter = _macroxs_if_isotropic( mat, wl=neutron_wl )
-    if not macroxs_scatter:
-        material_thickness = '1cm'
-    else:
-        mfp_scatter = 1.0 / macroxs_scatter
-        def _round2digits(x):
-            return int(x*100+0.5) * 0.01
-        if mfp_scatter <= unit_cm:
-            material_thickness = f'{_round2digits(mfp_scatter/unit_mm):g}mm'
-        elif mfp_scatter <= unit_m:
-            material_thickness = f'{_round2digits(mfp_scatter/unit_cm):g}cm'
-        else:
-            material_thickness = f'{_round2digits(mfp_scatter/unit_m):g}m'
+    material_thickness = _approx_mfp_as_length_string( mat,
+                                                       wl = neutron_wl )[0]
     return dict( neutron_energy_str = f'{neutron_wl}Aa',
                  material_thickness_str = material_thickness )
 
@@ -199,7 +210,6 @@ def quick_diffraction_pattern( cfgstr, *,
     ###    from .misc import MaterialSource
     ###    matsrc = MaterialSource(material)
     ###    if matsrc.is_preloaded():
-    ###        #from .exceptions import NCBadInput
     ###        raise NCBadInput( 'Diffraction patterns can not be produced for'
     ###                          ' preloaded materials (for instance simply passing'
     ###                          ' a cfgstring will work).' )

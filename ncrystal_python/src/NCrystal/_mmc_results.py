@@ -22,10 +22,13 @@
 from ._numpy import _np, _ensure_numpy, _np_linspace
 from .exceptions import NCBadInput
 
+#FIXME: Missing doc-strings
+#FIXME: Option to check_compat on Results objects, and thus check all comps?
+
 class MMCDiffractionResults:
 
     def __new__(cls, *args, **kwargs):
-        raise TypeError("Use named constructors instead of direct instantiation")
+        raise TypeError("Use named constructors instead of direct creation")
 
     @classmethod
     def from_dict( cls, data ):
@@ -178,13 +181,20 @@ class MMCDiffractionResults:
 
     def plot( self, *,
               do_show = True,
-              do_newfig = True,
+              do_newfig = 'auto',
               do_grid = False,
               logy = False,
               rebin_factor = 1,
               hist = None,
               title = None,
-              plt = None):
+              plt = None,
+              axis = None ):
+        """Fixme more here.
+
+        do_newfig='auto' will cause a new figure to be created, unless axis is
+        provided.
+
+        """
 
         breakdown_mode = hist=='breakdown'
 
@@ -201,9 +211,25 @@ class MMCDiffractionResults:
             assert isinstance(hist,Hist1D)
 
         from .plot import _import_matplotlib_plt, _plt_final
-        plt = plt or _import_matplotlib_plt()
+        assert bool(axis) == (axis is not None)
+        if do_newfig == 'auto':
+            do_newfig = not axis
+        if do_newfig and axis:
+            raise NCBadInput('incompatible: axis is not '
+                             'None and do_newfig=True')
+        if not plt and not axis:
+            from .plot import _import_matplotlib_plt
+            plt = _import_matplotlib_plt()
         if do_newfig:
+            if not plt:
+                raise NCBadInput('unsupported combination: '
+                                 'axis=None, do_newfig=True, plt=None')
             plt.figure()
+            assert axis is None
+            axis = plt.gca()
+        if not axis:
+            assert plt is not None
+            axis = plt.gca()
 
         do_legend = False
         tot_integral_with_absorption = None#unknown
@@ -254,7 +280,6 @@ class MMCDiffractionResults:
 
             h=hists[0].clone()
             curve = h._hist_curve()
-            #axis = plt.gca()
             ymax_non_NOSCAT = [0.0]
             def _fractionval_fmt(x):
                 return f'({x*100.0:.3g}%)'
@@ -272,10 +297,10 @@ class MMCDiffractionResults:
                 lbl = title if title!='NOSCAT' else 'Transmitted'
                 if fraction is not None:
                     lbl = f'{lbl} {_fractionval_fmt(fraction)}'
-                plt.fill_between(*curve,y2,
-                                 label=lbl,
-                                 edgecolor="none",
-                                 facecolor=colors[title])
+                axis.fill_between(*curve,y2,
+                                  label=lbl,
+                                  edgecolor="none",
+                                  facecolor=colors[title])
 
 
 
@@ -297,25 +322,25 @@ class MMCDiffractionResults:
                          fraction = calcfrac(hi))
                 curve = newcurve
 
-            plt.errorbar(**hist_main.errorbar_args())
+            axis.errorbar(**hist_main.errorbar_args())
             if not logy:
-                plt.ylim(0.0,ymax_non_NOSCAT[0]*1.3 or None)
-            plt.xlim(0.0,180.0)
+                axis.set_ylim(0.0,ymax_non_NOSCAT[0]*1.3 or None)
+            axis.set_xlim(0.0,180.0)
         else:
             if rebin_factor != 1:
                 hist = hist.clone( rebin_factor = rebin_factor )
             hist.plot_hist(plt=plt,do_show = False)
             if not title:
-                plt.title(hist.title or '<untitled histogram>')
+                axis.set_title(hist.title or '<untitled histogram>')
             if not logy:
-                plt.ylim(0.0)
+                axis.set_ylim(0.0)
 
-        plt.xticks(_np_linspace(0.0,180.0,180//30+1))
-        plt.xticks(_np_linspace(0.0,180.0,180//15+1),minor=True)
-        plt.xlabel('Exit Angle (degrees)')
-        plt.ylabel('Intensity (arbitrary units)')
+        axis.set_xticks(_np_linspace(0.0,180.0,180//30+1))
+        axis.set_xticks(_np_linspace(0.0,180.0,180//15+1),minor=True)
+        axis.set_xlabel('Exit Angle (degrees)')
+        axis.set_ylabel('Intensity (arbitrary units)')
         if title:
-            plt.title(title)
+            axis.set_title(title)
 
         suptitle_fs = 'medium'
         if len(self.cfgstr)>40:
@@ -324,13 +349,15 @@ class MMCDiffractionResults:
             suptitle_fs = 'x-small'
         if len(self.cfgstr)>101:
             suptitle_fs = 'xx-small'
-        plt.suptitle(self.cfgstr,fontsize=suptitle_fs)
+        figure = axis.get_figure()
+        if figure:
+            figure.suptitle(self.cfgstr,fontsize=suptitle_fs)
 
         absfracstr = 'unknown fraction'
         if tot_integral_with_absorption and tot_integral:
             _absfrac =  1.0 - tot_integral/tot_integral_with_absorption
             absfracstr = _fractionval_fmt(_absfrac)
-        plt.plot([], [], ' ', label="Absorbed %s"%absfracstr)
+        axis.plot([], [], ' ', label="Absorbed %s"%absfracstr)
 
         legargs = {}
 
@@ -341,4 +368,3 @@ class MMCDiffractionResults:
                    logy = logy,
                    plt = plt,
                    extra_legend_kwargs = legargs )
-#FIXME: Option to check_compat on Results objects, and thus check all components.
