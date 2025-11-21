@@ -1,0 +1,219 @@
+Verifying resA stability.
+Verifying resB stability.
+Done. Proceed with ref data.
+CALLING plt.gca()
+CALLING ResultOf[plt.gca(..)].fill_between(alpha=0.3,color='blue',label='ref',step='post',x=array([  0.,   5.,  10.,  15.,  20.,  25.,  30.,  35.,  40.,  45.,  50.,
+        55.,  60.,  65.,  70.,  75.,  80.,  85.,  90.,  95., 100., 105.,
+       110., 115., 120., 125., 130., 135., 140., 145., 150., 155., 160.,
+       165., 170., 175., 180.]),y1=array([3.82034714e+03, 1.75367677e+01, 2.01174782e+01, 3.95390185e+01,
+       3.76149602e+01, 4.58174088e+01, 4.68012088e+01, 5.08383814e+01,
+       5.71143308e+01, 5.34492715e+02, 3.77602345e+02, 8.09817105e+01,
+       7.28203671e+01, 7.24921093e+01, 8.96873153e+01, 4.51893310e+02,
+       8.39330588e+01, 9.42255129e+01, 6.17529179e+02, 9.06510144e+01,
+       2.21224562e+02, 7.58660910e+01, 7.65682102e+01, 6.46645451e+01,
+       7.10158885e+01, 1.42675533e+02, 5.64372105e+01, 5.88602856e+01,
+       4.29642691e+01, 4.17098619e+01, 2.40279724e+02, 2.41812015e+01,
+       1.77454823e+01, 2.25378210e+02, 7.87103940e+00, 1.56915274e+00,
+       1.56915274e+00]),y2=array([3.89732062e+03, 2.05674618e+01, 2.32081561e+01, 4.40110153e+01,
+       4.17151755e+01, 5.03201307e+01, 5.13218759e+01, 5.53847007e+01,
+       6.21005023e+01, 5.59633260e+02, 3.97770573e+02, 8.68868039e+01,
+       7.81610430e+01, 7.79564314e+01, 9.58941095e+01, 4.73123484e+02,
+       8.97302704e+01, 1.00345532e+02, 6.41247071e+02, 9.66261398e+01,
+       2.34197283e+02, 8.12752310e+01, 8.19522864e+01, 6.94964436e+01,
+       7.62832757e+01, 1.52081418e+02, 6.10198945e+01, 6.36577242e+01,
+       4.69101905e+01, 4.57693077e+01, 2.53175840e+02, 2.70445515e+01,
+       2.02742443e+01, 2.38006895e+02, 9.46233225e+00, 2.38168669e+00,
+       2.38168669e+00]))
+CALLING ResultOf[plt.gca(..)].set_xlim(-5e-06,180.0)
+CALLING plt.gca()
+CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label='new',mec='black',mfc='black',x=['2.5', '7.5', '12.5', '...', '168.0', '172.0', '178.0'],xerr=2.5,y=['3.86e+03', '19.1', '21.7', '...', '232.0', '8.67', '1.98'],yerr=array([38.48673743,  1.51534702,  1.54533892,  2.23599836,  2.05010762,
+        2.25136095,  2.26033355,  2.27315965,  2.49308575, 12.57027292,
+       10.08411403,  2.95254668,  2.67033795,  2.73216104,  3.10339711,
+       10.61508698,  2.89860581,  3.06000952, 11.85894588,  2.98756269,
+        6.48636042,  2.70457003,  2.69203808,  2.41594927,  2.6336936 ,
+        4.70294272,  2.29134199,  2.39871928,  1.97296069,  2.02972287,
+        6.4480583 ,  1.43167503,  1.264381  ,  6.31434248,  0.79564643,
+        0.40626697]))
+CALLING ResultOf[plt.gca(..)].set_xlim(-5e-06,180.0)
+CALLING ResultOf[plt.gca(..)].semilogy()
+CALLING plt.title('A')
+CALLING plt.legend()
+CALLING plt.grid()
+CALLING plt.show()
+CALLING plt.gca()
+CALLING ResultOf[plt.gca(..)].fill_between(alpha=0.3,color='blue',label='ref',step='post',x=array([  0.,   5.,  10.,  15.,  20.,  25.,  30.,  35.,  40.,  45.,  50.,
+        55.,  60.,  65.,  70.,  75.,  80.,  85.,  90.,  95., 100., 105.,
+       110., 115., 120., 125., 130., 135., 140., 145., 150., 155., 160.,
+       165., 170., 175., 180.]),y1=array([7.83242989e+03, 4.13700263e-01, 8.48169552e-01, 1.19606305e+00,
+       2.56510626e+00, 3.20775868e+00, 4.50556959e+00, 6.50494078e+00,
+       8.69146456e+00, 1.13232979e+01, 1.30775328e+01, 1.76453562e+01,
+       1.90357263e+01, 2.22354297e+01, 2.67587312e+01, 3.03401306e+01,
+       3.40110036e+01, 3.56196265e+01, 3.58383105e+01, 3.77363855e+01,
+       4.18691517e+01, 4.37734016e+01, 4.23260363e+01, 4.53814640e+01,
+       3.89236635e+01, 3.89292857e+01, 4.33094712e+01, 3.52284577e+01,
+       3.52248514e+01, 3.12621876e+01, 2.68325679e+01, 2.43966887e+01,
+       2.04287831e+01, 1.29075017e+01, 6.89897377e+00, 2.44633833e+00,
+       2.44633833e+00]),y2=array([7.99065672e+03, 6.44643640e-01, 1.25639952e+00, 1.61016192e+00,
+       3.36027589e+00, 4.09230150e+00, 5.55543237e+00, 7.81537048e+00,
+       1.02153782e+01, 1.31261330e+01, 1.50185393e+01, 1.99280517e+01,
+       2.14104399e+01, 2.48326992e+01, 2.96115077e+01, 3.33954741e+01,
+       3.72686736e+01, 3.89523557e+01, 3.91942968e+01, 4.11946216e+01,
+       4.55239359e+01, 4.75123004e+01, 4.60019485e+01, 4.91952178e+01,
+       4.24597050e+01, 4.24535121e+01, 4.70434034e+01, 3.85840048e+01,
+       3.85826772e+01, 3.44396514e+01, 2.97836610e+01, 2.72146397e+01,
+       2.30217992e+01, 1.49900576e+01, 8.42314525e+00, 3.38806550e+00,
+       3.38806550e+00]))
+CALLING ResultOf[plt.gca(..)].set_xlim(-5e-06,180.0)
+CALLING plt.gca()
+CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label='new',mec='black',mfc='black',x=['2.5', '7.5', '12.5', '...', '168.0', '172.0', '178.0'],xerr=2.5,y=['7.91e+03', '0.529', '1.05', '...', '13.9', '7.66', '2.92'],yerr=array([79.1134149 ,  0.11547169,  0.20411498,  0.20704943,  0.39758481,
+        0.44227141,  0.52493139,  0.65521485,  0.7619568 ,  0.90141758,
+        0.97050325,  1.14134773,  1.18735681,  1.29863477,  1.42638825,
+        1.52767175,  1.62883498,  1.66636462,  1.67799317,  1.72911802,
+        1.82739208,  1.86944938,  1.83795609,  1.90687689,  1.76802073,
+        1.76211321,  1.8669661 ,  1.67777356,  1.67891291,  1.58873188,
+        1.47554658,  1.4089755 ,  1.29650809,  1.04127798,  0.76208574,
+        0.47086359]))
+CALLING ResultOf[plt.gca(..)].set_xlim(-5e-06,180.0)
+CALLING ResultOf[plt.gca(..)].semilogy()
+CALLING plt.title('B')
+CALLING plt.legend()
+CALLING plt.grid()
+CALLING plt.show()
+CALLING plt.figure()
+CALLING plt.gca()
+CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['31.1', '31.1', '63.4', '...', '32.6', '10.6', '10.6'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='cornflowerblue',label='MULTISCAT_PUREELAS (24.5%)')
+CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['31.1', '31.1', '63.4', '...', '251.0', '10.6', '10.6'],['31.1', '31.1', '63.4', '...', '32.6', '10.6', '10.6'],edgecolor='none',facecolor='blue',label='SINGLESCAT_ELAS (28.8%)')
+CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['3.88e+03', '3.88e+03', '63.4', '...', '251.0', '10.6', '10.6'],['31.1', '31.1', '63.4', '...', '251.0', '10.6', '10.6'],edgecolor='none',facecolor='green',label='Transmitted (46.7%)')
+CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['5.0', '15.0', '25.0', '...', '155.0', '165.0', '175.0'],xerr=5.0,y=['3.88e+03', '63.4', '87.7', '...', '272.0', '251.0', '10.6'],yerr=array([38.51655793,  2.71804361,  3.04492485,  3.20567662, 12.81511755,
+       10.50746819,  3.82039379, 11.05943693,  4.21492276, 12.22947784,
+        7.02762908,  3.61716462,  5.39017738,  3.31724318,  2.83060927,
+        6.60508511,  6.4396879 ,  0.89336784]))
+CALLING ResultOf[plt.gca(..)].set_xlim(0.0,180.0)
+CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  30.,  60.,  90., 120., 150., 180.]))
+CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  15.,  30.,  45.,  60.,  75.,  90., 105., 120., 135., 150.,
+       165., 180.]),minor=True)
+CALLING ResultOf[plt.gca(..)].set_xlabel('Exit Angle (degrees)')
+CALLING ResultOf[plt.gca(..)].set_ylabel('Intensity (arbitrary units)')
+CALLING ResultOf[plt.gca(..)].get_figure()
+CALLING ResultOf[ResultOf[plt.gca(..)].get_figure(..)].suptitle('Al_sg225.ncmat;comp=bragg;dcutoff=0.8',fontsize='medium')
+CALLING ResultOf[plt.gca(..)].plot([],[],' ',label='Absorbed unknown fraction')
+CALLING plt.semilogy()
+CALLING plt.legend()
+CALLING plt.show()
+CALLING plt.figure()
+CALLING plt.gca()
+CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['0.519', '0.519', '1.47', '...', '1.01', '0.356', '0.356'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='orange',label='MULTISCAT_OTHER (0.565%)')
+CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['0.735', '0.735', '2.46', '...', '35.7', '10.6', '10.6'],['0.519', '0.519', '1.47', '...', '1.01', '0.356', '0.356'],edgecolor='none',facecolor='orangered',label='SINGLESCAT_INELAS (7.88%)')
+CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['7.91e+03', '7.91e+03', '2.46', '...', '35.7', '10.6', '10.6'],['0.735', '0.735', '2.46', '...', '35.7', '10.6', '10.6'],edgecolor='none',facecolor='green',label='Transmitted (79.1%)')
+CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['5.0', '15.0', '25.0', '...', '155.0', '165.0', '175.0'],xerr=5.0,y=['7.91e+03', '2.46', '6.61', '...', '54.1', '35.7', '10.6'],yerr=array([79.11349917,  0.29074455,  0.59470807,  0.83955909,  1.18031005,
+        1.49818263,  1.75962169,  2.09006325,  2.3302091 ,  2.40946263,
+        2.61423083,  2.64844521,  2.49618514,  2.510077  ,  2.31145356,
+        2.04020824,  1.66288696,  0.89581649]))
+CALLING ResultOf[plt.gca(..)].set_xlim(0.0,180.0)
+CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  30.,  60.,  90., 120., 150., 180.]))
+CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  15.,  30.,  45.,  60.,  75.,  90., 105., 120., 135., 150.,
+       165., 180.]),minor=True)
+CALLING ResultOf[plt.gca(..)].set_xlabel('Exit Angle (degrees)')
+CALLING ResultOf[plt.gca(..)].set_ylabel('Intensity (arbitrary units)')
+CALLING ResultOf[plt.gca(..)].get_figure()
+CALLING ResultOf[ResultOf[plt.gca(..)].get_figure(..)].suptitle('Al_sg225.ncmat;comp=inelas',fontsize='medium')
+CALLING ResultOf[plt.gca(..)].plot([],[],' ',label='Absorbed (12.4%)')
+CALLING plt.semilogy()
+CALLING plt.legend()
+CALLING plt.show()
+CALLING plt.figure()
+CALLING plt.gca()
+CALLING plt.gca()
+CALLING ResultOf[plt.gca(..)].bar(align='edge',alpha=None,color=None,height=array([3877.88599532,   63.43783403,   87.73383763,  102.17308338,
+        606.67040411,  471.62071623,  150.71497542,  555.29910901,
+        184.11718702,  723.026702  ,  306.28158393,  146.34074263,
+        221.02805747,  119.98755742,   88.67681456,  272.34065836,
+        250.70241531,   10.64210554]),label=None,width=10.0,x=['0.0', '10.0', '20.0', '...', '150.0', '160.0', '170.0'])
+CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label=None,mec='black',mfc='black',x=['5.0', '15.0', '25.0', '...', '155.0', '165.0', '175.0'],xerr=5.0,y=['3.88e+03', '63.4', '87.7', '...', '272.0', '251.0', '10.6'],yerr=array([38.51655793,  2.71804361,  3.04492485,  3.20567662, 12.81511755,
+       10.50746819,  3.82039379, 11.05943693,  4.21492276, 12.22947784,
+        7.02762908,  3.61716462,  5.39017738,  3.31724318,  2.83060927,
+        6.60508511,  6.4396879 ,  0.89336784]))
+CALLING ResultOf[plt.gca(..)].set_xlim(-1e-05,180.0)
+CALLING ResultOf[plt.gca(..)].set_title('MAIN')
+CALLING ResultOf[plt.gca(..)].set_ylim(0.0)
+CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  30.,  60.,  90., 120., 150., 180.]))
+CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  15.,  30.,  45.,  60.,  75.,  90., 105., 120., 135., 150.,
+       165., 180.]),minor=True)
+CALLING ResultOf[plt.gca(..)].set_xlabel('Exit Angle (degrees)')
+CALLING ResultOf[plt.gca(..)].set_ylabel('Intensity (arbitrary units)')
+CALLING ResultOf[plt.gca(..)].get_figure()
+CALLING ResultOf[ResultOf[plt.gca(..)].get_figure(..)].suptitle('Al_sg225.ncmat;comp=bragg;dcutoff=0.8',fontsize='medium')
+CALLING ResultOf[plt.gca(..)].plot([],[],' ',label='Absorbed unknown fraction')
+CALLING plt.show()
+Hist1D(nbins=18,xmin=0,xmax=180):
+  title     : MAIN
+  integral  : 8238.68
+  mean      : 46.9333
+  rms       : 52.5162
+  minfilled : 0
+  maxfilled : 179.9503687668625105
+  content[ibin=0] : 3877.89 +- 38.5166
+  content[ibin=1] : 63.4378 +- 2.71804
+  content[ibin=2] : 87.7338 +- 3.04492
+  content[ibin=3] : 102.173 +- 3.20568
+  content[ibin=4] : 606.67 +- 12.8151
+  content[ibin=5] : 471.621 +- 10.5075
+  content[ibin=6] : 150.715 +- 3.82039
+  content[ibin=7] : 555.299 +- 11.0594
+  content[ibin=8] : 184.117 +- 4.21492
+  content[ibin=9] : 723.027 +- 12.2295
+  content[ibin=10] : 306.282 +- 7.02763
+  content[ibin=11] : 146.341 +- 3.61716
+  content[ibin=12] : 221.028 +- 5.39018
+  content[ibin=13] : 119.988 +- 3.31724
+  content[ibin=14] : 88.6768 +- 2.83061
+  content[ibin=15] : 272.341 +- 6.60509
+  content[ibin=16] : 250.702 +- 6.43969
+  content[ibin=17] : 10.6421 +- 0.893368
+resA.histogram_main.title='MAIN'
+['MAIN', 'NOSCAT', 'SINGLESCAT_ELAS', 'SINGLESCAT_INELAS', 'MULTISCAT_PUREELAS', 'MULTISCAT_OTHER']
+CALLING plt.gca()
+CALLING ResultOf[plt.gca(..)].bar(align='edge',alpha=None,color=None,height=array([3877.88599532,   63.43783403,   87.73383763,  102.17308338,
+        117.34573853,  161.22193569,  150.71497542,  182.15421383,
+        184.11718702,  187.26291036,  154.99844864,  146.34074263,
+        141.10798525,  119.98755742,   88.67681456,   55.09393525,
+         32.64568787,   10.64210554]),label=None,width=10.0,x=['0.0', '10.0', '20.0', '...', '150.0', '160.0', '170.0'])
+CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label=None,mec='black',mfc='black',x=['5.0', '15.0', '25.0', '...', '155.0', '165.0', '175.0'],xerr=5.0,y=['3.88e+03', '63.4', '87.7', '...', '55.1', '32.6', '10.6'],yerr=array([38.51655793,  2.71804361,  3.04492485,  3.20567662,  3.43257579,
+        4.09275289,  3.82039379,  4.26733747,  4.21492276,  4.22091233,
+        3.76126826,  3.61716462,  3.62529599,  3.31724318,  2.83060927,
+        2.10567475,  1.60159795,  0.89336784]))
+CALLING ResultOf[plt.gca(..)].set_xlim(-1e-05,180.0)
+CALLING ResultOf[plt.gca(..)].semilogy()
+CALLING plt.show()
+['MULTISCAT_OTHER', 'MULTISCAT_PUREELAS', 'NOSCAT', 'SINGLESCAT_ELAS', 'SINGLESCAT_INELAS']
+{'neutron_energy_str': '1.8Aa', 'material_thickness_str': '1.2cm'}
+format length=0 (m) round2=1 -> '0mm'
+format length=0 (m) round2=0 -> '0mm'
+format length=1e-12 (m) round2=1 -> '1e-09mm'
+format length=1e-12 (m) round2=0 -> '1e-09mm'
+format length=1e-10 (m) round2=1 -> '1e-07mm'
+format length=1e-10 (m) round2=0 -> '1e-07mm'
+format length=2.123456789e-10 (m) round2=1 -> '2.1e-07mm'
+format length=2.123456789e-10 (m) round2=0 -> '2.123456789e-07mm'
+format length=1e-06 (m) round2=1 -> '0.001mm'
+format length=1e-06 (m) round2=0 -> '0.001mm'
+format length=2.123456789e-06 (m) round2=1 -> '0.0021mm'
+format length=2.123456789e-06 (m) round2=0 -> '0.002123456789mm'
+format length=0.001 (m) round2=1 -> '1mm'
+format length=0.001 (m) round2=0 -> '1mm'
+format length=0.002123456789 (m) round2=1 -> '2.1mm'
+format length=0.002123456789 (m) round2=0 -> '2.123456789mm'
+format length=0.01 (m) round2=1 -> '10mm'
+format length=0.01 (m) round2=0 -> '10mm'
+format length=0.02123456789 (m) round2=1 -> '2.1cm'
+format length=0.02123456789 (m) round2=0 -> '2.123456789cm'
+format length=0.1 (m) round2=1 -> '10cm'
+format length=0.1 (m) round2=0 -> '10cm'
+format length=0.02123456789 (m) round2=1 -> '2.1cm'
+format length=0.02123456789 (m) round2=0 -> '2.123456789cm'
+format length=1 (m) round2=1 -> '100cm'
+format length=1 (m) round2=0 -> '100cm'
+format length=2.1234567893 (m) round2=1 -> '2.1m'
+format length=2.1234567893 (m) round2=0 -> '2.1234567893m'
+format length=1004343 (m) round2=1 -> '1000000m'
+format length=1004343 (m) round2=0 -> '1004343m'
