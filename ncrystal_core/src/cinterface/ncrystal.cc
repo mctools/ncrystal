@@ -2324,8 +2324,47 @@ void ncrystal_setmsghandler(void (*handler)(const char*,unsigned))
 #include "NCrystal/internal/minimc/NCMMC_Source.hh"
 #include "NCrystal/internal/minimc/NCMMC_StdTallies.hh"
 #include "NCrystal/internal/minimc/NCMMC_StdEngine.hh"
+#include "NCrystal/internal/minimc/NCMMC_EngineOpts.hh"
 
 namespace NCMMC = NCrystal::MiniMC;
+
+char* ncrystal_minimc( const char * material_cfgstr,
+                       const char * geomcfg,
+                       const char * srccfg,
+                       const char * enginecfg )
+{
+  try {
+    NCMMC::MatDef matdef( material_cfgstr );
+    auto geom = NCMMC::createGeometry( geomcfg );
+    auto src = NCMMC::createSource( srccfg );
+    auto eopts = NCMMC::parseEngineOpts( enginecfg );
+
+    using basket_t = NCMMC::StdEngine::basket_t;//Clumsy!!
+    NCMMC::Tally_ExitAngle_Options opt;
+    opt.apply( eopts );
+
+    NCMMC::StdEngineOptions engine_options;
+    engine_options.general_options = eopts;
+
+    auto tally = NC::makeSO<NCMMC::Tally_ExitAngle<basket_t>>( opt );
+    NCMMC::runSim_StdEngine( eopts.nthreads,//fixme: appears both here and in engine_options
+                             geom,
+                             src,
+                             tally,
+                             matdef,
+                             engine_options );
+    std::string tally_json;
+    if ( tally->hasJSON() ) {
+      std::ostringstream os;
+      tally->toJSON(os);
+      tally_json = std::move(os).str();
+    } else {
+      tally_json = "{}";
+    }
+    return ncc::createString(tally_json);
+  } NCCATCH;
+  return nullptr;
+}
 
 void ncrystal_runmmcsim_stdengine( unsigned nthreads,
                                    unsigned tally_detail_lvl,
@@ -2337,6 +2376,8 @@ void ncrystal_runmmcsim_stdengine( unsigned nthreads,
                                    double ** tally_exitangle_contents,
                                    double ** tally_exitangle_errsq )
 {
+  //Fixme: mark as obsolete (and output warning via NCRYSTAL_MSG).
+
   *tally_json = nullptr;
   *tally_exitangle_contents = nullptr;
   *tally_exitangle_errsq = nullptr;
@@ -2345,20 +2386,33 @@ void ncrystal_runmmcsim_stdengine( unsigned nthreads,
   try {
     NCMMC::MatDef matdef( mat_cfgstr );
     auto geom = NCMMC::createGeometry( mmc_geomcfg );
-    auto src = NCMMC::createSource( mmc_srccfg );
 
+    auto src = NCMMC::createSource( mmc_srccfg );
     using basket_t = NCMMC::StdEngine::basket_t;//Clumsy!!
 
+    using EO = NCMMC::EngineOpts;
+    auto eopts = EO{};
+    eopts.tallyBreakdown = ( tally_detail_lvl >= 2
+                             ? EO::TallyBreakdown::YES
+                             : EO::TallyBreakdown::NO );
+    if ( nthreads < 9999 )
+      eopts.nthreads = NC::ThreadCount{ static_cast<std::uint32_t>(nthreads) };
+    else
+      eopts.nthreads = NC::ThreadCount::auto_detect();
+
     NCMMC::Tally_ExitAngle_Options opt;
-    opt.nbins = 1800;//Todo: option??
-    opt.detail_level = tally_detail_lvl;
+    opt.apply( eopts );
+
+    NCMMC::StdEngineOptions engine_options;
+    engine_options.general_options = eopts;
 
     auto tally = NC::makeSO<NCMMC::Tally_ExitAngle<basket_t>>( opt );
     NCMMC::runSim_StdEngine( NC::ThreadCount{ nthreads },
                              geom,
                              src,
                              tally,
-                             matdef );
+                             matdef,
+                             engine_options );
 
     auto copySpan2Array = [](NC::Span<const double> in)
     {
