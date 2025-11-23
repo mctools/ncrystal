@@ -24,6 +24,7 @@
 #include "NCrystal/internal/minimc/NCMMC_Tally.hh"
 #include "NCrystal/internal/minimc/NCMMC_Geom.hh"
 #include "NCrystal/internal/minimc/NCMMC_Source.hh"
+#include "NCrystal/internal/minimc/NCMMC_EngineOpts.hh"
 #include "NCrystal/factories/NCMatCfg.hh"
 
 // High level interface for a diffraction-pattern MMC application.
@@ -53,6 +54,7 @@ namespace NCRYSTAL_NAMESPACE {
       int roulette_nscat_threshold = 2;//particles will only get roulette'd
                                        //after this many scatterings have
                                        //already taken place.
+      EngineOpts general_options = {};
     };
 
     //Launch simulations:
