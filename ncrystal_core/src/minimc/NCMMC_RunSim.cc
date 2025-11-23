@@ -37,7 +37,9 @@ void NCMMC::runSim_StdEngine( ThreadCount nthreads,
   auto sim_engine = NC::makeSO<SimClass>( std::move( matdef ),
                                           std::move( engine_options ) );
   auto tallymgr = makeSO<TallyMgr>( tally->clone() );
-  NCMMC::SimMgrMT<SimClass> mgr(geom,src,sim_engine,tallymgr);
+  NCMMC::SimMgrMT<SimClass> mgr(geom,src,
+                                engine_options.general_options,
+                                sim_engine,tallymgr);
   mgr.launchSimulations( nthreads );
   auto tally_result = tallymgr->getFinalResult();
   tally->merge( std::move( *tally_result ) );
