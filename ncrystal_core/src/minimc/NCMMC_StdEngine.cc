@@ -49,8 +49,9 @@ void NCMMC::StdEngine::advanceSimulation( RNG& rng,
                                          basketmgr_t& mgr,
                                          const resultfct_t& resultFct )
 {
-  NCRYSTAL_DEBUGMMCMSG("StdEngine::advanceSimulation inbasket.size()="<<inbasket_holder.basket().size());
-
+  NCRYSTAL_DEBUGMMCMSG("StdEngine::advanceSimulation inbasket.size()="
+                       <<inbasket_holder.basket().size());
+  nc_assert( resultFct != nullptr );
   nc_assert( inbasket_holder.valid() );
   nc_assert( !inbasket_holder.basket().empty() );
   auto& inbasket = inbasket_holder.basket();//Not const, since we will update
