@@ -74,6 +74,11 @@ namespace NCRYSTAL_NAMESPACE {
         m_srcHalted.store( true );
       }
 
+      //Access a pending basket full of neutrons actually hitting the volume. If
+      //resultFct is available (!=nullptr), any neutrons from the source missing
+      //the geometry completely are simply marked as having missed and served up
+      //as results. If resultFct==nullptr, they are instead simply silently
+      //discarded.
       basket_holder_t getPendingBasket( ThreadCount nthreads,
                                         RNG& rng,
                                         const std::function<void(const basket_t&)>& resultFct )
@@ -86,7 +91,11 @@ namespace NCRYSTAL_NAMESPACE {
                               const std::function<void(const basket_t&)>& resultFct ) {
         //We must edit the basket, propagating all the neutrons to the volume if
         //they can. Those that can NOT do that, should be marked as having
-        //missed the volume and served up as a result.
+        //missed the volume and served up as a result (unless ignoring misses
+        //completely, indicated by resultFct == nullptr).
+
+        const bool ignore_miss = (resultFct == nullptr);
+
 
         //First do the geometry distance calculations:
         nc_assert(m_srcParticlesMightBeOutside);
@@ -94,8 +103,12 @@ namespace NCRYSTAL_NAMESPACE {
         m_geom->distToVolumeEntry( b.neutrons, dist_results );
 
         //Next, reserve a basket for results (those that missed):
-        auto bh_results = m_basketmgr->allocateBasket();
-        auto& bmiss = bh_results.basket();
+        Optional<basket_holder_t> bh_results;
+        basket_t * bmiss = nullptr;
+        if ( !ignore_miss ) {
+          bh_results.set( m_basketmgr->allocateBasket() );
+          bmiss = &bh_results.value().basket();
+        }
 
         std::size_t i_first_hole = NeutronBasket::N;
         const std::size_t b_size = b.size();
@@ -103,7 +116,8 @@ namespace NCRYSTAL_NAMESPACE {
           double dist = dist_results[i];
           if ( dist < 0.0 ) {
             //Missed the volume, register as result.
-            bmiss.appendEntryFromOther( b, i );
+            if (bmiss)
+              bmiss->appendEntryFromOther( b, i );
             if ( i_first_hole == NeutronBasket::N )
               i_first_hole = i;
           } else {
@@ -128,14 +142,13 @@ namespace NCRYSTAL_NAMESPACE {
 
         //And finally, return any neutrons that missed as a result, after
         //marking them as having missed the target.
-        if ( bh_results.basket().empty() ) {
-          m_basketmgr->deallocateBasket( std::move(bh_results) );
-        } else {
-          for ( auto i : ncrange( bmiss.size() ) )
-            bmiss.cache.markAsMissedTarget(i);
-
-          resultFct( bh_results.basket() );
-          m_basketmgr->deallocateBasket( std::move(bh_results) );
+        if ( bh_results.has_value() && bmiss ) {
+          if ( !bmiss->empty() ) {
+            for ( auto i : ncrange( bmiss->size() ) )
+              bmiss->cache.markAsMissedTarget(i);
+            resultFct( *bmiss );
+          }
+          m_basketmgr->deallocateBasket( std::move(bh_results.value()) );
         }
       }
 

@@ -27,6 +27,7 @@
 #include "NCrystal/internal/minimc/NCMMC_BasketMgr.hh"
 #include "NCrystal/internal/minimc/NCMMC_Source.hh"
 #include "NCrystal/internal/minimc/NCMMC_Tally.hh"
+#include "NCrystal/internal/minimc/NCMMC_EngineOpts.hh"
 #ifndef NCRYSTAL_DISABLE_THREADS
 #  include <thread>
 #  include <condition_variable>
@@ -48,10 +49,12 @@ namespace NCRYSTAL_NAMESPACE {
 
       SimMgrMT( GeometryPtr geom,
                 SourcePtr src,
+                EngineOpts eopts,
                 shared_obj<TSim> sim,
                 shared_obj<TallyMgr> tallymgr,
                 Optional<shared_obj<basketmgr_t>> bm = NullOpt )
         : m_geom(geom),
+          m_engineOpts(eopts),
           m_basketmgr( bm.has_value()
                        ? std::move(bm.value())
                        : makeSO<basketmgr_t>() ),
@@ -91,6 +94,7 @@ namespace NCRYSTAL_NAMESPACE {
 
     private:
       GeometryPtr m_geom;
+      EngineOpts m_engineOpts;
       shared_obj<basketmgr_t> m_basketmgr;
       shared_obj<basket_srcfiller_t> m_srcfiller;
       shared_obj<TSim> m_sim;
@@ -107,21 +111,31 @@ namespace NCRYSTAL_NAMESPACE {
       static void doWork( RNG& rng,
                           TSim& sim,
                           basket_srcfiller_t& srcfiller,
-                          std::function<void(const basket_t&)>& resultfct,
-                          CommonThreadWaitingInfo& common )
+                          std::function<void(const basket_t&)>& result_fct,
+                          CommonThreadWaitingInfo& common,
+                          bool do_ignoreMiss )
       {
         basket_holder_t basket{no_init};
+        std::function<void(const basket_t&)> result_fct_srcmiss(nullptr);
+        if ( !do_ignoreMiss )
+          result_fct_srcmiss = result_fct;
+
         while( true ) {
           //Get pending basket. If there are no more pending, it might
           //indicate that we are done. But before concluding that, we do first
           //retry after a while, since other threads might have something to
           //provide.
-          auto tryFillBasket =  [&basket,&srcfiller,&rng,&resultfct,&common]
+          auto tryFillBasket =  [&basket,
+                                 &srcfiller,
+                                 &rng,
+                                 &result_fct,
+                                 &result_fct_srcmiss,
+                                 &common]
           {
             if ( !basket.valid() )
               basket = srcfiller.getPendingBasket( common.nthreads,
                                                    rng,
-                                                   resultfct );
+                                                   result_fct_srcmiss );
             nc_assert(!basket.valid()||basket.basket().size()>0);
             return basket.valid();
           };
@@ -178,7 +192,7 @@ namespace NCRYSTAL_NAMESPACE {
                                  srcfiller.geometry(),
                                  std::move(basket),
                                  srcfiller.basketMgr(),
-                                 resultfct );
+                                 result_fct );
           nc_assert_always(!basket.valid());//currently, the engine MUST consume
                                             //the basket.
 
@@ -206,9 +220,12 @@ namespace NCRYSTAL_NAMESPACE {
         auto tallymgr_copy = m_tallymgr.getsp();
         CommonThreadWaitingInfo common;
         common.nthreads = nthreads;
+        const bool do_ignoreMiss = ( m_engineOpts.ignoreMiss
+                                     == EngineOpts::IgnoreMiss::YES );
         for ( auto i : ncrange(nthreads.get()) ) {
           (void)i;
-          m_workers.push_back(std::thread([sf_copy,sim_copy,tallymgr_copy,&common]()
+          m_workers.push_back(std::thread([sf_copy,sim_copy,tallymgr_copy,
+                                           &common,do_ignoreMiss]()
           {
             auto rng = getIndependentRNG();
             NCRYSTAL_DEBUGMMCMSG( "In thread "<<std::this_thread::get_id()
@@ -223,9 +240,12 @@ namespace NCRYSTAL_NAMESPACE {
             //basket type:
             tally_t * downcast_tallyptr = dynamic_cast<tally_t*>(thetallyptr.get());
             nc_assert_always(downcast_tallyptr!=nullptr);
-            std::function<void(const basket_t&)> result_collect_function
-              = [downcast_tallyptr](const basket_t& b) { return downcast_tallyptr->registerResults(b); };
-            doWork(rng,thesim,thesf,result_collect_function,common);
+            std::function<void(const basket_t&)> result_fct
+              = [downcast_tallyptr] (const basket_t& b)
+              {
+                return downcast_tallyptr->registerResults(b);
+              };
+            doWork(rng,thesim,thesf,result_fct,common,do_ignoreMiss);
             NCRYSTAL_DEBUGMMCMSG("Thread provides results.");
             tallymgr_copy->addResult( std::move(thetallyptr) );
             NCRYSTAL_DEBUGMMCMSG("Thread ends.");
@@ -244,6 +264,8 @@ namespace NCRYSTAL_NAMESPACE {
 #else
       void launchSimulationsImpl()
       {
+        const bool do_ignoreMiss = ( m_engineOpts.ignoreMiss
+                                     == EngineOpts::IgnoreMiss::YES );
         //Single threaded:
         auto rng = getRNG();
         auto tallyptr = m_tallymgr->getIndependentTallyPtr();
@@ -251,12 +273,19 @@ namespace NCRYSTAL_NAMESPACE {
         //basket type:
         tally_t * downcast_tallyptr = dynamic_cast<tally_t*>(tallyptr.get());
         nc_assert_always(downcast_tallyptr!=nullptr);
-        std::function<void(const basket_t&)> result_collect_fct
-          = [downcast_tallyptr](const basket_t& b) { return downcast_tallyptr->registerResults(b); };
+        std::function<void(const basket_t&)>
+          result_fct = [downcast_tallyptr](const basket_t& b)
+          {
+            return downcast_tallyptr->registerResults(b);
+          };
+        std::function<void(const basket_t&)> result_fct_srcmiss(nullptr);
+        if ( !do_ignoreMiss )
+          result_fct_srcmiss = result_fct;
+
         while ( true ) {
           auto basket = m_srcfiller->getPendingBasket( ThreadCount{1},
                                                        rng,
-                                                       result_collect_fct );
+                                                       result_fct_srcmiss );
           if ( !basket.valid() ) {
             //Nothing more to process apparently!
             break;
@@ -265,7 +294,7 @@ namespace NCRYSTAL_NAMESPACE {
                                     m_geom,
                                     std::move(basket),
                                     m_basketmgr,
-                                    result_collect_fct );
+                                    result_fct );
         }
         m_tallymgr->addResult( std::move(tallyptr) );
       }

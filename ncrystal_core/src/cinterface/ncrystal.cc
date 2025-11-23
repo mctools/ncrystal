@@ -2391,7 +2391,7 @@ void ncrystal_runmmcsim_stdengine( unsigned nthreads,
     using basket_t = NCMMC::StdEngine::basket_t;//Clumsy!!
 
     using EO = NCMMC::EngineOpts;
-    auto eopts = EO{};
+    auto eopts = NCMMC::parseEngineOpts( "" );
     eopts.tallyBreakdown = ( tally_detail_lvl >= 2
                              ? EO::TallyBreakdown::YES
                              : EO::TallyBreakdown::NO );
