@@ -82,16 +82,23 @@ namespace NCRYSTAL_NAMESPACE {
         Length m_x;
         Length m_y;
         Length m_z;
+        double m_w = 1.0;
         NeutronEnergy m_ekin;
       public:
 
         SourceIsotropic( std::size_t n,
                          NeutronEnergy ekin,
+                         double weight,
                          Length x = Length{0},
                          Length y = Length{0},
                          Length z = Length{0} )
-          : m_stat(n), m_x(x), m_y(y), m_z(z), m_ekin(ekin)
+          : m_stat(n), m_x(x), m_y(y), m_z(z), m_w(weight), m_ekin(ekin)
         {
+          nc_assert(m_w>0.0&&std::isfinite(m_w));
+        }
+
+        double totalWeightsProvided() const override {
+          return m_stat.nUsed() * m_w;
         }
 
         SourceMetaData metaData() const override
@@ -131,7 +138,7 @@ namespace NCRYSTAL_NAMESPACE {
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
             nb.z[i] = m_z.dbl();
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            nb.w[i] = 1.0;
+            nb.w[i] = m_w;
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
             nb.ekin[i] = m_ekin.dbl();
         }
@@ -144,19 +151,27 @@ namespace NCRYSTAL_NAMESPACE {
         Length m_y;
         Length m_z;
         NeutronDirection m_dir;
+        double m_w = 1.0;
         NeutronEnergy m_ekin;
       public:
 
         SourceConstant( std::size_t n,
                         NeutronEnergy ekin,
+                        double weight,
                         Length x = Length{0},
                         Length y = Length{0},
                         Length z = Length{0},
                         NeutronDirection direction = NeutronDirection{0.0,0.0,1.0} )
           : m_stat(n), m_x(x), m_y(y), m_z(z),
             m_dir( direction.as<Vector>().unit().as<NeutronDirection>() ),
+            m_w(weight),
             m_ekin(ekin)
         {
+          nc_assert(m_w>0.0&&std::isfinite(m_w));
+        }
+
+        double totalWeightsProvided() const override {
+          return m_stat.nUsed() * m_w;
         }
 
         SourceMetaData metaData() const override
@@ -165,7 +180,8 @@ namespace NCRYSTAL_NAMESPACE {
           SourceMetaData md;
           {
             std::ostringstream ss;
-            ss << "SourceConstant("<<m_ekin<<", pos=["<< m_x<<", "<< m_y<<", "<< m_z<<"], dir="<<m_dir<<")";
+            ss << "SourceConstant("<<m_ekin<<", pos=["<< m_x<<", "
+               << m_y<<", "<< m_z<<"], dir="<<m_dir<<")";
             md.description = ss.str();
           }
           md.concurrent = true;
@@ -197,7 +213,7 @@ namespace NCRYSTAL_NAMESPACE {
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
             nb.z[i] = m_z.dbl();
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            nb.w[i] = 1.0;
+            nb.w[i] = m_w;
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
             nb.ekin[i] = m_ekin.dbl();
         }
@@ -213,12 +229,14 @@ namespace NCRYSTAL_NAMESPACE {
         Vector m_center;//beam center
         NeutronDirection m_dir;//beam direction
         Vector m_a, m_b;//basis vectors orthogonal to m_dir;
+        double m_w = 1.0;
         NeutronEnergy m_ekin;
         Length m_radius;//for metadata
       public:
 
         SourceUniformCircularBeam( std::size_t n,
                                    NeutronEnergy ekin,
+                                   double weight,
                                    Length radius,
                                    Length x = Length{0},
                                    Length y = Length{0},
@@ -226,9 +244,11 @@ namespace NCRYSTAL_NAMESPACE {
                                    NeutronDirection direction = NeutronDirection{0.0,0.0,1.0} )
           : m_stat(n), m_center{ x.get(), y.get(), z.get() },
             m_dir( direction.as<Vector>().unit().as<NeutronDirection>() ),
+            m_w(weight),
             m_ekin(ekin),
             m_radius(radius)
         {
+          nc_assert(m_w>0.0&&std::isfinite(m_w));
           const Vector& vdir = m_dir.as<Vector>();
           if ( m_radius.get() > 0.0 ) {
             //We must find m_a and m_b as basis vectors of the disk on which to
@@ -255,6 +275,10 @@ namespace NCRYSTAL_NAMESPACE {
                                <<m_center<<", dir="<<m_dir<<", ekin="<<m_ekin
                                <<", r="<<m_radius
                                <<", a="<<m_a<<", b="<<m_b);
+        }
+
+        double totalWeightsProvided() const override {
+          return m_stat.nUsed() * m_w;
         }
 
         SourceMetaData metaData() const override
@@ -341,6 +365,7 @@ namespace NCRYSTAL_NAMESPACE {
           PMC::checkNoUnknown(tokens,"ekin;wl;n;w;;x;y;z;ux;uy;uz","source");
           return makeSO<SourceConstant>( PMC::getValue_sizet(tokens,"n"),
                                          PMC::getValue_Energy( tokens, common_default_energy ),
+                                         PMC::getValue_weight( tokens, "w" ),
                                          Length{ PMC::getValue_dbl(tokens,"x") },
                                          Length{ PMC::getValue_dbl(tokens,"y") },
                                          Length{ PMC::getValue_dbl(tokens,"z") },
@@ -353,6 +378,7 @@ namespace NCRYSTAL_NAMESPACE {
           PMC::checkNoUnknown(tokens,"ekin;wl;n;w;;x;y;z;ux;uy;uz;r","source");
           return makeSO<SourceUniformCircularBeam>( PMC::getValue_sizet(tokens,"n"),
                                                     PMC::getValue_Energy( tokens, common_default_energy ),
+                                                    PMC::getValue_weight( tokens, "w" ),
                                                     Length{ PMC::getValue_dbl(tokens,"r") },
                                                     Length{ PMC::getValue_dbl(tokens,"x") },
                                                     Length{ PMC::getValue_dbl(tokens,"y") },
@@ -363,6 +389,7 @@ namespace NCRYSTAL_NAMESPACE {
           PMC::checkNoUnknown(tokens,"ekin;wl;n;w;;x;y;z","source");
           return makeSO<SourceIsotropic>( PMC::getValue_sizet(tokens,"n"),
                                           PMC::getValue_Energy( tokens, common_default_energy ),
+                                          PMC::getValue_weight( tokens, "w" ),
                                           Length{ PMC::getValue_dbl(tokens,"x") },
                                           Length{ PMC::getValue_dbl(tokens,"y") },
                                           Length{ PMC::getValue_dbl(tokens,"z") } );

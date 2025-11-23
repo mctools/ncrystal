@@ -31,6 +31,8 @@ v4.2.13 (work-in-progress)
        comparisons to yield approximate p-values without introducing a new
        dependency like scipy.
      * Fix flawed asserts preventing proper MiniMC usage in debug builds.
+     * MiniMC sources can now actually alter the weights of initial particles,
+       and will keep track of the summed weights generated.
      * ...
 
 v4.2.12 2026-01-05
