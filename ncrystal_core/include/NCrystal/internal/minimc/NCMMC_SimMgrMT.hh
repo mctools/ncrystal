@@ -119,7 +119,9 @@ namespace NCRYSTAL_NAMESPACE {
           auto tryFillBasket =  [&basket,&srcfiller,&rng,&resultfct,&common]
           {
             if ( !basket.valid() )
-              basket = srcfiller.getPendingBasket( common.nthreads, rng, resultfct );
+              basket = srcfiller.getPendingBasket( common.nthreads,
+                                                   rng,
+                                                   resultfct );
             nc_assert(!basket.valid()||basket.basket().size()>0);
             return basket.valid();
           };
@@ -252,7 +254,9 @@ namespace NCRYSTAL_NAMESPACE {
         std::function<void(const basket_t&)> result_collect_fct
           = [downcast_tallyptr](const basket_t& b) { return downcast_tallyptr->registerResults(b); };
         while ( true ) {
-          auto basket = m_srcfiller->getPendingBasket( ThreadCount{1}, rng, result_collect_fct );
+          auto basket = m_srcfiller->getPendingBasket( ThreadCount{1},
+                                                       rng,
+                                                       result_collect_fct );
           if ( !basket.valid() ) {
             //Nothing more to process apparently!
             break;
