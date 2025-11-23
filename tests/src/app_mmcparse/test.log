@@ -1,0 +1,20 @@
+
+Test engine opt string: ""
+    -> obj: EngineOpts()
+    -> json: {"ignoremiss":false,"tallybreakdown":true,"nthreads":"auto"}
+
+Test engine opt string: "nthreads=4"
+    -> obj: EngineOpts(nthreads=4)
+    -> json: {"ignoremiss":false,"tallybreakdown":true,"nthreads":4}
+
+Test engine opt string: "tallybreakdown  =  0"
+    -> obj: EngineOpts(tallybreakdown=0)
+    -> json: {"ignoremiss":false,"tallybreakdown":false,"nthreads":"auto"}
+
+Test engine opt string: "nthreads=0 ;   ignoremiss =1"
+    -> obj: EngineOpts(ignoremiss=1;nthreads=0)
+    -> json: {"ignoremiss":true,"tallybreakdown":true,"nthreads":0}
+
+Test engine opt string: "std;nthreads=0;ignoremiss=1"
+    -> obj: EngineOpts(ignoremiss=1;nthreads=0)
+    -> json: {"ignoremiss":true,"tallybreakdown":true,"nthreads":0}
