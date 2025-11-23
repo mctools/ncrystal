@@ -90,12 +90,26 @@ namespace NCRYSTAL_NAMESPACE {
         }
       }
 
+      //Fixme: should next method (and others) be const?? (and the next method
+      //should be an Impl method?)
       inline Optional<StrView> getValue( Tokens& tokens, StrView key )
       {
         for ( auto& e : tokens )
           if ( e.first == key )
             return e.second;
         return NullOpt;
+      }
+
+      inline StrView getValue_str( Tokens& tokens, StrView key )
+      {
+        //fixme: this method can be used to simplify other methods!
+        auto val = getValue(tokens,key);
+        if ( !val.has_value() )
+          NCRYSTAL_THROW2(BadInput,"Missing required parameter \""<<key<<"\"");
+        //Missing (or empty) values are not allowed:
+        if ( val.value().empty() )
+          NCRYSTAL_THROW2(BadInput,"Missing value for parameter \""<<key<<"\"");
+        return val.value();
       }
 
       inline double getValue_dbl( Tokens& tokens, StrView key )
@@ -120,6 +134,29 @@ namespace NCRYSTAL_NAMESPACE {
         if ( ! (x >= 0.0 && (res=static_cast<std::size_t>(x))==x ) )
           NCRYSTAL_THROW2(BadInput,"Invalid value for parameter \""<<key<<"\"");
         return res;
+      }
+
+      inline std::size_t getValue_weight( Tokens& tokens, StrView key )
+      {
+        double w = getValue_dbl(tokens,key);
+        if ( !std::isfinite(w) or !(w>0.0) )
+          NCRYSTAL_THROW2(BadInput,"Invalid weight value (\""
+                          <<key<<"="<<fmt(w)<<"\")");
+        return w;
+      }
+
+      inline bool getValue_bool( Tokens& tokens, StrView key )
+      {
+        auto val = getValue(tokens,key);
+        if ( !val.has_value() )
+          NCRYSTAL_THROW2(BadInput,"Missing required parameter \""<<key<<"\"");
+        if ( !val.value().has_value() )
+          NCRYSTAL_THROW2(BadInput,"Missing value for parameter \""<<key<<"\"");
+        if ( val.value() == "0" )
+          return false;
+        if ( val.value() != "1" )
+          NCRYSTAL_THROW2(BadInput,"Invalid value for parameter \""<<key<<"\"");
+        return true;
       }
 
       inline NeutronEnergy getValue_Energy( Tokens& tokens, Optional<NeutronEnergy> def_val = NullOpt )

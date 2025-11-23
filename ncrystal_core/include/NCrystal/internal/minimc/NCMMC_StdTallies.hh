@@ -30,12 +30,24 @@ namespace NCRYSTAL_NAMESPACE {
 
     struct Tally_ExitAngle_Options
     {
+      //fixme: Consider simplifying by only using hist1d, none of these
+      //internals!
+
       unsigned nbins = 1800;//10 per degree
       unsigned detail_level = 0;
       // 0: Just the 1D exit angle hist
       // 1: Also the running stats for that hist
       // 2: Also a bunch of other hists, depending on neutron history.
+
+      void apply( const EngineOpts& eo )
+      {
+        if ( eo.tallyBreakdown == EngineOpts::TallyBreakdown::YES )
+          detail_level = 2;
+        else
+          detail_level = 1;
+      }
     };
+
 
     enum class TallyCollectRunningStats { YES, NO };
 
@@ -102,8 +114,10 @@ namespace NCRYSTAL_NAMESPACE {
         for ( std::size_t i = 0; i < n; ++i ) {
           nc_assert( b.neutrons.uz[i] > -(1.0+1e-14) );
           nc_assert( b.neutrons.uz[i] <  (1.0+1e-14) );
-          exit_angle[i] = std::acos( ncclamp(b.neutrons.uz[i],-1.0,1.0) );
+          exit_angle[i] = ncclamp(b.neutrons.uz[i],-1.0,1.0);
         }
+        for ( std::size_t i = 0; i < n; ++i )
+          exit_angle[i] = std::acos( exit_angle[i] );
         for ( std::size_t i = 0; i < n; ++i )
           exit_angle[i] *= kToDeg;
         for ( std::size_t i = 0; i < n; ++i )
@@ -113,6 +127,7 @@ namespace NCRYSTAL_NAMESPACE {
           for ( std::size_t i = 0; i < n; ++i )
             m_exitangle_stats.registerValue( exit_angle[i], b.neutrons.w[i] );
         }
+        //fixme: unit test tally detail levels below 2
         if ( m_opt.detail_level >= 2 ) {
           for ( std::size_t i = 0; i < n; ++i ) {
             auto nscat = b.cache.nscat[i];
