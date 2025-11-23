@@ -56,6 +56,9 @@ namespace NCRYSTAL_NAMESPACE {
       //therefore not need an initial propagation step to the volume):
       virtual bool particlesMightBeOutside( const Geometry& ) const = 0;
 
+      //Query total weight of all particles already provided by source:
+      virtual double totalWeightsProvided() const = 0;
+
     };
 
     //NB: SourcePtr's are not const pointers:
