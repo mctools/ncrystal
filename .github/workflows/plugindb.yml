@@ -13,7 +13,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         path: src
 
@@ -42,7 +42,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         path: src
 
@@ -113,7 +113,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         path: src
 
@@ -183,7 +183,7 @@ jobs:
 
     - name: Checkout plugin repo as src_plugin
       if: steps.pluginfo.outputs.mode == 'otherreporoot'
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         path: src_plugin
         repository: ${{ steps.pluginfo.outputs.github_repo_key }}
@@ -191,7 +191,7 @@ jobs:
 
     - name: Checkout plugin repo as src_plugin_reporoot
       if: steps.pluginfo.outputs.mode == 'otherreposubdir'
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         path: src_plugin_reporoot
         repository: ${{ steps.pluginfo.outputs.github_repo_key }}
@@ -305,7 +305,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         path: src
 
