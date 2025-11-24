@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           path: src
           #Workaround for https://github.com/actions/checkout/issues/1467:
@@ -77,7 +77,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           path: src
 
@@ -126,7 +126,7 @@ jobs:
       SDIST_SUFFIX: "-${{ needs.preparations.outputs.ncrystalversion }}.tar.gz"
 
     steps:
-      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
 
       - name: build ncrystal-core sdist
         run: pipx run build --sdist ./ncrystal_core
