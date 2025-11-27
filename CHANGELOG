@@ -1,4 +1,15 @@
 v4.2.13 (work-in-progress)
+     * Add ncrystal_minimc function in C-API, which interacts solely via the
+       four relevant cfg-strings (material, source, geometry, engine) and
+       returns results via JSON. This provides a more flexible and maintainable
+       interface than the existing ncrystal_runmmcsim_stdengine which is thus
+       deprecated. Moving forward, the MiniMC thus accepts same cfg-strings in
+       all APIs (C, C++, Python, cmdline).
+     * Add support for new "scenario cfg-string" for the MiniMC framework which
+       is a short and more human readable cfg-string which selects typical
+       simulation scenarios. To keep everything simple, understandable, and
+       maintainable, the parser simply transforms the scenario cfg-string into
+       the three more fundamental cfg-strings for source, geometry, and engine.
      * Add new source generator "circular" for the MiniMC framework, which
        allows modelling of a circular beam. Specifically, neutrons can be
        generated uniformly on a disk of a given radius whose normal coincides
@@ -33,11 +44,6 @@ v4.2.13 (work-in-progress)
      * Fix flawed asserts preventing proper MiniMC usage in debug builds.
      * MiniMC sources can now actually alter the weights of initial particles,
        and will keep track of the summed weights generated.
-     * Add ncrystal_minimc function in C-API, which interacts solely via the
-       four relevant cfg-strings (material, source, geometry, engine) and
-       returns results via JSON. This provides a more flexible and maintainable
-       interface than the existing ncrystal_runmmcsim_stdengine which is thus
-       deprecated.
      * ...
 
 v4.2.12 2026-01-05

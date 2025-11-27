@@ -25,6 +25,9 @@
 #include "NCrystal/internal/minimc/NCMMC_Basket.hh"
 
 namespace NCRYSTAL_NAMESPACE {
+
+  class MatCfg;
+
   namespace MiniMC {
     namespace Utils {
 
@@ -53,6 +56,52 @@ namespace NCRYSTAL_NAMESPACE {
       void scatterGivenMu( RNG& rng,
                            NeutronBasket& b,
                            double * ncrestrict mu_vals );
+
+
+      //Fixme: Move the following explanation somewhere more appropriate and
+      //maintainable, and refer to it there?
+      //
+      // The decodeScenario function parses a MiniMC quick simulation scenario
+      // string, according to the syntax:
+      //
+      //  "ENERGY [pencil] [on [THICKNESS] [sphere|slab]]"
+      //
+      //  Here:
+      //
+      //  ENERGY is the monochromatic beam energy like "1.8Aa", "25meV" or
+      //  "0.1eV". A special unit "BT" means the bragg threshold of the material (or
+      //  4.0Aa in case material does not have one), rounded to 6 significant
+      //  digits.
+      //
+      //  "pencil" is an optional keyword related to the beam profile (see below).
+      //
+      //  THICKNESS is the material thickness like "1mm", "2m", "0.4cm", or
+      //  "2.5mfp". The unit "mfp" corresponds to the mean-free-path length for a
+      //  neutron scattering interaction in the material (rounded to 6 significant
+      //  digits). Default THICKNESS is "1mfp".
+      //
+      // The keywords "sphere" or "slab" can be used to select the sample geometry
+      // (default is a sphere).
+      //
+      // For spherical geometry, the beam profile will by default be taken to be a
+      // beam with a uniform circular profile, of the same radius as the
+      // sphere. However, if the keyword "pencil" is provided, a pencil beam hitting
+      // the sphere centrally is used instead,
+      //
+      // As a special case, an empty scenario string is interpreted in the same way
+      // as a scenario string with contents "0.8BT".
+      //
+      // For flexibility and usage from the cmdline, colons (:) and underscores (_)
+      // can be used as whitespace. Additionally, all repeated whitespace (tabs,
+      // newlines, etc.) is converted into a single space before parsing, and
+      // trailing or leading whitespace is trimmed away.
+
+      struct ScenarioDecoded {
+        std::string geomcfg;
+        std::string srccfg;
+        std::string enginecfg;
+      };
+      ScenarioDecoded decodeScenario( const MatCfg&, const char* scenario );
 
     }
   }
