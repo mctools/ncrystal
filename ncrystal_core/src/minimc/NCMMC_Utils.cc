@@ -107,8 +107,6 @@ void NCMMCU::scatterGivenMu( RNG& rng,
 NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
                                                 const char* scenario )
 {
-  //FIXME: More specific and helpful exception messages.
-
   StrView sv_input((scenario?scenario:""));
   auto badchar_strrep = findForbiddenChar( sv_input,
                                            Cfg::forbidden_chars_value_strreps,
@@ -133,33 +131,39 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
     ++it;
   }
 
-  auto bad = [sv_input]()
-  {
-    //fixme: remove this general thing
-    NCRYSTAL_THROW2(BadInput,
-                    "Invalid MiniMC scenario string: \""<<sv_input<<'"');
-  };
-
   bool is_sphere(true);
   StrView sv_thickness = "1mfp";
   if ( it != itE ) {
     if ( *it != "on" )
-      bad();
+      NCRYSTAL_THROW2(BadInput,"Invalid MiniMC scenario string: \""<<sv_input
+                      <<"\". Expected keyword \"on\" but got \""<<*it<<"\".");
     ++it;
-    if ( it == itE )
-      bad();
-    if ( *std::prev(itE) == "sphere" ) {
-      //selected sphere (already the default)
-      --itE;
-    } else if ( *std::prev(itE) == "slab" ) {
-      //selected slab (already the default)
-      is_sphere = false;
-      --itE;
+    bool had_params_after_on = false;
+
+    if ( it != itE ) {
+      //more parts, scrabe off final "sphere" or "slab" if found.
+      if ( *std::prev(itE) == "sphere" ) {
+        //selected sphere (already the default)
+        --itE;
+        had_params_after_on = true;
+      } else if ( *std::prev(itE) == "slab" ) {
+        //selected slab (already the default)
+        had_params_after_on = true;
+        is_sphere = false;
+        --itE;
+      }
     }
-    if ( it != itE )
+    //Now collect a thickness:
+    if ( it == itE ) {
+      if (!had_params_after_on)
+        NCRYSTAL_THROW2(BadInput,"Invalid MiniMC scenario string: \""<<sv_input
+                        <<"\". Missing parameters after keyword \"on\".");
+    } else {
       sv_thickness = *(it++);
-    if ( it != itE )
-      bad();
+      if ( it != itE )
+        NCRYSTAL_THROW2(BadInput,"Invalid MiniMC scenario string: \""<<sv_input
+                        <<"\". Unexpected parameter: \""<<*it<<"\"");
+    }
   }
 
   const bool is_slab = !is_sphere;
@@ -177,7 +181,8 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
   //Finally decode energy:
   auto parse_e = Cfg::unitSplit(sv_energy);
   if (!parse_e.has_value())
-    bad();
+    NCRYSTAL_THROW2(BadInput,
+                    "Invalid energy specification in \"" <<sv_energy<<"\".");
   StrView e_unit = parse_e.value().unit;
   NeutronEnergy neutron_energy;
   NeutronWavelength neutron_wavelength;
@@ -204,11 +209,21 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
         if (!info)
           info = FactImpl::createInfo( matcfg );
         Optional<NeutronWavelength> braggthr;
-        if ( info->isSinglePhase() )
+        if ( info->isSinglePhase() ) {
           braggthr = info->getBraggThreshold();
+        } else {
+          //multiphase: take the longest!
+          for ( auto& phase : info->getPhases() ) {
+            auto bt = phase.second->getBraggThreshold();
+            if ( !bt.has_value() )
+              continue;
+            if ( !braggthr.has_value()
+                 || braggthr.value() < bt.value() ) {
+              braggthr = bt;
+            }
+          }
+        }
         if ( !braggthr.has_value() ) {
-          //fixme: in case of multiphase, look though all the phases and take
-          //the longest bragg threshold found?
           braggthr = NeutronWavelength{ 4.0 };
         }
         wavelength_mode = true;
@@ -228,8 +243,19 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
   //Finally decode thickness:
   double thickness_meter = -1.0;
   auto parse_t = Cfg::unitSplit(sv_thickness);
-  if (!parse_t.has_value() || parse_t.value().unit.empty() )
-    bad();
+  if (!parse_t.has_value()) {
+    NCRYSTAL_THROW2(BadInput,"Invalid thickness specification in \""
+                    <<sv_thickness<<"\".");
+  }
+
+  if (parse_t.value().unit.empty() ) {
+    std::ostringstream ss;
+    Cfg::units_length::listAvailableUnitsNoDefault(ss);
+    NCRYSTAL_THROW2(BadInput,"Missing length unit on: \""<<sv_thickness<<"\". "
+                    <<"Accepts either the special unit"
+                    " \"mfp\" (mean-free-path between scatterings) or one of"
+                    " the standard length units: "<<ss.str());
+  }
   if ( parse_t.value().unit == "mfp" ) {
     //fixme: round to nearest 3 digits? Or perhaps just return descriptive
     //string we can use in titles etc.?
