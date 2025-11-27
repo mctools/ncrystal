@@ -820,6 +820,32 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
         _raw_setmsghandler(keepalive[-1])
     functions['setmsghandler'] = ncrystal_setmsghandler
 
+    _raw_minimc_scenario = _wrap('ncrystal_minimc_scenario',
+                                 _cstrp,(_cstr,_cstr),hide=True)
+    def minimc_scenario( cfgstr, scenariostr ):
+        assert isinstance( cfgstr, str )
+        assert isinstance( scenariostr, str )
+        cs = _str2cstr(cfgstr)
+        ss = _str2cstr(scenariostr)
+        ll = _raw_minimc_scenario( cs, ss )
+        assert ll is not None
+        n = 3
+        def _decode( s ):
+            #fixme: share this fct?
+            s=s.decode('utf-8')
+            return ( s.replace('\r\n','\n').replace('\r','\n')
+                     if '\r' in s else s )
+        res = [_decode(ll[i]) for i in range(n)]
+        assert isinstance(res[0],str)
+        assert isinstance(res[1],str)
+        assert isinstance(res[2],str)
+        _raw_deallocstrlist(n,ll)
+        return dict( cfgstr = cfgstr,
+                     geomcfg = res[0],
+                     srccfg = res[1],
+                     enginecfg = res[2] )
+    functions['minimc_scenario'] = minimc_scenario
+
     _raw_runmmcsim_stdengine    = _wrap('ncrystal_runmmcsim_stdengine',None,
                                         (_uint,_uint,
                                          _cstr,_cstr,_cstr,

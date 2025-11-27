@@ -28,6 +28,11 @@ __all__ = ['runsim_diffraction_pattern',
 
 from .exceptions import NCBadInput
 
+def minimc_decode_scenario( cfgstr, scenario ):
+    """fixme"""
+    from ._chooks import _get_raw_cfcts
+    return _get_raw_cfcts()['minimc_scenario']( cfgstr, scenario )
+
 def runsim_diffraction_pattern( cfgstr, *,
                                 geomcfg,
                                 srccfg,
