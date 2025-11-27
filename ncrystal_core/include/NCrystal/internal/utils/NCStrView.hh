@@ -134,7 +134,9 @@ namespace NCRYSTAL_NAMESPACE {
     //String splitting:
 
     template< unsigned NPARTS_PREALLOC = 8>
-    SmallVector<StrView,NPARTS_PREALLOC> split() const;//on normalised whitespace, no empty parts returned
+    SmallVector<StrView,NPARTS_PREALLOC> split() const;//on normalised
+                                                       //whitespace, trim parts,
+                                                       //discard empty parts.
 
     enum class SplitKeepEmpty { Yes, No };
     enum class SplitTrimParts { Yes, No };
