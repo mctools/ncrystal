@@ -1,0 +1,140 @@
+
+Testing "1.0Aa on 2.0mm"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "sphere;r=0.001"
+  -> srccfg    = "circular;z=-0.001;r=0.001;wl=1"
+  -> enginecfg = ""
+
+Testing "1e-3Aa on 1e2mm"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "sphere;r=0.05"
+  -> srccfg    = "circular;z=-0.05;r=0.05;wl=0.001"
+  -> enginecfg = ""
+
+Testing "1e-3 Aa on 1e2mm"
+  with matcfg "stdlib::Al_sg225.ncmat"
+Caught expected NCBadInput('Invalid MiniMC scenario string: "1e-3 Aa on 1e2mm". Expected keyword "on" but got "Aa".')
+
+Testing "1e-3Aa on 1e2 mm"
+  with matcfg "stdlib::Al_sg225.ncmat"
+Caught expected NCBadInput('Invalid MiniMC scenario string: "1e-3Aa on 1e2 mm". Unexpected parameter: "mm"')
+
+Testing "1.0 on 2.0mm"
+  with matcfg "stdlib::Al_sg225.ncmat"
+Caught expected NCBadInput('Missing energy unit on "1.0". Possible units include Aa, meV, eV, or BT (=Bragg threshold in Aa, or 4Aa if not available).')
+
+Testing "1.0ergs on 2.0mm"
+  with matcfg "stdlib::Al_sg225.ncmat"
+Caught expected NCBadInput('Invalid energy unit on "1.0ergs". Possible units include Aa, meV, eV, or BT (=Bragg threshold in Aa, or 4Aa if not available).')
+
+Testing "1.1BT on 2.0mm"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "sphere;r=0.001"
+  -> srccfg    = "circular;z=-0.001;r=0.001;wl=5.14366"
+  -> enginecfg = ""
+
+Testing "1.8Aa on 0.5mfp"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "sphere;r=0.0286512"
+  -> srccfg    = "circular;z=-0.0286512;r=0.0286512;wl=1.8"
+  -> enginecfg = ""
+
+Testing ""
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "sphere;r=0.0530935"
+  -> srccfg    = "circular;z=-0.0530935;r=0.0530935;wl=3.74084"
+  -> enginecfg = ""
+
+Testing "1.8meV"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "sphere;r=0.50236"
+  -> srccfg    = "circular;z=-0.50236;r=0.50236;ekin=0.0018000000000000002"
+  -> enginecfg = ""
+
+Testing "["
+  with matcfg "stdlib::Al_sg225.ncmat"
+Caught expected NCBadInput('Forbidden character "[" in MiniMC scenario string: "["')
+
+Testing "4.0⌀ on 1mm"
+  with matcfg "stdlib::Al_sg225.ncmat"
+Caught expected NCBadInput('Forbidden character "\\x0-30" in MiniMC scenario string: "4.0⌀ on 1mm"')
+
+Testing "1.0Aa on 2.0mm"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "sphere;r=0.001"
+  -> srccfg    = "circular;z=-0.001;r=0.001;wl=1"
+  -> enginecfg = ""
+
+Testing "1.0Aa pencil on 2.0mm"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "sphere;r=0.001"
+  -> srccfg    = "constant;z=-0.00099999999999999;r=0.001;wl=1"
+  -> enginecfg = ""
+
+Testing "1Aa on slab"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "box;dz=0.120919;dx=12091.9;dy=12091.9"
+  -> srccfg    = "constant;z=-0.0604594999999994;wl=1"
+  -> enginecfg = ""
+
+Testing "25meV on 2.0mm slab"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "box;dz=0.002;dx=200;dy=200"
+  -> srccfg    = "constant;z=-0.00099999999999999;ekin=0.025"
+  -> enginecfg = ""
+
+Testing "25meV pencil on 2.0mm slab"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "box;dz=0.002;dx=200;dy=200"
+  -> srccfg    = "constant;z=-0.00099999999999999;ekin=0.025"
+  -> enginecfg = ""
+
+Testing "  25meV_pencil_on:2.0mm:::slab:::_"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "box;dz=0.002;dx=200;dy=200"
+  -> srccfg    = "constant;z=-0.00099999999999999;ekin=0.025"
+  -> enginecfg = ""
+
+Testing "1.8Aa on 0.5miles"
+  with matcfg "stdlib::Al_sg225.ncmat"
+Caught expected NCBadInput('invalid length: "0.5miles". Must be a value followed by either the special unit "mfp" (mean-free-path between scatterings) or one of the standard length units: Aa, nm, mu, mm, cm, m')
+
+Testing "1.8Aa on 0.5e-3.2cm"
+  with matcfg "stdlib::Al_sg225.ncmat"
+Caught expected NCBadInput('Invalid thickness specification in "0.5e-3.2cm".')
+
+Testing "1eV on 1e-250Aa"
+  with matcfg "stdlib::Al_sg225.ncmat"
+Caught expected NCBadInput('Could not determine suitable thickness from "1e-250Aa" (thickness is invalid or out of range)')
+
+Testing "1eV2 on 1mm"
+  with matcfg "stdlib::Al_sg225.ncmat"
+Caught expected NCBadInput('Invalid energy specification in "1eV2".')
+
+Testing "1eV on 1mm2"
+  with matcfg "stdlib::Al_sg225.ncmat"
+Caught expected NCBadInput('Invalid thickness specification in "1mm2".')
+
+Testing "1eV on 17"
+  with matcfg "stdlib::Al_sg225.ncmat"
+Caught expected NCBadInput('Missing length unit on: "17". Accepts either the special unit "mfp" (mean-free-path between scatterings) or one of the standard length units: Aa, nm, mu, mm, cm, m')
+
+Testing "1Aa on"
+  with matcfg "stdlib::Al_sg225.ncmat"
+Caught expected NCBadInput('Invalid MiniMC scenario string: "1Aa on". Missing parameters after keyword "on".')
+
+Testing "1Aa on slab 1mm: "
+  with matcfg "stdlib::Al_sg225.ncmat"
+Caught expected NCBadInput('Invalid MiniMC scenario string: "1Aa on slab 1mm: ". Unexpected parameter: "1mm"')
+
+Testing "1BT on 1mm"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "sphere;r=0.0005"
+  -> srccfg    = "circular;z=-0.0005;r=0.0005;wl=4.67605"
+  -> enginecfg = ""
+
+Testing "1BT on 1mm"
+  with matcfg "phases<0.001*stdlib::C_sg194_pyrolytic_graphite.ncmat&0.999*solid::Al/1gcm3>"
+  -> geomcfg   = "sphere;r=0.0005"
+  -> srccfg    = "circular;z=-0.0005;r=0.0005;wl=6.711"
+  -> enginecfg = ""
