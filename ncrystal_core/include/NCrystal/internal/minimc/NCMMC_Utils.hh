@@ -64,14 +64,21 @@ namespace NCRYSTAL_NAMESPACE {
       // The decodeScenario function parses a MiniMC quick simulation scenario
       // string, according to the syntax:
       //
-      //  "ENERGY [pencil] [on [THICKNESS] [sphere|slab]]"
+      //  "ENERGY [pencil] [on [THICKNESS] [sphere|slab]] [COUNT times]"
       //
-      //  Here:
+      //  The meaning of the various parameters (in uppercase above) and
+      //  keywords (in lowercase above) is explained in the following.
+      //
+      //  If given, COUNT is the initial number of neutrons to input into the
+      //  simulation. Otherwise, the default value is 1e6 for isotropic
+      //  materials, and 1e5 for anisotropic materials.
       //
       //  ENERGY is the monochromatic beam energy like "1.8Aa", "25meV" or
-      //  "0.1eV". A special unit "BT" means the bragg threshold of the material (or
-      //  4.0Aa in case material does not have one), rounded to 6 significant
-      //  digits.
+      //  "0.1eV". Special units "BT" means the bragg threshold of the material
+      //  (or 4.0Aa in case material does not have one), and "kT" means a
+      //  kinetic energy equal to Boltzmann's constant times the material
+      //  temperature. Using either special unit will cause the result to be
+      //  rounded to 6 significant digits.
       //
       //  "pencil" is an optional keyword related to the beam profile (see below).
       //
@@ -95,6 +102,7 @@ namespace NCRYSTAL_NAMESPACE {
       // can be used as whitespace. Additionally, all repeated whitespace (tabs,
       // newlines, etc.) is converted into a single space before parsing, and
       // trailing or leading whitespace is trimmed away.
+      //
 
       struct ScenarioDecoded {
         std::string geomcfg;

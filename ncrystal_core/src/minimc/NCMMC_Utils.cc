@@ -104,6 +104,35 @@ void NCMMCU::scatterGivenMu( RNG& rng,
   }
 }
 
+namespace NCRYSTAL_NAMESPACE {
+  namespace MiniMC {
+    namespace {
+      std::string detail_format_count( StrView sv_count )
+      {
+        nc_assert_always( sv_count.has_value() );
+        auto count_dbl = sv_count.toDbl();
+        std::size_t count_i = 0;
+        static_assert( sizeof(std::size_t) >= 8, "" );
+
+        //value must be able to fit in std::uint64_t, i.e. be less than
+        //~1.8446..e19. We pick 1e19 as maximum.
+        if ( count_dbl.has_value()
+             && count_dbl.value()>0.0
+             && count_dbl.value()<=1e19 ) {
+          count_i = static_cast<std::size_t>(count_dbl.value()+0.5);
+          if ( count_i != count_dbl.value() )
+            count_i = 0;
+        }
+        if (!count_i)
+          NCRYSTAL_THROW2(BadInput,"Invalid count specification \""
+                          <<sv_count<<"\". Count must be a positive"
+                          " integral value (and at most 1e19).");
+        return fmtUInt64AsNiceDbl( static_cast<std::uint64_t>(count_i) );
+      }
+    }
+  }
+}
+
 NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
                                                 const char* scenario )
 {
@@ -124,11 +153,35 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
 
   auto it = parts.begin();
   auto itE = parts.end();
+
+  //Parse ENERGY and pencil:
   StrView sv_energy = *(it++);
   bool is_pencil = false;
   if ( it!=itE && *it == "pencil" ) {
     is_pencil = true;
     ++it;
+  }
+
+  //Parse COUNT:
+  OptionalInfoPtr info;
+  ProcImpl::OptionalProcPtr scatter;
+  Optional<StrView> sv_count;
+  if ( it!=itE && *std::prev(itE) == "times" ) {
+    --itE;
+    if ( it == itE )
+      NCRYSTAL_THROW2(BadInput,"Invalid MiniMC scenario string: \"" << sv_input
+                      <<"\". Expected integral value like \"10000\" or"
+                      " \"1e6\" in front of keyword \"times\".");
+    sv_count = *std::prev(itE);
+    --itE;
+   }
+  std::string count_formatted;
+  if ( sv_count.has_value()) {
+    count_formatted = detail_format_count( sv_count.value() );
+  } else {
+    if ( scatter == nullptr )
+      scatter = FactImpl::createScatter( matcfg );
+    count_formatted = ( scatter->isOriented() ? "1e5" : "1e6" );
   }
 
   bool is_sphere(true);
@@ -187,7 +240,6 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
   NeutronEnergy neutron_energy;
   NeutronWavelength neutron_wavelength;
   bool wavelength_mode = false;
-  OptionalInfoPtr info;
   const double e_val = parse_e.value().value;
   if ( e_unit == "Aa" ) {
     wavelength_mode = true;
@@ -263,7 +315,8 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
     if ( info == nullptr )
       info = FactImpl::createInfo( matcfg );
     CachePtr cache;
-    auto scatter = FactImpl::createScatter( matcfg );
+    if ( scatter == nullptr )
+      scatter = FactImpl::createScatter( matcfg );
     auto xs = scatter->crossSection( cache, neutron_energy,
                                      NeutronDirection{ 0.0, 0.0, 1.0 } );
     auto numdens = info->getNumberDensity();
@@ -290,8 +343,10 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
   if ( thickness_meter < 1e-120 || thickness_meter > 1e120 )
     NCRYSTAL_THROW2(BadInput,"Could not determine suitable thickness from \""
                     <<sv_thickness<<"\" (thickness is invalid or out of range)");
-  //ok, we now have thickness, energy, is_sphere/is_slab and is_pencil. Time to
-  //translate to actual cfg strings:
+
+  ///////////////////////////////////////////////////////////////////
+  //Ok, we now have count, thickness, energy, is_sphere/is_slab and
+  //is_pencil. Time to translate to actual cfg strings:
 
   const char * g15 = "%.15g";
 
@@ -328,8 +383,13 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
     ss_src << ";ekin="<<fmt(neutron_energy.get());
   }
 
+  //Add count:
+  ss_src << ";n=" << count_formatted;
+
   res.srccfg = ss_src.str();
   res.geomcfg = ss_geom.str();
   res.enginecfg = "";
+
+  //FIXME: Actually implement and test kT as energy unit. And unit test anisotropic materials.
   return res;
 }
