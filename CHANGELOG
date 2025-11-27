@@ -44,6 +44,9 @@ v4.2.13 (work-in-progress)
      * Fix flawed asserts preventing proper MiniMC usage in debug builds.
      * MiniMC sources can now actually alter the weights of initial particles,
        and will keep track of the summed weights generated.
+     * Add utility function fmtUInt64AsNiceDbl for safely formatting integers
+       like 1000000 as 1e6, 12000 as 12e3, or falling back to just a plain
+       integer value when appropriate.
      * ...
 
 v4.2.12 2026-01-05

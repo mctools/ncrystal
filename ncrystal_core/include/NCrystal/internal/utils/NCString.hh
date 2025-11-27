@@ -108,6 +108,10 @@ namespace NCRYSTAL_NAMESPACE {
   //"Bla123" => ("Bla","123"). Special cases: "Bla" -> ("Bla","") "Bla012" -> ("Bla","012")
   PairSS decomposeStrWithTrailingDigits( const std::string& ss );
 
+  //Format a value like 10000 as "1e4", 1200 as "12e3", 120000 as "12e4" but
+  //anything not divisible by 10^k for k>=3 as just the plain integer value.
+  std::string fmtUInt64AsNiceDbl( std::uint64_t );
+
   //Replace all occurances of oldtxt in str with newtxt:
   void strreplace(std::string& str, const std::string& oldtxt, const std::string& newtxt);
 
