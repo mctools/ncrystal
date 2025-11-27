@@ -2,13 +2,13 @@
 Testing "1.0Aa on 2.0mm"
   with matcfg "stdlib::Al_sg225.ncmat"
   -> geomcfg   = "sphere;r=0.001"
-  -> srccfg    = "circular;z=-0.001;r=0.001;wl=1"
+  -> srccfg    = "circular;z=-0.001;r=0.001;wl=1;n=1e6"
   -> enginecfg = ""
 
 Testing "1e-3Aa on 1e2mm"
   with matcfg "stdlib::Al_sg225.ncmat"
   -> geomcfg   = "sphere;r=0.05"
-  -> srccfg    = "circular;z=-0.05;r=0.05;wl=0.001"
+  -> srccfg    = "circular;z=-0.05;r=0.05;wl=0.001;n=1e6"
   -> enginecfg = ""
 
 Testing "1e-3 Aa on 1e2mm"
@@ -30,25 +30,25 @@ Caught expected NCBadInput('Invalid energy unit on "1.0ergs". Possible units inc
 Testing "1.1BT on 2.0mm"
   with matcfg "stdlib::Al_sg225.ncmat"
   -> geomcfg   = "sphere;r=0.001"
-  -> srccfg    = "circular;z=-0.001;r=0.001;wl=5.14366"
+  -> srccfg    = "circular;z=-0.001;r=0.001;wl=5.14366;n=1e6"
   -> enginecfg = ""
 
 Testing "1.8Aa on 0.5mfp"
   with matcfg "stdlib::Al_sg225.ncmat"
   -> geomcfg   = "sphere;r=0.0286512"
-  -> srccfg    = "circular;z=-0.0286512;r=0.0286512;wl=1.8"
+  -> srccfg    = "circular;z=-0.0286512;r=0.0286512;wl=1.8;n=1e6"
   -> enginecfg = ""
 
 Testing ""
   with matcfg "stdlib::Al_sg225.ncmat"
   -> geomcfg   = "sphere;r=0.0530935"
-  -> srccfg    = "circular;z=-0.0530935;r=0.0530935;wl=3.74084"
+  -> srccfg    = "circular;z=-0.0530935;r=0.0530935;wl=3.74084;n=1e6"
   -> enginecfg = ""
 
 Testing "1.8meV"
   with matcfg "stdlib::Al_sg225.ncmat"
   -> geomcfg   = "sphere;r=0.50236"
-  -> srccfg    = "circular;z=-0.50236;r=0.50236;ekin=0.0018000000000000002"
+  -> srccfg    = "circular;z=-0.50236;r=0.50236;ekin=0.0018000000000000002;n=1e6"
   -> enginecfg = ""
 
 Testing "["
@@ -62,37 +62,37 @@ Caught expected NCBadInput('Forbidden character "\\x0-30" in MiniMC scenario str
 Testing "1.0Aa on 2.0mm"
   with matcfg "stdlib::Al_sg225.ncmat"
   -> geomcfg   = "sphere;r=0.001"
-  -> srccfg    = "circular;z=-0.001;r=0.001;wl=1"
+  -> srccfg    = "circular;z=-0.001;r=0.001;wl=1;n=1e6"
   -> enginecfg = ""
 
 Testing "1.0Aa pencil on 2.0mm"
   with matcfg "stdlib::Al_sg225.ncmat"
   -> geomcfg   = "sphere;r=0.001"
-  -> srccfg    = "constant;z=-0.00099999999999999;r=0.001;wl=1"
+  -> srccfg    = "constant;z=-0.00099999999999999;r=0.001;wl=1;n=1e6"
   -> enginecfg = ""
 
 Testing "1Aa on slab"
   with matcfg "stdlib::Al_sg225.ncmat"
   -> geomcfg   = "box;dz=0.120919;dx=12091.9;dy=12091.9"
-  -> srccfg    = "constant;z=-0.0604594999999994;wl=1"
+  -> srccfg    = "constant;z=-0.0604594999999994;wl=1;n=1e6"
   -> enginecfg = ""
 
 Testing "25meV on 2.0mm slab"
   with matcfg "stdlib::Al_sg225.ncmat"
   -> geomcfg   = "box;dz=0.002;dx=200;dy=200"
-  -> srccfg    = "constant;z=-0.00099999999999999;ekin=0.025"
+  -> srccfg    = "constant;z=-0.00099999999999999;ekin=0.025;n=1e6"
   -> enginecfg = ""
 
 Testing "25meV pencil on 2.0mm slab"
   with matcfg "stdlib::Al_sg225.ncmat"
   -> geomcfg   = "box;dz=0.002;dx=200;dy=200"
-  -> srccfg    = "constant;z=-0.00099999999999999;ekin=0.025"
+  -> srccfg    = "constant;z=-0.00099999999999999;ekin=0.025;n=1e6"
   -> enginecfg = ""
 
 Testing "  25meV_pencil_on:2.0mm:::slab:::_"
   with matcfg "stdlib::Al_sg225.ncmat"
   -> geomcfg   = "box;dz=0.002;dx=200;dy=200"
-  -> srccfg    = "constant;z=-0.00099999999999999;ekin=0.025"
+  -> srccfg    = "constant;z=-0.00099999999999999;ekin=0.025;n=1e6"
   -> enginecfg = ""
 
 Testing "1.8Aa on 0.5miles"
@@ -130,11 +130,141 @@ Caught expected NCBadInput('Invalid MiniMC scenario string: "1Aa on slab 1mm: ".
 Testing "1BT on 1mm"
   with matcfg "stdlib::Al_sg225.ncmat"
   -> geomcfg   = "sphere;r=0.0005"
-  -> srccfg    = "circular;z=-0.0005;r=0.0005;wl=4.67605"
+  -> srccfg    = "circular;z=-0.0005;r=0.0005;wl=4.67605;n=1e6"
   -> enginecfg = ""
 
 Testing "1BT on 1mm"
   with matcfg "phases<0.001*stdlib::C_sg194_pyrolytic_graphite.ncmat&0.999*solid::Al/1gcm3>"
   -> geomcfg   = "sphere;r=0.0005"
-  -> srccfg    = "circular;z=-0.0005;r=0.0005;wl=6.711"
+  -> srccfg    = "circular;z=-0.0005;r=0.0005;wl=6.711;n=1e6"
   -> enginecfg = ""
+
+Testing "1BT on 1m"
+  with matcfg "void.ncmat"
+  -> geomcfg   = "sphere;r=0.5"
+  -> srccfg    = "circular;z=-0.5;r=0.5;wl=4;n=1e6"
+  -> enginecfg = ""
+
+Testing "1BT on 1mfp"
+  with matcfg "void.ncmat"
+  -> geomcfg   = "sphere;r=0.005"
+  -> srccfg    = "circular;z=-0.005;r=0.005;wl=4;n=1e6"
+  -> enginecfg = ""
+
+Testing "100 on 1m"
+  with matcfg "stdlib::Al_sg225.ncmat"
+Caught expected NCBadInput('Missing energy unit on "100". Possible units include Aa, meV, eV, or BT (=Bragg threshold in Aa, or 4Aa if not available).')
+
+Testing "1Aa on 1m"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "sphere;r=0.5"
+  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1e6"
+  -> enginecfg = ""
+
+Testing "1000 1Aa on 1m"
+  with matcfg "stdlib::Al_sg225.ncmat"
+Caught expected NCBadInput('Invalid MiniMC scenario string: "1000 1Aa on 1m". Expected keyword "on" but got "1Aa".')
+
+Testing "1Aa on 1m 123400 times"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "sphere;r=0.5"
+  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=123400"
+  -> enginecfg = ""
+
+Testing "1Aa on 1m 1234000 times"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "sphere;r=0.5"
+  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1234e3"
+  -> enginecfg = ""
+
+Testing "1Aa on 1m 12340000 times"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "sphere;r=0.5"
+  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1234e4"
+  -> enginecfg = ""
+
+Testing "1Aa on 1m 1 times"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "sphere;r=0.5"
+  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1"
+  -> enginecfg = ""
+
+Testing "1Aa on 1m 999 times"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "sphere;r=0.5"
+  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=999"
+  -> enginecfg = ""
+
+Testing "1Aa on 1m 1.2345e4 times"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "sphere;r=0.5"
+  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=12345"
+  -> enginecfg = ""
+
+Testing "1Aa on 1m 10000000 times"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "sphere;r=0.5"
+  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1e7"
+  -> enginecfg = ""
+
+Testing "1Aa on 1m 1e7 times"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "sphere;r=0.5"
+  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1e7"
+  -> enginecfg = ""
+
+Testing "1Aa on 1m 1000 times"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "sphere;r=0.5"
+  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1e3"
+  -> enginecfg = ""
+
+Testing "1Aa on 1m 1e+03 times"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "sphere;r=0.5"
+  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1e3"
+  -> enginecfg = ""
+
+Testing "1Aa on 1m 1.000 times"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "sphere;r=0.5"
+  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1"
+  -> enginecfg = ""
+
+Testing "1Aa on 1m 1.000e-0 times"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "sphere;r=0.5"
+  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1"
+  -> enginecfg = ""
+
+Testing "1Aa on 1m times"
+  with matcfg "stdlib::Al_sg225.ncmat"
+Caught expected NCBadInput('Invalid count specification "1m". Count must be a positive integral value (and at most 1e19).')
+
+Testing "1Aa on 1m 1e19 times"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "sphere;r=0.5"
+  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1e19"
+  -> enginecfg = ""
+
+Testing "1Aa on 1m 1.1e18 times"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "sphere;r=0.5"
+  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=11e17"
+  -> enginecfg = ""
+
+Testing "1Aa on 1m 1.1e19 times"
+  with matcfg "stdlib::Al_sg225.ncmat"
+Caught expected NCBadInput('Invalid count specification "1.1e19". Count must be a positive integral value (and at most 1e19).')
+
+Testing "1Aa on 1m 0 times"
+  with matcfg "stdlib::Al_sg225.ncmat"
+Caught expected NCBadInput('Invalid count specification "0". Count must be a positive integral value (and at most 1e19).')
+
+Testing "1Aa on 1m 100.4 times"
+  with matcfg "stdlib::Al_sg225.ncmat"
+Caught expected NCBadInput('Invalid count specification "100.4". Count must be a positive integral value (and at most 1e19).')
+
+Testing "1Aa on 1m -100 times"
+  with matcfg "stdlib::Al_sg225.ncmat"
+Caught expected NCBadInput('Invalid count specification "-100". Count must be a positive integral value (and at most 1e19).')
