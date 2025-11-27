@@ -21,6 +21,9 @@
 #include "NCrystal/internal/minimc/NCMMC_Utils.hh"
 #include "NCrystal/internal/extd_utils/NCABIUtils.hh"
 #include "NCrystal/internal/utils/NCRandUtils.hh"
+#include "NCrystal/internal/utils/NCStrView.hh"
+#include "NCrystal/internal/cfgutils/NCCfgTypes.hh"
+#include "NCrystal/factories/NCFactImpl.hh"
 
 namespace NC = NCrystal;
 namespace NCMMCU = NCrystal::MiniMC::Utils;
@@ -99,4 +102,321 @@ void NCMMCU::scatterGivenMu( RNG& rng,
     b.uy[i] = newdir[1];
     b.uz[i] = newdir[2];
   }
+}
+
+namespace NCRYSTAL_NAMESPACE {
+  namespace MiniMC {
+    namespace {
+      std::string detail_format_count( StrView sv_count )
+      {
+        nc_assert_always( sv_count.has_value() );
+        auto count_dbl = sv_count.toDbl();
+        std::uint64_t count_i = 0;
+
+        //value must be able to fit in std::uint64_t, i.e. be less than
+        //~1.8446..e19. We pick 1e18 as maximum for simplicity, and since it
+        //also fits in std::int64_t (just in case it is ever needed to fit in a
+        //signed int somewhere).
+        if ( count_dbl.has_value()
+             && count_dbl.value()>0.0
+             && count_dbl.value()<=1e18 ) {
+          count_i = static_cast<std::uint64_t>(count_dbl.value()+0.5);
+          if ( count_i != count_dbl.value() )
+            count_i = 0;
+        }
+        if (!count_i)
+          NCRYSTAL_THROW2(BadInput,"Invalid count specification \""
+                          <<sv_count<<"\". Count must be a positive"
+                          " integral value (and at most 1e18).");
+        return fmtUInt64AsNiceDbl( static_cast<std::uint64_t>(count_i) );
+      }
+
+      Optional<NeutronWavelength>
+      detail_extract_braggThreshold( const Info& info ) {
+        Optional<NeutronWavelength> res;
+        if ( info.isSinglePhase() ) {
+          res = info.getBraggThreshold();
+        } else {
+          //multiphase: take the longest!
+          for ( auto& phase : info.getPhases() ) {
+            auto bt = phase.second->getBraggThreshold();
+            if ( !bt.has_value() )
+              continue;
+            if ( !res.has_value() || res.value() < bt.value() )
+              res = bt;
+          }
+        }
+        return res;
+      }
+    }
+  }
+}
+
+NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
+                                                const char* scenario )
+{
+  ScenarioDecoded res;
+
+  StrView sv_input((scenario?scenario:""));
+  auto badchar_strrep = findForbiddenChar( sv_input,
+                                           Cfg::forbidden_chars_value_strreps,
+                                           ExtraForbidOpt::RequireSimpleASCII );
+  if ( badchar_strrep.has_value() )
+    NCRYSTAL_THROW2(BadInput,"Forbidden character "<<badchar_strrep.value()
+                    <<" in MiniMC scenario string: \""<<sv_input<<'"');
+
+  //Split on whitespace + ":_":
+  auto parts = sv_input.split_any<
+    8,StrView::SplitKeepEmpty::No,StrView::SplitTrimParts::Yes>(" \t\n\r:_");
+
+  OptionalInfoPtr info;
+  ProcImpl::OptionalProcPtr scatter;
+
+  if ( parts.empty() ) {
+    info = FactImpl::createInfo( matcfg );
+    const bool has_BT = detail_extract_braggThreshold(*info).has_value();
+    const bool has_T = info->hasTemperature();
+    const char * default_scenario = ( has_BT
+                                      ? "0.8BT"
+                                      : ( has_T ? "1kT" : "1.8Aa" ) );
+    res = decodeScenario( matcfg, default_scenario );
+    return res;
+  }
+
+  auto it = parts.begin();
+  auto itE = parts.end();
+
+  //Parse ENERGY and pencil:
+  StrView sv_energy = *(it++);
+  bool is_pencil = false;
+  if ( it!=itE && *it == "pencil" ) {
+    is_pencil = true;
+    ++it;
+  }
+
+  //Parse COUNT:
+  Optional<StrView> sv_count;
+  if ( it!=itE && *std::prev(itE) == "times" ) {
+    --itE;
+    if ( it == itE )
+      NCRYSTAL_THROW2(BadInput,"Invalid MiniMC scenario string: \"" << sv_input
+                      <<"\". Expected integral value like \"10000\" or"
+                      " \"1e6\" in front of keyword \"times\".");
+    sv_count = *std::prev(itE);
+    --itE;
+  }
+  std::string count_formatted;
+  if ( sv_count.has_value()) {
+    count_formatted = detail_format_count( sv_count.value() );
+  } else {
+    if ( scatter == nullptr )
+      scatter = FactImpl::createScatter( matcfg );
+    count_formatted = ( scatter->isOriented() ? "1e5" : "1e6" );
+  }
+
+  bool is_sphere(true);
+  StrView sv_thickness = "1mfp";
+  if ( it != itE ) {
+    if ( *it != "on" )
+      NCRYSTAL_THROW2(BadInput,"Invalid MiniMC scenario string: \""<<sv_input
+                      <<"\". Expected keyword \"on\" but got \""<<*it<<"\".");
+    ++it;
+    bool had_params_after_on = false;
+
+    if ( it != itE ) {
+      //more parts, scrabe off final "sphere" or "slab" if found.
+      if ( *std::prev(itE) == "sphere" ) {
+        //selected sphere (already the default)
+        --itE;
+        had_params_after_on = true;
+      } else if ( *std::prev(itE) == "slab" ) {
+        //selected slab (already the default)
+        had_params_after_on = true;
+        is_sphere = false;
+        --itE;
+      }
+    }
+    //Now collect a thickness:
+    if ( it == itE ) {
+      if (!had_params_after_on)
+        NCRYSTAL_THROW2(BadInput,"Invalid MiniMC scenario string: \""<<sv_input
+                        <<"\". Missing parameters after keyword \"on\".");
+    } else {
+      sv_thickness = *(it++);
+      if ( it != itE )
+        NCRYSTAL_THROW2(BadInput,"Invalid MiniMC scenario string: \""<<sv_input
+                        <<"\". Unexpected parameter: \""<<*it<<"\"");
+    }
+  }
+
+  const bool is_slab = !is_sphere;
+  if ( is_slab && !is_pencil )
+    is_pencil=true;//always pencil beam in case of infinite slab.
+
+  auto round6 = []( double val ) -> double
+  {
+    std::ostringstream ss;
+    ss<<fmt(val,"%.6g");
+    std::string sval = ss.str();
+    return str2dbl(sval);
+  };
+
+  //Finally decode energy:
+  auto parse_e = Cfg::unitSplit(sv_energy);
+  if (!parse_e.has_value())
+    NCRYSTAL_THROW2(BadInput,
+                    "Invalid energy specification in \"" <<sv_energy<<"\".");
+  StrView e_unit = parse_e.value().unit;
+  NeutronEnergy neutron_energy;
+  NeutronWavelength neutron_wavelength;
+  bool wavelength_mode = false;
+  const double e_val = parse_e.value().value;
+  if ( e_unit == "Aa" ) {
+    wavelength_mode = true;
+    neutron_wavelength = NeutronWavelength{ e_val };
+    neutron_energy = neutron_wavelength.energy();
+  } else {
+    if ( e_unit == "eV" ) {
+      neutron_energy = NeutronEnergy{ e_val };
+    } else if ( e_unit == "meV" ) {
+      neutron_energy = NeutronEnergy{ e_val * 0.001 };
+    } else if ( e_unit == "keV" ) {
+      neutron_energy = NeutronEnergy{ e_val * 1e3 };
+    } else if ( e_unit == "MeV" ) {
+      neutron_energy = NeutronEnergy{ e_val * 1e6 };
+    } else if ( e_unit == "GeV" ) {
+      neutron_energy = NeutronEnergy{ e_val * 1e9 };
+    } else if ( e_unit == "kT" ) {
+      if (!info)
+        info = FactImpl::createInfo( matcfg );
+      if (!info->hasTemperature())
+        NCRYSTAL_THROW(BadInput,"Can not use kT as a unit for a multi-phase "
+                       "material without a single well-defined temperature.");
+      const double kT = info->getTemperature().kT();
+      nc_assert_always( kT > 0.0 );
+      wavelength_mode = false;
+      neutron_energy = NeutronEnergy{ round6(e_val * kT) };
+      neutron_wavelength = neutron_energy.wavelength();
+    } else if ( e_unit == "BT" ) {
+      //unit is bragg threshold (or 4Aa)
+      if (!info)
+        info = FactImpl::createInfo( matcfg );
+      wavelength_mode = true;
+      auto braggthr = detail_extract_braggThreshold( *info );
+      double bt_Aa = braggthr.value_or( NeutronWavelength{ 4.0 } ).get();
+      neutron_wavelength = NeutronWavelength( round6(e_val * bt_Aa) );
+      neutron_energy = neutron_wavelength.energy();
+    } else {
+      NCRYSTAL_THROW2(BadInput,
+                      (e_unit.empty()?"Missing":"Invalid")
+                      <<" energy unit on \"" <<sv_energy<<"\"."
+                      << " Possible units include Aa, meV, eV,"
+                      " kT (=kB*temperature),"
+                      " BT (=Bragg threshold in Aa, or 4Aa if not available).");
+    }
+    neutron_wavelength = neutron_energy.wavelength();
+  }
+
+  //Finally decode thickness:
+  double thickness_meter = -1.0;
+  auto parse_t = Cfg::unitSplit(sv_thickness);
+  if (!parse_t.has_value()) {
+    NCRYSTAL_THROW2(BadInput,"Invalid thickness specification in \""
+                    <<sv_thickness<<"\".");
+  }
+
+  if (parse_t.value().unit.empty() ) {
+    std::ostringstream ss;
+    Cfg::units_length::listAvailableUnitsNoDefault(ss);
+    NCRYSTAL_THROW2(BadInput,"Missing length unit on: \""<<sv_thickness<<"\". "
+                    <<"Accepts either the special unit"
+                    " \"mfp\" (mean-free-path between scatterings) or one of"
+                    " the standard length units: "<<ss.str());
+  }
+  if ( parse_t.value().unit == "mfp" ) {
+    if ( info == nullptr )
+      info = FactImpl::createInfo( matcfg );
+    CachePtr cache;
+    if ( scatter == nullptr )
+      scatter = FactImpl::createScatter( matcfg );
+    auto xs = scatter->crossSection( cache, neutron_energy,
+                                     NeutronDirection{ 0.0, 0.0, 1.0 } );
+    auto numdens = info->getNumberDensity();
+    double macroxs = macroXS( numdens, xs );// [1/m]
+    if ( macroxs < 1e-99 || macroxs > 1e99 ) {
+      thickness_meter = 0.01;//fall back value of 1cm
+    } else {
+      thickness_meter = round6( parse_t.value().value / macroxs );
+      //Limit precision slightly, to avoid FP instabilities:
+
+    }
+  } else {
+    auto pv = Cfg::units_length::parse(sv_thickness);
+    if ( !pv.has_value() ) {
+      std::ostringstream ss;
+      Cfg::units_length::listAvailableUnitsNoDefault(ss);
+      NCRYSTAL_THROW2(BadInput,"invalid length: \""<<sv_thickness<<"\". "
+                      <<"Must be a value followed by either the special unit"
+                      " \"mfp\" (mean-free-path between scatterings) or one of"
+                      " the standard length units: "<<ss.str());
+    }
+    thickness_meter = pv.value().first * 1e-10;//units_length::parse returns Aa
+  }
+  if ( thickness_meter < 1e-120 || thickness_meter > 1e120 )
+    NCRYSTAL_THROW2(BadInput,"Could not determine suitable thickness from \""
+                    <<sv_thickness<<"\" (thickness is invalid or out of range)");
+
+  ///////////////////////////////////////////////////////////////////
+  //Ok, we now have count, thickness, energy, is_sphere/is_slab and
+  //is_pencil. Time to translate to actual cfg strings:
+
+  const char * g15 = "%.15g";
+
+  std::ostringstream ss_src;
+  std::ostringstream ss_geom;
+  const double src_z = - thickness_meter*0.5;
+  //Slightly more efficient if we start pencil beams inside the geometry
+  //(1e-14 is small but will not be obscured by "%.15g".
+  const double src_z_plus_epsilon = src_z * (1.0-1e-14);
+  if ( is_sphere ) {
+    nc_assert_always( !is_slab );
+    const double sphere_r = thickness_meter*0.5;
+    ss_geom << "sphere;r="<<fmt(sphere_r);
+    if ( is_pencil )
+      ss_src << "constant;z=" << fmt(src_z_plus_epsilon,g15);//fixme: do away
+                                                             //with the epsilon?
+                                                             //Also needs unit
+                                                             //test that
+                                                             //proptovolentry
+                                                             //always gives a
+                                                             //proptovolexit of
+                                                             //the correct
+                                                             //magnitude in this
+                                                             //case.
+    else
+      ss_src << "circular;z=" << fmt(src_z);
+    ss_src << ";r="<<fmt(sphere_r);
+  } else {
+    nc_assert_always( is_slab );
+    const double slab_dz = thickness_meter*0.5;
+    ss_geom << "slab;dz="<<fmt(slab_dz);
+    nc_assert_always( is_pencil );
+    ss_src << "constant;z=" << fmt(src_z);
+  }
+
+  //Add energy to src:
+  if ( wavelength_mode ) {
+    ss_src << ";wl="<<fmt(neutron_wavelength.get());
+  } else {
+    ss_src << ";ekin="<<fmt(neutron_energy.get());
+  }
+
+  //Add count:
+  ss_src << ";n=" << count_formatted;
+
+  res.srccfg = ss_src.str();
+  res.geomcfg = ss_geom.str();
+  res.enginecfg = "";
+
+  return res;
 }
