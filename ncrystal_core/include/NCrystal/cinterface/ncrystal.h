@@ -641,6 +641,10 @@ extern "C" {
 #  undef ncrystal_minimc
 #endif
 #define ncrystal_minimc NCRYSTAL_APPLY_C_NAMESPACE(minimc)
+#ifdef ncrystal_minimc_scenario
+#  undef ncrystal_minimc_scenario
+#endif
+#define ncrystal_minimc_scenario NCRYSTAL_APPLY_C_NAMESPACE(minimc_scenario)
 
 
   /*============================================================================== */
@@ -1358,6 +1362,16 @@ extern "C" {
                                       const char * srccfg,
                                       const char * enginecfg );
 
+  /* Parse MiniMC scenario string and returns the corresponding geomcfg,       */
+  /* srccfg, and enginecfg cfg-strings.                                        */
+  /* Depending on the content, an Info and Scatter object might be loaded      */
+  /* from the material_cfgstr in case information is needed (e.g. if lengths   */
+  /* are specified in terms of mean-free-paths or energies in terms of Bragg   */
+  /* thresholds).                                                              */
+  /* Returns a string list of length 3: [geomcfg,srccfg,enginecfg]             */
+  /* Must free list with call to ncrystal_dealloc_stringlist.                  */
+  NCRYSTAL_API char** ncrystal_minimc_scenario( const char * material_cfgstr,
+                                                const char * scenario );
 
 #ifdef __cplusplus
 }

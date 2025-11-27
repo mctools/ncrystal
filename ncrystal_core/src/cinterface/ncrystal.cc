@@ -2325,6 +2325,7 @@ void ncrystal_setmsghandler(void (*handler)(const char*,unsigned))
 #include "NCrystal/internal/minimc/NCMMC_StdTallies.hh"
 #include "NCrystal/internal/minimc/NCMMC_StdEngine.hh"
 #include "NCrystal/internal/minimc/NCMMC_EngineOpts.hh"
+#include "NCrystal/internal/minimc/NCMMC_Utils.hh"
 
 namespace NCMMC = NCrystal::MiniMC;
 
@@ -2364,6 +2365,26 @@ char* ncrystal_minimc( const char * material_cfgstr,
     return ncc::createString(tally_json);
   } NCCATCH;
   return nullptr;
+}
+
+char** ncrystal_minimc_scenario( const char * material_cfgstr,
+                                 const char * scenario )
+{
+  char ** result = nullptr;
+  try {
+    NC::MatCfg matcfg(material_cfgstr);
+    auto decoded = NCMMC::Utils::decodeScenario( matcfg, scenario );
+    NC::VectS strlist = { std::move(decoded.geomcfg),
+                          std::move(decoded.srccfg),
+                          std::move(decoded.enginecfg) };
+    //convert:
+    char ** strs;
+    unsigned nstrs;
+    ncc::createStringList(strlist,&strs,&nstrs);
+    nc_assert_always(nstrs==3);
+    result = strs;
+  } NCCATCH;
+  return result;;
 }
 
 void ncrystal_runmmcsim_stdengine( unsigned nthreads,
