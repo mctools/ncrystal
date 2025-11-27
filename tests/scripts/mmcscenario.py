@@ -25,6 +25,8 @@
 import NCrystalDev._mmc as ncmmc #fix import
 from NCrystalDev.core import NCBadInput
 from NCTestUtils.common import ensure_error
+import numpy#before fpe
+import NCTestUtils.enable_fpe # noqa F401
 
 def testbad(cfgstr,scenario, expecterr):
     test(cfgstr,scenario, expecterr)
@@ -126,6 +128,47 @@ def main():
     test(c,'1BT on 1mm')
     test(c_mp,'1BT on 1mm')
 
+    test("void.ncmat",'1BT on 1m')
+    test("void.ncmat",'1BT on 1mfp')
+
+    testbad(c,'100 on 1m',
+            'Missing energy unit on "100". Possible units include Aa, meV,'
+            ' eV, or BT (=Bragg threshold in Aa, or 4Aa if not available).')
+
+    test(c,'1Aa on 1m')
+    testbad(c,'1000 1Aa on 1m',
+            'Invalid MiniMC scenario string: "1000 1Aa on 1m". '
+            'Expected keyword "on" but got "1Aa".')
+
+    test(c,'1Aa on 1m 123400 times')
+    test(c,'1Aa on 1m 1234000 times')
+    test(c,'1Aa on 1m 12340000 times')
+    test(c,'1Aa on 1m 1 times')
+    test(c,'1Aa on 1m 999 times')
+    test(c,'1Aa on 1m 1.2345e4 times')
+    test(c,'1Aa on 1m 10000000 times')
+    test(c,'1Aa on 1m 1e7 times')
+    test(c,'1Aa on 1m 1000 times')
+    test(c,'1Aa on 1m 1e+03 times')
+    test(c,'1Aa on 1m 1.000 times')
+    test(c,'1Aa on 1m 1.000e-0 times')
+
+    testbad(c,'1Aa on 1m times','Invalid count specification "1m". Count '
+            'must be a positive integral value (and at most 1e19).')
+    test(c,'1Aa on 1m 1e19 times')
+    test(c,'1Aa on 1m 1.1e18 times')
+    testbad(c,'1Aa on 1m 1.1e19 times',
+            'Invalid count specification "1.1e19". Count must be a'
+            ' positive integral value (and at most 1e19).')
+    testbad(c,'1Aa on 1m 0 times',
+            'Invalid count specification "0". Count must be a'
+            ' positive integral value (and at most 1e19).')
+    testbad(c,'1Aa on 1m 100.4 times',
+            'Invalid count specification "100.4". Count must be a'
+            ' positive integral value (and at most 1e19).')
+    testbad(c,'1Aa on 1m -100 times',
+            'Invalid count specification "-100". Count must be a'
+            ' positive integral value (and at most 1e19).')
 
 if __name__ == '__main__':
     main()
