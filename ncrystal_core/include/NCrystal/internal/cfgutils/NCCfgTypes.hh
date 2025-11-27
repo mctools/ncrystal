@@ -60,6 +60,16 @@ namespace NCRYSTAL_NAMESPACE {
       static Optional<std::pair<double,ValDbl_ShortStrOrigRep>> parse(StrView){ return NullOpt; }
     };
 
+    //Helper util for parsing doubles with units:
+    struct ParsedDblValue {
+      double value;
+      StrView unit;
+      //Original str rep must be kept in a dedicated buffer, since internal
+      //whitespace must be edited away, e.g. "1.0 Aa" -> "1.0Aa".
+      ValDbl_ShortStrOrigRep origStrRep;//empty if did not fit.
+    };
+    Optional<ParsedDblValue> unitSplit(StrView sv);
+
     void standardInputStrSanityCheck( const char * parname, StrView strrep );
 
     template <class Derived, class TValueType>
@@ -740,8 +750,10 @@ namespace NCRYSTAL_NAMESPACE {
 
     struct units_length {
       static constexpr auto actual_unit = "Aa";
-      static void listAvailableUnits(std::ostream&);
-      static Optional<std::pair<double,ValDbl_ShortStrOrigRep>> parse(StrView sv);
+      static void listAvailableUnitsNoDefault( std::ostream& );
+      static void listAvailableUnits( std::ostream& );
+      static Optional<std::pair<double,ValDbl_ShortStrOrigRep>>
+      parse( StrView sv );
     };
 
     struct units_angle {
