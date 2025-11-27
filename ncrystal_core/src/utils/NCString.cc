@@ -523,3 +523,33 @@ NC::Optional<std::string> NC::findForbiddenChar( const StrView& teststr,
     return NullOpt;
   return displayCharSafeQuoted(badchar.value());
 }
+
+std::string NC::fmtUInt64AsNiceDbl( std::uint64_t n )
+{
+  std::string res;
+  if ( n >= 1000 ) {
+    std::uint64_t k = 3;
+    std::uint64_t tentok = 1000;
+    std::uint64_t best_k = 0;
+    std::uint64_t best_tentok = 0;
+    const std::uint64_t ndiv10 = n/10;
+    while( true ) {
+      if ( n % tentok == 0 ) {
+        best_k = k;
+        best_tentok = tentok;
+      }
+      if ( tentok > ndiv10 )
+        break;
+      k += 1;
+      tentok *= 10;
+    }
+    if ( best_k ) {
+      res = std::to_string(n/best_tentok);
+      res += 'e';
+      res += std::to_string(best_k);
+    }
+  }
+  if (res.empty())
+    res = std::to_string(n);
+  return res;
+}
