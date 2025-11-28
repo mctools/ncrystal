@@ -129,6 +129,24 @@ namespace NCRYSTAL_NAMESPACE {
                           " integral value (and at most 1e19).");
         return fmtUInt64AsNiceDbl( static_cast<std::uint64_t>(count_i) );
       }
+
+      Optional<NeutronWavelength>
+      detail_extract_braggThreshold( const Info& info ) {
+        Optional<NeutronWavelength> res;
+        if ( info.isSinglePhase() ) {
+          res = info.getBraggThreshold();
+        } else {
+          //multiphase: take the longest!
+          for ( auto& phase : info.getPhases() ) {
+            auto bt = phase.second->getBraggThreshold();
+            if ( !bt.has_value() )
+              continue;
+            if ( !res.has_value() || res.value() < bt.value() )
+              res = bt;
+          }
+        }
+        return res;
+      }
     }
   }
 }
@@ -136,6 +154,8 @@ namespace NCRYSTAL_NAMESPACE {
 NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
                                                 const char* scenario )
 {
+  ScenarioDecoded res;
+
   StrView sv_input((scenario?scenario:""));
   auto badchar_strrep = findForbiddenChar( sv_input,
                                            Cfg::forbidden_chars_value_strreps,
@@ -148,8 +168,19 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
   auto parts = sv_input.split_any<
     8,StrView::SplitKeepEmpty::No,StrView::SplitTrimParts::Yes>(" \t\n\r:_");
 
-  if ( parts.empty() )
-    return decodeScenario( matcfg, "0.8BT" );
+  OptionalInfoPtr info;
+  ProcImpl::OptionalProcPtr scatter;
+
+  if ( parts.empty() ) {
+    info = FactImpl::createInfo( matcfg );
+    const bool has_BT = detail_extract_braggThreshold(*info).has_value();
+    const bool has_T = info->hasTemperature();
+    const char * default_scenario = ( has_BT
+                                      ? "0.8BT"
+                                      : ( has_T ? "1kT" : "1.8Aa" ) );
+    res = decodeScenario( matcfg, default_scenario );
+    return res;
+  }
 
   auto it = parts.begin();
   auto itE = parts.end();
@@ -163,8 +194,6 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
   }
 
   //Parse COUNT:
-  OptionalInfoPtr info;
-  ProcImpl::OptionalProcPtr scatter;
   Optional<StrView> sv_count;
   if ( it!=itE && *std::prev(itE) == "times" ) {
     --itE;
@@ -256,29 +285,23 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
       neutron_energy = NeutronEnergy{ e_val * 1e6 };
     } else if ( e_unit == "GeV" ) {
       neutron_energy = NeutronEnergy{ e_val * 1e9 };
+    } else if ( e_unit == "kT" ) {
+      if (!info)
+        info = FactImpl::createInfo( matcfg );
+      if (!info->hasTemperature())
+        NCRYSTAL_THROW(BadInput,"Can not use kT as a unit for a multi-phase "
+                       "material without a single well-defined temperature.");
+      const double kT = info->getTemperature().kT();
+      nc_assert_always( kT > 0.0 );
+      wavelength_mode = false;
+      neutron_energy = NeutronEnergy{ round6(e_val * kT) };
+      neutron_wavelength = neutron_energy.wavelength();
     } else if ( e_unit == "BT" ) {
-      //unit is bragg threshold (if any)
+        //unit is bragg threshold (or 4Aa)
         if (!info)
           info = FactImpl::createInfo( matcfg );
-        Optional<NeutronWavelength> braggthr;
-        if ( info->isSinglePhase() ) {
-          braggthr = info->getBraggThreshold();
-        } else {
-          //multiphase: take the longest!
-          for ( auto& phase : info->getPhases() ) {
-            auto bt = phase.second->getBraggThreshold();
-            if ( !bt.has_value() )
-              continue;
-            if ( !braggthr.has_value()
-                 || braggthr.value() < bt.value() ) {
-              braggthr = bt;
-            }
-          }
-        }
-        if ( !braggthr.has_value() ) {
-          braggthr = NeutronWavelength{ 4.0 };
-        }
         wavelength_mode = true;
+        auto braggthr = detail_extract_braggThreshold( *info );
         double bt_Aa = braggthr.value_or( NeutronWavelength{ 4.0 } ).get();
         neutron_wavelength = NeutronWavelength( round6(e_val * bt_Aa) );
         neutron_energy = neutron_wavelength.energy();
@@ -286,7 +309,8 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
       NCRYSTAL_THROW2(BadInput,
                       (e_unit.empty()?"Missing":"Invalid")
                       <<" energy unit on \"" <<sv_energy<<"\"."
-                      << " Possible units include Aa, meV, eV, or"
+                      << " Possible units include Aa, meV, eV,"
+                      " kT (=kB*temperature),"
                       " BT (=Bragg threshold in Aa, or 4Aa if not available).");
     }
     neutron_wavelength = neutron_energy.wavelength();
@@ -309,9 +333,6 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
                     " the standard length units: "<<ss.str());
   }
   if ( parse_t.value().unit == "mfp" ) {
-    //fixme: round to nearest 3 digits? Or perhaps just return descriptive
-    //string we can use in titles etc.?
-    //We need Info+Scatter for this.
     if ( info == nullptr )
       info = FactImpl::createInfo( matcfg );
     CachePtr cache;
@@ -350,7 +371,6 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
 
   const char * g15 = "%.15g";
 
-  ScenarioDecoded res;
   std::ostringstream ss_src;
   std::ostringstream ss_geom;
   const double src_z = - thickness_meter*0.5;
@@ -390,6 +410,5 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
   res.geomcfg = ss_geom.str();
   res.enginecfg = "";
 
-  //FIXME: Actually implement and test kT as energy unit. And unit test anisotropic materials.
   return res;
 }

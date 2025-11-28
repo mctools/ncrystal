@@ -95,8 +95,11 @@ namespace NCRYSTAL_NAMESPACE {
       // sphere. However, if the keyword "pencil" is provided, a pencil beam hitting
       // the sphere centrally is used instead,
       //
-      // As a special case, an empty scenario string is interpreted in the same way
-      // as a scenario string with contents "0.8BT".
+      // As a special case, an empty scenario string is interpreted in the same
+      // way as a scenario string with contents "0.8BT" if the material has a
+      // Bragg threshold, otherwise it will be "1kT" if it has a temperature. If
+      // it neither has a Bragg threshold or a temperature, a value of "1.8Aa"
+      // is used as the ultimate fallback.
       //
       // For flexibility and usage from the cmdline, colons (:) and underscores (_)
       // can be used as whitespace. Additionally, all repeated whitespace (tabs,
