@@ -73,7 +73,7 @@ void NC::Hists::RunningStats1D::registerNValues( double val, std::size_t N )
   m_sumwx += dN * val;
 }
 
-void NC::Hists::RunningStats1D::toJSON( std::ostringstream& os ) const
+void NC::Hists::RunningStats1D::toJSON( std::ostream& os ) const
 {
   streamJSONDictEntry(os, "integral", m_sumw,JSONDictPos::FIRST);
   if ( hasData() ) {
