@@ -59,6 +59,14 @@ namespace NCRYSTAL_NAMESPACE {
       //Query total weight of all particles already provided by source:
       virtual ParticleCountSum particlesProvided() const = 0;
 
+      //Serialisation of source configuration, as original source cfg-string, or
+      //as a JSON object with more direct access to individual values. The JSON
+      //object is a dictionary like (where one of the params should always be
+      //the name of the type of source (i.e. "name":"constant").  { "cfgstr" :
+      //"...", "decoded" : { "k" : "v", ...} }
+
+      virtual void toJSON(std::ostream&) const = 0;
+      virtual void toString(std::ostream&) const = 0;
     };
 
     //NB: SourcePtr's are not const pointers:

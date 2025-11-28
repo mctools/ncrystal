@@ -49,6 +49,18 @@ namespace NCRYSTAL_NAMESPACE {
       //source-geometry checks, not neutron baskets):
       virtual bool pointIsInside( const Vector& ) const = 0;
 
+      //Serialisation, as original geometry cfg-string, or as a JSON object with
+      //more direct access to individual values. The JSON object is a dictionary
+      //like (where one of the params should always be the name of the type of
+      //volume (i.e. "name":"sphere"):
+      //{ "cfgstr" : "...", "decoded" : { "k" : "v", ...} }
+
+      virtual void toJSON(std::ostream&) const = 0;
+      virtual void toString(std::ostream&) const = 0;
+
+      //fixme: Would it be useful to have a method returning a bounding sphere?
+      //And perhaps also an inscribed sphere?
+
     };
 
     using GeometryPtr = shared_obj<const Geometry>;

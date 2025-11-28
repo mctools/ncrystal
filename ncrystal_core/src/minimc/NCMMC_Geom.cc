@@ -39,6 +39,21 @@ namespace NCRYSTAL_NAMESPACE {
         {
         }
 
+        void toJSON( std::ostream& os ) const override
+        {
+          std::ostringstream cfgstr;
+          m_vol.toCfgString(cfgstr);
+          streamJSONDictEntry( os, "cfgstr", cfgstr.str(), JSONDictPos::FIRST );
+          os << ",\"decoded\":{";
+          m_vol.toJSONDecodedItems(os);
+          os << "}}";
+        }
+
+        void toString(std::ostream& os) const
+        {
+          m_vol.toCfgString(os);
+        }
+
         void distToVolumeEntry( const NeutronBasket& nb,
                                 Span<double> tgt ) const override
         {

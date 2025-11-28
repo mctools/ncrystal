@@ -78,6 +78,105 @@ namespace NCRYSTAL_NAMESPACE {
         std::size_t m_norig;
       };
 
+      void sourceJSONHelper_energyItems( std::ostream& os, NeutronEnergy ekin )
+      {
+        os << ",\"wl\":";
+        streamJSON(os,ekin.wavelength().get());
+        os << ",\"ekin\":";
+        streamJSON(os,ekin.get());
+      }
+
+      void sourceJSONHelper_direction( std::ostream& os, NeutronDirection dir )
+      {
+        os << ",\"ux\":";
+        streamJSON(os,dir[0]);
+        os << ",\"uy\":";
+        streamJSON(os,dir[1]);
+        os << ",\"uz\":";
+        streamJSON(os,dir[2]);
+      }
+
+      void sourceJSONHelper_namexyzwn( std::ostream& os,
+                                       const char * name,
+                                       Length x,
+                                       Length y,
+                                       Length z,
+                                       double w,
+                                       const StatCount& stat )
+      {
+        os << "\"name\":";
+        streamJSON(os,name);
+        os << ",\"n\":";
+        streamJSON(os,stat.nOrig());
+        os << ",\"x\":";
+        streamJSON(os,x.get());
+        os << ",\"y\":";
+        streamJSON(os,y.get());
+        os << ",\"z\":";
+        streamJSON(os,z.get());
+        os << ",\"w\":";
+        streamJSON(os,w);
+      }
+
+      template <class TSource>
+      void sourceJSONHelper(std::ostream& os, const TSource& src)
+      {
+        std::ostringstream cfgstr;
+        src.toString(cfgstr);
+        streamJSONDictEntry( os, "cfgstr", cfgstr.str(), JSONDictPos::FIRST );
+        os << ",\"decoded\":{";
+        src.toJSONDecodedCfgItems(os);
+        //os << "},\"stats\":{\"provided_sum_weights\":";
+        //streamJSON(os,src.totalWeightsProvided());
+        os << "}}";
+      }
+
+      void sourceCfgStrHelper_direction( std::ostream& os,
+                                         NeutronDirection dir )
+      {
+        if ( dir == NeutronDirection{0,0,1} )
+          return;
+        os << ";ux="<<fmt(dir[0]);
+        os << ";uy="<<fmt(dir[1]);
+        os << ";uz="<<fmt(dir[2]);
+      }
+
+      void sourceCfgStrHelper_energyItems( std::ostream& os,
+                                           NeutronEnergy ekin )
+      {
+        auto wl = ekin.wavelength();
+        std::ostringstream ss_wl;
+        ss_wl << fmt(wl.get());
+        std::ostringstream ss_ekin;
+        ss_ekin << fmt(ekin.get());
+        std::string s_wl(ss_wl.str());
+        std::string s_ekin(ss_ekin.str());
+        if ( s_wl.size() < s_ekin.size() )
+          os << ";wl="<<s_wl;
+        else
+          os << ";ekin="<<s_ekin;
+      }
+
+      void sourceCfgStrHelper_namexyzwn( std::ostream& os,
+                                         const char * name,
+                                         Length x,
+                                         Length y,
+                                         Length z,
+                                         double w,
+                                         const StatCount& stat)
+      {
+        os << name;
+        os << ";n="<<stat.nOrig();
+        if ( x.dbl() )
+          os << ";x="<<fmt(x.dbl());
+        if ( y.dbl() )
+          os << ";y="<<fmt(x.dbl());
+        if ( z.dbl() )
+          os << ";z="<<fmt(x.dbl());
+        if ( w != 1.0 )
+          os << ";w="<<fmt(w);
+      }
+
       class SourceIsotropic final : public Source {
         StatCount m_stat;
         Length m_x;
@@ -98,17 +197,36 @@ namespace NCRYSTAL_NAMESPACE {
           nc_assert(m_w>0.0&&std::isfinite(m_w));
         }
 
-        double totalWeightsProvided() const override {
-          return m_stat.nUsed() * m_w;
+        void toJSONDecodedCfgItems(std::ostream& os) const
+        {
+          sourceJSONHelper_namexyzwn(os,"isotropic",m_x,m_y,m_z,m_w,m_stat);
+          sourceJSONHelper_energyItems(os,m_ekin);
+        }
+
+        void toJSON(std::ostream& os) const override
+        {
+          return sourceJSONHelper(os,*this);
+        }
+
+        void toString(std::ostream& os) const override
+        {
+          sourceCfgStrHelper_namexyzwn(os, "isotropic",
+                                       m_x, m_y, m_z, m_w, m_stat );
+          sourceCfgStrHelper_energyItems( os, m_ekin );
+        }
+
+        ParticleCountSum particlesProvided() const override {
+          return { m_stat.nUsed(), m_stat.nUsed() * m_w };
         }
 
         SourceMetaData metaData() const override
         {
-
           SourceMetaData md;
           {
+            //Fixme: should this just be the toCfgStr/toJSON now??
             std::ostringstream ss;
-            ss << "SourceIsotropic("<<m_ekin<<", pos=["<< m_x<<", "<< m_y<<", "<< m_z<<"])";
+            ss << "SourceIsotropic("<<m_ekin<<", pos=["
+               << m_x<<", "<< m_y<<", "<< m_z<<"])";
             md.description = ss.str();
           }
           md.concurrent = true;
@@ -171,8 +289,29 @@ namespace NCRYSTAL_NAMESPACE {
           nc_assert(m_w>0.0&&std::isfinite(m_w));
         }
 
-        double totalWeightsProvided() const override {
-          return m_stat.nUsed() * m_w;
+
+        void toJSONDecodedCfgItems(std::ostream& os) const
+        {
+          sourceJSONHelper_namexyzwn(os,"constant",m_x,m_y,m_z,m_w,m_stat);
+          sourceJSONHelper_energyItems(os,m_ekin);
+          sourceJSONHelper_direction(os,m_dir);
+        }
+
+        void toJSON(std::ostream& os) const override
+        {
+          return sourceJSONHelper(os,*this);
+        }
+
+        void toString(std::ostream& os) const override
+        {
+          sourceCfgStrHelper_namexyzwn(os, "constant",
+                                       m_x, m_y, m_z, m_w, m_stat );
+          sourceCfgStrHelper_energyItems( os, m_ekin );
+          sourceCfgStrHelper_direction( os, m_dir );
+        }
+
+        ParticleCountSum particlesProvided() const override {
+          return { m_stat.nUsed(), m_stat.nUsed() * m_w };
         }
 
         SourceMetaData metaData() const override
@@ -278,8 +417,39 @@ namespace NCRYSTAL_NAMESPACE {
                                <<", a="<<m_a<<", b="<<m_b);
         }
 
-        double totalWeightsProvided() const override {
-          return m_stat.nUsed() * m_w;
+        void toJSONDecodedCfgItems(std::ostream& os) const
+        {
+          sourceJSONHelper_namexyzwn(os,"circular",
+                                     Length{m_center[0]},
+                                     Length{m_center[1]},
+                                     Length{m_center[2]},
+                                     m_w,m_stat);
+          sourceJSONHelper_energyItems(os,m_ekin);
+          sourceJSONHelper_direction(os,m_dir);
+          os << ",\"r\":";
+          streamJSON(os,m_radius.get());
+        }
+
+        void toJSON(std::ostream& os) const override
+        {
+          return sourceJSONHelper(os,*this);
+        }
+
+        void toString(std::ostream& os) const override
+        {
+          sourceCfgStrHelper_namexyzwn(os, "circular",
+                                       Length{m_center[0]},
+                                       Length{m_center[1]},
+                                       Length{m_center[2]},
+                                       m_w, m_stat );
+          sourceCfgStrHelper_energyItems( os, m_ekin );
+          sourceCfgStrHelper_direction( os, m_dir );
+          //radius is always required, hence must always be here:
+          os << ";r="<<fmt(m_radius.get());
+        }
+
+        ParticleCountSum particlesProvided() const override {
+          return { m_stat.nUsed(), m_stat.nUsed() * m_w };
         }
 
         SourceMetaData metaData() const override
@@ -342,7 +512,7 @@ namespace NCRYSTAL_NAMESPACE {
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
             nb.uz[i] = m_dir[2];
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            nb.w[i] = 1.0;
+            nb.w[i] = m_w;
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
             nb.ekin[i] = m_ekin.dbl();
         }
