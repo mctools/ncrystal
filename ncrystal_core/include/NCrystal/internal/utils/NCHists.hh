@@ -107,7 +107,7 @@ namespace NCRYSTAL_NAMESPACE {
         }
       }
 
-      void toJSON( std::ostringstream& os, bool include_data_arrays ) const
+      void toJSON( std::ostream& os, bool include_data_arrays ) const
       {
         streamJSONDictEntry(os, "xmin", m_xmin,
                             JSONDictPos::FIRST);
@@ -423,7 +423,7 @@ namespace NCRYSTAL_NAMESPACE {
       double maxFilled() const;
       double minFilled() const;
 
-      void toJSON(std::ostringstream&) const;//all stats as JSON encoded dict
+      void toJSON(std::ostream&) const;//all stats as JSON encoded dict
 
     private:
       double m_sumw = 0.0;
@@ -495,10 +495,12 @@ namespace NCRYSTAL_NAMESPACE {
         m_stats.merge(o.m_stats);
       }
 
-      void toJSON( std::ostringstream& os,
+      void toJSON( std::ostream& os,
                    bool include_data_arrays = true ) const
       {
-        streamJSONDictEntry( os, "title", m_title, JSONDictPos::FIRST);
+        streamJSONDictEntry( os, "datatype", "NCrystalHist1D_v1",
+                             JSONDictPos::FIRST);
+        streamJSONDictEntry( os, "title", m_title, JSONDictPos::OTHER);
         os<< ',';
         streamJSON(os,"stats");
         os << ':';
