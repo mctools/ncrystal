@@ -34,11 +34,13 @@ namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
 
     struct MatDef {
-      ProcPtr scatter;
-      ProcPtr absorption;
+      OptionalProcPtr scatter;
+      OptionalProcPtr absorption;
       NumberDensity numDens;
-      MatDef( ProcPtr scatter,
-              ProcPtr absorption,
+      Optional<MatCfg> matcfg;
+
+      MatDef( OptionalProcPtr scatter,
+              OptionalProcPtr absorption,
               NumberDensity nd );
 
       //Initialise from cfg (note, call FactoryThreadPool::enable(..) first if
