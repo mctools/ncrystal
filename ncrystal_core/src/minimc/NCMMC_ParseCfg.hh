@@ -136,7 +136,7 @@ namespace NCRYSTAL_NAMESPACE {
         return res;
       }
 
-      inline std::size_t getValue_weight( Tokens& tokens, StrView key )
+      inline double getValue_weight( Tokens& tokens, StrView key )
       {
         double w = getValue_dbl(tokens,key);
         if ( !std::isfinite(w) or !(w>0.0) )
