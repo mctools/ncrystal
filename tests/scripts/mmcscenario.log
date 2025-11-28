@@ -21,11 +21,11 @@ Caught expected NCBadInput('Invalid MiniMC scenario string: "1e-3Aa on 1e2 mm". 
 
 Testing "1.0 on 2.0mm"
   with matcfg "stdlib::Al_sg225.ncmat"
-Caught expected NCBadInput('Missing energy unit on "1.0". Possible units include Aa, meV, eV, or BT (=Bragg threshold in Aa, or 4Aa if not available).')
+Caught expected NCBadInput('Missing energy unit on "1.0". Possible units include Aa, meV, eV, kT (=kB*temperature), BT (=Bragg threshold in Aa, or 4Aa if not available).')
 
 Testing "1.0ergs on 2.0mm"
   with matcfg "stdlib::Al_sg225.ncmat"
-Caught expected NCBadInput('Invalid energy unit on "1.0ergs". Possible units include Aa, meV, eV, or BT (=Bragg threshold in Aa, or 4Aa if not available).')
+Caught expected NCBadInput('Invalid energy unit on "1.0ergs". Possible units include Aa, meV, eV, kT (=kB*temperature), BT (=Bragg threshold in Aa, or 4Aa if not available).')
 
 Testing "1.1BT on 2.0mm"
   with matcfg "stdlib::Al_sg225.ncmat"
@@ -43,6 +43,37 @@ Testing ""
   with matcfg "stdlib::Al_sg225.ncmat"
   -> geomcfg   = "sphere;r=0.0530935"
   -> srccfg    = "circular;z=-0.0530935;r=0.0530935;wl=3.74084;n=1e6"
+  -> enginecfg = ""
+
+Testing "1.000e0kT"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "sphere;r=0.0573235"
+  -> srccfg    = "circular;z=-0.0573235;r=0.0573235;ekin=0.0252617;n=1e6"
+  -> enginecfg = ""
+
+Testing "2kT"
+  with matcfg "stdlib::Al_sg225.ncmat"
+  -> geomcfg   = "sphere;r=0.059843"
+  -> srccfg    = "circular;z=-0.059843;r=0.059843;ekin=0.0505234;n=1e6"
+  -> enginecfg = ""
+
+Testing ""
+  with matcfg "solid::Al/1gcm3"
+  -> geomcfg   = "sphere;r=0.1578695"
+  -> srccfg    = "circular;z=-0.1578695;r=0.1578695;ekin=0.0252617;n=1e6"
+  -> enginecfg = ""
+
+Testing ""
+  with matcfg "solid::Al/1gcm3;temp=1K"
+NCrystal WARNING: Discarding 5 edges of provided kernel data due to missing S values.
+  -> geomcfg   = "sphere;r=0.1490995"
+  -> srccfg    = "circular;z=-0.1490995;r=0.1490995;ekin=8.61733e-05;n=1e6"
+  -> enginecfg = ""
+
+Testing ""
+  with matcfg "solid::Al/1gcm3;temp=1000K"
+  -> geomcfg   = "sphere;r=0.1578085"
+  -> srccfg    = "circular;z=-0.1578085;r=0.1578085;ekin=0.0861733;n=1e6"
   -> enginecfg = ""
 
 Testing "1.8meV"
@@ -139,6 +170,32 @@ Testing "1BT on 1mm"
   -> srccfg    = "circular;z=-0.0005;r=0.0005;wl=6.711;n=1e6"
   -> enginecfg = ""
 
+Testing "1BT on 1mm"
+  with matcfg "phases<0.001*stdlib::C_sg194_pyrolytic_graphite.ncmat;temp=100K&0.999*solid::Al/1gcm3;temp=200K>"
+  -> geomcfg   = "sphere;r=0.0005"
+  -> srccfg    = "circular;z=-0.0005;r=0.0005;wl=6.711;n=1e6"
+  -> enginecfg = ""
+
+Testing "1BT on 1mm"
+  with matcfg "phases<0.001*solid::Be/1gcm3;temp=100K&0.999*solid::Al/1gcm3;temp=200K>"
+  -> geomcfg   = "sphere;r=0.0005"
+  -> srccfg    = "circular;z=-0.0005;r=0.0005;wl=4;n=1e6"
+  -> enginecfg = ""
+
+Testing "1kT on 1mm"
+  with matcfg "phases<0.001*stdlib::C_sg194_pyrolytic_graphite.ncmat;temp=100K&0.999*solid::Al/1gcm3;temp=200K>"
+Caught expected NCBadInput('Can not use kT as a unit for a multi-phase material without a single well-defined temperature.')
+
+Testing "1kT on 1mm"
+  with matcfg "phases<0.001*solid::Be/1gcm3;temp=100K&0.999*solid::Al/1gcm3;temp=200K>"
+Caught expected NCBadInput('Can not use kT as a unit for a multi-phase material without a single well-defined temperature.')
+
+Testing ""
+  with matcfg "phases<0.001*solid::Be/1gcm3;temp=100K&0.999*solid::Al/1gcm3;temp=200K>"
+  -> geomcfg   = "sphere;r=0.1567945"
+  -> srccfg    = "circular;z=-0.1567945;r=0.1567945;wl=1.8;n=1e6"
+  -> enginecfg = ""
+
 Testing "1BT on 1m"
   with matcfg "void.ncmat"
   -> geomcfg   = "sphere;r=0.5"
@@ -153,7 +210,7 @@ Testing "1BT on 1mfp"
 
 Testing "100 on 1m"
   with matcfg "stdlib::Al_sg225.ncmat"
-Caught expected NCBadInput('Missing energy unit on "100". Possible units include Aa, meV, eV, or BT (=Bragg threshold in Aa, or 4Aa if not available).')
+Caught expected NCBadInput('Missing energy unit on "100". Possible units include Aa, meV, eV, kT (=kB*temperature), BT (=Bragg threshold in Aa, or 4Aa if not available).')
 
 Testing "1Aa on 1m"
   with matcfg "stdlib::Al_sg225.ncmat"
@@ -268,3 +325,9 @@ Caught expected NCBadInput('Invalid count specification "100.4". Count must be a
 Testing "1Aa on 1m -100 times"
   with matcfg "stdlib::Al_sg225.ncmat"
 Caught expected NCBadInput('Invalid count specification "-100". Count must be a positive integral value (and at most 1e19).')
+
+Testing "3Aa on 1mm"
+  with matcfg "Ge_sg227.ncmat;mos=20.0arcmin;dir1=@crys_hkl:5,1,1@lab:0,0,1;dir2=@crys_hkl:0,-1,1@lab:0,1,0"
+  -> geomcfg   = "sphere;r=0.0005"
+  -> srccfg    = "circular;z=-0.0005;r=0.0005;wl=3;n=1e5"
+  -> enginecfg = ""
