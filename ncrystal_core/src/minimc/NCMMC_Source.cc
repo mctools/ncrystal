@@ -48,6 +48,7 @@ namespace NCRYSTAL_NAMESPACE {
             md.totalSize = m_norig;
           }
         }
+        std::size_t nOrig() const { return m_norig; }
         std::size_t nUsed() const
         {
           std::size_t raw = m_nused.load();

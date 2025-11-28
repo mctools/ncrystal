@@ -57,7 +57,7 @@ namespace NCRYSTAL_NAMESPACE {
       virtual bool particlesMightBeOutside( const Geometry& ) const = 0;
 
       //Query total weight of all particles already provided by source:
-      virtual double totalWeightsProvided() const = 0;
+      virtual ParticleCountSum particlesProvided() const = 0;
 
     };
 

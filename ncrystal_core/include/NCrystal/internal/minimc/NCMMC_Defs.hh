@@ -44,6 +44,11 @@ namespace NCRYSTAL_NAMESPACE {
       return 100.0 * nc_as_const(nd).dbl() * nc_as_const(xs).dbl();
     }
 
+    struct ParticleCountSum {
+      //Number and total weight of particles.
+      std::size_t count = 0;
+      double weight = 0.0;
+    };
   }
 }
 
