@@ -24,6 +24,7 @@
 #include "NCrystal/core/NCTypes.hh"
 #include "NCrystal/internal/utils/NCVector.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/internal/minimc/NCMMC_Basket.hh"
 #include "NCrystal/internal/minimc/NCMMC_Defs.hh"
 
@@ -50,13 +51,27 @@ namespace NCRYSTAL_NAMESPACE {
     class Sphere {
       //double m_radius;
       double m_radiusSq;
+      double m_input_radius_m;
     public:
       Sphere( Length radius )
-        : m_radiusSq( ncsquare( radius.dbl() ) )
+        : m_radiusSq( ncsquare( radius.dbl() ) ),
+          m_input_radius_m( radius.dbl() )
       {
+        static_assert( Length::meter == 1.0, "" );
         nc_assert_always( radius.dbl() > 0.0 );
         nc_assert_always( m_radiusSq < 1e199 );
         nc_assert_always( m_radiusSq > 0.0 );
+      }
+
+      void toJSONDecodedItems(std::ostream& os) const
+      {
+        os << "\"name\":\"sphere\",\"r\":";
+        streamJSON(os,m_input_radius_m);
+      }
+
+      void toCfgString(std::ostream& os) const
+      {
+        os << "sphere;r="<<fmt(m_input_radius_m);
       }
 
       bool pointIsInside( const Vector& v ) const
