@@ -56,10 +56,12 @@ void NCMMC::StdEngine::advanceSimulation( RNG& rng,
   nc_assert( !inbasket_holder.basket().empty() );
   auto& inbasket = inbasket_holder.basket();//Not const, since we will update
                                             //xsects in-place.
-  const bool has_scat = !m_mat.scatter->isNull();
-  const bool has_abs = !m_mat.absorption->isNull();
-  const bool scatter_is_isotropic = !m_mat.scatter->isOriented();
-  const bool absorption_is_isotropic = !m_mat.absorption->isOriented();
+  const bool has_scat = !( m_mat.scatter == nullptr
+                           || m_mat.scatter->isNull() );
+  const bool has_abs = !( m_mat.absorption ==nullptr
+                          || m_mat.absorption->isNull() );
+  const bool scatter_is_isotropic = !(has_scat&&m_mat.scatter->isOriented());
+  const bool absorption_is_isotropic = !(has_abs&&m_mat.absorption->isOriented());
 
 
   //Get distances out for all the particles:
@@ -69,7 +71,7 @@ void NCMMC::StdEngine::advanceSimulation( RNG& rng,
   const double * values_abs_xs_or_nullptr = nullptr;
   if ( has_abs ) {
     if ( absorption_is_isotropic ) {
-      ProcImpl::NewABI::evalManyXSIsotropic( m_mat.absorption,
+      ProcImpl::NewABI::evalManyXSIsotropic( *m_mat.absorption,
                                              m_abs_cacheptr,
                                              inbasket.neutrons.ekin,
                                              inbasket.size(),
@@ -172,7 +174,9 @@ void NCMMC::StdEngine::advanceSimulation( RNG& rng,
         outb.neutrons.z[j] += disttoscat * outb.neutrons.uz[j];
         if ( values_abs_xs_or_nullptr ) {
           const double xsval_abs = values_abs_xs_or_nullptr[i];
-          outb.neutrons.w[j] *= std::exp( -macroXS( m_mat.numDens, CrossSect{ xsval_abs } ) * disttoscat );
+          outb.neutrons.w[j] *= std::exp( -macroXS( m_mat.numDens,
+                                                    CrossSect{ xsval_abs } )
+                                          * disttoscat );
         }
       }
 

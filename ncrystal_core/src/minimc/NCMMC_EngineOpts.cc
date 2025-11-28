@@ -41,16 +41,20 @@ NCMMC::EngineOpts NCMMC::parseEngineOpts( StrView raw_srcstr )
   //struct): The default values must be kept synchronised with the stream
   //operator (which omits values at default values) and the default values on
   //the EngineOpt struct itself.
-  const char * defaults = "ignoremiss=0;tallybreakdown=1;nthreads=auto";
+  const char * defaults
+    = "ignoremiss=0;tallybreakdown=1;nthreads=auto;absorption=1";
   static_assert( EngineOpts::IgnoreMiss::Default ==
                  EngineOpts::IgnoreMiss::NO, "" );
   static_assert( EngineOpts::TallyBreakdown::Default ==
                  EngineOpts::TallyBreakdown::YES, "" );
+  static_assert( EngineOpts::IncludeAbsorption::Default ==
+                 EngineOpts::IncludeAbsorption::YES, "" );
   nc_assert( res.nthreads.indicatesAutoDetect() );
 
   //Apply defaults and error in case of unknown parameters:
   PMC::applyDefaults( tokens, defaults );
-  PMC::checkNoUnknown(tokens,"ignoremiss;tallybreakdown;nthreads","engine");
+  PMC::checkNoUnknown(tokens,"ignoremiss;tallybreakdown;nthreads;absorption",
+                      "engine");
 
   res.ignoreMiss = ( PMC::getValue_bool(tokens,"ignoremiss")
                        ? EngineOpts::IgnoreMiss::YES
@@ -58,6 +62,9 @@ NCMMC::EngineOpts NCMMC::parseEngineOpts( StrView raw_srcstr )
   res.tallyBreakdown = ( PMC::getValue_bool(tokens,"tallybreakdown")
                          ? EngineOpts::TallyBreakdown::YES
                          : EngineOpts::TallyBreakdown::NO );
+  res.includeAbsorption = ( PMC::getValue_bool(tokens,"absorption")
+                         ? EngineOpts::IncludeAbsorption::YES
+                         : EngineOpts::IncludeAbsorption::NO );
   //nthreads must be "auto" or an unsigned integer
   auto nthreadsval_str = PMC::getValue_str(tokens,"nthreads");
   if ( nthreadsval_str == "auto" ) {
@@ -94,6 +101,13 @@ std::string NCMMC::engineOptsToString( const EngineOpts& eopts )
     ss<<"tallybreakdown="
       << ( eopts.tallyBreakdown == EO::TallyBreakdown::YES ? '1' : '0' );
   }
+  if ( eopts.includeAbsorption != EO::IncludeAbsorption::Default ) {
+    if (!is_empty)
+      ss << ';';
+    is_empty = false;
+    ss<<"absorption="
+      << ( eopts.includeAbsorption == EO::IncludeAbsorption::YES ? '1' : '0' );
+  }
   if ( !eopts.nthreads.indicatesAutoDetect() ) {
     if (!is_empty)
       ss << ';';
@@ -110,11 +124,19 @@ void NCMMC::engineOptsToJSON(std::ostream& os, const EngineOpts& eopts)
   //makes it a tiny bit more difficult to construct a eopts-string from a json
   //dict)
   //streamJSONDictEntry( os, "engine", "std", JSONDictPos::FIRST );
+  streamJSONDictEntry( os, "cfgstr", engineOptsToString(eopts),
+                       JSONDictPos::FIRST );
+  os << ",\"decoded\":";
+
   streamJSONDictEntry( os, "ignoremiss",
                        bool( eopts.ignoreMiss == EO::IgnoreMiss::YES ),
                        JSONDictPos::FIRST );
   streamJSONDictEntry( os, "tallybreakdown",
                        bool( eopts.tallyBreakdown == EO::TallyBreakdown::YES ),
+                       JSONDictPos::OTHER );
+  streamJSONDictEntry( os, "absorption",
+                       bool( eopts.includeAbsorption
+                             == EO::IncludeAbsorption::YES ),
                        JSONDictPos::OTHER );
   if ( eopts.nthreads.indicatesAutoDetect() ) {
     streamJSONDictEntry( os, "nthreads", "auto", JSONDictPos::LAST );
@@ -122,4 +144,5 @@ void NCMMC::engineOptsToJSON(std::ostream& os, const EngineOpts& eopts)
     streamJSONDictEntry( os, "nthreads", eopts.nthreads.get(),
                          JSONDictPos::LAST );
   }
+  os << '}';
 }

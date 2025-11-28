@@ -35,6 +35,7 @@ namespace NCRYSTAL_NAMESPACE {
     static constexpr size_t basket_N_almost_Full = basket_N*7/8;
 
     using ProcImpl::ProcPtr;
+    using ProcImpl::OptionalProcPtr;
     using ProcImpl::Process;
 
     inline constexpr double macroXS( NumberDensity nd, CrossSect xs ) noexcept

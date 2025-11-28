@@ -36,9 +36,13 @@ namespace NCRYSTAL_NAMESPACE {
       enum class TallyBreakdown : uint32_t { NO = 0,
                                              YES = 1,
                                              Default = YES };
+      enum class IncludeAbsorption : uint32_t { NO = 0,
+                                                YES = 1,
+                                                Default = YES };
       IgnoreMiss ignoreMiss = IgnoreMiss::Default;
       ThreadCount nthreads = ThreadCount::auto_detect();
       TallyBreakdown tallyBreakdown = TallyBreakdown::Default;
+      IncludeAbsorption includeAbsorption = IncludeAbsorption::Default;
     };
 
     //Parse to/from a string representation (can also be used to normalise a
