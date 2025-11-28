@@ -52,6 +52,8 @@ v4.2.13 (work-in-progress)
        hand allows more robust estimation of fraction of intensity absorption,
        as well as makes it easier to illuminate complicated shapes uniformly,
        while ignoring the parts of the beam missing the geometry.
+     * It is now possible to disable absorption during MiniMC simulations, by
+       setting absorption=0 in the enginecfg strings.
      * ...
 
 v4.2.12 2026-01-05
