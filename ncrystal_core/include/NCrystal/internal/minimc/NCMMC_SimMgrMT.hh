@@ -36,7 +36,6 @@
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
 
-
     //SimMgr for multi-threaded simulations:
     template<class TSim>
     class SimMgrMT : NoCopyMove {
@@ -71,24 +70,19 @@ namespace NCRYSTAL_NAMESPACE {
       const basketmgr_t& basketMgr() const { return *m_basketmgr; }
       shared_obj<basketmgr_t> basketMgrPtr() { return m_basketmgr; }
       shared_obj<const basketmgr_t> basketMgrPtr() const { return m_basketmgr; }
+      const basket_srcfiller_t& srcFiller() const { return *m_srcfiller; }
 
-      void launchSimulations( ThreadCount nthreads, bool await_end = true )
+      //returns particles missing geometry
+      ParticleCountSum launchSimulations( ThreadCount nthreads )
       {
 #ifndef NCRYSTAL_DISABLE_THREADS
-        launchSimulationsImpl(nthreads,await_end);
+        return launchSimulationsImpl(nthreads);
 #else
-        (void)await_end;
         if ( nthreads.get() > 1 )
           NCRYSTAL_WARN("NCrystal installation does not support threads."
                         " Running simulation in single thread and not "
                         "the requested "<<nthreads<<" threads");
-        launchSimulationsImpl();
-#endif
-      }
-      void waitForEnd()
-      {
-#ifndef NCRYSTAL_DISABLE_THREADS
-        waitForEndImpl();
+        return launchSimulationsImpl();
 #endif
       }
 
@@ -108,17 +102,19 @@ namespace NCRYSTAL_NAMESPACE {
         std::condition_variable condvar;
       };
 
-      static void doWork( RNG& rng,
-                          TSim& sim,
-                          basket_srcfiller_t& srcfiller,
-                          std::function<void(const basket_t&)>& result_fct,
-                          CommonThreadWaitingInfo& common,
-                          bool do_ignoreMiss )
+      static ParticleCountSum
+      doWork( RNG& rng,
+              TSim& sim,
+              basket_srcfiller_t& srcfiller,
+              std::function<void(const basket_t&)>& result_fct,
+              CommonThreadWaitingInfo& common,
+              bool do_ignoreMiss )
       {
         basket_holder_t basket{no_init};
         std::function<void(const basket_t&)> result_fct_srcmiss(nullptr);
         if ( !do_ignoreMiss )
           result_fct_srcmiss = result_fct;
+        ParticleCountSum missStat;
 
         while( true ) {
           //Get pending basket. If there are no more pending, it might
@@ -130,12 +126,14 @@ namespace NCRYSTAL_NAMESPACE {
                                  &rng,
                                  &result_fct,
                                  &result_fct_srcmiss,
-                                 &common]
+                                 &common,
+                                 &missStat]
           {
             if ( !basket.valid() )
               basket = srcfiller.getPendingBasket( common.nthreads,
                                                    rng,
-                                                   result_fct_srcmiss );
+                                                   result_fct_srcmiss,
+                                                   missStat );
             nc_assert(!basket.valid()||basket.basket().size()>0);
             return basket.valid();
           };
@@ -157,7 +155,7 @@ namespace NCRYSTAL_NAMESPACE {
                 //Truly no more src particles!
                 std::unique_lock<std::mutex> lock(common.mutex);
                 common.condvar.notify_all();
-                return;
+                return missStat;
               }
             }
           }
@@ -176,7 +174,7 @@ namespace NCRYSTAL_NAMESPACE {
                  && allThreadsInactive()
                  && !tryFillBasket() ) {
               common.condvar.notify_all();//make sure other waiting threads might notice
-              return;//Truly no more src particles!
+              return missStat;//Truly no more src particles!
             }
             if ( basket.valid() && we_are_marked_inactive ) {
               common.nthreads_inactive.fetch_sub(1);
@@ -208,7 +206,7 @@ namespace NCRYSTAL_NAMESPACE {
         }
       }
 
-      void launchSimulationsImpl( ThreadCount nthreads, bool await_end )
+      ParticleCountSum launchSimulationsImpl( ThreadCount nthreads )
       {
         if ( nthreads.indicatesAutoDetect() )
           nthreads = ThreadCount{ std::thread::hardware_concurrency() };
@@ -222,10 +220,14 @@ namespace NCRYSTAL_NAMESPACE {
         common.nthreads = nthreads;
         const bool do_ignoreMiss = ( m_engineOpts.ignoreMiss
                                      == EngineOpts::IgnoreMiss::YES );
+        std::vector<ParticleCountSum> missStats;
+        missStats.resize( nthreads.get() );
         for ( auto i : ncrange(nthreads.get()) ) {
           (void)i;
+          ParticleCountSum& thread_missStats = missStats.at(i);
           m_workers.push_back(std::thread([sf_copy,sim_copy,tallymgr_copy,
-                                           &common,do_ignoreMiss]()
+                                           &common,do_ignoreMiss,
+                                           &thread_missStats]()
           {
             auto rng = getIndependentRNG();
             NCRYSTAL_DEBUGMMCMSG( "In thread "<<std::this_thread::get_id()
@@ -245,24 +247,28 @@ namespace NCRYSTAL_NAMESPACE {
               {
                 return downcast_tallyptr->registerResults(b);
               };
-            doWork(rng,thesim,thesf,result_fct,common,do_ignoreMiss);
+            thread_missStats = doWork( rng, thesim, thesf,
+                                       result_fct, common,
+                                       do_ignoreMiss );
             NCRYSTAL_DEBUGMMCMSG("Thread provides results.");
             tallymgr_copy->addResult( std::move(thetallyptr) );
             NCRYSTAL_DEBUGMMCMSG("Thread ends.");
           }));
         }
-        if ( await_end )
-          waitForEnd();
-      }
-
-      void waitForEndImpl()
-      {
+        //join:
         for(auto& t : m_workers)
           t.join();
         m_workers.clear();
+        //combine miss counts:
+        ParticleCountSum missStat;
+        for ( auto& e : missStats ) {
+          missStat.count += e.count;
+          missStat.weight += e.weight;
+        };
+        return missStat;
       }
 #else
-      void launchSimulationsImpl()
+      ParticleCountSum launchSimulationsImpl()
       {
         const bool do_ignoreMiss = ( m_engineOpts.ignoreMiss
                                      == EngineOpts::IgnoreMiss::YES );
@@ -282,10 +288,12 @@ namespace NCRYSTAL_NAMESPACE {
         if ( !do_ignoreMiss )
           result_fct_srcmiss = result_fct;
 
+        ParticleCountSum missStats;
         while ( true ) {
           auto basket = m_srcfiller->getPendingBasket( ThreadCount{1},
                                                        rng,
-                                                       result_fct_srcmiss );
+                                                       result_fct_srcmiss,
+                                                       missStats);
           if ( !basket.valid() ) {
             //Nothing more to process apparently!
             break;
@@ -297,6 +305,7 @@ namespace NCRYSTAL_NAMESPACE {
                                     result_fct );
         }
         m_tallymgr->addResult( std::move(tallyptr) );
+        return missStats;
       }
 #endif
     };

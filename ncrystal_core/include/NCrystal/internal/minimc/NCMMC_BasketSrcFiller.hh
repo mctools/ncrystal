@@ -81,21 +81,22 @@ namespace NCRYSTAL_NAMESPACE {
       //discarded.
       basket_holder_t getPendingBasket( ThreadCount nthreads,
                                         RNG& rng,
-                                        const std::function<void(const basket_t&)>& resultFct )
+                                        const std::function<void(const basket_t&)>& resultFct,
+                                        ParticleCountSum& missCount)
       {
-        return this->getPendingBasketImpl(nthreads,rng,10,resultFct);
+        return this->getPendingBasketImpl(nthreads,rng,10,resultFct,missCount);
       }
 
     private:
       void propagateToVolume( basket_t& b, std::size_t offset,
-                              const std::function<void(const basket_t&)>& resultFct ) {
+                              const std::function<void(const basket_t&)>& resultFct,
+                              ParticleCountSum& missCount ) {
         //We must edit the basket, propagating all the neutrons to the volume if
         //they can. Those that can NOT do that, should be marked as having
         //missed the volume and served up as a result (unless ignoring misses
         //completely, indicated by resultFct == nullptr).
 
         const bool ignore_miss = (resultFct == nullptr);
-
 
         //First do the geometry distance calculations:
         nc_assert(m_srcParticlesMightBeOutside);
@@ -112,10 +113,15 @@ namespace NCRYSTAL_NAMESPACE {
 
         std::size_t i_first_hole = NeutronBasket::N;
         const std::size_t b_size = b.size();
+        ParticleCountSum missStat;
+
         for ( std::size_t i = offset; i < b_size; ++i ) {
           double dist = dist_results[i];
           if ( dist < 0.0 ) {
-            //Missed the volume, register as result.
+            //Missed the volume, register as result (or just ignore). In any
+            //case, record the miss for statistics.
+            missStat.weight += b.neutrons.w[i];
+            ++(missStat.count);
             if (bmiss)
               bmiss->appendEntryFromOther( b, i );
             if ( i_first_hole == NeutronBasket::N )
@@ -129,6 +135,8 @@ namespace NCRYSTAL_NAMESPACE {
             }
           }
         }
+        missCount.weight += missStat.weight;
+        missCount.count += missStat.count;
 
         //shrink-to-fit:
         if ( i_first_hole != NeutronBasket::N )
@@ -152,10 +160,12 @@ namespace NCRYSTAL_NAMESPACE {
         }
       }
 
-      basket_holder_t getPendingBasketImpl( ThreadCount nthreads,
-                                            RNG& rng,
-                                            unsigned nretry,
-                                            const std::function<void(const basket_t&)>& resultFct ) {
+      basket_holder_t
+      getPendingBasketImpl( ThreadCount nthreads,
+                            RNG& rng,
+                            unsigned nretry,
+                            const std::function<void(const basket_t&)>& resultFct,
+                            ParticleCountSum& missCount ) {
 
         //Get via basket mgr:
         nc_assert_always(nthreads.get()>=1);
@@ -193,7 +203,7 @@ namespace NCRYSTAL_NAMESPACE {
         //If source particles might be outside volume, we have to propagate them
         //to the volume (and record the rest as results already):
         if ( m_srcParticlesMightBeOutside ) {
-          propagateToVolume( bh.basket(), size_orig, resultFct );
+          propagateToVolume( bh.basket(), size_orig, resultFct, missCount );
           if ( bh.basket().empty() ) {
             //Original basket was empty, and they *all* missed!
             //Try again, unless src ran out:
@@ -201,8 +211,10 @@ namespace NCRYSTAL_NAMESPACE {
             if ( !src_has_more )
               return basket_holder_t{ no_init };
             if ( nretry==0 )
-              throw std::runtime_error("Source particles consistently seems to miss the geometry.");
-            return this->getPendingBasketImpl( nthreads, rng, nretry-1, resultFct );
+              throw std::runtime_error("Source particles consistently "
+                                       "seem to miss the geometry.");
+            return this->getPendingBasketImpl( nthreads, rng, nretry-1,
+                                               resultFct, missCount );
           }
         }
 
