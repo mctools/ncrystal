@@ -20,6 +20,8 @@
 
 #include "NCrystal/internal/minimc/NCMMC_Geom.hh"
 #include "NCMMC_Sphere.hh"
+#include "NCMMC_Box.hh"
+#include "NCMMC_Slab.hh"
 #include "NCMMC_ParseCfg.hh"
 
 namespace NC = NCrystal;
@@ -86,11 +88,25 @@ namespace NCRYSTAL_NAMESPACE {
         if ( geom_name == "sphere" ) {
           PMC::applyDefaults( tokens, "r=0.01" );//0.01m = 1cm
           PMC::checkNoUnknown(tokens,"r","geometry");
-          static const int dummy = [](){ Sphere::unit_test(); return 1; }();
-          (void)dummy;
-          return makeSO<GeometryImpl<Sphere>>( Length{ PMC::getValue_dbl(tokens,"r") } );
+          return makeSO<GeometryImpl<Sphere>>
+            ( Length{ PMC::getValue_dbl(tokens,"r") } );
+
+        } else if ( geom_name == "slab" ) {
+          PMC::applyDefaults( tokens, "dz=0.01" );//0.01m = 1cm
+          PMC::checkNoUnknown(tokens,"dz","geometry");
+          return makeSO<GeometryImpl<Slab>>
+            ( Length{ PMC::getValue_dbl(tokens,"dz") } );
+        } else if ( geom_name == "box" ) {
+          PMC::applyDefaults( tokens, "dx=0.01;dy=0.01;dz=0.01" );//0.01m = 1cm
+          PMC::checkNoUnknown(tokens,"dx;dy;dz","geometry");
+          return makeSO<GeometryImpl<Box>>
+            ( Length{ PMC::getValue_dbl(tokens,"dx") },
+              Length{ PMC::getValue_dbl(tokens,"dy") },
+              Length{ PMC::getValue_dbl(tokens,"dz") } );
         } else {
-          NCRYSTAL_THROW2(BadInput,"Unknown geometry type requested: \""<<geom_name<<"\"");
+          NCRYSTAL_THROW2(BadInput,
+                          "Unknown geometry type requested: \""
+                          <<geom_name<<"\"");
         }
       }
     }

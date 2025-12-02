@@ -412,3 +412,96 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
 
   return res;
 }
+
+namespace NCRYSTAL_NAMESPACE {
+  namespace MiniMC {
+    namespace {
+#ifndef NDEBUG
+      void check_x_ux_thickness_sane( const double * ncrestrict x,
+                                      const double * ncrestrict ux,
+                                      std::size_t n,
+                                      double thickness )
+      {
+        nc_assert( n <= basket_N );
+        nc_assert( thickness > 0.0);
+        nc_assert( std::isfinite(thickness) );
+        for( std::size_t i = 0; i < n; ++i ) {
+          nc_assert( std::isfinite(x[i]) );
+          nc_assert( ux[i] >= -1.0 );
+          nc_assert( ux[i] <= 1.0 );
+        }
+      }
+#endif
+    }
+  }
+}
+
+void NCMMCU::distToSlabExit( const double * ncrestrict x,
+                             const double * ncrestrict ux,
+                             double * ncrestrict out_dist,
+                             std::size_t n,
+                             double slab_halfthickness )
+{
+  const double dx = slab_halfthickness;
+#ifndef NDEBUG
+  check_x_ux_thickness_sane( x, ux, n, dx );
+#endif
+  for( std::size_t i = 0; i < n; ++i ) {
+    if ( ux[i] > 0.0 ) {
+      out_dist[i] = ( dx-x[i] )/ux[i];
+    } else {
+      if ( ux[i] < 0.0 ) nclikely {
+        out_dist[i] = -( dx+x[i] )/ux[i];
+      } else ncunlikely {
+        out_dist[i] = kInfinity;
+      }
+    }
+  }
+}
+
+void NCMMCU::distToSlabEntry( const double * ncrestrict x,
+                              const double * ncrestrict ux,
+                              double * ncrestrict out_dist,
+                              std::size_t n,
+                              double slab_halfthickness )
+{
+  const double dx = slab_halfthickness;
+#ifndef NDEBUG
+  check_x_ux_thickness_sane( x, ux, n, dx );
+#endif
+
+  // a = |x|-dx
+  double a[basket_N];
+  for( std::size_t i = 0; i < n; ++i )
+    a[i] = fabs(x[i]);
+  for( std::size_t i = 0; i < n; ++i )
+    a[i] -= dx;
+
+  double x_ux[basket_N];
+  for( std::size_t i = 0; i < n; ++i )
+    x_ux[i] = x[i] * ux[i];
+
+  for( std::size_t i = 0; i < n; ++i ) {
+    if ( a[i] <= 0 ) {
+      // |x|<=dx inside or at edge.
+      if ( a[i] ) nclikely {
+        out_dist[i] = 0.0;//inside
+      } else {
+        //edge (unlikely)
+        out_dist[i] = ( x_ux[i] > 0.0
+                        ? -1.0 //points out
+                        : 0.0//points in or skirts along edge
+                        );
+      }
+    } else {
+      //|x|>dx, outside.
+      if ( x_ux[i] >= 0.0 ) {
+        //outside, misses.
+        out_dist[i] = -1.0;
+      } else {
+        //outside, hits. We know that ux is non-zero and has opposite sign of x.
+        out_dist[i] = a[i] / fabs(ux[i]);
+      }
+    }
+  }
+}

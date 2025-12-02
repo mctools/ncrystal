@@ -36,13 +36,23 @@ namespace NCRYSTAL_NAMESPACE {
       //Finds the distance a particle needs to propagate forward in space in
       //order to enter the volume. Returns 0.0 for neutrons already inside the
       //volume, and -1.0 for neutrons that are outside the volume and whose path
-      //does not intersect the volume.
+      //does not intersect the volume. As a special case, a neutron skirting
+      //along the surface of the volume should return 0.0 if the surface locally
+      //has a flat edge and the neutron direction is in the plane of that edge,
+      //or -1.0 if the surface locally has a curved edge and the neutron is
+      //about to leave the volume.
       virtual void distToVolumeEntry( const NeutronBasket&, Span<double> ) const = 0;
 
       //Finds the distance out of a volume. This is usually the most performance
       //critical geometry function. It is undefined behaviour to invoke this
       //function unless all neutrons in the basket are already inside the
-      //volume.
+      //volume. If the neutron is propagated this distance forward along its
+      //direction, it should afterwards be heading out of the shape (in other
+      //words, a neutron sitting directly on the surface and a direction
+      //pointing into the shape should not have a distToVolumeExit of 0).
+      //FIXME: Double check the above is exactly valid also for a sphere, then
+      //our scenario for pencil beam into a sphere does not have to move src_z
+      //to (1-1e-14) times sphere_radius.
       virtual void distToVolumeExit( const NeutronBasket&, Span<double> ) const = 0;
 
       //Check if a particular point is inside (scalar method meant to be used by
@@ -60,7 +70,6 @@ namespace NCRYSTAL_NAMESPACE {
 
       //fixme: Would it be useful to have a method returning a bounding sphere?
       //And perhaps also an inscribed sphere?
-
     };
 
     using GeometryPtr = shared_obj<const Geometry>;
