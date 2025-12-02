@@ -46,8 +46,6 @@ namespace NCRYSTAL_NAMESPACE {
 
   namespace MiniMC {
 
-    constexpr double geom_tolerance_factor = 1e-12;
-
     class Sphere {
       //double m_radius;
       double m_radiusSq;
@@ -97,40 +95,6 @@ namespace NCRYSTAL_NAMESPACE {
                               tgt.data(), nb.nused );
       }
 
-      static void unit_test()
-      {
-        {
-          const double x[]  = { -30.0, -30.0, 30.0, 0.0, 0.0, };
-          const double y[]  = {   0.0,   0.0,  0.0, 0.0, 0.0, };
-          const double z[]  = {   0.0,   0.0,  0.0, 0.0, 10.0*(1.0-1.0e-14), };
-          const double ux[] = {   1.0,   0.0,  1.0, 0.0, 0.0, };
-          const double uy[] = {   0.0,  -1.0,  0.0, 1.0, 0.0, };
-          const double uz[] = {   0.0,   0.0,  0.0, 0.0, 1.0 };
-          const double dist_to_entry[] = { 20.0, -1.0, -1.0, 0.0, 0.0 };
-          constexpr std::size_t n = sizeof(x) / sizeof(*x);
-          double buf[n];
-          Sphere(Length{10.0}).distToVolumeEntryImpl( x,y,z,ux,uy,uz,buf,n);
-          for ( std::size_t i = 0; i < n; ++i ) {
-            nc_assert_always(floateq(buf[i],dist_to_entry[i]));
-          }
-        }
-        {
-          const double x[]  = { -9.999,  0.0,  5.0, 9.999, 0.0, -10.0, -10.0, -10.0, -10.0 };
-          const double y[]  = {   0.0,   0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-          const double z[]  = {   0.0,   0.0,  0.0, 0.0, 10.0, 0.0, 0.0, 0.0, 0.0 };
-          const double ux[] = {   1.0,   0.0,  1.0, 1.0, 0.0, 0.0, -1.0, 1.0, kInvSqrt2 };
-          const double uy[] = {   0.0,  -1.0,  0.0, 0.0, 0.0, 1.0, 0.0, 0.0, kInvSqrt2 };
-          const double uz[] = {   0.0,   0.0,  0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0};
-          const double dist_to_exit[] = { 19.999, 10.0, 5.0, 0.001, 0.0, 0.0, 0.0, 20.0, 10.0*kSqrt2 };
-          constexpr std::size_t n = sizeof(x)/sizeof(*x);
-          double buf[n];
-          Sphere(Length{10.0}).distToVolumeExitImpl( x,y,z,ux,uy,uz,buf,n);
-          for ( std::size_t i = 0; i < n; ++i ) {
-            nc_assert_always(floateq(buf[i],dist_to_exit[i]));
-          }
-        }
-      }
-
     private:
       void distToVolumeEntryImpl( const double * ncrestrict x,
                                   const double * ncrestrict y,
@@ -141,8 +105,6 @@ namespace NCRYSTAL_NAMESPACE {
                                   double * ncrestrict tgt,
                                   std::size_t n ) const ncnoexceptndebug
       {
-        //TODO: Properly test this for auto-vectorisation (at least check with
-        //-fopt-info-vec-missed).
 #ifndef NDEBUG
         for ( std::size_t i = 0; i < n; ++i ) {
           nc_assert( std::isfinite(x[i]) && std::isfinite(y[i]) && std::isfinite(z[i]) );
@@ -150,19 +112,37 @@ namespace NCRYSTAL_NAMESPACE {
           nc_assert( ncabs(ncsquare(ux[i])+ncsquare(uy[i])+ncsquare(uz[i]) - 1.0) < 1e-13 );
         }
 #endif
+        double pdotu[basket_N];
+        for ( std::size_t i = 0; i < n; ++i )
+          pdotu[i] = x[i] * ux[i];
+        for ( std::size_t i = 0; i < n; ++i )
+          pdotu[i] += y[i] * uy[i];
+        for ( std::size_t i = 0; i < n; ++i )
+          pdotu[i] += z[i] * uz[i];
+
+        double psq_mr2[basket_N];
+        for ( std::size_t i = 0; i < n; ++i )
+          psq_mr2[i] = x[i] * x[i];
+        for ( std::size_t i = 0; i < n; ++i )
+          psq_mr2[i] += y[i] * y[i];
+        for ( std::size_t i = 0; i < n; ++i )
+          psq_mr2[i] += z[i] * z[i];
+        for ( std::size_t i = 0; i < n; ++i )
+          psq_mr2[i] -= m_radiusSq;
+
         for ( std::size_t i = 0; i < n; ++i ) {
-          const double psq_mr2 = ncsquare(x[i])+ncsquare(y[i])+ncsquare(z[i]) - m_radiusSq;
-          if ( psq_mr2 <= 0.0 ) {
-            tgt[i] = 0.0;
+          if ( psq_mr2[i] <= 0.0 ) {
+            //Inside or on edge. If on edge and normal is not inwards, we should return
+            //-1. Otherwise 0.:
+            tgt[i] = ( ncmin(psq_mr2[i],pdotu[i])<0.0 ? 0.0 : -1.0 );
           } else {
-            const double pd = (x[i]) * (ux[i]) + (y[i]) * (uy[i]) +(z[i]) * (uz[i]);
-            const double D = ncsquare( pd ) - psq_mr2;
+            const double D = ncsquare( pdotu[i] ) - psq_mr2[i];
             if ( D < 0 ) {
               tgt[i] = -1.0;
             } else {
               const double sqrtD = std::sqrt( D );
-              const double tmp = -(sqrtD+pd);
-              tgt[i] = tmp > 0.0 ? tmp : -1.0;
+              const double tmp = -(sqrtD+pdotu[i]);
+              tgt[i] = tmp >= 0.0 ? tmp : -1.0;
             }
           }
         }
@@ -177,8 +157,6 @@ namespace NCRYSTAL_NAMESPACE {
                                  double * ncrestrict tgt,
                                  std::size_t n ) const ncnoexceptndebug
       {
-        //TODO: Properly test this for auto-vectorisation (at least check with
-        //-fopt-info-vec-missed).
 #ifndef NDEBUG
         for ( std::size_t i = 0; i < n; ++i ) {
           nc_assert( std::isfinite(x[i]) && std::isfinite(y[i]) && std::isfinite(z[i]) );
@@ -188,24 +166,40 @@ namespace NCRYSTAL_NAMESPACE {
 #endif
         //Split into a pre-loop, using tgt as temporary cache area, for
         //efficient loop auto-vectorisation:
+        //( -psq_mr2 = r^2-p^2, since inside tgt[i]>=0 )
+        //tgt[i] = m_radiusSq - (x[i]*x[i]+y[i]*y[i]+z[i]*z[i]) :
         for ( std::size_t i = 0; i < n; ++i )
-          tgt[i] = m_radiusSq - (x[i]*x[i]+y[i]*y[i]+z[i]*z[i]);//-psq_mr2 = r^2-p^2, since inside tgt[i]>=0
+          tgt[i] = -x[i]*x[i];
+        for ( std::size_t i = 0; i < n; ++i )
+          tgt[i] -= y[i]*y[i];
+        for ( std::size_t i = 0; i < n; ++i )
+          tgt[i] -= z[i]*z[i];
+        for ( std::size_t i = 0; i < n; ++i )
+          tgt[i] += m_radiusSq;
 
         double buf_pd[NeutronBasket::N];
+        //buf_pd[i] = x[i]*ux[i]+y[i]*uy[i]+z[i]*uz[i];
         for ( std::size_t i = 0; i < n; ++i )
-          buf_pd[i] = x[i]*ux[i]+y[i]*uy[i]+z[i]*uz[i];
+          buf_pd[i] = x[i]*ux[i];
+        for ( std::size_t i = 0; i < n; ++i )
+          buf_pd[i] += y[i]*uy[i];
+        for ( std::size_t i = 0; i < n; ++i )
+          buf_pd[i] += z[i]*uz[i];
 
-        //discriminant (should be non-negative since we can't miss the sphere from inside it.
+        //discriminant (should be non-negative since we can't miss the sphere
+        //from inside it).
         for ( std::size_t i = 0; i < n; ++i )
           tgt[i] += buf_pd[i]*buf_pd[i];//tgt[i] = pd^2-psq_mr2 = D
 
-        for ( std::size_t i = 0; i < n; ++i ) {
-          //We should be inside when this function is called! So any negative
-          //distances should arise from FP instability only, and we must be on
-          //the edge.
-          const double sqrtD = fast_sqrt_clippos(tgt[i]);
-          tgt[i] = ncmax(0.0,sqrtD-buf_pd[i]);
-        }
+        //We should be inside when this function is called! So any negative
+        //distances should arise from FP instability only, and we must be on
+        //the edge.
+        for ( std::size_t i = 0; i < n; ++i )
+          tgt[i] = fast_sqrt_clippos(tgt[i]);//sqrtD
+        for ( std::size_t i = 0; i < n; ++i )
+          tgt[i] -= buf_pd[i];
+        for ( std::size_t i = 0; i < n; ++i )
+          tgt[i] = ncmax(0.0,tgt[i]);
       }
 
     };

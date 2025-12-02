@@ -1,0 +1,743 @@
+Sphere case: pos = { 0, 0, -10 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = 7
+                  dist = 7
+     expected (manual) = 7
+
+Sphere case: pos = { 0, 0, -2 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 5
+                  dist = 5
+     expected (manual) = 5
+
+Sphere case: pos = { 0, 0, -3 }  dir={ 0, 0.707107, 0.707107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 4.24264
+                  dist = 4.24264
+     expected (manual) = 4.24264
+
+Sphere case: pos = { 0, 0, -3 }  dir={ 0, 1, 0 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+Sphere case: pos = { 0, -3, 0 }  dir={ 1, 0, 0 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+Sphere case: pos = { -3, 0, 0 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+Sphere case: pos = { 0, 0, -3 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 6
+                  dist = 6
+     expected (manual) = 6
+
+Sphere case: pos = { 0, -3, 0 }  dir={ 0, 1, 0 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 6
+                  dist = 6
+     expected (manual) = 6
+
+Sphere case: pos = { -3, 0, 0 }  dir={ 1, 0, 0 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 6
+                  dist = 6
+     expected (manual) = 6
+
+Tested a total of 100009 Sphere test cases!
+Slab case: pos = { 0, 0, -10 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = 7
+                  dist = 7
+     expected (manual) = 7
+
+Slab case: pos = { 0, 0, -2 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 5
+                  dist = 5
+     expected (manual) = 5
+
+Slab case: pos = { 0, 0, -2 }  dir={ 0, 0.707107, 0.707107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 7.07107
+                  dist = 7.07107
+     expected (manual) = 7.07107
+
+Slab case: pos = { 0, 0, 3 }  dir={ 0, 1, 0 }
+   DistToEntry:
+               refdist = -0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = inf
+                  dist = inf
+     expected (manual) = inf
+
+Slab case: pos = { 0, 0, 3 }  dir={ 0, 0.707107, 0.707107 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+Slab case: pos = { 0, 0, 3 }  dir={ 0, 0.707107, -0.707107 }
+   DistToEntry:
+               refdist = -0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 8.48528
+                  dist = 8.48528
+     expected (manual) = 8.48528
+
+Tested a total of 100006 Slab test cases!
+Box case: pos = { -2, 99, 0 }  dir={ 0, -1, 0 }
+   DistToEntry:
+               refdist = 96
+                  dist = 96
+     expected (manual) = 96
+
+Box case: pos = { -2, 99, 0 }  dir={ 0, 1, 0 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+
+Box case: pos = { -2, 0, 0 }  dir={ -1, 0, 0 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+Box case: pos = { -2, 0, 0 }  dir={ -0.707107, 0.707107, 0 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+Box case: pos = { -2, 0, 0 }  dir={ 0.707107, 0.707107, 0 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 4.24264
+                  dist = 4.24264
+     expected (manual) = 4.24264
+
+Box case: pos = { -4.5, 0, 0 }  dir={ 1, 0, 0 }
+   DistToEntry:
+               refdist = 2.5
+                  dist = 2.5
+     expected (manual) = 2.5
+
+Box case: pos = { -4.5, 0, 0 }  dir={ -1, 0, 0 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+
+Box case: pos = { 2, 0, 0 }  dir={ -0.707107, 0.707107, 0 }
+   DistToEntry:
+               refdist = 0
+                  dist = -0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 4.24264
+                  dist = 4.24264
+     expected (manual) = 4.24264
+
+Box case: pos = { 2, 0, 0 }  dir={ 0.707107, 0.707107, 0 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+Box case: pos = { 4.5, 0, 0 }  dir={ -1, 0, 0 }
+   DistToEntry:
+               refdist = 2.5
+                  dist = 2.5
+     expected (manual) = 2.5
+
+Box case: pos = { 4.5, 0, 0 }  dir={ 1, 0, 0 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+
+Box case: pos = { 0, -3, 0 }  dir={ 0.707107, -0.707107, 0 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+Box case: pos = { 0, -3, 0 }  dir={ 0.707107, 0.707107, 0 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 2.82843
+                  dist = 2.82843
+     expected (manual) = 2.82843
+
+Box case: pos = { 0, -5.5, 0 }  dir={ 0, 1, 0 }
+   DistToEntry:
+               refdist = 2.5
+                  dist = 2.5
+     expected (manual) = 2.5
+
+Box case: pos = { 0, -5.5, 0 }  dir={ 0, -1, 0 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+
+Box case: pos = { 0, 3, 0 }  dir={ 0.707107, -0.707107, 0 }
+   DistToEntry:
+               refdist = 0
+                  dist = -0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 2.82843
+                  dist = 2.82843
+     expected (manual) = 2.82843
+
+Box case: pos = { 0, 3, 0 }  dir={ 0.707107, 0.707107, 0 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+Box case: pos = { 0, 5.5, 0 }  dir={ 0, -1, 0 }
+   DistToEntry:
+               refdist = 2.5
+                  dist = 2.5
+     expected (manual) = 2.5
+
+Box case: pos = { 0, 5.5, 0 }  dir={ 0, 1, 0 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+
+Box case: pos = { 0, 0, -5 }  dir={ 0.707107, 0, -0.707107 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+Box case: pos = { 0, 0, -5 }  dir={ 0.707107, 0, 0.707107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 2.82843
+                  dist = 2.82843
+     expected (manual) = 2.82843
+
+Box case: pos = { 0, 0, -7.5 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = 2.5
+                  dist = 2.5
+     expected (manual) = 2.5
+
+Box case: pos = { 0, 0, -7.5 }  dir={ 0, 0, -1 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+
+Box case: pos = { 0, 0, 5 }  dir={ 0.707107, 0, -0.707107 }
+   DistToEntry:
+               refdist = 0
+                  dist = -0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 2.82843
+                  dist = 2.82843
+     expected (manual) = 2.82843
+
+Box case: pos = { 0, 0, 5 }  dir={ 0.707107, 0, 0.707107 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+Box case: pos = { 0, 0, 7.5 }  dir={ 0, 0, -1 }
+   DistToEntry:
+               refdist = 2.5
+                  dist = 2.5
+     expected (manual) = 2.5
+
+Box case: pos = { 0, 0, 7.5 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+
+Box case: pos = { -2, -3, -5 }  dir={ 0.57735, 0.57735, 0.57735 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 6.9282
+                  dist = 6.9282
+     expected (manual) = 6.9282
+
+Box case: pos = { -2, -3, -5 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 10
+                  dist = 10
+     expected (manual) = 10
+
+Box case: pos = { -2, -3, -5 }  dir={ 0, 1, 0 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 6
+                  dist = 6
+     expected (manual) = 6
+
+Box case: pos = { -2, -3, -5 }  dir={ 1, 0, 0 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 4
+                  dist = 4
+     expected (manual) = 4
+
+Box case: pos = { -2, -3, -5 }  dir={ 0.707107, 0.707107, 0 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 5.65685
+                  dist = 5.65685
+     expected (manual) = 5.65685
+
+Box case: pos = { -2, -3, -5 }  dir={ 0.707107, 0, 0.707107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 5.65685
+                  dist = 5.65685
+     expected (manual) = 5.65685
+
+Box case: pos = { -2, -3, -5 }  dir={ 0, 0.707107, 0.707107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 8.48528
+                  dist = 8.48528
+     expected (manual) = 8.48528
+
+Box case: pos = { 0, 0, 0 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 5
+                  dist = 5
+     expected (manual) = 5
+
+Box case: pos = { -1, -1, 3 }  dir={ -0.408248, -0.816497, 0.408248 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 2.44949
+                  dist = 2.44949
+     expected (manual) = 2.44949
+
+Box case: pos = { 0, 0, 0 }  dir={ 0.324443, 0.486664, 0.811107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 6.16441
+                  dist = 6.16441
+     expected (manual) = 6.16441
+
+Box case: pos = { 0, 0, 0 }  dir={ -0.324443, 0.486664, 0.811107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 6.16441
+                  dist = 6.16441
+     expected (manual) = 6.16441
+
+Box case: pos = { 0, 0, 0 }  dir={ 0.324443, -0.486664, 0.811107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 6.16441
+                  dist = 6.16441
+     expected (manual) = 6.16441
+
+Box case: pos = { 0, 0, 0 }  dir={ 0.324443, 0.486664, -0.811107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 6.16441
+                  dist = 6.16441
+     expected (manual) = 6.16441
+
+Box case: pos = { 0, 0, 0 }  dir={ -0.324443, -0.486664, 0.811107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 6.16441
+                  dist = 6.16441
+     expected (manual) = 6.16441
+
+Box case: pos = { 0, 0, 0 }  dir={ -0.324443, 0.486664, -0.811107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 6.16441
+                  dist = 6.16441
+     expected (manual) = 6.16441
+
+Box case: pos = { 0, 0, 0 }  dir={ 0.324443, -0.486664, -0.811107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 6.16441
+                  dist = 6.16441
+     expected (manual) = 6.16441
+
+Box case: pos = { 2, 3, 5 }  dir={ 0.57735, 0.57735, 0.57735 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+Box case: pos = { -2, 3, 5 }  dir={ -0.57735, 0.57735, 0.57735 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+Box case: pos = { 2, -3, 5 }  dir={ 0.57735, -0.57735, 0.57735 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+Box case: pos = { 2, 3, -5 }  dir={ 0.57735, 0.57735, -0.57735 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+Box case: pos = { -2, -3, 5 }  dir={ -0.57735, -0.57735, 0.57735 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+Box case: pos = { -2, 3, -5 }  dir={ -0.57735, 0.57735, -0.57735 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+Box case: pos = { 2, -3, -5 }  dir={ 0.57735, -0.57735, -0.57735 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+Box case: pos = { -2, 0, 0 }  dir={ 0, 1, 0 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 3
+                  dist = 3
+
+Box case: pos = { 2, 0, 0 }  dir={ 0, 0.707107, 0.707107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 4.24264
+                  dist = 4.24264
+
+Box case: pos = { 0, -3, 0 }  dir={ 0.707107, 0, 0.707107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 2.82843
+                  dist = 2.82843
+
+Box case: pos = { 0, 3, 0 }  dir={ 0.447214, 0, 0.894427 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 4.47214
+                  dist = 4.47214
+
+Box case: pos = { 0, 0, -5 }  dir={ 0, 1, 0 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 3
+                  dist = 3
+
+Box case: pos = { 0, 0, 5 }  dir={ -0.707107, 0.707107, 0 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 2.82843
+                  dist = 2.82843
+
+Tested a total of 100057 Box test cases!
+x=-1e+199, y=-1e+199, z=-2
+x=-1e+199, y=-10, z=1e-199
+x=-1e+199, y=-0.1, z=1e-20
+x=-1e+199, y=0, z=0.5
+x=-1e+199, y=10, z=1
+x=-1e+199, y=0.1, z=1.5
+x=-100000, y=-1e+199, z=1.99999999999999
+x=-100000, y=-2, z=1.9999999999999989
+x=-100000, y=-1e-20, z=2
+x=-100000, y=1e-199, z=0
+x=-100000, y=2, z=-1e-199
+x=-100000, y=1e+20, z=-1e-20
+x=-10, y=-100000, z=-0.5
+x=-10, y=-1, z=-1
+x=-10, y=-1e-199, z=-1.5
+x=-10, y=100000, z=-1.99999999999999
+x=-10, y=1, z=-1.9999999999999989
+x=-10, y=1e+199, z=-2
+x=-2, y=-100000, z=1e-199
+x=-2, y=-1, z=1e-20
+x=-2, y=-1e-199, z=0.5
+x=-2, y=100000, z=1
+x=-2, y=1, z=1.5
+x=-2, y=1e+199, z=1.99999999999999
+x=-1, y=-10, z=1.9999999999999989
+x=-1, y=-0.1, z=2
+x=-1, y=0, z=0
+x=-1, y=10, z=-1e-199
+x=-1, y=0.1, z=-1e-20
+x=-0.1, y=-1e+199, z=-0.5
+x=-0.1, y=-2, z=-1
+x=-0.1, y=-1e-20, z=-1.5
+x=-0.1, y=1e-199, z=-1.99999999999999
+x=-0.1, y=2, z=-1.9999999999999989
+x=-0.1, y=1e+20, z=-2
+x=-1e-20, y=-1e+199, z=1e-199
+x=-1e-20, y=-2, z=1e-20
+x=-1e-20, y=-1e-20, z=0.5
+x=-1e-20, y=1e-199, z=1
+x=-1e-20, y=2, z=1.5
+x=-1e-20, y=1e+20, z=1.99999999999999
+x=-1e-199, y=-100000, z=1.9999999999999989
+x=-1e-199, y=-1, z=2
+x=-1e-199, y=-1e-199, z=0
+x=-1e-199, y=100000, z=-1e-199
+x=-1e-199, y=1, z=-1e-20
+x=-1e-199, y=1e+199, z=-0.5
+x=0, y=-10, z=-1
+x=0, y=-0.1, z=-1.5
+x=0, y=0, z=-1.99999999999999
+x=0, y=10, z=-1.9999999999999989
+x=0, y=0.1, z=-2
+x=0, y=1e+199, z=1e-199
+x=1e-199, y=-10, z=1e-20
+x=1e-199, y=-0.1, z=0.5
+x=1e-199, y=0, z=1
+x=1e-199, y=10, z=1.5
+x=1e-199, y=0.1, z=1.99999999999999
+x=100000, y=-1e+199, z=1.9999999999999989
+x=100000, y=-2, z=2
+x=100000, y=-1e-20, z=0
+x=100000, y=1e-199, z=-1e-199
+x=100000, y=2, z=-1e-20
+x=100000, y=1e+20, z=-0.5
+x=10, y=-100000, z=-1
+x=10, y=-1, z=-1.5
+x=10, y=-1e-199, z=-1.99999999999999
+x=10, y=100000, z=-1.9999999999999989
+x=10, y=1, z=-2
+x=10, y=1e+20, z=1e-199
+x=2, y=-100000, z=1e-20
+x=2, y=-1, z=0.5
+x=2, y=-1e-199, z=1
+x=2, y=100000, z=1.5
+x=2, y=1, z=1.99999999999999
+x=2, y=1e+199, z=1.9999999999999989
+x=1, y=-10, z=2
+x=1, y=-0.1, z=0
+x=1, y=0, z=-1e-199
+x=1, y=10, z=-1e-20
+x=1, y=0.1, z=-0.5
+x=0.1, y=-1e+199, z=-1
+x=0.1, y=-2, z=-1.5
+x=0.1, y=-1e-20, z=-1.99999999999999
+x=0.1, y=1e-199, z=-1.9999999999999989
+x=0.1, y=2, z=-2
+x=0.1, y=0.1, z=1e-199
+x=1e+20, y=-1e+199, z=1e-20
+x=1e+20, y=-2, z=0.5
+x=1e+20, y=-1e-20, z=1
+x=1e+20, y=1e-199, z=1.5
+x=1e+20, y=2, z=1.99999999999999
+x=1e+20, y=1e+20, z=1.9999999999999989
+x=1e+199, y=-100000, z=2
+x=1e+199, y=-1, z=0
+x=1e+199, y=-1e-199, z=-1e-199
+x=1e+199, y=100000, z=-1e-20
+x=1e+199, y=1, z=-0.5
+x=1e+199, y=1e+199, z=-1
+All tests passed!
