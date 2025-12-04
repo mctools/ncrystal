@@ -39,7 +39,7 @@ namespace NCRYSTAL_NAMESPACE {
 #if defined(__clang__) || defined(__GNUC__)
       return __builtin_sqrt(__builtin_fmax(0.0,x));
 #else
-      return std::sqrt(std::max<double>(0.0,x));
+      return std::sqrt(ncmax(0.0,x));
 #endif
     }
   }
