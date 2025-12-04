@@ -22,6 +22,7 @@
 #include "NCMMC_Sphere.hh"
 #include "NCMMC_Box.hh"
 #include "NCMMC_Slab.hh"
+#include "NCMMC_Cyl.hh"
 #include "NCMMC_ParseCfg.hh"
 
 namespace NC = NCrystal;
@@ -91,6 +92,12 @@ namespace NCRYSTAL_NAMESPACE {
           return makeSO<GeometryImpl<Sphere>>
             ( Length{ PMC::getValue_dbl(tokens,"r") } );
 
+        } else if ( geom_name == "cyl" ) {
+          PMC::applyDefaults( tokens, "r=0.01;dy=0" );//0.01m = 1cm
+          PMC::checkNoUnknown(tokens,"r;dy","geometry");
+          return makeSO<GeometryImpl<Cyl>>
+            ( Length{ PMC::getValue_dbl(tokens,"r") },
+              Length{ PMC::getValue_dbl(tokens,"dy") } );
         } else if ( geom_name == "slab" ) {
           PMC::applyDefaults( tokens, "dz=0.01" );//0.01m = 1cm
           PMC::checkNoUnknown(tokens,"dz","geometry");
