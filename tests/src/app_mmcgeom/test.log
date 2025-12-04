@@ -1,3 +1,773 @@
+UnboundedCylinder case: pos = { 0, 0, -10 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = 7
+                  dist = 7
+     expected (manual) = 7
+
+UnboundedCylinder case: pos = { 0, 0, -10 }  dir={ 0, 0.707107, 0.707107 }
+   DistToEntry:
+               refdist = 9.89949
+                  dist = 9.89949
+     expected (manual) = 9.89949
+
+UnboundedCylinder case: pos = { 0, 0, 0 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 3
+                  dist = 3
+     expected (manual) = 3
+
+UnboundedCylinder case: pos = { 0, 0, 0 }  dir={ 0.707107, 0, 0.707107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 3
+                  dist = 3
+     expected (manual) = 3
+
+UnboundedCylinder case: pos = { 0, 0, 0 }  dir={ 0, 0.707107, 0.707107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 4.24264
+                  dist = 4.24264
+     expected (manual) = 4.24264
+
+UnboundedCylinder case: pos = { -6, 0, 0 }  dir={ 1, 0, 0 }
+   DistToEntry:
+               refdist = 3
+                  dist = 3
+     expected (manual) = 3
+
+UnboundedCylinder case: pos = { -6, 0, 0 }  dir={ 0.707107, 0.707107, 0 }
+   DistToEntry:
+               refdist = 4.24264
+                  dist = 4.24264
+     expected (manual) = 4.24264
+
+UnboundedCylinder case: pos = { -6, 0, 0 }  dir={ 0.447214, 0.894427, 0 }
+   DistToEntry:
+               refdist = 6.7082
+                  dist = 6.7082
+     expected (manual) = 6.7082
+
+UnboundedCylinder case: pos = { 0, 0, -6 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = 3
+                  dist = 3
+     expected (manual) = 3
+
+UnboundedCylinder case: pos = { 0, 0, -6 }  dir={ 0, 0.707107, 0.707107 }
+   DistToEntry:
+               refdist = 4.24264
+                  dist = 4.24264
+     expected (manual) = 4.24264
+
+UnboundedCylinder case: pos = { 0, 0, -6 }  dir={ 0, 0.894427, 0.447214 }
+   DistToEntry:
+               refdist = 6.7082
+                  dist = 6.7082
+     expected (manual) = 6.7082
+
+UnboundedCylinder case: pos = { -6, 0, -6 }  dir={ 0.707107, 0, 0.707107 }
+   DistToEntry:
+               refdist = 5.48528
+                  dist = 5.48528
+     expected (manual) = 5.48528
+
+UnboundedCylinder case: pos = { -6, 0, -6 }  dir={ 0.5, 0.707107, 0.5 }
+   DistToEntry:
+               refdist = 7.75736
+                  dist = 7.75736
+     expected (manual) = 7.75736
+
+UnboundedCylinder case: pos = { -6, 0, -6 }  dir={ 0.57735, 0.57735, 0.57735 }
+   DistToEntry:
+               refdist = 6.71807
+                  dist = 6.71807
+     expected (manual) = 6.71807
+
+UnboundedCylinder case: pos = { 3, 0, 0 }  dir={ -1, 0, 0 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 6
+                  dist = 6
+     expected (manual) = 6
+
+UnboundedCylinder case: pos = { 3, 0, 0 }  dir={ 1, 0, 0 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+UnboundedCylinder case: pos = { 3, 0, 0 }  dir={ 1e-12, 0, 1 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+UnboundedCylinder case: pos = { 3, 0, 0 }  dir={ -1e-12, 0, 1 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 6e-12
+                  dist = 6e-12
+     expected (manual) = 6e-12
+
+UnboundedCylinder case: pos = { 0, -10, -10 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = 7
+                  dist = 7
+     expected (manual) = 7
+
+UnboundedCylinder case: pos = { 0, -10, -10 }  dir={ 0, 0.707107, 0.707107 }
+   DistToEntry:
+               refdist = 9.89949
+                  dist = 9.89949
+     expected (manual) = 9.89949
+
+UnboundedCylinder case: pos = { 0, -10, 0 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 3
+                  dist = 3
+     expected (manual) = 3
+
+UnboundedCylinder case: pos = { 0, -10, 0 }  dir={ 0.707107, 0, 0.707107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 3
+                  dist = 3
+     expected (manual) = 3
+
+UnboundedCylinder case: pos = { 0, -10, 0 }  dir={ 0, 0.707107, 0.707107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 4.24264
+                  dist = 4.24264
+     expected (manual) = 4.24264
+
+UnboundedCylinder case: pos = { -6, -10, 0 }  dir={ 1, 0, 0 }
+   DistToEntry:
+               refdist = 3
+                  dist = 3
+     expected (manual) = 3
+
+UnboundedCylinder case: pos = { -6, -10, 0 }  dir={ 0.707107, 0.707107, 0 }
+   DistToEntry:
+               refdist = 4.24264
+                  dist = 4.24264
+     expected (manual) = 4.24264
+
+UnboundedCylinder case: pos = { -6, -10, 0 }  dir={ 0.447214, 0.894427, 0 }
+   DistToEntry:
+               refdist = 6.7082
+                  dist = 6.7082
+     expected (manual) = 6.7082
+
+UnboundedCylinder case: pos = { 0, -10, -6 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = 3
+                  dist = 3
+     expected (manual) = 3
+
+UnboundedCylinder case: pos = { 0, -10, -6 }  dir={ 0, 0.707107, 0.707107 }
+   DistToEntry:
+               refdist = 4.24264
+                  dist = 4.24264
+     expected (manual) = 4.24264
+
+UnboundedCylinder case: pos = { 0, -10, -6 }  dir={ 0, 0.894427, 0.447214 }
+   DistToEntry:
+               refdist = 6.7082
+                  dist = 6.7082
+     expected (manual) = 6.7082
+
+UnboundedCylinder case: pos = { -6, -10, -6 }  dir={ 0.707107, 0, 0.707107 }
+   DistToEntry:
+               refdist = 5.48528
+                  dist = 5.48528
+     expected (manual) = 5.48528
+
+UnboundedCylinder case: pos = { -6, -10, -6 }  dir={ 0.5, 0.707107, 0.5 }
+   DistToEntry:
+               refdist = 7.75736
+                  dist = 7.75736
+     expected (manual) = 7.75736
+
+UnboundedCylinder case: pos = { -6, -10, -6 }  dir={ 0.57735, 0.57735, 0.57735 }
+   DistToEntry:
+               refdist = 6.71807
+                  dist = 6.71807
+     expected (manual) = 6.71807
+
+UnboundedCylinder case: pos = { 3, -10, 0 }  dir={ -1, 0, 0 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 6
+                  dist = 6
+     expected (manual) = 6
+
+UnboundedCylinder case: pos = { 3, -10, 0 }  dir={ 1, 0, 0 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+UnboundedCylinder case: pos = { 3, -10, 0 }  dir={ 1e-12, 0, 1 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+UnboundedCylinder case: pos = { 3, -10, 0 }  dir={ -1e-12, 0, 1 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 6e-12
+                  dist = 6e-12
+     expected (manual) = 6e-12
+
+UnboundedCylinder case: pos = { 0, 1e+20, -10 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = 7
+                  dist = 7
+     expected (manual) = 7
+
+UnboundedCylinder case: pos = { 0, 1e+20, -10 }  dir={ 0, 0.707107, 0.707107 }
+   DistToEntry:
+               refdist = 9.89949
+                  dist = 9.89949
+     expected (manual) = 9.89949
+
+UnboundedCylinder case: pos = { 0, 1e+20, 0 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 3
+                  dist = 3
+     expected (manual) = 3
+
+UnboundedCylinder case: pos = { 0, 1e+20, 0 }  dir={ 0.707107, 0, 0.707107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 3
+                  dist = 3
+     expected (manual) = 3
+
+UnboundedCylinder case: pos = { 0, 1e+20, 0 }  dir={ 0, 0.707107, 0.707107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 4.24264
+                  dist = 4.24264
+     expected (manual) = 4.24264
+
+UnboundedCylinder case: pos = { -6, 1e+20, 0 }  dir={ 1, 0, 0 }
+   DistToEntry:
+               refdist = 3
+                  dist = 3
+     expected (manual) = 3
+
+UnboundedCylinder case: pos = { -6, 1e+20, 0 }  dir={ 0.707107, 0.707107, 0 }
+   DistToEntry:
+               refdist = 4.24264
+                  dist = 4.24264
+     expected (manual) = 4.24264
+
+UnboundedCylinder case: pos = { -6, 1e+20, 0 }  dir={ 0.447214, 0.894427, 0 }
+   DistToEntry:
+               refdist = 6.7082
+                  dist = 6.7082
+     expected (manual) = 6.7082
+
+UnboundedCylinder case: pos = { 0, 1e+20, -6 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = 3
+                  dist = 3
+     expected (manual) = 3
+
+UnboundedCylinder case: pos = { 0, 1e+20, -6 }  dir={ 0, 0.707107, 0.707107 }
+   DistToEntry:
+               refdist = 4.24264
+                  dist = 4.24264
+     expected (manual) = 4.24264
+
+UnboundedCylinder case: pos = { 0, 1e+20, -6 }  dir={ 0, 0.894427, 0.447214 }
+   DistToEntry:
+               refdist = 6.7082
+                  dist = 6.7082
+     expected (manual) = 6.7082
+
+UnboundedCylinder case: pos = { -6, 1e+20, -6 }  dir={ 0.707107, 0, 0.707107 }
+   DistToEntry:
+               refdist = 5.48528
+                  dist = 5.48528
+     expected (manual) = 5.48528
+
+UnboundedCylinder case: pos = { -6, 1e+20, -6 }  dir={ 0.5, 0.707107, 0.5 }
+   DistToEntry:
+               refdist = 7.75736
+                  dist = 7.75736
+     expected (manual) = 7.75736
+
+UnboundedCylinder case: pos = { -6, 1e+20, -6 }  dir={ 0.57735, 0.57735, 0.57735 }
+   DistToEntry:
+               refdist = 6.71807
+                  dist = 6.71807
+     expected (manual) = 6.71807
+
+UnboundedCylinder case: pos = { 3, 1e+20, 0 }  dir={ -1, 0, 0 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 6
+                  dist = 6
+     expected (manual) = 6
+
+UnboundedCylinder case: pos = { 3, 1e+20, 0 }  dir={ 1, 0, 0 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+UnboundedCylinder case: pos = { 3, 1e+20, 0 }  dir={ 1e-12, 0, 1 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+UnboundedCylinder case: pos = { 3, 1e+20, 0 }  dir={ -1e-12, 0, 1 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 6e-12
+                  dist = 6e-12
+     expected (manual) = 6e-12
+
+UnboundedCylinder case: pos = { 0, -1e+20, -10 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = 7
+                  dist = 7
+     expected (manual) = 7
+
+UnboundedCylinder case: pos = { 0, -1e+20, -10 }  dir={ 0, 0.707107, 0.707107 }
+   DistToEntry:
+               refdist = 9.89949
+                  dist = 9.89949
+     expected (manual) = 9.89949
+
+UnboundedCylinder case: pos = { 0, -1e+20, 0 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 3
+                  dist = 3
+     expected (manual) = 3
+
+UnboundedCylinder case: pos = { 0, -1e+20, 0 }  dir={ 0.707107, 0, 0.707107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 3
+                  dist = 3
+     expected (manual) = 3
+
+UnboundedCylinder case: pos = { 0, -1e+20, 0 }  dir={ 0, 0.707107, 0.707107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 4.24264
+                  dist = 4.24264
+     expected (manual) = 4.24264
+
+UnboundedCylinder case: pos = { -6, -1e+20, 0 }  dir={ 1, 0, 0 }
+   DistToEntry:
+               refdist = 3
+                  dist = 3
+     expected (manual) = 3
+
+UnboundedCylinder case: pos = { -6, -1e+20, 0 }  dir={ 0.707107, 0.707107, 0 }
+   DistToEntry:
+               refdist = 4.24264
+                  dist = 4.24264
+     expected (manual) = 4.24264
+
+UnboundedCylinder case: pos = { -6, -1e+20, 0 }  dir={ 0.447214, 0.894427, 0 }
+   DistToEntry:
+               refdist = 6.7082
+                  dist = 6.7082
+     expected (manual) = 6.7082
+
+UnboundedCylinder case: pos = { 0, -1e+20, -6 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = 3
+                  dist = 3
+     expected (manual) = 3
+
+UnboundedCylinder case: pos = { 0, -1e+20, -6 }  dir={ 0, 0.707107, 0.707107 }
+   DistToEntry:
+               refdist = 4.24264
+                  dist = 4.24264
+     expected (manual) = 4.24264
+
+UnboundedCylinder case: pos = { 0, -1e+20, -6 }  dir={ 0, 0.894427, 0.447214 }
+   DistToEntry:
+               refdist = 6.7082
+                  dist = 6.7082
+     expected (manual) = 6.7082
+
+UnboundedCylinder case: pos = { -6, -1e+20, -6 }  dir={ 0.707107, 0, 0.707107 }
+   DistToEntry:
+               refdist = 5.48528
+                  dist = 5.48528
+     expected (manual) = 5.48528
+
+UnboundedCylinder case: pos = { -6, -1e+20, -6 }  dir={ 0.5, 0.707107, 0.5 }
+   DistToEntry:
+               refdist = 7.75736
+                  dist = 7.75736
+     expected (manual) = 7.75736
+
+UnboundedCylinder case: pos = { -6, -1e+20, -6 }  dir={ 0.57735, 0.57735, 0.57735 }
+   DistToEntry:
+               refdist = 6.71807
+                  dist = 6.71807
+     expected (manual) = 6.71807
+
+UnboundedCylinder case: pos = { 3, -1e+20, 0 }  dir={ -1, 0, 0 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 6
+                  dist = 6
+     expected (manual) = 6
+
+UnboundedCylinder case: pos = { 3, -1e+20, 0 }  dir={ 1, 0, 0 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+UnboundedCylinder case: pos = { 3, -1e+20, 0 }  dir={ 1e-12, 0, 1 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+UnboundedCylinder case: pos = { 3, -1e+20, 0 }  dir={ -1e-12, 0, 1 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 6e-12
+                  dist = 6e-12
+     expected (manual) = 6e-12
+
+Tested a total of 100072 UnboundedCylinder test cases!
+BoundedCylinder case: pos = { 0, 4, 1 }  dir={ 0, -1, 0 }
+   DistToEntry:
+               refdist = 2
+                  dist = 2
+     expected (manual) = 2
+
+BoundedCylinder case: pos = { 0, 1, 4 }  dir={ 0, 0, -1 }
+   DistToEntry:
+               refdist = 1
+                  dist = 1
+     expected (manual) = 1
+
+BoundedCylinder case: pos = { 0, 0, 1 }  dir={ 0, 0, -1 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 4
+                  dist = 4
+     expected (manual) = 4
+
+BoundedCylinder case: pos = { 1.76419, 0.401206, 2.42644 }  dir={ 0.149606, 0.977085, 0.151401 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+   DistToExit:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+
+BoundedCylinder case: pos = { 2.12132, 0, 2.12132 }  dir={ 0.707107, 0, 0.707107 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+
+BoundedCylinder case: pos = { 2.12132, 0, 2.12132 }  dir={ 0.707107, 0, 0.707107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 4.4408920985006252e-16
+                  dist = 4.4408920985006252e-16
+     expected (manual) = 4.4408920985006252e-16
+
+BoundedCylinder case: pos = { 2.12132, 0, 2.12132 }  dir={ 0.707107, 0, 0.707107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 3.5527136788005e-15
+                  dist = 3.5527136788005e-15
+     expected (manual) = 3.5527136788005e-15
+
+BoundedCylinder case: pos = { 2.12132, 0, 2.12132 }  dir={ 0.707107, 0, 0.707107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 3.0002667017470222e-12
+                  dist = 3.0002667017470222e-12
+     expected (manual) = 3.0002667017470222e-12
+
+BoundedCylinder case: pos = { 2.12132, 0, 2.12132 }  dir={ 0.707107, 0, 0.707107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 3.000000692310322e-09
+                  dist = 3.000000692310322e-09
+     expected (manual) = 3.000000692310322e-09
+
+BoundedCylinder case: pos = { 2.12132, 0, 2.12132 }  dir={ 0.707107, 0, 0.707107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 3.0000000008634223e-06
+                  dist = 3.0000000008634223e-06
+     expected (manual) = 3.0000000008634223e-06
+
+BoundedCylinder case: pos = { 0, 3, -4 }  dir={ 0, -0.707107, 0.707107 }
+   DistToEntry:
+               refdist = 1.41421
+                  dist = 1.41421
+     expected (manual) = 1.41421
+
+BoundedCylinder case: pos = { 0, 3, -4 }  dir={ 0, -0.894427, 0.447214 }
+   DistToEntry:
+               refdist = 2.23607
+                  dist = 2.23607
+     expected (manual) = 2.23607
+
+BoundedCylinder case: pos = { 0, 3, -4 }  dir={ 0, -0.447214, 0.894427 }
+   DistToEntry:
+               refdist = 2.23607
+                  dist = 2.23607
+     expected (manual) = 2.23607
+
+BoundedCylinder case: pos = { 0, 3, -4 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+
+BoundedCylinder case: pos = { 0, 2, -4 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = 1
+                  dist = 1
+     expected (manual) = 1
+
+BoundedCylinder case: pos = { 0, 2, -2 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 5
+                  dist = 5
+     expected (manual) = 5
+
+BoundedCylinder case: pos = { 0, 3, -4 }  dir={ 0, -1, 0 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+
+BoundedCylinder case: pos = { 0, 3, -4 }  dir={ 0, -0.986394, 0.164399 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+
+BoundedCylinder case: pos = { 0, 3, -4 }  dir={ 0, -0.970143, 0.242536 }
+   DistToEntry:
+               refdist = 4.12311
+                  dist = 4.12311
+     expected (manual) = 4.12311
+
+BoundedCylinder case: pos = { 0, 1, -4 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = 1
+                  dist = 1
+     expected (manual) = 1
+
+BoundedCylinder case: pos = { 0, 1, -4 }  dir={ 0, 0.447214, 0.894427 }
+   DistToEntry:
+               refdist = 1.11803
+                  dist = 1.11803
+     expected (manual) = 1.11803
+
+BoundedCylinder case: pos = { 0, 1, -4 }  dir={ 0, 0.894427, 0.447214 }
+   DistToEntry:
+               refdist = -1
+                  dist = -1
+     expected (manual) = -1
+
+BoundedCylinder case: pos = { 0, 1, -2 }  dir={ 0, 0, -1 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 1
+                  dist = 1
+     expected (manual) = 1
+
+BoundedCylinder case: pos = { 0, 1, -2 }  dir={ 0, 0, 1 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 5
+                  dist = 5
+     expected (manual) = 5
+
+BoundedCylinder case: pos = { 0, 1, -2 }  dir={ 0, -0.948683, 0.316228 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 3.1622776601683795
+                  dist = 3.1622776601683786
+     expected (manual) = 3.1622776601683795
+
+BoundedCylinder case: pos = { 0, 1, -2 }  dir={ 0, -0.707107, 0.707107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 4.2426406871192848
+                  dist = 4.2426406871192848
+     expected (manual) = 4.2426406871192857
+
+BoundedCylinder case: pos = { 0, 1, -2 }  dir={ 0, 0.707107, -0.707107 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 1.4142135623730949
+                  dist = 1.4142135623730949
+     expected (manual) = 1.4142135623730951
+
+BoundedCylinder case: pos = { 0, 1, -2 }  dir={ 0, 1, 0 }
+   DistToEntry:
+               refdist = 0
+                  dist = 0
+     expected (manual) = 0
+   DistToExit:
+               refdist = 1
+                  dist = 1
+     expected (manual) = 1
+
+Tested a total of 100028 BoundedCylinder test cases!
 Sphere case: pos = { 0, 0, -10 }  dir={ 0, 0, 1 }
    DistToEntry:
                refdist = 7
@@ -113,7 +883,7 @@ Slab case: pos = { 0, 0, -2 }  dir={ 0, 0.707107, 0.707107 }
 
 Slab case: pos = { 0, 0, 3 }  dir={ 0, 1, 0 }
    DistToEntry:
-               refdist = -0
+               refdist = 0
                   dist = 0
      expected (manual) = 0
    DistToExit:
@@ -133,7 +903,7 @@ Slab case: pos = { 0, 0, 3 }  dir={ 0, 0.707107, 0.707107 }
 
 Slab case: pos = { 0, 0, 3 }  dir={ 0, 0.707107, -0.707107 }
    DistToEntry:
-               refdist = -0
+               refdist = 0
                   dist = 0
      expected (manual) = 0
    DistToExit:

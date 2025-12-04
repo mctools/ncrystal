@@ -113,11 +113,11 @@ namespace {
     {
       const double pz = pos.z();
       if ( NC::ncabs(pz)<m_dz )
-        return 0.0;
+        return 0.0;//inside
       const double uz = dir_raw.unit().z();
       if ( NC::ncabs(pz)==m_dz ) {
         //edge
-        return pz*uz > 0.0 ? -1.0 : -0.0;
+        return pz*uz > 0.0 ? -1.0 : 0.0;
       }
       //outside:
       if ( pz > 0.0 )
@@ -258,20 +258,18 @@ namespace {
       return dist.value_or(-1);
     }
   };
-  struct BoxTestCase final {
+  struct TestCase final {
     NC::Vector pos;
     NC::Vector dir;
     NC::Optional<double> expected_disttoentry;
     NC::Optional<double> expected_disttoexit;
-    BoxTestCase( NC::Vector p, NC::Vector d,
-                 NC::Optional<double> d2entry = NC::NullOpt,
-                 NC::Optional<double> d2exit = NC::NullOpt )
+    TestCase( NC::Vector p, NC::Vector d,
+              NC::Optional<double> d2entry = NC::NullOpt,
+              NC::Optional<double> d2exit = NC::NullOpt )
       : pos(p), dir(d.unit()),
         expected_disttoentry(d2entry),
         expected_disttoexit(d2exit) {}
   };
-  using SlabTestCase = BoxTestCase;
-  using SphereTestCase = BoxTestCase;
 
   class TestSphere final {
     double m_r;
@@ -281,12 +279,12 @@ namespace {
 
     bool pointIsInside( const NC::Vector& pos ) const
     {
-      return NC::ncabs(pos.mag2()) <= m_rsq;
+      return pos.mag2() <= m_rsq;
     }
 
     bool pointIsCompletelyInside( const NC::Vector& pos ) const
     {
-      return NC::ncabs(pos.mag2()) < m_rsq;
+      return pos.mag2() < m_rsq;
     }
 
     double distToExit( const NC::Vector& pos, const NC::Vector& dir_raw ) const
@@ -342,6 +340,321 @@ namespace {
     }
   };
 
+  class TestUnboundedCylinder final {
+    //infinitely long cylinder around y-axis.
+    double m_r;
+    double m_rsq;
+    double rsq_xz( const NC::Vector& v ) const
+    {
+      return v.x()*v.x()+v.z()*v.z();
+    }
+  public:
+    TestUnboundedCylinder( double r ) : m_r(r), m_rsq(r*r) {}
+
+    bool pointIsInside( const NC::Vector& pos ) const
+    {
+      return rsq_xz(pos) <= m_rsq;
+    }
+
+    bool pointIsCompletelyInside( const NC::Vector& pos ) const
+    {
+      return rsq_xz(pos) < m_rsq;
+    }
+
+    double distToExit( const NC::Vector& pos, const NC::Vector& dir_raw ) const
+    {
+      nc_assert_always(pointIsInside(pos));
+      const NC::Vector dir = dir_raw.unit();
+
+      //rsq_xz( pos+t*dir) == r^2 is a second degree equation in t. The
+      //degenerate case A=0 happens when the beam is parallel to the y-axis
+      //(ux=uz=0).
+      const double A = rsq_xz(dir);
+      if ( !A )
+        return NC::kInfinity;
+
+      const double B = 2.0 * ( pos.x()*dir.x()+pos.z()*dir.z() );
+      const double C = rsq_xz(pos)-m_rsq;
+      nc_assert_always( C <= 0 );//we are inside
+      if ( !C ) {
+        //on edge, decide if going in or out by sign of dot product of pos and
+        //dir (ignoring y-coords). This happens to be B/2:
+        if ( B >= 0.0 )
+          return 0.0;//headed out
+      }
+
+      const double D = B*B - 4*A*C;//A=1
+      REQUIRE( D>=-1e-15 );//we are inside
+      const double sqrtD = std::sqrt(NC::ncmax(0.0,D));
+      const double t1 = ( -B - sqrtD )/(2*A);
+      const double t2 = ( -B + sqrtD )/(2*A);
+      const double tmin = NC::ncmin(t1,t2);
+      const double tmax = NC::ncmax(t1,t2);
+      if ( tmax <= 0.0 )
+        return 0.0;//near edge, heading out
+      nc_assert_always(tmin<=0.0);
+      nc_assert_always(tmax>=0.0);
+      return tmax;
+    }
+
+    double distToEntry( const NC::Vector& pos, const NC::Vector& dir_raw ) const
+    {
+      return distToEntryRangeImpl(pos,dir_raw,true).first;
+    }
+
+    NC::PairDD distToEntryRangeImpl( const NC::Vector& pos,
+                                     const NC::Vector& dir_raw,
+                                     bool forunbounded = false ) const
+    {
+      auto PairEq = []( double x ) { return NC::PairDD( x, x ); };
+      if ( forunbounded && pointIsCompletelyInside(pos) )
+        return PairEq( 0.0 );
+      const NC::Vector dir = dir_raw.unit();
+
+      //Similar scnd degree equation as in distToExit
+      const double A = rsq_xz(dir);
+      const double C = rsq_xz(pos)-m_rsq;
+      if ( !A )
+        return PairEq( C <= 0 ? 0.0 : -1.0 );
+      const double B = 2.0 * ( pos.x()*dir.x()+pos.z()*dir.z() );
+      if ( C <= 0.0 ) {
+        //on edge or inside, decide if going in or out by sign of dot product of pos and
+        //dir (ignoring y-coords). This happens to be B/2:
+        return PairEq( ( C == 0.0 && B >= 0.0 )
+                       ? -1.0//on edge and headed out
+                       : 0.0//not on edge, or headed in
+                       );
+      }
+      const double D = B*B - 4*A*C;//A=1
+      if ( D <= 0.0 )
+        return PairEq(-1.0); //miss
+      const double sqrtD = std::sqrt(NC::ncmax(0.0,D));
+      const double t1 = ( -B - sqrtD )/(2*A);
+      const double t2 = ( -B + sqrtD )/(2*A);
+      const double tmin = NC::ncmin(t1,t2);
+      const double tmax = NC::ncmax(t1,t2);
+
+      if ( tmax < 0.0 )
+        return PairEq( -1.0 );//intersection in backwards direction, miss
+      if ( tmin > 0.0 )
+        return { tmin, tmax };//intersects twice
+
+      //Presumably we are on the edge if we can get here. Repeat edge trick from
+      //above:
+      nc_assert_always( pos.mag() > m_r*0.99999 );
+      return PairEq( B < 0.0 ? 0.0 : -1.0 );
+    }
+  };
+
+  class TestBoundedCylinder final {
+    //Cylinder around y-axis of radius r, capped at y=+-dy.
+    double m_r;
+    double m_rsq;
+    double m_dy;
+    TestUnboundedCylinder m_ubcyl;
+    TestSlab m_slab;
+    double rsq_xz( const NC::Vector& v ) const
+    {
+      return v.x()*v.x()+v.z()*v.z();
+    }
+  public:
+    TestBoundedCylinder( double r, double dy )
+      : m_r(r), m_rsq(r*r), m_dy(dy), m_ubcyl(r), m_slab(dy) {}
+
+    bool pointIsInside( const NC::Vector& pos ) const
+    {
+      return rsq_xz(pos) <= m_rsq && NC::ncabs(pos.y()) <= m_dy;
+    }
+
+    bool pointIsCompletelyInside( const NC::Vector& pos, double safety = 1e-15 ) const
+    {
+
+      return rsq_xz(pos)-m_rsq < -safety  && NC::ncabs(pos.y())-m_dy < -safety;
+    }
+
+    double distToExit( const NC::Vector& pos, const NC::Vector& dir_raw ) const
+    {
+      nc_assert_always(pointIsInside(pos));
+      const NC::Vector dir = dir_raw.unit();
+
+      //First check the time to exit the slab (might be infinite):
+      //
+      //As a trick we swap y and z so we can use the TestSlab class:
+      nc_assert_always(pointIsInside(pos));
+      double d1 = m_slab.distToExit( NC::Vector( pos.x(),pos.z(),pos.y() ),
+                                     NC::Vector( dir.x(),dir.z(),dir.y() ) );
+
+      //Then check the time to exit an unbounded cylinder (might be infinite):
+      double d2 = m_ubcyl.distToExit( pos, dir );
+      double res = NC::ncmin(d1,d2);
+      nc_assert_always( !NC::ncisinf(res) && !NC::ncisnan(res) );//both should not be inf
+      return res;
+    }
+
+    NC::Optional<NC::PairDD> findIntersectionsSlab(const NC::Vector& pos,
+                                                   const NC::Vector& dir_raw) const
+    {
+      const double py = pos.y();
+      const double uy = dir_raw.unit().y();
+      if ( NC::ncabs(py)==m_dy ) {
+        //edge
+        if ( py*uy > 0.0 )
+          return NC::NullOpt;//leaving edge (fixme: this check likely not needed?
+      }
+      if ( uy == 0.0 ) {
+        if ( NC::ncabs(py) > m_dy )
+          return NC::NullOpt;
+        return NC::PairDD{ -NC::kInfinity, NC::kInfinity };
+      }
+      const double t1 = -(py+m_dy)/uy;
+      const double t2 = -(py-m_dy)/uy;
+      return NC::PairDD{ NC::ncmin( t1, t2 ), NC::ncmax( t1, t2 ) };
+    }
+
+    NC::Optional<NC::PairDD> findIntersectionsCyl(const NC::Vector& pos,
+                                                  const NC::Vector& dir_raw)
+    {
+      const NC::Vector dir = dir_raw.unit();
+
+      const double A = rsq_xz(dir);
+      const double C = rsq_xz(pos)-m_rsq;
+      if ( !A ) {
+        //Moving parallel to cylinder axis.
+        if ( C <= 0 )
+          return NC::PairDD{ -NC::kInfinity, NC::kInfinity };
+        return NC::NullOpt;//miss
+      }
+      const double B = 2.0 * ( pos.x()*dir.x()+pos.z()*dir.z() );
+      if ( C <= 0.0 ) {
+        //on edge or inside, decide if going in or out by sign of dot product of pos and
+        //dir (ignoring y-coords). This happens to be B/2:
+        if ( C == 0.0 && B >= 0.0 )
+          return NC::NullOpt;//on edge or headed out => miss
+        //not on edge, or headed in, so continue...
+      }
+      const double D = B*B - 4*A*C;//A=1
+      if ( D <= 0.0 )
+        return NC::NullOpt;//pain old miss
+      const double sqrtD = std::sqrt(NC::ncmax(0.0,D));
+      const double t1 = ( -B - sqrtD )/(2*A);
+      const double t2 = ( -B + sqrtD )/(2*A);
+      const double tmin = NC::ncmin(t1,t2);
+      const double tmax = NC::ncmax(t1,t2);
+
+      if ( tmax < 0.0 )
+        return NC::NullOpt;//intersection in backwards direction, miss
+      if ( tmin > 0.0 )
+        return NC::PairDD{ tmin, tmax };//intersects twice
+
+      //Presumably we are on the edge if we can get here. Repeat edge trick from
+      //above:
+      nc_assert_always( pos.mag() > m_r*0.99999 );
+      if ( B>= 0.0 )
+        return NC::NullOpt;
+      //not sure what to do here
+      std::cout<<"TKTEST FIXME ARGH"<<std::endl;
+      nc_assert_always(false);
+      return NC::NullOpt;
+    }
+
+    NC::Optional<NC::PairDD> findIntersectionsCyl( const NC::Vector& pos,
+                                                   const NC::Vector& dir_raw ) const
+    {
+      const NC::Vector dir = dir_raw.unit();
+      const double A = rsq_xz(dir);
+      const double C = rsq_xz(pos)-m_rsq;
+      if ( !A ) {
+        //Moving parallel to cylinder axis.
+        if ( C <= 0 )
+          return NC::PairDD{ -NC::kInfinity, NC::kInfinity };
+        return NC::NullOpt;//miss
+      }
+      const double B = 2.0 * ( pos.x()*dir.x()+pos.z()*dir.z() );
+      if ( C <= 0.0 ) {
+        //on edge or inside, decide if going in or out by sign of dot product of pos and
+        //dir (ignoring y-coords). This happens to be B/2:
+        if ( C == 0.0 && B >= 0.0 )
+          return NC::NullOpt;//on edge or headed out => miss
+        //not on edge, or headed in, so continue...
+      }
+      const double D = B*B - 4*A*C;//A=1
+      if ( D <= 0.0 )
+        return NC::NullOpt;//plain old miss
+      const double sqrtD = std::sqrt( D );
+      double tmin = ( -B - sqrtD )/(2*A);
+      double tmax = ( -B + sqrtD )/(2*A);
+      // double tmin = NC::ncmin(t1,t2);
+      // double tmax = NC::ncmax(t1,t2);
+
+      // if ( tmax < 0.0 )
+      //   return NC::NullOpt;//intersections only in backwards direction => miss
+      //Only look in fwd direction:
+      tmin = NC::ncmax(0.0,tmin);
+      tmax = NC::ncmax(0.0,tmax);
+      if ( tmax <= tmin )
+        return NC::NullOpt;
+
+      return NC::PairDD{ tmin, tmax };//intersects twice
+
+      // //Presumably we are on the edge if we can get here. Repeat edge trick from
+      // //above:
+      // nc_assert_always( pos.mag() > m_r*0.99999 );
+      // if ( B>= 0.0 )
+      //   return NC::NullOpt;
+      // //not sure what to do here
+      // std::cout<<"findIntersectionsCyl("<<pos<<", "<<dir<<") failed"<<std::endl;
+      // std::cout<<"   A="<<NC::fmt(A)<<" B = "<<NC::fmt(B)<<" C = "
+      //          <<NC::fmt(C)<<" D = "<<NC::fmt(D)<<" tmin="<<NC::fmt(tmin)
+      //          <<" tmax="<<NC::fmt(tmax)<<std::endl;
+
+      // //A=1 B = -2 C = -8 D = 36 tmin=-2 tmax=4
+
+
+      // //findIntersectionsCyl({ 0, 4, 1 }, { 0, 0, -1 }) failed
+
+
+      // nc_assert_always(false);
+      //      return NC::NullOpt;
+    }
+
+    double distToEntry( const NC::Vector& pos, const NC::Vector& dir_raw ) const
+    {
+      //std::cout<<"TKTEST pointIsCompletelyInside(pos)="<<pointIsCompletelyInside(pos)<<std::endl;
+      if ( pointIsCompletelyInside(pos,1e-12) ) {
+        return 0.0;
+      }
+      // if ( pointIsCompletelyInside(pos,0.0) ) {
+      //   std::cout<<"TEST TestBoundedCylinder::distToEntry WARNING:"
+      //            <<" ignoring fuzzy edge point"<<std::endl;
+      // }
+      // //const NC::Vector dir = dir_raw.unit();
+
+      ////////////////////FIRST DEAL WITH THE CYLINDER///////////////////
+      auto cyl = findIntersectionsCyl(pos,dir_raw);
+      if ( !cyl.has_value() )
+        return -1.0;
+
+      auto slab = findIntersectionsSlab(pos,dir_raw);
+      if ( !slab.has_value() )
+        return -1.0;
+
+      //intersections:
+      double tmin = NC::ncmax( slab.value().first,
+                               cyl.value().first );
+      double tmax = NC::ncmin( slab.value().second,
+                               cyl.value().second );
+      //only consider positive parts:
+      tmin = NC::ncmax(0.0,tmin);
+      tmax = NC::ncmax(0.0,tmax);
+
+      //Was anything left?
+      if ( !( tmin < tmax ) )
+        return -1.0;
+      return tmin;
+    }
+  };
+
+
 }
 
 void testSlabCases()
@@ -351,7 +664,7 @@ void testSlabCases()
   auto geom = NCMMC::createGeometry( "slab;dz=3.0" );
   TestSlab testslab( dz );
   auto rng  = NC::getRNG();
-  std::vector<SlabTestCase> test_cases;
+  std::vector<TestCase> test_cases;
   //Manually added (and calculated) test cases:
   test_cases.emplace_back( V( 0.0, 0.0, -10 ), V( 0,0,1 ), 7 );
   test_cases.emplace_back( V( 0.0, 0.0, -2 ), V( 0,0,1 ), 0, 5 );
@@ -400,10 +713,10 @@ void testSlabCases()
 
     const double refdist_2exit = ( testexit
                                    ? testslab.distToExit( pos, dir )
-                                   : -17.0 );
+                                   : -117117.0 );
     const double dist_2exit = ( testexit
                                 ? distToVolExit( geom, pos, dir )
-                                : -17.0 );
+                                : -117117.0 );
     const bool has_manualref = has_manualref_d2entry || has_manualref_d2exit;
 
     if ( verbose || has_manualref ) {
@@ -445,7 +758,7 @@ void testBoxCases()
   auto geom = NCMMC::createGeometry( "box;dx=2.0;dy=3.0;dz=5.0" );
   TestBox testbox( dx,dy,dz );
   auto rng  = NC::getRNG();
-  std::vector<BoxTestCase> test_cases;
+  std::vector<TestCase> test_cases;
   //Manually added (and calculated) test cases:
   test_cases.emplace_back( V( -dx, 99, 0 ), V( 0,-1,0 ), 99-dy );
   test_cases.emplace_back( V( -dx, 99, 0 ), V( 0,1,0 ), -1.0 );
@@ -584,6 +897,287 @@ void testBoxCases()
            <<" Box test cases!"<<std::endl;
 }
 
+void testUnboundedCylinderCases()
+{
+  using V = NC::Vector;
+  const double r(3.0);
+  auto geom = NCMMC::createGeometry( "cyl;r=3.0" );
+  TestUnboundedCylinder testcalc( r );
+  auto rng  = NC::getRNG();
+  std::vector<TestCase> test_cases;
+  //Manually added (and calculated) test cases:
+  for ( double y : { 0.0, -10.0, 1e20, -1e20 } ) {
+    test_cases.emplace_back( V( 0, y, -10 ), V( 0,0,1 ), 7 );
+    test_cases.emplace_back( V( 0, y, -10 ), V( 0,1,1 ), std::sqrt(2*49) );
+    test_cases.emplace_back( V( 0, y, 0 ), V( 0,0,1 ), 0, 3 );
+    test_cases.emplace_back( V( 0, y, 0 ), V( 1,0,1 ), 0, 3 );
+    test_cases.emplace_back( V( 0, y, 0 ), V( 0,1,1 ), 0, std::sqrt(18) );
+    test_cases.emplace_back( V( -6, y, 0 ), V( 1,0,0 ), 3 );
+    test_cases.emplace_back( V( -6, y, 0 ), V( 1,1,0 ), 3*sqrt(2) );
+    test_cases.emplace_back( V( -6, y, 0 ), V( 1,2,0 ), 3*sqrt(5) );
+    test_cases.emplace_back( V( 0, y, -6 ), V( 0,0,1 ), 3 );
+    test_cases.emplace_back( V( 0, y, -6 ), V( 0,1,1 ), 3*sqrt(2) );
+    test_cases.emplace_back( V( 0, y, -6 ), V( 0,2,1 ), 3*sqrt(5) );
+    const double tmpd = std::sqrt(72)-r;//72=2*6^2
+    test_cases.emplace_back( V( -6, y, -6 ), V( 1,0,1 ), tmpd );
+    test_cases.emplace_back( V( -6, y, -6 ), V( 1./2,1.0/std::sqrt(2),1./2),
+                             tmpd*std::sqrt(2) );
+    test_cases.emplace_back( V( -6, y, -6 ), V( 1, 1, 1),
+                             tmpd*std::sqrt(3./2.) );
+
+    test_cases.emplace_back( V( r, y, 0 ), V( -1,0,0 ), 0.0, 2*r );
+    test_cases.emplace_back( V( r, y, 0 ), V( 1,0,0 ), -1.0, 0.0 );
+
+    test_cases.emplace_back( V( r, y, 0 ), V( 1e-12,0,1 ), -1.0, 0.0 );
+    test_cases.emplace_back( V( r, y, 0 ), V( -1e-12,0,1 ), 0.0,
+                             6e-12//Not actually calculated, I just know it
+                                  //should be almost 0. It is probably 2*r*eps
+                                  //(eps=1e-12) to lowest order
+                             );
+  }
+  //And a bunch of generated ones:
+  test_cases.reserve(500000000);//fixme
+  for ( std::size_t i = 0; i < 100000; ++i ) {
+    V pos = V( 1.5 * r * ( -1.0 + 2.0 * rng->generate() ),
+               1e20 * r * ( -1.0 + 2.0 * rng->generate() ),
+               1.5 * r * ( -1.0 + 2.0 * rng->generate() ) );
+    if ( rng->generate() < 0.2 ) {
+      //force towards edge
+      const double r_xz = std::sqrt(pos.x()*pos.x()+pos.z()*pos.z());
+      if ( r_xz > 0.01 )
+        pos *= (r/r_xz);
+    }
+
+    V dir;
+    if ( rng->generate() < 0.2 ) {
+      //force degenerate direction parallel to y-axis:
+      dir.set( 0., ( rng->generate() < 0.5 ? -1. : 1. ), 0. );
+    } else {
+      dir = NC::randIsotropicDirection( rng );
+    }
+
+    test_cases.emplace_back(pos,dir);
+  }
+
+
+  const bool verbose = false;
+
+  for ( auto& tcase : test_cases ) {
+    const V& pos = tcase.pos;
+    const V& dir = tcase.dir;
+    const bool testexit = testcalc.pointIsInside( pos );
+    const double refdist_2entry = testcalc.distToEntry( pos, dir );
+    const double dist_2entry = distToVolEntry( geom, pos, dir );
+    const bool has_manualref_d2entry = tcase.expected_disttoentry.has_value();
+    const bool has_manualref_d2exit = tcase.expected_disttoexit.has_value();
+
+    const double refdist_2exit = ( testexit
+                                   ? testcalc.distToExit( pos, dir )
+                                   : -17.0 );
+    const double dist_2exit = ( testexit
+                                ? distToVolExit( geom, pos, dir )
+                                : -17.0 );
+    const bool has_manualref = has_manualref_d2entry || has_manualref_d2exit;
+
+    if ( verbose || has_manualref ) {
+      std::cout<<"UnboundedCylinder case: pos = "<<pos<<"  dir="<<dir<<std::endl;
+      std::cout<<"   DistToEntry:"<<std::endl;
+      std::cout<<"               refdist = "
+               <<NC::fmtg(refdist_2entry)<<std::endl;
+      std::cout<<"                  dist = "
+               <<NC::fmtg(dist_2entry)<<std::endl;
+      if ( has_manualref_d2entry )
+        std::cout<<"     expected (manual) = "
+                 <<NC::fmtg(tcase.expected_disttoentry.value())<<std::endl;
+      if ( testexit ) {
+        std::cout<<"   DistToExit:"<<std::endl;
+        std::cout<<"               refdist = "
+                 <<NC::fmtg(refdist_2exit)<<std::endl;
+        std::cout<<"                  dist = "
+                 <<NC::fmtg(dist_2exit)<<std::endl;
+        if ( has_manualref_d2exit )
+          std::cout<<"     expected (manual) = "
+                   <<NC::fmtg(tcase.expected_disttoexit.value())<<std::endl;
+      }
+      std::cout<<std::endl;
+    }
+    REQUIREFLTEQ_SPHERE( refdist_2entry,
+                  tcase.expected_disttoentry.value_or(refdist_2entry));
+    REQUIREFLTEQ_SPHERE( refdist_2entry, dist_2entry );
+    if ( testexit ) {
+      REQUIREFLTEQ_SPHERE( refdist_2exit,
+                           tcase.expected_disttoexit.value_or(refdist_2exit));
+      REQUIREFLTEQ_SPHERE( refdist_2exit, dist_2exit );
+    }
+  }
+  std::cout<<"Tested a total of "<<test_cases.size()
+           <<" UnboundedCylinder test cases!"<<std::endl;
+
+}
+
+void testBoundedCylinderCases()
+{
+  using V = NC::Vector;
+  const double r(3.0);
+  const double dy(2.0);
+  auto geom = NCMMC::createGeometry( "cyl;r=3.0;dy=2.0" );
+  TestBoundedCylinder testcalc( r, dy );
+  auto rng  = NC::getRNG();
+  std::vector<TestCase> test_cases;
+
+  //Manually added (and calculated) test cases:
+
+  test_cases.emplace_back( V( 0, 4, 1 ), V( 0,  -1, 0 ), 2 );
+  test_cases.emplace_back( V( 0, 1, 4 ), V( 0,  0, -1 ), 1 );
+  test_cases.emplace_back( V( 0, 0, 1 ), V( 0,  0, -1 ), 0, 4 );
+
+  test_cases.emplace_back( V( 1.7641924013700643, 0.40120610324932959,
+                              2.4264429049429794),
+                           V( 0.14960643300486684, 0.9770852487737306,
+                              0.15140122797499855), -1 ,0 );
+
+  double feps = 1.0+1e-15;
+  nc_assert_always(feps!=1);
+  test_cases.emplace_back( V( (r/std::sqrt(2))*feps, 0.0, (r/std::sqrt(2))*feps),
+                           V( 1, 0, 1), -1 ,0 );
+  feps = 1.0;
+  test_cases.emplace_back( V( (r/std::sqrt(2))*feps, 0.0, (r/std::sqrt(2))*feps),
+                           V( 1, 0, 1), 0 ,4.4408920985006252e-16 );
+
+  feps = 1.0-1e-15;
+  nc_assert_always(feps!=1);
+  test_cases.emplace_back( V( (r/std::sqrt(2))*feps, 0.0, (r/std::sqrt(2))*feps),
+                           V( 1, 0, 1), 0 , 3.5527136788005e-15 );
+
+  feps = 1.0-1e-12;
+  test_cases.emplace_back( V( (r/std::sqrt(2))*feps, 0.0, (r/std::sqrt(2))*feps),
+                           V( 1, 0, 1), 0 , 3.0002667017470222e-12 );
+
+  feps = 1.0-1e-9;
+  test_cases.emplace_back( V( (r/std::sqrt(2))*feps, 0.0, (r/std::sqrt(2))*feps),
+                           V( 1, 0, 1), 0 , 3.000000692310322e-09 );
+
+  feps = 1.0-1e-6;
+  test_cases.emplace_back( V( (r/std::sqrt(2))*feps, 0.0, (r/std::sqrt(2))*feps),
+                           V( 1, 0, 1), 0 , 3.0000000008634223e-06 );
+
+  test_cases.emplace_back( V( 0, dy+1, -(r+1) ), V( 0,-1,1 ), std::sqrt(2) );
+  test_cases.emplace_back( V( 0, dy+1, -(r+1) ), V( 0,-2,1 ), std::sqrt(5) );
+  test_cases.emplace_back( V( 0, dy+1, -(r+1) ), V( 0,-1,2 ), std::sqrt(5) );
+  test_cases.emplace_back( V( 0, dy+1, -(r+1) ), V( 0,0,1 ), -1 );
+  test_cases.emplace_back( V( 0, dy, -(r+1) ), V( 0,0,1 ), 1. );
+  test_cases.emplace_back( V( 0, dy, -(r-1) ), V( 0,0,1 ), 0., 2*r-1 );
+  test_cases.emplace_back( V( 0, dy+1, -(r+1) ), V( 0,-1,0 ), -1 );
+  test_cases.emplace_back( V( 0, dy+1, -(r+1) ), V( 0,-2*(dy+1), 1 ), -1 );
+  test_cases.emplace_back( V( 0, dy+1, -(r+1) ), V( 0,-2*dy, 1 ), std::sqrt(1+4*dy*dy) );
+
+  test_cases.emplace_back( V( 0, dy-1, -(r+1) ), V( 0,0, 1 ), 1 );
+  test_cases.emplace_back( V( 0, dy-1, -(r+1) ), V( 0,0.5, 1 ), std::sqrt(1.25) );
+  test_cases.emplace_back( V( 0, dy-1, -(r+1) ), V( 0,2, 1 ), -1 );
+  test_cases.emplace_back( V( 0, dy-1, -(r-1) ), V( 0,0, -1 ), 0, 1 );
+  test_cases.emplace_back( V( 0, dy-1, -(r-1) ), V( 0,0, 1 ), 0, 2*r-1 );
+  test_cases.emplace_back( V( 0, dy-1, -(r-1) ), V( 0,-(2*dy-1), 1 ), 0, std::sqrt(9+1) );
+  test_cases.emplace_back( V( 0, dy-1, -(r-1) ), V( 0,-1, 1 ), 0, std::sqrt(2)*3 );
+
+  test_cases.emplace_back( V( 0, dy-1, -(r-1) ), V( 0,1, -1 ), 0, std::sqrt(2) );
+  test_cases.emplace_back( V( 0, dy-1, -(r-1) ), V( 0,1, 0 ), 0, 1 );
+
+  //And a bunch of generated ones:
+
+  for ( std::size_t i = 0; i < 100000; ++i ) {
+
+    V pos = V( 5.0 * ( -1.0 + 2.0 * rng->generate() ),
+               5.0 * ( -1.0 + 2.0 * rng->generate() ),
+               5.0 * ( -1.0 + 2.0 * rng->generate() ) );
+    if ( rng->generate() < 0.25 ) {
+      if ( rng->generate() < 0.5 )
+        pos[1] = dy;
+      else
+        pos[1] = -dy;
+    }
+    if ( rng->generate() < 0.25 ) {
+      const double r_xz = std::sqrt(pos.x()*pos.x()+pos.z()*pos.z());
+      if ( r_xz > 0.01 )
+        pos *= (r/r_xz);
+    }
+
+    V dir;
+    auto dir_choice = rng->generate();
+    if ( dir_choice < 0.25 ) {
+      //force degenerate direction parallel to y-axis:
+      dir.set( 0., ( rng->generate() < 0.5 ? -1. : 1. ), 0. );
+    } else if ( dir_choice < 0.25 ) {
+      //force degenerate direction parallel to slab:
+      auto rr = randPointOnUnitCircle( rng );
+      dir.set( rr.first, 0.0, rr.second );
+    } else {
+      dir = NC::randIsotropicDirection( rng );
+    }
+    test_cases.emplace_back(pos,dir);
+  }
+
+
+  const bool verbose = false;
+
+  for ( auto& tcase : test_cases ) {
+    //std::cout<<"-------------------------------------------------"<<std::endl;
+    const V& pos = tcase.pos;
+    const V& dir = tcase.dir;
+    const bool testexit = testcalc.pointIsInside( pos );
+    const double refdist_2entry = testcalc.distToEntry( pos, dir );
+    const double dist_2entry = distToVolEntry( geom, pos, dir );
+    const bool has_manualref_d2entry = tcase.expected_disttoentry.has_value();
+    const bool has_manualref_d2exit = tcase.expected_disttoexit.has_value();
+
+    const double refdist_2exit = ( testexit
+                                   ? testcalc.distToExit( pos, dir )
+                                   : -17.0 );
+    const double dist_2exit = ( testexit
+                                ? distToVolExit( geom, pos, dir )
+                                : -17.0 );
+    const bool has_manualref = has_manualref_d2entry || has_manualref_d2exit;
+
+    if ( verbose || has_manualref ) {
+      std::cout<<"BoundedCylinder case: pos = "<<pos<<"  dir="<<dir<<std::endl;
+      // std::cout<<"HIGHRES pos="<<NC::fmt(pos.x())<<" "<<NC::fmt(pos.y())<<" "<<NC::fmt(pos.z())<<" mag="<<NC::fmt(pos.mag())
+      //          <<" magxz="<<NC::fmt(std::sqrt(pos.x()*pos.x()+pos.z()*pos.z()))<<std::endl;
+      // std::cout<<"HIGHRES dir="<<NC::fmt(dir.x())<<" "<<NC::fmt(dir.y())<<" "<<NC::fmt(dir.z())<<" mag="<<NC::fmt(dir.mag())<<std::endl;
+      // std::cout<<"HIGHRES pos.dot(dir)="<<NC::fmt(pos.dot(dir))<<std::endl;
+      // std::cout<<"HIGHRES pos.angle(dir)="<<NC::fmt(pos.angle_highres(dir)*180/NC::kPi)<<std::endl;
+      std::cout<<"   DistToEntry:"<<std::endl;
+      std::cout<<"               refdist = "
+               <<NC::fmtg(refdist_2entry)<<std::endl;
+      std::cout<<"                  dist = "
+               <<NC::fmtg(dist_2entry)<<std::endl;
+      if ( has_manualref_d2entry )
+        std::cout<<"     expected (manual) = "
+                 <<NC::fmtg(tcase.expected_disttoentry.value())<<std::endl;
+      if ( testexit ) {
+        std::cout<<"   DistToExit:"<<std::endl;
+        std::cout<<"               refdist = "
+                 <<NC::fmt(refdist_2exit)<<std::endl;//fixme fmtg
+        std::cout<<"                  dist = "
+                 <<NC::fmt(dist_2exit)<<std::endl;//fixme fmtg
+        if ( has_manualref_d2exit )
+          std::cout<<"     expected (manual) = "
+                   <<NC::fmt(tcase.expected_disttoexit.value())<<std::endl;//fixme fmtg
+      }
+      std::cout<<std::endl;
+    }
+    REQUIREFLTEQ_SPHERE( refdist_2entry,
+                  tcase.expected_disttoentry.value_or(refdist_2entry));
+    REQUIREFLTEQ_SPHERE( refdist_2entry, dist_2entry );
+    if ( testexit ) {
+      REQUIREFLTEQ_SPHERE( refdist_2exit,
+                           tcase.expected_disttoexit.value_or(refdist_2exit));
+      REQUIREFLTEQ_SPHERE( refdist_2exit, dist_2exit );
+    }
+  }
+  std::cout<<"Tested a total of "<<test_cases.size()
+           <<" BoundedCylinder test cases!"<<std::endl;
+
+}
+
 void testSphereCases()
 {
   using V = NC::Vector;
@@ -591,7 +1185,7 @@ void testSphereCases()
   auto geom = NCMMC::createGeometry( "sphere;r=3.0" );
   TestSphere testsphere( r );
   auto rng  = NC::getRNG();
-  std::vector<SphereTestCase> test_cases;
+  std::vector<TestCase> test_cases;
   //Manually added (and calculated) test cases:
   test_cases.emplace_back( V( 0.0, 0.0, -10 ), V( 0,0,1 ), 7 );
   test_cases.emplace_back( V( 0.0, 0.0, -2 ), V( 0,0,1 ), 0, 5 );
@@ -740,7 +1334,8 @@ void testSphereCases2()
 }
 
 int main(int,char**) {
-
+  testUnboundedCylinderCases();
+  testBoundedCylinderCases();
   testSphereCases();
   testSphereCases2();
   testSlabCases();
