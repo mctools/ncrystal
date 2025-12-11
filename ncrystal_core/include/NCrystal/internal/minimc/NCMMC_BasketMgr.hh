@@ -38,6 +38,7 @@ namespace NCRYSTAL_NAMESPACE {
       HeapMem( HeapMem o, ensure_alloc_t )
         : m_heapptr( std::move(o.m_heapptr) )
       {
+        assert( o.m_heapptr.data == nullptr );
         if (!m_heapptr.data)
           allocate();
       }
@@ -49,23 +50,26 @@ namespace NCRYSTAL_NAMESPACE {
 #ifndef NDEBUG
       ~HeapMem()
       {
-        assert(!m_heapptr.data);//test against inadvertant deallocation (the
-                                //HeapMemPool will deallocate objects before
-                                //letting them go out of scope).
+        //We do not deallocate here, since the HeapMemPool should have done that
+        //without letting allocated HeapMem objects go out of scope. But we add
+        //an assert to detect flaws in the logic.
+        assert(!m_heapptr.data);
       }
 #endif
 
       //Important (for usage in SmallVector) that we are
       //nothrow-move-assignable. The downside is that HeapMem( std::move(o) )
-      //does not guarantee to leave o empty.
+      //does not guarantee to leave o empty, so we have the release() method for
+      //that instead.
       HeapMem( HeapMem&& o ) noexcept { m_heapptr.swap( o.m_heapptr ); }
       HeapMem& operator=( HeapMem&& o ) noexcept { m_heapptr.swap( o.m_heapptr ); return *this; }
 
       void * data() noexcept { return m_heapptr.data; }
       const void * data() const noexcept { return m_heapptr.data; }
       void allocate() { m_heapptr.allocate( N_SIZE ); }
-      void deallocate() { m_heapptr.deallocate(); }
+      void deallocate() { if (m_heapptr.data) m_heapptr.deallocate(); }
       void swap( HeapMem& o ) noexcept { m_heapptr.swap( o.m_heapptr ); }
+      HeapMem release() noexcept { HeapMem h; swap(h); return h; }
     private:
       AlignedAlloc::AlignedHeapPtr<N_ALIGN> m_heapptr;
     };
@@ -77,15 +81,12 @@ namespace NCRYSTAL_NAMESPACE {
       static_assert(std::is_nothrow_destructible<TBasket>::value,"");
       static_assert(std::is_default_constructible<TBasket>::value,"");
       static_assert(std::is_standard_layout<TBasket>::value,"");
-      //      static_assert(std::is_trivially_constructible<TBasket>::value,"");
+      // static_assert(std::is_trivially_constructible<TBasket>::value,"");
       static_assert(std::is_nothrow_constructible<TBasket>::value,"");
       using heapmem_t = HeapMem<alignof(TBasket),sizeof(TBasket)>;
 
-      //NB: TBasket is trivially destructible, so OK that we never invoke the
-      //destructor.
-
       BasketHolder( heapmem_t hm )
-        : m_heapmem( std::move(hm), typename heapmem_t::ensure_alloc_t() ),
+        : m_heapmem( hm.release(), typename heapmem_t::ensure_alloc_t() ),
           m_basket(new(m_heapmem.data()) TBasket)
       {
       }
@@ -122,14 +123,14 @@ namespace NCRYSTAL_NAMESPACE {
       constexpr bool operator!() const noexcept { return m_basket==nullptr; }
 
       //Only access basket for valid objects:
-      TBasket& basket() noexcept { return *m_basket; }
-      const TBasket& basket() const noexcept { return *m_basket; }
+      TBasket& basket() noexcept { assert(m_basket); return *m_basket; }
+      const TBasket& basket() const noexcept { assert(m_basket); return *m_basket; }
 
       //To use by the memory pool manager (do not access basket() afterwards):
-      heapmem_t stealMemory()
+      heapmem_t stealMemory() noexcept
       {
         m_basket = nullptr;
-        return std::move(m_heapmem);
+        return m_heapmem.release();
       }
 
       //Using swap rather than move to be noexcept:
@@ -158,18 +159,26 @@ namespace NCRYSTAL_NAMESPACE {
       std::size_t size() const { return m_pool.size(); }
       heapmem_t allocate()
       {
-        if ( m_pool.empty() )
-          return heapmem_t(typename heapmem_t::ensure_alloc_t());
-        auto o = heapmem_t( std::move(m_pool.back()),
-                            typename heapmem_t::ensure_alloc_t() );
-        m_pool.pop_back();
-        return o;
+        heapmem_t res;
+        if ( m_pool.empty() ) {
+          res.allocate();
+        } else {
+          res = m_pool.back().release();
+          m_pool.pop_back();
+        }
+        nc_assert(res.data());
+        return res;
       }
       void deallocate( heapmem_t&& o )
       {
-        if ( o.data() && m_pool.size() < N_MAX_KEEP ) {
-          // m_pool.reserve(N_MAX_KEEP);
-          m_pool.push_back( std::move(o) );
+        if ( !o.data() )
+          return;
+        if ( m_pool.size() < N_MAX_KEEP ) {
+          m_pool.emplace_back( o.release() );
+          nc_assert( o.data() == nullptr );
+          nc_assert( m_pool.back().data() != nullptr );
+        } else {
+          o.deallocate();
         }
       }
 
