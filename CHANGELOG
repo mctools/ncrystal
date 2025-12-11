@@ -54,6 +54,8 @@ v4.2.13 (work-in-progress)
      * Fix memory leak in the MiniMC BasketMgr in cases where the memory pool
        reached capacity. This typically mostly happened when utilising more
        threads than actually available in hardware.
+     * Fix MiniMC propagation issue with source particles starting outside the
+       geometries.
      * MiniMC sources can now actually alter the weights of initial particles,
        and will keep track of the summed weights generated.
      * Add utility function fmtUInt64AsNiceDbl for safely formatting integers
