@@ -35,15 +35,18 @@ namespace NCRYSTAL_NAMESPACE {
       //engines.
 
       void calcProbTransm( NumberDensity nd, std::size_t N,
+                           bool geom_is_unbounded,
                            const double * ncrestrict xs_or_nullptr,
                            const double * ncrestrict dist,
                            double * ncrestrict out );
 
       void propagate( NeutronBasket& b,
+                      bool geom_is_unbounded,
                       const double* ncrestrict dists );
 
       void propagateAndAttenuate( NeutronBasket& b,
                                   NumberDensity nd,
+                                  bool geom_is_unbounded,
                                   const double* ncrestrict dists,
                                   const double* ncrestrict xsvals = nullptr );
 
@@ -52,10 +55,6 @@ namespace NCRYSTAL_NAMESPACE {
                             const double * ncrestrict xsvals,
                             std::size_t N,
                             double * ncrestrict tgt );
-
-      void scatterGivenMu( RNG& rng,
-                           NeutronBasket& b,
-                           double * ncrestrict mu_vals );
 
       //Helper function suitable for implementing distToVolumeExit (see
       //NCMMC_Geom.hh) for an infinite slab bounded by planes at
