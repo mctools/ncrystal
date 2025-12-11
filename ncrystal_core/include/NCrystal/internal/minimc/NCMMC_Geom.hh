@@ -41,7 +41,12 @@ namespace NCRYSTAL_NAMESPACE {
       //has a flat edge and the neutron direction is in the plane of that edge,
       //or -1.0 if the surface locally has a curved edge and the neutron is
       //about to leave the volume.
-      virtual void distToVolumeEntry( const NeutronBasket&, Span<double> ) const = 0;
+      //
+      //If offset>0, the first offset entries in both the basket and the
+      //destination buffer are ignored. Fixme: do we need to use span here?
+      virtual void distToVolumeEntry( const NeutronBasket&,
+                                      Span<double>,
+                                      size_t offset ) const = 0;
 
       //Finds the distance out of a volume. This is usually the most performance
       //critical geometry function. It is undefined behaviour to invoke this
