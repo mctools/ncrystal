@@ -25,6 +25,8 @@ v4.2.13 (work-in-progress)
        of this new generator is that it can be used to illuminate a spherical
        sample uniformly, and is for instance intended for investigation of
        extinction effects in diffraction with spherical grains.
+     * The MiniMC SourceIsotropic can now let the particles originate on a
+       sphere, with particle directions parallel to the surface normals.
      * Make the Python Histogram classes returned by the MiniMC framework much
        more feature complete, adding several features intended to make
        subsequent data analysis easier.

@@ -184,17 +184,27 @@ namespace NCRYSTAL_NAMESPACE {
         Length m_z;
         double m_w = 1.0;
         NeutronEnergy m_ekin;
-      public:
+        double m_minusr = 0.0;
+     public:
+
+        //Note: If radius is set to a positive value, we move particles
+        //backwards that amount to effectively get a sphere of particles
+        //radiating inwards.  If set to a negative value, move particles forward
+        //that amount (i.e. a sphere radiating outwards).
 
         SourceIsotropic( std::size_t n,
                          NeutronEnergy ekin,
                          double weight,
                          Length x = Length{0},
                          Length y = Length{0},
-                         Length z = Length{0} )
-          : m_stat(n), m_x(x), m_y(y), m_z(z), m_w(weight), m_ekin(ekin)
+                         Length z = Length{0},
+                         double radius = 0.0 )
+          : m_stat(n), m_x(x), m_y(y), m_z(z),
+            m_w(weight), m_ekin(ekin),
+            m_minusr(radius?-radius:0.0)
         {
-          nc_assert(m_w>0.0&&std::isfinite(m_w));
+          nc_assert_always(m_w>0.0&&std::isfinite(m_w));
+          nc_assert_always(std::isfinite(radius)&&ncabs(radius)<1e99);
         }
 
         Optional<NeutronDirection> nominalBeamDirection() const override
@@ -211,6 +221,8 @@ namespace NCRYSTAL_NAMESPACE {
         {
           sourceJSONHelper_namexyzwn(os,"isotropic",m_x,m_y,m_z,m_w,m_stat);
           sourceJSONHelper_energyItems(os,m_ekin);
+          os << ",\"r\":";
+          streamJSON(os,(m_minusr?-m_minusr:0.0));
         }
 
         void toJSON(std::ostream& os) const override
@@ -223,6 +235,8 @@ namespace NCRYSTAL_NAMESPACE {
           sourceCfgStrHelper_namexyzwn(os, "isotropic",
                                        m_x, m_y, m_z, m_w, m_stat );
           sourceCfgStrHelper_energyItems( os, m_ekin );
+          if ( m_minusr != 0.0 )
+            os << ";r="<<fmt((m_minusr?-m_minusr:0.0));
         }
 
         ParticleCountSum particlesProvided() const override {
@@ -236,7 +250,10 @@ namespace NCRYSTAL_NAMESPACE {
             //Fixme: should this just be the toCfgStr/toJSON now??
             std::ostringstream ss;
             ss << "SourceIsotropic("<<m_ekin<<", pos=["
-               << m_x<<", "<< m_y<<", "<< m_z<<"])";
+               << m_x<<", "<< m_y<<", "<< m_z<<"]";
+            if ( m_minusr )
+              ss << ", r="<<(m_minusr?-m_minusr:0.0);
+            ss << ")";
             md.description = ss.str();
           }
           md.concurrent = true;
@@ -270,6 +287,15 @@ namespace NCRYSTAL_NAMESPACE {
             nb.w[i] = m_w;
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
             nb.ekin[i] = m_ekin.dbl();
+          if ( m_minusr ) {
+            //Move particles u*(-r):
+            for ( std::size_t i = counts.i0; i < counts.N; ++i )
+              nb.x[i] += nb.ux[i] * m_minusr;
+            for ( std::size_t i = counts.i0; i < counts.N; ++i )
+              nb.y[i] += nb.uy[i] * m_minusr;
+            for ( std::size_t i = counts.i0; i < counts.N; ++i )
+              nb.z[i] += nb.uz[i] * m_minusr;
+          }
         }
       };
 
@@ -296,7 +322,7 @@ namespace NCRYSTAL_NAMESPACE {
             m_w(weight),
             m_ekin(ekin)
         {
-          nc_assert(m_w>0.0&&std::isfinite(m_w));
+          nc_assert_always(m_w>0.0&&std::isfinite(m_w));
         }
 
         Optional<NeutronDirection> nominalBeamDirection() const override
@@ -407,7 +433,7 @@ namespace NCRYSTAL_NAMESPACE {
             m_ekin(ekin),
             m_radius(radius)
         {
-          nc_assert(m_w>0.0&&std::isfinite(m_w));
+          nc_assert_always(m_w>0.0&&std::isfinite(m_w));
           const Vector& vdir = m_dir.as<Vector>();
           if ( m_radius.get() > 0.0 ) {
             //We must find m_a and m_b as basis vectors of the disk on which to
@@ -586,13 +612,17 @@ namespace NCRYSTAL_NAMESPACE {
         } else if ( src_name == "isotropic" ) {
           PMC::applyDefaults( tokens, common_defaults );
           PMC::applyDefaults( tokens, "x=0;y=0;z=0;n=1e6" );
-          PMC::checkNoUnknown(tokens,"ekin;wl;n;w;;x;y;z","source");
+          PMC::checkNoUnknown(tokens,"ekin;wl;n;w;;x;y;z;r","source");
+          const double r = ( PMC::hasValue( tokens, "r" )
+                             ? PMC::getValue_dbl( tokens, "r" )
+                             : 0.0 );
           return makeSO<SourceIsotropic>( PMC::getValue_sizet(tokens,"n"),
                                           PMC::getValue_Energy( tokens, common_default_energy ),
                                           PMC::getValue_weight( tokens, "w" ),
                                           Length{ PMC::getValue_dbl(tokens,"x") },
                                           Length{ PMC::getValue_dbl(tokens,"y") },
-                                          Length{ PMC::getValue_dbl(tokens,"z") } );
+                                          Length{ PMC::getValue_dbl(tokens,"z") },
+                                          r );
         } else {
           NCRYSTAL_THROW2(BadInput,"Unknown source type requested: \""<<src_name<<"\"");
         }
