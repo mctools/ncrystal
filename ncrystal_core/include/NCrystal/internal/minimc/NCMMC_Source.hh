@@ -59,6 +59,16 @@ namespace NCRYSTAL_NAMESPACE {
       //Query total weight of all particles already provided by source:
       virtual ParticleCountSum particlesProvided() const = 0;
 
+      //Most sources provide a nominal "beam direction", with respect to which
+      //scattering angles can be defined in tallies. An example of a source
+      //which does not, would be an isotropic source of neutrons.
+      virtual Optional<NeutronDirection> nominalBeamDirection() const = 0;
+
+      //Nominal "beam energy", needed to provide Ei in some tallies (deltaE, q,
+      //..). An example of a source which does not, would be a source of
+      //neutrons read from an external file.
+      virtual Optional<NeutronEnergy> nominalBeamEnergy() const = 0;
+
       //Serialisation of source configuration, as original source cfg-string, or
       //as a JSON object with more direct access to individual values. The JSON
       //object is a dictionary like (where one of the params should always be
