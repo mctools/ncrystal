@@ -68,6 +68,11 @@ namespace NCRYSTAL_NAMESPACE {
           os << ";dy="<<fmt(m_dy);
       }
 
+      bool hasUnboundedDistToVolExit() const
+      {
+        return m_dy == 0.0;
+      }
+
       //Fixme: would the usage of pointIsInside in the engine (or rather in the
       //constant source) not be better served by simply calling
       //distToVolumeEntry? Then we could also emit errors there and move the

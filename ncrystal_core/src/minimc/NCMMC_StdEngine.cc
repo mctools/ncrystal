@@ -51,6 +51,7 @@ void NCMMC::StdEngine::advanceSimulation( RNG& rng,
 {
   NCRYSTAL_DEBUGMMCMSG("StdEngine::advanceSimulation inbasket.size()="
                        <<inbasket_holder.basket().size());
+  const int maxnscat = -1;//fixme: expose as enginecfg parameter.
   nc_assert( resultFct != nullptr );
   nc_assert( inbasket_holder.valid() );
   nc_assert( !inbasket_holder.basket().empty() );
@@ -58,13 +59,14 @@ void NCMMC::StdEngine::advanceSimulation( RNG& rng,
                                             //xsects in-place.
   const bool has_scat = !( m_mat.scatter == nullptr
                            || m_mat.scatter->isNull() );
-  const bool has_abs = !( m_mat.absorption ==nullptr
+  const bool has_abs = !( m_mat.absorption == nullptr
                           || m_mat.absorption->isNull() );
   const bool scatter_is_isotropic = !(has_scat&&m_mat.scatter->isOriented());
   const bool absorption_is_isotropic = !(has_abs&&m_mat.absorption->isOriented());
+  const bool geom_is_unbounded = geom.hasUnboundedDistToVolExit();
 
-
-  //Get distances out for all the particles:
+  //Get distances out for all the particles (note, if geom_is_unbounded, this
+  //might include infinities):
   geom.distToVolumeExit( inbasket.neutrons, m_buf_disttoexit );
 
   //Get absorption cross sections:
@@ -91,6 +93,7 @@ void NCMMC::StdEngine::advanceSimulation( RNG& rng,
     //Special case of no scattering, just transmit (in-place) and return:
     MiniMC::Utils::propagateAndAttenuate( inbasket_holder.basket().neutrons,
                                           m_mat.numDens,
+                                          geom_is_unbounded,
                                           m_buf_disttoexit,
                                           values_abs_xs_or_nullptr );
 
@@ -99,8 +102,16 @@ void NCMMC::StdEngine::advanceSimulation( RNG& rng,
     return;
   }
 
-  //Get scattering cross sections (potentially with cached values):
+  //Get scattering cross sections (potentially with cached values). Also, if
+  //maxnscat is enabled, anything already scattered maxnscat times will get a
+  //phony scattering cross section value of 0:
+
   if ( scatter_is_isotropic ) {
+    if ( maxnscat>=0 ) {
+      for ( auto i : ncrange( inbasket.size() ) )
+        if ( inbasket.cache.nscat[i] >= maxnscat )
+          inbasket.cache.scatxsval[i] = 0.0;
+    }
     for ( auto i : ncrange( inbasket.size() ) ) {
       if ( inbasket.cache.scatxsval[i] < 0.0 )
         inbasket.cache.scatxsval[i]
@@ -108,23 +119,35 @@ void NCMMC::StdEngine::advanceSimulation( RNG& rng,
                                                   inbasket.neutrons.ekin_obj(i) ).dbl();
     }
   } else {
-    //not isotropic, always recalculate all xs values:
+    //not isotropic, always recalculate all xs values (except if maxnscat is
+    //exceeded of course):
     for ( auto i : ncrange( inbasket.size() ) ) {
-      inbasket.cache.scatxsval[i]
-        = m_mat.scatter->crossSection( m_sct_cacheptr,
-                                       inbasket.neutrons.ekin_obj(i),
-                                       inbasket.neutrons.dir_obj(i) ).dbl();
+      if ( maxnscat >= 0 && inbasket.cache.nscat[i] >= maxnscat )
+        inbasket.cache.scatxsval[i] = 0.0;
+      else
+        inbasket.cache.scatxsval[i]
+          = m_mat.scatter->crossSection( m_sct_cacheptr,
+                                         inbasket.neutrons.ekin_obj(i),
+                                         inbasket.neutrons.dir_obj(i) ).dbl();
     }
   }
 
-  //Transmission probability:
+  //Transmission probability (note, as a special case this will be set to 0 if
+  //disttoexit=inf):
   MiniMC::Utils::calcProbTransm( m_mat.numDens,
                                  inbasket.size(),
+                                 geom_is_unbounded,
                                  inbasket.cache.scatxsval,
                                  m_buf_disttoexit,
                                  m_buf_ptransm );
 
-  //Pick scattering points:
+  //FIXME: Make sure we handle xs_scat=0 correctly!!
+
+  //fixme: stop recalculating macro_xs, but immediately convert xs values to
+  //macroscopic values right after query!
+
+  //Pick scattering points (note returns kInfinity if macro scat xs=0):
+
   MiniMC::Utils::sampleRandDists(rng,
                                  m_mat.numDens,
                                  m_buf_disttoexit,
@@ -136,6 +159,10 @@ void NCMMC::StdEngine::advanceSimulation( RNG& rng,
     //Add a pending basket with scattered particles for further simulations. We
     //also implement a russian roulette particle-killing scheme (otherwise the
     //simulations would never terminate with our forced-collision scheme).
+    //
+    //Finally, we skip any particle with weight=0 or vanishing scattering cross
+    //section.
+
     basket_holder_t pending = allocateBasket(mgr);
     nc_assert( pending.valid() && pending.basket().empty() );
     auto& outb = pending.basket();
@@ -144,6 +171,19 @@ void NCMMC::StdEngine::advanceSimulation( RNG& rng,
     nc_assert( m_opt.roulette_survival_probability < 1.0 );
 
     for ( auto i : ncrange( inb.size() ) ) {
+      if ( inb.neutrons.w[i]==0.0 )
+        continue;//no actual flux here, killed!
+
+      if ( std::isinf(m_buf_disttoscat[i] ) )
+        continue;//this comes from no scattering cross section (fixme: assert
+                 //that this is so).
+
+      const double macro_scat_xs
+        = macroXS( m_mat.numDens,
+                   CrossSect{ inbasket.cache.scatxsval[i] } );
+      if (!(macro_scat_xs > 0.0))
+        continue;//can't scatter (all relevant weight should have been delivered
+                 //to the tally already via ptransm).
       //Implement russian-roulette:
       double roulette_weight_factor = 1.0;
       double roulette = ( ( inb.cache.nscat[i] >= m_opt.roulette_nscat_threshold
@@ -160,25 +200,37 @@ void NCMMC::StdEngine::advanceSimulation( RNG& rng,
         }
       }
 
-      //Process this particle further, i.e. copy it to the pending
-      //basket and update the weight (and then scatter it below):
+      //Get macroscopic scattering cross section:
+      //fixme cache factor macroXS( m_mat.numDens, CrossSect{1.0}).
+      const double macro_abs_xs
+        = ( values_abs_xs_or_nullptr
+            ? macroXS( m_mat.numDens,
+                       CrossSect{ *std::next(values_abs_xs_or_nullptr,i) } )
+            : 0.0 );
+
+      nc_assert( !std::isinf(m_buf_disttoscat[i]));
+      const double weight_reduction_factor
+        = std::exp( -macro_abs_xs * m_buf_disttoscat[i] );
+
+      if (!(weight_reduction_factor>0.0))
+        continue;//did not survive to scatter point, kill!
+
+      //We are now in the "standard" situation:
+      //  macro_scat_xs > 0.0
+      //  weight_reduction_factor > 0.0
+      //  disttoscat < infinity
+      //
+      //So we process this particle further, i.e. copy it to the pending basket
+      //and update the weight (and then scatter it below):
       nc_assert( outb.size() < basket_N );
       std::size_t j = outb.appendEntryFromOther( inbasket, i );
       outb.neutrons.w[j] *= roulette_weight_factor;
 
-      //Move to scattering point and attenuate:
-      {
-        const double disttoscat = m_buf_disttoscat[i];
-        outb.neutrons.x[j] += disttoscat * outb.neutrons.ux[j];
-        outb.neutrons.y[j] += disttoscat * outb.neutrons.uy[j];
-        outb.neutrons.z[j] += disttoscat * outb.neutrons.uz[j];
-        if ( values_abs_xs_or_nullptr ) {
-          const double xsval_abs = values_abs_xs_or_nullptr[i];
-          outb.neutrons.w[j] *= std::exp( -macroXS( m_mat.numDens,
-                                                    CrossSect{ xsval_abs } )
-                                          * disttoscat );
-        }
-      }
+      //Move to scattering point and attenuate: (fixme: can disttoscat be inf if xs=0??)
+      outb.neutrons.x[j] += m_buf_disttoscat[i] * outb.neutrons.ux[j];
+      outb.neutrons.y[j] += m_buf_disttoscat[i] * outb.neutrons.uy[j];
+      outb.neutrons.z[j] += m_buf_disttoscat[i] * outb.neutrons.uz[j];
+      outb.neutrons.w[j] *= weight_reduction_factor;
 
       //Scatter:
       nc_assert( has_scat );
@@ -186,10 +238,11 @@ void NCMMC::StdEngine::advanceSimulation( RNG& rng,
                                                    rng,
                                                    outb.neutrons.ekin_obj(j),
                                                    outb.neutrons.dir_obj(j));
+      nc_assert( ncabs(outcome.direction.as<Vector>().mag()-1) < 1e-9 );
       outb.neutrons.ux[j] = outcome.direction[0];
       outb.neutrons.uy[j] = outcome.direction[1];
       outb.neutrons.uz[j] = outcome.direction[2];
-      bool was_elastic = (outb.neutrons.ekin[j] == outcome.ekin.dbl());
+      const bool was_elastic = (outb.neutrons.ekin[j] == outcome.ekin.dbl());
       outb.neutrons.ekin[j] = outcome.ekin.dbl();
       if ( was_elastic ) {
         outb.cache.markScatteredElastic(j);
@@ -197,13 +250,16 @@ void NCMMC::StdEngine::advanceSimulation( RNG& rng,
         outb.cache.markScatteredInelastic(j);
         outb.cache.scatxsval[j] = -1.0;//xs might have changed
       }
-      //Needless since we never use the cached xs in case of oriented materials:
-      //if (!scatter_is_isotropic)
-      //  outb.cache.scatxsval[j] = -1.0;
 
-      //Fix weights for the forced collision:
+      //Fix weights for the forced collision. Note that when disttoexit=inf, we
+      //have ptransm=0 (to avoid anything transmitted cropping up in the
+      //tallies), so it is right that the final factor in (1-ptransm)=1. Nothing
+      //made it to the tally, we kept all for the scattering. In case scattering
+      //XS was also 0, that particle was simply lost (FIXME: This will have been
+      //counted as "absorbed" in our plots. We should calculate the "lost"
+      //separately? Or at least think carefully about what the correct behaviour
+      //is and then test that we get it)
       outb.neutrons.w[j] *= ( 1.0 - m_buf_ptransm[i] );
-
     }
     if ( !outb.empty() ) {
       mgr.addPendingBasket( std::move(pending) );
@@ -213,11 +269,13 @@ void NCMMC::StdEngine::advanceSimulation( RNG& rng,
   }
 
   {
-    //Add a result basket with directly transmitted particles. For
-    //efficiency, we simply reuse the input basket:
+    //Add a result basket with directly transmitted particles. For efficiency,
+    //we simply reuse the input basket (in case of infinite disttoexit we end up
+    //with w=0, but these will be ignored later):
     auto& outb = inbasket_holder.basket();
     MiniMC::Utils::propagateAndAttenuate( outb.neutrons,
                                           m_mat.numDens,
+                                          geom_is_unbounded,
                                           m_buf_disttoexit,
                                           values_abs_xs_or_nullptr );
     //We also reduce with the transmission probability (i.e. scatter-process
