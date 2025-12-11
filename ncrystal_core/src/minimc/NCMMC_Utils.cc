@@ -293,7 +293,7 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
                       " \"1e6\" in front of keyword \"times\".");
     sv_count = *std::prev(itE);
     --itE;
-   }
+  }
   std::string count_formatted;
   if ( sv_count.has_value()) {
     count_formatted = detail_format_count( sv_count.value() );
@@ -387,14 +387,14 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
       neutron_energy = NeutronEnergy{ round6(e_val * kT) };
       neutron_wavelength = neutron_energy.wavelength();
     } else if ( e_unit == "BT" ) {
-        //unit is bragg threshold (or 4Aa)
-        if (!info)
-          info = FactImpl::createInfo( matcfg );
-        wavelength_mode = true;
-        auto braggthr = detail_extract_braggThreshold( *info );
-        double bt_Aa = braggthr.value_or( NeutronWavelength{ 4.0 } ).get();
-        neutron_wavelength = NeutronWavelength( round6(e_val * bt_Aa) );
-        neutron_energy = neutron_wavelength.energy();
+      //unit is bragg threshold (or 4Aa)
+      if (!info)
+        info = FactImpl::createInfo( matcfg );
+      wavelength_mode = true;
+      auto braggthr = detail_extract_braggThreshold( *info );
+      double bt_Aa = braggthr.value_or( NeutronWavelength{ 4.0 } ).get();
+      neutron_wavelength = NeutronWavelength( round6(e_val * bt_Aa) );
+      neutron_energy = neutron_wavelength.energy();
     } else {
       NCRYSTAL_THROW2(BadInput,
                       (e_unit.empty()?"Missing":"Invalid")
@@ -445,9 +445,9 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
       std::ostringstream ss;
       Cfg::units_length::listAvailableUnitsNoDefault(ss);
       NCRYSTAL_THROW2(BadInput,"invalid length: \""<<sv_thickness<<"\". "
-                     <<"Must be a value followed by either the special unit"
-                     " \"mfp\" (mean-free-path between scatterings) or one of"
-                     " the standard length units: "<<ss.str());
+                      <<"Must be a value followed by either the special unit"
+                      " \"mfp\" (mean-free-path between scatterings) or one of"
+                      " the standard length units: "<<ss.str());
     }
     thickness_meter = pv.value().first * 1e-10;//units_length::parse returns Aa
   }
@@ -472,18 +472,25 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
     const double sphere_r = thickness_meter*0.5;
     ss_geom << "sphere;r="<<fmt(sphere_r);
     if ( is_pencil )
-      ss_src << "constant;z=" << fmt(src_z_plus_epsilon,g15);
+      ss_src << "constant;z=" << fmt(src_z_plus_epsilon,g15);//fixme: do away
+                                                             //with the epsilon?
+                                                             //Also needs unit
+                                                             //test that
+                                                             //proptovolentry
+                                                             //always gives a
+                                                             //proptovolexit of
+                                                             //the correct
+                                                             //magnitude in this
+                                                             //case.
     else
       ss_src << "circular;z=" << fmt(src_z);
     ss_src << ";r="<<fmt(sphere_r);
   } else {
     nc_assert_always( is_slab );
-    double box_dz = thickness_meter;
-    double box_dxy = std::max(1.0,thickness_meter*1e5);
-    ss_geom << "box;dz="<<fmt(box_dz)<<";dx="
-            <<fmt(box_dxy)<<";dy="<<fmt(box_dxy);
+    const double slab_dz = thickness_meter*0.5;
+    ss_geom << "slab;dz="<<fmt(slab_dz);
     nc_assert_always( is_pencil );
-    ss_src << "constant;z=" << fmt(src_z_plus_epsilon,g15);
+    ss_src << "constant;z=" << fmt(src_z);
   }
 
   //Add energy to src:
