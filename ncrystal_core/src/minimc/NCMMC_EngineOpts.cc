@@ -21,7 +21,6 @@
 #include "NCrystal/internal/minimc/NCMMC_EngineOpts.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCMMC_ParseCfg.hh"
-
 namespace NC = NCrystal;
 namespace NCMMC = NCrystal::MiniMC;
 
@@ -32,36 +31,65 @@ NCMMC::EngineOpts NCMMC::parseEngineOpts( StrView raw_srcstr )
   StrView src_name =  PMC::mainName( tokens );
   if ( !src_name.has_value() )
     src_name = "std";//Default to "std" engine
+
+  //For now we only have the one engine (fixme: add an "analogue" engine?)
   if (src_name != "std" )
     NCRYSTAL_THROW2(BadInput,"Invalid MiniMC engine \""<<src_name<<"\"");
 
   NCMMC::EngineOpts res;
-
   //Defaults (with asserts that they are compatible with the defaults on the
   //struct): The default values must be kept synchronised with the stream
   //operator (which omits values at default values) and the default values on
   //the EngineOpt struct itself.
   const char * defaults
-    = "ignoremiss=0;tallybreakdown=1;nthreads=auto;absorption=1";
+    = "ignoremiss=0;nthreads=auto;absorption=1";
   static_assert( EngineOpts::IgnoreMiss::Default ==
                  EngineOpts::IgnoreMiss::NO, "" );
-  static_assert( EngineOpts::TallyBreakdown::Default ==
-                 EngineOpts::TallyBreakdown::YES, "" );
   static_assert( EngineOpts::IncludeAbsorption::Default ==
                  EngineOpts::IncludeAbsorption::YES, "" );
   nc_assert( res.nthreads.indicatesAutoDetect() );
 
   //Apply defaults and error in case of unknown parameters:
   PMC::applyDefaults( tokens, defaults );
-  PMC::checkNoUnknown(tokens,"ignoremiss;tallybreakdown;nthreads;absorption",
+  PMC::checkNoUnknown(tokens,
+                      //
+                      "ignoremiss;nthreads;absorption"
+                      ";beamdirx;beamdiry;beamdirz;beamenergy"
+                      ";tally;tallybins",
+                      //
                       "engine");
+
+  int nbeamdir = ( (PMC::hasValue(tokens,"beamdirx")?1:0)
+                   + (PMC::hasValue(tokens,"beamdiry")?1:0)
+                   + (PMC::hasValue(tokens,"beamdirz")?1:0) );
+  if ( nbeamdir ) {
+    if ( nbeamdir<3)
+      NCRYSTAL_THROW2(BadInput,"Must set all or none of the parameters:"
+                      " \"beamdirx\", \"beamdiry\", and \"beamdirz\".");
+    Vector bd( PMC::getValue_dbl( tokens, "beamdirx" ),
+               PMC::getValue_dbl( tokens, "beamdiry" ),
+               PMC::getValue_dbl( tokens, "beamdirz" ) );
+    if ( bd.mag2()<1e-12 )
+      NCRYSTAL_THROW2(BadInput,"Provided beamdir vector is too"
+                      " close to a null vector.");
+    if ( bd.mag2()>1e99 )
+      NCRYSTAL_THROW2(BadInput,"Provided beamdir vector has too "
+                      "large components.");
+    //Normalise and set:
+    res.tallyBeamDir = bd.unit().as<NeutronDirection>();
+  }
+
+  if ( PMC::hasValue(tokens,"beamenergy") ) {
+    double be = PMC::getValue_dbl( tokens, "beamenergy" );
+    if ( !(be>0.0) || !std::isfinite(be) )
+      NCRYSTAL_THROW2(BadInput,
+                      "Provided beamenergy must be positive and finite");
+    res.tallyBeamEnergy = NeutronEnergy{ be };
+  }
 
   res.ignoreMiss = ( PMC::getValue_bool(tokens,"ignoremiss")
                        ? EngineOpts::IgnoreMiss::YES
                        : EngineOpts::IgnoreMiss::NO );
-  res.tallyBreakdown = ( PMC::getValue_bool(tokens,"tallybreakdown")
-                         ? EngineOpts::TallyBreakdown::YES
-                         : EngineOpts::TallyBreakdown::NO );
   res.includeAbsorption = ( PMC::getValue_bool(tokens,"absorption")
                          ? EngineOpts::IncludeAbsorption::YES
                          : EngineOpts::IncludeAbsorption::NO );
@@ -75,6 +103,43 @@ NCMMC::EngineOpts NCMMC::parseEngineOpts( StrView raw_srcstr )
     if ( v < 9999 )
       res.nthreads = ThreadCount{ static_cast<std::uint32_t>(v) };
   }
+
+  if ( PMC::hasValue(tokens,"tally") ) {
+    auto tallyflags_strlist =
+      PMC::getValue_str(tokens,"tally")
+      .splitTrimmedNoEmpty<TallyFlags::strlist_type::nsmall>(',');
+    res.tallyFlags = TallyFlags(tallyflags_strlist);
+  }
+
+  if ( PMC::hasValue(tokens,"tallybins") ) {
+    auto strlist = PMC::getValue_str(tokens,"tallybins")
+      .splitTrimmedNoEmpty<TallyFlags::strlist_type::nsmall>(',');
+    for ( auto& bstr : strlist ) {
+      TallyFlags::value_type v = 0;
+      Optional<std::int32_t> nbins;
+      Optional<double> xmin;
+      Optional<double> xmax;
+      auto parts = bstr.splitTrimmedNoEmpty<4>(':');
+      if ( parts.size() == 4 ) {
+        v = TallyFlags::lookup(parts.at(0));
+        nbins = parts.at(1).toInt32();
+        xmin = parts.at(2).toDbl();
+        xmax = parts.at(3).toDbl();
+      }
+      if ( !v || !TallyFlags::isSingleFlag(v)
+           || !(v&TallyFlags::Flags::ALLHISTS) )
+        NCRYSTAL_THROW2(BadInput,"Invalid enginecfg tallybins tally name \""
+                        <<parts.at(0) <<"\".");
+      if ( !nbins.has_value() || !xmin.has_value() || !xmax.has_value() )
+        NCRYSTAL_THROW2(BadInput,"Invalid enginecfg tallybins entry \""
+                        <<bstr <<"\" (should have the form"
+                        " \"tallyname:nbins:xmin:xmax\").");
+      Hists::Binning b( nbins.value(), xmin.value(), xmax.value() );
+      b.validate();
+      res.tallyBinnings.add( v, b );
+    }
+  }
+
   return res;
 }
 
@@ -94,13 +159,6 @@ std::string NCMMC::engineOptsToString( const EngineOpts& eopts )
     ss<<"ignoremiss="
       << ( eopts.ignoreMiss == EO::IgnoreMiss::YES ? '1' : '0' );
   }
-  if ( eopts.tallyBreakdown != EO::TallyBreakdown::Default ) {
-    if (!is_empty)
-      ss << ';';
-    is_empty = false;
-    ss<<"tallybreakdown="
-      << ( eopts.tallyBreakdown == EO::TallyBreakdown::YES ? '1' : '0' );
-  }
   if ( eopts.includeAbsorption != EO::IncludeAbsorption::Default ) {
     if (!is_empty)
       ss << ';';
@@ -114,30 +172,57 @@ std::string NCMMC::engineOptsToString( const EngineOpts& eopts )
     is_empty = false;
     ss<<"nthreads="<<eopts.nthreads.get();
   }
+  if ( eopts.tallyBeamDir.has_value() ) {
+    ss<<";beamdirx="<<fmt(eopts.tallyBeamDir.value()[0])
+      <<";beamdiry="<<fmt(eopts.tallyBeamDir.value()[1])
+      <<";beamdirz="<<fmt(eopts.tallyBeamDir.value()[2]);
+  }
+  if ( !eopts.nthreads.indicatesAutoDetect() ) {
+    if (!is_empty)
+      ss << ';';
+    is_empty = false;
+    ss<<"nthreads="<<eopts.nthreads.get();
+  }
+  if ( eopts.tallyFlags.getValue() != TallyFlags().getValue() ) {
+    if (!is_empty)
+      ss << ';';
+    is_empty = false;
+    ss<<"tally=";
+    bool firsttl = true;
+    for ( auto& e : eopts.tallyFlags.toStringList() ) {
+      if (!firsttl)
+        ss<<',';
+      firsttl=false;
+      ss<<e;
+    }
+  }
   return ss.str();
 }
 
 void NCMMC::engineOptsToJSON(std::ostream& os, const EngineOpts& eopts)
 {
   using EO = EngineOpts;
-  //We could include engine name if we have more at some point (but note that if
-  //makes it a tiny bit more difficult to construct a eopts-string from a json
-  //dict)
-  //streamJSONDictEntry( os, "engine", "std", JSONDictPos::FIRST );
-  streamJSONDictEntry( os, "cfgstr", engineOptsToString(eopts),
-                       JSONDictPos::FIRST );
+  //We could include engine name if we have more at some point:
+  streamJSONDictEntry( os, "name", "std", JSONDictPos::FIRST );
+  streamJSONDictEntry( os, "cfgstr", engineOptsToString(eopts)  );
   os << ",\"decoded\":";
-
   streamJSONDictEntry( os, "ignoremiss",
                        bool( eopts.ignoreMiss == EO::IgnoreMiss::YES ),
                        JSONDictPos::FIRST );
-  streamJSONDictEntry( os, "tallybreakdown",
-                       bool( eopts.tallyBreakdown == EO::TallyBreakdown::YES ),
-                       JSONDictPos::OTHER );
   streamJSONDictEntry( os, "absorption",
                        bool( eopts.includeAbsorption
-                             == EO::IncludeAbsorption::YES ),
-                       JSONDictPos::OTHER );
+                             == EO::IncludeAbsorption::YES ) );
+  if ( eopts.tallyBeamDir.has_value() ) {
+    VectD vtbd = { eopts.tallyBeamDir.value()[0],
+                   eopts.tallyBeamDir.value()[1],
+                   eopts.tallyBeamDir.value()[2] };
+    //fixme: also make srcBeamDir avail in json
+    streamJSONDictEntry( os, "beamdir", vtbd );
+  } else {
+    streamJSONDictEntry( os, "beamdir", json_null_t{} );
+  }
+  streamJSONDictEntry( os, "tally",
+                       eopts.tallyFlags.toStringList() );
   if ( eopts.nthreads.indicatesAutoDetect() ) {
     streamJSONDictEntry( os, "nthreads", "auto", JSONDictPos::LAST );
   } else {
@@ -145,4 +230,97 @@ void NCMMC::engineOptsToJSON(std::ostream& os, const EngineOpts& eopts)
                          JSONDictPos::LAST );
   }
   os << '}';
+}
+
+namespace NCRYSTAL_NAMESPACE {
+  namespace MiniMC {
+    namespace {
+      struct TallyFlagsStrDB {
+        //NB: Keep in alphabetical order!!
+        using F = TallyFlags::Flags;
+        constexpr static const TallyFlags::value_type vals[]
+        = { F::cosmu, F::e, F::highres, F::l, F::lowres, F::mu,
+            F::nobreakdown, F::nscat, F::nscat_uw, F::q, F::w  };
+        constexpr static const char* strs[]
+        = { "cosmu", "e","highres", "l", "lowres", "mu",
+            "nobreakdown", "nscat", "nscat_uw", "q", "w"  };
+        constexpr static int n = sizeof(vals)/sizeof(*vals);
+        static_assert( n == sizeof(strs)/sizeof(*strs), "" );
+        static_assert( n == sizeof(vals)/sizeof(*vals), "" );
+      };
+    }
+  }
+}
+
+bool NCMMC::TallyFlags::isSingleFlag( value_type v )
+{
+  for ( int i = 0; i < TallyFlagsStrDB::n; ++i ) {
+    if ( v == TallyFlagsStrDB::vals[i] )
+      return true;
+  }
+  return false;
+}
+
+const char * NCMMC::TallyFlags::singleFlagToString( value_type v )
+{
+  for ( int i = 0; i < TallyFlagsStrDB::n; ++i ) {
+    if ( v == TallyFlagsStrDB::vals[i] )
+      return TallyFlagsStrDB::strs[i];
+  }
+  NCRYSTAL_THROW2( BadInput, "Not a single flag (must have"
+                   " exactly one bit set): \""<<v<<'"');
+  return "";
+}
+
+NCMMC::TallyFlags::strlist_type
+NCMMC::TallyFlags::toStringList() const
+{
+  strlist_type res;
+  for ( int i = 0; i < TallyFlagsStrDB::n; ++i ) {
+    if ( has(TallyFlagsStrDB::vals[i]) )
+      res.emplace_back(TallyFlagsStrDB::strs[i]);
+  }
+  return res;
+}
+
+NCMMC::TallyFlags::value_type
+NCMMC::TallyFlags::lookup( StrView sv )
+{
+  sv = sv.trimmed();
+
+  //collections:
+  constexpr StrView sv_default = StrView::make("default");
+  constexpr StrView sv_all = StrView::make("all");
+  constexpr StrView sv_allhists = StrView::make("allhists");
+
+  if ( sv == sv_default )
+    return Flags::DEFAULT;
+  if ( sv == sv_all )
+    return Flags::ALL;
+  if ( sv == sv_allhists )
+    return Flags::ALLHISTS;
+
+  //flags:
+  if ( !sv.empty() ) {
+    char c = sv[0];
+    for ( int i = 0; i < TallyFlagsStrDB::n; ++i ) {
+      if ( c == TallyFlagsStrDB::strs[i][0] && sv == TallyFlagsStrDB::strs[i] )
+        return TallyFlagsStrDB::vals[i];
+    }
+  }
+
+  NCRYSTAL_THROW2( BadInput, "Not a valid tally name: \""<<sv<<'"');
+  return Flags::NONE;
+}
+
+NCMMC::TallyFlags::TallyFlags( const strlist_type& sl )
+  : m_value(Flags::NONE)
+{
+  static_assert( std::is_same<decltype(m_value),value_type>::value, "");
+  for ( auto& sv : sl ) {
+    StrView svt = sv.trimmed();
+    if ( !svt.empty() ) {
+      add(svt);
+    }
+  }
 }
