@@ -50,6 +50,11 @@ namespace NCRYSTAL_NAMESPACE {
         os << "slab;dz="<<fmt(m_dz);
       }
 
+      bool hasUnboundedDistToVolExit() const
+      {
+        return true;
+      }
+
       bool pointIsInside( const Vector& v ) const
       {
         return ncabs(v.z()) <= m_dz;

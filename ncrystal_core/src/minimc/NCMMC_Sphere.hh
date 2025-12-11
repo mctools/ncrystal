@@ -72,6 +72,11 @@ namespace NCRYSTAL_NAMESPACE {
         os << "sphere;r="<<fmt(m_input_radius_m);
       }
 
+      bool hasUnboundedDistToVolExit() const
+      {
+        return false;
+      }
+
       bool pointIsInside( const Vector& v ) const
       {
         return v.mag2() <= m_radiusSq;
