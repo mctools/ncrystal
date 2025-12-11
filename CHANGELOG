@@ -13,6 +13,10 @@ v4.2.13 (work-in-progress)
        simulation scenarios. To keep everything simple, understandable, and
        maintainable, the parser simply transforms the scenario cfg-string into
        the three more fundamental cfg-strings for source, geometry, and engine.
+     * Update the MiniMC C-API: The existing ncrystal_runmmcsim_stdengine
+       function is completely obsoleted, and replaced by two new more generic
+       and maintainable functions: ncrystal_minimc (for general MiniMC usage)
+       and ncrystal_minimc_scenario (for scenario string decoding).
      * Add new source generator "circular" for the MiniMC framework, which
        allows modelling of a circular beam. Specifically, neutrons can be
        generated uniformly on a disk of a given radius whose normal coincides

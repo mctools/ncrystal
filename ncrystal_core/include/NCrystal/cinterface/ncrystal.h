@@ -1257,6 +1257,39 @@ extern "C" {
                                                             unsigned long repeat,
                                                             double* results );
 
+
+  /*========================================================================== */
+  /*========================================================================== */
+  /*==                                                                      == */
+  /*== Access the MiniMC simulation engine.                                 == */
+  /*==                                                                      == */
+  /*========================================================================== */
+  /*========================================================================== */
+
+
+  /* Run the MiniMC simulation engine, based on a given material, geometry,    */
+  /* source and engine configuration.                                          */
+  /* Results are returned as a JSON string, which must be cleaned up with      */
+  /* ncrystal_dealloc_string).                                                 */
+  /* The actual contents of the the various cfg strings and JSON data is       */
+  /* documented elsewhere.                                                     */
+  NCRYSTAL_API char* ncrystal_minimc( const char * material_cfgstr,
+                                      const char * geomcfg,
+                                      const char * srccfg,
+                                      const char * enginecfg );
+
+  /* Parse MiniMC scenario string and returns the corresponding geomcfg,       */
+  /* srccfg, and enginecfg cfg-strings.                                        */
+  /* Depending on the content, an Info and Scatter object might be loaded      */
+  /* from the material_cfgstr in case information is needed (e.g. if lengths   */
+  /* are specified in terms of mean-free-paths or energies in terms of Bragg   */
+  /* thresholds).                                                              */
+  /* Returns a string list of length 3: [geomcfg,srccfg,enginecfg]             */
+  /* Must free list with call to ncrystal_dealloc_stringlist.                  */
+  NCRYSTAL_API char** ncrystal_minimc_scenario( const char * material_cfgstr,
+                                                const char * scenario );
+
+
   /*============================================================================== */
   /*============================================================================== */
   /*==                                                                          == */
@@ -1331,47 +1364,13 @@ extern "C" {
                                            double** beta,
                                            double** sab );
 
-  /* Run the experimental embedded simulation engine for diffraction patterns. */
-  /* Depending on the tally_detail_lvl, various results are returned in the    */
-  /* output variables:                                                         */
-  /*     0 : only exit angle hist (contents + errors, no tally_json)           */
-  /*     1 : also running stats of exit angle dist in tally_json.              */
-  /*     2 : many other hists as well (completely contained in tally_json).    */
-  /* tally_json must be deallocated with ncrystal_dealloc_string if not NULL.  */
-  /* tally_exitangle_contents and _errsq must be passed to                     */
-  /* ncrystal_dealloc_doubleptr after usage. Set nthreads>=9999 for            */
-  /* auto-detection of a suitable number of threads:                           */
-  NCRYSTAL_API void ncrystal_runmmcsim_stdengine( unsigned nthreads,
-                                                  unsigned tally_detail_lvl,
-                                                  const char * mat_cfgstr,
-                                                  const char * mmc_geomcfg,
-                                                  const char * mmc_srccfg,
-                                                  char ** tally_json,
-                                                  unsigned * tally_exitangle_nbins,
-                                                  double ** tally_exitangle_contents,
-                                                  double ** tally_exitangle_errsq );
-
-  /* Run the MiniMC simulation engine, based on a given material, geometry,    */
-  /* source and engine configuration.                                          */
-  /* Results are returned as a JSON string, which must be cleaned up with      */
-  /* ncrystal_dealloc_string).                                                 */
-  /* The actual contents of the the various cfg strings and JSON data is       */
-  /* documented elsewhere.                                                     */
-  NCRYSTAL_API char* ncrystal_minimc( const char * material_cfgstr,
-                                      const char * geomcfg,
-                                      const char * srccfg,
-                                      const char * enginecfg );
-
-  /* Parse MiniMC scenario string and returns the corresponding geomcfg,       */
-  /* srccfg, and enginecfg cfg-strings.                                        */
-  /* Depending on the content, an Info and Scatter object might be loaded      */
-  /* from the material_cfgstr in case information is needed (e.g. if lengths   */
-  /* are specified in terms of mean-free-paths or energies in terms of Bragg   */
-  /* thresholds).                                                              */
-  /* Returns a string list of length 3: [geomcfg,srccfg,enginecfg]             */
-  /* Must free list with call to ncrystal_dealloc_stringlist.                  */
-  NCRYSTAL_API char** ncrystal_minimc_scenario( const char * material_cfgstr,
-                                                const char * scenario );
+  /* Obsolete function. Calling it will result in an error. Use the            */
+  /* ncrystal_minimc(..) function instead.                                     */
+  NCRYSTAL_API void ncrystal_runmmcsim_stdengine( unsigned, unsigned,
+                                                  const char *, const char *,
+                                                  const char *, char **,
+                                                  unsigned *, double **,
+                                                  double ** );
 
 #ifdef __cplusplus
 }
