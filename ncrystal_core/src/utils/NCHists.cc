@@ -22,6 +22,23 @@
 
 namespace NC = NCrystal;
 
+
+namespace NCRYSTAL_NAMESPACE {
+  namespace Hists {
+    std::ostream& operator<<( std::ostream& os, const Binning& b )
+    {
+      os << "Binning(" << b.nbins << " bins from "
+         << fmt(b.xmin) << " to " << fmt(b.xmax)<<')';
+      return os;
+    }
+    void Binning::validate() const
+    {
+      if ( !nbins || nbins > 1000000000 || !std::isfinite(xmin)
+           || !std::isfinite(xmax) || !(xmin<xmax) )
+        NCRYSTAL_THROW2(BadInput,"Invalid binning : "<<*this);
+    }
+  }
+}
 void NC::Hists::RunningStats1D::merge( const RunningStats1D& o )
 {
   if (!o.m_sumw) {
@@ -57,20 +74,22 @@ void NC::Hists::RunningStats1D::merge( const RunningStats1D& o )
 }
 
 
-void NC::Hists::RunningStats1D::registerNValues( double val, std::size_t N )
+void NC::Hists::RunningStats1D::registerNValues( double val, double N )
 {
+  if ( !(N>0) )
+    return;
+  nc_assert(std::isfinite(N));
   update_maxmin(val);
 #ifdef NCRYSTAL_HIST_ROOT_STYLE_RMS
   m_rms_state += N * val*val;
 #else
-  const double dN = static_cast<double>(N);
   const double d1 = m_sumw * val - m_sumwx;
-  const double d2 = m_sumw * ( dN + m_sumw );
+  const double d2 = m_sumw * ( N + m_sumw );
   if ( d2 )
-    m_rms_state += dN * ( d1 * d1  / d2 );
+    m_rms_state += N * ( d1 * d1  / d2 );
 #endif
-  m_sumw += dN;
-  m_sumwx += dN * val;
+  m_sumw += N;
+  m_sumwx += N * val;
 }
 
 void NC::Hists::RunningStats1D::toJSON( std::ostream& os ) const

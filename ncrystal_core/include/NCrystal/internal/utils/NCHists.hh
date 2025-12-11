@@ -40,22 +40,22 @@ namespace NCRYSTAL_NAMESPACE {
       struct EmptyVect {
         using value_type = double;
         using size_type = std::size_t;
-        void resize(std::size_t, double) {};
+        void resize(size_type, double) {};
         constexpr bool empty() const { return true; }
         constexpr size_type size() const { return 0; }
         const double* data() const { return nullptr; }
-        const double& at(std::size_t) const
+        const double& at(size_type) const
         {
           nc_assert_always(false);
           static double tmp; return tmp;
         }
-        double& at(std::size_t)
+        double& at(size_type)
         {
           nc_assert_always(false);
           static double tmp; return tmp;
         }
-        const double& operator[](std::size_t i) const { return this->at(i); }
-        double& operator[](std::size_t i) { return this->at(i); }
+        const double& operator[](size_type i) const { return this->at(i); }
+        double& operator[](size_type i) { return this->at(i); }
         ncconstexpr17 EmptyVect& operator=( const EmptyVect&) { return *this; }
       };
       struct EmptyPairDD { void swap( PairDD& ) {} };
@@ -69,6 +69,40 @@ namespace NCRYSTAL_NAMESPACE {
     // HistBinData1D class                                                   //
     ///////////////////////////////////////////////////////////////////////////
 
+    struct Binning {
+      using size_type = std::uint_least32_t;
+      Binning( size_type nbins_, double xmin_, double xmax_ ) ncnoexceptndebug
+        : nbins(nbins_), xmin(xmin_), xmax(xmax_)
+      {
+#ifndef NDEBUG
+        validate();
+#endif
+      }
+      bool operator==( const Binning& o ) const ncnoexceptndebug
+      {
+#ifndef NDEBUG
+        validate();
+        o.validate();
+#endif
+        nc_assert( std::isfinite( xmin ) && std::isfinite( xmax ) );
+        return nbins == o.nbins && xmin == o.xmin && xmax == o.xmax;
+      }
+      bool operator<( const Binning& o ) const ncnoexceptndebug
+      {
+#ifndef NDEBUG
+        validate();
+        o.validate();
+#endif
+        return ( nbins != o.nbins ? ( nbins < o.nbins )
+                 : ( xmin != o.xmin ? xmin < o.xmin : xmax < o.xmax ) );
+      }
+      void validate() const;
+      size_type nbins;
+      double xmin;
+      double xmax;
+    };
+    std::ostream& operator<<( std::ostream&, const Binning& );
+
     template<
       AllowWeights ALLOW_WEIGHTS = AllowWeights::YES,
       OverflowHandling OF_HANDLING = OverflowHandling::Record,
@@ -77,42 +111,47 @@ namespace NCRYSTAL_NAMESPACE {
     class HistBinData1D final {
       static_assert( std::is_same<typename TStorage::value_type,double>::value, "");
     public:
-      using size_t = std::uint_least32_t;
+      using size_type = Binning::size_type;
       constexpr static AllowWeights opt_allow_weights = ALLOW_WEIGHTS;
       constexpr static OverflowHandling opt_of_handling = OF_HANDLING;
       using opt_storage_type = TStorage;
     private:
-      static constexpr size_t
+      static constexpr size_type
       nbins_overflow = ( opt_of_handling == OverflowHandling::Record ? 2 : 0 );
     public:
 
-      HistBinData1D( size_t nbins, double xmin, double xmax)
-        : m_xmin(xmin),
-          m_xmax(xmax),
-          m_nbins(nbins)
+      const Binning& getBinning() const
       {
-        nc_assert_always( std::isfinite( m_xmin ) );
-        nc_assert_always( std::isfinite( m_xmax ) );
-        nc_assert_always( m_xmax > m_xmin );
-        nc_assert_always(nbins>=1 && nbins < 1000000000 );
-        m_content.resize(m_nbins + nbins_overflow,0.0);
+        return m_b;
+      }
+
+      HistBinData1D( size_type nbins, double xmin, double xmax )
+        : HistBinData1D( Binning( nbins, xmin, xmax ) )
+      {
+      }
+
+      HistBinData1D( const Binning& b )
+        : m_b(b)
+      {
+        b.validate();
+        m_content.resize(m_b.nbins + nbins_overflow,0.0);
         if ( opt_allow_weights == AllowWeights::YES )
-          m_errors.resize(m_nbins + nbins_overflow,0.0);
-        const double delta = (m_xmax-m_xmin) / m_nbins;
+          m_errors.resize(m_b.nbins + nbins_overflow,0.0);
+        const double delta = (m_b.xmax-m_b.xmin) / m_b.nbins;
         nc_assert_always(delta>0.0);
         m_invDelta = 1.0 / delta;
         if ( nbins_overflow == 0 ) {
-          PairDD cr( 0.99*delta, m_xmax - (0.99*delta+m_xmin) );
+          PairDD cr( 0.99*delta, m_b.xmax - (0.99*delta+m_b.xmin) );
           m_clampRange.swap(cr);
         }
       }
 
       void toJSON( std::ostream& os, bool include_data_arrays ) const
       {
-        streamJSONDictEntry(os, "xmin", m_xmin,
+        streamJSONDictEntry(os, "xmin", m_b.xmin,
                             JSONDictPos::FIRST);
-        streamJSONDictEntry(os, "xmax", m_xmax);
-        streamJSONDictEntry(os, "nbins", m_nbins);
+        streamJSONDictEntry(os, "xmax", m_b.xmax);
+        streamJSONDictEntry(os, "nbins", m_b.nbins);
 
         if ( include_data_arrays ) {
           streamJSONDictEntry(os, "content", this->getContents());
@@ -126,14 +165,14 @@ namespace NCRYSTAL_NAMESPACE {
         if ( opt_of_handling == OverflowHandling::Record ) {
           nc_assert_always( nbins_overflow == 2 );
           streamJSONDictEntry(os, "underflow", vectAt(m_content,0) );
-          streamJSONDictEntry(os, "overflow", vectAt(m_content,m_nbins+1));
+          streamJSONDictEntry(os, "overflow", vectAt(m_content,m_b.nbins+1));
           if ( opt_allow_weights == AllowWeights::NO || m_errors.empty() ) {
             streamJSONDictEntry(os, "underflow_errorsq", vectAt(m_content,0) );
-            streamJSONDictEntry(os, "overflow_errorsq", vectAt(m_content,m_nbins+1));
+            streamJSONDictEntry(os, "overflow_errorsq", vectAt(m_content,m_b.nbins+1));
           } else {
-            nc_assert_always(m_errors.size()==m_nbins+2);
+            nc_assert_always(m_errors.size()==m_b.nbins+2);
             streamJSONDictEntry(os, "underflow_errorsq", vectAt(m_errors,0) );
-            streamJSONDictEntry(os, "overflow_errorsq", vectAt(m_errors,m_nbins+1));
+            streamJSONDictEntry(os, "overflow_errorsq", vectAt(m_errors,m_b.nbins+1));
           }
         }
         os << '}';
@@ -141,9 +180,7 @@ namespace NCRYSTAL_NAMESPACE {
 
       bool mergeCompatible( const HistBinData1D& o ) const
       {
-        return ( m_xmin == o.m_xmin
-                 && m_xmax == o.m_xmax
-                 && m_nbins == o.m_nbins );
+        return m_b == o.m_b;
       }
 
       void merge( const HistBinData1D& o )
@@ -187,14 +224,14 @@ namespace NCRYSTAL_NAMESPACE {
         }
       }
 
-      double getBinContent( size_t ibin) const
+      double getBinContent( size_type ibin) const
       {
         return vectAt(m_content,(nbins_overflow==0?ibin:ibin+1));
       }
 
-      double getBinError( size_t ibin) const
+      double getBinError( size_type ibin) const
       {
-        constexpr size_t offset = ( nbins_overflow==0 ? 0 : 1 );
+        constexpr size_type offset = ( nbins_overflow==0 ? 0 : 1 );
         if ( opt_allow_weights == AllowWeights::YES )
           return std::sqrt( vectAt(m_errors,ibin+offset) );
         if ( opt_allow_weights == AllowWeights::NO )
@@ -204,9 +241,9 @@ namespace NCRYSTAL_NAMESPACE {
                  : std::sqrt( vectAt(m_errors,ibin+offset) ) );
       }
 
-      double getXMin() const { return m_xmin; }
-      double getXMax() const { return m_xmax; }
-      unsigned getNBins() const { return m_nbins; }
+      double getXMin() const { return m_b.xmin; }
+      double getXMax() const { return m_b.xmax; }
+      unsigned getNBins() const { return m_b.nbins; }
 
       template<OverflowHandling U = opt_of_handling>
       double getUnderflow( typename std::enable_if<
@@ -219,7 +256,7 @@ namespace NCRYSTAL_NAMESPACE {
       double getOverflow( typename std::enable_if<
                           U==OverflowHandling::Record>::type* = nullptr ) const
       {
-        return vectAt(m_content,m_nbins+1);
+        return vectAt(m_content,m_b.nbins+1);
       }
 
       template<OverflowHandling U = opt_of_handling>
@@ -227,9 +264,9 @@ namespace NCRYSTAL_NAMESPACE {
                                       U==OverflowHandling::Record>::type* = nullptr ) const
       {
         if ( opt_allow_weights == AllowWeights::NO || m_errors.empty() )
-          return vectAt(m_content,m_nbins+1);
+          return vectAt(m_content,m_b.nbins+1);
         else
-          return vectAt(m_errors,m_nbins+1);
+          return vectAt(m_errors,m_b.nbins+1);
       }
 
       template<OverflowHandling U = opt_of_handling>
@@ -247,9 +284,9 @@ namespace NCRYSTAL_NAMESPACE {
         static_assert( nbins_overflow==0 || nbins_overflow==2,"");
         return ( nbins_overflow==0
                  ? Span<const double>{ m_content.data(),
-                                       m_content.data() + m_nbins }
+                                       m_content.data() + m_b.nbins }
                  : Span<const double>{ m_content.data() + 1,
-                     m_content.data() + m_nbins + 1 } );
+                     m_content.data() + m_b.nbins + 1 } );
       }
 
       Span<const double> getErrorsSquared() const
@@ -259,13 +296,13 @@ namespace NCRYSTAL_NAMESPACE {
           return getContents();
         return ( nbins_overflow==0
                  ? Span<const double>{ m_errors.data(),
-                                       m_errors.data() + m_nbins }
+                                       m_errors.data() + m_b.nbins }
                  : Span<const double>{ m_errors.data() + 1,
-                     m_errors.data() + m_nbins + 1 } );
+                     m_errors.data() + m_b.nbins + 1 } );
       }
 
       void fill(double val) {
-        size_t idx = this->valueToBin( val );
+        size_type idx = this->valueToBin( val );
         vectAt(m_content,idx) += 1.0;
         if ( opt_allow_weights == AllowWeights::YES)
           vectAt(m_errors,idx) += 1.0;
@@ -274,18 +311,18 @@ namespace NCRYSTAL_NAMESPACE {
           vectAt(m_errors,idx) += 1.0;
       }
 
-      void fillN(double val, size_t N )
+      void fillN(double val, double N )
       {
-        if ( N == 0 )
+        if ( !(N>0) )
           return;
-        const double dN( N );
-        const size_t idx = this->valueToBin( val );
-        vectAt(m_content,idx) += dN;
+        nc_assert(std::isfinite(N));
+        const size_type idx = this->valueToBin( val );
+        vectAt(m_content,idx) += N;
         if ( opt_allow_weights == AllowWeights::YES)
-          vectAt(m_errors,idx) += dN;
+          vectAt(m_errors,idx) += N;
         if ( opt_allow_weights == AllowWeights::YES_BUT_DELAY_ALLOC
              && !m_errors.empty() )
-          vectAt(m_errors,idx) += dN;
+          vectAt(m_errors,idx) += N;
       }
 
       template<AllowWeights U = opt_allow_weights>
@@ -300,20 +337,20 @@ namespace NCRYSTAL_NAMESPACE {
           if ( m_errors.empty() )
             m_errors = m_content;
         }
-        const size_t idx = this->valueToBin( val );
+        const size_type idx = this->valueToBin( val );
         vectAt(m_content,idx) += weight;
         vectAt(m_errors,idx) += weight*weight;
       }
 
       void dump_metadata( std::ostream& os ) const
       {
-        os << "HistBinData1D(nbins="<<m_nbins
-           <<",xmin="<<fmtg(m_xmin)
-           <<",xmax="<<fmtg(m_xmax)<<"):\n";
+        os << "HistBinData1D(nbins="<<m_b.nbins
+           <<",xmin="<<fmtg(m_b.xmin)
+           <<",xmax="<<fmtg(m_b.xmax)<<"):\n";
         static_assert( nbins_overflow==0 || nbins_overflow==2,"");
         if ( nbins_overflow==2 ) {
           const double underflow = vectAt(m_content,0);
-          const double overflow =  vectAt(m_content,m_nbins+1);
+          const double overflow =  vectAt(m_content,m_b.nbins+1);
           os << "  overflow handling: RECORD\n"
             "  underflow : "<<fmtg(underflow)
              << "\n  overflow  : "<<fmtg(overflow)<<'\n';
@@ -325,7 +362,7 @@ namespace NCRYSTAL_NAMESPACE {
       void dump_contents( std::ostream& os) const
       {
         static_assert( nbins_overflow==0 || nbins_overflow==2,"");
-        for (size_t ibin = 0; ibin < m_nbins; ++ibin)
+        for (size_type ibin = 0; ibin < m_b.nbins; ++ibin)
           os << "  content[ibin="<<ibin<<"] : "
              <<fmtg(this->getBinContent(ibin))
              <<" +- "<<fmtg(this->getBinError(ibin))<<'\n';
@@ -339,24 +376,24 @@ namespace NCRYSTAL_NAMESPACE {
 
     private:
 
-      size_t valueToBin( double val ) {
+      size_type valueToBin( double val ) {
         nc_assert( !std::isnan(val) );
         static_assert( nbins_overflow==0 || nbins_overflow==2,"");
         if ( nbins_overflow == 0 ) {
-          const double clampval = ncclamp(val-m_xmin,
+          const double clampval = ncclamp(val-m_b.xmin,
                                           detail::pair_first(m_clampRange),
                                           detail::pair_second(m_clampRange));
-          auto idx = static_cast<size_t>(m_invDelta * clampval);
-          nc_assert( idx < m_nbins );
+          auto idx = static_cast<size_type>(m_invDelta * clampval);
+          nc_assert( idx < m_b.nbins );
           return idx;
         } else  {
-          if ( val < m_xmin )
+          if ( val < m_b.xmin )
             return 0;
-          if ( val >= m_xmax )
-            return ( val == m_xmax ? m_nbins : m_nbins+1 );
-          return 1 + std::min<size_t>(m_nbins,
-                                      static_cast<size_t>( m_invDelta
-                                                           * ( val-m_xmin ) ));
+          if ( val >= m_b.xmax )
+            return ( val == m_b.xmax ? m_b.nbins : m_b.nbins+1 );
+          return 1 + std::min<size_type>(m_b.nbins,
+                                      static_cast<size_type>( m_invDelta
+                                                           * ( val-m_b.xmin ) ));
         }
       }
 
@@ -365,10 +402,8 @@ namespace NCRYSTAL_NAMESPACE {
       typename std::conditional<opt_allow_weights==AllowWeights::NO,
                                 detail::EmptyVect,
                                 opt_storage_type>::type m_errors;
-      double m_xmin;
-      double m_xmax;
+      Binning m_b;
       double m_invDelta;
-      std::size_t m_nbins;
       typename std::conditional<opt_of_handling==OverflowHandling::Record,
                                 detail::EmptyPairDD,
                                 PairDD>::type m_clampRange;
@@ -410,7 +445,7 @@ namespace NCRYSTAL_NAMESPACE {
       //Record on-the-fly values, or merge data from another instance:
       void registerValue( double val );
       void registerValue( double val, double weight );
-      void registerNValues( double val, std::size_t N );
+      void registerNValues( double val, double N );
       void merge( const RunningStats1D& o );
 
       //Access data (note that Mean, RMS, maxFilled, and minFilled can only be
@@ -452,12 +487,20 @@ namespace NCRYSTAL_NAMESPACE {
       using bindata1d_t = HistBinData1D<opt_allow_weights,
                                         opt_of_handling,
                                         opt_storage_type>;
+      using size_type = typename bindata1d_t::size_type;
+
     private:
       bindata1d_t m_bindata;
       RunningStats1D m_stats;
       std::string m_title;
     public:
-      Hist1D( size_t nbins, double xmin, double xmax, std::string title = {} )
+
+      Hist1D( const Binning& b, std::string title = {} )
+        : m_bindata(b),
+          m_title(std::move(title))
+      {}
+
+      Hist1D( size_type nbins, double xmin, double xmax, std::string title = {} )
         : m_bindata(nbins,xmin,xmax),
           m_title(std::move(title))
       {
@@ -466,13 +509,14 @@ namespace NCRYSTAL_NAMESPACE {
       const std::string& title() const { return m_title; }
       const bindata1d_t& binData() const { return m_bindata; }
       const RunningStats1D& stats() const { return m_stats; }
+      const Binning& binning() const { return m_bindata.binning(); }
 
       void fill(double val) {
         m_bindata.fill(val);
         m_stats.registerValue( val );
       }
 
-      void fillN(double val, size_t N )
+      void fillN(double val, double N )
       {
         m_bindata.fillN(val,N);
         m_stats.registerNValues( val, N );
