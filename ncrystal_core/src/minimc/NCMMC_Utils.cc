@@ -28,46 +28,147 @@
 namespace NC = NCrystal;
 namespace NCMMCU = NCrystal::MiniMC::Utils;
 
-void NCMMCU::calcProbTransm( NumberDensity nd, std::size_t N,
+namespace NCRYSTAL_NAMESPACE {
+  namespace {
+    inline void safe_mult_strongzero( double * __restrict a,
+                                      const double * __restrict b,
+                                      std::size_t n )
+    {
+      //Assuming all a[i], b[i]>=0 and that a[i] is infinite, implements a[i] *=
+      // b[i] in a way so the result is always 0 if a[i] is zero. Specifically,
+      // this is intended to allow the case of (a[i],b[i])=(0,inf) to yield 0
+      // without triggering Nan or FPE.
+      //
+      //It was tested that this seems to vectorize nicely.
+      for ( std::size_t i = 0; i < n; ++i ) {
+        nc_assert( std::isfinite(a[i]) );
+        nc_assert( b[i] >= 0.0 );
+        a[i] *= ( a[i] ? b[i] : 0.0 );
+      }
+    }
+  }
+}
+
+void NCMMCU::calcProbTransm( NumberDensity nd, std::size_t n,
+                             bool geom_is_unbounded,
                              const double * ncrestrict xs_or_nullptr,
-                             const double * ncrestrict dist,
+                             const double * ncrestrict dists,
                              double * ncrestrict out )
 {
+  //Calculate probability of transmission. Note that if the geometry is
+  //unbounded, we need to consider that dist=inf is a possibility. In that case
+  //we want the transmission probability to be 0 (to not tally something not
+  //leaving the geometry).
+
+  //Fixme: Ensure we unit test the behaviour here, especially regarding
+  //geom_is_unbounded, dists[i]=inf, and xs=0.0. Optionally xs=inf would be nice
+  //to get to work (should give ptransm=0)
   if ( !xs_or_nullptr ) {
-    for ( auto i : ncrange( N ) )
-      out[i] = 1.0;
+    if ( geom_is_unbounded ) {
+      for ( auto i : ncrange( n ) ) {
+        out[i] = static_cast<double>(!std::isinf(dists[i]));
+      }
+#ifndef NDEBUG
+      for ( auto i : ncrange( n ) ) {
+        nc_assert_always(out[i]==(std::isinf(dists[i])?0.0:1.0));
+      }
+#endif
+    } else {
+      for ( auto i : ncrange( n ) )
+        out[i] = 1.0;
+    }
     return;
   }
-  for ( auto i : ncrange( N ) )
+
+  for ( auto i : ncrange( n ) )
     out[i] = macroXS( nd, CrossSect{xs_or_nullptr[i]} );
-  for ( auto i : ncrange( N ) )
-    out[i] *= dist[i];
-  for ( auto i : ncrange( N ) )
+  if ( geom_is_unbounded ) {
+    safe_mult_strongzero( out, dists, n );//fixme would fail if xs=inf
+  } else {
+    for ( auto i : ncrange( n ) )
+      out[i] *= dists[i];
+  }
+  for ( auto i : ncrange( n ) )
     out[i] = -out[i];
-  for ( auto i : ncrange( N ) )
+  for ( auto i : ncrange( n ) )
     out[i] = std::exp( out[i] );
+  if ( geom_is_unbounded ) {
+    for ( auto i : ncrange( n ) )
+      out[i] *= (!std::isinf(dists[i]));
+  }
+#ifndef NDEBUG
+  for ( auto i : ncrange( n ) ) {
+    nc_assert_always( !std::isnan(out[i]) );
+    nc_assert_always( ( !std::isinf(dists[i]) ) || out[i]==0.0 );
+  }
+#endif
 }
 
 void NCMMCU::propagate( NeutronBasket& b,
+                        bool geom_is_unbounded,
                         const double* ncrestrict dists )
 {
-  for ( auto i : ncrange( b.size() ) )
-    b.x[i] += dists[i] * b.ux[i];
-  for ( auto i : ncrange( b.size() ) )
-    b.y[i] += dists[i] * b.uy[i];
-  for ( auto i : ncrange( b.size() ) )
-    b.z[i] += dists[i] * b.uz[i];
+  if ( geom_is_unbounded ) {
+    //dists might be inf, so we can't just multiply direction vectors with
+    //dists, or we might end up with 0*inf.
+    double tmp[basket_N];
+    std::copy( &b.ux[0], &b.ux[0]+b.size(), &tmp[0] );
+    safe_mult_strongzero( tmp, dists, b.size() );
+    for ( auto i : ncrange( b.size() ) )
+      b.x[i] += tmp[i];
+    std::copy( &b.uy[0], &b.uy[0]+b.size(), &tmp[0] );
+    safe_mult_strongzero( tmp, dists, b.size() );
+    for ( auto i : ncrange( b.size() ) )
+      b.y[i] += tmp[i];
+    std::copy( &b.uz[0], &b.uz[0]+b.size(), &tmp[0] );
+    safe_mult_strongzero( tmp, dists, b.size() );
+    for ( auto i : ncrange( b.size() ) )
+      b.z[i] += tmp[i];
+  } else {
+    for ( auto i : ncrange( b.size() ) )
+      b.x[i] += dists[i] * b.ux[i];
+    for ( auto i : ncrange( b.size() ) )
+      b.y[i] += dists[i] * b.uy[i];
+    for ( auto i : ncrange( b.size() ) )
+      b.z[i] += dists[i] * b.uz[i];
+  }
 }
 
 void NCMMCU::propagateAndAttenuate( NeutronBasket& b,
                                     NumberDensity nd,
+                                    bool geom_is_unbounded,
                                     const double* ncrestrict dists,
                                     const double* ncrestrict xsvals )
 {
-  propagate( b, dists );
+  //FIXME: if !xsvals but we have infinities, we need to check for those!!!!
+
+  propagate( b, geom_is_unbounded, dists );
   if ( xsvals ) {
+    double tmp[basket_N];
     for ( auto i : ncrange( b.size() ) )
-      b.w[i] *= std::exp( -macroXS( nd, CrossSect{ xsvals[i] } ) * dists[i] );
+      tmp[i] = macroXS( nd, CrossSect{ xsvals[i] } );
+    if ( geom_is_unbounded ) {
+      safe_mult_strongzero( tmp, dists, b.size() );
+    } else {
+      for ( auto i : ncrange( b.size() ) )
+        tmp[i] *= dists[i];
+    }
+    for ( auto i : ncrange( b.size() ) )
+      tmp[i] = -tmp[i];
+    for ( auto i : ncrange( b.size() ) )
+      tmp[i] = std::exp( tmp[i] );
+    for ( auto i : ncrange( b.size() ) ) {
+      b.w[i] *= tmp[i];
+    }
+    //fixme: for the special case of macroxs=0 and dist=inf we need to set w=0.
+  }
+
+  if ( geom_is_unbounded ) {
+    //Make sure that particles propagating to infinity without scattering are
+    //always "lost" to the tallies by setting w=0. This is needed for when cross
+    //sections are 0 but distances are infinite.
+    for ( auto i : ncrange( b.size() ) )
+      b.w[i] *= (1.0-static_cast<double>(std::isinf(dists[i])));
   }
 }
 
@@ -78,29 +179,18 @@ void NCMMCU::sampleRandDists( RNG& rng, NumberDensity nd,
                               double * ncrestrict tgt )
 {
   NewABI::generateMany( rng, N, tgt );
-  //TODO: Better vectorisation possible?
   for ( auto i : ncrange(N) ) {
-    RandExpIntervalSampler rs( 0.0, dists[i],
-                               macroXS( nd, CrossSect{ xsvals[i] } ) );
-    tgt[i] = rs.sample( tgt[i] );
-  }
-}
-
-void NCMMCU::scatterGivenMu( RNG& rng,
-                             NeutronBasket& b,
-                             double * ncrestrict mu_vals )
-{
-  for ( auto i : ncrange(b.size()) ) {
-    //TODO: better vectorisation possible?
-    auto newdir
-      = randNeutronDirectionGivenScatterMu( rng,
-                                            CosineScatAngle{ mu_vals[i] },
-                                            NeutronDirection{ b.ux[i],
-                                                              b.uy[i],
-                                                              b.uz[i] } );
-    b.ux[i] = newdir[0];
-    b.uy[i] = newdir[1];
-    b.uz[i] = newdir[2];
+    double macroxs = macroXS( nd, CrossSect{ xsvals[i] } );
+    if ( !macroxs ) ncunlikely {
+      tgt[i] = kInfinity;
+      continue;
+    }
+    if ( std::isinf(dists[i]) ) ncunlikely {
+      tgt[i] = std::log( tgt[i] )/(-macroxs);
+    } else {
+      RandExpIntervalSampler rs( 0.0, dists[i], macroxs );
+      tgt[i] = rs.sample( tgt[i] );
+    }
   }
 }
 
@@ -473,7 +563,7 @@ void NCMMCU::distToSlabEntry( const double * ncrestrict x,
   // a = |x|-dx
   double a[basket_N];
   for( std::size_t i = 0; i < n; ++i )
-    a[i] = fabs(x[i]);
+    a[i] = ncabs( x[i] );
   for( std::size_t i = 0; i < n; ++i )
     a[i] -= dx;
 
@@ -500,7 +590,7 @@ void NCMMCU::distToSlabEntry( const double * ncrestrict x,
         out_dist[i] = -1.0;
       } else {
         //outside, hits. We know that ux is non-zero and has opposite sign of x.
-        out_dist[i] = a[i] / fabs(ux[i]);
+        out_dist[i] = a[i] / ncabs(ux[i]);
       }
     }
   }
