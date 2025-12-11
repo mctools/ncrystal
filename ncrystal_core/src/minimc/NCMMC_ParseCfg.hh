@@ -100,6 +100,14 @@ namespace NCRYSTAL_NAMESPACE {
         return NullOpt;
       }
 
+      inline bool hasValue( Tokens& tokens, StrView key )
+      {
+        for ( auto& e : tokens )
+          if ( e.first == key )
+            return true;
+        return false;
+      }
+
       inline StrView getValue_str( Tokens& tokens, StrView key )
       {
         //fixme: this method can be used to simplify other methods!
