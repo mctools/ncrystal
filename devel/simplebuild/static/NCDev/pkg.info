@@ -1,1 +1,1 @@
-package()
+package(USEPKG NCCInterface USEEXT NCDevHeaders)

@@ -301,7 +301,8 @@ def define_files():
             extdeps.append('DL')
         if comp.name=='minimc':
             extdeps.append('Threads')
-        tmp_extra_flags = [f'-I{dirs.srcroot}/src']
+        #tmp_extra_flags = [f'-I{dirs.srcroot}/src']
+        tmp_extra_flags = []
         if comp.name=='factories':
             tmp_extra_flags.append( f'-DNCRYSTAL_DATADIR={dirs.datadir}' )
         create_pkginfo( sbpkgname,
