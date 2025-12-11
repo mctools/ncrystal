@@ -165,6 +165,7 @@ inline NCrystal::RandExpIntervalSampler::RandExpIntervalSampler() : m_a(0), m_c1
 
 inline void NCrystal::RandExpIntervalSampler::set(double a, double b, double c)
 {
+  nc_assert( c > 0.0 );
   m_a = a;
   m_c1 = -1.0/c;
   m_c2 = std::expm1(-c*(b-a));
