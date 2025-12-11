@@ -58,15 +58,29 @@ namespace NCRYSTAL_NAMESPACE {
         }
 
         void distToVolumeEntry( const NeutronBasket& nb,
-                                Span<double> tgt ) const override
+                                Span<double> tgt,
+                                std::size_t offset ) const override
         {
-          m_vol.distToVolumeEntry(nb,tgt);
+          //fixme: maybe just handle the offset logic here and then pass on
+          //final x,y,z,ux,uy,uz,n
+          nc_assert( tgt.size() >= nb.nused);
+          nc_assert( offset < nb.nused);
+          nb.validateIfDbg();
+          m_vol.distToVolumeEntry(nb,tgt,offset);
+          nb.validateIfDbg();
+        }
+
+        bool hasUnboundedDistToVolExit() const override
+        {
+          return m_vol.hasUnboundedDistToVolExit();
         }
 
         void distToVolumeExit( const NeutronBasket& nb,
                                Span<double> tgt ) const override
         {
+          nb.validateIfDbg();
           m_vol.distToVolumeExit(nb,tgt);
+          nb.validateIfDbg();
         }
 
 

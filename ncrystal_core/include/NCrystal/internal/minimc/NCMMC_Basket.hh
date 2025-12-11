@@ -22,6 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/minimc/NCMMC_Defs.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
 
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
@@ -58,6 +59,18 @@ namespace NCRYSTAL_NAMESPACE {
       //TODO: Time as well? (remember to update it in all propagations if so)
       std::size_t nused = 0;
 
+      void validateIfDbg() const
+      {
+#ifndef NDEBUG
+        nc_assert( nused <= basket_N );
+        for ( std::size_t i = 0; i < nused; ++i ) {
+          nc_assert( std::isfinite(x[i]) && std::isfinite(y[i]) && std::isfinite(z[i]) );
+          nc_assert( std::isfinite(ux[i]) && std::isfinite(uy[i]) && std::isfinite(uz[i]) );
+          nc_assert( std::isfinite(w[i]) && std::isfinite(ekin[i]) );
+          nc_assert( ncabs(ux[i]*ux[i]+uy[i]*uy[i]+uz[i]*uz[i]-1.0)<1e-9 );
+        }
+#endif
+      }
       ncnodiscard17 NeutronEnergy& ekin_obj( std::size_t i ) noexcept
       {
         static_assert(sizeof(NeutronEnergy)==sizeof(double),"");
