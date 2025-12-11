@@ -138,3 +138,6 @@ NCMMC::GeometryPtr NCMMC::createGeometry( const char * raw_geomstr )
 {
   return createGeometryImpl( raw_geomstr );
 }
+//FIXME: idea for geom checks: random rays inbound, ensure that if propagating
+//the particle forward the distToVolumeEntry value, the next distToVolumeEntry
+//should be 0 and distToVolumeExit should be >0 (in non-degenerate cases).

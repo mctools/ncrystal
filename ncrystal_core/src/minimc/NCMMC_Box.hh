@@ -62,6 +62,11 @@ namespace NCRYSTAL_NAMESPACE {
         os << ";dz="<<fmt(m_dz);
       }
 
+      bool hasUnboundedDistToVolExit() const
+      {
+        return false;
+      }
+
       bool pointIsInside( const Vector& v ) const
       {
 
