@@ -197,6 +197,16 @@ namespace NCRYSTAL_NAMESPACE {
           nc_assert(m_w>0.0&&std::isfinite(m_w));
         }
 
+        Optional<NeutronDirection> nominalBeamDirection() const override
+        {
+          return NullOpt;//no such thing!
+        }
+
+        Optional<NeutronEnergy> nominalBeamEnergy() const override
+        {
+          return m_ekin;
+        }
+
         void toJSONDecodedCfgItems(std::ostream& os) const
         {
           sourceJSONHelper_namexyzwn(os,"isotropic",m_x,m_y,m_z,m_w,m_stat);
@@ -292,6 +302,15 @@ namespace NCRYSTAL_NAMESPACE {
           nc_assert(m_w>0.0&&std::isfinite(m_w));
         }
 
+        Optional<NeutronDirection> nominalBeamDirection() const override
+        {
+          return m_dir;
+        }
+
+        Optional<NeutronEnergy> nominalBeamEnergy() const override
+        {
+          return m_ekin;
+        }
 
         void toJSONDecodedCfgItems(std::ostream& os) const
         {
@@ -421,6 +440,16 @@ namespace NCRYSTAL_NAMESPACE {
                                <<m_center<<", dir="<<m_dir<<", ekin="<<m_ekin
                                <<", r="<<m_radius
                                <<", a="<<m_a<<", b="<<m_b);
+        }
+
+        Optional<NeutronDirection> nominalBeamDirection() const override
+        {
+          return m_dir;
+        }
+
+        Optional<NeutronEnergy> nominalBeamEnergy() const override
+        {
+          return m_ekin;
         }
 
         void toJSONDecodedCfgItems(std::ostream& os) const
