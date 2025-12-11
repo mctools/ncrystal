@@ -82,6 +82,7 @@ namespace NCRYSTAL_NAMESPACE {
       void distToVolumeExit( const NeutronBasket& nb,
                              Span<double> tgt ) const
       {
+        nb.validateIfDbg();
         const std::size_t n = nb.nused;
         nc_assert( tgt.size() >= n);
         distToVolumeExitUnboundedImpl( nb.x, nb.y, nb.z,
@@ -97,17 +98,22 @@ namespace NCRYSTAL_NAMESPACE {
       }
 
       void distToVolumeEntry( const NeutronBasket& nb,
-                              Span<double> tgt ) const
+                              Span<double> tgt,
+                              std::size_t offset ) const
       {
+        nb.validateIfDbg();
         nc_assert( tgt.size() >= nb.nused);
+        nc_assert( offset < nb.nused);
         if ( !m_dy ) {
-          distToVolumeEntryUnboundedImpl( nb.x, nb.y, nb.z,
-                                          nb.ux, nb.uy, nb.uz,
-                                          tgt.data(), nb.nused );
+          distToVolumeEntryUnboundedImpl( nb.x + offset, nb.y + offset,
+                                          nb.z + offset, nb.ux + offset,
+                                          nb.uy + offset, nb.uz + offset,
+                                          tgt.data() + offset, nb.nused-offset );
         } else {
-          distToVolumeEntryBoundedImpl( nb.x, nb.y, nb.z,
-                                        nb.ux, nb.uy, nb.uz,
-                                        tgt.data(), nb.nused );
+          distToVolumeEntryBoundedImpl( nb.x + offset, nb.y + offset,
+                                        nb.z + offset, nb.ux + offset,
+                                        nb.uy + offset, nb.uz + offset,
+                                        tgt.data() + offset, nb.nused-offset );
         }
       }
 
@@ -339,12 +345,16 @@ namespace NCRYSTAL_NAMESPACE {
                                           std::size_t n ) const ncnoexceptndebug
       {
         validateInputIfDbg( x, y, z, ux, uy, uz, n );
-        //fixme: could we use tgt for sqrtDMinusB?
+#ifndef NDEBUG
+        for ( std::size_t i = 0; i < n; ++i ) {
+          nc_assert( x[i]*x[i]+z[i]*z[i] <= m_radiusSq*(1.0+1e-9) );
+          nc_assert( m_dy==0 || ncabs(y[i]) <= m_dy*(1.0+1e-9) );
+        }
+#endif
 
         //To save place, using the tgt array for the D (discriminator) parameter:
         double twoA[basket_N], B[basket_N], C[basket_N];
         calcCylIntersectionParams( x, z, ux, uz, twoA, B, C, tgt, n );
-
 
         //tgt array now holds "D". Convert it into sqrt(D)-B:
 
@@ -366,7 +376,8 @@ namespace NCRYSTAL_NAMESPACE {
         //Final loop, accounting for degeneracies (unlikely to be vectorizable
         //due to branches):
         for ( std::size_t i = 0; i < n; ++i ) {
-          nc_assert( C[i] <= 0 );//we are inside
+          nc_assert( C[i] <= 1e-9*m_input_radius_m );//we are inside
+          C[i] = ncmin(C[i],0.0);//fluctuation guard
           nc_assert( !ncisnan(twoA[i]*C[i]) );
           if ( twoA[i]*C[i] == 0.0 ) ncunlikely {
             if ( !twoA[i] ) {

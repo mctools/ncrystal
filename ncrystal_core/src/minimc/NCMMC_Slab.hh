@@ -56,10 +56,14 @@ namespace NCRYSTAL_NAMESPACE {
       }
 
       void distToVolumeEntry( const NeutronBasket& nb,
-                              Span<double> tgt ) const
+                              Span<double> tgt,
+                              std::size_t offset ) const
       {
         nc_assert( tgt.size() >= nb.nused);
-        Utils::distToSlabEntry( nb.z, nb.uz, tgt.data(), nb.nused, m_dz );
+        nc_assert( offset < nb.nused);
+        Utils::distToSlabEntry( nb.z + offset, nb.uz + offset,
+                                tgt.data() + offset, nb.nused - offset,
+                                m_dz );
       }
 
       void distToVolumeExit( const NeutronBasket& nb,
