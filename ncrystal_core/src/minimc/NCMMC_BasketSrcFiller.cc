@@ -64,6 +64,6 @@ void NC::MiniMC::detail::propagateDistance( NeutronBasket& nb,
                          nb.ux + basket_offset,
                          nb.uy + basket_offset,
                          nb.uz + basket_offset,
-                         distances,
+                         distances + basket_offset,
                          nb.size() - basket_offset );
 }
