@@ -53,7 +53,8 @@ NCMMC::EngineOpts NCMMC::parseEngineOpts( StrView raw_srcstr )
   PMC::applyDefaults( tokens, defaults );
   PMC::checkNoUnknown(tokens,
                       //
-                      "ignoremiss;nthreads;absorption;seed;nscatlimit"
+                      "seed;roulette"
+                      ";ignoremiss;nthreads;absorption;nscatlimit"
                       ";beamdirx;beamdiry;beamdirz;beamenergy"
                       ";tally;tallybins",
                       //
@@ -87,6 +88,43 @@ NCMMC::EngineOpts NCMMC::parseEngineOpts( StrView raw_srcstr )
     res.tallyBeamEnergy = NeutronEnergy{ be };
   }
 
+
+  if ( PMC::hasValue( tokens, "roulette" ) ) {
+      auto sv_roulette = PMC::getValue_str( tokens, "roulette" );
+      auto parts = sv_roulette.splitTrimmedNoEmpty<3>(',');
+      Optional<double> val_psurvive;
+      Optional<double> val_thr_w;
+      Optional<int> val_thr_nscat;
+      if ( parts.size() == 3 ) {
+        val_psurvive = parts.at(0).toDbl();
+        val_thr_w = parts.at(1).toDbl();
+        val_thr_nscat = parts.at(2).toInt32();
+      }
+      if ( !(val_thr_w.value_or(0.5) > 0.0 ) )
+        val_thr_w = NullOpt;
+      if ( ncisnanorinf(val_thr_w.value_or(0.5)) )
+        val_thr_w = NullOpt;
+      if ( !(val_psurvive.value_or(0.5) > 0.0 ) )
+        val_psurvive = NullOpt;
+      if ( !(val_psurvive.value_or(0.5) < 1.0 ) )
+        val_psurvive = NullOpt;
+      if ( ncisnanorinf(val_psurvive.value_or(0.5)) )
+        val_psurvive = NullOpt;
+      if ( val_thr_nscat.value_or(2) > 30000 )
+        val_thr_nscat = NullOpt;
+      if ( val_thr_nscat.value_or(2) < 0 )
+        val_thr_nscat = 0;
+      if ( !val_psurvive.has_value()
+           || !val_thr_w.has_value()
+           || !val_thr_nscat.has_value() )
+      NCRYSTAL_THROW2(BadInput,
+                      "Invalid roulette options: \""<<sv_roulette
+                      <<"\" Please provide valid values in the form"
+                      " \"psurvival,weight_threshold,nscat_threshold\"");
+      res.roulette.survival_probability = val_psurvive.value();
+      res.roulette.weight_threshold = val_thr_w.value();
+      res.roulette.nscat_threshold = static_cast<int>(val_thr_nscat.value());
+  }
 
   {
     auto sv_seed = PMC::getValue_str( tokens, "seed" );
@@ -198,6 +236,11 @@ std::string NCMMC::engineOptsToString( const EngineOpts& eopts )
   }
   if ( eopts.seed != 0 )
     ss<<";seed="<<eopts.seed;
+  if ( ! ( eopts.roulette == RouletteOptions{} ) ) {
+    ss<<";roulette="<<fmt(eopts.roulette.survival_probability)
+      <<','<<fmt(eopts.roulette.weight_threshold)
+      <<','<<fmt(eopts.roulette.nscat_threshold);
+  }
   if ( eopts.tallyBeamEnergy.has_value() )
     ss<<";beamenergy="<<fmt(eopts.tallyBeamEnergy.value().dbl());;
   if ( eopts.nScatLimit.has_value() )
@@ -231,10 +274,18 @@ void NCMMC::engineOptsToJSON(std::ostream& os, const EngineOpts& eopts)
   streamJSONDictEntry( os, "name", "std", JSONDictPos::FIRST );
   streamJSONDictEntry( os, "cfgstr", engineOptsToString(eopts)  );
   os << ",\"decoded\":";
-  streamJSONDictEntry( os, "seed", eopts.seed );
+  streamJSONDictEntry( os, "seed", eopts.seed, JSONDictPos::FIRST );
+  {
+    os << ",\"roulette\":";
+    streamJSONDictEntry( os, "psurvival", eopts.roulette.survival_probability,
+                         JSONDictPos::FIRST );
+    streamJSONDictEntry( os, "weight_threshold",
+                         eopts.roulette.weight_threshold );
+    streamJSONDictEntry( os, "nscat_threshold", eopts.roulette.nscat_threshold,
+                         JSONDictPos::LAST );
+  }
   streamJSONDictEntry( os, "ignoremiss",
-                       bool( eopts.ignoreMiss == EO::IgnoreMiss::YES ),
-                       JSONDictPos::FIRST );
+                       bool( eopts.ignoreMiss == EO::IgnoreMiss::YES ) );
   streamJSONDictEntry( os, "absorption",
                        bool( eopts.includeAbsorption
                              == EO::IncludeAbsorption::YES ) );
@@ -242,7 +293,7 @@ void NCMMC::engineOptsToJSON(std::ostream& os, const EngineOpts& eopts)
     VectD vtbd = { eopts.tallyBeamDir.value()[0],
                    eopts.tallyBeamDir.value()[1],
                    eopts.tallyBeamDir.value()[2] };
-    //fixme: also make srcBeamDir avail in json
+    //fixme: also make srcBeamDir + energy avail in json
     streamJSONDictEntry( os, "beamdir", vtbd );
   } else {
     streamJSONDictEntry( os, "beamdir", json_null_t{} );

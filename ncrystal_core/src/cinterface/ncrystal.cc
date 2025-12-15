@@ -2372,12 +2372,9 @@ char* ncrystal_minimc( const char * material_cfgstr,
       auto src = NCMMC::createSource( srccfg );
       auto eopts = NCMMC::parseEngineOpts( enginecfg );
       using basket_t = NCMMC::StdEngine::basket_t;
-      NCMMC::StdEngineOptions engine_options;
-      engine_options.general_options = eopts;
       auto tally = NC::makeSO<NCMMC::TallyStdHists<basket_t>>( eopts, *src );
       //fixme: nthreads appears both directly in next line + in engine_options:
-      auto resmd = NCMMC::runSim_StdEngine( eopts.nthreads, geom, src, tally,
-                                            matdef, engine_options );
+      auto resmd = NCMMC::runSim_StdEngine( geom, src, tally, matdef, eopts );
       std::ostringstream os;
       NCMMC::resultsToJSON( os, geom, src, tally, matdef, eopts, resmd );
       result = std::move(os).str();
