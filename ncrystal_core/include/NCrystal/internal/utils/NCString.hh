@@ -94,13 +94,14 @@ namespace NCRYSTAL_NAMESPACE {
   //be thrown (provide err to modify the message in that exception):
   NCRYSTAL_API double str2dbl( StrView, const char * errmsg = 0);//marked NCRYSTAL_API since used in custom physics example
   int str2int( StrView, const char * errmsg = 0);
-  int32_t str2int32( StrView, const char * errmsg = 0);
-  int64_t str2int64( StrView, const char * errmsg = 0);
+  std::int32_t str2int32( StrView, const char * errmsg = 0);
+  std::int64_t str2int64( StrView, const char * errmsg = 0);
 
   //Versions which don't throw:
   bool safe_str2dbl( StrView, double& result );
-  bool safe_str2int( StrView, int32_t& result );
-  bool safe_str2int( StrView, int64_t& result );
+  bool safe_str2int( StrView, std::int32_t& result );
+  bool safe_str2int( StrView, std::int64_t& result );
+  bool safe_str2uint( StrView, std::uint64_t& result );
 
   //How many digits does string end with (e.g. 1 in "H1", 0 in "H1a", 3 in "Bla123".
   unsigned countTrailingDigits( const std::string& ss );
@@ -134,7 +135,7 @@ namespace NCRYSTAL_NAMESPACE {
   std::string ncgetenv(std::string, std::string defval = std::string() );
   double ncgetenv_dbl(std::string, double defval = 0.0);
   int ncgetenv_int(std::string, int defval = 0 );
-  std::int64_t ncgetenv_int64(std::string, int64_t defval = 0 );
+  std::int64_t ncgetenv_int64(std::string, std::int64_t defval = 0 );
   bool ncgetenv_bool(std::string);//if set to 1 -> true, 0/unset -> false (otherwise exception).
 
   //Find forbidden characters. Either from a given list and/or by looking for non-ASCII characters.
@@ -154,8 +155,9 @@ namespace NCRYSTAL_NAMESPACE {
   constexpr bool constexpr_cstrequal( const char * c1, const char * c2 ) noexcept;
 
   //Non-null terminated string:
-  constexpr int64_t constexpr_strcmp( const char* c1, std::size_t l1,
-                                      const char* c2, std::size_t l2 ) noexcept;
+  constexpr std::int64_t
+  constexpr_strcmp( const char* c1, std::size_t l1,
+                    const char* c2, std::size_t l2 ) noexcept;
 
   ///////////////////////////////////////////////////////
   // JSON encoding data:
@@ -211,7 +213,7 @@ namespace NCRYSTAL_NAMESPACE {
              : ( *c1 ? constexpr_cstrequal(c1+1,c2+1) : true ) );
   }
 
-  inline constexpr int64_t constexpr_strcmp( const char* c1, std::size_t l1, const char* c2, std::size_t l2 ) noexcept
+  inline constexpr std::int64_t constexpr_strcmp( const char* c1, std::size_t l1, const char* c2, std::size_t l2 ) noexcept
   {
     //C++11 compatible => needs single recursive statement.
     return ( l1==0
