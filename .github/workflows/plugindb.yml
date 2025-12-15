@@ -227,7 +227,7 @@ jobs:
             raise SystemExit("Error: ./src_plugin/pyproject.toml not found!")
 
     - name: download ncrystal wheels
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v7.0.0
       with:
         name: wheels-ncrystal-${{ matrix.os }}
         path: ./dist
@@ -339,13 +339,13 @@ jobs:
 
     steps:
     - name: download virtapi app
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v7.0.0
       with:
         name: virtapi-app-${{ matrix.os }}
         path: ./app
 
     - name: download ncrystal wheels
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v7.0.0
       with:
         name: wheels-ncrystal-${{ matrix.os }}
         path: ./dist
