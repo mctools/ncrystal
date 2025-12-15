@@ -89,6 +89,17 @@ namespace NCRYSTAL_NAMESPACE {
       SmallVector_IC<std::pair<TallyFlags::value_type,Binning>,4> m_db;
     };
 
+    struct RouletteOptions {
+      //Probability of surviving a roulette attempts (would be 5/6 in real
+      //russian roulette):
+      double survival_probability = 0.1;
+      //Particles with weights above this won't get rouletted:
+      double weight_threshold = 1e-2;
+      //Particles with less than this many scatterings won't get rouletted:
+      int nscat_threshold = 2;
+      bool operator==( const RouletteOptions& ) const;
+    };
+
     struct EngineOpts {
       //FIXME: Some docs here (or in nctool output / wiki).
       std::uint64_t seed = 0;//Simulation seed. Note that results are only
@@ -96,6 +107,7 @@ namespace NCRYSTAL_NAMESPACE {
                              //simulations, since it is not guaranteed which
                              //particles will be handled by which threads.
 
+      RouletteOptions roulette;
       enum class IgnoreMiss : uint32_t { NO=0, YES=1, Default=NO };
       enum class IncludeAbsorption : uint32_t { NO=0, YES=1, Default=YES };
       IgnoreMiss ignoreMiss = IgnoreMiss::Default;
@@ -218,6 +230,12 @@ namespace NCRYSTAL_NAMESPACE {
       return m_all == o.m_all && m_db == o.m_db;
     }
 
+    inline bool RouletteOptions::operator==( const RouletteOptions& o ) const
+    {
+      return  ( survival_probability == o.survival_probability
+                && weight_threshold == o.weight_threshold
+                && nscat_threshold == o.nscat_threshold );
+    }
 
   }
 }

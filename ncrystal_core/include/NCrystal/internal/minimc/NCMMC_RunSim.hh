@@ -48,17 +48,6 @@ namespace NCRYSTAL_NAMESPACE {
       MatDef( const MatCfg& cfg );
     };
 
-    struct StdEngineOptions {
-      //TODO: The values here are mostly guesses, and assumes initial unit
-      //weights of the source particles.
-      double roulette_weight_threshold = 1e-2;
-      double roulette_survival_probability = 0.1;
-      int roulette_nscat_threshold = 2;//particles will only get roulette'd
-                                       //after this many scatterings have
-                                       //already taken place.
-      EngineOpts general_options = {};
-    };
-
     struct SimOutputMetadata {
       //Various output of simulation which is not recorded in a particular tally.
 
@@ -74,12 +63,11 @@ namespace NCRYSTAL_NAMESPACE {
     //Launch simulations. Outcomes will mostly be contained in the TallyPtr
     //object afterwards, but additionally the SourcePtr might contain
     //information about total weights generated, etc.
-    SimOutputMetadata runSim_StdEngine( ThreadCount,//fixme: already in StdEngineOptions
-                                        GeometryPtr,
+    SimOutputMetadata runSim_StdEngine( GeometryPtr,
                                         SourcePtr,
                                         TallyPtr,
                                         MatDef,
-                                        StdEngineOptions = {} );
+                                        const EngineOpts& = {} );
 
     //After the simulation has been run, the results can be encoded into JSON by
     //passing the same objects to the following function:
