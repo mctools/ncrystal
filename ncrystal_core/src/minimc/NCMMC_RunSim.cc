@@ -41,7 +41,7 @@ NCMMC::SimOutputMetadata NCMMC::runSim_StdEngine( ThreadCount nthreads, //
 
   auto sim_engine = NC::makeSO<SimClass>( std::move( matdef ),
                                           std::move( eopts ) );
-  auto tallymgr = makeSO<TallyMgr>( tally->clone() );
+  auto tallymgr = makeSO<TallyMgr>( tally->cloneSetup() );
   NCMMC::SimMgrMT<SimClass> mgr(geom,src,eopts.general_options,
                                 sim_engine,tallymgr);
   auto missCounts = mgr.launchSimulations( nthreads,
