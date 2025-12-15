@@ -40,7 +40,7 @@ namespace NCRYSTAL_NAMESPACE {
         SINGLESCAT_ELAS,
         SINGLESCAT_INELAS,
         MULTISCAT_PUREELAS,
-        MULTISCAT_OTHER,
+        MULTISCAT_OTHER,//fixme: confusing name. MULTISCAT_MIX ?
         END
       };
       static constexpr unsigned ndetail

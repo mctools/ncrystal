@@ -27,25 +27,24 @@
 namespace NC = NCrystal;
 namespace NCMMC = NCrystal::MiniMC;
 
-NCMMC::SimOutputMetadata NCMMC::runSim_StdEngine( ThreadCount nthreads, //
-                                                  GeometryPtr geom,
+NCMMC::SimOutputMetadata NCMMC::runSim_StdEngine( GeometryPtr geom,
                                                   SourcePtr src,
                                                   TallyPtr tally,
                                                   MatDef matdef,
-                                                  StdEngineOptions eopts )
+                                                  const EngineOpts& eopts )
 {
   using SimClass = NCMMC::StdEngine;
-  if ( eopts.general_options.includeAbsorption
+  if ( eopts.includeAbsorption
        == EngineOpts::IncludeAbsorption::NO )
     matdef.absorption = nullptr;
 
   auto sim_engine = NC::makeSO<SimClass>( std::move( matdef ),
                                           std::move( eopts ) );
   auto tallymgr = makeSO<TallyMgr>( tally->cloneSetup() );
-  NCMMC::SimMgrMT<SimClass> mgr(geom,src,eopts.general_options,
+  NCMMC::SimMgrMT<SimClass> mgr(geom,src,eopts,
                                 sim_engine,tallymgr);
-  auto missCounts = mgr.launchSimulations( nthreads,
-                                           eopts.general_options.seed );
+  auto missCounts = mgr.launchSimulations( eopts.nthreads,
+                                           eopts.seed );
   auto tally_result = tallymgr->getFinalResult();
   tally->merge( std::move( *tally_result ) );
 

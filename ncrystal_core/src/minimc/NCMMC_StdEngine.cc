@@ -26,21 +26,21 @@
 namespace NC = NCrystal;
 namespace NCMMC = NCrystal::MiniMC;
 
-NCMMC::StdEngine::StdEngine( matdef_t md, StdEngineOptions opts )
-  : m_opt( std::move(opts) ),
+NCMMC::StdEngine::StdEngine( matdef_t md, const EngineOpts& eopts )
+  : m_opt( std::move(eopts) ),
     m_mat( std::move(md) )
 {
-  if ( ! ( m_opt.roulette_survival_probability > 1e-20 ) )
+  if ( ! ( eopts.roulette.survival_probability > 1e-20 ) )
     NCRYSTAL_THROW(BadInput,"roulette_survival_probability must be >1e-20");
 
-  if ( ! ( m_opt.roulette_survival_probability < 1.0 ) )
+  if ( ! ( eopts.roulette.survival_probability < 1.0 ) )
     NCRYSTAL_THROW(BadInput,"roulette_survival_probability must be <1.0");
 
-  if ( ! ( m_opt.roulette_weight_threshold > 0.0 ) )
+  if ( ! ( eopts.roulette.weight_threshold > 0.0 ) )
     NCRYSTAL_THROW(BadInput,"roulette_weight_threshold must be >0.0");
 
   //derived values:
-  m_opt_roulette_survivor_boost = 1.0 / m_opt.roulette_survival_probability;
+  m_opt_roulette_survivor_boost = 1.0 / eopts.roulette.survival_probability;
 }
 
 void NCMMC::StdEngine::advanceSimulation( RNG& rng,
@@ -52,11 +52,10 @@ void NCMMC::StdEngine::advanceSimulation( RNG& rng,
   NCRYSTAL_DEBUGMMCMSG("StdEngine::advanceSimulation inbasket.size()="
                        <<inbasket_holder.basket().size());
 
-  const auto& eopts = m_opt.general_options;
-  nc_assert_always( eopts.nScatLimit.value_or(0)
+  nc_assert_always( m_opt.nScatLimit.value_or(0)
                     <= (std::numeric_limits<int>::max()-1) );
-  const int nscatlimit = ( eopts.nScatLimit.has_value()
-                         ? static_cast<int>(eopts.nScatLimit.value() )
+  const int nscatlimit = ( m_opt.nScatLimit.has_value()
+                         ? static_cast<int>(m_opt.nScatLimit.value() )
                          : -1 );
   nc_assert( resultFct != nullptr );
   nc_assert( inbasket_holder.valid() );
@@ -174,7 +173,7 @@ void NCMMC::StdEngine::advanceSimulation( RNG& rng,
     auto& outb = pending.basket();
 
     auto& inb = inbasket;
-    nc_assert( m_opt.roulette_survival_probability < 1.0 );
+    nc_assert( m_opt.roulette.survival_probability < 1.0 );
 
     for ( auto i : ncrange( inb.size() ) ) {
       if ( inb.neutrons.w[i]==0.0 )
@@ -192,16 +191,16 @@ void NCMMC::StdEngine::advanceSimulation( RNG& rng,
                  //to the tally already via ptransm).
       //Implement russian-roulette:
       double roulette_weight_factor = 1.0;
-      double roulette = ( ( inb.cache.nscat[i] >= m_opt.roulette_nscat_threshold
-                            && inb.neutrons.w[i] < m_opt.roulette_weight_threshold )
-                          ? m_opt.roulette_survival_probability
+      double roulette = ( ( inb.cache.nscat[i] >= m_opt.roulette.nscat_threshold
+                            && inb.neutrons.w[i] < m_opt.roulette.weight_threshold )
+                          ? m_opt.roulette.survival_probability
                           : 1.0 );
       if ( roulette < 1.0 ) {
         if ( rng.generate() > roulette ) {
           continue;//killed!
         } else {
-          nc_assert( m_opt.roulette_survival_probability > 0.0 );
-          nc_assert( m_opt.roulette_survival_probability <= 1.0 );
+          nc_assert( m_opt.roulette.survival_probability > 0.0 );
+          nc_assert( m_opt.roulette.survival_probability <= 1.0 );
           roulette_weight_factor = m_opt_roulette_survivor_boost;
         }
       }

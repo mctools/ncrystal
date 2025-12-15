@@ -104,7 +104,7 @@ namespace NCRYSTAL_NAMESPACE {
 
       using matdef_t = MatDef;
     private:
-      StdEngineOptions m_opt;
+      EngineOpts m_opt;
       double m_opt_roulette_survivor_boost;
       matdef_t m_mat;
       CachePtr m_sct_cacheptr;
@@ -133,7 +133,7 @@ namespace NCRYSTAL_NAMESPACE {
 
     public:
 
-      StdEngine( matdef_t md, StdEngineOptions opts = {} );
+      StdEngine( matdef_t md, const EngineOpts& opts = {} );
 
       shared_obj<StdEngine> clone_so()
       {
