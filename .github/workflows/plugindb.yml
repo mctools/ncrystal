@@ -67,7 +67,7 @@ jobs:
       run: pipx run build ./src/ncrystal_pypluginmgr --wheel --outdir ./dist
 
     - name: upload ncrystal wheels
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6.0.0
       with:
         name: wheels-ncrystal-${{ matrix.os }}
         path: ./dist/*.whl
@@ -322,7 +322,7 @@ jobs:
       if: runner.os == 'Windows'
       run: tree /F ./virtapiapp
 
-    - uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v6.0.0
       with:
         name: virtapi-app-${{ matrix.os }}
         path: ./virtapiapp/bin/ncrystal-virtapi-example*
