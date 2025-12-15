@@ -51,7 +51,13 @@ void NCMMC::StdEngine::advanceSimulation( RNG& rng,
 {
   NCRYSTAL_DEBUGMMCMSG("StdEngine::advanceSimulation inbasket.size()="
                        <<inbasket_holder.basket().size());
-  const int maxnscat = -1;//fixme: expose as enginecfg parameter.
+
+  const auto& eopts = m_opt.general_options;
+  nc_assert_always( eopts.nScatLimit.value_or(0)
+                    <= (std::numeric_limits<int>::max()-1) );
+  const int nscatlimit = ( eopts.nScatLimit.has_value()
+                         ? static_cast<int>(eopts.nScatLimit.value() )
+                         : -1 );
   nc_assert( resultFct != nullptr );
   nc_assert( inbasket_holder.valid() );
   nc_assert( !inbasket_holder.basket().empty() );
@@ -103,13 +109,13 @@ void NCMMC::StdEngine::advanceSimulation( RNG& rng,
   }
 
   //Get scattering cross sections (potentially with cached values). Also, if
-  //maxnscat is enabled, anything already scattered maxnscat times will get a
-  //phony scattering cross section value of 0:
+  //nscatlimit is enabled, anything already scattered nscatlimit times will get
+  //a phony scattering cross section value of 0:
 
   if ( scatter_is_isotropic ) {
-    if ( maxnscat>=0 ) {
+    if ( nscatlimit>=0 ) {
       for ( auto i : ncrange( inbasket.size() ) )
-        if ( inbasket.cache.nscat[i] >= maxnscat )
+        if ( inbasket.cache.nscat[i] >= nscatlimit )
           inbasket.cache.scatxsval[i] = 0.0;
     }
     for ( auto i : ncrange( inbasket.size() ) ) {
@@ -119,10 +125,10 @@ void NCMMC::StdEngine::advanceSimulation( RNG& rng,
                                                   inbasket.neutrons.ekin_obj(i) ).dbl();
     }
   } else {
-    //not isotropic, always recalculate all xs values (except if maxnscat is
+    //not isotropic, always recalculate all xs values (except if nscatlimit is
     //exceeded of course):
     for ( auto i : ncrange( inbasket.size() ) ) {
-      if ( maxnscat >= 0 && inbasket.cache.nscat[i] >= maxnscat )
+      if ( nscatlimit >= 0 && inbasket.cache.nscat[i] >= nscatlimit )
         inbasket.cache.scatxsval[i] = 0.0;
       else
         inbasket.cache.scatxsval[i]

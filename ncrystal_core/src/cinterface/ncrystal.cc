@@ -2342,12 +2342,12 @@ char* ncrystal_minimc( const char * material_cfgstr,
       //Python layer without hard-coding it in two places.
       using TF = NCMMC::TallyFlags;
       std::ostringstream os;
-      NC::streamJSONDictEntry( os, "all",
+      NC::streamJSONDictEntry( os, "ALL",
                                TF(TF::Flags::ALL).toStringList(),
                                NC::JSONDictPos::FIRST );
-      NC::streamJSONDictEntry( os, "hists_default",
+      NC::streamJSONDictEntry( os, "DEFAULT",
                                TF(TF::Flags::DEFAULT).toStringList() );
-      NC::streamJSONDictEntry( os, "hists_all",
+      NC::streamJSONDictEntry( os, "ALLHISTS",
                                TF(TF::Flags::ALLHISTS).toStringList(),
                                NC::JSONDictPos::LAST );
       result = os.str();

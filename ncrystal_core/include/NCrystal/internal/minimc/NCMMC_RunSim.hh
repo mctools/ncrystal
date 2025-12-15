@@ -59,13 +59,38 @@ namespace NCRYSTAL_NAMESPACE {
       EngineOpts general_options = {};
     };
 
-    //Launch simulations:
-    void runSim_StdEngine( ThreadCount,
-                           GeometryPtr,
-                           SourcePtr,
-                           TallyPtr,
-                           MatDef,
-                           StdEngineOptions = {} );
+    struct SimOutputMetadata {
+      //Various output of simulation which is not recorded in a particular tally.
+
+      //Particles provided by source:
+      ParticleCountSum provided;
+
+      //Particles missing geometry:
+      ParticleCountSum miss;
+    };
+    void simOutMetaDataToJSON(std::ostream&,const SimOutputMetadata&);
+
+
+    //Launch simulations. Outcomes will mostly be contained in the TallyPtr
+    //object afterwards, but additionally the SourcePtr might contain
+    //information about total weights generated, etc.
+    SimOutputMetadata runSim_StdEngine( ThreadCount,//fixme: already in StdEngineOptions
+                                        GeometryPtr,
+                                        SourcePtr,
+                                        TallyPtr,
+                                        MatDef,
+                                        StdEngineOptions = {} );
+
+    //After the simulation has been run, the results can be encoded into JSON by
+    //passing the same objects to the following function:
+    void resultsToJSON( std::ostream&,
+                        GeometryPtr,
+                        SourcePtr,
+                        TallyPtr,
+                        MatDef,
+                        const EngineOpts&,
+                        const SimOutputMetadata& );
+
 
   }
 }
