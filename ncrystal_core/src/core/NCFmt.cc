@@ -57,7 +57,8 @@ namespace NCRYSTAL_NAMESPACE {
       else
         return NullOpt;
     }
-    Optional<std::int64_t> raw_str2int64( const char * s_data, std::size_t s_size ) {
+    Optional<std::int64_t> raw_str2int64( const char * s_data,
+                                          std::size_t s_size ) {
       //Using streams so we can specify the locale (TODO in c++17 we can possibly
       //use std::from_chars instead!). Using custom stream buffers to reduce need
       //for allocations:
@@ -69,6 +70,23 @@ namespace NCRYSTAL_NAMESPACE {
         return val;
       else
         return NullOpt;
+    }
+
+    //This one is not actually added to NCFMT.hh, since it is just needed in
+    //NCString.cc, where it is fwd declared.
+    Optional<std::uint64_t> raw_str2uint64( const char * s_data,
+                                            std::size_t s_size ) {
+      detail::nc_imemstream ss(s_data,s_size);
+      ss.std::istream::imbue(std::locale::classic());
+      std::uint64_t val;
+      ss >> val;
+      if ( !ss.fail() && ss.eof() ) {
+        if ( val && s_data[0]=='-' )
+          return NullOpt;//prevent negative values via underflow (but -0 is ok)
+        return val;
+      } else {
+        return NullOpt;
+      }
     }
   }
 }

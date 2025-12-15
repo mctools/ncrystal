@@ -1,3 +1,4 @@
+test_split begin
 "" splits to 0 parts (settings: no options):
 "" splits to 1 parts (settings: sep=;):
        -->  ""
@@ -39,3 +40,15 @@
 "temp=77.0" splits to 2 parts (settings: sep='='):
        -->  "temp"
        -->  "77.0"
+test_split end
+test_misc begin
+Testing str2dbl
+Testing str2int
+Testing str2int32
+Testing str2int32 out of bound values
+Testing str2int64
+Testing str2int64 out of bound values
+Testing str2uint64
+Testing str2uint64 out of bound values
+test_misc emd
+all done

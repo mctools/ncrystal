@@ -107,6 +107,34 @@ void require_bad_int(const char * c) {
   }
   REQUIRE(bad);
 }
+void require_bad_int32(const char * c) {
+  bool bad = false;
+  try {
+    NC::str2int32(c);
+  } catch ( NC::Error::BadInput& e ) {
+    bad = true;
+  }
+  REQUIRE(bad);
+}
+void require_bad_int64(const char * c) {
+  bool bad = false;
+  try {
+    NC::str2int64(c);
+  } catch ( NC::Error::BadInput& e ) {
+    bad = true;
+  }
+  REQUIRE(bad);
+}
+void require_bad_uint64(const char * c) {
+  bool bad = false;
+  try {
+    NC::str2uint64(c);
+  } catch ( NC::Error::BadInput& e ) {
+    bad = true;
+  }
+  REQUIRE(bad);
+}
+
 
 void test_misc() {
   REQUIRE(!NC::isSimpleASCII("something\tsdf",NC::AllowTabs::No,NC::AllowNewLine::No));
@@ -153,13 +181,13 @@ void test_misc() {
   REQUIRE(!NC::contains_any("hejsa","HEJSA"));
   REQUIRE(NC::contains_any("hej med dig!","'{}![]"));
 
+  std::cout<<"Testing str2dbl"<<std::endl;
   REQUIRE(NC::str2dbl("2.0")==2.0);
   REQUIRE(NC::str2dbl("2.0e-3")==2.0e-3);
   REQUIRE(NC::str2dbl("-2.0E-3")==-2.0e-3);
   REQUIRE(NC::str2dbl("-1E-3")==-1.0e-3);
   require_bad_dbl("2.0a");
   require_bad_dbl(" 2.0");
-  //REQUIRE(NC::str2dbl(" 2.0")==2.0);//seems to work. Should we disallow?... disallowed now
   require_bad_dbl("2.0 ");
   require_bad_dbl("2e.0");
   require_bad_dbl("e-3");
@@ -179,8 +207,8 @@ void test_misc() {
   require_bad_dbl("infinity");
   require_bad_dbl("INFINITY");
 
+  std::cout<<"Testing str2int"<<std::endl;
   REQUIRE(NC::str2int("-1")==-1);
-  //DISALLOWED: REQUIRE(NC::str2int(" 2")==2);//seems to work. Should we disallow?
   REQUIRE(NC::str2int("34545")==34545);
   REQUIRE(NC::str2int("000")==0);
   require_bad_int("2.0");
@@ -188,11 +216,69 @@ void test_misc() {
   require_bad_int("0.1");
   require_bad_int("2 ");
   require_bad_int(" 2");
+
+  std::cout<<"Testing str2int32"<<std::endl;
+
+  REQUIRE(NC::str2int32("-1")==-1);
+  REQUIRE(NC::str2int32("34545")==34545);
+  REQUIRE(NC::str2int32("000")==0);
+  require_bad_int32("2.0");
+  require_bad_int32("1e2");
+  require_bad_int32("0.1");
+  require_bad_int32("2 ");
+  require_bad_int32(" 2");
+  std::cout<<"Testing str2int32 out of bound values"<<std::endl;
+  require_bad_int32("3000000000");
+  require_bad_int32("-3000000000");
+
+  std::cout<<"Testing str2int64"<<std::endl;
+  REQUIRE(NC::str2int64("-1")==-1);
+  REQUIRE(NC::str2int64("34545")==34545);
+  REQUIRE(NC::str2int64("000")==0);
+  REQUIRE(NC::str2int64("3000000000")==3000000000LL);
+  REQUIRE(NC::str2int64("-3000000000")==-3000000000LL);
+  require_bad_int64("2.0");
+  require_bad_int64("1e2");
+  require_bad_int64("0.1");
+  require_bad_int64("2 ");
+  require_bad_int64(" 2");
+
+  std::cout<<"Testing str2int64 out of bound values"<<std::endl;
+  REQUIRE(NC::str2int64("3000000000000")==3000000000000ULL);
+  REQUIRE(NC::str2int64("-3000000000000")==-3000000000000LL);
+  REQUIRE(NC::str2int64("9223372036854775807")==9223372036854775807LL);
+  require_bad_int64("9223372036854775808");
+  REQUIRE(NC::str2int64("-9223372036854775807")==-9223372036854775807LL);
+  constexpr std::int64_t minvalint64 = -9223372036854775807LL;
+  REQUIRE(NC::str2int64("-9223372036854775808")==(minvalint64-1));
+  require_bad_int64("-9223372036854775809");
+
+  std::cout<<"Testing str2uint64"<<std::endl;
+  REQUIRE(NC::str2uint64("34545")==34545);
+  REQUIRE(NC::str2uint64("000")==0);
+  REQUIRE(NC::str2uint64("3000000000")==3000000000ULL);
+  REQUIRE(NC::str2uint64("3000000000000")==3000000000000ULL);
+  require_bad_uint64("2.0");
+  require_bad_uint64("1e2");
+  require_bad_uint64("0.1");
+  require_bad_uint64("2 ");
+  require_bad_uint64(" 2");
+  require_bad_uint64("-1");
+  require_bad_uint64("-3000000000000");
+  require_bad_uint64("-3000000000");
+  std::cout<<"Testing str2uint64 out of bound values"<<std::endl;
+  REQUIRE(NC::str2uint64("18446744073709551615")==18446744073709551615ULL);
+  require_bad_uint64("18446744073709551616");
+  REQUIRE(NC::str2uint64("9223372036854775808")==9223372036854775808ULL);
 }
 
 int main(int,char**) {
+  std::cout<<"test_split begin"<<std::endl;
   test_split();
+  std::cout<<"test_split end"<<std::endl;
+  std::cout<<"test_misc begin"<<std::endl;
   test_misc();
-
+  std::cout<<"test_misc emd"<<std::endl;
+  std::cout<<"all done"<<std::endl;
   return 0;
 }
