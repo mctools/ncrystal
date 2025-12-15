@@ -42,7 +42,7 @@ NCMMC::EngineOpts NCMMC::parseEngineOpts( StrView raw_srcstr )
   //operator (which omits values at default values) and the default values on
   //the EngineOpt struct itself.
   const char * defaults
-    = "ignoremiss=0;nthreads=auto;absorption=1";
+    = "ignoremiss=0;nthreads=auto;absorption=1;seed=0";
   static_assert( EngineOpts::IgnoreMiss::Default ==
                  EngineOpts::IgnoreMiss::NO, "" );
   static_assert( EngineOpts::IncludeAbsorption::Default ==
@@ -53,7 +53,7 @@ NCMMC::EngineOpts NCMMC::parseEngineOpts( StrView raw_srcstr )
   PMC::applyDefaults( tokens, defaults );
   PMC::checkNoUnknown(tokens,
                       //
-                      "ignoremiss;nthreads;absorption"
+                      "ignoremiss;nthreads;absorption;seed;nscatlimit"
                       ";beamdirx;beamdiry;beamdirz;beamenergy"
                       ";tally;tallybins",
                       //
@@ -64,17 +64,17 @@ NCMMC::EngineOpts NCMMC::parseEngineOpts( StrView raw_srcstr )
                    + (PMC::hasValue(tokens,"beamdirz")?1:0) );
   if ( nbeamdir ) {
     if ( nbeamdir<3)
-      NCRYSTAL_THROW2(BadInput,"Must set all or none of the parameters:"
-                      " \"beamdirx\", \"beamdiry\", and \"beamdirz\".");
+      NCRYSTAL_THROW(BadInput,"Must set all or none of the parameters:"
+                     " \"beamdirx\", \"beamdiry\", and \"beamdirz\".");
     Vector bd( PMC::getValue_dbl( tokens, "beamdirx" ),
                PMC::getValue_dbl( tokens, "beamdiry" ),
                PMC::getValue_dbl( tokens, "beamdirz" ) );
     if ( bd.mag2()<1e-12 )
-      NCRYSTAL_THROW2(BadInput,"Provided beamdir vector is too"
-                      " close to a null vector.");
+      NCRYSTAL_THROW(BadInput,"Provided beamdir vector is too"
+                     " close to a null vector.");
     if ( bd.mag2()>1e99 )
-      NCRYSTAL_THROW2(BadInput,"Provided beamdir vector has too "
-                      "large components.");
+      NCRYSTAL_THROW(BadInput,"Provided beamdir vector has too "
+                     "large components.");
     //Normalise and set:
     res.tallyBeamDir = bd.unit().as<NeutronDirection>();
   }
@@ -82,9 +82,18 @@ NCMMC::EngineOpts NCMMC::parseEngineOpts( StrView raw_srcstr )
   if ( PMC::hasValue(tokens,"beamenergy") ) {
     double be = PMC::getValue_dbl( tokens, "beamenergy" );
     if ( !(be>0.0) || !std::isfinite(be) )
-      NCRYSTAL_THROW2(BadInput,
-                      "Provided beamenergy must be positive and finite");
+      NCRYSTAL_THROW(BadInput,
+                     "Provided beamenergy must be positive and finite");
     res.tallyBeamEnergy = NeutronEnergy{ be };
+  }
+
+
+  {
+    auto sv_seed = PMC::getValue_str( tokens, "seed" );
+    auto seedval = sv_seed.toUInt64();
+    if ( !seedval.has_value() )
+      NCRYSTAL_THROW2(BadInput,"Invalid seed \""<<sv_seed<<"\".");
+    res.seed = seedval.value();
   }
 
   res.ignoreMiss = ( PMC::getValue_bool(tokens,"ignoremiss")
@@ -102,6 +111,16 @@ NCMMC::EngineOpts NCMMC::parseEngineOpts( StrView raw_srcstr )
     //Values >=9999 also indicates auto
     if ( v < 9999 )
       res.nthreads = ThreadCount{ static_cast<std::uint32_t>(v) };
+  }
+
+  if ( PMC::hasValue(tokens,"nscatlimit")
+       && PMC::getValue_str( tokens, "nscatlimit" ) != "none" ) {
+    auto val = PMC::getValue_sizet(tokens,"nscatlimit");
+    constexpr auto nscatlimmax = 32000;
+    if ( val > nscatlimmax )
+      NCRYSTAL_THROW2(BadInput,
+                      "nscatlimit can be at most "<<nscatlimmax);
+    res.nScatLimit = val;
   }
 
   if ( PMC::hasValue(tokens,"tally") ) {
@@ -177,6 +196,12 @@ std::string NCMMC::engineOptsToString( const EngineOpts& eopts )
       <<";beamdiry="<<fmt(eopts.tallyBeamDir.value()[1])
       <<";beamdirz="<<fmt(eopts.tallyBeamDir.value()[2]);
   }
+  if ( eopts.seed != 0 )
+    ss<<";seed="<<eopts.seed;
+  if ( eopts.tallyBeamEnergy.has_value() )
+    ss<<";beamenergy="<<fmt(eopts.tallyBeamEnergy.value().dbl());;
+  if ( eopts.nScatLimit.has_value() )
+    ss<<";nscatlimit="<<eopts.nScatLimit.value();
   if ( !eopts.nthreads.indicatesAutoDetect() ) {
     if (!is_empty)
       ss << ';';
@@ -206,6 +231,7 @@ void NCMMC::engineOptsToJSON(std::ostream& os, const EngineOpts& eopts)
   streamJSONDictEntry( os, "name", "std", JSONDictPos::FIRST );
   streamJSONDictEntry( os, "cfgstr", engineOptsToString(eopts)  );
   os << ",\"decoded\":";
+  streamJSONDictEntry( os, "seed", eopts.seed );
   streamJSONDictEntry( os, "ignoremiss",
                        bool( eopts.ignoreMiss == EO::IgnoreMiss::YES ),
                        JSONDictPos::FIRST );
@@ -220,6 +246,17 @@ void NCMMC::engineOptsToJSON(std::ostream& os, const EngineOpts& eopts)
     streamJSONDictEntry( os, "beamdir", vtbd );
   } else {
     streamJSONDictEntry( os, "beamdir", json_null_t{} );
+  }
+  if ( eopts.tallyBeamEnergy.has_value() ) {
+    streamJSONDictEntry( os, "beamenergy",
+                         eopts.tallyBeamEnergy.value().dbl() );
+  } else {
+    streamJSONDictEntry( os, "beamenergy", json_null_t{} );
+  }
+  if ( eopts.nScatLimit.has_value() ) {
+    streamJSONDictEntry( os, "nscatlimit", eopts.nScatLimit.value() );
+  } else {
+    streamJSONDictEntry( os, "nscatlimit", json_null_t{} );
   }
   streamJSONDictEntry( os, "tally",
                        eopts.tallyFlags.toStringList() );

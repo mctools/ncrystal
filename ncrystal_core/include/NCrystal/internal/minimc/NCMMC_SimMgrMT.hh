@@ -73,16 +73,17 @@ namespace NCRYSTAL_NAMESPACE {
       const basket_srcfiller_t& srcFiller() const { return *m_srcfiller; }
 
       //returns particles missing geometry
-      ParticleCountSum launchSimulations( ThreadCount nthreads )
+      ParticleCountSum launchSimulations( ThreadCount nthreads,
+                                          std::uint64_t seed )
       {
 #ifndef NCRYSTAL_DISABLE_THREADS
-        return launchSimulationsImpl(nthreads);
+        return launchSimulationsImpl(nthreads, seed);
 #else
         if ( nthreads.get() > 1 )
           NCRYSTAL_WARN("NCrystal installation does not support threads."
                         " Running simulation in single thread and not "
                         "the requested "<<nthreads<<" threads");
-        return launchSimulationsImpl();
+        return launchSimulationsImpl( seed );
 #endif
       }
 
@@ -206,7 +207,8 @@ namespace NCRYSTAL_NAMESPACE {
         }
       }
 
-      ParticleCountSum launchSimulationsImpl( ThreadCount nthreads )
+      ParticleCountSum launchSimulationsImpl( ThreadCount nthreads,
+                                              std::uint64_t seed )
       {
         if ( nthreads.indicatesAutoDetect() )
           nthreads = ThreadCount{ std::thread::hardware_concurrency() };
@@ -222,14 +224,18 @@ namespace NCRYSTAL_NAMESPACE {
                                      == EngineOpts::IgnoreMiss::YES );
         std::vector<ParticleCountSum> missStats;
         missStats.resize( nthreads.get() );
-        for ( auto i : ncrange(nthreads.get()) ) {
-          (void)i;
+        auto rng_next = createBuiltinRNG( seed );
+        auto nthrval = nthreads.get();
+        nc_assert_always( nthrval >=1 && nthrval <= 99999 );
+        for ( auto i : ncrange(nthrval) ) {
+          if ( i )
+            rng_next = rng_next->createJumped();
+          std::shared_ptr<RNGStream> rng = rng_next;
           ParticleCountSum& thread_missStats = missStats.at(i);
-          m_workers.push_back(std::thread([sf_copy,sim_copy,tallymgr_copy,
+          m_workers.push_back(std::thread([rng,sf_copy,sim_copy,tallymgr_copy,
                                            &common,do_ignoreMiss,
                                            &thread_missStats]()
           {
-            auto rng = getIndependentRNG();
             NCRYSTAL_DEBUGMMCMSG( "In thread "<<std::this_thread::get_id()
                                   <<" RNG @ "<<(void*)rng.get()
                                   <<" (first val gen: "<<rng->generate()<<")" );
@@ -247,7 +253,10 @@ namespace NCRYSTAL_NAMESPACE {
               {
                 return downcast_tallyptr->registerResults(b);
               };
-            thread_missStats = doWork( rng, thesim, thesf,
+
+            RNG * rawrng = rng.get();
+            nc_assert(rawrng!=nullptr);
+            thread_missStats = doWork( *rawrng, thesim, thesf,
                                        result_fct, common,
                                        do_ignoreMiss );
             NCRYSTAL_DEBUGMMCMSG("Thread provides results.");
@@ -268,12 +277,12 @@ namespace NCRYSTAL_NAMESPACE {
         return missStat;
       }
 #else
-      ParticleCountSum launchSimulationsImpl()
+      ParticleCountSum launchSimulationsImpl( std::uint64_t seed )
       {
         const bool do_ignoreMiss = ( m_engineOpts.ignoreMiss
                                      == EngineOpts::IgnoreMiss::YES );
         //Single threaded:
-        auto rng = getRNG();
+        auto rng = createBuiltinRNG( seed );
         auto tallyptr = m_tallymgr->getIndependentTallyPtr();
         //We must downcast the tally ptr to tally_t, which depends on the
         //basket type:

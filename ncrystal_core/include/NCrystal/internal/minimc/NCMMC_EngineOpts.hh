@@ -91,12 +91,24 @@ namespace NCRYSTAL_NAMESPACE {
 
     struct EngineOpts {
       //FIXME: Some docs here (or in nctool output / wiki).
+      std::uint64_t seed = 0;//Simulation seed. Note that results are only
+                             //reproducible in case of single-threaded
+                             //simulations, since it is not guaranteed which
+                             //particles will be handled by which threads.
 
       enum class IgnoreMiss : uint32_t { NO=0, YES=1, Default=NO };
       enum class IncludeAbsorption : uint32_t { NO=0, YES=1, Default=YES };
       IgnoreMiss ignoreMiss = IgnoreMiss::Default;
       ThreadCount nthreads = ThreadCount::auto_detect();
       IncludeAbsorption includeAbsorption = IncludeAbsorption::Default;
+
+      //Limit on number of scatterings. If set, it will contain a value in the
+      //range 0..32000. This is the highest number of scatterings that will be
+      //modelled for a particle. After that number is reached, further
+      //scattering cross sections fpr that particle will artifically become
+      //0. As an example, setting nscatlimit=1 will effectively disable multiple
+      //scattering effects:
+      Optional<unsigned> nScatLimit;
 
       TallyFlags tallyFlags;
       TallyBinningOverrides tallyBinnings;
