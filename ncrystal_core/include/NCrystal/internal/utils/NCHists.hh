@@ -509,7 +509,7 @@ namespace NCRYSTAL_NAMESPACE {
       const std::string& title() const { return m_title; }
       const bindata1d_t& binData() const { return m_bindata; }
       const RunningStats1D& stats() const { return m_stats; }
-      const Binning& binning() const { return m_bindata.binning(); }
+      const Binning& binning() const { return m_bindata.getBinning(); }
 
       void fill(double val) {
         m_bindata.fill(val);
