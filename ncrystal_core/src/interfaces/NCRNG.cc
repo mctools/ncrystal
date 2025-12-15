@@ -74,7 +74,8 @@ NC::RNGStreamState NC::RNGStream::getState() const
 {
   uint32_t stateuid = stateTypeUID();
   if (!stateuid)
-    NCRYSTAL_THROW(LogicError,"RNG::getState should never be called without first checking supportsStateManipulation().");
+    NCRYSTAL_THROW(LogicError,"RNG::getState should never be called without"
+                   " first checking supportsStateManipulation().");
   std::vector<uint8_t> v = actualGetState();
   nc_assert_always(!v.empty());
   v.reserve(v.size()+sizeof(stateuid));
