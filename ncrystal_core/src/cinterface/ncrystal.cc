@@ -1393,14 +1393,28 @@ ncrystal_info_t ncrystal_create_info( const char * cfgstr )
 
 double ncrystal_decodecfg_packfact( const char * cfgstr )
 {
+  //fixme: same kind of obsoletion msg elsewhere.
+
   //Obsolete, returns 1 (but we still decode the cfgstr just to help the user
   //catch errors).
   try {
+    {
+      static std::mutex mtx;
+      static bool first = true;
+      NCRYSTAL_LOCK_GUARD(mtx);
+      if ( first ) {
+        first = false;
+        NCRYSTAL_WARN("ncrystal_decodecfg_packfact function is obsolete"
+                      " and now always returns 1.0. Please stop using it"
+                      " and instead emulate a packing factor in the "
+                      "cfg-string with a parameter like \";density=0.6x\".");
+      }
+    }
     NC::MatCfg cfg(cfgstr);
     (void)cfg;
     return 1.0;
   } NCCATCH;
-  return -1.0;
+  return 1.0;
 }
 
 unsigned ncrystal_decodecfg_vdoslux( const char * cfgstr )
