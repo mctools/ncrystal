@@ -152,17 +152,17 @@ int NC::str2int( StrView sv, const char * errmsg)
   return result;
 }
 
-int32_t NC::str2int32( StrView sv, const char * errmsg)
+std::int32_t NC::str2int32( StrView sv, const char * errmsg)
 {
-  int32_t result;
+  std::int32_t result;
   if ( !safe_str2int(sv, result ) )
     NCRYSTAL_THROW2(BadInput,(errmsg?errmsg:"Invalid number in string is not an integer")<<": \""<<sv<<"\"");
   return result;
 }
 
-int64_t NC::str2int64( StrView sv, const char * errmsg)
+std::int64_t NC::str2int64( StrView sv, const char * errmsg)
 {
-  int64_t result;
+  std::int64_t result;
   if ( !safe_str2int(sv, result ) )
     NCRYSTAL_THROW2(BadInput,(errmsg?errmsg:"Invalid number in string is not an integer")<<": \""<<sv<<"\"");
   return result;
@@ -213,21 +213,44 @@ bool NC::safe_str2dbl( StrView s, double& result )
 bool NC::safe_str2int( StrView s, int32_t& result )
 {
   //For robustness/simplicity simply parse as 64 bit value and check range.
-  int64_t val64;
-  static constexpr int64_t range_min = static_cast<int64_t>( std::numeric_limits<int32_t>::lowest() );
-  static constexpr int64_t range_max = static_cast<int64_t>( std::numeric_limits<int32_t>::max() );
+  std::int64_t val64;
+  static constexpr std::int64_t range_min
+    = static_cast<std::int64_t>( std::numeric_limits<std::int32_t>::lowest() );
+  static constexpr std::int64_t range_max
+    = static_cast<std::int64_t>( std::numeric_limits<std::int32_t>::max() );
   if ( !safe_str2int(s,val64) || val64 > range_max || val64 < range_min )
     return false;
-  result = static_cast<int32_t>(val64);
+  result = static_cast<std::int32_t>(val64);
   return true;
 }
 
-bool NC::safe_str2int( StrView s, int64_t& result )
+bool NC::safe_str2int( StrView s, std::int64_t& result )
 {
   const auto n_size = s.size();
   if ( n_size==0 || isWhiteSpace( s.front() ) || isWhiteSpace( s.back() ) )
     return false;
   auto try_conv = detail::raw_str2int64( s.data(), n_size );
+  if ( try_conv.has_value() ) {
+    result = try_conv.value();
+    return true;
+  } else {
+    return false;
+  }
+}
+namespace NCRYSTAL_NAMESPACE {
+  namespace detail {
+    //Fwd declared from NCFMT.cc:
+    Optional<std::uint64_t> raw_str2uint64( const char * s_data,
+                                            std::size_t s_size );
+  }
+}
+
+bool NC::safe_str2uint( StrView s, std::uint64_t& result )
+{
+  const auto n_size = s.size();
+  if ( n_size==0 || isWhiteSpace( s.front() ) || isWhiteSpace( s.back() ) )
+    return false;
+  auto try_conv = detail::raw_str2uint64( s.data(), n_size );
   if ( try_conv.has_value() ) {
     result = try_conv.value();
     return true;
@@ -281,7 +304,8 @@ std::string NC::joinstr( const Span<const StrView>& parts, StrView sep)
 unsigned NC::countTrailingDigits( const std::string& ss )
 {
   auto nn = ss.size();
-  nc_assert_always(static_cast<uint64_t>(nn)<static_cast<uint64_t>(std::numeric_limits<int>::max()));
+  nc_assert_always(static_cast<std::uint64_t>(nn)
+                   <static_cast<std::uint64_t>(std::numeric_limits<int>::max()));
   int n = static_cast<int>(nn);
 
   int nTrailingDigits(0);
@@ -553,3 +577,5 @@ std::string NC::fmtUInt64AsNiceDbl( std::uint64_t n )
     res = std::to_string(n);
   return res;
 }
+
+//fixme unit test StrView::toUint64(..) this (and sister functions).

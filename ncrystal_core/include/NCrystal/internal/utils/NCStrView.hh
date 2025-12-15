@@ -127,9 +127,10 @@ namespace NCRYSTAL_NAMESPACE {
 
     //To values:
     Optional<double> toDbl() const;
-    Optional<int64_t> toInt() const { return toInt64(); }
-    Optional<int32_t> toInt32() const;
-    Optional<int64_t> toInt64() const;
+    Optional<std::int64_t> toInt() const { return toInt64(); }
+    Optional<std::int32_t> toInt32() const;
+    Optional<std::int64_t> toInt64() const;
+    Optional<std::uint64_t> toUInt64() const;
 
     //String splitting:
 
@@ -200,7 +201,7 @@ namespace NCRYSTAL_NAMESPACE {
 
   //Miscellaneous:
   std::ostream& operator<<(std::ostream&, const StrView&);
-  constexpr int64_t constexpr_strcmp( StrView sv1, StrView sv2 ) noexcept;
+  constexpr std::int64_t constexpr_strcmp( StrView sv1, StrView sv2 ) noexcept;
 
   class WordIterator {
   public:
@@ -257,7 +258,8 @@ namespace NCRYSTAL_NAMESPACE {
   inline ncconstexpr17 StrView& StrView::operator=( StrView&& o ) noexcept { return m_data=o.m_data, m_size=o.m_size, *this; }
   inline std::string StrView::to_string() const { nc_assert(m_data!=nullptr); return std::string(m_data,m_size); }
 
-  inline constexpr int64_t constexpr_strcmp( StrView sv1, StrView sv2 ) noexcept
+  inline constexpr std::int64_t
+  constexpr_strcmp( StrView sv1, StrView sv2 ) noexcept
   {
     return constexpr_strcmp( sv1.data(), sv1.size(), sv2.data(), sv2.size() );
   }
@@ -386,9 +388,37 @@ namespace NCRYSTAL_NAMESPACE {
     return m_size && m_data[m_size-1] == ch;
   }
 
-  inline Optional<double> StrView::toDbl() const { double val; if ( safe_str2dbl( *this, val ) ) return val; return NullOpt; }
-  inline Optional<int32_t> StrView::toInt32() const { int32_t val; if ( safe_str2int( *this, val ) ) return val; return NullOpt; }
-  inline Optional<int64_t> StrView::toInt64() const { int64_t val; if ( safe_str2int( *this, val ) ) return val; return NullOpt; }
+  inline Optional<double> StrView::toDbl() const
+  {
+    double val;
+    if ( safe_str2dbl( *this, val ) )
+      return val;
+    return NullOpt;
+  }
+
+  inline Optional<std::int32_t> StrView::toInt32() const
+  {
+    std::int32_t val;
+    if ( safe_str2int( *this, val ) )
+      return val;
+    return NullOpt;
+  }
+
+  inline Optional<std::int64_t> StrView::toInt64() const
+  {
+    std::int64_t val;
+    if ( safe_str2int( *this, val ) )
+      return val;
+    return NullOpt;
+  }
+
+  inline Optional<std::uint64_t> StrView::toUInt64() const
+  {
+    std::uint64_t val;
+    if ( safe_str2uint( *this, val ) )
+      return val;
+    return NullOpt;
+  }
 
   template< unsigned NP, StrView::SplitKeepEmpty KE, StrView::SplitTrimParts TP>
   inline SmallVector<StrView,NP> StrView::split( char sep ) const
