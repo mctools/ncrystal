@@ -27,19 +27,39 @@
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
 
+    //All tallies must implement the following interface, split into two classes
+    //to allow templating on the basket type, but keeping most of the interface
+    //non-templated.
+
     class TallyBase : NoCopyMove {
     public:
       virtual ~TallyBase() = default;
-      virtual shared_obj<TallyBase> clone() const = 0;
+
+      //To support multi-threading, tallies can be cloned from a template object
+      //(without any data from simulations), and later merged:
+      virtual shared_obj<TallyBase> cloneSetup() const = 0;
       virtual void merge(TallyBase&&) = 0;
+
+      //Ultimately, a tally provides is data as JSON (this is usually done
+      //post-merge, so only happens once per simulation):
+      virtual void tallyItemToJSON( std::ostream&, StrView itemName ) const = 0;
+      virtual VectS tallyItemNames() const = 0;
     };
     using TallyPtr = shared_obj<TallyBase>;
 
     template<class TBasket>
     class Tally : public TallyBase {
     public:
+      //Results from simulations are delivered to the tally in the form of
+      //baskets of neutrons. These are usually neutrons exiting (or having
+      //missed) the geometry, but for e.g. 3D visualisation purposes we could
+      //envision other schemes. Naturally, the simulation engine and tally
+      //implementation must be in agreement on this:
       virtual void registerResults( const TBasket& ) = 0;
     };
+
+    //The tally manager is a helper object responsible for dishing out tally
+    //objects for all threads, and for later merging them upon work completion:
 
     class TallyMgr final : NoCopyMove {
     public:
@@ -47,7 +67,10 @@ namespace NCRYSTAL_NAMESPACE {
       TallyMgr( TallyPtr tally_template )
         : m_template(std::move(tally_template)) {}
 
-      TallyPtr getIndependentTallyPtr() const { return m_template->clone(); }
+      TallyPtr getIndependentTallyPtr() const
+      {
+        return m_template->cloneSetup();
+      }
 
       void addResult( TallyPtr res_SO )
       {
