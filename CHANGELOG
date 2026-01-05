@@ -1,4 +1,7 @@
 v4.2.11 (work in progress)
+     * Support spglib release 2.7.0 which changed module names and error
+       handling. For now, we still support older spglib releases (back to
+       2.1.0).
      * ...
 
 v4.2.10 2025-10-20

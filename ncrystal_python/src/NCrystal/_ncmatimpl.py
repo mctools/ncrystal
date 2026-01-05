@@ -1842,7 +1842,18 @@ def _import_spglib( *, sysexit = False ):
             raise SystemExit(m)
         else:
             raise ImportError(m)
-    return spglib.spglib
+    if hasattr(spglib,'spglib'):
+        #spglib version < 2.7
+        return spglib.spglib
+    if hasattr(spglib,'OLD_ERROR_HANDLING'):
+        #For version 2.7 (and likely not later), we can avoid a deprecation
+        #warning by this trick:
+        try:
+            import spglib.error
+            spglib.error.OLD_ERROR_HANDLING = False
+        except (ImportError,AttributeError):
+            pass
+    return spglib
 
 def _import_ase( *, sysexit = False ):
     try:
