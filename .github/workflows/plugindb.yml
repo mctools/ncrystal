@@ -29,7 +29,8 @@ jobs:
 
     outputs:
       pluginlist: ${{ steps.generate-plugin-list.outputs.pluginlist }}
-      platforms: '[ "ubuntu-latest", "macos-latest", "windows-latest","ubuntu-24.04-arm", "macos-13" ]'
+      #TODO: enable windows-11-arm
+      platforms: '[ "ubuntu-latest", "macos-latest", "windows-latest", "ubuntu-24.04-arm", "macos-15-intel" ]'
 
   build_ncrystal:
     needs: [ preparations ]
@@ -87,7 +88,7 @@ jobs:
 
       #workaround (cf. https://github.com/IAEA-NDS/endf-parserpy/issues/42):
     - name: Set INSTALL_ENDF_PARSERPY_CPP=no
-      if: matrix.os == 'macos-13'
+      if: matrix.os == 'ubuntu-24.04-arm' || matrix.os == 'macos-15-intel' || matrix.os == 'windows-11-arm'
       run: echo "INSTALL_ENDF_PARSERPY_CPP=no" >> $GITHUB_ENV
 
     - name: Install ncrystal-verify

@@ -26,10 +26,10 @@ jobs:
     strategy:
       matrix:
         include:
-          #Openmc has no macos arm packages yet (May 2025), and neither openmc
+          #Openmc has no macos arm packages yet (Jan 2026), and neither openmc
           #nor njoy supports windows:
           - { os: ubuntu-latest } #intel
-          - { os: macos-13 } #intel
+          - { os: macos-15-intel } #intel
     name: ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     defaults:

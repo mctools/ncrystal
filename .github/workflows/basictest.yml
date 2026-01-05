@@ -32,7 +32,7 @@ jobs:
           - { os: ubuntu-latest,     CC: gcc-12,   CXX: g++-12,     python: '3.12', buildtype: 'Release' }
           - { os: ubuntu-latest,     CC: gcc,      CXX: g++,        python: '3.13', buildtype: 'Release' }
           - { os: macos-latest,      CC: clang,    CXX: clang++,    python: "3.12", buildtype: 'Release' }
-          - { os: macos-13,          CC: clang,    CXX: clang++,    python: "3.11", buildtype: 'Release' }
+          - { os: macos-15-intel,    CC: clang,    CXX: clang++,    python: "3.11", buildtype: 'Release' }
     name: ${{ matrix.os }}.${{ matrix.CC }}.python-${{ matrix.python }}-${{ matrix.buildtype }}
     runs-on: ${{ matrix.os }}
     env:
@@ -50,7 +50,7 @@ jobs:
 
     #workaround (cf. https://github.com/IAEA-NDS/endf-parserpy/issues/42):
     - name: Set INSTALL_ENDF_PARSERPY_CPP=no
-      if: matrix.os == 'ubuntu-24.04-arm' || matrix.os == 'macos-13'
+      if: matrix.os == 'ubuntu-24.04-arm' || matrix.os == 'macos-15-intel' || matrix.os == 'windows-11-arm'
       run: echo "INSTALL_ENDF_PARSERPY_CPP=no" >> $GITHUB_ENV
 
     - name: Setup python

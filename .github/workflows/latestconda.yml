@@ -14,7 +14,7 @@ jobs:
           - { os: ubuntu-24.04-arm } #arm
           - { os: ubuntu-latest } #intel
           - { os: macos-latest } #arm
-          - { os: macos-13 } #intel
+          - { os: macos-15-intel } #intel
           - { os: windows-latest }
     name: ${{ matrix.os }}
     runs-on: ${{ matrix.os }}

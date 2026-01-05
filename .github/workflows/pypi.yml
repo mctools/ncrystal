@@ -70,7 +70,7 @@ jobs:
     needs: [ preparations ]
     strategy:
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-13, macos-14]
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-15-intel, macos-14]
         #        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
         #NOTICE: Keep synchronised with matrix platform list elsewhere in this file!!!!
     name: ${{ matrix.os }} / test
@@ -109,7 +109,7 @@ jobs:
 
       #workaround (cf. https://github.com/IAEA-NDS/endf-parserpy/issues/42):
       - name: Set INSTALL_ENDF_PARSERPY_CPP=no
-        if: matrix.os == 'ubuntu-24.04-arm' || matrix.os == 'macos-13'
+        if: matrix.os == 'ubuntu-24.04-arm' || matrix.os == 'macos-15-intel'
         run: echo "INSTALL_ENDF_PARSERPY_CPP=no" >> $GITHUB_ENV
 
       - name: Pip install extra deps
@@ -251,8 +251,8 @@ jobs:
     needs: [ preparations, build_sdists ]
     strategy:
       matrix:
-        # macos-13 is an intel runner, macos-14 is apple silicon
-        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-13, macos-14]
+        # macos-15-intel is an intel runner, macos-14 is apple silicon
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-15-intel, macos-14]
         #        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
         #NOTICE: Keep synchronised with matrix platform list elsewhere in this file!!!!
     name: ${{ matrix.os }} / ncrystal-core wheels
