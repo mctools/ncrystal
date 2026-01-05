@@ -69,6 +69,10 @@ namespace NCRYSTAL_NAMESPACE {
       //simulation engine:
       virtual bool hasUnboundedDistToVolExit() const = 0;
 
+      //A short string like "sphere of radius 2mm" or "1.1cm thick slab" which
+      //can be used for plot titles etc.:
+      virtual std::string shortDescription() const = 0;
+
       //Serialisation, as original geometry cfg-string, or as a JSON object with
       //more direct access to individual values. The JSON object is a dictionary
       //like (where one of the params should always be the name of the type of

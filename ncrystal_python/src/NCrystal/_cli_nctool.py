@@ -71,6 +71,7 @@ def parseArgs( progname, arglist, *, return_parser = False ):
         print(f"""
 usage: {progname} --mc SRCCFG GEOMCFG MATCFG
 
+FIXME update 
 Invoke the embedded stepping Monte Carlo to display a 4pi diffraction pattern of
 neutrons going through a simple sample. SRCCFG describes the source of neutrons,
 GEOMCFG the shape of the sample volume, and MATCFG is a normal NCrystal
@@ -372,11 +373,10 @@ def std_main( progname, arglist ):
         return
 
     if args.mc:
-        plot_mmc(cfgs[0].cfgstr,
-                 srccfg = args.mc[0],
-                 geomcfg = args.mc[1],
-                 logy = args.logy,
-                 do_pdf = args.pdf )
+        plot_mmc( cfgs[0].cfgstr,
+                  ( '%s pencil on %s sphere 1e5 times'%(args.mc[0],args.mc[1])
+                    if (args.mc[0]+args.mc[1]).strip() else '' ),
+                  logy = args.logy, do_pdf = args.pdf )
     else:
         plot_xsect( cfgs, comp  = args.comp, absorption = args.absorption, pdf=args.pdf,
                     versus_energy=args.energy, xrange = args.xrange, logy = args.logy,
@@ -386,13 +386,8 @@ def std_main( progname, arglist ):
             plot_2d_scatangle( cfgs[0], comp = args.comp, pdf=args.pdf, versus_energy=args.energy, xrange = args.xrange )
 
         if len(cfgs)==1 and not nccommon.ncgetenv_bool('TOOL_NOAUTOMCPLOT'):
-            from . import _mmc as nc_mmc
-            auto_params = nc_mmc.quick_diffraction_pattern_autoparams( cfgs[0].cfgstr )
-            plot_mmc( cfgs[0].cfgstr,
-                      auto_params['neutron_energy_str'],
-                      auto_params['material_thickness_str'],
-                      logy=args.logy,
-                      do_pdf=args.pdf )
+            plot_mmc( cfgs[0].cfgstr, '', logy=args.logy, do_pdf=args.pdf )
+
     if args.pdf:
         _,_,pdf = import_npplt(True)
         import datetime
@@ -572,52 +567,18 @@ def comp2cfgpars(comp):
              'all' : '' }[comp]
 
 
-def _frexp10(x):
-    exp = int(math.floor(math.log10(abs(x))))
-    return x / 10**exp, exp
-
-def _latex_format(x):
-    if len('%f'%x)<6:
-        return '%f'%x
-    b,e = _frexp10(x)
-    e=f'10^{e}'
-    if b==1:
-        return e
-    return f'{b:g}'+r'\cdot'+e
-
-def plot_mmc(cfgstr,srccfg,geomcfg,logy,do_pdf):
+def plot_mmc(cfgstr,scenario_cfg,logy,do_pdf):
+    from . import _mmc as mmc
     assert logy in (True,False,'auto')
     if logy=='auto':
         logy=True
     np,plt,pdf = import_npplt(do_pdf)
-    from . import _mmc as nc_mmc
-    quick_mode = False
-    if ';' not in srccfg and ';' not in geomcfg:
-        #NB: this logic is in principle not quite robust in all cases
-        #(e.g. srccfg='sphere' would register as quick_mode, and then fail):
-        quick_mode = True
-
-    if quick_mode:
-        res = nc_mmc.quick_diffraction_pattern(cfgstr,
-                                               neutron_energy = srccfg,
-                                               material_thickness = geomcfg,
-                                               nstat = 'auto' )
-        nstat = res.setup_info['nstat']
-        title = (f'${_latex_format(nstat)}$ {srccfg} neutrons'
-                 f' through {geomcfg} diameter sphere')
-    else:
-        res = nc_mmc.runsim_diffraction_pattern( cfgstr,
-                                                 geomcfg = geomcfg,
-                                                 srccfg = srccfg,
-                                                 tally_detail_lvl = 2 )
-        title = (f'src="{srccfg}", geom="{geomcfg}"')
-
-    res.plot_breakdown( rebin_factor=10,#todo: hardcoded for now
-                        logy=logy,
-                        title = title,
-                        plt = plt,
-                        do_show = False
-                       )
+    cfg = mmc.minimc_decode_scenario( cfgstr, scenario_cfg )
+    cfg['enginecfg'] += ';tally=mu'
+    res = mmc.run_minimc( **cfg )
+    res.tally('mu').plot( max_nbins=250, logy=logy,
+                          title = res.short_title(latex=True),#fixme this title should be default?
+                          plt = plt, do_show = False )
     _end_plot(plt,pdf)
 
 def plot_xsect(cfgs,comp,absorption,pdf,versus_energy,xrange,logy,breakdown_by_phases):

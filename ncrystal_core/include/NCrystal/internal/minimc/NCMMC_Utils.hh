@@ -29,7 +29,11 @@ namespace NCRYSTAL_NAMESPACE {
   class MatCfg;
 
   namespace MiniMC {
+
     namespace Utils {
+
+      //Generic JSON query for the MiniMC subsystem:
+      void JSONQuery( std::ostream&, const SmallVector<StrView,8>& query );
 
       //Internal utilities that are useful when implementing MMC simulation
       //engines.
@@ -125,6 +129,7 @@ namespace NCRYSTAL_NAMESPACE {
         std::string geomcfg;
         std::string srccfg;
         std::string enginecfg;
+        std::string short_title;//like "1.8Aa neutron on 2mm sphere"
       };
       ScenarioDecoded decodeScenario( const MatCfg&, const char* scenario );
 

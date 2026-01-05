@@ -42,19 +42,15 @@ class MMCDiffractionResults:
         o.__cfgstr = str(data['cfgstr'])
         return o
 
-    def nbins( self ):
-        nb = set([h.nbins for h in self.__hists])
-        assert len(nb)==1, "Inconsistent binnings"
-        return nb.pop()
-
     @classmethod
     def from_json( cls, data ):
         import json
         return cls.from_dict( json.loads(data) )
 
     def to_dict( self, json_compat = False ):
+        import copy
         return dict(
-            setup_info = self.__setup_info,
+            setup_info = copy.deepcopy(self.__setup_info),
             hists = [ h.to_dict( json_compat = json_compat)
                       for h in self.__hists ],
             cfgstr = self.__cfgstr,
@@ -63,6 +59,12 @@ class MMCDiffractionResults:
     def to_json( self ):
         import json
         return json.dumps(self.to_dict(json_compat=True))
+
+    @classmethod
+    def _from_raw( cls, data ):
+        import pprint
+        pprint.pprint(data)
+
 
     @classmethod
     def _from_C( cls,
@@ -97,6 +99,10 @@ class MMCDiffractionResults:
         o.__cfgstr = cfgstr
         return o
 
+    def nbins( self ):
+        nb = set([h.nbins for h in self.__hists])
+        assert len(nb)==1, "Inconsistent binnings"
+        return nb.pop()
 
     def rebin( self, rebin_factor ):
         """Reduce granularity of binnings in histogram by provided factor, which
@@ -323,8 +329,8 @@ class MMCDiffractionResults:
                 curve = newcurve
 
             axis.errorbar(**hist_main.errorbar_args())
-            if not logy:
-                axis.set_ylim(0.0,ymax_non_NOSCAT[0]*1.3 or None)
+            #if not logy:
+            #    axis.set_ylim(0.0,ymax_non_NOSCAT[0]*1.3 or None)#Fixme: hiding transmitted!
             axis.set_xlim(0.0,180.0)
         else:
             if rebin_factor != 1:

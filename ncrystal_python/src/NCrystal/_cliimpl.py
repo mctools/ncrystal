@@ -225,12 +225,15 @@ def cli_entry_point(func):
             try:
                 func( progname, arglist )
             except NCException as e:
+                raise e#fixme
                 n=e.__class__.__name__
                 if n.startswith('NC'):
                     n = n[2:]
-                raise SystemExit('%s ERROR: %s'%(n,e)) from e
+                raise SystemExit('%s ERROR: %s'%(n,
+                                                 str(e) or '<unknown>')) from e
             except Exception as e:
-                raise SystemExit('ERROR: %s'%(e)) from e
+                raise e#fixme
+                raise SystemExit('ERROR: %s'%(str(e) or '<unknown>')) from e
     return mainfct
 
 def _resolve_cmd_and_import_climod( cmdname, arguments ):

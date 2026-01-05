@@ -49,7 +49,15 @@ namespace NCRYSTAL_NAMESPACE {
           streamJSONDictEntry( os, "cfgstr", cfgstr.str(), JSONDictPos::FIRST );
           os << ",\"decoded\":{";
           m_vol.toJSONDecodedItems(os);
+          streamJSONDictEntry( os, "short_description", shortDescription() );
           os << "}}";
+        }
+
+        std::string shortDescription() const override
+        {
+          std::ostringstream os;
+          m_vol.shortDescr( os );
+          return os.str();
         }
 
         void toString(std::ostream& os) const
@@ -105,7 +113,6 @@ namespace NCRYSTAL_NAMESPACE {
           PMC::checkNoUnknown(tokens,"r","geometry");
           return makeSO<GeometryImpl<Sphere>>
             ( Length{ PMC::getValue_dbl(tokens,"r") } );
-
         } else if ( geom_name == "cyl" ) {
           PMC::applyDefaults( tokens, "r=0.01;dy=0" );//0.01m = 1cm
           PMC::checkNoUnknown(tokens,"r;dy","geometry");

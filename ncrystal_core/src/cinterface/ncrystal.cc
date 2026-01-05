@@ -2387,6 +2387,17 @@ char* ncrystal_minimc( const char * material_cfgstr,
 char** ncrystal_minimc_scenario( const char * material_cfgstr,
                                  const char * scenario )
 {
+  //fixme: more flexible to 1. return json str, 2. rename to
+  //ncrystal_minimc_info allow 3 keys:
+  //
+  //   str infotype, str arg1, str arg2.
+  //
+  //   "scenario", cfgstr, scnariostr -> json src/geom/engine-cfg+title
+  //   "tallydocs", "", "" -> json with info about tallies (for docs)
+  //   "srcdocs", "", ""  -> json with info about sources
+  //
+  // Could in fact be a generic ncrystal_jsonquery function.
+
   char ** result = nullptr;
   try {
     NC::MatCfg matcfg(material_cfgstr);
@@ -2401,7 +2412,33 @@ char** ncrystal_minimc_scenario( const char * material_cfgstr,
     nc_assert_always(nstrs==3);
     result = strs;
   } NCCATCH;
-  return result;;
+  return result;
+}
+
+char* ncrystal_jsonquery( const char * rawquery )
+{
+  char * result = nullptr;
+  try {
+    if ( rawquery == nullptr )
+      rawquery = "";
+    constexpr char splitchar = static_cast<char>(0x07);
+    using JSONQuery = NC::SmallVector<NC::StrView,8>;
+    JSONQuery query = NC::StrView(rawquery).split<JSONQuery::nsmall>(splitchar);
+    if ( query.empty() )
+      NCRYSTAL_THROW2(BadInput, "Invalid JSON query: \""<<rawquery<<'"');
+    const auto& key = query.front();
+    constexpr auto sv_mmc = NC::StrView::make("mmc");
+    std::ostringstream os;
+    if ( key == sv_mmc ) {
+      NCMMC::Utils::JSONQuery( os, query );
+    } else {
+      NCRYSTAL_THROW2(BadInput, "Invalid JSON query key: \""<<key<<'"');
+    }
+    result = ncc::createString(std::move(os).str());
+  } NCCATCH;
+  return result;
+
+
 }
 
 void ncrystal_runmmcsim_stdengine( unsigned, unsigned, const char *,

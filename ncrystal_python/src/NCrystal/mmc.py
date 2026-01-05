@@ -25,7 +25,7 @@ Highly experimental "Mini-MC" framework for transforming NCrystal materials into
 actual scattering patterns.
 
 """
-
+#Fixme update __all__ (also with MMCResults)
 __all__ = ['runsim_diffraction_pattern',
            'quick_diffraction_pattern',
            'quick_diffraction_pattern_autoparams']

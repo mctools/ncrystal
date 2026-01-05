@@ -820,6 +820,35 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
         _raw_setmsghandler(keepalive[-1])
     functions['setmsghandler'] = ncrystal_setmsghandler
 
+    _raw_jsonquery = _wrap('ncrystal_jsonquery',_charptr,(_cstr,), hide=True)
+    def jsonquery( *args ):
+        sc = '\x07'
+        str_query = sc.join(args)
+        if len(args) != str_query.count(sc)+1:
+            raise NCBadInput("Can not use character 0x07 (ASCII BEL) in"
+                             " JSON query strings" )
+        cstr_query = _str2cstr(str_query)
+        raw_str = _raw_minimc( cstr_query )
+        assert raw_str is not None
+        res=_cstr2str(ctypes.cast(raw_str,_cstr).value)
+        _raw_deallocstr(raw_str)
+        return res
+    functions['jsonquery'] = jsonquery
+
+    _raw_minimc = _wrap('ncrystal_minimc',_charptr,(_cstr,_cstr,_cstr,_cstr,),
+                        hide=True)
+    def minimc( cfgstr, geomcfg, srccfg, enginecfg ):
+        cs = _str2cstr(cfgstr)
+        gc = _str2cstr(geomcfg)
+        sc = _str2cstr(srccfg)
+        ec = _str2cstr(enginecfg)
+        raw_str = _raw_minimc( cs, gc, sc, ec )
+        assert raw_str is not None
+        res=_cstr2str(ctypes.cast(raw_str,_cstr).value)
+        _raw_deallocstr(raw_str)
+        return res
+    functions['minimc'] = minimc
+
     _raw_minimc_scenario = _wrap('ncrystal_minimc_scenario',
                                  _cstrp,(_cstr,_cstr),hide=True)
     def minimc_scenario( cfgstr, scenariostr ):
@@ -846,49 +875,49 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
                      enginecfg = res[2] )
     functions['minimc_scenario'] = minimc_scenario
 
-    _raw_runmmcsim_stdengine    = _wrap('ncrystal_runmmcsim_stdengine',None,
-                                        (_uint,_uint,
-                                         _cstr,_cstr,_cstr,
-                                         _charptrptr,_uintp,_dblpp,_dblpp),
-                                        hide=True)
-    def nc_runmmcsim_stdengine( nthreads,
-                                tally_detail_lvl,
-                                mat_cfgstr,
-                                mmc_geomcfg,
-                                mmc_srccfg ):
-        nthreads_ = _uint(int(nthreads))
-        assert 0<=tally_detail_lvl<=2
-        tally_detail_lvl_ = _uint(int(tally_detail_lvl))
-        mat_cfgstr_ = _str2cstr(mat_cfgstr)
-        mmc_geomcfg_ = _str2cstr(mmc_geomcfg)
-        mmc_srccfg_ = _str2cstr(mmc_srccfg)
-        t_json = _charptr()
-        t_exitangle_nbins = _uint()
-        t_exitangle_ct = _dblp()
-        t_exitangle_errsq = _dblp()
-        _raw_runmmcsim_stdengine( nthreads_,
-                                  tally_detail_lvl_,
-                                  mat_cfgstr_,
-                                  mmc_geomcfg_,
-                                  mmc_srccfg_,
-                                  t_json,
-                                  t_exitangle_nbins,
-                                  ctypes.byref(t_exitangle_ct),
-                                  ctypes.byref(t_exitangle_errsq) )
-        if t_json is not None:
-            t_json_cstr = ctypes.cast(t_json,_cstr).value
-            if t_json_cstr is not None:
-                _ = _cstr2str(t_json_cstr)
-                _raw_deallocstr(t_json)
-                t_json = _
-            else:
-                t_json = None
-
-        tally_exitangle_contents = _cptr_to_nparray( t_exitangle_ct, t_exitangle_nbins )
-        tally_exitangle_errsq = _cptr_to_nparray( t_exitangle_errsq, t_exitangle_nbins )
-        return tally_exitangle_contents,tally_exitangle_errsq,t_json
-
-    functions['runmmcsim_stdengine']=nc_runmmcsim_stdengine
+#    _raw_runmmcsim_stdengine    = _wrap('ncrystal_runmmcsim_stdengine',None,
+#                                        (_uint,_uint,
+#                                         _cstr,_cstr,_cstr,
+#                                         _charptrptr,_uintp,_dblpp,_dblpp),
+#                                        hide=True)
+#    def nc_runmmcsim_stdengine( nthreads,
+#                                tally_detail_lvl,
+#                                mat_cfgstr,
+#                                mmc_geomcfg,
+#                                mmc_srccfg ):
+#        nthreads_ = _uint(int(nthreads))
+#        assert 0<=tally_detail_lvl<=2
+#        tally_detail_lvl_ = _uint(int(tally_detail_lvl))
+#        mat_cfgstr_ = _str2cstr(mat_cfgstr)
+#        mmc_geomcfg_ = _str2cstr(mmc_geomcfg)
+#        mmc_srccfg_ = _str2cstr(mmc_srccfg)
+#        t_json = _charptr()
+#        t_exitangle_nbins = _uint()
+#        t_exitangle_ct = _dblp()
+#        t_exitangle_errsq = _dblp()
+#        _raw_runmmcsim_stdengine( nthreads_,
+#                                  tally_detail_lvl_,
+#                                  mat_cfgstr_,
+#                                  mmc_geomcfg_,
+#                                  mmc_srccfg_,
+#                                  t_json,
+#                                  t_exitangle_nbins,
+#                                  ctypes.byref(t_exitangle_ct),
+#                                  ctypes.byref(t_exitangle_errsq) )
+#        if t_json is not None:
+#            t_json_cstr = ctypes.cast(t_json,_cstr).value
+#            if t_json_cstr is not None:
+#                _ = _cstr2str(t_json_cstr)
+#                _raw_deallocstr(t_json)
+#                t_json = _
+#            else:
+#                t_json = None
+#
+#        tally_exitangle_contents = _cptr_to_nparray( t_exitangle_ct, t_exitangle_nbins )
+#        tally_exitangle_errsq = _cptr_to_nparray( t_exitangle_errsq, t_exitangle_nbins )
+#        return tally_exitangle_contents,tally_exitangle_errsq,t_json
+#
+#    functions['runmmcsim_stdengine']=nc_runmmcsim_stdengine
 
 
     return functions

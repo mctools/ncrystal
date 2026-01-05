@@ -1,20 +1,20 @@
 
 Test engine opt string: ""
     -> obj: EngineOpts()
-    -> json: {"ignoremiss":false,"tallybreakdown":true,"nthreads":"auto"}
+    -> json: {"cfgstr":"","decoded":{"ignoremiss":false,"tallybreakdown":true,"absorption":true,"nthreads":"auto"}}
 
 Test engine opt string: "nthreads=4"
     -> obj: EngineOpts(nthreads=4)
-    -> json: {"ignoremiss":false,"tallybreakdown":true,"nthreads":4}
+    -> json: {"cfgstr":"nthreads=4","decoded":{"ignoremiss":false,"tallybreakdown":true,"absorption":true,"nthreads":4}}
 
 Test engine opt string: "tallybreakdown  =  0"
     -> obj: EngineOpts(tallybreakdown=0)
-    -> json: {"ignoremiss":false,"tallybreakdown":false,"nthreads":"auto"}
+    -> json: {"cfgstr":"tallybreakdown=0","decoded":{"ignoremiss":false,"tallybreakdown":false,"absorption":true,"nthreads":"auto"}}
 
 Test engine opt string: "nthreads=0 ;   ignoremiss =1"
     -> obj: EngineOpts(ignoremiss=1;nthreads=0)
-    -> json: {"ignoremiss":true,"tallybreakdown":true,"nthreads":0}
+    -> json: {"cfgstr":"ignoremiss=1;nthreads=0","decoded":{"ignoremiss":true,"tallybreakdown":true,"absorption":true,"nthreads":0}}
 
 Test engine opt string: "std;nthreads=0;ignoremiss=1"
     -> obj: EngineOpts(ignoremiss=1;nthreads=0)
-    -> json: {"ignoremiss":true,"tallybreakdown":true,"nthreads":0}
+    -> json: {"cfgstr":"ignoremiss=1;nthreads=0","decoded":{"ignoremiss":true,"tallybreakdown":true,"absorption":true,"nthreads":0}}

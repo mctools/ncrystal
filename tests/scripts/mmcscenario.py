@@ -25,7 +25,7 @@
 import NCrystalDev._mmc as ncmmc #fixme update imports
 from NCrystalDev.core import NCBadInput
 from NCTestUtils.common import ensure_error
-import numpy#before fpe
+import numpy # noqa F401 (before fpe)
 import NCTestUtils.enable_fpe # noqa F401
 
 def testbad(cfgstr,scenario, expecterr):
@@ -105,7 +105,7 @@ def main():
             'invalid length: "0.5miles". Must be a value followed by'
             ' either the special unit "mfp" (mean-free-path between'
             ' scatterings) or one of the standard length units: Aa, '
-            'nm, mu, mm, cm, m');
+            'nm, mu, mm, cm, m')
     testbad(c,'1.8Aa on 0.5e-3.2cm',
             'Invalid thickness specification in "0.5e-3.2cm".')
     testbad(c,'1eV on 1e-250Aa',

@@ -540,3 +540,102 @@ def fixed_fake_datetime_now(f):
         with FixedFakeDatetimeNow():
             return f(*a, **kw)
     return fw
+
+def flex_load_json( data, copy = False ):
+    """If data is not a string or buffer, simply return it (possibly after a
+    deep copy if copy=True).  Otherwise, it is assumed to be JSON data encoded
+    in either a string, a utf8-encoded buffer, or a utf8-encoded and
+    gzip-compressed buffer. In that case, the JSON data is loaded and the
+    resulting object returned.
+
+    Thus, this function can be used where we need to accept flexible input data
+    and return a decoded object (normally a dictionary or a list).
+    """
+    if isinstance( data, bytes ):
+        if data.startswith(b'\x1f\x8b'):
+            import gzip
+            data = gzip.decompress(data)
+        data = data.decode('utf8')
+    if isinstance( data, str ):
+        import json
+        data = json.loads( data )
+    if copy:
+        import copy
+        data = copy.deepcopy(data)
+    return data
+
+def copy_and_deobjectify_data( data ):
+    """Traverse lists, tuples and dicts of data and replace any objects inside
+    it that has a ._to_json_compat_object() method with the result of calling
+    that method.
+    """
+    import copy
+    def o( d ):
+        if hasattr( d, '_to_json_compat_object'):
+            return d._to_json_compat_object()
+        if isinstance(d,list):
+            return [o(e) for e in d]
+        if isinstance(d,tuple):
+            return tuple([o(e) for e in d])
+        if isinstance(d,dict):
+            return dict( (copy.deepcopy(k),o(v))
+                         for k,v in d.items() )
+        #something else, just pass through:
+        return copy.deepcopy( d )
+    return o( data )
+
+#def energy_with_unit( ekin = None, wl = None):
+#    """Tries to format an energy value like for instance "1.8Aa", "25meV", or
+#    "0.1eV". Returns the shortest formatted result.
+#    """
+#    #FIXME: unused???
+#    assert wl is not None or ekin is not None
+#    candidates = []
+#    def fmt(x):
+#        s = '%.14g'%x
+#        return s if float(s)==x else '%.19g'%x
+#    if wl is not None:
+#        candidates.append( '%sAa'%fmt(wl) )
+#    if ekin is None:
+#        return candidates[0]
+#    eu = {'eV':1.0,
+#          'keV':1e3,
+#          'MeV':1e6,
+#          'GeV':1e9,
+#          'meV':0.001,
+#          'neV':1e-9}
+#
+#    for k, v in energy_units.items():
+#        candidates.append( '%s%s'%(fmt(v*ekin),k) )
+#    candidates.sort( key=lambda k: k.size() )
+#    return candidates[0]
+
+
+def json_query_cpplayer( *args, unpack=True ):
+    """Sends query (list of string arguments) to the C++ layer and get a JSON
+    response. Unless unpack is False, this JSON string will be decoded and the
+    resulting object returned.
+    """
+    assert all( isinstance(a,str) for a in args )
+    from ._chooks import _get_raw_cfcts
+    _rawfct = _get_raw_cfcts()
+    res = _rawfct['jsonquery']( *args )
+    if unpack:
+        import json
+        return json.loads(res)
+    return res
+
+#fixme: make _fmt.py module?
+def _frexp10(x):
+    import math
+    exp = int(math.floor(math.log10(abs(x))))
+    return x / 10**exp, exp
+
+def _latex_format(x):
+    if len('%f'%x)<6:
+        return '%f'%x
+    b,e = _frexp10(x)
+    e=f'10^{e}'
+    if b==1:
+        return e
+    return f'{b:g}'+r'\cdot'+e

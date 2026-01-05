@@ -6,7 +6,7 @@ Library "TestMod_hists" (7 functions):
   void nctestdetail_clear_lasterror()
   const char * nctestdetail_get_lasterror()
   int nctestdetail_has_lasterror()
-JSON: {"title":"","stats":{"integral":1.0,"rms":0.0,"mean":12.34,"minfilled":12.34,"maxfilled":12.34},"bindata":{"xmin":0.0,"xmax":100.0,"nbins":5,"content":[1.0,0.0,0.0,0.0,0.0],"errorsq":[1.0,0.0,0.0,0.0,0.0]}}
+JSON: {"datatype":"NCrystalHist1D_v1","title":"","stats":{"integral":1.0,"rms":0.0,"mean":12.34,"minfilled":12.34,"maxfilled":12.34},"bindata":{"xmin":0.0,"xmax":100.0,"nbins":5,"content":[1.0,0.0,0.0,0.0,0.0],"errorsq":[1.0,0.0,0.0,0.0,0.0]}}
 Hist1D(nbins=5,xmin=0,xmax=100):
   title     : <none>
   integral  : 1

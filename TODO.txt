@@ -1,0 +1,16 @@
+
+#Need unified src+geomcfg string? Since we want e.g. src to exactly illuminate
+#geom, and make constant source start juuuust inside the geometry if constant.
+#
+#geomcfg = f'sphere;r={r_meter}'
+#srccfg = f'auto:1.8Aa;constant;center'
+#srccfg = f'auto:1.8Aa;circular'
+#
+#"1.8Aa;sphere;center;r="
+#"1.8Aa;sphere;uniform"
+#
+#geomcfg = f'box;d={r_meter}'
+#srccfg = f'auto:1.8Aa;constant;center'
+#
+#"1.8Aa;sphere;r=2.0;
+#

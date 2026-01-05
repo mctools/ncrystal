@@ -32,6 +32,8 @@ namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
 
     namespace {
+      using EParsed = parseMMCCfg::EParsed;
+
       class StatCount {
       public:
         StatCount( std::size_t n )
@@ -126,8 +128,8 @@ namespace NCRYSTAL_NAMESPACE {
         streamJSONDictEntry( os, "cfgstr", cfgstr.str(), JSONDictPos::FIRST );
         os << ",\"decoded\":{";
         src.toJSONDecodedCfgItems(os);
-        //os << "},\"stats\":{\"provided_sum_weights\":";
-        //streamJSON(os,src.totalWeightsProvided());
+        streamJSONDictEntry( os, "short_neutron_description",
+                             src.describeNeutrons() );
         os << "}}";
       }
 
@@ -185,6 +187,7 @@ namespace NCRYSTAL_NAMESPACE {
         double m_w = 1.0;
         NeutronEnergy m_ekin;
         double m_minusr = 0.0;
+        std::string m_neutronDescr;
      public:
 
         //Note: If radius is set to a positive value, we move particles
@@ -193,18 +196,24 @@ namespace NCRYSTAL_NAMESPACE {
         //that amount (i.e. a sphere radiating outwards).
 
         SourceIsotropic( std::size_t n,
-                         NeutronEnergy ekin,
+                         const EParsed& ekin_parsed,
                          double weight,
                          Length x = Length{0},
                          Length y = Length{0},
                          Length z = Length{0},
                          double radius = 0.0 )
           : m_stat(n), m_x(x), m_y(y), m_z(z),
-            m_w(weight), m_ekin(ekin),
-            m_minusr(radius?-radius:0.0)
+            m_w(weight), m_ekin(ekin_parsed.energy),
+            m_minusr(radius?-radius:0.0),
+            m_neutronDescr(ekin_parsed.title)
         {
           nc_assert_always(m_w>0.0&&std::isfinite(m_w));
           nc_assert_always(std::isfinite(radius)&&ncabs(radius)<1e99);
+        }
+
+        std::string describeNeutrons() const override
+        {
+          return m_neutronDescr;
         }
 
         Optional<NeutronDirection> nominalBeamDirection() const override
@@ -308,10 +317,11 @@ namespace NCRYSTAL_NAMESPACE {
         NeutronDirection m_dir;
         double m_w = 1.0;
         NeutronEnergy m_ekin;
+        std::string m_neutronDescr;
       public:
 
         SourceConstant( std::size_t n,
-                        NeutronEnergy ekin,
+                        const EParsed& ekin_parsed,
                         double weight,
                         Length x = Length{0},
                         Length y = Length{0},
@@ -320,9 +330,15 @@ namespace NCRYSTAL_NAMESPACE {
           : m_stat(n), m_x(x), m_y(y), m_z(z),
             m_dir( direction.as<Vector>().unit().as<NeutronDirection>() ),
             m_w(weight),
-            m_ekin(ekin)
+            m_ekin(ekin_parsed.energy),
+            m_neutronDescr(ekin_parsed.title)
         {
           nc_assert_always(m_w>0.0&&std::isfinite(m_w));
+        }
+
+        std::string describeNeutrons() const override
+        {
+          return m_neutronDescr;
         }
 
         Optional<NeutronDirection> nominalBeamDirection() const override
@@ -404,7 +420,6 @@ namespace NCRYSTAL_NAMESPACE {
         }
       };
 
-
       class SourceUniformCircularBeam final : public Source {
         //A source which fires a monochromatic beam of neutrons, with a circular
         //and uniform beam profile. Energy and radius are both required
@@ -417,10 +432,11 @@ namespace NCRYSTAL_NAMESPACE {
         double m_w = 1.0;
         NeutronEnergy m_ekin;
         Length m_radius;//for metadata
+        std::string m_neutronDescr;
       public:
 
         SourceUniformCircularBeam( std::size_t n,
-                                   NeutronEnergy ekin,
+                                   const EParsed& ekin_parsed,
                                    double weight,
                                    Length radius,
                                    Length x = Length{0},
@@ -430,8 +446,9 @@ namespace NCRYSTAL_NAMESPACE {
           : m_stat(n), m_center{ x.get(), y.get(), z.get() },
             m_dir( direction.as<Vector>().unit().as<NeutronDirection>() ),
             m_w(weight),
-            m_ekin(ekin),
-            m_radius(radius)
+            m_ekin(ekin_parsed.energy),
+            m_radius(radius),
+            m_neutronDescr(ekin_parsed.title)
         {
           nc_assert_always(m_w>0.0&&std::isfinite(m_w));
           const Vector& vdir = m_dir.as<Vector>();
@@ -460,6 +477,11 @@ namespace NCRYSTAL_NAMESPACE {
                                <<m_center<<", dir="<<m_dir<<", ekin="<<m_ekin
                                <<", r="<<m_radius
                                <<", a="<<m_a<<", b="<<m_b);
+        }
+
+        std::string describeNeutrons() const override
+        {
+          return m_neutronDescr;
         }
 
         Optional<NeutronDirection> nominalBeamDirection() const override
@@ -583,14 +605,19 @@ namespace NCRYSTAL_NAMESPACE {
           NCRYSTAL_THROW2(BadInput,"Invalid src cfg: \""<<raw_srcstr<<"\"");
 
         const char * common_defaults = "n=1e6;w=1.0";
-        auto common_default_energy = NeutronWavelength{ 1.8 }.energy();
+        // auto common_default_energy = NeutronWavelength{ 1.8 }.energy();
+
+        EParsed common_default_energy;
+        common_default_energy.energy = NeutronWavelength{ 1.8 };
+        common_default_energy.title = "1.8Aa";
+        auto energy = PMC::getValue_Energy( tokens, common_default_energy );
 
         if ( src_name == "constant" ) {
           PMC::applyDefaults( tokens, common_defaults );
           PMC::applyDefaults( tokens, "x=0;y=0;z=0;ux=0;uy=0;uz=1;n=1e6" );
           PMC::checkNoUnknown(tokens,"ekin;wl;n;w;;x;y;z;ux;uy;uz","source");
           return makeSO<SourceConstant>( PMC::getValue_sizet(tokens,"n"),
-                                         PMC::getValue_Energy( tokens, common_default_energy ),
+                                         energy,
                                          PMC::getValue_weight( tokens, "w" ),
                                          Length{ PMC::getValue_dbl(tokens,"x") },
                                          Length{ PMC::getValue_dbl(tokens,"y") },
@@ -603,7 +630,7 @@ namespace NCRYSTAL_NAMESPACE {
           PMC::applyDefaults( tokens, "x=0;y=0;z=0;ux=0;uy=0;uz=1;n=1e6" );
           PMC::checkNoUnknown(tokens,"ekin;wl;n;w;;x;y;z;ux;uy;uz;r","source");
           return makeSO<SourceUniformCircularBeam>( PMC::getValue_sizet(tokens,"n"),
-                                                    PMC::getValue_Energy( tokens, common_default_energy ),
+                                                    energy,
                                                     PMC::getValue_weight( tokens, "w" ),
                                                     Length{ PMC::getValue_dbl(tokens,"r") },
                                                     Length{ PMC::getValue_dbl(tokens,"x") },
@@ -617,7 +644,7 @@ namespace NCRYSTAL_NAMESPACE {
                              ? PMC::getValue_dbl( tokens, "r" )
                              : 0.0 );
           return makeSO<SourceIsotropic>( PMC::getValue_sizet(tokens,"n"),
-                                          PMC::getValue_Energy( tokens, common_default_energy ),
+                                          energy,
                                           PMC::getValue_weight( tokens, "w" ),
                                           Length{ PMC::getValue_dbl(tokens,"x") },
                                           Length{ PMC::getValue_dbl(tokens,"y") },
