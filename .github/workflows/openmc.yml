@@ -48,6 +48,9 @@ jobs:
       - name: Enable parallel cmake
         run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
 
+      - name: Apt update
+        run: sudo apt update
+
       - name: Install extra openmc deps
         run: sudo apt install libhdf5-dev libpng-dev
 

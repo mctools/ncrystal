@@ -39,6 +39,10 @@ jobs:
     - name: Enable parallel cmake
       run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
 
+    - name: Apt update (Linux)
+      if: runner.os == 'Linux'
+      run: sudo apt update
+
     - name: Install Ninja (Linux)
       if: runner.os == 'Linux'
       run: sudo apt-get install ninja-build

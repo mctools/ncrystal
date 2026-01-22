@@ -44,6 +44,10 @@ jobs:
     - name: show cppcheck version
       run: cppcheck --version
 
+    - name: Apt update (Linux)
+      if: runner.os == 'Linux'
+      run: sudo apt update
+
     - name: Install Ninja (Linux)
       if: runner.os == 'Linux'
       run: sudo apt-get install ninja-build
