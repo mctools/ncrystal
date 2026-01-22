@@ -41,6 +41,7 @@ namespace NCRYSTAL_NAMESPACE {
 
         constexpr auto default_model = StrView::make("sabine");
         constexpr auto default_bcmodel_recipeversion = StrView::make("std");
+        static_assert( BC_RecipeVersion::Default == BC_RecipeVersion::Std2025, "");
 
         void verify_model_name( const CfgKeyValMap& data, StrView name )
         {
@@ -127,14 +128,14 @@ namespace NCRYSTAL_NAMESPACE {
           return parseValImpl<TParser>(sv,context).first;
         }
 
-        const char * recipeVersion2cstr(const ExtnCfg_BC::RecipeVersion& rv )
+        const char * recipeVersion2cstr(const BC_RecipeVersion& rv )
         {
           //fixme: move to header with enum
-          if ( rv == ExtnCfg_BC::RecipeVersion::Std2025 )
+          if ( rv == BC_RecipeVersion::Std2025 )
             return "std";
-          if ( rv == ExtnCfg_BC::RecipeVersion::Lux2025 )
+          if ( rv == BC_RecipeVersion::Lux2025 )
             return "lux";
-          nc_assert_always( rv == ExtnCfg_BC::RecipeVersion::Classic1974 );
+          nc_assert_always( rv == BC_RecipeVersion::Classic1974 );
           return "cls";
         }
 
@@ -413,12 +414,12 @@ NCCE::ExtnCfg_BC NCCE::ExtnCfg_BC::decode( const CfgKeyValMap& data )
   ExtnCfg_BC res;
   auto recstr = data.getValue( "rec", default_bcmodel_recipeversion );
   if ( recstr == "std" ) {
-    res.recipeVersion = RecipeVersion::Std2025;
+    res.recipeVersion = BC_RecipeVersion::Std2025;
   } else if ( recstr == "lux" ) {
-    res.recipeVersion = RecipeVersion::Lux2025;
+    res.recipeVersion = BC_RecipeVersion::Lux2025;
   } else {
     nc_assert_always( recstr == "cls" );
-    res.recipeVersion = RecipeVersion::Classic1974;
+    res.recipeVersion = BC_RecipeVersion::Classic1974;
   }
   return res;
 }

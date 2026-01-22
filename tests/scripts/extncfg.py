@@ -80,8 +80,8 @@ def main():
     t("3.0mu/mdl:bc","3.0mu/mdl:bc")
     t("3.0Aa/mdl:bc","3.0/mdl:bc")
     t("3.0Aa/mdl:bc/rec:cls","3.0/mdl:bc/rec:cls")
-    t("3.0Aa/mdl:bc/rec:std","3.0/mdl:bc/rec:std")
-    t("3.0Aa/mdl:bc/rec:lux","3.0/mdl:bc")#the default
+    t("3.0Aa/mdl:bc/rec:std","3.0/mdl:bc")#the default
+    t("3.0Aa/mdl:bc/rec:lux","3.0/mdl:bc/rec:lux")
 
     with ensure_error( NCBadInput,
                        'Syntax error in extinction cfg "2.0/mdl:bc/rec:bla": '

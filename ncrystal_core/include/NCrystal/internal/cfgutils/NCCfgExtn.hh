@@ -22,6 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/cfgutils/NCCfgTypes.hh"
+#include "NCrystal/internal/utils/NCExtraTypes.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 
@@ -32,6 +33,8 @@ namespace NCRYSTAL_NAMESPACE {
   namespace Cfg {
 
     namespace Extn {
+
+      using namespace ExtnTypes;
 
       //To maximize flexibility, extinction configuration is passed around
       //opaguely in a VarBuf encoded by a CfgKeyValMap. This can be converted to
@@ -50,6 +53,7 @@ namespace NCRYSTAL_NAMESPACE {
 
       enum class Model { Sabine, BC };
 
+      //Fixme: provide raw data type (from NCExtraTypes?) without Model, and domainSize should be Optional.
       struct ExtnCfg_Base {
         Model model;
         Length domainSize;//fixme: we allow zero, but an Optional<Length> would be better in this case.
@@ -78,12 +82,15 @@ namespace NCRYSTAL_NAMESPACE {
       };
 
       struct ExtnCfg_BC {
-        enum class RecipeVersion { Std2025 = 0,
-                                   Lux2025 = 1,
-                                   Classic1974 = 2 };
-        enum class SecondaryModel { Gauss, Lorentz, Fresnel };
-        RecipeVersion recipeVersion = RecipeVersion::Std2025;
-        SecondaryModel secondaryModel = SecondaryModel::Gauss;//fixme parse and allow to change
+        // enum class RecipeVersion { Std2025 = 0,
+        //                            Lux2025 = 1,
+        //                            Classic1974 = 2 };
+        // enum class SecondaryModel { Gauss, Lorentz, Fresnel };
+        BC_RecipeVersion recipeVersion = BC_RecipeVersion::Default;
+        BC_ScndComponent secondaryModel = BC_ScndComponent::Default;//fixme parse and allow to change
+
+        //shuqi, type1, type2, tk (FIXME BC_ScndXDef?)
+
         static ExtnCfg_BC decode( const CfgKeyValMap& );
       };
 

@@ -23,6 +23,11 @@
 
 #include "NCrystal/internal/extn_utils/NCExtnBC1974.hh"
 #include "NCrystal/internal/extn_utils/NCExtnBC2025.hh"
+#include <iostream>//fixme
+//Until clarification about how to evaluate X_G and X_L, we use this define to
+//switch definition
+//#define NCRYSTAL_BCSCNDX_ALA_SHUQI
+
 
 namespace NCRYSTAL_NAMESPACE {
 
@@ -74,6 +79,9 @@ namespace NCRYSTAL_NAMESPACE {
         double k2; // [ Aa^2 ]
       };
       static ModelData initModelData( const PowderBraggInput::CellData& cell,
+#ifdef NCRYSTAL_BCSCNDX_ALA_SHUQI
+                                      Length domainSize,
+#endif
                                       Length grainSize,
                                       MosaicityFWHM angularSpread )
       {
@@ -95,8 +103,23 @@ namespace NCRYSTAL_NAMESPACE {
 
         const double tbar_Aa = grainSize.get() / Length::angstrom;
         ModelData res;
-        res.k1 = ( 2.0 / 3.0 ) * ncsquare( tbar_Aa / cell.volume ) * 1e-8;
+#ifdef NCRYSTAL_BCSCNDX_ALA_SHUQI
+        //Shuqi and Doug's interpretation:
+        //X = (2/3)*Q*alphaG*Tbar
 
+
+        const double small_tbar_Aa = domainSize.get() / Length::angstrom;
+
+        res.k1 = ( 2.0 / 3.0 ) * small_tbar_Aa * tbar_Aa * ncsquare( 1.0 / cell.volume ) * 1e-8;
+
+        //Extinction plugin:
+        //xs = 2. / 3. * Q_theta * L / std::sqrt(NC::ncsquare(wl / l) + NC::ncsquare(sin_2theta) / (2. * g * g));
+        //    = 2. / 3. * Q_theta * L * l / std::sqrt(NC::ncsquare(wl) + NC::ncsquare(sin_2theta)*l^2 / (2. * g * g));
+        //res.k1 = ( 2.0 / 3.0 ) * small_tbar_Aa * tbar_Aa * ncsquare( 1.0 / cell.volume ) * 1e-8;
+
+#else
+        res.k1 = ( 2.0 / 3.0 ) * ncsquare( tbar_Aa / cell.volume ) * 1e-8;
+#endif
         //Now:
         //
         //1/sqrt( 1+alphabar^2/(2*g^2))
@@ -104,21 +127,30 @@ namespace NCRYSTAL_NAMESPACE {
         //   = 1/sqrt( 1+0.5*((tbar*sin2theta/(lambda*g))^2))
         //sin2theta = 2*sinth*sqrt(1-sinth^2), lambda/2d = sinth,
 
-        //Now we want to define k2 as everything in the last term except
-        //sin2theta/lambda:
+        //Now we want to define k2 as everything in the last term inside the
+        //sqrt except sin2theta/lambda:
 
+#ifdef NCRYSTAL_BCSCNDX_ALA_SHUQI
+        res.k2 = 0.5 * ncsquare(small_tbar_Aa)*inv_g_squared;//[Aa^2]
+        // 1/sqrt( 1+alphabar^2/(2*g^2))
+#else
         res.k2 = 0.5 * ncsquare(tbar_Aa)*inv_g_squared;//[Aa^2]
-
+#endif
         return res;
       }
       class NeutronXCalc final {
         double m_k1wlsq = 0.0; // [1/barn]
         double m_k2 = 0.0; // [1/barn]
       public:
-        NeutronXCalc( const ModelData& md, NeutronWavelength ekin )
-          : m_k1wlsq(ekin2wlsq( ekin.get() ) * md.k1),
+        NeutronXCalc( const ModelData& md, NeutronWavelength wl )
+          : m_k1wlsq(ncsquare(wl.get()) * md.k1),
             m_k2(md.k2)
         {
+          // std::cout<<"TKTEST L/wl = "<<md.TEST_L/wl.get()<<std::endl;
+          // std::cout<<"TKTEST l/wl = "<<md.TEST_l/wl.get()<<std::endl;
+          //std::cout<<"TKTEST k1wlsq = "<<m_k1wlsq<<std::endl;
+          //std::cout<<"TKTEST k1wlsq    2. / 3. * Q_theta * L = "<<2. / 3. * Q_theta * L<<std::endl;
+
         }
         template<class TPlaneData>
         double calcX( const TPlaneData& p, const double sintheta ) const
@@ -128,12 +160,47 @@ namespace NCRYSTAL_NAMESPACE {
           //sin2theta = 2*sinth*sqrt(1-sinth^2), lambda/2d = sinth,
           //(sin2theta/lambda)^2 = 4*sinth^2*(1-sinth^2)/ ( (2d)^2 * sinth^2)
           //                     = 4*(1-sinth^2)/(2d)^2
+
+
+
+
+
+          //#ifdef NCRYSTAL_BCSCNDX_ALA_SHUQI
+          //xs = 2. / 3. * Q_theta * L / std::sqrt(NC::ncsquare(wl / l) + NC::ncsquare(sin_2theta) / (2. * g * g));
+          //double Q_theta = NC::ncsquare(Nc * wl * F_hkl) * wl; //division by sin_2theta to be done later
+          // xs = (2/3) * (F/V)^2 * wl^3 * L / sqrt(NC::ncsquare(wl / l) + NC::ncsquare(sin_2theta) / (2. * g * g))
+          //    = (2/3) * (F/V)^2 * wl^3 * L / (  wl * sqrt(NC::ncsquare(1 / l) + (NC::ncsquare(sin_2theta)/wl^2) / (2. * g * g)) )
+          //    = (2/3) * (F/V)^2 * wl^2 * L * l / sqrt(1 + l^2 * (NC::ncsquare(sin_2theta)/wl^2) / (2. * g * g))
+          //    = (2/3) * (F/V)^2 * wl^2 * L * l / sqrt(1 + ( l^2 * / (2. * g * g)) * (4*(1-sinth^2)/(2d)^2) )
+
+          // #else
+          //xs = (k1*fsq/l) * wl^3 / std::sqrt(NC::ncsquare(wl / l) + NC::ncsquare(sin_2theta) / (2. * g * g))
+          //   = (k1*fsq*wl^2) * ( wl/l) / std::sqrt(NC::ncsquare(wl / l) + NC::ncsquare(sin_2theta) / (2. * g * g))
+          //   = (k1*fsq*wl^2) / (l/wl)*std::sqrt(NC::ncsquare(wl / l) + NC::ncsquare(sin_2theta) / (2. * g * g))
+          //   = (k1*fsq*wl^2) / std::sqrt(1 + NC::ncsquare(l/wl)*NC::ncsquare(sin_2theta) / (2. * g * g))
+          //   = (k1*fsq*wl^2) / std::sqrt(1 + (sin_2theta/wl)^2 * (l^2 / (2. * g * g)))
+
+
+
+
+
+
+
+          // std::cout<<"TKTEST k1*fsq:"<<m_TEST_k1*p.fsq<<std::endl;
           const double ksl = 4.0*( 1.0 - ncsquare(sintheta) )*ncsquare(p.inv2dsp);
           return m_k1wlsq * p.fsq / std::sqrt( std::max(1e-199,1.0 + m_k2 * ksl));
+          //#endif
+//           return k1 * wl^2 * p.fsq )
+//         res.k1 = ( 2.0 / 3.0 ) * ncsquare( tbar_Aa / cell.volume ) * 1e-8;
 
-          return ( ( 2.0 / 3.0 ) * ncsquare( tbar_Aa / cell.volume ) * 1e-8 * wl^2 * p.fsq )
 
-            / std::sqrt( 1.0 + 2 * ncsquare(tbar_Aa)*( 1.0 - ncsquare(sintheta) ) / ((2d)^2*g^2)
+//         //   = 1/sqrt( 1+k2 * (sin2theta/lambda)^2)
+
+
+
+
+//           return ( ( 2.0 / 3.0 ) * ncsquare( tbar_Aa / cell.volume ) * 1e-8 * wl^2 * p.fsq )
+//             / std::sqrt( 1.0 + 2 * ncsquare(tbar_Aa)*( 1.0 - ncsquare(sintheta) ) / ((2d)^2*g^2);
 
 
           //sin2th^2 = 4*sinth^2*(1-sinth^2)
@@ -142,8 +209,8 @@ namespace NCRYSTAL_NAMESPACE {
 
 
 
-          //shuqi:
-         xs = 2. / 3. * Q_theta * L*l / [wl*std::sqrt(1 + NC::ncsquare(l / wl)*NC::ncsquare(sin_2theta) / (2. * g * g))];
+         //  //shuqi:
+         // xs = 2. / 3. * Q_theta * L*l / [wl*std::sqrt(1 + NC::ncsquare(l / wl)*NC::ncsquare(sin_2theta) / (2. * g * g))];
 
 
 
@@ -153,14 +220,15 @@ namespace NCRYSTAL_NAMESPACE {
     };
 
 
-    enum class BC_RecipeVersion { Classic1974 = 0, Std2025 = 1, Lux2025 = 2,
-                                  Default = Std2025 };
-    enum class BC_M{ P, G, L, F };//Primary, ScndGauss, ScndLorentz, ScndFresnel
-    using BC_Component = BC_M;
+    // enum class BC_RecipeVersion { Classic1974 = 0, Std2025 = 1, Lux2025 = 2,
+    //                               Default = Std2025 };
+    // enum class BC_M{ P, G, L, F };//Primary, ScndGauss, ScndLorentz, ScndFresnel
+    //   //using BC_Component = BC_M;
+
+    using BC_M = BC_Component;//P, G, L, F
 
     template<BC_M, BC_RecipeVersion = BC_RecipeVersion::Default>
     struct BCEval {};
-
     template<> struct BCEval<BC_M::P,BC_RecipeVersion::Classic1974> { static double eval( double x, double sinth ) { return BC1974::y_primary(x,sinth); } };
     template<> struct BCEval<BC_M::P,BC_RecipeVersion::Std2025> { static double eval( double x, double sinth ) { return BC2025::y_primary(x,sinth); } };
     template<> struct BCEval<BC_M::P,BC_RecipeVersion::Lux2025> { static double eval( double x, double sinth ) { return BC2025::y_primary_lux(x,sinth); } };
