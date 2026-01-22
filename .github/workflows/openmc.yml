@@ -71,6 +71,13 @@ jobs:
       - name: Run openmc --help
         run: ./install/bin/openmc --help
 
+        #NB: pinning pandas<3.0.0 until OpenMC has been fixed with:
+        #    https://github.com/openmc-dev/openmc/pull/3743
+        #    (as per Jan22-2026 the develop branch was already fixed)
+      - name: Pin pandas due to OpenMC issue (master branch only)
+        if: matrix.openmcbranch == 'master'
+        run: pip install "pandas<3.0.0"
+
       - name: Install OpenMC python
         run: pip install ./src_openmc
 
