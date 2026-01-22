@@ -45,6 +45,11 @@ jobs:
         working-directory: src_openmc
         run: git tag v0.0.0
 
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python }}
+
       - name: Enable parallel cmake
         run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
 
