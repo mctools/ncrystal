@@ -45,7 +45,7 @@ int main()
 {
   //Loading a few simple materials in this non-Python test is useful for various
   //debugging scenarios:
-  testcfg("stdlib::Be_sg194.ncmat;extn=0mu/mdl:bc/rec:std");
+  testcfg("stdlib::Be_sg194.ncmat;extn=1.0mu/mdl:bc/rec:std");
   testcfg("stdlib::Al_sg225.ncmat");
   testcfg("stdlib::Al_sg225.ncmat;dcutoff=0.6;vdoslux=2");
   testcfg("stdlib::Ni_sg225.ncmat");
