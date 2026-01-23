@@ -72,6 +72,10 @@ jobs:
             - numpy
             - cmake
             - make
+            #NB: pinning pandas<3.0.0 until OpenMC has been fixed with:
+            #    https://github.com/openmc-dev/openmc/pull/3743
+            #    (as per Jan22-2026 the develop branch was already fixed)
+            - pandas <3.0.0
           """
           ))
 
