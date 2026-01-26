@@ -24,18 +24,18 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v6.0.2
         with:
           path: ./src
 
       - name: Checkout test data
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v6.0.2
         with:
           repository: mctools/ncrystal-testdata-openmc
           path: ./src_data
 
       - name: Checkout openmc
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v6.0.2
         with:
           repository: openmc-dev/openmc
           ref: ${{ matrix.openmcbranch }}
