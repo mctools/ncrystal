@@ -540,3 +540,20 @@ def fixed_fake_datetime_now(f):
         with FixedFakeDatetimeNow():
             return f(*a, **kw)
     return fw
+
+def json_query_cpplayer( query, unpack=True ):
+    """Sends query (list of string arguments) to the C++ layer and get a JSON
+    response. Unless unpack is False, this JSON string will be decoded and the
+    resulting object returned.
+    """
+    if not all( isinstance(a,str) for a in query ):
+        from .exceptions import NCBadInput
+        raise NCBadInput('Invalid query (not all entries are strings):'
+                         ' %s'%repr(query))
+    from ._chooks import _get_raw_cfcts
+    _rawfct = _get_raw_cfcts()
+    res = _rawfct['jsonquery']( query )
+    if unpack:
+        import json
+        return json.loads(res)
+    return res

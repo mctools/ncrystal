@@ -1,0 +1,187 @@
+
+>>> Sending query: []
+Caught expected NCBadInput('Missing or empty query')
+
+>>> Sending query: ['foo']
+Caught expected NCBadInput('Invalid JSON query key: "foo"')
+
+>>> Sending query: ['foo', 117]
+Caught expected NCBadInput("Invalid query (not all entries are strings): ('foo', 117)")
+
+>>> Sending query: ['foo', 'bar\x07']
+Caught expected NCBadInput('Can not use character 0x07 (ASCII BEL) in JSON query strings')
+
+>>> Sending query: ['foo', '\x07']
+Caught expected NCBadInput('Can not use character 0x07 (ASCII BEL) in JSON query strings')
+
+>>> Sending query: ['foo', '\x07\x07']
+Caught expected NCBadInput('Can not use character 0x07 (ASCII BEL) in JSON query strings')
+
+>>> Sending query: ['foo', '\x07bar']
+Caught expected NCBadInput('Can not use character 0x07 (ASCII BEL) in JSON query strings')
+
+>>> Sending query: ['mmc', 'bla']
+Caught expected NCBadInput('Invalid MiniMC JSON query: ["mmc","bla"]')
+
+>>> Sending query: ['mmc', 'scenario']
+Caught expected NCBadInput('Invalid MiniMC JSON query: ["mmc","scenario"] (correct usage: ["mmc","scenario",CFGSTR,SCENARIOSTR])')
+
+>>> Sending query: ['mmc', 'scenario', '1.8Aa']
+Caught expected NCBadInput('Invalid MiniMC JSON query: ["mmc","scenario","1.8Aa"] (correct usage: ["mmc","scenario",CFGSTR,SCENARIOSTR])')
+
+>>> Sending query: ['mmc', 'scenario', 'Al_sg225.ncmat', '1.8Aa']
+{'enginecfg': '',
+ 'geomcfg': 'sphere;r=0.0573025',
+ 'short_title': '1.8Aa neutron on 0.000114605m diameter sphere',
+ 'srccfg': 'circular;z=-0.0573025;r=0.0573025;wl=1.8;n=1e6'}
+
+>>> Sending query: ['mmc', 'scenario', 'Al_sg225.ncmat', '']
+{'enginecfg': '',
+ 'geomcfg': 'sphere;r=0.0530935',
+ 'short_title': '3.74084Aa neutron on 0.000106187m diameter sphere',
+ 'srccfg': 'circular;z=-0.0530935;r=0.0530935;wl=3.74084;n=1e6'}
+
+>>> Sending query: ['mmc', 'inspectcfg']
+Caught expected NCBadInput('Invalid MiniMC JSON query: ["mmc","inspectcfg"] (correct usage: ["mmc","inspectcfg","src|geom|engine",STRCFG])')
+
+>>> Sending query: ['mmc', 'inspectcfg', 'bla', '']
+Caught expected NCBadInput('Invalid MiniMC JSON query: ["mmc","inspectcfg","bla",""] (correct usage: ["mmc","inspectcfg","src|geom|engine",STRCFG])')
+
+>>> Sending query: ['mmc', 'inspectcfg', 'src', '']
+Caught expected NCBadInput('Invalid src cfg: ""')
+
+>>> Sending query: ['mmc', 'inspectcfg', 'engine', 'tally=cosmu,cosmu']
+{'cfgstr': 'tally=cosmu',
+ 'decoded': {'absorption': True,
+             'beamdir': None,
+             'beamenergy': None,
+             'ignoremiss': False,
+             'nscatlimit': None,
+             'nthreads': 'auto',
+             'roulette': {'nscat_threshold': 2,
+                          'psurvival': 0.1,
+                          'weight_threshold': 0.01},
+             'seed': 0,
+             'tally': ['cosmu']},
+ 'name': 'std'}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;wl=2.0']
+{'cfgstr': 'constant;n=1000000;z=0;wl=2',
+ 'decoded': {'ekin': 0.020451052401332725,
+             'n': 1000000,
+             'name': 'constant',
+             'nominal_beam_dir': [0.0, 0.0, 1.0],
+             'nominal_beam_energy': 0.020451052401332725,
+             'nominal_beam_energy_str': '2Aa',
+             'ux': 0.0,
+             'uy': 0.0,
+             'uz': 1.0,
+             'w': 1.0,
+             'wl': 2.0,
+             'x': 0.0,
+             'y': 0.0,
+             'z': -10.0}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'src', 'isotropic; z=-10;ekin=0.025']
+{'cfgstr': 'isotropic;n=1000000;z=0;ekin=0.025',
+ 'decoded': {'ekin': 0.025,
+             'n': 1000000,
+             'name': 'isotropic',
+             'nominal_beam_dir': None,
+             'nominal_beam_energy': 0.025,
+             'nominal_beam_energy_str': '25meV',
+             'r': 0.0,
+             'w': 1.0,
+             'wl': 1.808913592246251,
+             'x': 0.0,
+             'y': 0.0,
+             'z': -10.0}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'src', 'circular; r=0.1;z=-1;wl=1.8;ux=1']
+{'cfgstr': 'circular;n=1000000;z=0;wl=1.8;ux=0.70710678118654746;uy=0;uz=0.70710678118654746;r=0.1',
+ 'decoded': {'ekin': 0.025248212841151512,
+             'n': 1000000,
+             'name': 'circular',
+             'nominal_beam_dir': [0.7071067811865475, 0.0, 0.7071067811865475],
+             'nominal_beam_energy': 0.025248212841151512,
+             'nominal_beam_energy_str': '1.8Aa',
+             'r': 0.1,
+             'ux': 0.7071067811865475,
+             'uy': 0.0,
+             'uz': 0.7071067811865475,
+             'w': 1.0,
+             'wl': 1.8,
+             'x': 0.0,
+             'y': 0.0,
+             'z': -1.0}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'geom', 'slab;dz=1e-10']
+{'cfgstr': 'slab;dz=1e-10',
+ 'decoded': {'dz': 1e-10,
+             'name': 'slab',
+             'short_description': 'slab with thickness 0.2nm'}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'geom', 'slab;dz=2e-6']
+{'cfgstr': 'slab;dz=2e-06',
+ 'decoded': {'dz': 2e-06,
+             'name': 'slab',
+             'short_description': 'slab with thickness 4micrometer'}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'geom', 'slab;dz=2e-3']
+{'cfgstr': 'slab;dz=0.002',
+ 'decoded': {'dz': 0.002,
+             'name': 'slab',
+             'short_description': 'slab with thickness 4mm'}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'geom', 'slab;dz=2e-2']
+{'cfgstr': 'slab;dz=0.02',
+ 'decoded': {'dz': 0.02,
+             'name': 'slab',
+             'short_description': 'slab with thickness 40mm'}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'geom', 'slab;dz=0.2']
+{'cfgstr': 'slab;dz=0.2',
+ 'decoded': {'dz': 0.2,
+             'name': 'slab',
+             'short_description': 'slab with thickness 40cm'}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'geom', 'slab;dz=10.2']
+{'cfgstr': 'slab;dz=10.2',
+ 'decoded': {'dz': 10.2,
+             'name': 'slab',
+             'short_description': 'slab with thickness 20.4m'}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'geom', 'slab;dz=2000']
+{'cfgstr': 'slab;dz=2000',
+ 'decoded': {'dz': 2000.0,
+             'name': 'slab',
+             'short_description': 'slab with thickness 4km'}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'geom', 'box;dx=1;dy=0.1;dz=0.001']
+{'cfgstr': 'box;dx=1;dy=0.1;dz=0.001',
+ 'decoded': {'dx': 1.0,
+             'dy': 0.1,
+             'dz': 0.001,
+             'name': 'box',
+             'short_description': 'box with depth 2mm, width 2m, and height '
+                                  '20cm'}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'geom', 'sphere;r=17.234']
+{'cfgstr': 'sphere;r=17.234',
+ 'decoded': {'name': 'sphere',
+             'r': 17.234,
+             'short_description': 'sphere with radius 17.234m'}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'geom', 'cyl;r=0.5']
+{'cfgstr': 'cyl;r=0.5',
+ 'decoded': {'dy': 0.0,
+             'name': 'cyl',
+             'r': 0.5,
+             'short_description': 'cylinder with radius 50cm'}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'geom', 'cyl;r=0.5;dy=12.0']
+{'cfgstr': 'cyl;r=0.5;dy=12',
+ 'decoded': {'dy': 12.0,
+             'name': 'cyl',
+             'r': 0.5,
+             'short_description': 'cylinder with radius 50cm and length 24m'}}

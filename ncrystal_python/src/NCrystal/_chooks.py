@@ -162,8 +162,9 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
             def fct(*args):
                 return raw(*args)
         if error_check:
-            #NB: we should read about return types in the ctypes tutorial. Apparently one
-            #can just set an error checking function as the restype.
+            #NB: we should read about return types in the ctypes
+            #tutorial. Apparently one can just set an error checking function as
+            #the restype.
             raw_fct = fct
             def fcte(*aaa):
                 r = raw_fct(*aaa)
@@ -819,6 +820,23 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
         _keepalive.append(keepalive)
         _raw_setmsghandler(keepalive[-1])
     functions['setmsghandler'] = ncrystal_setmsghandler
+
+    _raw_jsonquery = _wrap('ncrystal_jsonquery',_charptr,(_cstr,), hide=True)
+    def jsonquery( query ):
+        if not query:
+            raise NCBadInput("Missing or empty query")
+        sc = '\x07'
+        str_query = sc.join(query)
+        if len(query) != str_query.count(sc)+1:
+            raise NCBadInput("Can not use character 0x07 (ASCII BEL) in"
+                             " JSON query strings" )
+        cstr_query = _str2cstr(str_query)
+        raw_str = _raw_jsonquery( cstr_query )
+        assert raw_str is not None
+        res=_cstr2str(ctypes.cast(raw_str,_cstr).value)
+        _raw_deallocstr(raw_str)
+        return res
+    functions['jsonquery'] = jsonquery
 
     _raw_minimc_scenario = _wrap('ncrystal_minimc_scenario',
                                  _cstrp,(_cstr,_cstr),hide=True)
