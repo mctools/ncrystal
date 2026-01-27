@@ -42,6 +42,24 @@ namespace NCRYSTAL_NAMESPACE {
       return std::sqrt(ncmax(0.0,x));
 #endif
     }
+
+    void fmt_length_meters( std::ostream& os, double length_meters )
+    {
+      const double t = length_meters;
+      if ( t < 1e-8 )
+        os << fmt(t*1e9) << "nm";
+      else if ( t < 0.1e-3 )
+        os << fmt(t*1e6) << "micrometer";
+      else if ( t > 100.0 )
+        os << fmt(t*1e-3) << "km";
+      else if ( t > 1.0 )
+        os << fmt(t) << "m";
+      else if ( t > 0.1 )
+        os << fmt(t*1e2) << "cm";
+      else
+        os << fmt(t*1e3) << "mm";
+    }
+
   }
 
   namespace MiniMC {
@@ -70,6 +88,12 @@ namespace NCRYSTAL_NAMESPACE {
       void toCfgString(std::ostream& os) const
       {
         os << "sphere;r="<<fmt(m_input_radius_m);
+      }
+
+      void shortDescr( std::ostream& os) const
+      {
+        os << "sphere with radius ";
+        fmt_length_meters( os, m_input_radius_m);
       }
 
       bool hasUnboundedDistToVolExit() const

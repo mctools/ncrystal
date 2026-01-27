@@ -50,6 +50,12 @@ namespace NCRYSTAL_NAMESPACE {
         os << "slab;dz="<<fmt(m_dz);
       }
 
+      void shortDescr( std::ostream& os) const
+      {
+        os << "slab with thickness ";
+        fmt_length_meters( os, 2*m_dz);
+      }
+
       bool hasUnboundedDistToVolExit() const
       {
         return true;

@@ -68,6 +68,16 @@ namespace NCRYSTAL_NAMESPACE {
           os << ";dy="<<fmt(m_dy);
       }
 
+      void shortDescr( std::ostream& os) const
+      {
+        os << "cylinder with radius ";
+        fmt_length_meters( os, m_input_radius_m);
+        if (m_dy) {
+          os << " and length ";
+          fmt_length_meters( os, 2*m_dy);
+        }
+      }
+
       bool hasUnboundedDistToVolExit() const
       {
         return m_dy == 0.0;

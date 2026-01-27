@@ -62,6 +62,16 @@ namespace NCRYSTAL_NAMESPACE {
         os << ";dz="<<fmt(m_dz);
       }
 
+      void shortDescr( std::ostream& os) const
+      {
+        os << "box with depth ";
+        fmt_length_meters( os, 2*m_dz);
+        os << ", width ";
+        fmt_length_meters( os, 2*m_dx);
+        os << ", and height ";
+        fmt_length_meters( os, 2*m_dy);
+      }
+
       bool hasUnboundedDistToVolExit() const
       {
         return false;
