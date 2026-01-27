@@ -645,7 +645,10 @@ extern "C" {
 #  undef ncrystal_minimc_scenario
 #endif
 #define ncrystal_minimc_scenario NCRYSTAL_APPLY_C_NAMESPACE(minimc_scenario)
-
+#ifdef ncrystal_jsonquery
+#  undef ncrystal_jsonquery
+#endif
+#define ncrystal_jsonquery NCRYSTAL_APPLY_C_NAMESPACE(jsonquery)
 
   /*============================================================================== */
   /*============================================================================== */
@@ -1225,6 +1228,17 @@ extern "C" {
   /* Get time in seconds to load the cfg in question (if do_scatter=0 it will only */
   /* create Info objects). Caches are cleared as a side effect: */
   NCRYSTAL_API double ncrystal_benchloadcfg( const char * cfgstr, int do_scat, int repeat );
+
+  /* Generic query for information which will be returned as a JSON encoded  */
+  /* string. The query is essentially a string list, encoded into a single   */
+  /* string by separating entries with a char having the value x07 (the      */
+  /* ASCII BEL char) which is therefore forbidden in such entries.           */
+  /* This is primarily intended as a convenient way to get information from  */
+  /* the C++ layer to the Python layer, and the actual arguments and return  */
+  /* values are to some degree considered an implementational detail which   */
+  /* is bound to change between NCrystal versions.                           */
+  /* Must free returned string with call to ncrystal_dealloc_string.         */
+  NCRYSTAL_API char* ncrystal_jsonquery( const char * );
 
 
   /*============================================================================== */

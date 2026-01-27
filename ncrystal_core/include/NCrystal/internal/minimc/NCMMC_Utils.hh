@@ -29,7 +29,12 @@ namespace NCRYSTAL_NAMESPACE {
   class MatCfg;
 
   namespace MiniMC {
+
     namespace Utils {
+
+      //Generic JSON query for the MiniMC subsystem (format to be described
+      //elsewhere):
+      void JSONQuery( std::ostream&, const SmallVector<StrView,8>& query );
 
       //Internal utilities that are useful when implementing MMC simulation
       //engines.

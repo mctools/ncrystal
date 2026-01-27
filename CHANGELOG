@@ -79,6 +79,11 @@ v4.2.13 (work-in-progress)
        like std::string::data() does.
      * Internal JSON writing utilities gets built-in support for values wrapped
        in Optional or EncapsulatedValue.
+     * Add generic framework for sending queries to the NCrystal C++ layer and
+       getting information back in JSON format. This is for now mostly used by
+       the MiniMC framework, but it gives a very convenient and easy way for us
+       to provide access to information to the Python or cmdline APIs in the
+       future, without having to update C or C++ ABIs.
      * ...
 
 v4.2.12 2026-01-05

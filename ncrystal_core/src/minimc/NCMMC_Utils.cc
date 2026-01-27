@@ -634,3 +634,63 @@ void NCMMCU::distToSlabEntry( const double * ncrestrict x,
     }
   }
 }
+
+#include "NCrystal/internal/minimc/NCMMC_Source.hh"
+#include "NCrystal/internal/minimc/NCMMC_Geom.hh"
+#include "NCrystal/internal/minimc/NCMMC_EngineOpts.hh"
+
+void NCMMCU::JSONQuery( std::ostream& os,
+                        const SmallVector<StrView,8>& query )
+{
+  auto invalid = [&query](const char * reason = nullptr){
+    std::ostringstream ss;
+    ss << "Invalid MiniMC JSON query: ";
+    streamJSON( ss, query );//trick: use streamJSON for easy format.
+    if ( reason )
+      ss<< " ("<<reason<<')';
+    NCRYSTAL_THROW( BadInput, ss.str() );
+  };
+  if ( query.size() < 2 || query.front() != "mmc" ) {
+    invalid();
+    return;
+  }
+  //shift off the "mmc" and key entries:
+  const auto& key = query.at(1).trimmed();
+  auto arg = [&query]( std::size_t i ) { return query.at(i+2); };
+  auto argstr = [&arg]( std::size_t i ) { return arg(i).to_string(); };
+  const std::size_t nargs = static_cast<std::size_t>(query.size()-2);
+  if ( key == "scenario" ) {
+    if ( nargs != 2 )
+      invalid("correct usage: [\"mmc\",\"scenario\",CFGSTR,SCENARIOSTR]");
+    auto d = decodeScenario( argstr(0), argstr(1).c_str() );
+    streamJSONDictEntry( os, "geomcfg", d.geomcfg, JSONDictPos::FIRST );
+    streamJSONDictEntry( os, "srccfg", d.srccfg );
+    streamJSONDictEntry( os, "enginecfg", d.enginecfg );
+    streamJSONDictEntry( os, "short_title", d.short_title, JSONDictPos::LAST );
+  } else if ( key == "tallylist" ) {
+    if ( nargs != 0 )
+      invalid("no arguments should come after: [\"mmc\",\"tallylist\"]");
+    using TF = TallyFlags;
+    streamJSONDictEntry( os, "ALL", TF(TF::Flags::ALL).toStringList(),
+                         JSONDictPos::FIRST );
+    streamJSONDictEntry( os, "DEFAULT", TF(TF::Flags::DEFAULT).toStringList() );
+    streamJSONDictEntry( os, "ALLHISTS", TF(TF::Flags::ALLHISTS).toStringList(),
+                         JSONDictPos::LAST );
+  } else if ( key == "inspectcfg" ) {
+    const char * usage
+      = "correct usage: [\"mmc\",\"inspectcfg\",\"src|geom|engine\",STRCFG]";
+    if ( nargs != 2 )
+      invalid(usage);
+    if ( arg(0) == "src" ) {
+      createSource( argstr(1).c_str() )->toJSON(os);
+    } else if ( arg(0) == "geom" ) {
+      createGeometry( argstr(1).c_str() )->toJSON(os);
+    } else if ( arg(0) == "engine" ) {
+      engineOptsToJSON( os, parseEngineOpts( arg(1) ) );
+    } else {
+      invalid(usage);
+    }
+  } else {
+    invalid();
+  }
+}
