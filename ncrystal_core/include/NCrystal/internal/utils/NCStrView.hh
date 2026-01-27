@@ -101,7 +101,7 @@ namespace NCRYSTAL_NAMESPACE {
     //Access data, and size (empty() is just a check for non-zero size). Note
     //that these three methods are safe to call even when has_value() is false,
     //(returning a nullptr, size 0, and empty()=true):
-    constexpr const char * data() const noexcept { return m_data; }//Data. Warning: This is NOT necessarily null-terminated!!
+    constexpr const char * data_begin() const noexcept { return m_data; }//Data. Warning: This is NOT necessarily null-terminated!!
     constexpr size_type size() const noexcept { return m_size; }
     constexpr bool empty() const noexcept { return m_size==0; }
 
@@ -261,12 +261,13 @@ namespace NCRYSTAL_NAMESPACE {
   inline constexpr std::int64_t
   constexpr_strcmp( StrView sv1, StrView sv2 ) noexcept
   {
-    return constexpr_strcmp( sv1.data(), sv1.size(), sv2.data(), sv2.size() );
+    return constexpr_strcmp( sv1.data_begin(), sv1.size(),
+                             sv2.data_begin(), sv2.size() );
   }
 
   inline std::ostream& operator<<(std::ostream& os, const StrView& str)
   {
-    os.write(str.data(),str.size());
+    os.write(str.data_begin(),str.size());
     return os;
   }
 
@@ -512,9 +513,11 @@ namespace NCRYSTAL_NAMESPACE {
 
   //StrView-related ShortStr methods are defined here for dependency reasons:
   template <unsigned NMAX>
-  inline ShortStr<NMAX>::ShortStr( StrView sv ) : ShortStr( sv.data(), sv.size() ) {}
+  inline ShortStr<NMAX>::ShortStr( StrView sv )
+    : ShortStr( sv.data_begin(), sv.size() ) {}
   template <unsigned NMAX>
-  inline constexpr StrView ShortStr<NMAX>::to_view() const noexcept { return StrView( data(), m_size ); }
+  inline constexpr StrView ShortStr<NMAX>::to_view() const noexcept
+  { return StrView( data(), m_size ); }
 
 }
 
