@@ -24,6 +24,7 @@
 //String-related utilities
 
 #include "NCrystal/internal/utils/NCSpan.hh"
+#include "NCrystal/core/NCTypes.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 
@@ -166,26 +167,42 @@ namespace NCRYSTAL_NAMESPACE {
   void streamJSON( std::ostream&, StrView );
   void streamJSON( std::ostream&, const char * );
   void streamJSON( std::ostream&, const std::string& );
+
   //Floating point as JSON numbers (always keeping double precision and FP-type
   //identity, e.g. "5.0" not "5"):
   void streamJSON( std::ostream&, float );
   void streamJSON( std::ostream&, double );
+
   //Integers as JSON integer numbers (but forbid 8-bit ints and chars to avoid type ambiguity):
   template<class T, typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>
   void streamJSON( std::ostream&, T );
   void streamJSON( std::ostream&, char ) = delete;
   void streamJSON( std::ostream&, uint8_t ) = delete;
   void streamJSON( std::ostream&, int8_t ) = delete;
+
   //Bools become true / false in json:
   void streamJSON( std::ostream&, bool );
+
+  //Use the json_null_t type to write out JSON null:
   struct json_null_t{};
-  void streamJSON( std::ostream&, json_null_t );//to write out JSON null
-  //Containers as JSON arrays:
-  template<class TContainer, typename T = typename TContainer::value_type>
+  void streamJSON( std::ostream&, json_null_t );
+
+  //De-encapsulate values automatically:
+  template<class TVal>
+  void streamJSON( std::ostream&, const EncapsulatedValue<TVal>& );
+
+  //Optional values (becomes JSON null in case of no value):
+  template<class TVal>
+  void streamJSON( std::ostream&, const Optional<TVal>& );
+
+  //Containers becomes JSON arrays:
+  template<class TContainer,
+           typename T = typename TContainer::const_iterator>
   void streamJSON( std::ostream&, const TContainer& );
   template<class T1, class T2>
   void streamJSON( std::ostream&, const std::pair<T1,T2>& );
-  //Entries in dictionary "\"key\":<value>".
+
+  //Entries in dictionary "\"key\":<value>":
   enum class JSONDictPos { FIRST, LAST, OTHER };
   template<class T>
   inline void streamJSONDictEntry( std::ostream&,
@@ -371,21 +388,41 @@ namespace NCRYSTAL_NAMESPACE {
     os << ']';
   }
 
+  template<class TVal>
+  inline void streamJSON( std::ostream& os, const EncapsulatedValue<TVal>& v )
+  {
+    streamJSON(os,v.get());
+  }
+
+  template<class TVal>
+  inline void streamJSON( std::ostream& os, const Optional<TVal>& v )
+  {
+    if ( v.has_value() )
+      streamJSON(os, v.value() );
+    else
+      streamJSON(os, json_null_t{} );
+  }
+
   template<class TContainer, typename T>
   inline void streamJSON( std::ostream& os, const TContainer& arr )
   {
     os << '[';
     bool first(true);
-    for ( const auto& e : arr ) {
+    using std::cbegin;
+    using std::cend;
+    auto it = cbegin(arr);
+    auto itE = cend(arr);
+    for (;it!=itE;++it) {
       if ( first ) {
         first = false;
       } else {
         os << ',';
       }
-      streamJSON(os,e);
+      streamJSON(os,*it);
     }
     os << ']';
   }
+
   template<class T>
   inline void streamJSONDictEntry( std::ostream& os,
                                    const char * key ,

@@ -2,11 +2,19 @@ Test object: >>>Hello world<<<
 As JSON: >>>"Hello world"<<<
 Test object: >>>Hello world\n<<<
 As JSON: >>>"Hello world\\n"<<<
-Test object: >>>Hello world\n<<<
-As JSON: >>>"Hello world\\n"<<<
+Test object: >>>Hello worldopt\n<<<
+As JSON: >>>"Hello worldopt\\n"<<<
+Test object: >>><NO-VALUE><<<
+As JSON: >>>null<<<
+Test object: >>>Hello worldopt\n<<<
+As JSON: >>>"Hello worldopt\\n"<<<
 Test object: >>>Hello '"{}\world
 	yoÅæø<<<
 As JSON: >>>"Hello '\"{}\\world\n\tyoÅæø"<<<
+Test object: >>>17.5<<<
+As JSON: >>>17.5<<<
+Test object: >>><NO-VALUE><<<
+As JSON: >>>null<<<
 Test object: >>>17.5<<<
 As JSON: >>>17.5<<<
 Test object: >>>3.14159<<<
@@ -21,9 +29,17 @@ Test object: >>>-17<<<
 As JSON: >>>-17<<<
 Test object: >>>-17500<<<
 As JSON: >>>-17500.0<<<
+Test object: >>><NO-VALUE><<<
+As JSON: >>>null<<<
+Test object: >>>-17500<<<
+As JSON: >>>-17500.0<<<
 Test object: >>>{hello,world
 	yoÅæø,bla,}<<<
 As JSON: >>>["hello","world\n\tyoÅæø","bla"]<<<
+Test object: >>>{}<<<
+As JSON: >>>[]<<<
+Test object: >>><NO-VALUE><<<
+As JSON: >>>null<<<
 Test object: >>>{}<<<
 As JSON: >>>[]<<<
 Test object: >>>{1e-100,inf,}<<<
@@ -32,3 +48,19 @@ Test object: >>>{}<<<
 As JSON: >>>[]<<<
 Test object: >>>{{hello,},{a,b,c,},{},}<<<
 As JSON: >>>[["hello"],["a","b","c"],[]]<<<
+Test object: >>>1.8eV<<<
+As JSON: >>>1.8<<<
+Test object: >>><NO-VALUE><<<
+As JSON: >>>null<<<
+Test object: >>>1.8eV<<<
+As JSON: >>>1.8<<<
+Test object: >>>{0.5,0.5,0,}<<<
+As JSON: >>>[0.5,0.5,0.0]<<<
+Test object: >>>1234<<<
+As JSON: >>>1234.0<<<
+Test object: >>><NO-VALUE><<<
+As JSON: >>>null<<<
+Test object: >>><NO-VALUE><<<
+As JSON: >>>null<<<
+Test object: >>>5555<<<
+As JSON: >>>5555.0<<<

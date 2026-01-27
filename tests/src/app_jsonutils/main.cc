@@ -30,7 +30,7 @@ namespace {
   template<class T, typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>
   void printObject( T t ) {  std::cout << t; }
 
-  template<typename TContainer, typename T = typename TContainer::value_type>
+  template<typename TContainer, typename T = typename TContainer::const_iterator>
   void printObject( const TContainer& c)
   {
     std::cout <<"{";
@@ -39,6 +39,18 @@ namespace {
       std::cout<<",";
     }
     std::cout<<"}";
+  }
+
+  template<class TVal>
+  void printObject( const NC::EncapsulatedValue<TVal>& t) { std::cout << t; }
+
+  template<class TVal>
+  void printObject( const NC::Optional<TVal>& t)
+  {
+    if ( t.has_value() )
+      printObject(t.value());
+    else
+      printObject("<NO-VALUE>");
   }
 
   template<class T>
@@ -51,31 +63,53 @@ namespace {
     NC::streamJSON( std::cout, t );
     std::cout << "<<<\n";
   }
+
+  template<class T>
+  void test_wopt(const T& t )
+  {
+    test(t);
+    NC::Optional<T> to;
+    test(to);
+    to = t;
+    test(to);
+  }
 }
 
 int main()
 {
   test("Hello world");
   test("Hello world\\n");
-  test(std::string("Hello world\\n"));
+  test_wopt(std::string("Hello worldopt\\n"));
   test("Hello '\"{}\\world\n\tyo\xc3\x85\xc3\xa6\xc3\xb8");
   //                            ^^^^^^^^^^^^^^^^^^^^^^^^
   // The last three unicode chars above (two bytes each) are uppercase danish A
   // with ring lowercase danish ae lowercase danish o-slash
 
-  test(17.5);
+  test_wopt(17.5);
   test(NC::kPi);
   test(-17);
   test(1234567891234567ull);
   test((uint16_t)17);
   test((int16_t)-17);
-  test(-17.5e3f);
+  test_wopt(-17.5e3f);
   test(NC::VectS{"hello","world\n\tyo\xc3\x85\xc3\xa6\xc3\xb8","bla"});
-  test(NC::VectS{});
+  test_wopt(NC::VectS{});
   test(NC::VectD{1e-100,std::numeric_limits<double>::infinity()});
   test(NC::VectD{});
   test(std::vector<NC::VectS>{{"hello"},{"a","b","c"},{}});
+  test_wopt(NC::NeutronEnergy{1.8});
+  test(NC::NeutronDirection{0.5,0.5,0.0});
 
-
+  using OptDbl = NC::Optional<double>;
+  OptDbl vopt = 1234.0;
+  test(vopt);
+  vopt = 12345;
+  //pretty twisted usage, but I guess it is supported...:
+  NC::Optional<OptDbl> voptopt;
+  test(voptopt);
+  voptopt = NC::Optional<double>{};
+  test(voptopt);
+  voptopt = NC::Optional<double>{5555.0};
+  test(voptopt);
   return 0;
 }
