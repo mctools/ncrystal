@@ -74,6 +74,9 @@ v4.2.13 (work-in-progress)
        objects.
      * Add NC::safe_str2uint and NC::StrView::toUint64.
      * Add warning messages to users of obsolete C API functions.
+     * Rename StrView::data() to StrView::data_begin() to reduce likelihood of
+       mistakes, since the method is not actually returning null-terminated data
+       like std::string::data() does.
      * ...
 
 v4.2.12 2026-01-05

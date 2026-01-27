@@ -175,7 +175,7 @@ bool NC::safe_str2dbl( StrView s, double& result )
     return false;
 
   {
-    auto try_conv = detail::raw_str2dbl( s.data(), n_size );
+    auto try_conv = detail::raw_str2dbl( s.data_begin(), n_size );
     if ( try_conv.has_value() ) {
       result = try_conv.value();
       return true;
@@ -229,7 +229,7 @@ bool NC::safe_str2int( StrView s, std::int64_t& result )
   const auto n_size = s.size();
   if ( n_size==0 || isWhiteSpace( s.front() ) || isWhiteSpace( s.back() ) )
     return false;
-  auto try_conv = detail::raw_str2int64( s.data(), n_size );
+  auto try_conv = detail::raw_str2int64( s.data_begin(), n_size );
   if ( try_conv.has_value() ) {
     result = try_conv.value();
     return true;
@@ -250,7 +250,7 @@ bool NC::safe_str2uint( StrView s, std::uint64_t& result )
   const auto n_size = s.size();
   if ( n_size==0 || isWhiteSpace( s.front() ) || isWhiteSpace( s.back() ) )
     return false;
-  auto try_conv = detail::raw_str2uint64( s.data(), n_size );
+  auto try_conv = detail::raw_str2uint64( s.data_begin(), n_size );
   if ( try_conv.has_value() ) {
     result = try_conv.value();
     return true;
@@ -292,10 +292,10 @@ std::string NC::joinstr( const Span<const StrView>& parts, StrView sep)
     newsize += p.size();
   std::string tmp;
   tmp.reserve(newsize);
-  tmp.append(parts.front().data(),parts.front().size());
+  tmp.append(parts.front().data_begin(),parts.front().size());
   for (std::size_t i = 1; i < n; ++i) {
-    tmp.append( sep.data(), sep.size() );
-    tmp.append( parts[i].data(), parts[i].size() );
+    tmp.append( sep.data_begin(), sep.size() );
+    tmp.append( parts[i].data_begin(), parts[i].size() );
   }
   nc_assert(tmp.size()==newsize);
   return tmp;

@@ -114,7 +114,7 @@ const char * NC::detail::strstr_nonullterm( const char * cstr, std::size_t nc,
 
 NC::StrView NC::WordIterator::next()
 {
-  const char * it = m_text.data();
+  const char * it = m_text.data_begin();
   const char * itE = it + m_text.size();
   //skip leading WS:
   while ( it!=itE && m_ws.contains(*it) )

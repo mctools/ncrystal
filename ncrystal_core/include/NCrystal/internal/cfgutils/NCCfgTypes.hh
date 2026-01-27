@@ -167,7 +167,7 @@ namespace NCRYSTAL_NAMESPACE {
         std::memcpy(&tmp[0],(void*)&value,sizeof(double));
         std::size_t nused = sizeof(double) + 1;//at least the double and a null char
         if ( valstr.size() <= buf_maxstrlen ) {
-          std::memcpy( &tmp[sizeof(double)], valstr.data(), valstr.size() );
+          std::memcpy( &tmp[sizeof(double)], valstr.data_begin(), valstr.size() );
           tmp[sizeof(double)+valstr.size()] = '\0';
           nused += valstr.size();//also the characters
         } else {

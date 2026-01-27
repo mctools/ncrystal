@@ -397,7 +397,7 @@ namespace NCRYSTAL_NAMESPACE {
             if ( ! res.m_specific.empty() )
               NCRYSTAL_THROW2(BadInput,"Contains more than one (non-negated) entry (\""
                               <<res.m_specific<<"\" and \""<<e<<"\".");
-            res.m_specific.assign(e.data(),e.size());
+            res.m_specific.assign(e.data_begin(),e.size());
           }
         }
         if ( !res.m_specific.empty() && res.excludes(res.m_specific) )

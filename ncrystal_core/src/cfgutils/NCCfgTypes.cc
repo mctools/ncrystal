@@ -53,8 +53,8 @@ namespace NCRYSTAL_NAMESPACE {
         //There is room to keep the original str rep in an
         //ValDbl_ShortStrOrigRep:
         char buf[ValDbl_ShortStrOrigRep::max_strlen];
-        std::memcpy( &buf[0], sv_val.data(), sv_val.size() );
-        std::memcpy( &buf[sv_val.size()], sv_unit.data(), sv_unit.size() );
+        std::memcpy( &buf[0], sv_val.data_begin(), sv_val.size() );
+        std::memcpy( &buf[sv_val.size()], sv_unit.data_begin(), sv_unit.size() );
         buf[n_val_plus_unit] = '\0';
         return ParsedDblValue{ val.value(), sv_unit,
                                ValDbl_ShortStrOrigRep(&buf[0],n_val_plus_unit) };

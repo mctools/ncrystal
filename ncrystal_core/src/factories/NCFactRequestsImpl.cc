@@ -204,5 +204,5 @@ NCFD::ProcessRequestData NCFD::ProcessRequestData::modified( const std::string& 
 NCFD::ProcessRequestData NCFD::ProcessRequestData::modified( const char* cstr ) const
 {
   StrView sv(cstr);
-  return modified( internal_t(), sv.data(), sv.size() );
+  return modified( internal_t(), sv.data_begin(), sv.size() );
 }
