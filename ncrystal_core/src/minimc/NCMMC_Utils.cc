@@ -24,6 +24,7 @@
 #include "NCrystal/internal/utils/NCStrView.hh"
 #include "NCrystal/internal/cfgutils/NCCfgTypes.hh"
 #include "NCrystal/factories/NCFactImpl.hh"
+#include "NCrystal/internal/minimc/NCMMC_EngineOpts.hh"
 
 namespace NC = NCrystal;
 namespace NCMMCU = NCrystal::MiniMC::Utils;
@@ -339,7 +340,7 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
   }
 
   const bool is_slab = !is_sphere;
-  if ( is_slab && !is_pencil )
+  if ( is_slab )
     is_pencil=true;//always pencil beam in case of infinite slab.
 
   auto round6 = []( double val ) -> double
@@ -359,6 +360,7 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
   NeutronEnergy neutron_energy;
   NeutronWavelength neutron_wavelength;
   bool wavelength_mode = false;
+
   const double e_val = parse_e.value().value;
   if ( e_unit == "Aa" ) {
     wavelength_mode = true;
@@ -463,15 +465,14 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
 
   std::ostringstream ss_src;
   std::ostringstream ss_geom;
-  const double src_z = - thickness_meter*0.5;
+  const double src_z = (-0.5) * thickness_meter;
   //Slightly more efficient if we start pencil beams inside the geometry
   //(1e-14 is small but will not be obscured by "%.15g".
-  const double src_z_plus_epsilon = src_z * (1.0-1e-14);
   if ( is_sphere ) {
     nc_assert_always( !is_slab );
-    const double sphere_r = thickness_meter*0.5;
-    ss_geom << "sphere;r="<<fmt(sphere_r);
-    if ( is_pencil )
+    ss_geom << "sphere;r="<<fmt(thickness_meter*0.5);
+    if ( is_pencil ) {
+      const double src_z_plus_epsilon = src_z * (1.0-1e-14);
       ss_src << "constant;z=" << fmt(src_z_plus_epsilon,g15);//fixme: do away
                                                              //with the epsilon?
                                                              //Also needs unit
@@ -482,13 +483,13 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
                                                              //the correct
                                                              //magnitude in this
                                                              //case.
-    else
-      ss_src << "circular;z=" << fmt(src_z);
-    ss_src << ";r="<<fmt(sphere_r);
+    } else {
+      ss_src << "circular;z=" << fmt(src_z)
+             << ";r="<<fmt(thickness_meter*0.5);
+    }
   } else {
     nc_assert_always( is_slab );
-    const double slab_dz = thickness_meter*0.5;
-    ss_geom << "slab;dz="<<fmt(slab_dz);
+    ss_geom << "slab;dz="<<fmt(thickness_meter*0.5);
     nc_assert_always( is_pencil );
     ss_src << "constant;z=" << fmt(src_z);
   }
@@ -503,10 +504,41 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
   //Add count:
   ss_src << ";n=" << count_formatted;
 
-  res.srccfg = ss_src.str();
-  res.geomcfg = ss_geom.str();
-  res.enginecfg = "";
+  //Compose a title like "1.8Aa neutron on 2mm diameter sphere":
+  std::ostringstream title;
+  if ( wavelength_mode ) {
+    title << fmt( neutron_wavelength.dbl() ) << "Aa";
+  } else {
+    const double e = neutron_energy.dbl();
+    if ( e < 0.1 )
+      title << fmt( e * 1e3 ) << "meV";
+    else if ( e >= 100.0 )
+      title << fmt( e * 1e-3 ) << "keV";
+    else
+      title << fmt( e ) << "eV";
+  }
+  title << " neutron on ";
+  if ( thickness_meter < 0.1e-3 )
+    title << fmt(thickness_meter*1e6) << "micrometer";
+  else if ( thickness_meter > 100.0 )
+    title << fmt(thickness_meter*1e-3) << "km";
+  else if ( thickness_meter > 0.1 )
+    title << fmt(thickness_meter*1e-3) << "m";
+  else if ( thickness_meter > 0.1 )
+    title << fmt(thickness_meter*1e2) << "cm";
+  else
+    title << fmt(thickness_meter*1e3) << "mm";
+  if ( is_sphere ) {
+    title << " diameter sphere";
+  } else {
+    nc_assert_always( is_slab );
+    title << " thick slab";
+  }
 
+  res.srccfg = std::move(ss_src).str();
+  res.geomcfg = std::move(ss_geom).str();
+  res.enginecfg = "";
+  res.short_title = std::move(title).str();
   return res;
 }
 
