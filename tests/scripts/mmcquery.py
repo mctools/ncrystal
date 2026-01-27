@@ -36,6 +36,7 @@ def test(*query):
     pprint.pprint(r)
 
 def main():
+
     with ensure_error(NCBadInput,
                       'Missing or empty query'):
         test()
@@ -86,8 +87,6 @@ def main():
                       'Invalid src cfg: ""'):
         test('mmc','inspectcfg','src','')
 
-    test('mmc','inspectcfg','engine','tally=cosmu,cosmu')
-
     test('mmc','inspectcfg','src','constant; z=-10;wl=2.0')
     test('mmc','inspectcfg','src','isotropic; z=-10;ekin=0.025')
     test('mmc','inspectcfg','src','circular; r=0.1;z=-1;wl=1.8;ux=1')
@@ -112,6 +111,18 @@ def main():
                       ' (no arguments should come after: ["mmc","tallylist"])'):
         test('mmc','tallylist','bla')
     test('mmc','tallylist')
+
+    with ensure_error(NCBadInput,
+                      'Invalid parameter for chosen engine: "whatever"'):
+        test('mmc','inspectcfg','engine','whatever = 0')
+    test('mmc','inspectcfg','engine','tally=nobreakdown,cosmu,cosmu')
+    test('mmc','inspectcfg','engine','')
+    test('mmc','inspectcfg','engine','nthreads=4')
+    test('mmc','inspectcfg','engine','roulette=0.8,0.001,1')
+    test('mmc','inspectcfg','engine','nthreads=0 ;   ignoremiss =1')
+    test('mmc','inspectcfg','engine','std;nthreads=0;ignoremiss=1')
+    test('mmc','inspectcfg','engine',
+         '\t  std ; nthreads=  auto  \t\n;ignoremiss= 0')
 
 if __name__ == '__main__':
     main()

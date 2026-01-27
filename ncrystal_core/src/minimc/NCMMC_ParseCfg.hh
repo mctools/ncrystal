@@ -34,14 +34,19 @@ namespace NCRYSTAL_NAMESPACE {
       //Utilities for parsing simple cfg-strings for MMC Geometry and Source.
 
       using Tokens = SmallVector<std::pair<StrView,StrView>,8>;
-      inline Tokens tokenize( StrView srcstr )
+      struct TokenInfo {
+        StrView mainName;
+        Tokens tokens;
+      };
+      inline TokenInfo tokenize( StrView srcstr )
       {
         //tokenize semicolon separated strings of "key[=value]" pairs into a
         //list of (key,value) entries. Any repeated keys will only have
         //their last values assigned. A key without a value (i.e. no '='
         //char) will have an invalid (as opposed to empty) value, with
         //.has_value()==false.
-        Tokens results;
+        TokenInfo results;
+        bool first(true);
         for ( auto& e : srcstr.splitTrimmedNoEmpty(';') ) {
           auto ieq = e.find('=');
           StrView key, value;
@@ -51,9 +56,19 @@ namespace NCRYSTAL_NAMESPACE {
             key = e.substr(0,ieq).rtrimmed();
             value = e.substr(ieq+1).ltrimmed();
           }
-          //Find existing:
+          //The optional mainName must be the first entry, and it must not have
+          //a value:
+          if ( first ) {
+            first = false;
+            if ( !value.has_value() ) {
+              results.mainName = key;
+              continue;
+            }
+          }
+
+          //Override existing, or append new:
           bool handled(false);
-          for ( auto& r : results ) {
+          for ( auto& r : results.tokens ) {
             if ( r.first == key ) {
               handled = true;
               r.second = value;//override
@@ -61,23 +76,18 @@ namespace NCRYSTAL_NAMESPACE {
             }
           }
           if ( !handled )
-            results.emplace_back( key, value );
+            results.tokens.emplace_back( key, value );
         }
         return results;
-      }
-
-      inline StrView mainName( const Tokens& tokens )
-      {
-        if ( tokens.empty() || tokens.front().second.has_value() )
-          return {};
-        return tokens.front().first;
       }
 
       inline void applyDefaults( Tokens& tokens,
                                  StrView default_values )
       {
         std::size_t N = tokens.size();
-        for ( auto& ed : tokenize(default_values) ) {
+        auto defvals_tokeninfo = tokenize(default_values);
+        nc_assert(!defvals_tokeninfo.mainName.has_value());
+        for ( auto& ed : defvals_tokeninfo.tokens ) {
           bool found(false);
           for ( std::size_t i = 0; i < N; ++ i ) {
             if ( ed.first == tokens.at(i).first ) {
@@ -90,9 +100,7 @@ namespace NCRYSTAL_NAMESPACE {
         }
       }
 
-      //Fixme: should next method (and others) be const?? (and the next method
-      //should be an Impl method?)
-      inline Optional<StrView> getValue( Tokens& tokens, StrView key )
+      inline Optional<StrView> getValue( const Tokens& tokens, StrView key )
       {
         for ( auto& e : tokens )
           if ( e.first == key )
@@ -100,7 +108,7 @@ namespace NCRYSTAL_NAMESPACE {
         return NullOpt;
       }
 
-      inline bool hasValue( Tokens& tokens, StrView key )
+      inline bool hasValue( const Tokens& tokens, StrView key )
       {
         for ( auto& e : tokens )
           if ( e.first == key )
@@ -108,9 +116,8 @@ namespace NCRYSTAL_NAMESPACE {
         return false;
       }
 
-      inline StrView getValue_str( Tokens& tokens, StrView key )
+      inline StrView getValue_str( const Tokens& tokens, StrView key )
       {
-        //fixme: this method can be used to simplify other methods!
         auto val = getValue(tokens,key);
         if ( !val.has_value() )
           NCRYSTAL_THROW2(BadInput,"Missing required parameter \""<<key<<"\"");
@@ -120,14 +127,10 @@ namespace NCRYSTAL_NAMESPACE {
         return val.value();
       }
 
-      inline double getValue_dbl( Tokens& tokens, StrView key )
+      inline double getValue_dbl( const Tokens& tokens, StrView key )
       {
-        auto val = getValue(tokens,key);
-        if ( !val.has_value() )
-          NCRYSTAL_THROW2(BadInput,"Missing required parameter \""<<key<<"\"");
-        if ( !val.value().has_value() )
-          NCRYSTAL_THROW2(BadInput,"Missing value for parameter \""<<key<<"\"");
-        auto val_dbl = val.value().toDbl();
+        auto val_str = getValue_str(tokens,key);
+        auto val_dbl = val_str.toDbl();
         if ( !val_dbl.has_value() )
           NCRYSTAL_THROW2(BadInput,"Invalid value for parameter \""<<key<<"\"");
         if ( std::isnan(val_dbl.value()) || std::isinf(val_dbl.value()) )
@@ -135,7 +138,7 @@ namespace NCRYSTAL_NAMESPACE {
         return val_dbl.value();
       }
 
-      inline std::size_t getValue_sizet( Tokens& tokens, StrView key )
+      inline std::size_t getValue_sizet( const Tokens& tokens, StrView key )
       {
         double x = getValue_dbl(tokens,key);
         std::size_t res;
@@ -144,7 +147,7 @@ namespace NCRYSTAL_NAMESPACE {
         return res;
       }
 
-      inline double getValue_weight( Tokens& tokens, StrView key )
+      inline double getValue_weight( const Tokens& tokens, StrView key )
       {
         double w = getValue_dbl(tokens,key);
         if ( !std::isfinite(w) || !(w>0.0) )
@@ -153,16 +156,12 @@ namespace NCRYSTAL_NAMESPACE {
         return w;
       }
 
-      inline bool getValue_bool( Tokens& tokens, StrView key )
+      inline bool getValue_bool( const Tokens& tokens, StrView key )
       {
-        auto val = getValue(tokens,key);
-        if ( !val.has_value() )
-          NCRYSTAL_THROW2(BadInput,"Missing required parameter \""<<key<<"\"");
-        if ( !val.value().has_value() )
-          NCRYSTAL_THROW2(BadInput,"Missing value for parameter \""<<key<<"\"");
-        if ( val.value() == "0" )
+        auto val_str = getValue_str(tokens,key);
+        if ( val_str == "0" )
           return false;
-        if ( val.value() != "1" )
+        if ( val_str != "1" )
           NCRYSTAL_THROW2(BadInput,"Invalid value for parameter \""<<key<<"\"");
         return true;
       }
@@ -172,7 +171,8 @@ namespace NCRYSTAL_NAMESPACE {
         std::string title;
       };
 
-      inline EParsed getValue_Energy( Tokens& tokens, Optional<EParsed> def_val = NullOpt )
+      inline EParsed getValue_Energy( const Tokens& tokens,
+                                      Optional<EParsed> def_val = NullOpt )
       {
         EParsed res;
         if ( getValue( tokens, "ekin" ).has_value() ) {
@@ -210,7 +210,7 @@ namespace NCRYSTAL_NAMESPACE {
         if ( tokens.empty() )
           return;
         auto all_accepted = StrView(raw_all_accepted).splitTrimmedNoEmpty(';');
-        auto it = std::next(tokens.begin());//skip source name
+        auto it = tokens.begin();
         auto itE = tokens.end();
         for ( ; it != itE; ++it ) {
           bool found = false;

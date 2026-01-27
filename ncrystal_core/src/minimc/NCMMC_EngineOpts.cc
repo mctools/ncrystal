@@ -24,17 +24,20 @@
 namespace NC = NCrystal;
 namespace NCMMC = NCrystal::MiniMC;
 
-NCMMC::EngineOpts NCMMC::parseEngineOpts( StrView raw_srcstr )
+NCMMC::EngineOpts NCMMC::parseEngineOpts( StrView raw_eoptsstr )
 {
   namespace PMC = parseMMCCfg;
-  auto tokens = PMC::tokenize( raw_srcstr );
-  StrView src_name =  PMC::mainName( tokens );
-  if ( !src_name.has_value() )
-    src_name = "std";//Default to "std" engine
+
+  auto tokeninfo = PMC::tokenize( raw_eoptsstr );
+  auto& tokens = tokeninfo.tokens;
+
+  StrView engine_name =  tokeninfo.mainName;
+  if ( !engine_name.has_value() )
+    engine_name = "std";//Default to "std" engine
 
   //For now we only have the one engine (fixme: add an "analogue" engine?)
-  if (src_name != "std" )
-    NCRYSTAL_THROW2(BadInput,"Invalid MiniMC engine \""<<src_name<<"\"");
+  if (engine_name != "std" )
+    NCRYSTAL_THROW2(BadInput,"Invalid MiniMC engine \""<<engine_name<<"\"");
 
   NCMMC::EngineOpts res;
   //Defaults (with asserts that they are compatible with the defaults on the
@@ -51,6 +54,7 @@ NCMMC::EngineOpts NCMMC::parseEngineOpts( StrView raw_srcstr )
 
   //Apply defaults and error in case of unknown parameters:
   PMC::applyDefaults( tokens, defaults );
+
   PMC::checkNoUnknown(tokens,
                       //
                       "seed;roulette"
@@ -211,51 +215,45 @@ std::string NCMMC::engineOptsToString( const EngineOpts& eopts )
   using EO = EngineOpts;
   std::ostringstream ss;
   bool is_empty(true);
-  if ( eopts.ignoreMiss != EO::IgnoreMiss::Default ) {
-    is_empty = false;
-    ss<<"ignoremiss="
-      << ( eopts.ignoreMiss == EO::IgnoreMiss::YES ? '1' : '0' );
-  }
-  if ( eopts.includeAbsorption != EO::IncludeAbsorption::Default ) {
+  auto delim = [&ss,&is_empty] () -> std::ostringstream&
+  {
     if (!is_empty)
-      ss << ';';
-    is_empty = false;
-    ss<<"absorption="
-      << ( eopts.includeAbsorption == EO::IncludeAbsorption::YES ? '1' : '0' );
-  }
-  if ( !eopts.nthreads.indicatesAutoDetect() ) {
-    if (!is_empty)
-      ss << ';';
-    is_empty = false;
-    ss<<"nthreads="<<eopts.nthreads.get();
-  }
-  if ( eopts.tallyBeamDir.has_value() ) {
-    ss<<";beamdirx="<<fmt(eopts.tallyBeamDir.value()[0])
-      <<";beamdiry="<<fmt(eopts.tallyBeamDir.value()[1])
-      <<";beamdirz="<<fmt(eopts.tallyBeamDir.value()[2]);
-  }
+      ss<<';';
+    is_empty=false;
+    return ss;
+  };
+
+  if ( eopts.ignoreMiss != EO::IgnoreMiss::Default )
+    delim()<<"ignoremiss="
+           << ( eopts.ignoreMiss == EO::IgnoreMiss::YES ? '1' : '0' );
+
+  if ( eopts.includeAbsorption != EO::IncludeAbsorption::Default )
+    delim()<<"absorption="
+           << ( eopts.includeAbsorption == EO::IncludeAbsorption::YES ? '1' : '0' );
+
+  if ( eopts.tallyBeamDir.has_value() )
+    delim()<<"beamdirx="<<fmt(eopts.tallyBeamDir.value()[0])
+           <<";beamdiry="<<fmt(eopts.tallyBeamDir.value()[1])
+           <<";beamdirz="<<fmt(eopts.tallyBeamDir.value()[2]);
   if ( eopts.seed != 0 )
-    ss<<";seed="<<eopts.seed;
-  if ( ! ( eopts.roulette == RouletteOptions{} ) ) {
-    ss<<";roulette="<<fmt(eopts.roulette.survival_probability)
-      <<','<<fmt(eopts.roulette.weight_threshold)
-      <<','<<fmt(eopts.roulette.nscat_threshold);
-  }
+    delim()<<"seed="<<eopts.seed;
+
+  if ( ! ( eopts.roulette == RouletteOptions{} ) )
+    delim()<<"roulette="<<fmt(eopts.roulette.survival_probability)
+           <<','<<fmt(eopts.roulette.weight_threshold)
+           <<','<<fmt(eopts.roulette.nscat_threshold);
+
   if ( eopts.tallyBeamEnergy.has_value() )
-    ss<<";beamenergy="<<fmt(eopts.tallyBeamEnergy.value().dbl());;
+    delim()<<"beamenergy="<<fmt(eopts.tallyBeamEnergy.value().dbl());
+
   if ( eopts.nScatLimit.has_value() )
-    ss<<";nscatlimit="<<eopts.nScatLimit.value();
-  if ( !eopts.nthreads.indicatesAutoDetect() ) {
-    if (!is_empty)
-      ss << ';';
-    is_empty = false;
-    ss<<"nthreads="<<eopts.nthreads.get();
-  }
+    delim()<<"nscatlimit="<<eopts.nScatLimit.value();
+
+  if ( !eopts.nthreads.indicatesAutoDetect() )
+    delim()<<"nthreads="<<eopts.nthreads.get();
+
   if ( eopts.tallyFlags.getValue() != TallyFlags().getValue() ) {
-    if (!is_empty)
-      ss << ';';
-    is_empty = false;
-    ss<<"tally=";
+    delim()<<"tally=";
     bool firsttl = true;
     for ( auto& e : eopts.tallyFlags.toStringList() ) {
       if (!firsttl)
@@ -293,7 +291,6 @@ void NCMMC::engineOptsToJSON(std::ostream& os, const EngineOpts& eopts)
     VectD vtbd = { eopts.tallyBeamDir.value()[0],
                    eopts.tallyBeamDir.value()[1],
                    eopts.tallyBeamDir.value()[2] };
-    //fixme: also make srcBeamDir + energy avail in json
     streamJSONDictEntry( os, "beamdir", vtbd );
   } else {
     streamJSONDictEntry( os, "beamdir", json_null_t{} );

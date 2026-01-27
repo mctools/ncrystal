@@ -50,21 +50,6 @@ Caught expected NCBadInput('Invalid MiniMC JSON query: ["mmc","inspectcfg","bla"
 >>> Sending query: ['mmc', 'inspectcfg', 'src', '']
 Caught expected NCBadInput('Invalid src cfg: ""')
 
->>> Sending query: ['mmc', 'inspectcfg', 'engine', 'tally=cosmu,cosmu']
-{'cfgstr': 'tally=cosmu',
- 'decoded': {'absorption': True,
-             'beamdir': None,
-             'beamenergy': None,
-             'ignoremiss': False,
-             'nscatlimit': None,
-             'nthreads': 'auto',
-             'roulette': {'nscat_threshold': 2,
-                          'psurvival': 0.1,
-                          'weight_threshold': 0.01},
-             'seed': 0,
-             'tally': ['cosmu']},
- 'name': 'std'}
-
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;wl=2.0']
 {'cfgstr': 'constant;n=1000000;z=0;wl=2',
  'decoded': {'ekin': 0.020451052401332725,
@@ -185,3 +170,129 @@ Caught expected NCBadInput('Invalid src cfg: ""')
              'name': 'cyl',
              'r': 0.5,
              'short_description': 'cylinder with radius 50cm and length 24m'}}
+
+>>> Sending query: ['mmc', 'tallylist', 'bla']
+Caught expected NCBadInput('Invalid MiniMC JSON query: ["mmc","tallylist","bla"] (no arguments should come after: ["mmc","tallylist"])')
+
+>>> Sending query: ['mmc', 'tallylist']
+{'ALL': ['cosmu',
+         'e',
+         'highres',
+         'l',
+         'lowres',
+         'mu',
+         'nobreakdown',
+         'nscat',
+         'nscat_uw',
+         'q',
+         'w'],
+ 'ALLHISTS': ['cosmu', 'e', 'l', 'mu', 'nscat', 'nscat_uw', 'q', 'w'],
+ 'DEFAULT': ['mu']}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'engine', 'whatever = 0']
+Caught expected NCBadInput('Invalid parameter for chosen engine: "whatever"')
+
+>>> Sending query: ['mmc', 'inspectcfg', 'engine', 'tally=nobreakdown,cosmu,cosmu']
+{'cfgstr': 'tally=cosmu,nobreakdown',
+ 'decoded': {'absorption': True,
+             'beamdir': None,
+             'beamenergy': None,
+             'ignoremiss': False,
+             'nscatlimit': None,
+             'nthreads': 'auto',
+             'roulette': {'nscat_threshold': 2,
+                          'psurvival': 0.1,
+                          'weight_threshold': 0.01},
+             'seed': 0,
+             'tally': ['cosmu', 'nobreakdown']},
+ 'name': 'std'}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'engine', '']
+{'cfgstr': '',
+ 'decoded': {'absorption': True,
+             'beamdir': None,
+             'beamenergy': None,
+             'ignoremiss': False,
+             'nscatlimit': None,
+             'nthreads': 'auto',
+             'roulette': {'nscat_threshold': 2,
+                          'psurvival': 0.1,
+                          'weight_threshold': 0.01},
+             'seed': 0,
+             'tally': ['mu']},
+ 'name': 'std'}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'engine', 'nthreads=4']
+{'cfgstr': 'nthreads=4',
+ 'decoded': {'absorption': True,
+             'beamdir': None,
+             'beamenergy': None,
+             'ignoremiss': False,
+             'nscatlimit': None,
+             'nthreads': 4,
+             'roulette': {'nscat_threshold': 2,
+                          'psurvival': 0.1,
+                          'weight_threshold': 0.01},
+             'seed': 0,
+             'tally': ['mu']},
+ 'name': 'std'}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'engine', 'roulette=0.8,0.001,1']
+{'cfgstr': 'roulette=0.8,0.001,1',
+ 'decoded': {'absorption': True,
+             'beamdir': None,
+             'beamenergy': None,
+             'ignoremiss': False,
+             'nscatlimit': None,
+             'nthreads': 'auto',
+             'roulette': {'nscat_threshold': 1,
+                          'psurvival': 0.8,
+                          'weight_threshold': 0.001},
+             'seed': 0,
+             'tally': ['mu']},
+ 'name': 'std'}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'engine', 'nthreads=0 ;   ignoremiss =1']
+{'cfgstr': 'ignoremiss=1;nthreads=0',
+ 'decoded': {'absorption': True,
+             'beamdir': None,
+             'beamenergy': None,
+             'ignoremiss': True,
+             'nscatlimit': None,
+             'nthreads': 0,
+             'roulette': {'nscat_threshold': 2,
+                          'psurvival': 0.1,
+                          'weight_threshold': 0.01},
+             'seed': 0,
+             'tally': ['mu']},
+ 'name': 'std'}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'engine', 'std;nthreads=0;ignoremiss=1']
+{'cfgstr': 'ignoremiss=1;nthreads=0',
+ 'decoded': {'absorption': True,
+             'beamdir': None,
+             'beamenergy': None,
+             'ignoremiss': True,
+             'nscatlimit': None,
+             'nthreads': 0,
+             'roulette': {'nscat_threshold': 2,
+                          'psurvival': 0.1,
+                          'weight_threshold': 0.01},
+             'seed': 0,
+             'tally': ['mu']},
+ 'name': 'std'}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'engine', '\t  std ; nthreads=  auto  \t\n;ignoremiss= 0']
+{'cfgstr': '',
+ 'decoded': {'absorption': True,
+             'beamdir': None,
+             'beamenergy': None,
+             'ignoremiss': False,
+             'nscatlimit': None,
+             'nthreads': 'auto',
+             'roulette': {'nscat_threshold': 2,
+                          'psurvival': 0.1,
+                          'weight_threshold': 0.01},
+             'seed': 0,
+             'tally': ['mu']},
+ 'name': 'std'}

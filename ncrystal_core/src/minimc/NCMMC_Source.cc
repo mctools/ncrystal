@@ -372,8 +372,8 @@ namespace NCRYSTAL_NAMESPACE {
 
         void toString(std::ostream& os) const override
         {
-          sourceCfgStrHelper_namexyzwn(os, "constant",
-                                       m_x, m_y, m_z, m_w, m_stat );
+          sourceCfgStrHelper_namexyzwn( os, "constant",
+                                        m_x, m_y, m_z, m_w, m_stat );
           sourceCfgStrHelper_energyItems( os, m_ekin );
           sourceCfgStrHelper_direction( os, m_dir );
         }
@@ -612,8 +612,9 @@ namespace NCRYSTAL_NAMESPACE {
       {
         namespace PMC = parseMMCCfg;
 
-        auto tokens = PMC::tokenize( raw_srcstr );
-        auto src_name =  PMC::mainName( tokens );
+        auto tokeninfo = PMC::tokenize( raw_srcstr );
+        auto& tokens = tokeninfo.tokens;
+        auto src_name =  tokeninfo.mainName;
         if ( !src_name.has_value() )
           NCRYSTAL_THROW2(BadInput,"Invalid src cfg: \""<<raw_srcstr<<"\"");
 

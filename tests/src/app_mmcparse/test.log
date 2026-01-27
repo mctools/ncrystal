@@ -1,20 +1,20 @@
 
 Test engine opt string: ""
     -> obj: EngineOpts()
-    -> json: {"ignoremiss":false,"tallybreakdown":true,"nthreads":"auto"}
+    -> json: {"name":"std","cfgstr":"","decoded":{"seed":0,"roulette":{"psurvival":0.1,"weight_threshold":0.01,"nscat_threshold":2},"ignoremiss":false,"absorption":true,"beamdir":null,"beamenergy":null,"nscatlimit":null,"tally":["mu"],"nthreads":"auto"}}
 
 Test engine opt string: "nthreads=4"
     -> obj: EngineOpts(nthreads=4)
-    -> json: {"ignoremiss":false,"tallybreakdown":true,"nthreads":4}
+    -> json: {"name":"std","cfgstr":"nthreads=4","decoded":{"seed":0,"roulette":{"psurvival":0.1,"weight_threshold":0.01,"nscat_threshold":2},"ignoremiss":false,"absorption":true,"beamdir":null,"beamenergy":null,"nscatlimit":null,"tally":["mu"],"nthreads":4}}
 
-Test engine opt string: "tallybreakdown  =  0"
-    -> obj: EngineOpts(tallybreakdown=0)
-    -> json: {"ignoremiss":false,"tallybreakdown":false,"nthreads":"auto"}
+Test engine opt string: "tally = cosmu  , nobreakdown"
+    -> obj: EngineOpts(tally=cosmu,nobreakdown)
+    -> json: {"name":"std","cfgstr":"tally=cosmu,nobreakdown","decoded":{"seed":0,"roulette":{"psurvival":0.1,"weight_threshold":0.01,"nscat_threshold":2},"ignoremiss":false,"absorption":true,"beamdir":null,"beamenergy":null,"nscatlimit":null,"tally":["cosmu","nobreakdown"],"nthreads":"auto"}}
 
 Test engine opt string: "nthreads=0 ;   ignoremiss =1"
     -> obj: EngineOpts(ignoremiss=1;nthreads=0)
-    -> json: {"ignoremiss":true,"tallybreakdown":true,"nthreads":0}
+    -> json: {"name":"std","cfgstr":"ignoremiss=1;nthreads=0","decoded":{"seed":0,"roulette":{"psurvival":0.1,"weight_threshold":0.01,"nscat_threshold":2},"ignoremiss":true,"absorption":true,"beamdir":null,"beamenergy":null,"nscatlimit":null,"tally":["mu"],"nthreads":0}}
 
 Test engine opt string: "std;nthreads=0;ignoremiss=1"
     -> obj: EngineOpts(ignoremiss=1;nthreads=0)
-    -> json: {"ignoremiss":true,"tallybreakdown":true,"nthreads":0}
+    -> json: {"name":"std","cfgstr":"ignoremiss=1;nthreads=0","decoded":{"seed":0,"roulette":{"psurvival":0.1,"weight_threshold":0.01,"nscat_threshold":2},"ignoremiss":true,"absorption":true,"beamdir":null,"beamenergy":null,"nscatlimit":null,"tally":["mu"],"nthreads":0}}

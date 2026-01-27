@@ -103,8 +103,9 @@ namespace NCRYSTAL_NAMESPACE {
       {
         namespace PMC = parseMMCCfg;
 
-        auto tokens = PMC::tokenize( raw_geomstr );
-        auto geom_name =  PMC::mainName( tokens );
+        auto tokeninfo = PMC::tokenize( raw_geomstr );
+        auto& tokens = tokeninfo.tokens;
+        auto geom_name =  tokeninfo.mainName;
         if ( !geom_name.has_value() )
           NCRYSTAL_THROW2(BadInput,"Invalid geom cfg: \""<<raw_geomstr<<"\"");
 
