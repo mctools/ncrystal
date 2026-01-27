@@ -69,11 +69,15 @@ namespace NCRYSTAL_NAMESPACE {
       //neutrons read from an external file.
       virtual Optional<NeutronEnergy> nominalBeamEnergy() const = 0;
 
+      //Like nominalBeamEnergy(), but formatted in a string (e.g. "1Aa",
+      //"25meV", "2eV", etc.) suitable for e.g. plot labels):
+      virtual Optional<std::string> nominalBeamEnergyStr() const = 0;
+
       //Serialisation of source configuration, as original source cfg-string, or
       //as a JSON object with more direct access to individual values. The JSON
       //object is a dictionary like (where one of the params should always be
-      //the name of the type of source (i.e. "name":"constant").  { "cfgstr" :
-      //"...", "decoded" : { "k" : "v", ...} }
+      //the name of the type of source (i.e. "name":"constant").  Specifically
+      //the layout is: { "cfgstr" : "...", "decoded" : { "k" : "v", ...} }
 
       virtual void toJSON(std::ostream&) const = 0;
       virtual void toString(std::ostream&) const = 0;
