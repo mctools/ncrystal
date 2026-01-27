@@ -167,16 +167,40 @@ namespace NCRYSTAL_NAMESPACE {
         return true;
       }
 
-      inline NeutronEnergy getValue_Energy( Tokens& tokens, Optional<NeutronEnergy> def_val = NullOpt )
+      struct EParsed {
+        NeutronEnergy energy;
+        std::string title;
+      };
+
+      inline EParsed getValue_Energy( Tokens& tokens, Optional<EParsed> def_val = NullOpt )
       {
-        if ( getValue( tokens, "ekin" ).has_value() )
-          return NeutronEnergy{ getValue_dbl(tokens,"ekin") };
-        if ( getValue( tokens, "wl" ).has_value() )
-          return NeutronWavelength{ getValue_dbl(tokens,"wl") };
-        if ( !def_val.has_value() )
-          NCRYSTAL_THROW2(BadInput,"Missing energy value (set in eV or angstrom"
-                          " with \"ekin\" and \"wl\" parameters respectively");
-        return def_val.value();
+        EParsed res;
+        if ( getValue( tokens, "ekin" ).has_value() ) {
+          double val = getValue_dbl(tokens,"ekin");
+          res.energy = NeutronEnergy{ val };
+          const char * unit = "eV";
+          if ( val < 0.1 ) {
+            val *= 1000.0;
+            unit = "meV";
+          } else if ( val > 100 ) {
+            val *= 0.001;
+            unit = "keV";
+          }
+          res.title = dbl2shortstr( val ).to_string();
+          res.title += unit;
+        } else if ( getValue( tokens, "wl" ).has_value() ) {
+          double val = getValue_dbl(tokens,"wl");
+          res.energy = NeutronWavelength{ val };
+          res.title = dbl2shortstr( val ).to_string();
+          res.title += "Aa";
+        } else {
+          if ( !def_val.has_value() )
+            NCRYSTAL_THROW2(BadInput,"Missing energy value (set in eV or "
+                            "angstrom with \"ekin\" and \"wl\" parameters "
+                            "respectively).");
+          res = def_val.value();
+        }
+        return res;
       }
 
       inline void checkNoUnknown( const Tokens& tokens,
