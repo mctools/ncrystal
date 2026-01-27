@@ -544,7 +544,7 @@ namespace NCRYSTAL_NAMESPACE {
       {
         streamJSONDictEntry( os, "datatype", "NCrystalHist1D_v1",
                              JSONDictPos::FIRST);
-        streamJSONDictEntry( os, "title", m_title, JSONDictPos::OTHER);
+        streamJSONDictEntry( os, "title", m_title );
         os<< ',';
         streamJSON(os,"stats");
         os << ':';
