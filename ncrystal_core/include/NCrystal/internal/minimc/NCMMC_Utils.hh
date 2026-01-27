@@ -125,6 +125,7 @@ namespace NCRYSTAL_NAMESPACE {
         std::string geomcfg;
         std::string srccfg;
         std::string enginecfg;
+        std::string short_title;//like "1.8Aa neutron on 2mm sphere"
       };
       ScenarioDecoded decodeScenario( const MatCfg&, const char* scenario );
 
