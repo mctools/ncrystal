@@ -2350,58 +2350,19 @@ char* ncrystal_minimc( const char * material_cfgstr,
 {
   try {
     std::string result;
-    if ( material_cfgstr && material_cfgstr[0]=='['
-         && NC::StrView(material_cfgstr)=="[[show_tally_lists]]" ) {
-      //Hidden support, intended to get meta-information from the C++ to the
-      //Python layer without hard-coding it in two places.
-      using TF = NCMMC::TallyFlags;
-      std::ostringstream os;
-      NC::streamJSONDictEntry( os, "ALL",
-                               TF(TF::Flags::ALL).toStringList(),
-                               NC::JSONDictPos::FIRST );
-      NC::streamJSONDictEntry( os, "DEFAULT",
-                               TF(TF::Flags::DEFAULT).toStringList() );
-      NC::streamJSONDictEntry( os, "ALLHISTS",
-                               TF(TF::Flags::ALLHISTS).toStringList(),
-                               NC::JSONDictPos::LAST );
-      result = os.str();
-    } else {
-      //Standard mode:
-      NCMMC::MatDef matdef( material_cfgstr );
-      auto geom = NCMMC::createGeometry( geomcfg );
-      auto src = NCMMC::createSource( srccfg );
-      auto eopts = NCMMC::parseEngineOpts( enginecfg );
-      using basket_t = NCMMC::StdEngine::basket_t;
-      auto tally = NC::makeSO<NCMMC::TallyStdHists<basket_t>>( eopts, *src );
-      //fixme: nthreads appears both directly in next line + in engine_options:
-      auto resmd = NCMMC::runSim_StdEngine( geom, src, tally, matdef, eopts );
-      std::ostringstream os;
-      NCMMC::resultsToJSON( os, geom, src, tally, matdef, eopts, resmd );
-      result = std::move(os).str();
-    }
+    NCMMC::MatDef matdef( material_cfgstr );
+    auto geom = NCMMC::createGeometry( geomcfg );
+    auto src = NCMMC::createSource( srccfg );
+    auto eopts = NCMMC::parseEngineOpts( enginecfg );
+    using basket_t = NCMMC::StdEngine::basket_t;
+    auto tally = NC::makeSO<NCMMC::TallyStdHists<basket_t>>( eopts, *src );
+    auto resmd = NCMMC::runSim_StdEngine( geom, src, tally, matdef, eopts );
+    std::ostringstream os;
+    NCMMC::resultsToJSON( os, geom, src, tally, matdef, eopts, resmd );
+    result = std::move(os).str();
     return ncc::createString(result);
   } NCCATCH;
   return nullptr;
-}
-
-char** ncrystal_minimc_scenario( const char * material_cfgstr,
-                                 const char * scenario )
-{
-  char ** result = nullptr;
-  try {
-    NC::MatCfg matcfg(material_cfgstr);
-    auto decoded = NCMMC::Utils::decodeScenario( matcfg, scenario );
-    NC::VectS strlist = { std::move(decoded.geomcfg),
-                          std::move(decoded.srccfg),
-                          std::move(decoded.enginecfg) };
-    //convert:
-    char ** strs;
-    unsigned nstrs;
-    ncc::createStringList(strlist,&strs,&nstrs);
-    nc_assert_always(nstrs==3);
-    result = strs;
-  } NCCATCH;
-  return result;
 }
 
 char* ncrystal_jsonquery( const char * rawquery )

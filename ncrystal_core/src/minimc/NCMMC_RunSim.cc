@@ -119,9 +119,9 @@ void NCMMC::resultsToJSON( std::ostream& os,
     streamJSONDictEntry( os, "cfgstr",
                          matdef.matcfg.value().toStrCfg(),
                          JSONDictPos::FIRST );
-    streamJSONDictEntry( os, "decoded",
-                         matdef.matcfg.value().toJSONCfg(),
-                         JSONDictPos::LAST );
+    os << ",\"decoded\":"
+       << matdef.matcfg.value().toJSONCfg()
+       << '}';
   } else {
     streamJSON( os, json_null_t{} );
   }

@@ -663,8 +663,10 @@ void NCMMCU::JSONQuery( std::ostream& os,
   if ( key == "scenario" ) {
     if ( nargs != 2 )
       invalid("correct usage: [\"mmc\",\"scenario\",CFGSTR,SCENARIOSTR]");
-    auto d = decodeScenario( argstr(0), argstr(1).c_str() );
-    streamJSONDictEntry( os, "geomcfg", d.geomcfg, JSONDictPos::FIRST );
+    auto matcfg = MatCfg(argstr(0));
+    auto d = decodeScenario( matcfg, argstr(1).c_str() );
+    streamJSONDictEntry( os, "cfgstr", matcfg.toStrCfg(), JSONDictPos::FIRST );
+    streamJSONDictEntry( os, "geomcfg", d.geomcfg );
     streamJSONDictEntry( os, "srccfg", d.srccfg );
     streamJSONDictEntry( os, "enginecfg", d.enginecfg );
     streamJSONDictEntry( os, "short_title", d.short_title, JSONDictPos::LAST );
