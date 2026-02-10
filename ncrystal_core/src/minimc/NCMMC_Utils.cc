@@ -507,8 +507,9 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
 
   //Compose a title like "1.8Aa neutron on 2mm diameter sphere":
   std::ostringstream title;
+  constexpr auto title_fmtstr = "%.6g";
   if ( wavelength_mode ) {
-    title << fmt( neutron_wavelength.dbl() ) << "Aa";
+    title << fmt( neutron_wavelength.dbl(), title_fmtstr ) << "Aa";
   } else {
     const double e = neutron_energy.dbl();
     if ( e < 0.1 )
@@ -519,16 +520,7 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
       title << fmt( e ) << "eV";
   }
   title << " neutron on ";
-  if ( thickness_meter < 0.1e-3 )
-    title << fmt(thickness_meter*1e6) << "micrometer";
-  else if ( thickness_meter > 100.0 )
-    title << fmt(thickness_meter*1e-3) << "km";
-  else if ( thickness_meter > 0.1 )
-    title << fmt(thickness_meter*1e-3) << "m";
-  else if ( thickness_meter > 0.1 )
-    title << fmt(thickness_meter*1e2) << "cm";
-  else
-    title << fmt(thickness_meter*1e3) << "mm";
+  fmtBestUnit(title,Length{thickness_meter},title_fmtstr);
   if ( is_sphere ) {
     title << " diameter sphere";
   } else {
@@ -696,4 +688,22 @@ void NCMMCU::JSONQuery( std::ostream& os,
   } else {
     invalid();
   }
+}
+
+void NCMMCU::fmtBestUnit( std::ostream& os, Length val, const char * fmtstr )
+{
+  const double t = val.dbl();
+  if ( t < 1e-8 )
+    os << fmt(t*1e9,fmtstr) << "nm";
+  else if ( t < 0.1e-3 )
+    os << fmt(t*1e6,fmtstr) << "micrometer";
+  else if ( t > 100.0 )
+    os << fmt(t*1e-3,fmtstr) << "km";
+  else if ( t > 1.0 )
+    os << fmt(t,fmtstr) << "m";
+  else if ( t > 0.1 )
+    os << fmt(t*1e2,fmtstr) << "cm";
+  else
+    os << fmt(t*1e3,fmtstr) << "mm";
+
 }

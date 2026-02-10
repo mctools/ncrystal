@@ -27,9 +27,13 @@
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/internal/minimc/NCMMC_Basket.hh"
 #include "NCrystal/internal/minimc/NCMMC_Defs.hh"
+#include "NCrystal/internal/minimc/NCMMC_Utils.hh"
 
 namespace NCRYSTAL_NAMESPACE {
   namespace {
+
+    //A few utilities here that might be used also by the other geometry
+    //implementations:
 
     inline double fast_sqrt_clippos( double x ) noexcept {
       //Using this in a loop does not actually allow for vectorization,
@@ -45,19 +49,7 @@ namespace NCRYSTAL_NAMESPACE {
 
     void fmt_length_meters( std::ostream& os, double length_meters )
     {
-      const double t = length_meters;
-      if ( t < 1e-8 )
-        os << fmt(t*1e9) << "nm";
-      else if ( t < 0.1e-3 )
-        os << fmt(t*1e6) << "micrometer";
-      else if ( t > 100.0 )
-        os << fmt(t*1e-3) << "km";
-      else if ( t > 1.0 )
-        os << fmt(t) << "m";
-      else if ( t > 0.1 )
-        os << fmt(t*1e2) << "cm";
-      else
-        os << fmt(t*1e3) << "mm";
+      MiniMC::Utils::fmtBestUnit(os,Length{length_meters},"%.6g");
     }
 
   }

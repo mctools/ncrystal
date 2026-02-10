@@ -77,6 +77,11 @@ namespace NCRYSTAL_NAMESPACE {
                             double * ncrestrict out_dist,
                             std::size_t n, double slab_halfthickness );
 
+      //Format value with most appropriate unit. The fmtstr is used as in
+      //NCFmt.hh:
+      void fmtBestUnit( std::ostream& os, Length,
+                        const char* fmtstr = nullptr );
+
       //Fixme: Move the following explanation somewhere more appropriate and
       //maintainable, and refer to it there?
       //
