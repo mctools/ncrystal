@@ -19,17 +19,9 @@
 ##                                                                            ##
 ################################################################################
 
-"""
+""" Obsolete interface. Use the NCrystal.minimc module instead."""
 
-Highly experimental "Mini-MC" framework for transforming NCrystal materials into
-actual scattering patterns.
+__all__ = ['quick_diffraction_pattern','runsim_diffraction_pattern']
 
-"""
-
-__all__ = ['runsim_diffraction_pattern',
-           'quick_diffraction_pattern',
-           'quick_diffraction_pattern_autoparams']
-
-from ._mmc import ( runsim_diffraction_pattern,
-                    quick_diffraction_pattern,
-                    quick_diffraction_pattern_autoparams )
+from ._mmc import quick_diffraction_pattern # noqa F401
+from ._mmc import runsim_diffraction_pattern # noqa F401
