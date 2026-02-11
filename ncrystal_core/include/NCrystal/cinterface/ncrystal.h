@@ -637,10 +637,6 @@ extern "C" {
 #  undef ncrystal_runmmcsim_stdengine
 #endif
 #define ncrystal_runmmcsim_stdengine NCRYSTAL_APPLY_C_NAMESPACE(runmmcsim_stdengine)
-#ifdef ncrystal_minimc
-#  undef ncrystal_minimc
-#endif
-#define ncrystal_minimc NCRYSTAL_APPLY_C_NAMESPACE(minimc)
 #ifdef ncrystal_jsonquery
 #  undef ncrystal_jsonquery
 #endif
@@ -1268,26 +1264,6 @@ extern "C" {
                                                             double* results );
 
 
-  /*========================================================================== */
-  /*========================================================================== */
-  /*==                                                                      == */
-  /*== Access the MiniMC simulation engine.                                 == */
-  /*==                                                                      == */
-  /*========================================================================== */
-  /*========================================================================== */
-
-
-  /* Run the MiniMC simulation engine, based on a given material, geometry,    */
-  /* source and engine configuration.                                          */
-  /* Results are returned as a JSON string, which must be cleaned up with      */
-  /* ncrystal_dealloc_string).                                                 */
-  /* The actual contents of the the various cfg strings and JSON data is       */
-  /* documented elsewhere.                                                     */
-  NCRYSTAL_API char* ncrystal_minimc( const char * material_cfgstr,
-                                      const char * geomcfg,
-                                      const char * srccfg,
-                                      const char * enginecfg );
-
 
   /*============================================================================== */
   /*============================================================================== */
@@ -1364,7 +1340,7 @@ extern "C" {
                                            double** sab );
 
   /* Obsolete function. Calling it will result in an error. Use the            */
-  /* ncrystal_minimc(..) function instead.                                     */
+  /* ncrystal_jsonquery(..) function instead.                                  */
   NCRYSTAL_API void ncrystal_runmmcsim_stdengine( unsigned, unsigned,
                                                   const char *, const char *,
                                                   const char *, char **,

@@ -2333,37 +2333,7 @@ void ncrystal_setmsghandler(void (*handler)(const char*,unsigned))
   } NCCATCH;
 }
 
-#include "NCrystal/internal/minimc/NCMMC_RunSim.hh"
-#include "NCrystal/internal/minimc/NCMMC_Geom.hh"
-#include "NCrystal/internal/minimc/NCMMC_Source.hh"
-#include "NCrystal/internal/minimc/NCMMC_StdTallies.hh"
-#include "NCrystal/internal/minimc/NCMMC_StdEngine.hh"
-#include "NCrystal/internal/minimc/NCMMC_EngineOpts.hh"
-#include "NCrystal/internal/minimc/NCMMC_Utils.hh"
-
-namespace NCMMC = NCrystal::MiniMC;
-
-char* ncrystal_minimc( const char * material_cfgstr,
-                       const char * geomcfg,
-                       const char * srccfg,
-                       const char * enginecfg )
-{
-  try {
-    std::string result;
-    NCMMC::MatDef matdef( material_cfgstr );
-    auto geom = NCMMC::createGeometry( geomcfg );
-    auto src = NCMMC::createSource( srccfg );
-    auto eopts = NCMMC::parseEngineOpts( enginecfg );
-    using basket_t = NCMMC::StdEngine::basket_t;
-    auto tally = NC::makeSO<NCMMC::TallyStdHists<basket_t>>( eopts, *src );
-    auto resmd = NCMMC::runSim_StdEngine( geom, src, tally, matdef, eopts );
-    std::ostringstream os;
-    NCMMC::resultsToJSON( os, geom, src, tally, matdef, eopts, resmd );
-    result = std::move(os).str();
-    return ncc::createString(result);
-  } NCCATCH;
-  return nullptr;
-}
+#include "NCrystal/internal/minimc/NCMMC_Query.hh"
 
 char* ncrystal_jsonquery( const char * rawquery )
 {
@@ -2380,7 +2350,7 @@ char* ncrystal_jsonquery( const char * rawquery )
     constexpr auto sv_mmc = NC::StrView::make("mmc");
     std::ostringstream os;
     if ( key == sv_mmc ) {
-      NCMMC::Utils::JSONQuery( os, query );
+      NC::MiniMC::Query::JSONQuery( os, query );
     } else {
       NCRYSTAL_THROW2(BadInput, "Invalid JSON query key: \""<<key<<'"');
     }
@@ -2402,7 +2372,7 @@ void ncrystal_runmmcsim_stdengine( unsigned, unsigned, const char *,
   try {
     NCRYSTAL_MSG("WARNING: The ncrystal_runmmcsim_stdengine(..) function "
                  "is obsoleted. Please migrate to use the "
-                 "ncrystal_minimc(..) function instead.");
+                 "ncrystal_jsonquery(..) function instead.");
     NCRYSTAL_THROW(LogicError,"The ncrystal_runmmcsim_stdengine function"
                    " should no longer be used.");
   } NCCATCH;

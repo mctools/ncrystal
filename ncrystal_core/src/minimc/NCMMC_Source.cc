@@ -608,7 +608,7 @@ namespace NCRYSTAL_NAMESPACE {
         }
       };
 
-      SourcePtr createSourceImpl( const char * raw_srcstr )
+      SourcePtr createSourceImpl( const StrView& raw_srcstr )
       {
         namespace PMC = parseMMCCfg;
 
@@ -682,7 +682,7 @@ namespace NCRYSTAL_NAMESPACE {
 }
 
 
-NCMMC::SourcePtr NCMMC::createSource( const char * raw_srcstr )
+NCMMC::SourcePtr NCMMC::createSource( const StrView& raw_srcstr )
 {
   auto src = createSourceImpl( raw_srcstr );
   {

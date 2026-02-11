@@ -22,6 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/minimc/NCMMC_Basket.hh"
+#include "NCrystal/internal/utils/NCStrView.hh"
 #include "NCrystal/core/NCTypes.hh"
 
 namespace NCRYSTAL_NAMESPACE {
@@ -88,7 +89,7 @@ namespace NCRYSTAL_NAMESPACE {
 
     //For convenience + abstraction, the following function is used to transform
     //a source description string into an actual source object.
-    SourcePtr createSource( const char * );
+    SourcePtr createSource( const StrView& );
 
   }
 }

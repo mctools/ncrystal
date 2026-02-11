@@ -19,7 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/minimc/NCMMC_Geom.hh"
-#include "NCMMC_Sphere.hh"
+#include "NCMMC_Sphere.hh"//NB: Sphere first, since it contains a few utils.
 #include "NCMMC_Box.hh"
 #include "NCMMC_Slab.hh"
 #include "NCMMC_Cyl.hh"
@@ -99,7 +99,7 @@ namespace NCRYSTAL_NAMESPACE {
 
       };
 
-      GeometryPtr createGeometryImpl( const char * raw_geomstr )
+      GeometryPtr createGeometryImpl( const StrView& raw_geomstr )
       {
         namespace PMC = parseMMCCfg;
 
@@ -142,7 +142,7 @@ namespace NCRYSTAL_NAMESPACE {
   }
 }
 
-NCMMC::GeometryPtr NCMMC::createGeometry( const char * raw_geomstr )
+NCMMC::GeometryPtr NCMMC::createGeometry( const StrView& raw_geomstr )
 {
   return createGeometryImpl( raw_geomstr );
 }

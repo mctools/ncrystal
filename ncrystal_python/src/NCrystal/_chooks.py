@@ -838,18 +838,4 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
         return res
     functions['jsonquery'] = jsonquery
 
-    _raw_minimc = _wrap('ncrystal_minimc',_charptr,(_cstr,_cstr,_cstr,_cstr,),
-                        hide=True)
-    def minimc( cfgstr, geomcfg, srccfg, enginecfg ):
-        cs = _str2cstr(cfgstr)
-        gc = _str2cstr(geomcfg)
-        sc = _str2cstr(srccfg)
-        ec = _str2cstr(enginecfg)
-        raw_str = _raw_minimc( cs, gc, sc, ec )
-        assert raw_str is not None
-        res=_cstr2str(ctypes.cast(raw_str,_cstr).value)
-        _raw_deallocstr(raw_str)
-        return res
-    functions['minimc'] = minimc
-
     return functions

@@ -24,6 +24,7 @@
 #include "NCrystal/internal/minimc/NCMMC_Basket.hh"
 #include "NCrystal/internal/utils/NCSpan.hh"
 #include "NCrystal/internal/utils/NCVector.hh"
+#include "NCrystal/internal/utils/NCStrView.hh"
 
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
@@ -90,7 +91,7 @@ namespace NCRYSTAL_NAMESPACE {
 
     //For convenience + abstraction, the following function is used to transform
     //a geometry description string into an actual geometry object.
-    GeometryPtr createGeometry( const char * );
+    GeometryPtr createGeometry( const StrView& );
 
   }
 }
